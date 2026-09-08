@@ -20,7 +20,6 @@ import { ChartEditorView, ChartEditorViewManager } from "./ChartEditorView.js"
 import {
     ConfigEditor,
     ConfigEditorManager,
-    EditorExtensions,
     EditorExtraTab,
 } from "./ConfigEditor.js"
 import { EditorTab } from "./AbstractChartEditor.js"
@@ -61,8 +60,6 @@ export interface GrapherEditorProps {
     extraTabs?: EditorExtraTab[]
     /** Replaces the default "Save config" button. */
     renderSaveButtons?: ConfigEditorManager["renderSaveButtons"]
-    /** Small hooks into the generic tabs. */
-    extensions?: EditorExtensions
 }
 
 @observer
@@ -125,10 +122,6 @@ export class GrapherEditor
 
     get renderSaveButtons(): ConfigEditorManager["renderSaveButtons"] {
         return this.props.renderSaveButtons
-    }
-
-    get extensions(): EditorExtensions | undefined {
-        return this.props.extensions
     }
 
     // One editor for the lifetime of the component. Not a `computed`: the

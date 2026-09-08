@@ -49,7 +49,6 @@ import { VariableSelector } from "./VariableSelector.js"
 import { DimensionCard } from "./DimensionCard.js"
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
 import { EditorDatabase } from "./EditorDatabase.js"
-import { isConfigEditorInstance } from "./ConfigEditor.js"
 import { ErrorMessagesForDimensions } from "./ChartEditorTypes.js"
 import { EditableTags } from "./EditableTags.js"
 import { MinimalTagWithMetadata } from "./TagGraphMetadata.js"
@@ -832,9 +831,6 @@ export class EditorBasicTab<
                         this.props.errorMessagesForDimensions
                     }
                 />
-
-                {isConfigEditorInstance(editor) &&
-                    editor.manager.extensions?.basicTabFooter?.(editor)}
             </div>
         )
     }

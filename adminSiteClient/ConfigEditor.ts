@@ -8,8 +8,8 @@
  * JSON file in someone else's repo.
  *
  * Hosts that do have a chart record (the admin) plug their extras in through
- * `extraTabs`, `renderSaveButtons` and `extensions` rather than subclassing,
- * so the editor itself stays free of chart ids, revisions and tags.
+ * `extraTabs` and `renderSaveButtons` rather than subclassing, so the editor
+ * itself stays free of chart ids, revisions and tags.
  */
 
 import type { ReactNode } from "react"
@@ -28,16 +28,6 @@ export interface EditorExtraTab {
     key: string
     label: ReactNode
     render: (editor: ConfigEditor) => ReactNode
-}
-
-/** Small hooks into the generic tabs for things only some hosts have. */
-export interface EditorExtensions {
-    /** Rendered at the end of the Basic tab (the admin puts tags here). */
-    basicTabFooter?: (editor: ConfigEditor) => ReactNode
-    /** Rendered at the end of the Text tab. */
-    textTabFooter?: (editor: ConfigEditor) => ReactNode
-    /** Extra suggestions for the origin URL field, shown first. */
-    originUrlSuggestions?: { value: string; label: string; suffix?: string }[]
 }
 
 export interface ConfigEditorManager extends AbstractChartEditorManager {
@@ -64,7 +54,6 @@ export interface ConfigEditorManager extends AbstractChartEditorManager {
         editor: ConfigEditor,
         editingErrors: string[]
     ) => ReactNode
-    extensions?: EditorExtensions
 }
 
 export class ConfigEditor extends AbstractChartEditor<ConfigEditorManager> {

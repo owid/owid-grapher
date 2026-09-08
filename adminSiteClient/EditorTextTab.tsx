@@ -12,7 +12,6 @@ import { copyToClipboard, slugify } from "@ourworldindata/utils"
 import { action, computed, makeObservable, observable, runInAction } from "mobx"
 import { observer } from "mobx-react"
 import { Component, ReactElement } from "react"
-import { isConfigEditorInstance } from "./ConfigEditor.js"
 import {
     AutoTextField,
     BindAutoStringExt,
@@ -163,13 +162,7 @@ export class EditorTextTab<
                 label: `/${slug}`,
             }))
 
-        // Hosts can put their own suggestions first (the admin: posts that
-        // already reference this chart).
-        const { editor } = this.props
-        const hostSuggestions = isConfigEditorInstance(editor)
-            ? (editor.manager.extensions?.originUrlSuggestions ?? [])
-            : []
-        return [...hostSuggestions, ...topicOptions]
+        return topicOptions
     }
 
     @action.bound onOriginUrlChange(value: string): void {
@@ -516,8 +509,6 @@ export class EditorTextTab<
                         placeholder="e.g. IHME"
                         helpText="Optional variant name for distinguishing charts with the same title"
                     />
-                    {isConfigEditorInstance(editor) &&
-                        editor.manager.extensions?.textTabFooter?.(editor)}
                 </Section>
                 {(this.hasCopyAdminURLButton ||
                     this.hasCopyGrapherURLButton) && (

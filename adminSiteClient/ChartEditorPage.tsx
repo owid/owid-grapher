@@ -20,20 +20,13 @@ import {
     MinimalTagWithMetadata,
     DbChartTagJoin,
 } from "@ourworldindata/types"
-import {
-    BAKED_BASE_URL,
-    BAKED_GRAPHER_URL,
-} from "../settings/clientSettings.js"
+import { BAKED_GRAPHER_URL } from "../settings/clientSettings.js"
 import { Admin } from "./Admin.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { AdminLayout } from "./AdminLayout.js"
 import { LoadingBlocker, Section, Toggle } from "./Forms.js"
 import { GrapherEditor } from "./GrapherEditor.js"
-import {
-    ConfigEditor,
-    EditorExtensions,
-    EditorExtraTab,
-} from "./ConfigEditor.js"
+import { ConfigEditor, EditorExtraTab } from "./ConfigEditor.js"
 import { References } from "./AbstractChartEditor.js"
 import { ChartSaveActions, ChartSaveButtons } from "./ChartSaveButtons.js"
 import { EditorHistoryTab } from "./EditorHistoryTab.js"
@@ -492,19 +485,25 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
                     />
                 ),
             },
+            {
+                key: "publishing",
+                label: "Publishing",
+                render: (editor) => this.renderPublishingTab(editor),
+            },
         ]
     }
 
-    @computed get extensions(): EditorExtensions {
-        const referencedPosts = [
-            ...(this.references?.postsWordpress ?? []),
-            ...(this.references?.postsGdocs ?? []),
-        ]
-        return {
-            basicTabFooter: (editor) => (
-                <>
-                    {this.indicatorId && (
-                        <Section name="Inheritance">
+    /**
+     * Everything about the chart as a row in our database that isn't its
+     * config: inheritance from the indicator, tags, the data-page override.
+     * Used to sit at the bottom of the Basic and Text tabs.
+     */
+    private renderPublishingTab(editor: ConfigEditor): React.ReactNode {
+        return (
+            <>
+                <Section name="Inheritance">
+                    {this.indicatorId ? (
+                        <>
                             <Toggle
                                 label="Inherit settings from the indicator"
                                 secondaryLabel="Only your changes are saved; the rest follows the indicator's own config."
@@ -529,35 +528,32 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
                                     ? ""
                                     : " (has no config of its own yet)"}
                             </small>
-                        </Section>
+                        </>
+                    ) : (
+                        <p>
+                            This chart has no y indicator yet, so there is
+                            nothing to inherit from.
+                        </p>
                     )}
-                    <TagsSection
-                        chartId={editor.grapherState.id}
-                        tags={this.tags}
-                        availableTags={this.availableTags}
-                        onSaveTags={this.saveTags}
-                    />
-                </>
-            ),
-            textTabFooter: () => (
-                <Toggle
-                    label="Force to be a data page"
-                    secondaryLabel="Use metadata from the first Y indicator (same behavior as multi-dimensional data pages)."
-                    value={this.forceDatapage}
-                    onValue={action(
-                        (value: boolean) => (this.forceDatapage = value)
-                    )}
+                </Section>
+                <TagsSection
+                    chartId={editor.grapherState.id}
+                    tags={this.tags}
+                    availableTags={this.availableTags}
+                    onSaveTags={this.saveTags}
                 />
-            ),
-            originUrlSuggestions: referencedPosts.map((post) => {
-                const relativeUrl = post.url.replace(BAKED_BASE_URL, "")
-                return {
-                    value: relativeUrl,
-                    label: relativeUrl,
-                    suffix: "(referenced by this chart)",
-                }
-            }),
-        }
+                <Section name="Data page">
+                    <Toggle
+                        label="Force to be a data page"
+                        secondaryLabel="Use metadata from the first Y indicator (same behavior as multi-dimensional data pages)."
+                        value={this.forceDatapage}
+                        onValue={action(
+                            (value: boolean) => (this.forceDatapage = value)
+                        )}
+                    />
+                </Section>
+            </>
+        )
     }
 
     override render(): React.ReactElement {
@@ -574,7 +570,6 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
                         details={adminDetailsProvider(this.admin)}
                         baseConfig={this.baseConfig}
                         extraTabs={this.extraTabs}
-                        extensions={this.extensions}
                         renderSaveButtons={(editor, editingErrors) => (
                             <ChartSaveButtons
                                 editor={editor}
