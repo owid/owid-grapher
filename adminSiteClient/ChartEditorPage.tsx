@@ -39,7 +39,6 @@ import { TagsSection } from "./EditorBasicTab.js"
 import {
     deleteChart,
     fetchChartConfigByIndicatorId,
-    findLastMapColorScaleEdit,
     getFullReferencesCount,
     Log,
 } from "./adminChartApi.js"
@@ -484,13 +483,6 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
                     suffix: "(referenced by this chart)",
                 }
             }),
-            lastMapColorScaleEdit: findLastMapColorScaleEdit(this.logs),
-            previewUrl: (editor) =>
-                editor.grapherState.id
-                    ? `/admin/charts/${editor.grapherState.id}/preview${
-                          this.forceDatapage ? "?forceDatapage=true" : ""
-                      }`
-                    : undefined,
         }
     }
 

@@ -1,6 +1,5 @@
 import * as _ from "lodash-es"
 import * as R from "remeda"
-import * as React from "react"
 import { Component, Fragment } from "react"
 import { action, computed, runInAction, makeObservable } from "mobx"
 import { observer } from "mobx-react"
@@ -51,7 +50,6 @@ interface EditorColorScaleSectionProps {
     onChange?: () => void
     errorMessages?: ErrorMessages
     errorMessagesKey?: string
-    lastEditedNote?: React.ReactNode
 }
 
 @observer
@@ -66,7 +64,6 @@ export class EditorColorScaleSection extends Component<EditorColorScaleSectionPr
                     palette={getColorPaletteKey(this.props.chartType)}
                     errorMessages={this.props.errorMessages}
                     errorMessagesKey={this.props.errorMessagesKey}
-                    lastEditedNote={this.props.lastEditedNote}
                 />
                 <ColorLegendSection
                     scale={this.props.scale}
@@ -140,7 +137,6 @@ interface ColorsSectionProps {
     onChange?: () => void
     errorMessages?: ErrorMessages
     errorMessagesKey?: string
-    lastEditedNote?: React.ReactNode
 }
 
 type MidpointModeOptionValue = MidpointMode | "auto"
@@ -243,11 +239,6 @@ class ColorsSection extends Component<ColorsSectionProps> {
 
         return (
             <Section name="Color scale">
-                {this.props.lastEditedNote && (
-                    <p className="mb-3 small text-muted">
-                        {this.props.lastEditedNote}
-                    </p>
-                )}
                 <FieldsRow>
                     <div className="form-group">
                         <label>Color scheme</label>

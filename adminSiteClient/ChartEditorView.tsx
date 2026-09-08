@@ -392,11 +392,11 @@ export class ChartEditorView<
         const activeExtraTab = extraTabs.find((tab) => tab.key === editor.tab)
         const tabLabel = (tab: string): React.ReactNode =>
             extraTabs.find((t) => t.key === tab)?.label ?? _.capitalize(tab)
-        const previewUrl = configEditor
-            ? configEditor.manager.extensions?.previewUrl?.(configEditor)
-            : grapherState.id
-              ? `/admin/charts/${grapherState.id}/preview`
-              : undefined
+        // A config that carries a chart id came from the admin database, so
+        // the admin's preview page can show it.
+        const previewUrl = grapherState.id
+            ? `/admin/charts/${grapherState.id}/preview`
+            : undefined
 
         return (
             <>

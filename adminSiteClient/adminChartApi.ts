@@ -93,25 +93,3 @@ export async function fetchChartConfigByIndicatorId(
     )
     return _.isEmpty(indicatorChart) ? undefined : indicatorChart
 }
-
-export interface MapColorScaleEdit {
-    userName: string
-    createdAt: string
-}
-
-/** Who last changed the map colour scale, from the newest-first revision log. */
-export function findLastMapColorScaleEdit(
-    logs: Log[]
-): MapColorScaleEdit | undefined {
-    for (let i = 0; i < logs.length - 1; i++) {
-        const current = logs[i].config?.map?.colorScale
-        const previous = logs[i + 1].config?.map?.colorScale
-
-        if (!_.isEqual(current, previous)) {
-            return { userName: logs[i].userName, createdAt: logs[i].createdAt }
-        }
-    }
-
-    // The map color scale has never been edited or the logs are empty
-    return undefined
-}

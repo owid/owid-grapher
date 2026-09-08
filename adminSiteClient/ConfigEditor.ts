@@ -37,10 +37,6 @@ export interface EditorExtensions {
     textTabFooter?: (editor: ConfigEditor) => ReactNode
     /** Extra suggestions for the origin URL field, shown first. */
     originUrlSuggestions?: { value: string; label: string; suffix?: string }[]
-    /** Who last changed the map colour scale, shown on the Map tab. */
-    lastMapColorScaleEdit?: { userName: string; createdAt: string }
-    /** Where the "View chart" link above the preview points. Absent → no link. */
-    previewUrl?: (editor: ConfigEditor) => string | undefined
 }
 
 export interface ConfigEditorManager extends AbstractChartEditorManager {
