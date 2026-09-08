@@ -119,4 +119,13 @@ describe(assertWellFormedFences, () => {
             )
         ).not.toThrow()
     })
+
+    test("tolerates CRLF line endings", () => {
+        expect(() =>
+            assertWellFormedFences(
+                "Intro.\r\n\r\n```archie\r\n{.chart}\r\n{}\r\n```\r\n",
+                "sidecar.md"
+            )
+        ).not.toThrow()
+    })
 })
