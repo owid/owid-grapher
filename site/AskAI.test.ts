@@ -45,6 +45,27 @@ describe("prompt construction", () => {
         expect(prompt).toContain(`${SLUG_URL}.csv?csvType=filtered`)
     })
 
+    it("nudges towards the OWID skills afterwards", () => {
+        expect(prompt).toContain("https://github.com/owid/skills")
+        expect(prompt).toContain("Afterwards")
+    })
+
+    it("keeps the skills nudge even when the prompt has to shrink", () => {
+        const slugUrl = `${OWID_PUBLIC_GRAPHER_URL}/share-of-population-living-in-cities-towns-and-villages`
+        const queryStr =
+            "?country=~NGA~IND~USA~CHN~BRA~ZAF~IDN&time=1960..latest&tab=chart"
+        const worst = buildPrompt({
+            title: "Share of population living in cities, towns and villages",
+            pageUrl: `${slugUrl}${queryStr}`,
+            slugUrl,
+            queryStr,
+            stateSummary: describeChartState(queryStr),
+            question:
+                "How has the urban share changed in each of these countries since 1960?",
+        })
+        expect(worst).toContain("https://github.com/owid/skills")
+    })
+
     it("asks for a short, data-led answer", () => {
         expect(prompt).toContain("keep it short")
         expect(prompt).toContain("compact table")
@@ -68,8 +89,44 @@ describe("prompt construction", () => {
         expect(prompt).toContain("rather than estimating")
     })
 
-    it("stays well inside a safe URL length once encoded", () => {
-        expect(encodeURIComponent(prompt).length).toBeLessThan(1800)
+    it("stays inside a safe URL length for a realistic worst case", () => {
+        // Long slug, several entities, a time range and a wordy question —
+        // roughly the largest prompt a visitor can generate. Some WAFs get
+        // unhappy well before browsers do, so keep the whole URL under ~2 KB.
+        const slugUrl = `${OWID_PUBLIC_GRAPHER_URL}/share-of-population-living-in-cities-towns-and-villages`
+        const queryStr =
+            "?country=~NGA~IND~USA~CHN~BRA~ZAF~IDN&time=1960..latest&tab=chart"
+        const worst = buildPrompt({
+            title: "Share of population living in cities, towns and villages",
+            pageUrl: `${slugUrl}${queryStr}`,
+            slugUrl,
+            queryStr,
+            stateSummary: describeChartState(queryStr),
+            question:
+                "How has the urban share changed in each of these countries since 1960, and which of them urbanised fastest over that period?",
+        })
+        // A realistic worst case fits without shedding anything.
+        expect(encodeURIComponent(worst).length).toBeLessThan(3000)
+        expect(worst).toContain("csvType=filtered")
+        expect(worst).toContain("csvType=full")
+        expect(worst).toContain(".metadata.json")
+        expect(worst).toContain("Lead with the data")
+        expect(worst).toContain(
+            "which of them urbanised fastest over that period?"
+        )
+    })
+
+    it("truncates the question rather than let the URL be clipped", () => {
+        const slugUrl = `${OWID_PUBLIC_GRAPHER_URL}/child-mortality`
+        const out = buildPrompt({
+            title: "Child mortality rate",
+            pageUrl: slugUrl,
+            slugUrl,
+            queryStr: "",
+            question: "why ".repeat(500),
+        })
+        expect(encodeURIComponent(out).length).toBeLessThanOrEqual(3000)
+        expect(out).toContain("\u2026")
     })
 
     it("omits the state line when the chart is untouched", () => {
@@ -151,7 +208,11 @@ describe("public origin", () => {
             queryStr: "?country=~NGA",
             question: "Explain this.",
         })
+        // The skills repo is the one deliberate exception; everything else
+        // must be on the public site, never a staging or localhost origin.
+        const OWID_SKILLS_REPO = "https://github.com/owid/skills"
         for (const url of prompt.match(/https?:\/\/[^\s)]+/g) ?? []) {
+            if (url === OWID_SKILLS_REPO) continue
             expect(url.startsWith("https://ourworldindata.org/")).toBe(true)
         }
     })
