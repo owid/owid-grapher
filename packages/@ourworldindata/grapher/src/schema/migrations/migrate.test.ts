@@ -91,15 +91,33 @@ it("pins every migration step with a fixture", () => {
     expect(unpinned).toEqual([])
 })
 
-for (const { name, patches } of PATCH_STACK_FIXTURES) {
-    it(`migrates a patch stack the same in either order: ${name}`, () => {
+for (const { name, patches, nonCommutingReason } of PATCH_STACK_FIXTURES) {
+    const title = nonCommutingReason
+        ? `migrates a patch stack differently in either order: ${name}, because ${nonCommutingReason}`
+        : `migrates a patch stack the same in either order: ${name}`
+    it(title, () => {
         const stack = patches as GrapherInterface[]
-        expect(
-            migrateGrapherConfigToLatestVersion(mergeGrapherConfigs(...stack))
-        ).toStrictEqual(
-            mergeGrapherConfigs(
-                ...stack.map(migrateGrapherConfigToLatestVersion)
-            )
+        const mergedThenMigrated = migrateGrapherConfigToLatestVersion(
+            mergeGrapherConfigs(...stack)
         )
+        const migratedThenMerged = mergeGrapherConfigs(
+            ...stack.map(migrateGrapherConfigToLatestVersion)
+        )
+        if (nonCommutingReason)
+            expect(
+                mergedThenMigrated,
+                `this stack now comes out the same in either order — drop its nonCommutingReason`
+            ).not.toStrictEqual(migratedThenMerged)
+        else expect(mergedThenMigrated).toStrictEqual(migratedThenMerged)
     })
 }
+
+it("pins every migration step with a patch stack", () => {
+    const pinned = new Set(
+        PATCH_STACK_FIXTURES.map(({ patches }) => getSchemaVersion(patches[0]))
+    )
+    const unpinned = outdatedSchemaVersions.filter(
+        (version) => !pinned.has(version)
+    )
+    expect(unpinned).toEqual([])
+})
