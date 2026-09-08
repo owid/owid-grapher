@@ -1,11 +1,21 @@
 ---
-decision: todo
 auto-generated: a line with a Heading style
 ---
 
 A section heading. Authored via Google Docs text styles (Heading 1,
 Heading 2, Heading 3) — the level is derived from the docs style. Start
 sections with h1; nest with h2, then h3.
+
+## When to use
+
+- To open a main section with an h1, and nest with h2, then h3 — see
+  `{guide:headings-and-structure}`.
+
+## When NOT to use
+
+- For emphasis inside a section — use `{.pull-quote}` or bold text
+  instead.
+- Heading 4 and Heading 5 — avoid them.
 
 ## Properties
 
