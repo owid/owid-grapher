@@ -246,8 +246,7 @@ export async function updateAllChartsThatInheritFromIndicator(
         mergedCharts.map(({ chart, fullConfig }) => ({
             label: `chart ${chart.chartId}`,
             config: fullConfig,
-        })),
-        "chart"
+        }))
     )
 
     for (const { chart, fullConfig } of mergedCharts) {
@@ -341,8 +340,7 @@ export async function updateAllMultiDimViewsThatInheritFromIndicator(
         mergedViews.map(({ view, fullConfig }) => ({
             label: `mdim view ${view.chartConfigId}`,
             config: fullConfig,
-        })),
-        "chart"
+        }))
     )
 
     for (const { view, fullConfig } of mergedViews) {
