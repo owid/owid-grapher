@@ -188,6 +188,11 @@ export {
     type PinnedExampleRef,
     proseText,
     type SidecarProse,
+    type SidecarExample,
+    type SidecarExampleFlavour,
+    type SidecarSectionKey,
+    type RelatedRef,
+    type RelatedRefKind,
 } from "./gdocTypes/ComponentReference.js"
 
 export type {
@@ -195,6 +200,12 @@ export type {
     TemplateField,
     TemplateSkeletonPart,
 } from "./gdocTypes/TemplateReference.js"
+
+export {
+    GUIDE_CATEGORIES,
+    type GuideCategory,
+    type GuideReference,
+} from "./gdocTypes/GuideReference.js"
 
 export {
     COMPONENT_USAGE_LABELS,
