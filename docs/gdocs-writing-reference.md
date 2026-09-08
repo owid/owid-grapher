@@ -2,8 +2,8 @@
 
 The writing reference documents the ArchieML building blocks of our
 Google-Docs-authored content: every component an author can use in a gdoc,
-and every gdoc type they can create. It lives in the admin at
-`/admin/gdocs-reference`.
+every gdoc type they can create, and guides to the mechanics that cut across
+both (refs, headings, …). It lives in the admin at `/admin/gdocs-reference`.
 
 ## The three layers
 
@@ -15,30 +15,50 @@ and every gdoc type they can create. It lives in the admin at
    each content interface a field-descriptions file there (e.g.
    `OwidGdocPostContent.md`). Cross-cutting concepts that are neither a block
    nor a document type (refs, headings …) get a guide sidecar in
-   `.../gdocTypes/guides/` (e.g. `refs.md`, whose kebab-case file name is the
-   guide id and whose front matter carries its `title` and `category`).
-   Sidecars carry the prose: what a component is for, when (not) to use it,
-   and fenced examples — ` ```archie ` body snippets, or ` ```archie-document `
-   whole documents in guides.
+   `.../gdocTypes/guides/<id>.md` — the file name is the guide id — with
+   `title` and `category` front matter (`Writing`, `Structure`,
+   `Charts & data`, `Publishing`). A guide has an intro, any free `## `
+   sections and an optional `## Notes`; the decision and `## Properties`
+   headings are component/template vocabulary and fail in a guide. Guide
+   examples may sit in any section. Sidecars carry the prose: what a
+   component is for, when (not) to use it, and fenced examples —
+   ` ```archie ` body snippets, or ` ```archie-document ` whole documents in
+   guides.
 
-    Sidecars cross-reference each other with **mentions**: a backticked code
+    **Mentions** cross-reference sidecars and link pages: a backticked code
     span whose whole content is `{.component-id}`, `{guide:guide-id}` or
-    `{template:template-id}`. The generator harvests them into `related` and
-    fails the build on an unknown id, so every mention the page renders is a
-    working link. Mentions inside a fenced example are example code, not
-    references.
+    `{template:template-id}` becomes a link and a "Related" entry — bare
+    `{.id}` outside backticks is not a mention, and one inside a fenced
+    example is example code, not a reference. This is the only linking
+    syntax: a plain single-backtick span equal to a known component,
+    template or guide id (e.g. `` `topic-page` `` instead of
+    `` `{template:topic-page}` ``) is a lint error, not a silent no-op — the
+    generator fails the build naming the explicit form to use, everywhere a
+    sidecar's prose is rendered (intro, decision sections, `## Notes` and
+    other free sections, template field descriptions — not `## Properties`
+    bullets, which document a component's own props and routinely repeat ids
+    as plain code, and a field's own name and value, which stay in the
+    existing `key:` / `type: value` convention rather than becoming a
+    mention). The generator harvests every mention into `related` and fails
+    the build on an id that resolves to nothing, so every mention the page
+    renders is a working link.
 
     A sidecar's `## ` sections are a **declared vocabulary**, listed in
     `devTools/gdocs/sidecarSections.ts`:
 
-    | Section                           | What it becomes                                             |
-    | --------------------------------- | ----------------------------------------------------------- |
-    | (intro, before the first `## `)   | the lead prose, and where the ` ```archie ` examples live   |
-    | `## When to use`                  | the "Use it for" panel; its mentions become `related`       |
-    | `## When NOT to use`              | the "Reach for something else when" panel                   |
-    | `## Properties` (components only) | the effect column of the properties table                   |
-    | `## Notes`                        | authored notes under the derived material (heading dropped) |
-    | any other `## ` heading           | free prose, rendered with the notes                         |
+    | Section                           | What it becomes                                                   |
+    | --------------------------------- | ----------------------------------------------------------------- |
+    | (intro, before the first `## `)   | the lead prose; for components, where ` ```archie ` examples live |
+    | `## When to use`                  | the "Use it for" panel; its mentions become `related`             |
+    | `## When NOT to use`              | the "Reach for something else when" panel                         |
+    | `## Properties` (components only) | the effect column of the properties table                         |
+    | `## Notes`                        | authored notes under the derived material (heading dropped)       |
+    | any other `## ` heading           | free prose, rendered with the notes                               |
+
+    Free sections and `## Notes` are combined into one run of prose, and
+    their order depends on the sidecar kind: in a guide, free sections
+    render in source order and `## Notes` last; in component and template
+    sidecars, the `## Notes` content renders first, then the free sections.
 
     Headings are matched past casing and punctuation, but a **near miss**
     fails the build rather than drifting into the free prose: `## When to
@@ -56,11 +76,18 @@ and every gdoc type they can create. It lives in the admin at
  paragraph`); they sort last within their category and the detail page
     shows a warning box instead of authoring guidance.
 
+    **Examples** are fenced ` ```archie ` (a body snippet, wrapped in a
+    fragment and parsed) or ` ```archie-document ` (a whole document with
+    front matter, guides only). Both are validated by the real pipeline —
+    the whole-document checks are listed in `devTools/gdocs/exampleValidation.ts`
+    — but guide examples are never rendered; the admin shows them as code.
+    Fences are identified by section and position, not by text.
+
 2. **The generator — derives the registries.**
-   `yarn generateGdocsReferences` (in `devTools/gdocs/`) walks the type
-   definitions with the TypeScript compiler, joins them with the sidecars,
-   validates every example by parsing it through the real gdoc pipeline, and
-   writes three committed registry files:
+   `yarn generateGdocsReferences` (in `devTools/gdocs/generate-gdocs-references.ts`)
+   walks the type definitions with the TypeScript compiler, joins them with the
+   sidecars, validates every example by parsing it through the real gdoc pipeline,
+   and writes three committed registry files:
     - `docs/components.registry.generated.json`
     - `docs/templates.registry.generated.json`
     - `docs/guides.registry.generated.json`
@@ -71,11 +98,13 @@ and every gdoc type they can create. It lives in the admin at
     (`devTools/gdocs/sidecars.test.ts` asserts the pairing in the unit suite).
 
 3. **The admin page — presents them.** The admin serves the registries at
-   `/admin/api/gdocs-reference/{components,templates}.json` and enriches them
-   at request time with live data from the database: how often each component
-   is used per document type, real published instances of each component, and
-   section outlines of exemplar documents. Profile exemplar
-   outlines link to the first entity in the profile's scope.
+   `/admin/api/gdocs-reference/{components,templates,guides}.json` and enriches
+   them at request time with live data from the database: how often each
+   component is used per document type, real published instances of each
+   component, and a template's exemplar documents — the first is rendered
+   whole, as the site renders it, in the same preview frame as component
+   examples. A profile exemplar renders and links for the first entity in
+   the profile's scope.
 
 ## Editing the reference
 
@@ -118,6 +147,15 @@ do) and describe it in `templates/<InterfaceName>.md`.
 
 In both cases, finish with `yarn generateGdocsReferences` and commit the
 regenerated registries.
+
+### Adding a guide
+
+For a **new guide**: create `guides/<id>.md` with `title` and `category` front
+matter (one of `Writing`, `Structure`, `Charts & data`, `Publishing`), write
+the intro, any free-form sections and an optional `## Notes`, add fenced
+examples anywhere (` ```archie ` for body snippets, ` ```archie-document ` for
+whole documents), and validate them by parsing. Finish with `yarn
+generateGdocsReferences` and commit the regenerated registries.
 
 ## Why the registries are committed
 
