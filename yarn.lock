@@ -9368,7 +9368,7 @@ __metadata:
     mobx: "npm:^6.15.4"
     mobx-react: "npm:^7.6.0"
     mousetrap: "npm:^1.6.5"
-    multer: "npm:^2.2.0"
+    multer: "npm:^2.3.0"
     mysql2: "npm:^3.23.1"
     nodejs-polars: "npm:^0.7.2"
     normalize.css: "npm:^8.0.1"
@@ -11322,15 +11322,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"multer@npm:^2.2.0":
-  version: 2.2.0
-  resolution: "multer@npm:2.2.0"
+"multer@npm:^2.3.0":
+  version: 2.3.0
+  resolution: "multer@npm:2.3.0"
   dependencies:
     append-field: "npm:^1.0.0"
     busboy: "npm:^1.6.0"
     concat-stream: "npm:^2.0.0"
     type-is: "npm:^1.6.18"
-  checksum: 10/24525113776291c1909e6ca6ee260c41a6dc4bc6dea944485f6cc0d1442a7690829a07f2dcdea5edd5886bb6ab87df795da6ffb6de7289e1c140ec98b8e9d253
+  checksum: 10/bd939b7d364aea9d859eb7ff7f86811b0ae620e9d4b5684d3ef33e9b336f062b053c06fc2f3d292a5e373835e84828d68ce8bc35aad63df0c5ba5769f146c50e
   languageName: node
   linkType: hard
 
