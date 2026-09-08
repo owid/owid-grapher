@@ -61,7 +61,8 @@ changes. CI runs it on every push that touches this folder and commits the resul
 
 The JSON form of the schema is not committed anywhere. `--publish-dir <dir>` writes it to
 `<dir>`, and `--latest` adds a `.latest` alias there. The R2 upload builds into a scratch
-directory this way, with the alias on master only.
+directory this way, with the alias on master only. Server-side validation parses the
+YAML itself, in `db/grapherConfigValidation.ts`.
 
 ```bash
 yarn buildGrapherSchema
