@@ -347,7 +347,7 @@ const saveNewChart = async (
     // compute patch and full configs
     const patchConfig = diffGrapherConfigs(config, parent?.config ?? {})
     const fullConfig = mergeGrapherConfigs(parent?.config ?? {}, patchConfig)
-    assertValidGrapherConfig(fullConfig, "chart")
+    assertValidGrapherConfig(fullConfig)
 
     const now = new Date()
 
@@ -487,7 +487,7 @@ const updateExistingChart = async (
     const parentStack = mergeGrapherConfigs(parent?.config ?? {}, etlConfig)
     const patchConfig = diffGrapherConfigs(config, parentStack)
     const fullConfig = mergeGrapherConfigs(parentStack, patchConfig)
-    assertValidGrapherConfig(fullConfig, "chart")
+    assertValidGrapherConfig(fullConfig)
 
     const now = new Date()
 
@@ -539,7 +539,7 @@ export const saveGrapher = async (
         chartConfigId?: string
     }
 ) => {
-    newConfig = ingestGrapherConfig(newConfig, "patch")
+    newConfig = ingestGrapherConfig(newConfig)
 
     // Validate slug if:
     // 1. Publishing - slug is required
@@ -1104,7 +1104,7 @@ export async function upsertEtlConfigByChartConfigId(
         throw new JsonError(`Invalid chart catalog path ${catalogPath}`)
     }
 
-    const etlConfig = ingestGrapherConfig(req.body, "patch")
+    const etlConfig = ingestGrapherConfig(req.body)
 
     const existingChartId = await getChartIdByConfigId(trx, chartConfigId)
     const created = existingChartId === undefined
@@ -1315,7 +1315,7 @@ async function upsertEtlConfigForChart(
         id: chartId,
         version: newVersion,
     }
-    assertValidGrapherConfig(newFullConfig, "chart")
+    assertValidGrapherConfig(newFullConfig)
 
     await db.knexRaw(
         trx,
@@ -1480,7 +1480,7 @@ export async function deleteChartsChartIdEtlConfig(
         id: chartId,
         version: newVersion,
     }
-    assertValidGrapherConfig(newFullConfig, "chart")
+    assertValidGrapherConfig(newFullConfig)
 
     // Update the chart's rendered and patch config rows with the recomputed
     // full/patch.

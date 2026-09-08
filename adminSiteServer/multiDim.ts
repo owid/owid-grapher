@@ -281,8 +281,7 @@ export async function upsertMultiDim(
         preparedViews.map(({ view, fullGrapherConfig }) => ({
             label: `mdim view ${dimensionsToViewId(view.dimensions)}`,
             config: fullGrapherConfig,
-        })),
-        "chart"
+        }))
     )
 
     const enrichedViews = await Promise.all(
@@ -343,7 +342,7 @@ export async function upsertMultiDim(
 function validateViewConfigs(config: MultiDimDataPageConfigPreProcessed): void {
     for (const view of config.views) {
         const viewConfig = getMdimViewConfigWithSchema(config, view)
-        if (viewConfig) ingestGrapherConfig(viewConfig, "patch")
+        if (viewConfig) ingestGrapherConfig(viewConfig)
     }
 }
 
