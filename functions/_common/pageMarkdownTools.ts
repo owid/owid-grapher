@@ -1,7 +1,12 @@
 import * as _ from "lodash-es"
 import { OwidColumnDef, stripDetailOnDemandLinks } from "@ourworldindata/utils"
 import type { CoreColumn } from "@ourworldindata/core-table"
-import type { EntityName, GrapherValuesJson, Time } from "@ourworldindata/types"
+import type {
+    GrapherValuesJson,
+    GrapherValuesJsonDataPoint,
+    GrapherValuesJsonDataPoints,
+    Time,
+} from "@ourworldindata/types"
 import { GrapherState } from "@ourworldindata/grapher"
 import {
     getCitationLines,
@@ -9,6 +14,20 @@ import {
     getSourcesSection,
     getTitle,
 } from "./readmeTools.js"
+
+/**
+ * A scatter plot's x indicator is reported in `points.x`, not among `points.y`, so
+ * looking only at the y series renders half of every plotted coordinate blank.
+ */
+function findPoint(
+    points: GrapherValuesJsonDataPoints | undefined,
+    columnSlug: string
+): GrapherValuesJsonDataPoint | undefined {
+    if (!points) return undefined
+    const yPoint = points.y.find((point) => point.columnSlug === columnSlug)
+    if (yPoint) return yPoint
+    return points.x?.columnSlug === columnSlug ? points.x : undefined
+}
 
 /**
  * The values block is the reason this endpoint exists. A chart page describes its
@@ -41,27 +60,35 @@ function* getValuesSection(
         yield ""
         yield `**${column.name}**${unit}.`
 
-        const startTime = first.startValues ? first.startTime : undefined
-        const endTime = first.endValues ? first.endTime : undefined
-        const timeHeadings = [startTime, endTime].filter(
-            (time) => time !== undefined
+        // Times are formatted by the point that carries them: on a daily or
+        // quarterly chart the raw Time is a day offset from the epoch, which would
+        // print as "18262" rather than a date.
+        const bounds = (
+            [
+                ["start", first.startTime, first.startValues],
+                ["end", first.endTime, first.endValues],
+            ] as const
         )
-        // A chart whose start and end resolve to the same year would otherwise print
-        // the same column twice under two identical headings.
-        const headings = [...new Set(timeHeadings)]
+            .filter(([, time, points]) => time !== undefined && points)
+            .map(([bound, time, points]) => ({
+                bound,
+                time: time as Time,
+                heading: findPoint(points, slug)?.formattedTime ?? String(time),
+            }))
+        // A chart whose start and end resolve to the same time would otherwise
+        // print the same column twice under two identical headings.
+        const headings = _.uniqBy(bounds, (bound) => bound.time)
+        if (headings.length === 0) continue
 
         yield ""
-        yield `| Entity | ${headings.join(" | ")} |`
+        yield `| Entity | ${headings.map((h) => h.heading).join(" | ")} |`
         yield `| --- | ${headings.map(() => "---:").join(" | ")} |`
 
         for (const values of withData) {
-            const cells = headings.map((time) => {
+            const cells = headings.map(({ bound }) => {
                 const points =
-                    time === values.startTime
-                        ? values.startValues
-                        : values.endValues
-                const point = points?.y.find((p) => p.columnSlug === slug)
-                return point?.formattedValue ?? ""
+                    bound === "start" ? values.startValues : values.endValues
+                return findPoint(points, slug)?.formattedValue ?? ""
             })
             yield `| ${values.entityName ?? ""} | ${cells.join(" | ")} |`
         }
@@ -75,68 +102,56 @@ function* getValuesSection(
  * country, and which country is highest. This table can, for around 1,500 tokens on a
  * country-grained chart.
  *
- * Each entity is reported at its own latest time at or before the chart's end time,
- * and the year is printed whenever entities disagree, so a country whose data stops
- * early is never silently relabelled to the chart's end year.
+ * Only the chart's first indicator is tabulated. Both questions this section exists to
+ * answer presuppose a single quantity, and reporting several indicators per row means
+ * either a row that mixes times under one time cell or a time cell per value; naming
+ * one indicator and pointing at the CSV for the rest is the honest version.
  */
 function* getAllEntityValuesSection(
     grapherState: GrapherState
 ): Generator<string, void, undefined> {
     const table = grapherState.tableForDownload
-    const columns = grapherState.yColumnSlugs
-        .filter((slug) => table.has(slug))
-        .map((slug) => table.get(slug))
-    if (columns.length === 0) return
+    const slugs = grapherState.yColumnSlugs.filter((slug) => table.has(slug))
+    if (slugs.length === 0) return
+    const column = table.get(slugs[0])
 
     const endTime = grapherState.endTime
-    const entityNames = _.uniq(columns.flatMap((col) => col.uniqEntityNames))
-    if (entityNames.length === 0) return
-
-    interface Row {
-        entityName: EntityName
-        time: Time
-        cells: string[]
-    }
-    const rows: Row[] = []
-    for (const entityName of entityNames) {
-        const cells: string[] = []
-        let latestTime: Time | undefined
-        for (const column of columns) {
-            const entityRows = column.owidRowsByEntityName.get(entityName) ?? []
-            const eligible =
-                endTime === undefined
-                    ? entityRows
-                    : entityRows.filter((row) => row.time <= endTime)
-            // owidRows is time-sorted, so the last eligible row is the latest.
-            const row = eligible.at(-1)
-            cells.push(
-                row?.value === undefined
-                    ? ""
-                    : column.formatValueShort(row.value)
-            )
-            if (row && (latestTime === undefined || row.time > latestTime))
-                latestTime = row.time
-        }
-        if (cells.every((cell) => cell === "")) continue
-        rows.push({ entityName, time: latestTime ?? 0, cells })
-    }
+    const rows = column.uniqEntityNames.flatMap((entityName) => {
+        const entityRows = column.owidRowsByEntityName.get(entityName) ?? []
+        const eligible =
+            endTime === undefined
+                ? entityRows
+                : entityRows.filter((row) => row.time <= endTime)
+        // owidRows is time-sorted, so the last eligible row is the latest.
+        const row = eligible.at(-1)
+        if (!row || row.value === undefined) return []
+        return [
+            {
+                entityName,
+                time: row.time,
+                value: column.formatValueShort(row.value),
+            },
+        ]
+    })
     if (rows.length === 0) return
 
     const times = _.uniq(rows.map((row) => row.time))
     const showTimeColumn = times.length > 1
-    const sharedTime = times[0]
 
     yield ""
     yield "## Latest value for every entity"
     yield ""
     yield showTimeColumn
-        ? "Each entity at its own latest year, at or before the year the chart ends on."
-        : `All entities in ${sharedTime}.`
+        ? "Each entity at its own latest time, at or before the time the chart ends on."
+        : `All entities in ${column.formatTime(times[0])}.`
+    if (slugs.length > 1) {
+        yield ""
+        yield `This chart plots ${slugs.length} indicators; only **${column.displayName}** is tabulated here. The others are in the CSV linked below.`
+    }
 
-    const valueHeadings = columns.map((column) => column.displayName)
     const headings = showTimeColumn
-        ? ["Entity", ...valueHeadings, "Year"]
-        : ["Entity", ...valueHeadings]
+        ? ["Entity", column.displayName, "Time"]
+        : ["Entity", column.displayName]
 
     yield ""
     yield `| ${headings.join(" | ")} |`
@@ -147,23 +162,23 @@ function* getAllEntityValuesSection(
 
     for (const row of _.sortBy(rows, (row) => row.entityName)) {
         const cells = showTimeColumn
-            ? [...row.cells, String(row.time)]
-            : row.cells
+            ? [row.value, column.formatTime(row.time)]
+            : [row.value]
         yield `| ${row.entityName} | ${cells.join(" | ")} |`
     }
 }
 
 function* getDataAccessSection(
-    canonicalUrl: string,
+    baseUrl: string,
     search: string
 ): Generator<string, void, undefined> {
     yield ""
     yield "## Get this data"
     yield ""
-    yield `- Data as CSV: ${canonicalUrl}.csv${search}`
-    yield `- Metadata as JSON: ${canonicalUrl}.metadata.json${search}`
-    yield `- Chart image: ${canonicalUrl}.png${search}`
-    yield `- Interactive chart: ${canonicalUrl}${search}`
+    yield `- Data as CSV: ${baseUrl}.csv${search}`
+    yield `- Metadata as JSON: ${baseUrl}.metadata.json${search}`
+    yield `- Chart image: ${baseUrl}.png${search}`
+    yield `- Interactive chart: ${baseUrl}${search}`
     yield ""
     yield "Append `country=` to select entities (tilde-separated codes, e.g. `country=~USA~FRA`) and `time=` to select a range (e.g. `time=2000..2023`)."
 }
@@ -196,7 +211,10 @@ export function constructPageMarkdown(
     valuesByEntity: GrapherValuesJson[],
     search: string
 ): string {
-    const canonicalUrl = grapherState.canonicalUrl ?? ""
+    // `canonicalUrl` is `baseUrl + queryStr`, so building extensions from it yields
+    // `/slug?country=~USA.csv?country=~USA` — a URL that resolves to the HTML page
+    // with a mangled country value. The extension belongs on the query-free base.
+    const baseUrl = grapherState.baseUrl ?? ""
     // Computed columns can have neither a source nor origins; they have nothing to
     // say in the About and Sources sections.
     const columnsWithSources = columns.filter(
@@ -212,7 +230,7 @@ export function constructPageMarkdown(
 
     lines.push(...getValuesSection(valuesByEntity))
     lines.push(...getAllEntityValuesSection(grapherState))
-    lines.push(...getDataAccessSection(canonicalUrl, search))
+    lines.push(...getDataAccessSection(baseUrl, search))
 
     const about = [...getAboutSection(columnsWithSources)]
     if (about.length > 0) {

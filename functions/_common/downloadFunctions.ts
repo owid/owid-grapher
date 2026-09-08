@@ -244,6 +244,9 @@ export async function fetchMarkdownForGrapher(
         dataApiUrl: getDataApiUrl(env),
     })
     if (inputTable) grapherState.inputTable = inputTable
+    // The per-entity table below is a full data extract, so it falls under the same
+    // licensing restriction as the CSV and zip downloads.
+    ensureDownloadOfDataAllowed(grapherState)
 
     // Grapher ignores the country param when entity selection is disabled, so read
     // it back explicitly; with no country param the chart's own default selection is
@@ -260,9 +263,12 @@ export async function fetchMarkdownForGrapher(
         grapherState.availableEntityNames.includes(entityName)
     )
 
-    const timeParam = params.get("time") ?? undefined
+    // No time argument: initGrapher applied the query string, so grapherState's
+    // bounds are already resolved against the data. Passing the raw `time` value
+    // through would replace those snapped bounds with an exact lookup and blank
+    // out every cell on a series that has no observation in precisely that year.
     const valuesByEntity = entityNames.map((entityName) =>
-        assembleDataValues(grapherState, entityName, timeParam)
+        assembleDataValues(grapherState, entityName)
     )
 
     const markdown = constructPageMarkdown(
@@ -335,15 +341,14 @@ export async function fetchDataValuesForGrapher(
 
 export function assembleDataValues(
     grapherState: GrapherState,
-    entityName: EntityName,
-    timeQueryParam?: string
+    entityName: EntityName
 ) {
     // If the entity is invalid or not included in the chart, we can't return
     // any data, so we return the source only
     if (!grapherState.availableEntityNames.includes(entityName))
         return { source: grapherState.sourcesLine }
 
-    return constructGrapherValuesJson(grapherState, entityName, timeQueryParam)
+    return constructGrapherValuesJson(grapherState, entityName)
 }
 
 export async function fetchSearchResultDataForGrapher(

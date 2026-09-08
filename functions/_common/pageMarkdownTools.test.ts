@@ -7,7 +7,7 @@ import { getRandomNumberGenerator } from "@ourworldindata/utils"
 import { extensions } from "./env.js"
 import { constructPageMarkdown } from "./pageMarkdownTools.js"
 
-function makeGrapherState() {
+function makeGrapherState(overrides: Record<string, unknown> = {}) {
     const table = SynthesizeNonCountryTable({
         columnDefs: [
             {
@@ -27,6 +27,7 @@ function makeGrapherState() {
         ySlugs: "population",
         title: "Population",
         subtitle: "Measured in [terawatt-hours](#dod:watt-hours).",
+        ...overrides,
     })
 }
 
@@ -70,8 +71,15 @@ describe(constructPageMarkdown, () => {
         expect(markdown).toContain("**Population**, in people.")
     })
 
-    it("keeps the query string on the data URLs so they resolve to the same view", () => {
-        const grapherState = makeGrapherState()
+    it("puts the extension before the query, exactly once", () => {
+        // initGrapher sets manager.baseUrl and queryStr, which is what makes
+        // canonicalUrl carry the query in production.
+        const grapherState = makeGrapherState({
+            manager: {
+                baseUrl: "https://ourworldindata.org/grapher/population",
+            },
+            queryStr: "?country=~USA&time=2000..2023",
+        })
         const columns = grapherState.tableForDownload.getColumns(["population"])
 
         const markdown = constructPageMarkdown(
@@ -81,10 +89,14 @@ describe(constructPageMarkdown, () => {
             "?country=~USA&time=2000..2023"
         )
 
-        expect(markdown).toContain(".csv?country=~USA&time=2000..2023")
+        // `canonicalUrl` is baseUrl + queryStr, so naively appending the extension
+        // to it produced `/slug?country=~USA.csv?country=~USA`: a URL pointing at
+        // the HTML page with a mangled country value. Assert on whole lines, since
+        // a substring check passes on that corrupted form too.
         expect(markdown).toContain(
-            ".metadata.json?country=~USA&time=2000..2023"
+            "- Data as CSV: https://ourworldindata.org/grapher/population.csv?country=~USA&time=2000..2023"
         )
+        expect(markdown).not.toMatch(/\?country=~USA[^\s]*\.csv/)
     })
 
     it("strips detail-on-demand links but keeps their visible label", () => {
@@ -154,6 +166,86 @@ describe(constructPageMarkdown, () => {
         // interpolating it directly renders "[object Object]".
         expect(markdown).not.toContain("[object Object]")
         expect(markdown).toContain("### Population")
+    })
+
+    it("reads a scatter plot's x indicator from the x datapoint", () => {
+        const grapherState = makeGrapherState()
+        const columns = grapherState.tableForDownload.getColumns(["population"])
+
+        // constructGrapherValuesJson puts the y series in `points.y` and the x-axis
+        // indicator in `points.x`; searching only `y` left every x cell blank.
+        const values: GrapherValuesJson = {
+            entityName: "World",
+            startTime: 1950,
+            endTime: 2023,
+            columns: {
+                population: { name: "Population", unit: "people" },
+                gdp: { name: "GDP", unit: "int-$" },
+            },
+            startValues: {
+                y: [
+                    { columnSlug: "population", formattedValue: "2.5 billion" },
+                ],
+                x: { columnSlug: "gdp", formattedValue: "$10 trillion" },
+            },
+            endValues: {
+                y: [{ columnSlug: "population", formattedValue: "8 billion" }],
+                x: { columnSlug: "gdp", formattedValue: "$100 trillion" },
+            },
+            source: "Test source",
+        }
+
+        const markdown = constructPageMarkdown(
+            grapherState,
+            columns,
+            [values],
+            ""
+        )
+
+        expect(markdown).toContain("| World | $10 trillion | $100 trillion |")
+    })
+
+    it("uses the datapoint's formatted time for subannual charts", () => {
+        const grapherState = makeGrapherState()
+        const columns = grapherState.tableForDownload.getColumns(["population"])
+
+        // On a daily chart Time is a day offset from the epoch, so joining the raw
+        // numbers produced headings like "18262" instead of a date.
+        const values: GrapherValuesJson = {
+            entityName: "World",
+            startTime: 18262,
+            endTime: 19000,
+            columns: { population: { name: "Population", unit: "people" } },
+            startValues: {
+                y: [
+                    {
+                        columnSlug: "population",
+                        formattedValue: "1",
+                        formattedTime: "Jan 1, 2020",
+                    },
+                ],
+            },
+            endValues: {
+                y: [
+                    {
+                        columnSlug: "population",
+                        formattedValue: "2",
+                        formattedTime: "Jan 8, 2022",
+                    },
+                ],
+            },
+            source: "Test source",
+        }
+
+        const markdown = constructPageMarkdown(
+            grapherState,
+            columns,
+            [values],
+            ""
+        )
+
+        expect(markdown).toContain("| Entity | Jan 1, 2020 | Jan 8, 2022 |")
+        expect(markdown).not.toContain("18262")
     })
 
     it("omits the values section rather than emitting an empty table", () => {
