@@ -45,6 +45,17 @@ describe("prompt construction", () => {
         expect(prompt).toContain(`${SLUG_URL}.csv?csvType=filtered`)
     })
 
+    it("ends on the visitor's question", () => {
+        const lines = prompt.trimEnd().split("\n")
+        expect(lines[lines.length - 1]).toBe(
+            "My question: Why has this fallen so fast?"
+        )
+        // and the guidance comes before it, so the ask is what's freshest
+        expect(prompt.indexOf("When you answer:")).toBeLessThan(
+            prompt.indexOf("My question:")
+        )
+    })
+
     it("nudges towards the OWID skills afterwards", () => {
         expect(prompt).toContain("https://github.com/owid/skills")
         expect(prompt).toContain("Afterwards")

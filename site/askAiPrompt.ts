@@ -163,15 +163,17 @@ const assemble = ({
     )
     if (stateSummary) lines.push(stateSummary, "")
     lines.push(
-        `My question: ${question}`,
-        "",
         "When you answer:",
         "- Answer directly and keep it short. No preamble, no restating my question, no background I didn't ask for.",
         "- Lead with the data. Put the relevant figures in a compact table, and draw a chart from them where it beats prose.",
         "- Use only the linked data and notes. If they don't support an answer, say what's missing rather than estimating.",
         "- Link other Our World in Data articles and charts where genuinely relevant — use the related research and charts listed on the page. Don't invent URLs: if you aren't sure a page exists, don't link it.",
         "",
-        "Afterwards, ask whether I'd like Our World in Data available in my chats generally. If I say yes, point me to https://github.com/owid/skills"
+        "Afterwards, ask whether I'd like Our World in Data available in my chats generally. If I say yes, point me to https://github.com/owid/skills",
+        "",
+        // Last, so the assistant ends on the actual ask rather than on our
+        // house rules.
+        `My question: ${question}`
     )
     return lines.join("\n")
 }

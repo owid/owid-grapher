@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faFlask } from "@fortawesome/free-solid-svg-icons"
 import type { AskAiEngine, AskAiPromptSource } from "@ourworldindata/types"
 import {
     buildEngineUrl,
@@ -88,7 +90,16 @@ export function AskAI({ slug, title }: AskAIProps) {
 
     return (
         <aside className="ask-ai" data-arm={arm}>
-            <h3 className="ask-ai__heading">Ask an AI about this chart</h3>
+            <div className="ask-ai__header">
+                <h3 className="ask-ai__heading">Ask an AI about this chart</h3>
+                <span
+                    className="ask-ai__badge"
+                    title="We're trying this out. It might change or go away."
+                >
+                    <FontAwesomeIcon icon={faFlask} aria-hidden="true" />
+                    Experimental
+                </span>
+            </div>
             <p className="ask-ai__intro">
                 Open this chart's data in an AI assistant. We'll send it a link
                 to this page and its sources — the conversation happens on their
