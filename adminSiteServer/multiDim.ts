@@ -29,7 +29,7 @@ import {
     upsertMultiDimDataPage,
 } from "../db/model/MultiDimDataPage.js"
 import {
-    assertValidGrapherConfigs,
+    assertValidGrapherConfig,
     ingestGrapherConfig,
 } from "../db/grapherConfigValidation.js"
 import { upsertMultiDimXChartConfigs } from "../db/model/MultiDimXChartConfigs.js"
@@ -274,15 +274,11 @@ export async function upsertMultiDim(
             indicatorConfigs.get(variableId) ?? {},
             patchGrapherConfig
         )
+
+        assertValidGrapherConfig(fullGrapherConfig)
+
         return { view, fullGrapherConfig }
     })
-
-    assertValidGrapherConfigs(
-        preparedViews.map(({ view, fullGrapherConfig }) => ({
-            label: `mdim view ${dimensionsToViewId(view.dimensions)}`,
-            config: fullGrapherConfig,
-        }))
-    )
 
     const enrichedViews = await Promise.all(
         preparedViews.map(async ({ view, fullGrapherConfig }) => {
