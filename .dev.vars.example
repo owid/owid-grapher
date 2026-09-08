@@ -31,7 +31,7 @@ MAILCHIMP_OWID_BRIEF_INTEREST_ID=
 
 # required locally because the site and Functions run on different ports;
 # use this worktree's admin server port when it differs from 3030
-EMAIL_NOTIFICATIONS_SITE_BASE_URL=http://localhost:3030
+BAKED_BASE_URL=http://localhost:3030
 
 # Required for sending email notifications. A real server token sends emails,
 # while POSTMARK_SERVER_TOKEN=POSTMARK_API_TEST validates requests without
