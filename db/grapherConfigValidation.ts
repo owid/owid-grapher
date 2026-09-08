@@ -18,8 +18,6 @@ import findProjectBaseDir from "../settings/findBaseDir.mjs"
 export interface GrapherConfigValidationIssue {
     pointer: string
     message: string
-    /** The chart this issue belongs to */
-    label?: string
 }
 
 const ajv = new Ajv({ allErrors: true, strict: true })
@@ -27,42 +25,15 @@ addFormats(ajv)
 const validateAgainstSchema = ajv.compile(readLatestGrapherSchema())
 
 export class GrapherConfigValidationError extends JsonError {
-    constructor(
-        public readonly issues: GrapherConfigValidationIssue[],
-        checkedCount?: number
-    ) {
-        super(buildValidationErrorMessage(issues, checkedCount), 400)
+    constructor(public readonly issues: GrapherConfigValidationIssue[]) {
+        super(buildValidationErrorMessage(issues), 400)
     }
-}
-
-export function validateGrapherConfig(
-    config: AnyConfig
-): GrapherConfigValidationIssue[] {
-    if (validateAgainstSchema(config)) return []
-    return (validateAgainstSchema.errors ?? []).map((error) => ({
-        pointer: pointerForError(error),
-        message: error.message ?? `must satisfy ${error.keyword}`,
-    }))
 }
 
 /** Throws if the config is invalid, reporting every issue at once */
 export function assertValidGrapherConfig(config: AnyConfig): void {
     const issues = validateGrapherConfig(config)
     if (issues.length > 0) throw new GrapherConfigValidationError(issues)
-}
-
-/** Throws once if any config is invalid, naming every one that failed */
-export function assertValidGrapherConfigs(
-    configs: readonly { label: string; config: AnyConfig }[]
-): void {
-    const issues = configs.flatMap(({ label, config }) =>
-        validateGrapherConfig(config).map((issue) => ({
-            ...issue,
-            label,
-        }))
-    )
-    if (issues.length > 0)
-        throw new GrapherConfigValidationError(issues, configs.length)
 }
 
 export function ingestGrapherConfig(config: AnyConfig): GrapherInterface {
@@ -90,6 +61,16 @@ export function ingestGrapherConfig(config: AnyConfig): GrapherInterface {
     return migrated
 }
 
+function validateGrapherConfig(
+    config: AnyConfig
+): GrapherConfigValidationIssue[] {
+    if (validateAgainstSchema(config)) return []
+    return (validateAgainstSchema.errors ?? []).map((error) => ({
+        pointer: pointerForError(error),
+        message: error.message ?? `must satisfy ${error.keyword}`,
+    }))
+}
+
 function readLatestGrapherSchema(): JSONSchema7 {
     const baseDir = findProjectBaseDir(__dirname)
     if (baseDir === undefined)
@@ -110,31 +91,10 @@ function pointerForError(error: ErrorObject): string {
 }
 
 function buildValidationErrorMessage(
-    issues: GrapherConfigValidationIssue[],
-    checkedCount?: number
+    issues: GrapherConfigValidationIssue[]
 ): string {
-    const labels = _.uniq(
-        issues
-            .map((issue) => issue.label)
-            .filter((label) => label !== undefined)
+    const lines = issues.map(
+        (issue) => `  ${issue.pointer || "(root)"}: ${issue.message}`
     )
-    if (labels.length === 0) {
-        const lines = issues.map(
-            (issue) => `  ${issue.pointer || "(root)"}: ${issue.message}`
-        )
-        return ["Invalid grapher config:", ...lines].join("\n")
-    }
-
-    const lines = labels.flatMap((label) => [
-        `  ${label}`,
-        ...issues
-            .filter((issue) => issue.label === label)
-            .map(
-                (issue) => `    ${issue.pointer || "(root)"}: ${issue.message}`
-            ),
-    ])
-    return [
-        `Invalid grapher config for ${labels.length} of ${checkedCount} charts:`,
-        ...lines,
-    ].join("\n")
+    return ["Invalid grapher config:", ...lines].join("\n")
 }
