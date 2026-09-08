@@ -5,6 +5,7 @@ import {
     describeChartState,
     buildEngineUrl,
     buildCsvUrl,
+    buildFullCsvUrl,
     OWID_PUBLIC_GRAPHER_URL,
 } from "./askAiPrompt.js"
 
@@ -54,7 +55,7 @@ describe("prompt construction", () => {
     })
 
     it("welcomes relevant Our World in Data links but forbids inventing them", () => {
-        expect(prompt).toContain("related research and related charts")
+        expect(prompt).toContain("related research and charts")
         expect(prompt).toContain("Don't invent URLs")
     })
 
@@ -95,6 +96,23 @@ describe("engine deep links", () => {
 })
 
 describe("data and image URLs", () => {
+    it("offers the full export as a fallback, ignoring selection", () => {
+        expect(buildFullCsvUrl(SLUG_URL)).toBe(`${SLUG_URL}.csv?csvType=full`)
+    })
+
+    it("offers both exports and says which to prefer", () => {
+        const p = buildPrompt({
+            title: "Child mortality rate",
+            pageUrl: SLUG_URL,
+            slugUrl: SLUG_URL,
+            queryStr: "?country=~NGA",
+            question: "Explain this.",
+        })
+        expect(p).toContain("csvType=filtered")
+        expect(p).toContain("csvType=full")
+        expect(p).toContain("prefer the first")
+    })
+
     it("always requests the filtered CSV, even with no selection", () => {
         expect(buildCsvUrl(SLUG_URL, "")).toBe(
             `${SLUG_URL}.csv?csvType=filtered`

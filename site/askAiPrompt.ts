@@ -97,6 +97,15 @@ const stateQuery = (queryStr: string): string => {
 export const buildCsvUrl = (slugUrl: string, queryStr: string): string =>
     `${slugUrl}.csv?csvType=filtered${stateQuery(queryStr)}`
 
+/**
+ * Every entity and year for the indicator, ignoring the visitor's selection.
+ * Offered as a fallback for questions that reach beyond what's on screen —
+ * it is two orders of magnitude larger than the filtered export (411 KB vs
+ * ~1 KB for child-mortality), so the prompt steers towards the filtered one.
+ */
+export const buildFullCsvUrl = (slugUrl: string): string =>
+    `${slugUrl}.csv?csvType=full`
+
 export const buildPrompt = ({
     title,
     pageUrl,
@@ -117,6 +126,7 @@ export const buildPrompt = ({
         "",
         "Please read these before answering:",
         `- ${buildCsvUrl(slugUrl, queryStr)} — the data for the view I'm looking at`,
+        `- ${buildFullCsvUrl(slugUrl)} — every country and year, if you need more than my selection (much larger — prefer the first)`,
         `- ${slugUrl}.metadata.json — units, sources, timespan and Our World in Data's own notes on this indicator`,
         "",
     ]
@@ -125,10 +135,10 @@ export const buildPrompt = ({
         `My question: ${question}`,
         "",
         "When you answer:",
-        "- Answer my question directly and keep it short. No preamble, no restating my question, no general background I didn't ask for.",
-        "- Lead with the data. Put the relevant figures in a compact table, and draw a chart from them when it makes the pattern clearer than prose would.",
+        "- Answer directly and keep it short. No preamble, no restating my question, no background I didn't ask for.",
+        "- Lead with the data. Put the relevant figures in a compact table, and draw a chart from them where it beats prose.",
         "- Use only the linked data and notes. If they don't support an answer, say what's missing rather than estimating.",
-        "- Linking to other Our World in Data articles and charts is welcome where they're genuinely relevant — use the related research and related charts listed on the page. Don't invent URLs: if you aren't sure a page exists, don't link it."
+        "- Link other Our World in Data articles and charts where genuinely relevant — use the related research and charts listed on the page. Don't invent URLs: if you aren't sure a page exists, don't link it."
     )
     return lines.join("\n")
 }
