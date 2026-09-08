@@ -128,7 +128,7 @@ export const buildPrompt = ({
         "- Answer my question directly and keep it short. No preamble, no restating my question, no general background I didn't ask for.",
         "- Lead with the data. Put the relevant figures in a compact table, and draw a chart from them when it makes the pattern clearer than prose would.",
         "- Use only the linked data and notes. If they don't support an answer, say what's missing rather than estimating.",
-        "- Only link to Our World in Data pages that appear in the files above. Don't construct other URLs."
+        "- Linking to other Our World in Data articles and charts is welcome where they're genuinely relevant — use the related research and related charts listed on the page. Don't invent URLs: if you aren't sure a page exists, don't link it."
     )
     return lines.join("\n")
 }

@@ -53,8 +53,9 @@ describe("prompt construction", () => {
         expect(prompt).not.toContain(".png")
     })
 
-    it("forbids inventing Our World in Data URLs", () => {
-        expect(prompt).toContain("Don't construct other URLs")
+    it("welcomes relevant Our World in Data links but forbids inventing them", () => {
+        expect(prompt).toContain("related research and related charts")
+        expect(prompt).toContain("Don't invent URLs")
     })
 
     it("carries the visitor's question and on-screen state", () => {
