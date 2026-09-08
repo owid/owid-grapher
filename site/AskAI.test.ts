@@ -19,13 +19,13 @@ describe("chart state summary", () => {
 
     it("names the selected entities", () => {
         expect(describeChartState("?country=~NGA~IND")).toBe(
-            "I have selected: NGA, IND."
+            "Selected: NGA, IND."
         )
     })
 
     it("reads a time range and tab", () => {
         expect(describeChartState("?time=1990..latest&tab=map")).toBe(
-            "I'm looking at the period 1990 to latest. I'm on the \"map\" view."
+            "Period: 1990 to latest. View: map."
         )
     })
 })
@@ -36,7 +36,7 @@ describe("prompt construction", () => {
         pageUrl: `${SLUG_URL}?country=~NGA`,
         slugUrl: SLUG_URL,
         queryStr: "?country=~NGA",
-        stateSummary: "I have selected: NGA.",
+        stateSummary: "Selected: NGA.",
         question: "Why has this fallen so fast?",
     })
 
@@ -58,7 +58,7 @@ describe("prompt construction", () => {
 
     it("nudges towards the OWID skills afterwards", () => {
         expect(prompt).toContain("https://github.com/owid/skills")
-        expect(prompt).toContain("Afterwards")
+        expect(prompt).toContain("Then ask if")
     })
 
     it("keeps the skills nudge even when the prompt has to shrink", () => {
@@ -78,7 +78,7 @@ describe("prompt construction", () => {
     })
 
     it("asks for a short, data-led answer", () => {
-        expect(prompt).toContain("keep it short")
+        expect(prompt).toContain("Be direct and brief")
         expect(prompt).toContain("compact table")
     })
 
@@ -88,16 +88,16 @@ describe("prompt construction", () => {
 
     it("welcomes relevant Our World in Data links but forbids inventing them", () => {
         expect(prompt).toContain("related research and charts")
-        expect(prompt).toContain("Don't invent URLs")
+        expect(prompt).toContain("Never invent URLs")
     })
 
     it("carries the visitor's question and on-screen state", () => {
         expect(prompt).toContain("My question: Why has this fallen so fast?")
-        expect(prompt).toContain("I have selected: NGA.")
+        expect(prompt).toContain("Selected: NGA.")
     })
 
     it("tells the assistant not to fill gaps with estimates", () => {
-        expect(prompt).toContain("rather than estimating")
+        expect(prompt).toContain("don't estimate")
     })
 
     it("stays inside a safe URL length for a realistic worst case", () => {
@@ -127,6 +127,27 @@ describe("prompt construction", () => {
         )
     })
 
+    it("leaves room for a genuinely long question without shedding anything", () => {
+        const slugUrl = `${OWID_PUBLIC_GRAPHER_URL}/child-mortality`
+        const queryStr = "?country=~NGA~IND&time=2000..2020"
+        // ~400 characters: far longer than anyone is likely to type into the
+        // v3 box, and it should still survive intact.
+        const question =
+            "I'm writing a piece about why child mortality fell so much faster in some countries than others between 2000 and 2020, and I'd like to understand what the data here can and cannot tell me about that. Which of the two countries I've selected improved fastest in relative terms, how much of the gap is explained by where each started, and are there any breaks in the series I should be careful about?"
+        const out = buildPrompt({
+            title: "Child mortality rate",
+            pageUrl: `${slugUrl}${queryStr}`,
+            slugUrl,
+            queryStr,
+            stateSummary: describeChartState(queryStr),
+            question,
+        })
+        expect(out).toContain(question) // intact, not truncated
+        expect(out).toContain("csvType=full") // nothing shed
+        expect(out).toContain("Selected: NGA, IND.")
+        expect(encodeURIComponent(out).length).toBeLessThanOrEqual(3000)
+    })
+
     it("truncates the question rather than let the URL be clipped", () => {
         const slugUrl = `${OWID_PUBLIC_GRAPHER_URL}/child-mortality`
         const out = buildPrompt({
@@ -148,7 +169,7 @@ describe("prompt construction", () => {
             queryStr: "",
             question: "Explain this.",
         })
-        expect(bare).not.toContain("I have selected")
+        expect(bare).not.toContain("Selected:")
     })
 })
 

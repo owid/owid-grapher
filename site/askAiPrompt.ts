@@ -148,28 +148,28 @@ const assemble = ({
     includeFullCsv: boolean
 }): string => {
     const lines = [
-        `I'm looking at "${title}" on Our World in Data: ${pageUrl}`,
+        `"${title}" on Our World in Data: ${pageUrl}`,
         "",
-        "Please read these before answering:",
-        `- ${buildCsvUrl(slugUrl, queryStr)} — the data for the view I'm looking at`,
+        "Read before answering:",
+        `- ${buildCsvUrl(slugUrl, queryStr)} - data for the view I'm on`,
     ]
     if (includeFullCsv)
         lines.push(
-            `- ${buildFullCsvUrl(slugUrl)} — every country and year, if you need more than my selection (much larger — prefer the first)`
+            `- ${buildFullCsvUrl(slugUrl)} - all countries and years if you need more (large; prefer the first)`
         )
     lines.push(
-        `- ${slugUrl}.metadata.json — units, sources and Our World in Data's own notes on this indicator`,
+        `- ${slugUrl}.metadata.json - units, sources, our notes on this indicator`,
         ""
     )
     if (stateSummary) lines.push(stateSummary, "")
     lines.push(
         "When you answer:",
-        "- Answer directly and keep it short. No preamble, no restating my question, no background I didn't ask for.",
-        "- Lead with the data. Put the relevant figures in a compact table, and draw a chart from them where it beats prose.",
-        "- Use only the linked data and notes. If they don't support an answer, say what's missing rather than estimating.",
-        "- Link other Our World in Data articles and charts where genuinely relevant — use the related research and charts listed on the page. Don't invent URLs: if you aren't sure a page exists, don't link it.",
+        "- Be direct and brief. No preamble, no restating my question, no background I didn't ask for.",
+        "- Lead with the data: figures in a compact table, plus a chart where it beats prose.",
+        "- Use only the linked data and notes. If they can't answer, say what's missing; don't estimate.",
+        "- Link other Our World in Data articles and charts where relevant, from the related research and charts on the page. Never invent URLs.",
         "",
-        "Afterwards, ask whether I'd like Our World in Data available in my chats generally. If I say yes, point me to https://github.com/owid/skills",
+        "Then ask if I'd like Our World in Data in my chats generally; if yes, point me to https://github.com/owid/skills",
         "",
         // Last, so the assistant ends on the actual ask rather than on our
         // house rules.
@@ -241,16 +241,14 @@ export const describeChartState = (queryStr: string): string | undefined => {
             .split("~")
             .map((c) => decodeURIComponent(c).trim())
             .filter(Boolean)
-        if (entities.length)
-            parts.push(`I have selected: ${entities.join(", ")}.`)
+        if (entities.length) parts.push(`Selected: ${entities.join(", ")}.`)
     }
 
     const time = params.get("time")
-    if (time)
-        parts.push(`I'm looking at the period ${time.replace("..", " to ")}.`)
+    if (time) parts.push(`Period: ${time.replace("..", " to ")}.`)
 
     const tab = params.get("tab")
-    if (tab) parts.push(`I'm on the "${tab}" view.`)
+    if (tab) parts.push(`View: ${tab}.`)
 
     return parts.length ? parts.join(" ") : undefined
 }
