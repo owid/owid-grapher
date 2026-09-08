@@ -469,7 +469,7 @@
     }
 }
 
-.gdocs-ref__component-mention {
+.gdocs-ref__mention {
     text-decoration: none;
 
     code {
@@ -507,6 +507,13 @@
 .gdocs-ref-example__tabs {
     display: flex;
     gap: 4px;
+}
+
+.gdocs-ref-example__caption {
+    padding: 4px 10px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: $gray-70;
 }
 
 .gdocs-ref-example__tab {

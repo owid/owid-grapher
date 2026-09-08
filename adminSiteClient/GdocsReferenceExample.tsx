@@ -212,7 +212,9 @@ export function GdocsReferenceExample({
                         />
                     </div>
                 ) : (
-                    <div className="gdocs-ref-example__tabs" />
+                    <span className="gdocs-ref-example__caption">
+                        {previewUrl ? "Preview" : codeLabel}
+                    </span>
                 )}
                 <div className="gdocs-ref-example__toolbar-right">
                     {previewUrl && !showCode && (
