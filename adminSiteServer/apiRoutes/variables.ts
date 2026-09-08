@@ -294,7 +294,7 @@ export async function putIndicatorChartConfig(
 ) {
     const variableId = expectInt(req.params.variableId)
 
-    const validConfig = ingestGrapherConfig(req.body, "patch")
+    const validConfig = ingestGrapherConfig(req.body)
 
     const indicator = await getIndicatorChartConfigRecord(trx, variableId)
     if (!indicator) {

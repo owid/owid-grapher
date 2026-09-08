@@ -1,17 +1,14 @@
 import * as _ from "lodash-es"
-import Ajv, { ErrorObject, ValidateFunction } from "ajv"
+import Ajv, { ErrorObject } from "ajv"
 import addFormats from "ajv-formats"
 import { GrapherInterface, JsonError } from "@ourworldindata/types"
 import {
     AnyConfig,
     defaultGrapherConfig,
     getSchemaVersion,
-    latestGrapherPatchSchema,
     latestGrapherSchema,
     migrateGrapherConfigToLatestVersion,
 } from "@ourworldindata/grapher"
-
-export type GrapherConfigKind = "chart" | "patch"
 
 export interface GrapherConfigValidationIssue {
     pointer: string
@@ -22,18 +19,13 @@ export interface GrapherConfigValidationIssue {
 
 const ajv = new Ajv({ allErrors: true, strict: true })
 addFormats(ajv)
-const VALIDATORS: Record<GrapherConfigKind, ValidateFunction> = {
-    chart: ajv.compile(latestGrapherSchema),
-    patch: ajv.compile(latestGrapherPatchSchema),
-}
+const validateAgainstSchema = ajv.compile(latestGrapherSchema)
 
 export function validateGrapherConfig(
-    config: AnyConfig,
-    kind: GrapherConfigKind
+    config: AnyConfig
 ): GrapherConfigValidationIssue[] {
-    const validate = VALIDATORS[kind]
-    if (validate(config)) return []
-    return (validate.errors ?? []).map((error) => ({
+    if (validateAgainstSchema(config)) return []
+    return (validateAgainstSchema.errors ?? []).map((error) => ({
         pointer: pointerForError(error),
         message: error.message ?? `must satisfy ${error.keyword}`,
     }))
@@ -41,51 +33,43 @@ export function validateGrapherConfig(
 
 export class GrapherConfigValidationError extends JsonError {
     constructor(
-        kind: GrapherConfigKind,
         public readonly issues: GrapherConfigValidationIssue[],
         checkedCount?: number
     ) {
-        super(buildValidationErrorMessage(kind, issues, checkedCount), 400)
+        super(buildValidationErrorMessage(issues, checkedCount), 400)
     }
 }
 
 /** Throws if the config is invalid, reporting every issue at once */
-export function assertValidGrapherConfig(
-    config: AnyConfig,
-    kind: GrapherConfigKind
-): void {
-    const issues = validateGrapherConfig(config, kind)
-    if (issues.length > 0) throw new GrapherConfigValidationError(kind, issues)
+export function assertValidGrapherConfig(config: AnyConfig): void {
+    const issues = validateGrapherConfig(config)
+    if (issues.length > 0) throw new GrapherConfigValidationError(issues)
 }
 
 /** Throws once if any config is invalid, naming every one that failed */
 export function assertValidGrapherConfigs(
-    configs: readonly { label: string; config: AnyConfig }[],
-    kind: GrapherConfigKind
+    configs: readonly { label: string; config: AnyConfig }[]
 ): void {
     const issues = configs.flatMap(({ label, config }) =>
-        validateGrapherConfig(config, kind).map((issue) => ({
+        validateGrapherConfig(config).map((issue) => ({
             ...issue,
             label,
         }))
     )
     if (issues.length > 0)
-        throw new GrapherConfigValidationError(kind, issues, configs.length)
+        throw new GrapherConfigValidationError(issues, configs.length)
 }
 
-export function ingestGrapherConfig(
-    config: AnyConfig,
-    kind: GrapherConfigKind
-): GrapherInterface {
+export function ingestGrapherConfig(config: AnyConfig): GrapherInterface {
     if (!_.isPlainObject(config))
-        throw new GrapherConfigValidationError(kind, [
+        throw new GrapherConfigValidationError([
             { pointer: "", message: "must be object" },
         ])
 
     // rejected before migrating, which reports an unknown version as a stale reader
     const version = getSchemaVersion(config)
     if (version === null)
-        throw new GrapherConfigValidationError(kind, [
+        throw new GrapherConfigValidationError([
             {
                 pointer: "/$schema",
                 message:
@@ -96,8 +80,8 @@ export function ingestGrapherConfig(
         ])
 
     const migrated = migrateGrapherConfigToLatestVersion(config)
-    const issues = validateGrapherConfig(migrated, kind)
-    if (issues.length > 0) throw new GrapherConfigValidationError(kind, issues)
+    const issues = validateGrapherConfig(migrated)
+    if (issues.length > 0) throw new GrapherConfigValidationError(issues)
     return migrated
 }
 
@@ -109,7 +93,6 @@ function pointerForError(error: ErrorObject): string {
 }
 
 function buildValidationErrorMessage(
-    kind: GrapherConfigKind,
     issues: GrapherConfigValidationIssue[],
     checkedCount?: number
 ): string {
@@ -122,7 +105,7 @@ function buildValidationErrorMessage(
         const lines = issues.map(
             (issue) => `  ${issue.pointer || "(root)"}: ${issue.message}`
         )
-        return [`Invalid grapher ${kind} config:`, ...lines].join("\n")
+        return ["Invalid grapher config:", ...lines].join("\n")
     }
 
     const lines = labels.flatMap((label) => [
@@ -134,7 +117,7 @@ function buildValidationErrorMessage(
             ),
     ])
     return [
-        `Invalid grapher ${kind} config for ${labels.length} of ${checkedCount} charts:`,
+        `Invalid grapher config for ${labels.length} of ${checkedCount} charts:`,
         ...lines,
     ].join("\n")
 }

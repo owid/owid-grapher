@@ -82,7 +82,7 @@ const createPatchConfigAndQueryParamsForNarrativeChart = async (
     const queryParams = grapherConfigToQueryParams(patchConfigToSave)
 
     const fullConfig = mergeGrapherConfigs(parentChartConfig, patchConfigToSave)
-    assertValidGrapherConfig(fullConfig, "chart")
+    assertValidGrapherConfig(fullConfig)
     return { patchConfig: patchConfigToSave, fullConfig, queryParams }
 }
 
@@ -463,7 +463,7 @@ export async function createNarrativeChart(
             errorMsg: `Narrative chart with name "${data.name}" already exists`,
         }
     }
-    const config = ingestGrapherConfig(data.config, "patch")
+    const config = ingestGrapherConfig(data.config)
     if (data.type === "chart") {
         const { name, parentChartId } = data
         return createNarrativeChartFromChart(
@@ -496,7 +496,7 @@ export async function updateNarrativeChart(
     if (!rawConfig) {
         throw new JsonError("Invalid request", 400)
     }
-    const config = ingestGrapherConfig(rawConfig, "patch")
+    const config = ingestGrapherConfig(rawConfig)
 
     const existingRow = await trx<DbPlainNarrativeChart>(
         NarrativeChartsTableName

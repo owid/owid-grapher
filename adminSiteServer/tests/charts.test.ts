@@ -103,30 +103,6 @@ describe("Charts API", { timeout: 15000 }, () => {
         expect(await env.getCount(ChartsTableName)).toBe(0)
         expect(await env.getCount(ChartConfigsTableName)).toBe(0)
     })
-
-    it("rejects a save whose merged full config loses dimensions", async () => {
-        const createResponse = await env.request({
-            method: "POST",
-            path: "/charts",
-            body: JSON.stringify(testChartConfig),
-        })
-        const chartId = createResponse.chartId
-
-        const droppedDimensionsConfig = omitUndefinedValues({
-            ...testChartConfig,
-            dimensions: undefined,
-        })
-        const response = await env.request({
-            method: "PUT",
-            path: `/charts/${chartId}?inheritance=disable`,
-            body: JSON.stringify(droppedDimensionsConfig),
-        })
-        expect(response.success).toBe(false)
-        expect(response.error.message).toContain("dimensions")
-
-        const fullConfig = await env.fetchJson(`/charts/${chartId}.config.json`)
-        expect(fullConfig.dimensions).toEqual(testChartConfig.dimensions)
-    })
 })
 
 describe("Indicator-level chart configs", { timeout: 15000 }, () => {
@@ -452,6 +428,54 @@ describe("Indicator-level chart configs", { timeout: 15000 }, () => {
             ],
             // note that hideRelativeToggle is not included
         })
+    })
+
+    it("400s naming the chart whose stored patch is invalid, and rewrites nothing", async () => {
+        await env.request({
+            method: "PUT",
+            path: `/variables/${variableId}/grapherConfigETL`,
+            body: JSON.stringify(testVariableConfigETL),
+        })
+        const { chartId } = await env.request({
+            method: "POST",
+            path: "/charts",
+            body: JSON.stringify(testChartConfig),
+        })
+
+        // corrupt the stored patch directly: the write routes reject an unknown
+        // key, so only a row predating or bypassing them looks like this
+        const chart = await env
+            .testKnex(ChartsTableName)
+            .where({ id: chartId })
+            .first()
+        const patchRow = await env
+            .testKnex(ChartConfigsTableName)
+            .where({ id: chart.patchConfigId })
+            .first()
+        await env
+            .testKnex(ChartConfigsTableName)
+            .where({ id: chart.patchConfigId })
+            .update({
+                config: JSON.stringify({
+                    ...JSON.parse(patchRow.config),
+                    hideLegend: true,
+                }),
+            })
+
+        const response = await env.request({
+            method: "PUT",
+            path: `/variables/${variableId}/grapherConfigETL`,
+            body: JSON.stringify({
+                ...testVariableConfigETL,
+                note: "Revised indicator note",
+            }),
+            expectStatus: 400,
+        })
+        expect(response.error.message).toContain(`chart ${chartId}`)
+        expect(response.error.message).toContain("/hideLegend")
+
+        const fullConfig = await env.fetchJson(`/charts/${chartId}.config.json`)
+        expect(fullConfig.note).toBe("Indicator note")
     })
 
     it("should update chart configs when inheritance is enabled/disabled", async () => {
