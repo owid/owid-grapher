@@ -1,14 +1,19 @@
+import fs from "fs"
+import path from "path"
 import * as _ from "lodash-es"
 import Ajv, { ErrorObject } from "ajv"
 import addFormats from "ajv-formats"
+import type { JSONSchema7 } from "json-schema"
+import { parse } from "yaml"
 import { GrapherInterface, JsonError } from "@ourworldindata/types"
 import {
     AnyConfig,
     defaultGrapherConfig,
     getSchemaVersion,
-    latestGrapherSchema,
+    latestSchemaVersion,
     migrateGrapherConfigToLatestVersion,
 } from "@ourworldindata/grapher"
+import findProjectBaseDir from "../settings/findBaseDir.mjs"
 
 export interface GrapherConfigValidationIssue {
     pointer: string
@@ -19,7 +24,16 @@ export interface GrapherConfigValidationIssue {
 
 const ajv = new Ajv({ allErrors: true, strict: true })
 addFormats(ajv)
-const validateAgainstSchema = ajv.compile(latestGrapherSchema)
+const validateAgainstSchema = ajv.compile(readLatestGrapherSchema())
+
+export class GrapherConfigValidationError extends JsonError {
+    constructor(
+        public readonly issues: GrapherConfigValidationIssue[],
+        checkedCount?: number
+    ) {
+        super(buildValidationErrorMessage(issues, checkedCount), 400)
+    }
+}
 
 export function validateGrapherConfig(
     config: AnyConfig
@@ -29,15 +43,6 @@ export function validateGrapherConfig(
         pointer: pointerForError(error),
         message: error.message ?? `must satisfy ${error.keyword}`,
     }))
-}
-
-export class GrapherConfigValidationError extends JsonError {
-    constructor(
-        public readonly issues: GrapherConfigValidationIssue[],
-        checkedCount?: number
-    ) {
-        super(buildValidationErrorMessage(issues, checkedCount), 400)
-    }
 }
 
 /** Throws if the config is invalid, reporting every issue at once */
@@ -83,6 +88,18 @@ export function ingestGrapherConfig(config: AnyConfig): GrapherInterface {
     const issues = validateGrapherConfig(migrated)
     if (issues.length > 0) throw new GrapherConfigValidationError(issues)
     return migrated
+}
+
+function readLatestGrapherSchema(): JSONSchema7 {
+    const baseDir = findProjectBaseDir(__dirname)
+    if (baseDir === undefined)
+        throw new Error("Could not find the owid-grapher base directory")
+    const filePath = path.join(
+        baseDir,
+        "packages/@ourworldindata/grapher/src/schema",
+        `grapher-schema.${latestSchemaVersion}.yaml`
+    )
+    return parse(fs.readFileSync(filePath, "utf8")) as JSONSchema7
 }
 
 function pointerForError(error: ErrorObject): string {
