@@ -11,7 +11,7 @@ import { harvestExamples, hasFence } from "./sidecarExamples.js"
 const fence = (lang: string, body: string): string =>
     "```" + lang + "\n" + body + "\n```"
 
-describe("harvestExamples", () => {
+describe(harvestExamples, () => {
     test("records flavour, section and position for every fence", () => {
         const examples = harvestExamples({
             intro: ["Intro.", fence("archie", "{.chart}\n{}")].join("\n\n"),
@@ -47,9 +47,10 @@ describe("harvestExamples", () => {
     test("keeps two fences with identical source and different flavours apart", () => {
         const source = "{.chart}\nurl: https://ourworldindata.org/grapher/x\n{}"
         const examples = harvestExamples({
-            intro: [fence("archie", source), fence("archie-document", source)].join(
-                "\n\n"
-            ),
+            intro: [
+                fence("archie", source),
+                fence("archie-document", source),
+            ].join("\n\n"),
         })
         expect(examples.map((e) => [e.flavour, e.position])).toEqual([
             ["archie", 0],
@@ -58,10 +59,23 @@ describe("harvestExamples", () => {
     })
 
     test("ignores fences in other languages", () => {
-        expect(
-            harvestExamples({ intro: fence("yaml", "title: x") })
-        ).toEqual([])
+        expect(harvestExamples({ intro: fence("yaml", "title: x") })).toEqual(
+            []
+        )
         expect(hasFence("Text\n\n" + fence("yaml", "a: b"))).toBe(true)
         expect(hasFence("No fences here")).toBe(false)
+    })
+
+    test("tolerates trailing spaces and tabs on the info line", () => {
+        const examples = harvestExamples({
+            intro: [
+                "```archie \n{.chart}\n{}\n```",
+                "\n\n```archie-document\t\ntype: article\n{}\n```",
+            ].join(""),
+        })
+        expect(examples.map((e) => [e.flavour, e.archie])).toEqual([
+            ["archie", "{.chart}\n{}"],
+            ["archie-document", "type: article\n{}"],
+        ])
     })
 })
