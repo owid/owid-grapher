@@ -30,6 +30,9 @@ Commands (gdoc side):
     apply     Re-plan each doc against a fresh fetch and apply the edits,
               guarded by the doc's revisionId. Verifies each doc afterwards.
               Resumable: docs already verified are skipped (see --force).
+              Writes to the source Google Docs: without --id it refuses to
+              run unless --all is passed, since discovery targets every
+              matching production doc.
     verify    Re-check docs: the migration must be a no-op everywhere.
     status    Print the journal summary.
 
@@ -47,6 +50,8 @@ Options:
                              discovery, so it works for docs not in the DB
                              (e.g. a personal test doc). For create-test-doc:
                              the docs to sample from.
+    --all                    apply: confirm writing to every discovered doc.
+                             Required when no --id is given; ignored otherwise.
     --published-only         Restrict discovered docs to published gdocs.
     --concurrency <n>        Max concurrent docs/API calls (default: 4).
     --journal-dir <path>     Where journals live (default: devTools/gdocMigrations/runs).
@@ -112,6 +117,7 @@ interface CliOptions {
     command: string
     migrationName: string
     ids?: string[]
+    all: boolean
     publishedOnly: boolean
     concurrency: number
     journalDir: string
@@ -165,10 +171,18 @@ function parseCli(): CliOptions | null {
     if (typeof migrationName !== "string") {
         throw new Error("--migration <name> is required")
     }
+    const ids = stringList(parsed.id)
+    const all = Boolean(parsed.all)
+    if (command === "apply" && !ids?.length && !all) {
+        throw new Error(
+            "apply without --id would write to every doc the migration discovers in production. Pass --id <docId> to target specific docs, or --all to confirm."
+        )
+    }
     return {
         command,
         migrationName,
-        ids: stringList(parsed.id),
+        ids,
+        all,
         publishedOnly: Boolean(parsed["published-only"]),
         concurrency: positiveInteger(parsed.concurrency, "--concurrency", 4),
         journalDir: parsed["journal-dir"]

@@ -295,7 +295,7 @@ prod runner:
 After deploy (runs the DB migration and re-bakes):
 1. yarn regenerateGdocMarkdown && yarn reconstructPostsGdocsComponents
 2. yarn gdocMigration plan   --migration <name>     # review the grouped report
-3. yarn gdocMigration apply  --migration <name>
+3. yarn gdocMigration apply  --migration <name> --all   # --all confirms writing to every discovered doc
 4. yarn gdocMigration verify --migration <name>
 5. Confirm zero old syntax: <the SQL from discover, or a stricter one>
 6. Chase flagged docs by hand (status: yarn gdocMigration status --migration <name>)
