@@ -689,7 +689,7 @@ async function loadGrapherConfigAndData(
     const rawConfig = (await fs.readJson(configPath)) as GrapherInterface
     const config = migrateGrapherConfigToLatestVersion(rawConfig)
 
-    const validationIssues = validateGrapherConfig(config, "chart")
+    const validationIssues = validateGrapherConfig(config)
     if (validationIssues.length > 0)
         throw `Config ${configPath} is invalid:\n${validationIssues.map((issue) => `  ${issue.pointer}: ${issue.message}`).join("\n")}`
 

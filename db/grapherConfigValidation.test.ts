@@ -17,28 +17,34 @@ const baseChartConfig: AnyConfig = {
     dimensions: [{ property: "y", variableId: 1 }],
 }
 
-const { dimensions: _dimensions, ...basePatchConfig } = baseChartConfig
+const { dimensions: _dimensions, ...configWithoutDimensions } = baseChartConfig
+
+const configWithEmptyDimensions: AnyConfig = {
+    ...baseChartConfig,
+    dimensions: [],
+}
+
+const configWithUnknownKey: AnyConfig = {
+    ...baseChartConfig,
+    hideLegend: true,
+}
 
 describe(validateGrapherConfig, () => {
-    it("holds a patch to the patch schema and a chart to the chart schema", () => {
-        expect(validateGrapherConfig(basePatchConfig, "patch")).toEqual([])
+    it("holds a config that declares no dimensions, but not an empty array", () => {
+        expect(validateGrapherConfig(configWithoutDimensions)).toEqual([])
 
-        const issues = validateGrapherConfig(basePatchConfig, "chart")
-        expect(issues).toHaveLength(1)
-        expect(issues[0].pointer).toBe("")
+        const issues = validateGrapherConfig(configWithEmptyDimensions)
+        expect(issues.map((issue) => issue.pointer)).toEqual(["/dimensions"])
     })
 
     it("points at the unknown key itself, at the root and nested", () => {
-        const atRoot = validateGrapherConfig(
-            { ...baseChartConfig, hideLegend: true },
-            "chart"
-        )
+        const atRoot = validateGrapherConfig(configWithUnknownKey)
         expect(atRoot.map((issue) => issue.pointer)).toEqual(["/hideLegend"])
 
-        const nested = validateGrapherConfig(
-            { ...baseChartConfig, map: { nope: 1 } },
-            "chart"
-        )
+        const nested = validateGrapherConfig({
+            ...baseChartConfig,
+            map: { nope: 1 },
+        })
         expect(nested.map((issue) => issue.pointer)).toEqual(["/map/nope"])
     })
 })
@@ -53,7 +59,7 @@ describe(ingestGrapherConfig, () => {
             ],
         }
 
-        const migrated = ingestGrapherConfig(config, "chart")
+        const migrated = ingestGrapherConfig(config)
 
         expect(migrated.$schema).toBe(defaultGrapherConfig.$schema)
         expect(migrated.dimensions?.[0].display).toStrictEqual({
@@ -63,7 +69,7 @@ describe(ingestGrapherConfig, () => {
 
     it("rejects a config that is not an object", () => {
         const error = catchValidationError(() =>
-            ingestGrapherConfig(null as unknown as AnyConfig, "chart")
+            ingestGrapherConfig(null as unknown as AnyConfig)
         )
 
         expect(error.status).toBe(400)
@@ -74,7 +80,7 @@ describe(ingestGrapherConfig, () => {
 
     it("rejects a config with no $schema", () => {
         const error = catchValidationError(() =>
-            ingestGrapherConfig({ title: "Untitled" }, "chart")
+            ingestGrapherConfig({ title: "Untitled" })
         )
 
         expect(error.status).toBe(400)
@@ -88,10 +94,10 @@ describe(ingestGrapherConfig, () => {
 
     it("rejects a schema version this code does not know", () => {
         const error = catchValidationError(() =>
-            ingestGrapherConfig(
-                { ...baseChartConfig, $schema: schemaUrlForVersion("099") },
-                "chart"
-            )
+            ingestGrapherConfig({
+                ...baseChartConfig,
+                $schema: schemaUrlForVersion("099"),
+            })
         )
 
         expect(error.status).toBe(400)
@@ -101,17 +107,15 @@ describe(ingestGrapherConfig, () => {
 
 describe(assertValidGrapherConfig, () => {
     it("does nothing when the config is valid", () => {
-        expect(() =>
-            assertValidGrapherConfig(baseChartConfig, "chart")
-        ).not.toThrow()
+        expect(() => assertValidGrapherConfig(baseChartConfig)).not.toThrow()
     })
 
     it("throws on an invalid config", () => {
         const error = catchValidationError(() =>
-            assertValidGrapherConfig(basePatchConfig, "chart")
+            assertValidGrapherConfig(configWithUnknownKey)
         )
         expect(error.message).toBe(
-            "Invalid grapher chart config:\n  (root): must have required property 'dimensions'"
+            "Invalid grapher config:\n  /hideLegend: must NOT have additional properties"
         )
     })
 })
@@ -122,27 +126,24 @@ describe(assertValidGrapherConfigs, () => {
             { label: "chart 1", config: baseChartConfig },
             { label: "chart 2", config: baseChartConfig },
         ]
-        expect(() => assertValidGrapherConfigs(configs, "chart")).not.toThrow()
+        expect(() => assertValidGrapherConfigs(configs)).not.toThrow()
     })
 
     it("throws once, naming every failing label with an N of M header", () => {
         const configs = [
             { label: "chart 1", config: baseChartConfig },
-            { label: "chart 2", config: basePatchConfig },
-            {
-                label: "chart 3",
-                config: { ...baseChartConfig, hideLegend: true },
-            },
+            { label: "chart 2", config: configWithEmptyDimensions },
+            { label: "chart 3", config: configWithUnknownKey },
         ]
         const error = catchValidationError(() =>
-            assertValidGrapherConfigs(configs, "chart")
+            assertValidGrapherConfigs(configs)
         )
 
         expect(error.message.split("\n")[0]).toBe(
-            "Invalid grapher chart config for 2 of 3 charts:"
+            "Invalid grapher config for 2 of 3 charts:"
         )
         expect(error.message).toContain(
-            "  chart 2\n    (root): must have required property 'dimensions'"
+            "  chart 2\n    /dimensions: must NOT have fewer than 1 items"
         )
         expect(error.message).toContain(
             "  chart 3\n    /hideLegend: must NOT have additional properties"
@@ -156,7 +157,7 @@ describe(assertValidGrapherConfigs, () => {
 
 describe(GrapherConfigValidationError, () => {
     it("lists every issue in the message, naming the root pointer readably", () => {
-        const error = new GrapherConfigValidationError("chart", [
+        const error = new GrapherConfigValidationError([
             {
                 pointer: "",
                 message: "must have required property 'dimensions'",
