@@ -23,7 +23,7 @@ const SECTION_ORDER: SidecarSectionKey[] = [
 ]
 
 const EXAMPLE_FENCE = new RegExp(
-    FENCE + "(archie-document|archie)\\r?\\n([\\s\\S]+?)\\r?\\n" + FENCE,
+    FENCE + "(archie-document|archie)[ \t]*\\r?\\n([\\s\\S]+?)\\r?\\n" + FENCE,
     "g"
 )
 
