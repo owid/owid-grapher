@@ -496,6 +496,10 @@ update.chart-entities: node_modules
 	@echo '==> Updating chart entities table'
 	yarn tsx --tsconfig tsconfig.tsx.json baker/updateChartEntities.js --all
 
+validate-chart-configs: node_modules
+	@echo '==> Validating every stored chart config against the grapher schema'
+	yarn tsx --tsconfig tsconfig.tsx.json devTools/schema/checkChartConfigsAgainstSchema.js
+
 reindex: node_modules
 	@echo '==> Reindexing search in Algolia'
 	@echo '--- Running configureAlgolia...'
