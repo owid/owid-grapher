@@ -118,28 +118,33 @@ export const experiments: Experiment[] = [
             "/grapher/child-mortality",
             // multi-indicator data pages (rendered as data pages via
             // forceDatapage; the metadata box shows an indicator switcher).
-            // Treatment arm of a stratified page-level randomization —
-            // the pool, seed and matched CONTROL set (grapher pages left
-            // as-is, used only in analysis) live in the analytics repo:
+            // Treatment arm of a stratified page-level randomization over
+            // the top-40 multi-indicator pages by consented landing
+            // sessions — the pool, seed and the 20 matched CONTROL pages
+            // (left as grapher pages, used only in analysis) live in the
+            // analytics repo under
             // experiments/briefs/multi_datapage_assignment_20260907/.
             // Don't hand-edit this list without re-drawing there.
             "/grapher/annual-deaths-by-age",
-            "/grapher/annual-number-of-deaths-by-cause",
+            "/grapher/average-height-by-year-of-birth",
             "/grapher/births-by-age-of-mother",
-            "/grapher/co-emissions-by-sector",
-            "/grapher/fertility-rate-with-projections",
+            "/grapher/car-sales",
+            "/grapher/electricity-production-by-source",
+            "/grapher/food-emissions-supply-chain",
+            "/grapher/globalization-over-5-centuries",
             "/grapher/historical-cost-of-computer-memory-and-storage",
             "/grapher/levelized-cost-of-energy",
-            "/grapher/measles-cases-and-death",
             "/grapher/measles-cases-and-death-rate",
             "/grapher/median-age",
+            "/grapher/natural-population-growth",
             "/grapher/number-of-births-per-year",
             "/grapher/number-of-deaths-by-risk-factor",
-            "/grapher/number-of-deaths-per-year",
             "/grapher/per-capita-meat-consumption-by-type-kilograms-per-year",
+            "/grapher/per-capita-meat-type",
             "/grapher/population-of-the-worlds-largest-cities",
-            "/grapher/reported-paralytic-polio-cases-and-deaths-in-the-united-states-since-1910",
+            "/grapher/population-with-un-projections",
             "/grapher/united-states-rates-of-covid-19-deaths-by-vaccination-status",
+            "/grapher/urban-and-rural-population",
         ],
     }),
 ]
