@@ -158,10 +158,6 @@ export class GdocsReferencePage extends Component<
         return this.templates.find((template) => template.id === id)
     }
 
-    @computed private get componentIds(): Set<string> {
-        return new Set(this.components.map((component) => component.id))
-    }
-
     // What the properties table links a type name to: the component's own
     // reference page when the type is a block, its GitHub definition otherwise.
     @computed private get propTypeLinks(): PropTypeLinks {
@@ -838,9 +834,9 @@ export class GdocsReferencePage extends Component<
                         </h2>
                         <GdocsReferenceMarkdown
                             body={whenToUse}
+                            section="whenToUse"
                             examples={examples}
                             previewPathForExample={previewPathForExample}
-                            componentIds={this.componentIds}
                         />
                     </div>
                 )}
@@ -851,9 +847,9 @@ export class GdocsReferencePage extends Component<
                         </h2>
                         <GdocsReferenceMarkdown
                             body={whenNotToUse}
+                            section="whenNotToUse"
                             examples={examples}
                             previewPathForExample={previewPathForExample}
-                            componentIds={this.componentIds}
                         />
                     </div>
                 )}
@@ -892,9 +888,9 @@ export class GdocsReferencePage extends Component<
                 {intro && (
                     <GdocsReferenceMarkdown
                         body={intro}
+                        section="intro"
                         examples={component.examples}
                         previewPathForExample={previewPath}
-                        componentIds={this.componentIds}
                     />
                 )}
                 {this.renderDecisionBox(
@@ -922,9 +918,9 @@ export class GdocsReferencePage extends Component<
                         notes ? (
                             <GdocsReferenceMarkdown
                                 body={notes}
+                                section="notes"
                                 examples={component.examples}
                                 previewPathForExample={previewPath}
-                                componentIds={this.componentIds}
                             />
                         ) : undefined
                     }
@@ -1016,7 +1012,8 @@ export class GdocsReferencePage extends Component<
                         </div>
                         <GdocsReferenceMarkdown
                             body={notes}
-                            componentIds={this.componentIds}
+                            section="notes"
+                            titleFor={this.titleOf}
                         />
                     </div>
                 )}
@@ -1071,10 +1068,7 @@ export class GdocsReferencePage extends Component<
                     </div>
                 </header>
                 {intro && (
-                    <GdocsReferenceMarkdown
-                        body={intro}
-                        componentIds={this.componentIds}
-                    />
+                    <GdocsReferenceMarkdown body={intro} section="intro" />
                 )}
                 {this.renderDecisionBox(whenToUse, whenNotToUse)}
                 <ExemplarPreview template={template} />
@@ -1084,7 +1078,10 @@ export class GdocsReferencePage extends Component<
                     usage={this.usage}
                     components={this.components}
                 />
-                {this.renderTemplateFields(template, notes)}
+                {notes && (
+                    <GdocsReferenceMarkdown body={notes} section="notes" />
+                )}
+                {this.renderTemplateFields(template)}
                 <footer className="gdocs-ref__detail-footer">
                     <a
                         href={githubEditUrl(template.sidecarFile)}
