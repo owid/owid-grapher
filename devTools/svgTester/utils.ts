@@ -24,7 +24,7 @@ import fs, { stat } from "fs-extra"
 import path from "path"
 import { execFileSync } from "child_process"
 import { getVariableData } from "../../db/model/Variable.js"
-import { validateGrapherConfig } from "../../db/grapherConfigValidation.js"
+import { assertValidGrapherConfig } from "../../db/grapherConfigValidation.js"
 
 import * as _ from "lodash-es"
 import { getHeapStatistics } from "v8"
@@ -689,9 +689,7 @@ async function loadGrapherConfigAndData(
     const rawConfig = (await fs.readJson(configPath)) as GrapherInterface
     const config = migrateGrapherConfigToLatestVersion(rawConfig)
 
-    const validationIssues = validateGrapherConfig(config)
-    if (validationIssues.length > 0)
-        throw `Config ${configPath} is invalid:\n${validationIssues.map((issue) => `  ${issue.pointer}: ${issue.message}`).join("\n")}`
+    assertValidGrapherConfig(config)
 
     const variableIds = config.dimensions?.map((d) => d.variableId) ?? []
     const loadDataPromises = variableIds.map(async (variableId) => {

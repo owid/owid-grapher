@@ -82,7 +82,10 @@ const createPatchConfigAndQueryParamsForNarrativeChart = async (
     const queryParams = grapherConfigToQueryParams(patchConfigToSave)
 
     const fullConfig = mergeGrapherConfigs(parentChartConfig, patchConfigToSave)
+
+    // Ensure the resulting config is valid since parts of it are assembled in code
     assertValidGrapherConfig(fullConfig)
+
     return { patchConfig: patchConfigToSave, fullConfig, queryParams }
 }
 

@@ -151,7 +151,7 @@ describe("Multi-dim views", { timeout: 20000 }, () => {
         expect(await env.getCount(MultiDimDataPagesTableName)).toBe(0)
     })
 
-    it("400s naming the view whose merge is invalid, and writes no view config", async () => {
+    it("400s when a view's merge is invalid, and writes no view config", async () => {
         // seed a valid indicator ETL config, then corrupt it directly: the
         // write route itself would reject the unknown key
         await env.request({
@@ -185,7 +185,7 @@ describe("Multi-dim views", { timeout: 20000 }, () => {
             }),
             expectStatus: 400,
         })
-        expect(response.error.message).toContain("mdim view metric=total")
+        expect(response.error.message).toContain("/hideLegend")
 
         expect(await env.getCount(MultiDimDataPagesTableName)).toBe(0)
         expect(await env.getCount(MultiDimXChartConfigsTableName)).toBe(0)
