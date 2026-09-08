@@ -670,18 +670,6 @@ export class GdocsReferencePage extends Component<
                         rowsByKind[kind].rows
                     )
                 )}
-                {filteredGuides.length > 0 && (
-                    <div className="gdocs-ref__nav-group">
-                        <div className="gdocs-ref__nav-group-title">
-                            {GUIDES_GROUP_TITLE}
-                        </div>
-                        <ul>
-                            {filteredGuides.map((guide) =>
-                                this.renderNavItem("guides", guide)
-                            )}
-                        </ul>
-                    </div>
-                )}
                 {nothingMatches && (
                     <div className="gdocs-ref__nav-empty">
                         Nothing matches “{this.searchInput.trim()}”
