@@ -15,18 +15,7 @@ links.
 
 ## Notes
 
-Footnotes: `{ref}example_id{/ref}` resolves against the front-matter
-`[.refs]` block, so a ref can be reused across the document —
-whitespace-free content is treated as an ID. Inline refs
-(`{ref}free text{/ref}`) also work; identical inline refs share a
-footnote number.
-
-Details on demand: link a phrase to `#dod:your_dod_id`. In grapher
-subtitles and footers use markdown instead:
-`[Primary energy](#dod:primaryenergy)`.
-
-Starting a paragraph with a word followed by a colon would be parsed as
-an archie key — escape it: `Blah\: explanation`.
-
-Lines between `:skip` and `:endskip` are archie comments, though Google
-Docs comments are usually the better tool.
+For footnotes, see `{guide:refs}`. For definition popups, see
+`{guide:details-on-demand}`. For paragraph mechanics — front matter and
+body, `:skip` comments, escaping a leading colon, lists — see
+`{guide:writing-basics}`.

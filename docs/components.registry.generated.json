@@ -24,8 +24,14 @@
       ],
       "valueProps": [],
       "related": [
-        "chart-rows",
-        "all-charts"
+        {
+          "kind": "component",
+          "id": "chart-rows"
+        },
+        {
+          "kind": "component",
+          "id": "all-charts"
+        }
       ]
     },
     {
@@ -42,7 +48,10 @@
       },
       "examples": [
         {
-          "archie": "{.align}\nalignment: center\n[.+content]\n{.heading}\ntext: The 17 Sustainable Development Goals\nlevel: 2\n{}\n{.heading}\ntext: Click on a Goal below to see interactive charts for available indicators\nlevel: 3\n{}\n[]\n{}"
+          "archie": "{.align}\nalignment: center\n[.+content]\n{.heading}\ntext: The 17 Sustainable Development Goals\nlevel: 2\n{}\n{.heading}\ntext: Click on a Goal below to see interactive charts for available indicators\nlevel: 3\n{}\n[]\n{}",
+          "flavour": "archie",
+          "section": "intro",
+          "position": 0
         }
       ],
       "props": [
@@ -61,7 +70,10 @@
       ],
       "valueProps": [],
       "related": [
-        "gray-section"
+        {
+          "kind": "component",
+          "id": "gray-section"
+        }
       ]
     },
     {
@@ -79,7 +91,10 @@
       },
       "examples": [
         {
-          "archie": "{.all-charts}\nheading: Interactive charts on homelessness\n[.top]\nurl: https://ourworldindata.org/grapher/homelessness-rate-point-in-time-count\nurl: https://ourworldindata.org/grapher/homelessness-rate-flow-count\n[]\n{}"
+          "archie": "{.all-charts}\nheading: Interactive charts on homelessness\n[.top]\nurl: https://ourworldindata.org/grapher/homelessness-rate-point-in-time-count\nurl: https://ourworldindata.org/grapher/homelessness-rate-flow-count\n[]\n{}",
+          "flavour": "archie",
+          "section": "intro",
+          "position": 0
         }
       ],
       "props": [
@@ -98,8 +113,14 @@
       ],
       "valueProps": [],
       "related": [
-        "chart-rows",
-        "additional-charts"
+        {
+          "kind": "component",
+          "id": "chart-rows"
+        },
+        {
+          "kind": "component",
+          "id": "additional-charts"
+        }
       ]
     },
     {
@@ -116,7 +137,10 @@
       },
       "examples": [
         {
-          "archie": "{.aside}\ncaption: I will be to the left of the following paragraph.\nposition: left\n{}"
+          "archie": "{.aside}\ncaption: I will be to the left of the following paragraph.\nposition: left\n{}",
+          "flavour": "archie",
+          "section": "intro",
+          "position": 0
         }
       ],
       "props": [
@@ -137,8 +161,14 @@
         "position"
       ],
       "related": [
-        "callout",
-        "recirc"
+        {
+          "kind": "component",
+          "id": "callout"
+        },
+        {
+          "kind": "component",
+          "id": "recirc"
+        }
       ]
     },
     {
@@ -202,7 +232,10 @@
       },
       "examples": [
         {
-          "archie": "{.blockquote}\ncitation: Chris Whitty, Chief Medical Officer for England\n[.+text]\n“The key points about vaping (e-cigarettes) can be easily summarised. If you smoke, vaping is much safer; if you don’t smoke, don’t vape.”\n[]\n{}"
+          "archie": "{.blockquote}\ncitation: Chris Whitty, Chief Medical Officer for England\n[.+text]\n“The key points about vaping (e-cigarettes) can be easily summarised. If you smoke, vaping is much safer; if you don’t smoke, don’t vape.”\n[]\n{}",
+          "flavour": "archie",
+          "section": "intro",
+          "position": 0
         }
       ],
       "props": [
@@ -221,7 +254,10 @@
       ],
       "valueProps": [],
       "related": [
-        "pull-quote"
+        {
+          "kind": "component",
+          "id": "pull-quote"
+        }
       ]
     },
     {
@@ -238,7 +274,10 @@
       },
       "examples": [
         {
-          "archie": "{.callout}\nicon: info\ntitle: Note on the earlier version of this article\n[.+text]\nThis is an update of an article that I published in May 2019 on Our World in Data, titled “<a href=\"https://web.archive.org/web/20190513154042/https://ourworldindata.org/extreme-poverty-projections\">As the world’s poorest economies are stagnating, half a billion are expected to be in extreme poverty in 2030</a>”.\nBased on even earlier projections, I also made this a central point of my presentation to the UN back in 2018, for which you can find my slides <a href=\"https://ourworldindata.org/max-un-slides\">here</a>.\n[]\n{}"
+          "archie": "{.callout}\nicon: info\ntitle: Note on the earlier version of this article\n[.+text]\nThis is an update of an article that I published in May 2019 on Our World in Data, titled “<a href=\"https://web.archive.org/web/20190513154042/https://ourworldindata.org/extreme-poverty-projections\">As the world’s poorest economies are stagnating, half a billion are expected to be in extreme poverty in 2030</a>”.\nBased on even earlier projections, I also made this a central point of my presentation to the UN back in 2018, for which you can find my slides <a href=\"https://ourworldindata.org/max-un-slides\">here</a>.\n[]\n{}",
+          "flavour": "archie",
+          "section": "intro",
+          "position": 0
         }
       ],
       "props": [
@@ -270,8 +309,14 @@
         }
       ],
       "related": [
-        "aside",
-        "data-callout"
+        {
+          "kind": "component",
+          "id": "aside"
+        },
+        {
+          "kind": "component",
+          "id": "data-callout"
+        }
       ]
     },
     {
@@ -289,13 +334,22 @@
       },
       "examples": [
         {
-          "archie": "{.chart}\nurl: https://ourworldindata.org/grapher/unemployment-rate\n{}"
+          "archie": "{.chart}\nurl: https://ourworldindata.org/grapher/unemployment-rate\n{}",
+          "flavour": "archie",
+          "section": "intro",
+          "position": 0
         },
         {
-          "archie": "{.chart}\nurl: https://ourworldindata.org/grapher/military-expenditure-share-gdp\nsize: narrow\nvisibility: desktop\npeerCountries: parentRegions\n{}"
+          "archie": "{.chart}\nurl: https://ourworldindata.org/grapher/military-expenditure-share-gdp\nsize: narrow\nvisibility: desktop\npeerCountries: parentRegions\n{}",
+          "flavour": "archie",
+          "section": "intro",
+          "position": 1
         },
         {
-          "archie": "{.chart}\nurl: https://ourworldindata.org/explorers/food-footprints?hideControls=true\n{}"
+          "archie": "{.chart}\nurl: https://ourworldindata.org/explorers/food-footprints?hideControls=true\n{}",
+          "flavour": "archie",
+          "section": "intro",
+          "position": 2
         }
       ],
       "props": [
@@ -346,8 +400,14 @@
         }
       ],
       "related": [
-        "narrative-chart",
-        "pull-chart"
+        {
+          "kind": "component",
+          "id": "narrative-chart"
+        },
+        {
+          "kind": "component",
+          "id": "pull-chart"
+        }
       ]
     },
     {
@@ -364,7 +424,10 @@
       },
       "examples": [
         {
-          "archie": "{.chart-rows}\nkicker: More views of this data\ntitle: Daily incomes by decile\nsource: Global Carbon Budget (2025)\n\n[.rows]\nimage: chart-1-thumbnail.png\nurl: https://ourworldindata.org/grapher/daily-income-decile-1\n[.+content]\nThe poorest decile has seen modest gains since 1980.\n[]\n\nimage: chart-2-thumbnail.png\nurl: https://ourworldindata.org/grapher/daily-income-decile-10\n[.+content]\nThe richest decile has seen the largest absolute gains.\n[]\n[]\n{}"
+          "archie": "{.chart-rows}\nkicker: More views of this data\ntitle: Daily incomes by decile\nsource: Global Carbon Budget (2025)\n\n[.rows]\nimage: chart-1-thumbnail.png\nurl: https://ourworldindata.org/grapher/daily-income-decile-1\n[.+content]\nThe poorest decile has seen modest gains since 1980.\n[]\n\nimage: chart-2-thumbnail.png\nurl: https://ourworldindata.org/grapher/daily-income-decile-10\n[.+content]\nThe richest decile has seen the largest absolute gains.\n[]\n[]\n{}",
+          "flavour": "archie",
+          "section": "intro",
+          "position": 0
         }
       ],
       "props": [
@@ -395,8 +458,18 @@
       ],
       "valueProps": [],
       "related": [
-        "pull-chart",
-        "chart"
+        {
+          "kind": "component",
+          "id": "guided-chart"
+        },
+        {
+          "kind": "component",
+          "id": "pull-chart"
+        },
+        {
+          "kind": "component",
+          "id": "chart"
+        }
       ]
     },
     {
@@ -413,7 +486,10 @@
       },
       "examples": [
         {
-          "archie": "[.chart-story]\nnarrative: Share of women who were married by age 15\nchart: https://ourworldindata.org/grapher/women-married-by-age-15\n{.technical}\n[.list]\n[]\n{}\nnarrative: Share of women who were married by age 18\nchart: https://ourworldindata.org/grapher/women-married-by-age-18\n{.technical}\n[.list]\n[]\n{}\n[]"
+          "archie": "[.chart-story]\nnarrative: Share of women who were married by age 15\nchart: https://ourworldindata.org/grapher/women-married-by-age-15\n{.technical}\n[.list]\n[]\n{}\nnarrative: Share of women who were married by age 18\nchart: https://ourworldindata.org/grapher/women-married-by-age-18\n{.technical}\n[.list]\n[]\n{}\n[]",
+          "flavour": "archie",
+          "section": "intro",
+          "position": 0
         }
       ],
       "props": [
@@ -426,8 +502,14 @@
       ],
       "valueProps": [],
       "related": [
-        "chart-rows",
-        "guided-chart"
+        {
+          "kind": "component",
+          "id": "chart-rows"
+        },
+        {
+          "kind": "component",
+          "id": "guided-chart"
+        }
       ]
     },
     {
@@ -444,7 +526,10 @@
       },
       "examples": [
         {
-          "archie": "[.+code]\n<iframe src=\"https://archive.ourworldindata.org/20250626-192628/grapher/universal-suffrage-lexical.html\" loading=\"lazy\" style=\"width: 100%; height: 600px; border: 0px none;\" allow=\"web-share; clipboard-write\"></iframe>\n[]"
+          "archie": "[.+code]\n<iframe src=\"https://archive.ourworldindata.org/20250626-192628/grapher/universal-suffrage-lexical.html\" loading=\"lazy\" style=\"width: 100%; height: 600px; border: 0px none;\" allow=\"web-share; clipboard-write\"></iframe>\n[]",
+          "flavour": "archie",
+          "section": "intro",
+          "position": 0
         }
       ],
       "props": [
@@ -457,7 +542,10 @@
       ],
       "valueProps": [],
       "related": [
-        "html"
+        {
+          "kind": "component",
+          "id": "html"
+        }
       ]
     },
     {
@@ -561,7 +649,10 @@
       },
       "examples": [
         {
-          "archie": "{.cta}\ntext: Explore our interactive chart of objects launched into space.\nurl: https://ourworldindata.org/grapher/yearly-number-of-objects-launched-into-outer-space\n{}"
+          "archie": "{.cta}\ntext: Explore our interactive chart of objects launched into space.\nurl: https://ourworldindata.org/grapher/yearly-number-of-objects-launched-into-outer-space\n{}",
+          "flavour": "archie",
+          "section": "intro",
+          "position": 0
         }
       ],
       "props": [
@@ -580,8 +671,14 @@
       ],
       "valueProps": [],
       "related": [
-        "prominent-link",
-        "recirc"
+        {
+          "kind": "component",
+          "id": "prominent-link"
+        },
+        {
+          "kind": "component",
+          "id": "recirc"
+        }
       ]
     },
     {
@@ -595,11 +692,14 @@
         "intro": "A callout whose text interpolates live values from a Grapher chart at the\n`url`. Use `$latestTime()` and `$latestValue()` to pull the most recent\ndata point. For multi-y charts, pass a column name, e.g.\n`$latestTime(emissions_total)`.\n\n```archie\n{.data-callout}\nurl: https://ourworldindata.org/grapher/life-expectancy?country=CAN\n[.+content]\nIn $latestTime(), Canada's life expectancy was $latestValue()\n[]\n{}\n```",
         "whenToUse": "- Surfacing a \"latest value\" summary for a specific entity.\n- Country profiles where copy should adapt to per-country data.",
         "whenNotToUse": "- Prefer `{.callout}` for static meta-textual notes not driven by chart\n  data.",
-        "notes": "Include `time` in the grapher URL to pin a specific period —\n`$latestTime()` means \"latest for this particular view\". Use\n/admin/callout-functions to find the indicator slugs a chart exposes.\n\nIf the referenced chart has no data for the current entity, the entire\nsection won't render — by design, useful for country profiles.\n\nAny content can go inside, including charts, though a nested chart has no\nprogrammatic relation to the callout."
+        "notes": "Include `time` in the grapher URL to pin a specific period —\n`$latestTime()` means \"latest for this particular view\". Any content can go\ninside, including charts, though a nested chart has no programmatic\nrelation to the callout. See `{guide:data-callout-functions}`."
       },
       "examples": [
         {
-          "archie": "{.data-callout}\nurl: https://ourworldindata.org/grapher/life-expectancy?country=CAN\n[.+content]\nIn $latestTime(), Canada's life expectancy was $latestValue()\n[]\n{}"
+          "archie": "{.data-callout}\nurl: https://ourworldindata.org/grapher/life-expectancy?country=CAN\n[.+content]\nIn $latestTime(), Canada's life expectancy was $latestValue()\n[]\n{}",
+          "flavour": "archie",
+          "section": "intro",
+          "position": 0
         }
       ],
       "props": [
@@ -618,7 +718,14 @@
       ],
       "valueProps": [],
       "related": [
-        "callout"
+        {
+          "kind": "component",
+          "id": "callout"
+        },
+        {
+          "kind": "guide",
+          "id": "data-callout-functions"
+        }
       ]
     },
     {
@@ -635,7 +742,10 @@
       },
       "examples": [
         {
-          "archie": "{.data-callout-group}\n[.+content]\n{.heading}\ntext: Life expectancy and child mortality\nlevel: 2\n{}\n\n{.data-callout}\nurl: https://ourworldindata.org/grapher/life-expectancy?country=CAN\n[.+content]\nIn $latestTime(), Canada's life expectancy was $latestValue()\n[]\n{}\n\n{.data-callout}\nurl: https://ourworldindata.org/grapher/child-mortality?country=CAN\n[.+content]\nIn $latestTime(), child mortality in Canada was $latestValue()\n[]\n{}\n[]\n{}"
+          "archie": "{.data-callout-group}\n[.+content]\n{.heading}\ntext: Life expectancy and child mortality\nlevel: 2\n{}\n\n{.data-callout}\nurl: https://ourworldindata.org/grapher/life-expectancy?country=CAN\n[.+content]\nIn $latestTime(), Canada's life expectancy was $latestValue()\n[]\n{}\n\n{.data-callout}\nurl: https://ourworldindata.org/grapher/child-mortality?country=CAN\n[.+content]\nIn $latestTime(), child mortality in Canada was $latestValue()\n[]\n{}\n[]\n{}",
+          "flavour": "archie",
+          "section": "intro",
+          "position": 0
         }
       ],
       "props": [
@@ -648,7 +758,10 @@
       ],
       "valueProps": [],
       "related": [
-        "data-callout"
+        {
+          "kind": "component",
+          "id": "data-callout"
+        }
       ]
     },
     {
@@ -665,7 +778,10 @@
       },
       "examples": [
         {
-          "archie": "{.donors}\n{}"
+          "archie": "{.donors}\n{}",
+          "flavour": "archie",
+          "section": "intro",
+          "position": 0
         }
       ],
       "props": [
@@ -692,7 +808,10 @@
       },
       "examples": [
         {
-          "archie": "[.+expandable-paragraph]\nHere’s a more detailed explanation of how they determined the winner and payout:\n[.list]\n* $200 was placed on each of the five metals individually. So, the total amount at stake was $1,000.\n* The 1980 price of each metal was taken as a baseline.\n* The change in the inflation-adjusted price of each metal was compared in 1990. For example, the price of copper fell by around 24% between 1980 and 1990.\n* They then multiplied the $200 for each metal by its respective price change. So, if the price of copper <i>fell</i> by 24%, Ehrlich owed $48; if it increased by 24%, Simon owed $48.\n* The loss or gain for each metal was then summed up to get the total. If the total basket of metals had increased in price, Ehrlich had to pay. If it decreased, Simon had to pay.\n* The $1,000 basket of metals in 1980 had dropped by $576, which is what Ehrlich owed Simon as the forfeit in the bet.\n[]\n[]"
+          "archie": "[.+expandable-paragraph]\nHere’s a more detailed explanation of how they determined the winner and payout:\n[.list]\n* $200 was placed on each of the five metals individually. So, the total amount at stake was $1,000.\n* The 1980 price of each metal was taken as a baseline.\n* The change in the inflation-adjusted price of each metal was compared in 1990. For example, the price of copper fell by around 24% between 1980 and 1990.\n* They then multiplied the $200 for each metal by its respective price change. So, if the price of copper <i>fell</i> by 24%, Ehrlich owed $48; if it increased by 24%, Simon owed $48.\n* The loss or gain for each metal was then summed up to get the total. If the total basket of metals had increased in price, Ehrlich had to pay. If it decreased, Simon had to pay.\n* The $1,000 basket of metals in 1980 had dropped by $576, which is what Ehrlich owed Simon as the forfeit in the bet.\n[]\n[]",
+          "flavour": "archie",
+          "section": "intro",
+          "position": 0
         }
       ],
       "props": [
@@ -705,7 +824,10 @@
       ],
       "valueProps": [],
       "related": [
-        "expander"
+        {
+          "kind": "component",
+          "id": "expander"
+        }
       ]
     },
     {
@@ -722,7 +844,10 @@
       },
       "examples": [
         {
-          "archie": "{.expander}\nheading: Additional information\ntitle: Which data sources and definitions do we rely on?\nsubtitle: Nunc tincidunt pharetra diam ut accumsan.\n[.+content]\nLorem ipsum dolor sit amet, consectetur adipiscing elit.\n[]\n{}"
+          "archie": "{.expander}\nheading: Additional information\ntitle: Which data sources and definitions do we rely on?\nsubtitle: Nunc tincidunt pharetra diam ut accumsan.\n[.+content]\nLorem ipsum dolor sit amet, consectetur adipiscing elit.\n[]\n{}",
+          "flavour": "archie",
+          "section": "intro",
+          "position": 0
         }
       ],
       "props": [
@@ -753,7 +878,10 @@
       ],
       "valueProps": [],
       "related": [
-        "expandable-paragraph"
+        {
+          "kind": "component",
+          "id": "expandable-paragraph"
+        }
       ]
     },
     {
@@ -770,7 +898,10 @@
       },
       "examples": [
         {
-          "archie": "{.explore-data-section}\ntitle: Explore the data\n[.+content]\n[.+guided-chart]\n{ .sticky-right }\n[.+right]\n{.chart}\nurl: https://ourworldindata.org/grapher/religious-composition\nsize: wide\n{}\n[]\n[.+left]\n{.heading}\ntext: Global data on religious affiliation from Pew Research Center\nlevel: 2\n{}\nThis page features a range of data on religious affiliation: the share of people who are religious, what religion they belong to, and how these patterns have been changing over time.\nThis is based on self-identification: what people <i>say</i> about their religious affiliation.\nIn this chart, you can explore this data in more granular detail for each country.\nHere are a few insights from these key indicators:\n[.list]\n* Levels of religiosity <a href=\"#guide:https://ourworldindata.org/grapher/religious-composition?tab=discrete-bar&time=2020&country=OWID_WRL%7EIND%7EIDN%7EGBR%7EUSA%7ECHN%7EJPN%7EKOR%7EVNM%7ECZE&religion=any_religion&indicator=share\" class=\"guided-chart-link\">can vary from</a> as high as almost 100% in some countries (such as India) and as low as 10% in others (such as China). You can add and remove other countries to compare.\n* The share of people who are religious <a href=\"#guide:https://ourworldindata.org/grapher/religious-composition?tab=slope&time=earliest..2020&country=USA%7EGBR%7ENOR%7EFRA%7EAUS%7ECAN&religion=any_religion&indicator=share\" class=\"guided-chart-link\">has declined substantially</a> in many countries between 2010 and 2020, including the United States, Canada, Australia, and much of Europe.\n* The geographical distribution of particular religions varies a lot. Christianity <a href=\"#guide:https://ourworldindata.org/grapher/religious-composition?tab=map&religion=christians&indicator=share\" class=\"guided-chart-link\">is very widespread</a>, with high population shares across Europe, North and South America, and much of Africa. Islam is more concentrated, but still <a href=\"#guide:https://ourworldindata.org/grapher/religious-composition?tab=map&religion=muslims&indicator=share\" class=\"guided-chart-link\">has high shares</a> across multiple regions, including North Africa, the Middle East, and Southeast Asia. Religions such as Hinduism and Buddhism are very geographically concentrated; <a href=\"#guide:https://ourworldindata.org/grapher/religious-composition?tab=map&religion=hindus&indicator=share\" class=\"guided-chart-link\">Hinduism in South Asia</a> and <a href=\"#guide:https://ourworldindata.org/grapher/religious-composition?tab=map&religion=buddhists&indicator=share\" class=\"guided-chart-link\">Buddhism in South-East and East Asia</a>.\n* Rates and absolute numbers can give a very different perspective. While <a href=\"#guide:https://ourworldindata.org/grapher/religious-composition?tab=discrete-bar&time=latest&country=IND%7EIDN%7EPAK%7EBGD%7ENGA%7EEGY%7EIRN%7ETUR&religion=muslims&indicator=share\" class=\"guided-chart-link\">just 15% of people</a> in India identify as Muslim, compared to 97% in its neighbor, Pakistan, it has <a href=\"#guide:https://ourworldindata.org/grapher/religious-composition?tab=discrete-bar&time=latest&country=IND%7EIDN%7EPAK%7EBGD%7ENGA%7EEGY%7EIRN%7ETUR&religion=muslims&indicator=count_unrounded\" class=\"guided-chart-link\">almost the same number</a> of Muslims in total.\n[]\n[]\n{}\n[]\n[]\n{}"
+          "archie": "{.explore-data-section}\ntitle: Explore the data\n[.+content]\n[.+guided-chart]\n{ .sticky-right }\n[.+right]\n{.chart}\nurl: https://ourworldindata.org/grapher/religious-composition\nsize: wide\n{}\n[]\n[.+left]\n{.heading}\ntext: Global data on religious affiliation from Pew Research Center\nlevel: 2\n{}\nThis page features a range of data on religious affiliation: the share of people who are religious, what religion they belong to, and how these patterns have been changing over time.\nThis is based on self-identification: what people <i>say</i> about their religious affiliation.\nIn this chart, you can explore this data in more granular detail for each country.\nHere are a few insights from these key indicators:\n[.list]\n* Levels of religiosity <a href=\"#guide:https://ourworldindata.org/grapher/religious-composition?tab=discrete-bar&time=2020&country=OWID_WRL%7EIND%7EIDN%7EGBR%7EUSA%7ECHN%7EJPN%7EKOR%7EVNM%7ECZE&religion=any_religion&indicator=share\" class=\"guided-chart-link\">can vary from</a> as high as almost 100% in some countries (such as India) and as low as 10% in others (such as China). You can add and remove other countries to compare.\n* The share of people who are religious <a href=\"#guide:https://ourworldindata.org/grapher/religious-composition?tab=slope&time=earliest..2020&country=USA%7EGBR%7ENOR%7EFRA%7EAUS%7ECAN&religion=any_religion&indicator=share\" class=\"guided-chart-link\">has declined substantially</a> in many countries between 2010 and 2020, including the United States, Canada, Australia, and much of Europe.\n* The geographical distribution of particular religions varies a lot. Christianity <a href=\"#guide:https://ourworldindata.org/grapher/religious-composition?tab=map&religion=christians&indicator=share\" class=\"guided-chart-link\">is very widespread</a>, with high population shares across Europe, North and South America, and much of Africa. Islam is more concentrated, but still <a href=\"#guide:https://ourworldindata.org/grapher/religious-composition?tab=map&religion=muslims&indicator=share\" class=\"guided-chart-link\">has high shares</a> across multiple regions, including North Africa, the Middle East, and Southeast Asia. Religions such as Hinduism and Buddhism are very geographically concentrated; <a href=\"#guide:https://ourworldindata.org/grapher/religious-composition?tab=map&religion=hindus&indicator=share\" class=\"guided-chart-link\">Hinduism in South Asia</a> and <a href=\"#guide:https://ourworldindata.org/grapher/religious-composition?tab=map&religion=buddhists&indicator=share\" class=\"guided-chart-link\">Buddhism in South-East and East Asia</a>.\n* Rates and absolute numbers can give a very different perspective. While <a href=\"#guide:https://ourworldindata.org/grapher/religious-composition?tab=discrete-bar&time=latest&country=IND%7EIDN%7EPAK%7EBGD%7ENGA%7EEGY%7EIRN%7ETUR&religion=muslims&indicator=share\" class=\"guided-chart-link\">just 15% of people</a> in India identify as Muslim, compared to 97% in its neighbor, Pakistan, it has <a href=\"#guide:https://ourworldindata.org/grapher/religious-composition?tab=discrete-bar&time=latest&country=IND%7EIDN%7EPAK%7EBGD%7ENGA%7EEGY%7EIRN%7ETUR&religion=muslims&indicator=count_unrounded\" class=\"guided-chart-link\">almost the same number</a> of Muslims in total.\n[]\n[]\n{}\n[]\n[]\n{}",
+          "flavour": "archie",
+          "section": "intro",
+          "position": 0
         }
       ],
       "props": [
@@ -811,7 +942,10 @@
       },
       "examples": [
         {
-          "archie": "{.explorer-tiles}\ntitle: Data explorers\nsubtitle: Interactive visualization tools to explore a wide range of related indicators.\n[.explorers]\nurl: https://ourworldindata.org/explorers/poverty-explorer\nurl: https://ourworldindata.org/explorers/population-and-demography\nurl: https://ourworldindata.org/explorers/global-health\nurl: https://ourworldindata.org/explorers/energy\n[]\n{}"
+          "archie": "{.explorer-tiles}\ntitle: Data explorers\nsubtitle: Interactive visualization tools to explore a wide range of related indicators.\n[.explorers]\nurl: https://ourworldindata.org/explorers/poverty-explorer\nurl: https://ourworldindata.org/explorers/population-and-demography\nurl: https://ourworldindata.org/explorers/global-health\nurl: https://ourworldindata.org/explorers/energy\n[]\n{}",
+          "flavour": "archie",
+          "section": "intro",
+          "position": 0
         }
       ],
       "props": [
@@ -836,7 +970,10 @@
       ],
       "valueProps": [],
       "related": [
-        "chart"
+        {
+          "kind": "component",
+          "id": "chart"
+        }
       ]
     },
     {
@@ -853,7 +990,10 @@
       },
       "examples": [
         {
-          "archie": "{.featured-data-insights}\n{}"
+          "archie": "{.featured-data-insights}\n{}",
+          "flavour": "archie",
+          "section": "intro",
+          "position": 0
         }
       ],
       "props": [],
@@ -873,7 +1013,10 @@
       },
       "examples": [
         {
-          "archie": "{.featured-metrics}\n{}"
+          "archie": "{.featured-metrics}\n{}",
+          "flavour": "archie",
+          "section": "intro",
+          "position": 0
         }
       ],
       "props": [],
@@ -893,7 +1036,10 @@
       },
       "examples": [
         {
-          "archie": "[.+gray-section]\n{.heading}\ntext: Explore Data on Energy\nlevel: 1\n{}\n{.chart}\nurl: https://ourworldindata.org/explorers/energy?Total+or+Breakdown=Total&Energy+or+Electricity=Primary+energy&Metric=Per+capita+consumption&country=USA~GBR~CHN~OWID_WRL~IND~BRA~ZAF&tab=map&hideControls=false\nsize: wide\n{}\n[]"
+          "archie": "[.+gray-section]\n{.heading}\ntext: Explore Data on Energy\nlevel: 1\n{}\n{.chart}\nurl: https://ourworldindata.org/explorers/energy?Total+or+Breakdown=Total&Energy+or+Electricity=Primary+energy&Metric=Per+capita+consumption&country=USA~GBR~CHN~OWID_WRL~IND~BRA~ZAF&tab=map&hideControls=false\nsize: wide\n{}\n[]",
+          "flavour": "archie",
+          "section": "intro",
+          "position": 0
         }
       ],
       "props": [
@@ -906,8 +1052,14 @@
       ],
       "valueProps": [],
       "related": [
-        "callout",
-        "recirc"
+        {
+          "kind": "component",
+          "id": "callout"
+        },
+        {
+          "kind": "component",
+          "id": "recirc"
+        }
       ]
     },
     {
@@ -925,7 +1077,10 @@
       },
       "examples": [
         {
-          "archie": "[.+guided-chart]\n{ .sticky-right }\n[.+right]\n{.chart}\nurl: https://ourworldindata.org/grapher/plastic-waste-generation\nsize: wide\n{}\n[]\n[.+left]\n{.heading}\ntext: How much plastic waste is generated\nlevel: 2\n{}\nOne metric commonly cited in discussions of plastics is how much waste is generated in the first place.\nWhile this does not necessarily translate into how much <i>pollution</i> is generated (as we described above, and will come on to next), it gives us some idea of how much plastic is used, and how much waste countries will need to deal with if they want to manage this well.\nIn this chart, you can explore data on plastic waste generation, both in total quantities produced by a country or income group and per capita. This data is for municipal plastic waste generated by households only. It does not include waste generated by industry or construction, or oceanic sources such as fishing gear.\nFrom this data, we see:\n[.list]\n* Most of the <a href=\"#guide:https://ourworldindata.org/grapher/plastic-waste-generation?tab=chart&country=CHN%7EIND%7EUSA%7EBRA%7EIDN%7ERUS%7EJPN&mapSelect=%7EOWID_HIC&measure=total\" class=\"guided-chart-link\">largest producers of plastic waste</a> are, unsurprisingly, the world’s most populous countries: China and India top the list. The United States, Brazil, and Indonesia complete the top five because they all have reasonably large populations and have relatively high levels of plastic use per person.\n* When <a href=\"#guide:https://ourworldindata.org/grapher/plastic-waste-generation?tab=map&measure=per_person\" class=\"guided-chart-link\">adjusted for population</a>, countries across Europe, North America, and Oceania generate much more plastic waste per person than other regions.\n* This is reflected in the <a href=\"#guide:https://ourworldindata.org/grapher/plastic-waste-generation?tab=chart&country=OWID_LIC%7EOWID_HIC%7EOWID_LMC%7EOWID_UMC&mapSelect=%7EOWID_LIC&measure=per_person\" class=\"guided-chart-link\">breakdowns by income group</a>: people in high-income countries generate more than four times as much plastic waste as those in low-income one, and twice as much as those in upper-middle income countries.\n[]\n[]\n{}\n[]"
+          "archie": "[.+guided-chart]\n{ .sticky-right }\n[.+right]\n{.chart}\nurl: https://ourworldindata.org/grapher/plastic-waste-generation\nsize: wide\n{}\n[]\n[.+left]\n{.heading}\ntext: How much plastic waste is generated\nlevel: 2\n{}\nOne metric commonly cited in discussions of plastics is how much waste is generated in the first place.\nWhile this does not necessarily translate into how much <i>pollution</i> is generated (as we described above, and will come on to next), it gives us some idea of how much plastic is used, and how much waste countries will need to deal with if they want to manage this well.\nIn this chart, you can explore data on plastic waste generation, both in total quantities produced by a country or income group and per capita. This data is for municipal plastic waste generated by households only. It does not include waste generated by industry or construction, or oceanic sources such as fishing gear.\nFrom this data, we see:\n[.list]\n* Most of the <a href=\"#guide:https://ourworldindata.org/grapher/plastic-waste-generation?tab=chart&country=CHN%7EIND%7EUSA%7EBRA%7EIDN%7ERUS%7EJPN&mapSelect=%7EOWID_HIC&measure=total\" class=\"guided-chart-link\">largest producers of plastic waste</a> are, unsurprisingly, the world’s most populous countries: China and India top the list. The United States, Brazil, and Indonesia complete the top five because they all have reasonably large populations and have relatively high levels of plastic use per person.\n* When <a href=\"#guide:https://ourworldindata.org/grapher/plastic-waste-generation?tab=map&measure=per_person\" class=\"guided-chart-link\">adjusted for population</a>, countries across Europe, North America, and Oceania generate much more plastic waste per person than other regions.\n* This is reflected in the <a href=\"#guide:https://ourworldindata.org/grapher/plastic-waste-generation?tab=chart&country=OWID_LIC%7EOWID_HIC%7EOWID_LMC%7EOWID_UMC&mapSelect=%7EOWID_LIC&measure=per_person\" class=\"guided-chart-link\">breakdowns by income group</a>: people in high-income countries generate more than four times as much plastic waste as those in low-income one, and twice as much as those in upper-middle income countries.\n[]\n[]\n{}\n[]",
+          "flavour": "archie",
+          "section": "intro",
+          "position": 0
         }
       ],
       "props": [
@@ -938,9 +1093,22 @@
       ],
       "valueProps": [],
       "related": [
-        "chart",
-        "sticky-left",
-        "sticky-right"
+        {
+          "kind": "component",
+          "id": "chart"
+        },
+        {
+          "kind": "component",
+          "id": "sticky-left"
+        },
+        {
+          "kind": "component",
+          "id": "sticky-right"
+        },
+        {
+          "kind": "component",
+          "id": "chart-rows"
+        }
       ]
     },
     {
@@ -951,7 +1119,9 @@
       "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/Heading.ts",
       "sidecarFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/Heading.md",
       "prose": {
-        "intro": "A section heading. Authored via Google Docs text styles (Heading 1,\nHeading 2, Heading 3) — the level is derived from the docs style. Start\nsections with h1; nest with h2, then h3."
+        "intro": "A section heading. Authored via Google Docs text styles (Heading 1,\nHeading 2, Heading 3) — the level is derived from the docs style. Start\nsections with h1; nest with h2, then h3.",
+        "whenToUse": "- To open a main section with an h1, and nest with h2, then h3 — see\n  `{guide:headings-and-structure}`.",
+        "whenNotToUse": "- For emphasis inside a section — use `{.pull-quote}` or bold text\n  instead.\n- Heading 4 and Heading 5 — avoid them."
       },
       "examples": [],
       "props": [
@@ -977,7 +1147,17 @@
       "valueProps": [
         "level"
       ],
-      "autoGenerated": "a line with a Heading style"
+      "autoGenerated": "a line with a Heading style",
+      "related": [
+        {
+          "kind": "guide",
+          "id": "headings-and-structure"
+        },
+        {
+          "kind": "component",
+          "id": "pull-quote"
+        }
+      ]
     },
     {
       "id": "homepage-intro",
@@ -993,7 +1173,10 @@
       },
       "examples": [
         {
-          "archie": "{.homepage-intro}\n[.featured-work]\nurl: https://docs.google.com/document/d/1xl-Z2-QL9yhfB7lTCkxP7_aF33mUT_mG62LFwEXvsbY/edit?tab=t.kf7sqvb60cvx\nkicker: Article · 7 min read\nisNew: true\n\n\nurl: https://docs.google.com/document/d/1XxqsuE7SyjearmUDaZS_SzGapV_G0DjNyBE9y62cLeQ/edit?tab=t.0\nkicker: From our classics\n\n\nurl: https://docs.google.com/document/d/17-w7FZpkfqbfGlEE0d4VkkfpfKVQoYqAp7Y66RIt6o8/edit\nkicker: Article · 5 min read\n\n\nurl: https://docs.google.com/document/d/10M5sJhpAaXXC7O9flEywoaeT3m10pDe1_sErOOe-PeI/edit?tab=t.0\ntitle: We published a new topic page on work and employment\ndescription: Explore key concepts and data on labor market participation, unemployment, and employment, and how the trends differ across countries and over time.\nkicker: Topic page\n\n\n[]\n{}"
+          "archie": "{.homepage-intro}\n[.featured-work]\nurl: https://docs.google.com/document/d/1xl-Z2-QL9yhfB7lTCkxP7_aF33mUT_mG62LFwEXvsbY/edit?tab=t.kf7sqvb60cvx\nkicker: Article · 7 min read\nisNew: true\n\n\nurl: https://docs.google.com/document/d/1XxqsuE7SyjearmUDaZS_SzGapV_G0DjNyBE9y62cLeQ/edit?tab=t.0\nkicker: From our classics\n\n\nurl: https://docs.google.com/document/d/17-w7FZpkfqbfGlEE0d4VkkfpfKVQoYqAp7Y66RIt6o8/edit\nkicker: Article · 5 min read\n\n\nurl: https://docs.google.com/document/d/10M5sJhpAaXXC7O9flEywoaeT3m10pDe1_sErOOe-PeI/edit?tab=t.0\ntitle: We published a new topic page on work and employment\ndescription: Explore key concepts and data on labor market participation, unemployment, and employment, and how the trends differ across countries and over time.\nkicker: Topic page\n\n\n[]\n{}",
+          "flavour": "archie",
+          "section": "intro",
+          "position": 0
         }
       ],
       "props": [
@@ -1021,7 +1204,10 @@
       },
       "examples": [
         {
-          "archie": "{.homepage-search}\n{}"
+          "archie": "{.homepage-search}\n{}",
+          "flavour": "archie",
+          "section": "intro",
+          "position": 0
         }
       ],
       "props": [],
@@ -1043,7 +1229,10 @@
       },
       "examples": [
         {
-          "archie": "{.horizontal-rule}\n{}"
+          "archie": "{.horizontal-rule}\n{}",
+          "flavour": "archie",
+          "section": "intro",
+          "position": 0
         }
       ],
       "props": [
@@ -1071,10 +1260,16 @@
       },
       "examples": [
         {
-          "archie": "html: This is text that can use features like <span style=\"color:red\">this will be red</span>."
+          "archie": "html: This is text that can use features like <span style=\"color:red\">this will be red</span>.",
+          "flavour": "archie",
+          "section": "intro",
+          "position": 0
         },
         {
-          "archie": "html: <iframe width=\"628\" height=\"353\" src=\"https://www.youtube.com/embed/RCz6EIcSFQ8?si=FP1FgyksWgAdSmLs\" title=\"YouTube video player\" frameborder=\"0\" allow=\"accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share\" referrerpolicy=\"strict-origin-when-cross-origin\" allowfullscreen></iframe>\n:end"
+          "archie": "html: <iframe width=\"628\" height=\"353\" src=\"https://www.youtube.com/embed/RCz6EIcSFQ8?si=FP1FgyksWgAdSmLs\" title=\"YouTube video player\" frameborder=\"0\" allow=\"accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share\" referrerpolicy=\"strict-origin-when-cross-origin\" allowfullscreen></iframe>\n:end",
+          "flavour": "archie",
+          "section": "intro",
+          "position": 1
         }
       ],
       "props": [
@@ -1087,9 +1282,18 @@
       ],
       "valueProps": [],
       "related": [
-        "code",
-        "chart",
-        "narrative-chart"
+        {
+          "kind": "component",
+          "id": "code"
+        },
+        {
+          "kind": "component",
+          "id": "chart"
+        },
+        {
+          "kind": "component",
+          "id": "narrative-chart"
+        }
       ]
     },
     {
@@ -1107,7 +1311,10 @@
       },
       "examples": [
         {
-          "archie": "{.image}\nfilename: romania-maternal-mortality-abortions.png\n{}"
+          "archie": "{.image}\nfilename: romania-maternal-mortality-abortions.png\n{}",
+          "flavour": "archie",
+          "section": "intro",
+          "position": 0
         }
       ],
       "props": [
@@ -1179,10 +1386,22 @@
         }
       ],
       "related": [
-        "chart",
-        "narrative-chart",
-        "static-viz",
-        "video"
+        {
+          "kind": "component",
+          "id": "chart"
+        },
+        {
+          "kind": "component",
+          "id": "narrative-chart"
+        },
+        {
+          "kind": "component",
+          "id": "static-viz"
+        },
+        {
+          "kind": "component",
+          "id": "video"
+        }
       ]
     },
     {
@@ -1199,7 +1418,10 @@
       },
       "examples": [
         {
-          "archie": "{.key-indicator}\ndatapageUrl: https://ourworldindata.org/grapher/life-expectancy\ntitle: How has people’s life expectancy changed over time?\nsource: Long-run estimates collated from multiple sources by Our World in Data\n[.+text]\nAcross the world, people are living longer. In 1900, the global average life expectancy of a newborn was 32 years. By 2021, this had more than doubled to 71 years.\nBig improvements were achieved by countries <a href=\"https://ourworldindata.org/life-expectancy-globally\">around the world</a>. The chart shows that life expectancy has more than doubled in every region of the world. This improvement is not only due to declining child mortality; life expectancy increased <a href=\"https://ourworldindata.org/its-not-just-about-child-mortality-life-expectancy-improved-at-all-ages\">at all ages</a>.\nThis visualization shows long-run estimates of life expectancy brought together by our team from several different data sources. It also shows that the <a href=\"https://ourworldindata.org/coronavirus\">COVID-19 pandemic</a> led to reduced life expectancy worldwide.\n[]\n{}"
+          "archie": "{.key-indicator}\ndatapageUrl: https://ourworldindata.org/grapher/life-expectancy\ntitle: How has people’s life expectancy changed over time?\nsource: Long-run estimates collated from multiple sources by Our World in Data\n[.+text]\nAcross the world, people are living longer. In 1900, the global average life expectancy of a newborn was 32 years. By 2021, this had more than doubled to 71 years.\nBig improvements were achieved by countries <a href=\"https://ourworldindata.org/life-expectancy-globally\">around the world</a>. The chart shows that life expectancy has more than doubled in every region of the world. This improvement is not only due to declining child mortality; life expectancy increased <a href=\"https://ourworldindata.org/its-not-just-about-child-mortality-life-expectancy-improved-at-all-ages\">at all ages</a>.\nThis visualization shows long-run estimates of life expectancy brought together by our team from several different data sources. It also shows that the <a href=\"https://ourworldindata.org/coronavirus\">COVID-19 pandemic</a> led to reduced life expectancy worldwide.\n[]\n{}",
+          "flavour": "archie",
+          "section": "intro",
+          "position": 0
         }
       ],
       "props": [
@@ -1230,10 +1452,22 @@
       ],
       "valueProps": [],
       "related": [
-        "key-indicator-collection",
-        "chart",
-        "callout",
-        "data-callout"
+        {
+          "kind": "component",
+          "id": "key-indicator-collection"
+        },
+        {
+          "kind": "component",
+          "id": "chart"
+        },
+        {
+          "kind": "component",
+          "id": "callout"
+        },
+        {
+          "kind": "component",
+          "id": "data-callout"
+        }
       ]
     },
     {
@@ -1250,7 +1484,10 @@
       },
       "examples": [
         {
-          "archie": "{.key-indicator-collection}\n[.+indicators]\n{.key-indicator}\ndatapageUrl: https://ourworldindata.org/grapher/child-mortality?time=earliest..latest\ntitle: What share of children die before their fifth birthday?\nsource: Long-run estimates combining data from UN & Gapminder\n[.+text]\nWhat could be more tragic than the death of a young child? Child mortality, the death of children under the age of five, is still <a href=\"https://ourworldindata.org/much-better-awful-can-be-better\">extremely common</a> in our world today.\nThe historical data makes clear that it doesn’t have to be this way: it <a href=\"https://ourworldindata.org/child-mortality-big-problem-in-brief\">is possible</a> for societies to protect their children and reduce child mortality to very low rates. For child mortality to reach low levels, many things have to go right at the same time: <a href=\"https://ourworldindata.org/financing-healthcare\">good healthcare</a>, <a href=\"https://ourworldindata.org/hunger-and-undernourishment\">good nutrition</a>, <a href=\"https://ourworldindata.org/clean-water-sanitation\">clean water and sanitation</a>, <a href=\"https://ourworldindata.org/maternal-mortality\">maternal health</a>, and high <a href=\"https://ourworldindata.org/economic-growth\">living standards</a>. We can, therefore, think of <a href=\"https://ourworldindata.org/child-mortality\">child mortality</a> as a proxy indicator of a country’s living conditions.\nThe chart shows our long-run data on child mortality, which allows you to see how child mortality has changed in countries around the world.\n[]\n{}\n{.key-indicator}\ndatapageUrl: https://ourworldindata.org/grapher/share-of-population-in-extreme-poverty\ntitle: What share of the population lives in extreme poverty?\n[.+text]\nThe UN sets the “International Poverty Line” as a worldwide comparable definition for extreme poverty. Extreme poverty is currently defined as living on less than $3 per day. This indicator, published by the World Bank, has successfully drawn attention to the terrible depths of poverty of the poorest people in the world.\nTwo centuries ago, <a href=\"https://ourworldindata.org/extreme-poverty-in-brief\">the majority</a> of the world’s population was extremely poor. Back then, it was widely believed that widespread poverty was inevitable. This turned out to be wrong. Economic growth is possible and <a href=\"https://ourworldindata.org/what-is-economic-growth\">makes it possible</a> for entire societies to leave the deep poverty of the past behind. Whether or not countries are leaving the worst poverty behind can be monitored by relying on this indicator.\n[]\n{}\n{.key-indicator}\ndatapageUrl: https://ourworldindata.org/grapher/life-expectancy\ntitle: How has people’s life expectancy changed over time?\nsource: Long-run estimates collated from multiple sources by Our World in Data\n[.+text]\nAcross the world, people are living longer. In 1900, the global average life expectancy of a newborn was 32 years. By 2021, this had more than doubled to 71 years.\nBig improvements were achieved by countries <a href=\"https://ourworldindata.org/life-expectancy-globally\">around the world</a>. The chart shows that life expectancy has more than doubled in every region of the world. This improvement is not only due to declining child mortality; life expectancy increased <a href=\"https://ourworldindata.org/its-not-just-about-child-mortality-life-expectancy-improved-at-all-ages\">at all ages</a>.\nThis visualization shows long-run estimates of life expectancy brought together by our team from several different data sources. It also shows that the <a href=\"https://ourworldindata.org/coronavirus\">COVID-19 pandemic</a> led to reduced life expectancy worldwide.\n[]\n{}\n{.key-indicator}\ndatapageUrl: https://ourworldindata.org/grapher/co-emissions-per-capita?tab=chart&country=USA~GBR~CHN~ZAF~PAN\ntitle: How have CO₂ emissions per capita changed?\nsource: Long-run estimates from the Global Carbon Budget\n[.+text]\nThe main source of carbon dioxide (CO<sub>2</sub>) emissions is the burning of fossil fuels. It is the primary <a href=\"https://ourworldindata.org/co2-and-greenhouse-gas-emissions\">greenhouse gas</a> causing <a href=\"https://ourworldindata.org/explorers/climate-change\">climate change</a>.\nGlobally, CO<sub>2</sub> emissions have remained at just below 5 tonnes per person for over a decade. Between countries, however, there are large differences, and while emissions are rapidly increasing in some countries, they are rapidly falling in others.\nThe source for this CO<sub>2</sub> data is the Global Carbon Budget, a dataset we update yearly as soon as it is published. In addition to these production-based emissions, they publish consumption-based emissions for the last three decades, which can be viewed in our <a href=\"https://ourworldindata.org/explorers/co2?facet=none&country=CHN~USA~IND~FRA&Gas+or+Warming=CO%E2%82%82&Accounting=Consumption-based&Fuel+or+Land+Use+Change=All+fossil+emissions&Count=Per+capita\">Greenhouse Gas Emissions Data Explorer</a>.\n[]\n{}\n{.key-indicator}\ndatapageUrl: https://ourworldindata.org/grapher/gdp-per-capita-maddison-project-database\ntitle: How do average incomes compare between countries around the world?\nsource: Long-run estimates from the Maddison Project Database\n[.+text]\nGDP per capita is a very comprehensive measure of people’s <a href=\"https://ourworldindata.org/what-is-economic-growth\">average income</a>. This indicator reveals how large the inequality between people in different countries is. In the poorest countries, people live on less than $1,000 per year, while in rich countries, the average income is more than 50 times higher.\nThe data shown is sourced from the Maddison Project Database. Drawing together the careful work of hundreds of economic historians, the particular value of this data lies in the historical coverage it provides. This data makes clear that the vast majority of people in all countries <a href=\"https://ourworldindata.org/extreme-history-methods\">were poor</a> in the past. It allows us to understand when and how the <a href=\"https://ourworldindata.org/economic-growth\">economic growth</a> that made it possible <a href=\"https://ourworldindata.org/breaking-the-malthusian-trap\">to leave</a> the deep poverty of the past behind was achieved.\n[]\n{}\n{.key-indicator}\ndatapageUrl: https://ourworldindata.org/grapher/prevalence-of-undernourishment\ntitle: What share of the population is suffering from hunger?\n[.+text]\n<a href=\"https://ourworldindata.org/hunger-and-undernourishment\">Hunger</a> has been a severe problem for most of humanity throughout history. Growing enough food to feed one’s family was a constant struggle in daily life. Food shortages, malnutrition, and <a href=\"https://ourworldindata.org/famines\">famines</a> were common around the world.\nThe UN’s Food and Agriculture Organization publishes global data on undernourishment, defined as not consuming enough calories to maintain a normal, active, healthy life. These minimum requirements vary by a person’s sex, weight, height, and activity levels. This is considered in these national and global estimates.\nThe world has made much progress in reducing global hunger in recent decades. But we are still far away from an end to hunger, as this indicator shows. Tragically, nearly one in ten people still do not get enough food to eat and in recent years — especially during the pandemic — hunger levels have increased.\n[]\n{}\n{.key-indicator}\ndatapageUrl: https://ourworldindata.org/grapher/cross-country-literacy-rates?country=RUS~GBR~NLD~CRI~ISR~SGP~CHL~CHN~MAC~OWID_WRL~IND~TZA\ntitle: When has literacy become a widespread skill?\nsource: Long-run estimates collated from multiple sources by Our World in Data\n[.+text]\nLiteracy is a foundational skill. Children need to learn to read so that they can read to learn. When we fail to teach this foundational skill, people have fewer opportunities to lead the rich and interesting lives that a good education offers.\nThe historical data shows that only a very small share of the population, a tiny elite, was able to read and write. Over the course of the last few generations, literacy levels increased, but <a href=\"https://ourworldindata.org/better-learning\">it remains</a> an important challenge for our time to provide this foundational skill to all.\nAt Our World in Data, <a href=\"https://ourworldindata.org/how-is-literacy-measured\">we investigated</a> the strengths and shortcomings of the available data on literacy. Based on this work, our team brought together the long-run data shown in the chart by combining several different sources, including the World Bank, the CIA Factbook, and a range of research publications.\n[]\n{}\n{.key-indicator}\ndatapageUrl: https://ourworldindata.org/grapher/share-of-the-population-with-access-to-electricity?time=latest\ntitle: Where do people lack access to even the most basic electricity supply?\n[.+text]\n<a href=\"https://ourworldindata.org/light-at-night\">Light at night</a> makes it possible to get together after sunset; <a href=\"https://ourworldindata.org/grapher/mobile-cellular-subscriptions-per-100-people\">mobile phones</a> allow us to stay in touch with those far away; the refrigeration of food reduces food waste; and <a href=\"https://ourworldindata.org/grapher/technology-adoption-by-households-in-the-united-states\">household appliances</a> free up time from household chores. Access to electricity improves people’s living conditions in many ways.\nThe World Bank data on the world map captures whether people have access to the <i><a href=\"https://ourworldindata.org/definition-electricity-access\">most basic</a></i> electricity supply — just enough to provide basic lighting and charge a phone or power a radio for 4 hours per day.\nIt shows that, especially in several African countries, a large share of the population lacks the benefits that basic electricity offers. No radio and no light at night.\n[]\n{}\n[]\n{}"
+          "archie": "{.key-indicator-collection}\n[.+indicators]\n{.key-indicator}\ndatapageUrl: https://ourworldindata.org/grapher/child-mortality?time=earliest..latest\ntitle: What share of children die before their fifth birthday?\nsource: Long-run estimates combining data from UN & Gapminder\n[.+text]\nWhat could be more tragic than the death of a young child? Child mortality, the death of children under the age of five, is still <a href=\"https://ourworldindata.org/much-better-awful-can-be-better\">extremely common</a> in our world today.\nThe historical data makes clear that it doesn’t have to be this way: it <a href=\"https://ourworldindata.org/child-mortality-big-problem-in-brief\">is possible</a> for societies to protect their children and reduce child mortality to very low rates. For child mortality to reach low levels, many things have to go right at the same time: <a href=\"https://ourworldindata.org/financing-healthcare\">good healthcare</a>, <a href=\"https://ourworldindata.org/hunger-and-undernourishment\">good nutrition</a>, <a href=\"https://ourworldindata.org/clean-water-sanitation\">clean water and sanitation</a>, <a href=\"https://ourworldindata.org/maternal-mortality\">maternal health</a>, and high <a href=\"https://ourworldindata.org/economic-growth\">living standards</a>. We can, therefore, think of <a href=\"https://ourworldindata.org/child-mortality\">child mortality</a> as a proxy indicator of a country’s living conditions.\nThe chart shows our long-run data on child mortality, which allows you to see how child mortality has changed in countries around the world.\n[]\n{}\n{.key-indicator}\ndatapageUrl: https://ourworldindata.org/grapher/share-of-population-in-extreme-poverty\ntitle: What share of the population lives in extreme poverty?\n[.+text]\nThe UN sets the “International Poverty Line” as a worldwide comparable definition for extreme poverty. Extreme poverty is currently defined as living on less than $3 per day. This indicator, published by the World Bank, has successfully drawn attention to the terrible depths of poverty of the poorest people in the world.\nTwo centuries ago, <a href=\"https://ourworldindata.org/extreme-poverty-in-brief\">the majority</a> of the world’s population was extremely poor. Back then, it was widely believed that widespread poverty was inevitable. This turned out to be wrong. Economic growth is possible and <a href=\"https://ourworldindata.org/what-is-economic-growth\">makes it possible</a> for entire societies to leave the deep poverty of the past behind. Whether or not countries are leaving the worst poverty behind can be monitored by relying on this indicator.\n[]\n{}\n{.key-indicator}\ndatapageUrl: https://ourworldindata.org/grapher/life-expectancy\ntitle: How has people’s life expectancy changed over time?\nsource: Long-run estimates collated from multiple sources by Our World in Data\n[.+text]\nAcross the world, people are living longer. In 1900, the global average life expectancy of a newborn was 32 years. By 2021, this had more than doubled to 71 years.\nBig improvements were achieved by countries <a href=\"https://ourworldindata.org/life-expectancy-globally\">around the world</a>. The chart shows that life expectancy has more than doubled in every region of the world. This improvement is not only due to declining child mortality; life expectancy increased <a href=\"https://ourworldindata.org/its-not-just-about-child-mortality-life-expectancy-improved-at-all-ages\">at all ages</a>.\nThis visualization shows long-run estimates of life expectancy brought together by our team from several different data sources. It also shows that the <a href=\"https://ourworldindata.org/coronavirus\">COVID-19 pandemic</a> led to reduced life expectancy worldwide.\n[]\n{}\n{.key-indicator}\ndatapageUrl: https://ourworldindata.org/grapher/co-emissions-per-capita?tab=chart&country=USA~GBR~CHN~ZAF~PAN\ntitle: How have CO₂ emissions per capita changed?\nsource: Long-run estimates from the Global Carbon Budget\n[.+text]\nThe main source of carbon dioxide (CO<sub>2</sub>) emissions is the burning of fossil fuels. It is the primary <a href=\"https://ourworldindata.org/co2-and-greenhouse-gas-emissions\">greenhouse gas</a> causing <a href=\"https://ourworldindata.org/explorers/climate-change\">climate change</a>.\nGlobally, CO<sub>2</sub> emissions have remained at just below 5 tonnes per person for over a decade. Between countries, however, there are large differences, and while emissions are rapidly increasing in some countries, they are rapidly falling in others.\nThe source for this CO<sub>2</sub> data is the Global Carbon Budget, a dataset we update yearly as soon as it is published. In addition to these production-based emissions, they publish consumption-based emissions for the last three decades, which can be viewed in our <a href=\"https://ourworldindata.org/explorers/co2?facet=none&country=CHN~USA~IND~FRA&Gas+or+Warming=CO%E2%82%82&Accounting=Consumption-based&Fuel+or+Land+Use+Change=All+fossil+emissions&Count=Per+capita\">Greenhouse Gas Emissions Data Explorer</a>.\n[]\n{}\n{.key-indicator}\ndatapageUrl: https://ourworldindata.org/grapher/gdp-per-capita-maddison-project-database\ntitle: How do average incomes compare between countries around the world?\nsource: Long-run estimates from the Maddison Project Database\n[.+text]\nGDP per capita is a very comprehensive measure of people’s <a href=\"https://ourworldindata.org/what-is-economic-growth\">average income</a>. This indicator reveals how large the inequality between people in different countries is. In the poorest countries, people live on less than $1,000 per year, while in rich countries, the average income is more than 50 times higher.\nThe data shown is sourced from the Maddison Project Database. Drawing together the careful work of hundreds of economic historians, the particular value of this data lies in the historical coverage it provides. This data makes clear that the vast majority of people in all countries <a href=\"https://ourworldindata.org/extreme-history-methods\">were poor</a> in the past. It allows us to understand when and how the <a href=\"https://ourworldindata.org/economic-growth\">economic growth</a> that made it possible <a href=\"https://ourworldindata.org/breaking-the-malthusian-trap\">to leave</a> the deep poverty of the past behind was achieved.\n[]\n{}\n{.key-indicator}\ndatapageUrl: https://ourworldindata.org/grapher/prevalence-of-undernourishment\ntitle: What share of the population is suffering from hunger?\n[.+text]\n<a href=\"https://ourworldindata.org/hunger-and-undernourishment\">Hunger</a> has been a severe problem for most of humanity throughout history. Growing enough food to feed one’s family was a constant struggle in daily life. Food shortages, malnutrition, and <a href=\"https://ourworldindata.org/famines\">famines</a> were common around the world.\nThe UN’s Food and Agriculture Organization publishes global data on undernourishment, defined as not consuming enough calories to maintain a normal, active, healthy life. These minimum requirements vary by a person’s sex, weight, height, and activity levels. This is considered in these national and global estimates.\nThe world has made much progress in reducing global hunger in recent decades. But we are still far away from an end to hunger, as this indicator shows. Tragically, nearly one in ten people still do not get enough food to eat and in recent years — especially during the pandemic — hunger levels have increased.\n[]\n{}\n{.key-indicator}\ndatapageUrl: https://ourworldindata.org/grapher/cross-country-literacy-rates?country=RUS~GBR~NLD~CRI~ISR~SGP~CHL~CHN~MAC~OWID_WRL~IND~TZA\ntitle: When has literacy become a widespread skill?\nsource: Long-run estimates collated from multiple sources by Our World in Data\n[.+text]\nLiteracy is a foundational skill. Children need to learn to read so that they can read to learn. When we fail to teach this foundational skill, people have fewer opportunities to lead the rich and interesting lives that a good education offers.\nThe historical data shows that only a very small share of the population, a tiny elite, was able to read and write. Over the course of the last few generations, literacy levels increased, but <a href=\"https://ourworldindata.org/better-learning\">it remains</a> an important challenge for our time to provide this foundational skill to all.\nAt Our World in Data, <a href=\"https://ourworldindata.org/how-is-literacy-measured\">we investigated</a> the strengths and shortcomings of the available data on literacy. Based on this work, our team brought together the long-run data shown in the chart by combining several different sources, including the World Bank, the CIA Factbook, and a range of research publications.\n[]\n{}\n{.key-indicator}\ndatapageUrl: https://ourworldindata.org/grapher/share-of-the-population-with-access-to-electricity?time=latest\ntitle: Where do people lack access to even the most basic electricity supply?\n[.+text]\n<a href=\"https://ourworldindata.org/light-at-night\">Light at night</a> makes it possible to get together after sunset; <a href=\"https://ourworldindata.org/grapher/mobile-cellular-subscriptions-per-100-people\">mobile phones</a> allow us to stay in touch with those far away; the refrigeration of food reduces food waste; and <a href=\"https://ourworldindata.org/grapher/technology-adoption-by-households-in-the-united-states\">household appliances</a> free up time from household chores. Access to electricity improves people’s living conditions in many ways.\nThe World Bank data on the world map captures whether people have access to the <i><a href=\"https://ourworldindata.org/definition-electricity-access\">most basic</a></i> electricity supply — just enough to provide basic lighting and charge a phone or power a radio for 4 hours per day.\nIt shows that, especially in several African countries, a large share of the population lacks the benefits that basic electricity offers. No radio and no light at night.\n[]\n{}\n[]\n{}",
+          "flavour": "archie",
+          "section": "intro",
+          "position": 0
         }
       ],
       "props": [
@@ -1281,8 +1518,14 @@
       ],
       "valueProps": [],
       "related": [
-        "chart",
-        "pull-chart"
+        {
+          "kind": "component",
+          "id": "chart"
+        },
+        {
+          "kind": "component",
+          "id": "pull-chart"
+        }
       ]
     },
     {
@@ -1300,7 +1543,10 @@
       },
       "examples": [
         {
-          "archie": "{.key-insights}\nheading: Key Insights on Poverty\n[.insights]\n\ntitle: The age dependency ratio changes by country\nurl: https://ourworldindata.org/grapher/age-dependency-breakdown\n[.+content]\nAll sorts of content can go in here.\n[]\n\ntitle: This slide uses an image\nfilename: default-featured-image.png\n[.+content]\nBlah blah.\n[]\n\ntitle: This slide uses a narrative chart\nnarrativeChartName: global-life-expectancy-has-doubled\n[.+content]\nBlah blah blah.\n[]\n\n[]\n{}"
+          "archie": "{.key-insights}\nheading: Key Insights on Poverty\n[.insights]\n\ntitle: The age dependency ratio changes by country\nurl: https://ourworldindata.org/grapher/age-dependency-breakdown\n[.+content]\nAll sorts of content can go in here.\n[]\n\ntitle: This slide uses an image\nfilename: default-featured-image.png\n[.+content]\nBlah blah.\n[]\n\ntitle: This slide uses a narrative chart\nnarrativeChartName: global-life-expectancy-has-doubled\n[.+content]\nBlah blah blah.\n[]\n\n[]\n{}",
+          "flavour": "archie",
+          "section": "intro",
+          "position": 0
         }
       ],
       "props": [
@@ -1317,7 +1563,13 @@
           "description": "The slides, authored as an `[.insights]` section where each slide starts with a `title:` line — the slide's heading, which also labels its button in the slide navigation (a slide without a title is dropped). Each slide's visual is exactly one of `url:` (a grapher or explorer URL), `filename:` (an image), a `narrativeChartName:`, or an `[.+asset]` section holding a single chart, narrative chart, image, static viz, video, html or bespoke component block — none or more than one is reported as a parse error. The slide's body is authored as an `[.+content]` freeform section of ordinary blocks; a slide without content is reported as a parse error."
         }
       ],
-      "valueProps": []
+      "valueProps": [],
+      "related": [
+        {
+          "kind": "component",
+          "id": "callout"
+        }
+      ]
     },
     {
       "id": "latest-data-insights",
@@ -1333,7 +1585,10 @@
       },
       "examples": [
         {
-          "archie": "{.latest-data-insights}\n{}"
+          "archie": "{.latest-data-insights}\n{}",
+          "flavour": "archie",
+          "section": "intro",
+          "position": 0
         }
       ],
       "props": [],
@@ -1354,10 +1609,16 @@
       },
       "examples": [
         {
-          "archie": "{.ltp-toc}\n{}"
+          "archie": "{.ltp-toc}\n{}",
+          "flavour": "archie",
+          "section": "intro",
+          "position": 0
         },
         {
-          "archie": "{.ltp-toc}\ntitle: Contents\n{}"
+          "archie": "{.ltp-toc}\ntitle: Contents\n{}",
+          "flavour": "archie",
+          "section": "intro",
+          "position": 1
         }
       ],
       "props": [
@@ -1406,7 +1667,10 @@
       },
       "examples": [
         {
-          "archie": "{.narrative-chart}\nname: romania-fertility-rate-abortion\n{}"
+          "archie": "{.narrative-chart}\nname: romania-fertility-rate-abortion\n{}",
+          "flavour": "archie",
+          "section": "intro",
+          "position": 0
         }
       ],
       "props": [
@@ -1439,7 +1703,10 @@
         "size"
       ],
       "related": [
-        "chart"
+        {
+          "kind": "component",
+          "id": "chart"
+        }
       ]
     },
     {
@@ -1454,7 +1721,10 @@
       },
       "examples": [
         {
-          "archie": "[.numbered-list]\n* Collect the data that is relevant\n* Make the data comparable\n* Clearly document the data\n* Share the data frequently and promptly\n* Publish the data at a stable location\n* Choose a reusable data format\n* License others to reuse the data\n[]"
+          "archie": "[.numbered-list]\n* Collect the data that is relevant\n* Make the data comparable\n* Clearly document the data\n* Share the data frequently and promptly\n* Publish the data at a stable location\n* Choose a reusable data format\n* License others to reuse the data\n[]",
+          "flavour": "archie",
+          "section": "intro",
+          "position": 0
         }
       ],
       "props": [
@@ -1491,7 +1761,14 @@
       ],
       "valueProps": [],
       "related": [
-        "people-rows"
+        {
+          "kind": "component",
+          "id": "person"
+        },
+        {
+          "kind": "component",
+          "id": "people-rows"
+        }
       ]
     },
     {
@@ -1508,7 +1785,10 @@
       },
       "examples": [
         {
-          "archie": "{.people-rows}\ncolumns: 2\n[.+people]\n{.person}\nimage: antoinette_team_page.jpeg\nname: Antoinette Finnegan\ntitle: HR Manager\nurl:\n[.+text]\nAntoinette joined us in 2023 as our Human Resources (HR) Manager. She most recently worked in HR for a biotech spinout, and also has experience in fundraising and marketing.\n[]\n[.socials]\ntype: email\nurl: mailto:antoinette@ourworldindata.org\ntext: antoinette@ourworldindata.org\n[]\n{}\n{.person}\nimage: Natalie.png\nname: Natalie Reynolds-Garcia\ntitle: Operations and Administration Officer\nurl:\n[.+text]\nNatalie joined us in 2022 as Operations and Administration Officer. Her background is in research administration and education, having taught Spanish, French and English. She was previously the administrator for the Rees Centre at the University at Oxford.\n[]\n[.socials]\ntype: email\nurl: mailto:natalie@ourworldindata.org\ntext: natalie@ourworldindata.org\n[]\n{}\n{.person}\nimage: Valerie-headshot-e1656491769502.jpg\nname: Valerie Rogers Muigai, CGMA\ntitle: Senior Finance and Operations Manager\nurl:\n[.+text]\nValerie joined OWID in 2021. She is a CGMA-certified management accountant with an MBA from Oxford Saïd Business School. Before joining OWID, she spent over a decade working in social enterprise and international development in East Africa.\n[]\n[.socials]\ntype: email\nurl: mailto:valerie@ourworldindata.org\ntext: valerie@ourworldindata.org\n[]\n{}\n[]\n{}"
+          "archie": "{.people-rows}\ncolumns: 2\n[.+people]\n{.person}\nimage: antoinette_team_page.jpeg\nname: Antoinette Finnegan\ntitle: HR Manager\nurl:\n[.+text]\nAntoinette joined us in 2023 as our Human Resources (HR) Manager. She most recently worked in HR for a biotech spinout, and also has experience in fundraising and marketing.\n[]\n[.socials]\ntype: email\nurl: mailto:antoinette@ourworldindata.org\ntext: antoinette@ourworldindata.org\n[]\n{}\n{.person}\nimage: Natalie.png\nname: Natalie Reynolds-Garcia\ntitle: Operations and Administration Officer\nurl:\n[.+text]\nNatalie joined us in 2022 as Operations and Administration Officer. Her background is in research administration and education, having taught Spanish, French and English. She was previously the administrator for the Rees Centre at the University at Oxford.\n[]\n[.socials]\ntype: email\nurl: mailto:natalie@ourworldindata.org\ntext: natalie@ourworldindata.org\n[]\n{}\n{.person}\nimage: Valerie-headshot-e1656491769502.jpg\nname: Valerie Rogers Muigai, CGMA\ntitle: Senior Finance and Operations Manager\nurl:\n[.+text]\nValerie joined OWID in 2021. She is a CGMA-certified management accountant with an MBA from Oxford Saïd Business School. Before joining OWID, she spent over a decade working in social enterprise and international development in East Africa.\n[]\n[.socials]\ntype: email\nurl: mailto:valerie@ourworldindata.org\ntext: valerie@ourworldindata.org\n[]\n{}\n[]\n{}",
+          "flavour": "archie",
+          "section": "intro",
+          "position": 0
         }
       ],
       "props": [
@@ -1527,6 +1807,12 @@
       ],
       "valueProps": [
         "columns"
+      ],
+      "related": [
+        {
+          "kind": "component",
+          "id": "person"
+        }
       ]
     },
     {
@@ -1543,7 +1829,10 @@
       },
       "examples": [
         {
-          "archie": "{.person}\nimage: Max Roser.jpeg\nname: Professor Max Roser\ntitle: Founder and Executive Co-Director\nurl: https://docs.google.com/document/d/1NfXOk8HVohVYjzJ1rtZYuw8h7kB9cWd5Kqxj4Dg1-WQ/edit\n[.+text]\nMax is the founder of Our World in Data and began working on this free online publication in 2011. Today, he serves as the publication’s editor and leads the team as its co-director. He is the Professor of Practice in Global Data Analytics at the University of Oxford’s Blavatnik School of Government, the Programme Director of the <a href=\"https://www.oxfordmartin.ox.ac.uk/global-development/\">Oxford Martin Programme on Global Development</a>, and the Executive Co-Director of <a href=\"https://global-change-data-lab.org/\">Global Change Data Lab</a>, the non-profit organization that publishes Our World in Data.\n<i>For inquiries, please get in touch with Max’s Executive Assistant, Angela Wenham, at </i><i><a href=\"mailto:angela@ourworldindata.org\">angela@ourworldindata.org</a></i><i>.</i>\n[]\n[.socials]\ntype: x\nurl: https://x.com/MaxCRoser\ntext: @MaxCRoser\ntype: bluesky\nurl: https://bsky.app/profile/maxroser.bsky.social\ntext: @maxroser.bsky.social\ntype: instagram\nurl: https://www.instagram.com/max.roser.owid/\ntext: max.roser.owid\ntype: threads\nurl: https://www.threads.net/@max.roser.owid\ntext: @max.roser.owid\ntype: linkedin\nurl: https://www.linkedin.com/in/max-roser-ox/\ntext: Max Roser\n[]\n{}"
+          "archie": "{.person}\nimage: Max Roser.jpeg\nname: Professor Max Roser\ntitle: Founder and Executive Co-Director\nurl: https://docs.google.com/document/d/1NfXOk8HVohVYjzJ1rtZYuw8h7kB9cWd5Kqxj4Dg1-WQ/edit\n[.+text]\nMax is the founder of Our World in Data and began working on this free online publication in 2011. Today, he serves as the publication’s editor and leads the team as its co-director. He is the Professor of Practice in Global Data Analytics at the University of Oxford’s Blavatnik School of Government, the Programme Director of the <a href=\"https://www.oxfordmartin.ox.ac.uk/global-development/\">Oxford Martin Programme on Global Development</a>, and the Executive Co-Director of <a href=\"https://global-change-data-lab.org/\">Global Change Data Lab</a>, the non-profit organization that publishes Our World in Data.\n<i>For inquiries, please get in touch with Max’s Executive Assistant, Angela Wenham, at </i><i><a href=\"mailto:angela@ourworldindata.org\">angela@ourworldindata.org</a></i><i>.</i>\n[]\n[.socials]\ntype: x\nurl: https://x.com/MaxCRoser\ntext: @MaxCRoser\ntype: bluesky\nurl: https://bsky.app/profile/maxroser.bsky.social\ntext: @maxroser.bsky.social\ntype: instagram\nurl: https://www.instagram.com/max.roser.owid/\ntext: max.roser.owid\ntype: threads\nurl: https://www.threads.net/@max.roser.owid\ntext: @max.roser.owid\ntype: linkedin\nurl: https://www.linkedin.com/in/max-roser-ox/\ntext: Max Roser\n[]\n{}",
+          "flavour": "archie",
+          "section": "intro",
+          "position": 0
         }
       ],
       "props": [
@@ -1586,8 +1875,14 @@
       ],
       "valueProps": [],
       "related": [
-        "people-rows",
-        "people"
+        {
+          "kind": "component",
+          "id": "people"
+        },
+        {
+          "kind": "component",
+          "id": "people-rows"
+        }
       ]
     },
     {
@@ -1605,7 +1900,10 @@
       },
       "examples": [
         {
-          "archie": "{.pill-row}\ntitle: Topics covered by Joe on Our World in Data\n[.pills]\ntext: Poverty\nurl: https://docs.google.com/document/d/1UjJLoGF5VMfn8U4C3ZSJQrPhc_jFRkeEhrhz5Ksfq7M/edit\ntext: Economic inequality\nurl: https://docs.google.com/document/d/1yzOrFd6uWvrAl2oFB3S67oOSbhgL1ffPHxjAqS7i-4w/edit\ntext: Economic Growth\nurl: https://docs.google.com/document/d/1gVSV2gqzPSTMI80gmHEgbaKeWalj6daqe519RtZaJ7I/edit\n[]\n{}"
+          "archie": "{.pill-row}\ntitle: Topics covered by Joe on Our World in Data\n[.pills]\ntext: Poverty\nurl: https://docs.google.com/document/d/1UjJLoGF5VMfn8U4C3ZSJQrPhc_jFRkeEhrhz5Ksfq7M/edit\ntext: Economic inequality\nurl: https://docs.google.com/document/d/1yzOrFd6uWvrAl2oFB3S67oOSbhgL1ffPHxjAqS7i-4w/edit\ntext: Economic Growth\nurl: https://docs.google.com/document/d/1gVSV2gqzPSTMI80gmHEgbaKeWalj6daqe519RtZaJ7I/edit\n[]\n{}",
+          "flavour": "archie",
+          "section": "intro",
+          "position": 0
         }
       ],
       "props": [
@@ -1624,8 +1922,14 @@
       ],
       "valueProps": [],
       "related": [
-        "cta",
-        "recirc"
+        {
+          "kind": "component",
+          "id": "cta"
+        },
+        {
+          "kind": "component",
+          "id": "recirc"
+        }
       ]
     },
     {
@@ -1642,10 +1946,16 @@
       },
       "examples": [
         {
-          "archie": "{.prominent-link}\nurl: https://docs.google.com/document/d/1MSK510rncMZBqM4yaIkeq4D4N0L70NIO5dt8rzX_6YU/edit\n{}"
+          "archie": "{.prominent-link}\nurl: https://docs.google.com/document/d/1MSK510rncMZBqM4yaIkeq4D4N0L70NIO5dt8rzX_6YU/edit\n{}",
+          "flavour": "archie",
+          "section": "intro",
+          "position": 0
         },
         {
-          "archie": "{.prominent-link}\nurl: https://docs.owid.io/projects/etl/analyses/deadliest_animals/\ntitle: Methodology\ndescription: If you’re interested in digging deeper, we provide a more detailed methodological document that lays out the uncertainties and sources behind these numbers.\nthumbnail: most-deadly-animal-featured.png\n{}"
+          "archie": "{.prominent-link}\nurl: https://docs.owid.io/projects/etl/analyses/deadliest_animals/\ntitle: Methodology\ndescription: If you’re interested in digging deeper, we provide a more detailed methodological document that lays out the uncertainties and sources behind these numbers.\nthumbnail: most-deadly-animal-featured.png\n{}",
+          "flavour": "archie",
+          "section": "intro",
+          "position": 1
         }
       ],
       "props": [
@@ -1676,8 +1986,14 @@
       ],
       "valueProps": [],
       "related": [
-        "recirc",
-        "cta"
+        {
+          "kind": "component",
+          "id": "recirc"
+        },
+        {
+          "kind": "component",
+          "id": "cta"
+        }
       ]
     },
     {
@@ -1694,7 +2010,10 @@
       },
       "examples": [
         {
-          "archie": "{.pull-chart}\nalign: left-center\nimage: hpv-vaccines-thumbnail.png\nurl: https://ourworldindata.org/grapher/population\n[.+content]\nGlobal population has grown rapidly over the past two centuries. Click through to explore the data by country.\n[]\n{}"
+          "archie": "{.pull-chart}\nalign: left-center\nimage: hpv-vaccines-thumbnail.png\nurl: https://ourworldindata.org/grapher/population\n[.+content]\nGlobal population has grown rapidly over the past two centuries. Click through to explore the data by country.\n[]\n{}",
+          "flavour": "archie",
+          "section": "intro",
+          "position": 0
         }
       ],
       "props": [
@@ -1727,9 +2046,18 @@
         "align"
       ],
       "related": [
-        "chart",
-        "narrative-chart",
-        "chart-rows"
+        {
+          "kind": "component",
+          "id": "chart"
+        },
+        {
+          "kind": "component",
+          "id": "narrative-chart"
+        },
+        {
+          "kind": "component",
+          "id": "chart-rows"
+        }
       ]
     },
     {
@@ -1746,7 +2074,10 @@
       },
       "examples": [
         {
-          "archie": "{.pull-quote}\nquote: Just ten species — 0.15% of them — account for around 40% of wild mammal biomass.\nalign: left-center\n[.+content]\nWe don’t have the counterfactual of what life would be like on a planet without us, but we can find a number of examples where our impact has been clear.\nIt’s possible to imagine a world where the biggest mammals would be even more dominant. Look at the average size of mammals over the last 50,000 years of human history, and we see an obvious trend: they’ve gotten smaller.8 This is for several reasons, but humans have played a crucial role.\n[]\n{}"
+          "archie": "{.pull-quote}\nquote: Just ten species — 0.15% of them — account for around 40% of wild mammal biomass.\nalign: left-center\n[.+content]\nWe don’t have the counterfactual of what life would be like on a planet without us, but we can find a number of examples where our impact has been clear.\nIt’s possible to imagine a world where the biggest mammals would be even more dominant. Look at the average size of mammals over the last 50,000 years of human history, and we see an obvious trend: they’ve gotten smaller.8 This is for several reasons, but humans have played a crucial role.\n[]\n{}",
+          "flavour": "archie",
+          "section": "intro",
+          "position": 0
         }
       ],
       "props": [
@@ -1773,7 +2104,10 @@
         "align"
       ],
       "related": [
-        "blockquote"
+        {
+          "kind": "component",
+          "id": "blockquote"
+        }
       ]
     },
     {
@@ -1790,7 +2124,10 @@
       },
       "examples": [
         {
-          "archie": "{.recirc}\ntitle: Related charts\n[.links]\nurl: https://ourworldindata.org/grapher/labor-force-participation-rate?age_group=_15_plus&sex=female\ntitle: Explore labor force participation data\nsubtitle: Participation rates by age groups and sex\nurl: https://ourworldindata.org/grapher/labor-force-participation-rate-by-age?tab=discrete-bar&time=latest\n[]\n{}"
+          "archie": "{.recirc}\ntitle: Related charts\n[.links]\nurl: https://ourworldindata.org/grapher/labor-force-participation-rate?age_group=_15_plus&sex=female\ntitle: Explore labor force participation data\nsubtitle: Participation rates by age groups and sex\nurl: https://ourworldindata.org/grapher/labor-force-participation-rate-by-age?tab=discrete-bar&time=latest\n[]\n{}",
+          "flavour": "archie",
+          "section": "intro",
+          "position": 0
         }
       ],
       "props": [
@@ -1817,8 +2154,14 @@
         "align"
       ],
       "related": [
-        "prominent-link",
-        "resource-panel"
+        {
+          "kind": "component",
+          "id": "prominent-link"
+        },
+        {
+          "kind": "component",
+          "id": "resource-panel"
+        }
       ]
     },
     {
@@ -1836,7 +2179,10 @@
       },
       "examples": [
         {
-          "archie": "{.research-and-writing}\nheading: Research & Writing\n[.primary]\nurl: https://docs.google.com/document/d/1qiCu4Yl-YxNgj8cV_0MGB9p6z6WoLF3gFGFspsjK1qU/edit\n[]\n[.secondary]\nurl: https://docs.google.com/document/d/1e0HDWjfdRTrbLlAdUMPGtkqmLJJFw9ookSmgBU6JMPI/edit\nurl: https://docs.google.com/document/d/1-YJoOYf5-_gfSFkJ6sNbMPkAI75VnOOGLSt18_4euL0/edit\n[]\n[.rows]\nheading: More Articles on Medicine and Biotechnology\n[.articles]\nurl: https://docs.google.com/document/d/1-6S3Nsjrb7wFbNizDTvohHGcOzvDvva0UyDoKQUyXnQ/edit\nurl: https://docs.google.com/document/d/19ytyrpTe5fYQCwAyz25egACwwr9kjyHJkYySzWlYg2Q/edit\nurl: https://docs.google.com/document/d/1P8pu_FGx6fnJWw-xQBREe49uqN62rZAuARRrR2cdOjc/edit\n[]\n[]\n{}"
+          "archie": "{.research-and-writing}\nheading: Research & Writing\n[.primary]\nurl: https://docs.google.com/document/d/1qiCu4Yl-YxNgj8cV_0MGB9p6z6WoLF3gFGFspsjK1qU/edit\n[]\n[.secondary]\nurl: https://docs.google.com/document/d/1e0HDWjfdRTrbLlAdUMPGtkqmLJJFw9ookSmgBU6JMPI/edit\nurl: https://docs.google.com/document/d/1-YJoOYf5-_gfSFkJ6sNbMPkAI75VnOOGLSt18_4euL0/edit\n[]\n[.rows]\nheading: More Articles on Medicine and Biotechnology\n[.articles]\nurl: https://docs.google.com/document/d/1-6S3Nsjrb7wFbNizDTvohHGcOzvDvva0UyDoKQUyXnQ/edit\nurl: https://docs.google.com/document/d/19ytyrpTe5fYQCwAyz25egACwwr9kjyHJkYySzWlYg2Q/edit\nurl: https://docs.google.com/document/d/1P8pu_FGx6fnJWw-xQBREe49uqN62rZAuARRrR2cdOjc/edit\n[]\n[]\n{}",
+          "flavour": "archie",
+          "section": "intro",
+          "position": 0
         }
       ],
       "props": [
@@ -1901,8 +2247,14 @@
         "variant"
       ],
       "related": [
-        "recirc",
-        "prominent-link"
+        {
+          "kind": "component",
+          "id": "recirc"
+        },
+        {
+          "kind": "component",
+          "id": "prominent-link"
+        }
       ]
     },
     {
@@ -1920,7 +2272,10 @@
       },
       "examples": [
         {
-          "archie": "{.resource-panel}\nicon: chart\nkicker: Resources\ntitle: Data on corruption\nbuttonText: See all data on this topic\n[.links]\nurl: https://ourworldindata.org/grapher/bribery-prevalence-un\nsubtitle: United Nations Office on Drugs and Crime\nurl: https://ourworldindata.org/grapher/bribery-incidence-for-firms\nsubtitle: World Bank Enterprise Surveys\nurl: https://ourworldindata.org/grapher/political-corruption-index\nsubtitle: Varieties of Democracy Project\n[]\n{}"
+          "archie": "{.resource-panel}\nicon: chart\nkicker: Resources\ntitle: Data on corruption\nbuttonText: See all data on this topic\n[.links]\nurl: https://ourworldindata.org/grapher/bribery-prevalence-un\nsubtitle: United Nations Office on Drugs and Crime\nurl: https://ourworldindata.org/grapher/bribery-incidence-for-firms\nsubtitle: World Bank Enterprise Surveys\nurl: https://ourworldindata.org/grapher/political-corruption-index\nsubtitle: Varieties of Democracy Project\n[]\n{}",
+          "flavour": "archie",
+          "section": "intro",
+          "position": 0
         }
       ],
       "props": [
@@ -1959,7 +2314,10 @@
         "icon"
       ],
       "related": [
-        "recirc"
+        {
+          "kind": "component",
+          "id": "recirc"
+        }
       ]
     },
     {
@@ -2018,7 +2376,10 @@
       },
       "examples": [
         {
-          "archie": "{ .side-by-side }\n[.+right]\n{.chart}\nurl: https://ourworldindata.org/grapher/share-of-deaths-cause-is-registered\n{}\n[]\n[.+left]\n{.chart}\nurl: https://ourworldindata.org/grapher/share-of-deaths-registered\n{}\n[]\n{}"
+          "archie": "{ .side-by-side }\n[.+right]\n{.chart}\nurl: https://ourworldindata.org/grapher/share-of-deaths-cause-is-registered\n{}\n[]\n[.+left]\n{.chart}\nurl: https://ourworldindata.org/grapher/share-of-deaths-registered\n{}\n[]\n{}",
+          "flavour": "archie",
+          "section": "intro",
+          "position": 0
         }
       ],
       "props": [
@@ -2037,8 +2398,14 @@
       ],
       "valueProps": [],
       "related": [
-        "sticky-right",
-        "sticky-left"
+        {
+          "kind": "component",
+          "id": "sticky-right"
+        },
+        {
+          "kind": "component",
+          "id": "sticky-left"
+        }
       ]
     },
     {
@@ -2061,7 +2428,13 @@
         }
       ],
       "valueProps": [],
-      "autoGenerated": "a parent block that needs unformatted text"
+      "autoGenerated": "a parent block that needs unformatted text",
+      "related": [
+        {
+          "kind": "component",
+          "id": "code"
+        }
+      ]
     },
     {
       "id": "socials",
@@ -2078,7 +2451,10 @@
       },
       "examples": [
         {
-          "archie": "[.socials]\nurl: saloni@ourworldindata.org\ntext: saloni@ourworldindata.org\ntype: email\n\nurl: https://twitter.com/salonium\ntext: @salonium\ntype: x\n[]"
+          "archie": "[.socials]\nurl: saloni@ourworldindata.org\ntext: saloni@ourworldindata.org\ntype: email\n\nurl: https://twitter.com/salonium\ntext: @salonium\ntype: x\n[]",
+          "flavour": "archie",
+          "section": "intro",
+          "position": 0
         }
       ],
       "props": [
@@ -2091,7 +2467,10 @@
       ],
       "valueProps": [],
       "related": [
-        "person"
+        {
+          "kind": "component",
+          "id": "person"
+        }
       ]
     },
     {
@@ -2108,7 +2487,10 @@
       },
       "examples": [
         {
-          "archie": "{.static-viz}\nname: world-population-growth\n{}"
+          "archie": "{.static-viz}\nname: world-population-growth\n{}",
+          "flavour": "archie",
+          "section": "intro",
+          "position": 0
         }
       ],
       "props": [
@@ -2142,9 +2524,18 @@
         "size"
       ],
       "related": [
-        "image",
-        "chart",
-        "narrative-chart"
+        {
+          "kind": "component",
+          "id": "image"
+        },
+        {
+          "kind": "component",
+          "id": "chart"
+        },
+        {
+          "kind": "component",
+          "id": "narrative-chart"
+        }
       ]
     },
     {
@@ -2161,7 +2552,10 @@
       },
       "examples": [
         {
-          "archie": "{ .sticky-left }\n[.+right]\nThis chart shows the weekly number of new admissions to intensive care units (ICU) due to COVID-19.\nNote that this number is different from the total number of patients in ICU due to COVID-19 at any given time. You can find this data in the previous section.\n[]\n[.+left]\n{.chart}\nurl: https://ourworldindata.org/grapher/weekly-icu-admissions-covid\n{}\n[]\n{}"
+          "archie": "{ .sticky-left }\n[.+right]\nThis chart shows the weekly number of new admissions to intensive care units (ICU) due to COVID-19.\nNote that this number is different from the total number of patients in ICU due to COVID-19 at any given time. You can find this data in the previous section.\n[]\n[.+left]\n{.chart}\nurl: https://ourworldindata.org/grapher/weekly-icu-admissions-covid\n{}\n[]\n{}",
+          "flavour": "archie",
+          "section": "intro",
+          "position": 0
         }
       ],
       "props": [
@@ -2180,8 +2574,14 @@
       ],
       "valueProps": [],
       "related": [
-        "sticky-right",
-        "side-by-side"
+        {
+          "kind": "component",
+          "id": "sticky-right"
+        },
+        {
+          "kind": "component",
+          "id": "side-by-side"
+        }
       ]
     },
     {
@@ -2198,7 +2598,10 @@
       },
       "examples": [
         {
-          "archie": "{ .sticky-right }\n[.+right]\n{.chart}\nurl: https://ourworldindata.org/grapher/cumulative-deaths-in-armed-conflicts-by-region-and-type?country=Americas~OWID_EUR~Asia+and+Oceania~Middle+East~OWID_AFR\n{}\n[]\n[.+left]\nBreaking down conflict deaths by region and type at the same time reveals that the dominant forms of conflict differ across regions.\nThe chart shows, by region, the share of deaths each conflict type is responsible for.\n{.heading}\ntext: Africa\nlevel: 2\n{}\nOne-sided violence was the deadliest form of conflict in Africa, accounting for half of its deaths between 1989 and 2024. A significant portion of these deaths resulted from a single act of violence: the 1994 genocide in <a href=\"https://ourworldindata.org/explorers/countries-in-conflict-data?region=Africa&country=~RWA&Measure=Conflict+deaths&Conflict+type=All+armed+conflicts&Conflict+sub-type=By+sub-type\">Rwanda</a>.\nIntrastate conflicts caused more than a third of all deaths, particularly in <a href=\"https://ourworldindata.org/explorers/countries-in-conflict-data?region=Africa&country=~ETH&Measure=Conflict+deaths&Conflict+type=All+armed+conflicts&Conflict+sub-type=By+sub-type\">Ethiopia</a> and present-day <a href=\"https://ourworldindata.org/explorers/countries-in-conflict-data?region=Africa&country=~ERI&Measure=Conflict+deaths&Conflict+type=All+armed+conflicts&Conflict+sub-type=By+sub-type\">Eritrea</a>.\nNon-state and interstate conflicts were less deadly, each contributing fewer than 10% of deaths.\n{.heading}\ntext: Middle East\nlevel: 2\n{}\nIntrastate conflicts were the leading cause of conflict deaths in the Middle East, accounting for four in five deaths. <a href=\"https://ourworldindata.org/explorers/countries-in-conflict-data?country=~SYR&Measure=Conflict+deaths&Conflict+type=All+armed+conflicts&Conflict+sub-type=By+sub-type\">Syria</a> was especially affected, alongside <a href=\"https://ourworldindata.org/explorers/countries-in-conflict-data?country=~IRQ&Measure=Conflict+deaths&Conflict+type=All+armed+conflicts&Conflict+sub-type=By+sub-type\">Iraq</a> and <a href=\"https://ourworldindata.org/explorers/countries-in-conflict-data?country=~YEM&Measure=Conflict+deaths&Conflict+type=All+armed+conflicts&Conflict+sub-type=By+sub-type\">Yemen</a>.\nNon-state conflicts contributed to fewer deaths, around one in ten.\nAnd one-sided violence and interstate conflicts accounted for even fewer deaths, with about one in twenty deaths each.\n{.heading}\ntext: Asia and Oceania\nlevel: 2\n{}\nIntrastate conflicts dominated Asia and Oceania even more, accounting for nearly 90% of conflict deaths between 1989 and 2024. <a href=\"https://ourworldindata.org/explorers/countries-in-conflict-data?country=~AFG&Measure=Conflict+deaths&Conflict+type=All+armed+conflicts&Conflict+sub-type=By+sub-type\">Afghanistan</a> was most affected, experiencing several wars over the decades.\nOne-sided violence claimed most of the other deaths, making up almost one in ten deaths, while deaths in non-state and interstate conflicts were rare, resulting in around 3% and 1% of deaths.\n{.heading}\ntext: Europe\nlevel: 2\n{}\nInterstate conflicts were the leading causes of conflict deaths in Europe, accounting for around two-thirds of all fatalities.\nVirtually all interstate conflict deaths were from a single war: Russia’s invasion of <a href=\"https://ourworldindata.org/explorers/countries-in-conflict-data?country=~UKR&Measure=Conflict+deaths&Conflict+type=All+armed+conflicts&Conflict+sub-type=By+sub-type\">Ukraine</a> since 2022.\nIntrastate conflicts account for around 30% of deaths. Many occurred in the early 1990s in Southeastern Europe, especially in <a href=\"https://ourworldindata.org/explorers/countries-in-conflict-data?country=~BIH&Measure=Conflict+deaths&Conflict+type=All+armed+conflicts&Conflict+sub-type=By+sub-type\">Bosnia and Herzegovina</a>.\nOne-sided violence was responsible for around 5% of deaths, while non-state conflicts caused few deaths, making up less than 1% of deaths.\n{.heading}\ntext: Americas\nlevel: 2\n{}\nNon-state conflicts overshadowed other forms of conflict in the Americas, accounting for more than two-thirds of all deaths, primarily due to fighting between criminal organizations. <a href=\"https://ourworldindata.org/explorers/countries-in-conflict-data?country=~MEX&Measure=Conflict+deaths&Conflict+type=All+armed+conflicts&Conflict+sub-type=By+sub-type\">Mexico</a> was most affected, with a large increase in conflict deaths in recent years.\nIntrastate conflicts made up nearly a fifth of deaths, especially from conflict in <a href=\"https://ourworldindata.org/explorers/countries-in-conflict-data?country=~COL&Measure=Conflict+deaths&Conflict+type=All+armed+conflicts&Conflict+sub-type=By+sub-type\">Colombia</a> in the late 1990s and early 2000s.\nOne-sided violence claimed about one in ten of all conflict deaths, while interstate conflicts were rarer than in any other world region, with fewer than 1,000 deaths in total.\n[]\n{}"
+          "archie": "{ .sticky-right }\n[.+right]\n{.chart}\nurl: https://ourworldindata.org/grapher/cumulative-deaths-in-armed-conflicts-by-region-and-type?country=Americas~OWID_EUR~Asia+and+Oceania~Middle+East~OWID_AFR\n{}\n[]\n[.+left]\nBreaking down conflict deaths by region and type at the same time reveals that the dominant forms of conflict differ across regions.\nThe chart shows, by region, the share of deaths each conflict type is responsible for.\n{.heading}\ntext: Africa\nlevel: 2\n{}\nOne-sided violence was the deadliest form of conflict in Africa, accounting for half of its deaths between 1989 and 2024. A significant portion of these deaths resulted from a single act of violence: the 1994 genocide in <a href=\"https://ourworldindata.org/explorers/countries-in-conflict-data?region=Africa&country=~RWA&Measure=Conflict+deaths&Conflict+type=All+armed+conflicts&Conflict+sub-type=By+sub-type\">Rwanda</a>.\nIntrastate conflicts caused more than a third of all deaths, particularly in <a href=\"https://ourworldindata.org/explorers/countries-in-conflict-data?region=Africa&country=~ETH&Measure=Conflict+deaths&Conflict+type=All+armed+conflicts&Conflict+sub-type=By+sub-type\">Ethiopia</a> and present-day <a href=\"https://ourworldindata.org/explorers/countries-in-conflict-data?region=Africa&country=~ERI&Measure=Conflict+deaths&Conflict+type=All+armed+conflicts&Conflict+sub-type=By+sub-type\">Eritrea</a>.\nNon-state and interstate conflicts were less deadly, each contributing fewer than 10% of deaths.\n{.heading}\ntext: Middle East\nlevel: 2\n{}\nIntrastate conflicts were the leading cause of conflict deaths in the Middle East, accounting for four in five deaths. <a href=\"https://ourworldindata.org/explorers/countries-in-conflict-data?country=~SYR&Measure=Conflict+deaths&Conflict+type=All+armed+conflicts&Conflict+sub-type=By+sub-type\">Syria</a> was especially affected, alongside <a href=\"https://ourworldindata.org/explorers/countries-in-conflict-data?country=~IRQ&Measure=Conflict+deaths&Conflict+type=All+armed+conflicts&Conflict+sub-type=By+sub-type\">Iraq</a> and <a href=\"https://ourworldindata.org/explorers/countries-in-conflict-data?country=~YEM&Measure=Conflict+deaths&Conflict+type=All+armed+conflicts&Conflict+sub-type=By+sub-type\">Yemen</a>.\nNon-state conflicts contributed to fewer deaths, around one in ten.\nAnd one-sided violence and interstate conflicts accounted for even fewer deaths, with about one in twenty deaths each.\n{.heading}\ntext: Asia and Oceania\nlevel: 2\n{}\nIntrastate conflicts dominated Asia and Oceania even more, accounting for nearly 90% of conflict deaths between 1989 and 2024. <a href=\"https://ourworldindata.org/explorers/countries-in-conflict-data?country=~AFG&Measure=Conflict+deaths&Conflict+type=All+armed+conflicts&Conflict+sub-type=By+sub-type\">Afghanistan</a> was most affected, experiencing several wars over the decades.\nOne-sided violence claimed most of the other deaths, making up almost one in ten deaths, while deaths in non-state and interstate conflicts were rare, resulting in around 3% and 1% of deaths.\n{.heading}\ntext: Europe\nlevel: 2\n{}\nInterstate conflicts were the leading causes of conflict deaths in Europe, accounting for around two-thirds of all fatalities.\nVirtually all interstate conflict deaths were from a single war: Russia’s invasion of <a href=\"https://ourworldindata.org/explorers/countries-in-conflict-data?country=~UKR&Measure=Conflict+deaths&Conflict+type=All+armed+conflicts&Conflict+sub-type=By+sub-type\">Ukraine</a> since 2022.\nIntrastate conflicts account for around 30% of deaths. Many occurred in the early 1990s in Southeastern Europe, especially in <a href=\"https://ourworldindata.org/explorers/countries-in-conflict-data?country=~BIH&Measure=Conflict+deaths&Conflict+type=All+armed+conflicts&Conflict+sub-type=By+sub-type\">Bosnia and Herzegovina</a>.\nOne-sided violence was responsible for around 5% of deaths, while non-state conflicts caused few deaths, making up less than 1% of deaths.\n{.heading}\ntext: Americas\nlevel: 2\n{}\nNon-state conflicts overshadowed other forms of conflict in the Americas, accounting for more than two-thirds of all deaths, primarily due to fighting between criminal organizations. <a href=\"https://ourworldindata.org/explorers/countries-in-conflict-data?country=~MEX&Measure=Conflict+deaths&Conflict+type=All+armed+conflicts&Conflict+sub-type=By+sub-type\">Mexico</a> was most affected, with a large increase in conflict deaths in recent years.\nIntrastate conflicts made up nearly a fifth of deaths, especially from conflict in <a href=\"https://ourworldindata.org/explorers/countries-in-conflict-data?country=~COL&Measure=Conflict+deaths&Conflict+type=All+armed+conflicts&Conflict+sub-type=By+sub-type\">Colombia</a> in the late 1990s and early 2000s.\nOne-sided violence claimed about one in ten of all conflict deaths, while interstate conflicts were rarer than in any other world region, with fewer than 1,000 deaths in total.\n[]\n{}",
+          "flavour": "archie",
+          "section": "intro",
+          "position": 0
         }
       ],
       "props": [
@@ -2217,8 +2620,14 @@
       ],
       "valueProps": [],
       "related": [
-        "side-by-side",
-        "sticky-left"
+        {
+          "kind": "component",
+          "id": "side-by-side"
+        },
+        {
+          "kind": "component",
+          "id": "sticky-left"
+        }
       ]
     },
     {
@@ -2236,7 +2645,10 @@
       },
       "examples": [
         {
-          "archie": "{.subscribe-banner}\nalign: center\n{}"
+          "archie": "{.subscribe-banner}\nalign: center\n{}",
+          "flavour": "archie",
+          "section": "intro",
+          "position": 0
         }
       ],
       "props": [
@@ -2296,7 +2708,10 @@
         "template"
       ],
       "related": [
-        "expander"
+        {
+          "kind": "component",
+          "id": "expander"
+        }
       ]
     },
     {
@@ -2308,7 +2723,7 @@
       "sidecarFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/Text.md",
       "prose": {
         "intro": "A paragraph of prose. Text spans support Google Docs formatting (bold,\nitalic, links, superscript, subscript), refs, and details-on-demand\nlinks.",
-        "notes": "Footnotes: `{ref}example_id{/ref}` resolves against the front-matter\n`[.refs]` block, so a ref can be reused across the document —\nwhitespace-free content is treated as an ID. Inline refs\n(`{ref}free text{/ref}`) also work; identical inline refs share a\nfootnote number.\n\nDetails on demand: link a phrase to `#dod:your_dod_id`. In grapher\nsubtitles and footers use markdown instead:\n`[Primary energy](#dod:primaryenergy)`.\n\nStarting a paragraph with a word followed by a colon would be parsed as\nan archie key — escape it: `Blah\\: explanation`.\n\nLines between `:skip` and `:endskip` are archie comments, though Google\nDocs comments are usually the better tool."
+        "notes": "For footnotes, see `{guide:refs}`. For definition popups, see\n`{guide:details-on-demand}`. For paragraph mechanics — front matter and\nbody, `:skip` comments, escaping a leading colon, lists — see\n`{guide:writing-basics}`."
       },
       "examples": [],
       "props": [
@@ -2320,7 +2735,21 @@
         }
       ],
       "valueProps": [],
-      "autoGenerated": "a plain paragraph"
+      "autoGenerated": "a plain paragraph",
+      "related": [
+        {
+          "kind": "guide",
+          "id": "refs"
+        },
+        {
+          "kind": "guide",
+          "id": "details-on-demand"
+        },
+        {
+          "kind": "guide",
+          "id": "writing-basics"
+        }
+      ]
     },
     {
       "id": "topic-page-intro",
@@ -2336,7 +2765,10 @@
       },
       "examples": [
         {
-          "archie": "{.topic-page-intro}\n[.+content]\nPopulation growth is one of the most important topics we cover on Our World in Data.\nFor most of human history, the global population was a tiny fraction of what it is today. Over the last few centuries, the human population has gone through an extraordinary change. In 1800, there were one billion people. Today there are more than 8 billion of us.\nBut after a period of very fast population growth, demographers expect the world population to peak by the end of this century.\nOn this page, you will find all of our data, charts, and writing on changes in population growth. This includes how populations are distributed worldwide, how this has changed, and what demographers expect for the future.\n[]\n[.related-topics]\ntext: Child Mortality\nurl: https://ourworldindata.org/child-mortality\ntext: Fertility Rate\nurl: https://ourworldindata.org/fertility-rate\ntext: Life Expectancy\nurl: https://ourworldindata.org/life-expectancy\ntext: Age Structure\nurl: https://ourworldindata.org/age-structure\n[]\n{}"
+          "archie": "{.topic-page-intro}\n[.+content]\nPopulation growth is one of the most important topics we cover on Our World in Data.\nFor most of human history, the global population was a tiny fraction of what it is today. Over the last few centuries, the human population has gone through an extraordinary change. In 1800, there were one billion people. Today there are more than 8 billion of us.\nBut after a period of very fast population growth, demographers expect the world population to peak by the end of this century.\nOn this page, you will find all of our data, charts, and writing on changes in population growth. This includes how populations are distributed worldwide, how this has changed, and what demographers expect for the future.\n[]\n[.related-topics]\ntext: Child Mortality\nurl: https://ourworldindata.org/child-mortality\ntext: Fertility Rate\nurl: https://ourworldindata.org/fertility-rate\ntext: Life Expectancy\nurl: https://ourworldindata.org/life-expectancy\ntext: Age Structure\nurl: https://ourworldindata.org/age-structure\n[]\n{}",
+          "flavour": "archie",
+          "section": "intro",
+          "position": 0
         }
       ],
       "props": [
@@ -2397,7 +2829,10 @@
       },
       "examples": [
         {
-          "archie": "{.video}\nurl: https://assets.ourworldindata.org/videos/lead-petrol-ban-video-landscape.mp4\nfilename: lead-petrol-ban-video-landscape-cover.png\nshouldLoop: true\nshouldAutoplay: true\ncaption: Timelapse of the phase-out of leaded gasoline from 1986 to 2021\n{}"
+          "archie": "{.video}\nurl: https://assets.ourworldindata.org/videos/lead-petrol-ban-video-landscape.mp4\nfilename: lead-petrol-ban-video-landscape-cover.png\nshouldLoop: true\nshouldAutoplay: true\ncaption: Timelapse of the phase-out of leaded gasoline from 1986 to 2021\n{}",
+          "flavour": "archie",
+          "section": "intro",
+          "position": 0
         }
       ],
       "props": [
@@ -2444,8 +2879,14 @@
         "visibility"
       ],
       "related": [
-        "html",
-        "image"
+        {
+          "kind": "component",
+          "id": "html"
+        },
+        {
+          "kind": "component",
+          "id": "image"
+        }
       ]
     }
   ],

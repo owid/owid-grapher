@@ -13,20 +13,32 @@ and every gdoc type they can create. It lives in the admin at
    (e.g. `Image.md` beside `Image.ts`). Each documented gdoc type has a
    template sidecar in `.../gdocTypes/templates/` (e.g. `Article.md`), and
    each content interface a field-descriptions file there (e.g.
-   `OwidGdocPostContent.md`). Sidecars carry the prose: what a component is
-   for, when (not) to use it, and fenced ` ```archie ` examples.
+   `OwidGdocPostContent.md`). Cross-cutting concepts that are neither a block
+   nor a document type (refs, headings …) get a guide sidecar in
+   `.../gdocTypes/guides/` (e.g. `refs.md`, whose kebab-case file name is the
+   guide id and whose front matter carries its `title` and `category`).
+   Sidecars carry the prose: what a component is for, when (not) to use it,
+   and fenced examples — ` ```archie ` body snippets, or ` ```archie-document `
+   whole documents in guides.
+
+    Sidecars cross-reference each other with **mentions**: a backticked code
+    span whose whole content is `{.component-id}`, `{guide:guide-id}` or
+    `{template:template-id}`. The generator harvests them into `related` and
+    fails the build on an unknown id, so every mention the page renders is a
+    working link. Mentions inside a fenced example are example code, not
+    references.
 
     A sidecar's `## ` sections are a **declared vocabulary**, listed in
     `devTools/gdocs/sidecarSections.ts`:
 
-    | Section                           | What it becomes                                                     |
-    | --------------------------------- | ------------------------------------------------------------------- |
-    | (intro, before the first `## `)   | the lead prose, and where the ` ```archie ` examples live           |
-    | `## When to use`                  | the "Use it for" panel; its `{.other-id}` mentions become `related` |
-    | `## When NOT to use`              | the "Reach for something else when" panel                           |
-    | `## Properties` (components only) | the effect column of the properties table                           |
-    | `## Notes`                        | authored notes under the derived material (heading dropped)         |
-    | any other `## ` heading           | free prose, rendered with the notes                                 |
+    | Section                           | What it becomes                                             |
+    | --------------------------------- | ----------------------------------------------------------- |
+    | (intro, before the first `## `)   | the lead prose, and where the ` ```archie ` examples live   |
+    | `## When to use`                  | the "Use it for" panel; its mentions become `related`       |
+    | `## When NOT to use`              | the "Reach for something else when" panel                   |
+    | `## Properties` (components only) | the effect column of the properties table                   |
+    | `## Notes`                        | authored notes under the derived material (heading dropped) |
+    | any other `## ` heading           | free prose, rendered with the notes                         |
 
     Headings are matched past casing and punctuation, but a **near miss**
     fails the build rather than drifting into the free prose: `## When to
@@ -48,9 +60,10 @@ and every gdoc type they can create. It lives in the admin at
    `yarn generateGdocsReferences` (in `devTools/gdocs/`) walks the type
    definitions with the TypeScript compiler, joins them with the sidecars,
    validates every example by parsing it through the real gdoc pipeline, and
-   writes two committed registry files:
+   writes three committed registry files:
     - `docs/components.registry.generated.json`
     - `docs/templates.registry.generated.json`
+    - `docs/guides.registry.generated.json`
 
     Completeness is structural: a new union member or documented gdoc type
     without a sidecar fails the build, as does an example that doesn't parse
@@ -85,7 +98,7 @@ component id to `COMPONENT_CATEGORY_BY_ID` in
 `devTools/gdocs/generate-gdocs-references.ts` — a missing sidecar or category
 fails `devTools/gdocs/sidecars.test.ts` and the generator. Sidecar
 conventions: the sections listed above — `## When to use` / `## When NOT to
-use` prose (whose `{.other-id}` mentions become the structured `related`
+use` prose (whose backticked mentions become the structured `related`
 links) and at least one fenced ` ```archie ` example, validated by parsing —
 prefer the verbatim ArchieML of a real published instance once one exists.
 

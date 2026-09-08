@@ -36,11 +36,6 @@ In $latestTime(), Canada's life expectancy was $latestValue()
 ## Notes
 
 Include `time` in the grapher URL to pin a specific period —
-`$latestTime()` means "latest for this particular view". Use
-/admin/callout-functions to find the indicator slugs a chart exposes.
-
-If the referenced chart has no data for the current entity, the entire
-section won't render — by design, useful for country profiles.
-
-Any content can go inside, including charts, though a nested chart has no
-programmatic relation to the callout.
+`$latestTime()` means "latest for this particular view". Any content can go
+inside, including charts, though a nested chart has no programmatic
+relation to the callout. See `{guide:data-callout-functions}`.
