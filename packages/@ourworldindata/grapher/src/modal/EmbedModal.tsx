@@ -10,6 +10,12 @@ import {
 } from "@ourworldindata/components"
 import { DEFAULT_GRAPHER_BOUNDS, GrapherModal } from "../core/GrapherConstants"
 
+/**
+ * The widest of grapher's overlays. Exported because the page-level sources
+ * panel matches it, so that the two can't drift apart.
+ */
+export const EMBED_MODAL_MAX_WIDTH = 940
+
 export interface EmbedModalManager {
     embedUrl?: string
     embedArchivedUrl?: string
@@ -48,7 +54,7 @@ export class EmbedModal extends React.Component<EmbedModalProps> {
     }
 
     @computed private get modalBounds(): Bounds {
-        const maxWidth = 940
+        const maxWidth = EMBED_MODAL_MAX_WIDTH
         const padWidth = Math.max(16, (this.frameBounds.width - maxWidth) / 2)
         return this.frameBounds.padHeight(16).padWidth(padWidth)
     }

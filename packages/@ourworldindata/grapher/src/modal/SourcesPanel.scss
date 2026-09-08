@@ -1,5 +1,6 @@
-// keep in sync with variables in SourcesPanel.tsx
-$sources-panel-width: 560px;
+// keep in sync with variables in SourcesPanel.tsx, where the width is derived
+// from EMBED_MODAL_MAX_WIDTH (the widest overlay we have)
+$sources-panel-width: 940px;
 
 .grapher-sources-panel-overlay {
     position: fixed;

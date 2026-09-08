@@ -4,11 +4,16 @@ import { action, computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { BodyPortal, CLOSE_BUTTON_WIDTH } from "@ourworldindata/components"
 import { isTargetOutsideElement } from "../chart/ChartUtils"
+import { EMBED_MODAL_MAX_WIDTH } from "./EmbedModal"
 import { MAX_CONTENT_WIDTH, SourcesContent } from "./SourcesContent"
 import { getSourcesEditBaseUrl, SourcesModalManager } from "./SourcesModal"
 
+// The panel is as wide as the widest overlay we have, the embed modal. Taken
+// from that modal's own constant so the two can't drift apart; the equivalent
+// literal in SourcesPanel.scss has to be kept in sync by hand.
+const PANEL_WIDTH = EMBED_MODAL_MAX_WIDTH
+
 // keep in sync with variables in SourcesPanel.scss
-const PANEL_WIDTH = 560
 const PANEL_PADDING = 24
 const PANEL_PADDING_NARROW = 16
 
