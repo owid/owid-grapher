@@ -430,54 +430,6 @@ describe("Indicator-level chart configs", { timeout: 15000 }, () => {
         })
     })
 
-    it("400s naming the chart whose stored patch is invalid, and rewrites nothing", async () => {
-        await env.request({
-            method: "PUT",
-            path: `/variables/${variableId}/grapherConfigETL`,
-            body: JSON.stringify(testVariableConfigETL),
-        })
-        const { chartId } = await env.request({
-            method: "POST",
-            path: "/charts",
-            body: JSON.stringify(testChartConfig),
-        })
-
-        // corrupt the stored patch directly: the write routes reject an unknown
-        // key, so only a row predating or bypassing them looks like this
-        const chart = await env
-            .testKnex(ChartsTableName)
-            .where({ id: chartId })
-            .first()
-        const patchRow = await env
-            .testKnex(ChartConfigsTableName)
-            .where({ id: chart.patchConfigId })
-            .first()
-        await env
-            .testKnex(ChartConfigsTableName)
-            .where({ id: chart.patchConfigId })
-            .update({
-                config: JSON.stringify({
-                    ...JSON.parse(patchRow.config),
-                    hideLegend: true,
-                }),
-            })
-
-        const response = await env.request({
-            method: "PUT",
-            path: `/variables/${variableId}/grapherConfigETL`,
-            body: JSON.stringify({
-                ...testVariableConfigETL,
-                note: "Revised indicator note",
-            }),
-            expectStatus: 400,
-        })
-        expect(response.error.message).toContain(`chart ${chartId}`)
-        expect(response.error.message).toContain("/hideLegend")
-
-        const fullConfig = await env.fetchJson(`/charts/${chartId}.config.json`)
-        expect(fullConfig.note).toBe("Indicator note")
-    })
-
     it("should update chart configs when inheritance is enabled/disabled", async () => {
         const checkInheritance = async ({
             shouldBeEnabled,

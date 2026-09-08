@@ -44,7 +44,7 @@ import {
 } from "@ourworldindata/types"
 import { knexRaw, knexRawFirst } from "../db.js"
 import { insertChartConfig, updateChartConfig } from "./ChartConfigs.js"
-import { assertValidGrapherConfigs } from "../grapherConfigValidation.js"
+import { assertValidGrapherConfig } from "../grapherConfigValidation.js"
 import {
     buildMdimViewPatchConfig,
     getMultiDimDataPageById,
@@ -225,23 +225,12 @@ export async function updateAllChartsThatInheritFromIndicator(
         variableId
     )
 
-    const mergedCharts = inheritingCharts.map((chart) => ({
-        chart,
-        fullConfig: mergeGrapherConfigs(
+    for (const chart of inheritingCharts) {
+        const fullConfig = mergeGrapherConfigs(
             patchConfigETL ?? {},
             chart.patchConfigETL ?? {},
             chart.patchConfig
-        ),
-    }))
-
-    assertValidGrapherConfigs(
-        mergedCharts.map(({ chart, fullConfig }) => ({
-            label: `chart ${chart.chartId}`,
-            config: fullConfig,
-        }))
-    )
-
-    for (const { chart, fullConfig } of mergedCharts) {
+        )
         await db.knexRaw(
             trx,
             `-- sql
@@ -323,19 +312,14 @@ export async function updateAllMultiDimViewsThatInheritFromIndicator(
         variableId
     )
 
-    const mergedViews = inheritingViews.map((view) => ({
-        view,
-        fullConfig: mergeGrapherConfigs(patchConfigETL ?? {}, view.patchConfig),
-    }))
+    for (const view of inheritingViews) {
+        const fullConfig = mergeGrapherConfigs(
+            patchConfigETL ?? {},
+            view.patchConfig
+        )
 
-    assertValidGrapherConfigs(
-        mergedViews.map(({ view, fullConfig }) => ({
-            label: `mdim view ${view.chartConfigId}`,
-            config: fullConfig,
-        }))
-    )
+        assertValidGrapherConfig(fullConfig)
 
-    for (const { view, fullConfig } of mergedViews) {
         await updateChartConfig(trx, {
             configId: view.chartConfigId,
             config: fullConfig,

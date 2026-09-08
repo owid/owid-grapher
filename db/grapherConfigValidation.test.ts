@@ -2,10 +2,8 @@ import { describe, expect, it } from "vitest"
 import { type AnyConfig, defaultGrapherConfig } from "@ourworldindata/grapher"
 import {
     assertValidGrapherConfig,
-    assertValidGrapherConfigs,
     GrapherConfigValidationError,
     ingestGrapherConfig,
-    validateGrapherConfig,
 } from "./grapherConfigValidation.js"
 
 function schemaUrlForVersion(version: string): string {
@@ -28,26 +26,6 @@ const configWithUnknownKey: AnyConfig = {
     ...baseChartConfig,
     hideLegend: true,
 }
-
-describe(validateGrapherConfig, () => {
-    it("holds a config that declares no dimensions, but not an empty array", () => {
-        expect(validateGrapherConfig(configWithoutDimensions)).toEqual([])
-
-        const issues = validateGrapherConfig(configWithEmptyDimensions)
-        expect(issues.map((issue) => issue.pointer)).toEqual(["/dimensions"])
-    })
-
-    it("points at the unknown key itself, at the root and nested", () => {
-        const atRoot = validateGrapherConfig(configWithUnknownKey)
-        expect(atRoot.map((issue) => issue.pointer)).toEqual(["/hideLegend"])
-
-        const nested = validateGrapherConfig({
-            ...baseChartConfig,
-            map: { nope: 1 },
-        })
-        expect(nested.map((issue) => issue.pointer)).toEqual(["/map/nope"])
-    })
-})
 
 describe(ingestGrapherConfig, () => {
     it("migrates an outdated config before validating it", () => {
@@ -110,6 +88,31 @@ describe(assertValidGrapherConfig, () => {
         expect(() => assertValidGrapherConfig(baseChartConfig)).not.toThrow()
     })
 
+    it("holds a config that plots nothing, with no dimensions or an empty array", () => {
+        expect(() =>
+            assertValidGrapherConfig(configWithoutDimensions)
+        ).not.toThrow()
+        expect(() =>
+            assertValidGrapherConfig(configWithEmptyDimensions)
+        ).not.toThrow()
+    })
+
+    it("points at the unknown key itself, at the root and nested", () => {
+        const atRoot = catchValidationError(() =>
+            assertValidGrapherConfig(configWithUnknownKey)
+        )
+        expect(atRoot.issues.map((issue) => issue.pointer)).toEqual([
+            "/hideLegend",
+        ])
+
+        const nested = catchValidationError(() =>
+            assertValidGrapherConfig({ ...baseChartConfig, map: { nope: 1 } })
+        )
+        expect(nested.issues.map((issue) => issue.pointer)).toEqual([
+            "/map/nope",
+        ])
+    })
+
     it("throws on an invalid config", () => {
         const error = catchValidationError(() =>
             assertValidGrapherConfig(configWithUnknownKey)
@@ -117,41 +120,6 @@ describe(assertValidGrapherConfig, () => {
         expect(error.message).toBe(
             "Invalid grapher config:\n  /hideLegend: must NOT have additional properties"
         )
-    })
-})
-
-describe(assertValidGrapherConfigs, () => {
-    it("returns silently when every config is valid", () => {
-        const configs = [
-            { label: "chart 1", config: baseChartConfig },
-            { label: "chart 2", config: baseChartConfig },
-        ]
-        expect(() => assertValidGrapherConfigs(configs)).not.toThrow()
-    })
-
-    it("throws once, naming every failing label with an N of M header", () => {
-        const configs = [
-            { label: "chart 1", config: baseChartConfig },
-            { label: "chart 2", config: configWithEmptyDimensions },
-            { label: "chart 3", config: configWithUnknownKey },
-        ]
-        const error = catchValidationError(() =>
-            assertValidGrapherConfigs(configs)
-        )
-
-        expect(error.message.split("\n")[0]).toBe(
-            "Invalid grapher config for 2 of 3 charts:"
-        )
-        expect(error.message).toContain(
-            "  chart 2\n    /dimensions: must NOT have fewer than 1 items"
-        )
-        expect(error.message).toContain(
-            "  chart 3\n    /hideLegend: must NOT have additional properties"
-        )
-        expect(error.issues.map((issue) => issue.label)).toEqual([
-            "chart 2",
-            "chart 3",
-        ])
     })
 })
 

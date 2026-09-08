@@ -2,7 +2,6 @@ import { describe, it, expect, beforeEach } from "vitest"
 import { getAdminTestEnv } from "./testEnv.js"
 import {
     ChartConfigsTableName,
-    ChartsTableName,
     DbPlainMultiDimXChartConfig,
     ExplorerVariablesTableName,
     IndicatorsBeforePreProcessing,
@@ -299,94 +298,5 @@ describe("Bulk indicator deletion", { timeout: 15000 }, () => {
             },
         ])
         expect(await env.getCount(ExplorerVariablesTableName)).toBe(1)
-    })
-})
-
-describe("Indicator ETL push fan-out validation", { timeout: 15000 }, () => {
-    async function createInheritingChart(
-        slug: string
-    ): Promise<{ chartId: number; configId: string }> {
-        const { chartId } = await env.request({
-            method: "POST",
-            path: "/charts",
-            body: JSON.stringify({
-                $schema: latestGrapherConfigSchema,
-                slug,
-                title: slug,
-                chartTypes: ["LineChart"],
-                dimensions: [{ property: "y", variableId }],
-            }),
-        })
-        const chartRow = await env
-            .testKnex(ChartsTableName)
-            .where({ id: chartId })
-            .first()
-        return { chartId, configId: chartRow.configId }
-    }
-
-    /** Corrupts the chart's own patch layer directly: the admin save route itself would reject the unknown key */
-    async function corruptChartPatch(chartId: number): Promise<void> {
-        const chartRow = await env
-            .testKnex(ChartsTableName)
-            .where({ id: chartId })
-            .first()
-        const patchRow = await env
-            .testKnex(ChartConfigsTableName)
-            .where({ id: chartRow.patchConfigId })
-            .first()
-        await env
-            .testKnex(ChartConfigsTableName)
-            .where({ id: chartRow.patchConfigId })
-            .update({
-                config: JSON.stringify({
-                    ...JSON.parse(patchRow.config),
-                    hideLegend: true,
-                }),
-            })
-    }
-
-    beforeEach(async () => {
-        await seedDatasetAndVariables(env)
-    })
-
-    it("returns one 400 naming every inheriting chart a pushed indicator patch would invalidate, and writes nothing", async () => {
-        const good = await createInheritingChart("fan-out-good")
-        const bad1 = await createInheritingChart("fan-out-bad-1")
-        const bad2 = await createInheritingChart("fan-out-bad-2")
-        await corruptChartPatch(bad1.chartId)
-        await corruptChartPatch(bad2.chartId)
-
-        const charts = [good, bad1, bad2]
-        const configsBefore = new Map<number, string>()
-        for (const { chartId, configId } of charts) {
-            const row = await env
-                .testKnex(ChartConfigsTableName)
-                .where({ id: configId })
-                .first()
-            configsBefore.set(chartId, row.config)
-        }
-
-        const response = await env.request({
-            method: "PUT",
-            path: `/variables/${variableId}/grapherConfigETL`,
-            body: JSON.stringify({
-                $schema: latestGrapherConfigSchema,
-                note: "Indicator note",
-            }),
-            expectStatus: 400,
-        })
-
-        expect(response.error.message).toContain("for 2 of 3 charts")
-        expect(response.error.message).toContain(`chart ${bad1.chartId}`)
-        expect(response.error.message).toContain(`chart ${bad2.chartId}`)
-        expect(response.error.message).not.toContain(`chart ${good.chartId}`)
-
-        for (const { chartId, configId } of charts) {
-            const row = await env
-                .testKnex(ChartConfigsTableName)
-                .where({ id: configId })
-                .first()
-            expect(row.config).toEqual(configsBefore.get(chartId))
-        }
     })
 })
