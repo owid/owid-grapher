@@ -67,6 +67,25 @@ describe(ConfigEditor, () => {
         expect(editor.isModified).toBe(false)
     })
 
+    it("does not count the id a host stamps on after creating a chart as an edit", async () => {
+        const editor = makeEditor({
+            // the host assigns the id the server handed back, like the admin
+            // does for a new chart, and returns the stored patch without it
+            onSave: (config, ed) => {
+                runInAction(() => {
+                    ed.grapherState.id = 4711
+                })
+                return config // what the server stored: the patch, sans id
+            },
+        })
+        runInAction(() => {
+            editor.grapherState.title = "Edited title"
+        })
+        await editor.saveGrapher()
+        expect(editor.grapherState.id).toBe(4711)
+        expect(editor.isModified).toBe(false)
+    })
+
     it("reports a failed save through onError and stays modified", async () => {
         const onError = vi.fn()
         const editor = makeEditor({

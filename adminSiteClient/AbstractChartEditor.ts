@@ -295,13 +295,18 @@ export abstract class AbstractChartEditor<
     }
 
     @computed get isModified(): boolean {
+        // `version` and `id` are bookkeeping the host stamps onto the config
+        // on save, never something the user edited. Comparing them would
+        // report a freshly created chart as modified the moment it gets its
+        // id, which is exactly when the page redirects to it.
+        const bookkeeping = ["version", "id"]
         // Serialize and deserialize to remove all MobX proxies
         // (toJS does not do a deep conversion of nested objects)
         const currentPatch = JSON.parse(
-            JSON.stringify(_.omit(this.patchConfig, "version"))
+            JSON.stringify(_.omit(this.patchConfig, bookkeeping))
         )
         const savedPatch = JSON.parse(
-            JSON.stringify(_.omit(this.savedPatchConfig, "version"))
+            JSON.stringify(_.omit(this.savedPatchConfig, bookkeeping))
         )
 
         return !_.isEqual(currentPatch, savedPatch)
