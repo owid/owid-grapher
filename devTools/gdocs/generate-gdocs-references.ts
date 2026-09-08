@@ -5,6 +5,8 @@
  *   - the gdoc template reference (one entry per documented OwidGdocType:
  *     front-matter fields from the content interfaces, prose + the curated
  *     skeleton from sidecars)
+ *   - the writing guides reference (one entry per guides/*.md sidecar:
+ *     cross-cutting concepts that are neither a block nor a document type)
  *
  * Run:
  *     yarn generateGdocsReferences
@@ -12,6 +14,7 @@
  * Output:
  *     docs/components.registry.generated.json
  *     docs/templates.registry.generated.json
+ *     docs/guides.registry.generated.json
  *
  * Exits non-zero on: missing sidecar, missing "type:" discriminator, an
  * unrecognized or misspelled sidecar section, missing decision prose, an
@@ -39,9 +42,11 @@
  *   5. Validate every archie example by parsing it through the real
  *      pipeline (archieToEnriched): parser errors fail the build, and an
  *      example that parses to zero blocks is rejected as silently dropped.
- *   6. Harvest the {.component-id} cross-references in each sidecar's
- *      decision prose into `related` — derived, so the structured links can
- *      never drift from the prose.
+ *   6. Harvest the cross-reference mentions in each sidecar's decision prose
+ *      into `related` — derived, so the structured links can never drift
+ *      from the prose. A mention is a backticked code span and may point at
+ *      a component (`{.id}`), a guide (`{guide:id}`) or a template
+ *      (`{template:id}`); an unknown id fails the build.
  *
  * Templates pipeline:
  *   1. For each type in GDOC_TEMPLATE_CONTENT_INTERFACES, walk its content
@@ -58,6 +63,20 @@
  *      resolved live by the admin server). Templates hold no synthetic
  *      example documents; a fenced archie block in a template sidecar fails
  *      the build.
+ *
+ * Guides pipeline:
+ *   1. Read every guides/*.md sidecar; the kebab-case file name is the guide
+ *      id, and the front matter carries its title and category (one of
+ *      GUIDE_CATEGORIES).
+ *   2. Split the prose with the "guide" kind — an intro, free-form sections
+ *      and "## Notes"; there is no decision prose and no properties table.
+ *   3. Harvest the fenced examples per section and validate every one
+ *      through the real pipeline — body snippets (archie) as a fragment,
+ *      whole documents (archie-document) as they are. A guide's page renders
+ *      the fences from its own prose, so the registry's examples exist to be
+ *      validated, not to be rendered.
+ *   4. Mentions are harvested from the intro and the notes, the sections a
+ *      guide reasons in.
  *
  * Completeness is structural: every union member / writable type becomes an
  * entry by iteration, and missing/malformed sidecars fail the build.
@@ -100,21 +119,34 @@ import {
     isVariableStatement,
 } from "typescript/unstable/ast/is"
 
-import { archieToEnriched } from "../../db/model/Gdoc/archieToEnriched.js"
 import { splitSidecarProse } from "./sidecarSections.js"
-import { getParseFindings } from "@ourworldindata/utils"
+import {
+    assertWellFormedFences,
+    harvestExamples,
+    hasFence,
+} from "./sidecarExamples.js"
+import { validateExample } from "./exampleValidation.js"
+import {
+    findBareKnownIds,
+    harvestMentions,
+    mentionSyntax,
+    resolveMentions,
+    type KnownIds,
+} from "./mentions.js"
 import {
     GDOC_TEMPLATE_CONTENT_INTERFACES,
+    GUIDE_CATEGORIES,
     OWID_GDOC_ADMIN_MANAGED_KEYS,
-    OwidGdocErrorMessageType,
     type ComponentCategory,
     type ComponentReference,
-    type ComponentExample,
     type ComponentProp,
     type ComponentRegistry,
     type GdocContentKeyKind,
+    type GuideCategory,
+    type GuideReference,
     type PinnedExampleRef,
-    type SidecarProse,
+    type RelatedRef,
+    type SidecarExample,
     type TemplateReference,
     type TemplateField,
     type TemplateSkeletonPart,
@@ -199,9 +231,6 @@ const COMPONENT_CATEGORY_BY_ID: Record<string, ComponentCategory> = {
     socials: "Special pages",
 }
 
-const BT = String.fromCharCode(96)
-const FENCE = BT + BT + BT
-
 const REPO_ROOT = path.resolve(__dirname, "../..")
 const COMPONENTS_DIR = path.resolve(
     REPO_ROOT,
@@ -229,6 +258,11 @@ const TEMPLATES_JSON_OUT = path.join(
     DOCS_DIR,
     "templates.registry.generated.json"
 )
+const GUIDES_DIR = path.resolve(
+    REPO_ROOT,
+    "packages/@ourworldindata/types/src/gdocTypes/guides"
+)
+const GUIDES_JSON_OUT = path.join(DOCS_DIR, "guides.registry.generated.json")
 const UNION_NAME = "OwidEnrichedGdocBlock"
 
 function findUnionDecl(sf: SourceFile): TypeAliasDeclaration {
@@ -498,11 +532,7 @@ function deriveTitle(aliasName: string): string {
 function parseSidecar(
     text: string,
     sidecarPathRel: string
-): {
-    frontMatter: Record<string, unknown>
-    body: string
-    examples: (ComponentExample & { inIntro: boolean })[]
-} {
+): { frontMatter: Record<string, unknown>; body: string } {
     let rest = text
     let frontMatter: Record<string, unknown> = {}
     const fmMatch = /^---\r?\n([\s\S]+?)\r?\n---\r?\n/.exec(rest)
@@ -526,22 +556,9 @@ function parseSidecar(
         frontMatter = parsed as Record<string, unknown>
         rest = rest.slice(fmMatch[0].length)
     }
-    rest = rest.trim()
-
-    const examples: (ComponentExample & { inIntro: boolean })[] = []
-    const sectionsStart = rest.search(/^## /m)
-    const fenceRe = new RegExp(
-        FENCE + "archie\\r?\\n([\\s\\S]+?)\\r?\\n" + FENCE,
-        "g"
-    )
-    let m: RegExpExecArray | null
-    while ((m = fenceRe.exec(rest)) !== null) {
-        examples.push({
-            archie: m[1],
-            inIntro: sectionsStart === -1 || m.index < sectionsStart,
-        })
-    }
-    return { frontMatter, body: rest, examples }
+    const body = rest.trim()
+    assertWellFormedFences(body, sidecarPathRel)
+    return { frontMatter, body }
 }
 
 // ---------------------------------------------------------------------------
@@ -843,88 +860,6 @@ function applyPropDescriptions(
     for (const prop of props) prop.description = descriptions.get(prop.name)
 }
 
-// The decision prose in a sidecar ("## When to use" / "## When NOT to use")
-// cross-references alternatives as {.component-id}. Harvest those mentions
-// into ComponentReference.related — derived, so it can never drift from the prose.
-function deriveRelatedComponents(
-    prose: SidecarProse,
-    selfId: string,
-    validIds: Set<string>
-): string[] {
-    const related: string[] = []
-    for (const section of [prose.whenToUse, prose.whenNotToUse]) {
-        for (const match of (section ?? "").matchAll(/\{\.([a-z0-9-]+)\}/g)) {
-            const id = match[1]
-            if (id === selfId || !validIds.has(id)) continue
-            if (!related.includes(id)) related.push(id)
-        }
-    }
-    return related
-}
-
-// Component examples are body fragments; wrap each as a minimal fragment
-// document, parse it through the real pipeline (archieToEnriched), and fail
-// on any error the parser recorded — via getParseFindings, the same
-// transcription the admin's validation uses — so a shipped example is
-// guaranteed to parse cleanly. Warnings stay advisory.
-function validateExamples(components: ComponentReference[]): {
-    ok: boolean
-    failures: string[]
-} {
-    const failures: string[] = []
-    for (const component of components) {
-        for (const [index, ex] of component.examples.entries()) {
-            const wrapped =
-                "title: " +
-                component.title +
-                " example\ntype: fragment\n[+body]\n" +
-                ex.archie +
-                "\n[]\n"
-            let content
-            try {
-                content = archieToEnriched(wrapped)
-            } catch (error) {
-                failures.push(
-                    component.id +
-                        " example #" +
-                        (index + 1) +
-                        ": failed to parse — " +
-                        String(error)
-                )
-                continue
-            }
-            const errors = getParseFindings({
-                body: content.body,
-                refs: content.refs,
-            }).filter((f) => f.type === OwidGdocErrorMessageType.Error)
-            if (errors.length) {
-                failures.push(
-                    component.id +
-                        " example #" +
-                        (index + 1) +
-                        ":\n    " +
-                        errors
-                            .map((e) => e.property + ": " + e.message)
-                            .join("\n    ")
-                )
-                continue
-            }
-            // Parsing can't catch an example that vanishes entirely — e.g.
-            // [socials] instead of [.socials] inside [+body] is silently
-            // dropped by the parser.
-            if ((content.body ?? []).length === 0) {
-                failures.push(
-                    component.id +
-                        " example #" +
-                        (index + 1) +
-                        ": parsed to zero body blocks — the example is silently dropped by the parser"
-                )
-            }
-        }
-    }
-    return { ok: failures.length === 0, failures }
-}
-
 interface TsProgram {
     getSourceFile(file: string): SourceFile | undefined
 }
@@ -1029,10 +964,7 @@ function extractComponentReferences(
             )
         const sidecarText = fs.readFileSync(sidecarPath, "utf-8")
         const sidecarPathRel = path.relative(REPO_ROOT, sidecarPath)
-        const { frontMatter, body, examples } = parseSidecar(
-            sidecarText,
-            sidecarPathRel
-        )
+        const { frontMatter, body } = parseSidecar(sidecarText, sidecarPathRel)
         if (!body)
             throw new Error(typeName + " sidecar is empty: " + sidecarPathRel)
         const fm = parseComponentFrontMatter(frontMatter, sidecarPathRel)
@@ -1046,17 +978,6 @@ function extractComponentReferences(
                     "COMPONENT_CATEGORY_BY_ID in devTools/gdocs/generate-gdocs-references.ts"
             )
 
-        // Component examples live in the intro (before the first "## "
-        // section) — that is where the page renders them. A fence anywhere
-        // else is a mistake, caught here rather than silently ignored.
-        const stray = examples.filter((example) => !example.inIntro)
-        if (stray.length > 0)
-            throw new Error(
-                sidecarPathRel +
-                    ": archie example(s) found after the first '## ' heading — " +
-                    "examples belong in the intro, before the decision sections"
-            )
-
         // Split the prose into its declared sections once, here: the
         // registry carries the pieces, so the reference page renders them
         // without re-parsing markdown headings.
@@ -1065,6 +986,35 @@ function extractComponentReferences(
             sidecarPathRel,
             "component"
         )
+
+        const examples = harvestExamples(prose)
+        // Component examples live in the intro (before the first "## "
+        // section) — that is where the page renders them. A fence anywhere
+        // else is a mistake, caught here rather than silently ignored: in a
+        // prose section by the stray check below, and in the "## Properties"
+        // section — which the split hands back separately, so no example is
+        // ever harvested from it — by the fence check.
+        const stray = examples.filter((example) => example.section !== "intro")
+        if (stray.length > 0)
+            throw new Error(
+                sidecarPathRel +
+                    ": archie example(s) found after the first '## ' heading — " +
+                    "examples belong in the intro, before the decision sections"
+            )
+        if (hasFence(properties ?? ""))
+            throw new Error(
+                sidecarPathRel +
+                    ": '## Properties' contains a code fence — examples " +
+                    "belong in the intro"
+            )
+        for (const example of examples) {
+            if (example.flavour !== "archie")
+                throw new Error(
+                    sidecarPathRel +
+                        ": component examples are body snippets (```archie); " +
+                        "whole-document examples belong in guides"
+                )
+        }
         if (fm.decision) {
             if (prose.whenToUse || prose.whenNotToUse)
                 throw new Error(
@@ -1107,7 +1057,7 @@ function extractComponentReferences(
             sourceFile,
             sidecarFile: sidecarPathRel,
             prose,
-            examples: examples.map(({ archie }) => ({ archie })),
+            examples,
             props,
             valueProps: extractValueProps(decl, typeIndex),
             ...(fm.system && { system: true }),
@@ -1124,16 +1074,6 @@ function extractComponentReferences(
             "COMPONENT_CATEGORY_BY_ID has entries for unknown component id(s): " +
                 staleCategoryIds.join(", ")
         )
-    // Second pass, once every id is known: harvest the {.component-id}
-    // cross-references in each doc's decision prose into `related`.
-    for (const component of components) {
-        const related = deriveRelatedComponents(
-            component.prose,
-            component.id,
-            seenIds
-        )
-        if (related.length > 0) component.related = related
-    }
     if (decisionTodos.length > 0)
         console.log(
             decisionTodos.length +
@@ -1318,7 +1258,7 @@ function extractTemplateReferences(
                     path.relative(REPO_ROOT, sidecarPath)
             )
         const sidecarPathRel = path.relative(REPO_ROOT, sidecarPath)
-        const { frontMatter, body, examples } = parseSidecar(
+        const { frontMatter, body } = parseSidecar(
             fs.readFileSync(sidecarPath, "utf-8"),
             sidecarPathRel
         )
@@ -1331,11 +1271,11 @@ function extractTemplateReferences(
             )
         // Templates carry no synthetic example documents: the skeleton is the
         // scaffold, and real structure comes live from the exemplars endpoint.
-        if (examples.length > 0)
+        if (hasFence(body))
             throw new Error(
                 'Template sidecar for "' +
                     type +
-                    '" contains a fenced archie example — templates are ' +
+                    '" contains a fenced example — templates are ' +
                     "described by their skeleton, not by example documents"
             )
         const { prose } = splitSidecarProse(body, sidecarPathRel, "template")
@@ -1379,6 +1319,83 @@ function extractTemplateReferences(
     return templates
 }
 
+// ---------------------------------------------------------------------------
+// Guides: cross-cutting concepts, one sidecar per guide
+// ---------------------------------------------------------------------------
+
+interface GuideFrontMatter {
+    title: string
+    category: GuideCategory
+}
+
+function parseGuideFrontMatter(
+    fm: Record<string, unknown>,
+    file: string
+): GuideFrontMatter {
+    assertAllowedKeys(fm, ["title", "category"], file)
+    const title = parseOptionalTitle(fm, file)
+    if (!title)
+        throw new Error(file + ": guides need a title in the front matter")
+    if (
+        typeof fm.category !== "string" ||
+        !(GUIDE_CATEGORIES as readonly string[]).includes(fm.category)
+    )
+        throw new Error(
+            file +
+                ": category must be one of " +
+                GUIDE_CATEGORIES.map((c) => '"' + c + '"').join(", ") +
+                ", got " +
+                inspect(fm.category)
+        )
+    return { title, category: fm.category as GuideCategory }
+}
+
+// The card subtitle: the first paragraph of the intro as plain text, code
+// spans reduced to their text.
+function deriveDescription(intro: string): string {
+    return (intro.split(/\n\s*\n/)[0] ?? "")
+        .replace(/`([^`]*)`/g, "$1")
+        .replace(/\s+/g, " ")
+        .trim()
+}
+
+function extractGuideReferences(): GuideReference[] {
+    if (!fs.existsSync(GUIDES_DIR)) return []
+    const files = fs
+        .readdirSync(GUIDES_DIR)
+        .filter((name) => name.endsWith(".md"))
+        .sort()
+    const guides: GuideReference[] = []
+    for (const fileName of files) {
+        const id = fileName.replace(/\.md$/, "")
+        if (!/^[a-z0-9-]+$/.test(id))
+            throw new Error(
+                "guides/" +
+                    fileName +
+                    ": file name must be kebab-case (it is the guide id)"
+            )
+        const sidecarPath = path.join(GUIDES_DIR, fileName)
+        const sidecarPathRel = path.relative(REPO_ROOT, sidecarPath)
+        const { frontMatter, body } = parseSidecar(
+            fs.readFileSync(sidecarPath, "utf-8"),
+            sidecarPathRel
+        )
+        if (!body) throw new Error("Guide sidecar is empty: " + sidecarPathRel)
+        const fm = parseGuideFrontMatter(frontMatter, sidecarPathRel)
+        const { prose } = splitSidecarProse(body, sidecarPathRel, "guide")
+        guides.push({
+            id,
+            title: fm.title,
+            category: fm.category,
+            sidecarFile: sidecarPathRel,
+            description: deriveDescription(prose.intro),
+            prose,
+            examples: harvestExamples(prose),
+        })
+    }
+    return guides
+}
+
 async function main(): Promise<void> {
     const api = new API({ cwd: REPO_ROOT })
     try {
@@ -1406,18 +1423,135 @@ async function main(): Promise<void> {
                 "writable gdoc types."
         )
 
-        const { failures } = validateExamples(allComponents)
+        const guides = extractGuideReferences()
+        console.log("Extracted " + guides.length + " guide(s).")
+
+        // Every fenced example of every kind goes through the real pipeline.
+        const failures: string[] = []
+        const validateAll = (
+            label: string,
+            examples: SidecarExample[]
+        ): void => {
+            examples.forEach((example, index) => {
+                for (const failure of validateExample(example))
+                    failures.push(
+                        label + " example #" + (index + 1) + ": " + failure
+                    )
+            })
+        }
+        for (const component of allComponents)
+            validateAll(component.id, component.examples)
+        for (const guide of guides)
+            validateAll("guide " + guide.id, guide.examples)
         if (failures.length > 0) {
             console.error(
-                "\n" +
-                    failures.length +
-                    " example(s) failed to parse cleanly:\n"
+                "\n" + failures.length + " example(s) failed validation:\n"
             )
             for (const f of failures) console.error("  - " + f)
             process.exitCode = 1
             return
         }
-        console.log("All examples parsed cleanly.")
+        console.log("All examples validated.")
+
+        // Cross-references, resolved once every id of every kind is known.
+        const known: KnownIds = {
+            component: new Set(allComponents.map((c) => c.id)),
+            guide: new Set(guides.map((g) => g.id)),
+            template: new Set(templates.map((t) => t.id)),
+        }
+        const attachRelated = <T extends { related?: RelatedRef[] }>(
+            entry: T,
+            texts: (string | undefined)[],
+            file: string,
+            self: RelatedRef
+        ): void => {
+            const related = resolveMentions(
+                harvestMentions(texts),
+                known,
+                file,
+                self
+            )
+            if (related.length > 0) entry.related = related
+        }
+        for (const component of allComponents)
+            attachRelated(
+                component,
+                [
+                    component.prose.intro,
+                    component.prose.whenToUse,
+                    component.prose.whenNotToUse,
+                    component.prose.notes,
+                ],
+                component.sidecarFile,
+                { kind: "component", id: component.id }
+            )
+        for (const template of templates)
+            attachRelated(
+                template,
+                [
+                    template.prose.intro,
+                    template.prose.whenToUse,
+                    template.prose.whenNotToUse,
+                    template.prose.notes,
+                    ...template.fields.map((field) => field.description),
+                ],
+                template.sidecarFile,
+                { kind: "template", id: template.id }
+            )
+        for (const guide of guides)
+            attachRelated(
+                guide,
+                [guide.prose.intro, guide.prose.notes],
+                guide.sidecarFile,
+                { kind: "guide", id: guide.id }
+            )
+
+        // Lint: a bare known id in rendered prose (not written as an explicit
+        // mention) fails the build naming the explicit form to use — one
+        // linking syntax, no bare-id path for authors to remember.
+        const bareIdErrors: string[] = []
+        const lintBareIds = (
+            file: string,
+            texts: (string | undefined)[]
+        ): void => {
+            for (const { id, kind } of findBareKnownIds(texts, known))
+                bareIdErrors.push(
+                    file +
+                        ": bare id `" +
+                        id +
+                        "` — write `" +
+                        mentionSyntax({ kind, id }) +
+                        "` so it links"
+                )
+        }
+        for (const component of allComponents)
+            lintBareIds(component.sidecarFile, [
+                component.prose.intro,
+                component.prose.whenToUse,
+                component.prose.whenNotToUse,
+                component.prose.notes,
+            ])
+        for (const template of templates)
+            lintBareIds(template.sidecarFile, [
+                template.prose.intro,
+                template.prose.whenToUse,
+                template.prose.whenNotToUse,
+                template.prose.notes,
+                ...template.fields.map((field) => field.description),
+            ])
+        for (const guide of guides)
+            lintBareIds(guide.sidecarFile, [
+                guide.prose.intro,
+                guide.prose.notes,
+            ])
+        if (bareIdErrors.length > 0) {
+            console.error(
+                "\n" + bareIdErrors.length + " bare known id(s) found:\n"
+            )
+            for (const e of bareIdErrors) console.error("  - " + e)
+            process.exitCode = 1
+            return
+        }
 
         await fs.ensureDir(DOCS_DIR)
         const registry: ComponentRegistry = {
@@ -1431,6 +1565,8 @@ async function main(): Promise<void> {
             JSON.stringify(templates, null, 2)
         )
         console.log("Wrote " + path.relative(process.cwd(), TEMPLATES_JSON_OUT))
+        await fs.writeFile(GUIDES_JSON_OUT, JSON.stringify(guides, null, 2))
+        console.log("Wrote " + path.relative(process.cwd(), GUIDES_JSON_OUT))
     } finally {
         api.close()
     }
