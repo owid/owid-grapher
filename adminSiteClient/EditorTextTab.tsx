@@ -8,12 +8,11 @@ import {
     RelatedQuestionsConfig,
 } from "@ourworldindata/types"
 import { getErrorMessageRelatedQuestionUrl } from "@ourworldindata/grapher"
-import { copyToClipboard, slugify } from "@ourworldindata/utils"
+import { copyToClipboard } from "@ourworldindata/utils"
 import { action, computed, makeObservable, observable, runInAction } from "mobx"
 import { observer } from "mobx-react"
 import { Component, ReactElement } from "react"
 import {
-    AutoTextField,
     BindAutoStringExt,
     BindString,
     Button,
@@ -25,7 +24,6 @@ import {
 } from "./Forms.js"
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
 import { ErrorMessages } from "./ChartEditorTypes.js"
-import { isNarrativeChartEditorInstance } from "./NarrativeChartEditor.js"
 import { AutoComplete, Button as AntdButton, Space } from "antd"
 import {
     BAKED_GRAPHER_URL,
@@ -73,10 +71,6 @@ export class EditorTextTab<
         runInAction(() => {
             this.topicSlugs = json.slugs
         })
-    }
-
-    @action.bound onSlug(slug: string) {
-        this.props.editor.grapherState.slug = slugify(slug)
     }
 
     @action.bound onChangeLogo(value: string) {
@@ -132,10 +126,6 @@ export class EditorTextTab<
 
     @computed get errorMessages() {
         return this.props.errorMessages
-    }
-
-    @computed get showChartSlug() {
-        return !isNarrativeChartEditorInstance(this.props.editor)
     }
 
     @computed get hasCopyAdminURLButton() {
@@ -252,20 +242,6 @@ export class EditorTextTab<
                         />
                     )}
                     <hr />
-                    {this.showChartSlug && (
-                        <AutoTextField
-                            label="/grapher/"
-                            value={grapherState.slug}
-                            onValue={this.onSlug}
-                            isAuto={
-                                grapherState.slug === grapherState.defaultSlug
-                            }
-                            onToggleAuto={() =>
-                                (grapherState.slug = grapherState.defaultSlug)
-                            }
-                            helpText="Human-friendly URL for this chart"
-                        />
-                    )}
                     <BindAutoStringExt
                         label="Subtitle"
                         readFn={(grapherState) =>

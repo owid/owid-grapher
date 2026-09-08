@@ -17,10 +17,6 @@ import {
     ChartRedirect,
 } from "@ourworldindata/utils"
 import { AbstractChartEditor, References } from "./AbstractChartEditor.js"
-import {
-    NarrativeChartEditor,
-    isNarrativeChartEditorInstance,
-} from "./NarrativeChartEditor.js"
 import { ReuploadImageForDataInsightModal } from "./ReuploadImageForDataInsightModal.js"
 import { ImageUploadResponse } from "./imagesHelpers.js"
 import { DataInsightMinimalInformation } from "../adminShared/AdminTypes.js"
@@ -28,20 +24,6 @@ import { notification } from "antd"
 import { getCanonicalUrl } from "@ourworldindata/components"
 
 const BASE_URL = BAKED_GRAPHER_URL.replace(/^https?:\/\//, "")
-
-@observer
-export class EditorReferencesTab<
-    Editor extends AbstractChartEditor,
-> extends Component<{
-    editor: Editor
-}> {
-    override render() {
-        const { editor } = this.props
-        if (isNarrativeChartEditorInstance(editor))
-            return <EditorReferencesTabForNarrativeChart editor={editor} />
-        else return null
-    }
-}
 
 interface EditorReferencesTabForChartProps {
     editor: AbstractChartEditor
@@ -201,20 +183,25 @@ export class EditorReferencesTabForChart extends Component<EditorReferencesTabFo
     }
 }
 
+/** References of a narrative chart in the admin database. */
 export class EditorReferencesTabForNarrativeChart extends Component<{
-    editor: NarrativeChartEditor
+    references: References | undefined
+    configId: string
 }> {
-    constructor(props: { editor: NarrativeChartEditor }) {
+    constructor(props: {
+        references: References | undefined
+        configId: string
+    }) {
         super(props)
         makeObservable(this)
     }
 
     @computed get references() {
-        return this.props.editor.references
+        return this.props.references
     }
 
     @computed get narrativeChartConfigId() {
-        return this.props.editor.manager.configId ?? ""
+        return this.props.configId
     }
 
     override render() {

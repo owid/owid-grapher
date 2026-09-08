@@ -20,7 +20,6 @@ import {
     AbstractChartEditor,
     AbstractChartEditorManager,
     EditorTab,
-    References,
 } from "./AbstractChartEditor.js"
 
 /** A tab the host adds to the editor, rendered with the live editor. */
@@ -101,10 +100,6 @@ export class ConfigEditor extends AbstractChartEditor<ConfigEditorManager> {
      *  `onChange` hand back. */
     @computed get hostConfig(): GrapherInterface {
         return this.store.fromEditorConfig(this.patchConfig)
-    }
-
-    get references(): References | undefined {
-        return undefined
     }
 
     protected override get extraTabKeys(): string[] {

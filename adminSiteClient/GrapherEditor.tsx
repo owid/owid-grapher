@@ -15,7 +15,7 @@
 import * as React from "react"
 import { observer } from "mobx-react"
 import { makeObservable } from "mobx"
-import { GrapherInterface } from "@ourworldindata/types"
+import { GrapherInterface, GrapherQueryParams } from "@ourworldindata/types"
 import { ChartEditorView, ChartEditorViewManager } from "./ChartEditorView.js"
 import {
     ConfigEditor,
@@ -45,6 +45,12 @@ export interface GrapherEditorProps {
     details?: DetailsProvider
     /** Restrict the tabs shown. */
     tabs?: EditorTab[]
+    /**
+     * Query params to apply once, after the initial data load: opens the
+     * editor in a particular view (tab, time range, selection) rather than
+     * the authored one.
+     */
+    initialQueryParams?: GrapherQueryParams
 
     /**
      * The config this one is a patch against, if any: the editor shows its
@@ -92,6 +98,10 @@ export class GrapherEditor
 
     get tabs(): EditorTab[] | undefined {
         return this.props.tabs
+    }
+
+    get initialQueryParams(): GrapherQueryParams | undefined {
+        return this.props.initialQueryParams
     }
 
     get onSave(): ConfigEditorManager["onSave"] {

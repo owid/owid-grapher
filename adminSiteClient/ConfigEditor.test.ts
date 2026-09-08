@@ -26,7 +26,6 @@ describe(ConfigEditor, () => {
         const editor = makeEditor()
         expect(editor.manager.admin).toBeUndefined()
         expect(editor.isNewGrapher).toBe(false)
-        expect(editor.references).toBeUndefined()
     })
 
     it("shows the generic tabs, never the chart-record ones", () => {

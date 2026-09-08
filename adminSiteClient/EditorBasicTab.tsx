@@ -44,7 +44,7 @@ import {
     OwidChartDimensionInterface,
     areSetsEqual,
 } from "@ourworldindata/utils"
-import { Section, TextField } from "./Forms.js"
+import { Section } from "./Forms.js"
 import { VariableSelector } from "./VariableSelector.js"
 import { DimensionCard } from "./DimensionCard.js"
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
@@ -56,15 +56,11 @@ import {
     GDP_PER_CAPITA_CATALOG_PATH,
     POPULATION_CATALOG_PATH,
 } from "./constants.js"
-import {
-    NarrativeChartEditor,
-    isNarrativeChartEditorInstance,
-} from "./NarrativeChartEditor.js"
 import * as R from "remeda"
 import { SortableList } from "./SortableList.js"
-import { CodeSnippet, GrapherTabIcon } from "@ourworldindata/components"
+import { GrapherTabIcon } from "@ourworldindata/components"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faFile, faArrowsUpDown } from "@fortawesome/free-solid-svg-icons"
+import { faArrowsUpDown } from "@fortawesome/free-solid-svg-icons"
 import { Tag } from "antd"
 
 interface DimensionSlotViewProps<Editor> {
@@ -761,17 +757,9 @@ export class EditorBasicTab<
     override render() {
         const { editor } = this.props
         const { grapherState } = editor
-        const isNarrativeChart = isNarrativeChartEditorInstance(editor)
 
         return (
             <div className="EditorBasicTab">
-                {isNarrativeChart &&
-                    (editor.isNewGrapher ? (
-                        <NarrativeChartForm editor={editor} />
-                    ) : (
-                        <NarrativeChartInfo editor={editor} />
-                    ))}
-
                 <Section name="Tabs">
                     {this.chartTypeGroups.map((group, i) => (
                         <div key={i} className="chart-type-group">
@@ -832,53 +820,6 @@ export class EditorBasicTab<
                     }
                 />
             </div>
-        )
-    }
-}
-
-function NarrativeChartInfo(props: { editor: NarrativeChartEditor }) {
-    const { name = "" } = props.editor.manager
-
-    // In theory, it'd be great to use `rawToArchie` here, but that's in the `db` package
-    const gdocSnippet = `{.narrative-chart}
-  name: ${name}
-{}`
-
-    return (
-        <Section name="Narrative chart">
-            <p>
-                You are editing the config of a narrative chart named{" "}
-                <i>{name}</i>.
-            </p>
-
-            <h6>
-                <FontAwesomeIcon icon={faFile} /> GDoc ArchieML snippet
-            </h6>
-            <CodeSnippet code={gdocSnippet} forceShowCopyButton />
-        </Section>
-    )
-}
-
-@observer
-class NarrativeChartForm extends React.Component<{
-    editor: NarrativeChartEditor
-}> {
-    override render() {
-        const { name, nameError, onNameChange } = this.props.editor.manager
-        return (
-            <Section name="Narrative chart">
-                <p>
-                    Please enter a programmatic name for the narrative chart.{" "}
-                    <i>Note that this name cannot be changed later.</i>
-                </p>
-                <TextField
-                    label="Name"
-                    value={name}
-                    onValue={onNameChange}
-                    errorMessage={nameError}
-                    required
-                />
-            </Section>
         )
     }
 }
