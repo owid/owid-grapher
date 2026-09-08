@@ -1,0 +1,67 @@
+/*
+ * Fenced examples are identified by where they sit, not by their text.
+ *
+ * Run just this file:
+ *     yarn test run --reporter dot devTools/gdocs/sidecarExamples.test.ts
+ */
+
+import { describe, expect, test } from "vitest"
+import { harvestExamples, hasFence } from "./sidecarExamples.js"
+
+const fence = (lang: string, body: string): string =>
+    "```" + lang + "\n" + body + "\n```"
+
+describe("harvestExamples", () => {
+    test("records flavour, section and position for every fence", () => {
+        const examples = harvestExamples({
+            intro: ["Intro.", fence("archie", "{.chart}\n{}")].join("\n\n"),
+            notes: [
+                "## Form A",
+                fence("archie", "{.image}\n{}"),
+                "## Form B",
+                fence("archie-document", "type: article\n[+body]\nHi\n[]"),
+            ].join("\n\n"),
+        })
+        expect(examples).toEqual([
+            {
+                archie: "{.chart}\n{}",
+                flavour: "archie",
+                section: "intro",
+                position: 0,
+            },
+            {
+                archie: "{.image}\n{}",
+                flavour: "archie",
+                section: "notes",
+                position: 0,
+            },
+            {
+                archie: "type: article\n[+body]\nHi\n[]",
+                flavour: "archie-document",
+                section: "notes",
+                position: 1,
+            },
+        ])
+    })
+
+    test("keeps two fences with identical source and different flavours apart", () => {
+        const source = "{.chart}\nurl: https://ourworldindata.org/grapher/x\n{}"
+        const examples = harvestExamples({
+            intro: [fence("archie", source), fence("archie-document", source)].join(
+                "\n\n"
+            ),
+        })
+        expect(examples.map((e) => [e.flavour, e.position])).toEqual([
+            ["archie", 0],
+            ["archie-document", 1],
+        ])
+    })
+
+    test("ignores fences in other languages", () => {
+        expect(
+            harvestExamples({ intro: fence("yaml", "title: x") })
+        ).toEqual([])
+        expect(hasFence("Text\n\n" + fence("yaml", "a: b"))).toBe(true)
+        expect(hasFence("No fences here")).toBe(false)
+    })
+})
