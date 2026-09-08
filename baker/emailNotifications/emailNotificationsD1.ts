@@ -2,7 +2,7 @@ import { execFile } from "child_process"
 import { promisify } from "util"
 import {
     BASE_DIR,
-    EMAIL_NOTIFICATIONS_CLOUDFLARE_ACCOUNT_ID,
+    CLOUDFLARE_ACCOUNT_ID,
     EMAIL_NOTIFICATIONS_CLOUDFLARE_API_TOKEN,
     EMAIL_NOTIFICATIONS_D1_DATABASE_ID,
 } from "../../settings/serverSettings.js"
@@ -26,18 +26,18 @@ export interface D1Client {
  */
 export function createRemoteD1Client(): D1Client {
     if (
-        !EMAIL_NOTIFICATIONS_CLOUDFLARE_ACCOUNT_ID ||
+        !CLOUDFLARE_ACCOUNT_ID ||
         !EMAIL_NOTIFICATIONS_CLOUDFLARE_API_TOKEN ||
         !EMAIL_NOTIFICATIONS_D1_DATABASE_ID
     ) {
         throw new Error(
-            "EMAIL_NOTIFICATIONS_CLOUDFLARE_ACCOUNT_ID, EMAIL_NOTIFICATIONS_CLOUDFLARE_API_TOKEN and EMAIL_NOTIFICATIONS_D1_DATABASE_ID must be set to query D1 remotely (or use --local)"
+            "CLOUDFLARE_ACCOUNT_ID, EMAIL_NOTIFICATIONS_CLOUDFLARE_API_TOKEN and EMAIL_NOTIFICATIONS_D1_DATABASE_ID must be set to query D1 remotely (or use --local)"
         )
     }
     return {
         query: async <T>(sql: string, params: D1Param[] = []): Promise<T[]> => {
             const response = await fetch(
-                `https://api.cloudflare.com/client/v4/accounts/${EMAIL_NOTIFICATIONS_CLOUDFLARE_ACCOUNT_ID}/d1/database/${EMAIL_NOTIFICATIONS_D1_DATABASE_ID}/query`,
+                `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/d1/database/${EMAIL_NOTIFICATIONS_D1_DATABASE_ID}/query`,
                 {
                     method: "POST",
                     headers: {
