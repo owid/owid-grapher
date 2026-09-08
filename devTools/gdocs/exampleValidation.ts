@@ -30,6 +30,16 @@ interface ParsedDocument {
     [key: string]: unknown
 }
 
+// The pipeline synthesises these front-matter keys itself rather than
+// reading them from what the author wrote, so they never appear in a
+// type's content-interface key kinds and must be exempt from the
+// unknown-key check below:
+//   - `refs`: archieToEnriched always sets `parsed.refs = parsedRefs`
+//     (db/model/Gdoc/archieToEnriched.ts, around line 275)
+//   - `byline`: read as a legacy fallback for `authors`
+//     (db/model/Gdoc/archieToEnriched.ts, around line 281)
+const IGNORED_PARSER_KEYS = new Set(["refs", "byline"])
+
 function parse(archie: string): { content?: ParsedDocument; error?: string } {
     try {
         return {
@@ -131,6 +141,7 @@ export function validateDocumentExample(archie: string): string[] {
 
     const failures = parseErrorFindings(content)
     for (const key of Object.keys(content)) {
+        if (IGNORED_PARSER_KEYS.has(key)) continue
         if (!(key in template.keyKinds))
             failures.push(
                 'unknown front-matter key "' +
