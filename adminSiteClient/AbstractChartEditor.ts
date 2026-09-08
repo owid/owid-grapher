@@ -2,6 +2,7 @@ import * as _ from "lodash-es"
 import {
     GrapherInterface,
     diffGrapherConfigs,
+    getParentIndicatorIdFromChartConfig,
     mergeGrapherConfigs,
     PostReference,
     SeriesName,
@@ -17,6 +18,7 @@ import {
     when,
     makeObservable,
     reaction,
+    runInAction,
     IReactionDisposer,
 } from "mobx"
 import { EditorFeatures } from "./EditorFeatures.js"
@@ -26,7 +28,7 @@ import {
     GrapherState,
     loadCatalogData,
 } from "@ourworldindata/grapher"
-import { NarrativeChartMinimalInformation } from "./ChartEditor.js"
+import { NarrativeChartMinimalInformation } from "./adminChartApi.js"
 import { DataInsightMinimalInformation } from "../adminShared/AdminTypes.js"
 import {
     defaultEditorEnvironment,
@@ -49,10 +51,6 @@ const EDITOR_TABS = [
 ] as const
 
 export type EditorTab = (typeof EDITOR_TABS)[number]
-
-function isValidEditorTab(tab: string): tab is EditorTab {
-    return EDITOR_TABS.includes(tab as EditorTab)
-}
 
 export interface AbstractChartEditorManager {
     // Only editors that talk to the admin API need this (charts, narrative
@@ -105,7 +103,8 @@ export abstract class AbstractChartEditor<
     grapherState: GrapherState
     store: IndicatorStore
     currentRequest: Promise<any> | undefined // Whether the current chart state is saved or not
-    tab: EditorTab = "basic"
+    // One of EDITOR_TABS, or a key of a tab the host added (`extraTabKeys`)
+    tab: string = "basic"
     errorMessage: { title: string; content: string } | undefined = undefined
     previewMode: "mobile" | "desktop"
     showStaticPreview = false
@@ -184,10 +183,20 @@ export abstract class AbstractChartEditor<
         )
     }
 
+    /** Keys of tabs the host adds on top of EDITOR_TABS. */
+    protected get extraTabKeys(): string[] {
+        return []
+    }
+
     private readInitialTabFromUrl(): void {
         const urlParams = new URLSearchParams(window.location.search)
         const tabParam = urlParams.get("tab")
-        if (tabParam && isValidEditorTab(tabParam)) this.tab = tabParam
+        if (
+            tabParam &&
+            (EDITOR_TABS.includes(tabParam as EditorTab) ||
+                this.extraTabKeys.includes(tabParam))
+        )
+            this.tab = tabParam
     }
 
     private setupTabUrlSync(): void {
@@ -353,6 +362,59 @@ export abstract class AbstractChartEditor<
         )
     }
 
+    /** parent indicator id, derived from the live config */
+    @computed get parentIndicatorId(): number | undefined {
+        return getParentIndicatorIdFromChartConfig(this.liveConfig)
+    }
+
+    /**
+     * Re-fetch the inherited indicator config when the chart's parent
+     * indicator changed (the first y dimension was added, removed or
+     * swapped). A no-op unless the store can look indicator configs up.
+     */
+    @action.bound async updateParentConfig(): Promise<void> {
+        const { loadIndicatorConfig } = this.store
+        if (!loadIndicatorConfig) return
+
+        const currentParentIndicatorId = this.parentVariableId
+        const newParentIndicatorId = getParentIndicatorIdFromChartConfig(
+            this.grapherState.object
+        )
+
+        // no-op if the parent indicator hasn't changed
+        if (currentParentIndicatorId === newParentIndicatorId) return
+
+        // fetch the new parent config
+        let newParentConfig: GrapherInterface | undefined
+        if (newParentIndicatorId) {
+            newParentConfig = await loadIndicatorConfig(newParentIndicatorId)
+        }
+
+        // Capture the admin's genuine overrides *before* swapping in the new
+        // indicator layer: `patchConfig` is computed against the active parent
+        // stack, so reading it afterwards would fold the old indicator's
+        // inherited values into the patch as if the admin had authored them.
+        const { patchConfig } = this
+
+        // update the parent config in any case
+        runInAction(() => {
+            this.parentConfig = newParentConfig
+            this.parentVariableId = newParentIndicatorId
+        })
+
+        // if inheritance is enabled, update the live grapher object. Rebuild
+        // from the whole parent stack rather than the indicator layer alone:
+        // the chart's own etlConfig sits between them, and `updateLiveGrapher`
+        // resets grapherState first, so a layer left out of the merge falls
+        // back to grapher defaults — which the next save would then diff into
+        // the patch as explicit overrides of the layer that actually owns them.
+        if (this.isInheritanceEnabled) {
+            this.updateLiveGrapher(
+                mergeGrapherConfigs(this.activeParentConfig ?? {}, patchConfig)
+            )
+        }
+    }
+
     @action.bound async reloadGrapherData(): Promise<void> {
         const { grapherState } = this
         const inputTable = await this.store.loadTable(
@@ -377,7 +439,7 @@ export abstract class AbstractChartEditor<
     }
 
     abstract get isNewGrapher(): boolean
-    abstract get availableTabs(): EditorTab[]
+    abstract get availableTabs(): string[]
 
     abstract saveGrapher(props?: { onError?: () => void }): Promise<void>
 }

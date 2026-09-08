@@ -2,7 +2,6 @@ import * as _ from "lodash-es"
 import { Component } from "react"
 import { observer } from "mobx-react"
 import { Section, Toggle } from "./Forms.js"
-import { ChartEditor, isChartEditorInstance } from "./ChartEditor.js"
 import { action, computed, observable, makeObservable } from "mobx"
 import {
     NARRATIVE_CHART_PROPS_TO_OMIT,
@@ -28,50 +27,19 @@ export class EditorDebugTab<
 }> {
     override render() {
         const { editor } = this.props
-        if (isChartEditorInstance(editor))
-            return <EditorDebugTabForChart editor={editor} />
+        if (isConfigEditorInstance(editor))
+            return <EditorDebugTabForConfig editor={editor} />
         else if (isNarrativeChartEditorInstance(editor))
             return <EditorDebugTabForNarrativeChart editor={editor} />
-        else if (isConfigEditorInstance(editor))
-            return <EditorDebugTabForConfig editor={editor} />
         else return null
     }
 }
 
 @observer
-class EditorDebugTabForConfig extends Component<{ editor: ConfigEditor }> {
-    override render() {
-        const { patchConfig, parentConfig } = this.props.editor
-        return (
-            <div>
-                <Section name="Config">
-                    <textarea
-                        rows={12}
-                        readOnly
-                        className="form-control"
-                        value={YAML.stringify(patchConfig)}
-                    />
-                </Section>
-                {parentConfig && (
-                    <Section name="Parent config">
-                        <textarea
-                            rows={7}
-                            readOnly
-                            className="form-control"
-                            value={YAML.stringify(parentConfig)}
-                        />
-                    </Section>
-                )}
-            </div>
-        )
-    }
-}
-
-@observer
-class EditorDebugTabForChart extends Component<{
-    editor: ChartEditor
+class EditorDebugTabForConfig extends Component<{
+    editor: ConfigEditor
 }> {
-    constructor(props: { editor: ChartEditor }) {
+    constructor(props: { editor: ConfigEditor }) {
         super(props)
         makeObservable(this)
     }

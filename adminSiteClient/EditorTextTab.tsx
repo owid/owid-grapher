@@ -12,7 +12,7 @@ import { copyToClipboard, slugify } from "@ourworldindata/utils"
 import { action, computed, makeObservable, observable, runInAction } from "mobx"
 import { observer } from "mobx-react"
 import { Component, ReactElement } from "react"
-import { isChartEditorInstance } from "./ChartEditor.js"
+import { isConfigEditorInstance } from "./ConfigEditor.js"
 import {
     AutoTextField,
     BindAutoStringExt,
@@ -29,7 +29,6 @@ import { ErrorMessages } from "./ChartEditorTypes.js"
 import { isNarrativeChartEditorInstance } from "./NarrativeChartEditor.js"
 import { AutoComplete, Button as AntdButton, Space } from "antd"
 import {
-    BAKED_BASE_URL,
     BAKED_GRAPHER_URL,
     ADMIN_BASE_URL,
 } from "../settings/clientSettings.js"
@@ -164,23 +163,13 @@ export class EditorTextTab<
                 label: `/${slug}`,
             }))
 
+        // Hosts can put their own suggestions first (the admin: posts that
+        // already reference this chart).
         const { editor } = this.props
-        if (isChartEditorInstance(editor) && editor.references) {
-            const refOptions = [
-                ...(editor.references.postsWordpress ?? []),
-                ...(editor.references.postsGdocs ?? []),
-            ].map((post) => {
-                const relativeUrl = post.url.replace(BAKED_BASE_URL, "")
-                return {
-                    value: relativeUrl,
-                    label: relativeUrl,
-                    suffix: "(referenced by this chart)",
-                }
-            })
-            return [...refOptions, ...topicOptions]
-        }
-
-        return topicOptions
+        const hostSuggestions = isConfigEditorInstance(editor)
+            ? (editor.manager.extensions?.originUrlSuggestions ?? [])
+            : []
+        return [...hostSuggestions, ...topicOptions]
     }
 
     @action.bound onOriginUrlChange(value: string): void {
@@ -527,17 +516,8 @@ export class EditorTextTab<
                         placeholder="e.g. IHME"
                         helpText="Optional variant name for distinguishing charts with the same title"
                     />
-                    {isChartEditorInstance(editor) && (
-                        <Toggle
-                            label="Force to be a data page"
-                            secondaryLabel="Use metadata from the first Y indicator (same behavior as multi-dimensional data pages)."
-                            value={editor.forceDatapage}
-                            onValue={action(
-                                (value: boolean) =>
-                                    (editor.manager.forceDatapage = value)
-                            )}
-                        />
-                    )}
+                    {isConfigEditorInstance(editor) &&
+                        editor.manager.extensions?.textTabFooter?.(editor)}
                 </Section>
                 {(this.hasCopyAdminURLButton ||
                     this.hasCopyGrapherURLButton) && (

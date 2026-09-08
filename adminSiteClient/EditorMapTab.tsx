@@ -25,7 +25,8 @@ import { Component, Fragment } from "react"
 import { EditorColorScaleSection } from "./EditorColorScaleSection.js"
 import { NumberField, Section, SelectField, Timeago, Toggle } from "./Forms.js"
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
-import { isChartEditorInstance, Log } from "./ChartEditor.js"
+import { isConfigEditorInstance } from "./ConfigEditor.js"
+import { MapColorScaleEdit } from "./adminChartApi.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faLink } from "@fortawesome/free-solid-svg-icons"
 import { ErrorMessages } from "./ChartEditorTypes.js"
@@ -324,8 +325,8 @@ export class EditorMapTab<Editor extends AbstractChartEditor> extends Component<
 
     @computed get lastColorScaleEdit(): MapColorScaleEdit | undefined {
         const { editor } = this.props
-        if (!isChartEditorInstance(editor)) return undefined
-        return findLastMapColorScaleEdit(editor.logs ?? [])
+        if (!isConfigEditorInstance(editor)) return undefined
+        return editor.manager.extensions?.lastMapColorScaleEdit
     }
 
     @computed get lastColorScaleEditNote(): React.ReactNode | undefined {
@@ -377,24 +378,4 @@ export class EditorMapTab<Editor extends AbstractChartEditor> extends Component<
             </div>
         )
     }
-}
-
-interface MapColorScaleEdit {
-    userName: string
-    createdAt: string
-}
-
-function findLastMapColorScaleEdit(logs: Log[]): MapColorScaleEdit | undefined {
-    // Assumes logs are ordered from newest to oldest
-    for (let i = 0; i < logs.length - 1; i++) {
-        const current = logs[i].config?.map?.colorScale
-        const previous = logs[i + 1].config?.map?.colorScale
-
-        if (!_.isEqual(current, previous)) {
-            return { userName: logs[i].userName, createdAt: logs[i].createdAt }
-        }
-    }
-
-    // The map color scale has never been edited or the logs are empty
-    return undefined
 }

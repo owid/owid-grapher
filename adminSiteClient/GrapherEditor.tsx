@@ -1,9 +1,10 @@
 /**
  * The chart editor as a component a host mounts: a config in, an
  * `IndicatorStore` for data and metadata, and callbacks that hand the edited
- * config back. This is the shape the future editor package exports; the
- * playground is its first consumer, the admin's own pages keep using the
- * chart-record editors around the same `ChartEditorView`.
+ * config back. This is the shape the future editor package exports. The
+ * admin's chart editor page is its main consumer and adds its chart-record
+ * features (revisions, references, tags, publishing) through the extension
+ * props rather than a different editor.
  *
  * Compared with Plotly's `react-chart-editor`, which takes `data` + `layout`
  * and a `dataSources` object of column arrays and calls `onUpdate`: `config`
@@ -13,10 +14,15 @@
  */
 import * as React from "react"
 import { observer } from "mobx-react"
-import { computed, makeObservable } from "mobx"
+import { makeObservable } from "mobx"
 import { GrapherInterface } from "@ourworldindata/types"
 import { ChartEditorView, ChartEditorViewManager } from "./ChartEditorView.js"
-import { ConfigEditor, ConfigEditorManager } from "./ConfigEditor.js"
+import {
+    ConfigEditor,
+    ConfigEditorManager,
+    EditorExtensions,
+    EditorExtraTab,
+} from "./ConfigEditor.js"
 import { EditorTab } from "./AbstractChartEditor.js"
 import { DetailsProvider, IndicatorCatalog } from "./editorProviders.js"
 import { IndicatorStore } from "./indicatorStores.js"
@@ -26,8 +32,11 @@ export interface GrapherEditorProps {
     config: GrapherInterface
     /** Where indicator data and metadata come from. */
     store: IndicatorStore
-    /** Receives the edited config, in the store's own form. */
-    onSave: (config: GrapherInterface) => void | Promise<void>
+    /**
+     * Receives the edited config, in the store's own form. May return the
+     * config as actually stored, which then counts as the saved state.
+     */
+    onSave: ConfigEditorManager["onSave"]
     /** Fires on every change of the edited config. */
     onChange?: (config: GrapherInterface) => void
     /** What "Add indicator" can offer. Defaults to `store.catalog`; pass
@@ -37,6 +46,26 @@ export interface GrapherEditorProps {
     details?: DetailsProvider
     /** Restrict the tabs shown. */
     tabs?: EditorTab[]
+
+    // --- Inheritance: layers the config sits on top of ---------------------
+    /** The indicator's own config (variables.grapherConfig), if any. */
+    parentConfig?: GrapherInterface
+    /** Id of the indicator `parentConfig` was loaded from. */
+    parentVariableId?: number
+    /** An ETL-authored layer between `parentConfig` and the config. */
+    etlConfig?: GrapherInterface
+    /** Whether `parentConfig` is applied. Defaults to false. */
+    isInheritanceEnabled?: boolean
+    /** Lookups the Basic tab's "add population / GDP" shortcuts use. */
+    variableIdsByCatalogPath?: Record<string, number | null>
+
+    // --- Host extensions ---------------------------------------------------
+    /** Tabs the host adds (e.g. revisions, references). */
+    extraTabs?: EditorExtraTab[]
+    /** Replaces the default "Save config" button. */
+    renderSaveButtons?: ConfigEditorManager["renderSaveButtons"]
+    /** Small hooks into the generic tabs. */
+    extensions?: EditorExtensions
 }
 
 @observer
@@ -48,8 +77,6 @@ export class GrapherEditor
         super(props)
         makeObservable(this)
     }
-
-    isInheritanceEnabled = false
 
     get patchConfig(): GrapherInterface {
         return this.props.config
@@ -73,7 +100,7 @@ export class GrapherEditor
         return this.props.tabs
     }
 
-    get onSave(): (config: GrapherInterface) => void | Promise<void> {
+    get onSave(): ConfigEditorManager["onSave"] {
         return this.props.onSave
     }
 
@@ -81,8 +108,47 @@ export class GrapherEditor
         return this.props.onChange
     }
 
-    @computed get editor(): ConfigEditor {
-        return new ConfigEditor({ manager: this })
+    get parentConfig(): GrapherInterface | undefined {
+        return this.props.parentConfig
+    }
+
+    get parentVariableId(): number | undefined {
+        return this.props.parentVariableId
+    }
+
+    get etlConfig(): GrapherInterface | undefined {
+        return this.props.etlConfig
+    }
+
+    get isInheritanceEnabled(): boolean {
+        return this.props.isInheritanceEnabled ?? false
+    }
+
+    get variableIdsByCatalogPath(): Record<string, number | null> | undefined {
+        return this.props.variableIdsByCatalogPath
+    }
+
+    get extraTabs(): EditorExtraTab[] | undefined {
+        return this.props.extraTabs
+    }
+
+    get renderSaveButtons(): ConfigEditorManager["renderSaveButtons"] {
+        return this.props.renderSaveButtons
+    }
+
+    get extensions(): EditorExtensions | undefined {
+        return this.props.extensions
+    }
+
+    // One editor for the lifetime of the component. Not a `computed`: the
+    // constructor reads `store` and `environment` off the props, and any new
+    // props object (a host re-rendering after a save) would otherwise
+    // recompute it into a fresh editor and reset the chart being edited.
+    // Hosts that change the store or the config remount via `key`.
+    private _editor: ConfigEditor | undefined = undefined
+    get editor(): ConfigEditor {
+        this._editor ??= new ConfigEditor({ manager: this })
+        return this._editor
     }
 
     override render(): React.ReactElement {

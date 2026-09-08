@@ -11,10 +11,11 @@ import {
     makeObservable,
     comparer,
 } from "mobx"
-import { Prompt, Redirect } from "react-router-dom"
+import { Prompt } from "react-router-dom"
 import {
     Bounds,
     DetailDictionary,
+    excludeUndefined,
     extractDetailsFromSyntax,
     getIndexableKeys,
 } from "@ourworldindata/utils"
@@ -32,14 +33,14 @@ import {
     GrapherState,
     hasValidConfigForBinningStrategy,
 } from "@ourworldindata/grapher"
-import { getFullReferencesCount, isChartEditorInstance } from "./ChartEditor.js"
+import { getFullReferencesCount } from "./adminChartApi.js"
+import { isConfigEditorInstance } from "./ConfigEditor.js"
 import { EditorBasicTab } from "./EditorBasicTab.js"
 import { EditorDataTab } from "./EditorDataTab.js"
 import { EditorTextTab } from "./EditorTextTab.js"
 import { EditorCustomizeTab } from "./EditorCustomizeTab.js"
 import { EditorScatterTab } from "./EditorScatterTab.js"
 import { EditorMapTab } from "./EditorMapTab.js"
-import { EditorHistoryTab } from "./EditorHistoryTab.js"
 import { EditorReferencesTab } from "./EditorReferencesTab.js"
 import { EditorDebugTab } from "./EditorDebugTab.js"
 import { SaveButtons } from "./SaveButtons.js"
@@ -302,6 +303,14 @@ export class ChartEditorView<
         return errorMessages
     }
 
+    /** Everything that currently blocks saving, as messages. */
+    @computed get editingErrors(): string[] {
+        return excludeUndefined([
+            ...Object.values(this.errorMessages),
+            ...Object.values(this.errorMessagesForDimensions).flat(),
+        ])
+    }
+
     @computed get editor(): Editor | undefined {
         if (!this.isReady) return undefined
 
@@ -375,21 +384,27 @@ export class ChartEditorView<
     renderReady(editor: Editor): React.ReactElement {
         const { grapherState, availableTabs } = editor
 
-        const chartEditor = isChartEditorInstance(editor) ? editor : undefined
-        const queryParams = chartEditor?.forceDatapage
-            ? "?forceDatapage=true"
-            : ""
+        // Hosts of the config-only editor plug their own tabs, save buttons
+        // and preview link in; the admin's chart-record editors get the
+        // built-in ones.
+        const configEditor = isConfigEditorInstance(editor) ? editor : undefined
+        const extraTabs = configEditor?.manager.extraTabs ?? []
+        const activeExtraTab = extraTabs.find((tab) => tab.key === editor.tab)
+        const tabLabel = (tab: string): React.ReactNode =>
+            extraTabs.find((t) => t.key === tab)?.label ?? _.capitalize(tab)
+        const previewUrl = configEditor
+            ? configEditor.manager.extensions?.previewUrl?.(configEditor)
+            : grapherState.id
+              ? `/admin/charts/${grapherState.id}/preview`
+              : undefined
 
         return (
             <>
                 {!editor.isNewGrapher && (
                     <Prompt
-                        when={editor.isModified && !chartEditor?.newChartId}
+                        when={editor.isModified}
                         message="Are you sure you want to leave? Unsaved changes will be lost."
                     />
-                )}
-                {chartEditor?.newChartId && (
-                    <Redirect to={`/charts/${chartEditor.newChartId}/edit`} />
                 )}
                 <div className="chart-editor-settings">
                     <div className="p-2">
@@ -409,7 +424,7 @@ export class ChartEditorView<
                                                 tab === "export"
                                         }}
                                     >
-                                        {_.capitalize(tab)}
+                                        {tabLabel(tab)}
                                         {tab === "refs" && editor?.references
                                             ? ` (${getFullReferencesCount(
                                                   editor.references
@@ -457,10 +472,10 @@ export class ChartEditorView<
                                 errorMessages={this.errorMessages}
                             />
                         )}
-                        {chartEditor && chartEditor.tab === "revisions" && (
-                            <EditorHistoryTab editor={chartEditor} />
-                        )}
-                        {editor.tab === "refs" && (
+                        {activeExtraTab &&
+                            configEditor &&
+                            activeExtraTab.render(configEditor)}
+                        {!activeExtraTab && editor.tab === "refs" && (
                             <EditorReferencesTab editor={editor} />
                         )}
                         {editor.tab === "export" && (
@@ -470,21 +485,27 @@ export class ChartEditorView<
                             <EditorDebugTab editor={editor} />
                         )}
                     </div>
-                    {editor.tab !== "export" && (
-                        <SaveButtons
-                            editor={editor}
-                            errorMessages={this.errorMessages}
-                            errorMessagesForDimensions={
-                                this.errorMessagesForDimensions
-                            }
-                        />
-                    )}
+                    {editor.tab !== "export" &&
+                        (configEditor?.manager.renderSaveButtons ? (
+                            configEditor.manager.renderSaveButtons(
+                                configEditor,
+                                this.editingErrors
+                            )
+                        ) : (
+                            <SaveButtons
+                                editor={editor}
+                                errorMessages={this.errorMessages}
+                                errorMessagesForDimensions={
+                                    this.errorMessagesForDimensions
+                                }
+                            />
+                        ))}
                 </div>
                 <div className="chart-editor-view">
-                    {grapherState.id && (
+                    {previewUrl && (
                         <a
                             className="preview"
-                            href={`/admin/charts/${grapherState.id}/preview${queryParams}`}
+                            href={previewUrl}
                             target="_blank"
                             rel="noopener"
                         >

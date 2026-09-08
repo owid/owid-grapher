@@ -1,9 +1,8 @@
 import * as _ from "lodash-es"
 import { Component } from "react"
-import { ChartEditor, isChartEditorInstance } from "./ChartEditor.js"
 import { action, computed, observable, makeObservable } from "mobx"
 import { observer } from "mobx-react"
-import { excludeUndefined, slugify } from "@ourworldindata/utils"
+import { excludeUndefined } from "@ourworldindata/utils"
 import {
     ErrorMessages,
     ErrorMessagesForDimensions,
@@ -13,7 +12,6 @@ import {
     NarrativeChartEditor,
     isNarrativeChartEditorInstance,
 } from "./NarrativeChartEditor.js"
-import { NarrativeChartNameModal } from "./NarrativeChartNameModal.js"
 import { ConfigEditor, isConfigEditorInstance } from "./ConfigEditor.js"
 import { CreateDataInsightModal } from "./CreateDataInsightModal.js"
 
@@ -30,9 +28,7 @@ export class SaveButtons<Editor extends AbstractChartEditor> extends Component<
     override render() {
         const { editor } = this.props
         const passthroughProps = _.omit(this.props, "editor")
-        if (isChartEditorInstance(editor))
-            return <SaveButtonsForChart editor={editor} {...passthroughProps} />
-        else if (isNarrativeChartEditorInstance(editor))
+        if (isNarrativeChartEditorInstance(editor))
             return (
                 <SaveButtonsForNarrativeChart
                     editor={editor}
@@ -77,144 +73,6 @@ class SaveButtonsForConfig extends Component<SaveButtonsProps<ConfigEditor>> {
                 >
                     Save config
                 </button>
-                {grapherState.isReady &&
-                    editingErrors.map((error, i) => (
-                        <div key={i} className="alert alert-danger mt-2">
-                            {error}
-                        </div>
-                    ))}
-            </div>
-        )
-    }
-}
-
-@observer
-class SaveButtonsForChart extends Component<SaveButtonsProps<ChartEditor>> {
-    constructor(props: SaveButtonsProps<ChartEditor>) {
-        super(props)
-
-        makeObservable(this, {
-            isNarrativeChartNameModalOpen: observable,
-            narrativeChartNameModalError: observable,
-        })
-    }
-
-    @action.bound onSaveChart() {
-        void this.props.editor.saveGrapher()
-    }
-
-    @action.bound onSaveAsNew() {
-        void this.props.editor.saveAsNewGrapher()
-    }
-
-    @action.bound onPublishToggle() {
-        if (this.props.editor.grapherState.isPublished)
-            this.props.editor.unpublishGrapher()
-        else this.props.editor.publishGrapher()
-    }
-
-    @action.bound onDeleteChart() {
-        void this.props.editor.deleteGrapher()
-    }
-
-    @computed get editingErrors(): string[] {
-        const { errorMessages, errorMessagesForDimensions } = this.props
-        return excludeUndefined([
-            ...Object.values(errorMessages),
-            ...Object.values(errorMessagesForDimensions).flat(),
-        ])
-    }
-
-    @computed get initialNarrativeChartName(): string {
-        return slugify(this.props.editor.grapherState.title ?? "")
-    }
-
-    isNarrativeChartNameModalOpen = false
-    narrativeChartNameModalError: string | undefined = undefined
-
-    @action.bound async onSubmitNarrativeChartButton(name: string) {
-        const { editor } = this.props
-
-        const res = await editor.saveAsNarrativeChart(name)
-        if (res.success) {
-            this.isNarrativeChartNameModalOpen = false
-        } else {
-            this.narrativeChartNameModalError = res.errorMsg
-        }
-    }
-
-    override render() {
-        const { editingErrors } = this
-        const { editor } = this.props
-        const { grapherState, isNewGrapher } = editor
-
-        const hasEditingErrors = editingErrors.length > 0
-        const isSavingDisabled = grapherState.hasFatalErrors || hasEditingErrors
-
-        return (
-            <div className="SaveButtons">
-                <div>
-                    <button
-                        className="btn btn-success"
-                        onClick={this.onSaveChart}
-                        disabled={isSavingDisabled}
-                    >
-                        {grapherState.isPublished
-                            ? "Update chart"
-                            : isNewGrapher
-                              ? "Create draft"
-                              : "Save draft"}
-                    </button>{" "}
-                    {!isNewGrapher && (
-                        <>
-                            <button
-                                className="btn btn-secondary"
-                                onClick={this.onSaveAsNew}
-                                disabled={isSavingDisabled}
-                            >
-                                Save as new
-                            </button>{" "}
-                            <button
-                                className="btn btn-danger"
-                                onClick={this.onPublishToggle}
-                                disabled={isSavingDisabled}
-                            >
-                                {grapherState.isPublished
-                                    ? "Unpublish"
-                                    : "Publish"}
-                            </button>{" "}
-                            <button
-                                className="btn btn-danger"
-                                onClick={this.onDeleteChart}
-                            >
-                                Delete
-                            </button>
-                        </>
-                    )}
-                </div>
-                {!isNewGrapher && (
-                    <div className="mt-2">
-                        <button
-                            className="btn btn-primary"
-                            onClick={() => {
-                                this.isNarrativeChartNameModalOpen = true
-                                this.narrativeChartNameModalError = undefined
-                            }}
-                            disabled={isSavingDisabled}
-                        >
-                            Save as narrative chart
-                        </button>
-                    </div>
-                )}
-                <NarrativeChartNameModal
-                    isOpen={this.isNarrativeChartNameModalOpen}
-                    initialName={this.initialNarrativeChartName}
-                    errorMsg={this.narrativeChartNameModalError}
-                    onSubmit={this.onSubmitNarrativeChartButton}
-                    onCancel={() =>
-                        (this.isNarrativeChartNameModalOpen = false)
-                    }
-                />
                 {grapherState.isReady &&
                     editingErrors.map((error, i) => (
                         <div key={i} className="alert alert-danger mt-2">

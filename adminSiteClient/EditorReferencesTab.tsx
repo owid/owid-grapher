@@ -2,11 +2,7 @@ import * as _ from "lodash-es"
 
 import { Component, createContext, Fragment, useState } from "react"
 import { observer } from "mobx-react"
-import {
-    ChartEditor,
-    getFullReferencesCount,
-    isChartEditorInstance,
-} from "./ChartEditor.js"
+import { getFullReferencesCount } from "./adminChartApi.js"
 import { computed, action, observable, runInAction, makeObservable } from "mobx"
 import {
     BAKED_BASE_URL,
@@ -15,6 +11,7 @@ import {
 } from "../settings/clientSettings.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import {
+    type AnalyticsGrapherViewWithRank,
     stringifyUnknownError,
     formatValue,
     ChartRedirect,
@@ -40,19 +37,24 @@ export class EditorReferencesTab<
 }> {
     override render() {
         const { editor } = this.props
-        if (isChartEditorInstance(editor))
-            return <EditorReferencesTabForChart editor={editor} />
-        else if (isNarrativeChartEditorInstance(editor))
+        if (isNarrativeChartEditorInstance(editor))
             return <EditorReferencesTabForNarrativeChart editor={editor} />
         else return null
     }
 }
 
+interface EditorReferencesTabForChartProps {
+    editor: AbstractChartEditor
+    references: References | undefined
+    redirects: ChartRedirect[]
+    views: AnalyticsGrapherViewWithRank | undefined
+    onRedirectAdded: (redirect: ChartRedirect) => void
+}
+
+/** References, redirects and pageviews of a chart in the admin database. */
 @observer
-export class EditorReferencesTabForChart extends Component<{
-    editor: ChartEditor
-}> {
-    constructor(props: { editor: ChartEditor }) {
+export class EditorReferencesTabForChart extends Component<EditorReferencesTabForChartProps> {
+    constructor(props: EditorReferencesTabForChartProps) {
         super(props)
         makeObservable(this)
     }
@@ -62,18 +64,18 @@ export class EditorReferencesTabForChart extends Component<{
     }
 
     @computed get references() {
-        return this.props.editor.references
+        return this.props.references
     }
     @computed get redirects() {
-        return this.props.editor.redirects || []
+        return this.props.redirects
     }
 
     @computed get views() {
-        return this.props.editor.views
+        return this.props.views
     }
 
     @action.bound appendRedirect(redirect: ChartRedirect) {
-        this.props.editor.manager.redirects.push(redirect)
+        this.props.onRedirectAdded(redirect)
     }
 
     renderViewCount(views?: number, rank?: number, total?: number) {

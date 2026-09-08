@@ -8,7 +8,6 @@ import {
     when,
     computed,
     makeObservable,
-    runInAction,
 } from "mobx"
 import { observer } from "mobx-react"
 import {
@@ -50,7 +49,7 @@ import { VariableSelector } from "./VariableSelector.js"
 import { DimensionCard } from "./DimensionCard.js"
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
 import { EditorDatabase } from "./EditorDatabase.js"
-import { isChartEditorInstance } from "./ChartEditor.js"
+import { isConfigEditorInstance } from "./ConfigEditor.js"
 import { ErrorMessagesForDimensions } from "./ChartEditorTypes.js"
 import { EditableTags } from "./EditableTags.js"
 import { MinimalTagWithMetadata } from "./TagGraphMetadata.js"
@@ -58,7 +57,6 @@ import {
     GDP_PER_CAPITA_CATALOG_PATH,
     POPULATION_CATALOG_PATH,
 } from "./constants.js"
-import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import {
     NarrativeChartEditor,
     isNarrativeChartEditorInstance,
@@ -317,10 +315,7 @@ export class DimensionSlotView<
     }
 
     @action.bound private updateParentConfig() {
-        const { editor } = this.props
-        if (isChartEditorInstance(editor)) {
-            void editor.updateParentConfig()
-        }
+        void this.props.editor.updateParentConfig()
     }
 
     @action.bound private async onDragEnd(items: { dim: ChartDimension }[]) {
@@ -533,7 +528,7 @@ class VariablesSection<
     }
 }
 
-const TagsSection = (props: {
+export const TagsSection = (props: {
     chartId: number | undefined
     tags: DbChartTagJoin[] | undefined
     availableTags: MinimalTagWithMetadata[] | undefined
@@ -581,19 +576,13 @@ interface EditorBasicTabProps<Editor> {
 export class EditorBasicTab<
     Editor extends AbstractChartEditor,
 > extends React.Component<EditorBasicTabProps<Editor>> {
-    static override contextType = AdminAppContext
-    declare context: AdminAppContextType
-
     constructor(props: EditorBasicTabProps<Editor>) {
         super(props)
         makeObservable(this)
     }
 
     @action.bound private updateParentConfig() {
-        const { editor } = this.props
-        if (isChartEditorInstance(editor)) {
-            void editor.updateParentConfig()
-        }
+        void this.props.editor.updateParentConfig()
     }
 
     @computed private get chartTypeGroups() {
@@ -784,25 +773,6 @@ export class EditorBasicTab<
         this.updateParentConfig()
     }
 
-    @action.bound onSaveTags(tags: DbChartTagJoin[]): Promise<void> {
-        return this.saveTags(tags)
-    }
-
-    async saveTags(tags: DbChartTagJoin[]): Promise<void> {
-        const { editor } = this.props
-        const { grapherState } = editor
-        await this.context.admin.requestJSON(
-            `/api/charts/${grapherState.id}/setTags`,
-            { tags },
-            "POST"
-        )
-        if (isChartEditorInstance(editor)) {
-            runInAction(() => {
-                editor.manager.tags = tags
-            })
-        }
-    }
-
     override render() {
         const { editor } = this.props
         const { grapherState } = editor
@@ -877,14 +847,8 @@ export class EditorBasicTab<
                     }
                 />
 
-                {isChartEditorInstance(editor) && (
-                    <TagsSection
-                        chartId={grapherState.id}
-                        tags={editor.tags}
-                        availableTags={editor.availableTags}
-                        onSaveTags={this.onSaveTags}
-                    />
-                )}
+                {isConfigEditorInstance(editor) &&
+                    editor.manager.extensions?.basicTabFooter?.(editor)}
             </div>
         )
     }
