@@ -130,7 +130,10 @@ export {
     latestSchemaVersion,
 } from "./schema/defaultGrapherConfig"
 export { migrateGrapherConfigToLatestVersion } from "./schema/migrations/migrate"
-export { getSchemaVersion, type AnyConfig } from "./schema/migrations/helpers"
+export {
+    getSchemaVersion,
+    type UntypedGrapherConfig,
+} from "./schema/migrations/helpers"
 export { generateGrapherImageSrcSet } from "./chart/ChartUtils"
 export {
     useMaybeGlobalGrapherStateRef,

@@ -3,10 +3,10 @@ import { GrapherInterface } from "@ourworldindata/types"
 
 import { defaultGrapherConfig } from "../defaultGrapherConfig"
 import {
-    hasValidSchema,
+    hasKnownSchemaVersion,
     getSchemaVersion,
     isOutdatedVersion,
-    type AnyConfig,
+    type UntypedGrapherConfig,
 } from "./helpers"
 import { runMigration } from "./migrations"
 import * as Sentry from "@sentry/browser"
@@ -21,10 +21,10 @@ import * as Sentry from "@sentry/browser"
  * Note that the given config is not actually validated against the schema!
  */
 export const migrateGrapherConfigToLatestVersion = (
-    config: AnyConfig
+    config: UntypedGrapherConfig
 ): GrapherInterface => {
     const clone = _.cloneDeep(config)
-    if (hasValidSchema(clone)) {
+    if (hasKnownSchemaVersion(clone)) {
         let version = getSchemaVersion(clone)
         while (isOutdatedVersion(version))
             version = runMigration(clone, version)
