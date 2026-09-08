@@ -70,7 +70,9 @@ export function assertWellFormedFences(body: string, file: string): void {
     // Fence markers alternate open/close; only the opening ones carry a
     // language.
     for (let i = 0; i < infos.length; i += 2) {
-        const info = infos[i].replace(/[ \t]+$/, "")
+        // The `$` of a multiline match sits before the \n, so a CRLF file
+        // leaves the \r on the info line.
+        const info = infos[i].replace(/[ \t\r]+$/, "")
         if (!ALLOWED_FENCE_LANGUAGES.includes(info))
             throw new Error(
                 file +
