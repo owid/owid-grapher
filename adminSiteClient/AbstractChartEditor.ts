@@ -175,8 +175,13 @@ export abstract class AbstractChartEditor<
                 (this.isInheritanceEnabled = this.manager.isInheritanceEnabled)
         )
 
+        // The saved baseline: set once the config (and its data, if it has
+        // any) is in, so a freshly opened chart doesn't count as modified.
         when(
-            () => this.grapherState.hasData && this.grapherState.isReady,
+            () =>
+                this.grapherState.isReady &&
+                (this.grapherState.hasData ||
+                    this.grapherState.dimensions.length === 0),
             () => (this.savedPatchConfig = this.patchConfig)
         )
     }

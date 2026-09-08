@@ -37,6 +37,13 @@ export const defaultEditorEnvironment: EditorEnvironment = {
 export function adminIndicatorCatalog(admin: Admin): IndicatorCatalog {
     return {
         async load(): Promise<IndicatorCatalogData> {
+            // Usage counts only rank search results, so a failure there must
+            // not take the picker down with it.
+            const usagesPromise = admin
+                .getJSONInBackground<
+                    { variableId: number; usageCount: number }[]
+                >("/api/variables.usages.json")
+                .catch(() => [])
             const [namespaces, variables, usages] = await Promise.all([
                 admin.getJSON<{ namespaces: Namespace[] }>(
                     "/api/editorData/namespaces.json"
@@ -44,9 +51,7 @@ export function adminIndicatorCatalog(admin: Admin): IndicatorCatalog {
                 admin.getJSON<{ datasets: Dataset[] }>(
                     "/api/editorData/variables.json"
                 ),
-                admin.getJSON<{ variableId: number; usageCount: number }[]>(
-                    "/api/variables.usages.json"
-                ),
+                usagesPromise,
             ])
             return {
                 namespaces: namespaces.namespaces,

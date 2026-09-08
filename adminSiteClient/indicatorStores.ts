@@ -25,6 +25,7 @@ import {
     GrapherInterface,
     OwidChartDimensionInterface,
     OwidColumnDef,
+    OwidTableSlugs,
 } from "@ourworldindata/types"
 import { getCachingInputTableFetcher } from "@ourworldindata/grapher"
 import { IndicatorCatalog } from "./editorProviders.js"
@@ -51,8 +52,16 @@ export interface IndicatorStore {
      * GDP per capita), keyed by catalog path. Absent → no shortcuts.
      */
     variableIdsByCatalogPath?: Record<string, number | null>
-    /** The host's config → the dimension-based one the editor works on. */
-    toEditorConfig(config: GrapherInterface): GrapherInterface
+    /**
+     * The host's config → the dimension-based one the editor works on. With
+     * `inferDimensions: false` a config that names no columns stays without
+     * dimensions (right for a base layer; the default plots every numeric
+     * column, like GrapherLoader.fromTable).
+     */
+    toEditorConfig(
+        config: GrapherInterface,
+        options?: { inferDimensions?: boolean }
+    ): GrapherInterface
     /** The editor's config → what the host stores and renders with. */
     fromEditorConfig(config: GrapherInterface): GrapherInterface
 }
@@ -92,20 +101,38 @@ const SLUG_PROPERTIES: {
     { property: DimensionProperty.color, field: "colorSlug" },
 ]
 
+// The columns every OWID table has for its shape (entity, time). Everything
+// else is a column a config may reference.
+const STRUCTURAL_SLUGS = new Set<string>(Object.values(OwidTableSlugs))
+
 /**
  * A store over a table the host already has (parsed CSV, in-memory data).
- * Configs reference columns by slug; the editor sees each numeric column as
- * an indicator with a stable key, and the table it gets has its columns
- * renamed to those keys so grapher resolves `variableId` → column as usual.
+ * Configs reference columns by slug; the editor sees each data column as an
+ * indicator with a stable key, and the table it gets has its columns renamed
+ * to those keys so grapher resolves `variableId` → column as usual.
+ *
+ * Known limitation: the slug dialect has no place for per-dimension
+ * overrides (`dimensions[].display`), so display settings edited on a
+ * dimension card are not written back. Lifting that needs `dimensions[].slug`
+ * in the grapher schema, a decision for the package rather than this store.
  */
 export function tableIndicatorStore(
     table: OwidTable,
     options: { name?: string } = {}
 ): IndicatorStore {
     const name = options.name ?? "Table"
-    const slugs = table.numericColumnSlugs
+    // Categorical columns included: a scatter's `colorSlug` may well be a
+    // string column such as "continent".
+    const slugs = table.columnSlugs.filter(
+        (slug) => !STRUCTURAL_SLUGS.has(slug)
+    )
+    const numericSlugs = table.numericColumnSlugs
     const keyBySlug = new Map(slugs.map((slug, i) => [slug, i + 1]))
     const slugByKey = new Map(slugs.map((slug, i) => [i + 1, slug]))
+    const keyed = (slug: string): string | undefined => {
+        const key = keyBySlug.get(slug)
+        return key === undefined ? undefined : String(key)
+    }
 
     // Columns without a display name would show up as their key, so fall
     // back to the slug before renaming.
@@ -145,7 +172,7 @@ export function tableIndicatorStore(
         loadTable: (dimensions) =>
             Promise.resolve(dimensions.length ? keyedTable : undefined),
 
-        toEditorConfig(config) {
+        toEditorConfig(config, options = {}) {
             const dimensions: OwidChartDimensionInterface[] = []
             for (const { property, field } of SLUG_PROPERTIES) {
                 const value = config[field]
@@ -158,15 +185,22 @@ export function tableIndicatorStore(
             }
             // Like GrapherLoader.fromTable: a config that names no columns
             // plots every numeric one.
-            if (dimensions.length === 0)
-                for (const slug of slugs)
+            if (dimensions.length === 0 && options.inferDimensions !== false)
+                for (const slug of numericSlugs)
                     dimensions.push({
                         property: DimensionProperty.y,
                         variableId: keyOf(slug)!,
                     })
+            // The Table tab's column list is slugs too.
+            const tableSlugs = config.tableSlugs
+                ?.split(" ")
+                .map(keyed)
+                .filter((key): key is string => key !== undefined)
+                .join(" ")
             return {
                 ..._.omit(config, ["ySlugs", "xSlug", "sizeSlug", "colorSlug"]),
-                dimensions,
+                ...(dimensions.length ? { dimensions } : {}),
+                ...(tableSlugs ? { tableSlugs } : {}),
             }
         },
 
@@ -179,6 +213,15 @@ export function tableIndicatorStore(
                     .filter((slug): slug is string => slug !== undefined)
                 if (slugsForProperty.length)
                     out[field] = slugsForProperty.join(" ")
+            }
+            if (config.tableSlugs) {
+                const restored = config.tableSlugs
+                    .split(" ")
+                    .map((key) => slugOf(Number(key)))
+                    .filter((slug): slug is string => slug !== undefined)
+                out.tableSlugs = restored.length
+                    ? restored.join(" ")
+                    : undefined
             }
             return out
         },

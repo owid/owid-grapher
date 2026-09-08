@@ -13,6 +13,7 @@ import {
     isNarrativeChartEditorInstance,
 } from "./NarrativeChartEditor.js"
 import { ConfigEditor, isConfigEditorInstance } from "./ConfigEditor.js"
+import { notification } from "antd"
 import { CreateDataInsightModal } from "./CreateDataInsightModal.js"
 
 interface SaveButtonsProps<Editor extends AbstractChartEditor> {
@@ -46,7 +47,15 @@ export class SaveButtons<Editor extends AbstractChartEditor> extends Component<
 @observer
 class SaveButtonsForConfig extends Component<SaveButtonsProps<ConfigEditor>> {
     @action.bound onSave() {
-        void this.props.editor.saveGrapher()
+        void this.props.editor.saveGrapher({
+            onError: () =>
+                notification.error({
+                    title: "Saving failed",
+                    description:
+                        "The host rejected the config; your edits are still here.",
+                    placement: "bottomRight",
+                }),
+        })
     }
 
     @computed get editingErrors(): string[] {

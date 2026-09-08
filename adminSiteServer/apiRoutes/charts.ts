@@ -31,7 +31,7 @@ import {
     References,
     StaticVizReference,
 } from "../../adminSiteClient/AbstractChartEditor.js"
-import { NarrativeChartMinimalInformation } from "../../adminSiteClient/ChartEditor.js"
+import { NarrativeChartMinimalInformation } from "../../adminSiteClient/adminChartApi.js"
 import {
     getChartConfigById,
     getChartIdByConfigId,

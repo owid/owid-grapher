@@ -105,8 +105,15 @@ export class GrapherEditor
         return this.props.onChange
     }
 
+    // The base arrives in the host's form like `config` does; the editor
+    // diffs against it in its own dimension-based form, so translate it too.
+    // No dimension inference for a base: a base naming no columns means
+    // "no column defaults", not "every column".
     get parentConfig(): GrapherInterface | undefined {
-        return this.props.baseConfig
+        const { baseConfig, store } = this.props
+        return baseConfig
+            ? store.toEditorConfig(baseConfig, { inferDimensions: false })
+            : undefined
     }
 
     // A base config, when given, is always applied.

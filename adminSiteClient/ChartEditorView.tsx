@@ -211,6 +211,11 @@ export class ChartEditorView<
 
     @computed
     get invalidDetailReferences(): DetailReferences {
+        // Without a details provider there is nothing to validate against;
+        // flagging every reference as invalid would block saving for hosts
+        // that simply have no details on demand.
+        if (!this.manager.details)
+            return { subtitle: [], note: [], axisLabelX: [], axisLabelY: [] }
         const { subtitle, note, axisLabelX, axisLabelY } =
             this.currentDetailReferences
         return {
@@ -383,6 +388,13 @@ export class ChartEditorView<
 
     renderReady(editor: Editor): React.ReactElement {
         const { grapherState, availableTabs } = editor
+        // The editor's tab may name one that isn't available right now: a
+        // host allow-list without "basic", or a `?tab=map` from the URL
+        // before the config has loaded. Show the first available one instead
+        // without touching `editor.tab`, so the URL's intent survives.
+        const activeTab = availableTabs.includes(editor.tab)
+            ? editor.tab
+            : availableTabs[0]
 
         // Hosts of the config-only editor plug their own tabs, save buttons
         // and preview link in; the admin's chart-record editors get the
@@ -414,9 +426,7 @@ export class ChartEditorView<
                                     <a
                                         className={
                                             "nav-link" +
-                                            (tab === editor.tab
-                                                ? " active"
-                                                : "")
+                                            (tab === activeTab ? " active" : "")
                                         }
                                         onClick={() => {
                                             editor.tab = tab
@@ -436,7 +446,7 @@ export class ChartEditorView<
                         </ul>
                     </div>
                     <div className="innerForm container">
-                        {editor.tab === "basic" && (
+                        {activeTab === "basic" && (
                             <EditorBasicTab
                                 editor={editor}
                                 database={this.database}
@@ -445,28 +455,28 @@ export class ChartEditorView<
                                 }
                             />
                         )}
-                        {editor.tab === "text" && (
+                        {activeTab === "text" && (
                             <EditorTextTab
                                 editor={editor}
                                 errorMessages={this.errorMessages}
                             />
                         )}
-                        {editor.tab === "data" && (
+                        {activeTab === "data" && (
                             <EditorDataTab editor={editor} />
                         )}
-                        {editor.tab === "customize" && (
+                        {activeTab === "customize" && (
                             <EditorCustomizeTab
                                 editor={editor}
                                 errorMessages={this.errorMessages}
                             />
                         )}
-                        {editor.tab === "scatter" && (
+                        {activeTab === "scatter" && (
                             <EditorScatterTab editor={editor} />
                         )}
-                        {editor.tab === "marimekko" && (
+                        {activeTab === "marimekko" && (
                             <EditorMarimekkoTab grapherState={grapherState} />
                         )}
-                        {editor.tab === "map" && (
+                        {activeTab === "map" && (
                             <EditorMapTab
                                 editor={editor}
                                 errorMessages={this.errorMessages}
@@ -475,17 +485,17 @@ export class ChartEditorView<
                         {activeExtraTab &&
                             configEditor &&
                             activeExtraTab.render(configEditor)}
-                        {!activeExtraTab && editor.tab === "refs" && (
+                        {!activeExtraTab && activeTab === "refs" && (
                             <EditorReferencesTab editor={editor} />
                         )}
-                        {editor.tab === "export" && (
+                        {activeTab === "export" && (
                             <EditorExportTab editor={editor} />
                         )}
-                        {editor.tab === "debug" && (
+                        {activeTab === "debug" && (
                             <EditorDebugTab editor={editor} />
                         )}
                     </div>
-                    {editor.tab !== "export" &&
+                    {activeTab !== "export" &&
                         (configEditor?.manager.renderSaveButtons ? (
                             configEditor.manager.renderSaveButtons(
                                 configEditor,

@@ -326,7 +326,7 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
         // publishing: drafts may have empty slugs to avoid slug collisions.
         const body: GrapherInterface = {
             ...patch,
-            title: patch.title ?? grapherState.effectiveTitle,
+            title: patch.title || grapherState.effectiveTitle,
             ...(grapherState.isPublished && !patch.slug
                 ? { slug: grapherState.displaySlug }
                 : {}),
@@ -347,6 +347,13 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
             this.isInheritanceEnabled = shouldEnableInheritance
             if (isNew) {
                 grapherState.id = json.chartId
+                // Mark the editor saved *before* `newChartId` triggers the
+                // redirect, or the unsaved-changes prompt fires on our own
+                // navigation. The editor sets the same baseline again from
+                // the return value below.
+                editor.savedPatchConfig = editor.store.toEditorConfig(
+                    json.savedPatch
+                )
                 this.newChartId = json.chartId
             } else {
                 grapherState.version += 1
