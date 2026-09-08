@@ -183,6 +183,7 @@ export function GdocsReferenceExample({
         : undefined
     const hasCode = archie !== undefined
     const showCode = hasCode && (tab === "archie" || !previewUrl)
+    const codeLabel = wholeDocument ? "Whole document" : "ArchieML"
     // The tabs only exist when there is something to switch between; without
     // them the panes are plain content, and tabpanel roles would point at
     // tabs that were never rendered.
@@ -233,7 +234,9 @@ export function GdocsReferenceExample({
                         />
                     </div>
                 ) : (
-                    <div className="gdocs-ref-example__tabs" />
+                    <span className="gdocs-ref-example__caption">
+                        {previewUrl ? "Preview" : codeLabel}
+                    </span>
                 )}
                 <div className="gdocs-ref-example__toolbar-right">
                     {previewUrl && !showCode && (
