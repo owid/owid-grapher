@@ -1,6 +1,46 @@
 import { expect, it, describe } from "vitest"
-import { OwidGdocType, TemplateReference } from "@ourworldindata/types"
-import { sortTemplatesByUsage, stepHighlight } from "./gdocsReferenceNav.js"
+import {
+    GuideReference,
+    OwidGdocType,
+    TemplateReference,
+} from "@ourworldindata/types"
+import {
+    sortGuides,
+    sortTemplatesByUsage,
+    stepHighlight,
+} from "./gdocsReferenceNav.js"
+
+const guide = (
+    id: string,
+    category: GuideReference["category"]
+): GuideReference => ({
+    id,
+    title: id,
+    category,
+    sidecarFile: `guides/${id}.md`,
+    description: "",
+    prose: { intro: "" },
+    examples: [],
+})
+
+describe(sortGuides, () => {
+    it("orders by category in presentation order, then by title", () => {
+        const sorted = sortGuides([
+            guide("sticky-nav", "Structure"),
+            guide("refs", "Writing"),
+            guide("deprecating-an-article", "Publishing"),
+            guide("headings-and-structure", "Structure"),
+            guide("details-on-demand", "Writing"),
+        ])
+        expect(sorted.map((g) => g.id)).toEqual([
+            "details-on-demand",
+            "refs",
+            "headings-and-structure",
+            "sticky-nav",
+            "deprecating-an-article",
+        ])
+    })
+})
 
 const template = (id: string): TemplateReference => ({
     id,
