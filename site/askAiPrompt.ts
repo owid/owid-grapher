@@ -60,16 +60,56 @@ export const DEFAULT_QUESTION =
  * metadata (units, sources, OWID's own notes), the raw CSV, and what the
  * visitor currently has on screen.
  */
+/**
+ * Params that describe what the visitor is looking at, and that the grapher's
+ * .csv / .png endpoints understand. Carrying them across means the assistant
+ * reads the same slice of data the visitor has on screen.
+ */
+const STATE_PARAMS = ["country", "time", "tab", "region"]
+
+const stateQuery = (queryStr: string): string => {
+    const from = new URLSearchParams(queryStr)
+    const out = new URLSearchParams()
+    for (const key of STATE_PARAMS) {
+        const value = from.get(key)
+        if (value) out.set(key, value)
+    }
+    const s = out.toString()
+    return s ? `&${s}` : ""
+}
+
+/**
+ * Data URL for the visitor's current view. csvType=filtered returns only the
+ * entities and years on screen — for a chart like child-mortality that is
+ * ~1 KB rather than the 411 KB full export, which is the difference between
+ * the assistant reading the data and truncating it. With no selection it
+ * falls back to the chart's default entities, so it is always safe to send.
+ */
+export const buildCsvUrl = (slugUrl: string, queryStr: string): string =>
+    `${slugUrl}.csv?csvType=filtered${stateQuery(queryStr)}`
+
+/**
+ * A rendered PNG of the chart as the visitor currently has it configured.
+ * Lets the assistant show the real chart, in our house style, rather than
+ * re-plotting our numbers in its own.
+ */
+export const buildPngUrl = (slugUrl: string, queryStr: string): string => {
+    const q = stateQuery(queryStr).replace(/^&/, "")
+    return q ? `${slugUrl}.png?${q}` : `${slugUrl}.png`
+}
+
 export const buildPrompt = ({
     title,
     pageUrl,
     slugUrl,
+    queryStr,
     stateSummary,
     question,
 }: {
     title: string
     pageUrl: string
     slugUrl: string
+    queryStr: string
     stateSummary?: string
     question: string
 }): string => {
@@ -77,15 +117,18 @@ export const buildPrompt = ({
         `I'm looking at "${title}" on Our World in Data: ${pageUrl}`,
         "",
         "Please read these before answering:",
+        `- ${buildCsvUrl(slugUrl, queryStr)} — the data for the view I'm looking at`,
         `- ${slugUrl}.metadata.json — units, sources, timespan and Our World in Data's own notes on this indicator`,
-        `- ${slugUrl}.csv — the full data`,
         "",
     ]
     if (stateSummary) lines.push(stateSummary, "")
     lines.push(
         `My question: ${question}`,
         "",
-        "Answer from that data and those notes. If they don't support an answer, say what's missing rather than estimating."
+        "When you answer:",
+        "- Use only the linked data and notes. If they don't support an answer, say what's missing rather than estimating.",
+        `- Show the chart itself by embedding this image, which matches my current view: ![${title}](${buildPngUrl(slugUrl, queryStr)})`,
+        "- Only link to Our World in Data pages that appear in the files above. Don't construct other URLs."
     )
     return lines.join("\n")
 }

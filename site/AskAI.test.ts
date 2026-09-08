@@ -4,6 +4,8 @@ import {
     buildPrompt,
     describeChartState,
     buildEngineUrl,
+    buildCsvUrl,
+    buildPngUrl,
 } from "./askAiPrompt.js"
 
 const SLUG_URL = "https://ourworldindata.org/grapher/child-mortality"
@@ -32,13 +34,22 @@ describe("prompt construction", () => {
         title: "Child mortality rate",
         pageUrl: `${SLUG_URL}?country=~NGA`,
         slugUrl: SLUG_URL,
+        queryStr: "?country=~NGA",
         stateSummary: "I have selected: NGA.",
         question: "Why has this fallen so fast?",
     })
 
     it("points the assistant at the machine-readable sources", () => {
         expect(prompt).toContain(`${SLUG_URL}.metadata.json`)
-        expect(prompt).toContain(`${SLUG_URL}.csv`)
+        expect(prompt).toContain(`${SLUG_URL}.csv?csvType=filtered`)
+    })
+
+    it("asks for the real chart image, matching the current view", () => {
+        expect(prompt).toContain(`${SLUG_URL}.png?country=%7ENGA`)
+    })
+
+    it("forbids inventing Our World in Data URLs", () => {
+        expect(prompt).toContain("Don't construct other URLs")
     })
 
     it("carries the visitor's question and on-screen state", () => {
@@ -59,6 +70,7 @@ describe("prompt construction", () => {
             title: "Child mortality rate",
             pageUrl: SLUG_URL,
             slugUrl: SLUG_URL,
+            queryStr: "",
             question: "Explain this.",
         })
         expect(bare).not.toContain("I have selected")
@@ -72,6 +84,36 @@ describe("engine deep links", () => {
         )
         expect(buildEngineUrl("claude", "a b&c")).toBe(
             "https://claude.ai/new?q=a%20b%26c"
+        )
+    })
+})
+
+describe("data and image URLs", () => {
+    it("always requests the filtered CSV, even with no selection", () => {
+        expect(buildCsvUrl(SLUG_URL, "")).toBe(
+            `${SLUG_URL}.csv?csvType=filtered`
+        )
+    })
+
+    it("carries the visitor's selection into the CSV", () => {
+        expect(buildCsvUrl(SLUG_URL, "?country=~NGA~IND&time=2000..2020")).toBe(
+            `${SLUG_URL}.csv?csvType=filtered&country=%7ENGA%7EIND&time=2000..2020`
+        )
+    })
+
+    it("ignores params the grapher endpoints don't understand", () => {
+        expect(buildCsvUrl(SLUG_URL, "?askai=v5&utm_source=x")).toBe(
+            `${SLUG_URL}.csv?csvType=filtered`
+        )
+    })
+
+    it("renders a bare PNG url when the chart is untouched", () => {
+        expect(buildPngUrl(SLUG_URL, "?askai=v3")).toBe(`${SLUG_URL}.png`)
+    })
+
+    it("carries the visitor's selection into the PNG", () => {
+        expect(buildPngUrl(SLUG_URL, "?country=~NGA&tab=map")).toBe(
+            `${SLUG_URL}.png?country=%7ENGA&tab=map`
         )
     })
 })

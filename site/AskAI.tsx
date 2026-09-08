@@ -70,6 +70,7 @@ export function AskAI({ slug, title, baseUrl }: AskAIProps) {
             title,
             pageUrl,
             slugUrl,
+            queryStr,
             stateSummary,
             question: trimmed || DEFAULT_QUESTION,
         })
