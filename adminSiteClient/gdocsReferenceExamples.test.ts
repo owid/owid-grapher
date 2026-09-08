@@ -5,11 +5,21 @@ import { exampleIndexForFence } from "./gdocsReferenceExamples.js"
 const source = "{.chart}\nurl: https://ourworldindata.org/grapher/x\n{}"
 const examples: SidecarExample[] = [
     { archie: source, flavour: "archie", section: "intro", position: 0 },
-    { archie: source, flavour: "archie-document", section: "intro", position: 1 },
-    { archie: "{.image}\n{}", flavour: "archie", section: "notes", position: 0 },
+    {
+        archie: source,
+        flavour: "archie-document",
+        section: "intro",
+        position: 1,
+    },
+    {
+        archie: "{.image}\n{}",
+        flavour: "archie",
+        section: "notes",
+        position: 0,
+    },
 ]
 
-describe("exampleIndexForFence", () => {
+describe(exampleIndexForFence, () => {
     it("resolves identical sources with different flavours to different examples", () => {
         expect(exampleIndexForFence(examples, "intro", 0)).toBe(0)
         expect(exampleIndexForFence(examples, "intro", 1)).toBe(1)

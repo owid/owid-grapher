@@ -52,6 +52,9 @@ export function hasFence(text: string): boolean {
     return ANY_FENCE.test(text)
 }
 
+// Anchored to column 0, unlike EXAMPLE_FENCE/ANY_FENCE above: assumes
+// sidecar fences always start at the beginning of a line. An indented
+// fence would escape this language check while still rendering.
 const FENCE_MARKER = new RegExp("^" + FENCE + "([^\\n]*)$", "gm")
 const ALLOWED_FENCE_LANGUAGES = ["archie", "archie-document"]
 
