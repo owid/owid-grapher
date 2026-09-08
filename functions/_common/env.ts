@@ -1,6 +1,8 @@
 export interface Env {
     ASSETS: Fetcher
     url: URL
+    // Public site origin. In local development, Pages Functions and the
+    // site run on different ports.
     BAKED_BASE_URL?: string
     GRAPHER_CONFIG_R2_BUCKET?: R2Bucket
     GRAPHER_CONFIG_R2_BUCKET_FALLBACK?: R2Bucket
@@ -19,9 +21,6 @@ export interface Env {
     // catcher (yarn postmarkCatcher) to inspect emails during development
     // without sending anything.
     POSTMARK_API_BASE_URL?: string
-    // Override the public site origin in local development, where Pages
-    // Functions and the site run on different ports.
-    EMAIL_NOTIFICATIONS_SITE_BASE_URL?: string
     // Basic-auth password for Postmark webhooks (Postmark has no HMAC
     // signatures).
     POSTMARK_WEBHOOK_SECRET: string
