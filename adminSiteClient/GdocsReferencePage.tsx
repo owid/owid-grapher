@@ -663,29 +663,13 @@ export class GdocsReferencePage extends Component<
                 >
                     Get started
                 </Link>
-                {filteredTemplates.length > 0 && (
-                    <div className="gdocs-ref__nav-group">
-                        <div className="gdocs-ref__nav-group-title">
-                            {TEMPLATES_GROUP_TITLE}
-                        </div>
-                        <ul>
-                            {filteredTemplates.map((template) =>
-                                this.renderNavItem("templates", template)
-                            )}
-                        </ul>
-                    </div>
-                )}
-                {filteredGuides.length > 0 && (
-                    <div className="gdocs-ref__nav-group">
-                        <div className="gdocs-ref__nav-group-title">
-                            {GUIDES_GROUP_TITLE}
-                        </div>
-                        <ul>
-                            {filteredGuides.map((guide) =>
-                                this.renderNavItem("guides", guide)
-                            )}
-                        </ul>
-                    </div>
+                {NAV_GROUPS.map(({ kind, title }) =>
+                    this.renderNavGroup(
+                        kind,
+                        title,
+                        rowsByKind[kind].count,
+                        rowsByKind[kind].rows
+                    )
                 )}
                 {nothingMatches && (
                     <div className="gdocs-ref__nav-empty">
