@@ -3,6 +3,7 @@
 import "../../serverUtils/instrument.js"
 
 import * as Sentry from "@sentry/node"
+import type { KnownBlock } from "@slack/web-api"
 import {
     knexRaw,
     knexReadonlyTransaction,
@@ -16,11 +17,14 @@ import {
 } from "../../db/grapherConfigValidation.js"
 import {
     ADMIN_BASE_URL,
+    ENV,
     GRAPHER_DB_HOST,
     GRAPHER_DB_NAME,
     GRAPHER_DB_PORT,
+    SLACK_CONFIG_VALIDATION_CHANNEL_ID,
 } from "../../settings/serverSettings.js"
 import { parseChartConfig } from "../../db/model/ChartConfigs.js"
+import { postToSlack } from "../../serverUtils/slackClient.js"
 type ConfigOwner = "chart" | "indicator" | "narrativeChart" | "multiDim"
 type ConfigRole = "patch" | "full"
 
@@ -92,6 +96,10 @@ const REFERENCING_COLUMNS: Record<string, ConfigReference | null> = {
 
 const BATCH_SIZE = 2000
 const MAX_LISTED_IDS = 20
+const MAX_SLACK_LINES = 15
+const MAX_SLACK_SECTION_LENGTH = 3000
+const SHOULD_POST_TO_SLACK =
+    ENV === "production" || process.argv.includes("--slack")
 
 interface ValidationIssueGroup {
     column: string
@@ -215,22 +223,42 @@ function parseOwnerRef(owner: ConfigOwner, row: RawReferenceRow): OwnerRef {
     }
 }
 
-function adminUrlForOwner(owner: OwnerRef): string {
+function adminLinkForOwner(owner: OwnerRef): { url: string; label: string } {
     switch (owner.owner) {
         case "chart":
-            return `${ADMIN_BASE_URL}/admin/charts/${owner.id}/edit`
+            return {
+                url: `${ADMIN_BASE_URL}/admin/charts/${owner.id}/edit`,
+                label: `chart ${owner.id}`,
+            }
         case "narrativeChart":
-            return `${ADMIN_BASE_URL}/admin/narrative-charts/${owner.id}/edit`
+            return {
+                url: `${ADMIN_BASE_URL}/admin/narrative-charts/${owner.id}/edit`,
+                label: `narrative chart ${owner.id}`,
+            }
         case "multiDim":
-            return `${ADMIN_BASE_URL}/admin/multi-dims/${owner.id}`
+            return {
+                url: `${ADMIN_BASE_URL}/admin/multi-dims/${owner.id}`,
+                label: `mdim ${owner.id}`,
+            }
         case "indicator":
-            return `${ADMIN_BASE_URL}/admin/variables/${owner.id}`
+            return {
+                url: `${ADMIN_BASE_URL}/admin/variables/${owner.id}`,
+                label: `indicator ${owner.id}`,
+            }
     }
 }
 
 function formatOwnerRef(owner: OwnerRef): string {
-    const url = adminUrlForOwner(owner)
+    const { url } = adminLinkForOwner(owner)
     return owner.owner === "multiDim" ? `${url} (view ${owner.viewId})` : url
+}
+
+function formatOwnerRefAsSlackLink(owner: OwnerRef): string {
+    const { url, label } = adminLinkForOwner(owner)
+    const link = `<${url}|${label}>`
+    return owner.owner === "multiDim"
+        ? `${link} (view \`${owner.viewId}\`)`
+        : link
 }
 
 function buildReferenceIndex(rows: RawReferenceRow[]): {
@@ -386,25 +414,22 @@ function partitionReferencingColumns(): {
 
 function renderValidationIssues(
     issues: Map<string, ValidationIssueGroup>,
-    validatedCounts: Map<string, number>
+    validatedCounts: Map<string, number>,
+    formatOwner: (owner: OwnerRef) => string
 ): string[] {
-    if (issues.size === 0) return ["  none"]
+    if (issues.size === 0) return []
     const sorted = [...issues.values()].sort((a, b) => b.count - a.count)
     return sorted.map((issue) => {
         const total = validatedCounts.get(issue.column) ?? 0
-        return `  ${issue.column} ${issue.pointer || "(root)"}: ${issue.message} (${issue.count} of ${total}, e.g. ${issue.exampleOwners.map(formatOwnerRef).join(", ")})`
+        return `${issue.column} ${issue.pointer || "(root)"}: ${issue.message} (${issue.count} of ${total}, e.g. ${issue.exampleOwners.map(formatOwner).join(", ")})`
     })
 }
 
-function printConflicts(conflicts: ReferenceConflict[]): void {
-    if (conflicts.length === 0) {
-        console.log("  none")
-        return
-    }
-    for (const conflict of conflicts)
-        console.log(
-            `  ${conflict.id}: ${conflict.references[0]} vs ${conflict.references[1]}`
-        )
+function renderConflicts(conflicts: ReferenceConflict[]): string[] {
+    return conflicts.map(
+        (conflict) =>
+            `${conflict.id}: ${conflict.references[0]} vs ${conflict.references[1]}`
+    )
 }
 
 function printUnreferencedIds(ids: string[]): void {
@@ -418,13 +443,21 @@ function printUnreferencedIds(ids: string[]): void {
         console.log(`  ... and ${ids.length - MAX_LISTED_IDS} more`)
 }
 
-function printUnexpectedFailures(failures: UnexpectedFailure[]): void {
-    if (failures.length === 0) {
+function renderUnexpectedFailures(
+    failures: UnexpectedFailure[],
+    formatOwner: (owner: OwnerRef) => string
+): string[] {
+    return failures.map(
+        (failure) => `${formatOwner(failure.owner)}: ${failure.message}`
+    )
+}
+
+function printFindings(lines: string[]): void {
+    if (lines.length === 0) {
         console.log("  none")
         return
     }
-    for (const failure of failures)
-        console.log(`  ${formatOwnerRef(failure.owner)}: ${failure.message}`)
+    for (const line of lines) console.log(`  ${line}`)
 }
 
 function printReport(report: Report, elapsedSeconds: number): void {
@@ -455,15 +488,17 @@ function printReport(report: Report, elapsedSeconds: number): void {
     console.log("")
 
     console.log("Validation issues:")
-    for (const line of renderValidationIssues(
-        report.validationIssues,
-        report.validatedCounts
-    ))
-        console.log(line)
+    printFindings(
+        renderValidationIssues(
+            report.validationIssues,
+            report.validatedCounts,
+            formatOwnerRef
+        )
+    )
     console.log("")
 
     console.log("Rows referenced with conflicting roles:")
-    printConflicts(report.conflicts)
+    printFindings(renderConflicts(report.conflicts))
     console.log("")
 
     console.log("Rows nothing references:")
@@ -471,7 +506,9 @@ function printReport(report: Report, elapsedSeconds: number): void {
     console.log("")
 
     console.log("Rows that threw an unexpected error:")
-    printUnexpectedFailures(report.unexpectedFailures)
+    printFindings(
+        renderUnexpectedFailures(report.unexpectedFailures, formatOwnerRef)
+    )
     console.log("")
 
     console.log(
@@ -479,10 +516,81 @@ function printReport(report: Report, elapsedSeconds: number): void {
     )
 }
 
+function renderSlackSectionText(
+    heading: string,
+    lines: string[],
+    omitted: number
+): string {
+    return [
+        `*${heading}*`,
+        ...lines.map((line) => `• ${line}`),
+        ...(omitted > 0 ? [`... and ${omitted} more`] : []),
+    ].join("\n")
+}
+
+function slackSection(
+    heading: string,
+    lines: string[]
+): KnownBlock | undefined {
+    if (lines.length === 0) return undefined
+    let kept = lines.slice(0, MAX_SLACK_LINES)
+    let text = renderSlackSectionText(heading, kept, lines.length - kept.length)
+    while (text.length > MAX_SLACK_SECTION_LENGTH && kept.length > 0) {
+        kept = kept.slice(0, -1)
+        text = renderSlackSectionText(heading, kept, lines.length - kept.length)
+    }
+    return { type: "section", text: { type: "mrkdwn", text } }
+}
+
+function buildSlackBlocks(report: Report): KnownBlock[] | undefined {
+    const sections = [
+        slackSection(
+            "Validation issues",
+            renderValidationIssues(
+                report.validationIssues,
+                report.validatedCounts,
+                formatOwnerRefAsSlackLink
+            )
+        ),
+        slackSection(
+            "Rows referenced with conflicting roles",
+            renderConflicts(report.conflicts)
+        ),
+        slackSection(
+            "Rows that threw an unexpected error",
+            renderUnexpectedFailures(
+                report.unexpectedFailures,
+                formatOwnerRefAsSlackLink
+            )
+        ),
+    ].filter((section): section is KnownBlock => section !== undefined)
+    if (sections.length === 0) return undefined
+
+    return [
+        {
+            type: "header",
+            text: {
+                type: "plain_text",
+                text: "Grapher configs failing schema validation",
+            },
+        },
+        ...sections,
+        {
+            type: "context",
+            elements: [
+                {
+                    type: "mrkdwn",
+                    text: `${GRAPHER_DB_HOST}:${GRAPHER_DB_PORT}/${GRAPHER_DB_NAME}`,
+                },
+            ],
+        },
+    ]
+}
+
 async function main(): Promise<void> {
     const startTime = Date.now()
 
-    await knexReadonlyTransaction(async (trx) => {
+    const report = await knexReadonlyTransaction(async (trx) => {
         await assertReferencingColumnsUpToDate(trx)
 
         const referenceRows = await knexRaw<RawReferenceRow>(
@@ -495,9 +603,23 @@ async function main(): Promise<void> {
         const report = createReport()
         report.conflicts = conflicts
         await walkChartConfigs(trx, referenceIndex, report)
-
-        printReport(report, (Date.now() - startTime) / 1000)
+        return report
     }, TransactionCloseMode.Close)
+
+    printReport(report, (Date.now() - startTime) / 1000)
+
+    const blocks = buildSlackBlocks(report)
+    if (!blocks) return
+    if (SHOULD_POST_TO_SLACK)
+        await postToSlack(
+            SLACK_CONFIG_VALIDATION_CHANNEL_ID,
+            blocks,
+            "Grapher configs failing schema validation"
+        )
+    else
+        console.log(
+            "Not posting to Slack outside production. Pass --slack to post anyway."
+        )
 }
 
 main()
