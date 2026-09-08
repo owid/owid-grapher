@@ -20,10 +20,10 @@ is missing an entry.
   the components reference for every available block.
 - `refs`: Footnote definitions for ID-based references, authored as a
   `[.refs]` block of `id:` + `[.+content]` entries. Inline
-  `{ref}…{/ref}` footnotes need no entry here.
+  `{ref}…{/ref}` footnotes need no entry here. See `{guide:refs}`.
 - `deprecation-notice`: One or more paragraphs shown in a banner marking the
   article as outdated, authored as a `[+deprecation-notice]` freeform block
-  of text paragraphs.
+  of text paragraphs. See `{guide:deprecating-an-article}`.
 - `latest-feed-featured-image`: Image filename that overrides
   `featured-image` on the /latest feed.
 - `latest-feed-excerpt`: Rich-text excerpt (formatting and internal links
@@ -46,8 +46,9 @@ is missing an entry.
 - `sticky-nav`: Navigation items pinned below the header, authored as a
   `[.sticky-nav]` array of `target:` (anchor) + `text:` (label) pairs. Only
   rendered on topic pages, where it's generated automatically from
-  heading patterns unless this array overrides it.
+  heading patterns unless this array overrides it. See
+  `{guide:sticky-nav}`.
 - `details`: Details-on-demand dictionary, not authored in the document —
   it is merged in at render/bake time from the `dods` database table,
-  edited at /admin/dods.
+  edited at /admin/dods. See `{guide:details-on-demand}`.
 - `faqs`: FAQ content consumed by data pages, authored in FAQ fragments.

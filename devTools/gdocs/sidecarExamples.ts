@@ -51,3 +51,32 @@ export function harvestExamples(prose: SidecarProse): SidecarExample[] {
 export function hasFence(text: string): boolean {
     return ANY_FENCE.test(text)
 }
+
+const FENCE_MARKER = new RegExp("^" + FENCE + "([^\\n]*)$", "gm")
+const ALLOWED_FENCE_LANGUAGES = ["archie", "archie-document"]
+
+/**
+ * Fences must be balanced and speak one of the two example languages.
+ *
+ * Both are build errors rather than silent behaviour: an unterminated fence
+ * would leak its content into the mention scan (which strips only closed
+ * fences), and a fence in any other language is content the reference cannot
+ * render or validate — it would simply disappear from the page.
+ */
+export function assertWellFormedFences(body: string, file: string): void {
+    const infos = [...body.matchAll(FENCE_MARKER)].map((match) => match[1])
+    if (infos.length % 2 !== 0)
+        throw new Error(file + ": has an unterminated code fence")
+    // Fence markers alternate open/close; only the opening ones carry a
+    // language.
+    for (let i = 0; i < infos.length; i += 2) {
+        const info = infos[i].replace(/[ \t]+$/, "")
+        if (!ALLOWED_FENCE_LANGUAGES.includes(info))
+            throw new Error(
+                file +
+                    ': code fence with unsupported language "' +
+                    info +
+                    '" — use archie or archie-document'
+            )
+    }
+}

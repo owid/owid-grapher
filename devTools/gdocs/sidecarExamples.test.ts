@@ -6,7 +6,11 @@
  */
 
 import { describe, expect, test } from "vitest"
-import { harvestExamples, hasFence } from "./sidecarExamples.js"
+import {
+    assertWellFormedFences,
+    harvestExamples,
+    hasFence,
+} from "./sidecarExamples.js"
 
 const fence = (lang: string, body: string): string =>
     "```" + lang + "\n" + body + "\n```"
@@ -77,5 +81,42 @@ describe(harvestExamples, () => {
             ["archie", "{.chart}\n{}"],
             ["archie-document", "type: article\n{}"],
         ])
+    })
+})
+
+describe(assertWellFormedFences, () => {
+    test("accepts balanced archie and archie-document fences", () => {
+        expect(() =>
+            assertWellFormedFences(
+                [
+                    "Intro.",
+                    fence("archie", "{.chart}\n{}"),
+                    "More.",
+                    fence("archie-document", "type: article"),
+                ].join("\n\n"),
+                "sidecar.md"
+            )
+        ).not.toThrow()
+    })
+
+    test("rejects an unterminated fence", () => {
+        expect(() =>
+            assertWellFormedFences("```archie\n{.chart}\n{}\n", "sidecar.md")
+        ).toThrow(/unterminated code fence/)
+    })
+
+    test("rejects a fence in another language", () => {
+        expect(() =>
+            assertWellFormedFences(fence("yaml", "a: b"), "sidecar.md")
+        ).toThrow(/unsupported language "yaml"/)
+    })
+
+    test("tolerates trailing whitespace on the info line", () => {
+        expect(() =>
+            assertWellFormedFences(
+                "```archie \n{.chart}\n{}\n```",
+                "sidecar.md"
+            )
+        ).not.toThrow()
     })
 })
