@@ -5,7 +5,6 @@ import {
     describeChartState,
     buildEngineUrl,
     buildCsvUrl,
-    buildPngUrl,
     OWID_PUBLIC_GRAPHER_URL,
 } from "./askAiPrompt.js"
 
@@ -45,8 +44,13 @@ describe("prompt construction", () => {
         expect(prompt).toContain(`${SLUG_URL}.csv?csvType=filtered`)
     })
 
-    it("asks for the real chart image, matching the current view", () => {
-        expect(prompt).toContain(`${SLUG_URL}.png?country=%7ENGA`)
+    it("asks for a short, data-led answer", () => {
+        expect(prompt).toContain("keep it short")
+        expect(prompt).toContain("compact table")
+    })
+
+    it("no longer asks the assistant to embed our chart image", () => {
+        expect(prompt).not.toContain(".png")
     })
 
     it("forbids inventing Our World in Data URLs", () => {
@@ -105,16 +109,6 @@ describe("data and image URLs", () => {
     it("ignores params the grapher endpoints don't understand", () => {
         expect(buildCsvUrl(SLUG_URL, "?askai=v5&utm_source=x")).toBe(
             `${SLUG_URL}.csv?csvType=filtered`
-        )
-    })
-
-    it("renders a bare PNG url when the chart is untouched", () => {
-        expect(buildPngUrl(SLUG_URL, "?askai=v3")).toBe(`${SLUG_URL}.png`)
-    })
-
-    it("carries the visitor's selection into the PNG", () => {
-        expect(buildPngUrl(SLUG_URL, "?country=~NGA&tab=map")).toBe(
-            `${SLUG_URL}.png?country=%7ENGA&tab=map`
         )
     })
 })

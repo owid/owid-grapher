@@ -71,7 +71,7 @@ export const DEFAULT_QUESTION =
  */
 /**
  * Params that describe what the visitor is looking at, and that the grapher's
- * .csv / .png endpoints understand. Carrying them across means the assistant
+ * .csv endpoint understands. Carrying them across means the assistant
  * reads the same slice of data the visitor has on screen.
  */
 const STATE_PARAMS = ["country", "time", "tab", "region"]
@@ -96,16 +96,6 @@ const stateQuery = (queryStr: string): string => {
  */
 export const buildCsvUrl = (slugUrl: string, queryStr: string): string =>
     `${slugUrl}.csv?csvType=filtered${stateQuery(queryStr)}`
-
-/**
- * A rendered PNG of the chart as the visitor currently has it configured.
- * Lets the assistant show the real chart, in our house style, rather than
- * re-plotting our numbers in its own.
- */
-export const buildPngUrl = (slugUrl: string, queryStr: string): string => {
-    const q = stateQuery(queryStr).replace(/^&/, "")
-    return q ? `${slugUrl}.png?${q}` : `${slugUrl}.png`
-}
 
 export const buildPrompt = ({
     title,
@@ -135,8 +125,9 @@ export const buildPrompt = ({
         `My question: ${question}`,
         "",
         "When you answer:",
+        "- Answer my question directly and keep it short. No preamble, no restating my question, no general background I didn't ask for.",
+        "- Lead with the data. Put the relevant figures in a compact table, and draw a chart from them when it makes the pattern clearer than prose would.",
         "- Use only the linked data and notes. If they don't support an answer, say what's missing rather than estimating.",
-        `- Show the chart itself by embedding this image, which matches my current view: ![${title}](${buildPngUrl(slugUrl, queryStr)})`,
         "- Only link to Our World in Data pages that appear in the files above. Don't construct other URLs."
     )
     return lines.join("\n")
