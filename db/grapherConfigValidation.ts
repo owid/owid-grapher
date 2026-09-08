@@ -7,7 +7,7 @@ import type { JSONSchema7 } from "json-schema"
 import { parse } from "yaml"
 import { GrapherInterface, JsonError } from "@ourworldindata/types"
 import {
-    AnyConfig,
+    UntypedGrapherConfig,
     defaultGrapherConfig,
     getSchemaVersion,
     latestSchemaVersion,
@@ -31,12 +31,14 @@ export class GrapherConfigValidationError extends JsonError {
 }
 
 /** Throws if the config is invalid, reporting every issue at once */
-export function assertValidGrapherConfig(config: AnyConfig): void {
+export function assertValidGrapherConfig(config: UntypedGrapherConfig): void {
     const issues = validateGrapherConfig(config)
     if (issues.length > 0) throw new GrapherConfigValidationError(issues)
 }
 
-export function ingestGrapherConfig(config: AnyConfig): GrapherInterface {
+export function ingestGrapherConfig(
+    config: UntypedGrapherConfig
+): GrapherInterface {
     if (!_.isPlainObject(config))
         throw new GrapherConfigValidationError([
             { pointer: "", message: "must be object" },
@@ -74,7 +76,7 @@ export function ingestGrapherConfig(config: AnyConfig): GrapherInterface {
 }
 
 function validateGrapherConfig(
-    config: AnyConfig
+    config: UntypedGrapherConfig
 ): GrapherConfigValidationIssue[] {
     if (validateAgainstSchema(config)) return []
     return (validateAgainstSchema.errors ?? []).map((error) => ({
