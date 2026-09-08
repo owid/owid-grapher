@@ -407,21 +407,26 @@ class VariableEditor extends Component<{
         const { variable } = this.props
         const grapherConfig = variable.grapherConfigETL
 
-        // If the variable has a grapher config, use it as-is
-        if (grapherConfig) return grapherConfig
+        // Indicator-level configs don't carry dimensions, so we plot the
+        // indicator itself
+        const defaultDimensions = [
+            { property: DimensionProperty.y, variableId: variable.id },
+        ]
+
+        // If the variable has a grapher config, preview it as authored
+        if (grapherConfig)
+            return {
+                ...grapherConfig,
+                dimensions: grapherConfig.dimensions ?? defaultDimensions,
+            }
 
         // Otherwise, create a default config with a map tab
         return {
             yAxis: { min: 0 },
-            map: { columnSlug: this.props.variable.id.toString() },
+            map: { columnSlug: variable.id.toString() },
             tab: GRAPHER_TAB_CONFIG_OPTIONS.map,
             hasMapTab: true,
-            dimensions: [
-                {
-                    property: DimensionProperty.y,
-                    variableId: this.props.variable.id,
-                },
-            ],
+            dimensions: defaultDimensions,
         }
     }
 
