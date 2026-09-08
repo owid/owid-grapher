@@ -320,6 +320,10 @@
     }
 }
 
+.gdocs-ref__card--guide {
+    border-left: 3px solid $blue-40;
+}
+
 .gdocs-ref__card-title {
     font-size: 14px;
     font-weight: 600;
@@ -414,6 +418,45 @@
     }
 }
 
+// "See also" — a quiet row of chips at the very bottom of a detail page,
+// after the authored material, not a prominent section.
+.gdocs-ref__related {
+    margin-top: 32px;
+}
+
+.gdocs-ref__related-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: $gray-60;
+    margin: 0 0 8px;
+}
+
+.gdocs-ref__related-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.gdocs-ref__related-chip {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    background: $gray-10;
+    font-size: 13px;
+    color: $gray-90;
+
+    &:hover {
+        background: $gray-20;
+        text-decoration: none;
+    }
+}
+
+.gdocs-ref__related-chip-kind {
+    color: $gray-60;
+}
+
 .gdocs-ref__note {
     color: $gray-70;
     font-style: italic;
@@ -480,6 +523,23 @@
 
     &:hover code {
         border-color: $blue-40;
+        text-decoration: none;
+    }
+}
+
+// A `{guide:id}` / `{template:id}` mention: the target's title, styled as a
+// small pill rather than code — unlike a component mention, its link text
+// isn't an ArchieML shape authors need to recognise.
+.gdocs-ref__mention--titled {
+    display: inline-block;
+    font-size: 12.5px;
+    color: $blue-90;
+    background: $blue-10;
+    padding: 1px 6px;
+    border-radius: 4px;
+
+    &:hover {
+        background: $blue-20;
         text-decoration: none;
     }
 }
