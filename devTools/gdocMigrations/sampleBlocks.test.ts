@@ -129,7 +129,7 @@ describe(collectFrontmatterSamples, () => {
     })
 })
 
-describe("dedupeSamples", () => {
+describe(dedupeSamples, () => {
     it("keeps the first of each shape up to the limit", () => {
         const make = (shape: string, id: string) => ({
             shape,
