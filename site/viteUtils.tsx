@@ -1,6 +1,6 @@
 import * as _ from "lodash-es"
 import * as React from "react"
-import findBaseDir from "../settings/findBaseDir.js"
+import findBaseDir from "../settings/findBaseDir.mjs"
 import fs from "fs-extra"
 import {
     ENV,
@@ -15,8 +15,8 @@ import {
     VITE_ENTRYPOINT_INFO,
     ViteEntryPoint,
     ViteEntryPointName,
-} from "./viteConstants.js"
-import { IS_ARCHIVE } from "../settings/clientSettings.js"
+} from "./viteConstants.mjs"
+import { IS_ARCHIVE } from "../settings/clientSettings.mjs"
 
 const VITE_PORT = process.env.VITE_PORT ?? "8090"
 const VITE_DEV_URL = process.env.VITE_DEV_URL ?? `http://localhost:${VITE_PORT}`

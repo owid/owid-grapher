@@ -6,7 +6,7 @@ import ArticleBlock from "./ArticleBlock.js"
 import { Container, getLayout } from "./layout.js"
 import { BlockErrorFallback } from "./BlockErrorBoundary.js"
 import { LARGEST_IMAGE_WIDTH } from "@ourworldindata/utils"
-import { CLOUDFLARE_IMAGES_URL } from "../../../settings/clientSettings.js"
+import { CLOUDFLARE_IMAGES_URL } from "../../../settings/clientSettings.mjs"
 
 export default function AtomArticleBlocks({
     blocks,

@@ -51,7 +51,7 @@ export const defineViteConfigForEntrypoint = (
         resolve: {
             alias: {
                 // We don't want to load dotenv in the browser build, and don't need to fill in node imports like fs or path.
-                "./loadDotenv.js": "./loadDotenv.browser.js",
+                "./loadDotenv.mjs": "./loadDotenv.browser.js",
                 "./loadDotenv.mts": "./loadDotenv.browser.js",
             },
         },

@@ -20,7 +20,7 @@ import {
     MinimalTagWithMetadata,
     TagGraphRole,
 } from "@ourworldindata/utils"
-import { BAKED_BASE_URL } from "../settings/clientSettings.js"
+import { BAKED_BASE_URL } from "../settings/clientSettings.mjs"
 import { EditableTags } from "./EditableTags.js"
 import { GdocsEditLink } from "./GdocsEditLink.js"
 import { checkCanTagGdocType } from "./gdocsTagging.js"

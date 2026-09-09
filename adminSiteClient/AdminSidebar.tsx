@@ -28,7 +28,7 @@ import {
     faCodeCompare,
 } from "@fortawesome/free-solid-svg-icons"
 
-import { ETL_WIZARD_URL } from "../settings/clientSettings.js"
+import { ETL_WIZARD_URL } from "../settings/clientSettings.mjs"
 
 export const AdminSidebar = (): React.ReactElement => (
     <aside className="AdminSidebar">

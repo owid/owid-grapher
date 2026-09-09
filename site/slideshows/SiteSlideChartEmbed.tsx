@@ -1,7 +1,7 @@
 import React from "react"
 import { ResolvedSlideChartInfo } from "@ourworldindata/types"
 import { parseSlideChartUrl } from "./slideshowUtils.js"
-import { GRAPHER_DYNAMIC_CONFIG_URL } from "../../settings/clientSettings.js"
+import { GRAPHER_DYNAMIC_CONFIG_URL } from "../../settings/clientSettings.mjs"
 import { SiteSlideGrapher } from "./SiteSlideGrapher.js"
 import { SiteSlideExplorer } from "./SiteSlideExplorer.js"
 

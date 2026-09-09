@@ -24,7 +24,7 @@ import {
     ALGOLIA_SEARCH_KEY,
     BAKED_BASE_URL,
     BAKED_GRAPHER_URL,
-} from "../../settings/clientSettings.js"
+} from "../../settings/clientSettings.mjs"
 import { DEFAULT_SEARCH_PLACEHOLDER } from "./searchClient.js"
 import { getAutocompleteSearchClient } from "./searchClients.js"
 import {

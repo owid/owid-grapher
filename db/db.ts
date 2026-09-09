@@ -8,7 +8,7 @@ import {
     GRAPHER_DB_PORT,
     BAKED_BASE_URL,
 } from "../settings/serverSettings.js"
-import { IS_ARCHIVE } from "../settings/clientSettings.js"
+import { IS_ARCHIVE } from "../settings/clientSettings.mjs"
 import { PROD_URL } from "../site/SiteConstants.js"
 import { registerExitHandler } from "./cleanup.js"
 import { createTagGraph, Url } from "@ourworldindata/utils"

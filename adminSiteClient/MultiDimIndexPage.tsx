@@ -26,7 +26,7 @@ import {
     ADMIN_BASE_URL,
     BAKED_GRAPHER_URL,
     GRAPHER_DYNAMIC_THUMBNAIL_URL,
-} from "../settings/clientSettings.js"
+} from "../settings/clientSettings.mjs"
 import { dayjs, Json } from "@ourworldindata/utils"
 import { Link } from "./Link.js"
 

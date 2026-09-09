@@ -29,7 +29,7 @@ import {
 } from "@ourworldindata/grapher"
 import { NarrativeChartMinimalInformation } from "./ChartEditor.js"
 import { DataInsightMinimalInformation } from "../adminShared/AdminTypes.js"
-import { CATALOG_URL, DATA_API_URL } from "../settings/clientSettings.js"
+import { CATALOG_URL, DATA_API_URL } from "../settings/clientSettings.mjs"
 
 const EDITOR_TABS = [
     "basic",

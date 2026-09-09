@@ -7,7 +7,7 @@ import {
     triggerDownloadFromBlob,
 } from "@ourworldindata/utils"
 import cx from "clsx"
-import { CLOUDFLARE_IMAGES_URL } from "../../../settings/clientSettings.js"
+import { CLOUDFLARE_IMAGES_URL } from "../../../settings/clientSettings.mjs"
 import { useDocumentContext } from "../DocumentContext.js"
 import { useImage } from "../utils.js"
 import { BlockErrorFallback } from "./BlockErrorBoundary.js"

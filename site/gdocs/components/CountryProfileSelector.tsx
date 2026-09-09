@@ -14,7 +14,7 @@ import {
     faMagnifyingGlass,
     faTimesCircle,
 } from "@fortawesome/free-solid-svg-icons"
-import { IS_ARCHIVE } from "../../../settings/clientSettings.js"
+import { IS_ARCHIVE } from "../../../settings/clientSettings.mjs"
 import { PROD_URL } from "../../SiteConstants.js"
 import urlJoin from "url-join"
 import { useDocumentContext } from "../DocumentContext.js"

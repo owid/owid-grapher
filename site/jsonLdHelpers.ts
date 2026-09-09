@@ -1,7 +1,7 @@
 import * as _ from "lodash-es"
 import { DataPageDataV2, GrapherInterface } from "@ourworldindata/utils"
 import { GRAPHER_IMAGE_WIDTH_2X } from "@ourworldindata/grapher"
-import { GRAPHER_DYNAMIC_THUMBNAIL_URL } from "../settings/clientSettings.js"
+import { GRAPHER_DYNAMIC_THUMBNAIL_URL } from "../settings/clientSettings.mjs"
 import type { Organization } from "schema-dts"
 
 export function makeJsonLdOwidOrganization(baseUrl: string): Organization {

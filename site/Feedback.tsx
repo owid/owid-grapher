@@ -8,7 +8,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons"
 import { observable, action, toJS, computed, makeObservable } from "mobx"
 import classnames from "clsx"
-import { BAKED_BASE_URL } from "../settings/clientSettings.js"
+import { BAKED_BASE_URL } from "../settings/clientSettings.mjs"
 import { stringifyUnknownError } from "@ourworldindata/utils"
 
 const sendFeedback = async (feedback: Feedback) => {
