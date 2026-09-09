@@ -349,6 +349,14 @@ export async function renderDataPageV2(
                         knex,
                         [id]
                     )
+                    // Each pane resolves its own primary topic — without this
+                    // the "part of the following publication" segment of
+                    // getCitationDatapage silently disappears from every
+                    // non-primary pane's "Cite this data".
+                    indicatorDatapageData.primaryTopic = await getPrimaryTopic(
+                        knex,
+                        indicatorDatapageData.topicTagsLinks
+                    )
                     // The indicator's grapher config is only consumed while
                     // building the pane data above (title/license overrides).
                     // Nothing reads it client-side — only the PRIMARY
