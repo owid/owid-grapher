@@ -8,7 +8,7 @@ import { ABOUT_LINKS, PROD_URL, RSS_FEEDS, SOCIALS } from "./SiteConstants.js"
 import { Button } from "@ourworldindata/components"
 import { SITE_TOOLS_CLASS } from "./SiteTools.js"
 import { OxfordAndGcdlLogos } from "./SiteLogos.js"
-import { IS_ARCHIVE } from "../settings/clientSettings.js"
+import { IS_ARCHIVE } from "../settings/clientSettings.mjs"
 import { SEARCH_BASE_PATH } from "./search/searchUtils.js"
 import { buildLatestPagePath } from "./latest/latestUtils.js"
 

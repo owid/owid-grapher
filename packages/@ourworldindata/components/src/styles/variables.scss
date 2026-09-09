@@ -205,3 +205,31 @@ $box-shadow-xl:
 */
 
 $margin-bottom-section-heading-ltp: 32px;
+
+/*******************************************************************************
+ * Motion
+ *
+ * Easing curves and durations for UI animation. Prefer these over hand-typed
+ * values so motion stays consistent across the site, grapher and explorers.
+ *
+ * Easing: use --ease-out for anything entering or leaving the screen (the
+ * default choice), --ease-in-out only for something moving or morphing while
+ * already on screen, and --ease-drawer for drawers and bottom sheets. Plain
+ * `ease` is fine for hover colour changes. Never use `ease-in` on UI — it
+ * starts slow and delays the moment the user is watching.
+ *
+ * Duration: 300ms is the ceiling for UI motion. Longer belongs only in
+ * marketing or explanatory animation.
+ */
+
+:root {
+    --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+    --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+    --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+
+    --duration-hover: 100ms; // hover and colour changes
+    --duration-press: 150ms; // press feedback, toggles, tooltips
+    --duration-popover: 200ms; // dropdowns, popovers, crossfades
+    --duration-panel: 250ms; // expand/collapse, larger panels
+    --duration-drawer: 300ms; // drawers and bottom sheets — the UI ceiling
+}

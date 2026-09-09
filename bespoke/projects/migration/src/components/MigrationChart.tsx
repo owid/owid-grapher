@@ -3,8 +3,8 @@ import * as R from "remeda"
 import { articulateEntity } from "@ourworldindata/utils"
 
 import { Spinner } from "../../../../components/Spinner/Spinner.js"
-import { MigrationFlow, MigrationView, Sex } from "../types.js"
-import { getSexAdjective } from "../helpers.js"
+import { MigrationFlow, MigrationView, Sex } from "../core/types.js"
+import { getSexAdjective } from "../core/helpers.js"
 import { MigrationSankey } from "./MigrationSankey.js"
 
 export function MigrationChart({

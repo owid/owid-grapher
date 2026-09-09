@@ -169,7 +169,6 @@ export interface OwidGdocMinimalPostInterface {
     type: OwidGdocType // used in useLinkedDocument to prepend /data-insights/ to the slug
     "featured-image"?: string // used in prominent links and research & writing block
     kicker?: string // used in homepage announcements
-    cta?: { text: string; url: string } // used in homepage announcements
     availableEntityCodes?: string[] // used for profile-type docs to resolve ?country=X links
 }
 
@@ -294,10 +293,6 @@ export interface OwidGdocAnnouncementContent {
     kicker?: string
     body: OwidEnrichedGdocBlock[]
     type: OwidGdocType.Announcement
-    cta?: {
-        text: string
-        url: string
-    }
 }
 
 export interface OwidGdocAnnouncementInterface extends OwidGdocBaseInterface {

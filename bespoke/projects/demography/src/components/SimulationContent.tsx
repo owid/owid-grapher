@@ -1,21 +1,21 @@
 import cx from "clsx"
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { useBreakpoint } from "../helpers/useBreakpoint.js"
+import { useBreakpoint } from "../core/useBreakpoint.js"
 import { Tippy } from "@ourworldindata/utils"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCircleInfo } from "@fortawesome/free-solid-svg-icons"
 import { Tabs, TabList, Tab, TabPanel } from "react-aria-components"
 import { GrapherTrendArrow } from "@ourworldindata/components"
-import { CountryData, PARAMETER_KEYS, ParameterKey } from "../helpers/types"
+import { CountryData, PARAMETER_KEYS, ParameterKey } from "../core/types"
 import {
     useSimulation,
     computeScenarioOverrides,
     type Simulation,
-} from "../helpers/useSimulation"
+} from "../core/useSimulation"
 import {
     updateWindowUrlForSimulationState,
     isControlPointModified,
-} from "../helpers/urlState.js"
+} from "../core/urlState.js"
 import { PopulationChart } from "./PopulationChart.js"
 import { DemographyParameterEditor } from "./DemographyParameterEditor.js"
 import { PopulationPyramid } from "./PopulationPyramid.js"
@@ -29,10 +29,11 @@ import {
     FULL_TIME_RANGE,
     USER_MODIFIED_COLOR,
     USER_MODIFIED_COLOR_LIGHT,
-} from "../helpers/constants.js"
+} from "../core/constants.js"
 import { ProjectionLegend } from "./ProjectionLegend.js"
-import { parameterConfigByKey } from "../helpers/parameterConfigs.js"
+import { parameterConfigByKey } from "../core/parameterConfigs.js"
 import { useTippyContainer } from "../../../../hooks/useTippyContainer.js"
+import { useEmbedConfig } from "../../../../hooks/useEmbedConfig.js"
 
 const PARAMETER_TAB_LABELS: Record<ParameterKey, string> = {
     fertilityRate: "Fertility rate",
@@ -48,7 +49,6 @@ export function SimulationContent({
     fertilityRateAssumptions,
     lifeExpectancyAssumptions,
     netMigrationRateAssumptions,
-    urlSync,
     urlFertilityRateAssumptions,
     urlLifeExpectancyAssumptions,
     urlNetMigrationRateAssumptions,
@@ -64,7 +64,6 @@ export function SimulationContent({
     fertilityRateAssumptions?: Record<number, number>
     lifeExpectancyAssumptions?: Record<number, number>
     netMigrationRateAssumptions?: Record<number, number>
-    urlSync?: boolean
     urlFertilityRateAssumptions?: Record<number, number>
     urlLifeExpectancyAssumptions?: Record<number, number>
     urlNetMigrationRateAssumptions?: Record<number, number>
@@ -73,6 +72,8 @@ export function SimulationContent({
     urlTab?: ParameterKey
     urlYear?: number
 }) {
+    const { urlSync } = useEmbedConfig()
+
     const baselineTab: ParameterKey = focusParameter ?? "fertilityRate"
     const baselineYear = END_YEAR
 

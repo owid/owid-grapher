@@ -17,7 +17,7 @@ import { StackedAreaChartState } from "../stackedCharts/StackedAreaChartState.js
 import { StackedBarChartState } from "../stackedCharts/StackedBarChartState.js"
 import { StackedDiscreteBarChartState } from "../stackedCharts/StackedDiscreteBarChartState"
 import { ScatterPlotChartState } from "../scatterCharts/ScatterPlotChartState"
-import { MarimekkoChartState } from "../stackedCharts/MarimekkoChartState"
+import { MarimekkoChartState } from "../marimekko/MarimekkoChartState"
 import { DumbbellChartState } from "../dumbbellCharts/DumbbellChartState"
 import { MapChartState } from "../mapCharts/MapChartState"
 
@@ -28,7 +28,7 @@ import { StackedAreaChart } from "../stackedCharts/StackedAreaChart"
 import { StackedBarChart } from "../stackedCharts/StackedBarChart"
 import { StackedDiscreteBarChart } from "../stackedCharts/StackedDiscreteBarChart"
 import { ScatterPlotChart } from "../scatterCharts/ScatterPlotChart"
-import { MarimekkoChart } from "../stackedCharts/MarimekkoChart"
+import { MarimekkoChart } from "../marimekko/MarimekkoChart"
 import { DumbbellChart } from "../dumbbellCharts/DumbbellChart"
 import { MapChart } from "../mapCharts/MapChart"
 
@@ -39,7 +39,7 @@ import { StackedAreaChartThumbnail } from "../stackedCharts/StackedAreaChartThum
 import { StackedBarChartThumbnail } from "../stackedCharts/StackedBarChartThumbnail"
 import { StackedDiscreteBarChartThumbnail } from "../stackedCharts/StackedDiscreteBarChartThumbnail"
 import { ScatterPlotChartThumbnail } from "../scatterCharts/ScatterPlotChartThumbnail"
-import { MarimekkoChartThumbnail } from "../stackedCharts/MarimekkoChartThumbnail"
+import { MarimekkoChartThumbnail } from "../marimekko/MarimekkoChartThumbnail"
 import { DumbbellChartThumbnail } from "../dumbbellCharts/DumbbellChartThumbnail"
 import { MapChartThumbnail } from "../mapCharts/MapChartThumbnail"
 

@@ -36,10 +36,7 @@ import {
     Time,
 } from "@ourworldindata/types"
 import { OwidTable } from "@ourworldindata/core-table"
-import {
-    GRAPHER_LOADED_EVENT_NAME,
-    GrapherModal,
-} from "../core/GrapherConstants"
+import { GrapherModal } from "../core/GrapherConstants"
 
 import { FullScreen } from "../fullScreen/FullScreen"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -62,12 +59,6 @@ import { FocusArray } from "../focus/FocusArray"
 import { Chart } from "../chart/Chart.js"
 import { flushSync } from "react-dom"
 import { GrapherState } from "./GrapherState.js"
-
-declare global {
-    interface Window {
-        admin?: any // TODO: use stricter type
-    }
-}
 
 // Exactly the same as GrapherInterface, but contains options that developers want but authors won't be touching.
 export interface GrapherProgrammaticInterface extends GrapherInterface {
@@ -132,7 +123,6 @@ export interface GrapherManager {
     queryStr?: string
     selection?: SelectionArray
     focusArray?: FocusArray
-    adminEditPath?: string
     adminCreateNarrativeChartPath?: string
     analyticsContext?: AnalyticsContext
 }
@@ -514,9 +504,7 @@ export class Grapher extends React.Component<GrapherProps> {
             return (
                 <FullScreen
                     onDismiss={this.dismissFullScreen}
-                    overlayColor={
-                        this.grapherState.isModalOpen ? "#999999" : "#fff"
-                    }
+                    isDimmed={this.grapherState.isModalOpen}
                 >
                     {this.renderGrapherComponent()}
                 </FullScreen>
@@ -568,11 +556,12 @@ export class Grapher extends React.Component<GrapherProps> {
 
                 {/* Entity selector in a slide-in drawer */}
                 <SlideInDrawer
+                    ariaLabel="Entity selector"
                     grapherRef={this.grapherState.base}
-                    active={this.grapherState.isEntitySelectorDrawerOpen}
-                    toggle={() => {
+                    isOpen={this.grapherState.isEntitySelectorDrawerOpen}
+                    onOpenChange={(isOpen) => {
                         this.grapherState.isEntitySelectorModalOrDrawerOpen =
-                            !this.grapherState.isEntitySelectorModalOrDrawerOpen
+                            isOpen
                     }}
                 >
                     <EntitySelector
@@ -690,6 +679,14 @@ export class Grapher extends React.Component<GrapherProps> {
     }
 
     @action.bound private setUpWindowResizeEventHandler(): void {
+        // Worth knowing for anything driving the page: taking a full-page screenshot in
+        // Chromium resizes the viewport to 1x1 and restores it ~175ms later, so this
+        // handler runs with window.innerWidth === 1 and, because the debounce below fires
+        // on the leading edge, redraws the chart in its narrow layout straight away. The
+        // redraw at the restored width is 400ms behind, which is long enough for the
+        // screenshot to catch a narrow chart inside a full-width figure.
+        // Screenshot tooling therefore has to pin the chart containers and freeze these
+        // dimensions before it captures.
         const updateWindowDimensions = action((): void => {
             this.grapherState.windowInnerWidth = window.innerWidth
             this.grapherState.windowInnerHeight = window.innerHeight
@@ -706,25 +703,6 @@ export class Grapher extends React.Component<GrapherProps> {
                 window.removeEventListener("resize", onResize)
             })
         }
-    }
-
-    private setUpGrapherLoadedEventDispatcher(): void {
-        // Emit a custom event when the grapher is ready
-        // We can use this in global scripts that depend on the grapher e.g. the site-screenshots tool
-        this.grapherState.disposers.push(
-            reaction(
-                () => this.grapherState.isReady,
-                () => {
-                    if (this.grapherState.isReady) {
-                        document.dispatchEvent(
-                            new CustomEvent(GRAPHER_LOADED_EVENT_NAME, {
-                                detail: { grapher: this },
-                            })
-                        )
-                    }
-                }
-            )
-        )
     }
 
     private freezeToleranceNoticeWhileTimelineMoves(): void {
@@ -763,7 +741,6 @@ export class Grapher extends React.Component<GrapherProps> {
         this.setBaseFontSize()
         this.setUpIntersectionObserver()
         this.setUpWindowResizeEventHandler()
-        this.setUpGrapherLoadedEventDispatcher()
 
         this.bindToWindow()
         this.bindKeyboardShortcuts()

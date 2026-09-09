@@ -5,7 +5,7 @@ import {
     EnrichedDataItem,
     TooltipState,
     TreeNode,
-} from "../helpers/CausesOfDeathConstants"
+} from "../core/CausesOfDeathConstants"
 import { useMemo, useState, useCallback, useRef } from "react"
 import { usePinnedTooltip } from "../../../../hooks/usePinnedTooltip.js"
 import * as d3 from "d3"
@@ -15,19 +15,19 @@ import {
 } from "../../../../hooks/useDimensions"
 import { Bounds, getRelativeMouse, isTouchDevice } from "@ourworldindata/utils"
 
-import { CausesOfDeathMetadata } from "../helpers/CausesOfDeathMetadata.js"
+import { CausesOfDeathMetadata } from "../core/CausesOfDeathMetadata.js"
 import { CausesOfDeathTreemapTile } from "./CausesOfDeathTreemapTile.js"
 import { CausesOfDeathTreemapTooltip } from "./CausesOfDeathTreemapTooltip.js"
 import { CausesOfDeathCategoryAnnotations } from "./CausesOfDeathCategoryAnnotations.js"
 import {
     stackedSliceDiceTiling,
     TilingFunction,
-} from "../helpers/stackedSliceDiceTiling.js"
+} from "../core/stackedSliceDiceTiling.js"
 import {
     CausesOfDeathChartContext,
     useCausesOfDeathChartContext,
-} from "../helpers/CausesOfDeathContext"
-import { placeExternalCategoryAnnotations } from "../helpers/CausesOfDeathCategoryAnnotationsHelpers.js"
+} from "../core/CausesOfDeathContext"
+import { placeExternalCategoryAnnotations } from "../core/CausesOfDeathCategoryAnnotationsHelpers.js"
 import { CausesOfDeathLegend } from "./CausesOfDeathLegend.js"
 
 const SMALL_BREAKPOINT = 550

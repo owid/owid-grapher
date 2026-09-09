@@ -407,7 +407,6 @@ export {
     type DbInsertChartConfig,
     type DbRawChartConfig,
     type DbEnrichedChartConfig,
-    parseChartConfigsRow,
     parseChartConfig,
     serializeChartConfig,
     ChartConfigsTableName,

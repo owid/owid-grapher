@@ -7,7 +7,7 @@ import {
 } from "@ourworldindata/types"
 import * as db from "../db.js"
 import urlJoin from "url-join"
-import { BAKED_GRAPHER_URL } from "../../settings/clientSettings.js"
+import { BAKED_GRAPHER_URL } from "../../settings/clientSettings.mjs"
 
 /**
  * General query used in multiple places
@@ -45,7 +45,10 @@ const BASE_STATIC_VIZ_QUERY = `-- sql
         ${StaticVizTableName} sv
     LEFT JOIN ${UsersTableName} u ON sv.createdBy = u.id
     LEFT JOIN ${UsersTableName} u2 ON sv.updatedBy = u2.id
-    LEFT JOIN charts c ON c.configId IN (SELECT id FROM chart_configs WHERE slug = sv.grapherSlug)
+    LEFT JOIN (
+        charts c
+        JOIN chart_configs cc ON cc.id = c.configId
+    ) ON cc.slug = sv.grapherSlug
     INNER JOIN
         ${ImagesTableName} desktopImage ON sv.imageId = desktopImage.id
     LEFT JOIN

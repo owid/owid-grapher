@@ -5,49 +5,21 @@
     justify-content: flex-end;
     background: rgba(0, 0, 0, 0.4);
     z-index: $zindex-lightbox;
+    opacity: 1;
+    transition: opacity var(--duration-popover) var(--ease-out);
 
-    &[data-entering] {
-        animation: versions-drawer-overlay-fade 160ms ease forwards;
-
-        .versions-drawer-dialog {
-            animation: versions-drawer-dialog-slide-right 200ms ease forwards;
-        }
-    }
-
-    &[data-exiting] {
-        animation: versions-drawer-overlay-fade 140ms ease forwards reverse;
-
-        .versions-drawer-dialog {
-            animation: versions-drawer-dialog-slide-right 160ms ease forwards
-                reverse;
-        }
-    }
-}
-
-@keyframes versions-drawer-dialog-slide-right {
-    from {
-        transform: translateX(100%);
-    }
-    to {
+    .versions-drawer-dialog {
         transform: translateX(0);
+        transition: transform var(--duration-drawer) var(--ease-drawer);
     }
-}
 
-@keyframes versions-drawer-dialog-slide-up {
-    from {
-        transform: translateY(100%);
-    }
-    to {
-        transform: translateY(0);
-    }
-}
-
-@keyframes versions-drawer-overlay-fade {
-    from {
+    &[data-entering],
+    &[data-exiting] {
         opacity: 0;
-    }
-    to {
-        opacity: 1;
+
+        .versions-drawer-dialog {
+            transform: translateX(100%);
+        }
     }
 }
 
@@ -211,13 +183,13 @@
         justify-content: flex-end;
         align-items: stretch;
 
-        &[data-entering] .versions-drawer-dialog {
-            animation: versions-drawer-dialog-slide-up 220ms ease forwards;
+        .versions-drawer-dialog {
+            transform: translateY(0);
         }
 
+        &[data-entering] .versions-drawer-dialog,
         &[data-exiting] .versions-drawer-dialog {
-            animation: versions-drawer-dialog-slide-up 180ms ease forwards
-                reverse;
+            transform: translateY(100%);
         }
     }
 
@@ -229,5 +201,18 @@
         height: min(490px, 100vh);
         max-height: 100vh;
         width: 100%;
+    }
+}
+
+// Drop the panel's movement only. React Aria keeps [data-exiting] on the
+// element until a transition ends, so the overlay transition is load-bearing
+// for exit unmounting — never set it to zero or `none`.
+@media (prefers-reduced-motion: reduce) {
+    .versions-drawer-overlay {
+        transition: opacity var(--duration-popover) linear;
+
+        .versions-drawer-dialog {
+            transition: none;
+        }
     }
 }

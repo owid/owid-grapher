@@ -6,6 +6,7 @@ import {
     mergeCategoricalBinsByLabelAndColor,
     NumericBin,
 } from "./ColorScaleBin"
+import { INAPPLICABLE_LABEL, NO_DATA_LABEL } from "./ColorScale"
 
 it("can create a bin", () => {
     const bin = new CategoricalBin({
@@ -126,6 +127,16 @@ describe(CategoricalBin, () => {
         expect(bin.contains("In law")).toBe(true)
         expect(bin.contains("In policy document")).toBe(true)
         expect(bin.contains("Pledged")).toBe(false)
+    })
+
+    it("matches inapplicable entities only against the inapplicable bin", () => {
+        const makeBin = (value: string): CategoricalBin =>
+            new CategoricalBin({ index: 0, value, label: value, color: "grey" })
+
+        const opts = { isInapplicable: true }
+        expect(makeBin(INAPPLICABLE_LABEL).contains(undefined, opts)).toBe(true)
+        expect(makeBin(NO_DATA_LABEL).contains(undefined, opts)).toBe(false)
+        expect(makeBin(NO_DATA_LABEL).contains(undefined)).toBe(true)
     })
 })
 

@@ -1,6 +1,6 @@
 import { InlineEntitySelector } from "./InlineEntitySelector.js"
-import { entityNameForSentence } from "../helpers/utils.js"
-import type { DemographyMetadata } from "../helpers/types.js"
+import { formatEntityNameForSentence } from "../../../../helpers/entityNames.js"
+import type { DemographyMetadata } from "../core/types.js"
 
 export function EntityNameOrSelector({
     hideEntitySelector,
@@ -15,7 +15,8 @@ export function EntityNameOrSelector({
     metadata: DemographyMetadata
     onChange: (name: string) => void
 }): React.ReactElement {
-    if (hideEntitySelector) return <>{entityNameForSentence(countryName)}</>
+    if (hideEntitySelector)
+        return <>{formatEntityNameForSentence(countryName, ["UN"])}</>
 
     return (
         <InlineEntitySelector

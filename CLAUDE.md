@@ -45,7 +45,7 @@ Dependency layers, enforced via TypeScript project references (diagram: `docs/im
 4. **Applications** — `adminSiteServer/` (Express admin API, entry `adminSiteServer/app.ts`), `adminSiteClient/` (admin React SPA), `baker/` (bakes the static public site), `site/` (React components for public pages, shared by baker and admin previews; uses React hooks, not MobX), `explorerAdminServer/`.
 5. **Edge** — `functions/`: Cloudflare Pages Functions serving dynamic routes (`/grapher/[slug]`, thumbnails, data downloads, `/api`, donations) with file-based routing plus `_routes.json`. Separate workspace with its own `package.json`; local dev via `yarn startLocalCloudflareFunctions` or `make up.full`.
 
-Other directories: `bespoke/` (self-contained custom data-viz components embedded in articles via Shadow DOM; each project under `bespoke/projects/` has its own build — see `bespoke/readme.md`), `devTools/` (various utilities).
+Other directories: `bespoke/` (self-contained custom data-viz components embedded in articles via Shadow DOM; each project under `bespoke/projects/` has its own build — see `bespoke/readme.md`), `devTools/` (various utilities), `packageDocs/` (public docs site for the `@ourworldindata/grapher` npm package, deployed to https://docs.owid.io/projects/grapher/ — keep it in sync when changing the package's public API, schema, or consumer-facing behavior).
 
 Key facts that span multiple directories:
 
@@ -68,15 +68,21 @@ Use the `test-on-staging` skill when checking a change on `staging-site-<branch>
 
 ## Team
 
-Everything you post to GitHub or Slack goes out under a **human's identity**.
+When AI-authored text is posted through a **human's account**, it must be clearly attributed so readers do not mistake it for the human's own words.
 
-1. **Attribute the work.** Any prose you author for GitHub or Slack — PR bodies, issue and review comments (including replies to Codex/Copilot/reviewers), Slack messages or drafts — must start with this blockquote:
+1. **Attribute posts made under a human identity.** Any prose that will appear under a human user's GitHub or Slack account — PR bodies, issue and review comments (including replies to Codex/Copilot/reviewers), Slack messages, or drafts intended for a human to post — must start with this blockquote:
 
     ```
     > _Written by <model provider> <model name> — @<handle> at the wheel._
     ```
 
-    Use the actual provider and model (e.g. "Claude Sonnet 5", never "Code" or a bare version number) and the handle of the human directing the work (usually the current git user; ask if ambiguous). The only exemption is a bare mechanical token with no prose (a lone `@codex review`, a 👍); when in doubt, include the line.
+    Use the actual provider and model (e.g. "Claude Sonnet 5", never "Code" or a bare version number) and the handle of the human directing the work, usually the authenticated or current git user. Ask if it is ambiguous.
+
+    **Do not add this attribution when posting through an account that is clearly identified as an AI agent or bot**, such as the Codex GitHub user. In that case, the posting identity already provides the necessary disclosure, and claiming that a human is "at the wheel" may be inaccurate.
+
+    A bare mechanical token with no prose, such as a lone `@codex review` ping or 👍, also requires no attribution.
+
+    If the posting identity cannot be determined, assume it is a human account and include the attribution.
 
 2. **Never guess GitHub handles** — a wrong `@`-tag pings a real person. Use the exact handle from the list below; if a name isn't on it, write the plain name (e.g. "Bastian") and ask the user for the handle.
 
@@ -114,7 +120,7 @@ Everything you post to GitHub or Slack goes out under a **human's identity**.
 - Double quotes for string literals.
 - Type function params and return values; reuse existing shared type definitions. Avoid `any` — only use it if you have to, and ask for permission.
 - `packages/@ourworldindata/*/**` (and a few other dirs) additionally _enforce_ return types via `explicit-function-return-type`/`explicit-module-boundary-types` overrides in `.oxlintrc.jsonc`; `site/**` doesn't. Moving a function from `site/` into a shared package therefore needs an explicit return type added, or `oxlint --deny-warnings` fails.
-- In Grapher and the admin (MobX 6) we use a nonstandard setup: class-based components with TC-39 stage 3 decorators, but only for `@computed` and `@action`. Observable props are NOT marked `@observable`; they are listed in a `makeObservable` call in the constructor. That call must mention all observable props, but none of the `@computed`/`@action` ones.
+- In Grapher and the admin (MobX 6) we use a nonstandard setup: class-based components with TC-39 stage 3 decorators, but only for `@computed` and `@action`. Observable props are NOT marked `@observable`; they are listed in a `makeObservable` call in the constructor. That call must mention all observable props, but none of the `@computed`/`@action` ones. A component that observes is a class with the `@observer` decorator, not a function component wrapped in `observer()` — a few old admin components still use the wrapper, but don't add new ones. Components that don't need to observe stay plain functions.
 - CSS: named style classes following BEM in separate `.scss` files; avoid inline styles unless the component already uses them for a similar case. Components usually have a companion scss file with the same name. Entry points: `site/owid.scss` for the site, `packages/@ourworldindata/grapher/src/core/grapher.scss` for grapher.
 - In SCSS, do NOT use the parent selector to concatenate BEM class names (`&__element`, `&--modifier`) — write out full class names (`.block__element`) so it's easy to grep between JSX and SCSS. `&` with pseudo-classes/elements or state attributes (`&:hover`, `&::before`, `&[data-selected]`) is fine.
 - Check [docs/browser-support.md](./docs/browser-support.md) before using modern JS or CSS features. It lists our supported browsers, the "most breaking" features we rely on, and features we can't yet use.

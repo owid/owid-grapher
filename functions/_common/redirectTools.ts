@@ -84,8 +84,7 @@ export async function getOptionalGrapherRedirectForSlug(
     env: Env
 ): Promise<string | undefined> {
     const redirects: Record<string, string> = await env.ASSETS.fetch(
-        new URL("/grapher/_grapherRedirects.json", baseUrl),
-        { cf: { cacheTtl: 2 * 60 } }
+        new URL("/grapher/_grapherRedirects.json", baseUrl)
     )
         .then((r): Promise<Record<string, string>> => r.json())
         .catch((e) => {
@@ -156,8 +155,7 @@ async function getOptionalExplorerRedirectForSlug(
     // on the incoming query params (see baker/redirectsFromDb.ts).
     type ExplorerRedirect = string | DecisionTreeNode<ExplorerRedirectTarget>
     const redirects: Record<string, ExplorerRedirect> = await env.ASSETS.fetch(
-        new URL("/explorers/_explorerRedirects.json", baseUrl),
-        { cf: { cacheTtl: 2 * 60 } }
+        new URL("/explorers/_explorerRedirects.json", baseUrl)
     )
         .then((r): Promise<Record<string, ExplorerRedirect>> => r.json())
         .catch((e) => {

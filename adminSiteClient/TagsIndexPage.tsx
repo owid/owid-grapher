@@ -1,118 +1,69 @@
-import { observer } from "mobx-react"
-import { Component } from "react"
-import { AdminLayout } from "./AdminLayout.js"
-import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
-import { observable, runInAction, makeObservable } from "mobx"
-import { MinimalTagWithMetadata } from "@ourworldindata/types"
-import { TagBadge } from "./TagBadge.js"
+import { useState, type ReactElement, type SubmitEvent } from "react"
 import { Link } from "react-router-dom"
 import { Button, Modal } from "antd"
+import { AdminLayout } from "./AdminLayout.js"
+import { TagBadge } from "./TagBadge.js"
+import { useAddTag, useTags } from "./tagQueries.js"
 
-@observer
-export class TagsIndexPage extends Component {
-    static override contextType = AdminAppContext
-    declare context: AdminAppContextType
+export function TagsIndexPage(): ReactElement {
+    const { data: tags = [] } = useTags()
+    const addTagMutation = useAddTag()
+    const [isAddTagModalOpen, setIsAddTagModalOpen] = useState(false)
 
-    tags: MinimalTagWithMetadata[] = []
-    newTagName = ""
-    newTagSlug = ""
-    isAddingTag = false
-
-    constructor(props: Record<string, never>) {
-        super(props)
-
-        makeObservable(this, {
-            tags: observable,
-            newTagName: observable,
-            newTagSlug: observable,
-            isAddingTag: observable,
-        })
-    }
-
-    override componentDidMount(): void {
-        void this.getData()
-        this.addTag = this.addTag.bind(this)
-    }
-
-    async getData() {
-        const result = await this.context.admin.getJSON<{
-            tags: MinimalTagWithMetadata[]
-        }>("/api/tags.json")
-        runInAction(() => {
-            this.tags = result.tags
-        })
-    }
-
-    async addTag() {
-        await this.context.admin.requestJSON(
-            "/api/tags/new",
+    function handleSubmit(event: SubmitEvent<HTMLFormElement>): void {
+        event.preventDefault()
+        const formData = new FormData(event.currentTarget)
+        const name = String(formData.get("name"))
+        const slug = String(formData.get("slug"))
+        addTagMutation.mutate(
+            { name, slug: slug || null },
             {
-                name: this.newTagName,
-                slug: this.newTagSlug || null,
-            },
-            "POST"
+                onSuccess: () => setIsAddTagModalOpen(false),
+            }
         )
-        this.isAddingTag = false
-        this.newTagName = ""
-        this.newTagSlug = ""
-        await this.getData()
     }
 
-    addTagModal() {
-        return (
-            <Modal
-                className="TagsIndexPage__add-tag-modal"
-                open={this.isAddingTag}
-                onCancel={() => (this.isAddingTag = false)}
-            >
-                <h3>Add tag</h3>
-                <form>
-                    <input
-                        placeholder="Name"
-                        value={this.newTagName}
-                        onChange={(e) => (this.newTagName = e.target.value)}
-                    />
-                    <input
-                        placeholder="Slug (optional)"
-                        value={this.newTagSlug}
-                        onChange={(e) => (this.newTagSlug = e.target.value)}
-                    />
-                    <Button disabled={!this.newTagName} onClick={this.addTag}>
-                        Add
+    return (
+        <AdminLayout title="Tags">
+            <main className="TagsIndexPage">
+                <Modal
+                    className="TagsIndexPage__add-tag-modal"
+                    title="Add tag"
+                    open={isAddTagModalOpen}
+                    onCancel={() => setIsAddTagModalOpen(false)}
+                    okText="Add"
+                    okButtonProps={{ htmlType: "submit" }}
+                    confirmLoading={addTagMutation.isPending}
+                    destroyOnHidden
+                    modalRender={(modal) => (
+                        <form onSubmit={handleSubmit}>{modal}</form>
+                    )}
+                >
+                    <input name="name" placeholder="Name" required autoFocus />
+                    <input name="slug" placeholder="Slug (optional)" />
+                </Modal>
+                <header className="TagsIndexPage__header">
+                    <h2>Tags</h2>
+                    <Button
+                        type="primary"
+                        onClick={() => setIsAddTagModalOpen(true)}
+                    >
+                        Add tag
                     </Button>
-                </form>
-            </Modal>
-        )
-    }
-
-    override render() {
-        return (
-            <AdminLayout title="Tags">
-                <main className="TagsIndexPage">
-                    {this.addTagModal()}
-                    <header className="TagsIndexPage__header">
-                        <h2>Tags</h2>
-                        <Button
-                            type="primary"
-                            onClick={() => (this.isAddingTag = true)}
-                        >
-                            Add tag
-                        </Button>
-                    </header>
-                    <p>
-                        This is every single tag we have in the database. To
-                        organise them hierarchically, see the{" "}
-                        <Link to="tag-graph">tag graph</Link>.
-                    </p>
-                    {this.tags.map((tag) => (
-                        <TagBadge
-                            key={tag.id}
-                            tag={tag}
-                            tagGraphRole={tag.tagGraphRole}
-                        />
-                    ))}
-                </main>
-            </AdminLayout>
-        )
-    }
+                </header>
+                <p>
+                    This is every single tag we have in the database. To
+                    organise them hierarchically, see the{" "}
+                    <Link to="tag-graph">tag graph</Link>.
+                </p>
+                {tags.map((tag) => (
+                    <TagBadge
+                        key={tag.id}
+                        tag={tag}
+                        tagGraphRole={tag.tagGraphRole}
+                    />
+                ))}
+            </main>
+        </AdminLayout>
+    )
 }

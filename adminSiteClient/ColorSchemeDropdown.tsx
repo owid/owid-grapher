@@ -1,7 +1,7 @@
 import { Component } from "react"
 import { computed, action, makeObservable } from "mobx"
 import { Select } from "antd"
-import { GrapherChartOrMapType } from "@ourworldindata/types"
+import { Color, GrapherChartOrMapType } from "@ourworldindata/types"
 import {
     ColorScheme,
     getColorSchemeForChartType,
@@ -22,10 +22,11 @@ interface ColorSchemeSelectOption {
     searchLabel: string
 }
 
+const MAX_PREVIEW_BANDS = 6
+
 interface ColorSchemeDropdownProps {
     additionalOptions: ColorSchemeOption[]
     value?: string
-    gradientColorCount: number
     invertedColorScheme: boolean
     chartType: GrapherChartOrMapType
     onChange: (selected: ColorSchemeOption) => void
@@ -36,7 +37,6 @@ interface ColorSchemeDropdownProps {
 export class ColorSchemeDropdown extends Component<ColorSchemeDropdownProps> {
     static defaultProps = {
         additionalOptions: [],
-        gradientColorCount: 6,
         invertedColorScheme: false,
     }
 
@@ -49,19 +49,14 @@ export class ColorSchemeDropdown extends Component<ColorSchemeDropdownProps> {
         return this.props.additionalOptions
     }
 
-    @computed get gradientColorCount() {
-        return this.props.gradientColorCount
-    }
-
     @computed get colorSchemeOptions() {
         return Object.entries(getColorSchemeForChartType(this.props.chartType))
             .filter(([, v]) => v !== undefined)
             .map(([key, scheme]) => {
                 return {
                     colorScheme: scheme,
-                    gradient: this.createLinearGradient(
-                        scheme,
-                        this.gradientColorCount
+                    gradient: createLinearGradient(
+                        scheme.getColors(this.getPreviewColorCount(scheme))
                     ),
                     label: scheme.name,
                     value: key,
@@ -75,15 +70,10 @@ export class ColorSchemeDropdown extends Component<ColorSchemeDropdownProps> {
         return additionalOptions.concat(this.colorSchemeOptions)
     }
 
-    createLinearGradient(colorScheme: ColorScheme, count: number) {
-        const colors = colorScheme.getColors(count)
-
-        const step = 100 / count
-        const gradientEntries = colors.map(
-            (color, i) => `${color} ${i * step}%, ${color} ${(i + 1) * step}%`
-        )
-
-        return `linear-gradient(90deg, ${gradientEntries.join(", ")})`
+    getPreviewColorCount(colorScheme: ColorScheme): number {
+        const { isDistinct, paletteSize } = colorScheme
+        if (!isDistinct || paletteSize === 0) return MAX_PREVIEW_BANDS
+        return Math.min(MAX_PREVIEW_BANDS, paletteSize)
     }
 
     @action.bound onChange(value: ColorSchemeOption | null) {
@@ -149,4 +139,13 @@ export class ColorSchemeDropdown extends Component<ColorSchemeDropdownProps> {
             />
         )
     }
+}
+
+/** One hard-edged band per color, as a CSS background-image value. */
+function createLinearGradient(colors: Color[]): string {
+    const step = 100 / colors.length
+    const bands = colors.map(
+        (color, i) => `${color} ${i * step}%, ${color} ${(i + 1) * step}%`
+    )
+    return `linear-gradient(90deg, ${bands.join(", ")})`
 }

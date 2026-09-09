@@ -25,7 +25,7 @@
             text-decoration: none;
             color: $blue-100;
             background-color: $white;
-            transition: 0.15s all;
+            transition: border-color 0.15s ease;
 
             h4 {
                 margin: 0;
@@ -37,7 +37,7 @@
                 width: 64px;
                 margin: 0 auto;
                 margin-top: 16px;
-                transition: 0.15s all;
+                transition: background-color 0.15s ease;
                 background-color: $blue-30;
             }
 

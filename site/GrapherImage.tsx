@@ -3,7 +3,7 @@ import {
     DEFAULT_GRAPHER_WIDTH,
     generateGrapherImageSrcSet,
 } from "@ourworldindata/grapher"
-import { GRAPHER_DYNAMIC_THUMBNAIL_URL } from "../settings/clientSettings.js"
+import { GRAPHER_DYNAMIC_THUMBNAIL_URL } from "../settings/clientSettings.mjs"
 import { Url } from "@ourworldindata/utils"
 
 function GrapherImageSource({

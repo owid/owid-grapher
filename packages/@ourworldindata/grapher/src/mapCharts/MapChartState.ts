@@ -300,6 +300,11 @@ export class MapChartState implements ChartState, ColorScaleManager {
         return this.manager.mapConfig || new MapConfig()
     }
 
+    @computed get inapplicableEntityNamesSet(): Set<EntityName> {
+        const { inapplicableEntityNames = [] } = this.manager
+        return new Set(inapplicableEntityNames.filter(isOnTheMap))
+    }
+
     @computed get mapColumnSlug(): ColumnSlug {
         return this.mapColumnInfo.slug
     }
@@ -328,6 +333,10 @@ export class MapChartState implements ChartState, ColorScaleManager {
 
     @computed get hasProjectedDataBin(): boolean {
         return this.hasProjectedData
+    }
+
+    @computed get hasInapplicableBin(): boolean {
+        return this.inapplicableEntityNamesSet.size > 0
     }
 
     @computed get targetTime(): number | undefined {

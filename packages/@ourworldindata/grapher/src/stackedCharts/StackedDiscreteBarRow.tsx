@@ -120,6 +120,7 @@ function StackedDiscreteBar({
         labelBounds.width < 0.85 * segment.barWidth &&
         labelBounds.height < 0.85 * barHeight
     const labelColor = isDarkColor(segment.color) ? "#fff" : "#000"
+    const labelOpacity = LABEL_STYLE[segment.emphasis].opacity
     const segmentStyle = STACKED_BAR_STYLE[segment.emphasis]
 
     return (
@@ -148,6 +149,7 @@ function StackedDiscreteBar({
                     width={segment.barWidth}
                     height={barHeight}
                     fill={labelColor}
+                    opacity={labelOpacity}
                     fontSize={labelFontSize}
                     textAnchor="middle"
                     dy={dyFromAlign(VerticalAlign.middle)}

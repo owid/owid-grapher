@@ -5,7 +5,10 @@ import {
     faTimesCircle,
 } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { LabeledSwitch } from "@ourworldindata/components"
+import {
+    getPrefersReducedMotion,
+    LabeledSwitch,
+} from "@ourworldindata/components"
 import { countriesByName } from "@ourworldindata/utils"
 import { useState, useRef, useMemo } from "react"
 import {
@@ -61,7 +64,7 @@ export const SearchCountrySelector = ({
                     const rect = listContainer.getBoundingClientRect()
                     window.scrollBy({
                         top: rect.top - 100,
-                        behavior: "smooth",
+                        behavior: getPrefersReducedMotion() ? "auto" : "smooth",
                     })
                 }
             }, 100)

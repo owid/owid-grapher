@@ -24,12 +24,16 @@
     color: $error-text-color;
 }
 
-.food-trade-chart--narrow .food-trade-controls__row {
-    flex-direction: column;
-    row-gap: 8px;
+.food-trade-chart--narrow .food-trade-controls {
+    border: none;
+    padding: 0;
 }
 
-.food-trade-chart--narrow .food-trade-controls__row > * {
+.food-trade-chart--narrow .food-trade-controls .controls__row {
+    flex-direction: column;
+}
+
+.food-trade-chart--narrow .food-trade-controls .controls__row > * {
     flex: 0 0 auto;
     width: 100%;
 }

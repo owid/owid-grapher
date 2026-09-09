@@ -5,9 +5,9 @@ import * as R from "remeda"
 import { articulateEntity } from "@ourworldindata/utils"
 
 import { Spinner } from "../../../../components/Spinner/Spinner.js"
-import { Flow } from "../config.js"
-import { ALL_COUNTRIES } from "../helpers.js"
-import { ProductTradeData, Mode } from "../types.js"
+import { Flow } from "../core/config.js"
+import { ALL_COUNTRIES } from "../core/helpers.js"
+import { ProductTradeData, Mode } from "../core/types.js"
 import { FoodTradeBilateralSankey } from "./FoodTradeBilateralSankey.js"
 import { FoodTradeSplitSankey } from "./FoodTradeSplitSankey.js"
 

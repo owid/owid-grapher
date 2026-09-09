@@ -1,4 +1,4 @@
-import { SENTRY_ADMIN_DSN } from "../settings/clientSettings.js"
+import { SENTRY_ADMIN_DSN } from "../settings/clientSettings.mjs"
 import * as Sentry from "@sentry/node"
 import { nodeProfilingIntegration } from "@sentry/profiling-node"
 import { openAIIntegration } from "@sentry/node"

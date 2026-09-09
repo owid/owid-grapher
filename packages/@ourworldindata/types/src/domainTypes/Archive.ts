@@ -84,7 +84,7 @@ export interface MultiDimChecksumsObjectWithHash {
 export interface ExplorerChecksums {
     explorerConfigMd5: string
     chartConfigs: {
-        [id: string]: string // chartId -> chart_configs.fullMd5 of explorer view configs
+        [id: string]: string // chartId -> chart_configs.configMd5 of explorer view configs
     }
     indicators: IndicatorChecksums
 }

@@ -1,5 +1,5 @@
 import { ALGOLIA_INDEXING } from "../../settings/serverSettings.js"
-import { ALGOLIA_INDEX_PREFIX } from "../../settings/clientSettings.js"
+import { ALGOLIA_INDEX_PREFIX } from "../../settings/clientSettings.mjs"
 import { getAlgoliaClient } from "./configureAlgolia.js"
 import {
     PAGES_INDEX,

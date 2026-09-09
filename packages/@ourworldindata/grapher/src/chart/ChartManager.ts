@@ -88,6 +88,7 @@ export interface ChartManager {
     // know what date the timeline is set to. and let's pass startTime in, too.
     startTime?: number
     endTime?: number
+    disableChartRowAnimation?: boolean
 
     facetStrategy?: FacetStrategy // todo: make a strategy? a column prop? etc
     seriesStrategy?: SeriesStrategy

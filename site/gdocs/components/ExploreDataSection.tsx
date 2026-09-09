@@ -5,6 +5,8 @@ import {
     EXPLORE_DATA_SECTION_ID,
     EXPLORE_DATA_SECTION_DEFAULT_TITLE,
 } from "@ourworldindata/types"
+import { useDocumentContext } from "../DocumentContext.js"
+import { sentenceCaseIfNotTopicPage } from "@ourworldindata/utils"
 
 type ExploreDataSectionProps = PropsWithChildren<{
     title?: string
@@ -18,6 +20,8 @@ export const ExploreDataSection = ({
     align,
     children,
 }: ExploreDataSectionProps) => {
+    const { gdocType } = useDocumentContext()
+    const titleCaseCorrected = sentenceCaseIfNotTopicPage(title, gdocType)
     return (
         <section
             id={EXPLORE_DATA_SECTION_ID}
@@ -32,7 +36,7 @@ export const ExploreDataSection = ({
                 <div className="icon" aria-hidden="true">
                     {icon}
                 </div>
-                <h1>{title}</h1>
+                <h1>{titleCaseCorrected}</h1>
             </header>
             {children}
         </section>

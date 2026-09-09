@@ -4,12 +4,15 @@ import {
     ChartConfigsTableName,
     GrapherInterface,
     IndicatorsBeforePreProcessing,
+    MultiDimDataPagesTableName,
     MultiDimViewDimensionsTableName,
     MultiDimXChartConfigsTableName,
     View,
 } from "@ourworldindata/types"
 import { latestGrapherConfigSchema } from "@ourworldindata/grapher"
 import {
+    catalogPath,
+    multiDimConfig,
     otherVariableId,
     seedDatasetAndVariables,
     variableId,
@@ -18,8 +21,6 @@ import {
 const env = getAdminTestEnv()
 
 describe("Multi-dim views", { timeout: 20000 }, () => {
-    const catalogPath = "test/catalog#path"
-
     const totalView: View<IndicatorsBeforePreProcessing> = {
         config: { title: "Total energy use" },
         dimensions: { metric: "total" },
@@ -29,26 +30,6 @@ describe("Multi-dim views", { timeout: 20000 }, () => {
         config: { title: "Energy use per capita" },
         dimensions: { metric: "per_capita" },
         indicators: { y: otherVariableId },
-    }
-
-    function multiDimConfig(
-        views: View<IndicatorsBeforePreProcessing>[]
-    ): object {
-        return {
-            grapherConfigSchema: latestGrapherConfigSchema,
-            title: { title: "Energy use", titleVariant: "by energy source" },
-            views,
-            dimensions: [
-                {
-                    name: "Metric",
-                    slug: "metric",
-                    choices: views.map((view) => ({
-                        name: view.dimensions.metric,
-                        slug: view.dimensions.metric,
-                    })),
-                },
-            ],
-        }
     }
 
     async function upsertMultiDim(
@@ -76,7 +57,19 @@ describe("Multi-dim views", { timeout: 20000 }, () => {
             .testKnex(ChartConfigsTableName)
             .where({ id: chartConfigId })
             .first()
-        return JSON.parse(row.full)
+        return JSON.parse(row.config)
+    }
+
+    async function publishMultiDim(): Promise<void> {
+        const multiDim = await env
+            .testKnex(MultiDimDataPagesTableName)
+            .where({ catalogPath })
+            .first()
+        await env.request({
+            method: "PATCH",
+            path: `/multi-dims/${multiDim.id}`,
+            body: JSON.stringify({ published: true, slug: "energy-use" }),
+        })
     }
 
     beforeEach(async () => {
@@ -99,6 +92,45 @@ describe("Multi-dim views", { timeout: 20000 }, () => {
         const config = await getConfig(viewConfigIds["metric=total"])
         expect(config.title).toBe("Total energy use")
         expect(config.dimensions).toEqual([{ property: "y", variableId }])
+    })
+
+    it("migrates view configs to the latest schema version", async () => {
+        const outdatedView = {
+            ...totalView,
+            config: {
+                $schema:
+                    "https://files.ourworldindata.org/schemas/grapher-schema.005.json",
+                ...totalView.config,
+                // hideLegend was renamed to hideSeriesLabels in version 010
+                hideLegend: true,
+            } as GrapherInterface,
+        }
+        await upsertMultiDim([outdatedView])
+
+        const viewConfigIds = await getViewConfigIds()
+        const config = await getConfig(viewConfigIds["metric=total"])
+        expect(config.$schema).toBe(latestGrapherConfigSchema)
+        expect(config.hideSeriesLabels).toBe(true)
+        expect(config).not.toHaveProperty("hideLegend")
+    })
+
+    it("rejects a view config that declares no schema version", async () => {
+        const { grapherConfigSchema: _omitted, ...configWithoutSchema } =
+            multiDimConfig([totalView]) as { grapherConfigSchema: string }
+        const response = await fetch(
+            `${env.baseUrl}/multi-dims/${encodeURIComponent(catalogPath)}`,
+            {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${env.apiKey}`,
+                },
+                body: JSON.stringify({ config: configWithoutSchema }),
+            }
+        )
+
+        expect(response.status).toBe(400)
+        expect(await env.getCount(MultiDimDataPagesTableName)).toBe(0)
     })
 
     it("drops the config row of a removed view and keeps the rest", async () => {
@@ -149,5 +181,29 @@ describe("Multi-dim views", { timeout: 20000 }, () => {
 
         // Propagation updates the rows in place rather than replacing them
         expect(await getViewConfigIds()).toEqual(viewConfigIds)
+    })
+
+    it("keeps views published when the indicator's config changes", async () => {
+        await upsertMultiDim([totalView, perCapitaView])
+        const viewConfigIds = await getViewConfigIds()
+
+        await publishMultiDim()
+
+        for (const chartConfigId of Object.values(viewConfigIds)) {
+            expect((await getConfig(chartConfigId)).isPublished).toBe(true)
+        }
+
+        await env.request({
+            method: "PUT",
+            path: `/variables/${variableId}/grapherConfigETL`,
+            body: JSON.stringify({
+                $schema: latestGrapherConfigSchema,
+                note: "Indicator note",
+            }),
+        })
+
+        const config = await getConfig(viewConfigIds["metric=total"])
+        expect(config.isPublished).toBe(true)
+        expect(config.note).toBe("Indicator note")
     })
 })

@@ -7,7 +7,7 @@ import {
     isExternalUrl,
 } from "./utils.js"
 import { ContentGraphLinkType, OwidGdocType } from "@ourworldindata/types"
-import { BAKED_BASE_URL } from "../../settings/clientSettings.js"
+import { BAKED_BASE_URL } from "../../settings/clientSettings.mjs"
 
 describe(isExternalUrl, () => {
     it("returns false when the link type is not a URL", () => {

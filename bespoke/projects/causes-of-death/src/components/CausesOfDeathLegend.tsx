@@ -1,7 +1,7 @@
 import { useMemo } from "react"
 import * as R from "remeda"
-import { DataRow, getCategoryColor } from "../helpers/CausesOfDeathConstants"
-import { CausesOfDeathMetadata } from "../helpers/CausesOfDeathMetadata"
+import { DataRow, getCategoryColor } from "../core/CausesOfDeathConstants"
+import { CausesOfDeathMetadata } from "../core/CausesOfDeathMetadata"
 
 export function CausesOfDeathLegend({
     data,

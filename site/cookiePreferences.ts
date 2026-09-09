@@ -1,6 +1,6 @@
 import { dayjs } from "@ourworldindata/utils"
-import Cookies from "js-cookie"
-import { REDUCED_TRACKING } from "../settings/clientSettings.js"
+import { get as getCookie } from "es-cookie"
+import { REDUCED_TRACKING } from "../settings/clientSettings.mjs"
 
 export enum PreferenceType {
     Analytics = "a",
@@ -49,7 +49,7 @@ export const getInitialState = (): State => {
         // see https://github.com/owid/owid-grapher/pull/2452
 
         cookieValue = parseRawCookieValue(
-            Cookies.get(COOKIE_PREFERENCES_COOKIE_NAME)
+            getCookie(COOKIE_PREFERENCES_COOKIE_NAME)
         )
     } catch {
         // ignore
