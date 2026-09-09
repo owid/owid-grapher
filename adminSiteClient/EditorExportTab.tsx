@@ -12,7 +12,6 @@ import { Section, Toggle } from "./Forms.js"
 import { GrapherState } from "@ourworldindata/grapher"
 import { triggerDownloadFromBlob } from "@ourworldindata/utils"
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
-import { ETL_WIZARD_URL } from "../settings/clientSettings.js"
 import { faHatWizard, faDownload } from "@fortawesome/free-solid-svg-icons"
 import { Button } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -233,16 +232,22 @@ export class EditorExportTab<
         }
     }
 
-    override render() {
-        const chartAnimationUrl = new URL(
-            urljoin(ETL_WIZARD_URL, "chart-animation")
-        )
+    /** The ETL Wizard's animation tool for this chart, if a Wizard is configured. */
+    @computed get chartAnimationUrl(): URL | undefined {
+        const { wizardUrl } = this.props.editor.environment
+        if (!wizardUrl) return undefined
+        const chartAnimationUrl = new URL(urljoin(wizardUrl, "chart-animation"))
         if (this.grapherState.canonicalUrl)
             chartAnimationUrl.searchParams.set(
                 "animation_chart_url",
                 this.grapherState.canonicalUrl
             )
         chartAnimationUrl.searchParams.set("animation_skip_button", "True")
+        return chartAnimationUrl
+    }
+
+    override render() {
+        const { chartAnimationUrl } = this
         // chartAnimationUrl.searchParams.set(
         //     "animation_chart_tab",
         //     this.grapher.tab ?? ""
@@ -354,7 +359,7 @@ export class EditorExportTab<
                 </Section>
 
                 {/* Link to Wizard dataset preview */}
-                {this.grapherState.isPublished && (
+                {this.grapherState.isPublished && chartAnimationUrl && (
                     <Section name="Animate chart">
                         <a
                             href={chartAnimationUrl.toString()}

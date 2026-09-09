@@ -2,7 +2,7 @@ import * as _ from "lodash-es"
 
 import { Component, createContext, Fragment, useState } from "react"
 import { observer } from "mobx-react"
-import { getFullReferencesCount } from "./adminChartApi.js"
+import { getFullReferencesCount, References } from "./adminChartApi.js"
 import { computed, action, observable, runInAction, makeObservable } from "mobx"
 import {
     BAKED_BASE_URL,
@@ -16,7 +16,7 @@ import {
     formatValue,
     ChartRedirect,
 } from "@ourworldindata/utils"
-import { AbstractChartEditor, References } from "./AbstractChartEditor.js"
+import { AbstractChartEditor } from "./AbstractChartEditor.js"
 import { ReuploadImageForDataInsightModal } from "./ReuploadImageForDataInsightModal.js"
 import { ImageUploadResponse } from "./imagesHelpers.js"
 import { DataInsightMinimalInformation } from "../adminShared/AdminTypes.js"

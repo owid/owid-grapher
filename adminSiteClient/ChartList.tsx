@@ -18,7 +18,6 @@ import {
     getTagGraphRolesById,
     MinimalTagWithMetadata,
 } from "./TagGraphMetadata.js"
-import { References } from "./AbstractChartEditor.js"
 import {
     SearchWord,
     buildSearchWordsFromSearchString,
@@ -29,7 +28,7 @@ import { TextField } from "./Forms.js"
 import { Tooltip } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons"
-import { deleteChart } from "./adminChartApi.js"
+import { deleteChart, References } from "./adminChartApi.js"
 
 // These properties are coming from OldChart.ts
 export interface ChartListItem {

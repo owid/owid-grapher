@@ -4,6 +4,7 @@
  * record (its name, references, the parent link) plugged in from here.
  */
 import React from "react"
+import { Prompt } from "react-router-dom"
 import { observer } from "mobx-react"
 import { computed, action, runInAction, observable, makeObservable } from "mobx"
 import type { History } from "history"
@@ -17,15 +18,15 @@ import { AdminLayout } from "./AdminLayout.js"
 import { LoadingBlocker, Section } from "./Forms.js"
 import { GrapherEditor } from "./GrapherEditor.js"
 import { ConfigEditor, EditorExtraTab } from "./ConfigEditor.js"
-import { References } from "./AbstractChartEditor.js"
 import { EditorReferencesTabForNarrativeChart } from "./EditorReferencesTab.js"
 import { NarrativeChartSaveButtons } from "./NarrativeChartSaveButtons.js"
-import { getFullReferencesCount } from "./adminChartApi.js"
+import { getFullReferencesCount, References } from "./adminChartApi.js"
 import {
     adminDetailsProvider,
+    adminEditorEnvironment,
     adminIndicatorCatalog,
-    defaultEditorEnvironment,
-} from "./editorProviders.js"
+    adminTopicSlugs,
+} from "./adminEditorProviders.js"
 import { dataApiIndicatorStore, IndicatorStore } from "./indicatorStores.js"
 import { makeNarrativeChartPatchConfig } from "./narrativeChartConfig.js"
 
@@ -69,6 +70,7 @@ export class NarrativeChartEditorPage extends React.Component<NarrativeChartEdit
             parentConfig: observable.ref,
             parentUrl: observable.ref,
             references: observable,
+            isDirty: observable,
         })
     }
 
@@ -80,6 +82,7 @@ export class NarrativeChartEditorPage extends React.Component<NarrativeChartEdit
     parentConfig: GrapherInterface | undefined = undefined
     parentUrl: string | null = null
     references: References | undefined = undefined
+    isDirty = false
 
     @computed get admin(): Admin {
         return this.context.admin
@@ -87,7 +90,7 @@ export class NarrativeChartEditorPage extends React.Component<NarrativeChartEdit
 
     @computed get store(): IndicatorStore {
         return dataApiIndicatorStore({
-            dataApiUrl: defaultEditorEnvironment.dataApiUrl,
+            dataApiUrl: adminEditorEnvironment.dataApiUrl,
             catalog: adminIndicatorCatalog(this.admin),
         })
     }
@@ -169,6 +172,10 @@ export class NarrativeChartEditorPage extends React.Component<NarrativeChartEdit
     override render(): React.ReactElement {
         return (
             <AdminLayout noSidebar>
+                <Prompt
+                    when={this.isDirty}
+                    message="Are you sure you want to leave? Unsaved changes will be lost."
+                />
                 {this.isLoaded ? (
                     <GrapherEditor
                         key={this.props.narrativeChartId}
@@ -176,6 +183,12 @@ export class NarrativeChartEditorPage extends React.Component<NarrativeChartEdit
                         baseConfig={this.parentConfig}
                         store={this.store}
                         details={adminDetailsProvider(this.admin)}
+                        topicSlugs={adminTopicSlugs(this.admin)}
+                        environment={adminEditorEnvironment}
+                        syncTabWithUrl
+                        onDirtyChange={action(
+                            (isDirty: boolean) => (this.isDirty = isDirty)
+                        )}
                         extraTabs={this.extraTabs}
                         renderSaveButtons={(editor, editingErrors) => (
                             <NarrativeChartSaveButtons
