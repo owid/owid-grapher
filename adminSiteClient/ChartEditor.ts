@@ -16,7 +16,7 @@ import {
 } from "@ourworldindata/utils"
 import { DbChartTagJoin } from "@ourworldindata/types"
 import { action, computed, observable, runInAction, makeObservable } from "mobx"
-import { BAKED_GRAPHER_URL, ENV } from "../settings/clientSettings.js"
+import { BAKED_GRAPHER_URL, ENV } from "../settings/clientSettings.mjs"
 import {
     AbstractChartEditor,
     AbstractChartEditorManager,

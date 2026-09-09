@@ -1,10 +1,10 @@
 import dotenv from "dotenv"
-import findBaseDir from "./findBaseDir.js"
+import findBaseDir from "./findBaseDir.mts"
 
-if (typeof __dirname !== "undefined") {
+if (typeof import.meta.dirname !== "undefined") {
     // only run this code in node, not in the browser.
     // in the browser, process.env is already populated by vite.
-    const baseDir = findBaseDir(__dirname)
+    const baseDir = findBaseDir(import.meta.dirname)
     if (!baseDir) throw new Error("could not locate base package.json")
 
     // If a PRIMARY_ENV_FILE is specified, load its variables first, and then load the default .env file

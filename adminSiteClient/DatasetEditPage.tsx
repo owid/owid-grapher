@@ -24,7 +24,7 @@ import {
     GRAPHER_DYNAMIC_THUMBNAIL_URL,
     EXPLORER_DYNAMIC_THUMBNAIL_URL,
     BAKED_GRAPHER_URL,
-} from "../settings/clientSettings.js"
+} from "../settings/clientSettings.mjs"
 import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
 import {
     SearchWord,

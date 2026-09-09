@@ -11,7 +11,7 @@ import {
     EnrichedBlockText,
     getPhraseForArchivalDate,
 } from "@ourworldindata/utils"
-import { BAKED_BASE_URL } from "../../../settings/clientSettings.js"
+import { BAKED_BASE_URL } from "../../../settings/clientSettings.mjs"
 import { OwidGdocHeader } from "../components/OwidGdocHeader.js"
 import StickyNav from "../../blocks/StickyNav.js"
 import { buildGdocCitation } from "../utils.js"

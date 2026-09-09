@@ -11,7 +11,7 @@ import Image from "./Image.js"
 import { useImage } from "../utils.js"
 import { BESPOKE_COMPONENT_REGISTRY } from "../../bespokeComponentRegistry.js"
 import { mountBespokeComponentInShadow } from "../../../bespoke/shared/bespokeComponentShadowDom.js"
-import { BESPOKE_BASE_URL } from "../../../settings/clientSettings.js"
+import { BESPOKE_BASE_URL } from "../../../settings/clientSettings.mjs"
 import urljoin from "url-join"
 
 // Use the `baseUrl` as a base for the URL constructor if set, and use just the URL (which might be host-relative) if not.

@@ -23,7 +23,7 @@ import {
     BAKED_GRAPHER_URL,
     GRAPHER_DYNAMIC_THUMBNAIL_URL,
     CLOUDFLARE_IMAGES_URL,
-} from "../settings/clientSettings.js"
+} from "../settings/clientSettings.mjs"
 import { FeedbackPage } from "../site/FeedbackPage.js"
 import {
     Url,

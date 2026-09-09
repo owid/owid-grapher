@@ -41,7 +41,7 @@ import {
 } from "@ourworldindata/grapher"
 import { hashMd5 } from "../../serverUtils/hash.js"
 import { SVG_TESTER_REPO_PATH } from "../../settings/serverSettings.js"
-import { BAKED_GRAPHER_URL } from "../../settings/clientSettings.js"
+import { BAKED_GRAPHER_URL } from "../../settings/clientSettings.mjs"
 import { runInAction } from "mobx"
 import * as R from "remeda"
 import ReactDOMServer from "react-dom/server"

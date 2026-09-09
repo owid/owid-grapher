@@ -35,7 +35,7 @@ import {
 } from "@ourworldindata/grapher"
 import { faCircleInfo } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { CATALOG_URL, DATA_API_URL } from "../settings/clientSettings.js"
+import { CATALOG_URL, DATA_API_URL } from "../settings/clientSettings.mjs"
 
 interface VariablePageData extends Omit<
     OwidVariableWithDataAndSource,

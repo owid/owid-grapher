@@ -2,7 +2,7 @@ import { useState } from "react"
 import {
     EXPLORER_DYNAMIC_THUMBNAIL_URL,
     GRAPHER_DYNAMIC_THUMBNAIL_URL,
-} from "../../../settings/clientSettings.js"
+} from "../../../settings/clientSettings.mjs"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faHeartBroken } from "@fortawesome/free-solid-svg-icons"
 

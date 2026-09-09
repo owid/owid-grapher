@@ -1,5 +1,5 @@
 import { LICENSE_ID } from "@ourworldindata/utils"
-import { IS_ARCHIVE } from "../../../settings/clientSettings.js"
+import { IS_ARCHIVE } from "../../../settings/clientSettings.mjs"
 import { PROD_URL } from "../../SiteConstants.js"
 
 const BASE_URL = IS_ARCHIVE ? PROD_URL : ""

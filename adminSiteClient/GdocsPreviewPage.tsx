@@ -59,7 +59,7 @@ import {
 import {
     BAKED_BASE_URL,
     PUBLISHED_AT_FORMAT,
-} from "../settings/clientSettings.js"
+} from "../settings/clientSettings.mjs"
 import { RouteComponentProps } from "react-router-dom"
 import * as R from "remeda"
 

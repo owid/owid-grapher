@@ -12,7 +12,7 @@ import {
     ENV,
     SENTRY_DSN,
     LOAD_SENTRY,
-} from "../settings/clientSettings.js"
+} from "../settings/clientSettings.mjs"
 import {
     getSessionSampleRate,
     hasSessionBeenSampled,

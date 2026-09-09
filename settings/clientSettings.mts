@@ -3,7 +3,7 @@
 // Settings in here will be made available to the client-side code that is
 // bundled and shipped out to our users.
 
-import "./loadDotenv.js"
+import "./loadDotenv.mts"
 
 const parseIntOrUndefined = (value: string | undefined): number | undefined => {
     try {
