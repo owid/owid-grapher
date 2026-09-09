@@ -13,7 +13,7 @@ import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
 import { EVALS_DIR, RESULTS_DIR } from "./lib/charts.js"
 import type { EvalCase } from "./buildCases.js"
-import { Condition, Grade, ResultRow, grade } from "./runDocQa.js"
+import { Condition, Grade, ResultRow, grade, pageOf } from "./runDocQa.js"
 
 interface ErrorRow {
     case_id: string
@@ -23,10 +23,15 @@ interface ErrorRow {
     message: string
 }
 
-const CONDITION_LABEL: Record<Condition, string> = {
+const CONDITION_LABEL: Partial<Record<Condition, string>> = {
     today: "Today (Cloudflare markdown)",
     pr: "PR (/grapher/<slug>.md)",
     none: "No page (memory only)",
+    "today+tools": "Today + tools (shell, web fetch)",
+    "pr+tools": "PR + tools (shell, web fetch)",
+    "none+tools": "No page + tools",
+    custom: "Custom page variant",
+    "custom+tools": "Custom page variant + tools",
 }
 
 function readJsonl<T>(file: string): T[] {
@@ -160,7 +165,12 @@ async function main(): Promise<void> {
         (r) => {
             const c = caseById.get(r.case_id)
             if (!c) return r
-            const g = grade(c, r.answer, doc(c.chart, r.condition))
+            const g = grade(
+                c,
+                r.answer,
+                doc(c.chart, pageOf(r.condition)),
+                r.evidence_in_tool_output ?? false
+            )
             return { ...r, grade: g.grade, explanation: g.explanation }
         }
     )
@@ -257,7 +267,7 @@ The agent gets the question plus the page text (or nothing) and must answer only
 ${summary
     .map(
         (s) =>
-            `<tr><td>${esc(CONDITION_LABEL[s.cond])}</td><td class="num">${s.n}</td><td class="num"><b>${pct(s.correct, s.n)}</b></td><td class="num">${pct(s.grounded, s.n)}</td><td class="num">${pct(s.hallucinated, s.n)}</td><td class="num">${pct(s.abstained, s.n)}</td><td class="num">${s.errors}</td><td class="num">${s.latency.toFixed(0)} s</td><td class="num">${Math.round(s.docChars).toLocaleString()}</td><td class="num">${Math.round(s.inputTokens).toLocaleString()}</td><td class="num">$${s.cost.toFixed(2)}</td></tr>`
+            `<tr><td>${esc(CONDITION_LABEL[s.cond] ?? s.cond)}</td><td class="num">${s.n}</td><td class="num"><b>${pct(s.correct, s.n)}</b></td><td class="num">${pct(s.grounded, s.n)}</td><td class="num">${pct(s.hallucinated, s.n)}</td><td class="num">${pct(s.abstained, s.n)}</td><td class="num">${s.errors}</td><td class="num">${s.latency.toFixed(0)} s</td><td class="num">${Math.round(s.docChars).toLocaleString()}</td><td class="num">${Math.round(s.inputTokens).toLocaleString()}</td><td class="num">$${s.cost.toFixed(2)}</td></tr>`
     )
     .join("\n")}
 </table>

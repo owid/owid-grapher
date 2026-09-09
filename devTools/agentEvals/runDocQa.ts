@@ -39,8 +39,22 @@ import { fetchTextCached } from "./lib/http.js"
 import { approxEqual } from "./lib/numbers.js"
 import type { EvalCase, Gold } from "./buildCases.js"
 
-export type Condition = "today" | "pr" | "none"
-const CONDITIONS: Condition[] = ["today", "pr", "none"]
+export type PageCondition = "today" | "pr" | "none" | "custom"
+/** A `+tools` suffix gives the agent Claude Code's tools (shell, web fetch) on top of the page. */
+export type Condition = PageCondition | `${PageCondition}+tools`
+const PAGE_CONDITIONS: PageCondition[] = ["today", "pr", "none", "custom"]
+
+export function pageOf(condition: Condition): PageCondition {
+    return condition.replace(/\+tools$/, "") as PageCondition
+}
+export function hasTools(condition: Condition): boolean {
+    return condition.endsWith("+tools")
+}
+
+export interface ToolCall {
+    name: string
+    input: string
+}
 
 export interface AgentAnswer {
     answer_number: number | null
@@ -81,6 +95,11 @@ export interface ResultRow {
     latency_s: number
     attempts: number
     doc_chars: number
+    /** Tool-enabled conditions only. */
+    tool_calls?: ToolCall[]
+    num_turns?: number
+    /** Whether the evidence quote was found in a tool result rather than the page. */
+    evidence_in_tool_output?: boolean
     meta: Record<string, unknown>
 }
 
@@ -123,6 +142,26 @@ Rules:
 - If the page does contain the answer, put the exact fragment you relied on into evidence: a verbatim copy of one table row or sentence from the page, with no commentary around it.
 - answer_number is a plain number in the unit the question asks for (write 609000000, not "609 million"; write 12.5 for 12.5%). answer_entity is the entity's name when the question asks which country or region.
 - answer_text is one or two sentences for the user.`
+
+const SYSTEM_PROMPT_WITH_PAGE_AND_TOOLS = `You are a careful research assistant answering a user's question about data published by Our World in Data.
+
+The user's tooling has already fetched the relevant page and pasted its text content into the message. You also have tools: you can run shell commands (curl, python3, jq, grep and so on) and fetch URLs, so you may follow links on the page to retrieve the underlying data if the page itself does not state the answer.
+
+Rules:
+- Answer only from the page content or from data you retrieve from ourworldindata.org by following the page's links. Do not fill gaps from memory and do not estimate. If neither the page nor the data contains the value, set found_in_page to false and leave answer_number and answer_entity null.
+- found_in_page is true when the answer comes from the page or from data you fetched via its links. Put the exact fragment you relied on into evidence: a verbatim copy of one table row, CSV line or sentence, with no commentary around it.
+- answer_number is a plain number in the unit the question asks for (write 609000000, not "609 million"; write 12.5 for 12.5%). answer_entity is the entity's name when the question asks which country or region.
+- answer_text is one or two sentences for the user, mentioning where the number came from.`
+
+const SYSTEM_PROMPT_WITHOUT_PAGE_WITH_TOOLS = `You are a careful research assistant answering a user's question about data published by Our World in Data.
+
+The user's tooling tried to fetch the relevant page but got no usable text. You have tools: you can run shell commands (curl, python3, jq, grep and so on) and fetch URLs, so you may retrieve data from ourworldindata.org yourself.
+
+Rules:
+- Answer only from data you retrieve from ourworldindata.org. Do not fill gaps from memory and do not estimate. If you cannot find the value, set found_in_page to false and leave answer_number and answer_entity null.
+- found_in_page is true when the answer comes from data you fetched. Put the exact fragment you relied on into evidence: a verbatim copy of one CSV line, table row or sentence, with no commentary around it.
+- answer_number is a plain number in the unit the question asks for (write 609000000, not "609 million"; write 12.5 for 12.5%). answer_entity is the entity's name when the question asks which country or region.
+- answer_text is one or two sentences for the user, mentioning where the number came from.`
 
 const SYSTEM_PROMPT_WITHOUT_PAGE = `You are a careful research assistant answering a user's question about data published by Our World in Data.
 
@@ -181,12 +220,14 @@ function matchesAtOwnPrecision(answer: number, gold: number): boolean {
 export function grade(
     evalCase: EvalCase,
     answer: AgentAnswer,
-    doc: string
+    doc: string,
+    evidenceInToolOutput = false
 ): { grade: Grade; explanation: string } {
     const gold = evalCase.gold
     const text = normalize(answer.answer_text ?? "")
     const grounded =
-        answer.found_in_page && evidenceIsInDoc(answer.evidence ?? "", doc)
+        answer.found_in_page &&
+        (evidenceIsInDoc(answer.evidence ?? "", doc) || evidenceInToolOutput)
 
     let answered: boolean
     let correct: boolean
@@ -266,7 +307,7 @@ export function grade(
     }
 }
 
-interface ClaudeResult {
+export interface ClaudeResult {
     is_error: boolean
     result?: string
     structured_output?: AgentAnswer
@@ -277,14 +318,84 @@ interface ClaudeResult {
     total_cost_usd?: number
     duration_api_ms?: number
     duration_ms?: number
+    num_turns?: number
 }
 
-interface RunOptions {
+export interface RunOptions {
     model: string
     effort?: string
     timeoutMs: number
     cwd: string
     systemPromptFile: string
+    /** Give the agent Claude Code's default tools instead of none. */
+    agentTools: boolean
+    /** Passed to --setting-sources; "project" with an empty cwd means no user-level skills or settings. */
+    settingSources?: string
+}
+
+interface StreamEvent {
+    type: string
+    message?: {
+        content?: Array<{
+            type: string
+            name?: string
+            input?: unknown
+            content?: string | Array<{ type: string; text?: string }>
+        }>
+    }
+}
+
+/**
+ * With tools on, the CLI streams one JSON event per line; the last one is the
+ * same result object the plain json format returns. Collect the tool calls and
+ * tool results on the way so the trace shows what the agent actually did.
+ */
+function parseStream(stdout: string): {
+    result: ClaudeResult | undefined
+    toolCalls: ToolCall[]
+    toolOutput: string
+} {
+    const toolCalls: ToolCall[] = []
+    const outputs: string[] = []
+    let result: ClaudeResult | undefined
+    for (const line of stdout.split("\n")) {
+        if (!line.trim()) continue
+        let event: StreamEvent & Partial<ClaudeResult>
+        try {
+            event = JSON.parse(line)
+        } catch {
+            continue
+        }
+        if (event.type === "result") result = event as ClaudeResult
+        for (const block of event.message?.content ?? []) {
+            if (block.type === "tool_use")
+                toolCalls.push({
+                    name: block.name ?? "?",
+                    input: JSON.stringify(block.input),
+                })
+            if (block.type === "tool_result") {
+                if (typeof block.content === "string")
+                    outputs.push(block.content)
+                else
+                    for (const part of block.content ?? [])
+                        if (part.text) outputs.push(part.text)
+            }
+        }
+    }
+    if (result && !result.structured_output && result.result) {
+        try {
+            result.structured_output = JSON.parse(result.result) as AgentAnswer
+        } catch {
+            // leave it undefined; the caller reports it as unparseable
+        }
+    }
+    return { result, toolCalls, toolOutput: outputs.join("\n") }
+}
+
+export interface CallOutcome {
+    parsed: ClaudeResult
+    toolCalls: ToolCall[]
+    toolOutput: string
 }
 
 class CallError extends Error {
@@ -298,26 +409,40 @@ class CallError extends Error {
     }
 }
 
-function runClaude(
+export function runClaude(
     userMessage: string,
-    options: RunOptions
-): Promise<ClaudeResult> {
+    options: RunOptions,
+    schema: object = ANSWER_SCHEMA
+): Promise<CallOutcome> {
     const args = [
         "-p",
         "--system-prompt-file",
         options.systemPromptFile,
-        "--tools",
-        "",
         "--model",
         options.model,
-        "--output-format",
-        "json",
         "--json-schema",
-        JSON.stringify(ANSWER_SCHEMA),
+        JSON.stringify(schema),
         "--no-session-persistence",
         "--strict-mcp-config",
     ]
+    if (options.agentTools) {
+        // Default tool set; the cwd is an empty temp dir, so bypassing the
+        // permission prompts (which headless mode cannot show) is contained.
+        args.push(
+            "--permission-mode",
+            "bypassPermissions",
+            "--max-turns",
+            "15",
+            "--output-format",
+            "stream-json",
+            "--verbose"
+        )
+    } else {
+        args.push("--tools", "", "--output-format", "json")
+    }
     if (options.effort) args.push("--effort", options.effort)
+    if (options.settingSources !== undefined)
+        args.push("--setting-sources", options.settingSources)
 
     return new Promise((resolve, reject) => {
         const child = spawn("claude", args, {
@@ -350,8 +475,18 @@ function runClaude(
                     )
                 )
             let parsed: ClaudeResult
+            let toolCalls: ToolCall[] = []
+            let toolOutput = ""
             try {
-                parsed = JSON.parse(stdout) as ClaudeResult
+                if (options.agentTools) {
+                    const stream = parseStream(stdout)
+                    if (!stream.result) throw new Error("no result event")
+                    parsed = stream.result
+                    toolCalls = stream.toolCalls
+                    toolOutput = stream.toolOutput
+                } else {
+                    parsed = JSON.parse(stdout) as ClaudeResult
+                }
             } catch {
                 return reject(
                     new CallError(
@@ -386,13 +521,13 @@ function runClaude(
                         parsed
                     )
                 )
-            resolve(parsed)
+            resolve({ parsed, toolCalls, toolOutput })
         })
         child.stdin.end(userMessage)
     })
 }
 
-function usageOf(parsed: ClaudeResult | undefined): ResultRow["usage"] {
+export function usageOf(parsed: ClaudeResult | undefined): ResultRow["usage"] {
     const u = parsed?.usage ?? {}
     return {
         input_tokens: u.input_tokens ?? 0,
@@ -402,7 +537,7 @@ function usageOf(parsed: ClaudeResult | undefined): ResultRow["usage"] {
     }
 }
 
-function servedModel(parsed: ClaudeResult | undefined): string {
+export function servedModel(parsed: ClaudeResult | undefined): string {
     return Object.keys(parsed?.modelUsage ?? {}).join("+") || "unknown"
 }
 
@@ -411,18 +546,24 @@ function userMessage(
     condition: Condition,
     doc: string
 ): string {
-    if (condition === "none")
+    if (pageOf(condition) === "none")
         return `I tried to fetch ${evalCase.url} but got no usable text back (the chart needs JavaScript).\n\nQuestion: ${evalCase.question}`
     return `I fetched the page ${evalCase.url} from ourworldindata.org. Here is its text content:\n\n<page_content>\n${doc}\n</page_content>\n\nQuestion: ${evalCase.question}`
 }
 
 async function fetchDoc(
     spec: ChartSpec,
-    condition: Condition,
+    condition: PageCondition,
     branch: string
 ): Promise<string> {
     if (condition === "none") return ""
     const file = path.join(RESULTS_DIR, "docs", condition, `${spec.key}.md`)
+    // A hand-edited page variant for experiments; nothing is fetched.
+    if (condition === "custom") {
+        if (!fs.existsSync(file))
+            throw new Error(`custom page missing: ${file}`)
+        return fs.readFileSync(file, "utf8")
+    }
     if (condition === "today") {
         const body = await fetchTextCached(prodPageUrl(spec), file, {
             accept: "text/markdown",
@@ -475,7 +616,7 @@ async function main(): Promise<void> {
         })
         .option("conditions", {
             type: "string",
-            default: CONDITIONS.join(","),
+            default: PAGE_CONDITIONS.join(","),
         })
         .option("model", {
             type: "string",
@@ -505,7 +646,8 @@ async function main(): Promise<void> {
     const branch = argv.branch ?? charts.prBranch
     const conditions = argv.conditions.split(",") as Condition[]
     for (const c of conditions)
-        if (!CONDITIONS.includes(c)) throw new Error(`unknown condition ${c}`)
+        if (!PAGE_CONDITIONS.includes(pageOf(c)))
+            throw new Error(`unknown condition ${c}`)
 
     let cases = JSON.parse(fs.readFileSync(argv.cases, "utf8")) as EvalCase[]
     if (argv.filter) {
@@ -532,20 +674,34 @@ async function main(): Promise<void> {
     for (const key of new Set(cases.map((c) => c.chart))) {
         const spec = specsByKey.get(key)
         if (!spec) throw new Error(`cases.json references unknown chart ${key}`)
-        for (const condition of conditions)
-            docs.set(
-                `${key}|${condition}`,
-                await fetchDoc(spec, condition, branch)
-            )
+        for (const page of new Set(conditions.map(pageOf)))
+            docs.set(`${key}|${page}`, await fetchDoc(spec, page, branch))
     }
 
-    const systemPromptFiles: Record<Condition, string> = {
-        today: path.join(runDir, "system-with-page.md"),
-        pr: path.join(runDir, "system-with-page.md"),
-        none: path.join(runDir, "system-without-page.md"),
+    const promptFile = (name: string, text: string): string => {
+        const file = path.join(runDir, name)
+        fs.writeFileSync(file, text)
+        return file
     }
-    fs.writeFileSync(systemPromptFiles.today, SYSTEM_PROMPT_WITH_PAGE)
-    fs.writeFileSync(systemPromptFiles.none, SYSTEM_PROMPT_WITHOUT_PAGE)
+    const systemPromptFor = (condition: Condition): string => {
+        const withPage = pageOf(condition) !== "none"
+        if (hasTools(condition))
+            return withPage
+                ? promptFile(
+                      "system-with-page-tools.md",
+                      SYSTEM_PROMPT_WITH_PAGE_AND_TOOLS
+                  )
+                : promptFile(
+                      "system-without-page-tools.md",
+                      SYSTEM_PROMPT_WITHOUT_PAGE_WITH_TOOLS
+                  )
+        return withPage
+            ? promptFile("system-with-page.md", SYSTEM_PROMPT_WITH_PAGE)
+            : promptFile("system-without-page.md", SYSTEM_PROMPT_WITHOUT_PAGE)
+    }
+    const systemPromptFiles = Object.fromEntries(
+        conditions.map((c) => [c, systemPromptFor(c)])
+    ) as Record<Condition, string>
     fs.writeFileSync(
         path.join(runDir, "config.json"),
         JSON.stringify(
@@ -600,7 +756,7 @@ async function main(): Promise<void> {
         condition,
         rep,
     }: Task): Promise<void> => {
-        const doc = docs.get(`${evalCase.chart}|${condition}`) ?? ""
+        const doc = docs.get(`${evalCase.chart}|${pageOf(condition)}`) ?? ""
         const message = userMessage(evalCase, condition, doc)
         const options: RunOptions = {
             model: argv.model,
@@ -608,6 +764,7 @@ async function main(): Promise<void> {
             timeoutMs: argv.timeoutS * 1000,
             cwd,
             systemPromptFile: systemPromptFiles[condition],
+            agentTools: hasTools(condition),
         }
         let attempts = 0
         let lastError: CallError | undefined
@@ -616,10 +773,21 @@ async function main(): Promise<void> {
             attempts++
             const started = Date.now()
             try {
-                const parsed = await runClaude(message, options)
+                const { parsed, toolCalls, toolOutput } = await runClaude(
+                    message,
+                    options
+                )
                 const latency = (Date.now() - started) / 1000
                 const answer = parsed.structured_output!
-                const graded = grade(evalCase, answer, doc)
+                const evidenceInToolOutput =
+                    toolOutput.length > 0 &&
+                    evidenceIsInDoc(answer.evidence ?? "", toolOutput)
+                const graded = grade(
+                    evalCase,
+                    answer,
+                    doc,
+                    evidenceInToolOutput
+                )
                 const row: ResultRow = {
                     prompt_id: `${evalCase.id}|${condition}`,
                     case_id: evalCase.id,
@@ -639,6 +807,13 @@ async function main(): Promise<void> {
                     latency_s: latency,
                     attempts,
                     doc_chars: doc.length,
+                    ...(options.agentTools
+                        ? {
+                              tool_calls: toolCalls,
+                              num_turns: parsed.num_turns,
+                              evidence_in_tool_output: evidenceInToolOutput,
+                          }
+                        : {}),
                     meta: evalCase.meta,
                 }
                 appendJsonl(resultsFile, row)
@@ -659,6 +834,19 @@ async function main(): Promise<void> {
                                 ),
                             },
                             { role: "user", content: message },
+                            ...toolCalls.map((call) => ({
+                                role: "tool_call",
+                                name: call.name,
+                                content: call.input,
+                            })),
+                            ...(toolOutput
+                                ? [
+                                      {
+                                          role: "tool_result",
+                                          content: toolOutput.slice(0, 200_000),
+                                      },
+                                  ]
+                                : []),
                             {
                                 role: "assistant",
                                 content: JSON.stringify(answer, null, 2),

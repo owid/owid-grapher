@@ -8,10 +8,10 @@ non-JavaScript reader sees (llms.txt, page markdown, WebMCP text).
 
 Two layers, cheapest first:
 
-| Layer | Question | Model? | Script |
-| --- | --- | --- | --- |
-| 0. Value check | Does every number printed in the markdown match the chart's CSV? | no | `checkMarkdownValues.ts` |
-| 1. Document QA | Given the page text, does an agent answer correctly, and does it stop guessing? | yes | `buildCases.ts` → `runDocQa.ts` → `buildReport.ts` |
+| Layer          | Question                                                                        | Model? | Script                                             |
+| -------------- | ------------------------------------------------------------------------------- | ------ | -------------------------------------------------- |
+| 0. Value check | Does every number printed in the markdown match the chart's CSV?                | no     | `checkMarkdownValues.ts`                           |
+| 1. Document QA | Given the page text, does an agent answer correctly, and does it stop guessing? | yes    | `buildCases.ts` → `runDocQa.ts` → `buildReport.ts` |
 
 Everything runs from the repo root with `yarn tsx --tsconfig tsconfig.tsx.json devTools/agentEvals/<script>`.
 
@@ -35,16 +35,16 @@ needed; the reported cost is what the calls would cost on the API.
 with gold answers taken from the CSV and metadata endpoints, never from the
 markdown under test. Per chart view:
 
-| Type | Asks for | Answerable from the PR markdown via |
-| --- | --- | --- |
-| `point-latest` ×2 | a random country's value at its latest year | the per-entity table |
-| `point-selected` | a default-selected entity at the view's end year | either table |
-| `point-start` | the first selected entity at the view's start year | the selected-values table |
-| `change` | end minus start for that entity | the selected-values table |
-| `rank-max` / `rank-min` | the country with the highest / lowest value | the per-entity table |
-| `unanswerable-early` | a value for a year before the entity's data starts | nothing: the right answer is to decline |
-| `unanswerable-late` | a value for the view's end year from a country whose data stops earlier | nothing: the right answer is to decline |
-| `meta-unit` / `meta-source` | the unit and the data producers | the prose, present in both renderings |
+| Type                        | Asks for                                                                | Answerable from the PR markdown via     |
+| --------------------------- | ----------------------------------------------------------------------- | --------------------------------------- |
+| `point-latest` ×2           | a random country's value at its latest year                             | the per-entity table                    |
+| `point-selected`            | a default-selected entity at the view's end year                        | either table                            |
+| `point-start`               | the first selected entity at the view's start year                      | the selected-values table               |
+| `change`                    | end minus start for that entity                                         | the selected-values table               |
+| `rank-max` / `rank-min`     | the country with the highest / lowest value                             | the per-entity table                    |
+| `unanswerable-early`        | a value for a year before the entity's data starts                      | nothing: the right answer is to decline |
+| `unanswerable-late`         | a value for the view's end year from a country whose data stops earlier | nothing: the right answer is to decline |
+| `meta-unit` / `meta-source` | the unit and the data producers                                         | the prose, present in both renderings   |
 
 Sampling is seeded per chart, so re-running on unchanged data reproduces the
 set. `cases.json` is committed and is the thing to review: read the questions,
@@ -114,3 +114,35 @@ results/             gitignored: inputs/ (CSV + metadata snapshots), docs/ (page
 - One rep per case gives a noise floor of roughly ±10 points on a pass rate
   at n ≈ 110. Paired differences between conditions on the same cases are
   much tighter; the report gives bootstrap intervals for those.
+
+## Agents with tools, and the open web
+
+Two extensions to the same runner, both cheap enough to run on a handful of
+cases and both meant for reading transcripts rather than computing rates:
+
+- **`+tools` conditions** (`--conditions today+tools,pr+tools`): the agent gets
+  Claude Code's default tools and may follow the page's links. Rows gain
+  `tool_calls`, `num_turns` and whether the evidence came from a tool result.
+  A `custom` page condition reads `results/docs/custom/<chart>.md`, a
+  hand-edited snapshot, for wording experiments ("does documenting the query
+  grammar change how the agent fetches?").
+- **`runOpenWeb.ts`**: generic questions with no mention of Our World in Data
+  and no URL; the agent (`--agent claude` or `--agent gemini`, the latter via
+  Gemini CLI with `GOOGLE_API_KEY`) has web search and fetch and must name its
+  source. Records searches, fetched domains, the cited source and whether the
+  number matches our CSV. Both agents run with a private home directory and
+  `--setting-sources project`, so none of the developer's skills, memory files
+  or hooks are in play; an early run without that had the OWID skills loaded,
+  which changed where the agent went.
+
+```sh
+yarn tsx --tsconfig tsconfig.tsx.json devTools/agentEvals/runDocQa.ts --name tools --conditions 'today+tools' --filter 'life-expectancy/(point-latest-1|rank-max-1)'
+yarn tsx --tsconfig tsconfig.tsx.json devTools/agentEvals/runOpenWeb.ts --name open-web
+yarn tsx --tsconfig tsconfig.tsx.json devTools/agentEvals/runOpenWeb.ts --agent gemini --model gemini-3.8-flash --name open-web-gemini
+```
+
+Fetcher behaviour worth knowing when interpreting results: Claude Code's
+`WebFetch` sends `Accept: text/markdown, text/html, */*`; Gemini CLI's
+`web_fetch` and `curl` send `*/*`. So the "today" condition (Cloudflare's
+markdown conversion of the HTML) is what Claude-class fetchers actually read
+from a chart page, while Gemini-class fetchers read the HTML.
