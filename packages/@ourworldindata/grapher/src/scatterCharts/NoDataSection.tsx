@@ -47,7 +47,7 @@ export function NoDataSection({
                         ))}
                     </ul>
                     {remaining > 0 && (
-                        <div>& {remaining === 1 ? "one" : remaining} more</div>
+                        <div>{`& ${remaining === 1 ? "one" : remaining} more`}</div>
                     )}
                 </div>
             </foreignObject>

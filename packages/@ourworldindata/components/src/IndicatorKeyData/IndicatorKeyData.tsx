@@ -39,9 +39,9 @@ export const makeSource = ({
                             {processingLevelPhrase}
                         </a>
                     ) : (
-                        processingLevelPhrase
+                        <span>{processingLevelPhrase}</span>
                     )}{" "}
-                    by Our World in Data
+                    <span>by Our World in Data</span>
                 </>
             )}
         </>

@@ -321,8 +321,10 @@ function AuthorByline(props: {
                         ) : (
                             <span>{name}</span>
                         )}
-                        {!isLast && names.length > 2 && ", "}
-                        {isSecondToLast && names.length > 1 && " and "}
+                        {!isLast && names.length > 2 && <span>{", "}</span>}
+                        {isSecondToLast && names.length > 1 && (
+                            <span>{" and "}</span>
+                        )}
                     </React.Fragment>
                 )
             })}

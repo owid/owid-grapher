@@ -142,8 +142,7 @@ function Row({
                         </span>
                         {row.time && (
                             <span className="search-chart-hit-table-row__time">
-                                {" "}
-                                {row.timePreposition ?? "in"} {row.time}
+                                {` ${row.timePreposition ?? "in"} ${row.time}`}
                             </span>
                         )}
                     </span>

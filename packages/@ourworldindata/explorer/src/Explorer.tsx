@@ -1126,9 +1126,11 @@ export class Explorer
                 {showHeaderElement && this.renderHeaderElement()}
                 {showHeaderElement && this.renderControlBar()}
                 {showExplorerControls && this.renderEntityPicker()}
+                {/* oxlint-disable react-google-translate/no-conditional-text-nodes-with-siblings -- renders an element, not text */}
                 {showExplorerControls &&
                     this.isNarrow &&
                     this.mobileCustomizeButton}
+                {/* oxlint-enable react-google-translate/no-conditional-text-nodes-with-siblings */}
                 <div className="ExplorerFigure" ref={this.grapherContainerRef}>
                     <Grapher
                         ref={this.grapherRef}
