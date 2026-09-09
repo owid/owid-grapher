@@ -70,6 +70,15 @@ describe(ingestGrapherConfig, () => {
         ])
     })
 
+    it("rejects a $schema that is not a string", () => {
+        const error = catchValidationError(() =>
+            ingestGrapherConfig({ ...baseChartConfig, $schema: 123 })
+        )
+
+        expect(error.status).toBe(400)
+        expect(error.issues.map((issue) => issue.pointer)).toEqual(["/$schema"])
+    })
+
     it("rejects a schema version this code does not know", () => {
         const error = catchValidationError(() =>
             ingestGrapherConfig({
