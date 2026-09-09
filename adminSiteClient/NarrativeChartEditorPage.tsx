@@ -23,7 +23,7 @@ import { NarrativeChartSaveButtons } from "./NarrativeChartSaveButtons.js"
 import {
     adminOriginUrlSuggestions,
     getFullReferencesCount,
-References,
+    References,
 } from "./adminChartApi.js"
 import {
     adminDetailsProvider,

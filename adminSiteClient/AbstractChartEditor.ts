@@ -143,8 +143,6 @@ export function withDimensionsFromColumnSlugs(
     }
 }
 
-}
-
 export abstract class AbstractChartEditor<
     Manager extends AbstractChartEditorManager = AbstractChartEditorManager,
 > {

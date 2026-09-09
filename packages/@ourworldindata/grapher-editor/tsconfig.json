@@ -1,0 +1,13 @@
+{
+    // Editor tooling only. The package's sources live in adminSiteClient/ and
+    // are typechecked by that project; the build (tsdown.config.ts) bundles
+    // them from here, and the type declarations are built from
+    // ../../../tsconfig.editor-dts.json, whose root spans both trees.
+    "extends": "../../../devTools/tsconfigs/tsconfig.base.json",
+    "include": ["src/**/*.ts", "packageTest/**/*.ts", "*.ts"],
+    "compilerOptions": {
+        "composite": false,
+        "noEmit": true,
+        "rootDir": "../../.."
+    }
+}
