@@ -38,14 +38,24 @@ export const defineViteConfigForEntrypoint = (entrypoint: ViteEntryPoint) => {
                 scss: scssPreprocessorOptions,
             },
         },
-        define: Object.fromEntries(
+        define: {
             // Replace all clientSettings with their respective values, i.e. assign e.g. EXAMPLE_ENV_VAR to process.env.EXAMPLE_ENV_VAR
             // it's important to note that we only expose values that are present in the clientSettings file - not any other things that are stored in .env
-            Object.entries(clientSettings).map(([key, value]) => [
-                `process.env.${key}`,
-                JSON.stringify(value?.toString()), // We need to stringify e.g. `true` to `"true"`, so that it's correctly parsed _again_
-            ])
-        ),
+            ...Object.fromEntries(
+                Object.entries(clientSettings).map(([key, value]) => [
+                    `process.env.${key}`,
+                    JSON.stringify(value?.toString()), // We need to stringify e.g. `true` to `"true"`, so that it's correctly parsed _again_
+                ])
+            ),
+            // DIAGNOSTIC ONLY - DO NOT MERGE. react-dom/client picks its
+            // dev/prod bundle from a runtime `process.env.NODE_ENV` check, so
+            // this is what pulls in react-dom-client.development.js. Its
+            // reconciler frames keep their real names, which is the whole
+            // point: the production build's internals are pre-mangled, so
+            // disabling our own minifier alone would still leave us with
+            // two-letter symbols.
+            "process.env.NODE_ENV": '"development"',
+        },
         resolve: {
             alias: {
                 // We don't want to load dotenv in the browser build, and don't need to fill in node imports like fs or path.
@@ -62,6 +72,9 @@ export const defineViteConfigForEntrypoint = (entrypoint: ViteEntryPoint) => {
             chunkSizeWarningLimit: 10_000,
             outDir: `dist/${entrypointInfo.outDir}`,
             sourcemap: true,
+            // DIAGNOSTIC ONLY - DO NOT MERGE. Keeps our own bundle readable
+            // so the frames around React's reconciler are legible too.
+            minify: false,
             target: BUILD_TARGET, // see docs/browser-support.md
             rolldownOptions: {
                 input: {
