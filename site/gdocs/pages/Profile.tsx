@@ -7,7 +7,7 @@ import {
     LICENSE_ID,
 } from "@ourworldindata/utils"
 import { getCanonicalUrl } from "@ourworldindata/components"
-import { BAKED_BASE_URL } from "../../../settings/clientSettings.js"
+import { BAKED_BASE_URL } from "../../../settings/clientSettings.mjs"
 import { OwidGdocType } from "@ourworldindata/types"
 import { buildGdocCitation } from "../utils.js"
 import { CitationSection } from "../components/CitationSection.js"

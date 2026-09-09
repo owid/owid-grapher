@@ -28,7 +28,8 @@ export const RAW: RawMigrantDemographics = {
     years: [2010, 2020],
     entities: [
         {
-            name: "World",
+            name: "Europe (UN)",
+            isAggregate: true,
             data: { "2010": RECORD, "2020": RECORD },
         },
         {

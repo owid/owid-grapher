@@ -32,10 +32,8 @@ import {
     ConnectedScatterLegend,
     ConnectedScatterLegendManager,
 } from "./ConnectedScatterLegend"
-import {
-    VerticalColorLegend,
-    VerticalColorLegendManager,
-} from "../legend/VerticalColorLegend"
+import { VerticalColorLegend } from "../legend/VerticalColorLegend"
+import { VerticalColorLegendState } from "../legend/VerticalColorLegendState"
 import { DualAxisComponent } from "../axis/AxisViews"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
 
@@ -60,7 +58,11 @@ import {
 } from "./ScatterPlotChartConstants"
 import { ScatterPointsWithLabels } from "./ScatterPointsWithLabels"
 import { ColorScaleBin } from "../color/ColorScaleBin"
-import { LegendStyleConfig } from "../legend/LegendStyleConfig"
+import {
+    BinEmphasis,
+    LegendStyleConfig,
+    toBinEmphasis,
+} from "../legend/LegendStyleConfig"
 import { Emphasis } from "../interaction/Emphasis"
 import {
     ScatterSizeLegend,
@@ -84,7 +86,6 @@ export class ScatterPlotChart
         ConnectedScatterLegendManager,
         ScatterSizeLegendManager,
         ChartInterface,
-        VerticalColorLegendManager,
         AxisManager
 {
     constructor(props: ScatterPlotChartProps) {
@@ -146,7 +147,7 @@ export class ScatterPlotChart
         return this.innerBounds
     }
 
-    @computed get isStatic(): boolean {
+    @computed private get isStatic(): boolean {
         return !!this.manager.isStatic
     }
 
@@ -204,8 +205,6 @@ export class ScatterPlotChart
         if (isTouchDevice()) return
         this.hoveredLegendColor = undefined
     }
-
-    legendCursor = "pointer"
 
     // When the color legend is clicked, toggle selection fo all associated keys
     @action.bound onLegendClick(bin: ColorScaleBin): void {
@@ -321,15 +320,19 @@ export class ScatterPlotChart
         return this.tooltipState.target?.series
     }
 
-    @computed private get verticalColorLegend():
-        | VerticalColorLegend
+    @computed private get verticalColorLegendState():
+        | VerticalColorLegendState
         | undefined {
         if (this.categoricalLegendData.length === 0 || !this.manager.showLegend)
             return undefined
-        return new VerticalColorLegend({ manager: this })
+        return new VerticalColorLegendState(this.categoricalLegendData, {
+            fontSize: this.fontSize,
+            maxWidth: this.maxLegendWidth,
+            title: this.legendTitle,
+        })
     }
 
-    @computed get maxLegendWidth(): number {
+    @computed private get maxLegendWidth(): number {
         return this.sidebarMaxWidth
     }
 
@@ -346,14 +349,14 @@ export class ScatterPlotChart
 
         // No sidebar needed if there are no legends
         if (
-            !this.verticalColorLegend &&
+            !this.verticalColorLegendState &&
             !this.sizeLegend &&
             !this.arrowLegend &&
             !this.hasNoDataSection
         )
             return 0
 
-        const colorLegendWidth = this.verticalColorLegend?.width ?? 0
+        const colorLegendWidth = this.verticalColorLegendState?.width ?? 0
 
         return _.clamp(colorLegendWidth, sidebarMinWidth, sidebarMaxWidth)
     }
@@ -413,9 +416,18 @@ export class ScatterPlotChart
         return Array.from(activeColorsSet)
     }
 
-    resolveLegendBinEmphasis(bin: ColorScaleBin): Emphasis {
+    private readonly resolveLegendBinEmphasis = (
+        bin: ColorScaleBin
+    ): Emphasis => {
         const isActive = this.activeColors.includes(bin.color)
         return isActive ? Emphasis.Highlighted : Emphasis.Muted
+    }
+
+    @computed private get categoricalLegendEmphasis(): BinEmphasis {
+        return toBinEmphasis(
+            this.categoricalLegendData,
+            this.resolveLegendBinEmphasis
+        )
     }
 
     @computed private get hideConnectedScatterLines(): boolean {
@@ -522,7 +534,7 @@ export class ScatterPlotChart
         return this.chartState.colorColumn
     }
 
-    @computed get categoricalLegendData(): ColorScaleBin[] {
+    @computed private get categoricalLegendData(): ColorScaleBin[] {
         return this.colorScale.legendBins.filter(
             (bin) =>
                 this.colorsInUse.includes(bin.color) &&
@@ -530,7 +542,7 @@ export class ScatterPlotChart
         )
     }
 
-    @computed get legendTitle(): string | undefined {
+    @computed private get legendTitle(): string | undefined {
         return this.colorScale.legendDescription
     }
 
@@ -607,11 +619,11 @@ export class ScatterPlotChart
             bounds,
             sizeLegend,
             arrowLegend,
-            verticalColorLegend,
+            verticalColorLegendState,
             sidebarWidth,
         } = this
 
-        const verticalLegendHeight = verticalColorLegend?.height ?? 0
+        const verticalLegendHeight = verticalColorLegendState?.height ?? 0
         const sizeLegendHeight = sizeLegend?.height ?? 0
         const arrowLegendHeight = arrowLegend?.height ?? 0
 
@@ -650,16 +662,28 @@ export class ScatterPlotChart
 
         return (
             <>
-                {verticalColorLegend && <VerticalColorLegend manager={this} />}
+                {verticalColorLegendState && (
+                    <VerticalColorLegend
+                        state={verticalColorLegendState}
+                        x={this.legendX}
+                        y={this.legendY}
+                        interactive={!this.isStatic}
+                        styleConfig={this.legendStyleConfig}
+                        binEmphasis={this.categoricalLegendEmphasis}
+                        onMouseOver={this.onLegendMouseOver}
+                        onMouseLeave={this.onLegendMouseLeave}
+                        onClick={this.onLegendClick}
+                    />
+                )}
                 {sizeLegend && (
                     <>
-                        {verticalColorLegend && separatorLine(ySizeLegend)}
+                        {verticalColorLegendState && separatorLine(ySizeLegend)}
                         {sizeLegend.render(this.legendX, ySizeLegend)}
                     </>
                 )}
                 {arrowLegend && (
                     <>
-                        {(verticalColorLegend || sizeLegend) &&
+                        {(verticalColorLegendState || sizeLegend) &&
                             separatorLine(yArrowLegend)}
                         <g
                             className="clickable"
@@ -671,7 +695,9 @@ export class ScatterPlotChart
                 )}
                 {this.hasNoDataSection && !this.manager.isStatic && (
                     <>
-                        {(verticalColorLegend || sizeLegend || arrowLegend) &&
+                        {(verticalColorLegendState ||
+                            sizeLegend ||
+                            arrowLegend) &&
                             separatorLine(noDataSectionBounds.top)}
                         <NoDataSection
                             seriesNames={this.selectedEntitiesWithoutData}
@@ -743,11 +769,11 @@ export class ScatterPlotChart
         )
     }
 
-    @computed get legendY(): number {
+    @computed private get legendY(): number {
         return this.bounds.top + this.yAxis.labelHeight
     }
 
-    @computed get legendX(): number {
+    @computed private get legendX(): number {
         return this.bounds.right - this.sidebarWidth
     }
 

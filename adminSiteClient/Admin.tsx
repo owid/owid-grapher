@@ -194,4 +194,17 @@ export class Admin {
     ): Promise<T> {
         return this.requestJSON<T>(path, params, "GET")
     }
+
+    /**
+     * Fetches JSON without triggering the legacy full-screen loader. Use when
+     * the caller handles loading state, such as React Query's global loader.
+     */
+    async getJSONInBackground<T extends Json = Json>(
+        path: string,
+        params: Json = {}
+    ): Promise<T> {
+        return this.requestJSON<T>(path, params, "GET", {
+            isBackground: true,
+        })
+    }
 }

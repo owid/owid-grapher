@@ -6,7 +6,7 @@ import { fetchWithRetry } from "@ourworldindata/utils"
 import {
     ALGOLIA_ID,
     ALGOLIA_SEARCH_KEY,
-} from "../../settings/clientSettings.js"
+} from "../../settings/clientSettings.mjs"
 import { SEARCH_EVAL_URL } from "../../settings/serverSettings.js"
 import { PAGES_INDEX } from "./searchUtils.js"
 import { algoliasearch, SearchClient } from "algoliasearch"

@@ -5,7 +5,7 @@ import {
 import { Button } from "@ourworldindata/components"
 import { useLinkedChart } from "../utils.js"
 import { useDocumentContext } from "../DocumentContext.js"
-import { BAKED_BASE_URL } from "../../../settings/clientSettings.js"
+import { BAKED_BASE_URL } from "../../../settings/clientSettings.mjs"
 
 function ExplorerTile({ url }: { url: string }) {
     const { linkedChart, errorMessage } = useLinkedChart(url)

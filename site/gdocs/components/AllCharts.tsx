@@ -14,7 +14,7 @@ import {
 import { AttachmentsContext } from "../AttachmentsContext.js"
 import { useDocumentContext } from "../DocumentContext.js"
 import { RelatedCharts } from "../../blocks/RelatedCharts.js"
-import { BAKED_BASE_URL } from "../../../settings/clientSettings.js"
+import { BAKED_BASE_URL } from "../../../settings/clientSettings.mjs"
 import { Button } from "@ourworldindata/components"
 
 type AllChartsProps = EnrichedBlockAllCharts & {

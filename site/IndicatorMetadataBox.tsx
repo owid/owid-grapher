@@ -21,20 +21,16 @@ import {
 } from "@ourworldindata/types"
 import { createRef, useEffect, useMemo, useRef, useState } from "react"
 import {
+    formatAttributions,
     prepareSourcesForDisplay,
-    getCitationShort,
-    getCitationLong,
-    getCitationDatapage,
+    getIndicatorCitations,
     spansToUnformattedPlainText,
 } from "@ourworldindata/utils"
 import { Byline } from "./gdocs/components/Byline.js"
 import { ArticleBlocks } from "./gdocs/components/ArticleBlocks.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faChevronDown, faChevronUp } from "@fortawesome/free-solid-svg-icons"
-import {
-    getAttributionUnshortened,
-    splitDescriptionKey,
-} from "./datapageUtils.js"
+import { splitDescriptionKey } from "./datapageUtils.js"
 import { SiteAnalytics } from "./SiteAnalytics.js"
 import { ChartLicenseNotice } from "./ChartLicenseNotice.js"
 import {
@@ -130,30 +126,22 @@ function ExpandableSection({
     })
 
     const citationUrl = archiveContext?.archiveUrl ?? canonicalUrl
-    const citationShort = getCitationShort(
-        origins,
-        datapageData.attributions,
-        datapageData.owidProcessingLevel
-    )
-    const citationLong = getCitationLong(
-        datapageData.title,
+    const {
+        short: citationShort,
+        long: citationLong,
+        datapage: citationDatapage,
+    } = getIndicatorCitations({
+        indicatorTitle: title,
         origins,
         source,
-        datapageData.attributions,
-        datapageData.attributionShort,
-        datapageData.titleVariant,
-        datapageData.owidProcessingLevel,
+        attributions: datapageData.attributions,
+        attributionShort: datapageData.attributionShort,
+        titleVariant: datapageData.titleVariant,
+        owidProcessingLevel: datapageData.owidProcessingLevel,
         citationUrl,
-        archiveContext?.archivalDate
-    )
-    const citationDatapage = getCitationDatapage(
-        title,
-        origins,
-        source,
+        archivalDate: archiveContext?.archivalDate,
         primaryTopic,
-        citationUrl,
-        archiveContext?.archivalDate
-    )
+    })
 
     const faqQuestions = groupFaqsByQuestion(faqEntries?.faqs ?? [])
 
@@ -471,10 +459,10 @@ function IndicatorPaneContent({
     // pane's datapageData.owners from its own indicator's dataset.
     const owners = datapageData.owners?.[0]?.owners ?? []
 
-    const attributionUnshortened = getAttributionUnshortened(datapageData)
+    const attribution = formatAttributions(datapageData.attributions ?? [])
     const processingContentId = `${INDICATOR_PROCESSING_SECTION_ID}${idSuffix}`
     const sourceString = makeSource({
-        attribution: attributionUnshortened,
+        attribution,
         owidProcessingLevel: datapageData.owidProcessingLevel,
         processingId: processingContentId,
     })

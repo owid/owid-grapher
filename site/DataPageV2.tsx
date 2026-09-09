@@ -21,7 +21,7 @@ import {
     ADMIN_BASE_URL,
     BAKED_GRAPHER_URL,
     DATA_API_URL,
-} from "../settings/clientSettings.js"
+} from "../settings/clientSettings.mjs"
 import {
     DataPageV2Content,
     OWID_DATAPAGE_CONTENT_ROOT_ID,

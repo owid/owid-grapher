@@ -1,4 +1,8 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
+import {
+    QueryClient,
+    QueryClientProvider,
+    useIsFetching,
+} from "@tanstack/react-query"
 import * as React from "react"
 import { Admin } from "./Admin.js"
 import { ChartEditorPage } from "./ChartEditorPage.js"
@@ -113,13 +117,28 @@ class AdminErrorMessage extends React.Component<{ admin: Admin }> {
     }
 }
 
-@observer
-class AdminLoader extends React.Component<{ admin: Admin }> {
-    override render(): React.ReactElement | null {
-        const { admin } = this.props
-        return admin.showLoadingIndicator ? <LoadingBlocker /> : null
-    }
-}
+const AdminLoader = observer(function AdminLoader({
+    admin,
+}: {
+    admin: Admin
+}): React.ReactElement | null {
+    const initialQueriesLoading = useIsFetching({
+        // Initial queries block the whole admin UI by default. Queries that
+        // handle loading locally (for example, lazy modal content) should opt
+        // out with `meta: { blocksPage: false }`.
+        predicate: (query) =>
+            query.meta?.blocksPage !== false &&
+            query.state.status === "pending",
+    })
+    const showInitialQueryLoader =
+        admin.loadingIndicatorSetting === "default" && initialQueriesLoading > 0
+
+    return (
+        <LoadingBlocker
+            isLoading={admin.showLoadingIndicator || showInitialQueryLoader}
+        />
+    )
+})
 
 @observer
 export class AdminApp extends React.Component<{

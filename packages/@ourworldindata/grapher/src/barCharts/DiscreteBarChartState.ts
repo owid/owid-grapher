@@ -434,16 +434,18 @@ export class DiscreteBarChartState implements ChartState, ColorScaleManager {
     }
 
     @computed get availableFacetStrategies(): FacetStrategy[] {
+        const yColumns = this.inputTable.getColumns(this.yColumnSlugs)
+
         // if we have multi-dimension, multi-entity data (which is necessarily single-year),
         // then *only* faceting makes sense. otherwise, faceting is not useful.
         if (
-            this.yColumns.length > 1 &&
+            yColumns.length > 1 &&
             this.selectionArray.numSelectedEntities > 1
         ) {
             // if we have more than one unit, then faceting by entity is not allowed
             // as comparing multiple units in a single chart isn't meaningful
             const uniqueUnits = new Set(
-                this.yColumns.map((column) => column.shortUnit)
+                yColumns.map((column) => column.shortUnit)
             )
             if (uniqueUnits.size > 1) {
                 return [FacetStrategy.metric]

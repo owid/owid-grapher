@@ -19,7 +19,7 @@ import { RelatedDataCharts } from "./RelatedDataCharts.js"
 import {
     ADMIN_BASE_URL,
     BAKED_GRAPHER_URL,
-} from "../settings/clientSettings.js"
+} from "../settings/clientSettings.mjs"
 import DownloadSection, {
     type DownloadSectionProps,
 } from "./DownloadSection.js"

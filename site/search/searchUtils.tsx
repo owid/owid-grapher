@@ -68,7 +68,7 @@ import {
     EXPLORER_DYNAMIC_THUMBNAIL_URL,
     GRAPHER_DYNAMIC_CONFIG_URL,
     GRAPHER_DYNAMIC_THUMBNAIL_URL,
-} from "../../settings/clientSettings.js"
+} from "../../settings/clientSettings.mjs"
 import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
 import {
     PreviewVariant,

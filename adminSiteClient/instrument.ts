@@ -7,7 +7,7 @@ import {
     COMMIT_SHA,
     ENV,
     SENTRY_ADMIN_DSN,
-} from "../settings/clientSettings.js"
+} from "../settings/clientSettings.mjs"
 
 if (!process.env.VITEST) {
     Sentry.init({

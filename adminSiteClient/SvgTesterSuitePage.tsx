@@ -914,6 +914,7 @@ function SvgTesterDiff({
     // every entry in a large report just to render its images.
     const { data, isLoading, error } = useQuery({
         queryKey: ["svgtester-diff", beforeUrl, afterUrl],
+        meta: { blocksPage: false },
         queryFn: async () => {
             const [before, after] = await Promise.all([
                 fetchText(beforeUrl),

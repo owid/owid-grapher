@@ -53,7 +53,7 @@ import {
     BAKED_GRAPHER_URL,
     ADMIN_BASE_URL,
     CATALOG_URL,
-} from "../../settings/clientSettings.js"
+} from "../../settings/clientSettings.mjs"
 
 export const OWID_DATAPAGE_CONTENT_ROOT_ID = "owid-datapageJson-root"
 const isIframe = isInIFrame()

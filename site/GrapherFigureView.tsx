@@ -10,7 +10,7 @@ import {
     BAKED_GRAPHER_URL,
     DATA_API_URL,
     CATALOG_URL,
-} from "../settings/clientSettings.js"
+} from "../settings/clientSettings.mjs"
 
 export interface GrapherFigureViewProps {
     slug?: string

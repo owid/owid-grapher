@@ -206,6 +206,10 @@ export function extractFilenamesFromBlock(
         .with({ type: "video" }, (item) => {
             if (item.filename) filenames.add(item.filename)
         })
+        .with({ type: "bespoke-component" }, (item) => {
+            if (item.fallbackImageFilename)
+                filenames.add(item.fallbackImageFilename)
+        })
         .with({ type: "research-and-writing" }, (item) => {
             getAllLinksFromResearchAndWritingBlock(item).forEach(
                 (link: EnrichedBlockResearchAndWritingLink) => {
@@ -291,8 +295,7 @@ export function extractFilenamesFromBlock(
                     "topic-page-intro",
                     "data-callout",
                     "data-callout-group",
-                    "country-profile-selector",
-                    "bespoke-component"
+                    "country-profile-selector"
                 ),
             },
             _.noop

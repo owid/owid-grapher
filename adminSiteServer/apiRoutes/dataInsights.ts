@@ -30,7 +30,7 @@ import {
     createGdocFromTemplate,
     replacePlaceholdersInGdoc,
 } from "../../db/model/Gdoc/archieToGdoc.js"
-import { GDOCS_DATA_INSIGHT_API_TEMPLATE_ID } from "../../settings/clientSettings.js"
+import { GDOCS_DATA_INSIGHT_API_TEMPLATE_ID } from "../../settings/clientSettings.mjs"
 import { GrapherState } from "@ourworldindata/grapher"
 
 const GRAPHER_URL_PREFIX = "https://ourworldindata.org/grapher/"

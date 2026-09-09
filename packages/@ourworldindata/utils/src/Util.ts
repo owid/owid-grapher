@@ -153,7 +153,13 @@ export const getRelativeMouse = (
         | PointerEvent
         | { clientX: number; clientY: number }
 ): PointVector => {
-    const eventOwner = checkIsTouchEvent(event) ? event.targetTouches[0] : event
+    // Touchend events have no active target touches, but changedTouches still
+    // contains the touch point that ended the gesture.
+    const eventOwner = checkIsTouchEvent(event)
+        ? (event.targetTouches[0] ?? event.changedTouches[0])
+        : event
+
+    if (!eventOwner) return new PointVector(0, 0)
 
     const { clientX, clientY } = eventOwner
 
@@ -2405,11 +2411,23 @@ export function flattenNonTopicNodes(tagGraph: TagGraphRoot): TagGraphRoot {
 
 export function formatInlineList(
     array: unknown[],
-    connector: "and" | "or" = "and"
+    {
+        connector = "and",
+        oxfordComma = false,
+    }: { connector?: "and" | "or"; oxfordComma?: boolean } = {}
 ): string {
     if (array.length === 0) return ""
     if (array.length === 1) return `${array[0]}`
-    return `${array.slice(0, -1).join(", ")} ${connector} ${R.last(array)}`
+    const comma = oxfordComma && array.length > 2 ? "," : ""
+    return `${array.slice(0, -1).join(", ")}${comma} ${connector} ${R.last(array)}`
+}
+
+export function formatAuthors(authors: string[]): string {
+    return formatInlineList(authors, { oxfordComma: true })
+}
+
+export function formatAuthorsForBibtex(authors: string[]): string {
+    return authors.join(" and ")
 }
 
 // The below comment marks this function as side-effect free, meaning that the bundler

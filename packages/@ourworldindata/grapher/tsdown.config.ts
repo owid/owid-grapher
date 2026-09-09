@@ -1,16 +1,16 @@
 import { defineConfig, type UserConfig } from "tsdown"
+import optimizeReactAriaLocales from "@react-aria/optimize-locales-plugin"
 // The build config is reaching outside of the package, which is okay here.
 import {
     BUILD_TARGET,
-    pluginOptimizeReactAriaLocales,
     pluginSwcDecorators,
     scssPreprocessorOptions,
     // oxlint-disable-next-line import-x-js/no-relative-packages
 } from "../../../rolldown.config-common.mts"
 
 // Builds the standalone @ourworldindata/grapher npm package / CDN bundle.
-// See readme.md ("Embedding & Programmatic API") for what the outputs are and
-// how they're meant to be consumed.
+// See readme.md ("Build outputs") and https://docs.owid.io/projects/grapher/
+// for what the outputs are and how they're meant to be consumed.
 //
 // There are three entries, which tsdown builds concurrently in one run:
 //
@@ -44,7 +44,7 @@ const shared = {
     },
     plugins: [
         pluginSwcDecorators(),
-        pluginOptimizeReactAriaLocales({ locales: ["en-US"] }),
+        optimizeReactAriaLocales.rolldown({ locales: ["en-US"] }),
     ],
     deps: {
         // Grapher's runtime dependencies (d3, mobx, lodash-es, ...) are meant to

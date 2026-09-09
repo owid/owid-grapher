@@ -19,7 +19,7 @@ import {
 import {
     BAKED_GRAPHER_URL,
     GRAPHER_DYNAMIC_THUMBNAIL_URL,
-} from "../../../settings/clientSettings.js"
+} from "../../../settings/clientSettings.mjs"
 import { queryParamsToStr, readFromAssetMap } from "@ourworldindata/utils"
 
 export default function NarrativeChart({
