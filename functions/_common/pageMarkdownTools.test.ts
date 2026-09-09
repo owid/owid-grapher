@@ -34,12 +34,13 @@ function makeGrapherState(overrides: Record<string, unknown> = {}) {
 function makeValues(
     entityName: string,
     startValue: string,
-    endValue: string
+    endValue: string,
+    times: { startTime?: number; endTime?: number } = {}
 ): GrapherValuesJson {
     return {
         entityName,
-        startTime: 1950,
-        endTime: 2023,
+        startTime: times.startTime ?? 1950,
+        endTime: times.endTime ?? 2023,
         columns: {
             population: { name: "Population", unit: "people" },
         },
@@ -69,6 +70,33 @@ describe(constructPageMarkdown, () => {
         expect(markdown).toContain("| Entity | 1950 | 2023 |")
         expect(markdown).toContain("| World | 2.5 billion | 8 billion |")
         expect(markdown).toContain("**Population**, in people.")
+    })
+
+    it("brackets the year when an entity's series starts or ends off the chart's years", () => {
+        const grapherState = makeGrapherState()
+        const columns = grapherState.tableForDownload.getColumns(["population"])
+
+        const markdown = constructPageMarkdown(
+            grapherState,
+            columns,
+            [
+                makeValues("World", "2.5 billion", "8 billion"),
+                makeValues("Oceania", "12 million", "45 million", {
+                    startTime: 1970,
+                    endTime: 2021,
+                }),
+            ],
+            ""
+        )
+
+        // Headings come from the first entity; the other entity says which years
+        // its values are really from, so a reader never attributes 1950 to it.
+        expect(markdown).toContain("| Entity | 1950 | 2023 |")
+        expect(markdown).toContain("| World | 2.5 billion | 8 billion |")
+        expect(markdown).toContain(
+            "| Oceania | 12 million (1970) | 45 million (2021) |"
+        )
+        expect(markdown).toContain("A year in brackets")
     })
 
     it("puts the extension before the query, exactly once", () => {

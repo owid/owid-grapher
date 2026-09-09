@@ -53,6 +53,8 @@ function* getValuesSection(
 
     yield ""
     yield "## Values shown in this view"
+    yield ""
+    yield "Values at the years the chart starts and ends on. A year in brackets means that entity's data begins or ends there instead, and the value is from that year."
 
     for (const slug of columnSlugs) {
         const column = columns[slug]
@@ -85,10 +87,20 @@ function* getValuesSection(
         yield `| --- | ${headings.map(() => "---:").join(" | ")} |`
 
         for (const values of withData) {
-            const cells = headings.map(({ bound }) => {
+            const cells = headings.map(({ bound, time }) => {
                 const points =
                     bound === "start" ? values.startValues : values.endValues
-                return findPoint(points, slug)?.formattedValue ?? ""
+                const point = findPoint(points, slug)
+                if (!point) return ""
+                // An entity whose series starts later or ends earlier than the
+                // chart reports its own first or last value. Without the year it
+                // came from, the heading's year gets attributed to it (Oceania's
+                // 1870 value under "1770").
+                const ownTime =
+                    bound === "start" ? values.startTime : values.endTime
+                return ownTime !== undefined && ownTime !== time
+                    ? `${point.formattedValue} (${point.formattedTime ?? ownTime})`
+                    : point.formattedValue
             })
             yield `| ${values.entityName ?? ""} | ${cells.join(" | ")} |`
         }
