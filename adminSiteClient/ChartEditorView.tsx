@@ -11,7 +11,6 @@ import {
     makeObservable,
     comparer,
 } from "mobx"
-import { Prompt } from "react-router-dom"
 import {
     Bounds,
     DetailDictionary,
@@ -419,12 +418,6 @@ export class ChartEditorView<
 
         return (
             <>
-                {!editor.isNewGrapher && (
-                    <Prompt
-                        when={editor.isModified}
-                        message="Are you sure you want to leave? Unsaved changes will be lost."
-                    />
-                )}
                 <div className="chart-editor-settings">
                     <div className="p-2">
                         <ul className="nav nav-tabs">

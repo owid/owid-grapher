@@ -27,12 +27,14 @@ import { GrapherEditor } from "./GrapherEditor.js"
 import { EditorTab } from "./AbstractChartEditor.js"
 import { ConfigEditor, EditorExtraTab } from "./ConfigEditor.js"
 import {
-    adminDetailsProvider,
-    adminIndicatorCatalog,
     defaultEditorEnvironment,
     DetailsProvider,
     IndicatorCatalog,
 } from "./editorProviders.js"
+import {
+    adminDetailsProvider,
+    adminIndicatorCatalog,
+} from "./adminEditorProviders.js"
 import {
     csvIndicatorStore,
     dataApiIndicatorStore,

@@ -5,10 +5,12 @@
  * page and list; not part of the config-only editor.
  */
 import * as _ from "lodash-es"
-import { GrapherInterface, Json } from "@ourworldindata/utils"
+import { GrapherInterface, Json, PostReference } from "@ourworldindata/utils"
+import { ContentGraphLinkType } from "@ourworldindata/types"
 import { Admin } from "./Admin.js"
 import { observable, runInAction } from "mobx"
-import { OriginUrlSuggestion, References } from "./AbstractChartEditor.js"
+import { OriginUrlSuggestion } from "./AbstractChartEditor.js"
+import { DataInsightMinimalInformation } from "../adminShared/AdminTypes.js"
 import { BAKED_BASE_URL, ENV } from "../settings/clientSettings.mjs"
 
 export interface Log {
@@ -98,6 +100,22 @@ export interface NarrativeChartMinimalInformation {
     id: number
     name: string
     title: string
+}
+
+export interface References {
+    postsWordpress?: PostReference[]
+    postsGdocs?: PostReference[]
+    explorers?: string[]
+    narrativeCharts?: NarrativeChartMinimalInformation[]
+    dataInsights?: DataInsightMinimalInformation[]
+    staticViz?: StaticVizReference[]
+}
+
+export interface StaticVizReference {
+    id: number
+    name: string
+    grapherSlug?: string | null
+    type: ContentGraphLinkType.StaticViz
 }
 
 export const getFullReferencesCount = (references: References): number => {

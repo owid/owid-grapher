@@ -8,7 +8,7 @@
 import React from "react"
 import { observer } from "mobx-react"
 import { observable, computed, runInAction, action, makeObservable } from "mobx"
-import { Redirect } from "react-router-dom"
+import { Prompt, Redirect } from "react-router-dom"
 import {
     getParentIndicatorIdFromChartConfig,
     Json,
@@ -35,11 +35,11 @@ import {
 } from "./Forms.js"
 import { GrapherEditor } from "./GrapherEditor.js"
 import { ConfigEditor, EditorExtraTab } from "./ConfigEditor.js"
-import { EditorNoteSlot, References } from "./AbstractChartEditor.js"
+import { EditorNoteSlot } from "./AbstractChartEditor.js"
 import { ChartSaveActions, ChartSaveButtons } from "./ChartSaveButtons.js"
 import { EditorHistoryTab } from "./EditorHistoryTab.js"
 import { EditorReferencesTabForChart } from "./EditorReferencesTab.js"
-import { TagsSection } from "./EditorBasicTab.js"
+import { ChartTagsSection } from "./ChartTagsSection.js"
 import {
     adminOriginUrlSuggestions,
     deleteChart,
@@ -47,12 +47,13 @@ import {
     findLastMapColorScaleEdit,
     getFullReferencesCount,
     Log,
+    References,
 } from "./adminChartApi.js"
 import {
     adminDetailsProvider,
+    adminEditorEnvironment,
     adminIndicatorCatalog,
-    defaultEditorEnvironment,
-} from "./editorProviders.js"
+} from "./adminEditorProviders.js"
 import { dataApiIndicatorStore, IndicatorStore } from "./indicatorStores.js"
 import { makeNarrativeChartPatchConfig } from "./narrativeChartConfig.js"
 import {
@@ -89,6 +90,7 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
             forceDatapage: observable.ref,
             variableIdsByCatalogPath: observable.ref,
             newChartId: observable.ref,
+            isDirty: observable,
         })
     }
 
@@ -118,6 +120,8 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
 
     // Set when a new chart was created, so the page can move to its URL.
     newChartId: number | undefined = undefined
+    // Mirrors the editor's unsaved-changes state for the leave prompt.
+    isDirty = false
 
     @computed get admin(): Admin {
         return this.context.admin
@@ -131,7 +135,7 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
      *  picker's catalog and the population/GDP shortcuts. */
     @computed get store(): IndicatorStore {
         return dataApiIndicatorStore({
-            dataApiUrl: defaultEditorEnvironment.dataApiUrl,
+            dataApiUrl: adminEditorEnvironment.dataApiUrl,
             catalog: adminIndicatorCatalog(this.admin),
             variableIdsByCatalogPath: this.variableIdsByCatalogPath,
         })
@@ -581,7 +585,7 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
                         </p>
                     )}
                 </Section>
-                <TagsSection
+                <ChartTagsSection
                     chartId={editor.grapherState.id}
                     tags={this.tags}
                     availableTags={this.availableTags}
@@ -604,6 +608,10 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
     override render(): React.ReactElement {
         return (
             <AdminLayout noSidebar>
+                <Prompt
+                    when={this.isDirty && !this.newChartId}
+                    message="Are you sure you want to leave? Unsaved changes will be lost."
+                />
                 {this.newChartId && (
                     <Redirect to={`/charts/${this.newChartId}/edit`} />
                 )}
@@ -613,6 +621,11 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
                         config={this.patchConfig}
                         store={this.store}
                         details={adminDetailsProvider(this.admin)}
+                        environment={adminEditorEnvironment}
+                        syncTabWithUrl
+                        onDirtyChange={action(
+                            (isDirty: boolean) => (this.isDirty = isDirty)
+                        )}
                         baseConfig={this.baseConfig}
                         previewUrl={
                             this.props.grapherId !== undefined

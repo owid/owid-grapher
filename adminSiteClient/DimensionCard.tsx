@@ -12,7 +12,6 @@ import {
     SelectField,
     CatalogPathField,
 } from "./Forms.js"
-import { Link } from "./Link.js"
 import {
     faChevronDown,
     faChevronUp,
@@ -152,13 +151,18 @@ export class DimensionCard<
                             }
                         />
                     </div>
-                    <Link
-                        to={`/variables/${dimension.variableId}`}
-                        className="dimensionLink"
-                        target="_blank"
-                    >
-                        {column.name}
-                    </Link>
+                    {this.props.editor.environment.adminBaseUrl ? (
+                        <a
+                            href={`${this.props.editor.environment.adminBaseUrl}/admin/variables/${dimension.variableId}`}
+                            className="dimensionLink"
+                            target="_blank"
+                            rel="noopener"
+                        >
+                            {column.name}
+                        </a>
+                    ) : (
+                        <span className="dimensionLink">{column.name}</span>
+                    )}
                     <div>
                         {this.props.onEdit && (
                             <div
