@@ -37,3 +37,15 @@ it("returns a config without a $schema field as parsed", () => {
     const config = { title: "Test" }
     expect(parseChartConfig(JSON.stringify(config))).toEqual(config)
 })
+
+it("returns a config the migration chokes on at its stored version", () => {
+    // the 010 -> 011 step iterates dimensions, which an object is not
+    const configWithNonArrayDimensions = {
+        $schema:
+            "https://files.ourworldindata.org/schemas/grapher-schema.010.json",
+        dimensions: { variableId: 1, property: "y" },
+    }
+    expect(
+        parseChartConfig(JSON.stringify(configWithNonArrayDimensions))
+    ).toEqual(configWithNonArrayDimensions)
+})

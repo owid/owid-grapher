@@ -17,7 +17,13 @@ export function parseChartConfig(
     { skipMigration }: { skipMigration?: boolean } = {}
 ): GrapherInterface {
     const parsed = JSON.parse(config)
-    return skipMigration ? parsed : migrateGrapherConfigToLatestVersion(parsed)
+    if (skipMigration) return parsed
+
+    try {
+        return migrateGrapherConfigToLatestVersion(parsed)
+    } catch {
+        return parsed
+    }
 }
 
 export function serializeChartConfig(config: GrapherInterface): JsonString {
