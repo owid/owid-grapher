@@ -80,7 +80,8 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
         const isLinearTopicPage = content.type === OwidGdocType.LinearTopicPage
         content.toc = generateToc(
             content.body,
-            isTocForSidebar || isLinearTopicPage
+            isTocForSidebar || isLinearTopicPage,
+            content.type as OwidGdocType
         )
 
         if (content["latest-feed-excerpt"]) {
@@ -181,14 +182,14 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
                 SELECT DISTINCT
                     charts.id AS chartId,
                     chart_configs.slug,
-                    chart_configs.full->>"$.title" AS title,
-                    chart_configs.full->>"$.variantName" AS variantName,
+                    chart_configs.config->>"$.title" AS title,
+                    chart_configs.config->>"$.variantName" AS variantName,
                     chart_tags.keyChartLevel
                 FROM charts
                 JOIN chart_configs ON charts.configId=chart_configs.id
                 INNER JOIN chart_tags ON charts.id=chart_tags.chartId
                 WHERE chart_tags.tagId IN (?)
-                    AND chart_configs.full->>"$.isPublished" = "true"
+                    AND chart_configs.config->>"$.isPublished" = "true"
                 ORDER BY title ASC
             `,
             [this.tags.map((tag) => tag.id)]

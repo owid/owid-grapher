@@ -1,0 +1,24 @@
+{
+    // Used only by tsdown (see grapher/tsdown.config.ts) to generate
+    // grapher's bundled type declarations. Includes the sources of grapher's
+    // workspace dependencies so their types can be inlined into the bundle.
+    //
+    // This file deliberately lives one level above the packages: tsdown's
+    // dts plugin passes this file's directory to tsgo as --rootDir, and any
+    // input file outside that root would get its declarations emitted next
+    // to its sources instead of into the temp output directory.
+    //
+    // Every file whose types end up in the bundle has to be matched here, not
+    // just the entry points of the workspace dependencies: tsgo doesn't
+    // reliably emit declarations for files it only reaches transitively, which
+    // makes the build fail with "tsgo did not generate dts file for ...".
+    "extends": "./grapher/tsconfig.json",
+    "include": [
+        "grapher/src/**/*",
+        "types/src/**/*",
+        "utils/src/**/*",
+        "core-table/src/**/*",
+        "components/src/**/*"
+    ],
+    "exclude": ["**/*.test.*"]
+}

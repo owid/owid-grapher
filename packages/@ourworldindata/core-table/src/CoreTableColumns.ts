@@ -151,6 +151,11 @@ export abstract class AbstractCoreColumn<
         return this.formatTime(time)
     }
 
+    /** Where the period a time value stands for ends, formatted short */
+    formatTimeShortEnd(time: number): string {
+        return this.formatTimeShort(time)
+    }
+
     /** Formats a start/end time pair */
     formatTimeRange(startTime: number, endTime: number): string {
         return `${this.formatTime(startTime)} to ${this.formatTime(endTime)}`
@@ -1121,12 +1126,16 @@ class WeekColumn<
         return monday.format("MMM D, YYYY")
     }
 
+    // The plain week-end date (ISO-week Sunday), e.g. "Jun 7, 2026"
+    override formatTimeShortEnd(time: number): string {
+        const sunday = convertDaysSinceEpochToDate(time).endOf("isoWeek")
+        return sunday.format("MMM D, YYYY")
+    }
+
     // The span from the first day of the start week (ISO-week Monday) to the
     // last day of the end week (Sunday), e.g. "Jun 1, 2026 to Jul 12, 2026".
     override formatTimeRange(startTime: number, endTime: number): string {
-        const start = convertDaysSinceEpochToDate(startTime).startOf("isoWeek")
-        const end = convertDaysSinceEpochToDate(endTime).endOf("isoWeek")
-        return `${start.format("MMM D, YYYY")} to ${end.format("MMM D, YYYY")}`
+        return `${this.formatTimeShort(startTime)} to ${this.formatTimeShortEnd(endTime)}`
     }
 }
 
@@ -1158,12 +1167,17 @@ class QuarterColumn<
             .format("MMM YYYY")
     }
 
+    // The quarter's end month, e.g. "Mar 2026"
+    override formatTimeShortEnd(time: number): string {
+        return convertDaysSinceEpochToDate(time)
+            .endOf("quarter")
+            .format("MMM YYYY")
+    }
+
     // The span from the first month of the start quarter to the last month of
     // the end quarter, e.g. "Jan 2025 to Dec 2026"
     override formatTimeRange(startTime: number, endTime: number): string {
-        const start = convertDaysSinceEpochToDate(startTime).startOf("quarter")
-        const end = convertDaysSinceEpochToDate(endTime).endOf("quarter")
-        return `${start.format("MMM YYYY")} to ${end.format("MMM YYYY")}`
+        return `${this.formatTimeShort(startTime)} to ${this.formatTimeShortEnd(endTime)}`
     }
 
     // The first of the epoch's quarter, used as the anchor for counting quarters.

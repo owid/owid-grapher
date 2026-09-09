@@ -53,3 +53,18 @@ jobs:
         with:
           add-labels: "staging-viz"
           repo-token: ${{ secrets.GITHUB_TOKEN }}
+  site_label:
+    name: Add "site" label to site team's issues
+    runs-on: ubuntu-latest
+    # To have your own new issues labelled "site", add your GitHub handle to
+    # the list below.
+    if: >
+      github.event_name == 'issues' && github.event.action == 'opened' &&
+      contains(fromJSON('["mlbrgl"]'), github.actor)
+    permissions:
+      issues: write
+    steps:
+      - uses: andymckay/labeler@e6c4322d0397f3240f0e7e30a33b5c5df2d39e90 # 1.0.4
+        with:
+          add-labels: "site"
+          repo-token: ${{ secrets.GITHUB_TOKEN }}

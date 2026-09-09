@@ -32,7 +32,7 @@ import {
     DEFAULT_ATOM_FEED_PROPS,
 } from "../SiteConstants.js"
 import { Html } from "../Html.js"
-import { CLOUDFLARE_IMAGES_URL } from "../../settings/clientSettings.js"
+import { CLOUDFLARE_IMAGES_URL } from "../../settings/clientSettings.mjs"
 import { addPreferSmallFilenameToDataInsightImages } from "../gdocs/utils.js"
 import { AriaAnnouncerProvider } from "../AriaAnnouncerContext.js"
 import { AriaAnnouncer } from "../AriaAnnouncer.js"

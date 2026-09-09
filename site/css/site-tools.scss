@@ -2,15 +2,6 @@
     display: none;
 }
 
-@keyframes get-out-da-way {
-    0% {
-        transform: translateY(0);
-    }
-    100% {
-        transform: translateY(48px);
-    }
-}
-
 @include md-up {
     .site-tools {
         position: fixed;
@@ -19,15 +10,13 @@
         right: $vertical-spacing;
         bottom: $vertical-spacing;
         border: none;
-        &:has(.hide) {
-            animation: get-out-da-way 0.3s forwards;
-        }
-
         .hide-wrapper {
             display: flex;
-            transition: all 0.3s;
+            transition:
+                transform var(--duration-popover) var(--ease-out),
+                opacity var(--duration-popover) var(--ease-out);
             &.hide {
-                transform: translateY(100%);
+                transform: translateY(calc(100% + #{$vertical-spacing}));
                 opacity: 0;
             }
 
@@ -77,6 +66,16 @@
             &:hover {
                 background-color: $accent-vermillion;
             }
+        }
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .site-tools .hide-wrapper {
+        transition: opacity var(--duration-popover) linear;
+
+        &.hide {
+            transform: none;
         }
     }
 }

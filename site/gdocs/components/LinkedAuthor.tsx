@@ -2,7 +2,7 @@ import { getCanonicalUrl } from "@ourworldindata/components"
 import { OwidGdocType } from "@ourworldindata/types"
 import { getAuthorTeamAnchorUrl, useLinkedAuthor } from "../utils.js"
 import Image from "./Image.js"
-import { IS_ARCHIVE } from "../../../settings/clientSettings.js"
+import { IS_ARCHIVE } from "../../../settings/clientSettings.mjs"
 import { PROD_URL } from "../../SiteConstants.js"
 
 const BASE_URL = IS_ARCHIVE ? PROD_URL : ""

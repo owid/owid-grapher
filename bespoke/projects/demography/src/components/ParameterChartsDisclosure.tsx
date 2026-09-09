@@ -1,7 +1,7 @@
 import { Disclosure, DisclosurePanel, Button } from "react-aria-components"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faAngleRight } from "@fortawesome/free-solid-svg-icons"
-import type { Simulation } from "../helpers/useSimulation.js"
+import type { Simulation } from "../core/useSimulation.js"
 import { InputChartPanel } from "./SimulationContent.js"
 
 export function ParameterChartsDisclosure({

@@ -1,7 +1,7 @@
 import { createRoot } from "react-dom/client"
 import { enableShadowDOM } from "@react-stately/flags"
 
-import { VariantName } from "./constants.js"
+import { VariantName } from "./core/constants.js"
 import { Chart } from "./components/Chart"
 import { Picker } from "./components/Picker"
 import { Display } from "./components/Display"

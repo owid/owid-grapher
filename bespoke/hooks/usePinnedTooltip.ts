@@ -31,7 +31,10 @@ export function usePinnedTooltip<T extends HTMLElement = HTMLElement>(
         observer.observe(el)
 
         const handleDocumentTouch = (e: TouchEvent) => {
-            if (!el.contains(e.target as Node)) onDismiss()
+            // `event.target` is retargeted to the Shadow DOM host by the time
+            // the event reaches the document, so use the event path to detect
+            // taps inside `el` rather than checking DOM containment
+            if (!e.composedPath().includes(el)) onDismiss()
         }
         document.addEventListener("touchstart", handleDocumentTouch)
 

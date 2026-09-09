@@ -342,14 +342,14 @@ export function SplitFlowSankey({
                 style={{ gridTemplateRows }}
             >
                 {showIncomingHeading && (
-                    <SankeyHalfHeading
+                    <SankeyHalfHeadingView
                         heading={incoming.heading}
                         align="right"
                         innerRef={incomingHeadingRef}
                     />
                 )}
                 {showOutgoingHeading && (
-                    <SankeyHalfHeading
+                    <SankeyHalfHeadingView
                         heading={outgoing.heading}
                         align="left"
                         innerRef={outgoingHeadingRef}
@@ -394,7 +394,7 @@ export function SplitFlowSankey({
     )
 }
 
-function SankeyHalfHeading({
+function SankeyHalfHeadingView({
     heading,
     align,
     innerRef,

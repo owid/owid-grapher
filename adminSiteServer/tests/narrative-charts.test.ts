@@ -7,7 +7,12 @@ import {
     NarrativeChartsTableName,
 } from "@ourworldindata/types"
 import { latestGrapherConfigSchema } from "@ourworldindata/grapher"
-import { seedDatasetAndVariables, variableId } from "./fixtures.js"
+import {
+    catalogPath,
+    multiDimConfig,
+    seedDatasetAndVariables,
+    variableId,
+} from "./fixtures.js"
 import type { NarrativeChartResponse } from "../apiRoutes/narrativeCharts.js"
 
 const env = getAdminTestEnv()
@@ -29,25 +34,13 @@ describe("Narrative charts API", { timeout: 20000 }, () => {
         title: "Narrative title",
     }
 
-    const catalogPath = "test/catalog#path"
-    const testMultiDimConfig = {
-        grapherConfigSchema: latestGrapherConfigSchema,
-        title: { title: "Energy use", titleVariant: "by energy source" },
-        views: [
-            {
-                config: { title: "Total energy use" },
-                dimensions: { metric: "total" },
-                indicators: { y: variableId },
-            },
-        ],
-        dimensions: [
-            {
-                name: "Metric",
-                slug: "metric",
-                choices: [{ name: "Total consumption", slug: "total" }],
-            },
-        ],
-    }
+    const testMultiDimConfig = multiDimConfig([
+        {
+            config: { title: "Total energy use" },
+            dimensions: { metric: "total" },
+            indicators: { y: variableId },
+        },
+    ])
 
     async function createParentChart(): Promise<{
         chartId: number
@@ -92,7 +85,8 @@ describe("Narrative charts API", { timeout: 20000 }, () => {
         const narrativeChartId = await createNarrativeChart(chartId)
 
         expect(await env.getCount(NarrativeChartsTableName)).toBe(1)
-        expect(await env.getCount(ChartConfigsTableName)).toBe(2)
+        // two config rows each for the parent chart and the narrative chart
+        expect(await env.getCount(ChartConfigsTableName)).toBe(4)
 
         const narrativeChart = await getNarrativeChart(narrativeChartId)
         expect(narrativeChart.parentType).toBe("chart")
@@ -186,7 +180,7 @@ describe("Narrative charts API", { timeout: 20000 }, () => {
         const after = await getNarrativeChart(narrativeChartId)
         expect(after.chartConfigId).toBe(before.chartConfigId)
         expect(after.configFull.title).toBe("Updated title")
-        expect(await env.getCount(ChartConfigsTableName)).toBe(2)
+        expect(await env.getCount(ChartConfigsTableName)).toBe(4)
     })
 
     it("does not re-merge a narrative chart when its parent chart changes", async () => {
@@ -212,7 +206,7 @@ describe("Narrative charts API", { timeout: 20000 }, () => {
     it("deletes a narrative chart and its configs", async () => {
         const { chartId } = await createParentChart()
         const narrativeChartId = await createNarrativeChart(chartId)
-        expect(await env.getCount(ChartConfigsTableName)).toBe(2)
+        expect(await env.getCount(ChartConfigsTableName)).toBe(4)
 
         await env.request({
             method: "DELETE",
@@ -220,7 +214,7 @@ describe("Narrative charts API", { timeout: 20000 }, () => {
         })
 
         expect(await env.getCount(NarrativeChartsTableName)).toBe(0)
-        // Only the parent chart's config is left
-        expect(await env.getCount(ChartConfigsTableName)).toBe(1)
+        // Only the parent chart's two config rows are left
+        expect(await env.getCount(ChartConfigsTableName)).toBe(2)
     })
 })

@@ -16,13 +16,14 @@ import * as lodash from "lodash-es"
 import { Request } from "../authentication.js"
 import { HandlerResponse } from "../FunctionalRouter.js"
 import * as R from "remeda"
+import { getGdocIndexItemsByTagId } from "../../db/model/Gdoc/GdocFactory.js"
 
 export async function getTagById(
     req: Request,
     _res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
-    const tagId = expectInt(req.params.tagId) as number | null
+    const tagId = expectInt(req.params.tagId)
 
     // NOTE (Mispy): The "uncategorized" tag is special -- it represents all untagged stuff
     // Bit fiddly to handle here but more true to normalized schema than having to remember to add the special tag
@@ -128,7 +129,7 @@ export async function getTagById(
                 LEFT JOIN chart_tags ct ON ct.chartId=charts.id
                 JOIN users lastEditedByUser ON lastEditedByUser.id = charts.lastEditedByUserId
                 LEFT JOIN users publishedByUser ON publishedByUser.id = charts.publishedByUserId
-                LEFT JOIN analytics_grapher_views agv ON (agv.grapher_slug = chart_configs.slug AND chart_configs.full ->> '$.isPublished' = "true")
+                LEFT JOIN analytics_grapher_views agv ON (agv.grapher_slug = chart_configs.slug AND chart_configs.config ->> '$.isPublished' = "true")
                 LEFT JOIN chart_references_view crv ON crv.chartId = charts.id
                 WHERE ct.tagId ${tagId === UNCATEGORIZED_TAG_ID ? "IS NULL" : "= ?"}
                 GROUP BY charts.id, agv.views_365d, crv.narrativeChartsCount, crv.referencesCount
@@ -139,6 +140,8 @@ export async function getTagById(
     tag.charts = charts
 
     await assignTagsForCharts(trx, charts)
+
+    tag.gdocs = await getGdocIndexItemsByTagId(trx, tagId, uncategorized)
 
     // Subcategories (children in tag_graph)
     const children = await db.knexRaw<{ id: number; name: string }>(
@@ -185,6 +188,7 @@ export async function updateTag(
             tagId,
         ]
     )
+    let tagUpdateWarning: string | undefined
     if (tag.slug) {
         // See if there's a published gdoc with a matching slug.
         // We're not enforcing that the gdoc be a topic page, as there are cases like /human-development-index,
@@ -201,15 +205,14 @@ export async function updateTag(
             [tagId, tag.slug]
         )
         if (!gdoc.length) {
-            return {
-                success: true,
-                tagUpdateWarning: `The tag's slug has been updated, but there isn't a published topic page with the same slug. Are you sure you haven't made a typo?
+            tagUpdateWarning = `The tag's slug has been updated, but there isn't a published topic page with the same slug. Are you sure you haven't made a typo?
                 
-You should probably just enable "Searchable in Algolia" for this tag and remove the slug until you've published the topic page.`,
-            }
+You should probably just enable "Searchable in Algolia" for this tag and remove the slug until you've published the topic page.`
         }
     }
-    return { success: true }
+
+    const { tag: updatedTag } = await getTagById(req, _res, trx)
+    return { tag: updatedTag, tagUpdateWarning }
 }
 
 export async function createTag(

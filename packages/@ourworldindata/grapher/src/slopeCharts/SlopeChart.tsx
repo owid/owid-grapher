@@ -62,7 +62,7 @@ import {
 import { TooltipFooterIcon } from "../tooltip/TooltipProps"
 
 import { Halo } from "@ourworldindata/components"
-import { HorizontalColorLegendManager } from "../legend/HorizontalColorLegends"
+import { ExternalColorLegendData } from "../legend/HorizontalColorLegendTypes"
 import { CategoricalBin } from "../color/ColorScaleBin"
 import { GRAPHER_DARK_TEXT } from "../color/ColorConstants"
 import { LabelSeries } from "../verticalLabels/VerticalLabelsTypes"
@@ -322,7 +322,7 @@ export class SlopeChart
             : 0
     }
 
-    @computed get externalLegend(): HorizontalColorLegendManager | undefined {
+    @computed get externalLegend(): ExternalColorLegendData | undefined {
         if (!this.manager.showSeriesLabels) {
             const categoricalLegendData = this.series.map(
                 (series, index) =>

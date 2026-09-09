@@ -35,7 +35,7 @@
     align-items: center;
     justify-content: center;
     opacity: 0;
-    transition: opacity 0.2s ease-in-out;
+    transition: opacity var(--duration-popover) var(--ease-out);
 }
 
 .chart-thumbnail__cta {

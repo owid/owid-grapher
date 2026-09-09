@@ -26,8 +26,8 @@ import {
     dimensionsToSortedQueryStr,
 } from "./mdimViewsLogic.js"
 import {
-    getRelevantVariableIds,
-    getRelevantVariableMetadata,
+    getRelevantIndicatorIds,
+    getRelevantIndicatorMetadata,
 } from "../../MultiDimBaker.js"
 import { GrapherState } from "@ourworldindata/grapher"
 import {
@@ -48,9 +48,9 @@ async function getChartConfigsByIds(
     ids: string[]
 ) {
     const rows = await knex<DbRawChartConfig>(ChartConfigsTableName)
-        .select("id", "full")
+        .select("id", "config")
         .whereIn("id", ids)
-    return new Map(rows.map((row) => [row.id, parseChartConfig(row.full)]))
+    return new Map(rows.map((row) => [row.id, parseChartConfig(row.config)]))
 }
 
 async function getDatasetDimensionsByVariableIds(
@@ -98,11 +98,11 @@ async function getRecords(
         trx,
         multiDim.config.views.map((view) => view.fullConfigId)
     )
-    const relevantVariableIds = getRelevantVariableIds(multiDim.config)
+    const relevantIndicatorIds = getRelevantIndicatorIds(multiDim.config)
     const relevantVariableMetadata =
-        await getRelevantVariableMetadata(relevantVariableIds)
+        await getRelevantIndicatorMetadata(relevantIndicatorIds)
     const datasetDimensionsByVariableId =
-        await getDatasetDimensionsByVariableIds(trx, [...relevantVariableIds])
+        await getDatasetDimensionsByVariableIds(trx, [...relevantIndicatorIds])
     const linksFromGdocs = await getPublishedLinksTo(
         trx,
         [slug],

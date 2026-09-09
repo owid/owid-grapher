@@ -10,8 +10,8 @@ import {
     Button,
 } from "@ourworldindata/components"
 import { DataPageDataV2 } from "@ourworldindata/types"
+import { formatAttributions } from "@ourworldindata/utils"
 import KeyDataTable from "./KeyDataTable.js"
-import { getAttributionUnshortened } from "./datapageUtils.js"
 
 export default function AboutThisData({
     datapageData,
@@ -25,7 +25,7 @@ export default function AboutThisData({
     id?: string
 }) {
     const hasDescriptionKey = !!datapageData.descriptionKey
-    const attributionUnshortened = getAttributionUnshortened(datapageData)
+    const attribution = formatAttributions(datapageData.attributions ?? [])
     const id_ = id ?? DATAPAGE_ABOUT_THIS_DATA_SECTION_ID
 
     return (
@@ -102,7 +102,7 @@ export default function AboutThisData({
                     <div className="key-info__right span-cols-4 span-lg-cols-5 span-sm-cols-12">
                         <KeyDataTable
                             datapageData={datapageData}
-                            attribution={attributionUnshortened}
+                            attribution={attribution}
                         />
                     </div>
                 </>
@@ -117,7 +117,7 @@ export default function AboutThisData({
                     <div className="col-start-4 span-cols-10 col-lg-start-5 span-lg-cols-8 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
                         <KeyDataTable
                             datapageData={datapageData}
-                            attribution={attributionUnshortened}
+                            attribution={attribution}
                         />
                     </div>
                 </>

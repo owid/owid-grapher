@@ -61,7 +61,7 @@ export function CountryWithData<Feature extends RenderFeature>({
     isSelected?: boolean
     hover?: InteractionState
     strokeScale?: number
-    onClick?: (event: SVGMouseEvent) => void
+    onClick?: (feature: Feature, event: SVGMouseEvent) => void
     onPointerEnter?: (feature: Feature, event: PointerEvent) => void
     onPointerLeave?: (event: PointerEvent) => void
 }): React.ReactElement {
@@ -92,7 +92,7 @@ export function CountryWithData<Feature extends RenderFeature>({
             cursor="pointer"
             fill={fill}
             fillOpacity={fillOpacity}
-            onClick={onClick}
+            onClick={(event) => onClick?.(feature, event)}
             onPointerEnter={(e) => onPointerEnter?.(feature, e.nativeEvent)}
             onPointerLeave={(e) => onPointerLeave?.(e.nativeEvent)}
         />
@@ -116,7 +116,7 @@ export function CountryWithNoData<Feature extends RenderFeature>({
     isSelected?: boolean
     hover?: InteractionState
     strokeScale?: number
-    onClick?: (event: SVGMouseEvent) => void
+    onClick?: (feature: Feature, event: SVGMouseEvent) => void
     onPointerEnter?: (feature: Feature, event: PointerEvent) => void
     onPointerLeave?: (event: PointerEvent) => void
 }): React.ReactElement {
@@ -142,7 +142,7 @@ export function CountryWithNoData<Feature extends RenderFeature>({
             cursor="pointer"
             fill={`url(#${patternId})`}
             fillOpacity={fillOpacity}
-            onClick={onClick}
+            onClick={(event) => onClick?.(feature, event)}
             onPointerEnter={(e) => onPointerEnter?.(feature, e.nativeEvent)}
             onPointerLeave={(e) => onPointerLeave?.(e.nativeEvent)}
         />

@@ -3,6 +3,7 @@
     "packageManager": "yarn@4.17.1",
     "workspaces": [
         "components/",
+        "helpers/",
         "hooks/",
         "projects/*"
     ],
@@ -15,6 +16,6 @@
         "@rollup/plugin-swc": "^0.4.1",
         "@vitejs/plugin-react": "^6.0.4",
         "vite": "^8.1.5",
-        "vitest": "^4.1.10"
+        "vitest": "^5.0.0"
     }
 }

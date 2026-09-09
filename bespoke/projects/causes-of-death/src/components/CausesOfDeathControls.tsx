@@ -1,10 +1,18 @@
 import { useMemo } from "react"
 
-import { Frame } from "../../../../components/Frame/Frame.js"
-import { InlineLabeledDropdown } from "../../../../components/InlineLabeledDropdown/InlineLabeledDropdown.js"
+import {
+    Controls,
+    ControlsRow,
+    LabeledControl,
+} from "../../../../components/Controls/Controls.js"
+import { LabeledDropdown } from "../../../../components/LabeledDropdown/LabeledDropdown.js"
 import { EntityDropdown } from "../../../../components/EntityDropdown/EntityDropdown.js"
+import {
+    Switcher,
+    SwitcherItem,
+} from "../../../../components/Switcher/Switcher.js"
 
-import { CausesOfDeathMetadata } from "../helpers/CausesOfDeathMetadata.js"
+import { CausesOfDeathMetadata } from "../core/CausesOfDeathMetadata.js"
 import { CausesOfDeathTimeSlider } from "./CausesOfDeathTimeSlider.js"
 
 export function CausesOfDeathControls({
@@ -38,41 +46,36 @@ export function CausesOfDeathControls({
     )
 
     return (
-        <Frame className="causes-of-death-controls">
-            <h3 className="causes-of-death-controls__title">
-                Configure the data
-            </h3>
-            <div className="causes-of-death-controls__content">
-                <div className="causes-of-death-controls__row">
-                    <AgeGroupDropdown
-                        availableAgeGroups={metadata.availableAgeGroups}
-                        selectedAgeGroup={ageGroup}
-                        onChange={setAgeGroup}
-                    />
-                    <SexDropdown
-                        availableSexes={metadata.availableSexes}
-                        selectedSex={sex}
-                        onChange={setSex}
-                    />
-                    <EntityDropdown
-                        label="Country/region"
-                        availableEntities={entityOptions}
-                        selectedEntityName={entityName}
-                        onChange={setEntityName}
-                        placeholder="Select a country or region..."
-                        aria-label="Select a country or region"
-                    />
-                </div>
-                <div className="causes-of-death-controls__row">
-                    <CausesOfDeathTimeSlider
-                        className="causes-of-death-time-slider"
-                        years={metadata.availableYears}
-                        selectedYear={year}
-                        onChange={setYear}
-                    />
-                </div>
-            </div>
-        </Frame>
+        <Controls className="causes-of-death-controls">
+            <ControlsRow>
+                <EntityDropdown
+                    label="Country/region"
+                    availableEntities={entityOptions}
+                    selectedEntityName={entityName}
+                    onChange={setEntityName}
+                    placeholder="Select a country or region..."
+                    aria-label="Select a country or region"
+                />
+                <AgeGroupDropdown
+                    availableAgeGroups={metadata.availableAgeGroups}
+                    selectedAgeGroup={ageGroup}
+                    onChange={setAgeGroup}
+                />
+                <SexSwitcher
+                    availableSexes={metadata.availableSexes}
+                    selectedSex={sex}
+                    onChange={setSex}
+                />
+            </ControlsRow>
+            <ControlsRow>
+                <CausesOfDeathTimeSlider
+                    className="causes-of-death-time-slider"
+                    years={metadata.availableYears}
+                    selectedYear={year}
+                    onChange={setYear}
+                />
+            </ControlsRow>
+        </Controls>
     )
 }
 
@@ -99,7 +102,7 @@ function AgeGroupDropdown({
     )
 
     return (
-        <InlineLabeledDropdown
+        <LabeledDropdown
             label="Age"
             options={options}
             selectedValue={selectedAgeGroup}
@@ -113,39 +116,32 @@ function AgeGroupDropdown({
     )
 }
 
-function SexDropdown({
+function SexSwitcher({
     availableSexes,
     selectedSex,
     onChange,
-    className,
-    isLoading,
 }: {
     availableSexes: string[]
     selectedSex: string
     onChange: (sex: string) => void
-    className?: string
-    isLoading?: boolean
 }) {
-    const options = useMemo(
+    const items = useMemo<SwitcherItem[]>(
         () =>
-            availableSexes?.map((sex) => ({
-                value: sex,
-                label: sex,
-            })) ?? [],
+            availableSexes.map((sex) => ({
+                key: sex,
+                element: sex === "Both sexes" ? "Both" : sex,
+            })),
         [availableSexes]
     )
 
     return (
-        <InlineLabeledDropdown
-            label="Sex"
-            options={options}
-            selectedValue={selectedSex}
-            onChange={onChange}
-            className={className}
-            isLoading={isLoading}
-            placeholder="Select a sex..."
-            aria-label="Select a sex"
-            isSearchable={false}
-        />
+        <LabeledControl label="Sex">
+            <Switcher
+                items={items}
+                selectedKey={selectedSex}
+                onChange={onChange}
+                ariaLabel="Select a sex"
+            />
+        </LabeledControl>
     )
 }

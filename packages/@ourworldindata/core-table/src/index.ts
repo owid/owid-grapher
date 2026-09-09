@@ -80,4 +80,5 @@ export {
     availableTransformNames,
     applyTransforms,
     parseTransformString,
+    TransformParamType,
 } from "./Transforms.js"

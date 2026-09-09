@@ -1,6 +1,6 @@
 import React, { useState } from "react"
 import { ResolvedSlideChartInfo } from "@ourworldindata/types"
-import { GRAPHER_DYNAMIC_CONFIG_URL } from "../../../settings/clientSettings.js"
+import { GRAPHER_DYNAMIC_CONFIG_URL } from "../../../settings/clientSettings.mjs"
 import { parseSlideChartUrl } from "../../../site/slideshows/slideshowUtils.js"
 import { SlideGrapher } from "./SlideGrapher.js"
 import { SlideExplorer } from "./SlideExplorer.js"

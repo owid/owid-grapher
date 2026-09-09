@@ -1,10 +1,6 @@
-import {
-    END_YEAR,
-    HISTORICAL_END_YEAR,
-    START_YEAR,
-} from "../helpers/constants.js"
+import { END_YEAR, HISTORICAL_END_YEAR, START_YEAR } from "../core/constants.js"
 import { GRAPHER_LIGHT_TEXT } from "@ourworldindata/grapher/src/color/ColorConstants.js"
-import type { YearLabel } from "../helpers/types.js"
+import type { YearLabel } from "../core/types.js"
 
 const DEFAULT_X_TICK_LABELS: YearLabel[] = [
     { year: START_YEAR, position: "start" },

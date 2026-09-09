@@ -62,7 +62,7 @@ export interface MultiDimSlug {
 export type GrapherIdentifier = GrapherSlug | GrapherUuid | MultiDimSlug
 
 const directoryMap = {
-    uuid: R2GrapherConfigDirectory.byUUID,
+    uuid: R2GrapherConfigDirectory.byUuid,
     slug: R2GrapherConfigDirectory.publishedGrapherBySlug,
     "multi-dim-slug": R2GrapherConfigDirectory.multiDim,
 }

@@ -1,4 +1,5 @@
 import * as _ from "lodash-es"
+import * as Sentry from "@sentry/react"
 import { GrapherAnalytics, splitPathForGA4 } from "@ourworldindata/grapher"
 import {
     EventCategory,
@@ -426,6 +427,14 @@ export class SiteAnalytics extends GrapherAnalytics {
 
             // eslint-disable-next-line no-console
             console.info("Browser translation detected", ctx)
+
+            // Deliberately sticky for the rest of the pageview: readers toggle
+            // translation back off again, but a page that was translated once
+            // keeps hitting reconciliation errors afterwards.
+            Sentry.setTag("page_translated", "true")
+            if (newLang && newLang !== initialLang) {
+                Sentry.setTag("page_translated_to", newLang)
+            }
 
             this.logBrowserTranslationEvent(ctx)
         }

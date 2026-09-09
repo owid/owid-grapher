@@ -2,31 +2,28 @@ import { useCallback, useEffect, useMemo, useState } from "react"
 import cx from "clsx"
 import { QueryClientProvider } from "@tanstack/react-query"
 
-import { queryClient, useDemographyData } from "../helpers/fetch.js"
+import { queryClient, useDemographyData } from "../core/fetch.js"
 import type {
     PopulationPyramidUnit,
     SimulationVariantConfig,
-    VariantProps,
-} from "../config.js"
-import {
-    CHART_FOOTER_SOURCES,
-    DEFAULT_ENTITY_NAME,
-} from "../helpers/constants.js"
-import { useInitialEntityName } from "../helpers/useInitialEntityName.js"
+} from "../core/config.js"
+import type { VariantProps } from "../../../../helpers/config.js"
+import { CHART_FOOTER_SOURCES, DEFAULT_ENTITY_NAME } from "../core/constants.js"
+import { useInitialEntityName } from "../core/useInitialEntityName.js"
 import {
     parseSimulationUrlState,
     type SimulationUrlState,
-} from "../helpers/urlState.js"
+} from "../core/urlState.js"
 import {
     DemographyChartError,
     DemographySkeleton,
 } from "../components/DemographyLoadAndError.js"
 import { Spinner } from "../../../../components/Spinner/Spinner.js"
 import {
-    CountryData,
-    DemographyMetadata,
-    ParameterKey,
-} from "../helpers/types.js"
+    EmbedConfigProvider,
+    useEmbedConfig,
+} from "../../../../hooks/useEmbedConfig.js"
+import { CountryData, DemographyMetadata, ParameterKey } from "../core/types.js"
 
 import { Frame } from "../../../../components/Frame/Frame.js"
 import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
@@ -37,7 +34,7 @@ import {
     BreakpointProvider,
     useContainerBreakpoint,
     breakpointClass,
-} from "../helpers/useBreakpoint.js"
+} from "../core/useBreakpoint.js"
 
 export function SimulationVariant({
     config,
@@ -45,19 +42,21 @@ export function SimulationVariant({
     const { breakpoint, ref: rootRef } = useContainerBreakpoint()
 
     return (
-        <QueryClientProvider client={queryClient}>
-            <BreakpointProvider value={breakpoint}>
-                <div
-                    ref={rootRef}
-                    className={cx(
-                        "demography-chart demography-chart__simulation-variant",
-                        breakpointClass(breakpoint)
-                    )}
-                >
-                    <FetchingSimulationVariant config={config} />
-                </div>
-            </BreakpointProvider>
-        </QueryClientProvider>
+        <EmbedConfigProvider config={config}>
+            <QueryClientProvider client={queryClient}>
+                <BreakpointProvider value={breakpoint}>
+                    <div
+                        ref={rootRef}
+                        className={cx(
+                            "demography-chart demography-chart__simulation-variant",
+                            breakpointClass(breakpoint)
+                        )}
+                    >
+                        <FetchingSimulationVariant config={config} />
+                    </div>
+                </BreakpointProvider>
+            </QueryClientProvider>
+        </EmbedConfigProvider>
     )
 }
 
@@ -66,9 +65,11 @@ function FetchingSimulationVariant({
 }: {
     config: SimulationVariantConfig
 }): React.ReactElement {
+    const { urlSync } = useEmbedConfig()
+
     const urlState = useMemo(
-        () => (config.urlSync ? parseSimulationUrlState() : {}),
-        [config.urlSync]
+        () => (urlSync ? parseSimulationUrlState() : {}),
+        [urlSync]
     )
     const [urlAssumptionState, setUrlAssumptionState] =
         useState<SimulationUrlAssumptionState>(() =>
@@ -81,13 +82,13 @@ function FetchingSimulationVariant({
         useInitialEntityName(urlState.entityName ?? config.region)
     const setEntityName = useCallback(
         (name: string) => {
-            if (config.urlSync) {
+            if (urlSync) {
                 setShouldSyncEntityName(true)
                 setUrlAssumptionState({})
             }
             setEntityNameRaw(name)
         },
-        [config.urlSync, setEntityNameRaw]
+        [urlSync, setEntityNameRaw]
     )
 
     const { metadata, entityData, isLoadingEntityData, status } =
@@ -107,7 +108,7 @@ function FetchingSimulationVariant({
 
     useEffect(() => {
         const shouldSyncAutoDetectedEntityName =
-            config.urlSync &&
+            urlSync &&
             !urlState.entityName &&
             (!config.region || config.region === "userLocation") &&
             isInitialEntityNameResolved
@@ -115,7 +116,7 @@ function FetchingSimulationVariant({
         if (shouldSyncAutoDetectedEntityName) setShouldSyncEntityName(true)
     }, [
         config.region,
-        config.urlSync,
+        urlSync,
         isInitialEntityNameResolved,
         urlState.entityName,
     ])
@@ -140,7 +141,6 @@ function FetchingSimulationVariant({
             fertilityRateAssumptions={config.fertilityRateAssumptions}
             lifeExpectancyAssumptions={config.lifeExpectancyAssumptions}
             netMigrationRateAssumptions={config.netMigrationRateAssumptions}
-            urlSync={config.urlSync}
             urlFertilityRateAssumptions={
                 urlAssumptionState.fertilityRateAssumptions
             }
@@ -195,7 +195,6 @@ function CaptionedSimulationVariant({
     fertilityRateAssumptions,
     lifeExpectancyAssumptions,
     netMigrationRateAssumptions,
-    urlSync,
     urlFertilityRateAssumptions,
     urlLifeExpectancyAssumptions,
     urlNetMigrationRateAssumptions,
@@ -218,7 +217,6 @@ function CaptionedSimulationVariant({
     fertilityRateAssumptions?: Record<number, number>
     lifeExpectancyAssumptions?: Record<number, number>
     netMigrationRateAssumptions?: Record<number, number>
-    urlSync?: boolean
     urlFertilityRateAssumptions?: Record<number, number>
     urlLifeExpectancyAssumptions?: Record<number, number>
     urlNetMigrationRateAssumptions?: Record<number, number>
@@ -267,7 +265,6 @@ function CaptionedSimulationVariant({
                     fertilityRateAssumptions={fertilityRateAssumptions}
                     lifeExpectancyAssumptions={lifeExpectancyAssumptions}
                     netMigrationRateAssumptions={netMigrationRateAssumptions}
-                    urlSync={urlSync}
                     urlFertilityRateAssumptions={urlFertilityRateAssumptions}
                     urlLifeExpectancyAssumptions={urlLifeExpectancyAssumptions}
                     urlNetMigrationRateAssumptions={
