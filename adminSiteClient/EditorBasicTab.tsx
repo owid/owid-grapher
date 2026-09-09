@@ -15,8 +15,6 @@ import {
     GRAPHER_CHART_TYPES,
     GRAPHER_TAB_NAMES,
     GrapherChartType,
-    DbChartTagJoin,
-    TaggableType,
     EntityName,
     PeerCountryStrategy,
     ALL_GRAPHER_CHART_TYPES,
@@ -50,8 +48,6 @@ import { DimensionCard } from "./DimensionCard.js"
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
 import { EditorDatabase } from "./EditorDatabase.js"
 import { ErrorMessagesForDimensions } from "./ChartEditorTypes.js"
-import { EditableTags } from "./EditableTags.js"
-import { MinimalTagWithMetadata } from "./TagGraphMetadata.js"
 import {
     GDP_PER_CAPITA_CATALOG_PATH,
     POPULATION_CATALOG_PATH,
@@ -513,44 +509,6 @@ class VariablesSection<
             </Section>
         )
     }
-}
-
-export const TagsSection = (props: {
-    chartId: number | undefined
-    tags: DbChartTagJoin[] | undefined
-    availableTags: MinimalTagWithMetadata[] | undefined
-    onSaveTags: (tags: DbChartTagJoin[]) => Promise<void>
-}) => {
-    const { chartId, tags, availableTags } = props
-    const canTag = !!chartId && tags && availableTags
-    return (
-        <Section name="Tags">
-            {canTag ? (
-                <>
-                    <EditableTags
-                        onSave={props.onSaveTags}
-                        tags={tags}
-                        suggestions={availableTags}
-                        hasKeyChartSupport
-                        hasSuggestionsSupport
-                        taggable={{
-                            type: TaggableType.Charts,
-                            id: props.chartId,
-                        }}
-                    />
-                    <small className="form-text text-muted">
-                        Changes to tags will be applied instantly, without the
-                        need to save the chart.
-                    </small>
-                </>
-            ) : (
-                <p>
-                    Can't tag this chart
-                    {!chartId && <>, because it hasn't been saved yet</>}.
-                </p>
-            )}
-        </Section>
-    )
 }
 
 interface EditorBasicTabProps<Editor> {

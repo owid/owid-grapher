@@ -23,7 +23,11 @@ import {
     EditorExtraTab,
 } from "./ConfigEditor.js"
 import { EditorTab } from "./AbstractChartEditor.js"
-import { DetailsProvider, IndicatorCatalog } from "./editorProviders.js"
+import {
+    DetailsProvider,
+    EditorEnvironment,
+    IndicatorCatalog,
+} from "./editorProviders.js"
 import { IndicatorStore } from "./indicatorStores.js"
 
 export interface GrapherEditorProps {
@@ -43,6 +47,16 @@ export interface GrapherEditorProps {
     indicators?: IndicatorCatalog | null
     /** Details on demand for validating text fields. Absent → none. */
     details?: DetailsProvider
+    /** Suggestions for the origin URL field. Absent → none. */
+    topicSlugs?: () => Promise<string[]>
+    /** Data API and catalog URLs, and OWID pages to link to. Defaults to
+     *  OWID's public endpoints and no links. */
+    environment?: EditorEnvironment
+    /** Fires when the editor gains or loses unsaved changes. Hosts that own
+     *  the page use it for a leave prompt. */
+    onDirtyChange?: (isDirty: boolean) => void
+    /** Mirror the active tab into the page URL's `?tab=`. Default off. */
+    syncTabWithUrl?: boolean
     /** Restrict the tabs shown. */
     tabs?: EditorTab[]
     /**
@@ -94,6 +108,22 @@ export class GrapherEditor
 
     get details(): DetailsProvider | undefined {
         return this.props.details
+    }
+
+    get topicSlugs(): (() => Promise<string[]>) | undefined {
+        return this.props.topicSlugs
+    }
+
+    get environment(): EditorEnvironment | undefined {
+        return this.props.environment
+    }
+
+    get onDirtyChange(): ((isDirty: boolean) => void) | undefined {
+        return this.props.onDirtyChange
+    }
+
+    get syncTabWithUrl(): boolean {
+        return this.props.syncTabWithUrl ?? false
     }
 
     get tabs(): EditorTab[] | undefined {

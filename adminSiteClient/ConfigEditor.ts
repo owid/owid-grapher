@@ -41,6 +41,10 @@ export interface ConfigEditorManager extends AbstractChartEditorManager {
     ) => void | GrapherInterface | Promise<void | GrapherInterface>
     /** Fires on every change of the edited config, in the host's form. */
     onChange?: (config: GrapherInterface, editor: ConfigEditor) => void
+    /** Fires when the editor gains or loses unsaved changes (for a leave prompt). */
+    onDirtyChange?: (isDirty: boolean) => void
+    /** Suggestions for the origin URL field, e.g. a site's topic pages. */
+    topicSlugs?: () => Promise<string[]>
     /**
      * Restrict which tabs the editor shows. Tabs that don't apply to the
      * chart type (map, scatter, marimekko) are hidden regardless.
@@ -65,6 +69,10 @@ export class ConfigEditor extends AbstractChartEditor<ConfigEditorManager> {
                 () => this.hostConfig,
                 (config) => this.manager.onChange?.(config, this),
                 { equals: comparer.structural }
+            ),
+            reaction(
+                () => this.isModified,
+                (isDirty) => this.manager.onDirtyChange?.(isDirty)
             ),
             // The host swapped the base config (e.g. the admin fetched the
             // defaults of a newly picked indicator). Re-apply it underneath

@@ -24,7 +24,6 @@ function makeEditor(
 describe(ConfigEditor, () => {
     it("runs without an admin", () => {
         const editor = makeEditor()
-        expect(editor.manager.admin).toBeUndefined()
         expect(editor.isNewGrapher).toBe(false)
     })
 

@@ -39,6 +39,7 @@ export const IndexPage = (props: {
                     type="image/svg+xml"
                 />
                 <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+                <link rel="stylesheet" href="/fonts.css" />
                 {assets.forHeader}
             </head>
             <body>

@@ -23,12 +23,9 @@ import {
     Toggle,
 } from "./Forms.js"
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
+import { isConfigEditorInstance } from "./ConfigEditor.js"
 import { ErrorMessages } from "./ChartEditorTypes.js"
 import { AutoComplete, Button as AntdButton, Space } from "antd"
-import {
-    BAKED_GRAPHER_URL,
-    ADMIN_BASE_URL,
-} from "../settings/clientSettings.js"
 
 interface EditorTextTabProps<Editor> {
     editor: Editor
@@ -61,15 +58,16 @@ export class EditorTextTab<
     }
 
     async fetchTopicSlugs(): Promise<void> {
-        // Topic slugs come from the admin's gdocs; a config-only editor has
-        // no admin and simply offers no autocomplete for the origin URL.
-        const { admin } = this.props.editor.manager
-        if (!admin) return
-        const json = await admin.getJSON<{ slugs: string[] }>(
-            "/api/gdocs/publishedTopicSlugs"
-        )
+        // Suggestions for the origin URL field come from the host (the admin
+        // passes its published topic pages); without a provider there are none.
+        const { editor } = this.props
+        const topicSlugs = isConfigEditorInstance(editor)
+            ? editor.manager.topicSlugs
+            : undefined
+        if (!topicSlugs) return
+        const slugs = await topicSlugs()
         runInAction(() => {
-            this.topicSlugs = json.slugs
+            this.topicSlugs = slugs
         })
     }
 
@@ -129,11 +127,13 @@ export class EditorTextTab<
     }
 
     @computed get hasCopyAdminURLButton() {
-        return !!this.props.editor.grapherState.id
+        const { grapherState, environment } = this.props.editor
+        return !!grapherState.id && !!environment.adminBaseUrl
     }
 
     @computed get hasCopyGrapherURLButton() {
-        return !!this.props.editor.grapherState.isPublished
+        const { grapherState, environment } = this.props.editor
+        return !!grapherState.isPublished && !!environment.bakedGrapherUrl
     }
 
     // Dropdown options for the origin URL autocomplete. Posts that already
@@ -494,7 +494,7 @@ export class EditorTextTab<
                                 <AntdButton
                                     onClick={() =>
                                         copyToClipboard(
-                                            `[${grapherState.title}](${ADMIN_BASE_URL}/admin/charts/${grapherState.id}/edit)`
+                                            `[${grapherState.title}](${editor.environment.adminBaseUrl}/admin/charts/${grapherState.id}/edit)`
                                         )
                                     }
                                 >
@@ -505,7 +505,7 @@ export class EditorTextTab<
                                 <AntdButton
                                     onClick={() =>
                                         copyToClipboard(
-                                            `[${grapherState.title}](${BAKED_GRAPHER_URL}/${grapherState.slug})`
+                                            `[${grapherState.title}](${editor.environment.bakedGrapherUrl}/${grapherState.slug})`
                                         )
                                     }
                                 >

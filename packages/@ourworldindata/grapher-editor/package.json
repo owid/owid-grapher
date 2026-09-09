@@ -1,0 +1,88 @@
+{
+    "name": "@ourworldindata/grapher-editor",
+    "version": "0.1.0",
+    "description": "The chart editor behind Our World in Data's admin, as a component: a grapher config in, an edited config out.",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/owid/owid-grapher.git",
+        "directory": "packages/@ourworldindata/grapher-editor"
+    },
+    "type": "module",
+    "engines": {
+        "node": ">=20"
+    },
+    "main": "src/index.ts",
+    "types": "src/index.ts",
+    "publishConfig": {
+        "registry": "https://packages.owid.io",
+        "main": "dist/editor.standalone.min.js",
+        "types": "dist/editor.d.ts",
+        "exports": {
+            ".": {
+                "types": "./dist/editor.d.ts",
+                "import": "./dist/editor.standalone.min.js"
+            },
+            "./react": {
+                "types": "./dist/editor.d.ts",
+                "import": "./dist/editor.react.js"
+            },
+            "./editor.css": "./dist/editor.css"
+        }
+    },
+    "peerDependencies": {
+        "@types/react": "^19.0.0",
+        "react": "^19.0.0",
+        "react-dom": "^19.0.0"
+    },
+    "peerDependenciesMeta": {
+        "@types/react": {
+            "optional": true
+        },
+        "react": {
+            "optional": true
+        },
+        "react-dom": {
+            "optional": true
+        }
+    },
+    "files": [
+        "dist/editor.react.js",
+        "dist/editor.react.js.map",
+        "dist/editor.standalone.min.js",
+        "dist/editor.standalone.min.js.map",
+        "dist/editor.css",
+        "dist/editor.d.ts",
+        "dist/editor.d.ts.map"
+    ],
+    "scripts": {
+        "build": "tsdown",
+        "clean": "rm -rf dist dist-package",
+        "startDemoServer": "http-server . -p 8434 -c-1 -o /demo.html",
+        "testPackage": "yarn testPackage:pack && yarn testPackage:vitest",
+        "testPackage:pack": "yarn pack --out dist-package/grapher-editor.tgz",
+        "testPackage:vitest": "vitest run --config vitest.package.config.ts"
+    },
+    "directories": {
+        "lib": "src"
+    },
+    "keywords": [],
+    "author": "",
+    "devDependencies": {
+        "@ourworldindata/components": "workspace:^",
+        "@ourworldindata/core-table": "workspace:^",
+        "@ourworldindata/grapher": "workspace:^",
+        "@ourworldindata/types": "workspace:^",
+        "@ourworldindata/utils": "workspace:^",
+        "@react-aria/optimize-locales-plugin": "^2.0.2",
+        "@tsdown/css": "^0.23.0",
+        "bumpp": "^12.2.0",
+        "http-server": "^14.1.1",
+        "react": "^19.2.4",
+        "react-dom": "^19.2.4",
+        "sass": "^1.89.2",
+        "tippy.js": "^6.3.7",
+        "tsdown": "^0.23.0",
+        "vitest": "^5.0.0"
+    },
+    "license": "SEE LICENSE IN LICENSE.md"
+}

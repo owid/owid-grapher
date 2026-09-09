@@ -3,13 +3,9 @@ import {
     GrapherInterface,
     diffGrapherConfigs,
     mergeGrapherConfigs,
-    PostReference,
     SeriesName,
 } from "@ourworldindata/utils"
-import {
-    ContentGraphLinkType,
-    OwidChartDimensionInterface,
-} from "@ourworldindata/types"
+import { OwidChartDimensionInterface } from "@ourworldindata/types"
 import {
     action,
     computed,
@@ -20,14 +16,11 @@ import {
     IReactionDisposer,
 } from "mobx"
 import { EditorFeatures } from "./EditorFeatures.js"
-import { Admin } from "./Admin.js"
 import {
     defaultGrapherConfig,
     GrapherState,
     loadCatalogData,
 } from "@ourworldindata/grapher"
-import { NarrativeChartMinimalInformation } from "./adminChartApi.js"
-import { DataInsightMinimalInformation } from "../adminShared/AdminTypes.js"
 import {
     defaultEditorEnvironment,
     EditorEnvironment,
@@ -51,11 +44,12 @@ const EDITOR_TABS = [
 export type EditorTab = (typeof EDITOR_TABS)[number]
 
 export interface AbstractChartEditorManager {
-    // Only editors that talk to the admin API need this (charts, narrative
-    // charts). A config-only editor runs without it.
-    admin?: Admin
-    // URLs the editor loads indicator data from. Defaults to the admin's.
+    // URLs the editor loads indicator data from, and OWID pages it may link
+    // to. Defaults to OWID's public endpoints and no links.
     environment?: EditorEnvironment
+    // Mirror the active tab into the page's `?tab=` query param. Off unless
+    // the host owns the page URL (the admin does).
+    syncTabWithUrl?: boolean
     // Where indicator data and metadata come from. Defaults to OWID's Data
     // API at `environment.dataApiUrl`.
     store?: IndicatorStore
@@ -77,22 +71,6 @@ export interface AbstractChartEditorManager {
     variableIdsByCatalogPath?: Record<string, number | null>
 }
 
-export interface References {
-    postsWordpress?: PostReference[]
-    postsGdocs?: PostReference[]
-    explorers?: string[]
-    narrativeCharts?: NarrativeChartMinimalInformation[]
-    dataInsights?: DataInsightMinimalInformation[]
-    staticViz?: StaticVizReference[]
-}
-
-export interface StaticVizReference {
-    id: number
-    name: string
-    grapherSlug?: string | null
-    type: ContentGraphLinkType.StaticViz
-}
-
 export abstract class AbstractChartEditor<
     Manager extends AbstractChartEditorManager = AbstractChartEditorManager,
 > {
@@ -100,6 +78,7 @@ export abstract class AbstractChartEditor<
 
     grapherState: GrapherState
     store: IndicatorStore
+    environment: EditorEnvironment
     currentRequest: Promise<any> | undefined // Whether the current chart state is saved or not
     // One of EDITOR_TABS, or a key of a tab the host added (`extraTabKeys`)
     tab: string = "basic"
@@ -124,6 +103,7 @@ export abstract class AbstractChartEditor<
     constructor(props: { manager: Manager }) {
         const environment =
             props.manager.environment ?? defaultEditorEnvironment
+        this.environment = environment
         this.grapherState = new GrapherState({
             additionalDataLoaderFn: (catalogKey) =>
                 loadCatalogData(catalogKey, {
@@ -153,8 +133,10 @@ export abstract class AbstractChartEditor<
                 ? "mobile"
                 : "desktop"
 
-        this.readInitialTabFromUrl()
-        this.setupTabUrlSync()
+        if (props.manager.syncTabWithUrl) {
+            this.readInitialTabFromUrl()
+            this.setupTabUrlSync()
+        }
 
         when(
             () => this.manager.parentConfig !== undefined,

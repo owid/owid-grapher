@@ -25,14 +25,13 @@ import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { AdminLayout } from "./AdminLayout.js"
 import { GrapherEditor } from "./GrapherEditor.js"
 import { EditorTab } from "./AbstractChartEditor.js"
+import { DetailsProvider, IndicatorCatalog } from "./editorProviders.js"
 import { ConfigEditor, EditorExtraTab } from "./ConfigEditor.js"
 import {
     adminDetailsProvider,
+    adminEditorEnvironment,
     adminIndicatorCatalog,
-    defaultEditorEnvironment,
-    DetailsProvider,
-    IndicatorCatalog,
-} from "./editorProviders.js"
+} from "./adminEditorProviders.js"
 import {
     csvIndicatorStore,
     dataApiIndicatorStore,
@@ -219,7 +218,7 @@ export class EditorPlaygroundPage extends React.Component {
     loadError: string | undefined = undefined
     loadedConfig: GrapherInterface = EXAMPLE_API_CONFIG
     loadedStore: IndicatorStore = dataApiIndicatorStore({
-        dataApiUrl: defaultEditorEnvironment.dataApiUrl,
+        dataApiUrl: adminEditorEnvironment.dataApiUrl,
     })
     editorKey = 0
     withIndicatorCatalog = true
@@ -260,7 +259,7 @@ export class EditorPlaygroundPage extends React.Component {
         const storeLine =
             this.storeMode === "csv"
                 ? `const store = csvIndicatorStore({\n    csv,          // the pasted CSV text\n    columnDefs,   // name, unit, description, source per column\n    name: "pasted CSV",\n})`
-                : `const store = dataApiIndicatorStore({\n    dataApiUrl: "${defaultEditorEnvironment.dataApiUrl}",\n    // catalog: what "Add indicator" offers; the admin passes its own\n})`
+                : `const store = dataApiIndicatorStore({\n    dataApiUrl: "${adminEditorEnvironment.dataApiUrl}",\n    // catalog: what "Add indicator" offers; the admin passes its own\n})`
         const indicatorsLine = this.withIndicatorCatalog
             ? this.storeMode === "api"
                 ? "    indicators={adminIndicatorCatalog(admin)} // OWID admin only"
@@ -285,7 +284,7 @@ export class EditorPlaygroundPage extends React.Component {
             this.storeMode === "csv"
                 ? "csvIndicatorStore"
                 : "dataApiIndicatorStore"
-        } } from "@ourworldindata/grapher-editor" // today: adminSiteClient/GrapherEditor.tsx
+        } } from "@ourworldindata/grapher-editor/react"
 
 ${storeLine}
 
@@ -314,7 +313,7 @@ ${tabsLine}${hostLines}
             })
         }
         return dataApiIndicatorStore({
-            dataApiUrl: defaultEditorEnvironment.dataApiUrl,
+            dataApiUrl: adminEditorEnvironment.dataApiUrl,
         })
     }
 
@@ -541,6 +540,7 @@ ${tabsLine}${hostLines}
                         baseConfig={this.baseConfig}
                         indicators={this.indicators ?? null}
                         details={this.details}
+                        environment={adminEditorEnvironment}
                         tabs={this.tabs}
                         extraTabs={this.extraTabs}
                         renderSaveButtons={this.renderSaveButtons}
