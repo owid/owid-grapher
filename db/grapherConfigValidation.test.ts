@@ -45,6 +45,22 @@ describe(ingestGrapherConfig, () => {
         })
     })
 
+    it("rejects a config whose shape breaks its own migration", () => {
+        const error = catchValidationError(() =>
+            ingestGrapherConfig({
+                ...baseChartConfig,
+                $schema: schemaUrlForVersion("010"),
+                dimensions: 123,
+            })
+        )
+
+        expect(error.status).toBe(400)
+        expect(error.issues.map((issue) => issue.pointer)).toEqual([""])
+        expect(error.issues[0].message).toContain(
+            "could not be migrated from schema version 010"
+        )
+    })
+
     it("rejects a config that is not an object", () => {
         const error = catchValidationError(() =>
             ingestGrapherConfig(null as unknown as AnyConfig)
