@@ -117,14 +117,7 @@ export const experiments: Experiment[] = [
             "/grapher/daily-per-capita-caloric-supply",
             "/grapher/child-mortality",
             // multi-indicator data pages (rendered as data pages via
-            // forceDatapage; the metadata box shows an indicator switcher).
-            // Treatment arm of a stratified page-level randomization over
-            // the top-50 multi-indicator pages by consented landing
-            // sessions — the pool, seed and the matched CONTROL pages
-            // (left as grapher pages, used only in analysis) live in the
-            // analytics repo under
-            // experiments/briefs/multi_datapage_assignment_20260907/.
-            // Don't hand-edit this list without re-drawing there.
+            // forceDatapage; the metadata box shows an indicator switcher)
             "/grapher/annual-death-rate-by-age-group",
             "/grapher/annual-deaths-by-age",
             "/grapher/average-height-by-year-of-birth",
