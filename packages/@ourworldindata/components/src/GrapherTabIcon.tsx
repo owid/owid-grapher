@@ -120,4 +120,14 @@ const chartIcons: Record<GrapherChartType, React.ReactElement> = {
             />
         </svg>
     ),
+
+    // Swimlane
+    [GRAPHER_CHART_TYPES.Swimlane]: (
+        <svg width="13" height="13" viewBox="1 1 14 13" fill="none">
+            <path
+                fill="currentColor"
+                d="M6 11C6.55228 11 7 11.4477 7 12V13C7 13.5523 6.55228 14 6 14H2C1.44772 14 1 13.5523 1 13V12C1 11.4477 1.44772 11 2 11H6ZM14 6C14.5523 6 15 6.44772 15 7V8C15 8.55228 14.5523 9 14 9H6C5.44772 9 5 8.55228 5 8V7C5 6.44772 5.44772 6 6 6H14ZM8 1C8.55228 1 9 1.44772 9 2V3C9 3.55228 8.55228 4 8 4H2C1.44772 4 1 3.55228 1 3V2C1 1.44772 1.44772 1 2 1H8Z"
+            />
+        </svg>
+    ),
 }
