@@ -35,6 +35,7 @@ export const VALID_CHART_TYPE_COMBINATIONS: GrapherChartType[][] = [
         GRAPHER_CHART_TYPES.StackedBar,
         GRAPHER_CHART_TYPES.StackedDiscreteBar,
     ],
+    [GRAPHER_CHART_TYPES.Swimlane],
 ]
 
 type ChartTabConfigOption = Exclude<
@@ -52,6 +53,7 @@ export const CHART_TYPE_LABEL: Record<GrapherChartType, string> = {
     [GRAPHER_CHART_TYPES.StackedBar]: "Column",
     [GRAPHER_CHART_TYPES.StackedDiscreteBar]: "Bar",
     [GRAPHER_CHART_TYPES.Dumbbell]: "Dumbbell",
+    [GRAPHER_CHART_TYPES.Swimlane]: "Timeline",
 }
 
 export const LONG_CHART_TYPE_LABEL: Record<GrapherChartType, string> = {
@@ -64,6 +66,7 @@ export const LONG_CHART_TYPE_LABEL: Record<GrapherChartType, string> = {
     [GRAPHER_CHART_TYPES.StackedBar]: "Column chart",
     [GRAPHER_CHART_TYPES.StackedDiscreteBar]: "Bar chart",
     [GRAPHER_CHART_TYPES.Dumbbell]: "Dumbbell chart",
+    [GRAPHER_CHART_TYPES.Swimlane]: "Timeline",
 }
 
 const MAP_CHART_TAB_CONFIG_OPTION_TO_CHART_TYPE_NAME: Record<
@@ -82,6 +85,7 @@ const MAP_CHART_TAB_CONFIG_OPTION_TO_CHART_TYPE_NAME: Record<
         GRAPHER_CHART_TYPES.StackedDiscreteBar,
     [GRAPHER_TAB_CONFIG_OPTIONS.marimekko]: GRAPHER_CHART_TYPES.Marimekko,
     [GRAPHER_TAB_CONFIG_OPTIONS.dumbbell]: GRAPHER_CHART_TYPES.Dumbbell,
+    [GRAPHER_TAB_CONFIG_OPTIONS.swimlane]: GRAPHER_CHART_TYPES.Swimlane,
 }
 
 const MAP_CHART_TYPE_NAME_TO_CHART_TAB_CONFIG_OPTION = R.invert(
