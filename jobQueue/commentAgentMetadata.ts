@@ -2,6 +2,7 @@ import {
     CommentTargetType,
     CommentViewState,
     GrapherInterface,
+    normalizeDescriptionKey,
 } from "@ourworldindata/types"
 import { dimensionsToViewId } from "@ourworldindata/utils"
 
@@ -37,7 +38,7 @@ export interface CommentTargetMetadata {
         unit: string | null
         shortUnit: string | null
         descriptionShort: string | null
-        descriptionKey: string[] | null
+        descriptionKey: string | null
         descriptionFromProducer: string | null
         descriptionProcessing: string | null
     }
@@ -82,10 +83,16 @@ function indicatorFrom(
     row: VariableMetadataRow | undefined
 ): CommentTargetMetadata["indicator"] {
     if (!row) return undefined
-    let descriptionKey: string[] | null = null
+    let descriptionKey: string | null = null
     try {
+        // The column is JSON, and the driver hands it to us as JSON text
+        // (`jsonStrings: true` in db.ts), so it needs parsing. It holds a
+        // markdown string since 1784020575438-DescriptionKeyToString, but
+        // normalizeDescriptionKey also collapses the legacy array shape.
         descriptionKey = row.descriptionKey
-            ? (JSON.parse(row.descriptionKey) as string[])
+            ? (normalizeDescriptionKey(
+                  JSON.parse(row.descriptionKey) as string | string[]
+              ) ?? null)
             : null
     } catch {
         // Malformed JSON in the column shouldn't cost us the rest of the
@@ -99,10 +106,10 @@ async function chartMetadata(
     trx: db.KnexReadonlyTransaction,
     chartId: number
 ): Promise<CommentTargetMetadata> {
-    const config = await db.knexRawFirst<{ full: string; slug: string | null }>(
+    const row = await db.knexRawFirst<{ config: string; slug: string | null }>(
         trx,
         `-- sql
-        SELECT cc.full, cc.slug
+        SELECT cc.config, cc.slug
         FROM charts c
         JOIN chart_configs cc ON cc.id = c.configId
         WHERE c.id = ?
@@ -125,9 +132,9 @@ async function chartMetadata(
     )
     return {
         chart: chartText(
-            config ? (JSON.parse(config.full) as GrapherInterface) : undefined
+            row ? (JSON.parse(row.config) as GrapherInterface) : undefined
         ),
-        slug: config?.slug ?? null,
+        slug: row?.slug ?? null,
         indicator: indicatorFrom(variable),
     }
 }
@@ -152,10 +159,10 @@ async function multiDimMetadata(
         `SELECT slug FROM multi_dim_data_pages WHERE id = ?`,
         [multiDimId]
     )
-    const row = await db.knexRawFirst<{ full: string; variableId: number }>(
+    const row = await db.knexRawFirst<{ config: string; variableId: number }>(
         trx,
         `-- sql
-        SELECT cc.full, mxcc.variableId
+        SELECT cc.config, mxcc.variableId
         FROM multi_dim_x_chart_configs mxcc
         JOIN chart_configs cc ON cc.id = mxcc.chartConfigId
         WHERE mxcc.multiDimId = ? AND mxcc.viewId = ?
@@ -177,7 +184,7 @@ async function multiDimMetadata(
         [row.variableId]
     )
     return {
-        chart: chartText(JSON.parse(row.full) as GrapherInterface),
+        chart: chartText(JSON.parse(row.config) as GrapherInterface),
         slug: page?.slug ?? null,
         indicator: indicatorFrom(variable),
     }
