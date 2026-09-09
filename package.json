@@ -133,7 +133,7 @@
         "mobx": "^6.15.4",
         "mobx-react": "^7.6.0",
         "mousetrap": "^1.6.5",
-        "multer": "^2.2.0",
+        "multer": "^2.3.0",
         "mysql2": "^3.23.1",
         "nodejs-polars": "^0.7.2",
         "normalize.css": "^8.0.1",
