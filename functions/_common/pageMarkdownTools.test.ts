@@ -122,9 +122,50 @@ describe(constructPageMarkdown, () => {
         // the HTML page with a mangled country value. Assert on whole lines, since
         // a substring check passes on that corrupted form too.
         expect(markdown).toContain(
-            "- Data as CSV: https://ourworldindata.org/grapher/population.csv?country=~USA&time=2000..2023"
+            "- Data URL (CSV format), displayed data: https://ourworldindata.org/grapher/population.csv?country=~USA&time=2000..2023&v=1&csvType=filtered&useColumnShortNames=false"
+        )
+        expect(markdown).toContain(
+            "- Data URL (CSV format), full data: https://ourworldindata.org/grapher/population.csv?v=1&csvType=full&useColumnShortNames=false"
         )
         expect(markdown).not.toMatch(/\?country=~USA[^\s]*\.csv/)
+    })
+
+    it("keeps the page's download section, FAQ and update dates, and documents the query grammar", () => {
+        const grapherState = makeGrapherState({
+            manager: {
+                baseUrl: "https://ourworldindata.org/grapher/population",
+            },
+        })
+        const columns = grapherState.tableForDownload.getColumns(["population"])
+
+        const markdown = constructPageMarkdown(
+            grapherState,
+            columns,
+            [makeValues("World", "2.5 billion", "8 billion")],
+            ""
+        )
+
+        expect(markdown).toContain("## Download")
+        expect(markdown).toContain("#### Data API")
+        expect(markdown).toContain("#### Query parameters")
+        expect(markdown).toContain("ISO 3166-1 alpha-3")
+        expect(markdown).toContain("#### Code examples")
+        expect(markdown).toContain("##### Python with Pandas")
+        expect(markdown).toContain(
+            'pd.read_csv("https://ourworldindata.org/grapher/population.csv?v=1&csvType=full&useColumnShortNames=false"'
+        )
+        expect(markdown).toContain("## Frequently asked questions")
+        expect(markdown).toContain(
+            "#### How did Our World in Data process this data?"
+        )
+        // The Download section sits between the value tables and the About section,
+        // where the page puts it relative to the metadata.
+        expect(markdown.indexOf("## Download")).toBeGreaterThan(
+            markdown.indexOf("## Latest value for every entity")
+        )
+        expect(markdown.indexOf("## Download")).toBeLessThan(
+            markdown.indexOf("## About this data")
+        )
     })
 
     it("strips detail-on-demand links but keeps their visible label", () => {
@@ -288,7 +329,7 @@ describe(constructPageMarkdown, () => {
         )
 
         expect(markdown).not.toContain("## Values shown in this view")
-        expect(markdown).toContain("## Get this data")
+        expect(markdown).toContain("## Download")
     })
 })
 

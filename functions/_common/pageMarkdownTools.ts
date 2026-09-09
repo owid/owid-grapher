@@ -1,5 +1,10 @@
 import * as _ from "lodash-es"
-import { OwidColumnDef, stripDetailOnDemandLinks } from "@ourworldindata/utils"
+import {
+    OwidColumnDef,
+    SERVER_SIDE_DOWNLOAD_HELP_TEXT,
+    makeDownloadCodeExamples,
+    stripDetailOnDemandLinks,
+} from "@ourworldindata/utils"
 import type { CoreColumn } from "@ourworldindata/core-table"
 import type {
     GrapherValuesJson,
@@ -10,7 +15,9 @@ import type {
 import { GrapherState } from "@ourworldindata/grapher"
 import {
     getCitationLines,
+    getDataProcessingLines,
     getDescriptionLines,
+    getKeyDataLines,
     getSourcesSection,
     getTitle,
 } from "./readmeTools.js"
@@ -180,19 +187,90 @@ function* getAllEntityValuesSection(
     }
 }
 
-function* getDataAccessSection(
+/**
+ * The page's Download section, kept rather than compressed: the Data API URLs and
+ * the code examples exist so that machines find the data, and an agent reading
+ * the page benefits from them as much as a person does. What the page lacks is
+ * the query grammar. An agent that guessed `country=Zimbabwe` got an empty file
+ * and fell back to downloading everything; the codes and the meaning of
+ * `csvType` are the part worth spelling out.
+ */
+function* getDownloadSection(
+    grapherState: GrapherState,
     baseUrl: string,
     search: string
 ): Generator<string, void, undefined> {
+    const withDefaults = (params: string): string =>
+        `${search ? `${search}&` : "?"}${params}`
+    const fullCsvUrl = `${baseUrl}.csv?v=1&csvType=full&useColumnShortNames=false`
+    const displayedCsvUrl = `${baseUrl}.csv${withDefaults("v=1&csvType=filtered&useColumnShortNames=false")}`
+    const metadataUrl = `${baseUrl}.metadata.json?v=1&csvType=full&useColumnShortNames=false`
+
     yield ""
-    yield "## Get this data"
+    yield "## Download"
     yield ""
-    yield `- Data as CSV: ${baseUrl}.csv${search}`
-    yield `- Metadata as JSON: ${baseUrl}.metadata.json${search}`
+    yield SERVER_SIDE_DOWNLOAD_HELP_TEXT
+    yield ""
+    yield `- Full data, every entity and year: ${baseUrl}.zip?v=1&csvType=full&useColumnShortNames=false`
+    yield `- Displayed data, the entities and years shown in this view: ${baseUrl}.zip${withDefaults("v=1&csvType=filtered&useColumnShortNames=false")}`
+    yield ""
+    yield "#### Data API"
+    yield ""
+    yield `- Data URL (CSV format), full data: ${fullCsvUrl}`
+    yield `- Data URL (CSV format), displayed data: ${displayedCsvUrl}`
+    yield `- Metadata URL (JSON format): ${metadataUrl}`
+    yield `- Latest value for one entity (JSON): ${baseUrl}.values.json?country=~USA`
     yield `- Chart image: ${baseUrl}.png${search}`
     yield `- Interactive chart: ${baseUrl}${search}`
+
     yield ""
-    yield "Append `country=` to select entities (tilde-separated codes, e.g. `country=~USA~FRA`) and `time=` to select a range (e.g. `time=2000..2023`)."
+    yield "#### Query parameters"
+    yield ""
+    yield "- `country=` selects entities by code, tilde-separated: `country=~USA~FRA`. Codes are ISO 3166-1 alpha-3 (USA, FRA, ZWE); aggregates use OWID codes (OWID_WRL for World, OWID_EUR for Europe, OWID_AFR for Africa, OWID_ASI for Asia). Entity names are not accepted."
+    yield "- `time=` selects years: `time=2023` for one year or `time=1990..2023` for a range."
+    yield "- `csvType=filtered` returns the entities and years shown on the chart, or those `country=` and `time=` select. `csvType=full` returns every entity and year and ignores both parameters."
+    yield "- `useColumnShortNames=true` names columns by their stable machine-readable identifiers."
+
+    const table = grapherState.tableForDownload
+    const { minTime, maxTime } = table
+    if (minTime !== undefined && maxTime !== undefined) {
+        const timeColumn = table.timeColumn
+        yield ""
+        yield `This chart has ${table.availableEntityNames.length} entities and data from ${timeColumn.formatValue(minTime)} to ${timeColumn.formatValue(maxTime)}.`
+    }
+
+    yield ""
+    yield "#### Code examples"
+    for (const [name, snippet] of Object.entries(
+        makeDownloadCodeExamples(fullCsvUrl, metadataUrl)
+    )) {
+        yield ""
+        yield `##### ${name}`
+        yield ""
+        yield "```"
+        yield snippet
+        yield "```"
+    }
+}
+
+/**
+ * The page answers "how did Our World in Data process this data?" with a general
+ * paragraph and the indicator's own processing notes. The notes are where an
+ * agent learns that a series splices several sources, which changes how it
+ * should quote a value.
+ */
+function* getFaqSection(
+    columns: CoreColumn[]
+): Generator<string, void, undefined> {
+    yield ""
+    yield "## Frequently asked questions"
+    yield ""
+    yield "#### How did Our World in Data process this data?"
+    yield ""
+    yield "All data and visualizations on Our World in Data rely on data sourced from one or several original data providers. Preparing this original data involves several processing steps, such as harmonising country names, converting units and combining sources. The structure of our data pipeline and the code used to prepare every dataset are documented at https://docs.owid.io/projects/etl/."
+    for (const column of columns) {
+        yield* getDataProcessingLines(column.def)
+    }
 }
 
 function* getAboutSection(
@@ -240,15 +318,27 @@ export function constructPageMarkdown(
         lines.push("", grapherState.effectiveSubtitle)
     }
 
+    // Last updated, next expected update, date range and unit, as the page's
+    // metadata box shows them. The update date is what lets a reader judge how
+    // fresh a quoted value is.
+    const primary = columnsWithSources[0]
+    if (primary) {
+        const keyData = [
+            ...getKeyDataLines(primary.def, primary),
+        ]
+        if (keyData.length > 0) lines.push("", ...keyData)
+    }
+
     lines.push(...getValuesSection(valuesByEntity))
     lines.push(...getAllEntityValuesSection(grapherState))
-    lines.push(...getDataAccessSection(baseUrl, search))
+    lines.push(...getDownloadSection(grapherState, baseUrl, search))
 
     const about = [...getAboutSection(columnsWithSources)]
     if (about.length > 0) {
         lines.push("", "## About this data", ...about)
     }
 
+    lines.push(...getFaqSection(columnsWithSources))
     lines.push(...getSourcesSection(columnsWithSources))
 
     // Detail-on-demand links (e.g. [terawatt-hours](#dod:watt-hours)) are hover
