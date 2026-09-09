@@ -413,14 +413,16 @@ class VariableEditor extends Component<{
             { property: DimensionProperty.y, variableId: variable.id },
         ]
 
-        // If the variable has a grapher config, preview it as authored
+        // If the variable has a grapher config, preview it as authored, but
+        // always offer the map tab unless the config opts out of it explicitly
         if (grapherConfig)
             return {
                 ...grapherConfig,
                 dimensions: grapherConfig.dimensions ?? defaultDimensions,
+                hasMapTab: grapherConfig.hasMapTab ?? true,
             }
 
-        // Otherwise, create a default config with a map tab
+        // Otherwise, create a default config that opens on the map
         return {
             yAxis: { min: 0 },
             map: { columnSlug: variable.id.toString() },
