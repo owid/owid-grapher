@@ -107,11 +107,24 @@ export const MIGRATION_FIXTURES: {
         },
     },
     {
-        name: "leaves the default line chart without chartTypes",
+        name: "turns an explicit line type into chartTypes",
         before: {
             $schema:
                 "https://files.ourworldindata.org/schemas/grapher-schema.005.json",
             type: "LineChart",
+        },
+        after: {
+            $schema:
+                "https://files.ourworldindata.org/schemas/grapher-schema.006.json",
+            chartTypes: ["LineChart"],
+        },
+    },
+    {
+        name: "leaves a config without a type alone",
+        before: {
+            $schema:
+                "https://files.ourworldindata.org/schemas/grapher-schema.005.json",
+            hasChartTab: true,
         },
         after: {
             $schema:
@@ -384,6 +397,21 @@ export const PATCH_STACK_FIXTURES: {
                 $schema:
                     "https://files.ourworldindata.org/schemas/grapher-schema.005.json",
                 type: "ScatterPlot",
+            },
+        ],
+    },
+    {
+        name: "a child overriding its parent's chart type",
+        patches: [
+            {
+                $schema:
+                    "https://files.ourworldindata.org/schemas/grapher-schema.005.json",
+                type: "ScatterPlot",
+            },
+            {
+                $schema:
+                    "https://files.ourworldindata.org/schemas/grapher-schema.005.json",
+                type: "LineChart",
             },
         ],
     },
