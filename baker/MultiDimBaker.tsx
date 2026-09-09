@@ -119,6 +119,7 @@ export async function renderMultiDimDataPageFromConfig({
     knex,
     slug,
     config,
+    multiDimId,
     imageMetadataDictionary,
     isPreviewing = false,
     archiveContext,
@@ -126,6 +127,8 @@ export async function renderMultiDimDataPageFromConfig({
     knex: db.KnexReadonlyTransaction
     slug: string | null
     config: MultiDimDataPageConfigEnriched
+    /** multi_dim_data_pages.id, so previews can anchor comments to this page */
+    multiDimId?: number
     imageMetadataDictionary?: Record<string, ImageMetadata>
     isPreviewing?: boolean
     archiveContext?: ArchiveContext
@@ -212,8 +215,10 @@ export async function renderMultiDimDataPageFromConfig({
         baseUrl: BAKED_BASE_URL,
         canonicalUrl,
         slug,
+        multiDimId,
         configObj: pageConfig.config,
         initialViewData,
+        initialViewIndicatorId,
         initialViewDimensions,
         tagToSlugMap,
         faqEntries,
@@ -244,6 +249,7 @@ export const renderMultiDimDataPageBySlug = async (
         knex,
         slug,
         config: dbRow.config,
+        multiDimId: dbRow.id,
         archiveContext: archivedVersion[dbRow.id],
     })
 }
@@ -267,6 +273,7 @@ export async function renderMultiDimDataPageByCatalogPath(
         knex,
         slug: dbRow.slug,
         config: dbRow.config,
+        multiDimId: dbRow.id,
         archiveContext: archivedVersion[dbRow.id],
     })
 }

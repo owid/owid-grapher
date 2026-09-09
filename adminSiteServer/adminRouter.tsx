@@ -219,6 +219,7 @@ getPlainRouteWithROTransaction(
                 knex: trx,
                 slug: mdd.slug,
                 config: mdd.config,
+                multiDimId: mdd.id,
                 isPreviewing: true,
             })
             res.send(renderedPage)

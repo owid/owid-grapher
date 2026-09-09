@@ -7,6 +7,7 @@ import {
     JobsTableName,
     DatasetsTableName,
     VariablesTableName,
+    ExplorerRefreshJobPayload,
 } from "@ourworldindata/types"
 import * as JobsModel from "../../db/model/Jobs.js"
 // Avoid static import of the job processor to allow per-test mocking of its
@@ -239,7 +240,7 @@ describe("Explorer queue semantics", { timeout: 20000 }, () => {
 
         // Process by claiming and running without backoff sleep
         const job = await env.testKnex.transaction(async (trx) => {
-            return await JobsModel.claimNextQueuedJob(
+            return await JobsModel.claimNextQueuedJob<ExplorerRefreshJobPayload>(
                 trx as any,
                 "refresh_explorer_views"
             )
@@ -288,7 +289,7 @@ describe("Explorer queue semantics", { timeout: 20000 }, () => {
 
         // Claim a single job and induce staleness after Phase 1 with a hook
         const job = await env.testKnex.transaction(async (trx) => {
-            return await JobsModel.claimNextQueuedJob(
+            return await JobsModel.claimNextQueuedJob<ExplorerRefreshJobPayload>(
                 trx as any,
                 "refresh_explorer_views"
             )
@@ -385,7 +386,7 @@ describe("Explorer queue semantics", { timeout: 20000 }, () => {
 
         // Claim job A (it will be in running state now)
         const jobA = await env.testKnex.transaction(async (trx) => {
-            return await JobsModel.claimNextQueuedJob(
+            return await JobsModel.claimNextQueuedJob<ExplorerRefreshJobPayload>(
                 trx as any,
                 "refresh_explorer_views"
             )

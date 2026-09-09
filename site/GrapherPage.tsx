@@ -33,6 +33,7 @@ import { SiteFooter } from "./SiteFooter.js"
 import { SiteHeader } from "./SiteHeader.js"
 import GrapherImage from "./GrapherImage.js"
 import { Html } from "./Html.js"
+import { buildCommentPageContext } from "./comments/commentContext.js"
 import { DEFAULT_PAGE_DESCRIPTION } from "./dataPage.js"
 import { makeJsonLdGrapherImageUrl } from "./jsonLdHelpers.js"
 import { JsonLdDataPage } from "./jsonLd.js"
@@ -103,6 +104,14 @@ const isPreviewing = ${isPreviewing}
 window.renderSingleGrapherOnGrapherPage({ config: jsonConfig, dataApiUrl: "${DATA_API_URL}", catalogUrl: "${CATALOG_URL}", archiveContext, noCache: isPreviewing })`
 
     const variableIds = _.uniq(grapher.dimensions!.map((d) => d.variableId))
+
+    // Previews only: this is what switches the comments overlay on, so public
+    // grapher pages ship no comment code or data at all.
+    const commentPageContext = isPreviewing
+        ? buildCommentPageContext({
+              chartId: grapher.id,
+          })
+        : undefined
 
     return (
         <Html>
@@ -218,6 +227,15 @@ window.renderSingleGrapherOnGrapherPage({ config: jsonConfig, dataApiUrl: "${DAT
                     type="module"
                     dangerouslySetInnerHTML={{ __html: script }}
                 />
+                {commentPageContext && (
+                    <script
+                        dangerouslySetInnerHTML={{
+                            __html: `window._OWID_COMMENT_CONTEXT = ${serializeJSONForHTML(
+                                commentPageContext
+                            )}`,
+                        }}
+                    />
+                )}
             </body>
         </Html>
     )

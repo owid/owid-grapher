@@ -12,7 +12,10 @@ import {
 } from "@ourworldindata/types"
 import { areSetsEqual } from "@ourworldindata/utils"
 import { parseExplorer } from "../explorerParser.js"
-import { enqueueJob, updateExplorerRefreshStatus } from "./Jobs.js"
+import {
+    enqueueExplorerRefreshJob,
+    updateExplorerRefreshStatus,
+} from "./Jobs.js"
 
 type PlainExplorerWithLastCommit = Required<DbPlainExplorer> & {
     // lastCommit is a relic from our git-CMS days, it should be broken down
@@ -405,7 +408,7 @@ export async function enqueueExplorerRefreshJobsForDependencies(
     for (const explorer of explorers) {
         if (!explorer.updatedAt) continue
         await updateExplorerRefreshStatus(knex, explorer.slug, "queued")
-        await enqueueJob(knex, {
+        await enqueueExplorerRefreshJob(knex, {
             type: "refresh_explorer_views",
             payload: {
                 slug: explorer.slug,
