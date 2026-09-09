@@ -45,6 +45,7 @@ import {
     CategoricalBin,
     ColorScaleBin,
     isCategoricalBin,
+    addPatternRefToBin,
     isNoDataBin,
     isInapplicableBin,
     isNumericBin,
@@ -384,22 +385,19 @@ export class MapChart
 
     private maybeAddPatternRefsToBin<Bin extends ColorScaleBin>(bin: Bin): Bin {
         if (isNoDataBin(bin))
-            return new CategoricalBin({
-                ...bin.props,
-                fillPatternRef: makePatternId(
-                    Patterns.noDataPattern,
-                    this.patternIdSuffix
-                ),
-            }) as Bin
+            return addPatternRefToBin(
+                bin,
+                makePatternId(Patterns.noDataPattern, this.patternIdSuffix)
+            )
 
         if (isInapplicableBin(bin))
-            return new CategoricalBin({
-                ...bin.props,
-                fillPatternRef: makePatternId(
+            return addPatternRefToBin(
+                bin,
+                makePatternId(
                     Patterns.inapplicablePattern,
                     this.patternIdSuffix
-                ),
-            }) as Bin
+                )
+            )
 
         const overlayPatternRef = makeProjectedDataLegendPatternId(
             this.patternIdSuffix
