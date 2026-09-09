@@ -80,9 +80,28 @@ const renderDatapageIfApplicable = async (
         forceDatapage?: boolean
     } = {}
 ) => {
-    const variable = await getVariableOfDatapageIfApplicable(knex, grapher, {
-        forceDatapage,
-    })
+    let variable
+    try {
+        variable = await getVariableOfDatapageIfApplicable(knex, grapher, {
+            forceDatapage,
+        })
+    } catch (error) {
+        // Charts that are only datapages because the experiment forces them
+        // had no data-API dependency at bake time before this experiment. If
+        // the primary indicator's metadata fetch fails (Data API/S3 outage,
+        // deleted variable), fall back to baking the plain grapher page for
+        // this cycle rather than failing the whole charts bake / archival run
+        // — the fetch is awaited uncaught by SiteBaker's pMap and by the
+        // archival loop. Charts with a real `datapages` row keep failing
+        // loudly, exactly as on master.
+        if (!forceDatapage) throw error
+        await logErrorAndMaybeCaptureInSentry(
+            new Error(
+                `Data page error loading primary indicator for forced datapage ${grapher.slug}, baking as grapher page: ${error}`
+            )
+        )
+        return undefined
+    }
 
     if (!variable) return undefined
 
