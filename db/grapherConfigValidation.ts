@@ -55,7 +55,19 @@ export function ingestGrapherConfig(config: AnyConfig): GrapherInterface {
             },
         ])
 
-    const migrated = migrateGrapherConfigToLatestVersion(config)
+    let migrated: GrapherInterface
+    try {
+        migrated = migrateGrapherConfigToLatestVersion(config)
+    } catch (error) {
+        const reason = error instanceof Error ? error.message : String(error)
+        throw new GrapherConfigValidationError([
+            {
+                pointer: "",
+                message: `could not be migrated from schema version ${version}: ${reason}`,
+            },
+        ])
+    }
+
     const issues = validateGrapherConfig(migrated)
     if (issues.length > 0) throw new GrapherConfigValidationError(issues)
     return migrated
