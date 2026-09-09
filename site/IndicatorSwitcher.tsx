@@ -269,7 +269,17 @@ export const IndicatorTabsHorizontal = ({
     onIndicatorChange: (i: number) => void
     variant?: "tabs" | "pills"
 }) => {
-    const isSmallScreen = useMediaQuery(SMALL_BREAKPOINT_MEDIA_QUERY)
+    // initializeWithValue: false makes the first client render use the same
+    // value the server rendered with (false -> desktop split), so hydration
+    // matches the baked HTML; the mobile cap applies in a post-hydration
+    // re-render. Without it, usehooks-ts initializes from the live media query
+    // and every mobile hydration of a >=4-indicator page is a structural
+    // mismatch (React discards and re-renders the whole page tree). On the
+    // h-pills variant the pill row is display:none on mobile anyway (the
+    // dropdown takes over via CSS), so the cap only shows on h-tabs.
+    const isSmallScreen = useMediaQuery(SMALL_BREAKPOINT_MEDIA_QUERY, {
+        initializeWithValue: false,
+    })
     const { visible, overflow, overflowStartIndex } = splitForOverflow(
         indicators,
         isSmallScreen ? MAX_VISIBLE_TABS_MOBILE : MAX_VISIBLE_TABS_DESKTOP
