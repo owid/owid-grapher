@@ -4,6 +4,11 @@ import { format, type FormatConfig } from "oxfmt"
 import oxfmtConfig from "../../.oxfmtrc.json"
 import { type SchemaDefinitions, resolveRef } from "./grapherSchemaSource.js"
 
+interface SchemaRevisionDecision {
+    revision: number
+    isChanged: boolean
+}
+
 /** Every `default` in the schema as one nested object */
 export function generateDefaultConfig(
     schema: JSONSchema7,
@@ -54,8 +59,46 @@ export const defaultGrapherConfig = ${JSON.stringify(defaultConfig, undefined, 2
     return formatted.code
 }
 
-export function formatSchemaFileName(version: string): string {
-    return `grapher-schema.${version}.json`
+export function formatSchemaFileName(
+    version: string,
+    revision?: number
+): string {
+    if (revision === undefined) return `grapher-schema.${version}.json`
+    return `grapher-schema.${version}.${String(revision).padStart(2, "0")}.json`
+}
+
+const revisionedSchemaFilePattern =
+    /^grapher-schema\.(?<version>\d+)\.(?<revision>\d{2})\.json$/
+
+/** The inverse of `formatSchemaFileName`'s revisioned form */
+export function parseSchemaFileRevision(
+    fileName: string,
+    version: string
+): number | undefined {
+    const groups = fileName.match(revisionedSchemaFilePattern)?.groups
+    if (groups?.version !== version) return undefined
+    return Number(groups.revision)
+}
+
+export function findHighestPublishedRevision(
+    fileNames: string[],
+    version: string
+): number | undefined {
+    return _.max(
+        fileNames
+            .map((fileName) => parseSchemaFileRevision(fileName, version))
+            .filter((revision) => revision !== undefined)
+    )
+}
+
+export function chooseSchemaRevision(
+    builtJson: string,
+    published: { revision: number; json: string } | undefined
+): SchemaRevisionDecision {
+    if (published === undefined) return { revision: 0, isChanged: true }
+    if (published.json === builtJson)
+        return { revision: published.revision, isChanged: false }
+    return { revision: published.revision + 1, isChanged: true }
 }
 
 export function serializeJson(value: unknown): string {

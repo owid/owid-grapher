@@ -49,7 +49,11 @@ After merging:
 - `sync-grapher-schema-to-r2.yml` uploads the JSON to the `schemas` prefix of the
   `owid-public` bucket on Cloudflare R2, with a `.latest` alias.
   `files.ourworldindata.org/schemas/` serves that bucket. The sync never deletes, so every
-  version ever published keeps resolving.
+  version ever published keeps resolving. Besides the mutable name and the `.latest` alias,
+  every published edit also lands under an immutable, revisioned name. The workflow assigns
+  that revision by comparing the document it just built against the highest revision already
+  in the bucket: unchanged keeps the existing revision, changed mints the next one. This is
+  the name the ETL pins in `DEFAULT_GRAPHER_SCHEMA`.
 - Once this repo has deployed, merge the sibling ETL PR. Never before, since the ETL pushes
   configs stamped with that version.
 
@@ -69,10 +73,19 @@ After merging:
 changes. CI runs it on every push that touches this folder and commits the result.
 
 The JSON form of the schema is not committed anywhere. `--publish-dir <dir>` writes it to
-`<dir>`, and `--latest` adds a `.latest` alias there. The R2 upload builds into a scratch
-directory this way, with the alias on master only. Server-side validation parses the
-YAML itself, in `db/grapherConfigValidation.ts`.
+`<dir>`, and `--latest` adds a `.latest` alias there. `--published-dir <dir>` names a local
+directory mirroring what the bucket already holds; when given, the script also decides and
+writes the revisioned file into `--publish-dir`. The R2 workflow fills `--published-dir` with
+`aws s3 sync` before calling this script, and syncs `--publish-dir` up to the bucket
+afterwards.
 
 ```bash
 yarn buildGrapherSchema
 ```
+
+## File names
+
+`grapher-schema.<version>.json` is the mutable name; publishing overwrites it in place.
+`grapher-schema.<version>.<revision>.json` is immutable; once published it is never
+overwritten. `grapher-schema.latest.json` aliases the mutable name of whichever version is
+newest. `<version>` is zero-padded to three digits, `<revision>` to two.
