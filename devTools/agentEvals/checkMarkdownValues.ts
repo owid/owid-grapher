@@ -231,9 +231,14 @@ function checkSelectedTable(
             })
             continue
         }
-        years.forEach((year, i) => {
-            const shown = row[i + 1] ?? ""
-            if (!Number.isFinite(year)) return
+        years.forEach((headingYear, i) => {
+            const cell = row[i + 1] ?? ""
+            if (!Number.isFinite(headingYear)) return
+            // "34.7 (1870)" means the entity's own first or last value, from that
+            // year rather than the heading's; check it against that year.
+            const bracket = cell.match(/^(.*?)\s*\((-?\d+)\)$/)
+            const shown = bracket ? bracket[1] : cell
+            const year = bracket ? Number(bracket[2]) : headingYear
             const expected = view.full.valueAt(entity, col, year)
             if (expected === undefined) {
                 if (shown)
