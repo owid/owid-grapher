@@ -323,9 +323,7 @@ export function constructPageMarkdown(
     // fresh a quoted value is.
     const primary = columnsWithSources[0]
     if (primary) {
-        const keyData = [
-            ...getKeyDataLines(primary.def, primary),
-        ]
+        const keyData = [...getKeyDataLines(primary.def, primary)]
         if (keyData.length > 0) lines.push("", ...keyData)
     }
 
