@@ -244,3 +244,38 @@ export function constructPageMarkdown(
     // doesn't exist in the document.
     return stripDetailOnDemandLinks(lines.join("\n").trim()) + "\n"
 }
+
+interface MediaRange {
+    type: string
+    q: number
+    index: number
+}
+
+/**
+ * Whether a request would rather have markdown than HTML for a page URL, so
+ * `/grapher/<slug>` can serve the same document as `/grapher/<slug>.md` to
+ * clients that ask for it. Browsers send `text/html` first and never mention
+ * markdown; Claude Code's fetcher sends `text/markdown, text/html, *&#47;*`.
+ * Markdown wins when it is present with a q-value at least as high as HTML's,
+ * with list order breaking ties.
+ */
+export function prefersMarkdown(accept: string | null | undefined): boolean {
+    if (!accept) return false
+    const ranges: MediaRange[] = accept.split(",").map((part, index) => {
+        const [type, ...params] = part.trim().split(";")
+        const q = params.map((p) => p.trim()).find((p) => p.startsWith("q="))
+        return {
+            type: type.trim().toLowerCase(),
+            q: q ? Number(q.slice(2)) : 1,
+            index,
+        }
+    })
+    const markdown = ranges.find((r) => r.type === "text/markdown")
+    if (!markdown || !(markdown.q > 0)) return false
+    const html = ranges.find((r) => r.type === "text/html")
+    if (!html || !(html.q > 0)) return true
+    return (
+        markdown.q > html.q ||
+        (markdown.q === html.q && markdown.index < html.index)
+    )
+}

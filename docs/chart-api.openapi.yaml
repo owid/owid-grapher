@@ -291,7 +291,8 @@ paths:
         entities, links to the underlying data, and the sources. Intended for
         clients that read the page as text rather than running its JavaScript.
         Dimension and entity query parameters select the view, as they do for
-        the .csv endpoint.
+        the .csv endpoint. The same document is returned by /grapher/{slug} itself
+        when the request's Accept header prefers text/markdown over text/html.
       operationId: getChartMarkdown
       tags:
         - Metadata

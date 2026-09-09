@@ -9,6 +9,7 @@ import {
     fetchZipForGrapher,
 } from "../_common/downloadFunctions.js"
 import { handleThumbnailRequest } from "../_common/reusableHandlers.js"
+import { prefersMarkdown } from "../_common/pageMarkdownTools.js"
 import {
     handlePageNotFound,
     getRedirectForUrl,
@@ -114,11 +115,21 @@ router
                 ctx
             )
     )
-    .get(
-        "/grapher/:slug",
-        async ({ params: { slug } }, { searchParams }, env) =>
-            handleHtmlPageRequest(slug, searchParams, env)
-    )
+    // The page URL itself serves the markdown document to clients that ask for
+    // it (Claude Code's fetcher sends `Accept: text/markdown, text/html, */*`),
+    // so agents get the numbers without knowing about the .md suffix. Both
+    // variants vary on Accept so caches keep them apart.
+    .get("/grapher/:slug", async (request, { searchParams }, env) => {
+        const { slug } = request.params
+        const response = prefersMarkdown(request.headers.get("accept"))
+            ? await fetchMarkdownForGrapher(
+                  { type: "slug", id: slug },
+                  env,
+                  searchParams
+              )
+            : await handleHtmlPageRequest(slug, searchParams, env)
+        return withVaryAccept(response)
+    })
     .all("*", () => error(404, "Route not defined"))
 
 export const onRequest: PagesFunction<Env> = async (context) => {
@@ -148,6 +159,16 @@ export const onRequest: PagesFunction<Env> = async (context) => {
                 return error(e.status, e.message)
             } else return error(500, e)
         })
+}
+
+/** Response headers are immutable on fetched responses, so copy before adding Vary. */
+function withVaryAccept(response: Response): Response {
+    const copy = new Response(response.body, response)
+    const vary = copy.headers.get("vary")
+    if (!vary) copy.headers.set("vary", "Accept")
+    else if (!/\bAccept\b/i.test(vary))
+        copy.headers.set("vary", `${vary}, Accept`)
+    return copy
 }
 
 async function handleHtmlPageRequest(

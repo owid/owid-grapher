@@ -5,7 +5,7 @@ import { GrapherState } from "@ourworldindata/grapher"
 import { ColumnTypeNames, type GrapherValuesJson } from "@ourworldindata/types"
 import { getRandomNumberGenerator } from "@ourworldindata/utils"
 import { extensions } from "./env.js"
-import { constructPageMarkdown } from "./pageMarkdownTools.js"
+import { constructPageMarkdown, prefersMarkdown } from "./pageMarkdownTools.js"
 
 function makeGrapherState(overrides: Record<string, unknown> = {}) {
     const table = SynthesizeNonCountryTable({
@@ -291,5 +291,39 @@ describe("the .md extension alongside .readme.md", () => {
         const match = "life-expectancy.md".match(regex)
         expect(match?.groups?.slug).toBe("life-expectancy")
         expect(match?.groups?.extension).toBe(extensions.markdown)
+    })
+})
+
+describe(prefersMarkdown, () => {
+    it("is false for a browser, which asks for HTML and never markdown", () => {
+        expect(
+            prefersMarkdown(
+                "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8"
+            )
+        ).toBe(false)
+    })
+
+    it("is true for an agent fetcher that lists markdown first", () => {
+        expect(prefersMarkdown("text/markdown, text/html, */*")).toBe(true)
+    })
+
+    it("is true when markdown is the only type asked for", () => {
+        expect(prefersMarkdown("text/markdown")).toBe(true)
+    })
+
+    it("respects q-values over list order", () => {
+        expect(prefersMarkdown("text/html;q=0.8, text/markdown")).toBe(true)
+        expect(prefersMarkdown("text/markdown;q=0.5, text/html")).toBe(false)
+    })
+
+    it("lets HTML win when it is listed before markdown at equal weight", () => {
+        expect(prefersMarkdown("text/html, text/markdown")).toBe(false)
+    })
+
+    it("is false for wildcards, an empty header or no header", () => {
+        expect(prefersMarkdown("*/*")).toBe(false)
+        expect(prefersMarkdown("")).toBe(false)
+        expect(prefersMarkdown(null)).toBe(false)
+        expect(prefersMarkdown(undefined)).toBe(false)
     })
 })
