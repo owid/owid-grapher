@@ -43,13 +43,11 @@ const migrateFrom004To005 = (config: MigratableConfig): void => {
 }
 
 const migrateFrom005To006 = (config: MigratableConfig): void => {
-    const { type = GRAPHER_CHART_TYPES.LineChart, hasChartTab = true } = config
+    const { type, hasChartTab } = config
 
-    // add types field
-    if (!hasChartTab) config.chartTypes = []
-    else if (type !== GRAPHER_CHART_TYPES.LineChart) config.chartTypes = [type]
+    if (hasChartTab === false) config.chartTypes = []
+    else if (type !== undefined) config.chartTypes = [type]
 
-    // remove deprecated fields
     delete config.type
     delete config.hasChartTab
 }
