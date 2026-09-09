@@ -288,10 +288,24 @@ export async function renderDataPageV2(
         metadata.display?.name ??
         metadata.name
 
+    const additionalYVariableIds = _.uniq(
+        _.compact(
+            grapher.dimensions
+                .filter((d) => d.property === DimensionProperty.y)
+                .map((d) => d.variableId)
+        )
+    ).filter((id) => id !== variableId)
+    // Only the switcher on a MULTI-indicator chart needs per-indicator labels;
+    // on an enrolled single-indicator chart the per-indicator override would
+    // replace the curated chart title in the box heading, the citations, and
+    // (when the config has no explicit title) <title>/og:title with the
+    // variable's display/database name.
+    const isMultiIndicator = additionalYVariableIds.length > 0
+
     const datapageData = getDatapageDataV2(
         variableMetadata,
         grapher,
-        datapageMetadataExperimentActive
+        datapageMetadataExperimentActive && isMultiIndicator
             ? {
                   indicatorTitleOverride: indicatorTitleOverrideFor(
                       variableId,
@@ -307,13 +321,6 @@ export async function renderDataPageV2(
     // bakes exactly as before with `additionalIndicators` left undefined.
     let additionalIndicators: AdditionalIndicator[] | undefined
     if (datapageMetadataExperimentActive) {
-        const additionalYVariableIds = _.uniq(
-            _.compact(
-                grapher.dimensions
-                    .filter((d) => d.property === DimensionProperty.y)
-                    .map((d) => d.variableId)
-            )
-        ).filter((id) => id !== variableId)
 
         const maybeAdditionalIndicators = await pMap(
             additionalYVariableIds,
