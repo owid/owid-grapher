@@ -30,6 +30,9 @@ import { Tooltip } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons"
 import { deleteChart } from "./ChartEditor.js"
+import { chartSearchFields } from "./chartListSearch.js"
+import { isWebMcpAvailable } from "./webmcp/webmcpTypes.js"
+import { registerChartListTools } from "./webmcp/chartListTools.js"
 
 // These properties are coming from OldChart.ts
 export interface ChartListItem {
@@ -69,6 +72,12 @@ interface ChartListProps {
     charts: ChartListItem[]
     autofocusSearchInput?: boolean
     onDelete?: (chart: ChartListItem) => void
+    /**
+     * Expose this list's search box as a WebMCP tool. Only the charts index
+     * page sets it; the lists embedded in indicator and dataset pages would
+     * make "search the chart list" mean something else.
+     */
+    enableWebMcpTools?: boolean
 }
 
 @observer
@@ -143,9 +152,28 @@ export class ChartList extends React.Component<ChartListProps> {
         window.history.replaceState({}, "", newUrl)
     }
 
+    private webMcpAbortController: AbortController | undefined
+
     override componentDidMount() {
         this.searchInput = this.getSearchInputFromUrl()
         void this.getTags()
+
+        if (this.props.enableWebMcpTools && isWebMcpAvailable()) {
+            this.webMcpAbortController = new AbortController()
+            void registerChartListTools(
+                {
+                    getCharts: () => this.props.charts,
+                    getFilteredCharts: () => this.chartsFiltered,
+                    getSearchInput: () => this.searchInput,
+                    setSearchInput: this.onSearchInput,
+                },
+                this.webMcpAbortController.signal
+            )
+        }
+    }
+
+    override componentWillUnmount() {
+        this.webMcpAbortController?.abort()
     }
 
     @action.bound onSort(sortConfig: SortConfig) {
@@ -167,18 +195,7 @@ export class ChartList extends React.Component<ChartListProps> {
         if (searchWords.length > 0) {
             const filterFn = filterFunctionForSearchWords(
                 searchWords,
-                (chart: ChartListItem) => [
-                    chart.title,
-                    chart.variantName,
-                    chart.internalNotes,
-                    chart.publishedBy,
-                    chart.lastEditedBy,
-                    `${chart.id}`,
-                    chart.slug,
-                    chart.hasChartTab !== false ? chart.type : undefined,
-                    chart.hasMapTab ? "Map" : undefined,
-                    ...chart.tags.map((tag) => tag.name),
-                ]
+                chartSearchFields
             )
             return charts.filter(filterFn)
         } else return charts
