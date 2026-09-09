@@ -4,10 +4,15 @@ name: Grapher package
 # runs the smoke tests in packages/@ourworldindata/grapher/packageTest/
 # against the build outputs: importability of both JS builds, mounting a
 # chart from the built code, and typechecking the packed type declarations.
+# Does the same for @ourworldindata/grapher-editor, whose sources live in
+# adminSiteClient/.
 on:
   pull_request:
     paths:
       - "packages/@ourworldindata/**"
+      - "adminSiteClient/**"
+      - "adminShared/**"
+      - "tsconfig.editor-dts.json"
       - "rolldown.config-common.mts"
       - "yarn.lock"
       - ".github/workflows/grapher-package.yml"
@@ -18,14 +23,18 @@ on:
 permissions:
   contents: read
 
-defaults:
-  run:
-    working-directory: packages/@ourworldindata/grapher
-
 jobs:
   test-package:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        package: [grapher, grapher-editor]
+    name: test-package (${{ matrix.package }})
+    defaults:
+      run:
+        working-directory: packages/@ourworldindata/${{ matrix.package }}
 
     steps:
       - name: Clone repository

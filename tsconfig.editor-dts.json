@@ -1,0 +1,55 @@
+{
+    // Used only by tsdown (packages/@ourworldindata/grapher-editor/tsdown.config.ts)
+    // to build the editor package's bundled type declarations. Lives at the
+    // repo root because tsdown's dts plugin uses this file's directory as the
+    // root, and the editor's sources span packages/ and adminSiteClient/.
+    //
+    // Every file whose types end up in the bundle has to be matched here, not
+    // just the entry point: tsgo doesn't reliably emit declarations for files
+    // it only reaches transitively.
+    "extends": "./packages/@ourworldindata/grapher/tsconfig.json",
+    "include": [
+        "packages/@ourworldindata/grapher-editor/src/**/*",
+        "packages/@ourworldindata/grapher/src/**/*",
+        "packages/@ourworldindata/types/src/**/*",
+        "packages/@ourworldindata/utils/src/**/*",
+        "packages/@ourworldindata/core-table/src/**/*",
+        "packages/@ourworldindata/components/src/**/*",
+        "adminShared/search.tsx",
+        "adminShared/*.d.ts",
+        "adminSiteClient/*.d.ts",
+        "adminSiteClient/AbstractChartEditor.ts",
+        "adminSiteClient/AdminColorPicker.tsx",
+        "adminSiteClient/ChartEditorTypes.ts",
+        "adminSiteClient/ChartEditorView.tsx",
+        "adminSiteClient/ColorSchemeDropdown.tsx",
+        "adminSiteClient/ConfigEditor.ts",
+        "adminSiteClient/DimensionCard.tsx",
+        "adminSiteClient/EditableTextarea.tsx",
+        "adminSiteClient/EditorBasicTab.tsx",
+        "adminSiteClient/EditorColorScaleSection.tsx",
+        "adminSiteClient/EditorCustomizeTab.tsx",
+        "adminSiteClient/EditorDataTab.tsx",
+        "adminSiteClient/EditorDatabase.ts",
+        "adminSiteClient/EditorDebugTab.tsx",
+        "adminSiteClient/EditorExportTab.tsx",
+        "adminSiteClient/EditorFAQ.tsx",
+        "adminSiteClient/EditorFeatures.tsx",
+        "adminSiteClient/EditorMapTab.tsx",
+        "adminSiteClient/EditorMarimekkoTab.tsx",
+        "adminSiteClient/EditorScatterTab.tsx",
+        "adminSiteClient/EditorTextTab.tsx",
+        "adminSiteClient/EntityPresets.ts",
+        "adminSiteClient/Forms.tsx",
+        "adminSiteClient/GrapherEditor.tsx",
+        "adminSiteClient/SaveButtons.tsx",
+        "adminSiteClient/SortableList.tsx",
+        "adminSiteClient/VariableSelector.tsx",
+        "adminSiteClient/VisionDeficiencies.tsx",
+        "adminSiteClient/colorPalettes.ts",
+        "adminSiteClient/constants.ts",
+        "adminSiteClient/editorProviders.ts",
+        "adminSiteClient/indicatorStores.ts"
+    ],
+    "exclude": ["**/*.test.*", "**/*.packagetest.*"]
+}
