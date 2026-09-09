@@ -364,5 +364,5 @@ export abstract class AbstractChartEditor<
     abstract get isNewGrapher(): boolean
     abstract get availableTabs(): EditorTab[]
 
-    abstract saveGrapher(props?: { onError?: () => void }): Promise<void>
+    abstract saveGrapher(): Promise<void>
 }

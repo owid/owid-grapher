@@ -92,9 +92,7 @@ export class NarrativeChartEditor extends AbstractChartEditor<NarrativeChartEdit
         }
     }
 
-    async saveGrapher({
-        onError,
-    }: { onError?: () => void } = {}): Promise<void> {
+    async saveGrapher(): Promise<void> {
         const { patchConfig, narrativeChartId } = this
 
         const json = await this.manager.admin.requestJSON(
@@ -107,8 +105,6 @@ export class NarrativeChartEditor extends AbstractChartEditor<NarrativeChartEdit
             runInAction(() => {
                 this.savedPatchConfig = json.savedPatch
             })
-        } else {
-            onError?.()
         }
     }
 }
