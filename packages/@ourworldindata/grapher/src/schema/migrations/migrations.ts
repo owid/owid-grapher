@@ -10,8 +10,6 @@ import {
     type OutdatedSchemaVersion,
     type SchemaVersion,
 } from "./helpers"
-import { GRAPHER_CHART_TYPES } from "@ourworldindata/types"
-
 type MigrationStep = (config: MigratableConfig) => void
 
 // see https://github.com/owid/owid-grapher/commit/26f2a0d1790c71bdda7e12f284ca552945d2f6ef
@@ -102,17 +100,7 @@ const migrateFrom008To009 = (config: MigratableConfig): void => {
 }
 
 const migrateFrom009To010 = (config: MigratableConfig): void => {
-    const relevantChartTypes = [
-        GRAPHER_CHART_TYPES.LineChart,
-        GRAPHER_CHART_TYPES.SlopeChart,
-        GRAPHER_CHART_TYPES.StackedArea,
-    ]
-
-    const chartType = config.chartTypes?.[0] ?? GRAPHER_CHART_TYPES.LineChart
-    if (
-        config.hideLegend !== undefined &&
-        relevantChartTypes.includes(chartType)
-    )
+    if (config.hideLegend !== undefined)
         config.hideSeriesLabels = config.hideLegend
     delete config.hideLegend
 }
