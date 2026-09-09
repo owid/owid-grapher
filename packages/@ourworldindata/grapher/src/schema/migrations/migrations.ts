@@ -21,11 +21,12 @@ const migrateFrom001To002 = (config: MigratableConfig): void => {
 
 // see https://github.com/owid/owid-grapher/commit/4525ad81fb7064709ffab83677a8b0354b324dfb
 const migrateFrom002To003 = (config: MigratableConfig): void => {
-    if (config.hideTitleAnnotation) {
-        config.hideTitleAnnotations = {
-            entity: true,
-            time: true,
-            change: true,
+    if (config.hideTitleAnnotation !== undefined) {
+        const hide = config.hideTitleAnnotation
+        config.hideAnnotationFieldsInTitle = {
+            entity: hide,
+            time: hide,
+            changeInPrefix: hide,
         }
     }
     delete config.hideTitleAnnotation
