@@ -659,7 +659,9 @@ export class Explorer
             (dim) => dim.type === "slug"
         )
 
-        const yVariableIds = variableIdDimensions.map((dim) => dim.variableId)
+        const yVariableIds = excludeUndefined(
+            variableIdDimensions.map((dim) => dim.variableId)
+        )
         const ySlugs = slugDimensions.map((dim) => dim.slug)
 
         const partialGrapherConfig =
@@ -774,7 +776,7 @@ export class Explorer
         // Sort dimensions to match the order defined in config.ySlugs
         config.dimensions = _.sortBy(
             dimensions,
-            (dim) => indexMap[dim.slug ?? dim.variableId]
+            (dim) => indexMap[dim.slug ?? dim.variableId ?? ""]
         )
 
         this.inputTableTransformer = (table: OwidTable) => {

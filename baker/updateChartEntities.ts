@@ -18,6 +18,7 @@ import {
     OwidVariableDataMetadataDimensions,
     DbRawChartConfig,
 } from "@ourworldindata/types"
+import { excludeUndefined } from "@ourworldindata/utils"
 import * as db from "../db/db.js"
 import pMap from "p-map"
 import { mapEntityNamesToEntityIds } from "../db/model/Entity.js"
@@ -94,7 +95,9 @@ const obtainAvailableEntitiesForGrapherConfig = async (
     })
 
     // Manually fetch data for grapher, so we can employ caching
-    const variableIds = _.uniq(grapher.dimensions.map((d) => d.variableId))
+    const variableIds = _.uniq(
+        excludeUndefined(grapher.dimensions.map((d) => d.variableId))
+    )
     const variableData: MultipleOwidVariableDataDimensionsMap = new Map(
         await pMap(variableIds, async (variableId) => [
             variableId,
