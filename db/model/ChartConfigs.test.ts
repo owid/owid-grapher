@@ -33,7 +33,19 @@ it("leaves an outdated config at its stored schema version when skipMigration is
     expect(parsed).toEqual(outdatedConfig)
 })
 
-it("returns a config without a $schema field as parsed", () => {
+it("returns a config without a $schema unchanged", () => {
     const config = { title: "Test" }
     expect(parseChartConfig(JSON.stringify(config))).toEqual(config)
+})
+
+it("returns the config unchanged if migrating it throws", () => {
+    // Migrating from 010 loops over dimensions, so an object there throws
+    const configWithNonArrayDimensions = {
+        $schema:
+            "https://files.ourworldindata.org/schemas/grapher-schema.010.json",
+        dimensions: { variableId: 1, property: "y" },
+    }
+    expect(
+        parseChartConfig(JSON.stringify(configWithNonArrayDimensions))
+    ).toEqual(configWithNonArrayDimensions)
 })
