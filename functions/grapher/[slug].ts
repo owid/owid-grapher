@@ -121,14 +121,26 @@ router
     // variants vary on Accept so caches keep them apart.
     .get("/grapher/:slug", async (request, { searchParams }, env) => {
         const { slug } = request.params
-        const response = prefersMarkdown(request.headers.get("accept"))
-            ? await fetchMarkdownForGrapher(
-                  { type: "slug", id: slug },
-                  env,
-                  searchParams
-              )
-            : await handleHtmlPageRequest(slug, searchParams, env)
-        return withVaryAccept(response)
+        if (prefersMarkdown(request.headers.get("accept"))) {
+            try {
+                return withVaryAccept(
+                    await fetchMarkdownForGrapher(
+                        { type: "slug", id: slug },
+                        env,
+                        searchParams
+                    )
+                )
+            } catch (e) {
+                // The markdown carries data values, so charts with
+                // non-redistributable data refuse it (403). The page itself is
+                // still fine to serve; only a missing chart (404) should fall
+                // through to the redirect handling.
+                if (!(e instanceof StatusError) || e.status === 404) throw e
+            }
+        }
+        return withVaryAccept(
+            await handleHtmlPageRequest(slug, searchParams, env)
+        )
     })
     .all("*", () => error(404, "Route not defined"))
 
