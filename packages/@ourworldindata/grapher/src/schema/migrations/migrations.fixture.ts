@@ -250,7 +250,7 @@ export const MIGRATION_FIXTURES: {
         },
     },
     {
-        name: "drops hideLegend from a chart type without series labels",
+        name: "renames hideLegend even on a chart type without series labels",
         before: {
             $schema:
                 "https://files.ourworldindata.org/schemas/grapher-schema.009.json",
@@ -261,6 +261,7 @@ export const MIGRATION_FIXTURES: {
             $schema:
                 "https://files.ourworldindata.org/schemas/grapher-schema.010.json",
             chartTypes: ["ScatterPlot"],
+            hideSeriesLabels: true,
         },
     },
     {
@@ -464,8 +465,6 @@ export const PATCH_STACK_FIXTURES: {
     },
     {
         name: "a scatter plot child under a parent's hideLegend",
-        nonCommutingReason:
-            "the step reads chartTypes to decide whether hideLegend becomes hideSeriesLabels, and the parent layer doesn't carry it",
         patches: [
             {
                 $schema:
