@@ -4,8 +4,9 @@
  * the in-repo stand-in for what a consumer of the future editor package would
  * build, so it deliberately touches nothing chart-specific in the admin.
  *
- * Two data stores can be tried: OWID's Data API (configs reference indicators
- * by `variableId`) and a pasted CSV (configs reference columns by slug).
+ * The scenarios along the top are the point of the page: each one mounts the
+ * same component the way a different host would, and "Show code" prints the
+ * props that produced what you are looking at.
  */
 import * as React from "react"
 import { observer } from "mobx-react"
@@ -24,6 +25,7 @@ import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { AdminLayout } from "./AdminLayout.js"
 import { GrapherEditor } from "./GrapherEditor.js"
 import { EditorTab } from "./AbstractChartEditor.js"
+import { ConfigEditor, EditorExtraTab } from "./ConfigEditor.js"
 import {
     adminDetailsProvider,
     adminIndicatorCatalog,
@@ -95,7 +97,84 @@ const EXAMPLE_CSV_CONFIG: GrapherInterface = {
     selectedEntityNames: ["Berlin", "Vienna", "Prague"],
 }
 
+// Scenario "patch on a base". The base stands in for whatever a host layers
+// under a config: an indicator's defaults, a house style, a parent chart. The
+// chart itself stores only the title.
+const EXAMPLE_BASE_CONFIG: GrapherInterface = {
+    subtitle:
+        "Asking rents relative to 2015. This subtitle comes from the base.",
+    note: "Fields supplied by the base are marked as inherited in the editor.",
+    ySlugs: "rent_index",
+    selectedEntityNames: ["Berlin", "Vienna", "Prague"],
+    yAxis: { min: 0 },
+}
+
+const EXAMPLE_PATCH_CONFIG: GrapherInterface = {
+    title: "Rents, with a base config underneath",
+}
+
 const LITE_TABS: EditorTab[] = ["basic", "data", "text", "customize", "map"]
+
+type Scenario = "owid" | "csv" | "base" | "embed"
+
+/** Each scenario mounts the same editor as a different host would. The blurb
+ *  says which part of the interface it is there to show. */
+const SCENARIOS: {
+    value: Scenario
+    label: string
+    blurb: React.ReactNode
+}[] = [
+    {
+        value: "owid",
+        label: "OWID indicators",
+        blurb: (
+            <>
+                The admin&rsquo;s case. Data and metadata come from OWID&rsquo;s
+                Data API, and the config names indicators by{" "}
+                <code>variableId</code>. Our own chart editor passes exactly
+                this, plus the chart-record tabs.
+            </>
+        ),
+    },
+    {
+        value: "csv",
+        label: "Your own CSV",
+        blurb: (
+            <>
+                No OWID data anywhere. The config names CSV columns by slug (
+                <code>ySlugs</code>) and comes back naming them the same way, so
+                it renders with <code>GrapherLoader.fromCsv</code> as is. Column
+                metadata comes from the column definitions.
+            </>
+        ),
+    },
+    {
+        value: "base",
+        label: "Patch on a base",
+        blurb: (
+            <>
+                <code>baseConfig</code> is &ldquo;the config this one is a patch
+                against&rdquo;. The subtitle, the y column and the axis minimum
+                below come from the base and are marked inherited; only your own
+                changes are saved. Chart-to-indicator inheritance and
+                narrative-chart patches are both this one prop.
+            </>
+        ),
+    },
+    {
+        value: "embed",
+        label: "Locked-down embed",
+        blurb: (
+            <>
+                A host with its own UI: five tabs, no indicator picker, its own
+                save button and a tab of its own. <code>extraTabs</code> and{" "}
+                <code>renderSaveButtons</code> are how the admin keeps
+                Revisions, References and Publishing without the editor knowing
+                they exist.
+            </>
+        ),
+    },
+]
 
 // From react-chart-editor's readme, for comparison in the "Show code" drawer.
 const PLOTLY_SNIPPET = `import plotly from "plotly.js/dist/plotly"
@@ -132,6 +211,7 @@ export class EditorPlaygroundPage extends React.Component {
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
+    scenario: Scenario = "owid"
     storeMode: StoreMode = "api"
     configText = JSON.stringify(EXAMPLE_API_CONFIG, null, 2)
     csvText = EXAMPLE_CSV
@@ -154,6 +234,7 @@ export class EditorPlaygroundPage extends React.Component {
     constructor(props: Record<string, never>) {
         super(props)
         makeObservable(this, {
+            scenario: observable,
             storeMode: observable,
             configText: observable,
             csvText: observable,
@@ -189,6 +270,17 @@ export class EditorPlaygroundPage extends React.Component {
             this.tabPreset === "lite"
                 ? `    tabs={${JSON.stringify(LITE_TABS)}}`
                 : "    // tabs: all that apply to the chart type"
+        const baseDecl =
+            this.scenario === "base"
+                ? `\nconst baseConfig = ${JSON.stringify(EXAMPLE_BASE_CONFIG, null, 4)}\n`
+                : ""
+        const hostLines =
+            this.scenario === "base"
+                ? "\n    baseConfig={baseConfig}                        // its values show as inherited"
+                : this.scenario === "embed"
+                  ? `\n    extraTabs={[{ key: "host", label: "Host tab", render: (editor) => … }]}
+    renderSaveButtons={(editor, errors) => <MySaveButton … />}`
+                  : ""
         return `import { GrapherEditor, ${
             this.storeMode === "csv"
                 ? "csvIndicatorStore"
@@ -198,12 +290,12 @@ export class EditorPlaygroundPage extends React.Component {
 ${storeLine}
 
 const config = ${JSON.stringify(this.loadedConfig, null, 4)}
-
+${baseDecl}
 <GrapherEditor
     config={config}
     store={store}
 ${indicatorsLine}
-${tabsLine}
+${tabsLine}${hostLines}
     onChange={(config) => setLiveConfig(config)}  // every edit, in the store's form
     onSave={(config) => saveSomewhere(config)}     // "Save config" button
 />`
@@ -239,6 +331,67 @@ ${tabsLine}
 
     @computed get tabs(): EditorTab[] | undefined {
         return this.tabPreset === "lite" ? LITE_TABS : undefined
+    }
+
+    @computed get baseConfig(): GrapherInterface | undefined {
+        return this.scenario === "base" ? EXAMPLE_BASE_CONFIG : undefined
+    }
+
+    /** A host tab, to show that the slot takes anything and is handed the
+     *  editor. The admin's Revisions, References and Publishing arrive the
+     *  same way. */
+    @computed get extraTabs(): EditorExtraTab[] | undefined {
+        if (this.scenario !== "embed") return undefined
+        return [
+            {
+                key: "host",
+                label: "Host tab",
+                render: (editor: ConfigEditor) => (
+                    <div className="EditorPlaygroundPage__hostTab">
+                        <p>
+                            Rendered by the host, not the editor, and handed the
+                            editor to read. The admin puts Revisions, References
+                            and Publishing in this slot.
+                        </p>
+                        <p>
+                            This chart&rsquo;s patch currently sets{" "}
+                            <strong>
+                                {Object.keys(editor.patchConfig).length}
+                            </strong>{" "}
+                            fields.
+                        </p>
+                    </div>
+                ),
+            },
+        ]
+    }
+
+    /** Replaces the editor's own "Save config" button, the way the admin
+     *  replaces it with publish, delete and save-as-new. */
+    @computed get renderSaveButtons():
+        | ((editor: ConfigEditor, editingErrors: string[]) => React.ReactNode)
+        | undefined {
+        if (this.scenario !== "embed") return undefined
+        return (editor: ConfigEditor, editingErrors: string[]) => (
+            <div className="EditorPlaygroundPage__hostSave">
+                <button
+                    className="btn btn-primary"
+                    disabled={
+                        editingErrors.length > 0 ||
+                        !editor.isModified ||
+                        editor.grapherState.hasFatalErrors
+                    }
+                    onClick={() => {
+                        editor.saveGrapher().catch(() => undefined)
+                    }}
+                >
+                    The host&rsquo;s own save button
+                </button>
+                <span className="EditorPlaygroundPage__hostSaveNote">
+                    Still calls <code>onSave</code>.
+                </span>
+            </div>
+        )
     }
 
     @computed get liveConfigJson(): string {
@@ -293,15 +446,20 @@ ${tabsLine}
         this.remount()
     }
 
-    /** Switching stores loads that store's example, so there is always
-     *  something to look at. */
-    @action.bound setStoreMode(mode: StoreMode): void {
-        this.storeMode = mode
-        this.configText = JSON.stringify(
-            mode === "csv" ? EXAMPLE_CSV_CONFIG : EXAMPLE_API_CONFIG,
-            null,
-            2
-        )
+    /** A scenario sets every knob at once and loads its example, so each one
+     *  is a complete picture of one way to mount the editor. */
+    @action.bound setScenario(scenario: Scenario): void {
+        this.scenario = scenario
+        this.storeMode = scenario === "owid" ? "api" : "csv"
+        this.tabPreset = scenario === "embed" ? "lite" : "all"
+        this.withIndicatorCatalog = scenario !== "embed"
+        const config =
+            scenario === "owid"
+                ? EXAMPLE_API_CONFIG
+                : scenario === "base"
+                  ? EXAMPLE_PATCH_CONFIG
+                  : EXAMPLE_CSV_CONFIG
+        this.configText = JSON.stringify(config, null, 2)
         this.loadConfig()
     }
 
@@ -312,21 +470,14 @@ ${tabsLine}
                 <div className="EditorPlaygroundPage">
                     <div className="EditorPlaygroundPage__toolbar">
                         <Space size="middle" wrap>
-                            <span>
-                                Data store{" "}
-                                <Segmented<StoreMode>
-                                    size="small"
-                                    value={this.storeMode}
-                                    onChange={this.setStoreMode}
-                                    options={[
-                                        {
-                                            label: "OWID Data API",
-                                            value: "api",
-                                        },
-                                        { label: "Pasted CSV", value: "csv" },
-                                    ]}
-                                />
-                            </span>
+                            <Segmented<Scenario>
+                                value={this.scenario}
+                                onChange={this.setScenario}
+                                options={SCENARIOS.map(({ value, label }) => ({
+                                    value,
+                                    label,
+                                }))}
+                            />
                             <Button
                                 icon={<FontAwesomeIcon icon={faFileImport} />}
                                 onClick={action(
@@ -376,13 +527,23 @@ ${tabsLine}
                         </Space>
                     </div>
 
+                    <p className="EditorPlaygroundPage__blurb">
+                        {
+                            SCENARIOS.find((s) => s.value === this.scenario)
+                                ?.blurb
+                        }
+                    </p>
+
                     <GrapherEditor
                         key={this.editorKey}
                         config={this.loadedConfig}
                         store={this.loadedStore}
+                        baseConfig={this.baseConfig}
                         indicators={this.indicators ?? null}
                         details={this.details}
                         tabs={this.tabs}
+                        extraTabs={this.extraTabs}
+                        renderSaveButtons={this.renderSaveButtons}
                         onChange={this.onChange}
                         onSave={this.onSave}
                     />

@@ -46,3 +46,29 @@
 .EditorPlaygroundPage__textarea--short {
     min-height: 160px;
 }
+
+.EditorPlaygroundPage__blurb {
+    margin: 0;
+    padding: 6px 16px 10px;
+    max-width: 100ch;
+    color: #6b6b66;
+    font-size: 13px;
+    line-height: 1.5;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.EditorPlaygroundPage__hostTab {
+    padding: 12px 0;
+    max-width: 60ch;
+}
+
+.EditorPlaygroundPage__hostSave {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.EditorPlaygroundPage__hostSaveNote {
+    color: #6b6b66;
+    font-size: 12px;
+}
