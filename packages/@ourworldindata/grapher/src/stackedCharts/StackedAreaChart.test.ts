@@ -13,10 +13,15 @@ import {
 import { makeObservable, observable } from "mobx"
 import { AxisConfig } from "../axis/AxisConfig"
 import { SelectionArray } from "../selection/SelectionArray"
-import { ColumnTypeNames, GRAPHER_CHART_TYPES } from "@ourworldindata/utils"
+import {
+    Bounds,
+    ColumnTypeNames,
+    GRAPHER_CHART_TYPES,
+} from "@ourworldindata/utils"
 import { FacetStrategy } from "@ourworldindata/types"
 import { StackedAreaChartState } from "./StackedAreaChartState.js"
 import { ChartManager } from "../chart/ChartManager"
+import { FacetChart } from "../facet/FacetChart"
 
 class MockManager implements ChartManager {
     constructor() {
@@ -220,6 +225,62 @@ it("should mark interpolated and missing values", () => {
     expect(pointsFrance[3].missing).toBeFalsy()
     expect(pointsUK[3].interpolated).toBeFalsy()
     expect(pointsUK[3].missing).toBeTruthy()
+})
+
+it("marks interpolated values the same way when facetted", () => {
+    const csv = `gdp,coal,year,entityName
+    10,1,2000,france
+    0,2,2001,france
+    ,3,2002,france
+    ,4,2003,france
+    8,5,2005,france
+    ,6,2006,france`
+    const table = new OwidTable(csv, [
+        { slug: "gdp", type: ColumnTypeNames.Numeric },
+        { slug: "coal", type: ColumnTypeNames.Numeric },
+        { slug: "year", type: ColumnTypeNames.Year },
+    ])
+    const yColumnSlugs = ["gdp", "coal"]
+    const selection = ["france"]
+
+    const unfacetted = new StackedAreaChartState({
+        manager: { table, yColumnSlugs, selection },
+    })
+    const interpolatedByColumn = new Map(
+        unfacetted.series.map((series) => [
+            series.seriesName,
+            series.points.map((point) => !!point.interpolated),
+        ])
+    )
+    expect(interpolatedByColumn.get("gdp")).toEqual([
+        false,
+        false,
+        true,
+        true,
+        false,
+    ])
+
+    // On the facet path Grapher has already run transformTable on this table,
+    // and each facet then transforms it again.
+    const facetChart = new FacetChart({
+        bounds: new Bounds(0, 0, 800, 600),
+        chartTypeName: GRAPHER_CHART_TYPES.StackedArea,
+        manager: {
+            table,
+            transformedTable: unfacetted.transformedTable,
+            yColumnSlugs,
+            selection,
+            facetStrategy: FacetStrategy.metric,
+        },
+    })
+
+    for (const [index, slug] of yColumnSlugs.entries()) {
+        const facetState = facetChart.intermediateChartInstances[index]
+            .chartState as StackedAreaChartState
+        expect(
+            facetState.series[0].points.map((point) => !!point.interpolated)
+        ).toEqual(interpolatedByColumn.get(slug))
+    }
 })
 
 describe("externalLegendBins", () => {
