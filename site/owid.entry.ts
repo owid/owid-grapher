@@ -28,6 +28,7 @@ import { MultiEmbedderSingleton } from "../site/multiembedder/MultiEmbedder.js"
 import { CoreTable, OwidTable } from "@ourworldindata/core-table"
 import { SiteAnalytics } from "./SiteAnalytics.js"
 import { runMonkeyPatchForGoogleTranslate } from "./hacks.js"
+import { runTranslationCrashProbe } from "./translationCrashProbe.js"
 import { runSiteFooterScripts } from "./runSiteFooterScripts.js"
 
 declare let window: any
@@ -47,6 +48,7 @@ window.MultiEmbedderSingleton = MultiEmbedderSingleton
 // Note: do a text search of the project for "runSiteFooterScripts" to find the usage. todo: clean that up.
 window.runSiteFooterScripts = runSiteFooterScripts
 
+runTranslationCrashProbe()
 runMonkeyPatchForGoogleTranslate()
 
 const analytics = new SiteAnalytics(ENV)
