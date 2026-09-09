@@ -340,7 +340,6 @@ export async function renderDataPageV2(
     // bakes exactly as before with `additionalIndicators` left undefined.
     let additionalIndicators: AdditionalIndicator[] | undefined
     if (datapageMetadataExperimentActive) {
-
         const maybeAdditionalIndicators = await pMap(
             additionalYVariableIds,
             async (id): Promise<AdditionalIndicator | undefined> => {
