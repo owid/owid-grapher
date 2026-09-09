@@ -52,12 +52,20 @@ export const legacyToOwidTableAndDimensionsWithMandatorySlug = (
         | { [entityName: string]: string | undefined }
         | undefined
 ): OwidTable => {
-    const dimensionsWithSlug = dimensions?.map((dimension) => ({
-        ...dimension,
-        slug:
+    // A slot names its column either by slug, which the host's table already
+    // has, or by variable id, whose column is named on assembly. A slot with
+    // neither names nothing and is dropped.
+    const dimensionsWithSlug = dimensions?.flatMap((dimension) => {
+        const slug =
             dimension.slug ??
-            getDimensionColumnSlug(dimension.variableId, dimension.targetYear),
-    }))
+            (dimension.variableId !== undefined
+                ? getDimensionColumnSlug(
+                      dimension.variableId,
+                      dimension.targetYear
+                  )
+                : undefined)
+        return slug !== undefined ? [{ ...dimension, slug }] : []
+    })
     return legacyToOwidTableAndDimensions(
         json,
         dimensionsWithSlug,
@@ -96,6 +104,8 @@ export const legacyToOwidTableAndDimensions = (
     const variableTablesToJoinByDay: OwidTable[] = []
     const variableTablesWithYearToJoinByEntityOnly: OwidTable[] = []
     for (const dimension of dimensionColumns) {
+        // Slots naming a host-supplied column have no indicator to convert.
+        if (dimension.variableId === undefined) continue
         const variable = json.get(dimension.variableId)
 
         // TODO: this shouldn't happen but it does sometimes

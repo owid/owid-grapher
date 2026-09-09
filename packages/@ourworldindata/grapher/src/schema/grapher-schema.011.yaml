@@ -67,9 +67,13 @@ properties:
     description: List of dimensions and their mapping to variables
     items:
       type: object
+      description: |
+        One slot of the chart bound to one column of data. The column is named
+        either by variableId, an OWID indicator, or by slug, a column of a
+        table the embedding page supplies. Charts stored in our database always
+        use variableId.
       required:
         - property
-        - variableId
       properties:
         targetYear:
           type: integer
@@ -183,6 +187,12 @@ properties:
           type: integer
           description: The variable id to get the values for this time series
           minimum: 0
+        slug:
+          type: string
+          description: |
+            Names a column of the table the embedding page supplies, as an
+            alternative to variableId. Only meaningful outside our own site,
+            where the data does not come from the OWID data API.
       additionalProperties: false
   selectedEntityNames:
     type: array
