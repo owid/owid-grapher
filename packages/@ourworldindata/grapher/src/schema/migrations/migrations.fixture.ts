@@ -21,7 +21,7 @@ export const MIGRATION_FIXTURES: {
         },
     },
     {
-        name: "expands hideTitleAnnotation into hideTitleAnnotations",
+        name: "expands hideTitleAnnotation into hideAnnotationFieldsInTitle",
         before: {
             $schema:
                 "https://files.ourworldindata.org/schemas/grapher-schema.002.json",
@@ -30,11 +30,15 @@ export const MIGRATION_FIXTURES: {
         after: {
             $schema:
                 "https://files.ourworldindata.org/schemas/grapher-schema.003.json",
-            hideTitleAnnotations: { entity: true, time: true, change: true },
+            hideAnnotationFieldsInTitle: {
+                entity: true,
+                time: true,
+                changeInPrefix: true,
+            },
         },
     },
     {
-        name: "drops a false hideTitleAnnotation",
+        name: "expands a false hideTitleAnnotation",
         before: {
             $schema:
                 "https://files.ourworldindata.org/schemas/grapher-schema.002.json",
@@ -43,6 +47,11 @@ export const MIGRATION_FIXTURES: {
         after: {
             $schema:
                 "https://files.ourworldindata.org/schemas/grapher-schema.003.json",
+            hideAnnotationFieldsInTitle: {
+                entity: false,
+                time: false,
+                changeInPrefix: false,
+            },
         },
     },
     {
@@ -318,8 +327,6 @@ export const PATCH_STACK_FIXTURES: {
     },
     {
         name: "a child turning an inherited hideTitleAnnotation back off",
-        nonCommutingReason:
-            "the step ignores a false hideTitleAnnotation, so the child has nothing left to override the parent's expanded annotations with",
         patches: [
             {
                 $schema:
