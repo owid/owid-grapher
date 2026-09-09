@@ -85,6 +85,10 @@
     margin: 0 0 8px 0;
 }
 
+.latest-data-update-hit__byline {
+    margin-bottom: 8px;
+}
+
 .latest-data-update-hit__blocks {
     @include text-block-override {
         @include body-3-medium;

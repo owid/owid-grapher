@@ -53,6 +53,8 @@
 @import "./latest/LatestHitMetadata.scss";
 @import "./latest/LatestArticleHit.scss";
 @import "./latest/LatestDataInsightHit.scss";
+@import "./latest/LatestDataInsightExpanded.scss";
+@import "./latest/LatestViewToggle.scss";
 @import "./latest/LatestAnnouncementHit.scss";
 @import "./latest/LatestDataUpdateHit.scss";
 @import "./latest/AnnouncementContent.scss";
@@ -152,6 +154,7 @@
 @import "./gdocs/components/CopyLinkButton.scss";
 @import "./gdocs/components/LatestDataInsightsBlock.scss";
 @import "./gdocs/components/LinkedAuthor.scss";
+@import "./gdocs/components/AvatarByline.scss";
 @import "./gdocs/components/SDGGrid.scss";
 @import "./gdocs/components/SDGTableOfContents.scss";
 @import "./gdocs/components/LTPTableOfContents.scss";

@@ -1,0 +1,48 @@
+.latest-data-insight-expanded {
+    @include sm-only {
+        margin-left: 16px;
+        margin-right: 16px;
+    }
+}
+
+.latest-data-insight-expanded__card {
+    position: relative;
+    background-color: $blue-20;
+    color: $blue-90;
+    padding: 16px;
+}
+
+.latest-data-insight-expanded__title {
+    margin: 0 0 8px;
+}
+
+.latest-data-insight-expanded__authors {
+    margin-bottom: 16px;
+}
+
+.latest-data-insight-expanded__image {
+    margin-bottom: 16px;
+
+    img {
+        display: block;
+        width: 100%;
+        outline: 1px solid $blue-10;
+    }
+}
+
+.latest-data-insight-expanded__blocks {
+    @include text-block-override {
+        @include body-3-medium;
+    }
+
+    [class*="article-block__"]:last-child,
+    .cta:last-child {
+        margin-bottom: 0;
+    }
+
+    .cta {
+        @include body-3-bold;
+        @include latest-card-cta;
+        color: $blue-90;
+    }
+}

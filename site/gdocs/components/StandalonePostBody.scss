@@ -49,24 +49,9 @@
     @include h6-black-caps;
 }
 
+// Type and layout come from AvatarByline; only the spacing is the page's.
 .standalone-post-body__authors {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 4px 16px;
-    color: $blue-60;
     margin-bottom: 16px;
-}
-
-.standalone-post-body__author {
-    color: inherit;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-
-    &:hover {
-        text-decoration: underline;
-    }
 }
 
 .standalone-post-body__blocks {
