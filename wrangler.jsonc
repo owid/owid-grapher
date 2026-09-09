@@ -7,10 +7,7 @@
     // Sentry client needs the `nodejs_als` (AsyncLocalStorage) API.
     // https://docs.sentry.io/platforms/javascript/guides/cloudflare/#configure
     "compatibility_flags": ["nodejs_als"],
-
-    // NOTE (Martin): As of 2025-01-24, the bundle exceeded the uncompressed size
-    // limit of 25 MiB if we include the source maps, so we disable them for now.
-    // "upload_source_maps": true, // To get source maps in Sentry.
+    "upload_source_maps": true, // To get source maps in Sentry.
 
     "pages_build_output_dir": "./localBake",
 
