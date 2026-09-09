@@ -16,26 +16,8 @@
     margin: 0 0 8px;
 }
 
-// Above the stretched link, so the author links keep their own destinations
-// (the data update card's byline is plain text and needs no such rule).
 .latest-data-insight-expanded__authors {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 4px 16px;
-    color: $blue-60;
     margin-bottom: 16px;
-}
-
-.latest-data-insight-expanded__author {
-    color: inherit;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-
-    &:hover {
-        text-decoration: underline;
-    }
 }
 
 .latest-data-insight-expanded__image {

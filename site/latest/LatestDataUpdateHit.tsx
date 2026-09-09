@@ -16,6 +16,7 @@ import {
 } from "./latestUtils.js"
 import { useLatestContext } from "./LatestContext.js"
 import { useIsLikelyBaked } from "./latestHooks.js"
+import AvatarByline from "../gdocs/components/AvatarByline.js"
 
 /** Compact cards link to the announcement page. Expanded cards render the
  * full update with independent body and author links — and so, being that
@@ -101,9 +102,16 @@ export const LatestDataUpdateHit = ({
                         >
                             {hit.title}
                         </h2>
-                        <p className="latest-data-update-hit__authors">
-                            {formatAuthors(hit.authors)}
-                        </p>
+                        {isExpanded ? (
+                            <AvatarByline
+                                className="latest-data-update-hit__byline"
+                                authors={hit.authors}
+                            />
+                        ) : (
+                            <p className="latest-data-update-hit__authors">
+                                {formatAuthors(hit.authors)}
+                            </p>
+                        )}
                         <div className="latest-data-update-hit__blocks">
                             <ArticleBlocks
                                 blocks={otherBlocks}
