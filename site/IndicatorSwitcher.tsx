@@ -11,6 +11,9 @@ import {
 import { useMediaQuery } from "usehooks-ts"
 import { AdditionalIndicator, DataPageDataV2 } from "@ourworldindata/types"
 import { SMALL_BREAKPOINT_MEDIA_QUERY } from "./SiteConstants.js"
+import { SiteAnalytics } from "./SiteAnalytics.js"
+
+const analytics = new SiteAnalytics()
 
 const labelForIndicator = (datapageData: DataPageDataV2): string => {
     const title = datapageData.title.title
@@ -100,16 +103,25 @@ const IndicatorSelect = ({
             className="indicator-switcher__select"
             value={isActiveInList ? String(activeIndex) : null}
             onChange={(key) => {
-                if (typeof key === "string") onIndicatorChange(Number(key))
+                if (typeof key === "string") {
+                    const i = Number(key)
+                    // Log the actual selection here rather than via a
+                    // data-track-note on the trigger: the options render in a
+                    // portal, so the delegated document-level tracker only
+                    // ever saw the trigger click — i.e. menu OPENS, including
+                    // abandoned ones, and never which indicator was chosen.
+                    analytics.logSiteClick(
+                        "metadata_box_indicator_switch",
+                        labelForIndicator(
+                            indicators[i - startIndex].datapageData
+                        )
+                    )
+                    onIndicatorChange(i)
+                }
             }}
             aria-label="Indicator"
         >
-            <Button
-                className={buttonClassName}
-                data-track-note="metadata_box_indicator_switch"
-            >
-                {buttonContent}
-            </Button>
+            <Button className={buttonClassName}>{buttonContent}</Button>
             <Popover
                 className={cx("indicator-switcher__popover", {
                     "indicator-switcher__popover--match-trigger":
