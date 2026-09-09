@@ -89,15 +89,15 @@ describe("data-page-metadata-v2 pre-registered assignment", () => {
         expect(v2!.unitOfAssignment).toBe("page")
     })
 
-    it("enrols 300 pages, split 150 treatment / 150 control", () => {
+    it("enrols 330 pages, split 165 treatment / 165 control", () => {
         const arms = Object.values(v2!.pathArms!)
-        expect(arms).toHaveLength(300)
+        expect(arms).toHaveLength(330)
         expect(
             arms.filter(
                 (a) => a === DATA_PAGE_METADATA_EXPERIMENT_TREATMENT_ARM
             )
-        ).toHaveLength(150)
-        expect(arms.filter((a) => a === "control")).toHaveLength(150)
+        ).toHaveLength(165)
+        expect(arms.filter((a) => a === "control")).toHaveLength(165)
     })
 
     it("enrols only grapher pages", () => {
