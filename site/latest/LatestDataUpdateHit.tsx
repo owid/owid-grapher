@@ -13,6 +13,7 @@ import {
 } from "./latestUtils.js"
 import { useLatestContext } from "./LatestContext.js"
 import { useIsLikelyBaked } from "./latestHooks.js"
+import AvatarByline from "../gdocs/components/AvatarByline.js"
 
 /**
  * Data update card for the /latest feed.
@@ -111,9 +112,20 @@ export const LatestDataUpdateHit = ({
                                 </a>
                             )}
                         </h2>
-                        <p className="latest-data-update-hit__authors">
-                            {formatAuthors(hit.authors)}
-                        </p>
+                        {/* Expanded, the byline is the same upright avatar row
+                            a data insight card and the standalone page carry;
+                            collapsed, the plain italic names every condensed
+                            feed card uses. */}
+                        {isExpanded ? (
+                            <AvatarByline
+                                className="latest-data-update-hit__byline"
+                                authors={hit.authors}
+                            />
+                        ) : (
+                            <p className="latest-data-update-hit__authors">
+                                {formatAuthors(hit.authors)}
+                            </p>
+                        )}
                         <div className="latest-data-update-hit__blocks">
                             <ArticleBlocks
                                 blocks={otherBlocks}

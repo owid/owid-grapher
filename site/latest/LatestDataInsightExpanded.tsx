@@ -2,7 +2,7 @@ import { PageChronologicalDataInsightRecord } from "@ourworldindata/types"
 import { AttachmentsContext } from "../gdocs/AttachmentsContext.js"
 import Image from "../gdocs/components/Image.js"
 import { ArticleBlocks } from "../gdocs/components/ArticleBlocks.js"
-import LinkedAuthor from "../gdocs/components/LinkedAuthor.js"
+import AvatarByline from "../gdocs/components/AvatarByline.js"
 import { LatestHitMetadata } from "./LatestHitMetadata.js"
 import { findThumbnailImageBlock, makeAttachments } from "./latestUtils.js"
 
@@ -48,18 +48,10 @@ export const LatestDataInsightExpanded = ({
                     >
                         {hit.title}
                     </h2>
-                    {hit.authors.length > 0 && (
-                        <div className="latest-data-insight-expanded__authors body-3-medium">
-                            {hit.authors.map((author, index) => (
-                                <LinkedAuthor
-                                    key={index}
-                                    className="latest-data-insight-expanded__author"
-                                    name={author}
-                                    includeImage={true}
-                                />
-                            ))}
-                        </div>
-                    )}
+                    <AvatarByline
+                        className="latest-data-insight-expanded__authors"
+                        authors={hit.authors}
+                    />
                     {firstImage && (
                         <Image
                             className="latest-data-insight-expanded__image"

@@ -2,7 +2,7 @@ import * as React from "react"
 import cx from "clsx"
 import { OwidEnrichedGdocBlock } from "@ourworldindata/types"
 import { ArticleBlocks } from "./ArticleBlocks.js"
-import LinkedAuthor from "./LinkedAuthor.js"
+import AvatarByline from "./AvatarByline.js"
 import DataInsightDateline from "./DataInsightDateline.js"
 
 /** Grid placement of the narrow single column a standalone page is laid out
@@ -58,16 +58,10 @@ export default function StandalonePostBody({
                     content also appears in on /latest, so the two read as
                     one thing at two widths rather than a card and a page. */}
                 <h1 className="body-1-bold">{title}</h1>
-                <div className="standalone-post-body__authors body-3-medium">
-                    {authors.map((author, index) => (
-                        <LinkedAuthor
-                            className="standalone-post-body__author"
-                            key={index}
-                            name={author}
-                            includeImage={true}
-                        />
-                    ))}
-                </div>
+                <AvatarByline
+                    className="standalone-post-body__authors"
+                    authors={authors}
+                />
                 <div className="standalone-post-body__blocks">
                     <ArticleBlocks blocks={body} containerType="data-insight" />
                 </div>

@@ -1,5 +1,5 @@
 import { LatestType, OwidEnrichedGdocBlock } from "@ourworldindata/types"
-import LinkedAuthor from "../gdocs/components/LinkedAuthor.js"
+import AvatarByline from "../gdocs/components/AvatarByline.js"
 import { ExpandableText } from "./ExpandableText.js"
 import { LatestHitMetadata } from "./LatestHitMetadata.js"
 import { announcementContentTitleId } from "./latestUtils.js"
@@ -37,17 +37,13 @@ export const AnnouncementContent = ({
 }) => {
     const titleId = announcementContentTitleId(slug)
 
-    const authorByline = authors.length > 0 && (
-        <div className="announcement-content__authors body-3-medium">
-            {authors.map((author, index) => (
-                <LinkedAuthor
-                    className="announcement-content__author"
-                    key={index}
-                    name={author}
-                    includeImage={true}
-                />
-            ))}
-        </div>
+    // Keeps its class: the SCSS uses it as a hook to reorder the byline among
+    // the expanded announcement's trailing blocks.
+    const authorByline = (
+        <AvatarByline
+            className="announcement-content__authors"
+            authors={authors}
+        />
     )
 
     return (

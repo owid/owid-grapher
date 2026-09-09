@@ -6,24 +6,8 @@
     margin: 0 0 8px;
 }
 
-.announcement-content__authors {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 4px 16px;
-    color: $blue-60;
-}
-
-.announcement-content__author {
-    color: inherit;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-
-    &:hover {
-        text-decoration: underline;
-    }
-}
+// The byline itself is AvatarByline; `.announcement-content__authors` stays
+// on it as the hook the reordering rule below selects on.
 
 .announcement-content {
     .cta {
