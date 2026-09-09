@@ -1,6 +1,13 @@
 import { expect, it, describe } from "vitest"
-import { findValidChartTypeCombination } from "./ChartTabs"
-import { GRAPHER_CHART_TYPES } from "@ourworldindata/types"
+import {
+    findValidChartTypeCombination,
+    mapChartTypeNameToQueryParam,
+    mapTabQueryParamToChartTypeName,
+} from "./ChartTabs"
+import {
+    ALL_GRAPHER_CHART_TYPES,
+    GRAPHER_CHART_TYPES,
+} from "@ourworldindata/types"
 
 const {
     LineChart,
@@ -52,5 +59,15 @@ describe(findValidChartTypeCombination, () => {
     it("falls back to any valid chart type if the combination is invalid", () => {
         const chartTypes = [StackedArea, DiscreteBar, StackedBar]
         expect(findValidChartTypeCombination(chartTypes)).toEqual([DiscreteBar])
+    })
+})
+
+describe("the chart tab vocabulary", () => {
+    it("round-trips every chart type through its tab query param", () => {
+        for (const chartType of ALL_GRAPHER_CHART_TYPES) {
+            const tab = mapChartTypeNameToQueryParam(chartType)
+            expect(tab, chartType).toBeDefined()
+            expect(mapTabQueryParamToChartTypeName(tab)).toEqual(chartType)
+        }
     })
 })

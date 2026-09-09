@@ -113,6 +113,7 @@ export function constructSearchResultDataTableContent(
                 chartState: chartState as DumbbellChartState,
             })
         )
+        .with(GRAPHER_TAB_NAMES.Swimlane, () => undefined)
         .with(GRAPHER_TAB_NAMES.WorldMap, () =>
             buildDataTableContentForWorldMap({
                 ...props,

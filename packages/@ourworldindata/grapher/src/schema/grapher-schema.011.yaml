@@ -285,6 +285,7 @@ properties:
         - StackedBar
         - Marimekko
         - Dumbbell
+        - Swimlane
   hasMapTab:
     type: boolean
     default: false
@@ -306,6 +307,7 @@ properties:
       - stacked-bar
       - stacked-discrete-bar
       - dumbbell
+      - swimlane
   xAxis:
     $ref: "#/$defs/axis"
   yAxis:
