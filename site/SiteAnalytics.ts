@@ -14,6 +14,9 @@ import {
     type LatestPageChronologicalRecord,
     type UserSurveyExperimentArm,
     type UserSurveyRoleAnswer,
+    type AskAiArm,
+    type AskAiEngine,
+    type AskAiPromptSource,
 } from "@ourworldindata/types"
 import { getFilterNamesOfType } from "./search/searchUtils.js"
 import { findDOMParent } from "@ourworldindata/utils"
@@ -483,5 +486,56 @@ export class SiteAnalytics extends GrapherAnalytics {
                 attributeOldValue: true,
             })
         }
+    }
+
+    logAskAiShow(params: { arm: AskAiArm; slug: string }): void {
+        this.logToGA({
+            event: EventCategory.SiteAskAi,
+            eventAction: "ask_ai_show",
+            askAiArm: params.arm,
+            askAiSlug: params.slug,
+        })
+    }
+
+    logAskAiPresetClick(params: {
+        arm: AskAiArm
+        slug: string
+        presetId: string
+    }): void {
+        this.logToGA({
+            event: EventCategory.SiteAskAi,
+            eventAction: "ask_ai_preset_click",
+            askAiArm: params.arm,
+            askAiSlug: params.slug,
+            askAiPresetId: params.presetId,
+        })
+    }
+
+    logAskAiSubmit(params: {
+        arm: AskAiArm
+        slug: string
+        engine: AskAiEngine
+        promptSource: AskAiPromptSource
+        presetId?: string
+        question?: string
+    }): void {
+        const question = params.question?.trim()
+        this.logToGA({
+            event: EventCategory.SiteAskAi,
+            eventAction: "ask_ai_submit",
+            askAiArm: params.arm,
+            askAiSlug: params.slug,
+            askAiEngine: params.engine,
+            askAiPromptSource: params.promptSource,
+            ...(params.presetId ? { askAiPresetId: params.presetId } : {}),
+            // GA4 truncates strings at 100 chars; send the length separately so
+            // we can tell how much of the corpus we are losing.
+            ...(question
+                ? {
+                      askAiQuestion: question.slice(0, 100),
+                      askAiQuestionLength: question.length,
+                  }
+                : {}),
+        })
     }
 }
