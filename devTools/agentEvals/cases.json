@@ -1,0 +1,2129 @@
+[
+    {
+        "id": "life-expectancy/point-latest-1",
+        "chart": "life-expectancy",
+        "url": "https://ourworldindata.org/grapher/life-expectancy",
+        "type": "point-latest",
+        "question": "According to this chart, what was the life expectancy for Zimbabwe in 2023? Give the number in years.",
+        "gold": {
+            "kind": "number",
+            "number": 62.7748,
+            "relTol": 0.01,
+            "absTol": 0
+        },
+        "tags": ["point-latest", "life-expectancy"],
+        "meta": {
+            "column": "life_expectancy_0",
+            "entity": "Zimbabwe",
+            "year": 2023
+        }
+    },
+    {
+        "id": "life-expectancy/point-latest-2",
+        "chart": "life-expectancy",
+        "url": "https://ourworldindata.org/grapher/life-expectancy",
+        "type": "point-latest",
+        "question": "According to this chart, what was the life expectancy for Saint Barthelemy in 2023? Give the number in years.",
+        "gold": {
+            "kind": "number",
+            "number": 84.2901,
+            "relTol": 0.01,
+            "absTol": 0
+        },
+        "tags": ["point-latest", "life-expectancy"],
+        "meta": {
+            "column": "life_expectancy_0",
+            "entity": "Saint Barthelemy",
+            "year": 2023
+        }
+    },
+    {
+        "id": "life-expectancy/point-selected-1",
+        "chart": "life-expectancy",
+        "url": "https://ourworldindata.org/grapher/life-expectancy",
+        "type": "point-selected",
+        "question": "According to this chart, what was the life expectancy for Europe in 2023? Give the number in years.",
+        "gold": {
+            "kind": "number",
+            "number": 79.0594,
+            "relTol": 0.01,
+            "absTol": 0
+        },
+        "tags": ["point-selected", "life-expectancy"],
+        "meta": {
+            "column": "life_expectancy_0",
+            "entity": "Europe",
+            "year": 2023
+        }
+    },
+    {
+        "id": "life-expectancy/point-start-1",
+        "chart": "life-expectancy",
+        "url": "https://ourworldindata.org/grapher/life-expectancy",
+        "type": "point-start",
+        "question": "According to this chart, what was the life expectancy for World in 1770? Give the number in years.",
+        "gold": {
+            "kind": "number",
+            "number": 28.5,
+            "relTol": 0.01,
+            "absTol": 0
+        },
+        "tags": ["point-start", "life-expectancy"],
+        "meta": {
+            "column": "life_expectancy_0",
+            "entity": "World",
+            "year": 1770
+        }
+    },
+    {
+        "id": "life-expectancy/change-1",
+        "chart": "life-expectancy",
+        "url": "https://ourworldindata.org/grapher/life-expectancy",
+        "type": "change",
+        "question": "According to this chart, by how much did the life expectancy for World change between 1770 and 2023? Give the absolute change (end value minus start value), in years.",
+        "gold": {
+            "kind": "number",
+            "number": 44.669399999999996,
+            "relTol": 0.01,
+            "absTol": 0.365847
+        },
+        "tags": ["change", "life-expectancy"],
+        "meta": {
+            "column": "life_expectancy_0",
+            "entity": "World",
+            "from": 1770,
+            "to": 2023,
+            "v0": 28.5,
+            "v1": 73.1694
+        }
+    },
+    {
+        "id": "life-expectancy/rank-max-1",
+        "chart": "life-expectancy",
+        "url": "https://ourworldindata.org/grapher/life-expectancy",
+        "type": "rank-max",
+        "question": "According to this chart, which country had the highest life expectancy in 2023? Consider countries only, not regions, income groups or the world as a whole.",
+        "gold": {
+            "kind": "entity",
+            "entities": ["Monaco"]
+        },
+        "tags": ["rank-max", "life-expectancy"],
+        "meta": {
+            "column": "life_expectancy_0",
+            "year": 2023,
+            "pool": "at-end"
+        }
+    },
+    {
+        "id": "life-expectancy/rank-min-1",
+        "chart": "life-expectancy",
+        "url": "https://ourworldindata.org/grapher/life-expectancy",
+        "type": "rank-min",
+        "question": "According to this chart, which country had the lowest life expectancy in 2023? Consider countries only, not regions, income groups or the world as a whole.",
+        "gold": {
+            "kind": "entity",
+            "entities": ["Nigeria"]
+        },
+        "tags": ["rank-min", "life-expectancy"],
+        "meta": {
+            "column": "life_expectancy_0",
+            "year": 2023,
+            "pool": "at-end"
+        }
+    },
+    {
+        "id": "life-expectancy/unanswerable-early-1",
+        "chart": "life-expectancy",
+        "url": "https://ourworldindata.org/grapher/life-expectancy",
+        "type": "unanswerable-early",
+        "question": "According to this chart, what was the life expectancy for Oceania in 1770? Give the number in years.",
+        "gold": {
+            "kind": "none"
+        },
+        "tags": ["unanswerable-early", "life-expectancy"],
+        "meta": {
+            "column": "life_expectancy_0",
+            "entity": "Oceania",
+            "year": 1770,
+            "firstYear": 1870,
+            "selected": true
+        }
+    },
+    {
+        "id": "life-expectancy/unanswerable-late-1",
+        "chart": "life-expectancy",
+        "url": "https://ourworldindata.org/grapher/life-expectancy",
+        "type": "unanswerable-late",
+        "question": "According to this chart, what was the life expectancy for Morocco in 2024? Give the number in years.",
+        "gold": {
+            "kind": "none"
+        },
+        "tags": ["unanswerable-late", "life-expectancy"],
+        "meta": {
+            "column": "life_expectancy_0",
+            "entity": "Morocco",
+            "year": 2024
+        }
+    },
+    {
+        "id": "life-expectancy/meta-unit-1",
+        "chart": "life-expectancy",
+        "url": "https://ourworldindata.org/grapher/life-expectancy",
+        "type": "meta-unit",
+        "question": "What unit is the life expectancy measured in on this page?",
+        "gold": {
+            "kind": "unit",
+            "unitTokens": ["years"]
+        },
+        "tags": ["meta-unit", "life-expectancy"],
+        "meta": {
+            "column": "life_expectancy_0",
+            "unit": "years",
+            "shortUnit": "years"
+        }
+    },
+    {
+        "id": "life-expectancy/meta-source-1",
+        "chart": "life-expectancy",
+        "url": "https://ourworldindata.org/grapher/life-expectancy",
+        "type": "meta-source",
+        "question": "Which organisations or researchers produced the data shown in this chart? Name the original data providers.",
+        "gold": {
+            "kind": "sources",
+            "sources": ["Riley", "Zijdeman et al.", "HMD", "UN WPP"]
+        },
+        "tags": ["meta-source", "life-expectancy"],
+        "meta": {
+            "sources": ["Riley", "Zijdeman et al.", "HMD", "UN WPP"]
+        }
+    },
+    {
+        "id": "life-expectancy-cze-svk/point-latest-1",
+        "chart": "life-expectancy-cze-svk",
+        "url": "https://ourworldindata.org/grapher/life-expectancy?country=~CZE~SVK&time=1990..2023",
+        "type": "point-latest",
+        "question": "According to this chart, what was the life expectancy for Vatican in 2023? Give the number in years.",
+        "gold": {
+            "kind": "number",
+            "number": 82.9848,
+            "relTol": 0.01,
+            "absTol": 0
+        },
+        "tags": ["point-latest", "life-expectancy-cze-svk"],
+        "meta": {
+            "column": "life_expectancy_0",
+            "entity": "Vatican",
+            "year": 2023
+        }
+    },
+    {
+        "id": "life-expectancy-cze-svk/point-latest-2",
+        "chart": "life-expectancy-cze-svk",
+        "url": "https://ourworldindata.org/grapher/life-expectancy?country=~CZE~SVK&time=1990..2023",
+        "type": "point-latest",
+        "question": "According to this chart, what was the life expectancy for Somalia in 2023? Give the number in years.",
+        "gold": {
+            "kind": "number",
+            "number": 58.8158,
+            "relTol": 0.01,
+            "absTol": 0
+        },
+        "tags": ["point-latest", "life-expectancy-cze-svk"],
+        "meta": {
+            "column": "life_expectancy_0",
+            "entity": "Somalia",
+            "year": 2023
+        }
+    },
+    {
+        "id": "life-expectancy-cze-svk/point-selected-1",
+        "chart": "life-expectancy-cze-svk",
+        "url": "https://ourworldindata.org/grapher/life-expectancy?country=~CZE~SVK&time=1990..2023",
+        "type": "point-selected",
+        "question": "According to this chart, what was the life expectancy for Slovakia in 2023? Give the number in years.",
+        "gold": {
+            "kind": "number",
+            "number": 78.3414,
+            "relTol": 0.01,
+            "absTol": 0
+        },
+        "tags": ["point-selected", "life-expectancy-cze-svk"],
+        "meta": {
+            "column": "life_expectancy_0",
+            "entity": "Slovakia",
+            "year": 2023
+        }
+    },
+    {
+        "id": "life-expectancy-cze-svk/point-start-1",
+        "chart": "life-expectancy-cze-svk",
+        "url": "https://ourworldindata.org/grapher/life-expectancy?country=~CZE~SVK&time=1990..2023",
+        "type": "point-start",
+        "question": "According to this chart, what was the life expectancy for Czechia in 1990? Give the number in years.",
+        "gold": {
+            "kind": "number",
+            "number": 71.4086,
+            "relTol": 0.01,
+            "absTol": 0
+        },
+        "tags": ["point-start", "life-expectancy-cze-svk"],
+        "meta": {
+            "column": "life_expectancy_0",
+            "entity": "Czechia",
+            "year": 1990
+        }
+    },
+    {
+        "id": "life-expectancy-cze-svk/change-1",
+        "chart": "life-expectancy-cze-svk",
+        "url": "https://ourworldindata.org/grapher/life-expectancy?country=~CZE~SVK&time=1990..2023",
+        "type": "change",
+        "question": "According to this chart, by how much did the life expectancy for Czechia change between 1990 and 2023? Give the absolute change (end value minus start value), in years.",
+        "gold": {
+            "kind": "number",
+            "number": 8.4255,
+            "relTol": 0.01,
+            "absTol": 0.39917050000000004
+        },
+        "tags": ["change", "life-expectancy-cze-svk"],
+        "meta": {
+            "column": "life_expectancy_0",
+            "entity": "Czechia",
+            "from": 1990,
+            "to": 2023,
+            "v0": 71.4086,
+            "v1": 79.8341
+        }
+    },
+    {
+        "id": "life-expectancy-cze-svk/rank-max-1",
+        "chart": "life-expectancy-cze-svk",
+        "url": "https://ourworldindata.org/grapher/life-expectancy?country=~CZE~SVK&time=1990..2023",
+        "type": "rank-max",
+        "question": "According to this chart, which country had the highest life expectancy in 2023? Consider countries only, not regions, income groups or the world as a whole.",
+        "gold": {
+            "kind": "entity",
+            "entities": ["Monaco"]
+        },
+        "tags": ["rank-max", "life-expectancy-cze-svk"],
+        "meta": {
+            "column": "life_expectancy_0",
+            "year": 2023,
+            "pool": "at-end"
+        }
+    },
+    {
+        "id": "life-expectancy-cze-svk/rank-min-1",
+        "chart": "life-expectancy-cze-svk",
+        "url": "https://ourworldindata.org/grapher/life-expectancy?country=~CZE~SVK&time=1990..2023",
+        "type": "rank-min",
+        "question": "According to this chart, which country had the lowest life expectancy in 2023? Consider countries only, not regions, income groups or the world as a whole.",
+        "gold": {
+            "kind": "entity",
+            "entities": ["Nigeria"]
+        },
+        "tags": ["rank-min", "life-expectancy-cze-svk"],
+        "meta": {
+            "column": "life_expectancy_0",
+            "year": 2023,
+            "pool": "at-end"
+        }
+    },
+    {
+        "id": "life-expectancy-cze-svk/unanswerable-late-1",
+        "chart": "life-expectancy-cze-svk",
+        "url": "https://ourworldindata.org/grapher/life-expectancy?country=~CZE~SVK&time=1990..2023",
+        "type": "unanswerable-late",
+        "question": "According to this chart, what was the life expectancy for United States in 2024? Give the number in years.",
+        "gold": {
+            "kind": "none"
+        },
+        "tags": ["unanswerable-late", "life-expectancy-cze-svk"],
+        "meta": {
+            "column": "life_expectancy_0",
+            "entity": "United States",
+            "year": 2024
+        }
+    },
+    {
+        "id": "life-expectancy-cze-svk/meta-unit-1",
+        "chart": "life-expectancy-cze-svk",
+        "url": "https://ourworldindata.org/grapher/life-expectancy?country=~CZE~SVK&time=1990..2023",
+        "type": "meta-unit",
+        "question": "What unit is the life expectancy measured in on this page?",
+        "gold": {
+            "kind": "unit",
+            "unitTokens": ["years"]
+        },
+        "tags": ["meta-unit", "life-expectancy-cze-svk"],
+        "meta": {
+            "column": "life_expectancy_0",
+            "unit": "years",
+            "shortUnit": "years"
+        }
+    },
+    {
+        "id": "life-expectancy-cze-svk/meta-source-1",
+        "chart": "life-expectancy-cze-svk",
+        "url": "https://ourworldindata.org/grapher/life-expectancy?country=~CZE~SVK&time=1990..2023",
+        "type": "meta-source",
+        "question": "Which organisations or researchers produced the data shown in this chart? Name the original data providers.",
+        "gold": {
+            "kind": "sources",
+            "sources": ["Riley", "Zijdeman et al.", "HMD", "UN WPP"]
+        },
+        "tags": ["meta-source", "life-expectancy-cze-svk"],
+        "meta": {
+            "sources": ["Riley", "Zijdeman et al.", "HMD", "UN WPP"]
+        }
+    },
+    {
+        "id": "population/point-latest-1",
+        "chart": "population",
+        "url": "https://ourworldindata.org/grapher/population",
+        "type": "point-latest",
+        "question": "According to this chart, what was the population for Mauritania in 2023? Give the number in people.",
+        "gold": {
+            "kind": "number",
+            "number": 5022442,
+            "relTol": 0.01,
+            "absTol": 0
+        },
+        "tags": ["point-latest", "population"],
+        "meta": {
+            "column": "population_historical",
+            "entity": "Mauritania",
+            "year": 2023
+        }
+    },
+    {
+        "id": "population/point-latest-2",
+        "chart": "population",
+        "url": "https://ourworldindata.org/grapher/population",
+        "type": "point-latest",
+        "question": "According to this chart, what was the population for Slovakia in 2023? Give the number in people.",
+        "gold": {
+            "kind": "number",
+            "number": 5518057,
+            "relTol": 0.01,
+            "absTol": 0
+        },
+        "tags": ["point-latest", "population"],
+        "meta": {
+            "column": "population_historical",
+            "entity": "Slovakia",
+            "year": 2023
+        }
+    },
+    {
+        "id": "population/point-selected-1",
+        "chart": "population",
+        "url": "https://ourworldindata.org/grapher/population",
+        "type": "point-selected",
+        "question": "According to this chart, what was the population for World in 2023? Give the number in people.",
+        "gold": {
+            "kind": "number",
+            "number": 8091734933,
+            "relTol": 0.01,
+            "absTol": 0
+        },
+        "tags": ["point-selected", "population"],
+        "meta": {
+            "column": "population_historical",
+            "entity": "World",
+            "year": 2023
+        }
+    },
+    {
+        "id": "population/point-start-1",
+        "chart": "population",
+        "url": "https://ourworldindata.org/grapher/population",
+        "type": "point-start",
+        "question": "According to this chart, what was the population for North America in the year -10000 (10000 BCE)? Give the number in people.",
+        "gold": {
+            "kind": "number",
+            "number": 1184755,
+            "relTol": 0.01,
+            "absTol": 0
+        },
+        "tags": ["point-start", "population"],
+        "meta": {
+            "column": "population_historical",
+            "entity": "North America",
+            "year": -10000
+        }
+    },
+    {
+        "id": "population/change-1",
+        "chart": "population",
+        "url": "https://ourworldindata.org/grapher/population",
+        "type": "change",
+        "question": "According to this chart, by how much did the population for North America change between the year -10000 (10000 BCE) and 2023? Give the absolute change (end value minus start value), in people.",
+        "gold": {
+            "kind": "number",
+            "number": 607585792,
+            "relTol": 0.01,
+            "absTol": 3043852.735
+        },
+        "tags": ["change", "population"],
+        "meta": {
+            "column": "population_historical",
+            "entity": "North America",
+            "from": -10000,
+            "to": 2023,
+            "v0": 1184755,
+            "v1": 608770547
+        }
+    },
+    {
+        "id": "population/rank-max-1",
+        "chart": "population",
+        "url": "https://ourworldindata.org/grapher/population",
+        "type": "rank-max",
+        "question": "According to this chart, which country had the highest population in 2023? Consider countries only, not regions, income groups or the world as a whole.",
+        "gold": {
+            "kind": "entity",
+            "entities": ["India"]
+        },
+        "tags": ["rank-max", "population"],
+        "meta": {
+            "column": "population_historical",
+            "year": 2023,
+            "pool": "at-end"
+        }
+    },
+    {
+        "id": "population/rank-min-1",
+        "chart": "population",
+        "url": "https://ourworldindata.org/grapher/population",
+        "type": "rank-min",
+        "question": "According to this chart, which country had the lowest population in 2023? Consider countries only, not regions, income groups or the world as a whole.",
+        "gold": {
+            "kind": "entity",
+            "entities": ["Vatican"]
+        },
+        "tags": ["rank-min", "population"],
+        "meta": {
+            "column": "population_historical",
+            "year": 2023,
+            "pool": "at-end"
+        }
+    },
+    {
+        "id": "population/unanswerable-early-1",
+        "chart": "population",
+        "url": "https://ourworldindata.org/grapher/population",
+        "type": "unanswerable-early",
+        "question": "According to this chart, what was the population for Turks and Caicos Islands in the year -10000 (10000 BCE)? Give the number in people.",
+        "gold": {
+            "kind": "none"
+        },
+        "tags": ["unanswerable-early", "population"],
+        "meta": {
+            "column": "population_historical",
+            "entity": "Turks and Caicos Islands",
+            "year": -10000,
+            "firstYear": 1100,
+            "selected": false
+        }
+    },
+    {
+        "id": "population/unanswerable-late-1",
+        "chart": "population",
+        "url": "https://ourworldindata.org/grapher/population",
+        "type": "unanswerable-late",
+        "question": "According to this chart, what was the population for Netherlands Antilles in 2023? Give the number in people.",
+        "gold": {
+            "kind": "none"
+        },
+        "tags": ["unanswerable-late", "population"],
+        "meta": {
+            "column": "population_historical",
+            "entity": "Netherlands Antilles",
+            "year": 2023,
+            "lastYear": 2010
+        }
+    },
+    {
+        "id": "population/meta-unit-1",
+        "chart": "population",
+        "url": "https://ourworldindata.org/grapher/population",
+        "type": "meta-unit",
+        "question": "What unit is the population measured in on this page?",
+        "gold": {
+            "kind": "unit",
+            "unitTokens": ["people"]
+        },
+        "tags": ["meta-unit", "population"],
+        "meta": {
+            "column": "population_historical",
+            "unit": "people",
+            "shortUnit": ""
+        }
+    },
+    {
+        "id": "population/meta-source-1",
+        "chart": "population",
+        "url": "https://ourworldindata.org/grapher/population",
+        "type": "meta-source",
+        "question": "Which organisations or researchers produced the data shown in this chart? Name the original data providers.",
+        "gold": {
+            "kind": "sources",
+            "sources": ["HYDE", "Gapminder", "UN WPP"]
+        },
+        "tags": ["meta-source", "population"],
+        "meta": {
+            "sources": ["HYDE", "Gapminder", "UN WPP"]
+        }
+    },
+    {
+        "id": "child-mortality/point-latest-1",
+        "chart": "child-mortality",
+        "url": "https://ourworldindata.org/grapher/child-mortality",
+        "type": "point-latest",
+        "question": "According to this chart, what was the child mortality rate for Argentina in 2024? Give the number in deaths per 100 live births.",
+        "gold": {
+            "kind": "number",
+            "number": 0.95,
+            "relTol": 0.01,
+            "absTol": 0
+        },
+        "tags": ["point-latest", "child-mortality"],
+        "meta": {
+            "column": "child_mortality_rate",
+            "entity": "Argentina",
+            "year": 2024
+        }
+    },
+    {
+        "id": "child-mortality/point-latest-2",
+        "chart": "child-mortality",
+        "url": "https://ourworldindata.org/grapher/child-mortality",
+        "type": "point-latest",
+        "question": "According to this chart, what was the child mortality rate for Guyana in 2024? Give the number in deaths per 100 live births.",
+        "gold": {
+            "kind": "number",
+            "number": 2.52,
+            "relTol": 0.01,
+            "absTol": 0
+        },
+        "tags": ["point-latest", "child-mortality"],
+        "meta": {
+            "column": "child_mortality_rate",
+            "entity": "Guyana",
+            "year": 2024
+        }
+    },
+    {
+        "id": "child-mortality/point-selected-1",
+        "chart": "child-mortality",
+        "url": "https://ourworldindata.org/grapher/child-mortality",
+        "type": "point-selected",
+        "question": "According to this chart, what was the child mortality rate for Ghana in 2024? Give the number in deaths per 100 live births.",
+        "gold": {
+            "kind": "number",
+            "number": 3.59,
+            "relTol": 0.01,
+            "absTol": 0
+        },
+        "tags": ["point-selected", "child-mortality"],
+        "meta": {
+            "column": "child_mortality_rate",
+            "entity": "Ghana",
+            "year": 2024
+        }
+    },
+    {
+        "id": "child-mortality/point-start-1",
+        "chart": "child-mortality",
+        "url": "https://ourworldindata.org/grapher/child-mortality",
+        "type": "point-start",
+        "question": "According to this chart, what was the child mortality rate for Sweden in 1800? Give the number in deaths per 100 live births.",
+        "gold": {
+            "kind": "number",
+            "number": 38.11,
+            "relTol": 0.01,
+            "absTol": 0
+        },
+        "tags": ["point-start", "child-mortality"],
+        "meta": {
+            "column": "child_mortality_rate",
+            "entity": "Sweden",
+            "year": 1800
+        }
+    },
+    {
+        "id": "child-mortality/change-1",
+        "chart": "child-mortality",
+        "url": "https://ourworldindata.org/grapher/child-mortality",
+        "type": "change",
+        "question": "According to this chart, by how much did the child mortality rate for Sweden change between 1800 and 2024? Give the absolute change (end value minus start value), in deaths per 100 live births.",
+        "gold": {
+            "kind": "number",
+            "number": -37.87,
+            "relTol": 0.01,
+            "absTol": 0.19055
+        },
+        "tags": ["change", "child-mortality"],
+        "meta": {
+            "column": "child_mortality_rate",
+            "entity": "Sweden",
+            "from": 1800,
+            "to": 2024,
+            "v0": 38.11,
+            "v1": 0.24
+        }
+    },
+    {
+        "id": "child-mortality/rank-max-1",
+        "chart": "child-mortality",
+        "url": "https://ourworldindata.org/grapher/child-mortality",
+        "type": "rank-max",
+        "question": "According to this chart, which country had the highest child mortality rate in 2024? Consider countries only, not regions, income groups or the world as a whole.",
+        "gold": {
+            "kind": "entity",
+            "entities": ["Nigeria"]
+        },
+        "tags": ["rank-max", "child-mortality"],
+        "meta": {
+            "column": "child_mortality_rate",
+            "year": 2024,
+            "pool": "at-end"
+        }
+    },
+    {
+        "id": "child-mortality/rank-min-1",
+        "chart": "child-mortality",
+        "url": "https://ourworldindata.org/grapher/child-mortality",
+        "type": "rank-min",
+        "question": "According to this chart, which country had the lowest child mortality rate in 2024? Consider countries only, not regions, income groups or the world as a whole.",
+        "gold": {
+            "kind": "entity",
+            "entities": ["San Marino"]
+        },
+        "tags": ["rank-min", "child-mortality"],
+        "meta": {
+            "column": "child_mortality_rate",
+            "year": 2024,
+            "pool": "at-end"
+        }
+    },
+    {
+        "id": "child-mortality/unanswerable-early-1",
+        "chart": "child-mortality",
+        "url": "https://ourworldindata.org/grapher/child-mortality",
+        "type": "unanswerable-early",
+        "question": "According to this chart, what was the child mortality rate for Brazil in 1800? Give the number in deaths per 100 live births.",
+        "gold": {
+            "kind": "none"
+        },
+        "tags": ["unanswerable-early", "child-mortality"],
+        "meta": {
+            "column": "child_mortality_rate",
+            "entity": "Brazil",
+            "year": 1800,
+            "firstYear": 1931,
+            "selected": true
+        }
+    },
+    {
+        "id": "child-mortality/unanswerable-late-1",
+        "chart": "child-mortality",
+        "url": "https://ourworldindata.org/grapher/child-mortality",
+        "type": "unanswerable-late",
+        "question": "According to this chart, what was the child mortality rate for Taiwan in 2024? Give the number in deaths per 100 live births.",
+        "gold": {
+            "kind": "none"
+        },
+        "tags": ["unanswerable-late", "child-mortality"],
+        "meta": {
+            "column": "child_mortality_rate",
+            "entity": "Taiwan",
+            "year": 2024,
+            "lastYear": 2010
+        }
+    },
+    {
+        "id": "child-mortality/meta-unit-1",
+        "chart": "child-mortality",
+        "url": "https://ourworldindata.org/grapher/child-mortality",
+        "type": "meta-unit",
+        "question": "What unit is the child mortality rate measured in on this page?",
+        "gold": {
+            "kind": "unit",
+            "unitTokens": ["deaths", "per", "100", "live", "births", "%"]
+        },
+        "tags": ["meta-unit", "child-mortality"],
+        "meta": {
+            "column": "child_mortality_rate",
+            "unit": "deaths per 100 live births",
+            "shortUnit": "%"
+        }
+    },
+    {
+        "id": "child-mortality/meta-source-1",
+        "chart": "child-mortality",
+        "url": "https://ourworldindata.org/grapher/child-mortality",
+        "type": "meta-source",
+        "question": "Which organisations or researchers produced the data shown in this chart? Name the original data providers.",
+        "gold": {
+            "kind": "sources",
+            "sources": [
+                "Gapminder",
+                "UN Inter-agency Group for Child Mortality Estimation"
+            ]
+        },
+        "tags": ["meta-source", "child-mortality"],
+        "meta": {
+            "sources": [
+                "Gapminder",
+                "UN Inter-agency Group for Child Mortality Estimation"
+            ]
+        }
+    },
+    {
+        "id": "co-emissions-per-capita/point-latest-1",
+        "chart": "co-emissions-per-capita",
+        "url": "https://ourworldindata.org/grapher/co-emissions-per-capita",
+        "type": "point-latest",
+        "question": "According to this chart, what was the CO₂ emissions per capita for Namibia in 2024? Give the number in tonnes per person.",
+        "gold": {
+            "kind": "number",
+            "number": 1.1448735,
+            "relTol": 0.01,
+            "absTol": 0
+        },
+        "tags": ["point-latest", "co-emissions-per-capita"],
+        "meta": {
+            "column": "emissions_total_per_capita",
+            "entity": "Namibia",
+            "year": 2024
+        }
+    },
+    {
+        "id": "co-emissions-per-capita/point-latest-2",
+        "chart": "co-emissions-per-capita",
+        "url": "https://ourworldindata.org/grapher/co-emissions-per-capita",
+        "type": "point-latest",
+        "question": "According to this chart, what was the CO₂ emissions per capita for Uruguay in 2024? Give the number in tonnes per person.",
+        "gold": {
+            "kind": "number",
+            "number": 2.35437,
+            "relTol": 0.01,
+            "absTol": 0
+        },
+        "tags": ["point-latest", "co-emissions-per-capita"],
+        "meta": {
+            "column": "emissions_total_per_capita",
+            "entity": "Uruguay",
+            "year": 2024
+        }
+    },
+    {
+        "id": "co-emissions-per-capita/point-selected-1",
+        "chart": "co-emissions-per-capita",
+        "url": "https://ourworldindata.org/grapher/co-emissions-per-capita",
+        "type": "point-selected",
+        "question": "According to this chart, what was the CO₂ emissions per capita for United States in 2024? Give the number in tonnes per person.",
+        "gold": {
+            "kind": "number",
+            "number": 14.197287,
+            "relTol": 0.01,
+            "absTol": 0
+        },
+        "tags": ["point-selected", "co-emissions-per-capita"],
+        "meta": {
+            "column": "emissions_total_per_capita",
+            "entity": "United States",
+            "year": 2024
+        }
+    },
+    {
+        "id": "co-emissions-per-capita/point-start-1",
+        "chart": "co-emissions-per-capita",
+        "url": "https://ourworldindata.org/grapher/co-emissions-per-capita",
+        "type": "point-start",
+        "question": "According to this chart, what was the CO₂ emissions per capita for World in 1750? Give the number in tonnes per person.",
+        "gold": {
+            "kind": "number",
+            "number": 0.0123539,
+            "relTol": 0.01,
+            "absTol": 0
+        },
+        "tags": ["point-start", "co-emissions-per-capita"],
+        "meta": {
+            "column": "emissions_total_per_capita",
+            "entity": "World",
+            "year": 1750
+        }
+    },
+    {
+        "id": "co-emissions-per-capita/change-1",
+        "chart": "co-emissions-per-capita",
+        "url": "https://ourworldindata.org/grapher/co-emissions-per-capita",
+        "type": "change",
+        "question": "According to this chart, by how much did the CO₂ emissions per capita for World change between 1750 and 2024? Give the absolute change (end value minus start value), in tonnes per person.",
+        "gold": {
+            "kind": "number",
+            "number": 4.7167211,
+            "relTol": 0.01,
+            "absTol": 0.023645375
+        },
+        "tags": ["change", "co-emissions-per-capita"],
+        "meta": {
+            "column": "emissions_total_per_capita",
+            "entity": "World",
+            "from": 1750,
+            "to": 2024,
+            "v0": 0.0123539,
+            "v1": 4.729075
+        }
+    },
+    {
+        "id": "co-emissions-per-capita/rank-max-1",
+        "chart": "co-emissions-per-capita",
+        "url": "https://ourworldindata.org/grapher/co-emissions-per-capita",
+        "type": "rank-max",
+        "question": "According to this chart, which country had the highest CO₂ emissions per capita in 2024? Consider countries only, not regions, income groups or the world as a whole.",
+        "gold": {
+            "kind": "entity",
+            "entities": ["Qatar"]
+        },
+        "tags": ["rank-max", "co-emissions-per-capita"],
+        "meta": {
+            "column": "emissions_total_per_capita",
+            "year": 2024,
+            "pool": "at-end"
+        }
+    },
+    {
+        "id": "co-emissions-per-capita/rank-min-1",
+        "chart": "co-emissions-per-capita",
+        "url": "https://ourworldindata.org/grapher/co-emissions-per-capita",
+        "type": "rank-min",
+        "question": "According to this chart, which country had the lowest CO₂ emissions per capita in 2024? Consider countries only, not regions, income groups or the world as a whole.",
+        "gold": {
+            "kind": "entity",
+            "entities": ["Democratic Republic of Congo"]
+        },
+        "tags": ["rank-min", "co-emissions-per-capita"],
+        "meta": {
+            "column": "emissions_total_per_capita",
+            "year": 2024,
+            "pool": "at-end"
+        }
+    },
+    {
+        "id": "co-emissions-per-capita/unanswerable-early-1",
+        "chart": "co-emissions-per-capita",
+        "url": "https://ourworldindata.org/grapher/co-emissions-per-capita",
+        "type": "unanswerable-early",
+        "question": "According to this chart, what was the CO₂ emissions per capita for South Africa in 1750? Give the number in tonnes per person.",
+        "gold": {
+            "kind": "none"
+        },
+        "tags": ["unanswerable-early", "co-emissions-per-capita"],
+        "meta": {
+            "column": "emissions_total_per_capita",
+            "entity": "South Africa",
+            "year": 1750,
+            "firstYear": 1884,
+            "selected": true
+        }
+    },
+    {
+        "id": "co-emissions-per-capita/unanswerable-late-1",
+        "chart": "co-emissions-per-capita",
+        "url": "https://ourworldindata.org/grapher/co-emissions-per-capita",
+        "type": "unanswerable-late",
+        "question": "According to this chart, what was the CO₂ emissions per capita for Haiti in 2025? Give the number in tonnes per person.",
+        "gold": {
+            "kind": "none"
+        },
+        "tags": ["unanswerable-late", "co-emissions-per-capita"],
+        "meta": {
+            "column": "emissions_total_per_capita",
+            "entity": "Haiti",
+            "year": 2025
+        }
+    },
+    {
+        "id": "co-emissions-per-capita/meta-unit-1",
+        "chart": "co-emissions-per-capita",
+        "url": "https://ourworldindata.org/grapher/co-emissions-per-capita",
+        "type": "meta-unit",
+        "question": "What unit is the CO₂ emissions per capita measured in on this page?",
+        "gold": {
+            "kind": "unit",
+            "unitTokens": ["tonnes", "per", "person", "t/person"]
+        },
+        "tags": ["meta-unit", "co-emissions-per-capita"],
+        "meta": {
+            "column": "emissions_total_per_capita",
+            "unit": "tonnes per person",
+            "shortUnit": "t/person"
+        }
+    },
+    {
+        "id": "co-emissions-per-capita/meta-source-1",
+        "chart": "co-emissions-per-capita",
+        "url": "https://ourworldindata.org/grapher/co-emissions-per-capita",
+        "type": "meta-source",
+        "question": "Which organisations or researchers produced the data shown in this chart? Name the original data providers.",
+        "gold": {
+            "kind": "sources",
+            "sources": ["Global Carbon Budget"]
+        },
+        "tags": ["meta-source", "co-emissions-per-capita"],
+        "meta": {
+            "sources": ["Global Carbon Budget"]
+        }
+    },
+    {
+        "id": "gdp-per-capita-worldbank/point-latest-1",
+        "chart": "gdp-per-capita-worldbank",
+        "url": "https://ourworldindata.org/grapher/gdp-per-capita-worldbank",
+        "type": "point-latest",
+        "question": "According to this chart, what was the GDP per capita for Serbia in 2025? Give the number in international-$ in 2021 prices.",
+        "gold": {
+            "kind": "number",
+            "number": 27603.393,
+            "relTol": 0.01,
+            "absTol": 0
+        },
+        "tags": ["point-latest", "gdp-per-capita-worldbank"],
+        "meta": {
+            "column": "ny_gdp_pcap_pp_kd",
+            "entity": "Serbia",
+            "year": 2025
+        }
+    },
+    {
+        "id": "gdp-per-capita-worldbank/point-latest-2",
+        "chart": "gdp-per-capita-worldbank",
+        "url": "https://ourworldindata.org/grapher/gdp-per-capita-worldbank",
+        "type": "point-latest",
+        "question": "According to this chart, what was the GDP per capita for Botswana in 2025? Give the number in international-$ in 2021 prices.",
+        "gold": {
+            "kind": "number",
+            "number": 17687.205,
+            "relTol": 0.01,
+            "absTol": 0
+        },
+        "tags": ["point-latest", "gdp-per-capita-worldbank"],
+        "meta": {
+            "column": "ny_gdp_pcap_pp_kd",
+            "entity": "Botswana",
+            "year": 2025
+        }
+    },
+    {
+        "id": "gdp-per-capita-worldbank/point-selected-1",
+        "chart": "gdp-per-capita-worldbank",
+        "url": "https://ourworldindata.org/grapher/gdp-per-capita-worldbank",
+        "type": "point-selected",
+        "question": "According to this chart, what was the GDP per capita for Ethiopia in 2025? Give the number in international-$ in 2021 prices.",
+        "gold": {
+            "kind": "number",
+            "number": 3094.8682,
+            "relTol": 0.01,
+            "absTol": 0
+        },
+        "tags": ["point-selected", "gdp-per-capita-worldbank"],
+        "meta": {
+            "column": "ny_gdp_pcap_pp_kd",
+            "entity": "Ethiopia",
+            "year": 2025
+        }
+    },
+    {
+        "id": "gdp-per-capita-worldbank/point-start-1",
+        "chart": "gdp-per-capita-worldbank",
+        "url": "https://ourworldindata.org/grapher/gdp-per-capita-worldbank",
+        "type": "point-start",
+        "question": "According to this chart, what was the GDP per capita for United States in 1990? Give the number in international-$ in 2021 prices.",
+        "gold": {
+            "kind": "number",
+            "number": 44384.21,
+            "relTol": 0.01,
+            "absTol": 0
+        },
+        "tags": ["point-start", "gdp-per-capita-worldbank"],
+        "meta": {
+            "column": "ny_gdp_pcap_pp_kd",
+            "entity": "United States",
+            "year": 1990
+        }
+    },
+    {
+        "id": "gdp-per-capita-worldbank/change-1",
+        "chart": "gdp-per-capita-worldbank",
+        "url": "https://ourworldindata.org/grapher/gdp-per-capita-worldbank",
+        "type": "change",
+        "question": "According to this chart, by how much did the GDP per capita for United States change between 1990 and 2025? Give the absolute change (end value minus start value), in international-$ in 2021 prices.",
+        "gold": {
+            "kind": "number",
+            "number": 32547.1,
+            "relTol": 0.01,
+            "absTol": 384.65655
+        },
+        "tags": ["change", "gdp-per-capita-worldbank"],
+        "meta": {
+            "column": "ny_gdp_pcap_pp_kd",
+            "entity": "United States",
+            "from": 1990,
+            "to": 2025,
+            "v0": 44384.21,
+            "v1": 76931.31
+        }
+    },
+    {
+        "id": "gdp-per-capita-worldbank/rank-max-1",
+        "chart": "gdp-per-capita-worldbank",
+        "url": "https://ourworldindata.org/grapher/gdp-per-capita-worldbank",
+        "type": "rank-max",
+        "question": "According to this chart, which country had the highest GDP per capita in 2025? Consider countries only, not regions, income groups or the world as a whole.",
+        "gold": {
+            "kind": "entity",
+            "entities": ["Singapore"]
+        },
+        "tags": ["rank-max", "gdp-per-capita-worldbank"],
+        "meta": {
+            "column": "ny_gdp_pcap_pp_kd",
+            "year": 2025,
+            "pool": "at-end"
+        }
+    },
+    {
+        "id": "gdp-per-capita-worldbank/rank-min-1",
+        "chart": "gdp-per-capita-worldbank",
+        "url": "https://ourworldindata.org/grapher/gdp-per-capita-worldbank",
+        "type": "rank-min",
+        "question": "According to this chart, which country had the lowest GDP per capita in 2025? Consider countries only, not regions, income groups or the world as a whole.",
+        "gold": {
+            "kind": "entity",
+            "entities": ["Burundi"]
+        },
+        "tags": ["rank-min", "gdp-per-capita-worldbank"],
+        "meta": {
+            "column": "ny_gdp_pcap_pp_kd",
+            "year": 2025,
+            "pool": "at-end"
+        }
+    },
+    {
+        "id": "gdp-per-capita-worldbank/unanswerable-early-1",
+        "chart": "gdp-per-capita-worldbank",
+        "url": "https://ourworldindata.org/grapher/gdp-per-capita-worldbank",
+        "type": "unanswerable-early",
+        "question": "According to this chart, what was the GDP per capita for United States Virgin Islands in 1990? Give the number in international-$ in 2021 prices.",
+        "gold": {
+            "kind": "none"
+        },
+        "tags": ["unanswerable-early", "gdp-per-capita-worldbank"],
+        "meta": {
+            "column": "ny_gdp_pcap_pp_kd",
+            "entity": "United States Virgin Islands",
+            "year": 1990,
+            "firstYear": 2002,
+            "selected": false
+        }
+    },
+    {
+        "id": "gdp-per-capita-worldbank/unanswerable-late-1",
+        "chart": "gdp-per-capita-worldbank",
+        "url": "https://ourworldindata.org/grapher/gdp-per-capita-worldbank",
+        "type": "unanswerable-late",
+        "question": "According to this chart, what was the GDP per capita for Faroe Islands in 2025? Give the number in international-$ in 2021 prices.",
+        "gold": {
+            "kind": "none"
+        },
+        "tags": ["unanswerable-late", "gdp-per-capita-worldbank"],
+        "meta": {
+            "column": "ny_gdp_pcap_pp_kd",
+            "entity": "Faroe Islands",
+            "year": 2025,
+            "lastYear": 2024
+        }
+    },
+    {
+        "id": "gdp-per-capita-worldbank/meta-unit-1",
+        "chart": "gdp-per-capita-worldbank",
+        "url": "https://ourworldindata.org/grapher/gdp-per-capita-worldbank",
+        "type": "meta-unit",
+        "question": "What unit is the GDP per capita measured in on this page?",
+        "gold": {
+            "kind": "unit",
+            "unitTokens": ["international", "$", "2021", "prices"]
+        },
+        "tags": ["meta-unit", "gdp-per-capita-worldbank"],
+        "meta": {
+            "column": "ny_gdp_pcap_pp_kd",
+            "unit": "international-$ in 2021 prices",
+            "shortUnit": "$"
+        }
+    },
+    {
+        "id": "gdp-per-capita-worldbank/meta-source-1",
+        "chart": "gdp-per-capita-worldbank",
+        "url": "https://ourworldindata.org/grapher/gdp-per-capita-worldbank",
+        "type": "meta-source",
+        "question": "Which organisations or researchers produced the data shown in this chart? Name the original data providers.",
+        "gold": {
+            "kind": "sources",
+            "sources": ["Eurostat", "OECD", "IMF", "World Bank"]
+        },
+        "tags": ["meta-source", "gdp-per-capita-worldbank"],
+        "meta": {
+            "sources": ["Eurostat", "OECD", "IMF", "World Bank"]
+        }
+    },
+    {
+        "id": "extreme-poverty/point-latest-1",
+        "chart": "extreme-poverty",
+        "url": "https://ourworldindata.org/grapher/share-of-population-in-extreme-poverty",
+        "type": "point-latest",
+        "question": "According to this chart, what was the share of population in poverty ($3 a day) for Liberia in 2016? Give the number in %.",
+        "gold": {
+            "kind": "number",
+            "number": 33.558934926986694,
+            "relTol": 0.01,
+            "absTol": 0
+        },
+        "tags": ["point-latest", "extreme-poverty"],
+        "meta": {
+            "column": "headcount_ratio__ppp_version_2021__poverty_line_300__welfare_type_income_or_consumption__table_income_or_consumption_consolidated__survey_comparability_no_spells",
+            "entity": "Liberia",
+            "year": 2016
+        }
+    },
+    {
+        "id": "extreme-poverty/point-latest-2",
+        "chart": "extreme-poverty",
+        "url": "https://ourworldindata.org/grapher/share-of-population-in-extreme-poverty",
+        "type": "point-latest",
+        "question": "According to this chart, what was the share of population in poverty ($3 a day) for Pakistan in 2024? Give the number in %.",
+        "gold": {
+            "kind": "number",
+            "number": 22.956307232379913,
+            "relTol": 0.01,
+            "absTol": 0
+        },
+        "tags": ["point-latest", "extreme-poverty"],
+        "meta": {
+            "column": "headcount_ratio__ppp_version_2021__poverty_line_300__welfare_type_income_or_consumption__table_income_or_consumption_consolidated__survey_comparability_no_spells",
+            "entity": "Pakistan",
+            "year": 2024
+        }
+    },
+    {
+        "id": "extreme-poverty/rank-max-1",
+        "chart": "extreme-poverty",
+        "url": "https://ourworldindata.org/grapher/share-of-population-in-extreme-poverty",
+        "type": "rank-max",
+        "question": "According to this chart, which country had the highest share of population in poverty ($3 a day) in 2026? Consider countries only, not regions, income groups or the world as a whole.",
+        "gold": {
+            "kind": "entity",
+            "entities": ["Democratic Republic of Congo"]
+        },
+        "tags": ["rank-max", "extreme-poverty"],
+        "meta": {
+            "column": "headcount_ratio__ppp_version_2021__poverty_line_300__welfare_type_income_or_consumption__table_income_or_consumption_consolidated__survey_comparability_no_spells",
+            "year": 2026,
+            "pool": "latest"
+        }
+    },
+    {
+        "id": "extreme-poverty/unanswerable-early-1",
+        "chart": "extreme-poverty",
+        "url": "https://ourworldindata.org/grapher/share-of-population-in-extreme-poverty",
+        "type": "unanswerable-early",
+        "question": "According to this chart, what was the share of population in poverty ($3 a day) for Nigeria in 1990? Give the number in %.",
+        "gold": {
+            "kind": "none"
+        },
+        "tags": ["unanswerable-early", "extreme-poverty"],
+        "meta": {
+            "column": "headcount_ratio__ppp_version_2021__poverty_line_300__welfare_type_income_or_consumption__table_income_or_consumption_consolidated__survey_comparability_no_spells",
+            "entity": "Nigeria",
+            "year": 1990,
+            "firstYear": 1985,
+            "selected": true
+        }
+    },
+    {
+        "id": "extreme-poverty/unanswerable-late-1",
+        "chart": "extreme-poverty",
+        "url": "https://ourworldindata.org/grapher/share-of-population-in-extreme-poverty",
+        "type": "unanswerable-late",
+        "question": "According to this chart, what was the share of population in poverty ($3 a day) for Burkina Faso in 2026? Give the number in %.",
+        "gold": {
+            "kind": "none"
+        },
+        "tags": ["unanswerable-late", "extreme-poverty"],
+        "meta": {
+            "column": "headcount_ratio__ppp_version_2021__poverty_line_300__welfare_type_income_or_consumption__table_income_or_consumption_consolidated__survey_comparability_no_spells",
+            "entity": "Burkina Faso",
+            "year": 2026,
+            "lastYear": 2021
+        }
+    },
+    {
+        "id": "extreme-poverty/meta-unit-1",
+        "chart": "extreme-poverty",
+        "url": "https://ourworldindata.org/grapher/share-of-population-in-extreme-poverty",
+        "type": "meta-unit",
+        "question": "What unit is the share of population in poverty ($3 a day) measured in on this page?",
+        "gold": {
+            "kind": "unit",
+            "unitTokens": ["%"]
+        },
+        "tags": ["meta-unit", "extreme-poverty"],
+        "meta": {
+            "column": "headcount_ratio__ppp_version_2021__poverty_line_300__welfare_type_income_or_consumption__table_income_or_consumption_consolidated__survey_comparability_no_spells",
+            "unit": "%",
+            "shortUnit": "%"
+        }
+    },
+    {
+        "id": "extreme-poverty/meta-source-1",
+        "chart": "extreme-poverty",
+        "url": "https://ourworldindata.org/grapher/share-of-population-in-extreme-poverty",
+        "type": "meta-source",
+        "question": "Which organisations or researchers produced the data shown in this chart? Name the original data providers.",
+        "gold": {
+            "kind": "sources",
+            "sources": ["World Bank Poverty", "Inequality Platform"]
+        },
+        "tags": ["meta-source", "extreme-poverty"],
+        "meta": {
+            "sources": ["World Bank Poverty", "Inequality Platform"]
+        }
+    },
+    {
+        "id": "life-expectancy-vs-gdp/point-latest-1",
+        "chart": "life-expectancy-vs-gdp",
+        "url": "https://ourworldindata.org/grapher/life-expectancy-vs-gdp-per-capita",
+        "type": "point-latest",
+        "question": "According to this chart, what was \"Life expectancy\" for Greece in 2022? Give the number in years.",
+        "gold": {
+            "kind": "number",
+            "number": 79.9441,
+            "relTol": 0.01,
+            "absTol": 0
+        },
+        "tags": ["point-latest", "life-expectancy-vs-gdp"],
+        "meta": {
+            "column": "life_expectancy_0",
+            "entity": "Greece",
+            "year": 2022
+        }
+    },
+    {
+        "id": "life-expectancy-vs-gdp/point-latest-2",
+        "chart": "life-expectancy-vs-gdp",
+        "url": "https://ourworldindata.org/grapher/life-expectancy-vs-gdp-per-capita",
+        "type": "point-latest",
+        "question": "According to this chart, what was \"Life expectancy\" for Vatican in 2022? Give the number in years.",
+        "gold": {
+            "kind": "number",
+            "number": 83.3354,
+            "relTol": 0.01,
+            "absTol": 0
+        },
+        "tags": ["point-latest", "life-expectancy-vs-gdp"],
+        "meta": {
+            "column": "life_expectancy_0",
+            "entity": "Vatican",
+            "year": 2022
+        }
+    },
+    {
+        "id": "life-expectancy-vs-gdp/rank-max-1",
+        "chart": "life-expectancy-vs-gdp",
+        "url": "https://ourworldindata.org/grapher/life-expectancy-vs-gdp-per-capita",
+        "type": "rank-max",
+        "question": "According to this chart, which country had the highest \"GDP per capita\" in 2022? Consider countries only, not regions, income groups or the world as a whole.",
+        "gold": {
+            "kind": "entity",
+            "entities": ["Qatar"]
+        },
+        "tags": ["rank-max", "life-expectancy-vs-gdp"],
+        "meta": {
+            "column": "gdp_per_capita",
+            "year": 2022,
+            "pool": "at-end"
+        }
+    },
+    {
+        "id": "life-expectancy-vs-gdp/rank-min-1",
+        "chart": "life-expectancy-vs-gdp",
+        "url": "https://ourworldindata.org/grapher/life-expectancy-vs-gdp-per-capita",
+        "type": "rank-min",
+        "question": "According to this chart, which country had the lowest \"GDP per capita\" in 2022? Consider countries only, not regions, income groups or the world as a whole.",
+        "gold": {
+            "kind": "entity",
+            "entities": ["Central African Republic"]
+        },
+        "tags": ["rank-min", "life-expectancy-vs-gdp"],
+        "meta": {
+            "column": "gdp_per_capita",
+            "year": 2022,
+            "pool": "at-end"
+        }
+    },
+    {
+        "id": "life-expectancy-vs-gdp/meta-unit-1",
+        "chart": "life-expectancy-vs-gdp",
+        "url": "https://ourworldindata.org/grapher/life-expectancy-vs-gdp-per-capita",
+        "type": "meta-unit",
+        "question": "What unit is \"Life expectancy\" measured in on this page?",
+        "gold": {
+            "kind": "unit",
+            "unitTokens": ["years"]
+        },
+        "tags": ["meta-unit", "life-expectancy-vs-gdp"],
+        "meta": {
+            "column": "life_expectancy_0",
+            "unit": "years",
+            "shortUnit": "years"
+        }
+    },
+    {
+        "id": "life-expectancy-vs-gdp/meta-source-1",
+        "chart": "life-expectancy-vs-gdp",
+        "url": "https://ourworldindata.org/grapher/life-expectancy-vs-gdp-per-capita",
+        "type": "meta-source",
+        "question": "Which organisations or researchers produced the data shown in this chart? Name the original data providers.",
+        "gold": {
+            "kind": "sources",
+            "sources": [
+                "Riley",
+                "Zijdeman et al.",
+                "HMD",
+                "UN WPP",
+                "Bolt",
+                "van Zanden – Maddison Project Database 2023"
+            ]
+        },
+        "tags": ["meta-source", "life-expectancy-vs-gdp"],
+        "meta": {
+            "sources": [
+                "Riley",
+                "Zijdeman et al.",
+                "HMD",
+                "UN WPP",
+                "Bolt",
+                "van Zanden – Maddison Project Database 2023"
+            ]
+        }
+    },
+    {
+        "id": "global-warming-by-gas/point-latest-1",
+        "chart": "global-warming-by-gas",
+        "url": "https://ourworldindata.org/grapher/global-warming-by-gas-and-source",
+        "type": "point-latest",
+        "question": "According to this chart, what was \"Change in global mean surface temperature caused by CO₂ emissions from agriculture and land use\" for Mongolia in 2024? Give the number in °C.",
+        "gold": {
+            "kind": "number",
+            "number": 0.0017126487,
+            "relTol": 0.01,
+            "absTol": 0
+        },
+        "tags": ["point-latest", "global-warming-by-gas"],
+        "meta": {
+            "column": "temperature_response_co2_land",
+            "entity": "Mongolia",
+            "year": 2024
+        }
+    },
+    {
+        "id": "global-warming-by-gas/point-latest-2",
+        "chart": "global-warming-by-gas",
+        "url": "https://ourworldindata.org/grapher/global-warming-by-gas-and-source",
+        "type": "point-latest",
+        "question": "According to this chart, what was \"Change in global mean surface temperature caused by CO₂ emissions from agriculture and land use\" for Kyrgyzstan in 2024? Give the number in °C.",
+        "gold": {
+            "kind": "number",
+            "number": 0.00025717766,
+            "relTol": 0.01,
+            "absTol": 0
+        },
+        "tags": ["point-latest", "global-warming-by-gas"],
+        "meta": {
+            "column": "temperature_response_co2_land",
+            "entity": "Kyrgyzstan",
+            "year": 2024
+        }
+    },
+    {
+        "id": "global-warming-by-gas/point-selected-1",
+        "chart": "global-warming-by-gas",
+        "url": "https://ourworldindata.org/grapher/global-warming-by-gas-and-source",
+        "type": "point-selected",
+        "question": "According to this chart, what was \"Change in global mean surface temperature caused by CO₂ emissions from fossil fuels and industry\" for World in 2024? Give the number in °C.",
+        "gold": {
+            "kind": "number",
+            "number": 0.80984825,
+            "relTol": 0.01,
+            "absTol": 0
+        },
+        "tags": ["point-selected", "global-warming-by-gas"],
+        "meta": {
+            "column": "temperature_response_co2_fossil",
+            "entity": "World",
+            "year": 2024
+        }
+    },
+    {
+        "id": "global-warming-by-gas/point-start-1",
+        "chart": "global-warming-by-gas",
+        "url": "https://ourworldindata.org/grapher/global-warming-by-gas-and-source",
+        "type": "point-start",
+        "question": "According to this chart, what was \"Change in global mean surface temperature caused by methane emissions from fossil fuels and industry\" for World in 1851? Give the number in °C.",
+        "gold": {
+            "kind": "number",
+            "number": 0.0001776375,
+            "relTol": 0.01,
+            "absTol": 0
+        },
+        "tags": ["point-start", "global-warming-by-gas"],
+        "meta": {
+            "column": "temperature_response_ch4_fossil",
+            "entity": "World",
+            "year": 1851
+        }
+    },
+    {
+        "id": "global-warming-by-gas/change-1",
+        "chart": "global-warming-by-gas",
+        "url": "https://ourworldindata.org/grapher/global-warming-by-gas-and-source",
+        "type": "change",
+        "question": "According to this chart, by how much did \"Change in global mean surface temperature caused by methane emissions from fossil fuels and industry\" for World change between 1851 and 2024? Give the absolute change (end value minus start value), in °C.",
+        "gold": {
+            "kind": "number",
+            "number": 0.2164121125,
+            "relTol": 0.01,
+            "absTol": 0.00108294875
+        },
+        "tags": ["change", "global-warming-by-gas"],
+        "meta": {
+            "column": "temperature_response_ch4_fossil",
+            "entity": "World",
+            "from": 1851,
+            "to": 2024,
+            "v0": 0.0001776375,
+            "v1": 0.21658975
+        }
+    },
+    {
+        "id": "global-warming-by-gas/rank-max-1",
+        "chart": "global-warming-by-gas",
+        "url": "https://ourworldindata.org/grapher/global-warming-by-gas-and-source",
+        "type": "rank-max",
+        "question": "According to this chart, which country had the highest \"Change in global mean surface temperature caused by CO₂ emissions from agriculture and land use\" in 2024? Consider countries only, not regions, income groups or the world as a whole.",
+        "gold": {
+            "kind": "entity",
+            "entities": ["Brazil"]
+        },
+        "tags": ["rank-max", "global-warming-by-gas"],
+        "meta": {
+            "column": "temperature_response_co2_land",
+            "year": 2024,
+            "pool": "at-end"
+        }
+    },
+    {
+        "id": "global-warming-by-gas/rank-min-1",
+        "chart": "global-warming-by-gas",
+        "url": "https://ourworldindata.org/grapher/global-warming-by-gas-and-source",
+        "type": "rank-min",
+        "question": "According to this chart, which country had the lowest \"Change in global mean surface temperature caused by CO₂ emissions from agriculture and land use\" in 2024? Consider countries only, not regions, income groups or the world as a whole.",
+        "gold": {
+            "kind": "entity",
+            "entities": ["France"]
+        },
+        "tags": ["rank-min", "global-warming-by-gas"],
+        "meta": {
+            "column": "temperature_response_co2_land",
+            "year": 2024,
+            "pool": "at-end"
+        }
+    },
+    {
+        "id": "global-warming-by-gas/unanswerable-late-1",
+        "chart": "global-warming-by-gas",
+        "url": "https://ourworldindata.org/grapher/global-warming-by-gas-and-source",
+        "type": "unanswerable-late",
+        "question": "According to this chart, what was \"Change in global mean surface temperature caused by CO₂ emissions from fossil fuels and industry\" for Ireland in 2025? Give the number in °C.",
+        "gold": {
+            "kind": "none"
+        },
+        "tags": ["unanswerable-late", "global-warming-by-gas"],
+        "meta": {
+            "column": "temperature_response_co2_fossil",
+            "entity": "Ireland",
+            "year": 2025
+        }
+    },
+    {
+        "id": "global-warming-by-gas/meta-unit-1",
+        "chart": "global-warming-by-gas",
+        "url": "https://ourworldindata.org/grapher/global-warming-by-gas-and-source",
+        "type": "meta-unit",
+        "question": "What unit is \"Change in global mean surface temperature caused by methane emissions from agriculture and land use\" measured in on this page?",
+        "gold": {
+            "kind": "unit",
+            "unitTokens": ["°c"]
+        },
+        "tags": ["meta-unit", "global-warming-by-gas"],
+        "meta": {
+            "column": "temperature_response_ch4_land",
+            "unit": "°C",
+            "shortUnit": "°C"
+        }
+    },
+    {
+        "id": "global-warming-by-gas/meta-source-1",
+        "chart": "global-warming-by-gas",
+        "url": "https://ourworldindata.org/grapher/global-warming-by-gas-and-source",
+        "type": "meta-source",
+        "question": "Which organisations or researchers produced the data shown in this chart? Name the original data providers.",
+        "gold": {
+            "kind": "sources",
+            "sources": ["Jones et al."]
+        },
+        "tags": ["meta-source", "global-warming-by-gas"],
+        "meta": {
+            "sources": ["Jones et al."]
+        }
+    },
+    {
+        "id": "electricity-renewables/point-latest-1",
+        "chart": "electricity-renewables",
+        "url": "https://ourworldindata.org/grapher/electricity-mix?frequency=annual&metric=share_of_generation&source=renewables",
+        "type": "point-latest",
+        "question": "According to this chart, what was the share of electricity generated by renewables for Saint Helena in 2023? Give the number in %.",
+        "gold": {
+            "kind": "number",
+            "number": 0,
+            "relTol": 0.01,
+            "absTol": 0
+        },
+        "tags": ["point-latest", "electricity-renewables"],
+        "meta": {
+            "column": "renewable_share_of_electricity__pct",
+            "entity": "Saint Helena",
+            "year": 2023
+        }
+    },
+    {
+        "id": "electricity-renewables/point-latest-2",
+        "chart": "electricity-renewables",
+        "url": "https://ourworldindata.org/grapher/electricity-mix?frequency=annual&metric=share_of_generation&source=renewables",
+        "type": "point-latest",
+        "question": "According to this chart, what was the share of electricity generated by renewables for Guinea-Bissau in 2024? Give the number in %.",
+        "gold": {
+            "kind": "number",
+            "number": 0,
+            "relTol": 0.01,
+            "absTol": 0
+        },
+        "tags": ["point-latest", "electricity-renewables"],
+        "meta": {
+            "column": "renewable_share_of_electricity__pct",
+            "entity": "Guinea-Bissau",
+            "year": 2024
+        }
+    },
+    {
+        "id": "electricity-renewables/point-selected-1",
+        "chart": "electricity-renewables",
+        "url": "https://ourworldindata.org/grapher/electricity-mix?frequency=annual&metric=share_of_generation&source=renewables",
+        "type": "point-selected",
+        "question": "According to this chart, what was the share of electricity generated by renewables for Brazil in 2025? Give the number in %.",
+        "gold": {
+            "kind": "number",
+            "number": 86.60146,
+            "relTol": 0.01,
+            "absTol": 0
+        },
+        "tags": ["point-selected", "electricity-renewables"],
+        "meta": {
+            "column": "renewable_share_of_electricity__pct",
+            "entity": "Brazil",
+            "year": 2025
+        }
+    },
+    {
+        "id": "electricity-renewables/point-start-1",
+        "chart": "electricity-renewables",
+        "url": "https://ourworldindata.org/grapher/electricity-mix?frequency=annual&metric=share_of_generation&source=renewables",
+        "type": "point-start",
+        "question": "According to this chart, what was the share of electricity generated by renewables for World in 1900? Give the number in %.",
+        "gold": {
+            "kind": "number",
+            "number": 41.22445,
+            "relTol": 0.01,
+            "absTol": 0
+        },
+        "tags": ["point-start", "electricity-renewables"],
+        "meta": {
+            "column": "renewable_share_of_electricity__pct",
+            "entity": "World",
+            "year": 1900
+        }
+    },
+    {
+        "id": "electricity-renewables/change-1",
+        "chart": "electricity-renewables",
+        "url": "https://ourworldindata.org/grapher/electricity-mix?frequency=annual&metric=share_of_generation&source=renewables",
+        "type": "change",
+        "question": "According to this chart, by how much did the share of electricity generated by renewables for World change between 1900 and 2025? Give the absolute change (end value minus start value), in %.",
+        "gold": {
+            "kind": "number",
+            "number": -7.463994,
+            "relTol": 0.01,
+            "absTol": 0.20612224999999998
+        },
+        "tags": ["change", "electricity-renewables"],
+        "meta": {
+            "column": "renewable_share_of_electricity__pct",
+            "entity": "World",
+            "from": 1900,
+            "to": 2025,
+            "v0": 41.22445,
+            "v1": 33.760456
+        }
+    },
+    {
+        "id": "electricity-renewables/unanswerable-early-1",
+        "chart": "electricity-renewables",
+        "url": "https://ourworldindata.org/grapher/electricity-mix?frequency=annual&metric=share_of_generation&source=renewables",
+        "type": "unanswerable-early",
+        "question": "According to this chart, what was the share of electricity generated by renewables for India in 1900? Give the number in %.",
+        "gold": {
+            "kind": "none"
+        },
+        "tags": ["unanswerable-early", "electricity-renewables"],
+        "meta": {
+            "column": "renewable_share_of_electricity__pct",
+            "entity": "India",
+            "year": 1900,
+            "firstYear": 1985,
+            "selected": true
+        }
+    },
+    {
+        "id": "electricity-renewables/unanswerable-late-1",
+        "chart": "electricity-renewables",
+        "url": "https://ourworldindata.org/grapher/electricity-mix?frequency=annual&metric=share_of_generation&source=renewables",
+        "type": "unanswerable-late",
+        "question": "According to this chart, what was the share of electricity generated by renewables for Cote d'Ivoire in 2025? Give the number in %.",
+        "gold": {
+            "kind": "none"
+        },
+        "tags": ["unanswerable-late", "electricity-renewables"],
+        "meta": {
+            "column": "renewable_share_of_electricity__pct",
+            "entity": "Cote d'Ivoire",
+            "year": 2025,
+            "lastYear": 2024
+        }
+    },
+    {
+        "id": "electricity-renewables/meta-unit-1",
+        "chart": "electricity-renewables",
+        "url": "https://ourworldindata.org/grapher/electricity-mix?frequency=annual&metric=share_of_generation&source=renewables",
+        "type": "meta-unit",
+        "question": "What unit is the share of electricity generated by renewables measured in on this page?",
+        "gold": {
+            "kind": "unit",
+            "unitTokens": ["%"]
+        },
+        "tags": ["meta-unit", "electricity-renewables"],
+        "meta": {
+            "column": "renewable_share_of_electricity__pct",
+            "unit": "%",
+            "shortUnit": "%"
+        }
+    },
+    {
+        "id": "electricity-renewables/meta-source-1",
+        "chart": "electricity-renewables",
+        "url": "https://ourworldindata.org/grapher/electricity-mix?frequency=annual&metric=share_of_generation&source=renewables",
+        "type": "meta-source",
+        "question": "Which organisations or researchers produced the data shown in this chart? Name the original data providers.",
+        "gold": {
+            "kind": "sources",
+            "sources": ["Ember"]
+        },
+        "tags": ["meta-source", "electricity-renewables"],
+        "meta": {
+            "sources": ["Ember"]
+        }
+    },
+    {
+        "id": "natural-disasters-deaths/point-latest-1",
+        "chart": "natural-disasters-deaths",
+        "url": "https://ourworldindata.org/grapher/natural-disasters-deaths",
+        "type": "point-latest",
+        "question": "According to this chart, what was \"Annual number of deaths from floods\" for Colombia in 2025? Give the number in people.",
+        "gold": {
+            "kind": "number",
+            "number": 130,
+            "relTol": 0.01,
+            "absTol": 0
+        },
+        "tags": ["point-latest", "natural-disasters-deaths"],
+        "meta": {
+            "column": "total_dead_flood_yearly",
+            "entity": "Colombia",
+            "year": 2025
+        }
+    },
+    {
+        "id": "natural-disasters-deaths/point-latest-2",
+        "chart": "natural-disasters-deaths",
+        "url": "https://ourworldindata.org/grapher/natural-disasters-deaths",
+        "type": "point-latest",
+        "question": "According to this chart, what was \"Annual number of deaths from floods\" for Croatia in 2025? Give the number in people.",
+        "gold": {
+            "kind": "number",
+            "number": 0,
+            "relTol": 0.01,
+            "absTol": 0
+        },
+        "tags": ["point-latest", "natural-disasters-deaths"],
+        "meta": {
+            "column": "total_dead_flood_yearly",
+            "entity": "Croatia",
+            "year": 2025
+        }
+    },
+    {
+        "id": "natural-disasters-deaths/point-selected-1",
+        "chart": "natural-disasters-deaths",
+        "url": "https://ourworldindata.org/grapher/natural-disasters-deaths",
+        "type": "point-selected",
+        "question": "According to this chart, what was \"Annual number of deaths from extreme temperatures\" for World in 2025? Give the number in people.",
+        "gold": {
+            "kind": "number",
+            "number": 0,
+            "relTol": 0.01,
+            "absTol": 0
+        },
+        "tags": ["point-selected", "natural-disasters-deaths"],
+        "meta": {
+            "column": "total_dead_extreme_temperature_yearly",
+            "entity": "World",
+            "year": 2025
+        }
+    },
+    {
+        "id": "natural-disasters-deaths/point-start-1",
+        "chart": "natural-disasters-deaths",
+        "url": "https://ourworldindata.org/grapher/natural-disasters-deaths",
+        "type": "point-start",
+        "question": "According to this chart, what was \"Annual number of deaths from storms\" for World in 2000? Give the number in people.",
+        "gold": {
+            "kind": "number",
+            "number": 1344,
+            "relTol": 0.01,
+            "absTol": 0
+        },
+        "tags": ["point-start", "natural-disasters-deaths"],
+        "meta": {
+            "column": "total_dead_extreme_weather_yearly",
+            "entity": "World",
+            "year": 2000
+        }
+    },
+    {
+        "id": "natural-disasters-deaths/change-1",
+        "chart": "natural-disasters-deaths",
+        "url": "https://ourworldindata.org/grapher/natural-disasters-deaths",
+        "type": "change",
+        "question": "According to this chart, by how much did \"Annual number of deaths from storms\" for World change between 2000 and 2025? Give the absolute change (end value minus start value), in people.",
+        "gold": {
+            "kind": "number",
+            "number": 2297,
+            "relTol": 0.01,
+            "absTol": 18.205000000000002
+        },
+        "tags": ["change", "natural-disasters-deaths"],
+        "meta": {
+            "column": "total_dead_extreme_weather_yearly",
+            "entity": "World",
+            "from": 2000,
+            "to": 2025,
+            "v0": 1344,
+            "v1": 3641
+        }
+    },
+    {
+        "id": "natural-disasters-deaths/rank-max-1",
+        "chart": "natural-disasters-deaths",
+        "url": "https://ourworldindata.org/grapher/natural-disasters-deaths",
+        "type": "rank-max",
+        "question": "According to this chart, which country had the highest \"Annual number of deaths from volcanoes\" in 2025? Consider countries only, not regions, income groups or the world as a whole.",
+        "gold": {
+            "kind": "entity",
+            "entities": ["Martinique"]
+        },
+        "tags": ["rank-max", "natural-disasters-deaths"],
+        "meta": {
+            "column": "total_dead_volcanic_activity_yearly",
+            "year": 2025,
+            "pool": "latest"
+        }
+    },
+    {
+        "id": "natural-disasters-deaths/unanswerable-early-1",
+        "chart": "natural-disasters-deaths",
+        "url": "https://ourworldindata.org/grapher/natural-disasters-deaths",
+        "type": "unanswerable-early",
+        "question": "According to this chart, what was \"Annual number of deaths from floods\" for Grenada in 2000? Give the number in people.",
+        "gold": {
+            "kind": "none"
+        },
+        "tags": ["unanswerable-early", "natural-disasters-deaths"],
+        "meta": {
+            "column": "total_dead_flood_yearly",
+            "entity": "Grenada",
+            "year": 2000,
+            "firstYear": 1975,
+            "selected": false
+        }
+    },
+    {
+        "id": "natural-disasters-deaths/unanswerable-late-1",
+        "chart": "natural-disasters-deaths",
+        "url": "https://ourworldindata.org/grapher/natural-disasters-deaths",
+        "type": "unanswerable-late",
+        "question": "According to this chart, what was \"Annual number of deaths from volcanoes\" for El Salvador in 2025? Give the number in people.",
+        "gold": {
+            "kind": "none"
+        },
+        "tags": ["unanswerable-late", "natural-disasters-deaths"],
+        "meta": {
+            "column": "total_dead_volcanic_activity_yearly",
+            "entity": "El Salvador",
+            "year": 2025,
+            "lastYear": 2013
+        }
+    },
+    {
+        "id": "natural-disasters-deaths/meta-unit-1",
+        "chart": "natural-disasters-deaths",
+        "url": "https://ourworldindata.org/grapher/natural-disasters-deaths",
+        "type": "meta-unit",
+        "question": "What unit is \"Annual number of deaths from volcanoes\" measured in on this page?",
+        "gold": {
+            "kind": "unit",
+            "unitTokens": ["people"]
+        },
+        "tags": ["meta-unit", "natural-disasters-deaths"],
+        "meta": {
+            "column": "total_dead_volcanic_activity_yearly",
+            "unit": "people"
+        }
+    },
+    {
+        "id": "natural-disasters-deaths/meta-source-1",
+        "chart": "natural-disasters-deaths",
+        "url": "https://ourworldindata.org/grapher/natural-disasters-deaths",
+        "type": "meta-source",
+        "question": "Which organisations or researchers produced the data shown in this chart? Name the original data providers.",
+        "gold": {
+            "kind": "sources",
+            "sources": ["EM-DAT", "CRED", "UCLouvain"]
+        },
+        "tags": ["meta-source", "natural-disasters-deaths"],
+        "meta": {
+            "sources": ["EM-DAT", "CRED", "UCLouvain"]
+        }
+    },
+    {
+        "id": "literacy-women/point-latest-1",
+        "chart": "literacy-women",
+        "url": "https://ourworldindata.org/grapher/literacy?age_group=adult&sex=female",
+        "type": "point-latest",
+        "question": "According to this chart, what was the literacy rate among adult women aged 15+ for Burundi in 2020? Give the number in %.",
+        "gold": {
+            "kind": "number",
+            "number": 66.11045,
+            "relTol": 0.01,
+            "absTol": 0
+        },
+        "tags": ["point-latest", "literacy-women"],
+        "meta": {
+            "column": "adult_literacy_rate__population_15plus_years__female__pct__lr_ag15t99_f",
+            "entity": "Burundi",
+            "year": 2020
+        }
+    },
+    {
+        "id": "literacy-women/point-latest-2",
+        "chart": "literacy-women",
+        "url": "https://ourworldindata.org/grapher/literacy?age_group=adult&sex=female",
+        "type": "point-latest",
+        "question": "According to this chart, what was the literacy rate among adult women aged 15+ for Brunei in 2011? Give the number in %.",
+        "gold": {
+            "kind": "number",
+            "number": 94.65,
+            "relTol": 0.01,
+            "absTol": 0
+        },
+        "tags": ["point-latest", "literacy-women"],
+        "meta": {
+            "column": "adult_literacy_rate__population_15plus_years__female__pct__lr_ag15t99_f",
+            "entity": "Brunei",
+            "year": 2011
+        }
+    },
+    {
+        "id": "literacy-women/point-selected-1",
+        "chart": "literacy-women",
+        "url": "https://ourworldindata.org/grapher/literacy?age_group=adult&sex=female",
+        "type": "point-selected",
+        "question": "According to this chart, what was the literacy rate among adult women aged 15+ for India in 2024? Give the number in %.",
+        "gold": {
+            "kind": "number",
+            "number": 70.73868,
+            "relTol": 0.01,
+            "absTol": 0
+        },
+        "tags": ["point-selected", "literacy-women"],
+        "meta": {
+            "column": "adult_literacy_rate__population_15plus_years__female__pct__lr_ag15t99_f",
+            "entity": "India",
+            "year": 2024
+        }
+    },
+    {
+        "id": "literacy-women/point-start-1",
+        "chart": "literacy-women",
+        "url": "https://ourworldindata.org/grapher/literacy?age_group=adult&sex=female",
+        "type": "point-start",
+        "question": "According to this chart, what was the literacy rate among adult women aged 15+ for Mali in 1976? Give the number in %.",
+        "gold": {
+            "kind": "number",
+            "number": 5.74,
+            "relTol": 0.01,
+            "absTol": 0
+        },
+        "tags": ["point-start", "literacy-women"],
+        "meta": {
+            "column": "adult_literacy_rate__population_15plus_years__female__pct__lr_ag15t99_f",
+            "entity": "Mali",
+            "year": 1976
+        }
+    },
+    {
+        "id": "literacy-women/change-1",
+        "chart": "literacy-women",
+        "url": "https://ourworldindata.org/grapher/literacy?age_group=adult&sex=female",
+        "type": "change",
+        "question": "According to this chart, by how much did the literacy rate among adult women aged 15+ for Mali change between 1976 and 2024? Give the absolute change (end value minus start value), in %.",
+        "gold": {
+            "kind": "number",
+            "number": 22,
+            "relTol": 0.01,
+            "absTol": 0.1387
+        },
+        "tags": ["change", "literacy-women"],
+        "meta": {
+            "column": "adult_literacy_rate__population_15plus_years__female__pct__lr_ag15t99_f",
+            "entity": "Mali",
+            "from": 1976,
+            "to": 2024,
+            "v0": 5.74,
+            "v1": 27.74
+        }
+    },
+    {
+        "id": "literacy-women/rank-min-1",
+        "chart": "literacy-women",
+        "url": "https://ourworldindata.org/grapher/literacy?age_group=adult&sex=female",
+        "type": "rank-min",
+        "question": "According to this chart, which country had the lowest literacy rate among adult women aged 15+ in 2024? Consider countries only, not regions, income groups or the world as a whole.",
+        "gold": {
+            "kind": "entity",
+            "entities": ["Mali", "Chad"]
+        },
+        "tags": ["rank-min", "literacy-women"],
+        "meta": {
+            "column": "adult_literacy_rate__population_15plus_years__female__pct__lr_ag15t99_f",
+            "year": 2024,
+            "pool": "at-end"
+        }
+    },
+    {
+        "id": "literacy-women/unanswerable-early-1",
+        "chart": "literacy-women",
+        "url": "https://ourworldindata.org/grapher/literacy?age_group=adult&sex=female",
+        "type": "unanswerable-early",
+        "question": "According to this chart, what was the literacy rate among adult women aged 15+ for India in 1976? Give the number in %.",
+        "gold": {
+            "kind": "none"
+        },
+        "tags": ["unanswerable-early", "literacy-women"],
+        "meta": {
+            "column": "adult_literacy_rate__population_15plus_years__female__pct__lr_ag15t99_f",
+            "entity": "India",
+            "year": 1976,
+            "firstYear": 1981,
+            "selected": true
+        }
+    },
+    {
+        "id": "literacy-women/unanswerable-late-1",
+        "chart": "literacy-women",
+        "url": "https://ourworldindata.org/grapher/literacy?age_group=adult&sex=female",
+        "type": "unanswerable-late",
+        "question": "According to this chart, what was the literacy rate among adult women aged 15+ for Nicaragua in 2024? Give the number in %.",
+        "gold": {
+            "kind": "none"
+        },
+        "tags": ["unanswerable-late", "literacy-women"],
+        "meta": {
+            "column": "adult_literacy_rate__population_15plus_years__female__pct__lr_ag15t99_f",
+            "entity": "Nicaragua",
+            "year": 2024,
+            "lastYear": 2014
+        }
+    },
+    {
+        "id": "literacy-women/meta-unit-1",
+        "chart": "literacy-women",
+        "url": "https://ourworldindata.org/grapher/literacy?age_group=adult&sex=female",
+        "type": "meta-unit",
+        "question": "What unit is the literacy rate among adult women aged 15+ measured in on this page?",
+        "gold": {
+            "kind": "unit",
+            "unitTokens": ["%"]
+        },
+        "tags": ["meta-unit", "literacy-women"],
+        "meta": {
+            "column": "adult_literacy_rate__population_15plus_years__female__pct__lr_ag15t99_f",
+            "unit": "%",
+            "shortUnit": "%"
+        }
+    },
+    {
+        "id": "literacy-women/meta-source-1",
+        "chart": "literacy-women",
+        "url": "https://ourworldindata.org/grapher/literacy?age_group=adult&sex=female",
+        "type": "meta-source",
+        "question": "Which organisations or researchers produced the data shown in this chart? Name the original data providers.",
+        "gold": {
+            "kind": "sources",
+            "sources": ["UNESCO Institute for Statistics"]
+        },
+        "tags": ["meta-source", "literacy-women"],
+        "meta": {
+            "sources": ["UNESCO Institute for Statistics"]
+        }
+    }
+]
