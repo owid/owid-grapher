@@ -450,6 +450,7 @@ export class FeedbackPrompt extends React.Component {
                     <SiteToolsButton
                         icon={faTimes}
                         label="Close feedback form"
+                        tooltip={false}
                         onClick={this.toggleOpen}
                     />
                 ) : (

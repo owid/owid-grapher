@@ -41,6 +41,7 @@ export const NewsletterSubscription = ({
                 <SiteToolsButton
                     icon={faTimes}
                     label="Close subscription form"
+                    tooltip={false}
                     onClick={() => setIsOpen(false)}
                 />
             ) : (
