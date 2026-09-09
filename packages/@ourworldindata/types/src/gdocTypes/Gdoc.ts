@@ -33,7 +33,13 @@ export interface LatestDataInsight {
     slug: string
     publishedAt: Date | null
     content: OwidGdocDataInsightContent
-    index?: number
+}
+
+export interface LatestAnnouncement {
+    id: string
+    slug: string
+    publishedAt: Date | null
+    content: OwidGdocAnnouncementContent
 }
 
 export interface LinkedAuthor {
@@ -297,6 +303,7 @@ export interface OwidGdocAnnouncementContent {
 
 export interface OwidGdocAnnouncementInterface extends OwidGdocBaseInterface {
     content: OwidGdocAnnouncementContent
+    latestAnnouncements?: LatestAnnouncement[]
 }
 
 export type OwidGdocProfileScope = "countries" | "continents" | "all"

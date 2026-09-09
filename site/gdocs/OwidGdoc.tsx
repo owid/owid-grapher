@@ -123,6 +123,7 @@ export function OwidGdoc({
                 linkedIndicators: _.get(props, "linkedIndicators", {}),
                 relatedCharts: _.get(props, "relatedCharts", []),
                 latestDataInsights: _.get(props, "latestDataInsights", []),
+                latestAnnouncements: _.get(props, "latestAnnouncements", []),
                 homepageMetadata: _.get(props, "homepageMetadata", {}),
                 latestWorkLinks: _.get(props, "latestWorkLinks", []),
                 linkedNarrativeCharts: _.get(
