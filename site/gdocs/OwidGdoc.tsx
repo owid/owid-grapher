@@ -14,7 +14,7 @@ import { AttachmentsContext } from "./AttachmentsContext.js"
 import { DocumentContext } from "./DocumentContext.js"
 import { AnnouncementPage } from "./pages/Announcement.js"
 import { Profile } from "./pages/Profile.js"
-import { ADMIN_BASE_URL } from "../../settings/clientSettings.js"
+import { ADMIN_BASE_URL } from "../../settings/clientSettings.mjs"
 import { SiteQueryClientProvider } from "../SiteQueryClientProvider.js"
 import { hasAdminCookie } from "../adminCookie.js"
 

@@ -6,7 +6,7 @@ import {
     BAKED_GRAPHER_URL,
     CATALOG_URL,
     DATA_API_URL,
-} from "../../settings/clientSettings.js"
+} from "../../settings/clientSettings.mjs"
 import { getSlideshowGrapherConfig } from "./slideshowUtils.js"
 
 /**

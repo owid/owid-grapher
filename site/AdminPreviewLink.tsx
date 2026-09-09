@@ -1,6 +1,6 @@
 import { useIsClient } from "usehooks-ts"
 
-import { ADMIN_BASE_URL } from "../settings/clientSettings.js"
+import { ADMIN_BASE_URL } from "../settings/clientSettings.mjs"
 import { hasAdminCookie } from "./adminCookie.js"
 
 /**

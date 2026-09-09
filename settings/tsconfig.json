@@ -2,7 +2,8 @@
     "extends": "../devTools/tsconfigs/tsconfig.base.json",
     "compilerOptions": {
         "outDir": "../itsJustJavascript/settings",
-        "rootDir": "."
+        "rootDir": ".",
+        "rewriteRelativeImportExtensions": true
     },
     "references": [{ "path": "../packages/@ourworldindata/utils" }]
 }

@@ -43,7 +43,7 @@ import {
     type ImageUploadResponse,
 } from "./imagesHelpers.js"
 import { RcFile } from "antd/es/upload/interface.js"
-import { CLOUDFLARE_IMAGES_URL } from "../settings/clientSettings.js"
+import { CLOUDFLARE_IMAGES_URL } from "../settings/clientSettings.mjs"
 import { NotificationInstance } from "antd/es/notification/interface.js"
 import { EditableTextarea } from "./EditableTextarea.js"
 

@@ -216,3 +216,16 @@ export function useElementBounds<T extends Bounds | null = Bounds>(
 
     return bounds
 }
+
+export function useDismissOnOutsidePointerDownOrUnmount(
+    onDismiss: (() => void) | undefined
+): void {
+    useEffect(() => {
+        if (!onDismiss) return
+        document.addEventListener("pointerdown", onDismiss, { passive: true })
+        return () => {
+            document.removeEventListener("pointerdown", onDismiss)
+            onDismiss()
+        }
+    }, [onDismiss])
+}

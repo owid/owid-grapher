@@ -542,7 +542,7 @@ describe("colors & legend", () => {
 
     it("legend contains every continent for which there is data (before timeline filter)", () => {
         expect(
-            chart.categoricalLegendData.map((item) => item.label).sort()
+            chart["categoricalLegendData"].map((item) => item.label).sort()
         ).toEqual([
             "Africa",
             "Europe",

@@ -28,11 +28,12 @@ const tarballPath = path.join(pkgDir, "dist-package/grapher.tgz")
 // string is discarded — including the trailing `export{...}`, the file's only
 // ESM syntax. The surviving prefix then matches its CJS heuristics (papaparse's
 // worker-bootstrap code contains `global.IS_PAPA_WORKER` — inside a string,
-// even).
+// even). The standalone bundle is the package's root export and `main`, so the
+// misdetection is reported against those manifest paths.
 function isKnownFalsePositive(message: Message): boolean {
     return (
         message.code === "FILE_INVALID_FORMAT" &&
-        message.path.includes("./standalone")
+        (message.path.includes(".") || message.path.includes("main"))
     )
 }
 
@@ -61,6 +62,6 @@ it("passes publint", async () => {
     // changed), the exception above should be removed.
     expect(
         messages.some(isKnownFalsePositive),
-        "publint no longer reports the known FILE_INVALID_FORMAT false positive for ./standalone — remove the isKnownFalsePositive exception."
+        "publint no longer reports the known FILE_INVALID_FORMAT false positive for the standalone bundle — remove the isKnownFalsePositive exception."
     ).toBe(true)
 })

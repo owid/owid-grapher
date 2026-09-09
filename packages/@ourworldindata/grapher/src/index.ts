@@ -31,7 +31,6 @@ export {
     GRAPHER_SQUARE_SIZE,
     STATIC_EXPORT_DETAIL_SPACING,
     DEFAULT_GRAPHER_ENTITY_TYPE,
-    GRAPHER_LOADING_STATE_EVENT_NAME,
     CookieKey,
     BASE_FONT_SIZE,
     WORLD_ENTITY_NAME,
@@ -170,7 +169,7 @@ export type { StackedAreaChartState } from "./stackedCharts/StackedAreaChartStat
 export type { StackedBarChartState } from "./stackedCharts/StackedBarChartState.js"
 export type { StackedDiscreteBarChartState } from "./stackedCharts/StackedDiscreteBarChartState"
 export type { ScatterPlotChartState } from "./scatterCharts/ScatterPlotChartState"
-export type { MarimekkoChartState } from "./stackedCharts/MarimekkoChartState"
+export type { MarimekkoChartState } from "./marimekko/MarimekkoChartState"
 export type { DumbbellChartState } from "./dumbbellCharts/DumbbellChartState"
 
 export {

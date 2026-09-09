@@ -18,6 +18,9 @@ import {
 export interface ChartConfigPair {
     config: GrapherInterface
     patchConfig: GrapherInterface
+    // callers may supply the id of the rendered config's row (e.g. the ETL,
+    // which generates a chart's identity client-side); otherwise one is minted
+    chartConfigId?: string
 }
 
 interface ChartConfigPairIds {
@@ -105,10 +108,15 @@ export const saveNewChartConfigInDbAndR2 = async (
 /** Inserts a chart config pair without uploading it to R2 */
 export const insertChartConfigPair = async (
     knex: db.KnexReadWriteTransaction,
-    { config, patchConfig }: ChartConfigPair,
+    {
+        config,
+        patchConfig,
+        chartConfigId: providedChartConfigId,
+    }: ChartConfigPair,
     now: Date = new Date()
 ): Promise<{ chartConfigId: string; patchConfigId: string }> => {
     const chartConfigId = await insertChartConfig(knex, {
+        id: providedChartConfigId,
         config,
         createdAt: now,
         updatedAt: now,

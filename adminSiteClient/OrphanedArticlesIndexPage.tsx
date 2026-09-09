@@ -12,10 +12,10 @@ import { faArrowUpRightFromSquare } from "@fortawesome/free-solid-svg-icons"
 import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext } from "./AdminAppContext.js"
 import { Admin } from "./Admin.js"
-import { BAKED_BASE_URL } from "../settings/clientSettings.js"
+import { BAKED_BASE_URL } from "../settings/clientSettings.mjs"
 
 async function fetchOrphans(admin: Admin): Promise<TopicPageOrphanReport[]> {
-    return admin.getJSON<TopicPageOrphanReport[]>(
+    return admin.getJSONInBackground<TopicPageOrphanReport[]>(
         "/api/gdocs/researchAndWritingOrphans"
     )
 }

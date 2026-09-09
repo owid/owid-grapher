@@ -6,7 +6,7 @@
     bottom: 0;
     overflow: clip;
     z-index: $zindex-controls-drawer;
-    background-color: rgba(0, 0, 0, 0.1);
+    background-color: $overlay-scrim;
     transition: background-color var(--duration-drawer) var(--ease-drawer);
 
     &[data-entering],

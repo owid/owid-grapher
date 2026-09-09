@@ -158,8 +158,15 @@ $svg-tester-error-frame: #dda4a0;
     }
 }
 
-.SvgTesterSuitePage__chart-type {
+.SvgTesterSuitePage__chart-type,
+.SvgTesterSuitePage__status {
     margin-left: 8px;
+}
+
+// The chart type beside it is neutral, so the one status that is a finding
+// needs the weight the headline gives its numbers
+.SvgTesterSuitePage__status.is-changed {
+    font-weight: bold;
 }
 
 .SvgTesterQueryParams {

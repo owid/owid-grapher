@@ -14,6 +14,7 @@ import { makeObservable, observable } from "mobx"
 import { AxisConfig } from "../axis/AxisConfig"
 import { SelectionArray } from "../selection/SelectionArray"
 import { ColumnTypeNames, GRAPHER_CHART_TYPES } from "@ourworldindata/utils"
+import { FacetStrategy } from "@ourworldindata/types"
 import { StackedAreaChartState } from "./StackedAreaChartState.js"
 import { ChartManager } from "../chart/ChartManager"
 
@@ -246,5 +247,58 @@ describe("externalLegendBins", () => {
         })
         const chart = new StackedAreaChart({ chartState })
         expect(chart.externalLegend?.categoricalLegendData?.length).toEqual(2)
+    })
+})
+
+describe("availableFacetStrategies", () => {
+    const makeTable = (fruitUnit: string, vegetableUnit: string): OwidTable =>
+        SynthesizeFruitTable({
+            timeRange: [2000, 2010],
+            entityCount: 3,
+        }).updateDefs((def) => {
+            if (def.slug === SampleColumnSlugs.Fruit) def.shortUnit = fruitUnit
+            if (def.slug === SampleColumnSlugs.Vegetables)
+                def.shortUnit = vegetableUnit
+            return def
+        })
+
+    const makeChartState = (
+        table: OwidTable,
+        manager: Partial<ChartManager>
+    ): StackedAreaChartState =>
+        new StackedAreaChartState({
+            manager: {
+                table,
+                selection: new SelectionArray(table.availableEntityNames),
+                yColumnSlugs: [
+                    SampleColumnSlugs.Fruit,
+                    SampleColumnSlugs.Vegetables,
+                ],
+                ...manager,
+            },
+        })
+
+    it("doesn't offer the metric strategy for percentages", () => {
+        const table = makeTable("%", "%")
+        expect(
+            makeChartState(table, { isRelativeMode: false })
+                .availableFacetStrategies
+        ).toEqual([FacetStrategy.entity])
+        expect(
+            makeChartState(table, { isRelativeMode: true })
+                .availableFacetStrategies
+        ).toEqual([FacetStrategy.entity])
+    })
+
+    it("doesn't offer the entity strategy for mixed units", () => {
+        const table = makeTable("t", "kg")
+        expect(
+            makeChartState(table, { isRelativeMode: false })
+                .availableFacetStrategies
+        ).toEqual([FacetStrategy.metric])
+        expect(
+            makeChartState(table, { isRelativeMode: true })
+                .availableFacetStrategies
+        ).toEqual([FacetStrategy.metric])
     })
 })

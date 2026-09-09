@@ -70,10 +70,8 @@ import { darkenColorForText } from "../color/ColorUtils.js"
 import { HorizontalLabelPair } from "../horizontalLabelPair/HorizontalLabelPair.js"
 import { HorizontalLabelPairState } from "../horizontalLabelPair/HorizontalLabelPairState.js"
 import { HorizontalLabel } from "../horizontalLabelPair/HorizontalLabelPairTypes.js"
-import {
-    HorizontalCategoricalColorLegend,
-    HorizontalColorLegendManager,
-} from "../legend/HorizontalColorLegends.js"
+import { HorizontalCategoricalColorLegend } from "../legend/HorizontalCategoricalColorLegend"
+import { HorizontalCategoricalColorLegendState } from "../legend/HorizontalCategoricalColorLegendState"
 import { CategoricalBin } from "../color/ColorScaleBin.js"
 import { TooltipState } from "../tooltip/Tooltip"
 import {
@@ -88,7 +86,7 @@ type TopLegendType = "inline" | "swatches" | "none"
 @observer
 export class DumbbellChart
     extends React.Component<DumbbellChartProps>
-    implements ChartInterface, AxisManager, HorizontalColorLegendManager
+    implements ChartInterface, AxisManager
 {
     private readonly tooltipId = guid()
     private readonly tooltipState = new TooltipState<{ seriesName: string }>({
@@ -467,7 +465,7 @@ export class DumbbellChart
                     this.inlineLegendLabelStyle.fontSize *
                     this.inlineLegendLabelStyle.lineHeight
             )
-            .with("swatches", () => this.categoricalLegend.height)
+            .with("swatches", () => this.categoricalLegendState.height)
             .with("none", () => 0)
             .exhaustive()
     }
@@ -567,23 +565,11 @@ export class DumbbellChart
         })
     }
 
-    @computed get legendX(): number {
-        return this.bounds.left
-    }
-
-    @computed get categoryLegendY(): number {
-        return this.bounds.top
-    }
-
-    @computed get legendWidth(): number {
+    @computed private get legendWidth(): number {
         return this.bounds.width
     }
 
-    @computed get legendAlign(): HorizontalAlign {
-        return HorizontalAlign.left
-    }
-
-    @computed get categoricalLegendData(): CategoricalBin[] {
+    @computed private get categoricalLegendData(): CategoricalBin[] {
         if (!this.legendLabels || this.topLegendType !== "swatches") return []
         const { start, end } = this.legendLabels
         return [
@@ -603,8 +589,15 @@ export class DumbbellChart
     }
 
     @computed
-    private get categoricalLegend(): HorizontalCategoricalColorLegend {
-        return new HorizontalCategoricalColorLegend({ manager: this })
+    private get categoricalLegendState(): HorizontalCategoricalColorLegendState {
+        return new HorizontalCategoricalColorLegendState(
+            this.categoricalLegendData,
+            {
+                fontSize: this.fontSize,
+                width: this.legendWidth,
+                align: HorizontalAlign.left,
+            }
+        )
     }
 
     private formatValue(
@@ -649,7 +642,12 @@ export class DumbbellChart
     private renderLegend(): React.ReactElement | null {
         return match(this.topLegendType)
             .with("swatches", () => (
-                <HorizontalCategoricalColorLegend manager={this} />
+                <HorizontalCategoricalColorLegend
+                    state={this.categoricalLegendState}
+                    x={this.bounds.left}
+                    y={this.bounds.top}
+                    interactive={!this.manager.isStatic}
+                />
             ))
             .with("inline", () =>
                 this.inlineLegendState ? (

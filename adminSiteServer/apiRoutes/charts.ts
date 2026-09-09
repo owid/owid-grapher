@@ -1,11 +1,17 @@
+import * as _ from "lodash-es"
 import * as R from "remeda"
-import { migrateGrapherConfigToLatestVersionAndFailOnError } from "@ourworldindata/grapher"
+import {
+    defaultGrapherConfig,
+    migrateGrapherConfigToLatestVersionAndFailOnError,
+} from "@ourworldindata/grapher"
 import {
     GrapherInterface,
     JsonError,
     DbPlainUser,
+    parseChartConfig,
     serializeChartConfig,
     DbPlainChart,
+    DbRawChartConfig,
     R2GrapherConfigDirectory,
     DbInsertChartRevision,
     DbChartTagJoin,
@@ -20,6 +26,7 @@ import {
     parseIntOrUndefined,
     omitUndefinedValues,
 } from "@ourworldindata/utils"
+import { validate as uuidValidate } from "uuid"
 import {
     References,
     StaticVizReference,
@@ -27,6 +34,7 @@ import {
 import { NarrativeChartMinimalInformation } from "../../adminSiteClient/ChartEditor.js"
 import {
     getChartConfigById,
+    getChartIdByConfigId,
     getForceDatapageByChartId,
     getPatchConfigByChartId,
     getParentByChartConfig,
@@ -51,6 +59,10 @@ import {
     retrieveChartConfigFromDbAndSaveToR2,
     updateChartConfigPairInDbAndR2,
 } from "../chartConfigHelpers.js"
+import {
+    insertChartConfig,
+    updateChartConfig,
+} from "../../db/model/ChartConfigs.js"
 import { deleteGrapherConfigFromR2 } from "../../serverUtils/r2/chartConfigR2Helpers.js"
 import { triggerStaticBuild } from "../../baker/GrapherBakingUtils.js"
 import * as db from "../../db/db.js"
@@ -63,6 +75,7 @@ import { DataInsightMinimalInformation } from "../../adminShared/AdminTypes.js"
 import {
     validateNewGrapherSlug,
     validateDraftGrapherSlug,
+    isValidCatalogPath,
 } from "../validation.js"
 
 export const getReferencesByChartId = async (
@@ -205,21 +218,79 @@ export const getReferencesByChartId = async (
     }
 }
 
+/**
+ * Resolves a value that is either a numeric chart id or a chart's config UUID
+ * (`charts.configId`) to the numeric chart id. Route handlers use this so that
+ * `:chartId` params accept both forms of addressing a chart.
+ */
+/**
+ * Validate a caller-supplied chart config UUID and return it in canonical
+ * (lower-case) form.
+ *
+ * A chart's config UUID is its identity, so the stored form should not depend
+ * on how a caller happened to type it. Everything that mints one emits
+ * lower-case already (the `uuid` package lower-cases in `stringify`, as does
+ * Python's `uuid` on the ETL side), but `uuidValidate`'s regex is
+ * case-insensitive, so a hand-written UUID could otherwise be stored verbatim
+ * and leave the same chart spelled differently in different environments.
+ * MySQL's collation makes lookups case-insensitive regardless, so this is about
+ * what we persist, not about matching.
+ */
+const normalizeChartConfigId = (chartConfigId: string): string => {
+    if (!uuidValidate(chartConfigId))
+        throw new JsonError(`Invalid config UUID '${chartConfigId}'`, 400)
+    return chartConfigId.toLowerCase()
+}
+
+export const expectChartId = async (
+    knex: db.KnexReadonlyTransaction,
+    chartIdOrConfigId: string | number | undefined
+): Promise<number> => {
+    if (
+        typeof chartIdOrConfigId === "number" ||
+        (typeof chartIdOrConfigId === "string" &&
+            /^\d+$/.test(chartIdOrConfigId))
+    )
+        return expectInt(chartIdOrConfigId)
+
+    if (
+        typeof chartIdOrConfigId === "string" &&
+        uuidValidate(chartIdOrConfigId)
+    ) {
+        const chartId = await getChartIdByConfigId(
+            knex,
+            chartIdOrConfigId.toLowerCase()
+        )
+        if (chartId === undefined)
+            throw new JsonError(
+                `No chart found for config id ${chartIdOrConfigId}`,
+                404
+            )
+        return chartId
+    }
+
+    throw new JsonError(
+        `Expected integer chart id or config UUID, got '${chartIdOrConfigId}'`,
+        400
+    )
+}
+
 export const expectChartById = async (
     knex: db.KnexReadonlyTransaction,
-    chartId: any
+    chartIdOrConfigId: string | number | undefined
 ): Promise<GrapherInterface> => {
-    const chart = await getChartConfigById(knex, expectInt(chartId))
+    const chartId = await expectChartId(knex, chartIdOrConfigId)
+    const chart = await getChartConfigById(knex, chartId)
     if (chart) return chart.config
 
-    throw new JsonError(`No chart found for id ${chartId}`, 404)
+    throw new JsonError(`No chart found for id ${chartIdOrConfigId}`, 404)
 }
 
 const expectPatchConfigByChartId = async (
     knex: db.KnexReadonlyTransaction,
-    chartId: any
+    chartId: number
 ): Promise<GrapherInterface> => {
-    const patchConfig = await getPatchConfigByChartId(knex, expectInt(chartId))
+    const patchConfig = await getPatchConfigByChartId(knex, chartId)
     if (!patchConfig) {
         throw new JsonError(`No chart found for id ${chartId}`, 404)
     }
@@ -234,17 +305,39 @@ const saveNewChart = async (
         forceDatapage = false,
         // new charts inherit by default
         shouldInherit = true,
+        chartConfigId: rawProvidedChartConfigId,
     }: {
         config: GrapherInterface
         user: DbPlainUser
         forceDatapage?: boolean
         shouldInherit?: boolean
+        // callers may supply the new chart's config UUID (e.g. the ETL, which
+        // generates the chart's identity client-side); otherwise one is generated
+        chartConfigId?: string
     }
 ): Promise<{
     chartConfigId: string
     patchConfig: GrapherInterface
     fullConfig: GrapherInterface
 }> => {
+    const providedChartConfigId =
+        rawProvidedChartConfigId === undefined
+            ? undefined
+            : normalizeChartConfigId(rawProvidedChartConfigId)
+
+    if (providedChartConfigId !== undefined) {
+        const existingRow = await db.knexRawFirst<Pick<DbRawChartConfig, "id">>(
+            knex,
+            `SELECT id FROM chart_configs WHERE id = ?`,
+            [providedChartConfigId]
+        )
+        if (existingRow)
+            throw new JsonError(
+                `A chart config with id ${providedChartConfigId} already exists`,
+                409
+            )
+    }
+
     // grab the parent of the chart if inheritance should be enabled
     const parent = shouldInherit
         ? await getParentByChartConfig(knex, config)
@@ -257,10 +350,16 @@ const saveNewChart = async (
     const now = new Date()
 
     // Insert without publishing to R2 yet, because we need to update the chart
-    // id in the config after inserting it.
+    // id in the config after inserting it. The caller-supplied UUID (if any)
+    // becomes the id of the rendered config's row (`charts.configId`) — the
+    // chart's stable external identity — never the patch row's.
     const { chartConfigId, patchConfigId } = await insertChartConfigPair(
         knex,
-        { config: fullConfig, patchConfig },
+        {
+            config: fullConfig,
+            patchConfig,
+            chartConfigId: providedChartConfigId,
+        },
         now
     )
 
@@ -333,25 +432,59 @@ const updateExistingChart = async (
     // make sure that the id of the incoming config matches the chart id
     config.id = chartId
 
-    // if inheritance is enabled, grab the parent from its config
     const shouldInherit =
         params.shouldInherit ??
         (await isInheritanceEnabledForChart(knex, chartId))
-    const parent = shouldInherit
-        ? await getParentByChartConfig(knex, config)
-        : undefined
-
-    // compute patch and full configs
-    const patchConfig = diffGrapherConfigs(config, parent?.config ?? {})
-    const fullConfig = mergeGrapherConfigs(parent?.config ?? {}, patchConfig)
 
     const chartRow = await db.knexRawFirst<
-        Pick<DbPlainChart, "configId" | "patchConfigId">
-    >(knex, `SELECT configId, patchConfigId FROM charts WHERE id = ?`, [
-        chartId,
-    ])
+        Pick<DbPlainChart, "configId" | "patchConfigId"> & {
+            etlConfig: string | null
+        }
+    >(
+        knex,
+        `-- sql
+            SELECT
+                c.configId,
+                c.patchConfigId,
+                cc_etl.config AS etlConfig
+            FROM charts c
+            LEFT JOIN chart_configs cc_etl ON cc_etl.id = c.patchConfigIdETL
+            WHERE c.id = ?
+        `,
+        [chartId]
+    )
 
     if (!chartRow) throw new JsonError(`No chart found for id ${chartId}`, 404)
+
+    const etlConfig = chartRow.etlConfig
+        ? parseChartConfig(chartRow.etlConfig)
+        : {}
+
+    // Look up the chart's parent indicator (only if inheritance is enabled),
+    // resolving it from the dimensions the chart will plot *after* this save:
+    // the incoming admin config's if it has any, else the chart's etlConfig's.
+    // An ETL-managed chart's admin config legitimately carries no `dimensions`
+    // — they're inherited from the ETL layer — and resolving from `config`
+    // alone would then find no parent and silently drop the indicator's
+    // inherited fields (title, subtitle, map settings, ...). There is no
+    // further fallback: `dimensions` only ever come from one of these two
+    // layers (indicator-level configs never carry them), so an admin config
+    // that drops them on a chart with no ETL layer is a deliberate choice to
+    // stop inheriting from an indicator altogether.
+    const parent = shouldInherit
+        ? await getParentByChartConfig(knex, {
+              dimensions: config.dimensions ?? etlConfig.dimensions,
+              chartTypes: config.chartTypes ?? etlConfig.chartTypes,
+          })
+        : undefined
+
+    // compute patch and full configs.
+    // The "parent stack" against which we diff is the indicator's grapher
+    // config plus the chart's own etlConfig (if any). Patch only carries
+    // admin-authored overrides on top of that stack.
+    const parentStack = mergeGrapherConfigs(parent?.config ?? {}, etlConfig)
+    const patchConfig = diffGrapherConfigs(config, parentStack)
+    const fullConfig = mergeGrapherConfigs(parentStack, patchConfig)
 
     const now = new Date()
 
@@ -391,6 +524,7 @@ export const saveGrapher = async (
         existingConfig,
         forceDatapage,
         shouldInherit,
+        chartConfigId: providedChartConfigId,
     }: {
         user: DbPlainUser
         newConfig: GrapherInterface
@@ -399,6 +533,7 @@ export const saveGrapher = async (
         // if undefined, keep inheritance as is.
         // if true or false, enable or disable inheritance
         shouldInherit?: boolean
+        chartConfigId?: string
     }
 ) => {
     // Try to migrate the new config to the latest version
@@ -474,6 +609,7 @@ export const saveGrapher = async (
             user,
             forceDatapage,
             shouldInherit,
+            chartConfigId: providedChartConfigId,
         })
         chartConfigId = configs.chartConfigId
         patchConfig = configs.patchConfig
@@ -481,25 +617,10 @@ export const saveGrapher = async (
         chartId = fullConfig.id!
     }
 
+    const now = new Date()
+
     // Record this change in version history
-    const chartRevisionLog = {
-        chartId: chartId,
-        userId: user.id,
-        config: serializeChartConfig(patchConfig),
-        createdAt: new Date(),
-        updatedAt: new Date(),
-    } satisfies DbInsertChartRevision
-    await db.knexRaw(
-        knex,
-        `INSERT INTO chart_revisions (chartId, userId, config, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?)`,
-        [
-            chartRevisionLog.chartId,
-            chartRevisionLog.userId,
-            chartRevisionLog.config,
-            chartRevisionLog.createdAt,
-            chartRevisionLog.updatedAt,
-        ]
-    )
+    await insertChartRevision(knex, chartId, user.id, patchConfig, now)
 
     // Remove any old dimensions and store the new ones
     // We only note that a relationship exists between the chart and variable in the database; the actual dimension configuration is left to the json
@@ -531,7 +652,7 @@ export const saveGrapher = async (
         await db.knexRaw(
             knex,
             `UPDATE charts SET publishedAt=?, publishedByUserId=? WHERE id = ? `,
-            [new Date(), user.id, chartId]
+            [now, user.id, chartId]
         )
         await triggerStaticBuild(user, `Publishing chart ${fullConfig.slug}`)
     } else if (
@@ -602,16 +723,35 @@ export async function getChartParentJson(
     res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
-    const chartId = expectInt(req.params.chartId)
+    const chartId = await expectChartId(trx, req.params.chartId)
     const parent = await getParentByChartId(trx, chartId)
     const isInheritanceEnabled = await isInheritanceEnabledForChart(
         trx,
         chartId
     )
+
+    // Return the two layers above the admin's patch separately, so the
+    // editor on the client can merge them with awareness of which fields
+    // come from which layer:
+    //   - `variableConfig`: the indicator's config (variables.patchConfigIdETL).
+    //     Only applied to the chart when `isInheritanceEnabled` is true.
+    //   - `etlConfig`: the chart's own ETL-authored config — a separate
+    //     chart_configs row reached via charts.patchConfigIdETL.
+    //     Always applied, independent of indicator inheritance.
+    const etlConfigRow = await db.knexRawFirst<{ etlConfig: string | null }>(
+        trx,
+        `SELECT cc_etl.config AS etlConfig FROM charts c LEFT JOIN chart_configs cc_etl ON cc_etl.id = c.patchConfigIdETL WHERE c.id = ?`,
+        [chartId]
+    )
+    const etlConfig = etlConfigRow?.etlConfig
+        ? parseChartConfig(etlConfigRow.etlConfig)
+        : undefined
+
     return omitUndefinedValues({
         variableId: parent?.variableId,
-        config: parent?.config,
-        isActive: isInheritanceEnabled,
+        variableConfig: parent?.config,
+        etlConfig,
+        isInheritanceEnabled,
     })
 }
 
@@ -620,7 +760,7 @@ export async function getChartSettingsJson(
     res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
-    const chartId = expectInt(req.params.chartId)
+    const chartId = await expectChartId(trx, req.params.chartId)
     const forceDatapage = await getForceDatapageByChartId(trx, chartId)
     return { forceDatapage }
 }
@@ -630,7 +770,7 @@ export async function getChartPatchConfigJson(
     res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
-    const chartId = expectInt(req.params.chartId)
+    const chartId = await expectChartId(trx, req.params.chartId)
     const config = await expectPatchConfigByChartId(trx, chartId)
     return config
 }
@@ -641,7 +781,10 @@ export async function getChartLogsJson(
     trx: db.KnexReadonlyTransaction
 ) {
     return {
-        logs: await getLogsByChartId(trx, parseInt(req.params.chartId)),
+        logs: await getLogsByChartId(
+            trx,
+            await expectChartId(trx, req.params.chartId)
+        ),
     }
 }
 
@@ -652,7 +795,7 @@ export async function getChartReferencesJson(
 ) {
     const references = {
         references: await getReferencesByChartId(
-            parseInt(req.params.chartId),
+            await expectChartId(trx, req.params.chartId),
             trx
         ),
     }
@@ -667,7 +810,7 @@ export async function getChartRedirectsJson(
     return {
         redirects: await getRedirectsByChartId(
             trx,
-            parseInt(req.params.chartId)
+            await expectChartId(trx, req.params.chartId)
         ),
     }
 }
@@ -677,7 +820,10 @@ export async function getChartViewsJson(
     res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
-    const slug = await getChartSlugById(trx, parseInt(req.params.chartId))
+    const slug = await getChartSlugById(
+        trx,
+        await expectChartId(trx, req.params.chartId)
+    )
     if (!slug) return {}
 
     const viewsBySlug = await db.knexRawFirst<
@@ -728,7 +874,7 @@ export async function getChartTagsJson(
     res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
-    const chartId = expectInt(req.params.chartId)
+    const chartId = await expectChartId(trx, req.params.chartId)
     const chartTags = await db.knexRaw<DbChartTagJoin>(
         trx,
         `-- sql
@@ -756,6 +902,13 @@ export async function createChart(
     if (req.query.forceDatapage) {
         forceDatapage = req.query.forceDatapage === "true"
     }
+    // optional caller-supplied config UUID, e.g. chart-sync carrying a chart's
+    // identity from staging to production
+    const rawChartConfigId = req.query.configId as string | undefined
+    const chartConfigId =
+        rawChartConfigId === undefined
+            ? undefined
+            : normalizeChartConfigId(rawChartConfigId)
 
     try {
         const { chartId } = await saveGrapher(trx, {
@@ -763,11 +916,18 @@ export async function createChart(
             newConfig: req.body,
             forceDatapage,
             shouldInherit,
+            chartConfigId,
         })
 
         return { success: true, chartId: chartId }
     } catch (err) {
-        return { success: false, error: { message: String(err), status: 500 } }
+        return {
+            success: false,
+            error: {
+                message: String(err),
+                status: err instanceof JsonError ? err.status : 500,
+            },
+        }
     }
 }
 
@@ -776,7 +936,7 @@ export async function setChartTagsHandler(
     res: HandlerResponse,
     trx: db.KnexReadWriteTransaction
 ) {
-    const chartId = expectInt(req.params.chartId)
+    const chartId = await expectChartId(trx, req.params.chartId)
 
     await setChartTags(trx, chartId, req.body.tags, res.locals.user.id)
 
@@ -823,6 +983,550 @@ export async function updateChart(
     }
 }
 
+/**
+ * Refresh `chart_dimensions` and the chart's grapher_config in R2 (both the
+ * UUID-keyed object and, if published, the slug-keyed object).
+ */
+async function refreshChartDimensionsAndR2(
+    trx: db.KnexReadWriteTransaction,
+    chartId: number,
+    chartConfigId: string,
+    fullConfig: GrapherInterface
+): Promise<void> {
+    await db.knexRaw(trx, `DELETE FROM chart_dimensions WHERE chartId = ?`, [
+        chartId,
+    ])
+    const dimensions = fullConfig.dimensions ?? []
+    for (const [i, dim] of dimensions.entries()) {
+        await db.knexRaw(
+            trx,
+            `INSERT INTO chart_dimensions (chartId, variableId, property, \`order\`) VALUES (?, ?, ?, ?)`,
+            [chartId, dim.variableId, dim.property, i]
+        )
+    }
+    await retrieveChartConfigFromDbAndSaveToR2(trx, chartConfigId)
+    if (fullConfig.isPublished && fullConfig.slug) {
+        await retrieveChartConfigFromDbAndSaveToR2(trx, chartConfigId, {
+            directory: R2GrapherConfigDirectory.publishedGrapherBySlug,
+            filename: `${fullConfig.slug}.json`,
+        })
+    }
+}
+
+async function insertChartRevision(
+    trx: db.KnexReadWriteTransaction,
+    chartId: number,
+    userId: number,
+    patchConfig: GrapherInterface,
+    now: Date
+): Promise<void> {
+    const chartRevisionLog = {
+        chartId,
+        userId,
+        config: serializeChartConfig(patchConfig),
+        createdAt: now,
+        updatedAt: now,
+    } satisfies DbInsertChartRevision
+    await db.knexRaw(
+        trx,
+        `INSERT INTO chart_revisions (chartId, userId, config, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?)`,
+        [
+            chartRevisionLog.chartId,
+            chartRevisionLog.userId,
+            chartRevisionLog.config,
+            chartRevisionLog.createdAt,
+            chartRevisionLog.updatedAt,
+        ]
+    )
+}
+
+async function assertCatalogPathAvailable(
+    trx: db.KnexReadonlyTransaction,
+    catalogPath: string | null,
+    chartId?: number
+): Promise<void> {
+    if (!catalogPath) return
+
+    const conflictingChart = await db.knexRawFirst<Pick<DbPlainChart, "id">>(
+        trx,
+        `-- sql
+            SELECT id
+            FROM charts
+            WHERE etlConfigCatalogPath = ?
+            ${chartId === undefined ? "" : "AND id != ?"}
+        `,
+        chartId === undefined ? [catalogPath] : [catalogPath, chartId]
+    )
+    if (!conflictingChart) return
+
+    const newOwner = chartId === undefined ? "a new chart" : `chart ${chartId}`
+    throw new JsonError(
+        `Catalog path '${catalogPath}' is already used by chart ${conflictingChart.id}; ` +
+            `refusing to assign it to ${newOwner} too.`,
+        409
+    )
+}
+
+/**
+ * Inserts or updates a chart's ETL-authored grapher config, addressed by the
+ * chart's config UUID (`charts.configId`) — the chart's stable identity — and
+ * with upsert semantics: if no chart with the given config UUID exists yet, a
+ * minimal draft chart is created that carries the caller-supplied UUID as its
+ * identity, and the ETL config layer is attached to it.
+ *
+ * The ETL-authored config lives in its own `chart_configs` row, reached via
+ * `charts.patchConfigIdETL`. It's a layer between the indicator's config
+ * (`variables.patchConfigIdETL`) and the chart's admin-authored patch
+ * (`charts.patchConfigId`). ETL writes only to its own row; admin writes only
+ * to the patch row. The rendered config (`charts.configId`) is
+ * `merge(indicator config, etlConfig, patch)`.
+ *
+ * On each call the existing patch is re-diffed against the new parent stack, so
+ * redundant patch entries are stripped and future ETL changes to those fields
+ * propagate instead of being masked. The new chart's admin patch starts out (almost) empty, so the ETL
+ * layer owns all rendered fields from birth and only genuine admin edits ever
+ * end up in the patch. The one exception is `slug`: identity/publishing keys
+ * are deliberately excluded from inheritance, so the slug is copied into the
+ * patch at creation (matching admin-created charts). Created charts are
+ * drafts — publishing stays an admin act via the regular chart API.
+ */
+export async function upsertEtlConfigByChartConfigId(
+    req: Request,
+    res: HandlerResponse,
+    trx: db.KnexReadWriteTransaction
+) {
+    const chartConfigId = normalizeChartConfigId(req.params.chartConfigId)
+
+    const catalogPath = (req.query.catalogPath as string | undefined) ?? null
+    if (catalogPath !== null && !isValidCatalogPath(catalogPath)) {
+        throw new JsonError(`Invalid chart catalog path ${catalogPath}`)
+    }
+
+    let etlConfig: GrapherInterface
+    try {
+        etlConfig = migrateGrapherConfigToLatestVersionAndFailOnError(req.body)
+    } catch (err) {
+        return { success: false, error: String(err) }
+    }
+
+    const existingChartId = await getChartIdByConfigId(trx, chartConfigId)
+    const created = existingChartId === undefined
+
+    // Check before creating a chart because saveGrapher uploads the initial
+    // rendered config to R2. A later catalog-path conflict would roll back the
+    // database transaction but leave that external object behind.
+    if (created) {
+        await assertCatalogPathAvailable(trx, catalogPath)
+    }
+
+    const chartId =
+        existingChartId ??
+        (
+            await saveGrapher(trx, {
+                user: res.locals.user,
+                newConfig: {
+                    $schema: defaultGrapherConfig.$schema,
+                    slug: etlConfig.slug,
+                },
+                chartConfigId,
+            })
+        ).chartId
+
+    const result = await upsertEtlConfigForChart(
+        trx,
+        res.locals.user,
+        chartId,
+        etlConfig,
+        catalogPath
+    )
+    return { ...result, chartId, created }
+}
+
+async function upsertEtlConfigForChart(
+    trx: db.KnexReadWriteTransaction,
+    user: DbPlainUser,
+    chartId: number,
+    etlConfig: GrapherInterface,
+    catalogPath: string | null
+) {
+    const row = await db.knexRawFirst<
+        Pick<
+            DbPlainChart,
+            | "configId"
+            | "patchConfigId"
+            | "patchConfigIdETL"
+            | "isInheritanceEnabled"
+            | "etlConfigCatalogPath"
+        > & { patch: string; full: string }
+    >(
+        trx,
+        `-- sql
+            SELECT
+                c.configId,
+                c.patchConfigId,
+                c.patchConfigIdETL,
+                c.isInheritanceEnabled,
+                c.etlConfigCatalogPath,
+                cc_patch.config AS patch,
+                cc.config AS full
+            FROM charts c
+            JOIN chart_configs cc ON cc.id = c.configId
+            JOIN chart_configs cc_patch ON cc_patch.id = c.patchConfigId
+            WHERE c.id = ?
+        `,
+        [chartId]
+    )
+
+    if (!row) {
+        throw new JsonError(`Chart with id ${chartId} not found`, 404)
+    }
+
+    // A chart's identity is its config UUID, which never changes.
+    // `etlConfigCatalogPath` records which ETL step currently owns the chart,
+    // and that can legitimately
+    // change — a step gets renamed or moved — so a push carrying a different
+    // path than we've recorded simply updates it. It stays useful to the ETL as
+    // a sanity check on whether a chart has already been adopted, not as an
+    // identifier to resolve charts by.
+    //
+    // The one thing still worth refusing is handing a path to a second chart:
+    // `charts.etlConfigCatalogPath` has a unique index, and checking turns a raw
+    // duplicate-key failure into a clear error before any other writes happen.
+    if (row.etlConfigCatalogPath !== catalogPath) {
+        await assertCatalogPathAvailable(trx, catalogPath, chartId)
+    }
+
+    const existingPatch = parseChartConfig(row.patch)
+    const existingFull = parseChartConfig(row.full)
+
+    // Look up the chart's parent indicator (only if inheritance is enabled),
+    // resolving it from the dimensions the chart will plot *after* this push:
+    // the admin's override if the patch carries one (patch is the top merge
+    // layer, so it wins), else the incoming ETL config's. Resolving from the
+    // pre-push config would, on a dataset re-version, leave the chart
+    // inheriting the old indicator's fields (title, subtitle, note) while
+    // plotting the new one — and nothing later recomputes it. These are the
+    // only two layers that can supply `dimensions` (indicator-level configs
+    // never carry them), so there is nothing further to fall back to.
+    const parent = row.isInheritanceEnabled
+        ? await getParentByChartConfig(trx, {
+              dimensions: existingPatch.dimensions ?? etlConfig.dimensions,
+              chartTypes: existingPatch.chartTypes ?? etlConfig.chartTypes,
+          })
+        : undefined
+
+    const newParentStack = mergeGrapherConfigs(parent?.config ?? {}, etlConfig)
+
+    // Recompute the admin patch against the new parent stack: fields that the
+    // ETL layer has adopted fall through and stop being pinned in the patch,
+    // and only genuine admin overrides survive.
+    const newPatch = diffGrapherConfigs(existingPatch, newParentStack)
+
+    // Does this push actually change the rendered chart? Compare the recomputed
+    // full config against the stored one, ignoring `version`/`id` (which always
+    // differ). If nothing changed, we skip the version bump, the revision, the
+    // R2 re-upload and the static build — so a no-op re-push (e.g. `--force`, a
+    // routine data refresh, or a bulk ETL run) doesn't churn the chart's history.
+    const recomputedFull = mergeGrapherConfigs(newParentStack, newPatch)
+    const fullChanged = !_.isEqual(
+        _.omit(recomputedFull, ["version", "id"]),
+        _.omit(existingFull, ["version", "id"])
+    )
+
+    const now = new Date()
+
+    // Always keep the ETL-authored config in its own chart_configs row (reached
+    // via charts.patchConfigIdETL), so the stored layers stay accurate. This
+    // row is an authored layer — never uploaded to R2; only the chart's
+    // rendered config (charts.configId) is served.
+    if (row.patchConfigIdETL) {
+        await updateChartConfig(trx, {
+            configId: row.patchConfigIdETL,
+            config: etlConfig,
+            updatedAt: now,
+        })
+    } else {
+        const etlConfigId = await insertChartConfig(trx, {
+            config: etlConfig,
+            createdAt: now,
+            updatedAt: now,
+        })
+        await db.knexRaw(
+            trx,
+            `-- sql
+                UPDATE charts
+                SET
+                    patchConfigIdETL = ?,
+                    etlConfigCatalogPath = COALESCE(?, etlConfigCatalogPath),
+                    updatedAt = ?
+                WHERE id = ?
+            `,
+            [etlConfigId, catalogPath, now, chartId]
+        )
+    }
+
+    // Nothing the reader sees changed → don't bump `version`, write a revision,
+    // re-upload to R2, or rebuild. But two things may still need persisting,
+    // neither of which affects the rendered chart:
+    //   - The rediffed patch. An ETL push can move a field out of the admin
+    //     patch into the ETL layer (e.g. ETL adopting a `title` that was an
+    //     admin override): `full` is identical, but if we don't store the
+    //     reduced patch, that stale entry would mask future ETL updates to a
+    //     field ETL now owns.
+    //   - A new or changed catalog path, which still needs writing onto a
+    //     chart that already has a `patchConfigIdETL` (the
+    //     `etlConfigCatalogPath` writes below this point would otherwise be
+    //     skipped).
+    if (!fullChanged) {
+        const patchChanged = !_.isEqual(newPatch, existingPatch)
+        // Compare the incoming path against the stored one rather than just
+        // testing for its presence: the ETL sends `catalogPath` on every push,
+        // so `catalogPath` alone is always truthy and would make us write —
+        // and move `charts.updatedAt` — on every no-op re-push. chart-diff
+        // reads `charts.updatedAt` to decide whether a chart was edited in
+        // production after a staging server was created, so that churn shows
+        // up there as conflicts nobody caused.
+        const catalogPathChanged =
+            catalogPath !== null && catalogPath !== row.etlConfigCatalogPath
+        if (patchChanged || catalogPathChanged) {
+            await db.knexRaw(
+                trx,
+                `-- sql
+                    UPDATE chart_configs cc
+                    JOIN charts c ON c.patchConfigId = cc.id
+                    SET
+                        cc.config = ?,
+                        cc.updatedAt = ?,
+                        c.etlConfigCatalogPath = COALESCE(
+                            ?, c.etlConfigCatalogPath
+                        ),
+                        c.updatedAt = ?
+                    WHERE c.id = ?
+                `,
+                [serializeChartConfig(newPatch), now, catalogPath, now, chartId]
+            )
+        }
+        return { success: true, etlConfig, patch: newPatch }
+    }
+
+    // The rendered chart changed — record it: bump version, rewrite the main
+    // config row, log a revision, refresh R2, and trigger a build if published.
+    const newVersion = (existingFull.version ?? 0) + 1
+    newPatch.version = newVersion
+    const newFullConfig: GrapherInterface = {
+        ...recomputedFull,
+        id: chartId,
+        version: newVersion,
+    }
+
+    await db.knexRaw(
+        trx,
+        `-- sql
+            UPDATE chart_configs cc
+            JOIN charts c ON c.configId = cc.id
+            JOIN chart_configs cc_patch ON cc_patch.id = c.patchConfigId
+            SET
+                cc_patch.config = ?,
+                cc_patch.updatedAt = ?,
+                cc.config = ?,
+                cc.updatedAt = ?,
+                c.updatedAt = ?,
+                c.lastEditedAt = ?,
+                c.lastEditedByUserId = ?,
+                c.etlConfigCatalogPath = COALESCE(?, c.etlConfigCatalogPath)
+            WHERE c.id = ?
+        `,
+        [
+            serializeChartConfig(newPatch),
+            now,
+            serializeChartConfig(newFullConfig),
+            now,
+            now,
+            now,
+            user.id,
+            catalogPath,
+            chartId,
+        ]
+    )
+
+    await insertChartRevision(trx, chartId, user.id, newPatch, now)
+
+    await refreshChartDimensionsAndR2(trx, chartId, row.configId, newFullConfig)
+
+    if (newFullConfig.isPublished) {
+        await triggerStaticBuild(
+            user,
+            `Updating ETL config for chart ${chartId}`
+        )
+    }
+
+    await enqueueExplorerRefreshJobsForDependencies(trx, {
+        chartIds: [chartId],
+    })
+
+    return { success: true, etlConfig, patch: newPatch }
+}
+
+/**
+ * Detaches the chart from ETL: clears its ETL-authored grapher config.
+ *
+ * Detaching is render-neutral. The chart's current rendered config is
+ * re-diffed against the remaining parent (the indicator's config, if
+ * inheritance is on) and stored as the new patch: fields matching the
+ * indicator's config stay inherited, everything else — in particular the
+ * grapher `dimensions`, which an ETL-managed chart's patch inherits from the
+ * ETL layer rather than carrying itself — becomes a regular admin override.
+ * Rebuilding from the leftover layers instead would silently drop those
+ * dimensions and blank the chart.
+ */
+export async function deleteChartsChartIdEtlConfig(
+    req: Request,
+    res: HandlerResponse,
+    trx: db.KnexReadWriteTransaction
+) {
+    const chartId = await expectChartId(trx, req.params.chartId)
+
+    const row = await db.knexRawFirst<
+        Pick<
+            DbPlainChart,
+            | "configId"
+            | "patchConfigId"
+            | "patchConfigIdETL"
+            | "isInheritanceEnabled"
+        > & { patch: string; full: string }
+    >(
+        trx,
+        `-- sql
+            SELECT
+                c.configId,
+                c.patchConfigId,
+                c.patchConfigIdETL,
+                c.isInheritanceEnabled,
+                cc_patch.config AS patch,
+                cc.config AS full
+            FROM charts c
+            JOIN chart_configs cc ON cc.id = c.configId
+            JOIN chart_configs cc_patch ON cc_patch.id = c.patchConfigId
+            WHERE c.id = ?
+        `,
+        [chartId]
+    )
+
+    if (!row) {
+        throw new JsonError(`Chart with id ${chartId} not found`, 404)
+    }
+
+    // no-op if the chart doesn't have an ETL config
+    if (!row.patchConfigIdETL) return { success: true }
+
+    const existingPatch = parseChartConfig(row.patch)
+    const existingFull = parseChartConfig(row.full)
+
+    const parent = row.isInheritanceEnabled
+        ? await getParentByChartConfig(trx, existingFull)
+        : undefined
+
+    const newParentStack = parent?.config ?? {}
+
+    // Re-diff the chart's current rendered config (not its patch) against the
+    // remaining parent, so the departing ETL layer's contributions move into
+    // the patch instead of vanishing. See the function docstring.
+    const newPatch = diffGrapherConfigs(existingFull, newParentStack)
+
+    const recomputedFull = mergeGrapherConfigs(newParentStack, newPatch)
+    const fullChanged = !_.isEqual(
+        _.omit(recomputedFull, ["version", "id"]),
+        _.omit(existingFull, ["version", "id"])
+    )
+
+    const now = new Date()
+
+    // Always remove the ETL layer: clear the pointer first, then delete the
+    // now-orphaned ETL config row (the FK is ON DELETE RESTRICT, so the pointer
+    // has to go first).
+    const etlConfigId = row.patchConfigIdETL
+    await db.knexRaw(
+        trx,
+        `UPDATE charts SET patchConfigIdETL = NULL, etlConfigCatalogPath = NULL, updatedAt = ? WHERE id = ?`,
+        [now, chartId]
+    )
+    await db.knexRaw(trx, `DELETE FROM chart_configs WHERE id = ?`, [
+        etlConfigId,
+    ])
+
+    // A render-neutral detach is the normal case → no version bump, revision,
+    // R2 re-upload or rebuild. But the patch must still be persisted: it just
+    // absorbed the departed ETL layer's fields (notably the grapher
+    // `dimensions`), and without it the chart would lose them on its next
+    // recompute.
+    if (!fullChanged) {
+        if (!_.isEqual(newPatch, existingPatch)) {
+            await db.knexRaw(
+                trx,
+                `-- sql
+                    UPDATE chart_configs cc
+                    JOIN charts c ON c.patchConfigId = cc.id
+                    SET cc.config = ?, cc.updatedAt = ?, c.updatedAt = ?
+                    WHERE c.id = ?
+                `,
+                [serializeChartConfig(newPatch), now, now, chartId]
+            )
+        }
+        return { success: true, patch: newPatch }
+    }
+
+    const newVersion = (existingFull.version ?? 0) + 1
+    newPatch.version = newVersion
+    const newFullConfig: GrapherInterface = {
+        ...recomputedFull,
+        id: chartId,
+        version: newVersion,
+    }
+
+    // Update the chart's rendered and patch config rows with the recomputed
+    // full/patch.
+    await db.knexRaw(
+        trx,
+        `-- sql
+            UPDATE chart_configs cc
+            JOIN charts c ON c.configId = cc.id
+            JOIN chart_configs cc_patch ON cc_patch.id = c.patchConfigId
+            SET
+                cc_patch.config = ?,
+                cc_patch.updatedAt = ?,
+                cc.config = ?,
+                cc.updatedAt = ?,
+                c.updatedAt = ?,
+                c.lastEditedAt = ?,
+                c.lastEditedByUserId = ?
+            WHERE c.id = ?
+        `,
+        [
+            serializeChartConfig(newPatch),
+            now,
+            serializeChartConfig(newFullConfig),
+            now,
+            now,
+            now,
+            res.locals.user.id,
+            chartId,
+        ]
+    )
+
+    await insertChartRevision(trx, chartId, res.locals.user.id, newPatch, now)
+
+    await refreshChartDimensionsAndR2(trx, chartId, row.configId, newFullConfig)
+
+    if (newFullConfig.isPublished) {
+        await triggerStaticBuild(
+            res.locals.user,
+            `Clearing ETL config for chart ${chartId}`
+        )
+    }
+
+    return { success: true, patch: newPatch }
+}
+
 export async function deleteChart(
     req: Request,
     res: HandlerResponse,
@@ -849,15 +1553,25 @@ export async function deleteChart(
     ])
 
     const chartRow = await db.knexRawFirst<
-        Pick<DbPlainChart, "configId" | "patchConfigId">
-    >(trx, `SELECT configId, patchConfigId FROM charts WHERE id = ?`, [
-        chart.id,
-    ])
+        Pick<DbPlainChart, "configId" | "patchConfigId" | "patchConfigIdETL">
+    >(
+        trx,
+        `SELECT configId, patchConfigId, patchConfigIdETL FROM charts WHERE id = ?`,
+        [chart.id]
+    )
     if (!chartRow)
         throw new JsonError(`No chart config found for id ${chart.id}`, 404)
 
+    // Delete the chart first (the referencing side of all three config FKs),
+    // then its config rows. The ETL config row, if any, is the chart's own and
+    // isn't shared, so it's safe to drop.
     await db.knexRaw(trx, `DELETE FROM charts WHERE id=?`, [chart.id])
     await deleteChartConfigPairFromDbAndR2(trx, chartRow)
+    if (chartRow.patchConfigIdETL) {
+        await db.knexRaw(trx, `DELETE FROM chart_configs WHERE id=?`, [
+            chartRow.patchConfigIdETL,
+        ])
+    }
 
     if (chart.isPublished) {
         await triggerStaticBuild(
@@ -882,7 +1596,7 @@ export async function getChartRecordsJson(
     _res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
-    const chartId = expectInt(req.params.chartId)
+    const chartId = await expectChartId(trx, req.params.chartId)
     const records = await getChartsRecords(trx, { chartIds: [chartId] })
     return { records }
 }

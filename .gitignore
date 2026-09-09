@@ -80,3 +80,10 @@ typesense-data/
 
 .toolbox/
 .pi/
+
+# Package docs site (packageDocs/) — generated content and build output
+packageDocs/docs/api/reference/
+packageDocs/docs/schema-reference/
+packageDocs/site/
+packageDocs/.venv/
+packageDocs/.cache/
