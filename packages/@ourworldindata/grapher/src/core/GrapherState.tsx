@@ -2996,6 +2996,10 @@ export class GrapherState
         return this.chartType === GRAPHER_CHART_TYPES.Dumbbell
     }
 
+    @computed get isSwimlane(): boolean {
+        return this.chartType === GRAPHER_CHART_TYPES.Swimlane
+    }
+
     @computed get isOnLineChartTab(): boolean {
         return this.activeChartType === GRAPHER_CHART_TYPES.LineChart
     }
@@ -3026,6 +3030,10 @@ export class GrapherState
 
     @computed get isOnStackedDiscreteBarTab(): boolean {
         return this.activeChartType === GRAPHER_CHART_TYPES.StackedDiscreteBar
+    }
+
+    @computed get isOnSwimlaneTab(): boolean {
+        return this.activeChartType === GRAPHER_CHART_TYPES.Swimlane
     }
 
     @computed get isOnDumbbellTab(): boolean {
@@ -3072,6 +3080,10 @@ export class GrapherState
 
     @computed get hasDumbbellChart(): boolean {
         return this.validChartTypeSet.has(GRAPHER_CHART_TYPES.Dumbbell)
+    }
+
+    @computed get hasSwimlane(): boolean {
+        return this.validChartTypeSet.has(GRAPHER_CHART_TYPES.Swimlane)
     }
 
     @computed get supportsMultipleYColumns(): boolean {

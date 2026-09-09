@@ -102,6 +102,10 @@ const VIEW_MATRIX_BY_CHART_TYPE: Record<GrapherChartType, ViewMatrix> = {
         yScale: scaleTypeOptions,
         focus: focusOptions,
     },
+    [GRAPHER_CHART_TYPES.Swimlane]: {
+        tab: ["chart"],
+        time: timeSpan,
+    },
 }
 
 // The above view matrix is used to generate all possible combinations of query params
@@ -200,6 +204,7 @@ const EXCLUDE_VIEWS_BY_CHART_TYPE: Record<
         // Test focus mode only in the default view
         { focus: "<firstSeries>", yScale: ScaleType.log },
     ],
+    [GRAPHER_CHART_TYPES.Swimlane]: [],
 }
 
 export const queryStringsByChartType = Object.fromEntries(

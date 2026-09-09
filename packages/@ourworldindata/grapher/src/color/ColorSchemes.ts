@@ -97,6 +97,13 @@ function getPreferredSchemesByType(
                 ColorSchemeName.BinaryMapPaletteE,
                 ColorSchemeName.OwidCategoricalMap,
             ])
+            .with(GRAPHER_CHART_TYPES.Swimlane, () => [
+                ColorSchemeName.OwidCategoricalA,
+                ColorSchemeName.OwidCategoricalB,
+                ColorSchemeName.OwidCategoricalC,
+                ColorSchemeName.OwidCategoricalD,
+                ColorSchemeName.OwidCategoricalE,
+            ])
             // Dumbbell charts don't support color schemes
             .with(GRAPHER_CHART_TYPES.Dumbbell, () => [])
             .exhaustive()
