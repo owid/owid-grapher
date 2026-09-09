@@ -44,7 +44,7 @@ import {
 } from "./LineChartHelpers"
 import {
     HorizontalAxisComponent,
-    VerticalAxisDomainLine,
+    HorizontalAxisDomainLine,
     VerticalAxisZeroLine,
 } from "../axis/AxisViews"
 import { InitialAnchoredLabelSeries } from "../anchoredLabels/AnchoredLabelsTypes"
@@ -752,8 +752,7 @@ export class LineChartThumbnail
                     // The domain line is the baseline at the bottom of the plot.
                     // When the zero line is shown it already serves as a baseline,
                     // so we only draw the domain line in its absence
-                    <VerticalAxisDomainLine
-                        verticalAxis={this.dualAxis.verticalAxis}
+                    <HorizontalAxisDomainLine
                         bounds={this.dualAxis.innerBounds}
                         strokeWidth={0.5}
                     />
