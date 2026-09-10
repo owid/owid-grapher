@@ -71,6 +71,11 @@ interface ExpandableSectionProps {
     // See IndicatorMetadataBox: toggles caused by programmatically switching
     // indicators shouldn't be logged as user expands/collapses.
     suppressToggleLogUntilRef?: React.RefObject<number>
+    // Multi-indicator pages: cite the page by the chart title and drop the
+    // long citation's single-indicator "[dataset]" line (the page shows many
+    // indicators, so naming one of them misleads).
+    datapageCitationTitle?: string
+    omitLongDatasetTitle?: boolean
 }
 
 const FAQS_SECTION_ID = "faqs"
@@ -118,6 +123,8 @@ function ExpandableSection({
     sourcesSectionId,
     processingContentId,
     suppressToggleLogUntilRef,
+    datapageCitationTitle,
+    omitLongDatasetTitle,
 }: ExpandableSectionProps) {
     const { origins, source } = datapageData
     const sourcesForDisplay = prepareSourcesForDisplay({
@@ -141,6 +148,8 @@ function ExpandableSection({
         citationUrl,
         archivalDate: archiveContext?.archivalDate,
         primaryTopic,
+        datapageCitationTitle,
+        omitLongDatasetTitle,
     })
 
     const faqQuestions = groupFaqsByQuestion(faqEntries?.faqs ?? [])
@@ -440,6 +449,8 @@ function IndicatorPaneContent({
     license,
     idSuffix,
     suppressToggleLogUntilRef,
+    datapageCitationTitle,
+    omitLongDatasetTitle,
 }: {
     datapageData: DataPageDataV2
     faqEntries: FaqEntryData | undefined
@@ -448,6 +459,8 @@ function IndicatorPaneContent({
     archiveContext: ArchiveContext | undefined
     license?: LicenseOption
     suppressToggleLogUntilRef?: React.RefObject<number>
+    datapageCitationTitle?: string
+    omitLongDatasetTitle?: boolean
     // Disambiguates the section anchor ids (#faqs, #sources-and-processing,
     // #indicator-processing) when several panes are in the DOM at once. The
     // active pane always gets the canonical (un-suffixed) ids so in-page
@@ -559,6 +572,8 @@ function IndicatorPaneContent({
                 sourcesSectionId={`${DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID}${idSuffix}`}
                 processingContentId={processingContentId}
                 suppressToggleLogUntilRef={suppressToggleLogUntilRef}
+                datapageCitationTitle={datapageCitationTitle}
+                omitLongDatasetTitle={omitLongDatasetTitle}
             />
         </>
     )
@@ -573,6 +588,7 @@ export default function IndicatorMetadataBox({
     canonicalUrl,
     archiveContext,
     license,
+    pageCitationTitle,
 }: {
     datapageData: DataPageDataV2
     additionalIndicators?: AdditionalIndicator[]
@@ -582,6 +598,9 @@ export default function IndicatorMetadataBox({
     canonicalUrl: string
     archiveContext: ArchiveContext | undefined
     license?: LicenseOption
+    // The chart title, used to cite the PAGE on multi-indicator pages (the
+    // per-indicator titles only describe one of the page's indicators).
+    pageCitationTitle?: string
 }) {
     const indicators: AdditionalIndicator[] = [
         { datapageData, faqEntries },
@@ -657,6 +676,12 @@ export default function IndicatorMetadataBox({
                 license={license}
                 idSuffix={i === safeIndex ? "" : `--${i}`}
                 suppressToggleLogUntilRef={suppressToggleLogUntilRef}
+                datapageCitationTitle={
+                    isMulti
+                        ? (pageCitationTitle ?? datapageData.title.title)
+                        : undefined
+                }
+                omitLongDatasetTitle={isMulti}
             />
         </div>
     ))

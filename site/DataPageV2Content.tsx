@@ -203,6 +203,10 @@ export const DataPageV2Content = ({
                                 archiveContext={archiveContext}
                                 id={DATAPAGE_ABOUT_THIS_DATA_SECTION_ID}
                                 license={grapherConfig.license}
+                                pageCitationTitle={
+                                    grapherConfig.title ??
+                                    datapageData.title.title
+                                }
                             />
                         )}
                         {useNewDatapageDesign && (
