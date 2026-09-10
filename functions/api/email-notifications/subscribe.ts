@@ -1,4 +1,3 @@
-import * as Sentry from "@sentry/cloudflare"
 import * as z from "zod/mini"
 import {
     EmailNotificationsPreferences,
@@ -14,7 +13,11 @@ import {
     sendWelcomeEmail,
     validateEmailNotificationsDatabase,
 } from "../../_common/emailNotifications.js"
-import { upsertOwidBriefSubscription } from "../../_common/mailchimp.js"
+import { logErrorAndCaptureInSentry } from "../../_common/errorLog.js"
+import {
+    MailchimpCleanedContactError,
+    enableOwidBriefSubscription,
+} from "../../_common/mailchimp.js"
 import {
     POSTMARK_REACTIVATION_USER_MESSAGE,
     PostmarkRecipientReactivationError,
@@ -52,6 +55,20 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
         // page can manage both products. A Brief-only identity has email
         // notifications disabled and no notification preferences row.
         const user = await ensureUserIdentity(db, email)
+
+        // Mailchimp runs before the remaining writes and welcome email because
+        // it is idempotent. Do not expose active vs pending: this tokenless
+        // endpoint must not reveal the address's Mailchimp history.
+        if (data.subscribeToOwidBrief) {
+            try {
+                await enableOwidBriefSubscription(env, email)
+            } catch (error) {
+                // Keep the response independent of the address's history. A
+                // cleaned address could not receive confirmation anyway.
+                if (!(error instanceof MailchimpCleanedContactError))
+                    throw error
+            }
+        }
 
         if (data.notifications) {
             // Signup is single opt-in: the submission takes effect
@@ -92,22 +109,22 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
             })
         }
 
-        if (data.subscribeToOwidBrief) {
-            // The OWID Brief newsletter stays in Mailchimp and uses single
-            // opt-in, like email notifications.
-            await upsertOwidBriefSubscription(env, email, true)
-        }
-
         return makeJsonResponse({ ok: true }, 200)
     } catch (error) {
         if (error instanceof PostmarkRecipientReactivationError) {
-            Sentry.captureException(error)
+            logErrorAndCaptureInSentry(
+                "Failed to reactivate a Postmark recipient while subscribing",
+                error
+            )
             return makeJsonResponse(
                 { error: POSTMARK_REACTIVATION_USER_MESSAGE },
                 500
             )
         }
-        return handleJsonError(error)
+        return handleJsonError(
+            error,
+            "Failed to handle an email notifications subscription"
+        )
     }
 }
 

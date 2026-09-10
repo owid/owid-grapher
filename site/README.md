@@ -24,7 +24,7 @@ This content is only updated in an environment's database when someone presses "
 
 ## Images
 
-To use images locally, you need to set the `CLOUDFLARE_IMAGES_ACCOUNT_ID`,
+To use images locally, you need to set the `CLOUDFLARE_ACCOUNT_ID`,
 `CLOUDFLARE_IMAGES_API_KEY`, and `CLOUDFLARE_IMAGES_URL` in your `.env` file.
 See `.env.example-full` for the format.
 
