@@ -33,11 +33,24 @@ export type IndicatorEntryAfterPreProcessing = IndicatorConfig
 
 type Metadata = Omit<OwidVariableWithSource, "id">
 
+export type MultiDimDataPageType = "data-page" | "data-explorer"
+
+export interface MultiDimPresentation {
+    // Omitted → "data-page". "data-explorer" renders a "Data explorer"
+    // eyebrow in the page header and lists the page on /explorers. Named
+    // pageType to keep it apart from a dimension's presentation.type, which
+    // picks a control instead.
+    pageType?: MultiDimDataPageType
+    // Renders a "Download the full dataset" button in the page header.
+    dataDownloadUrl?: string
+}
+
 interface MultiDimDataPageConfigType<
     IndicatorType extends Record<string, any>,
 > {
     grapherConfigSchema?: string
     title: IndicatorTitleWithFragments
+    presentation?: MultiDimPresentation
     defaultSelection?: string[]
     topicTags?: string[]
     // commonIndicatorPathPrefix?: string
