@@ -18,12 +18,14 @@ bespoke/
 ## How it works
 
 1. Each bespoke component is an ES module that exports a `mount` function
-2. Components are registered in [site/bespokeComponentRegistry.ts](../site/bespokeComponentRegistry.ts) with URLs to their JS and CSS bundles
-3. When an article containing a `{.bespoke-component}` block is rendered, the code:
+2. Components are registered in [site/bespokeComponentRegistry.ts](../site/bespokeComponentRegistry.ts) with the URL of that module
+3. When a `{.bespoke-component}` block comes within 400px of the viewport, the code:
     - Looks up the bundle in the registry
     - Creates a Shadow DOM container (for CSS isolation)
-    - Dynamically imports the JS module and, if a CSS URL is registered, loads the CSS into the shadow root
+    - Dynamically imports the JS module, which carries its own styles inlined
     - Calls the module's `mount()` function with the container and config
+
+Mounting is lazy and happens once: a component far down a long article never loads for a reader who doesn't scroll to it.
 
 ### The `mount` interface
 
@@ -33,13 +35,15 @@ Your ES module must export a `mount` function:
 export function mount(
     container: HTMLDivElement,
     opts: { variant?: string; config?: Record<string, string> }
-): void | Promise<void> | Promise<() => void>
+): void | (() => void) | Promise<void | (() => void)>
 ```
 
 - **`container`** — A div inside the Shadow DOM into which you render your viz. The div is created for you.
 - **`opts.variant`** — Optional string to distinguish multiple instances of the same bundle within an article. Useful for embedding different views (e.g. a map and a chart) that share state.
 - **`opts.config`** — Key-value pairs passed from the ArchieML block.
 - **Return value** — Optionally return a cleanup/disposal function that will be called on unmount.
+
+A module may also export `VARIANTS`, a list of `{ name, demoConfig?, demoSize? }` entries. The site ignores it; the dev server's demo page reads it to mount every variant, and shows an error instead of the component when it is missing.
 
 ### Registering a component
 
@@ -52,11 +56,13 @@ export const BESPOKE_COMPONENT_REGISTRY: Record<
 > = {
     "income-plots": {
         scriptUrl: "/income-plots/index.js",
+        metadataUrl:
+            "https://owid-public.owid.io/bespoke/income-plots.bespoke-metadata.json",
     },
 }
 ```
 
-The URL is resolved against `BESPOKE_BASE_URL` (defaults to the local dev server, `http://localhost:8089`).
+`scriptUrl` is resolved against `BESPOKE_BASE_URL` (defaults to the local dev server, `http://localhost:8089`). `metadataUrl` is optional and absolute. A featured viz page fetches it at bake time, validates it against `BespokeMetadataSchema`, and renders the methods-and-sources box under the band from it; a bundle with no metadata file leaves it out.
 
 A bundle carries its own styles. `vite-plugin-css-position` inlines them into the ES module so they land inside the shadow root.
 
@@ -189,10 +195,6 @@ On smaller screens, these map to other grid-based widths. See [site/gdocs/compon
 
 Ideally, your component adapts fluidly to any width given by its container. But if you need a `max-width` or a set of "good" widths, that's fine too.
 
-There is no mechanism for reserving a component's dimensions ahead of time. Components render at whatever size the container provides once they load, and there will be a layout shift.
-
-`fallbackImageFilename` is not that mechanism. It is hidden whenever JavaScript is available, so it reserves nothing on a normal page load. Showing it as a loading poster would reserve a height and is the obvious next step, but these components get taller as they get narrower, so one image cannot reserve the right height at every width. A wrong reserved height trades one layout shift for another.
-
 ## Shadow DOM considerations
 
 Components run inside a Shadow DOM, which provides full CSS encapsulation but comes with trade-offs:
@@ -203,62 +205,17 @@ Components run inside a Shadow DOM, which provides full CSS encapsulation but co
 
 ### CSS injection with `vite-plugin-css-position`
 
-By default, Vite injects CSS into the document `<head>`, which doesn't work for components running inside a Shadow DOM. [`vite-plugin-css-position`](https://www.npmjs.com/package/vite-plugin-css-position) solves this by letting you specify where styles should be injected using a `<StylesTarget />` React component. During development, this gives you CSS HMR even in Shadow DOM mode; in production builds, it uses `vite-plugin-css-injected-by-js` to bundle the CSS into the JS output.
-
-To use it, add the plugin to your `vite.config.ts`:
-
-```ts
-import { viteCssPosition } from "vite-plugin-css-position"
-
-export default defineConfig({
-    plugins: [react(), viteCssPosition({ enableDev: true })],
-    // ...
-})
-```
-
-Then render `<StylesTarget />` in your component tree:
-
-```tsx
-import StylesTarget from "vite-plugin-css-position/react"
-
-root.render(
-    <>
-        <StylesTarget />
-        <YourComponent />
-    </>
-)
-```
+Vite injects CSS into the document `<head>` by default, which never reaches a Shadow DOM. [`vite-plugin-css-position`](https://www.npmjs.com/package/vite-plugin-css-position) redirects it to a `<StylesTarget />` you render in the component tree — CSS HMR in development, styles inlined into the JS output for production. `example` has both halves wired up, in `vite.config.ts` and `src/index.tsx`.
 
 ## Projects
 
 Each project under `bespoke/projects/` is fully self-contained. A project has its own `package.json`, its own dependencies, and its own build step. For deployment, [buildBespokeProjects.sh](buildBespokeProjects.sh) runs every project's build and collects the outputs into `dist/assets-bespoke/<name>/` at the repo root.
 
-This means each project is responsible for:
-
-- Managing its own dependencies (projects are yarn workspaces of `bespoke/` — run `yarn install` from there)
-- Defining its own build command that produces the ES-module output, with its styles bundled in
-- Bundling everything it needs — shared site styles, fonts, etc. are not available inside the Shadow DOM
-
-Projects can import shared code from `bespoke/components/` if needed, but must bundle it into their output.
+So each project manages its own dependencies (projects are yarn workspaces of `bespoke/` — run `yarn install` from there) and defines its own build command producing the ES-module output. Shared code from `bespoke/components/` is bundled into that output like any other import.
 
 ### Build setup
 
-Projects use [Vite library mode](https://vite.dev/guide/build.html#library-mode) to produce the ESM module. A minimal `vite.config.ts`:
-
-```ts
-import { defineConfig } from "vite"
-
-export default defineConfig({
-    build: {
-        lib: {
-            entry: "src/index.ts",
-            formats: ["es"],
-            fileName: "bundle",
-        },
-        outDir: "dist",
-    },
-})
-```
+Projects use [Vite library mode](https://vite.dev/guide/build.html#library-mode) to produce the ESM module. Copy `example/vite.config.ts` rather than writing one: it wires up the CSS injection described above, the shared `DEDUPED_PACKAGES` list, and the entrypoints the dev server reads out of `package.json`.
 
 ## Sharing state between variants
 
@@ -268,53 +225,17 @@ For example, an article might embed a map and a line chart from the same bundle.
 
 ### Jotai for shared state
 
-[Jotai](https://jotai.org/) is a lightweight atomic state library for React. It works well here because:
-
-- **Module-level atoms** — You define atoms (small units of state) at the module scope. Since all variants share the same module, they automatically share the same atoms. It's like `useState`, but with the reactive state defined outside of the component, and thereby shareable across all instances.
-- **Fine-grained reactivity** — Components only re-render when the specific atoms they subscribe to change, keeping things fast.
-- **Minimal boilerplate** — No providers, reducers, or context setup needed.
-
-A basic example:
+We use [Jotai](https://jotai.org/). Atoms defined at module scope are shared by every variant of the bundle with no provider or context setup:
 
 ```ts
-// shared state — defined once at module scope, shared across all variants
+// atoms.ts — one instance, shared by every variant
 import { atom } from "jotai"
 export const selectedCountryAtom = atom<string>("USA")
 ```
 
-```tsx
-// variant: "map" — writes to the shared atom
-import { useAtom } from "jotai"
-import { selectedCountryAtom } from "./atoms"
+One variant writes it with `useAtom`, another reads it with `useAtomValue`. `example` does exactly that across `src/core/atoms.ts`, `Picker.tsx` and `Display.tsx`.
 
-function Map() {
-    const [, setCountry] = useAtom(selectedCountryAtom)
-    return <WorldMap onSelect={setCountry} />
-}
-```
-
-```tsx
-// variant: "line-chart" — reads from the shared atom
-import { useAtomValue } from "jotai"
-import { selectedCountryAtom } from "./atoms"
-
-function LineChart() {
-    const country = useAtomValue(selectedCountryAtom)
-    return <Chart country={country} />
-}
-```
-
-Your `mount` function then renders the right component based on `opts.variant`:
-
-```ts
-export function mount(container, { variant }) {
-    const root = createRoot(container)
-    if (variant === "map") root.render(<Map />)
-    else if (variant === "line-chart") root.render(<LineChart />)
-}
-```
-
-You don't have to use jotai — any module-scoped state (a plain variable, an event emitter, MobX, etc.) will work since all variants share the same module. Jotai is just a good and easy choice for React projects.
+Any module-scoped state works — a plain variable, an event emitter, MobX — since all variants share the module. Jotai is just the easy choice for React.
 
 ## Shared types
 
@@ -361,8 +282,6 @@ The dev server will inject this stylesheet into the demo page's `<head>` (outsid
 
 ## Creating a new bespoke component
 
-1. Create a new directory under `bespoke/projects/`
-2. Set up your project with its own `package.json` and build tooling to output an ESM module (`.mjs`) with its styles bundled in
-3. Export a `mount` function from the entry point
-4. Register the bundle in [site/bespokeComponentRegistry.ts](../site/bespokeComponentRegistry.ts)
-5. Add the `{.bespoke-component}` block in your Google Doc
+1. Copy `bespoke/projects/example/`, rename it, and run `yarn install` from `bespoke/`
+2. Register the bundle in [site/bespokeComponentRegistry.ts](../site/bespokeComponentRegistry.ts)
+3. Add the `{.bespoke-component}` block in your Google Doc
