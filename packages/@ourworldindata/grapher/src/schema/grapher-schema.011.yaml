@@ -2,7 +2,6 @@ $schema: "http://json-schema.org/draft-07/schema#"
 $id: &schemaUrl "https://files.ourworldindata.org/schemas/grapher-schema.011.json"
 required:
   - $schema
-  - dimensions
 type: object
 description: |
   Our World In Data grapher configuration. Most of the fields can be left empty
