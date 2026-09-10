@@ -395,6 +395,7 @@ export {
     defaultExperimentState,
     type ExperimentState,
 } from "./experiments/state.js"
+export { applyExperimentOverrides } from "./experiments/overrides.js"
 export {
     EXPERIMENT_ARM_SEPARATOR,
     EXPERIMENT_PREFIX,

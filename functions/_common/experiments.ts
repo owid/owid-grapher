@@ -8,8 +8,20 @@ import {
 import { parseCookie, stringifySetCookie, type SetCookie } from "cookie"
 import { Env } from "./env.js"
 
+/**
+ * Assigns visitors to experiment arms: sets the `exp-<id>` cookie and stamps
+ * the matching `exp-<id>--<arm>` class on <body>.
+ *
+ * An existing cookie is honoured as-is and never reassigned. That is what
+ * lets `/exp` (functions/exp/index.ts) force an arm for QA by setting the
+ * cookie, with no QA-specific code in this path and none in the browser.
+ *
+ * `configuredExperiments` is only there for tests, which need a stable
+ * experiment list rather than whichever experiments happen to be live.
+ */
 export const experimentsMiddleware = async (
-    context: EventContext<Env, string, Record<string, unknown>>
+    context: EventContext<Env, string, Record<string, unknown>>,
+    configuredExperiments: Experiment[] = experiments
 ) => {
     if (context.request.method !== "GET") {
         return context.next()
@@ -29,7 +41,9 @@ export const experimentsMiddleware = async (
     const cookiesToSet: SetCookie[] = []
     const requestPath = new URL(context.request.url).pathname
 
-    const activeExperiments = experiments.filter((e) => !e.isExpired())
+    const activeExperiments = configuredExperiments.filter(
+        (e) => !e.isExpired()
+    )
     const activeExperimentsOnPath = activeExperiments.filter((exp) =>
         exp.isUrlInPaths(requestPath)
     )

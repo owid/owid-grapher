@@ -9,6 +9,7 @@ import {
     OwidGdocType,
     parseIntOrUndefined,
     SiteFooterContext,
+    applyExperimentOverrides,
 } from "@ourworldindata/utils"
 import {
     DataPageV2Content,
@@ -37,7 +38,7 @@ import {
     MultiDimDataPageData,
 } from "./multiDim/MultiDimDataPageContent.js"
 import { BrowserRouter } from "react-router-dom-v5-compat"
-import { REDUCED_TRACKING } from "../settings/clientSettings.mjs"
+import { ENV, REDUCED_TRACKING } from "../settings/clientSettings.mjs"
 import { SiteHeaderNavigation } from "./SiteHeader.js"
 import { NewsletterSubscriptionForm } from "./NewsletterSubscription.js"
 import { NewsletterSubscriptionContext } from "./newsletter.js"
@@ -326,6 +327,14 @@ export const runSiteFooterScripts = async (
     // a weird issue reported by bugsnag: https://app.bugsnag.com/our-world-in-data/our-world-in-data-website/errors/63ca39b631e8660009464eb4?event_id=63d384c500acc25fc0810000&i=sk&m=ef
     // So now we define the object as potentially undefined and then destructure it here.
     const { debug, context, isPreviewing, hideDonationFlag } = args || {}
+
+    // Local dev has no edge middleware, so nothing assigns an arm or stamps
+    // the `exp-*--*` body classes: stand in for it here, and honour
+    // `?exp-<id>=<arm>` while we're at it. `ENV` is a build-time constant
+    // (see vite.config-common.mts), so this call — and with it the whole
+    // module — is dropped from the staging and production bundles, where the
+    // middleware does the work and /exp switches arms.
+    if (ENV === "development") applyExperimentOverrides()
 
     switch (context) {
         case SiteFooterContext.dataPageV2:
