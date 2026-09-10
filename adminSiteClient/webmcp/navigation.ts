@@ -18,7 +18,7 @@ import urljoin from "url-join"
 export type NavigationGuard = () => string | undefined
 
 export type NavigationResult =
-    | { ok: true; path: string }
+    | { ok: true; path: string; unchanged?: true }
     | { ok: false; reason: string }
 
 let adminHistory: History | undefined
@@ -57,6 +57,12 @@ export function isValidAdminPath(path: string): boolean {
     )
 }
 
+/** The path the browser is on, as the router sees it: without `/admin`. */
+function currentAdminPath(): string {
+    if (typeof window === "undefined") return ""
+    return window.location.pathname.replace(/^\/admin(?=\/|$)/, "") || "/"
+}
+
 export function navigateTo(
     path: string,
     {
@@ -66,11 +72,20 @@ export function navigateTo(
 ): NavigationResult {
     if (!isValidAdminPath(path))
         return { ok: false, reason: `"${path}" is not an admin page path.` }
-    const blocked = navigationBlockedReason()
-    if (blocked) return { ok: false, reason: blocked }
 
     const normalizedSearch =
         search && !search.startsWith("?") ? `?${search}` : search
+
+    // Going where we already are is a no-op, not a navigation, so it must not
+    // trip the unsaved-changes guard: an agent that opens the editor it is
+    // already in should get an answer, not the dead end of being told to save
+    // changes it is trying to reach the page to make.
+    if (path === currentAdminPath() && normalizedSearch === "")
+        return { ok: true, path, unchanged: true }
+
+    const blocked = navigationBlockedReason()
+    if (blocked) return { ok: false, reason: blocked }
+
     if (adminHistory) {
         const location = { pathname: path, search: normalizedSearch }
         if (replace) adminHistory.replace(location)

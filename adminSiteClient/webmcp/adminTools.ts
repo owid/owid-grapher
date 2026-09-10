@@ -19,6 +19,11 @@ import {
     buildSearchWordsFromSearchString,
     filterFunctionForSearchWords,
 } from "../../adminShared/search.js"
+import {
+    ADMIN_PAGES,
+    describeAdminPages,
+    resolveAdminPath,
+} from "./adminPages.js"
 import { createCachedList } from "./cachedList.js"
 import { navigateTo, navigationBlockedReason } from "./navigation.js"
 import {
@@ -87,6 +92,26 @@ interface DatasetListItem {
     shortName?: string
     version?: string
     isPrivate?: boolean
+}
+
+/**
+ * A row of `/api/multi-dims.json`.
+ *
+ * Multi-dimensional data pages are their own admin object, not charts, so
+ * `find_charts` never finds them: an agent asked for "the mdim about school
+ * enrollment" searched the charts for "mdim" and hit an unrelated draft whose
+ * internal notes happened to contain the word.
+ */
+interface MultiDimListItem {
+    id: number
+    catalogPath: string
+    title: string
+    slug: string | null
+    published: boolean
+    /** Configured view combinations, not traffic. */
+    mdimViews: number
+    /** Grapher page views over the last 14 days. */
+    pageviews: number
 }
 
 /**
@@ -207,6 +232,42 @@ export function filterGdocsBySearchString(
     )
 }
 
+export function describeMultiDim(mdim: MultiDimListItem): string {
+    return [
+        `#${mdim.id}`,
+        mdim.title || "(untitled)",
+        mdim.published ? "published" : "draft",
+        mdim.slug ? `slug: ${mdim.slug}` : "no slug",
+        `${mdim.mdimViews} view combinations`,
+        mdim.catalogPath ? `catalog: ${mdim.catalogPath}` : undefined,
+        `edit: /admin/multi-dims/${mdim.id}`,
+    ]
+        .filter(Boolean)
+        .join(" | ")
+}
+
+export function multiDimSearchFields(
+    mdim: MultiDimListItem
+): (string | undefined)[] {
+    return [
+        mdim.title,
+        mdim.slug ?? undefined,
+        mdim.catalogPath,
+        String(mdim.id),
+    ]
+}
+
+export function filterMultiDimsBySearchString(
+    mdims: MultiDimListItem[],
+    search: string | undefined
+): MultiDimListItem[] {
+    const searchWords = buildSearchWordsFromSearchString(search)
+    if (searchWords.length === 0) return mdims
+    return mdims.filter(
+        filterFunctionForSearchWords(searchWords, multiDimSearchFields)
+    )
+}
+
 function listResult<T>(
     label: string,
     matches: T[],
@@ -247,6 +308,19 @@ export async function fetchIndicator(
 const datasetCache = createCachedList<DatasetListItem>({
     maxAgeMs: LIST_CACHE_MAX_AGE_MS,
 })
+
+const multiDimCache = createCachedList<MultiDimListItem>({
+    maxAgeMs: LIST_CACHE_MAX_AGE_MS,
+})
+
+async function fetchMultiDims(admin: Admin): Promise<MultiDimListItem[]> {
+    return multiDimCache.get(async () => {
+        const json = await admin.getJSONInBackground<{
+            multiDims: MultiDimListItem[]
+        }>("/api/multi-dims.json")
+        return json.multiDims
+    })
+}
 
 async function fetchDataset(
     admin: Admin,
@@ -346,11 +420,33 @@ export async function describeCurrentPage(admin: Admin): Promise<string> {
         )
     }
 
+    const multiDimPage = /^\/multi-dims\/(\d+)/.exec(path)
+    if (multiDimPage) {
+        const id = Number(multiDimPage[1])
+        const mdim = (await fetchMultiDims(admin).catch(() => [])).find(
+            (m) => m.id === id
+        )
+        if (!mdim)
+            return `The editor of multi-dimensional data page (mdim) ${id}.`
+        return (
+            `The editor of multi-dimensional data page (mdim) ${id}: ` +
+            `${mdim.title || "(untitled)"}, ${
+                mdim.published ? "published" : "draft"
+            }, with ${mdim.mdimViews} view combinations` +
+            `${mdim.catalogPath ? ` (${mdim.catalogPath})` : ""}. ` +
+            "There are no tools for editing mdims yet."
+        )
+    }
+
     const gdocPage = /^\/gdocs\/([^/]+)/.exec(path)
     if (gdocPage) return `The preview of Google Doc ${gdocPage[1]}.`
     if (path.startsWith("/variables")) return "The indicators list."
     if (path.startsWith("/datasets")) return "The datasets list."
     if (path.startsWith("/gdocs")) return "The list of Google Docs."
+
+    const listPage = ADMIN_PAGES.find((page) => page.path === path)
+    if (listPage)
+        return `The ${listPage.summary.toLowerCase()} page (${listPage.path}).`
 
     return `An admin page at ${path}.`
 }
@@ -370,6 +466,11 @@ async function navigateAndWaitForToolSet(
     const epochBefore = toolSetEpoch(toolSet)
     const result = navigateTo(path, { search })
     if (!result.ok) return result
+    // Staying put registers nothing, so waiting for an epoch newer than the
+    // one we already saw would hang until the timeout. What the caller needs
+    // to know is only whether the tools are there.
+    if (result.unchanged)
+        return { ok: true, path: result.path, ready: epochBefore > 0 }
     const ready = await waitForToolSet(toolSet, { afterEpoch: epochBefore })
     return { ok: true, path: result.path, ready }
 }
@@ -605,6 +706,45 @@ export function buildAdminTools({ admin }: AdminToolContext): WebMcpTool[] {
             },
         },
         {
+            name: "find_multi_dims",
+            description:
+                "Search the multi-dimensional data pages, called mdims or " +
+                "MDIMs, by title, slug or catalog path. These are not " +
+                "charts and find_charts never returns them: an mdim is one " +
+                "page whose dropdowns switch between many configured views. " +
+                `${SEARCH_SYNTAX} Returns ids for open_multi_dim.`,
+            inputSchema: {
+                type: "object",
+                properties: {
+                    query: { type: "string" },
+                    limit: {
+                        type: "number",
+                        description: `Max results, default ${DEFAULT_RESULT_LIMIT}, max ${MAX_RESULT_LIMIT}`,
+                    },
+                },
+                required: ["query"],
+            },
+            execute: async ({
+                query,
+                limit,
+            }: {
+                query: string
+                limit?: number
+            }) => {
+                if (!query?.trim()) return toolResult("Provide a search query.")
+                const mdims = await fetchMultiDims(admin)
+                const matches = filterMultiDimsBySearchString(mdims, query)
+                return toolResult(
+                    listResult(
+                        "multi-dimensional data pages",
+                        matches,
+                        clampLimit(limit),
+                        describeMultiDim
+                    )
+                )
+            },
+        },
+        {
             name: "open_chart_editor",
             description:
                 "Open the editor for an existing chart. Returns once the " +
@@ -662,6 +802,103 @@ export function buildAdminTools({ admin }: AdminToolContext): WebMcpTool[] {
                     `Opening indicator ${id} at /admin${result.path}. ` +
                         "This page has no tools of its own; get_indicator " +
                         "reads the same information."
+                )
+            },
+        },
+        {
+            name: "open_multi_dim",
+            description:
+                "Open the editor of a multi-dimensional data page (mdim). " +
+                "Use find_multi_dims to get the id. The page has no tools of " +
+                "its own yet, so this shows it to the user rather than " +
+                "making it editable.",
+            inputSchema: {
+                type: "object",
+                properties: {
+                    multiDimId: {
+                        type: "number",
+                        description: "Mdim id from find_multi_dims",
+                    },
+                },
+                required: ["multiDimId"],
+            },
+            execute: async ({ multiDimId }: { multiDimId: number }) => {
+                const id = parseId(multiDimId)
+                if (!id)
+                    return toolResult("multiDimId must be a positive integer.")
+                const mdims = await fetchMultiDims(admin).catch(() => [])
+                const mdim = mdims.find((m) => m.id === id)
+                if (mdims.length && !mdim)
+                    return toolResult(
+                        `No multi-dimensional data page with id ${id} exists. Nothing was changed.`
+                    )
+                const result = navigateTo(`/multi-dims/${id}`)
+                if (!result.ok)
+                    return toolResult(`${result.reason} Nothing was changed.`)
+                return toolResult(
+                    `Opening mdim ${id}${mdim ? ` (${mdim.title})` : ""} at /admin${result.path}.`
+                )
+            },
+        },
+        {
+            name: "open_admin_page",
+            description:
+                "Open any other admin page by path or name, for the many " +
+                "pages that have no tool of their own: " +
+                `${describeAdminPages()}. ` +
+                "Detail pages work too, e.g. /multi-dims/2713 or " +
+                "/gdocs/<id>/preview. An unknown path is refused rather " +
+                "than opened, so the user does not lose their page. This " +
+                "only navigates; it cannot type into the page's own search " +
+                "box unless that page has tools of its own.",
+            inputSchema: {
+                type: "object",
+                properties: {
+                    page: {
+                        type: "string",
+                        description:
+                            'An admin path or page name, e.g. "/data-insights", "data insights" or "/multi-dims/2713"',
+                    },
+                },
+                required: ["page"],
+            },
+            execute: async ({ page }: { page: string }) => {
+                if (typeof page !== "string" || !page.trim())
+                    return toolResult("Provide an admin page path or name.")
+                const target = resolveAdminPath(page)
+                if (!target.ok)
+                    return toolResult(
+                        `"${page}" is not an admin page.` +
+                            (target.candidates.length
+                                ? ` Did you mean: ${target.candidates.join(", ")}?`
+                                : ` Available pages: ${describeAdminPages()}.`) +
+                            " Nothing was changed."
+                    )
+                const toolSet = /^\/charts\/(\d+\/edit|create)$/.test(
+                    target.path
+                )
+                    ? CHART_EDITOR_TOOL_SET
+                    : target.path === "/charts"
+                      ? CHART_LIST_TOOL_SET
+                      : undefined
+                const result = toolSet
+                    ? await navigateAndWaitForToolSet(target.path, {
+                          search: target.search,
+                          toolSet,
+                      })
+                    : navigateTo(target.path, { search: target.search })
+                if (!result.ok)
+                    return toolResult(`${result.reason} Nothing was changed.`)
+                const opened = `Opened /admin${result.path}${target.search}. `
+                if (toolSet)
+                    return toolResult(
+                        "ready" in result && result.ready
+                            ? `${opened}Its tools (${toolSet}) are ready.`
+                            : `${opened}${STILL_LOADING}`
+                    )
+                return toolResult(
+                    `${opened}Call where_am_i for what it shows. This page ` +
+                        "has no tools of its own, so the user drives it from here."
                 )
             },
         },

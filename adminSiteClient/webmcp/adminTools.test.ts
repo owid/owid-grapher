@@ -89,6 +89,30 @@ function makeAdmin() {
                     },
                 ],
             }
+        if (path === "/api/multi-dims.json")
+            return {
+                multiDims: [
+                    {
+                        id: 2713,
+                        catalogPath:
+                            "grapher/education/2025-01-01/enrollment/enrollment",
+                        title: "School enrollment by level",
+                        slug: "school-enrollment",
+                        published: true,
+                        mdimViews: 12,
+                        pageviews: 340,
+                    },
+                    {
+                        id: 91,
+                        catalogPath: "grapher/energy/2025-01-01/energy/energy",
+                        title: "Energy use",
+                        slug: null,
+                        published: false,
+                        mdimViews: 4,
+                        pageviews: 0,
+                    },
+                ],
+            }
         if (path === "/api/gdocs") return []
         throw new Error(`unexpected ${path}`)
     })
@@ -216,6 +240,7 @@ describe("admin-wide tools", () => {
         setAdminHistory(undefined)
         mounted.forEach((c) => c.abort())
         mounted = []
+        window.history.replaceState({}, "", "/")
     })
 
     it("find_charts filters the cached chart list and fetches it once", async () => {
@@ -318,6 +343,100 @@ describe("admin-wide tools", () => {
 
             setPath("/admin/charts")
             expect(await call("where_am_i")).toContain("The charts list.")
+        })
+    })
+
+    describe("multi-dimensional data pages", () => {
+        it("find_multi_dims searches title, slug and catalog path", async () => {
+            const text = await call("find_multi_dims", { query: "enrollment" })
+            expect(text).toContain("1 matching multi-dimensional data pages")
+            expect(text).toContain("#2713 | School enrollment by level")
+            expect(text).toContain("12 view combinations")
+            expect(text).toContain("edit: /admin/multi-dims/2713")
+
+            expect(
+                await call("find_multi_dims", { query: "energy" })
+            ).toContain("#91 | Energy use | draft")
+        })
+
+        it("open_multi_dim navigates, and refuses an id that does not exist", async () => {
+            const text = await call("open_multi_dim", { multiDimId: 2713 })
+            expect(push).toHaveBeenCalledWith({
+                pathname: "/multi-dims/2713",
+                search: "",
+            })
+            expect(text).toContain("School enrollment by level")
+
+            push.mockClear()
+            expect(
+                await call("open_multi_dim", { multiDimId: 4242 })
+            ).toContain("No multi-dimensional data page with id 4242")
+            expect(push).not.toHaveBeenCalled()
+        })
+
+        it("where_am_i names the mdim being edited", async () => {
+            window.history.replaceState({}, "", "/admin/multi-dims/2713")
+            const text = await call("where_am_i")
+            expect(text).toContain("mdim) 2713: School enrollment by level")
+            expect(text).toContain("12 view combinations")
+            window.history.replaceState({}, "", "/admin/charts")
+        })
+    })
+
+    describe("open_admin_page", () => {
+        it("opens a page that has no tool of its own", async () => {
+            const text = await call("open_admin_page", {
+                page: "/data-insights",
+            })
+            expect(push).toHaveBeenCalledWith({
+                pathname: "/data-insights",
+                search: "",
+            })
+            expect(text).toContain("Opened /admin/data-insights")
+            expect(text).toContain("no tools of its own")
+        })
+
+        it("accepts a pasted URL and a spoken page name", async () => {
+            await call("open_admin_page", {
+                page: "http://staging-site-admin-webmcp/admin/multi-dims",
+            })
+            expect(push).toHaveBeenLastCalledWith({
+                pathname: "/multi-dims",
+                search: "",
+            })
+
+            await call("open_admin_page", { page: "data insights" })
+            expect(push).toHaveBeenLastCalledWith({
+                pathname: "/data-insights",
+                search: "",
+            })
+        })
+
+        it("waits for the destination's tools when it has some", async () => {
+            const text = await call("open_admin_page", { page: "/charts" })
+            expect(text).toContain("tools (chart-list) are ready")
+        })
+
+        it("returns straight away when we are already on the page", async () => {
+            await call("open_admin_page", { page: "/charts" })
+            push.mockClear()
+            window.history.replaceState({}, "", "/admin/charts")
+
+            // Waiting for a tool set to register again would hang here,
+            // because staying put registers nothing.
+            const text = await call("open_admin_page", { page: "/charts" })
+            expect(text).toContain("are ready")
+            expect(push).not.toHaveBeenCalled()
+        })
+
+        it("refuses an invented page instead of navigating to a 404", async () => {
+            const text = await call("open_admin_page", {
+                page: "/data-insight-list",
+            })
+            expect(text).toContain("is not an admin page")
+            expect(text).toContain("/data-insights (Data insights)")
+            expect(text).toContain("Nothing was changed.")
+            expect(push).not.toHaveBeenCalled()
         })
     })
 

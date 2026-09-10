@@ -361,7 +361,9 @@ export class ChartEditorView<
         registerNavigationGuard(
             () =>
                 editor.isModified && !editor.isNewGrapher && !editor.newChartId
-                    ? "The chart editor has unsaved changes; save them with save_chart or ask the user to save or discard them first."
+                    ? "The chart editor has unsaved changes. Keep them with save_chart (drafts only) " +
+                      "or drop them with discard_chart_changes. There is no Discard button in the admin, " +
+                      "so do not ask the user to click one."
                     : undefined,
             signal
         )
