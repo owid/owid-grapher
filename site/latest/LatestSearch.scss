@@ -1,8 +1,13 @@
+// Gap below the filter block on mobile, where it spans the full grid and
+// supplies its own gutter. Named because the sticky arms' spacing mixin
+// has to subtract its own padding from it.
+$latest-facets-mobile-margin-bottom: 24px;
+
 .latest-search__facets-container {
     margin-bottom: 0;
     @include sm-only {
         padding: 0 16px;
-        margin-bottom: 24px;
+        margin-bottom: $latest-facets-mobile-margin-bottom;
     }
 }
 
@@ -64,14 +69,17 @@
 // within its parent's box, and the facets' own wrappers are no taller than
 // the facets). Desktop: the whole filter block stays in view. Mobile: the
 // content-type dropdown moves above the topic pills, and a negative `top`
-// lets exactly that dropdown row scroll out of view so only the pills — now
-// with a "Filter by topic" label — stay pinned.
+// lets it scroll out of view so only the pills — now with a "Filter by
+// topic" label — stay pinned.
 
 $latest-sticky-filters-arms: (reveal-on-scroll-up, fully-sticky);
 $latest-sticky-filters-padding: 16px;
-// Height of the content-type trigger plus the column gap beneath it, both
-// fixed in LatestTopicFacets.scss.
-$latest-sticky-filters-mobile-dropdown-row: 32px + 16px;
+// What scrolls out of view on mobile before the pills pin: the bar's own
+// top padding, and the content-type trigger (32px, fixed in
+// LatestTopicFacets.scss). The 16px column gap beneath the trigger is what
+// remains above the pills, giving the pinned bar the same breathing room
+// above its content as the padding gives it on desktop.
+$latest-sticky-filters-mobile-hidden-row: $latest-sticky-filters-padding + 32px;
 
 @mixin latest-sticky-filters-pinned($top: var(--latest-sticky-filters-top)) {
     position: sticky;
@@ -86,9 +94,16 @@ $latest-sticky-filters-mobile-dropdown-row: 32px + 16px;
 // the pin point, so its height and top margin have to stay put as it pins
 // and unpins.
 @mixin latest-sticky-filters-spacing {
-    @include sm-up {
-        padding: $latest-sticky-filters-padding 0;
-        margin: -$latest-sticky-filters-padding 0;
+    // Longhands: on mobile the block carries its own horizontal gutter and
+    // a bottom margin, and the shorthands would wipe both.
+    padding-top: $latest-sticky-filters-padding;
+    padding-bottom: $latest-sticky-filters-padding;
+    margin-top: -$latest-sticky-filters-padding;
+    margin-bottom: -$latest-sticky-filters-padding;
+
+    @include sm-only {
+        margin-bottom: $latest-facets-mobile-margin-bottom -
+            $latest-sticky-filters-padding;
     }
 }
 
@@ -104,7 +119,7 @@ $latest-sticky-filters-mobile-dropdown-row: 32px + 16px;
 
         @include sm-only {
             .latest-search__facets-container {
-                --latest-sticky-filters-top: #{-$latest-sticky-filters-mobile-dropdown-row};
+                --latest-sticky-filters-top: #{-$latest-sticky-filters-mobile-hidden-row};
             }
 
             .latest-topic-facets__topics {
