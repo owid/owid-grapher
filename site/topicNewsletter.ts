@@ -1,4 +1,4 @@
-import { FEATURE_FLAGS, Features } from "../settings/clientSettings.js"
+import { FEATURE_FLAGS, Features } from "../settings/clientSettings.mjs"
 
 export function hasTopicNewsletterCard(
     topicArea: string | undefined
