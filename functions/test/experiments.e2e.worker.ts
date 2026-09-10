@@ -1,17 +1,23 @@
 import { Experiment } from "@ourworldindata/utils"
 import { experimentsMiddleware } from "../_common/experiments.js"
+import { handleExperimentSwitcher } from "../exp/index.js"
 import type { Env } from "../_common/env.js"
 
 /*
- * Test worker for the experiments middleware.
+ * Test worker for the experiment middleware and the `/exp` switcher.
  *
- * Runs the middleware in workerd — the only place HTMLRewriter exists — over
- * a canned HTML response, with a fixed experiment list so the assertions
- * don't depend on which experiments are live.
+ * Runs both in workerd — the only place HTMLRewriter exists — over a canned
+ * HTML response, with a fixed experiment list so the assertions don't depend
+ * on which experiments are live.
  *
- * `forced` has a single arm at fraction 1, so a random assignment can only
- * ever produce `assigned`: any other arm in the response proves the override
- * (or the incoming cookie) was honoured rather than the dice roll.
+ * `forced` has fraction 0, so a random assignment can only ever produce
+ * `assigned`: seeing any other arm proves the incoming cookie was honoured
+ * rather than the dice roll.
+ *
+ * `/exp-in-production` is the same switcher with `ENV` forced to
+ * `production`, so the environment gate can be tested without booting a
+ * second workerd. Its `ASSETS` stub stands in for the baked site, which is
+ * what the switcher hands production requests to.
  */
 const TEST_EXPERIMENTS = [
     new Experiment({
@@ -29,12 +35,31 @@ const HTML = `<!doctype html><html><body class="page"><p>hi</p></body></html>`
 
 export default {
     async fetch(request: Request, env: Env): Promise<Response> {
+        const { pathname } = new URL(request.url)
+
+        if (pathname === "/exp")
+            return handleExperimentSwitcher(request, env, TEST_EXPERIMENTS)
+
+        if (pathname === "/exp-in-production")
+            return handleExperimentSwitcher(
+                request,
+                {
+                    ...env,
+                    ENV: "production",
+                    ASSETS: {
+                        fetch: async () =>
+                            new Response("baked assets", { status: 404 }),
+                    } as unknown as Fetcher,
+                },
+                TEST_EXPERIMENTS
+            )
+
         const context = {
             request,
             env,
             params: {},
             data: {} as Record<string, unknown>,
-            functionPath: new URL(request.url).pathname,
+            functionPath: pathname,
             waitUntil: () => {
                 // no-op for tests
             },

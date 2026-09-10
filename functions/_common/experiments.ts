@@ -3,7 +3,6 @@ import {
     EXPERIMENT_ARM_SEPARATOR,
     ExperimentArm,
     Experiment,
-    parseExperimentOverrides,
     validateUniqueExperimentIds,
 } from "@ourworldindata/utils"
 import { parseCookie, stringifySetCookie, type SetCookie } from "cookie"
@@ -12,6 +11,10 @@ import { Env } from "./env.js"
 /**
  * Assigns visitors to experiment arms: sets the `exp-<id>` cookie and stamps
  * the matching `exp-<id>--<arm>` class on <body>.
+ *
+ * An existing cookie is honoured as-is and never reassigned. That is what
+ * lets `/exp` (functions/exp/index.ts) force an arm for QA by setting the
+ * cookie, with no QA-specific code in this path and none in the browser.
  *
  * `configuredExperiments` is only there for tests, which need a stable
  * experiment list rather than whichever experiments happen to be live.
@@ -36,26 +39,7 @@ export const experimentsMiddleware = async (
 
     const cookies = parseCookie(context.request.headers.get("cookie") || "")
     const cookiesToSet: SetCookie[] = []
-    const requestUrl = new URL(context.request.url)
-    const requestPath = requestUrl.pathname
-
-    // An `?exp-<id>=<arm>` parameter forces an arm, beating both the cookie
-    // and a fresh assignment, so that the HTML we hand back already carries
-    // the forced arm. The client (applyExperimentOverrides) sets the same
-    // cookie and drops the parameter from the URL.
-    for (const { experiment, arm } of parseExperimentOverrides(
-        requestUrl.search,
-        configuredExperiments
-    )) {
-        if (cookies[experiment.id] === arm.id) continue
-        cookiesToSet.push({
-            name: experiment.id,
-            value: arm.id,
-            expires: experiment.expires,
-            path: "/",
-        })
-        cookies[experiment.id] = arm.id
-    }
+    const requestPath = new URL(context.request.url).pathname
 
     const activeExperiments = configuredExperiments.filter(
         (e) => !e.isExpired()

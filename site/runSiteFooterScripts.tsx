@@ -38,7 +38,7 @@ import {
     MultiDimDataPageData,
 } from "./multiDim/MultiDimDataPageContent.js"
 import { BrowserRouter } from "react-router-dom-v5-compat"
-import { REDUCED_TRACKING } from "../settings/clientSettings.mjs"
+import { ENV, REDUCED_TRACKING } from "../settings/clientSettings.mjs"
 import { SiteHeaderNavigation } from "./SiteHeader.js"
 import { NewsletterSubscriptionForm } from "./NewsletterSubscription.js"
 import { NewsletterSubscriptionContext } from "./newsletter.js"
@@ -328,9 +328,13 @@ export const runSiteFooterScripts = async (
     // So now we define the object as potentially undefined and then destructure it here.
     const { debug, context, isPreviewing, hideDonationFlag } = args || {}
 
-    // Honour `?exp-<id>=<arm>` overrides and make the body classes match the
-    // experiment cookies — before any page code reads the experiment state.
-    applyExperimentOverrides()
+    // Local dev has no edge middleware, so nothing assigns an arm or stamps
+    // the `exp-*--*` body classes: stand in for it here, and honour
+    // `?exp-<id>=<arm>` while we're at it. `ENV` is a build-time constant
+    // (see vite.config-common.mts), so this call — and with it the whole
+    // module — is dropped from the staging and production bundles, where the
+    // middleware does the work and /exp switches arms.
+    if (ENV === "development") applyExperimentOverrides()
 
     switch (context) {
         case SiteFooterContext.dataPageV2:
