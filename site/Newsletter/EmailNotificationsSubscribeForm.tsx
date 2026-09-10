@@ -2,7 +2,7 @@ import { useState } from "react"
 import * as React from "react"
 import { useMutation } from "@tanstack/react-query"
 import { EmailNotificationsSubscribeRequest } from "@ourworldindata/types"
-import { Button, Checkbox, TextInput } from "@ourworldindata/components"
+import { Button, TextInput } from "@ourworldindata/components"
 import { SiteAnalytics } from "../SiteAnalytics.js"
 import { EmailNotificationsPreferenceFields } from "./EmailNotificationsPreferenceFields.js"
 import {
@@ -12,56 +12,9 @@ import {
 } from "./emailNotificationsApi.js"
 import { useNotificationPreferences } from "./useNotificationPreferences.js"
 
-const analytics = new SiteAnalytics()
+import { NewsletterOption } from "./NewsletterOption.js"
 
-const NewsletterOption = ({
-    id,
-    imageSrc,
-    title,
-    cadence,
-    description,
-    checked,
-    onChange,
-}: {
-    id: string
-    imageSrc: string
-    title: string
-    cadence: string
-    description: string
-    checked: boolean
-    onChange: () => void
-}) => (
-    <div className="email-notifications-subscribe-form__newsletter">
-        <img
-            className="email-notifications-subscribe-form__newsletter-image"
-            src={imageSrc}
-            width={85}
-            height={46}
-            alt=""
-        />
-        <div className="email-notifications-subscribe-form__newsletter-content">
-            <Checkbox
-                id={id}
-                autoComplete="off"
-                checked={checked}
-                onChange={onChange}
-                label={
-                    <>
-                        <span className="email-notifications-subscribe-form__newsletter-title">
-                            {title}
-                        </span>{" "}
-                        <span className="email-notifications-subscribe-form__newsletter-cadence">
-                            {cadence}
-                        </span>
-                    </>
-                }
-            />
-            <p className="email-notifications-subscribe-form__newsletter-description">
-                {description}
-            </p>
-        </div>
-    </div>
-)
+const analytics = new SiteAnalytics()
 
 export interface Subscription {
     email: string
@@ -141,7 +94,7 @@ export const EmailNotificationsSubscribeForm = ({
                 checked={subscribeToOwidBrief}
                 onChange={() => setSubscribeToOwidBrief(!subscribeToOwidBrief)}
             />
-            <hr className="email-notifications-subscribe-form__divider" />
+            <hr className="newsletter-form__divider" />
             <NewsletterOption
                 id="email-notifications-follow-topics"
                 imageSrc="/images/data-insights.webp"
