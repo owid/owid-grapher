@@ -15,7 +15,7 @@ import {
 import { error, StatusError } from "itty-router"
 import { createZip, UncompressedFile } from "littlezipper"
 import { assembleMetadata, getColumnsForMetadata } from "./metadataTools.js"
-import { Env } from "./env.js"
+import { Env, extensions } from "./env.js"
 import {
     getDataApiUrl,
     GrapherIdentifier,
@@ -226,9 +226,28 @@ export function assembleReadme(
 export async function fetchMarkdownForGrapher(
     identifier: GrapherIdentifier,
     env: Env,
-    searchParams?: URLSearchParams
+    searchParams?: URLSearchParams,
+    ctx?: EventContext<unknown, any, Record<string, unknown>>
 ) {
     const params = searchParams ?? new URLSearchParams("")
+
+    // Assembling the markdown means fetching the indicator's full data and
+    // building the table, about a second; cache it for an hour like
+    // `.values.json`. The key is the `.md` URL for this view, so the page URL
+    // negotiated to markdown and the explicit `.md` URL share one entry, and the
+    // HTML page's own cache entry is never confused with it (the edge cache
+    // ignores `Vary`).
+    const shouldCache = ctx !== undefined && params.get("nocache") === null
+    const cacheKey = new Request(
+        `${env.url.origin}/grapher/${identifier.id}${extensions.markdown}${
+            params.size > 0 ? `?${params.toString()}` : ""
+        }`
+    )
+    if (shouldCache) {
+        const cached = await checkCache(cacheKey, true)
+        if (cached) return cached
+    }
+
     console.log("Initializing grapher")
     const { grapher } = await initGrapher(
         identifier,
@@ -277,11 +296,15 @@ export async function fetchMarkdownForGrapher(
         valuesByEntity,
         params.size > 0 ? `?${params.toString()}` : ""
     )
-    return new Response(markdown, {
+    const response = new Response(markdown, {
         headers: {
             "Content-Type": "text/markdown; charset=utf-8",
+            "Cache-Control": shouldCache ? "max-age=3600" : "no-cache",
         },
     })
+    if (shouldCache)
+        ctx.waitUntil(caches.default.put(cacheKey, response.clone()))
+    return response
 }
 
 export async function fetchDataValuesForGrapher(

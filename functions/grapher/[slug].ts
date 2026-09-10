@@ -88,11 +88,12 @@ router
     // Declared after `.readme.md` so that route claims its own suffix first.
     .get(
         `/grapher/:slug${extensions.markdown}`,
-        async ({ params: { slug } }, { searchParams }, env) =>
+        async ({ params: { slug } }, { searchParams }, env, _etag, ctx) =>
             fetchMarkdownForGrapher(
                 { type: "slug", id: slug },
                 env,
-                searchParams
+                searchParams,
+                ctx
             )
     )
     .get(
@@ -119,29 +120,33 @@ router
     // it (Claude Code's fetcher sends `Accept: text/markdown, text/html, */*`),
     // so agents get the numbers without knowing about the .md suffix. Both
     // variants vary on Accept so caches keep them apart.
-    .get("/grapher/:slug", async (request, { searchParams }, env) => {
-        const { slug } = request.params
-        if (prefersMarkdown(request.headers.get("accept"))) {
-            try {
-                return withVaryAccept(
-                    await fetchMarkdownForGrapher(
-                        { type: "slug", id: slug },
-                        env,
-                        searchParams
+    .get(
+        "/grapher/:slug",
+        async (request, { searchParams }, env, _etag, ctx) => {
+            const { slug } = request.params
+            if (prefersMarkdown(request.headers.get("accept"))) {
+                try {
+                    return withVaryAccept(
+                        await fetchMarkdownForGrapher(
+                            { type: "slug", id: slug },
+                            env,
+                            searchParams,
+                            ctx
+                        )
                     )
-                )
-            } catch (e) {
-                // The markdown carries data values, so charts with
-                // non-redistributable data refuse it (403). The page itself is
-                // still fine to serve; only a missing chart (404) should fall
-                // through to the redirect handling.
-                if (!(e instanceof StatusError) || e.status === 404) throw e
+                } catch (e) {
+                    // The markdown carries data values, so charts with
+                    // non-redistributable data refuse it (403). The page itself is
+                    // still fine to serve; only a missing chart (404) should fall
+                    // through to the redirect handling.
+                    if (!(e instanceof StatusError) || e.status === 404) throw e
+                }
             }
+            return withVaryAccept(
+                await handleHtmlPageRequest(slug, searchParams, env)
+            )
         }
-        return withVaryAccept(
-            await handleHtmlPageRequest(slug, searchParams, env)
-        )
-    })
+    )
     .all("*", () => error(404, "Route not defined"))
 
 export const onRequest: PagesFunction<Env> = async (context) => {
