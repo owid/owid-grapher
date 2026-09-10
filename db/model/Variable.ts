@@ -42,6 +42,7 @@ import {
 } from "@ourworldindata/types"
 import { knexRaw, knexRawFirst } from "../db.js"
 import { insertChartConfig, updateChartConfig } from "./ChartConfigs.js"
+import { assertValidGrapherConfig } from "../grapherConfigValidation.js"
 import {
     buildMdimViewPatchConfig,
     getMultiDimDataPageById,
@@ -314,6 +315,9 @@ export async function updateAllMultiDimViewsThatInheritFromIndicator(
             patchConfigETL ?? {},
             view.patchConfig
         )
+
+        assertValidGrapherConfig(fullConfig)
+
         await updateChartConfig(trx, {
             configId: view.chartConfigId,
             config: fullConfig,

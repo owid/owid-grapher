@@ -61,7 +61,8 @@
         "query": "tsx --tsconfig tsconfig.tsx.json devTools/db-ai-helpers/query.ts",
         "regenerateGdocMarkdown": "tsx --tsconfig tsconfig.tsx.json devTools/regenerateGdocMarkdown.ts",
         "addIncomingForeignKeys": "tsx --tsconfig tsconfig.tsx.json devTools/db-ai-helpers/addIncomingForeignKeys.ts",
-        "compareArchiveR2WithDb": "tsx --tsconfig tsconfig.tsx.json devTools/compareArchiveR2WithDb.ts"
+        "compareArchiveR2WithDb": "tsx --tsconfig tsconfig.tsx.json devTools/compareArchiveR2WithDb.ts",
+        "checkChartConfigsAgainstSchema": "tsx --tsconfig tsconfig.tsx.json devTools/schema/checkChartConfigsAgainstSchema.ts"
     },
     "dependencies": {
         "@algolia/autocomplete-js": "^1.19.9",
@@ -103,6 +104,8 @@
         "@tippyjs/react": "^4.2.6",
         "@uiw/react-codemirror": "^4.25.11",
         "@uiw/react-json-view": "^2.0.0-alpha.43",
+        "ajv": "^8",
+        "ajv-formats": "^3",
         "algoliasearch": "^5.57.0",
         "antd": "^6.6.1",
         "archieml": "^0.5.0",
