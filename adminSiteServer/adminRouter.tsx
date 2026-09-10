@@ -205,11 +205,15 @@ getPlainRouteWithROTransaction(
                     chart.config,
                     chart.id,
                     trx,
-                    // Same opt-in as /charts/:id/preview: ?forceDatapage=true
-                    // renders any chart as a data page (multi-indicator ones
-                    // get the indicator switcher) for QA, without enrolling
-                    // it in the experiment.
-                    { forceDatapage: req.query.forceDatapage === "true" }
+                    // QA opt-ins: ?forceDatapage=true renders any chart as a
+                    // data page without enrolling it; ?forceExpand=true skips
+                    // the multi-indicator pane collapse so the switcher
+                    // version of a collapsed page can be inspected.
+                    {
+                        forceDatapage: req.query.forceDatapage === "true",
+                        forceExpandIndicators:
+                            req.query.forceExpand === "true",
+                    }
                 )
             res.send(previewDataPageOrGrapherPage)
             return

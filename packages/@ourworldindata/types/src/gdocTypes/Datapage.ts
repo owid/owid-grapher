@@ -75,6 +75,20 @@ export type Distribution =
     | { allowed: true }
     | { allowed: false; sourceLinks: string[] }
 
+/**
+ * One row of the collapsed metadata box's indicator list. When every pane of a
+ * multi-indicator chart shares the same substantive metadata, the baker
+ * collapses the switcher into a single pane plus this list; `short`, `unit`
+ * and `note` are only set when that field differs across the indicators (the
+ * shared value renders once in the pane instead).
+ */
+export interface CollapsedIndicatorListEntry {
+    title: string
+    short?: string
+    unit?: string
+    note?: string
+}
+
 export interface AdditionalIndicator {
     datapageData: DataPageDataV2
     faqEntries?: FaqEntryData
@@ -91,6 +105,12 @@ export interface DataPageV2ContentFields {
      * non-empty.
      */
     additionalIndicators?: AdditionalIndicator[]
+    /**
+     * Set instead of `additionalIndicators` when the panes collapsed — see
+     * CollapsedIndicatorListEntry. The metadata box renders one pane plus this
+     * templated indicator list, and no switcher.
+     */
+    collapsedIndicatorList?: CollapsedIndicatorListEntry[]
     /**
      * Whether the page was baked with the redesigned data-page treatment
      * (metadata box etc.). Serialized so the client renders the same arm the

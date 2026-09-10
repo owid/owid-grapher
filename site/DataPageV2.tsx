@@ -34,6 +34,7 @@ import { DebugProvider } from "./gdocs/DebugProvider.js"
 import { Html } from "./Html.js"
 import {
     AdditionalIndicator,
+    CollapsedIndicatorListEntry,
     ArchiveContext,
     Distribution,
 } from "@ourworldindata/types"
@@ -45,6 +46,7 @@ export const DataPageV2 = (props: {
     grapher: GrapherInterface | undefined
     datapageData: DataPageDataV2
     additionalIndicators?: AdditionalIndicator[]
+    collapsedIndicatorList?: CollapsedIndicatorListEntry[]
     useNewDatapageDesign?: boolean
     baseUrl: string
     canonicalUrl: string
@@ -59,6 +61,7 @@ export const DataPageV2 = (props: {
         grapher,
         datapageData,
         additionalIndicators,
+        collapsedIndicatorList,
         useNewDatapageDesign,
         baseUrl,
         canonicalUrl,
@@ -176,6 +179,7 @@ export const DataPageV2 = (props: {
                                 {
                                     datapageData,
                                     additionalIndicators,
+                                    collapsedIndicatorList,
                                     useNewDatapageDesign,
                                     faqEntries,
                                     canonicalUrl,
@@ -190,6 +194,7 @@ export const DataPageV2 = (props: {
                             <DataPageV2Content
                                 datapageData={datapageData}
                                 additionalIndicators={additionalIndicators}
+                                collapsedIndicatorList={collapsedIndicatorList}
                                 useNewDatapageDesign={useNewDatapageDesign}
                                 grapherConfig={grapherConfig}
                                 imageMetadata={imageMetadata}

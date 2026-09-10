@@ -24,6 +24,7 @@ import {
 } from "../db/model/Post.js"
 import {
     AdditionalIndicator,
+    CollapsedIndicatorListEntry,
     GrapherInterface,
     DimensionProperty,
     OwidVariableWithSource,
@@ -64,6 +65,7 @@ import { getAllMultiDimDataPageSlugs } from "../db/model/MultiDimDataPage.js"
 import pMap from "p-map"
 import { stringify } from "safe-stable-stringify"
 import { GrapherArchivalManifest } from "../serverUtils/archivalUtils.js"
+import { computeIndicatorPaneCollapse } from "./collapseIndicatorPanes.js"
 import { getLatestArchivedChartPageVersionsIfEnabled } from "../db/model/ArchivedChartVersion.js"
 
 const renderDatapageIfApplicable = async (
@@ -74,10 +76,12 @@ const renderDatapageIfApplicable = async (
         imageMetadataDictionary,
         archiveContextDictionary,
         forceDatapage,
+        forceExpandIndicators,
     }: {
         imageMetadataDictionary?: Record<string, DbEnrichedImage>
         archiveContextDictionary?: Record<number, ArchiveContext | undefined>
         forceDatapage?: boolean
+        forceExpandIndicators?: boolean
     } = {}
 ) => {
     let variable
@@ -124,6 +128,7 @@ const renderDatapageIfApplicable = async (
             imageMetadataDictionary,
             archiveContextDictionary,
             forceDatapage,
+            forceExpandIndicators,
         },
         knex
     )
@@ -196,6 +201,7 @@ export async function renderDataPageV2(
         imageMetadataDictionary = {},
         archiveContextDictionary,
         forceDatapage,
+        forceExpandIndicators,
     }: {
         variableId: number
         variableMetadata: OwidVariableWithSource
@@ -205,6 +211,10 @@ export async function renderDataPageV2(
         imageMetadataDictionary?: Record<string, ImageMetadata>
         archiveContextDictionary?: Record<number, ArchiveContext | undefined>
         forceDatapage?: boolean
+        // QA escape hatch (?forceExpand=true on the preview routes): skip the
+        // pane collapse so the switcher version of a collapsed page can be
+        // inspected.
+        forceExpandIndicators?: boolean
     },
     knex: db.KnexReadonlyTransaction
 ) {
@@ -463,6 +473,37 @@ export async function renderDataPageV2(
         )
     }
 
+    // When every pane of a multi-indicator chart shares the same substantive
+    // metadata, collapse the switcher into a single pane + a templated
+    // indicator list — see computeIndicatorPaneCollapse for the rules.
+    let collapsedIndicatorList: CollapsedIndicatorListEntry[] | undefined
+    if (
+        additionalIndicators &&
+        additionalIndicators.length > 0 &&
+        !forceExpandIndicators
+    ) {
+        const collapse = computeIndicatorPaneCollapse([
+            { datapageData, faqEntries },
+            ...additionalIndicators,
+        ])
+        if (collapse) {
+            collapsedIndicatorList = collapse.list
+            additionalIndicators = undefined
+            datapageData.dateRange = collapse.dateRange
+            datapageData.lastUpdated = collapse.lastUpdated
+            if (collapse.nextUpdate) datapageData.nextUpdate = collapse.nextUpdate
+            if (collapse.owners) datapageData.owners = collapse.owners
+            // A field that differs across the indicators moves into the list;
+            // leaving the primary's value on the pane would misattribute it
+            // to all of them.
+            if (collapse.suppressDescriptionShort)
+                datapageData.descriptionShort = undefined
+            if (collapse.suppressUnit) datapageData.unit = undefined
+            if (collapse.suppressDescriptionKey)
+                datapageData.descriptionKey = undefined
+        }
+    }
+
     const archiveContext =
         grapher.id !== undefined
             ? archiveContextDictionary?.[grapher.id]
@@ -527,6 +568,7 @@ export async function renderDataPageV2(
             grapher={grapher}
             datapageData={datapageData}
             additionalIndicators={additionalIndicators}
+            collapsedIndicatorList={collapsedIndicatorList}
             useNewDatapageDesign={datapageMetadataExperimentActive}
             canonicalUrl={canonicalUrl}
             baseUrl={BAKED_BASE_URL}
@@ -547,7 +589,7 @@ export const renderPreviewDataPageOrGrapherPage = async (
     grapher: GrapherInterface,
     chartId: number,
     knex: db.KnexReadonlyTransaction,
-    options?: { forceDatapage?: boolean }
+    options?: { forceDatapage?: boolean; forceExpandIndicators?: boolean }
 ) => {
     // Match renderDataPageOrGrapherPage: charts for which
     // shouldBakeAsDatapage is true preview as data pages too.
@@ -559,6 +601,7 @@ export const renderPreviewDataPageOrGrapherPage = async (
     const datapage = await renderDatapageIfApplicable(grapher, true, knex, {
         archiveContextDictionary,
         forceDatapage,
+        forceExpandIndicators: options?.forceExpandIndicators,
     })
     if (datapage) return datapage
 

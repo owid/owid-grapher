@@ -335,6 +335,47 @@
     }
 }
 
+// Collapsed multi-indicator mode: one pane + the templated indicator list.
+// The pane's own indicator title is hidden — the "About this data" label and
+// the list carry identity (it stays in the DOM for raw-HTML consumers).
+.indicator-metadata-box-wrap--collapsed
+    .indicator-metadata-box__indicator-title {
+    display: none;
+}
+
+.indicator-metadata-box__collapsed-list {
+    @include body-3-medium;
+    margin-bottom: 16px;
+
+    ul {
+        margin: 8px 0 0;
+        padding-left: 20px;
+    }
+
+    li {
+        margin-bottom: 4px;
+    }
+}
+
+.indicator-metadata-box__collapsed-list-intro {
+    margin: 0;
+}
+
+.indicator-metadata-box__collapsed-list-title {
+    font-weight: 700;
+}
+
+.indicator-metadata-box__collapsed-list-unit {
+    color: $blue-60;
+}
+
+.indicator-metadata-box__collapsed-list-note {
+    @include note-13-medium;
+    color: $blue-60;
+    font-style: italic;
+    margin-top: 2px;
+}
+
 // h-tabs: the tab row sits flush with the box top so the active tab can
 // visually fuse into the box below.
 .indicator-metadata-box-wrap--h-tabs .indicator-metadata-box-wrap__header {

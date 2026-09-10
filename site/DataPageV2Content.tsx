@@ -71,6 +71,7 @@ function DataPageDownloadSection({
 export const DataPageV2Content = ({
     datapageData,
     additionalIndicators,
+    collapsedIndicatorList,
     useNewDatapageDesign: useNewDatapageDesignFromBaker,
     grapherConfig,
     isPreviewing = false,
@@ -198,6 +199,9 @@ export const DataPageV2Content = ({
                             <IndicatorMetadataBox
                                 datapageData={datapageData}
                                 additionalIndicators={additionalIndicators}
+                                collapsedIndicatorList={
+                                    collapsedIndicatorList
+                                }
                                 faqEntries={faqEntries}
                                 canonicalUrl={canonicalUrl}
                                 archiveContext={archiveContext}

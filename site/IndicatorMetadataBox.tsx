@@ -1,4 +1,5 @@
 import cx from "clsx"
+import * as _ from "lodash-es"
 import {
     DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID,
     SimpleMarkdownText,
@@ -11,6 +12,7 @@ import {
 } from "@ourworldindata/components"
 import {
     AdditionalIndicator,
+    CollapsedIndicatorListEntry,
     ArchiveContext,
     DataPageDataV2,
     FaqEntryData,
@@ -579,9 +581,70 @@ function IndicatorPaneContent({
     )
 }
 
+// The collapsed replacement for the indicator switcher: one line saying what
+// the page covers, then one entry per indicator. `short`/`unit`/`note` are
+// only present when that field differs across the indicators (the shared
+// value renders once in the pane below).
+function CollapsedIndicatorList({
+    entries,
+    datapageData,
+}: {
+    entries: CollapsedIndicatorListEntry[]
+    datapageData: DataPageDataV2
+}) {
+    const producers = _.uniq(
+        (datapageData.origins ?? [])
+            .map((origin) => origin.producer)
+            .filter((p): p is string => !!p)
+    )
+    const producerPhrase =
+        producers.length > 0 ? `, all from ${producers.join(", ")}` : ""
+    return (
+        <div className="indicator-metadata-box__collapsed-list">
+            <p className="indicator-metadata-box__collapsed-list-intro">
+                This chart shows data for {entries.length} indicators
+                {producerPhrase}:
+            </p>
+            <ul>
+                {entries.map((entry, i) => (
+                    <li key={i}>
+                        <span className="indicator-metadata-box__collapsed-list-title">
+                            {entry.title}
+                        </span>
+                        {entry.short && (
+                            <>
+                                {" – "}
+                                <SimpleMarkdownText
+                                    text={entry.short}
+                                    useParagraphs={false}
+                                />
+                            </>
+                        )}
+                        {entry.unit && (
+                            <span className="indicator-metadata-box__collapsed-list-unit">
+                                {" "}
+                                ({entry.unit})
+                            </span>
+                        )}
+                        {entry.note && (
+                            <div className="indicator-metadata-box__collapsed-list-note">
+                                <SimpleMarkdownText
+                                    text={entry.note}
+                                    useParagraphs={false}
+                                />
+                            </div>
+                        )}
+                    </li>
+                ))}
+            </ul>
+        </div>
+    )
+}
+
 export default function IndicatorMetadataBox({
     datapageData,
     additionalIndicators,
+    collapsedIndicatorList,
     faqEntries,
     className,
     id,
@@ -592,6 +655,7 @@ export default function IndicatorMetadataBox({
 }: {
     datapageData: DataPageDataV2
     additionalIndicators?: AdditionalIndicator[]
+    collapsedIndicatorList?: CollapsedIndicatorListEntry[]
     className?: string
     id?: string
     faqEntries: FaqEntryData | undefined
@@ -607,6 +671,11 @@ export default function IndicatorMetadataBox({
         ...(additionalIndicators ?? []),
     ]
     const isMulti = indicators.length > 1
+    // The baker collapsed a multi-indicator chart's panes into one: render a
+    // single pane plus the templated indicator list, and no switcher. The
+    // page is still conceptually multi-indicator (citations cite the chart).
+    const isCollapsedMulti = !isMulti && !!collapsedIndicatorList?.length
+    const isMultiForCitations = isMulti || isCollapsedMulti
 
     const [activeIndex, setActiveIndex] = useState(0)
     // Guard against the active indicator being unmounted between renders
@@ -677,11 +746,11 @@ export default function IndicatorMetadataBox({
                 idSuffix={i === safeIndex ? "" : `--${i}`}
                 suppressToggleLogUntilRef={suppressToggleLogUntilRef}
                 datapageCitationTitle={
-                    isMulti
+                    isMultiForCitations
                         ? (pageCitationTitle ?? datapageData.title.title)
                         : undefined
                 }
-                omitLongDatasetTitle={isMulti}
+                omitLongDatasetTitle={isMultiForCitations}
             />
         </div>
     ))
@@ -703,7 +772,7 @@ export default function IndicatorMetadataBox({
         </button>
     )
 
-    if (!isMulti) {
+    if (!isMulti && !isCollapsedMulti) {
         return (
             <div className={cx("indicator-metadata-box", className)} id={id}>
                 {showLessButton}
@@ -715,8 +784,9 @@ export default function IndicatorMetadataBox({
     // Header row above the box: "About this data (N indicators)" plus the
     // switcher control. The v-tabs variant renders its switcher as an aside
     // beside the box instead.
-    const headerSwitcher =
-        switcherVariant === "dropdown" ? (
+    const headerSwitcher = isCollapsedMulti ? (
+        <IndicatorAboutLabel indicatorCount={collapsedIndicatorList!.length} />
+    ) : switcherVariant === "dropdown" ? (
             <IndicatorDropdown
                 indicators={indicators}
                 activeIndex={safeIndex}
@@ -755,6 +825,7 @@ export default function IndicatorMetadataBox({
             className={cx(
                 "indicator-metadata-box-wrap",
                 `indicator-metadata-box-wrap--${switcherVariant}`,
+                { "indicator-metadata-box-wrap--collapsed": isCollapsedMulti },
                 className
             )}
             id={id}
@@ -774,6 +845,12 @@ export default function IndicatorMetadataBox({
                 )}
                 <div className="indicator-metadata-box">
                     {showLessButton}
+                    {isCollapsedMulti && (
+                        <CollapsedIndicatorList
+                            entries={collapsedIndicatorList!}
+                            datapageData={datapageData}
+                        />
+                    )}
                     {panes}
                 </div>
             </div>
