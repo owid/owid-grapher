@@ -181,12 +181,18 @@ export const SearchCountrySelector = ({
                                     src={`/images/flags/${country.code}.svg`}
                                 />
                                 {country.name}
+                                {/* Not a tab stop: React Aria's collection
+                                skips it going forwards, but Shift+Tab lands
+                                on the last one otherwise. Deliberately not
+                                aria-hidden — its checked state is all that
+                                tells assistive tech the row is selected. */}
                                 <input
                                     type="checkbox"
                                     checked={selectedRegionNames.includes(
                                         country.name
                                     )}
                                     readOnly
+                                    tabIndex={-1}
                                 />
                             </ListBoxItem>
                         ))}
