@@ -1,3 +1,14 @@
+// This should be imported as early as possible so the global error handler is
+// set up before any errors are thrown.
+import "../../serverUtils/instrument.js"
+
+import * as Sentry from "@sentry/node"
+import type { KnownBlock } from "@slack/web-api"
+import type {
+    GrapherInterface,
+    MultiDimDataPageConfigEnriched,
+} from "@ourworldindata/types"
+import { dimensionsToViewId } from "@ourworldindata/utils"
 import {
     knexRaw,
     knexReadonlyTransaction,
@@ -10,61 +21,114 @@ import {
     ingestGrapherConfig,
 } from "../../db/grapherConfigValidation.js"
 import {
+    ADMIN_BASE_URL,
+    ENV,
     GRAPHER_DB_HOST,
     GRAPHER_DB_NAME,
     GRAPHER_DB_PORT,
+    SLACK_CONFIG_VALIDATION_CHANNEL_ID,
 } from "../../settings/serverSettings.js"
 import { parseChartConfig } from "../../db/model/ChartConfigs.js"
+import { getMdimViewConfigWithSchema } from "../../db/model/MultiDimDataPage.js"
+import { postToSlack } from "../../serverUtils/slackClient.js"
 type ConfigOwner = "chart" | "indicator" | "narrativeChart" | "multiDim"
 type ConfigRole = "patch" | "full"
 
-interface ConfigReference {
-    owner: ConfigOwner
-    role: ConfigRole
-}
+type OwnerRef =
+    | { owner: "chart"; id: string }
+    | { owner: "indicator"; id: string }
+    | { owner: "narrativeChart"; id: string }
+    | { owner: "multiDim"; id: string; viewId: string }
+
+type ConfigReference =
+    | {
+          owner: "chart" | "indicator" | "narrativeChart"
+          role: ConfigRole
+          ownerIdColumn: string
+      }
+    | {
+          owner: "multiDim"
+          role: ConfigRole
+          ownerIdColumn: string
+          ownerViewIdColumn: string
+      }
 
 /**
  * All database columns referencing `chart_configs`, mapped to their owner and
  * validation role, or `null` if ignored
  */
 const REFERENCING_COLUMNS: Record<string, ConfigReference | null> = {
-    "charts.configId": { owner: "chart", role: "full" },
-    "charts.patchConfigId": { owner: "chart", role: "patch" },
-    "charts.patchConfigIdETL": { owner: "chart", role: "patch" },
+    "charts.configId": {
+        owner: "chart",
+        role: "full",
+        ownerIdColumn: "id",
+    },
+    "charts.patchConfigId": {
+        owner: "chart",
+        role: "patch",
+        ownerIdColumn: "id",
+    },
+    "charts.patchConfigIdETL": {
+        owner: "chart",
+        role: "patch",
+        ownerIdColumn: "id",
+    },
     "multi_dim_x_chart_configs.chartConfigId": {
         owner: "multiDim",
         role: "full",
+        ownerIdColumn: "multiDimId",
+        ownerViewIdColumn: "viewId",
     },
     "narrative_charts.chartConfigId": {
         owner: "narrativeChart",
         role: "full",
+        ownerIdColumn: "id",
     },
     "narrative_charts.patchConfigId": {
         owner: "narrativeChart",
         role: "patch",
+        ownerIdColumn: "id",
     },
-    "variables.patchConfigIdETL": { owner: "indicator", role: "patch" },
+    "variables.patchConfigIdETL": {
+        owner: "indicator",
+        role: "patch",
+        ownerIdColumn: "id",
+    },
 
     // Not validated
     "explorer_views.chartConfigId": null,
     "multi_dim_redirects.viewConfigId": null,
 }
 
+const MULTI_DIM_VIEW_CONFIG_COLUMN = "multi_dim_data_pages.config"
+
 const BATCH_SIZE = 2000
 const MAX_LISTED_IDS = 20
+const MAX_EXAMPLE_OWNERS = 5
+const MAX_SLACK_LINES = 15
+const MAX_SLACK_SECTION_LENGTH = 3000
+const SHOULD_POST_TO_SLACK =
+    ENV === "production" || process.argv.includes("--slack")
 
 interface ValidationIssueGroup {
-    owner: ConfigOwner
-    role: ConfigRole
+    column: string
     pointer: string
     message: string
     count: number
-    exampleIds: string[]
+    exampleOwnersByAdminUrl: Map<string, OwnerRef>
+    hasMoreOwners: boolean
+}
+
+interface RawReferenceRow {
+    id: string
+    reference: string
+    ownerId: string | null
+    ownerViewId: string | null
 }
 
 interface IndexedReference {
     column: string
-    reference: ConfigReference | null
+    validated: { reference: ConfigReference; owner: OwnerRef } | null
 }
 
 interface ReferenceConflict {
@@ -73,17 +137,19 @@ interface ReferenceConflict {
 }
 
 interface UnexpectedFailure {
-    id: string
+    owner: OwnerRef
     message: string
 }
 
 interface Report {
-    ownerRoleCounts: Map<string, number>
+    validatedCounts: Map<string, number>
     notValidatedCounts: Map<string, number>
     validationIssues: Map<string, ValidationIssueGroup>
     conflicts: ReferenceConflict[]
     unreferencedIds: string[]
     unexpectedFailures: UnexpectedFailure[]
+    draftValidationIssues: Map<string, ValidationIssueGroup>
+    draftMultiDimViewConfigs: number
 }
 
 async function assertReferencingColumnsUpToDate(
@@ -126,15 +192,88 @@ async function assertReferencingColumnsUpToDate(
 }
 
 function buildReferenceIndexQuery(): string {
-    return Object.keys(REFERENCING_COLUMNS)
-        .map((reference) => {
-            const [table, column] = reference.split(".")
-            return `SELECT \`${column}\` AS id, '${reference}' AS reference FROM \`${table}\` WHERE \`${column}\` IS NOT NULL`
+    return Object.entries(REFERENCING_COLUMNS)
+        .map(([columnKey, reference]) => {
+            const [table, column] = columnKey.split(".")
+            const ownerId = buildOwnerIdentityExpression(
+                table,
+                reference?.ownerIdColumn ?? null
+            )
+            const ownerViewId = buildOwnerIdentityExpression(
+                table,
+                reference?.owner === "multiDim"
+                    ? reference.ownerViewIdColumn
+                    : null
+            )
+            return `SELECT \`${column}\` AS id, '${columnKey}' AS reference, ${ownerId} AS ownerId, ${ownerViewId} AS ownerViewId FROM \`${table}\` WHERE \`${column}\` IS NOT NULL`
         })
         .join("\nUNION ALL\n")
 }
 
-function buildReferenceIndex(rows: { id: string; reference: string }[]): {
+function buildOwnerIdentityExpression(
+    table: string,
+    column: string | null
+): string {
+    if (column === null) return "NULL"
+    return `CAST(\`${table}\`.\`${column}\` AS CHAR)`
+}
+
+function parseOwnerRef(owner: ConfigOwner, row: RawReferenceRow): OwnerRef {
+    if (row.ownerId === null)
+        throw new Error(`chart_configs row ${row.id} has no owner id`)
+    switch (owner) {
+        case "multiDim":
+            if (row.ownerViewId === null)
+                throw new Error(
+                    `chart_configs row ${row.id} is a multiDim owner with no view id`
+                )
+            return { owner, id: row.ownerId, viewId: row.ownerViewId }
+        case "chart":
+        case "indicator":
+        case "narrativeChart":
+            return { owner, id: row.ownerId }
+    }
+}
+
+function adminLinkForOwner(owner: OwnerRef): { url: string; label: string } {
+    switch (owner.owner) {
+        case "chart":
+            return {
+                url: `${ADMIN_BASE_URL}/admin/charts/${owner.id}/edit`,
+                label: `chart ${owner.id}`,
+            }
+        case "narrativeChart":
+            return {
+                url: `${ADMIN_BASE_URL}/admin/narrative-charts/${owner.id}/edit`,
+                label: `narrative chart ${owner.id}`,
+            }
+        case "multiDim":
+            return {
+                url: `${ADMIN_BASE_URL}/admin/multi-dims/${owner.id}`,
+                label: `mdim ${owner.id}`,
+            }
+        case "indicator":
+            return {
+                url: `${ADMIN_BASE_URL}/admin/variables/${owner.id}`,
+                label: `indicator ${owner.id}`,
+            }
+    }
+}
+
+function formatOwnerRef(owner: OwnerRef, isExample = false): string {
+    const { url } = adminLinkForOwner(owner)
+    if (owner.owner !== "multiDim") return url
+    return `${url} (${isExample ? "e.g. " : ""}view ${owner.viewId})`
+}
+
+function formatOwnerRefAsSlackLink(owner: OwnerRef, isExample = false): string {
+    const { url, label } = adminLinkForOwner(owner)
+    const link = `<${url}|${label}>`
+    if (owner.owner !== "multiDim") return link
+    return `${link} (${isExample ? "e.g. " : ""}view \`${owner.viewId}\`)`
+}
+
+function buildReferenceIndex(rows: RawReferenceRow[]): {
     index: Map<string, IndexedReference>
     conflicts: ReferenceConflict[]
 } {
@@ -143,20 +282,26 @@ function buildReferenceIndex(rows: { id: string; reference: string }[]): {
 
     for (const row of rows) {
         const reference = REFERENCING_COLUMNS[row.reference]
-        const indexed = { column: row.reference, reference }
+        const indexed: IndexedReference = {
+            column: row.reference,
+            validated:
+                reference === null
+                    ? null
+                    : { reference, owner: parseOwnerRef(reference.owner, row) },
+        }
         const existing = index.get(row.id)
         if (existing === undefined) {
             index.set(row.id, indexed)
             continue
         }
-        if (existing.reference === null) {
+        if (existing.validated === null) {
             if (reference !== null) index.set(row.id, indexed)
             continue
         }
         if (reference === null) continue
         if (
-            existing.reference.owner !== reference.owner ||
-            existing.reference.role !== reference.role
+            existing.validated.reference.owner !== reference.owner ||
+            existing.validated.reference.role !== reference.role
         )
             conflicts.push({
                 id: row.id,
@@ -169,12 +314,14 @@ function buildReferenceIndex(rows: { id: string; reference: string }[]): {
 
 function createReport(): Report {
     return {
-        ownerRoleCounts: new Map(),
+        validatedCounts: new Map(),
         notValidatedCounts: new Map(),
         validationIssues: new Map(),
         conflicts: [],
         unreferencedIds: [],
         unexpectedFailures: [],
+        draftValidationIssues: new Map(),
+        draftMultiDimViewConfigs: 0,
     }
 }
 
@@ -183,27 +330,36 @@ function increment(counts: Map<string, number>, key: string): void {
 }
 
 function recordValidationIssue(
-    report: Report,
-    owner: ConfigOwner,
-    role: ConfigRole,
-    issue: GrapherConfigValidationIssue,
-    configId: string
+    issues: Map<string, ValidationIssueGroup>,
+    column: string,
+    owner: OwnerRef,
+    issue: GrapherConfigValidationIssue
 ): void {
-    const key = `${owner}|${role}|${issue.pointer}|${issue.message}`
-    const existing = report.validationIssues.get(key)
+    const key = `${column}|${issue.pointer}|${issue.message}`
+    const existing = issues.get(key)
     if (existing) {
         existing.count++
-        if (existing.exampleIds.length < 3) existing.exampleIds.push(configId)
+        addExampleOwner(existing, owner)
         return
     }
-    report.validationIssues.set(key, {
-        owner,
-        role,
+    issues.set(key, {
+        column,
         pointer: issue.pointer,
         message: issue.message,
         count: 1,
-        exampleIds: [configId],
+        exampleOwnersByAdminUrl: new Map([
+            [adminLinkForOwner(owner).url, owner],
+        ]),
+        hasMoreOwners: false,
     })
+}
+
+function addExampleOwner(group: ValidationIssueGroup, owner: OwnerRef): void {
+    const url = adminLinkForOwner(owner).url
+    if (group.exampleOwnersByAdminUrl.has(url)) return
+    if (group.exampleOwnersByAdminUrl.size < MAX_EXAMPLE_OWNERS)
+        group.exampleOwnersByAdminUrl.set(url, owner)
+    else group.hasMoreOwners = true
 }
 
 function processRow(
@@ -217,25 +373,39 @@ function processRow(
         return
     }
 
-    if (indexed.reference === null) {
+    if (indexed.validated === null) {
         increment(report.notValidatedCounts, indexed.column)
         return
     }
 
-    const { owner, role } = indexed.reference
-    increment(report.ownerRoleCounts, `${owner}/${role}`)
-
-    // The report validates the stored version, not a migrated config
+    const { owner } = indexed.validated
+    increment(report.validatedCounts, indexed.column)
     const config = parseChartConfig(row.config, { skipMigration: true })
+    validateConfig(
+        report,
+        report.validationIssues,
+        indexed.column,
+        owner,
+        config
+    )
+}
+
+function validateConfig(
+    report: Report,
+    issues: Map<string, ValidationIssueGroup>,
+    column: string,
+    owner: OwnerRef,
+    config: GrapherInterface
+): void {
     try {
         ingestGrapherConfig(config)
     } catch (error) {
         if (error instanceof GrapherConfigValidationError) {
             for (const issue of error.issues)
-                recordValidationIssue(report, owner, role, issue, row.id)
+                recordValidationIssue(issues, column, owner, issue)
         } else
             report.unexpectedFailures.push({
-                id: row.id,
+                owner,
                 message: error instanceof Error ? error.message : String(error),
             })
     }
@@ -259,61 +429,94 @@ async function walkChartConfigs(
     }
 }
 
-function orderedOwnerRoles(): ConfigReference[] {
-    const seen = new Set<string>()
-    const ordered: ConfigReference[] = []
-    for (const reference of Object.values(REFERENCING_COLUMNS)) {
-        if (reference === null) continue
-        const key = `${reference.owner}/${reference.role}`
-        if (seen.has(key)) continue
-        seen.add(key)
-        ordered.push(reference)
+async function walkMultiDimViewConfigs(
+    trx: KnexReadonlyTransaction,
+    report: Report
+): Promise<void> {
+    const rows = await knexRaw<{
+        id: string
+        config: string
+        published: number
+    }>(trx, "SELECT `id`, `config`, `published` FROM `multi_dim_data_pages`")
+    for (const row of rows) {
+        const config = JSON.parse(row.config) as MultiDimDataPageConfigEnriched
+        for (const view of config.views) {
+            const viewConfig = getMdimViewConfigWithSchema(config, view)
+            if (!viewConfig) continue
+            const owner: OwnerRef = {
+                owner: "multiDim",
+                id: row.id,
+                viewId: dimensionsToViewId(view.dimensions),
+            }
+            if (row.published) {
+                increment(report.validatedCounts, MULTI_DIM_VIEW_CONFIG_COLUMN)
+                validateConfig(
+                    report,
+                    report.validationIssues,
+                    MULTI_DIM_VIEW_CONFIG_COLUMN,
+                    owner,
+                    viewConfig
+                )
+            } else {
+                report.draftMultiDimViewConfigs++
+                validateConfig(
+                    report,
+                    report.draftValidationIssues,
+                    MULTI_DIM_VIEW_CONFIG_COLUMN,
+                    owner,
+                    viewConfig
+                )
+            }
+        }
     }
-    return ordered
 }
 
-function printOwnerRoleCounts(counts: Map<string, number>): void {
-    const pairs = orderedOwnerRoles().map((reference) => ({
-        ...reference,
-        label: `${reference.owner}/${reference.role}`,
-    }))
-    const width = Math.max(...pairs.map(({ label }) => label.length))
-    for (const { label } of pairs)
-        console.log(`  ${label.padEnd(width)}  ${counts.get(label) ?? 0}`)
-}
-
-function printNotValidatedCounts(counts: Map<string, number>): void {
-    const columns = Object.entries(REFERENCING_COLUMNS)
-        .filter(([, reference]) => reference === null)
-        .map(([column]) => column)
+function printColumnCounts(
+    columns: string[],
+    counts: Map<string, number>
+): void {
     const width = Math.max(...columns.map((column) => column.length))
     for (const column of columns)
         console.log(`  ${column.padEnd(width)}  ${counts.get(column) ?? 0}`)
 }
 
-function printValidationIssues(
-    issues: Map<string, ValidationIssueGroup>
-): void {
-    if (issues.size === 0) {
-        console.log("  none")
-        return
+function partitionReferencingColumns(): {
+    validated: string[]
+    notValidated: string[]
+} {
+    const validated: string[] = []
+    const notValidated: string[] = []
+    for (const [column, reference] of Object.entries(REFERENCING_COLUMNS)) {
+        if (reference === null) notValidated.push(column)
+        else validated.push(column)
     }
-    const sorted = [...issues.values()].sort((a, b) => b.count - a.count)
-    for (const issue of sorted)
-        console.log(
-            `  ${issue.owner}/${issue.role} ${issue.pointer || "(root)"}: ${issue.message} (${issue.count}, e.g. ${issue.exampleIds.join(", ")})`
-        )
+    return { validated, notValidated }
 }
 
-function printConflicts(conflicts: ReferenceConflict[]): void {
-    if (conflicts.length === 0) {
-        console.log("  none")
-        return
-    }
-    for (const conflict of conflicts)
-        console.log(
-            `  ${conflict.id}: ${conflict.references[0]} vs ${conflict.references[1]}`
-        )
+function renderValidationIssues(
+    issues: Map<string, ValidationIssueGroup>,
+    validatedCounts: Map<string, number>,
+    formatOwner: (owner: OwnerRef, isExample?: boolean) => string
+): string[] {
+    if (issues.size === 0) return []
+    const sorted = [...issues.values()].sort((a, b) => b.count - a.count)
+    return sorted.map((issue) => {
+        const total = validatedCounts.get(issue.column) ?? 0
+        const owners = [...issue.exampleOwnersByAdminUrl.values()]
+            .map((owner) => formatOwner(owner, true))
+            .join(", ")
+        const where = issue.hasMoreOwners
+            ? `e.g. ${owners} and more`
+            : `in ${owners}`
+        return `${issue.column} ${issue.pointer || "(root)"}: ${issue.message} (${issue.count} of ${total}, ${where})`
+    })
+}
+
+function renderConflicts(conflicts: ReferenceConflict[]): string[] {
+    return conflicts.map(
+        (conflict) =>
+            `${conflict.id}: ${conflict.references[0]} vs ${conflict.references[1]}`
+    )
 }
 
 function printUnreferencedIds(ids: string[]): void {
@@ -327,17 +530,25 @@ function printUnreferencedIds(ids: string[]): void {
         console.log(`  ... and ${ids.length - MAX_LISTED_IDS} more`)
 }
 
-function printUnexpectedFailures(failures: UnexpectedFailure[]): void {
-    if (failures.length === 0) {
+function renderUnexpectedFailures(
+    failures: UnexpectedFailure[],
+    formatOwner: (owner: OwnerRef) => string
+): string[] {
+    return failures.map(
+        (failure) => `${formatOwner(failure.owner)}: ${failure.message}`
+    )
+}
+
+function printFindings(lines: string[]): void {
+    if (lines.length === 0) {
         console.log("  none")
         return
     }
-    for (const failure of failures)
-        console.log(`  ${failure.id}: ${failure.message}`)
+    for (const line of lines) console.log(`  ${line}`)
 }
 
 function printReport(report: Report, elapsedSeconds: number): void {
-    const counted = [...report.ownerRoleCounts.values()].reduce(
+    const counted = [...report.validatedCounts.values()].reduce(
         (total, count) => total + count,
         0
     )
@@ -345,29 +556,54 @@ function printReport(report: Report, elapsedSeconds: number): void {
         (total, count) => total + count,
         0
     )
+    const drafts = report.draftMultiDimViewConfigs
+    const { validated, notValidated } = partitionReferencingColumns()
 
     console.log("Validated stored grapher configs")
     console.log(
         `Database: ${GRAPHER_DB_HOST}:${GRAPHER_DB_PORT}/${GRAPHER_DB_NAME}`
     )
-    console.log(`Rows: ${counted + skipped + report.unreferencedIds.length}`)
+    console.log(
+        `Configs: ${counted + drafts + skipped + report.unreferencedIds.length}`
+    )
     console.log(`Date: ${new Date().toISOString()}`)
     console.log("")
 
-    console.log("Validated, by owner and role:")
-    printOwnerRoleCounts(report.ownerRoleCounts)
+    console.log("Validated, by the column they come from:")
+    printColumnCounts(
+        [...validated, MULTI_DIM_VIEW_CONFIG_COLUMN],
+        report.validatedCounts
+    )
     console.log("")
 
-    console.log("Not validated, by the column that names them:")
-    printNotValidatedCounts(report.notValidatedCounts)
+    console.log("Not validated, by the column they come from:")
+    printColumnCounts(notValidated, report.notValidatedCounts)
     console.log("")
 
     console.log("Validation issues:")
-    printValidationIssues(report.validationIssues)
+    printFindings(
+        renderValidationIssues(
+            report.validationIssues,
+            report.validatedCounts,
+            formatOwnerRef
+        )
+    )
+    console.log("")
+
+    console.log(
+        `Validation issues in unpublished mdims, kept out of Slack (${drafts} view configs):`
+    )
+    printFindings(
+        renderValidationIssues(
+            report.draftValidationIssues,
+            new Map([[MULTI_DIM_VIEW_CONFIG_COLUMN, drafts]]),
+            formatOwnerRef
+        )
+    )
     console.log("")
 
     console.log("Rows referenced with conflicting roles:")
-    printConflicts(report.conflicts)
+    printFindings(renderConflicts(report.conflicts))
     console.log("")
 
     console.log("Rows nothing references:")
@@ -375,21 +611,94 @@ function printReport(report: Report, elapsedSeconds: number): void {
     console.log("")
 
     console.log("Rows that threw an unexpected error:")
-    printUnexpectedFailures(report.unexpectedFailures)
+    printFindings(
+        renderUnexpectedFailures(report.unexpectedFailures, formatOwnerRef)
+    )
     console.log("")
 
     console.log(
-        `Validated ${counted}, skipped ${skipped}, elapsed ${elapsedSeconds.toFixed(1)}s`
+        `Validated ${counted + drafts}, skipped ${skipped}, elapsed ${elapsedSeconds.toFixed(1)}s`
     )
+}
+
+function renderSlackSectionText(
+    heading: string,
+    lines: string[],
+    omitted: number
+): string {
+    return [
+        `*${heading}*`,
+        ...lines.map((line) => `• ${line}`),
+        ...(omitted > 0 ? [`... and ${omitted} more`] : []),
+    ].join("\n")
+}
+
+function slackSection(
+    heading: string,
+    lines: string[]
+): KnownBlock | undefined {
+    if (lines.length === 0) return undefined
+    let kept = lines.slice(0, MAX_SLACK_LINES)
+    let text = renderSlackSectionText(heading, kept, lines.length - kept.length)
+    while (text.length > MAX_SLACK_SECTION_LENGTH && kept.length > 0) {
+        kept = kept.slice(0, -1)
+        text = renderSlackSectionText(heading, kept, lines.length - kept.length)
+    }
+    return { type: "section", text: { type: "mrkdwn", text } }
+}
+
+function buildSlackBlocks(report: Report): KnownBlock[] | undefined {
+    const sections = [
+        slackSection(
+            "Validation issues",
+            renderValidationIssues(
+                report.validationIssues,
+                report.validatedCounts,
+                formatOwnerRefAsSlackLink
+            )
+        ),
+        slackSection(
+            "Rows referenced with conflicting roles",
+            renderConflicts(report.conflicts)
+        ),
+        slackSection(
+            "Rows that threw an unexpected error",
+            renderUnexpectedFailures(
+                report.unexpectedFailures,
+                formatOwnerRefAsSlackLink
+            )
+        ),
+    ].filter((section): section is KnownBlock => section !== undefined)
+    if (sections.length === 0) return undefined
+
+    return [
+        {
+            type: "header",
+            text: {
+                type: "plain_text",
+                text: "Grapher configs failing schema validation",
+            },
+        },
+        ...sections,
+        {
+            type: "context",
+            elements: [
+                {
+                    type: "mrkdwn",
+                    text: `${GRAPHER_DB_HOST}:${GRAPHER_DB_PORT}/${GRAPHER_DB_NAME}`,
+                },
+            ],
+        },
+    ]
 }
 
 async function main(): Promise<void> {
     const startTime = Date.now()
 
-    await knexReadonlyTransaction(async (trx) => {
+    const report = await knexReadonlyTransaction(async (trx) => {
         await assertReferencingColumnsUpToDate(trx)
 
-        const referenceRows = await knexRaw<{ id: string; reference: string }>(
+        const referenceRows = await knexRaw<RawReferenceRow>(
             trx,
             buildReferenceIndexQuery()
         )
@@ -399,14 +708,31 @@ async function main(): Promise<void> {
         const report = createReport()
         report.conflicts = conflicts
         await walkChartConfigs(trx, referenceIndex, report)
-
-        printReport(report, (Date.now() - startTime) / 1000)
+        await walkMultiDimViewConfigs(trx, report)
+        return report
     }, TransactionCloseMode.Close)
+
+    printReport(report, (Date.now() - startTime) / 1000)
+
+    const blocks = buildSlackBlocks(report)
+    if (!blocks) return
+    if (SHOULD_POST_TO_SLACK)
+        await postToSlack(
+            SLACK_CONFIG_VALIDATION_CHANNEL_ID,
+            blocks,
+            "Grapher configs failing schema validation"
+        )
+    else
+        console.log(
+            "Not posting to Slack outside production. Pass --slack to post anyway."
+        )
 }
 
 main()
-    .catch((error) => {
+    .catch(async (error) => {
         console.error(error)
+        Sentry.captureException(error)
+        await Sentry.close()
         process.exitCode = 1
     })
     .finally(() => {
