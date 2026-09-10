@@ -36,27 +36,38 @@ export function getDatapageDataV2(
         // indicators of a multi-indicator chart, where the chart title
         // describes the whole chart rather than any single indicator.
         indicatorTitleOverride?: string
+        // The chart dimension's own display.name, when the chart author set
+        // one. On multi-indicator pages this beats even titlePublic: it's
+        // explicit per-chart intent, and it's what the chart itself uses for
+        // the series label — the switcher's labels should match the chart
+        // sitting right above them. (The ETL-level variable display.name
+        // deliberately stays BELOW titlePublic: it's often non-distinct, e.g.
+        // an estimates/projections pair both named "Population".)
+        chartDimensionName?: string
     }
 ): DataPageDataV2 {
     const lastUpdated = getLastUpdatedFromVariable(variableMetadata) ?? ""
     const nextUpdate = getNextUpdateFromVariable(variableMetadata)
+    const titleFromMetadata = variableMetadata.presentation?.titlePublic
     return {
         status: "draft",
-        title: variableMetadata.presentation?.titlePublic
-            ? omitUndefinedValues({
-                  title: variableMetadata.presentation?.titlePublic,
-                  attributionShort:
-                      variableMetadata.presentation?.attributionShort,
-                  titleVariant: variableMetadata.presentation?.titleVariant,
-              })
-            : {
-                  title:
-                      opts?.indicatorTitleOverride ??
-                      partialGrapherConfig.title ??
-                      variableMetadata.display?.name ??
-                      variableMetadata.name ??
-                      "",
-              },
+        title:
+            opts?.chartDimensionName || titleFromMetadata
+                ? omitUndefinedValues({
+                      title: (opts?.chartDimensionName ??
+                          titleFromMetadata) as string,
+                      attributionShort:
+                          variableMetadata.presentation?.attributionShort,
+                      titleVariant: variableMetadata.presentation?.titleVariant,
+                  })
+                : {
+                      title:
+                          opts?.indicatorTitleOverride ??
+                          partialGrapherConfig.title ??
+                          variableMetadata.display?.name ??
+                          variableMetadata.name ??
+                          "",
+                  },
         description: variableMetadata.description,
         descriptionShort: variableMetadata.descriptionShort,
         descriptionFromProducer: variableMetadata.descriptionFromProducer,

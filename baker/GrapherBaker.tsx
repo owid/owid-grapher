@@ -306,6 +306,17 @@ export async function renderDataPageV2(
     // switcher. Only used on enrolled charts so non-enrolled data pages keep
     // their existing title resolution (which falls back to
     // `grapherConfig.title`).
+    // Treat an empty/whitespace display.name (the editor saves "" when the
+    // field is cleared) as unset, so it can't blank out a pane title.
+    const chartDimensionNameFor = (varId: number): string | undefined =>
+        grapher.dimensions
+            ?.find(
+                (d) =>
+                    d.property === DimensionProperty.y &&
+                    d.variableId === varId
+            )
+            ?.display?.name?.trim() || undefined
+
     const indicatorTitleOverrideFor = (
         varId: number,
         metadata: OwidVariableWithSource
@@ -339,6 +350,7 @@ export async function renderDataPageV2(
                       variableId,
                       variableMetadata
                   ),
+                  chartDimensionName: chartDimensionNameFor(variableId),
               }
             : undefined
     )
@@ -367,6 +379,7 @@ export async function renderDataPageV2(
                                 id,
                                 metadata
                             ),
+                            chartDimensionName: chartDimensionNameFor(id),
                         }
                     )
                     // "Managed by" is a dataset-level field (datasets.owners);
