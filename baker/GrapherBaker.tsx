@@ -491,7 +491,8 @@ export async function renderDataPageV2(
             additionalIndicators = undefined
             datapageData.dateRange = collapse.dateRange
             datapageData.lastUpdated = collapse.lastUpdated
-            if (collapse.nextUpdate) datapageData.nextUpdate = collapse.nextUpdate
+            if (collapse.nextUpdate)
+                datapageData.nextUpdate = collapse.nextUpdate
             if (collapse.owners) datapageData.owners = collapse.owners
             // A field that differs across the indicators moves into the list;
             // leaving the primary's value on the pane would misattribute it

@@ -330,8 +330,7 @@ getPlainRouteWithROTransaction(
                     // ?forceExpand=true skips the pane collapse.
                     {
                         forceDatapage: req.query.forceDatapage === "true",
-                        forceExpandIndicators:
-                            req.query.forceExpand === "true",
+                        forceExpandIndicators: req.query.forceExpand === "true",
                     }
                 )
             res.send(previewDataPageOrGrapherPage)

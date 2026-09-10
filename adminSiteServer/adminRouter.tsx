@@ -211,8 +211,7 @@ getPlainRouteWithROTransaction(
                     // version of a collapsed page can be inspected.
                     {
                         forceDatapage: req.query.forceDatapage === "true",
-                        forceExpandIndicators:
-                            req.query.forceExpand === "true",
+                        forceExpandIndicators: req.query.forceExpand === "true",
                     }
                 )
             res.send(previewDataPageOrGrapherPage)

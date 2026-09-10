@@ -79,9 +79,7 @@ const TIMESPAN_REGEX = /^\s*(-?\d+)-(-?\d+)\s*$/
 const labelFor = (dd: DataPageDataV2): string => {
     const title = dd.title.title
     const variant = dd.titleVariant?.trim()
-    return variant && !title.includes(variant)
-        ? `${title} – ${variant}`
-        : title
+    return variant && !title.includes(variant) ? `${title} – ${variant}` : title
 }
 
 export function computeIndicatorPaneCollapse(
@@ -146,12 +144,14 @@ export function computeIndicatorPaneCollapse(
     const shortsDiffer = !allSame((dd) => dd.descriptionShort ?? "")
     const unitsDiffer = !allSame((dd) => dd.unit ?? "")
 
-    const list: CollapsedIndicatorListEntry[] = panes.map(({ datapageData: dd }, i) => ({
-        title: labelFor(dd),
-        short: shortsDiffer ? dd.descriptionShort || undefined : undefined,
-        unit: unitsDiffer ? dd.unit || undefined : undefined,
-        note: wyskDiffers && wysks[i] ? wysks[i] : undefined,
-    }))
+    const list: CollapsedIndicatorListEntry[] = panes.map(
+        ({ datapageData: dd }, i) => ({
+            title: labelFor(dd),
+            short: shortsDiffer ? dd.descriptionShort || undefined : undefined,
+            unit: unitsDiffer ? dd.unit || undefined : undefined,
+            note: wyskDiffers && wysks[i] ? wysks[i] : undefined,
+        })
+    )
 
     return {
         list,

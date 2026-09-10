@@ -787,38 +787,38 @@ export default function IndicatorMetadataBox({
     const headerSwitcher = isCollapsedMulti ? (
         <IndicatorAboutLabel indicatorCount={collapsedIndicatorList!.length} />
     ) : switcherVariant === "dropdown" ? (
-            <IndicatorDropdown
+        <IndicatorDropdown
+            indicators={indicators}
+            activeIndex={safeIndex}
+            onIndicatorChange={setActiveIndex}
+        />
+    ) : switcherVariant === "h-tabs" || switcherVariant === "h-pills" ? (
+        <>
+            <IndicatorAboutLabel indicatorCount={indicators.length} />
+            <IndicatorTabsHorizontal
                 indicators={indicators}
                 activeIndex={safeIndex}
                 onIndicatorChange={setActiveIndex}
+                variant={switcherVariant === "h-pills" ? "pills" : "tabs"}
             />
-        ) : switcherVariant === "h-tabs" || switcherVariant === "h-pills" ? (
-            <>
-                <IndicatorAboutLabel indicatorCount={indicators.length} />
-                <IndicatorTabsHorizontal
-                    indicators={indicators}
-                    activeIndex={safeIndex}
-                    onIndicatorChange={setActiveIndex}
-                    variant={switcherVariant === "h-pills" ? "pills" : "tabs"}
-                />
-                {switcherVariant === "h-pills" && (
-                    // Mobile control: pills wrap into a ragged stack of rows
-                    // on narrow screens, so below the small breakpoint the
-                    // pill row is hidden and this select takes its own row
-                    // under the label. Both live in the DOM and CSS picks one
-                    // (the site pattern for responsive component swaps, e.g.
-                    // SiteNavigation's mobile menu) — SSR can't know the
-                    // viewport, so a JS swap would flash on mobile.
-                    <div className="indicator-metadata-box-wrap__mobile-dropdown">
-                        <IndicatorDropdownSelect
-                            indicators={indicators}
-                            activeIndex={safeIndex}
-                            onIndicatorChange={setActiveIndex}
-                        />
-                    </div>
-                )}
-            </>
-        ) : null
+            {switcherVariant === "h-pills" && (
+                // Mobile control: pills wrap into a ragged stack of rows
+                // on narrow screens, so below the small breakpoint the
+                // pill row is hidden and this select takes its own row
+                // under the label. Both live in the DOM and CSS picks one
+                // (the site pattern for responsive component swaps, e.g.
+                // SiteNavigation's mobile menu) — SSR can't know the
+                // viewport, so a JS swap would flash on mobile.
+                <div className="indicator-metadata-box-wrap__mobile-dropdown">
+                    <IndicatorDropdownSelect
+                        indicators={indicators}
+                        activeIndex={safeIndex}
+                        onIndicatorChange={setActiveIndex}
+                    />
+                </div>
+            )}
+        </>
+    ) : null
 
     return (
         <div

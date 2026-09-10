@@ -199,9 +199,7 @@ export const DataPageV2Content = ({
                             <IndicatorMetadataBox
                                 datapageData={datapageData}
                                 additionalIndicators={additionalIndicators}
-                                collapsedIndicatorList={
-                                    collapsedIndicatorList
-                                }
+                                collapsedIndicatorList={collapsedIndicatorList}
                                 faqEntries={faqEntries}
                                 canonicalUrl={canonicalUrl}
                                 archiveContext={archiveContext}
