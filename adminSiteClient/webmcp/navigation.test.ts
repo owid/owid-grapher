@@ -66,6 +66,28 @@ describe(navigateTo, () => {
         expect(navigateTo("/charts").ok).toBe(true)
     })
 
+    it("treats the page we are already on as a no-op, guard or not", () => {
+        const history = fakeHistory()
+        setAdminHistory(history)
+        const controller = new AbortController()
+        registerNavigationGuard(() => "unsaved changes", controller.signal)
+        window.history.replaceState({}, "", "/admin/charts/7283/edit")
+
+        // Being told to save changes before opening the page you are already
+        // looking at is the dead end this avoids.
+        expect(navigateTo("/charts/7283/edit")).toEqual({
+            ok: true,
+            path: "/charts/7283/edit",
+            unchanged: true,
+        })
+        expect(history.push).not.toHaveBeenCalled()
+
+        // A different page is still blocked.
+        expect(navigateTo("/charts").ok).toBe(false)
+        controller.abort()
+        window.history.replaceState({}, "", "/")
+    })
+
     it("refuses invalid paths before consulting guards or history", () => {
         const history = fakeHistory()
         setAdminHistory(history)

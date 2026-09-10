@@ -690,14 +690,59 @@ export function buildChartEditorTools(
                 }),
         },
         {
+            name: "discard_chart_changes",
+            description:
+                "Throw away the editor's unsaved changes and put the chart " +
+                "back to its last saved state. This is the way out when the " +
+                "user wants to leave a chart alone: unsaved changes block " +
+                "navigation, and on a published chart save_chart is refused, " +
+                "so without this nothing can move. The admin has no Discard " +
+                "button, so do not tell the user to click one.",
+            inputSchema: { type: "object", properties: {} },
+            execute: () =>
+                withEditor(context, async (editor) => {
+                    if (!editor.isModified)
+                        return `There are no unsaved changes. ${NOTHING_CHANGED}`
+                    // Identity is carried explicitly rather than trusted to
+                    // the original config: no tool can change these, so the
+                    // live values are still the saved ones, and a config that
+                    // happened to omit them would otherwise turn a saved
+                    // chart into a new one on the next save.
+                    const { id, version, isPublished } = editor.grapherState
+                    const restored = { ...editor.originalGrapherConfig }
+                    if (id !== undefined) restored.id = id
+                    if (version !== undefined) restored.version = version
+                    if (isPublished !== undefined)
+                        restored.isPublished = isPublished
+                    runInAction(() => {
+                        editor.updateLiveGrapher(restored)
+                    })
+                    // The config's dimensions are back, but the data table
+                    // still reflects whatever indicators were last committed.
+                    await editor.reloadGrapherData()
+                    if (editor.isNewGrapher)
+                        return (
+                            "Discarded the changes; the new chart is back to how " +
+                            "the editor opened. Nothing was saved."
+                        )
+                    return (
+                        `Discarded the unsaved changes. Chart #${id} is back to its ` +
+                        `saved state${version ? `, version ${version}` : ""}. ` +
+                        "Navigation is no longer blocked."
+                    )
+                }),
+        },
+        {
             name: "save_chart",
             description:
                 "Save the chart as a draft: creates it on first save, updates " +
                 "it afterwards. Never publishes. Refused when the chart has " +
                 "editing errors, and on published charts, since saving those " +
                 "changes the live site; the user does that with the Update " +
-                "button. A first save reloads the editor at the new chart's " +
-                "URL, so the editor tools blink out for a second afterwards.",
+                "button, or you can drop the changes with " +
+                "discard_chart_changes. A first save reloads the editor at " +
+                "the new chart's URL, so the editor tools blink out for a " +
+                "second afterwards.",
             inputSchema: { type: "object", properties: {} },
             execute: () =>
                 withEditor(context, async (editor) => {
@@ -705,7 +750,8 @@ export function buildChartEditorTools(
                     if (grapherState.isPublished)
                         return (
                             `Chart #${grapherState.id} is published; saving would change the live chart. ` +
-                            `Ask the user to review and click "Update chart". ${NOTHING_CHANGED}`
+                            'Ask the user to review and click "Update chart", or ' +
+                            `call discard_chart_changes to drop the changes. ${NOTHING_CHANGED}`
                         )
                     if (grapherState.hasFatalErrors)
                         return `The chart cannot render yet (no indicator or no data), so it cannot be saved. ${NOTHING_CHANGED}`

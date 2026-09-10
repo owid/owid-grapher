@@ -77,8 +77,14 @@ function makeEditor(overrides: Partial<GrapherInterface> = {}): FakeEditor {
         grapherState.version = 1
         remountEditorToolSet()
     })
+    // What the editor was initialised with, which is what a discard reverts
+    // to; the real one derives it from the manager's patch and parent config.
+    const originalGrapherConfig = grapherState.object
+
     const fake = {
         grapherState,
+        originalGrapherConfig,
+        reloadGrapherData: vi.fn().mockResolvedValue(undefined),
         tab: "basic",
         showStaticPreview: false,
         availableTabs: ["basic", "data", "text", "export"],
@@ -463,6 +469,51 @@ describe("chart editor WebMCP tools", () => {
             const text = await call("save_chart")
             expect(text).toContain("Invalid origin URL")
             expect(fake.saveGrapher).not.toHaveBeenCalled()
+        })
+
+        it("points at discarding when the chart is published", async () => {
+            fake.grapherState.isPublished = true
+            expect(await call("save_chart")).toContain("discard_chart_changes")
+        })
+    })
+
+    describe("discard_chart_changes", () => {
+        const editor = (): any => fake.editor as any
+
+        it("puts the chart back to its saved state and reloads the data", async () => {
+            const original = fake.grapherState.title
+            await call("update_chart_config", {
+                patch: { title: "Something else", subtitle: "Added" },
+            })
+            expect(fake.grapherState.title).toBe("Something else")
+
+            editor().isNewGrapher = false
+            fake.grapherState.id = 7283
+            const text = await call("discard_chart_changes")
+
+            expect(fake.grapherState.title).toBe(original)
+            expect(fake.grapherState.subtitle).toBeFalsy()
+            expect(editor().reloadGrapherData).toHaveBeenCalled()
+            expect(text).toContain("Discarded the unsaved changes")
+            expect(text).toContain("#7283")
+            expect(text).not.toContain("undefined")
+        })
+
+        it("is the way out of a published chart that cannot be saved", async () => {
+            fake.grapherState.isPublished = true
+            editor().isNewGrapher = false
+            await call("update_chart_config", { patch: { title: "Edited" } })
+            expect(await call("save_chart")).toContain("Nothing was changed.")
+
+            await call("discard_chart_changes")
+            expect(fake.grapherState.title).not.toBe("Edited")
+        })
+
+        it("says so when there is nothing to discard", async () => {
+            editor().isModified = false
+            const text = await call("discard_chart_changes")
+            expect(text).toContain("no unsaved changes")
+            expect(editor().reloadGrapherData).not.toHaveBeenCalled()
         })
     })
 })
