@@ -8,18 +8,19 @@ import { serializeJSONForInlineScript } from "@ourworldindata/utils"
 import {
     __OWID_EXPLORER_INDEX_PAGE_PROPS,
     ExplorerIndex,
-    ExplorerIndexPageProps,
+    ExplorerIndexProps,
 } from "./ExplorerIndex.js"
+
+interface ExplorerIndexPageProps extends ExplorerIndexProps {
+    baseUrl: string
+}
 
 export const ExplorerIndexPage = ({
     baseUrl,
-    explorers,
+    items,
 }: ExplorerIndexPageProps) => {
     const inlineJs = `window.${__OWID_EXPLORER_INDEX_PAGE_PROPS} = ${serializeJSONForInlineScript(
-        {
-            baseUrl,
-            explorers,
-        }
+        { items }
     )}`
     return (
         <Html>
@@ -32,7 +33,7 @@ export const ExplorerIndexPage = ({
             <body>
                 <SiteHeader />
                 <main className="explorer-index-page grid grid-cols-12-full-width">
-                    <ExplorerIndex baseUrl={baseUrl} explorers={explorers} />
+                    <ExplorerIndex items={items} />
                 </main>
                 <SiteFooter context={SiteFooterContext.explorerIndexPage} />
                 <script dangerouslySetInnerHTML={{ __html: inlineJs }} />
