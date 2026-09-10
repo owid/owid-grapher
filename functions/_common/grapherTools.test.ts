@@ -7,8 +7,8 @@ import {
 import { GrapherState } from "@ourworldindata/grapher"
 import { OwidTableSlugs } from "@ourworldindata/types"
 import {
-    resolveMdimViewFromCompanion,
-    resolveMdimViewQueryStr,
+    resolveMultiDimViewFromCompanion,
+    resolveMultiDimViewQueryStr,
     rewriteJsonLdText,
 } from "./grapherTools.js"
 
@@ -93,12 +93,12 @@ describe(rewriteJsonLdText, () => {
     })
 })
 
-describe(resolveMdimViewQueryStr, () => {
+describe(resolveMultiDimViewQueryStr, () => {
     const defaultDimensions = { metric: "coverage", antigen: "dtp3" }
 
     it("sorts dimension params and drops non-dimension params", () => {
         expect(
-            resolveMdimViewQueryStr(
+            resolveMultiDimViewQueryStr(
                 new URLSearchParams(
                     "metric=vaccinated&antigen=hepb_bd&tab=map"
                 ),
@@ -109,19 +109,22 @@ describe(resolveMdimViewQueryStr, () => {
 
     it("falls back to default choices for missing dimensions", () => {
         expect(
-            resolveMdimViewQueryStr(
+            resolveMultiDimViewQueryStr(
                 new URLSearchParams("metric=vaccinated"),
                 defaultDimensions
             )
         ).toBe("antigen=dtp3&metric=vaccinated")
         expect(
-            resolveMdimViewQueryStr(new URLSearchParams(), defaultDimensions)
+            resolveMultiDimViewQueryStr(
+                new URLSearchParams(),
+                defaultDimensions
+            )
         ).toBe("antigen=dtp3&metric=coverage")
     })
 
     it("falls back to default choices for empty dimension params", () => {
         expect(
-            resolveMdimViewQueryStr(
+            resolveMultiDimViewQueryStr(
                 new URLSearchParams("antigen=&metric=vaccinated"),
                 defaultDimensions
             )
@@ -129,7 +132,7 @@ describe(resolveMdimViewQueryStr, () => {
     })
 })
 
-describe(resolveMdimViewFromCompanion, () => {
+describe(resolveMultiDimViewFromCompanion, () => {
     const defaultDimensions = { metric: "coverage", antigen: "dtp3" }
     const companion = {
         title: "Childhood vaccination coverage",
@@ -141,7 +144,7 @@ describe(resolveMdimViewFromCompanion, () => {
 
     it("prefers the combination of specified params and default choices", () => {
         expect(
-            resolveMdimViewFromCompanion(
+            resolveMultiDimViewFromCompanion(
                 companion,
                 new URLSearchParams("metric=coverage"),
                 defaultDimensions
@@ -155,7 +158,7 @@ describe(resolveMdimViewFromCompanion, () => {
     it("falls back to an existing view when the default fill doesn't exist", () => {
         // metric=vaccinated only exists in combination with antigen=hepb_bd
         expect(
-            resolveMdimViewFromCompanion(
+            resolveMultiDimViewFromCompanion(
                 companion,
                 new URLSearchParams("metric=vaccinated"),
                 defaultDimensions
@@ -168,7 +171,7 @@ describe(resolveMdimViewFromCompanion, () => {
 
     it("returns undefined when no existing view matches the specified params", () => {
         expect(
-            resolveMdimViewFromCompanion(
+            resolveMultiDimViewFromCompanion(
                 companion,
                 new URLSearchParams("antigen=nonexistent"),
                 defaultDimensions

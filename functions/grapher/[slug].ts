@@ -14,11 +14,11 @@ import {
 } from "../_common/redirectTools.js"
 import {
     fetchUnparsedGrapherConfig,
-    MdimCompanionLoader,
+    MultiDimCompanionLoader,
     rewriteMetaTags,
 } from "../_common/grapherTools.js"
 import {
-    MDIM_COMPANION_FILE_SUFFIX,
+    MULTI_DIM_COMPANION_FILE_SUFFIX,
     MultiDimPageCompanion,
 } from "@ourworldindata/types"
 import { IRequestStrict, Router, StatusError, error, cors } from "itty-router"
@@ -180,9 +180,9 @@ async function handleHtmlPageRequest(
     // Every multi-dim page is baked with a companion file, so failing to load
     // it is an error; rewriteMetaTags reports it and falls back to the
     // generic page title.
-    const loadMdimCompanion: MdimCompanionLoader = async () => {
+    const loadMultiDimCompanion: MultiDimCompanionLoader = async () => {
         const resp = await env.ASSETS.fetch(
-            new URL(`/grapher/${slug}${MDIM_COMPANION_FILE_SUFFIX}`, url)
+            new URL(`/grapher/${slug}${MULTI_DIM_COMPANION_FILE_SUFFIX}`, url)
         )
         if (resp.status !== 200) {
             throw new Error(
@@ -197,7 +197,7 @@ async function handleHtmlPageRequest(
         openGraphThumbnailUrl,
         twitterThumbnailUrl,
         grapherPageResp,
-        loadMdimCompanion
+        loadMultiDimCompanion
     )
 }
 

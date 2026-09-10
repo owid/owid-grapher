@@ -791,7 +791,7 @@ export type {
     View,
     ViewEnriched,
 } from "./siteTypes/MultiDimDataPage.js"
-export { MDIM_COMPANION_FILE_SUFFIX } from "./siteTypes/MultiDimDataPage.js"
+export { MULTI_DIM_COMPANION_FILE_SUFFIX } from "./siteTypes/MultiDimDataPage.js"
 
 export {
     GRAPHER_PREVIEW_CLASS,

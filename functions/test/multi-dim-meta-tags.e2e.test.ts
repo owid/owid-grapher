@@ -20,11 +20,12 @@ function renderAttrWithReact(name: string, value: string): string {
     return html.slice("<div ".length, -"></div>".length)
 }
 
-const MDIM_BASE_URL = "https://ourworldindata.org/grapher/vaccination-coverage"
-const MDIM_PAGE_TITLE = "Childhood vaccination coverage - by vaccine"
-const MDIM_DEFAULT_DIMENSIONS = { antigen: "dtp3", metric: "coverage" }
-const MDIM_COMPANION: MultiDimPageCompanion = {
-    title: MDIM_PAGE_TITLE,
+const MULTI_DIM_BASE_URL =
+    "https://ourworldindata.org/grapher/vaccination-coverage"
+const MULTI_DIM_PAGE_TITLE = "Childhood vaccination coverage - by vaccine"
+const MULTI_DIM_DEFAULT_DIMENSIONS = { antigen: "dtp3", metric: "coverage" }
+const MULTI_DIM_COMPANION: MultiDimPageCompanion = {
+    title: MULTI_DIM_PAGE_TITLE,
     views: {
         "antigen=dtp3&metric=coverage": {
             title: "Share of one-year-olds vaccinated against diphtheria, tetanus & pertussis",
@@ -35,19 +36,19 @@ const MDIM_COMPANION: MultiDimPageCompanion = {
     },
 }
 
-function makeMdimPageHtml({ withMdimAttrs = true } = {}): string {
-    const headAttrs = withMdimAttrs
+function makeMultiDimPageHtml({ withMultiDimAttrs = true } = {}): string {
+    const headAttrs = withMultiDimAttrs
         ? ` ${renderAttrWithReact(
               "data-owid-mdim-initial-view-dimensions",
-              JSON.stringify(MDIM_DEFAULT_DIMENSIONS)
+              JSON.stringify(MULTI_DIM_DEFAULT_DIMENSIONS)
           )}`
         : ""
     return `<!DOCTYPE html><html><head${headAttrs}>
-<link rel="canonical" href="${MDIM_BASE_URL}"/>
-<title>${MDIM_PAGE_TITLE} | Our World in Data</title>
-<meta property="og:title" content="${MDIM_PAGE_TITLE}"/>
-<meta name="twitter:title" content="${MDIM_PAGE_TITLE}"/>
-<meta property="og:url" content="${MDIM_BASE_URL}"/>
+<link rel="canonical" href="${MULTI_DIM_BASE_URL}"/>
+<title>${MULTI_DIM_PAGE_TITLE} | Our World in Data</title>
+<meta property="og:title" content="${MULTI_DIM_PAGE_TITLE}"/>
+<meta name="twitter:title" content="${MULTI_DIM_PAGE_TITLE}"/>
+<meta property="og:url" content="${MULTI_DIM_BASE_URL}"/>
 </head><body><svg><title>Download icon</title></svg></body></html>`
 }
 
@@ -55,7 +56,7 @@ async function rewriteMetaTagsForUrl(
     html: string,
     urlStr: string,
     // null = no companion file exists for the page
-    companion: MultiDimPageCompanion | null = MDIM_COMPANION
+    companion: MultiDimPageCompanion | null = MULTI_DIM_COMPANION
 ): Promise<string> {
     const response = await workerFetch("/__test__/rewrite-meta-tags", {
         method: "POST",
@@ -80,7 +81,7 @@ function extractPageBits(html: string) {
 describe("multi-dim meta tag rewriting", () => {
     beforeAll(async () => {
         worker = await unstable_startWorker({
-            config: "./functions/test/wrangler.mdim.e2e.jsonc",
+            config: "./functions/test/wrangler.multi-dim.e2e.jsonc",
             dev: { logLevel: "none" },
         })
     })
@@ -91,21 +92,21 @@ describe("multi-dim meta tag rewriting", () => {
 
     it("serves the view's title when dimension params are present", async () => {
         const html = await rewriteMetaTagsForUrl(
-            makeMdimPageHtml(),
+            makeMultiDimPageHtml(),
             // Unsorted dimension params plus a non-dimension param (tab)
-            `${MDIM_BASE_URL}?metric=vaccinated&antigen=hepb_bd&tab=map`
+            `${MULTI_DIM_BASE_URL}?metric=vaccinated&antigen=hepb_bd&tab=map`
         )
         const viewTitle =
             "Newborns given a hepatitis B vaccine dose within 24 hours"
         const bits = extractPageBits(html)
         expect(bits.title).toBe(
-            `${viewTitle} | ${MDIM_PAGE_TITLE} | Our World in Data`
+            `${viewTitle} | ${MULTI_DIM_PAGE_TITLE} | Our World in Data`
         )
-        expect(bits.ogTitle).toBe(`${viewTitle} | ${MDIM_PAGE_TITLE}`)
-        expect(bits.twitterTitle).toBe(`${viewTitle} | ${MDIM_PAGE_TITLE}`)
+        expect(bits.ogTitle).toBe(`${viewTitle} | ${MULTI_DIM_PAGE_TITLE}`)
+        expect(bits.twitterTitle).toBe(`${viewTitle} | ${MULTI_DIM_PAGE_TITLE}`)
         // Dimension params are sorted and non-dimension params dropped
         expect(bits.canonical).toBe(
-            `${MDIM_BASE_URL}?antigen=hepb_bd&metric=vaccinated`
+            `${MULTI_DIM_BASE_URL}?antigen=hepb_bd&metric=vaccinated`
         )
         // <title> elements of inline SVGs in the body are left alone
         expect(bits.svgTitle).toBe("Download icon")
@@ -113,18 +114,18 @@ describe("multi-dim meta tag rewriting", () => {
 
     it("fills in default choices for missing dimension params and doesn't double-escape entities", async () => {
         const html = await rewriteMetaTagsForUrl(
-            makeMdimPageHtml(),
-            `${MDIM_BASE_URL}?metric=coverage`
+            makeMultiDimPageHtml(),
+            `${MULTI_DIM_BASE_URL}?metric=coverage`
         )
         const viewTitle =
             "Share of one-year-olds vaccinated against diphtheria, tetanus & pertussis"
         const bits = extractPageBits(html)
         expect(bits.title).toBe(
-            `${viewTitle} | ${MDIM_PAGE_TITLE} | Our World in Data`
+            `${viewTitle} | ${MULTI_DIM_PAGE_TITLE} | Our World in Data`
         )
-        expect(bits.ogTitle).toBe(`${viewTitle} | ${MDIM_PAGE_TITLE}`)
+        expect(bits.ogTitle).toBe(`${viewTitle} | ${MULTI_DIM_PAGE_TITLE}`)
         expect(bits.canonical).toBe(
-            `${MDIM_BASE_URL}?antigen=dtp3&metric=coverage`
+            `${MULTI_DIM_BASE_URL}?antigen=dtp3&metric=coverage`
         )
         expect(html).not.toContain("&amp;amp;")
     })
@@ -133,66 +134,66 @@ describe("multi-dim meta tag rewriting", () => {
         // metric=vaccinated exists only in combination with antigen=hepb_bd,
         // not with the default antigen (dtp3)
         const html = await rewriteMetaTagsForUrl(
-            makeMdimPageHtml(),
-            `${MDIM_BASE_URL}?metric=vaccinated`
+            makeMultiDimPageHtml(),
+            `${MULTI_DIM_BASE_URL}?metric=vaccinated`
         )
         const viewTitle =
             "Newborns given a hepatitis B vaccine dose within 24 hours"
         const bits = extractPageBits(html)
         expect(bits.title).toBe(
-            `${viewTitle} | ${MDIM_PAGE_TITLE} | Our World in Data`
+            `${viewTitle} | ${MULTI_DIM_PAGE_TITLE} | Our World in Data`
         )
         expect(bits.canonical).toBe(
-            `${MDIM_BASE_URL}?antigen=hepb_bd&metric=vaccinated`
+            `${MULTI_DIM_BASE_URL}?antigen=hepb_bd&metric=vaccinated`
         )
     })
 
-    it("keeps the generic title on the bare mdim URL but still rewrites the canonical URL", async () => {
+    it("keeps the generic title on the bare multi-dim URL but still rewrites the canonical URL", async () => {
         const html = await rewriteMetaTagsForUrl(
-            makeMdimPageHtml(),
-            MDIM_BASE_URL
+            makeMultiDimPageHtml(),
+            MULTI_DIM_BASE_URL
         )
         const bits = extractPageBits(html)
-        expect(bits.title).toBe(`${MDIM_PAGE_TITLE} | Our World in Data`)
-        expect(bits.ogTitle).toBe(MDIM_PAGE_TITLE)
+        expect(bits.title).toBe(`${MULTI_DIM_PAGE_TITLE} | Our World in Data`)
+        expect(bits.ogTitle).toBe(MULTI_DIM_PAGE_TITLE)
         expect(bits.canonical).toBe(
-            `${MDIM_BASE_URL}?antigen=dtp3&metric=coverage`
+            `${MULTI_DIM_BASE_URL}?antigen=dtp3&metric=coverage`
         )
     })
 
     it("keeps the generic title for dimension choices that don't match a view and canonicalizes to the default view", async () => {
         const html = await rewriteMetaTagsForUrl(
-            makeMdimPageHtml(),
-            `${MDIM_BASE_URL}?antigen=nonexistent`
+            makeMultiDimPageHtml(),
+            `${MULTI_DIM_BASE_URL}?antigen=nonexistent`
         )
         const bits = extractPageBits(html)
-        expect(bits.title).toBe(`${MDIM_PAGE_TITLE} | Our World in Data`)
+        expect(bits.title).toBe(`${MULTI_DIM_PAGE_TITLE} | Our World in Data`)
         expect(bits.canonical).toBe(
-            `${MDIM_BASE_URL}?antigen=dtp3&metric=coverage`
+            `${MULTI_DIM_BASE_URL}?antigen=dtp3&metric=coverage`
         )
     })
 
     it("degrades to the generic title when the companion file can't be loaded", async () => {
         const html = await rewriteMetaTagsForUrl(
-            makeMdimPageHtml(),
-            `${MDIM_BASE_URL}?antigen=hepb_bd&metric=vaccinated`,
+            makeMultiDimPageHtml(),
+            `${MULTI_DIM_BASE_URL}?antigen=hepb_bd&metric=vaccinated`,
             null
         )
         const bits = extractPageBits(html)
-        expect(bits.title).toBe(`${MDIM_PAGE_TITLE} | Our World in Data`)
+        expect(bits.title).toBe(`${MULTI_DIM_PAGE_TITLE} | Our World in Data`)
         expect(bits.canonical).toBe(
-            `${MDIM_BASE_URL}?antigen=hepb_bd&metric=vaccinated`
+            `${MULTI_DIM_BASE_URL}?antigen=hepb_bd&metric=vaccinated`
         )
     })
 
-    it("leaves titles and canonical URL of non-mdim pages untouched", async () => {
+    it("leaves titles and canonical URL of non-multi-dim pages untouched", async () => {
         const html = await rewriteMetaTagsForUrl(
-            makeMdimPageHtml({ withMdimAttrs: false }),
-            `${MDIM_BASE_URL}?tab=map`
+            makeMultiDimPageHtml({ withMultiDimAttrs: false }),
+            `${MULTI_DIM_BASE_URL}?tab=map`
         )
         const bits = extractPageBits(html)
-        expect(bits.title).toBe(`${MDIM_PAGE_TITLE} | Our World in Data`)
-        expect(bits.ogTitle).toBe(MDIM_PAGE_TITLE)
-        expect(bits.canonical).toBe(MDIM_BASE_URL)
+        expect(bits.title).toBe(`${MULTI_DIM_PAGE_TITLE} | Our World in Data`)
+        expect(bits.ogTitle).toBe(MULTI_DIM_PAGE_TITLE)
+        expect(bits.canonical).toBe(MULTI_DIM_BASE_URL)
     })
 })

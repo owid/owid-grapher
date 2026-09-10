@@ -128,11 +128,11 @@ export interface MultiDimDataPageInitialViewData extends DataPageDataV2 {
 }
 
 /** Suffix of the companion file baked alongside every multi-dim data page. */
-export const MDIM_COMPANION_FILE_SUFFIX = ".mdim.json"
+export const MULTI_DIM_COMPANION_FILE_SUFFIX = ".multi-dim.json"
 
 /**
  * Companion JSON file baked alongside every multi-dim data page at
- * /grapher/{slug}.mdim.json. The Cloudflare Function serving /grapher/[slug]
+ * /grapher/{slug}.multi-dim.json. The Cloudflare Function serving /grapher/[slug]
  * reads it to enrich the page with view-specific data — currently the page
  * title served to search engines (see rewriteMetaTags).
  *

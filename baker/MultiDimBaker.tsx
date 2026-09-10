@@ -19,7 +19,7 @@ import {
     ArchiveContext,
     ArchivedPageVersion,
     DataPageRelatedResearch,
-    MDIM_COMPANION_FILE_SUFFIX,
+    MULTI_DIM_COMPANION_FILE_SUFFIX,
     MultiDimPageCompanion,
 } from "@ourworldindata/types"
 import {
@@ -133,8 +133,8 @@ const getFaqEntries = async (
 
 /**
  * The effective grapher title of a multi-dim view, resolved from its merged
- * metadata (variable metadata + mdim-level and view-level overrides) and its
- * full chart config. Shared between the Algolia mdim view records and the
+ * metadata (variable metadata + multi-dim-level and view-level overrides) and its
+ * full chart config. Shared between the Algolia multi-dim view records and the
  * companion file baked alongside multi-dim pages, so search records and the
  * page titles served to search engines always agree.
  */
@@ -384,7 +384,7 @@ export const bakeMultiDimDataPage = async (
     const companion = await getMultiDimPageCompanion(knex, config)
     const companionPath = path.join(
         bakedSiteDir,
-        `grapher/${slug}${MDIM_COMPANION_FILE_SUFFIX}`
+        `grapher/${slug}${MULTI_DIM_COMPANION_FILE_SUFFIX}`
     )
     // Stable stringify so that unchanged content produces a byte-identical
     // file, keeping the asset's content hash (and thus its ETag and cache
@@ -422,7 +422,7 @@ export const bakeAllMultiDimDataPages = async (
     // deleteOldGraphers won't remove — don't linger; the bake below recreates
     // them for all published multi-dim pages.
     const companionPaths = fs.globSync(
-        `${bakedSiteDir}/grapher/*${MDIM_COMPANION_FILE_SUFFIX}`
+        `${bakedSiteDir}/grapher/*${MULTI_DIM_COMPANION_FILE_SUFFIX}`
     )
     await Promise.all(
         companionPaths.map((companionPath) => fs.remove(companionPath))

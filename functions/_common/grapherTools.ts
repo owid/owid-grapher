@@ -367,7 +367,7 @@ export async function initGrapher(
  * same string as multiDimDimensionsToViewQueryStr does at bake time so that
  * sitemap URLs, canonical URLs and view-title lookups all agree.
  */
-export function resolveMdimViewQueryStr(
+export function resolveMultiDimViewQueryStr(
     searchParams: URLSearchParams,
     defaultDimensions: Record<string, string>
 ): string {
@@ -388,13 +388,13 @@ export function resolveMdimViewQueryStr(
  * filterToAvailableChoices. Returns undefined when no existing view matches
  * the specified dimensions.
  */
-export function resolveMdimViewFromCompanion(
+export function resolveMultiDimViewFromCompanion(
     companion: MultiDimPageCompanion,
     searchParams: URLSearchParams,
     defaultDimensions: Record<string, string>
 ): { viewQueryStr: string; view: MultiDimPageCompanionView } | undefined {
     // Prefer the exact combination of specified params and default choices
-    const naiveQueryStr = resolveMdimViewQueryStr(
+    const naiveQueryStr = resolveMultiDimViewQueryStr(
         searchParams,
         defaultDimensions
     )
@@ -420,7 +420,7 @@ export function resolveMdimViewFromCompanion(
  * Loads the companion file baked alongside a multi-dim data page (see
  * getMultiDimPageCompanion in the baker). Throws if it can't be loaded.
  */
-export type MdimCompanionLoader = () => Promise<MultiDimPageCompanion>
+export type MultiDimCompanionLoader = () => Promise<MultiDimPageCompanion>
 
 /**
  * Update og:url, og:image, twitter:image meta tags, and JSON-LD image URL
@@ -430,22 +430,22 @@ export type MdimCompanionLoader = () => Promise<MultiDimPageCompanion>
  * <title>, og:title and twitter:title, so search engines
  * see view-specific titles instead of the generic multi-dim page title. The
  * view titles come from the page's companion file, loaded via
- * `loadMdimCompanion` only when a view is selected.
+ * `loadMultiDimCompanion` only when a view is selected.
  */
 export function rewriteMetaTags(
     url: URL,
     openGraphThumbnailUrl: string,
     twitterThumbnailUrl: string,
     page: Response,
-    loadMdimCompanion?: MdimCompanionLoader
+    loadMultiDimCompanion?: MultiDimCompanionLoader
 ) {
     // Take the origin (e.g. https://ourworldindata.org) from the canonical URL, which should appear before the image elements.
     // If we fail to capture the origin, we end up with relative image URLs, which should also be okay.
     let origin = ""
-    let mdimViewQueryStr: string | undefined = undefined
+    let multiDimViewQueryStr: string | undefined = undefined
     // The requested view's title including the page title, e.g.
     // "Share of children vaccinated | Childhood vaccination coverage - by vaccine"
-    let mdimViewTitle: string | undefined = undefined
+    let multiDimViewTitle: string | undefined = undefined
 
     const thumbnailUrl = `${url.pathname}.png${url.search}`
     const downloadCtxBase = getDownloadContextBase(url)
@@ -493,30 +493,30 @@ export function rewriteMetaTags(
                 }
                 if (!mdimDimensionsObj) return
 
-                mdimViewQueryStr = resolveMdimViewQueryStr(
+                multiDimViewQueryStr = resolveMultiDimViewQueryStr(
                     url.searchParams,
                     mdimDimensionsObj
                 )
 
                 // Only serve a view-specific title when the URL explicitly
-                // selects a view; the bare mdim URL keeps the generic title.
+                // selects a view; the bare multi-dim URL keeps the generic title.
                 const hasDimensionParams = Object.keys(mdimDimensionsObj).some(
                     (dim) => url.searchParams.has(dim)
                 )
-                if (!hasDimensionParams || !loadMdimCompanion) return
+                if (!hasDimensionParams || !loadMultiDimCompanion) return
                 let companion: MultiDimPageCompanion | undefined
                 try {
-                    companion = await loadMdimCompanion()
+                    companion = await loadMultiDimCompanion()
                 } catch (e) {
                     // Every multi-dim page is baked with a companion file, so
                     // this is unexpected — report it, but degrade to the
                     // generic title rather than failing the whole page.
-                    console.error("Error loading mdim companion file", e)
+                    console.error("Error loading multi-dim companion file", e)
                     Sentry.captureException(e)
                 }
                 if (!companion) return
 
-                const resolved = resolveMdimViewFromCompanion(
+                const resolved = resolveMultiDimViewFromCompanion(
                     companion,
                     url.searchParams,
                     mdimDimensionsObj
@@ -525,13 +525,13 @@ export function rewriteMetaTags(
                     // No existing view matches the specified dimensions;
                     // canonicalize to the default view instead of advertising
                     // a nonexistent dimension combination.
-                    mdimViewQueryStr =
+                    multiDimViewQueryStr =
                         multiDimDimensionsToViewQueryStr(mdimDimensionsObj)
                     return
                 }
-                mdimViewQueryStr = resolved.viewQueryStr
+                multiDimViewQueryStr = resolved.viewQueryStr
                 if (companion.title) {
-                    mdimViewTitle = `${resolved.view.title} | ${companion.title}`
+                    multiDimViewTitle = `${resolved.view.title} | ${companion.title}`
                 }
             },
         })
@@ -539,14 +539,16 @@ export function rewriteMetaTags(
         // (e.g. icon accessibility labels) are left alone
         .on("head > title", {
             element: (element) => {
-                if (!mdimViewTitle) return
-                element.setInnerContent(`${mdimViewTitle} | Our World in Data`)
+                if (!multiDimViewTitle) return
+                element.setInnerContent(
+                    `${multiDimViewTitle} | Our World in Data`
+                )
             },
         })
         .on('meta[property="og:title"], meta[name="twitter:title"]', {
             element: (element) => {
-                if (!mdimViewTitle) return
-                element.setAttribute("content", mdimViewTitle)
+                if (!multiDimViewTitle) return
+                element.setAttribute("content", multiDimViewTitle)
             },
         })
         .on('link[rel="canonical"]', {
@@ -554,8 +556,11 @@ export function rewriteMetaTags(
             // This ensures search engines index specific dimension configurations separately while ignoring other query parameters.
             element: (element) => {
                 const href = element.getAttribute("href")
-                if (href && mdimViewQueryStr) {
-                    element.setAttribute("href", href + "?" + mdimViewQueryStr)
+                if (href && multiDimViewQueryStr) {
+                    element.setAttribute(
+                        "href",
+                        href + "?" + multiDimViewQueryStr
+                    )
                 }
             },
         })
