@@ -160,8 +160,7 @@ const SourceContent = (props: {
                                 <div className="source-key-data__content">
                                     {makeLinks({
                                         link: source.retrievedFrom,
-                                        trackNote:
-                                            props.retrievedFromTrackNote,
+                                        trackNote: props.retrievedFromTrackNote,
                                     })}
                                 </div>
                             </div>
