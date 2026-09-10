@@ -286,6 +286,16 @@ The webhook registered in the Stripe dashboard is configured to send test events
 
 There is however a [Cloudflare Access rule restricting access to \*.owid.pages.dev](https://one.dash.cloudflare.com/078fcdfed9955087315dd86792e71a7e/access/apps/edit/d8c658c3-fd20-477e-ac20-e7ed7fd656de?tab=overview), so the Stripe webhook invocation will hit the Google Auth page instead of the function. To test the webhook on a Cloudflare preview, you need to temporarily disable the Cloudflare Access rule (the easiest is to change the rule to an unused subdomain, e.g. `temp.owid.pages.dev`).
 
+## `/exp`
+
+The experiment arm switcher: a page listing the active experiments with a button per arm. Picking one sets that experiment's `exp-<id>` cookie and sends you back to the page you were testing.
+
+It needs no cooperation from the rest of the stack. `experimentsMiddleware` honours an existing `exp-<id>` cookie and only assigns an arm when there isn't one, so setting the cookie _is_ forcing an arm — and because the cookie is set before you navigate to the page under test, that page is rendered in the chosen arm from the first byte, with no client-side swap. Nothing about QA leaks into the per-request middleware or into the site bundle.
+
+Pass `?from=<path>` to have the switcher return to a specific page, e.g. `/exp?from=/grapher/life-expectancy`. Each experiment also lists its enrolled pages as links, so a phone needs no typing beyond `/exp`.
+
+**The route does not exist in production** — it returns 404 when `ENV` is `production`, so neither a shared link nor a crawler can force an arm and skew a live experiment's results. Use it on a staging site or a Cloudflare preview. Under plain `make up` there is no middleware at all; there, `?exp-<id>=<arm>` is handled client-side instead (see `packages/@ourworldindata/utils/src/experiments/overrides.ts`, which is compiled out of staging and production builds).
+
 ## `/grapher/:slug`
 
 Our grapher pages are (slightly) dynamic!

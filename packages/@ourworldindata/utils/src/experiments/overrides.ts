@@ -8,21 +8,25 @@ import { Experiment, ExperimentArm } from "./Experiment.js"
 import { experiments as allExperiments } from "./config.js"
 
 /*
- * Forcing an experiment arm.
+ * Experiment arms in local development.
  *
- * Visitors are normally assigned to an arm by the edge middleware
+ * Visitors are assigned to an arm by the edge middleware
  * (functions/_common/experiments.ts), which sets an `exp-<id>` cookie and
- * adds an `exp-<id>--<arm>` class to <body>. For QA — and for local dev,
- * where the middleware doesn't run — an arm can be forced from the URL:
+ * adds an `exp-<id>--<arm>` class to <body>. Under `make up` that middleware
+ * doesn't run, so nothing here assigns an arm or stamps a class — this module
+ * stands in for it, and lets an arm be picked from the URL:
  *
  *     /latest?exp-latest-sticky-filters-v1=fully-sticky
  *
- * The middleware honours the parameter itself, so where it runs the HTML
- * already carries the forced arm. This sets the same cookie (so the choice
- * survives reloads once the parameter is gone), strips the parameter from
- * the URL, and makes the body classes reflect the cookies. That last step
- * stands in for the middleware where it doesn't run: with a cookie in
- * place, the page looks the same locally as on staging.
+ * It sets the cookie the middleware would (so the choice survives reloads
+ * once the parameter is gone), strips the parameter from the URL, and makes
+ * the body classes match the cookies.
+ *
+ * This is development-only: its one caller is guarded by
+ * `ENV === "development"`, a build-time constant, so the module is absent
+ * from the staging and production bundles. Where the middleware does run, an
+ * arm is switched by setting the cookie from `/exp` (functions/exp/index.ts)
+ * instead, which needs no code in the browser and none in the request path.
  *
  * Only registered, unexpired experiments and known arm ids are accepted;
  * anything else is ignored.
