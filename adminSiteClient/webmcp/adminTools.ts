@@ -22,13 +22,20 @@ import {
 import { createCachedList } from "./cachedList.js"
 import { navigateTo, navigationBlockedReason } from "./navigation.js"
 import {
+    ADMIN_TOOL_SET,
+    CHART_EDITOR_TOOL_SET,
+    CHART_LIST_TOOL_SET,
+} from "./toolSets.js"
+import {
     activeToolSetNames,
     registerToolSet,
     toolResult,
+    toolSetEpoch,
+    waitForToolSet,
     type WebMcpTool,
 } from "./webmcpTypes.js"
 
-export const ADMIN_TOOL_SET = "admin"
+export { ADMIN_TOOL_SET }
 export const DEFAULT_RESULT_LIMIT = 20
 export const MAX_RESULT_LIMIT = 50
 const LIST_CACHE_MAX_AGE_MS = 5 * 60 * 1000
@@ -65,6 +72,51 @@ export interface IndicatorDetails {
     datasetName?: string
     charts: ChartListItem[]
     grapherConfigETL?: Record<string, unknown>
+}
+
+/**
+ * A row of `/api/datasets.json`. The per-dataset endpoint carries every
+ * variable, which for a dataset like WHO's GHO is ~19 MB; the index is 480 KB
+ * for all of them, so page descriptions use the index plus a capped indicator
+ * search rather than the detail endpoint.
+ */
+interface DatasetListItem {
+    id: number
+    name: string
+    namespace?: string
+    shortName?: string
+    version?: string
+    isPrivate?: boolean
+}
+
+/**
+ * The pieces of `grapher/<namespace>/<version>/<dataset>/<table>#<short name>`.
+ *
+ * `find_indicators` prints, and its `dataset:` field matches, the catalog short
+ * name (`energy_ai`), while the indicator's metadata carries the dataset's
+ * human title ("Energy and AI"). An agent that searches for the title finds
+ * nothing, so anything that names a dataset shows the short name too.
+ */
+export function parseCatalogPath(catalogPath: string | undefined): {
+    namespace?: string
+    version?: string
+    dataset?: string
+    table?: string
+} {
+    if (!catalogPath?.startsWith("grapher/")) return {}
+    const [path] = catalogPath.split("#")
+    const [namespace, version, dataset, table] = path
+        .slice("grapher/".length)
+        .split("/")
+    return { namespace, version, dataset, table }
+}
+
+export function describeDatasetOfIndicator(v: IndicatorDetails): string {
+    const { dataset } = parseCatalogPath(v.catalogPath)
+    if (v.datasetName && dataset)
+        return `Dataset: ${v.datasetName} (search it with dataset:${dataset})`
+    if (dataset) return `Dataset: ${dataset}`
+    return v.datasetName ? `Dataset: ${v.datasetName}` : ""
 }
 
 export function clampLimit(limit: unknown): number {
@@ -192,6 +244,139 @@ export async function fetchIndicator(
     }
 }
 
+const datasetCache = createCachedList<DatasetListItem>({
+    maxAgeMs: LIST_CACHE_MAX_AGE_MS,
+})
+
+async function fetchDataset(
+    admin: Admin,
+    datasetId: number
+): Promise<DatasetListItem | undefined> {
+    try {
+        const datasets = await datasetCache.get(async () => {
+            const json = await admin.getJSONInBackground<{
+                datasets: DatasetListItem[]
+            }>("/api/datasets.json")
+            return json.datasets
+        })
+        return datasets.find((d) => d.id === datasetId)
+    } catch {
+        return undefined
+    }
+}
+
+/** The indicators of a dataset, by catalog path, capped so the reply stays readable. */
+async function fetchDatasetIndicators(
+    admin: Admin,
+    catalogPath: string
+): Promise<{ variables: VariableListItem[]; numTotalRows: number }> {
+    try {
+        return await admin.getJSONInBackground<IndicatorSearchResponse>(
+            "/api/variables.json",
+            { search: `path:${catalogPath}`, limit: MAX_RESULT_LIMIT }
+        )
+    } catch {
+        return { variables: [], numTotalRows: 0 }
+    }
+}
+
+/**
+ * What the user is looking at, in enough detail to resolve "this dataset" or
+ * "the indicator I have open" without them repeating it.
+ *
+ * On a dataset page this lists the indicator ids, which is the thing an agent
+ * otherwise has to go hunting for before it can build anything.
+ */
+export async function describeCurrentPage(admin: Admin): Promise<string> {
+    const path = window.location.pathname.replace(/^\/admin/, "") || "/"
+
+    const chartEdit = /^\/charts\/(\d+)\/edit/.exec(path)
+    if (chartEdit) return `The chart editor, editing chart #${chartEdit[1]}.`
+    if (path.startsWith("/charts/create"))
+        return "The chart editor, with a new chart that has not been saved yet."
+    if (path === "/charts" || path.startsWith("/charts?"))
+        return "The charts list."
+
+    const variablePage = /^\/variables\/(\d+)/.exec(path)
+    if (variablePage) {
+        const id = Number(variablePage[1])
+        const v = await fetchIndicator(admin, id)
+        if (!v) return `The admin page of indicator ${id}.`
+        return [
+            `The admin page of indicator ${id}: ${v.name ?? "(unnamed)"}.`,
+            describeDatasetOfIndicator(v),
+            `Use variableId ${id} with create_chart_from_indicator or add_indicators.`,
+        ]
+            .filter(Boolean)
+            .join("\n")
+    }
+
+    const datasetPage = /^\/datasets\/(\d+)/.exec(path)
+    if (datasetPage) {
+        const id = Number(datasetPage[1])
+        const dataset = await fetchDataset(admin, id)
+        if (!dataset) return `The admin page of dataset ${id}.`
+        const catalogPath = [
+            dataset.namespace,
+            dataset.version,
+            dataset.shortName,
+        ]
+            .filter(Boolean)
+            .join("/")
+        const header = `The admin page of dataset ${id}: ${dataset.name}${
+            catalogPath ? ` (${catalogPath})` : ""
+        }.`
+        if (!catalogPath) return header
+
+        const { variables, numTotalRows } = await fetchDatasetIndicators(
+            admin,
+            catalogPath
+        )
+        if (!variables.length)
+            return `${header}\nFind its indicators with find_indicators path:${catalogPath}.`
+        const shown = variables.slice(0, DEFAULT_RESULT_LIMIT)
+        const lines = shown.map((v) => `  ${v.id} | ${v.name}`)
+        const footer =
+            numTotalRows > shown.length
+                ? `\n  [${shown.length} of ${numTotalRows} shown; get the rest with find_indicators path:${catalogPath}]`
+                : ""
+        return (
+            `${header}\nIts indicators, usable directly with ` +
+            `create_chart_from_indicator or add_indicators:\n${lines.join("\n")}${footer}`
+        )
+    }
+
+    const gdocPage = /^\/gdocs\/([^/]+)/.exec(path)
+    if (gdocPage) return `The preview of Google Doc ${gdocPage[1]}.`
+    if (path.startsWith("/variables")) return "The indicators list."
+    if (path.startsWith("/datasets")) return "The datasets list."
+    if (path.startsWith("/gdocs")) return "The list of Google Docs."
+
+    return `An admin page at ${path}.`
+}
+
+/**
+ * Navigate, then wait for the destination page's tools to register, so an
+ * agent's next call lands on a page that can serve it. Without this the agent
+ * reliably calls an editor tool a second too early and gets a browser-level
+ * "not of type 'RegisteredTool'" error it can't interpret.
+ */
+async function navigateAndWaitForToolSet(
+    path: string,
+    { search, toolSet }: { search?: string; toolSet: string }
+): Promise<
+    { ok: false; reason: string } | { ok: true; path: string; ready: boolean }
+> {
+    const epochBefore = toolSetEpoch(toolSet)
+    const result = navigateTo(path, { search })
+    if (!result.ok) return result
+    const ready = await waitForToolSet(toolSet, { afterEpoch: epochBefore })
+    return { ok: true, path: result.path, ready }
+}
+
+const STILL_LOADING =
+    "The page is taking a while to load; wait a moment and call where_am_i to check."
+
 export function buildAdminTools({ admin }: AdminToolContext): WebMcpTool[] {
     const fetchCharts = (): Promise<ChartListItem[]> =>
         chartCache.get(async () => {
@@ -209,9 +394,13 @@ export function buildAdminTools({ admin }: AdminToolContext): WebMcpTool[] {
         {
             name: "where_am_i",
             description:
-                "Report which admin page is open and which page-specific " +
-                "tools are currently available. Call this first when unsure " +
-                "what the user is looking at.",
+                "Describe the admin page the user is looking at, including " +
+                "what it is about: on an indicator or dataset page it names " +
+                "them and gives the indicator ids to build charts from. " +
+                "ALWAYS call this before acting on a request that says " +
+                '"this", "here", "the one I have open" or similar, and ' +
+                "whenever you are unsure what the user means. Also reports " +
+                "which page-specific tools exist right now.",
             inputSchema: { type: "object", properties: {} },
             execute: async () => {
                 const path = window.location.pathname + window.location.search
@@ -221,7 +410,8 @@ export function buildAdminTools({ admin }: AdminToolContext): WebMcpTool[] {
                 const blocked = navigationBlockedReason()
                 return toolResult(
                     [
-                        `Current page: ${path}`,
+                        await describeCurrentPage(admin),
+                        `URL path: ${path}`,
                         sets.length
                             ? `Page-specific tools available: ${sets.join(", ")}.`
                             : "No page-specific tools on this page; the admin-wide tools still work.",
@@ -240,8 +430,11 @@ export function buildAdminTools({ admin }: AdminToolContext): WebMcpTool[] {
                 "add_indicators or get_indicator. The query supports regular " +
                 "expressions and these fields: name:, path:, namespace:, " +
                 "version:, dataset:, table:, short:, is:public, is:private. " +
-                "Results are newest datasets first, so add dataset: or a " +
-                "distinctive word to narrow a broad query.",
+                "dataset: and path: match the catalog short names shown in " +
+                "the results (dataset:energy_ai, " +
+                "path:energy/2026-06-30/energy_ai), never the dataset's " +
+                "human title. Results are newest datasets first, so add " +
+                "dataset: or a distinctive word to narrow a broad query.",
             inputSchema: {
                 type: "object",
                 properties: {
@@ -315,7 +508,7 @@ export function buildAdminTools({ admin }: AdminToolContext): WebMcpTool[] {
                     [
                         `Indicator ${v.id}: ${v.name ?? "(unnamed)"}`,
                         v.unit ? `Unit: ${v.unit}` : undefined,
-                        v.datasetName ? `Dataset: ${v.datasetName}` : undefined,
+                        describeDatasetOfIndicator(v) || undefined,
                         v.catalogPath
                             ? `Catalog path: ${v.catalogPath}`
                             : undefined,
@@ -414,10 +607,11 @@ export function buildAdminTools({ admin }: AdminToolContext): WebMcpTool[] {
         {
             name: "open_chart_editor",
             description:
-                "Open the editor for an existing chart. Once it has loaded, " +
-                "the chart editor tools (get_chart_editor_state, " +
-                "update_chart_config, save_chart, ...) become available. " +
-                "Refused while another editor has unsaved changes.",
+                "Open the editor for an existing chart. Returns once the " +
+                "chart editor tools (get_chart_editor_state, " +
+                "update_chart_config, save_chart, ...) are available, so you " +
+                "can call them straight away. Refused while another editor " +
+                "has unsaved changes.",
             inputSchema: {
                 type: "object",
                 properties: {
@@ -429,12 +623,19 @@ export function buildAdminTools({ admin }: AdminToolContext): WebMcpTool[] {
                 const id = parseId(chartId)
                 if (!id)
                     return toolResult("chartId must be a positive integer.")
-                const result = navigateTo(`/charts/${id}/edit`)
+                const result = await navigateAndWaitForToolSet(
+                    `/charts/${id}/edit`,
+                    { toolSet: CHART_EDITOR_TOOL_SET }
+                )
                 if (!result.ok)
                     return toolResult(`${result.reason} Nothing was changed.`)
+                if (!result.ready)
+                    return toolResult(
+                        `Opened chart ${id} at /admin${result.path}. ${STILL_LOADING}`
+                    )
                 return toolResult(
-                    `Opening the editor for chart ${id} at /admin${result.path}. ` +
-                        "Call get_chart_editor_state once it has loaded."
+                    `The editor for chart ${id} is open at /admin${result.path} ` +
+                        "and its tools are ready."
                 )
             },
         },
@@ -458,7 +659,9 @@ export function buildAdminTools({ admin }: AdminToolContext): WebMcpTool[] {
                 if (!result.ok)
                     return toolResult(`${result.reason} Nothing was changed.`)
                 return toolResult(
-                    `Opening indicator ${id} at /admin${result.path}.`
+                    `Opening indicator ${id} at /admin${result.path}. ` +
+                        "This page has no tools of its own; get_indicator " +
+                        "reads the same information."
                 )
             },
         },
@@ -478,15 +681,21 @@ export function buildAdminTools({ admin }: AdminToolContext): WebMcpTool[] {
             },
             execute: async ({ search }: { search?: string }) => {
                 const query = search?.trim()
-                const result = navigateTo("/charts", {
+                const result = await navigateAndWaitForToolSet("/charts", {
                     search: query
                         ? `?chartSearch=${encodeURIComponent(query)}`
                         : "",
+                    toolSet: CHART_LIST_TOOL_SET,
                 })
                 if (!result.ok)
                     return toolResult(`${result.reason} Nothing was changed.`)
+                if (!result.ready)
+                    return toolResult(
+                        `Opened the charts list at /admin${result.path}. ${STILL_LOADING}`
+                    )
                 return toolResult(
-                    `Opening the charts list at /admin${result.path}.`
+                    `The charts list is open at /admin${result.path}; ` +
+                        "search_chart_list refines it from here."
                 )
             },
         },
@@ -496,9 +705,13 @@ export function buildAdminTools({ admin }: AdminToolContext): WebMcpTool[] {
                 "Start a new chart for an indicator and open it in the chart " +
                 "editor. The chart starts from the indicator's own grapher " +
                 "config if it has one, otherwise as a world map of the " +
-                "indicator. Nothing is saved until save_chart is called. " +
-                "Use find_indicators to get the id. Refused while another " +
-                "editor has unsaved changes.",
+                "indicator. Returns once the editor's tools are ready. " +
+                "Nothing is saved until save_chart is called. Use " +
+                "find_indicators to get the id. This is also the right way " +
+                "to build a chart on a different topic than the one already " +
+                "open: it starts clean, where emptying an existing chart " +
+                "would keep its title, entity selection and axis settings. " +
+                "Refused while another editor has unsaved changes.",
             inputSchema: {
                 type: "object",
                 properties: {
@@ -525,19 +738,26 @@ export function buildAdminTools({ admin }: AdminToolContext): WebMcpTool[] {
                     id,
                     v.grapherConfigETL
                 )
-                const result = navigateTo("/charts/create", {
-                    search: `?${new URLSearchParams({ config: JSON.stringify(config) })}`,
-                })
+                const result = await navigateAndWaitForToolSet(
+                    "/charts/create",
+                    {
+                        search: `?${new URLSearchParams({ config: JSON.stringify(config) })}`,
+                        toolSet: CHART_EDITOR_TOOL_SET,
+                    }
+                )
                 if (!result.ok)
                     return toolResult(`${result.reason} Nothing was changed.`)
+                const opened =
+                    `A new chart for indicator ${id} (${v.name ?? "unnamed"}) is open ` +
+                    (v.grapherConfigETL
+                        ? "based on its indicator-level config. "
+                        : "as a world map. ")
+                if (!result.ready)
+                    return toolResult(`${opened}${STILL_LOADING}`)
                 return toolResult(
-                    `Opening a new chart for indicator ${id} (${v.name ?? "unnamed"}) ` +
-                        (v.grapherConfigETL
-                            ? "based on its indicator-level config. "
-                            : "as a world map. ") +
-                        "Once the editor has loaded, use get_chart_editor_state, " +
-                        "then add_chart_type, select_entities, update_chart_config " +
-                        "and save_chart."
+                    `${opened}The editor's tools are ready: use ` +
+                        "get_chart_editor_state, then add_chart_type, " +
+                        "select_entities, update_chart_config and save_chart."
                 )
             },
         },

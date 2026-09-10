@@ -78,13 +78,20 @@ export async function registerTools(
 
 /**
  * Named tool sets that are currently registered, so an agent can be told which
- * page-scoped tools exist right now (see `where_am_i` in adminTools.ts).
+ * page-scoped tools exist right now (see `where_am_i` in adminTools.ts), and so
+ * a tool that navigates can wait for the destination page's tools to appear.
  *
  * The admin registers tools per page: the chart editor's tools exist only while
  * an editor is mounted, the chart list's only on /charts. Aborting the signal
  * unregisters the tools in the browser and removes the name here.
+ *
+ * Each registration gets an increasing epoch. Waiting for "an epoch greater
+ * than the one I saw before navigating" is what distinguishes the destination
+ * page's tools from the ones already registered on the page we are leaving.
  */
-const activeToolSets = new Set<string>()
+const activeToolSets = new Map<string, number>()
+let registrationCounter = 0
+const registrationWaiters = new Set<() => void>()
 
 export async function registerToolSet(
     name: string,
@@ -92,13 +99,61 @@ export async function registerToolSet(
     signal: AbortSignal
 ): Promise<void> {
     if (signal.aborted) return
-    activeToolSets.add(name)
-    signal.addEventListener("abort", () => activeToolSets.delete(name), {
-        once: true,
-    })
     await registerTools(tools, signal)
+    if (signal.aborted) return
+
+    const epoch = ++registrationCounter
+    activeToolSets.set(name, epoch)
+    signal.addEventListener(
+        "abort",
+        () => {
+            // Only clear the entry if a later registration hasn't replaced it.
+            if (activeToolSets.get(name) === epoch) activeToolSets.delete(name)
+        },
+        { once: true }
+    )
+    // Copied first: a waiter removes itself from the set as it resolves.
+    const waiting = Array.from(registrationWaiters)
+    for (const waiter of waiting) waiter()
 }
 
 export function activeToolSetNames(): string[] {
-    return [...activeToolSets].sort()
+    return [...activeToolSets.keys()].sort()
+}
+
+/** 0 when the set is not registered. */
+export function toolSetEpoch(name: string): number {
+    return activeToolSets.get(name) ?? 0
+}
+
+/**
+ * Resolves true once `name` has registered with an epoch above `afterEpoch`,
+ * false if that hasn't happened within the timeout.
+ */
+export function waitForToolSet(
+    name: string,
+    {
+        afterEpoch = 0,
+        timeoutMs = 20000,
+    }: { afterEpoch?: number; timeoutMs?: number } = {}
+): Promise<boolean> {
+    const satisfied = (): boolean => toolSetEpoch(name) > afterEpoch
+    if (satisfied()) return Promise.resolve(true)
+
+    return new Promise((resolve) => {
+        const cleanup = (): void => {
+            clearTimeout(timer)
+            registrationWaiters.delete(waiter)
+        }
+        const waiter = (): void => {
+            if (!satisfied()) return
+            cleanup()
+            resolve(true)
+        }
+        const timer = setTimeout(() => {
+            cleanup()
+            resolve(false)
+        }, timeoutMs)
+        registrationWaiters.add(waiter)
+    })
 }

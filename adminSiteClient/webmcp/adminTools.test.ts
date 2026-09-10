@@ -15,7 +15,8 @@ import {
 import { buildChartEditorTools } from "./chartEditorTools.js"
 import { buildChartListTools } from "./chartListTools.js"
 import { setAdminHistory } from "./navigation.js"
-import type { WebMcpTool } from "./webmcpTypes.js"
+import { CHART_EDITOR_TOOL_SET, CHART_LIST_TOOL_SET } from "./toolSets.js"
+import { registerToolSet, type WebMcpTool } from "./webmcpTypes.js"
 
 function chart(overrides: Partial<ChartListItem>): ChartListItem {
     return {
@@ -51,9 +52,20 @@ const charts = [
 ]
 
 function makeAdmin() {
-    const getJSONInBackground = vi.fn(async (path: string) => {
+    const getJSONInBackground = vi.fn(async (path: string, params?: any) => {
         if (path === "/api/charts.json") return { charts }
-        if (path === "/api/variables.json")
+        if (path === "/api/variables.json") {
+            // The dataset page lists a dataset's indicators through the search
+            // endpoint; /api/datasets/:id.json carries every variable and runs
+            // to megabytes, so nothing here may call it.
+            if (String(params?.search).startsWith("path:"))
+                return {
+                    variables: [
+                        { id: 91, name: "Total electricity consumption" },
+                        { id: 92, name: "Projected total consumption" },
+                    ],
+                    numTotalRows: 2,
+                }
             return {
                 variables: [
                     {
@@ -64,12 +76,33 @@ function makeAdmin() {
                 ],
                 numTotalRows: 40,
             }
+        }
+        if (path === "/api/datasets.json")
+            return {
+                datasets: [
+                    {
+                        id: 77,
+                        name: "Energy and AI",
+                        namespace: "energy",
+                        shortName: "energy_ai",
+                        version: "2026-06-30",
+                    },
+                ],
+            }
         if (path === "/api/gdocs") return []
         throw new Error(`unexpected ${path}`)
     })
     const requestJSON = vi.fn(async (path: string) => {
         if (path === "/api/variables/5.json")
-            return { variable: { id: 5, name: "Life expectancy at birth" } }
+            return {
+                variable: {
+                    id: 5,
+                    name: "Life expectancy at birth",
+                    datasetName: "World Population Prospects",
+                    catalogPath:
+                        "grapher/un/2024-07-12/un_wpp/un_wpp#life_expectancy",
+                },
+            }
         throw new Error("404")
     })
     return {
@@ -137,15 +170,53 @@ describe("admin-wide tools", () => {
     const call = (name: string, input: any = {}): Promise<string> =>
         tools.get(name)!.execute(input)
 
+    let mounted: AbortController[] = []
+
+    /**
+     * Navigating in the real admin mounts the destination page, which
+     * registers its tools; the navigation tools wait for exactly that, so the
+     * fake history has to do it too.
+     */
+    const mountToolSetOnPush = (): ReturnType<typeof vi.fn> =>
+        vi.fn((location: { pathname: string }) => {
+            const set = location.pathname.startsWith("/charts/")
+                ? CHART_EDITOR_TOOL_SET
+                : location.pathname === "/charts"
+                  ? CHART_LIST_TOOL_SET
+                  : undefined
+            if (!set) return
+            const controller = new AbortController()
+            mounted.push(controller)
+            void registerToolSet(
+                set,
+                [
+                    {
+                        name: `${set}_probe`,
+                        description: "x".repeat(50),
+                        inputSchema: { type: "object", properties: {} },
+                        execute: async () => "ok",
+                    },
+                ],
+                controller.signal
+            )
+        })
+
     beforeEach(() => {
         invalidateChartCache()
         fake = makeAdmin()
-        push = vi.fn()
+        ;(document as any).modelContext = {
+            registerTool: vi.fn().mockResolvedValue(undefined),
+        }
+        push = mountToolSetOnPush()
         setAdminHistory({ push, replace: vi.fn() } as unknown as History)
         tools = new Map(buildAdminTools(fake).map((t) => [t.name, t]))
     })
 
-    afterEach(() => setAdminHistory(undefined))
+    afterEach(() => {
+        setAdminHistory(undefined)
+        mounted.forEach((c) => c.abort())
+        mounted = []
+    })
 
     it("find_charts filters the cached chart list and fetches it once", async () => {
         const text = await call("find_charts", { query: "health" })
@@ -179,16 +250,75 @@ describe("admin-wide tools", () => {
         )
     })
 
-    it("open_chart_editor navigates within the SPA", async () => {
+    it("get_indicator names the dataset the way find_indicators matches it", async () => {
+        const text = await call("get_indicator", { variableId: 5 })
+        expect(text).toContain(
+            "Dataset: World Population Prospects (search it with dataset:un_wpp)"
+        )
+    })
+
+    it("open_chart_editor navigates and returns once the editor's tools exist", async () => {
         const text = await call("open_chart_editor", { chartId: 12 })
         expect(push).toHaveBeenCalledWith({
             pathname: "/charts/12/edit",
             search: "",
         })
         expect(text).toContain("/admin/charts/12/edit")
+        expect(text).toContain("tools are ready")
         expect(await call("open_chart_editor", { chartId: "x" })).toContain(
             "positive integer"
         )
+    })
+
+    it("open_charts_list waits for the list page's own tool", async () => {
+        const text = await call("open_charts_list", { search: "co2" })
+        expect(push).toHaveBeenCalledWith({
+            pathname: "/charts",
+            search: "?chartSearch=co2",
+        })
+        expect(text).toContain("search_chart_list")
+    })
+
+    describe("where_am_i", () => {
+        const setPath = (path: string): void => {
+            window.history.replaceState({}, "", path)
+        }
+
+        it("names the dataset and its indicator ids on a dataset page", async () => {
+            setPath("/admin/datasets/77")
+            const text = await call("where_am_i")
+            expect(text).toContain(
+                "dataset 77: Energy and AI (energy/2026-06-30/energy_ai)"
+            )
+            expect(text).toContain("91 | Total electricity consumption")
+            expect(text).toContain("92 | Projected total consumption")
+
+            // Never through /api/datasets/:id.json, which ships every variable.
+            const paths = fake.getJSONInBackground.mock.calls.map((c) => c[0])
+            expect(paths).toContain("/api/datasets.json")
+            expect(
+                paths.some((p: string) => /\/api\/datasets\/\d+\.json/.test(p))
+            ).toBe(false)
+        })
+
+        it("names the indicator and its id on an indicator page", async () => {
+            setPath("/admin/variables/5")
+            const text = await call("where_am_i")
+            expect(text).toContain("indicator 5: Life expectancy at birth")
+            expect(text).toContain("dataset:un_wpp")
+            expect(text).toContain("create_chart_from_indicator")
+        })
+
+        it("recognises the editor and the charts list", async () => {
+            setPath("/admin/charts/9254/edit")
+            expect(await call("where_am_i")).toContain("editing chart #9254")
+
+            setPath("/admin/charts/create")
+            expect(await call("where_am_i")).toContain("not been saved yet")
+
+            setPath("/admin/charts")
+            expect(await call("where_am_i")).toContain("The charts list.")
+        })
     })
 
     it("create_chart_from_indicator opens the editor with the indicator on the y axis", async () => {
