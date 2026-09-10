@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faBell, faEnvelopeOpenText } from "@fortawesome/free-solid-svg-icons"
 import { Button } from "@ourworldindata/components"
 import { LatestUrlParam } from "@ourworldindata/types"
-import { IS_ARCHIVE } from "../settings/clientSettings.js"
+import { IS_ARCHIVE } from "../settings/clientSettings.mjs"
 import { PROD_URL } from "./SiteConstants.js"
 import { hasTopicNewsletterCard } from "./topicNewsletter.js"
 
