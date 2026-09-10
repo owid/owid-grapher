@@ -2,7 +2,6 @@ import { KnexReadWriteTransaction, knexRaw } from "../db.js"
 import {
     DbInsertExplorerView,
     DbRawExplorerView,
-    parseChartConfig,
     GrapherInterface,
     DbPlainChart,
     DbRawChartConfig,
@@ -13,8 +12,13 @@ import {
     Explorer,
     ExplorerProps,
 } from "@ourworldindata/explorer"
+import { GrapherProgrammaticInterface } from "@ourworldindata/grapher"
 import { transformExplorerProgramToResolveCatalogPaths } from "./ExplorerCatalogResolver.js"
-import { insertChartConfig, updateChartConfig } from "./ChartConfigs.js"
+import {
+    insertChartConfig,
+    parseChartConfig,
+    updateChartConfig,
+} from "./ChartConfigs.js"
 import * as _ from "lodash-es"
 import { dimensionsToViewId } from "@ourworldindata/utils"
 import { logErrorAndMaybeCaptureInSentry } from "../../serverUtils/errorLog.js"
@@ -104,7 +108,9 @@ async function fetchExplorerDataForViews(
     }
 
     const parseGrapherConfigFromRow = (row: ChartRow): GrapherInterface => {
-        const config = JSON.parse(row.config)
+        const config: GrapherProgrammaticInterface = parseChartConfig(
+            row.config
+        )
         config.id = row.id // Ensure each grapher has an id
         config.adminBaseUrl = ADMIN_BASE_URL
         config.bakedGrapherURL = BAKED_GRAPHER_URL
