@@ -53,6 +53,15 @@ After merging:
 - Once this repo has deployed, merge the sibling ETL PR. Never before, since the ETL pushes
   configs stamped with that version.
 
+## Writing a migration step
+
+- Only read the key you're migrating. Other keys may come from different config layers.
+- Don't use defaults for missing keys. Missing means inherit from a parent.
+- Don't remove a key just because it matches the default. It may override a parent.
+- Handle every possible value of the old key, not just the interesting ones.
+- Be careful when changing shapes. Objects deep-merge, while arrays replace the whole value, so shape changes can change inheritance behavior.
+- Test each migration with a before/after pair and a two-layer stack where parent and child conflict.
+
 ## Regenerating the generated files
 
 `yarn buildGrapherSchema` reads the newest `grapher-schema.NNN.yaml` and writes
