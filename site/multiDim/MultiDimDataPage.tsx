@@ -20,8 +20,6 @@ import {
     MultiDimDataPageData,
 } from "./MultiDimDataPageContent.js"
 import { DEFAULT_PAGE_DESCRIPTION } from "../dataPage.js"
-import { JsonLdDataPage } from "../jsonLd.js"
-import { makeJsonLdGrapherImageUrl } from "../jsonLdHelpers.js"
 import { useMemo } from "react"
 
 export function MultiDimDataPage({
@@ -97,16 +95,6 @@ export function MultiDimDataPage({
             >
                 <meta property="og:image:width" content={imageWidth} />
                 <meta property="og:image:height" content={imageHeight} />
-                {!isOnArchivalPage && (
-                    <JsonLdDataPage
-                        baseUrl={baseUrl}
-                        grapher={undefined}
-                        datapageData={initialViewData}
-                        canonicalUrl={canonicalUrl}
-                        imageUrl={makeJsonLdGrapherImageUrl(slug ?? undefined)}
-                        name={pageTitle}
-                    />
-                )}
                 <IFrameDetector />
                 <noscript>
                     <style>{`

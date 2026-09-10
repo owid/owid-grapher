@@ -27,7 +27,12 @@ export default {
                     `${pageUrl.pathname}.png?imType=og`,
                     `${pageUrl.pathname}.png?imType=twitter`,
                     page,
-                    async () => body.companion ?? undefined
+                    async () => {
+                        if (!body.companion) {
+                            throw new Error("Companion file not found")
+                        }
+                        return body.companion
+                    }
                 )
                 return new Response(await rewritten.text(), {
                     headers: { "Content-Type": "text/html" },

@@ -79,30 +79,6 @@ describe(rewriteJsonLdText, () => {
         expect(rewritten).not.toContain("&amp;")
     })
 
-    it("rewrites url and name for multi-dim views", () => {
-        const rewritten = rewriteJsonLdText(
-            JSON.stringify({
-                name: "Childhood vaccination coverage - by vaccine",
-                url: "https://ourworldindata.org/grapher/vaccination-coverage",
-            }),
-            new URL(
-                "https://ourworldindata.org/grapher/vaccination-coverage?metric=vaccinated&antigen=hepb_bd"
-            ),
-            {
-                viewQueryStr: "antigen=hepb_bd&metric=vaccinated",
-                title: "Newborns given a hepatitis B vaccine dose | Childhood vaccination coverage - by vaccine",
-            }
-        )
-
-        const data = JSON.parse(rewritten) as { name: string; url: string }
-        expect(data.name).toBe(
-            "Newborns given a hepatitis B vaccine dose | Childhood vaccination coverage - by vaccine"
-        )
-        expect(data.url).toBe(
-            "https://ourworldindata.org/grapher/vaccination-coverage?antigen=hepb_bd&metric=vaccinated"
-        )
-    })
-
     it("escapes inline-script breaking content in rewritten JSON-LD", () => {
         const rewritten = rewriteJsonLdText(
             JSON.stringify({

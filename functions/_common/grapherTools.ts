@@ -418,18 +418,16 @@ export function resolveMdimViewFromCompanion(
 
 /**
  * Loads the companion file baked alongside a multi-dim data page (see
- * getMultiDimPageCompanion in the baker).
+ * getMultiDimPageCompanion in the baker). Throws if it can't be loaded.
  */
-export type MdimCompanionLoader = () => Promise<
-    MultiDimPageCompanion | undefined
->
+export type MdimCompanionLoader = () => Promise<MultiDimPageCompanion>
 
 /**
  * Update og:url, og:image, twitter:image meta tags, and JSON-LD image URL
  * to include the search parameters. On multi-dim pages, additionally rewrite
  * the canonical URL to the requested view and — when the request selects a
  * specific view via dimension params — serve that view's grapher title in
- * <title>, og:title, twitter:title and the JSON-LD name, so search engines
+ * <title>, og:title and twitter:title, so search engines
  * see view-specific titles instead of the generic multi-dim page title. The
  * view titles come from the page's companion file, loaded via
  * `loadMdimCompanion` only when a view is selected.
@@ -490,6 +488,7 @@ export function rewriteMetaTags(
                         ) as Record<string, string>
                     } catch (e) {
                         console.error("Error parsing dimensions JSON", e)
+                        Sentry.captureException(e)
                     }
                 }
                 if (!mdimDimensionsObj) return
@@ -509,9 +508,11 @@ export function rewriteMetaTags(
                 try {
                     companion = await loadMdimCompanion()
                 } catch (e) {
-                    // A failed companion load should degrade to the generic
-                    // title, not fail the whole page.
+                    // Every multi-dim page is baked with a companion file, so
+                    // this is unexpected — report it, but degrade to the
+                    // generic title rather than failing the whole page.
                     console.error("Error loading mdim companion file", e)
+                    Sentry.captureException(e)
                 }
                 if (!companion) return
 
@@ -608,15 +609,9 @@ export function rewriteMetaTags(
                 jsonLdText = ""
                 element.onEndTag((endTag) => {
                     if (!jsonLdText) return
-                    endTag.before(
-                        rewriteJsonLdText(jsonLdText, url, {
-                            viewQueryStr: mdimViewQueryStr,
-                            title: mdimViewTitle,
-                        }),
-                        {
-                            html: true,
-                        }
-                    )
+                    endTag.before(rewriteJsonLdText(jsonLdText, url), {
+                        html: true,
+                    })
                 })
             },
             text: (text) => {
@@ -699,14 +694,11 @@ function getRewrittenDownloadUrl(
  * inside an inline `<script>` tag.
  *
  * If the parsed JSON-LD contains `image.contentUrl`, each search param from
- * `url` is copied onto that image URL. On multi-dim pages, `url` is rewritten
- * to the requested view (mirroring the canonical URL) and `name` is replaced
- * with the view's title. If parsing fails, the original text is returned
- * unchanged after logging the error.
+ * `url` is copied onto that image URL. If parsing fails, the original text is
+ * returned unchanged after logging the error.
  *
  * @param jsonLdText - Raw JSON-LD text.
  * @param url - The current request URL whose search params should be preserved.
- * @param mdimView - The multi-dim view the request resolves to, if any.
  * @returns JSON-LD text safe to inline in HTML.
  *
  * @example
@@ -722,15 +714,9 @@ function getRewrittenDownloadUrl(
  * // `country` is copied onto `image.contentUrl` and the output is escaped so it
  * // can be safely embedded in an inline script tag.
  */
-export function rewriteJsonLdText(
-    jsonLdText: string,
-    url: URL,
-    mdimView?: { viewQueryStr?: string; title?: string }
-): string {
+export function rewriteJsonLdText(jsonLdText: string, url: URL): string {
     try {
         const data = JSON.parse(jsonLdText) as {
-            name?: string
-            url?: string
             image?: { contentUrl?: string }
         }
 
@@ -740,13 +726,6 @@ export function rewriteJsonLdText(
                 imageUrl.searchParams.set(key, value)
             })
             data.image.contentUrl = imageUrl.toString()
-        }
-
-        if (mdimView?.viewQueryStr && data.url) {
-            data.url = `${data.url}?${mdimView.viewQueryStr}`
-        }
-        if (mdimView?.title && data.name) {
-            data.name = mdimView.title
         }
 
         return escapeJSONStringForInlineScript(JSON.stringify(data))

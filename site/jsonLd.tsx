@@ -78,14 +78,12 @@ export function JsonLdDataPage({
     datapageData,
     canonicalUrl,
     imageUrl,
-    name,
 }: {
     baseUrl: string
     grapher: GrapherInterface | undefined
     datapageData?: DataPageDataV2
     canonicalUrl: string
     imageUrl?: string
-    name?: string
 }) {
     const image: ImageObject | undefined = imageUrl
         ? {
@@ -103,7 +101,6 @@ export function JsonLdDataPage({
     const data: WithContext<WebPage> = {
         "@context": "https://schema.org",
         "@type": "WebPage",
-        name,
         url: canonicalUrl,
         image,
     }

@@ -136,10 +136,8 @@ export const MDIM_COMPANION_FILE_SUFFIX = ".mdim.json"
  * reads it to enrich the page with view-specific data — currently the page
  * title served to search engines (see rewriteMetaTags).
  *
- * The file and the Function deploy independently (bakes vs. code deploys), so
- * extend it in a forward- and backward-compatible way: add new functionality
- * as optional fields — per-view fields on MultiDimPageCompanionView, or
- * page-level fields here — and make the Function tolerate their absence.
+ * New functionality goes in as additional fields — per-view fields on
+ * MultiDimPageCompanionView, or page-level fields here.
  */
 export interface MultiDimPageCompanion {
     /**

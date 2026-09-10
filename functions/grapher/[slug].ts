@@ -177,17 +177,19 @@ async function handleHtmlPageRequest(
         url.search ? "&" + url.search.slice(1) : ""
     }`
 
+    // Every multi-dim page is baked with a companion file, so failing to load
+    // it is an error; rewriteMetaTags reports it and falls back to the
+    // generic page title.
     const loadMdimCompanion: MdimCompanionLoader = async () => {
-        try {
-            const resp = await env.ASSETS.fetch(
-                new URL(`/grapher/${slug}${MDIM_COMPANION_FILE_SUFFIX}`, url)
+        const resp = await env.ASSETS.fetch(
+            new URL(`/grapher/${slug}${MDIM_COMPANION_FILE_SUFFIX}`, url)
+        )
+        if (resp.status !== 200) {
+            throw new Error(
+                `Failed to load companion file of multi-dim ${slug}: HTTP ${resp.status}`
             )
-            if (resp.status !== 200) return undefined
-            return (await resp.json()) as MultiDimPageCompanion
-        } catch (e) {
-            console.error("Error loading mdim companion file", e)
-            return undefined
         }
+        return (await resp.json()) as MultiDimPageCompanion
     }
 
     return rewriteMetaTags(

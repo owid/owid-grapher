@@ -42,19 +42,12 @@ function makeMdimPageHtml({ withMdimAttrs = true } = {}): string {
               JSON.stringify(MDIM_DEFAULT_DIMENSIONS)
           )}`
         : ""
-    const jsonLd = JSON.stringify({
-        "@context": "https://schema.org",
-        "@type": "WebPage",
-        name: MDIM_PAGE_TITLE,
-        url: MDIM_BASE_URL,
-    })
     return `<!DOCTYPE html><html><head${headAttrs}>
 <link rel="canonical" href="${MDIM_BASE_URL}"/>
 <title>${MDIM_PAGE_TITLE} | Our World in Data</title>
 <meta property="og:title" content="${MDIM_PAGE_TITLE}"/>
 <meta name="twitter:title" content="${MDIM_PAGE_TITLE}"/>
 <meta property="og:url" content="${MDIM_BASE_URL}"/>
-<script type="application/ld+json">${jsonLd}</script>
 </head><body><svg><title>Download icon</title></svg></body></html>`
 }
 
@@ -81,10 +74,6 @@ function extractPageBits(html: string) {
         twitterTitle: $('meta[name="twitter:title"]').attr("content"),
         canonical: $('link[rel="canonical"]').attr("href"),
         svgTitle: $("body svg title").text(),
-        jsonLd: JSON.parse($('script[type="application/ld+json"]').text()) as {
-            name?: string
-            url?: string
-        },
     }
 }
 
@@ -116,10 +105,6 @@ describe("multi-dim meta tag rewriting", () => {
         expect(bits.twitterTitle).toBe(`${viewTitle} | ${MDIM_PAGE_TITLE}`)
         // Dimension params are sorted and non-dimension params dropped
         expect(bits.canonical).toBe(
-            `${MDIM_BASE_URL}?antigen=hepb_bd&metric=vaccinated`
-        )
-        expect(bits.jsonLd.name).toBe(`${viewTitle} | ${MDIM_PAGE_TITLE}`)
-        expect(bits.jsonLd.url).toBe(
             `${MDIM_BASE_URL}?antigen=hepb_bd&metric=vaccinated`
         )
         // <title> elements of inline SVGs in the body are left alone
@@ -173,10 +158,6 @@ describe("multi-dim meta tag rewriting", () => {
         expect(bits.canonical).toBe(
             `${MDIM_BASE_URL}?antigen=dtp3&metric=coverage`
         )
-        expect(bits.jsonLd.name).toBe(MDIM_PAGE_TITLE)
-        expect(bits.jsonLd.url).toBe(
-            `${MDIM_BASE_URL}?antigen=dtp3&metric=coverage`
-        )
     })
 
     it("keeps the generic title for dimension choices that don't match a view and canonicalizes to the default view", async () => {
@@ -191,7 +172,7 @@ describe("multi-dim meta tag rewriting", () => {
         )
     })
 
-    it("keeps the generic title when the companion file is missing", async () => {
+    it("degrades to the generic title when the companion file can't be loaded", async () => {
         const html = await rewriteMetaTagsForUrl(
             makeMdimPageHtml(),
             `${MDIM_BASE_URL}?antigen=hepb_bd&metric=vaccinated`,
@@ -213,7 +194,5 @@ describe("multi-dim meta tag rewriting", () => {
         expect(bits.title).toBe(`${MDIM_PAGE_TITLE} | Our World in Data`)
         expect(bits.ogTitle).toBe(MDIM_PAGE_TITLE)
         expect(bits.canonical).toBe(MDIM_BASE_URL)
-        expect(bits.jsonLd.name).toBe(MDIM_PAGE_TITLE)
-        expect(bits.jsonLd.url).toBe(MDIM_BASE_URL)
     })
 })
