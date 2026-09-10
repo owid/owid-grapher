@@ -1,3 +1,4 @@
+import { onRequestPost as postmarkWebhookOnRequestPost } from "../api/email-notifications/postmark-webhook.js"
 import { onRequest as grapherOnRequest } from "../grapher/[slug].js"
 import type { Env } from "../_common/env.js"
 
@@ -27,7 +28,7 @@ async function deleteAllObjects(bucket: R2Bucket): Promise<void> {
     do {
         const listed = await bucket.list({ cursor })
         if (listed.objects.length > 0) {
-            await bucket.delete(listed.objects.map((obj) => obj.key))
+            await bucket.delete(listed.objects.map((object) => object.key))
         }
         cursor = listed.truncated ? listed.cursor : undefined
     } while (cursor)
@@ -62,6 +63,28 @@ function makeGrapherContext(request: Request, env: Env) {
     return context as unknown as Parameters<typeof grapherOnRequest>[0]
 }
 
+function makePostmarkWebhookContext(
+    request: Request,
+    env: Env
+): Parameters<typeof postmarkWebhookOnRequestPost>[0] {
+    return {
+        request: request as Parameters<
+            typeof postmarkWebhookOnRequestPost
+        >[0]["request"],
+        env,
+        params: {},
+        data: {},
+        functionPath: "/api/email-notifications/postmark-webhook",
+        waitUntil: (_promise: Promise<unknown>) => {
+            // no-op for tests
+        },
+        passThroughOnException: () => {
+            // no-op for tests
+        },
+        next: async () => new Response("Not implemented", { status: 500 }),
+    }
+}
+
 export default {
     async fetch(request: Request, env: Env): Promise<Response> {
         const url = new URL(request.url)
@@ -71,8 +94,10 @@ export default {
                 request.method === "POST" &&
                 url.pathname === "/__test__/clear-r2"
             ) {
-                await deleteAllObjects(getBucket(env, "primary"))
-                await deleteAllObjects(getBucket(env, "fallback"))
+                await Promise.all([
+                    deleteAllObjects(getBucket(env, "primary")),
+                    deleteAllObjects(getBucket(env, "fallback")),
+                ])
                 return Response.json({ ok: true })
             }
 
@@ -107,6 +132,15 @@ export default {
 
                 const object = await getBucket(env, bucket).head(key)
                 return Response.json({ exists: !!object })
+            }
+
+            if (
+                request.method === "POST" &&
+                url.pathname === "/api/email-notifications/postmark-webhook"
+            ) {
+                return postmarkWebhookOnRequestPost(
+                    makePostmarkWebhookContext(request, env)
+                )
             }
 
             if (
