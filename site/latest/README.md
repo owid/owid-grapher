@@ -2,7 +2,7 @@
 
 ## Overview
 
-The `/latest` page is a single-page app that renders a chronological feed of all editorial content — articles, data insights, announcements, data updates, and website upgrades — with topic and content-type filters and infinite scroll.
+The `/latest` page is a single-page app that renders a chronological feed of all editorial content — articles, data insights, announcements, data updates, and website upgrades — with topic and content-type filters and a Load more button.
 
 The baker emits a shell page ([`site/LatestPage.tsx`](../LatestPage.tsx)) carrying only the topic tag graph; everything else mounts client-side.
 
@@ -43,36 +43,31 @@ A single Algolia call ([`queryLatestPages`](../search/queries.ts)) issues three 
 
 ### 5. `latestType` is a derived field for the content-type filter
 
-The `/latest` filter offers five options: article, data insight, data update, website upgrade, announcement. The first two are distinct gdoc types, but the last three are all _announcement_ gdocs distinguished only by their editorial _kicker_. The indexer derives a `latestType` per record (kicker for announcements, gdoc type otherwise) so the filter can treat them as five separate values. The raw gdoc type stays on the record for card dispatch and the atom feed.
+The type filter distinguishes articles, data insights, and announcement kinds such as data updates and website upgrades. The indexer derives `latestType` from the gdoc type or announcement kicker. The original gdoc type remains on the record for card dispatch and the atom feed.
 
-### 6. Card variants: index-time vs. render-time
+### 6. Card presentations
 
-Every content type renders more than one way in the feed. What matters for the indexer is _when_ that choice is made:
+Articles support authored thumbnail and excerpt overrides: `latest-feed-featured-image` and `latest-feed-excerpt`. Rich excerpts render through ArticleBlocks with independent links, so the indexer loads their linked charts and documents.
 
-- **Index time** — articles only. The choice is authored in the gdoc, so the indexer can see it and load (and store) just what that variant needs.
-- **Render time** — everything else. The variant depends on the active filter, a toggle, or a click, none of which exist when the record is built. The indexer therefore loads linked content unconditionally: every variant has to render from the record alone, with no further fetch.
+Data insights are compact links in the unfiltered feed. Filtering to data insights defaults to reading them in full; the desktop **Expanded / Compact** control sits above the newsletter sidebar. The control is hidden at narrower widths, retaining the selected view. View state stays local and survives filter changes. Cards use the type filter stored on the displayed results so `keepPreviousData` cannot briefly change their presentation while the next query loads.
 
-**Articles** expose two card-only override fields, each following the same shape: an authoring choice in the gdoc → conditional behavior in the indexer → variant rendering in the card. `latest-feed-featured-image` swaps the card thumbnail (the article page itself still uses `featured-image`). `latest-feed-excerpt` switches the excerpt from the default plain text to ArticleBlocks (with internal links and formatting) plus a "Read the article" affordance — see [`LatestArticleHit`](./LatestArticleHit.tsx). The rich-excerpt path is why the indexer conditionally loads linked charts/documents for articles.
+Data updates are compact links to their standalone pages, expanding in place under their type filter or when deep-linked. Other announcements use a Read more button and expand automatically for deep links. Data insight deep links expand only in the data-insight-filtered feed.
 
-**Data insights** vary by _where_ they render. In the unfiltered feed they're a condensed teaser linking to their page. With the data-insight type filter on, the feed offers a **View: Expanded / Compact** toggle ([`LatestViewToggle`](./LatestViewToggle.tsx)): Expanded shows each insight whole, read in place ([`LatestDataInsightExpanded`](./LatestDataInsightExpanded.tsx)); Compact is the very same teaser as the unfiltered feed — one card design, one behaviour, wherever it appears. The expanded card needs the authors' avatars, which is why the indexer loads `linkedAuthors` for data insights.
+Expanded cards render body links and avatar bylines, so their Algolia records include linked charts, documents, authors, and image metadata. Extracted images use Image directly, preserving alt text and image variants. Captions and authored visibility settings do not apply to these card images.
 
-**Announcements and data updates** collapse to a teaser in the unfiltered feed and show their full body once the type filter is on — or, for announcements, once the reader clicks _Read more_ ([`ExpandableText`](./ExpandableText.tsx)). Both transitions happen in the browser from data the record already carries.
+### 7. Standalone pages
 
-### 7. Standalone announcement pages are a preview surface
-
-Each announcement is also baked as a standalone page, primarily for editor preview. Nothing on the site links to it and there's no back-nav — not by design, just unaddressed (compare data insight permalinks, which are shareable and breadcrumb back to `/latest?type=data-insight`). The bake is kept in case we make announcement URLs shareable later.
+Data insights and announcements share `StandalonePostBody`, an avatar byline, related topics, and copy-link controls. Their breadcrumb returns to the corresponding type-filtered feed. Announcement pages include a carousel of recent announcements of the same kind, excluding the current page; compact data-update cards link to these pages.
 
 ### 8. Sticky filters experiment
 
-`exp-latest-sticky-filters-v1` (registered in `packages/@ourworldindata/utils/src/experiments/config.ts`) trials keeping the filters in reach while scrolling: control, "reveal on scroll up", and "fully sticky". Each arm's layout is pure CSS keyed off the `exp-latest-sticky-filters-v1--<arm>` body class the edge middleware adds (see [`LatestSearch.scss`](./LatestSearch.scss)), so the baked skeleton and the mounted app look identical and nothing flashes when the app takes over. The sticky element is the facets grid item, not the facets themselves: a sticky element only moves within its parent's box. On mobile the content-type dropdown moves above the topic pills, the pills gain a "Filter by topic" label (rendered in every arm, shown by CSS), and a negative `top` lets exactly the dropdown row scroll out so only the pills stay pinned.
+`exp-latest-sticky-filters-v1` compares `not-sticky`, `reveal-on-scroll-up`, and `fully-sticky` on `/latest`. The edge middleware adds the arm's body class; [`LatestSearch.scss`](./LatestSearch.scss) applies the layout to both the baked shell and the mounted app. Every arm uses the same static topic popularity ranking from [`latestUtils.ts`](./latestUtils.ts).
 
-Alongside the experiment (in every arm, so it isn't a confound), the topic pills render most-popular-first per `LATEST_TOPIC_AREAS_BY_POPULARITY` in [`latestUtils.ts`](./latestUtils.ts), a hardcoded ranking from how often each topic filter was actually set on `/latest` (GA `owid.site_latest` events, see the constant's comment for the source and the path to making it live); areas not in the list fall to the end in tag-graph order.
+The sticky element is the facets grid item, giving it the feed's height to move within. On mobile the type dropdown moves above the topic pills; a negative pin offset lets the dropdown scroll away.
 
-The reveal-on-scroll-up arm is the one piece CSS can't express, and only just: `useRevealOnScrollUp` in [`latestHooks.ts`](./latestHooks.ts) tracks the scroll direction and nothing else. The bar is sticky at one of two offsets — parked a bar-height above the pin point, out of view, or at the pin point — and transitioning `top` between them is the slide. It therefore renders at `max(its place in the flow, top)` in every state and can never be displaced from where the flow puts it, which is what a transform-based reveal gets wrong: the transform keeps applying once the bar stops being stuck, dragging it down over the content.
+For the reveal arm, [`useRevealOnScrollUp`](./latestHooks.ts) tracks scroll direction and measures the bar's height. CSS transitions `top` between the pin offset and an offset one bar-height above it. Sticky positioning keeps the bar in its normal flow position near the top of the page, avoiding the displacement a transform would cause there. Two custom properties carry the pin offset and measured height. Until the height is available, `top` computes to `auto`; padding stays constant so the measurement remains valid.
 
-Two custom properties carry the offsets: `--latest-sticky-filters-top` (0 on desktop, negative on mobile so only the pills stay) and `--latest-sticky-filters-height`, published by the hook since CSS can't measure it. The height has no fallback on purpose — until it lands, `top` is invalid and computes to `auto`, so the bar never sticks. The desktop padding applies in both states, since the parked offset depends on the height. The arm is read once on mount via `getExperimentState()`, and `SiteAnalytics` tags every `/latest` event with it as `experimentArm`.
-
-To try an arm on staging or a Cloudflare preview, use the [`/exp`](../../functions/exp/index.ts) switcher — `/exp?from=/latest` lists the active experiments with a button per arm and sends you back to `/latest` with the `exp-latest-sticky-filters-v1` cookie set, so the page renders in that arm from the first byte. The arms are `not-sticky`, `reveal-on-scroll-up`, and `fully-sticky`. `/exp` doesn't exist in production. Under plain `make up` there's no middleware, so local dev instead takes `/latest?exp-latest-sticky-filters-v1=<arm>`, handled client-side by `applyExperimentOverrides` (compiled out of staging and production builds).
+To test on staging or a Cloudflare preview, open `/exp?from=/latest`, choose an arm, and return with its cookie set. The [`/exp`](../../functions/exp/index.ts) switcher is unavailable in production. Plain `make up` has no edge middleware, so use `/latest?exp-latest-sticky-filters-v1=<arm>` instead. That client-side override is development-only. `SiteAnalytics` includes `experimentArm` on `/latest` events.
 
 ## Component layout
 
@@ -80,7 +75,7 @@ To try an arm on staging or a Cloudflare preview, use the [`/exp`](../../functio
 LatestSearchWrapper            (Algolia LiteClient + QueryClientProvider)
   └── LatestSearch             (URL state, queries, result list)
         ├── LatestTopicFacets  (topic pills + content-type dropdown)
-        ├── LatestViewToggle   (Expanded / Compact; disabled unless the type filter offers it)
+        ├── LatestViewToggle   (Expanded / Compact; shown for supported type filters on desktop)
         └── LatestHit          (per-type dispatcher)
               ├── LatestArticleHit
               ├── LatestDataInsightHit
