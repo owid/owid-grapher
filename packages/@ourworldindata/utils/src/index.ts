@@ -383,6 +383,7 @@ export {
     MultiDimDataPageConfig,
     extractMultiDimChoicesFromSearchParams,
     getMultiDimPageTitle,
+    isMultiDimDataExplorer,
     resolveDimensionPresentationType,
     searchParamsToMultiDimView,
 } from "./MultiDimDataPageConfig.js"
