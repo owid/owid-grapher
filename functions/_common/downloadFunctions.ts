@@ -304,7 +304,11 @@ export async function fetchMarkdownForGrapher(
     // an exact lookup and blank out every cell on a series that has no
     // observation in precisely that year.
     let valuesByEntity: GrapherValuesJson[]
-    if (grapherState.isRelativeMode) {
+    if (entityNames.length === 0) {
+        // A chart with no entity selected — a scatter plot, typically — has no
+        // values block to build, and preparing a table for it is pure cost.
+        valuesByEntity = []
+    } else if (grapherState.isRelativeMode) {
         valuesByEntity = entityNames.map((entityName) =>
             assembleDataValues(grapherState, entityName)
         )
