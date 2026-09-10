@@ -241,10 +241,13 @@ export async function fetchMarkdownForGrapher(
     // HTML page's own cache entry is never confused with it (the edge cache
     // ignores `Vary`).
     const shouldCache = ctx !== undefined && params.get("nocache") === null
+    // `nocache` asks this handler to skip its cache; it selects no view, so it
+    // belongs in neither the cache key nor the data URLs the document prints.
+    const viewParams = new URLSearchParams(params)
+    viewParams.delete("nocache")
+    const viewSearch = viewParams.size > 0 ? `?${viewParams.toString()}` : ""
     const cacheKey = new Request(
-        `${env.url.origin}/grapher/${identifier.id}${extensions.markdown}${
-            params.size > 0 ? `?${params.toString()}` : ""
-        }`
+        `${env.url.origin}/grapher/${identifier.id}${extensions.markdown}${viewSearch}`
     )
     if (shouldCache) {
         const cached = await checkCache(cacheKey, true)
@@ -320,7 +323,7 @@ export async function fetchMarkdownForGrapher(
         grapherState,
         getColumnsForMetadata(grapherState),
         valuesByEntity,
-        params.size > 0 ? `?${params.toString()}` : ""
+        viewSearch
     )
     const response = new Response(markdown, {
         headers: {
