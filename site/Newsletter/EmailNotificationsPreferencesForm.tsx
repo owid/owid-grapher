@@ -8,7 +8,7 @@ import {
     EmailNotificationsRequestLinkRequest,
     EmailNotificationsUpdatePreferencesRequest,
 } from "@ourworldindata/types"
-import { Button, Checkbox, TextInput } from "@ourworldindata/components"
+import { Button, TextInput } from "@ourworldindata/components"
 import { SiteQueryClientProvider } from "../SiteQueryClientProvider.js"
 import { EmailNotificationsPreferenceFields } from "./EmailNotificationsPreferenceFields.js"
 import {
@@ -17,6 +17,7 @@ import {
     getErrorMessage,
     throwIfApiError,
 } from "./emailNotificationsApi.js"
+import { NewsletterOption } from "./NewsletterOption.js"
 import { useNotificationPreferences } from "./useNotificationPreferences.js"
 import {
     SUBSCRIBE_PAGE_CONTENT_GRID_CLASSES,
@@ -377,9 +378,30 @@ const PreferencesEditor = ({
                 </p>
                 <fieldset className="newsletter-form__fieldset">
                     <legend className="h5-black-caps">Newsletters</legend>
-                    <Checkbox
+                    {subscribedToOwidBrief !== null && (
+                        <>
+                            <NewsletterOption
+                                id="email-notifications-preferences-owid-brief"
+                                imageSrc="/images/biweekly-newsletter.webp"
+                                title="The OWID Brief"
+                                cadence="Twice a month"
+                                description="Stay up to date with our latest work plus curated highlights from across Our World in Data, twice a month."
+                                checked={subscribedToOwidBrief}
+                                onChange={() =>
+                                    setSubscribedToOwidBrief(
+                                        !subscribedToOwidBrief
+                                    )
+                                }
+                            />
+                            <hr className="newsletter-form__divider" />
+                        </>
+                    )}
+                    <NewsletterOption
                         id="email-notifications-preferences-follow-topics"
-                        label="Follow Topics — receive updates on the topics you follow as we publish them."
+                        imageSrc="/images/data-insights.webp"
+                        title="Follow Topics"
+                        cadence="Pick your cadence"
+                        description="Receive updates on the topics you follow as we publish them."
                         checked={subscribedToTopicNotifications}
                         onChange={() =>
                             setSubscribedToTopicNotifications(
@@ -387,16 +409,6 @@ const PreferencesEditor = ({
                             )
                         }
                     />
-                    {subscribedToOwidBrief !== null && (
-                        <Checkbox
-                            id="email-notifications-preferences-owid-brief"
-                            label="The OWID Brief — stay up to date with our latest work plus curated highlights from across Our World in Data, twice a month."
-                            checked={subscribedToOwidBrief}
-                            onChange={() =>
-                                setSubscribedToOwidBrief(!subscribedToOwidBrief)
-                            }
-                        />
-                    )}
                 </fieldset>
                 {subscribedToTopicNotifications && (
                     <EmailNotificationsPreferenceFields
