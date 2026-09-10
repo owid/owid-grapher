@@ -5,24 +5,6 @@ import {
 } from "@ourworldindata/utils"
 
 /**
- * Builds a deterministic queryStr for a set of dimension choices. Dimensions
- * are sorted alphabetically by key so equivalent choice sets always produce
- * the same string regardless of insertion order.
- */
-export function dimensionsToSortedQueryStr(
-    dimensions: Record<string, string>
-): string {
-    const sortedDimensions = Object.entries(dimensions).sort(([keyA], [keyB]) =>
-        keyA.localeCompare(keyB)
-    )
-    const params = new URLSearchParams()
-    for (const [dimension, choice] of sortedDimensions) {
-        params.set(dimension, choice)
-    }
-    return params.toString()
-}
-
-/**
  * Attributes each gdoc link to the specific mdim view its query string
  * resolves to, returning a viewId → count map.
  * Links whose query string is empty or doesn't match any dimension choices

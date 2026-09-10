@@ -7,6 +7,7 @@ import { SiteHeader } from "../SiteHeader.js"
 import { OWID_DATAPAGE_CONTENT_ROOT_ID } from "../DataPageV2Content.js"
 import { SiteFooter } from "../SiteFooter.js"
 import {
+    getMultiDimPageTitle,
     MultiDimDataPageConfig,
     SiteFooterContext,
     serializeJSONForHTML,
@@ -39,10 +40,7 @@ export function MultiDimDataPage({
     if (!slug && !isPreviewing) {
         throw new Error("Missing slug for multidimensional data page")
     }
-    let pageTitle = configObj.title.title
-    if (configObj.title.titleVariant) {
-        pageTitle += ` - ${configObj.title.titleVariant}`
-    }
+    const pageTitle = getMultiDimPageTitle(configObj.title)
     const pageDesc = DEFAULT_PAGE_DESCRIPTION
     const contentProps: MultiDimDataPageData = {
         canonicalUrl,
