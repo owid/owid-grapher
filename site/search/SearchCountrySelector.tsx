@@ -181,12 +181,17 @@ export const SearchCountrySelector = ({
                                     src={`/images/flags/${country.code}.svg`}
                                 />
                                 {country.name}
+                                {/* Purely decorative: the whole row is the
+                                click target, and children of a `role=option`
+                                element aren't exposed to screen readers. */}
                                 <input
                                     type="checkbox"
                                     checked={selectedRegionNames.includes(
                                         country.name
                                     )}
                                     readOnly
+                                    tabIndex={-1}
+                                    aria-hidden
                                 />
                             </ListBoxItem>
                         ))}
