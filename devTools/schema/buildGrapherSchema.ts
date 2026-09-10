@@ -12,6 +12,8 @@ import {
     findLatestSchemaFile,
 } from "./grapherSchemaSource.js"
 import {
+    chooseSchemaRevision,
+    findHighestPublishedRevision,
     generateDefaultConfig,
     formatSchemaFileName,
     renderDefaultConfigFile,
@@ -30,11 +32,16 @@ async function writeArtefact(filePath: string, content: string): Promise<void> {
 
 async function main(): Promise<void> {
     const {
-        values: { "publish-dir": publishDir, latest: withLatestAlias = false },
+        values: {
+            "publish-dir": publishDir,
+            "published-dir": publishedDir,
+            latest: withLatestAlias = false,
+        },
     } = parseArgs({
         strict: true,
         options: {
             "publish-dir": { type: "string" },
+            "published-dir": { type: "string" },
             latest: { type: "boolean" },
         },
     })
@@ -62,7 +69,40 @@ async function main(): Promise<void> {
         await fs.mkdir(publishDir, { recursive: true })
         for (const fileName of publishedFileNames)
             await writeArtefact(path.join(publishDir, fileName), schemaJson)
+
+        if (publishedDir) {
+            const published = await readPublishedRevision(publishedDir, version)
+            const decision = chooseSchemaRevision(schemaJson, published)
+            if (decision.isChanged)
+                await writeArtefact(
+                    path.join(
+                        publishDir,
+                        formatSchemaFileName(version, decision.revision)
+                    ),
+                    schemaJson
+                )
+            else
+                console.log(
+                    `${formatSchemaFileName(version, decision.revision)} is current`
+                )
+        }
     }
+}
+
+/** The highest revision of a version already in the mirror, with the bytes it was published as */
+async function readPublishedRevision(
+    publishedDir: string,
+    version: string
+): Promise<{ revision: number; json: string } | undefined> {
+    const fileNames = await fs.readdir(publishedDir)
+    const revision = findHighestPublishedRevision(fileNames, version)
+    if (revision === undefined) return undefined
+
+    const json = await fs.readFile(
+        path.join(publishedDir, formatSchemaFileName(version, revision)),
+        "utf8"
+    )
+    return { revision, json }
 }
 
 void main()
