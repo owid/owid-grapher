@@ -13,12 +13,12 @@ import {
 
 export const ExplorerIndexPage = ({
     baseUrl,
-    explorers,
+    items,
 }: ExplorerIndexPageProps) => {
     const inlineJs = `window.${__OWID_EXPLORER_INDEX_PAGE_PROPS} = ${serializeJSONForInlineScript(
         {
             baseUrl,
-            explorers,
+            items,
         }
     )}`
     return (
@@ -32,7 +32,7 @@ export const ExplorerIndexPage = ({
             <body>
                 <SiteHeader />
                 <main className="explorer-index-page grid grid-cols-12-full-width">
-                    <ExplorerIndex baseUrl={baseUrl} explorers={explorers} />
+                    <ExplorerIndex baseUrl={baseUrl} items={items} />
                 </main>
                 <SiteFooter context={SiteFooterContext.explorerIndexPage} />
                 <script dangerouslySetInnerHTML={{ __html: inlineJs }} />
