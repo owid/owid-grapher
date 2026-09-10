@@ -312,8 +312,7 @@ export async function renderDataPageV2(
         grapher.dimensions
             ?.find(
                 (d) =>
-                    d.property === DimensionProperty.y &&
-                    d.variableId === varId
+                    d.property === DimensionProperty.y && d.variableId === varId
             )
             ?.display?.name?.trim() || undefined
 
