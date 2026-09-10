@@ -13,6 +13,7 @@ import {
     OwidGdocHomepageMetadata,
 } from "@ourworldindata/types"
 import { getLatestDataInsights } from "./GdocFactory.js"
+import { getAllPublishedMultiDimDataPages } from "../MultiDimDataPage.js"
 
 export class GdocHomepage
     extends GdocBase
@@ -68,9 +69,23 @@ export class GdocHomepage
                 db.getMultiDimViewCount(knex),
             ])
 
-        const explorerCount = await db
-            .getPublishedExplorersBySlug(knex, false)
-            .then((explorers) => Object.keys(explorers).length)
+        // Multi-dim data pages flagged as data explorers count towards the
+        // "N data explorers" stat, since they are listed on /explorers.
+        const explorerCount = await Promise.all([
+            db
+                .getPublishedExplorersBySlug(knex, false)
+                .then((explorers) => Object.keys(explorers).length),
+            getAllPublishedMultiDimDataPages(knex).then(
+                (multiDims) =>
+                    multiDims.filter(
+                        (multiDim) =>
+                            multiDim.config.presentation?.type ===
+                            "data-explorer"
+                    ).length
+            ),
+        ]).then(
+            ([explorers, explorerMultiDims]) => explorers + explorerMultiDims
+        )
 
         this.homepageMetadata = {
             chartCount:
