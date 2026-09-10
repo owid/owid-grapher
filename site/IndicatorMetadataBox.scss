@@ -335,25 +335,23 @@
     }
 }
 
-// Collapsed multi-indicator mode: one pane + the templated indicator list.
-// The pane's own indicator title is hidden — the "About this data" label and
-// the list carry identity (it stays in the DOM for raw-HTML consumers).
-.indicator-metadata-box-wrap--collapsed
-    .indicator-metadata-box__indicator-title {
-    display: none;
-}
-
+// Collapsed multi-indicator mode: one pane (headed "About this data") whose
+// expander opens with the indicator list, sitting above the shared WYSK.
 .indicator-metadata-box__collapsed-list {
     @include body-3-medium;
     margin-bottom: 16px;
 
-    ul {
-        margin: 8px 0 0;
-        padding-left: 20px;
+    ol {
+        margin: 12px 0 0;
+        padding-left: 24px;
     }
 
     li {
-        margin-bottom: 4px;
+        margin-bottom: 10px;
+
+        &::marker {
+            color: $blue-50;
+        }
     }
 }
 
@@ -363,10 +361,32 @@
 
 .indicator-metadata-box__collapsed-list-title {
     font-weight: 700;
+    display: block;
+}
+
+// Inline (titles-only) mode: titles flow in the intro sentence.
+p.indicator-metadata-box__collapsed-list
+    .indicator-metadata-box__collapsed-list-title {
+    display: inline;
+}
+
+.indicator-metadata-box__collapsed-list-meta {
+    display: block;
+    margin-top: 1px;
+}
+
+.indicator-metadata-box__collapsed-list-sep {
+    color: $blue-20;
+    margin: 0 8px;
 }
 
 .indicator-metadata-box__collapsed-list-unit {
-    color: $blue-60;
+    white-space: nowrap;
+}
+
+.indicator-metadata-box__collapsed-list-unit-key {
+    @include note-13-medium;
+    color: $blue-50;
 }
 
 .indicator-metadata-box__collapsed-list-note {

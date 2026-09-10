@@ -31,6 +31,13 @@ export interface DatasetOwners {
 export interface DataPageDataV2 {
     status: "published" | "draft"
     title: IndicatorTitleWithFragments
+    /**
+     * The chart dimension's display.name for this indicator, when the chart
+     * author set one. The indicator SWITCHER prefers it for pill labels so
+     * they match the chart's own series labels; titles/citations/lists keep
+     * the self-contained titlePublic.
+     */
+    chartDimensionName?: string
     titleVariant?: string
     attributionShort?: string
     topicTagsLinks?: string[]

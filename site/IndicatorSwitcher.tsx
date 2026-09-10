@@ -16,7 +16,9 @@ import { SiteAnalytics } from "./SiteAnalytics.js"
 const analytics = new SiteAnalytics()
 
 const labelForIndicator = (datapageData: DataPageDataV2): string => {
-    const title = datapageData.title.title
+    // Prefer the chart author's per-dimension display.name so pill labels
+    // match the chart's own series labels; fall back to the pane title.
+    const title = datapageData.chartDimensionName ?? datapageData.title.title
     const variant = datapageData.titleVariant
     return variant && !title.includes(variant) ? `${title} – ${variant}` : title
 }

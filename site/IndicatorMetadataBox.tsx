@@ -21,7 +21,7 @@ import {
     OwidEnrichedGdocBlock,
     PrimaryTopic,
 } from "@ourworldindata/types"
-import { createRef, useEffect, useMemo, useRef, useState } from "react"
+import React, { createRef, useEffect, useMemo, useRef, useState } from "react"
 import {
     formatAttributions,
     prepareSourcesForDisplay,
@@ -78,6 +78,7 @@ interface ExpandableSectionProps {
     // indicators, so naming one of them misleads).
     datapageCitationTitle?: string
     omitLongDatasetTitle?: boolean
+    collapsedIndicatorList?: CollapsedIndicatorListEntry[]
 }
 
 const FAQS_SECTION_ID = "faqs"
@@ -127,6 +128,7 @@ function ExpandableSection({
     suppressToggleLogUntilRef,
     datapageCitationTitle,
     omitLongDatasetTitle,
+    collapsedIndicatorList,
 }: ExpandableSectionProps) {
     const { origins, source } = datapageData
     const sourcesForDisplay = prepareSourcesForDisplay({
@@ -178,6 +180,12 @@ function ExpandableSection({
 
     return (
         <div className={cx("meta-expander", className)}>
+            {collapsedIndicatorList && collapsedIndicatorList.length > 0 && (
+                <CollapsedIndicatorList
+                    entries={collapsedIndicatorList}
+                    datapageData={datapageData}
+                />
+            )}
             {descriptionKeyPreview && (
                 <div className="meta-expander__preview meta-expander__prose">
                     <SimpleMarkdownText text={descriptionKeyPreview} />
@@ -453,6 +461,8 @@ function IndicatorPaneContent({
     suppressToggleLogUntilRef,
     datapageCitationTitle,
     omitLongDatasetTitle,
+    paneTitleOverride,
+    collapsedIndicatorList,
 }: {
     datapageData: DataPageDataV2
     faqEntries: FaqEntryData | undefined
@@ -463,6 +473,11 @@ function IndicatorPaneContent({
     suppressToggleLogUntilRef?: React.RefObject<number>
     datapageCitationTitle?: string
     omitLongDatasetTitle?: boolean
+    // Collapsed multi-indicator mode: the pane heading reads "About this
+    // data" (no single indicator owns the pane) and the indicator list
+    // renders inside the expander, above the shared WYSK.
+    paneTitleOverride?: string
+    collapsedIndicatorList?: CollapsedIndicatorListEntry[]
     // Disambiguates the section anchor ids (#faqs, #sources-and-processing,
     // #indicator-processing) when several panes are in the DOM at once. The
     // active pane always gets the canonical (un-suffixed) ids so in-page
@@ -485,10 +500,12 @@ function IndicatorPaneContent({
     return (
         <>
             <h2 className="indicator-metadata-box__indicator-title body-2-bold-tight">
-                {datapageData.title.title}
-                <span className="indicator-metadata-box__title-variant">
-                    {datapageData.titleVariant}
-                </span>
+                {paneTitleOverride ?? datapageData.title.title}
+                {!paneTitleOverride && (
+                    <span className="indicator-metadata-box__title-variant">
+                        {datapageData.titleVariant}
+                    </span>
+                )}
             </h2>
             <dl className="meta-description-table">
                 {datapageData.descriptionShort && (
@@ -571,6 +588,7 @@ function IndicatorPaneContent({
                 descriptionProcessing={datapageData.descriptionProcessing}
                 license={license}
                 faqsSectionId={`${FAQS_SECTION_ID}${idSuffix}`}
+                collapsedIndicatorList={collapsedIndicatorList}
                 sourcesSectionId={`${DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID}${idSuffix}`}
                 processingContentId={processingContentId}
                 suppressToggleLogUntilRef={suppressToggleLogUntilRef}
@@ -592,38 +610,68 @@ function CollapsedIndicatorList({
     entries: CollapsedIndicatorListEntry[]
     datapageData: DataPageDataV2
 }) {
-    const producers = _.uniq(
-        (datapageData.origins ?? [])
-            .map((origin) => origin.producer)
-            .filter((p): p is string => !!p)
+    const nSources =
+        (datapageData.origins?.length ?? 0) + (datapageData.source ? 1 : 0)
+    const sourcePhrase =
+        nSources > 0
+            ? `, all from the same data source${nSources > 1 ? "s" : ""}`
+            : ""
+    // When the entries carry nothing beyond their titles (shared short/unit
+    // shown once in the pane, no per-indicator notes), an enumerated list
+    // adds vertical space without information — render the titles inline.
+    const titlesOnly = entries.every(
+        (entry) => !entry.short && !entry.unit && !entry.note
     )
-    const producerPhrase =
-        producers.length > 0 ? `, all from ${producers.join(", ")}` : ""
+    if (titlesOnly) {
+        return (
+            <p className="indicator-metadata-box__collapsed-list indicator-metadata-box__collapsed-list-intro">
+                This chart shows data for {entries.length} indicators
+                {sourcePhrase}:{" "}
+                {entries.map((entry, i) => (
+                    <React.Fragment key={i}>
+                        {i > 0 && ", "}
+                        <span className="indicator-metadata-box__collapsed-list-title">
+                            {entry.title}
+                        </span>
+                    </React.Fragment>
+                ))}
+                .
+            </p>
+        )
+    }
     return (
         <div className="indicator-metadata-box__collapsed-list">
             <p className="indicator-metadata-box__collapsed-list-intro">
                 This chart shows data for {entries.length} indicators
-                {producerPhrase}:
+                {sourcePhrase}:
             </p>
-            <ul>
+            <ol>
                 {entries.map((entry, i) => (
                     <li key={i}>
                         <span className="indicator-metadata-box__collapsed-list-title">
                             {entry.title}
                         </span>
-                        {entry.short && (
-                            <>
-                                {" – "}
-                                <SimpleMarkdownText
-                                    text={entry.short}
-                                    useParagraphs={false}
-                                />
-                            </>
-                        )}
-                        {entry.unit && (
-                            <span className="indicator-metadata-box__collapsed-list-unit">
-                                {" "}
-                                ({entry.unit})
+                        {(entry.short || entry.unit) && (
+                            <span className="indicator-metadata-box__collapsed-list-meta">
+                                {entry.short && (
+                                    <SimpleMarkdownText
+                                        text={entry.short}
+                                        useParagraphs={false}
+                                    />
+                                )}
+                                {entry.short && entry.unit && (
+                                    <span className="indicator-metadata-box__collapsed-list-sep">
+                                        |
+                                    </span>
+                                )}
+                                {entry.unit && (
+                                    <span className="indicator-metadata-box__collapsed-list-unit">
+                                        <span className="indicator-metadata-box__collapsed-list-unit-key">
+                                            Unit{" "}
+                                        </span>
+                                        {entry.unit}
+                                    </span>
+                                )}
                             </span>
                         )}
                         {entry.note && (
@@ -636,7 +684,7 @@ function CollapsedIndicatorList({
                         )}
                     </li>
                 ))}
-            </ul>
+            </ol>
         </div>
     )
 }
@@ -745,6 +793,12 @@ export default function IndicatorMetadataBox({
                 license={license}
                 idSuffix={i === safeIndex ? "" : `--${i}`}
                 suppressToggleLogUntilRef={suppressToggleLogUntilRef}
+                paneTitleOverride={
+                    isCollapsedMulti ? "About this data" : undefined
+                }
+                collapsedIndicatorList={
+                    isCollapsedMulti ? collapsedIndicatorList : undefined
+                }
                 datapageCitationTitle={
                     isMultiForCitations
                         ? (pageCitationTitle ?? datapageData.title.title)
@@ -784,9 +838,8 @@ export default function IndicatorMetadataBox({
     // Header row above the box: "About this data (N indicators)" plus the
     // switcher control. The v-tabs variant renders its switcher as an aside
     // beside the box instead.
-    const headerSwitcher = isCollapsedMulti ? (
-        <IndicatorAboutLabel indicatorCount={collapsedIndicatorList!.length} />
-    ) : switcherVariant === "dropdown" ? (
+    const headerSwitcher = isCollapsedMulti ? null : switcherVariant ===
+      "dropdown" ? (
         <IndicatorDropdown
             indicators={indicators}
             activeIndex={safeIndex}
@@ -845,12 +898,6 @@ export default function IndicatorMetadataBox({
                 )}
                 <div className="indicator-metadata-box">
                     {showLessButton}
-                    {isCollapsedMulti && (
-                        <CollapsedIndicatorList
-                            entries={collapsedIndicatorList!}
-                            datapageData={datapageData}
-                        />
-                    )}
                     {panes}
                 </div>
             </div>
