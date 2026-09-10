@@ -1,8 +1,11 @@
 import {
     EmailNotificationsContentType,
     EmailNotificationsFrequency,
+    EnrichedBlockText,
     OwidEnrichedGdocBlock,
+    LatestType,
 } from "@ourworldindata/types"
+import { dayjs } from "@ourworldindata/utils"
 
 export interface EmailNotificationsSubscriber {
     userId: number
@@ -27,7 +30,11 @@ export interface D1SubscriberRow {
 }
 
 export interface NotificationEmailItem {
+    // The content type subscribers opt into. Several latest types fold into
+    // one of these (a topic update counts as an article).
     type: EmailNotificationsContentType
+    // The /latest type, which decides the item's kicker and layout.
+    latestType: LatestType
     slug: string
     title: string
     url: string
@@ -40,11 +47,13 @@ export interface NotificationEmailItem {
     topicLabel?: string
     authors: string[]
     excerpt?: string
+    // An article's authored `latest-feed-excerpt`
+    excerptBlocks?: EnrichedBlockText[]
     thumbnailUrl?: string
     // Data insights carry their full content, rendered inline in the email.
     body?: OwidEnrichedGdocBlock[]
     // Cloudflare image URLs for the image blocks in `body`.
-    imageUrlByFilename?: Record<string, string>
+    imageUrlsByFilename?: Record<string, string>
 }
 
 const DAY_MS = 24 * 60 * 60 * 1000
@@ -84,6 +93,19 @@ export function getWindowStart(
         subscriber.lastSentAt ??
         new Date(now.getTime() - FREQUENCY_WINDOW_MS[subscriber.frequency])
     )
+}
+
+/**
+ * The date shown in an item's kicker. Absolute rather than relative
+ * ("yesterday"), because an email may be read days after it was sent. The
+ * year is only shown when it differs from the send year, which happens in
+ * January for content from the tail of the previous year.
+ */
+export function formatItemDate(publishedAt: Date, now: Date): string {
+    const published = dayjs.utc(publishedAt)
+    const format =
+        published.year() === dayjs.utc(now).year() ? "MMMM D" : "MMMM D, YYYY"
+    return published.format(format)
 }
 
 export function filterItemsForSubscriber(
