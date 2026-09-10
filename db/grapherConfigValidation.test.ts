@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest"
-import { type AnyConfig, defaultGrapherConfig } from "@ourworldindata/grapher"
+import {
+    type UntypedGrapherConfig,
+    defaultGrapherConfig,
+} from "@ourworldindata/grapher"
 import {
     assertValidGrapherConfig,
     GrapherConfigValidationError,
@@ -10,19 +13,19 @@ function schemaUrlForVersion(version: string): string {
     return `https://files.ourworldindata.org/schemas/grapher-schema.${version}.json`
 }
 
-const baseChartConfig: AnyConfig = {
+const baseChartConfig: UntypedGrapherConfig = {
     $schema: defaultGrapherConfig.$schema,
     dimensions: [{ property: "y", variableId: 1 }],
 }
 
 const { dimensions: _dimensions, ...configWithoutDimensions } = baseChartConfig
 
-const configWithEmptyDimensions: AnyConfig = {
+const configWithEmptyDimensions: UntypedGrapherConfig = {
     ...baseChartConfig,
     dimensions: [],
 }
 
-const configWithUnknownKey: AnyConfig = {
+const configWithUnknownKey: UntypedGrapherConfig = {
     ...baseChartConfig,
     hideLegend: true,
 }
@@ -63,7 +66,7 @@ describe(ingestGrapherConfig, () => {
 
     it("rejects a config that is not an object", () => {
         const error = catchValidationError(() =>
-            ingestGrapherConfig(null as unknown as AnyConfig)
+            ingestGrapherConfig(null as unknown as UntypedGrapherConfig)
         )
 
         expect(error.status).toBe(400)
