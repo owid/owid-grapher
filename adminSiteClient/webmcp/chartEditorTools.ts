@@ -41,12 +41,15 @@ import {
     describeUnresolved,
     matchNames,
 } from "./matching.js"
+import { CHART_EDITOR_TOOL_SET } from "./toolSets.js"
 import { registerToolSet, toolResult, type WebMcpTool } from "./webmcpTypes.js"
 
-export const CHART_EDITOR_TOOL_SET = "chart-editor"
+export { CHART_EDITOR_TOOL_SET }
 
 const NOTHING_CHANGED = "Nothing was changed."
 const LOADING = "The chart editor is still loading. Try again in a moment."
+/** Same cap as the public-site tools: enough to reason over, small enough to read. */
+const MAX_DATA_ROWS = 400
 
 export interface ChartEditorToolContext {
     /** Resolved at call time: the editor is created after the page's data loads. */
@@ -67,8 +70,14 @@ function describeIndicators(editor: ChartEditor): string {
     const { grapherState } = editor
     const lines = grapherState.dimensionSlots.flatMap((slot) =>
         slot.dimensions.map((dim) => {
-            const name = dim.column?.displayName || dim.display?.name
-            return `  ${slot.property}: ${dim.variableId}${name ? ` "${name}"` : ""}`
+            // Before the data loads, the column's display name is just the
+            // variable id, which reads as an indicator actually named "1295512".
+            const candidate = dim.column?.displayName || dim.display?.name
+            const name =
+                candidate && candidate !== String(dim.variableId)
+                    ? ` "${candidate}"`
+                    : " (name still loading)"
+            return `  ${slot.property}: ${dim.variableId}${name}`
         })
     )
     const slots = grapherState.dimensionSlots
@@ -87,9 +96,54 @@ function describeIndicators(editor: ChartEditor): string {
 
 function describeSelection(editor: ChartEditor): string {
     const names = editor.grapherState.selection.selectedEntityNames
-    return names.length
+    const base = names.length
         ? `Selected entities (${names.length}): ${names.join(", ")}`
         : "Selected entities: none"
+
+    // Entities left over from a chart's previous indicators plot nothing. The
+    // editor knows which ones; saying so is how an agent notices it inherited
+    // a selection that no longer belongs to the data.
+    const invalid = editor.invalidSelectedEntityNames
+    if (!invalid.length) return base
+    return (
+        `${base}\n` +
+        `  Not in this chart's data, so they plot nothing: ${invalid.join(", ")}. ` +
+        "Fix with select_entities."
+    )
+}
+
+/**
+ * Settings that silently survive when a chart is edited into something else,
+ * and that a reader of the chart would notice.
+ */
+function describeKeySettings(editor: ChartEditor): string | undefined {
+    const { grapherState } = editor
+    const parts: string[] = []
+    // ±Infinity is how "no bound" is stored; printing it would read as a real
+    // setting the user had chosen.
+    const bounded = (value: unknown): value is number =>
+        typeof value === "number" && Number.isFinite(value)
+    const axis = (
+        name: string,
+        config: { min?: number; max?: number }
+    ): void => {
+        const bounds = [
+            bounded(config.min) ? `min ${config.min}` : undefined,
+            bounded(config.max) ? `max ${config.max}` : undefined,
+        ].filter(Boolean)
+        if (bounds.length) parts.push(`${name} ${bounds.join(", ")}`)
+    }
+    axis("y axis", grapherState.yAxis)
+    axis("x axis", grapherState.xAxis)
+    if (bounded(grapherState.minTime))
+        parts.push(`min time ${grapherState.minTime}`)
+    if (bounded(grapherState.maxTime))
+        parts.push(`max time ${grapherState.maxTime}`)
+    if (grapherState.stackMode && grapherState.stackMode !== "absolute")
+        parts.push(`stack mode ${grapherState.stackMode}`)
+    if (grapherState.hasMapTab && grapherState.map?.region)
+        parts.push(`map region ${grapherState.map.region}`)
+    return parts.length ? `Other settings: ${parts.join("; ")}` : undefined
 }
 
 function describeErrors(
@@ -135,13 +189,16 @@ export function describeEditorState(
         `Chart types: ${chartTypes}; map tab: ${grapherState.hasMapTab ? "yes" : "no"}`,
         describeIndicators(editor),
         describeSelection(editor),
+        describeKeySettings(editor),
         grapherState.isReady
             ? `Data: loaded, ${grapherState.availableEntityNames.length} entities available`
             : "Data: not loaded yet",
         `Editor tab: ${editor.tab} (available: ${editor.availableTabs.join(", ")})`,
         `Unsaved changes: ${editor.isModified ? "yes" : "no"}`,
         describeErrors(context, editor),
-    ].join("\n")
+    ]
+        .filter(Boolean)
+        .join("\n")
 }
 
 function withEditor(
@@ -231,6 +288,40 @@ export function buildChartEditorTools(
                 withEditor(context, (editor) =>
                     describeEditorState(context, editor)
                 ),
+        },
+        {
+            name: "get_chart_data",
+            description:
+                "Read the data the chart is currently drawing, as CSV, for " +
+                "the entities and time range shown. You cannot see the " +
+                "rendered chart, so read this before judging or describing " +
+                "it: it is how you notice that two selected entities track " +
+                "each other almost exactly, that a series is flat or empty, " +
+                "or that a projection starts where the historical data " +
+                "stops. Also read it before stating any number.",
+            inputSchema: { type: "object", properties: {} },
+            execute: () =>
+                withEditor(context, (editor) => {
+                    const { grapherState } = editor
+                    if (!grapherState.isReady)
+                        return "The chart's data is not loaded yet. Wait a moment and try again."
+                    // filteredTableForDownload, not tableForDownload: the
+                    // latter is every entity in the data, so the row cap would
+                    // slice off the entities actually on the chart.
+                    const table = grapherState.filteredTableForDownload
+                    if (!table || table.numRows === 0)
+                        return "The chart is drawing no data (no indicator, or nothing selected)."
+                    const csv = table.toPrettyCsv()
+                    const lines = csv.split("\n")
+                    const rows = lines.length - 1
+                    if (rows <= MAX_DATA_ROWS) return csv
+                    return (
+                        `${lines.slice(0, MAX_DATA_ROWS + 1).join("\n")}\n\n` +
+                        `[Truncated: showing ${MAX_DATA_ROWS} of ${rows} rows. ` +
+                        "Narrow it with select_entities or a time range in " +
+                        "update_chart_config.]"
+                    )
+                }),
         },
         {
             name: "add_indicators",
@@ -325,7 +416,12 @@ export function buildChartEditorTools(
         },
         {
             name: "remove_indicator",
-            description: "Remove an indicator from the chart by id.",
+            description:
+                "Remove an indicator from the chart by id. To build a chart " +
+                "on a different topic, do not empty this one: its title, " +
+                "subtitle, entity selection and axis settings would carry " +
+                "over to data they were not written for. Use " +
+                "create_chart_from_indicator instead.",
             inputSchema: {
                 type: "object",
                 properties: {
@@ -600,8 +696,8 @@ export function buildChartEditorTools(
                 "it afterwards. Never publishes. Refused when the chart has " +
                 "editing errors, and on published charts, since saving those " +
                 "changes the live site; the user does that with the Update " +
-                "button. After a first save the editor reloads at the new " +
-                "chart's URL and these tools re-register.",
+                "button. A first save reloads the editor at the new chart's " +
+                "URL, so the editor tools blink out for a second afterwards.",
             inputSchema: { type: "object", properties: {} },
             execute: () =>
                 withEditor(context, async (editor) => {
@@ -632,13 +728,23 @@ export function buildChartEditorTools(
                         return "The server rejected the save; check the error shown in the admin."
                     invalidateChartCache()
                     const id = grapherState.id
-                    if (wasNew)
-                        return (
-                            `Created draft chart #${id} ("${grapherState.effectiveTitle}"). ` +
-                            `The editor is reloading at /admin/charts/${id}/edit; ` +
-                            "wait a moment before calling editor tools again."
-                        )
-                    return `Saved draft chart #${id}, now version ${grapherState.version}.`
+                    if (!wasNew)
+                        return `Saved draft chart #${id}, now version ${grapherState.version}.`
+
+                    // Deliberately returns without waiting for the reload.
+                    // A first save redirects to /charts/:id/edit, which
+                    // unmounts this editor and unregisters these tools — so a
+                    // tool that waited here would be unregistered mid-call and
+                    // the browser would fail the call rather than deliver this
+                    // result. The admin-wide tools have no such problem: they
+                    // outlive navigation, which is why they can wait.
+                    return (
+                        `Created draft chart #${id} ("${grapherState.effectiveTitle}"). ` +
+                        `The editor is reloading at /admin/charts/${id}/edit, which ` +
+                        "takes a second or two and briefly removes the chart editor " +
+                        "tools. If your next editor call fails, call where_am_i " +
+                        "(always available) and then retry it."
+                    )
                 }),
         },
     ]

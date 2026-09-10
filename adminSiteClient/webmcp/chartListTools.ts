@@ -6,9 +6,10 @@
  */
 import type { ChartListItem } from "../ChartList.js"
 import { describeChart, DEFAULT_RESULT_LIMIT } from "./adminTools.js"
+import { CHART_LIST_TOOL_SET } from "./toolSets.js"
 import { registerToolSet, toolResult, type WebMcpTool } from "./webmcpTypes.js"
 
-export const CHART_LIST_TOOL_SET = "chart-list"
+export { CHART_LIST_TOOL_SET }
 
 export interface ChartListToolContext {
     getCharts: () => ChartListItem[]

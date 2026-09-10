@@ -1,11 +1,33 @@
-import { beforeEach, describe, expect, it, vi } from "vitest"
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { SynthesizeGDPTable } from "@ourworldindata/core-table"
 import { GRAPHER_CHART_TYPES, GrapherInterface } from "@ourworldindata/types"
 import { GrapherState } from "@ourworldindata/grapher"
 import type { ChartEditor } from "../ChartEditor.js"
 import type { ErrorMessages } from "../ChartEditorTypes.js"
 import { buildChartEditorTools, editingErrors } from "./chartEditorTools.js"
-import type { WebMcpTool } from "./webmcpTypes.js"
+import { CHART_EDITOR_TOOL_SET } from "./toolSets.js"
+import { registerToolSet, type WebMcpTool } from "./webmcpTypes.js"
+
+let mountedEditors: AbortController[] = []
+
+/** Stand in for the editor page mounting and registering its tools. */
+function remountEditorToolSet(): void {
+    mountedEditors.forEach((c) => c.abort())
+    const controller = new AbortController()
+    mountedEditors.push(controller)
+    void registerToolSet(
+        CHART_EDITOR_TOOL_SET,
+        [
+            {
+                name: "editor_probe",
+                description: "x".repeat(50),
+                inputSchema: { type: "object", properties: {} },
+                execute: async () => "ok",
+            },
+        ],
+        controller.signal
+    )
+}
 
 /**
  * Drives the editor tools against a real GrapherState the way an agent would,
@@ -46,10 +68,14 @@ function makeEditor(overrides: Partial<GrapherInterface> = {}): FakeEditor {
         }
         return { success: true }
     })
+    // A first save redirects to /charts/:id/edit, remounting the editor and
+    // re-registering its tools; save_chart waits for that, so the fake has to
+    // do it too.
     const saveGrapher = vi.fn(async () => {
         fake.isNewGrapher = false
         grapherState.id = 77
         grapherState.version = 1
+        remountEditorToolSet()
     })
     const fake = {
         grapherState,
@@ -69,6 +95,13 @@ function makeEditor(overrides: Partial<GrapherInterface> = {}): FakeEditor {
         },
         get liveConfig() {
             return grapherState.object
+        },
+        /** Mirrors AbstractChartEditor's computed of the same name. */
+        get invalidSelectedEntityNames(): string[] {
+            const available = new Set(grapherState.availableEntityNames)
+            return grapherState.selection.selectedEntityNames.filter(
+                (name) => !available.has(name)
+            )
         },
         updateLiveGrapher(config: GrapherInterface) {
             grapherState.reset()
@@ -96,6 +129,11 @@ describe("chart editor WebMCP tools", () => {
         tools.get(name)!.execute(input)
 
     beforeEach(() => {
+        ;(globalThis as any).document = {
+            modelContext: {
+                registerTool: vi.fn().mockResolvedValue(undefined),
+            },
+        }
         fake = makeEditor()
         errors = {}
         tools = new Map(
@@ -112,6 +150,11 @@ describe("chart editor WebMCP tools", () => {
             }).map((t) => [t.name, t])
         )
         entities = fake.grapherState.availableEntityNames
+    })
+
+    afterEach(() => {
+        mountedEditors.forEach((c) => c.abort())
+        mountedEditors = []
     })
 
     it("describes the editor state", async () => {
@@ -136,6 +179,82 @@ describe("chart editor WebMCP tools", () => {
             }),
         })
         expect(await loading[0].execute({})).toContain("still loading")
+    })
+
+    describe("state a reader of the chart would notice", () => {
+        it("flags selected entities that are not in the data", async () => {
+            fake.grapherState.selection.setSelectedEntities([
+                entities[0],
+                "Japan",
+            ])
+            const text = await call("get_chart_editor_state")
+            expect(text).toContain("Not in this chart's data")
+            expect(text).toContain("Japan")
+            expect(text).toContain("select_entities")
+        })
+
+        it("says nothing about invalid entities when there are none", async () => {
+            expect(await call("get_chart_editor_state")).not.toContain(
+                "Not in this chart's data"
+            )
+        })
+
+        it("reports axis and time settings that outlive an edit", async () => {
+            await call("update_chart_config", {
+                patch: { yAxis: { min: 70 }, minTime: 1990 },
+            })
+            const text = await call("get_chart_editor_state")
+            expect(text).toContain("y axis min 70")
+            expect(text).toContain("min time 1990")
+        })
+
+        it("omits the settings line when nothing is set, sentinels included", async () => {
+            // Unbounded time is stored as ±Infinity; reporting it would read
+            // as a deliberate setting.
+            const text = await call("get_chart_editor_state")
+            expect(text).not.toContain("Other settings:")
+            expect(text).not.toContain("Infinity")
+        })
+
+        it("does not present an indicator id as its name while data loads", async () => {
+            fake.grapherState.setDimensionsFromConfigs([
+                { property: "y" as any, variableId: 1295512 },
+            ])
+            const text = await call("get_chart_editor_state")
+            expect(text).toContain("1295512 (name still loading)")
+            expect(text).not.toContain('1295512 "1295512"')
+        })
+    })
+
+    describe("get_chart_data", () => {
+        it("returns the drawn data as CSV so the agent can judge the chart", async () => {
+            const csv = await call("get_chart_data")
+            const [header, ...rows] = csv.split("\n")
+            expect(header).toContain("Entity")
+            expect(rows.length).toBeGreaterThan(0)
+            // Only the selected entity is drawn, so only it should appear.
+            expect(csv).toContain(entities[0])
+            expect(csv).not.toContain(entities[3])
+        })
+
+        it("reports honestly when the data is not loaded", async () => {
+            const notReady = buildChartEditorTools({
+                getEditor: () =>
+                    ({
+                        grapherState: { isReady: false },
+                    }) as unknown as ChartEditor,
+                getErrorMessages: () => ({}),
+                getErrorMessagesForDimensions: () => ({
+                    y: [],
+                    x: [],
+                    color: [],
+                    size: [],
+                    table: [],
+                }),
+            })
+            const tool = notReady.find((t) => t.name === "get_chart_data")!
+            expect(await tool.execute({})).toContain("not loaded yet")
+        })
     })
 
     describe("entities", () => {
