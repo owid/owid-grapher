@@ -204,7 +204,12 @@ getPlainRouteWithROTransaction(
                 await renderPreviewDataPageOrGrapherPage(
                     chart.config,
                     chart.id,
-                    trx
+                    trx,
+                    // Same opt-in as /charts/:id/preview: ?forceDatapage=true
+                    // renders any chart as a data page (multi-indicator ones
+                    // get the indicator switcher) for QA, without enrolling
+                    // it in the experiment.
+                    { forceDatapage: req.query.forceDatapage === "true" }
                 )
             res.send(previewDataPageOrGrapherPage)
             return

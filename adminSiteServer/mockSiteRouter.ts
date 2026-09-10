@@ -324,7 +324,10 @@ getPlainRouteWithROTransaction(
                 await renderPreviewDataPageOrGrapherPage(
                     chartRow.config,
                     chartRow.id,
-                    trx
+                    trx,
+                    // Mirror the admin preview routes: ?forceDatapage=true
+                    // renders any chart as a data page for QA.
+                    { forceDatapage: req.query.forceDatapage === "true" }
                 )
             res.send(previewDataPageOrGrapherPage)
             return

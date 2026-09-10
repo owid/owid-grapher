@@ -123,6 +123,7 @@ const renderDatapageIfApplicable = async (
             pageGrapher: grapher,
             imageMetadataDictionary,
             archiveContextDictionary,
+            forceDatapage,
         },
         knex
     )
@@ -194,6 +195,7 @@ export async function renderDataPageV2(
         pageGrapher,
         imageMetadataDictionary = {},
         archiveContextDictionary,
+        forceDatapage,
     }: {
         variableId: number
         variableMetadata: OwidVariableWithSource
@@ -202,6 +204,7 @@ export async function renderDataPageV2(
         pageGrapher?: GrapherInterface
         imageMetadataDictionary?: Record<string, ImageMetadata>
         archiveContextDictionary?: Record<number, ArchiveContext | undefined>
+        forceDatapage?: boolean
     },
     knex: db.KnexReadonlyTransaction
 ) {
@@ -287,7 +290,13 @@ export async function renderDataPageV2(
     )
     const distribution = await getVariableDistribution(knex, variableIds)
 
-    const datapageMetadataExperimentActive = shouldBakeAsDatapage(grapher)
+    // A caller that explicitly forces a datapage (the ?forceDatapage=true QA
+    // param on the preview routes) gets the full redesigned treatment —
+    // metadata box, per-indicator panes, coviews — not just the datapage
+    // shell. For baked pages this is equivalent to shouldBakeAsDatapage,
+    // since the baker only ever forces enrolled charts.
+    const datapageMetadataExperimentActive =
+        forceDatapage || shouldBakeAsDatapage(grapher)
 
     // For multi-indicator charts the per-dimension `display.name` (set by the
     // chart author) is the right per-indicator label — the chart-level `title`
