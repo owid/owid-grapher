@@ -123,8 +123,9 @@ function allowRecording(): boolean {
 export function getSessionSampleRate(): number {
     let p = 0
     if (allowRecording()) {
+        // ?? not ||: an arm may legitimately set a rate of 0 (never record)
         p =
-            parseExperimentsSampleRate() ||
+            parseExperimentsSampleRate() ??
             SENTRY_DEFAULT_REPLAYS_SESSION_SAMPLE_RATE
     }
     return p

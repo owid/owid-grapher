@@ -41,6 +41,21 @@ export class Experiment {
             replaysSessionSampleRate: a.replaysSessionSampleRate,
         }))
         this.unitOfAssignment = data.unitOfAssignment ?? "visitor"
+        if (data.pathArms && this.unitOfAssignment !== "page") {
+            throw new Error(
+                `Experiment "${this.id}" supplies "pathArms" but is visitor-assigned — set unitOfAssignment: "page", or the pre-registered arms would be silently ignored`
+            )
+        }
+        if (data.pathArms && data.paths) {
+            throw new Error(
+                `Experiment "${this.id}" must supply either "paths" or "pathArms", not both`
+            )
+        }
+        if (!data.pathArms && !data.paths) {
+            throw new Error(
+                `Experiment "${this.id}" must supply "paths" (or "pathArms" for page-assigned experiments)`
+            )
+        }
         this.pathArms = data.pathArms
         // A page-assigned experiment's `paths` are exactly the keys of its
         // pre-registered assignment, so callers that only ask "is this page in

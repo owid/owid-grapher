@@ -20,6 +20,11 @@ export interface IndicatorSourcesProps {
         index: number,
         isOpen: boolean
     ) => void
+    /** When set, clicks on the "Retrieved from" publisher links are tracked
+     * under this note. The data page metadata sections pass it; the grapher
+     * sources modal leaves it unset so the experiment's cross-arm publisher
+     * click-through metric isn't polluted by modal clicks. */
+    retrievedFromTrackNote?: string
 }
 
 export const IndicatorSources = (props: IndicatorSourcesProps) => {
@@ -39,6 +44,7 @@ export const IndicatorSources = (props: IndicatorSourcesProps) => {
                         source={source}
                         isEmbeddedInADataPage={isEmbeddedInADataPage}
                         hideReuseThisWorkText={props.hideReuseThisWorkText}
+                        retrievedFromTrackNote={props.retrievedFromTrackNote}
                     />
                 )
                 const useExpandableToggle =
@@ -95,6 +101,7 @@ const SourceContent = (props: {
     source: DisplaySource
     isEmbeddedInADataPage: boolean
     hideReuseThisWorkText?: boolean
+    retrievedFromTrackNote?: string
 }) => {
     const { source } = props
     const retrievedOn = formatSourceDate(source.retrievedOn, "MMMM D, YYYY")
@@ -153,11 +160,8 @@ const SourceContent = (props: {
                                 <div className="source-key-data__content">
                                     {makeLinks({
                                         link: source.retrievedFrom,
-                                        // Tracked here, in the component both
-                                        // designs share, so publisher
-                                        // click-through is measured identically
-                                        // in each arm.
-                                        trackNote: "retrieved_from",
+                                        trackNote:
+                                            props.retrievedFromTrackNote,
                                     })}
                                 </div>
                             </div>

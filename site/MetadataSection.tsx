@@ -24,20 +24,14 @@ import {
 import { ArticleBlocks } from "./gdocs/components/ArticleBlocks.js"
 import { ChartLicenseNotice } from "./ChartLicenseNotice.js"
 import { SiteAnalytics } from "./SiteAnalytics.js"
-
-const analytics = new SiteAnalytics()
-
 // The control arm of the data page metadata experiment. Its sources and
 // citations render through the same shared components as the treatment arm's
-// metadata box, but until now none of those interactions were tracked here — so
-// the box's usage had no baseline to be compared against. These handlers emit
-// the same events, with the same targets, as IndicatorMetadataBox.
-function logExpandableToggle(target: string, isOpen: boolean): void {
-    analytics.logSiteClick(
-        isOpen ? "expand_expandable_toggle" : "collapse_expandable_toggle",
-        target
-    )
-}
+// metadata box, and the handlers below emit the same events, with the same
+// targets, as IndicatorMetadataBox — via the shared helper, so the two arms
+// cannot drift apart.
+import { logExpandableToggle } from "./metadataExperimentEvents.js"
+
+const analytics = new SiteAnalytics()
 
 export default function MetadataSection({
     attributionShort,
@@ -121,6 +115,7 @@ export default function MetadataSection({
                         <div className="col-start-4 span-cols-6 col-lg-start-5 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
                             <IndicatorSources
                                 sources={sourcesForDisplay}
+                                retrievedFromTrackNote="retrieved_from"
                                 onSourceToggle={(_source, index, isOpen) =>
                                     logExpandableToggle(
                                         `data_source_${index + 1}`,

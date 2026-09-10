@@ -139,9 +139,8 @@ export const experiments: Experiment[] = [
      * weeks / ~2.5pp over 4 (the metadata-click outcomes are far better
      * powered) — which is why the page count is 330 rather than v1's 10.
      *
-     * Pre-registered assignment, drawn by
-     * analytics:experiments/experiment_data_page_metadata_v2_sampling.ipynb
-     * (seed 20260907) before any outcome was observed:
+     * Pre-registered assignment, drawn by a seeded sampling notebook in the
+     * internal analytics repo before any outcome was observed (seed 20260907):
      *   1. Eligible = standard single-indicator data page that is currently
      *      published per its config JSON (charts.publishedAt survives
      *      unpublishing, so it is necessary but not sufficient), appears in
@@ -158,13 +157,20 @@ export const experiments: Experiment[] = [
      * Conditions:
      * - (a) control: the current data page (AboutThisData + Sources/Reuse sections)
      * - (b) treatment: the new metadata box in place of those sections
+     *
+     * Ending the experiment: edit this config and rebake in the same step.
+     * Letting the expiry date flip the gate would leave baked treatment markup
+     * hydrating against control on 165 pages until each one is rebaked.
      */
     new Experiment({
         id: DATA_PAGE_METADATA_V2_EXPERIMENT_ID,
         expires: "2026-12-31T00:00:00.000Z",
         unitOfAssignment: "page",
         arms: [
-            { id: "control", fraction: 0.5 },
+            // Both arms carry the same replay sample rate: replays sampled
+            // asymmetrically would make any cross-arm comparison of session
+            // recordings meaningless.
+            { id: "control", fraction: 0.5, replaysSessionSampleRate: 0.33 },
             {
                 id: DATA_PAGE_METADATA_EXPERIMENT_TREATMENT_ARM,
                 fraction: 0.5,
@@ -586,7 +592,7 @@ export function getActiveExperimentArmForUrl(
  *
  * Two experiments can put a page on the new design: v1, which enrolled 10 pages
  * at 100% treatment (path membership alone means treatment), and v2, which
- * cluster randomises 200 pages and so has a real control arm. This is the
+ * cluster randomises 330 data pages and so has a real control arm. This is the
  * single source of truth — the baker uses it to decide which pages get the
  * extra per-indicator metadata loaded, and the data page component uses it to
  * pick the markup, so the two can never disagree.

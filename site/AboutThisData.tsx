@@ -12,21 +12,10 @@ import {
 import { DataPageDataV2 } from "@ourworldindata/types"
 import { formatAttributions } from "@ourworldindata/utils"
 import KeyDataTable from "./KeyDataTable.js"
-import { SiteAnalytics } from "./SiteAnalytics.js"
 import TrackedProseLinks from "./TrackedProseLinks.js"
-
-const analytics = new SiteAnalytics()
-
-// Emits the same events, under the same target names, as the treatment arm's
-// IndicatorMetadataBox, so the control arm has a comparable baseline. `target`
-// is a codified identifier rather than the rendered label, so the event survives
-// page translation.
-function logExpandableToggle(target: string, isOpen: boolean): void {
-    analytics.logSiteClick(
-        isOpen ? "expand_expandable_toggle" : "collapse_expandable_toggle",
-        target
-    )
-}
+// Control-arm counterpart of IndicatorMetadataBox toggle tracking — the
+// shared helper guarantees both arms emit identical event names.
+import { logExpandableToggle } from "./metadataExperimentEvents.js"
 
 export default function AboutThisData({
     datapageData,

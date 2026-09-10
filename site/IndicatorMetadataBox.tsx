@@ -34,17 +34,9 @@ import { SiteAnalytics } from "./SiteAnalytics.js"
 import TrackedProseLinks from "./TrackedProseLinks.js"
 import { ChartLicenseNotice } from "./ChartLicenseNotice.js"
 
-const analytics = new SiteAnalytics()
+import { logExpandableToggle } from "./metadataExperimentEvents.js"
 
-// Log expand/collapse of an ExpandableToggle in the metadata box. `target` is a
-// codified, English-language identifier (not the rendered label) so the event
-// isn't affected by browser/page translation.
-function logExpandableToggle(target: string, isOpen: boolean): void {
-    analytics.logSiteClick(
-        isOpen ? "expand_expandable_toggle" : "collapse_expandable_toggle",
-        target
-    )
-}
+const analytics = new SiteAnalytics()
 
 interface ExpandableSectionProps {
     datapageData: DataPageDataV2
@@ -275,6 +267,7 @@ function ExpandableSection({
                     </h2>
                     <IndicatorSources
                         sources={sourcesForDisplay}
+                        retrievedFromTrackNote="retrieved_from"
                         hideReuseThisWorkText
                         hideTeasers
                         onSourceToggle={(_source, index, isOpen) =>
