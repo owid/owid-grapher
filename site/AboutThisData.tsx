@@ -1,6 +1,5 @@
 import * as _ from "lodash-es"
 import cx from "clsx"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowDown } from "@fortawesome/free-solid-svg-icons"
 
 import {
@@ -8,10 +7,11 @@ import {
     SimpleMarkdownText,
     ExpandableToggle,
     HtmlOrSimpleMarkdownText,
+    Button,
 } from "@ourworldindata/components"
 import { DataPageDataV2 } from "@ourworldindata/types"
+import { formatAttributions } from "@ourworldindata/utils"
 import KeyDataTable from "./KeyDataTable.js"
-import { getAttributionUnshortened } from "./datapageUtils.js"
 import { SiteAnalytics } from "./SiteAnalytics.js"
 import TrackedProseLinks from "./TrackedProseLinks.js"
 
@@ -40,7 +40,7 @@ export default function AboutThisData({
     id?: string
 }) {
     const hasDescriptionKey = !!datapageData.descriptionKey
-    const attributionUnshortened = getAttributionUnshortened(datapageData)
+    const attribution = formatAttributions(datapageData.attributions ?? [])
     const id_ = id ?? DATAPAGE_ABOUT_THIS_DATA_SECTION_ID
 
     return (
@@ -66,18 +66,6 @@ export default function AboutThisData({
                                             text={datapageData.descriptionKey.trim()}
                                         />
                                     </TrackedProseLinks>
-                                    {hasFaq && (
-                                        <a
-                                            className="key-info__learn-more"
-                                            href="#faqs"
-                                            data-track-note="wysk_learn_more_in_faqs"
-                                        >
-                                            Learn more in the FAQs
-                                            <FontAwesomeIcon
-                                                icon={faArrowDown}
-                                            />
-                                        </a>
-                                    )}
                                 </div>
                             )}
 
@@ -135,11 +123,20 @@ export default function AboutThisData({
                                 )}
                             </div>
                         </div>
+                        {hasDescriptionKey && hasFaq && (
+                            <Button
+                                className="key-info__learn-more"
+                                theme="solid-light-blue"
+                                text="Learn more in the FAQs"
+                                href="#faqs"
+                                icon={faArrowDown}
+                            />
+                        )}
                     </div>
                     <div className="key-info__right span-cols-4 span-lg-cols-5 span-sm-cols-12">
                         <KeyDataTable
                             datapageData={datapageData}
-                            attribution={attributionUnshortened}
+                            attribution={attribution}
                         />
                     </div>
                 </>
@@ -154,7 +151,7 @@ export default function AboutThisData({
                     <div className="col-start-4 span-cols-10 col-lg-start-5 span-lg-cols-8 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
                         <KeyDataTable
                             datapageData={datapageData}
-                            attribution={attributionUnshortened}
+                            attribution={attribution}
                         />
                     </div>
                 </>

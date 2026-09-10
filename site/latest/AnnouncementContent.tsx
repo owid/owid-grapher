@@ -1,7 +1,6 @@
 import { LatestType, OwidEnrichedGdocBlock } from "@ourworldindata/types"
 import cx from "clsx"
 import LinkedAuthor from "../gdocs/components/LinkedAuthor.js"
-import { Cta } from "../gdocs/components/Cta.js"
 import { ExpandableText } from "./ExpandableText.js"
 import { LatestHitMetadata } from "./LatestHitMetadata.js"
 import { announcementContentTitleId } from "./latestUtils.js"
@@ -23,9 +22,7 @@ export const AnnouncementContent = ({
     slug,
     publishedAt,
     authors,
-    excerpt,
     body,
-    cta,
     isStandalone,
     shouldAutoExpand,
     selectedTopic,
@@ -37,9 +34,7 @@ export const AnnouncementContent = ({
     slug: string
     publishedAt: Date | string | null
     authors: string[]
-    excerpt: string
     body: OwidEnrichedGdocBlock[]
-    cta?: { text: string; url: string }
     /** When rendered as the standalone preview page: use h1, show full body
      * (no Read more truncation). */
     isStandalone?: boolean
@@ -82,24 +77,14 @@ export const AnnouncementContent = ({
             >
                 {title}
             </Heading>
-            {/* Body and {.cta} are mutually exclusive — see
-                GdocAnnouncement._validateSubclass. */}
-            {cta && cta.url && cta.text ? (
-                <>
-                    {authorByline}
-                    <p className="announcement-content__excerpt">{excerpt}</p>
-                    <Cta shouldRenderLinks text={cta.text} url={cta.url} />
-                </>
-            ) : (
-                <ExpandableText
-                    blocks={body}
-                    containerType="latest-announcement"
-                    alwaysExpanded={shouldAutoExpand || isStandalone}
-                    onReadMore={onReadMore}
-                >
-                    {authorByline}
-                </ExpandableText>
-            )}
+            <ExpandableText
+                blocks={body}
+                containerType="latest-announcement"
+                alwaysExpanded={shouldAutoExpand || isStandalone}
+                onReadMore={onReadMore}
+            >
+                {authorByline}
+            </ExpandableText>
         </div>
     )
 }

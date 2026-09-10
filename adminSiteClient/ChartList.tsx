@@ -1,5 +1,3 @@
-/* eslint-disable react-refresh/only-export-components */
-import * as _ from "lodash-es"
 import * as React from "react"
 import { observer } from "mobx-react"
 import { runInAction, observable, computed, action, makeObservable } from "mobx"
@@ -13,8 +11,6 @@ import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import {
     GrapherChartType,
     GrapherInterface,
-    GRAPHER_CHART_TYPES,
-    GRAPHER_TAB_CONFIG_OPTIONS,
     SortOrder,
 } from "@ourworldindata/types"
 import { ChartRow } from "./ChartRow.js"
@@ -369,23 +365,5 @@ export class ChartList extends React.Component<ChartListProps> {
                 )}
             </div>
         )
-    }
-}
-
-export function showChartType(chart: ChartListItem): string {
-    const chartType = chart.type
-
-    if (!chartType) return "Map"
-
-    const displayType = GRAPHER_CHART_TYPES[chartType]
-        ? _.startCase(GRAPHER_CHART_TYPES[chartType])
-        : "Unknown"
-
-    if (chart.tab === GRAPHER_TAB_CONFIG_OPTIONS.map) {
-        if (chart.hasChartTab) return `Map + ${displayType}`
-        else return "Map"
-    } else {
-        if (chart.hasMapTab) return `${displayType} + Map`
-        else return displayType
     }
 }

@@ -38,6 +38,7 @@ import { ColorScheme } from "../color/ColorScheme"
 import { ColorSchemes } from "../color/ColorSchemes"
 import { excludeUndefined } from "@ourworldindata/utils"
 import { FocusArray } from "../focus/FocusArray"
+import { makeToleranceNotice } from "../chart/ToleranceNotice"
 
 export class StackedDiscreteBarChartState implements ChartState {
     manager: StackedDiscreteBarChartManager
@@ -146,6 +147,14 @@ export class StackedDiscreteBarChartState implements ChartState {
 
     @computed get yColumns(): CoreColumn[] {
         return this.transformedTable.getColumns(this.yColumnSlugs)
+    }
+
+    @computed get toleranceNotice(): string | undefined {
+        return makeToleranceNotice({
+            inputTable: this.inputTable,
+            transformedTable: this.transformedTable,
+            columns: this.yColumns,
+        })
     }
 
     @computed get formatColumn(): CoreColumn {
@@ -272,7 +281,7 @@ export class StackedDiscreteBarChartState implements ChartState {
     @computed get availableFacetStrategies(): FacetStrategy[] {
         const strategies = [FacetStrategy.none]
 
-        if (this.yColumns.length > 1) strategies.push(FacetStrategy.metric)
+        if (this.yColumnSlugs.length > 1) strategies.push(FacetStrategy.metric)
 
         return strategies
     }

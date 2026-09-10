@@ -8,7 +8,7 @@ import {
     GRAPHER_DB_PORT,
     BAKED_BASE_URL,
 } from "../settings/serverSettings.js"
-import { IS_ARCHIVE } from "../settings/clientSettings.js"
+import { IS_ARCHIVE } from "../settings/clientSettings.mjs"
 import { PROD_URL } from "../site/SiteConstants.js"
 import { registerExitHandler } from "./cleanup.js"
 import { createTagGraph, Url } from "@ourworldindata/utils"
@@ -40,6 +40,7 @@ import {
     TagGraphRoot,
     FeaturedMetricByParentTagNameDictionary,
     ChartConfigsTableName,
+    ChartsTableName,
     FeaturedMetricsTableName,
     TagsTableName,
     PostsGdocsXTagsTableName,
@@ -106,6 +107,7 @@ export function setKnexInstance(knexInstance: Knex<any, any[]>): void {
 const getNewKnexInstance = (): Knex<any, any[]> => {
     return knex({
         client: "mysql2",
+        asyncStackTraces: true,
         connection: {
             host: GRAPHER_DB_HOST,
             user: GRAPHER_DB_USER,
@@ -365,7 +367,7 @@ export const getTotalNumberOfCharts = (
             SELECT COUNT(*) AS count
             FROM charts c
             JOIN chart_configs cc ON c.configId = cc.id
-            WHERE cc.full ->> "$.isPublished" = "true"
+            WHERE cc.config ->> "$.isPublished" = "true"
         `
     ).then((res) => res?.count ?? 0)
 }
@@ -1438,10 +1440,11 @@ export async function validateChartSlug(
         const grapher = await knexRaw(
             trx,
             `-- sql
-            SELECT id
-            FROM ${ChartConfigsTableName}
-            WHERE slug = ?
-            AND full->>"$.isPublished" = "true"`,
+            SELECT c.id
+            FROM ${ChartConfigsTableName} cc
+            JOIN ${ChartsTableName} c ON c.configId = cc.id
+            WHERE cc.slug = ?
+            AND cc.config->>"$.isPublished" = "true"`,
             [slug]
         ).then((rows) => rows[0])
 

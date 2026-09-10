@@ -79,8 +79,15 @@
     }
 
     .accordion-item__content {
-        overflow: hidden;
-        transition: height $duration cubic-bezier(0.76, 0, 0.24, 1);
+        height: var(--disclosure-panel-height);
+        overflow: clip;
+        transition: height var(--duration-panel) var(--ease-out);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .accordion-item__content {
+            transition: none;
+        }
     }
 
     .key-indicator-collection__header {
@@ -196,10 +203,6 @@
         @include sm-only-or-no-js {
             display: inline-block;
         }
-    }
-
-    button[disabled] {
-        cursor: default;
     }
 
     @include sm-only-or-no-js {

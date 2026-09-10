@@ -19,16 +19,16 @@
     margin: 0;
 }
 
-.migration-chart--narrow .migration-controls__content {
-    row-gap: 8px;
+.migration-chart--narrow .migration-controls {
+    border: none;
+    padding: 0;
 }
 
-.migration-chart--narrow .migration-controls__row {
+.migration-chart--narrow .migration-controls .controls__row {
     flex-direction: column;
-    row-gap: 8px;
 }
 
-.migration-chart--narrow .migration-controls__row > * {
+.migration-chart--narrow .migration-controls .controls__row > * {
     flex: 0 0 auto;
     width: 100%;
 }

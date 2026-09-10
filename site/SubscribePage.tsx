@@ -9,7 +9,7 @@ import {
 import { NewsletterSubscriptionForm } from "./NewsletterSubscription.js"
 import { NewsletterSubscriptionContext } from "./newsletter.js"
 import { OwidSocials } from "./OwidSocials.js"
-import { BAKED_BASE_URL } from "../settings/clientSettings.js"
+import { BAKED_BASE_URL } from "../settings/clientSettings.mjs"
 
 export interface SubscribePageProps {
     baseUrl: string

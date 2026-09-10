@@ -1,8 +1,11 @@
-import { EnrichedBlockExplorerTiles } from "@ourworldindata/types"
+import {
+    ChartConfigType,
+    EnrichedBlockExplorerTiles,
+} from "@ourworldindata/types"
 import { Button } from "@ourworldindata/components"
 import { useLinkedChart } from "../utils.js"
 import { useDocumentContext } from "../DocumentContext.js"
-import { BAKED_BASE_URL } from "../../../settings/clientSettings.js"
+import { BAKED_BASE_URL } from "../../../settings/clientSettings.mjs"
 
 function ExplorerTile({ url }: { url: string }) {
     const { linkedChart, errorMessage } = useLinkedChart(url)
@@ -11,6 +14,18 @@ function ExplorerTile({ url }: { url: string }) {
         return <p>{errorMessage}</p>
     }
     if (!linkedChart) {
+        return null
+    }
+    // Grapher URLs are only valid here if they resolve to a multi-dim data page
+    if (linkedChart.configType === ChartConfigType.Grapher) {
+        if (isPreviewing) {
+            return (
+                <p>
+                    Explorer tiles can only link to explorers or multi-dim data
+                    pages, but {url} is a regular grapher chart
+                </p>
+            )
+        }
         return null
     }
     const icon = linkedChart.tags[0] ? (

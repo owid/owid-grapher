@@ -15,5 +15,9 @@
         { "path": "../settings" },
         { "path": "../bespoke/shared" }
     ],
-    "include": ["./**/*", "../bespoke/shared/**/*"]
+    "include": [
+        "./**/*",
+        "../bespoke/shared/**/*",
+        "../devTools/types/vitest.d.ts"
+    ]
 }

@@ -21,10 +21,11 @@ export interface TestEnv {
     app: OwidAdminApp
     baseUrl: string
     apiKey: string
+    userId: number
     // Helpers
     fetchJson(path: string): Promise<any>
     request(arg: {
-        method: "POST" | "PUT" | "DELETE"
+        method: "POST" | "PUT" | "PATCH" | "DELETE"
         path: string
         body?: string
     }): Promise<any>
@@ -35,6 +36,7 @@ let testKnex: Knex<any, unknown[]> | undefined
 let serverKnex: Knex<any, unknown[]> | undefined
 let app: OwidAdminApp | undefined
 let adminApiKey: string | undefined
+let seededUserId: number | undefined
 
 const ADMIN_URL = `http://${ADMIN_SERVER_HOST}:${ADMIN_SERVER_PORT}/admin/api`
 
@@ -95,19 +97,9 @@ export function getAdminTestEnv(): TestEnv {
     beforeAll(async () => {
         testKnex = knex(dbTestConfig)
         serverKnex = knex(dbTestConfig)
-        await seedBaselineData()
+        seededUserId = await seedBaselineData()
         // Ensure we start from a clean slate for non-user tables
-        await knexReadWriteTransaction(
-            async (trx) => {
-                const tables = TABLES_IN_USE.filter(
-                    (t) => t !== UsersTableName && t !== AdminApiKeysTableName
-                )
-                for (const table of tables)
-                    await trx.raw(`DELETE FROM ??`, [table])
-            },
-            TransactionCloseMode.KeepOpen,
-            testKnex
-        )
+        await resetDbButKeepBaselines()
         setKnexInstance(serverKnex)
 
         app = new OwidAdminApp({ isDev: true, isTest: true, quiet: true })
@@ -144,7 +136,7 @@ export function getAdminTestEnv(): TestEnv {
     }
 
     async function request(arg: {
-        method: "POST" | "PUT" | "DELETE"
+        method: "POST" | "PUT" | "PATCH" | "DELETE"
         path: string
         body?: string
     }): Promise<any> {
@@ -174,6 +166,9 @@ export function getAdminTestEnv(): TestEnv {
         baseUrl: ADMIN_URL,
         get apiKey() {
             return adminApiKey!
+        },
+        get userId() {
+            return seededUserId!
         },
         fetchJson,
         request,

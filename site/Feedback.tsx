@@ -1,4 +1,3 @@
-/* eslint-disable react-refresh/only-export-components */
 import * as React from "react"
 import { observer } from "mobx-react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -9,9 +8,9 @@ import {
 } from "@fortawesome/free-solid-svg-icons"
 import { observable, action, toJS, computed, makeObservable } from "mobx"
 import classnames from "clsx"
-import { BAKED_BASE_URL } from "../settings/clientSettings.js"
+import { BAKED_BASE_URL } from "../settings/clientSettings.mjs"
 import { stringifyUnknownError } from "@ourworldindata/utils"
-import { createRoot } from "react-dom/client"
+import { SiteToolsButton } from "./SiteToolsButton.js"
 
 const sendFeedback = async (feedback: Feedback) => {
     const json = {
@@ -448,36 +447,21 @@ export class FeedbackPrompt extends React.Component {
                     </div>
                 </div>
                 {this.isOpen ? (
-                    <button
-                        aria-label="Close feedback form"
-                        className="prompt"
+                    <SiteToolsButton
+                        icon={faTimes}
+                        label="Close feedback form"
+                        tooltip={false}
                         onClick={this.toggleOpen}
-                    >
-                        <FontAwesomeIcon icon={faTimes} /> Close
-                    </button>
+                    />
                 ) : (
-                    <button
-                        aria-label="Open feedback form"
-                        className="prompt"
-                        data-track-note="page_open_feedback"
+                    <SiteToolsButton
+                        icon={faCommentAlt}
+                        label="Feedback"
+                        dataTrackNote="page_open_feedback"
                         onClick={this.toggleOpen}
-                    >
-                        <FontAwesomeIcon icon={faCommentAlt} /> Feedback
-                    </button>
+                    />
                 )}
             </div>
         )
     }
-}
-
-export function runFeedbackPage() {
-    const elem = document.querySelector(".FeedbackPage main")
-    if (!elem) throw new Error("FeedbackPage main element not found in DOM")
-
-    const root = createRoot(elem)
-    root.render(
-        <div className="box">
-            <FeedbackForm />
-        </div>
-    )
 }

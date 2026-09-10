@@ -10,9 +10,14 @@ import { Tippy } from "@ourworldindata/utils"
 
 import { orderOptionsByRelevance } from "../../../../components/EntityDropdown/EntityDropdown.js"
 import {
+    Controls,
+    ControlsRow,
+    LabeledControl,
+} from "../../../../components/Controls/Controls.js"
+import {
     type DropdownCollection,
-    InlineLabeledDropdown,
-} from "../../../../components/InlineLabeledDropdown/InlineLabeledDropdown.js"
+    LabeledDropdown,
+} from "../../../../components/LabeledDropdown/LabeledDropdown.js"
 import {
     Switcher,
     SwitcherItem,
@@ -21,8 +26,8 @@ import { TimeSlider } from "../../../../components/TimeSlider/TimeSlider.js"
 import { useTippyContainer } from "../../../../hooks/useTippyContainer.js"
 import { useUserCountryInformation } from "../../../../hooks/useUserCountryInformation.js"
 
-import { MigrationMetadata, MigrationView, Sex } from "../types.js"
-import { sexFromName, OTHERS_ENTITY_NAME } from "../helpers.js"
+import { MigrationMetadata, MigrationView, Sex } from "../core/types.js"
+import { sexFromName, OTHERS_ENTITY_NAME } from "../core/helpers.js"
 
 const VIEW_ITEMS: SwitcherItem<MigrationView>[] = [
     {
@@ -84,35 +89,28 @@ export function MigrationControls({
     setView: (view: MigrationView) => void
 }): React.ReactElement {
     return (
-        <div className="migration-controls">
-            <h3 className="migration-controls__title">Configure the data</h3>
-            <div className="migration-controls__content">
-                <div className="migration-controls__row">
-                    <CountryDropdown
-                        metadata={metadata}
-                        country={country}
-                        setCountry={setCountry}
-                    />
-                    <SexDropdown
-                        metadata={metadata}
-                        sex={sex}
-                        setSex={setSex}
-                    />
-                    {!hideFlowSwitcher && (
-                        <ViewSwitcher
-                            view={view}
-                            disabledReason={viewDisabledReason}
-                            setView={setView}
-                        />
-                    )}
-                </div>
-                <TimeSlider
-                    times={metadata.times}
-                    selectedTime={year}
-                    onChange={setYear}
+        <Controls className="migration-controls">
+            <ControlsRow>
+                <CountryDropdown
+                    metadata={metadata}
+                    country={country}
+                    setCountry={setCountry}
                 />
-            </div>
-        </div>
+                <SexSwitcher metadata={metadata} sex={sex} setSex={setSex} />
+                {!hideFlowSwitcher && (
+                    <ViewSwitcher
+                        view={view}
+                        disabledReason={viewDisabledReason}
+                        setView={setView}
+                    />
+                )}
+            </ControlsRow>
+            <TimeSlider
+                times={metadata.times}
+                selectedTime={year}
+                onChange={setYear}
+            />
+        </Controls>
     )
 }
 
@@ -138,7 +136,7 @@ function CountryDropdown({
     }, [metadata.entities, userCountryInfo, country])
 
     return (
-        <InlineLabeledDropdown
+        <LabeledDropdown
             label="Country"
             options={options}
             selectedValue={country}
@@ -150,7 +148,7 @@ function CountryDropdown({
     )
 }
 
-function SexDropdown({
+function SexSwitcher({
     metadata,
     sex,
     setSex,
@@ -159,27 +157,24 @@ function SexDropdown({
     sex: Sex
     setSex: (sex: Sex) => void
 }) {
-    const options = useMemo<BasicDropdownOption[]>(
+    const items = useMemo<SwitcherItem<Sex>[]>(
         () =>
             metadata.genders.map((g) => {
-                const sex = sexFromName(g.name)
-                return {
-                    value: sex,
-                    label: sex === "both" ? "Both sexes" : g.name,
-                }
+                const key = sexFromName(g.name)
+                return { key, element: key === "both" ? "Both" : g.name }
             }),
         [metadata.genders]
     )
 
     return (
-        <InlineLabeledDropdown
-            label="Sex"
-            options={options}
-            selectedValue={sex}
-            onChange={(v) => setSex(v as Sex)}
-            placeholder="Select sex…"
-            aria-label="Select sex"
-        />
+        <LabeledControl label="Sex">
+            <Switcher
+                items={items}
+                selectedKey={sex}
+                onChange={setSex}
+                ariaLabel="Select sex"
+            />
+        </LabeledControl>
     )
 }
 
@@ -198,24 +193,26 @@ function ViewSwitcher({
     const isDisabled = !!disabledReason
 
     return (
-        <Tippy
-            content={disabledReason ?? ""}
-            disabled={!isDisabled}
-            appendTo={getTippyContainer}
-            maxWidth={270}
-        >
-            <div
-                ref={switcherWrapperRef}
-                className="migration-controls__switcher-wrapper"
+        <LabeledControl label="Migration flow">
+            <Tippy
+                content={disabledReason ?? ""}
+                disabled={!isDisabled}
+                appendTo={getTippyContainer}
+                maxWidth={270}
             >
-                <Switcher
-                    items={VIEW_ITEMS}
-                    selectedKey={view}
-                    onChange={setView}
-                    isDisabled={isDisabled}
-                    ariaLabel="Migration flow"
-                />
-            </div>
-        </Tippy>
+                <div
+                    ref={switcherWrapperRef}
+                    className="migration-controls__switcher-wrapper"
+                >
+                    <Switcher
+                        items={VIEW_ITEMS}
+                        selectedKey={view}
+                        onChange={setView}
+                        isDisabled={isDisabled}
+                        ariaLabel="Migration flow"
+                    />
+                </div>
+            </Tippy>
+        </LabeledControl>
     )
 }

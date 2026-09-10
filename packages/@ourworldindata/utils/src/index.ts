@@ -40,6 +40,7 @@ export {
     fetchText,
     fetchJson,
     fetchWithTimeout,
+    TimeoutError,
     getUserCountryInformation,
     stripHTML,
     getRandomNumberGenerator,
@@ -93,6 +94,9 @@ export {
     traverseEnrichedBlock,
     checkNodeIsSpan,
     generateToc,
+    toSentenceCase,
+    getTopicPageHeading,
+    sentenceCaseIfNotTopicPage,
     groupTocIntoSections,
     getResearchAndWritingId,
     extractLinksFromMarkdown,
@@ -120,8 +124,10 @@ export {
     getAllChildrenOfArea,
     flattenNonTopicNodes,
     formatInlineList,
+    formatAuthors,
+    formatAuthorsForBibtex,
     lazy,
-    getParentVariableIdFromChartConfig,
+    getParentIndicatorIdFromChartConfig,
     isArrayDifferentFromReference,
     readFromAssetMap,
     getUniqueNamesFromTagHierarchies,
@@ -132,6 +138,7 @@ export {
     epochDate,
     getTimeInterval,
     isSubYearly,
+    findFinestCommonTimeInterval,
     snapToIntervalStart,
     logPerf,
     sleep,
@@ -152,23 +159,19 @@ export {
 } from "./Util.js"
 
 export {
-    getOriginAttributionFragments,
+    getOriginAttributions,
     getAttributionFragmentsFromVariable,
+    formatAttributions,
+    formatAttributionsShortened,
     getETLPathComponents,
-    formatAuthors,
-    formatAuthorsForBibtex,
     getLastUpdatedFromVariable,
     getNextUpdateFromVariable,
-    getPhraseForProcessingLevel,
-    splitSourceTextIntoFragments,
+    getAttributionWithProcessing,
+    getProcessingPhraseForAttribution,
     prepareSourcesForDisplay,
     formatSourceDate,
     getDateRange,
-    getCitationLong,
-    getCitationShort,
-    getCitationDatapage,
-    getPhraseForArchivalDate,
-    getYearSuffixFromOrigin,
+    getIndicatorCitations,
 } from "./metadataHelpers.js"
 
 export { getAllVariableIds } from "./multiDim.js"
@@ -216,9 +219,14 @@ export {
     type Country,
     type IncomeGroup,
     type OwidIncomeGroupCode,
+    type OwidIncomeGroupName,
     type Continent,
+    type OwidContinentName,
     type Aggregate,
-    type RegionDataProvider,
+    type AggregateWithPublisher,
+    type RegionSet,
+    type RegionPublisher,
+    type SuffixedRegionName,
     regions,
     countries,
     listedRegionsNames,
@@ -228,8 +236,12 @@ export {
     getRegionByNameOrVariantName,
     getContinents,
     getAggregates,
-    getAggregatesByProvider,
-    getRegionDataProviders,
+    getAggregatesInRegionSet,
+    getRegionSets,
+    getRegionPublishers,
+    parseRegionNameSuffix,
+    toPublisherLookupKey,
+    type RegionNameSuffix,
     countriesByName,
     incomeGroupsByCode,
     getRegionAlternativeNames,
@@ -265,9 +277,10 @@ export {
     type PadObject,
     type GridBounds,
     type SplitBoundsPadding,
-    FontFamily,
     Bounds,
 } from "./Bounds.js"
+
+export { FontFamily, cssFontFamily } from "./fonts.js"
 
 export {
     type Persistable,
@@ -327,6 +340,8 @@ export {
 
 export { Tippy, TippyIfInteractive } from "./Tippy.js"
 
+export { useSpinDelay } from "./useSpinDelay.js"
+
 // This re-exports everything in the types package from the utils package. This is done so that
 // the transition is easier - we might want to get rid of this and rewrite all the imports instead
 // but it's a lot of work
@@ -363,6 +378,7 @@ export {
     convertToArchivalDateStringIfNecessary,
     formatAsArchivalDate,
     getDateForArchival,
+    getPhraseForArchivalDate,
     parseArchivalDate,
 } from "./archival/archivalDate.js"
 
@@ -408,6 +424,7 @@ export {
     formatCountryFacetFilters,
     formatTopicFacetFilters,
     buildChartsFacetFilters,
+    MAX_FACET_VALUES,
 } from "./search/searchFacetFilters.js"
 
 export {

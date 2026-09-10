@@ -9,6 +9,12 @@ export type RawBlockKeyInsightsSlide = {
     filename?: string
     url?: string
     narrativeChartName?: string
+    /**
+     * Generic escape hatch for the asset column: an arbitrary block (a bespoke
+     * component, for example) rendered instead of the image/chart shorthands
+     * above. Authored as `[.+asset]` in ArchieML.
+     */
+    asset?: OwidRawGdocBlock[]
     content?: OwidRawGdocBlock[]
 }
 
@@ -26,6 +32,7 @@ export type EnrichedBlockKeyInsightsSlide = {
     filename?: string
     url?: string
     narrativeChartName?: string
+    asset?: OwidEnrichedGdocBlock[]
     content: OwidEnrichedGdocBlock[]
 }
 

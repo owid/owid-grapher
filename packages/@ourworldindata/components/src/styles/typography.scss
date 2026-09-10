@@ -344,15 +344,6 @@ body {
     @include body-1-regular-superscript;
 }
 
-@mixin body-1-bold {
-    @include body-1-regular;
-    font-weight: 700;
-}
-
-.body-1-bold {
-    @include body-1-bold;
-}
-
 @mixin body-2-regular {
     font-family: $sans-serif-font-stack;
     font-size: 1rem;

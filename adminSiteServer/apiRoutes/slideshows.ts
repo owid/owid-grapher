@@ -86,12 +86,10 @@ async function rebuildSlideshowLinksAndImages(
 
         if (images.length > 0) {
             await trx(SlideshowXImagesTableName).insert(
-                images.map(
-                    (img): DbInsertSlideshowXImage => ({
-                        slideshowId,
-                        imageId: img.id,
-                    })
-                )
+                images.map((img): DbInsertSlideshowXImage => ({
+                    slideshowId,
+                    imageId: img.id,
+                }))
             )
         }
     }

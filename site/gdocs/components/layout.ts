@@ -11,6 +11,7 @@ export type Container =
     | "side-by-side"
     | "datapage"
     | "key-insight"
+    | "key-insight-asset"
     | "about-page"
     | "author-header"
     | "data-insight"
@@ -161,6 +162,9 @@ const layouts: { [key in Container]: Layouts} = {
     ["key-insight"]: {
         ["default"]: "col-start-1 span-cols-5 col-md-start-1 span-md-cols-12",
         ["prominent-link"]: "grid grid-cols-6 span-cols-6 span-md-cols-12 grid-md-cols-12",
+    },
+    ["key-insight-asset"]: {
+        ["default"]: "",
     },
     ["latest-announcement"]: {
         ["default"]: "span-cols-8 span-sm-cols-6",

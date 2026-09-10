@@ -101,6 +101,13 @@ describe("when you select a range of years", () => {
         const cell = container.querySelector("tbody .cell-deltaRatio")
         expect(cell?.textContent).toBe("-4%")
     })
+
+    it("labels the sparkline column with the time range", () => {
+        const headers = [
+            ...container.querySelectorAll("thead th.subdimension"),
+        ].map((header) => header.textContent)
+        expect(headers).toContain("1950 to 2019")
+    })
 })
 
 describe("when the table doesn't have data for all rows", () => {

@@ -2,26 +2,73 @@
     --modal-padding: 24px;
 
     position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
 
-    // -1px to hide the frame border
-    top: -1px;
-    right: -1px;
-    bottom: -1px;
-    left: -1px;
-
-    background-color: rgba(0, 0, 0, 0.4);
+    background-color: $overlay-scrim;
     z-index: $zindex-modal;
+    opacity: 1;
+    transition: opacity var(--duration-popover) var(--ease-out);
 
-    .modal-wrapper {
-        position: relative;
+    // Modals are unmounted on dismiss, so only the entering phase ever renders
+    &[data-entering] {
+        opacity: 0;
+
+        .modal-panel--top,
+        .modal-panel--bottom {
+            transform: scale(0.97);
+        }
+
+        .modal-panel--center {
+            transform: translateY(-50%) scale(0.97);
+        }
+    }
+
+    .modal-panel {
+        position: absolute;
+        border-radius: 4px;
+        background: #fff;
+        box-shadow: 0px 4px 30px 0px rgba(0, 0, 0, 0.15);
+        min-height: 150px;
+        transition: transform var(--duration-popover) var(--ease-out);
+    }
+
+    .modal-panel--top {
+        transform-origin: center top;
+    }
+
+    .modal-panel--bottom {
+        transform-origin: center bottom;
+    }
+
+    .modal-panel--center {
+        top: 50%;
+        transform: translateY(-50%);
+    }
+
+    .modal-panel-dialog {
         height: 100%;
+        outline: none;
+    }
 
-        .modal-content {
-            position: absolute;
-            border-radius: 4px;
-            background: #fff;
-            box-shadow: 0px 4px 30px 0px rgba(0, 0, 0, 0.15);
-            min-height: 150px;
+    // Drop the panel's scale only. The overlay's opacity transition is what
+    // React Aria waits on before unmounting, so it must survive.
+    @media (prefers-reduced-motion: reduce) {
+        .modal-panel {
+            transition: none;
+        }
+
+        &[data-entering] {
+            .modal-panel--top,
+            .modal-panel--bottom {
+                transform: none;
+            }
+
+            .modal-panel--center {
+                transform: translateY(-50%);
+            }
         }
     }
 }

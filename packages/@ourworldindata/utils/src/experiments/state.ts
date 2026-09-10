@@ -1,4 +1,4 @@
-import Cookies from "js-cookie"
+import { getAll as getAllCookies } from "es-cookie"
 import { EXPERIMENT_PREFIX } from "./constants.js"
 import { experiments } from "./config.js"
 
@@ -73,7 +73,7 @@ export function getAssignedArms(pathname: string): Record<string, string> {
 function getAssignedExperiments(): Record<string, string> | undefined {
     if (typeof window === "undefined") return undefined
 
-    const allCookies = Cookies.get()
+    const allCookies = getAllCookies()
 
     const filteredCookies = Object.fromEntries(
         Object.entries(allCookies).filter(([cookieName]) =>

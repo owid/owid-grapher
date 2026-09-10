@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useReducer } from "react"
-import Cookies from "js-cookie"
+import { set as setCookie } from "es-cookie"
 import { CookiePreferences } from "../site/blocks/CookiePreferences.js"
 import { CookieNotice } from "../site/CookieNotice.js"
 import {
@@ -41,7 +41,7 @@ export const CookiePreferencesManager = ({
     // Commit state
     useEffect(() => {
         if (state.date) {
-            Cookies.set(COOKIE_PREFERENCES_COOKIE_NAME, serializeState(state), {
+            setCookie(COOKIE_PREFERENCES_COOKIE_NAME, serializeState(state), {
                 expires: 365 * 3,
             })
         }

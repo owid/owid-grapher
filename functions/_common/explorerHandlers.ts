@@ -224,7 +224,7 @@ export async function fetchZipForExplorerView(
         const csv = assembleCsv(grapherState, searchParams)
         console.log("Fetched the parts, creating zip file")
 
-        const filename = slugify(grapherState.displayTitle)
+        const filename = slugify(grapherState.effectiveTitle)
 
         const zipContent: UncompressedFile[] = [
             {

@@ -1,8 +1,8 @@
 import { useAtomValue } from "jotai"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 
-import { selectedColorAtom, selectedFoodAtom } from "../atoms"
-import { foodIconByKey } from "../constants"
+import { selectedColorAtom, selectedFoodAtom } from "../core/atoms"
+import { foodIconByKey } from "../core/constants"
 
 import "./Display.scss"
 

@@ -18,7 +18,7 @@ import {
 } from "@ourworldindata/components"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowRight, faDownload } from "@fortawesome/free-solid-svg-icons"
-import { CLOUDFLARE_IMAGES_URL } from "../../../settings/clientSettings.js"
+import { CLOUDFLARE_IMAGES_URL } from "../../../settings/clientSettings.mjs"
 import { triggerDownloadFromBlob } from "@ourworldindata/utils"
 import { ImageMetadata, LinkedStaticViz, Span } from "@ourworldindata/types"
 import { useTriggerOnEscape } from "../../hooks.js"
@@ -160,7 +160,7 @@ const StaticVizDownloadModal = ({
                 description: createDimensionsLabel(staticViz.desktop),
                 previewImage: staticViz.desktop,
                 onClick: () =>
-                    void downloadImage(
+                    downloadImage(
                         staticViz.desktop,
                         `${staticViz.name}-desktop.png`,
                         "desktop"
@@ -175,7 +175,7 @@ const StaticVizDownloadModal = ({
                 description: createDimensionsLabel(staticViz.mobile!),
                 previewImage: staticViz.mobile,
                 onClick: () =>
-                    void downloadImage(
+                    downloadImage(
                         staticViz.mobile!,
                         `${staticViz.name}-mobile.png`,
                         "mobile"

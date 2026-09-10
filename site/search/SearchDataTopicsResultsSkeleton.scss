@@ -20,7 +20,7 @@
 
 .search-data-topic__list--skeleton {
     list-style: none;
-    grid-gap: var(--grid-gap);
+    gap: var(--grid-gap);
 
     @include sm-only {
         overflow-x: scroll;

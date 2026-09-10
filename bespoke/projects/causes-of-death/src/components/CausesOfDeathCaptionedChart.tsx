@@ -4,14 +4,12 @@ import cx from "clsx"
 
 import { EntityName, Time } from "@ourworldindata/types"
 
-import { DataRow } from "../helpers/CausesOfDeathConstants"
+import { DataRow } from "../core/CausesOfDeathConstants"
 import { ResponsiveCausesOfDeathTreemap } from "./CausesOfDeathTreemap"
-import {
-    formatEntityNameForSentence,
-    formatCount,
-} from "../helpers/CausesOfDeathHelpers.js"
-import { CausesOfDeathMetadata } from "../helpers/CausesOfDeathMetadata.js"
+import { formatCount } from "../core/CausesOfDeathHelpers.js"
+import { CausesOfDeathMetadata } from "../core/CausesOfDeathMetadata.js"
 
+import { formatEntityNameForSentence } from "../../../../helpers/entityNames.js"
 import { Spinner } from "../../../../components/Spinner/Spinner.js"
 import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"

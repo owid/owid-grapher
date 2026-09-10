@@ -14,7 +14,7 @@ import { AttachmentsContext } from "./AttachmentsContext.js"
 import { DocumentContext } from "./DocumentContext.js"
 import { AnnouncementPage } from "./pages/Announcement.js"
 import { Profile } from "./pages/Profile.js"
-import { ADMIN_BASE_URL } from "../../settings/clientSettings.js"
+import { ADMIN_BASE_URL } from "../../settings/clientSettings.mjs"
 import { CookieKey } from "@ourworldindata/grapher"
 import { SiteQueryClientProvider } from "../SiteQueryClientProvider.js"
 
@@ -136,7 +136,13 @@ export function OwidGdoc({
                 tags: props.tags ?? [],
             }}
         >
-            <DocumentContext.Provider value={{ isPreviewing, archiveContext }}>
+            <DocumentContext.Provider
+                value={{
+                    isPreviewing,
+                    archiveContext,
+                    gdocType: props.content.type,
+                }}
+            >
                 <SiteQueryClientProvider>
                     <AdminLinks id={props.id} />
                     {content}

@@ -47,7 +47,7 @@ class DatasetRow extends React.Component<DatasetRowProps> {
         makeObservable(this)
     }
 
-    async saveTags(tags: DbChartTagJoin[]) {
+    async saveTags(tags: DbChartTagJoin[]): Promise<void> {
         const { dataset } = this.props
         const json = await this.context.admin.requestJSON(
             `/api/datasets/${dataset.id}/setTags`,
@@ -59,8 +59,8 @@ class DatasetRow extends React.Component<DatasetRowProps> {
         }
     }
 
-    @action.bound onSaveTags(tags: DbChartTagJoin[]) {
-        void this.saveTags(tags)
+    @action.bound onSaveTags(tags: DbChartTagJoin[]): Promise<void> {
+        return this.saveTags(tags)
     }
 
     override render() {

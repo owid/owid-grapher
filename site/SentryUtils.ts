@@ -1,5 +1,5 @@
 import * as Sentry from "@sentry/react"
-import Cookies from "js-cookie"
+import { get as getCookie } from "es-cookie"
 import { getPreferenceValue, PreferenceType } from "./cookiePreferences.js"
 import {
     experiments,
@@ -296,7 +296,7 @@ export function updateSentryUser() {
 }
 
 function extractGaClientIdFromCookie(): string | undefined {
-    const gaCookie = Cookies.get("_ga")
+    const gaCookie = getCookie("_ga")
     if (!gaCookie) {
         return
     }

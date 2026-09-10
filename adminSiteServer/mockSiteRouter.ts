@@ -30,13 +30,12 @@ import {
 import { expectInt, renderToHtmlPage } from "../serverUtils/serverUtil.js"
 import { makeSitemap } from "../baker/sitemap.js"
 import { getChartConfigBySlug } from "../db/model/Chart.js"
+import { getChartConfigByUuid } from "../db/model/ChartConfigs.js"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
 import { getVariableData, getVariableMetadata } from "../db/model/Variable.js"
 import { MultiEmbedderTestPage } from "../site/multiembedder/MultiEmbedderTestPage.js"
 import {
-    DbRawChartConfig,
     JsonError,
-    parseChartConfig,
     TombstonePageData,
     gdocUrlRegex,
     OwidGdocMinimalPostInterface,
@@ -76,6 +75,7 @@ import {
     getMinimalGdocPostsByIds,
 } from "../db/model/Gdoc/GdocBase.js"
 import { getMultiDimDataPageBySlug } from "../db/model/MultiDimDataPage.js"
+import { getMultiDimRedirectTargets } from "../db/model/MultiDimRedirects.js"
 import { getParsedDodsDictionary } from "../db/model/Dod.js"
 import { getLatestArchivedPostPageVersionsIfEnabled } from "../db/model/ArchivedPostVersion.js"
 import { SEARCH_BASE_PATH } from "../site/search/searchUtils.js"
@@ -90,6 +90,29 @@ const mockSiteRouter = Router()
 
 mockSiteRouter.use(express.urlencoded({ extended: true }))
 mockSiteRouter.use(express.json())
+
+async function redirectFromGrapherSlugIfNeeded(
+    req: express.Request,
+    res: express.Response,
+    trx: KnexReadonlyTransaction,
+    extension = ""
+): Promise<boolean> {
+    const { slug } = req.params
+    const redirects = await getMultiDimRedirectTargets(trx, [slug], "/grapher/")
+    const redirect = redirects.get(slug)
+    if (!redirect || redirect.targetSlug === slug) return false
+
+    const targetParams = new URLSearchParams(redirect.queryStr)
+    const incomingParams = new URL(req.originalUrl, "http://localhost")
+        .searchParams
+    for (const [key, value] of incomingParams) targetParams.set(key, value)
+
+    const queryStr = targetParams.toString()
+    res.redirect(
+        `/grapher/${redirect.targetSlug}${extension}${queryStr ? `?${queryStr}` : ""}`
+    )
+    return true
+}
 
 getPlainRouteWithROTransaction(
     mockSiteRouter,
@@ -225,13 +248,8 @@ getPlainRouteWithROTransaction(
     mockSiteRouter,
     "/grapher/by-uuid/:uuid.config.json",
     async (req, res, trx) => {
-        const chartRow = await db.knexRawFirst<Pick<DbRawChartConfig, "full">>(
-            trx,
-            "SELECT full FROM chart_configs WHERE id = ?",
-            [req.params.uuid]
-        )
-        if (!chartRow) throw new JsonError("No such chart", 404)
-        const config = parseChartConfig(chartRow.full)
+        const config = await getChartConfigByUuid(trx, req.params.uuid)
+        if (!config) throw new JsonError("No such chart", 404)
         res.json(config)
     }
 )
@@ -240,6 +258,11 @@ getPlainRouteWithROTransaction(
     mockSiteRouter,
     "/grapher/:slug.config.json",
     async (req, res, trx) => {
+        if (
+            await redirectFromGrapherSlugIfNeeded(req, res, trx, ".config.json")
+        )
+            return
+
         // Try regular grapher first
         const chartRow = await getChartConfigBySlug(trx, req.params.slug).catch(
             () => undefined
@@ -261,13 +284,9 @@ getPlainRouteWithROTransaction(
                 multiDim.config,
                 searchParams
             )
-            const configRow = await db.knexRawFirst<
-                Pick<DbRawChartConfig, "full">
-            >(trx, "SELECT full FROM chart_configs WHERE id = ?", [
-                view.fullConfigId,
-            ])
-            if (configRow) {
-                res.json(parseChartConfig(configRow.full))
+            const config = await getChartConfigByUuid(trx, view.fullConfigId)
+            if (config) {
+                res.json(config)
                 return
             }
         }
@@ -292,6 +311,8 @@ getPlainRouteWithROTransaction(
     mockSiteRouter,
     "/grapher/:slug",
     async (req, res, trx) => {
+        if (await redirectFromGrapherSlugIfNeeded(req, res, trx)) return
+
         const chartRow = await getChartConfigBySlug(trx, req.params.slug).catch(
             console.error
         )

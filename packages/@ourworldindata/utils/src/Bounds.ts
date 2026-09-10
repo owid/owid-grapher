@@ -1,6 +1,7 @@
 import * as _ from "lodash-es"
 import { PointVector } from "./PointVector.js"
-import { getPixelWidth, FontFamily } from "./stringWidth.js"
+import { getPixelWidth } from "./stringWidth.js"
+import { FontFamily } from "./fonts.js"
 import {
     Box,
     GridParameters,
@@ -21,8 +22,6 @@ export interface GridBounds {
     cellEdges: Set<Position>
     bounds: Bounds
 }
-
-export { FontFamily }
 
 export class Bounds {
     static fromProps(props: Box): Bounds {

@@ -7,6 +7,7 @@ import {
     ContentGraphLinkType,
     ExplorersTableName,
     ChartConfigsTableName,
+    ChartsTableName,
     VariablesTableName,
     DodsTableName,
     DodUsageRecord,
@@ -152,10 +153,11 @@ export async function getDodsUsage(
     const chartsUsagePromise = knexRaw<{ slug: string; config: string }>(
         knex,
         `-- sql
-        SELECT slug, full AS config
-        FROM ${ChartConfigsTableName}
-        WHERE full LIKE "%#dod:%"
-        AND full->>"$.isPublished" = "true"`
+        SELECT cc.slug, cc.config AS config
+        FROM ${ChartConfigsTableName} cc
+        JOIN ${ChartsTableName} c ON c.configId = cc.id
+        WHERE cc.config LIKE "%#dod:%"
+        AND cc.config->>"$.isPublished" = "true"`
     ).then((rows) =>
         rows.reduce(
             (acc, cur) => {

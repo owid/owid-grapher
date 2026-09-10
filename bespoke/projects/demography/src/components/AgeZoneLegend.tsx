@@ -16,18 +16,18 @@ import { BezierArrow } from "@ourworldindata/grapher"
 import {
     formatPopulationValueLong,
     formatPopulationValueShort,
-} from "../helpers/utils.js"
-import type { Simulation } from "../helpers/useSimulation.js"
+} from "../core/utils.js"
+import type { Simulation } from "../core/useSimulation.js"
 import type { ProjectionType } from "./PopulationPyramid.js"
 import {
     AGE_ZONE_BACKGROUND_OPACITY,
     COLOR_CHILDREN,
     COLOR_RETIRED,
     COLOR_WORKING,
-} from "../helpers/constants.js"
+} from "../core/constants.js"
 import { Bounds, formatValue } from "@ourworldindata/utils"
-import { toBreakpoint, useBreakpoint } from "../helpers/useBreakpoint.js"
-import { getAgeZoneLegendFonts } from "../helpers/fonts.js"
+import { toBreakpoint, useBreakpoint } from "../core/useBreakpoint.js"
+import { getAgeZoneLegendFonts } from "../core/fonts.js"
 
 const BAR_PADDING_Y = 4
 const SEGMENT_GAP = 2

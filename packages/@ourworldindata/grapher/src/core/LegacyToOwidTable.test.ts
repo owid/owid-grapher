@@ -505,6 +505,79 @@ describe(legacyToOwidTableAndDimensions, () => {
         })
     })
 
+    describe("variables with mixed intervals in the same bucket", () => {
+        const makeVariable = (
+            id: number,
+            interval: TimeInterval,
+            years: number[]
+        ): OwidVariableDataMetadataDimensions => ({
+            data: {
+                entities: years.map(() => 1),
+                values: years.map((_, index) => index),
+                years,
+            },
+            metadata: {
+                id,
+                display: { timeInterval: interval },
+                dimensions: {
+                    entities: {
+                        values: [{ name: "World", code: "OWID_WRL", id: 1 }],
+                    },
+                    years: { values: years.map((year) => ({ id: year })) },
+                },
+            },
+        })
+
+        const buildTable = (
+            variables: OwidVariableDataMetadataDimensions[]
+        ): OwidTable =>
+            legacyToOwidTableAndDimensionsWithMandatorySlug(
+                new Map(variables.map((v) => [v.metadata.id, v])),
+                variables.map((v) => ({
+                    variableId: v.metadata.id,
+                    property: DimensionProperty.y,
+                })),
+                {}
+            )
+
+        // day 0 is EPOCH_DATE (2020-01-21), so day -6 is 2020-01-15 (snapped to
+        // Jan 1) and day 25 is 2020-02-15 (snapped to Feb 1)
+        const daily = makeVariable(2, TimeInterval.Day, [0, 1, 2])
+        const monthly = makeVariable(3, TimeInterval.Month, [-6, 25])
+
+        it("labels the joined time column with the finest interval, whatever the dimension order", () => {
+            for (const variables of [
+                [daily, monthly],
+                [monthly, daily],
+            ]) {
+                const timeColumn = buildTable(variables).timeColumn
+                expect(timeColumn instanceof ColumnTypeMap.Day).toBeTruthy()
+                expect(timeColumn instanceof ColumnTypeMap.Month).toBeFalsy()
+            }
+        })
+
+        it("labels the joined time column with 'year' when years and decades are mixed", () => {
+            const annual = makeVariable(4, TimeInterval.Year, [2020, 2021])
+            const decadal = makeVariable(5, TimeInterval.Decade, [2020])
+            const table = buildTable([decadal, annual])
+            expect(table.timeColumn instanceof ColumnTypeMap.Year).toBeTruthy()
+            expect(table.timeColumn instanceof ColumnTypeMap.Decade).toBeFalsy()
+        })
+
+        it("falls back to 'day' when weeks and months are mixed, since neither grid contains the other", () => {
+            const weekly = makeVariable(6, TimeInterval.Week, [0, 7])
+            const table = buildTable([weekly, monthly])
+            expect(table.timeColumn instanceof ColumnTypeMap.Week).toBeFalsy()
+            expect(table.timeColumn instanceof ColumnTypeMap.Month).toBeFalsy()
+            // Every time stays addressable, so no two points share a label
+            const times = table.timeColumn.uniqValues as number[]
+            const labels = times.map((time) =>
+                table.timeColumn.formatValue(time)
+            )
+            expect(new Set(labels).size).toEqual(times.length)
+        })
+    })
+
     describe("variables with mixed days & years", () => {
         const legacyVariableConfig: MultipleOwidVariableDataDimensionsMap =
             new Map([

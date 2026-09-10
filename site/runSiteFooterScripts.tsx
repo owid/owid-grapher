@@ -17,12 +17,11 @@ import {
 import { Footnote } from "./Footnote.js"
 import { OwidGdoc } from "./gdocs/OwidGdoc.js"
 import { MultiEmbedderSingleton } from "./multiembedder/MultiEmbedder.js"
-import SiteTools, { SITE_TOOLS_CLASS } from "./SiteTools.js"
+import SiteTools, { SITE_TOOLS_ROOT_CLASS } from "./SiteTools.js"
 import { runDetailsOnDemand } from "./detailsOnDemand.js"
 import { hydrateCodeSnippets } from "@ourworldindata/components"
-import { hydrateDynamicCollectionPage } from "./collections/DynamicCollection.js"
+import { hydrateDynamicCollectionPage } from "./collections/DynamicCollectionPageMain.js"
 import { LatestSearchWrapper } from "./latest/LatestSearchWrapper.js"
-import { runAllGraphersLoadedListener } from "./runAllGraphersLoadedListener.js"
 import {
     __OWID_EXPLORER_INDEX_PAGE_PROPS,
     ExplorerIndex,
@@ -38,7 +37,7 @@ import {
     MultiDimDataPageData,
 } from "./multiDim/MultiDimDataPageContent.js"
 import { BrowserRouter } from "react-router-dom-v5-compat"
-import { REDUCED_TRACKING } from "../settings/clientSettings.js"
+import { REDUCED_TRACKING } from "../settings/clientSettings.mjs"
 import { SiteHeaderNavigation } from "./SiteHeader.js"
 import { NewsletterSubscriptionForm } from "./NewsletterSubscription.js"
 import { NewsletterSubscriptionContext } from "./newsletter.js"
@@ -224,7 +223,7 @@ function runSiteNavigation({
 }
 
 function runSiteTools() {
-    const siteToolsElem = document.querySelector(`.${SITE_TOOLS_CLASS}`)
+    const siteToolsElem = document.querySelector(`.${SITE_TOOLS_ROOT_CLASS}`)
     if (siteToolsElem) {
         const root = createRoot(siteToolsElem)
         root.render(<SiteTools />)
@@ -285,7 +284,6 @@ export const runSiteFooterScriptsForArchive = (args: SiteFooterScriptsArgs) => {
     switch (context) {
         case SiteFooterContext.dataPageV2:
             hydrateDataPageV2Content({ isPreviewing })
-            // runAllGraphersLoadedListener()
             runSiteNavigation({ isPreviewing })
             // runSiteTools()
             // runCookiePreferencesManager()
@@ -293,7 +291,6 @@ export const runSiteFooterScriptsForArchive = (args: SiteFooterScriptsArgs) => {
             break
         case SiteFooterContext.multiDimDataPage:
             hydrateMultiDimDataPageContent(isPreviewing)
-            // runAllGraphersLoadedListener()
             runSiteNavigation({ isPreviewing })
             // runSiteTools()
             // runCookiePreferencesManager()
@@ -302,14 +299,12 @@ export const runSiteFooterScriptsForArchive = (args: SiteFooterScriptsArgs) => {
         case SiteFooterContext.grapherPage:
         case SiteFooterContext.explorerPage:
             runSiteNavigation({ isPreviewing })
-            // runAllGraphersLoadedListener()
             // runSiteTools()
             // runCookiePreferencesManager()
             void runDetailsOnDemand()
             break
         case SiteFooterContext.gdocsDocument:
             hydrateOwidGdoc(debug, isPreviewing)
-            // runAllGraphersLoadedListener()
             runSiteNavigation({ isPreviewing })
             runFootnotes()
             void runDetailsOnDemand()
@@ -335,7 +330,6 @@ export const runSiteFooterScripts = async (
     switch (context) {
         case SiteFooterContext.dataPageV2:
             hydrateDataPageV2Content({ isPreviewing })
-            runAllGraphersLoadedListener()
             runSiteNavigation({ hideDonationFlag, isPreviewing })
             runSiteTools()
             runCookiePreferencesManager()
@@ -344,7 +338,6 @@ export const runSiteFooterScripts = async (
             break
         case SiteFooterContext.multiDimDataPage:
             hydrateMultiDimDataPageContent(isPreviewing)
-            runAllGraphersLoadedListener()
             runSiteNavigation({ hideDonationFlag, isPreviewing })
             runSiteTools()
             runCookiePreferencesManager()
@@ -354,7 +347,6 @@ export const runSiteFooterScripts = async (
         case SiteFooterContext.grapherPage:
         case SiteFooterContext.explorerPage:
             runSiteNavigation({ hideDonationFlag, isPreviewing })
-            runAllGraphersLoadedListener()
             runSiteTools()
             runCookiePreferencesManager()
             runUserSurveyWidget()
@@ -368,7 +360,6 @@ export const runSiteFooterScripts = async (
             break
         case SiteFooterContext.gdocsDocument:
             hydrateOwidGdoc(debug, isPreviewing)
-            runAllGraphersLoadedListener()
             runSiteNavigation({ hideDonationFlag, isPreviewing })
             runFootnotes()
             void runDetailsOnDemand()
@@ -402,7 +393,6 @@ export const runSiteFooterScripts = async (
             runSiteNavigation({ hideDonationFlag, isPreviewing })
             hydrateCodeSnippets()
             MultiEmbedderSingleton.embedAll(isPreviewing)
-            runAllGraphersLoadedListener()
             runFootnotes()
             runSiteTools()
             runCookiePreferencesManager()

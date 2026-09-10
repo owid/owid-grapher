@@ -1,7 +1,7 @@
 import { Col, DatePicker } from "antd"
 import { Dayjs } from "dayjs"
 import { dayjs, OwidGdocErrorMessage, OwidGdoc } from "@ourworldindata/utils"
-import { PUBLISHED_AT_FORMAT } from "../settings/clientSettings"
+import { PUBLISHED_AT_FORMAT } from "../settings/clientSettings.mjs"
 import { getPropertyMostCriticalError } from "./gdocsValidation.js"
 import { GdocsErrorHelp } from "./GdocsErrorHelp.js"
 

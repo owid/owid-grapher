@@ -15,7 +15,7 @@
 // service account) unless you pass --userId <id>, which requires that owner
 // to be a superuser.
 
-import "../settings/loadDotenv.js"
+import "../settings/loadDotenv.mjs"
 import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
 import { getContainerName } from "./stagingHostname.js"
@@ -83,7 +83,7 @@ async function main() {
         // under yargs' usage output, which is what a lazy check inside a
         // command handler would otherwise produce. As middleware it doesn't
         // run for --help, so usage stays viewable without a key.
-        .middleware(() => void getApiKey())
+        .middleware(() => getApiKey())
         .option("branch", {
             type: "string",
             describe:

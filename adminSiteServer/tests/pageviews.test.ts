@@ -7,13 +7,14 @@ import {
     KnexReadWriteTransaction,
     TransactionCloseMode,
 } from "../../db/db.js"
-import { cleanTestDb } from "../../db/tests/testHelpers.js"
+import {
+    cleanTestDb,
+    insertTestChartConfig,
+} from "../../db/tests/testHelpers.js"
 import { v7 as uuidv7 } from "uuid"
 import {
     AnalyticsChartViewsTableName,
     AnalyticsChartViewsType,
-    ChartConfigsTableName,
-    DbInsertChartConfig,
     DbInsertMultiDimDataPage,
     DbInsertMultiDimRedirect,
     MultiDimDataPagesTableName,
@@ -78,21 +79,11 @@ async function insertMultiDim(
 ): Promise<number> {
     const row: DbInsertMultiDimDataPage = {
         catalogPath: `grapher/test/${uuidv7()}`,
-        slug: `test-mdim-${uuidv7()}`,
+        slug: `test-multi-dim-${uuidv7()}`,
         config,
         published: true,
     }
     const [id] = await trx(MultiDimDataPagesTableName).insert(row)
-    return id
-}
-
-/** Inserts a chart_configs row and returns its UUID id. */
-async function insertChartConfig(
-    trx: KnexReadWriteTransaction
-): Promise<string> {
-    const id = uuidv7()
-    const row: DbInsertChartConfig = { id, patch: "{}", full: "{}" }
-    await trx(ChartConfigsTableName).insert(row)
     return id
 }
 
@@ -151,14 +142,14 @@ describe(getMaxChartViewsFromMultiDimPredecessors, () => {
 
     it("resolves a redirect with an explicit viewConfigId to that config", async () => {
         const result = await withTrx(async (trx) => {
-            const mdimId = await insertMultiDim(
+            const multiDimId = await insertMultiDim(
                 trx,
                 buildMultiDimConfig([{ slug: "a", fullConfigId: uuidv7() }])
             )
-            const multiDimChartConfigId = await insertChartConfig(trx)
+            const multiDimChartConfigId = await insertTestChartConfig(trx)
             await insertRedirect(trx, {
                 source: "/grapher/old",
-                multiDimId: mdimId,
+                multiDimId,
                 viewConfigId: multiDimChartConfigId,
             })
             await insertChartView(trx, {
@@ -176,7 +167,7 @@ describe(getMaxChartViewsFromMultiDimPredecessors, () => {
     it("resolves a redirect without a viewConfigId to the multi-dim's default view", async () => {
         const defaultConfigId = uuidv7()
         const result = await withTrx(async (trx) => {
-            const mdimId = await insertMultiDim(
+            const multiDimId = await insertMultiDim(
                 trx,
                 buildMultiDimConfig([
                     { slug: "a", fullConfigId: defaultConfigId },
@@ -185,7 +176,7 @@ describe(getMaxChartViewsFromMultiDimPredecessors, () => {
             )
             await insertRedirect(trx, {
                 source: "/grapher/old",
-                multiDimId: mdimId,
+                multiDimId,
                 viewConfigId: null,
             })
             await insertChartView(trx, {
@@ -202,19 +193,19 @@ describe(getMaxChartViewsFromMultiDimPredecessors, () => {
 
     it("takes the max across multiple redirects targeting the same view", async () => {
         const result = await withTrx(async (trx) => {
-            const mdimId = await insertMultiDim(
+            const multiDimId = await insertMultiDim(
                 trx,
                 buildMultiDimConfig([{ slug: "a", fullConfigId: uuidv7() }])
             )
-            const multiDimChartConfigId = await insertChartConfig(trx)
+            const multiDimChartConfigId = await insertTestChartConfig(trx)
             await insertRedirect(trx, {
                 source: "/grapher/a",
-                multiDimId: mdimId,
+                multiDimId,
                 viewConfigId: multiDimChartConfigId,
             })
             await insertRedirect(trx, {
                 source: "/explorers/b",
-                multiDimId: mdimId,
+                multiDimId,
                 viewConfigId: multiDimChartConfigId,
             })
             await insertChartView(trx, {
@@ -235,20 +226,20 @@ describe(getMaxChartViewsFromMultiDimPredecessors, () => {
 
     it("resolves explorer and grapher sources sharing a slug from their own namespaces", async () => {
         const result = await withTrx(async (trx) => {
-            const mdimId = await insertMultiDim(
+            const multiDimId = await insertMultiDim(
                 trx,
                 buildMultiDimConfig([{ slug: "a", fullConfigId: uuidv7() }])
             )
-            const multiDimChartConfigId1 = await insertChartConfig(trx)
-            const multiDimChartConfigId2 = await insertChartConfig(trx)
+            const multiDimChartConfigId1 = await insertTestChartConfig(trx)
+            const multiDimChartConfigId2 = await insertTestChartConfig(trx)
             await insertRedirect(trx, {
                 source: "/explorers/dup",
-                multiDimId: mdimId,
+                multiDimId,
                 viewConfigId: multiDimChartConfigId1,
             })
             await insertRedirect(trx, {
                 source: "/grapher/dup",
-                multiDimId: mdimId,
+                multiDimId,
                 viewConfigId: multiDimChartConfigId2,
             })
             await insertChartView(trx, {
@@ -270,14 +261,14 @@ describe(getMaxChartViewsFromMultiDimPredecessors, () => {
 
     it("treats multidim-type analytics rows as part of the grapher namespace", async () => {
         const result = await withTrx(async (trx) => {
-            const mdimId = await insertMultiDim(
+            const multiDimId = await insertMultiDim(
                 trx,
                 buildMultiDimConfig([{ slug: "a", fullConfigId: uuidv7() }])
             )
-            const multiDimChartConfigId = await insertChartConfig(trx)
+            const multiDimChartConfigId = await insertTestChartConfig(trx)
             await insertRedirect(trx, {
                 source: "/grapher/m",
-                multiDimId: mdimId,
+                multiDimId,
                 viewConfigId: multiDimChartConfigId,
             })
             await insertChartView(trx, {
@@ -292,18 +283,18 @@ describe(getMaxChartViewsFromMultiDimPredecessors, () => {
     })
 
     it("takes the max views across multiple analytics rows sharing a chart_slug", async () => {
-        // A multidim has one analytics row per view, all sharing the mdim slug
+        // A multi-dim has one analytics row per view, all sharing the multi-dim slug
         // as chart_slug. The source must resolve to the highest, not an
         // arbitrary one.
         const result = await withTrx(async (trx) => {
-            const mdimId = await insertMultiDim(
+            const multiDimId = await insertMultiDim(
                 trx,
                 buildMultiDimConfig([{ slug: "a", fullConfigId: uuidv7() }])
             )
-            const multiDimChartConfigId = await insertChartConfig(trx)
+            const multiDimChartConfigId = await insertTestChartConfig(trx)
             await insertRedirect(trx, {
                 source: "/grapher/shared",
-                multiDimId: mdimId,
+                multiDimId,
                 viewConfigId: multiDimChartConfigId,
             })
             await insertChartView(trx, {
@@ -332,14 +323,14 @@ describe(getMaxChartViewsFromMultiDimPredecessors, () => {
 
     it("skips a redirect whose source has no matching analytics row", async () => {
         const result = await withTrx(async (trx) => {
-            const mdimId = await insertMultiDim(
+            const multiDimId = await insertMultiDim(
                 trx,
                 buildMultiDimConfig([{ slug: "a", fullConfigId: uuidv7() }])
             )
-            const multiDimChartConfigId = await insertChartConfig(trx)
+            const multiDimChartConfigId = await insertTestChartConfig(trx)
             await insertRedirect(trx, {
                 source: "/grapher/orphan",
-                multiDimId: mdimId,
+                multiDimId,
                 viewConfigId: multiDimChartConfigId,
             })
             // analytics row for a different slug — shouldn't match
@@ -356,7 +347,7 @@ describe(getMaxChartViewsFromMultiDimPredecessors, () => {
     it("skips a redirect whose multi-dim default view can't be resolved", async () => {
         const result = await withTrx(async (trx) => {
             // Config with no dimensions/views → getDefaultView() is undefined
-            const mdimId = await insertMultiDim(
+            const multiDimId = await insertMultiDim(
                 trx,
                 JSON.stringify({
                     title: { title: "Empty" },
@@ -366,7 +357,7 @@ describe(getMaxChartViewsFromMultiDimPredecessors, () => {
             )
             await insertRedirect(trx, {
                 source: "/grapher/x",
-                multiDimId: mdimId,
+                multiDimId,
                 viewConfigId: null,
             })
             await insertChartView(trx, {

@@ -16,6 +16,10 @@
         font-family: $serif-font-stack;
         color: $gray-100;
         margin: 0;
+
+        a .markdown-text-wrap__line {
+            width: fit-content;
+        }
     }
 
     // subtitle

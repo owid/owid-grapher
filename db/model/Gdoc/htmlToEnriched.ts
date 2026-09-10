@@ -183,22 +183,14 @@ function cheerioToSpan(element: AnyNode): Span | undefined {
             .with("br", (): Span => ({ spanType: "span-newline" }))
             .with("cite", () => spanFallback(element))
             .with("code", () => spanFallback(element)) // TODO: should get a style
-            .with(
-                "em",
-                (): SpanItalic => ({
-                    spanType: "span-italic",
-                    children:
-                        _.compact(element.children?.map(cheerioToSpan)) ?? [],
-                })
-            )
-            .with(
-                "q",
-                (): SpanQuote => ({
-                    spanType: "span-quote",
-                    children:
-                        _.compact(element.children?.map(cheerioToSpan)) ?? [],
-                })
-            )
+            .with("em", (): SpanItalic => ({
+                spanType: "span-italic",
+                children: _.compact(element.children?.map(cheerioToSpan)) ?? [],
+            }))
+            .with("q", (): SpanQuote => ({
+                spanType: "span-quote",
+                children: _.compact(element.children?.map(cheerioToSpan)) ?? [],
+            }))
             .with("small", () => spanFallback(element))
             .with("span", () => spanFallback(element))
             .with("strong", (): SpanBold => {

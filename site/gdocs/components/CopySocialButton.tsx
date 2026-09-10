@@ -1,9 +1,16 @@
 import { useState } from "react"
+import cx from "clsx"
 import { copyToClipboard } from "@ourworldindata/utils"
 import { CookieKey } from "@ourworldindata/grapher"
 import { useIsClient } from "usehooks-ts"
 
-export function CopySocialButton({ text }: { text: string }) {
+export function CopySocialButton({
+    text,
+    className,
+}: {
+    text: string
+    className?: string
+}) {
     const isClient = useIsClient()
     const [label, setLabel] = useState("Copy for social")
 
@@ -23,7 +30,7 @@ export function CopySocialButton({ text }: { text: string }) {
     return (
         <a
             href="#"
-            className="data-insight-copy-link-button body-3-medium"
+            className={cx("body-3-medium", className)}
             onClick={(e) => {
                 e.preventDefault()
                 handleClick()

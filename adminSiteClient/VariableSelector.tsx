@@ -25,7 +25,7 @@ import {
     EditorDatabase,
     Namespace,
     NamespaceData,
-} from "./ChartEditorView.js"
+} from "./EditorDatabase.js"
 import { TextField, Toggle, Modal } from "./Forms.js"
 import { DimensionSlot } from "@ourworldindata/grapher"
 import { AbstractChartEditor } from "./AbstractChartEditor.js"

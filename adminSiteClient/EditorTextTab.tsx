@@ -32,7 +32,7 @@ import {
     BAKED_BASE_URL,
     BAKED_GRAPHER_URL,
     ADMIN_BASE_URL,
-} from "../settings/clientSettings.js"
+} from "../settings/clientSettings.mjs"
 
 interface EditorTextTabProps<Editor> {
     editor: Editor
@@ -220,7 +220,7 @@ export class EditorTextTab<
                 <Section name="Header">
                     <BindAutoStringExt
                         label="Title"
-                        readFn={(grapherState) => grapherState.displayTitle}
+                        readFn={(grapherState) => grapherState.effectiveTitle}
                         writeFn={(grapherState, newVal) =>
                             (grapherState.title = newVal)
                         }
@@ -283,7 +283,9 @@ export class EditorTextTab<
                     )}
                     <BindAutoStringExt
                         label="Subtitle"
-                        readFn={(grapherState) => grapherState.currentSubtitle}
+                        readFn={(grapherState) =>
+                            grapherState.effectiveSubtitle
+                        }
                         writeFn={(grapherState, newVal) =>
                             (grapherState.subtitle = newVal)
                         }

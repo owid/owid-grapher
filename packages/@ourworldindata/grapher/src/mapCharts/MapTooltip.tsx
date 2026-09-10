@@ -16,7 +16,7 @@ import {
     formatTooltipRangeValues,
 } from "../tooltip/Tooltip"
 import { MapChartManager, MapColumnInfo } from "./MapChartConstants"
-import { ColorScale } from "../color/ColorScale"
+import { ColorScale, INAPPLICABLE_LABEL } from "../color/ColorScale"
 import {
     Time,
     EntityName,
@@ -46,6 +46,7 @@ interface MapTooltipProps {
     timeSeriesTable: OwidTable
     targetTime?: Time // show tooltip values for a specific point in time
     targetTimes?: [Time, Time] // show tooltip values for a specific time range (start and end times)
+    inapplicableEntityNamesSet?: Set<EntityName>
     sparklineWidth?: number
     sparklineHeight?: number
     fading?: TooltipFadeMode
@@ -89,6 +90,20 @@ export class MapTooltip
 
     @computed get entityName(): EntityName {
         return this.props.entityName
+    }
+
+    @computed get isInapplicableEntity(): boolean {
+        return (
+            this.props.inapplicableEntityNamesSet?.has(this.entityName) ?? false
+        )
+    }
+
+    @computed get inapplicableValueLabel(): string {
+        // If the custom label for "Not applicable" matches the current entity
+        // name, use the default "Not applicable" text to avoid spelling the
+        // entity name twice (once in the tooltip title, once in the value line)
+        const label = this.lineColorScale.inapplicableLabel
+        return label === this.entityName ? INAPPLICABLE_LABEL : label
     }
 
     @computed private get shouldShowValueRange(): boolean {
@@ -199,14 +214,26 @@ export class MapTooltip
 
     @computed private get tooltipSubtitle(): string | undefined {
         const { startDatum, endDatum, startTime, endTime } = this
+        const { timeColumn } = this.entityTable
+
+        // Not-applicable entities' values are time-invariant,
+        // so showing a time would be misleading
+        if (this.isInapplicableEntity) return undefined
 
         const originalStartTime = startDatum?.originalTime ?? startTime
         const originalEndTime = endDatum?.originalTime ?? endTime
 
         if (this.shouldShowValueRange) {
-            return [originalStartTime, originalEndTime]
-                .map((time) => this.formatTime(time))
-                .join(" to ")
+            if (
+                originalStartTime === undefined ||
+                originalEndTime === undefined
+            )
+                return undefined
+
+            return timeColumn.formatTimeComparison(
+                originalStartTime,
+                originalEndTime
+            )
         }
 
         return this.formatTime(originalEndTime)
@@ -215,36 +242,41 @@ export class MapTooltip
     @computed private get toleranceNotice(): FooterItem | undefined {
         const { startDatum, startTime, endDatum, endTime } = this
 
-        const startValueIsInterpolated =
-            startDatum && startDatum?.originalTime !== startTime
-        const endValueIsInterpolated =
-            endDatum && endDatum?.originalTime !== endTime
+        const interpolated = excludeUndefined([
+            startDatum && startDatum.originalTime !== startTime
+                ? { target: startTime, original: startDatum.originalTime }
+                : undefined,
+            endDatum && endDatum.originalTime !== endTime
+                ? { target: endTime, original: endDatum.originalTime }
+                : undefined,
+        ])
 
-        const formattedStartTime = this.formatTime(this.startTime)
-        const formattedEndTime = this.formatTime(this.endTime)
+        if (interpolated.length === 0) return undefined
 
-        if (startValueIsInterpolated && endValueIsInterpolated)
-            return {
-                icon: TooltipFooterIcon.Notice,
-                text: makeTooltipToleranceNotice(
-                    `${formattedStartTime} and ${formattedEndTime}`,
-                    { plural: true }
-                ),
-            }
+        const formatTimes = (times: (Time | undefined)[]): string =>
+            excludeUndefined(times.map((time) => this.formatTime(time))).join(
+                " and "
+            )
 
-        if (endValueIsInterpolated && formattedEndTime)
-            return {
-                icon: TooltipFooterIcon.Notice,
-                text: makeTooltipToleranceNotice(formattedEndTime),
-            }
+        const targetTimes = formatTimes(interpolated.map((i) => i.target))
+        if (!targetTimes) return undefined
 
-        if (startValueIsInterpolated && formattedStartTime)
-            return {
-                icon: TooltipFooterIcon.Notice,
-                text: makeTooltipToleranceNotice(formattedStartTime),
-            }
+        // The subtitle shows the original time of each value. Naming the
+        // original time here only helps if the subtitle mixes a target time with
+        // an original time, i.e. if a value range is shown and only one of the
+        // two values was interpolated.
+        const originalTime =
+            this.shouldShowValueRange && interpolated.length === 1
+                ? this.formatTime(interpolated[0].original)
+                : undefined
 
-        return undefined
+        return {
+            icon: TooltipFooterIcon.Notice,
+            text: makeTooltipToleranceNotice(targetTimes, {
+                plural: interpolated.length > 1,
+                originalTime,
+            }),
+        }
     }
 
     @computed private get roundingNotice(): FooterItem | undefined {
@@ -318,7 +350,11 @@ export class MapTooltip
                     <MapTooltipValue
                         mapColumn={mapColumn}
                         datum={endDatum}
-                        formattedValue={this.formattedEndValue?.label}
+                        formattedValue={
+                            this.isInapplicableEntity
+                                ? this.inapplicableValueLabel
+                                : this.formattedEndValue?.label
+                        }
                         colorScale={colorScale}
                         isProjection={isProjection}
                     />

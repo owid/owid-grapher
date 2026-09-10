@@ -126,7 +126,6 @@
 @import "./blocks/related-charts.scss";
 @import "./blocks/CookiePreferences.scss";
 @import "./blocks/Grid.scss";
-@import "./blocks/Card.scss";
 @import "./blocks/BiographyCard.scss";
 @import "./blocks/research-and-writing.scss";
 @import "./blocks/GalleryArrow.scss";
@@ -633,6 +632,7 @@ a.ref sup {
 @media print {
     .site-header,
     .site-footer,
+    .site-tools-root,
     .cookie-notice,
     address,
     #wpadminbar,
@@ -798,9 +798,10 @@ a.ref sup {
 }
 
 .FeedbackForm {
-    height: calc(100vh - 155px);
-    max-height: 700px;
-    transition: opacity 0.25s ease-in-out;
+    display: flex;
+    flex-direction: column;
+    max-height: min(700px, var(--viewport-height));
+    transition: opacity var(--duration-panel) var(--ease-out);
 
     &.loading > * {
         opacity: 0.5;
@@ -923,10 +924,14 @@ a.ref sup {
 
 .FeedbackPage {
     main {
-        height: calc(100vh - 100px);
+        min-height: calc(var(--viewport-height) - $header-height-md);
         display: flex;
         align-items: center;
         justify-content: center;
+
+        @include sm-only {
+            min-height: calc(var(--viewport-height) - $header-height-sm);
+        }
     }
 
     .box {
@@ -937,7 +942,27 @@ a.ref sup {
         outline: 1px solid $gray-10;
     }
 
-    .FeedbackForm > .footer {
+    main .FeedbackForm {
+        max-height: min(
+            700px,
+            calc(
+                var(--viewport-height) - $header-height-md - 2 *
+                    $vertical-spacing
+            )
+        );
+
+        @include sm-only {
+            max-height: min(
+                700px,
+                calc(
+                    var(--viewport-height) - $header-height-sm - 2 *
+                        $vertical-spacing
+                )
+            );
+        }
+    }
+
+    main .FeedbackForm > .footer {
         box-shadow: none;
         outline: 1px solid $gray-10;
     }

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest"
 
-import { getPixelWidth, FontFamily } from "./stringWidth.js"
+import { getPixelWidth } from "./stringWidth.js"
+import { FontFamily } from "./fonts.js"
 
 describe(getPixelWidth, () => {
     it("calculates width for basic ASCII text", () => {

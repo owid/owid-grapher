@@ -1,4 +1,3 @@
-/* eslint-disable react-refresh/only-export-components */
 import * as _ from "lodash-es"
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -10,7 +9,7 @@ import { Component } from "react"
 
 export const PROMINENT_LINK_CLASSNAME = "wp-block-owid-prominent-link"
 
-export enum ProminentLinkStyles {
+enum ProminentLinkStyles {
     thin = "is-style-thin",
     default = "is-style-default",
 }

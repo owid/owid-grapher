@@ -12,20 +12,15 @@ import {
     TransactionCloseMode,
 } from "../db.js"
 import { deleteUser, insertUser, updateUser } from "../model/User.js"
-import { v7 as uuidv7 } from "uuid"
 import {
-    ChartsTableName,
-    ChartConfigsTableName,
-    DbInsertChart,
     DbPlainUser,
     DbPlainChart,
     UsersTableName,
-    DbInsertChartConfig,
     DatasetsTableName,
     VariablesTableName,
     ChartDimensionsTableName,
 } from "@ourworldindata/types"
-import { cleanTestDb } from "./testHelpers.js"
+import { cleanTestDb, insertTestChart } from "./testHelpers.js"
 import { checkDatasetVariablesInUse } from "../model/Dataset.js"
 
 let knexInstance: Knex<any, unknown[]> | undefined = undefined
@@ -76,20 +71,9 @@ test("createdAt and updatedAt timestamps are automatically created", async () =>
                 .first<DbPlainUser>()
             expect(user).toBeTruthy()
             expect(user.email).toBe("admin@example.com")
-            const configId = uuidv7()
-            const chartConfig: DbInsertChartConfig = {
-                id: configId,
-                patch: "{}",
-                full: "{}",
-            }
-            const chart: DbInsertChart = {
-                configId,
-                lastEditedAt: new Date(),
+            const { chartId } = await insertTestChart(trx, {
                 lastEditedByUserId: user.id,
-            }
-            await trx.table(ChartConfigsTableName).insert(chartConfig)
-            const res = await trx.table(ChartsTableName).insert(chart)
-            const chartId = res[0]
+            })
             const created = await knexRawFirst<DbPlainChart>(
                 trx,
                 "select * from charts where id = ?",
@@ -310,19 +294,9 @@ test("checkDatasetVariablesInUse returns true when variables are used in charts"
                 .then((res) => res[0])
 
             // Create a chart that uses this variable
-            const configId = uuidv7()
-            await trx(ChartConfigsTableName).insert({
-                id: configId,
-                patch: "{}",
-                full: "{}",
+            const { chartId } = await insertTestChart(trx, {
+                lastEditedByUserId: 1,
             })
-            const chartId = await trx(ChartsTableName)
-                .insert({
-                    configId,
-                    lastEditedAt: new Date(),
-                    lastEditedByUserId: 1,
-                })
-                .then((res) => res[0])
 
             // Link the chart to the variable
             await trx(ChartDimensionsTableName).insert({

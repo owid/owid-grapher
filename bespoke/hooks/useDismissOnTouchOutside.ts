@@ -12,10 +12,15 @@ export function useDismissOnTouchOutside(
     useEffect(() => {
         if (!isActive) return
 
-        const handler = (e: PointerEvent) => {
+        const handler = (event: PointerEvent) => {
+            const element = ref.current
             if (
-                e.pointerType === "touch" &&
-                !ref.current?.contains(e.target as Node)
+                event.pointerType === "touch" &&
+                element &&
+                // `event.target` is retargeted to the Shadow DOM host by the time
+                // the event reaches the document, so use the event path to detect
+                // taps inside `element` rather than checking DOM containment
+                !event.composedPath().includes(element)
             ) {
                 onDismiss()
             }

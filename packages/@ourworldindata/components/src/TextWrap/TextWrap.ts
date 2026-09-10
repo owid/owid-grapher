@@ -103,9 +103,48 @@ export interface ITextWrap {
     readonly fontWeight: number | undefined
     readonly fontFamily: FontFamily | undefined
     readonly lineHeight: number
+    readonly verticalAlign: VerticalAlign
     readonly text: string
     getPositionForSvgRendering(x: number, y: number): [number, number]
 }
+
+/**
+ * The SVG position of the first line's baseline for a text wrap anchored
+ * at (x, y), such that the HTML and SVG renderers position lines identically.
+ */
+export function getTextPositionForSvgRendering(
+    textWrap: ITextWrap,
+    x: number,
+    y: number
+): [number, number] {
+    const { fontSize, lineHeight, height, verticalAlign } = textWrap
+
+    // Magic number set through experimentation.
+    // The HTML and SVG renderers need to position lines identically.
+    // This number was tweaked until the overlaid HTML and SVG outputs
+    // overlap.
+    const HEIGHT_CORRECTION_FACTOR = 0.74
+
+    const textHeight = fontSize * HEIGHT_CORRECTION_FACTOR
+    const containerHeight = lineHeight * fontSize
+    const correctedY =
+        y + (containerHeight - (containerHeight - textHeight) / 2)
+
+    const renderY = match(verticalAlign)
+        .with(VerticalAlign.top, () => correctedY - height)
+        .with(VerticalAlign.middle, () => correctedY - height / 2)
+        .with(VerticalAlign.bottom, () => correctedY)
+        .exhaustive()
+
+    return [x, renderY]
+}
+
+export const sumTextWrapHeights = (
+    elements: ITextWrap[],
+    spacer: number = 0
+): number =>
+    _.sum(elements.map((element) => element.height)) +
+    (elements.length - 1) * spacer
 
 export class TextWrap implements ITextWrap {
     private static readonly defaultOptions = {
@@ -300,26 +339,6 @@ export class TextWrap implements ITextWrap {
     }
 
     getPositionForSvgRendering(x: number, y: number): [number, number] {
-        const { lines, fontSize, lineHeight, height, verticalAlign } = this
-
-        // Magic number set through experimentation.
-        // The HTML and SVG renderers need to position lines identically.
-        // This number was tweaked until the overlaid HTML and SVG outputs
-        // overlap.
-        const HEIGHT_CORRECTION_FACTOR = 0.74
-
-        const textHeight = _.max(lines.map((line) => line.height)) ?? 0
-        const correctedTextHeight = textHeight * HEIGHT_CORRECTION_FACTOR
-        const containerHeight = lineHeight * fontSize
-        const correctedY =
-            y + (containerHeight - (containerHeight - correctedTextHeight) / 2)
-
-        const renderY = match(verticalAlign)
-            .with(VerticalAlign.top, () => correctedY - height)
-            .with(VerticalAlign.middle, () => correctedY - height / 2)
-            .with(VerticalAlign.bottom, () => correctedY)
-            .exhaustive()
-
-        return [x, renderY]
+        return getTextPositionForSvgRendering(this, x, y)
     }
 }

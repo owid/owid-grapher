@@ -369,11 +369,11 @@ export class DataTable extends React.Component<DataTableProps> {
     ): string {
         const col = dimension.coreTableColumn
 
-        if (column.key === SparklineKey.sparkline) {
-            const minTime = col.formatTime(this.timelineMinTime!)
-            const maxTime = col.formatTime(this.timelineMaxTime!)
-            return `${minTime}–${maxTime}`
-        }
+        if (column.key === SparklineKey.sparkline)
+            return col.formatTimeRange(
+                this.timelineMinTime!,
+                this.timelineMaxTime!
+            )
 
         return isDeltaColumn(column.key)
             ? columnNameByType[column.key]

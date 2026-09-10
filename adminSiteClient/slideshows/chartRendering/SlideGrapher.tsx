@@ -13,7 +13,7 @@ import {
     CATALOG_URL,
     DATA_API_URL,
     GRAPHER_DYNAMIC_CONFIG_URL,
-} from "../../../settings/clientSettings.js"
+} from "../../../settings/clientSettings.mjs"
 import { getSlideshowGrapherConfig } from "../../../site/slideshows/slideshowUtils.js"
 
 export interface SlideGrapherProps {
@@ -98,8 +98,8 @@ export function SlideGrapher(props: SlideGrapherProps): React.ReactElement {
             () => state.isReady,
             () => {
                 onChartReadyRef.current?.({
-                    title: state.currentTitle,
-                    subtitle: state.currentSubtitle,
+                    title: state.fullTitle,
+                    subtitle: state.effectiveSubtitle,
                 })
 
                 innerDispose = reaction(

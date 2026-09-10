@@ -875,17 +875,17 @@ export class SiteBaker {
                 `-- sql
                 SELECT
                     cc.slug,
-                    cc.full ->> '$.subtitle' as subtitle,
-                    cc.full ->> '$.note' as note
+                    cc.config ->> '$.subtitle' as subtitle,
+                    cc.config ->> '$.note' as note
                 FROM
                     charts c
                 JOIN
                     chart_configs cc ON c.configId = cc.id
                 WHERE
-                    JSON_EXTRACT(cc.full, "$.isPublished") = true
+                    JSON_EXTRACT(cc.config, "$.isPublished") = true
                 AND (
-                    JSON_EXTRACT(cc.full, "$.subtitle") LIKE "%#dod:%"
-                    OR JSON_EXTRACT(cc.full, "$.note") LIKE "%#dod:%"
+                    JSON_EXTRACT(cc.config, "$.subtitle") LIKE "%#dod:%"
+                    OR JSON_EXTRACT(cc.config, "$.note") LIKE "%#dod:%"
                 )
                 ORDER BY
                     cc.slug ASC

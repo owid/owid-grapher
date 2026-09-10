@@ -2,15 +2,20 @@ export {
     type ITextWrap,
     TextWrap,
     shortenWithEllipsis,
+    sumTextWrapHeights,
 } from "./TextWrap/TextWrap.js"
 export { TextWrapSvg, TextWrapHtml } from "./TextWrap/TextWrapComponents.js"
 
+export { AbstractTokenTextWrap } from "./MarkdownTextWrap/AbstractTokenTextWrap.js"
 export {
     MarkdownTextWrap,
-    sumTextWrapHeights,
     toPlaintext,
     canAppendTextToLastLine,
 } from "./MarkdownTextWrap/MarkdownTextWrap.js"
+export {
+    TextWrapGroup,
+    type TextWrapFragment,
+} from "./MarkdownTextWrap/TextWrapGroup.js"
 export {
     MarkdownTextWrapSvg,
     MarkdownTextWrapHtml,
@@ -95,3 +100,7 @@ export { reactRenderToStringClientOnly } from "./reactUtil.js"
 
 export { GrapherTabIcon } from "./GrapherTabIcon.js"
 export { GrapherTrendArrow } from "./GrapherTrendArrow.js"
+export {
+    getPrefersReducedMotion,
+    usePrefersReducedMotion,
+} from "./usePrefersReducedMotion.js"
