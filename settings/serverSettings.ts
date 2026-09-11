@@ -95,6 +95,10 @@ export const GDOCS_PRIVATE_KEY: string = (
 export const GDOCS_CLIENT_EMAIL: string = clientSettings.GDOCS_CLIENT_EMAIL
 export const GDOCS_BACKPORTING_TARGET_FOLDER: string =
     serverSettings.GDOCS_BACKPORTING_TARGET_FOLDER ?? ""
+/** Drive folder for gdoc migration test docs; falls back to the backporting folder */
+export const GDOCS_MIGRATION_TEST_FOLDER: string =
+    serverSettings.GDOCS_MIGRATION_TEST_FOLDER ??
+    GDOCS_BACKPORTING_TARGET_FOLDER
 
 export const GDOCS_DONATE_FAQS_DOCUMENT_ID: string =
     serverSettings.GDOCS_DONATE_FAQS_DOCUMENT_ID ?? ""

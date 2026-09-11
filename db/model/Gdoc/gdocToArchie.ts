@@ -121,7 +121,7 @@ function mergeAdjacentLinkedElements(
     return merged
 }
 
-function paragraphToString(
+export function paragraphToString(
     paragraph: docs_v1.Schema$Paragraph,
     context: { isInList: boolean; isInTable: boolean }
 ): string {
@@ -197,7 +197,7 @@ function paragraphToString(
     return text
 }
 
-function tableToString(
+export function tableToString(
     table: docs_v1.Schema$StructuralElement["table"]
 ): string {
     if (!table) return ""
