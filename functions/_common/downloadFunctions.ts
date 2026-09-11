@@ -6,16 +6,19 @@ import {
     getEntityNamesParam,
     generateSelectedEntityNamesParam,
     constructGrapherValuesJson,
+    constructGrapherValuesJsonFromTable,
+    prepareCalloutTable,
 } from "@ourworldindata/grapher"
 import {
     GRAPHER_TAB_QUERY_PARAMS,
     EntityName,
     GrapherSearchResultJson,
+    GrapherValuesJson,
 } from "@ourworldindata/types"
 import { error, StatusError } from "itty-router"
 import { createZip, UncompressedFile } from "littlezipper"
 import { assembleMetadata, getColumnsForMetadata } from "./metadataTools.js"
-import { Env } from "./env.js"
+import { Env, extensions } from "./env.js"
 import {
     getDataApiUrl,
     GrapherIdentifier,
@@ -23,6 +26,7 @@ import {
 } from "./grapherTools.js"
 import { TWITTER_OPTIONS } from "./imageOptions.js"
 import { constructReadme } from "./readmeTools.js"
+import { constructPageMarkdown } from "./pageMarkdownTools.js"
 import { constructSearchResultDataTableContent } from "./search/constructSearchResultDataTableContent.js"
 import { match } from "ts-pattern"
 import {
@@ -220,6 +224,120 @@ export function assembleReadme(
         searchParams,
         multiDimAvailableDimensions
     )
+}
+
+export async function fetchMarkdownForGrapher(
+    identifier: GrapherIdentifier,
+    env: Env,
+    searchParams?: URLSearchParams,
+    ctx?: EventContext<unknown, any, Record<string, unknown>>
+) {
+    const params = searchParams ?? new URLSearchParams("")
+
+    // Assembling the markdown means fetching the indicator's full data and
+    // building the table, about a second; cache it for an hour like
+    // `.values.json`. The key is the `.md` URL for this view, so the page URL
+    // negotiated to markdown and the explicit `.md` URL share one entry, and the
+    // HTML page's own cache entry is never confused with it (the edge cache
+    // ignores `Vary`).
+    const shouldCache = ctx !== undefined && params.get("nocache") === null
+    // `nocache` asks this handler to skip its cache; it selects no view, so it
+    // belongs in neither the cache key nor the data URLs the document prints.
+    const viewParams = new URLSearchParams(params)
+    viewParams.delete("nocache")
+    const viewSearch = viewParams.size > 0 ? `?${viewParams.toString()}` : ""
+    const cacheKey = new Request(
+        `${env.url.origin}/grapher/${identifier.id}${extensions.markdown}${viewSearch}`
+    )
+    if (shouldCache) {
+        const cached = await checkCache(cacheKey, true)
+        if (cached) return cached
+    }
+
+    console.log("Initializing grapher")
+    const { grapher } = await initGrapher(
+        identifier,
+        TWITTER_OPTIONS,
+        params,
+        env
+    )
+    const { grapherState } = grapher
+
+    const inputTable = await fetchInputTableForConfig({
+        dimensions: grapherState.dimensions,
+        selectedEntityColors: grapherState.selectedEntityColors,
+        dataApiUrl: getDataApiUrl(env),
+    })
+    if (inputTable) grapherState.inputTable = inputTable
+    // The per-entity table below is a full data extract, so it falls under the same
+    // licensing restriction as the CSV and zip downloads.
+    ensureDownloadOfDataAllowed(grapherState)
+
+    // Grapher ignores the country param when entity selection is disabled, so read
+    // it back explicitly; with no country param the chart's own default selection is
+    // what a reader arriving at this URL sees.
+    const requestedEntities = getEntityNamesParam(
+        params.get("country") ?? undefined
+    )
+    const entityNames = (
+        requestedEntities?.length
+            ? requestedEntities
+            : // Snapshot: assembleDataValues reassigns the selection per entity.
+              [...grapherState.selection.selectedEntityNames]
+    ).filter((entityName) =>
+        grapherState.availableEntityNames.includes(entityName)
+    )
+
+    // `constructGrapherValuesJson` reassigns the chart's selection to the one
+    // entity it reports on, which invalidates Grapher's computed chain and
+    // re-runs the transform pipeline over the whole table — 44% of the time
+    // spent assembling this document on a chart with seven selected entities.
+    // The batch form prepares the table once and then does a lookup per entity.
+    // It reads the input table rather than the chart-transformed one, so a chart
+    // whose values are transformed for display keeps the slower path: in
+    // relative mode the table would otherwise print absolutes where the chart
+    // shows percentages.
+    //
+    // Neither form is given the `time` param: initGrapher applied the query
+    // string, so grapherState's bounds are already resolved against the data,
+    // and passing the raw value through would replace those snapped bounds with
+    // an exact lookup and blank out every cell on a series that has no
+    // observation in precisely that year.
+    let valuesByEntity: GrapherValuesJson[]
+    if (entityNames.length === 0) {
+        // A chart with no entity selected — a scatter plot, typically — has no
+        // values block to build, and preparing a table for it is pure cost.
+        valuesByEntity = []
+    } else if (grapherState.isRelativeMode) {
+        valuesByEntity = entityNames.map((entityName) =>
+            assembleDataValues(grapherState, entityName)
+        )
+    } else {
+        const prepared = prepareCalloutTable(grapherState.inputTable, {
+            ...grapherState.object,
+            minTime: grapherState.startTime,
+            maxTime: grapherState.endTime,
+        })
+        valuesByEntity = entityNames.map((entityName) =>
+            constructGrapherValuesJsonFromTable(prepared, entityName)
+        )
+    }
+
+    const markdown = constructPageMarkdown(
+        grapherState,
+        getColumnsForMetadata(grapherState),
+        valuesByEntity,
+        viewSearch
+    )
+    const response = new Response(markdown, {
+        headers: {
+            "Content-Type": "text/markdown; charset=utf-8",
+            "Cache-Control": shouldCache ? "max-age=3600" : "no-cache",
+        },
+    })
+    if (shouldCache)
+        ctx.waitUntil(caches.default.put(cacheKey, response.clone()))
+    return response
 }
 
 export async function fetchDataValuesForGrapher(

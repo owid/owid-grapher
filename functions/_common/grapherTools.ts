@@ -564,6 +564,16 @@ export function rewriteMetaTags(
                 }
             },
         })
+        .on('link[rel="alternate"][type="text/markdown"]', {
+            // The page is baked once, for the default view, so the baked href has no
+            // query. Carry the requested view across, or an agent that follows this
+            // link from a customized URL silently gets the default entities and time.
+            element: (element) => {
+                const href = element.getAttribute("href")
+                if (href && url.search)
+                    element.setAttribute("href", href + url.search)
+            },
+        })
         .on('meta[property="og:url"]', {
             // Replace canonical URL, otherwise the preview image will not include the search parameters.
             element: (element) => {
