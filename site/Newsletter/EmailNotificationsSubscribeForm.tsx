@@ -16,6 +16,16 @@ import {
 } from "./emailNotificationsApi.js"
 import { topicAreasFromSearchParams } from "../search/searchUtils.js"
 import { useNotificationPreferences } from "./useNotificationPreferences.js"
+import { takeSubscribePrefill } from "./subscribePrefill.js"
+import {
+    FOLLOW_TOPICS_CADENCE,
+    FOLLOW_TOPICS_DESCRIPTION,
+    FOLLOW_TOPICS_TITLE,
+    OWID_BRIEF_CADENCE,
+    OWID_BRIEF_DESCRIPTION,
+    OWID_BRIEF_TITLE,
+    PrivacyNotice,
+} from "./newsletterCopy.js"
 
 const analytics = new SiteAnalytics()
 
@@ -88,9 +98,17 @@ export const EmailNotificationsSubscribeForm = ({
     const preferences = useNotificationPreferences(topicAreaNames)
     const { setTopicTags } = preferences
 
-    // The page is baked, so the URL is only known after hydration. The form
-    // isn't kept in sync with the URL afterwards, so drop the param once read.
+    // The page is baked, so the URL and storage are only known after
+    // hydration. The form isn't kept in sync with either afterwards, so both
+    // are consumed once.
     useEffect(() => {
+        const prefill = takeSubscribePrefill()
+        if (prefill) {
+            setEmail(prefill.email)
+            setSubscribeToOwidBrief(prefill.subscribeToOwidBrief)
+            setFollowTopics(true)
+        }
+
         const url = getWindowUrl()
         const topicAreas = topicAreasFromSearchParams(
             new URLSearchParams(url.queryStr),
@@ -156,9 +174,9 @@ export const EmailNotificationsSubscribeForm = ({
             <NewsletterOption
                 id="email-notifications-owid-brief"
                 imageSrc="/images/biweekly-newsletter.webp"
-                title="The OWID Brief"
-                cadence="Twice a month"
-                description="Stay up to date with our latest work plus curated highlights from across Our World in Data, twice a month."
+                title={OWID_BRIEF_TITLE}
+                cadence={OWID_BRIEF_CADENCE}
+                description={OWID_BRIEF_DESCRIPTION}
                 checked={subscribeToOwidBrief}
                 onChange={() => setSubscribeToOwidBrief(!subscribeToOwidBrief)}
             />
@@ -166,9 +184,9 @@ export const EmailNotificationsSubscribeForm = ({
             <NewsletterOption
                 id="email-notifications-follow-topics"
                 imageSrc="/images/data-insights.webp"
-                title="Follow Topics"
-                cadence="Pick your cadence"
-                description="Receive updates on the topics you follow as we publish them."
+                title={FOLLOW_TOPICS_TITLE}
+                cadence={FOLLOW_TOPICS_CADENCE}
+                description={FOLLOW_TOPICS_DESCRIPTION}
                 checked={followTopics}
                 onChange={() => setFollowTopics(!followTopics)}
             />
@@ -201,10 +219,7 @@ export const EmailNotificationsSubscribeForm = ({
                     disabled={subscribe.isPending}
                 />
             </div>
-            <div className="email-notifications-subscribe-form__privacy-notice">
-                By subscribing you are agreeing to the terms of our{" "}
-                <a href="/privacy-policy">privacy policy</a>.
-            </div>
+            <PrivacyNotice className="email-notifications-subscribe-form__privacy-notice" />
         </form>
     )
 }
