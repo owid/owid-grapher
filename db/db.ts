@@ -697,30 +697,43 @@ export const getTopicHierarchiesByChildName = (
     Record<DbPlainTag["name"], Pick<DbPlainTag, "id" | "name" | "slug">[][]>
 > => getTagHierarchiesByChildName(trx, true, flatTagGraphWithRootId)
 
+export type TagHierarchiesByChildName = Record<
+    string,
+    Pick<DbPlainTag, "id" | "name" | "slug">[][]
+>
+
 /**
- * Collapse `getTagHierarchiesByChildName` output into `tag name -> area name`.
- * A tag that sits under several areas resolves to the highest-weight one.
+ * Given multiple tags, find the best tag hierarchy (i.e. the one with the most topic tags)
+ * e.g.
+ * Energy & Environment > Air Pollution > Indoor Air Pollution
+ * is better than
+ * Health > Indoor Air Pollution
+ * This is because we use these tags to power breadcrumbs, where more specific is better.
+ * Thus other usecases (e.g. a page's topic area) need to use the same logic.
  */
-export function topicAreaNamesFromTagHierarchies(
-    tagHierarchiesByChildName: Record<
-        string,
-        Pick<DbPlainTag, "id" | "name" | "slug">[][]
-    >
-): Record<string, string> {
-    const areaNamesByTagName: Record<string, string> = {}
-    for (const [tagName, paths] of Object.entries(tagHierarchiesByChildName)) {
-        const areaName = paths[0]?.[0]?.name
-        if (areaName) areaNamesByTagName[tagName] = areaName
+export function getBestTagHierarchy(
+    tagNames: string[],
+    hierarchies: TagHierarchiesByChildName
+): Pick<DbPlainTag, "id" | "name" | "slug">[] {
+    let bestPath: Pick<DbPlainTag, "id" | "name" | "slug">[] = []
+    let bestTopicCount = -1
+    for (const name of tagNames) {
+        const path = hierarchies[name]?.[0]
+        if (!path?.length) continue
+        const topicCount = path.filter((tag) => tag.slug).length
+        if (topicCount > bestTopicCount) {
+            bestPath = path
+            bestTopicCount = topicCount
+        }
     }
-    return areaNamesByTagName
+    return bestPath
 }
 
-/** `tag name -> area name`, for pages that resolve their area from topic tags alone. */
-export async function getTopicAreaNamesByTagName(
-    trx: KnexReadonlyTransaction
-): Promise<Record<string, string>> {
-    const tagHierarchies = await getTopicHierarchiesByChildName(trx)
-    return topicAreaNamesFromTagHierarchies(tagHierarchies)
+export function getTopicAreaNameForTagNames(
+    tagNames: string[],
+    hierarchies: TagHierarchiesByChildName
+): string | undefined {
+    return getBestTagHierarchy(tagNames, hierarchies)[0]?.name
 }
 
 /** The top-level areas of the tag graph, in `weight DESC, name ASC` order. */
@@ -733,47 +746,8 @@ export async function getTopicAreaNames(
     return (flatTagGraph[__rootId] ?? []).map(({ name }) => name)
 }
 
-/**
- * The first tag that maps to a top-level area wins. A tag with no mapping is
- * skipped rather than suppressing a later one that does map, so pages tagged
- * e.g. `Announcements | Global Health` still resolve to `Global Health`.
- */
-export function getTopicAreaNameForTagNames(
-    tagNames: string[],
-    areaNamesByTagName: Record<string, string>
-): string | undefined {
-    for (const tagName of tagNames) {
-        const areaName = areaNamesByTagName[tagName]
-        if (areaName) return areaName
-    }
-    return undefined
-}
-
-/**
- * Gdoc tags come from a many-to-many table with no ordering column, so sort a
- * copy by name first: the same gdoc must resolve to the same area whether its
- * tags were loaded in bulk (JSON_ARRAYAGG, unspecified order) or one by one.
- */
-export function getTopicAreaNameForGdocTags(
-    tags: { name: string }[],
-    areaNamesByTagName: Record<string, string>
-): string | undefined {
-    const tagNames = tags
-        .map((tag) => tag.name)
-        // `sensitivity: "base"` reports names that differ only by case or
-        // diacritics as equal, which would leave their order down to the
-        // input; fall back to a raw comparison for a total ordering.
-        .sort(
-            (a, b) =>
-                a.localeCompare(b, "en", { sensitivity: "base" }) ||
-                (a < b ? -1 : a > b ? 1 : 0)
-        )
-    return getTopicAreaNameForTagNames(tagNames, areaNamesByTagName)
-}
-
 export interface TopicAreaAssignments {
-    /** tag name -> area name */
-    byTagName: Record<string, string>
+    tagHierarchiesByChildName: TagHierarchiesByChildName
     /** chart id -> area name; see getTopicAreaNamesByChartId */
     byChartId: Record<number, string>
 }
@@ -786,93 +760,70 @@ export async function getTopicAreaAssignments(
     trx: KnexReadonlyTransaction,
     chartIds?: number[]
 ): Promise<TopicAreaAssignments> {
-    const flatTagGraph = await getFlatTagGraph(trx)
-    const byTagName = topicAreaNamesFromTagHierarchies(
-        await getTopicHierarchiesByChildName(trx, flatTagGraph)
-    )
-    const areaNames = await getTopicAreaNames(trx, flatTagGraph)
+    const tagHierarchiesByChildName = await getTagHierarchiesByChildName(trx)
     const byChartId = await getTopicAreaNamesByChartId(
         trx,
-        byTagName,
-        areaNames,
+        tagHierarchiesByChildName,
         chartIds
     )
-    return { byTagName, byChartId }
+    return { tagHierarchiesByChildName, byChartId }
 }
 
-/**
- * `chart id -> area name`, by two routes in order:
- *
- * 1. the first y indicator's authored topic tags (`tags_variables_topic_tags`,
- *    the DB mirror of `presentation.topicTagsLinks`), first tag wins — the
- *    same rule data pages apply to their own indicator;
- * 2. the chart's own `chart_tags`. That table has no ordering column, so
- *    with several tags the candidate areas are ranked by `areaNames` order
- *    (the root's child order, weight DESC then name), the same tie-break
- *    `topicAreaNamesFromTagHierarchies` applies to a tag under several areas.
- *
- * Charts that resolve through neither route are absent from the result.
- */
+/** Resolve from the first y indicator's tags, falling back to chart tags. */
 export async function getTopicAreaNamesByChartId(
     trx: KnexReadonlyTransaction,
-    areaNamesByTagName: Record<string, string>,
-    areaNames: string[],
+    hierarchies: TagHierarchiesByChildName,
     chartIds?: number[]
 ): Promise<Record<number, string>> {
-    if (_.isEmpty(areaNamesByTagName)) return {}
+    if (_.isEmpty(hierarchies)) return {}
     if (chartIds && chartIds.length === 0) return {}
     const chartFilter = chartIds ? "AND chartId IN (:chartIds)" : ""
     const params = chartIds ? { chartIds } : {}
-
     const areaNamesByChartId: Record<number, string> = {}
 
     const indicatorRows = await knexRaw<{
         chartId: number
+        variableId: number
         tagName: string | null
     }>(
         trx,
         `-- sql
-        SELECT cd.chartId, t.name AS tagName
+        SELECT cd.chartId, cd.variableId, t.name AS tagName
         FROM chart_dimensions cd
         LEFT JOIN tags_variables_topic_tags tv ON tv.variableId = cd.variableId
         LEFT JOIN tags t ON t.id = tv.tagId
         WHERE cd.property = 'y' ${chartFilter}
-        -- displayOrder is not unique, so tie-break by tag name and then
-        -- id: the "first tag" picked below must be the same every bake
-        ORDER BY cd.chartId, cd.\`order\`, tv.displayOrder, t.name, tv.tagId`,
+        ORDER BY cd.chartId, cd.\`order\`, cd.id, tv.displayOrder, t.name, tv.tagId`,
         params
     )
-    // Only the first row per chart counts: the first y indicator's first tag.
-    const seenChartIds = new Set<number>()
-    for (const { chartId, tagName } of indicatorRows) {
-        if (seenChartIds.has(chartId)) continue
-        seenChartIds.add(chartId)
-        const areaName = tagName ? areaNamesByTagName[tagName] : undefined
-        if (areaName) areaNamesByChartId[chartId] = areaName
+    for (const rows of Object.values(_.groupBy(indicatorRows, "chartId"))) {
+        const first = rows[0]
+        const tagNames = rows
+            .filter((row) => row.variableId === first.variableId)
+            .flatMap((row) => (row.tagName ? [row.tagName] : []))
+        const areaName = getTopicAreaNameForTagNames(tagNames, hierarchies)
+        if (areaName) areaNamesByChartId[first.chartId] = areaName
     }
 
-    const areaRankByName = new Map(areaNames.map((name, i) => [name, i]))
     const chartTagRows = await knexRaw<{ chartId: number; tagName: string }>(
         trx,
         `-- sql
         SELECT ct.chartId, t.name AS tagName
         FROM chart_tags ct
         JOIN tags t ON t.id = ct.tagId
-        WHERE 1 ${chartFilter}`,
+        WHERE 1 ${chartFilter}
+        ORDER BY ct.chartId, t.name, t.id`,
         params
     )
-    const bestRankByChartId = new Map<number, number>()
-    for (const { chartId, tagName } of chartTagRows) {
+    for (const rows of Object.values(_.groupBy(chartTagRows, "chartId"))) {
+        const chartId = rows[0].chartId
         if (areaNamesByChartId[chartId]) continue
-        const rank = areaRankByName.get(areaNamesByTagName[tagName])
-        if (rank === undefined) continue
-        const best = bestRankByChartId.get(chartId)
-        if (best === undefined || rank < best)
-            bestRankByChartId.set(chartId, rank)
+        const areaName = getTopicAreaNameForTagNames(
+            rows.map((row) => row.tagName),
+            hierarchies
+        )
+        if (areaName) areaNamesByChartId[chartId] = areaName
     }
-    for (const [chartId, rank] of bestRankByChartId)
-        areaNamesByChartId[chartId] = areaNames[rank]
-
     return areaNamesByChartId
 }
 
@@ -883,31 +834,10 @@ export function getBestBreadcrumbs(
         Pick<DbPlainTag, "id" | "name" | "slug">[][]
     >
 ): BreadcrumbItem[] {
-    // For each tag, find the best path according to our criteria
-    // e.g. { "Nuclear Energy ": ["Energy and Environment", "Energy"], "Air Pollution": ["Energy and Environment"] }
-    const result = new Map<number, Pick<DbPlainTag, "id" | "name" | "slug">[]>()
-
-    for (const tag of tags) {
-        const paths = parentTagArraysByChildName[tag.name]
-        if (paths && paths.length > 0) {
-            // Since getFlatTagGraph already orders by weight DESC and name ASC,
-            // the first path in the array will be our best path
-            result.set(tag.id, paths[0])
-        }
-    }
-
-    // Only keep the topics in the paths, because only topics are clickable as breadcrumbs
-    const topicsOnly = result.values().reduce(
-        (acc, path) => {
-            return [...acc, path.filter((tag) => tag.slug)]
-        },
-        [] as Pick<DbPlainTag, "id" | "name" | "slug">[][]
-    )
-
-    // Pick the longest path from result, assuming that the longest path is the best
-    const longestPath = topicsOnly.reduce((best, path) => {
-        return path.length > best.length ? path : best
-    }, [])
+    const longestPath = getBestTagHierarchy(
+        tags.map((tag) => tag.name),
+        parentTagArraysByChildName
+    ).filter((tag) => tag.slug)
 
     const baseUrl = IS_ARCHIVE ? PROD_URL : BAKED_BASE_URL
     const breadcrumbs = longestPath.map((tag) => ({

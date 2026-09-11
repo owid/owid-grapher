@@ -227,7 +227,7 @@ export async function renderDataPageV2(
         datapageData.topicTagsLinks
     )
 
-    const { byTagName, byChartId } =
+    const { tagHierarchiesByChildName, byChartId } =
         topicAreaAssignments ??
         (await getTopicAreaAssignmentsForChart(knex, grapher))
     // The indicator's own topic tags come first: indicator-page previews have
@@ -235,7 +235,7 @@ export async function renderDataPageV2(
     const topicArea =
         db.getTopicAreaNameForTagNames(
             datapageData.topicTagsLinks ?? [],
-            byTagName
+            tagHierarchiesByChildName
         ) ?? (grapher.id !== undefined ? byChartId[grapher.id] : undefined)
 
     let imageMetadata: Record<string, ImageMetadata> = {}
