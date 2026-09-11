@@ -210,6 +210,12 @@ single-use, so failed submissions refresh the challenge before retrying. An
 optional `website` honeypot silently discards filled submissions with the normal
 success response. It is only a supplementary filter, not proof of humanity.
 
+Email-address requests to `/api/email-notifications/request-link` also require
+a `captchaToken` (action `request-link`) before any user lookup or email is sent,
+and use the same optional `website` honeypot. Requests using an existing email
+footer token or expired magic-link token do not require Turnstile; those tokens
+can only request mail for their own address.
+
 Permanent tokens in email footers have intentionally limited authority: they
 can unsubscribe or request a short-lived preferences link, but cannot expose or
 edit preferences directly. Requesting a link for an unknown address produces

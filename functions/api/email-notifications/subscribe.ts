@@ -6,7 +6,7 @@ import {
     mergeEmailNotificationsPreferences,
 } from "@ourworldindata/utils"
 import { EmailNotificationsSubscribeRequestTypeObject } from "@ourworldindata/types/email-notifications-schemas"
-import { validateSubscriptionCaptcha } from "../../_common/subscriptionCaptcha.js"
+import { validateNewsletterCaptcha } from "../../_common/newsletterCaptcha.js"
 import { Env } from "../../_common/env.js"
 import {
     handleJsonError,
@@ -49,7 +49,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
         // Silently discard submissions caught by the honeypot.
         if (data.website) return makeJsonResponse({ ok: true }, 200)
 
-        await validateSubscriptionCaptcha(data.captchaToken, env)
+        await validateNewsletterCaptcha(data.captchaToken, env, "subscribe")
 
         const email = data.email.trim().toLowerCase()
         validateEmailNotificationsDatabase(env)
