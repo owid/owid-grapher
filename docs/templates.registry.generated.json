@@ -1,0 +1,1653 @@
+[
+  {
+    "id": "article",
+    "contentTypeName": "OwidGdocPostContent",
+    "sidecarFile": "packages/@ourworldindata/types/src/gdocTypes/templates/Article.md",
+    "title": "Article",
+    "prose": {
+      "intro": "A standalone piece of writing: our default document type for essays, data\nexplainers and topic deep-dives. Published under `/{slug}`.",
+      "whenToUse": "- Any self-contained narrative piece that is not the entry page of a topic.",
+      "whenNotToUse": "- Prefer `{template:data-insight}` for a short, chart-led observation.\n- Prefer `{template:topic-page}` / `{template:linear-topic-page}` for the entry page of a topic."
+    },
+    "fields": [
+      {
+        "name": "body",
+        "type": "OwidEnrichedGdocBlock[]",
+        "optional": true,
+        "kind": "authored",
+        "description": "The document body: a sequence of ArchieML component blocks. See the components reference for every available block."
+      },
+      {
+        "name": "type",
+        "type": "OwidGdocType.Article | OwidGdocType.TopicPage | OwidGdocType.LinearTopicPage | OwidGdocType.Fragment",
+        "optional": true,
+        "kind": "authored",
+        "description": "The document type; decides the layout and where the document appears on the site."
+      },
+      {
+        "name": "title",
+        "type": "string",
+        "optional": true,
+        "kind": "authored",
+        "description": "The document headline."
+      },
+      {
+        "name": "supertitle",
+        "type": "string",
+        "optional": true,
+        "kind": "authored",
+        "description": "Kicker line shown above the title."
+      },
+      {
+        "name": "subtitle",
+        "type": "string",
+        "optional": true,
+        "kind": "authored",
+        "description": "Standfirst shown below the title."
+      },
+      {
+        "name": "authors",
+        "type": "string[]",
+        "optional": false,
+        "kind": "authored",
+        "description": "Comma-separated author names. Append a role in parentheses to credit a specific contribution — e.g. \"Jane Doe (Editor), John Smith\"."
+      },
+      {
+        "name": "authorRoles",
+        "type": "Record<string, string>",
+        "optional": true,
+        "kind": "computed"
+      },
+      {
+        "name": "dateline",
+        "type": "string",
+        "optional": true,
+        "kind": "authored",
+        "description": "The publication date as displayed under the byline, e.g. \"June 30, 2026\"."
+      },
+      {
+        "name": "excerpt",
+        "type": "string",
+        "optional": true,
+        "kind": "authored",
+        "description": "Short plain-text summary used in cards and link previews."
+      },
+      {
+        "name": "refs",
+        "type": "{ definitions: RefDictionary; errors: OwidGdocErrorMessage[] }",
+        "optional": true,
+        "kind": "authored",
+        "description": "Footnote definitions for ID-based references, authored as a `[.refs]` block of `id:` + `[.+content]` entries. Inline `{ref}…{/ref}` footnotes need no entry here."
+      },
+      {
+        "name": "deprecation-notice",
+        "type": "EnrichedBlockText[]",
+        "optional": true,
+        "kind": "authored",
+        "description": "One or more paragraphs shown in a banner marking the article as outdated, authored as a `[+deprecation-notice]` freeform block of text paragraphs."
+      },
+      {
+        "name": "latest-feed-featured-image",
+        "type": "string",
+        "optional": true,
+        "kind": "authored",
+        "description": "Image filename that overrides `featured-image` on the /latest feed."
+      },
+      {
+        "name": "latest-feed-excerpt",
+        "type": "EnrichedBlockText[]",
+        "optional": true,
+        "kind": "authored",
+        "description": "Rich-text excerpt (formatting and internal links allowed) shown on the /latest feed instead of `excerpt`, authored as a `[+latest-feed-excerpt]` freeform block of text paragraphs."
+      },
+      {
+        "name": "hide-citation",
+        "type": "boolean",
+        "optional": true,
+        "kind": "authored",
+        "description": "Set to true to hide the \"Cite this work\" section at the end of the article."
+      },
+      {
+        "name": "toc",
+        "type": "TocHeadingWithSupertitle[]",
+        "optional": true,
+        "kind": "computed"
+      },
+      {
+        "name": "cover-image",
+        "type": "string",
+        "optional": true,
+        "kind": "authored",
+        "description": "Filename of the full-width image shown behind the header."
+      },
+      {
+        "name": "featured-image",
+        "type": "string",
+        "optional": true,
+        "kind": "authored",
+        "description": "Filename of the image used in cards and social-media previews."
+      },
+      {
+        "name": "atom-title",
+        "type": "string",
+        "optional": true,
+        "kind": "authored",
+        "description": "Title override for the document's atom-feed entry."
+      },
+      {
+        "name": "atom-excerpt",
+        "type": "string",
+        "optional": true,
+        "kind": "authored",
+        "description": "Excerpt override for the document's atom-feed entry."
+      },
+      {
+        "name": "sidebar-toc",
+        "type": "boolean",
+        "optional": true,
+        "kind": "authored",
+        "description": "Set to true to show a table of contents in the sidebar."
+      },
+      {
+        "name": "sidebar-toc-h1-only",
+        "type": "boolean",
+        "optional": true,
+        "kind": "authored",
+        "description": "Set to true to limit the sidebar table of contents to top-level headings."
+      },
+      {
+        "name": "heading-variant",
+        "type": "\"heavy\" | \"light\"",
+        "optional": true,
+        "kind": "authored",
+        "description": "Typography variant for the header: \"heavy\" or \"light\"."
+      },
+      {
+        "name": "hide-subscribe-banner",
+        "type": "boolean",
+        "optional": true,
+        "kind": "authored",
+        "description": "Set to true to hide the subscribe banner."
+      },
+      {
+        "name": "cover-color",
+        "type": "\"sdg-color-1\" | \"sdg-color-2\" | \"sdg-color-3\" | \"sdg-color-4\" | \"sdg-color-5\" | \"sdg-color-6\" | \"sdg-color-7\" | \"sdg-color-8\" | \"sdg-color-9\" | \"sdg-color-10\" | \"sdg-color-11\" | \"sdg-color-12\" | \"sdg-color-13\" | \"sdg-color-14\" | \"sdg-color-15\" | \"sdg-color-16\" | \"sdg-color-17\" | \"amber\"",
+        "optional": true,
+        "kind": "authored",
+        "description": "Named background color of the header area (one of the sdg-color-N values or \"amber\")."
+      },
+      {
+        "name": "sticky-nav",
+        "type": "OwidGdocStickyNavItem[]",
+        "optional": true,
+        "kind": "authored",
+        "description": "Navigation items pinned below the header, authored as a `[.sticky-nav]` array of `target:` (anchor) + `text:` (label) pairs. Only rendered on topic pages, where it's generated automatically from heading patterns unless this array overrides it."
+      },
+      {
+        "name": "details",
+        "type": "DetailDictionary",
+        "optional": true,
+        "kind": "authored",
+        "description": "Details-on-demand dictionary, not authored in the document — it is merged in at render/bake time from the `dods` database table, edited at /admin/dods."
+      },
+      {
+        "name": "faqs",
+        "type": "RawFaq[]",
+        "optional": true,
+        "kind": "authored",
+        "description": "FAQ content consumed by data pages, authored in FAQ fragments."
+      },
+      {
+        "name": "parsedFaqs",
+        "type": "FaqDictionary",
+        "optional": true,
+        "kind": "computed"
+      }
+    ],
+    "adminManagedFields": [
+      "slug",
+      "published",
+      "publishedAt",
+      "publicationContext",
+      "manualBreadcrumbs",
+      "tags"
+    ],
+    "skeleton": [
+      {
+        "name": "Opening",
+        "description": "One to three plain paragraphs stating the key message — no heading, no chart. The first paragraph doubles as what readers see in previews.",
+        "components": [
+          "text"
+        ]
+      },
+      {
+        "name": "Sections",
+        "description": "Each section opens with a level-1 heading and mixes prose with the evidence for it — usually a chart every few paragraphs. Callouts flag caveats or data notes; sticky-right pairs a discussion with a chart that stays on screen.",
+        "components": [
+          "heading",
+          "text",
+          "chart",
+          "callout",
+          "sticky-right",
+          "image",
+          "list"
+        ],
+        "repeats": true
+      },
+      {
+        "name": "Endnotes",
+        "description": "Optional closing matter — links to related work (prominent-link or recirc) and acknowledgements, often set off by a horizontal rule.",
+        "components": [
+          "horizontal-rule",
+          "prominent-link",
+          "recirc"
+        ]
+      }
+    ],
+    "exemplars": [
+      "us-crime-rates",
+      "slavery"
+    ]
+  },
+  {
+    "id": "topic-page",
+    "contentTypeName": "OwidGdocPostContent",
+    "sidecarFile": "packages/@ourworldindata/types/src/gdocTypes/templates/TopicPage.md",
+    "title": "Topic Page",
+    "prose": {
+      "intro": "The entry page for a topic: a modular page that opens with a\n`{.topic-page-intro}` block and typically composes key insights, featured\nmetrics and an `{.all-charts}` section. Published under `/{slug}`.",
+      "whenToUse": "- The canonical landing page for a topic in the site navigation.",
+      "whenNotToUse": "- Prefer `{template:linear-topic-page}` when the topic reads as one continuous essay.\n- Prefer `{template:article}` for standalone pieces within a topic."
+    },
+    "fields": [
+      {
+        "name": "body",
+        "type": "OwidEnrichedGdocBlock[]",
+        "optional": true,
+        "kind": "authored",
+        "description": "The document body: a sequence of ArchieML component blocks. See the components reference for every available block."
+      },
+      {
+        "name": "type",
+        "type": "OwidGdocType.Article | OwidGdocType.TopicPage | OwidGdocType.LinearTopicPage | OwidGdocType.Fragment",
+        "optional": true,
+        "kind": "authored",
+        "description": "The document type; decides the layout and where the document appears on the site."
+      },
+      {
+        "name": "title",
+        "type": "string",
+        "optional": true,
+        "kind": "authored",
+        "description": "The document headline."
+      },
+      {
+        "name": "supertitle",
+        "type": "string",
+        "optional": true,
+        "kind": "authored",
+        "description": "Kicker line shown above the title."
+      },
+      {
+        "name": "subtitle",
+        "type": "string",
+        "optional": true,
+        "kind": "authored",
+        "description": "Standfirst shown below the title."
+      },
+      {
+        "name": "authors",
+        "type": "string[]",
+        "optional": false,
+        "kind": "authored",
+        "description": "Comma-separated author names. Append a role in parentheses to credit a specific contribution — e.g. \"Jane Doe (Editor), John Smith\"."
+      },
+      {
+        "name": "authorRoles",
+        "type": "Record<string, string>",
+        "optional": true,
+        "kind": "computed"
+      },
+      {
+        "name": "dateline",
+        "type": "string",
+        "optional": true,
+        "kind": "authored",
+        "description": "The publication date as displayed under the byline, e.g. \"June 30, 2026\"."
+      },
+      {
+        "name": "excerpt",
+        "type": "string",
+        "optional": true,
+        "kind": "authored",
+        "description": "Short plain-text summary used in cards and link previews."
+      },
+      {
+        "name": "refs",
+        "type": "{ definitions: RefDictionary; errors: OwidGdocErrorMessage[] }",
+        "optional": true,
+        "kind": "authored",
+        "description": "Footnote definitions for ID-based references, authored as a `[.refs]` block of `id:` + `[.+content]` entries. Inline `{ref}…{/ref}` footnotes need no entry here."
+      },
+      {
+        "name": "deprecation-notice",
+        "type": "EnrichedBlockText[]",
+        "optional": true,
+        "kind": "authored",
+        "description": "One or more paragraphs shown in a banner marking the article as outdated, authored as a `[+deprecation-notice]` freeform block of text paragraphs."
+      },
+      {
+        "name": "latest-feed-featured-image",
+        "type": "string",
+        "optional": true,
+        "kind": "authored",
+        "description": "Image filename that overrides `featured-image` on the /latest feed."
+      },
+      {
+        "name": "latest-feed-excerpt",
+        "type": "EnrichedBlockText[]",
+        "optional": true,
+        "kind": "authored",
+        "description": "Rich-text excerpt (formatting and internal links allowed) shown on the /latest feed instead of `excerpt`, authored as a `[+latest-feed-excerpt]` freeform block of text paragraphs."
+      },
+      {
+        "name": "hide-citation",
+        "type": "boolean",
+        "optional": true,
+        "kind": "authored",
+        "description": "Set to true to hide the \"Cite this work\" section at the end of the article."
+      },
+      {
+        "name": "toc",
+        "type": "TocHeadingWithSupertitle[]",
+        "optional": true,
+        "kind": "computed"
+      },
+      {
+        "name": "cover-image",
+        "type": "string",
+        "optional": true,
+        "kind": "authored",
+        "description": "Filename of the full-width image shown behind the header."
+      },
+      {
+        "name": "featured-image",
+        "type": "string",
+        "optional": true,
+        "kind": "authored",
+        "description": "Filename of the image used in cards and social-media previews."
+      },
+      {
+        "name": "atom-title",
+        "type": "string",
+        "optional": true,
+        "kind": "authored",
+        "description": "Title override for the document's atom-feed entry."
+      },
+      {
+        "name": "atom-excerpt",
+        "type": "string",
+        "optional": true,
+        "kind": "authored",
+        "description": "Excerpt override for the document's atom-feed entry."
+      },
+      {
+        "name": "sidebar-toc",
+        "type": "boolean",
+        "optional": true,
+        "kind": "authored",
+        "description": "Set to true to show a table of contents in the sidebar."
+      },
+      {
+        "name": "sidebar-toc-h1-only",
+        "type": "boolean",
+        "optional": true,
+        "kind": "authored",
+        "description": "Set to true to limit the sidebar table of contents to top-level headings."
+      },
+      {
+        "name": "heading-variant",
+        "type": "\"heavy\" | \"light\"",
+        "optional": true,
+        "kind": "authored",
+        "description": "Typography variant for the header: \"heavy\" or \"light\"."
+      },
+      {
+        "name": "hide-subscribe-banner",
+        "type": "boolean",
+        "optional": true,
+        "kind": "authored",
+        "description": "Set to true to hide the subscribe banner."
+      },
+      {
+        "name": "cover-color",
+        "type": "\"sdg-color-1\" | \"sdg-color-2\" | \"sdg-color-3\" | \"sdg-color-4\" | \"sdg-color-5\" | \"sdg-color-6\" | \"sdg-color-7\" | \"sdg-color-8\" | \"sdg-color-9\" | \"sdg-color-10\" | \"sdg-color-11\" | \"sdg-color-12\" | \"sdg-color-13\" | \"sdg-color-14\" | \"sdg-color-15\" | \"sdg-color-16\" | \"sdg-color-17\" | \"amber\"",
+        "optional": true,
+        "kind": "authored",
+        "description": "Named background color of the header area (one of the sdg-color-N values or \"amber\")."
+      },
+      {
+        "name": "sticky-nav",
+        "type": "OwidGdocStickyNavItem[]",
+        "optional": true,
+        "kind": "authored",
+        "description": "Navigation items pinned below the header, authored as a `[.sticky-nav]` array of `target:` (anchor) + `text:` (label) pairs. Only rendered on topic pages, where it's generated automatically from heading patterns unless this array overrides it."
+      },
+      {
+        "name": "details",
+        "type": "DetailDictionary",
+        "optional": true,
+        "kind": "authored",
+        "description": "Details-on-demand dictionary, not authored in the document — it is merged in at render/bake time from the `dods` database table, edited at /admin/dods."
+      },
+      {
+        "name": "faqs",
+        "type": "RawFaq[]",
+        "optional": true,
+        "kind": "authored",
+        "description": "FAQ content consumed by data pages, authored in FAQ fragments."
+      },
+      {
+        "name": "parsedFaqs",
+        "type": "FaqDictionary",
+        "optional": true,
+        "kind": "computed"
+      }
+    ],
+    "adminManagedFields": [
+      "slug",
+      "published",
+      "publishedAt",
+      "publicationContext",
+      "manualBreadcrumbs",
+      "tags"
+    ],
+    "skeleton": [
+      {
+        "name": "Intro",
+        "description": "A topic-page-intro block — a few paragraphs on why the topic matters, with related topics and download links alongside. Every published topic page opens with one.",
+        "components": [
+          "topic-page-intro"
+        ]
+      },
+      {
+        "name": "Key insights",
+        "description": "A key-insights slider — one slide per takeaway, each pairing a heading with a chart and a short discussion.",
+        "components": [
+          "key-insights"
+        ]
+      },
+      {
+        "name": "Research & writing",
+        "description": "The research-and-writing grid collecting our articles on the topic.",
+        "components": [
+          "research-and-writing"
+        ]
+      },
+      {
+        "name": "All charts",
+        "description": "The all-charts block — the complete gallery of the topic's interactive charts, generated from the page's topic tag. Nearly every published topic page ends with it.",
+        "components": [
+          "all-charts"
+        ]
+      }
+    ],
+    "exemplars": [
+      "fertility-rate"
+    ]
+  },
+  {
+    "id": "linear-topic-page",
+    "contentTypeName": "OwidGdocPostContent",
+    "sidecarFile": "packages/@ourworldindata/types/src/gdocTypes/templates/LinearTopicPage.md",
+    "title": "Linear Topic Page",
+    "prose": {
+      "intro": "A topic entry page that reads as one continuous essay rather than a modular\ngrid. Unlike `{template:topic-page}`, it gets no sticky nav — the site only renders\none for `type: topic-page`, so an authored `{guide:sticky-nav}` here has no\neffect. Published under `/{slug}`.",
+      "whenToUse": "- A topic whose content is best presented as a single narrative flow.",
+      "whenNotToUse": "- Prefer `{template:topic-page}` for modular topic pages composed of self-contained\n  sections."
+    },
+    "fields": [
+      {
+        "name": "body",
+        "type": "OwidEnrichedGdocBlock[]",
+        "optional": true,
+        "kind": "authored",
+        "description": "The document body: a sequence of ArchieML component blocks. See the components reference for every available block."
+      },
+      {
+        "name": "type",
+        "type": "OwidGdocType.Article | OwidGdocType.TopicPage | OwidGdocType.LinearTopicPage | OwidGdocType.Fragment",
+        "optional": true,
+        "kind": "authored",
+        "description": "The document type; decides the layout and where the document appears on the site."
+      },
+      {
+        "name": "title",
+        "type": "string",
+        "optional": true,
+        "kind": "authored",
+        "description": "The document headline."
+      },
+      {
+        "name": "supertitle",
+        "type": "string",
+        "optional": true,
+        "kind": "authored",
+        "description": "Kicker line shown above the title."
+      },
+      {
+        "name": "subtitle",
+        "type": "string",
+        "optional": true,
+        "kind": "authored",
+        "description": "Standfirst shown below the title."
+      },
+      {
+        "name": "authors",
+        "type": "string[]",
+        "optional": false,
+        "kind": "authored",
+        "description": "Comma-separated author names. Append a role in parentheses to credit a specific contribution — e.g. \"Jane Doe (Editor), John Smith\"."
+      },
+      {
+        "name": "authorRoles",
+        "type": "Record<string, string>",
+        "optional": true,
+        "kind": "computed"
+      },
+      {
+        "name": "dateline",
+        "type": "string",
+        "optional": true,
+        "kind": "authored",
+        "description": "The publication date as displayed under the byline, e.g. \"June 30, 2026\"."
+      },
+      {
+        "name": "excerpt",
+        "type": "string",
+        "optional": true,
+        "kind": "authored",
+        "description": "Short plain-text summary used in cards and link previews."
+      },
+      {
+        "name": "refs",
+        "type": "{ definitions: RefDictionary; errors: OwidGdocErrorMessage[] }",
+        "optional": true,
+        "kind": "authored",
+        "description": "Footnote definitions for ID-based references, authored as a `[.refs]` block of `id:` + `[.+content]` entries. Inline `{ref}…{/ref}` footnotes need no entry here."
+      },
+      {
+        "name": "deprecation-notice",
+        "type": "EnrichedBlockText[]",
+        "optional": true,
+        "kind": "authored",
+        "description": "One or more paragraphs shown in a banner marking the article as outdated, authored as a `[+deprecation-notice]` freeform block of text paragraphs."
+      },
+      {
+        "name": "latest-feed-featured-image",
+        "type": "string",
+        "optional": true,
+        "kind": "authored",
+        "description": "Image filename that overrides `featured-image` on the /latest feed."
+      },
+      {
+        "name": "latest-feed-excerpt",
+        "type": "EnrichedBlockText[]",
+        "optional": true,
+        "kind": "authored",
+        "description": "Rich-text excerpt (formatting and internal links allowed) shown on the /latest feed instead of `excerpt`, authored as a `[+latest-feed-excerpt]` freeform block of text paragraphs."
+      },
+      {
+        "name": "hide-citation",
+        "type": "boolean",
+        "optional": true,
+        "kind": "authored",
+        "description": "Set to true to hide the \"Cite this work\" section at the end of the article."
+      },
+      {
+        "name": "toc",
+        "type": "TocHeadingWithSupertitle[]",
+        "optional": true,
+        "kind": "computed"
+      },
+      {
+        "name": "cover-image",
+        "type": "string",
+        "optional": true,
+        "kind": "authored",
+        "description": "Filename of the full-width image shown behind the header."
+      },
+      {
+        "name": "featured-image",
+        "type": "string",
+        "optional": true,
+        "kind": "authored",
+        "description": "Filename of the image used in cards and social-media previews."
+      },
+      {
+        "name": "atom-title",
+        "type": "string",
+        "optional": true,
+        "kind": "authored",
+        "description": "Title override for the document's atom-feed entry."
+      },
+      {
+        "name": "atom-excerpt",
+        "type": "string",
+        "optional": true,
+        "kind": "authored",
+        "description": "Excerpt override for the document's atom-feed entry."
+      },
+      {
+        "name": "sidebar-toc",
+        "type": "boolean",
+        "optional": true,
+        "kind": "authored",
+        "description": "Set to true to show a table of contents in the sidebar."
+      },
+      {
+        "name": "sidebar-toc-h1-only",
+        "type": "boolean",
+        "optional": true,
+        "kind": "authored",
+        "description": "Set to true to limit the sidebar table of contents to top-level headings."
+      },
+      {
+        "name": "heading-variant",
+        "type": "\"heavy\" | \"light\"",
+        "optional": true,
+        "kind": "authored",
+        "description": "Typography variant for the header: \"heavy\" or \"light\"."
+      },
+      {
+        "name": "hide-subscribe-banner",
+        "type": "boolean",
+        "optional": true,
+        "kind": "authored",
+        "description": "Set to true to hide the subscribe banner."
+      },
+      {
+        "name": "cover-color",
+        "type": "\"sdg-color-1\" | \"sdg-color-2\" | \"sdg-color-3\" | \"sdg-color-4\" | \"sdg-color-5\" | \"sdg-color-6\" | \"sdg-color-7\" | \"sdg-color-8\" | \"sdg-color-9\" | \"sdg-color-10\" | \"sdg-color-11\" | \"sdg-color-12\" | \"sdg-color-13\" | \"sdg-color-14\" | \"sdg-color-15\" | \"sdg-color-16\" | \"sdg-color-17\" | \"amber\"",
+        "optional": true,
+        "kind": "authored",
+        "description": "Named background color of the header area (one of the sdg-color-N values or \"amber\")."
+      },
+      {
+        "name": "sticky-nav",
+        "type": "OwidGdocStickyNavItem[]",
+        "optional": true,
+        "kind": "authored",
+        "description": "Navigation items pinned below the header, authored as a `[.sticky-nav]` array of `target:` (anchor) + `text:` (label) pairs. Only rendered on topic pages, where it's generated automatically from heading patterns unless this array overrides it."
+      },
+      {
+        "name": "details",
+        "type": "DetailDictionary",
+        "optional": true,
+        "kind": "authored",
+        "description": "Details-on-demand dictionary, not authored in the document — it is merged in at render/bake time from the `dods` database table, edited at /admin/dods."
+      },
+      {
+        "name": "faqs",
+        "type": "RawFaq[]",
+        "optional": true,
+        "kind": "authored",
+        "description": "FAQ content consumed by data pages, authored in FAQ fragments."
+      },
+      {
+        "name": "parsedFaqs",
+        "type": "FaqDictionary",
+        "optional": true,
+        "kind": "computed"
+      }
+    ],
+    "adminManagedFields": [
+      "slug",
+      "published",
+      "publishedAt",
+      "publicationContext",
+      "manualBreadcrumbs",
+      "tags"
+    ],
+    "skeleton": [
+      {
+        "name": "Opening",
+        "description": "A short untitled introduction, often followed by featured-metrics or an ltp-toc when the page is long.",
+        "components": [
+          "text",
+          "featured-metrics",
+          "ltp-toc"
+        ]
+      },
+      {
+        "name": "Sections",
+        "description": "Level-1 headings open each section, which reads as essay prose with the topic's charts woven in.",
+        "components": [
+          "heading",
+          "text",
+          "chart",
+          "image",
+          "list",
+          "all-charts"
+        ],
+        "repeats": true
+      },
+      {
+        "name": "Closing",
+        "description": "Optional endmatter — an explore-data-section pointing at the topic's explorer, related reading via recirc or prominent links.",
+        "components": [
+          "explore-data-section",
+          "recirc",
+          "prominent-link"
+        ]
+      }
+    ],
+    "exemplars": [
+      "religion"
+    ]
+  },
+  {
+    "id": "fragment",
+    "contentTypeName": "OwidGdocPostContent",
+    "sidecarFile": "packages/@ourworldindata/types/src/gdocTypes/templates/Fragment.md",
+    "title": "Fragment",
+    "prose": {
+      "intro": "Reusable content that is not published as a standalone page: fragments hold\nshared material other documents pull in — most commonly the details-on-demand\ndictionary and the FAQ content used by data pages.",
+      "whenToUse": "- Content referenced from other documents or systems rather than read in\n  place.",
+      "notes": "## Limitations\n\n- Most existing fragments are built around the `details` and `faqs`\n  front-matter structures rather than a body — see the field descriptions\n  for how each is consumed."
+    },
+    "fields": [
+      {
+        "name": "body",
+        "type": "OwidEnrichedGdocBlock[]",
+        "optional": true,
+        "kind": "authored",
+        "description": "The document body: a sequence of ArchieML component blocks. See the components reference for every available block."
+      },
+      {
+        "name": "type",
+        "type": "OwidGdocType.Article | OwidGdocType.TopicPage | OwidGdocType.LinearTopicPage | OwidGdocType.Fragment",
+        "optional": true,
+        "kind": "authored",
+        "description": "The document type; decides the layout and where the document appears on the site."
+      },
+      {
+        "name": "title",
+        "type": "string",
+        "optional": true,
+        "kind": "authored",
+        "description": "The document headline."
+      },
+      {
+        "name": "supertitle",
+        "type": "string",
+        "optional": true,
+        "kind": "authored",
+        "description": "Kicker line shown above the title."
+      },
+      {
+        "name": "subtitle",
+        "type": "string",
+        "optional": true,
+        "kind": "authored",
+        "description": "Standfirst shown below the title."
+      },
+      {
+        "name": "authors",
+        "type": "string[]",
+        "optional": false,
+        "kind": "authored",
+        "description": "Comma-separated author names. Append a role in parentheses to credit a specific contribution — e.g. \"Jane Doe (Editor), John Smith\"."
+      },
+      {
+        "name": "authorRoles",
+        "type": "Record<string, string>",
+        "optional": true,
+        "kind": "computed"
+      },
+      {
+        "name": "dateline",
+        "type": "string",
+        "optional": true,
+        "kind": "authored",
+        "description": "The publication date as displayed under the byline, e.g. \"June 30, 2026\"."
+      },
+      {
+        "name": "excerpt",
+        "type": "string",
+        "optional": true,
+        "kind": "authored",
+        "description": "Short plain-text summary used in cards and link previews."
+      },
+      {
+        "name": "refs",
+        "type": "{ definitions: RefDictionary; errors: OwidGdocErrorMessage[] }",
+        "optional": true,
+        "kind": "authored",
+        "description": "Footnote definitions for ID-based references, authored as a `[.refs]` block of `id:` + `[.+content]` entries. Inline `{ref}…{/ref}` footnotes need no entry here."
+      },
+      {
+        "name": "deprecation-notice",
+        "type": "EnrichedBlockText[]",
+        "optional": true,
+        "kind": "authored",
+        "description": "One or more paragraphs shown in a banner marking the article as outdated, authored as a `[+deprecation-notice]` freeform block of text paragraphs."
+      },
+      {
+        "name": "latest-feed-featured-image",
+        "type": "string",
+        "optional": true,
+        "kind": "authored",
+        "description": "Image filename that overrides `featured-image` on the /latest feed."
+      },
+      {
+        "name": "latest-feed-excerpt",
+        "type": "EnrichedBlockText[]",
+        "optional": true,
+        "kind": "authored",
+        "description": "Rich-text excerpt (formatting and internal links allowed) shown on the /latest feed instead of `excerpt`, authored as a `[+latest-feed-excerpt]` freeform block of text paragraphs."
+      },
+      {
+        "name": "hide-citation",
+        "type": "boolean",
+        "optional": true,
+        "kind": "authored",
+        "description": "Set to true to hide the \"Cite this work\" section at the end of the article."
+      },
+      {
+        "name": "toc",
+        "type": "TocHeadingWithSupertitle[]",
+        "optional": true,
+        "kind": "computed"
+      },
+      {
+        "name": "cover-image",
+        "type": "string",
+        "optional": true,
+        "kind": "authored",
+        "description": "Filename of the full-width image shown behind the header."
+      },
+      {
+        "name": "featured-image",
+        "type": "string",
+        "optional": true,
+        "kind": "authored",
+        "description": "Filename of the image used in cards and social-media previews."
+      },
+      {
+        "name": "atom-title",
+        "type": "string",
+        "optional": true,
+        "kind": "authored",
+        "description": "Title override for the document's atom-feed entry."
+      },
+      {
+        "name": "atom-excerpt",
+        "type": "string",
+        "optional": true,
+        "kind": "authored",
+        "description": "Excerpt override for the document's atom-feed entry."
+      },
+      {
+        "name": "sidebar-toc",
+        "type": "boolean",
+        "optional": true,
+        "kind": "authored",
+        "description": "Set to true to show a table of contents in the sidebar."
+      },
+      {
+        "name": "sidebar-toc-h1-only",
+        "type": "boolean",
+        "optional": true,
+        "kind": "authored",
+        "description": "Set to true to limit the sidebar table of contents to top-level headings."
+      },
+      {
+        "name": "heading-variant",
+        "type": "\"heavy\" | \"light\"",
+        "optional": true,
+        "kind": "authored",
+        "description": "Typography variant for the header: \"heavy\" or \"light\"."
+      },
+      {
+        "name": "hide-subscribe-banner",
+        "type": "boolean",
+        "optional": true,
+        "kind": "authored",
+        "description": "Set to true to hide the subscribe banner."
+      },
+      {
+        "name": "cover-color",
+        "type": "\"sdg-color-1\" | \"sdg-color-2\" | \"sdg-color-3\" | \"sdg-color-4\" | \"sdg-color-5\" | \"sdg-color-6\" | \"sdg-color-7\" | \"sdg-color-8\" | \"sdg-color-9\" | \"sdg-color-10\" | \"sdg-color-11\" | \"sdg-color-12\" | \"sdg-color-13\" | \"sdg-color-14\" | \"sdg-color-15\" | \"sdg-color-16\" | \"sdg-color-17\" | \"amber\"",
+        "optional": true,
+        "kind": "authored",
+        "description": "Named background color of the header area (one of the sdg-color-N values or \"amber\")."
+      },
+      {
+        "name": "sticky-nav",
+        "type": "OwidGdocStickyNavItem[]",
+        "optional": true,
+        "kind": "authored",
+        "description": "Navigation items pinned below the header, authored as a `[.sticky-nav]` array of `target:` (anchor) + `text:` (label) pairs. Only rendered on topic pages, where it's generated automatically from heading patterns unless this array overrides it."
+      },
+      {
+        "name": "details",
+        "type": "DetailDictionary",
+        "optional": true,
+        "kind": "authored",
+        "description": "Details-on-demand dictionary, not authored in the document — it is merged in at render/bake time from the `dods` database table, edited at /admin/dods."
+      },
+      {
+        "name": "faqs",
+        "type": "RawFaq[]",
+        "optional": true,
+        "kind": "authored",
+        "description": "FAQ content consumed by data pages, authored in FAQ fragments."
+      },
+      {
+        "name": "parsedFaqs",
+        "type": "FaqDictionary",
+        "optional": true,
+        "kind": "computed"
+      }
+    ],
+    "adminManagedFields": [
+      "slug",
+      "published",
+      "publishedAt",
+      "publicationContext",
+      "manualBreadcrumbs",
+      "tags"
+    ],
+    "skeleton": [
+      {
+        "name": "The shared content",
+        "description": "Freeform body — prose and headings shaped by whatever the consuming documents need. Fragments have no canonical structure of their own.",
+        "components": [
+          "text",
+          "heading"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "data-insight",
+    "contentTypeName": "OwidGdocDataInsightContent",
+    "sidecarFile": "packages/@ourworldindata/types/src/gdocTypes/templates/DataInsight.md",
+    "title": "Data Insight",
+    "prose": {
+      "intro": "A short, chart-led observation: a single static image or chart and a few\nparagraphs making one point. Published in the data-insights feed under\n`/data-insights/{slug}`.",
+      "whenToUse": "- One interesting pattern in the data, explained in a few hundred words.",
+      "whenNotToUse": "- Prefer `{template:article}` when the piece needs sections, multiple charts, or a\n  narrative arc.",
+      "notes": "## Variations\n\n- Set `grapher-url` when the insight is based on a live grapher chart,\n  `narrative-chart:` when it is based on a narrative chart, and `figma-url`\n  to point at the Figma file for the static image."
+    },
+    "fields": [
+      {
+        "name": "title",
+        "type": "string",
+        "optional": false,
+        "kind": "authored",
+        "description": "The insight headline."
+      },
+      {
+        "name": "authors",
+        "type": "string[]",
+        "optional": false,
+        "kind": "authored",
+        "description": "Comma-separated author names. Append a role in parentheses to credit a specific contribution — e.g. \"Jane Doe (Editor)\"."
+      },
+      {
+        "name": "authorRoles",
+        "type": "Record<string, string>",
+        "optional": true,
+        "kind": "computed"
+      },
+      {
+        "name": "narrative-chart",
+        "type": "string",
+        "optional": true,
+        "kind": "authored",
+        "description": "Name of the narrative chart the insight is based on."
+      },
+      {
+        "name": "grapher-url",
+        "type": "string",
+        "optional": true,
+        "kind": "authored",
+        "description": "URL of the grapher chart the insight is based on."
+      },
+      {
+        "name": "figma-url",
+        "type": "string",
+        "optional": true,
+        "kind": "authored",
+        "description": "URL of the Figma file holding the insight's static image."
+      },
+      {
+        "name": "body",
+        "type": "OwidEnrichedGdocBlock[]",
+        "optional": false,
+        "kind": "authored",
+        "description": "The insight body: typically one image and a handful of short text paragraphs."
+      },
+      {
+        "name": "type",
+        "type": "OwidGdocType.DataInsight",
+        "optional": false,
+        "kind": "authored",
+        "description": "Always \"data-insight\"."
+      }
+    ],
+    "adminManagedFields": [
+      "slug",
+      "published",
+      "publishedAt",
+      "publicationContext",
+      "manualBreadcrumbs",
+      "tags"
+    ],
+    "skeleton": [
+      {
+        "name": "The image",
+        "description": "One static chart image — the insight is the chart. The title above it states the finding, not the topic.",
+        "components": [
+          "image"
+        ]
+      },
+      {
+        "name": "The point",
+        "description": "Two to four short paragraphs explaining the single pattern the chart shows. Nearly every published data insight is exactly this — image plus prose, nothing else.",
+        "components": [
+          "text"
+        ]
+      },
+      {
+        "name": "Call to action",
+        "description": "Optional closing cta linking to the interactive chart or the related topic page.",
+        "components": [
+          "cta"
+        ]
+      }
+    ],
+    "exemplars": [
+      "the-median-age-in-china-has-rapidly-caught-up-with-the-united-kingdom"
+    ]
+  },
+  {
+    "id": "announcement",
+    "contentTypeName": "OwidGdocAnnouncementContent",
+    "sidecarFile": "packages/@ourworldindata/types/src/gdocTypes/templates/Announcement.md",
+    "title": "Announcement",
+    "prose": {
+      "intro": "A short site-news item: a data update, website upgrade, or organizational\nannouncement, published in the `/latest` feed under `/latest/{slug}` and\ncategorized there by its kicker.",
+      "whenToUse": "- Telling readers something changed on the site: refreshed data, a new\n  feature, or news about the team or organization.",
+      "whenNotToUse": "- Prefer `{template:data-insight}` for a chart-led observation about the data itself —\n  an announcement points at what changed, it does not explain a pattern.\n- Prefer `{template:article}` for any standalone narrative piece."
+    },
+    "fields": [
+      {
+        "name": "title",
+        "type": "string",
+        "optional": false,
+        "kind": "authored",
+        "description": "The announcement headline, stating the news directly — e.g. \"Explore updated data on prison populations worldwide\"."
+      },
+      {
+        "name": "excerpt",
+        "type": "string",
+        "optional": false,
+        "kind": "authored",
+        "description": "One sentence summarizing the news, shown in the /latest feed and in link previews."
+      },
+      {
+        "name": "authors",
+        "type": "string[]",
+        "optional": false,
+        "kind": "authored",
+        "description": "Comma-separated author names. Append a role in parentheses to credit a specific contribution — e.g. \"Jane Doe (Editor)\"."
+      },
+      {
+        "name": "authorRoles",
+        "type": "Record<string, string>",
+        "optional": true,
+        "kind": "computed"
+      },
+      {
+        "name": "featured-image",
+        "type": "string",
+        "optional": true,
+        "kind": "authored",
+        "description": "Filename of the image used in link previews. Published announcements rarely set one — the image in the body serves that role."
+      },
+      {
+        "name": "kicker",
+        "type": "string",
+        "optional": true,
+        "kind": "authored",
+        "description": "Short category label shown above the headline — \"Data update\", \"Topic update\", \"Website upgrade\", or \"Announcement\". Its slugified form buckets the announcement on /latest; unrecognized values are rejected at publish time."
+      },
+      {
+        "name": "body",
+        "type": "OwidEnrichedGdocBlock[]",
+        "optional": false,
+        "kind": "authored",
+        "description": "The announcement body: a few short paragraphs, usually a closing call to action, and often one image."
+      },
+      {
+        "name": "type",
+        "type": "OwidGdocType.Announcement",
+        "optional": false,
+        "kind": "authored",
+        "description": "Always \"announcement\"."
+      }
+    ],
+    "adminManagedFields": [
+      "slug",
+      "published",
+      "publishedAt",
+      "publicationContext",
+      "manualBreadcrumbs",
+      "tags"
+    ],
+    "skeleton": [
+      {
+        "name": "The news",
+        "description": "Two to five short paragraphs stating what changed and why it matters — a data update, a new feature, or organizational news. Nearly every published announcement is just prose at this length.",
+        "components": [
+          "text"
+        ]
+      },
+      {
+        "name": "Call to action",
+        "description": "One cta linking to the thing being announced — the updated charts, the new page, the external coverage. Almost every published announcement closes with one.",
+        "components": [
+          "cta"
+        ]
+      },
+      {
+        "name": "The image",
+        "description": "Optional single supporting image, usually wide with an outline — most commonly a screenshot of the updated chart or feature.",
+        "components": [
+          "image"
+        ]
+      }
+    ],
+    "exemplars": [
+      "explore-updated-data-on-prison-populations-worldwide",
+      "hannah-ritchie-is-one-of-six-authors-shortlisted-for-the-2026-unwin-award"
+    ]
+  },
+  {
+    "id": "author",
+    "contentTypeName": "OwidGdocAuthorContent",
+    "sidecarFile": "packages/@ourworldindata/types/src/gdocTypes/templates/Author.md",
+    "title": "Author",
+    "prose": {
+      "intro": "A profile page where an author showcases their work, generated from front\nmatter (name, role, bio, photo, socials) plus a body that follows one of\ntwo layouts, chosen by how the author mostly contributes to the site.",
+      "whenToUse": "- Every author with a byline on the site gets one, so their name links to\n  a page collecting their work.",
+      "whenNotToUse": "- Not for one-off contributors — reserve it for people with an ongoing\n  publishing role.",
+      "notes": "The `title` field doubles as the lookup key for \"Latest work\": it must\nmatch the author's name exactly as spelled in the `authors` field of\ntheir articles.\n\n## Variations\n\nAuthors whose work is mostly topic pages use a single-section \"topic\nfocus\" layout instead of the two sections above: one `{.research-and-writing}`\nblock titled \"All work\", secondary links only (no primary section, no\nautomatic latest section, no data insights), kept up to date by hand\nfrom `/admin/api/all-work?author=<name>`. Topic pages belong here — the\nno-topics rule applies only to the article-focus \"Featured work\" block\nabove, which lists topic pills instead."
+    },
+    "fields": [
+      {
+        "name": "type",
+        "type": "OwidGdocType.Author",
+        "optional": false,
+        "kind": "authored",
+        "description": "The document type; decides the layout and where the document appears on the site."
+      },
+      {
+        "name": "title",
+        "type": "string",
+        "optional": true,
+        "kind": "authored",
+        "description": "The author's name exactly as it's spelled in the `authors` field of their articles — used to filter and populate the \"Latest work\" section of the `{.research-and-writing}` block below."
+      },
+      {
+        "name": "role",
+        "type": "string",
+        "optional": false,
+        "kind": "authored",
+        "description": "The author's role, shown under their name."
+      },
+      {
+        "name": "bio",
+        "type": "EnrichedBlockText[]",
+        "optional": true,
+        "kind": "authored",
+        "description": "The author's biography, authored as a `[.+bio]` freeform block of text paragraphs."
+      },
+      {
+        "name": "socials",
+        "type": "EnrichedBlockSocials",
+        "optional": true,
+        "kind": "authored",
+        "description": "Links to the author's social/contact profiles, authored as a `[socials]` array of `url:` + `text:` + `type:` entries. See `{.socials}`."
+      },
+      {
+        "name": "featured-image",
+        "type": "string",
+        "optional": true,
+        "kind": "authored",
+        "description": "Filename of the author's profile picture."
+      },
+      {
+        "name": "authors",
+        "type": "string[]",
+        "optional": false,
+        "kind": "authored",
+        "description": "Comma-separated author names for the page's own byline (usually just the author themselves)."
+      },
+      {
+        "name": "authorRoles",
+        "type": "Record<string, string>",
+        "optional": true,
+        "kind": "computed"
+      },
+      {
+        "name": "body",
+        "type": "OwidEnrichedGdocBlock[]",
+        "optional": false,
+        "kind": "authored",
+        "description": "The page body, in one of two layouts — see the template overview above: a `{.pill-row}` of topics followed by a `{.research-and-writing}` \"Featured work\" block, or a single `{.research-and-writing}` \"All work\" block on its own."
+      }
+    ],
+    "adminManagedFields": [
+      "slug",
+      "published",
+      "publishedAt",
+      "publicationContext",
+      "manualBreadcrumbs",
+      "tags"
+    ],
+    "skeleton": [
+      {
+        "name": "Topics",
+        "description": "A pill row listing the topics the author writes about, in a single row (about 5–7 pills max on desktop).",
+        "components": [
+          "pill-row"
+        ]
+      },
+      {
+        "name": "Featured work",
+        "description": "A research-and-writing block with authors hidden on its cards, at least one primary and up to two secondary featured articles, plus an automatic \"Latest work\" section pulling the author's most recent articles (excluding anything already featured). No data insights or topics.",
+        "components": [
+          "research-and-writing"
+        ]
+      }
+    ],
+    "exemplars": [
+      "saloni-dattani"
+    ]
+  },
+  {
+    "id": "profile",
+    "contentTypeName": "OwidGdocProfileContent",
+    "sidecarFile": "packages/@ourworldindata/types/src/gdocTypes/templates/Profile.md",
+    "title": "Profile",
+    "prose": {
+      "intro": "A page format written once as a template and instantiated for every\ncountry/continent in its `scope` — one published page per entity, each\nwith its own placeholders resolved.",
+      "whenToUse": "- A topic-shaped page that should exist once per country, e.g. \"CO₂ and\n  Greenhouse Gas Emissions in $entityName\".",
+      "whenNotToUse": "- A page that doesn't vary per entity — use `{template:article}` or `{template:topic-page}`\n  instead.",
+      "notes": "A profile where every `{.data-callout}` fails to render for a given entity\n(no data at all) is not baked for that entity; a profile where only some\ncallouts render is baked with the empty ones hidden. See\n`{guide:profile-placeholders}`."
+    },
+    "fields": [
+      {
+        "name": "type",
+        "type": "OwidGdocType.Profile",
+        "optional": false,
+        "kind": "authored",
+        "description": "The document type; decides the layout and where the document appears on the site."
+      },
+      {
+        "name": "title",
+        "type": "string",
+        "optional": false,
+        "kind": "authored",
+        "description": "The document headline, with `$entityName`-style placeholders substituted per instantiated entity."
+      },
+      {
+        "name": "authors",
+        "type": "string[]",
+        "optional": false,
+        "kind": "authored",
+        "description": "Comma-separated author names."
+      },
+      {
+        "name": "authorRoles",
+        "type": "Record<string, string>",
+        "optional": true,
+        "kind": "computed"
+      },
+      {
+        "name": "scope",
+        "type": "OwidGdocProfileScope",
+        "optional": false,
+        "kind": "authored",
+        "description": "A comma-separated list that decides which entities the template is instantiated for. Each item is either `countries` (every country), `continents` (every continent), `all` (every country and continent), or the name of one specific entity, e.g. `China, North America`. Mixing the generic keywords with specific entities in the same list is allowed. A few codes work too, but only because they happen to be registered variant names, e.g. `USA`."
+      },
+      {
+        "name": "exclude",
+        "type": "string",
+        "optional": true,
+        "kind": "authored",
+        "description": "A comma-separated list of specific entity names to leave out of `scope`, e.g. `Vatican City, Christmas Island`."
+      },
+      {
+        "name": "subtitle",
+        "type": "string",
+        "optional": true,
+        "kind": "authored",
+        "description": "Standfirst shown below the title."
+      },
+      {
+        "name": "excerpt",
+        "type": "string",
+        "optional": true,
+        "kind": "authored",
+        "description": "Short plain-text summary used in cards and link previews."
+      },
+      {
+        "name": "featured-image",
+        "type": "string",
+        "optional": true,
+        "kind": "authored",
+        "description": "Filename of the image used in cards and social-media previews."
+      },
+      {
+        "name": "sidebar-toc",
+        "type": "boolean",
+        "optional": true,
+        "kind": "authored",
+        "description": "Set to true to show a table of contents in the sidebar."
+      },
+      {
+        "name": "sidebar-toc-h1-only",
+        "type": "boolean",
+        "optional": true,
+        "kind": "authored",
+        "description": "Set to true to limit the sidebar table of contents to top-level headings."
+      },
+      {
+        "name": "toc",
+        "type": "TocHeadingWithSupertitle[]",
+        "optional": true,
+        "kind": "computed"
+      },
+      {
+        "name": "body",
+        "type": "OwidEnrichedGdocBlock[]",
+        "optional": false,
+        "kind": "authored",
+        "description": "The document body: a sequence of ArchieML component blocks, usually built around `{.data-callout}` blocks that adapt to the instantiated entity. See the components reference for every available block."
+      },
+      {
+        "name": "refs",
+        "type": "{ definitions: RefDictionary; errors: OwidGdocErrorMessage[] }",
+        "optional": true,
+        "kind": "authored",
+        "description": "Footnote definitions for ID-based references, authored as a `[.refs]` block of `id:` + `[.+content]` entries. Inline `{ref}…{/ref}` footnotes need no entry here. See `{guide:refs}`."
+      },
+      {
+        "name": "instantiatedEntity",
+        "type": "OwidGdocProfileEntitySummary",
+        "optional": true,
+        "kind": "computed"
+      }
+    ],
+    "adminManagedFields": [
+      "slug",
+      "published",
+      "publishedAt",
+      "publicationContext",
+      "manualBreadcrumbs",
+      "tags"
+    ],
+    "skeleton": [
+      {
+        "name": "Opening",
+        "description": "Introductory text with entity placeholders (`$entityName`, `$EntityName`, `$noArticleEntityName`, `$entityCode`) so the copy reads naturally once instantiated for a specific country or continent.",
+        "components": [
+          "text"
+        ]
+      },
+      {
+        "name": "Sections",
+        "description": "Each section opens with a heading and mixes prose with data callouts that adapt to the instantiated entity — usually built around a chart per callout.",
+        "components": [
+          "heading",
+          "text",
+          "data-callout",
+          "chart"
+        ],
+        "repeats": true
+      }
+    ],
+    "exemplars": [
+      "co2"
+    ]
+  },
+  {
+    "id": "about-page",
+    "contentTypeName": "OwidGdocAboutContent",
+    "sidecarFile": "packages/@ourworldindata/types/src/gdocTypes/templates/AboutPage.md",
+    "title": "About Page",
+    "prose": {
+      "intro": "The pages presenting Our World in Data itself — the organization, funding,\njobs, FAQs and policies — under the `/about` sub-navigation, whose main page\nis `/about`. Published under `/{slug}`.",
+      "whenToUse": "- Any page that belongs in the about-section sub-navigation rather than the\n  topic content of the site.",
+      "whenNotToUse": "- Prefer `{template:article}` or `{template:topic-page}` for content about the world, not about\n  the organization.",
+      "notes": "`{.donors}`, `{.people}`, `{.people-rows}` and `{.person}` are dedicated\nabout-page components, not expected to be used on other document types."
+    },
+    "fields": [
+      {
+        "name": "type",
+        "type": "OwidGdocType.AboutPage",
+        "optional": false,
+        "kind": "authored",
+        "description": "The document type; decides the layout and where the document appears on the site. Set to `type: about-page` (see `{template:about-page}`) to signify that a document belongs to the about-pages sub-navigation."
+      },
+      {
+        "name": "title",
+        "type": "string",
+        "optional": false,
+        "kind": "authored",
+        "description": "The document headline. By default about pages render with the fixed title \"About\" regardless of this field — see `override-title`."
+      },
+      {
+        "name": "excerpt",
+        "type": "string",
+        "optional": true,
+        "kind": "authored",
+        "description": "Short plain-text summary used in cards and link previews."
+      },
+      {
+        "name": "featured-image",
+        "type": "string",
+        "optional": true,
+        "kind": "authored",
+        "description": "Filename of the image used in cards and social-media previews."
+      },
+      {
+        "name": "authors",
+        "type": "string[]",
+        "optional": false,
+        "kind": "authored",
+        "description": "Comma-separated author names."
+      },
+      {
+        "name": "authorRoles",
+        "type": "Record<string, string>",
+        "optional": true,
+        "kind": "computed"
+      },
+      {
+        "name": "hide-nav",
+        "type": "boolean",
+        "optional": true,
+        "kind": "authored",
+        "description": "Set to true to hide the about-section sub-navigation on this page."
+      },
+      {
+        "name": "override-title",
+        "type": "boolean",
+        "optional": true,
+        "kind": "authored",
+        "description": "About pages render with the fixed title \"About\" by default, even when `title` is set (used in the gdocs index page in the admin); set this to true to use `title` on the page itself too."
+      },
+      {
+        "name": "body",
+        "type": "OwidEnrichedGdocBlock[]",
+        "optional": false,
+        "kind": "authored",
+        "description": "The page body: a sequence of ArchieML component blocks. About pages behave like normal articles but with a few dedicated components — see `{.donors}`, `{.people}`, `{.people-rows}` and `{.person}` — that are not expected to be used outside about pages."
+      },
+      {
+        "name": "refs",
+        "type": "{ definitions: RefDictionary; errors: OwidGdocErrorMessage[] }",
+        "optional": true,
+        "kind": "authored",
+        "description": "Footnote definitions for ID-based references, authored as a `[.refs]` block of `id:` + `[.+content]` entries. Inline `{ref}…{/ref}` footnotes need no entry here. See `{guide:refs}`."
+      }
+    ],
+    "adminManagedFields": [
+      "slug",
+      "published",
+      "publishedAt",
+      "publicationContext",
+      "manualBreadcrumbs",
+      "tags"
+    ],
+    "skeleton": [
+      {
+        "name": "Sections",
+        "description": "About pages behave like normal articles, built from headings, prose and images, but with dedicated spacing and typography and a shared about-section sub-navigation.",
+        "components": [
+          "heading",
+          "text",
+          "image"
+        ],
+        "repeats": true
+      },
+      {
+        "name": "Team",
+        "description": "A list of people — team members, former team members, board members — optionally wrapped in a `{.people-rows}` block to lay them out in 2 or 4 columns.",
+        "components": [
+          "people",
+          "people-rows",
+          "person"
+        ]
+      },
+      {
+        "name": "Donors",
+        "description": "An empty `{.donors}` block that marks where the database-backed list of donors is inserted.",
+        "components": [
+          "donors"
+        ]
+      }
+    ],
+    "exemplars": [
+      "about"
+    ]
+  },
+  {
+    "id": "homepage",
+    "contentTypeName": "OwidGdocHomepageContent",
+    "sidecarFile": "packages/@ourworldindata/types/src/gdocTypes/templates/Homepage.md",
+    "title": "Homepage",
+    "prose": {
+      "intro": "The single system-managed document that renders as the site's homepage,\nbuilt from several one-off components written specifically for it.",
+      "whenToUse": "- Only for the one document that is the site's homepage.",
+      "whenNotToUse": "- Never for authored content — most of its components (homepage search,\n  homepage intro, latest data insights, key indicator collection, explorer\n  tiles) are platform blocks built specifically for the homepage, not\n  general-purpose building blocks for other pages."
+    },
+    "fields": [
+      {
+        "name": "type",
+        "type": "OwidGdocType.Homepage",
+        "optional": false,
+        "kind": "authored",
+        "description": "The document type; decides the layout and where the document appears on the site. Set to `type: homepage` (see `{template:homepage}`) to mark the single document that renders as the site's homepage."
+      },
+      {
+        "name": "title",
+        "type": "string",
+        "optional": true,
+        "kind": "authored",
+        "description": "The document title. Not displayed on the homepage itself."
+      },
+      {
+        "name": "authors",
+        "type": "string[]",
+        "optional": false,
+        "kind": "authored",
+        "description": "Comma-separated author names."
+      },
+      {
+        "name": "authorRoles",
+        "type": "Record<string, string>",
+        "optional": true,
+        "kind": "computed"
+      },
+      {
+        "name": "body",
+        "type": "OwidEnrichedGdocBlock[]",
+        "optional": false,
+        "kind": "authored",
+        "description": "The page body: the homepage's one-off components, in the order they should appear — see `{.pill-row}`, `{.homepage-search}`, `{.homepage-intro}`, `{.latest-data-insights}`, `{.key-indicator-collection}` and `{.explorer-tiles}`."
+      }
+    ],
+    "adminManagedFields": [
+      "slug",
+      "published",
+      "publishedAt",
+      "publicationContext",
+      "manualBreadcrumbs",
+      "tags"
+    ],
+    "skeleton": [
+      {
+        "name": "Pill row",
+        "description": "A small grey bar of links sitting at the top of the homepage, below the nav bar.",
+        "components": [
+          "pill-row"
+        ]
+      },
+      {
+        "name": "Homepage search",
+        "description": "A wide search-bar section. The nav's own search bar disappears on the homepage, so this component is required to replace it.",
+        "components": [
+          "homepage-search"
+        ]
+      },
+      {
+        "name": "Homepage intro",
+        "description": "A large block of links to OWID content plus hard-coded mission text — exactly 4 tiles.",
+        "components": [
+          "homepage-intro"
+        ]
+      },
+      {
+        "name": "Latest data insights",
+        "description": "A grey section showing a scroller of the latest 7 data insights. As editorial guidance, only add the block once at least 4 are published.",
+        "components": [
+          "latest-data-insights"
+        ]
+      },
+      {
+        "name": "Key indicator collection",
+        "description": "An accordion of key indicators, each linking to a datapage.",
+        "components": [
+          "key-indicator-collection"
+        ]
+      },
+      {
+        "name": "Explorer tiles",
+        "description": "A grid of links to tagged explorers.",
+        "components": [
+          "explorer-tiles"
+        ]
+      }
+    ],
+    "exemplars": [
+      "owid-homepage"
+    ]
+  }
+]
