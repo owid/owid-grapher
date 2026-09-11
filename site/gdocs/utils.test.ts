@@ -3,6 +3,7 @@ import {
     getAuthorTeamAnchorId,
     getAuthorTeamAnchorUrl,
     getLinkedDocumentUrl,
+    getSameSitePath,
     isExternalUrl,
 } from "./utils.js"
 import { ContentGraphLinkType, OwidGdocType } from "@ourworldindata/types"
@@ -35,6 +36,48 @@ describe(isExternalUrl, () => {
         expect(isExternalUrl(ContentGraphLinkType.Url, "not-a-valid-url")).toBe(
             false
         )
+    })
+})
+
+describe(getSameSitePath, () => {
+    it.each([
+        "https://ourworldindata.org/international-dollars",
+        "https://ourworldindata.org/international-dollars/",
+        "https://ourworldindata.org/international-dollars?tab=chart",
+        "https://ourworldindata.org/international-dollars#a-heading",
+        "/international-dollars",
+    ])("returns the path of the same-site article URL %s", (url) => {
+        expect(getSameSitePath(url)).toBe("/international-dollars")
+    })
+
+    it("returns the path of a same-site URL on the baked origin", () => {
+        expect(getSameSitePath(`${BAKED_BASE_URL}/international-dollars`)).toBe(
+            "/international-dollars"
+        )
+    })
+
+    it("keeps prefixed paths intact so they can't be mistaken for articles", () => {
+        expect(
+            getSameSitePath("https://ourworldindata.org/data-insights/a-slug")
+        ).toBe("/data-insights/a-slug")
+    })
+
+    it.each([
+        ["another host", "https://example.com/international-dollars"],
+        [
+            "a grapher link",
+            "https://ourworldindata.org/grapher/life-expectancy",
+        ],
+        [
+            "an explorer link",
+            "https://ourworldindata.org/explorers/poverty-explorer",
+        ],
+        ["a gdoc link", "https://docs.google.com/document/d/abcd/edit"],
+        ["an anchor-only link", "#a-heading"],
+        ["a query-string-only link", "?tab=chart"],
+        ["the site root", "https://ourworldindata.org/"],
+    ])("returns undefined for %s", (_description, url) => {
+        expect(getSameSitePath(url)).toBeUndefined()
     })
 })
 

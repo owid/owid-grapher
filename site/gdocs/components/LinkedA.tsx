@@ -1,10 +1,15 @@
 import { getLinkType } from "@ourworldindata/components"
-import { SpanLink } from "@ourworldindata/types"
-import { useLinkedDocument, useLinkedChart } from "../utils.js"
+import { OwidGdocMinimalPostInterface, SpanLink } from "@ourworldindata/types"
+import {
+    useLinkedDocument,
+    useLinkedDocumentByPath,
+    useLinkedChart,
+} from "../utils.js"
 import { Url } from "@ourworldindata/utils"
 import Tippy from "@tippyjs/react"
 import SpanElements from "./SpanElements.js"
 import { ChartPreview } from "./ChartPreview.js"
+import { DocumentPreview } from "./DocumentPreview.js"
 import { SiteAnalytics } from "../../SiteAnalytics.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faChartLine } from "@fortawesome/free-solid-svg-icons"
@@ -12,18 +17,96 @@ import { useDocumentContext } from "../DocumentContext.js"
 
 const analytics = new SiteAnalytics()
 
+/**
+ * Whether there's enough material to make a hover preview card worth showing.
+ * A card with nothing but a title that repeats the link text is worse than no
+ * card at all — the common case for data insights.
+ */
+function hasDocumentPreviewContent(
+    linkedDocument: OwidGdocMinimalPostInterface
+): boolean {
+    return Boolean(
+        linkedDocument.excerpt ||
+        linkedDocument.subtitle ||
+        linkedDocument["featured-image"]
+    )
+}
+
+/** Wraps a link in the hover card for the document it points at. */
+function DocumentPreviewTooltip({
+    linkedDocument,
+    documentUrl,
+    children,
+}: {
+    linkedDocument: OwidGdocMinimalPostInterface
+    documentUrl: string
+    children: React.ReactElement
+}) {
+    return (
+        <Tippy
+            content={<DocumentPreview linkedDocument={linkedDocument} />}
+            onShow={() => analytics.logDocumentPreviewMouseover(documentUrl)}
+            appendTo={() => document.body}
+            // Longer than the chart preview's 300ms. Chart links are sparse and
+            // hovered deliberately; article links are dense and get crossed
+            // mid-sentence while reading, and at 300ms a single paragraph pops
+            // up several cards in a row. The hide delay stays at 0 so sweeping
+            // across a line of links doesn't leave a card behind.
+            delay={[500, 0]}
+            // Below the link, so the card doesn't cover the lines the reader is
+            // in the middle of. Tippy flips it back above near the viewport
+            // bottom.
+            placement="bottom"
+            // The title and excerpt are shown in full, so the width sets how
+            // tall the card gets. At 400px the text column was only ~43
+            // characters per line and the longest real excerpts ran to seven
+            // lines; 480px gives ~56 and brings the worst case down to five.
+            // Wider than this stops helping — 520px renders the same line
+            // count — and starts to feel like a panel rather than a card.
+            maxWidth={480}
+            theme="light"
+            arrow={false}
+            touch={false}
+        >
+            {children}
+        </Tippy>
+    )
+}
+
 export default function LinkedA({ span }: { span: SpanLink }) {
     const linkType = getLinkType(span.url)
     const { archiveContext, isPreviewing } = useDocumentContext()
     const isOnArchivalPage = archiveContext?.type === "archive-page"
     const { linkedDocument, errorMessage } = useLinkedDocument(span.url)
     const { linkedChart } = useLinkedChart(span.url)
+    const documentAtUrl = useLinkedDocumentByPath(span.url)
 
     if (linkType === "url") {
-        return (
+        const urlLink = (
             <a href={span.url} className="span-link">
                 <SpanElements spans={span.children} />
             </a>
+        )
+
+        // Most links to our own articles are authored as a plain
+        // ourworldindata.org URL rather than a gdoc URL. Those still deserve a
+        // hover card whenever the article they point at is attached to the
+        // page. The href stays exactly as authored — only the card is added.
+        if (
+            isOnArchivalPage ||
+            !documentAtUrl ||
+            !hasDocumentPreviewContent(documentAtUrl)
+        ) {
+            return urlLink
+        }
+
+        return (
+            <DocumentPreviewTooltip
+                linkedDocument={documentAtUrl}
+                documentUrl={span.url}
+            >
+                {urlLink}
+            </DocumentPreviewTooltip>
         )
     }
     if (linkedChart) {
@@ -72,10 +155,28 @@ export default function LinkedA({ span }: { span: SpanLink }) {
         )
     }
     if (linkedDocument && linkedDocument.published && linkedDocument.url) {
-        return (
+        const documentLink = (
             <a href={linkedDocument.url} className="span-link">
                 <SpanElements spans={span.children} />
             </a>
+        )
+
+        // Cloudflare Images URLs aren't archived, so the thumbnail would break.
+        if (isOnArchivalPage) {
+            return documentLink
+        }
+
+        if (!hasDocumentPreviewContent(linkedDocument)) {
+            return documentLink
+        }
+
+        return (
+            <DocumentPreviewTooltip
+                linkedDocument={linkedDocument}
+                documentUrl={linkedDocument.url}
+            >
+                {documentLink}
+            </DocumentPreviewTooltip>
         )
     }
     if (errorMessage && isPreviewing) {

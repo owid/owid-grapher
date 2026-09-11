@@ -49,6 +49,7 @@ export enum EventCategory {
     DetailOnDemand = "owid.detail_on_demand",
     SiteGuidedChartLinkClick = "owid.site_guided_chart_link_click",
     SiteChartPreviewMouseover = "owid.site_chart_preview_mouseover",
+    SiteDocumentPreviewMouseover = "owid.site_document_preview_mouseover",
     SiteStaticVizDownload = "owid.site_static_viz_download",
     SiteUserSurvey = "owid.site_user_survey",
     TranslatePage = "owid.translate_page",
@@ -77,6 +78,7 @@ export type EventParamsMap = {
     [EventCategory.KeyboardShortcut]: KeyboardShortcutParams
     [EventCategory.SiteGuidedChartLinkClick]: SiteGuidedChartLinkClickParams
     [EventCategory.SiteChartPreviewMouseover]: SiteChartPreviewMouseoverParams
+    [EventCategory.SiteDocumentPreviewMouseover]: SiteDocumentPreviewMouseoverParams
     [EventCategory.SiteStaticVizDownload]: SiteStaticVizDownloadParams
     [EventCategory.SiteUserSurvey]: SiteUserSurveyParams
     [EventCategory.SiteClick]: SiteClickParams
@@ -217,6 +219,15 @@ export interface SiteChartPreviewMouseoverParams {
     explorerPath?: string
     /** Grapher path being previewed */
     grapherPath?: string
+}
+
+export interface SiteDocumentPreviewMouseoverParams {
+    /** Always 'mouseover' for this event */
+    eventAction: "mouseover"
+    /** Target document URL */
+    eventTarget: string
+    /** Continuation of eventTarget for URLs > 100 chars (characters 101-200) */
+    eventTargetNext?: string
 }
 
 export interface SiteStaticVizDownloadParams {
