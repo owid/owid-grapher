@@ -1,7 +1,10 @@
 import * as React from "react"
 import { AdminLayout } from "./AdminLayout.js"
 import { Modal, TextField } from "./Forms.js"
-import { faCirclePlus, faQuestion } from "@fortawesome/free-solid-svg-icons"
+import {
+    faCirclePlus,
+    faArrowUpRightFromSquare,
+} from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { OwidGdocType, OwidGdocIndexItem } from "@ourworldindata/utils"
 import {
@@ -11,6 +14,7 @@ import {
 import { Route, RouteComponentProps } from "react-router-dom"
 import { GdocsAdd } from "./GdocsAdd.js"
 import { GdocsList } from "./GdocsList.js"
+import { Link } from "./Link.js"
 import { useGdocs } from "./gdocsQueries.js"
 
 enum GdocPublishStatus {
@@ -204,7 +208,7 @@ export function GdocsIndexPage(props: RouteComponentProps): React.ReactElement {
     return (
         <AdminLayout title="Google Docs">
             <main>
-                <div className="d-flex justify-content-between mb-3">
+                <div className="d-flex justify-content-between align-items-start">
                     <GdocsIndexPageSearch
                         filters={filters}
                         searchValue={searchValue}
@@ -227,25 +231,39 @@ export function GdocsIndexPage(props: RouteComponentProps): React.ReactElement {
                             resetVisibleResults()
                         }}
                     />
-                    <div>
-                        <a
-                            className="btn btn-secondary gdoc-index__help-link"
-                            target="_blank"
-                            href="https://docs.google.com/document/d/1OLoTWloy4VecOjKTjB1wLV6tEphHJIMXfexrf1ZYJzU/edit"
-                            rel="noopener"
-                        >
-                            <FontAwesomeIcon icon={faQuestion} /> Open
-                            documentation
-                        </a>
-                        <button
-                            className="btn btn-primary"
-                            onClick={() =>
-                                props.history.push(`${props.match.path}/add`)
-                            }
-                        >
-                            <FontAwesomeIcon icon={faCirclePlus} /> Add document
-                        </button>
-                    </div>
+                    <button
+                        className="btn btn-primary text-nowrap"
+                        onClick={() =>
+                            props.history.push(`${props.match.path}/add`)
+                        }
+                    >
+                        <FontAwesomeIcon icon={faCirclePlus} /> Add document
+                    </button>
+                </div>
+
+                <div className="gdoc-index__docs-links mb-3">
+                    <Link
+                        className="gdoc-index__help-link"
+                        to="/gdocs-reference"
+                    >
+                        Writing reference
+                    </Link>
+                    <span className="gdoc-index__beta-chip">beta</span>
+                    <span
+                        className="gdoc-index__docs-links-separator"
+                        aria-hidden="true"
+                    >
+                        ·
+                    </span>
+                    <a
+                        className="gdoc-index__help-link"
+                        target="_blank"
+                        href="https://docs.google.com/document/d/1OLoTWloy4VecOjKTjB1wLV6tEphHJIMXfexrf1ZYJzU/edit"
+                        rel="noopener"
+                    >
+                        Google Doc guide{" "}
+                        <FontAwesomeIcon icon={faArrowUpRightFromSquare} />
+                    </a>
                 </div>
 
                 <GdocsList
