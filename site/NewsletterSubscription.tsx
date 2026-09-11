@@ -12,7 +12,7 @@ import { NewsletterSignupForm } from "./Newsletter/NewsletterSignupForm.js"
 
 const analytics = new SiteAnalytics()
 
-const isEmailNotificationsEnabled = FEATURE_FLAGS.has(
+const isEmailNotificationsEnabled = FEATURE_FLAGS.includes(
     Features.EmailNotifications
 )
 
