@@ -8,7 +8,7 @@ export interface SearchWord {
     exclude: boolean
 }
 
-function buildRegexFromSearchWord(str: string): RegExp {
+export function buildRegexFromSearchWord(str: string): RegExp {
     const escapedString = _.escapeRegExp(str)
     const moreTolerantMatchReplacements =
         // Match digit or superscript/subscript variant

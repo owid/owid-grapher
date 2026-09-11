@@ -7,7 +7,10 @@ import {
 import { useContext, useEffect, useMemo, useState } from "react"
 import cx from "clsx"
 import tippy, { type ReferenceElement } from "tippy.js"
-import { Button, Flex, Form, Input, Modal, Popconfirm, Table } from "antd"
+import { Button, Form, Input, Modal, Popconfirm, Table } from "antd"
+import { AdminTable } from "./AdminTable.js"
+import { useListSearch } from "./adminTableHelpers.js"
+import { SearchField } from "../adminShared/searchFilter.js"
 import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext } from "./AdminAppContext.js"
 import {
@@ -537,7 +540,6 @@ function DodUsageModal({
 
 export function DodsIndexPage() {
     const { admin } = useContext(AdminAppContext)
-    const [dodSearchValue, setDodSearchValue] = useState("")
     const [isCreateDodModalOpen, setIsCreateDodModalOpen] = useState(false)
     const [activeDodForUsageModal, setActiveDodForUsageModal] = useState<
         string | null
@@ -593,23 +595,43 @@ export function DodsIndexPage() {
         })
     }, [dods])
 
-    const filteredDods = useMemo(
-        () =>
-            dods
-                ? Object.values(dods).filter(
-                      (dod) =>
-                          users?.[dod.lastUpdatedUserId]?.fullName
-                              .toLowerCase()
-                              .includes(dodSearchValue.toLowerCase()) ||
-                          dod.name
-                              .toLowerCase()
-                              .includes(dodSearchValue.toLowerCase()) ||
-                          dod.content
-                              .toLowerCase()
-                              .includes(dodSearchValue.toLowerCase())
-                  )
-                : [],
-        [dods, dodSearchValue, users]
+    const searchFields = useMemo(
+        (): SearchField<DbPlainDod>[] => [
+            {
+                name: "name",
+                type: "string",
+                description: "DoD name",
+                get: (dod) => dod.name,
+            },
+            {
+                name: "content",
+                type: "string",
+                description: "DoD content",
+                get: (dod) => dod.content,
+            },
+            {
+                name: "by",
+                type: "string",
+                description: "Who last updated it",
+                get: (dod) => users?.[dod.lastUpdatedUserId]?.fullName,
+            },
+            {
+                name: "updated",
+                type: "date",
+                description: "When it was last updated",
+                get: (dod) => dod.updatedAt,
+            },
+        ],
+        [users]
+    )
+
+    const { results: filteredDods, search } = useListSearch(
+        dods ? Object.values(dods) : undefined,
+        searchFields,
+        {
+            placeholder: "Search by content, id, or most recent user",
+            autoFocus: true,
+        }
     )
 
     const columns = useMemo(
@@ -635,28 +657,23 @@ export function DodsIndexPage() {
     return (
         <AdminLayout title="DoDs">
             <main className="DodsIndexPage">
-                <Flex justify="space-between">
-                    <Input
-                        placeholder="Search by content, id, or most recent user"
-                        value={dodSearchValue}
-                        onChange={(e) => setDodSearchValue(e.target.value)}
-                        style={{ width: 500, marginBottom: 20 }}
-                    />
-                    <Button
-                        variant="solid"
-                        color="blue"
-                        style={{ padding: "0 35px" }}
-                        onClick={() => setIsCreateDodModalOpen(true)}
-                    >
-                        Create
-                    </Button>
-                </Flex>
-                <Table
+                <AdminTable
                     className="DodEditor__table"
-                    size="small"
                     columns={columns}
                     dataSource={filteredDods}
                     rowKey={(x) => x.id}
+                    entityName="DoDs"
+                    search={search}
+                    actions={
+                        <Button
+                            variant="solid"
+                            color="blue"
+                            style={{ padding: "0 35px" }}
+                            onClick={() => setIsCreateDodModalOpen(true)}
+                        >
+                            Create
+                        </Button>
+                    }
                 />
                 <CreateDodModal
                     createDodMutation={createDodMutation}

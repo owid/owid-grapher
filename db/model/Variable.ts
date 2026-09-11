@@ -874,13 +874,19 @@ export async function getOwnersForVariables(
 export const searchVariables = async (
     query: string,
     limit: number,
+    offset: number,
     knex: db.KnexReadonlyTransaction
 ): Promise<VariablesSearchResult> => {
     const whereClauses = buildWhereClauses(query)
 
+    // An inner join, so indicators whose dataset has been archived are left
+    // out. It is also what makes this fast: joining the other way round makes
+    // MySQL sort all ~780k variables to return one page, because the sort key
+    // lives on the dataset. Driven from the ~1.2k active datasets it stops as
+    // soon as the page is full.
     const fromWhere = `
         FROM variables AS v
-        LEFT JOIN active_datasets d ON d.id=v.datasetId
+        JOIN active_datasets d ON d.id=v.datasetId
         LEFT JOIN users u ON u.id=d.dataEditedByUserId
         ${whereClauses.length ? "WHERE " + whereClauses.join(" AND ") : ""}
     `
@@ -902,7 +908,7 @@ export const searchVariables = async (
             u.fullName AS uploadedBy
         ${fromWhere}
         ORDER BY d.dataEditedAt DESC
-        LIMIT ${escape(limit)}
+        LIMIT ${escape(limit)} OFFSET ${escape(offset)}
     `
     const rows = await queryRegexSafe(sqlResults, knex)
 
@@ -1010,7 +1016,8 @@ const buildWhereClauses = (query: string): string[] => {
                     )}, cast(date(d.createdAt) as char) > ${escape(q)}))`
                 )
             }
-        } else if (part === "is:published") {
+        } else if (part === "is:published" || part === "is:public") {
+            // the search help has always advertised is:public
             whereClauses.push(`${not} (NOT d.isPrivate)`)
         } else if (part === "is:private") {
             whereClauses.push(`${not} d.isPrivate`)

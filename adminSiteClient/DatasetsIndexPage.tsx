@@ -1,129 +1,98 @@
-import { Component } from "react"
-import { observer } from "mobx-react"
-import { observable, computed, action, runInAction, makeObservable } from "mobx"
-import * as lodash from "lodash-es"
+import * as React from "react"
 
 import { AdminLayout } from "./AdminLayout.js"
-import { TextField, FieldsRow } from "./Forms.js"
-import { DatasetList, DatasetListItem } from "./DatasetList.js"
-import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
-import {
-    buildSearchWordsFromSearchString,
-    filterFunctionForSearchWords,
-    highlightFunctionForSearchWords,
-    SearchWord,
-} from "../adminShared/search.js"
+import { DatasetList } from "./DatasetList.js"
+import { useListSearch } from "./adminTableHelpers.js"
+import { DatasetListItem, useDatasets } from "./datasetQueries.js"
+import { SearchField } from "../adminShared/searchFilter.js"
 
-@observer
-export class DatasetsIndexPage extends Component {
-    static override contextType = AdminAppContext
-    declare context: AdminAppContextType
+const SEARCH_FIELDS: SearchField<DatasetListItem>[] = [
+    {
+        name: "name",
+        type: "string",
+        description: "Dataset name",
+        get: (d) => d.name,
+    },
+    {
+        name: "short",
+        type: "string",
+        description: "Short name",
+        get: (d) => d.shortName,
+    },
+    {
+        name: "namespace",
+        type: "string",
+        description: "Namespace",
+        get: (d) => d.namespace,
+    },
+    {
+        name: "version",
+        type: "string",
+        description: "Version",
+        get: (d) => d.version,
+    },
+    {
+        name: "tag",
+        type: "string",
+        description: "Tag",
+        get: (d) => d.tags.map((tag) => tag.name),
+    },
+    {
+        name: "by",
+        type: "string",
+        description: "Who last edited the data",
+        get: (d) => d.dataEditedByUserName,
+    },
+    {
+        name: "notes",
+        type: "string",
+        description: "Notes",
+        get: (d) => d.description,
+    },
+    {
+        name: "charts",
+        type: "number",
+        description: "Number of charts using it",
+        get: (d) => d.numCharts,
+    },
+    {
+        name: "private",
+        type: "boolean",
+        description: "Unpublished",
+        get: (d) => d.isPrivate,
+    },
+    {
+        name: "redistributable",
+        type: "boolean",
+        description: "Redistribution allowed",
+        get: (d) => !d.nonRedistributable,
+    },
+    {
+        name: "uploaded",
+        type: "date",
+        description: "When the data was last edited",
+        get: (d) => d.dataEditedAt,
+    },
+]
 
-    datasets: DatasetListItem[] = []
-    maxVisibleRows = 50
-    searchInput: string | undefined = undefined
+export function DatasetsIndexPage(): React.ReactElement {
+    const { data: datasets, isLoading } = useDatasets()
+    const { results, highlight, search } = useListSearch(
+        datasets,
+        SEARCH_FIELDS,
+        { placeholder: "Search all datasets...", autoFocus: true }
+    )
 
-    constructor(props: Record<string, never>) {
-        super(props)
-
-        makeObservable(this, {
-            datasets: observable,
-            maxVisibleRows: observable,
-            searchInput: observable,
-        })
-    }
-
-    @computed get searchWords(): SearchWord[] {
-        const { searchInput } = this
-        return buildSearchWordsFromSearchString(searchInput)
-    }
-
-    @computed get allDatasetsToShow(): DatasetListItem[] {
-        const { searchWords, datasets, maxVisibleRows } = this
-        if (searchWords.length > 0) {
-            const filterFn = filterFunctionForSearchWords(
-                searchWords,
-                (dataset: DatasetListItem) => [
-                    dataset.name,
-                    dataset.shortName,
-                    ...dataset.tags.map((t) => t.name),
-                    dataset.namespace,
-                    dataset.dataEditedByUserName,
-                    dataset.description,
-                ]
-            )
-            return datasets.filter(filterFn)
-        } else {
-            return this.datasets.slice(0, maxVisibleRows)
-        }
-    }
-
-    @computed get datasetsToShow(): DatasetListItem[] {
-        return this.allDatasetsToShow.slice(0, this.maxVisibleRows)
-    }
-
-    @computed get namespaces() {
-        return lodash.uniq(this.datasets.map((d) => d.namespace))
-    }
-
-    @computed get numTotalRows(): number {
-        return this.datasets.length
-    }
-
-    @action.bound onSearchInput(input: string) {
-        this.searchInput = input
-    }
-
-    @action.bound onShowMore() {
-        this.maxVisibleRows += 100
-    }
-
-    override render() {
-        const { datasetsToShow, searchInput, numTotalRows } = this
-
-        const highlight = highlightFunctionForSearchWords(this.searchWords)
-
-        return (
-            <AdminLayout title="Datasets">
-                <main className="DatasetsIndexPage">
-                    <FieldsRow>
-                        <span>
-                            Showing {datasetsToShow.length} of {numTotalRows}{" "}
-                            datasets
-                        </span>
-                        <TextField
-                            placeholder="Search all datasets..."
-                            value={searchInput}
-                            onValue={this.onSearchInput}
-                            autofocus
-                        />
-                    </FieldsRow>
-                    <DatasetList
-                        datasets={datasetsToShow}
-                        searchHighlight={highlight}
-                    />
-                    {!searchInput && (
-                        <button
-                            className="btn btn-secondary"
-                            onClick={this.onShowMore}
-                        >
-                            Show more datasets...
-                        </button>
-                    )}
-                </main>
-            </AdminLayout>
-        )
-    }
-
-    async getData() {
-        const { admin } = this.context
-        const json = await admin.getJSON("/api/datasets.json")
-        runInAction(() => {
-            this.datasets = json.datasets
-        })
-    }
-
-    override componentDidMount() {
-        void this.getData()
-    }
+    return (
+        <AdminLayout title="Datasets">
+            <main className="DatasetsIndexPage">
+                <DatasetList
+                    datasets={results}
+                    searchHighlight={highlight}
+                    loading={isLoading}
+                    search={search}
+                />
+            </main>
+        </AdminLayout>
+    )
 }

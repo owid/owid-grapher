@@ -161,8 +161,9 @@ export async function getVariablesJson(
     trx: db.KnexReadonlyTransaction
 ) {
     const limit = parseIntOrUndefined(req.query.limit as string) ?? 50
+    const offset = parseIntOrUndefined(req.query.offset as string) ?? 0
     const query = req.query.search as string
-    return await searchVariables(query, limit, trx)
+    return await searchVariables(query, limit, offset, trx)
 }
 
 export async function getVariablesUsagesJson(

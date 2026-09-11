@@ -13,6 +13,9 @@ import {
     Typography,
     notification,
 } from "antd"
+import { AdminTable } from "./AdminTable.js"
+import { useListSearch } from "./adminTableHelpers.js"
+import { SearchField } from "../adminShared/searchFilter.js"
 import * as R from "remeda"
 import urljoin from "url-join"
 import { Json } from "@ourworldindata/utils"
@@ -23,6 +26,27 @@ import { AdminLayout } from "./AdminLayout.js"
 import { Link } from "./Link.js"
 import { Admin } from "./Admin.js"
 import { formatSourceQueryParams } from "./multiDimRedirectHelpers.js"
+
+const SEARCH_FIELDS: SearchField<MultiDimRedirect>[] = [
+    {
+        name: "source",
+        type: "string",
+        description: "Source path",
+        get: (r) => r.source,
+    },
+    {
+        name: "slug",
+        type: "string",
+        description: "Target multi-dim slug",
+        get: (r) => r.multiDimSlug,
+    },
+    {
+        name: "title",
+        type: "string",
+        description: "Target multi-dim title",
+        get: (r) => r.multiDimTitle,
+    },
+]
 
 type MultiDimRedirect = {
     id: number
@@ -222,7 +246,6 @@ export default function MultiDimRedirectsIndexPage() {
     const [notificationApi, notificationContextHolder] =
         notification.useNotification()
     const queryClient = useQueryClient()
-    const [search, setSearch] = useState("")
     const [bulkModalOpen, setBulkModalOpen] = useState(false)
     const [bulkJson, setBulkJson] = useState("")
     const [bulkResult, setBulkResult] =
@@ -287,15 +310,14 @@ export default function MultiDimRedirectsIndexPage() {
         bulkMutation.mutate(payload)
     }
 
-    const filteredRedirects = useMemo(() => {
-        const query = search.trim().toLowerCase()
-        return redirects?.filter(
-            (redirect) =>
-                redirect.source.toLowerCase().includes(query) ||
-                redirect.multiDimSlug.toLowerCase().includes(query) ||
-                redirect.multiDimTitle.toLowerCase().includes(query)
-        )
-    }, [redirects, search])
+    const { results: filteredRedirects, search } = useListSearch(
+        redirects,
+        SEARCH_FIELDS,
+        {
+            placeholder: "Search by source, target slug, or title",
+            autoFocus: true,
+        }
+    )
 
     const groupedRedirects = useMemo(
         () => groupRedirectsByMultiDim(filteredRedirects ?? []),
@@ -420,53 +442,42 @@ export default function MultiDimRedirectsIndexPage() {
                         </Button>
                     </div>
 
-                    <div>
-                        <Flex align="center" justify="space-between" gap={24}>
-                            <Input
-                                placeholder="Search by source, target slug, or title"
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
-                                style={{ width: 400 }}
-                                autoFocus
-                            />
+                    <AdminTable
+                        columns={parentColumns}
+                        dataSource={groupedRedirects}
+                        rowKey="multiDimId"
+                        loading={!redirects}
+                        pagination={false}
+                        search={search}
+                        actions={
                             <Typography.Text>
-                                Showing {filteredRedirects?.length ?? 0} of{" "}
+                                {filteredRedirects?.length ?? 0} of{" "}
                                 {redirects?.length ?? 0} redirects across{" "}
                                 {groupedRedirects.length} multi-dims
                             </Typography.Text>
-                        </Flex>
-
-                        <div style={{ marginTop: 24 }}>
-                            <Table
-                                columns={parentColumns}
-                                dataSource={groupedRedirects}
-                                rowKey="multiDimId"
-                                loading={!redirects}
-                                pagination={false}
-                                expandable={{
-                                    expandedRowRender: (record) => (
-                                        <Table
-                                            columns={createNestedColumns(
-                                                (multiDimId, redirectId) =>
-                                                    deleteMutation.mutate({
-                                                        multiDimId,
-                                                        redirectId,
-                                                    }),
-                                                record.multiDimId,
-                                                record.multiDimSlug
-                                            )}
-                                            dataSource={record.redirects}
-                                            rowKey="id"
-                                            pagination={false}
-                                            size="small"
-                                        />
-                                    ),
-                                    rowExpandable: (record) =>
-                                        record.redirects.length > 0,
-                                }}
-                            />
-                        </div>
-                    </div>
+                        }
+                        expandable={{
+                            expandedRowRender: (record) => (
+                                <Table
+                                    columns={createNestedColumns(
+                                        (multiDimId, redirectId) =>
+                                            deleteMutation.mutate({
+                                                multiDimId,
+                                                redirectId,
+                                            }),
+                                        record.multiDimId,
+                                        record.multiDimSlug
+                                    )}
+                                    dataSource={record.redirects}
+                                    rowKey="id"
+                                    pagination={false}
+                                    size="small"
+                                />
+                            ),
+                            rowExpandable: (record) =>
+                                record.redirects.length > 0,
+                        }}
+                    />
                 </Space>
             </main>
         </AdminLayout>
