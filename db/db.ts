@@ -733,13 +733,20 @@ export async function getTopicAreaNames(
     return (flatTagGraph[__rootId] ?? []).map(({ name }) => name)
 }
 
+/**
+ * The first tag that maps to a top-level area wins. A tag with no mapping is
+ * skipped rather than suppressing a later one that does map, so pages tagged
+ * e.g. `Announcements | Global Health` still resolve to `Global Health`.
+ */
 export function getTopicAreaNameForTagNames(
     tagNames: string[],
     areaNamesByTagName: Record<string, string>
 ): string | undefined {
-    const primaryTagName = tagNames[0]
-    if (!primaryTagName) return undefined
-    return areaNamesByTagName[primaryTagName]
+    for (const tagName of tagNames) {
+        const areaName = areaNamesByTagName[tagName]
+        if (areaName) return areaName
+    }
+    return undefined
 }
 
 /**
@@ -753,11 +760,18 @@ export function getTopicAreaNameForGdocTags(
 ): string | undefined {
     const tagNames = tags
         .map((tag) => tag.name)
-        .sort((a, b) => a.localeCompare(b, "en", { sensitivity: "base" }))
+        // `sensitivity: "base"` reports names that differ only by case or
+        // diacritics as equal, which would leave their order down to the
+        // input; fall back to a raw comparison for a total ordering.
+        .sort(
+            (a, b) =>
+                a.localeCompare(b, "en", { sensitivity: "base" }) ||
+                (a < b ? -1 : a > b ? 1 : 0)
+        )
     return getTopicAreaNameForTagNames(tagNames, areaNamesByTagName)
 }
 
-export interface TopicAreaLookup {
+export interface TopicAreaAssignments {
     /** tag name -> area name */
     byTagName: Record<string, string>
     /** chart id -> area name; see getTopicAreaNamesByChartId */
@@ -768,10 +782,10 @@ export interface TopicAreaLookup {
  * Everything needed to resolve a page's topic area, resolved once per bake
  * and handed to the workers. Omit `chartIds` to cover every chart.
  */
-export async function getTopicAreaLookup(
+export async function getTopicAreaAssignments(
     trx: KnexReadonlyTransaction,
     chartIds?: number[]
-): Promise<TopicAreaLookup> {
+): Promise<TopicAreaAssignments> {
     const flatTagGraph = await getFlatTagGraph(trx)
     const byTagName = topicAreaNamesFromTagHierarchies(
         await getTopicHierarchiesByChildName(trx, flatTagGraph)
@@ -823,7 +837,9 @@ export async function getTopicAreaNamesByChartId(
         LEFT JOIN tags_variables_topic_tags tv ON tv.variableId = cd.variableId
         LEFT JOIN tags t ON t.id = tv.tagId
         WHERE cd.property = 'y' ${chartFilter}
-        ORDER BY cd.chartId, cd.\`order\`, tv.displayOrder`,
+        -- displayOrder is not unique, so tie-break by tag name and then
+        -- id: the "first tag" picked below must be the same every bake
+        ORDER BY cd.chartId, cd.\`order\`, tv.displayOrder, t.name, tv.tagId`,
         params
     )
     // Only the first row per chart counts: the first y indicator's first tag.
