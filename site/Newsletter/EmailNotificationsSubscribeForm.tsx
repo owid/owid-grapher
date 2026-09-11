@@ -96,7 +96,7 @@ export const EmailNotificationsSubscribeForm = ({
     const [followTopics, setFollowTopics] = useState(true)
     const [validationError, setValidationError] = useState<string | null>(null)
     const preferences = useNotificationPreferences(topicAreaNames)
-    const { setTopicTags } = preferences
+    const { setTopicTags, setIsExpanded } = preferences
 
     // The page is baked, so the URL and storage are only known after
     // hydration. The form isn't kept in sync with either afterwards, so both
@@ -116,10 +116,11 @@ export const EmailNotificationsSubscribeForm = ({
         )
         if (!topicAreas.length) return
         setTopicTags(topicAreas)
+        setIsExpanded(true)
         setWindowUrl(
             url.updateQueryParams({ [LatestUrlParam.TOPICS]: undefined })
         )
-    }, [topicAreaNames, setTopicTags])
+    }, [topicAreaNames, setTopicTags, setIsExpanded])
 
     const subscribe = useMutation({
         mutationFn: async (request: EmailNotificationsSubscribeRequest) => {

@@ -121,11 +121,14 @@ export interface EmailNotificationsPreferenceFieldsProps {
     onToggleContentType: (contentType: EmailNotificationsContentType) => void
     onSetFrequency: (frequency: EmailNotificationsFrequency) => void
     validationErrors?: PreferencesValidationErrors | null
+    isExpanded: boolean
+    onToggleExpanded: () => void
 }
 
 /**
  * The topics / content types / frequency fieldsets, shared between the
- * subscribe form and the magic-link preferences form.
+ * subscribe form and the magic-link preferences form. They sit behind a
+ * disclosure toggle, since the defaults suit most readers.
  */
 export const EmailNotificationsPreferenceFields = ({
     topicAreaNames,
@@ -136,7 +139,57 @@ export const EmailNotificationsPreferenceFields = ({
     onToggleContentType,
     onSetFrequency,
     validationErrors,
+    isExpanded,
+    onToggleExpanded,
 }: EmailNotificationsPreferenceFieldsProps) => {
+    const toggle = (
+        <button
+            type="button"
+            className="newsletter-preference-fields__toggle"
+            aria-expanded={isExpanded}
+            onClick={onToggleExpanded}
+        >
+            <FontAwesomeIcon icon={isExpanded ? faMinus : faPlus} />
+            <span>
+                {isExpanded
+                    ? "Hide your preferences"
+                    : "Choose your preferences"}
+            </span>
+        </button>
+    )
+
+    if (!isExpanded) return toggle
+
+    return (
+        <>
+            {toggle}
+            <PreferenceFieldsets
+                topicAreaNames={topicAreaNames}
+                topicTags={topicTags}
+                contentTypes={contentTypes}
+                frequency={frequency}
+                onToggleTopicTag={onToggleTopicTag}
+                onToggleContentType={onToggleContentType}
+                onSetFrequency={onSetFrequency}
+                validationErrors={validationErrors}
+            />
+        </>
+    )
+}
+
+const PreferenceFieldsets = ({
+    topicAreaNames,
+    topicTags,
+    contentTypes,
+    frequency,
+    onToggleTopicTag,
+    onToggleContentType,
+    onSetFrequency,
+    validationErrors,
+}: Omit<
+    EmailNotificationsPreferenceFieldsProps,
+    "isExpanded" | "onToggleExpanded"
+>) => {
     const allTopicsSelected = areAllTopicsSelected(topicTags, topicAreaNames)
 
     // The toggle callbacks use functional state updates, so toggling every
@@ -151,7 +204,25 @@ export const EmailNotificationsPreferenceFields = ({
     return (
         <>
             <fieldset className="newsletter-form__fieldset">
-                <legend className="h6-black-caps">I want updates about</legend>
+                <div className="newsletter-preference-fields__header">
+                    <legend className="h6-black-caps">
+                        I want updates about
+                    </legend>
+                    <button
+                        type="button"
+                        className="newsletter-preference-fields__select-all"
+                        onClick={toggleAllTopics}
+                    >
+                        <FontAwesomeIcon
+                            icon={allTopicsSelected ? faMinus : faPlus}
+                        />
+                        <span>
+                            {allTopicsSelected
+                                ? "Deselect all topics"
+                                : "Select all topics"}
+                        </span>
+                    </button>
+                </div>
                 <div className="newsletter-preference-fields__pills">
                     {topicAreaNames.map((name) => (
                         <TogglePill
@@ -162,20 +233,6 @@ export const EmailNotificationsPreferenceFields = ({
                         />
                     ))}
                 </div>
-                <button
-                    type="button"
-                    className="newsletter-preference-fields__select-all"
-                    onClick={toggleAllTopics}
-                >
-                    <FontAwesomeIcon
-                        icon={allTopicsSelected ? faMinus : faPlus}
-                    />
-                    <span>
-                        {allTopicsSelected
-                            ? "Deselect all topics"
-                            : "Select all topics"}
-                    </span>
-                </button>
                 {validationErrors?.topicTagsError && (
                     <div className="newsletter-form__alert">
                         {validationErrors.topicTagsError}
@@ -209,7 +266,7 @@ export const EmailNotificationsPreferenceFields = ({
                 )}
             </fieldset>
             <fieldset className="newsletter-form__fieldset">
-                <legend className="h6-black-caps">Send me, at most</legend>
+                <legend className="h6-black-caps">Send me</legend>
                 <div className="newsletter-preference-fields__frequency-options">
                     {EMAIL_NOTIFICATIONS_FREQUENCIES.map((frequencyOption) => (
                         <label
