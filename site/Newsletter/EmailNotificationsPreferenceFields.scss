@@ -152,8 +152,8 @@
     display: inline-flex;
     flex-wrap: wrap;
     border: 1px solid $blue-20;
-    padding: 2px;
-    gap: 4px;
+    padding: 1px;
+    gap: 1px;
 }
 
 .newsletter-preference-fields__frequency-option {
@@ -181,7 +181,7 @@
 
     &:focus-within {
         outline: 2px solid $blue-60;
-        outline-offset: 1px;
+        outline-offset: -1px;
     }
 }
 
