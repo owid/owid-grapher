@@ -1,0 +1,37 @@
+// Slim tab styling, shared by Tabs.scss and ContentSwitchers.scss.
+// Imported at the top level of grapher.scss (mixins emit no CSS of their
+// own) so both files can reach it from their respective scoping blocks.
+@mixin slim-tab-item {
+    $visual-gap: 2px;
+
+    position: relative;
+    display: block;
+    text-transform: capitalize;
+    color: $light-text;
+    font-size: var(--tabs-font-size, 13px);
+    font-weight: 500;
+    height: $controlRowHeight - 2 * $visual-gap;
+    line-height: $controlRowHeight - 2 * $visual-gap;
+    border-radius: $visual-gap;
+    cursor: pointer;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+    user-select: none;
+    text-align: center;
+
+    &[data-hovered] {
+        background-color: $gray-10;
+    }
+}
+@mixin slim-tab-separator {
+    &::before {
+        content: "";
+        display: block;
+        width: 1px;
+        height: calc(100% - 12px);
+        position: absolute;
+        top: 6px;
+        background-color: $gray-20;
+        left: 0;
+    }
+}
