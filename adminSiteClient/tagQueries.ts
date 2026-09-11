@@ -7,7 +7,7 @@ import type {
     TaggableType,
 } from "@ourworldindata/utils"
 import type { ChartListItem } from "./ChartList.js"
-import type { DatasetListItem } from "./DatasetList.js"
+import type { DatasetListItem } from "./datasetQueries.js"
 import { AdminAppContext } from "./AdminAppContext.js"
 
 export interface TagPageData {

@@ -1,174 +1,157 @@
 import * as React from "react"
-import { observable, action, makeObservable } from "mobx"
-import { observer } from "mobx-react"
-import * as lodash from "lodash-es"
-import { bind, DbChartTagJoin } from "@ourworldindata/utils"
+import { useMemo } from "react"
+import { TableColumnsType } from "antd"
+import { DbChartTagJoin } from "@ourworldindata/utils"
 
 import { Link } from "./Link.js"
-import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { Timeago } from "./Forms.js"
 import { EditableTags } from "./EditableTags.js"
-import {
-    getTagGraphRolesById,
-    MinimalTagWithMetadata,
-} from "./TagGraphMetadata.js"
+import { AdminTable, AdminTableSearch } from "./AdminTable.js"
+import { SearchHighlighter } from "./adminTableHelpers.js"
+import { getTagGraphRolesById } from "./TagGraphMetadata.js"
+import { useTags } from "./tagQueries.js"
+import { DatasetListItem, useSetDatasetTags } from "./datasetQueries.js"
 
-export interface DatasetListItem {
-    id: number
-    name: string
-    shortName: string
-    namespace: string
-    description: string
-    dataEditedAt: Date
-    dataEditedByUserName: string
-    metadataEditedAt: Date
-    metadataEditedByUserName: string
-    tags: DbChartTagJoin[]
-    isPrivate: boolean
-    nonRedistributable: boolean
-    version: string
-    numCharts: number
+export type { DatasetListItem } from "./datasetQueries.js"
+
+interface DatasetListProps {
+    datasets: DatasetListItem[]
+    searchHighlight?: SearchHighlighter
+    search?: AdminTableSearch
+    loading?: boolean
 }
 
-interface DatasetRowProps {
-    dataset: DatasetListItem
-    availableTags: MinimalTagWithMetadata[]
+function createColumns({
+    highlight,
+    availableTags,
+    tagGraphRolesById,
+    onSaveTags,
+}: {
+    highlight: SearchHighlighter
+    availableTags: ReturnType<typeof useTags>["data"]
     tagGraphRolesById: ReturnType<typeof getTagGraphRolesById>
-    searchHighlight?: (text: string) => string | React.ReactElement
-}
-
-@observer
-class DatasetRow extends React.Component<DatasetRowProps> {
-    static override contextType = AdminAppContext
-    declare context: AdminAppContextType
-
-    constructor(props: DatasetRowProps) {
-        super(props)
-        makeObservable(this)
-    }
-
-    async saveTags(tags: DbChartTagJoin[]): Promise<void> {
-        const { dataset } = this.props
-        const json = await this.context.admin.requestJSON(
-            `/api/datasets/${dataset.id}/setTags`,
-            { tagIds: tags.map((t) => t.id) },
-            "POST"
-        )
-        if (json.success) {
-            dataset.tags = tags
-        }
-    }
-
-    @action.bound onSaveTags(tags: DbChartTagJoin[]): Promise<void> {
-        return this.saveTags(tags)
-    }
-
-    override render() {
-        const { dataset, searchHighlight, availableTags, tagGraphRolesById } =
-            this.props
-
-        const highlight = searchHighlight || lodash.identity
-
-        return (
-            <tr>
-                <td>
+    onSaveTags: (datasetId: number, tags: DbChartTagJoin[]) => Promise<void>
+}): TableColumnsType<DatasetListItem> {
+    return [
+        {
+            title: "Dataset",
+            dataIndex: "name",
+            key: "name",
+            sorter: (a, b) => a.name.localeCompare(b.name),
+            render: (name, dataset) => (
+                <>
                     {dataset.nonRedistributable ? (
                         <span className="text-secondary">
                             Non-redistributable:{" "}
                         </span>
                     ) : dataset.isPrivate ? (
                         <span className="text-secondary">Unpublished: </span>
-                    ) : (
-                        ""
-                    )}
+                    ) : null}
                     <Link to={`/datasets/${dataset.id}`}>
-                        {highlight(dataset.name)}
+                        {highlight(name)}
                     </Link>
-                </td>
-                <td>{dataset.namespace}</td>
-                <td>{highlight(dataset.shortName)}</td>
-                <td>{dataset.version}</td>
-                <td>{dataset.numCharts}</td>
-                <td>
-                    <Timeago
-                        time={dataset.dataEditedAt}
-                        by={highlight(dataset.dataEditedByUserName)}
-                    />
-                </td>
-                <td>{highlight(dataset.description)}</td>
-                <td>
-                    <EditableTags
-                        tags={dataset.tags}
-                        suggestions={availableTags}
-                        tagGraphRolesById={tagGraphRolesById}
-                        onSave={this.onSaveTags}
-                        disabled={dataset.namespace !== "owid"}
-                    />
-                </td>
-            </tr>
-        )
-    }
+                </>
+            ),
+        },
+        {
+            title: "Namespace",
+            dataIndex: "namespace",
+            key: "namespace",
+            width: 130,
+            sorter: (a, b) => a.namespace.localeCompare(b.namespace),
+        },
+        {
+            title: "Short name",
+            dataIndex: "shortName",
+            key: "shortName",
+            sorter: (a, b) =>
+                (a.shortName ?? "").localeCompare(b.shortName ?? ""),
+            render: (shortName) => highlight(shortName),
+        },
+        {
+            title: "Version",
+            dataIndex: "version",
+            key: "version",
+            width: 110,
+            sorter: (a, b) => (a.version ?? "").localeCompare(b.version ?? ""),
+        },
+        {
+            title: "Charts",
+            dataIndex: "numCharts",
+            key: "numCharts",
+            width: 90,
+            align: "right",
+            sorter: (a, b) => a.numCharts - b.numCharts,
+        },
+        {
+            title: "Uploaded",
+            dataIndex: "dataEditedAt",
+            key: "dataEditedAt",
+            width: 200,
+            sorter: (a, b) =>
+                new Date(a.dataEditedAt).getTime() -
+                new Date(b.dataEditedAt).getTime(),
+            render: (dataEditedAt, dataset) => (
+                <Timeago
+                    time={dataEditedAt}
+                    by={highlight(dataset.dataEditedByUserName)}
+                />
+            ),
+        },
+        {
+            title: "Notes",
+            dataIndex: "description",
+            key: "description",
+            ellipsis: true,
+            render: (description) => highlight(description),
+        },
+        {
+            title: "Tags",
+            dataIndex: "tags",
+            key: "tags",
+            width: 300,
+            render: (tags, dataset) => (
+                <EditableTags
+                    tags={tags}
+                    suggestions={availableTags ?? []}
+                    tagGraphRolesById={tagGraphRolesById}
+                    onSave={(nextTags) => onSaveTags(dataset.id, nextTags)}
+                    disabled={dataset.namespace !== "owid"}
+                />
+            ),
+        },
+    ]
 }
 
-interface DatasetListProps {
-    datasets: DatasetListItem[]
-    searchHighlight?: (text: string) => string | React.ReactElement
-}
+export function DatasetList({
+    datasets,
+    searchHighlight,
+    search,
+    loading,
+}: DatasetListProps): React.ReactElement {
+    const { data: availableTags } = useTags()
+    const { mutateAsync: setDatasetTags } = useSetDatasetTags()
 
-@observer
-export class DatasetList extends React.Component<DatasetListProps> {
-    static override contextType = AdminAppContext
-    declare context: AdminAppContextType
-
-    availableTags: MinimalTagWithMetadata[] | undefined = undefined
-
-    constructor(props: DatasetListProps) {
-        super(props)
-
-        makeObservable(this, {
-            availableTags: observable,
+    const columns = useMemo(() => {
+        const highlight: SearchHighlighter =
+            searchHighlight ?? ((text) => text ?? "")
+        return createColumns({
+            highlight,
+            availableTags,
+            tagGraphRolesById: getTagGraphRolesById(availableTags ?? []),
+            onSaveTags: async (datasetId, tags) => {
+                await setDatasetTags({ datasetId, tags })
+            },
         })
-    }
+    }, [searchHighlight, availableTags, setDatasetTags])
 
-    @bind async getTags() {
-        const json = await this.context.admin.getJSON("/api/tags.json")
-        this.availableTags = json.tags
-    }
-
-    override componentDidMount() {
-        void this.getTags()
-    }
-
-    override render() {
-        const { props, availableTags } = this
-        const tagGraphRolesById = getTagGraphRolesById(availableTags ?? [])
-        return (
-            <table className="table table-bordered">
-                <thead>
-                    <tr>
-                        <th>Dataset</th>
-                        <th>Namespace</th>
-                        <th>Short name</th>
-                        <th>Version</th>
-                        <th>Number of charts</th>
-                        <th>Uploaded</th>
-                        <th>Notes</th>
-                        <th>Tags</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {availableTags &&
-                        props.datasets.map((dataset) => (
-                            <DatasetRow
-                                dataset={dataset}
-                                availableTags={availableTags}
-                                tagGraphRolesById={tagGraphRolesById}
-                                key={dataset.id}
-                                searchHighlight={props.searchHighlight}
-                            />
-                        ))}
-                </tbody>
-            </table>
-        )
-    }
+    return (
+        <AdminTable
+            columns={columns}
+            dataSource={datasets}
+            loading={loading || !availableTags}
+            search={search}
+            entityName="datasets"
+        />
+    )
 }

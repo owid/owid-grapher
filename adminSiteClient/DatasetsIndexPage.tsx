@@ -1,129 +1,52 @@
-import { Component } from "react"
-import { observer } from "mobx-react"
-import { observable, computed, action, runInAction, makeObservable } from "mobx"
-import * as lodash from "lodash-es"
+import * as React from "react"
+import { useMemo } from "react"
 
 import { AdminLayout } from "./AdminLayout.js"
-import { TextField, FieldsRow } from "./Forms.js"
-import { DatasetList, DatasetListItem } from "./DatasetList.js"
-import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
+import { DatasetList } from "./DatasetList.js"
 import {
-    buildSearchWordsFromSearchString,
-    filterFunctionForSearchWords,
-    highlightFunctionForSearchWords,
-    SearchWord,
-} from "../adminShared/search.js"
+    filterBySearchWords,
+    highlightSearchWords,
+    useSearchQueryParam,
+} from "./adminTableHelpers.js"
+import { useDatasets } from "./datasetQueries.js"
 
-@observer
-export class DatasetsIndexPage extends Component {
-    static override contextType = AdminAppContext
-    declare context: AdminAppContextType
+export function DatasetsIndexPage(): React.ReactElement {
+    const { data: datasets, isLoading } = useDatasets()
+    const [searchValue, setSearchValue] = useSearchQueryParam()
 
-    datasets: DatasetListItem[] = []
-    maxVisibleRows = 50
-    searchInput: string | undefined = undefined
+    const datasetsToShow = useMemo(
+        () =>
+            filterBySearchWords(datasets ?? [], searchValue, (dataset) => [
+                dataset.name,
+                dataset.shortName,
+                ...dataset.tags.map((t) => t.name),
+                dataset.namespace,
+                dataset.dataEditedByUserName,
+                dataset.description,
+            ]),
+        [datasets, searchValue]
+    )
 
-    constructor(props: Record<string, never>) {
-        super(props)
+    const highlight = useMemo(
+        () => highlightSearchWords(searchValue),
+        [searchValue]
+    )
 
-        makeObservable(this, {
-            datasets: observable,
-            maxVisibleRows: observable,
-            searchInput: observable,
-        })
-    }
-
-    @computed get searchWords(): SearchWord[] {
-        const { searchInput } = this
-        return buildSearchWordsFromSearchString(searchInput)
-    }
-
-    @computed get allDatasetsToShow(): DatasetListItem[] {
-        const { searchWords, datasets, maxVisibleRows } = this
-        if (searchWords.length > 0) {
-            const filterFn = filterFunctionForSearchWords(
-                searchWords,
-                (dataset: DatasetListItem) => [
-                    dataset.name,
-                    dataset.shortName,
-                    ...dataset.tags.map((t) => t.name),
-                    dataset.namespace,
-                    dataset.dataEditedByUserName,
-                    dataset.description,
-                ]
-            )
-            return datasets.filter(filterFn)
-        } else {
-            return this.datasets.slice(0, maxVisibleRows)
-        }
-    }
-
-    @computed get datasetsToShow(): DatasetListItem[] {
-        return this.allDatasetsToShow.slice(0, this.maxVisibleRows)
-    }
-
-    @computed get namespaces() {
-        return lodash.uniq(this.datasets.map((d) => d.namespace))
-    }
-
-    @computed get numTotalRows(): number {
-        return this.datasets.length
-    }
-
-    @action.bound onSearchInput(input: string) {
-        this.searchInput = input
-    }
-
-    @action.bound onShowMore() {
-        this.maxVisibleRows += 100
-    }
-
-    override render() {
-        const { datasetsToShow, searchInput, numTotalRows } = this
-
-        const highlight = highlightFunctionForSearchWords(this.searchWords)
-
-        return (
-            <AdminLayout title="Datasets">
-                <main className="DatasetsIndexPage">
-                    <FieldsRow>
-                        <span>
-                            Showing {datasetsToShow.length} of {numTotalRows}{" "}
-                            datasets
-                        </span>
-                        <TextField
-                            placeholder="Search all datasets..."
-                            value={searchInput}
-                            onValue={this.onSearchInput}
-                            autofocus
-                        />
-                    </FieldsRow>
-                    <DatasetList
-                        datasets={datasetsToShow}
-                        searchHighlight={highlight}
-                    />
-                    {!searchInput && (
-                        <button
-                            className="btn btn-secondary"
-                            onClick={this.onShowMore}
-                        >
-                            Show more datasets...
-                        </button>
-                    )}
-                </main>
-            </AdminLayout>
-        )
-    }
-
-    async getData() {
-        const { admin } = this.context
-        const json = await admin.getJSON("/api/datasets.json")
-        runInAction(() => {
-            this.datasets = json.datasets
-        })
-    }
-
-    override componentDidMount() {
-        void this.getData()
-    }
+    return (
+        <AdminLayout title="Datasets">
+            <main className="DatasetsIndexPage">
+                <DatasetList
+                    datasets={datasetsToShow}
+                    searchHighlight={highlight}
+                    loading={isLoading}
+                    search={{
+                        value: searchValue,
+                        onChange: setSearchValue,
+                        placeholder: "Search all datasets...",
+                        autoFocus: true,
+                    }}
+                />
+            </main>
+        </AdminLayout>
+    )
 }

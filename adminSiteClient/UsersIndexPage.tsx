@@ -1,15 +1,28 @@
 import * as React from "react"
+import { useContext, useMemo, useState } from "react"
 import { observer } from "mobx-react"
 import { observable, action, runInAction, makeObservable } from "mobx"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { Button, Popconfirm, TableColumnsType, Tag } from "antd"
 
 import { Modal, Timeago } from "./Forms.js"
 import { Link } from "./Link.js"
 import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
+import { AdminTable } from "./AdminTable.js"
+import {
+    filterBySearchWords,
+    useSearchQueryParam,
+} from "./adminTableHelpers.js"
 import { UserIndexMeta } from "./UserMeta.js"
 
 interface UserIndexMetaWithLastSeen extends UserIndexMeta {
     lastSeen: Date
+}
+
+const userKeys = {
+    all: ["users"] as const,
+    list: () => [...userKeys.all, "list"] as const,
 }
 
 @observer
@@ -39,7 +52,6 @@ class InviteModal extends React.Component<{ onClose: () => void }> {
                 { email: this.email, fullName: this.fullName },
                 "POST"
             )
-            console.log(resp)
             if (resp.success) {
                 runInAction(() => (this.responseSuccess = true))
             }
@@ -101,136 +113,164 @@ class InviteModal extends React.Component<{ onClose: () => void }> {
     }
 }
 
-@observer
-export class UsersIndexPage extends React.Component {
-    static override contextType = AdminAppContext
-    declare context: AdminAppContextType
+/** Null-safe, so that users who have never logged in still sort. */
+function timestamp(date: Date | null | undefined): number {
+    return date ? new Date(date).getTime() : 0
+}
 
-    users: UserIndexMetaWithLastSeen[] = []
-    isInviteModal: boolean = false
+function createColumns({
+    isSuperuser,
+    onDelete,
+}: {
+    isSuperuser: boolean
+    onDelete: (user: UserIndexMetaWithLastSeen) => void
+}): TableColumnsType<UserIndexMetaWithLastSeen> {
+    const columns: TableColumnsType<UserIndexMetaWithLastSeen> = [
+        {
+            title: "Name",
+            dataIndex: "fullName",
+            key: "fullName",
+            sorter: (a, b) => a.fullName.localeCompare(b.fullName),
+        },
+        {
+            title: "Last seen",
+            dataIndex: "lastSeen",
+            key: "lastSeen",
+            width: 200,
+            // Matches the order the API returns users in
+            defaultSortOrder: "descend",
+            sorter: (a, b) => timestamp(a.lastSeen) - timestamp(b.lastSeen),
+            render: (lastSeen) => lastSeen && <Timeago time={lastSeen} />,
+        },
+        {
+            title: "Joined",
+            dataIndex: "createdAt",
+            key: "createdAt",
+            width: 200,
+            sorter: (a, b) => timestamp(a.createdAt) - timestamp(b.createdAt),
+            render: (createdAt) => <Timeago time={createdAt} />,
+        },
+    ]
 
-    constructor(props: Record<string, never>) {
-        super(props)
+    if (!isSuperuser) return columns
 
-        makeObservable(this, {
-            users: observable,
-            isInviteModal: observable,
-        })
-    }
+    return [
+        ...columns,
+        {
+            title: "Status",
+            dataIndex: "isActive",
+            key: "isActive",
+            width: 120,
+            sorter: (a, b) => Number(b.isActive) - Number(a.isActive),
+            render: (isActive) =>
+                isActive ? (
+                    <Tag color="green">active</Tag>
+                ) : (
+                    <Tag>disabled</Tag>
+                ),
+        },
+        {
+            title: "Actions",
+            key: "actions",
+            width: 180,
+            render: (_, user) => (
+                <>
+                    <Link to={`/users/${user.id}`}>
+                        <Button type="text">Edit</Button>
+                    </Link>
+                    <Popconfirm
+                        title={`Delete the user ${user.fullName}?`}
+                        description="This action cannot be undone."
+                        onConfirm={() => onDelete(user)}
+                        okText="Yes"
+                        cancelText="No"
+                    >
+                        <Button type="text" danger>
+                            Delete
+                        </Button>
+                    </Popconfirm>
+                </>
+            ),
+        },
+    ]
+}
 
-    @action.bound async onDelete(user: UserIndexMetaWithLastSeen) {
-        if (
-            !window.confirm(
-                `Delete the user ${user.fullName}? This action cannot be undone!`
-            )
-        )
-            return
+export function UsersIndexPage(): React.ReactElement {
+    const { admin } = useContext(AdminAppContext)
+    const queryClient = useQueryClient()
+    const [isInviteModalOpen, setIsInviteModalOpen] = useState(false)
+    const [searchValue, setSearchValue] = useSearchQueryParam()
 
-        const json = await this.context.admin.requestJSON(
-            `/api/users/${user.id}`,
-            {},
-            "DELETE"
-        )
+    const { data: users, isLoading } = useQuery({
+        queryKey: userKeys.list(),
+        queryFn: async () => {
+            const { users } = await admin.getJSONInBackground<{
+                users: UserIndexMetaWithLastSeen[]
+            }>("/api/users.json")
+            return users
+        },
+    })
 
-        if (json.success) {
-            runInAction(() => this.users.splice(this.users.indexOf(user), 1))
-        }
-    }
+    const deleteMutation = useMutation({
+        mutationFn: (user: UserIndexMetaWithLastSeen) =>
+            admin.requestJSON(`/api/users/${user.id}`, {}, "DELETE"),
+        onSuccess: () =>
+            queryClient.invalidateQueries({ queryKey: userKeys.all }),
+    })
 
-    override render() {
-        const { users } = this
-        const { isSuperuser } = this.context.admin
-        return (
-            <AdminLayout title="Users">
-                <main className="UsersIndexPage">
-                    {this.isInviteModal && (
-                        <InviteModal
-                            onClose={action(() => (this.isInviteModal = false))}
-                        />
-                    )}
-                    <div className="topbar">
-                        <h2>Users</h2>
-                        {isSuperuser && (
-                            <button
-                                onClick={action(
-                                    () => (this.isInviteModal = true)
-                                )}
-                                className="btn btn-primary"
+    const usersToShow = useMemo(
+        () =>
+            filterBySearchWords(users ?? [], searchValue, (user) => [
+                user.fullName,
+            ]),
+        [users, searchValue]
+    )
+
+    const columns = useMemo(
+        () =>
+            createColumns({
+                isSuperuser: admin.isSuperuser,
+                onDelete: deleteMutation.mutate,
+            }),
+        [admin.isSuperuser, deleteMutation.mutate]
+    )
+
+    return (
+        <AdminLayout title="Users">
+            <main className="UsersIndexPage">
+                {isInviteModalOpen && (
+                    <InviteModal
+                        onClose={() => {
+                            setIsInviteModalOpen(false)
+                            void queryClient.invalidateQueries({
+                                queryKey: userKeys.all,
+                            })
+                        }}
+                    />
+                )}
+                <AdminTable
+                    columns={columns}
+                    dataSource={usersToShow}
+                    loading={isLoading}
+                    entityName="users"
+                    search={{
+                        value: searchValue,
+                        onChange: setSearchValue,
+                        placeholder: "Search users...",
+                        width: 300,
+                    }}
+                    actions={
+                        admin.isSuperuser && (
+                            <Button
+                                type="primary"
+                                onClick={() => setIsInviteModalOpen(true)}
                             >
                                 Add a user
-                            </button>
-                        )}
-                    </div>
-                    <table className="table table-bordered">
-                        <tbody>
-                            <tr>
-                                <th>Name</th>
-                                <th>Last Seen</th>
-                                <th>Joined</th>
-                                {isSuperuser && <th>Status</th>}
-                                {isSuperuser && <th></th>}
-                                {isSuperuser && <th></th>}
-                            </tr>
-                            {users.map((user) => (
-                                <tr key={user.id}>
-                                    <td>{user.fullName}</td>
-                                    <td>
-                                        <Timeago time={user.lastSeen} />
-                                    </td>
-                                    <td>
-                                        <Timeago time={user.createdAt} />
-                                    </td>
-                                    {isSuperuser && (
-                                        <td>
-                                            {user.isActive
-                                                ? "active"
-                                                : "disabled"}
-                                        </td>
-                                    )}
-                                    {isSuperuser && (
-                                        <td>
-                                            <Link
-                                                to={`/users/${user.id}`}
-                                                className="btn btn-primary"
-                                            >
-                                                Edit
-                                            </Link>
-                                        </td>
-                                    )}
-                                    {isSuperuser && (
-                                        <td>
-                                            <button
-                                                className="btn btn-danger"
-                                                onClick={() =>
-                                                    this.onDelete(user)
-                                                }
-                                            >
-                                                Delete
-                                            </button>
-                                        </td>
-                                    )}
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </main>
-            </AdminLayout>
-        )
-    }
-
-    async getData() {
-        const { admin } = this.context
-
-        const json = await admin.getJSON<{
-            users: UserIndexMetaWithLastSeen[]
-        }>("/api/users.json")
-
-        runInAction(() => {
-            this.users = json.users
-        })
-    }
-
-    override componentDidMount() {
-        void this.getData()
-    }
+                            </Button>
+                        )
+                    }
+                />
+            </main>
+        </AdminLayout>
+    )
 }
