@@ -41,6 +41,7 @@ const NewsletterOption = ({
 }) => (
     <Checkbox
         id={id}
+        autoComplete="off"
         className="newsletter-signup-form__option"
         checked={checked}
         disabled={disabled}
@@ -124,9 +125,7 @@ export const NewsletterSignupForm = ({
     if (isSubscribed)
         return (
             <p className={cx("newsletter-signup-form__success", className)}>
-                To start receiving the OWID Brief, please confirm your
-                subscription using the link in the email we have sent to{" "}
-                <strong>{email.trim()}</strong>.
+                Your subscription to The OWID Brief is active.
             </p>
         )
 
