@@ -19,11 +19,6 @@ $toggle-full-width-breakpoint: 520px;
         margin-left: 8px;
     }
 
-    &--hidden {
-        position: absolute;
-        visibility: hidden;
-    }
-
     &:focus-visible {
         // Override global focus-visible style.
         outline: none !important;
