@@ -156,6 +156,19 @@ export abstract class AbstractCoreColumn<
         return this.formatTimeShort(time)
     }
 
+    /**
+     * Where the period a time value stands for ends, as a time value: the
+     * value counterpart of `formatTimeShortEnd`, for callers that need the
+     * time itself rather than a label for it.
+     *
+     * Columns that store one representative time per period translate it to
+     * the period's last day; the rest return the time unchanged, exactly as
+     * `formatTimeShortEnd` formats the time itself for them.
+     */
+    periodEndTime(time: Time): Time {
+        return time
+    }
+
     /** Formats a start/end time pair */
     formatTimeRange(startTime: number, endTime: number): string {
         return `${this.formatTime(startTime)} to ${this.formatTime(endTime)}`
@@ -1126,9 +1139,16 @@ class WeekColumn<
         return monday.format("MMM D, YYYY")
     }
 
+    // The week's last day (ISO-week Sunday)
+    override periodEndTime(time: Time): Time {
+        return convertDateToDaysSinceEpoch(
+            convertDaysSinceEpochToDate(time).endOf("isoWeek")
+        )
+    }
+
     // The plain week-end date (ISO-week Sunday), e.g. "Jun 7, 2026"
     override formatTimeShortEnd(time: number): string {
-        const sunday = convertDaysSinceEpochToDate(time).endOf("isoWeek")
+        const sunday = convertDaysSinceEpochToDate(this.periodEndTime(time))
         return sunday.format("MMM D, YYYY")
     }
 
@@ -1167,11 +1187,18 @@ class QuarterColumn<
             .format("MMM YYYY")
     }
 
+    // The quarter's last day
+    override periodEndTime(time: Time): Time {
+        return convertDateToDaysSinceEpoch(
+            convertDaysSinceEpochToDate(time).endOf("quarter")
+        )
+    }
+
     // The quarter's end month, e.g. "Mar 2026"
     override formatTimeShortEnd(time: number): string {
-        return convertDaysSinceEpochToDate(time)
-            .endOf("quarter")
-            .format("MMM YYYY")
+        return convertDaysSinceEpochToDate(this.periodEndTime(time)).format(
+            "MMM YYYY"
+        )
     }
 
     // The span from the first month of the start quarter to the last month of
