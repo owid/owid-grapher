@@ -10,15 +10,40 @@ import { Link } from "./Link.js"
 import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { AdminTable } from "./AdminTable.js"
-import {
-    filterBySearchWords,
-    useSearchQueryParam,
-} from "./adminTableHelpers.js"
+import { useListSearch } from "./adminTableHelpers.js"
+import { SearchField } from "../adminShared/searchFilter.js"
 import { UserIndexMeta } from "./UserMeta.js"
 
 interface UserIndexMetaWithLastSeen extends UserIndexMeta {
     lastSeen: Date
 }
+
+const SEARCH_FIELDS: SearchField<UserIndexMetaWithLastSeen>[] = [
+    {
+        name: "name",
+        type: "string",
+        description: "Full name",
+        get: (u) => u.fullName,
+    },
+    {
+        name: "active",
+        type: "boolean",
+        description: "Account is enabled",
+        get: (u) => u.isActive,
+    },
+    {
+        name: "seen",
+        type: "date",
+        description: "Last seen",
+        get: (u) => u.lastSeen,
+    },
+    {
+        name: "joined",
+        type: "date",
+        description: "When they joined",
+        get: (u) => u.createdAt,
+    },
+]
 
 const userKeys = {
     all: ["users"] as const,
@@ -199,7 +224,6 @@ export function UsersIndexPage(): React.ReactElement {
     const { admin } = useContext(AdminAppContext)
     const queryClient = useQueryClient()
     const [isInviteModalOpen, setIsInviteModalOpen] = useState(false)
-    const [searchValue, setSearchValue] = useSearchQueryParam()
 
     const { data: users, isLoading } = useQuery({
         queryKey: userKeys.list(),
@@ -218,12 +242,10 @@ export function UsersIndexPage(): React.ReactElement {
             queryClient.invalidateQueries({ queryKey: userKeys.all }),
     })
 
-    const usersToShow = useMemo(
-        () =>
-            filterBySearchWords(users ?? [], searchValue, (user) => [
-                user.fullName,
-            ]),
-        [users, searchValue]
+    const { results: usersToShow, search } = useListSearch(
+        users,
+        SEARCH_FIELDS,
+        { placeholder: "Search users..." }
     )
 
     const columns = useMemo(
@@ -253,12 +275,7 @@ export function UsersIndexPage(): React.ReactElement {
                     dataSource={usersToShow}
                     loading={isLoading}
                     entityName="users"
-                    search={{
-                        value: searchValue,
-                        onChange: setSearchValue,
-                        placeholder: "Search users...",
-                        width: 300,
-                    }}
+                    search={search}
                     actions={
                         admin.isSuperuser && (
                             <Button

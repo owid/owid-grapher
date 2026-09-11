@@ -1,50 +1,96 @@
 import * as React from "react"
-import { useMemo } from "react"
 
 import { AdminLayout } from "./AdminLayout.js"
 import { DatasetList } from "./DatasetList.js"
-import {
-    filterBySearchWords,
-    highlightSearchWords,
-    useSearchQueryParam,
-} from "./adminTableHelpers.js"
-import { useDatasets } from "./datasetQueries.js"
+import { useListSearch } from "./adminTableHelpers.js"
+import { DatasetListItem, useDatasets } from "./datasetQueries.js"
+import { SearchField } from "../adminShared/searchFilter.js"
+
+const SEARCH_FIELDS: SearchField<DatasetListItem>[] = [
+    {
+        name: "name",
+        type: "string",
+        description: "Dataset name",
+        get: (d) => d.name,
+    },
+    {
+        name: "short",
+        type: "string",
+        description: "Short name",
+        get: (d) => d.shortName,
+    },
+    {
+        name: "namespace",
+        type: "string",
+        description: "Namespace",
+        get: (d) => d.namespace,
+    },
+    {
+        name: "version",
+        type: "string",
+        description: "Version",
+        get: (d) => d.version,
+    },
+    {
+        name: "tag",
+        type: "string",
+        description: "Tag",
+        get: (d) => d.tags.map((tag) => tag.name),
+    },
+    {
+        name: "by",
+        type: "string",
+        description: "Who last edited the data",
+        get: (d) => d.dataEditedByUserName,
+    },
+    {
+        name: "notes",
+        type: "string",
+        description: "Notes",
+        get: (d) => d.description,
+    },
+    {
+        name: "charts",
+        type: "number",
+        description: "Number of charts using it",
+        get: (d) => d.numCharts,
+    },
+    {
+        name: "private",
+        type: "boolean",
+        description: "Unpublished",
+        get: (d) => d.isPrivate,
+    },
+    {
+        name: "redistributable",
+        type: "boolean",
+        description: "Redistribution allowed",
+        get: (d) => !d.nonRedistributable,
+    },
+    {
+        name: "uploaded",
+        type: "date",
+        description: "When the data was last edited",
+        get: (d) => d.dataEditedAt,
+    },
+]
 
 export function DatasetsIndexPage(): React.ReactElement {
     const { data: datasets, isLoading } = useDatasets()
-    const [searchValue, setSearchValue] = useSearchQueryParam()
-
-    const datasetsToShow = useMemo(
-        () =>
-            filterBySearchWords(datasets ?? [], searchValue, (dataset) => [
-                dataset.name,
-                dataset.shortName,
-                ...dataset.tags.map((t) => t.name),
-                dataset.namespace,
-                dataset.dataEditedByUserName,
-                dataset.description,
-            ]),
-        [datasets, searchValue]
-    )
-
-    const highlight = useMemo(
-        () => highlightSearchWords(searchValue),
-        [searchValue]
+    const { results, highlight, search } = useListSearch(
+        datasets,
+        SEARCH_FIELDS,
+        { placeholder: "Search all datasets...", autoFocus: true }
     )
 
     return (
         <AdminLayout title="Datasets">
             <main className="DatasetsIndexPage">
                 <DatasetList
-                    datasets={datasetsToShow}
+                    datasets={results}
                     searchHighlight={highlight}
                     loading={isLoading}
-                    search={{
-                        value: searchValue,
-                        onChange: setSearchValue,
-                        placeholder: "Search all datasets...",
-                        autoFocus: true,
-                    }}
+                    search={search}
                 />
             </main>
         </AdminLayout>

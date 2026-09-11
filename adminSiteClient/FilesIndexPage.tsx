@@ -1,6 +1,7 @@
 import * as _ from "lodash-es"
-import React, { useContext, useState, useMemo, useEffect } from "react"
+import React, { useContext, useMemo, useEffect } from "react"
 import { useHistory, useLocation } from "react-router-dom"
+import { useSearchQueryParam } from "./adminTableHelpers.js"
 import { Flex, Input, Breadcrumb, Space, Tooltip } from "antd"
 import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext } from "./AdminAppContext.js"
@@ -304,7 +305,7 @@ export function FilesIndexPage() {
     const { admin } = useContext(AdminAppContext)
     const location = useLocation()
     const history = useHistory()
-    const [searchValue, setSearchValue] = useState("")
+    const [searchValue, setSearchValue] = useSearchQueryParam()
 
     const { data } = useQuery({
         queryKey: ["files"],

@@ -1011,7 +1011,8 @@ const buildWhereClauses = (query: string): string[] => {
                     )}, cast(date(d.createdAt) as char) > ${escape(q)}))`
                 )
             }
-        } else if (part === "is:published") {
+        } else if (part === "is:published" || part === "is:public") {
+            // the search help has always advertised is:public
             whereClauses.push(`${not} (NOT d.isPrivate)`)
         } else if (part === "is:private") {
             whereClauses.push(`${not} d.isPrivate`)

@@ -4,10 +4,8 @@ import { Modal, TextField } from "./Forms.js"
 import { faCirclePlus, faQuestion } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { OwidGdocType, OwidGdocIndexItem } from "@ourworldindata/utils"
-import {
-    buildSearchWordsFromSearchString,
-    filterFunctionForSearchWords,
-} from "../adminShared/search.js"
+import { makeSearchFilter, SearchField } from "../adminShared/searchFilter.js"
+import { useSearchQueryParam } from "./adminTableHelpers.js"
 import { Route, RouteComponentProps } from "react-router-dom"
 import { GdocsAdd } from "./GdocsAdd.js"
 import { GdocsList } from "./GdocsList.js"
@@ -131,6 +129,53 @@ function isGdocScheduled(gdoc: OwidGdocIndexItem, now: number): boolean {
     )
 }
 
+const SEARCH_FIELDS: SearchField<OwidGdocIndexItem>[] = [
+    {
+        name: "title",
+        type: "string",
+        description: "Title",
+        get: (gdoc) => gdoc.title,
+    },
+    {
+        name: "subtitle",
+        type: "string",
+        description: "Subtitle",
+        get: (gdoc) => gdoc.subtitle,
+    },
+    { name: "slug", type: "string", description: "Slug", get: (g) => g.slug },
+    {
+        name: "author",
+        type: "string",
+        description: "Author",
+        get: (gdoc) => gdoc.authors,
+    },
+    {
+        name: "tag",
+        type: "string",
+        description: "Tag",
+        get: (gdoc) => gdoc.tags?.map(({ name }) => name),
+    },
+    {
+        name: "type",
+        type: "string",
+        description: "Gdoc type",
+        get: (gdoc) => gdoc.type,
+    },
+    {
+        name: "id",
+        type: "string",
+        description: "Google Doc id",
+        get: (gdoc) => gdoc.id,
+        freeText: false,
+    },
+    {
+        name: "published",
+        type: "boolean",
+        description: "Published",
+        get: (gdoc) => gdoc.published,
+    },
+]
+
 function filterGdocs(
     gdocs: OwidGdocIndexItem[],
     filters: GdocsSearchFilters,
@@ -163,19 +208,9 @@ function filterGdocs(
           })
         : gdocs
 
-    const searchWords = buildSearchWordsFromSearchString(searchValue)
-    const searched = searchWords.length
-        ? filteredByType.filter(
-              filterFunctionForSearchWords(searchWords, (gdoc) => [
-                  gdoc.title,
-                  gdoc.subtitle,
-                  gdoc.slug,
-                  gdoc.authors?.join(" "),
-                  gdoc.tags?.map(({ name }) => name).join(" "),
-                  gdoc.id,
-              ])
-          )
-        : filteredByType
+    const searched = filteredByType.filter(
+        makeSearchFilter(searchValue, SEARCH_FIELDS)
+    )
 
     return publishStatus === GdocPublishStatus.Scheduled
         ? [...searched].sort(
@@ -185,7 +220,7 @@ function filterGdocs(
 }
 
 export function GdocsIndexPage(props: RouteComponentProps): React.ReactElement {
-    const [searchValue, setSearchValue] = React.useState("")
+    const [searchValue, setSearchValue] = useSearchQueryParam()
     const [filters, setFilters] =
         React.useState<GdocsSearchFilters>(DEFAULT_FILTERS)
     const [visibleResultCount, setVisibleResultCount] = React.useState(

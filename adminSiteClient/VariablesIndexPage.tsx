@@ -9,9 +9,13 @@ import { AdminAppContext } from "./AdminAppContext.js"
 import { VariableList, VariableListItem } from "./VariableList.js"
 import {
     ADMIN_TABLE_PAGE_SIZE,
-    highlightSearchWords,
     useSearchQueryParam,
 } from "./adminTableHelpers.js"
+import { highlightFunctionForSearchWords } from "../adminShared/search.js"
+import {
+    SearchFieldHelp,
+    searchWordsToHighlight,
+} from "../adminShared/searchFilter.js"
 import { ETL_WIZARD_URL } from "../settings/clientSettings.mjs"
 
 const FIELDS = [
@@ -23,26 +27,33 @@ const FIELDS = [
     "uploadedAt",
 ] as const
 
-function SearchSyntaxHelp(): React.ReactElement {
+/**
+ * Unlike the other lists, the indicators search runs in SQL (see
+ * `searchVariables`), so the fields are declared rather than derived — they
+ * feed the help popover and the highlighting of matched text.
+ */
+const SEARCH_FIELDS: SearchFieldHelp[] = [
+    { name: "name", type: "string", description: "Indicator name (regex)" },
+    { name: "path", type: "string", description: "Catalog path (regex)" },
+    { name: "namespace", type: "string", description: "Dataset name" },
+    { name: "version", type: "string", description: "Dataset version" },
+    { name: "dataset", type: "string", description: "Dataset short name" },
+    { name: "table", type: "string", description: "Table in the catalog path" },
+    { name: "short", type: "string", description: "Indicator short name" },
+    { name: "before", type: "date", description: "Version before this date" },
+    { name: "after", type: "date", description: "Version after this date" },
+    { name: "is", type: "string", description: "`public` or `private`" },
+]
+
+function SearchSyntaxNote(): React.ReactElement {
     return (
-        <div className="variables-index__help">
-            <p>
-                <em>
-                    You can use regular expressions and the following fields:
-                </em>{" "}
-                <code>name:</code>, <code>path:</code>, <code>namespace:</code>,{" "}
-                <code>version:</code>, <code>dataset:</code>,{" "}
-                <code>table:</code>, <code>short:</code>, <code>before:</code>,{" "}
-                <code>after:</code>, <code>is:public</code>,{" "}
-                <code>is:private</code>
-            </p>
-            <p>
-                Also try:{" "}
-                <a href={urljoin(ETL_WIZARD_URL, "indicator_search")}>
-                    semantic indicator search
-                </a>
-            </p>
-        </div>
+        <p className="variables-index__help">
+            Terms are matched as regular expressions. Also try{" "}
+            <a href={urljoin(ETL_WIZARD_URL, "indicator_search")}>
+                semantic indicator search
+            </a>
+            .
+        </p>
     )
 }
 
@@ -72,19 +83,17 @@ export function VariablesIndexPage(): React.ReactElement {
     })
 
     const highlight = useMemo(
-        // Fielded and regex searches don't map onto plain word highlighting,
-        // so only highlight when the query is neither.
         () =>
-            /[:^$*+?()[\]{}|\\]/.test(debouncedSearch)
-                ? undefined
-                : highlightSearchWords(debouncedSearch),
+            highlightFunctionForSearchWords(
+                searchWordsToHighlight(debouncedSearch, SEARCH_FIELDS)
+            ),
         [debouncedSearch]
     )
 
     return (
         <AdminLayout title="Indicators">
             <main className="VariablesIndexPage">
-                <SearchSyntaxHelp />
+                <SearchSyntaxNote />
                 <VariableList
                     variables={data?.variables ?? []}
                     fields={[...FIELDS]}
@@ -99,6 +108,7 @@ export function VariablesIndexPage(): React.ReactElement {
                         },
                         placeholder: "e.g. ^population before:2023 -wdi",
                         autoFocus: true,
+                        fields: SEARCH_FIELDS,
                     }}
                     pagination={{
                         current: page,
