@@ -879,9 +879,14 @@ export const searchVariables = async (
 ): Promise<VariablesSearchResult> => {
     const whereClauses = buildWhereClauses(query)
 
+    // An inner join, so indicators whose dataset has been archived are left
+    // out. It is also what makes this fast: joining the other way round makes
+    // MySQL sort all ~780k variables to return one page, because the sort key
+    // lives on the dataset. Driven from the ~1.2k active datasets it stops as
+    // soon as the page is full.
     const fromWhere = `
         FROM variables AS v
-        LEFT JOIN active_datasets d ON d.id=v.datasetId
+        JOIN active_datasets d ON d.id=v.datasetId
         LEFT JOIN users u ON u.id=d.dataEditedByUserId
         ${whereClauses.length ? "WHERE " + whereClauses.join(" AND ") : ""}
     `
