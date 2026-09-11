@@ -544,7 +544,7 @@ export const renderExplorerIndexPage = async (
 export const renderSubscribePage = async (
     knex: KnexReadonlyTransaction
 ): Promise<string> => {
-    if (!FEATURE_FLAGS.has(Features.EmailNotifications)) {
+    if (!FEATURE_FLAGS.includes(Features.EmailNotifications)) {
         return renderToHtmlPage(<OldSubscribePage baseUrl={BAKED_BASE_URL} />)
     }
     return renderToHtmlPage(
