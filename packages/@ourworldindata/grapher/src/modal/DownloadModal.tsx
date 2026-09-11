@@ -582,6 +582,9 @@ const SourceAndCitationSection = ({ table }: { table?: OwidTable }) => {
         </>
     ) : undefined
 
+    const providerPossessive =
+        sourceLinks.length === 1 ? "provider's" : "providers'"
+
     return (
         <div className="download-modal__data-section download-modal__sources">
             <h3 className="grapher_h3-semibold">Source and citation</h3>
@@ -598,8 +601,7 @@ const SourceAndCitationSection = ({ table }: { table?: OwidTable }) => {
                 <strong>Citation guidance:</strong> Please credit all sources
                 listed above. Data provided by third-party sources through Our
                 World in Data remains subject to the original{" "}
-                {sourceLinks.length === 1 ? "provider's" : "providers'"} license
-                terms.
+                {providerPossessive} license terms.
             </div>
         </div>
     )

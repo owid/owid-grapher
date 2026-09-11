@@ -20,8 +20,10 @@ export const Byline = ({
                     <Fragment key={name}>
                         <LinkedAuthor name={name} role={authorRoles?.[name]} />
                         {/* Use Oxford comma when there are more than two authors. */}
-                        {!isLast && names.length > 2 && ", "}
-                        {isSecondToLast && names.length > 1 && " and "}
+                        {!isLast && names.length > 2 && <span>{", "}</span>}
+                        {isSecondToLast && names.length > 1 && (
+                            <span>{" and "}</span>
+                        )}
                     </Fragment>
                 )
             })}

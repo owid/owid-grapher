@@ -504,9 +504,12 @@ function AssumptionsTable({ simulation }: { simulation: Simulation }) {
                     {visibleKeys.map((key) => {
                         return (
                             <th key={key}>
-                                {useShortTitles
-                                    ? parameterConfigByKey[key].extraShortTitle
-                                    : PARAMETER_TAB_LABELS[key]}
+                                <span>
+                                    {useShortTitles
+                                        ? parameterConfigByKey[key]
+                                              .extraShortTitle
+                                        : PARAMETER_TAB_LABELS[key]}
+                                </span>
                                 <span style={{ whiteSpace: "nowrap" }}>
                                     {"\u00a0"}
                                     <Tippy

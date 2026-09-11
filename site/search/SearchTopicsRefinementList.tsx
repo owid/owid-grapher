@@ -28,11 +28,7 @@ export const SearchTopicsRefinementList = ({
     return selectableTopics.length > 0 && !query ? (
         <div className="search-topics-refinement-list">
             <h3 className="search-topics-refinement-list__heading h5-black-caps">
-                Filter by{" "}
-                {topicType === SearchTopicType.Area
-                    ? "topic"
-                    : "area of research"}
-                :
+                {`Filter by ${topicType === SearchTopicType.Area ? "topic" : "area of research"}:`}
             </h3>
             <button
                 aria-expanded={isExpanded}

@@ -89,7 +89,7 @@ function SearchChartHitSubtitle({
                 </span>
             )}
             {/* Separator only when a subtitle follows the variant */}
-            {hit.titleVariant && hasSubtitle ? " – " : null}
+            {hit.titleVariant && hasSubtitle ? <span> – </span> : null}
             {shouldUseFreshSubtitle ? (
                 subtitle
             ) : hit.subtitle ? (

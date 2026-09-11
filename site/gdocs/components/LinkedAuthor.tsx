@@ -43,7 +43,7 @@ export default function LinkedAuthor({
                 {image}
                 {author.name}
             </a>
-            {displayRole && ` (${displayRole})`}
+            {displayRole && <span> ({displayRole})</span>}
         </span>
     )
 }
