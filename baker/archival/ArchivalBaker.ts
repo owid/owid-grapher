@@ -611,7 +611,7 @@ export const createCommonArchivalContext = async (
     const imageMetadataDictionary = await getAllImages(knex).then((images) =>
         _.keyBy(images, "filename")
     )
-    const topicAreaLookup = await db.getTopicAreaLookup(knex)
+    const topicAreaAssignments = await db.getTopicAreaAssignments(knex)
 
     return {
         date,
@@ -621,7 +621,7 @@ export const createCommonArchivalContext = async (
         catalogFiles,
         staticAssetMap,
         imageMetadataDictionary,
-        topicAreaLookup,
+        topicAreaAssignments,
     }
 }
 
@@ -903,7 +903,7 @@ export interface CommonArchivalContext {
     catalogFiles: AssetMap
     staticAssetMap: Record<string, string>
     imageMetadataDictionary: Record<string, DbEnrichedImage>
-    topicAreaLookup: db.TopicAreaLookup
+    topicAreaAssignments: db.TopicAreaAssignments
 }
 
 interface GrapherBakeContext extends CommonArchivalContext {
@@ -956,7 +956,7 @@ async function bakeGrapherPageForArchival(
         dodsFiles,
         catalogFiles,
         imageMetadataDictionary,
-        topicAreaLookup,
+        topicAreaAssignments,
         staticAssetMap,
         variableFiles,
         checksumsObj,
@@ -1022,7 +1022,7 @@ async function bakeGrapherPageForArchival(
     }
     await bakeSingleGrapherPageForArchival(dir, config, trx, {
         imageMetadataDictionary,
-        topicAreaLookup,
+        topicAreaAssignments,
         manifest,
         archiveInfo,
     })
@@ -1195,7 +1195,7 @@ export const bakeMultiDimDataPageForArchival = async (
         dodsFiles,
         catalogFiles,
         imageMetadataDictionary,
-        topicAreaLookup,
+        topicAreaAssignments,
         staticAssetMap,
         variableFiles,
         chartConfigFiles,
@@ -1274,7 +1274,7 @@ export const bakeMultiDimDataPageForArchival = async (
 
     await bakeSingleMultiDimDataPageForArchival(dir, slug, config, trx, {
         imageMetadataDictionary,
-        topicAreaNamesByTagName: topicAreaLookup.byTagName,
+        topicAreaNamesByTagName: topicAreaAssignments.byTagName,
         manifest,
         archiveInfo,
     })
