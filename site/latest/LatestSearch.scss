@@ -1,8 +1,13 @@
+// Gap below the filter block on mobile, where it spans the full grid and
+// supplies its own gutter. Named because the sticky arms' spacing mixin
+// has to subtract its own padding from it.
+$latest-facets-mobile-margin-bottom: 24px;
+
 .latest-search__facets-container {
     margin-bottom: 0;
     @include sm-only {
         padding: 0 16px;
-        margin-bottom: 24px;
+        margin-bottom: $latest-facets-mobile-margin-bottom;
     }
 }
 
@@ -47,5 +52,134 @@
         border: none;
         border-left: 4px solid $gray-5;
         border-right: 4px solid $gray-5;
+    }
+}
+
+// ---------- Experiment: sticky filters (exp-latest-sticky-filters-v1) ----------
+//
+// The edge middleware adds `exp-latest-sticky-filters-v1--<arm>` to <body>,
+// so these rules apply to the baked skeleton as well as the mounted app —
+// no flash when the app takes over. Two of the three arms pin the filters
+// and share the same layout; they differ in *where* the container is
+// sticky: at the pin point (fully-sticky), or a full bar-height above it,
+// out of view, until the reader scrolls up (reveal-on-scroll-up, where
+// LatestSearch toggles `--revealed`).
+//
+// The sticky element has to be the grid item (a sticky element can only move
+// within its parent's box, and the facets' own wrappers are no taller than
+// the facets). Desktop: the whole filter block stays in view. Mobile: the
+// content-type dropdown moves above the topic pills, and a negative `top`
+// lets it scroll out of view so only the pills — now with a "Filter by
+// topic" label — stay pinned.
+
+$latest-sticky-filters-arms: (reveal-on-scroll-up, fully-sticky);
+$latest-sticky-filters-padding: 16px;
+// What scrolls out of view on mobile before the pills pin: the bar's own
+// top padding, and the content-type trigger (32px, fixed in
+// LatestTopicFacets.scss). The 16px column gap beneath the trigger is what
+// remains above the pills, giving the pinned bar the same breathing room
+// above its content as the padding gives it on desktop.
+$latest-sticky-filters-mobile-hidden-row: $latest-sticky-filters-padding + 32px;
+
+@mixin latest-sticky-filters-pinned($top: var(--latest-sticky-filters-top)) {
+    position: sticky;
+    top: $top;
+    z-index: $zindex-global-entity-select;
+    background-color: $gray-5;
+}
+
+// Breathing room around the bar once it's pinned, without moving the block
+// in its normal position (the two cancel out). Applied in both states, not
+// just the pinned one: the reveal arm parks the bar its own height above
+// the pin point, so its height and top margin have to stay put as it pins
+// and unpins.
+@mixin latest-sticky-filters-spacing {
+    // Longhands: on mobile the block carries its own horizontal gutter and
+    // a bottom margin, and the shorthands would wipe both.
+    padding-top: $latest-sticky-filters-padding;
+    padding-bottom: $latest-sticky-filters-padding;
+    margin-top: -$latest-sticky-filters-padding;
+    margin-bottom: -$latest-sticky-filters-padding;
+
+    @include sm-only {
+        margin-bottom: $latest-facets-mobile-margin-bottom -
+            $latest-sticky-filters-padding;
+    }
+}
+
+@each $arm in $latest-sticky-filters-arms {
+    .exp-latest-sticky-filters-v1--#{$arm} {
+        // The pin offset lives in a custom property so LatestSearch can
+        // read it without parsing the `top` shorthand back out.
+        .latest-search__facets-container {
+            --latest-sticky-filters-top: 0px;
+
+            @include latest-sticky-filters-spacing;
+        }
+
+        @include sm-only {
+            .latest-search__facets-container {
+                --latest-sticky-filters-top: #{-$latest-sticky-filters-mobile-hidden-row};
+            }
+
+            .latest-topic-facets__topics {
+                order: 2;
+            }
+
+            .latest-topic-facets__content-type-dropdown {
+                order: 1;
+            }
+
+            .latest-topic-facets__topics-label {
+                display: block;
+            }
+
+            // Outside the experiment the rule under the pills is what
+            // separates the filters from the feed on mobile. The pinned
+            // bar has its own bottom edge and padding, so here the rule
+            // and the space above it read as a stray line floating
+            // inside the bar — drop both and let the bar's padding do
+            // the separating.
+            .latest-topic-facets__topic-pills {
+                padding-bottom: 0;
+                border-bottom: none;
+            }
+        }
+    }
+}
+
+.exp-latest-sticky-filters-v1--fully-sticky .latest-search__facets-container {
+    @include latest-sticky-filters-pinned;
+}
+
+// Reveal on scroll up: the bar is sticky at a *parked* offset a bar-height
+// above the pin point, so it scrolls away with the content and sits just
+// out of view; scrolling up moves the offset down to the pin point, and
+// transitioning between the two is the slide. Sticking rather than
+// transforming means the bar renders at `max(its place in the flow, top)`
+// in every state, so it can never be displaced from where the flow puts
+// it. The height comes from `useRevealOnScrollUp`, since CSS can't measure
+// it; it deliberately has no fallback, so until it lands `top` is invalid,
+// computes to `auto`, and the bar never sticks at all.
+.exp-latest-sticky-filters-v1--reveal-on-scroll-up {
+    .latest-search__facets-container {
+        @include latest-sticky-filters-pinned(
+            calc(
+                var(--latest-sticky-filters-top) -
+                    var(--latest-sticky-filters-height)
+            )
+        );
+
+        transition: top var(--duration-popover) var(--ease-out);
+    }
+
+    .latest-search__facets-container--revealed {
+        top: var(--latest-sticky-filters-top);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .latest-search__facets-container {
+            transition: none;
+        }
     }
 }

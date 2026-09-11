@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react"
+import cx from "clsx"
 import { useSearchParams } from "react-router-dom-v5-compat"
 import {
     LATEST_TYPE_VALUES,
@@ -11,7 +12,10 @@ import { useTagGraphTopics } from "../search/searchHooks.js"
 import {
     useAreFreshProbesSettled,
     useInfiniteLatestPages,
+    getStickyLayout,
+    useRevealOnScrollUp,
     useLatestAnalytics,
+    useLatestStickyFiltersArm,
 } from "./latestHooks.js"
 import { LatestTopicFacets } from "./LatestTopicFacets.js"
 import { LatestPageHeader } from "./LatestPageHeader.js"
@@ -22,6 +26,7 @@ import {
     LATEST_NEWSLETTER_SIGNUP_CLASSES,
     LatestFeedView,
     hasViewToggle,
+    sortTopicAreasByPopularity,
 } from "./latestUtils.js"
 import { LatestViewToggle } from "./LatestViewToggle.js"
 import {
@@ -30,6 +35,7 @@ import {
     urlNeedsSanitization,
 } from "./latestState.js"
 import { LatestHit } from "./LatestHit.js"
+import { LATEST_STICKY_FILTERS_ARMS } from "@ourworldindata/utils"
 import { LatestSearchSkeleton } from "./LatestSearchSkeleton.js"
 import { LatestContext } from "./LatestContext.js"
 import { SiteAnalytics } from "../SiteAnalytics.js"
@@ -38,6 +44,25 @@ import { SearchHorizontalDivider } from "../search/SearchHorizontalDivider.js"
 import { SearchNoResults } from "../search/SearchNoResults.js"
 import { NewsletterSubscriptionContext } from "../newsletter.js"
 import { PoweredBy } from "react-instantsearch"
+import { getPrefersReducedMotion } from "@ourworldindata/components"
+
+/**
+ * If the facets are currently pinned, scroll so they sit exactly at their
+ * pinned position with the content below starting right underneath — the
+ * reader just changed a filter from the pinned bar and expects to see the
+ * new results from the top, not wherever they had scrolled to. No-op when
+ * the bar isn't pinned (at the top of the page, or in the flow).
+ */
+function scrollToTopOfPinnedElement(el: HTMLElement): void {
+    if (getComputedStyle(el).position !== "sticky") return
+    const layout = getStickyLayout(el)
+    if (!layout) return
+    if (el.getBoundingClientRect().top > layout.stickyTop) return
+    window.scrollTo({
+        top: layout.layoutTop - layout.stickyTop,
+        behavior: getPrefersReducedMotion() ? "auto" : "smooth",
+    })
+}
 
 const analytics = new SiteAnalytics()
 
@@ -50,7 +75,11 @@ export const LatestSearch = ({
 }) => {
     const [searchParams, setSearchParams] = useSearchParams()
 
-    const { allAreas } = useTagGraphTopics(topicTagGraph)
+    const { allAreas: tagGraphAreas } = useTagGraphTopics(topicTagGraph)
+    const allAreas = useMemo(
+        () => sortTopicAreasByPopularity(tagGraphAreas),
+        [tagGraphAreas]
+    )
 
     const [autoExpandedSlug, setAutoExpandedSlug] = useState<null | string>(
         null
@@ -72,6 +101,16 @@ export const LatestSearch = ({
 
     useLatestAnalytics(state, analytics)
 
+    // Sticky filters experiment. The arm's layout is pure CSS keyed off the
+    // body class; the reveal-on-scroll-up arm additionally needs JS to
+    // reveal the facets container when the reader scrolls up.
+    const stickyFiltersArm = useLatestStickyFiltersArm()
+    const facetsContainerRef = useRef<HTMLDivElement>(null)
+    const areFiltersRevealed = useRevealOnScrollUp(
+        stickyFiltersArm === LATEST_STICKY_FILTERS_ARMS.revealOnScrollUp,
+        facetsContainerRef
+    )
+
     // Sanitize URL: drop unknown params (e.g. legacy `?topic=Health` from old
     // /data-insights links), invalid topic names, and invalid `type` values.
     // Mirrors /search behavior in site/search/searchState.ts.
@@ -83,6 +122,8 @@ export const LatestSearch = ({
 
     const updateParams = (updater: (current: LatestState) => LatestState) => {
         setSearchParams(stateToSearchParams(updater(state)))
+        if (facetsContainerRef.current)
+            scrollToTopOfPinnedElement(facetsContainerRef.current)
     }
 
     const onTopicsChange = (newTopics: string[]) => {
@@ -187,7 +228,13 @@ export const LatestSearch = ({
     return (
         <LatestContext.Provider value={{ analytics }}>
             <LatestPageHeader />
-            <div className={LATEST_FACETS_CONTAINER_CLASSES}>
+            <div
+                ref={facetsContainerRef}
+                className={cx(LATEST_FACETS_CONTAINER_CLASSES, {
+                    "latest-search__facets-container--revealed":
+                        areFiltersRevealed,
+                })}
+            >
                 <LatestTopicFacets
                     topics={allAreas}
                     selectedTopics={topics}

@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest"
 import { BlockSize, OwidEnrichedGdocBlock, Span } from "@ourworldindata/types"
-import { findCtaUrl, hasViewToggle } from "./latestUtils.js"
+import {
+    LATEST_TOPIC_AREAS_BY_POPULARITY,
+    findCtaUrl,
+    hasViewToggle,
+    sortTopicAreasByPopularity,
+} from "./latestUtils.js"
 
 describe(findCtaUrl, () => {
     const text = (...value: Span[]): OwidEnrichedGdocBlock => ({
@@ -51,5 +56,31 @@ describe(hasViewToggle, () => {
 
     it("offers nothing when no type filter is active", () => {
         expect(hasViewToggle(null)).toBe(false)
+    })
+})
+
+describe(sortTopicAreasByPopularity, () => {
+    it("orders known areas by popularity", () => {
+        const shuffled = [...LATEST_TOPIC_AREAS_BY_POPULARITY].reverse()
+        expect(sortTopicAreasByPopularity(shuffled)).toEqual(
+            LATEST_TOPIC_AREAS_BY_POPULARITY
+        )
+    })
+
+    it("puts unknown areas last, keeping their relative order", () => {
+        expect(
+            sortTopicAreasByPopularity([
+                "New Area B",
+                "Violence and War",
+                "New Area A",
+                "Health",
+            ])
+        ).toEqual(["Violence and War", "Health", "New Area B", "New Area A"])
+    })
+
+    it("does not mutate its input", () => {
+        const input = ["Violence and War", "Health"]
+        sortTopicAreasByPopularity(input)
+        expect(input).toEqual(["Violence and War", "Health"])
     })
 })

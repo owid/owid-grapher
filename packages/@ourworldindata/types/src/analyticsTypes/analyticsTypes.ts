@@ -121,6 +121,9 @@ export interface SiteLatestParams {
     /** Selected content type. Omitted when the user hasn't picked a type
      * (the "all" filter). */
     latestType?: string
+    /** Arm of the /latest sticky filters experiment the visitor is in, if
+     * assigned (`exp-latest-sticky-filters-v1` cookie). */
+    experimentArm?: string
 }
 
 /**
@@ -139,6 +142,9 @@ export interface SiteLatestResultClickParams {
      * topic/linear-topic pages lack `latestType`, and those never render
      * on /latest. */
     latestType?: string
+    /** Arm of the /latest sticky filters experiment the visitor is in, if
+     * assigned (`exp-latest-sticky-filters-v1` cookie). */
+    experimentArm?: string
 }
 
 export interface SiteSearchAutocompleteClickParams {
@@ -464,6 +470,9 @@ export interface SiteLatestAnnouncementExpandParams {
      * `LatestType` subtypes (announcement / data-update / website-upgrade)
      * since only announcement hits render the Read more toggle. */
     latestType?: string
+    /** Arm of the /latest sticky filters experiment the visitor is in, if
+     * assigned (`exp-latest-sticky-filters-v1` cookie). */
+    experimentArm?: string
 }
 
 export interface KeyboardShortcutParams {

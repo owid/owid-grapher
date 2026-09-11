@@ -22,6 +22,14 @@ import { LATEST_TYPE_VALUES, LatestType } from "@ourworldindata/types"
 import { getPrefersReducedMotion } from "@ourworldindata/components"
 import { latestTypeLabelPlural } from "./latestUtils.js"
 
+/** Label above the topic pills. Only shown on mobile in the sticky arms of
+ * the sticky filters experiment, where the content-type dropdown moves
+ * above the pills and the pills need a heading of their own. Rendered
+ * unconditionally (and in the baked skeleton) so CSS can show it before
+ * the app mounts. */
+export const LATEST_TOPIC_FACETS_LABEL = "Filter by topic"
+const LATEST_TOPIC_FACETS_LABEL_ID = "latest-topic-facets-label"
+
 /**
  * Wrapper that accepts the `itemId` prop required by
  * react-horizontal-scrolling-menu while rendering a react-aria ToggleButton.
@@ -169,46 +177,61 @@ export const LatestTopicFacets = ({
     return (
         <div className="latest-topic-facets">
             <div className="latest-topic-facets__filters">
-                <ToggleButtonGroup
-                    className="latest-topic-facets__topic-pills"
-                    selectionMode="single"
-                    selectedKeys={selectedKeys}
-                    onSelectionChange={handleSelectionChange}
-                >
-                    <ScrollMenu LeftArrow={LeftArrow} RightArrow={RightArrow}>
-                        {[
-                            <TopicPill
-                                key="all"
-                                itemId="all"
-                                id="all"
-                                className="latest-topic-facets__topic-pill"
-                                onFocus={scrollKeyboardFocusedPillIntoView}
-                                aria-label="All topics"
-                            >
-                                All
-                            </TopicPill>,
-                            ...topics.map((topic) => (
+                <div className="latest-topic-facets__topics">
+                    <span
+                        id={LATEST_TOPIC_FACETS_LABEL_ID}
+                        className="latest-topic-facets__topics-label"
+                    >
+                        {LATEST_TOPIC_FACETS_LABEL}
+                    </span>
+                    <ToggleButtonGroup
+                        className="latest-topic-facets__topic-pills"
+                        aria-labelledby={LATEST_TOPIC_FACETS_LABEL_ID}
+                        selectionMode="single"
+                        selectedKeys={selectedKeys}
+                        onSelectionChange={handleSelectionChange}
+                    >
+                        <ScrollMenu
+                            LeftArrow={LeftArrow}
+                            RightArrow={RightArrow}
+                        >
+                            {[
                                 <TopicPill
-                                    key={topic}
-                                    itemId={topic}
-                                    id={topic}
-                                    ref={
-                                        topic === selectedTopics[0]
-                                            ? scrollPillIntoView
-                                            : undefined
-                                    }
+                                    key="all"
+                                    itemId="all"
+                                    id="all"
                                     className="latest-topic-facets__topic-pill"
-                                    isDisabled={disabledTopics.has(topic)}
                                     onFocus={scrollKeyboardFocusedPillIntoView}
+                                    aria-label="All topics"
                                 >
-                                    {topic}
-                                </TopicPill>
-                            )),
-                        ]}
-                    </ScrollMenu>
-                </ToggleButtonGroup>
+                                    All
+                                </TopicPill>,
+                                ...topics.map((topic) => (
+                                    <TopicPill
+                                        key={topic}
+                                        itemId={topic}
+                                        id={topic}
+                                        ref={
+                                            topic === selectedTopics[0]
+                                                ? scrollPillIntoView
+                                                : undefined
+                                        }
+                                        className="latest-topic-facets__topic-pill"
+                                        isDisabled={disabledTopics.has(topic)}
+                                        onFocus={
+                                            scrollKeyboardFocusedPillIntoView
+                                        }
+                                    >
+                                        {topic}
+                                    </TopicPill>
+                                )),
+                            ]}
+                        </ScrollMenu>
+                    </ToggleButtonGroup>
+                </div>
                 <Select
                     className="latest-topic-facets__content-type-dropdown"
+                    aria-label="Filter by type"
                     value={selectedType ?? "all"}
                     onChange={(key) =>
                         onLatestTypeChange(

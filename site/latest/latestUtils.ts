@@ -100,6 +100,47 @@ export function hasViewToggle(latestType: LatestType | null): boolean {
     )
 }
 
+/**
+ * Topic areas by popularity, most popular first. The order the /latest topic
+ * pills render in, so the pills readers are most likely to want are the ones
+ * visible without scrolling the pill row.
+ *
+ * Source: the share of /latest sessions that set each topic filter on the
+ * page (GA `owid.site_latest` events, `latest_topics` param, sessions that
+ * arrived unfiltered), 2026-06-05 to 2026-07-30, from the /latest redesign
+ * retrospective (owid/analytics#994, Figure 12 —
+ * `experiments/briefs/latest_page_20260714/topic_breakdown_exact.png`, which
+ * labels each area with its rank under the old order). Usage was spread fairly
+ * evenly (0.4–0.7% of sessions each) and measured under the previous
+ * tag-graph order, so treat the ranking as indicative. Kept static for the
+ * duration of the sticky filters experiment so the order can't shift
+ * underneath it; making it live would mean a dbt export in owid/analytics
+ * synced to an `analytics_*` MySQL table the baker reads (see
+ * docs/bigquery-to-mysql.md there). Areas missing from this list sort last,
+ * in tag-graph order, so a new area still shows up.
+ */
+export const LATEST_TOPIC_AREAS_BY_POPULARITY: readonly string[] = [
+    "Energy and Environment",
+    "Poverty and Economic Development",
+    "Violence and War",
+    "Innovation and Technological Change",
+    "Food and Agriculture",
+    "Health",
+    "Living Conditions, Community and Wellbeing",
+    "Population and Demographic Change",
+    "Education and Knowledge",
+    "Human Rights and Democracy",
+]
+
+export function sortTopicAreasByPopularity(areas: string[]): string[] {
+    const rank = (area: string): number => {
+        const i = LATEST_TOPIC_AREAS_BY_POPULARITY.indexOf(area)
+        return i === -1 ? Number.MAX_SAFE_INTEGER : i
+    }
+    // Array.prototype.sort is stable, so unranked areas keep their order.
+    return [...areas].sort((a, b) => rank(a) - rank(b))
+}
+
 /** Grid positioning applied to the root of every hit card. */
 export const LATEST_HIT_GRID_CLASSES =
     "span-cols-8 col-start-2 span-md-cols-12 col-md-start-2 span-sm-cols-14 col-sm-start-1"
