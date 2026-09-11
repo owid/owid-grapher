@@ -8,17 +8,13 @@ import { OwidSource, DbChartTagJoin, OwidOrigin } from "@ourworldindata/utils"
 
 import { AdminLayout } from "./AdminLayout.js"
 import { Link } from "./Link.js"
-import { BindString, Toggle, FieldsRow, Timeago, TextField } from "./Forms.js"
+import { BindString, Toggle, FieldsRow, Timeago } from "./Forms.js"
 import { EditableTags } from "./EditableTags.js"
 import { MinimalTagWithMetadata } from "./TagGraphMetadata.js"
 import { ChartList, ChartListItem } from "./ChartList.js"
 import { OriginList } from "./OriginList.js"
 import { SourceList } from "./SourceList.js"
-import {
-    VariableList,
-    VariableListItem,
-    VariableListSortConfig,
-} from "./VariableList.js"
+import { VariableList, VariableListItem } from "./VariableList.js"
 import {
     BAKED_BASE_URL,
     GRAPHER_DYNAMIC_THUMBNAIL_URL,
@@ -411,8 +407,6 @@ class DatasetEditor extends Component<DatasetEditorProps> {
     activeTab: string = "metadata"
     searchInput: string = ""
     usedOnly: boolean = false
-    sortConfig: VariableListSortConfig | null = null
-    maxVisibleRows: number = 100
 
     constructor(props: DatasetEditorProps) {
         super(props)
@@ -423,8 +417,6 @@ class DatasetEditor extends Component<DatasetEditorProps> {
             activeTab: observable,
             searchInput: observable,
             usedOnly: observable,
-            sortConfig: observable.ref,
-            maxVisibleRows: observable,
         })
     }
 
@@ -449,7 +441,7 @@ class DatasetEditor extends Component<DatasetEditorProps> {
 
     @computed get filteredVariables(): VariableListItem[] {
         const { dataset } = this.props
-        const { searchWords, usedOnly, sortConfig } = this
+        const { searchWords, usedOnly } = this
 
         let variables = dataset.variables
         if (searchWords.length > 0) {
@@ -470,19 +462,10 @@ class DatasetEditor extends Component<DatasetEditorProps> {
             variables = variables.filter((v) => Number(v.usageCount ?? 0) > 0)
         }
 
-        // Explicit user sort takes priority. Otherwise, when filtering to used
-        // indicators, default to highest-usage first so the most relevant rows
-        // surface at the top.
-        if (sortConfig) {
-            const { field, direction } = sortConfig
-            const sign = direction === "desc" ? -1 : 1
-            variables = variables
-                .slice()
-                .sort(
-                    (a, b) =>
-                        sign * (Number(a[field] ?? 0) - Number(b[field] ?? 0))
-                )
-        } else if (usedOnly) {
+        // When filtering to used indicators, default to highest-usage first so
+        // the most relevant rows surface at the top. Sorting a column in the
+        // table takes over from here.
+        if (usedOnly) {
             variables = variables
                 .slice()
                 .sort(
@@ -491,10 +474,6 @@ class DatasetEditor extends Component<DatasetEditorProps> {
                 )
         }
         return variables
-    }
-
-    @computed get variablesToShow(): VariableListItem[] {
-        return this.filteredVariables.slice(0, this.maxVisibleRows)
     }
 
     @computed get collectionUrl(): string | null {
@@ -523,12 +502,10 @@ class DatasetEditor extends Component<DatasetEditorProps> {
 
     @action.bound onSearchInput(input: string) {
         this.searchInput = input
-        this.maxVisibleRows = 100
     }
 
     @action.bound onTabChange(tab: string) {
         this.activeTab = tab
-        this.maxVisibleRows = 100
     }
 
     async save() {
@@ -685,52 +662,26 @@ class DatasetEditor extends Component<DatasetEditorProps> {
             case "indicators":
                 return (
                     <section>
-                        <div className="d-flex justify-content-between align-items-center mb-2">
-                            <h3 className="m-0">Indicators</h3>
-                            <TextField
-                                placeholder="Search indicators..."
-                                value={searchInput}
-                                onValue={this.onSearchInput}
-                            />
-                        </div>
-                        <div className="d-flex justify-content-end mb-3">
-                            <Toggle
-                                label="Used in chart, multi-dim or path-based explorer"
-                                value={this.usedOnly}
-                                onValue={action(
-                                    (v: boolean) => (this.usedOnly = v)
-                                )}
-                            />
-                        </div>
-                        <p>
-                            Showing{" "}
-                            {Math.min(
-                                filteredVariables.length,
-                                this.maxVisibleRows
-                            )}{" "}
-                            of {filteredVariables.length} indicators
-                            {searchInput && <> for "{searchInput}"</>}
-                        </p>
+                        <h3>Indicators</h3>
                         <VariableList
-                            variables={this.variablesToShow}
+                            variables={filteredVariables}
                             fields={["usage"]}
                             searchHighlight={highlight}
-                            sortConfig={this.sortConfig}
-                            onSort={action(
-                                (config: VariableListSortConfig | null) =>
-                                    (this.sortConfig = config)
-                            )}
+                            search={{
+                                value: searchInput,
+                                onChange: this.onSearchInput,
+                                placeholder: "Search indicators...",
+                            }}
+                            filters={
+                                <Toggle
+                                    label="Used in chart, multi-dim or path-based explorer"
+                                    value={this.usedOnly}
+                                    onValue={action(
+                                        (v: boolean) => (this.usedOnly = v)
+                                    )}
+                                />
+                            }
                         />
-                        {filteredVariables.length > this.maxVisibleRows && (
-                            <button
-                                className="btn btn-secondary mt-3"
-                                onClick={action(() => {
-                                    this.maxVisibleRows += 200
-                                })}
-                            >
-                                Show more indicators...
-                            </button>
-                        )}
                     </section>
                 )
 

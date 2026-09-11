@@ -1,160 +1,116 @@
-import { Component } from "react"
-import { observer } from "mobx-react"
-import {
-    observable,
-    computed,
-    action,
-    runInAction,
-    reaction,
-    IReactionDisposer,
-    makeObservable,
-} from "mobx"
-import * as lodash from "lodash-es"
-
-import { AdminLayout } from "./AdminLayout.js"
-import { TextField, FieldsRow } from "./Forms.js"
-import { VariableList, VariableListItem } from "./VariableList.js"
-import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
-import { ETL_WIZARD_URL } from "../settings/clientSettings.mjs"
+import * as React from "react"
+import { useContext, useMemo, useState } from "react"
+import { keepPreviousData, useQuery } from "@tanstack/react-query"
+import { useDebounceValue } from "usehooks-ts"
 import urljoin from "url-join"
 
-@observer
-export class VariablesIndexPage extends Component {
-    static override contextType = AdminAppContext
-    declare context: AdminAppContextType
+import { AdminLayout } from "./AdminLayout.js"
+import { AdminAppContext } from "./AdminAppContext.js"
+import { VariableList, VariableListItem } from "./VariableList.js"
+import {
+    ADMIN_TABLE_PAGE_SIZE,
+    highlightSearchWords,
+    useSearchQueryParam,
+} from "./adminTableHelpers.js"
+import { ETL_WIZARD_URL } from "../settings/clientSettings.mjs"
 
-    variables: VariableListItem[] = []
-    maxVisibleRows = 50
-    numTotalRows: number | undefined = undefined
-    searchInput: string | undefined = undefined
-    highlightSearch: string | undefined = undefined
+const FIELDS = [
+    "namespace",
+    "version",
+    "dataset",
+    "table",
+    "shortName",
+    "uploadedAt",
+] as const
 
-    constructor(props: Record<string, never>) {
-        super(props)
+function SearchSyntaxHelp(): React.ReactElement {
+    return (
+        <div className="variables-index__help">
+            <p>
+                <em>
+                    You can use regular expressions and the following fields:
+                </em>{" "}
+                <code>name:</code>, <code>path:</code>, <code>namespace:</code>,{" "}
+                <code>version:</code>, <code>dataset:</code>,{" "}
+                <code>table:</code>, <code>short:</code>, <code>before:</code>,{" "}
+                <code>after:</code>, <code>is:public</code>,{" "}
+                <code>is:private</code>
+            </p>
+            <p>
+                Also try:{" "}
+                <a href={urljoin(ETL_WIZARD_URL, "indicator_search")}>
+                    semantic indicator search
+                </a>
+            </p>
+        </div>
+    )
+}
 
-        makeObservable(this, {
-            variables: observable,
-            maxVisibleRows: observable,
-            numTotalRows: observable,
-            searchInput: observable,
-            highlightSearch: observable,
-        })
-    }
+export function VariablesIndexPage(): React.ReactElement {
+    const { admin } = useContext(AdminAppContext)
+    const [searchValue, setSearchValue] = useSearchQueryParam()
+    const [page, setPage] = useState(1)
+    const [pageSize, setPageSize] = useState(ADMIN_TABLE_PAGE_SIZE)
+    // A regex search over ~800k indicators takes seconds, so don't fire one
+    // off on every keystroke
+    const [debouncedSearch] = useDebounceValue(searchValue, 300)
 
-    @computed get variablesToShow(): VariableListItem[] {
-        return this.variables
-    }
+    // The indicators table is far too large to send to the browser, so the
+    // search runs in SQL and the table is handed one page at a time.
+    const { data, isFetching } = useQuery({
+        queryKey: ["variables", debouncedSearch, page, pageSize],
+        queryFn: () =>
+            admin.getJSONInBackground<{
+                variables: VariableListItem[]
+                numTotalRows: number
+            }>("/api/variables.json", {
+                search: debouncedSearch,
+                limit: pageSize,
+                offset: (page - 1) * pageSize,
+            }),
+        placeholderData: keepPreviousData,
+    })
 
-    @action.bound onShowMore() {
-        this.maxVisibleRows += 100
-    }
+    const highlight = useMemo(
+        // Fielded and regex searches don't map onto plain word highlighting,
+        // so only highlight when the query is neither.
+        () =>
+            /[:^$*+?()[\]{}|\\]/.test(debouncedSearch)
+                ? undefined
+                : highlightSearchWords(debouncedSearch),
+        [debouncedSearch]
+    )
 
-    override render() {
-        const { variablesToShow, searchInput, numTotalRows } = this
-
-        const highlight = (text: string) => {
-            if (this.highlightSearch) {
-                const html = text.replace(
-                    new RegExp(
-                        this.highlightSearch.replace(
-                            /[-/\\^$*+?.()|[\]{}]/g,
-                            "\\$&"
-                        ),
-                        "i"
-                    ),
-                    (s) => `<b>${s}</b>`
-                )
-                return <span dangerouslySetInnerHTML={{ __html: html }} />
-            } else return text
-        }
-
-        return (
-            <AdminLayout title="Indicators">
-                <main className="DatasetsIndexPage">
-                    <FieldsRow>
-                        <span>
-                            Showing {variablesToShow.length} of {numTotalRows}{" "}
-                            indicators
-                        </span>
-                        <TextField
-                            placeholder="e.g. ^population before:2023 -wdi"
-                            value={searchInput}
-                            onValue={action(
-                                (v: string) => (this.searchInput = v)
-                            )}
-                            autofocus
-                        />
-                    </FieldsRow>
-                    <p>
-                        <em>
-                            You can use regular expressions and the following
-                            fields:
-                        </em>{" "}
-                        <code>name:</code>, <code>path:</code>,{" "}
-                        <code>namespace:</code>, <code>version:</code>,{" "}
-                        <code>dataset:</code>, <code>table:</code>,{" "}
-                        <code>short:</code>, <code>before:</code>,{" "}
-                        <code>after:</code>, <code>is:public</code>,{" "}
-                        <code>is:private</code>
-                    </p>
-                    <p>
-                        Also try:{" "}
-                        <a href={urljoin(ETL_WIZARD_URL, "indicator_search")}>
-                            semantic indicator search
-                        </a>
-                    </p>
-                    <VariableList
-                        variables={variablesToShow}
-                        fields={[
-                            "namespace",
-                            "version",
-                            "dataset",
-                            "table",
-                            "shortName",
-                            "uploadedAt",
-                        ]}
-                        searchHighlight={highlight}
-                    />
-                    {!searchInput && (
-                        <button
-                            className="btn btn-secondary"
-                            onClick={this.onShowMore}
-                        >
-                            Show more indicators...
-                        </button>
-                    )}
-                </main>
-            </AdminLayout>
-        )
-    }
-
-    async getData() {
-        const { searchInput, maxVisibleRows } = this
-        const json = await this.context.admin.getJSON("/api/variables.json", {
-            search: searchInput,
-            limit: maxVisibleRows,
-        })
-        runInAction(() => {
-            if (searchInput === this.searchInput) {
-                // Make sure this response is current
-                this.variables = json.variables
-                this.numTotalRows = json.numTotalRows
-                // NOTE: search highlighting is less relevant with fielded and regex search
-                this.highlightSearch = searchInput
-            }
-        })
-    }
-
-    dispose!: IReactionDisposer
-    override componentDidMount() {
-        this.dispose = reaction(
-            () => this.searchInput || this.maxVisibleRows,
-            lodash.debounce(() => this.getData(), 200)
-        )
-        void this.getData()
-    }
-
-    override componentWillUnmount() {
-        this.dispose()
-    }
+    return (
+        <AdminLayout title="Indicators">
+            <main className="VariablesIndexPage">
+                <SearchSyntaxHelp />
+                <VariableList
+                    variables={data?.variables ?? []}
+                    fields={[...FIELDS]}
+                    searchHighlight={highlight}
+                    loading={isFetching}
+                    sortable={false}
+                    search={{
+                        value: searchValue,
+                        onChange: (value) => {
+                            setSearchValue(value)
+                            setPage(1)
+                        },
+                        placeholder: "e.g. ^population before:2023 -wdi",
+                        autoFocus: true,
+                    }}
+                    pagination={{
+                        current: page,
+                        pageSize,
+                        total: data?.numTotalRows ?? 0,
+                        onChange: (nextPage, nextPageSize) => {
+                            setPage(nextPage)
+                            setPageSize(nextPageSize)
+                        },
+                    }}
+                />
+            </main>
+        </AdminLayout>
+    )
 }

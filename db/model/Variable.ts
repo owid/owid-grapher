@@ -874,6 +874,7 @@ export async function getOwnersForVariables(
 export const searchVariables = async (
     query: string,
     limit: number,
+    offset: number,
     knex: db.KnexReadonlyTransaction
 ): Promise<VariablesSearchResult> => {
     const whereClauses = buildWhereClauses(query)
@@ -902,7 +903,7 @@ export const searchVariables = async (
             u.fullName AS uploadedBy
         ${fromWhere}
         ORDER BY d.dataEditedAt DESC
-        LIMIT ${escape(limit)}
+        LIMIT ${escape(limit)} OFFSET ${escape(offset)}
     `
     const rows = await queryRegexSafe(sqlResults, knex)
 

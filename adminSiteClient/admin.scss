@@ -31,6 +31,7 @@ $admin-section: "section:not(:where(.GrapherComponent *))";
 @import "../packages/@ourworldindata/components/src/styles/typography.scss";
 
 @import "./AdminTable.scss";
+@import "./VariableList.scss";
 @import "./GdocsIndexPage.scss";
 @import "./FeaturedMetricsPage.scss";
 @import "./FilesIndexPage.scss";
