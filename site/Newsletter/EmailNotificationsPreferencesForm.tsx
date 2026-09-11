@@ -28,6 +28,8 @@ import {
     OWID_BRIEF_DESCRIPTION,
     OWID_BRIEF_TITLE,
 } from "./newsletterCopy.js"
+import { NewsletterSpamProtection } from "./NewsletterSpamProtection.js"
+import { useNewsletterSpamProtection } from "./useNewsletterSpamProtection.js"
 import { useNotificationPreferences } from "./useNotificationPreferences.js"
 import {
     SUBSCRIBE_PAGE_CONTENT_GRID_CLASSES,
@@ -97,6 +99,7 @@ const ErrorAlert = ({ error }: { error: unknown }) =>
 
 function useRequestLinkMutation() {
     return useMutation({
+        retry: false,
         mutationFn: async (request: EmailNotificationsRequestLinkRequest) => {
             const response = await apiPost("/request-link", request)
             await throwIfApiError(response)
@@ -105,6 +108,7 @@ function useRequestLinkMutation() {
 }
 
 const EnterEmailScreen = () => {
+    const spamProtection = useNewsletterSpamProtection()
     const [email, setEmail] = useState("")
     const requestLink = useRequestLinkMutation()
 
@@ -113,7 +117,23 @@ const EnterEmailScreen = () => {
     const handleSubmit = (event: React.SubmitEvent<HTMLFormElement>) => {
         event.preventDefault()
         const trimmedEmail = email.trim()
-        if (trimmedEmail) requestLink.mutate({ email: trimmedEmail })
+        if (
+            !trimmedEmail ||
+            requestLink.isPending ||
+            !spamProtection.captchaToken
+        )
+            return
+        requestLink.mutate(
+            {
+                email: trimmedEmail,
+                captchaToken: spamProtection.captchaToken,
+                website:
+                    new FormData(event.currentTarget)
+                        .get("website")
+                        ?.toString() ?? "",
+            },
+            { onError: () => spamProtection.resetCaptcha() }
+        )
     }
 
     return (
@@ -127,6 +147,10 @@ const EnterEmailScreen = () => {
                     and update your notification preferences.
                 </p>
                 <ErrorAlert error={requestLink.error} />
+                <NewsletterSpamProtection
+                    action="request-link"
+                    {...spamProtection.fieldsProps}
+                />
                 <div className="newsletter-form__email-submit">
                     <TextInput
                         placeholder="Your email address"
@@ -146,7 +170,10 @@ const EnterEmailScreen = () => {
                                 ? "Sending…"
                                 : "Email me a link"
                         }
-                        disabled={requestLink.isPending}
+                        disabled={
+                            requestLink.isPending ||
+                            !spamProtection.captchaToken
+                        }
                     />
                 </div>
             </form>
