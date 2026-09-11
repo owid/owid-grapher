@@ -5,6 +5,7 @@ import {
     JsonError,
 } from "@ourworldindata/utils"
 import { EmailNotificationsRequestLinkRequestTypeObject } from "@ourworldindata/types/email-notifications-schemas"
+import { validateNewsletterCaptcha } from "../../_common/newsletterCaptcha.js"
 import { Env } from "../../_common/env.js"
 import {
     createEmailToken,
@@ -70,9 +71,6 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
         .get("Content-Type")
         ?.includes("application/json")
     try {
-        validateEmailNotificationsDatabase(env)
-        const db = env.EMAIL_NOTIFICATIONS_DB
-
         let email: string | undefined
         let token: string | undefined
         if (isJson) {
@@ -92,6 +90,14 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
                     400
                 )
             }
+            if (data.email) {
+                if (data.website) return makeJsonResponse({ ok: true }, 200)
+                await validateNewsletterCaptcha(
+                    data.captchaToken!,
+                    env,
+                    "request-link"
+                )
+            }
             email = data.email
             token = data.token
         } else {
@@ -103,6 +109,8 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
             token = formToken
         }
 
+        validateEmailNotificationsDatabase(env)
+        const db = env.EMAIL_NOTIFICATIONS_DB
         const user = email
             ? await findUserByEmail(db, email.trim().toLowerCase())
             : await findUserByAnyToken(db, token!)

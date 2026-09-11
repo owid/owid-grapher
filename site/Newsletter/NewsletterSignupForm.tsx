@@ -1,3 +1,5 @@
+import { NewsletterSpamProtection } from "./NewsletterSpamProtection.js"
+import { useNewsletterSpamProtection } from "./useNewsletterSpamProtection.js"
 import { useState } from "react"
 import * as React from "react"
 import cx from "clsx"
@@ -82,6 +84,7 @@ export const NewsletterSignupForm = ({
 }) => {
     const [subscribeToOwidBrief, setSubscribeToOwidBrief] = useState(true)
     const [followTopics, setFollowTopics] = useState(false)
+    const spamProtection = useNewsletterSpamProtection()
     const [email, setEmail] = useState("")
     const [isSubscribing, setIsSubscribing] = useState(false)
     const [isSubscribed, setIsSubscribed] = useState(false)
@@ -91,7 +94,7 @@ export const NewsletterSignupForm = ({
 
     const handleSubmit = async (event: React.SubmitEvent<HTMLFormElement>) => {
         event.preventDefault()
-        if (!isSubmittable) return
+        if (!isSubmittable || isSubscribing) return
         const trimmedEmail = email.trim()
 
         if (followTopics) {
@@ -104,10 +107,15 @@ export const NewsletterSignupForm = ({
             return
         }
 
+        if (!spamProtection.captchaToken) return
+        const website =
+            new FormData(event.currentTarget).get("website")?.toString() ?? ""
         setError(null)
         setIsSubscribing(true)
         try {
             const request: EmailNotificationsSubscribeRequest = {
+                captchaToken: spamProtection.captchaToken,
+                website,
                 email: trimmedEmail,
                 subscribeToOwidBrief,
             }
@@ -119,6 +127,7 @@ export const NewsletterSignupForm = ({
             setIsSubscribed(true)
         } catch (caught) {
             setError(getErrorMessage(caught))
+            spamProtection.resetCaptcha()
         } finally {
             setIsSubscribing(false)
         }
@@ -169,7 +178,10 @@ export const NewsletterSignupForm = ({
                 description={FOLLOW_TOPICS_DESCRIPTION}
                 checked={followTopics}
                 disabled={isSubscribing}
-                onChange={() => setFollowTopics(!followTopics)}
+                onChange={() => {
+                    spamProtection.resetCaptcha()
+                    setFollowTopics(!followTopics)
+                }}
             />
             {!isSubmittable && (
                 <div className="newsletter-signup-form__alert">
@@ -189,12 +201,19 @@ export const NewsletterSignupForm = ({
                 disabled={isSubscribing}
                 onChange={(event) => setEmail(event.target.value)}
             />
+            {!followTopics && (
+                <NewsletterSpamProtection {...spamProtection.fieldsProps} />
+            )}
             <Button
                 className="newsletter-signup-form__submit"
                 type="submit"
                 theme="solid-vermillion"
                 icon={null}
-                disabled={!isSubmittable || isSubscribing}
+                disabled={
+                    !isSubmittable ||
+                    isSubscribing ||
+                    (!followTopics && !spamProtection.captchaToken)
+                }
                 text={
                     followTopics
                         ? "See subscription options"

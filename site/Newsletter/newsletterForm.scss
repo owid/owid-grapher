@@ -39,3 +39,13 @@
         color: $blue-40;
     }
 }
+
+// Remains in the form for bots, but outside the visual and accessibility UI.
+.newsletter-form__honeypot {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
