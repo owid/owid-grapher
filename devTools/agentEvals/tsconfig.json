@@ -1,0 +1,9 @@
+{
+    "extends": "../tsconfigs/tsconfig.base.json",
+    "compilerOptions": {
+        "outDir": "../../itsJustJavascript/devTools",
+        "rootDir": ".."
+    },
+    // stagingHostname.ts belongs to no other project, so it is compiled here.
+    "include": ["*.ts", "lib/*.ts", "../stagingHostname.ts"]
+}

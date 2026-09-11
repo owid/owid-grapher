@@ -87,3 +87,6 @@ packageDocs/docs/schema-reference/
 packageDocs/site/
 packageDocs/.venv/
 packageDocs/.cache/
+
+# agent eval runs (inputs are committed, outputs are not)
+devTools/agentEvals/results/

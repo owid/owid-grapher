@@ -1,0 +1,65 @@
+{
+    "prBranch": "grapher-md-endpoint",
+    "charts": [
+        {
+            "key": "life-expectancy",
+            "path": "life-expectancy",
+            "note": "Line chart; six world regions selected by default"
+        },
+        {
+            "key": "life-expectancy-cze-svk",
+            "path": "life-expectancy?country=~CZE~SVK&time=1990..2023",
+            "note": "Same chart with an entity and time selection in the URL"
+        },
+        {
+            "key": "population",
+            "path": "population",
+            "note": "Values in millions and billions; the series starts in -10000"
+        },
+        {
+            "key": "child-mortality",
+            "path": "child-mortality",
+            "note": "Small percentages"
+        },
+        {
+            "key": "co-emissions-per-capita",
+            "path": "co-emissions-per-capita",
+            "note": "Nine countries selected"
+        },
+        {
+            "key": "gdp-per-capita-worldbank",
+            "path": "gdp-per-capita-worldbank",
+            "note": "Opens on the map tab; currency unit"
+        },
+        {
+            "key": "extreme-poverty",
+            "path": "share-of-population-in-extreme-poverty",
+            "note": "Opens on the map tab; three dimensions"
+        },
+        {
+            "key": "life-expectancy-vs-gdp",
+            "path": "life-expectancy-vs-gdp-per-capita",
+            "note": "Scatter plot with no default selection"
+        },
+        {
+            "key": "global-warming-by-gas",
+            "path": "global-warming-by-gas-and-source",
+            "note": "Stacked area chart: one entity, six columns"
+        },
+        {
+            "key": "electricity-renewables",
+            "path": "electricity-mix?frequency=annual&metric=share_of_generation&source=renewables",
+            "note": "Multi-dimensional chart, view selected by query params"
+        },
+        {
+            "key": "natural-disasters-deaths",
+            "path": "natural-disasters-deaths",
+            "note": "Multi-dimensional chart, default view"
+        },
+        {
+            "key": "literacy-women",
+            "path": "literacy?age_group=adult&sex=female",
+            "note": "Multi-dimensional chart, view selected by query params"
+        }
+    ]
+}
