@@ -11,7 +11,7 @@ import {
     ArchiveContext,
 } from "@ourworldindata/types"
 import { excludeNullish, generateToc } from "@ourworldindata/utils"
-import { formatCitation, generateStickyNav } from "./archieToEnriched.js"
+import { generateStickyNav } from "./archieToEnriched.js"
 import { parseFaqs, parseLatestFeedExcerpt } from "./rawToEnriched.js"
 import { GdocBase } from "./GdocBase.js"
 import { KnexReadonlyTransaction, knexRaw } from "../../db.js"
@@ -89,8 +89,6 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
                 content["latest-feed-excerpt"]
             )
         }
-
-        content.citation = formatCitation(content.citation)
 
         content["sticky-nav"] = generateStickyNav(content as any)
 
