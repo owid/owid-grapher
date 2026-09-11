@@ -19,6 +19,7 @@ import {
     OwidVariableMixedData,
     OwidVariableWithSourceAndDimension,
     TESTING_ONLY_disable_guid,
+    excludeUndefined,
 } from "@ourworldindata/utils"
 import fs, { stat } from "fs-extra"
 import path from "path"
@@ -473,7 +474,9 @@ export async function saveGrapherSchemaAndData(
     )
 
     const grapher = initGrapherForSvgExport(config)
-    const variableIds = grapher.grapherState.dimensions.map((d) => d.variableId)
+    const variableIds = excludeUndefined(
+        grapher.grapherState.dimensions.map((d) => d.variableId)
+    )
 
     await Promise.allSettled([
         promise1,
