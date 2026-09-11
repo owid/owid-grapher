@@ -25,6 +25,15 @@ $active-text: $blue-90;
 $zindex-controls-backdrop: 130;
 $zindex-controls-popup: 140;
 
+// react-aria's modal popovers (e.g. the dimension dropdowns) lock scrolling
+// by setting `overflow: hidden; scrollbar-gutter: stable` on <html>. In
+// Chromium, reserving the gutter changes how vw units resolve, which made the
+// vw-sized grapher figure shrink and expand on every dropdown toggle. Reserve
+// the gutter permanently so vw units stay constant while a popover is open.
+html:has(body.MultiDimDataPage) {
+    scrollbar-gutter: stable;
+}
+
 .MultiDimDataPageContent {
     .header {
         margin-bottom: 24px;

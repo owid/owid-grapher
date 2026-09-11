@@ -1,4 +1,4 @@
-import { faCaretDown } from "@fortawesome/free-solid-svg-icons"
+import { faCaretDown, faCheck } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import cx from "clsx"
 import { useState } from "react"
@@ -11,40 +11,37 @@ import {
     Header,
     Collection,
     ListBoxItem,
-    Text,
 } from "react-aria-components"
-import * as _ from "lodash-es"
 
-import { CloseButton, RadioButton } from "@ourworldindata/components"
 import { Choice, DimensionEnriched } from "@ourworldindata/types"
+import DimensionLabel from "./DimensionLabel.js"
 
 function DimensionItem({ choice }: { choice: Choice }) {
     return (
         <ListBoxItem
-            className="md-menu__radio-button"
+            className="md-menu__item"
             id={choice.slug}
             textValue={choice.name}
         >
             {({ isSelected }) => (
-                <RadioButton
-                    checked={isSelected}
-                    onChange={_.noop}
-                    label={
-                        <>
-                            <Text className="md-label" slot="label">
-                                {choice.name}
-                            </Text>
-                            {choice.description && (
-                                <Text
-                                    className="md-description"
-                                    slot="description"
-                                >
-                                    {choice.description}
-                                </Text>
-                            )}
-                        </>
-                    }
-                />
+                <>
+                    <span className="md-menu__item-content">
+                        <span className="md-menu__item-label">
+                            {choice.name}
+                        </span>
+                        {choice.description && (
+                            <span className="md-menu__item-description">
+                                {choice.description}
+                            </span>
+                        )}
+                    </span>
+                    {isSelected && (
+                        <FontAwesomeIcon
+                            className="md-menu__item-check"
+                            icon={faCheck}
+                        />
+                    )}
+                </>
             )}
         </ListBoxItem>
     )
@@ -83,19 +80,16 @@ export default function DimensionDropdown({
             onChange={(key) => {
                 if (typeof key === "string" && !readOnly) onChange(key)
             }}
-            aria-label={dimension.name}
         >
+            <DimensionLabel dimension={dimension} />
             <Button
                 className="md-settings__dropdown-toggle"
                 data-track-note="multi-dim-choice-dropdown"
             >
-                <span className="md-settings__dropdown-label">
-                    {dimension.name}
-                </span>
                 <span className="md-settings__dropdown-current-choice">
                     {dimension.choicesBySlug[value].name}
                 </span>
-                <div>
+                <div className="md-settings__dropdown-caret">
                     {/* The div is neccesary to keep the icon `display: inline`,
             so it aligns with the text correctly. */}
                     <FontAwesomeIcon icon={faCaretDown} />
@@ -110,20 +104,14 @@ export default function DimensionDropdown({
                 offset={4}
             >
                 <div className="md-menu__overlay-header">
-                    <div>
-                        <h2 className="md-menu__overlay-header-title">
-                            {dimension.name}
-                        </h2>
-                        {dimension.description && (
-                            <p className="md-menu__dimension-description">
-                                {dimension.description}
-                            </p>
-                        )}
-                    </div>
-                    <CloseButton
-                        className="md-menu__overlay-header-close-button"
-                        onClick={() => setIsOpen(false)}
-                    />
+                    <h2 className="md-menu__overlay-header-title">
+                        {dimension.name}
+                    </h2>
+                    {dimension.description && (
+                        <p className="md-menu__dimension-description">
+                            {dimension.description}
+                        </p>
+                    )}
                 </div>
                 <ListBox>
                     {Object.entries(dimension.choicesByGroup).map(
