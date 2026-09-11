@@ -197,6 +197,7 @@
     color: $blue-90;
     display: flex;
     align-items: center;
+    cursor: pointer;
 
     &:last-child {
         border-bottom: none;
@@ -228,7 +229,10 @@
         right: 8px;
         top: 50%;
         transform: translateY(-50%);
-        cursor: pointer;
+        // The checkbox only visualises the row's state: let clicks fall
+        // through to the row, which react-aria makes the press target.
+        // Without this, clicking the checkbox does nothing at all.
+        pointer-events: none;
     }
 }
 
