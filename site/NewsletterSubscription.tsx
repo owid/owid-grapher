@@ -1,12 +1,12 @@
 import { useState } from "react"
 import * as React from "react"
 import cx from "clsx"
-import { faTimes, faEnvelopeOpenText } from "@fortawesome/free-solid-svg-icons"
+import { faEnvelopeOpenText } from "@fortawesome/free-solid-svg-icons"
 import { SiteAnalytics } from "./SiteAnalytics.js"
 import { TextInput } from "@ourworldindata/components"
 import { NewsletterSubscriptionContext } from "./newsletter.js"
 import { NewsletterIcon } from "./gdocs/components/NewsletterIcon.js"
-import { SiteToolsButton } from "./SiteToolsButton.js"
+import { SiteToolsDialog } from "./SiteToolsDialog.js"
 
 const analytics = new SiteAnalytics()
 
@@ -19,40 +19,19 @@ export const NewsletterSubscription = ({
 }) => {
     const [isOpen, setIsOpen] = useState(false)
 
-    const subscribeText = "Subscribe"
-
     return (
-        <div className={`newsletter-subscription${isOpen ? " active" : ""}`}>
-            {isOpen && (
-                <>
-                    <div
-                        className="overlay"
-                        onClick={() => {
-                            setIsOpen(false)
-                        }}
-                    />
-                    <div className="box">
-                        <NewsletterSubscriptionHeader />
-                        <NewsletterSubscriptionForm context={context} />
-                    </div>
-                </>
-            )}
-            {isOpen ? (
-                <SiteToolsButton
-                    icon={faTimes}
-                    label="Close subscription form"
-                    tooltip={false}
-                    onClick={() => setIsOpen(false)}
-                />
-            ) : (
-                <SiteToolsButton
-                    icon={faEnvelopeOpenText}
-                    label={subscribeText}
-                    dataTrackNote="dialog_open_newsletter"
-                    onClick={() => setIsOpen(true)}
-                />
-            )}
-        </div>
+        <SiteToolsDialog
+            className="newsletter-subscription"
+            isOpen={isOpen}
+            onOpenChange={setIsOpen}
+            label="Subscribe"
+            closeLabel="Close subscription form"
+            icon={faEnvelopeOpenText}
+            dataTrackNote="dialog_open_newsletter"
+        >
+            <NewsletterSubscriptionHeader />
+            <NewsletterSubscriptionForm context={context} />
+        </SiteToolsDialog>
     )
 }
 
