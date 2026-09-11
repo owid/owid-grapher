@@ -22,16 +22,18 @@ export function useSearchQueryParam(
 
     const setValue = useCallback(
         (nextValue: string) => {
-            const params = new URLSearchParams(window.location.search)
+            const params = new URLSearchParams(location.search)
             if (nextValue) params.set(key, nextValue)
             else params.delete(key)
             const query = params.toString()
+            // `location.pathname` is relative to the router's basename, unlike
+            // `window.location.pathname`, which would double up the /admin prefix
             history.replace({
-                pathname: window.location.pathname,
+                pathname: location.pathname,
                 search: query ? `?${query}` : "",
             })
         },
-        [history, key]
+        [history, key, location.pathname, location.search]
     )
 
     return [value, setValue]

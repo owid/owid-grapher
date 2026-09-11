@@ -57,7 +57,7 @@ function createColumns({
             title: "Namespace",
             dataIndex: "namespace",
             key: "namespace",
-            width: 130,
+            width: 170,
             sorter: (a, b) => a.namespace.localeCompare(b.namespace),
         },
         {
@@ -148,7 +148,9 @@ export function DatasetList({
     return (
         <AdminTable
             columns={columns}
-            dataSource={datasets}
+            // The tag cells can't render before the tag list has loaded, so
+            // hold the rows back rather than rendering them tagless
+            dataSource={availableTags ? datasets : []}
             loading={loading || !availableTags}
             search={search}
             entityName="datasets"
