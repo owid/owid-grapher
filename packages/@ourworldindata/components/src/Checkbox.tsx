@@ -10,6 +10,8 @@ export const Checkbox = ({
     label,
     disabled,
     id,
+    name,
+    value,
     "data-test": testHook,
 }: {
     className?: string
@@ -18,6 +20,10 @@ export const Checkbox = ({
     label: React.ReactNode
     disabled?: boolean
     id?: string
+    // Set both when the checkbox is part of a form that gets submitted, rather
+    // than only read through onChange.
+    name?: string
+    value?: string
     "data-test"?: string
 }) => {
     return (
@@ -33,6 +39,8 @@ export const Checkbox = ({
                     id={id}
                     type="checkbox"
                     data-test={testHook}
+                    name={name}
+                    value={value}
                     checked={checked}
                     onChange={onChange}
                     disabled={disabled}
