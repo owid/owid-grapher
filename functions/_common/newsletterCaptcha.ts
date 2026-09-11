@@ -1,13 +1,14 @@
 import { JsonError } from "@ourworldindata/utils"
 import { Env } from "./env.js"
 
-export async function validateSubscriptionCaptcha(
+export async function validateNewsletterCaptcha(
     token: string,
-    env: Env
+    env: Env,
+    action: "subscribe" | "request-link"
 ): Promise<void> {
     if (!env.TURNSTILE_SECRET_KEY) {
         throw new JsonError(
-            "Subscription verification is unavailable. Please try again later.",
+            "Verification is unavailable. Please try again later.",
             503
         )
     }
@@ -30,7 +31,7 @@ export async function validateSubscriptionCaptcha(
         result = await response.json()
     } catch {
         throw new JsonError(
-            "Subscription verification is unavailable. Please try again later.",
+            "Verification is unavailable. Please try again later.",
             503
         )
     }
@@ -41,7 +42,7 @@ export async function validateSubscriptionCaptcha(
         env.TURNSTILE_SECRET_KEY === "1x0000000000000000000000000000000AA"
     if (
         result?.success !== true ||
-        (!isUsingTestSecretKey && result.action !== "subscribe")
+        (!isUsingTestSecretKey && result.action !== action)
     ) {
         throw new JsonError("Verification failed. Please try again.", 400)
     }

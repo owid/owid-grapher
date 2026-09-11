@@ -3,11 +3,14 @@ import { TURNSTILE_SITE_KEY } from "../../settings/clientSettings.mjs"
 import { useNewsletterSpamProtection } from "./useNewsletterSpamProtection.js"
 
 export function NewsletterSpamProtection({
+    action = "subscribe",
     ref,
     error,
     setError,
     setCaptchaToken,
-}: ReturnType<typeof useNewsletterSpamProtection>["fieldsProps"]) {
+}: ReturnType<typeof useNewsletterSpamProtection>["fieldsProps"] & {
+    action?: "subscribe" | "request-link"
+}) {
     function onError() {
         setCaptchaToken("")
         setError(
@@ -32,7 +35,7 @@ export function NewsletterSpamProtection({
                 ref={ref}
                 siteKey={TURNSTILE_SITE_KEY}
                 options={{
-                    action: "subscribe",
+                    action,
                     appearance: "interaction-only",
                     size: "flexible",
                 }}

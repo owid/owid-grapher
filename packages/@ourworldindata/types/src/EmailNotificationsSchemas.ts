@@ -45,12 +45,20 @@ export type EmailNotificationsSubscribeRequest = z.infer<
 export const EmailNotificationsRequestLinkRequestTypeObject = z
     .object({
         email: z.optional(z.email().check(z.maxLength(254))),
+        captchaToken: z.optional(
+            z.string().check(z.minLength(1), z.maxLength(2048))
+        ),
+        website: z.optional(z.string().check(z.maxLength(2048))),
         token: z.optional(z.string().check(z.minLength(1), z.maxLength(100))),
     })
     .check(
         z.refine(
             (request) => Boolean(request.email) !== Boolean(request.token),
             "Provide either an email or a token"
+        ),
+        z.refine(
+            (request) => !request.email || !!request.captchaToken,
+            "Email requests require a verification token"
         )
     )
 
