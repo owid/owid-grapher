@@ -16,6 +16,7 @@ export const MAX_FACET_VALUES = 1000
 export type SearchFacetAttribute =
     | "tags" // also used on /latest
     | "latestType" // used on /latest only
+    | "path" // pages index only, filterOnly: look up specific pages
     | "availableEntities"
     | "datasetProducts"
     | "datasetNamespaces"
