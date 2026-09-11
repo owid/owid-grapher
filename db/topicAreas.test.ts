@@ -1,75 +1,119 @@
-import { describe, expect, it } from "vitest"
+import { describe, expect, it, vi } from "vitest"
+import { DbPlainTag } from "@ourworldindata/types"
 import {
-    getTopicAreaNameForGdocTags,
+    getBestBreadcrumbs,
+    getBestTagHierarchy,
     getTopicAreaNameForTagNames,
-    topicAreaNamesFromTagHierarchies,
+    getTopicAreaNamesByChartId,
+    KnexReadonlyTransaction,
+    TagHierarchiesByChildName,
 } from "./db.js"
 
-const tag = (name: string): { id: number; name: string; slug: string } => ({
+const tag = (
+    name: string,
+    slug: string | null = name
+): Pick<DbPlainTag, "id" | "name" | "slug"> => ({
     id: name.length,
     name,
-    slug: name,
+    slug,
 })
 
-describe(topicAreaNamesFromTagHierarchies, () => {
-    it("takes the first path's top-level tag as the area", () => {
+const hierarchies: TagHierarchiesByChildName = {
+    Energy: [[tag("Energy")]],
+    Migration: [[tag("Population", null), tag("Migration")]],
+    Vaccination: [[tag("Health", null), tag("Disease"), tag("Vaccination")]],
+    Orphan: [],
+}
+
+describe(getBestTagHierarchy, () => {
+    it("uses the first, highest-priority path for each tag", () => {
+        const preferred = [tag("Population", null), tag("Migration")]
         expect(
-            topicAreaNamesFromTagHierarchies({
-                Energy: [[tag("Energy")]],
+            getBestTagHierarchy(["Migration"], {
                 Migration: [
-                    [tag("Population"), tag("Migration")],
-                    [tag("Poverty"), tag("Migration")],
+                    preferred,
+                    [tag("Health"), tag("Disease"), tag("Migration")],
                 ],
-                Orphan: [],
             })
-        ).toEqual({ Energy: "Energy", Migration: "Population" })
+        ).toEqual(preferred)
     })
-})
 
-describe(getTopicAreaNameForTagNames, () => {
-    const areas = { Migration: "Population", Energy: "Energy" }
-
-    it("resolves the first tag that maps to an area", () => {
+    it("chooses the path with the most clickable topics for both consumers", () => {
+        const names = ["Energy", "Migration", "Vaccination"]
+        expect(getTopicAreaNameForTagNames(names, hierarchies)).toBe("Health")
         expect(
-            getTopicAreaNameForTagNames(["Migration", "Energy"], areas)
+            getBestBreadcrumbs(
+                names.map((name) => tag(name)),
+                hierarchies
+            ).map((crumb) => crumb.label)
+        ).toEqual(["Disease", "Vaccination"])
+    })
+
+    it("retains input order when paths have the same clickable length", () => {
+        expect(
+            getTopicAreaNameForTagNames(["Energy", "Migration"], hierarchies)
+        ).toBe("Energy")
+        expect(
+            getTopicAreaNameForTagNames(["Migration", "Energy"], hierarchies)
         ).toBe("Population")
-        expect(getTopicAreaNameForTagNames([], areas)).toBe(undefined)
-        expect(getTopicAreaNameForTagNames(["Unlisted"], areas)).toBe(undefined)
     })
 
-    it("skips unmapped tags instead of letting them suppress a later area", () => {
-        expect(getTopicAreaNameForTagNames(["Unlisted", "Energy"], areas)).toBe(
-            "Energy"
-        )
+    it("skips unmapped tags and handles empty input", () => {
+        expect(
+            getTopicAreaNameForTagNames(
+                ["Unknown", "Orphan", "Energy"],
+                hierarchies
+            )
+        ).toBe("Energy")
+        expect(
+            getTopicAreaNameForTagNames(["Orphan"], hierarchies)
+        ).toBeUndefined()
+        expect(getTopicAreaNameForTagNames([], hierarchies)).toBeUndefined()
+    })
+
+    it("retains an area even when its path has no clickable topics", () => {
+        const areas = { Health: [[tag("Health", null)]] }
+        expect(getTopicAreaNameForTagNames(["Health"], areas)).toBe("Health")
+        expect(getBestBreadcrumbs([tag("Health", null)], areas)).toEqual([])
     })
 })
 
-describe(getTopicAreaNameForGdocTags, () => {
-    const gdocTags = (...names: string[]): { name: string }[] =>
-        names.map((name) => ({ name }))
-
-    it("resolves an area even when the first tag by name is unmapped", () => {
-        // `Announcements` and `Explainers` sort first but map to no area; the
-        // topic tag behind them still has to decide the page's area.
-        expect(
-            getTopicAreaNameForGdocTags(
-                gdocTags("Global Health", "Announcements"),
-                { "Global Health": "Global Health" }
-            )
-        ).toBe("Global Health")
-        expect(
-            getTopicAreaNameForGdocTags(gdocTags("Poverty", "Explainers"), {
-                Poverty: "Poverty",
-            })
-        ).toBe("Poverty")
+describe(getTopicAreaNamesByChartId, () => {
+    it("uses all tags of the first y indicator, then falls back to chart tags", async () => {
+        const raw = vi
+            .fn()
+            .mockResolvedValueOnce([
+                [
+                    { chartId: 1, variableId: 10, tagName: "Energy" },
+                    { chartId: 1, variableId: 10, tagName: "Vaccination" },
+                    { chartId: 2, variableId: 20, tagName: "Energy" },
+                    { chartId: 2, variableId: 21, tagName: "Vaccination" },
+                    { chartId: 3, variableId: 30, tagName: null },
+                    { chartId: 3, variableId: 31, tagName: "Energy" },
+                ],
+            ])
+            .mockResolvedValueOnce([
+                [
+                    { chartId: 2, tagName: "Vaccination" },
+                    { chartId: 3, tagName: "Energy" },
+                    { chartId: 3, tagName: "Vaccination" },
+                    { chartId: 4, tagName: "Unknown" },
+                ],
+            ])
+        const trx = { raw } as unknown as KnexReadonlyTransaction
+        expect(await getTopicAreaNamesByChartId(trx, hierarchies)).toEqual({
+            1: "Health",
+            2: "Energy",
+            3: "Health",
+        })
     })
 
-    it("orders tags deterministically when names differ only by case", () => {
-        // A case-insensitive comparison alone reports these as equal and then
-        // leaves the winner down to the order the tags were loaded in.
-        const areas = { CO2: "Energy", co2: "Climate Change" }
-        expect(getTopicAreaNameForGdocTags(gdocTags("CO2", "co2"), areas)).toBe(
-            getTopicAreaNameForGdocTags(gdocTags("co2", "CO2"), areas)
+    it("does not query when no charts are requested", async () => {
+        const raw = vi.fn()
+        const trx = { raw } as unknown as KnexReadonlyTransaction
+        expect(await getTopicAreaNamesByChartId(trx, hierarchies, [])).toEqual(
+            {}
         )
+        expect(raw).not.toHaveBeenCalled()
     })
 })
