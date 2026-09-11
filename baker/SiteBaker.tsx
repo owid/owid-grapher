@@ -753,10 +753,6 @@ export class SiteBaker {
                 }
             })
 
-        const topicAreaNamesByTagName = db.topicAreaNamesFromTagHierarchies(
-            tagHierarchiesByChildName
-        )
-
         if (gdocsToBake.length > 0)
             await this.getPrefetchedGdocAttachments(knex)
 
@@ -802,9 +798,9 @@ export class SiteBaker {
                         )
                     }
 
-                    publishedGdoc.topicArea = db.getTopicAreaNameForGdocTags(
-                        publishedGdoc.tags ?? [],
-                        topicAreaNamesByTagName
+                    publishedGdoc.topicArea = db.getTopicAreaNameForTagNames(
+                        (publishedGdoc.tags ?? []).map((tag) => tag.name),
+                        tagHierarchiesByChildName
                     )
 
                     // this is a no-op if the gdoc doesn't have an all-chart block
