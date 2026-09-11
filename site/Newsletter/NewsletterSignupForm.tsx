@@ -3,6 +3,8 @@ import * as React from "react"
 import cx from "clsx"
 import { useMutation } from "@tanstack/react-query"
 import { Button, TextInput } from "@ourworldindata/components"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faCheck } from "@fortawesome/free-solid-svg-icons"
 import { EmailNotificationsSubscribeRequest } from "@ourworldindata/types"
 import { SiteAnalytics } from "../SiteAnalytics.js"
 import { NewsletterSubscriptionContext } from "../newsletter.js"
@@ -90,9 +92,18 @@ const NewsletterSignupFormInner = ({
 
     if (subscribe.isSuccess)
         return (
-            <p className={cx("newsletter-signup-form__success", className)}>
-                Your subscription to The OWID Brief is active.
-            </p>
+            <div
+                className={cx("newsletter-signup-form__success", className)}
+                role="status"
+            >
+                <span
+                    className="newsletter-signup-form__success-icon"
+                    aria-hidden="true"
+                >
+                    <FontAwesomeIcon icon={faCheck} />
+                </span>
+                <span>Your subscription to The OWID Brief is active.</span>
+            </div>
         )
 
     // Until the page hydrates, submits are handled natively by the browser:
