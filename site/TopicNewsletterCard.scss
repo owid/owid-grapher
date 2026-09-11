@@ -1,0 +1,125 @@
+.topic-newsletter-card {
+    background-color: $gray-5;
+    padding: 24px;
+    border-radius: 8px;
+    align-self: start;
+}
+
+.topic-newsletter-card__header {
+    display: flex;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+
+    svg {
+        margin-right: 8px;
+        color: $blue-90;
+        height: 16px;
+        width: 16px;
+        padding: 4px;
+    }
+}
+
+.topic-newsletter-card__heading {
+    line-height: 24px;
+    color: $blue-90;
+    margin: 0;
+}
+
+.topic-newsletter-card__p {
+    color: $blue-70;
+    margin: 0 0 16px 0;
+}
+
+.topic-newsletter-card__button {
+    display: inline-block;
+}
+
+.topic-newsletter-card--horizontal {
+    @include md-up {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) max-content;
+        column-gap: 32px;
+
+        .topic-newsletter-card__header {
+            grid-column: 1;
+            grid-row: 1;
+        }
+
+        .topic-newsletter-card__p {
+            grid-column: 1;
+            grid-row: 2;
+            margin-bottom: 0;
+        }
+
+        .topic-newsletter-card__button {
+            grid-column: 2;
+            grid-row: 1 / span 2;
+            align-self: center;
+        }
+    }
+}
+
+.topic-newsletter-card--topic-page-intro {
+    margin-bottom: 32px;
+
+    @include md-down {
+        margin-top: 32px;
+    }
+}
+
+.topic-newsletter-card--gdoc-aside {
+    margin-bottom: 24px;
+
+    @include md-down {
+        margin-top: 24px;
+    }
+}
+
+.topic-newsletter-card--about-this-data {
+    @include md-down {
+        margin-top: 32px;
+    }
+}
+
+.topic-newsletter-card--key-info {
+    margin-top: 32px;
+}
+
+.topic-newsletter-card--key-info-left {
+    margin-top: 32px;
+}
+
+.topic-newsletter-card--grapher-page {
+    width: calc(100% - #{$padding-x-sm * 2});
+    max-width: 800px;
+    margin: 32px auto;
+
+    @include md-up {
+        margin-top: 12px;
+    }
+}
+
+.topic-newsletter-card--datapage-metadata {
+    margin-top: -$indicator-metadata-box-pull-up;
+    margin-bottom: 48px;
+
+    @include md-down {
+        margin-top: 0;
+        margin-bottom: 32px;
+    }
+
+    @include sm-only {
+        margin-left: -$indicator-metadata-box-bleed-sm;
+        margin-right: -$indicator-metadata-box-bleed-sm;
+    }
+}
+
+.topic-newsletter-card--latest {
+    grid-row: 4;
+    background-color: $blue-10;
+
+    @include md-down {
+        grid-row: unset;
+        margin-bottom: 40px;
+    }
+}

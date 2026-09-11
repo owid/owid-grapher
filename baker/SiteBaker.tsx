@@ -723,6 +723,11 @@ export class SiteBaker {
                 )
             }
 
+            publishedGdoc.topicArea = db.getTopicAreaNameForTagNames(
+                (publishedGdoc.tags ?? []).map((tag) => tag.name),
+                tagHierarchiesByChildName
+            )
+
             // this is a no-op if the gdoc doesn't have an all-chart block
             if ("loadRelatedCharts" in publishedGdoc) {
                 await publishedGdoc.loadRelatedCharts(
@@ -828,7 +833,7 @@ export class SiteBaker {
         )
         // The magic-link preferences page is only linked from emails the new
         // notifications system sends, so it only exists behind the flag.
-        if (FEATURE_FLAGS.has(Features.EmailNotifications)) {
+        if (FEATURE_FLAGS.includes(Features.EmailNotifications)) {
             await this.stageWrite(
                 `${this.bakedSiteDir}/preferences.html`,
                 await renderEmailNotificationsPreferencesPage(knex)

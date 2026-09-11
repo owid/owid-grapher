@@ -57,6 +57,22 @@ function parseMarkdownBlocks(markdown: string): MarkdownBlock[] {
     return blocks
 }
 
+export function countDescriptionKeyBullets(markdown: string): number {
+    return parseMarkdownBlocks(markdown).filter(
+        (block) => block.type === "listItem"
+    ).length
+}
+
+const LEFT_COLUMN_TALLER_BULLET_COUNT = 5
+
+/** Whether the description column is expected to be the shorter of the two. */
+export function isDescriptionColumnShorter(descriptionKey?: string): boolean {
+    const bulletCount = descriptionKey
+        ? countDescriptionKeyBullets(descriptionKey)
+        : 0
+    return bulletCount < LEFT_COLUMN_TALLER_BULLET_COUNT
+}
+
 // Adjacent list items are always rejoined tightly, so a "loose" list (bullets
 // separated by blank lines) comes out tight — a deliberate simplification.
 function joinMarkdownBlocks(blocks: MarkdownBlock[]): string {

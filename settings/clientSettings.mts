@@ -130,10 +130,8 @@ const featureFlagsRaw =
     (typeof process.env.FEATURE_FLAGS === "string" &&
         process.env.FEATURE_FLAGS.trim()?.split(",")) ||
     []
-export const FEATURE_FLAGS: Set<Feature> = new Set(
-    Object.values(Features).filter((feature) =>
-        featureFlagsRaw.includes(feature)
-    )
+export const FEATURE_FLAGS: Array<Feature> = Object.values(Features).filter(
+    (feature) => featureFlagsRaw.includes(feature)
 )
 
 export const SLACK_DI_PITCHES_CHANNEL_ID: string =
