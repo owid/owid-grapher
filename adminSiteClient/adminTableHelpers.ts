@@ -1,11 +1,14 @@
 import type * as React from "react"
-import { useCallback } from "react"
+import { useCallback, useMemo } from "react"
 import { useHistory, useLocation } from "react-router-dom"
+import { highlightFunctionForSearchWords } from "../adminShared/search.js"
 import {
-    buildSearchWordsFromSearchString,
-    filterFunctionForSearchWords,
-    highlightFunctionForSearchWords,
-} from "../adminShared/search.js"
+    describeSearchFields,
+    makeSearchFilter,
+    SearchField,
+    searchWordsToHighlight,
+} from "../adminShared/searchFilter.js"
+import type { AdminTableSearch } from "./AdminTable.js"
 
 export const ADMIN_TABLE_PAGE_SIZE = 50
 
@@ -39,30 +42,56 @@ export function useSearchQueryParam(
     return [value, setValue]
 }
 
-/**
- * Filters items with the admin's shared search syntax (space-separated terms,
- * quoted phrases, `-exclusions`), matching against the given fields.
- */
-export function filterBySearchWords<T>(
-    items: readonly T[],
-    searchValue: string,
-    getSearchableFields: (item: T) => (string | null | undefined)[]
-): T[] {
-    const searchWords = buildSearchWordsFromSearchString(searchValue)
-    if (searchWords.length === 0) return [...items]
-    const filterFn = filterFunctionForSearchWords(searchWords, (item: T) =>
-        getSearchableFields(item).map((field) => field ?? undefined)
-    )
-    return items.filter(filterFn)
-}
-
 export type SearchHighlighter = (
     text: string | null | undefined
 ) => React.ReactElement | string
 
-/** Highlights the matches of a search string, for use in a column renderer. */
-export function highlightSearchWords(searchValue: string): SearchHighlighter {
-    return highlightFunctionForSearchWords(
-        buildSearchWordsFromSearchString(searchValue)
+/**
+ * Everything a list page needs for its search box: the query (kept in the URL),
+ * the filtered rows, and a highlighter for the columns that show matched text.
+ *
+ * `fields` declares what `field:value` terms the page understands; pass a
+ * module-level constant so the filtering isn't redone on every render.
+ */
+export function useListSearch<T>(
+    items: readonly T[] | undefined,
+    fields: readonly SearchField<T>[],
+    options: {
+        placeholder?: string
+        autoFocus?: boolean
+        /** Query parameter to keep the search in. Defaults to `search`. */
+        paramName?: string
+    } = {}
+): {
+    results: T[]
+    highlight: SearchHighlighter
+    search: AdminTableSearch
+} {
+    const [value, onChange] = useSearchQueryParam(options.paramName)
+
+    const results = useMemo(() => {
+        const matches = makeSearchFilter(value, fields)
+        return (items ?? []).filter(matches)
+    }, [items, value, fields])
+
+    const highlight = useMemo(
+        () =>
+            highlightFunctionForSearchWords(
+                searchWordsToHighlight(value, fields)
+            ),
+        [value, fields]
     )
+
+    const search = useMemo(
+        () => ({
+            value,
+            onChange,
+            placeholder: options.placeholder,
+            autoFocus: options.autoFocus,
+            fields: describeSearchFields(fields),
+        }),
+        [value, onChange, options.placeholder, options.autoFocus, fields]
+    )
+
+    return { results, highlight, search }
 }

@@ -1,5 +1,8 @@
 import * as React from "react"
-import { Flex, Input, Space, Table, TableProps } from "antd"
+import { Button, Flex, Input, Popover, Space, Table, TableProps } from "antd"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faCircleQuestion } from "@fortawesome/free-solid-svg-icons"
+import type { SearchFieldHelp } from "../adminShared/searchFilter.js"
 import { ADMIN_TABLE_PAGE_SIZE } from "./adminTableHelpers.js"
 
 export interface AdminTableSearch {
@@ -9,6 +12,57 @@ export interface AdminTableSearch {
     autoFocus?: boolean
     /** Width of the search input. Defaults to 500px. */
     width?: number | string
+    /** `field:value` terms the page understands, listed in a help popover. */
+    fields?: SearchFieldHelp[]
+}
+
+const OPERATOR_HINT: Record<SearchFieldHelp["type"], string> = {
+    string: "text",
+    number: "number, or >, >=, <, <=",
+    boolean: "true / false",
+    date: "date prefix, or >, >=, <, <=",
+}
+
+function SearchHelp({
+    fields,
+}: {
+    fields: SearchFieldHelp[]
+}): React.ReactElement {
+    return (
+        <Popover
+            title="Search syntax"
+            placement="bottomLeft"
+            content={
+                <div className="AdminTable__search-help">
+                    <p>
+                        Terms are combined with AND. Use <code>"a phrase"</code>{" "}
+                        to match words together and <code>-term</code> to
+                        exclude. The search is kept in the page URL, so a
+                        filtered list can be shared.
+                    </p>
+                    <table>
+                        <tbody>
+                            {fields.map((field) => (
+                                <tr key={field.name}>
+                                    <td>
+                                        <code>{field.name}:</code>
+                                    </td>
+                                    <td>{field.description}</td>
+                                    <td>{OPERATOR_HINT[field.type]}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            }
+        >
+            <Button
+                type="text"
+                aria-label="Search syntax"
+                icon={<FontAwesomeIcon icon={faCircleQuestion} />}
+            />
+        </Popover>
+    )
 }
 
 export interface AdminTableProps<T> extends TableProps<T> {
@@ -63,6 +117,9 @@ export function AdminTable<T extends object>({
                                 allowClear
                             />
                         )}
+                        {search?.fields?.length ? (
+                            <SearchHelp fields={search.fields} />
+                        ) : null}
                         {filters}
                     </Space>
                     {actions && <Space size="small">{actions}</Space>}
