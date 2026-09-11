@@ -51,8 +51,7 @@ import {
     getPublishedGdocsWithTags,
     getTagHierarchiesByChildName,
     getBestBreadcrumbs,
-    getTopicAreaNameForGdocTags,
-    topicAreaNamesFromTagHierarchies,
+    getTopicAreaNameForTagNames,
 } from "../../db.js"
 import { GdocAbout } from "./GdocAbout.js"
 import { GdocAuthor } from "./GdocAuthor.js"
@@ -244,9 +243,9 @@ async function loadTagsAndTagDerivedFields(
 
     const tagHierarchiesByChildName = await getTagHierarchiesByChildName(knex)
     gdoc.breadcrumbs = getBestBreadcrumbs(tags, tagHierarchiesByChildName)
-    gdoc.topicArea = getTopicAreaNameForGdocTags(
-        tags,
-        topicAreaNamesFromTagHierarchies(tagHierarchiesByChildName)
+    gdoc.topicArea = getTopicAreaNameForTagNames(
+        tags.map((tag) => tag.name),
+        tagHierarchiesByChildName
     )
 }
 
