@@ -24,6 +24,8 @@ export type EmailNotificationsPreferences = z.infer<
 export const EmailNotificationsSubscribeRequestTypeObject = z
     .object({
         email: z.email().check(z.maxLength(254)),
+        captchaToken: z.string().check(z.minLength(1), z.maxLength(2048)),
+        website: z.optional(z.string().check(z.maxLength(2048))),
         notifications: z.optional(EmailNotificationsPreferencesTypeObject),
         subscribeToOwidBrief: z.boolean(),
     })
