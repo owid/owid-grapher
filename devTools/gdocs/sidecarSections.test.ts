@@ -10,7 +10,10 @@ import { splitSidecarProse } from "./sidecarSections.js"
 
 const FILE = "Example.md"
 
-function split(body: string, kind: "component" | "template" = "component") {
+function split(
+    body: string,
+    kind: "component" | "template" | "guide" = "component"
+) {
     return splitSidecarProse(body, FILE, kind)
 }
 
@@ -109,5 +112,75 @@ describe("the sidecar section split", () => {
         expect(() => split("## When to use\n\n- Always.")).toThrow(
             "has no intro"
         )
+    })
+
+    describe("guide sidecars", () => {
+        // A guide reads top to bottom, so its free sections keep their source
+        // order and the Notes close it — the reverse of a component sidecar,
+        // where the notes sit right under the derived material.
+        test("accept an intro, free sections and Notes", () => {
+            const { prose, properties } = split(
+                [
+                    "Footnotes in two forms.",
+                    "## ID-based refs",
+                    "Define once, cite many times.",
+                    "## Inline refs",
+                    "Write the source between the tags.",
+                    "## Notes",
+                    "Identical inline refs share a number.",
+                ].join("\n\n"),
+                "guide"
+            )
+            expect(prose.intro).toBe("Footnotes in two forms.")
+            expect(prose.whenToUse).toBeUndefined()
+            expect(prose.notes).toBe(
+                [
+                    "## ID-based refs",
+                    "Define once, cite many times.",
+                    "## Inline refs",
+                    "Write the source between the tags.",
+                    "Identical inline refs share a number.",
+                ].join("\n\n")
+            )
+            expect(properties).toBeUndefined()
+        })
+
+        test("do not change how component sidecars order theirs", () => {
+            const body = [
+                "Intro.",
+                "## When to use",
+                "- Always.",
+                "## Notes",
+                "A caveat.",
+                "## Limitations",
+                "Only two per page.",
+            ].join("\n\n")
+            expect(split(body, "component").prose.notes).toBe(
+                "A caveat.\n\n## Limitations\n\nOnly two per page."
+            )
+            expect(split(body, "template").prose.notes).toBe(
+                "A caveat.\n\n## Limitations\n\nOnly two per page."
+            )
+        })
+
+        test("reject the decision headings", () => {
+            expect(() =>
+                split("Intro.\n\n## When to use\n\n- Always.", "guide")
+            ).toThrow(
+                /belongs in a component\/template sidecar, not a guide one/
+            )
+        })
+
+        test("reject a properties section", () => {
+            expect(() =>
+                split("Intro.\n\n## Properties\n\n- `x`: y.", "guide")
+            ).toThrow(/belongs in a component sidecar, not a guide one/)
+        })
+
+        test("still catch near misses", () => {
+            expect(() =>
+                split("Intro.\n\n## Note\n\nA caveat.", "guide")
+            ).toThrow(/did you mean "## Notes"/)
+        })
     })
 })

@@ -103,7 +103,10 @@ function TabButton({
  * desktop/mobile toggle switches the preview between the site's two layouts.
  *
  * When no previewPath is given (e.g. a plain non-archie code fence), only the
- * code is shown.
+ * code is shown. A whole-document example (`wholeDocument`) is always
+ * code-only too — the preview pipeline renders a single component, not a
+ * full document — and its code tab is labelled "Whole document" instead of
+ * "ArchieML" to say so.
  *
  * Without `archie` (a rendered published document, whose source isn't
  * ArchieML any author wrote) the widget is preview-only: no code tab, no
@@ -113,11 +116,13 @@ function TabButton({
 export function GdocsReferenceExample({
     archie,
     previewPath,
+    wholeDocument,
     maxHeight,
     previewTitle = "Rendered example",
 }: {
     archie?: string
     previewPath?: string
+    wholeDocument?: boolean
     /** Cap on the preview pane's height in px; the preview scrolls within it */
     maxHeight?: number
     /** Accessible name of the preview frame */
@@ -201,13 +206,15 @@ export function GdocsReferenceExample({
                             onClick={() => setTab("preview")}
                         />
                         <TabButton
-                            label="ArchieML"
+                            label={codeLabel}
                             isActive={tab === "archie"}
                             onClick={() => setTab("archie")}
                         />
                     </div>
                 ) : (
-                    <div className="gdocs-ref-example__tabs" />
+                    <span className="gdocs-ref-example__caption">
+                        {previewUrl ? "Preview" : codeLabel}
+                    </span>
                 )}
                 <div className="gdocs-ref-example__toolbar-right">
                     {previewUrl && !showCode && (

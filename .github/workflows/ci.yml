@@ -128,7 +128,7 @@ jobs:
 
       - name: Check committed registries are current
         run: |
-          if ! git diff --exit-code docs/components.registry.generated.json docs/templates.registry.generated.json; then
+          if ! git diff --exit-code docs/components.registry.generated.json docs/templates.registry.generated.json docs/guides.registry.generated.json; then
             echo "::error::docs/*.registry.generated.json are stale. Run 'yarn generateGdocsReferences' and commit the result."
             exit 1
           fi

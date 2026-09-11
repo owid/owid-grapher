@@ -1,4 +1,9 @@
-import { OwidGdocType, TemplateReference } from "@ourworldindata/types"
+import {
+    GUIDE_CATEGORIES,
+    GuideReference,
+    OwidGdocType,
+    TemplateReference,
+} from "@ourworldindata/types"
 
 /**
  * Templates are ranked by how widely they're published — the ones editors
@@ -31,4 +36,19 @@ export function stepHighlight(
     if (length === 0) return undefined
     if (current === undefined) return delta === 1 ? 0 : length - 1
     return (current + delta + length) % length
+}
+
+/**
+ * Guides are not usage-ranked: they list by category in presentation order,
+ * then by title.
+ */
+export function sortGuides(guides: GuideReference[]): GuideReference[] {
+    const rank = new Map<string, number>(
+        GUIDE_CATEGORIES.map((category, index) => [category, index])
+    )
+    return [...guides].sort(
+        (a, b) =>
+            (rank.get(a.category) ?? 0) - (rank.get(b.category) ?? 0) ||
+            a.title.localeCompare(b.title)
+    )
 }
