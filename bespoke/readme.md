@@ -143,17 +143,22 @@ Note that every slide of a key insights block is in the DOM from page load, not 
 
 A bespoke component can also be the subject of its own page, rather than one
 figure inside an article. Those are gdocs of type `featured-viz`, published at
-`/featured-viz/<slug>`, and they behave differently in two ways:
+`/featured-viz/<slug>`, and they behave differently in three ways:
 
 - **The first top-level `{.bespoke-component}` block is the featured viz.** It
   renders on a full-bleed blue band, at the width its `size` asks for. Later
   bespoke blocks on the page render as ordinary blocks.
 - **The featured viz drives the URL.** The page forces `urlSync` on for it, so
-  a project that reads `config.urlSync` syncs without the author asking, and the
-  page URL is shareable at a particular view. There is no opt-out: a featured
-  viz page whose URL doesn't track its viz is not worth publishing. A project
-  that doesn't read `config.urlSync` won't sync at all; add it before giving
-  that bundle a featured viz page.
+  the page URL is shareable at a particular view. Every bundle syncs without
+  code of its own, because `useUrlState` takes the flag from the embed config.
+  There is no opt-out: a featured viz page whose URL doesn't track its viz is
+  not worth publishing.
+- **The featured viz's metadata is already on the page.** The page renders the
+  methods-and-sources box under the band, built from the same metadata file the
+  viz would show in its modal. So it forces `hideMetadataModal` on for the
+  featured viz, and `BespokeMetadataProvider` drops the footer's "Learn more
+  about this data" link along with the modal behind it. Later bespoke blocks
+  keep theirs.
 
 Everything else on the page is authored as in a normal article, and any block an
 article supports works there.
@@ -163,7 +168,7 @@ article supports works there.
 Expected, and fine. A page often embeds the same viz several times with
 different settings and talks about each one. Only the first top-level bespoke
 block is the featured viz: the rest render as ordinary figures, with no blue
-band and no `urlSync`.
+band, no `urlSync`, and their metadata modal left in place.
 
 Keeping `urlSync` on the featured viz alone is deliberate. The page URL stands
 for the featured viz's state, the thing a reader shares. So a second component
