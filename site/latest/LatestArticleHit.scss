@@ -1,5 +1,4 @@
 .latest-article-hit {
-    position: relative;
     @include sm-only {
         margin-left: 16px;
         margin-right: 16px;
@@ -7,6 +6,7 @@
 }
 
 .latest-article-hit__card {
+    position: relative;
     background-color: $blue-10;
     padding: 16px;
     color: $blue-90;
@@ -21,20 +21,14 @@
     color: inherit;
     text-decoration: none;
 
-    // Stretched link: covers the whole article so clicking anywhere on the
-    // card navigates to the article. Inline links inside the excerpt (z-index
-    // set below) sit above this overlay and keep their own click behavior.
-    &::after {
-        content: "";
-        position: absolute;
-        inset: 0;
-        z-index: 1;
-    }
+    // Covers the whole card so clicking anywhere on it navigates to the
+    // article. It stops at the card, leaving the metadata row above it
+    // alone.
+    @include stretched-link;
 }
 
-.latest-article-hit:hover .latest-article-hit__title-link {
-    text-decoration: underline;
-    text-underline-offset: 4px;
+.latest-article-hit__card:hover {
+    background-color: $blue-20;
 }
 
 .latest-article-hit__image {
@@ -78,29 +72,13 @@
 // Rich variant: inline links inside the excerpt sit above the stretched-link
 // overlay so they remain independently clickable.
 .latest-article-hit__excerpt--rich a {
-    position: relative;
-    z-index: 2;
+    @include above-stretched-link;
 }
 
 .latest-article-hit__read-more {
     @include body-3-medium;
+    @include above-stretched-link;
+    @include latest-card-cta(".latest-article-hit__card");
     color: $vermillion;
-    text-decoration: underline;
-    text-underline-offset: 4px;
-    display: inline-flex;
-    align-items: center;
-    gap: 2px;
-    position: relative;
-    z-index: 2;
     margin: 8px 0;
-
-    svg {
-        width: 10px;
-        height: 10px;
-        margin-left: 2px;
-    }
-
-    &:hover {
-        text-decoration: none;
-    }
 }

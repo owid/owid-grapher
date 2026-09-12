@@ -1,6 +1,8 @@
 import {
     keepPreviousData,
+    queryOptions,
     useInfiniteQuery,
+    useQueries,
     useQuery,
 } from "@tanstack/react-query"
 import { LiteClient } from "algoliasearch/lite"
@@ -17,34 +19,42 @@ import {
     type LatestType,
     type PageChronologicalRecord,
 } from "@ourworldindata/types"
+import { OwidGdocType } from "@ourworldindata/utils"
+import { getPrefixedGdocPath } from "@ourworldindata/components"
+import { match } from "ts-pattern"
 import { SiteAnalytics } from "../SiteAnalytics.js"
 
 const DEFAULT_PAGE_SIZE = 20
 
-// Grace period after a publish during which we don't trust that the article's
-// static page exists yet, and HEAD-probe before showing its card on /latest.
-// Past this window we assume the bake has caught up.
+/*
+ * Bake probes.
+ *
+ * Publishing updates the Algolia index synchronously, but the published
+ * item's standalone page only exists once the next site bake completes — so
+ * for a while, a freshly published card would link to a 404. During a grace
+ * period after publish (`FRESH_WINDOW_MS`) we therefore HEAD-probe a card's
+ * page and don't show the card until the probe comes back 200; past the
+ * window we assume the bake has caught up.
+ *
+ * Two consumers share the probes through the query cache:
+ *
+ * - each card gates its own rendering on `useIsLikelyBaked`;
+ * - `LatestSearch` holds its loading skeleton until `useAreFreshProbesSettled`
+ *   reports every first-page probe answered, so that the feed renders in one
+ *   commit with its composition final. Without this, gated cards mount late:
+ *   scrolling to a `/latest#slug` deeplink misses its anchor, and cards
+ *   popping in shift the feed under the reader.
+ */
+
 export const FRESH_WINDOW_MS = 60 * 60 * 1000
 
-/**
- * For freshly-published cards, probe whether the card URL is reachable before
- * showing it — the Algolia index is updated synchronously on publish but the
- * static page is only available once the next bake completes, so a card can
- * otherwise link to a 404.
- *
- * Returns `true` once we're confident the link is safe (either the publish is
- * older than `FRESH_WINDOW_MS` or a HEAD probe came back 200). Returns `false`
- * while we're still uncertain. Heuristic by design — past the grace period the
- * hook returns `true` without verifying anything.
- */
-export function useIsLikelyBaked(
-    href: string,
-    publishedAt: string | Date
-): boolean {
-    const isFresh =
-        Date.now() - new Date(publishedAt).getTime() < FRESH_WINDOW_MS
+const isFreshlyPublished = (publishedAt: string | Date): boolean =>
+    Date.now() - new Date(publishedAt).getTime() < FRESH_WINDOW_MS
 
-    const { data } = useQuery({
+// Shared by both probe consumers — identical query keys are what make their
+// fetches dedupe.
+const isLikelyBakedQueryOptions = (href: string) =>
+    queryOptions({
         queryKey: ["isLikelyBaked", href],
         queryFn: async () => {
             // Resolve 404s as a final `false` rather than throwing — React
@@ -54,11 +64,83 @@ export function useIsLikelyBaked(
             const res = await fetch(href, { method: "HEAD" })
             return res.ok
         },
-        enabled: isFresh,
         staleTime: Infinity,
     })
 
-    return !isFresh || data === true
+/**
+ * The URL a hit's probe checks, or null for card types that render ungated.
+ * Sole source of the probe URL, so both consumers necessarily fire the same
+ * queries — and exhaustive over the hit types, so adding one forces a
+ * decision here about whether it gates.
+ *
+ * Always the hit's standalone page — the one destination whose existence
+ * depends on this publish's bake. A card may link elsewhere in some states
+ * (a data update's expanded CTA points at a pre-existing data page), but
+ * those destinations can't 404 from a pending bake, and expansion state can
+ * change under the reader, so the standalone page is what we vet.
+ */
+function getProbeHref(hit: PageChronologicalRecord): string | null {
+    return match(hit)
+        .with(
+            { type: OwidGdocType.Article },
+            { type: OwidGdocType.DataInsight },
+            // Data updates link out to their announcement page; plain
+            // announcements render their content inline and don't gate.
+            { type: OwidGdocType.Announcement, latestType: "data-update" },
+            (hit) =>
+                getPrefixedGdocPath("", {
+                    slug: hit.slug,
+                    content: { type: hit.type },
+                })
+        )
+        .with({ type: OwidGdocType.Announcement }, () => null)
+        .with(
+            { type: OwidGdocType.TopicPage },
+            { type: OwidGdocType.LinearTopicPage },
+            () => null
+        )
+        .exhaustive()
+}
+
+/**
+ * Whether it's safe to show this hit's card (see "Bake probes" above).
+ * True unless the hit is gated — fresh, of a type that links to its own
+ * standalone page — and its probe hasn't come back 200. Heuristic by design:
+ * past the grace period this returns true without verifying anything.
+ */
+export function useIsLikelyBaked(hit: PageChronologicalRecord): boolean {
+    const probeHref = getProbeHref(hit)
+    const needsProbe = probeHref !== null && isFreshlyPublished(hit.date)
+
+    const { data } = useQuery({
+        ...isLikelyBakedQueryOptions(probeHref ?? ""),
+        enabled: needsProbe,
+    })
+
+    return !needsProbe || data === true
+}
+
+/**
+ * Whether every fresh hit on the given page has a settled bake probe — the
+ * signal `LatestSearch` extends its skeleton on (see "Bake probes" above).
+ * Runs the probes itself so they start before any card mounts; the cards'
+ * own `useIsLikelyBaked` calls then read them from the cache.
+ *
+ * Pass the first page only. The feed is chronological, so fresh hits are
+ * always among the newest — and "load more" pages must never re-trigger the
+ * skeleton.
+ */
+export function useAreFreshProbesSettled(
+    hits: PageChronologicalRecord[]
+): boolean {
+    const results = useQueries({
+        queries: hits
+            .filter((hit) => isFreshlyPublished(hit.date))
+            .map(getProbeHref)
+            .filter((href) => href !== null)
+            .map(isLikelyBakedQueryOptions),
+    })
+    return results.every((result) => !result.isPending)
 }
 
 /**
