@@ -1,9 +1,6 @@
 import * as _ from "lodash-es"
 import * as R from "remeda"
-import {
-    defaultGrapherConfig,
-    migrateGrapherConfigToLatestVersionAndFailOnError,
-} from "@ourworldindata/grapher"
+import { defaultGrapherConfig } from "@ourworldindata/grapher"
 import {
     GrapherInterface,
     JsonError,
@@ -52,6 +49,7 @@ import {
     getGdocsPostReferencesByChartId,
 } from "../../db/model/Post.js"
 import { enqueueExplorerRefreshJobsForDependencies } from "../../db/model/Explorer.js"
+import { ingestGrapherConfig } from "../../db/grapherConfigValidation.js"
 import { expectInt } from "../../serverUtils/serverUtil.js"
 import {
     deleteChartConfigPairFromDbAndR2,
@@ -536,8 +534,7 @@ export const saveGrapher = async (
         chartConfigId?: string
     }
 ) => {
-    // Try to migrate the new config to the latest version
-    newConfig = migrateGrapherConfigToLatestVersionAndFailOnError(newConfig)
+    newConfig = ingestGrapherConfig(newConfig)
 
     // Validate slug if:
     // 1. Publishing - slug is required
@@ -1102,12 +1099,7 @@ export async function upsertEtlConfigByChartConfigId(
         throw new JsonError(`Invalid chart catalog path ${catalogPath}`)
     }
 
-    let etlConfig: GrapherInterface
-    try {
-        etlConfig = migrateGrapherConfigToLatestVersionAndFailOnError(req.body)
-    } catch (err) {
-        return { success: false, error: String(err) }
-    }
+    const etlConfig = ingestGrapherConfig(req.body)
 
     const existingChartId = await getChartIdByConfigId(trx, chartConfigId)
     const created = existingChartId === undefined
