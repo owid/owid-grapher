@@ -24,6 +24,31 @@
     }
 }
 
+.indicator-metadata-box .metadata-box-expander {
+    border-top: 1px solid $blue-20;
+    margin-top: 16px;
+}
+
+.indicator-metadata-box .metadata-box-expander__preview {
+    margin-top: 16px;
+}
+
+.indicator-metadata-box .metadata-box-expander__summary {
+    @include body-2-semibold;
+    margin-left: -24px;
+    margin-bottom: -24px;
+    width: calc(100% + 48px);
+    padding: 16px;
+    @include note-13-medium;
+    color: $blue-50;
+    text-align: center;
+    transition: background-color 0.15s;
+
+    &:hover {
+        background-color: $blue-20;
+    }
+}
+
 .indicator-metadata-box__title {
     margin: 0;
     color: $blue-90;

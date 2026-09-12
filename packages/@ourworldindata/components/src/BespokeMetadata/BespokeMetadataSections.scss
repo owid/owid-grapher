@@ -1,0 +1,32 @@
+.bespoke-metadata-sections__citation {
+    .data-citation__item:not(:first-of-type) {
+        margin-top: 16px;
+    }
+
+    .citation__paragraph {
+        @include body-3-medium;
+        color: $blue-60;
+        margin: 0 0 8px;
+    }
+
+    .citation__type {
+        display: block;
+        color: $blue-90;
+    }
+}
+
+.bespoke-metadata-sections__reuse-notice {
+    @include note-13-medium;
+
+    a {
+        @include owid-link-90;
+    }
+
+    > p:first-child {
+        margin-top: 0;
+    }
+
+    > p:last-child {
+        margin-bottom: 16px;
+    }
+}

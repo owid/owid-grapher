@@ -10,6 +10,13 @@
 .metadata-box-key-data__row {
     display: flex;
     gap: 4px;
+
+    // Too little width for a label and its value side by side
+    @include sm-only {
+        flex-basis: 100%;
+        flex-direction: column;
+        gap: 0;
+    }
 }
 
 .metadata-box-key-data__row--full-width {

@@ -39,6 +39,8 @@
 @import "../packages/@ourworldindata/components/src/MetadataBox/MetadataBoxCollapseButton.scss";
 @import "../packages/@ourworldindata/components/src/MetadataBox/MetadataBoxSection.scss";
 @import "../packages/@ourworldindata/components/src/MetadataBox/MetadataBoxKeyData.scss";
+@import "../packages/@ourworldindata/components/src/BespokeMetadata/BespokeMetadataHeading.scss";
+@import "../packages/@ourworldindata/components/src/BespokeMetadata/BespokeMetadataSections.scss";
 
 @import "../packages/@ourworldindata/explorer/src/Explorer.scss";
 @import "../packages/@ourworldindata/explorer/src/ExplorerControls.scss";
@@ -138,6 +140,7 @@
 @import "./gdocs/components/centered-article.scss";
 @import "./gdocs/components/topic-page.scss";
 @import "./gdocs/components/BespokeComponent.scss";
+@import "./gdocs/components/BespokeMetadataBox.scss";
 @import "./gdocs/components/Callout.scss";
 @import "./gdocs/components/CountryProfileSelector.scss";
 @import "./gdocs/components/ChartPreview.scss";
