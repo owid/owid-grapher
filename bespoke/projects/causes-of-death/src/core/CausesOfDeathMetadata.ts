@@ -1,5 +1,7 @@
 import * as R from "remeda"
-import { EntityName } from "@ourworldindata/types"
+import { BespokeMetadata, EntityName } from "@ourworldindata/types"
+
+import { parseBespokeMetadata } from "../../../../components/MetadataModal/bespokeMetadata.js"
 import {
     AgeGroupMetadata,
     CategoryMetadata,
@@ -16,6 +18,9 @@ export class CausesOfDeathMetadata {
     categories: MetadataJson["categories"]
     source: MetadataJson["source"]
     timeRange: MetadataJson["timeRange"]
+
+    /** `undefined` until the manifest carries origins or a descriptionKey */
+    bespokeMetadata: BespokeMetadata | undefined
 
     private _entityNameToId?: Map<EntityName, number>
     private _variableById?: Map<number, VariableMetadata>
@@ -34,6 +39,7 @@ export class CausesOfDeathMetadata {
         this.categories = metadata.categories
         this.source = metadata.source
         this.timeRange = metadata.timeRange
+        this.bespokeMetadata = parseBespokeMetadata(metadata)
     }
 
     get entityNameToId(): Map<EntityName, number> {

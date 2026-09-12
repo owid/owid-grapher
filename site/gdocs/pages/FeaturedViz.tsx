@@ -2,6 +2,7 @@ import * as _ from "lodash-es"
 import { useContext, useMemo } from "react"
 import cx from "clsx"
 import {
+    BespokeMetadata,
     BlockSize,
     EnrichedBlockBespokeComponent,
     EnrichedBlockCredits,
@@ -27,6 +28,13 @@ import { buildGdocCitation } from "../utils.js"
 
 const CITATION_DESCRIPTION =
     "Our articles and data visualizations rely on work from many different people and organizations. When citing this page, please also cite the underlying data sources. This page can be cited as:"
+
+/** Debug: metadata subsets rendered as extra boxes under the real one */
+const DEBUG_METADATA_SUBSETS: (keyof BespokeMetadata)[][] = [
+    ["title", "descriptionKey", "origins"],
+    ["descriptionKey", "origins"],
+    ["descriptionKey"],
+]
 
 type FeaturedVizProps = Omit<
     OwidGdocFeaturedVizInterface,
@@ -81,14 +89,27 @@ export function FeaturedViz({ content, publishedAt, slug }: FeaturedVizProps) {
                         block={hero}
                     />
                     {bespokeMetadata && (
-                        <BespokeMetadataBox
-                            className={getMetadataBoxColumns(hero.size)}
-                            metadata={bespokeMetadata}
-                            citationUrl={canonicalUrl}
-                            pageCitation={
-                                shouldShowCitation ? citationText : undefined
-                            }
-                        />
+                        <>
+                            <BespokeMetadataBox
+                                className={getMetadataBoxColumns(hero.size)}
+                                metadata={bespokeMetadata}
+                                citationUrl={canonicalUrl}
+                                pageCitation={
+                                    shouldShowCitation
+                                        ? citationText
+                                        : undefined
+                                }
+                            />
+                            {DEBUG_METADATA_SUBSETS.map((keys) => (
+                                <BespokeMetadataBox
+                                    key={keys.join()}
+                                    className={getMetadataBoxColumns(hero.size)}
+                                    metadata={_.pick(bespokeMetadata, keys)}
+                                    citationUrl={canonicalUrl}
+                                    pageCitation={citationText}
+                                />
+                            ))}
+                        </>
                     )}
                 </div>
             )}
