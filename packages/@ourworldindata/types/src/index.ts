@@ -225,6 +225,7 @@ export {
     GdocsContentSource,
     type LatestDataInsight,
     type LinkedAuthor,
+    type Contributor,
     type LinkedChart,
     type LinkedIndicator,
     type LinkedCallout,

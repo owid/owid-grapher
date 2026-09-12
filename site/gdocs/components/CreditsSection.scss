@@ -1,0 +1,28 @@
+hr.credits-section__divider {
+    padding-bottom: 0;
+    margin: 0 0 32px;
+}
+
+h3.credits-section__heading {
+    @include h3-bold;
+    & {
+        color: $blue-90;
+        margin: 0 0 8px;
+    }
+}
+
+p.credits-section__paragraph {
+    @include body-3-regular;
+    & {
+        color: $blue-60;
+        margin: 0 0 8px;
+    }
+
+    &:last-child {
+        margin-bottom: 0;
+    }
+
+    a {
+        @include owid-link-60;
+    }
+}

@@ -2,6 +2,7 @@ import cx from "clsx"
 import { useContext, useState, useEffect } from "react"
 
 import Callout from "./Callout.js"
+import CreditsSection from "./CreditsSection.js"
 import ChartStory from "./ChartStory.js"
 import Chart from "./Chart.js"
 import Donors from "./Donors.js"
@@ -261,6 +262,13 @@ function ArticleBlockInternal({
             <Callout
                 className={getLayout("callout", containerType)}
                 block={block}
+            />
+        ))
+        .with({ type: "credits" }, (block) => (
+            <CreditsSection
+                className={getLayout("credits", containerType)}
+                contributors={block.contributors}
+                acknowledgements={block.acknowledgements}
             />
         ))
         .with({ type: "chart-story" }, (block) => (

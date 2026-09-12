@@ -162,6 +162,20 @@ export function enrichedBlockToIndexableText(
             .with({ type: "chart" }, (b): string | undefined =>
                 b.caption ? spansToIndexableText(b.caption, options) : undefined
             )
+            .with({ type: "credits" }, (b): string | undefined => {
+                const contributorNames = b.contributors
+                    .map((contributor) => contributor.name)
+                    .join(", ")
+                return (
+                    joinBlocksAsSentences([
+                        contributorNames || undefined,
+                        enrichedBlocksToIndexableText(
+                            b.acknowledgements,
+                            options
+                        ),
+                    ]) || undefined
+                )
+            })
             .with({ type: "chart-story" }, (b): string | undefined => {
                 const itemTexts = b.items.map((item) =>
                     joinBlocksAsSentences([

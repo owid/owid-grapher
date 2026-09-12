@@ -38,6 +38,7 @@ const layouts: { [key in Container]: Layouts} = {
         ["chart--widest"]: "col-start-2 span-cols-12 col-md-start-2 span-md-cols-12",
         ["cta"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["country-profile-selector"]: "span-cols-14 grid grid-cols-12-full-width",
+        ["credits"]: "span-cols-14 grid grid-cols-12-full-width",
         ["data-callout"]: "span-cols-14 grid grid-cols-12-full-width",
         ["data-callout-group"]: "span-cols-14 grid grid-cols-12-full-width",
         ["default"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
