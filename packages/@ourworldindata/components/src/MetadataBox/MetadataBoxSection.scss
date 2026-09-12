@@ -1,0 +1,25 @@
+.metadata-box-section {
+    margin-bottom: 32px;
+}
+
+.metadata-box-section:first-of-type .metadata-box-section__title {
+    margin-top: 16px;
+}
+
+.metadata-box-section__title {
+    @include body-2-bold-tight;
+    color: $blue-90;
+    margin-top: 0;
+    margin-bottom: 16px;
+}
+
+.metadata-box-section--faqs {
+    .indicator-processing .indicator-processing-callout {
+        margin: 16px 8px;
+    }
+
+    // Prevent borders stacking when FAQ and "How we process this data" is present
+    > .ExpandableToggle:nth-last-child(2) {
+        border-bottom: none;
+    }
+}

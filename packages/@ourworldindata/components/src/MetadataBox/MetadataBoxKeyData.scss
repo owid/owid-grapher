@@ -1,0 +1,41 @@
+.metadata-box-key-data {
+    margin-top: 8px;
+    margin-bottom: 0;
+    line-height: 1.2;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+}
+
+.metadata-box-key-data__row {
+    display: flex;
+    gap: 4px;
+}
+
+.metadata-box-key-data__row--full-width {
+    flex-basis: 100%;
+}
+
+.metadata-box-key-data__key {
+    @include note-13-medium;
+    color: $blue-50;
+}
+
+.metadata-box-key-data__value {
+    @include note-13-medium;
+    margin: 0;
+    color: $blue-90;
+
+    // The markdown p tag
+    p {
+        margin: 0;
+    }
+
+    a {
+        @include owid-link-90;
+    }
+}
+
+.metadata-box-key-data__key--source {
+    text-wrap: nowrap;
+}
