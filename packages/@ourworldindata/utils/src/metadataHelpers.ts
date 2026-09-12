@@ -242,6 +242,7 @@ const getCitationLong = ({
     owidProcessingLevel,
     citationUrl,
     archivalDate,
+    omitDatasetTitle,
 }: {
     indicatorTitle: IndicatorTitleWithFragments
     origins: OwidOrigin[]
@@ -252,6 +253,7 @@ const getCitationLong = ({
     owidProcessingLevel?: OwidProcessingLevel
     citationUrl?: string
     archivalDate?: string
+    omitDatasetTitle?: boolean
 }): string => {
     const citationTitleFragments =
         attributionShort && titleVariant
@@ -281,7 +283,9 @@ const getCitationLong = ({
     const archivalPhrase = getPhraseForArchivalDate(archivalDate)
     return excludeUndefined([
         `${attributionWithProcessing}.`,
-        `“${titleWithFragments}” [dataset].`,
+        // On multi-indicator data pages naming a single indicator here is
+        // more confusing than helpful — the page shows many.
+        omitDatasetTitle ? undefined : `“${titleWithFragments}” [dataset].`,
         originCitations
             ? `${originCitations} [original data].`
             : source?.name
@@ -294,14 +298,14 @@ const getCitationLong = ({
 }
 
 const getCitationDatapage = ({
-    indicatorTitle,
+    citationTitle,
     origins,
     source,
     primaryTopic,
     citationUrl,
     archivalDate,
 }: {
-    indicatorTitle: IndicatorTitleWithFragments
+    citationTitle: string
     origins: OwidOrigin[]
     source?: OwidSource
     primaryTopic?: PrimaryTopic
@@ -321,8 +325,8 @@ const getCitationDatapage = ({
     const archivalPhrase = getPhraseForArchivalDate(archivalDate)
     return excludeUndefined([
         primaryTopic
-            ? `“Data Page: ${indicatorTitle.title}”, part of the following publication: ${primaryTopicCitation}`
-            : `“Data Page: ${indicatorTitle.title}”. Our World in Data (${currentYear}).`,
+            ? `“Data Page: ${citationTitle}”, part of the following publication: ${primaryTopicCitation}`
+            : `“Data Page: ${citationTitle}”. Our World in Data (${currentYear}).`,
         adaptedFrom ? `Data adapted from ${adaptedFrom}.` : undefined,
         `Retrieved from ${citationUrl} [online resource]${
             archivalPhrase ? ` ${archivalPhrase}` : ""
@@ -341,6 +345,8 @@ export const getIndicatorCitations = ({
     citationUrl,
     archivalDate,
     primaryTopic,
+    datapageCitationTitle,
+    omitLongDatasetTitle,
 }: {
     indicatorTitle: IndicatorTitleWithFragments
     origins: OwidOrigin[]
@@ -352,6 +358,13 @@ export const getIndicatorCitations = ({
     citationUrl?: string
     archivalDate?: string
     primaryTopic?: PrimaryTopic
+    /**
+     * On multi-indicator data pages: cite the page by the CHART title (the
+     * per-indicator title only describes one of the page's many indicators),
+     * and drop the long citation's single-indicator "[dataset]" line.
+     */
+    datapageCitationTitle?: string
+    omitLongDatasetTitle?: boolean
 }): { short: string; long: string; datapage?: string } => ({
     short: getCitationShort({ attributions, owidProcessingLevel }),
     long: getCitationLong({
@@ -364,10 +377,11 @@ export const getIndicatorCitations = ({
         owidProcessingLevel,
         citationUrl,
         archivalDate,
+        omitDatasetTitle: omitLongDatasetTitle,
     }),
     datapage: citationUrl
         ? getCitationDatapage({
-              indicatorTitle,
+              citationTitle: datapageCitationTitle ?? indicatorTitle.title,
               origins,
               source,
               primaryTopic,

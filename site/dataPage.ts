@@ -29,7 +29,20 @@ export function processRelatedResearch(
 }
 export function getDatapageDataV2(
     variableMetadata: OwidVariableWithSource,
-    partialGrapherConfig: GrapherInterface
+    partialGrapherConfig: GrapherInterface,
+    opts?: {
+        // Per-indicator title to prefer over the chart-level title when the
+        // variable has no `presentation.titlePublic`. Used for the additional
+        // indicators of a multi-indicator chart, where the chart title
+        // describes the whole chart rather than any single indicator.
+        indicatorTitleOverride?: string
+        // The chart dimension's own display.name, when the chart author set
+        // one. Carried through as DataPageDataV2.chartDimensionName: the
+        // switcher prefers it for pill labels (matching the chart's series
+        // labels), while pane titles, citations and the collapsed list keep
+        // the self-contained titlePublic.
+        chartDimensionName?: string
+    }
 ): DataPageDataV2 {
     const lastUpdated = getLastUpdatedFromVariable(variableMetadata) ?? ""
     const nextUpdate = getNextUpdateFromVariable(variableMetadata)
@@ -44,11 +57,13 @@ export function getDatapageDataV2(
               })
             : {
                   title:
+                      opts?.indicatorTitleOverride ??
                       partialGrapherConfig.title ??
                       variableMetadata.display?.name ??
                       variableMetadata.name ??
                       "",
               },
+        chartDimensionName: opts?.chartDimensionName,
         description: variableMetadata.description,
         descriptionShort: variableMetadata.descriptionShort,
         descriptionFromProducer: variableMetadata.descriptionFromProducer,

@@ -204,7 +204,15 @@ getPlainRouteWithROTransaction(
                 await renderPreviewDataPageOrGrapherPage(
                     chart.config,
                     chart.id,
-                    trx
+                    trx,
+                    // QA opt-ins: ?forceDatapage=true renders any chart as a
+                    // data page without enrolling it; ?forceExpand=true skips
+                    // the multi-indicator pane collapse so the switcher
+                    // version of a collapsed page can be inspected.
+                    {
+                        forceDatapage: req.query.forceDatapage === "true",
+                        forceExpandIndicators: req.query.forceExpand === "true",
+                    }
                 )
             res.send(previewDataPageOrGrapherPage)
             return

@@ -32,7 +32,12 @@ import { SiteHeader } from "./SiteHeader.js"
 import { IFrameDetector } from "./IframeDetector.js"
 import { DebugProvider } from "./gdocs/DebugProvider.js"
 import { Html } from "./Html.js"
-import { ArchiveContext, Distribution } from "@ourworldindata/types"
+import {
+    AdditionalIndicator,
+    CollapsedIndicatorListEntry,
+    ArchiveContext,
+    Distribution,
+} from "@ourworldindata/types"
 import { DEFAULT_PAGE_DESCRIPTION } from "./dataPage.js"
 import { makeJsonLdGrapherImageUrl } from "./jsonLdHelpers.js"
 import { JsonLdDataPage } from "./jsonLd.js"
@@ -40,6 +45,9 @@ import { JsonLdDataPage } from "./jsonLd.js"
 export const DataPageV2 = (props: {
     grapher: GrapherInterface | undefined
     datapageData: DataPageDataV2
+    additionalIndicators?: AdditionalIndicator[]
+    collapsedIndicatorList?: CollapsedIndicatorListEntry[]
+    useNewDatapageDesign?: boolean
     baseUrl: string
     canonicalUrl: string
     isPreviewing: boolean
@@ -52,6 +60,9 @@ export const DataPageV2 = (props: {
     const {
         grapher,
         datapageData,
+        additionalIndicators,
+        collapsedIndicatorList,
+        useNewDatapageDesign,
         baseUrl,
         canonicalUrl,
         isPreviewing,
@@ -167,6 +178,9 @@ export const DataPageV2 = (props: {
                             __html: `window._OWID_DATAPAGEV2_PROPS = ${serializeJSONForInlineScript(
                                 {
                                     datapageData,
+                                    additionalIndicators,
+                                    collapsedIndicatorList,
+                                    useNewDatapageDesign,
                                     faqEntries,
                                     canonicalUrl,
                                     imageMetadata,
@@ -179,6 +193,9 @@ export const DataPageV2 = (props: {
                         <DebugProvider debug={isPreviewing}>
                             <DataPageV2Content
                                 datapageData={datapageData}
+                                additionalIndicators={additionalIndicators}
+                                collapsedIndicatorList={collapsedIndicatorList}
+                                useNewDatapageDesign={useNewDatapageDesign}
                                 grapherConfig={grapherConfig}
                                 imageMetadata={imageMetadata}
                                 isPreviewing={isPreviewing}
