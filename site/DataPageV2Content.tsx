@@ -10,8 +10,7 @@ import {
     defaultExperimentState,
     getExperimentState,
     ExperimentState,
-    isUrlInActiveExperiment,
-    DATA_PAGE_METADATA_EXPERIMENT_ID,
+    isDataPageMetadataRedesignActive,
 } from "@ourworldindata/utils"
 import { RelatedCharts } from "./blocks/RelatedCharts.js"
 import { FeaturedMetrics } from "./FeaturedMetrics.js"
@@ -33,7 +32,6 @@ import AboutThisData from "./AboutThisData.js"
 import DataPageResearchAndWriting from "./DataPageResearchAndWriting.js"
 import MetadataSection from "./MetadataSection.js"
 import { SiteQueryClientProvider } from "./SiteQueryClientProvider.js"
-import { Autocomplete } from "./search/Autocomplete.js"
 
 declare global {
     interface Window {
@@ -82,8 +80,7 @@ export const DataPageV2Content = ({
     imageMetadata: Record<string, ImageMetadata>
 }) => {
     const slug = grapherConfig.slug
-    const useNewDatapageDesign = isUrlInActiveExperiment(
-        DATA_PAGE_METADATA_EXPERIMENT_ID,
+    const useNewDatapageDesign = isDataPageMetadataRedesignActive(
         `/grapher/${slug}`
     )
     const queryStr =
@@ -191,24 +188,6 @@ export const DataPageV2Content = ({
                                 id={DATAPAGE_ABOUT_THIS_DATA_SECTION_ID}
                                 license={grapherConfig.license}
                             />
-                        )}
-                        {useNewDatapageDesign && (
-                            <div className="datapage-search-wrapper span-cols-14 grid-cols-12-full-width grid">
-                                <h2 className="h2-bold span-cols-9 col-start-2 col-md-start-2 span-md-cols-12 col-sm-start-2 span-sm-cols-12">
-                                    What do you want to see next?
-                                </h2>
-                                <div className="datapage-search span-cols-9 col-start-2 col-md-start-2 span-md-cols-12 col-sm-start-2 span-sm-cols-12">
-                                    <SiteQueryClientProvider>
-                                        <Autocomplete
-                                            id="datapage-autocomplete"
-                                            className="datapage-search__input"
-                                            panelClassName="datapage-search__panel"
-                                            placeholder="Search across all our charts and writing"
-                                            searchSource="datapage"
-                                        />
-                                    </SiteQueryClientProvider>
-                                </div>
-                            </div>
                         )}
                         {useNewDatapageDesign &&
                             relatedResearch &&

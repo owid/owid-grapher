@@ -23,6 +23,15 @@ import {
 } from "@ourworldindata/utils"
 import { ArticleBlocks } from "./gdocs/components/ArticleBlocks.js"
 import { ChartLicenseNotice } from "./ChartLicenseNotice.js"
+import { SiteAnalytics } from "./SiteAnalytics.js"
+// The control arm of the data page metadata experiment. Its sources and
+// citations render through the same shared components as the treatment arm's
+// metadata box, and the handlers below emit the same events, with the same
+// targets, as IndicatorMetadataBox — via the shared helper, so the two arms
+// cannot drift apart.
+import { logExpandableToggle } from "./metadataExperimentEvents.js"
+
+const analytics = new SiteAnalytics()
 
 export default function MetadataSection({
     attributionShort,
@@ -104,7 +113,16 @@ export default function MetadataSection({
                             This data is based on the following sources
                         </h3>
                         <div className="col-start-4 span-cols-6 col-lg-start-5 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
-                            <IndicatorSources sources={sourcesForDisplay} />
+                            <IndicatorSources
+                                sources={sourcesForDisplay}
+                                retrievedFromTrackNote="retrieved_from"
+                                onSourceToggle={(_source, index, isOpen) =>
+                                    logExpandableToggle(
+                                        `data_source_${index + 1}`,
+                                        isOpen
+                                    )
+                                }
+                            />
                         </div>
                     </div>
                     <div className="data-processing grid span-cols-12">
@@ -166,6 +184,12 @@ export default function MetadataSection({
                                             code={citationDatapage}
                                             theme="light"
                                             useMarkdown={true}
+                                            onCopy={() =>
+                                                analytics.logSiteClick(
+                                                    "copy_citation",
+                                                    "citation_page"
+                                                )
+                                            }
                                         />
                                     </div>
                                 )}
@@ -177,6 +201,12 @@ export default function MetadataSection({
                                         <DataCitation
                                             citationLong={citationLong}
                                             citationShort={citationShort}
+                                            onCopy={(citation) =>
+                                                analytics.logSiteClick(
+                                                    "copy_citation",
+                                                    citation
+                                                )
+                                            }
                                         />
                                     )}
                                 </div>
