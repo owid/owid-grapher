@@ -1,0 +1,74 @@
+.featured-viz-header {
+    color: $blue-90;
+
+    h1.featured-viz-header__title {
+        @include h2-bold;
+        & {
+            margin: 24px 0 4px;
+            text-wrap: balance;
+        }
+    }
+
+    p.featured-viz-header__subtitle {
+        @include body-2-semibold;
+        & {
+            color: $blue-50;
+            margin: 0 0 8px;
+        }
+    }
+
+    p.featured-viz-header__byline,
+    p.featured-viz-header__dateline {
+        @include body-3-regular;
+        & {
+            margin: 0;
+        }
+    }
+
+    .featured-viz-header__byline a {
+        @include owid-link-90;
+
+        &:visited {
+            color: inherit;
+        }
+    }
+
+    p.featured-viz-header__byline {
+        margin-bottom: 4px;
+    }
+
+    p.featured-viz-header__dateline {
+        color: $blue-50;
+        margin-bottom: 16px;
+    }
+}
+
+hr.featured-viz-divider {
+    margin: 0 0 16px;
+}
+
+.featured-viz-hero {
+    background-color: $blue-5;
+    padding: 36px 0 32px;
+    margin: 16px 0 24px;
+
+    // The band supplies the vertical padding, so the margin a bespoke component
+    // carries for in-article use would double it
+    .featured-viz-hero__viz {
+        margin: 0;
+    }
+}
+
+.centered-article-container--featured-viz {
+    .footnote-container {
+        margin-top: 0;
+    }
+
+    // Whichever block comes before the footnote container or citation footer
+    > [class*="article-block__"]:has(+ .footnote-container),
+    > [class*="article-block__"]:has(+ #article-citation),
+    > .featured-viz-hero:has(+ .footnote-container),
+    > .featured-viz-hero:has(+ #article-citation) {
+        margin-bottom: 48px;
+    }
+}

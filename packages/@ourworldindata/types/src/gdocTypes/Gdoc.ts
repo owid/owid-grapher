@@ -120,6 +120,7 @@ export enum OwidGdocType {
     Author = "author",
     Announcement = "announcement",
     Profile = "profile",
+    FeaturedViz = "featured-viz",
 }
 
 export const ALL_GDOC_TYPES: OwidGdocType[] = Object.values(OwidGdocType)
@@ -331,6 +332,24 @@ export interface OwidGdocProfileInterface extends OwidGdocBaseInterface {
     content: OwidGdocProfileContent
 }
 
+export interface OwidGdocFeaturedVizContent {
+    type: OwidGdocType.FeaturedViz
+    title: string
+    subtitle?: string
+    authors: string[]
+    authorRoles?: Record<string, string>
+    dateline?: string
+    excerpt?: string
+    "featured-image"?: string
+    "hide-citation"?: boolean
+    body: OwidEnrichedGdocBlock[]
+    refs?: { definitions: RefDictionary; errors: OwidGdocErrorMessage[] }
+}
+
+export interface OwidGdocFeaturedVizInterface extends OwidGdocBaseInterface {
+    content: OwidGdocFeaturedVizContent
+}
+
 export interface OwidGdocHomepageContent {
     type: OwidGdocType.Homepage
     title?: string
@@ -401,6 +420,7 @@ export type OwidGdocContent =
     | OwidGdocAboutContent
     | OwidGdocAnnouncementContent
     | OwidGdocProfileContent
+    | OwidGdocFeaturedVizContent
 
 export type OwidGdoc =
     | OwidGdocPostInterface
@@ -410,6 +430,7 @@ export type OwidGdoc =
     | OwidGdocAboutInterface
     | OwidGdocAnnouncementInterface
     | OwidGdocProfileInterface
+    | OwidGdocFeaturedVizInterface
 
 export const CHRONOLOGICAL_INDEX_TYPE_VALUES = [
     OwidGdocType.Article,
@@ -481,6 +502,8 @@ export type OwidGdocProperty =
     | keyof OwidGdocAboutContent
     | keyof OwidGdocProfileInterface
     | keyof OwidGdocProfileContent
+    | keyof OwidGdocFeaturedVizInterface
+    | keyof OwidGdocFeaturedVizContent
 
 export type OwidGdocErrorMessageProperty =
     | OwidGdocProperty
