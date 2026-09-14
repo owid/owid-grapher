@@ -56,21 +56,7 @@ Every content type renders more than one way in the feed. What matters for the i
 
 **Data insights** vary by _where_ they render. In the unfiltered feed they're a condensed teaser linking to their page. With the data-insight type filter on, the feed offers a **View: Expanded / Compact** toggle ([`LatestViewToggle`](./LatestViewToggle.tsx)): Expanded shows each insight whole, read in place ([`LatestDataInsightExpanded`](./LatestDataInsightExpanded.tsx)); Compact is the very same teaser as the unfiltered feed — one card design, one behaviour, wherever it appears.
 
-**Announcements and data updates** collapse to a teaser in the unfiltered feed and show their full body once the type filter is on — or, for announcements, once the reader clicks _Read more_ ([`ExpandableText`](./ExpandableText.tsx)). Both transitions happen in the browser from data the record already carries.
-
-### 7. Standalone pages
-
-Data insights and announcements share `StandalonePostBody`, an avatar byline, related topics, and copy-link controls. Their breadcrumb returns to the corresponding type-filtered feed. Announcement pages include a carousel of recent announcements of the same kind, excluding the current page; compact data-update cards link to these pages.
-
-### 8. Sticky filters experiment
-
-`exp-latest-sticky-filters-v1` compares `not-sticky`, `reveal-on-scroll-up`, and `fully-sticky` on `/latest`. The edge middleware adds the arm's body class; [`LatestSearch.scss`](./LatestSearch.scss) applies the layout to both the baked shell and the mounted app. Every arm uses the same static topic popularity ranking from [`latestUtils.ts`](./latestUtils.ts).
-
-The sticky element is the facets grid item, giving it the feed's height to move within. On mobile the type dropdown moves above the topic pills; a negative pin offset lets the dropdown scroll away.
-
-For the reveal arm, [`useRevealOnScrollUp`](./latestHooks.ts) tracks scroll direction and measures the bar's height. CSS transitions `top` between the pin offset and an offset one bar-height above it. Sticky positioning keeps the bar in its normal flow position near the top of the page, avoiding the displacement a transform would cause there. Two custom properties carry the pin offset and measured height. Until the height is available, `top` computes to `auto`; padding stays constant so the measurement remains valid.
-
-To test on staging or a Cloudflare preview, open `/exp?from=/latest`, choose an arm, and return with its cookie set. The [`/exp`](../../functions/exp/index.ts) switcher is unavailable in production. Plain `make up` has no edge middleware, so use `/latest?exp-latest-sticky-filters-v1=<arm>` instead. That client-side override is development-only. `SiteAnalytics` includes `experimentArm` on `/latest` events.
+**Announcements and data updates** collapse to a teaser in the unfiltered feed and show their full body once the type filter is on — or, for announcements, once the reader clicks _Read more_ ([`ExpandableText`](./ExpandableText.tsx)). Both transitions happen in the browser from data the record already carries. Similar to data insights, compact data update cards link to their standalone page.
 
 ## Component layout
 
