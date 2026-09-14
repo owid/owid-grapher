@@ -273,6 +273,7 @@ export interface SearchActions {
     removeCountry: (country: string) => void
     setTopic: (topic: string) => void
     setTopicAndClearQuery: (topic: string) => void
+    setTopicAndQuery: (topic: string, query: string) => void
     removeTopic: (topic: string) => void
     addFilter: (filter: Filter) => void
     removeFilter: (filter: Filter) => void

@@ -121,6 +121,14 @@ sequenceDiagram
 
 The "Topic page" cards in the Research & Writing section are not a text search over topic pages. Topic pages consist mostly of charts and key indicators, whose text isn't indexed, so their records rarely contain the words a user searches for ("gdp" appears nowhere in the Economic Growth page's records) while long-form pages match on passing mentions. Instead, `queryTopicPages` looks at the best-ranked charts matching the query and shows the topic pages of their tags, weighted by chart rank (reciprocal rank, so a topic with hundreds of poorly-ranked matching explorer views can't outvote the charts at the top). Query words are matched as whole words first, falling back to Algolia's usual prefix matching only when that finds nothing, so "ai" means AI rather than the start of "air" or "aid". The implementation (`searchTopicPagesOfMatchingCharts` in `@ourworldindata/utils`) is shared with the public `/api/search` endpoint, which applies it to `type=pages` searches restricted to topic pages. Text search over topic pages remains the fallback for empty queries and queries no chart matches.
 
+#### Topic keyword chips
+
+When a reader has a whole topic in view and nothing narrowing it, `SearchTopicKeywordChips` offers that topic's curated keywords as chips under the search bar, and clicking one sets the query to that keyword while keeping the topic as a filter (`?q=solar&topics=Energy`), so the narrowing is visible and removable.
+
+"A whole topic in view" is two states, because typing turns the first into the second: a query that exactly names a topic (`?q=energy`, which is where the site header's search lands you), or a single topic filter with no query (`?topics=Energy`, which is where pressing enter on "energy" in the search bar lands you — the autocomplete's top suggestion for an exact topic name is that topic's filter, and selecting it clears the query). `findWholeTopicInView` covers both.
+
+The query match is exact after synonym expansion, and nothing looser on purpose: the keywords come from the OWID topic vocabulary, which was generated to cover the charts _within_ an already-known topic rather than to route a query to one, so matching a query against the keywords sends "gdp" to Trade & Globalization and "education" to Women's Rights. Queries that merely relate to a topic, or span several, are served by the topic page recommendations above. The vocabulary itself (`topicVocabulary.ts`) is one static JSON behind a 5-minute edge cache, fetched only once the gate has fired.
+
 #### Empty-query caching proxy
 
 Requests with empty queries are routed through a caching Cloudflare function (`functions/api/search/cached-queries.ts`) which caches them for 24h.
