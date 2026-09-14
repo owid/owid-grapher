@@ -617,6 +617,7 @@ export class StackedAreaChart
                     onMouseEnter={this.onAreaMouseEnter}
                     onMouseLeave={this.onAreaMouseLeave}
                 />
+                {/* oxlint-disable-next-line react-google-translate/no-conditional-text-nodes-with-siblings -- renders an element, not text */}
                 {this.isTooltipActive && this.activeXVerticalLine}
                 {this.tooltip}
             </g>

@@ -429,9 +429,11 @@ export class DataTable extends React.Component<DataTableProps> {
         ) : (
             <tr>
                 {this.entityHeader}
+                {/* oxlint-disable react-google-translate/no-conditional-text-nodes-with-siblings -- renders elements, not text */}
                 {hasSubheaders
                     ? this.dimensionSubheaders
                     : this.dimensionHeaders}
+                {/* oxlint-enable react-google-translate/no-conditional-text-nodes-with-siblings */}
             </tr>
         )
     }
@@ -610,8 +612,9 @@ export class DataTable extends React.Component<DataTableProps> {
                 {singleDimension.display.columnName.title}{" "}
                 <span className="title-fragments">
                     {titleFragments}
-                    {singleDimension.display.unit &&
-                        ` (${singleDimension.display.unit})`}
+                    {singleDimension.display.unit && (
+                        <span> ({singleDimension.display.unit})</span>
+                    )}
                 </span>
             </div>
         ) : null

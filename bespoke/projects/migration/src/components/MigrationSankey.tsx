@@ -422,7 +422,7 @@ function getMigrationLinkTooltip({
                 value={
                     <span>
                         {formatPeople(value)}
-                        {formattedShare && ` (${formattedShare})`}
+                        {formattedShare && <span> ({formattedShare})</span>}
                     </span>
                 }
             />
@@ -450,8 +450,7 @@ function OtherBreakdownContent({ breakdown }: { breakdown: EntityTotal[] }) {
             <TooltipTable columns={columns} rows={rows} />
             {hiddenCount > 0 && (
                 <div className="migration-sankey__tooltip-more">
-                    + {hiddenCount} more{" "}
-                    {hiddenCount === 1 ? "country" : "countries"}
+                    {`+ ${hiddenCount} more ${hiddenCount === 1 ? "country" : "countries"}`}
                 </div>
             )}
         </>

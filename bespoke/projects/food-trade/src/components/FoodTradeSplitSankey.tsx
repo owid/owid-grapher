@@ -323,7 +323,7 @@ function getTradeLinkTooltip({
                 value={
                     <span>
                         {formatTrade(value)}
-                        {formattedShare && ` (${formattedShare})`}
+                        {formattedShare && <span> ({formattedShare})</span>}
                     </span>
                 }
             />
@@ -352,8 +352,7 @@ function OtherBreakdownContent({ breakdown }: { breakdown: EntityTotal[] }) {
             <TooltipTable columns={columns} rows={rows} />
             {hiddenCount > 0 && (
                 <div className="food-trade-sankey__tooltip-more">
-                    + {hiddenCount} more{" "}
-                    {hiddenCount === 1 ? "country" : "countries"}
+                    {`+ ${hiddenCount} more ${hiddenCount === 1 ? "country" : "countries"}`}
                 </div>
             )}
         </>

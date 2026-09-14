@@ -1217,12 +1217,13 @@ function YAxisGridLines({
                             fontSize={fontSize}
                             fill={GRID_LABEL_COLOR}
                         >
-                            {Math.round(tick * displayScale * 100) / 100}
-                            {axisUnit === "%"
-                                ? "%"
-                                : tick === topTick
-                                  ? ` ${axisUnit}`
-                                  : ""}
+                            {`${Math.round(tick * displayScale * 100) / 100}${
+                                axisUnit === "%"
+                                    ? "%"
+                                    : tick === topTick
+                                      ? ` ${axisUnit}`
+                                      : ""
+                            }`}
                         </text>
                     )}
                 </g>

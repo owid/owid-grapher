@@ -63,9 +63,11 @@ export function Profile({ content, publishedAt, slug, tags }: ProfileProps) {
                         )}
                         <span className="profile-title__label h5-black-caps">
                             {instantiatedEntity?.name}{" "}
-                            {instantiatedEntity?.isCountry
-                                ? "Country Profile"
-                                : "Region Profile"}
+                            <span>
+                                {instantiatedEntity?.isCountry
+                                    ? "Country Profile"
+                                    : "Region Profile"}
+                            </span>
                         </span>
                     </div>
                     <h1 className="display-2-semibold">{content.title}</h1>

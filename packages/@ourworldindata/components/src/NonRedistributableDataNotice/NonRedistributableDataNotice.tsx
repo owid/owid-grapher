@@ -12,11 +12,7 @@ export function NonRedistributableDataNotice({
             {sourceLinks && sourceLinks.length > 0 && (
                 <>
                     {" "}
-                    Please visit the
-                    {sourceLinks.length > 1
-                        ? " data publishers' websites "
-                        : " data publisher's website "}
-                    for more details:
+                    {`Please visit the ${sourceLinks.length > 1 ? "data publishers' websites" : "data publisher's website"} for more details:`}
                     <ul className={listClassName}>
                         {sourceLinks.map((link) => (
                             <li key={link}>

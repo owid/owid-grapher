@@ -1543,8 +1543,9 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
                             <div className="entity-section__header">
                                 <div className="entity-section__title grapher_body-3-regular-italic grapher_light">
                                     Selection{" "}
-                                    {numSelectedEntities > 0 &&
-                                        `(${numSelectedEntities})`}
+                                    {numSelectedEntities > 0 && (
+                                        <span>({numSelectedEntities})</span>
+                                    )}
                                 </div>
                                 <button type="button" onClick={this.onClear}>
                                     Clear

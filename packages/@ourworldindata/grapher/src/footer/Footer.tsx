@@ -755,10 +755,14 @@ abstract class AbstractFooter<
                                     more information about how you may use,
                                     share, and adapt this material.
                                 </>
-                            )}{" "}
-                            Please bear in mind that the underlying source data
-                            for all our charts might be subject to different
-                            license terms from third-party authors.
+                            )}
+                            <span>
+                                {" "}
+                                Please bear in mind that the underlying source
+                                data for all our charts might be subject to
+                                different license terms from third-party
+                                authors.
+                            </span>
                         </p>
                     </Tooltip>
                 )}

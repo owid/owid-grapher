@@ -18,7 +18,11 @@ export function Cta(props: {
     }
     return (
         <div className={cx(props.className, "cta")}>
-            {props.shouldRenderLinks ? <LinkedA span={asSpan} /> : props.text}
+            {props.shouldRenderLinks ? (
+                <LinkedA span={asSpan} />
+            ) : (
+                <span>{props.text}</span>
+            )}
             <FontAwesomeIcon icon={faArrowRight} />
         </div>
     )

@@ -65,6 +65,7 @@ export class StaticChartWrapper extends React.Component<StaticChartWrapperProps>
                 height={height}
                 viewBox={`0 0 ${width} ${height}`}
             >
+                {/* oxlint-disable-next-line react-google-translate/no-conditional-text-nodes-with-siblings -- renders an element, not text */}
                 {includeFontsStyle && this.fonts}
                 <ChartPatternDefs />
                 {includeBackgroundRect && (
