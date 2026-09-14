@@ -8,7 +8,11 @@ import {
     createTopicFilter,
     extractFiltersFromQuery,
     createCountryFilter,
+    findTopicNamedByQuery,
+    capSuggestedSearches,
+    MAX_SUGGESTED_SEARCHES,
 } from "./searchUtils"
+import { buildSynonymMap } from "./synonymUtils"
 
 import { FilterType, SynonymMap } from "@ourworldindata/types"
 import { listedRegionsNames } from "@ourworldindata/utils"
@@ -760,5 +764,124 @@ describe("offset pagination for useInfiniteSearchOffset hook", () => {
         expect(getNbPaginatedItemsRequested(0, 3, 6, 3)).toBe(3)
         expect(getNbPaginatedItemsRequested(1, 3, 6, 6)).toBe(9)
         expect(getNbPaginatedItemsRequested(2, 3, 6, 2)).toBe(11)
+    })
+})
+
+describe(findTopicNamedByQuery, () => {
+    // A subset of the searchable topic tags, with the real synonym list, so
+    // these exercise the gate exactly as the search page does.
+    const topics = [
+        "Artificial Intelligence",
+        "CO2 & Greenhouse Gas Emissions",
+        "COVID-19",
+        "Democracy",
+        "Economic Growth",
+        "Energy",
+        "Global Health",
+        "Life Expectancy",
+        "Migration",
+        "Obesity",
+        "Population Growth",
+        "Poverty",
+        "Water Use & Stress",
+    ]
+    const realSynonymMap = buildSynonymMap()
+
+    const topicNamedBy = (query: string, selectedTopics = new Set<string>()) =>
+        findTopicNamedByQuery(query, topics, selectedTopics, realSynonymMap)
+
+    it("recognises a query that is a topic's name", () => {
+        expect(topicNamedBy("energy")).toBe("Energy")
+        expect(topicNamedBy("obesity")).toBe("Obesity")
+        expect(topicNamedBy("life expectancy")).toBe("Life Expectancy")
+        expect(topicNamedBy("migration")).toBe("Migration")
+        expect(topicNamedBy("democracy")).toBe("Democracy")
+        expect(topicNamedBy("poverty")).toBe("Poverty")
+    })
+
+    it("recognises a topic named by a synonym", () => {
+        expect(topicNamedBy("ai")).toBe("Artificial Intelligence")
+        // "covid" is a synonym of "covid-19", which is a topic verbatim.
+        expect(topicNamedBy("covid")).toBe("COVID-19")
+    })
+
+    it("ignores case and surrounding whitespace", () => {
+        expect(topicNamedBy("  Energy ")).toBe("Energy")
+        expect(topicNamedBy("AI")).toBe("Artificial Intelligence")
+    })
+
+    it("stays quiet for a query that only relates to a topic", () => {
+        // These are the ambiguous head: each spans several topics, so the fork
+        // a reader needs is *between* topics, not within one. "gdp" expands to
+        // "gross domestic product" and friends, none of which is a topic name.
+        for (const query of [
+            "gdp",
+            "food",
+            "health",
+            "water",
+            "population",
+            "co2",
+            "renewable energy sources",
+            "",
+            "   ",
+        ]) {
+            expect(topicNamedBy(query)).toBeUndefined()
+        }
+    })
+
+    it("stays quiet once a topic filter is already applied", () => {
+        // The reader has already narrowed; re-offering the topic they are in
+        // would be a loop rather than a fork.
+        expect(topicNamedBy("energy", new Set(["Energy"]))).toBeUndefined()
+        expect(topicNamedBy("energy", new Set(["Poverty"]))).toBeUndefined()
+    })
+
+    it("never answers with a country", () => {
+        expect(topicNamedBy("france")).toBeUndefined()
+        expect(topicNamedBy("united states")).toBeUndefined()
+    })
+})
+
+describe(capSuggestedSearches, () => {
+    // A topic's terms as the vocabulary publishes them: up to eight, already
+    // ranked by what each reveals of that topic's charts.
+    const vocabularyTerms = [
+        "CO₂ emissions",
+        "electricity",
+        "battery",
+        "solar",
+        "fossil fuels",
+        "oil",
+        "energy intensity",
+        "biofuel",
+    ]
+
+    it("offers five suggestions out of the vocabulary's eight", () => {
+        expect(capSuggestedSearches(vocabularyTerms)).toHaveLength(
+            MAX_SUGGESTED_SEARCHES
+        )
+    })
+
+    it("keeps the vocabulary's own order, taking its first five", () => {
+        // Load-bearing: the vocabulary ranks its terms by coverage, so its
+        // first five are its best five — the cap must truncate rather than
+        // choose.
+        expect(capSuggestedSearches(vocabularyTerms)).toEqual(
+            vocabularyTerms.slice(0, MAX_SUGGESTED_SEARCHES)
+        )
+    })
+
+    it("leaves a list already at or under the cap alone", () => {
+        const four = vocabularyTerms.slice(0, 4)
+        expect(capSuggestedSearches(four)).toEqual(four)
+        const five = vocabularyTerms.slice(0, 5)
+        expect(capSuggestedSearches(five)).toEqual(five)
+        expect(capSuggestedSearches([])).toEqual([])
+    })
+
+    it("does not mutate the list it caps", () => {
+        const terms = [...vocabularyTerms]
+        capSuggestedSearches(terms)
+        expect(terms).toEqual(vocabularyTerms)
     })
 })
