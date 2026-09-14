@@ -463,3 +463,87 @@ describe("a category that changes sign over time", () => {
         expect(chartState.yDomain).toEqual([-30, 120])
     })
 })
+
+describe("a negative category that is not at the bottom", () => {
+    const csv = `coal,netImports,wind,year,entityName
+    100,-20,40,1990,Germany
+    120,-30,50,2000,Germany`
+    const table = new OwidTable(csv, [
+        { slug: "coal", type: ColumnTypeNames.Numeric },
+        { slug: "netImports", type: ColumnTypeNames.Numeric },
+        { slug: "wind", type: ColumnTypeNames.Numeric },
+        { slug: "year", type: ColumnTypeNames.Year },
+    ])
+    const chartState = new StackedAreaChartState({
+        manager: {
+            table,
+            yColumnSlugs: ["wind", "netImports", "coal"],
+            selection: table.availableEntityNames,
+        },
+    })
+
+    const bandsOf = (seriesName: string): [number, number][] =>
+        chartState.seriesByName
+            .get(seriesName)!
+            .points.map((point) => [
+                point.valueOffset,
+                point.valueOffset + point.value,
+            ])
+
+    it("keeps the running-total stack, so no band sweeps through another", () => {
+        expect(bandsOf("coal")).toEqual([
+            [0, 100],
+            [0, 120],
+        ])
+        expect(bandsOf("netImports")).toEqual([
+            [100, 80],
+            [120, 90],
+        ])
+        expect(bandsOf("wind")).toEqual([
+            [80, 120],
+            [90, 140],
+        ])
+    })
+})
+
+describe("several categories with negative values", () => {
+    const csv = `halons,methylBromide,cfc,year,entityName
+    100,-20,-10,1990,World
+    120,-30,-15,2000,World`
+    const table = new OwidTable(csv, [
+        { slug: "halons", type: ColumnTypeNames.Numeric },
+        { slug: "methylBromide", type: ColumnTypeNames.Numeric },
+        { slug: "cfc", type: ColumnTypeNames.Numeric },
+        { slug: "year", type: ColumnTypeNames.Year },
+    ])
+    const chartState = new StackedAreaChartState({
+        manager: {
+            table,
+            yColumnSlugs: ["halons", "methylBromide", "cfc"],
+            selection: table.availableEntityNames,
+        },
+    })
+
+    const bandsOf = (seriesName: string): [number, number][] =>
+        chartState.seriesByName
+            .get(seriesName)!
+            .points.map((point) => [
+                point.valueOffset,
+                point.valueOffset + point.value,
+            ])
+
+    it("keeps the running-total stack", () => {
+        expect(bandsOf("cfc")).toEqual([
+            [0, -10],
+            [0, -15],
+        ])
+        expect(bandsOf("methylBromide")).toEqual([
+            [-10, -30],
+            [-15, -45],
+        ])
+        expect(bandsOf("halons")).toEqual([
+            [-30, 70],
+            [-45, 75],
+        ])
+    })
+})
