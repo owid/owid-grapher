@@ -181,6 +181,8 @@ function createColumns({
             title: "Dataset",
             dataIndex: "dataset",
             key: "dataset",
+            width: 180,
+            ellipsis: true,
             sorter:
                 sortable &&
                 ((a, b) => (a.dataset ?? "").localeCompare(b.dataset ?? "")),
@@ -189,12 +191,14 @@ function createColumns({
             title: "Table",
             dataIndex: "table",
             key: "table",
+            width: 170,
             render: (table) => truncate(table),
         },
         shortName: {
             title: "Short name",
             dataIndex: "shortName",
             key: "shortName",
+            width: 180,
             render: (shortName) => truncate(shortName),
         },
         uploadedAt: {
@@ -228,6 +232,8 @@ function createColumns({
 
     return [
         {
+            // No width: every other column has one, so the name — the longest
+            // text in the table — gets all the space left over
             title: "Name",
             dataIndex: "name",
             key: "name",
