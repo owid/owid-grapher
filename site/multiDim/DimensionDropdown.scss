@@ -127,17 +127,15 @@ $selected-hover-fill: #bed2e7;
     }
 
     .md-menu__group {
-        margin-bottom: 16px;
-
-        &:last-child {
-            margin-bottom: 0;
-        }
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
     }
 
     .md-menu__group-label {
         @include label-2-bold;
         color: $light-text;
-        margin: 16px;
+        margin: 8px 16px;
     }
 
     .md-menu__item {
@@ -153,10 +151,6 @@ $selected-hover-fill: #bed2e7;
 
         &:focus-visible {
             outline: none !important;
-        }
-
-        &:not(:first-child) {
-            margin-top: 4px;
         }
 
         &[data-hovered],
