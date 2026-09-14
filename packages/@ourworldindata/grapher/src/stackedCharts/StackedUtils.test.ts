@@ -2,7 +2,6 @@ import { expect, it, describe } from "vitest"
 
 import { ColumnTypeMap, OwidTable } from "@ourworldindata/core-table"
 import {
-    stackSeries,
     stackSeriesInBothDirections,
     withMissingValuesAsZeroes,
 } from "./StackedUtils"
@@ -82,15 +81,6 @@ describe(withMissingValuesAsZeroes, () => {
         expect(series[1].points[1].position).toEqual(2001)
         expect(series[1].points[2].position).toEqual(2002)
         expect(series[1].points[3].position).toEqual(2003)
-    })
-})
-
-describe(stackSeries, () => {
-    it("can stack series", () => {
-        expect(seriesArr[1].points[0].valueOffset).toEqual(0)
-        const series = stackSeries(withMissingValuesAsZeroes(seriesArr))
-        expect(series[1].points[0].valueOffset).toEqual(10)
-        expect(series[2].points[0].valueOffset).toEqual(12)
     })
 })
 
