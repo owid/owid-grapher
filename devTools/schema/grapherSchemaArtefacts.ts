@@ -54,14 +54,6 @@ export const defaultGrapherConfig = ${JSON.stringify(defaultConfig, undefined, 2
     return formatted.code
 }
 
-export function formatSchemaFileName(
-    version: string,
-    revision?: number
-): string {
-    if (revision === undefined) return `grapher-schema.${version}.json`
-    return `grapher-schema.${version}.${String(revision).padStart(2, "0")}.json`
-}
-
 export function serializeJson(value: unknown): string {
     return `${JSON.stringify(value, null, 2)}\n`
 }

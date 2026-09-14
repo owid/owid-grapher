@@ -7,6 +7,7 @@ import {
     NarrativeChartsTableName,
 } from "@ourworldindata/types"
 import { latestGrapherConfigSchema } from "@ourworldindata/grapher"
+import { formatGrapherSchemaUrl } from "@ourworldindata/utils"
 import {
     catalogPath,
     multiDimConfig,
@@ -177,8 +178,7 @@ describe("Narrative charts API", { timeout: 20000 }, () => {
 
         const narrativeChartId = await createNarrativeChart(chartId, {
             ...narrativeChartConfig,
-            $schema:
-                "https://files.ourworldindata.org/schemas/grapher-schema.009.json",
+            $schema: formatGrapherSchemaUrl("009"),
             hideLegend: true,
         } as GrapherInterface)
 
@@ -261,8 +261,7 @@ describe("Narrative charts API", { timeout: 20000 }, () => {
             body: JSON.stringify({
                 config: {
                     ...narrativeChartConfig,
-                    $schema:
-                        "https://files.ourworldindata.org/schemas/grapher-schema.009.json",
+                    $schema: formatGrapherSchemaUrl("009"),
                     hideLegend: true,
                 },
             }),

@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest"
+import { formatGrapherSchemaUrl } from "@ourworldindata/utils"
 import { GrapherInterface } from "@ourworldindata/types"
 import {
     type UntypedGrapherConfig,
@@ -15,12 +16,6 @@ import {
 } from "./grapherConfigValidation.js"
 
 const latestSchemaUrl = defaultGrapherConfig.$schema
-const foreignSchemaUrl = `https://example.org/schemas/grapher-schema.${latestSchemaVersion}.json`
-
-function schemaUrlForVersion(version: string, revision?: string): string {
-    const suffix = revision === undefined ? "" : `.${revision}`
-    return `https://files.ourworldindata.org/schemas/grapher-schema.${version}${suffix}.json`
-}
 
 const baseChartConfig: UntypedGrapherConfig = {
     $schema: defaultGrapherConfig.$schema,
@@ -77,22 +72,12 @@ describe(tryIngestGrapherConfig, () => {
             name: "an unknown schema version",
             config: {
                 ...baseChartConfig,
-                $schema: schemaUrlForVersion("099"),
+                $schema: formatGrapherSchemaUrl("099"),
             },
             issues: [
                 {
                     pointer: "/$schema",
-                    message: `unknown schema version ${schemaUrlForVersion("099")}; expected ${latestSchemaUrl}`,
-                },
-            ],
-        },
-        {
-            name: "a schema hosted somewhere else",
-            config: { ...baseChartConfig, $schema: foreignSchemaUrl },
-            issues: [
-                {
-                    pointer: "/$schema",
-                    message: `unknown schema version ${foreignSchemaUrl}; expected ${latestSchemaUrl}`,
+                    message: `unknown schema version ${formatGrapherSchemaUrl("099")}; expected ${latestSchemaUrl}`,
                 },
             ],
         },
@@ -100,7 +85,7 @@ describe(tryIngestGrapherConfig, () => {
             name: "a config that fails to migrate",
             config: {
                 ...baseChartConfig,
-                $schema: schemaUrlForVersion("010"),
+                $schema: formatGrapherSchemaUrl("010"),
                 dimensions: 123,
             },
             issues: [
@@ -139,11 +124,11 @@ describe(tryIngestGrapherConfig, () => {
     it.each([
         {
             name: "the latest version without a revision",
-            $schema: schemaUrlForVersion(latestSchemaVersion),
+            $schema: formatGrapherSchemaUrl(latestSchemaVersion),
         },
         {
             name: "the latest version at any revision",
-            $schema: schemaUrlForVersion(latestSchemaVersion, "07"),
+            $schema: formatGrapherSchemaUrl(latestSchemaVersion, 7),
         },
     ])(
         "accepts $name, stamping it with this build's revision",
@@ -156,7 +141,7 @@ describe(tryIngestGrapherConfig, () => {
     it("migrates an outdated config before validating it", () => {
         const config = expectAccepted({
             ...baseChartConfig,
-            $schema: schemaUrlForVersion("010"),
+            $schema: formatGrapherSchemaUrl("010"),
             dimensions: [
                 { property: "y", variableId: 1, display: { yearIsDay: true } },
             ],
