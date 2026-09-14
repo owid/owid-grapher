@@ -113,34 +113,30 @@ export default function DimensionDropdown({
                         </p>
                     )}
                 </div>
-                <ListBox>
+                <ListBox className="md-menu__list">
                     {Object.entries(dimension.choicesByGroup).map(
-                        ([groupLabel, groupChoices]) =>
-                            groupLabel !== "undefined" ? (
-                                <ListBoxSection
-                                    key={groupLabel}
-                                    className="md-menu__group"
-                                >
+                        ([groupLabel, groupChoices]) => (
+                            // Choices without a group end up in a single
+                            // section keyed "undefined", which has no label.
+                            <ListBoxSection
+                                key={groupLabel}
+                                className="md-menu__group"
+                            >
+                                {groupLabel !== "undefined" && (
                                     <Header className="md-menu__group-label">
                                         {groupLabel}
                                     </Header>
-                                    <Collection>
-                                        {groupChoices.map((choice) => (
-                                            <DimensionItem
-                                                key={choice.slug}
-                                                choice={choice}
-                                            />
-                                        ))}
-                                    </Collection>
-                                </ListBoxSection>
-                            ) : (
-                                groupChoices.map((choice) => (
-                                    <DimensionItem
-                                        key={choice.slug}
-                                        choice={choice}
-                                    />
-                                ))
-                            )
+                                )}
+                                <Collection>
+                                    {groupChoices.map((choice) => (
+                                        <DimensionItem
+                                            key={choice.slug}
+                                            choice={choice}
+                                        />
+                                    ))}
+                                </Collection>
+                            </ListBoxSection>
+                        )
                     )}
                 </ListBox>
             </Popover>
