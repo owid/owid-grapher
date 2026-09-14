@@ -17,6 +17,7 @@ import {
 import { useLatestContext } from "./LatestContext.js"
 import { useIsLikelyBaked } from "./latestHooks.js"
 import AvatarByline from "../gdocs/components/AvatarByline.js"
+import CopyLinkButton from "../gdocs/components/CopyLinkButton.js"
 
 /** Compact cards link to the announcement page. Expanded cards render the
  * full update with independent body and author links — and so, being that
@@ -26,11 +27,13 @@ export const LatestDataUpdateHit = ({
     selectedTopic,
     position,
     isExpanded,
+    showCopyLink,
 }: {
     hit: PageChronologicalAnnouncementRecord
     selectedTopic?: string
     position: number
     isExpanded: boolean
+    showCopyLink: boolean
 }) => {
     const { analytics } = useLatestContext()
     const announcementHref = getPrefixedGdocPath("", {
@@ -119,6 +122,14 @@ export const LatestDataUpdateHit = ({
                                 interactiveImages={isExpanded}
                             />
                         </div>
+                        {showCopyLink && (
+                            <CopyLinkButton
+                                path={announcementHref}
+                                trackNote="latest_data_update_copy_link"
+                                className="latest-data-update-hit__copy-link"
+                                variant="text"
+                            />
+                        )}
                     </div>
                 </Card>
             </article>

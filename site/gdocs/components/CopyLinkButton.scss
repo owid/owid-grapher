@@ -18,8 +18,35 @@
         background-color: $blue-10;
     }
 
+    &:focus-visible {
+        outline: 2px solid $blue-90;
+        outline-offset: 2px;
+    }
+
     @include sm-only {
         margin-left: 0;
         width: 100%;
+    }
+}
+
+.copy-link-button.copy-link-button--text {
+    @include body-3-bold;
+    height: 32px;
+    min-width: 0;
+    width: fit-content;
+    padding: 4px 0;
+    margin-left: auto;
+    color: $blue-60;
+    background-color: transparent;
+
+    svg {
+        width: 14px;
+        font-size: 13px;
+    }
+
+    &:hover {
+        color: $blue-90;
+        background-color: transparent;
+        text-decoration: underline;
     }
 }
