@@ -14,9 +14,17 @@ interface Observation {
     status: string
 }
 
+const ICD_REVISIONS = ["ICD-7", "ICD-8", "ICD-9", "ICD-10"]
+
 function makeCategoricalTable(rows: Observation[]): OwidTable {
     return new OwidTable(rows, [
         { slug: "status", type: ColumnTypeNames.String },
+    ])
+}
+
+function makeOrdinalTable(rows: Observation[]): OwidTable {
+    return new OwidTable(rows, [
+        { slug: "status", type: ColumnTypeNames.Ordinal, sort: ICD_REVISIONS },
     ])
 }
 
@@ -182,6 +190,24 @@ describe("lane color", () => {
 })
 
 describe("categories", () => {
+    it("are ordinal when the indicator defines a sort order, listing every allowed value in that order", () => {
+        const chartState = makeChartState(
+            makeOrdinalTable([
+                { entityName: "France", time: 2000, status: "ICD-10" },
+                { entityName: "France", time: 2001, status: "ICD-7" },
+                { entityName: "France", time: 2002, status: "ICD-9" },
+            ])
+        )
+
+        expect(chartState.categories).toEqual({
+            kind: "ordinal",
+            values: ["ICD-7", "ICD-8", "ICD-9", "ICD-10"],
+        })
+        expect(chartState.defaultBaseColorScheme).toEqual(
+            ColorSchemeName.SingleColorGradientDenim
+        )
+    })
+
     it("are categorical for a plain string indicator", () => {
         const chartState = makeChartState(
             makeCategoricalTable([

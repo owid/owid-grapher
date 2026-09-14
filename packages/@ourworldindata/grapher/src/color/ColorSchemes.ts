@@ -103,6 +103,11 @@ function getPreferredSchemesByType(
                 ColorSchemeName.OwidCategoricalC,
                 ColorSchemeName.OwidCategoricalD,
                 ColorSchemeName.OwidCategoricalE,
+                ColorSchemeName.SingleColorGradientDenim,
+                ColorSchemeName.SingleColorGradientTeal,
+                ColorSchemeName.SingleColorGradientPurple,
+                ColorSchemeName.SingleColorGradientDustyCoral,
+                ColorSchemeName.SingleColorGradientDarkCopper,
             ])
             // Dumbbell charts don't support color schemes
             .with(GRAPHER_CHART_TYPES.Dumbbell, () => [])

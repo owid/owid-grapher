@@ -44,12 +44,12 @@ import {
     CategoricalBin,
     ColorScaleBin,
     isCategoricalBin,
+    addPatternRefToBin,
     isNoDataBin,
     isInapplicableBin,
     isNumericBin,
     isProjectedDataBin,
     mergeCategoricalBinsByLabelAndColor,
-    NumericBin,
 } from "../color/ColorScaleBin"
 import {
     BinEmphasis,
@@ -347,42 +347,37 @@ export class MapChart
 
     private maybeAddPatternRefToBin<Bin extends ColorScaleBin>(bin: Bin): Bin {
         if (isNoDataBin(bin))
-            return new CategoricalBin({
-                ...bin.props,
-                patternRef: makePatternId(
-                    Patterns.noDataPattern,
-                    this.patternIdSuffix
-                ),
-            }) as Bin
+            return addPatternRefToBin(
+                bin,
+                makePatternId(Patterns.noDataPattern, this.patternIdSuffix)
+            )
 
         if (isInapplicableBin(bin))
-            return new CategoricalBin({
-                ...bin.props,
-                patternRef: makePatternId(
+            return addPatternRefToBin(
+                bin,
+                makePatternId(
                     Patterns.inapplicablePattern,
                     this.patternIdSuffix
-                ),
-            }) as Bin
-
-        if (isProjectedDataBin(bin)) {
-            const patternRef = makeProjectedDataPatternId(
-                PROJECTED_DATA_LEGEND_COLOR,
-                { forLegend: true, idSuffix: this.patternIdSuffix }
+                )
             )
-            return new CategoricalBin({ ...bin.props, patternRef }) as Bin
-        }
 
-        if (this.shouldAddProjectionPatternToLegendBins) {
-            const patternRef = makeProjectedDataPatternId(bin.color, {
-                forLegend: true,
-                idSuffix: this.patternIdSuffix,
-            })
-            return (
-                bin instanceof CategoricalBin
-                    ? new CategoricalBin({ ...bin.props, patternRef })
-                    : new NumericBin({ ...bin.props, patternRef })
-            ) as Bin
-        }
+        if (isProjectedDataBin(bin))
+            return addPatternRefToBin(
+                bin,
+                makeProjectedDataPatternId(PROJECTED_DATA_LEGEND_COLOR, {
+                    forLegend: true,
+                    idSuffix: this.patternIdSuffix,
+                })
+            )
+
+        if (this.shouldAddProjectionPatternToLegendBins)
+            return addPatternRefToBin(
+                bin,
+                makeProjectedDataPatternId(bin.color, {
+                    forLegend: true,
+                    idSuffix: this.patternIdSuffix,
+                })
+            )
 
         return bin
     }
