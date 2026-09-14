@@ -70,6 +70,9 @@ function DataPageDownloadSection({
 
 export const DataPageV2Content = ({
     datapageData,
+    additionalIndicators,
+    collapsedIndicatorList,
+    useNewDatapageDesign: useNewDatapageDesignFromBaker,
     grapherConfig,
     isPreviewing = false,
     faqEntries,
@@ -82,10 +85,20 @@ export const DataPageV2Content = ({
     imageMetadata: Record<string, ImageMetadata>
 }) => {
     const slug = grapherConfig.slug
-    const useNewDatapageDesign = isUrlInActiveExperiment(
-        DATA_PAGE_METADATA_EXPERIMENT_ID,
-        `/grapher/${slug}`
-    )
+    // The baker decides which design a page gets (`shouldBakeAsDatapage` in
+    // baker/GrapherBaker.tsx) and serializes the decision into the page
+    // props, so hydration always matches the baked HTML — even if the
+    // experiment config changes (e.g. expires) between bake and view. The
+    // recomputed fallback only covers pages baked before the field existed.
+    // We plan to move ALL grapher pages to the data page design soon; when
+    // that happens, this becomes `true` and the control-arm branches below
+    // can be deleted along with the experiment.
+    const useNewDatapageDesign =
+        useNewDatapageDesignFromBaker ??
+        isUrlInActiveExperiment(
+            DATA_PAGE_METADATA_EXPERIMENT_ID,
+            `/grapher/${slug}`
+        )
     const queryStr =
         typeof window !== "undefined" ? window?.location?.search : undefined
 
@@ -185,11 +198,17 @@ export const DataPageV2Content = ({
                         {useNewDatapageDesign && (
                             <IndicatorMetadataBox
                                 datapageData={datapageData}
+                                additionalIndicators={additionalIndicators}
+                                collapsedIndicatorList={collapsedIndicatorList}
                                 faqEntries={faqEntries}
                                 canonicalUrl={canonicalUrl}
                                 archiveContext={archiveContext}
                                 id={DATAPAGE_ABOUT_THIS_DATA_SECTION_ID}
                                 license={grapherConfig.license}
+                                pageCitationTitle={
+                                    grapherConfig.title ??
+                                    datapageData.title.title
+                                }
                             />
                         )}
                         {useNewDatapageDesign && (

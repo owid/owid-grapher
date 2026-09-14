@@ -1,4 +1,5 @@
 import cx from "clsx"
+import * as _ from "lodash-es"
 import {
     DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID,
     SimpleMarkdownText,
@@ -10,6 +11,8 @@ import {
     INDICATOR_PROCESSING_SECTION_ID,
 } from "@ourworldindata/components"
 import {
+    AdditionalIndicator,
+    CollapsedIndicatorListEntry,
     ArchiveContext,
     DataPageDataV2,
     FaqEntryData,
@@ -18,7 +21,7 @@ import {
     OwidEnrichedGdocBlock,
     PrimaryTopic,
 } from "@ourworldindata/types"
-import { useRef } from "react"
+import React, { createRef, useEffect, useMemo, useRef, useState } from "react"
 import {
     formatAttributions,
     prepareSourcesForDisplay,
@@ -32,6 +35,14 @@ import { faChevronDown, faChevronUp } from "@fortawesome/free-solid-svg-icons"
 import { splitDescriptionKey } from "./datapageUtils.js"
 import { SiteAnalytics } from "./SiteAnalytics.js"
 import { ChartLicenseNotice } from "./ChartLicenseNotice.js"
+import {
+    IndicatorDropdown,
+    IndicatorDropdownSelect,
+    IndicatorTabsHorizontal,
+    IndicatorTabsVertical,
+    IndicatorAboutLabel,
+} from "./IndicatorSwitcher.js"
+import { useSwitcherVariant } from "./useSwitcherVariant.js"
 
 const analytics = new SiteAnalytics()
 
@@ -56,7 +67,21 @@ interface ExpandableSectionProps {
     title: IndicatorTitleWithFragments
     descriptionProcessing: string | undefined
     license?: LicenseOption
+    faqsSectionId: string
+    sourcesSectionId: string
+    processingContentId: string
+    // See IndicatorMetadataBox: toggles caused by programmatically switching
+    // indicators shouldn't be logged as user expands/collapses.
+    suppressToggleLogUntilRef?: React.RefObject<number>
+    // Multi-indicator pages: cite the page by the chart title and drop the
+    // long citation's single-indicator "[dataset]" line (the page shows many
+    // indicators, so naming one of them misleads).
+    datapageCitationTitle?: string
+    omitLongDatasetTitle?: boolean
+    collapsedIndicatorList?: CollapsedIndicatorListEntry[]
 }
+
+const FAQS_SECTION_ID = "faqs"
 
 // FAQs arrive as a flat block list — each question is a heading followed by its
 // answer blocks. Split on headings so each question can render as its own toggle.
@@ -97,6 +122,13 @@ function ExpandableSection({
     title,
     descriptionProcessing,
     license,
+    faqsSectionId,
+    sourcesSectionId,
+    processingContentId,
+    suppressToggleLogUntilRef,
+    datapageCitationTitle,
+    omitLongDatasetTitle,
+    collapsedIndicatorList,
 }: ExpandableSectionProps) {
     const { origins, source } = datapageData
     const sourcesForDisplay = prepareSourcesForDisplay({
@@ -120,6 +152,8 @@ function ExpandableSection({
         citationUrl,
         archivalDate: archiveContext?.archivalDate,
         primaryTopic,
+        datapageCitationTitle,
+        omitLongDatasetTitle,
     })
 
     const faqQuestions = groupFaqsByQuestion(faqEntries?.faqs ?? [])
@@ -146,6 +180,12 @@ function ExpandableSection({
 
     return (
         <div className={cx("meta-expander", className)}>
+            {collapsedIndicatorList && collapsedIndicatorList.length > 0 && (
+                <CollapsedIndicatorList
+                    entries={collapsedIndicatorList}
+                    datapageData={datapageData}
+                />
+            )}
             {descriptionKeyPreview && (
                 <div className="meta-expander__preview meta-expander__prose">
                     <SimpleMarkdownText text={descriptionKeyPreview} />
@@ -159,6 +199,17 @@ function ExpandableSection({
                 // Guard to only react to this element's own toggle.
                 onToggle={(e) => {
                     if (e.target !== e.currentTarget) return
+                    // Skip toggles caused by switching indicators: those
+                    // programmatically close the previous pane's details and
+                    // open the new one, and neither is a user
+                    // expand/collapse (the switch itself is logged via
+                    // data-track-note="metadata_box_indicator_switch").
+                    if (Date.now() < (suppressToggleLogUntilRef?.current ?? 0))
+                        return
+                    // Also skip hidden panes (display: none → offsetParent
+                    // is null) in case they're toggled programmatically
+                    // outside a switch.
+                    if (!e.currentTarget.offsetParent) return
                     analytics.logSiteClick(
                         e.currentTarget.open
                             ? "expand_metadata_box"
@@ -193,7 +244,10 @@ function ExpandableSection({
                 )}
                 {
                     <section className="meta-expander__section meta-expander__section--faqs">
-                        <h2 className="meta-expander__section-title" id="faqs">
+                        <h2
+                            className="meta-expander__section-title"
+                            id={faqsSectionId}
+                        >
                             Frequently asked questions
                         </h2>
                         {faqQuestions.map((faq, i) => (
@@ -218,7 +272,7 @@ function ExpandableSection({
                         ))}
                         <ExpandableToggle
                             label="How did Our World in Data process this data?"
-                            contentId={INDICATOR_PROCESSING_SECTION_ID}
+                            contentId={processingContentId}
                             content={
                                 <IndicatorProcessing
                                     descriptionProcessing={
@@ -261,7 +315,7 @@ function ExpandableSection({
                 )}
                 <section className="meta-expander__section">
                     <h2
-                        id={DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID}
+                        id={sourcesSectionId}
                         className="meta-expander__section-title"
                     >
                         Data sources
@@ -392,57 +446,66 @@ function ExpandableSection({
     )
 }
 
-export default function IndicatorMetadataBox({
+// The full per-indicator body of the metadata box: title, description
+// table, and the collapsible details section. On multi-indicator charts one
+// pane renders per Y-indicator (all present in the HTML; only the active
+// one visible) so the switcher can flip between them without re-fetching.
+function IndicatorPaneContent({
     datapageData,
     faqEntries,
-    className,
-    id,
+    detailsRef,
     canonicalUrl,
     archiveContext,
     license,
+    idSuffix,
+    suppressToggleLogUntilRef,
+    datapageCitationTitle,
+    omitLongDatasetTitle,
+    paneTitleOverride,
+    collapsedIndicatorList,
 }: {
     datapageData: DataPageDataV2
-    className?: string
-    id?: string
     faqEntries: FaqEntryData | undefined
+    detailsRef: React.RefObject<HTMLDetailsElement | null>
     canonicalUrl: string
     archiveContext: ArchiveContext | undefined
     license?: LicenseOption
+    suppressToggleLogUntilRef?: React.RefObject<number>
+    datapageCitationTitle?: string
+    omitLongDatasetTitle?: boolean
+    // Collapsed multi-indicator mode: the pane heading reads "About this
+    // data" (no single indicator owns the pane) and the indicator list
+    // renders inside the expander, above the shared WYSK.
+    paneTitleOverride?: string
+    collapsedIndicatorList?: CollapsedIndicatorListEntry[]
+    // Disambiguates the section anchor ids (#faqs, #sources-and-processing,
+    // #indicator-processing) when several panes are in the DOM at once. The
+    // active pane always gets the canonical (un-suffixed) ids so in-page
+    // anchors and the grapher footer's jump-to-sources always resolve to
+    // the visible pane.
+    idSuffix: string
 }) {
-    // Owners of the dataset backing this indicator. For now we show a single
-    // indicator's owners; multi-indicator charts will get a separate metadata
-    // expander per indicator, so we don't merge owners across datasets here.
+    // Owners of the dataset backing this indicator — the baker loads each
+    // pane's datapageData.owners from its own indicator's dataset.
     const owners = datapageData.owners?.[0]?.owners ?? []
 
     const attribution = formatAttributions(datapageData.attributions ?? [])
+    const processingContentId = `${INDICATOR_PROCESSING_SECTION_ID}${idSuffix}`
     const sourceString = makeSource({
         attribution,
         owidProcessingLevel: datapageData.owidProcessingLevel,
-        processingId: INDICATOR_PROCESSING_SECTION_ID,
+        processingId: processingContentId,
     })
 
-    const detailsRef = useRef<HTMLDetailsElement | null>(null)
-
     return (
-        <div className={cx("indicator-metadata-box", className)} id={id}>
-            <button
-                type="button"
-                className="indicator-metadata-box__show-less"
-                onClick={() => {
-                    if (detailsRef.current) detailsRef.current.open = false
-                }}
-            >
-                Show less
-                <FontAwesomeIcon
-                    icon={faChevronUp}
-                    className="indicator-metadata-box__chevron"
-                />
-            </button>
+        <>
             <h2 className="indicator-metadata-box__indicator-title body-2-bold-tight">
-                {datapageData.title.title}
-                <span className="indicator-metadata-box__title-variant">
-                    {datapageData.titleVariant}
-                </span>
+                {paneTitleOverride ?? datapageData.title.title}
+                {!paneTitleOverride && (
+                    <span className="indicator-metadata-box__title-variant">
+                        {datapageData.titleVariant}
+                    </span>
+                )}
             </h2>
             <dl className="meta-description-table">
                 {datapageData.descriptionShort && (
@@ -524,7 +587,320 @@ export default function IndicatorMetadataBox({
                 title={datapageData.title}
                 descriptionProcessing={datapageData.descriptionProcessing}
                 license={license}
+                faqsSectionId={`${FAQS_SECTION_ID}${idSuffix}`}
+                collapsedIndicatorList={collapsedIndicatorList}
+                sourcesSectionId={`${DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID}${idSuffix}`}
+                processingContentId={processingContentId}
+                suppressToggleLogUntilRef={suppressToggleLogUntilRef}
+                datapageCitationTitle={datapageCitationTitle}
+                omitLongDatasetTitle={omitLongDatasetTitle}
             />
+        </>
+    )
+}
+
+// The collapsed replacement for the indicator switcher: one line saying what
+// the page covers, then one entry per indicator. `short`/`unit`/`note` are
+// only present when that field differs across the indicators (the shared
+// value renders once in the pane below).
+function CollapsedIndicatorList({
+    entries,
+    datapageData,
+}: {
+    entries: CollapsedIndicatorListEntry[]
+    datapageData: DataPageDataV2
+}) {
+    const nSources =
+        (datapageData.origins?.length ?? 0) + (datapageData.source ? 1 : 0)
+    const sourcePhrase =
+        nSources > 0
+            ? `, all from the same data source${nSources > 1 ? "s" : ""}`
+            : ""
+    // When the entries carry nothing beyond their titles (shared short/unit
+    // shown once in the pane, no per-indicator notes), an enumerated list
+    // adds vertical space without information — render the titles inline.
+    const titlesOnly = entries.every(
+        (entry) => !entry.short && !entry.unit && !entry.note
+    )
+    if (titlesOnly) {
+        return (
+            <p className="indicator-metadata-box__collapsed-list indicator-metadata-box__collapsed-list-intro">
+                This chart shows data for {entries.length} indicators
+                {sourcePhrase}:{" "}
+                {entries.map((entry, i) => (
+                    <React.Fragment key={i}>
+                        {i > 0 && ", "}
+                        <span className="indicator-metadata-box__collapsed-list-title">
+                            {entry.title}
+                        </span>
+                    </React.Fragment>
+                ))}
+                .
+            </p>
+        )
+    }
+    return (
+        <div className="indicator-metadata-box__collapsed-list">
+            <p className="indicator-metadata-box__collapsed-list-intro">
+                This chart shows data for {entries.length} indicators
+                {sourcePhrase}:
+            </p>
+            <ol>
+                {entries.map((entry, i) => (
+                    <li key={i}>
+                        <span className="indicator-metadata-box__collapsed-list-title">
+                            {entry.title}
+                        </span>
+                        {(entry.short || entry.unit) && (
+                            <span className="indicator-metadata-box__collapsed-list-meta">
+                                {entry.short && (
+                                    <SimpleMarkdownText
+                                        text={entry.short}
+                                        useParagraphs={false}
+                                    />
+                                )}
+                                {entry.short && entry.unit && (
+                                    <span className="indicator-metadata-box__collapsed-list-sep">
+                                        |
+                                    </span>
+                                )}
+                                {entry.unit && (
+                                    <span className="indicator-metadata-box__collapsed-list-unit">
+                                        <span className="indicator-metadata-box__collapsed-list-unit-key">
+                                            Unit{" "}
+                                        </span>
+                                        {entry.unit}
+                                    </span>
+                                )}
+                            </span>
+                        )}
+                        {entry.note && (
+                            <div className="indicator-metadata-box__collapsed-list-note">
+                                <SimpleMarkdownText
+                                    text={entry.note}
+                                    useParagraphs={false}
+                                />
+                            </div>
+                        )}
+                    </li>
+                ))}
+            </ol>
+        </div>
+    )
+}
+
+export default function IndicatorMetadataBox({
+    datapageData,
+    additionalIndicators,
+    collapsedIndicatorList,
+    faqEntries,
+    className,
+    id,
+    canonicalUrl,
+    archiveContext,
+    license,
+    pageCitationTitle,
+}: {
+    datapageData: DataPageDataV2
+    additionalIndicators?: AdditionalIndicator[]
+    collapsedIndicatorList?: CollapsedIndicatorListEntry[]
+    className?: string
+    id?: string
+    faqEntries: FaqEntryData | undefined
+    canonicalUrl: string
+    archiveContext: ArchiveContext | undefined
+    license?: LicenseOption
+    // The chart title, used to cite the PAGE on multi-indicator pages (the
+    // per-indicator titles only describe one of the page's indicators).
+    pageCitationTitle?: string
+}) {
+    const indicators: AdditionalIndicator[] = [
+        { datapageData, faqEntries },
+        ...(additionalIndicators ?? []),
+    ]
+    const isMulti = indicators.length > 1
+    // The baker collapsed a multi-indicator chart's panes into one: render a
+    // single pane plus the templated indicator list, and no switcher. The
+    // page is still conceptually multi-indicator (citations cite the chart).
+    const isCollapsedMulti = !isMulti && !!collapsedIndicatorList?.length
+    const isMultiForCitations = isMulti || isCollapsedMulti
+
+    const [activeIndex, setActiveIndex] = useState(0)
+    // Guard against the active indicator being unmounted between renders
+    // (e.g. if the upstream data shrinks). Falls back to the primary.
+    const safeIndex = Math.min(Math.max(activeIndex, 0), indicators.length - 1)
+
+    const switcherVariant = useSwitcherVariant()
+
+    // One <details> ref per indicator pane so the "Show less" button and the
+    // open-on-switch behavior can target the active pane's collapsible.
+    const detailsRefs = useMemo(
+        () =>
+            Array.from({ length: indicators.length }, () =>
+                createRef<HTMLDetailsElement>()
+            ),
+        [indicators.length]
+    )
+    const activeDetailsRef = detailsRefs[safeIndex]
+
+    // Open the collapsible whenever the user switches indicator — the click
+    // was a request to *see* that indicator's metadata, so keeping the box
+    // collapsed afterwards would hide the very thing they asked for. Skip
+    // the initial render so the section doesn't auto-open on page load.
+    // Toggles caused by the programmatic open/close below shouldn't be
+    // logged as user expands/collapses. <details> fires its toggle event
+    // asynchronously, so suppress logging for a short window rather than
+    // trying to flag the individual events.
+    const suppressToggleLogUntilRef = useRef(0)
+
+    const isFirstActiveIndexRef = useRef(true)
+    useEffect(() => {
+        if (isFirstActiveIndexRef.current) {
+            isFirstActiveIndexRef.current = false
+            return
+        }
+        suppressToggleLogUntilRef.current = Date.now() + 500
+        // Close the now-hidden panes' collapsibles — a hidden-but-open
+        // <details> would keep the box's "Show less" affordance visible
+        // (via the `:has([open])` rule) even when the active pane is
+        // collapsed.
+        detailsRefs.forEach((ref, i) => {
+            if (i !== safeIndex && ref.current) ref.current.open = false
+        })
+        const details = detailsRefs[safeIndex]?.current
+        if (details) details.open = true
+    }, [safeIndex, detailsRefs])
+
+    // ALL indicators' panes sit in the rendered HTML at the same time — only
+    // the active one is visible (display: contents vs display: none), while
+    // the others stay available to AI agents / unmodified-HTML consumers on
+    // a plain GET.
+    const panes = indicators.map((ind, i) => (
+        <div
+            key={i}
+            className={cx("indicator-metadata-box__pane", {
+                "indicator-metadata-box__pane--active": i === safeIndex,
+            })}
+            data-indicator-index={i}
+            aria-hidden={i !== safeIndex}
+        >
+            <IndicatorPaneContent
+                datapageData={ind.datapageData}
+                faqEntries={ind.faqEntries}
+                detailsRef={detailsRefs[i]}
+                canonicalUrl={canonicalUrl}
+                archiveContext={archiveContext}
+                license={license}
+                idSuffix={i === safeIndex ? "" : `--${i}`}
+                suppressToggleLogUntilRef={suppressToggleLogUntilRef}
+                paneTitleOverride={
+                    isCollapsedMulti ? "About this data" : undefined
+                }
+                collapsedIndicatorList={
+                    isCollapsedMulti ? collapsedIndicatorList : undefined
+                }
+                datapageCitationTitle={
+                    isMultiForCitations
+                        ? (pageCitationTitle ?? datapageData.title.title)
+                        : undefined
+                }
+                omitLongDatasetTitle={isMultiForCitations}
+            />
+        </div>
+    ))
+
+    const showLessButton = (
+        <button
+            type="button"
+            className="indicator-metadata-box__show-less"
+            onClick={() => {
+                if (activeDetailsRef.current)
+                    activeDetailsRef.current.open = false
+            }}
+        >
+            Show less
+            <FontAwesomeIcon
+                icon={faChevronUp}
+                className="indicator-metadata-box__chevron"
+            />
+        </button>
+    )
+
+    if (!isMulti && !isCollapsedMulti) {
+        return (
+            <div className={cx("indicator-metadata-box", className)} id={id}>
+                {showLessButton}
+                {panes}
+            </div>
+        )
+    }
+
+    // Header row above the box: "About this data (N indicators)" plus the
+    // switcher control. The v-tabs variant renders its switcher as an aside
+    // beside the box instead.
+    const headerSwitcher = isCollapsedMulti ? null : switcherVariant ===
+      "dropdown" ? (
+        <IndicatorDropdown
+            indicators={indicators}
+            activeIndex={safeIndex}
+            onIndicatorChange={setActiveIndex}
+        />
+    ) : switcherVariant === "h-tabs" || switcherVariant === "h-pills" ? (
+        <>
+            <IndicatorAboutLabel indicatorCount={indicators.length} />
+            <IndicatorTabsHorizontal
+                indicators={indicators}
+                activeIndex={safeIndex}
+                onIndicatorChange={setActiveIndex}
+                variant={switcherVariant === "h-pills" ? "pills" : "tabs"}
+            />
+            {switcherVariant === "h-pills" && (
+                // Mobile control: pills wrap into a ragged stack of rows
+                // on narrow screens, so below the small breakpoint the
+                // pill row is hidden and this select takes its own row
+                // under the label. Both live in the DOM and CSS picks one
+                // (the site pattern for responsive component swaps, e.g.
+                // SiteNavigation's mobile menu) — SSR can't know the
+                // viewport, so a JS swap would flash on mobile.
+                <div className="indicator-metadata-box-wrap__mobile-dropdown">
+                    <IndicatorDropdownSelect
+                        indicators={indicators}
+                        activeIndex={safeIndex}
+                        onIndicatorChange={setActiveIndex}
+                    />
+                </div>
+            )}
+        </>
+    ) : null
+
+    return (
+        <div
+            className={cx(
+                "indicator-metadata-box-wrap",
+                `indicator-metadata-box-wrap--${switcherVariant}`,
+                { "indicator-metadata-box-wrap--collapsed": isCollapsedMulti },
+                className
+            )}
+            id={id}
+        >
+            {headerSwitcher && (
+                <div className="indicator-metadata-box-wrap__header">
+                    {headerSwitcher}
+                </div>
+            )}
+            <div className="indicator-metadata-box-wrap__main">
+                {switcherVariant === "v-tabs" && (
+                    <IndicatorTabsVertical
+                        indicators={indicators}
+                        activeIndex={safeIndex}
+                        onIndicatorChange={setActiveIndex}
+                    />
+                )}
+                <div className="indicator-metadata-box">
+                    {showLessButton}
+                    {panes}
+                </div>
+            </div>
         </div>
     )
 }
