@@ -20,16 +20,13 @@ const analytics = new SiteAnalytics()
 /**
  * Whether there's enough material to make a hover preview card worth showing.
  * A card with nothing but a title that repeats the link text is worse than no
- * card at all — the common case for data insights.
+ * card at all — the common case for data insights. The card is text only, so a
+ * featured image no longer counts as something to show.
  */
 function hasDocumentPreviewContent(
     linkedDocument: OwidGdocMinimalPostInterface
 ): boolean {
-    return Boolean(
-        linkedDocument.excerpt ||
-        linkedDocument.subtitle ||
-        linkedDocument["featured-image"]
-    )
+    return Boolean(linkedDocument.excerpt || linkedDocument.subtitle)
 }
 
 /** Wraps a link in the hover card for the document it points at. */
@@ -57,14 +54,8 @@ function DocumentPreviewTooltip({
             // in the middle of. Tippy flips it back above near the viewport
             // bottom.
             placement="bottom"
-            // The title and excerpt are shown in full, so the width sets how
-            // tall the card gets. At 400px the text column was only ~43
-            // characters per line and the longest real excerpts ran to seven
-            // lines; 480px gives ~56 and brings the worst case down to five.
-            // Wider than this stops helping — 520px renders the same line
-            // count — and starts to feel like a panel rather than a card.
-            maxWidth={480}
-            theme="light"
+            maxWidth={290}
+            theme="light document-preview"
             arrow={false}
             touch={false}
         >
@@ -161,7 +152,8 @@ export default function LinkedA({ span }: { span: SpanLink }) {
             </a>
         )
 
-        // Cloudflare Images URLs aren't archived, so the thumbnail would break.
+        // Kept off archival snapshots, which are frozen copies of a page and
+        // shouldn't gain interactive behaviour the original didn't have.
         if (isOnArchivalPage) {
             return documentLink
         }
