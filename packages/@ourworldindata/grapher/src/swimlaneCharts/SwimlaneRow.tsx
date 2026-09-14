@@ -5,7 +5,7 @@ import { Patterns } from "../core/GrapherConstants"
 import { SeriesLabel } from "../seriesLabel/SeriesLabel"
 import { PlacedSwimlaneSeries } from "./SwimlaneChartConstants"
 
-export function SwimlaneLane({
+export function SwimlaneRow({
     series,
 }: {
     series: PlacedSwimlaneSeries
