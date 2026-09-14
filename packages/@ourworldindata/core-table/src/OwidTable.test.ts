@@ -516,6 +516,15 @@ describe("linear interpolation", () => {
             ).length
         ).toEqual(0)
     })
+
+    it("keeps the original values when applied twice", () => {
+        const once = table.interpolateColumnLinearly("gdp", false)
+        const twice = once.interpolateColumnLinearly("gdp", false)
+
+        expect(twice.get("gdp").originalValues).toEqual(
+            once.get("gdp").originalValues
+        )
+    })
 })
 
 describe("tolerance", () => {
