@@ -7,6 +7,7 @@ import {
     ColumnSlug,
     FacetStrategy,
     JsTypes,
+    ScaleType,
     Time,
 } from "@ourworldindata/types"
 import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
@@ -16,16 +17,24 @@ import { ColorScaleConfig } from "../color/ColorScaleConfig"
 import {
     autoDetectYColumnSlugs,
     getDefaultFailMessage,
+    getShortNameForEntity,
     makeSelectionArray,
 } from "../chart/ChartUtils"
 import { SelectionArray } from "../selection/SelectionArray"
+import { AxisConfig } from "../axis/AxisConfig"
+import { HorizontalAxis } from "../axis/Axis"
 import {
     SwimlaneCategories,
     SwimlaneChartManager,
     SwimlaneSeries,
     SwimlaneSeriesSegment,
 } from "./SwimlaneChartConstants"
-import { SwimlaneObservation, toSwimlaneSegments } from "./swimlaneSegments"
+import {
+    SwimlaneObservation,
+    SwimlaneTimeRange,
+    toSwimlaneSegments,
+    toSwimlaneTimeRange,
+} from "./swimlaneSegments"
 
 export class SwimlaneChartState implements ChartState, ColorScaleManager {
     manager: SwimlaneChartManager
@@ -165,11 +174,29 @@ export class SwimlaneChartState implements ChartState, ColorScaleManager {
 
                 return {
                     seriesName: entityName,
+                    entityName,
+                    shortEntityName: getShortNameForEntity(entityName),
                     color: lastCategorySegment?.color ?? colorScale.noDataColor,
                     segments,
                 }
             }
         )
+    }
+
+    @computed private get timeRange(): SwimlaneTimeRange | undefined {
+        return toSwimlaneTimeRange(this.timesInSelectedRangeAsc)
+    }
+
+    toHorizontalAxis(config: AxisConfig): HorizontalAxis {
+        const axis = config.toHorizontalAxis()
+        axis.updateDomainPreservingUserSettings([
+            this.timeRange?.startTime,
+            this.timeRange?.endTimeExclusive,
+        ])
+        axis.scaleType = ScaleType.linear
+        axis.formatColumn = this.inputTable.timeColumn
+        axis.hideFractionalTicks = true
+        return axis
     }
 
     @computed get availableFacetStrategies(): FacetStrategy[] {
