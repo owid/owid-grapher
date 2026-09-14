@@ -14,7 +14,8 @@ export const SCHEMA_DIR = path.join(
 )
 
 const schemaFilePattern = /^grapher-schema\.(?<version>\d+)\.yaml$/
-const schemaIdPattern = /grapher-schema\.(?<version>\d+)\.json$/
+const schemaIdPattern =
+    /grapher-schema\.(?<version>\d+)\.(?<revision>\d{2})\.json$/
 
 export async function findLatestSchemaFile(): Promise<{
     filePath: string
@@ -73,7 +74,7 @@ export function assertSchemaNamesVersion(
     const idVersion = id.match(schemaIdPattern)?.groups?.version
     if (idVersion !== version)
         throw new Error(
-            `Expected $id to name version ${version}, got ${JSON.stringify(schema.$id)}`
+            `Expected $id to name version ${version} and a two-digit revision, got ${JSON.stringify(schema.$id)}`
         )
 
     const { pattern } = toSchemaObject(schema.properties?.$schema ?? {})
@@ -81,4 +82,14 @@ export function assertSchemaNamesVersion(
         throw new Error(
             `Expected the $schema property's pattern to accept ${id}, got ${JSON.stringify(pattern)}`
         )
+}
+
+/** The revision the document declares in its `$id`, which names the file it publishes under */
+export function getDeclaredSchemaRevision(schema: JSONSchema7): number {
+    const revision = schema.$id?.match(schemaIdPattern)?.groups?.revision
+    if (revision === undefined)
+        throw new Error(
+            `Expected $id to name a two-digit revision, got ${JSON.stringify(schema.$id)}`
+        )
+    return Number(revision)
 }

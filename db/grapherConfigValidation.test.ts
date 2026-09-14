@@ -149,7 +149,7 @@ describe(tryIngestGrapherConfig, () => {
             ],
         })
 
-        expect(config.$schema).toBe(latestSchemaUrl)
+        expect(config.$schema).toBe(schemaUrlForVersion(latestSchemaVersion))
         expect(config.dimensions?.[0].display).toStrictEqual({
             timeInterval: "day",
         })
