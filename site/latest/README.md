@@ -70,7 +70,7 @@ The sticky element is the facets grid item, giving it the feed's height to move 
 
 For the reveal arm, [`useRevealOnScrollUp`](./latestHooks.ts) tracks scroll direction and measures the bar's height. CSS transitions `top` between the pin offset and an offset one bar-height above it. Sticky positioning keeps the bar in its normal flow position near the top of the page, avoiding the displacement a transform would cause there. Two custom properties carry the pin offset and measured height. Until the height is available, `top` computes to `auto`; padding stays constant so the measurement remains valid.
 
-To test on staging or a Cloudflare preview, open `/exp?from=/latest`, choose an arm, and return with its cookie set. The [`/exp`](../../functions/exp/index.ts) switcher is unavailable in production. Plain `make up` has no edge middleware, so use `/latest?exp-latest-sticky-filters-v1=<arm>` instead. That client-side override is development-only. `SiteAnalytics` includes `experimentArm` on `/latest` events.
+To force an arm on staging or a Cloudflare preview, set the `exp-latest-sticky-filters-v1` cookie to the arm's id on path `/` and reload: the middleware assigns only when the cookie is absent, so an existing one is honoured and the body class follows from the first byte. Plain `make up` runs no middleware, so nothing stamps the class — the cookie alone drives the hook, and the arm's layout needs `exp-latest-sticky-filters-v1--<arm>` added to `<body>` by hand. `SiteAnalytics` includes `experimentArm` on `/latest` events.
 
 ## Component layout
 
