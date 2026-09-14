@@ -4,11 +4,7 @@ import "../../serverUtils/instrument.js"
 
 import * as Sentry from "@sentry/node"
 import type { KnownBlock } from "@slack/web-api"
-import type {
-    GrapherInterface,
-    MultiDimDataPageConfigEnriched,
-} from "@ourworldindata/types"
-import { dimensionsToViewId } from "@ourworldindata/utils"
+import type { GrapherInterface } from "@ourworldindata/types"
 import {
     knexRaw,
     knexReadonlyTransaction,
@@ -29,7 +25,6 @@ import {
     SLACK_CONFIG_VALIDATION_CHANNEL_ID,
 } from "../../settings/serverSettings.js"
 import { parseChartConfig } from "../../db/model/ChartConfigs.js"
-import { getMdimViewConfigWithSchema } from "../../db/model/MultiDimDataPage.js"
 import { postToSlack } from "../../serverUtils/slackClient.js"
 type ConfigOwner = "chart" | "indicator" | "narrativeChart" | "multiDim"
 type ConfigRole = "patch" | "full"
@@ -40,18 +35,13 @@ type OwnerRef =
     | { owner: "narrativeChart"; id: string }
     | { owner: "multiDim"; id: string; viewId: string }
 
-type ConfigReference =
-    | {
-          owner: "chart" | "indicator" | "narrativeChart"
-          role: ConfigRole
-          ownerIdColumn: string
-      }
-    | {
-          owner: "multiDim"
-          role: ConfigRole
-          ownerIdColumn: string
-          ownerViewIdColumn: string
-      }
+interface ConfigReference {
+    owner: ConfigOwner
+    role: ConfigRole
+    ownerIdColumn: string
+    /** Only a multiDim owner identifies a config by a view as well as an id */
+    ownerViewIdColumn?: string
+}
 
 /**
  * All database columns referencing `chart_configs`, mapped to their owner and
@@ -100,8 +90,6 @@ const REFERENCING_COLUMNS: Record<string, ConfigReference | null> = {
     "multi_dim_redirects.viewConfigId": null,
 }
 
-const MULTI_DIM_VIEW_CONFIG_COLUMN = "multi_dim_data_pages.config"
-
 const BATCH_SIZE = 2000
 const MAX_LISTED_IDS = 20
 const MAX_EXAMPLE_OWNERS = 5
@@ -126,10 +114,9 @@ interface RawReferenceRow {
     ownerViewId: string | null
 }
 
-interface IndexedReference {
-    column: string
-    validated: { reference: ConfigReference; owner: OwnerRef } | null
-}
+type IndexedReference =
+    | { column: string; owner: null }
+    | { column: string; owner: OwnerRef; role: ConfigRole }
 
 interface ReferenceConflict {
     id: string
@@ -148,8 +135,6 @@ interface Report {
     conflicts: ReferenceConflict[]
     unreferencedIds: string[]
     unexpectedFailures: UnexpectedFailure[]
-    draftValidationIssues: Map<string, ValidationIssueGroup>
-    draftMultiDimViewConfigs: number
 }
 
 async function assertReferencingColumnsUpToDate(
@@ -197,13 +182,11 @@ function buildReferenceIndexQuery(): string {
             const [table, column] = columnKey.split(".")
             const ownerId = buildOwnerIdentityExpression(
                 table,
-                reference?.ownerIdColumn ?? null
+                reference?.ownerIdColumn
             )
             const ownerViewId = buildOwnerIdentityExpression(
                 table,
-                reference?.owner === "multiDim"
-                    ? reference.ownerViewIdColumn
-                    : null
+                reference?.ownerViewIdColumn ?? null
             )
             return `SELECT \`${column}\` AS id, '${columnKey}' AS reference, ${ownerId} AS ownerId, ${ownerViewId} AS ownerViewId FROM \`${table}\` WHERE \`${column}\` IS NOT NULL`
         })
@@ -212,9 +195,9 @@ function buildReferenceIndexQuery(): string {
 
 function buildOwnerIdentityExpression(
     table: string,
-    column: string | null
+    column: string | undefined | null
 ): string {
-    if (column === null) return "NULL"
+    if (!column) return "NULL"
     return `CAST(\`${table}\`.\`${column}\` AS CHAR)`
 }
 
@@ -282,26 +265,27 @@ function buildReferenceIndex(rows: RawReferenceRow[]): {
 
     for (const row of rows) {
         const reference = REFERENCING_COLUMNS[row.reference]
-        const indexed: IndexedReference = {
-            column: row.reference,
-            validated:
-                reference === null
-                    ? null
-                    : { reference, owner: parseOwnerRef(reference.owner, row) },
-        }
+        const indexed: IndexedReference =
+            reference === null
+                ? { column: row.reference, owner: null }
+                : {
+                      column: row.reference,
+                      owner: parseOwnerRef(reference.owner, row),
+                      role: reference.role,
+                  }
         const existing = index.get(row.id)
         if (existing === undefined) {
             index.set(row.id, indexed)
             continue
         }
-        if (existing.validated === null) {
+        if (existing.owner === null) {
             if (reference !== null) index.set(row.id, indexed)
             continue
         }
         if (reference === null) continue
         if (
-            existing.validated.reference.owner !== reference.owner ||
-            existing.validated.reference.role !== reference.role
+            existing.owner.owner !== reference.owner ||
+            existing.role !== reference.role
         )
             conflicts.push({
                 id: row.id,
@@ -320,8 +304,6 @@ function createReport(): Report {
         conflicts: [],
         unreferencedIds: [],
         unexpectedFailures: [],
-        draftValidationIssues: new Map(),
-        draftMultiDimViewConfigs: 0,
     }
 }
 
@@ -330,19 +312,19 @@ function increment(counts: Map<string, number>, key: string): void {
 }
 
 function recordValidationIssue(
-    issues: Map<string, ValidationIssueGroup>,
+    report: Report,
     column: string,
     owner: OwnerRef,
     issue: GrapherConfigValidationIssue
 ): void {
     const key = `${column}|${issue.pointer}|${issue.message}`
-    const existing = issues.get(key)
+    const existing = report.validationIssues.get(key)
     if (existing) {
         existing.count++
         addExampleOwner(existing, owner)
         return
     }
-    issues.set(key, {
+    report.validationIssues.set(key, {
         column,
         pointer: issue.pointer,
         message: issue.message,
@@ -373,26 +355,18 @@ function processRow(
         return
     }
 
-    if (indexed.validated === null) {
+    if (indexed.owner === null) {
         increment(report.notValidatedCounts, indexed.column)
         return
     }
 
-    const { owner } = indexed.validated
     increment(report.validatedCounts, indexed.column)
     const config = parseChartConfig(row.config, { skipMigration: true })
-    validateConfig(
-        report,
-        report.validationIssues,
-        indexed.column,
-        owner,
-        config
-    )
+    validateConfig(report, indexed.column, indexed.owner, config)
 }
 
 function validateConfig(
     report: Report,
-    issues: Map<string, ValidationIssueGroup>,
     column: string,
     owner: OwnerRef,
     config: GrapherInterface
@@ -402,7 +376,7 @@ function validateConfig(
     } catch (error) {
         if (error instanceof GrapherConfigValidationError) {
             for (const issue of error.issues)
-                recordValidationIssue(issues, column, owner, issue)
+                recordValidationIssue(report, column, owner, issue)
         } else
             report.unexpectedFailures.push({
                 owner,
@@ -429,48 +403,6 @@ async function walkChartConfigs(
     }
 }
 
-async function walkMultiDimViewConfigs(
-    trx: KnexReadonlyTransaction,
-    report: Report
-): Promise<void> {
-    const rows = await knexRaw<{
-        id: string
-        config: string
-        published: number
-    }>(trx, "SELECT `id`, `config`, `published` FROM `multi_dim_data_pages`")
-    for (const row of rows) {
-        const config = JSON.parse(row.config) as MultiDimDataPageConfigEnriched
-        for (const view of config.views) {
-            const viewConfig = getMdimViewConfigWithSchema(config, view)
-            if (!viewConfig) continue
-            const owner: OwnerRef = {
-                owner: "multiDim",
-                id: row.id,
-                viewId: dimensionsToViewId(view.dimensions),
-            }
-            if (row.published) {
-                increment(report.validatedCounts, MULTI_DIM_VIEW_CONFIG_COLUMN)
-                validateConfig(
-                    report,
-                    report.validationIssues,
-                    MULTI_DIM_VIEW_CONFIG_COLUMN,
-                    owner,
-                    viewConfig
-                )
-            } else {
-                report.draftMultiDimViewConfigs++
-                validateConfig(
-                    report,
-                    report.draftValidationIssues,
-                    MULTI_DIM_VIEW_CONFIG_COLUMN,
-                    owner,
-                    viewConfig
-                )
-            }
-        }
-    }
-}
-
 function printColumnCounts(
     columns: string[],
     counts: Map<string, number>
@@ -494,14 +426,14 @@ function partitionReferencingColumns(): {
 }
 
 function renderValidationIssues(
-    issues: Map<string, ValidationIssueGroup>,
-    validatedCounts: Map<string, number>,
+    report: Report,
     formatOwner: (owner: OwnerRef, isExample?: boolean) => string
 ): string[] {
-    if (issues.size === 0) return []
-    const sorted = [...issues.values()].sort((a, b) => b.count - a.count)
+    const sorted = [...report.validationIssues.values()].sort(
+        (a, b) => b.count - a.count
+    )
     return sorted.map((issue) => {
-        const total = validatedCounts.get(issue.column) ?? 0
+        const total = report.validatedCounts.get(issue.column) ?? 0
         const owners = [...issue.exampleOwnersByAdminUrl.values()]
             .map((owner) => formatOwner(owner, true))
             .join(", ")
@@ -556,24 +488,18 @@ function printReport(report: Report, elapsedSeconds: number): void {
         (total, count) => total + count,
         0
     )
-    const drafts = report.draftMultiDimViewConfigs
     const { validated, notValidated } = partitionReferencingColumns()
 
     console.log("Validated stored grapher configs")
     console.log(
         `Database: ${GRAPHER_DB_HOST}:${GRAPHER_DB_PORT}/${GRAPHER_DB_NAME}`
     )
-    console.log(
-        `Configs: ${counted + drafts + skipped + report.unreferencedIds.length}`
-    )
+    console.log(`Configs: ${counted + skipped + report.unreferencedIds.length}`)
     console.log(`Date: ${new Date().toISOString()}`)
     console.log("")
 
     console.log("Validated, by the column they come from:")
-    printColumnCounts(
-        [...validated, MULTI_DIM_VIEW_CONFIG_COLUMN],
-        report.validatedCounts
-    )
+    printColumnCounts(validated, report.validatedCounts)
     console.log("")
 
     console.log("Not validated, by the column they come from:")
@@ -581,25 +507,7 @@ function printReport(report: Report, elapsedSeconds: number): void {
     console.log("")
 
     console.log("Validation issues:")
-    printFindings(
-        renderValidationIssues(
-            report.validationIssues,
-            report.validatedCounts,
-            formatOwnerRef
-        )
-    )
-    console.log("")
-
-    console.log(
-        `Validation issues in unpublished mdims, kept out of Slack (${drafts} view configs):`
-    )
-    printFindings(
-        renderValidationIssues(
-            report.draftValidationIssues,
-            new Map([[MULTI_DIM_VIEW_CONFIG_COLUMN, drafts]]),
-            formatOwnerRef
-        )
-    )
+    printFindings(renderValidationIssues(report, formatOwnerRef))
     console.log("")
 
     console.log("Rows referenced with conflicting roles:")
@@ -617,7 +525,7 @@ function printReport(report: Report, elapsedSeconds: number): void {
     console.log("")
 
     console.log(
-        `Validated ${counted + drafts}, skipped ${skipped}, elapsed ${elapsedSeconds.toFixed(1)}s`
+        `Validated ${counted}, skipped ${skipped}, elapsed ${elapsedSeconds.toFixed(1)}s`
     )
 }
 
@@ -651,11 +559,7 @@ function buildSlackBlocks(report: Report): KnownBlock[] | undefined {
     const sections = [
         slackSection(
             "Validation issues",
-            renderValidationIssues(
-                report.validationIssues,
-                report.validatedCounts,
-                formatOwnerRefAsSlackLink
-            )
+            renderValidationIssues(report, formatOwnerRefAsSlackLink)
         ),
         slackSection(
             "Rows referenced with conflicting roles",
@@ -708,7 +612,6 @@ async function main(): Promise<void> {
         const report = createReport()
         report.conflicts = conflicts
         await walkChartConfigs(trx, referenceIndex, report)
-        await walkMultiDimViewConfigs(trx, report)
         return report
     }, TransactionCloseMode.Close)
 
