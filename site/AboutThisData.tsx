@@ -12,6 +12,10 @@ import {
 import { DataPageDataV2 } from "@ourworldindata/types"
 import { formatAttributions } from "@ourworldindata/utils"
 import KeyDataTable from "./KeyDataTable.js"
+import TrackedProseLinks from "./TrackedProseLinks.js"
+// Control-arm counterpart of IndicatorMetadataBox toggle tracking — the
+// shared helper guarantees both arms emit identical event names.
+import { logExpandableToggle } from "./metadataExperimentEvents.js"
 
 export default function AboutThisData({
     datapageData,
@@ -46,9 +50,11 @@ export default function AboutThisData({
                         <div className="key-info__content">
                             {datapageData.descriptionKey && (
                                 <div className="key-info__key-description">
-                                    <SimpleMarkdownText
-                                        text={datapageData.descriptionKey.trim()}
-                                    />
+                                    <TrackedProseLinks note="wysk_link">
+                                        <SimpleMarkdownText
+                                            text={datapageData.descriptionKey.trim()}
+                                        />
+                                    </TrackedProseLinks>
                                 </div>
                             )}
 
@@ -73,6 +79,12 @@ export default function AboutThisData({
                                             !!datapageData.source
                                                 ?.additionalInfo
                                         }
+                                        onToggle={(isOpen) =>
+                                            logExpandableToggle(
+                                                "producer_documentation",
+                                                isOpen
+                                            )
+                                        }
                                     />
                                 )}
                                 {datapageData.source?.additionalInfo && (
@@ -84,6 +96,17 @@ export default function AboutThisData({
                                                     text={datapageData.source?.additionalInfo.trim()}
                                                 />
                                             </div>
+                                        }
+                                        onToggle={(isOpen) =>
+                                            // Control-only: the metadata box
+                                            // drops this section, so it has no
+                                            // treatment counterpart. Tracked to
+                                            // show what control readers open
+                                            // instead.
+                                            logExpandableToggle(
+                                                "additional_information",
+                                                isOpen
+                                            )
                                         }
                                     />
                                 )}

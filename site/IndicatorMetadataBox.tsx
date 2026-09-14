@@ -31,19 +31,12 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faChevronDown, faChevronUp } from "@fortawesome/free-solid-svg-icons"
 import { splitDescriptionKey } from "./datapageUtils.js"
 import { SiteAnalytics } from "./SiteAnalytics.js"
+import TrackedProseLinks from "./TrackedProseLinks.js"
 import { ChartLicenseNotice } from "./ChartLicenseNotice.js"
 
-const analytics = new SiteAnalytics()
+import { logExpandableToggle } from "./metadataExperimentEvents.js"
 
-// Log expand/collapse of an ExpandableToggle in the metadata box. `target` is a
-// codified, English-language identifier (not the rendered label) so the event
-// isn't affected by browser/page translation.
-function logExpandableToggle(target: string, isOpen: boolean): void {
-    analytics.logSiteClick(
-        isOpen ? "expand_expandable_toggle" : "collapse_expandable_toggle",
-        target
-    )
-}
+const analytics = new SiteAnalytics()
 
 interface ExpandableSectionProps {
     datapageData: DataPageDataV2
@@ -147,9 +140,12 @@ function ExpandableSection({
     return (
         <div className={cx("meta-expander", className)}>
             {descriptionKeyPreview && (
-                <div className="meta-expander__preview meta-expander__prose">
+                <TrackedProseLinks
+                    note="wysk_link"
+                    className="meta-expander__preview meta-expander__prose"
+                >
                     <SimpleMarkdownText text={descriptionKeyPreview} />
-                </div>
+                </TrackedProseLinks>
             )}
             <details
                 className="meta-expander__details"
@@ -187,9 +183,12 @@ function ExpandableSection({
                     </span>
                 </summary>
                 {descriptionKeyRest && (
-                    <div className="meta-expander__remainder meta-expander__prose">
+                    <TrackedProseLinks
+                        note="wysk_link"
+                        className="meta-expander__remainder meta-expander__prose"
+                    >
                         <SimpleMarkdownText text={descriptionKeyRest} />
-                    </div>
+                    </TrackedProseLinks>
                 )}
                 {
                     <section className="meta-expander__section meta-expander__section--faqs">
@@ -268,6 +267,7 @@ function ExpandableSection({
                     </h2>
                     <IndicatorSources
                         sources={sourcesForDisplay}
+                        retrievedFromTrackNote="retrieved_from"
                         hideReuseThisWorkText
                         hideTeasers
                         onSourceToggle={(_source, index, isOpen) =>
