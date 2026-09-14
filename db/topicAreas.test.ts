@@ -38,25 +38,53 @@ describe(getBestTagHierarchy, () => {
         ).toEqual(preferred)
     })
 
-    it("chooses the path with the most clickable topics for both consumers", () => {
-        const names = ["Energy", "Migration", "Vaccination"]
-        expect(getTopicAreaNameForTagNames(names, hierarchies)).toBe("Health")
-        expect(
-            getBestBreadcrumbs(
-                names.map((name) => tag(name)),
-                hierarchies
-            ).map((crumb) => crumb.label)
-        ).toEqual(["Disease", "Vaccination"])
-    })
+    it.each([
+        ["Energy", "Migration", "Vaccination"],
+        ["Vaccination", "Migration", "Energy"],
+    ])(
+        "prefers more clickable topics over a lower leaf id: %s, %s, %s",
+        (...names) => {
+            expect(getTopicAreaNameForTagNames(names, hierarchies)).toBe(
+                "Health"
+            )
+            expect(
+                getBestBreadcrumbs(
+                    names.map((name) => tag(name)),
+                    hierarchies
+                ).map((crumb) => crumb.label)
+            ).toEqual(["Disease", "Vaccination"])
+        }
+    )
 
-    it("retains input order when paths have the same clickable length", () => {
-        expect(
-            getTopicAreaNameForTagNames(["Energy", "Migration"], hierarchies)
-        ).toBe("Energy")
-        expect(
-            getTopicAreaNameForTagNames(["Migration", "Energy"], hierarchies)
-        ).toBe("Population")
-    })
+    it.each([
+        ["Energy", "Migration"],
+        ["Migration", "Energy"],
+    ])(
+        "breaks ties by leaf id regardless of input order: %s, %s",
+        (...names) => {
+            const tiedHierarchies = {
+                Energy: [[{ ...tag("Energy"), id: 20 }]],
+                Migration: [
+                    [
+                        { ...tag("Population", null), id: 30 },
+                        { ...tag("Migration"), id: 10 },
+                    ],
+                ],
+            }
+            expect(getBestTagHierarchy(names, tiedHierarchies)).toEqual(
+                tiedHierarchies.Migration[0]
+            )
+            expect(getTopicAreaNameForTagNames(names, tiedHierarchies)).toBe(
+                "Population"
+            )
+            expect(
+                getBestBreadcrumbs(
+                    names.map((name) => tag(name)),
+                    tiedHierarchies
+                ).map((crumb) => crumb.label)
+            ).toEqual(["Migration"])
+        }
+    )
 
     it("skips unmapped tags and handles empty input", () => {
         expect(
