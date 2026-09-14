@@ -927,25 +927,23 @@ export class SiteBaker {
             `${this.bakedSiteDir}${SEARCH_BASE_PATH}.html`,
             () => renderSearchPage(knex)
         )
-        await this.stageWrite(
-            `${this.bakedSiteDir}/explorers.html`,
-            await renderExplorerIndexPage(knex)
+        await this.bakeSpecialPage(`${this.bakedSiteDir}/explorers.html`, () =>
+            renderExplorerIndexPage(knex)
         )
-        await this.stageWrite(
-            `${this.bakedSiteDir}/subscribe.html`,
-            await renderSubscribePage(knex)
+        await this.bakeSpecialPage(`${this.bakedSiteDir}/subscribe.html`, () =>
+            renderSubscribePage(knex)
         )
         // The magic-link preferences page is only linked from emails the new
         // notifications system sends, so it only exists behind the flag.
         if (FEATURE_FLAGS.has(Features.EmailNotifications)) {
-            await this.stageWrite(
+            await this.bakeSpecialPage(
                 `${this.bakedSiteDir}/preferences.html`,
-                await renderEmailNotificationsPreferencesPage(knex)
+                () => renderEmailNotificationsPreferencesPage(knex)
             )
         }
-        await this.stageWrite(
+        await this.bakeSpecialPage(
             `${this.bakedSiteDir}/collection/custom.html`,
-            renderDynamicCollectionPage()
+            () => renderDynamicCollectionPage()
         )
         await this.bakeSpecialPage(
             `${this.bakedSiteDir}/collection/top-charts.html`,
