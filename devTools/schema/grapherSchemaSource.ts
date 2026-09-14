@@ -84,12 +84,20 @@ export function assertSchemaNamesVersion(
         )
 }
 
+/** The revision a document declares in its `$id` */
+export function findDeclaredSchemaRevision(
+    schema: JSONSchema7
+): number | undefined {
+    const revision = schema.$id?.match(schemaIdPattern)?.groups?.revision
+    return revision === undefined ? undefined : Number(revision)
+}
+
 /** The revision the document declares in its `$id`, which names the file it publishes under */
 export function getDeclaredSchemaRevision(schema: JSONSchema7): number {
-    const revision = schema.$id?.match(schemaIdPattern)?.groups?.revision
+    const revision = findDeclaredSchemaRevision(schema)
     if (revision === undefined)
         throw new Error(
             `Expected $id to name a two-digit revision, got ${JSON.stringify(schema.$id)}`
         )
-    return Number(revision)
+    return revision
 }
