@@ -2,6 +2,7 @@ import { SENTRY_ADMIN_DSN } from "../settings/clientSettings.mjs"
 import * as Sentry from "@sentry/node"
 import { nodeProfilingIntegration } from "@sentry/profiling-node"
 import { openAIIntegration } from "@sentry/node"
+import { sampleServerTrace } from "./sentryTracing.js"
 
 if (!process.env.VITEST) {
     // Ensure to call this before importing any other modules!
@@ -17,9 +18,9 @@ if (!process.env.VITEST) {
             // "automatic chart tagging".
             openAIIntegration(),
         ],
-        tracesSampleRate: 0.1,
-        profileLifecycle: "trace", // only profile requests that are traced
-        profileSessionSampleRate: 1.0, // This is relative to tracesSampleRate
+        tracesSampler: sampleServerTrace,
+        profileLifecycle: "trace", // profile only while sampled root spans are active
+        profileSessionSampleRate: 1.0, // sample every process session, equally in staging and production
         environment: process.env.ENV,
         release: process.env.COMMIT_SHA,
     })

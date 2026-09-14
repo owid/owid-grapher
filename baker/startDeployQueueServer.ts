@@ -29,6 +29,7 @@ const main = async () => {
     // Poll for changes every 5 seconds
     while (true) {
         try {
+            // This can run a full bake. Individual pages own their traces.
             await runDeployIfQueueIsNotEmpty()
         } catch (error) {
             await logErrorAndMaybeCaptureInSentry(error)
