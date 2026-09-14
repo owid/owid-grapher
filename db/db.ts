@@ -627,10 +627,17 @@ export async function getFlatTagGraph(knex: KnexReadonlyTransaction): Promise<
     return { ...tagGraphByParentId, __rootId: tagGraphRootIdResult.id }
 }
 
-// DFS through the tag graph and track all paths from a child to the root
-// e.g. { "childTag": [ [parentTag1, parentTag2, childTag], [parentTag3, childTag] ] }
-// Use with getUniqueNamesFromTopicHierarchies to collapse all paths to the child into
-// a single array of unique parent tag names, including the original tags if they are topics.
+/**
+ * Collect every root-to-tag path, excluding the root and including the tag.
+ * Paths are appended in depth-first traversal order. getFlatTagGraph orders
+ * siblings by edge weight DESC, then name ASC; a supplied graph's order is kept.
+ * Paths are not sorted by length or total weight.
+ *
+ * includeAreasAndTopicsOnly retains top-level areas, tags with published topic
+ * pages, and tags marked searchableInAlgolia. This can remove the tag itself.
+ * Empty paths are omitted. Use getUniqueNamesFromTagHierarchies to collect names
+ * from all paths instead of selecting one.
+ */
 export async function getTagHierarchiesByChildName(
     trx: KnexReadonlyTransaction,
     includeAreasAndTopicsOnly: boolean = false,
@@ -690,6 +697,7 @@ export async function getTagHierarchiesByChildName(
     return pathsByChildName
 }
 
+/** All paths with only areas and topics retained, still keyed by the original tag. */
 export const getTopicHierarchiesByChildName = (
     trx: KnexReadonlyTransaction,
     flatTagGraphWithRootId?: FlatTagGraph & { __rootId: number }
@@ -703,13 +711,12 @@ export type TagHierarchiesByChildName = Record<
 >
 
 /**
- * Given multiple tags, find the best tag hierarchy (i.e. the one with the most topic tags)
- * e.g.
- * Energy & Environment > Air Pollution > Indoor Air Pollution
- * is better than
- * Health > Indoor Air Pollution
- * This is because we use these tags to power breadcrumbs, where more specific is better.
- * Thus other usecases (e.g. a page's topic area) need to use the same logic.
+ * Expects unfiltered paths from getTagHierarchiesByChildName, ending in each tag.
+ * Consider only the first path for each tag (in graph traversal order), then
+ * choose the one with the most tags that have slugs (clickable breadcrumbs).
+ * Break ties by the lowest leaf tag id so input tag order cannot change the
+ * result. Skip missing or empty paths; return [] if none remain.
+ * Breadcrumbs and a page's topic area share this selection logic.
  */
 export function getBestTagHierarchy(
     tagNames: string[],
@@ -717,18 +724,25 @@ export function getBestTagHierarchy(
 ): Pick<DbPlainTag, "id" | "name" | "slug">[] {
     let bestPath: Pick<DbPlainTag, "id" | "name" | "slug">[] = []
     let bestTopicCount = -1
+    let bestLeafTagId = Infinity
     for (const name of tagNames) {
         const path = hierarchies[name]?.[0]
         if (!path?.length) continue
         const topicCount = path.filter((tag) => tag.slug).length
-        if (topicCount > bestTopicCount) {
+        const leafTagId = path[path.length - 1].id
+        if (
+            topicCount > bestTopicCount ||
+            (topicCount === bestTopicCount && leafTagId < bestLeafTagId)
+        ) {
             bestPath = path
             bestTopicCount = topicCount
+            bestLeafTagId = leafTagId
         }
     }
     return bestPath
 }
 
+/** The selected path's top-level area, even without a slug; undefined if no path exists. */
 export function getTopicAreaNameForTagNames(
     tagNames: string[],
     hierarchies: TagHierarchiesByChildName
@@ -753,8 +767,8 @@ export interface TopicAreaAssignments {
 }
 
 /**
- * Everything needed to resolve a page's topic area, resolved once per bake
- * and handed to the workers. Omit `chartIds` to cover every chart.
+ * Load hierarchies and chart areas for reuse across a bake or for a single-page
+ * render. Omit `chartIds` to cover every chart; [] loads only the hierarchies.
  */
 export async function getTopicAreaAssignments(
     trx: KnexReadonlyTransaction,
@@ -769,7 +783,11 @@ export async function getTopicAreaAssignments(
     return { tagHierarchiesByChildName, byChartId }
 }
 
-/** Resolve from the first y indicator's tags, falling back to chart tags. */
+/**
+ * Rank all tags of the first y indicator (by dimension order, then dimension id).
+ * If none resolves to an area, rank the chart's own tags; do not try later y
+ * indicators. Both groups use getBestTagHierarchy's specificity and leaf-id rule.
+ */
 export async function getTopicAreaNamesByChartId(
     trx: KnexReadonlyTransaction,
     hierarchies: TagHierarchiesByChildName,
@@ -827,6 +845,7 @@ export async function getTopicAreaNamesByChartId(
     return areaNamesByChartId
 }
 
+/** Turn the selected hierarchy's tags with slugs into breadcrumb links. */
 export function getBestBreadcrumbs(
     tags: MinimalTag[],
     parentTagArraysByChildName: Record<
