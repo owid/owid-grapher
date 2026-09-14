@@ -10,8 +10,9 @@ import {
     ingestGrapherConfig,
 } from "./grapherConfigValidation.js"
 
-function schemaUrlForVersion(version: string): string {
-    return `https://files.ourworldindata.org/schemas/grapher-schema.${version}.json`
+function schemaUrlForVersion(version: string, revision?: string): string {
+    const suffix = revision === undefined ? "" : `.${revision}`
+    return `https://files.ourworldindata.org/schemas/grapher-schema.${version}${suffix}.json`
 }
 
 const baseChartConfig: UntypedGrapherConfig = {
@@ -43,10 +44,23 @@ describe(ingestGrapherConfig, () => {
 
         const migrated = ingestGrapherConfig(config)
 
-        expect(migrated.$schema).toBe(schemaUrlForVersion(latestSchemaVersion))
+        expect(migrated.$schema).toBe(defaultGrapherConfig.$schema)
         expect(migrated.dimensions?.[0].display).toStrictEqual({
             timeInterval: "day",
         })
+    })
+
+    it("stamps a config with the schema document it was written against", () => {
+        for (const $schema of [
+            schemaUrlForVersion(latestSchemaVersion),
+            schemaUrlForVersion(latestSchemaVersion, "07"),
+        ]) {
+            const ingested = ingestGrapherConfig({
+                ...baseChartConfig,
+                $schema,
+            })
+            expect(ingested.$schema).toBe(defaultGrapherConfig.$schema)
+        }
     })
 
     it("rejects a config whose shape breaks its own migration", () => {
