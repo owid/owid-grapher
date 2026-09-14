@@ -1,3 +1,4 @@
+import { traceJob } from "../serverUtils/sentryTracing.js"
 import * as _ from "lodash-es"
 import * as R from "remeda"
 import fs from "fs-extra"
@@ -397,16 +398,24 @@ export const bakeAllMultiDimDataPages = async (
     bakedSiteDir: string,
     imageMetadata: Record<string, ImageMetadata>
 ) => {
-    const multiDimsBySlug = await getAllPublishedMultiDimDataPagesBySlug(knex)
+    const { multiDimsBySlug, archivedVersions } = await traceJob(
+        "prepare-multidim-pages",
+        async () => {
+            const multiDimsBySlug =
+                await getAllPublishedMultiDimDataPagesBySlug(knex)
 
-    // Fetch archived versions for all multi-dim pages
-    const multiDimIds = multiDimsBySlug
-        .values()
-        .map((row) => row.id)
-        .toArray()
-    const archivedVersions = await getLatestMultiDimArchivedVersionsIfEnabled(
-        knex,
-        multiDimIds
+            // Fetch archived versions for all multi-dim pages
+            const multiDimIds = multiDimsBySlug
+                .values()
+                .map((row) => row.id)
+                .toArray()
+            const archivedVersions =
+                await getLatestMultiDimArchivedVersionsIfEnabled(
+                    knex,
+                    multiDimIds
+                )
+            return { multiDimsBySlug, archivedVersions }
+        }
     )
 
     const progressBar = new ProgressBar(
@@ -429,22 +438,29 @@ export const bakeAllMultiDimDataPages = async (
     )
 
     for (const [slug, row] of multiDimsBySlug.entries()) {
-        await bakeMultiDimDataPage(
-            knex,
-            bakedSiteDir,
-            slug,
-            row.config,
-            imageMetadata,
-            archivedVersions[row.id]
+        await traceJob(
+            "bake-multidim-page",
+            async () => {
+                await bakeMultiDimDataPage(
+                    knex,
+                    bakedSiteDir,
+                    slug,
+                    row.config,
+                    imageMetadata,
+                    archivedVersions[row.id]
+                )
+                progressBar.tick({ name: slug })
+            },
+            { "page.slug": slug }
         )
-        progressBar.tick({ name: slug })
     }
-
-    const publishedSlugs = multiDimsBySlug.keys()
-    const chartSlugs = await getAllPublishedChartSlugs(knex)
-    const newSlugs = [...publishedSlugs, ...chartSlugs]
-    await deleteOldGraphers(bakedSiteDir, newSlugs)
-    progressBar.tick({ name: `✅ Deleted old multi-dim pages` })
+    await traceJob("cleanup-multidim-pages", async () => {
+        const publishedSlugs = multiDimsBySlug.keys()
+        const chartSlugs = await getAllPublishedChartSlugs(knex)
+        const newSlugs = [...publishedSlugs, ...chartSlugs]
+        await deleteOldGraphers(bakedSiteDir, newSlugs)
+        progressBar.tick({ name: `✅ Deleted old multi-dim pages` })
+    })
 }
 
 // Function to bake a single multi-dim data page for archival
