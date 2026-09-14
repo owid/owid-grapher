@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest"
 import {
     type UntypedGrapherConfig,
     defaultGrapherConfig,
+    latestSchemaVersion,
 } from "@ourworldindata/grapher"
 import {
     assertValidGrapherConfig,
@@ -42,7 +43,7 @@ describe(ingestGrapherConfig, () => {
 
         const migrated = ingestGrapherConfig(config)
 
-        expect(migrated.$schema).toBe(defaultGrapherConfig.$schema)
+        expect(migrated.$schema).toBe(schemaUrlForVersion(latestSchemaVersion))
         expect(migrated.dimensions?.[0].display).toStrictEqual({
             timeInterval: "day",
         })

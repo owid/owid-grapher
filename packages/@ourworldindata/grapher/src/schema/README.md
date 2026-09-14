@@ -23,10 +23,11 @@ passed it on the way in.
 
 In one commit:
 
-- Rename `grapher-schema.NNN.yaml` to `grapher-schema.MMM.yaml` and change the URL in its
-  `$id`, and the version in the `$schema` property's `pattern`. The property's `default` is a
-  YAML alias of `$id`, and `yarn buildGrapherSchema` refuses to build unless the file name,
-  the `$id` and the `pattern` all name the same version.
+- Rename `grapher-schema.NNN.yaml` to `grapher-schema.MMM.yaml`, change the version in its
+  `$id` and reset the revision there to `00`, and change the version in the `$schema`
+  property's `pattern`. The property's `default` is a YAML alias of `$id`, and
+  `yarn buildGrapherSchema` refuses to build unless the file name, the `$id` and the
+  `pattern` all name the same version.
 - Update the version in the docs that name it: `packageDocs/docs/chart-config/index.md` and
   `docs/chart-api.openapi.yaml`.
 - Add `migrateFromNNNToMMM` to `migrations/migrations.ts` and its `"NNN"` entry in
@@ -50,12 +51,24 @@ After merging:
   `owid-public` bucket on Cloudflare R2, with a `.latest` alias.
   `files.ourworldindata.org/schemas/` serves that bucket. The sync never deletes, so every
   version ever published keeps resolving. Besides the mutable name and the `.latest` alias,
-  every published edit also lands under an immutable, revisioned name. The workflow assigns
-  that revision by comparing the document it just built against the highest revision already
-  in the bucket: unchanged keeps the existing revision, changed mints the next one. This is
-  the name the ETL pins in `DEFAULT_GRAPHER_SCHEMA`.
+  every published edit also lands under the revisioned name its `$id` declares, which is the
+  name the ETL pins in `DEFAULT_GRAPHER_SCHEMA`.
 - Once this repo has deployed, merge the sibling ETL PR. Never before, since the ETL pushes
   configs stamped with that version.
+
+## Editing without bumping
+
+Every edit that changes the built JSON — a new field, a widened enum, a reworded description —
+must move the revision in `$id`. Consumers pin that name and expect the document behind it not
+to change, and forgetting to move it republishes a different document under a name someone
+has pinned. The revision is two digits, it is an ordinal rather than a fraction, and it resets
+to `00` at a bump.
+
+The revision says which document a config was written against, not what that config contains.
+A config stamped `011.04` was last written while `011.04` was current; it says nothing about
+which fields the config uses. So a reader must not turn `config.revision > build.revision` into
+a warning — that comparison is a timestamp in disguise, and it fires on almost every config an
+even slightly old build sees.
 
 ## Writing a migration step
 
@@ -73,11 +86,9 @@ After merging:
 changes. CI runs it on every push that touches this folder and commits the result.
 
 The JSON form of the schema is not committed anywhere. `--publish-dir <dir>` writes it to
-`<dir>`, and `--latest` adds a `.latest` alias there. `--published-dir <dir>` names a local
-directory mirroring what the bucket already holds; when given, the script also decides and
-writes the revisioned file into `--publish-dir`. The R2 workflow fills `--published-dir` with
-`aws s3 sync` before calling this script, and syncs `--publish-dir` up to the bucket
-afterwards.
+`<dir>` under both the mutable name and the revisioned name its `$id` declares, and `--latest`
+adds a `.latest` alias there. All three are byte-identical. The R2 workflow syncs that
+directory up to the bucket.
 
 ```bash
 yarn buildGrapherSchema
@@ -86,6 +97,7 @@ yarn buildGrapherSchema
 ## File names
 
 `grapher-schema.<version>.json` is the mutable name; publishing overwrites it in place.
-`grapher-schema.<version>.<revision>.json` is immutable; once published it is never
-overwritten. `grapher-schema.latest.json` aliases the mutable name of whichever version is
-newest. `<version>` is zero-padded to three digits, `<revision>` to two.
+`grapher-schema.<version>.<revision>.json` is what consumers pin, so it has to stay the
+document it was when they pinned it — nothing enforces that, it follows from moving the
+revision on every edit. `grapher-schema.latest.json` aliases the mutable name of whichever
+version is newest. `<version>` is zero-padded to three digits, `<revision>` to two.
