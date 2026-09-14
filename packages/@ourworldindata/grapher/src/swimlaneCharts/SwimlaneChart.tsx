@@ -33,7 +33,7 @@ import {
     TICK_LABEL_OVERFLOW_PADDING,
 } from "./SwimlaneChartConstants"
 import { SwimlaneChartState } from "./SwimlaneChartState"
-import { placeSwimlaneLanes } from "./swimlanePlacement"
+import { toPlacedSwimlaneSeries } from "./SwimlaneChartHelpers"
 import { SwimlaneLane } from "./SwimlaneLane"
 
 export type SwimlaneChartProps = ChartComponentProps<SwimlaneChartState>
@@ -106,7 +106,8 @@ export class SwimlaneChart
         return Math.max(...labelWidths)
     }
 
-    @computed private get boundsWithoutEntityLabels(): Bounds {
+    /** Bounds minus the entity labels; also this chart's `AxisManager` contribution */
+    @computed get axisBounds(): Bounds {
         return this.bounds.padLeft(
             this.entityLabelMaxWidth + ENTITY_LABEL_CHART_GAP
         )
@@ -114,18 +115,18 @@ export class SwimlaneChart
 
     @computed get xAxis(): HorizontalAxis {
         const axis = this.chartState.toHorizontalAxis(this.xAxisConfig)
-        axis.range = this.boundsWithoutEntityLabels.xRange()
+        axis.range = this.axisBounds.xRange()
         return axis
     }
 
-    @computed private get plotBounds(): Bounds {
-        return this.boundsWithoutEntityLabels.padBottom(this.xAxis.height)
+    @computed private get innerBounds(): Bounds {
+        return this.axisBounds.padBottom(this.xAxis.height)
     }
 
     @computed private get placedSeries(): PlacedSwimlaneSeries[] {
-        return placeSwimlaneLanes({
+        return toPlacedSwimlaneSeries({
             series: this.sizedSeries,
-            bounds: this.plotBounds,
+            bounds: this.innerBounds,
             placeTime: (time) => this.xAxis.place(time),
         })
     }
@@ -151,10 +152,10 @@ export class SwimlaneChart
                     axis={this.xAxis}
                     tickColor={GRAPHER_LIGHT_TEXT}
                     showTickMarks={true}
-                    preferredAxisPosition={this.plotBounds.bottom}
+                    preferredAxisPosition={this.innerBounds.bottom}
                 />
                 <HorizontalAxisDomainLine
-                    bounds={this.plotBounds}
+                    bounds={this.innerBounds}
                     stroke={SOLID_TICK_COLOR}
                 />
                 <g id={makeFigmaId("lanes")}>

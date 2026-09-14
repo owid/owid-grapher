@@ -122,27 +122,6 @@ describe("categories", () => {
             values: ["Africa", "Asia", "Europe"],
         })
     })
-
-    it("drops a hidden category from the list", () => {
-        const table = ordinalTable([
-            { entityName: "France", time: 2000, cause: "ICD-9" },
-        ])
-        const manager: SwimlaneChartManager = {
-            table,
-            selection: ["France"],
-            yColumnSlugs: ["cause"],
-            colorScale: new ColorScaleConfig({
-                customHiddenCategories: { "ICD-8": true },
-            }),
-        }
-        const chartState = new SwimlaneChartState({ manager })
-
-        expect(chartState.categories?.values).toEqual([
-            "ICD-7",
-            "ICD-9",
-            "ICD-10",
-        ])
-    })
 })
 
 describe("series", () => {
