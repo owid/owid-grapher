@@ -5,6 +5,7 @@ import * as path from "node:path"
 import { parseArgs } from "node:util"
 import { parse } from "yaml"
 import type { JSONSchema7 } from "json-schema"
+import { formatGrapherSchemaFileName } from "@ourworldindata/utils"
 import {
     REPO_ROOT,
     SCHEMA_DIR,
@@ -14,7 +15,6 @@ import {
 } from "./grapherSchemaSource.js"
 import {
     generateDefaultConfig,
-    formatSchemaFileName,
     renderDefaultConfigFile,
     serializeJson,
 } from "./grapherSchemaArtefacts.js"
@@ -56,14 +56,14 @@ async function main(): Promise<void> {
 
     if (publishDir) {
         const schemaJson = serializeJson(schema)
-        const revisionedFileName = formatSchemaFileName(
+        const revisionedFileName = formatGrapherSchemaFileName(
             version,
             getDeclaredSchemaRevision(schema)
         )
         const publishedFileNames = [
-            formatSchemaFileName(version),
+            formatGrapherSchemaFileName(version),
             revisionedFileName,
-            ...(withLatestAlias ? [formatSchemaFileName("latest")] : []),
+            ...(withLatestAlias ? [formatGrapherSchemaFileName("latest")] : []),
         ]
         await fs.mkdir(publishDir, { recursive: true })
         for (const fileName of publishedFileNames)

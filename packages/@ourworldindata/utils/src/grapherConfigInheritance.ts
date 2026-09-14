@@ -7,6 +7,7 @@ import {
     traverseObjects,
     merge,
 } from "./Util"
+import { parseGrapherSchemaName } from "./grapherSchemaName.js"
 import * as Sentry from "@sentry/browser"
 
 // Identity and publishing keys. These are never inherited from a parent
@@ -46,7 +47,11 @@ export function mergeGrapherConfigs(
     const uniqueSchemas = _.uniq(
         excludeUndefined(configsToMerge.map((c) => c["$schema"]))
     )
-    const uniqueVersions = _.uniq(uniqueSchemas.map(dropSchemaRevision))
+    const uniqueVersions = _.uniq(
+        uniqueSchemas.map(
+            (schema) => parseGrapherSchemaName(schema)?.version ?? schema
+        )
+    )
     if (uniqueVersions.length > 1) {
         const message = `Merging Grapher configs with different schema versions. This may lead to unexpected behavior. Found: ${uniqueSchemas.join(
             ", "
@@ -85,9 +90,4 @@ export function diffGrapherConfigs(
     )
 
     return { ...diffed, ...keep }
-}
-
-/** A schema url with any revision segment removed, leaving the version it names */
-function dropSchemaRevision(schema: string): string {
-    return schema.replace(/\.\d{2}(?=\.json$)/, "")
 }

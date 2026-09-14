@@ -10,7 +10,11 @@ import {
     GrapherInterface,
 } from "@ourworldindata/types"
 import { latestGrapherConfigSchema } from "@ourworldindata/grapher"
-import { mergeGrapherConfigs, omitUndefinedValues } from "@ourworldindata/utils"
+import {
+    formatGrapherSchemaUrl,
+    mergeGrapherConfigs,
+    omitUndefinedValues,
+} from "@ourworldindata/utils"
 import { v7 as uuidv7 } from "uuid"
 import { GrapherConfigPatch } from "../../adminShared/AdminSessionTypes.js"
 import {
@@ -32,7 +36,7 @@ async function etlConfigPath(chartId: number): Promise<string> {
 }
 
 const outdatedConfigFields = {
-    $schema: "https://files.ourworldindata.org/schemas/grapher-schema.009.json",
+    $schema: formatGrapherSchemaUrl("009"),
     hideLegend: true,
 }
 

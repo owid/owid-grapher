@@ -11,13 +11,11 @@ import {
     mergeGrapherConfigs,
     diffGrapherConfigs,
 } from "./grapherConfigInheritance.js"
+import { formatGrapherSchemaUrl } from "./grapherSchemaName.js"
 
-const SCHEMA_URL =
-    "https://files.ourworldindata.org/schemas/grapher-schema.011.json"
-const OUTDATED_SCHEMA_URL =
-    "https://files.ourworldindata.org/schemas/grapher-schema.010.json"
-const REVISIONED_SCHEMA_URL =
-    "https://files.ourworldindata.org/schemas/grapher-schema.011.04.json"
+const SCHEMA_URL = formatGrapherSchemaUrl("011")
+const OUTDATED_SCHEMA_URL = formatGrapherSchemaUrl("010")
+const REVISIONED_SCHEMA_URL = formatGrapherSchemaUrl("011", 4)
 
 describe(mergeGrapherConfigs, () => {
     it("merges empty configs", () => {
