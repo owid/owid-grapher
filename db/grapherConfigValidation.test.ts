@@ -17,8 +17,9 @@ import {
 const latestSchemaUrl = defaultGrapherConfig.$schema
 const foreignSchemaUrl = `https://example.org/schemas/grapher-schema.${latestSchemaVersion}.json`
 
-function schemaUrlForVersion(version: string): string {
-    return `https://files.ourworldindata.org/schemas/grapher-schema.${version}.json`
+function schemaUrlForVersion(version: string, revision?: string): string {
+    const suffix = revision === undefined ? "" : `.${revision}`
+    return `https://files.ourworldindata.org/schemas/grapher-schema.${version}${suffix}.json`
 }
 
 const baseChartConfig: UntypedGrapherConfig = {
@@ -135,10 +136,22 @@ describe(tryIngestGrapherConfig, () => {
         expect(expectRejected(config)).toEqual(issues)
     })
 
-    it("accepts a config at the latest version", () => {
-        const config = expectAccepted(baseChartConfig)
-        expect(config.$schema).toBe(latestSchemaUrl)
-    })
+    it.each([
+        {
+            name: "the latest version without a revision",
+            $schema: schemaUrlForVersion(latestSchemaVersion),
+        },
+        {
+            name: "the latest version at any revision",
+            $schema: schemaUrlForVersion(latestSchemaVersion, "07"),
+        },
+    ])(
+        "accepts $name, stamping it with this build's revision",
+        ({ $schema }) => {
+            const config = expectAccepted({ ...baseChartConfig, $schema })
+            expect(config.$schema).toBe(latestSchemaUrl)
+        }
+    )
 
     it("migrates an outdated config before validating it", () => {
         const config = expectAccepted({
@@ -149,7 +162,7 @@ describe(tryIngestGrapherConfig, () => {
             ],
         })
 
-        expect(config.$schema).toBe(schemaUrlForVersion(latestSchemaVersion))
+        expect(config.$schema).toBe(latestSchemaUrl)
         expect(config.dimensions?.[0].display).toStrictEqual({
             timeInterval: "day",
         })

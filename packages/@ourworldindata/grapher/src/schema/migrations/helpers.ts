@@ -21,7 +21,7 @@ export type MigratableConfig = UntypedGrapherConfig & {
 }
 
 const schemaUrlRegex =
-    /https:\/\/files\.ourworldindata\.org\/schemas\/grapher-schema\.(?<version>\d{3})(?:\.(?<revision>\d{2}))?\.json/m
+    /https:\/\/files\.ourworldindata\.org\/schemas\/grapher-schema\.(?<version>\d{3})(?:\.\d{2})?\.json/m
 
 const isValidSchemaVersion = (version: string): version is SchemaVersion =>
     allSchemaVersions.includes(version as any)
@@ -37,15 +37,6 @@ export function getSchemaVersion(
     const version = config.$schema.match(schemaUrlRegex)?.groups?.version
     if (!version || !isValidSchemaVersion(version)) return null
     return version
-}
-
-/** The revision of the schema document a config was written against, or undefined if its url names none */
-export function getSchemaRevision(
-    config: UntypedGrapherConfig
-): number | undefined {
-    if (typeof config.$schema !== "string") return undefined
-    const revision = config.$schema.match(schemaUrlRegex)?.groups?.revision
-    return revision === undefined ? undefined : Number(revision)
 }
 
 export function createSchemaForVersion(
