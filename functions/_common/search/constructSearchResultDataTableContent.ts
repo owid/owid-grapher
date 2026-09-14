@@ -58,72 +58,75 @@ export function constructSearchResultDataTableContent(
 
     if (!chartState) return undefined
 
-    return match(props.grapherState.activeTab)
-        .with(GRAPHER_TAB_NAMES.LineChart, () =>
-            buildDataTableContentForLineChart({
-                ...props,
-                chartState: chartState as LineChartState,
-            })
-        )
-        .with(GRAPHER_TAB_NAMES.DiscreteBar, () =>
-            buildDataTableContentForDiscreteBarChart({
-                ...props,
-                chartState: chartState as DiscreteBarChartState,
-            })
-        )
-        .with(GRAPHER_TAB_NAMES.ScatterPlot, () =>
-            buildDataTableContentForScatterPlot({
-                ...props,
-                chartState: chartState as ScatterPlotChartState,
-            })
-        )
-        .with(GRAPHER_TAB_NAMES.StackedArea, () =>
-            buildDataTableContentForStackedAreaAndBarChart({
-                ...props,
-                chartState: chartState as StackedAreaChartState,
-            })
-        )
-        .with(GRAPHER_TAB_NAMES.StackedDiscreteBar, () =>
-            buildDataTableContentForStackedDiscreteBarChart({
-                ...props,
-                chartState: chartState as StackedDiscreteBarChartState,
-            })
-        )
-        .with(GRAPHER_TAB_NAMES.SlopeChart, () =>
-            buildDataTableContentForSlopeChart({
-                ...props,
-                chartState: chartState as SlopeChartState,
-            })
-        )
-        .with(GRAPHER_TAB_NAMES.StackedBar, () =>
-            buildDataTableContentForStackedAreaAndBarChart({
-                ...props,
-                chartState: chartState as StackedBarChartState,
-            })
-        )
-        .with(GRAPHER_TAB_NAMES.Marimekko, () =>
-            buildDataTableContentForMarimekkoChart({
-                ...props,
-                chartState: chartState as MarimekkoChartState,
-            })
-        )
-        .with(GRAPHER_TAB_NAMES.Dumbbell, () =>
-            buildDataTableContentForDumbbellChart({
-                ...props,
-                chartState: chartState as DumbbellChartState,
-            })
-        )
-        .with(GRAPHER_TAB_NAMES.Swimlane, () => undefined)
-        .with(GRAPHER_TAB_NAMES.WorldMap, () =>
-            buildDataTableContentForWorldMap({
-                ...props,
-                chartState: chartState as MapChartState,
-            })
-        )
-        .with(GRAPHER_TAB_NAMES.Table, () =>
-            buildDataTableContentForTableTab(props)
-        )
-        .exhaustive()
+    return (
+        match(props.grapherState.activeTab)
+            .with(GRAPHER_TAB_NAMES.LineChart, () =>
+                buildDataTableContentForLineChart({
+                    ...props,
+                    chartState: chartState as LineChartState,
+                })
+            )
+            .with(GRAPHER_TAB_NAMES.DiscreteBar, () =>
+                buildDataTableContentForDiscreteBarChart({
+                    ...props,
+                    chartState: chartState as DiscreteBarChartState,
+                })
+            )
+            .with(GRAPHER_TAB_NAMES.ScatterPlot, () =>
+                buildDataTableContentForScatterPlot({
+                    ...props,
+                    chartState: chartState as ScatterPlotChartState,
+                })
+            )
+            .with(GRAPHER_TAB_NAMES.StackedArea, () =>
+                buildDataTableContentForStackedAreaAndBarChart({
+                    ...props,
+                    chartState: chartState as StackedAreaChartState,
+                })
+            )
+            .with(GRAPHER_TAB_NAMES.StackedDiscreteBar, () =>
+                buildDataTableContentForStackedDiscreteBarChart({
+                    ...props,
+                    chartState: chartState as StackedDiscreteBarChartState,
+                })
+            )
+            .with(GRAPHER_TAB_NAMES.SlopeChart, () =>
+                buildDataTableContentForSlopeChart({
+                    ...props,
+                    chartState: chartState as SlopeChartState,
+                })
+            )
+            .with(GRAPHER_TAB_NAMES.StackedBar, () =>
+                buildDataTableContentForStackedAreaAndBarChart({
+                    ...props,
+                    chartState: chartState as StackedBarChartState,
+                })
+            )
+            .with(GRAPHER_TAB_NAMES.Marimekko, () =>
+                buildDataTableContentForMarimekkoChart({
+                    ...props,
+                    chartState: chartState as MarimekkoChartState,
+                })
+            )
+            .with(GRAPHER_TAB_NAMES.Dumbbell, () =>
+                buildDataTableContentForDumbbellChart({
+                    ...props,
+                    chartState: chartState as DumbbellChartState,
+                })
+            )
+            // TODO: build the data table for swimlane charts
+            .with(GRAPHER_TAB_NAMES.Swimlane, () => undefined)
+            .with(GRAPHER_TAB_NAMES.WorldMap, () =>
+                buildDataTableContentForWorldMap({
+                    ...props,
+                    chartState: chartState as MapChartState,
+                })
+            )
+            .with(GRAPHER_TAB_NAMES.Table, () =>
+                buildDataTableContentForTableTab(props)
+            )
+            .exhaustive()
+    )
 }
 
 function buildDataTableContentForLineChart({
