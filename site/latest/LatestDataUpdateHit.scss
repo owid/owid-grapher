@@ -79,6 +79,10 @@
     margin-bottom: 8px;
 }
 
+.latest-data-update-hit__copy-link {
+    margin-top: 16px;
+}
+
 .latest-data-update-hit__blocks {
     @include text-block-override {
         @include body-3-medium;
