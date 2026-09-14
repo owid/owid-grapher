@@ -44,7 +44,9 @@ import {
     OwidVariableId,
     OwidChartDimensionInterface,
     areSetsEqual,
+    formatInlineList,
 } from "@ourworldindata/utils"
+import { CoreColumn } from "@ourworldindata/core-table"
 import { Section, TextField } from "./Forms.js"
 import { VariableSelector } from "./VariableSelector.js"
 import { DimensionCard } from "./DimensionCard.js"
@@ -64,6 +66,7 @@ import {
     isNarrativeChartEditorInstance,
 } from "./NarrativeChartEditor.js"
 import * as R from "remeda"
+import { match } from "ts-pattern"
 import { SortableList } from "./SortableList.js"
 import { CodeSnippet, GrapherTabIcon } from "@ourworldindata/components"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -336,6 +339,33 @@ export class DimensionSlotView<
         return this.props.slot.dimensions.length > 1
     }
 
+    @computed get negativeValueWarning(): NegativeValueWarning | undefined {
+        const { slot } = this.props
+        const { grapherState } = this
+        if (slot.property !== DimensionProperty.y) return undefined
+        if (!grapherState.chartTypes.includes(GRAPHER_CHART_TYPES.StackedArea))
+            return undefined
+
+        let table = grapherState.table
+
+        // Disabling entity selection pins the chart to its selected entities
+        if (grapherState.addCountryMode === EntitySelectionMode.Disabled)
+            table = table.filterByEntityNames(
+                grapherState.selection.selectedEntityNames
+            )
+
+        // Hiding the timeline pins the chart to its authored time span
+        if (grapherState.hideTimeline)
+            table = table.filterByTimeRange(
+                grapherState.minTime ?? -Infinity,
+                grapherState.maxTime ?? Infinity
+            )
+
+        return findNegativeValueWarning(
+            slot.dimensions.map((dimension) => table.get(dimension.columnSlug))
+        )
+    }
+
     override render() {
         const { isSelectingVariables } = this
         const { slot, editor, canSwapXAndY, onSwapXAndY } = this.props
@@ -398,6 +428,11 @@ export class DimensionSlotView<
                         </SortableList.Item>
                     )}
                 />
+                {this.negativeValueWarning && (
+                    <div className="alert alert-warning mt-2">
+                        {negativeValueWarningText(this.negativeValueWarning)}
+                    </div>
+                )}
                 {canAddMore && (
                     <div
                         className="dimensionSlot"
@@ -422,6 +457,73 @@ export class DimensionSlotView<
             </div>
         )
     }
+}
+
+type NegativeValueWarning =
+    | {
+          kind: "negativeColumnNotAtBottom"
+          column: CoreColumn
+          entityNames: EntityName[]
+      }
+    | { kind: "multipleNegativeColumns"; columns: CoreColumn[] }
+
+function findNegativeValueWarning(
+    columns: CoreColumn[]
+): NegativeValueWarning | undefined {
+    const negativeColumns = columns.filter(showsNegativeValues)
+    if (negativeColumns.length > 1)
+        return { kind: "multipleNegativeColumns", columns: negativeColumns }
+
+    const [column] = negativeColumns
+    if (!column || column === R.last(columns)) return undefined
+    return {
+        kind: "negativeColumnNotAtBottom",
+        column,
+        entityNames: findEntityNamesWithNegativeValues(column),
+    }
+}
+
+function negativeValueWarningText(warning: NegativeValueWarning): string {
+    return match(warning)
+        .with(
+            { kind: "multipleNegativeColumns" },
+            ({ columns }) =>
+                `${formatInlineList(columns.map((column) => `“${column.displayName}”`))} have negative values, which stacked area charts do not support, so the chart may not look the way you expect.`
+        )
+        .with(
+            { kind: "negativeColumnNotAtBottom" },
+            ({ column, entityNames }) =>
+                `“${column.displayName}” has negative values${describeEntities(entityNames)}. They are only drawn below the zero line when the indicator is last, so drag it to the bottom of this list.`
+        )
+        .exhaustive()
+}
+
+function showsNegativeValues(column: CoreColumn): boolean {
+    return (
+        _.isNumber(column.minValue) &&
+        column.minValue <= negativeDisplayThreshold(column)
+    )
+}
+
+function negativeDisplayThreshold(column: CoreColumn): number {
+    return -0.5 * 10 ** -column.numDecimalPlaces
+}
+
+function findEntityNamesWithNegativeValues(column: CoreColumn): EntityName[] {
+    const threshold = negativeDisplayThreshold(column)
+    const negativeRows = column.owidRows.filter(
+        (row) => _.isNumber(row.value) && row.value <= threshold
+    )
+    return _.uniq(
+        _.sortBy(negativeRows, (row) => row.value).map((row) => row.entityName)
+    )
+}
+
+function describeEntities(entityNames: EntityName[]): string {
+    const [first, ...rest] = entityNames
+    if (!first) return ""
+    if (rest.length === 0) return ` in ${first}`
+    return ` in ${first} and ${rest.length} more`
 }
 
 interface VariablesSectionProps<Editor> {
