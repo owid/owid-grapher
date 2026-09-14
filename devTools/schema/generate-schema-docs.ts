@@ -230,6 +230,8 @@ function renderMeta(
     const parts = [`Type: \`${describeType(schema, defs)}\``]
     if (schema.const !== undefined)
         parts.push(`Must be ${formatValue(schema.const)}`)
+    if (schema.pattern !== undefined)
+        parts.push(`Must match \`${schema.pattern}\``)
     // A default that just repeats the const value adds nothing.
     if (schema.default !== undefined && schema.default !== schema.const)
         parts.push(`Default: ${formatValue(schema.default)}`)
