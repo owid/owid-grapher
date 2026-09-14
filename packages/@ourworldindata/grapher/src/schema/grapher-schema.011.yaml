@@ -12,7 +12,7 @@ properties:
     description: Url of the concrete schema version to use to validate this document
     format: uri
     default: *schemaUrl
-    const: *schemaUrl
+    pattern: '^https://files\.ourworldindata\.org/schemas/grapher-schema\.011(\.\d{2})?\.json$'
   id:
     type: integer
     description: Internal database id

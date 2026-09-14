@@ -46,7 +46,8 @@ export function mergeGrapherConfigs(
     const uniqueSchemas = _.uniq(
         excludeUndefined(configsToMerge.map((c) => c["$schema"]))
     )
-    if (uniqueSchemas.length > 1) {
+    const uniqueVersions = _.uniq(uniqueSchemas.map(dropSchemaRevision))
+    if (uniqueVersions.length > 1) {
         const message = `Merging Grapher configs with different schema versions. This may lead to unexpected behavior. Found: ${uniqueSchemas.join(
             ", "
         )}`
@@ -84,4 +85,9 @@ export function diffGrapherConfigs(
     )
 
     return { ...diffed, ...keep }
+}
+
+/** A schema url with any revision segment removed, leaving the version it names */
+function dropSchemaRevision(schema: string): string {
+    return schema.replace(/\.\d{2}(?=\.json$)/, "")
 }

@@ -65,13 +65,20 @@ export function resolveRef(
     return { ...toSchemaObject(def), ...schema, $ref: undefined }
 }
 
-export function assertSchemaIdMatchesVersion(
+export function assertSchemaNamesVersion(
     schema: JSONSchema7,
     version: string
 ): void {
-    const idVersion = schema.$id?.match(schemaIdPattern)?.groups?.version
+    const id = schema.$id ?? ""
+    const idVersion = id.match(schemaIdPattern)?.groups?.version
     if (idVersion !== version)
         throw new Error(
             `Expected $id to name version ${version}, got ${JSON.stringify(schema.$id)}`
+        )
+
+    const { pattern } = toSchemaObject(schema.properties?.$schema ?? {})
+    if (pattern === undefined || !new RegExp(pattern).test(id))
+        throw new Error(
+            `Expected the $schema property's pattern to accept ${id}, got ${JSON.stringify(pattern)}`
         )
 }
