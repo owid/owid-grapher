@@ -4,6 +4,7 @@ import "../../serverUtils/instrument.js"
 
 import * as R from "remeda"
 import * as Sentry from "@sentry/node"
+import { traceJob } from "../../serverUtils/sentryTracing.js"
 import fs from "fs-extra"
 import path from "path"
 import { Errors, Models, ServerClient } from "postmark"
@@ -450,17 +451,17 @@ void yargs(hideBin(process.argv))
         },
         async ({ frequency, dryRun, local }) => {
             try {
-                const failures = await sendEmailNotifications({
-                    frequency,
-                    dryRun,
-                    local,
-                })
+                const failures = await traceJob(
+                    "send-email-notifications",
+                    () => sendEmailNotifications({ frequency, dryRun, local })
+                )
                 // Exit non-zero so the scheduled Buildkite run alerts if any
                 // subscriber failed, including an inactive Postmark recipient.
                 if (failures.length > 0) {
                     await Sentry.close()
                     process.exit(1)
                 }
+                await Sentry.close(2000)
                 process.exit(0)
             } catch (error) {
                 const errorMessage =
