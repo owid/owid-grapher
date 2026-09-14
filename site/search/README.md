@@ -123,7 +123,11 @@ The "Topic page" cards in the Research & Writing section are not a text search o
 
 #### Topic keyword chips
 
-When a query _is_ a topic — "energy", "ai", "obesity" — `SearchTopicKeywordChips` offers that topic's curated keywords as chips under the search bar, and clicking one sets the query to that keyword while applying the topic as a filter (`?q=solar&topics=Energy`), so the narrowing is visible and removable. The gate (`findTopicNamedByQuery`) is an exact match on a topic name after synonym expansion, and nothing looser on purpose: the keywords come from the OWID topic vocabulary, which was generated to cover the charts _within_ an already-known topic rather than to route a query to one, so matching a query against the keywords sends "gdp" to Trade & Globalization and "education" to Women's Rights. Queries that merely relate to a topic, or span several, are served by the topic page recommendations above. The vocabulary itself (`topicVocabulary.ts`) is one static JSON behind a 5-minute edge cache, fetched only once the gate has fired.
+When a reader has a whole topic in view and nothing narrowing it, `SearchTopicKeywordChips` offers that topic's curated keywords as chips under the search bar, and clicking one sets the query to that keyword while keeping the topic as a filter (`?q=solar&topics=Energy`), so the narrowing is visible and removable.
+
+"A whole topic in view" is two states, because typing turns the first into the second: a query that exactly names a topic (`?q=energy`, which is where the site header's search lands you), or a single topic filter with no query (`?topics=Energy`, which is where pressing enter on "energy" in the search bar lands you — the autocomplete's top suggestion for an exact topic name is that topic's filter, and selecting it clears the query). `findWholeTopicInView` covers both.
+
+The query match is exact after synonym expansion, and nothing looser on purpose: the keywords come from the OWID topic vocabulary, which was generated to cover the charts _within_ an already-known topic rather than to route a query to one, so matching a query against the keywords sends "gdp" to Trade & Globalization and "education" to Women's Rights. Queries that merely relate to a topic, or span several, are served by the topic page recommendations above. The vocabulary itself (`topicVocabulary.ts`) is one static JSON behind a 5-minute edge cache, fetched only once the gate has fired.
 
 #### Empty-query caching proxy
 
