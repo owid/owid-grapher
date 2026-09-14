@@ -13,6 +13,7 @@ import {
     useElementBounds,
 } from "@ourworldindata/grapher"
 import {
+    getMultiDimPageTitle,
     joinTitleFragments,
     MultiDimDataPageConfig,
     extractMultiDimChoicesFromSearchParams,
@@ -61,7 +62,7 @@ const isIframe = isInIFrame()
 const useTitleFragments = (config: MultiDimDataPageConfig) => {
     const title = config.config.title
     return useMemo(
-        () => joinTitleFragments(title.titleVariant, title.attributionShort),
+        () => joinTitleFragments(title.attributionShort, title.titleVariant),
         [title]
     )
 }
@@ -360,11 +361,9 @@ export function DataPageContent({
     const fullTitle = useMemo(() => {
         const grapherTitle = grapherCurrentTitle
         if (!grapherTitle) return undefined
-        const mdimTitle = titleFragments
-            ? `${config.config.title.title} - ${titleFragments}`
-            : config.config.title.title
+        const mdimTitle = getMultiDimPageTitle(config.config.title)
         return `${grapherTitle} | ${mdimTitle} | Our World in Data`
-    }, [grapherCurrentTitle, titleFragments, config.config.title.title])
+    }, [grapherCurrentTitle, config.config.title])
 
     useEffect(() => {
         if (fullTitle) {

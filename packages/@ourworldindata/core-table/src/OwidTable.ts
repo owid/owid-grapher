@@ -1066,9 +1066,13 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
             { extrapolateAtStart: extrapolate, extrapolateAtEnd: extrapolate }
         )
 
+        const originalValues = withAllRows.has(originalColumnSlug)
+            ? withAllRows.columnStore[originalColumnSlug]
+            : withAllRows.columnStore[columnSlug]
+
         const columnStore = {
             ...withAllRows.columnStore,
-            [originalColumnSlug]: withAllRows.columnStore[columnSlug],
+            [originalColumnSlug]: originalValues,
             [columnSlug]: interpolationResult.values,
         }
 

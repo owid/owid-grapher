@@ -1,3 +1,4 @@
+import { traceJob } from "../../serverUtils/sentryTracing.js"
 import * as _ from "lodash-es"
 import {
     ArchiveMetaInformation,
@@ -630,44 +631,62 @@ export const bakeArchivalGrapherPagesToFolder = async (
     commonCtx: CommonArchivalContext,
     variableFiles: Record<number, AssetMap>
 ) => {
-    const grapherIds = grapherChecksumsObjsToBeArchived.map((c) => c.chartId)
-    const latestArchivalVersions = await getLatestArchivedChartVersions(
-        knex,
-        grapherIds
-    ).then((rows) => _.keyBy(rows, (v) => v.grapherId))
+    const { latestArchivalVersions, manifests } = await traceJob(
+        "prepare-archival-grapher-pages",
+        async () => {
+            const grapherIds = grapherChecksumsObjsToBeArchived.map(
+                (c) => c.chartId
+            )
+            const latestArchivalVersions = await getLatestArchivedChartVersions(
+                knex,
+                grapherIds
+            ).then((rows) => _.keyBy(rows, (v) => v.grapherId))
 
-    await fs.mkdirp(path.join(commonCtx.archiveDir, "grapher"))
-    console.log(`Baking grapher pages locally to dir '${commonCtx.archiveDir}'`)
+            await fs.mkdirp(path.join(commonCtx.archiveDir, "grapher"))
+            console.log(
+                `Baking grapher pages locally to dir '${commonCtx.archiveDir}'`
+            )
 
-    const manifests: Record<number, GrapherArchivalManifest> = {}
+            const manifests: Record<number, GrapherArchivalManifest> = {}
+            return { latestArchivalVersions, manifests }
+        }
+    )
 
     let i = 0
     for (const grapherInfo of grapherConfigs) {
-        i++
+        await traceJob(
+            "archive-grapher-page",
+            async () => {
+                i++
 
-        const checksumsObj = grapherChecksumsObjsToBeArchived.find(
-            (c) => c.chartId === grapherInfo.chartId
+                const checksumsObj = grapherChecksumsObjsToBeArchived.find(
+                    (c) => c.chartId === grapherInfo.chartId
+                )
+                if (!checksumsObj)
+                    throw new Error(
+                        `Could not find checksums for chartId ${grapherInfo.chartId}, this shouldn't happen`
+                    )
+
+                await bakeGrapherPageForArchival(
+                    knex,
+                    commonCtx.archiveDir,
+                    grapherInfo,
+                    {
+                        ...commonCtx,
+                        variableFiles,
+                        checksumsObj,
+                        latestArchivalVersions,
+                    }
+                ).then((manifest) => {
+                    manifests[grapherInfo.chartId] = manifest
+                })
+
+                console.log(
+                    `${i}/${grapherConfigs.length} ${grapherInfo.config.slug}`
+                )
+            },
+            { "page.slug": grapherInfo.config.slug }
         )
-        if (!checksumsObj)
-            throw new Error(
-                `Could not find checksums for chartId ${grapherInfo.chartId}, this shouldn't happen`
-            )
-
-        await bakeGrapherPageForArchival(
-            knex,
-            commonCtx.archiveDir,
-            grapherInfo,
-            {
-                ...commonCtx,
-                variableFiles,
-                checksumsObj,
-                latestArchivalVersions,
-            }
-        ).then((manifest) => {
-            manifests[grapherInfo.chartId] = manifest
-        })
-
-        console.log(`${i}/${grapherConfigs.length} ${grapherInfo.config.slug}`)
     }
     console.log(`Baked ${grapherConfigs.length} grapher pages`)
 
@@ -682,49 +701,63 @@ export const bakeArchivalMultiDimPagesToFolder = async (
     variableFiles: Record<number, AssetMap>,
     chartConfigFiles: Record<string, AssetMap>
 ) => {
-    await fs.mkdirp(path.join(commonCtx.archiveDir, "grapher"))
-    console.log(
-        `Baking multi-dim pages locally to dir '${commonCtx.archiveDir}'`
-    )
+    const { latestArchivalVersions, manifests } = await traceJob(
+        "prepare-archival-multidim-pages",
+        async () => {
+            await fs.mkdirp(path.join(commonCtx.archiveDir, "grapher"))
+            console.log(
+                `Baking multi-dim pages locally to dir '${commonCtx.archiveDir}'`
+            )
 
-    const manifests: Record<number, MultiDimArchivalManifest> = {}
+            const manifests: Record<number, MultiDimArchivalManifest> = {}
 
-    const multiDimIds = multiDimChecksumsObjsToBeArchived.map(
-        (c) => c.multiDimId
+            const multiDimIds = multiDimChecksumsObjsToBeArchived.map(
+                (c) => c.multiDimId
+            )
+            const latestArchivalVersions =
+                await getLatestArchivedMultiDimVersions(knex, multiDimIds).then(
+                    (rows) => _.keyBy(rows, (v) => v.multiDimId)
+                )
+            return { latestArchivalVersions, manifests }
+        }
     )
-    const latestArchivalVersions = await getLatestArchivedMultiDimVersions(
-        knex,
-        multiDimIds
-    ).then((rows) => _.keyBy(rows, (v) => v.multiDimId))
 
     let i = 0
     for (const multiDimInfo of multiDimConfigs) {
-        i++
+        await traceJob(
+            "archive-multidim-page",
+            async () => {
+                i++
 
-        const checksumsObj = multiDimChecksumsObjsToBeArchived.find(
-            (c) => c.multiDimId === multiDimInfo.id
+                const checksumsObj = multiDimChecksumsObjsToBeArchived.find(
+                    (c) => c.multiDimId === multiDimInfo.id
+                )
+                if (!checksumsObj)
+                    throw new Error(
+                        `Could not find checksums for multiDimId ${multiDimInfo.id}, this shouldn't happen`
+                    )
+
+                await bakeMultiDimDataPageForArchival(
+                    knex,
+                    commonCtx.archiveDir,
+                    multiDimInfo,
+                    {
+                        ...commonCtx,
+                        variableFiles,
+                        chartConfigFiles,
+                        checksumsObj,
+                        latestArchivalVersions,
+                    }
+                ).then((manifest) => {
+                    manifests[multiDimInfo.id] = manifest
+                })
+
+                console.log(
+                    `${i}/${multiDimConfigs.length} ${multiDimInfo.slug}`
+                )
+            },
+            { "page.slug": multiDimInfo.slug }
         )
-        if (!checksumsObj)
-            throw new Error(
-                `Could not find checksums for multiDimId ${multiDimInfo.id}, this shouldn't happen`
-            )
-
-        await bakeMultiDimDataPageForArchival(
-            knex,
-            commonCtx.archiveDir,
-            multiDimInfo,
-            {
-                ...commonCtx,
-                variableFiles,
-                chartConfigFiles,
-                checksumsObj,
-                latestArchivalVersions,
-            }
-        ).then((manifest) => {
-            manifests[multiDimInfo.id] = manifest
-        })
-
-        console.log(`${i}/${multiDimConfigs.length} ${multiDimInfo.slug}`)
     }
     console.log(`Baked ${multiDimConfigs.length} multi-dim pages`)
 
@@ -738,101 +771,116 @@ export const bakeArchivalExplorerPagesToFolder = async (
     commonCtx: CommonArchivalContext,
     variableFiles: Record<number, AssetMap>
 ) => {
-    await fs.mkdirp(path.join(commonCtx.archiveDir, "explorers"))
-    console.log(
-        `Baking explorer pages locally to dir '${commonCtx.archiveDir}'`
+    const { latestArchivalVersions, manifests } = await traceJob(
+        "prepare-archival-explorer-pages",
+        async () => {
+            await fs.mkdirp(path.join(commonCtx.archiveDir, "explorers"))
+            console.log(
+                `Baking explorer pages locally to dir '${commonCtx.archiveDir}'`
+            )
+
+            const manifests: Record<string, ExplorerArchivalManifest> = {}
+
+            const slugs = explorerChecksumsObjsToBeArchived.map(
+                (c) => c.explorerSlug
+            )
+            const latestArchivalVersions =
+                await getLatestArchivedExplorerVersions(knex, slugs).then(
+                    (rows) => _.keyBy(rows, (v) => v.explorerSlug)
+                )
+            return { latestArchivalVersions, manifests }
+        }
     )
-
-    const manifests: Record<string, ExplorerArchivalManifest> = {}
-
-    const slugs = explorerChecksumsObjsToBeArchived.map((c) => c.explorerSlug)
-    const latestArchivalVersions = await getLatestArchivedExplorerVersions(
-        knex,
-        slugs
-    ).then((rows) => _.keyBy(rows, (v) => v.explorerSlug))
 
     let i = 0
     for (const program of explorerPrograms) {
-        i++
+        await traceJob(
+            "archive-explorer-page",
+            async () => {
+                i++
 
-        const checksumsObj = explorerChecksumsObjsToBeArchived.find(
-            (c) => c.explorerSlug === program.slug
-        )
-        if (!checksumsObj)
-            throw new Error(
-                `Could not find checksums for explorer '${program.slug}', this shouldn't happen`
-            )
-
-        const runtimeFiles: AssetMap = {
-            ...commonCtx.dodsFiles,
-            ...commonCtx.catalogFiles,
-        }
-        const indicatorIds = Object.keys(checksumsObj.checksums.indicators).map(
-            (k) => parseInt(k, 10)
-        )
-        for (const variableId of indicatorIds) {
-            if (!variableFiles[variableId])
-                throw new Error(
-                    `Could not find variable info for variableId ${variableId}`
+                const checksumsObj = explorerChecksumsObjsToBeArchived.find(
+                    (c) => c.explorerSlug === program.slug
                 )
-            Object.assign(runtimeFiles, variableFiles[variableId])
-        }
+                if (!checksumsObj)
+                    throw new Error(
+                        `Could not find checksums for explorer '${program.slug}', this shouldn't happen`
+                    )
 
-        const manifest = await assembleExplorerManifest({
-            staticAssetMap: commonCtx.staticAssetMap,
-            runtimeAssetMap: runtimeFiles,
-            checksumsObj,
-            archivalDate: commonCtx.date.formattedDate,
-        })
+                const runtimeFiles: AssetMap = {
+                    ...commonCtx.dodsFiles,
+                    ...commonCtx.catalogFiles,
+                }
+                const indicatorIds = Object.keys(
+                    checksumsObj.checksums.indicators
+                ).map((k) => parseInt(k, 10))
+                for (const variableId of indicatorIds) {
+                    if (!variableFiles[variableId])
+                        throw new Error(
+                            `Could not find variable info for variableId ${variableId}`
+                        )
+                    Object.assign(runtimeFiles, variableFiles[variableId])
+                }
 
-        // Create archive navigation for explorer
-        const previousVersionInfo =
-            latestArchivalVersions[program.slug] ?? undefined
-        const previousVersion: UrlAndMaybeDate | undefined = previousVersionInfo
-            ? {
-                  date: previousVersionInfo.archivalTimestamp,
-                  url: assembleExplorerArchivalUrl(
-                      previousVersionInfo.archivalTimestamp,
-                      previousVersionInfo.explorerSlug,
-                      { relative: true }
-                  ),
-              }
-            : undefined
+                const manifest = await assembleExplorerManifest({
+                    staticAssetMap: commonCtx.staticAssetMap,
+                    runtimeAssetMap: runtimeFiles,
+                    checksumsObj,
+                    archivalDate: commonCtx.date.formattedDate,
+                })
 
-        const archiveNavigation: ArchiveSiteNavigationInfo = {
-            contentType: "data",
-            liveUrl: `${PROD_URL}/explorers/${program.slug}`,
-            previousVersion,
-            versionsFileUrl: `/versions/explorers/${program.slug}.json`,
-        }
+                // Create archive navigation for explorer
+                const previousVersionInfo =
+                    latestArchivalVersions[program.slug] ?? undefined
+                const previousVersion: UrlAndMaybeDate | undefined =
+                    previousVersionInfo
+                        ? {
+                              date: previousVersionInfo.archivalTimestamp,
+                              url: assembleExplorerArchivalUrl(
+                                  previousVersionInfo.archivalTimestamp,
+                                  previousVersionInfo.explorerSlug,
+                                  { relative: true }
+                              ),
+                          }
+                        : undefined
 
-        const fullUrl = assembleExplorerArchivalUrl(
-            commonCtx.date.formattedDate,
-            program.slug,
-            { relative: false }
-        )
+                const archiveNavigation: ArchiveSiteNavigationInfo = {
+                    contentType: "data",
+                    liveUrl: `${PROD_URL}/explorers/${program.slug}`,
+                    previousVersion,
+                    versionsFileUrl: `/versions/explorers/${program.slug}.json`,
+                }
 
-        const archiveInfo: ArchiveMetaInformation = {
-            archivalDate: commonCtx.date.formattedDate,
-            archiveNavigation,
-            archiveUrl: fullUrl,
-            assets: {
-                runtime: runtimeFiles,
-                static: commonCtx.staticAssetMap,
+                const fullUrl = assembleExplorerArchivalUrl(
+                    commonCtx.date.formattedDate,
+                    program.slug,
+                    { relative: false }
+                )
+
+                const archiveInfo: ArchiveMetaInformation = {
+                    archivalDate: commonCtx.date.formattedDate,
+                    archiveNavigation,
+                    archiveUrl: fullUrl,
+                    assets: {
+                        runtime: runtimeFiles,
+                        static: commonCtx.staticAssetMap,
+                    },
+                    type: "archive-page",
+                }
+
+                await bakeSingleExplorerPageForArchival(
+                    commonCtx.archiveDir,
+                    program,
+                    knex,
+                    { manifest, archiveInfo }
+                )
+
+                manifests[program.slug] = manifest
+
+                console.log(`${i}/${explorerPrograms.length} ${program.slug}`)
             },
-            type: "archive-page",
-        }
-
-        await bakeSingleExplorerPageForArchival(
-            commonCtx.archiveDir,
-            program,
-            knex,
-            { manifest, archiveInfo }
+            { "page.slug": program.slug }
         )
-
-        manifests[program.slug] = manifest
-
-        console.log(`${i}/${explorerPrograms.length} ${program.slug}`)
     }
     console.log(`Baked ${explorerPrograms.length} explorer pages`)
 
@@ -848,45 +896,64 @@ export const bakeArchivalPostPagesToFolder = async (
     videoFilesByPostId: Record<string, AssetMap> = {},
     narrativeChartFilesByPostId: Record<string, AssetMap> = {}
 ) => {
-    await fs.mkdirp(path.join(commonCtx.archiveDir))
-    console.log(`Baking post pages locally to dir '${commonCtx.archiveDir}'`)
+    const { latestArchivalVersions, manifests } = await traceJob(
+        "prepare-archival-gdoc-pages",
+        async () => {
+            await fs.mkdirp(path.join(commonCtx.archiveDir))
+            console.log(
+                `Baking post pages locally to dir '${commonCtx.archiveDir}'`
+            )
 
-    const manifests: Record<string, PostArchivalManifest> = {}
+            const manifests: Record<string, PostArchivalManifest> = {}
 
-    const postIds = postChecksumsObjsToBeArchived.map((c) => c.postId)
-    const latestArchivalVersions = await getLatestArchivedPostVersions(
-        knex,
-        postIds
-    ).then((rows) => _.keyBy(rows, (v) => v.postId))
+            const postIds = postChecksumsObjsToBeArchived.map((c) => c.postId)
+            const latestArchivalVersions = await getLatestArchivedPostVersions(
+                knex,
+                postIds
+            ).then((rows) => _.keyBy(rows, (v) => v.postId))
+            return { latestArchivalVersions, manifests }
+        }
+    )
 
     let i = 0
     for (const postInfo of postInfos) {
-        i++
+        await traceJob(
+            "archive-gdoc-page",
+            async () => {
+                i++
 
-        const checksumsObj = postChecksumsObjsToBeArchived.find(
-            (c) => c.postId === postInfo.postId
+                const checksumsObj = postChecksumsObjsToBeArchived.find(
+                    (c) => c.postId === postInfo.postId
+                )
+                if (!checksumsObj)
+                    throw new Error(
+                        `Could not find checksums for post '${postInfo.postSlug}', this shouldn't happen`
+                    )
+
+                const imageFiles = imageFilesByPostId[postInfo.postId] || {}
+                const videoFiles = videoFilesByPostId[postInfo.postId] || {}
+                const narrativeChartFiles =
+                    narrativeChartFilesByPostId[postInfo.postId] || {}
+                await bakePostPageForArchival(
+                    knex,
+                    commonCtx.archiveDir,
+                    postInfo,
+                    {
+                        ...commonCtx,
+                        checksumsObj,
+                        latestArchivalVersions,
+                        imageFiles,
+                        videoFiles,
+                        narrativeChartFiles,
+                    }
+                ).then((manifest) => {
+                    manifests[postInfo.postSlug] = manifest
+                })
+
+                console.log(`${i}/${postInfos.length} ${postInfo.postSlug}`)
+            },
+            { "page.slug": postInfo.postSlug }
         )
-        if (!checksumsObj)
-            throw new Error(
-                `Could not find checksums for post '${postInfo.postSlug}', this shouldn't happen`
-            )
-
-        const imageFiles = imageFilesByPostId[postInfo.postId] || {}
-        const videoFiles = videoFilesByPostId[postInfo.postId] || {}
-        const narrativeChartFiles =
-            narrativeChartFilesByPostId[postInfo.postId] || {}
-        await bakePostPageForArchival(knex, commonCtx.archiveDir, postInfo, {
-            ...commonCtx,
-            checksumsObj,
-            latestArchivalVersions,
-            imageFiles,
-            videoFiles,
-            narrativeChartFiles,
-        }).then((manifest) => {
-            manifests[postInfo.postSlug] = manifest
-        })
-
-        console.log(`${i}/${postInfos.length} ${postInfo.postSlug}`)
     }
     console.log(`Baked ${postInfos.length} post pages`)
 
