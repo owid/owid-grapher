@@ -45,6 +45,7 @@ import {
     OwidChartDimensionInterface,
     areSetsEqual,
 } from "@ourworldindata/utils"
+import { CoreColumn } from "@ourworldindata/core-table"
 import { Section, TextField } from "./Forms.js"
 import { VariableSelector } from "./VariableSelector.js"
 import { DimensionCard } from "./DimensionCard.js"
@@ -64,6 +65,7 @@ import {
     isNarrativeChartEditorInstance,
 } from "./NarrativeChartEditor.js"
 import * as R from "remeda"
+import { match } from "ts-pattern"
 import { SortableList } from "./SortableList.js"
 import { CodeSnippet, GrapherTabIcon } from "@ourworldindata/components"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -336,6 +338,20 @@ export class DimensionSlotView<
         return this.props.slot.dimensions.length > 1
     }
 
+    @computed get negativeValueWarning(): NegativeValueWarning | undefined {
+        const { slot } = this.props
+        if (slot.property !== DimensionProperty.y) return undefined
+        if (
+            !this.grapherState.chartTypes.includes(
+                GRAPHER_CHART_TYPES.StackedArea
+            )
+        )
+            return undefined
+        return findNegativeValueWarning(
+            slot.dimensions.map((dimension) => dimension.column)
+        )
+    }
+
     override render() {
         const { isSelectingVariables } = this
         const { slot, editor, canSwapXAndY, onSwapXAndY } = this.props
@@ -398,6 +414,11 @@ export class DimensionSlotView<
                         </SortableList.Item>
                     )}
                 />
+                {this.negativeValueWarning && (
+                    <div className="alert alert-warning mt-2">
+                        {negativeValueWarningText(this.negativeValueWarning)}
+                    </div>
+                )}
                 {canAddMore && (
                     <div
                         className="dimensionSlot"
@@ -422,6 +443,40 @@ export class DimensionSlotView<
             </div>
         )
     }
+}
+
+type NegativeValueWarning =
+    | { kind: "negativeColumnNotAtBottom"; column: CoreColumn }
+    | { kind: "multipleNegativeColumns" }
+
+function findNegativeValueWarning(
+    columns: CoreColumn[]
+): NegativeValueWarning | undefined {
+    const negativeColumns = columns.filter(hasNegativeValues)
+    if (negativeColumns.length > 1) return { kind: "multipleNegativeColumns" }
+
+    const [column] = negativeColumns
+    if (!column || column === R.last(columns)) return undefined
+    return { kind: "negativeColumnNotAtBottom", column }
+}
+
+function negativeValueWarningText(warning: NegativeValueWarning): string {
+    return match(warning)
+        .with(
+            { kind: "multipleNegativeColumns" },
+            () =>
+                "Several indicators have negative values. Stacked area charts draw negative values below the zero line, and support for more than one such indicator is limited, so the chart may not look the way you expect."
+        )
+        .with(
+            { kind: "negativeColumnNotAtBottom" },
+            ({ column }) =>
+                `“${column.displayName}” has negative values but is not the last indicator. Stacked area charts draw negative values below the zero line, and a category that is not at the bottom of the stack will overlap the ones beneath it. Drag it to the bottom of this list.`
+        )
+        .exhaustive()
+}
+
+function hasNegativeValues(column: CoreColumn): boolean {
+    return _.isNumber(column.minValue) && column.minValue < 0
 }
 
 interface VariablesSectionProps<Editor> {
