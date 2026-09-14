@@ -34,7 +34,7 @@ import {
 } from "./SwimlaneChartConstants"
 import { SwimlaneChartState } from "./SwimlaneChartState"
 import { toPlacedSwimlaneSeries } from "./SwimlaneChartHelpers"
-import { SwimlaneLane } from "./SwimlaneLane"
+import { SwimlaneRow } from "./SwimlaneRow"
 
 export type SwimlaneChartProps = ChartComponentProps<SwimlaneChartState>
 
@@ -160,7 +160,7 @@ export class SwimlaneChart
                 />
                 <g id={makeFigmaId("lanes")}>
                     {this.placedSeries.map((series) => (
-                        <SwimlaneLane key={series.seriesName} series={series} />
+                        <SwimlaneRow key={series.seriesName} series={series} />
                     ))}
                 </g>
             </g>
