@@ -1,6 +1,5 @@
 import * as _ from "lodash-es"
 import * as React from "react"
-import * as R from "remeda"
 import {
     Bounds,
     excludeUndefined,
@@ -469,9 +468,9 @@ export class StackedAreaChart
         const title = formattedTime
         const titleAnnotation = this.xAxis.label ? `(${this.xAxis.label})` : ""
 
-        const lastStackedPoint = R.last(series)!.points[hoveredPointIndex]
-        if (!lastStackedPoint) return undefined
-        const totalValue = lastStackedPoint.value + lastStackedPoint.valueOffset
+        const totalValue = _.sum(
+            series.map((series) => series.points[hoveredPointIndex]?.value ?? 0)
+        )
 
         const roundingNotice = formatColumn.roundsToSignificantFigures
             ? {
