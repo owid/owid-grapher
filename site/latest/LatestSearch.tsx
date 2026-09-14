@@ -233,6 +233,7 @@ export const LatestSearch = ({
                             selectedTopic={topics[0]}
                             position={i + 1}
                             isExpanded={isExpanded(hit)}
+                            isTypeFiltered={displayedLatestType !== null}
                         />
                     ))}
                     {/* Always render the signup block — with 0 or 1 hits it
@@ -249,6 +250,7 @@ export const LatestSearch = ({
                             selectedTopic={topics[0]}
                             position={i + 3}
                             isExpanded={isExpanded(hit)}
+                            isTypeFiltered={displayedLatestType !== null}
                         />
                     ))}
                     {hasNextPage && (

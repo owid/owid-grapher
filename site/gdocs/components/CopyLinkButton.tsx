@@ -12,19 +12,23 @@ export default function CopyLinkButton({
     path,
     trackNote,
     className,
+    variant,
 }: {
     path: string
     trackNote: string
     className?: string
+    variant?: "text"
 }) {
     const [hasCopied, setHasCopied] = useState(false)
     return (
         <>
             <button
+                type="button"
                 aria-label="Copy link to clipboard"
                 data-track-note={trackNote}
-                id="copy-link-button"
-                className={cx("copy-link-button body-3-medium", className)}
+                className={cx("copy-link-button body-3-medium", className, {
+                    "copy-link-button--text": variant === "text",
+                })}
                 onClick={async () => {
                     if (!(await copyToClipboard(`${BAKED_BASE_URL}${path}`)))
                         return

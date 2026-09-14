@@ -1,8 +1,10 @@
 import { PageChronologicalDataInsightRecord } from "@ourworldindata/types"
+import { getPrefixedGdocPath } from "@ourworldindata/components"
 import { AttachmentsContext } from "../gdocs/AttachmentsContext.js"
 import Image from "../gdocs/components/Image.js"
 import { ArticleBlocks } from "../gdocs/components/ArticleBlocks.js"
 import AvatarByline from "../gdocs/components/AvatarByline.js"
+import CopyLinkButton from "../gdocs/components/CopyLinkButton.js"
 import { LatestHitMetadata } from "./LatestHitMetadata.js"
 import { findThumbnailImageBlock, makeAttachments } from "./latestUtils.js"
 
@@ -56,6 +58,15 @@ export const LatestDataInsightExpanded = ({
                             containerType="data-insight"
                         />
                     </div>
+                    <CopyLinkButton
+                        path={getPrefixedGdocPath("", {
+                            slug: hit.slug,
+                            content: { type: hit.type },
+                        })}
+                        trackNote="latest_data_insight_copy_link"
+                        className="latest-data-insight-expanded__copy-link"
+                        variant="text"
+                    />
                 </div>
             </article>
         </AttachmentsContext.Provider>
