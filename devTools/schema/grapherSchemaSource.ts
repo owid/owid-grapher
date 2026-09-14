@@ -65,10 +65,11 @@ export function resolveRef(
     return { ...toSchemaObject(def), ...schema, $ref: undefined }
 }
 
-export function assertSchemaNamesVersion(
+/** The revision the document's `$id` declares, checked against the version its file name gives */
+export function readDeclaredSchemaRevision(
     schema: JSONSchema7,
     version: string
-): void {
+): number {
     const id = schema.$id ?? ""
     const declared = parseGrapherSchemaName(id)
     if (declared?.version !== version || declared.revision === undefined)
@@ -81,6 +82,8 @@ export function assertSchemaNamesVersion(
         throw new Error(
             `Expected the $schema property's pattern to accept ${id}, got ${JSON.stringify(pattern)}`
         )
+
+    return declared.revision
 }
 
 /** The revision a document declares in its `$id` */
@@ -88,14 +91,4 @@ export function findDeclaredSchemaRevision(
     schema: JSONSchema7
 ): number | undefined {
     return parseGrapherSchemaName(schema.$id ?? "")?.revision
-}
-
-/** The revision the document declares in its `$id`, which names the file it publishes under */
-export function getDeclaredSchemaRevision(schema: JSONSchema7): number {
-    const revision = findDeclaredSchemaRevision(schema)
-    if (revision === undefined)
-        throw new Error(
-            `Expected $id to name a two-digit revision, got ${JSON.stringify(schema.$id)}`
-        )
-    return revision
 }
