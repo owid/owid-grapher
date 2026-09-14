@@ -304,6 +304,11 @@ export abstract class AbstractCoreColumn<
         ).sort()
     }
 
+    /** The declared order of a column's categories, for columns that declare one */
+    get allowedValuesSorted(): string[] | undefined {
+        return undefined
+    }
+
     @imemo get slug(): string {
         return this.def.slug
     }
@@ -643,7 +648,7 @@ class OrdinalColumn<
     TABLE_TYPE extends CoreTable = CoreTable,
     DEF_TYPE extends CoreColumnDef = CoreColumnDef,
 > extends CategoricalColumn<TABLE_TYPE, DEF_TYPE> {
-    @imemo get allowedValuesSorted(): string[] | undefined {
+    @imemo override get allowedValuesSorted(): string[] | undefined {
         return this.def.sort
     }
 

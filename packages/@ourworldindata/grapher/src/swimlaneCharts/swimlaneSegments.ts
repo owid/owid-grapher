@@ -5,20 +5,22 @@ export interface SwimlaneObservation {
     category: string
 }
 
-export type SwimlaneSegment =
-    | {
-          kind: "category"
-          category: string
-          startTime: Time
-          endTime: Time
-          endTimeExclusive: Time
-      }
-    | {
-          kind: "missing"
-          startTime: Time
-          endTime: Time
-          endTimeExclusive: Time
-      }
+interface SwimlaneSegmentRange {
+    startTime: Time
+    endTime: Time
+    endTimeExclusive: Time
+}
+
+export interface SwimlaneCategorySegment extends SwimlaneSegmentRange {
+    kind: "category"
+    category: string
+}
+
+export interface SwimlaneMissingSegment extends SwimlaneSegmentRange {
+    kind: "missing"
+}
+
+export type SwimlaneSegment = SwimlaneCategorySegment | SwimlaneMissingSegment
 
 export function toSwimlaneSegments({
     observations,
