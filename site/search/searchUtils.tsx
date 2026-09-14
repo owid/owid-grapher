@@ -532,30 +532,45 @@ export function findTopicAndRegionFilters(
 }
 
 /**
- * The topic a query *is*, if it is one: "energy" → "Energy", "ai" → "Artificial
- * Intelligence". Undefined for everything else.
+ * The single topic the reader has in view as a whole, if they have one. Two
+ * states count, and they are the same situation to a reader — one whole topic,
+ * and no way into it yet:
  *
- * The match is exact (after synonym expansion), which is the whole point. The
- * tempting looser gate — match the query against the topic vocabulary's
+ * - the query names a topic ("energy" → "Energy", "ai" → "Artificial
+ *   Intelligence") and no topic filter is narrowing it;
+ * - exactly one topic filter is applied and there is no query.
+ *
+ * The second is not a nicety: typing the first produces it. The autocomplete's
+ * top suggestion for a query that exactly names a topic is that topic's filter,
+ * so pressing enter on "energy" in the search bar lands on `?topics=Energy`
+ * with an empty query. Only a link straight to `?q=energy` — from the site
+ * header's search, say — keeps the query as typed.
+ *
+ * The query match is exact (after synonym expansion), which is the whole point.
+ * The tempting looser gate — match the query against the topic vocabulary's
  * keywords — is wrong: those keywords were generated to cover the charts
  * *within* an already-known topic, not to route a query to one, so "gdp" lands
  * on Trade & Globalization and "education" on Women's Rights. A query that
  * merely relates to a topic belongs to the topic-page recommendations, which
  * rank topics by the charts a search actually returns.
- *
- * A query that names a topic while a topic filter is already applied doesn't
- * count: the reader has already narrowed, and `findTopicAndRegionFilters`
- * suppresses topic matches in that case for the same reason.
  */
-export function findTopicNamedByQuery(
+export function findWholeTopicInView(
     query: string,
+    filters: Filter[],
     allTopics: string[],
-    selectedTopics: Set<string>,
     synonymMap: SynonymMap
 ): string | undefined {
-    if (!query.trim()) return undefined
+    const selectedTopics = getFilterNamesOfType(filters, FilterType.TOPIC)
 
-    const filters = findTopicAndRegionFilters(
+    // No query to narrow it: a single topic filter is the topic in view, and
+    // anything else (none, or several) is not one whole topic.
+    if (!query.trim())
+        return selectedTopics.size === 1 ? [...selectedTopics][0] : undefined
+
+    // With a query, only a topic it names counts — and passing the selected
+    // topics suppresses the match once one is applied, since the reader has
+    // then already narrowed.
+    return findTopicAndRegionFilters(
         splitIntoWords(query),
         [], // only topics are of interest here, not countries
         allTopics,
@@ -563,9 +578,7 @@ export function findTopicNamedByQuery(
         selectedTopics,
         synonymMap,
         { threshold: 1, limit: 1 } // only exact matches
-    )
-
-    return filters.find((filter) => filter.type === FilterType.TOPIC)?.name
+    ).find((filter) => filter.type === FilterType.TOPIC)?.name
 }
 
 /**

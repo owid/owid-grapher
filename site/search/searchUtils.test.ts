@@ -8,13 +8,13 @@ import {
     createTopicFilter,
     extractFiltersFromQuery,
     createCountryFilter,
-    findTopicNamedByQuery,
+    findWholeTopicInView,
     capSuggestedSearches,
     MAX_SUGGESTED_SEARCHES,
 } from "./searchUtils"
 import { buildSynonymMap } from "./synonymUtils"
 
-import { FilterType, SynonymMap } from "@ourworldindata/types"
+import { Filter, FilterType, SynonymMap } from "@ourworldindata/types"
 import { listedRegionsNames } from "@ourworldindata/utils"
 
 describe("Fuzzy search in search autocomplete", () => {
@@ -767,7 +767,7 @@ describe("offset pagination for useInfiniteSearchOffset hook", () => {
     })
 })
 
-describe(findTopicNamedByQuery, () => {
+describe(findWholeTopicInView, () => {
     // A subset of the searchable topic tags, with the real synonym list, so
     // these exercise the gate exactly as the search page does.
     const topics = [
@@ -787,58 +787,96 @@ describe(findTopicNamedByQuery, () => {
     ]
     const realSynonymMap = buildSynonymMap()
 
-    const topicNamedBy = (query: string, selectedTopics = new Set<string>()) =>
-        findTopicNamedByQuery(query, topics, selectedTopics, realSynonymMap)
+    const topicInView = (query: string, filters: Filter[] = []) =>
+        findWholeTopicInView(query, filters, topics, realSynonymMap)
 
-    it("recognises a query that is a topic's name", () => {
-        expect(topicNamedBy("energy")).toBe("Energy")
-        expect(topicNamedBy("obesity")).toBe("Obesity")
-        expect(topicNamedBy("life expectancy")).toBe("Life Expectancy")
-        expect(topicNamedBy("migration")).toBe("Migration")
-        expect(topicNamedBy("democracy")).toBe("Democracy")
-        expect(topicNamedBy("poverty")).toBe("Poverty")
+    describe("a query that names a topic", () => {
+        it("recognises a topic's name", () => {
+            expect(topicInView("energy")).toBe("Energy")
+            expect(topicInView("obesity")).toBe("Obesity")
+            expect(topicInView("life expectancy")).toBe("Life Expectancy")
+            expect(topicInView("migration")).toBe("Migration")
+            expect(topicInView("democracy")).toBe("Democracy")
+            expect(topicInView("poverty")).toBe("Poverty")
+        })
+
+        it("recognises a topic named by a synonym", () => {
+            expect(topicInView("ai")).toBe("Artificial Intelligence")
+            // "covid" is a synonym of "covid-19", which is a topic verbatim.
+            expect(topicInView("covid")).toBe("COVID-19")
+        })
+
+        it("ignores case and surrounding whitespace", () => {
+            expect(topicInView("  Energy ")).toBe("Energy")
+            expect(topicInView("AI")).toBe("Artificial Intelligence")
+        })
+
+        it("stays quiet for a query that only relates to a topic", () => {
+            // These are the ambiguous head: each spans several topics, so the
+            // fork a reader needs is *between* topics, not within one. "gdp"
+            // expands to "gross domestic product" and friends, none of which
+            // is a topic name.
+            for (const query of [
+                "gdp",
+                "food",
+                "health",
+                "water",
+                "population",
+                "co2",
+                "renewable energy sources",
+            ]) {
+                expect(topicInView(query)).toBeUndefined()
+            }
+        })
+
+        it("never answers with a country", () => {
+            expect(topicInView("france")).toBeUndefined()
+            expect(topicInView("united states")).toBeUndefined()
+        })
     })
 
-    it("recognises a topic named by a synonym", () => {
-        expect(topicNamedBy("ai")).toBe("Artificial Intelligence")
-        // "covid" is a synonym of "covid-19", which is a topic verbatim.
-        expect(topicNamedBy("covid")).toBe("COVID-19")
-    })
+    describe("a topic applied as a filter", () => {
+        // Typing a topic's name into the search bar lands here rather than on
+        // a query: the autocomplete's top suggestion for an exact topic name
+        // is that topic's filter, and selecting it clears the query.
+        it("recognises a lone topic filter with no query", () => {
+            expect(topicInView("", [createTopicFilter("Energy")])).toBe(
+                "Energy"
+            )
+        })
 
-    it("ignores case and surrounding whitespace", () => {
-        expect(topicNamedBy("  Energy ")).toBe("Energy")
-        expect(topicNamedBy("AI")).toBe("Artificial Intelligence")
-    })
+        it("still recognises it alongside a country filter", () => {
+            expect(
+                topicInView("", [
+                    createTopicFilter("Energy"),
+                    createCountryFilter("France"),
+                ])
+            ).toBe("Energy")
+        })
 
-    it("stays quiet for a query that only relates to a topic", () => {
-        // These are the ambiguous head: each spans several topics, so the fork
-        // a reader needs is *between* topics, not within one. "gdp" expands to
-        // "gross domestic product" and friends, none of which is a topic name.
-        for (const query of [
-            "gdp",
-            "food",
-            "health",
-            "water",
-            "population",
-            "co2",
-            "renewable energy sources",
-            "",
-            "   ",
-        ]) {
-            expect(topicNamedBy(query)).toBeUndefined()
-        }
-    })
+        it("stays quiet when a query is narrowing the topic", () => {
+            // The reader has already forked; offering the fork again is a loop.
+            expect(topicInView("solar", [createTopicFilter("Energy")])).toBe(
+                undefined
+            )
+            expect(topicInView("energy", [createTopicFilter("Energy")])).toBe(
+                undefined
+            )
+        })
 
-    it("stays quiet once a topic filter is already applied", () => {
-        // The reader has already narrowed; re-offering the topic they are in
-        // would be a loop rather than a fork.
-        expect(topicNamedBy("energy", new Set(["Energy"]))).toBeUndefined()
-        expect(topicNamedBy("energy", new Set(["Poverty"]))).toBeUndefined()
-    })
-
-    it("never answers with a country", () => {
-        expect(topicNamedBy("france")).toBeUndefined()
-        expect(topicNamedBy("united states")).toBeUndefined()
+        it("stays quiet for no topic, or more than one", () => {
+            expect(topicInView("")).toBeUndefined()
+            expect(topicInView("   ")).toBeUndefined()
+            expect(
+                topicInView("", [createCountryFilter("France")])
+            ).toBeUndefined()
+            expect(
+                topicInView("", [
+                    createTopicFilter("Energy"),
+                    createTopicFilter("Poverty"),
+                ])
+            ).toBeUndefined()
+        })
     })
 })
 

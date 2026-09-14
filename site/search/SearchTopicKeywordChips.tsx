@@ -2,28 +2,23 @@ import { useMemo } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faSearch } from "@fortawesome/free-solid-svg-icons"
-import { FilterType } from "@ourworldindata/types"
 import { useSearchContext } from "./SearchContext.js"
 import { SearchFilterPill } from "./SearchFilterPill.js"
-import {
-    capSuggestedSearches,
-    findTopicNamedByQuery,
-    getFilterNamesOfType,
-} from "./searchUtils.js"
+import { capSuggestedSearches, findWholeTopicInView } from "./searchUtils.js"
 import { fetchTopicVocabulary, suggestedKeywords } from "./topicVocabulary.js"
 import { searchQueryKeys } from "./queries.js"
 import { TOPIC_VOCABULARY_URL } from "../../settings/clientSettings.js"
 
 /**
- * When the query *is* a topic — "energy", "ai", "obesity" — offers that topic's
- * curated keywords as a row of chips, so a reader who has landed on a whole
- * topic can fork into a part of it without having to guess what we have.
+ * When the reader has a whole topic in view and nothing narrowing it — they
+ * searched "energy", or they are browsing `?topics=Energy` — offers that
+ * topic's curated keywords as a row of chips, so they can fork into a part of
+ * it without having to guess what we have.
  *
- * Only for queries that name a topic exactly, never for queries that merely
- * relate to one (see findTopicNamedByQuery): an ambiguous query like "food" or
- * "gdp" spans several topics, and chips drawn from one of them would silently
- * pick an island for the reader. That fork is between topics, and the
- * topic-page recommendations serve it.
+ * Never for a query that merely relates to a topic (see findWholeTopicInView):
+ * an ambiguous query like "food" or "gdp" spans several topics, and chips drawn
+ * from one of them would silently pick an island for the reader. That fork is
+ * between topics, and the topic-page recommendations serve it.
  */
 export const SearchTopicKeywordChips = ({
     allTopics,
@@ -36,15 +31,9 @@ export const SearchTopicKeywordChips = ({
         synonymMap,
     } = useSearchContext()
 
-    const selectedTopics = useMemo(
-        () => getFilterNamesOfType(filters, FilterType.TOPIC),
-        [filters]
-    )
-
     const topicName = useMemo(
-        () =>
-            findTopicNamedByQuery(query, allTopics, selectedTopics, synonymMap),
-        [query, allTopics, selectedTopics, synonymMap]
+        () => findWholeTopicInView(query, filters, allTopics, synonymMap),
+        [query, filters, allTopics, synonymMap]
     )
 
     // The vocabulary is ~230 KB, so it is only fetched once the gate above has
