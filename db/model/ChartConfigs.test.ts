@@ -1,8 +1,13 @@
 import { expect, it } from "vitest"
 
-import { defaultGrapherConfig } from "@ourworldindata/grapher"
+import {
+    defaultGrapherConfig,
+    latestSchemaVersion,
+} from "@ourworldindata/grapher"
 
 import { parseChartConfig } from "./ChartConfigs.js"
+
+const latestSchemaUrlWithoutRevision = `https://files.ourworldindata.org/schemas/grapher-schema.${latestSchemaVersion}.json`
 
 const outdatedConfig = {
     $schema: "https://files.ourworldindata.org/schemas/grapher-schema.010.json",
@@ -21,7 +26,7 @@ it("returns a config already at the latest schema unchanged", () => {
 
 it("migrates an outdated config to the latest schema", () => {
     const migrated = parseChartConfig(JSON.stringify(outdatedConfig))
-    expect(migrated.$schema).toEqual(defaultGrapherConfig.$schema)
+    expect(migrated.$schema).toEqual(latestSchemaUrlWithoutRevision)
     expect(migrated.dimensions?.[0].display?.timeInterval).toEqual("day")
     expect(migrated.dimensions?.[0].display).not.toHaveProperty("yearIsDay")
 })
