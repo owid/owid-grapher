@@ -21,7 +21,7 @@ import { ComparisonLine } from "../comparisonLine/ComparisonLine"
 
 export const TICK_COLOR = "#ddd"
 const FAINT_TICK_COLOR = "#eee"
-const SOLID_TICK_COLOR = "#999"
+export const SOLID_TICK_COLOR = "#999"
 
 export const GRID_LINE_DASH_PATTERN = "4,4"
 
@@ -207,19 +207,17 @@ export class VerticalAxisZeroLine extends React.Component<VerticalAxisZeroLinePr
     }
 }
 
-interface VerticalAxisDomainLineProps {
-    verticalAxis: VerticalAxis
+interface HorizontalAxisDomainLineProps {
     bounds: Bounds
     strokeWidth?: number
+    stroke?: string
 }
 
+/** The baseline along the bottom of the plot */
 @observer
-export class VerticalAxisDomainLine extends React.Component<VerticalAxisDomainLineProps> {
+export class HorizontalAxisDomainLine extends React.Component<HorizontalAxisDomainLineProps> {
     override render(): React.ReactElement {
-        const { bounds, verticalAxis, strokeWidth = 1 } = this.props
-
-        const axis = verticalAxis.clone()
-        axis.range = bounds.yRange()
+        const { bounds, strokeWidth = 1, stroke = "#ccc" } = this.props
 
         return (
             <line
@@ -228,7 +226,7 @@ export class VerticalAxisDomainLine extends React.Component<VerticalAxisDomainLi
                 y1={roundForSvg(bounds.bottom)}
                 x2={roundForSvg(bounds.right)}
                 y2={roundForSvg(bounds.bottom)}
-                stroke="#ccc"
+                stroke={stroke}
                 strokeWidth={strokeWidth}
             />
         )

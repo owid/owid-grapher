@@ -22,6 +22,26 @@ export interface SwimlaneMissingSegment extends SwimlaneSegmentRange {
 
 export type SwimlaneSegment = SwimlaneCategorySegment | SwimlaneMissingSegment
 
+export interface SwimlaneTimeRange {
+    startTime: Time
+    endTimeExclusive: Time
+}
+
+export function toSwimlaneTimeRange(
+    columnTimesAsc: Time[]
+): SwimlaneTimeRange | undefined {
+    if (columnTimesAsc.length === 0) return undefined
+    const lastIndex = columnTimesAsc.length - 1
+    const trailingStep =
+        lastIndex > 0
+            ? columnTimesAsc[lastIndex] - columnTimesAsc[lastIndex - 1]
+            : 1
+    return {
+        startTime: columnTimesAsc[0],
+        endTimeExclusive: columnTimesAsc[lastIndex] + trailingStep,
+    }
+}
+
 export function toSwimlaneSegments({
     observations,
     columnTimesAsc,
@@ -29,7 +49,8 @@ export function toSwimlaneSegments({
     observations: SwimlaneObservation[]
     columnTimesAsc: Time[]
 }): SwimlaneSegment[] {
-    if (columnTimesAsc.length === 0) return []
+    const timeRange = toSwimlaneTimeRange(columnTimesAsc)
+    if (!timeRange) return []
 
     const lastIndex = columnTimesAsc.length - 1
     const categoryByTime = new Map(
@@ -38,10 +59,6 @@ export function toSwimlaneSegments({
     const categoryByTimeIndex = columnTimesAsc.map((time) =>
         categoryByTime.get(time)
     )
-    const trailingStep =
-        lastIndex > 0
-            ? columnTimesAsc[lastIndex] - columnTimesAsc[lastIndex - 1]
-            : 1
 
     const segments: SwimlaneSegment[] = []
     let startIndex = 0
@@ -57,7 +74,7 @@ export function toSwimlaneSegments({
             endTimeExclusive:
                 index < lastIndex
                     ? columnTimesAsc[index + 1]
-                    : columnTimesAsc[index] + trailingStep,
+                    : timeRange.endTimeExclusive,
         }
         const category = categoryByTimeIndex[index]
         segments.push(
