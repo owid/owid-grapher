@@ -70,6 +70,8 @@ export function ingestGrapherConfig(
         ])
     }
 
+    migrated.$schema = defaultGrapherConfig.$schema
+
     const issues = validateGrapherConfig(migrated)
     if (issues.length > 0) throw new GrapherConfigValidationError(issues)
     return migrated
