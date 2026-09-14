@@ -205,23 +205,104 @@ function placeStackedAreaSeries(
     return { bottomEdge, topEdge }
 }
 
+function hasLoneNegativeSeriesAtBottom(
+    series: readonly StackedSeries<Time>[]
+): boolean {
+    return (
+        series.length > 1 &&
+        series[0].points.some((point) => point.value < 0) &&
+        series
+            .slice(1)
+            .every((s) => s.points.every((point) => point.value >= 0))
+    )
+}
+
+function isCrossingZeroLine(
+    before: StackedPoint<Time>,
+    after: StackedPoint<Time>
+): boolean {
+    return (
+        (before.value < 0 && after.value > 0) ||
+        (before.value > 0 && after.value < 0)
+    )
+}
+
+/** The x values at which a series passes through the zero line */
+function findZeroLineCrossings(points: StackedPoint<Time>[]): Time[] {
+    return R.zip(points, points.slice(1))
+        .filter(([before, after]) => isCrossingZeroLine(before, after))
+        .map(([before, after]) => {
+            const fractionOfInterval =
+                before.value / (before.value - after.value)
+            return (
+                before.position +
+                fractionOfInterval * (after.position - before.position)
+            )
+        })
+}
+
+/** Copies one series' points, interpolating its own value at each crossing */
+function copyWithZeroLineCrossingPoints(
+    points: StackedPoint<Time>[],
+    crossingPositions: Time[]
+): StackedPoint<Time>[] {
+    const pointsWithCrossings: StackedPoint<Time>[] = []
+    for (let index = 0; index < points.length; index++) {
+        const point = points[index]
+        pointsWithCrossings.push({ ...point })
+
+        const next = points[index + 1]
+        if (!next) continue
+        const position = crossingPositions.find(
+            (position) => position > point.position && position < next.position
+        )
+        if (position === undefined) continue
+
+        const fractionOfInterval =
+            (position - point.position) / (next.position - point.position)
+        pointsWithCrossings.push({
+            position,
+            time: position,
+            value:
+                point.value + fractionOfInterval * (next.value - point.value),
+            valueOffset: 0,
+        })
+    }
+    return pointsWithCrossings
+}
+
+/** Copies the series with a point added wherever the bottom one passes through zero */
+export function withPointsAtZeroLineCrossings(
+    series: readonly StackedSeries<Time>[]
+): readonly StackedSeries<Time>[] {
+    // Widening this to charts with several negative series makes them worse
+    if (!hasLoneNegativeSeriesAtBottom(series)) return series
+
+    const crossings = findZeroLineCrossings(series[0].points)
+    if (crossings.length === 0) return series
+
+    return stackSeriesInBothDirections(
+        series.map((s) => ({
+            ...s,
+            points: copyWithZeroLineCrossingPoints(s.points, crossings),
+        }))
+    )
+}
+
 export function toPlacedStackedAreaSeries(
     series: readonly StackedSeries<Time>[],
     dualAxis: DualAxis
 ): PlacedStackedAreaSeries<Time>[] {
-    return series
-        .filter((series) => !series.isAllZeros)
-        .map((series) => {
-            const { topEdge, bottomEdge } = placeStackedAreaSeries(
-                series,
-                dualAxis
-            )
-            return {
-                ...series,
-                placedPoints: topEdge,
-                areaPoints: [...topEdge, ...bottomEdge.toReversed()],
-            }
-        })
+    return withPointsAtZeroLineCrossings(
+        series.filter((series) => !series.isAllZeros)
+    ).map((series) => {
+        const { bottomEdge, topEdge } = placeStackedAreaSeries(series, dualAxis)
+        return {
+            ...series,
+            placedPoints: topEdge,
+            areaPoints: [...topEdge, ...bottomEdge.toReversed()],
+        }
+    })
 }
 
 export function toPlacedStackedBarSeries(
