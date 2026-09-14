@@ -18,8 +18,9 @@ if (!process.env.VITEST) {
             openAIIntegration(),
         ],
         tracesSampleRate: 0.1,
-        profileLifecycle: "trace", // only profile requests that are traced
-        profileSessionSampleRate: 1.0, // This is relative to tracesSampleRate
+        profileLifecycle: "trace", // use the SDK-managed profiling lifecycle
+        // Session sampling is decided once per process startup.
+        profileSessionSampleRate: process.env.ENV === "staging" ? 0.25 : 1.0,
         environment: process.env.ENV,
         release: process.env.COMMIT_SHA,
     })
