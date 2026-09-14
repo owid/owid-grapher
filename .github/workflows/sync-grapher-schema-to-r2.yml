@@ -11,8 +11,8 @@ on:
 permissions:
   contents: read
 
-# Two schema merges landing close together would otherwise both read the same
-# highest revision from the bucket and claim it.
+# Two runs overlapping could overwrite the mutable name and the .latest alias
+# out of order
 concurrency:
   group: publish-grapher-schema
   cancel-in-progress: false
@@ -28,19 +28,8 @@ jobs:
 
       - uses: ./.github/actions/setup-node-yarn-deps
 
-      - name: Mirror published schemas
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.CLOUDFLARE_R2_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.CLOUDFLARE_R2_SECRET_ACCESS_KEY }}
-        run: |
-          mkdir -p "$RUNNER_TEMP/published"
-          aws s3 sync s3://owid-public/schemas "$RUNNER_TEMP/published" \
-            --endpoint-url https://${{ secrets.CLOUDFLARE_R2_ACCOUNT_ID }}.r2.cloudflarestorage.com
-
       - name: Build schema artefacts
-        run: |
-          yarn buildGrapherSchema --publish-dir "$RUNNER_TEMP/schemas" --latest \
-            --published-dir "$RUNNER_TEMP/published"
+        run: yarn buildGrapherSchema --publish-dir "$RUNNER_TEMP/schemas" --latest
 
       # Now upload all files in that folder to Cloudflare R2.
       - name: Upload to R2
