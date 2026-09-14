@@ -1,5 +1,6 @@
 import { expect, it } from "vitest"
 
+import { formatGrapherSchemaUrl } from "@ourworldindata/utils"
 import {
     defaultGrapherConfig,
     latestSchemaVersion,
@@ -7,10 +8,12 @@ import {
 
 import { parseChartConfig } from "./ChartConfigs.js"
 
-const latestSchemaUrlWithoutRevision = `https://files.ourworldindata.org/schemas/grapher-schema.${latestSchemaVersion}.json`
+const latestSchemaUrlWithoutRevision =
+    formatGrapherSchemaUrl(latestSchemaVersion)
+const outdatedSchemaUrl = formatGrapherSchemaUrl("010")
 
 const outdatedConfig = {
-    $schema: "https://files.ourworldindata.org/schemas/grapher-schema.010.json",
+    $schema: outdatedSchemaUrl,
     dimensions: [
         { variableId: 1, property: "y", display: { yearIsDay: true } },
     ],
@@ -46,8 +49,7 @@ it("returns a config without a $schema field as parsed", () => {
 it("returns a config the migration chokes on at its stored version", () => {
     // the 010 -> 011 step iterates dimensions, which an object is not
     const configWithNonArrayDimensions = {
-        $schema:
-            "https://files.ourworldindata.org/schemas/grapher-schema.010.json",
+        $schema: outdatedSchemaUrl,
         dimensions: { variableId: 1, property: "y" },
     }
     expect(

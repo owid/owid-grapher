@@ -1,4 +1,9 @@
 import {
+    SCHEMA_URL_BASE,
+    type TwoDigitRevision,
+    parseGrapherSchemaName,
+} from "@ourworldindata/utils"
+import {
     latestSchemaVersion,
     outdatedSchemaVersions,
 } from "../defaultGrapherConfig"
@@ -10,18 +15,15 @@ export type OutdatedSchemaVersion = (typeof outdatedSchemaVersions)[number]
 export type SchemaVersion = OutdatedSchemaVersion | LatestSchemaVersion
 
 type SchemaWithoutRevision =
-    `https://files.ourworldindata.org/schemas/grapher-schema.${SchemaVersion}.json`
+    `${typeof SCHEMA_URL_BASE}/grapher-schema.${SchemaVersion}.json`
 type SchemaWithRevision =
-    `https://files.ourworldindata.org/schemas/grapher-schema.${SchemaVersion}.${number}.json`
+    `${typeof SCHEMA_URL_BASE}/grapher-schema.${SchemaVersion}.${TwoDigitRevision}.json`
 type Schema = SchemaWithoutRevision | SchemaWithRevision
 
 export type UntypedGrapherConfig = Record<string, any>
 export type MigratableConfig = UntypedGrapherConfig & {
     $schema: Schema
 }
-
-const schemaUrlRegex =
-    /https:\/\/files\.ourworldindata\.org\/schemas\/grapher-schema\.(?<version>\d{3})(?:\.\d{2})?\.json/m
 
 const isValidSchemaVersion = (version: string): version is SchemaVersion =>
     allSchemaVersions.includes(version as any)
@@ -34,7 +36,7 @@ export function getSchemaVersion(
     config: UntypedGrapherConfig | MigratableConfig
 ): SchemaVersion | null {
     if (typeof config.$schema !== "string") return null
-    const version = config.$schema.match(schemaUrlRegex)?.groups?.version
+    const version = parseGrapherSchemaName(config.$schema)?.version
     if (!version || !isValidSchemaVersion(version)) return null
     return version
 }
@@ -42,7 +44,7 @@ export function getSchemaVersion(
 export function createSchemaForVersion(
     version: SchemaVersion
 ): SchemaWithoutRevision {
-    return `https://files.ourworldindata.org/schemas/grapher-schema.${version}.json`
+    return `${SCHEMA_URL_BASE}/grapher-schema.${version}.json`
 }
 
 export const isLatestVersion = (
