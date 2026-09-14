@@ -19,6 +19,14 @@ A write must migrate the config to the latest version and reject it if it fails 
 read only migrates, never validates. Reads can skip validation because every stored config
 passed it on the way in.
 
+A write also stamps `$schema` with the full revisioned url of the document it validated
+against, so a stored config records which document it was last written against. Migrations
+stamp the bare version instead: a config that reached 011 by mechanical rewriting was authored
+against whatever came before, not against any revision of 011. So a config read off disk and
+migrated carries `grapher-schema.011.json`, and the same config written back carries
+`grapher-schema.011.04.json`. Rows keep a bare stamp until something rewrites them, which is
+the honest answer for a config untouched since before revisions existed.
+
 ## Bumping the version
 
 In one commit:
@@ -35,8 +43,8 @@ In one commit:
   step does not. Pin each branch of the step with a before/after pair in
   `migrations/migrations.fixture.ts`.
 - Write the DB migration in `db/migration/` that rewrites the stored rows and restamps
-  `$schema` in `chart_configs.config` and `chart_revisions.config`. Ship the restamp and the
-  rewrite together.
+  `$schema` in `chart_configs.config` and `chart_revisions.config`, to the bare
+  `grapher-schema.MMM.json`. Ship the restamp and the rewrite together.
 - Run `yarn buildGrapherSchema`, see below.
 
 Before merging:
