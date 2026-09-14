@@ -60,9 +60,14 @@ After merging:
 
 Every edit that changes the built JSON — a new field, a widened enum, a reworded description —
 must move the revision in `$id`. Consumers pin that name and expect the document behind it not
-to change, and forgetting to move it republishes a different document under a name someone
-has pinned. The revision is two digits, it is an ordinal rather than a fraction, and it resets
-to `00` at a bump.
+to change, so `grapher-schema.yml` fails a branch whose schema differs from the published
+document under a revision that is already published. The revision is two digits, it is an
+ordinal rather than a fraction, and it resets to `00` at a bump.
+
+The check compares against the published `grapher-schema.NNN.json`, which is what master last
+published rather than what this branch forked from — so it also catches a branch that is
+behind. It cannot check anything while the published document names no revision, and a fetch
+that fails leaves the revision unchecked rather than blocking the branch.
 
 The revision says which document a config was written against, not what that config contains.
 A config stamped `011.04` was last written while `011.04` was current; it says nothing about
@@ -98,6 +103,6 @@ yarn buildGrapherSchema
 
 `grapher-schema.<version>.json` is the mutable name; publishing overwrites it in place.
 `grapher-schema.<version>.<revision>.json` is what consumers pin, so it has to stay the
-document it was when they pinned it — nothing enforces that, it follows from moving the
-revision on every edit. `grapher-schema.latest.json` aliases the mutable name of whichever
+document it was when they pinned it; moving the revision on every edit is what keeps that
+true, and CI checks it on branches. `grapher-schema.latest.json` aliases the mutable name of whichever
 version is newest. `<version>` is zero-padded to three digits, `<revision>` to two.
