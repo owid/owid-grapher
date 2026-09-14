@@ -11,6 +11,7 @@ import {
 } from "@ourworldindata/types"
 import { formatDate } from "@ourworldindata/utils"
 import { getCanonicalUrl } from "@ourworldindata/components"
+import { serializeEmbedConfig } from "../../../bespoke/shared/embedConfig.js"
 import { BAKED_BASE_URL } from "../../../settings/clientSettings.mjs"
 import { AttachmentsContext } from "../AttachmentsContext.js"
 import { ArticleBlocks } from "../components/ArticleBlocks.js"
@@ -182,8 +183,10 @@ function splitFeaturedVizBody(
             ...hero,
             config: {
                 ...hero.config,
-                urlSync: "true",
-                ...(hasMetadataBox && { hideMetadataModal: "true" }),
+                ...serializeEmbedConfig({
+                    urlSync: true,
+                    hideMetadataModal: hasMetadataBox,
+                }),
             },
         },
         after: body.slice(heroIndex + 1),

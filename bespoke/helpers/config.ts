@@ -5,11 +5,7 @@
  * config value must not take the whole viz down.
  */
 
-/** How the surrounding page embeds a bespoke component */
-export interface EmbedConfig {
-    urlSync: boolean
-    hideMetadataModal: boolean
-}
+import type { EmbedConfig } from "../shared/embedConfig.js"
 
 /** Props a variant component takes: its parsed config, embed flags included */
 export interface VariantProps<Config> {
