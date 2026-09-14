@@ -3,6 +3,7 @@ import * as path from "node:path"
 import { fileURLToPath } from "node:url"
 import * as _ from "lodash-es"
 import type { JSONSchema7, JSONSchema7Definition } from "json-schema"
+import { parseGrapherSchemaName } from "@ourworldindata/utils"
 
 export type SchemaDefinitions = NonNullable<JSONSchema7["$defs"]>
 
@@ -14,8 +15,6 @@ export const SCHEMA_DIR = path.join(
 )
 
 const schemaFilePattern = /^grapher-schema\.(?<version>\d+)\.yaml$/
-const schemaIdPattern =
-    /grapher-schema\.(?<version>\d+)\.(?<revision>\d{2})\.json$/
 
 export async function findLatestSchemaFile(): Promise<{
     filePath: string
@@ -71,8 +70,8 @@ export function assertSchemaNamesVersion(
     version: string
 ): void {
     const id = schema.$id ?? ""
-    const idVersion = id.match(schemaIdPattern)?.groups?.version
-    if (idVersion !== version)
+    const declared = parseGrapherSchemaName(id)
+    if (declared?.version !== version || declared.revision === undefined)
         throw new Error(
             `Expected $id to name version ${version} and a two-digit revision, got ${JSON.stringify(schema.$id)}`
         )
@@ -88,8 +87,7 @@ export function assertSchemaNamesVersion(
 export function findDeclaredSchemaRevision(
     schema: JSONSchema7
 ): number | undefined {
-    const revision = schema.$id?.match(schemaIdPattern)?.groups?.revision
-    return revision === undefined ? undefined : Number(revision)
+    return parseGrapherSchemaName(schema.$id ?? "")?.revision
 }
 
 /** The revision the document declares in its `$id`, which names the file it publishes under */

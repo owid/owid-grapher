@@ -371,6 +371,15 @@ export {
 } from "./grapherConfigInheritance.js"
 
 export {
+    SCHEMA_URL_BASE,
+    type GrapherSchemaName,
+    type TwoDigitRevision,
+    formatGrapherSchemaFileName,
+    formatGrapherSchemaUrl,
+    parseGrapherSchemaName,
+} from "./grapherSchemaName.js"
+
+export {
     MultiDimDataPageConfig,
     extractMultiDimChoicesFromSearchParams,
     getMultiDimPageTitle,

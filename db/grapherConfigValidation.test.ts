@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest"
+import { formatGrapherSchemaUrl } from "@ourworldindata/utils"
 import {
     type UntypedGrapherConfig,
     defaultGrapherConfig,
@@ -9,11 +10,6 @@ import {
     GrapherConfigValidationError,
     ingestGrapherConfig,
 } from "./grapherConfigValidation.js"
-
-function schemaUrlForVersion(version: string, revision?: string): string {
-    const suffix = revision === undefined ? "" : `.${revision}`
-    return `https://files.ourworldindata.org/schemas/grapher-schema.${version}${suffix}.json`
-}
 
 const baseChartConfig: UntypedGrapherConfig = {
     $schema: defaultGrapherConfig.$schema,
@@ -36,7 +32,7 @@ describe(ingestGrapherConfig, () => {
     it("migrates an outdated config before validating it", () => {
         const config = {
             ...baseChartConfig,
-            $schema: schemaUrlForVersion("010"),
+            $schema: formatGrapherSchemaUrl("010"),
             dimensions: [
                 { property: "y", variableId: 1, display: { yearIsDay: true } },
             ],
@@ -52,8 +48,8 @@ describe(ingestGrapherConfig, () => {
 
     it("stamps a config with the schema document it was written against", () => {
         for (const $schema of [
-            schemaUrlForVersion(latestSchemaVersion),
-            schemaUrlForVersion(latestSchemaVersion, "07"),
+            formatGrapherSchemaUrl(latestSchemaVersion),
+            formatGrapherSchemaUrl(latestSchemaVersion, 7),
         ]) {
             const ingested = ingestGrapherConfig({
                 ...baseChartConfig,
@@ -67,7 +63,7 @@ describe(ingestGrapherConfig, () => {
         const error = catchValidationError(() =>
             ingestGrapherConfig({
                 ...baseChartConfig,
-                $schema: schemaUrlForVersion("010"),
+                $schema: formatGrapherSchemaUrl("010"),
                 dimensions: 123,
             })
         )
@@ -117,7 +113,7 @@ describe(ingestGrapherConfig, () => {
         const error = catchValidationError(() =>
             ingestGrapherConfig({
                 ...baseChartConfig,
-                $schema: schemaUrlForVersion("099"),
+                $schema: formatGrapherSchemaUrl("099"),
             })
         )
 

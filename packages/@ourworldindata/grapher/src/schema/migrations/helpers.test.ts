@@ -1,29 +1,38 @@
 import { expect, it, describe } from "vitest"
 
-import { latestSchemaVersion } from "../defaultGrapherConfig"
-import { getSchemaVersion } from "./helpers"
+import { formatGrapherSchemaUrl } from "@ourworldindata/utils"
 
-const urlForVersion = (version: string): string =>
-    `https://files.ourworldindata.org/schemas/grapher-schema.${version}.json`
+import { latestSchemaVersion } from "../defaultGrapherConfig"
+import { createSchemaForVersion, getSchemaVersion } from "./helpers"
 
 describe(getSchemaVersion, () => {
     it("reads the version off a url without a revision", () => {
         expect(
-            getSchemaVersion({ $schema: urlForVersion(latestSchemaVersion) })
+            getSchemaVersion({
+                $schema: formatGrapherSchemaUrl(latestSchemaVersion),
+            })
         ).toEqual(latestSchemaVersion)
     })
 
     it("reads the version off a url with a revision", () => {
         expect(
             getSchemaVersion({
-                $schema: urlForVersion(`${latestSchemaVersion}.04`),
+                $schema: formatGrapherSchemaUrl(latestSchemaVersion, 4),
             })
         ).toEqual(latestSchemaVersion)
     })
 
     it("returns null for a url naming an unknown version", () => {
         expect(
-            getSchemaVersion({ $schema: urlForVersion("999.04") })
+            getSchemaVersion({ $schema: formatGrapherSchemaUrl("999", 4) })
         ).toBeNull()
+    })
+})
+
+describe(createSchemaForVersion, () => {
+    it("builds the same url as the shared formatter", () => {
+        expect(createSchemaForVersion(latestSchemaVersion)).toEqual(
+            formatGrapherSchemaUrl(latestSchemaVersion)
+        )
     })
 })
