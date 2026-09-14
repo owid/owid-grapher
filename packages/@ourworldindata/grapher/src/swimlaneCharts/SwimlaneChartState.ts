@@ -38,13 +38,18 @@ export class SwimlaneChartState implements ChartState, ColorScaleManager {
     manager: SwimlaneChartManager
 
     colorScale: ColorScale
-    defaultBaseColorScheme = ColorSchemeName.OwidCategoricalA
     hasNoDataBin = true
 
     constructor({ manager }: { manager: SwimlaneChartManager }) {
         this.manager = manager
         this.colorScale = new ColorScale(this)
         makeObservable(this)
+    }
+
+    @computed get defaultBaseColorScheme(): ColorSchemeName {
+        return this.categories?.kind === "ordinal"
+            ? ColorSchemeName.SingleColorGradientDenim
+            : ColorSchemeName.OwidCategoricalA
     }
 
     @computed get inputTable(): OwidTable {
