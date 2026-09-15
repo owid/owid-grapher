@@ -551,8 +551,10 @@ export function buildAdminTools({ admin }: AdminToolContext): WebMcpTool[] {
                 "dataset: and path: match the catalog short names shown in " +
                 "the results (dataset:energy_ai, " +
                 "path:energy/2026-06-30/energy_ai), never the dataset's " +
-                "human title. Results are newest datasets first, so add " +
-                "dataset: or a distinctive word to narrow a broad query.",
+                "human title. Results are ordered by how much the indicator " +
+                "is actually used, so the first few are usually the ones a " +
+                "person means; add dataset: or a distinctive word to narrow " +
+                "a broad query.",
             inputSchema: {
                 type: "object",
                 properties: {
