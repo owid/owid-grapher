@@ -9,6 +9,9 @@ import {
     FacetStrategy,
     JsTypes,
     ScaleType,
+    SortBy,
+    SortConfig,
+    SortOrder,
     Time,
 } from "@ourworldindata/types"
 import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
@@ -20,6 +23,8 @@ import {
     getDefaultFailMessage,
     getShortNameForEntity,
     makeSelectionArray,
+    SortKey,
+    sortByConfig,
 } from "../chart/ChartUtils"
 import { OWID_ERROR_COLOR } from "../color/ColorConstants"
 import { SelectionArray } from "../selection/SelectionArray"
@@ -27,10 +32,13 @@ import { AxisConfig } from "../axis/AxisConfig"
 import { HorizontalAxis } from "../axis/Axis"
 import {
     ColoredSwimlaneSegment,
+    isSwimlaneSortKey,
+    SWIMLANE_SORT_KEYS,
     SwimlaneCategories,
     SwimlaneChartManager,
     SwimlaneObservation,
     SwimlaneSeries,
+    SwimlaneSortKey,
 } from "./SwimlaneChartConstants"
 import { toSwimlaneSegments } from "./SwimlaneChartHelpers"
 
@@ -126,7 +134,7 @@ export class SwimlaneChartState implements ChartState, ColorScaleManager {
         return times.filter((time) => time >= startTime && time <= endTime)
     }
 
-    @computed get series(): SwimlaneSeries[] {
+    @computed private get unsortedSeries(): SwimlaneSeries[] {
         if (this.yColumn.isMissing) return []
 
         const { yColumn, timesAsc, colorScale } = this
@@ -174,6 +182,32 @@ export class SwimlaneChartState implements ChartState, ColorScaleManager {
                 }
             }
         )
+    }
+
+    @computed get sortConfig(): SortConfig {
+        const { sortBy, sortOrder } = this.manager.sortConfig ?? {}
+        if (sortBy && isSwimlaneSortKey(sortBy)) return { sortBy, sortOrder }
+        return { sortBy: this.defaultSortKey, sortOrder: SortOrder.asc }
+    }
+
+    @computed get series(): SwimlaneSeries[] {
+        const keyFns: Record<SwimlaneSortKey, SortKey<SwimlaneSeries>> = {
+            [SortBy.custom]: (series): number =>
+                this.selectionArray.selectedEntityNames.indexOf(
+                    series.entityName
+                ),
+            [SortBy.entityName]: (series): string => series.entityName,
+        }
+
+        return sortByConfig(this.unsortedSeries, this.sortConfig, keyFns)
+    }
+
+    @computed get availableSortKeys(): SwimlaneSortKey[] {
+        return [...SWIMLANE_SORT_KEYS]
+    }
+
+    @computed get defaultSortKey(): SwimlaneSortKey {
+        return SortBy.entityName
     }
 
     toHorizontalAxis(config: AxisConfig): HorizontalAxis {

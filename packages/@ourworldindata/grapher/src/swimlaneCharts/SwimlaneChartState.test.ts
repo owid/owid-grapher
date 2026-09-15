@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest"
 
-import { ColorSchemeName, ColumnTypeNames, Time } from "@ourworldindata/types"
+import {
+    ColorSchemeName,
+    ColumnTypeNames,
+    SortBy,
+    SortOrder,
+    Time,
+} from "@ourworldindata/types"
 import { OwidTable } from "@ourworldindata/core-table"
 import { SwimlaneChartState } from "./SwimlaneChartState"
 import {
@@ -279,5 +285,52 @@ describe("errorInfo", () => {
         expect(chartState.errorInfo.reason).toEqual(
             "Only one indicator can be shown at a time"
         )
+    })
+})
+
+describe("lanes", () => {
+    const table = makeCategoricalTable([
+        { entityName: "France", time: 2000, status: "X" },
+        { entityName: "Germany", time: 2000, status: "X" },
+        { entityName: "Italy", time: 2000, status: "X" },
+        { entityName: "Spain", time: 2000, status: "X" },
+    ])
+    const selection = ["Spain", "France", "Germany"]
+
+    function findLaneNames(sortBy: SortBy, sortOrder: SortOrder): string[] {
+        const chartState = makeChartState(table, {
+            selection,
+            sortConfig: { sortBy, sortOrder },
+        })
+        return chartState.series.map((series) => series.entityName)
+    }
+
+    it("are the selected entities only, sorted by name", () => {
+        expect(findLaneNames(SortBy.entityName, SortOrder.asc)).toEqual([
+            "France",
+            "Germany",
+            "Spain",
+        ])
+    })
+
+    it("follow the selection order when sorted by custom order, reversed when descending", () => {
+        expect(findLaneNames(SortBy.custom, SortOrder.asc)).toEqual([
+            "Spain",
+            "France",
+            "Germany",
+        ])
+        expect(findLaneNames(SortBy.custom, SortOrder.desc)).toEqual([
+            "Germany",
+            "France",
+            "Spain",
+        ])
+    })
+
+    it("fall back to sorting by name, ascending, for a sort key swimlanes don't support", () => {
+        expect(findLaneNames(SortBy.total, SortOrder.desc)).toEqual([
+            "France",
+            "Germany",
+            "Spain",
+        ])
     })
 })
