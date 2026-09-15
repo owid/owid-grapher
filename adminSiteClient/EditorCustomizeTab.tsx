@@ -301,7 +301,7 @@ class SortOrderSection extends React.Component<{ editor: ConfigEditor }> {
             return `column:${sortColumnSlug}`
         if (sortBy && this.sortOptions.some((opt) => opt.value === sortBy))
             return sortBy
-        return this.sortOptions[0]?.value ?? SortBy.entityName
+        return this.grapherState.defaultSortKey
     }
 
     @action.bound onSortByChange(selectedKey: string) {

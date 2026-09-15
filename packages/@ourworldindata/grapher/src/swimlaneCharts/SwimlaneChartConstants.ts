@@ -1,6 +1,6 @@
 import { ChartManager } from "../chart/ChartManager"
 import { ChartSeries } from "../chart/ChartInterface"
-import { Color, EntityName, Time } from "@ourworldindata/types"
+import { Color, EntityName, SortBy, Time } from "@ourworldindata/types"
 import { SeriesLabelState } from "../seriesLabel/SeriesLabelState"
 
 export const LANE_SPACING_FACTOR = 0.35
@@ -34,9 +34,11 @@ export type RawSwimlaneSegment =
     | RawSwimlaneCategorySegment
     | SwimlaneMissingSegment
 
-export type SwimlaneSegment =
-    | (RawSwimlaneCategorySegment & { color: Color })
-    | SwimlaneMissingSegment
+export type SwimlaneCategorySegment = RawSwimlaneCategorySegment & {
+    color: Color
+}
+
+export type SwimlaneSegment = SwimlaneCategorySegment | SwimlaneMissingSegment
 
 export type PlacedSwimlaneSegment = SwimlaneSegment & {
     x: number
@@ -68,3 +70,10 @@ export interface PlacedSwimlaneSeries extends Omit<
 export type SwimlaneCategories =
     | { kind: "ordinal"; values: string[] }
     | { kind: "categorical"; values: string[] }
+
+export const SWIMLANE_SORT_KEYS = [SortBy.custom, SortBy.entityName] as const
+export type SwimlaneSortKey = (typeof SWIMLANE_SORT_KEYS)[number]
+
+export function isSwimlaneSortKey(sortBy: SortBy): sortBy is SwimlaneSortKey {
+    return (SWIMLANE_SORT_KEYS as readonly SortBy[]).includes(sortBy)
+}
