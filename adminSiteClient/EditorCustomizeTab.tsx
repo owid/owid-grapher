@@ -11,6 +11,7 @@ import {
     FacetAxisDomain,
     FacetStrategy,
     GRAPHER_CHART_TYPES,
+    SwimlaneSortBy,
 } from "@ourworldindata/types"
 import {
     GrapherState,
@@ -353,6 +354,56 @@ class SortOrderSection<
                             { label: "Ascending", value: SortOrder.asc },
                         ]}
                         value={this.sortConfig.sortOrder}
+                        onChange={this.onSortOrderChange}
+                    />
+                </div>
+            </Section>
+        )
+    }
+}
+
+@observer
+class SwimlaneSortOrderSection<
+    Editor extends AbstractChartEditor,
+> extends React.Component<{ editor: Editor }> {
+    constructor(props: { editor: Editor }) {
+        super(props)
+        makeObservable(this)
+    }
+
+    @action.bound onSortByChange(sortBy: string) {
+        this.props.editor.grapherState.swimlane.sortBy =
+            sortBy as SwimlaneSortBy
+    }
+
+    @action.bound onSortOrderChange(sortOrder: string) {
+        this.props.editor.grapherState.swimlane.sortOrder =
+            sortOrder as SortOrder
+    }
+
+    override render(): React.ReactElement {
+        const { swimlane } = this.props.editor.grapherState
+        return (
+            <Section name="Sort Order">
+                <div className="form-group">
+                    Sort by
+                    <Select
+                        onChange={this.onSortByChange}
+                        value={swimlane.sortBy}
+                        style={{ width: "100%" }}
+                        options={Object.entries(SWIMLANE_SORT_BY_LABELS).map(
+                            ([value, label]) => ({ value, label })
+                        )}
+                    />
+                </div>
+                <div className="form-group">
+                    Sort order
+                    <RadioGroup
+                        options={[
+                            { label: "Descending", value: SortOrder.desc },
+                            { label: "Ascending", value: SortOrder.asc },
+                        ]}
+                        value={swimlane.sortOrder}
                         onChange={this.onSortOrderChange}
                     />
                 </div>
@@ -1037,6 +1088,9 @@ export class EditorCustomizeTab<
                 {features.canSpecifySortOrder && (
                     <SortOrderSection editor={this.props.editor} />
                 )}
+                {features.canConfigureSwimlane && (
+                    <SwimlaneSortOrderSection editor={this.props.editor} />
+                )}
                 {grapherState.chartStateExceptMap.colorScale && (
                     <EditorColorScaleSection
                         scale={grapherState.chartStateExceptMap.colorScale}
@@ -1143,3 +1197,10 @@ const DUMBBELL_VALUE_LABEL_MODE_LABELS: Record<DumbbellValueLabelMode, string> =
         [DumbbellValueLabelMode.PercentChange]: "Percent change",
         [DumbbellValueLabelMode.None]: "No labels",
     }
+
+const SWIMLANE_SORT_BY_LABELS: Record<SwimlaneSortBy, string> = {
+    [SwimlaneSortBy.lastCategory]: "Last category",
+    [SwimlaneSortBy.firstCategory]: "First category",
+    [SwimlaneSortBy.entityName]: "Entity name",
+    [SwimlaneSortBy.custom]: "Custom order (use specified entity order)",
+}
