@@ -34,11 +34,9 @@
         {
             "binding": "EMAIL_NOTIFICATIONS_DB",
             "database_name": "owid-email-notifications-staging",
-            // TODO: create the database with `npx wrangler d1 create
-            // owid-email-notifications-staging` and fill in the real id.
             // Local dev (`wrangler pages dev`) uses a local SQLite database
             // and doesn't care about the id.
-            "database_id": "00000000-0000-0000-0000-000000000000",
+            "database_id": "64184c60-9759-4795-80b0-23fe6385e91b",
             "migrations_dir": "d1/email-notifications/migrations"
         }
     ],
@@ -70,8 +68,7 @@
                 {
                     "binding": "EMAIL_NOTIFICATIONS_DB",
                     "database_name": "owid-email-notifications-staging",
-                    // TODO: create the database and fill in the real id.
-                    "database_id": "00000000-0000-0000-0000-000000000000",
+                    "database_id": "64184c60-9759-4795-80b0-23fe6385e91b",
                     "migrations_dir": "d1/email-notifications/migrations"
                 }
             ],
