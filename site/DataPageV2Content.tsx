@@ -30,6 +30,7 @@ import { DocumentContext } from "./gdocs/DocumentContext.js"
 import { useWindowQueryParams } from "./hooks.js"
 import IndicatorMetadataBox from "./IndicatorMetadataBox.js"
 import AboutThisData from "./AboutThisData.js"
+import { AskAI } from "./AskAI.js"
 import DataPageResearchAndWriting from "./DataPageResearchAndWriting.js"
 import MetadataSection from "./MetadataSection.js"
 import { SiteQueryClientProvider } from "./SiteQueryClientProvider.js"
@@ -172,6 +173,12 @@ export const DataPageV2Content = ({
                                     isEmbeddedInADataPage={true}
                                     isEmbeddedInAnOwidPage={false}
                                     isPreviewing={isPreviewing}
+                                />
+                            )}
+                            {grapherConfig.slug && (
+                                <AskAI
+                                    slug={grapherConfig.slug}
+                                    title={datapageData.title.title}
                                 />
                             )}
                             {!useNewDatapageDesign && (
