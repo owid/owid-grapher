@@ -12,6 +12,7 @@ import {
     ErrorValue,
     OwidChartDimensionInterfaceWithMandatorySlug,
     OwidChartDimensionInterface,
+    isIndicatorDimension,
     EntityName,
     TimeInterval,
 } from "@ourworldindata/types"
@@ -52,20 +53,21 @@ export const legacyToOwidTableAndDimensionsWithMandatorySlug = (
         | { [entityName: string]: string | undefined }
         | undefined
 ): OwidTable => {
-    // A slot names its column either by slug, which the host's table already
-    // has, or by variable id, whose column is named on assembly. A slot with
-    // neither names nothing and is dropped.
-    const dimensionsWithSlug = dimensions?.flatMap((dimension) => {
-        const slug =
-            dimension.slug ??
-            (dimension.variableId !== undefined
-                ? getDimensionColumnSlug(
-                      dimension.variableId,
-                      dimension.targetYear
-                  )
-                : undefined)
-        return slug !== undefined ? [{ ...dimension, slug }] : []
-    })
+    // Only indicator-backed slots have anything to assemble here; a slot
+    // naming a host-supplied column is that host's to provide. An authored
+    // slug still wins, so two slots on one indicator at different target
+    // years keep their distinct columns.
+    const dimensionsWithSlug = dimensions
+        .filter(isIndicatorDimension)
+        .map((dimension) => ({
+            ...dimension,
+            slug:
+                dimension.slug ??
+                getDimensionColumnSlug(
+                    dimension.variableId,
+                    dimension.targetYear
+                ),
+        }))
     return legacyToOwidTableAndDimensions(
         json,
         dimensionsWithSlug,
