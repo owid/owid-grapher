@@ -148,11 +148,11 @@ export class AxisConfig
     }
 
     @computed get tickFontSize(): number {
-        return scaleFontSize(11.5, this.fontSize)
+        return scaleFontSize(12, this.fontSize)
     }
 
     @computed get labelFontSize(): number {
-        return scaleFontSize(11.5, this.fontSize)
+        return scaleFontSize(12, this.fontSize)
     }
 
     // A log scale domain cannot have values <= 0, so we double check here

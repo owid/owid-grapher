@@ -102,7 +102,7 @@ export class StackedAreaChartThumbnail
 
     @computed private get labelFontSettings(): FontSettings {
         return {
-            fontSize: scaleFontSize(11.5, this.fontSize),
+            fontSize: scaleFontSize(12, this.fontSize),
             fontWeight: 500,
             lineHeight: 1,
         }
