@@ -19,7 +19,7 @@ import DimensionLabel from "./DimensionLabel.js"
 function DimensionItem({ choice }: { choice: Choice }) {
     return (
         <ListBoxItem
-            className="md-menu__item"
+            className="md-menu__item label-2-regular"
             id={choice.slug}
             textValue={choice.name}
         >
@@ -30,7 +30,7 @@ function DimensionItem({ choice }: { choice: Choice }) {
                             {choice.name}
                         </span>
                         {choice.description && (
-                            <span className="md-menu__item-description">
+                            <span className="md-menu__item-description note-2-regular">
                                 {choice.description}
                             </span>
                         )}
@@ -104,7 +104,7 @@ export default function DimensionDropdown({
                 offset={4}
             >
                 <div className="md-menu__overlay-header">
-                    <h2 className="md-menu__overlay-header-title">
+                    <h2 className="md-menu__overlay-header-title h5-black-caps">
                         {dimension.name}
                     </h2>
                     {dimension.description && (
@@ -123,7 +123,7 @@ export default function DimensionDropdown({
                                 className="md-menu__group"
                             >
                                 {groupLabel !== "undefined" && (
-                                    <Header className="md-menu__group-label">
+                                    <Header className="md-menu__group-label label-2-bold">
                                         {groupLabel}
                                     </Header>
                                 )}
