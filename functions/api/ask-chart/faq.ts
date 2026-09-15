@@ -96,7 +96,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
             text: { format: zodTextFormat(FaqEntriesSchema, "chart_faqs") },
             store: false,
             max_output_tokens: MAX_OUTPUT_TOKENS,
-            reasoning: { effort: "low" },
+            reasoning: { effort: "medium" },
         })
         const parsed = completion.output_parsed
         if (!parsed?.faqs?.length)
