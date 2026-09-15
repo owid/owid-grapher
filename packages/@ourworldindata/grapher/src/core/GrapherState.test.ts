@@ -18,6 +18,7 @@ import {
     FacetStrategy,
     GrapherChartType,
     GrapherTabName,
+    MultipleOwidVariableDataDimensionsMap,
 } from "@ourworldindata/types"
 import {
     TimeBoundValue,
@@ -138,23 +139,6 @@ const data = {
     entities: [207, 15, 207],
     values: [4, 20, 34],
 }
-const metadata = {
-    id: 3512,
-    display: {
-        name,
-    },
-    dimensions: {
-        entities: {
-            values: [
-                { name: "Afghanistan", id: 15, code: "AFG" },
-                { name: "Iceland", id: 207, code: "ISL" },
-            ],
-        },
-        years: {
-            values: [{ id: 2000 }, { id: 2010 }],
-        },
-    },
-}
 const legacyConfig: Omit<LegacyGrapherInterface, "data"> = {
     dimensions: [
         {
@@ -169,18 +153,32 @@ const legacyConfig: Omit<LegacyGrapherInterface, "data"> = {
     selectedEntityNames: ["Iceland", "Afghanistan"],
 }
 
-const owidDataset = new Map([
-    [
-        3512,
-        {
-            data,
-            metadata,
-        },
-    ],
-])
+const makeOwidDataset = (
+    entities: { name: string; id: number; code?: string }[] = [
+        { name: "Afghanistan", id: 15, code: "AFG" },
+        { name: "Iceland", id: 207, code: "ISL" },
+    ]
+): MultipleOwidVariableDataDimensionsMap =>
+    new Map([
+        [
+            3512,
+            {
+                data,
+                metadata: {
+                    id: 3512,
+                    display: { name },
+                    dimensions: {
+                        entities: { values: entities },
+                        years: { values: [{ id: 2000 }, { id: 2010 }] },
+                    },
+                },
+            },
+        ],
+    ])
 
 const makeLegacyGrapher = (
-    config: GrapherProgrammaticInterface = legacyConfig
+    config: GrapherProgrammaticInterface = legacyConfig,
+    owidDataset = makeOwidDataset()
 ): GrapherState => {
     const grapher = new GrapherState(config)
     grapher.inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
@@ -223,23 +221,30 @@ it("can fallback to a ycolumn if a map variableId does not exist", () => {
     expect(grapher.mapColumnSlug).toEqual("3512")
 })
 
-it("can generate a url with country selection even if there is no entity code", () => {
-    const config = {
+it("can generate a url with country selection", () => {
+    const grapher = makeLegacyGrapher({
         ...legacyConfig,
         selectedEntityNames: [],
-    }
-    const grapher = makeLegacyGrapher(config)
+    })
     expect(grapher.queryStr).toBe("")
-    grapher.selection.setSelectedEntities(grapher.availableEntityNames)
-    expect(grapher.queryStr).toContain("AFG")
 
-    metadata.dimensions.entities.values.find(
-        (entity) => entity.id === 15
-    )!.code = undefined as any
-    const grapher2 = makeLegacyGrapher(config)
-    expect(grapher2.queryStr).toBe("")
-    grapher2.selection.setSelectedEntities(grapher.availableEntityNames)
-    expect(grapher2.queryStr).toContain("AFG")
+    grapher.selection.setSelectedEntities(grapher.availableEntityNames)
+    expect(grapher.queryStr).toBe("?country=ISL~AFG")
+})
+
+it("falls back to the entity name in the url when an entity has no code", () => {
+    // Codes in the url come from the regions list, so an entity that isn't a
+    // known region has none, whatever the data says.
+    const grapher = makeLegacyGrapher(
+        { ...legacyConfig, selectedEntityNames: [] },
+        makeOwidDataset([
+            { name: "Bananas", id: 15 },
+            { name: "Iceland", id: 207, code: "ISL" },
+        ])
+    )
+
+    grapher.selection.setSelectedEntities(grapher.availableEntityNames)
+    expect(grapher.queryStr).toBe("?country=ISL~Bananas")
 })
 
 describe("hasTimeline", () => {
@@ -1637,8 +1642,19 @@ describe("year parameter (applies to map only)", () => {
             },
         ]
 
+        it("can clear query params", () => {
+            const grapher = getGrapher()
+            grapher.populateFromQueryParams(
+                legacyToCurrentGrapherQueryParams("?year=2020-01-30")
+            )
+            expect(grapher.queryStr).toBeTruthy()
+
+            grapher.clearQueryParams()
+            expect(grapher.queryStr).toBeFalsy()
+        })
+
         for (const test of tests) {
-            describe(`parse ${test.name}`, () => {
+            it(`parse ${test.name}`, () => {
                 const grapher = getGrapher()
                 grapher.populateFromQueryParams(
                     legacyToCurrentGrapherQueryParams(`?year=${test.query}`)
@@ -1647,12 +1663,6 @@ describe("year parameter (applies to map only)", () => {
                     test.param,
                     test.param,
                 ])
-
-                it("can clear query params", () => {
-                    expect(grapher.queryStr).toBeTruthy()
-                    grapher.clearQueryParams()
-                    expect(grapher.queryStr).toBeFalsy()
-                })
             })
             if (!test.irreversible) {
                 it(`encode ${test.name}`, () => {
