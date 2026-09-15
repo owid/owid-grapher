@@ -47,9 +47,13 @@ function makeTimeAxis({
     hideFractionalTicks?: boolean
 }): HorizontalAxis {
     const slug = "timeValue"
-    const table = new OwidTable({ entityName: ["usa"], [slug]: [0] }, [
-        { slug, type: columnType },
-    ])
+    const table = new OwidTable(
+        [
+            ["entityName", slug],
+            ["usa", 0],
+        ],
+        [{ slug, type: columnType }]
+    )
     const axis = new HorizontalAxis(
         new AxisConfig({
             scaleType: ScaleType.linear,
@@ -340,9 +344,13 @@ describe("axis height", () => {
         convertDateToDaysSinceEpoch(dayjs.utc(date))
 
     const timeColumn = (type: ColumnTypeNames, slug: string): CoreColumn =>
-        new OwidTable({ entityName: ["usa"], [slug]: [0] }, [
-            { slug, type },
-        ]).get(slug)
+        new OwidTable(
+            [
+                ["entityName", slug],
+                ["usa", 0],
+            ],
+            [{ slug, type }]
+        ).get(slug)
 
     /**
      * The height given by `HorizontalAxis.height` should match the height of the placed tick labels plus padding and label offset in all cases, or `minSize` if that is larger.
