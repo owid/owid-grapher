@@ -1120,6 +1120,34 @@ describe("title", () => {
         expect(grapher.titleAnnotation).toEqual("2001 to 2005")
     })
 
+    it("includes a single selected entity in a swimlane's title but not with two selected", () => {
+        const table = new OwidTable(
+            [
+                { entityName: "France", time: 2000, cause: "Europe" },
+                { entityName: "Nigeria", time: 2000, cause: "Africa" },
+            ],
+            [{ slug: "cause", type: ColumnTypeNames.String }]
+        )
+        const entityName = "France"
+        const singleGrapher = new GrapherState({
+            table,
+            chartTypes: [GRAPHER_CHART_TYPES.Swimlane],
+            selectedEntityNames: [entityName],
+            ySlugs: "cause",
+        })
+
+        expect(singleGrapher.fullTitle).toContain(entityName)
+
+        const multiGrapher = new GrapherState({
+            table,
+            chartTypes: [GRAPHER_CHART_TYPES.Swimlane],
+            selectedEntityNames: ["France", "Nigeria"],
+            ySlugs: "cause",
+        })
+
+        expect(multiGrapher.fullTitle).not.toContain(entityName)
+    })
+
     it("appends the annotation without a comma if the title ends with a question mark", () => {
         const grapher = makeGrapher({ title: "How rich are people?" })
 

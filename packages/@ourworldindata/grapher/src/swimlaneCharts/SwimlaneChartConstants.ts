@@ -8,6 +8,7 @@ export const ENTITY_LABEL_CHART_GAP = 8
 export const TICK_LABEL_OVERFLOW_PADDING = 2
 export const MIN_SEGMENT_WIDTH = 1
 export const PADDING_BETWEEN_LEGEND_AND_LANES = 8
+export const MAX_LANE_HEIGHT = 36
 
 export type SwimlaneChartManager = ChartManager
 
@@ -77,6 +78,11 @@ export interface CategoricalSwimlaneCategories {
 export type SwimlaneCategories =
     | OrdinalSwimlaneCategories
     | CategoricalSwimlaneCategories
+
+export interface RankedSwimlane {
+    series: SwimlaneSeries
+    categories: OrdinalSwimlaneCategories
+}
 
 export const SWIMLANE_SORT_KEYS = [
     SortBy.custom,

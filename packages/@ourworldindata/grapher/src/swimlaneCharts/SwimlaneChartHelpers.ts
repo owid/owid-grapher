@@ -5,11 +5,14 @@ import { computeCenteredLabelYPositions } from "../rowSeriesLabels/RowSeriesLabe
 import {
     ENTITY_LABEL_CHART_GAP,
     LANE_SPACING_FACTOR,
+    MAX_LANE_HEIGHT,
     MIN_SEGMENT_WIDTH,
     OrdinalSwimlaneCategories,
     PlacedSwimlaneSegment,
     PlacedSwimlaneSeries,
     SizedSwimlaneSeries,
+    RankedSwimlane,
+    SwimlaneCategories,
     SwimlaneObservation,
     SwimlaneSegment,
     SwimlaneSeries,
@@ -53,6 +56,30 @@ export function toSwimlaneSegments({
     return segments
 }
 
+export function toRankedSwimlane({
+    series,
+    categories,
+}: {
+    series: SwimlaneSeries[]
+    categories: SwimlaneCategories | undefined
+}): RankedSwimlane | undefined {
+    if (series.length !== 1 || categories?.kind !== "ordinal") return undefined
+    return { series: series[0], categories }
+}
+
+export function computeLaneSlotHeight({
+    plotHeight,
+    laneCount,
+}: {
+    plotHeight: number
+    laneCount: number
+}): number {
+    return Math.min(
+        plotHeight / laneCount,
+        MAX_LANE_HEIGHT / (1 - LANE_SPACING_FACTOR)
+    )
+}
+
 export function toPlacedSwimlaneSeries({
     series: allSeries,
     bounds,
@@ -64,12 +91,17 @@ export function toPlacedSwimlaneSeries({
 }): PlacedSwimlaneSeries[] {
     if (allSeries.length === 0) return []
 
-    const slotHeight = bounds.height / allSeries.length
+    const slotHeight = computeLaneSlotHeight({
+        plotHeight: bounds.height,
+        laneCount: allSeries.length,
+    })
     const laneHeight = slotHeight * (1 - LANE_SPACING_FACTOR)
     const labelX = bounds.left - ENTITY_LABEL_CHART_GAP
+    const blockTop =
+        bounds.top + (bounds.height - slotHeight * allSeries.length) / 2
 
     return allSeries.map((series, index): PlacedSwimlaneSeries => {
-        const y = bounds.top + (index + 0.5) * slotHeight
+        const y = blockTop + (index + 0.5) * slotHeight
 
         const extents = toContiguousSegmentExtents({
             segments: series.segments,

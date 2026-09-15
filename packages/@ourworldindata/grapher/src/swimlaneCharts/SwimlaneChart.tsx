@@ -43,6 +43,7 @@ import { ExternalColorLegendData } from "../legend/HorizontalColorLegendTypes"
 import {
     ENTITY_LABEL_CHART_GAP,
     PADDING_BETWEEN_LEGEND_AND_LANES,
+    PlacedSwimlaneSegment,
     PlacedSwimlaneSeries,
     SizedSwimlaneSeries,
     SwimlaneChartManager,
@@ -50,8 +51,13 @@ import {
     TICK_LABEL_OVERFLOW_PADDING,
 } from "./SwimlaneChartConstants"
 import { SwimlaneChartState } from "./SwimlaneChartState"
-import { toPlacedSwimlaneSeries } from "./SwimlaneChartHelpers"
+import {
+    computeLaneSlotHeight,
+    toPlacedSwimlaneSegmentsByCategoryRank,
+    toPlacedSwimlaneSeries,
+} from "./SwimlaneChartHelpers"
 import { SwimlaneRow } from "./SwimlaneRow"
+import { SwimlaneSegments } from "./SwimlaneSegments"
 
 export type SwimlaneChartProps = ChartComponentProps<SwimlaneChartState>
 
@@ -180,7 +186,10 @@ export class SwimlaneChart
     }
 
     @computed private get availableHeightPerSeries(): number {
-        return this.boundsWithoutLegend.height / this.series.length
+        return computeLaneSlotHeight({
+            plotHeight: this.boundsWithoutLegend.height,
+            laneCount: this.series.length,
+        })
     }
 
     @computed private get entityLabelStyle(): FontSettings {
@@ -215,11 +224,12 @@ export class SwimlaneChart
         return Math.max(...labelWidths)
     }
 
-    /** Bounds minus the entity labels; also this chart's `AxisManager` contribution */
     @computed get axisBounds(): Bounds {
-        return this.boundsWithoutLegend.padLeft(
-            this.entityLabelMaxWidth + ENTITY_LABEL_CHART_GAP
-        )
+        return this.chartState.rankedSwimlane
+            ? this.boundsWithoutLegend
+            : this.boundsWithoutLegend.padLeft(
+                  this.entityLabelMaxWidth + ENTITY_LABEL_CHART_GAP
+              )
     }
 
     @computed get xAxis(): HorizontalAxis {
@@ -235,6 +245,17 @@ export class SwimlaneChart
     @computed private get placedSeries(): PlacedSwimlaneSeries[] {
         return toPlacedSwimlaneSeries({
             series: this.sizedSeries,
+            bounds: this.innerBounds,
+            placeTime: (time) => this.xAxis.place(time),
+        })
+    }
+
+    @computed private get rankedSegments(): PlacedSwimlaneSegment[] {
+        const ranked = this.chartState.rankedSwimlane
+        if (!ranked) return []
+        return toPlacedSwimlaneSegmentsByCategoryRank({
+            series: ranked.series,
+            categories: ranked.categories,
             bounds: this.innerBounds,
             placeTime: (time) => this.xAxis.place(time),
         })
@@ -316,11 +337,17 @@ export class SwimlaneChart
                     bounds={this.innerBounds}
                     stroke={SOLID_TICK_COLOR}
                 />
-                <g id={makeFigmaId("lanes")}>
-                    {this.manager.isStatic
-                        ? this.renderLanes()
-                        : this.renderAnimatedLanes()}
-                </g>
+                {this.chartState.rankedSwimlane ? (
+                    <g id={makeFigmaId("bands")}>
+                        <SwimlaneSegments segments={this.rankedSegments} />
+                    </g>
+                ) : (
+                    <g id={makeFigmaId("lanes")}>
+                        {this.manager.isStatic
+                            ? this.renderLanes()
+                            : this.renderAnimatedLanes()}
+                    </g>
+                )}
             </g>
         )
     }
