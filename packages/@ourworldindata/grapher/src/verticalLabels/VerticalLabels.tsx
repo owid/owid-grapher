@@ -11,10 +11,7 @@ import { VerticalLabelsState } from "./VerticalLabelsState"
 import { Emphasis } from "../interaction/Emphasis.js"
 import { roundForSvg } from "../chart/ChartUtils"
 
-/**
- * Series labels stacked vertically, with connector lines,
- * entity annotations, and interactive hover/focus states
- */
+/** Series labels stacked vertically */
 export function VerticalLabels({
     state,
     x = 0,

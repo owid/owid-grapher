@@ -225,10 +225,8 @@ function DottedProjectedDataPattern({
             height={roundForSvg(patternSize)}
             patternTransform={`rotate(45) scale(${roundedScale})`}
         >
-            {/* colored background */}
             <rect width={patternSize} height={patternSize} fill={color} />
 
-            {/* dots */}
             <circle
                 cx={roundForSvg(patternSize / 2)}
                 cy={roundForSvg(patternSize / 2)}

@@ -455,7 +455,6 @@ export class StaticCaptionedChart extends AbstractCaptionedChart {
                 <g
                     id={makeFigmaId("details")}
                     transform={`translate(15, ${roundForSvg(
-                        // + padding below the grey line
                         this.bounds.height + this.framePaddingVertical
                     )})`}
                 >

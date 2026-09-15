@@ -63,7 +63,6 @@ export function SeriesLabel({
     onMouseLeave,
     onInfoTooltipShow,
 }: SeriesLabelProps): React.ReactElement {
-    // Get the corrected position for SVG text rendering
     const [renderX, renderY] = state.getPositionForSvgRendering(x, y)
 
     const fontSize = state.fontSettings.fontSize
@@ -361,7 +360,6 @@ function IconFragment({
 
     return (
         <g>
-            {/* Info icon */}
             <g
                 transform={`translate(${roundForSvg(iconX)}, ${roundForSvg(iconY)})`}
             >

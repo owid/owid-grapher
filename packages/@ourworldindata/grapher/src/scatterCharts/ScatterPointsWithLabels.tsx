@@ -42,7 +42,6 @@ import { ColorScale } from "../color/ColorScale"
 import { BASE_FONT_SIZE } from "../core/GrapherConstants"
 import { roundFontSize, roundForSvg, scaleFontSize } from "../chart/ChartUtils"
 
-// This is the component that actually renders the points. The higher level ScatterPlot class renders points, legends, comparison lines, etc.
 @observer
 export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLabelsProps> {
     base = React.createRef<SVGGElement>()
