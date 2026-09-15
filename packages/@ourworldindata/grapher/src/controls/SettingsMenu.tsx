@@ -118,6 +118,7 @@ export class SettingsMenu extends React.Component<SettingsMenuProps> {
                 GRAPHER_CHART_TYPES.StackedDiscreteBar,
                 GRAPHER_CHART_TYPES.Marimekko,
                 GRAPHER_CHART_TYPES.Dumbbell,
+                GRAPHER_CHART_TYPES.Swimlane,
             ].includes(this.chartType as any)
         )
             return false // We currently do not have these charts with log scale
