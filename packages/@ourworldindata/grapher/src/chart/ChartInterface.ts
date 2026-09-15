@@ -66,6 +66,9 @@ export interface ChartState {
     /** Sort keys this chart type supports */
     availableSortKeys?: SortBy[]
 
+    /** Sort key this chart type uses by default */
+    defaultSortKey?: SortBy
+
     /**
      * Explains that some of the values aren't from the time the chart is
      * labelled with, because tolerance was applied
