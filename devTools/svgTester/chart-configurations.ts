@@ -104,7 +104,7 @@ const VIEW_MATRIX_BY_CHART_TYPE: Record<GrapherChartType, ViewMatrix> = {
     },
     [GRAPHER_CHART_TYPES.Swimlane]: {
         tab: ["chart"],
-        time: timeSpan,
+        time: timeOptionsAll,
     },
 }
 
