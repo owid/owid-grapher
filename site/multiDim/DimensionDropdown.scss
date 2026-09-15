@@ -112,7 +112,6 @@ $selected-hover-fill: #bed2e7;
     }
 
     .md-menu__overlay-header-title {
-        @include h5-black-caps;
         color: $light-text;
         margin-top: 0;
         margin-bottom: 4px;
@@ -133,13 +132,11 @@ $selected-hover-fill: #bed2e7;
     }
 
     .md-menu__group-label {
-        @include label-2-bold;
         color: $light-text;
         margin: 8px 16px;
     }
 
     .md-menu__item {
-        @include label-2-regular;
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -177,7 +174,6 @@ $selected-hover-fill: #bed2e7;
     }
 
     .md-menu__item-description {
-        @include note-2-regular;
         color: $gray-70;
     }
 

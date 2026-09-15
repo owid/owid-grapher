@@ -27,7 +27,7 @@ export default function DimensionLabel({
             {hasTooltip && (
                 <Tippy
                     content={
-                        <div className="md-label-tooltip">
+                        <div className="md-label-tooltip note-1-regular">
                             <h5 className="h6-black-caps">{dimension.name}</h5>
                             {dimension.description && (
                                 <p>{dimension.description}</p>

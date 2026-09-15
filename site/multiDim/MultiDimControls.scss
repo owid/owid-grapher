@@ -42,11 +42,8 @@
     padding: 8px;
     text-align: left;
     color: $gray-90;
-    font: 400 12px/16px $lato;
-    letter-spacing: 0.01em;
 
     h5 {
-        @include h6-black-caps;
         margin: 0;
         color: $gray-70;
     }
@@ -66,7 +63,6 @@
 }
 
 .md-controls__toggle {
-    @include label-2-medium;
     color: $blue-90;
     background: none;
     border: none;
