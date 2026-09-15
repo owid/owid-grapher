@@ -697,7 +697,9 @@ export function buildChartEditorTools(
                 "user wants to leave a chart alone: unsaved changes block " +
                 "navigation, and on a published chart save_chart is refused, " +
                 "so without this nothing can move. The admin has no Discard " +
-                "button, so do not tell the user to click one.",
+                "button, so do not tell the user to click one. Tags are not " +
+                "affected: set_chart_tags writes them immediately, so they " +
+                "are already saved and this cannot take them back.",
             inputSchema: { type: "object", properties: {} },
             execute: () =>
                 withEditor(context, async (editor) => {
