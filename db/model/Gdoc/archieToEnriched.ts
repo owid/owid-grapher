@@ -8,7 +8,6 @@ import {
     OwidGdocStickyNavItem,
     OwidGdocType,
     checkNodeIsSpan,
-    EnrichedBlockSimpleText,
     lowercaseObjectKeys,
     ALL_CHARTS_ID,
     KEY_INSIGHTS_ID,
@@ -21,7 +20,6 @@ import {
     parseText,
 } from "./rawToEnriched.js"
 import { extractUrl, parseAuthors } from "./gdocUtils.js"
-import { htmlToSimpleTextBlock } from "./htmlToEnriched.js"
 import { RESEARCH_AND_WRITING_DEFAULT_HEADING } from "@ourworldindata/types"
 
 // Topic page headings have predictable heading names which are used in the sticky nav.
@@ -94,14 +92,6 @@ export function generateStickyNav(
     )
 
     return stickyNavItems
-}
-
-export function formatCitation(
-    rawCitation?: string | string[]
-): undefined | EnrichedBlockSimpleText[] {
-    if (!rawCitation) return
-    const citationArray = _.isArray(rawCitation) ? rawCitation : [rawCitation]
-    return citationArray.map(htmlToSimpleTextBlock)
 }
 
 // Empty out the parts of an ArchieML document that the parser itself discards,
