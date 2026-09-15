@@ -1,13 +1,14 @@
 import * as _ from "lodash-es"
 import React from "react"
 import {
-    exposeInstanceOnWindow,
-    Bounds,
-    Time,
-    HorizontalAlign,
     AxisAlign,
-    makeFigmaId,
+    Bounds,
+    HorizontalAlign,
+    Time,
     dyFromAlign,
+    exposeInstanceOnWindow,
+    makeFigmaId,
+    roundForSvg,
 } from "@ourworldindata/utils"
 import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
@@ -22,7 +23,7 @@ import { NoDataMessage } from "../noDataMessage/NoDataMessage"
 import { HorizontalAxisZeroLine } from "../axis/AxisViews"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 import { ChartInterface } from "../chart/ChartInterface"
-import { roundFontSize, roundForSvg, scaleFontSize } from "../chart/ChartUtils"
+import { roundFontSize, scaleFontSize } from "../chart/ChartUtils"
 import {
     BAR_SPACING_FACTOR,
     DISCRETE_BAR_STYLE,

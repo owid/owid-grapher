@@ -1,6 +1,6 @@
 import * as React from "react"
 import * as _ from "lodash-es"
-import { roundForSvg } from "../chart/ChartUtils"
+import { roundForSvg } from "@ourworldindata/utils"
 
 type TriangleProps = Readonly<{
     cx: number

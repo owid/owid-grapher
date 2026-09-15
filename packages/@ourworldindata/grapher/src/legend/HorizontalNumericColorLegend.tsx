@@ -1,9 +1,10 @@
 import * as React from "react"
 import {
-    dyFromAlign,
-    removeAllWhitespace,
-    makeFigmaId,
     VerticalAlign,
+    dyFromAlign,
+    makeFigmaId,
+    removeAllWhitespace,
+    roundForSvg,
 } from "@ourworldindata/utils"
 import { TextWrapSvg } from "@ourworldindata/components"
 import { ColorScaleBin, isNumericBin } from "../color/ColorScaleBin"
@@ -26,7 +27,6 @@ import {
     DEFAULT_NUMERIC_BIN_STROKE_WIDTH,
     DEFAULT_TEXT_COLOR,
 } from "./HorizontalColorLegendConstants"
-import { roundForSvg } from "../chart/ChartUtils"
 
 export function HorizontalNumericColorLegend(
     props: HorizontalColorLegendProps<HorizontalNumericColorLegendState>

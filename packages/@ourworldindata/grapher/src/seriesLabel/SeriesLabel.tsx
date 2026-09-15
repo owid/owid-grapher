@@ -15,11 +15,10 @@ import {
     TextRole,
     SpanLine,
 } from "./SeriesLabelState.js"
-import { Bounds, isTouchDevice } from "@ourworldindata/utils"
+import { Bounds, isTouchDevice, roundForSvg } from "@ourworldindata/utils"
 import { Halo } from "@ourworldindata/components"
 import { RegionTooltip } from "./RegionTooltip.js"
 import { getDescriptionForKey, getRegionsForKey } from "./RegionTooltipData.js"
-import { roundForSvg } from "../chart/ChartUtils"
 
 const defaultColors: Record<TextRole, string> = {
     name: GRAPHER_DARK_TEXT,

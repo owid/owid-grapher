@@ -1,11 +1,16 @@
-import { dyFromAlign, makeFigmaId, VerticalAlign } from "@ourworldindata/utils"
+import {
+    VerticalAlign,
+    dyFromAlign,
+    makeFigmaId,
+    roundForSvg,
+} from "@ourworldindata/utils"
 import {
     MARIMEKKO_BAR_STYLE,
     MarimekkoNoDataArea,
     RenderMarimekkoSeries,
 } from "./MarimekkoChartConstants"
 import { Patterns } from "../core/GrapherConstants"
-import { roundForSvg, scaleFontSize } from "../chart/ChartUtils"
+import { scaleFontSize } from "../chart/ChartUtils"
 
 const PLACEHOLDER_COLOR = "#555"
 

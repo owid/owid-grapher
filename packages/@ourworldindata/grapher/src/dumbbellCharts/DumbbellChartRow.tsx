@@ -1,5 +1,5 @@
 import React from "react"
-import { makeFigmaId, dyFromAlign } from "@ourworldindata/utils"
+import { dyFromAlign, makeFigmaId, roundForSvg } from "@ourworldindata/utils"
 import { Halo, TextWrapSvg } from "@ourworldindata/components"
 import { DumbbellConnectorStyle, VerticalAlign } from "@ourworldindata/types"
 import { FontSettings } from "../core/GrapherConstants"
@@ -16,7 +16,6 @@ import { toLeftRight } from "./DumbbellChartHelpers"
 import { GRID_LINE_DASH_PATTERN, TICK_COLOR } from "../axis/AxisViews.js"
 import { darkenColorForText } from "../color/ColorUtils.js"
 import { GRAPHER_DARK_TEXT } from "../color/ColorConstants.js"
-import { roundForSvg } from "../chart/ChartUtils"
 
 export function DumbbellChartRow({
     series,

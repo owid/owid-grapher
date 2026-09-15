@@ -1,5 +1,5 @@
 import * as R from "remeda"
-import { PointVector, makeFigmaId } from "@ourworldindata/utils"
+import { PointVector, makeFigmaId, roundForSvg } from "@ourworldindata/utils"
 import { observer } from "mobx-react"
 import * as React from "react"
 import { MultiColorPolyline } from "./MultiColorPolyline"
@@ -9,7 +9,6 @@ import {
     SCATTER_POINT_STROKE_WIDTH,
 } from "./ScatterPlotChartConstants"
 import { Triangle } from "./Triangle"
-import { roundForSvg } from "../chart/ChartUtils"
 
 interface ScatterPointProps {
     series: ScatterRenderSeries

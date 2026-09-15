@@ -2,7 +2,7 @@ import * as React from "react"
 import * as R from "remeda"
 import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
-import { roundForSvg } from "../chart/ChartUtils"
+import { roundForSvg } from "@ourworldindata/utils"
 
 interface MultiColorPolylinePoint {
     x: number

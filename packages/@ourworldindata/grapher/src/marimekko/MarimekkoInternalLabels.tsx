@@ -5,9 +5,8 @@ import * as R from "remeda"
 import { computed, makeObservable } from "mobx"
 import { PlacedMarimekkoSeries } from "./MarimekkoChartConstants"
 import { DualAxis } from "../axis/Axis"
-import { Bounds } from "@ourworldindata/utils"
+import { Bounds, roundForSvg } from "@ourworldindata/utils"
 import { Halo } from "@ourworldindata/components"
-import { roundForSvg } from "../chart/ChartUtils"
 
 interface MarimekkoInternalLabelsProps {
     series: PlacedMarimekkoSeries[]

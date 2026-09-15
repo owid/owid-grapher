@@ -4,12 +4,13 @@ import { observer } from "mobx-react"
 import {
     Bounds,
     HorizontalAlign,
+    Point,
     Position,
     VerticalAlign,
     dyFromAlign,
-    textAnchorFromAlign,
     makeFigmaId,
-    Point,
+    roundForSvg,
+    textAnchorFromAlign,
 } from "@ourworldindata/utils"
 import { VerticalAxis, HorizontalAxis, DualAxis } from "./Axis"
 import classNames from "clsx"
@@ -17,7 +18,6 @@ import { GRAPHER_DARK_TEXT } from "../color/ColorConstants"
 import { ScaleType, DetailsMarker } from "@ourworldindata/types"
 import { MarkdownTextWrapSvg } from "@ourworldindata/components"
 import { ComparisonLine } from "../comparisonLine/ComparisonLine"
-import { roundForSvg } from "../chart/ChartUtils"
 
 export const TICK_COLOR = "#ddd"
 const FAINT_TICK_COLOR = "#eee"

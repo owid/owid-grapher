@@ -7,8 +7,7 @@ import {
     OWID_WORDMARK_SVG,
 } from "./LogosSVG"
 import { LogoOption } from "@ourworldindata/types"
-import { makeFigmaId } from "@ourworldindata/utils"
-import { roundForSvg } from "../chart/ChartUtils"
+import { makeFigmaId, roundForSvg } from "@ourworldindata/utils"
 
 interface LogoAttributes {
     svg: string

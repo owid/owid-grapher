@@ -3,15 +3,16 @@ import * as R from "remeda"
 import React from "react"
 import {
     Bounds,
-    exposeInstanceOnWindow,
     PointVector,
-    makeFigmaId,
-    guid,
-    excludeUndefined,
-    getRelativeMouse,
-    dyFromAlign,
-    domainExtent,
     calculateTrendDirection,
+    domainExtent,
+    dyFromAlign,
+    excludeUndefined,
+    exposeInstanceOnWindow,
+    getRelativeMouse,
+    guid,
+    makeFigmaId,
+    roundForSvg,
 } from "@ourworldindata/utils"
 import { observable, computed, action, makeObservable } from "mobx"
 import { observer } from "mobx-react"
@@ -39,11 +40,7 @@ import {
     SlopeChartManager,
 } from "./SlopeChartConstants"
 import { CoreColumn } from "@ourworldindata/core-table"
-import {
-    getHoverStateForSeries,
-    roundForSvg,
-    scaleFontSize,
-} from "../chart/ChartUtils"
+import { getHoverStateForSeries, scaleFontSize } from "../chart/ChartUtils"
 import { HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import { VerticalAxisZeroLine } from "../axis/AxisViews"
 import { NoDataSection } from "../scatterCharts/NoDataSection"

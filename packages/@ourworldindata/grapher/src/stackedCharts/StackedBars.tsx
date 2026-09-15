@@ -5,9 +5,8 @@ import {
     RenderStackedBarSeries,
     STACKED_BAR_STYLE,
 } from "./StackedConstants"
-import { makeFigmaId, makeSafeForCSS } from "@ourworldindata/utils"
+import { makeFigmaId, makeSafeForCSS, roundForSvg } from "@ourworldindata/utils"
 import { Emphasis } from "../interaction/Emphasis"
-import { roundForSvg } from "../chart/ChartUtils"
 
 export function StackedBars({
     series,

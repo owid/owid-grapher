@@ -1,9 +1,8 @@
 import React from "react"
-import { Bounds, makeFigmaId } from "@ourworldindata/utils"
+import { Bounds, makeFigmaId, roundForSvg } from "@ourworldindata/utils"
 import { HorizontalAxis } from "../axis/Axis"
 import { HorizontalAxisGridLines } from "../axis/AxisViews"
 import { GRAPHER_DARK_TEXT } from "../color/ColorConstants"
-import { roundForSvg } from "../chart/ChartUtils"
 
 export function SlopeChartXAxis({
     axis,

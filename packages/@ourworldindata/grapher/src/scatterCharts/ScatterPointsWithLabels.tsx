@@ -7,12 +7,13 @@ import { SortOrder } from "@ourworldindata/types"
 import {
     Bounds,
     PointVector,
-    sortNumeric,
-    makeSafeForCSS,
     getRelativeMouse,
-    intersection,
     guid,
+    intersection,
     makeFigmaId,
+    makeSafeForCSS,
+    roundForSvg,
+    sortNumeric,
 } from "@ourworldindata/utils"
 import { computed, action, observable, makeObservable } from "mobx"
 import { observer } from "mobx-react"
@@ -40,7 +41,7 @@ import {
 import { Triangle } from "./Triangle"
 import { ColorScale } from "../color/ColorScale"
 import { BASE_FONT_SIZE } from "../core/GrapherConstants"
-import { roundFontSize, roundForSvg, scaleFontSize } from "../chart/ChartUtils"
+import { roundFontSize, scaleFontSize } from "../chart/ChartUtils"
 
 @observer
 export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLabelsProps> {

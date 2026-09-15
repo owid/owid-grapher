@@ -6,6 +6,7 @@ import {
     Bounds,
     exposeInstanceOnWindow,
     makeFigmaId,
+    roundForSvg,
 } from "@ourworldindata/utils"
 import {
     MarkdownTextWrap,
@@ -45,7 +46,7 @@ import {
 } from "../controls/controlsRow/ControlsRow"
 import { GRAPHER_BACKGROUND } from "../color/ColorConstants.js"
 import { ChartAreaContent } from "../chart/ChartAreaContent"
-import { getChartSvgProps, roundForSvg } from "../chart/ChartUtils"
+import { getChartSvgProps } from "../chart/ChartUtils"
 import { StaticChartWrapper } from "../chart/StaticChartWrapper"
 
 export interface CaptionedChartManager

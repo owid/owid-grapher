@@ -3,14 +3,15 @@ import * as R from "remeda"
 import {
     Bounds,
     Color,
-    excludeUndefined,
+    EntitySelectionMode,
     HorizontalAlign,
     Position,
-    getRelativeMouse,
-    EntitySelectionMode,
-    makeFigmaId,
     dyFromAlign,
+    excludeUndefined,
     exposeInstanceOnWindow,
+    getRelativeMouse,
+    makeFigmaId,
+    roundForSvg,
 } from "@ourworldindata/utils"
 import { action, computed, makeObservable, observable } from "mobx"
 import { observer } from "mobx-react"
@@ -18,7 +19,7 @@ import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
 } from "../core/GrapherConstants"
-import { roundForSvg, scaleFontSize } from "../chart/ChartUtils"
+import { scaleFontSize } from "../chart/ChartUtils"
 import { DualAxisComponent } from "../axis/AxisViews"
 import { NoDataMessage } from "../noDataMessage/NoDataMessage"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig"

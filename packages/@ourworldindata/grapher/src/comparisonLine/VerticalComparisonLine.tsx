@@ -1,7 +1,12 @@
 import * as React from "react"
 import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
-import { dyFromAlign, makeFigmaId, VerticalAlign } from "@ourworldindata/utils"
+import {
+    VerticalAlign,
+    dyFromAlign,
+    makeFigmaId,
+    roundForSvg,
+} from "@ourworldindata/utils"
 import {
     COMPARISON_LINE_STYLE,
     COMPARISON_LINE_LABEL_STYLE,
@@ -12,7 +17,6 @@ import {
     VerticalComparisonLineLabelPlacement,
 } from "@ourworldindata/types"
 import { ComparisonLines } from "./ComparisonLines"
-import { roundForSvg } from "../chart/ChartUtils"
 
 @observer
 export class VerticalComparisonLine extends React.Component<

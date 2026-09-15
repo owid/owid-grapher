@@ -1,6 +1,6 @@
 import * as React from "react"
 import { TextWrapSvg } from "@ourworldindata/components"
-import { makeFigmaId } from "@ourworldindata/utils"
+import { makeFigmaId, roundForSvg } from "@ourworldindata/utils"
 import { SeriesName } from "@ourworldindata/types"
 import { SeriesLabel } from "../seriesLabel/SeriesLabel.js"
 import { darkenColorForText } from "../color/ColorUtils.js"
@@ -9,7 +9,6 @@ import { getSeriesKey } from "./VerticalLabelsHelpers"
 import { PlacedLabelSeries, RenderLabelSeries } from "./VerticalLabelsTypes"
 import { VerticalLabelsState } from "./VerticalLabelsState"
 import { Emphasis } from "../interaction/Emphasis.js"
-import { roundForSvg } from "../chart/ChartUtils"
 
 /** Series labels stacked vertically */
 export function VerticalLabels({

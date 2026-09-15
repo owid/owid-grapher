@@ -3,9 +3,13 @@ import * as R from "remeda"
 import { computed, makeObservable } from "mobx"
 import { scaleLinear, ScaleLinear } from "d3-scale"
 import { TextWrap, TextWrapSvg, Halo } from "@ourworldindata/components"
-import { makeFigmaId, OwidVariableRoundingMode } from "@ourworldindata/utils"
+import {
+    OwidVariableRoundingMode,
+    makeFigmaId,
+    roundForSvg,
+} from "@ourworldindata/utils"
 import { BASE_FONT_SIZE } from "../core/GrapherConstants"
-import { roundFontSize, roundForSvg, scaleFontSize } from "../chart/ChartUtils"
+import { roundFontSize, scaleFontSize } from "../chart/ChartUtils"
 import { CoreColumn } from "@ourworldindata/core-table"
 import {
     ScatterSeries,

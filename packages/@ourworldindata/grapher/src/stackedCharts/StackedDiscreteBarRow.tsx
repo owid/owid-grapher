@@ -1,6 +1,11 @@
 import * as _ from "lodash-es"
 import React from "react"
-import { Bounds, makeFigmaId, dyFromAlign } from "@ourworldindata/utils"
+import {
+    Bounds,
+    dyFromAlign,
+    makeFigmaId,
+    roundForSvg,
+} from "@ourworldindata/utils"
 import { VerticalAlign } from "@ourworldindata/types"
 import { STACKED_BAR_STYLE } from "./StackedConstants"
 import {
@@ -11,7 +16,6 @@ import {
 import { isDarkColor } from "../color/ColorUtils"
 import { HorizontalAxis } from "../axis/Axis"
 import { SeriesLabel } from "../seriesLabel/SeriesLabel.js"
-import { roundForSvg } from "../chart/ChartUtils"
 
 const labelToBarPadding = 5
 

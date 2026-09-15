@@ -1,5 +1,5 @@
 import * as React from "react"
-import { makeFigmaId } from "@ourworldindata/utils"
+import { makeFigmaId, roundForSvg } from "@ourworldindata/utils"
 import { TextWrapSvg } from "@ourworldindata/components"
 import { ColorScaleBin } from "../color/ColorScaleBin"
 import {
@@ -9,7 +9,6 @@ import {
     resolveLegendTextStyle,
 } from "./LegendStyleConfig"
 import { VerticalColorLegendState } from "./VerticalColorLegendState"
-import { roundForSvg } from "../chart/ChartUtils"
 
 interface VerticalColorLegendProps {
     state: VerticalColorLegendState

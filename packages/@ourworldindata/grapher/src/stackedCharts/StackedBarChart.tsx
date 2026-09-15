@@ -5,11 +5,12 @@ import { observer } from "mobx-react"
 import {
     Bounds,
     Time,
-    getRelativeMouse,
     excludeUndefined,
-    makeFigmaId,
-    guid,
     exposeInstanceOnWindow,
+    getRelativeMouse,
+    guid,
+    makeFigmaId,
+    roundForSvg,
 } from "@ourworldindata/utils"
 import { DualAxisComponent } from "../axis/AxisViews"
 import { NoDataMessage } from "../noDataMessage/NoDataMessage"
@@ -38,7 +39,7 @@ import {
 } from "./StackedConstants"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import { Color, HorizontalAlign, SeriesName } from "@ourworldindata/types"
-import { getHoverStateForSeries, roundForSvg } from "../chart/ChartUtils"
+import { getHoverStateForSeries } from "../chart/ChartUtils"
 import { InteractionState } from "../interaction/InteractionState"
 import { resolveEmphasis, Emphasis } from "../interaction/Emphasis"
 import { BinEmphasis, toBinEmphasis } from "../legend/LegendStyleConfig"

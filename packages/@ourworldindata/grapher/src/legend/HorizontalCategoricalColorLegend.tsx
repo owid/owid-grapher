@@ -1,5 +1,10 @@
 import * as React from "react"
-import { dyFromAlign, makeFigmaId, VerticalAlign } from "@ourworldindata/utils"
+import {
+    VerticalAlign,
+    dyFromAlign,
+    makeFigmaId,
+    roundForSvg,
+} from "@ourworldindata/utils"
 import {
     resolveLegendMarkerStyle,
     resolveLegendTextStyle,
@@ -11,7 +16,6 @@ import {
     CATEGORICAL_BIN_STROKE_WIDTH,
     SPACE_BETWEEN_CATEGORICAL_BINS,
 } from "./HorizontalColorLegendConstants"
-import { roundForSvg } from "../chart/ChartUtils"
 
 export function HorizontalCategoricalColorLegend(
     props: HorizontalColorLegendProps<HorizontalCategoricalColorLegendState>

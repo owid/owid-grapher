@@ -5,6 +5,7 @@ import {
     PointVector,
     makeFigmaId,
     pointsToPath,
+    roundForSvg,
 } from "@ourworldindata/utils"
 import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
@@ -18,7 +19,7 @@ import {
     RenderLineChartSeries,
 } from "./LineChartConstants"
 import { Emphasis } from "../interaction/Emphasis"
-import { getSeriesKey, roundForSvg } from "../chart/ChartUtils"
+import { getSeriesKey } from "../chart/ChartUtils"
 import { GRAPHER_BACKGROUND } from "../color/ColorConstants"
 import { MultiColorPolyline } from "../scatterCharts/MultiColorPolyline"
 import { DualAxis } from "../axis/Axis.js"

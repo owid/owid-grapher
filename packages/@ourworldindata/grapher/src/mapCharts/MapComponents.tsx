@@ -1,5 +1,5 @@
 import React from "react"
-import { makeFigmaId } from "@ourworldindata/utils"
+import { makeFigmaId, roundForSvg } from "@ourworldindata/utils"
 import {
     BLUR_FILL_OPACITY,
     BLUR_STROKE_OPACITY,
@@ -23,7 +23,6 @@ import { Halo } from "@ourworldindata/components"
 import { InteractionState } from "../interaction/InteractionState"
 
 import * as R from "remeda"
-import { roundForSvg } from "../chart/ChartUtils"
 
 export function BackgroundCountry<Feature extends RenderFeature>({
     feature,
