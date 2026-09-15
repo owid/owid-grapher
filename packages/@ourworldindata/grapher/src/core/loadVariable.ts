@@ -12,6 +12,8 @@ import {
     readFromAssetMap,
 } from "@ourworldindata/utils"
 import urljoin from "url-join"
+// DEBUG ONLY: delete with debugCategoricalOverrides.ts before opening a PR
+import { applyDebugCategoricalOverride } from "./debugCategoricalOverrides.js"
 
 // Attach a descriptive User-Agent to our own server-side data API calls so
 // analytics can attribute them to OWID rather than counting them as anonymous
@@ -83,7 +85,10 @@ export async function loadVariableDataAndMetadata(
             metadata.descriptionKey
         )
         // Return empty data when only metadata is requested
-        return { data: { values: [], entities: [], years: [] }, metadata }
+        return applyDebugCategoricalOverride({
+            data: { values: [], entities: [], years: [] },
+            metadata,
+        })
     }
 
     const dataPromise = fetchWithRetry(
@@ -100,7 +105,7 @@ export async function loadVariableDataAndMetadata(
     const metadata: OwidVariableWithSourceAndDimension =
         await metadataResponse.json()
     metadata.descriptionKey = normalizeDescriptionKey(metadata.descriptionKey)
-    return { data, metadata }
+    return applyDebugCategoricalOverride({ data, metadata })
 }
 
 export async function loadVariablesDataSite(
