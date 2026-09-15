@@ -11,10 +11,11 @@
  * Run:
  *     yarn generateGdocsReferences
  *
- * Output:
- *     docs/components.registry.generated.json
- *     docs/templates.registry.generated.json
- *     docs/guides.registry.generated.json
+ * Output, in packages/@ourworldindata/types/src/gdocTypes/ (beside the
+ * sidecars it reads and the *Reference.ts types describing its shape):
+ *     components.registry.generated.json
+ *     templates.registry.generated.json
+ *     guides.registry.generated.json
  *
  * Exits non-zero on: missing sidecar, missing "type:" discriminator, an
  * unrecognized or misspelled sidecar section, missing decision prose, an
@@ -253,7 +254,13 @@ const TEMPLATES_DIR = path.resolve(
     REPO_ROOT,
     "packages/@ourworldindata/types/src/gdocTypes/templates"
 )
-const DOCS_DIR = path.resolve(REPO_ROOT, "docs")
+// The registries are data the admin serves, not documentation: they live
+// beside the sidecars they are derived from and the *Reference.ts types that
+// describe their shape, like the generated raycastSnippets.json next to them.
+const REGISTRY_OUT_DIR = path.resolve(
+    REPO_ROOT,
+    "packages/@ourworldindata/types/src/gdocTypes"
+)
 
 // Trailing newline: without it, any tool that adds one (an editor, a hook)
 // makes the committed file differ from what the generator writes, and the
@@ -262,16 +269,22 @@ function toJsonFile(value: unknown): string {
     return JSON.stringify(value, null, 2) + "\n"
 }
 
-const JSON_OUT = path.join(DOCS_DIR, "components.registry.generated.json")
+const JSON_OUT = path.join(
+    REGISTRY_OUT_DIR,
+    "components.registry.generated.json"
+)
 const TEMPLATES_JSON_OUT = path.join(
-    DOCS_DIR,
+    REGISTRY_OUT_DIR,
     "templates.registry.generated.json"
 )
 const GUIDES_DIR = path.resolve(
     REPO_ROOT,
     "packages/@ourworldindata/types/src/gdocTypes/guides"
 )
-const GUIDES_JSON_OUT = path.join(DOCS_DIR, "guides.registry.generated.json")
+const GUIDES_JSON_OUT = path.join(
+    REGISTRY_OUT_DIR,
+    "guides.registry.generated.json"
+)
 const UNION_NAME = "OwidEnrichedGdocBlock"
 
 function findUnionDecl(sf: SourceFile): TypeAliasDeclaration {
@@ -1548,7 +1561,7 @@ async function main(): Promise<void> {
             return
         }
 
-        await fs.ensureDir(DOCS_DIR)
+        await fs.ensureDir(REGISTRY_OUT_DIR)
         const registry: ComponentRegistry = {
             components: allComponents,
             typeSources,

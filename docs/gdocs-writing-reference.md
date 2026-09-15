@@ -24,10 +24,11 @@ which lives in the sidecars.
    (`devTools/gdocs/generate-gdocs-references.ts`) walks the type definitions
    with the TypeScript compiler, joins them with the sidecars, validates every
    example by parsing it through the real gdoc pipeline, and writes three
-   committed registry files:
-    - `docs/components.registry.generated.json`
-    - `docs/templates.registry.generated.json`
-    - `docs/guides.registry.generated.json`
+   committed registry files, beside the sidecars they are derived from in
+   `packages/@ourworldindata/types/src/gdocTypes/`:
+    - `components.registry.generated.json`
+    - `templates.registry.generated.json`
+    - `guides.registry.generated.json`
 
     Completeness is structural: a new member of `OwidEnrichedGdocBlock`, or a
     documented gdoc type, without a sidecar fails the build — as does an
@@ -50,8 +51,8 @@ sidecar, you are in the wrong file.
 ## Editing the reference
 
 Edit the sidecar (or the type's JSDoc), run `yarn generateGdocsReferences`, and
-commit the regenerated `docs/*.registry.generated.json` files with your edit.
-The `gdocs-references` CI job re-runs the generator on every PR and fails on
+commit the regenerated `*.registry.generated.json` files with your edit. The
+`gdocs-references` CI job re-runs the generator on every PR and fails on
 stale registries or an invalid sidecar; it never edits your branch.
 
 ### Adding a component

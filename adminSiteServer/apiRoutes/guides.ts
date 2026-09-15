@@ -4,7 +4,7 @@ import { GuideReference } from "@ourworldindata/types"
 // devTools/gdocs/generate-gdocs-references.ts and committed to the repo, so
 // we can serve it without touching the database: one entry per guide — the
 // cross-cutting concepts of writing in Google Docs.
-import guidesRegistry from "../../docs/guides.registry.generated.json"
+import guidesRegistry from "@ourworldindata/types/src/gdocTypes/guides.registry.generated.json"
 
 export async function getGuidesReference(): Promise<{
     guides: GuideReference[]
