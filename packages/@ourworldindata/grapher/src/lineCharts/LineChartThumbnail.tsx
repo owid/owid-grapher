@@ -249,7 +249,7 @@ export class LineChartThumbnail
 
     @computed private get labelFontSettings(): FontSettings {
         return {
-            fontSize: scaleFontSize(11.5, this.fontSize),
+            fontSize: scaleFontSize(11.75, this.fontSize),
             fontWeight: 700,
             lineHeight: 1,
         }
