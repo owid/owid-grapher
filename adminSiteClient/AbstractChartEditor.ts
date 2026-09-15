@@ -19,17 +19,21 @@ import {
     reaction,
     IReactionDisposer,
 } from "mobx"
+import type { ReactNode } from "react"
 import { EditorFeatures } from "./EditorFeatures.js"
 import { Admin } from "./Admin.js"
 import {
     defaultGrapherConfig,
-    getCachingInputTableFetcher,
     GrapherState,
     loadCatalogData,
 } from "@ourworldindata/grapher"
-import { NarrativeChartMinimalInformation } from "./ChartEditor.js"
+import { NarrativeChartMinimalInformation } from "./adminChartApi.js"
 import { DataInsightMinimalInformation } from "../adminShared/AdminTypes.js"
-import { CATALOG_URL, DATA_API_URL } from "../settings/clientSettings.mjs"
+import {
+    defaultEditorEnvironment,
+    EditorEnvironment,
+} from "./editorProviders.js"
+import { dataApiIndicatorStore, IndicatorStore } from "./indicatorStores.js"
 
 const EDITOR_TABS = [
     "basic",
@@ -47,12 +51,32 @@ const EDITOR_TABS = [
 
 export type EditorTab = (typeof EDITOR_TABS)[number]
 
-function isValidEditorTab(tab: string): tab is EditorTab {
-    return EDITOR_TABS.includes(tab as EditorTab)
+/**
+ * Places inside the editor where the host may add a note of its own, named
+ * after the part of the config that section edits. The admin uses
+ * `map.colorScale` to say who last touched the map's colors, which it reads
+ * off the chart's revision log — something only a host with a revision log
+ * can know. Opening a new slot means adding a member here and a call site in
+ * the section that renders it.
+ */
+export type EditorNoteSlot = "map.colorScale"
+
+/** One entry in the editor's "Origin url" dropdown. */
+export interface OriginUrlSuggestion {
+    url: string
+    /** Why this URL is being offered, shown greyed after it. */
+    hint?: string
 }
 
 export interface AbstractChartEditorManager {
-    admin: Admin
+    // Only editors that talk to the admin API need this (charts, narrative
+    // charts). A config-only editor runs without it.
+    admin?: Admin
+    // URLs the editor loads indicator data from. Defaults to the admin's.
+    environment?: EditorEnvironment
+    // Where indicator data and metadata come from. Defaults to OWID's Data
+    // API at `environment.dataApiUrl`.
+    store?: IndicatorStore
     patchConfig: GrapherInterface
     // For the main chart editor, `parentConfig` is the indicator's config
     // (variables.patchConfigIdETL), if any. For other editor variants
@@ -69,6 +93,20 @@ export interface AbstractChartEditorManager {
     etlConfig?: GrapherInterface
     isInheritanceEnabled?: boolean
     variableIdsByCatalogPath?: Record<string, number | null>
+    /**
+     * Extra context to show next to one part of the config. Called while the
+     * section renders, so a note that depends on data the host is still
+     * loading (or has just changed) appears on its own.
+     */
+    renderNote?: (slot: EditorNoteSlot) => ReactNode
+    /**
+     * URLs to offer for the chart's "Origin url". Which pages exist and
+     * which of them already show this chart is the host's knowledge, not the
+     * editor's; a host that offers none gets a plain text field. Called
+     * while the field renders, so suggestions still loading appear on their
+     * own.
+     */
+    originUrlSuggestions?: () => OriginUrlSuggestion[]
 }
 
 export interface References {
@@ -92,17 +130,11 @@ export abstract class AbstractChartEditor<
 > {
     manager: Manager
 
-    grapherState = new GrapherState({
-        additionalDataLoaderFn: (catalogKey) =>
-            loadCatalogData(catalogKey, { baseUrl: CATALOG_URL }),
-    })
-    cachingGrapherDataLoader = getCachingInputTableFetcher(
-        DATA_API_URL,
-        undefined,
-        true
-    )
+    grapherState: GrapherState
+    store: IndicatorStore
     currentRequest: Promise<any> | undefined // Whether the current chart state is saved or not
-    tab: EditorTab = "basic"
+    // One of EDITOR_TABS, or a key of a tab the host added (`extraTabKeys`)
+    tab: string = "basic"
     errorMessage: { title: string; content: string } | undefined = undefined
     previewMode: "mobile" | "desktop"
     showStaticPreview = false
@@ -119,9 +151,21 @@ export abstract class AbstractChartEditor<
     // if inheritance is enabled, the parent config is applied to grapherState
     isInheritanceEnabled: boolean | undefined = undefined
 
-    private readonly disposers: IReactionDisposer[] = []
+    protected readonly disposers: IReactionDisposer[] = []
 
     constructor(props: { manager: Manager }) {
+        const environment =
+            props.manager.environment ?? defaultEditorEnvironment
+        this.grapherState = new GrapherState({
+            additionalDataLoaderFn: (catalogKey) =>
+                loadCatalogData(catalogKey, {
+                    baseUrl: environment.catalogUrl,
+                }),
+        })
+        this.store =
+            props.manager.store ??
+            dataApiIndicatorStore({ dataApiUrl: environment.dataApiUrl })
+
         makeObservable(this, {
             grapherState: observable.ref,
             currentRequest: observable.ref,
@@ -163,16 +207,31 @@ export abstract class AbstractChartEditor<
                 (this.isInheritanceEnabled = this.manager.isInheritanceEnabled)
         )
 
+        // The saved baseline: set once the config (and its data, if it has
+        // any) is in, so a freshly opened chart doesn't count as modified.
         when(
-            () => this.grapherState.hasData && this.grapherState.isReady,
+            () =>
+                this.grapherState.isReady &&
+                (this.grapherState.hasData ||
+                    this.grapherState.dimensions.length === 0),
             () => (this.savedPatchConfig = this.patchConfig)
         )
+    }
+
+    /** Keys of tabs the host adds on top of EDITOR_TABS. */
+    protected get extraTabKeys(): string[] {
+        return []
     }
 
     private readInitialTabFromUrl(): void {
         const urlParams = new URLSearchParams(window.location.search)
         const tabParam = urlParams.get("tab")
-        if (tabParam && isValidEditorTab(tabParam)) this.tab = tabParam
+        if (
+            tabParam &&
+            (EDITOR_TABS.includes(tabParam as EditorTab) ||
+                this.extraTabKeys.includes(tabParam))
+        )
+            this.tab = tabParam
     }
 
     private setupTabUrlSync(): void {
@@ -196,12 +255,13 @@ export abstract class AbstractChartEditor<
         this.disposers.forEach((dispose) => dispose())
     }
 
-    abstract get references(): References | undefined
-
     @computed get variableIdsByCatalogPath():
         | Record<string, number | null>
         | undefined {
-        return this.manager.variableIdsByCatalogPath
+        return (
+            this.manager.variableIdsByCatalogPath ??
+            this.store.variableIdsByCatalogPath
+        )
     }
 
     /** original grapher config used to init the grapherState instance */
@@ -265,13 +325,18 @@ export abstract class AbstractChartEditor<
     }
 
     @computed get isModified(): boolean {
+        // `version` and `id` are bookkeeping the host stamps onto the config
+        // on save, never something the user edited. Comparing them would
+        // report a freshly created chart as modified the moment it gets its
+        // id, which is exactly when the page redirects to it.
+        const bookkeeping = ["version", "id"]
         // Serialize and deserialize to remove all MobX proxies
         // (toJS does not do a deep conversion of nested objects)
         const currentPatch = JSON.parse(
-            JSON.stringify(_.omit(this.patchConfig, "version"))
+            JSON.stringify(_.omit(this.patchConfig, bookkeeping))
         )
         const savedPatch = JSON.parse(
-            JSON.stringify(_.omit(this.savedPatchConfig, "version"))
+            JSON.stringify(_.omit(this.savedPatchConfig, bookkeeping))
         )
 
         return !_.isEqual(currentPatch, savedPatch)
@@ -340,7 +405,7 @@ export abstract class AbstractChartEditor<
 
     @action.bound async reloadGrapherData(): Promise<void> {
         const { grapherState } = this
-        const inputTable = await this.cachingGrapherDataLoader(
+        const inputTable = await this.store.loadTable(
             grapherState.dimensions,
             grapherState.selectedEntityColors
         )
@@ -362,7 +427,7 @@ export abstract class AbstractChartEditor<
     }
 
     abstract get isNewGrapher(): boolean
-    abstract get availableTabs(): EditorTab[]
+    abstract get availableTabs(): string[]
 
     abstract saveGrapher(): Promise<void>
 }
