@@ -11,6 +11,7 @@ import {
 } from "@ourworldindata/utils"
 import { observable, computed, makeObservable } from "mobx"
 import { HorizontalAxis, VerticalAxis } from "./Axis"
+import { scaleFontSize } from "../chart/ChartUtils"
 import {
     AxisMinMaxValueStr,
     AxisConfigInterface,
@@ -144,6 +145,14 @@ export class AxisConfig
 
     @computed get fontSize(): number {
         return this.axisManager?.fontSize || BASE_FONT_SIZE
+    }
+
+    @computed get tickFontSize(): number {
+        return scaleFontSize(11.75, this.fontSize)
+    }
+
+    @computed get labelFontSize(): number {
+        return scaleFontSize(11.75, this.fontSize)
     }
 
     // A log scale domain cannot have values <= 0, so we double check here

@@ -252,8 +252,7 @@ export class SlopeChart
 
     @computed private get xAxisHeight(): number {
         if (this.xAxisConfig.hideTickLabels) return 0
-        const axisTickFontSize = scaleFontSize(11.5, this.fontSize)
-        return axisTickFontSize + TIME_LABEL_PADDING
+        return this.xAxisConfig.tickFontSize + TIME_LABEL_PADDING
     }
 
     @computed get yAxisConfig(): AxisConfig {

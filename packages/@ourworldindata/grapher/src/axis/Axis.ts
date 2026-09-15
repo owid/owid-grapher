@@ -597,7 +597,7 @@ abstract class AbstractAxis {
     }
 
     @computed get tickFontSize(): number {
-        return scaleFontSize(11.75, this.fontSize)
+        return this.config.tickFontSize
     }
 
     @computed protected get baseTicks(): Tickmark[] {
@@ -619,7 +619,7 @@ abstract class AbstractAxis {
     }
 
     @computed get labelFontSize(): number {
-        return scaleFontSize(11.75, this.fontSize)
+        return this.config.labelFontSize
     }
 
     @computed get labelTextWrap():
