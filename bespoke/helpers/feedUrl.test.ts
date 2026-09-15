@@ -14,7 +14,9 @@ describe("feedUrl", () => {
     })
 
     it("uses the root the page passed", () => {
-        setFeedRoot("https://api-staging.owid.io/staging-site-my-branch/v1/bespoke")
+        setFeedRoot(
+            "https://api-staging.owid.io/staging-site-my-branch/v1/bespoke"
+        )
         expect(feedUrl(FEED, "causes-of-death.1.json")).toBe(
             "https://api-staging.owid.io/staging-site-my-branch/v1/bespoke/" +
                 `${FEED}/causes-of-death.1.json`
