@@ -29,7 +29,7 @@ import { TextField } from "./Forms.js"
 import { Tooltip } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons"
-import { deleteChart } from "./ChartEditor.js"
+import { deleteChart } from "./adminChartApi.js"
 
 // These properties are coming from OldChart.ts
 export interface ChartListItem {

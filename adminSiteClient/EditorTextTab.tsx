@@ -8,13 +8,11 @@ import {
     RelatedQuestionsConfig,
 } from "@ourworldindata/types"
 import { getErrorMessageRelatedQuestionUrl } from "@ourworldindata/grapher"
-import { copyToClipboard, slugify } from "@ourworldindata/utils"
-import { action, computed, makeObservable, observable, runInAction } from "mobx"
+import { copyToClipboard } from "@ourworldindata/utils"
+import { action, computed, makeObservable, observable } from "mobx"
 import { observer } from "mobx-react"
 import { Component, ReactElement } from "react"
-import { isChartEditorInstance } from "./ChartEditor.js"
 import {
-    AutoTextField,
     BindAutoStringExt,
     BindString,
     Button,
@@ -26,10 +24,8 @@ import {
 } from "./Forms.js"
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
 import { ErrorMessages } from "./ChartEditorTypes.js"
-import { isNarrativeChartEditorInstance } from "./NarrativeChartEditor.js"
 import { AutoComplete, Button as AntdButton, Space } from "antd"
 import {
-    BAKED_BASE_URL,
     BAKED_GRAPHER_URL,
     ADMIN_BASE_URL,
 } from "../settings/clientSettings.mjs"
@@ -43,10 +39,6 @@ interface EditorTextTabProps<Editor> {
 export class EditorTextTab<
     Editor extends AbstractChartEditor,
 > extends Component<EditorTextTabProps<Editor>> {
-    // Slugs for the origin URL autocomplete dropdown, fetched on mount
-    // from the same endpoint used by TagEditPage
-    topicSlugs: string[] = []
-
     // Tracks whether the user has started hovering or arrow-keying through
     // dropdown options. When true, we hide the "Enter to use custom URL"
     // hint since it's no longer relevant. Resets when the user types.
@@ -55,27 +47,8 @@ export class EditorTextTab<
     constructor(props: EditorTextTabProps<Editor>) {
         super(props)
         makeObservable(this, {
-            topicSlugs: observable,
             isNavigatingDropdown: observable,
         })
-    }
-
-    override componentDidMount(): void {
-        void this.fetchTopicSlugs()
-    }
-
-    async fetchTopicSlugs(): Promise<void> {
-        const { admin } = this.props.editor.manager
-        const json = await admin.getJSON<{ slugs: string[] }>(
-            "/api/gdocs/publishedTopicSlugs"
-        )
-        runInAction(() => {
-            this.topicSlugs = json.slugs
-        })
-    }
-
-    @action.bound onSlug(slug: string) {
-        this.props.editor.grapherState.slug = slugify(slug)
     }
 
     @action.bound onChangeLogo(value: string) {
@@ -133,10 +106,6 @@ export class EditorTextTab<
         return this.props.errorMessages
     }
 
-    @computed get showChartSlug() {
-        return !isNarrativeChartEditorInstance(this.props.editor)
-    }
-
     @computed get hasCopyAdminURLButton() {
         return !!this.props.editor.grapherState.id
     }
@@ -145,39 +114,21 @@ export class EditorTextTab<
         return !!this.props.editor.grapherState.isPublished
     }
 
-    // Dropdown options for the origin URL autocomplete. Posts that already
-    // reference this chart appear first (most relevant), followed by all
-    // published topic page slugs sorted alphabetically.
+    // Dropdown options for the origin URL autocomplete, in the order the
+    // host offers them. Which URLs are worth suggesting is the host's
+    // knowledge: the admin puts the posts that already show this chart first.
     @computed get originUrlOptions(): {
         value: string
         label: string
         suffix?: string
     }[] {
-        const topicOptions = this.topicSlugs
-            .slice()
-            .sort((a, b) => a.localeCompare(b))
-            .map((slug) => ({
-                value: `/${slug}`,
-                label: `/${slug}`,
-            }))
-
-        const { editor } = this.props
-        if (isChartEditorInstance(editor) && editor.references) {
-            const refOptions = [
-                ...(editor.references.postsWordpress ?? []),
-                ...(editor.references.postsGdocs ?? []),
-            ].map((post) => {
-                const relativeUrl = post.url.replace(BAKED_BASE_URL, "")
-                return {
-                    value: relativeUrl,
-                    label: relativeUrl,
-                    suffix: "(referenced by this chart)",
-                }
-            })
-            return [...refOptions, ...topicOptions]
-        }
-
-        return topicOptions
+        const suggestions =
+            this.props.editor.manager.originUrlSuggestions?.() ?? []
+        return suggestions.map(({ url, hint }) => ({
+            value: url,
+            label: url,
+            suffix: hint,
+        }))
     }
 
     @action.bound onOriginUrlChange(value: string): void {
@@ -267,20 +218,6 @@ export class EditorTextTab<
                         />
                     )}
                     <hr />
-                    {this.showChartSlug && (
-                        <AutoTextField
-                            label="/grapher/"
-                            value={grapherState.slug}
-                            onValue={this.onSlug}
-                            isAuto={
-                                grapherState.slug === grapherState.defaultSlug
-                            }
-                            onToggleAuto={() =>
-                                (grapherState.slug = grapherState.defaultSlug)
-                            }
-                            helpText="Human-friendly URL for this chart"
-                        />
-                    )}
                     <BindAutoStringExt
                         label="Subtitle"
                         readFn={(grapherState) =>
@@ -524,17 +461,6 @@ export class EditorTextTab<
                         placeholder="e.g. IHME"
                         helpText="Optional variant name for distinguishing charts with the same title"
                     />
-                    {isChartEditorInstance(editor) && (
-                        <Toggle
-                            label="Force to be a data page"
-                            secondaryLabel="Use metadata from the first Y indicator (same behavior as multi-dimensional data pages)."
-                            value={editor.forceDatapage}
-                            onValue={action(
-                                (value: boolean) =>
-                                    (editor.manager.forceDatapage = value)
-                            )}
-                        />
-                    )}
                 </Section>
                 {(this.hasCopyAdminURLButton ||
                     this.hasCopyGrapherURLButton) && (
