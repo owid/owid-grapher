@@ -62,9 +62,9 @@ export function LineChartActiveTimeMarkers({
                         return (
                             <circle
                                 key={getSeriesKey(series, index)}
-                                cx={horizontalAxis.place(point.x)}
-                                cy={verticalAxis.place(point.y)}
-                                r={dotRadius}
+                                cx={roundForSvg(horizontalAxis.place(point.x))}
+                                cy={roundForSvg(verticalAxis.place(point.y))}
+                                r={roundForSvg(dotRadius)}
                                 fill={valueColor}
                                 fillOpacity={opacity}
                                 stroke={GRAPHER_BACKGROUND}

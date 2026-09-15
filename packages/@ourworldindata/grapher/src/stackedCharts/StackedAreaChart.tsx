@@ -420,9 +420,13 @@ export class StackedAreaChart
                     return (
                         <circle
                             key={series.seriesName}
-                            cx={horizontalAxis.place(point.position)}
-                            cy={verticalAxis.place(
-                                point.value + point.valueOffset
+                            cx={roundForSvg(
+                                horizontalAxis.place(point.position)
+                            )}
+                            cy={roundForSvg(
+                                verticalAxis.place(
+                                    point.value + point.valueOffset
+                                )
                             )}
                             r={2}
                             fill={series.color}
