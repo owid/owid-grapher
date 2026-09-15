@@ -3,6 +3,7 @@ import { computed, makeObservable } from "mobx"
 import { Triangle } from "./Triangle"
 import { TextWrap, TextWrapSvg } from "@ourworldindata/components"
 import { BASE_FONT_SIZE } from "../core/GrapherConstants"
+import { scaleFontSize } from "../chart/ChartUtils"
 import { makeFigmaId } from "@ourworldindata/utils"
 import * as _ from "lodash-es"
 import { GRAPHER_DARK_TEXT, GRAY_70 } from "../color/ColorConstants.js"
@@ -35,8 +36,10 @@ export class ConnectedScatterLegend {
 
     @computed get fontSize(): number {
         const baseFontSize = this.manager.fontSize ?? BASE_FONT_SIZE
-        const fontScale = this.manager.isStaticAndSmall ? 0.5 : 0.7
-        return fontScale * baseFontSize
+        return scaleFontSize(
+            this.manager.isStaticAndSmall ? 8 : 11.2,
+            baseFontSize
+        )
     }
 
     @computed get width(): number {
