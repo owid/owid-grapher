@@ -4,9 +4,10 @@ import {
     Bounds,
     GridParameters,
     HorizontalAlign,
-    makeFigmaId,
-    exposeInstanceOnWindow,
     SplitBoundsPadding,
+    exposeInstanceOnWindow,
+    makeFigmaId,
+    roundForSvg,
 } from "@ourworldindata/utils"
 import { action, computed, makeObservable, observable } from "mobx"
 import {
@@ -594,10 +595,10 @@ export class FacetMap
         ) {
             return (
                 <line
-                    x1={bounds.centerX}
-                    y1={bounds.top}
-                    x2={bounds.centerX}
-                    y2={bounds.bottom}
+                    x1={roundForSvg(bounds.centerX)}
+                    y1={roundForSvg(bounds.top)}
+                    x2={roundForSvg(bounds.centerX)}
+                    y2={roundForSvg(bounds.bottom)}
                     stroke={GRAY_30}
                 />
             )

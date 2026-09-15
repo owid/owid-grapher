@@ -30,6 +30,8 @@ export {
     guid,
     TESTING_ONLY_disable_guid,
     pointsToPath,
+    roundForSvg,
+    SVG_PRECISION,
     sortedFindClosestIndex,
     sortedFindClosest,
     isMobile,

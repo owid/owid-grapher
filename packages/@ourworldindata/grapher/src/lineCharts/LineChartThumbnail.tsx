@@ -8,6 +8,7 @@ import {
     SeriesName,
     guid,
     getRelativeMouse,
+    roundForSvg,
 } from "@ourworldindata/utils"
 import { SideWidths, Time } from "@ourworldindata/types"
 import { ChartInterface } from "../chart/ChartInterface"
@@ -859,9 +860,9 @@ function Dot({
 }): React.ReactElement | null {
     return (
         <circle
-            cx={point.x}
-            cy={point.y}
-            r={radius}
+            cx={roundForSvg(point.x)}
+            cy={roundForSvg(point.y)}
+            r={roundForSvg(radius)}
             fill={point.color}
             opacity={LINE_STYLE[point.emphasis].opacity}
         />

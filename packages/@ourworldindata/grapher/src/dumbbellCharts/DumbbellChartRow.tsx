@@ -1,5 +1,5 @@
 import React from "react"
-import { makeFigmaId, dyFromAlign } from "@ourworldindata/utils"
+import { dyFromAlign, makeFigmaId, roundForSvg } from "@ourworldindata/utils"
 import { Halo, TextWrapSvg } from "@ourworldindata/components"
 import { DumbbellConnectorStyle, VerticalAlign } from "@ourworldindata/types"
 import { FontSettings } from "../core/GrapherConstants"
@@ -43,15 +43,15 @@ export function DumbbellChartRow({
     return (
         <g
             id={makeFigmaId(series.seriesName)}
-            transform={`translate(0, ${y})`}
+            transform={`translate(0, ${roundForSvg(y)})`}
             opacity={style.opacity}
             style={{ pointerEvents: "none" }}
         >
             {/* Gray background line spanning the full chart width */}
             <line
                 id={makeFigmaId("background-line")}
-                x1={range[0]}
-                x2={range[1]}
+                x1={roundForSvg(range[0])}
+                x2={roundForSvg(range[1])}
                 stroke={TICK_COLOR}
                 strokeDasharray={GRID_LINE_DASH_PATTERN}
             />
@@ -130,7 +130,7 @@ function DumbbellValueLabel({
             fontSize={style.fontSize}
         >
             <text
-                x={x}
+                x={roundForSvg(x)}
                 fill={darkenColorForText(head.color)}
                 dy={dyFromAlign(VerticalAlign.middle)}
                 textAnchor={side === "left" ? "end" : "start"}

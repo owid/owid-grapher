@@ -3,15 +3,16 @@ import * as R from "remeda"
 import React from "react"
 import {
     Bounds,
-    exposeInstanceOnWindow,
     PointVector,
-    makeFigmaId,
-    guid,
-    excludeUndefined,
-    getRelativeMouse,
-    dyFromAlign,
-    domainExtent,
     calculateTrendDirection,
+    domainExtent,
+    dyFromAlign,
+    excludeUndefined,
+    exposeInstanceOnWindow,
+    getRelativeMouse,
+    guid,
+    makeFigmaId,
+    roundForSvg,
 } from "@ourworldindata/utils"
 import { observable, computed, action, makeObservable } from "mobx"
 import { observer } from "mobx-react"
@@ -951,10 +952,10 @@ export class SlopeChart
                 onMouseLeave={this.onMouseLeave}
             >
                 <rect
-                    x={this.startX}
-                    y={this.bounds.y}
-                    width={this.endX - this.startX}
-                    height={this.bounds.height}
+                    x={roundForSvg(this.startX)}
+                    y={roundForSvg(this.bounds.y)}
+                    width={roundForSvg(this.endX - this.startX)}
+                    height={roundForSvg(this.bounds.height)}
                     fillOpacity={0}
                 />
                 {this.renderSlopes()}
@@ -1003,8 +1004,8 @@ export class SlopeChart
                     />
                 )}
                 <text
-                    x={labelX}
-                    y={this.yAxis.place(0).toFixed(2)}
+                    x={roundForSvg(labelX)}
+                    y={roundForSvg(this.yAxis.place(0))}
                     textAnchor="end"
                     dy={dyFromAlign(VerticalAlign.middle)}
                     fontSize={this.zeroLineLabelFontSize}
@@ -1058,8 +1059,8 @@ export class SlopeChart
 
         return (
             <text
-                x={midX}
-                y={y}
+                x={roundForSvg(midX)}
+                y={roundForSvg(y)}
                 fontSize={fontSize}
                 textAnchor="middle"
                 fill={GRAPHER_DARK_TEXT}
@@ -1117,8 +1118,8 @@ export class SlopeChart
             return (
                 <Halo id="x-axis-zero-label" fontSize={this.labelsFontSize}>
                     <text
-                        x={this.startX}
-                        y={this.yAxis.place(0)}
+                        x={roundForSvg(this.startX)}
+                        y={roundForSvg(this.yAxis.place(0))}
                         textAnchor="end"
                         dx={-VERTICAL_LABELS_PADDING - 4}
                         dy={dyFromAlign(VerticalAlign.middle)}

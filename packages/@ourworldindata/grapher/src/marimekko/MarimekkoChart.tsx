@@ -3,14 +3,15 @@ import * as R from "remeda"
 import {
     Bounds,
     Color,
-    excludeUndefined,
+    EntitySelectionMode,
     HorizontalAlign,
     Position,
-    getRelativeMouse,
-    EntitySelectionMode,
-    makeFigmaId,
     dyFromAlign,
+    excludeUndefined,
     exposeInstanceOnWindow,
+    getRelativeMouse,
+    makeFigmaId,
+    roundForSvg,
 } from "@ourworldindata/utils"
 import { action, computed, makeObservable, observable } from "mobx"
 import { observer } from "mobx-react"
@@ -466,10 +467,10 @@ export class MarimekkoChart
                 onMouseLeave={(): void => this.dismissTooltip()}
             >
                 <rect
-                    x={bounds.left}
-                    y={bounds.top}
-                    width={bounds.width}
-                    height={bounds.height}
+                    x={roundForSvg(bounds.left)}
+                    y={roundForSvg(bounds.top)}
+                    width={roundForSvg(bounds.width)}
+                    height={roundForSvg(bounds.height)}
                     opacity={0}
                     fill="rgba(255,255,255,0)"
                 />
@@ -637,7 +638,11 @@ export class MarimekkoChart
                         key={`labelline-${label.entityName}`}
                     >
                         <path
-                            d={`M${label.preferredX},${markerBarEndpointY} v${markerYMid} H${label.correctedX} V${markerTextEndpointY}`}
+                            d={`M${roundForSvg(label.preferredX)},${roundForSvg(
+                                markerBarEndpointY
+                            )} v${roundForSvg(markerYMid)} H${roundForSvg(
+                                label.correctedX
+                            )} V${roundForSvg(markerTextEndpointY)}`}
                             stroke={label.isSelected ? "#999" : "#bbb"}
                             strokeWidth={1}
                             fill="none"
@@ -656,7 +661,9 @@ export class MarimekkoChart
                     key={`labelline-${label.entityName}`}
                 >
                     <path
-                        d={`M${label.preferredX},${markerBarEndpointY} V${markerTextEndpointY}`}
+                        d={`M${roundForSvg(label.preferredX)},${roundForSvg(
+                            markerBarEndpointY
+                        )} V${roundForSvg(markerTextEndpointY)}`}
                         stroke={label.isSelected ? "#555" : "#bbb"}
                         strokeWidth={1}
                         fill="none"
@@ -673,7 +680,9 @@ export class MarimekkoChart
             <g
                 key={`label-${label.entityName}`}
                 id={makeFigmaId("label", label.entityName)}
-                transform={`translate(${label.correctedX}, ${labelsY})`}
+                transform={`translate(${roundForSvg(label.correctedX)}, ${roundForSvg(
+                    labelsY
+                )})`}
             >
                 <text
                     y={0}

@@ -493,12 +493,20 @@ export const guid = (): number => (_guidsDisabledForTesting ? 1 : ++_guid)
 export const TESTING_ONLY_disable_guid = (): boolean =>
     (_guidsDisabledForTesting = true)
 
+/** Decimal places a number keeps when it is written into an SVG attribute */
+export const SVG_PRECISION = 2
+
+export function roundForSvg(value: number): number {
+    return _.round(value, SVG_PRECISION)
+}
+
 /** Create an SVG path from an array of points */
 export const pointsToPath = (points: Point[]): string => {
     let path = ""
     for (let i = 0; i < points.length; i++) {
-        if (i === 0) path += `M${points[i].x} ${points[i].y}`
-        else path += `L${points[i].x} ${points[i].y}`
+        const x = roundForSvg(points[i].x)
+        const y = roundForSvg(points[i].y)
+        path += i === 0 ? `M${x} ${y}` : `L${x} ${y}`
     }
     return path
 }

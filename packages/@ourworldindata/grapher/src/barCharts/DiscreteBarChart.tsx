@@ -1,13 +1,14 @@
 import * as _ from "lodash-es"
 import React from "react"
 import {
-    exposeInstanceOnWindow,
-    Bounds,
-    Time,
-    HorizontalAlign,
     AxisAlign,
-    makeFigmaId,
+    Bounds,
+    HorizontalAlign,
+    Time,
     dyFromAlign,
+    exposeInstanceOnWindow,
+    makeFigmaId,
+    roundForSvg,
 } from "@ourworldindata/utils"
 import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
@@ -343,9 +344,11 @@ export class DiscreteBarChart
                 id={makeFigmaId(series.seriesName)}
                 x={0}
                 y={0}
-                transform={`translate(${series.barX}, ${y - this.barHeight / 2})`}
-                width={series.barWidth}
-                height={this.barHeight}
+                transform={`translate(${roundForSvg(series.barX)}, ${roundForSvg(
+                    y - this.barHeight / 2
+                )})`}
+                width={roundForSvg(series.barWidth)}
+                height={roundForSvg(this.barHeight)}
                 fill={barColor}
                 opacity={DISCRETE_BAR_STYLE[series.emphasis].barOpacity}
                 style={{ transition: "height 200ms ease" }}
@@ -401,7 +404,9 @@ export class DiscreteBarChart
                 key={`value-label-${series.seriesName}`}
                 x={0}
                 y={0}
-                transform={`translate(${series.valueLabelX}, ${y})`}
+                transform={`translate(${roundForSvg(series.valueLabelX)}, ${roundForSvg(
+                    y
+                )})`}
                 fill={GRAPHER_DARK_TEXT}
                 dy={dyFromAlign(VerticalAlign.middle)}
                 textAnchor={series.value < 0 ? "end" : "start"}
@@ -702,7 +707,7 @@ function StripedProjectedDataPattern({
                 x1="0"
                 y1="0"
                 x2="0"
-                y2={size}
+                y2={roundForSvg(size)}
                 stroke={color}
                 strokeWidth={strokeWidth}
             />
