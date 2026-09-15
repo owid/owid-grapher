@@ -22,7 +22,6 @@ import { observer } from "mobx-react"
 import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
-    GRAPHER_FONT_SCALE_12,
     FontSettings,
 } from "../core/GrapherConstants"
 import {
@@ -64,7 +63,7 @@ import {
     toLeftRight,
 } from "./DumbbellChartHelpers"
 import { AnimatedRows } from "../animation/AnimatedRows"
-import { roundFontSize, textWidth } from "../chart/ChartUtils.js"
+import { roundFontSize, scaleFontSize, textWidth } from "../chart/ChartUtils.js"
 import { GRAPHER_LIGHT_TEXT } from "../color/ColorConstants.js"
 import { darkenColorForText } from "../color/ColorUtils.js"
 import { HorizontalLabelPair } from "../horizontalLabelPair/HorizontalLabelPair.js"
@@ -136,10 +135,7 @@ export class DumbbellChart
         const availableHeightPerSeries = this.bounds.height / this.series.length
 
         const fontSize = roundFontSize(
-            Math.min(
-                GRAPHER_FONT_SCALE_12 * this.fontSize,
-                availableHeightPerSeries
-            )
+            Math.min(scaleFontSize(12, this.fontSize), availableHeightPerSeries)
         )
 
         return { fontSize, fontWeight: 700, lineHeight: 1 }

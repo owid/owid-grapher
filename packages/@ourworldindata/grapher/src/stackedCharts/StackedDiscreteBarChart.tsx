@@ -20,8 +20,8 @@ import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
     FontSettings,
-    GRAPHER_FONT_SCALE_12,
 } from "../core/GrapherConstants"
+import { roundFontSize, scaleFontSize } from "../chart/ChartUtils"
 import { enrichSeriesWithLabels } from "../rowSeriesLabels/RowSeriesLabelHelpers.js"
 import {
     HorizontalAxisComponent,
@@ -292,9 +292,11 @@ export class StackedDiscreteBarChart
     }
 
     @computed private get labelFontSize(): number {
-        return Math.min(
-            GRAPHER_FONT_SCALE_12 * this.fontSize,
-            1.1 * this.availableHeightPerSeries
+        return roundFontSize(
+            Math.min(
+                scaleFontSize(12, this.fontSize),
+                1.1 * this.availableHeightPerSeries
+            )
         )
     }
 
