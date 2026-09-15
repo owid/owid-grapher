@@ -6,7 +6,7 @@ import {
     useQuery,
 } from "@tanstack/react-query"
 import { LiteClient } from "algoliasearch/lite"
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import * as R from "remeda"
 import {
     latestPagesQueryKey,
@@ -19,7 +19,12 @@ import {
     type LatestType,
     type PageChronologicalRecord,
 } from "@ourworldindata/types"
-import { OwidGdocType } from "@ourworldindata/utils"
+import {
+    EXPERIMENT_PREFIX,
+    LATEST_STICKY_FILTERS_EXPERIMENT_ID,
+    OwidGdocType,
+    getExperimentState,
+} from "@ourworldindata/utils"
 import { getPrefixedGdocPath } from "@ourworldindata/components"
 import { match } from "ts-pattern"
 import { SiteAnalytics } from "../SiteAnalytics.js"
@@ -234,4 +239,118 @@ export function useInfiniteLatestPages({
         tagFacetCounts,
         latestTypeFacetCounts,
     }
+}
+
+/*
+ * Sticky filters experiment (exp-latest-sticky-filters-v1).
+ */
+
+/** Read the sticky-filter arm once on mount for the reveal-on-scroll-up hook. */
+export function useLatestStickyFiltersArm(): string | undefined {
+    const [arm, setArm] = useState<string | undefined>(undefined)
+    useEffect(() => {
+        setArm(
+            getExperimentState()[
+                `${EXPERIMENT_PREFIX}-${LATEST_STICKY_FILTERS_EXPERIMENT_ID}`
+            ]?.arm
+        )
+    }, [])
+    return arm
+}
+
+/** Where a sticky grid item sits in the flow, in document coordinates, and
+ * the viewport offset it pins at. A stuck element reports its *pinned*
+ * position through both getBoundingClientRect and offsetTop, so the layout
+ * position is derived from the previous grid row instead: the element's
+ * track starts where the previous sibling's margin box ends (no row gap
+ * here), and its own top margin offsets it from there. A zero-height marker
+ * element would be simpler but would add a grid row, and the newsletter
+ * block is pinned to an explicit `grid-row`. The pin offset is a custom
+ * property so it's readable whichever offset the bar is currently sticky
+ * at. */
+export function getStickyLayout(
+    el: HTMLElement
+): { layoutTop: number; stickyTop: number } | undefined {
+    const previous = el.previousElementSibling
+    if (!(previous instanceof HTMLElement)) return undefined
+    const style = getComputedStyle(el)
+    return {
+        layoutTop:
+            window.scrollY +
+            previous.getBoundingClientRect().bottom +
+            (parseFloat(getComputedStyle(previous).marginBottom) || 0) +
+            (parseFloat(style.marginTop) || 0),
+        stickyTop:
+            parseFloat(style.getPropertyValue(STICKY_FILTERS_TOP_PROPERTY)) ||
+            0,
+    }
+}
+
+/** Custom property carrying the offset the facets pin at (0 on desktop,
+ * negative on mobile so only the pills stay). Set in LatestSearch.scss. */
+const STICKY_FILTERS_TOP_PROPERTY = "--latest-sticky-filters-top"
+
+/** Custom property carrying the bar's own height, published by
+ * useRevealOnScrollUp so CSS can park the bar that far above the pin
+ * point. Read in LatestSearch.scss. */
+const STICKY_FILTERS_HEIGHT_PROPERTY = "--latest-sticky-filters-height"
+
+/** How far the page has to move before a scroll counts as a change of
+ * direction. Filters out sub-pixel jitter and the tail of iOS rubber-band
+ * overscroll, either of which would otherwise flip the bar in and out. */
+const SCROLL_DIRECTION_THRESHOLD_PX = 4
+
+/** Track scroll direction and publish the bar's height for its CSS offsets.
+ * See README.md for the sticky positioning model. */
+export function useRevealOnScrollUp(
+    enabled: boolean,
+    stickyRef: React.RefObject<HTMLElement | null>
+): boolean {
+    const [isRevealed, setIsRevealed] = useState(false)
+
+    useEffect(() => {
+        if (!enabled) return
+        const el = stickyRef.current
+        if (!el) return
+
+        // CSS parks the bar with `top: calc(pin offset - height)` and
+        // can't measure the height itself.
+        const publishHeight = (): void => {
+            el.style.setProperty(
+                STICKY_FILTERS_HEIGHT_PROPERTY,
+                `${el.offsetHeight}px`
+            )
+        }
+
+        let lastScrollY = window.scrollY
+        let frame = 0
+        const update = (): void => {
+            frame = 0
+            const scrollY = window.scrollY
+            const delta = scrollY - lastScrollY
+            if (Math.abs(delta) < SCROLL_DIRECTION_THRESHOLD_PX) return
+            lastScrollY = scrollY
+            setIsRevealed(delta < 0)
+        }
+        // Scroll events can fire several times a frame; one direction
+        // reading per frame is plenty.
+        const onScroll = (): void => {
+            frame ||= requestAnimationFrame(update)
+        }
+
+        publishHeight()
+        // The bar's height changes when the filters restack at the mobile
+        // breakpoint, putting the type dropdown above the pills.
+        const resizeObserver = new ResizeObserver(publishHeight)
+        resizeObserver.observe(el)
+        window.addEventListener("scroll", onScroll, { passive: true })
+        return () => {
+            window.removeEventListener("scroll", onScroll)
+            resizeObserver.disconnect()
+            cancelAnimationFrame(frame)
+            el.style.removeProperty(STICKY_FILTERS_HEIGHT_PROPERTY)
+        }
+    }, [enabled, stickyRef])
+
+    return enabled && isRevealed
 }

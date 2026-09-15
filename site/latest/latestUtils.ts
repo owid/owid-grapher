@@ -79,6 +79,34 @@ export function hasViewToggle(latestType: LatestType | null): boolean {
     )
 }
 
+/**
+ * Topic filter usage, most popular first, measured from 2026-06-05 to
+ * 2026-07-30. Usage was similar across areas (0.4–0.7% of sessions) under
+ * the previous order, so the ranking is indicative. Keep it fixed during
+ * the sticky filters experiment; unranked areas retain tag-graph order.
+ */
+export const LATEST_TOPIC_AREAS_BY_POPULARITY: readonly string[] = [
+    "Energy and Environment",
+    "Poverty and Economic Development",
+    "Violence and War",
+    "Innovation and Technological Change",
+    "Food and Agriculture",
+    "Health",
+    "Living Conditions, Community and Wellbeing",
+    "Population and Demographic Change",
+    "Education and Knowledge",
+    "Human Rights and Democracy",
+]
+
+export function sortTopicAreasByPopularity(areas: string[]): string[] {
+    const rank = (area: string): number => {
+        const i = LATEST_TOPIC_AREAS_BY_POPULARITY.indexOf(area)
+        return i === -1 ? Number.MAX_SAFE_INTEGER : i
+    }
+    // Array.prototype.sort is stable, so unranked areas keep their order.
+    return [...areas].sort((a, b) => rank(a) - rank(b))
+}
+
 /** Grid positioning applied to the root of every hit card. */
 export const LATEST_HIT_GRID_CLASSES =
     "span-cols-8 col-start-2 span-md-cols-12 col-md-start-2 span-sm-cols-14 col-sm-start-1"

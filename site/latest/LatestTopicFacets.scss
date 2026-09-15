@@ -259,3 +259,20 @@
 .latest-topic-facets__content-type-dropdown-label {
     white-space: nowrap;
 }
+
+// ---------- Topics block (label + pills) ----------
+
+.latest-topic-facets__topics {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+// Hidden outside the sticky filters experiment — see below.
+.latest-topic-facets__topics-label {
+    display: none;
+    @include overline-black-caps;
+    color: $blue-90;
+    margin-bottom: 8px;
+}

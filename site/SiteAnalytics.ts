@@ -17,7 +17,21 @@ import {
     type UserSurveyRoleAnswer,
 } from "@ourworldindata/types"
 import { getFilterNamesOfType } from "./search/searchUtils.js"
-import { findDOMParent } from "@ourworldindata/utils"
+import {
+    EXPERIMENT_PREFIX,
+    LATEST_STICKY_FILTERS_EXPERIMENT_ID,
+    findDOMParent,
+    getExperimentState,
+} from "@ourworldindata/utils"
+
+/** The visitor's arm in the /latest sticky filters experiment, attached to
+ * the /latest events so they can be split by arm. Undefined outside the
+ * experiment. */
+function getLatestExperimentArm(): string | undefined {
+    return getExperimentState()[
+        `${EXPERIMENT_PREFIX}-${LATEST_STICKY_FILTERS_EXPERIMENT_ID}`
+    ]?.arm
+}
 
 export class SiteAnalytics extends GrapherAnalytics {
     logPageNotFoundError(url: string) {
@@ -63,9 +77,11 @@ export class SiteAnalytics extends GrapherAnalytics {
             eventAction: "filter",
             latestTopics: state.topics.join("~") || undefined,
             latestType: state.latestType ?? undefined,
+            experimentArm: getLatestExperimentArm(),
         })
     }
 
+    /** Tracks opening a feed preview's own content, not following links within it. */
     logLatestResultClick(hit: LatestPageChronologicalRecord, position: number) {
         this.logToGA({
             event: EventCategory.SiteLatestResultClick,
@@ -73,6 +89,7 @@ export class SiteAnalytics extends GrapherAnalytics {
             eventTarget: hit.slug,
             latestPosition: position,
             latestType: hit.latestType,
+            experimentArm: getLatestExperimentArm(),
         })
     }
 
@@ -86,6 +103,7 @@ export class SiteAnalytics extends GrapherAnalytics {
             eventTarget: hit.slug,
             latestPosition: position,
             latestType: hit.latestType,
+            experimentArm: getLatestExperimentArm(),
         })
     }
 

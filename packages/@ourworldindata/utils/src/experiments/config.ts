@@ -1,6 +1,8 @@
 import {
     DATA_PAGE_METADATA_EXPERIMENT_ID,
     EXPERIMENT_PREFIX,
+    LATEST_STICKY_FILTERS_ARMS,
+    LATEST_STICKY_FILTERS_EXPERIMENT_ID,
 } from "./constants.js"
 import { Experiment } from "./Experiment.js"
 
@@ -117,6 +119,22 @@ export const experiments: Experiment[] = [
             "/grapher/daily-per-capita-caloric-supply",
             "/grapher/per-capita-energy-use",
         ],
+    }),
+    // Compare normal scrolling, reveal-on-scroll-up, and fully sticky filters.
+    // Mobile pins only the topic pills.
+    // Layout and testing instructions: site/latest/README.md.
+    new Experiment({
+        id: LATEST_STICKY_FILTERS_EXPERIMENT_ID,
+        expires: "2026-11-30T00:00:00.000Z",
+        arms: [
+            { id: LATEST_STICKY_FILTERS_ARMS.notSticky, fraction: 1 / 3 },
+            {
+                id: LATEST_STICKY_FILTERS_ARMS.revealOnScrollUp,
+                fraction: 1 / 3,
+            },
+            { id: LATEST_STICKY_FILTERS_ARMS.fullySticky, fraction: 1 / 3 },
+        ],
+        paths: ["/latest"],
     }),
 ]
 
