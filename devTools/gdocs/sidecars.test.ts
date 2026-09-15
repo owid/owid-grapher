@@ -104,3 +104,33 @@ describe("gdoc template sidecars", () => {
             ).toContain(type)
     })
 })
+
+const GUIDES_DIR = path.join(
+    REPO_ROOT,
+    "packages/@ourworldindata/types/src/gdocTypes/guides"
+)
+
+describe("gdoc guide sidecars", () => {
+    const files = fs.readdirSync(GUIDES_DIR).filter((f) => f.endsWith(".md"))
+    test("the guides directory has at least one guide", () => {
+        expect(files.length).toBeGreaterThan(0)
+    })
+    for (const file of files) {
+        test(
+            file + " is kebab-case with title and category front matter",
+            () => {
+                expect(file.replace(/\.md$/, "")).toMatch(/^[a-z0-9-]+$/)
+                const text = fs.readFileSync(
+                    path.join(GUIDES_DIR, file),
+                    "utf-8"
+                )
+                const frontMatter = /^---\r?\n([\s\S]+?)\r?\n---\r?\n/.exec(
+                    text
+                )?.[1]
+                expect(frontMatter, "no front matter").toBeDefined()
+                expect(frontMatter).toMatch(/^title: .+$/m)
+                expect(frontMatter).toMatch(/^category: .+$/m)
+            }
+        )
+    }
+})

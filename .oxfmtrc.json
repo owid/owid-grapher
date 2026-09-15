@@ -32,6 +32,6 @@
         ".vscode/",
         ".claude/settings.local.json",
         "*.handlebars",
-        "docs/*.generated.*"
+        "packages/@ourworldindata/types/src/gdocTypes/*.generated.*"
     ]
 }

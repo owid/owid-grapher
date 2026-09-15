@@ -16,8 +16,12 @@ import {
     ComponentRegistry,
     ComponentUsage,
     GdocsReferenceUsage,
+    GUIDE_CATEGORIES,
+    GuideCategory,
+    GuideReference,
     OwidGdocType,
     proseText,
+    RelatedRef,
     TemplateReference,
     TemplateField,
 } from "@ourworldindata/types"
@@ -28,7 +32,12 @@ import {
     GdocsReferenceMarkdown,
     InlineMarkdownText,
 } from "./GdocsReferenceMarkdown.js"
-import { sortTemplatesByUsage, stepHighlight } from "./gdocsReferenceNav.js"
+import {
+    sortGuides,
+    sortTemplatesByUsage,
+    stepHighlight,
+} from "./gdocsReferenceNav.js"
+import { referencePathFor } from "./gdocsReferenceExamples.js"
 import {
     ComponentForms,
     ExemplarPreview,
@@ -72,15 +81,16 @@ function searchScore(
 type ReferenceRouteParams = { kind?: string; id?: string }
 
 interface Selection {
-    kind: "components" | "templates"
+    kind: "components" | "templates" | "guides"
     id: string
 }
 
 // The sidebar's top-level groups, in order. Each folds to its header: the
 // group holding the current page opens on arrival, and a search opens them
-// all.
+// all. "Foundations" is the author-facing name of the guides.
 type NavGroupKind = Selection["kind"]
 const NAV_GROUPS: { kind: NavGroupKind; title: string }[] = [
+    { kind: "guides", title: "Foundations" },
     { kind: "templates", title: "Templates" },
     { kind: "components", title: "Components" },
 ]
@@ -94,6 +104,7 @@ export class GdocsReferencePage extends Component<
 
     components: ComponentReference[] = []
     templates: TemplateReference[] = []
+    guides: GuideReference[] = []
     // Source file of every named type the prop type texts mention, from the
     // generated registry — lets the properties table link a type name to its
     // definition.
@@ -107,6 +118,7 @@ export class GdocsReferencePage extends Component<
     // arrival, and the rest is the author's own toggling, kept while they
     // browse. A search query overrides this and shows every match.
     expandedNavGroups: Record<NavGroupKind, boolean> = {
+        guides: false,
         templates: false,
         components: true,
     }
@@ -130,6 +142,7 @@ export class GdocsReferencePage extends Component<
         makeObservable(this, {
             components: observable,
             templates: observable,
+            guides: observable,
             typeSources: observable,
             searchInput: observable,
             usage: observable,
@@ -142,7 +155,8 @@ export class GdocsReferencePage extends Component<
     @computed private get selection(): Selection | undefined {
         const { kind, id } = this.props.match.params
         if (!id) return undefined
-        if (kind === "components" || kind === "templates") return { kind, id }
+        if (kind === "components" || kind === "templates" || kind === "guides")
+            return { kind, id }
         return undefined
     }
 
@@ -158,8 +172,45 @@ export class GdocsReferencePage extends Component<
         return this.templates.find((template) => template.id === id)
     }
 
-    @computed private get componentIds(): Set<string> {
-        return new Set(this.components.map((component) => component.id))
+    @computed private get selectedGuide(): GuideReference | undefined {
+        if (this.selection?.kind !== "guides") return undefined
+        const { id } = this.selection
+        return this.guides.find((guide) => guide.id === id)
+    }
+
+    @computed private get filteredGuides(): GuideReference[] {
+        const guides = sortGuides(this.guides)
+        if (!this.query) return guides
+        return guides.filter((guide) =>
+            matchesSearch(
+                [guide.title, guide.id, guide.category, proseText(guide.prose)],
+                this.query
+            )
+        )
+    }
+
+    @computed private get guidesByCategory(): {
+        category: GuideCategory
+        guides: GuideReference[]
+    }[] {
+        return GUIDE_CATEGORIES.map((category) => ({
+            category,
+            guides: this.filteredGuides.filter(
+                (guide) => guide.category === category
+            ),
+        })).filter((group) => group.guides.length > 0)
+    }
+
+    // Titles for mentions and the "See also" panel, across all three kinds —
+    // bound so it can be passed as a callback prop without losing `this`.
+    private readonly titleOf = (ref: RelatedRef): string | undefined => {
+        const item =
+            ref.kind === "component"
+                ? this.components.find((c) => c.id === ref.id)
+                : ref.kind === "guide"
+                  ? this.guides.find((g) => g.id === ref.id)
+                  : this.templates.find((t) => t.id === ref.id)
+        return item?.title
     }
 
     // What the properties table links a type name to: the component's own
@@ -307,11 +358,15 @@ export class GdocsReferencePage extends Component<
         return !!this.query || this.expandedNavGroups[kind]
     }
 
-    // The sidebar nav's rows in the exact order they render: templates, then
-    // components — the scoped list while a template scopes the nav, otherwise
-    // the resting category groups with system blocks last. Arrow-key stepping
-    // and Enter-to-open both index into this.
+    // The sidebar nav's rows in the exact order they render while a search
+    // keeps every group open: guides, then templates, then components by
+    // category with system blocks last. Arrow-key stepping and Enter-to-open
+    // both index into this.
     @computed private get navResults(): Selection[] {
+        const guides: Selection[] = this.filteredGuides.map((guide) => ({
+            kind: "guides",
+            id: guide.id,
+        }))
         const templates: Selection[] = this.filteredTemplates.map(
             (template) => ({ kind: "templates", id: template.id })
         )
@@ -327,7 +382,7 @@ export class GdocsReferencePage extends Component<
                 id: component.id,
             })),
         ]
-        return [...templates, ...components]
+        return [...guides, ...templates, ...components]
     }
 
     @computed private get highlightedItem(): Selection | undefined {
@@ -375,6 +430,11 @@ export class GdocsReferencePage extends Component<
                 kind: "components" as const,
                 id: component.id,
                 score: searchScore(component, query),
+            })),
+            ...this.filteredGuides.map((guide) => ({
+                kind: "guides" as const,
+                id: guide.id,
+                score: searchScore(guide, query),
             })),
         ]
         if (candidates.length === 0) return undefined
@@ -527,6 +587,7 @@ export class GdocsReferencePage extends Component<
     private renderNav(): React.ReactElement {
         const {
             filteredTemplates,
+            filteredGuides,
             componentsByCategory,
             systemComponents,
             query,
@@ -537,11 +598,24 @@ export class GdocsReferencePage extends Component<
                 0
             ) + systemComponents.length
         const nothingMatches =
-            query && filteredTemplates.length === 0 && componentCount === 0
+            query &&
+            filteredTemplates.length === 0 &&
+            filteredGuides.length === 0 &&
+            componentCount === 0
         const rowsByKind: Record<
             NavGroupKind,
             { count: number; rows: React.ReactNode }
         > = {
+            guides: {
+                count: filteredGuides.length,
+                rows: (
+                    <ul>
+                        {filteredGuides.map((guide) =>
+                            this.renderNavItem("guides", guide)
+                        )}
+                    </ul>
+                ),
+            },
             templates: {
                 count: filteredTemplates.length,
                 rows: (
@@ -651,6 +725,7 @@ export class GdocsReferencePage extends Component<
                 <p className="gdocs-ref__card-desc">
                     <InlineMarkdownText
                         text={firstParagraph(component.prose.intro)}
+                        titleFor={this.titleOf}
                     />
                 </p>
             </Link>
@@ -709,8 +784,22 @@ export class GdocsReferencePage extends Component<
                 <p className="gdocs-ref__card-desc">
                     <InlineMarkdownText
                         text={firstParagraph(template.prose.intro)}
+                        titleFor={this.titleOf}
                     />
                 </p>
+            </Link>
+        )
+    }
+
+    private renderGuideCard(guide: GuideReference): React.ReactElement {
+        return (
+            <Link
+                key={guide.id}
+                className="gdocs-ref__card gdocs-ref__card--guide"
+                to={`/gdocs-reference/guides/${guide.id}`}
+            >
+                <div className="gdocs-ref__card-title">{guide.title}</div>
+                <p className="gdocs-ref__card-desc">{guide.description}</p>
             </Link>
         )
     }
@@ -718,6 +807,7 @@ export class GdocsReferencePage extends Component<
     private renderOverview(): React.ReactElement {
         const {
             filteredTemplates,
+            guidesByCategory,
             componentsByCategory,
             systemComponents,
             components,
@@ -726,6 +816,7 @@ export class GdocsReferencePage extends Component<
         const nothingMatches =
             query &&
             filteredTemplates.length === 0 &&
+            guidesByCategory.length === 0 &&
             componentsByCategory.length === 0 &&
             systemComponents.length === 0
         return (
@@ -763,6 +854,31 @@ export class GdocsReferencePage extends Component<
                         </div>
                     </section>
                 )}
+                {guidesByCategory.length > 0 && (
+                    <section className="gdocs-ref__section gdocs-ref__section--entry">
+                        <h2 className="gdocs-ref__section-title">
+                            How things work
+                        </h2>
+                        <p className="gdocs-ref__section-desc">
+                            The mechanics that cut across blocks and document
+                            types — footnotes, headings, links, publishing
+                            steps.
+                        </p>
+                    </section>
+                )}
+                {guidesByCategory.map(({ category, guides }) => (
+                    <section className="gdocs-ref__section" key={category}>
+                        <h3 className="gdocs-ref__section-subtitle">
+                            {category}
+                            <span className="gdocs-ref__section-count">
+                                {guides.length}
+                            </span>
+                        </h3>
+                        <div className="gdocs-ref__card-grid">
+                            {guides.map((guide) => this.renderGuideCard(guide))}
+                        </div>
+                    </section>
+                ))}
                 {componentsByCategory.length > 0 && (
                     <section className="gdocs-ref__section gdocs-ref__section--entry">
                         <h2 className="gdocs-ref__section-title">
@@ -810,9 +926,10 @@ export class GdocsReferencePage extends Component<
                 {!query && components.length > 0 && (
                     <p className="gdocs-ref__footnote">
                         {components.length} components · {this.templates.length}{" "}
-                        templates. The docs are generated from the type
-                        definitions in the codebase; usage guidance and real
-                        examples are computed live from published content.
+                        templates · {this.guides.length} guides. The docs are
+                        generated from the type definitions in the codebase;
+                        usage guidance and real examples are computed live from
+                        published content.
                     </p>
                 )}
             </div>
@@ -838,9 +955,10 @@ export class GdocsReferencePage extends Component<
                         </h2>
                         <GdocsReferenceMarkdown
                             body={whenToUse}
+                            section="whenToUse"
                             examples={examples}
                             previewPathForExample={previewPathForExample}
-                            componentIds={this.componentIds}
+                            titleFor={this.titleOf}
                         />
                     </div>
                 )}
@@ -851,13 +969,62 @@ export class GdocsReferencePage extends Component<
                         </h2>
                         <GdocsReferenceMarkdown
                             body={whenNotToUse}
+                            section="whenNotToUse"
                             examples={examples}
                             previewPathForExample={previewPathForExample}
-                            componentIds={this.componentIds}
+                            titleFor={this.titleOf}
                         />
                     </div>
                 )}
             </div>
+        )
+    }
+
+    // A guide/template kind prefix for the "See also" chips — components
+    // carry no prefix, their `{.id}` form already says what they are.
+    private static readonly SEE_ALSO_KIND_LABEL: Record<
+        Exclude<RelatedRef["kind"], "component">,
+        string
+    > = {
+        guide: "guide",
+        template: "template",
+    }
+
+    // Cross-references harvested from a sidecar's decision prose — rendered
+    // last, after the authored material, as a quiet row of chips rather than
+    // a prominent section: a place to go next, not the main event.
+    private renderRelated(
+        related: RelatedRef[] | undefined
+    ): React.ReactElement | null {
+        if (!related || related.length === 0) return null
+        return (
+            <section className="gdocs-ref__related">
+                <h2 className="gdocs-ref__related-title">See also</h2>
+                <div className="gdocs-ref__related-list">
+                    {related.map((ref) => (
+                        <Link
+                            key={`${ref.kind}-${ref.id}`}
+                            className="gdocs-ref__related-chip"
+                            to={referencePathFor(ref)}
+                        >
+                            {ref.kind === "component" ? (
+                                `{.${ref.id}}`
+                            ) : (
+                                <>
+                                    <span className="gdocs-ref__related-chip-kind">
+                                        {
+                                            GdocsReferencePage
+                                                .SEE_ALSO_KIND_LABEL[ref.kind]
+                                        }
+                                    </span>
+                                    {" · "}
+                                    {this.titleOf(ref) ?? ref.id}
+                                </>
+                            )}
+                        </Link>
+                    ))}
+                </div>
+            </section>
         )
     }
 
@@ -892,9 +1059,10 @@ export class GdocsReferencePage extends Component<
                 {intro && (
                     <GdocsReferenceMarkdown
                         body={intro}
+                        section="intro"
                         examples={component.examples}
                         previewPathForExample={previewPath}
-                        componentIds={this.componentIds}
+                        titleFor={this.titleOf}
                     />
                 )}
                 {this.renderDecisionBox(
@@ -918,13 +1086,15 @@ export class GdocsReferencePage extends Component<
                     component={component}
                     usage={this.usageOf(component)}
                     typeLinks={this.propTypeLinks}
+                    titleFor={this.titleOf}
                     notes={
                         notes ? (
                             <GdocsReferenceMarkdown
                                 body={notes}
+                                section="notes"
                                 examples={component.examples}
                                 previewPathForExample={previewPath}
-                                componentIds={this.componentIds}
+                                titleFor={this.titleOf}
                             />
                         ) : undefined
                     }
@@ -935,6 +1105,7 @@ export class GdocsReferencePage extends Component<
                         only appears nested inside other components.
                     </p>
                 )}
+                {this.renderRelated(component.related)}
                 <footer className="gdocs-ref__detail-footer">
                     <a
                         href={githubEditUrl(component.sidecarFile)}
@@ -985,7 +1156,10 @@ export class GdocsReferencePage extends Component<
                 </td>
                 <td>
                     {field.description && (
-                        <InlineMarkdownText text={field.description} />
+                        <InlineMarkdownText
+                            text={field.description}
+                            titleFor={this.titleOf}
+                        />
                     )}
                 </td>
             </tr>
@@ -1016,7 +1190,8 @@ export class GdocsReferencePage extends Component<
                         </div>
                         <GdocsReferenceMarkdown
                             body={notes}
-                            componentIds={this.componentIds}
+                            section="notes"
+                            titleFor={this.titleOf}
                         />
                     </div>
                 )}
@@ -1073,7 +1248,8 @@ export class GdocsReferencePage extends Component<
                 {intro && (
                     <GdocsReferenceMarkdown
                         body={intro}
-                        componentIds={this.componentIds}
+                        section="intro"
+                        titleFor={this.titleOf}
                     />
                 )}
                 {this.renderDecisionBox(whenToUse, whenNotToUse)}
@@ -1085,6 +1261,7 @@ export class GdocsReferencePage extends Component<
                     components={this.components}
                 />
                 {this.renderTemplateFields(template, notes)}
+                {this.renderRelated(template.related)}
                 <footer className="gdocs-ref__detail-footer">
                     <a
                         href={githubEditUrl(template.sidecarFile)}
@@ -1099,8 +1276,56 @@ export class GdocsReferencePage extends Component<
         )
     }
 
+    private renderGuideDetail(guide: GuideReference): React.ReactElement {
+        const { intro, notes } = guide.prose
+        return (
+            <article className="gdocs-ref__detail">
+                <header className="gdocs-ref__detail-header">
+                    <div className="gdocs-ref__detail-title-row">
+                        <h1 className="gdocs-ref__detail-title">
+                            {guide.title}
+                        </h1>
+                        <span className="gdocs-ref__category-pill">
+                            {guide.category}
+                        </span>
+                    </div>
+                </header>
+                <GdocsReferenceMarkdown
+                    body={intro}
+                    section="intro"
+                    examples={guide.examples}
+                    titleFor={this.titleOf}
+                />
+                {notes && (
+                    <GdocsReferenceMarkdown
+                        body={notes}
+                        section="notes"
+                        examples={guide.examples}
+                        titleFor={this.titleOf}
+                    />
+                )}
+                {this.renderRelated(guide.related)}
+                <footer className="gdocs-ref__detail-footer">
+                    <a
+                        href={githubEditUrl(guide.sidecarFile)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        <FontAwesomeIcon icon={faPenToSquare} /> Suggest an edit
+                        to this page
+                    </a>
+                </footer>
+            </article>
+        )
+    }
+
     private renderContent(): React.ReactElement {
-        const { selection, selectedComponent, selectedTemplate } = this
+        const {
+            selection,
+            selectedComponent,
+            selectedTemplate,
+            selectedGuide,
+        } = this
         if (this.registryFailed)
             return (
                 <div className="gdocs-ref__empty">
@@ -1112,6 +1337,7 @@ export class GdocsReferencePage extends Component<
         if (selectedComponent)
             return this.renderComponentDetail(selectedComponent)
         if (selectedTemplate) return this.renderTemplateDetail(selectedTemplate)
+        if (selectedGuide) return this.renderGuideDetail(selectedGuide)
         // Data still loading, or a dead link
         if (this.components.length === 0)
             return <div className="gdocs-ref__loading">Loading…</div>
@@ -1142,7 +1368,7 @@ export class GdocsReferencePage extends Component<
         // failure from surfacing a second time as an unhandled rejection,
         // and replaces the indefinite "Loading…" with a stated failure.
         try {
-            const [{ components, typeSources }, { templates }] =
+            const [{ components, typeSources }, { templates }, { guides }] =
                 await Promise.all([
                     admin.getJSON<ComponentRegistry>(
                         "/api/gdocs-reference/components.json"
@@ -1150,11 +1376,15 @@ export class GdocsReferencePage extends Component<
                     admin.getJSON<{ templates: TemplateReference[] }>(
                         "/api/gdocs-reference/templates.json"
                     ),
+                    admin.getJSON<{ guides: GuideReference[] }>(
+                        "/api/gdocs-reference/guides.json"
+                    ),
                 ])
             runInAction(() => {
                 this.components = components
                 this.typeSources = typeSources
                 this.templates = templates
+                this.guides = guides
             })
         } catch {
             runInAction(() => (this.registryFailed = true))

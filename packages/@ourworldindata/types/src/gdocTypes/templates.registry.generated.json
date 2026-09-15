@@ -77,14 +77,14 @@
         "type": "{ definitions: RefDictionary; errors: OwidGdocErrorMessage[] }",
         "optional": true,
         "kind": "authored",
-        "description": "Footnote definitions for ID-based references, authored as a `[.refs]` block of `id:` + `[.+content]` entries. Inline `{ref}…{/ref}` footnotes need no entry here."
+        "description": "Footnote definitions for ID-based references, authored as a `[.refs]` block of `id:` + `[.+content]` entries. Inline `{ref}…{/ref}` footnotes need no entry here. See `{guide:refs}`."
       },
       {
         "name": "deprecation-notice",
         "type": "EnrichedBlockText[]",
         "optional": true,
         "kind": "authored",
-        "description": "One or more paragraphs shown in a banner marking the article as outdated, authored as a `[+deprecation-notice]` freeform block of text paragraphs."
+        "description": "One or more paragraphs shown in a banner marking the article as outdated, authored as a `[+deprecation-notice]` freeform block of text paragraphs. See `{guide:deprecating-an-article}`."
       },
       {
         "name": "latest-feed-featured-image",
@@ -181,14 +181,14 @@
         "type": "OwidGdocStickyNavItem[]",
         "optional": true,
         "kind": "authored",
-        "description": "Navigation items pinned below the header, authored as a `[.sticky-nav]` array of `target:` (anchor) + `text:` (label) pairs. Only rendered on topic pages, where it's generated automatically from heading patterns unless this array overrides it."
+        "description": "Navigation items pinned below the header, authored as a `[.sticky-nav]` array of `target:` (anchor) + `text:` (label) pairs. Only rendered on topic pages, where it's generated automatically from heading patterns unless this array overrides it. See `{guide:sticky-nav}`."
       },
       {
         "name": "details",
         "type": "DetailDictionary",
         "optional": true,
         "kind": "authored",
-        "description": "Details-on-demand dictionary, not authored in the document — it is merged in at render/bake time from the `dods` database table, edited at /admin/dods."
+        "description": "Details-on-demand dictionary, not authored in the document — it is merged in at render/bake time from the `dods` database table, edited at /admin/dods. See `{guide:details-on-demand}`."
       },
       {
         "name": "faqs",
@@ -247,6 +247,36 @@
     "exemplars": [
       "us-crime-rates",
       "slavery"
+    ],
+    "related": [
+      {
+        "kind": "template",
+        "id": "data-insight"
+      },
+      {
+        "kind": "template",
+        "id": "topic-page"
+      },
+      {
+        "kind": "template",
+        "id": "linear-topic-page"
+      },
+      {
+        "kind": "guide",
+        "id": "refs"
+      },
+      {
+        "kind": "guide",
+        "id": "deprecating-an-article"
+      },
+      {
+        "kind": "guide",
+        "id": "sticky-nav"
+      },
+      {
+        "kind": "guide",
+        "id": "details-on-demand"
+      }
     ]
   },
   {
@@ -327,14 +357,14 @@
         "type": "{ definitions: RefDictionary; errors: OwidGdocErrorMessage[] }",
         "optional": true,
         "kind": "authored",
-        "description": "Footnote definitions for ID-based references, authored as a `[.refs]` block of `id:` + `[.+content]` entries. Inline `{ref}…{/ref}` footnotes need no entry here."
+        "description": "Footnote definitions for ID-based references, authored as a `[.refs]` block of `id:` + `[.+content]` entries. Inline `{ref}…{/ref}` footnotes need no entry here. See `{guide:refs}`."
       },
       {
         "name": "deprecation-notice",
         "type": "EnrichedBlockText[]",
         "optional": true,
         "kind": "authored",
-        "description": "One or more paragraphs shown in a banner marking the article as outdated, authored as a `[+deprecation-notice]` freeform block of text paragraphs."
+        "description": "One or more paragraphs shown in a banner marking the article as outdated, authored as a `[+deprecation-notice]` freeform block of text paragraphs. See `{guide:deprecating-an-article}`."
       },
       {
         "name": "latest-feed-featured-image",
@@ -431,14 +461,14 @@
         "type": "OwidGdocStickyNavItem[]",
         "optional": true,
         "kind": "authored",
-        "description": "Navigation items pinned below the header, authored as a `[.sticky-nav]` array of `target:` (anchor) + `text:` (label) pairs. Only rendered on topic pages, where it's generated automatically from heading patterns unless this array overrides it."
+        "description": "Navigation items pinned below the header, authored as a `[.sticky-nav]` array of `target:` (anchor) + `text:` (label) pairs. Only rendered on topic pages, where it's generated automatically from heading patterns unless this array overrides it. See `{guide:sticky-nav}`."
       },
       {
         "name": "details",
         "type": "DetailDictionary",
         "optional": true,
         "kind": "authored",
-        "description": "Details-on-demand dictionary, not authored in the document — it is merged in at render/bake time from the `dods` database table, edited at /admin/dods."
+        "description": "Details-on-demand dictionary, not authored in the document — it is merged in at render/bake time from the `dods` database table, edited at /admin/dods. See `{guide:details-on-demand}`."
       },
       {
         "name": "faqs",
@@ -494,6 +524,40 @@
     ],
     "exemplars": [
       "fertility-rate"
+    ],
+    "related": [
+      {
+        "kind": "component",
+        "id": "topic-page-intro"
+      },
+      {
+        "kind": "component",
+        "id": "all-charts"
+      },
+      {
+        "kind": "template",
+        "id": "linear-topic-page"
+      },
+      {
+        "kind": "template",
+        "id": "article"
+      },
+      {
+        "kind": "guide",
+        "id": "refs"
+      },
+      {
+        "kind": "guide",
+        "id": "deprecating-an-article"
+      },
+      {
+        "kind": "guide",
+        "id": "sticky-nav"
+      },
+      {
+        "kind": "guide",
+        "id": "details-on-demand"
+      }
     ]
   },
   {
@@ -574,14 +638,14 @@
         "type": "{ definitions: RefDictionary; errors: OwidGdocErrorMessage[] }",
         "optional": true,
         "kind": "authored",
-        "description": "Footnote definitions for ID-based references, authored as a `[.refs]` block of `id:` + `[.+content]` entries. Inline `{ref}…{/ref}` footnotes need no entry here."
+        "description": "Footnote definitions for ID-based references, authored as a `[.refs]` block of `id:` + `[.+content]` entries. Inline `{ref}…{/ref}` footnotes need no entry here. See `{guide:refs}`."
       },
       {
         "name": "deprecation-notice",
         "type": "EnrichedBlockText[]",
         "optional": true,
         "kind": "authored",
-        "description": "One or more paragraphs shown in a banner marking the article as outdated, authored as a `[+deprecation-notice]` freeform block of text paragraphs."
+        "description": "One or more paragraphs shown in a banner marking the article as outdated, authored as a `[+deprecation-notice]` freeform block of text paragraphs. See `{guide:deprecating-an-article}`."
       },
       {
         "name": "latest-feed-featured-image",
@@ -678,14 +742,14 @@
         "type": "OwidGdocStickyNavItem[]",
         "optional": true,
         "kind": "authored",
-        "description": "Navigation items pinned below the header, authored as a `[.sticky-nav]` array of `target:` (anchor) + `text:` (label) pairs. Only rendered on topic pages, where it's generated automatically from heading patterns unless this array overrides it."
+        "description": "Navigation items pinned below the header, authored as a `[.sticky-nav]` array of `target:` (anchor) + `text:` (label) pairs. Only rendered on topic pages, where it's generated automatically from heading patterns unless this array overrides it. See `{guide:sticky-nav}`."
       },
       {
         "name": "details",
         "type": "DetailDictionary",
         "optional": true,
         "kind": "authored",
-        "description": "Details-on-demand dictionary, not authored in the document — it is merged in at render/bake time from the `dods` database table, edited at /admin/dods."
+        "description": "Details-on-demand dictionary, not authored in the document — it is merged in at render/bake time from the `dods` database table, edited at /admin/dods. See `{guide:details-on-demand}`."
       },
       {
         "name": "faqs",
@@ -744,6 +808,28 @@
     ],
     "exemplars": [
       "religion"
+    ],
+    "related": [
+      {
+        "kind": "template",
+        "id": "topic-page"
+      },
+      {
+        "kind": "guide",
+        "id": "sticky-nav"
+      },
+      {
+        "kind": "guide",
+        "id": "refs"
+      },
+      {
+        "kind": "guide",
+        "id": "deprecating-an-article"
+      },
+      {
+        "kind": "guide",
+        "id": "details-on-demand"
+      }
     ]
   },
   {
@@ -824,14 +910,14 @@
         "type": "{ definitions: RefDictionary; errors: OwidGdocErrorMessage[] }",
         "optional": true,
         "kind": "authored",
-        "description": "Footnote definitions for ID-based references, authored as a `[.refs]` block of `id:` + `[.+content]` entries. Inline `{ref}…{/ref}` footnotes need no entry here."
+        "description": "Footnote definitions for ID-based references, authored as a `[.refs]` block of `id:` + `[.+content]` entries. Inline `{ref}…{/ref}` footnotes need no entry here. See `{guide:refs}`."
       },
       {
         "name": "deprecation-notice",
         "type": "EnrichedBlockText[]",
         "optional": true,
         "kind": "authored",
-        "description": "One or more paragraphs shown in a banner marking the article as outdated, authored as a `[+deprecation-notice]` freeform block of text paragraphs."
+        "description": "One or more paragraphs shown in a banner marking the article as outdated, authored as a `[+deprecation-notice]` freeform block of text paragraphs. See `{guide:deprecating-an-article}`."
       },
       {
         "name": "latest-feed-featured-image",
@@ -928,14 +1014,14 @@
         "type": "OwidGdocStickyNavItem[]",
         "optional": true,
         "kind": "authored",
-        "description": "Navigation items pinned below the header, authored as a `[.sticky-nav]` array of `target:` (anchor) + `text:` (label) pairs. Only rendered on topic pages, where it's generated automatically from heading patterns unless this array overrides it."
+        "description": "Navigation items pinned below the header, authored as a `[.sticky-nav]` array of `target:` (anchor) + `text:` (label) pairs. Only rendered on topic pages, where it's generated automatically from heading patterns unless this array overrides it. See `{guide:sticky-nav}`."
       },
       {
         "name": "details",
         "type": "DetailDictionary",
         "optional": true,
         "kind": "authored",
-        "description": "Details-on-demand dictionary, not authored in the document — it is merged in at render/bake time from the `dods` database table, edited at /admin/dods."
+        "description": "Details-on-demand dictionary, not authored in the document — it is merged in at render/bake time from the `dods` database table, edited at /admin/dods. See `{guide:details-on-demand}`."
       },
       {
         "name": "faqs",
@@ -967,6 +1053,24 @@
           "text",
           "heading"
         ]
+      }
+    ],
+    "related": [
+      {
+        "kind": "guide",
+        "id": "refs"
+      },
+      {
+        "kind": "guide",
+        "id": "deprecating-an-article"
+      },
+      {
+        "kind": "guide",
+        "id": "sticky-nav"
+      },
+      {
+        "kind": "guide",
+        "id": "details-on-demand"
       }
     ]
   },
@@ -1071,6 +1175,12 @@
     ],
     "exemplars": [
       "the-median-age-in-china-has-rapidly-caught-up-with-the-united-kingdom"
+    ],
+    "related": [
+      {
+        "kind": "template",
+        "id": "article"
+      }
     ]
   },
   {
@@ -1174,6 +1284,16 @@
     "exemplars": [
       "explore-updated-data-on-prison-populations-worldwide",
       "hannah-ritchie-is-one-of-six-authors-shortlisted-for-the-2026-unwin-award"
+    ],
+    "related": [
+      {
+        "kind": "template",
+        "id": "data-insight"
+      },
+      {
+        "kind": "template",
+        "id": "article"
+      }
     ]
   },
   {
@@ -1277,6 +1397,20 @@
     ],
     "exemplars": [
       "saloni-dattani"
+    ],
+    "related": [
+      {
+        "kind": "component",
+        "id": "research-and-writing"
+      },
+      {
+        "kind": "component",
+        "id": "socials"
+      },
+      {
+        "kind": "component",
+        "id": "pill-row"
+      }
     ]
   },
   {
@@ -1424,6 +1558,28 @@
     ],
     "exemplars": [
       "co2"
+    ],
+    "related": [
+      {
+        "kind": "template",
+        "id": "article"
+      },
+      {
+        "kind": "template",
+        "id": "topic-page"
+      },
+      {
+        "kind": "component",
+        "id": "data-callout"
+      },
+      {
+        "kind": "guide",
+        "id": "profile-placeholders"
+      },
+      {
+        "kind": "guide",
+        "id": "refs"
+      }
     ]
   },
   {
@@ -1546,6 +1702,36 @@
     ],
     "exemplars": [
       "about"
+    ],
+    "related": [
+      {
+        "kind": "template",
+        "id": "article"
+      },
+      {
+        "kind": "template",
+        "id": "topic-page"
+      },
+      {
+        "kind": "component",
+        "id": "donors"
+      },
+      {
+        "kind": "component",
+        "id": "people"
+      },
+      {
+        "kind": "component",
+        "id": "people-rows"
+      },
+      {
+        "kind": "component",
+        "id": "person"
+      },
+      {
+        "kind": "guide",
+        "id": "refs"
+      }
     ]
   },
   {
@@ -1648,6 +1834,32 @@
     ],
     "exemplars": [
       "owid-homepage"
+    ],
+    "related": [
+      {
+        "kind": "component",
+        "id": "pill-row"
+      },
+      {
+        "kind": "component",
+        "id": "homepage-search"
+      },
+      {
+        "kind": "component",
+        "id": "homepage-intro"
+      },
+      {
+        "kind": "component",
+        "id": "latest-data-insights"
+      },
+      {
+        "kind": "component",
+        "id": "key-indicator-collection"
+      },
+      {
+        "kind": "component",
+        "id": "explorer-tiles"
+      }
     ]
   }
 ]

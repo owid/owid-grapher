@@ -1,11 +1,11 @@
 // Types for the generated gdoc template reference registry.
 // Produced by devTools/gdocs/generate-gdocs-references.ts (committed to
-// docs/templates.registry.generated.json) and served via the
+// ./templates.registry.generated.json) and served via the
 // /api/gdocs-reference/templates.json endpoint: one entry per documented
 // gdoc type.
 
 import type { GdocContentKeyKind } from "./Gdoc.js"
-import type { SidecarProse } from "./ComponentReference.js"
+import type { RelatedRef, SidecarProse } from "./ComponentReference.js"
 
 export interface TemplateField {
     name: string
@@ -54,4 +54,6 @@ export interface TemplateReference {
      * documents.
      */
     skeleton: TemplateSkeletonPart[]
+    /** Cross-references harvested from the prose and the field descriptions */
+    related?: RelatedRef[]
 }

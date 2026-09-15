@@ -35,8 +35,8 @@ import { intParam, stringParam } from "../queryParams.js"
 import { Request } from "../authentication.js"
 import { HandlerResponse } from "../FunctionalRouter.js"
 
-import componentsRegistry from "../../docs/components.registry.generated.json"
-import templatesRegistry from "../../docs/templates.registry.generated.json"
+import componentsRegistry from "@ourworldindata/types/src/gdocTypes/components.registry.generated.json"
+import templatesRegistry from "@ourworldindata/types/src/gdocTypes/templates.registry.generated.json"
 
 /**
  * The live half of the admin writing reference: everything here is computed
