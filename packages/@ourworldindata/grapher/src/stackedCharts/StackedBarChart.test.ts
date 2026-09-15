@@ -9,19 +9,28 @@ import {
 } from "@ourworldindata/core-table"
 import { ChartManager } from "../chart/ChartManager"
 import { SelectionArray } from "../selection/SelectionArray"
-import { ColumnTypeNames } from "@ourworldindata/utils"
 import { StackedBarChartState } from "./StackedBarChartState.js"
+import { numericDefs, yearDef } from "../testData/columnDefs.js"
+
+function makeStackedBarChart(
+    table: OwidTable,
+    config: Partial<ChartManager> = {}
+): StackedBarChartState {
+    const manager: ChartManager = {
+        table,
+        selection: table.availableEntityNames,
+        ...config,
+    }
+    return new StackedBarChartState({ manager })
+}
 
 it("can create a chart", () => {
     const table = SynthesizeGDPTable({ timeRange: [2000, 2010] })
     const selection = new SelectionArray()
-    const manager = {
-        table,
+    const chartState = makeStackedBarChart(table, {
         yColumnSlugs: [SampleColumnSlugs.Population],
         selection,
-    }
-
-    const chartState = new StackedBarChartState({ manager })
+    })
     expect(chartState.errorInfo.reason).toBeTruthy()
 
     selection.addToSelection(table.sampleEntityName(1))
@@ -31,12 +40,10 @@ it("can create a chart", () => {
 
 describe("stackedbar chart with columns as series", () => {
     const table = SynthesizeGDPTable()
-    const manager: ChartManager = {
-        table,
+    const chartState = makeStackedBarChart(table, {
         selection: table.sampleEntityName(1),
         yColumnSlugs: [SampleColumnSlugs.GDP, SampleColumnSlugs.Population],
-    }
-    const chartState = new StackedBarChartState({ manager })
+    })
 
     it("render the legend items in the same stack order as the chart, bottom stack item on bottom of chart", () => {
         expect(chartState.series.length).toEqual(2)
@@ -49,12 +56,9 @@ describe("stackedbar chart with columns as series", () => {
 
 describe("stackedbar chart with entities as series", () => {
     const table = SynthesizeGDPTable({ entityCount: 5 })
-    const manager: ChartManager = {
-        table,
-        selection: table.availableEntityNames,
+    const chartState = makeStackedBarChart(table, {
         yColumnSlugs: [SampleColumnSlugs.Population],
-    }
-    const chartState = new StackedBarChartState({ manager })
+    })
 
     it("can render complete data correctly", () => {
         expect(chartState.series.length).toEqual(5)
@@ -63,12 +67,9 @@ describe("stackedbar chart with entities as series", () => {
 
     it("can handle a missing row", () => {
         const table = SynthesizeGDPTable({ entityCount: 5 }).dropRowsAt([2])
-        const manager = {
-            table,
-            selection: table.availableEntityNames,
+        const chartState = makeStackedBarChart(table, {
             yColumnSlugs: [SampleColumnSlugs.Population],
-        }
-        const chartState = new StackedBarChartState({ manager })
+        })
         expect(chartState.series.length).toEqual(5)
         expect(chartState.series[0].points[0].value).toBeTruthy()
     })
@@ -83,12 +84,9 @@ it("filters non-numeric values", () => {
         20,
         1
     )
-    const manager: ChartManager = {
-        table,
+    const chartState = makeStackedBarChart(table, {
         yColumnSlugs: [SampleColumnSlugs.Fruit],
-        selection: table.availableEntityNames,
-    }
-    const chartState = new StackedBarChartState({ manager })
+    })
     expect(chartState.series.length).toEqual(2)
     expect(
         chartState.series.every((series) =>
@@ -100,39 +98,41 @@ it("filters non-numeric values", () => {
 })
 
 it("should not mark any values as interpolated by default", () => {
-    const csv = `gdp,year,entityName
-    10,2000,france
-    0,2001,france
-    ,2002,france
-    ,2003,france
-    8,2005,france
-    ,2006,france
-    2,2000,uk
-    3,2004,uk`
-    const table = new OwidTable(csv, [
-        { slug: "gdp", type: ColumnTypeNames.Numeric },
-        { slug: "year", type: ColumnTypeNames.Year },
-    ])
+    const table = new OwidTable(
+        [
+            ["gdp", "year", "entityName"],
+            [10, 2000, "france"],
+            [0, 2001, "france"],
+            [null, 2002, "france"],
+            [null, 2003, "france"],
+            [8, 2005, "france"],
+            [null, 2006, "france"],
+            [2, 2000, "uk"],
+            [3, 2004, "uk"],
+        ],
+        [...numericDefs("gdp"), yearDef()]
+    )
 
-    const manager: ChartManager = {
-        table,
-        yColumnSlugs: ["gdp"],
-        selection: table.availableEntityNames,
-    }
-
-    const chartState = new StackedBarChartState({ manager })
+    const chartState = makeStackedBarChart(table, { yColumnSlugs: ["gdp"] })
 
     // Indices are reversed because stacked charts reverse the stacking order
     const pointsFrance = chartState.series[1].points
     const pointsUK = chartState.series[0].points
 
-    expect(pointsFrance[0].interpolated).toBeFalsy() // year = 2000
-    expect(pointsFrance[1].interpolated).toBeFalsy() // year = 2001
-    expect(pointsFrance[2].interpolated).toBeFalsy() // year = 2004
-    expect(pointsFrance[3].interpolated).toBeFalsy() // year = 2005
-
-    expect(pointsUK[0].interpolated).toBeFalsy() // year = 2000
-    expect(pointsUK[1].interpolated).toBeFalsy() // year = 2001
-    expect(pointsUK[2].interpolated).toBeFalsy() // year = 2004
-    expect(pointsUK[3].interpolated).toBeFalsy() // year = 2005
+    expect(pointsFrance.map((p) => [p.position, !!p.interpolated])).toEqual([
+        [2000, false],
+        [2001, false],
+        [2002, false],
+        [2003, false],
+        [2004, false],
+        [2005, false],
+    ])
+    expect(pointsUK.map((p) => [p.position, !!p.interpolated])).toEqual([
+        [2000, false],
+        [2001, false],
+        [2002, false],
+        [2003, false],
+        [2004, false],
+        [2005, false],
+    ])
 })
