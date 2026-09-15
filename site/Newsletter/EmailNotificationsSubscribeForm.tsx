@@ -1,3 +1,5 @@
+import { NewsletterSpamProtection } from "./NewsletterSpamProtection.js"
+import { useNewsletterSpamProtection } from "./useNewsletterSpamProtection.js"
 import { useEffect, useState } from "react"
 import * as React from "react"
 import { useMutation } from "@tanstack/react-query"
@@ -44,6 +46,7 @@ export const EmailNotificationsSubscribeForm = ({
     topicAreaNames: string[]
     onSubscribed: (subscription: Subscription) => void
 }) => {
+    const spamProtection = useNewsletterSpamProtection()
     const [email, setEmail] = useState("")
     const [subscribeToOwidBrief, setSubscribeToOwidBrief] = useState(true)
     const [followTopics, setFollowTopics] = useState(true)
@@ -80,6 +83,8 @@ export const EmailNotificationsSubscribeForm = ({
             const response = await apiPost("/subscribe", request)
             await throwIfApiError(response)
         },
+        onError: () => spamProtection.resetCaptcha(),
+        retry: false,
         onSuccess: (_, request) => {
             analytics.logSiteFormSubmit(
                 "newsletter-subscribe",
@@ -95,6 +100,7 @@ export const EmailNotificationsSubscribeForm = ({
 
     const handleSubmit = (event: React.SubmitEvent<HTMLFormElement>) => {
         event.preventDefault()
+        if (subscribe.isPending || !spamProtection.captchaToken) return
         setValidationError(null)
         preferences.resetValidation()
 
@@ -110,6 +116,10 @@ export const EmailNotificationsSubscribeForm = ({
         if (followTopics && !preferences.validate()) return
 
         subscribe.mutate({
+            captchaToken: spamProtection.captchaToken,
+            website:
+                new FormData(event.currentTarget).get("website")?.toString() ??
+                "",
             email: trimmedEmail,
             notifications: followTopics ? preferences.forStorage() : undefined,
             subscribeToOwidBrief,
@@ -154,6 +164,7 @@ export const EmailNotificationsSubscribeForm = ({
             {errorMessage && (
                 <div className="newsletter-form__alert">{errorMessage}</div>
             )}
+            <NewsletterSpamProtection {...spamProtection.fieldsProps} />
             <div className="newsletter-form__email-submit">
                 <TextInput
                     placeholder="Your email address"
@@ -170,7 +181,9 @@ export const EmailNotificationsSubscribeForm = ({
                     icon={null}
                     ariaLabel="Subscribe to email notifications"
                     text={subscribe.isPending ? "Subscribing…" : "Subscribe"}
-                    disabled={subscribe.isPending}
+                    disabled={
+                        subscribe.isPending || !spamProtection.captchaToken
+                    }
                 />
             </div>
             <PrivacyNotice className="email-notifications-subscribe-form__privacy-notice" />
