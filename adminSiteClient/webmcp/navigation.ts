@@ -39,6 +39,23 @@ export function registerNavigationGuard(
     })
 }
 
+/**
+ * Calls `listener` whenever the admin SPA navigates, until `signal` aborts.
+ *
+ * Class components outside the router's render tree have no `useLocation` to
+ * react to, so a page that keeps its state in the URL — the charts list keeps
+ * its search there — would otherwise ignore a `?search=` pushed at it by a
+ * tool, by a link, or by the back button.
+ */
+export function onAdminNavigation(
+    listener: () => void,
+    signal: AbortSignal
+): void {
+    if (signal.aborted || !adminHistory) return
+    const unlisten = adminHistory.listen(() => listener())
+    signal.addEventListener("abort", unlisten, { once: true })
+}
+
 export function navigationBlockedReason(): string | undefined {
     for (const guard of guards) {
         const reason = guard()

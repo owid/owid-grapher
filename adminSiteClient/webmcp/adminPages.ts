@@ -18,35 +18,50 @@ export interface AdminPage {
     /** Admin-relative, as react-router sees it: no `/admin` prefix. */
     path: string
     summary: string
+    /**
+     * Whether the page reads `?search=` from the URL, which is what lets a
+     * tool hand the user a filtered list rather than describing it. The pages
+     * without it are the ones with no search box at all.
+     */
+    search?: true
 }
 
 /** Every list page in `AdminApp`'s routes, in roughly its menu order. */
 export const ADMIN_PAGES: AdminPage[] = [
-    { path: "/charts", summary: "All charts" },
-    { path: "/narrative-charts", summary: "Narrative charts" },
+    { path: "/charts", summary: "All charts", search: true },
+    { path: "/narrative-charts", summary: "Narrative charts", search: true },
     {
         path: "/multi-dims",
         summary: "Multi-dimensional data pages (mdims)",
+        search: true,
     },
-    { path: "/multi-dim-redirects", summary: "Redirects for mdim slugs" },
-    { path: "/featured-metrics", summary: "Featured metrics" },
-    { path: "/data-insights", summary: "Data insights" },
-    { path: "/gdocs", summary: "Google-Docs-authored content" },
-    { path: "/dods", summary: "Details on demand" },
+    {
+        path: "/multi-dim-redirects",
+        summary: "Redirects for mdim slugs",
+        search: true,
+    },
+    { path: "/featured-metrics", summary: "Featured metrics", search: true },
+    { path: "/data-insights", summary: "Data insights", search: true },
+    {
+        path: "/gdocs",
+        summary: "Google-Docs-authored content",
+        search: true,
+    },
+    { path: "/dods", summary: "Details on demand", search: true },
     { path: "/callout-functions", summary: "Callout functions" },
-    { path: "/images", summary: "Images" },
-    { path: "/files", summary: "Files" },
-    { path: "/static-viz", summary: "Static visualisations" },
-    { path: "/slideshows", summary: "Slideshows" },
+    { path: "/images", summary: "Images", search: true },
+    { path: "/files", summary: "Files", search: true },
+    { path: "/static-viz", summary: "Static visualisations", search: true },
+    { path: "/slideshows", summary: "Slideshows", search: true },
     { path: `/${EXPLORERS_ROUTE_FOLDER}`, summary: "Explorers" },
     { path: "/explorer-tags", summary: "Explorer tags" },
-    { path: "/variables", summary: "Indicators" },
-    { path: "/datasets", summary: "Datasets" },
+    { path: "/variables", summary: "Indicators", search: true },
+    { path: "/datasets", summary: "Datasets", search: true },
     { path: "/tags", summary: "Topic tags" },
     { path: "/tag-graph", summary: "The tag graph" },
-    { path: "/users", summary: "Users" },
+    { path: "/users", summary: "Users", search: true },
     { path: "/redirects", summary: "Chart redirects" },
-    { path: "/site-redirects", summary: "Site redirects" },
+    { path: "/site-redirects", summary: "Site redirects", search: true },
     {
         path: "/bulk-grapher-config-editor",
         summary: "Bulk chart config editor",
@@ -79,7 +94,7 @@ const DETAIL_PATTERNS: RegExp[] = [
 ]
 
 export type ResolvedAdminPath =
-    | { ok: true; path: string; search: string }
+    | { ok: true; path: string; search: string; searchable: boolean }
     | { ok: false; candidates: string[] }
 
 /**
@@ -98,14 +113,29 @@ export function resolveAdminPath(input: string): ResolvedAdminPath {
         .replace(/^\/?/, "/")
 
     if (DETAIL_PATTERNS.some((pattern) => pattern.test(path)))
-        return { ok: true, path, search }
+        return { ok: true, path, search, searchable: false }
 
     const pages = ADMIN_PAGES.map((page) => page.path)
     const { resolved, unresolved } = matchNames([path], pages, {
         normalize: alphanumericInsensitive,
     })
-    if (resolved.length) return { ok: true, path: resolved[0], search }
+    if (resolved.length) {
+        const page = ADMIN_PAGES.find((p) => p.path === resolved[0])
+        return {
+            ok: true,
+            path: resolved[0],
+            search,
+            searchable: !!page?.search,
+        }
+    }
     return { ok: false, candidates: unresolved[0]?.candidates ?? [] }
+}
+
+/** The pages whose search box an agent can fill from the URL. */
+export function describeSearchablePages(): string {
+    return ADMIN_PAGES.filter((page) => page.search)
+        .map((page) => page.path)
+        .join(", ")
 }
 
 /** One line per list page, for a refusal or a tool description. */

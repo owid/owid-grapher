@@ -429,6 +429,39 @@ describe("admin-wide tools", () => {
             expect(push).not.toHaveBeenCalled()
         })
 
+        it("opens a list already filtered", async () => {
+            const text = await call("open_admin_page", {
+                page: "/variables",
+                search: "renewables",
+            })
+            expect(push).toHaveBeenCalledWith({
+                pathname: "/variables",
+                search: "?search=renewables",
+            })
+            expect(text).toContain('filtered by "renewables"')
+        })
+
+        it("escapes a search that would break the query string", async () => {
+            await call("open_admin_page", {
+                page: "/datasets",
+                search: 'tag:"Global Health" charts:>5',
+            })
+            const { search } = push.mock.calls.at(-1)![0]
+            expect(new URLSearchParams(search).get("search")).toBe(
+                'tag:"Global Health" charts:>5'
+            )
+        })
+
+        it("refuses a search on a page that has no search box", async () => {
+            const text = await call("open_admin_page", {
+                page: "/tag-graph",
+                search: "energy",
+            })
+            expect(text).toContain("has no search box")
+            expect(text).toContain("/variables")
+            expect(push).not.toHaveBeenCalled()
+        })
+
         it("refuses an invented page instead of navigating to a 404", async () => {
             const text = await call("open_admin_page", {
                 page: "/data-insight-list",

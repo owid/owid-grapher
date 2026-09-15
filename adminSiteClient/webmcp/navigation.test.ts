@@ -6,6 +6,7 @@ import type { History } from "history"
 import {
     isValidAdminPath,
     navigateTo,
+    onAdminNavigation,
     navigationBlockedReason,
     registerNavigationGuard,
     setAdminHistory,
@@ -15,6 +16,7 @@ function fakeHistory(): History & { push: ReturnType<typeof vi.fn> } {
     return {
         push: vi.fn(),
         replace: vi.fn(),
+        listen: vi.fn(() => vi.fn()),
     } as unknown as History & { push: ReturnType<typeof vi.fn> }
 }
 
@@ -93,5 +95,30 @@ describe(navigateTo, () => {
         setAdminHistory(history)
         expect(navigateTo("https://example.org").ok).toBe(false)
         expect(history.push).not.toHaveBeenCalled()
+    })
+})
+
+describe(onAdminNavigation, () => {
+    it("calls back on navigation and stops on abort", () => {
+        const unlisten = vi.fn()
+        const listen = vi.fn((_onChange: () => void) => unlisten)
+        setAdminHistory({ listen } as unknown as History)
+
+        const listener = vi.fn()
+        const controller = new AbortController()
+        onAdminNavigation(listener, controller.signal)
+
+        const onChange = listen.mock.calls[0][0]
+        onChange()
+        expect(listener).toHaveBeenCalledOnce()
+
+        controller.abort()
+        expect(unlisten).toHaveBeenCalledOnce()
+    })
+
+    it("does nothing without a router, rather than throwing", () => {
+        expect(() =>
+            onAdminNavigation(vi.fn(), new AbortController().signal)
+        ).not.toThrow()
     })
 })

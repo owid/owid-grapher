@@ -22,6 +22,7 @@ import {
 import {
     ADMIN_PAGES,
     describeAdminPages,
+    describeSearchablePages,
     resolveAdminPath,
 } from "./adminPages.js"
 import { createCachedList } from "./cachedList.js"
@@ -272,14 +273,24 @@ function listResult<T>(
     label: string,
     matches: T[],
     limit: number,
-    describe: (item: T) => string
+    describe: (item: T) => string,
+    /**
+     * The admin list this search maps onto. Named in the footer of a truncated
+     * result, because the rest of the matches are better shown to the user on
+     * the page than paged through a tool.
+     */
+    listPage?: { path: string; search: string }
 ): string {
     if (matches.length === 0) return `No ${label} match.`
     const shown = matches.slice(0, limit)
     const lines = shown.map(describe)
+    const showAll = listPage
+        ? ` Refine the query, or show the user all ${matches.length} with ` +
+          `open_admin_page(page: "${listPage.path}", search: "${listPage.search}").`
+        : " Refine the query to see the rest."
     const footer =
         matches.length > shown.length
-            ? `\n[Showing ${shown.length} of ${matches.length} matching ${label}. Refine the query to see the rest.]`
+            ? `\n[Showing ${shown.length} of ${matches.length} matching ${label}.${showAll}]`
             : ""
     return `${matches.length} matching ${label}:\n${lines.join("\n")}${footer}`
 }
@@ -509,10 +520,16 @@ export function buildAdminTools({ admin }: AdminToolContext): WebMcpTool[] {
                     (s) => s !== ADMIN_TOOL_SET
                 )
                 const blocked = navigationBlockedReason()
+                const search = new URLSearchParams(window.location.search).get(
+                    "search"
+                )
                 return toolResult(
                     [
                         await describeCurrentPage(admin),
                         `URL path: ${path}`,
+                        search
+                            ? `The list is filtered by "${search}"; change it with open_admin_page.`
+                            : undefined,
                         sets.length
                             ? `Page-specific tools available: ${sets.join(", ")}.`
                             : "No page-specific tools on this page; the admin-wide tools still work.",
@@ -572,7 +589,9 @@ export function buildAdminTools({ admin }: AdminToolContext): WebMcpTool[] {
                 const lines = json.variables.map(describeIndicator)
                 const footer =
                     json.numTotalRows > json.variables.length
-                        ? `\n[Showing ${json.variables.length} of ${json.numTotalRows} matching indicators. Refine the query to see the rest.]`
+                        ? `\n[Showing ${json.variables.length} of ${json.numTotalRows} matching indicators. ` +
+                          "Refine the query, or show the user all " +
+                          `${json.numTotalRows} with open_admin_page(page: "/variables", search: "${query}").]`
                         : ""
                 return toolResult(
                     `${json.numTotalRows} matching indicators:\n${lines.join("\n")}${footer}`
@@ -663,7 +682,8 @@ export function buildAdminTools({ admin }: AdminToolContext): WebMcpTool[] {
                         "charts",
                         matches,
                         clampLimit(limit),
-                        describeChart
+                        describeChart,
+                        { path: "/charts", search: query }
                     )
                 )
             },
@@ -700,7 +720,8 @@ export function buildAdminTools({ admin }: AdminToolContext): WebMcpTool[] {
                         "documents",
                         matches,
                         clampLimit(limit),
-                        describeGdoc
+                        describeGdoc,
+                        { path: "/gdocs", search: query }
                     )
                 )
             },
@@ -739,7 +760,8 @@ export function buildAdminTools({ admin }: AdminToolContext): WebMcpTool[] {
                         "multi-dimensional data pages",
                         matches,
                         clampLimit(limit),
-                        describeMultiDim
+                        describeMultiDim,
+                        { path: "/multi-dims", search: query }
                     )
                 )
             },
@@ -848,9 +870,10 @@ export function buildAdminTools({ admin }: AdminToolContext): WebMcpTool[] {
                 `${describeAdminPages()}. ` +
                 "Detail pages work too, e.g. /multi-dims/2713 or " +
                 "/gdocs/<id>/preview. An unknown path is refused rather " +
-                "than opened, so the user does not lose their page. This " +
-                "only navigates; it cannot type into the page's own search " +
-                "box unless that page has tools of its own.",
+                "than opened, so the user does not lose their page. " +
+                "Pass search to open the page already filtered, which is " +
+                "how you show the user the rows you are talking about " +
+                "instead of only listing them back.",
             inputSchema: {
                 type: "object",
                 properties: {
@@ -859,10 +882,32 @@ export function buildAdminTools({ admin }: AdminToolContext): WebMcpTool[] {
                         description:
                             'An admin path or page name, e.g. "/data-insights", "data insights" or "/multi-dims/2713"',
                     },
+                    search: {
+                        type: "string",
+                        description:
+                            "Optional, for these pages only: " +
+                            `${describeSearchablePages()}. ` +
+                            "Fills the page's search box and shows in the " +
+                            "URL, so the user can bookmark or share it. " +
+                            "Most lists share one grammar: words match in " +
+                            'any order, "quoted phrases" match verbatim, ' +
+                            "-word excludes, and field:value matches one " +
+                            "field (tag:Energy, published:true, charts:>5); " +
+                            "the ? next to each search box lists that " +
+                            "page's own fields. /variables is the " +
+                            "exception: it searches in SQL, with the same " +
+                            "query find_indicators takes.",
+                    },
                 },
                 required: ["page"],
             },
-            execute: async ({ page }: { page: string }) => {
+            execute: async ({
+                page,
+                search,
+            }: {
+                page: string
+                search?: string
+            }) => {
                 if (typeof page !== "string" || !page.trim())
                     return toolResult("Provide an admin page path or name.")
                 const target = resolveAdminPath(page)
@@ -874,6 +919,18 @@ export function buildAdminTools({ admin }: AdminToolContext): WebMcpTool[] {
                                 : ` Available pages: ${describeAdminPages()}.`) +
                             " Nothing was changed."
                     )
+                // Refused rather than dropped: opening the unfiltered page
+                // would leave the agent reporting a filtered list the user
+                // cannot see
+                if (search?.trim() && !target.searchable)
+                    return toolResult(
+                        `/admin${target.path} has no search box. ` +
+                            `Pages that take a search: ${describeSearchablePages()}. ` +
+                            "Nothing was changed."
+                    )
+                const queryString = search?.trim()
+                    ? `?${new URLSearchParams({ search: search.trim() })}`
+                    : target.search
                 const toolSet = /^\/charts\/(\d+\/edit|create)$/.test(
                     target.path
                 )
@@ -883,13 +940,13 @@ export function buildAdminTools({ admin }: AdminToolContext): WebMcpTool[] {
                       : undefined
                 const result = toolSet
                     ? await navigateAndWaitForToolSet(target.path, {
-                          search: target.search,
+                          search: queryString,
                           toolSet,
                       })
-                    : navigateTo(target.path, { search: target.search })
+                    : navigateTo(target.path, { search: queryString })
                 if (!result.ok)
                     return toolResult(`${result.reason} Nothing was changed.`)
-                const opened = `Opened /admin${result.path}${target.search}. `
+                const opened = `Opened /admin${result.path}${queryString}. `
                 if (toolSet)
                     return toolResult(
                         "ready" in result && result.ready
@@ -897,8 +954,12 @@ export function buildAdminTools({ admin }: AdminToolContext): WebMcpTool[] {
                             : `${opened}${STILL_LOADING}`
                     )
                 return toolResult(
-                    `${opened}Call where_am_i for what it shows. This page ` +
-                        "has no tools of its own, so the user drives it from here."
+                    `${opened}The user is now looking at it` +
+                        (search?.trim()
+                            ? `, filtered by "${search.trim()}". `
+                            : ". ") +
+                        "Call where_am_i for what it shows. This page has no " +
+                        "tools of its own, so the user drives it from here."
                 )
             },
         },

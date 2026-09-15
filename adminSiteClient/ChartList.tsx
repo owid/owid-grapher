@@ -35,6 +35,7 @@ import { deleteChart } from "./ChartEditor.js"
 import { CHART_SEARCH_FIELDS } from "./chartListSearch.js"
 import { isWebMcpAvailable } from "./webmcp/webmcpTypes.js"
 import { registerChartListTools } from "./webmcp/chartListTools.js"
+import { onAdminNavigation } from "./webmcp/navigation.js"
 
 // These properties are coming from OldChart.ts
 export interface ChartListItem {
@@ -156,14 +157,20 @@ export class ChartList extends React.Component<ChartListProps> {
         window.history.replaceState({}, "", newUrl)
     }
 
-    private webMcpAbortController: AbortController | undefined
+    private readonly abortController = new AbortController()
 
     override componentDidMount() {
         this.searchInput = this.getSearchInputFromUrl()
         void this.getTags()
 
+        // The search lives in the URL, so a `?search=` arriving from anywhere
+        // else — a tool, a link, the back button — has to reach the box too
+        onAdminNavigation(
+            action(() => (this.searchInput = this.getSearchInputFromUrl())),
+            this.abortController.signal
+        )
+
         if (this.props.enableWebMcpTools && isWebMcpAvailable()) {
-            this.webMcpAbortController = new AbortController()
             void registerChartListTools(
                 {
                     getCharts: () => this.props.charts,
@@ -171,13 +178,13 @@ export class ChartList extends React.Component<ChartListProps> {
                     getSearchInput: () => this.searchInput,
                     setSearchInput: this.onSearchInput,
                 },
-                this.webMcpAbortController.signal
+                this.abortController.signal
             )
         }
     }
 
     override componentWillUnmount() {
-        this.webMcpAbortController?.abort()
+        this.abortController.abort()
     }
 
     @action.bound onSort(sortConfig: SortConfig) {

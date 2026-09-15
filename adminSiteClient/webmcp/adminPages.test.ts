@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest"
-import { ADMIN_PAGES, resolveAdminPath } from "./adminPages.js"
+import {
+    ADMIN_PAGES,
+    describeSearchablePages,
+    resolveAdminPath,
+} from "./adminPages.js"
 
 describe(resolveAdminPath, () => {
     it("accepts a path, with or without the /admin prefix", () => {
@@ -7,6 +11,7 @@ describe(resolveAdminPath, () => {
             ok: true,
             path: "/data-insights",
             search: "",
+            searchable: true,
         })
         expect(resolveAdminPath("/admin/data-insights")).toMatchObject({
             ok: true,
@@ -38,6 +43,7 @@ describe(resolveAdminPath, () => {
             ok: true,
             path: "/charts",
             search: "?chartSearch=co2",
+            searchable: true,
         })
         expect(resolveAdminPath("/gdocs/")).toMatchObject({
             ok: true,
@@ -84,5 +90,27 @@ describe(resolveAdminPath, () => {
         }
         const paths = ADMIN_PAGES.map((p) => p.path)
         expect(new Set(paths).size).toBe(paths.length)
+    })
+})
+
+describe("searchable pages", () => {
+    it("knows which pages read ?search= from the URL", () => {
+        expect(resolveAdminPath("/variables")).toMatchObject({
+            searchable: true,
+        })
+        // no search box on this one
+        expect(resolveAdminPath("/tag-graph")).toMatchObject({
+            searchable: false,
+        })
+        // a detail page is not a list
+        expect(resolveAdminPath("/multi-dims/2713")).toMatchObject({
+            searchable: false,
+        })
+    })
+
+    it("lists the searchable pages for a refusal", () => {
+        const pages = describeSearchablePages()
+        expect(pages).toContain("/variables")
+        expect(pages).not.toContain("/tag-graph")
     })
 })
