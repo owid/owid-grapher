@@ -5,10 +5,8 @@ import { SeriesLabelState } from "../seriesLabel/SeriesLabelState.js"
 import { computed } from "mobx"
 import { VerticalAxis } from "../axis/Axis.js"
 import { EntityName, SeriesName, VerticalAlign } from "@ourworldindata/types"
-import {
-    BASE_FONT_SIZE,
-    GRAPHER_FONT_SCALE_12,
-} from "../core/GrapherConstants.js"
+import { BASE_FONT_SIZE } from "../core/GrapherConstants.js"
+import { roundFontSize, scaleFontSize } from "../chart/ChartUtils.js"
 import { AxisConfig } from "../axis/AxisConfig.js"
 import {
     findImportantSeriesThatFitIntoTheAvailableSpace,
@@ -75,7 +73,7 @@ export class VerticalLabelsState {
     }
 
     @computed get fontSize(): number {
-        return Math.floor(GRAPHER_FONT_SCALE_12 * this.options.fontSize)
+        return scaleFontSize(11.75, this.options.fontSize)
     }
 
     @computed private get yAxis(): VerticalAxis {
@@ -92,7 +90,7 @@ export class VerticalLabelsState {
         return new TextWrap({
             text: series.annotation,
             maxWidth,
-            fontSize: this.fontSize * 0.9,
+            fontSize: roundFontSize(this.fontSize * 0.9),
             lineHeight: 1,
         })
     }

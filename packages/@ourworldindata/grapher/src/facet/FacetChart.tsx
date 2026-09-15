@@ -21,7 +21,6 @@ import { action, computed, makeObservable, observable } from "mobx"
 import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
-    GRAPHER_FONT_SCALE_12,
 } from "../core/GrapherConstants"
 import {
     GRAPHER_CHART_TYPES,
@@ -213,10 +212,10 @@ export class FacetChart
 
     @computed private get facetBaseFontSize(): number {
         // Facets scale internal font sizes like axis ticks and labels from
-        // this base size, with the largest of them using GRAPHER_FONT_SCALE_12.
+        // this base size, with the largest of them using size 12.
         // Dividing by that factor keeps the biggest internal font at the label
         // size; the extra 0.9 keeps it slightly smaller.
-        return (this.facetLabelFontSize / GRAPHER_FONT_SCALE_12) * 0.9
+        return ((this.facetLabelFontSize * BASE_FONT_SIZE) / 12) * 0.9
     }
 
     @computed private get yAxisConfig(): AxisConfig {
