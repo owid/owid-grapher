@@ -116,6 +116,15 @@ export function TestIndexPage() {
                             Dumbbell
                         </Link>
                     </li>
+                    <li>
+                        <Link
+                            native
+                            target="_blank"
+                            to="/test/embeds?type=Swimlane"
+                        >
+                            Timeline
+                        </Link>
+                    </li>
 
                     <li>
                         <Link
