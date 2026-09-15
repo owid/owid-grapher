@@ -114,6 +114,10 @@ export class EditorFeatures {
         )
     }
 
+    @computed get canFacet() {
+        return this.grapherState.availableFacetStrategies.length > 1
+    }
+
     @computed get canSpecifySortOrder() {
         return this.grapherState.availableSortKeysAcrossChartTypes.length > 0
     }

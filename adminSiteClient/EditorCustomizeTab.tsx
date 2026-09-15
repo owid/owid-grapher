@@ -1028,7 +1028,9 @@ export class EditorCustomizeTab<
                     </Section>
                 )}
                 <TimelineSection editor={this.props.editor} />
-                <FacetSection editor={this.props.editor} />
+                {features.canFacet && (
+                    <FacetSection editor={this.props.editor} />
+                )}
                 <Section name="Color scheme">
                     <ColorSchemeSelector
                         grapherState={grapherState}
