@@ -179,13 +179,20 @@ const owidDataset = new Map([
     ],
 ])
 
-it("can apply legacy chart dimension settings", () => {
-    const grapher = new GrapherState(legacyConfig)
+const makeLegacyGrapher = (
+    config: GrapherProgrammaticInterface = legacyConfig
+): GrapherState => {
+    const grapher = new GrapherState(config)
     grapher.inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
         owidDataset,
-        legacyConfig.dimensions!,
-        legacyConfig.selectedEntityColors
+        config.dimensions!,
+        config.selectedEntityColors
     )
+    return grapher
+}
+
+it("can apply legacy chart dimension settings", () => {
+    const grapher = makeLegacyGrapher()
     const col = grapher.yColumnsFromDimensions[0]
     expect(col.unit).toEqual(unit)
     expect(col.displayName).toEqual(name)
@@ -193,15 +200,10 @@ it("can apply legacy chart dimension settings", () => {
 
 it("correctly identifies changes to passed-in selection", () => {
     const selection = new SelectionArray(legacyConfig.selectedEntityNames)
-    const grapher = new GrapherState({
+    const grapher = makeLegacyGrapher({
         ...legacyConfig,
         manager: { selection },
     })
-    grapher.inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
-        owidDataset,
-        legacyConfig.dimensions!,
-        legacyConfig.selectedEntityColors
-    )
 
     expect(grapher.changedParams).toEqual({})
     expect(selection.selectedEntityNames).toEqual(["Iceland", "Afghanistan"])
@@ -226,29 +228,15 @@ it("can generate a url with country selection even if there is no entity code", 
         ...legacyConfig,
         selectedEntityNames: [],
     }
-    const grapher = new GrapherState(config)
-    grapher.inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
-        owidDataset,
-        config.dimensions!,
-        config.selectedEntityColors
-    )
+    const grapher = makeLegacyGrapher(config)
     expect(grapher.queryStr).toBe("")
     grapher.selection.setSelectedEntities(grapher.availableEntityNames)
     expect(grapher.queryStr).toContain("AFG")
 
-    const config2 = {
-        ...legacyConfig,
-        selectedEntityNames: [],
-    }
     metadata.dimensions.entities.values.find(
         (entity) => entity.id === 15
     )!.code = undefined as any
-    const grapher2 = new GrapherState(config2)
-    grapher2.inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
-        owidDataset,
-        config2.dimensions!,
-        config2.selectedEntityColors
-    )
+    const grapher2 = makeLegacyGrapher(config)
     expect(grapher2.queryStr).toBe("")
     grapher2.selection.setSelectedEntities(grapher.availableEntityNames)
     expect(grapher2.queryStr).toContain("AFG")
@@ -256,12 +244,7 @@ it("can generate a url with country selection even if there is no entity code", 
 
 describe("hasTimeline", () => {
     it("charts with timeline", () => {
-        const grapher = new GrapherState(legacyConfig)
-        grapher.inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
-            owidDataset,
-            legacyConfig.dimensions!,
-            legacyConfig.selectedEntityColors
-        )
+        const grapher = makeLegacyGrapher()
         grapher.chartTypes = [GRAPHER_CHART_TYPES.LineChart]
         expect(grapher.hasTimeline).toBeTruthy()
         grapher.chartTypes = [GRAPHER_CHART_TYPES.SlopeChart]
@@ -275,12 +258,7 @@ describe("hasTimeline", () => {
     })
 
     it("map tab has timeline even if chart doesn't", () => {
-        const grapher = new GrapherState(legacyConfig)
-        grapher.inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
-            owidDataset,
-            legacyConfig.dimensions!,
-            legacyConfig.selectedEntityColors
-        )
+        const grapher = makeLegacyGrapher()
         grapher.hideTimeline = true
         grapher.chartTypes = [GRAPHER_CHART_TYPES.LineChart]
         expect(grapher.hasTimeline).toBeFalsy()
@@ -2594,13 +2572,16 @@ describe("prepareTableForDownload", () => {
         })
 
         const downloadTable = grapher.filteredTableForDownload
-        const columns = downloadTable.columnSlugs
 
-        expect(columns).toContain("entityName")
-        expect(columns).toContain("entityCode")
-        expect(columns).toContain("year")
-        expect(columns).toContain("gdp")
-        expect(columns).toContain("population")
+        expect(downloadTable.columnSlugs).toEqual(
+            expect.arrayContaining([
+                "entityName",
+                "entityCode",
+                "year",
+                "gdp",
+                "population",
+            ])
+        )
         expect(downloadTable.numRows).toBe(3)
     })
 
@@ -2629,15 +2610,18 @@ describe("prepareTableForDownload", () => {
         })
 
         const downloadTable = grapher.filteredTableForDownload
-        const columns = downloadTable.columnSlugs
 
-        expect(columns).toContain("entityName")
-        expect(columns).toContain("entityCode")
-        expect(columns).toContain("year")
-        expect(columns).toContain("gdp")
-        expect(columns).toContain("lifeExpectancy")
-        expect(columns).toContain("continent")
-        expect(columns).toContain("population")
+        expect(downloadTable.columnSlugs).toEqual(
+            expect.arrayContaining([
+                "entityName",
+                "entityCode",
+                "year",
+                "gdp",
+                "lifeExpectancy",
+                "continent",
+                "population",
+            ])
+        )
     })
 
     it("includes annotation columns when present", () => {
@@ -2655,9 +2639,8 @@ describe("prepareTableForDownload", () => {
         })
 
         const downloadTable = grapher.filteredTableForDownload
-        const columns = downloadTable.columnSlugs
 
-        expect(columns).toContain("gdp-annotations")
+        expect(downloadTable.columnSlugs).toContain("gdp-annotations")
     })
 
     it("drops rows without any x or y values", () => {
@@ -2909,8 +2892,9 @@ describe("prepareTableForDownload", () => {
 
         const downloadTable = grapher.tableForDownload
         expect(downloadTable.numRows).toBe(2)
-        expect(downloadTable.columnSlugs).toContain("gdp")
-        expect(downloadTable.columnSlugs).toContain("population")
+        expect(downloadTable.columnSlugs).toEqual(
+            expect.arrayContaining(["gdp", "population"])
+        )
     })
 
     it("handles empty tables gracefully", () => {
@@ -2988,10 +2972,9 @@ describe("prepareTableForDownload", () => {
 
         // Map downloads should include the selected time
         expect(downloadTable.numRows).toBeGreaterThan(0)
-        expect(downloadTable.columnSlugs).toContain("entityName")
-        expect(downloadTable.columnSlugs).toContain("entityCode")
-        expect(downloadTable.columnSlugs).toContain("year")
-        expect(downloadTable.columnSlugs).toContain("gdp")
+        expect(downloadTable.columnSlugs).toEqual(
+            expect.arrayContaining(["entityName", "entityCode", "year", "gdp"])
+        )
 
         // Should only include data for the selected year (2020)
         const years = downloadTable.get("year").uniqValues
