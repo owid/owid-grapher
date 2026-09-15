@@ -152,6 +152,145 @@ For detailed API documentation, including all parameters, response schemas, and 
 
 A caching proxy for empty-query Algolia searches. The site routes Algolia multi-query requests where every query string is empty — the "browse" requests issued by default states like the search landing page or the empty autocomplete panel — to this endpoint (see `site/search/searchClients.ts`), which forwards them to Algolia and caches the response for a day — except for payloads touching the chronological pages index (which backs /latest and sorts by date), cached for only 15 minutes so newly published articles show up quickly. Requests containing a non-empty query are rejected with a 400 and should go to Algolia directly; the client falls back to a direct Algolia request whenever this endpoint fails or rejects.
 
+## Email notifications
+
+The email-notifications system lets readers subscribe to updates selected by
+topic, content type, and frequency. It spans Cloudflare Pages Functions, a
+dedicated D1 database, a scheduled sender, Postmark, and Mailchimp.
+
+### Data ownership and invariants
+
+Each system has a deliberately narrow responsibility:
+
+| System           | Responsibility                                                                                                          |
+| ---------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| D1               | Subscription intent, notification preferences, sent-message metadata, Postmark suppression mirror, and webhook receipts |
+| Postmark         | Sending notification email and enforcing broadcast-stream suppressions                                                  |
+| Mailchimp        | The separate OWID Brief subscription                                                                                    |
+| Scheduled sender | Selecting new content and producing daily or weekly notification emails                                                 |
+
+The central modeling rule is that **subscription intent and deliverability are
+different state**:
+
+- `users.emailNotificationsStatus` records whether the reader wants email notifications.
+- `postmark_suppressions` stores Postmark's latest known suppression state for
+  each address and message stream.
+
+Every address submitted through the subscription form has a D1 `users` row so
+it can request a magic link and use the unified preferences page. A Brief-only
+identity remains unsubscribed from Follow Topics and has no
+`notification_preferences` row. The Brief's subscription state is never copied
+to D1; Mailchimp remains its source of truth.
+
+An address must be subscribed and unsuppressed to receive a scheduled message.
+A hard bounce can suppress an address without changing the reader's intent.
+Conversely, reactivating an address in Postmark does not demonstrate consent and
+must not opt the reader back in.
+
+An explicit resubscription through an OWID form may remove a locally mirrored
+Postmark suppression. The local subscription is changed only after Postmark
+accepts that reactivation, so the UI never claims success while the provider
+would still refuse delivery. Spam-complaint suppressions cannot be removed, so
+those attempts remain an error rather than silently opting the reader in.
+
+### User flows and trust boundaries
+
+The public subscribe form is single opt-in. Because it is tokenless, an existing
+reader's selections may be broadened but not narrowed; narrowing preferences
+requires a short-lived magic link proving current control of the inbox. The
+form uses the same success response for new and existing addresses, and a
+welcome email lets the owner notice and undo an unwanted submission.
+
+Permanent tokens in email footers have intentionally limited authority: they
+can unsubscribe or request a short-lived preferences link, but cannot expose or
+edit preferences directly. Requesting a link for an unknown address produces
+the same public response without sending email, avoiding both address
+enumeration and an arbitrary-mail endpoint.
+
+The OWID Brief remains a separate Mailchimp subscription but uses the same
+single-opt-in policy. Mailchimp failures are fail-soft when saving notification
+preferences because the two subscriptions have different owners and should not
+make each other unavailable.
+
+The relevant routes and their trust boundaries are:
+
+| Route                                       | Role                                                                      |
+| ------------------------------------------- | ------------------------------------------------------------------------- |
+| `/api/email-notifications/subscribe`        | Public entry point for subscribing                                        |
+| `/api/email-notifications/request-link`     | Exchanges a limited permanent token or known email for inbox verification |
+| `/api/email-notifications/preferences`      | Reads and changes preferences after inbox verification                    |
+| `/api/email-notifications/unsubscribe`      | Removes subscription intent without requiring a login                     |
+| `/api/email-notifications/postmark-webhook` | Authenticated provider-to-provider synchronization                        |
+
+### Postmark synchronization
+
+Postmark webhooks project provider state into D1: delivery updates message
+state, and broadcast subscription changes maintain the suppression mirror.
+Only a recipient-originated unsubscribe changes local Follow Topics intent;
+administrative reactivation affects deliverability only. Mailchimp handles the
+OWID Brief's own unsubscribe links and remains authoritative for its state.
+
+Detailed bounce diagnostics remain in Postmark rather than being duplicated in
+D1; D1 only stores the operational state needed by this feature.
+
+Postmark webhook delivery is at least once, so handlers must tolerate retries. The
+`postmark_webhook_receipts` table is a shared idempotency ledger, not an event
+history. Its keys identify webhook events rather than messages because several
+event types may legitimately refer to the same Postmark `MessageID`, while some
+subscription changes have no message ID. Each event's domain changes and its
+receipt are committed atomically, with the receipt last, so a failed attempt can
+be retried safely.
+
+A fast Delivery webhook can arrive before the sender has stored Postmark's
+message ID. The handler leaves that event unacknowledged so Postmark retries it
+after the message row exists.
+
+Postmark does not sign webhooks. Configure HTTP Basic Authentication and enable
+Delivery and Subscription Change for the broadcast message stream.
+
+### Sending and failure recovery
+
+`yarn sendEmailNotifications <daily|weekly>` runs outside Cloudflare. It reads
+eligible subscribers from D1, selects newly published content from MySQL, sends
+through Postmark, and records enough message metadata to correlate later
+webhooks.
+
+The suppression mirror normally keeps undeliverable addresses out of a run. An
+"inactive recipient" response from Postmark therefore indicates that the mirror
+has drifted, usually because a webhook was missed. The sender continues with
+other recipients but fails the run and reports the discrepancy to Sentry so the
+Postmark suppression list can be reconciled with D1.
+
+Useful development options:
+
+- `--local` uses the local Wrangler D1 database.
+- `--dry-run` renders messages to `.email-notifications-preview/` without
+  sending them.
+
+### Configuration and local development
+
+The D1 binding is `EMAIL_NOTIFICATIONS_DB`; migrations live in
+`d1/email-notifications/migrations`. Apply them locally with:
+
+```bash
+npx wrangler d1 migrations apply owid-email-notifications-staging --local
+```
+
+Run the Functions server alongside the site with:
+
+```bash
+yarn startLocalCloudflareFunctions
+```
+
+To inspect outgoing email locally, run `yarn postmarkCatcher` and point
+`POSTMARK_API_BASE_URL` at `http://localhost:8025`. A
+`POSTMARK_SERVER_TOKEN` value is still required because missing production
+configuration must fail loudly.
+
+The OWID Brief integration likewise requires `MAILCHIMP_API_KEY`,
+`MAILCHIMP_API_SERVER`, `MAILCHIMP_NEWSLETTER_LIST_ID`, and
+`MAILCHIMP_OWID_BRIEF_INTEREST_ID`.
+
 ## `/deleted/:slug`
 
 This route is used to handle deleted pages. They are fully baked we just want them to return a 404 status code instead of a 200.
