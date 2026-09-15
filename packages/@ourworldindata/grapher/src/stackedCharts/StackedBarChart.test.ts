@@ -6,11 +6,12 @@ import {
     SynthesizeFruitTableWithStringValues,
     SynthesizeGDPTable,
     OwidTable,
+    numericDefs,
+    yearDef,
 } from "@ourworldindata/core-table"
 import { ChartManager } from "../chart/ChartManager"
 import { SelectionArray } from "../selection/SelectionArray"
 import { StackedBarChartState } from "./StackedBarChartState.js"
-import { numericDefs, yearDef } from "../testData/columnDefs.js"
 
 function makeStackedBarChart(
     table: OwidTable,

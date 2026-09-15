@@ -11,6 +11,9 @@ import {
     ErrorValueTypes,
     makeOriginalTimeSlugFromColumnSlug,
     OwidTable,
+    numericDefs,
+    stringDefs,
+    yearDef,
 } from "@ourworldindata/core-table"
 import {
     ScatterPlotManager,
@@ -29,7 +32,6 @@ import { ContinentColors } from "../color/CustomSchemes"
 import { ScatterPointsWithLabels } from "./ScatterPointsWithLabels"
 import { GrapherState } from "../core/GrapherState"
 import { GrapherProgrammaticInterface } from "../core/Grapher.js"
-import { numericDefs, stringDefs, yearDef } from "../testData/columnDefs.js"
 
 function makeScatterChartState(
     table: OwidTable,

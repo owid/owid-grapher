@@ -3,7 +3,12 @@ import { expect, it, describe } from "vitest"
 import * as _ from "lodash-es"
 import { Bounds } from "@ourworldindata/utils"
 import { FacetChart } from "./FacetChart"
-import { SynthesizeGDPTable, OwidTable } from "@ourworldindata/core-table"
+import {
+    SynthesizeGDPTable,
+    OwidTable,
+    numericDefs,
+    yearDef,
+} from "@ourworldindata/core-table"
 import { FacetChartManager, FacetChartProps } from "./FacetChartConstants"
 import {
     GRAPHER_CHART_TYPES,
@@ -11,7 +16,6 @@ import {
     FacetStrategy,
 } from "@ourworldindata/types"
 import { LineChart } from "../lineCharts/LineChart"
-import { numericDefs, yearDef } from "../testData/columnDefs.js"
 
 const allElementsAreEqual = (array: any[]): boolean => {
     return _.uniq(array).length === 1

@@ -5,6 +5,9 @@ import {
     OwidTable,
     SampleColumnSlugs,
     SynthesizeGDPTable,
+    numericDefs,
+    stringDefs,
+    yearDef,
 } from "@ourworldindata/core-table"
 import { GrapherState } from "../core/GrapherState"
 import { GrapherProgrammaticInterface } from "../core/Grapher.js"
@@ -15,7 +18,6 @@ import {
 import { MarimekkoChart } from "./MarimekkoChart"
 import { MarimekkoChartManager } from "./MarimekkoChartConstants"
 import { MarimekkoChartState } from "./MarimekkoChartState"
-import { numericDefs, stringDefs, yearDef } from "../testData/columnDefs.js"
 
 function makeMarimekko(
     table: OwidTable,

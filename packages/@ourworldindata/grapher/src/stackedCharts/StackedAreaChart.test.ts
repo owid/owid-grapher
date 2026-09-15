@@ -8,6 +8,8 @@ import {
     SynthesizeFruitTableWithStringValues,
     SynthesizeGDPTable,
     OwidTable,
+    numericDefs,
+    yearDef,
 } from "@ourworldindata/core-table"
 
 import { makeObservable, observable } from "mobx"
@@ -18,7 +20,6 @@ import { FacetStrategy } from "@ourworldindata/types"
 import { StackedAreaChartState } from "./StackedAreaChartState.js"
 import { ChartManager } from "../chart/ChartManager"
 import { FacetChart } from "../facet/FacetChart"
-import { numericDefs, yearDef } from "../testData/columnDefs"
 
 class MockManager implements ChartManager {
     constructor() {

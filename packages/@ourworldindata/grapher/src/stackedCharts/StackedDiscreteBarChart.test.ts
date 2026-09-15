@@ -5,12 +5,13 @@ import {
     OwidTable,
     SampleColumnSlugs,
     SynthesizeFruitTable,
+    numericDefs,
+    yearDef,
 } from "@ourworldindata/core-table"
 import { ChartManager } from "../chart/ChartManager"
 import { SelectionArray } from "../selection/SelectionArray"
 import { StackedDiscreteBarChart } from "./StackedDiscreteBarChart"
 import { StackedDiscreteBarChartState } from "./StackedDiscreteBarChartState"
-import { numericDefs, yearDef } from "../testData/columnDefs"
 
 function makeStackedDiscreteBar(
     rows: (number | string | null)[][],
