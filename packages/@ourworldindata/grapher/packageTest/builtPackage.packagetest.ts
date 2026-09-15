@@ -21,7 +21,7 @@ afterEach(() => {
 const pkgDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 const distDir = path.join(pkgDir, "dist")
 
-const npmBuildPath = path.join(distDir, "grapher.js")
+const npmBuildPath = path.join(distDir, "grapher.react.js")
 const standalonePath = path.join(distDir, "grapher.standalone.min.js")
 const cssPath = path.join(distDir, "grapher.css")
 const schemaPath = path.join(distDir, "grapher-schema.json")
@@ -100,7 +100,7 @@ function createSizedContainer(): HTMLDivElement {
     return container
 }
 
-describe("npm build (dist/grapher.js)", () => {
+describe("npm build (dist/grapher.react.js)", () => {
     it("is importable and exports the public API", async () => {
         const mod = await import(pathToFileURL(npmBuildPath).href)
         assertHasPublicExports(mod)

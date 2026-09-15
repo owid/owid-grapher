@@ -7,6 +7,7 @@ export type RawBlockBespokeComponent = {
         variant?: string
         size?: BlockSize
         config?: Record<string, string>
+        fallbackImageFilename?: string
     }
 }
 
@@ -16,4 +17,5 @@ export type EnrichedBlockBespokeComponent = {
     variant?: string
     size: BlockSize
     config: Record<string, string>
+    fallbackImageFilename?: string
 } & EnrichedBlockWithParseErrors

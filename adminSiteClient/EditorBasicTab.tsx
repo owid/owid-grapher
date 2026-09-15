@@ -8,6 +8,7 @@ import {
     when,
     computed,
     makeObservable,
+    runInAction,
 } from "mobx"
 import { observer } from "mobx-react"
 import {
@@ -461,6 +462,8 @@ class VariablesSection<
     @computed get canSwapXAndY(): boolean {
         const { grapherState } = this.props.editor
 
+        if (grapherState.isMarimekko) return false
+
         // Only show if there's exactly one variable in each slot
         if (!this.xDimension || this.yDimensions.length !== 1) return false
 
@@ -533,7 +536,7 @@ const TagsSection = (props: {
     chartId: number | undefined
     tags: DbChartTagJoin[] | undefined
     availableTags: MinimalTagWithMetadata[] | undefined
-    onSaveTags: (tags: DbChartTagJoin[]) => void
+    onSaveTags: (tags: DbChartTagJoin[]) => Promise<void>
 }) => {
     const { chartId, tags, availableTags } = props
     const canTag = !!chartId && tags && availableTags
@@ -780,11 +783,11 @@ export class EditorBasicTab<
         this.updateParentConfig()
     }
 
-    @action.bound onSaveTags(tags: DbChartTagJoin[]) {
-        void this.saveTags(tags)
+    @action.bound onSaveTags(tags: DbChartTagJoin[]): Promise<void> {
+        return this.saveTags(tags)
     }
 
-    async saveTags(tags: DbChartTagJoin[]) {
+    async saveTags(tags: DbChartTagJoin[]): Promise<void> {
         const { editor } = this.props
         const { grapherState } = editor
         await this.context.admin.requestJSON(
@@ -792,6 +795,11 @@ export class EditorBasicTab<
             { tags },
             "POST"
         )
+        if (isChartEditorInstance(editor)) {
+            runInAction(() => {
+                editor.manager.tags = tags
+            })
+        }
     }
 
     override render() {

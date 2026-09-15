@@ -1,6 +1,6 @@
 {
     "name": "@ourworldindata/grapher",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "description": "OWID's data exploration and visualization library.",
     "repository": {
         "type": "git",
@@ -8,30 +8,37 @@
         "directory": "packages/@ourworldindata/grapher"
     },
     "type": "module",
+    "engines": {
+        "node": ">=20"
+    },
     "main": "src/index.ts",
     "types": "src/index.ts",
     "publishConfig": {
         "registry": "https://packages.owid.io",
-        "main": "dist/grapher.js",
+        "main": "dist/grapher.standalone.min.js",
         "types": "dist/grapher.d.ts",
         "exports": {
             ".": {
                 "types": "./dist/grapher.d.ts",
-                "import": "./dist/grapher.js"
+                "import": "./dist/grapher.standalone.min.js"
+            },
+            "./react": {
+                "types": "./dist/grapher.d.ts",
+                "import": "./dist/grapher.react.js"
             },
             "./grapher.css": "./dist/grapher.css",
-            "./grapher-schema.json": "./dist/grapher-schema.json",
-            "./standalone": {
-                "types": "./dist/grapher.d.ts",
-                "import": "./dist/grapher.standalone.min.js"
-            }
+            "./grapher-schema.json": "./dist/grapher-schema.json"
         }
     },
     "peerDependencies": {
+        "@types/react": "^19.0.0",
         "react": "^19.0.0",
         "react-dom": "^19.0.0"
     },
     "peerDependenciesMeta": {
+        "@types/react": {
+            "optional": true
+        },
         "react": {
             "optional": true
         },
@@ -40,8 +47,8 @@
         }
     },
     "files": [
-        "dist/grapher.js",
-        "dist/grapher.js.map",
+        "dist/grapher.react.js",
+        "dist/grapher.react.js.map",
         "dist/grapher.standalone.min.js",
         "dist/grapher.standalone.min.js.map",
         "dist/grapher.css",
@@ -54,6 +61,8 @@
         "buildSchema": "tsx scripts/buildLatestGrapherSchema.ts",
         "clean": "rm -rf dist dist-package",
         "startDemoServer": "http-server . -p 8433 -c-1 -o /demo.html",
+        "buildDocsApi": "typedoc",
+        "buildDocsSchema": "tsx ../../../devTools/schema/generate-schema-docs.ts",
         "testPackage": "yarn testPackage:pack && yarn testPackage:vitest && yarn testPackage:attw",
         "testPackage:pack": "yarn pack --out dist-package/grapher.tgz",
         "testPackage:vitest": "vitest run --config vitest.package.config.ts",
@@ -69,17 +78,18 @@
         "@fortawesome/fontawesome-svg-core": "^7.3.1",
         "@fortawesome/free-solid-svg-icons": "^7.3.1",
         "@fortawesome/react-fontawesome": "^3.5.0",
-        "@internationalized/date": "^3.12.3",
+        "@internationalized/date": "^3.12.4",
         "@ourworldindata/components": "workspace:^",
         "@ourworldindata/core-table": "workspace:^",
         "@ourworldindata/types": "workspace:^",
         "@ourworldindata/utils": "workspace:^",
+        "@react-aria/optimize-locales-plugin": "^2.0.2",
         "@react-spring/web": "^10.0.3",
         "@sentry/browser": "^10.70.0",
         "@sentry/react": "^10.70.0",
         "@testing-library/react": "^16.3.2",
         "@tippyjs/react": "^4.2.6",
-        "@tsdown/css": "^0.22.14",
+        "@tsdown/css": "^0.23.0",
         "@turf/boolean-intersects": "^7.2.0",
         "@types/colorbrewer": "^1.0.32",
         "@types/d3": "^7.4.3",
@@ -105,8 +115,8 @@
         "mousetrap": "^1.6.5",
         "publint": "^0.3.23",
         "react": "^19.2.4",
-        "react-aria": "^3.51.0",
-        "react-aria-components": "^1.20.0",
+        "react-aria": "^3.52.0",
+        "react-aria-components": "^1.21.0",
         "react-dom": "^19.2.4",
         "react-flip-toolkit": "^7.2.4",
         "remeda": "^2.42.0",
@@ -114,12 +124,14 @@
         "tippy.js": "^6.3.7",
         "topojson-client": "^3.1.0",
         "ts-pattern": "^5.8.0",
-        "tsdown": "^0.22.14",
+        "tsdown": "^0.23.0",
         "tsx": "^4.23.0",
+        "typedoc": "^0.28.14",
+        "typedoc-plugin-markdown": "^4.9.0",
         "url-join": "^5.0.0",
         "usehooks-ts": "^3.1.1",
         "versor": "^0.2.0",
-        "vitest": "^4.1.10",
+        "vitest": "^5.0.0",
         "yaml": "^2.8.3"
     },
     "license": "SEE LICENSE IN LICENSE.md"

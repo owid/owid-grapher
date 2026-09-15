@@ -15,6 +15,7 @@ import {
     ValueRange,
     OwidVariableRoundingMode,
     isSubYearly,
+    excludeUndefined,
 } from "@ourworldindata/utils"
 import { ComparisonLineConfig } from "@ourworldindata/types"
 import { AxisConfig, AxisManager } from "./AxisConfig"
@@ -110,6 +111,7 @@ abstract class AbstractAxis {
 
     abstract placeTickLabel(value: number): TickLabelPlacement
     abstract get tickLabels(): TickLabelPlacement[]
+    abstract get endpointTickLabels(): TickLabelPlacement[]
 
     @computed get hideAxis(): boolean {
         return this.config.hideAxis ?? false
@@ -728,6 +730,39 @@ export class HorizontalAxis extends AbstractAxis {
         return this.height
     }
 
+    @computed get endpointTickLabels(): TickLabelPlacement[] {
+        const { formatColumn } = this
+
+        // For time columns, ticks sit on calendar-nice values that don't
+        // necessarily include the endpoints, so use the domain instead
+        if (formatColumn?.isTimeColumn) {
+            const [start, end] = this.domain
+
+            const startLabel = Number.isFinite(start)
+                ? this.placeTickLabel(
+                      start,
+                      formatColumn.formatTimeShort(start)
+                  )
+                : undefined
+
+            const endLabel =
+                Number.isFinite(end) && end !== start
+                    ? this.placeTickLabel(
+                          end,
+                          // Include the full plotted range for sub-yearly data
+                          formatColumn.formatTimeShortEnd(end)
+                      )
+                    : undefined
+
+            return hideOverlappingTickLabels(
+                excludeUndefined([startLabel, endLabel]),
+                { padding: 3 }
+            )
+        }
+
+        return pickOutermostTickLabels(this.tickLabels, (label) => label.x)
+    }
+
     protected override get baseTicks(): Tickmark[] {
         if (this.timeAxisTicks) return this.timeAxisTicks
 
@@ -906,6 +941,10 @@ export class VerticalAxis extends AbstractAxis {
 
     @computed get size(): number {
         return this.width
+    }
+
+    @computed get endpointTickLabels(): TickLabelPlacement[] {
+        return pickOutermostTickLabels(this.tickLabels, (label) => label.y)
     }
 
     @computed get tickLabels(): TickLabelPlacement[] {
@@ -1105,6 +1144,14 @@ function labelsFit(
             return false
     }
     return true
+}
+
+function pickOutermostTickLabels(
+    tickLabels: TickLabelPlacement[],
+    position: (label: TickLabelPlacement) => number
+): TickLabelPlacement[] {
+    if (tickLabels.length < 2) return tickLabels
+    return [_.minBy(tickLabels, position)!, _.maxBy(tickLabels, position)!]
 }
 
 /**

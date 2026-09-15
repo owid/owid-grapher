@@ -29,6 +29,4 @@ export type BespokeComponentVariantsList<VariantName extends string = string> =
 export interface BespokeComponentDefinition {
     /** URL to the ES module that exports the component's mount function */
     scriptUrl: string
-    /** URL to the component's CSS stylesheet (loaded into shadow DOM) */
-    cssUrl?: string
 }

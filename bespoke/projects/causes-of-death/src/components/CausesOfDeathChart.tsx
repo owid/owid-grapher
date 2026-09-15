@@ -11,6 +11,7 @@ import * as R from "remeda"
 import { Time } from "@ourworldindata/types"
 import { WORLD_ENTITY_NAME } from "@ourworldindata/grapher/src/core/GrapherConstants.js"
 
+import type { EmbedConfig } from "../../../../helpers/config.js"
 import { CausesOfDeathConfig } from "../core/config.js"
 import {
     useCausesOfDeathEntityData,
@@ -21,6 +22,7 @@ import { CausesOfDeathCaptionedChart } from "./CausesOfDeathCaptionedChart.js"
 import { CausesOfDeathControls } from "./CausesOfDeathControls.js"
 
 import { useUrlState } from "../../../../hooks/useUrlState.js"
+import { EmbedConfigProvider } from "../../../../hooks/useEmbedConfig.js"
 import { useDelayedLoading } from "../../../../hooks/useDelayedLoading.js"
 
 import { Spinner } from "../../../../components/Spinner/Spinner.js"
@@ -37,14 +39,16 @@ const queryClient = new QueryClient()
 
 export function CausesOfDeathChartWithProviders(props: {
     container?: HTMLDivElement
-    config?: CausesOfDeathConfig
+    config: CausesOfDeathConfig & EmbedConfig
 }): React.ReactElement {
     return (
-        <NuqsAdapter>
-            <QueryClientProvider client={queryClient}>
-                <CausesOfDeathChart config={props.config} />
-            </QueryClientProvider>
-        </NuqsAdapter>
+        <EmbedConfigProvider config={props.config}>
+            <NuqsAdapter>
+                <QueryClientProvider client={queryClient}>
+                    <CausesOfDeathChart config={props.config} />
+                </QueryClientProvider>
+            </NuqsAdapter>
+        </EmbedConfigProvider>
     )
 }
 
@@ -53,32 +57,26 @@ function CausesOfDeathChart(props: {
 }): React.ReactElement {
     const { config } = props
 
-    const urlSync = config?.urlSync ?? false
-
-    // State, synced to the URL if the urlSync flag is set
+    // State, synced to the URL when the embedding page asks for it
     const [ageGroup, setAgeGroup] = useUrlState({
         key: "causesOfDeathAge",
         parser: parseAsString,
         defaultValue: config?.ageGroup ?? DEFAULT_AGE_GROUP,
-        enabled: urlSync,
     })
     const [sex, setSex] = useUrlState({
         key: "causesOfDeathSex",
         parser: parseAsString,
         defaultValue: config?.sex ?? DEFAULT_SEX,
-        enabled: urlSync,
     })
     const [entityName, setEntityName] = useUrlState({
         key: "causesOfDeathRegion",
         parser: parseAsString,
         defaultValue: config?.region ?? DEFAULT_ENTITY_NAME,
-        enabled: urlSync,
     })
     const [year, setYear] = useUrlState({
         key: "causesOfDeathYear",
         parser: parseAsInteger,
         defaultValue: config?.year ?? LATEST_YEAR,
-        enabled: urlSync,
     })
 
     // Fetch the metadata and the data for the selected entity

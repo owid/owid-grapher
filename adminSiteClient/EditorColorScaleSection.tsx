@@ -38,6 +38,7 @@ import {
 } from "./ColorSchemeDropdown.js"
 import { match } from "ts-pattern"
 import { ErrorMessages } from "./ChartEditorTypes.js"
+import { getColorPaletteKey, type ColorPaletteKey } from "./colorPalettes.js"
 
 interface EditorColorScaleSectionFeatures {
     legendDescription: boolean
@@ -47,7 +48,6 @@ interface EditorColorScaleSectionProps {
     scale: ColorScale
     chartType: GrapherChartOrMapType
     features: EditorColorScaleSectionFeatures
-    showLineChartColors: boolean
     onChange?: () => void
     errorMessages?: ErrorMessages
     errorMessagesKey?: string
@@ -63,7 +63,7 @@ export class EditorColorScaleSection extends Component<EditorColorScaleSectionPr
                     scale={this.props.scale}
                     onChange={this.props.onChange}
                     chartType={this.props.chartType}
-                    showLineChartColors={this.props.showLineChartColors}
+                    palette={getColorPaletteKey(this.props.chartType)}
                     errorMessages={this.props.errorMessages}
                     errorMessagesKey={this.props.errorMessagesKey}
                     lastEditedNote={this.props.lastEditedNote}
@@ -136,7 +136,7 @@ class ColorLegendSection extends Component<ColorLegendSectionProps> {
 interface ColorsSectionProps {
     scale: ColorScale
     chartType: GrapherChartOrMapType
-    showLineChartColors: boolean
+    palette: ColorPaletteKey
     onChange?: () => void
     errorMessages?: ErrorMessages
     errorMessagesKey?: string
@@ -355,8 +355,7 @@ class ColorsSection extends Component<ColorsSectionProps> {
                 <ColorSchemeEditor
                     scale={scale}
                     onChange={this.props.onChange}
-                    showLineChartColors={this.props.showLineChartColors}
-                    baseColorScheme={scale.baseColorScheme}
+                    palette={this.props.palette}
                 />
             </Section>
         )
@@ -365,8 +364,7 @@ class ColorsSection extends Component<ColorsSectionProps> {
 
 interface ColorSchemeEditorProps {
     scale: ColorScale
-    showLineChartColors: boolean
-    baseColorScheme?: ColorSchemeName
+    palette: ColorPaletteKey
     onChange?: () => void
 }
 
@@ -385,10 +383,7 @@ class ColorSchemeEditor extends Component<ColorSchemeEditorProps> {
                                     scale={scale}
                                     bin={bin}
                                     index={index}
-                                    showLineChartColors={
-                                        this.props.showLineChartColors
-                                    }
-                                    baseColorScheme={this.props.baseColorScheme}
+                                    palette={this.props.palette}
                                     onChange={this.props.onChange}
                                 />
                             )
@@ -398,10 +393,7 @@ class ColorSchemeEditor extends Component<ColorSchemeEditorProps> {
                                 key={index}
                                 scale={scale}
                                 bin={bin}
-                                showLineChartColors={
-                                    this.props.showLineChartColors
-                                }
-                                baseColorScheme={this.props.baseColorScheme}
+                                palette={this.props.palette}
                                 onChange={this.props.onChange}
                             />
                         )
@@ -481,8 +473,7 @@ interface NumericBinViewProps {
     scale: ColorScale
     bin: NumericBin
     index: number
-    showLineChartColors: boolean
-    baseColorScheme?: ColorSchemeName
+    palette: ColorPaletteKey
     onChange?: () => void
 }
 
@@ -571,8 +562,7 @@ class NumericBinView extends Component<NumericBinViewProps> {
                 <ColorBox
                     color={bin.color}
                     onColor={this.onColor}
-                    showLineChartColors={this.props.showLineChartColors}
-                    baseColorScheme={this.props.baseColorScheme}
+                    palette={this.props.palette}
                 />
                 <div className="range">
                     <span>
@@ -616,8 +606,7 @@ class NumericBinView extends Component<NumericBinViewProps> {
 interface CategoricalBinViewProps {
     scale: ColorScale
     bin: CategoricalBin
-    showLineChartColors: boolean
-    baseColorScheme?: ColorSchemeName
+    palette: ColorPaletteKey
     onChange?: () => void
 }
 
@@ -672,8 +661,7 @@ class CategoricalBinView extends Component<CategoricalBinViewProps> {
                 <ColorBox
                     color={bin.color}
                     onColor={this.onColor}
-                    showLineChartColors={this.props.showLineChartColors}
-                    baseColorScheme={this.props.baseColorScheme}
+                    palette={this.props.palette}
                 />
                 <TextField value={bin.value} disabled={true} onValue={_.noop} />
                 <Toggle

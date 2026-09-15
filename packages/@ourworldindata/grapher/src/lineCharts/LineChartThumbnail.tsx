@@ -52,7 +52,7 @@ import { AnchoredLabelsState } from "../anchoredLabels/AnchoredLabelsState"
 import { AnchoredLabels } from "../anchoredLabels/AnchoredLabels"
 import { darkenColorForLine } from "../color/ColorUtils.js"
 import { NoDataMessage } from "../noDataMessage/NoDataMessage"
-import { HorizontalColorLegendManager } from "../legend/HorizontalColorLegends.js"
+import { ExternalColorLegendData } from "../legend/HorizontalColorLegendTypes.js"
 import { CategoricalBin } from "../color/ColorScaleBin.js"
 import {
     getHoverStateForSeries,
@@ -616,7 +616,7 @@ export class LineChartThumbnail
         )
     }
 
-    @computed get externalLegend(): HorizontalColorLegendManager {
+    @computed get externalLegend(): ExternalColorLegendData {
         const numericLegendData = this.chartState.hasColorScale
             ? _.sortBy(
                   this.chartState.colorScale.legendBins,

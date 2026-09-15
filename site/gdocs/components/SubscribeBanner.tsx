@@ -3,7 +3,7 @@ import { EnrichedBlockSubscribeBanner } from "@ourworldindata/utils"
 import { Button } from "@ourworldindata/components"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faEnvelopeOpenText } from "@fortawesome/free-solid-svg-icons"
-import { IS_ARCHIVE } from "../../../settings/clientSettings.js"
+import { IS_ARCHIVE } from "../../../settings/clientSettings.mjs"
 import { PROD_URL } from "../../SiteConstants.js"
 
 // We don't archive the subscribe page.

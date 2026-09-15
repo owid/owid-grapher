@@ -1,6 +1,5 @@
 import { useMemo } from "react"
 import cx from "clsx"
-import { WORLD_ENTITY_NAME } from "@ourworldindata/grapher/src/core/GrapherConstants.js"
 import { QueryClientProvider } from "@tanstack/react-query"
 import { NuqsAdapter } from "nuqs/adapters/react"
 import {
@@ -15,6 +14,7 @@ import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
 import { Spinner } from "../../../../components/Spinner/Spinner.js"
 import { useUrlState } from "../../../../hooks/useUrlState.js"
+import { EmbedConfigProvider } from "../../../../hooks/useEmbedConfig.js"
 import { useContainerWidth } from "../../../../hooks/useContainerWidth.js"
 import {
     isUserLocationCountry,
@@ -47,21 +47,23 @@ export function PyramidVariant({
     const isNarrow = width > 0 && width < NARROW_BREAKPOINT
 
     return (
-        <NuqsAdapter>
-            <QueryClientProvider client={queryClient}>
-                <div
-                    ref={ref}
-                    className={cx("migrant-pyramid", {
-                        "migrant-pyramid--narrow": isNarrow,
-                    })}
-                >
-                    <FetchingPyramidVariant
-                        config={config}
-                        isNarrow={isNarrow}
-                    />
-                </div>
-            </QueryClientProvider>
-        </NuqsAdapter>
+        <EmbedConfigProvider config={config}>
+            <NuqsAdapter>
+                <QueryClientProvider client={queryClient}>
+                    <div
+                        ref={ref}
+                        className={cx("migrant-pyramid", {
+                            "migrant-pyramid--narrow": isNarrow,
+                        })}
+                    >
+                        <FetchingPyramidVariant
+                            config={config}
+                            isNarrow={isNarrow}
+                        />
+                    </div>
+                </QueryClientProvider>
+            </NuqsAdapter>
+        </EmbedConfigProvider>
     )
 }
 
@@ -72,8 +74,6 @@ function FetchingPyramidVariant({
     config: PyramidVariantConfig
     isNarrow: boolean
 }): React.ReactElement {
-    const urlSync = config.urlSync
-
     const initialCountry =
         !config.country || isUserLocationCountry(config.country)
             ? DEFAULT_COUNTRY
@@ -83,25 +83,21 @@ function FetchingPyramidVariant({
         key: "migrantPyramidCountry",
         parser: parseAsString,
         defaultValue: initialCountry,
-        enabled: urlSync,
     })
     const [year, setYear] = useUrlState({
         key: "migrantPyramidYear",
         parser: parseAsInteger,
         defaultValue: config.year ?? 0, // 0 = latest available year
-        enabled: urlSync,
     })
     const [show, setShow] = useUrlState({
         key: "migrantPyramidShow",
         parser: parseAsStringEnum<ShowMode>(["number", "share"]),
         defaultValue: config.show ?? "number",
-        enabled: urlSync,
     })
     const [compare, setCompare] = useUrlState({
         key: "migrantPyramidCompare",
         parser: parseAsBoolean,
         defaultValue: config.compare,
-        enabled: urlSync,
     })
 
     const { data, status } = useMigrantDemographics()
@@ -113,7 +109,6 @@ function FetchingPyramidVariant({
     const { isResolved: isCountryResolved } = useResolveUserLocation({
         configCountry: config.country,
         availableCountryNames,
-        urlSync,
         urlStateKey: "migrantPyramidCountry",
         setCountry,
     })
@@ -269,8 +264,8 @@ function CaptionedPyramidVariant({
                     ) : (
                         <div className="migrant-pyramid__no-data">
                             {pyramidData
-                                ? `No immigrants recorded in ${formatEntityNameForSentence(country, ["UN"])} in ${year}.`
-                                : `No data for ${formatEntityNameForSentence(country, ["UN"])} in ${year}.`}
+                                ? `No immigrants recorded in ${formatEntityNameForSentence(country)} in ${year}.`
+                                : `No data for ${formatEntityNameForSentence(country)} in ${year}.`}
                         </div>
                     )}
                 </div>
@@ -284,16 +279,12 @@ function CaptionedPyramidVariant({
 }
 
 function chartTitle(country: string, year: number): string {
-    if (country === WORLD_ENTITY_NAME)
-        return `Population pyramid of immigrants worldwide in ${year}`
-    return `Population pyramid of immigrants living in ${formatEntityNameForSentence(country, ["UN"])} in ${year}`
+    return `Population pyramid of immigrants living in ${formatEntityNameForSentence(country)} in ${year}`
 }
 
 function chartSubtitle(country: string, total: number): string {
     const count = formatCountLong(total)
-    if (country === WORLD_ENTITY_NAME)
-        return `The age and sex profile of the ${count} people worldwide living outside their country of birth.`
-    return `The age and sex profile of the ${count} people living in ${formatEntityNameForSentence(country, ["UN"])} who were born elsewhere.`
+    return `The age and sex profile of the ${count} people living in ${formatEntityNameForSentence(country)} who were born elsewhere.`
 }
 
 function PyramidSkeleton(): React.ReactElement {

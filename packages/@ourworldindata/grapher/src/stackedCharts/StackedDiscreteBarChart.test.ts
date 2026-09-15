@@ -313,8 +313,8 @@ describe("columns as series", () => {
     const chart = new StackedDiscreteBarChart({ chartState })
 
     it("renders the legend items in the order of yColumns", () => {
-        expect(chart.categoricalLegendData.length).toEqual(2)
-        expect(chart.categoricalLegendData.map((bin) => bin.value)).toEqual([
+        expect(chart["categoricalLegendData"].length).toEqual(2)
+        expect(chart["categoricalLegendData"].map((bin) => bin.value)).toEqual([
             SampleColumnSlugs.Fruit,
             SampleColumnSlugs.Vegetables,
         ])
@@ -496,7 +496,7 @@ describe("showLegend", () => {
             manager: { ...baseManager, showLegend: true },
         })
         const chart = new StackedDiscreteBarChart({ chartState })
-        expect(chart["legend"].height).toBeGreaterThan(0)
+        expect(chart["legendState"].height).toBeGreaterThan(0)
         expect(chart["categoricalLegendData"].length).toBeGreaterThan(0)
         expect(chart["externalLegend"]).toBeUndefined()
     })
@@ -506,7 +506,7 @@ describe("showLegend", () => {
             manager: { ...baseManager, showLegend: false },
         })
         const chart = new StackedDiscreteBarChart({ chartState })
-        expect(chart["legend"].height).toEqual(0)
+        expect(chart["legendState"].height).toEqual(0)
         expect(chart["categoricalLegendData"].length).toEqual(0)
         expect(chart["externalLegend"]?.categoricalLegendData?.length).toEqual(
             2

@@ -150,6 +150,8 @@ import {
     deleteChart,
     getChartTagsJson,
     getChartRecordsJson,
+    upsertEtlConfigByChartConfigId,
+    deleteChartsChartIdEtlConfig,
 } from "./apiRoutes/charts.js"
 import { getChartConfig } from "./apiRoutes/chartConfigs.js"
 import {
@@ -257,6 +259,18 @@ postRouteWithRWTransaction(
 )
 putRouteWithRWTransaction(apiRouter, "/charts/:chartId", updateChart)
 deleteRouteWithRWTransaction(apiRouter, "/charts/:chartId", deleteChart)
+deleteRouteWithRWTransaction(
+    apiRouter,
+    "/charts/:chartId/etlConfig",
+    deleteChartsChartIdEtlConfig
+)
+// ETL config pushes are addressed by the chart's config UUID and have upsert
+// semantics: the chart is created if it doesn't exist yet
+putRouteWithRWTransaction(
+    apiRouter,
+    "/charts/by-config/:chartConfigId/etlConfig",
+    upsertEtlConfigByChartConfigId
+)
 
 // Chart config routes
 getRouteWithROTransaction(

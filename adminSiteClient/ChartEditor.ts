@@ -13,17 +13,17 @@ import {
     GrapherInterface,
     getParentIndicatorIdFromChartConfig,
     mergeGrapherConfigs,
-    NARRATIVE_CHART_PROPS_TO_OMIT,
 } from "@ourworldindata/utils"
 import { DbChartTagJoin } from "@ourworldindata/types"
 import { action, computed, observable, runInAction, makeObservable } from "mobx"
-import { BAKED_GRAPHER_URL, ENV } from "../settings/clientSettings.js"
+import { BAKED_GRAPHER_URL, ENV } from "../settings/clientSettings.mjs"
 import {
     AbstractChartEditor,
     AbstractChartEditorManager,
     EditorTab,
     References,
 } from "./AbstractChartEditor.js"
+import { makeNarrativeChartPatchConfig } from "./narrativeChartConfig.js"
 import { Admin } from "./Admin.js"
 import { MinimalTagWithMetadata } from "./TagGraphMetadata.js"
 
@@ -137,8 +137,7 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
     }
 
     @action.bound async updateParentConfig() {
-        const currentParentIndicatorId =
-            this.parentConfig?.dimensions?.[0].variableId
+        const currentParentIndicatorId = this.parentVariableId
         const newParentIndicatorId = getParentIndicatorIdFromChartConfig(
             this.grapherState.object
         )
@@ -155,22 +154,30 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
             )
         }
 
-        // if inheritance is enabled, update the live grapher object
-        if (this.isInheritanceEnabled) {
-            const newConfig = mergeGrapherConfigs(
-                newParentConfig ?? {},
-                this.patchConfig
-            )
-            this.updateLiveGrapher(newConfig)
-        }
+        // Capture the admin's genuine overrides *before* swapping in the new
+        // indicator layer: `patchConfig` is computed against the active parent
+        // stack, so reading it afterwards would fold the old indicator's
+        // inherited values into the patch as if the admin had authored them.
+        const { patchConfig } = this
 
         // update the parent config in any case
         this.parentConfig = newParentConfig
+        this.parentVariableId = newParentIndicatorId
+
+        // if inheritance is enabled, update the live grapher object. Rebuild
+        // from the whole parent stack rather than the indicator layer alone:
+        // the chart's own etlConfig sits between them, and `updateLiveGrapher`
+        // resets grapherState first, so a layer left out of the merge falls
+        // back to grapher defaults — which the next save would then diff into
+        // the patch as explicit overrides of the layer that actually owns them.
+        if (this.isInheritanceEnabled) {
+            this.updateLiveGrapher(
+                mergeGrapherConfigs(this.activeParentConfig ?? {}, patchConfig)
+            )
+        }
     }
 
-    async saveGrapher({
-        onError,
-    }: { onError?: () => void } = {}): Promise<void> {
+    async saveGrapher(): Promise<void> {
         const { grapherState, isNewGrapher, patchConfig } = this
 
         // Chart title and slug may be autocalculated from data, in which case they won't be in props
@@ -215,13 +222,18 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
                     this.isInheritanceEnabled = shouldEnableInheritance
                 })
             }
-        } else onError?.()
+        }
     }
 
     async saveAsNewGrapher(): Promise<void> {
-        const { patchConfig } = this
-
-        const chartJson = { ...patchConfig }
+        // Start from what the source chart actually renders — the whole parent
+        // stack plus the admin patch — and let the save diff the inherited
+        // layers back out against the new chart's own parent. Copying
+        // `patchConfig` alone would silently drop everything an ETL-managed
+        // chart keeps in its ETL layer. `fullConfig` carries no grapher
+        // defaults (`liveConfig` strips them), so nothing spurious survives
+        // that diff as a fake override.
+        const chartJson = { ...this.fullConfig }
         delete chartJson.id
         delete chartJson.isPublished
         delete chartJson.slug
@@ -253,9 +265,12 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
     async saveAsNarrativeChart(
         name: string
     ): Promise<{ success: boolean; errorMsg?: string }> {
-        const { patchConfig, grapherState } = this
+        const { grapherState } = this
 
-        const chartJson = _.omit(patchConfig, NARRATIVE_CHART_PROPS_TO_OMIT)
+        const chartJson = makeNarrativeChartPatchConfig(
+            this.liveConfigWithDefaults,
+            this.activeParentConfigWithDefaults
+        )
 
         const body = {
             type: "chart",
@@ -281,27 +296,35 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
         }
     }
 
-    publishGrapher(): void {
-        const url = `${BAKED_GRAPHER_URL}/${this.grapherState.displaySlug}`
-
-        if (window.confirm(`Publish chart at ${url}?`)) {
-            this.grapherState.isPublished = true
-            void this.saveGrapher({
-                onError: () => (this.grapherState.isPublished = undefined),
-            })
+    private async savePublishedState(
+        isPublished: true | undefined
+    ): Promise<void> {
+        const previousIsPublished = this.grapherState.isPublished
+        this.grapherState.isPublished = isPublished
+        try {
+            await this.saveGrapher()
+        } catch {
+            runInAction(
+                () => (this.grapherState.isPublished = previousIsPublished)
+            )
         }
     }
 
-    unpublishGrapher(): void {
+    async publishGrapher(): Promise<void> {
+        const url = `${BAKED_GRAPHER_URL}/${this.grapherState.displaySlug}`
+
+        if (window.confirm(`Publish chart at ${url}?`)) {
+            await this.savePublishedState(true)
+        }
+    }
+
+    async unpublishGrapher(): Promise<void> {
         const message =
             this.references && getFullReferencesCount(this.references) > 0
                 ? "WARNING: This chart might be referenced from public posts, please double check before unpublishing. Try to remove the chart anyway?"
                 : "Are you sure you want to unpublish this chart?"
         if (window.confirm(message)) {
-            this.grapherState.isPublished = undefined
-            void this.saveGrapher({
-                onError: () => (this.grapherState.isPublished = true),
-            })
+            await this.savePublishedState(undefined)
         }
     }
 

@@ -558,7 +558,6 @@ export enum ColorSchemeName {
     BinaryMapPaletteC = "BinaryMapPaletteC",
     BinaryMapPaletteD = "BinaryMapPaletteD",
     BinaryMapPaletteE = "BinaryMapPaletteE",
-    BinaryMapPaletteF = "BinaryMapPaletteF",
     SingleColorGradientDenim = "SingleColorGradientDenim",
     SingleColorGradientTeal = "SingleColorGradientTeal",
     SingleColorGradientPurple = "SingleColorGradientPurple",

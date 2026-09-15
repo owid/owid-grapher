@@ -8,7 +8,7 @@ import {
     GRAPHER_DB_PORT,
     BAKED_BASE_URL,
 } from "../settings/serverSettings.js"
-import { IS_ARCHIVE } from "../settings/clientSettings.js"
+import { IS_ARCHIVE } from "../settings/clientSettings.mjs"
 import { PROD_URL } from "../site/SiteConstants.js"
 import { registerExitHandler } from "./cleanup.js"
 import { createTagGraph, Url } from "@ourworldindata/utils"
@@ -107,6 +107,7 @@ export function setKnexInstance(knexInstance: Knex<any, any[]>): void {
 const getNewKnexInstance = (): Knex<any, any[]> => {
     return knex({
         client: "mysql2",
+        asyncStackTraces: true,
         connection: {
             host: GRAPHER_DB_HOST,
             user: GRAPHER_DB_USER,

@@ -4,7 +4,6 @@ import {
     Bounds,
     GridParameters,
     HorizontalAlign,
-    Color,
     makeFigmaId,
     exposeInstanceOnWindow,
     SplitBoundsPadding,
@@ -30,14 +29,18 @@ import {
     PlacedMapFacetSeries,
 } from "./FacetMapConstants"
 import { OwidTable } from "@ourworldindata/core-table"
-import {
-    HorizontalCategoricalColorLegend,
-    HorizontalColorLegendManager,
-    HorizontalNumericColorLegend,
-} from "../legend/HorizontalColorLegends"
+import { HorizontalNumericColorLegend } from "../legend/HorizontalNumericColorLegend"
+import { HorizontalCategoricalColorLegend } from "../legend/HorizontalCategoricalColorLegend"
+import { HorizontalNumericColorLegendState } from "../legend/HorizontalNumericColorLegendState"
+import { HorizontalCategoricalColorLegendState } from "../legend/HorizontalCategoricalColorLegendState"
+import { ExternalColorLegendData } from "../legend/HorizontalColorLegendTypes"
 import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
 import { GRAPHER_DARK_TEXT, GRAY_30 } from "../color/ColorConstants"
-import { LegendStyleConfig } from "../legend/LegendStyleConfig"
+import {
+    BinEmphasis,
+    LegendStyleConfig,
+    toBinEmphasis,
+} from "../legend/LegendStyleConfig"
 import { Emphasis } from "../interaction/Emphasis"
 import {
     MAP_LEGEND_MAX_WIDTH_RATIO,
@@ -59,7 +62,7 @@ import { MapConfig } from "../mapCharts/MapConfig"
 @observer
 export class FacetMap
     extends React.Component<FacetMapProps>
-    implements ChartState, HorizontalColorLegendManager
+    implements ChartState
 {
     private legendHoverBin: ColorScaleBin | undefined = undefined
 
@@ -361,67 +364,58 @@ export class FacetMap
     }
 
     @computed private get externalLegend():
-        | HorizontalColorLegendManager
+        | ExternalColorLegendData
         | undefined {
         return this.intermediateMapInstance.externalLegend
     }
 
-    @computed get legendX(): number {
+    @computed private get legendX(): number {
         return this.bounds.x
     }
 
-    @computed get numericLegendY(): number {
-        if (!this.numericLegend) return 0
+    @computed private get numericLegendY(): number {
+        if (!this.numericLegendState) return 0
         return (
             this.bounds.bottom -
             this.numericLegendHeight -
             PADDING_BELOW_MAP_LEGEND -
             // If present, the category legend is placed below the numeric legend
-            (this.categoryLegend
+            (this.categoryLegendState
                 ? this.categoryLegendHeight + PADDING_BETWEEN_MAP_LEGENDS
                 : 0)
         )
     }
 
-    @computed get categoryLegendY(): number {
-        if (!this.categoryLegend) return 0
+    @computed private get categoryLegendY(): number {
+        if (!this.categoryLegendState) return 0
         return (
             this.bounds.bottom -
-            this.categoryLegend.height -
+            this.categoryLegendHeight -
             PADDING_BELOW_MAP_LEGEND
         )
     }
 
-    @computed get legendMaxWidth(): number {
+    @computed private get legendMaxWidth(): number {
         return this.bounds.width * MAP_LEGEND_MAX_WIDTH_RATIO
     }
 
-    @computed get legendAlign(): HorizontalAlign {
-        return HorizontalAlign.center
-    }
-
-    @computed get hoverColors(): Color[] | undefined {
-        if (!this.legendHoverBin) return undefined
-        return [this.legendHoverBin.color]
-    }
-
-    @computed get numericLegendData(): ColorScaleBin[] {
+    @computed private get numericLegendData(): ColorScaleBin[] {
         return this.externalLegend?.numericLegendData ?? []
     }
 
-    @computed get categoricalLegendData(): CategoricalBin[] {
+    @computed private get categoricalLegendData(): CategoricalBin[] {
         return this.externalLegend?.categoricalLegendData ?? []
     }
 
     @computed private get numericLegendHeight(): number {
-        return this.numericLegend ? this.numericLegend.height : 0
+        return this.numericLegendState?.height ?? 0
     }
 
     @computed private get categoryLegendHeight(): number {
-        return this.categoryLegend ? this.categoryLegend.height : 0
+        return this.categoryLegendState?.height ?? 0
     }
 
-    @computed get legendHeight(): number {
+    @computed private get legendHeight(): number {
         return this.categoryLegendHeight + this.numericLegendHeight
     }
 
@@ -433,23 +427,34 @@ export class FacetMap
         this.legendHoverBin = undefined
     }
 
-    @computed private get categoryLegend():
-        | HorizontalCategoricalColorLegend
+    @computed private get categoryLegendState():
+        | HorizontalCategoricalColorLegendState
         | undefined {
-        return this.categoricalLegendData.length > 1
-            ? new HorizontalCategoricalColorLegend({ manager: this })
-            : undefined
+        if (this.categoricalLegendData.length <= 1) return undefined
+        return new HorizontalCategoricalColorLegendState(
+            this.categoricalLegendData,
+            {
+                fontSize: this.fontSize,
+                width: this.legendMaxWidth,
+                align: HorizontalAlign.center,
+            }
+        )
     }
 
-    @computed private get numericLegend():
-        | HorizontalNumericColorLegend
+    @computed private get numericLegendState():
+        | HorizontalNumericColorLegendState
         | undefined {
-        return this.numericLegendData.length > 1
-            ? new HorizontalNumericColorLegend({ manager: this })
-            : undefined
+        if (this.numericLegendData.length <= 1) return undefined
+        return new HorizontalNumericColorLegendState(this.numericLegendData, {
+            fontSize: this.fontSize,
+            maxWidth: this.legendMaxWidth,
+            align: HorizontalAlign.center,
+        })
     }
 
-    resolveLegendBinEmphasis(bin: ColorScaleBin): Emphasis {
+    private readonly resolveLegendBinEmphasis = (
+        bin: ColorScaleBin
+    ): Emphasis => {
         if (!this.legendHoverBin && !this.mapConfig.hoverCountry) {
             return Emphasis.Default
         }
@@ -473,8 +478,28 @@ export class FacetMap
         return Emphasis.Muted
     }
 
-    @computed get legendStyleConfig(): LegendStyleConfig | undefined {
-        return this.externalLegend?.legendStyleConfig
+    @computed private get numericLegendEmphasis(): BinEmphasis {
+        return toBinEmphasis(
+            this.numericLegendData,
+            this.resolveLegendBinEmphasis
+        )
+    }
+
+    @computed private get categoricalLegendEmphasis(): BinEmphasis {
+        return toBinEmphasis(
+            this.categoricalLegendData,
+            this.resolveLegendBinEmphasis
+        )
+    }
+
+    @computed private get numericStyleConfig(): LegendStyleConfig | undefined {
+        return this.externalLegend?.numericLegendStyleConfig
+    }
+
+    @computed private get categoricalStyleConfig():
+        | LegendStyleConfig
+        | undefined {
+        return this.externalLegend?.categoricalLegendStyleConfig
     }
 
     override componentDidMount(): void {
@@ -522,13 +547,33 @@ export class FacetMap
     }
 
     private renderMapLegend(): React.ReactElement {
+        const { numericLegendState, categoryLegendState } = this
+
         return (
             <>
-                {this.numericLegend && (
-                    <HorizontalNumericColorLegend manager={this} />
+                {numericLegendState && (
+                    <HorizontalNumericColorLegend
+                        state={numericLegendState}
+                        x={this.legendX}
+                        y={this.numericLegendY}
+                        interactive={!this.isStatic}
+                        styleConfig={this.numericStyleConfig}
+                        binEmphasis={this.numericLegendEmphasis}
+                        onMouseOver={this.onLegendMouseOver}
+                        onMouseLeave={this.onLegendMouseLeave}
+                    />
                 )}
-                {this.categoryLegend && (
-                    <HorizontalCategoricalColorLegend manager={this} />
+                {categoryLegendState && (
+                    <HorizontalCategoricalColorLegend
+                        state={categoryLegendState}
+                        x={this.legendX}
+                        y={this.categoryLegendY}
+                        interactive={!this.isStatic}
+                        styleConfig={this.categoricalStyleConfig}
+                        binEmphasis={this.categoricalLegendEmphasis}
+                        onMouseOver={this.onLegendMouseOver}
+                        onMouseLeave={this.onLegendMouseLeave}
+                    />
                 )}
             </>
         )

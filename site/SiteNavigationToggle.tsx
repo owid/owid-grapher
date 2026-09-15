@@ -1,9 +1,7 @@
 import * as React from "react"
-import { useEffect } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCaretDown, faCaretUp } from "@fortawesome/free-solid-svg-icons"
 import cx from "clsx"
-import { getPrefersReducedMotion } from "@ourworldindata/components"
 
 export const SiteNavigationToggle = ({
     ariaLabel,
@@ -13,8 +11,6 @@ export const SiteNavigationToggle = ({
     withCaret = false,
     dropdown,
     className,
-    shouldScrollIntoView = false,
-    menuRef,
 }: {
     ariaLabel: string
     children: React.ReactNode
@@ -23,24 +19,7 @@ export const SiteNavigationToggle = ({
     withCaret?: boolean
     dropdown?: React.ReactNode
     className?: string
-    shouldScrollIntoView?: boolean
-    menuRef?: React.RefObject<HTMLDivElement | null>
 }) => {
-    useEffect(() => {
-        if (shouldScrollIntoView && isActive && menuRef?.current) {
-            const menuBottomOffset =
-                menuRef.current.getBoundingClientRect().bottom
-
-            // put bottom of the menu at the bottom of the viewport if it's offscreen
-            if (menuBottomOffset > window.innerHeight) {
-                window.scrollTo({
-                    top: menuBottomOffset - window.innerHeight + window.scrollY,
-                    behavior: getPrefersReducedMotion() ? "auto" : "smooth",
-                })
-            }
-        }
-    }, [shouldScrollIntoView, menuRef, isActive])
-
     return (
         <div
             className={cx("SiteNavigationToggle", className, {

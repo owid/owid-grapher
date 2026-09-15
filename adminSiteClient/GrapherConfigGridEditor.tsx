@@ -102,7 +102,7 @@ import CodeMirror, { EditorView } from "@uiw/react-codemirror"
 import jsonpointer from "json8-pointer"
 import { EditorColorScaleSection } from "./EditorColorScaleSection.js"
 import { Operation } from "../adminShared/SqlFilterSExpression.js"
-import { CATALOG_URL, DATA_API_URL } from "../settings/clientSettings.js"
+import { CATALOG_URL, DATA_API_URL } from "../settings/clientSettings.mjs"
 import { SortableList } from "./SortableList.js"
 
 type Disposer = () => void
@@ -510,7 +510,6 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                             features={{
                                 legendDescription: false,
                             }}
-                            showLineChartColors={false}
                             onChange={this.onGenericRichEditorChange}
                         />
                     ) : undefined
@@ -536,7 +535,6 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                                 features={{
                                     legendDescription: false,
                                 }}
-                                showLineChartColors={grapherState.isLineChart}
                                 onChange={this.onGenericRichEditorChange}
                             />
                         )

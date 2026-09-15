@@ -7,6 +7,8 @@ import type {
 } from "owid-bespoke-types"
 import StylesTarget from "vite-plugin-css-position/react"
 
+import { parseEmbedConfig } from "../../../helpers/config.js"
+
 import { CausesOfDeathChartWithProviders } from "./components/CausesOfDeathChart.js"
 import { parseConfig } from "./core/config.js"
 
@@ -33,7 +35,11 @@ export const mount: BespokeComponentMountFn = (
         return
     }
 
-    const config = parseConfig(opts.config ?? {})
+    const rawConfig = opts.config ?? {}
+    const config = {
+        ...parseConfig(rawConfig),
+        ...parseEmbedConfig(rawConfig),
+    }
 
     const root = createRoot(container)
     root.render(

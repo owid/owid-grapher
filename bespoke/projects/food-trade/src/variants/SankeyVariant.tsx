@@ -24,6 +24,7 @@ import {
     BILATERAL_LOW_VOLUME_THRESHOLD,
 } from "../core/helpers.js"
 import { useUrlState } from "../../../../hooks/useUrlState.js"
+import { EmbedConfigProvider } from "../../../../hooks/useEmbedConfig.js"
 import { useDelayedLoading } from "../../../../hooks/useDelayedLoading.js"
 import { useContainerWidth } from "../../../../hooks/useContainerWidth.js"
 import {
@@ -45,18 +46,20 @@ export function SankeyVariant({
     const isNarrow = width > 0 && width < MOBILE_BREAKPOINT
 
     return (
-        <NuqsAdapter>
-            <QueryClientProvider client={queryClient}>
-                <div
-                    ref={ref}
-                    className={cx("food-trade-chart", {
-                        "food-trade-chart--narrow": isNarrow,
-                    })}
-                >
-                    <FetchingSankeyVariant config={config} />
-                </div>
-            </QueryClientProvider>
-        </NuqsAdapter>
+        <EmbedConfigProvider config={config}>
+            <NuqsAdapter>
+                <QueryClientProvider client={queryClient}>
+                    <div
+                        ref={ref}
+                        className={cx("food-trade-chart", {
+                            "food-trade-chart--narrow": isNarrow,
+                        })}
+                    >
+                        <FetchingSankeyVariant config={config} />
+                    </div>
+                </QueryClientProvider>
+            </NuqsAdapter>
+        </EmbedConfigProvider>
     )
 }
 
@@ -69,25 +72,20 @@ function FetchingSankeyVariant({ config }: { config: SankeyVariantConfig }) {
         !isUserLocation && isAllCountry(initialCountry)
             ? "both"
             : (config.flow ?? DEFAULT_VIEW)
-    const urlSync = config.urlSync ?? false
-
     const [product, setProduct] = useUrlState({
         key: "foodTradeProduct",
         parser: parseAsString,
         defaultValue: initialProduct,
-        enabled: urlSync,
     })
     const [country, _setCountry] = useUrlState({
         key: "foodTradeCountry",
         parser: parseAsString,
         defaultValue: initialCountry,
-        enabled: urlSync,
     })
     const [_view, setView] = useUrlState({
         key: "foodTradeFlow",
         parser: parseAsStringEnum<Flow>(["both", "import", "export"]),
         defaultValue: initialView,
-        enabled: urlSync,
     })
 
     const { data: metadata, status: metadataStatus } = useFoodTradeMetadata()
@@ -138,7 +136,6 @@ function FetchingSankeyVariant({ config }: { config: SankeyVariantConfig }) {
     const { isResolved: isCountryResolved } = useResolveUserLocation({
         configCountry: config.country,
         availableCountryNames,
-        urlSync,
         urlStateKey: "foodTradeCountry",
         setCountry,
     })

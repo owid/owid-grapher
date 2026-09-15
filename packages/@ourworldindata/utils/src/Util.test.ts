@@ -30,6 +30,8 @@ import {
     traverseEnrichedBlock,
     cartesian,
     formatInlineList,
+    formatAuthors,
+    formatAuthorsForBibtex,
     flattenNonTopicNodes,
     imemo,
     normaliseToSingleDigitNumber,
@@ -1112,9 +1114,73 @@ describe(formatInlineList, () => {
     })
 
     it("formats four items correctly using 'or'", () => {
-        expect(formatInlineList(["a", "b", "c", "d"], "or")).toEqual(
-            "a, b, c or d"
+        expect(
+            formatInlineList(["a", "b", "c", "d"], { connector: "or" })
+        ).toEqual("a, b, c or d")
+    })
+
+    it("adds an oxford comma when asked", () => {
+        expect(
+            formatInlineList(["a", "b", "c"], { oxfordComma: true })
+        ).toEqual("a, b, and c")
+    })
+
+    it("does not add an oxford comma to two items", () => {
+        expect(formatInlineList(["a", "b"], { oxfordComma: true })).toEqual(
+            "a and b"
         )
+    })
+})
+
+describe(formatAuthors, () => {
+    it("formats zero authors", () => {
+        expect(formatAuthors([])).toEqual("")
+    })
+
+    it("formats one author", () => {
+        expect(formatAuthors(["Author 1"])).toEqual("Author 1")
+    })
+
+    it("formats two authors", () => {
+        expect(formatAuthors(["Author 1", "Author 2"])).toEqual(
+            "Author 1 and Author 2"
+        )
+    })
+
+    it("formats three authors", () => {
+        const authors = ["Author 1", "Author 2", "Author 3"]
+        expect(formatAuthors(authors)).toEqual(
+            "Author 1, Author 2, and Author 3"
+        )
+    })
+
+    it("formats four authors", () => {
+        const authors = ["Author 1", "Author 2", "Author 3", "Author 4"]
+        expect(formatAuthors(authors)).toEqual(
+            "Author 1, Author 2, Author 3, and Author 4"
+        )
+    })
+})
+
+describe(formatAuthorsForBibtex, () => {
+    it("formats zero authors for bibtex", () => {
+        expect(formatAuthorsForBibtex([])).toEqual("")
+    })
+
+    it("formats one author for bibtex", () => {
+        expect(formatAuthorsForBibtex(["Author 1"])).toEqual("Author 1")
+    })
+
+    it("formats two authors for bibtex", () => {
+        expect(formatAuthorsForBibtex(["Author 1", "Author 2"])).toEqual(
+            "Author 1 and Author 2"
+        )
+    })
+
+    it("formats three authors for bibtex", () => {
+        expect(
+            formatAuthorsForBibtex(["Author 1", "Author 2", "Author 3"])
+        ).toEqual("Author 1 and Author 2 and Author 3")
     })
 })
 

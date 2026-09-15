@@ -20,11 +20,25 @@ import * as _ from "lodash-es"
 
 const KEY_INSIGHTS_SLUG = "key-insights"
 
-//from https://stackoverflow.com/a/62148101
+// Mock that reports every observed element as immediately intersecting,
+// so lazily-mounted components (e.g. BespokeComponent) render right away
 beforeAll(() => {
     const IntersectionObserverMock = class IntersectionObserverMock {
+        constructor(private readonly callback: IntersectionObserverCallback) {}
+        thresholds = [0]
         disconnect = vi.fn()
-        observe = vi.fn()
+        observe = vi.fn((target: Element) => {
+            this.callback(
+                [
+                    {
+                        target,
+                        isIntersecting: true,
+                        intersectionRatio: 1,
+                    } as IntersectionObserverEntry,
+                ],
+                this as unknown as IntersectionObserver
+            )
+        })
         unobserve = vi.fn()
     }
 

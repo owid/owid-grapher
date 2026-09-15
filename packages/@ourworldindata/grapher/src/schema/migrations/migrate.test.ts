@@ -1,13 +1,10 @@
-import { expect, it, vi } from "vitest"
+import { assert, expect, it, vi } from "vitest"
 
 import { defaultGrapherConfig } from "../defaultGrapherConfig"
 import { migrateGrapherConfigToLatestVersion } from "./migrate"
-import {
-    migrateFrom006To007,
-    migrateFrom007To008,
-    migrateFrom010To011,
-} from "./migrations"
-import { AnyConfigWithValidSchema } from "./helpers"
+import { runMigration } from "./migrations"
+import { getSchemaVersion, isOutdatedVersion } from "./helpers"
+import { MIGRATION_FIXTURES } from "./migrations.fixture"
 import * as _ from "lodash-es"
 
 it("returns a valid config as is", () => {
@@ -65,102 +62,13 @@ it("doesn't mutate the given config", () => {
     })
 })
 
-// Bit of a funky test that ensures the migration function terminates.
-// Not really necessary since the tests above also fail when they encounter
-// an infinite loop, but this one provides context on what's going wrong and gives
-// guidance on what to do about it.
-it("terminates", () => {
-    const outdatedConfig = {
-        $schema:
-            "https://files.ourworldindata.org/schemas/grapher-schema.001.json",
-    }
-
-    try {
-        migrateGrapherConfigToLatestVersion(outdatedConfig)
-    } catch (error) {
-        if (error instanceof RangeError) {
-            expect("should terminate, but doesn't").toBe(
-                "check if the config's $schema field is updated to the next version in every migration function"
-            )
-        }
-    }
-})
-
-it("migrates version 006 to 007 correctly", () => {
-    const config: AnyConfigWithValidSchema = {
-        $schema:
-            "https://files.ourworldindata.org/schemas/grapher-schema.006.json",
-        hasMapTab: true,
-        map: {
-            projection: "Europe",
-            time: 2000,
-        },
-    }
-
-    // check that the $schema field is updated
-    expect(migrateFrom006To007(config)).toHaveProperty(
-        "$schema",
-        "https://files.ourworldindata.org/schemas/grapher-schema.007.json"
-    )
-
-    // check that the map.projection field is removed
-    expect(migrateFrom006To007(config)).not.toHaveProperty("map.projection")
-
-    // check that the map.region field is added
-    expect(migrateFrom006To007(config)).toHaveProperty("map.region", "Europe")
-})
-
-it("migrates version 007 to 008 correctly", () => {
-    const config: AnyConfigWithValidSchema = {
-        $schema:
-            "https://files.ourworldindata.org/schemas/grapher-schema.007.json",
-        hasMapTab: true,
-        map: {
-            colorScale: {
-                customNumericMinValue: 0,
-                customNumericValues: [1, 2, 3],
-            },
-        },
-    }
-
-    const migrated = migrateFrom007To008(config)
-
-    // check that the $schema field is updated
-    expect(migrated).toHaveProperty(
-        "$schema",
-        "https://files.ourworldindata.org/schemas/grapher-schema.008.json"
-    )
-
-    expect(migrated).not.toHaveProperty("map.colorScale.customNumericMinValue")
-    expect(migrated).toHaveProperty(
-        "map.colorScale.customNumericValues",
-        [0, 1, 2, 3]
-    )
-})
-
-it("migrates version 010 to 011 correctly", () => {
-    const config: AnyConfigWithValidSchema = {
-        $schema:
-            "https://files.ourworldindata.org/schemas/grapher-schema.010.json",
-        dimensions: [
-            { property: "y", variableId: 1, display: { yearIsDay: true } },
-            { property: "y", variableId: 2, display: { yearIsDay: false } },
-            { property: "y", variableId: 3, display: { unit: "%" } },
-        ],
-    }
-
-    const migrated = migrateFrom010To011(config)
-
-    // check that the $schema field is updated
-    expect(migrated).toHaveProperty(
-        "$schema",
-        "https://files.ourworldindata.org/schemas/grapher-schema.011.json"
-    )
-
-    // yearIsDay: true becomes timeInterval: "day"
-    expect(migrated.dimensions[0].display).toEqual({ timeInterval: "day" })
-    // yearIsDay: false is just dropped (year is the default)
-    expect(migrated.dimensions[1].display).toEqual({})
-    // dimensions without yearIsDay are untouched
-    expect(migrated.dimensions[2].display).toEqual({ unit: "%" })
-})
+for (const { name, before, after } of MIGRATION_FIXTURES) {
+    const from = getSchemaVersion(before)
+    const to = getSchemaVersion(after)
+    it(`migrates ${from} to ${to}: ${name}`, () => {
+        assert(isOutdatedVersion(from))
+        const migrated = _.cloneDeep(before)
+        runMigration(migrated, from)
+        expect(migrated).toStrictEqual(after)
+    })
+}

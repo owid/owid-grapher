@@ -336,7 +336,7 @@ describe(diffGrapherConfigs, () => {
         ).toEqual({})
     })
 
-    it("doesn't diff $schema, id, version, slug, isPublished or dimensions", () => {
+    it("doesn't diff $schema, id, version, slug or isPublished", () => {
         expect(
             diffGrapherConfigs(
                 {
@@ -372,8 +372,42 @@ describe(diffGrapherConfigs, () => {
             version: 1,
             slug: "slug",
             isPublished: false,
-            dimensions: [{ property: DimensionProperty.y, variableId: 123456 }],
         })
+    })
+
+    it("diffs dimensions like any other inherited property", () => {
+        const dimensions = [
+            { property: DimensionProperty.y, variableId: 123456 },
+        ]
+
+        // identical to the reference: falls through to the parent stack
+        expect(diffGrapherConfigs({ dimensions }, { dimensions })).toEqual({})
+
+        // a genuine override: survives in the patch
+        expect(
+            diffGrapherConfigs(
+                {
+                    dimensions: [
+                        { property: DimensionProperty.y, variableId: 999 },
+                    ],
+                },
+                { dimensions }
+            )
+        ).toEqual({
+            dimensions: [{ property: DimensionProperty.y, variableId: 999 }],
+        })
+
+        // absent from the reference: kept, nothing to inherit from
+        expect(diffGrapherConfigs({ dimensions }, {})).toEqual({ dimensions })
+    })
+
+    it("drops only the nested fields that match the reference", () => {
+        expect(
+            diffGrapherConfigs(
+                { yAxis: { min: 0, max: 100 } },
+                { yAxis: { min: 0 } }
+            )
+        ).toEqual({ yAxis: { max: 100 } })
     })
 
     it("is idempotent", () => {

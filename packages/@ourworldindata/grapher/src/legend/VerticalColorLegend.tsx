@@ -1,300 +1,127 @@
-import * as _ from "lodash-es"
 import * as React from "react"
 import { makeFigmaId } from "@ourworldindata/utils"
-import { TextWrap, TextWrapSvg } from "@ourworldindata/components"
-import { computed, makeObservable } from "mobx"
-import { observer } from "mobx-react"
+import { TextWrapSvg } from "@ourworldindata/components"
+import { ColorScaleBin } from "../color/ColorScaleBin"
 import {
-    GRAPHER_FONT_SCALE_11_2,
-    BASE_FONT_SIZE,
-} from "../core/GrapherConstants"
-import { ColorScaleBin, NumericBin } from "../color/ColorScaleBin"
-import { GRAPHER_DARK_TEXT } from "../color/ColorConstants"
-import {
+    BinEmphasis,
     LegendStyleConfig,
-    LegendMarkerStyle,
-    LegendTextStyle,
+    resolveLegendMarkerStyle,
+    resolveLegendTextStyle,
 } from "./LegendStyleConfig"
-import { Emphasis } from "../interaction/Emphasis"
+import { VerticalColorLegendState } from "./VerticalColorLegendState"
 
-export interface VerticalColorLegendManager {
-    maxLegendWidth?: number
-    fontSize?: number
-    categoricalLegendData: ColorScaleBin[]
-    legendTitle?: string
-    onLegendMouseOver?: (bin: ColorScaleBin) => void
-    onLegendClick?: (bin: ColorScaleBin) => void
-    onLegendMouseLeave?: () => void
-    legendX?: number
-    legendY?: number
-    isStatic?: boolean
-    resolveLegendBinEmphasis?: (bin: ColorScaleBin) => Emphasis
-    legendStyleConfig?: LegendStyleConfig
-    categoricalLegendStyleConfig?: LegendStyleConfig
+interface VerticalColorLegendProps {
+    state: VerticalColorLegendState
+    x: number
+    y: number
+    interactive?: boolean
+    styleConfig?: LegendStyleConfig
+    binEmphasis?: BinEmphasis
+    onMouseOver?: (bin: ColorScaleBin) => void
+    onMouseLeave?: () => void
+    onClick?: (bin: ColorScaleBin) => void
 }
 
-interface SizedLegendSeries {
-    bin: ColorScaleBin
-    textWrap: TextWrap
-    width: number
-    height: number
-    yOffset: number
-}
+export function VerticalColorLegend(
+    props: VerticalColorLegendProps
+): React.ReactElement {
+    const {
+        state,
+        x,
+        y,
+        interactive = true,
+        styleConfig,
+        binEmphasis,
+        onMouseOver,
+        onMouseLeave,
+        onClick,
+    } = props
+    const { series, title } = state
 
-@observer
-export class VerticalColorLegend extends React.Component<{
-    manager: VerticalColorLegendManager
-}> {
-    constructor(props: { manager: VerticalColorLegendManager }) {
-        super(props)
-        makeObservable(this)
-    }
-
-    @computed get manager(): VerticalColorLegendManager {
-        return this.props.manager
-    }
-
-    @computed private get maxLegendWidth(): number {
-        return this.manager.maxLegendWidth ?? 100
-    }
-
-    @computed private get fontSize(): number {
-        return (
-            GRAPHER_FONT_SCALE_11_2 * (this.manager.fontSize ?? BASE_FONT_SIZE)
-        )
-    }
-    @computed private get rectSize(): number {
-        return Math.round(this.fontSize / 1.4)
-    }
-
-    private readonly rectPadding = 5
-    private readonly lineHeight = 5
-
-    @computed private get title(): TextWrap | undefined {
-        if (!this.manager.legendTitle) return undefined
-        return new TextWrap({
-            maxWidth: this.maxLegendWidth,
-            fontSize: this.fontSize,
-            fontWeight: 700,
-            lineHeight: 1,
-            text: this.manager.legendTitle,
-            separators: [" ", "-"],
-        })
-    }
-
-    @computed private get titleHeight(): number {
-        if (!this.title) return 0
-        return this.title.height + 5
-    }
-
-    @computed private get series(): SizedLegendSeries[] {
-        const {
-            manager,
-            fontSize,
-            rectSize,
-            rectPadding,
-            titleHeight,
-            lineHeight,
-        } = this
-
-        let runningYOffset = titleHeight
-        return manager.categoricalLegendData.map((bin) => {
-            // Get label, inferring from minText/maxText for numeric bins if needed
-            let label = bin.text
-            if (
-                !label &&
-                bin instanceof NumericBin &&
-                bin.minText &&
-                bin.maxText
-            ) {
-                label = `${bin.minText} – ${bin.maxText}`
-            }
-
-            const textWrap = new TextWrap({
-                maxWidth: this.maxLegendWidth,
-                fontSize,
-                lineHeight: 1,
-                text: label,
-                separators: [" ", "-"],
-            })
-            const width = rectSize + rectPadding + textWrap.width
-            const height = Math.max(textWrap.height, rectSize)
-            const yOffset = runningYOffset
-
-            runningYOffset += height + lineHeight
-
-            return { bin, textWrap, width, height, yOffset }
-        })
-    }
-
-    @computed get width(): number {
-        const widths = this.series.map((series) => series.width)
-        if (this.title) widths.push(this.title.width)
-        return _.max(widths) ?? 0
-    }
-
-    @computed get height(): number {
-        return (
-            this.titleHeight +
-            _.sum(this.series.map((series) => series.height)) +
-            this.lineHeight * this.series.length
-        )
-    }
-
-    @computed get legendX(): number {
-        return this.manager.legendX ?? 0
-    }
-
-    @computed get legendY(): number {
-        return this.manager.legendY ?? 0
-    }
-
-    @computed private get legendStyleConfig(): LegendStyleConfig | undefined {
-        return (
-            this.manager.categoricalLegendStyleConfig ??
-            this.manager.legendStyleConfig
-        )
-    }
-
-    private getBinState(bin: ColorScaleBin): Emphasis {
-        return this.manager.resolveLegendBinEmphasis?.(bin) ?? Emphasis.Default
-    }
-
-    private getTextStyleConfig(bin: ColorScaleBin): LegendTextStyle {
-        const state = this.getBinState(bin)
-        const styleConfig = this.legendStyleConfig?.text
-        const defaultStyle = styleConfig?.default
-        const currentStyle = styleConfig?.[state]
-        return { color: GRAPHER_DARK_TEXT, ...defaultStyle, ...currentStyle }
-    }
-
-    private getMarkerStyleConfig(bin: ColorScaleBin): LegendMarkerStyle {
-        const state = this.getBinState(bin)
-        const styleConfig = this.legendStyleConfig?.marker
-        const defaultStyle = styleConfig?.default
-        const currentStyle = styleConfig?.[state]
-        return { fill: bin.color, ...defaultStyle, ...currentStyle }
-    }
-
-    renderLabels(): React.ReactElement {
-        const { series, rectSize, rectPadding } = this
-
-        return (
+    return (
+        <g
+            id={makeFigmaId("vertical-color-legend")}
+            className="ScatterColorLegend clickable"
+        >
+            {title && (
+                <TextWrapSvg textWrap={title} x={x} y={y} fontWeight={700} />
+            )}
             <g id={makeFigmaId("labels")}>
                 {series.map((series) => {
-                    const style = this.getTextStyleConfig(series.bin)
-
-                    const textX = this.legendX + rectSize + rectPadding
-                    const textY = this.legendY + series.yOffset
+                    const style = resolveLegendTextStyle(
+                        styleConfig,
+                        binEmphasis?.get(series.bin)
+                    )
 
                     return (
-                        <React.Fragment key={series.textWrap.text}>
-                            <TextWrapSvg
-                                textWrap={series.textWrap}
-                                x={textX}
-                                y={textY}
-                                fill={style.color}
-                                {...style}
-                            />
-                        </React.Fragment>
+                        <TextWrapSvg
+                            key={series.textWrap.text}
+                            textWrap={series.textWrap}
+                            x={x + series.label.x}
+                            y={y + series.label.y}
+                            fill={style.color}
+                            {...style}
+                        />
                     )
                 })}
             </g>
-        )
-    }
-
-    renderSwatches(): React.ReactElement {
-        const { series, rectSize, rectPadding } = this
-
-        return (
             <g id={makeFigmaId("swatches")}>
                 {series.map((series) => {
-                    const style = this.getMarkerStyleConfig(series.bin)
-
-                    const textX = this.legendX + rectSize + rectPadding
-                    const textY = this.legendY + series.yOffset
-                    const renderedTextPosition =
-                        series.textWrap.getPositionForSvgRendering(textX, textY)
+                    const style = resolveLegendMarkerStyle(
+                        styleConfig,
+                        binEmphasis?.get(series.bin),
+                        { fill: series.bin.color }
+                    )
 
                     return (
                         <rect
                             id={makeFigmaId(series.textWrap.text)}
                             key={series.textWrap.text}
-                            x={this.legendX}
-                            y={renderedTextPosition[1] - rectSize}
-                            width={rectSize}
-                            height={rectSize}
+                            x={x + series.swatch.x}
+                            y={y + series.swatch.y}
+                            width={series.swatch.width}
+                            height={series.swatch.height}
                             style={style}
                         />
                     )
                 })}
             </g>
-        )
-    }
+            {interactive && (
+                <g>
+                    {series.map((series) => {
+                        const label = series.textWrap.text
+                        const mouseOver = onMouseOver
+                            ? (): void => onMouseOver(series.bin)
+                            : undefined
+                        const mouseLeave = onMouseLeave || undefined
+                        const click = onClick
+                            ? (): void => onClick(series.bin)
+                            : undefined
 
-    renderInteractiveElements(): React.ReactElement {
-        const { series, manager, lineHeight } = this
-        const { onLegendClick, onLegendMouseOver, onLegendMouseLeave } = manager
-        return (
-            <g>
-                {series.map((series) => {
-                    const label = series.textWrap.text
-                    const mouseOver = onLegendMouseOver
-                        ? (): void => onLegendMouseOver(series.bin)
-                        : undefined
-                    const mouseLeave = onLegendMouseLeave || undefined
-                    const click = onLegendClick
-                        ? (): void => onLegendClick(series.bin)
-                        : undefined
+                        const cursor = click ? "pointer" : "default"
 
-                    const cursor = click ? "pointer" : "default"
-
-                    return (
-                        <g
-                            key={label}
-                            className="legendMark"
-                            onMouseOver={mouseOver}
-                            onMouseLeave={mouseLeave}
-                            onClick={click}
-                            style={{ cursor }}
-                        >
-                            <rect
-                                x={this.legendX}
-                                y={
-                                    this.legendY +
-                                    series.yOffset -
-                                    lineHeight / 2
-                                }
-                                width={series.width}
-                                height={series.height + lineHeight}
-                                fill="#fff"
-                                fillOpacity={0}
-                            />
-                        </g>
-                    )
-                })}
-            </g>
-        )
-    }
-
-    override render(): React.ReactElement {
-        return (
-            <g
-                id={makeFigmaId("vertical-color-legend")}
-                className="ScatterColorLegend clickable"
-            >
-                {this.title && (
-                    <TextWrapSvg
-                        textWrap={this.title}
-                        x={this.legendX}
-                        y={this.legendY}
-                        fontWeight={700}
-                    />
-                )}
-                {this.renderLabels()}
-                {this.renderSwatches()}
-                {!this.manager.isStatic && this.renderInteractiveElements()}
-            </g>
-        )
-    }
+                        return (
+                            <g
+                                key={label}
+                                className="legendMark"
+                                onMouseOver={mouseOver}
+                                onMouseLeave={mouseLeave}
+                                onClick={click}
+                                style={{ cursor }}
+                            >
+                                <rect
+                                    x={x + series.hitArea.x}
+                                    y={y + series.hitArea.y}
+                                    width={series.hitArea.width}
+                                    height={series.hitArea.height}
+                                    fill="#fff"
+                                    fillOpacity={0}
+                                />
+                            </g>
+                        )
+                    })}
+                </g>
+            )}
+        </g>
+    )
 }

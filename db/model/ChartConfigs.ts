@@ -23,20 +23,22 @@ export async function getChartConfigByUuid(
     return row ? parseChartConfig(row.config) : undefined
 }
 
-/** Returns the id of the new row, which it mints. */
+/** Returns the id of the new row, which it mints unless the caller supplies one. */
 export async function insertChartConfig(
     knex: db.KnexReadWriteTransaction,
     {
+        id: providedId,
         config,
         createdAt,
         updatedAt,
     }: {
+        id?: string
         config: GrapherInterface
         createdAt?: Date
         updatedAt?: Date
     }
 ): Promise<string> {
-    const id = uuidv7()
+    const id = providedId ?? uuidv7()
     await knex<DbInsertChartConfig>(ChartConfigsTableName).insert({
         id,
         config: serializeChartConfig(config),
@@ -69,4 +71,14 @@ export async function updateChartConfig(
         `,
         [serializeChartConfig(config), updatedAt, configId]
     )
+}
+export async function getChartConfigsByUuids(
+    knex: db.KnexReadonlyTransaction,
+    uuids: string[]
+): Promise<Map<string, GrapherInterface>> {
+    if (uuids.length === 0) return new Map()
+    const rows = await knex<DbRawChartConfig>(ChartConfigsTableName)
+        .select("id", "config")
+        .whereIn("id", uuids)
+    return new Map(rows.map((row) => [row.id, parseChartConfig(row.config)]))
 }
