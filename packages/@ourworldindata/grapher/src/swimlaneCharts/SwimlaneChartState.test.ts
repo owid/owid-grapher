@@ -1,6 +1,11 @@
 import { expect, it, describe } from "vitest"
 
-import { ColumnTypeNames, SortBy, SortOrder } from "@ourworldindata/types"
+import {
+    ColumnTypeNames,
+    FacetStrategy,
+    SortBy,
+    SortOrder,
+} from "@ourworldindata/types"
 import { OwidTable } from "@ourworldindata/core-table"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
 import { SwimlaneChartState } from "./SwimlaneChartState"
@@ -81,6 +86,62 @@ describe("errorInfo", () => {
         expect(chartState.errorInfo.reason).toEqual(
             "Requires an indicator with categorical values"
         )
+    })
+})
+
+describe("availableFacetStrategies", () => {
+    it("offers entity facets for an ordinal column with several entities", () => {
+        const table = ordinalTable([
+            { entityName: "France", time: 2000, cause: "ICD-9" },
+            { entityName: "Germany", time: 2000, cause: "ICD-8" },
+        ])
+        const manager: SwimlaneChartManager = {
+            table,
+            selection: ["France", "Germany"],
+            yColumnSlugs: ["cause"],
+        }
+        const chartState = new SwimlaneChartState({ manager })
+
+        expect(chartState.availableFacetStrategies).toEqual([
+            FacetStrategy.none,
+            FacetStrategy.entity,
+        ])
+    })
+
+    it("offers no facets for an ordinal column with a single entity", () => {
+        const table = ordinalTable([
+            { entityName: "France", time: 2000, cause: "ICD-9" },
+        ])
+        const manager: SwimlaneChartManager = {
+            table,
+            selection: ["France"],
+            yColumnSlugs: ["cause"],
+        }
+        const chartState = new SwimlaneChartState({ manager })
+
+        expect(chartState.availableFacetStrategies).toEqual([
+            FacetStrategy.none,
+        ])
+    })
+
+    it("offers no facets for a categorical column, even with several entities", () => {
+        const table = new OwidTable(
+            [
+                { entityName: "France", time: 2000, grouping: "Europe" },
+                { entityName: "Nigeria", time: 2000, grouping: "Africa" },
+            ],
+            [{ slug: "grouping", type: ColumnTypeNames.String }]
+        )
+        const manager: SwimlaneChartManager = {
+            table,
+            selection: ["France", "Nigeria"],
+            yColumnSlugs: ["grouping"],
+        }
+        const chartState = new SwimlaneChartState({ manager })
+
+        expect(chartState.availableFacetStrategies).toEqual([
+            FacetStrategy.none,
+        ])
     })
 })
 
