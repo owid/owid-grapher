@@ -25,7 +25,6 @@ const FIELDS = [
     "table",
     "shortName",
     "usage",
-    "popularity",
     "uploadedAt",
 ] as const
 

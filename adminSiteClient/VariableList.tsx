@@ -23,7 +23,10 @@ export interface VariableListItem {
     usageCount?: number
     multiDims?: { id: number; slug: string }[]
     explorerSlugs?: string[]
-    /** 0-1, from the analytics service. Absent for unused indicators. */
+    /**
+     * 0-1, from the analytics service. Not shown, but it is what a search is
+     * ordered by — see `searchVariables`.
+     */
     popularity?: number | null
 }
 
@@ -36,7 +39,6 @@ export type VariableListField =
     | "shortName"
     | "uploadedAt"
     | "usage"
-    | "popularity"
 
 interface VariableListProps {
     variables: VariableListItem[]
@@ -54,13 +56,6 @@ interface VariableListProps {
     sortable?: boolean
     pagination?: TableProps<VariableListItem>["pagination"]
 }
-
-/**
- * The name column takes the width the others leave. Below this it stops being
- * readable — one character per line in a narrow window — so the table scrolls
- * sideways instead of crushing it.
- */
-const NAME_MIN_WIDTH = 320
 
 /** Some tables and short names are very long, so truncate them. */
 function truncate(text: string | undefined): string | undefined {
@@ -155,6 +150,36 @@ function UsageCell({
     )
 }
 
+/**
+ * Relative column widths, turned into percentages over whatever columns a page
+ * asks for. Percentages rather than pixels so the table always fills its
+ * container exactly: at any window width it fits, with no sideways scrolling,
+ * and no column collapses to nothing when the others no longer fit.
+ */
+const COLUMN_WEIGHTS: Record<VariableListField | "name", number> = {
+    name: 28,
+    namespace: 11,
+    version: 8,
+    dataset: 12,
+    table: 11,
+    shortName: 12,
+    usage: 8,
+    uploadedAt: 13,
+}
+
+function columnWidths(
+    fields: VariableListField[]
+): Record<VariableListField | "name", string> {
+    const shown: (VariableListField | "name")[] = ["name", ...fields]
+    const total = shown.reduce((sum, key) => sum + COLUMN_WEIGHTS[key], 0)
+    return Object.fromEntries(
+        shown.map((key) => [
+            key,
+            `${((COLUMN_WEIGHTS[key] / total) * 100).toFixed(2)}%`,
+        ])
+    ) as Record<VariableListField | "name", string>
+}
+
 function createColumns({
     fields,
     highlight,
@@ -164,58 +189,61 @@ function createColumns({
     highlight: SearchHighlighter
     sortable: boolean
 }): TableColumnsType<VariableListItem> {
+    const width = columnWidths(fields)
     const columnsByField: Record<
         VariableListField,
         TableColumnsType<VariableListItem>[number]
     > = {
         namespace: {
+            width: width.namespace,
             title: "Namespace",
             dataIndex: "namespace",
             key: "namespace",
-            width: 170,
             sorter:
                 sortable &&
                 ((a, b) =>
                     (a.namespace ?? "").localeCompare(b.namespace ?? "")),
         },
         version: {
+            width: width.version,
             title: "Version",
             dataIndex: "version",
             key: "version",
-            width: 110,
             sorter:
                 sortable &&
                 ((a, b) => (a.version ?? "").localeCompare(b.version ?? "")),
         },
         dataset: {
+            width: width.dataset,
             title: "Dataset",
             dataIndex: "dataset",
             key: "dataset",
-            width: 180,
             ellipsis: true,
             sorter:
                 sortable &&
                 ((a, b) => (a.dataset ?? "").localeCompare(b.dataset ?? "")),
         },
         table: {
+            width: width.table,
             title: "Table",
             dataIndex: "table",
             key: "table",
-            width: 170,
+            ellipsis: true,
             render: (table) => truncate(table),
         },
         shortName: {
+            width: width.shortName,
             title: "Short name",
             dataIndex: "shortName",
             key: "shortName",
-            width: 180,
+            ellipsis: true,
             render: (shortName) => truncate(shortName),
         },
         uploadedAt: {
+            width: width.uploadedAt,
             title: "Uploaded",
             dataIndex: "uploadedAt",
             key: "uploadedAt",
-            width: 200,
             sorter:
                 sortable &&
                 ((a, b) =>
@@ -228,27 +256,11 @@ function createColumns({
                 />
             ),
         },
-        popularity: {
-            title: "Popularity",
-            dataIndex: "popularity",
-            key: "popularity",
-            width: 120,
-            align: "right",
-            sorter:
-                sortable &&
-                ((a, b) => (a.popularity ?? 0) - (b.popularity ?? 0)),
-            render: (popularity: number | null | undefined) =>
-                popularity === null || popularity === undefined ? (
-                    <span className="text-muted">—</span>
-                ) : (
-                    popularity.toFixed(2)
-                ),
-        },
         usage: {
+            width: width.usage,
             title: "Usage",
             dataIndex: "usageCount",
             key: "usage",
-            width: 140,
             sorter:
                 sortable &&
                 ((a, b) => (a.usageCount ?? 0) - (b.usageCount ?? 0)),
@@ -258,8 +270,7 @@ function createColumns({
 
     return [
         {
-            // No width: every other column has one, so the name — the longest
-            // text in the table — gets all the space left over
+            width: width.name,
             title: "Name",
             dataIndex: "name",
             key: "name",
@@ -299,15 +310,6 @@ export function VariableList({
         return createColumns({ fields, highlight, sortable })
     }, [fields, searchHighlight, sortable])
 
-    const minTableWidth = useMemo(
-        () =>
-            columns.reduce(
-                (total, column) => total + (Number(column.width) || 0),
-                NAME_MIN_WIDTH
-            ),
-        [columns]
-    )
-
     return (
         <AdminTable
             columns={columns}
@@ -317,7 +319,6 @@ export function VariableList({
             filters={filters}
             entityName="indicators"
             pagination={pagination}
-            scroll={{ x: minTableWidth }}
         />
     )
 }
