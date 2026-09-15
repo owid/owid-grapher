@@ -5,7 +5,7 @@ import { scaleLinear, ScaleLinear } from "d3-scale"
 import { TextWrap, TextWrapSvg, Halo } from "@ourworldindata/components"
 import { makeFigmaId, OwidVariableRoundingMode } from "@ourworldindata/utils"
 import { BASE_FONT_SIZE } from "../core/GrapherConstants"
-import { scaleFontSize } from "../chart/ChartUtils"
+import { roundFontSize, scaleFontSize } from "../chart/ChartUtils"
 import { CoreColumn } from "@ourworldindata/core-table"
 import {
     ScatterSeries,
@@ -180,7 +180,9 @@ export class ScatterSizeLegend {
                             circleStroke={
                                 highlight ? "#ddd" : LEGEND_CIRCLE_COLOR
                             }
-                            labelFontSize={this.fontSizeFromRadius(radius)}
+                            labelFontSize={roundFontSize(
+                                this.fontSizeFromRadius(radius)
+                            )}
                             labelFill={highlight ? "#bbb" : LEGEND_VALUE_COLOR}
                         />
                     )
