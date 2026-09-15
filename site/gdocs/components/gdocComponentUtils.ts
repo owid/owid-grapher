@@ -24,3 +24,10 @@ export const injectAutomaticSubscribeBanner = (
         ...blocks.slice(lastHeadingIndex),
     ]
 }
+
+export const getIntroAsideInsertionIndex = (
+    blocks: OwidEnrichedGdocBlock[]
+): number => {
+    const firstTextIndex = blocks.findIndex((block) => block.type === "text")
+    return firstTextIndex === -1 ? 0 : firstTextIndex
+}

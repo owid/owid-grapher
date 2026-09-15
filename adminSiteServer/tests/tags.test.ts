@@ -399,12 +399,13 @@ describe("Tag graph and breadcrumbs", { timeout: 15000 }, () => {
         )
     })
 
-    it("when there are two valid paths to a given tag, it selects the longest one", async () => {
+    it("when a tag has two paths, it selects the first in graph traversal order", async () => {
         await knexReadonlyTransaction(
             async (trx) => {
-                // Here, Women's Employment has 2 paths:
-                // 1. Poverty and Economic Development > Women's Employment
-                // 2. Human Rights > Women's Rights > Women's Employment
+                // Equal edge weights put Human Rights before Poverty alphabetically:
+                // 1. Human Rights > Women's Rights > Women's Employment
+                // 2. Poverty and Economic Development > Women's Employment
+                // The first path wins because of traversal order, not its length.
                 // oxfmt-ignore
                 await env.testKnex(TagsTableName).insert([
                     { name: "Human Rights", id: 7 },

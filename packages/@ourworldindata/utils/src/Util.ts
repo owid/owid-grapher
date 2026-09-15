@@ -1334,6 +1334,7 @@ export function extractGdocPageData(gdoc: OwidGdoc) {
         "breadcrumbs",
         "manualBreadcrumbs",
         "tags",
+        "topicArea",
     ])
 
     // Also generic properties. A separate function call because R.pick can only take so many arguments before TS complains
@@ -2309,13 +2310,11 @@ export function isFiniteWithGuard(value: unknown): value is number {
 }
 
 /**
- * Collapse all paths to topic tags into a single array of unique parent tag
- * names, including the original tags if they are topics. This is used across
- * all Algolia indexing utilities to ensure comprehensive search results when
- * faceting by topic.
- *
- * Use with getTagHierarchiesByChildName to get the topic hierarchies
- *
+ * Collect unique tag names from every supplied path for the requested tags.
+ * Includes the original tags when they are present in those paths; no path is
+ * ranked or selected. Used for search facets and notification matching.
+ * Use getTagHierarchiesByChildName for full paths, or
+ * getTopicHierarchiesByChildName to retain only areas and topics.
  */
 export const getUniqueNamesFromTagHierarchies = (
     tagNames: string[],
@@ -2326,7 +2325,7 @@ export const getUniqueNamesFromTagHierarchies = (
 ): string[] => {
     return R.unique(
         tagNames.flatMap((tagName) =>
-            (tagHierarchiesByChildName[tagName] ?? []) // fallback for non-topic tags
+            (tagHierarchiesByChildName[tagName] ?? []) // Skip tags without paths.
                 .flatMap((tagHierarchy) => tagHierarchy.map((tag) => tag.name))
         )
     )

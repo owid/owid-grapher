@@ -22,7 +22,7 @@ type Layouts = { default: string; [key: string]: string }
 
 // no line-wrapping for easier alphabetisation
 // oxfmt-ignore
-const layouts: { [key in Container]: Layouts} = {
+export const layouts: { [key in Container]: Layouts } = {
     ["default"]: {
         ["align"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["all-charts"]: "col-start-2 span-cols-12",
