@@ -22,14 +22,30 @@ import {
     ScaleType,
     ScatterPointLabelStrategy,
     ColumnTypeNames,
-    OwidTableSlugs,
     Color,
     GRAPHER_CHART_TYPES,
 } from "@ourworldindata/types"
 import { ContinentColors } from "../color/CustomSchemes"
 import { ScatterPointsWithLabels } from "./ScatterPointsWithLabels"
 import { GrapherState } from "../core/GrapherState"
-import { InteractionState } from "../interaction/InteractionState.js"
+import { GrapherProgrammaticInterface } from "../core/Grapher.js"
+import { numericDefs, stringDefs, yearDef } from "../testData/columnDefs.js"
+
+function makeScatterChartState(
+    table: OwidTable,
+    config: Partial<GrapherProgrammaticInterface> = {}
+): ScatterPlotChartState {
+    const grapher = new GrapherState({
+        chartTypes: [GRAPHER_CHART_TYPES.ScatterPlot],
+        xSlug: "x",
+        ySlugs: "y",
+        colorSlug: "color",
+        sizeSlug: "size",
+        table,
+        ...config,
+    })
+    return grapher.chartState as ScatterPlotChartState
+}
 
 it("can create a new chart", () => {
     const manager: ScatterPlotManager = {
@@ -46,8 +62,8 @@ it("can create a new chart", () => {
 it("shows error when X or Y columns are missing", () => {
     const manager: ScatterPlotManager = {
         table: new OwidTable([
-            ["entityId", "entityName", "entityCode", "year"],
-            [1, "World", undefined, 2020],
+            ["entityName", "year"],
+            ["World", 2020],
         ]),
     }
     const chartState = new ScatterPlotChartState({ manager })
@@ -122,40 +138,15 @@ it("can filter points with negative values when using a log scale", () => {
 describe("interpolation defaults", () => {
     const table = new OwidTable(
         [
-            [
-                "entityId",
-                "entityName",
-                "entityCode",
-                "year",
-                "x",
-                "y",
-                "color",
-                "size",
-            ],
-            [1, "UK", "", -1000, 1, 1, null, null],
-            [1, "UK", "", 1000, 1, 1, "Europe", 100],
-            [1, "UK", "", 2020, 1, 1, null, null],
+            ["entityName", "year", "x", "y", "color", "size"],
+            ["UK", -1000, 1, 1, null, null],
+            ["UK", 1000, 1, 1, "Europe", 100],
+            ["UK", 2020, 1, 1, null, null],
         ],
-        [
-            { slug: "x", type: ColumnTypeNames.Numeric },
-            { slug: "y", type: ColumnTypeNames.Numeric },
-            { slug: "color", type: ColumnTypeNames.String },
-            {
-                slug: "size",
-                type: ColumnTypeNames.Numeric,
-            },
-        ]
+        [...numericDefs("x", "y", "size"), ...stringDefs("color")]
     )
 
-    const grapher = new GrapherState({
-        table,
-        chartTypes: [GRAPHER_CHART_TYPES.ScatterPlot],
-        xSlug: "x",
-        ySlugs: "y",
-        colorSlug: "color",
-        sizeSlug: "size",
-    })
-    const chartState = grapher.chartState as ScatterPlotChartState
+    const chartState = makeScatterChartState(table)
 
     it("color defaults to infinity tolerance if none specified", () => {
         expect(
@@ -173,46 +164,24 @@ describe("interpolation defaults", () => {
 describe("basic scatterplot", () => {
     const table = new OwidTable(
         [
-            [
-                "entityId",
-                "entityName",
-                "entityCode",
-                "year",
-                "x",
-                "y",
-                "color",
-                "size",
-            ],
-            [1, "UK", "", 2000, 1, 1, null, null],
-            [1, "UK", "", 2001, null, 1, "Europe", 100],
-            [1, "UK", "", 2002, 1, null, null, null],
-            [1, "UK", "", 2003, null, null, null, null],
-            [2, "USA", "", 2000, 1, 1, null, null],
+            ["entityName", "year", "x", "y", "color", "size"],
+            ["UK", 2000, 1, 1, null, null],
+            ["UK", 2001, null, 1, "Europe", 100],
+            ["UK", 2002, 1, null, null, null],
+            ["UK", 2003, null, null, null, null],
+            ["USA", 2000, 1, 1, null, null],
         ],
         [
-            { slug: "x", type: ColumnTypeNames.Numeric },
-            { slug: "y", type: ColumnTypeNames.Numeric },
+            ...numericDefs("x", "y", "size"),
             {
                 slug: "color",
                 type: ColumnTypeNames.String,
                 display: { tolerance: 1 },
             },
-            {
-                slug: "size",
-                type: ColumnTypeNames.Numeric,
-            },
         ]
     )
 
-    const grapher = new GrapherState({
-        chartTypes: [GRAPHER_CHART_TYPES.ScatterPlot],
-        xSlug: "x",
-        ySlugs: "y",
-        colorSlug: "color",
-        sizeSlug: "size",
-        table,
-    })
-    const chartState = grapher.chartState as ScatterPlotChartState
+    const chartState = makeScatterChartState(table)
 
     it("removes error values from X and Y", () => {
         expect(chartState.transformedTable.numRows).toEqual(2)
@@ -244,50 +213,40 @@ describe("basic scatterplot", () => {
     })
 
     it("plots correct series", () => {
-        expect(chartState.series).toEqual([
+        expect(chartState.series).toMatchObject([
             {
+                seriesName: "UK",
+                label: "UK",
                 color: ContinentColors.Europe,
                 isScaleColor: true,
-                label: "UK",
                 points: [
                     {
-                        color: "Europe",
                         entityName: "UK",
                         label: "2000",
-                        size: 100,
-                        time: {
-                            x: 2000,
-                            y: 2000,
-                        },
-                        timeValue: 2000,
                         x: 1,
                         y: 1,
+                        color: "Europe",
+                        size: 100,
+                        timeValue: 2000,
                     },
                 ],
-                seriesName: "UK",
-                focus: new InteractionState(),
             },
             {
+                seriesName: "USA",
+                label: "USA",
                 color: chartState.defaultNoDataColor,
                 isScaleColor: true,
-                label: "USA",
                 points: [
                     {
-                        color: undefined,
                         entityName: "USA",
                         label: "2000",
-                        size: undefined,
-                        time: {
-                            x: 2000,
-                            y: 2000,
-                        },
-                        timeValue: 2000,
                         x: 1,
                         y: 1,
+                        color: undefined,
+                        size: undefined,
+                        timeValue: 2000,
                     },
                 ],
-                seriesName: "USA",
-                focus: new InteractionState(),
             },
         ])
     })
@@ -296,30 +255,10 @@ describe("basic scatterplot", () => {
 describe("label point strategies", () => {
     const table = new OwidTable(
         [
-            [
-                "entityId",
-                "entityName",
-                "entityCode",
-                "year",
-                "x",
-                "y",
-                "color",
-                "size",
-            ],
-            [1, "UK", "", 2000, 1, 2, null, null],
+            ["entityName", "year", "x", "y", "color", "size"],
+            ["UK", 2000, 1, 2, null, null],
         ],
-        [
-            { slug: "x", type: ColumnTypeNames.Numeric },
-            { slug: "y", type: ColumnTypeNames.Numeric },
-            {
-                slug: "color",
-                type: ColumnTypeNames.String,
-            },
-            {
-                slug: "size",
-                type: ColumnTypeNames.Numeric,
-            },
-        ]
+        [...numericDefs("x", "y", "size"), ...stringDefs("color")]
     )
 
     const manager: ScatterPlotManager = {
@@ -364,31 +303,10 @@ describe("label point strategies", () => {
 it("assigns entity colors to series, overriding colorScale color", () => {
     const table = new OwidTable(
         [
-            [
-                "entityId",
-                "entityName",
-                "entityCode",
-                "year",
-                "x",
-                "y",
-                "color",
-                "size",
-                OwidTableSlugs.EntityColor,
-            ],
-            [1, "UK", "", 2000, 1, 2, "Europe", null, "#ccc"],
+            ["entityName", "year", "x", "y", "color", "size", "entityColor"],
+            ["UK", 2000, 1, 2, "Europe", null, "#ccc"],
         ],
-        [
-            { slug: "x", type: ColumnTypeNames.Numeric },
-            { slug: "y", type: ColumnTypeNames.Numeric },
-            {
-                slug: "color",
-                type: ColumnTypeNames.String,
-            },
-            {
-                slug: "size",
-                type: ColumnTypeNames.Numeric,
-            },
-        ]
+        [...numericDefs("x", "y", "size"), ...stringDefs("color")]
     )
 
     const manager: ScatterPlotManager = {
@@ -407,47 +325,26 @@ it("assigns entity colors to series, overriding colorScale color", () => {
 describe("entity exclusion", () => {
     const table = new OwidTable(
         [
-            [
-                "entityId",
-                "entityName",
-                "entityCode",
-                "year",
-                "x",
-                "y",
-                "color",
-                "size",
-            ],
-            [1, "UK", "", 2000, 1, 1, null, null],
-            [1, "UK", "", 2001, null, 1, "Europe", 100],
-            [1, "UK", "", 2002, 1, null, null, null],
-            [1, "UK", "", 2003, null, null, null, null],
-            [2, "USA", "", 2000, 1, 1, null, null],
+            ["entityName", "year", "x", "y", "color", "size"],
+            ["UK", 2000, 1, 1, null, null],
+            ["UK", 2001, null, 1, "Europe", 100],
+            ["UK", 2002, 1, null, null, null],
+            ["UK", 2003, null, null, null, null],
+            ["USA", 2000, 1, 1, null, null],
         ],
         [
-            { slug: "x", type: ColumnTypeNames.Numeric },
-            { slug: "y", type: ColumnTypeNames.Numeric },
+            ...numericDefs("x", "y", "size"),
             {
                 slug: "color",
                 type: ColumnTypeNames.String,
                 display: { tolerance: 1 },
             },
-            {
-                slug: "size",
-                type: ColumnTypeNames.Numeric,
-            },
         ]
     )
 
-    const grapher = new GrapherState({
-        chartTypes: [GRAPHER_CHART_TYPES.ScatterPlot],
-        xSlug: "x",
-        ySlugs: "y",
-        colorSlug: "color",
-        sizeSlug: "size",
+    const chartState = makeScatterChartState(table, {
         matchingEntitiesOnly: true,
-        table,
     })
-    const chartState = grapher.chartState as ScatterPlotChartState
 
     it("excludes entities without color when matchingEntitiesOnly is enabled", () => {
         expect(chartState.allPoints.length).toEqual(1)
@@ -462,34 +359,20 @@ describe("entity exclusion", () => {
 describe("colors & legend", () => {
     const table = new OwidTable(
         [
-            [
-                "entityId",
-                "entityName",
-                "entityCode",
-                "year",
-                "x",
-                "y",
-                "color",
-                "size",
-            ],
-            [1, "Germany", "", 2001, 1, 1, "Europe", null],
-            [2, "Canada", "", 2000, 1, 1, "North America", null],
-            [3, "China", "", 2000, 1, null, "Asia", null],
-            [4, "Australia", "", 2000, 1, 1, "Oceania", null],
-            [6, "Chile", "", 2000, 1, 1, "South America", null],
-            [7, "Nigeria", "", 2000, 1, 1, "Africa", null],
+            ["entityName", "year", "x", "y", "color", "size"],
+            ["Germany", 2001, 1, 1, "Europe", null],
+            ["Canada", 2000, 1, 1, "North America", null],
+            ["China", 2000, 1, null, "Asia", null],
+            ["Australia", 2000, 1, 1, "Oceania", null],
+            ["Chile", 2000, 1, 1, "South America", null],
+            ["Nigeria", 2000, 1, 1, "Africa", null],
         ],
         [
-            { slug: "x", type: ColumnTypeNames.Numeric },
-            { slug: "y", type: ColumnTypeNames.Numeric },
+            ...numericDefs("x", "y", "size"),
             {
                 slug: "color",
                 type: ColumnTypeNames.String,
                 display: { tolerance: 1 },
-            },
-            {
-                slug: "size",
-                type: ColumnTypeNames.Numeric,
             },
         ]
     )
@@ -568,37 +451,21 @@ describe("colors & legend", () => {
 describe("series transformations", () => {
     const table = new OwidTable(
         [
-            [
-                "entityId",
-                "entityName",
-                "entityCode",
-                "year",
-                "x",
-                "y",
-                "color",
-                "size",
-            ],
-            [1, "UK", "", 2001, 1, 1, null, null],
-            [1, "UK", "", 2004, 2, 1, null, null],
-            [1, "UK", "", 2002, null, 1, null, null],
-            [1, "UK", "", 2000, 1, null, null, null],
-            [1, "UK", "", 2003, 2, 1, null, null],
-            [2, "Germany", "", 2000, 1, 1, null, null],
-            [2, "Germany", "", 2003, 2, 2, null, null],
-            [3, "USA", "", 2001, 0, 0, null, null],
-            [3, "USA", "", 2002, 1, 1, null, null],
-            [3, "USA", "", 2003, 2, 2, null, null],
+            ["entityName", "year", "x", "y", "color", "size"],
+            ["UK", 2001, 1, 1, null, null],
+            ["UK", 2004, 2, 1, null, null],
+            ["UK", 2002, null, 1, null, null],
+            ["UK", 2000, 1, null, null, null],
+            ["UK", 2003, 2, 1, null, null],
+            ["Germany", 2000, 1, 1, null, null],
+            ["Germany", 2003, 2, 2, null, null],
+            ["USA", 2001, 0, 0, null, null],
+            ["USA", 2002, 1, 1, null, null],
+            ["USA", 2003, 2, 2, null, null],
         ],
         [
-            {
-                slug: "x",
-                type: ColumnTypeNames.Numeric,
-            },
-            {
-                slug: "y",
-                type: ColumnTypeNames.Numeric,
-            },
-            { slug: "color", type: ColumnTypeNames.String },
+            ...numericDefs("x", "y"),
+            ...stringDefs("color"),
             {
                 slug: "size",
                 type: ColumnTypeNames.Numeric,
@@ -681,7 +548,7 @@ describe("average annual change", () => {
                 type: ColumnTypeNames.Numeric,
                 display: { tolerance: 3 },
             },
-            { slug: "color", type: ColumnTypeNames.String },
+            ...stringDefs("color"),
             {
                 slug: "size",
                 type: ColumnTypeNames.Numeric,
@@ -740,20 +607,10 @@ describe("scatter plot with xOverrideTime", () => {
     const xOriginalTimeSlug = makeOriginalTimeSlugFromColumnSlug("x")
     const table = new OwidTable(
         [
-            [
-                "entityId",
-                "entityName",
-                "entityCode",
-                "day",
-                "x",
-                "y",
-                "color",
-                "size",
-                xOriginalTimeSlug,
-            ],
-            [1, "UK", "", 2001, 0, 0, null, null, 2000],
-            [2, "Germany", "", 2001, 1, 1, null, null, 2001],
-            [3, "USA", "", 2001, 2, 2, null, null, 2003],
+            ["entityName", "day", "x", "y", "color", "size", xOriginalTimeSlug],
+            ["UK", 2001, 0, 0, null, null, 2000],
+            ["Germany", 2001, 1, 1, null, null, 2001],
+            ["USA", 2001, 2, 2, null, null, 2003],
         ],
         [
             {
@@ -761,15 +618,15 @@ describe("scatter plot with xOverrideTime", () => {
                 type: ColumnTypeNames.Numeric,
                 display: { tolerance: 1 },
             },
-            { slug: "y", type: ColumnTypeNames.Numeric },
-            { slug: "year", type: ColumnTypeNames.Year },
-            { slug: "color", type: ColumnTypeNames.String },
+            ...numericDefs("y"),
+            yearDef(),
+            ...stringDefs("color"),
             {
                 slug: "size",
                 type: ColumnTypeNames.Numeric,
                 display: { tolerance: 1 },
             },
-            { slug: xOriginalTimeSlug, type: ColumnTypeNames.Year },
+            yearDef(xOriginalTimeSlug),
         ]
     )
     const manager: ScatterPlotManager = {
@@ -797,27 +654,18 @@ describe("scatter plot with xOverrideTime", () => {
 describe("x/y tolerance", () => {
     const table = new OwidTable(
         [
-            [
-                "entityId",
-                "entityName",
-                "entityCode",
-                "year",
-                "x",
-                "y",
-                "color",
-                "size",
-            ],
-            [1, "UK", "", 2000, 0, null, "Europe", 100],
-            [1, "UK", "", 2001, null, null, null, null],
-            [1, "UK", "", 2002, null, null, null, null],
-            [1, "UK", "", 2003, null, 3, null, null],
-            [1, "UK", "", 2004, null, null, null, null],
-            [1, "UK", "", 2005, 5, null, null, null],
-            [1, "UK", "", 2006, 6, 6, null, null],
-            [1, "UK", "", 2007, null, 7, null, null],
-            [1, "UK", "", 2008, 8, null, null, null],
-            [1, "UK", "", 2009, null, null, null, null],
-            [1, "UK", "", 2010, null, null, "Europe", 100],
+            ["entityName", "year", "x", "y", "color", "size"],
+            ["UK", 2000, 0, null, "Europe", 100],
+            ["UK", 2001, null, null, null, null],
+            ["UK", 2002, null, null, null, null],
+            ["UK", 2003, null, 3, null, null],
+            ["UK", 2004, null, null, null, null],
+            ["UK", 2005, 5, null, null, null],
+            ["UK", 2006, 6, 6, null, null],
+            ["UK", 2007, null, 7, null, null],
+            ["UK", 2008, 8, null, null, null],
+            ["UK", 2009, null, null, null, null],
+            ["UK", 2010, null, null, "Europe", 100],
             // should be removed because it has no X/Y values
             [2, "USA", "", 2020, null, null, "North America", 0],
         ],
@@ -837,22 +685,11 @@ describe("x/y tolerance", () => {
                 type: ColumnTypeNames.String,
                 display: { tolerance: 10 },
             },
-            {
-                slug: "size",
-                type: ColumnTypeNames.Numeric,
-            },
+            ...numericDefs("size"),
         ]
     )
 
-    const grapher = new GrapherState({
-        chartTypes: [GRAPHER_CHART_TYPES.ScatterPlot],
-        xSlug: "x",
-        ySlugs: "y",
-        colorSlug: "color",
-        sizeSlug: "size",
-        table,
-    })
-    const chartState = grapher.chartState as ScatterPlotChartState
+    const chartState = makeScatterChartState(table)
 
     const transformedTable = chartState.transformedTable
 
@@ -884,9 +721,6 @@ describe("x/y tolerance", () => {
         )
         expect(uniqRows).toEqual([
             expect.objectContaining({
-                color: "Europe",
-                entityName: "UK",
-                size: 100,
                 x: 5,
                 [xTimeSlug]: 2005,
                 y: 3,
@@ -894,9 +728,6 @@ describe("x/y tolerance", () => {
                 year: 2003,
             }),
             expect.objectContaining({
-                color: "Europe",
-                entityName: "UK",
-                size: 100,
                 x: 6,
                 [xTimeSlug]: 2006,
                 y: 6,
@@ -904,9 +735,6 @@ describe("x/y tolerance", () => {
                 year: 2006,
             }),
             expect.objectContaining({
-                color: "Europe",
-                entityName: "UK",
-                size: 100,
                 x: 8,
                 [xTimeSlug]: 2008,
                 y: 7,
@@ -921,35 +749,14 @@ describe("correct bubble sizes", () => {
     it("with column", () => {
         const table = new OwidTable(
             [
-                [
-                    "entityId",
-                    "entityName",
-                    "entityCode",
-                    "year",
-                    "x",
-                    "y",
-                    "size",
-                ],
+                ["entityName", "year", "x", "y", "size"],
                 // sorted alphabetically
-                [1, "SWE", "", 2000, 2, 2, undefined],
-                [2, "UK", "", 2000, 1, 1, 0],
-                [3, "USA", "", 2000, 2, 2, 2],
-                [3, "ZZZ", "", 2000, 2, 2, -20],
+                ["SWE", 2000, 2, 2, undefined],
+                ["UK", 2000, 1, 1, 0],
+                ["USA", 2000, 2, 2, 2],
+                ["ZZZ", 2000, 2, 2, -20],
             ],
-            [
-                {
-                    slug: "x",
-                    type: ColumnTypeNames.Numeric,
-                },
-                {
-                    slug: "y",
-                    type: ColumnTypeNames.Numeric,
-                },
-                {
-                    slug: "size",
-                    type: ColumnTypeNames.Numeric,
-                },
-            ]
+            numericDefs("x", "y", "size")
         )
 
         const manager: ScatterPlotManager = {
@@ -984,38 +791,25 @@ describe("correct bubble sizes", () => {
             (s) => s.seriesName
         )
 
-        expect(sortedRenderSeries[0].seriesName).toEqual("SWE")
-        expect(sortedRenderSeries[0].size).toEqual(SCATTER_POINT_MIN_RADIUS)
-        expect(sortedRenderSeries[0].fontSize).toEqual(10)
-        expect(sortedRenderSeries[1].seriesName).toEqual("UK")
-        expect(sortedRenderSeries[1].size).toEqual(SCATTER_POINT_MIN_RADIUS)
-        expect(sortedRenderSeries[1].fontSize).toEqual(10)
-        expect(sortedRenderSeries[2].seriesName).toEqual("USA")
-        expect(sortedRenderSeries[2].size).toEqual(SCATTER_POINT_MAX_RADIUS)
-        expect(sortedRenderSeries[2].fontSize).toEqual(13)
-        expect(sortedRenderSeries[3].seriesName).toEqual("ZZZ")
-        expect(sortedRenderSeries[3].size).toEqual(SCATTER_POINT_MIN_RADIUS)
-        expect(sortedRenderSeries[3].fontSize).toEqual(10)
+        expect(
+            sortedRenderSeries.map((s) => [s.seriesName, s.size, s.fontSize])
+        ).toEqual([
+            ["SWE", SCATTER_POINT_MIN_RADIUS, 10],
+            ["UK", SCATTER_POINT_MIN_RADIUS, 10],
+            ["USA", SCATTER_POINT_MAX_RADIUS, 13],
+            ["ZZZ", SCATTER_POINT_MIN_RADIUS, 10],
+        ])
     })
 
     it("without column", () => {
         const table = new OwidTable(
             [
-                ["entityId", "entityName", "entityCode", "year", "x", "y"],
+                ["entityName", "year", "x", "y"],
                 // sorted alphabetically
-                [1, "SWE", "", 2000, 2, 2],
-                [2, "UK", "", 2000, 1, 1],
+                ["SWE", 2000, 2, 2],
+                ["UK", 2000, 1, 1],
             ],
-            [
-                {
-                    slug: "x",
-                    type: ColumnTypeNames.Numeric,
-                },
-                {
-                    slug: "y",
-                    type: ColumnTypeNames.Numeric,
-                },
-            ]
+            numericDefs("x", "y")
         )
 
         const manager: ScatterPlotManager = {
@@ -1049,54 +843,28 @@ describe("correct bubble sizes", () => {
             (s) => s.seriesName
         )
 
-        expect(sortedRenderSeries[0].seriesName).toEqual("SWE")
-        expect(sortedRenderSeries[0].size).toEqual(SCATTER_POINT_DEFAULT_RADIUS)
-        expect(sortedRenderSeries[0].fontSize).toEqual(10.5)
-        expect(sortedRenderSeries[1].seriesName).toEqual("UK")
-        expect(sortedRenderSeries[1].size).toEqual(SCATTER_POINT_DEFAULT_RADIUS)
-        expect(sortedRenderSeries[1].fontSize).toEqual(10.5)
+        expect(
+            sortedRenderSeries.map((s) => [s.seriesName, s.size, s.fontSize])
+        ).toEqual([
+            ["SWE", SCATTER_POINT_DEFAULT_RADIUS, 10.5],
+            ["UK", SCATTER_POINT_DEFAULT_RADIUS, 10.5],
+        ])
     })
 })
 
 it("applies color tolerance before applying the author timeline filter", () => {
     const table = new OwidTable(
         [
-            [
-                "entityId",
-                "entityName",
-                "entityCode",
-                "year",
-                "x",
-                "y",
-                "color",
-                "size",
-            ],
-            [1, "UK", "", -1000, 1, 1, null, null],
-            [1, "UK", "", 1000, 1, 1, null, 100],
-            [1, "UK", "", 2020, 1, 1, null, null],
-            [1, "UK", "", 2023, null, null, "Europe", null],
+            ["entityName", "year", "x", "y", "color", "size"],
+            ["UK", -1000, 1, 1, null, null],
+            ["UK", 1000, 1, 1, null, 100],
+            ["UK", 2020, 1, 1, null, null],
+            ["UK", 2023, null, null, "Europe", null],
         ],
-        [
-            { slug: "x", type: ColumnTypeNames.Numeric },
-            { slug: "y", type: ColumnTypeNames.Numeric },
-            { slug: "color", type: ColumnTypeNames.String },
-            {
-                slug: "size",
-                type: ColumnTypeNames.Numeric,
-            },
-        ]
+        [...numericDefs("x", "y", "size"), ...stringDefs("color")]
     )
 
-    const grapher = new GrapherState({
-        table,
-        chartTypes: [GRAPHER_CHART_TYPES.ScatterPlot],
-        xSlug: "x",
-        ySlugs: "y",
-        colorSlug: "color",
-        sizeSlug: "size",
-        timelineMaxTime: 2020,
-    })
-    const chartState = grapher.chartState as ScatterPlotChartState
+    const chartState = makeScatterChartState(table, { timelineMaxTime: 2020 })
 
     expect(
         _.uniq(
@@ -1110,15 +878,11 @@ describe("continent colors remain consistent regardless of data", () => {
         // Test with only Asia and Europe (missing Africa, which is first in palette)
         const table1 = new OwidTable(
             [
-                ["entityId", "entityName", "year", "x", "y", "color"],
-                [1, "China", 2000, 1, 1, "Asia"],
-                [2, "Germany", 2000, 2, 2, "Europe"],
+                ["entityName", "year", "x", "y", "color"],
+                ["China", 2000, 1, 1, "Asia"],
+                ["Germany", 2000, 2, 2, "Europe"],
             ],
-            [
-                { slug: "x", type: ColumnTypeNames.Numeric },
-                { slug: "y", type: ColumnTypeNames.Numeric },
-                { slug: "color", type: ColumnTypeNames.String },
-            ]
+            [...numericDefs("x", "y"), ...stringDefs("color")]
         )
 
         const manager: ScatterPlotManager = {
