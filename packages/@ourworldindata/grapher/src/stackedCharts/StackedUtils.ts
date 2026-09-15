@@ -218,7 +218,15 @@ function placeStackedAreaSeries(
         y: verticalAxis.place(point.value + point.valueOffset),
     }))
 
-    return { bottomEdge, topEdge }
+    return { bottomEdge: simplifyFlatEdge(bottomEdge), topEdge }
+}
+
+function simplifyFlatEdge(edge: Point[]): Point[] {
+    if (edge.length < 3) return edge
+    const [first] = edge
+    return edge.every(({ y }) => y === first.y)
+        ? [first, edge[edge.length - 1]]
+        : edge
 }
 
 /** Whether the only series holding negative values is the bottom one that gets drawn */
