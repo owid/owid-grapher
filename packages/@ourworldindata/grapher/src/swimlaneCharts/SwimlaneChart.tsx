@@ -45,12 +45,16 @@ import {
     PADDING_BETWEEN_LEGEND_AND_LANES,
     PlacedSwimlaneSeries,
     SizedSwimlaneSeries,
+    SWIMLANE_X_AXIS_CONFIG_DEFAULTS,
     SwimlaneChartManager,
     SwimlaneSeries,
     TICK_LABEL_OVERFLOW_PADDING,
 } from "./SwimlaneChartConstants"
 import { SwimlaneChartState } from "./SwimlaneChartState"
-import { toPlacedSwimlaneSeries } from "./SwimlaneChartHelpers"
+import {
+    computeLaneSlotHeight,
+    toPlacedSwimlaneSeries,
+} from "./SwimlaneChartHelpers"
 import { SwimlaneRow } from "./SwimlaneRow"
 
 export type SwimlaneChartProps = ChartComponentProps<SwimlaneChartState>
@@ -180,7 +184,10 @@ export class SwimlaneChart
     }
 
     @computed private get availableHeightPerSeries(): number {
-        return this.boundsWithoutLegend.height / this.series.length
+        return computeLaneSlotHeight({
+            plotHeight: this.boundsWithoutLegend.height,
+            laneCount: this.series.length,
+        })
     }
 
     @computed private get entityLabelStyle(): FontSettings {
@@ -206,7 +213,10 @@ export class SwimlaneChart
     }
 
     @computed private get xAxisConfig(): AxisConfig {
-        return new AxisConfig(this.manager.xAxisConfig, this)
+        return new AxisConfig(
+            { ...SWIMLANE_X_AXIS_CONFIG_DEFAULTS, ...this.manager.xAxisConfig },
+            this
+        )
     }
 
     @computed private get entityLabelMaxWidth(): number {
@@ -215,7 +225,6 @@ export class SwimlaneChart
         return Math.max(...labelWidths)
     }
 
-    /** Bounds minus the entity labels; also this chart's `AxisManager` contribution */
     @computed get axisBounds(): Bounds {
         return this.boundsWithoutLegend.padLeft(
             this.entityLabelMaxWidth + ENTITY_LABEL_CHART_GAP

@@ -1,13 +1,24 @@
 import { ChartManager } from "../chart/ChartManager"
 import { ChartSeries } from "../chart/ChartInterface"
-import { Color, EntityName, SortBy, Time } from "@ourworldindata/types"
+import {
+    AxisConfigInterface,
+    Color,
+    EntityName,
+    SortBy,
+    Time,
+} from "@ourworldindata/types"
 import { SeriesLabelState } from "../seriesLabel/SeriesLabelState"
 
 export const LANE_SPACING_FACTOR = 0.35
 export const ENTITY_LABEL_CHART_GAP = 8
 export const TICK_LABEL_OVERFLOW_PADDING = 2
-export const MIN_SEGMENT_WIDTH = 1
 export const PADDING_BETWEEN_LEGEND_AND_LANES = 8
+export const MAX_LANE_HEIGHT = 36
+
+/** The domain runs one step past the last time, so the last band has room */
+export const SWIMLANE_X_AXIS_CONFIG_DEFAULTS: AxisConfigInterface = {
+    isDomainEndExclusive: true,
+}
 
 export type SwimlaneChartManager = ChartManager
 
@@ -67,9 +78,19 @@ export interface PlacedSwimlaneSeries extends Omit<
     placedSegments: PlacedSwimlaneSegment[]
 }
 
+export interface OrdinalSwimlaneCategories {
+    kind: "ordinal"
+    values: string[]
+}
+
+export interface CategoricalSwimlaneCategories {
+    kind: "categorical"
+    values: string[]
+}
+
 export type SwimlaneCategories =
-    | { kind: "ordinal"; values: string[] }
-    | { kind: "categorical"; values: string[] }
+    | OrdinalSwimlaneCategories
+    | CategoricalSwimlaneCategories
 
 export const SWIMLANE_SORT_KEYS = [SortBy.custom, SortBy.entityName] as const
 export type SwimlaneSortKey = (typeof SWIMLANE_SORT_KEYS)[number]
