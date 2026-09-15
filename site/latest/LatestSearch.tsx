@@ -8,7 +8,11 @@ import {
 } from "@ourworldindata/types"
 import { LiteClient } from "algoliasearch/lite"
 import { useTagGraphTopics } from "../search/searchHooks.js"
-import { useInfiniteLatestPages, useLatestAnalytics } from "./latestHooks.js"
+import {
+    useAreFreshProbesSettled,
+    useInfiniteLatestPages,
+    useLatestAnalytics,
+} from "./latestHooks.js"
 import { LatestTopicFacets } from "./LatestTopicFacets.js"
 import { LatestPageHeader } from "./LatestPageHeader.js"
 import {
@@ -87,12 +91,21 @@ export const LatestSearch = ({
         fetchNextPage,
         hasNextPage,
         isFetchingNextPage,
-        isLoading,
+        isLoading: arePagesLoading,
+        data,
     } = useInfiniteLatestPages({
         topics,
         latestType,
         liteSearchClient,
     })
+
+    // The feed also counts as loading until the first page's bake probes have
+    // settled, so it renders in one commit with its composition final — see
+    // "Bake probes" in latestHooks.ts.
+    const areProbesSettled = useAreFreshProbesSettled(
+        data?.pages[0]?.response.hits ?? []
+    )
+    const isLoading = arePagesLoading || !areProbesSettled
 
     // Disable type options that would yield 0 results given the current
     // topic selection. Never disable the currently active type.
@@ -139,6 +152,13 @@ export const LatestSearch = ({
         // needlessly.
     }, [isLoading, hits.length])
 
+    // Announcements render expanded when we know the reader is after this
+    // content in particular: they filtered for data updates, or followed a
+    // link straight to one card. It's a hard override, not a default — the
+    // card renders without a Read more toggle and can't be collapsed.
+    const isExpanded = (slug: string) =>
+        latestType === "data-update" || slug === autoExpandedSlug
+
     return (
         <LatestContext.Provider value={{ analytics }}>
             <LatestPageHeader />
@@ -179,7 +199,7 @@ export const LatestSearch = ({
                             hit={hit}
                             selectedTopic={topics[0]}
                             position={i + 1}
-                            shouldAutoExpand={hit.slug === autoExpandedSlug}
+                            isExpanded={isExpanded(hit.slug)}
                         />
                     ))}
                     {/* Always render the signup block — with 0 or 1 hits it
@@ -195,7 +215,7 @@ export const LatestSearch = ({
                             hit={hit}
                             selectedTopic={topics[0]}
                             position={i + 3}
-                            shouldAutoExpand={hit.slug === autoExpandedSlug}
+                            isExpanded={isExpanded(hit.slug)}
                         />
                     ))}
                     {hasNextPage && (
