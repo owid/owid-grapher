@@ -147,7 +147,11 @@ function ConnectorLines({
 
                 const step = (endX - startX) / (totalLevels + 1)
                 const markerXMid = startX + step + level * step
-                const d = `M${startX},${leftCenterY} H${markerXMid} V${rightCenterY} H${endX}`
+                const d =
+                    `M${roundForSvg(startX)},${roundForSvg(leftCenterY)}` +
+                    ` H${roundForSvg(markerXMid)}` +
+                    ` V${roundForSvg(rightCenterY)}` +
+                    ` H${roundForSvg(endX)}`
 
                 const emphasis = series.emphasis ?? Emphasis.Default
                 const lineColor = LABEL_STYLE[emphasis].connectorLineColor
@@ -192,10 +196,10 @@ function InteractionOverlays({
                         onMouseLeave={() => onMouseLeave?.(series.seriesName)}
                     >
                         <rect
-                            x={x}
-                            y={series.bounds.y}
-                            width={series.bounds.width}
-                            height={series.bounds.height}
+                            x={roundForSvg(x)}
+                            y={roundForSvg(series.bounds.y)}
+                            width={roundForSvg(series.bounds.width)}
+                            height={roundForSvg(series.bounds.height)}
                             fill="#fff"
                             opacity={0}
                         />

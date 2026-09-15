@@ -12,6 +12,7 @@ import {
     exposeInstanceOnWindow,
     makeFigmaId,
     bind,
+    roundForSvg,
 } from "@ourworldindata/utils"
 import { action, computed, makeObservable, observable } from "mobx"
 import { observer } from "mobx-react"
@@ -697,10 +698,10 @@ export class StackedDiscreteBarChart
         return (
             <g ref={this.base} onMouseMove={this.onMouseMove}>
                 <rect
-                    x={bounds.left}
-                    y={bounds.top}
-                    width={bounds.width}
-                    height={bounds.height}
+                    x={roundForSvg(bounds.left)}
+                    y={roundForSvg(bounds.top)}
+                    width={roundForSvg(bounds.width)}
+                    height={roundForSvg(bounds.height)}
                     opacity={0}
                     fill="rgba(255,255,255,0)"
                 />

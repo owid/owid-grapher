@@ -12,6 +12,7 @@ import {
     getRelativeMouse,
     guid,
     Pair,
+    roundForSvg,
 } from "@ourworldindata/utils"
 import {
     DumbbellValueLabelMode,
@@ -813,10 +814,10 @@ function DumbbellHoverArea({
     const cappedHeight = Math.min(height, maxHeight)
     return (
         <rect
-            x={containerBounds.left}
-            y={series.y - cappedHeight / 2}
-            width={containerBounds.width}
-            height={cappedHeight}
+            x={roundForSvg(containerBounds.left)}
+            y={roundForSvg(series.y - cappedHeight / 2)}
+            width={roundForSvg(containerBounds.width)}
+            height={roundForSvg(cappedHeight)}
             fill="transparent"
             onMouseEnter={(ev) => onMouseEnter(series.seriesName, ev)}
             onMouseMove={onMouseMove}

@@ -140,10 +140,10 @@ export function HorizontalCategoricalColorLegend(
                                     height={roundForSvg(
                                         mark.rectSize + rectPadding
                                     )}
-                                    width={
+                                    width={roundForSvg(
                                         mark.width +
-                                        SPACE_BETWEEN_CATEGORICAL_BINS
-                                    }
+                                            SPACE_BETWEEN_CATEGORICAL_BINS
+                                    )}
                                     fill="#fff"
                                     opacity={0}
                                 />

@@ -544,7 +544,7 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
                                         y: point.position.y,
                                         color: point.color,
                                     }))}
-                                    strokeWidth={strokeWidth}
+                                    strokeWidth={roundForSvg(strokeWidth)}
                                     opacity={opacity}
                                 />
                             )}

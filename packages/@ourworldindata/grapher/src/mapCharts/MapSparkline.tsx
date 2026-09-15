@@ -241,16 +241,26 @@ export class MapSparkline extends React.Component<MapSparklineProps> {
                     />
                     {maxLabel !== minLabel && (
                         <g className="max axis-label">
-                            <text x={labelX} y={labelTop}>
+                            <text
+                                x={roundForSvg(labelX)}
+                                y={roundForSvg(labelTop)}
+                            >
                                 {maxLabel}
                             </text>
                         </g>
                     )}
                     <g className="min axis-label">
-                        <text className="outline" x={labelX} y={labelBottom}>
+                        <text
+                            className="outline"
+                            x={roundForSvg(labelX)}
+                            y={roundForSvg(labelBottom)}
+                        >
                             {minLabel}
                         </text>
-                        <text x={labelX} y={labelBottom}>
+                        <text
+                            x={roundForSvg(labelX)}
+                            y={roundForSvg(labelBottom)}
+                        >
                             {minLabel}
                         </text>
                     </g>
