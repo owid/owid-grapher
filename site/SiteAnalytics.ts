@@ -91,6 +91,7 @@ export class SiteAnalytics extends GrapherAnalytics {
         })
     }
 
+    /** Tracks opening a feed preview's own content, not following links within it. */
     logLatestResultClick(hit: LatestPageChronologicalRecord, position: number) {
         this.logToGA({
             event: EventCategory.SiteLatestResultClick,
