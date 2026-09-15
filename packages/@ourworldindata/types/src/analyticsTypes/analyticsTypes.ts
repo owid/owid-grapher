@@ -44,6 +44,7 @@ export enum EventCategory {
     SiteLatestResultClick = "owid.site_latest_result_click",
     SiteSearch = "owid.site_search",
     SiteSearchAutocompleteClick = "owid.site_search_autocomplete_click",
+    SiteSearchDetectedFilterClick = "owid.site_search_detected_filter_click",
     SiteSearchResultClick = "owid.site_search_result_click",
     SiteFormSubmit = "owid.site_form_submit",
     DetailOnDemand = "owid.detail_on_demand",
@@ -64,6 +65,7 @@ export type EventParamsMap = {
     [EventCategory.SiteLatestResultClick]: SiteLatestResultClickParams
     [EventCategory.SiteSearch]: SiteSearchParams
     [EventCategory.SiteSearchAutocompleteClick]: SiteSearchAutocompleteClickParams
+    [EventCategory.SiteSearchDetectedFilterClick]: SiteSearchDetectedFilterClickParams
     [EventCategory.SiteSearchResultClick]: SiteSearchResultClickParams
     [EventCategory.GrapherView]: GrapherViewParams
     [EventCategory.GrapherClick]: GrapherClickParams
@@ -154,6 +156,17 @@ export interface SiteSearchAutocompleteClickParams {
     autocompleteSuggestionsTypes: string
     /** Total number of suggestions displayed */
     autocompleteSuggestionsCount: number
+}
+
+export interface SiteSearchDetectedFilterClickParams {
+    /** Always 'click' for this event */
+    eventAction: "click"
+    /** Search query the "Did you mean?" suggestion was shown for */
+    searchQuery: string
+    /** Name of the suggested filter (e.g., 'Poland') */
+    searchDetectedFilterName: string
+    /** Type of the suggested filter (currently always 'country') */
+    searchDetectedFilterType: string
 }
 
 export interface SiteSearchResultClickParams {
