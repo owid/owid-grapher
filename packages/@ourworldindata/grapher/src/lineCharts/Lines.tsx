@@ -185,9 +185,9 @@ export class Lines extends React.Component<LinesProps> {
                     <circle
                         id={makeFigmaId(horizontalAxis.formatTick(value.time))}
                         key={index}
-                        cx={value.x}
-                        cy={value.y}
-                        r={this.markerRadius}
+                        cx={roundForSvg(value.x)}
+                        cy={roundForSvg(value.y)}
+                        r={roundForSvg(this.markerRadius)}
                         fill={value.color}
                         stroke={outlineColor}
                         strokeWidth={outlineWidth}
