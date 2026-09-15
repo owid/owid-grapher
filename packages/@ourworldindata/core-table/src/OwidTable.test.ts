@@ -56,7 +56,7 @@ it("can drop random cells", () => {
     expect(table.get(SampleColumnSlugs.GDP).numValues).toBe(10)
     expect(
         table
-            .replaceRandomCells(7, [SampleColumnSlugs.GDP])
+            .replaceRandomCells(7, [SampleColumnSlugs.GDP], 1)
             .get(SampleColumnSlugs.GDP).numValues
     ).toBe(3)
 })

@@ -67,7 +67,7 @@ describe("barcharts with columns as the series", () => {
         const table = SynthesizeFruitTable({
             entityCount: 1,
             timeRange: [2000, 2001],
-        }).replaceRandomCells(1, [SampleColumnSlugs.Fruit])
+        }).replaceRandomCells(1, [SampleColumnSlugs.Fruit], 1)
         const { chartState } = makeDiscreteBarChart(table, {
             seriesStrategy: SeriesStrategy.column,
             yColumnSlugs: [
@@ -84,7 +84,7 @@ describe("barcharts with columns as the series", () => {
         const table = SynthesizeFruitTable({
             entityCount: 2,
             timeRange: [2000, 2001],
-        }).replaceRandomCells(1, [SampleColumnSlugs.Fruit])
+        }).replaceRandomCells(1, [SampleColumnSlugs.Fruit], 1)
         const { chartState } = makeDiscreteBarChart(table, {
             seriesStrategy: SeriesStrategy.entity,
             yColumnSlugs: [SampleColumnSlugs.Fruit],

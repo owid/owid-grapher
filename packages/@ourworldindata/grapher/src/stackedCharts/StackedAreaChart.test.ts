@@ -108,7 +108,7 @@ it("can filter a series when there are no points", () => {
     const table = SynthesizeFruitTable({
         entityCount: 2,
         timeRange: [2000, 2003],
-    }).replaceRandomCells(6, [SampleColumnSlugs.Fruit])
+    }).replaceRandomCells(6, [SampleColumnSlugs.Fruit], 1)
     const chartState = new StackedAreaChartState({
         manager: {
             selection: table.sampleEntityName(1),
