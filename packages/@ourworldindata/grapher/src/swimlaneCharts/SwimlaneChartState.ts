@@ -9,6 +9,8 @@ import {
     FacetStrategy,
     JsTypes,
     ScaleType,
+    SortBy,
+    SortConfig,
     Time,
 } from "@ourworldindata/types"
 import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
@@ -20,6 +22,8 @@ import {
     getDefaultFailMessage,
     getShortNameForEntity,
     makeSelectionArray,
+    SortKey,
+    sortByConfig,
 } from "../chart/ChartUtils"
 import { OWID_ERROR_COLOR } from "../color/ColorConstants"
 import { SelectionArray } from "../selection/SelectionArray"
@@ -27,13 +31,15 @@ import { AxisConfig } from "../axis/AxisConfig"
 import { HorizontalAxis } from "../axis/Axis"
 import {
     ColoredSwimlaneSegment,
+    isSwimlaneSortKey,
+    SWIMLANE_SORT_KEYS,
     SwimlaneCategories,
     SwimlaneChartManager,
     SwimlaneObservation,
     SwimlaneSeries,
+    SwimlaneSortKey,
 } from "./SwimlaneChartConstants"
-import { sortSwimlaneRows, toSwimlaneSegments } from "./SwimlaneChartHelpers"
-import { SWIMLANE_CHART_CONFIG_DEFAULTS } from "./SwimlaneChartConfig"
+import { sortByCategory, toSwimlaneSegments } from "./SwimlaneChartHelpers"
 
 export class SwimlaneChartState implements ChartState, ColorScaleManager {
     manager: SwimlaneChartManager
@@ -177,18 +183,39 @@ export class SwimlaneChartState implements ChartState, ColorScaleManager {
         )
     }
 
-    @computed get series(): SwimlaneSeries[] {
-        const {
-            sortBy = SWIMLANE_CHART_CONFIG_DEFAULTS.sortBy,
-            sortOrder = SWIMLANE_CHART_CONFIG_DEFAULTS.sortOrder,
-        } = this.manager.swimlane ?? {}
-
-        return sortSwimlaneRows({
-            rows: this.unsortedSeries,
-            sortBy,
+    @computed get sortConfig(): SortConfig {
+        const { sortBy, sortOrder } = this.manager.sortConfig ?? {}
+        return {
+            sortBy:
+                sortBy && isSwimlaneSortKey(sortBy)
+                    ? sortBy
+                    : this.defaultSortKey,
             sortOrder,
-            categories: this.categories?.values ?? [],
-        })
+        }
+    }
+
+    @computed get series(): SwimlaneSeries[] {
+        const categories = this.categories?.values ?? []
+
+        const keyFns: Record<SwimlaneSortKey, SortKey<SwimlaneSeries>> = {
+            [SortBy.custom]: (series): number =>
+                this.selectionArray.selectedEntityNames.indexOf(
+                    series.entityName
+                ),
+            [SortBy.entityName]: (series): string => series.entityName,
+            [SortBy.firstCategory]: sortByCategory("first", categories),
+            [SortBy.lastCategory]: sortByCategory("last", categories),
+        }
+
+        return sortByConfig(this.unsortedSeries, this.sortConfig, keyFns)
+    }
+
+    @computed get availableSortKeys(): SwimlaneSortKey[] {
+        return [...SWIMLANE_SORT_KEYS]
+    }
+
+    @computed get defaultSortKey(): SwimlaneSortKey {
+        return SortBy.lastCategory
     }
 
     toHorizontalAxis(config: AxisConfig): HorizontalAxis {

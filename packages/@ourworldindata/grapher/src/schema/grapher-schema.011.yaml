@@ -448,35 +448,6 @@ properties:
         additionalProperties: false
     additionalProperties: false
 
-  swimlane:
-    type: object
-    description: Configuration of the swimlane chart
-    properties:
-      sortBy:
-        type: string
-        default: lastCategory
-        description: |
-          How lanes are ordered.
-          - lastCategory: by the category an entity ends on
-          - firstCategory: by the category an entity starts on
-          - entityName: alphabetically by entity name
-          - custom: preserve the order entities were selected in
-        enum:
-          - lastCategory
-          - firstCategory
-          - entityName
-          - custom
-      sortOrder:
-        type: string
-        default: desc
-        description: |
-          Sort order of the lanes. Not applied when sortBy is custom, which
-          always keeps the order entities were selected in
-        enum:
-          - desc
-          - asc
-    additionalProperties: false
-
   baseColorScheme:
     $ref: "#/$defs/colorScheme"
   invertColorScheme:
@@ -639,7 +610,8 @@ properties:
   sortBy:
     type: string
     description: |
-      Sort criterion (used by discrete bar, stacked discrete bar, and dumbbell charts).
+      Sort criterion (used by discrete bar, stacked discrete bar, dumbbell and swimlane charts).
+      Chart types that don't support the given criterion fall back to their own default.
       - column: sort by the value of a specific column, identified by sortColumnSlug
       - total: sort by the total across all columns
       - entityName: sort alphabetically by entity name
@@ -647,6 +619,8 @@ properties:
       - change: sort by the change between the start and end values (dumbbell charts only)
       - startValue: sort by the start value (dumbbell charts only)
       - endValue: sort by the end value (dumbbell charts only)
+      - firstCategory: sort by the category an entity starts on (swimlane charts only)
+      - lastCategory: sort by the category an entity ends on (swimlane charts only)
     default: total
     enum:
       - column
@@ -656,6 +630,8 @@ properties:
       - change
       - startValue
       - endValue
+      - firstCategory
+      - lastCategory
   sortOrder:
     type: string
     description: Sort order

@@ -1,11 +1,6 @@
 import { expect, it, describe } from "vitest"
 
-import {
-    ColumnTypeNames,
-    SortBy,
-    SortOrder,
-    SwimlaneSortBy,
-} from "@ourworldindata/types"
+import { ColumnTypeNames, SortBy, SortOrder } from "@ourworldindata/types"
 import { OwidTable } from "@ourworldindata/core-table"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
 import { SwimlaneChartState } from "./SwimlaneChartState"
@@ -159,7 +154,7 @@ describe("series", () => {
             table,
             selection: ["France", "Zimbabwe", "Albania"],
             yColumnSlugs: ["cause"],
-            swimlane: { sortBy: SwimlaneSortBy.custom },
+            sortConfig: { sortBy: SortBy.custom, sortOrder: SortOrder.asc },
         }
         const chartState = new SwimlaneChartState({ manager })
 
@@ -323,10 +318,10 @@ describe("lane order", () => {
         }
 
         const descOrder = new SwimlaneChartState({
-            manager: { ...manager, swimlane: { sortOrder: SortOrder.desc } },
+            manager: { ...manager, sortConfig: { sortOrder: SortOrder.desc } },
         }).series.map((series) => series.seriesName)
         const ascOrder = new SwimlaneChartState({
-            manager: { ...manager, swimlane: { sortOrder: SortOrder.asc } },
+            manager: { ...manager, sortConfig: { sortOrder: SortOrder.asc } },
         }).series.map((series) => series.seriesName)
 
         expect(descOrder).toEqual(["Long", "Short", "Bravo", "Alpha", "Empty"])
@@ -344,7 +339,7 @@ describe("lane order", () => {
             table,
             selection: ["A", "B"],
             yColumnSlugs: ["cause"],
-            swimlane: { sortBy: SwimlaneSortBy.firstCategory },
+            sortConfig: { sortBy: SortBy.firstCategory },
         }
         const chartState = new SwimlaneChartState({ manager })
 
@@ -365,7 +360,7 @@ describe("lane order", () => {
             table,
             selection: ["StartsHigh", "StartsLow"],
             yColumnSlugs: ["cause"],
-            swimlane: { sortBy: SwimlaneSortBy.firstCategory },
+            sortConfig: { sortBy: SortBy.firstCategory },
         }
 
         const descOrder = new SwimlaneChartState({
@@ -374,8 +369,8 @@ describe("lane order", () => {
         const ascOrder = new SwimlaneChartState({
             manager: {
                 ...manager,
-                swimlane: {
-                    sortBy: SwimlaneSortBy.firstCategory,
+                sortConfig: {
+                    sortBy: SortBy.firstCategory,
                     sortOrder: SortOrder.asc,
                 },
             },
@@ -395,7 +390,7 @@ describe("lane order", () => {
             table,
             selection: ["France", "Albania", "Zimbabwe"],
             yColumnSlugs: ["cause"],
-            swimlane: { sortBy: SwimlaneSortBy.entityName },
+            sortConfig: { sortBy: SortBy.entityName },
         }
         const chartState = new SwimlaneChartState({ manager })
 
@@ -416,7 +411,7 @@ describe("lane order", () => {
             table,
             selection: ["France", "Germany", "Japan"],
             yColumnSlugs: ["cause"],
-            swimlane: { sortOrder: SortOrder.asc },
+            sortConfig: { sortOrder: SortOrder.asc },
         }
         const chartState = new SwimlaneChartState({ manager })
 
@@ -454,7 +449,7 @@ describe("lane order", () => {
         const byFirstCategory = new SwimlaneChartState({
             manager: {
                 ...manager,
-                swimlane: { sortBy: SwimlaneSortBy.firstCategory },
+                sortConfig: { sortBy: SortBy.firstCategory },
             },
         })
         expect(
@@ -475,7 +470,7 @@ describe("lane order", () => {
                 table,
                 selection: ["Early", "Gappy"],
                 yColumnSlugs: ["cause"],
-                swimlane: { sortBy: SwimlaneSortBy.firstCategory },
+                sortConfig: { sortBy: SortBy.firstCategory },
             },
         })
 
@@ -489,33 +484,25 @@ describe("lane order", () => {
         ])
     })
 
-    it("is unaffected by the top-level sortConfig", () => {
+    it("falls back to lastCategory when the configured sort key is another chart type's", () => {
         const table = ordinalTable([
             { entityName: "France", time: 2000, cause: "ICD-7" },
             { entityName: "Germany", time: 2000, cause: "ICD-9" },
             { entityName: "Japan", time: 2000, cause: "ICD-10" },
         ])
-        const selection = ["France", "Germany", "Japan"]
-
-        const withoutTopLevelSort: SwimlaneChartManager = {
+        const manager: SwimlaneChartManager = {
             table,
-            selection,
+            selection: ["France", "Germany", "Japan"],
             yColumnSlugs: ["cause"],
+            sortConfig: { sortBy: SortBy.change },
         }
-        const withTopLevelSort: SwimlaneChartManager = {
-            table,
-            selection,
-            yColumnSlugs: ["cause"],
-            sortConfig: { sortBy: SortBy.total, sortOrder: SortOrder.asc },
-        }
+        const chartState = new SwimlaneChartState({ manager })
 
-        const orderWithout = new SwimlaneChartState({
-            manager: withoutTopLevelSort,
-        }).series.map((series) => series.seriesName)
-        const orderWith = new SwimlaneChartState({
-            manager: withTopLevelSort,
-        }).series.map((series) => series.seriesName)
-
-        expect(orderWith).toEqual(orderWithout)
+        expect(chartState.sortConfig.sortBy).toEqual(SortBy.lastCategory)
+        expect(chartState.series.map((series) => series.seriesName)).toEqual([
+            "Japan",
+            "Germany",
+            "France",
+        ])
     })
 })

@@ -342,7 +342,7 @@ export class DumbbellChartState implements ChartState {
     }
 
     @computed get availableSortKeys(): DumbbellSortKey[] {
-        const excluded =
+        const excluded: DumbbellSortKey[] =
             this.mode === DumbbellMode.TwoColumn
                 ? [SortBy.startValue, SortBy.endValue]
                 : [SortBy.column]
