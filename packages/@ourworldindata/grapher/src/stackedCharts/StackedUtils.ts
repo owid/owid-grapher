@@ -5,7 +5,6 @@ import {
     isArrayOfNumbers,
     omitUndefinedValues,
     AxisConfigInterface,
-    lastOfNonEmptyArray,
     Point,
 } from "@ourworldindata/utils"
 import {
@@ -15,12 +14,12 @@ import {
     StackedSeries,
     PlacedStackedBarSeries,
 } from "./StackedConstants"
-import { DualAxis } from "../axis/Axis"
+import { DualAxis, HorizontalAxis } from "../axis/Axis"
 import { Time } from "@ourworldindata/types"
 import { TimeColumn } from "@ourworldindata/core-table"
 import { StackedBarChartState } from "./StackedBarChartState.js"
 
-// This method shift up the Y Values of a Series with Points in place.
+/** Shifts up the y values of a Series with Points in place */
 export const stackSeries = <PositionType extends StackedPointPositionType>(
     seriesArr: readonly StackedSeries<PositionType>[]
 ): readonly StackedSeries<PositionType>[] => {
@@ -36,7 +35,10 @@ export const stackSeries = <PositionType extends StackedPointPositionType>(
     return seriesArr
 }
 
-// This method shifts up positive y values and shifts down negative y values of a Series with Points in place.
+/**
+ * Shifts up positive y values and shifts down negative y values of a Series
+ * with Points in place
+ */
 export const stackSeriesInBothDirections = <
     PositionType extends StackedPointPositionType,
 >(
@@ -146,102 +148,190 @@ export function getXAxisConfigDefaultsForStackedBar(
     return { hideGridlines: true, bandValues: chartState.xValues }
 }
 
-function placeStackedAreaPoint(
-    point: StackedPoint<number>,
-    dualAxis: DualAxis
-): Point {
-    const { horizontalAxis, verticalAxis } = dualAxis
-    return {
-        x: horizontalAxis.place(point.position),
-        y: verticalAxis.place(point.value + point.valueOffset),
-    }
+/** A stacked point placed on the x axis, before either edge is given a y */
+interface HorizontallyPlacedPoint {
+    x: number
+    point: StackedPoint<number>
 }
 
-// This places a whole series, but the points only represent the top of the area.
-// Later steps are necessary to display them as a filled area.
+function placeSeriesHorizontally(
+    series: StackedSeries<number>,
+    horizontalAxis: HorizontalAxis
+): HorizontallyPlacedPoint[] {
+    if (series.points.length === 0) return []
+
+    if (series.points.length > 1)
+        return series.points.map((point) => ({
+            x: horizontalAxis.place(point.position),
+            point,
+        }))
+
+    // We only have one point, so make it so it stretches out over the whole x axis range
+    // There are two cases here that we need to consider:
+    // (1) In unfaceted charts, the x domain will be a single year, so we need to ensure that the area stretches
+    //     out over the full range of the x axis.
+    // (2) In faceted charts, the x domain may span multiple years, so we need to ensure that the area stretches
+    //     out only over year - 0.5 to year + 0.5, additionally making sure we don't put points outside the x range.
+    //
+    // -@marcelgerber, 2023-04-24
+    const point = series.points[0]
+    const singleValueXDomain =
+        horizontalAxis.domain[0] === horizontalAxis.domain[1]
+
+    // Case (1)
+    if (singleValueXDomain)
+        return [
+            { x: horizontalAxis.range[0], point },
+            { x: horizontalAxis.range[1], point },
+        ]
+
+    // Case (2)
+    const leftX = Math.max(
+        horizontalAxis.place(point.position - 0.5),
+        horizontalAxis.range[0]
+    )
+    const rightX = Math.min(
+        horizontalAxis.place(point.position + 0.5),
+        horizontalAxis.range[1]
+    )
+    return [
+        { x: leftX, point },
+        { x: rightX, point },
+    ]
+}
+
+/** Places the bottom and top edges of a series' area */
 function placeStackedAreaSeries(
     series: StackedSeries<number>,
     dualAxis: DualAxis
-): Point[] {
-    const { horizontalAxis, verticalAxis } = dualAxis
+): { bottomEdge: Point[]; topEdge: Point[] } {
+    const placed = placeSeriesHorizontally(series, dualAxis.horizontalAxis)
+    if (placed.length === 0) return { bottomEdge: [], topEdge: [] }
 
-    if (series.points.length > 1) {
-        return series.points.map((point) =>
-            placeStackedAreaPoint(point, dualAxis)
-        )
-    } else if (series.points.length === 1) {
-        // We only have one point, so make it so it stretches out over the whole x axis range
-        // There are two cases here that we need to consider:
-        // (1) In unfaceted charts, the x domain will be a single year, so we need to ensure that the area stretches
-        //     out over the full range of the x axis.
-        // (2) In faceted charts, the x domain may span multiple years, so we need to ensure that the area stretches
-        //     out only over year - 0.5 to year + 0.5, additionally making sure we don't put points outside the x range.
-        //
-        // -@marcelgerber, 2023-04-24
-        const point = series.points[0]
-        const y = verticalAxis.place(point.value + point.valueOffset)
-        const singleValueXDomain =
-            horizontalAxis.domain[0] === horizontalAxis.domain[1]
+    const { verticalAxis } = dualAxis
+    const bottomEdge = placed.map(({ x, point }) => ({
+        x,
+        y: verticalAxis.place(point.valueOffset),
+    }))
+    const topEdge = placed.map(({ x, point }) => ({
+        x,
+        y: verticalAxis.place(point.value + point.valueOffset),
+    }))
 
-        if (singleValueXDomain) {
-            // Case (1)
-            return [
-                { x: horizontalAxis.range[0], y },
-                { x: horizontalAxis.range[1], y },
-            ]
-        } else {
-            // Case (2)
-            const leftX = Math.max(
-                horizontalAxis.place(point.position - 0.5),
-                horizontalAxis.range[0]
-            )
-            const rightX = Math.min(
-                horizontalAxis.place(point.position + 0.5),
-                horizontalAxis.range[1]
-            )
-
-            return [
-                { x: leftX, y },
-                { x: rightX, y },
-            ]
-        }
-    } else return []
+    return { bottomEdge: simplifyFlatEdge(bottomEdge), topEdge }
 }
 
-/** Calculates the polygon points for a filled area polygon */
-function makeStackedAreaPolygon(
-    placedPoints: Point[],
-    prevPlacedPoints: Point[] | undefined,
-    dualAxis: DualAxis
-): Point[] {
-    const baselineY = dualAxis.verticalAxis.range[0]
-    const prevPoints: Point[] = prevPlacedPoints ?? [
-        { x: placedPoints[0].x, y: baselineY }, // left baseline point
-        { x: lastOfNonEmptyArray(placedPoints).x, y: baselineY }, // right baseline point
-    ]
-    return [...placedPoints, ...prevPoints.toReversed()]
+function simplifyFlatEdge(edge: Point[]): Point[] {
+    if (edge.length < 3) return edge
+    const [first] = edge
+    return edge.every(({ y }) => y === first.y)
+        ? [first, edge[edge.length - 1]]
+        : edge
+}
+
+/** Whether the only series holding negative values is the bottom one that gets drawn */
+export function hasLoneNegativeSeriesAtBottom<
+    PositionType extends StackedPointPositionType,
+>(seriesArr: readonly StackedSeries<PositionType>[]): boolean {
+    const bottomIndex = seriesArr.findIndex((series) => !series.isAllZeros)
+    if (bottomIndex === -1 || !hasNegativeValue(seriesArr[bottomIndex]))
+        return false
+    return !seriesArr.slice(bottomIndex + 1).some(hasNegativeValue)
+}
+
+function hasNegativeValue<PositionType extends StackedPointPositionType>(
+    series: StackedSeries<PositionType>
+): boolean {
+    return series.points.some((point) => point.value < 0)
+}
+
+function isCrossingZeroLine(
+    before: StackedPoint<Time>,
+    after: StackedPoint<Time>
+): boolean {
+    return (
+        (before.value < 0 && after.value > 0) ||
+        (before.value > 0 && after.value < 0)
+    )
+}
+
+/** The x values at which a series passes through the zero line */
+function findZeroLineCrossings(points: StackedPoint<Time>[]): Time[] {
+    return R.zip(points, points.slice(1))
+        .filter(([before, after]) => isCrossingZeroLine(before, after))
+        .map(([before, after]) => {
+            const fractionOfInterval =
+                before.value / (before.value - after.value)
+            return (
+                before.position +
+                fractionOfInterval * (after.position - before.position)
+            )
+        })
+}
+
+/** Copies one series' points, interpolating its own value at each crossing */
+function copyWithZeroLineCrossingPoints(
+    points: StackedPoint<Time>[],
+    crossingPositions: Time[]
+): StackedPoint<Time>[] {
+    const pointsWithCrossings: StackedPoint<Time>[] = []
+    for (let index = 0; index < points.length; index++) {
+        const point = points[index]
+        pointsWithCrossings.push({ ...point })
+
+        const next = points[index + 1]
+        if (!next) continue
+        const position = crossingPositions.find(
+            (position) => position > point.position && position < next.position
+        )
+        if (position === undefined) continue
+
+        const fractionOfInterval =
+            (position - point.position) / (next.position - point.position)
+        pointsWithCrossings.push({
+            position,
+            time: position,
+            value:
+                point.value + fractionOfInterval * (next.value - point.value),
+            valueOffset: 0,
+        })
+    }
+    return pointsWithCrossings
+}
+
+/** Copies the series with a point added wherever the bottom one passes through zero */
+export function withPointsAtZeroLineCrossings(
+    series: readonly StackedSeries<Time>[]
+): readonly StackedSeries<Time>[] {
+    // Widening this to charts with several negative series makes them worse
+    if (series.length < 2 || !hasLoneNegativeSeriesAtBottom(series))
+        return series
+
+    const crossings = findZeroLineCrossings(series[0].points)
+    if (crossings.length === 0) return series
+
+    return stackSeriesInBothDirections(
+        series.map((s) => ({
+            ...s,
+            points: copyWithZeroLineCrossingPoints(s.points, crossings),
+        }))
+    )
 }
 
 export function toPlacedStackedAreaSeries(
     series: readonly StackedSeries<Time>[],
     dualAxis: DualAxis
 ): PlacedStackedAreaSeries<Time>[] {
-    const validSeries = series.filter((series) => !series.isAllZeros)
-    const placedSeries: PlacedStackedAreaSeries<Time>[] = []
-
-    for (let index = 0; index < validSeries.length; index++) {
-        const series = validSeries[index]
-        const placedPoints = placeStackedAreaSeries(series, dualAxis)
-        const prevPlacedPoints = placedSeries[index - 1]?.placedPoints
-        const areaPoints = makeStackedAreaPolygon(
-            placedPoints,
-            prevPlacedPoints,
-            dualAxis
-        )
-        placedSeries.push({ ...series, placedPoints, areaPoints })
-    }
-
-    return placedSeries
+    return withPointsAtZeroLineCrossings(
+        series.filter((series) => !series.isAllZeros)
+    ).map((series) => {
+        const { bottomEdge, topEdge } = placeStackedAreaSeries(series, dualAxis)
+        return {
+            ...series,
+            placedPoints: topEdge,
+            areaPoints: [...topEdge, ...bottomEdge.toReversed()],
+        }
+    })
 }
 
 export function toPlacedStackedBarSeries(
