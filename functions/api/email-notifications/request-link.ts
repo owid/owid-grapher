@@ -116,8 +116,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
                 EMAIL_NOTIFICATIONS_MAGIC_LINK_TTL_MS
             )
             const siteBaseUrl =
-                env.EMAIL_NOTIFICATIONS_SITE_BASE_URL ||
-                new URL(request.url).origin
+                env.BAKED_BASE_URL || new URL(request.url).origin
             await sendMagicLinkEmail(env, siteBaseUrl, {
                 userId: user.id,
                 to: user.email,
@@ -134,7 +133,12 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
             })
         )
     } catch (error) {
-        if (isJson) return handleJsonError(error)
+        if (isJson) {
+            return handleJsonError(
+                error,
+                "Failed to request an email notification preferences link"
+            )
+        }
         throw error
     }
 }
