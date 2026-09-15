@@ -3090,7 +3090,7 @@ export class GrapherState
     }
 
     @computed get supportsMultipleYColumns(): boolean {
-        return !this.isScatter && !this.isMarimekko
+        return !this.isScatter && !this.isMarimekko && !this.isSwimlane
     }
 
     /** Time scatters plot time on the x-axis */
