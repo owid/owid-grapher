@@ -18,7 +18,7 @@ import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
 } from "../core/GrapherConstants"
-import { scaleFontSize } from "../chart/ChartUtils"
+import { roundForSvg, scaleFontSize } from "../chart/ChartUtils"
 import { DualAxisComponent } from "../axis/AxisViews"
 import { NoDataMessage } from "../noDataMessage/NoDataMessage"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig"
@@ -637,7 +637,11 @@ export class MarimekkoChart
                         key={`labelline-${label.entityName}`}
                     >
                         <path
-                            d={`M${label.preferredX},${markerBarEndpointY} v${markerYMid} H${label.correctedX} V${markerTextEndpointY}`}
+                            d={`M${roundForSvg(label.preferredX)},${roundForSvg(
+                                markerBarEndpointY
+                            )} v${roundForSvg(markerYMid)} H${roundForSvg(
+                                label.correctedX
+                            )} V${roundForSvg(markerTextEndpointY)}`}
                             stroke={label.isSelected ? "#999" : "#bbb"}
                             strokeWidth={1}
                             fill="none"
@@ -656,7 +660,9 @@ export class MarimekkoChart
                     key={`labelline-${label.entityName}`}
                 >
                     <path
-                        d={`M${label.preferredX},${markerBarEndpointY} V${markerTextEndpointY}`}
+                        d={`M${roundForSvg(label.preferredX)},${roundForSvg(
+                            markerBarEndpointY
+                        )} V${roundForSvg(markerTextEndpointY)}`}
                         stroke={label.isSelected ? "#555" : "#bbb"}
                         strokeWidth={1}
                         fill="none"
@@ -673,7 +679,9 @@ export class MarimekkoChart
             <g
                 key={`label-${label.entityName}`}
                 id={makeFigmaId("label", label.entityName)}
-                transform={`translate(${label.correctedX}, ${labelsY})`}
+                transform={`translate(${roundForSvg(label.correctedX)}, ${roundForSvg(
+                    labelsY
+                )})`}
             >
                 <text
                     y={0}

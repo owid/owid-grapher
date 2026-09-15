@@ -9,6 +9,7 @@ import {
     resolveLegendTextStyle,
 } from "./LegendStyleConfig"
 import { VerticalColorLegendState } from "./VerticalColorLegendState"
+import { roundForSvg } from "../chart/ChartUtils"
 
 interface VerticalColorLegendProps {
     state: VerticalColorLegendState
@@ -77,10 +78,10 @@ export function VerticalColorLegend(
                         <rect
                             id={makeFigmaId(series.textWrap.text)}
                             key={series.textWrap.text}
-                            x={x + series.swatch.x}
-                            y={y + series.swatch.y}
-                            width={series.swatch.width}
-                            height={series.swatch.height}
+                            x={roundForSvg(x + series.swatch.x)}
+                            y={roundForSvg(y + series.swatch.y)}
+                            width={roundForSvg(series.swatch.width)}
+                            height={roundForSvg(series.swatch.height)}
                             style={style}
                         />
                     )
@@ -110,10 +111,10 @@ export function VerticalColorLegend(
                                 style={{ cursor }}
                             >
                                 <rect
-                                    x={x + series.hitArea.x}
-                                    y={y + series.hitArea.y}
-                                    width={series.hitArea.width}
-                                    height={series.hitArea.height}
+                                    x={roundForSvg(x + series.hitArea.x)}
+                                    y={roundForSvg(y + series.hitArea.y)}
+                                    width={roundForSvg(series.hitArea.width)}
+                                    height={roundForSvg(series.hitArea.height)}
                                     fill="#fff"
                                     fillOpacity={0}
                                 />

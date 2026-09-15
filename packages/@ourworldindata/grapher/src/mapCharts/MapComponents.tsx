@@ -23,6 +23,7 @@ import { Halo } from "@ourworldindata/components"
 import { InteractionState } from "../interaction/InteractionState"
 
 import * as R from "remeda"
+import { roundForSvg } from "../chart/ChartUtils"
 
 export function BackgroundCountry<Feature extends RenderFeature>({
     feature,
@@ -220,8 +221,8 @@ function DottedProjectedDataPattern({
         <pattern
             id={patternId}
             patternUnits="userSpaceOnUse"
-            width={patternSize}
-            height={patternSize}
+            width={roundForSvg(patternSize)}
+            height={roundForSvg(patternSize)}
             patternTransform={`rotate(45) scale(${roundedScale})`}
         >
             {/* colored background */}
@@ -229,9 +230,9 @@ function DottedProjectedDataPattern({
 
             {/* dots */}
             <circle
-                cx={patternSize / 2}
-                cy={patternSize / 2}
-                r={dotSize}
+                cx={roundForSvg(patternSize / 2)}
+                cy={roundForSvg(patternSize / 2)}
+                r={roundForSvg(dotSize)}
                 fill="black"
                 fillOpacity={opacity}
             />
@@ -257,8 +258,10 @@ export function InternalValueAnnotation({
         <Halo id={id} outlineWidth={3} show={showHalo}>
             <text
                 id={makeFigmaId(id)}
-                x={placedBounds.topLeft.x}
-                y={placedBounds.topLeft.y + placedBounds.height - 1}
+                x={roundForSvg(placedBounds.topLeft.x)}
+                y={roundForSvg(
+                    placedBounds.topLeft.y + placedBounds.height - 1
+                )}
                 fontSize={fontSize}
                 fontWeight={700}
                 fill={color}
@@ -304,8 +307,8 @@ export function ExternalValueAnnotation({
                 style={{ pointerEvents: "none" }}
             />
             <text
-                x={placedBounds.x}
-                y={placedBounds.y + placedBounds.height - 1}
+                x={roundForSvg(placedBounds.x)}
+                y={roundForSvg(placedBounds.y + placedBounds.height - 1)}
                 fontSize={fontSize}
                 strokeWidth={textStrokeWidth}
                 fill={annotation.color}

@@ -54,7 +54,7 @@ export function StackedDiscreteBarRow({
     return (
         <g
             id={makeFigmaId(entityName)}
-            transform={`translate(0, ${y})`}
+            transform={`translate(0, ${roundForSvg(y)})`}
             opacity={1}
         >
             {segments.map((segment) => (
@@ -81,9 +81,9 @@ export function StackedDiscreteBarRow({
             />
             {showTotalValueLabel && (
                 <text
-                    transform={`translate(${
+                    transform={`translate(${roundForSvg(
                         yAxis.place(lastValue) + labelToBarPadding
-                    }, 0)`}
+                    )}, 0)`}
                     dy={dyFromAlign(VerticalAlign.middle)}
                     opacity={labelStyle.opacity}
                     fill="#555"
@@ -147,10 +147,10 @@ function StackedDiscreteBar({
             />
             {canShowLabel && (
                 <text
-                    x={segment.x + segment.barWidth / 2}
+                    x={roundForSvg(segment.x + segment.barWidth / 2)}
                     y={0}
-                    width={segment.barWidth}
-                    height={barHeight}
+                    width={roundForSvg(segment.barWidth)}
+                    height={roundForSvg(barHeight)}
                     fill={labelColor}
                     opacity={labelOpacity}
                     fontSize={labelFontSize}

@@ -403,7 +403,9 @@ export class DiscreteBarChart
                 key={`value-label-${series.seriesName}`}
                 x={0}
                 y={0}
-                transform={`translate(${series.valueLabelX}, ${y})`}
+                transform={`translate(${roundForSvg(series.valueLabelX)}, ${roundForSvg(
+                    y
+                )})`}
                 fill={GRAPHER_DARK_TEXT}
                 dy={dyFromAlign(VerticalAlign.middle)}
                 textAnchor={series.value < 0 ? "end" : "start"}

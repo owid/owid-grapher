@@ -12,6 +12,7 @@ import {
     VerticalComparisonLineLabelPlacement,
 } from "@ourworldindata/types"
 import { ComparisonLines } from "./ComparisonLines"
+import { roundForSvg } from "../chart/ChartUtils"
 
 @observer
 export class VerticalComparisonLine extends React.Component<
@@ -92,8 +93,8 @@ export class VerticalComparisonLine extends React.Component<
         return (
             <text
                 {...COMPARISON_LINE_LABEL_STYLE}
-                x={x}
-                y={y}
+                x={roundForSvg(x)}
+                y={roundForSvg(y)}
                 fontSize={this.fontSize}
                 dy={dyFromAlign(VerticalAlign.bottom)}
                 textAnchor={anchor}

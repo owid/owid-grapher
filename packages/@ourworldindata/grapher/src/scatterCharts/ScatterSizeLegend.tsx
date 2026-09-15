@@ -5,7 +5,7 @@ import { scaleLinear, ScaleLinear } from "d3-scale"
 import { TextWrap, TextWrapSvg, Halo } from "@ourworldindata/components"
 import { makeFigmaId, OwidVariableRoundingMode } from "@ourworldindata/utils"
 import { BASE_FONT_SIZE } from "../core/GrapherConstants"
-import { roundFontSize, scaleFontSize } from "../chart/ChartUtils"
+import { roundFontSize, roundForSvg, scaleFontSize } from "../chart/ChartUtils"
 import { CoreColumn } from "@ourworldindata/core-table"
 import {
     ScatterSeries,
@@ -278,9 +278,9 @@ const LegendItem = ({
     return (
         <g>
             <circle
-                cx={cx}
-                cy={cy}
-                r={circleRadius}
+                cx={roundForSvg(cx)}
+                cy={roundForSvg(cy)}
+                r={roundForSvg(circleRadius)}
                 fill={circleFill}
                 stroke={circleStroke}
                 strokeWidth={circleStrokeWidth}
@@ -288,8 +288,8 @@ const LegendItem = ({
             />
             <Halo id={label} fontSize={labelFontSize}>
                 <text
-                    x={cx}
-                    y={cy - circleRadius}
+                    x={roundForSvg(cx)}
+                    y={roundForSvg(cy - circleRadius)}
                     dy={outsideLabel ? "-.32em" : ".47em"}
                     fill={labelFill}
                     fontSize={labelFontSize}

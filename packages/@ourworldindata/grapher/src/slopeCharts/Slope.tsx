@@ -70,16 +70,16 @@ function LineWithDots({
         <g id={id} opacity={opacity} className="slope">
             <circle
                 id={makeFigmaId("start-point")}
-                cx={startPoint.x}
-                cy={startPoint.y}
-                r={radius}
+                cx={roundForSvg(startPoint.x)}
+                cy={roundForSvg(startPoint.y)}
+                r={roundForSvg(radius)}
                 fill={color}
             />
             <circle
                 id={makeFigmaId("end-point")}
-                cx={endPoint.x}
-                cy={endPoint.y}
-                r={radius}
+                cx={roundForSvg(endPoint.x)}
+                cy={roundForSvg(endPoint.y)}
+                r={roundForSvg(radius)}
                 fill={color}
             />
             <line

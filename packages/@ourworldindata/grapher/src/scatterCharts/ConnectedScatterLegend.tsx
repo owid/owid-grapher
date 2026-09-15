@@ -3,7 +3,7 @@ import { computed, makeObservable } from "mobx"
 import { Triangle } from "./Triangle"
 import { TextWrap, TextWrapSvg } from "@ourworldindata/components"
 import { BASE_FONT_SIZE } from "../core/GrapherConstants"
-import { scaleFontSize } from "../chart/ChartUtils"
+import { roundForSvg, scaleFontSize } from "../chart/ChartUtils"
 import { makeFigmaId } from "@ourworldindata/utils"
 import * as _ from "lodash-es"
 import { GRAPHER_DARK_TEXT, GRAY_70 } from "../color/ColorConstants.js"
@@ -102,10 +102,10 @@ export class ConnectedScatterLegend {
                 {...renderOptions}
             >
                 <rect
-                    x={targetX}
-                    y={targetY}
-                    width={this.width}
-                    height={this.height}
+                    x={roundForSvg(targetX)}
+                    y={roundForSvg(targetY)}
+                    width={roundForSvg(this.width)}
+                    height={roundForSvg(this.height)}
                     fill="#fff"
                     opacity={0}
                 />
@@ -130,9 +130,9 @@ export class ConnectedScatterLegend {
                     strokeWidth={1}
                 />
                 <circle
-                    cx={lineLeft}
-                    cy={lineY}
-                    r={this.dotRadius}
+                    cx={roundForSvg(lineLeft)}
+                    cy={roundForSvg(lineY)}
+                    r={roundForSvg(this.dotRadius)}
                     fill={this.arrowColor}
                     stroke={this.outlineColor}
                     strokeWidth={this.outlineWidth}
@@ -140,17 +140,21 @@ export class ConnectedScatterLegend {
                 {!this.manager.compareEndPointsOnly && (
                     <React.Fragment>
                         <circle
-                            cx={lineLeft + (lineRight - lineLeft) / 3}
-                            cy={lineY}
-                            r={this.dotRadius}
+                            cx={roundForSvg(
+                                lineLeft + (lineRight - lineLeft) / 3
+                            )}
+                            cy={roundForSvg(lineY)}
+                            r={roundForSvg(this.dotRadius)}
                             fill={this.arrowColor}
                             stroke={this.outlineColor}
                             strokeWidth={this.outlineWidth}
                         />
                         <circle
-                            cx={lineLeft + (2 * (lineRight - lineLeft)) / 3}
-                            cy={lineY}
-                            r={this.dotRadius}
+                            cx={roundForSvg(
+                                lineLeft + (2 * (lineRight - lineLeft)) / 3
+                            )}
+                            cy={roundForSvg(lineY)}
+                            r={roundForSvg(this.dotRadius)}
                             fill={this.arrowColor}
                             stroke={this.outlineColor}
                             strokeWidth={this.outlineWidth}

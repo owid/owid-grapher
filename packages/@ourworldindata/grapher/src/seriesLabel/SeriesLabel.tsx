@@ -19,6 +19,7 @@ import { Bounds, isTouchDevice } from "@ourworldindata/utils"
 import { Halo } from "@ourworldindata/components"
 import { RegionTooltip } from "./RegionTooltip.js"
 import { getDescriptionForKey, getRegionsForKey } from "./RegionTooltipData.js"
+import { roundForSvg } from "../chart/ChartUtils"
 
 const defaultColors: Record<TextRole, string> = {
     name: GRAPHER_DARK_TEXT,
@@ -65,7 +66,7 @@ export function SeriesLabel({
     // Get the corrected position for SVG text rendering
     const [renderX, renderY] = state.getPositionForSvgRendering(x, y)
 
-    const fontSize = state.fontSettings.fontSize.toFixed(2)
+    const fontSize = state.fontSettings.fontSize
     const colors = { ...defaultColors, ...color }
     const props = { id, opacity, onMouseEnter, onMouseLeave }
 
@@ -153,7 +154,7 @@ function NativeAlignedLabelText({
     y: number
     spanLines: SpanLine[]
     textAnchor: "start" | "end"
-    fontSize: string
+    fontSize: number
     lineHeight: number
     colors: Record<TextRole, string>
     id?: string
@@ -166,8 +167,8 @@ function NativeAlignedLabelText({
         <text
             id={id}
             style={style}
-            x={x.toFixed(1)}
-            y={y.toFixed(1)}
+            x={roundForSvg(x)}
+            y={roundForSvg(y)}
             textAnchor={textAnchor}
             fontSize={fontSize}
             opacity={opacity}
@@ -179,10 +180,10 @@ function NativeAlignedLabelText({
                     const isFirstLine = lineIndex === 0
                     const isLineStart = spanIndex === 0
 
-                    const renderX = isLineStart ? x.toFixed(1) : undefined
+                    const renderX = isLineStart ? roundForSvg(x) : undefined
                     const renderY =
                         isLineStart && !isFirstLine
-                            ? lineHeight.toFixed(1)
+                            ? roundForSvg(lineHeight)
                             : undefined
 
                     return (
@@ -217,7 +218,7 @@ function LabelText({
     x: number
     y: number
     fragments: PositionedTextFragment[]
-    fontSize: string
+    fontSize: number
     colors: Record<TextRole, string>
     id?: string
     opacity?: number
@@ -279,7 +280,7 @@ function TextFragment({
     x: number
     y: number
     fragment: PositionedTextFragment
-    fontSize: string
+    fontSize: number
     fill: string
     id?: string
     opacity?: number
@@ -314,8 +315,8 @@ function TextSpanFragment({
 }): React.ReactElement {
     return (
         <tspan
-            x={(x + fragment.x).toFixed(1)}
-            y={(y + fragment.y).toFixed(1)}
+            x={roundForSvg(x + fragment.x)}
+            y={roundForSvg(y + fragment.y)}
             fontWeight={fragment.fontWeight}
             fill={fill}
         >
@@ -361,7 +362,9 @@ function IconFragment({
     return (
         <g>
             {/* Info icon */}
-            <g transform={`translate(${iconX}, ${iconY})`}>
+            <g
+                transform={`translate(${roundForSvg(iconX)}, ${roundForSvg(iconY)})`}
+            >
                 <FontAwesomeIcon
                     icon={faCircleInfo}
                     width={fragment.iconSize}

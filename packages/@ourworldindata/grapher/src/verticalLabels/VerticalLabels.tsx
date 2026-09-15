@@ -9,6 +9,7 @@ import { getSeriesKey } from "./VerticalLabelsHelpers"
 import { PlacedLabelSeries, RenderLabelSeries } from "./VerticalLabelsTypes"
 import { VerticalLabelsState } from "./VerticalLabelsState"
 import { Emphasis } from "../interaction/Emphasis.js"
+import { roundForSvg } from "../chart/ChartUtils"
 
 /**
  * Series labels stacked vertically, with connector lines,
@@ -32,7 +33,10 @@ export function VerticalLabels({
     const { renderSeries, annotatedSeries, textAnchor } = state
 
     return (
-        <g id={makeFigmaId("vertical-labels")} transform={`translate(${x}, 0)`}>
+        <g
+            id={makeFigmaId("vertical-labels")}
+            transform={`translate(${roundForSvg(x)}, 0)`}
+        >
             {interactive && (
                 <InteractionOverlays
                     series={state.placedSeries}

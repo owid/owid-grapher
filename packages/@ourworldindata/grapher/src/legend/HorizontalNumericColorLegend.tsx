@@ -26,6 +26,7 @@ import {
     DEFAULT_NUMERIC_BIN_STROKE_WIDTH,
     DEFAULT_TEXT_COLOR,
 } from "./HorizontalColorLegendConstants"
+import { roundForSvg } from "../chart/ChartUtils"
 
 export function HorizontalNumericColorLegend(
     props: HorizontalColorLegendProps<HorizontalNumericColorLegendState>
@@ -182,8 +183,8 @@ export function HorizontalNumericColorLegend(
                     return (
                         <text
                             key={index}
-                            x={x + label.bounds.x}
-                            y={bottomY + label.bounds.y}
+                            x={roundForSvg(x + label.bounds.x)}
+                            y={roundForSvg(bottomY + label.bounds.y)}
                             // we can't use dominant-baseline to do proper alignment since our svg-to-png library Sharp
                             // doesn't support that (https://github.com/lovell/sharp/issues/1996), so we'll have to make
                             // do with some rough positioning.
@@ -201,10 +202,10 @@ export function HorizontalNumericColorLegend(
                     {positionedBins.map((positionedBin, index) => (
                         <rect
                             key={index}
-                            x={x + positionedBin.x}
-                            y={y}
-                            width={positionedBin.width}
-                            height={labelStripHeight}
+                            x={roundForSvg(x + positionedBin.x)}
+                            y={roundForSvg(y)}
+                            width={roundForSvg(positionedBin.width)}
+                            height={roundForSvg(labelStripHeight)}
                             fill="transparent"
                             pointerEvents="all"
                             onPointerUp={onPointerUp(positionedBin.bin)}

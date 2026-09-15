@@ -417,7 +417,7 @@ export class VerticalAxisComponent extends React.Component<VerticalAxisComponent
                                 <text
                                     key={value}
                                     x={roundForSvg(tickX)}
-                                    y={y}
+                                    y={roundForSvg(y)}
                                     dy={dyFromAlign(
                                         yAlign ?? VerticalAlign.middle
                                     )}
@@ -573,8 +573,8 @@ export class HorizontalAxisComponent extends React.Component<{
                         {visibleTickLabels.map((label) => (
                             <text
                                 key={label.value}
-                                x={label.x}
-                                y={tickLabelYPlacement}
+                                x={roundForSvg(label.x)}
+                                y={roundForSvg(tickLabelYPlacement)}
                                 fill={tickColor || GRAPHER_DARK_TEXT}
                                 textAnchor={textAnchorFromAlign(
                                     label.xAlign ?? HorizontalAlign.center

@@ -16,6 +16,7 @@ import { toLeftRight } from "./DumbbellChartHelpers"
 import { GRID_LINE_DASH_PATTERN, TICK_COLOR } from "../axis/AxisViews.js"
 import { darkenColorForText } from "../color/ColorUtils.js"
 import { GRAPHER_DARK_TEXT } from "../color/ColorConstants.js"
+import { roundForSvg } from "../chart/ChartUtils"
 
 export function DumbbellChartRow({
     series,
@@ -43,7 +44,7 @@ export function DumbbellChartRow({
     return (
         <g
             id={makeFigmaId(series.seriesName)}
-            transform={`translate(0, ${y})`}
+            transform={`translate(0, ${roundForSvg(y)})`}
             opacity={style.opacity}
             style={{ pointerEvents: "none" }}
         >
@@ -130,7 +131,7 @@ function DumbbellValueLabel({
             fontSize={style.fontSize}
         >
             <text
-                x={x}
+                x={roundForSvg(x)}
                 fill={darkenColorForText(head.color)}
                 dy={dyFromAlign(VerticalAlign.middle)}
                 textAnchor={side === "left" ? "end" : "start"}

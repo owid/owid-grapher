@@ -45,7 +45,7 @@ import {
 } from "../controls/controlsRow/ControlsRow"
 import { GRAPHER_BACKGROUND } from "../color/ColorConstants.js"
 import { ChartAreaContent } from "../chart/ChartAreaContent"
-import { getChartSvgProps } from "../chart/ChartUtils"
+import { getChartSvgProps, roundForSvg } from "../chart/ChartUtils"
 import { StaticChartWrapper } from "../chart/StaticChartWrapper"
 
 export interface CaptionedChartManager
@@ -454,10 +454,10 @@ export class StaticCaptionedChart extends AbstractCaptionedChart {
                 ></line>
                 <g
                     id={makeFigmaId("details")}
-                    transform={`translate(15, ${
+                    transform={`translate(15, ${roundForSvg(
                         // + padding below the grey line
                         this.bounds.height + this.framePaddingVertical
-                    })`}
+                    )})`}
                 >
                     {this.manager.detailRenderers.map((detail, i) => {
                         previousOffset = yOffset
