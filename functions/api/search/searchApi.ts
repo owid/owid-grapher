@@ -5,12 +5,14 @@ import {
     ChartRecordType,
     SearchChartHit,
     OwidGdocType,
+    TagGraphRoot,
 } from "@ourworldindata/types"
 import { getCanonicalUrl } from "@ourworldindata/components"
 import {
     getFilterNamesOfType,
     buildChartsFacetFilters,
     searchSingleForHitsWithClosestMatches,
+    searchTopicPagesOfMatchingCharts,
     MAX_FACET_VALUES,
 } from "@ourworldindata/utils"
 import {
@@ -280,8 +282,86 @@ export async function searchPages(
         }
     )
 
-    // Clean up the hits and add URL
-    const cleanedHits = result.hits.map((hit): EnrichedSearchPageHit => {
+    return {
+        query,
+        results: enrichPageHits(result.hits, baseUrl),
+        nbHits: result.nbHits ?? 0,
+        offset,
+        length,
+        ...(result.closestMatches && { closestMatches: true as const }),
+    }
+}
+
+/**
+ * Topic pages for a query, derived from the charts matching it rather than
+ * from the topic pages' own text, exactly as the site's search page does
+ * (see searchTopicPagesOfMatchingCharts). Country and topic filters apply to
+ * the chart search. Falls back to searchPages when no chart matches, so a
+ * query that only matches prose (an author's name, say) still finds pages.
+ */
+export async function searchTopicPages(
+    config: AlgoliaConfig,
+    state: SearchState,
+    tagGraph: TagGraphRoot,
+    offset: number = 0,
+    length: number = 10,
+    pageTypes: OwidGdocType[] = [
+        OwidGdocType.TopicPage,
+        OwidGdocType.LinearTopicPage,
+    ],
+    baseUrl: string = "https://ourworldindata.org"
+): Promise<SearchPagesApiResponse> {
+    const client = createSearchClient(config)
+
+    const result = await searchTopicPagesOfMatchingCharts<SearchPageHit>(
+        client,
+        {
+            chartsIndexName: getIndexName(
+                SearchIndexName.ExplorerViewsMdimViewsAndCharts,
+                config.indexPrefix
+            ),
+            pagesIndexName: getIndexName(
+                SearchIndexName.Pages,
+                config.indexPrefix
+            ),
+            query: state.query,
+            chartsFacetFilters: buildChartsFacetFilters({
+                query: state.query,
+                filters: state.filters,
+                requireAllCountries: state.requireAllCountries,
+            }),
+            tagGraph,
+            pageTypes,
+            attributesToRetrieve: PAGE_ATTRIBUTES,
+            offset,
+            length,
+        }
+    )
+    if (!result)
+        return searchPages(
+            config,
+            state.query,
+            offset,
+            length,
+            pageTypes,
+            baseUrl
+        )
+
+    return {
+        query: state.query,
+        results: enrichPageHits(result.hits, baseUrl),
+        nbHits: result.nbHits ?? 0,
+        offset,
+        length,
+    }
+}
+
+/** Strips Algolia's internal attributes from page hits and adds the page URL. */
+function enrichPageHits(
+    hits: SearchPageHit[],
+    baseUrl: string
+): EnrichedSearchPageHit[] {
+    return hits.map((hit): EnrichedSearchPageHit => {
         const {
             _highlightResult,
             _snippetResult,
@@ -305,13 +385,4 @@ export async function searchPages(
             url,
         }
     })
-
-    return {
-        query,
-        results: cleanedHits,
-        nbHits: result.nbHits ?? 0,
-        offset,
-        length,
-        ...(result.closestMatches && { closestMatches: true as const }),
-    }
 }
