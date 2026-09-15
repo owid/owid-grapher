@@ -4,7 +4,8 @@ import {
     MarimekkoNoDataArea,
     RenderMarimekkoSeries,
 } from "./MarimekkoChartConstants"
-import { GRAPHER_FONT_SCALE_12, Patterns } from "../core/GrapherConstants"
+import { Patterns } from "../core/GrapherConstants"
+import { scaleFontSize } from "../chart/ChartUtils"
 
 const PLACEHOLDER_COLOR = "#555"
 
@@ -53,7 +54,7 @@ export function MarimekkoBars({
                     transform={`translate(${noDataArea.labelX}, ${noDataArea.labelY}) rotate(-90)`}
                     fontWeight={700}
                     fill="#666"
-                    fontSize={GRAPHER_FONT_SCALE_12 * fontSize}
+                    fontSize={scaleFontSize(12, fontSize)}
                     textAnchor="middle"
                     dy={dyFromAlign(VerticalAlign.middle)}
                     style={{ pointerEvents: "none" }}

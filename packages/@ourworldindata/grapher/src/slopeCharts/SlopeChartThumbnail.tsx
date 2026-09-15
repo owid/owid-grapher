@@ -22,9 +22,9 @@ import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
-    GRAPHER_FONT_SCALE_12,
     FontSettings,
 } from "../core/GrapherConstants"
+import { scaleFontSize } from "../chart/ChartUtils"
 import { Bounds, SeriesName } from "@ourworldindata/utils"
 import { HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import { Slope } from "./Slope"
@@ -207,7 +207,7 @@ export class SlopeChartThumbnail
 
     @computed private get labelFontSettings(): FontSettings {
         return {
-            fontSize: Math.floor(GRAPHER_FONT_SCALE_12 * this.fontSize),
+            fontSize: scaleFontSize(11.5, this.fontSize),
             fontWeight: 500,
             lineHeight: 1,
         }

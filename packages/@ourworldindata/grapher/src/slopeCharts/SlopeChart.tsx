@@ -19,8 +19,6 @@ import { NoDataMessage } from "../noDataMessage/NoDataMessage"
 import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
-    GRAPHER_FONT_SCALE_11,
-    GRAPHER_FONT_SCALE_12,
 } from "../core/GrapherConstants"
 import {
     SeriesName,
@@ -41,7 +39,7 @@ import {
     SlopeChartManager,
 } from "./SlopeChartConstants"
 import { CoreColumn } from "@ourworldindata/core-table"
-import { getHoverStateForSeries } from "../chart/ChartUtils"
+import { getHoverStateForSeries, scaleFontSize } from "../chart/ChartUtils"
 import { HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import { VerticalAxisZeroLine } from "../axis/AxisViews"
 import { NoDataSection } from "../scatterCharts/NoDataSection"
@@ -254,9 +252,7 @@ export class SlopeChart
 
     @computed private get xAxisHeight(): number {
         if (this.xAxisConfig.hideTickLabels) return 0
-        const axisTickFontSize = Math.floor(
-            GRAPHER_FONT_SCALE_12 * this.fontSize
-        )
+        const axisTickFontSize = scaleFontSize(11.5, this.fontSize)
         return axisTickFontSize + TIME_LABEL_PADDING
     }
 
@@ -631,7 +627,7 @@ export class SlopeChart
     }
 
     @computed private get zeroLineLabelFontSize(): number {
-        return GRAPHER_FONT_SCALE_12 * this.fontSize
+        return scaleFontSize(12, this.fontSize)
     }
 
     @computed private get shouldShowZeroLine(): boolean {
@@ -1028,7 +1024,7 @@ export class SlopeChart
         // are hidden (e.g. for inner facets), hide the notice as well
         if (this.xAxis.config.hideTickLabels) return null
 
-        const fontSize = GRAPHER_FONT_SCALE_11 * this.fontSize
+        const fontSize = scaleFontSize(11, this.fontSize)
 
         const longText = "plotted on a logarithmic axis"
         const shortText = "log axis"
