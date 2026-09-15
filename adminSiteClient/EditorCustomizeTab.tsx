@@ -250,7 +250,7 @@ class SortOrderSection extends React.Component<{ editor: ConfigEditor }> {
     }
 
     @computed get sortConfig(): SortConfig {
-        return this.grapherState._sortConfig
+        return this.grapherState.supportedSortConfig
     }
 
     @computed get grapherState() {
@@ -309,11 +309,14 @@ class SortOrderSection extends React.Component<{ editor: ConfigEditor }> {
             (opt) => opt.value === selectedKey
         )
         if (!selected) return
+        const { sortOrder } = this.sortConfig
         this.grapherState.sortBy = selected.dataValue.sortBy
         this.grapherState.sortColumnSlug = selected.dataValue.sortColumnSlug
+        this.grapherState.sortOrder = sortOrder
     }
 
     @action.bound onSortOrderChange(sortOrder: string) {
+        this.grapherState.sortBy = this.sortConfig.sortBy
         this.grapherState.sortOrder = sortOrder as SortOrder
     }
 
@@ -1013,7 +1016,9 @@ export class EditorCustomizeTab extends React.Component<EditorCustomizeTabProps>
                     </Section>
                 )}
                 <TimelineSection editor={this.props.editor} />
-                <FacetSection editor={this.props.editor} />
+                {features.canFacet && (
+                    <FacetSection editor={this.props.editor} />
+                )}
                 <Section name="Color scheme">
                     <ColorSchemeSelector
                         grapherState={grapherState}
