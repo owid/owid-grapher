@@ -203,8 +203,16 @@ export class SwimlaneChartState implements ChartState, ColorScaleManager {
                     series.entityName
                 ),
             [SortBy.entityName]: (series): string => series.entityName,
-            [SortBy.firstCategory]: sortByCategory("first", categories),
-            [SortBy.lastCategory]: sortByCategory("last", categories),
+            [SortBy.firstCategory]: sortByCategory({
+                series: this.unsortedSeries,
+                boundary: "first",
+                categories,
+            }),
+            [SortBy.lastCategory]: sortByCategory({
+                series: this.unsortedSeries,
+                boundary: "last",
+                categories,
+            }),
         }
 
         return sortByConfig(this.unsortedSeries, this.sortConfig, keyFns)
