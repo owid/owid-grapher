@@ -25,6 +25,7 @@ const FIELDS = [
     "table",
     "shortName",
     "usage",
+    "popularity",
     "uploadedAt",
 ] as const
 
@@ -49,7 +50,8 @@ const SEARCH_FIELDS: SearchFieldHelp[] = [
 function SearchSyntaxNote(): React.ReactElement {
     return (
         <p className="variables-index__help">
-            Terms are matched as regular expressions. Also try{" "}
+            Terms are matched as regular expressions, and results are ordered by
+            popularity. Also try{" "}
             <a href={urljoin(ETL_WIZARD_URL, "indicator_search")}>
                 semantic indicator search
             </a>

@@ -23,6 +23,8 @@ export interface VariableListItem {
     usageCount?: number
     multiDims?: { id: number; slug: string }[]
     explorerSlugs?: string[]
+    /** 0-1, from the analytics service. Absent for unused indicators. */
+    popularity?: number | null
 }
 
 /** Columns beyond the always-present name, in the order they are shown. */
@@ -34,6 +36,7 @@ export type VariableListField =
     | "shortName"
     | "uploadedAt"
     | "usage"
+    | "popularity"
 
 interface VariableListProps {
     variables: VariableListItem[]
@@ -224,6 +227,22 @@ function createColumns({
                     by={variable.uploadedBy ?? "Bulk import"}
                 />
             ),
+        },
+        popularity: {
+            title: "Popularity",
+            dataIndex: "popularity",
+            key: "popularity",
+            width: 120,
+            align: "right",
+            sorter:
+                sortable &&
+                ((a, b) => (a.popularity ?? 0) - (b.popularity ?? 0)),
+            render: (popularity: number | null | undefined) =>
+                popularity === null || popularity === undefined ? (
+                    <span className="text-muted">—</span>
+                ) : (
+                    popularity.toFixed(2)
+                ),
         },
         usage: {
             title: "Usage",

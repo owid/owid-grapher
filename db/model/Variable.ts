@@ -1020,22 +1020,48 @@ export const searchVariables = async (
     knex: db.KnexReadonlyTransaction
 ): Promise<VariablesSearchResult> => {
     const whereClauses = buildWhereClauses(query)
+    const isSearch = whereClauses.length > 0
 
     // An inner join, so indicators whose dataset has been archived are left
     // out. It is also what makes this fast: joining the other way round makes
     // MySQL sort all ~780k variables to return one page, because the sort key
     // lives on the dataset. Driven from the ~1.2k active datasets it stops as
     // soon as the page is full.
-    const fromWhere = `
+    const where = whereClauses.length
+        ? "WHERE " + whereClauses.join(" AND ")
+        : ""
+    const from = `
         FROM variables AS v
         JOIN active_datasets d ON d.id=v.datasetId
         LEFT JOIN users u ON u.id=d.dataEditedByUserId
-        ${whereClauses.length ? "WHERE " + whereClauses.join(" AND ") : ""}
     `
+    // Joined only where the popularity is read or ordered by. Counting through
+    // it costs 2.2s instead of 0.3s, and `buildWhereClauses` never filters on
+    // it, so the count can leave it out.
+    const joinPopularity = `
+        LEFT JOIN analytics_popularity ap
+            ON ap.type = 'indicator' AND ap.slug = v.catalogPath
+    `
+    const fromWhere = `${from} ${joinPopularity} ${where}`
     const sqlCount = `
         SELECT COUNT(*) count
-        ${fromWhere}
+        ${from} ${where}
     `
+
+    // A search is ordered by how much our readers use each indicator, which is
+    // what makes a 800-hit search usable. Browsing without one stays in upload
+    // order: there the dataset-driven plan stops at the first page, and
+    // sorting every indicator by popularity would cost seconds instead of
+    // milliseconds. Indicators without an analytics row sort last (MySQL puts
+    // NULLs last in DESC), ordered among themselves by upload date.
+    const orderBy = isSearch
+        ? "ORDER BY ap.popularity DESC, d.dataEditedAt DESC"
+        : "ORDER BY d.dataEditedAt DESC"
+
+    // A search has to visit every matching row to sort it, so the total comes
+    // from that same pass rather than from a second query that would repeat
+    // the scan.
+    const totalColumn = isSearch ? ", COUNT(*) OVER () AS numTotalRows" : ""
 
     const sqlResults = `
         SELECT
@@ -1047,14 +1073,23 @@ export const searchVariables = async (
             d.isPrivate AS isPrivate,
             d.nonRedistributable AS nonRedistributable,
             d.dataEditedAt AS uploadedAt,
-            u.fullName AS uploadedBy
+            u.fullName AS uploadedBy,
+            ap.popularity AS popularity
+            ${totalColumn}
         ${fromWhere}
-        ORDER BY d.dataEditedAt DESC
+        ${orderBy}
         LIMIT ${escape(limit)} OFFSET ${escape(offset)}
     `
     const rows = await queryRegexSafe(sqlResults, knex)
 
-    const numTotalRows = await queryRegexCount(sqlCount, knex)
+    // Past the last page there is no row to read the windowed total from, so
+    // fall back to counting
+    const numTotalRows =
+        isSearch && rows.length > 0
+            ? Number(rows[0].numTotalRows)
+            : await queryRegexCount(sqlCount, knex)
+
+    rows.forEach((row: any) => delete row.numTotalRows)
 
     rows.forEach((row: any) => {
         if (row.catalogPath) {
