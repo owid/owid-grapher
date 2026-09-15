@@ -4,7 +4,7 @@ Two kinds, with different tooling.
 
 ## Data tooltips (hovering chart marks)
 
-Build on Grapher's tooltip primitives rather than your own chrome: `TooltipCard` (`@ourworldindata/grapher/src/tooltip/TooltipCard.js`) with `TooltipValue`/`TooltipTable` rows inside. Its `Tooltip.scss` comes in via the copied `grapher.scss`. `causes-of-death/src/components/CausesOfDeathTreemap.tsx` and its `CausesOfDeathTreemapTooltip.tsx` are the worked example of the wiring — hover state plus a `position` updated with `getRelativeMouse`, and the chart's `containerBounds` passed down so the card flips and clamps instead of overflowing.
+Build on Grapher's tooltip primitives rather than your own chrome: `TooltipCard` (`@ourworldindata/grapher/src/tooltip/TooltipCard.js`) with `TooltipValue`/`TooltipTable` rows inside. Every project's `grapher.scss` imports its `Tooltip.scss` except the starter's, so a project copied from `example` adds that import itself. `causes-of-death/src/components/CausesOfDeathTreemap.tsx` and its `CausesOfDeathTreemapTooltip.tsx` are the worked example of the wiring — hover state plus a `position` updated with `getRelativeMouse`, and the chart's `containerBounds` passed down so the card flips and clamps instead of overflowing.
 
 Two rules the code alone won't explain:
 

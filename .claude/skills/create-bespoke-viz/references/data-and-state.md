@@ -5,7 +5,7 @@
 Bespoke data is fetched at runtime, never bundled. Every project's `src/core/data.ts` (or `fetch.ts`) shows the shape; the conventions behind them:
 
 - Pre-processed JSON on the public bucket `https://owid-public.owid.io`, under a project-named directory — one small `*.metadata.json` plus per-key data files (per entity, product, or whatever the primary selector is), so changing the selection fetches one small file.
-- `@tanstack/react-query` with `fetchJson` from `@ourworldindata/utils`, one `QueryClient` at module scope. Query keys namespaced by project, `staleTime: Infinity` (the files are immutable within a session), and `placeholderData: (prev) => prev` so the old chart stays visible while switching entities.
+- `@tanstack/react-query` with `fetchJson` from `@ourworldindata/utils`: one `QueryClient` at module scope, plus a `<QueryClientProvider>` in the variant's provider stack, which every react-query hook needs. Query keys namespaced by project, `staleTime: Infinity` (the files are immutable within a session), and `placeholderData: (prev) => prev` so the old chart stays visible while switching entities.
 - Data files are usually column-oriented parallel arrays; reshape into rows or Maps client-side, resolving IDs through the metadata. A metadata class with lazily-built lookup maps (`causes-of-death/src/core/CausesOfDeathMetadata.ts`) keeps this tidy.
 - Defensive code (clamps, dedupes, guards) hides data anomalies from the screen, so say what you worked around — the upstream fix stays actionable.
 

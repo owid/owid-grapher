@@ -8,6 +8,6 @@ A library that has to be a singleton goes in `DEDUPED_PACKAGES` (`bespoke/shared
 
 ArchieML config values are always **strings**. Every project has a `src/core/config.ts` exporting its config interface plus a `parseConfig(raw: Record<string, string>)` — `food-trade/src/core/config.ts` is the model — built from the shared value parsers in `bespoke/helpers/config.ts`. Keep project-specific parsers local.
 
-Support the conventional keys where they make sense: `title`, `subtitle` (override the generated ones), `hideControls`, and an entity default (`country` or `region`) that accepts the sentinel `"userLocation"`, resolved with `useResolveUserLocation`.
+Support the conventional keys where they make sense: `title`, `subtitle` (override the generated ones), `hideControls`, and an entity default (`country` or `region`) that accepts the sentinel `"userLocation"`, resolved with `useResolveUserLocation` — a react-query hook, so the variant needs a `QueryClientProvider` even when the project fetches nothing else.
 
 `urlSync` and `hideMetadataModal` describe the embedding page rather than the viz, so they stay out of your config: the mount reads them with `parseEmbedConfig`, and `EmbedConfigProvider` in the variant's provider stack hands them to the code that needs them.
