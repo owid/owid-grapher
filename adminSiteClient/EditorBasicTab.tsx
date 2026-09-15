@@ -8,7 +8,6 @@ import {
     when,
     computed,
     makeObservable,
-    runInAction,
 } from "mobx"
 import { observer } from "mobx-react"
 import {
@@ -45,12 +44,11 @@ import {
     OwidChartDimensionInterface,
     areSetsEqual,
 } from "@ourworldindata/utils"
-import { Section, TextField } from "./Forms.js"
+import { Section } from "./Forms.js"
 import { VariableSelector } from "./VariableSelector.js"
 import { DimensionCard } from "./DimensionCard.js"
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
 import { EditorDatabase } from "./EditorDatabase.js"
-import { isChartEditorInstance } from "./ChartEditor.js"
 import { ErrorMessagesForDimensions } from "./ChartEditorTypes.js"
 import { EditableTags } from "./EditableTags.js"
 import { MinimalTagWithMetadata } from "./TagGraphMetadata.js"
@@ -58,16 +56,11 @@ import {
     GDP_PER_CAPITA_CATALOG_PATH,
     POPULATION_CATALOG_PATH,
 } from "./constants.js"
-import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
-import {
-    NarrativeChartEditor,
-    isNarrativeChartEditorInstance,
-} from "./NarrativeChartEditor.js"
 import * as R from "remeda"
 import { SortableList } from "./SortableList.js"
-import { CodeSnippet, GrapherTabIcon } from "@ourworldindata/components"
+import { GrapherTabIcon } from "@ourworldindata/components"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faFile, faArrowsUpDown } from "@fortawesome/free-solid-svg-icons"
+import { faArrowsUpDown } from "@fortawesome/free-solid-svg-icons"
 import { Tag } from "antd"
 
 interface DimensionSlotViewProps<Editor> {
@@ -126,7 +119,6 @@ export class DimensionSlotView<
         this.isSelectingVariables = false
 
         void this.updateDimensionsAndRebuildTable(dimensionConfigs)
-        this.updateParentConfig()
     }
 
     @action.bound private onRemoveDimension(variableId: OwidVariableId) {
@@ -135,7 +127,6 @@ export class DimensionSlotView<
                 (d) => d.variableId !== variableId
             )
         )
-        this.updateParentConfig()
     }
 
     @action.bound private onChangeDimension() {
@@ -144,7 +135,6 @@ export class DimensionSlotView<
         // the color change of a variable not being reflected visually,
         // even though the value registered correctly in the grapher state instance.
         void this.updateDimensionsAndRebuildTable(this.props.slot.dimensions)
-        this.updateParentConfig()
     }
 
     private pickDefaultEntityForSingleEntityChart({
@@ -316,18 +306,10 @@ export class DimensionSlotView<
         await this.editor.commitDimensionsAndReloadData()
     }
 
-    @action.bound private updateParentConfig() {
-        const { editor } = this.props
-        if (isChartEditorInstance(editor)) {
-            void editor.updateParentConfig()
-        }
-    }
-
     @action.bound private async onDragEnd(items: { dim: ChartDimension }[]) {
         const newDimensions = items.map(({ dim }) => dim)
 
         void this.updateDimensionsAndRebuildTable(newDimensions)
-        this.updateParentConfig()
     }
 
     @computed get isDndEnabled() {
@@ -398,7 +380,8 @@ export class DimensionSlotView<
                         </SortableList.Item>
                     )}
                 />
-                {canAddMore && (
+                {/* Without an indicator catalog there is nothing to pick from */}
+                {canAddMore && !this.props.database.isEmpty && (
                     <div
                         className="dimensionSlot"
                         onClick={action(
@@ -532,7 +515,7 @@ class VariablesSection<
     }
 }
 
-const TagsSection = (props: {
+export const TagsSection = (props: {
     chartId: number | undefined
     tags: DbChartTagJoin[] | undefined
     availableTags: MinimalTagWithMetadata[] | undefined
@@ -580,19 +563,9 @@ interface EditorBasicTabProps<Editor> {
 export class EditorBasicTab<
     Editor extends AbstractChartEditor,
 > extends React.Component<EditorBasicTabProps<Editor>> {
-    static override contextType = AdminAppContext
-    declare context: AdminAppContextType
-
     constructor(props: EditorBasicTabProps<Editor>) {
         super(props)
         makeObservable(this)
-    }
-
-    @action.bound private updateParentConfig() {
-        const { editor } = this.props
-        if (isChartEditorInstance(editor)) {
-            void editor.updateParentConfig()
-        }
     }
 
     @computed private get chartTypeGroups() {
@@ -770,7 +743,6 @@ export class EditorBasicTab<
 
         // The parent config depends on the chart type
         // (e.g. scatters don't have a parent), so update it when types change
-        this.updateParentConfig()
     }
 
     @action.bound private removeChartType(chartType: GrapherChartType): void {
@@ -780,42 +752,14 @@ export class EditorBasicTab<
         )
         // The parent config depends on the chart type
         // (e.g. scatters don't have a parent), so update it when types change
-        this.updateParentConfig()
-    }
-
-    @action.bound onSaveTags(tags: DbChartTagJoin[]): Promise<void> {
-        return this.saveTags(tags)
-    }
-
-    async saveTags(tags: DbChartTagJoin[]): Promise<void> {
-        const { editor } = this.props
-        const { grapherState } = editor
-        await this.context.admin.requestJSON(
-            `/api/charts/${grapherState.id}/setTags`,
-            { tags },
-            "POST"
-        )
-        if (isChartEditorInstance(editor)) {
-            runInAction(() => {
-                editor.manager.tags = tags
-            })
-        }
     }
 
     override render() {
         const { editor } = this.props
         const { grapherState } = editor
-        const isNarrativeChart = isNarrativeChartEditorInstance(editor)
 
         return (
             <div className="EditorBasicTab">
-                {isNarrativeChart &&
-                    (editor.isNewGrapher ? (
-                        <NarrativeChartForm editor={editor} />
-                    ) : (
-                        <NarrativeChartInfo editor={editor} />
-                    ))}
-
                 <Section name="Tabs">
                     {this.chartTypeGroups.map((group, i) => (
                         <div key={i} className="chart-type-group">
@@ -875,63 +819,7 @@ export class EditorBasicTab<
                         this.props.errorMessagesForDimensions
                     }
                 />
-
-                {isChartEditorInstance(editor) && (
-                    <TagsSection
-                        chartId={grapherState.id}
-                        tags={editor.tags}
-                        availableTags={editor.availableTags}
-                        onSaveTags={this.onSaveTags}
-                    />
-                )}
             </div>
-        )
-    }
-}
-
-function NarrativeChartInfo(props: { editor: NarrativeChartEditor }) {
-    const { name = "" } = props.editor.manager
-
-    // In theory, it'd be great to use `rawToArchie` here, but that's in the `db` package
-    const gdocSnippet = `{.narrative-chart}
-  name: ${name}
-{}`
-
-    return (
-        <Section name="Narrative chart">
-            <p>
-                You are editing the config of a narrative chart named{" "}
-                <i>{name}</i>.
-            </p>
-
-            <h6>
-                <FontAwesomeIcon icon={faFile} /> GDoc ArchieML snippet
-            </h6>
-            <CodeSnippet code={gdocSnippet} forceShowCopyButton />
-        </Section>
-    )
-}
-
-@observer
-class NarrativeChartForm extends React.Component<{
-    editor: NarrativeChartEditor
-}> {
-    override render() {
-        const { name, nameError, onNameChange } = this.props.editor.manager
-        return (
-            <Section name="Narrative chart">
-                <p>
-                    Please enter a programmatic name for the narrative chart.{" "}
-                    <i>Note that this name cannot be changed later.</i>
-                </p>
-                <TextField
-                    label="Name"
-                    value={name}
-                    onValue={onNameChange}
-                    errorMessage={nameError}
-                    required
-                />
-            </Section>
         )
     }
 }
