@@ -14,9 +14,16 @@ import {
     NoUndefinedValues,
 } from "@ourworldindata/utils"
 
+export const DUMBBELL_CHART_CONFIG_DEFAULTS = {
+    connectorStyle: DumbbellConnectorStyle.Arrow,
+    valueLabelMode: DumbbellValueLabelMode.Absolute,
+} satisfies Partial<DumbbellChartConfigInterface>
+
 class DumbbellChartConfigDefaults {
-    connectorStyle: DumbbellConnectorStyle = DumbbellConnectorStyle.Arrow
-    valueLabelMode: DumbbellValueLabelMode = DumbbellValueLabelMode.Absolute
+    connectorStyle: DumbbellConnectorStyle =
+        DUMBBELL_CHART_CONFIG_DEFAULTS.connectorStyle
+    valueLabelMode: DumbbellValueLabelMode =
+        DUMBBELL_CHART_CONFIG_DEFAULTS.valueLabelMode
     trendColorMap: DumbbellTrendColorMap = {}
 
     constructor() {

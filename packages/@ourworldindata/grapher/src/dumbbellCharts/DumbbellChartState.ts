@@ -27,6 +27,7 @@ import {
     NO_CHANGE_COLOR,
     START_COLUMN_COLOR,
 } from "./DumbbellChartConstants"
+import { DUMBBELL_CHART_CONFIG_DEFAULTS } from "./DumbbellChartConfig"
 import { SelectionArray } from "../selection/SelectionArray"
 import { FocusArray } from "../focus/FocusArray"
 import {
@@ -145,14 +146,14 @@ export class DumbbellChartState implements ChartState {
     @computed get connectorStyle(): DumbbellConnectorStyle {
         return (
             this.manager.dumbbell?.connectorStyle ??
-            DumbbellConnectorStyle.Arrow
+            DUMBBELL_CHART_CONFIG_DEFAULTS.connectorStyle
         )
     }
 
     @computed get valueLabelMode(): DumbbellValueLabelMode {
         return (
             this.manager.dumbbell?.valueLabelMode ??
-            DumbbellValueLabelMode.Absolute
+            DUMBBELL_CHART_CONFIG_DEFAULTS.valueLabelMode
         )
     }
 
