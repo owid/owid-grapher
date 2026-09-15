@@ -32,7 +32,8 @@ import {
     SwimlaneObservation,
     SwimlaneSeries,
 } from "./SwimlaneChartConstants"
-import { toSwimlaneSegments } from "./SwimlaneChartHelpers"
+import { sortSwimlaneRows, toSwimlaneSegments } from "./SwimlaneChartHelpers"
+import { SWIMLANE_CHART_CONFIG_DEFAULTS } from "./SwimlaneChartConfig"
 
 export class SwimlaneChartState implements ChartState, ColorScaleManager {
     manager: SwimlaneChartManager
@@ -124,7 +125,7 @@ export class SwimlaneChartState implements ChartState, ColorScaleManager {
         return times.filter((time) => time >= startTime && time <= endTime)
     }
 
-    @computed get series(): SwimlaneSeries[] {
+    @computed private get unsortedSeries(): SwimlaneSeries[] {
         if (this.yColumn.isMissing) return []
 
         const { yColumn, timesAsc, colorScale } = this
@@ -172,6 +173,20 @@ export class SwimlaneChartState implements ChartState, ColorScaleManager {
                 }
             }
         )
+    }
+
+    @computed get series(): SwimlaneSeries[] {
+        const {
+            sortBy = SWIMLANE_CHART_CONFIG_DEFAULTS.sortBy,
+            sortOrder = SWIMLANE_CHART_CONFIG_DEFAULTS.sortOrder,
+        } = this.manager.swimlane ?? {}
+
+        return sortSwimlaneRows({
+            rows: this.unsortedSeries,
+            sortBy,
+            sortOrder,
+            categories: this.categories?.values ?? [],
+        })
     }
 
     toHorizontalAxis(config: AxisConfig): HorizontalAxis {

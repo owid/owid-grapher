@@ -376,21 +376,31 @@ export function sortByColumnValue<T>(
         sortColumn?.latestValueByEntityName.get(getEntityName(item)) ?? 0
 }
 
+/** Orders items by `key`, descending order reversing the whole result */
+export function sortByKey<T>(
+    items: readonly T[],
+    key: SortKey<T>,
+    sortOrder: SortOrder
+): T[] {
+    if (key === keepInputOrder)
+        return sortOrder === SortOrder.desc ? items.toReversed() : [...items]
+
+    const sortedItems = _.sortBy(items, key)
+
+    return sortOrder === SortOrder.desc ? sortedItems.toReversed() : sortedItems
+}
+
 export function sortByConfig<T>(
     items: readonly T[],
     sortConfig: SortConfig,
     keyFns: SortKeyFunctions<T>
 ): T[] {
-    const sortByKey = sortConfig.sortBy ?? SortBy.total
-    const sortByFunc = keyFns[sortByKey] ?? keepInputOrder
-    const sortOrder = sortConfig.sortOrder ?? SortOrder.desc
-
-    if (sortByFunc === keepInputOrder)
-        return sortOrder === SortOrder.desc ? items.toReversed() : [...items]
-
-    const sortedRows = _.sortBy(items, sortByFunc)
-
-    return sortOrder === SortOrder.desc ? sortedRows.toReversed() : sortedRows
+    const sortBy = sortConfig.sortBy ?? SortBy.total
+    return sortByKey(
+        items,
+        keyFns[sortBy] ?? keepInputOrder,
+        sortConfig.sortOrder ?? SortOrder.desc
+    )
 }
 
 export function textWidth(text: string, fontSettings: FontSettings): number {

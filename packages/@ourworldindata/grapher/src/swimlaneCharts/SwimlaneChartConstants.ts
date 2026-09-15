@@ -32,8 +32,12 @@ export interface SwimlaneMissingSegment extends SwimlaneSegmentRange {
 
 export type SwimlaneSegment = SwimlaneCategorySegment | SwimlaneMissingSegment
 
+export type ColoredSwimlaneCategorySegment = SwimlaneCategorySegment & {
+    color: Color
+}
+
 export type ColoredSwimlaneSegment =
-    | (SwimlaneCategorySegment & { color: Color })
+    | ColoredSwimlaneCategorySegment
     | SwimlaneMissingSegment
 
 export type PlacedSwimlaneSegment = ColoredSwimlaneSegment & {

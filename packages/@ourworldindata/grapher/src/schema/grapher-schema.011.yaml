@@ -448,6 +448,35 @@ properties:
         additionalProperties: false
     additionalProperties: false
 
+  swimlane:
+    type: object
+    description: Configuration of the swimlane chart
+    properties:
+      sortBy:
+        type: string
+        default: lastCategory
+        description: |
+          How lanes are ordered.
+          - lastCategory: by the category an entity ends on
+          - firstCategory: by the category an entity starts on
+          - entityName: alphabetically by entity name
+          - custom: preserve the order entities were selected in
+        enum:
+          - lastCategory
+          - firstCategory
+          - entityName
+          - custom
+      sortOrder:
+        type: string
+        default: desc
+        description: |
+          Sort order of the lanes. Not applied when sortBy is custom, which
+          always keeps the order entities were selected in
+        enum:
+          - desc
+          - asc
+    additionalProperties: false
+
   baseColorScheme:
     $ref: "#/$defs/colorScheme"
   invertColorScheme:
