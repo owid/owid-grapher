@@ -132,124 +132,139 @@ describe("hideControlsRow", () => {
     })
 })
 
-const unit = "% of children under 5"
-const name = "Some display name"
-const data = {
-    years: [2000, 2010, 2010],
-    entities: [207, 15, 207],
-    values: [4, 20, 34],
-}
-const legacyConfig: Omit<LegacyGrapherInterface, "data"> = {
-    dimensions: [
-        {
-            variableId: 3512,
-            property: DimensionProperty.y,
-            display: {
-                unit,
-            },
-        },
-    ],
-    hasMapTab: true,
-    selectedEntityNames: ["Iceland", "Afghanistan"],
-}
-
-const makeOwidDataset = (
-    entities: { name: string; id: number; code?: string }[] = [
-        { name: "Afghanistan", id: 15, code: "AFG" },
-        { name: "Iceland", id: 207, code: "ISL" },
-    ]
-): MultipleOwidVariableDataDimensionsMap =>
-    new Map([
-        [
-            3512,
+describe("a grapher built from a legacy config", () => {
+    const unit = "% of children under 5"
+    const displayName = "Some display name"
+    const variableData = {
+        years: [2000, 2010, 2010],
+        entities: [207, 15, 207],
+        values: [4, 20, 34],
+    }
+    const legacyConfig: Omit<LegacyGrapherInterface, "data"> = {
+        dimensions: [
             {
-                data,
-                metadata: {
-                    id: 3512,
-                    display: { name },
-                    dimensions: {
-                        entities: { values: entities },
-                        years: { values: [{ id: 2000 }, { id: 2010 }] },
-                    },
+                variableId: 3512,
+                property: DimensionProperty.y,
+                display: {
+                    unit,
                 },
             },
         ],
-    ])
-
-const makeLegacyGrapher = (
-    config: GrapherProgrammaticInterface = legacyConfig,
-    owidDataset = makeOwidDataset()
-): GrapherState => {
-    const grapher = new GrapherState(config)
-    grapher.inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
-        owidDataset,
-        config.dimensions!,
-        config.selectedEntityColors
-    )
-    return grapher
-}
-
-it("can apply legacy chart dimension settings", () => {
-    const grapher = makeLegacyGrapher()
-    const col = grapher.yColumnsFromDimensions[0]
-    expect(col.unit).toEqual(unit)
-    expect(col.displayName).toEqual(name)
-})
-
-it("correctly identifies changes to passed-in selection", () => {
-    const selection = new SelectionArray(legacyConfig.selectedEntityNames)
-    const grapher = makeLegacyGrapher({
-        ...legacyConfig,
-        manager: { selection },
-    })
-
-    expect(grapher.changedParams).toEqual({})
-    expect(selection.selectedEntityNames).toEqual(["Iceland", "Afghanistan"])
-
-    selection.deselectEntity("Afghanistan")
-
-    expect(grapher.changedParams).toEqual({ country: "~ISL" })
-})
-
-it("can fallback to a ycolumn if a map variableId does not exist", () => {
-    const config = {
-        ...legacyConfig,
         hasMapTab: true,
-        map: { variableId: 444 },
-    } as GrapherInterface
-    const grapher = new GrapherState(config)
-    expect(grapher.mapColumnSlug).toEqual("3512")
-})
+        selectedEntityNames: ["Iceland", "Afghanistan"],
+    }
 
-it("can generate a url with country selection", () => {
-    const grapher = makeLegacyGrapher({
-        ...legacyConfig,
-        selectedEntityNames: [],
-    })
-    expect(grapher.queryStr).toBe("")
-
-    grapher.selection.setSelectedEntities(grapher.availableEntityNames)
-    expect(grapher.queryStr).toBe("?country=ISL~AFG")
-})
-
-it("falls back to the entity name in the url when an entity has no code", () => {
-    // Codes in the url come from the regions list, so an entity that isn't a
-    // known region has none, whatever the data says.
-    const grapher = makeLegacyGrapher(
-        { ...legacyConfig, selectedEntityNames: [] },
-        makeOwidDataset([
-            { name: "Bananas", id: 15 },
+    const makeOwidDataset = (
+        entities: { name: string; id: number; code?: string }[] = [
+            { name: "Afghanistan", id: 15, code: "AFG" },
             { name: "Iceland", id: 207, code: "ISL" },
+        ]
+    ): MultipleOwidVariableDataDimensionsMap =>
+        new Map([
+            [
+                3512,
+                {
+                    data: variableData,
+                    metadata: {
+                        id: 3512,
+                        display: { name: displayName },
+                        dimensions: {
+                            entities: { values: entities },
+                            years: { values: [{ id: 2000 }, { id: 2010 }] },
+                        },
+                    },
+                },
+            ],
         ])
-    )
 
-    grapher.selection.setSelectedEntities(grapher.availableEntityNames)
-    expect(grapher.queryStr).toBe("?country=ISL~Bananas")
+    const makeLegacyGrapher = (
+        config: GrapherProgrammaticInterface = legacyConfig,
+        owidDataset = makeOwidDataset()
+    ): GrapherState => {
+        const grapher = new GrapherState(config)
+        grapher.inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
+            owidDataset,
+            config.dimensions!,
+            config.selectedEntityColors
+        )
+        return grapher
+    }
+
+    it("can apply legacy chart dimension settings", () => {
+        const grapher = makeLegacyGrapher()
+        const col = grapher.yColumnsFromDimensions[0]
+        expect(col.unit).toEqual(unit)
+        expect(col.displayName).toEqual(displayName)
+    })
+
+    it("correctly identifies changes to passed-in selection", () => {
+        const selection = new SelectionArray(legacyConfig.selectedEntityNames)
+        const grapher = makeLegacyGrapher({
+            ...legacyConfig,
+            manager: { selection },
+        })
+
+        expect(grapher.changedParams).toEqual({})
+        expect(selection.selectedEntityNames).toEqual([
+            "Iceland",
+            "Afghanistan",
+        ])
+
+        selection.deselectEntity("Afghanistan")
+
+        expect(grapher.changedParams).toEqual({ country: "~ISL" })
+    })
+
+    it("can fallback to a ycolumn if a map variableId does not exist", () => {
+        const config = {
+            ...legacyConfig,
+            hasMapTab: true,
+            map: { variableId: 444 },
+        } as GrapherInterface
+        const grapher = new GrapherState(config)
+        expect(grapher.mapColumnSlug).toEqual("3512")
+    })
+
+    it("can generate a url with country selection", () => {
+        const grapher = makeLegacyGrapher({
+            ...legacyConfig,
+            selectedEntityNames: [],
+        })
+        expect(grapher.queryStr).toBe("")
+
+        grapher.selection.setSelectedEntities(grapher.availableEntityNames)
+        expect(grapher.queryStr).toBe("?country=ISL~AFG")
+    })
+
+    it("falls back to the entity name in the url when an entity has no code", () => {
+        // Codes in the url come from the regions list, so an entity that isn't a
+        // known region has none, whatever the data says.
+        const grapher = makeLegacyGrapher(
+            { ...legacyConfig, selectedEntityNames: [] },
+            makeOwidDataset([
+                { name: "Bananas", id: 15 },
+                { name: "Iceland", id: 207, code: "ISL" },
+            ])
+        )
+
+        grapher.selection.setSelectedEntities(grapher.availableEntityNames)
+        expect(grapher.queryStr).toBe("?country=ISL~Bananas")
+    })
 })
 
 describe("hasTimeline", () => {
+    const makeGrapher = (): GrapherState => {
+        const table = SynthesizeGDPTable({ timeRange: [2000, 2010] }, 1)
+        return new GrapherState({
+            table,
+            ySlugs: SampleColumnSlugs.GDP,
+            selectedEntityNames: table.availableEntityNames,
+            hasMapTab: true,
+        })
+    }
+
     it("charts with timeline", () => {
-        const grapher = makeLegacyGrapher()
+        const grapher = makeGrapher()
         grapher.chartTypes = [GRAPHER_CHART_TYPES.LineChart]
         expect(grapher.hasTimeline).toBeTruthy()
         grapher.chartTypes = [GRAPHER_CHART_TYPES.SlopeChart]
@@ -263,7 +278,7 @@ describe("hasTimeline", () => {
     })
 
     it("map tab has timeline even if chart doesn't", () => {
-        const grapher = makeLegacyGrapher()
+        const grapher = makeGrapher()
         grapher.hideTimeline = true
         grapher.chartTypes = [GRAPHER_CHART_TYPES.LineChart]
         expect(grapher.hasTimeline).toBeFalsy()
@@ -273,97 +288,6 @@ describe("hasTimeline", () => {
         expect(grapher.hasTimeline).toBeFalsy()
     })
 })
-
-const getGrapher = (): GrapherState => {
-    const dataset = new Map([
-        [
-            142609,
-            {
-                data: {
-                    years: [-1, 0, 1, 2],
-                    entities: [1, 2, 1, 2],
-                    values: [51, 52, 53, 54],
-                },
-                metadata: {
-                    id: 142609,
-                    display: {
-                        zeroDay: "2020-01-21",
-                        timeInterval: TimeInterval.Day,
-                    },
-                    dimensions: {
-                        entities: {
-                            values: [
-                                {
-                                    name: "United Kingdom",
-                                    code: "GBR",
-                                    id: 1,
-                                },
-                                { name: "Ireland", code: "IRL", id: 2 },
-                            ],
-                        },
-                        years: {
-                            values: [
-                                {
-                                    id: -1,
-                                },
-                                {
-                                    id: 0,
-                                },
-                                {
-                                    id: 1,
-                                },
-                                {
-                                    id: 2,
-                                },
-                            ],
-                        },
-                    },
-                },
-            },
-        ],
-    ])
-    const state = new GrapherState({
-        dimensions: [
-            {
-                variableId: 142609,
-                property: DimensionProperty.y,
-            },
-        ],
-        minTime: -5000,
-        maxTime: 5000,
-        hasMapTab: true,
-    })
-    state.inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
-        dataset,
-        state.dimensions,
-        {}
-    )
-    return state
-}
-
-function fromQueryParams(
-    params: LegacyGrapherQueryParams,
-    props?: Partial<GrapherInterface>
-): GrapherState {
-    const grapher = new GrapherState(props ?? {})
-    grapher.populateFromQueryParams(
-        legacyToCurrentGrapherQueryParams(queryParamsToStr(params))
-    )
-    return grapher
-}
-
-function toQueryParams(
-    props?: Partial<GrapherInterface>
-): Partial<GrapherQueryParams> {
-    const grapher = new GrapherState({
-        minTime: -5000,
-        maxTime: 5000,
-        hasMapTab: true,
-        map: { time: 5000 },
-    })
-    if (props) grapher.updateFromObject(props)
-    return grapher.changedParams
-}
 
 it("can serialize scaleType if it changes", () => {
     expect(new GrapherState({}).changedParams.xScale).toEqual(undefined)
@@ -989,7 +913,9 @@ describe("urls", () => {
     })
 
     it("does not include country param in url if unchanged", () => {
-        const grapher = new GrapherState(legacyConfig)
+        const grapher = new GrapherState({
+            selectedEntityNames: ["Iceland", "Afghanistan"],
+        })
         grapher.isPublished = true
         expect(grapher.canonicalUrl?.includes("country")).toBeFalsy()
     })
@@ -1262,285 +1188,6 @@ describe("time domain tests", () => {
     })
 })
 
-describe("time parameter", () => {
-    describe("with years", () => {
-        const tests: {
-            name: string
-            query: string
-            param: TimeBounds
-            irreversible?: boolean
-        }[] = [
-            { name: "single year", query: "1500", param: [1500, 1500] },
-            {
-                name: "single year negative",
-                query: "-1500",
-                param: [-1500, -1500],
-            },
-            { name: "single year zero", query: "0", param: [0, 0] },
-            {
-                name: "single year latest",
-                query: "latest",
-                param: [
-                    TimeBoundValue.positiveInfinity,
-                    TimeBoundValue.positiveInfinity,
-                ],
-            },
-            {
-                name: "single year earliest",
-                query: "earliest",
-                param: [
-                    TimeBoundValue.negativeInfinity,
-                    TimeBoundValue.negativeInfinity,
-                ],
-            },
-            { name: "two years", query: "2000..2005", param: [2000, 2005] },
-            {
-                name: "negative years",
-                query: "-500..-1",
-                param: [-500, -1],
-            },
-            {
-                name: "right unbounded",
-                query: "2000..latest",
-                param: [2000, TimeBoundValue.positiveInfinity],
-            },
-            {
-                name: "left unbounded",
-                query: "earliest..2005",
-                param: [TimeBoundValue.negativeInfinity, 2005],
-            },
-            {
-                name: "left unbounded",
-                query: "earliest..latest",
-                param: [
-                    TimeBoundValue.negativeInfinity,
-                    TimeBoundValue.positiveInfinity,
-                ],
-            },
-
-            // The queries below can be considered legacy and are no longer generated this way,
-            // but we still want to support existing URLs of this form
-            {
-                name: "right unbounded [legacy]",
-                query: "2000..",
-                param: [2000, TimeBoundValue.positiveInfinity],
-                irreversible: true,
-            },
-            {
-                name: "left unbounded [legacy]",
-                query: "..2005",
-                param: [TimeBoundValue.negativeInfinity, 2005],
-                irreversible: true,
-            },
-            {
-                name: "both unbounded [legacy]",
-                query: "..",
-                param: [
-                    TimeBoundValue.negativeInfinity,
-                    TimeBoundValue.positiveInfinity,
-                ],
-                irreversible: true,
-            },
-        ]
-
-        for (const test of tests) {
-            it(`parse ${test.name}`, () => {
-                const grapher = fromQueryParams({ time: test.query })
-                const [start, end] = grapher.timelineHandleTimeBounds
-                expect(start).toEqual(test.param[0])
-                expect(end).toEqual(test.param[1])
-            })
-            if (!test.irreversible) {
-                it(`encode ${test.name}`, () => {
-                    const params = toQueryParams({
-                        minTime: test.param[0],
-                        maxTime: test.param[1],
-                    })
-                    expect(params.time).toEqual(test.query)
-                })
-            }
-        }
-
-        for (const test of tests) {
-            it(`parse ${test.name} (map tab)`, () => {
-                const grapher = fromQueryParams({
-                    tab: GRAPHER_TAB_QUERY_PARAMS.map,
-                    time: test.query,
-                })
-                const [start, end] = grapher.timelineHandleTimeBounds
-                expect(start).toEqual(test.param[0])
-                expect(end).toEqual(test.param[1])
-            })
-            if (!test.irreversible) {
-                it(`encode ${test.name}`, () => {
-                    const params = toQueryParams({
-                        hasMapTab: true,
-                        tab: GRAPHER_TAB_CONFIG_OPTIONS.map,
-                        map: { startTime: test.param[0], time: test.param[1] },
-                    })
-                    expect(params.time).toEqual(test.query)
-                })
-            }
-        }
-
-        it("empty string doesn't change time", () => {
-            const grapher = fromQueryParams(
-                { time: "" },
-                { minTime: 0, maxTime: 5 }
-            )
-            const [start, end] = grapher.timelineHandleTimeBounds
-            expect(start).toEqual(0)
-            expect(end).toEqual(5)
-        })
-
-        it("doesn't include URL param if it's identical to original config", () => {
-            const grapher = new GrapherState({
-                minTime: 0,
-                maxTime: 75,
-            })
-            expect(grapher.hasUserChangedTimeHandles).toBe(false)
-            expect(grapher.changedParams.time).toEqual(undefined)
-        })
-
-        it("doesn't include URL param if unbounded is encoded as `undefined`", () => {
-            const grapher = new GrapherState({
-                minTime: undefined,
-                maxTime: 75,
-            })
-            expect(grapher.hasUserChangedTimeHandles).toBe(false)
-            expect(grapher.changedParams.time).toEqual(undefined)
-        })
-    })
-
-    describe("with days", () => {
-        const tests: {
-            name: string
-            query: string
-            param: TimeBounds
-            irreversible?: boolean
-        }[] = [
-            {
-                name: "single day (date)",
-                query: "2020-01-22",
-                param: [1, 1],
-            },
-            {
-                name: "single day negative (date)",
-                query: "2020-01-01",
-                param: [-20, -20],
-            },
-            {
-                name: "single day zero (date)",
-                query: "2020-01-21",
-                param: [0, 0],
-            },
-            {
-                name: "single day latest",
-                query: "latest",
-                param: [
-                    TimeBoundValue.positiveInfinity,
-                    TimeBoundValue.positiveInfinity,
-                ],
-            },
-            {
-                name: "single day earliest",
-                query: "earliest",
-                param: [
-                    TimeBoundValue.negativeInfinity,
-                    TimeBoundValue.negativeInfinity,
-                ],
-            },
-            {
-                name: "two days",
-                query: "2020-01-01..2020-02-01",
-                param: [-20, 11],
-            },
-            {
-                name: "left unbounded (date)",
-                query: "earliest..2020-02-01",
-                param: [TimeBoundValue.negativeInfinity, 11],
-            },
-            {
-                name: "right unbounded (date)",
-                query: "2020-01-01..latest",
-                param: [-20, TimeBoundValue.positiveInfinity],
-            },
-            {
-                name: "both unbounded (date)",
-                query: "earliest..latest",
-                param: [
-                    TimeBoundValue.negativeInfinity,
-                    TimeBoundValue.positiveInfinity,
-                ],
-            },
-
-            // The queries below can be considered legacy and are no longer generated this way,
-            // but we still want to support existing URLs of this form
-            {
-                name: "right unbounded (date) [legacy]",
-                query: "2020-01-01..",
-                param: [-20, TimeBoundValue.positiveInfinity],
-                irreversible: true,
-            },
-            {
-                name: "left unbounded (date) [legacy]",
-                query: "..2020-01-01",
-                param: [TimeBoundValue.negativeInfinity, -20],
-                irreversible: true,
-            },
-            {
-                name: "both unbounded [legacy]",
-                query: "..",
-                param: [
-                    TimeBoundValue.negativeInfinity,
-                    TimeBoundValue.positiveInfinity,
-                ],
-                irreversible: true,
-            },
-
-            {
-                name: "single day (number)",
-                query: "5",
-                param: [5, 5],
-                irreversible: true,
-            },
-            {
-                name: "range (number)",
-                query: "-5..5",
-                param: [-5, 5],
-                irreversible: true,
-            },
-            {
-                name: "unbounded range (number)",
-                query: "-500..",
-                param: [-500, TimeBoundValue.positiveInfinity],
-                irreversible: true,
-            },
-        ]
-
-        for (const test of tests) {
-            it(`parse ${test.name}`, () => {
-                const grapher = getGrapher()
-                grapher.populateFromQueryParams({ time: test.query })
-                const [start, end] = grapher.timelineHandleTimeBounds
-                expect(start).toEqual(test.param[0])
-                expect(end).toEqual(test.param[1])
-            })
-            if (!test.irreversible) {
-                it(`encode ${test.name}`, () => {
-                    const grapher = getGrapher()
-                    grapher.updateFromObject({
-                        minTime: test.param[0],
-                        maxTime: test.param[1],
-                    })
-                    const params = grapher.changedParams
-                    expect(params.time).toEqual(test.query)
-                })
-            }
-        }
-    })
-})
-
 it("canChangeEntity reflects all available entities before transforms", () => {
     const table = SynthesizeGDPTable()
     const grapher = new GrapherState({
@@ -1564,118 +1211,495 @@ it("dumbbell charts force multi-entity selection when mode is single-entity", ()
     expect(grapher.canChangeEntity).toBe(false)
 })
 
-describe("year parameter (applies to map only)", () => {
-    describe("with years", () => {
-        const tests: {
-            name: string
-            query: string
-            param: TimeBound
-        }[] = [
-            { name: "single year", query: "1500", param: 1500 },
-            {
-                name: "single year negative",
-                query: "-1500",
-                param: -1500,
-            },
-            { name: "single year zero", query: "0", param: 0 },
-            {
-                name: "single year latest",
-                query: "latest",
-                param: TimeBoundValue.positiveInfinity,
-            },
-            {
-                name: "single year earliest",
-                query: "earliest",
-                param: TimeBoundValue.negativeInfinity,
-            },
-        ]
+describe("time and year url params", () => {
+    const makeGrapherWithDailyData = (): GrapherState => {
+        const dataset = new Map([
+            [
+                142609,
+                {
+                    data: {
+                        years: [-1, 0, 1, 2],
+                        entities: [1, 2, 1, 2],
+                        values: [51, 52, 53, 54],
+                    },
+                    metadata: {
+                        id: 142609,
+                        display: {
+                            zeroDay: "2020-01-21",
+                            timeInterval: TimeInterval.Day,
+                        },
+                        dimensions: {
+                            entities: {
+                                values: [
+                                    {
+                                        name: "United Kingdom",
+                                        code: "GBR",
+                                        id: 1,
+                                    },
+                                    { name: "Ireland", code: "IRL", id: 2 },
+                                ],
+                            },
+                            years: {
+                                values: [
+                                    {
+                                        id: -1,
+                                    },
+                                    {
+                                        id: 0,
+                                    },
+                                    {
+                                        id: 1,
+                                    },
+                                    {
+                                        id: 2,
+                                    },
+                                ],
+                            },
+                        },
+                    },
+                },
+            ],
+        ])
+        const state = new GrapherState({
+            dimensions: [
+                {
+                    variableId: 142609,
+                    property: DimensionProperty.y,
+                },
+            ],
+            minTime: -5000,
+            maxTime: 5000,
+            hasMapTab: true,
+        })
+        state.inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
+            dataset,
+            state.dimensions,
+            {}
+        )
+        return state
+    }
 
-        for (const test of tests) {
-            it(`parse ${test.name}`, () => {
-                const grapher = fromQueryParams({ year: test.query })
-                expect(grapher.timelineHandleTimeBounds[1]).toEqual(test.param)
-            })
-            it(`encode ${test.name}`, () => {
-                const params = toQueryParams({
-                    tab: GRAPHER_TAB_CONFIG_OPTIONS.map,
-                    map: { time: test.param },
+    function fromQueryParams(
+        params: LegacyGrapherQueryParams,
+        props?: Partial<GrapherInterface>
+    ): GrapherState {
+        const grapher = new GrapherState(props ?? {})
+        grapher.populateFromQueryParams(
+            legacyToCurrentGrapherQueryParams(queryParamsToStr(params))
+        )
+        return grapher
+    }
+
+    function toQueryParams(
+        props?: Partial<GrapherInterface>
+    ): Partial<GrapherQueryParams> {
+        const grapher = new GrapherState({
+            minTime: -5000,
+            maxTime: 5000,
+            hasMapTab: true,
+            map: { time: 5000 },
+        })
+        if (props) grapher.updateFromObject(props)
+        return grapher.changedParams
+    }
+
+    describe("time parameter", () => {
+        describe("with years", () => {
+            const tests: {
+                name: string
+                query: string
+                param: TimeBounds
+                irreversible?: boolean
+            }[] = [
+                { name: "single year", query: "1500", param: [1500, 1500] },
+                {
+                    name: "single year negative",
+                    query: "-1500",
+                    param: [-1500, -1500],
+                },
+                { name: "single year zero", query: "0", param: [0, 0] },
+                {
+                    name: "single year latest",
+                    query: "latest",
+                    param: [
+                        TimeBoundValue.positiveInfinity,
+                        TimeBoundValue.positiveInfinity,
+                    ],
+                },
+                {
+                    name: "single year earliest",
+                    query: "earliest",
+                    param: [
+                        TimeBoundValue.negativeInfinity,
+                        TimeBoundValue.negativeInfinity,
+                    ],
+                },
+                { name: "two years", query: "2000..2005", param: [2000, 2005] },
+                {
+                    name: "negative years",
+                    query: "-500..-1",
+                    param: [-500, -1],
+                },
+                {
+                    name: "right unbounded",
+                    query: "2000..latest",
+                    param: [2000, TimeBoundValue.positiveInfinity],
+                },
+                {
+                    name: "left unbounded",
+                    query: "earliest..2005",
+                    param: [TimeBoundValue.negativeInfinity, 2005],
+                },
+                {
+                    name: "left unbounded",
+                    query: "earliest..latest",
+                    param: [
+                        TimeBoundValue.negativeInfinity,
+                        TimeBoundValue.positiveInfinity,
+                    ],
+                },
+
+                // The queries below can be considered legacy and are no longer generated this way,
+                // but we still want to support existing URLs of this form
+                {
+                    name: "right unbounded [legacy]",
+                    query: "2000..",
+                    param: [2000, TimeBoundValue.positiveInfinity],
+                    irreversible: true,
+                },
+                {
+                    name: "left unbounded [legacy]",
+                    query: "..2005",
+                    param: [TimeBoundValue.negativeInfinity, 2005],
+                    irreversible: true,
+                },
+                {
+                    name: "both unbounded [legacy]",
+                    query: "..",
+                    param: [
+                        TimeBoundValue.negativeInfinity,
+                        TimeBoundValue.positiveInfinity,
+                    ],
+                    irreversible: true,
+                },
+            ]
+
+            for (const test of tests) {
+                it(`parse ${test.name}`, () => {
+                    const grapher = fromQueryParams({ time: test.query })
+                    const [start, end] = grapher.timelineHandleTimeBounds
+                    expect(start).toEqual(test.param[0])
+                    expect(end).toEqual(test.param[1])
                 })
-                expect(params.time).toEqual(test.query)
-            })
-        }
+                if (!test.irreversible) {
+                    it(`encode ${test.name}`, () => {
+                        const params = toQueryParams({
+                            minTime: test.param[0],
+                            maxTime: test.param[1],
+                        })
+                        expect(params.time).toEqual(test.query)
+                    })
+                }
+            }
 
-        it("empty string doesn't change time", () => {
-            const grapher = fromQueryParams({ year: "", time: "2015" })
-            expect(grapher.timelineHandleTimeBounds[1]).toEqual(2015)
+            for (const test of tests) {
+                it(`parse ${test.name} (map tab)`, () => {
+                    const grapher = fromQueryParams({
+                        tab: GRAPHER_TAB_QUERY_PARAMS.map,
+                        time: test.query,
+                    })
+                    const [start, end] = grapher.timelineHandleTimeBounds
+                    expect(start).toEqual(test.param[0])
+                    expect(end).toEqual(test.param[1])
+                })
+                if (!test.irreversible) {
+                    it(`encode ${test.name}`, () => {
+                        const params = toQueryParams({
+                            hasMapTab: true,
+                            tab: GRAPHER_TAB_CONFIG_OPTIONS.map,
+                            map: {
+                                startTime: test.param[0],
+                                time: test.param[1],
+                            },
+                        })
+                        expect(params.time).toEqual(test.query)
+                    })
+                }
+            }
+
+            it("empty string doesn't change time", () => {
+                const grapher = fromQueryParams(
+                    { time: "" },
+                    { minTime: 0, maxTime: 5 }
+                )
+                const [start, end] = grapher.timelineHandleTimeBounds
+                expect(start).toEqual(0)
+                expect(end).toEqual(5)
+            })
+
+            it("doesn't include URL param if it's identical to original config", () => {
+                const grapher = new GrapherState({
+                    minTime: 0,
+                    maxTime: 75,
+                })
+                expect(grapher.hasUserChangedTimeHandles).toBe(false)
+                expect(grapher.changedParams.time).toEqual(undefined)
+            })
+
+            it("doesn't include URL param if unbounded is encoded as `undefined`", () => {
+                const grapher = new GrapherState({
+                    minTime: undefined,
+                    maxTime: 75,
+                })
+                expect(grapher.hasUserChangedTimeHandles).toBe(false)
+                expect(grapher.changedParams.time).toEqual(undefined)
+            })
+        })
+
+        describe("with days", () => {
+            const tests: {
+                name: string
+                query: string
+                param: TimeBounds
+                irreversible?: boolean
+            }[] = [
+                {
+                    name: "single day (date)",
+                    query: "2020-01-22",
+                    param: [1, 1],
+                },
+                {
+                    name: "single day negative (date)",
+                    query: "2020-01-01",
+                    param: [-20, -20],
+                },
+                {
+                    name: "single day zero (date)",
+                    query: "2020-01-21",
+                    param: [0, 0],
+                },
+                {
+                    name: "single day latest",
+                    query: "latest",
+                    param: [
+                        TimeBoundValue.positiveInfinity,
+                        TimeBoundValue.positiveInfinity,
+                    ],
+                },
+                {
+                    name: "single day earliest",
+                    query: "earliest",
+                    param: [
+                        TimeBoundValue.negativeInfinity,
+                        TimeBoundValue.negativeInfinity,
+                    ],
+                },
+                {
+                    name: "two days",
+                    query: "2020-01-01..2020-02-01",
+                    param: [-20, 11],
+                },
+                {
+                    name: "left unbounded (date)",
+                    query: "earliest..2020-02-01",
+                    param: [TimeBoundValue.negativeInfinity, 11],
+                },
+                {
+                    name: "right unbounded (date)",
+                    query: "2020-01-01..latest",
+                    param: [-20, TimeBoundValue.positiveInfinity],
+                },
+                {
+                    name: "both unbounded (date)",
+                    query: "earliest..latest",
+                    param: [
+                        TimeBoundValue.negativeInfinity,
+                        TimeBoundValue.positiveInfinity,
+                    ],
+                },
+
+                // The queries below can be considered legacy and are no longer generated this way,
+                // but we still want to support existing URLs of this form
+                {
+                    name: "right unbounded (date) [legacy]",
+                    query: "2020-01-01..",
+                    param: [-20, TimeBoundValue.positiveInfinity],
+                    irreversible: true,
+                },
+                {
+                    name: "left unbounded (date) [legacy]",
+                    query: "..2020-01-01",
+                    param: [TimeBoundValue.negativeInfinity, -20],
+                    irreversible: true,
+                },
+                {
+                    name: "both unbounded [legacy]",
+                    query: "..",
+                    param: [
+                        TimeBoundValue.negativeInfinity,
+                        TimeBoundValue.positiveInfinity,
+                    ],
+                    irreversible: true,
+                },
+
+                {
+                    name: "single day (number)",
+                    query: "5",
+                    param: [5, 5],
+                    irreversible: true,
+                },
+                {
+                    name: "range (number)",
+                    query: "-5..5",
+                    param: [-5, 5],
+                    irreversible: true,
+                },
+                {
+                    name: "unbounded range (number)",
+                    query: "-500..",
+                    param: [-500, TimeBoundValue.positiveInfinity],
+                    irreversible: true,
+                },
+            ]
+
+            for (const test of tests) {
+                it(`parse ${test.name}`, () => {
+                    const grapher = makeGrapherWithDailyData()
+                    grapher.populateFromQueryParams({ time: test.query })
+                    const [start, end] = grapher.timelineHandleTimeBounds
+                    expect(start).toEqual(test.param[0])
+                    expect(end).toEqual(test.param[1])
+                })
+                if (!test.irreversible) {
+                    it(`encode ${test.name}`, () => {
+                        const grapher = makeGrapherWithDailyData()
+                        grapher.updateFromObject({
+                            minTime: test.param[0],
+                            maxTime: test.param[1],
+                        })
+                        const params = grapher.changedParams
+                        expect(params.time).toEqual(test.query)
+                    })
+                }
+            }
         })
     })
 
-    describe("with days", () => {
-        const tests: {
-            name: string
-            query: string
-            param: TimeBound
-            irreversible?: boolean
-        }[] = [
-            { name: "single day", query: "2020-01-30", param: 9 },
-            {
-                name: "single day negative",
-                query: "2020-01-01",
-                param: -20,
-            },
-            { name: "single day zero", query: "2020-01-21", param: 0 },
-            {
-                name: "single day latest",
-                query: "latest",
-                param: TimeBoundValue.positiveInfinity,
-            },
-            {
-                name: "single day earliest",
-                query: "earliest",
-                param: TimeBoundValue.negativeInfinity,
-            },
-            {
-                name: "single day (number)",
-                query: "0",
-                param: 0,
-                irreversible: true,
-            },
-        ]
+    describe("year parameter (applies to map only)", () => {
+        describe("with years", () => {
+            const tests: {
+                name: string
+                query: string
+                param: TimeBound
+            }[] = [
+                { name: "single year", query: "1500", param: 1500 },
+                {
+                    name: "single year negative",
+                    query: "-1500",
+                    param: -1500,
+                },
+                { name: "single year zero", query: "0", param: 0 },
+                {
+                    name: "single year latest",
+                    query: "latest",
+                    param: TimeBoundValue.positiveInfinity,
+                },
+                {
+                    name: "single year earliest",
+                    query: "earliest",
+                    param: TimeBoundValue.negativeInfinity,
+                },
+            ]
 
-        it("can clear query params", () => {
-            const grapher = getGrapher()
-            grapher.populateFromQueryParams(
-                legacyToCurrentGrapherQueryParams("?year=2020-01-30")
-            )
-            expect(grapher.queryStr).toBeTruthy()
-
-            grapher.clearQueryParams()
-            expect(grapher.queryStr).toBeFalsy()
-        })
-
-        for (const test of tests) {
-            it(`parse ${test.name}`, () => {
-                const grapher = getGrapher()
-                grapher.populateFromQueryParams(
-                    legacyToCurrentGrapherQueryParams(`?year=${test.query}`)
-                )
-                expect(grapher.timelineHandleTimeBounds).toEqual([
-                    test.param,
-                    test.param,
-                ])
-            })
-            if (!test.irreversible) {
+            for (const test of tests) {
+                it(`parse ${test.name}`, () => {
+                    const grapher = fromQueryParams({ year: test.query })
+                    expect(grapher.timelineHandleTimeBounds[1]).toEqual(
+                        test.param
+                    )
+                })
                 it(`encode ${test.name}`, () => {
-                    const grapher = getGrapher()
-                    grapher.updateFromObject({
+                    const params = toQueryParams({
                         tab: GRAPHER_TAB_CONFIG_OPTIONS.map,
                         map: { time: test.param },
                     })
-                    const params = grapher.changedParams
                     expect(params.time).toEqual(test.query)
                 })
             }
-        }
+
+            it("empty string doesn't change time", () => {
+                const grapher = fromQueryParams({ year: "", time: "2015" })
+                expect(grapher.timelineHandleTimeBounds[1]).toEqual(2015)
+            })
+        })
+
+        describe("with days", () => {
+            const tests: {
+                name: string
+                query: string
+                param: TimeBound
+                irreversible?: boolean
+            }[] = [
+                { name: "single day", query: "2020-01-30", param: 9 },
+                {
+                    name: "single day negative",
+                    query: "2020-01-01",
+                    param: -20,
+                },
+                { name: "single day zero", query: "2020-01-21", param: 0 },
+                {
+                    name: "single day latest",
+                    query: "latest",
+                    param: TimeBoundValue.positiveInfinity,
+                },
+                {
+                    name: "single day earliest",
+                    query: "earliest",
+                    param: TimeBoundValue.negativeInfinity,
+                },
+                {
+                    name: "single day (number)",
+                    query: "0",
+                    param: 0,
+                    irreversible: true,
+                },
+            ]
+
+            it("can clear query params", () => {
+                const grapher = makeGrapherWithDailyData()
+                grapher.populateFromQueryParams(
+                    legacyToCurrentGrapherQueryParams("?year=2020-01-30")
+                )
+                expect(grapher.queryStr).toBeTruthy()
+
+                grapher.clearQueryParams()
+                expect(grapher.queryStr).toBeFalsy()
+            })
+
+            for (const test of tests) {
+                it(`parse ${test.name}`, () => {
+                    const grapher = makeGrapherWithDailyData()
+                    grapher.populateFromQueryParams(
+                        legacyToCurrentGrapherQueryParams(`?year=${test.query}`)
+                    )
+                    expect(grapher.timelineHandleTimeBounds).toEqual([
+                        test.param,
+                        test.param,
+                    ])
+                })
+                if (!test.irreversible) {
+                    it(`encode ${test.name}`, () => {
+                        const grapher = makeGrapherWithDailyData()
+                        grapher.updateFromObject({
+                            tab: GRAPHER_TAB_CONFIG_OPTIONS.map,
+                            map: { time: test.param },
+                        })
+                        const params = grapher.changedParams
+                        expect(params.time).toEqual(test.query)
+                    })
+                }
+            }
+        })
     })
 })
 
