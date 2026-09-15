@@ -15,6 +15,7 @@ import {
     stringDefs,
     yearDef,
 } from "@ourworldindata/core-table"
+import { InteractionState } from "../interaction/InteractionState.js"
 import {
     ScatterPlotManager,
     SCATTER_POINT_DEFAULT_RADIUS,
@@ -215,12 +216,13 @@ describe("basic scatterplot", () => {
     })
 
     it("plots correct series", () => {
-        expect(chartState.series).toMatchObject([
+        expect(chartState.series).toEqual([
             {
                 seriesName: "UK",
                 label: "UK",
                 color: ContinentColors.Europe,
                 isScaleColor: true,
+                focus: new InteractionState(),
                 points: [
                     {
                         entityName: "UK",
@@ -229,6 +231,7 @@ describe("basic scatterplot", () => {
                         y: 1,
                         color: "Europe",
                         size: 100,
+                        time: { x: 2000, y: 2000 },
                         timeValue: 2000,
                     },
                 ],
@@ -238,6 +241,7 @@ describe("basic scatterplot", () => {
                 label: "USA",
                 color: chartState.defaultNoDataColor,
                 isScaleColor: true,
+                focus: new InteractionState(),
                 points: [
                     {
                         entityName: "USA",
@@ -246,6 +250,7 @@ describe("basic scatterplot", () => {
                         y: 1,
                         color: undefined,
                         size: undefined,
+                        time: { x: 2000, y: 2000 },
                         timeValue: 2000,
                     },
                 ],
