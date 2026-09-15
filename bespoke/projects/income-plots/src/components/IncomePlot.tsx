@@ -739,7 +739,9 @@ const IncomePlotXAxis = ({
             .attr("y2", -(height - marginBottom - marginTop))
             .attr("stroke-opacity", 0.1)
 
-        return () => void g.selectAll("*").remove()
+        return () => {
+            g.selectAll("*").remove()
+        }
     }, [
         xScale,
         height,
@@ -900,10 +902,7 @@ const IncomePlotPointer = ({
                 strokeWidth={3}
                 paintOrder="stroke"
             >
-                {formatCurrency(
-                    hoveredX * combinedFactor,
-                    currentCurrency as any
-                )}
+                {formatCurrency(hoveredX * combinedFactor, currentCurrency)}
             </text>
         </g>
     )
