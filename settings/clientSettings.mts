@@ -143,10 +143,15 @@ export const BESPOKE_BASE_URL: string =
 // indicators -- so it is derived from DATA_API_URL rather than configured a second time per
 // environment, and a staging server automatically serves the feeds its own branch built (falling
 // back to production's for the ones it didn't, which the api-staging worker does on its own).
+// The trailing slash is optional because the staging env files write DATA_API_URL with one.
+const BESPOKE_DATA_URL_FROM_DATA_API = DATA_API_URL.replace(
+    /\/v1\/indicators\/?$/,
+    "/v1/bespoke"
+)
 export const BESPOKE_DATA_URL: string =
     process.env.BESPOKE_DATA_URL ??
-    (DATA_API_URL.endsWith("/v1/indicators")
-        ? DATA_API_URL.replace(/\/v1\/indicators$/, "/v1/bespoke")
+    (BESPOKE_DATA_URL_FROM_DATA_API.endsWith("/v1/bespoke")
+        ? BESPOKE_DATA_URL_FROM_DATA_API
         : "https://api.ourworldindata.org/v1/bespoke")
 
 /// Generated properties only, these cannot be overridden directly
