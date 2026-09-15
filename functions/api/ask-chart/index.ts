@@ -118,7 +118,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
             stream: true,
             store: false,
             max_output_tokens: MAX_OUTPUT_TOKENS,
-            reasoning: { effort: "low" },
+            reasoning: { effort: "medium" },
         })
 
         // Stream just the answer text back to the client as plain text.
