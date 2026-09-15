@@ -2,10 +2,13 @@ import { QueryStatus, useQuery } from "@tanstack/react-query"
 import { DataJson, MetadataJson, DataRow } from "./CausesOfDeathConstants"
 import { fetchJson } from "@ourworldindata/utils"
 import { CausesOfDeathMetadata } from "./CausesOfDeathMetadata.js"
+import { feedUrl } from "../../../../helpers/feedUrl.js"
 
-const BASE_URL = "https://owid-public.owid.io/data/gbd"
-const METADATA_PATH = BASE_URL + "/causes-of-death.metadata.json"
-const DATA_PATH = BASE_URL + "/causes-of-death.{entityId}.json"
+// ETL step that builds this feed: viz://bespoke/ihme_gbd/latest/gbd_treemap_json
+const FEED = "ihme_gbd/latest/gbd_treemap_json"
+const metadataUrl = () => feedUrl(FEED, "causes-of-death.metadata.json")
+const dataUrl = (entityId: number) =>
+    feedUrl(FEED, `causes-of-death.${entityId}.json`)
 
 const queryKeys = {
     metadata: () => ["causes-of-death", "metadata"],
@@ -19,7 +22,7 @@ export const useCausesOfDeathMetadata = (): {
 } => {
     const result = useQuery({
         queryKey: queryKeys.metadata(),
-        queryFn: () => fetchJson<MetadataJson>(METADATA_PATH),
+        queryFn: () => fetchJson<MetadataJson>(metadataUrl()),
     })
 
     const data = result.data
@@ -44,10 +47,8 @@ export const useCausesOfDeathEntityData = (
 
     const result = useQuery({
         queryKey: queryKeys.data(entityId!),
-        queryFn: async (): Promise<DataJson> => {
-            const path = DATA_PATH.replace("{entityId}", entityId!.toString())
-            return fetchJson<DataJson>(path)
-        },
+        queryFn: async (): Promise<DataJson> =>
+            fetchJson<DataJson>(dataUrl(entityId!)),
         enabled: entityId !== undefined,
         // Keep previous data while fetching new data
         placeholderData: (previousData) => previousData,

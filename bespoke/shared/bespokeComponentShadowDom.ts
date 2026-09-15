@@ -14,12 +14,14 @@ export async function mountBespokeComponentInShadow({
     scriptUrl,
     variant,
     config,
+    dataUrl,
     signal,
 }: {
     container: HTMLDivElement
     scriptUrl: string
     variant?: string
     config?: Record<string, string>
+    dataUrl?: string
     signal?: AbortSignal
 }): Promise<{ dispose?: () => void }> {
     let shadowRoot = container.shadowRoot
@@ -43,7 +45,11 @@ export async function mountBespokeComponentInShadow({
     mountContainer.className = "bespoke-container"
     shadowRoot.appendChild(mountContainer)
 
-    const result = await module.mount(mountContainer, { variant, config })
+    const result = await module.mount(mountContainer, {
+        variant,
+        config,
+        dataUrl,
+    })
     const dispose = typeof result === "function" ? result : undefined
 
     return { dispose }
