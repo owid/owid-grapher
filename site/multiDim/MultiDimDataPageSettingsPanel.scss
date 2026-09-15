@@ -4,12 +4,6 @@
     align-items: center;
     gap: 16px;
 
-    .md-settings__dropdowns {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 16px;
-    }
-
     @include sm-only {
         display: block;
     }
