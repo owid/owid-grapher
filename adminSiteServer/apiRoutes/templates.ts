@@ -4,7 +4,7 @@ import { TemplateReference } from "@ourworldindata/types"
 // devTools/gdocs/generate-gdocs-references.ts and committed to the repo, so
 // we can serve it without touching the database: one entry per writable gdoc
 // type — front-matter fields, admin-managed fields, and the curated skeleton.
-import templatesRegistry from "../../docs/templates.registry.generated.json"
+import templatesRegistry from "@ourworldindata/types/src/gdocTypes/templates.registry.generated.json"
 
 export async function getTemplatesReference(): Promise<{
     templates: TemplateReference[]

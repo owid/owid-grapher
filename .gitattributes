@@ -1,4 +1,4 @@
 * text=auto eol=lf
 *.css linguist-vendored
 *.less linguist-vendored
-docs/*.registry.generated.json linguist-generated=true
+packages/@ourworldindata/types/src/gdocTypes/*.registry.generated.json linguist-generated=true

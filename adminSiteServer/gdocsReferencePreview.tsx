@@ -44,7 +44,7 @@ import type { GdocBase } from "../db/model/Gdoc/GdocBase.js"
 
 // The committed generated registry — same source the
 // /api/gdocs-reference/components.json endpoint serves.
-import componentsRegistry from "../docs/components.registry.generated.json"
+import componentsRegistry from "@ourworldindata/types/src/gdocTypes/components.registry.generated.json"
 
 /**
  * Live previews for the admin writing reference page (GdocsReferencePage):

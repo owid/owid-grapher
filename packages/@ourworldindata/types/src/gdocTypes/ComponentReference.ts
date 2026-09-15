@@ -1,6 +1,6 @@
 // Types for the generated ArchieML component reference registry.
 // Produced by devTools/gdocs/generate-gdocs-references.ts (committed to
-// docs/components.registry.generated.json) and consumed by the admin
+// ./components.registry.generated.json) and consumed by the admin
 // components reference page via the /api/gdocs-reference/components.json endpoint.
 
 /** The fence language a sidecar example was written in */
@@ -116,7 +116,7 @@ export interface ComponentProp {
 }
 
 /**
- * Shape of docs/components.registry.generated.json and of the
+ * Shape of ./components.registry.generated.json and of the
  * /api/gdocs-reference/components.json response.
  */
 export interface ComponentRegistry {

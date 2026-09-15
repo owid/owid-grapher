@@ -1982,6 +1982,24 @@
           "heading"
         ]
       }
+    ],
+    "related": [
+      {
+        "kind": "component",
+        "id": "bespoke-component"
+      },
+      {
+        "kind": "template",
+        "id": "article"
+      },
+      {
+        "kind": "template",
+        "id": "data-insight"
+      },
+      {
+        "kind": "guide",
+        "id": "refs"
+      }
     ]
   }
 ]

@@ -2,7 +2,7 @@
 // writing in Google Docs (refs, details on demand, headings …) that are
 // neither a block nor a document type. Produced by
 // devTools/gdocs/generate-gdocs-references.ts (committed to
-// docs/guides.registry.generated.json) and served via the
+// ./guides.registry.generated.json) and served via the
 // /api/gdocs-reference/guides.json endpoint.
 
 import type {

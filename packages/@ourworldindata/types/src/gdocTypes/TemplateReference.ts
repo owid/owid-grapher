@@ -1,6 +1,6 @@
 // Types for the generated gdoc template reference registry.
 // Produced by devTools/gdocs/generate-gdocs-references.ts (committed to
-// docs/templates.registry.generated.json) and served via the
+// ./templates.registry.generated.json) and served via the
 // /api/gdocs-reference/templates.json endpoint: one entry per documented
 // gdoc type.
 

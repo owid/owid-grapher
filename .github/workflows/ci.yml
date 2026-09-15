@@ -131,11 +131,11 @@ jobs:
       # is covered without editing this job.
       - name: Check committed registries are current
         run: |
-          changed=$(git status --porcelain -- 'docs/*.registry.generated.json')
+          changed=$(git status --porcelain -- 'packages/@ourworldindata/types/src/gdocTypes/*.registry.generated.json')
           if [ -n "$changed" ]; then
-            git diff -- 'docs/*.registry.generated.json'
+            git diff -- 'packages/@ourworldindata/types/src/gdocTypes/*.registry.generated.json'
             echo "$changed"
-            echo "::error::docs/*.registry.generated.json are stale or uncommitted. Run 'yarn generateGdocsReferences' and commit the result."
+            echo "::error::packages/@ourworldindata/types/src/gdocTypes/*.registry.generated.json are stale or uncommitted. Run 'yarn generateGdocsReferences' and commit the result."
             exit 1
           fi
 
