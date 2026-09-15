@@ -33,6 +33,7 @@ import { HorizontalAxis } from "../axis/Axis"
 import {
     ColoredSwimlaneSegment,
     isSwimlaneSortKey,
+    RankedSwimlane,
     SWIMLANE_SORT_KEYS,
     SwimlaneCategories,
     SwimlaneChartManager,
@@ -40,7 +41,7 @@ import {
     SwimlaneSeries,
     SwimlaneSortKey,
 } from "./SwimlaneChartConstants"
-import { toSwimlaneSegments } from "./SwimlaneChartHelpers"
+import { toRankedSwimlane, toSwimlaneSegments } from "./SwimlaneChartHelpers"
 
 export class SwimlaneChartState implements ChartState, ColorScaleManager {
     manager: SwimlaneChartManager
@@ -208,6 +209,13 @@ export class SwimlaneChartState implements ChartState, ColorScaleManager {
 
     @computed get defaultSortKey(): SwimlaneSortKey {
         return SortBy.entityName
+    }
+
+    @computed get rankedSwimlane(): RankedSwimlane | undefined {
+        return toRankedSwimlane({
+            series: this.series,
+            categories: this.categories,
+        })
     }
 
     toHorizontalAxis(config: AxisConfig): HorizontalAxis {
