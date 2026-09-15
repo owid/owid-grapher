@@ -1,6 +1,11 @@
 import { expect, it, describe } from "vitest"
 
-import { ColumnTypeNames } from "@ourworldindata/types"
+import {
+    ColumnTypeNames,
+    SortBy,
+    SortOrder,
+    SwimlaneSortBy,
+} from "@ourworldindata/types"
 import { OwidTable } from "@ourworldindata/core-table"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
 import { SwimlaneChartState } from "./SwimlaneChartState"
@@ -144,7 +149,7 @@ describe("series", () => {
         expect(segment).toMatchObject({ category: "ICD-9", color: "#123456" })
     })
 
-    it("comes back in selection order", () => {
+    it("comes back in selection order under custom sort", () => {
         const table = ordinalTable([
             { entityName: "France", time: 2000, cause: "ICD-9" },
             { entityName: "Zimbabwe", time: 2000, cause: "ICD-8" },
@@ -154,6 +159,7 @@ describe("series", () => {
             table,
             selection: ["France", "Zimbabwe", "Albania"],
             yColumnSlugs: ["cause"],
+            swimlane: { sortBy: SwimlaneSortBy.custom },
         }
         const chartState = new SwimlaneChartState({ manager })
 
@@ -198,5 +204,318 @@ describe("series", () => {
             startTime: 2003,
             endTime: 2003,
         })
+    })
+})
+
+describe("lane order", () => {
+    it("defaults to lastCategory, highest-ranked final category first", () => {
+        const table = ordinalTable([
+            { entityName: "France", time: 2000, cause: "ICD-7" },
+            { entityName: "Germany", time: 2000, cause: "ICD-9" },
+            { entityName: "Japan", time: 2000, cause: "ICD-10" },
+        ])
+        const manager: SwimlaneChartManager = {
+            table,
+            selection: ["France", "Germany", "Japan"],
+            yColumnSlugs: ["cause"],
+        }
+        const chartState = new SwimlaneChartState({ manager })
+
+        expect(chartState.series.map((series) => series.seriesName)).toEqual([
+            "Japan",
+            "Germany",
+            "France",
+        ])
+    })
+
+    it("breaks a final-category tie by how long that category has run, longest first", () => {
+        const table = ordinalTable([
+            { entityName: "LongRun", time: 2000, cause: "ICD-9" },
+            { entityName: "LongRun", time: 2001, cause: "ICD-9" },
+            { entityName: "LongRun", time: 2002, cause: "ICD-9" },
+            { entityName: "ShortRun", time: 2000, cause: "ICD-7" },
+            { entityName: "ShortRun", time: 2001, cause: "ICD-7" },
+            { entityName: "ShortRun", time: 2002, cause: "ICD-9" },
+        ])
+        const manager: SwimlaneChartManager = {
+            table,
+            selection: ["ShortRun", "LongRun"],
+            yColumnSlugs: ["cause"],
+        }
+
+        const chartState = new SwimlaneChartState({ manager })
+
+        expect(chartState.series.map((series) => series.seriesName)).toEqual([
+            "LongRun",
+            "ShortRun",
+        ])
+    })
+
+    it("breaks a same-category, same-duration tie by entity name", () => {
+        const table = ordinalTable([
+            { entityName: "Bravo", time: 2000, cause: "ICD-9" },
+            { entityName: "Alpha", time: 2000, cause: "ICD-9" },
+        ])
+        const chartState = new SwimlaneChartState({
+            manager: {
+                table,
+                selection: ["Bravo", "Alpha"],
+                yColumnSlugs: ["cause"],
+            },
+        })
+
+        expect(chartState.series.map((series) => series.seriesName)).toEqual([
+            "Bravo",
+            "Alpha",
+        ])
+    })
+
+    it("keys on the last category even when a trailing gap follows it", () => {
+        // Every row trails off before the column's last time, as on chart 9260
+        const table = ordinalTable([
+            { entityName: "LongIcd10", time: 2000, cause: "ICD-9" },
+            { entityName: "LongIcd10", time: 2001, cause: "ICD-10" },
+            { entityName: "LongIcd10", time: 2002, cause: "ICD-10" },
+            { entityName: "ShortIcd10", time: 2000, cause: "ICD-9" },
+            { entityName: "ShortIcd10", time: 2001, cause: "ICD-9" },
+            { entityName: "ShortIcd10", time: 2002, cause: "ICD-10" },
+            { entityName: "StoppedOnIcd9", time: 2000, cause: "ICD-9" },
+            { entityName: "Anyone", time: 2003, cause: "ICD-7" },
+        ])
+        const chartState = new SwimlaneChartState({
+            manager: {
+                table,
+                selection: [
+                    "ShortIcd10",
+                    "StoppedOnIcd9",
+                    "Empty",
+                    "LongIcd10",
+                ],
+                yColumnSlugs: ["cause"],
+            },
+        })
+
+        expect(chartState.series[0].segments.at(-1)?.kind).toEqual("missing")
+        expect(chartState.series.map((series) => series.seriesName)).toEqual([
+            "LongIcd10",
+            "ShortIcd10",
+            "StoppedOnIcd9",
+            "Empty",
+        ])
+    })
+
+    it("reverses the whole order under asc, no-data row included", () => {
+        const table = ordinalTable([
+            { entityName: "Long", time: 2001, cause: "ICD-10" },
+            { entityName: "Long", time: 2002, cause: "ICD-10" },
+            { entityName: "Long", time: 2003, cause: "ICD-10" },
+            { entityName: "Short", time: 2000, cause: "ICD-9" },
+            { entityName: "Short", time: 2003, cause: "ICD-10" },
+            { entityName: "Bravo", time: 2000, cause: "ICD-9" },
+            { entityName: "Bravo", time: 2003, cause: "ICD-9" },
+            { entityName: "Alpha", time: 2000, cause: "ICD-9" },
+            { entityName: "Alpha", time: 2003, cause: "ICD-9" },
+        ])
+        const manager: SwimlaneChartManager = {
+            table,
+            selection: ["Short", "Empty", "Bravo", "Long", "Alpha"],
+            yColumnSlugs: ["cause"],
+        }
+
+        const descOrder = new SwimlaneChartState({
+            manager: { ...manager, swimlane: { sortOrder: SortOrder.desc } },
+        }).series.map((series) => series.seriesName)
+        const ascOrder = new SwimlaneChartState({
+            manager: { ...manager, swimlane: { sortOrder: SortOrder.asc } },
+        }).series.map((series) => series.seriesName)
+
+        expect(descOrder).toEqual(["Long", "Short", "Bravo", "Alpha", "Empty"])
+        expect(ascOrder).toEqual(descOrder.toReversed())
+    })
+
+    it("firstCategory keys on the first category segment instead of the last", () => {
+        const table = ordinalTable([
+            { entityName: "A", time: 2000, cause: "ICD-7" },
+            { entityName: "A", time: 2001, cause: "ICD-10" },
+            { entityName: "B", time: 2000, cause: "ICD-9" },
+            { entityName: "B", time: 2001, cause: "ICD-7" },
+        ])
+        const manager: SwimlaneChartManager = {
+            table,
+            selection: ["A", "B"],
+            yColumnSlugs: ["cause"],
+            swimlane: { sortBy: SwimlaneSortBy.firstCategory },
+        }
+        const chartState = new SwimlaneChartState({ manager })
+
+        expect(chartState.series.map((series) => series.seriesName)).toEqual([
+            "A",
+            "B",
+        ])
+    })
+
+    it("ranks firstCategory from the other end, so starting low sorts above starting high", () => {
+        const table = ordinalTable([
+            { entityName: "StartsLow", time: 2000, cause: "ICD-7" },
+            { entityName: "StartsLow", time: 2001, cause: "ICD-10" },
+            { entityName: "StartsHigh", time: 2000, cause: "ICD-9" },
+            { entityName: "StartsHigh", time: 2001, cause: "ICD-10" },
+        ])
+        const manager: SwimlaneChartManager = {
+            table,
+            selection: ["StartsHigh", "StartsLow"],
+            yColumnSlugs: ["cause"],
+            swimlane: { sortBy: SwimlaneSortBy.firstCategory },
+        }
+
+        const descOrder = new SwimlaneChartState({
+            manager,
+        }).series.map((series) => series.seriesName)
+        const ascOrder = new SwimlaneChartState({
+            manager: {
+                ...manager,
+                swimlane: {
+                    sortBy: SwimlaneSortBy.firstCategory,
+                    sortOrder: SortOrder.asc,
+                },
+            },
+        }).series.map((series) => series.seriesName)
+
+        expect(descOrder).toEqual(["StartsLow", "StartsHigh"])
+        expect(ascOrder).toEqual(descOrder.toReversed())
+    })
+
+    it("entityName sorts alphabetically", () => {
+        const table = ordinalTable([
+            { entityName: "France", time: 2000, cause: "ICD-9" },
+            { entityName: "Albania", time: 2000, cause: "ICD-7" },
+            { entityName: "Zimbabwe", time: 2000, cause: "ICD-8" },
+        ])
+        const manager: SwimlaneChartManager = {
+            table,
+            selection: ["France", "Albania", "Zimbabwe"],
+            yColumnSlugs: ["cause"],
+            swimlane: { sortBy: SwimlaneSortBy.entityName },
+        }
+        const chartState = new SwimlaneChartState({ manager })
+
+        expect(chartState.series.map((series) => series.seriesName)).toEqual([
+            "Zimbabwe",
+            "France",
+            "Albania",
+        ])
+    })
+
+    it("sortOrder asc reverses the order", () => {
+        const table = ordinalTable([
+            { entityName: "France", time: 2000, cause: "ICD-7" },
+            { entityName: "Germany", time: 2000, cause: "ICD-9" },
+            { entityName: "Japan", time: 2000, cause: "ICD-10" },
+        ])
+        const manager: SwimlaneChartManager = {
+            table,
+            selection: ["France", "Germany", "Japan"],
+            yColumnSlugs: ["cause"],
+            swimlane: { sortOrder: SortOrder.asc },
+        }
+        const chartState = new SwimlaneChartState({ manager })
+
+        expect(chartState.series.map((series) => series.seriesName)).toEqual([
+            "France",
+            "Germany",
+            "Japan",
+        ])
+    })
+
+    it("ignores a gap at either end, keying on the first or last category", () => {
+        const table = ordinalTable([
+            { entityName: "France", time: 2000, cause: "ICD-9" },
+            { entityName: "France", time: 2001, cause: "ICD-9" },
+            { entityName: "Georgia", time: 2000, cause: "ICD-8" },
+            { entityName: "Georgia", time: 2001, cause: "ICD-8" },
+            { entityName: "Georgia", time: 2003, cause: "ICD-8" },
+        ])
+        const manager: SwimlaneChartManager = {
+            table,
+            selection: ["France", "Georgia"],
+            yColumnSlugs: ["cause"],
+        }
+
+        const byLastCategory = new SwimlaneChartState({ manager })
+
+        // France has no observation at 2003, so its lane ends in a hatch
+        expect(byLastCategory.series[0].segments.at(-1)?.kind).toEqual(
+            "missing"
+        )
+        expect(
+            byLastCategory.series.map((series) => series.seriesName)
+        ).toEqual(["France", "Georgia"])
+
+        const byFirstCategory = new SwimlaneChartState({
+            manager: {
+                ...manager,
+                swimlane: { sortBy: SwimlaneSortBy.firstCategory },
+            },
+        })
+        expect(
+            byFirstCategory.series.map((series) => series.seriesName)
+        ).toEqual(["Georgia", "France"])
+    })
+
+    it("keys firstCategory on the first category, not on a leading gap", () => {
+        const table = ordinalTable([
+            { entityName: "Gappy", time: 2001, cause: "ICD-10" },
+            { entityName: "Gappy", time: 2002, cause: "ICD-10" },
+            { entityName: "Early", time: 2000, cause: "ICD-7" },
+            { entityName: "Early", time: 2001, cause: "ICD-7" },
+            { entityName: "Early", time: 2002, cause: "ICD-7" },
+        ])
+        const chartState = new SwimlaneChartState({
+            manager: {
+                table,
+                selection: ["Early", "Gappy"],
+                yColumnSlugs: ["cause"],
+                swimlane: { sortBy: SwimlaneSortBy.firstCategory },
+            },
+        })
+
+        const gappy = chartState.series.find(
+            (series) => series.seriesName === "Gappy"
+        )
+        expect(gappy?.segments[0].kind).toEqual("missing")
+        expect(chartState.series.map((series) => series.seriesName)).toEqual([
+            "Early",
+            "Gappy",
+        ])
+    })
+
+    it("is unaffected by the top-level sortConfig", () => {
+        const table = ordinalTable([
+            { entityName: "France", time: 2000, cause: "ICD-7" },
+            { entityName: "Germany", time: 2000, cause: "ICD-9" },
+            { entityName: "Japan", time: 2000, cause: "ICD-10" },
+        ])
+        const selection = ["France", "Germany", "Japan"]
+
+        const withoutTopLevelSort: SwimlaneChartManager = {
+            table,
+            selection,
+            yColumnSlugs: ["cause"],
+        }
+        const withTopLevelSort: SwimlaneChartManager = {
+            table,
+            selection,
+            yColumnSlugs: ["cause"],
+            sortConfig: { sortBy: SortBy.total, sortOrder: SortOrder.asc },
+        }
+
+        const orderWithout = new SwimlaneChartState({
+            manager: withoutTopLevelSort,
+        }).series.map((series) => series.seriesName)
+        const orderWith = new SwimlaneChartState({
+            manager: withTopLevelSort,
+        }).series.map((series) => series.seriesName)
+
+        expect(orderWith).toEqual(orderWithout)
     })
 })

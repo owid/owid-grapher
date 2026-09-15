@@ -1,5 +1,8 @@
+import * as R from "remeda"
+import { match } from "ts-pattern"
 import { Bounds } from "@ourworldindata/utils"
-import { Time } from "@ourworldindata/types"
+import { SortOrder, SwimlaneSortBy, Time } from "@ourworldindata/types"
+import { sortByKey } from "../chart/ChartUtils"
 import { computeCenteredLabelYPositions } from "../rowSeriesLabels/RowSeriesLabelHelpers.js"
 import {
     ENTITY_LABEL_CHART_GAP,
@@ -10,6 +13,7 @@ import {
     SizedSwimlaneSeries,
     SwimlaneObservation,
     SwimlaneSegment,
+    SwimlaneSeries,
 } from "./SwimlaneChartConstants"
 
 export function toSwimlaneSegments({
@@ -103,4 +107,72 @@ export function toPlacedSwimlaneSeries({
             placedSegments,
         }
     })
+}
+
+export function sortSwimlaneRows({
+    rows,
+    sortBy,
+    sortOrder,
+    categories,
+}: {
+    rows: SwimlaneSeries[]
+    sortBy: SwimlaneSortBy
+    sortOrder: SortOrder
+    categories: string[]
+}): SwimlaneSeries[] {
+    return match(sortBy)
+        .with(SwimlaneSortBy.custom, () => rows)
+        .with(SwimlaneSortBy.entityName, () =>
+            sortByKey(rows, (row) => row.entityName, sortOrder)
+        )
+        .with(SwimlaneSortBy.firstCategory, () =>
+            sortRowsByCategory({ rows, at: "first", sortOrder, categories })
+        )
+        .with(SwimlaneSortBy.lastCategory, () =>
+            sortRowsByCategory({ rows, at: "last", sortOrder, categories })
+        )
+        .exhaustive()
+}
+
+function sortRowsByCategory({
+    rows,
+    at,
+    sortOrder,
+    categories,
+}: {
+    rows: SwimlaneSeries[]
+    at: "first" | "last"
+    sortOrder: SortOrder
+    categories: string[]
+}): SwimlaneSeries[] {
+    const rankedCategories =
+        at === "first" ? categories.toReversed() : categories
+
+    const sortableRows = rows.map((row) => {
+        const categorySegments = row.segments.filter(
+            (segment) => segment.kind === "category"
+        )
+        const segment =
+            at === "first"
+                ? R.first(categorySegments)
+                : R.last(categorySegments)
+
+        return {
+            row,
+            categoryRank: segment
+                ? rankedCategories.indexOf(segment.category)
+                : -1,
+            duration: segment ? segment.endTime - segment.startTime : 0,
+        }
+    })
+
+    return sortByKey(
+        sortableRows,
+        [
+            ({ categoryRank }) => categoryRank,
+            ({ duration }) => duration,
+            ({ row }) => row.entityName,
+        ],
+        sortOrder
+    ).map(({ row }) => row)
 }

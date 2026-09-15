@@ -73,6 +73,10 @@ export const defaultGrapherConfig = {
         connectorStyle: "arrow",
         valueLabelMode: "absolute",
     },
+    swimlane: {
+        sortBy: "lastCategory",
+        sortOrder: "desc",
+    },
     invertColorScheme: false,
     logo: "owid",
     hideSeriesLabels: false,

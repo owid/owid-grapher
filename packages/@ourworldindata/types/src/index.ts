@@ -139,6 +139,8 @@ export {
     type DumbbellTrendColorMap,
     DumbbellConnectorStyle,
     DumbbellValueLabelMode,
+    type SwimlaneChartConfigInterface,
+    SwimlaneSortBy,
     type GlobeConfig,
     type ProjectionColumnInfo,
     GrapherVariant,
