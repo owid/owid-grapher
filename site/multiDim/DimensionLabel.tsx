@@ -9,6 +9,10 @@ import { Tippy } from "@ourworldindata/utils"
 // with an optional info icon showing the dimension's description on hover.
 // Radio groups also list the choice descriptions in the tooltip, since unlike
 // dropdowns they have no menu to show them in.
+//
+// The icon sits next to the `Label` rather than inside it: React Aria focuses
+// the select trigger when its label is clicked, which would pull focus off the
+// icon and dismiss the tooltip on touch devices.
 export default function DimensionLabel({
     dimension,
     showChoiceDescriptions,
@@ -22,8 +26,8 @@ export default function DimensionLabel({
     const hasTooltip =
         Boolean(dimension.description) || choicesWithDescription.length > 0
     return (
-        <Label className="md-settings__control-label h6-black-caps">
-            {dimension.name}
+        <div className="md-settings__control-label">
+            <Label className="h6-black-caps">{dimension.name}</Label>
             {hasTooltip && (
                 <Tippy
                     content={
@@ -53,6 +57,6 @@ export default function DimensionLabel({
                     </span>
                 </Tippy>
             )}
-        </Label>
+        </div>
     )
 }
