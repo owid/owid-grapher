@@ -1,12 +1,16 @@
 import {
+    ANNOUNCEMENT_LATEST_TYPES,
+    deriveAnnouncementLatestType,
+    LatestAnnouncement,
     OwidGdocAnnouncementContent,
     OwidGdocAnnouncementInterface,
     OwidGdocBaseInterface,
     OwidGdocErrorMessage,
     OwidGdocErrorMessageType,
 } from "@ourworldindata/utils"
-import { ANNOUNCEMENT_LATEST_TYPES } from "@ourworldindata/types"
+import * as db from "../../../db/db.js"
 import { GdocBase } from "./GdocBase.js"
+import { getLatestAnnouncements } from "./GdocFactory.js"
 
 export class GdocAnnouncement
     extends GdocBase
@@ -16,6 +20,22 @@ export class GdocAnnouncement
 
     constructor(id?: string) {
         super(id)
+    }
+
+    override latestAnnouncements: LatestAnnouncement[] = []
+
+    /** The carousel at the bottom of an announcement page shows the most
+     * recent announcements of the same kind, so which announcements we attach
+     * depends on this one's kicker. */
+    override _loadSubclassAttachments = async (
+        knex: db.KnexReadWriteTransaction
+    ): Promise<void> => {
+        const { announcements, imageMetadata } = await getLatestAnnouncements(
+            knex,
+            deriveAnnouncementLatestType(this.content.kicker)
+        )
+        this.latestAnnouncements = announcements
+        this.imageMetadata = { ...this.imageMetadata, ...imageMetadata }
     }
 
     override _validateSubclass = async (): Promise<OwidGdocErrorMessage[]> => {

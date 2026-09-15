@@ -64,6 +64,7 @@ import {
     NarrativeChartInfo,
     ContentGraphLinkType,
     GrapherInterface,
+    LatestAnnouncement,
     LatestDataInsight,
     LinkedAuthor,
     MultiDimDataPageConfigEnriched,
@@ -305,6 +306,7 @@ export class GdocBase implements OwidGdocBaseInterface {
     linkedIndicators: Record<number, LinkedIndicator> = {}
     linkedDocuments: Record<string, OwidGdocMinimalPostInterface> = {}
     latestDataInsights: LatestDataInsight[] = []
+    latestAnnouncements: LatestAnnouncement[] = []
     linkedNarrativeCharts?: Record<string, NarrativeChartInfo> = {}
     linkedStaticViz?: Record<string, LinkedStaticViz> = {}
     linkedCallouts: LinkedCallouts = {}
