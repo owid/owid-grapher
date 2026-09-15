@@ -10,7 +10,6 @@ import {
     AxisConfigInterface,
     ColorSchemeName,
     DumbbellChartConfigInterface,
-    SwimlaneChartConfigInterface,
     EntityName,
     DetailsMarker,
     GrapherVariant,
@@ -66,7 +65,6 @@ export interface ChartManager {
     xAxisConfig?: Readonly<AxisConfigInterface>
 
     dumbbell?: Readonly<DumbbellChartConfigInterface>
-    swimlane?: Readonly<SwimlaneChartConfigInterface>
 
     addCountryMode?: EntitySelectionMode
 

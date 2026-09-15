@@ -52,6 +52,10 @@ export enum SortBy {
     startValue = "startValue",
     /** Sort by the end value (dumbbell charts) */
     endValue = "endValue",
+    /** Sort by the category an entity starts on (swimlane charts) */
+    firstCategory = "firstCategory",
+    /** Sort by the category an entity ends on (swimlane charts) */
+    lastCategory = "lastCategory",
 }
 
 export interface SortConfig {
@@ -611,18 +615,6 @@ export interface DumbbellChartConfigInterface {
     trendColorMap?: DumbbellTrendColorMap
 }
 
-export enum SwimlaneSortBy {
-    lastCategory = "lastCategory",
-    firstCategory = "firstCategory",
-    entityName = "entityName",
-    custom = "custom",
-}
-
-export interface SwimlaneChartConfigInterface {
-    sortBy?: SwimlaneSortBy
-    sortOrder?: SortOrder
-}
-
 export interface MapConfigInterface {
     columnSlug?: ColumnSlug
     time?: TimeBound | TimeBoundValueStr
@@ -704,7 +696,6 @@ export interface GrapherInterface extends SortConfig {
     colorScale?: Partial<ColorScaleConfigInterface>
     map?: Partial<MapConfigInterface>
     dumbbell?: Partial<DumbbellChartConfigInterface>
-    swimlane?: Partial<SwimlaneChartConfigInterface>
 
     // When we move graphers to Git, and remove dimensions, we can clean this up.
     ySlugs?: ColumnSlugs
@@ -856,7 +847,6 @@ export const grapherKeysToSerialize = [
     "missingDataStrategy",
     "peerCountryStrategy",
     "dumbbell",
-    "swimlane",
 
     // Internals
     "adminBaseUrl",
