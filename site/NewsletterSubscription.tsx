@@ -3,7 +3,7 @@ import * as React from "react"
 import cx from "clsx"
 import { faTimes, faEnvelopeOpenText } from "@fortawesome/free-solid-svg-icons"
 import { SiteAnalytics } from "./SiteAnalytics.js"
-import { TextInput } from "@ourworldindata/components"
+import { Checkbox, TextInput } from "@ourworldindata/components"
 import { NewsletterSubscriptionContext } from "./newsletter.js"
 import { NewsletterIcon } from "./gdocs/components/NewsletterIcon.js"
 import { SiteToolsButton } from "./SiteToolsButton.js"
@@ -41,7 +41,6 @@ export const NewsletterSubscription = ({
                 <SiteToolsButton
                     icon={faTimes}
                     label="Close subscription form"
-                    tooltip={false}
                     onClick={() => setIsOpen(false)}
                 />
             ) : (
@@ -90,6 +89,33 @@ export const NewsletterSubscriptionForm = ({
     }`
     const idBiweekly = `mce-group[85302]-85302-1${context ? "-" + context : ""}`
 
+    const newsletters = [
+        {
+            id: idBiweekly,
+            value: BIWEEKLY,
+            title: "The OWID Brief",
+            frequency: "Twice a month",
+            description:
+                "Stay up to date with our latest work plus curated highlights from across Our World in Data, twice a month.",
+            image: "/images/biweekly-newsletter.webp",
+            exampleUrl:
+                "https://mailchi.mp/ourworldindata/owid-brief-2025-11-14",
+            exampleLabel: "See example OWID Brief newsletter",
+        },
+        {
+            id: idDataInsights,
+            value: DATA_INSIGHTS,
+            title: "Data Insights",
+            frequency: "Every few days",
+            description:
+                "Receive our bite-sized insights on how the world is changing, every few days.",
+            image: "/images/data-insights.webp",
+            exampleUrl:
+                "https://us8.campaign-archive.com/?u=18058af086319ba6afad752ec&id=fdf16136e1",
+            exampleLabel: "See example Data Insights newsletter",
+        },
+    ]
+
     const [frequencies, setFrequencies] = useState([DATA_INSIGHTS, BIWEEKLY])
     const isSubmittable = frequencies.length !== 0
 
@@ -117,76 +143,47 @@ export const NewsletterSubscriptionForm = ({
                 )
             }
         >
-            <img
-                alt=""
-                className="newsletter-subscription-form__checkbox-image"
-                src="/images/biweekly-newsletter.webp"
-                width={1200}
-                height={630}
-            />
-            <div className="newsletter-subscription-form__checkbox">
-                <input
-                    type="checkbox"
-                    value={BIWEEKLY}
-                    name={`group[85302][${BIWEEKLY}]`}
-                    id={idBiweekly}
-                    checked={frequencies.includes(BIWEEKLY)}
-                    onChange={updateFrequencies}
-                />
-                <label htmlFor={idBiweekly}>
-                    <span className="newsletter-subscription-form__label-title">
-                        The OWID Brief
-                    </span>{" "}
-                    <span className="newsletter-subscription-form__label-frequency note-12-medium">
-                        Twice a month
-                    </span>
-                    <div className="newsletter-subscription-form__label-text">
-                        Stay up to date with our latest work plus curated
-                        highlights from across Our World in Data, twice a month.
+            {newsletters.map((newsletter) => (
+                <React.Fragment key={newsletter.value}>
+                    <img
+                        alt=""
+                        className="newsletter-subscription-form__checkbox-image"
+                        src={newsletter.image}
+                        width={1200}
+                        height={630}
+                    />
+                    <div className="newsletter-subscription-form__checkbox">
+                        <Checkbox
+                            id={newsletter.id}
+                            name={`group[85302][${newsletter.value}]`}
+                            value={newsletter.value}
+                            checked={frequencies.includes(newsletter.value)}
+                            onChange={updateFrequencies}
+                            label={
+                                <>
+                                    <span className="newsletter-subscription-form__label-title">
+                                        {newsletter.title}
+                                    </span>{" "}
+                                    <span className="newsletter-subscription-form__label-frequency note-12-medium">
+                                        {newsletter.frequency}
+                                    </span>
+                                    <span className="newsletter-subscription-form__label-text">
+                                        {newsletter.description}
+                                    </span>
+                                </>
+                            }
+                        />
+                        {/* Kept outside of the label, so that clicking the link
+                        doesn't toggle the checkbox */}
+                        <a
+                            className="newsletter-subscription-form__example-link note-12-medium"
+                            href={newsletter.exampleUrl}
+                        >
+                            {newsletter.exampleLabel}
+                        </a>
                     </div>
-                </label>
-                <a
-                    className="newsletter-subscription-form__example-link note-12-medium"
-                    href="https://mailchi.mp/ourworldindata/owid-brief-2025-11-14"
-                >
-                    See example OWID Brief newsletter
-                </a>
-            </div>
-            <img
-                alt=""
-                className="newsletter-subscription-form__checkbox-image"
-                src="/images/data-insights.webp"
-                width={1200}
-                height={630}
-            />
-            <div className="newsletter-subscription-form__checkbox">
-                <input
-                    type="checkbox"
-                    value={DATA_INSIGHTS}
-                    name={`group[85302][${DATA_INSIGHTS}]`}
-                    id={idDataInsights}
-                    checked={frequencies.includes(DATA_INSIGHTS)}
-                    onChange={updateFrequencies}
-                />
-                <label htmlFor={idDataInsights}>
-                    <span className="newsletter-subscription-form__label-title">
-                        Data Insights
-                    </span>{" "}
-                    <span className="newsletter-subscription-form__label-frequency note-12-medium">
-                        Every few days
-                    </span>
-                    <div className="newsletter-subscription-form__label-text">
-                        Receive our bite-sized insights on how the world is
-                        changing, every few days.
-                    </div>
-                </label>
-                <a
-                    className="newsletter-subscription-form__example-link note-12-medium"
-                    href="https://us8.campaign-archive.com/?u=18058af086319ba6afad752ec&id=fdf16136e1"
-                >
-                    See example Data Insights newsletter
-                </a>
-            </div>
+                </React.Fragment>
+            ))}
             {frequencies.length === 0 && (
                 <div className="newsletter-subscription-form__alert">
                     Please select at least one option.
