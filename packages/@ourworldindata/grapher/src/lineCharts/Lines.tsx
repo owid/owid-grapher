@@ -18,7 +18,7 @@ import {
     RenderLineChartSeries,
 } from "./LineChartConstants"
 import { Emphasis } from "../interaction/Emphasis"
-import { getSeriesKey } from "../chart/ChartUtils"
+import { getSeriesKey, roundForSvg } from "../chart/ChartUtils"
 import { GRAPHER_BACKGROUND } from "../color/ColorConstants"
 import { MultiColorPolyline } from "../scatterCharts/MultiColorPolyline"
 import { DualAxis } from "../axis/Axis.js"
@@ -120,7 +120,7 @@ export class Lines extends React.Component<LinesProps> {
                 id={makeFigmaId("outline", series.displayName)}
                 placedPoints={series.placedPoints}
                 stroke={outlineColor}
-                strokeWidth={outlineWidth.toFixed(1)}
+                strokeWidth={roundForSvg(outlineWidth)}
             />
         )
 
@@ -129,7 +129,7 @@ export class Lines extends React.Component<LinesProps> {
                 id={makeFigmaId("line", series.seriesName)}
                 points={series.placedPoints}
                 strokeLinejoin="round"
-                strokeWidth={strokeWidth.toFixed(1)}
+                strokeWidth={roundForSvg(strokeWidth)}
                 strokeDasharray={strokeDasharray}
                 strokeOpacity={strokeOpacity}
             />
@@ -138,7 +138,7 @@ export class Lines extends React.Component<LinesProps> {
                 id={makeFigmaId("line", series.seriesName)}
                 placedPoints={series.placedPoints}
                 stroke={color}
-                strokeWidth={strokeWidth.toFixed(1)}
+                strokeWidth={roundForSvg(strokeWidth)}
                 strokeOpacity={strokeOpacity}
                 strokeDasharray={strokeDasharray}
             />
@@ -218,6 +218,8 @@ export class Lines extends React.Component<LinesProps> {
         const { bounds } = this
         return (
             <g className="Lines">
+                {/* Integer on purpose: a fractional rect shaves hairlines off
+                    the edges of the lines it clips */}
                 <rect
                     x={Math.round(bounds.x)}
                     y={Math.round(bounds.y)}

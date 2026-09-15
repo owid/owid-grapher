@@ -2,6 +2,7 @@ import { makeFigmaId, PointVector } from "@ourworldindata/utils"
 import { RenderSlopeChartSeries } from "./SlopeChartConstants"
 import { LINE_STYLE } from "../lineCharts/LineChartConstants.js"
 import { GRAPHER_BACKGROUND } from "../color/ColorConstants"
+import { roundForSvg } from "../chart/ChartUtils"
 
 interface SlopeProps {
     series: RenderSlopeChartSeries
@@ -88,7 +89,7 @@ function LineWithDots({
                 x2={endPoint.x}
                 y2={endPoint.y}
                 stroke={color}
-                strokeWidth={lineWidth.toFixed(1)}
+                strokeWidth={roundForSvg(lineWidth)}
             />
         </g>
     )

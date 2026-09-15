@@ -17,6 +17,7 @@ import { GRAPHER_DARK_TEXT } from "../color/ColorConstants"
 import { ScaleType, DetailsMarker } from "@ourworldindata/types"
 import { MarkdownTextWrapSvg } from "@ourworldindata/components"
 import { ComparisonLine } from "../comparisonLine/ComparisonLine"
+import { roundForSvg } from "../chart/ChartUtils"
 
 export const TICK_COLOR = "#ddd"
 const FAINT_TICK_COLOR = "#eee"
@@ -60,9 +61,9 @@ export class VerticalAxisGridLines extends React.Component<VerticalAxisGridLines
                             id={makeFigmaId(axis.formatTick(t.value))}
                             className={className}
                             key={t.value}
-                            x1={bounds.left.toFixed(2)}
+                            x1={roundForSvg(bounds.left)}
                             y1={axis.place(t.value)}
-                            x2={bounds.right.toFixed(2)}
+                            x2={roundForSvg(bounds.right)}
                             y2={axis.place(t.value)}
                             stroke={color}
                             strokeWidth={strokeWidth}
@@ -109,9 +110,9 @@ export class HorizontalAxisGridLines extends React.Component<HorizontalAxisGridL
                             id={makeFigmaId(axis.formatTick(t.value))}
                             key={t.value}
                             x1={axis.place(t.value)}
-                            y1={bounds.bottom.toFixed(2)}
+                            y1={roundForSvg(bounds.bottom)}
                             x2={axis.place(t.value)}
-                            y2={bounds.top.toFixed(2)}
+                            y2={roundForSvg(bounds.top)}
                             stroke={color}
                             strokeWidth={strokeWidth}
                             strokeDasharray={t.solid ? undefined : dasharray}
@@ -157,10 +158,10 @@ export class HorizontalAxisZeroLine extends React.Component<HorizontalAxisZeroLi
         return (
             <line
                 id={makeFigmaId("vertical-zero-line")}
-                x1={x.toFixed(2)}
-                y1={bounds.bottom.toFixed(2)}
-                x2={x.toFixed(2)}
-                y2={bounds.top.toFixed(2)}
+                x1={roundForSvg(x)}
+                y1={roundForSvg(bounds.bottom)}
+                x2={roundForSvg(x)}
+                y2={roundForSvg(bounds.top)}
                 stroke={color}
                 strokeWidth={strokeWidth}
             />
@@ -194,10 +195,10 @@ export class VerticalAxisZeroLine extends React.Component<VerticalAxisZeroLinePr
         return (
             <line
                 id={makeFigmaId("horizontal-zero-line")}
-                x1={bounds.left.toFixed(2)}
-                y1={y.toFixed(2)}
-                x2={bounds.right.toFixed(2)}
-                y2={y.toFixed(2)}
+                x1={roundForSvg(bounds.left)}
+                y1={roundForSvg(y)}
+                x2={roundForSvg(bounds.right)}
+                y2={roundForSvg(y)}
                 stroke={stroke}
                 strokeWidth={strokeWidth}
                 strokeDasharray={strokeDasharray}
@@ -223,10 +224,10 @@ export class VerticalAxisDomainLine extends React.Component<VerticalAxisDomainLi
         return (
             <line
                 id={makeFigmaId("domain-line")}
-                x1={bounds.left.toFixed(2)}
-                y1={bounds.bottom.toFixed(2)}
-                x2={bounds.right.toFixed(2)}
-                y2={bounds.bottom.toFixed(2)}
+                x1={roundForSvg(bounds.left)}
+                y1={roundForSvg(bounds.bottom)}
+                x2={roundForSvg(bounds.right)}
+                y2={roundForSvg(bounds.bottom)}
                 stroke="#ccc"
                 strokeWidth={strokeWidth}
             />
@@ -415,7 +416,7 @@ export class VerticalAxisComponent extends React.Component<VerticalAxisComponent
                             return (
                                 <text
                                     key={value}
-                                    x={tickX.toFixed(2)}
+                                    x={roundForSvg(tickX)}
                                     y={y}
                                     dy={dyFromAlign(
                                         yAlign ?? VerticalAlign.middle
