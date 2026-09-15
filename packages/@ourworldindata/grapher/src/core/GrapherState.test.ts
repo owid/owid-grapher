@@ -18,6 +18,7 @@ import {
     GrapherChartType,
     GrapherTabName,
     MultipleOwidVariableDataDimensionsMap,
+    CoreValueType,
 } from "@ourworldindata/types"
 import {
     TimeBoundValue,
@@ -607,116 +608,83 @@ describe("syncing entity selection between the chart and map tab", () => {
     const chartSelection = ["Spain", "Italy"]
     const mapSelection = ["France"]
 
-    it("syncs entities from the map to the chart tab", () => {
-        const grapher = new GrapherState({
-            bounds: new Bounds(0, 0, 1200, 800), // map entity selection is only enabled for large graphers
+    // The map's entity selection is only enabled on a large enough grapher
+    const largeBounds = new Bounds(0, 0, 1200, 800)
+    const smallBounds = new Bounds(0, 0, 400, 400)
+
+    const makeGrapher = (
+        config: GrapherProgrammaticInterface = {}
+    ): GrapherState =>
+        new GrapherState({
+            bounds: largeBounds,
             selectedEntityNames: chartSelection,
             map: { selectedEntityNames: mapSelection },
+            ...config,
         })
 
-        // sanity check that entity selection is enabled
-        expect(grapher.isMapSelectionEnabled).toBe(true)
-
-        // syncing entities from the map to the chart updates the chart selection
+    const syncMapToChart = (grapher: GrapherState): void =>
         grapher.syncEntitySelectionBetweenChartAndMap(
             GRAPHER_TAB_NAMES.WorldMap,
             GRAPHER_TAB_NAMES.LineChart
         )
-        expect(grapher.selection.selectedEntityNames).toEqual(mapSelection)
-    })
 
-    it("syncs entities from the chart to the map tab", () => {
-        const grapher = new GrapherState({
-            bounds: new Bounds(0, 0, 1200, 800), // map entity selection is only enabled for large graphers
-            selectedEntityNames: chartSelection,
-            map: { selectedEntityNames: mapSelection },
-        })
-
-        // sanity check that entity selection is enabled
-        expect(grapher.isMapSelectionEnabled).toBe(true)
-
-        // syncing entities from the chart to the map updates the map selection
+    const syncChartToMap = (grapher: GrapherState): void =>
         grapher.syncEntitySelectionBetweenChartAndMap(
             GRAPHER_TAB_NAMES.LineChart,
             GRAPHER_TAB_NAMES.WorldMap
         )
+
+    it("syncs entities from the map to the chart tab", () => {
+        const grapher = makeGrapher()
+        expect(grapher.isMapSelectionEnabled).toBe(true)
+
+        syncMapToChart(grapher)
+        expect(grapher.selection.selectedEntityNames).toEqual(mapSelection)
+    })
+
+    it("syncs entities from the chart to the map tab", () => {
+        const grapher = makeGrapher()
+        expect(grapher.isMapSelectionEnabled).toBe(true)
+
+        syncChartToMap(grapher)
         expect(grapher.map.selection.selectedEntityNames).toEqual(
             chartSelection
         )
     })
 
     it("sync entities iff the map selection is not empty", () => {
-        const grapher = new GrapherState({
-            bounds: new Bounds(0, 0, 1200, 800), // necessary to enable map entity selection
-            selectedEntityNames: chartSelection,
-        })
-
-        // sanity check that entity selection is enabled
+        const grapher = makeGrapher({ map: { selectedEntityNames: [] } })
         expect(grapher.isMapSelectionEnabled).toBe(true)
 
-        // syncing entities from the map to the chart has no effect
-        grapher.syncEntitySelectionBetweenChartAndMap(
-            GRAPHER_TAB_NAMES.WorldMap,
-            GRAPHER_TAB_NAMES.LineChart
-        )
+        syncMapToChart(grapher)
         expect(grapher.selection.selectedEntityNames).toEqual(chartSelection)
 
-        // syncing entities from the chart to the map has no effect
-        grapher.syncEntitySelectionBetweenChartAndMap(
-            GRAPHER_TAB_NAMES.LineChart,
-            GRAPHER_TAB_NAMES.WorldMap
-        )
+        syncChartToMap(grapher)
         expect(grapher.map.selection.hasSelection).toBe(false)
     })
 
     it("doesn't sync entities if map entity selection is disabled", () => {
-        const grapher = new GrapherState({
-            selectedEntityNames: chartSelection,
-            map: { selectedEntityNames: mapSelection },
-            bounds: new Bounds(0, 0, 400, 400), // necessary to disable map entity selection
-        })
-
-        // sanity check that map entity selection is disabled
+        const grapher = makeGrapher({ bounds: smallBounds })
         expect(grapher.isMapSelectionEnabled).toBe(false)
 
-        // syncing entities from the map to the chart has no effect
-        grapher.syncEntitySelectionBetweenChartAndMap(
-            GRAPHER_TAB_NAMES.WorldMap,
-            GRAPHER_TAB_NAMES.LineChart
-        )
+        syncMapToChart(grapher)
         expect(grapher.selection.selectedEntityNames).toEqual(chartSelection)
 
-        // syncing entities from the chart to the map has no effect
-        grapher.syncEntitySelectionBetweenChartAndMap(
-            GRAPHER_TAB_NAMES.LineChart,
-            GRAPHER_TAB_NAMES.WorldMap
-        )
+        syncChartToMap(grapher)
         expect(grapher.map.selection.selectedEntityNames).toEqual(mapSelection)
     })
 
     it("doesn't sync entities if chart entity selection is disabled", () => {
-        const grapher = new GrapherState({
-            selectedEntityNames: chartSelection,
-            map: { selectedEntityNames: mapSelection },
+        const grapher = makeGrapher({
+            bounds: smallBounds,
             addCountryMode: EntitySelectionMode.Disabled,
-            bounds: new Bounds(0, 0, 400, 400), // necessary to disable map entity selection
         })
-
-        // sanity check that map entity selection is disabled
         expect(grapher.isMapSelectionEnabled).toBe(false)
 
-        // syncing entities from the map to the chart has no effect
-        grapher.syncEntitySelectionBetweenChartAndMap(
-            GRAPHER_TAB_NAMES.WorldMap,
-            GRAPHER_TAB_NAMES.LineChart
-        )
+        syncMapToChart(grapher)
         expect(grapher.selection.selectedEntityNames).toEqual(chartSelection)
 
-        // syncing entities from the chart to the map has no effect
-        grapher.syncEntitySelectionBetweenChartAndMap(
-            GRAPHER_TAB_NAMES.LineChart,
-            GRAPHER_TAB_NAMES.WorldMap
-        )
+        syncChartToMap(grapher)
         expect(grapher.map.selection.selectedEntityNames).toEqual(mapSelection)
     })
 })
@@ -817,32 +785,50 @@ it("handles tolerance when there are gaps in ScatterPlot data", () => {
 })
 
 describe("tableAfterColorAndSizeToleranceApplication", () => {
-    it("applies the specified tolerance to the size column", () => {
-        const table = new OwidTable(
+    /** USA has a value in 2000 and 2004 and a gap in between */
+    const makeTable = (
+        slug: string,
+        [firstValue, lastValue]: [CoreValueType, CoreValueType],
+        def?: { type: ColumnTypeNames; tolerance: number }
+    ): OwidTable =>
+        new OwidTable(
             [
-                ["entityName", "year", "x", "y", "size"],
-                ["USA", 2000, 1, 2, 100],
+                ["entityName", "year", "x", "y", slug],
+                ["USA", 2000, 1, 2, firstValue],
                 ["USA", 2001, 1.5, 2.5, null],
                 ["USA", 2002, 2, 3, null],
                 ["USA", 2003, 2.5, 3.5, null],
-                ["USA", 2004, 3, 4, 200],
+                ["USA", 2004, 3, 4, lastValue],
             ],
-            [
-                {
-                    slug: "size",
-                    type: ColumnTypeNames.Numeric,
-                    display: { tolerance: 1 },
-                },
-            ]
+            def
+                ? [
+                      {
+                          slug,
+                          type: def.type,
+                          display: { tolerance: def.tolerance },
+                      },
+                  ]
+                : []
         )
 
-        const grapher = new GrapherState({
+    const makeGrapher = (
+        table: OwidTable,
+        config: GrapherProgrammaticInterface
+    ): GrapherState =>
+        new GrapherState({
             table,
             chartTypes: [GRAPHER_CHART_TYPES.ScatterPlot],
             xSlug: "x",
             ySlugs: "y",
-            sizeSlug: "size",
+            ...config,
         })
+
+    it("applies the specified tolerance to the size column", () => {
+        const table = makeTable("size", [100, 200], {
+            type: ColumnTypeNames.Numeric,
+            tolerance: 1,
+        })
+        const grapher = makeGrapher(table, { sizeSlug: "size" })
 
         const result = grapher.tableAfterColorAndSizeToleranceApplication
         const sizeColumn = result.get("size")
@@ -860,22 +846,8 @@ describe("tableAfterColorAndSizeToleranceApplication", () => {
     })
 
     it("uses infinity as default size tolerance", () => {
-        const table = new OwidTable([
-            ["entityName", "year", "x", "y", "size"],
-            ["USA", 2000, 1, 2, 100],
-            ["USA", 2001, 1.5, 2.5, null],
-            ["USA", 2002, 2, 3, null],
-            ["USA", 2003, 2.5, 3.5, null],
-            ["USA", 2004, 3, 4, 200],
-        ])
-
-        const grapher = new GrapherState({
-            table,
-            chartTypes: [GRAPHER_CHART_TYPES.ScatterPlot],
-            xSlug: "x",
-            ySlugs: "y",
-            sizeSlug: "size",
-        })
+        const table = makeTable("size", [100, 200])
+        const grapher = makeGrapher(table, { sizeSlug: "size" })
 
         const result = grapher.tableAfterColorAndSizeToleranceApplication
         const sizeColumn = result.get("size")
@@ -896,31 +868,11 @@ describe("tableAfterColorAndSizeToleranceApplication", () => {
     })
 
     it("applies the specified tolerance to a categorical color column", () => {
-        const table = new OwidTable(
-            [
-                ["entityName", "year", "x", "y", "color"],
-                ["USA", 2000, 1, 2, "Europe"],
-                ["USA", 2001, 1.5, 2.5, null],
-                ["USA", 2002, 2, 3, null],
-                ["USA", 2003, 2.5, 3.5, null],
-                ["USA", 2004, 3, 4, "Asia"],
-            ],
-            [
-                {
-                    slug: "color",
-                    type: ColumnTypeNames.Categorical,
-                    display: { tolerance: 1 },
-                },
-            ]
-        )
-
-        const grapher = new GrapherState({
-            table,
-            chartTypes: [GRAPHER_CHART_TYPES.ScatterPlot],
-            xSlug: "x",
-            ySlugs: "y",
-            colorSlug: "color",
+        const table = makeTable("color", ["Europe", "Asia"], {
+            type: ColumnTypeNames.Categorical,
+            tolerance: 1,
         })
+        const grapher = makeGrapher(table, { colorSlug: "color" })
 
         const result = grapher.tableAfterColorAndSizeToleranceApplication
         const colorColumn = result.get("color")
@@ -938,22 +890,8 @@ describe("tableAfterColorAndSizeToleranceApplication", () => {
     })
 
     it("uses infinity as default color tolerance", () => {
-        const table = new OwidTable([
-            ["entityName", "year", "x", "y", "color"],
-            ["USA", 2000, 1, 2, 100],
-            ["USA", 2001, 1.5, 2.5, null],
-            ["USA", 2002, 2, 3, null],
-            ["USA", 2003, 2.5, 3.5, null],
-            ["USA", 2004, 3, 4, 200],
-        ])
-
-        const grapher = new GrapherState({
-            table,
-            chartTypes: [GRAPHER_CHART_TYPES.ScatterPlot],
-            xSlug: "x",
-            ySlugs: "y",
-            sizeSlug: "color",
-        })
+        const table = makeTable("color", [100, 200])
+        const grapher = makeGrapher(table, { sizeSlug: "color" })
 
         const result = grapher.tableAfterColorAndSizeToleranceApplication
         const colorColumn = result.get("color")
@@ -975,173 +913,113 @@ describe("tableAfterColorAndSizeToleranceApplication", () => {
 })
 
 describe("tolerance is not applied twice (issue #4891)", () => {
-    // Tolerance should only be applied once during interpolation. With tolerance=3,
-    // data at 2018 should appear at 2015-2021, not beyond. The bug occurred when
-    // filterByTargetTimes applied tolerance a second time. This is normally hidden
-    // unless rows are removed between interpolation and filtering (e.g., showNoDataArea=false).
+    // Tolerance belongs to interpolation alone. The bug was filterByTargetTimes
+    // applying it a second time, which only shows when rows are dropped in
+    // between, as showNoDataArea=false does.
 
-    const createTable = (): OwidTable => {
-        const years: number[] = []
-        const entityNames: string[] = []
-        const testColumnValues: number[] = []
+    // The United States spans the whole timeline, so interpolation creates a row
+    // for every year for every entity. Belarus has 2018 alone, which tolerance=3
+    // carries to 2015-2021 and no further.
+    const table = new OwidTable(
+        [
+            ["entityName", "year", "testColumn"],
+            ..._.range(2000, 2025).map((year) => [
+                "United States",
+                year,
+                year * 10,
+            ]),
+            ["Belarus", 2018, 100],
+        ],
+        [{ slug: "testColumn", type: ColumnTypeNames.Numeric, tolerance: 3 }]
+    )
 
-        // United States provides a continuous range of years (2000-2024) to establish
-        // the full timeline. When complete() runs during interpolation, it creates rows
-        // for all these years for all entities.
-        for (let year = 2000; year <= 2024; year++) {
-            years.push(year)
-            entityNames.push("United States")
-            testColumnValues.push(year * 10)
-        }
+    const makeGrapher = (config: GrapherProgrammaticInterface): GrapherState =>
+        new GrapherState({ table, ySlugs: "testColumn", ...config })
 
-        // Belarus has data only at year 2018. With tolerance=3, this should be
-        // interpolated to years 2015-2021 (±3 years), but not to 2014 or earlier.
-        years.push(2018)
-        entityNames.push("Belarus")
-        testColumnValues.push(100)
-
-        return new OwidTable(
-            [
-                ["entityName", "year", "testColumn"],
-                ...years.map((year, i) => [
-                    entityNames[i],
-                    year,
-                    testColumnValues[i],
-                ]),
-            ],
-            [
-                {
-                    slug: "testColumn",
-                    type: ColumnTypeNames.Numeric,
-                    tolerance: 3,
-                },
-            ]
-        )
-    }
-
-    const table = createTable()
+    const belarusValuesIn = (transformedTable: OwidTable): CoreValueType[] =>
+        transformedTable.filterByEntityNames(["Belarus"]).get("testColumn")
+            .values
 
     it("does not apply tolerance twice for Marimekko chart", () => {
-        const grapher = new GrapherState({
-            table,
+        const grapher = makeGrapher({
             chartTypes: [GRAPHER_CHART_TYPES.Marimekko],
-            ySlugs: "testColumn",
             maxTime: 2014,
-            // showNoDataArea=false causes the chart to filter out rows that
-            // have no data. This creates the scenario where filterByTargetTimes might
-            // not find an exact year match, exposing the bug (if not fixed).
             showNoDataArea: false,
         })
 
         expect(grapher.endTime).toBe(2014)
-        const testColumnValues2014 = grapher.transformedTable
-            .filterByEntityNames(["Belarus"])
-            .get("testColumn").values
+        expect(belarusValuesIn(grapher.transformedTable)).toEqual([])
 
-        // Belarus should have no valid values at 2014 (outside tolerance=3)
-        expect(testColumnValues2014).toEqual([])
-
-        // But should have a valid value at 2015
         grapher.maxTime = 2015
         expect(grapher.endTime).toBe(2015)
-        const testColumnValues2015 = grapher.transformedTable
-            .filterByEntityNames(["Belarus"])
-            .get("testColumn").values
-        expect(testColumnValues2015).toEqual([100])
+        expect(belarusValuesIn(grapher.transformedTable)).toEqual([100])
     })
 
     it("does not apply tolerance twice for DiscreteBar chart", () => {
-        const grapher = new GrapherState({
-            table,
+        const grapher = makeGrapher({
             chartTypes: [GRAPHER_CHART_TYPES.DiscreteBar],
-            ySlugs: "testColumn",
             selectedEntityNames: ["Belarus", "United States"],
             maxTime: 2014,
         })
 
-        const testColumnValues2014 = grapher.transformedTable
-            .filterByEntityNames(["Belarus"])
-            .get("testColumn").values
+        expect(belarusValuesIn(grapher.transformedTable)).toEqual([])
 
-        // Belarus should have no valid values at 2014 (outside tolerance=3)
-        expect(testColumnValues2014).toEqual([])
-
-        // But should have a valid value at 2015
         grapher.maxTime = 2015
-        const testColumnValues2015 = grapher.transformedTable
-            .filterByEntityNames(["Belarus"])
-            .get("testColumn").values
-        expect(testColumnValues2015).toEqual([100])
+        expect(belarusValuesIn(grapher.transformedTable)).toEqual([100])
     })
 
     it("does not apply tolerance twice for SlopeChart", () => {
-        const grapher = new GrapherState({
-            table,
+        const grapher = makeGrapher({
             chartTypes: [GRAPHER_CHART_TYPES.SlopeChart],
-            ySlugs: "testColumn",
             selectedEntityNames: ["Belarus", "United States"],
             minTime: 2014,
             maxTime: 2021,
         })
 
-        const transformedTable = grapher.transformedTable
-        const belarusTable = transformedTable.filterByEntityNames(["Belarus"])
+        const belarusTable = grapher.transformedTable.filterByEntityNames([
+            "Belarus",
+        ])
 
-        const allValues =
+        // 2014 is outside the tolerance, 2021 within it
+        expect(
             belarusTable.get("testColumn").valuesIncludingErrorValues
-        const validValues = belarusTable.get("testColumn").values
-
-        // Belarus should have a error value at 2014 (outside tolerance=3)
-        // and a valid value at 2021 (within tolerance=3)
-        expect(allValues[0]).toEqual(ErrorValueTypes.NoValueWithinTolerance)
-        expect(allValues[1]).toEqual(100)
-
-        // Only 2021 should have a valid value
-        expect(validValues).toEqual([100])
+        ).toEqual([ErrorValueTypes.NoValueWithinTolerance, 100])
+        expect(belarusTable.get("testColumn").values).toEqual([100])
     })
 
     it("does not apply tolerance twice for Map chart", () => {
-        const grapher = new GrapherState({
-            table,
+        const grapher = makeGrapher({
             hasMapTab: true,
             tab: GRAPHER_TAB_CONFIG_OPTIONS.map,
-            ySlugs: "testColumn",
             map: new MapConfig({ timeTolerance: 3, time: 2014 }),
         })
 
-        const testColumnValues2014 = grapher.transformedTable
-            .filterByEntityNames(["Belarus"])
-            .get("testColumn").values
+        expect(belarusValuesIn(grapher.transformedTable)).toEqual([])
 
-        // Year 2014 is outside tolerance range; Belarus should have NO data
-        expect(testColumnValues2014).toEqual([])
-
-        // Year 2015 is within tolerance range; Belarus should have data
         grapher.map.time = 2015
-        const testColumnValues2015 = grapher.transformedTable
-            .filterByEntityNames(["Belarus"])
-            .get("testColumn").values
-        expect(testColumnValues2015).toEqual([100])
+        expect(belarusValuesIn(grapher.transformedTable)).toEqual([100])
     })
 })
 
 describe("title", () => {
-    it("shows the year of the selected data in the title", () => {
-        const table = SynthesizeGDPTable(
-            { entityCount: 2, timeRange: [2000, 2010] },
-            1
-        )
-        const grapher = new GrapherState({
+    const table = SynthesizeGDPTable(
+        { entityCount: 2, timeRange: [2000, 2010] },
+        1
+    )
+    const [firstEntityName] = table.availableEntityNames
+
+    const makeGrapher = (
+        config: GrapherProgrammaticInterface = {}
+    ): GrapherState =>
+        new GrapherState({
             table,
+            ySlugs: SampleColumnSlugs.GDP,
             selectedEntityNames: [...table.availableEntityNames],
-            dimensions: [
-                {
-                    slug: SampleColumnSlugs.GDP,
-                    property: DimensionProperty.y,
-                    variableId: 1,
-                },
-            ],
+            ...config,
         })
+
+    it("shows the year of the selected data in the title", () => {
+        const grapher = makeGrapher()
 
         grapher.timelineHandleTimeBounds = [2001, 2005]
         expect(grapher.fullTitle).toContain("2001")
@@ -1162,34 +1040,13 @@ describe("title", () => {
     })
 
     it("can generate a title when all you have is a table and ySlug", () => {
-        const table = SynthesizeGDPTable(
-            { entityCount: 2, timeRange: [2000, 2010] },
-            1
-        )
-        const grapher = new GrapherState({
-            table,
-            ySlugs: "GDP",
-        })
+        const grapher = new GrapherState({ table, ySlugs: "GDP" })
 
         expect(grapher.fullTitle).toContain("GDP")
     })
 
     it("splits the title into a base and a time annotation", () => {
-        const table = SynthesizeGDPTable(
-            { entityCount: 2, timeRange: [2000, 2010] },
-            1
-        )
-        const grapher = new GrapherState({
-            table,
-            selectedEntityNames: [...table.availableEntityNames],
-            dimensions: [
-                {
-                    slug: SampleColumnSlugs.GDP,
-                    property: DimensionProperty.y,
-                    variableId: 1,
-                },
-            ],
-        })
+        const grapher = makeGrapher()
         grapher.timelineHandleTimeBounds = [2001, 2005]
 
         expect(grapher.titleAnnotation).toContain("2001")
@@ -1201,79 +1058,48 @@ describe("title", () => {
     })
 
     it("includes a single selected entity in the annotation", () => {
-        const table = SynthesizeGDPTable(
-            { entityCount: 2, timeRange: [2000, 2010] },
-            1
-        )
-        const entityName = table.availableEntityNames[0]
-        const grapher = new GrapherState({
-            table,
-            selectedEntityNames: [entityName],
+        const grapher = makeGrapher({
+            selectedEntityNames: [firstEntityName],
             ySlugs: `${SampleColumnSlugs.GDP} ${SampleColumnSlugs.Population}`,
         })
 
-        expect(grapher.titleAnnotation).toContain(entityName)
-        expect(grapher.mainTitle).not.toContain(entityName)
+        expect(grapher.titleAnnotation).toContain(firstEntityName)
+        expect(grapher.mainTitle).not.toContain(firstEntityName)
         expect(grapher.fullTitle).toEqual(
             `${grapher.mainTitle}, ${grapher.titleAnnotation}`
         )
     })
 
     it("combines entity and time in the annotation, entity first", () => {
-        const table = SynthesizeGDPTable(
-            { entityCount: 2, timeRange: [2000, 2010] },
-            1
-        )
-        const entityName = table.availableEntityNames[0]
-        const grapher = new GrapherState({
-            table,
-            selectedEntityNames: [entityName],
+        const grapher = makeGrapher({
+            selectedEntityNames: [firstEntityName],
             ySlugs: `${SampleColumnSlugs.GDP} ${SampleColumnSlugs.Population}`,
         })
         grapher.timelineHandleTimeBounds = [2001, 2005]
 
-        expect(grapher.titleAnnotation).toEqual(`${entityName}, 2001 to 2005`)
+        expect(grapher.titleAnnotation).toEqual(
+            `${firstEntityName}, 2001 to 2005`
+        )
         expect(grapher.fullTitle).toEqual(
-            `${grapher.mainTitle}, ${entityName}, 2001 to 2005`
+            `${grapher.mainTitle}, ${firstEntityName}, 2001 to 2005`
         )
     })
 
     it("can hide the entity annotation while keeping the time annotation", () => {
-        const table = SynthesizeGDPTable(
-            { entityCount: 2, timeRange: [2000, 2010] },
-            1
-        )
-        const entityName = table.availableEntityNames[0]
-        const grapher = new GrapherState({
-            table,
+        const grapher = makeGrapher({
             hideAnnotationFieldsInTitle: { entity: true },
             addCountryMode: EntitySelectionMode.Disabled,
-            selectedEntityNames: [entityName],
+            selectedEntityNames: [firstEntityName],
             ySlugs: `${SampleColumnSlugs.GDP} ${SampleColumnSlugs.Population}`,
         })
         grapher.timelineHandleTimeBounds = [2001, 2005]
 
-        expect(grapher.titleAnnotation).not.toContain(entityName)
+        expect(grapher.titleAnnotation).not.toContain(firstEntityName)
         expect(grapher.titleAnnotation).toEqual("2001 to 2005")
     })
 
     it("appends the annotation without a comma if the title ends with a question mark", () => {
-        const table = SynthesizeGDPTable(
-            { entityCount: 2, timeRange: [2000, 2010] },
-            1
-        )
-        const grapher = new GrapherState({
-            table,
-            title: "How rich are people?",
-            selectedEntityNames: [...table.availableEntityNames],
-            dimensions: [
-                {
-                    slug: SampleColumnSlugs.GDP,
-                    property: DimensionProperty.y,
-                    variableId: 1,
-                },
-            ],
-        })
+        const grapher = makeGrapher({ title: "How rich are people?" })
 
         expect(grapher.titleAnnotation).toBeDefined()
         expect(grapher.fullTitle).toEqual(
@@ -1282,34 +1108,14 @@ describe("title", () => {
     })
 
     it("keeps the 'Change in' prefix in the title base", () => {
-        const table = SynthesizeGDPTable(
-            { entityCount: 2, timeRange: [2000, 2010] },
-            1
-        )
-        const grapher = new GrapherState({
-            table,
-            stackMode: StackMode.relative,
-            selectedEntityNames: [...table.availableEntityNames],
-            dimensions: [
-                {
-                    slug: SampleColumnSlugs.GDP,
-                    property: DimensionProperty.y,
-                    variableId: 1,
-                },
-            ],
-        })
+        const grapher = makeGrapher({ stackMode: StackMode.relative })
 
         expect(grapher.mainTitle).toContain("Change in")
     })
 
     it("compares the two times of a faceted map, rather than giving a range", () => {
-        const table = SynthesizeGDPTable(
-            { entityCount: 2, timeRange: [2000, 2010] },
-            1
-        )
-        const grapher = new GrapherState({
-            table,
-            ySlugs: SampleColumnSlugs.GDP,
+        const grapher = makeGrapher({
+            selectedEntityNames: [],
             tab: GRAPHER_TAB_CONFIG_OPTIONS.map,
             hasMapTab: true,
         })
@@ -1325,15 +1131,8 @@ describe("title", () => {
     })
 
     it("compares the two times of a dumbbell chart, rather than giving a range", () => {
-        const table = SynthesizeGDPTable(
-            { entityCount: 2, timeRange: [2000, 2010] },
-            1
-        )
-        const grapher = new GrapherState({
-            table,
-            ySlugs: SampleColumnSlugs.GDP,
+        const grapher = makeGrapher({
             chartTypes: [GRAPHER_CHART_TYPES.Dumbbell],
-            selectedEntityNames: [...table.availableEntityNames],
         })
         grapher.timelineHandleTimeBounds = [2001, 2005]
 
@@ -1341,15 +1140,8 @@ describe("title", () => {
     })
 
     it("compares the two times of a slope chart, rather than giving a range", () => {
-        const table = SynthesizeGDPTable(
-            { entityCount: 2, timeRange: [2000, 2010] },
-            1
-        )
-        const grapher = new GrapherState({
-            table,
-            ySlugs: SampleColumnSlugs.GDP,
+        const grapher = makeGrapher({
             chartTypes: [GRAPHER_CHART_TYPES.SlopeChart],
-            selectedEntityNames: [...table.availableEntityNames],
         })
         grapher.timelineHandleTimeBounds = [2001, 2005]
 
@@ -1357,15 +1149,8 @@ describe("title", () => {
     })
 
     it("gives a range for a relative slope chart, which shows a change over a period", () => {
-        const table = SynthesizeGDPTable(
-            { entityCount: 2, timeRange: [2000, 2010] },
-            1
-        )
-        const grapher = new GrapherState({
-            table,
-            ySlugs: SampleColumnSlugs.GDP,
+        const grapher = makeGrapher({
             chartTypes: [GRAPHER_CHART_TYPES.SlopeChart],
-            selectedEntityNames: [...table.availableEntityNames],
             stackMode: StackMode.relative,
         })
         grapher.timelineHandleTimeBounds = [2001, 2005]
@@ -1377,21 +1162,8 @@ describe("title", () => {
     })
 
     it("has no annotation when annotation fields are hidden", () => {
-        const table = SynthesizeGDPTable(
-            { entityCount: 2, timeRange: [2000, 2010] },
-            1
-        )
-        const grapher = new GrapherState({
-            table,
+        const grapher = makeGrapher({
             hideAnnotationFieldsInTitle: { entity: true, time: true },
-            selectedEntityNames: [...table.availableEntityNames],
-            dimensions: [
-                {
-                    slug: SampleColumnSlugs.GDP,
-                    property: DimensionProperty.y,
-                    variableId: 1,
-                },
-            ],
         })
 
         expect(grapher.titleAnnotation).toBeUndefined()
@@ -1647,7 +1419,7 @@ describe("toleranceNotice", () => {
 })
 
 describe("download", () => {
-    const makeGrapher = (): GrapherState => {
+    const makeGrapherWithGdpTable = (): GrapherState => {
         const table = SynthesizeGDPTable(
             { entityCount: 2, timeRange: [2000, 2010] },
             1
@@ -1665,8 +1437,20 @@ describe("download", () => {
         })
     }
 
+    const makeGrapher = (
+        table: OwidTable,
+        config: GrapherProgrammaticInterface = {}
+    ): GrapherState =>
+        new GrapherState({
+            table,
+            chartTypes: [GRAPHER_CHART_TYPES.LineChart],
+            ySlugs: "gdp",
+            selectedEntityNames: ["France"],
+            ...config,
+        })
+
     it("restricts the download to the selected time range on the table tab", () => {
-        const grapher = makeGrapher()
+        const grapher = makeGrapherWithGdpTable()
         grapher.setTab(GRAPHER_TAB_NAMES.Table)
         grapher.timelineHandleTimeBounds = [2003, 2005]
 
@@ -1676,7 +1460,7 @@ describe("download", () => {
     })
 
     it("does not restrict the full download table by the selected time range", () => {
-        const grapher = makeGrapher()
+        const grapher = makeGrapherWithGdpTable()
         grapher.setTab(GRAPHER_TAB_NAMES.Table)
         grapher.timelineHandleTimeBounds = [2003, 2005]
 
@@ -1693,9 +1477,7 @@ describe("download", () => {
             ["Germany", "DEU", 2020, 3500, 83000000],
         ])
 
-        const grapher = new GrapherState({
-            table,
-            chartTypes: [GRAPHER_CHART_TYPES.LineChart],
+        const grapher = makeGrapher(table, {
             ySlugs: "gdp population",
             selectedEntityNames: ["France", "Germany"],
         })
@@ -1760,12 +1542,7 @@ describe("download", () => {
             ["France", "FRA", 2021, 2600, ""],
         ])
 
-        const grapher = new GrapherState({
-            table,
-            chartTypes: [GRAPHER_CHART_TYPES.LineChart],
-            ySlugs: "gdp",
-            selectedEntityNames: ["France"],
-        })
+        const grapher = makeGrapher(table)
 
         const downloadTable = grapher.filteredTableForDownload
 
@@ -1780,11 +1557,8 @@ describe("download", () => {
             ["France", "FRA", 2022, 2700, null],
         ])
 
-        const grapher = new GrapherState({
-            table,
-            chartTypes: [GRAPHER_CHART_TYPES.LineChart],
+        const grapher = makeGrapher(table, {
             ySlugs: "gdp population",
-            selectedEntityNames: ["France"],
         })
 
         const downloadTable = grapher.filteredTableForDownload
@@ -1800,10 +1574,7 @@ describe("download", () => {
             ["United Kingdom", undefined, 2, 2021, 3600], // Missing code in one row
         ])
 
-        const grapher = new GrapherState({
-            table,
-            chartTypes: [GRAPHER_CHART_TYPES.LineChart],
-            ySlugs: "gdp",
+        const grapher = makeGrapher(table, {
             selectedEntityNames: ["France", "United Kingdom"],
         })
 
@@ -1834,12 +1605,7 @@ describe("download", () => {
             ]
         )
 
-        const grapher = new GrapherState({
-            table,
-            chartTypes: [GRAPHER_CHART_TYPES.LineChart],
-            ySlugs: "gdp",
-            selectedEntityNames: ["France"],
-        })
+        const grapher = makeGrapher(table)
 
         const downloadTable = grapher.filteredTableForDownload
 
@@ -1880,11 +1646,8 @@ describe("download", () => {
         table = table.interpolateColumnWithTolerance("gdp")
         table = table.interpolateColumnWithTolerance("population")
 
-        const grapher = new GrapherState({
-            table,
-            chartTypes: [GRAPHER_CHART_TYPES.LineChart],
+        const grapher = makeGrapher(table, {
             ySlugs: "gdp population",
-            selectedEntityNames: ["France"],
         })
 
         const downloadTable = grapher.filteredTableForDownload
@@ -1902,11 +1665,8 @@ describe("download", () => {
             ["France", "FRA", 2021, 2600, 67500000],
         ])
 
-        const grapher = new GrapherState({
-            table,
-            chartTypes: [GRAPHER_CHART_TYPES.LineChart],
+        const grapher = makeGrapher(table, {
             ySlugs: "gdp population",
-            selectedEntityNames: ["France"],
         })
 
         const downloadTable = grapher.filteredTableForDownload
@@ -1936,12 +1696,7 @@ describe("download", () => {
         // Apply tolerance
         const table = inputTable.interpolateColumnWithTolerance("gdp")
 
-        const grapher = new GrapherState({
-            table,
-            chartTypes: [GRAPHER_CHART_TYPES.LineChart],
-            ySlugs: "gdp",
-            selectedEntityNames: ["France"],
-        })
+        const grapher = makeGrapher(table)
 
         const downloadTable = grapher.filteredTableForDownload
 
@@ -1967,10 +1722,8 @@ describe("download", () => {
             ["Italy", "ITA", 2020, 2000],
         ])
 
-        const grapher = new GrapherState({
-            table,
+        const grapher = makeGrapher(table, {
             chartTypes: [GRAPHER_CHART_TYPES.DiscreteBar],
-            ySlugs: "gdp",
             selectedEntityNames: ["France", "Germany", "Italy"],
             maxTime: 2020,
         })
@@ -1991,10 +1744,8 @@ describe("download", () => {
             ["Germany", "DEU", 2020, 3500],
         ])
 
-        const grapher = new GrapherState({
-            table,
+        const grapher = makeGrapher(table, {
             chartTypes: [GRAPHER_CHART_TYPES.SlopeChart],
-            ySlugs: "gdp",
             selectedEntityNames: ["France", "Germany"],
             minTime: 2010,
             maxTime: 2020,
@@ -2031,10 +1782,7 @@ describe("download", () => {
             ["entityName", "entityCode", "year", "gdp"],
         ])
 
-        const grapher = new GrapherState({
-            table,
-            chartTypes: [GRAPHER_CHART_TYPES.LineChart],
-            ySlugs: "gdp",
+        const grapher = makeGrapher(table, {
             selectedEntityNames: [],
         })
 
@@ -2062,12 +1810,7 @@ describe("download", () => {
             ]
         ).interpolateColumnWithTolerance("gdp")
 
-        const grapher = new GrapherState({
-            table,
-            chartTypes: [GRAPHER_CHART_TYPES.LineChart],
-            ySlugs: "gdp",
-            selectedEntityNames: ["France"],
-        })
+        const grapher = makeGrapher(table)
 
         const downloadTable = grapher.filteredTableForDownload
 
