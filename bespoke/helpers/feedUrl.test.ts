@@ -4,7 +4,7 @@ import { PRODUCTION_FEED_ROOT, feedUrl, setFeedRoot } from "./feedUrl.js"
 
 const FEED = "ihme_gbd/latest/gbd_treemap_json"
 
-describe("feedUrl", () => {
+describe(feedUrl, () => {
     beforeEach(() => setFeedRoot(undefined))
 
     it("falls back to production when the page passes no root", () => {
