@@ -64,9 +64,19 @@ export interface PlacedSwimlaneSeries extends SizedSwimlaneSeries {
     placedSegments: PlacedSwimlaneSegment[]
 }
 
+export interface OrdinalSwimlaneCategories {
+    kind: "ordinal"
+    values: string[]
+}
+
+export interface CategoricalSwimlaneCategories {
+    kind: "categorical"
+    values: string[]
+}
+
 export type SwimlaneCategories =
-    | { kind: "ordinal"; values: string[] }
-    | { kind: "categorical"; values: string[] }
+    | OrdinalSwimlaneCategories
+    | CategoricalSwimlaneCategories
 
 export const SWIMLANE_SORT_KEYS = [
     SortBy.custom,

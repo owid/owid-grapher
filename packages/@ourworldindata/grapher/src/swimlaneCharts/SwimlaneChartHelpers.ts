@@ -6,6 +6,7 @@ import {
     ENTITY_LABEL_CHART_GAP,
     LANE_SPACING_FACTOR,
     MIN_SEGMENT_WIDTH,
+    OrdinalSwimlaneCategories,
     PlacedSwimlaneSegment,
     PlacedSwimlaneSeries,
     SizedSwimlaneSeries,
@@ -70,27 +71,17 @@ export function toPlacedSwimlaneSeries({
     return allSeries.map((series, index): PlacedSwimlaneSeries => {
         const y = bounds.top + (index + 0.5) * slotHeight
 
+        const extents = toContiguousSegmentExtents({
+            segments: series.segments,
+            placeTime,
+        })
         const placedSegments: PlacedSwimlaneSegment[] = series.segments.map(
-            (segment, segmentIndex): PlacedSwimlaneSegment => {
-                // A segment runs up to wherever the next one starts, so that
-                // two categories share an edge rather than showing a seam that
-                // would read as missing data. The last one stops at its own
-                // final observation.
-                const nextSegment = series.segments[segmentIndex + 1]
-                const x = placeTime(segment.startTime)
-                const endTime = nextSegment?.startTime ?? segment.endTime
-                const width = Math.max(
-                    placeTime(endTime) - x,
-                    MIN_SEGMENT_WIDTH
-                )
-                return {
-                    ...segment,
-                    x,
-                    width,
-                    y: -laneHeight / 2,
-                    height: laneHeight,
-                }
-            }
+            (segment, segmentIndex): PlacedSwimlaneSegment => ({
+                ...segment,
+                ...extents[segmentIndex],
+                y: -laneHeight / 2,
+                height: laneHeight,
+            })
         )
 
         const { labelY } = computeCenteredLabelYPositions({
@@ -105,6 +96,40 @@ export function toPlacedSwimlaneSeries({
             placedSegments,
         }
     })
+}
+
+export function toPlacedSwimlaneSegmentsByCategoryRank({
+    series,
+    categories,
+    bounds,
+    placeTime,
+}: {
+    series: SwimlaneSeries
+    categories: OrdinalSwimlaneCategories
+    bounds: Bounds
+    placeTime: (time: Time) => number
+}): PlacedSwimlaneSegment[] {
+    const bandHeight = bounds.height / categories.values.length
+
+    const extents = toContiguousSegmentExtents({
+        segments: series.segments,
+        placeTime,
+    })
+
+    return series.segments.flatMap(
+        (segment, segmentIndex): PlacedSwimlaneSegment[] => {
+            if (segment.kind === "missing") return []
+            const rank = categories.values.indexOf(segment.category)
+            return [
+                {
+                    ...segment,
+                    ...extents[segmentIndex],
+                    y: bounds.bottom - (rank + 1) * bandHeight,
+                    height: bandHeight,
+                },
+            ]
+        }
+    )
 }
 
 /** Sort key that orders series by the category they start or end on */
@@ -149,4 +174,19 @@ export function sortByCategory({
         (series) => sortCriteriaByEntityName.get(series.entityName)?.duration,
         (series) => series.entityName,
     ]
+}
+
+function toContiguousSegmentExtents({
+    segments,
+    placeTime,
+}: {
+    segments: SwimlaneSegment[]
+    placeTime: (time: Time) => number
+}): { x: number; width: number }[] {
+    return segments.map((segment, index) => {
+        const nextSegment = segments[index + 1]
+        const x = placeTime(segment.startTime)
+        const right = placeTime(nextSegment?.startTime ?? segment.endTime)
+        return { x, width: Math.max(right - x, MIN_SEGMENT_WIDTH) }
+    })
 }

@@ -5,11 +5,13 @@ import { Time } from "@ourworldindata/types"
 import { SeriesLabelState } from "../seriesLabel/SeriesLabelState"
 import {
     MIN_SEGMENT_WIDTH,
+    OrdinalSwimlaneCategories,
     SizedSwimlaneSeries,
     SwimlaneObservation,
     SwimlaneSegment,
 } from "./SwimlaneChartConstants"
 import {
+    toPlacedSwimlaneSegmentsByCategoryRank,
     toPlacedSwimlaneSeries,
     toSwimlaneSegments,
 } from "./SwimlaneChartHelpers"
@@ -397,5 +399,132 @@ describe(toPlacedSwimlaneSeries, () => {
         expect(segment.x).toEqual(BOUNDS.left)
         expect(segment.x + segment.width).toEqual(BOUNDS.right)
         expect(segment.y + segment.height / 2).toEqual(0)
+    })
+})
+
+const CATEGORIES: OrdinalSwimlaneCategories = {
+    kind: "ordinal",
+    values: ["A", "B", "C", "D"],
+}
+const BAND_HEIGHT = BOUNDS.height / CATEGORIES.values.length
+
+describe(toPlacedSwimlaneSegmentsByCategoryRank, () => {
+    it("places a segment's y at its category's rank", () => {
+        const [segment] = toPlacedSwimlaneSegmentsByCategoryRank({
+            series: series({
+                segments: [
+                    {
+                        kind: "category",
+                        category: "B",
+                        color: "#123456",
+                        startTime: 2000,
+                        endTime: 2004,
+                    },
+                ],
+            }),
+            categories: CATEGORIES,
+            bounds: BOUNDS,
+            placeTime,
+        })
+
+        expect(segment.y).toEqual(BOUNDS.bottom - 2 * BAND_HEIGHT)
+    })
+
+    it("puts the last-ranked category at the top of the plot", () => {
+        const [segment] = toPlacedSwimlaneSegmentsByCategoryRank({
+            series: series({
+                segments: [
+                    {
+                        kind: "category",
+                        category: "D",
+                        color: "#123456",
+                        startTime: 2000,
+                        endTime: 2004,
+                    },
+                ],
+            }),
+            categories: CATEGORIES,
+            bounds: BOUNDS,
+            placeTime,
+        })
+
+        expect(segment.y).toEqual(BOUNDS.top)
+    })
+
+    it("gives every band the plot height divided by the number of categories", () => {
+        const [segment] = toPlacedSwimlaneSegmentsByCategoryRank({
+            series: series({
+                segments: [
+                    {
+                        kind: "category",
+                        category: "A",
+                        color: "#123456",
+                        startTime: 2000,
+                        endTime: 2004,
+                    },
+                ],
+            }),
+            categories: CATEGORIES,
+            bounds: BOUNDS,
+            placeTime,
+        })
+
+        expect(segment.height).toEqual(BAND_HEIGHT)
+        expect(segment.y + segment.height).toEqual(BOUNDS.bottom)
+    })
+
+    it("drops a missing segment and stops the preceding segment where it began", () => {
+        const placed = toPlacedSwimlaneSegmentsByCategoryRank({
+            series: series({
+                segments: [
+                    {
+                        kind: "category",
+                        category: "A",
+                        color: "#123456",
+                        startTime: 2000,
+                        endTime: 2001,
+                    },
+                    {
+                        kind: "missing",
+                        startTime: 2002,
+                        endTime: 2002,
+                    },
+                    {
+                        kind: "category",
+                        category: "B",
+                        color: "#654321",
+                        startTime: 2003,
+                        endTime: 2004,
+                    },
+                ],
+            }),
+            categories: CATEGORIES,
+            bounds: BOUNDS,
+            placeTime,
+        })
+
+        expect(placed).toHaveLength(2)
+        expect(placed[0].x + placed[0].width).toEqual(placeTime(2002))
+    })
+
+    it("gives a lone observation the minimum width", () => {
+        const [segment] = toPlacedSwimlaneSegmentsByCategoryRank({
+            series: series({
+                segments: [
+                    {
+                        kind: "category",
+                        category: "A",
+                        color: "#123456",
+                        startTime: 2001,
+                        endTime: 2001,
+                    },
+                ],
+            }),
+            categories: CATEGORIES,
+            bounds: BOUNDS,
+            placeTime,
+        })
+
+        expect(segment.width).toEqual(MIN_SEGMENT_WIDTH)
     })
 })
