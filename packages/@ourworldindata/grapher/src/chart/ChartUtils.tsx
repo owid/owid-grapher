@@ -34,6 +34,7 @@ import {
     GRAPHER_IMAGE_WIDTH_1X,
     GRAPHER_IMAGE_WIDTH_2X,
     FontSettings,
+    SVG_PRECISION,
 } from "../core/GrapherConstants"
 import { ChartSeries } from "./ChartInterface"
 import {
@@ -406,6 +407,10 @@ export function scaleFontSize(
     baseFontSize: number
 ): number {
     return roundFontSize((sizeAtBase16 / BASE_FONT_SIZE) * baseFontSize)
+}
+
+export function roundForSvg(value: number): number {
+    return _.round(value, SVG_PRECISION)
 }
 
 /**

@@ -69,6 +69,9 @@ export const GRAPHER_AREA_OPACITY_HIGHLIGHTED = 1
 
 export const BASE_FONT_SIZE = 16
 
+/** Decimal places a number keeps when it is written into an SVG attribute */
+export const SVG_PRECISION = 2
+
 // keep in sync with $max-tooltip-width in Tooltip.scss
 export const GRAPHER_MAX_TOOLTIP_WIDTH = 400
 
