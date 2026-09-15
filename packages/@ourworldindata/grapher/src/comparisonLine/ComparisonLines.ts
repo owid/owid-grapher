@@ -28,7 +28,7 @@ export class ComparisonLines {
     }
 
     @computed get fontSize(): number {
-        return scaleFontSize(10.5, this.baseFontSize)
+        return scaleFontSize(10, this.baseFontSize)
     }
 
     /** Space reserved above the chart area for vertical comparison line labels */

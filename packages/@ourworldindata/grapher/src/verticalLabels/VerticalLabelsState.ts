@@ -73,7 +73,7 @@ export class VerticalLabelsState {
     }
 
     @computed get fontSize(): number {
-        return scaleFontSize(11.5, this.options.baseFontSize)
+        return scaleFontSize(12, this.options.baseFontSize)
     }
 
     @computed private get yAxis(): VerticalAxis {

@@ -68,7 +68,7 @@ export class MarimekkoChartThumbnail
     }
 
     @computed get labelFontSize(): number {
-        return scaleFontSize(11.5, this.fontSize)
+        return scaleFontSize(12, this.fontSize)
     }
 
     @computed get labelHeight(): number {
