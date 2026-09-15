@@ -16,7 +16,7 @@ import {
 import * as R from "remeda"
 import { IncomePlotCountrySelector } from "./IncomePlotCountrySelector.tsx"
 import { LabeledSwitch } from "./LabeledSwitch.tsx"
-import cx from "classnames"
+import cx from "clsx"
 
 import * as React from "react"
 import { useMemo, useState } from "react"

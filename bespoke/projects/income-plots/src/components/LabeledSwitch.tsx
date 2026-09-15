@@ -1,4 +1,4 @@
-import cx from "classnames"
+import cx from "clsx"
 
 export const LabeledSwitch = ({
     value,

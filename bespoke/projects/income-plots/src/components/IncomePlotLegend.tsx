@@ -9,7 +9,7 @@ import {
     atomTimeInterval,
 } from "../store.ts"
 import * as R from "remeda"
-import cx from "classnames"
+import cx from "clsx"
 import { useMemo } from "react"
 import {
     computePercentageBelowLine,
