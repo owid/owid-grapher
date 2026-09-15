@@ -78,7 +78,7 @@ const MultiDimControls = forwardRef<
             })}
             {needsToggle && (
                 <button
-                    className="md-controls__toggle"
+                    className="md-controls__toggle label-2-medium"
                     onClick={() => setIsExpanded(!isExpanded)}
                     type="button"
                     aria-expanded={isExpanded}
