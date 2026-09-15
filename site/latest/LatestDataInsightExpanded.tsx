@@ -1,0 +1,74 @@
+import { PageChronologicalDataInsightRecord } from "@ourworldindata/types"
+import { getPrefixedGdocPath } from "@ourworldindata/components"
+import { AttachmentsContext } from "../gdocs/AttachmentsContext.js"
+import Image from "../gdocs/components/Image.js"
+import { ArticleBlocks } from "../gdocs/components/ArticleBlocks.js"
+import AvatarByline from "../gdocs/components/AvatarByline.js"
+import CopyLinkButton from "../gdocs/components/CopyLinkButton.js"
+import { LatestHitMetadata } from "./LatestHitMetadata.js"
+import { findThumbnailImageBlock, makeAttachments } from "./latestUtils.js"
+
+/** Full insight in a six-column reading card. Navigation uses body and author links. */
+export const LatestDataInsightExpanded = ({
+    hit,
+    selectedTopic,
+}: {
+    hit: PageChronologicalDataInsightRecord
+    selectedTopic?: string
+}) => {
+    const firstImage = findThumbnailImageBlock(hit.body)
+    const otherBlocks = hit.body.filter((block) => block !== firstImage)
+    const titleId = `latest-hit-${hit.slug}-title`
+
+    return (
+        <AttachmentsContext.Provider value={makeAttachments(hit)}>
+            <article
+                id={hit.slug}
+                aria-labelledby={titleId}
+                className="latest-data-insight-expanded span-cols-6 col-start-2 span-md-cols-12 col-md-start-2 span-sm-cols-14 col-sm-start-1"
+            >
+                <LatestHitMetadata
+                    latestType={hit.latestType}
+                    tags={hit.tags}
+                    publishedAt={hit.date}
+                    selectedTopic={selectedTopic}
+                />
+                <div className="latest-data-insight-expanded__card">
+                    <h2
+                        id={titleId}
+                        className="latest-data-insight-expanded__title body-1-bold"
+                    >
+                        {hit.title}
+                    </h2>
+                    <AvatarByline
+                        className="latest-data-insight-expanded__authors"
+                        authors={hit.authors}
+                    />
+                    {firstImage && (
+                        <Image
+                            {...firstImage}
+                            className="latest-data-insight-expanded__image"
+                            containerType="latest-data-insight-expanded"
+                            shouldLightbox={false}
+                        />
+                    )}
+                    <div className="latest-data-insight-expanded__blocks">
+                        <ArticleBlocks
+                            blocks={otherBlocks}
+                            containerType="data-insight"
+                        />
+                    </div>
+                    <CopyLinkButton
+                        path={getPrefixedGdocPath("", {
+                            slug: hit.slug,
+                            content: { type: hit.type },
+                        })}
+                        trackNote="latest_data_insight_copy_link"
+                        className="latest-data-insight-expanded__copy-link"
+                        variant="text"
+                    />
+                </div>
+            </article>
+        </AttachmentsContext.Provider>
+    )
+}

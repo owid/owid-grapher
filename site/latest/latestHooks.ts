@@ -38,12 +38,17 @@ const DEFAULT_PAGE_SIZE = 20
  *
  * Two consumers share the probes through the query cache:
  *
- * - each card gates its own rendering on `useIsLikelyBaked`;
+ * - each card that links out gates its own rendering on `useIsLikelyBaked`;
  * - `LatestSearch` holds its loading skeleton until `useAreFreshProbesSettled`
  *   reports every first-page probe answered, so that the feed renders in one
  *   commit with its composition final. Without this, gated cards mount late:
  *   scrolling to a `/latest#slug` deeplink misses its anchor, and cards
  *   popping in shift the feed under the reader.
+ *
+ * A card gates only when it links to its own standalone page. The expanded
+ * data insight and data update cards *are* that page's content, so they
+ * render ungated and navigate elsewhere; their condensed counterparts are
+ * teasers whose one destination is that page, so they wait for it.
  */
 
 export const FRESH_WINDOW_MS = 60 * 60 * 1000
@@ -76,8 +81,9 @@ const isLikelyBakedQueryOptions = (href: string) =>
  * Always the hit's standalone page — the one destination whose existence
  * depends on this publish's bake. A card may link elsewhere in some states
  * (a data update's expanded CTA points at a pre-existing data page), but
- * those destinations can't 404 from a pending bake, and expansion state can
- * change under the reader, so the standalone page is what we vet.
+ * those destinations can't 404 from a pending bake, so the standalone page
+ * is what we vet. Whether a card gates on the answer is the card's own call:
+ * it turns on how that card is currently rendering, which this doesn't know.
  */
 function getProbeHref(hit: PageChronologicalRecord): string | null {
     return match(hit)

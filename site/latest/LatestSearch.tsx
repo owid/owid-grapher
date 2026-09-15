@@ -4,6 +4,7 @@ import {
     LATEST_TYPE_VALUES,
     LatestState,
     LatestType,
+    PageChronologicalRecord,
     TagGraphRoot,
 } from "@ourworldindata/types"
 import { LiteClient } from "algoliasearch/lite"
@@ -16,15 +17,21 @@ import {
 import { LatestTopicFacets } from "./LatestTopicFacets.js"
 import { LatestPageHeader } from "./LatestPageHeader.js"
 import {
+    DEFAULT_LATEST_FEED_VIEW,
     LATEST_FACETS_CONTAINER_CLASSES,
     LATEST_FILTERS_DIVIDER_CLASSES,
+    LATEST_NEWSLETTER_SIGNUP_CLASSES,
+    LatestFeedView,
+    hasViewToggle,
 } from "./latestUtils.js"
+import { LatestViewToggle } from "./LatestViewToggle.js"
 import {
     searchParamsToState,
     stateToSearchParams,
     urlNeedsSanitization,
 } from "./latestState.js"
 import { LatestHit } from "./LatestHit.js"
+import { OwidGdocType } from "@ourworldindata/utils"
 import { LatestSearchSkeleton } from "./LatestSearchSkeleton.js"
 import { LatestContext } from "./LatestContext.js"
 import { SiteAnalytics } from "../SiteAnalytics.js"
@@ -56,6 +63,14 @@ export const LatestSearch = ({
         [searchParams, allAreas]
     )
     const { topics, latestType } = state
+
+    // Expanded/Compact for type filters that offer the toggle. Local, not in
+    // the URL, and shared by all such filters. Deliberately never reset:
+    // only the reader's own click changes it, so it can't change under the
+    // cards that stay on screen while the next results load
+    // (keepPreviousData) the way a reset-on-filter-change would.
+    const [view, setView] = useState<LatestFeedView>(DEFAULT_LATEST_FEED_VIEW)
+    const showViewToggle = hasViewToggle(latestType)
 
     useLatestAnalytics(state, analytics)
 
@@ -119,10 +134,8 @@ export const LatestSearch = ({
     }, [latestType, latestTypeFacetCounts])
 
     // Disable topics that would yield 0 results given the current filters.
-    // Never disable a topic that is already selected (so the user can deselect
-    // it). When topics are selected the facet counts are narrowed by Algolia's
-    // conjunctive filtering, so the counts reflect co-occurrence with the
-    // current selection — topics with 0 count genuinely add no results.
+    // Keep selected topics enabled so they can be deselected. Counts exclude
+    // the topic filter, reflecting what each replacement selection would show.
     const disabledTopics = useMemo(() => {
         const disabled = new Set<string>()
         for (const area of allAreas) {
@@ -152,12 +165,26 @@ export const LatestSearch = ({
         // needlessly.
     }, [isLoading, hits.length])
 
-    // Announcements render expanded when we know the reader is after this
-    // content in particular: they filtered for data updates, or followed a
-    // link straight to one card. It's a hard override, not a default — the
-    // card renders without a Read more toggle and can't be collapsed.
-    const isExpanded = (slug: string) =>
-        latestType === "data-update" || slug === autoExpandedSlug
+    // Cards are judged by the type filter recorded on the *displayed*
+    // results, not the URL's: during a filter change the previous results
+    // stay on screen while the next page loads (keepPreviousData), and the
+    // incoming type would flash them expanded/collapsed. Only the type
+    // filter affects how a card renders; topics only change which hits
+    // come back.
+    const displayedLatestType = data?.pages[0]?.latestType ?? null
+    const activeView = hasViewToggle(displayedLatestType) ? view : undefined
+
+    // Insights expand only in their type-filtered feed. Other announcements
+    // expand for a deep link; data updates also expand under their type filter.
+    const isExpanded = (hit: PageChronologicalRecord): boolean => {
+        const isDeepLinked = hit.slug === autoExpandedSlug
+        if (hit.type === OwidGdocType.DataInsight)
+            return (
+                activeView !== undefined &&
+                (activeView === "expanded" || isDeepLinked)
+            )
+        return isDeepLinked || displayedLatestType === "data-update"
+    }
 
     return (
         <LatestContext.Provider value={{ analytics }}>
@@ -174,6 +201,12 @@ export const LatestSearch = ({
                 />
             </div>
             <hr className={LATEST_FILTERS_DIVIDER_CLASSES} />
+            {/* Tied to the type filter alone, so it can't mount or unmount
+                while a feed loads: gating on the hits as well would flash it
+                in and out on a feed that turns out to be empty. */}
+            {showViewToggle && (
+                <LatestViewToggle view={view} onViewChange={setView} />
+            )}
             {isLoading ? (
                 <LatestSearchSkeleton />
             ) : hits.length === 0 ? (
@@ -199,14 +232,15 @@ export const LatestSearch = ({
                             hit={hit}
                             selectedTopic={topics[0]}
                             position={i + 1}
-                            isExpanded={isExpanded(hit.slug)}
+                            isExpanded={isExpanded(hit)}
+                            isTypeFiltered={displayedLatestType !== null}
                         />
                     ))}
                     {/* Always render the signup block — with 0 or 1 hits it
                         falls below whatever cards exist, which is the
                         intended layout. */}
                     <NewsletterSignupBlock
-                        className="latest-page__newsletter-signup col-start-11 span-cols-3 col-lg-start-10 span-lg-cols-4 span-md-cols-14 col-md-start-1"
+                        className={LATEST_NEWSLETTER_SIGNUP_CLASSES}
                         context={NewsletterSubscriptionContext.Latest}
                     />
                     {hits.slice(2).map((hit, i) => (
@@ -215,7 +249,8 @@ export const LatestSearch = ({
                             hit={hit}
                             selectedTopic={topics[0]}
                             position={i + 3}
-                            isExpanded={isExpanded(hit.slug)}
+                            isExpanded={isExpanded(hit)}
+                            isTypeFiltered={displayedLatestType !== null}
                         />
                     ))}
                     {hasNextPage && (

@@ -52,33 +52,42 @@ export function deriveLatestType(gdoc: LatestFeedGdoc): LatestType {
 export const latestTypeLabelPlural = (type: LatestType): string =>
     `${LATEST_TYPE_LABELS[type]}s`
 
-/**
- * Where a data update ultimately points the reader. Every data update ends
- * on a `cta` block (e.g. "Explore the updated data in our interactive chart")
- * which is what an expanded card links to.
- */
-export function findCtaUrl(
-    blocks: OwidEnrichedGdocBlock[]
-): string | undefined {
-    return blocks.findLast((block) => block.type === "cta")?.url
-}
-
-/**
- * The image a feed card shows beside its text: the first image block in the
- * body. Data insight and data update cards both lift it out of the body flow
- * and render it as the card thumbnail, so they filter it back out of the
- * blocks they pass to ArticleBlocks — keep the returned block identical (not
- * a copy) so callers can do that by identity.
- */
+/** First image block, returned by identity so callers can remove it from the body. */
 export function findThumbnailImageBlock(
     blocks: OwidEnrichedGdocBlock[]
 ): EnrichedBlockImage | undefined {
     return blocks.find((block) => block.type === "image")
 }
 
+/**
+ * How cards render in a type-filtered feed that offers the View toggle:
+ * "expanded" shows each card in full, read in place; "compact" shows the same
+ * teaser card the unfiltered feed does, linking out to the page. Local UI
+ * state, deliberately not in the URL.
+ */
+export const LATEST_FEED_VIEWS = ["expanded", "compact"] as const
+export type LatestFeedView = (typeof LATEST_FEED_VIEWS)[number]
+export const DEFAULT_LATEST_FEED_VIEW: LatestFeedView = "expanded"
+
+/** Type filters that offer the Expanded/Compact control. */
+const LATEST_TYPES_WITH_VIEW_TOGGLE: readonly LatestType[] = ["data-insight"]
+
+export function hasViewToggle(latestType: LatestType | null): boolean {
+    return (
+        latestType !== null &&
+        LATEST_TYPES_WITH_VIEW_TOGGLE.includes(latestType)
+    )
+}
+
 /** Grid positioning applied to the root of every hit card. */
 export const LATEST_HIT_GRID_CLASSES =
     "span-cols-8 col-start-2 span-md-cols-12 col-md-start-2 span-sm-cols-14 col-sm-start-1"
+
+/** The newsletter block sits in the right-hand column beside the first
+ * cards, and goes full-bleed once that column collapses. Shared by the live
+ * UI and the baked skeleton so the two layouts can't drift apart. */
+export const LATEST_NEWSLETTER_SIGNUP_CLASSES =
+    "latest-page__newsletter-signup col-start-11 span-cols-3 col-lg-start-10 span-lg-cols-4 span-md-cols-14 col-md-start-1"
 
 /** Grid positioning for the facets row and the divider beneath it — shared
  * between the live UI (LatestSearch) and the baked skeleton
