@@ -1,0 +1,395 @@
+// Layout for the side panel when the AI assistant is enabled. The sidebar is
+// split into two clearly distinct zones — two different ways to drive the
+// chart:
+//   1. the AI assistant: a blue-tinted zone at the top, and
+//   2. the manual controls: the default-styled zone below it (view-type
+//      switcher, contextual chart controls, entity selector)
+.side-panel__split {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+// -----------------------------------------------------------------------------
+// AI assistant zone (top of the sidebar, blue-tinted)
+// -----------------------------------------------------------------------------
+
+.assistant-panel {
+    flex: 0 1 auto;
+    max-height: 60%;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    padding: 14px 16px 16px;
+    background: $blue-5;
+    border-bottom: 1px solid $blue-20;
+    color: $dark-text;
+}
+
+.assistant-panel__header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    flex-shrink: 0;
+}
+
+.assistant-panel__title-icon {
+    font-size: 11px;
+    color: $blue-90;
+}
+
+.assistant-panel__title {
+    @include grapher_h5-black-caps;
+    color: $blue-90;
+}
+
+.assistant-panel__beta-tag {
+    font: 500 10px/1 $sans-serif-font-stack;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 3px 4px;
+    border-radius: 3px;
+    color: $blue-90;
+    background: $blue-20;
+}
+
+.assistant-panel__form {
+    flex-shrink: 0;
+}
+
+// The AI input is deliberately differentiated from the country search below:
+// a sparkle icon instead of a magnifying glass, a slightly taller prompt-like
+// field with a blue border, on the tinted zone background
+.assistant-panel__input.grapher-search-field {
+    .search-icon {
+        color: $blue-90;
+    }
+
+    input[type="search"] {
+        height: 36px;
+        border-color: $blue-30;
+    }
+}
+
+.assistant-panel__outputs {
+    flex: 0 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    margin-top: 4px;
+}
+
+.assistant-panel__pending {
+    @include grapher_label-2-regular;
+    color: $gray-70;
+    padding: 6px 0 2px;
+}
+
+.assistant-panel__confirmation {
+    @include grapher_label-2-regular;
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    margin-top: 8px;
+    padding: 7px 9px;
+    border-radius: 4px;
+    background: #fff;
+    border: 1px solid $blue-20;
+    color: $dark-text;
+    // fade-out duration; keep in sync with CONFIRMATION_FADE_MS
+    transition: opacity 1s ease;
+
+    strong {
+        font-weight: 700;
+    }
+
+    &--fading {
+        opacity: 0;
+    }
+}
+
+.assistant-panel__confirmation-icon {
+    flex-shrink: 0;
+    margin-top: 2px;
+    color: $blue-90;
+}
+
+.assistant-panel__note {
+    @include grapher_label-2-regular;
+    color: $gray-70;
+    padding: 6px 0 2px;
+}
+
+// Terse canned backend-status line (e.g. "Claude call failed — using demo
+// matcher"); deliberately quiet, it's internal plumbing, not prototype UI
+.assistant-panel__notice {
+    font: 400 11px/1.3 $sans-serif-font-stack;
+    letter-spacing: 0.01em;
+    color: $vermillion;
+    padding: 6px 0 0;
+}
+
+.assistant-panel__options-label {
+    font: 400 12px/1.2 $sans-serif-font-stack;
+    letter-spacing: 0.01em;
+    color: $gray-70;
+    padding: 10px 0 2px;
+}
+
+.assistant-panel__options {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+// Two-line suggestion chip: a motivation headline on top, the grapher mapping
+// (tab, entities, time range) in smaller, lighter type below. Ghost/outline
+// styling keeps the chips visually lighter than actual controls — they're
+// suggestions, not state
+.assistant-panel__option {
+    display: block;
+    width: 100%;
+    text-align: left;
+    margin-top: 6px;
+    padding: 5px 9px;
+    background: transparent;
+    border: 1px solid $blue-20;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.1s ease;
+
+    &:hover {
+        background: #fff;
+        border-color: $blue-30;
+    }
+
+    &:active {
+        background: $blue-10;
+    }
+}
+
+.assistant-panel__option-headline {
+    @include grapher_label-2-regular;
+    display: block;
+    color: $blue-90;
+    line-height: 1.3;
+}
+
+.assistant-panel__option-mapping {
+    display: block;
+    font: 400 11px/1.3 $sans-serif-font-stack;
+    letter-spacing: 0.01em;
+    color: $blue-50;
+    margin-top: 1px;
+}
+
+// -----------------------------------------------------------------------------
+// Internal-demo API key modal. This is demo plumbing, NOT part of the
+// prototype being evaluated — the copy in the modal says so explicitly.
+// -----------------------------------------------------------------------------
+
+.assistant-key-modal {
+    padding: var(--modal-padding, 24px);
+
+    .assistant-key-modal__title {
+        @include grapher_h5-black-caps;
+        color: $gray-60;
+        margin: 0 0 10px;
+    }
+
+    .assistant-key-modal__text {
+        @include grapher_label-2-regular;
+        color: $dark-text;
+        margin: 0 0 12px;
+    }
+
+    .assistant-key-modal__error {
+        font: 400 12px/1.3 $sans-serif-font-stack;
+        color: $vermillion;
+        margin: 0 0 10px;
+    }
+
+    .assistant-key-modal__input {
+        @include grapher_label-2-regular;
+        display: block;
+        width: 100%;
+        height: 34px;
+        padding: 0 10px;
+        border: 1px solid $gray-30;
+        border-radius: 4px;
+        color: $dark-text;
+        background: #fff;
+
+        &:focus {
+            outline: none;
+            border-color: $blue-30;
+        }
+    }
+
+    .assistant-key-modal__actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 12px;
+    }
+
+    .assistant-key-modal__connect {
+        @include grapher_label-2-medium;
+        padding: 7px 14px;
+        border: none;
+        border-radius: 4px;
+        background: $blue-90;
+        color: #fff;
+        cursor: pointer;
+
+        &:disabled {
+            background: $blue-30;
+            cursor: default;
+        }
+    }
+
+    .assistant-key-modal__demo {
+        @include grapher_label-2-regular;
+        padding: 7px 10px;
+        border: none;
+        background: none;
+        color: $blue-90;
+        text-decoration: underline;
+        text-underline-offset: 2px;
+        cursor: pointer;
+
+        &:hover {
+            color: $blue-60;
+        }
+    }
+}
+
+// -----------------------------------------------------------------------------
+// Manual controls zone (view-type switcher + contextual chart controls +
+// entity selector)
+// -----------------------------------------------------------------------------
+
+.side-panel__manual-zone {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.side-panel__manual-zone-header {
+    @include grapher_h5-black-caps;
+    color: $light-text;
+    padding: 14px 16px 0;
+    flex-shrink: 0;
+}
+
+.side-panel__entity-selector-slot {
+    // zero flex-basis so the entity selector only takes the space left over
+    // by the assistant and manual control areas above it
+    flex: 1 1 0px;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.manual-control-area {
+    flex: 0 0 auto;
+    padding: 10px 16px 0;
+}
+
+.manual-control-area__view-switcher {
+    // Make the view-type switcher span the sidebar width
+    .ContentSwitchers__Container {
+        width: 100%;
+    }
+
+    .Tabs.ContentSwitchers {
+        flex: 1 1 auto;
+        min-width: 0;
+
+        .Tabs__Tab {
+            flex: 1 1 0;
+            --tab-padding: 8px;
+        }
+    }
+}
+
+.manual-control-area__contextual-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+
+    // Match the styling of the buttons in the in-chart controls row
+    // (see nav.controlsRow .controls in Controls.scss)
+    button.menu-toggle {
+        font: 400 13px/16px $sans-serif-font-stack;
+        letter-spacing: 0.01em;
+        display: flex;
+        align-items: center;
+        border: 1px solid $gray-20;
+        border-radius: 4px;
+        height: 32px;
+        padding: 7px;
+        color: $dark-text;
+        white-space: nowrap;
+        background: none;
+
+        &:hover {
+            background: $gray-10;
+            cursor: pointer;
+        }
+
+        &.active,
+        &:active {
+            color: $active-text;
+            background: $blue-20;
+            border: 1px solid $blue-20;
+        }
+
+        svg {
+            height: 12px;
+            margin-right: 5px;
+            vertical-align: bottom;
+        }
+
+        label:hover {
+            cursor: pointer;
+        }
+    }
+}
+
+// Contextual adjustments to the entity selector when it sits inside the
+// manual controls zone (purely cosmetic; the standalone entity selector used
+// by non-flagged graphers is untouched)
+.side-panel__manual-zone .entity-selector {
+    // The selector title becomes a subsection label under the "Manual
+    // controls" zone header, so reduce its weight
+    .overlay-header {
+        padding: 16px 16px 8px;
+
+        .title {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            color: $gray-60;
+        }
+    }
+
+    // Sort and filter are list tools, not inputs: render them as borderless
+    // gray controls (like the sort-order button) so the search field is the
+    // only input-styled element and the three rows no longer look identical
+    .entity-selector__sort-bar .grapher-dropdown .control,
+    .entity-selector__filter-bar .grapher-dropdown .control {
+        border-color: transparent;
+        background: $gray-10;
+
+        &:hover {
+            background: $gray-20;
+        }
+    }
+
+    .entity-selector__sort-bar {
+        margin-bottom: 12px;
+    }
+}
