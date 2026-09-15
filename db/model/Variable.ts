@@ -868,6 +868,148 @@ export async function getOwnersForVariables(
         .filter((dataset) => dataset.owners.length > 0)
 }
 
+export interface VariableUsage {
+    charts: { id: number; slug: string | null; title: string | null }[]
+    multiDims: { id: number; slug: string }[]
+    explorerSlugs: string[]
+    /** Charts, multi-dims and path-based explorers together. */
+    usageCount: number
+}
+
+const EMPTY_VARIABLE_USAGE: VariableUsage = {
+    charts: [],
+    multiDims: [],
+    explorerSlugs: [],
+    usageCount: 0,
+}
+
+function parseJsonArray<T>(raw: unknown): T[] {
+    if (!raw) return []
+    if (Array.isArray(raw)) return raw as T[]
+    try {
+        const parsed = JSON.parse(raw as string)
+        return Array.isArray(parsed) ? parsed : []
+    } catch {
+        return []
+    }
+}
+
+/**
+ * Where each of the given indicators is used: which charts, multi-dims and
+ * path-based explorers. Deduplicated on entity ids rather than slugs, since a
+ * draft chart or multi-dim can have none.
+ *
+ * Scoped to the ids passed in — call it with one page of results, not with a
+ * whole search.
+ */
+export async function getVariableUsagesByIds(
+    knex: db.KnexReadonlyTransaction,
+    variableIds: number[]
+): Promise<Map<number, VariableUsage>> {
+    const usages = new Map<number, VariableUsage>()
+    if (variableIds.length === 0) return usages
+
+    const chartUsages = await knexRaw<{
+        variableId: number
+        chartsJson: string
+    }>(
+        knex,
+        `-- sql
+        SELECT
+            variableId,
+            JSON_ARRAYAGG(JSON_OBJECT('id', chartId, 'slug', slug, 'title', title)) AS chartsJson
+        FROM (
+            SELECT DISTINCT
+                cd.variableId,
+                cd.chartId,
+                cc.slug,
+                cc.config->>'$.title' AS title
+            FROM chart_dimensions cd
+            JOIN charts c ON c.id = cd.chartId
+            JOIN chart_configs cc ON cc.id = c.configId
+            WHERE cd.variableId IN (?)
+        ) t
+        GROUP BY variableId
+        `,
+        [variableIds]
+    )
+
+    // Scans the view configs so an indicator used only as x / size / color counts too
+    const multiDimUsages = await knexRaw<{
+        variableId: number
+        multiDimsJson: string
+    }>(
+        knex,
+        `-- sql
+        SELECT
+            variableId,
+            JSON_ARRAYAGG(JSON_OBJECT('id', multiDimId, 'slug', slug)) AS multiDimsJson
+        FROM (
+            SELECT DISTINCT mdxcc.multiDimId, mdp.slug, jt.variableId
+            FROM multi_dim_x_chart_configs mdxcc
+            JOIN chart_configs cc ON cc.id = mdxcc.chartConfigId
+            JOIN multi_dim_data_pages mdp ON mdp.id = mdxcc.multiDimId
+            JOIN JSON_TABLE(
+                cc.config,
+                '$.dimensions[*]' COLUMNS (variableId INT PATH '$.variableId')
+            ) jt ON jt.variableId IS NOT NULL
+            WHERE jt.variableId IN (?)
+        ) t
+        GROUP BY variableId
+        `,
+        [variableIds]
+    )
+
+    const explorerUsages = await knexRaw<{
+        variableId: number
+        explorerSlugsJson: string
+    }>(
+        knex,
+        `-- sql
+        SELECT
+            variableId,
+            JSON_ARRAYAGG(explorerSlug) AS explorerSlugsJson
+        FROM (
+            SELECT DISTINCT variableId, explorerSlug
+            FROM explorer_variables
+            WHERE variableId IN (?)
+        ) t
+        GROUP BY variableId
+        `,
+        [variableIds]
+    )
+
+    const chartsById = new Map(
+        chartUsages.map((u) => [u.variableId, u.chartsJson])
+    )
+    const multiDimsById = new Map(
+        multiDimUsages.map((u) => [u.variableId, u.multiDimsJson])
+    )
+    const explorersById = new Map(
+        explorerUsages.map((u) => [u.variableId, u.explorerSlugsJson])
+    )
+
+    for (const variableId of variableIds) {
+        const charts = parseJsonArray<VariableUsage["charts"][number]>(
+            chartsById.get(variableId)
+        )
+        const multiDims = parseJsonArray<VariableUsage["multiDims"][number]>(
+            multiDimsById.get(variableId)
+        )
+        const explorerSlugs = parseJsonArray<string>(
+            explorersById.get(variableId)
+        )
+        usages.set(variableId, {
+            charts,
+            multiDims,
+            explorerSlugs,
+            usageCount: charts.length + multiDims.length + explorerSlugs.length,
+        })
+    }
+
+    return usages
+}
+
 /**
  * Perform regex search over the variables table.
  */
@@ -927,6 +1069,14 @@ export const searchVariables = async (
             row.table = table
             row.shortName = shortName
         }
+    })
+
+    const usages = await getVariableUsagesByIds(
+        knex,
+        rows.map((row: any) => row.id)
+    )
+    rows.forEach((row: any) => {
+        Object.assign(row, usages.get(row.id) ?? EMPTY_VARIABLE_USAGE)
     })
 
     return { variables: rows, numTotalRows: numTotalRows }

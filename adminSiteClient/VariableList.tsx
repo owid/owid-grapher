@@ -52,6 +52,13 @@ interface VariableListProps {
     pagination?: TableProps<VariableListItem>["pagination"]
 }
 
+/**
+ * The name column takes the width the others leave. Below this it stops being
+ * readable — one character per line in a narrow window — so the table scrolls
+ * sideways instead of crushing it.
+ */
+const NAME_MIN_WIDTH = 320
+
 /** Some tables and short names are very long, so truncate them. */
 function truncate(text: string | undefined): string | undefined {
     if (text && text.length > 20) return text.substring(0, 20) + "..."
@@ -273,6 +280,15 @@ export function VariableList({
         return createColumns({ fields, highlight, sortable })
     }, [fields, searchHighlight, sortable])
 
+    const minTableWidth = useMemo(
+        () =>
+            columns.reduce(
+                (total, column) => total + (Number(column.width) || 0),
+                NAME_MIN_WIDTH
+            ),
+        [columns]
+    )
+
     return (
         <AdminTable
             columns={columns}
@@ -282,6 +298,7 @@ export function VariableList({
             filters={filters}
             entityName="indicators"
             pagination={pagination}
+            scroll={{ x: minTableWidth }}
         />
     )
 }

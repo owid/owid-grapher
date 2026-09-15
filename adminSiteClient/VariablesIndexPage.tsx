@@ -24,6 +24,7 @@ const FIELDS = [
     "dataset",
     "table",
     "shortName",
+    "usage",
     "uploadedAt",
 ] as const
 
