@@ -251,7 +251,15 @@ export class SwimlaneChartState implements ChartState, ColorScaleManager {
     }
 
     @computed get availableFacetStrategies(): FacetStrategy[] {
-        return [FacetStrategy.none]
+        const strategies = [FacetStrategy.none]
+
+        if (
+            this.categories?.kind === "ordinal" &&
+            this.selectionArray.numSelectedEntities > 1
+        )
+            strategies.push(FacetStrategy.entity)
+
+        return strategies
     }
 
     @computed get errorInfo(): ChartErrorInfo {
