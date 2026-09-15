@@ -11,6 +11,7 @@ import {
 import { isDarkColor } from "../color/ColorUtils"
 import { HorizontalAxis } from "../axis/Axis"
 import { SeriesLabel } from "../seriesLabel/SeriesLabel.js"
+import { roundForSvg } from "../chart/ChartUtils"
 
 const labelToBarPadding = 5
 
@@ -135,9 +136,11 @@ function StackedDiscreteBar({
                 id={makeFigmaId("bar")}
                 x={0}
                 y={0}
-                transform={`translate(${segment.x}, ${-barHeight / 2})`}
-                width={segment.barWidth}
-                height={barHeight}
+                transform={`translate(${roundForSvg(segment.x)}, ${roundForSvg(
+                    -barHeight / 2
+                )})`}
+                width={roundForSvg(segment.barWidth)}
+                height={roundForSvg(barHeight)}
                 fill={segment.color}
                 opacity={segmentStyle.opacity}
                 style={{ transition: "height 200ms ease" }}

@@ -38,7 +38,7 @@ import {
 } from "./StackedConstants"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import { Color, HorizontalAlign, SeriesName } from "@ourworldindata/types"
-import { getHoverStateForSeries } from "../chart/ChartUtils"
+import { getHoverStateForSeries, roundForSvg } from "../chart/ChartUtils"
 import { InteractionState } from "../interaction/InteractionState"
 import { resolveEmphasis, Emphasis } from "../interaction/Emphasis"
 import { BinEmphasis, toBinEmphasis } from "../legend/LegendStyleConfig"
@@ -552,10 +552,10 @@ export class StackedBarChart
                 onMouseMove={this.onMouseMove}
             >
                 <rect
-                    x={bounds.left}
-                    y={bounds.top}
-                    width={bounds.width}
-                    height={bounds.height}
+                    x={roundForSvg(bounds.left)}
+                    y={roundForSvg(bounds.top)}
+                    width={roundForSvg(bounds.width)}
+                    height={roundForSvg(bounds.height)}
                     opacity={0}
                     fill="rgba(255,255,255,0)"
                 />

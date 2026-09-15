@@ -22,7 +22,7 @@ import { NoDataMessage } from "../noDataMessage/NoDataMessage"
 import { HorizontalAxisZeroLine } from "../axis/AxisViews"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 import { ChartInterface } from "../chart/ChartInterface"
-import { roundFontSize, scaleFontSize } from "../chart/ChartUtils"
+import { roundFontSize, roundForSvg, scaleFontSize } from "../chart/ChartUtils"
 import {
     BAR_SPACING_FACTOR,
     DISCRETE_BAR_STYLE,
@@ -343,9 +343,11 @@ export class DiscreteBarChart
                 id={makeFigmaId(series.seriesName)}
                 x={0}
                 y={0}
-                transform={`translate(${series.barX}, ${y - this.barHeight / 2})`}
-                width={series.barWidth}
-                height={this.barHeight}
+                transform={`translate(${roundForSvg(series.barX)}, ${roundForSvg(
+                    y - this.barHeight / 2
+                )})`}
+                width={roundForSvg(series.barWidth)}
+                height={roundForSvg(this.barHeight)}
                 fill={barColor}
                 opacity={DISCRETE_BAR_STYLE[series.emphasis].barOpacity}
                 style={{ transition: "height 200ms ease" }}
