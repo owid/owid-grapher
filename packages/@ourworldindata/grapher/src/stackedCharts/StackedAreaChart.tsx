@@ -203,7 +203,7 @@ export class StackedAreaChart
     @computed private get verticalLabelsState(): VerticalLabelsState {
         return new VerticalLabelsState(this.verticalLabelsSeries, {
             maxWidth: this.maxVerticalLabelsWidth,
-            fontSize: this.fontSize,
+            baseFontSize: this.fontSize,
             yAxis: () => this.yAxis,
             yRange: () => this.verticalLabelsYRange,
             seriesNamesSortedByImportance: this.seriesSortedByImportance,

@@ -13,12 +13,6 @@ import {
     Time,
     EntityName,
 } from "@ourworldindata/types"
-import {
-    GRAPHER_FONT_SCALE_10,
-    GRAPHER_FONT_SCALE_10_5,
-    GRAPHER_FONT_SCALE_12,
-    GRAPHER_FONT_SCALE_13,
-} from "../core/GrapherConstants"
 
 import { Bounds, PointVector } from "@ourworldindata/utils"
 import { ChartSeries } from "../chart/ChartInterface"
@@ -86,12 +80,10 @@ export const SCATTER_POINT_DEFAULT_RADIUS: number = 3
 export const SCATTER_LINE_MIN_WIDTH: number = 0.5 // only enforced in rendered lines, not in scale
 export const SCATTER_LINE_MAX_WIDTH: number = 2
 export const SCATTER_LINE_DEFAULT_WIDTH: number = 1
-export const SCATTER_LABEL_MIN_FONT_SIZE_FACTOR: number = GRAPHER_FONT_SCALE_10
-export const SCATTER_LABEL_MAX_FONT_SIZE_FACTOR: number = GRAPHER_FONT_SCALE_13
-export const SCATTER_LABEL_DEFAULT_FONT_SIZE_FACTOR: number =
-    GRAPHER_FONT_SCALE_10_5
-export const SCATTER_LABEL_FONT_SIZE_FACTOR_WHEN_HIDDEN_LINES: number =
-    GRAPHER_FONT_SCALE_12
+export const SCATTER_LABEL_MIN_FONT_SIZE: number = 10
+export const SCATTER_LABEL_MAX_FONT_SIZE: number = 13
+export const SCATTER_LABEL_DEFAULT_FONT_SIZE: number = 10.5
+export const SCATTER_LABEL_FONT_SIZE_WHEN_HIDDEN_LINES: number = 12
 
 export interface ScatterRenderSeries extends ChartSeries {
     displayKey: string

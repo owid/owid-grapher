@@ -30,7 +30,6 @@ import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
     FontSettings,
-    GRAPHER_FONT_SCALE_12,
 } from "../core/GrapherConstants"
 import { Emphasis, resolveEmphasis } from "../interaction/Emphasis"
 import { InteractionState } from "../interaction/InteractionState"
@@ -57,6 +56,7 @@ import { CategoricalBin } from "../color/ColorScaleBin.js"
 import {
     getHoverStateForSeries,
     isTargetOutsideElement,
+    scaleFontSize,
 } from "../chart/ChartUtils"
 import { TooltipState } from "../tooltip/Tooltip"
 import { LineChartTooltip } from "./LineChartTooltip"
@@ -249,7 +249,7 @@ export class LineChartThumbnail
 
     @computed private get labelFontSettings(): FontSettings {
         return {
-            fontSize: Math.floor(GRAPHER_FONT_SCALE_12 * this.fontSize),
+            fontSize: scaleFontSize(11.5, this.fontSize),
             fontWeight: 700,
             lineHeight: 1,
         }

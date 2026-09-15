@@ -28,7 +28,7 @@ import {
     SCATTER_POINT_MIN_RADIUS,
     SCATTER_POINT_HOVER_TARGET_RANGE,
     ScatterRenderPoint,
-    SCATTER_LABEL_MIN_FONT_SIZE_FACTOR,
+    SCATTER_LABEL_MIN_FONT_SIZE,
 } from "./ScatterPlotChartConstants"
 import { ScatterLine, ScatterPoint } from "./ScatterPoints"
 import {
@@ -40,6 +40,7 @@ import {
 import { Triangle } from "./Triangle"
 import { ColorScale } from "../color/ColorScale"
 import { BASE_FONT_SIZE } from "../core/GrapherConstants"
+import { roundFontSize, scaleFontSize } from "../chart/ChartUtils"
 
 // This is the component that actually renders the points. The higher level ScatterPlot class renders points, legends, comparison lines, etc.
 @observer
@@ -151,9 +152,14 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
             value !== undefined
                 ? this.fontScale(value)
                 : this.fontScale.range()[0]
-        return Math.max(
-            fontSize,
-            SCATTER_LABEL_MIN_FONT_SIZE_FACTOR * this.props.baseFontSize
+        return roundFontSize(
+            Math.max(
+                fontSize,
+                scaleFontSize(
+                    SCATTER_LABEL_MIN_FONT_SIZE,
+                    this.props.baseFontSize
+                )
+            )
         )
     }
 

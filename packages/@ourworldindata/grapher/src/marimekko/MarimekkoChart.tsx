@@ -17,8 +17,8 @@ import { observer } from "mobx-react"
 import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
-    GRAPHER_FONT_SCALE_12,
 } from "../core/GrapherConstants"
+import { scaleFontSize } from "../chart/ChartUtils"
 import { DualAxisComponent } from "../axis/AxisViews"
 import { NoDataMessage } from "../noDataMessage/NoDataMessage"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig"
@@ -332,7 +332,7 @@ export class MarimekkoChart
         return new HorizontalCategoricalColorLegendState(
             this.categoricalLegendData,
             {
-                fontSize: this.fontSize,
+                baseFontSize: this.fontSize,
                 width: this.legendWidth,
                 align: HorizontalAlign.left,
             }
@@ -696,6 +696,6 @@ export class MarimekkoChart
     }
 
     @computed private get entityLabelFontSize(): number {
-        return GRAPHER_FONT_SCALE_12 * this.fontSize
+        return scaleFontSize(12, this.fontSize)
     }
 }

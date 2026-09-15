@@ -9,8 +9,8 @@ import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
     FontSettings,
-    GRAPHER_FONT_SCALE_12,
 } from "../core/GrapherConstants"
+import { scaleFontSize } from "../chart/ChartUtils"
 import { Bounds, excludeUndefined } from "@ourworldindata/utils"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
@@ -107,7 +107,7 @@ export class StackedBarChartThumbnail
 
     @computed private get labelFontSettings(): FontSettings {
         return {
-            fontSize: Math.floor(GRAPHER_FONT_SCALE_12 * this.fontSize),
+            fontSize: scaleFontSize(11.5, this.fontSize),
             fontWeight: 500,
             lineHeight: 1,
         }

@@ -4,11 +4,8 @@ import { computed, makeObservable } from "mobx"
 import { scaleLinear, ScaleLinear } from "d3-scale"
 import { TextWrap, TextWrapSvg, Halo } from "@ourworldindata/components"
 import { makeFigmaId, OwidVariableRoundingMode } from "@ourworldindata/utils"
-import {
-    BASE_FONT_SIZE,
-    GRAPHER_FONT_SCALE_10,
-    GRAPHER_FONT_SCALE_11,
-} from "../core/GrapherConstants"
+import { BASE_FONT_SIZE } from "../core/GrapherConstants"
+import { roundFontSize, scaleFontSize } from "../chart/ChartUtils"
 import { CoreColumn } from "@ourworldindata/core-table"
 import {
     ScatterSeries,
@@ -100,7 +97,7 @@ export class ScatterSizeLegend {
     @computed private get label(): TextWrap {
         const fontSize = Math.max(
             MIN_FONT_SIZE,
-            GRAPHER_FONT_SCALE_10 * this.baseFontSize
+            scaleFontSize(10, this.baseFontSize)
         )
         return new TextWrap({
             text: "Circles sized by",
@@ -116,7 +113,7 @@ export class ScatterSizeLegend {
     @computed private get title(): TextWrap {
         const fontSize = Math.max(
             MIN_FONT_SIZE,
-            GRAPHER_FONT_SCALE_11 * this.baseFontSize
+            scaleFontSize(11, this.baseFontSize)
         )
         return new TextWrap({
             text: this.manager.sizeColumn.displayName,
@@ -183,7 +180,9 @@ export class ScatterSizeLegend {
                             circleStroke={
                                 highlight ? "#ddd" : LEGEND_CIRCLE_COLOR
                             }
-                            labelFontSize={this.fontSizeFromRadius(radius)}
+                            labelFontSize={roundFontSize(
+                                this.fontSizeFromRadius(radius)
+                            )}
                             labelFill={highlight ? "#bbb" : LEGEND_VALUE_COLOR}
                         />
                     )
