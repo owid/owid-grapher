@@ -4,6 +4,9 @@ import { Bounds } from "@ourworldindata/utils"
 import { Time } from "@ourworldindata/types"
 import { SeriesLabelState } from "../seriesLabel/SeriesLabelState"
 import {
+    CategoricalSwimlaneCategories,
+    LANE_SPACING_FACTOR,
+    MAX_LANE_HEIGHT,
     MIN_SEGMENT_WIDTH,
     OrdinalSwimlaneCategories,
     SizedSwimlaneSeries,
@@ -13,6 +16,7 @@ import {
 import {
     toPlacedSwimlaneSegmentsByCategoryRank,
     toPlacedSwimlaneSeries,
+    toRankedSwimlane,
     toSwimlaneSegments,
 } from "./SwimlaneChartHelpers"
 
@@ -278,6 +282,66 @@ function series(
     }
 }
 
+const ORDINAL_CATEGORIES: OrdinalSwimlaneCategories = {
+    kind: "ordinal",
+    values: ["A", "B"],
+}
+const CATEGORICAL_CATEGORIES: CategoricalSwimlaneCategories = {
+    kind: "categorical",
+    values: ["A", "B"],
+}
+
+describe(toRankedSwimlane, () => {
+    it("spreads out a single entity with ordinal categories", () => {
+        const oneSeries = [series()]
+        expect(
+            toRankedSwimlane({
+                series: oneSeries,
+                categories: ORDINAL_CATEGORIES,
+            })
+        ).toEqual({ series: oneSeries[0], categories: ORDINAL_CATEGORIES })
+    })
+
+    it("stays in lane mode for a single entity with categorical categories", () => {
+        expect(
+            toRankedSwimlane({
+                series: [series()],
+                categories: CATEGORICAL_CATEGORIES,
+            })
+        ).toBeUndefined()
+    })
+
+    it("stays in lane mode for several entities with ordinal categories", () => {
+        expect(
+            toRankedSwimlane({
+                series: [
+                    series(),
+                    series({ seriesName: "Chile", entityName: "Chile" }),
+                ],
+                categories: ORDINAL_CATEGORIES,
+            })
+        ).toBeUndefined()
+    })
+
+    it("stays in lane mode for several entities with categorical categories", () => {
+        expect(
+            toRankedSwimlane({
+                series: [
+                    series(),
+                    series({ seriesName: "Chile", entityName: "Chile" }),
+                ],
+                categories: CATEGORICAL_CATEGORIES,
+            })
+        ).toBeUndefined()
+    })
+
+    it("stays in lane mode when there are no categories", () => {
+        expect(
+            toRankedSwimlane({ series: [series()], categories: undefined })
+        ).toBeUndefined()
+    })
+})
+
 describe(toPlacedSwimlaneSeries, () => {
     it("returns an empty array for no series", () => {
         expect(
@@ -375,6 +439,23 @@ describe(toPlacedSwimlaneSeries, () => {
                 ).toBeLessThanOrEqual(BOUNDS.bottom)
             }
         }
+
+        const slotHeight = BOUNDS.height / placed.length
+        expect(placed[0].placedSegments[0].height).toBeCloseTo(
+            slotHeight * (1 - LANE_SPACING_FACTOR)
+        )
+    })
+
+    it("caps the lane height and centres the lane block when the plot is taller than the cap allows", () => {
+        const tallBounds = new Bounds(0, 0, 200, 400)
+        const [placed] = toPlacedSwimlaneSeries({
+            series: [series()],
+            bounds: tallBounds,
+            placeTime,
+        })
+
+        expect(placed.placedSegments[0].height).toBeCloseTo(MAX_LANE_HEIGHT)
+        expect(placed.y).toEqual(tallBounds.top + tallBounds.height / 2)
     })
 
     it("places a missing segment with the same geometry as a category segment", () => {
