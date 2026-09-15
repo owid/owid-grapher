@@ -2,10 +2,8 @@ import * as _ from "lodash-es"
 import { computed } from "mobx"
 import { Bounds, HorizontalAlign } from "@ourworldindata/utils"
 import { CategoricalBin } from "../color/ColorScaleBin"
-import {
-    BASE_FONT_SIZE,
-    GRAPHER_FONT_SCALE_12_8,
-} from "../core/GrapherConstants"
+import { BASE_FONT_SIZE } from "../core/GrapherConstants"
+import { scaleFontSize } from "../chart/ChartUtils"
 import {
     CategoricalMark,
     MarkLine,
@@ -46,7 +44,7 @@ export class HorizontalCategoricalColorLegendState {
     }
 
     @computed private get markLines(): MarkLine[] {
-        const fontSize = this.fontSize * GRAPHER_FONT_SCALE_12_8
+        const fontSize = scaleFontSize(12.8, this.fontSize)
         const rectSize = this.fontSize * 0.75
 
         const lines: MarkLine[] = []

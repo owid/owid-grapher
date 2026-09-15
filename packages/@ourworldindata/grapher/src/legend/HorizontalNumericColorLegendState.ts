@@ -9,11 +9,8 @@ import {
     isCategoricalBin,
     isNumericBin,
 } from "../color/ColorScaleBin"
-import {
-    BASE_FONT_SIZE,
-    GRAPHER_FONT_SCALE_12,
-    GRAPHER_FONT_SCALE_14,
-} from "../core/GrapherConstants"
+import { BASE_FONT_SIZE } from "../core/GrapherConstants"
+import { scaleFontSize } from "../chart/ChartUtils"
 import {
     PositionedBin,
     NumericLabel,
@@ -68,7 +65,7 @@ export class HorizontalNumericColorLegendState {
     }
 
     @computed private get tickFontSize(): number {
-        return GRAPHER_FONT_SCALE_12 * this.fontSize
+        return scaleFontSize(12, this.fontSize)
     }
 
     @computed private get itemMargin(): number {
@@ -201,7 +198,7 @@ export class HorizontalNumericColorLegendState {
     }
 
     @computed private get titleFontSize(): number {
-        return this.fontSize * GRAPHER_FONT_SCALE_14
+        return scaleFontSize(14, this.fontSize)
     }
 
     @computed get title(): TextWrap | undefined {
