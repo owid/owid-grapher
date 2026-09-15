@@ -240,11 +240,11 @@ const NumericBinRect = (props: NumericBinRectProps): React.ReactElement => {
         const a = ARROW_SIZE
         const w = width - a
         const d = removeAllWhitespace(`
-            M ${x}, ${y}
-            l ${w}, 0
-            l ${a}, ${height / 2}
-            l ${-a}, ${height / 2}
-            l ${-w}, 0
+            M ${roundForSvg(x)}, ${roundForSvg(y)}
+            l ${roundForSvg(w)}, 0
+            l ${roundForSvg(a)}, ${roundForSvg(height / 2)}
+            l ${roundForSvg(-a)}, ${roundForSvg(height / 2)}
+            l ${roundForSvg(-w)}, 0
             z
         `)
         return <path d={d} {...restProps} />
@@ -252,15 +252,23 @@ const NumericBinRect = (props: NumericBinRectProps): React.ReactElement => {
         const a = ARROW_SIZE
         const w = width - a
         const d = removeAllWhitespace(`
-            M ${x + a}, ${y}
-            l ${w}, 0
-            l 0, ${height}
-            l ${-w}, 0
-            l ${-a}, ${-height / 2}
+            M ${roundForSvg(x + a)}, ${roundForSvg(y)}
+            l ${roundForSvg(w)}, 0
+            l 0, ${roundForSvg(height)}
+            l ${roundForSvg(-w)}, 0
+            l ${roundForSvg(-a)}, ${roundForSvg(-height / 2)}
             z
         `)
         return <path d={d} {...restProps} />
     } else {
-        return <rect x={x} y={y} width={width} height={height} {...restProps} />
+        return (
+            <rect
+                x={roundForSvg(x)}
+                y={roundForSvg(y)}
+                width={roundForSvg(width)}
+                height={roundForSvg(height)}
+                {...restProps}
+            />
+        )
     }
 }

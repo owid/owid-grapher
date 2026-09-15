@@ -70,9 +70,9 @@ export function CountryWithData<Feature extends RenderFeature>({
 
     const stroke =
         isHovered || isSelected ? HOVER_STROKE_COLOR : DEFAULT_STROKE_COLOR
-    const strokeWidth = R.round(
-        getStrokeWidth({ isHovered, isSelected }) / strokeScale,
-        3
+    const strokeWidth = scaleStrokeWidth(
+        getStrokeWidth({ isHovered, isSelected }),
+        strokeScale
     )
     const strokeOpacity = hover?.background ? BLUR_STROKE_OPACITY : 1
 
@@ -123,9 +123,9 @@ export function CountryWithNoData<Feature extends RenderFeature>({
     const isHovered = hover?.active ?? false
 
     const stroke = isHovered || isSelected ? HOVER_STROKE_COLOR : "#aaa"
-    const strokeWidth = R.round(
-        getStrokeWidth({ isHovered, isSelected }) / strokeScale,
-        3
+    const strokeWidth = scaleStrokeWidth(
+        getStrokeWidth({ isHovered, isSelected }),
+        strokeScale
     )
     const strokeOpacity = hover?.background ? BLUR_STROKE_OPACITY : 1
 
@@ -249,7 +249,7 @@ export function InternalValueAnnotation({
     const { id, text, color, placedBounds, fontSize } = annotation
 
     const showHalo = showOutline && isDarkColor(color)
-    const strokeWidth = R.round(DEFAULT_STROKE_WIDTH / strokeScale, 3)
+    const strokeWidth = scaleStrokeWidth(DEFAULT_STROKE_WIDTH, strokeScale)
 
     return (
         <Halo id={id} outlineWidth={3} show={showHalo}>
@@ -319,6 +319,10 @@ export function ExternalValueAnnotation({
             </text>
         </g>
     )
+}
+
+function scaleStrokeWidth(strokeWidth: number, strokeScale: number): number {
+    return R.round(strokeWidth / strokeScale, 3)
 }
 
 function getStrokeWidth({
