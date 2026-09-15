@@ -41,14 +41,15 @@ import {
 import pMap from "p-map"
 import {
     compareSvgsVisually,
-    encodeVerdicts,
+    encodeComparisons,
     groupByVisualStatus,
-    readVerdicts,
+    readComparisons,
     VISUAL_DIFF_CONCURRENCY,
     VISUAL_STATUSES,
+    type VisualComparison,
     type VisualStatus,
     type VisualVerdict,
-    writeVerdicts,
+    writeComparisons,
 } from "./svgVisualDiff.js"
 
 const LIVE_URL = "https://ourworldindata.org"
@@ -111,7 +112,7 @@ const VISUAL_DIFF_PROGRESS_MS = 250
 const VISUAL_DIFF_SAVE_MS = 2_000
 
 /** Stable identity, so holding results back doesn't itself rebuild the list */
-const NO_VISUAL_RESULTS: Record<string, VisualVerdict> = {}
+const NO_VISUAL_RESULTS: Record<string, VisualComparison> = {}
 
 export function SvgTesterSuitePage() {
     const { admin } = useContext(AdminAppContext)
@@ -180,7 +181,7 @@ export function SvgTesterSuitePage() {
     const isReported = data ? hasReportedResult(data) : false
 
     // Check visual differences once the run has reported
-    const { verdictBySvg, remainingCount, isComplete } = useVisualDiffs(
+    const { comparisonBySvg, remainingCount, isComplete } = useVisualDiffs(
         suite,
         differences,
         isReported ? results?.startedAt : undefined,
@@ -190,7 +191,7 @@ export function SvgTesterSuitePage() {
         }
     )
 
-    const applied = verdictBySvg ?? NO_VISUAL_RESULTS
+    const applied = comparisonBySvg ?? NO_VISUAL_RESULTS
 
     const grouped = useMemo(
         () => groupByVisualStatus(visible, applied),
@@ -234,19 +235,24 @@ export function SvgTesterSuitePage() {
                 ? VISUAL_STATUSES
                 : [effectiveVisualFilter]
             ).flatMap((status) =>
-                grouped[status].map((entry) => ({ entry, status }))
+                grouped[status].map((entry) => ({
+                    entry,
+                    status,
+                    comparison: applied[entry.svgFilename],
+                }))
             ),
-        [effectiveVisualFilter, grouped]
+        [effectiveVisualFilter, grouped, applied]
     )
 
     const cards = useMemo(
         () =>
-            shown.map(({ entry, status }) => (
+            shown.map(({ entry, status, comparison }) => (
                 <DifferenceCard
                     key={anchorId(entry.viewId, entry.queryStr)}
                     suite={suite}
                     entry={entry}
                     status={status}
+                    comparison={comparison}
                 />
             )),
         [shown, suite]
@@ -255,9 +261,10 @@ export function SvgTesterSuitePage() {
     const visualSummary = differences.length
         ? {
               total: differences.length,
-              counts: _.countBy(Object.values(applied)) as Partial<
-                  Record<VisualVerdict, number>
-              >,
+              counts: _.countBy(
+                  Object.values(applied),
+                  (comparison) => comparison.verdict
+              ) as Partial<Record<VisualVerdict, number>>,
               remainingCount,
               isComplete,
           }
@@ -642,10 +649,13 @@ function DifferenceCard({
     suite,
     entry,
     status,
+    comparison,
 }: {
     suite: string
     entry: SvgTesterVerifyDifferenceEntry
     status: VisualStatus
+    /** Absent until the check has got to this chart */
+    comparison: VisualComparison | undefined
 }) {
     const [mode, setMode] = useState<ViewMode>("side-by-side")
     const beforeUrl = svgUrl(suite, "references", entry)
@@ -684,9 +694,16 @@ function DifferenceCard({
                         className={cx("SvgTesterSuitePage__status", {
                             "is-changed": status === "changed",
                         })}
-                        title={VISUAL_STATUS_HINTS[status]}
+                        title={
+                            status === "changed" && comparison
+                                ? describeMagnitude(comparison)
+                                : VISUAL_STATUS_HINTS[status]
+                        }
                     >
                         {VISUAL_STATUS_LABELS[status]}
+                        {status === "changed" &&
+                            !!comparison?.magnitude &&
+                            ` · ${formatShare(comparison.magnitude)}`}
                     </Tag>
                 </span>
                 <SvgTesterChartLinks entry={entry} />
@@ -987,19 +1004,19 @@ function pageTitle(
     return `${base} (${DISPLAY_STATUS_LABELS[display].toLowerCase()})`
 }
 
-/** Checks every difference for a real visual change */
+/** Checks every difference for a real visual change, and how large it is */
 function useVisualDiffs(
     suite: string | undefined,
     differences: SvgTesterVerifyDifferenceEntry[],
     runKey: string | undefined,
     commits: { grapherCommit: string | null; svgsCommit: string | null }
 ): {
-    verdictBySvg: Record<string, VisualVerdict> | undefined
+    comparisonBySvg: Record<string, VisualComparison> | undefined
     remainingCount: number
     isComplete: boolean
 } {
-    const [verdictBySvg, setVerdictBySvg] =
-        useState<Record<string, VisualVerdict>>()
+    const [comparisonBySvg, setComparisonBySvg] =
+        useState<Record<string, VisualComparison>>()
     const [isComplete, setIsComplete] = useState(false)
     const [checkedCount, setCheckedCount] = useState(0)
     const [todoCount, setTodoCount] = useState(0)
@@ -1008,7 +1025,7 @@ function useVisualDiffs(
     const { grapherCommit, svgsCommit } = commits
 
     useEffect(() => {
-        setVerdictBySvg(undefined)
+        setComparisonBySvg(undefined)
         setIsComplete(false)
         setCheckedCount(0)
         setTodoCount(0)
@@ -1018,21 +1035,20 @@ function useVisualDiffs(
 
         // Whatever this run was already checked for, so a reopened report
         // doesn't rasterize thousands of pairs to reach the same answers
-        const verdicts: Record<string, VisualVerdict> =
-            readVerdicts(suite, runKey, svgFilenames) ?? {}
+        const comparisons: Record<string, VisualComparison> =
+            readComparisons(suite, runKey, svgFilenames) ?? {}
 
         // A stored "unknown" is worth asking about again: it says the pair
         // couldn't be read, not that it was read and found to differ
-        const todo = differences.filter(
-            (entry) =>
-                !verdicts[entry.svgFilename] ||
-                verdicts[entry.svgFilename] === "unknown"
-        )
+        const todo = differences.filter((entry) => {
+            const known = comparisons[entry.svgFilename]
+            return !known || known.verdict === "unknown"
+        })
 
         // Shown straight away, so the report reads correctly while the rest of
-        // the work goes on behind it. A copy, since `verdicts` goes on being
+        // the work goes on behind it. A copy, since `comparisons` goes on being
         // written to and state that mutates under React renders inconsistently.
-        setVerdictBySvg({ ...verdicts })
+        setComparisonBySvg({ ...comparisons })
         setTodoCount(todo.length)
         if (!todo.length) {
             setIsComplete(true)
@@ -1050,25 +1066,25 @@ function useVisualDiffs(
             { leading: false }
         )
 
-        const saveVerdicts = (): void =>
-            writeVerdicts(
+        const saveComparisons = (): void =>
+            writeComparisons(
                 suite,
-                encodeVerdicts({
+                encodeComparisons({
                     runKey,
                     svgFilenames,
-                    verdicts,
+                    comparisons,
                     grapherCommit,
                     svgsCommit,
                 })
             )
-        const saveProgress = _.throttle(saveVerdicts, VISUAL_DIFF_SAVE_MS, {
+        const saveProgress = _.throttle(saveComparisons, VISUAL_DIFF_SAVE_MS, {
             leading: false,
         })
 
         const check = async (
             entry: SvgTesterVerifyDifferenceEntry
         ): Promise<void> => {
-            verdicts[entry.svgFilename] = await compareSvgsVisually(
+            comparisons[entry.svgFilename] = await compareSvgsVisually(
                 svgUrl(suite, "references", entry),
                 svgUrl(suite, "differences", entry)
             )
@@ -1095,7 +1111,8 @@ function useVisualDiffs(
             .then(() =>
                 pMap(
                     todo.filter(
-                        (entry) => verdicts[entry.svgFilename] === "unknown"
+                        (entry) =>
+                            comparisons[entry.svgFilename].verdict === "unknown"
                     ),
                     check,
                     options
@@ -1105,9 +1122,9 @@ function useVisualDiffs(
                 () => {
                     publishProgress.cancel()
                     saveProgress.cancel()
-                    setVerdictBySvg({ ...verdicts })
+                    setComparisonBySvg({ ...comparisons })
                     setIsComplete(true)
-                    saveVerdicts()
+                    saveComparisons()
                 },
                 () => {
                     // Abandoned, so there is nothing to report
@@ -1118,16 +1135,33 @@ function useVisualDiffs(
             publishProgress.cancel()
             saveProgress.cancel()
             // Leaving shouldn't cost the answers already in hand
-            saveVerdicts()
+            saveComparisons()
             abandon.abort()
         }
     }, [suite, runKey, differences, grapherCommit, svgsCommit])
 
     return {
-        verdictBySvg,
+        comparisonBySvg,
         remainingCount: todoCount - checkedCount,
         isComplete,
     }
+}
+
+/** A share of a chart as a percentage, floored so a real change can't read as none */
+function formatShare(share: number): string {
+    const percent = share * 100
+    if (percent > 0 && percent < 0.1) return "<0.1%"
+    return `${percent.toFixed(percent < 10 ? 1 : 0)}%`
+}
+
+/** The tooltip behind a card's magnitude */
+function describeMagnitude({
+    magnitude,
+    changedPixelShare,
+}: VisualComparison): string {
+    if (!magnitude)
+        return "Its pixels differ only where nothing is painted, so nothing about it looks different"
+    return `As much change as ${formatShare(magnitude)} of the chart being repainted from scratch — ${formatShare(changedPixelShare)} of its pixels differ`
 }
 
 function svgUrl(
