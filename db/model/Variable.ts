@@ -868,26 +868,200 @@ export async function getOwnersForVariables(
         .filter((dataset) => dataset.owners.length > 0)
 }
 
+export interface VariableUsage {
+    charts: { id: number; slug: string | null; title: string | null }[]
+    multiDims: { id: number; slug: string }[]
+    explorerSlugs: string[]
+    /** Charts, multi-dims and path-based explorers together. */
+    usageCount: number
+}
+
+const EMPTY_VARIABLE_USAGE: VariableUsage = {
+    charts: [],
+    multiDims: [],
+    explorerSlugs: [],
+    usageCount: 0,
+}
+
+function parseJsonArray<T>(raw: unknown): T[] {
+    if (!raw) return []
+    if (Array.isArray(raw)) return raw as T[]
+    try {
+        const parsed = JSON.parse(raw as string)
+        return Array.isArray(parsed) ? parsed : []
+    } catch {
+        return []
+    }
+}
+
+/**
+ * Where each of the given indicators is used: which charts, multi-dims and
+ * path-based explorers. Deduplicated on entity ids rather than slugs, since a
+ * draft chart or multi-dim can have none.
+ *
+ * Scoped to the ids passed in — call it with one page of results, not with a
+ * whole search.
+ */
+export async function getVariableUsagesByIds(
+    knex: db.KnexReadonlyTransaction,
+    variableIds: number[]
+): Promise<Map<number, VariableUsage>> {
+    const usages = new Map<number, VariableUsage>()
+    if (variableIds.length === 0) return usages
+
+    const chartUsages = await knexRaw<{
+        variableId: number
+        chartsJson: string
+    }>(
+        knex,
+        `-- sql
+        SELECT
+            variableId,
+            JSON_ARRAYAGG(JSON_OBJECT('id', chartId, 'slug', slug, 'title', title)) AS chartsJson
+        FROM (
+            SELECT DISTINCT
+                cd.variableId,
+                cd.chartId,
+                cc.slug,
+                cc.config->>'$.title' AS title
+            FROM chart_dimensions cd
+            JOIN charts c ON c.id = cd.chartId
+            JOIN chart_configs cc ON cc.id = c.configId
+            WHERE cd.variableId IN (?)
+        ) t
+        GROUP BY variableId
+        `,
+        [variableIds]
+    )
+
+    // Scans the view configs so an indicator used only as x / size / color counts too
+    const multiDimUsages = await knexRaw<{
+        variableId: number
+        multiDimsJson: string
+    }>(
+        knex,
+        `-- sql
+        SELECT
+            variableId,
+            JSON_ARRAYAGG(JSON_OBJECT('id', multiDimId, 'slug', slug)) AS multiDimsJson
+        FROM (
+            SELECT DISTINCT mdxcc.multiDimId, mdp.slug, jt.variableId
+            FROM multi_dim_x_chart_configs mdxcc
+            JOIN chart_configs cc ON cc.id = mdxcc.chartConfigId
+            JOIN multi_dim_data_pages mdp ON mdp.id = mdxcc.multiDimId
+            JOIN JSON_TABLE(
+                cc.config,
+                '$.dimensions[*]' COLUMNS (variableId INT PATH '$.variableId')
+            ) jt ON jt.variableId IS NOT NULL
+            WHERE jt.variableId IN (?)
+        ) t
+        GROUP BY variableId
+        `,
+        [variableIds]
+    )
+
+    const explorerUsages = await knexRaw<{
+        variableId: number
+        explorerSlugsJson: string
+    }>(
+        knex,
+        `-- sql
+        SELECT
+            variableId,
+            JSON_ARRAYAGG(explorerSlug) AS explorerSlugsJson
+        FROM (
+            SELECT DISTINCT variableId, explorerSlug
+            FROM explorer_variables
+            WHERE variableId IN (?)
+        ) t
+        GROUP BY variableId
+        `,
+        [variableIds]
+    )
+
+    const chartsById = new Map(
+        chartUsages.map((u) => [u.variableId, u.chartsJson])
+    )
+    const multiDimsById = new Map(
+        multiDimUsages.map((u) => [u.variableId, u.multiDimsJson])
+    )
+    const explorersById = new Map(
+        explorerUsages.map((u) => [u.variableId, u.explorerSlugsJson])
+    )
+
+    for (const variableId of variableIds) {
+        const charts = parseJsonArray<VariableUsage["charts"][number]>(
+            chartsById.get(variableId)
+        )
+        const multiDims = parseJsonArray<VariableUsage["multiDims"][number]>(
+            multiDimsById.get(variableId)
+        )
+        const explorerSlugs = parseJsonArray<string>(
+            explorersById.get(variableId)
+        )
+        usages.set(variableId, {
+            charts,
+            multiDims,
+            explorerSlugs,
+            usageCount: charts.length + multiDims.length + explorerSlugs.length,
+        })
+    }
+
+    return usages
+}
+
 /**
  * Perform regex search over the variables table.
  */
 export const searchVariables = async (
     query: string,
     limit: number,
+    offset: number,
     knex: db.KnexReadonlyTransaction
 ): Promise<VariablesSearchResult> => {
     const whereClauses = buildWhereClauses(query)
+    const isSearch = whereClauses.length > 0
 
-    const fromWhere = `
+    // An inner join, so indicators whose dataset has been archived are left
+    // out. It is also what makes this fast: joining the other way round makes
+    // MySQL sort all ~780k variables to return one page, because the sort key
+    // lives on the dataset. Driven from the ~1.2k active datasets it stops as
+    // soon as the page is full.
+    const where = whereClauses.length
+        ? "WHERE " + whereClauses.join(" AND ")
+        : ""
+    const from = `
         FROM variables AS v
-        LEFT JOIN active_datasets d ON d.id=v.datasetId
+        JOIN active_datasets d ON d.id=v.datasetId
         LEFT JOIN users u ON u.id=d.dataEditedByUserId
-        ${whereClauses.length ? "WHERE " + whereClauses.join(" AND ") : ""}
     `
+    // Joined only where the popularity is read or ordered by. Counting through
+    // it costs 2.2s instead of 0.3s, and `buildWhereClauses` never filters on
+    // it, so the count can leave it out.
+    const joinPopularity = `
+        LEFT JOIN analytics_popularity ap
+            ON ap.type = 'indicator' AND ap.slug = v.catalogPath
+    `
+    const fromWhere = `${from} ${joinPopularity} ${where}`
     const sqlCount = `
         SELECT COUNT(*) count
-        ${fromWhere}
+        ${from} ${where}
     `
+
+    // A search is ordered by how much our readers use each indicator, which is
+    // what makes a 800-hit search usable. Browsing without one stays in upload
+    // order: there the dataset-driven plan stops at the first page, and
+    // sorting every indicator by popularity would cost seconds instead of
+    // milliseconds. Indicators without an analytics row sort last (MySQL puts
+    // NULLs last in DESC), ordered among themselves by upload date.
+    const orderBy = isSearch
+        ? "ORDER BY ap.popularity DESC, d.dataEditedAt DESC"
+        : "ORDER BY d.dataEditedAt DESC"
+
+    // A search has to visit every matching row to sort it, so the total comes
+    // from that same pass rather than from a second query that would repeat
+    // the scan.
+    const totalColumn = isSearch ? ", COUNT(*) OVER () AS numTotalRows" : ""
 
     const sqlResults = `
         SELECT
@@ -899,14 +1073,23 @@ export const searchVariables = async (
             d.isPrivate AS isPrivate,
             d.nonRedistributable AS nonRedistributable,
             d.dataEditedAt AS uploadedAt,
-            u.fullName AS uploadedBy
+            u.fullName AS uploadedBy,
+            ap.popularity AS popularity
+            ${totalColumn}
         ${fromWhere}
-        ORDER BY d.dataEditedAt DESC
-        LIMIT ${escape(limit)}
+        ${orderBy}
+        LIMIT ${escape(limit)} OFFSET ${escape(offset)}
     `
     const rows = await queryRegexSafe(sqlResults, knex)
 
-    const numTotalRows = await queryRegexCount(sqlCount, knex)
+    // Past the last page there is no row to read the windowed total from, so
+    // fall back to counting
+    const numTotalRows =
+        isSearch && rows.length > 0
+            ? Number(rows[0].numTotalRows)
+            : await queryRegexCount(sqlCount, knex)
+
+    rows.forEach((row: any) => delete row.numTotalRows)
 
     rows.forEach((row: any) => {
         if (row.catalogPath) {
@@ -921,6 +1104,14 @@ export const searchVariables = async (
             row.table = table
             row.shortName = shortName
         }
+    })
+
+    const usages = await getVariableUsagesByIds(
+        knex,
+        rows.map((row: any) => row.id)
+    )
+    rows.forEach((row: any) => {
+        Object.assign(row, usages.get(row.id) ?? EMPTY_VARIABLE_USAGE)
     })
 
     return { variables: rows, numTotalRows: numTotalRows }
@@ -1010,7 +1201,8 @@ const buildWhereClauses = (query: string): string[] => {
                     )}, cast(date(d.createdAt) as char) > ${escape(q)}))`
                 )
             }
-        } else if (part === "is:published") {
+        } else if (part === "is:published" || part === "is:public") {
+            // the search help has always advertised is:public
             whereClauses.push(`${not} (NOT d.isPrivate)`)
         } else if (part === "is:private") {
             whereClauses.push(`${not} d.isPrivate`)

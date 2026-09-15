@@ -1,6 +1,6 @@
 import { useCallback, useContext, useEffect, useMemo, useState } from "react"
 import * as React from "react"
-import { Button, Flex, Input, Space, Table, TableColumnsType } from "antd"
+import { Button, Space, TableColumnsType } from "antd"
 
 import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext } from "./AdminAppContext.js"
@@ -8,11 +8,9 @@ import { Timeago } from "./Forms.js"
 import { ApiNarrativeChartOverview } from "../adminShared/AdminTypes.js"
 import { GRAPHER_DYNAMIC_THUMBNAIL_URL } from "../settings/clientSettings.mjs"
 import { Link } from "./Link.js"
-import {
-    buildSearchWordsFromSearchString,
-    filterFunctionForSearchWords,
-    highlightFunctionForSearchWords,
-} from "../adminShared/search.js"
+import { AdminTable } from "./AdminTable.js"
+import { useListSearch } from "./adminTableHelpers.js"
+import { SearchField } from "../adminShared/searchFilter.js"
 
 function createColumns(ctx: {
     highlightFn: (
@@ -110,35 +108,43 @@ function createColumns(ctx: {
     ]
 }
 
+const SEARCH_FIELDS: SearchField<ApiNarrativeChartOverview>[] = [
+    {
+        name: "title",
+        type: "string",
+        description: "Title",
+        get: (c) => c.title,
+    },
+    { name: "name", type: "string", description: "Name", get: (c) => c.name },
+    {
+        name: "parent",
+        type: "string",
+        description: "Parent chart title",
+        get: (c) => c.parent.title,
+    },
+    {
+        name: "id",
+        type: "number",
+        description: "Narrative chart id",
+        get: (c) => c.id,
+    },
+]
+
 export function NarrativeChartIndexPage() {
     const { admin } = useContext(AdminAppContext)
     const [narrativeCharts, setNarrativeCharts] = useState<
         ApiNarrativeChartOverview[]
     >([])
-    const [searchValue, setSearchValue] = useState("")
 
-    const searchWords = useMemo(
-        () => buildSearchWordsFromSearchString(searchValue),
-        [searchValue]
-    )
+    const {
+        results: filteredNarrativeCharts,
+        highlight: highlightFn,
+        search,
+    } = useListSearch(narrativeCharts, SEARCH_FIELDS, {
+        placeholder: "Search narrative charts...",
+        autoFocus: true,
+    })
 
-    const filteredNarrativeCharts = useMemo(() => {
-        const filterFn = filterFunctionForSearchWords(
-            searchWords,
-            (narrativeChart: ApiNarrativeChartOverview) => [
-                `${narrativeChart.id}`,
-                narrativeChart.title,
-                narrativeChart.name,
-                narrativeChart.parent.title,
-            ]
-        )
-
-        return narrativeCharts.filter(filterFn)
-    }, [narrativeCharts, searchWords])
-    const highlightFn = useMemo(
-        () => highlightFunctionForSearchWords(searchWords),
-        [searchWords]
-    )
     const deleteFn = useCallback(
         async (narrativeChartId: number) => {
             if (
@@ -175,15 +181,12 @@ export function NarrativeChartIndexPage() {
     return (
         <AdminLayout title="Narrative charts">
             <main>
-                <Flex justify="space-between">
-                    <Input
-                        placeholder="Search"
-                        value={searchValue}
-                        onChange={(e) => setSearchValue(e.target.value)}
-                        style={{ width: 500, marginBottom: 20 }}
-                    />
-                </Flex>
-                <Table columns={columns} dataSource={filteredNarrativeCharts} />
+                <AdminTable
+                    columns={columns}
+                    dataSource={filteredNarrativeCharts}
+                    entityName="narrative charts"
+                    search={search}
+                />
             </main>
         </AdminLayout>
     )

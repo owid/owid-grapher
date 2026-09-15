@@ -1,14 +1,9 @@
 import { useContext, useMemo, useState } from "react"
 import cx from "clsx"
-import {
-    Button,
-    Flex,
-    Input,
-    Popconfirm,
-    Table,
-    TableColumnsType,
-    Spin,
-} from "antd"
+import { Button, Flex, Popconfirm, TableColumnsType, Spin } from "antd"
+import { AdminTable } from "./AdminTable.js"
+import { useListSearch } from "./adminTableHelpers.js"
+import { SearchField } from "../adminShared/searchFilter.js"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext } from "./AdminAppContext.js"
@@ -70,6 +65,34 @@ function ImagePreviewGallery({
         </div>
     )
 }
+
+const SEARCH_FIELDS: SearchField<DbEnrichedStaticViz>[] = [
+    { name: "name", type: "string", description: "Name", get: (v) => v.name },
+    {
+        name: "description",
+        type: "string",
+        description: "Description",
+        get: (v) => v.description,
+    },
+    {
+        name: "by",
+        type: "string",
+        description: "Created or updated by",
+        get: (v) => [v.createdBy, v.updatedBy],
+    },
+    {
+        name: "slug",
+        type: "string",
+        description: "Grapher slug it is based on",
+        get: (v) => v.grapherSlug,
+    },
+    {
+        name: "updated",
+        type: "date",
+        description: "Last updated",
+        get: (v) => v.updatedAt,
+    },
+]
 
 function createColumns({
     onDelete,
@@ -199,7 +222,6 @@ function createColumns({
 export function StaticVizIndexPage() {
     const { admin } = useContext(AdminAppContext)
     const queryClient = useQueryClient()
-    const [searchValue, setSearchValue] = useState("")
 
     const { data: staticVizResponse, isLoading } = useQuery({
         queryKey: ["static-viz"],
@@ -225,20 +247,11 @@ export function StaticVizIndexPage() {
         },
     })
 
-    const filteredLinkedStaticViz = useMemo(() => {
-        const linkedStaticViz = staticVizResponse || []
-        return linkedStaticViz.filter((item) => {
-            if (!searchValue) return true
-            const value = searchValue.toLowerCase()
-            const { name, description, createdBy, updatedBy } = item
-            return (
-                name.toLowerCase().includes(value) ||
-                description?.toLowerCase().includes(value) ||
-                createdBy?.toLowerCase().includes(value) ||
-                updatedBy?.toLowerCase().includes(value)
-            )
-        })
-    }, [staticVizResponse, searchValue])
+    const { results: filteredLinkedStaticViz, search } = useListSearch(
+        staticVizResponse,
+        SEARCH_FIELDS,
+        { placeholder: "Search by name or description", autoFocus: true }
+    )
 
     const columns = useMemo(
         () => createColumns({ onDelete: deleteMutation.mutate }),
@@ -248,28 +261,20 @@ export function StaticVizIndexPage() {
     return (
         <AdminLayout title="Static Visualizations">
             <main className="StaticVizIndexPage">
-                <Flex justify="space-between">
-                    <Input
-                        placeholder="Search by name or description"
-                        value={searchValue}
-                        onChange={(e) => setSearchValue(e.target.value)}
-                        style={{ width: 500, marginBottom: 20 }}
-                    />
-                    <Link to="/static-viz/new">
-                        <Button type="primary">Create new visualization</Button>
-                    </Link>
-                </Flex>
                 <Spin spinning={isLoading}>
-                    <Table
-                        size="small"
+                    <AdminTable
                         columns={columns}
                         dataSource={filteredLinkedStaticViz}
                         rowKey={(x) => x.name}
-                        pagination={{
-                            pageSize: 50,
-                            showSizeChanger: true,
-                            showQuickJumper: true,
-                        }}
+                        entityName="visualizations"
+                        search={search}
+                        actions={
+                            <Link to="/static-viz/new">
+                                <Button type="primary">
+                                    Create new visualization
+                                </Button>
+                            </Link>
+                        }
                     />
                 </Spin>
             </main>
