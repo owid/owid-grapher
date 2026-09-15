@@ -15,6 +15,61 @@
     margin: 0 0 16px;
 }
 
+.ask-this-chart__faqs-loading {
+    @include body-3-medium;
+    color: $blue-50;
+    margin: 0 0 16px;
+    animation: ask-this-chart-pulse 1.5s ease-in-out infinite;
+}
+
+.ask-this-chart__faqs {
+    background-color: $white;
+    border: 1px solid $blue-20;
+    padding: 0 16px;
+    margin-bottom: 16px;
+}
+
+.ask-this-chart__ask-toggle {
+    @include body-3-medium;
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 12px 16px;
+    background-color: $white;
+    color: $blue-90;
+    border: 1px solid $blue-20;
+    cursor: pointer;
+
+    &:hover {
+        background-color: $blue-10;
+    }
+}
+
+.ask-this-chart__ask-panel {
+    margin-top: 16px;
+}
+
+.ask-this-chart__faq-answer {
+    @include body-3-medium;
+    color: $blue-90;
+
+    p {
+        margin: 0 0 8px;
+    }
+
+    p:last-child,
+    ul:last-child,
+    ol:last-child {
+        margin-bottom: 0;
+    }
+
+    ul,
+    ol {
+        margin: 0 0 8px;
+        padding-left: 24px;
+    }
+}
+
 .ask-this-chart__feedback {
     margin-top: 16px;
     padding-top: 12px;
