@@ -58,7 +58,9 @@ function LifeExpectancyChart() {
 }
 ```
 
-For loading your own data (CSV or in-memory tables), providing source metadata, the standalone bundle for non-React pages, sizing, and the full `GrapherLoader` API, see the [documentation](https://docs.owid.io/projects/grapher/). A complete working example of all three data sources is in [`demo.html`](./demo.html) (`yarn startDemoServer`).
+A dimension names its column either by `variableId`, an OWID indicator, or by `slug`, a column of a table you supply — so a chart on your own data can still override that column's name, unit or rounding for itself.
+
+For loading your own data (CSV or in-memory tables), providing source metadata and per-chart overrides, the standalone bundle for non-React pages, sizing, and the full `GrapherLoader` API, see the [documentation](https://docs.owid.io/projects/grapher/). A complete working example of all three data sources is in [`demo.html`](./demo.html) (`yarn startDemoServer`).
 
 ## Developing the package
 
