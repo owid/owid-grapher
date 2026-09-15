@@ -1,5 +1,6 @@
 import * as _ from "lodash-es"
 import {
+    ColumnSlug,
     EntityName,
     GRAPHER_MAP_TYPE,
     GrapherValuesJson,
@@ -114,10 +115,8 @@ export function constructGrapherValuesJson(
 const makeColumnInfoForRelevantSlugs = (
     grapherState: GrapherState
 ): GrapherValuesJson["columns"] => {
-    const targetSlugs = excludeUndefined([
-        ...grapherState.yColumnSlugs,
-        grapherState.xColumnSlug,
-    ])
+    const { ySlugs, xSlug } = getValueSlugsForActiveTab(grapherState)
+    const targetSlugs = excludeUndefined([...ySlugs, xSlug])
 
     const columns = targetSlugs.map((slug) =>
         getTransformedColumn(grapherState, slug)
@@ -162,8 +161,7 @@ const makeDimensionValuesForTime = (
 ): GrapherValuesJsonDataPoints | undefined => {
     if (time === undefined) return undefined
 
-    const ySlugs = grapherState.yColumnSlugs
-    const xSlug = grapherState.xColumnSlug
+    const { ySlugs, xSlug } = getValueSlugsForActiveTab(grapherState)
 
     return omitUndefinedValues({
         y: ySlugs.map((ySlug) =>
@@ -228,6 +226,19 @@ const getTransformedColumn = (
     slug?: string
 ): CoreColumn => grapherState.chartState.transformedTable.get(slug)
 
+/**
+ * Slugs of the columns the active tab renders values from, reported as
+ * y and x data points. On the map tab, the primary columns are the map
+ * columns; their values are reported as y data points.
+ */
+const getValueSlugsForActiveTab = (
+    grapherState: GrapherState
+): { ySlugs: ColumnSlug[]; xSlug?: ColumnSlug } => ({
+    ySlugs: grapherState.primaryColumnSlugs,
+    // The map tab doesn't render an x column
+    xSlug: grapherState.isOnMapTab ? undefined : grapherState.xColumnSlug,
+})
+
 // ============================================================================
 // Direct table-based value extraction (optimized for batch processing)
 // ============================================================================
@@ -264,15 +275,17 @@ export function prepareCalloutTable(
         xColumnSlug,
         colorColumnSlug,
         sizeColumnSlug,
+        mapColumnSlugs,
         activeTab,
         minTime = TimeBoundValue.negativeInfinity,
         maxTime = TimeBoundValue.positiveInfinity,
     } = grapherState
 
     // Get all relevant columns and build column info
-    const xySlugs = excludeUndefined([...yColumnSlugs, xColumnSlug])
+    const { ySlugs, xSlug } = getValueSlugsForActiveTab(grapherState)
+    const valueSlugs = excludeUndefined([...ySlugs, xSlug])
     const columns = buildColumnInfoMap(
-        xySlugs.map((slug) => inputTable.get(slug))
+        valueSlugs.map((slug) => inputTable.get(slug))
     )
 
     // Build sources line from columns
@@ -282,6 +295,7 @@ export function prepareCalloutTable(
         xColumnSlug,
         sizeColumnSlug,
         colorColumnSlug,
+        mapColumnSlugs,
         activeTab,
     })
     const sourcesLine =
@@ -291,12 +305,12 @@ export function prepareCalloutTable(
         )
 
     // Get sorted unique times from the table
-    const times = inputTable.getTimesUniqSortedAscForColumns(yColumnSlugs)
+    const times = inputTable.getTimesUniqSortedAscForColumns(ySlugs)
 
     return {
         inputTable,
-        yColumnSlugs,
-        xColumnSlug,
+        yColumnSlugs: ySlugs,
+        xColumnSlug: xSlug,
         columns,
         sourcesLine,
         times,
