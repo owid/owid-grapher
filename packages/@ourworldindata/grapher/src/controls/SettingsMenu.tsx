@@ -49,6 +49,7 @@ const {
     StackedBar,
     Marimekko,
     SlopeChart,
+    Swimlane,
 } = GRAPHER_CHART_TYPES
 
 export interface SettingsMenuManager
@@ -189,6 +190,7 @@ export class SettingsMenu extends React.Component<SettingsMenuProps> {
             StackedDiscreteBar,
             LineChart,
             SlopeChart,
+            Swimlane,
         ].includes(this.chartType as any)
 
         const hasProjection = filledDimensions.some(
