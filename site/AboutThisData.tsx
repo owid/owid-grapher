@@ -69,10 +69,6 @@ export default function AboutThisData({
                                                 />
                                             </div>
                                         }
-                                        isStacked={
-                                            !!datapageData.source
-                                                ?.additionalInfo
-                                        }
                                     />
                                 )}
                                 {datapageData.source?.additionalInfo && (
