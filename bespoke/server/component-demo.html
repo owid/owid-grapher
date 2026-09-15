@@ -27,13 +27,6 @@
             const root = document.getElementById("demo-root")
             const { VARIANTS } = ComponentModule
 
-            // Where the component reads its ETL data feed from. On the site this comes from
-            // BESPOKE_DATA_URL; here it defaults to production, and `?dataUrl=` points a demo at
-            // a staging server's feed instead, e.g.
-            // ?dataUrl=https://api-staging.owid.io/staging-site-my-branch/v1/bespoke
-            const dataUrl =
-                new URLSearchParams(location.search).get("dataUrl") ?? undefined
-
             if (VARIANTS === undefined) {
                 const errorMessage = document.createElement("div")
                 errorMessage.className = "demo-error-message"
@@ -89,7 +82,6 @@
                         scriptUrl: "/{{PROJECT}}/{{ENTRYPOINT_JS}}",
                         variant: variant.name,
                         config: variant.demoConfig,
-                        dataUrl,
                     })
                 }
             }

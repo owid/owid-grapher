@@ -34,14 +34,6 @@ In build mode, the demo page uses the built output file (`index.js`) instead of 
 
 Visiting `/<project>/demo` serves a demo page that imports the project's `VARIANTS` list and mounts each variant inside its own Shadow DOM using `mountBespokeComponentInShadow` from `bespoke/shared`. This mirrors the production embedding behavior.
 
-A project that reads an ETL data feed fetches it from production unless the demo page is given another environment's feed root:
-
-```
-/causes-of-death/demo?dataUrl=https://api-staging.owid.io/staging-site-my-branch/v1/bespoke
-```
-
-That is how you see a feed a branch changed before it is merged — on the site the same root arrives from `BESPOKE_DATA_URL`.
-
 `/__all` stacks every project's demo page below each other (except `example`, the starter template), one lazily loaded iframe each — iframes keep each project's Vite client, React copy and `dev-only-global-css` isolated from the others. The frames load as you scroll, which matters on staging, where each project is built on first request.
 
 ### Entrypoints
