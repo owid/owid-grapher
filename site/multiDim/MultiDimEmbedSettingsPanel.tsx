@@ -51,7 +51,7 @@ export default function MultiDimEmbedSettingsPanel({
         const containerPadding = 32 // 16px on each side
         const buffer = 5 // For some reason the numbers don't add up precisely
         const availableWidth = containerWidth - containerPadding - buffer
-        const gap = 8 // Gap between dropdowns (and also toggle button) as defined in CSS
+        const gap = 16 // Gap between dropdowns (and also toggle button) as defined in CSS
         const toggleButtonWidth = 90
 
         const dropdowns = Array.from(
