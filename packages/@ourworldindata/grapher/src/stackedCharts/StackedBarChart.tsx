@@ -547,11 +547,7 @@ export class StackedBarChart
         const { bounds } = this
 
         return (
-            <g
-                width={bounds.width}
-                height={bounds.height}
-                onMouseMove={this.onMouseMove}
-            >
+            <g onMouseMove={this.onMouseMove}>
                 <rect
                     x={roundForSvg(bounds.left)}
                     y={roundForSvg(bounds.top)}
@@ -573,7 +569,7 @@ export class StackedBarChart
 
         if (this.chartState.errorInfo.reason)
             return (
-                <g width={bounds.width} height={bounds.height}>
+                <g>
                     {this.renderAxis()}
                     <NoDataMessage
                         manager={this.manager}
