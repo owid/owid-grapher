@@ -40,6 +40,7 @@ import { JsonLdDataPage } from "./jsonLd.js"
 export const DataPageV2 = (props: {
     grapher: GrapherInterface | undefined
     datapageData: DataPageDataV2
+    topicArea?: string
     baseUrl: string
     canonicalUrl: string
     isPreviewing: boolean
@@ -52,6 +53,7 @@ export const DataPageV2 = (props: {
     const {
         grapher,
         datapageData,
+        topicArea,
         baseUrl,
         canonicalUrl,
         isPreviewing,
@@ -167,6 +169,7 @@ export const DataPageV2 = (props: {
                             __html: `window._OWID_DATAPAGEV2_PROPS = ${serializeJSONForInlineScript(
                                 {
                                     datapageData,
+                                    topicArea,
                                     faqEntries,
                                     canonicalUrl,
                                     imageMetadata,
@@ -179,6 +182,7 @@ export const DataPageV2 = (props: {
                         <DebugProvider debug={isPreviewing}>
                             <DataPageV2Content
                                 datapageData={datapageData}
+                                topicArea={topicArea}
                                 grapherConfig={grapherConfig}
                                 imageMetadata={imageMetadata}
                                 isPreviewing={isPreviewing}

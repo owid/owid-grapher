@@ -627,17 +627,26 @@ export async function getFlatTagGraph(knex: KnexReadonlyTransaction): Promise<
     return { ...tagGraphByParentId, __rootId: tagGraphRootIdResult.id }
 }
 
-// DFS through the tag graph and track all paths from a child to the root
-// e.g. { "childTag": [ [parentTag1, parentTag2, childTag], [parentTag3, childTag] ] }
-// Use with getUniqueNamesFromTopicHierarchies to collapse all paths to the child into
-// a single array of unique parent tag names, including the original tags if they are topics.
+/**
+ * Collect every root-to-tag path, excluding the root and including the tag.
+ * Paths are appended in depth-first traversal order. getFlatTagGraph orders
+ * siblings by edge weight DESC, then name ASC; a supplied graph's order is kept.
+ * Paths are not sorted by length or total weight.
+ *
+ * includeAreasAndTopicsOnly retains top-level areas, tags with published topic
+ * pages, and tags marked searchableInAlgolia. This can remove the tag itself.
+ * Empty paths are omitted. Use getUniqueNamesFromTagHierarchies to collect names
+ * from all paths instead of selecting one.
+ */
 export async function getTagHierarchiesByChildName(
     trx: KnexReadonlyTransaction,
-    includeAreasAndTopicsOnly: boolean = false
+    includeAreasAndTopicsOnly: boolean = false,
+    flatTagGraphWithRootId?: FlatTagGraph & { __rootId: number }
 ): Promise<
     Record<DbPlainTag["name"], Pick<DbPlainTag, "id" | "name" | "slug">[][]>
 > {
-    const { __rootId, ...flatTagGraph } = await getFlatTagGraph(trx)
+    const { __rootId, ...flatTagGraph } =
+        flatTagGraphWithRootId ?? (await getFlatTagGraph(trx))
     const areaAndTopicTagNames = await getAllAreaAndTopicTagNames(trx)
     const tagGraph = createTagGraph(flatTagGraph, __rootId)
     const tagsById = await trx<DbPlainTag>("tags")
@@ -688,12 +697,155 @@ export async function getTagHierarchiesByChildName(
     return pathsByChildName
 }
 
+/** All paths with only areas and topics retained, still keyed by the original tag. */
 export const getTopicHierarchiesByChildName = (
-    trx: KnexReadonlyTransaction
+    trx: KnexReadonlyTransaction,
+    flatTagGraphWithRootId?: FlatTagGraph & { __rootId: number }
 ): Promise<
     Record<DbPlainTag["name"], Pick<DbPlainTag, "id" | "name" | "slug">[][]>
-> => getTagHierarchiesByChildName(trx, true)
+> => getTagHierarchiesByChildName(trx, true, flatTagGraphWithRootId)
 
+export type TagHierarchiesByChildName = Record<
+    string,
+    Pick<DbPlainTag, "id" | "name" | "slug">[][]
+>
+
+/**
+ * Expects unfiltered paths from getTagHierarchiesByChildName, ending in each tag.
+ * Consider only the first path for each tag (in graph traversal order), then
+ * choose the one with the most tags that have slugs (clickable breadcrumbs).
+ * Break ties by the lowest leaf tag id so input tag order cannot change the
+ * result. Skip missing or empty paths; return [] if none remain.
+ * Breadcrumbs and a page's topic area share this selection logic.
+ */
+export function getBestTagHierarchy(
+    tagNames: string[],
+    hierarchies: TagHierarchiesByChildName
+): Pick<DbPlainTag, "id" | "name" | "slug">[] {
+    let bestPath: Pick<DbPlainTag, "id" | "name" | "slug">[] = []
+    let bestTopicCount = -1
+    let bestLeafTagId = Infinity
+    for (const name of tagNames) {
+        const path = hierarchies[name]?.[0]
+        if (!path?.length) continue
+        const topicCount = path.filter((tag) => tag.slug).length
+        const leafTagId = path[path.length - 1].id
+        if (
+            topicCount > bestTopicCount ||
+            (topicCount === bestTopicCount && leafTagId < bestLeafTagId)
+        ) {
+            bestPath = path
+            bestTopicCount = topicCount
+            bestLeafTagId = leafTagId
+        }
+    }
+    return bestPath
+}
+
+/** The selected path's top-level area, even without a slug; undefined if no path exists. */
+export function getTopicAreaNameForTagNames(
+    tagNames: string[],
+    hierarchies: TagHierarchiesByChildName
+): string | undefined {
+    return getBestTagHierarchy(tagNames, hierarchies)[0]?.name
+}
+
+/** The top-level areas of the tag graph, in `weight DESC, name ASC` order. */
+export async function getTopicAreaNames(
+    trx: KnexReadonlyTransaction,
+    flatTagGraphWithRootId?: FlatTagGraph & { __rootId: number }
+): Promise<string[]> {
+    const { __rootId, ...flatTagGraph } =
+        flatTagGraphWithRootId ?? (await getFlatTagGraph(trx))
+    return (flatTagGraph[__rootId] ?? []).map(({ name }) => name)
+}
+
+export interface TopicAreaAssignments {
+    tagHierarchiesByChildName: TagHierarchiesByChildName
+    /** chart id -> area name; see getTopicAreaNamesByChartId */
+    byChartId: Record<number, string>
+}
+
+/**
+ * Load hierarchies and chart areas for reuse across a bake or for a single-page
+ * render. Omit `chartIds` to cover every chart; [] loads only the hierarchies.
+ */
+export async function getTopicAreaAssignments(
+    trx: KnexReadonlyTransaction,
+    chartIds?: number[]
+): Promise<TopicAreaAssignments> {
+    const tagHierarchiesByChildName = await getTagHierarchiesByChildName(trx)
+    const byChartId = await getTopicAreaNamesByChartId(
+        trx,
+        tagHierarchiesByChildName,
+        chartIds
+    )
+    return { tagHierarchiesByChildName, byChartId }
+}
+
+/**
+ * Rank all tags of the first y indicator (by dimension order, then dimension id).
+ * If none resolves to an area, rank the chart's own tags; do not try later y
+ * indicators. Both groups use getBestTagHierarchy's specificity and leaf-id rule.
+ */
+export async function getTopicAreaNamesByChartId(
+    trx: KnexReadonlyTransaction,
+    hierarchies: TagHierarchiesByChildName,
+    chartIds?: number[]
+): Promise<Record<number, string>> {
+    if (_.isEmpty(hierarchies)) return {}
+    if (chartIds && chartIds.length === 0) return {}
+    const chartFilter = chartIds ? "AND chartId IN (:chartIds)" : ""
+    const params = chartIds ? { chartIds } : {}
+    const areaNamesByChartId: Record<number, string> = {}
+
+    const indicatorRows = await knexRaw<{
+        chartId: number
+        variableId: number
+        tagName: string | null
+    }>(
+        trx,
+        `-- sql
+        SELECT cd.chartId, cd.variableId, t.name AS tagName
+        FROM chart_dimensions cd
+        LEFT JOIN tags_variables_topic_tags tv ON tv.variableId = cd.variableId
+        LEFT JOIN tags t ON t.id = tv.tagId
+        WHERE cd.property = 'y' ${chartFilter}
+        ORDER BY cd.chartId, cd.\`order\`, cd.id, tv.displayOrder, t.name, tv.tagId`,
+        params
+    )
+    for (const rows of Object.values(_.groupBy(indicatorRows, "chartId"))) {
+        const first = rows[0]
+        const tagNames = rows
+            .filter((row) => row.variableId === first.variableId)
+            .flatMap((row) => (row.tagName ? [row.tagName] : []))
+        const areaName = getTopicAreaNameForTagNames(tagNames, hierarchies)
+        if (areaName) areaNamesByChartId[first.chartId] = areaName
+    }
+
+    const chartTagRows = await knexRaw<{ chartId: number; tagName: string }>(
+        trx,
+        `-- sql
+        SELECT ct.chartId, t.name AS tagName
+        FROM chart_tags ct
+        JOIN tags t ON t.id = ct.tagId
+        WHERE 1 ${chartFilter}
+        ORDER BY ct.chartId, t.name, t.id`,
+        params
+    )
+    for (const rows of Object.values(_.groupBy(chartTagRows, "chartId"))) {
+        const chartId = rows[0].chartId
+        if (areaNamesByChartId[chartId]) continue
+        const areaName = getTopicAreaNameForTagNames(
+            rows.map((row) => row.tagName),
+            hierarchies
+        )
+        if (areaName) areaNamesByChartId[chartId] = areaName
+    }
+    return areaNamesByChartId
+}
+
+/** Turn the selected hierarchy's tags with slugs into breadcrumb links. */
 export function getBestBreadcrumbs(
     tags: MinimalTag[],
     parentTagArraysByChildName: Record<
@@ -701,31 +853,10 @@ export function getBestBreadcrumbs(
         Pick<DbPlainTag, "id" | "name" | "slug">[][]
     >
 ): BreadcrumbItem[] {
-    // For each tag, find the best path according to our criteria
-    // e.g. { "Nuclear Energy ": ["Energy and Environment", "Energy"], "Air Pollution": ["Energy and Environment"] }
-    const result = new Map<number, Pick<DbPlainTag, "id" | "name" | "slug">[]>()
-
-    for (const tag of tags) {
-        const paths = parentTagArraysByChildName[tag.name]
-        if (paths && paths.length > 0) {
-            // Since getFlatTagGraph already orders by weight DESC and name ASC,
-            // the first path in the array will be our best path
-            result.set(tag.id, paths[0])
-        }
-    }
-
-    // Only keep the topics in the paths, because only topics are clickable as breadcrumbs
-    const topicsOnly = result.values().reduce(
-        (acc, path) => {
-            return [...acc, path.filter((tag) => tag.slug)]
-        },
-        [] as Pick<DbPlainTag, "id" | "name" | "slug">[][]
-    )
-
-    // Pick the longest path from result, assuming that the longest path is the best
-    const longestPath = topicsOnly.reduce((best, path) => {
-        return path.length > best.length ? path : best
-    }, [])
+    const longestPath = getBestTagHierarchy(
+        tags.map((tag) => tag.name),
+        parentTagArraysByChildName
+    ).filter((tag) => tag.slug)
 
     const baseUrl = IS_ARCHIVE ? PROD_URL : BAKED_BASE_URL
     const breadcrumbs = longestPath.map((tag) => ({

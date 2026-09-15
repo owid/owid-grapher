@@ -47,6 +47,7 @@ export const checkIsLightningUpdate = (
     > = {
         breadcrumbs: true, // automatically generated, not actually possible to change via the admin preview
         manualBreadcrumbs: true,
+        topicArea: true, // derived from tags, like breadcrumbs
         errors: true,
         linkedAuthors: false,
         linkedCharts: true,
