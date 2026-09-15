@@ -434,7 +434,7 @@ export class FacetMap
         return new HorizontalCategoricalColorLegendState(
             this.categoricalLegendData,
             {
-                fontSize: this.fontSize,
+                baseFontSize: this.fontSize,
                 width: this.legendMaxWidth,
                 align: HorizontalAlign.center,
             }
@@ -446,7 +446,7 @@ export class FacetMap
         | undefined {
         if (this.numericLegendData.length <= 1) return undefined
         return new HorizontalNumericColorLegendState(this.numericLegendData, {
-            fontSize: this.fontSize,
+            baseFontSize: this.fontSize,
             maxWidth: this.legendMaxWidth,
             align: HorizontalAlign.center,
         })

@@ -18,13 +18,13 @@ export class ComparisonLines {
 
     constructor(
         lines: ComparisonLineConfig[],
-        options: { fontSize: number; dualAxis: DualAxis }
+        options: { baseFontSize: number; dualAxis: DualAxis }
     ) {
         makeObservable(this)
 
         this.lines = lines
         this.dualAxis = options.dualAxis
-        this.baseFontSize = options.fontSize
+        this.baseFontSize = options.baseFontSize
     }
 
     @computed get fontSize(): number {

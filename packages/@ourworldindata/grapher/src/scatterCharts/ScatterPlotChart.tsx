@@ -327,7 +327,7 @@ export class ScatterPlotChart
         if (this.categoricalLegendData.length === 0 || !this.manager.showLegend)
             return undefined
         return new VerticalColorLegendState(this.categoricalLegendData, {
-            fontSize: this.fontSize,
+            baseFontSize: this.fontSize,
             maxWidth: this.maxLegendWidth,
             title: this.legendTitle,
         })

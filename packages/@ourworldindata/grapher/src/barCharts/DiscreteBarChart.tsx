@@ -647,7 +647,7 @@ export class DiscreteBarChart
         | undefined {
         if (!this.manager.showLegend) return undefined
         return new HorizontalNumericColorLegendState(this.numericLegendData, {
-            fontSize: this.fontSize,
+            baseFontSize: this.fontSize,
             maxWidth: this.bounds.width,
             align: HorizontalAlign.center,
             title: this.legendTitle,

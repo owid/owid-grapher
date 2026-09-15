@@ -33,7 +33,7 @@ export class VerticalColorLegendState {
     }
 
     @computed private get fontSize(): number {
-        return scaleFontSize(11.2, this.options.fontSize ?? BASE_FONT_SIZE)
+        return scaleFontSize(11.2, this.options.baseFontSize ?? BASE_FONT_SIZE)
     }
 
     @computed private get rectSize(): number {

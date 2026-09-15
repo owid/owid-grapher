@@ -265,7 +265,7 @@ export class StackedDiscreteBarChart
         return new HorizontalCategoricalColorLegendState(
             this.categoricalLegendData,
             {
-                fontSize: this.fontSize,
+                baseFontSize: this.fontSize,
                 width: this.legendWidth,
                 align: HorizontalAlign.left,
             }

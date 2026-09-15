@@ -31,7 +31,7 @@ export interface VerticalLabelsStateOptions {
     yAxis?: () => VerticalAxis // Passed as getter to avoid MobX dependency cycles
     yRange?: () => [number, number] // Passed as getter to avoid MobX dependency cycles
     maxWidth?: number
-    fontSize?: number
+    baseFontSize?: number
     fontWeight?: number
     verticalAlign?: VerticalAlign
     textAnchor?: "start" | "end"
@@ -48,7 +48,7 @@ export class VerticalLabelsState {
     private readonly initialOptions: VerticalLabelsStateOptions
 
     private readonly defaultOptions = {
-        fontSize: BASE_FONT_SIZE,
+        baseFontSize: BASE_FONT_SIZE,
         fontWeight: DEFAULT_FONT_WEIGHT,
         maxWidth: Infinity,
         verticalAlign: VerticalAlign.middle,
@@ -73,7 +73,7 @@ export class VerticalLabelsState {
     }
 
     @computed get fontSize(): number {
-        return scaleFontSize(11.75, this.options.fontSize)
+        return scaleFontSize(11.75, this.options.baseFontSize)
     }
 
     @computed private get yAxis(): VerticalAxis {

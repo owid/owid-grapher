@@ -317,7 +317,7 @@ export class StackedBarChart
 
     @computed private get verticalColorLegendState(): VerticalColorLegendState {
         return new VerticalColorLegendState(this.categoricalLegendData, {
-            fontSize: this.fontSize,
+            baseFontSize: this.fontSize,
             maxWidth: this.maxLegendWidth,
         })
     }
@@ -327,7 +327,7 @@ export class StackedBarChart
         return new HorizontalCategoricalColorLegendState(
             this.categoricalLegendData,
             {
-                fontSize: this.fontSize,
+                baseFontSize: this.fontSize,
                 width: this.bounds.width,
                 align: this.legendAlign,
             }

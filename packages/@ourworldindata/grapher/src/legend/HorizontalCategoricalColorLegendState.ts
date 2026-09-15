@@ -31,8 +31,8 @@ export class HorizontalCategoricalColorLegendState {
         this.options = options
     }
 
-    @computed private get fontSize(): number {
-        return this.options.fontSize ?? BASE_FONT_SIZE
+    @computed private get baseFontSize(): number {
+        return this.options.baseFontSize ?? BASE_FONT_SIZE
     }
 
     @computed private get align(): HorizontalAlign {
@@ -44,8 +44,8 @@ export class HorizontalCategoricalColorLegendState {
     }
 
     @computed private get markLines(): MarkLine[] {
-        const fontSize = scaleFontSize(12.8, this.fontSize)
-        const rectSize = this.fontSize * 0.75
+        const fontSize = scaleFontSize(12.8, this.baseFontSize)
+        const rectSize = this.baseFontSize * 0.75
 
         const lines: MarkLine[] = []
         let marks: CategoricalMark[] = []

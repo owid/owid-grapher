@@ -1107,7 +1107,7 @@ export class DualAxis {
     @computed get comparisonLines(): ComparisonLines {
         return new ComparisonLines(this.props.comparisonLines ?? [], {
             dualAxis: this,
-            fontSize: this.props.verticalAxis.fontSize,
+            baseFontSize: this.props.verticalAxis.fontSize,
         })
     }
 

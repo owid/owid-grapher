@@ -932,7 +932,7 @@ export class FacetChart
                 state: new HorizontalNumericColorLegendState(
                     this.numericLegendData,
                     {
-                        fontSize: this.fontSize,
+                        baseFontSize: this.fontSize,
                         maxWidth: this.legendMaxWidth,
                         title: this.legendTitle,
                         align: this.legendAlign,
@@ -947,7 +947,7 @@ export class FacetChart
             state: new HorizontalCategoricalColorLegendState(
                 this.categoricalLegendData,
                 {
-                    fontSize: this.fontSize,
+                    baseFontSize: this.fontSize,
                     width: this.legendMaxWidth,
                     align: this.legendAlign,
                 }

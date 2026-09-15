@@ -363,7 +363,7 @@ export class SlopeChart
             yAxis: () => this.yAxis,
             yRange: () => this.labelsYRange,
             maxWidth: this.maxLabelsWidth,
-            fontSize: this.fontSize,
+            baseFontSize: this.fontSize,
             verticalAlign: VerticalAlign.top,
             showRegionTooltip: !this.manager.isStatic,
         }
