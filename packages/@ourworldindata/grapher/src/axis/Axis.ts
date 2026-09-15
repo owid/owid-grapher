@@ -26,14 +26,11 @@ import {
 } from "./timeAxisTicks.js"
 import { MarkdownTextWrap, TextWrapGroup } from "@ourworldindata/components"
 import { CoreColumn } from "@ourworldindata/core-table"
-import {
-    DEFAULT_GRAPHER_BOUNDS,
-    GRAPHER_FONT_SCALE_11,
-    GRAPHER_FONT_SCALE_12,
-} from "../core/GrapherConstants.js"
+import { DEFAULT_GRAPHER_BOUNDS } from "../core/GrapherConstants.js"
 import { makeAxisLabel } from "./AxisUtils.js"
 import * as R from "remeda"
 import { ComparisonLines } from "../comparisonLine/ComparisonLines"
+import { scaleFontSize } from "../chart/ChartUtils"
 
 interface TickLabelPlacement {
     value: number
@@ -600,7 +597,7 @@ abstract class AbstractAxis {
     }
 
     @computed get tickFontSize(): number {
-        return Math.floor(GRAPHER_FONT_SCALE_12 * this.fontSize)
+        return scaleFontSize(11.75, this.fontSize)
     }
 
     @computed protected get baseTicks(): Tickmark[] {
@@ -622,7 +619,7 @@ abstract class AbstractAxis {
     }
 
     @computed get labelFontSize(): number {
-        return Math.floor(GRAPHER_FONT_SCALE_12 * this.fontSize)
+        return scaleFontSize(11.75, this.fontSize)
     }
 
     @computed get labelTextWrap():
@@ -1015,7 +1012,7 @@ export class VerticalAxis extends AbstractAxis {
     @computed get logNoticeTextWrap(): MarkdownTextWrap | undefined {
         if (!this.shouldShowLogNotice) return undefined
 
-        const fontSize = Math.floor(GRAPHER_FONT_SCALE_11 * this.fontSize)
+        const fontSize = scaleFontSize(10.75, this.fontSize)
 
         return new MarkdownTextWrap({
             text: "log axis",

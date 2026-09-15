@@ -7,8 +7,8 @@ import {
     VerticalComparisonLineLabelPlacement,
 } from "@ourworldindata/types"
 import { isValidVerticalComparisonLineConfig } from "./ComparisonLineHelpers"
-import { GRAPHER_FONT_SCALE_10_5 } from "../core/GrapherConstants.js"
 import type { DualAxis } from "../axis/Axis"
+import { scaleFontSize } from "../chart/ChartUtils"
 
 /** Manages comparison line configs and their layout */
 export class ComparisonLines {
@@ -28,7 +28,7 @@ export class ComparisonLines {
     }
 
     @computed get fontSize(): number {
-        return Math.floor(GRAPHER_FONT_SCALE_10_5 * this.baseFontSize)
+        return scaleFontSize(10.5, this.baseFontSize)
     }
 
     /** Space reserved above the chart area for vertical comparison line labels */
