@@ -126,6 +126,10 @@ export interface SiteLatestParams {
     experimentArm?: string
 }
 
+/**
+ * Records opening the content represented by a feed preview. Excludes body,
+ * author, and CTA links within content already displayed in the feed.
+ */
 export interface SiteLatestResultClickParams {
     /** Always 'click' for this event */
     eventAction: "click"
