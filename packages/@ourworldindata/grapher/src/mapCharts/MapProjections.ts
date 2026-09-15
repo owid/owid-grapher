@@ -1,9 +1,14 @@
-import { geoConicConformal, geoAzimuthalEqualArea, GeoProjection } from "d3-geo"
-import { geoRobinson, geoPatterson } from "./d3-geo-projection.js"
+import {
+    geoConicConformal,
+    geoAzimuthalEqualArea,
+    geoEqualEarth,
+    GeoProjection,
+} from "d3-geo"
+import { geoPatterson } from "./d3-geo-projection.js"
 import { MapRegionName } from "@ourworldindata/types"
 
 export const MAP_PROJECTIONS: Record<MapRegionName, GeoProjection> = {
-    World: geoRobinson(),
+    World: geoEqualEarth(),
 
     Africa: geoConicConformal()
         .rotate([-25, 0])
