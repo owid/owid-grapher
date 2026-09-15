@@ -83,10 +83,10 @@ function LineWithDots({
             />
             <line
                 id={makeFigmaId("line")}
-                x1={startPoint.x}
-                y1={startPoint.y}
-                x2={endPoint.x}
-                y2={endPoint.y}
+                x1={roundForSvg(startPoint.x)}
+                y1={roundForSvg(startPoint.y)}
+                x2={roundForSvg(endPoint.x)}
+                y2={roundForSvg(endPoint.y)}
                 stroke={color}
                 strokeWidth={roundForSvg(lineWidth)}
             />

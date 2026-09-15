@@ -7,15 +7,16 @@ import { Quadtree, quadtree } from "d3-quadtree"
 import { pairs } from "d3-array"
 import { quantize, interpolate } from "d3-interpolate"
 import {
-    intersection,
-    excludeUndefined,
-    getRelativeMouse,
-    exposeInstanceOnWindow,
-    PointVector,
     Bounds,
+    PointVector,
+    excludeUndefined,
+    exposeInstanceOnWindow,
+    getRelativeMouse,
+    guid,
+    intersection,
     isTouchDevice,
     makeFigmaId,
-    guid,
+    roundForSvg,
 } from "@ourworldindata/utils"
 import { observer } from "mobx-react"
 import { NoDataMessage } from "../noDataMessage/NoDataMessage"
@@ -655,10 +656,10 @@ export class ScatterPlotChart
             y > bounds.top ? (
                 <line
                     id={makeFigmaId("separator")}
-                    x1={this.legendX}
-                    y1={y - 0.5 * legendPadding}
-                    x2={bounds.right}
-                    y2={y - 0.5 * legendPadding}
+                    x1={roundForSvg(this.legendX)}
+                    y1={roundForSvg(y - 0.5 * legendPadding)}
+                    x2={roundForSvg(bounds.right)}
+                    y2={roundForSvg(y - 0.5 * legendPadding)}
                     stroke="#e7e7e7"
                 />
             ) : null

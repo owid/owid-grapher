@@ -69,7 +69,7 @@ export function Sparkline({
                         x1={roundForSvg(xScale(highlight.time))}
                         x2={roundForSvg(xScale(highlight.time))}
                         y1={0}
-                        y2={height}
+                        y2={roundForSvg(height)}
                         stroke={GRAY_30}
                     />
                 ))}

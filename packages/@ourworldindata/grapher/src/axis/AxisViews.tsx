@@ -62,9 +62,9 @@ export class VerticalAxisGridLines extends React.Component<VerticalAxisGridLines
                             className={className}
                             key={t.value}
                             x1={roundForSvg(bounds.left)}
-                            y1={axis.place(t.value)}
+                            y1={roundForSvg(axis.place(t.value))}
                             x2={roundForSvg(bounds.right)}
-                            y2={axis.place(t.value)}
+                            y2={roundForSvg(axis.place(t.value))}
                             stroke={color}
                             strokeWidth={strokeWidth}
                             strokeDasharray={t.solid ? undefined : dasharray}
@@ -109,9 +109,9 @@ export class HorizontalAxisGridLines extends React.Component<HorizontalAxisGridL
                         <line
                             id={makeFigmaId(axis.formatTick(t.value))}
                             key={t.value}
-                            x1={axis.place(t.value)}
+                            x1={roundForSvg(axis.place(t.value))}
                             y1={roundForSvg(bounds.bottom)}
-                            x2={axis.place(t.value)}
+                            x2={roundForSvg(axis.place(t.value))}
                             y2={roundForSvg(bounds.top)}
                             stroke={color}
                             strokeWidth={strokeWidth}
@@ -540,27 +540,23 @@ export class HorizontalAxisComponent extends React.Component<{
                             // by half the stroke width so they sit visually
                             // inside the chart area
                             if (insetEdgeMarks) {
-                                // Apply the rounding used by axis.place
-                                const rangeMin = axis.snapToSubpixel(
-                                    axis.rangeMin
-                                )
-                                const rangeMax = axis.snapToSubpixel(
-                                    axis.rangeMax
-                                )
-
                                 const halfStroke = tickMarkWidth / 2
-                                if (x <= rangeMin) x += halfStroke
-                                else if (x >= rangeMax) x -= halfStroke
+                                if (x <= axis.rangeMin) x += halfStroke
+                                else if (x >= axis.rangeMax) x -= halfStroke
                             }
 
                             return (
                                 <line
                                     key={label.value}
                                     id={makeFigmaId(label.formattedValue)}
-                                    x1={x}
-                                    y1={tickMarksYPosition - tickMarkWidth / 2}
-                                    x2={x}
-                                    y2={tickMarksYPosition + tickSize}
+                                    x1={roundForSvg(x)}
+                                    y1={roundForSvg(
+                                        tickMarksYPosition - tickMarkWidth / 2
+                                    )}
+                                    x2={roundForSvg(x)}
+                                    y2={roundForSvg(
+                                        tickMarksYPosition + tickSize
+                                    )}
                                     stroke={SOLID_TICK_COLOR}
                                     strokeWidth={tickMarkWidth}
                                 />
@@ -606,10 +602,10 @@ export class VerticalAxisTickMark extends React.Component<{
         return (
             <line
                 id={id}
-                x1={tickMarkLeftPosition}
-                y1={tickMarkYPosition}
-                x2={tickRight}
-                y2={tickMarkYPosition}
+                x1={roundForSvg(tickMarkLeftPosition)}
+                y1={roundForSvg(tickMarkYPosition)}
+                x2={roundForSvg(tickRight)}
+                y2={roundForSvg(tickMarkYPosition)}
                 stroke={color}
                 strokeWidth={width}
             />

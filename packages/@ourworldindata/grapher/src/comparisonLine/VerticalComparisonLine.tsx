@@ -116,10 +116,10 @@ export class VerticalComparisonLine extends React.Component<
         return (
             <g id={makeFigmaId("comparison-line", this.lineConfig.label)}>
                 <line
-                    x1={x}
-                    y1={y1}
-                    x2={x}
-                    y2={y2}
+                    x1={roundForSvg(x)}
+                    y1={roundForSvg(y1)}
+                    x2={roundForSvg(x)}
+                    y2={roundForSvg(y2)}
                     style={COMPARISON_LINE_STYLE}
                 />
                 {this.renderLabel()}

@@ -50,8 +50,8 @@ export function DumbbellChartRow({
             {/* Gray background line spanning the full chart width */}
             <line
                 id={makeFigmaId("background-line")}
-                x1={range[0]}
-                x2={range[1]}
+                x1={roundForSvg(range[0])}
+                x2={roundForSvg(range[1])}
                 stroke={TICK_COLOR}
                 strokeDasharray={GRID_LINE_DASH_PATTERN}
             />

@@ -140,10 +140,16 @@ export function HorizontalNumericColorLegend(
                         <line
                             key={index}
                             id={makeFigmaId(label.text)}
-                            x1={x + label.bounds.x + label.bounds.width / 2}
-                            y1={bottomY - binSize}
-                            x2={x + label.bounds.x + label.bounds.width / 2}
-                            y2={bottomY + label.bounds.y + label.bounds.height}
+                            x1={roundForSvg(
+                                x + label.bounds.x + label.bounds.width / 2
+                            )}
+                            y1={roundForSvg(bottomY - binSize)}
+                            x2={roundForSvg(
+                                x + label.bounds.x + label.bounds.width / 2
+                            )}
+                            y2={roundForSvg(
+                                bottomY + label.bounds.y + label.bounds.height
+                            )}
                             // if we use a light color for stroke (e.g. white), we want it to stay
                             // "invisible", except for raised labels, where we want *some* contrast.
                             stroke={

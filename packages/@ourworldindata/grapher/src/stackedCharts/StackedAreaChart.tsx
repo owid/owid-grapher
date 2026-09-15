@@ -2,12 +2,13 @@ import * as _ from "lodash-es"
 import * as React from "react"
 import * as R from "remeda"
 import {
-    getRelativeMouse,
-    excludeUndefined,
-    isMobile,
     Bounds,
-    guid,
+    excludeUndefined,
     exposeInstanceOnWindow,
+    getRelativeMouse,
+    guid,
+    isMobile,
+    roundForSvg,
 } from "@ourworldindata/utils"
 import { computed, action, observable, makeObservable } from "mobx"
 import { SeriesName, SeriesStrategy, Time } from "@ourworldindata/types"
@@ -429,10 +430,10 @@ export class StackedAreaChart
                     )
                 })}
                 <line
-                    x1={horizontalAxis.place(xPoint.position)}
-                    y1={verticalAxis.range[0]}
-                    x2={horizontalAxis.place(xPoint.position)}
-                    y2={verticalAxis.range[1]}
+                    x1={roundForSvg(horizontalAxis.place(xPoint.position))}
+                    y1={roundForSvg(verticalAxis.range[0])}
+                    x2={roundForSvg(horizontalAxis.place(xPoint.position))}
+                    y2={roundForSvg(verticalAxis.range[1])}
                     stroke="rgba(180,180,180,.4)"
                 />
             </g>

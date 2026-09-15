@@ -504,8 +504,9 @@ export function roundForSvg(value: number): number {
 export const pointsToPath = (points: Point[]): string => {
     let path = ""
     for (let i = 0; i < points.length; i++) {
-        if (i === 0) path += `M${points[i].x} ${points[i].y}`
-        else path += `L${points[i].x} ${points[i].y}`
+        const x = roundForSvg(points[i].x)
+        const y = roundForSvg(points[i].y)
+        path += i === 0 ? `M${x} ${y}` : `L${x} ${y}`
     }
     return path
 }

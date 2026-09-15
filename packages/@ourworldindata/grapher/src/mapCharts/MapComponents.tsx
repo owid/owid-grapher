@@ -295,10 +295,10 @@ export function ExternalValueAnnotation({
     return (
         <g id={makeFigmaId(id)}>
             <line
-                x1={markerStart[0]}
-                y1={markerStart[1]}
-                x2={markerEnd[0]}
-                y2={markerEnd[1]}
+                x1={roundForSvg(markerStart[0])}
+                y1={roundForSvg(markerStart[1])}
+                x2={roundForSvg(markerEnd[0])}
+                y2={roundForSvg(markerEnd[1])}
                 stroke={annotation.color}
                 strokeWidth={lineStrokeWidth}
                 style={{ pointerEvents: "none" }}

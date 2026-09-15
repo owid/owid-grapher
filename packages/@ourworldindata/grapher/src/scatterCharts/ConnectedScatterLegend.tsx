@@ -122,10 +122,10 @@ export class ConnectedScatterLegend {
                     fill={this.textColor}
                 />
                 <line
-                    x1={lineLeft}
-                    y1={lineY}
-                    x2={lineRight}
-                    y2={lineY}
+                    x1={roundForSvg(lineLeft)}
+                    y1={roundForSvg(lineY)}
+                    x2={roundForSvg(lineRight)}
+                    y2={roundForSvg(lineY)}
                     stroke={this.arrowColor}
                     strokeWidth={1}
                 />

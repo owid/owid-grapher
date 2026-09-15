@@ -444,13 +444,13 @@ export class StaticCaptionedChart extends AbstractCaptionedChart {
             <>
                 <line
                     id={makeFigmaId("separator-line")}
-                    x1={this.framePaddingHorizontal}
-                    y1={this.bounds.height}
+                    x1={roundForSvg(this.framePaddingHorizontal)}
+                    y1={roundForSvg(this.bounds.height)}
                     x2={
                         this.boundsForChartArea.width +
                         this.framePaddingHorizontal
                     }
-                    y2={this.bounds.height}
+                    y2={roundForSvg(this.bounds.height)}
                     stroke="#e7e7e7"
                 ></line>
                 <g
