@@ -26,6 +26,13 @@ function makeCategorySegment(
     }
 }
 
+function makeMissingSegment(
+    startTime: Time,
+    endTime: Time
+): ColoredSwimlaneSegment {
+    return { kind: "missing", startTime, endTime }
+}
+
 function makeSizedSeries(
     entityName: string,
     segments: ColoredSwimlaneSegment[]
@@ -51,6 +58,34 @@ function placeLanes(
 }
 
 describe("placement", () => {
+    it("extends each segment to where the next one starts, and the last one a step past its end", () => {
+        const [lane] = placeLanes([
+            makeSizedSeries("France", [
+                makeCategorySegment("X", 2000, 2001),
+                makeMissingSegment(2002, 2003),
+                makeCategorySegment("Y", 2004, 2004),
+            ]),
+        ])
+
+        expect(
+            lane.placedSegments.map(({ x, width }) => ({ x, width }))
+        ).toEqual([
+            { x: 0, width: 20 },
+            { x: 20, width: 20 },
+            { x: 40, width: 10 },
+        ])
+    })
+
+    it("caps a lone lane at the maximum lane height and centers it", () => {
+        const [lane] = placeLanes([
+            makeSizedSeries("France", [makeCategorySegment("X", 2000, 2001)]),
+        ])
+
+        expect(lane.y).toBeCloseTo(200)
+        expect(lane.placedSegments[0].height).toBeCloseTo(36)
+        expect(lane.placedSegments[0].y).toBeCloseTo(-18)
+    })
+
     it("splits the plot height evenly between many lanes", () => {
         const lanes = placeLanes(
             Array.from({ length: 20 }, (_, index) =>

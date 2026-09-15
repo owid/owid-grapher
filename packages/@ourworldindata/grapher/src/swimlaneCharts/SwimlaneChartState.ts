@@ -212,10 +212,13 @@ export class SwimlaneChartState implements ChartState, ColorScaleManager {
 
     toHorizontalAxis(config: AxisConfig): HorizontalAxis {
         const axis = config.toHorizontalAxis()
+        const lastTime = R.last(this.timesAsc)
+        // The last segment runs one step past the last time
         axis.updateDomainPreservingUserSettings([
             R.first(this.timesAsc),
-            R.last(this.timesAsc),
+            lastTime === undefined ? undefined : lastTime + 1,
         ])
+        axis.maxTickValue = lastTime
         axis.scaleType = ScaleType.linear
         axis.formatColumn = this.inputTable.timeColumn
         axis.hideFractionalTicks = true

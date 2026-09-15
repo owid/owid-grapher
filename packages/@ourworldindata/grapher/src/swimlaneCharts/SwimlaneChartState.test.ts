@@ -8,6 +8,8 @@ import {
     Time,
 } from "@ourworldindata/types"
 import { OwidTable } from "@ourworldindata/core-table"
+import { AxisConfig } from "../axis/AxisConfig"
+import { HorizontalAxis } from "../axis/Axis"
 import { SwimlaneChartState } from "./SwimlaneChartState"
 import {
     ColoredSwimlaneSegment,
@@ -155,6 +157,39 @@ describe("segments", () => {
         expect(
             findSegments(chartState, "France").map((segment) => segment.kind)
         ).toEqual(["category", "missing", "category"])
+    })
+})
+
+describe("x axis", () => {
+    function makeAxis(table: OwidTable): HorizontalAxis {
+        const axis = makeChartState(table).toHorizontalAxis(new AxisConfig())
+        axis.range = [0, 500]
+        return axis
+    }
+
+    it("ends one step past the last time, without a tick there", () => {
+        const axis = makeAxis(
+            makeCategoricalTable([
+                { entityName: "France", time: 2000, status: "X" },
+                { entityName: "France", time: 2010, status: "Y" },
+            ])
+        )
+
+        expect(axis.domain).toEqual([2000, 2011])
+        expect(axis.tickLabels.map((label) => label.value)).toContain(2010)
+        expect(Math.max(...axis.tickLabels.map((label) => label.value))).toBe(
+            2010
+        )
+    })
+
+    it("spans a single step when the window holds a single time", () => {
+        const axis = makeAxis(
+            makeCategoricalTable([
+                { entityName: "France", time: 2004, status: "X" },
+            ])
+        )
+
+        expect(axis.domain).toEqual([2004, 2005])
     })
 })
 

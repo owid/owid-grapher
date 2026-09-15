@@ -4,7 +4,7 @@ import { computeCenteredLabelYPositions } from "../rowSeriesLabels/RowSeriesLabe
 import {
     ENTITY_LABEL_CHART_GAP,
     LANE_SPACING_FACTOR,
-    MIN_SEGMENT_WIDTH,
+    MAX_LANE_HEIGHT,
     PlacedSwimlaneSegment,
     PlacedSwimlaneSeries,
     SizedSwimlaneSeries,
@@ -50,6 +50,19 @@ export function toSwimlaneSegments({
     return segments
 }
 
+export function computeLaneSlotHeight({
+    plotHeight,
+    laneCount,
+}: {
+    plotHeight: number
+    laneCount: number
+}): number {
+    return Math.min(
+        plotHeight / laneCount,
+        MAX_LANE_HEIGHT / (1 - LANE_SPACING_FACTOR)
+    )
+}
+
 export function toPlacedSwimlaneSeries({
     series: allSeries,
     bounds,
@@ -61,34 +74,29 @@ export function toPlacedSwimlaneSeries({
 }): PlacedSwimlaneSeries[] {
     if (allSeries.length === 0) return []
 
-    const slotHeight = bounds.height / allSeries.length
+    const slotHeight = computeLaneSlotHeight({
+        plotHeight: bounds.height,
+        laneCount: allSeries.length,
+    })
     const laneHeight = slotHeight * (1 - LANE_SPACING_FACTOR)
     const labelX = bounds.left - ENTITY_LABEL_CHART_GAP
+    const blockTop =
+        bounds.top + (bounds.height - slotHeight * allSeries.length) / 2
 
     return allSeries.map((series, index): PlacedSwimlaneSeries => {
-        const y = bounds.top + (index + 0.5) * slotHeight
+        const y = blockTop + (index + 0.5) * slotHeight
 
+        const extents = toContiguousSegmentExtents({
+            segments: series.segments,
+            placeTime,
+        })
         const placedSegments: PlacedSwimlaneSegment[] = series.segments.map(
-            (segment, segmentIndex): PlacedSwimlaneSegment => {
-                // A segment runs up to wherever the next one starts, so that
-                // two categories share an edge rather than showing a seam that
-                // would read as missing data. The last one stops at its own
-                // final observation.
-                const nextSegment = series.segments[segmentIndex + 1]
-                const x = placeTime(segment.startTime)
-                const endTime = nextSegment?.startTime ?? segment.endTime
-                const width = Math.max(
-                    placeTime(endTime) - x,
-                    MIN_SEGMENT_WIDTH
-                )
-                return {
-                    ...segment,
-                    x,
-                    width,
-                    y: -laneHeight / 2,
-                    height: laneHeight,
-                }
-            }
+            (segment, segmentIndex): PlacedSwimlaneSegment => ({
+                ...segment,
+                ...extents[segmentIndex],
+                y: -laneHeight / 2,
+                height: laneHeight,
+            })
         )
 
         const { labelY } = computeCenteredLabelYPositions({
@@ -102,5 +110,20 @@ export function toPlacedSwimlaneSeries({
             labelPosition: { x: labelX, yOffset: labelY - y },
             placedSegments,
         }
+    })
+}
+
+function toContiguousSegmentExtents({
+    segments,
+    placeTime,
+}: {
+    segments: SwimlaneSegment[]
+    placeTime: (time: Time) => number
+}): { x: number; width: number }[] {
+    return segments.map((segment, index) => {
+        const nextSegment = segments[index + 1]
+        const x = placeTime(segment.startTime)
+        const right = placeTime(nextSegment?.startTime ?? segment.endTime + 1)
+        return { x, width: right - x }
     })
 }
