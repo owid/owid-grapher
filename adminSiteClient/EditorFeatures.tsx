@@ -146,6 +146,10 @@ export class EditorFeatures {
         )
     }
 
+    @computed get canConfigureSwimlane() {
+        return this.grapherState.hasSwimlane
+    }
+
     @computed get canCustomizeVariableType() {
         return this.grapherState.hasMultipleYColumns
     }
