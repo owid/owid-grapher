@@ -266,6 +266,22 @@ describe("admin-wide tools", () => {
         expect(text).toContain("Showing 1 of 40")
     })
 
+    it("find_indicators points a browsing user at the filtered page", async () => {
+        const text = await call("find_indicators", { query: "life", limit: 5 })
+        expect(text).toContain(
+            'open_admin_page(page: "/variables", search: "life")'
+        )
+    })
+
+    it("points at the page even when nothing was truncated", async () => {
+        // A short list read out in chat is no more usable than a long one
+        const text = await call("find_charts", { query: "health" })
+        expect(text).not.toContain("Showing")
+        expect(text).toContain(
+            'open_admin_page(page: "/charts", search: "health")'
+        )
+    })
+
     it("get_indicator reports a missing indicator without throwing", async () => {
         expect(await call("get_indicator", { variableId: 999 })).toContain(
             "No indicator with id 999"

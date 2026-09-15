@@ -269,30 +269,44 @@ export function filterMultiDimsBySearchString(
     )
 }
 
+/**
+ * The line that sends a browsing user to the page instead of answering them in
+ * chat. Present on every result, not only a truncated one: twenty names pasted
+ * into a conversation are no more usable than eight hundred, and the page has
+ * the columns, the sorting and the links.
+ */
+export function showOnPageHint(
+    total: number,
+    label: string,
+    listPage: { path: string; search: string }
+): string {
+    return (
+        `\n[The user cannot work with ${total} ${label} as text. If they asked ` +
+        `to see or find ${label} rather than to build something, put them on ` +
+        `the screen with open_admin_page(page: "${listPage.path}", ` +
+        `search: "${listPage.search}") instead of listing them back.]`
+    )
+}
+
 function listResult<T>(
     label: string,
     matches: T[],
     limit: number,
     describe: (item: T) => string,
     /**
-     * The admin list this search maps onto. Named in the footer of a truncated
-     * result, because the rest of the matches are better shown to the user on
-     * the page than paged through a tool.
+     * The admin list this search maps onto, if it has one.
      */
     listPage?: { path: string; search: string }
 ): string {
     if (matches.length === 0) return `No ${label} match.`
     const shown = matches.slice(0, limit)
     const lines = shown.map(describe)
-    const showAll = listPage
-        ? ` Refine the query, or show the user all ${matches.length} with ` +
-          `open_admin_page(page: "${listPage.path}", search: "${listPage.search}").`
-        : " Refine the query to see the rest."
-    const footer =
+    const truncated =
         matches.length > shown.length
-            ? `\n[Showing ${shown.length} of ${matches.length} matching ${label}.${showAll}]`
+            ? `\n[Showing ${shown.length} of ${matches.length} matching ${label}; refine the query to see the rest.]`
             : ""
-    return `${matches.length} matching ${label}:\n${lines.join("\n")}${footer}`
+    const hint = listPage ? showOnPageHint(matches.length, label, listPage) : ""
+    return `${matches.length} matching ${label}:\n${lines.join("\n")}${truncated}${hint}`
 }
 
 const SEARCH_SYNTAX =
@@ -554,7 +568,11 @@ export function buildAdminTools({ admin }: AdminToolContext): WebMcpTool[] {
                 "human title. Results are ordered by how much the indicator " +
                 "is actually used, so the first few are usually the ones a " +
                 "person means; add dataset: or a distinctive word to narrow " +
-                "a broad query.",
+                "a broad query. Use this to find an id to build with. When " +
+                "the user is asking to SEE what indicators exist, do not " +
+                "list the results back to them: call open_admin_page(page: " +
+                '"/variables", search: <the same query>) so they land on the ' +
+                "indicators page filtered to those rows.",
             inputSchema: {
                 type: "object",
                 properties: {
@@ -589,12 +607,16 @@ export function buildAdminTools({ admin }: AdminToolContext): WebMcpTool[] {
                         `No indicators match "${query}". Try fewer or different words.`
                     )
                 const lines = json.variables.map(describeIndicator)
-                const footer =
+                const truncated =
                     json.numTotalRows > json.variables.length
-                        ? `\n[Showing ${json.variables.length} of ${json.numTotalRows} matching indicators. ` +
-                          "Refine the query, or show the user all " +
-                          `${json.numTotalRows} with open_admin_page(page: "/variables", search: "${query}").]`
+                        ? `\n[Showing ${json.variables.length} of ${json.numTotalRows} matching indicators; refine the query to see the rest.]`
                         : ""
+                const footer =
+                    truncated +
+                    showOnPageHint(json.numTotalRows, "indicators", {
+                        path: "/variables",
+                        search: query,
+                    })
                 return toolResult(
                     `${json.numTotalRows} matching indicators:\n${lines.join("\n")}${footer}`
                 )
