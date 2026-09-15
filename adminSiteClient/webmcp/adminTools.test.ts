@@ -14,7 +14,7 @@ import {
 } from "./adminTools.js"
 import { buildChartEditorTools } from "./chartEditorTools.js"
 import { buildChartListTools } from "./chartListTools.js"
-import { setAdminHistory } from "./navigation.js"
+import { registerNavigationGuard, setAdminHistory } from "./navigation.js"
 import { CHART_EDITOR_TOOL_SET, CHART_LIST_TOOL_SET } from "./toolSets.js"
 import { registerToolSet, type WebMcpTool } from "./webmcpTypes.js"
 
@@ -266,11 +266,41 @@ describe("admin-wide tools", () => {
         expect(text).toContain("Showing 1 of 40")
     })
 
-    it("find_indicators points a browsing user at the filtered page", async () => {
+    it("find_indicators puts the user on the filtered indicators page", async () => {
         const text = await call("find_indicators", { query: "life", limit: 5 })
-        expect(text).toContain(
-            'open_admin_page(page: "/variables", search: "life")'
+        expect(push).toHaveBeenCalledWith({
+            pathname: "/variables",
+            search: "?search=life",
+        })
+        expect(text).toContain("The user is now looking at these indicators")
+        expect(text).toContain("rather than listing them back")
+    })
+
+    it("find_indicators leaves the page alone in the chart editor", async () => {
+        // Navigating would unregister the editor tools the agent is using to
+        // add the indicator it is looking up
+        await call("open_chart_editor", { chartId: 12 })
+        push.mockClear()
+
+        const text = await call("find_indicators", { query: "life", limit: 5 })
+        expect(push).not.toHaveBeenCalled()
+        expect(text).toContain("40 matching indicators")
+        expect(text).toContain("The user is in the chart editor")
+        expect(text).toContain("it closes the editor")
+    })
+
+    it("find_indicators still answers when navigation is blocked", async () => {
+        const controller = new AbortController()
+        registerNavigationGuard(
+            () => "There are unsaved changes.",
+            controller.signal
         )
+
+        const text = await call("find_indicators", { query: "life", limit: 5 })
+        expect(push).not.toHaveBeenCalled()
+        expect(text).toContain("40 matching indicators")
+        expect(text).toContain("There are unsaved changes.")
+        controller.abort()
     })
 
     it("points at the page even when nothing was truncated", async () => {

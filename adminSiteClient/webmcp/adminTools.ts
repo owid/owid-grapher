@@ -288,6 +288,51 @@ export function showOnPageHint(
     )
 }
 
+/**
+ * Puts the user's page on the list a search just ran, so they see the rows the
+ * agent is talking about. Returns the sentence to append to the result.
+ *
+ * Two cases keep the page where it is. Unsaved changes block navigation
+ * outright, and the chart editor is a page the agent may still need: an editor
+ * tool set is registered by the page it belongs to, so navigating away
+ * unregisters the very tools a "find the id, then add it" task is in the
+ * middle of using.
+ */
+function followSearchOnPage(
+    path: string,
+    search: string,
+    label: string
+): string {
+    if (activeToolSetNames().includes(CHART_EDITOR_TOOL_SET))
+        return (
+            ` The user is in the chart editor, so their page was left alone; ` +
+            `open_admin_page(page: "${path}", search: "${search}") would ` +
+            `show them the full list, but it closes the editor.`
+        )
+    const blocked = navigationBlockedReason()
+    if (blocked) return ` Their page was left as it is: ${blocked}`
+
+    const alreadyThere =
+        currentAdminListPath() === path &&
+        new URLSearchParams(window.location.search).get("search") === search
+    if (!alreadyThere) {
+        const result = navigateTo(path, {
+            search: `?${new URLSearchParams({ search })}`,
+        })
+        if (!result.ok) return ` Their page was left as it is: ${result.reason}`
+    }
+    return (
+        ` The user is now looking at these ${label} on ` +
+        `/admin${path}?search=${encodeURIComponent(search)}, so describe them ` +
+        `rather than listing them back.`
+    )
+}
+
+/** The admin path the browser is on, as the router sees it. */
+function currentAdminListPath(): string {
+    return window.location.pathname.replace(/^\/admin(?=\/|$)/, "") || "/"
+}
+
 function listResult<T>(
     label: string,
     matches: T[],
@@ -568,11 +613,12 @@ export function buildAdminTools({ admin }: AdminToolContext): WebMcpTool[] {
                 "human title. Results are ordered by how much the indicator " +
                 "is actually used, so the first few are usually the ones a " +
                 "person means; add dataset: or a distinctive word to narrow " +
-                "a broad query. Use this to find an id to build with. When " +
-                "the user is asking to SEE what indicators exist, do not " +
-                "list the results back to them: call open_admin_page(page: " +
-                '"/variables", search: <the same query>) so they land on the ' +
-                "indicators page filtered to those rows.",
+                "a broad query. This also moves the user's page to the " +
+                "indicators list filtered by the same query, so they can see " +
+                "the results themselves — say what you found rather than " +
+                "listing every row back at them. It leaves their page alone " +
+                "while the chart editor is open, since navigating would " +
+                "close it.",
             inputSchema: {
                 type: "object",
                 properties: {
@@ -613,10 +659,13 @@ export function buildAdminTools({ admin }: AdminToolContext): WebMcpTool[] {
                         : ""
                 const footer =
                     truncated +
-                    showOnPageHint(json.numTotalRows, "indicators", {
-                        path: "/variables",
-                        search: query,
-                    })
+                    "\n[" +
+                    followSearchOnPage(
+                        "/variables",
+                        query,
+                        "indicators"
+                    ).trim() +
+                    "]"
                 return toolResult(
                     `${json.numTotalRows} matching indicators:\n${lines.join("\n")}${footer}`
                 )
