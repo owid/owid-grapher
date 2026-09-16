@@ -1,3 +1,5 @@
+import { NewsletterSpamProtection } from "./NewsletterSpamProtection.js"
+import { useNewsletterSpamProtection } from "./useNewsletterSpamProtection.js"
 import { useState } from "react"
 import * as React from "react"
 import cx from "clsx"
@@ -82,16 +84,18 @@ export const NewsletterSignupForm = ({
 }) => {
     const [subscribeToOwidBrief, setSubscribeToOwidBrief] = useState(true)
     const [followTopics, setFollowTopics] = useState(false)
+    const spamProtection = useNewsletterSpamProtection()
     const [email, setEmail] = useState("")
     const [isSubscribing, setIsSubscribing] = useState(false)
     const [isSubscribed, setIsSubscribed] = useState(false)
     const [error, setError] = useState<string | null>(null)
+    const [hasEditedForm, setHasEditedForm] = useState(false)
 
     const isSubmittable = subscribeToOwidBrief || followTopics
 
     const handleSubmit = async (event: React.SubmitEvent<HTMLFormElement>) => {
         event.preventDefault()
-        if (!isSubmittable) return
+        if (!isSubmittable || isSubscribing) return
         const trimmedEmail = email.trim()
 
         if (followTopics) {
@@ -104,10 +108,15 @@ export const NewsletterSignupForm = ({
             return
         }
 
+        if (!spamProtection.captchaToken) return
+        const website =
+            new FormData(event.currentTarget).get("website")?.toString() ?? ""
         setError(null)
         setIsSubscribing(true)
         try {
             const request: EmailNotificationsSubscribeRequest = {
+                captchaToken: spamProtection.captchaToken,
+                website,
                 email: trimmedEmail,
                 subscribeToOwidBrief,
             }
@@ -119,6 +128,7 @@ export const NewsletterSignupForm = ({
             setIsSubscribed(true)
         } catch (caught) {
             setError(getErrorMessage(caught))
+            spamProtection.resetCaptcha()
         } finally {
             setIsSubscribing(false)
         }
@@ -148,6 +158,7 @@ export const NewsletterSignupForm = ({
             className={cx("newsletter-signup-form", className)}
             action="/subscribe"
             onSubmit={handleSubmit}
+            onChange={() => setHasEditedForm(true)}
         >
             <NewsletterOption
                 id={`newsletter-signup-brief-${context}`}
@@ -156,7 +167,10 @@ export const NewsletterSignupForm = ({
                 description={OWID_BRIEF_DESCRIPTION}
                 checked={subscribeToOwidBrief}
                 disabled={isSubscribing}
-                onChange={() => setSubscribeToOwidBrief(!subscribeToOwidBrief)}
+                onChange={() => {
+                    spamProtection.clearCaptcha()
+                    setSubscribeToOwidBrief(!subscribeToOwidBrief)
+                }}
             />
             <NewsletterOption
                 id={`newsletter-signup-topics-${context}`}
@@ -169,7 +183,10 @@ export const NewsletterSignupForm = ({
                 description={FOLLOW_TOPICS_DESCRIPTION}
                 checked={followTopics}
                 disabled={isSubscribing}
-                onChange={() => setFollowTopics(!followTopics)}
+                onChange={() => {
+                    spamProtection.clearCaptcha()
+                    setFollowTopics(!followTopics)
+                }}
             />
             {!isSubmittable && (
                 <div className="newsletter-signup-form__alert">
@@ -189,12 +206,19 @@ export const NewsletterSignupForm = ({
                 disabled={isSubscribing}
                 onChange={(event) => setEmail(event.target.value)}
             />
+            {hasEditedForm && subscribeToOwidBrief && !followTopics && (
+                <NewsletterSpamProtection {...spamProtection.fieldsProps} />
+            )}
             <Button
                 className="newsletter-signup-form__submit"
                 type="submit"
                 theme="solid-vermillion"
                 icon={null}
-                disabled={!isSubmittable || isSubscribing}
+                disabled={
+                    !isSubmittable ||
+                    isSubscribing ||
+                    (!followTopics && !spamProtection.captchaToken)
+                }
                 text={
                     followTopics
                         ? "See subscription options"

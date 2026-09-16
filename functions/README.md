@@ -195,11 +195,26 @@ those attempts remain an error rather than silently opting the reader in.
 
 ### User flows and trust boundaries
 
-The public subscribe form is single opt-in. Because it is tokenless, an existing
+The public subscribe form is single opt-in. Because it requires no inbox-ownership token, an existing
 reader's selections may be broadened but not narrowed; narrowing preferences
 requires a short-lived magic link proving current control of the inbox. The
 form uses the same success response for new and existing addresses, and a
 welcome email lets the owner notice and undo an unwanted submission.
+
+Every subscribe API request requires a `captchaToken`, verified server-side with
+Turnstile (action `subscribe`) before any database or email side effects. Both
+signup forms use the existing `TURNSTILE_SITE_KEY`; the Functions environment
+must have its matching `TURNSTILE_SECRET_KEY`. Local development must use a
+matching Cloudflare test secret for the development test site key. Tokens are
+single-use, so failed submissions refresh the challenge before retrying. An
+optional `website` honeypot silently discards filled submissions with the normal
+success response. It is only a supplementary filter, not proof of humanity.
+
+Email-address requests to `/api/email-notifications/request-link` also require
+a `captchaToken` (action `request-link`) before any user lookup or email is sent,
+and use the same optional `website` honeypot. Requests using an existing email
+footer token or expired magic-link token do not require Turnstile; those tokens
+can only request mail for their own address.
 
 Permanent tokens in email footers have intentionally limited authority: they
 can unsubscribe or request a short-lived preferences link, but cannot expose or
