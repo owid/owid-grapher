@@ -32,6 +32,8 @@ import {
     useResolveUserLocation,
 } from "../../../../hooks/useResolveUserLocation.js"
 import { MOBILE_BREAKPOINT } from "../../../../components/Sankey/SplitFlowSankey.js"
+import { ChartSkeleton } from "../../../../components/ChartSkeleton/ChartSkeleton.js"
+import { ChartError } from "../../../../components/ChartError/ChartError.js"
 
 const DEFAULT_PRODUCT = "Maize"
 const DEFAULT_COUNTRY = ALL_COUNTRIES
@@ -140,15 +142,16 @@ function FetchingSankeyVariant({ config }: { config: SankeyVariantConfig }) {
         setCountry,
     })
 
-    if (metadataStatus === "pending") return <FoodTradeSkeleton />
+    if (metadataStatus === "pending")
+        return <ChartSkeleton className="food-trade-skeleton" />
     if (metadataStatus === "error" || !metadata)
-        return <FoodTradeChartError message="Failed to load trade metadata" />
+        return <ChartError message="Failed to load trade metadata" />
     if (productId === undefined)
-        return <FoodTradeChartError message={`Unknown product: ${product}`} />
+        return <ChartError message={`Unknown product: ${product}`} />
     if (productStatus === "pending" || !isCountryResolved)
-        return <FoodTradeSkeleton />
+        return <ChartSkeleton className="food-trade-skeleton" />
     if (productStatus === "error" || !productData)
-        return <FoodTradeChartError message="Failed to load trade data" />
+        return <ChartError message="Failed to load trade data" />
 
     return (
         <CaptionedSankeyVariant
@@ -345,12 +348,4 @@ function FoodTradeChartFooter({
     const note = [topPartners, smallFlowsNote].filter(Boolean).join(" ")
 
     return <ChartFooter source={source} note={note} />
-}
-
-function FoodTradeSkeleton() {
-    return <div className="food-trade-skeleton" />
-}
-
-function FoodTradeChartError({ message }: { message: string }) {
-    return <div className="food-trade-chart__error">{message}</div>
 }

@@ -1,6 +1,16 @@
 .food-trade-captioned-chart__chart-area {
     position: relative;
+}
+
+// The skeleton renders in place of the whole variant, not inside the chart area.
+.food-trade-captioned-chart__chart-area,
+.food-trade-skeleton {
     height: 450px;
+}
+
+.food-trade-chart--narrow .food-trade-captioned-chart__chart-area,
+.food-trade-chart--narrow .food-trade-skeleton {
+    height: 380px;
 }
 
 .food-trade-captioned-chart__empty {
