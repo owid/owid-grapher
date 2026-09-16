@@ -46,6 +46,8 @@ interface Variable {
     datasetVersion?: string
     namespaceName: string
     usageCount: number
+    /** 0-1; absent for indicators nobody reads. */
+    popularity: number
 }
 
 interface NamespaceOption {
@@ -117,11 +119,14 @@ export class VariableSelector<
     }
 
     @computed get availableVariables(): Variable[] {
-        const { variableUsageCounts } = this.database
+        const { variableUsageCounts, variablePopularity } = this.database
         const variables: Variable[] = []
         this.datasets.forEach((dataset) => {
+            // How much our readers use an indicator says more about which one
+            // you meant than how many charts happen to embed it, so it leads
             const sorted = _.sortBy(dataset.variables, [
-                (v) => (variableUsageCounts.get(v.id) ?? 0) * -1,
+                (v) => -(variablePopularity.get(v.id) ?? 0),
+                (v) => -(variableUsageCounts.get(v.id) ?? 0),
                 (v) => v.name,
             ])
             sorted.forEach((variable) => {
@@ -133,7 +138,7 @@ export class VariableSelector<
                     datasetVersion: dataset.version,
                     namespaceName: dataset.namespace,
                     usageCount: variableUsageCounts.get(variable.id) ?? 0,
-                    //name: variable.name.includes(dataset.name) ? variable.name : dataset.name + " - " + variable.name
+                    popularity: variablePopularity.get(variable.id) ?? 0,
                 })
             })
         })
@@ -169,13 +174,13 @@ export class VariableSelector<
 
         const rows: Array<number | Variable[]> = []
         const unsorted = Object.entries(resultsByDataset)
-        const sorted = _.sortBy(unsorted, ([__, variables]) => {
-            const sizes = _.map(
-                variables,
-                (variable: Variable) => variable.usageCount ?? 0
-            )
-            return Math.max(...sizes) * -1
-        })
+        // A dataset is as relevant as its most-read indicator
+        const sorted = _.sortBy(unsorted, [
+            ([__, variables]) =>
+                -Math.max(...variables.map((v) => v.popularity ?? 0)),
+            ([__, variables]) =>
+                -Math.max(...variables.map((v) => v.usageCount ?? 0)),
+        ])
         sorted.forEach(([datasetId, variables]) => {
             rows.push(parseInt(datasetId))
 
@@ -395,7 +400,7 @@ export class VariableSelector<
                                                                             }}
                                                                         >
                                                                             {v.usageCount
-                                                                                ? ` (used ${v.usageCount} times)`
+                                                                                ? ` (${v.usageCount} ${v.usageCount === 1 ? "chart" : "charts"})`
                                                                                 : " (unused)"}
                                                                         </span>
                                                                     </div>
@@ -525,7 +530,7 @@ export class VariableSelector<
 
     @action.bound private initChosenVariablesAndNamespaces() {
         const { datasetsById } = this
-        const { variableUsageCounts } = this.database
+        const { variableUsageCounts, variablePopularity } = this.database
         const { dimensions } = this.props.slot
 
         this.chosenVariables = dimensions.map((d) => {
@@ -537,6 +542,7 @@ export class VariableSelector<
                 name: d.column.name,
                 id: d.variableId,
                 usageCount: variableUsageCounts.get(d.variableId) ?? 0,
+                popularity: variablePopularity.get(d.variableId) ?? 0,
                 datasetId: datasetId ?? 0,
                 datasetName: datasetName || "",
                 catalogPath: undefined,

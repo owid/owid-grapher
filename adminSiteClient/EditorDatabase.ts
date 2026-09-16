@@ -30,12 +30,15 @@ export interface NamespaceData {
 export class EditorDatabase {
     namespaces: Namespace[]
     variableUsageCounts: Map<number, number> = new Map()
+    /** 0-1, from the analytics service; absent for indicators nobody reads. */
+    variablePopularity: Map<number, number> = new Map()
     dataByNamespace: Map<string, NamespaceData> = new Map()
 
     constructor(json: any) {
         makeObservable(this, {
             namespaces: observable.ref,
             variableUsageCounts: observable.ref,
+            variablePopularity: observable.ref,
             dataByNamespace: observable,
         })
         this.namespaces = json.namespaces

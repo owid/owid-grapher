@@ -161,16 +161,30 @@ export class ChartEditorView<
             })
         }
 
-        const usageData = await admin.getJSON<
-            {
-                variableId: number
-                usageCount: number
-            }[]
-        >(`/api/variables.usages.json`)
+        const [usageData, popularityData] = await Promise.all([
+            admin.getJSON<
+                {
+                    variableId: number
+                    usageCount: number
+                }[]
+            >(`/api/variables.usages.json`),
+            admin.getJSON<
+                {
+                    variableId: number
+                    popularity: number
+                }[]
+            >(`/api/variables.popularity.json`),
+        ])
         this.database.variableUsageCounts = new Map(
             usageData.map(({ variableId, usageCount }) => [
                 variableId,
                 +usageCount,
+            ])
+        )
+        this.database.variablePopularity = new Map(
+            popularityData.map(({ variableId, popularity }) => [
+                variableId,
+                +popularity,
             ])
         )
     }

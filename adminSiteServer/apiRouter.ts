@@ -118,6 +118,7 @@ import {
     getVariablesJson,
     getLatestIndicatorIdsByCatalogPathJson,
     getVariablesUsagesJson,
+    getVariablesPopularityJson,
     getIndicatorChartConfigJson,
     getVariableJson,
     putIndicatorChartConfig,
@@ -627,6 +628,11 @@ getRouteWithROTransaction(
     apiRouter,
     "/variables.usages.json",
     getVariablesUsagesJson
+)
+getRouteWithROTransaction(
+    apiRouter,
+    "/variables.popularity.json",
+    getVariablesPopularityJson
 )
 getRouteWithROTransaction(
     apiRouter,

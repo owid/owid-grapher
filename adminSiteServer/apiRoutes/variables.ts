@@ -187,6 +187,26 @@ export async function getVariablesUsagesJson(
     return rows
 }
 
+/**
+ * How much our readers use each indicator, 0-1, for the chart editor's
+ * indicator picker. Keyed by catalog path in `analytics_popularity`, so it is
+ * mapped back to ids here; only the ~8k indicators with any traffic appear.
+ */
+export async function getVariablesPopularityJson(
+    _req: Request,
+    _res: HandlerResponse,
+    trx: db.KnexReadonlyTransaction
+) {
+    return await db.knexRaw<{ variableId: number; popularity: number }>(
+        trx,
+        `-- sql
+        SELECT v.id AS variableId, ap.popularity
+        FROM analytics_popularity ap
+        JOIN variables v ON v.catalogPath = ap.slug
+        WHERE ap.type = 'indicator'`
+    )
+}
+
 export async function getLatestIndicatorIdsByCatalogPathJson(
     req: Request,
     _res: HandlerResponse,
