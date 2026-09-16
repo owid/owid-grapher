@@ -114,10 +114,12 @@ function FetchingPyramidVariant({
         setCountry,
     })
 
-    if (status === "pending" || !isCountryResolved)
+    if (status === "pending")
         return <ChartSkeleton className="migrant-pyramid-chart-box" />
     if (status === "error" || !data)
         return <ChartError className="migrant-pyramid-chart-box" />
+    if (!isCountryResolved)
+        return <ChartSkeleton className="migrant-pyramid-chart-box" />
 
     // Fall back gracefully when the config or URL asks for something the
     // data doesn't have
