@@ -153,7 +153,12 @@ export class ConfigEditor extends AbstractChartEditor<ConfigEditorManager> {
         }
         runInAction(() => {
             const savedPatch = saved
-                ? this.store.toEditorConfig(saved)
+                ? this.fromHostConfig(saved, {
+                      // What comes back is a patch, so only infer columns
+                      // from it when there is no base underneath to name
+                      // them — as on the initial load.
+                      inferDimensions: this.activeParentConfig === undefined,
+                  })
                 : patchConfig
             // What the host stored may differ from what we sent it — the
             // admin fills in a title it derived from the data, for one. Show
