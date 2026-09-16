@@ -1114,7 +1114,11 @@ export const searchVariables = async (
         Object.assign(row, usages.get(row.id) ?? EMPTY_VARIABLE_USAGE)
     })
 
-    return { variables: rows, numTotalRows: numTotalRows }
+    return {
+        variables: rows,
+        numTotalRows: numTotalRows,
+        unindexedTerms: unindexedSearchTerms(query),
+    }
 }
 
 /**
@@ -1148,6 +1152,8 @@ export interface VariablesGroupedSearchResult {
     datasets: DatasetSearchGroup[]
     numTotalDatasets: number
     numTotalRows: number
+    /** Terms that had to fall back to a substring scan, and so cost a second. */
+    unindexedTerms: string[]
 }
 
 /**
@@ -1212,8 +1218,14 @@ export const searchVariablesGroupedByDataset = async (
         LIMIT ${escape(limit)} OFFSET ${escape(offset)}
     `
     const datasetRows = await queryRegexSafe(sqlDatasets, knex)
+    const unindexedTerms = unindexedSearchTerms(query)
     if (datasetRows.length === 0)
-        return { datasets: [], numTotalDatasets: 0, numTotalRows: 0 }
+        return {
+            datasets: [],
+            numTotalDatasets: 0,
+            numTotalRows: 0,
+            unindexedTerms,
+        }
 
     const datasetIds = datasetRows.map((row: any) => row.id)
 
@@ -1275,6 +1287,7 @@ export const searchVariablesGroupedByDataset = async (
         })),
         numTotalDatasets: Number(datasetRows[0].numTotalDatasets),
         numTotalRows: Number(datasetRows[0].numTotalRows),
+        unindexedTerms,
     }
 }
 
@@ -1284,6 +1297,7 @@ const catalogPathSegment = (n: number): string =>
 
 const buildWhereClauses = (query: string): string[] => {
     const whereClauses: string[] = []
+    const fulltextTerms: string[] = []
 
     if (!query) {
         return whereClauses
@@ -1375,8 +1389,11 @@ const buildWhereClauses = (query: string): string[] => {
             whereClauses.push(`${not} (NOT d.isPrivate)`)
         } else if (part === "is:private") {
             whereClauses.push(`${not} d.isPrivate`)
-        } else {
-            if (part) {
+        } else if (part) {
+            // Plain text, the common case: matched against the name and the
+            // catalog path through the full-text index when it can be, and as
+            // a substring regex when it can't — see `classifyFreeTextTerm`.
+            if (not === "NOT " || !canUseFulltext(part))
                 whereClauses.push(
                     `${not} (REGEXP_LIKE(v.name, ${escape(
                         part
@@ -1384,10 +1401,104 @@ const buildWhereClauses = (query: string): string[] => {
                         part
                     )}, 'i'))`
                 )
-            }
+            else fulltextTerms.push(part)
         }
     }
+
+    if (fulltextTerms.length > 0)
+        whereClauses.push(
+            `MATCH(v.name, v.catalogPath) AGAINST(${escape(
+                // every term required, each matching from its start so that a
+                // half-typed word still narrows
+                fulltextTerms.map((term) => `+${term}*`).join(" ")
+            )} IN BOOLEAN MODE)`
+        )
+
     return whereClauses
+}
+
+/** MySQL's default minimum indexed token length. */
+export const FULLTEXT_MIN_TERM_LENGTH = 3
+
+/**
+ * MySQL's built-in stopword list, which the index leaves out. `who` is in it,
+ * and it is one of our namespaces, so these have to keep working — they fall
+ * back to a substring scan below.
+ *
+ * Hardcoded rather than read from the server, because the point is that every
+ * database behaves the same: the list a given index was built with is not
+ * recorded in its DDL, so a restored dump can differ from where the migration
+ * ran.
+ */
+const FULLTEXT_STOPWORDS = new Set([
+    "a",
+    "about",
+    "an",
+    "are",
+    "as",
+    "at",
+    "be",
+    "by",
+    "com",
+    "de",
+    "en",
+    "for",
+    "from",
+    "how",
+    "i",
+    "in",
+    "is",
+    "it",
+    "la",
+    "of",
+    "on",
+    "or",
+    "that",
+    "the",
+    "this",
+    "to",
+    "und",
+    "was",
+    "what",
+    "when",
+    "where",
+    "who",
+    "will",
+    "with",
+    "www",
+])
+
+/**
+ * Whether a plain-text term can go through the full-text index.
+ *
+ * It can't when it is shorter than the index's minimum token length, when it
+ * is one of MySQL's stopwords, or when it carries regular-expression syntax —
+ * the search box advertises regexes and they have to keep working. Those terms
+ * stay a substring scan, which is what every term used to be.
+ *
+ * Deciding this per term rather than per query matters: a term means the same
+ * thing however much of the rest of the query you have typed, so adding a word
+ * never re-interprets the words already there.
+ */
+export function canUseFulltext(term: string): boolean {
+    if (term.length < FULLTEXT_MIN_TERM_LENGTH) return false
+    if (FULLTEXT_STOPWORDS.has(term.toLowerCase())) return false
+    return !/[\\^$.|?*+()[\]{}]/.test(term)
+}
+
+/** The terms in a query that have to fall back to a substring scan. */
+export function unindexedSearchTerms(query: string | undefined): string[] {
+    if (!query) return []
+    return query
+        .split(" ")
+        .map((part) => part.trim())
+        .filter(
+            (part) =>
+                part &&
+                !part.startsWith("-") &&
+                !/^[a-zA-Z][\w-]*:/.test(part) &&
+                !canUseFulltext(part)
+        )
 }
 
 /**
@@ -1422,6 +1533,8 @@ const queryRegexCount = async (
 }
 
 export interface VariablesSearchResult {
+    /** Terms that had to fall back to a substring scan, and so cost a second. */
+    unindexedTerms: string[]
     variables: VariableResultView[]
     numTotalRows: number
 }

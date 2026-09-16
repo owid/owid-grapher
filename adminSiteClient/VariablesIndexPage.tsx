@@ -6,7 +6,7 @@ import urljoin from "url-join"
 
 import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext } from "./AdminAppContext.js"
-import { Flex, Pagination } from "antd"
+import { Alert, Flex, Pagination } from "antd"
 import {
     DatasetSearchGroup,
     GroupedVariableList,
@@ -113,6 +113,7 @@ export function VariablesIndexPage(): React.ReactElement {
             admin.getJSONInBackground<{
                 variables: VariableListItem[]
                 numTotalRows: number
+                unindexedTerms: string[]
             }>("/api/variables.json", {
                 search: debouncedSearch,
                 limit: pageSize,
@@ -129,6 +130,7 @@ export function VariablesIndexPage(): React.ReactElement {
                 datasets: DatasetSearchGroup[]
                 numTotalDatasets: number
                 numTotalRows: number
+                unindexedTerms: string[]
             }>("/api/variables.json", {
                 search: debouncedSearch,
                 group: "dataset",
@@ -144,10 +146,37 @@ export function VariablesIndexPage(): React.ReactElement {
         [debouncedSearch]
     )
 
+    // Only ever from a settled search, so it does not blink in and out while
+    // a word is half-typed
+    const unindexedTerms =
+        (isGrouped ? grouped.data : flat.data)?.unindexedTerms ?? []
+
     return (
         <AdminLayout title="Indicators">
             <main className="VariablesIndexPage">
                 <SearchSyntaxNote />
+                {unindexedTerms.length > 0 && (
+                    <Alert
+                        className="variables-index__slow-terms"
+                        type="info"
+                        showIcon
+                        title={
+                            <>
+                                {unindexedTerms
+                                    .map((term: string) => `"${term}"`)
+                                    .join(", ")}{" "}
+                                {unindexedTerms.length === 1
+                                    ? "can't"
+                                    : "can't"}{" "}
+                                use the search index — too short, a very common
+                                word, or a regular expression — so this search
+                                reads every indicator and takes a second or two.
+                                Adding another word narrows it first and makes
+                                it quick again.
+                            </>
+                        }
+                    />
+                )}
                 {isGrouped ? (
                     <GroupedVariableList
                         groups={grouped.data?.datasets ?? []}
