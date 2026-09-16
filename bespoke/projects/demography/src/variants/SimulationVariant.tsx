@@ -14,10 +14,8 @@ import {
     parseSimulationUrlState,
     type SimulationUrlState,
 } from "../core/urlState.js"
-import {
-    DemographyChartError,
-    DemographySkeleton,
-} from "../components/DemographyLoadAndError.js"
+import { ChartError } from "../../../../components/ChartError/ChartError.js"
+import { ChartSkeleton } from "../../../../components/ChartSkeleton/ChartSkeleton.js"
 import { Spinner } from "../../../../components/Spinner/Spinner.js"
 import {
     EmbedConfigProvider,
@@ -121,9 +119,11 @@ function FetchingSimulationVariant({
         urlState.entityName,
     ])
 
-    if (status === "pending") return <DemographySkeleton />
-    if (metadata && !metadata.slugs[entityName]) return <DemographySkeleton />
-    if (!metadata || !entityData) return <DemographyChartError />
+    if (status === "pending")
+        return <ChartSkeleton className="demography-skeleton" />
+    if (metadata && !metadata.slugs[entityName])
+        return <ChartSkeleton className="demography-skeleton" />
+    if (!metadata || !entityData) return <ChartError />
 
     return (
         <CaptionedSimulationVariant

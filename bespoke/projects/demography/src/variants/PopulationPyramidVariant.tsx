@@ -2,10 +2,8 @@ import { useMemo, useState } from "react"
 import cx from "clsx"
 import { QueryClientProvider } from "@tanstack/react-query"
 
-import {
-    DemographyChartError,
-    DemographySkeleton,
-} from "../components/DemographyLoadAndError.js"
+import { ChartError } from "../../../../components/ChartError/ChartError.js"
+import { ChartSkeleton } from "../../../../components/ChartSkeleton/ChartSkeleton.js"
 import { Spinner } from "../../../../components/Spinner/Spinner.js"
 import { queryClient, useDemographyData } from "../core/fetch.js"
 import type {
@@ -73,8 +71,9 @@ function FetchingPopulationPyramidVariant({
     const { metadata, entityData, isLoadingEntityData, status } =
         useDemographyData(entityName)
 
-    if (status === "pending") return <DemographySkeleton />
-    if (!metadata || !entityData) return <DemographyChartError />
+    if (status === "pending")
+        return <ChartSkeleton className="demography-skeleton" />
+    if (!metadata || !entityData) return <ChartError />
 
     return (
         <CaptionedPopulationPyramidVariant
