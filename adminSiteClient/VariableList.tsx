@@ -254,11 +254,13 @@ function CatalogPathCell({
  * and no column collapses to nothing when the others no longer fit.
  */
 const COLUMN_WEIGHTS: Record<VariableListField | "name", number> = {
-    name: 28,
-    catalogPath: 36,
-    usage: 15,
+    name: 35,
+    catalogPath: 35,
+    // "3 charts" is what this says on almost every row; the rare row that also
+    // names a multi-dim and an explorer wraps rather than taxing all the rest
+    usage: 10,
     popularity: 7,
-    uploadedAt: 14,
+    uploadedAt: 13,
 }
 
 function columnWidths(
