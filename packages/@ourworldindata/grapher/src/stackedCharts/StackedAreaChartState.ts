@@ -3,7 +3,7 @@ import { AbstractStackedChartState } from "./AbstractStackedChartState.js"
 import { ChartState } from "../chart/ChartInterface.js"
 import { StackedSeries } from "./StackedConstants.js"
 import {
-    hasLoneNegativeSeriesAtBottom,
+    findLoneNegativeSeriesAtBottom,
     stackSeries,
     stackSeriesInBothDirections,
     withMissingValuesAsZeroes,
@@ -27,7 +27,7 @@ export class StackedAreaChartState
 
     @computed get series(): readonly StackedSeries<number>[] {
         const series = withMissingValuesAsZeroes(this.unstackedSeries)
-        return hasLoneNegativeSeriesAtBottom(series)
+        return findLoneNegativeSeriesAtBottom(series)
             ? stackSeriesInBothDirections(series)
             : stackSeries(series)
     }
