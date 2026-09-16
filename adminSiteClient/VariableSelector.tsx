@@ -50,6 +50,10 @@ interface Variable {
     popularity: number
 }
 
+function formatCount(count: number, noun: string): string {
+    return `${count} ${noun}${count === 1 ? "" : "s"}`
+}
+
 interface NamespaceOption {
     value: string
     label: React.ReactNode
@@ -195,6 +199,47 @@ export class VariableSelector<
         return this.searchResultRows.length
     }
 
+    /**
+     * The namespace filter starts out set to the chart's current indicator, so
+     * a search for something in another namespace comes back empty with no
+     * explanation — it reads as a broken dialog. Counting what it is hiding
+     * turns that into an offer to widen. Only computed when there is nothing
+     * to show, so the scan over every indicator is paid once, not per keystroke.
+     */
+    @computed get numMatchesInOtherNamespaces(): number {
+        const { searchWords, chosenNamespaces } = this
+        if (searchWords.length === 0) return 0
+        if (chosenNamespaces.length === 0) return 0
+        if (this.searchResults.length > 0) return 0
+
+        const filterFn = filterFunctionForSearchWords(
+            searchWords,
+            (variable: { name: string; datasetName: string }) => [
+                variable.name,
+                variable.datasetName,
+            ]
+        )
+        let count = 0
+        for (const namespaceData of this.database.dataByNamespace.values()) {
+            for (const dataset of namespaceData.datasets) {
+                for (const variable of dataset.variables) {
+                    if (
+                        filterFn({
+                            name: variable.name,
+                            datasetName: dataset.name,
+                        })
+                    )
+                        count++
+                }
+            }
+        }
+        return count
+    }
+
+    @action.bound private searchAllNamespaces() {
+        this.chosenNamespaces = []
+    }
+
     formatNamespaceLabel(namespace: Namespace) {
         const { name, description, isArchived } = namespace
         return (
@@ -287,6 +332,22 @@ export class VariableSelector<
                                     style={{ width: "100%" }}
                                 />
                             </div>
+                            {this.numMatchesInOtherNamespaces > 0 && (
+                                <div className="VariableSelector__hint">
+                                    No matches in{" "}
+                                    {this.chosenNamespaces
+                                        .map((namespace) => namespace.name)
+                                        .join(", ")}
+                                    .{" "}
+                                    <button
+                                        type="button"
+                                        onClick={this.searchAllNamespaces}
+                                    >
+                                        {this.numMatchesInOtherNamespaces} in
+                                        other namespaces →
+                                    </button>
+                                </div>
+                            )}
                             <div
                                 style={{
                                     height: numVisibleRows * rowHeight,
@@ -330,9 +391,16 @@ export class VariableSelector<
                                                                     dataset.namespace
                                                                 }
                                                                 ]{" "}
-                                                                {highlight(
-                                                                    dataset.name
-                                                                )}
+                                                                <a
+                                                                    href={`/admin/datasets/${dataset.id}`}
+                                                                    target="_blank"
+                                                                    rel="noopener"
+                                                                    title="Open the dataset in a new tab"
+                                                                >
+                                                                    {highlight(
+                                                                        dataset.name
+                                                                    )}
+                                                                </a>
                                                                 {dataset.nonRedistributable ? (
                                                                     <span className="text-danger">
                                                                         {" "}
@@ -357,6 +425,18 @@ export class VariableSelector<
                                                                         }
                                                                     </small>
                                                                 )}
+                                                                <small className="VariableSelector__group-count">
+                                                                    {formatCount(
+                                                                        this
+                                                                            .resultsByDataset[
+                                                                            dataset
+                                                                                .id
+                                                                        ]
+                                                                            ?.length ??
+                                                                            0,
+                                                                        "indicator"
+                                                                    )}
+                                                                </small>
                                                             </h5>
                                                         </li>
                                                     )

@@ -564,6 +564,27 @@ $nav-height: 45px;
         list-style-type: none;
         flex: 1 0 15em;
         min-height: 32px;
+        // a gutter, so a long indicator name stops short of the next column's
+        // checkbox instead of running into it
+        padding-right: 16px;
+    }
+
+    .VariableSelector__group-count {
+        float: right;
+        color: #888;
+    }
+
+    .VariableSelector__hint {
+        margin-bottom: 8px;
+        color: #666;
+
+        button {
+            border: 0;
+            background: none;
+            padding: 0;
+            color: #1677ff;
+            cursor: pointer;
+        }
     }
 
     li > .form-check {
