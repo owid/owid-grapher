@@ -24,7 +24,6 @@ import {
 } from "@ourworldindata/utils"
 import { ArticleBlocks } from "./gdocs/components/ArticleBlocks.js"
 import { SiteAnalytics } from "./SiteAnalytics.js"
-import TrackedProseLinks from "./TrackedProseLinks.js"
 import { logExpandableToggle } from "./metadataExperimentEvents.js"
 
 const analytics = new SiteAnalytics()
@@ -126,13 +125,10 @@ export default function MetadataSection({
                             How we process data at Our World in Data
                         </h3>
                         <div className="col-start-4 span-cols-6 col-lg-start-5 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
-                            <TrackedProseLinks note="processing_link">
-                                <IndicatorProcessing
-                                    descriptionProcessing={
-                                        descriptionProcessing
-                                    }
-                                />
-                            </TrackedProseLinks>
+                            <IndicatorProcessing
+                                descriptionProcessing={descriptionProcessing}
+                                trackNote="processing_link"
+                            />
                         </div>
                     </div>
                 </div>

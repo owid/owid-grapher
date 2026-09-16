@@ -4,6 +4,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 
 export interface IndicatorProcessingProps {
     descriptionProcessing: string | undefined
+    trackNote?: string
 }
 
 export const IndicatorProcessing = (props: IndicatorProcessingProps) => {
@@ -29,6 +30,7 @@ export const IndicatorProcessing = (props: IndicatorProcessingProps) => {
             <a
                 href="https://docs.owid.io/projects/etl/"
                 className="indicator-processing__link"
+                data-track-note={props.trackNote}
             >
                 Read about our data pipeline
                 <FontAwesomeIcon icon={faArrowDown} />
@@ -41,6 +43,7 @@ export const IndicatorProcessing = (props: IndicatorProcessingProps) => {
                     <div className="indicator-processing-callout__content">
                         <SimpleMarkdownText
                             text={props.descriptionProcessing.trim()}
+                            dataTrackNote={props.trackNote}
                         />
                     </div>
                 </div>

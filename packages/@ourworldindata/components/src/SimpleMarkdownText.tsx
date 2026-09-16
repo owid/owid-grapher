@@ -12,6 +12,7 @@ type SimpleMarkdownTextProps = {
     text: string
     useParagraphs?: boolean // by default, text is wrapped in <p> tags
     openLinksInNewTab?: boolean // by default, links open in the same tab
+    dataTrackNote?: string // if set, every link gets this data-track-note for click tracking
 }
 
 const transformDodLinks: Plugin<[], Root> = () => {
@@ -109,9 +110,13 @@ export class SimpleMarkdownText extends React.Component<SimpleMarkdownTextProps>
             )
         }
 
-        if (this.props.openLinksInNewTab) {
+        if (this.props.openLinksInNewTab || this.props.dataTrackNote) {
             components.a = ({ children, ...props }) => (
-                <a {...props} target="_blank">
+                <a
+                    {...props}
+                    target={this.props.openLinksInNewTab ? "_blank" : undefined}
+                    data-track-note={this.props.dataTrackNote}
+                >
                     {children}
                 </a>
             )

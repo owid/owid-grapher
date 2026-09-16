@@ -36,7 +36,6 @@ import { Byline } from "./gdocs/components/Byline.js"
 import { ArticleBlocks } from "./gdocs/components/ArticleBlocks.js"
 import { splitDescriptionKey } from "./datapageUtils.js"
 import { SiteAnalytics } from "./SiteAnalytics.js"
-import TrackedProseLinks from "./TrackedProseLinks.js"
 import { logExpandableToggle } from "./metadataExperimentEvents.js"
 
 const analytics = new SiteAnalytics()
@@ -132,9 +131,10 @@ function IndicatorMetadataSections({
             detailsRef={detailsRef}
             preview={
                 descriptionKeyPreview ? (
-                    <TrackedProseLinks note="wysk_link">
-                        <SimpleMarkdownText text={descriptionKeyPreview} />
-                    </TrackedProseLinks>
+                    <SimpleMarkdownText
+                        text={descriptionKeyPreview}
+                        dataTrackNote="wysk_link"
+                    />
                 ) : undefined
             }
             onToggle={(isOpen) =>
@@ -144,12 +144,12 @@ function IndicatorMetadataSections({
             }
         >
             {descriptionKeyRest && (
-                <TrackedProseLinks
-                    note="wysk_link"
-                    className="metadata-box-expander__remainder metadata-box-expander__prose"
-                >
-                    <SimpleMarkdownText text={descriptionKeyRest} />
-                </TrackedProseLinks>
+                <div className="metadata-box-expander__remainder metadata-box-expander__prose">
+                    <SimpleMarkdownText
+                        text={descriptionKeyRest}
+                        dataTrackNote="wysk_link"
+                    />
+                </div>
             )}
             <MetadataBoxSection
                 title="Frequently asked questions"
@@ -179,11 +179,10 @@ function IndicatorMetadataSections({
                     label="How did Our World in Data process this data?"
                     contentId={INDICATOR_PROCESSING_SECTION_ID}
                     content={
-                        <TrackedProseLinks note="processing_link">
-                            <IndicatorProcessing
-                                descriptionProcessing={descriptionProcessing}
-                            />
-                        </TrackedProseLinks>
+                        <IndicatorProcessing
+                            descriptionProcessing={descriptionProcessing}
+                            trackNote="processing_link"
+                        />
                     }
                     onToggle={(isOpen) =>
                         logExpandableToggle("how_owid_processed_data", isOpen)

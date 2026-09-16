@@ -12,7 +12,6 @@ import {
 import { DataPageDataV2 } from "@ourworldindata/types"
 import { formatAttributions } from "@ourworldindata/utils"
 import KeyDataTable from "./KeyDataTable.js"
-import TrackedProseLinks from "./TrackedProseLinks.js"
 import { logExpandableToggle } from "./metadataExperimentEvents.js"
 
 export default function AboutThisData({
@@ -48,11 +47,10 @@ export default function AboutThisData({
                         <div className="key-info__content">
                             {datapageData.descriptionKey && (
                                 <div className="key-info__key-description">
-                                    <TrackedProseLinks note="wysk_link">
-                                        <SimpleMarkdownText
-                                            text={datapageData.descriptionKey.trim()}
-                                        />
-                                    </TrackedProseLinks>
+                                    <SimpleMarkdownText
+                                        text={datapageData.descriptionKey.trim()}
+                                        dataTrackNote="wysk_link"
+                                    />
                                 </div>
                             )}
 
