@@ -22,17 +22,25 @@ or the shortest possible suite.
    propose a failing test first and check that it fails for the expected reason.
 5. **Make the tests readable on their own.** Name the rule, expose significant
    inputs, and explain non-obvious scenarios. Keep incidental setup subordinate
-   to the behavior.
+   to the behavior. Calibrate the text explaining the tests to the magnitude of the
+   work being tested, which is usually the PR or stack of PRs: a small tweak probably
+   needs no test; the tests for a smaller feature can probably be explained in a few
+   sentences; the tests for a new PR stack that substantially changes a core mechanism
+   of the codebase deserves several paragraphs of explanation to give context for how
+   the behaviour has changed and what the tests verify.
 6. **Preserve existing guarantees when rewriting tests.** Follow the refactoring
    protocol below. Passing before and after is not evidence of equivalence.
 7. **Run relevant checks and report their limits.** Static checks establish
    structural validity, not runtime behavior. Report incomplete checks and
    pre-existing failures separately from regressions.
 
-For a well-understood regression, discuss the test plan and TDD before changing
-production code. For exploratory work, agree on the important invariants once
+For a well-understood regression, or for changes that lend themselves well for red/green
+TDD tests like very algorithmic changes, discuss the test plan and TDD before changing
+code. For exploratory work, agree on the important invariants once
 the behavior stabilizes and before preparing the PR. For a small obvious change,
-propose a brief default, including when existing checks suffice.
+propose a brief default, including when existing checks suffice. Use property-based
+testing where appropriate, for example, to validate that serialization and
+deserialization are idempotent.
 
 ## Writing high-value tests
 
@@ -65,7 +73,8 @@ that reliance leaves unproven, and assert important conflicting values directly.
 
 - Use small fixture builders or request helpers for incidental setup. Keep
   behavior-defining input values and expected results at the call site.
-- Use named table rows when setup, action, and assertion shape are the same.
+- When multiple tests test a grid of permutations, use named table rows when #
+  setup, action, and assertion shape are the same.
   Include a readable case name in the failure output. Do not add conditional
   assertions to make unrelated scenarios fit one table.
 - Keep separate cases when the rule, control flow, or failure explanation differs.
@@ -78,13 +87,6 @@ that reliance leaves unproven, and assert important conflicting values directly.
   Small finite sets of contractual options can appropriately cover every option.
 - Do not weaken assertions or add retries to hide flaky tests. Improve isolation,
   diagnostics, and fixtures instead.
-
-For example, scatter label strategies can use three named rows: year → `"2000"`,
-y → `"2"`, and x → `"1"`, sharing a point whose coordinates are visible in the
-fixture. All three options remain covered. In contrast, the scatter-tab round
-trip tests in `GrapherState.test.ts` need intermediate selection assertions and
-separate cases for explicit user changes and scatter-only charts. Those are
-distinct contracts, not interchangeable rows.
 
 ## Refactoring existing tests without losing guarantees
 
@@ -249,49 +251,3 @@ domain logic and reusable helpers.
 
 These regimes are complementary rather than levels that every change must
 climb. Most changes should use only one or two.
-
-## Recommended experiments
-
-Start with bounded changes to existing tests before adding new infrastructure:
-
-1. Refactor the `findTopicAndRegionFilters` group in `searchUtils.test.ts` using
-   named setup options, preserving every existing assertion. Then address any
-   gaps between its names and evidence in a separate PR.
-2. Apply the same protocol to download-table tests in `GrapherState.test.ts`.
-   Make row eligibility and original-time contracts explicit without removing
-   chart-specific cases.
-3. Simplify chart API request plumbing while preserving the ownership lifecycle,
-   persistence checks, and timestamps/version assertions. Review explicit
-   expected layer values separately from a structural rewrite.
-4. Use the small scatter-label table as a mechanically reviewable example of
-   compression without removing cases.
-
-For each pilot, record the preservation mapping, focused run results, meaningful
-assertion changes, and any targeted defect checks. Ask reviewers whether they can
-understand the contract without production-code archaeology and trace old
-assertions to their replacements. Avoid numeric LOC-reduction targets.
-
-Separately, experiment with direct Playwright tests for a critical tab/URL journey
-and a visual-control journey. Compare one small behavior with the existing
-Gherkin style for readability, diagnostics, fixture stability, and authoring
-cost before standardizing. Browser infrastructure and new journey coverage are
-separate decisions from making existing in-process tests easier to review.
-
-## Decisions still to make
-
-- Which browser journeys are important enough to block merges, and which
-  should run on a schedule or against staging?
-- Should direct Playwright become the default while Gherkin remains available
-  only where non-code feature text has a clear audience?
-- How should browser tests receive stable data while still representing baked
-  site and Grapher integration accurately?
-- Which owners triage failures and remove or repair flaky tests?
-- What runtime budget should each feedback tier have (local focused, pull
-  request, scheduled, and release/deployment)?
-- Can database tests gain isolated databases and dynamic ports so they can run
-  safely in parallel?
-- Which SVG suites should be required automatically for rendering changes, and
-  how should intentional reference updates be reviewed?
-
-The answers should follow evidence from the experiments rather than a target
-count of tests or a universal testing pyramid.
