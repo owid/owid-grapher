@@ -1,6 +1,6 @@
 import {
     RawEntityYears,
-    RawMigrantDemographicsManifest,
+    RawMigrantDemographicsMetadata,
     RawYearRecord,
 } from "./types.js"
 
@@ -21,7 +21,7 @@ export const RECORD_WITHOUT_POPULATION = {
     f: [3, 4],
 } as RawYearRecord
 
-export const MANIFEST: RawMigrantDemographicsManifest = {
+export const METADATA: RawMigrantDemographicsMetadata = {
     meta: { title: "t", source: "s", unit: "persons" },
     ageBands: ["0-4", "5+"],
     years: [2010, 2020],

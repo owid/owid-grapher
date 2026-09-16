@@ -12,7 +12,7 @@ import {
 } from "./helpers.js"
 import {
     KENYA_YEARS,
-    MANIFEST,
+    METADATA,
     RECORD,
     UNITED_STATES_YEARS,
 } from "./testFixtures.js"
@@ -56,7 +56,7 @@ describe(computeAxisMax, () => {
         expect(
             computeAxisMax(
                 UNITED_STATES_YEARS,
-                MANIFEST.ageBands,
+                METADATA.ageBands,
                 "number",
                 false
             )
@@ -66,13 +66,13 @@ describe(computeAxisMax, () => {
     it("includes the native-born values when comparing", () => {
         const withoutNatives = computeAxisMax(
             KENYA_YEARS,
-            MANIFEST.ageBands,
+            METADATA.ageBands,
             "share",
             false
         )
         const withNatives = computeAxisMax(
             KENYA_YEARS,
-            MANIFEST.ageBands,
+            METADATA.ageBands,
             "share",
             true
         )

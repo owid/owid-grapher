@@ -7,27 +7,27 @@ import {
     PopulationTotals,
     PyramidData,
     RawEntityYears,
-    RawMigrantDemographicsManifest,
+    RawMigrantDemographicsMetadata,
     RawYearRecord,
     SexValues,
 } from "./types.js"
 
 const BASE_URL = "https://owid-public.owid.io/bespoke/migrant-demographics"
-const MANIFEST_PATH = `${BASE_URL}/migrant-demographics.metadata.json`
+const METADATA_PATH = `${BASE_URL}/migrant-demographics.metadata.json`
 const ENTITY_PATH = `${BASE_URL}/migrant-demographics.{code}.json`
 
 export const queryClient = new QueryClient()
 
-export const useMigrantDemographicsManifest = (): {
-    data?: MigrantDemographicsManifest
+export const useMigrantDemographicsMetadata = (): {
+    data?: MigrantDemographicsMetadata
     status: QueryStatus
 } => {
     const result = useQuery({
-        queryKey: ["migrant-demographics", "manifest"],
-        queryFn: async (): Promise<MigrantDemographicsManifest> => {
+        queryKey: ["migrant-demographics", "metadata"],
+        queryFn: async (): Promise<MigrantDemographicsMetadata> => {
             const raw =
-                await fetchJson<RawMigrantDemographicsManifest>(MANIFEST_PATH)
-            return new MigrantDemographicsManifest(raw)
+                await fetchJson<RawMigrantDemographicsMetadata>(METADATA_PATH)
+            return new MigrantDemographicsMetadata(raw)
         },
         staleTime: Infinity, // The data files are immutable within a session
     })
@@ -37,21 +37,21 @@ export const useMigrantDemographicsManifest = (): {
 
 export const useMigrantDemographicsEntity = (
     entityName: string,
-    manifest?: MigrantDemographicsManifest
+    metadata?: MigrantDemographicsMetadata
 ): {
     data?: RawEntityYears
     status: QueryStatus
     isPlaceholderData: boolean
 } => {
-    const code = manifest?.getEntityCode(entityName)
-    const hasUnknownEntity = manifest !== undefined && code === undefined
+    const code = metadata?.getEntityCode(entityName)
+    const hasUnknownEntity = metadata !== undefined && code === undefined
 
     const result = useQuery({
         queryKey: ["migrant-demographics", "entity", code],
         queryFn: async (): Promise<RawEntityYears> => {
             const path = ENTITY_PATH.replace("{code}", String(code))
             const raw = await fetchJson<RawEntityYears>(path)
-            return parseEntityYears(raw, manifest!)
+            return parseEntityYears(raw, metadata!)
         },
         enabled: code !== undefined,
         placeholderData: (previousData) => previousData,
@@ -65,7 +65,7 @@ export const useMigrantDemographicsEntity = (
     }
 }
 
-export class MigrantDemographicsManifest {
+export class MigrantDemographicsMetadata {
     readonly ageBands: string[]
     readonly years: number[]
     readonly source: string
@@ -73,7 +73,7 @@ export class MigrantDemographicsManifest {
     readonly entityNames: string[]
     private readonly codesByEntityName: Map<string, number>
 
-    constructor(raw: RawMigrantDemographicsManifest) {
+    constructor(raw: RawMigrantDemographicsMetadata) {
         // Without these the chart's geometry degenerates to NaN, so fail into
         // the error state rather than rendering a broken pyramid
         if (!raw.ageBands?.length || !raw.years?.length || !raw.meta?.source)
@@ -121,15 +121,15 @@ export function computePyramidData(record: RawYearRecord): PyramidData {
 
 /**
  * An entity needs both a migrant stock and a total resident population in
- * every year the manifest lists. Upstream excludes territories that lack
+ * every year the metadata lists. Upstream excludes territories that lack
  * UN/WPP population estimates, so a throw here means the data regressed.
  */
 export function parseEntityYears(
     raw: RawEntityYears,
-    manifest: MigrantDemographicsManifest
+    metadata: MigrantDemographicsMetadata
 ): RawEntityYears {
-    const numAgeBands = manifest.ageBands.length
-    for (const year of manifest.years) {
+    const numAgeBands = metadata.ageBands.length
+    for (const year of metadata.years) {
         const record = raw[String(year)]
         if (!record)
             throw new Error(

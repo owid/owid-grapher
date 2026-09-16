@@ -2,12 +2,12 @@ import { describe, expect, it } from "vitest"
 
 import {
     computePyramidData,
-    MigrantDemographicsManifest,
+    MigrantDemographicsMetadata,
     parseEntityYears,
 } from "./data.js"
 import {
     KENYA_YEARS,
-    MANIFEST,
+    METADATA,
     RECORD,
     RECORD_WITHOUT_POPULATION,
     UNITED_STATES_YEARS,
@@ -33,42 +33,42 @@ describe(computePyramidData, () => {
     })
 })
 
-describe(MigrantDemographicsManifest, () => {
-    const manifest = new MigrantDemographicsManifest(MANIFEST)
+describe(MigrantDemographicsMetadata, () => {
+    const metadata = new MigrantDemographicsMetadata(METADATA)
 
     it("lists entity names in file order", () => {
-        expect(manifest.entityNames).toEqual(["United States", "Kenya"])
+        expect(metadata.entityNames).toEqual(["United States", "Kenya"])
     })
 
     it("knows which entities it has", () => {
-        expect(manifest.hasEntity("United States")).toBe(true)
-        expect(manifest.hasEntity("Broken")).toBe(false)
+        expect(metadata.hasEntity("United States")).toBe(true)
+        expect(metadata.hasEntity("Broken")).toBe(false)
     })
 
     it("resolves an entity's code", () => {
-        expect(manifest.getEntityCode("Kenya")).toBe(404)
-        expect(manifest.getEntityCode("Broken")).toBeUndefined()
+        expect(metadata.getEntityCode("Kenya")).toBe(404)
+        expect(metadata.getEntityCode("Broken")).toBeUndefined()
     })
 
     it("throws when the file is missing its age bands", () => {
         expect(
-            () => new MigrantDemographicsManifest({ ...MANIFEST, ageBands: [] })
+            () => new MigrantDemographicsMetadata({ ...METADATA, ageBands: [] })
         ).toThrow()
     })
 })
 
 describe(parseEntityYears, () => {
-    const manifest = new MigrantDemographicsManifest(MANIFEST)
+    const metadata = new MigrantDemographicsMetadata(METADATA)
 
     it("returns the year map for a well-formed entity", () => {
-        expect(parseEntityYears(UNITED_STATES_YEARS, manifest)).toBe(
+        expect(parseEntityYears(UNITED_STATES_YEARS, metadata)).toBe(
             UNITED_STATES_YEARS
         )
     })
 
     it("throws when a year's record is missing", () => {
         const missingYear = { "2020": UNITED_STATES_YEARS["2020"] }
-        expect(() => parseEntityYears(missingYear, manifest)).toThrow(
+        expect(() => parseEntityYears(missingYear, metadata)).toThrow(
             "missing a record for 2010"
         )
     })
@@ -80,7 +80,7 @@ describe(parseEntityYears, () => {
                     "2010": RECORD_WITHOUT_POPULATION,
                     "2020": RECORD_WITHOUT_POPULATION,
                 },
-                manifest
+                metadata
             )
         ).toThrow("pm values")
     })
@@ -92,7 +92,7 @@ describe(parseEntityYears, () => {
                     "2010": { m: [1], f: [1, 2], pm: [1, 2], pf: [1, 2] },
                     "2020": KENYA_YEARS["2020"],
                 },
-                manifest
+                metadata
             )
         ).toThrow("m values")
     })

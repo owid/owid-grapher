@@ -19,12 +19,12 @@ export interface RawYearRecord {
 
 export type RawEntityYears = Record<string, RawYearRecord>
 
-export interface RawManifestEntity {
+export interface RawMetadataEntity {
     code: number
     name: string
 }
 
-export interface RawMigrantDemographicsManifest {
+export interface RawMigrantDemographicsMetadata {
     meta: {
         title: string
         source: string
@@ -33,7 +33,7 @@ export interface RawMigrantDemographicsManifest {
     }
     ageBands: string[]
     years: number[]
-    entities: RawManifestEntity[]
+    entities: RawMetadataEntity[]
 }
 
 /** Values per age band (aligned with `ageBands`, youngest first) */

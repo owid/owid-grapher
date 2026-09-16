@@ -31,10 +31,10 @@ import { RawEntityYears, ShowMode } from "../core/types.js"
 import type { VariantProps } from "../../../../helpers/config.js"
 import {
     computePyramidData,
-    MigrantDemographicsManifest,
+    MigrantDemographicsMetadata,
     queryClient,
     useMigrantDemographicsEntity,
-    useMigrantDemographicsManifest,
+    useMigrantDemographicsMetadata,
 } from "../core/data.js"
 import {
     computeAxisMax,
@@ -106,12 +106,12 @@ function FetchingPyramidVariant({
         defaultValue: config.compare,
     })
 
-    const { data: manifest, status: manifestStatus } =
-        useMigrantDemographicsManifest()
+    const { data: metadata, status: metadataStatus } =
+        useMigrantDemographicsMetadata()
 
     // Fall back gracefully when the config or URL asks for something the
     // data doesn't have
-    const selectedCountry = manifest?.hasEntity(country)
+    const selectedCountry = metadata?.hasEntity(country)
         ? country
         : DEFAULT_COUNTRY
 
@@ -119,14 +119,14 @@ function FetchingPyramidVariant({
         data: entityYears,
         status: entityStatus,
         isPlaceholderData,
-    } = useMigrantDemographicsEntity(selectedCountry, manifest)
+    } = useMigrantDemographicsEntity(selectedCountry, metadata)
 
-    const status = combineStatuses(manifestStatus, entityStatus)
+    const status = combineStatuses(metadataStatus, entityStatus)
     const isLoadingCountry = useDelayedLoading(isPlaceholderData)
 
     const availableCountryNames = useMemo(
-        () => (manifest ? new Set(manifest.entityNames) : undefined),
-        [manifest]
+        () => (metadata ? new Set(metadata.entityNames) : undefined),
+        [metadata]
     )
     const { isResolved: isCountryResolved } = useResolveUserLocation({
         configCountry: config.country,
@@ -137,19 +137,19 @@ function FetchingPyramidVariant({
 
     if (status === "pending")
         return <ChartSkeleton className="migrant-pyramid-chart-box" />
-    if (status === "error" || !manifest || !entityYears)
+    if (status === "error" || !metadata || !entityYears)
         return <ChartError className="migrant-pyramid-chart-box" />
     if (!isCountryResolved)
         return <ChartSkeleton className="migrant-pyramid-chart-box" />
 
-    const selectedYear = manifest.years.includes(year)
+    const selectedYear = metadata.years.includes(year)
         ? year
-        : manifest.years[manifest.years.length - 1]
+        : metadata.years[metadata.years.length - 1]
 
     return (
         <CaptionedPyramidVariant
             config={config}
-            manifest={manifest}
+            metadata={metadata}
             entityYears={entityYears}
             country={selectedCountry}
             year={selectedYear}
@@ -167,7 +167,7 @@ function FetchingPyramidVariant({
 
 function CaptionedPyramidVariant({
     config,
-    manifest,
+    metadata,
     entityYears,
     country,
     year,
@@ -181,7 +181,7 @@ function CaptionedPyramidVariant({
     setCompare,
 }: {
     config: PyramidVariantConfig
-    manifest: MigrantDemographicsManifest
+    metadata: MigrantDemographicsMetadata
     entityYears: RawEntityYears
     country: string
     year: number
@@ -207,17 +207,17 @@ function CaptionedPyramidVariant({
             pyramidData
                 ? computePyramidView(
                       pyramidData,
-                      manifest.ageBands,
+                      metadata.ageBands,
                       mode,
                       compare
                   )
                 : undefined,
-        [pyramidData, manifest.ageBands, mode, compare]
+        [pyramidData, metadata.ageBands, mode, compare]
     )
     // Fixed across years so the axis is stable while dragging the slider
     const xMax = useMemo(
-        () => computeAxisMax(entityYears, manifest.ageBands, mode, compare),
-        [entityYears, manifest.ageBands, mode, compare]
+        () => computeAxisMax(entityYears, metadata.ageBands, mode, compare),
+        [entityYears, metadata.ageBands, mode, compare]
     )
 
     // A year with no migrant stock at all draws an empty pyramid and makes
@@ -236,7 +236,7 @@ function CaptionedPyramidVariant({
         <>
             {!config.hideControls && (
                 <PyramidControls
-                    manifest={manifest}
+                    metadata={metadata}
                     country={country}
                     year={year}
                     mode={mode}
@@ -300,7 +300,7 @@ function CaptionedPyramidVariant({
                     )}
                 </div>
                 <ChartFooter
-                    source={manifest.source}
+                    source={metadata.source}
                     note="Immigrants are people living in a country other than the one they were born in. Native-born residents are the total resident population minus the international migrant stock. The age and sex breakdown mostly comes from national censuses. For countries with only one census since 1990, that single profile is carried across all years and scaled to population totals."
                 />
             </Frame>
