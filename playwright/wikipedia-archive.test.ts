@@ -34,6 +34,10 @@ test.describe("Wikipedia archive", () => {
                 requests.some((url) => url.includes("/api/detect-country"))
             )
             .toBe(true)
+
+        // Keep observing after the expected request arrives so a later request
+        // to the legacy service cannot slip past the negative assertion.
+        await page.waitForTimeout(3_000)
         expect(
             requests.filter((url) => url.includes("detect-country.owid.io"))
         ).toEqual([])
