@@ -2,13 +2,6 @@ import { QueryStatus, useQuery } from "@tanstack/react-query"
 import { DataJson, MetadataJson, DataRow } from "./CausesOfDeathConstants"
 import { fetchJson } from "@ourworldindata/utils"
 import { CausesOfDeathMetadata } from "./CausesOfDeathMetadata.js"
-import { feedUrl } from "../../../../helpers/feedUrl.js"
-
-// ETL step that builds this feed: viz://bespoke/ihme_gbd/latest/gbd_treemap_json
-const FEED = "ihme_gbd/latest/gbd_treemap_json"
-const metadataUrl = () => feedUrl(FEED, "causes-of-death.metadata.json")
-const dataUrl = (entityId: number) =>
-    feedUrl(FEED, `causes-of-death.${entityId}.json`)
 
 const queryKeys = {
     metadata: () => ["causes-of-death", "metadata"],
@@ -16,13 +9,15 @@ const queryKeys = {
 }
 
 /** Fetch causes of death metadata */
-export const useCausesOfDeathMetadata = (): {
+export const useCausesOfDeathMetadata = (
+    metadataUrl: string
+): {
     data?: CausesOfDeathMetadata
     status: QueryStatus
 } => {
     const result = useQuery({
         queryKey: queryKeys.metadata(),
-        queryFn: () => fetchJson<MetadataJson>(metadataUrl()),
+        queryFn: () => fetchJson<MetadataJson>(metadataUrl),
     })
 
     const data = result.data
@@ -35,7 +30,8 @@ export const useCausesOfDeathMetadata = (): {
 /** Fetch causes of death data for a specific entity */
 export const useCausesOfDeathEntityData = (
     entityName: string,
-    metadata?: CausesOfDeathMetadata
+    metadata: CausesOfDeathMetadata | undefined,
+    dataUrl: string
 ): {
     data?: DataRow[]
     status: QueryStatus
@@ -44,11 +40,11 @@ export const useCausesOfDeathEntityData = (
 } => {
     const entityId = metadata?.entityNameToId.get(entityName)
     const unknownEntity = metadata !== undefined && entityId === undefined
+    const url = `${dataUrl}/causes-of-death.${entityId}.json`
 
     const result = useQuery({
         queryKey: queryKeys.data(entityId!),
-        queryFn: async (): Promise<DataJson> =>
-            fetchJson<DataJson>(dataUrl(entityId!)),
+        queryFn: async (): Promise<DataJson> => fetchJson<DataJson>(url),
         enabled: entityId !== undefined,
         // Keep previous data while fetching new data
         placeholderData: (previousData) => previousData,

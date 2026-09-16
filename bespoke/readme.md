@@ -24,7 +24,7 @@ import mechanics that are not guessable from the code.
 ## How it works
 
 1. Each bespoke component is an ES module that exports a `mount` function
-2. Components are registered in [bespoke/shared/bespokeComponentRegistry.ts](./shared/bespokeComponentRegistry.ts) with the URL of that module
+2. Components are registered in [bespoke/shared/bespokeComponentRegistry.ts](./shared/bespokeComponentRegistry.ts), which says where their script and their data files live
 3. When a `{.bespoke-component}` block comes within 400px of the viewport, the code:
     - Looks up the bundle in the registry
     - Creates a Shadow DOM container (for CSS isolation)
@@ -40,13 +40,20 @@ Your ES module must export a `mount` function:
 ```ts
 export function mount(
     container: HTMLDivElement,
-    opts: { variant?: string; config?: Record<string, string> }
+    opts: {
+        variant?: string
+        config?: Record<string, string>
+        dataUrl?: string
+        metadataUrl?: string
+    }
 ): void | (() => void) | Promise<void | (() => void)>
 ```
 
 - **`container`** — A div inside the Shadow DOM into which you render your viz. The div is created for you.
 - **`opts.variant`** — Optional string to distinguish multiple instances of the same bundle within an article. Useful for embedding different views (e.g. a map and a chart) that share state.
 - **`opts.config`** — Key-value pairs passed from the ArchieML block.
+- **`opts.dataUrl`** — URL of the folder this bundle's data files live in, resolved from its registry entry for the environment being served.
+- **`opts.metadataUrl`** — URL of the metadata file inside that folder, from the entry's `metadataFilename`.
 - **Return value** — Optionally return a cleanup/disposal function that will be called on unmount.
 
 A module may also export `VARIANTS`, a list of `{ name, demoConfig?, demoSize? }` entries. The site ignores it; the dev server's demo page reads it to mount every variant, and shows an error instead of the component when it is missing.
@@ -62,13 +69,24 @@ export const BESPOKE_COMPONENT_REGISTRY: Record<
 > = {
     "income-plots": {
         scriptUrl: "/income-plots/index.js",
-        metadataUrl:
-            "https://owid-public.owid.io/bespoke/income-plots.bespoke-metadata.json",
+        dataUrl: "wb/latest/income_plots",
+        metadataFilename: "income-plots.metadata.json",
     },
 }
 ```
 
-`scriptUrl` is resolved against `BESPOKE_BASE_URL` (defaults to the local dev server, `http://localhost:8089`). `metadataUrl` is optional and absolute. A featured viz page fetches it at bake time, validates it against `BespokeMetadataSchema`, and renders the methods-and-sources box under the band from it; a bundle with no metadata file leaves it out.
+Both URLs may be relative or absolute, and an absolute one is passed through untouched.
+
+| field       | relative to                                                             |
+| ----------- | ----------------------------------------------------------------------- |
+| `scriptUrl` | `BESPOKE_BASE_URL` (defaults to the local dev server, `localhost:8089`) |
+| `dataUrl`   | `BESPOKE_DATA_URL`, so a relative value is an ETL feed step             |
+
+`BESPOKE_DATA_URL` is the data root of the environment being served, either production or a staging server's own bucket, where that branch's ETL build lands. A bundle whose data is published by hand gives an absolute `dataUrl` and is served the same file everywhere.
+
+`metadataFilename` is a filename inside `dataUrl` that the bundle fetches itself, handed to it as `opts.metadataUrl`. A featured viz page fetches the same file at bake time, validates it against `BespokeMetadataSchema`, and renders the methods-and-sources box under the band from the fields it carries.
+
+`resolveBespokeComponentUrls` resolves all of this wherever a bundle is embedded (the site, the baker, the demo pages), so the bundle receives finished URLs.
 
 A bundle carries its own styles. `vite-plugin-css-position` inlines them into the ES module so they land inside the shadow root.
 
@@ -76,9 +94,7 @@ A bundle carries its own styles. `vite-plugin-css-position` inlines them into th
 
 A bundle fetches its data at runtime rather than bundling it. Each one reads a small manifest first and then one file per selection, so a reader downloads only the entity they are looking at.
 
-Two different files are called metadata around here. The registry's `metadataUrl` above is indicator provenance for the featured viz methods box. It has a fixed schema, `BespokeMetadataSchema`, and the baker is what reads it. The `*.metadata.json` files below are dataset manifests the bundle itself reads before it has any data, and each has its own shape. The two are unrelated.
-
-Three bundles get their files from an ETL export step under `etl/steps/export/s3/` in owid/etl, served from the feed root the page passes to `mount()` (see [helpers/feedUrl.ts](helpers/feedUrl.ts)).
+Three bundles get their files from an ETL export step under `etl/steps/export/s3/` in owid/etl, so their registry entry gives the step as a relative `dataUrl`.
 
 | bundle            | ETL step                                         | manifest                              | per-selection file                      |
 | ----------------- | ------------------------------------------------ | ------------------------------------- | --------------------------------------- |
@@ -86,7 +102,7 @@ Three bundles get their files from an ETL export step under `etl/steps/export/s3
 | `food-trade`      | `faostat/latest/food_trade`                      | `food-trade.metadata.json`            | `food-trade.<productId>.json`           |
 | `migration`       | `un_migration/latest/migration_stock_flows_json` | `migration-stock-flows.metadata.json` | `migration-stock-flows.<entityId>.json` |
 
-Two are uploaded by hand to `https://owid-public.owid.io/bespoke/<bundle>/`, with the URL hardcoded in the project's `src/core/`.
+Two are uploaded by hand to `https://owid-public.owid.io/bespoke/<bundle>/`, which their registry entry gives as an absolute `dataUrl`.
 
 | bundle                 | manifest                             | per-selection file                   |
 | ---------------------- | ------------------------------------ | ------------------------------------ |

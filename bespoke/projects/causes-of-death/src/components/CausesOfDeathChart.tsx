@@ -10,7 +10,8 @@ import { ChartError } from "../../../../components/ChartError/ChartError.js"
 import { ChartSkeleton } from "../../../../components/ChartSkeleton/ChartSkeleton.js"
 import { combineStatuses } from "../../../../helpers/queryStatus.js"
 
-import type { EmbedConfig } from "../../../../shared/embedConfig.js"
+import type { VariantProps } from "../../../../helpers/config.js"
+import type { BespokeComponentDataUrls } from "owid-bespoke-types"
 import { CausesOfDeathConfig } from "../core/config.js"
 import {
     useCausesOfDeathEntityData,
@@ -34,15 +35,17 @@ const LATEST_YEAR = -1
 
 const queryClient = new QueryClient()
 
-export function CausesOfDeathChartWithProviders(props: {
-    container?: HTMLDivElement
-    config: CausesOfDeathConfig & EmbedConfig
-}): React.ReactElement {
+export function CausesOfDeathChartWithProviders(
+    props: VariantProps<CausesOfDeathConfig>
+): React.ReactElement {
     return (
         <EmbedConfigProvider config={props.config}>
             <NuqsAdapter>
                 <QueryClientProvider client={queryClient}>
-                    <CausesOfDeathChart config={props.config} />
+                    <CausesOfDeathChart
+                        config={props.config}
+                        urls={props.urls}
+                    />
                 </QueryClientProvider>
             </NuqsAdapter>
         </EmbedConfigProvider>
@@ -50,37 +53,39 @@ export function CausesOfDeathChartWithProviders(props: {
 }
 
 function CausesOfDeathChart(props: {
-    config?: CausesOfDeathConfig
+    config: CausesOfDeathConfig
+    urls: BespokeComponentDataUrls
 }): React.ReactElement {
-    const { config } = props
+    const { config, urls } = props
 
     // State, synced to the URL when the embedding page asks for it
     const [ageGroup, setAgeGroup] = useUrlState({
         key: "causesOfDeathAge",
         parser: parseAsString,
-        defaultValue: config?.ageGroup ?? DEFAULT_AGE_GROUP,
+        defaultValue: config.ageGroup ?? DEFAULT_AGE_GROUP,
     })
     const [sex, setSex] = useUrlState({
         key: "causesOfDeathSex",
         parser: parseAsString,
-        defaultValue: config?.sex ?? DEFAULT_SEX,
+        defaultValue: config.sex ?? DEFAULT_SEX,
     })
     const [entityName, setEntityName] = useUrlState({
         key: "causesOfDeathRegion",
         parser: parseAsString,
-        defaultValue: config?.region ?? DEFAULT_ENTITY_NAME,
+        defaultValue: config.region ?? DEFAULT_ENTITY_NAME,
     })
     const [year, setYear] = useUrlState({
         key: "causesOfDeathYear",
         parser: parseAsInteger,
-        defaultValue: config?.year ?? LATEST_YEAR,
+        defaultValue: config.year ?? LATEST_YEAR,
     })
 
     // Fetch the metadata and the data for the selected entity
-    const metadataResponse = useCausesOfDeathMetadata()
+    const metadataResponse = useCausesOfDeathMetadata(urls.metadataUrl)
     const entityDataResponse = useCausesOfDeathEntityData(
         entityName,
-        metadataResponse.data
+        metadataResponse.data,
+        urls.dataUrl
     )
 
     // Only show loading overlays after 300ms delay to prevent flashing
@@ -140,7 +145,7 @@ function CausesOfDeathChart(props: {
 
     return (
         <div className="causes-of-death-chart">
-            {!config?.hideControls && (
+            {!config.hideControls && (
                 <CausesOfDeathControls
                     metadata={metadata}
                     ageGroup={ageGroup}

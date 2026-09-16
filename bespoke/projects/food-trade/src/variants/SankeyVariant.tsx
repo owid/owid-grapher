@@ -13,6 +13,7 @@ import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
 
 import { SankeyVariantConfig, Flow } from "../core/config.js"
 import type { VariantProps } from "../../../../helpers/config.js"
+import type { BespokeComponentDataUrls } from "owid-bespoke-types"
 import { FoodTradeMetadata, ProductTradeData, Mode } from "../core/types.js"
 import { useFoodTradeMetadata, useProductTradeData } from "../core/data.js"
 import { FoodTradeControls } from "../components/FoodTradeControls.js"
@@ -43,6 +44,7 @@ const queryClient = new QueryClient()
 
 export function SankeyVariant({
     config,
+    urls,
 }: VariantProps<SankeyVariantConfig>): React.ReactElement {
     const { width, ref } = useContainerWidth()
     const isNarrow = width > 0 && width < MOBILE_BREAKPOINT
@@ -57,7 +59,7 @@ export function SankeyVariant({
                             "food-trade-chart--narrow": isNarrow,
                         })}
                     >
-                        <FetchingSankeyVariant config={config} />
+                        <FetchingSankeyVariant config={config} urls={urls} />
                     </div>
                 </QueryClientProvider>
             </NuqsAdapter>
@@ -65,7 +67,13 @@ export function SankeyVariant({
     )
 }
 
-function FetchingSankeyVariant({ config }: { config: SankeyVariantConfig }) {
+function FetchingSankeyVariant({
+    config,
+    urls,
+}: {
+    config: SankeyVariantConfig
+    urls: BespokeComponentDataUrls
+}) {
     const initialProduct = config.product ?? DEFAULT_PRODUCT
     const isUserLocation = isUserLocationCountry(config.country)
     const initialCountry =
@@ -90,13 +98,15 @@ function FetchingSankeyVariant({ config }: { config: SankeyVariantConfig }) {
         defaultValue: initialView,
     })
 
-    const { data: metadata, status: metadataStatus } = useFoodTradeMetadata()
+    const { data: metadata, status: metadataStatus } = useFoodTradeMetadata(
+        urls.metadataUrl
+    )
     const productId = metadata?.productByName.get(product)?.id
     const {
         data: productData,
         status: productStatus,
         isPlaceholderData,
-    } = useProductTradeData(productId, metadata)
+    } = useProductTradeData(productId, metadata, urls.dataUrl)
 
     // Dim the chart and show a spinner while a new product file loads,
     // keeping the previous product on screen until the new one arrives.

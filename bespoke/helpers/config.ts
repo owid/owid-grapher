@@ -5,11 +5,12 @@
  * config value must not take the whole viz down.
  */
 
+import type { BespokeComponentDataUrls } from "../shared/bespokeComponentTypes.js"
 import type { EmbedConfig } from "../shared/embedConfig.js"
 
-/** Props a variant component takes: its parsed config, embed flags included */
 export interface VariantProps<Config> {
     config: Config & EmbedConfig
+    urls: BespokeComponentDataUrls
 }
 
 export function parseBoolean(value: unknown): boolean {
