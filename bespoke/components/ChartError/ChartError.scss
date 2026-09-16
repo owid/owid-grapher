@@ -1,0 +1,12 @@
+.chart-error {
+    padding: 24px;
+    color: $error-text-color;
+    border: 1px solid $frame-color;
+    border-radius: 2px;
+}
+
+.chart-error__hint {
+    margin-top: 4px;
+    font-size: 0.875rem;
+    color: $light-text;
+}
