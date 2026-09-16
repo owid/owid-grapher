@@ -8,7 +8,6 @@ import {
     when,
     computed,
     makeObservable,
-    runInAction,
 } from "mobx"
 import { observer } from "mobx-react"
 import {
@@ -21,14 +20,10 @@ import {
     EntityName,
     PeerCountryStrategy,
     ALL_GRAPHER_CHART_TYPES,
-    StackMode,
-    ScaleType,
 } from "@ourworldindata/types"
 import {
     DimensionSlot,
     WORLD_ENTITY_NAME,
-    CONTINENTS_INDICATOR_ID,
-    findPotentialChartTypeSiblings,
     ChartDimension,
     SelectionArray,
     selectPeerCountries,
@@ -43,7 +38,6 @@ import {
     DimensionProperty,
     OwidVariableId,
     OwidChartDimensionInterface,
-    areSetsEqual,
 } from "@ourworldindata/utils"
 import { Section, TextField } from "./Forms.js"
 import { VariableSelector } from "./VariableSelector.js"
@@ -55,14 +49,18 @@ import { ErrorMessagesForDimensions } from "./ChartEditorTypes.js"
 import { EditableTags } from "./EditableTags.js"
 import { MinimalTagWithMetadata } from "./TagGraphMetadata.js"
 import {
-    GDP_PER_CAPITA_CATALOG_PATH,
-    POPULATION_CATALOG_PATH,
-} from "./constants.js"
-import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
-import {
     NarrativeChartEditor,
     isNarrativeChartEditorInstance,
 } from "./NarrativeChartEditor.js"
+import {
+    addChartType,
+    removeChartType,
+    removeVariableFromSlot,
+    saveChartTags,
+    setSlotDimensions,
+    setSlotVariables,
+    syncParentConfig,
+} from "./chartEditorActions.js"
 import * as R from "remeda"
 import { SortableList } from "./SortableList.js"
 import { CodeSnippet, GrapherTabIcon } from "@ourworldindata/components"
@@ -108,34 +106,21 @@ export class DimensionSlotView<
         return this.props.errorMessagesForDimensions
     }
 
-    @action.bound private async onAddVariables(variableIds: OwidVariableId[]) {
-        const { slot } = this.props
-
-        const dimensionConfigs = variableIds.map((id) => {
-            const existingDimension = slot.dimensions.find(
-                (d) => d.variableId === id
-            )
-            return (
-                existingDimension || {
-                    property: slot.property,
-                    variableId: id,
-                }
-            )
-        })
-
+    @action.bound private onAddVariables(variableIds: OwidVariableId[]) {
         this.isSelectingVariables = false
-
-        void this.updateDimensionsAndRebuildTable(dimensionConfigs)
-        this.updateParentConfig()
+        void setSlotVariables(
+            this.editor,
+            this.props.slot.property,
+            variableIds
+        )
     }
 
     @action.bound private onRemoveDimension(variableId: OwidVariableId) {
-        void this.updateDimensionsAndRebuildTable(
-            this.props.slot.dimensions.filter(
-                (d) => d.variableId !== variableId
-            )
+        void removeVariableFromSlot(
+            this.editor,
+            this.props.slot.property,
+            variableId
         )
-        this.updateParentConfig()
     }
 
     @action.bound private onChangeDimension() {
@@ -143,8 +128,7 @@ export class DimensionSlotView<
         // after the grapher state refactor this led to weird issues like
         // the color change of a variable not being reflected visually,
         // even though the value registered correctly in the grapher state instance.
-        void this.updateDimensionsAndRebuildTable(this.props.slot.dimensions)
-        this.updateParentConfig()
+        void this.commitSlotDimensions(this.props.slot.dimensions)
     }
 
     private pickDefaultEntityForSingleEntityChart({
@@ -301,33 +285,19 @@ export class DimensionSlotView<
         this.disposers.forEach((dispose) => dispose())
     }
 
-    @action.bound private async updateDimensionsAndRebuildTable(
-        updatedDimensions?: OwidChartDimensionInterface[]
-    ) {
-        const { grapherState } = this.props.editor
-
-        if (updatedDimensions) {
-            grapherState.setDimensionsForProperty(
-                this.props.slot.property,
-                updatedDimensions
-            )
-        }
-
-        await this.editor.commitDimensionsAndReloadData()
+    private async commitSlotDimensions(
+        dimensions: OwidChartDimensionInterface[]
+    ): Promise<void> {
+        await setSlotDimensions(
+            this.editor,
+            this.props.slot.property,
+            dimensions
+        )
+        await syncParentConfig(this.editor)
     }
 
-    @action.bound private updateParentConfig() {
-        const { editor } = this.props
-        if (isChartEditorInstance(editor)) {
-            void editor.updateParentConfig()
-        }
-    }
-
-    @action.bound private async onDragEnd(items: { dim: ChartDimension }[]) {
-        const newDimensions = items.map(({ dim }) => dim)
-
-        void this.updateDimensionsAndRebuildTable(newDimensions)
-        this.updateParentConfig()
+    @action.bound private onDragEnd(items: { dim: ChartDimension }[]) {
+        void this.commitSlotDimensions(items.map(({ dim }) => dim))
     }
 
     @computed get isDndEnabled() {
@@ -580,19 +550,9 @@ interface EditorBasicTabProps<Editor> {
 export class EditorBasicTab<
     Editor extends AbstractChartEditor,
 > extends React.Component<EditorBasicTabProps<Editor>> {
-    static override contextType = AdminAppContext
-    declare context: AdminAppContextType
-
     constructor(props: EditorBasicTabProps<Editor>) {
         super(props)
         makeObservable(this)
-    }
-
-    @action.bound private updateParentConfig() {
-        const { editor } = this.props
-        if (isChartEditorInstance(editor)) {
-            void editor.updateParentConfig()
-        }
     }
 
     @computed private get chartTypeGroups() {
@@ -642,164 +602,18 @@ export class EditorBasicTab<
         return groups
     }
 
-    @action.bound private applyDefaultsForPrimaryChartType(
-        chartType: GrapherChartType
-    ): void {
-        if (chartType === GRAPHER_CHART_TYPES.Marimekko) {
-            this.applyDefaultsForMarimekko()
-        } else if (chartType === GRAPHER_CHART_TYPES.ScatterPlot) {
-            void this.applyDefaultsForScatter()
-        }
+    @action.bound private onAddChartType(chartType: GrapherChartType): void {
+        void addChartType(this.props.editor, chartType)
     }
 
-    @action.bound private async applyDefaultsForSecondaryChartType(
-        chartType: GrapherChartType
-    ): Promise<void> {
-        if (chartType === GRAPHER_CHART_TYPES.ScatterPlot) {
-            void this.applyDefaultsForScatter()
-        }
-    }
-
-    @action.bound private applyDefaultsForMarimekko(): void {
-        const { grapherState } = this.props.editor
-
-        grapherState.hideRelativeToggle = false
-        grapherState.stackMode = StackMode.relative
-    }
-
-    @action.bound
-    private async applyDefaultsForScatter(): Promise<void> {
-        const { grapherState, variableIdsByCatalogPath = {} } =
-            this.props.editor
-        const { editor } = this.props
-
-        const existingDimensions = grapherState.dimensions.map((dim) =>
-            dim.toObject()
-        )
-        const newDimensions: OwidChartDimensionInterface[] = [
-            ...existingDimensions,
-        ]
-
-        const hasX = existingDimensions.find(
-            (d) => d.property === DimensionProperty.x
-        )
-        const hasColor = existingDimensions.find(
-            (d) => d.property === DimensionProperty.color
-        )
-        const hasSize = existingDimensions.find(
-            (d) => d.property === DimensionProperty.size
-        )
-
-        // Add default x indicator if not already present
-        const gdpPerCapitaId =
-            variableIdsByCatalogPath[GDP_PER_CAPITA_CATALOG_PATH]
-        if (!hasX) {
-            if (gdpPerCapitaId) {
-                newDimensions.push({
-                    variableId: gdpPerCapitaId,
-                    property: DimensionProperty.x,
-                })
-
-                // GDP per capita is best viewed on a log scale,
-                // so enable the log/linear switch and default to log
-                grapherState.xAxis.canChangeScaleType = true
-                grapherState.xAxis.scaleType = ScaleType.log
-            } else {
-                console.error(
-                    `Could not resolve a variable id for catalog path "${GDP_PER_CAPITA_CATALOG_PATH}"; skipping the default x dimension.`
-                )
-            }
-        }
-
-        // Add default color indicator if not already present
-        if (!hasColor)
-            newDimensions.push({
-                variableId: CONTINENTS_INDICATOR_ID,
-                property: DimensionProperty.color,
-            })
-
-        // Add default size indicator if not already present
-        const populationId = variableIdsByCatalogPath[POPULATION_CATALOG_PATH]
-        if (!hasSize) {
-            if (populationId) {
-                newDimensions.push({
-                    variableId: populationId,
-                    property: DimensionProperty.size,
-                })
-            } else {
-                console.error(
-                    `Could not resolve a variable id for catalog path "${POPULATION_CATALOG_PATH}"; skipping the default size dimension.`
-                )
-            }
-        }
-
-        // Update dimensions if any new ones were added
-        if (newDimensions.length > existingDimensions.length) {
-            await editor.commitDimensionsAndReloadData(newDimensions)
-        }
-    }
-
-    @action.bound private addChartType(chartType: GrapherChartType): void {
-        const { grapherState } = this.props.editor
-        if (grapherState.validChartTypeSet.has(chartType)) return
-
-        // Check if the added chart type is compatible with the currently selected types
-        const activeGroup =
-            grapherState.chartTypes.length > 0
-                ? findPotentialChartTypeSiblings(grapherState.chartTypes)
-                : undefined
-        const addedChartTypeGroup = findPotentialChartTypeSiblings([chartType])
-        const isCompatible =
-            addedChartTypeGroup !== undefined &&
-            activeGroup !== undefined &&
-            areSetsEqual(new Set(addedChartTypeGroup), new Set(activeGroup))
-
-        if (isCompatible) {
-            // Append if the newly added chart type belongs to the same group
-            grapherState.chartTypes = [...grapherState.chartTypes, chartType]
-        } else {
-            // Replace all with just the new type if incompatible
-            grapherState.chartTypes = [chartType]
-        }
-
-        if (grapherState.chartType === chartType) {
-            void this.applyDefaultsForPrimaryChartType(chartType)
-        } else {
-            void this.applyDefaultsForSecondaryChartType(chartType)
-        }
-
-        // The parent config depends on the chart type
-        // (e.g. scatters don't have a parent), so update it when types change
-        this.updateParentConfig()
-    }
-
-    @action.bound private removeChartType(chartType: GrapherChartType): void {
-        const { grapherState } = this.props.editor
-        grapherState.chartTypes = grapherState.chartTypes.filter(
-            (type) => type !== chartType
-        )
-        // The parent config depends on the chart type
-        // (e.g. scatters don't have a parent), so update it when types change
-        this.updateParentConfig()
+    @action.bound private onRemoveChartType(chartType: GrapherChartType): void {
+        void removeChartType(this.props.editor, chartType)
     }
 
     @action.bound onSaveTags(tags: DbChartTagJoin[]): Promise<void> {
-        return this.saveTags(tags)
-    }
-
-    async saveTags(tags: DbChartTagJoin[]): Promise<void> {
         const { editor } = this.props
-        const { grapherState } = editor
-        await this.context.admin.requestJSON(
-            `/api/charts/${grapherState.id}/setTags`,
-            { tags },
-            "POST"
-        )
-        if (isChartEditorInstance(editor)) {
-            runInAction(() => {
-                editor.manager.tags = tags
-            })
-        }
+        if (!isChartEditorInstance(editor)) return Promise.resolve()
+        return saveChartTags(editor, tags)
     }
 
     override render() {
@@ -836,8 +650,8 @@ export class EditorBasicTab<
                                         )}
                                         onChange={(checked) =>
                                             checked
-                                                ? this.addChartType(chartType)
-                                                : this.removeChartType(
+                                                ? this.onAddChartType(chartType)
+                                                : this.onRemoveChartType(
                                                       chartType
                                                   )
                                         }

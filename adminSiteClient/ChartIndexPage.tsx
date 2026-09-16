@@ -5,6 +5,7 @@ import { observable, action, runInAction, makeObservable } from "mobx"
 import { AdminLayout } from "./AdminLayout.js"
 import { ChartList, ChartListItem } from "./ChartList.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
+import { primeChartCache } from "./webmcp/adminTools.js"
 
 @observer
 export class ChartIndexPage extends Component {
@@ -30,6 +31,7 @@ export class ChartIndexPage extends Component {
                     <ChartList
                         charts={charts}
                         autofocusSearchInput
+                        enableWebMcpTools
                         onDelete={action((c: ChartListItem) =>
                             this.charts.splice(this.charts.indexOf(c), 1)
                         )}
@@ -42,6 +44,7 @@ export class ChartIndexPage extends Component {
     async getData() {
         const { admin } = this.context
         const json = await admin.getJSON("/api/charts.json")
+        primeChartCache(json.charts)
         runInAction(() => {
             this.charts = json.charts
         })

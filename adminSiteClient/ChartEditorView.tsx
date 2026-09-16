@@ -7,6 +7,7 @@ import {
     runInAction,
     action,
     reaction,
+    when,
     IReactionDisposer,
     makeObservable,
     comparer,
@@ -63,6 +64,9 @@ import {
     FieldWithDetailReferences,
 } from "./ChartEditorTypes.js"
 import { Dataset, EditorDatabase } from "./EditorDatabase.js"
+import { isWebMcpAvailable } from "./webmcp/webmcpTypes.js"
+import { registerChartEditorTools } from "./webmcp/chartEditorTools.js"
+import { registerNavigationGuard } from "./webmcp/navigation.js"
 
 export type DetailReferences = Record<FieldWithDetailReferences, string[]>
 
@@ -353,6 +357,46 @@ export class ChartEditorView<
         void this.fetchData()
     }
 
+    private webMcpAbortController: AbortController | undefined
+
+    /**
+     * Expose the editor to an in-browser agent for as long as this view is
+     * mounted. Only the regular chart editor gets tools for now; the
+     * narrative-chart editor saves differently and is left for later.
+     */
+    private registerWebMcpTools(): void {
+        const editor = this.editor
+        if (!isWebMcpAvailable() || !editor || !isChartEditorInstance(editor))
+            return
+        this.webMcpAbortController = new AbortController()
+        const { signal } = this.webMcpAbortController
+        // Same condition as the <Prompt> below: navigating away would pop a
+        // blocking confirm dialog, so tools refuse up front instead.
+        registerNavigationGuard(
+            () =>
+                editor.isModified && !editor.isNewGrapher && !editor.newChartId
+                    ? "The chart editor has unsaved changes. Keep them with save_chart (drafts only) " +
+                      "or drop them with discard_chart_changes. There is no Discard button in the admin, " +
+                      "so do not ask the user to click one."
+                    : undefined,
+            signal
+        )
+        void registerChartEditorTools(
+            {
+                getEditor: () => {
+                    const current = this.editor
+                    return current && isChartEditorInstance(current)
+                        ? current
+                        : undefined
+                },
+                getErrorMessages: () => this.errorMessages,
+                getErrorMessagesForDimensions: () =>
+                    this.errorMessagesForDimensions,
+            },
+            signal
+        )
+    }
+
     override componentDidMount(): void {
         this.refresh()
         this.disposers.push(
@@ -361,6 +405,12 @@ export class ChartEditorView<
                 () => {
                     void this.updateGrapher()
                 }
+            )
+        )
+        this.disposers.push(
+            when(
+                () => this.editor !== undefined,
+                () => this.registerWebMcpTools()
             )
         )
         this.disposers.push(
@@ -389,6 +439,7 @@ export class ChartEditorView<
 
     disposers: IReactionDisposer[] = []
     override componentWillUnmount(): void {
+        this.webMcpAbortController?.abort()
         this.disposers.forEach((dispose) => dispose())
         this.cleanupDetailsOnDemand?.()
         this.editor?.dispose()

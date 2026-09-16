@@ -1,0 +1,124 @@
+/**
+ * @vitest-environment happy-dom
+ */
+import { afterEach, describe, expect, it, vi } from "vitest"
+import type { History } from "history"
+import {
+    isValidAdminPath,
+    navigateTo,
+    onAdminNavigation,
+    navigationBlockedReason,
+    registerNavigationGuard,
+    setAdminHistory,
+} from "./navigation.js"
+
+function fakeHistory(): History & { push: ReturnType<typeof vi.fn> } {
+    return {
+        push: vi.fn(),
+        replace: vi.fn(),
+        listen: vi.fn(() => vi.fn()),
+    } as unknown as History & { push: ReturnType<typeof vi.fn> }
+}
+
+afterEach(() => setAdminHistory(undefined))
+
+describe(isValidAdminPath, () => {
+    it("accepts admin-relative paths", () => {
+        expect(isValidAdminPath("/charts")).toBe(true)
+        expect(isValidAdminPath("/charts/123/edit")).toBe(true)
+        expect(isValidAdminPath("/variables/1")).toBe(true)
+    })
+
+    it("refuses URLs, files and paths carrying a query", () => {
+        expect(isValidAdminPath("https://example.org/")).toBe(false)
+        expect(isValidAdminPath("//evil.example")).toBe(false)
+        expect(isValidAdminPath("/charts/1.config.json")).toBe(false)
+        expect(isValidAdminPath("/charts?chartSearch=x")).toBe(false)
+        expect(isValidAdminPath("charts")).toBe(false)
+    })
+})
+
+describe(navigateTo, () => {
+    it("pushes onto the captured router history", () => {
+        const history = fakeHistory()
+        setAdminHistory(history)
+        const result = navigateTo("/charts", { search: "chartSearch=co2" })
+        expect(result).toEqual({ ok: true, path: "/charts?chartSearch=co2" })
+        expect(history.push).toHaveBeenCalledWith({
+            pathname: "/charts",
+            search: "?chartSearch=co2",
+        })
+    })
+
+    it("refuses while a guard reports a reason, and drops the guard on abort", () => {
+        const history = fakeHistory()
+        setAdminHistory(history)
+        const controller = new AbortController()
+        registerNavigationGuard(() => "unsaved changes", controller.signal)
+
+        expect(navigationBlockedReason()).toBe("unsaved changes")
+        expect(navigateTo("/charts")).toEqual({
+            ok: false,
+            reason: "unsaved changes",
+        })
+        expect(history.push).not.toHaveBeenCalled()
+
+        controller.abort()
+        expect(navigationBlockedReason()).toBeUndefined()
+        expect(navigateTo("/charts").ok).toBe(true)
+    })
+
+    it("treats the page we are already on as a no-op, guard or not", () => {
+        const history = fakeHistory()
+        setAdminHistory(history)
+        const controller = new AbortController()
+        registerNavigationGuard(() => "unsaved changes", controller.signal)
+        window.history.replaceState({}, "", "/admin/charts/7283/edit")
+
+        // Being told to save changes before opening the page you are already
+        // looking at is the dead end this avoids.
+        expect(navigateTo("/charts/7283/edit")).toEqual({
+            ok: true,
+            path: "/charts/7283/edit",
+            unchanged: true,
+        })
+        expect(history.push).not.toHaveBeenCalled()
+
+        // A different page is still blocked.
+        expect(navigateTo("/charts").ok).toBe(false)
+        controller.abort()
+        window.history.replaceState({}, "", "/")
+    })
+
+    it("refuses invalid paths before consulting guards or history", () => {
+        const history = fakeHistory()
+        setAdminHistory(history)
+        expect(navigateTo("https://example.org").ok).toBe(false)
+        expect(history.push).not.toHaveBeenCalled()
+    })
+})
+
+describe(onAdminNavigation, () => {
+    it("calls back on navigation and stops on abort", () => {
+        const unlisten = vi.fn()
+        const listen = vi.fn((_onChange: () => void) => unlisten)
+        setAdminHistory({ listen } as unknown as History)
+
+        const listener = vi.fn()
+        const controller = new AbortController()
+        onAdminNavigation(listener, controller.signal)
+
+        const onChange = listen.mock.calls[0][0]
+        onChange()
+        expect(listener).toHaveBeenCalledOnce()
+
+        controller.abort()
+        expect(unlisten).toHaveBeenCalledOnce()
+    })
+
+    it("does nothing without a router, rather than throwing", () => {
+        expect(() =>
+            onAdminNavigation(vi.fn(), new AbortController().signal)
+        ).not.toThrow()
+    })
+})
