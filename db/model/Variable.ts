@@ -1157,6 +1157,49 @@ export interface VariablesGroupedSearchResult {
 }
 
 /**
+ * The indicators a chart already uses, for the picker: it knows their ids and
+ * nothing else, and needs their dataset and catalog path to show them and to
+ * open on the namespace they came from.
+ */
+export const getVariablesByIds = async (
+    ids: number[],
+    knex: db.KnexReadonlyTransaction
+): Promise<VariableResultView[]> => {
+    if (ids.length === 0) return []
+    const rows = await knexRaw<any>(
+        knex,
+        `-- sql
+        SELECT
+            v.id,
+            v.name,
+            v.catalogPath AS catalogPath,
+            d.id AS datasetId,
+            d.name AS datasetName,
+            d.isPrivate AS isPrivate,
+            d.nonRedistributable AS nonRedistributable,
+            d.dataEditedAt AS uploadedAt,
+            u.fullName AS uploadedBy,
+            ap.popularity AS popularity
+        FROM variables AS v
+        JOIN datasets d ON d.id = v.datasetId
+        LEFT JOIN users u ON u.id = d.dataEditedByUserId
+        LEFT JOIN analytics_popularity ap
+            ON ap.type = 'indicator' AND ap.slug = v.catalogPath
+        WHERE v.id IN (?)`,
+        [ids]
+    )
+
+    const usages = await getVariableUsagesByIds(
+        knex,
+        rows.map((row: any) => row.id)
+    )
+    rows.forEach((row: any) => {
+        Object.assign(row, usages.get(row.id) ?? EMPTY_VARIABLE_USAGE)
+    })
+    return rows
+}
+
+/**
  * The same search as `searchVariables`, but paging over the datasets the
  * matches belong to rather than over the matches themselves. A search like
  * "road deaths" hits 831 indicators across 12 datasets, and the datasets are

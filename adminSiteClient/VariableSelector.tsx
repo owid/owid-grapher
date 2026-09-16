@@ -1,6 +1,6 @@
 import * as React from "react"
 import { useContext, useMemo, useState } from "react"
-import { Button, Checkbox } from "antd"
+import { Button } from "antd"
 import { keepPreviousData, useQuery } from "@tanstack/react-query"
 import { useDebounceValue } from "usehooks-ts"
 import { OwidVariableId } from "@ourworldindata/utils"
@@ -38,10 +38,9 @@ const SEARCH_FIELDS: SearchFieldHelp[] = [
     { name: "is", type: "string", description: "`public` or `private`" },
 ]
 
-interface ChosenVariable {
-    id: number
-    name: string
-    datasetName?: string
+/** `grapher/who/2026-05-22/gho/gho#x` -> `who` */
+function namespaceOf(catalogPath: string | undefined): string | undefined {
+    return catalogPath?.replace(/^grapher\//, "").split("/")[0]
 }
 
 interface VariableSelectorProps {
@@ -67,24 +66,64 @@ export function VariableSelector({
     const [searchValue, setSearchValue] = useState("")
     const [page, setPage] = useState(1)
     const [debouncedSearch] = useDebounceValue(searchValue, 250)
+    const [hasTyped, setHasTyped] = useState(false)
 
-    const [chosen, setChosen] = useState<ChosenVariable[]>(() =>
+    const [chosen, setChosen] = useState<VariableListItem[]>(() =>
         slot.dimensions.map((dimension) => ({
             id: dimension.variableId,
             name: dimension.column.name,
             datasetName: dimension.column.datasetName,
         }))
     )
+    const [hasLookedUp, setHasLookedUp] = useState(false)
+
+    // The slot knows its indicators' ids and little else. Looking them up
+    // gives the namespace to open on, so the dataset a chart already draws
+    // from is the first thing you see, with its indicators ticked — the
+    // namespace dropdown used to do that invisibly.
+    const initialIds = useMemo(
+        () => slot.dimensions.map((dimension) => dimension.variableId),
+        [slot]
+    )
+    const { data: current } = useQuery({
+        queryKey: ["variable-selector-current", initialIds],
+        queryFn: () =>
+            admin.getJSONInBackground<{ variables: VariableListItem[] }>(
+                "/api/variables.json",
+                { ids: initialIds.join(",") }
+            ),
+        enabled: initialIds.length > 0,
+    })
+
+    // Replaces the sparse versions from the slot with the full rows, once,
+    // so ticking something before the lookup lands is not undone
+    if (current && !hasLookedUp) {
+        setHasLookedUp(true)
+        setChosen((existing) =>
+            existing.map(
+                (variable) =>
+                    current.variables.find((row) => row.id === variable.id) ??
+                    variable
+            )
+        )
+    }
+
+    const seededNamespace = current?.variables
+        .map((variable) => namespaceOf(variable.catalogPath))
+        .find(Boolean)
+    const seed = seededNamespace ? `namespace:${seededNamespace}` : ""
+    // Only until the first keystroke, so the seed never fights what is typed
+    const effectiveSearch = hasTyped ? debouncedSearch : seed
 
     const { data, isFetching } = useQuery({
-        queryKey: ["variable-selector", debouncedSearch, page],
+        queryKey: ["variable-selector", effectiveSearch, page],
         queryFn: () =>
             admin.getJSONInBackground<{
                 datasets: DatasetSearchGroup[]
                 numTotalDatasets: number
                 numTotalRows: number
             }>("/api/variables.json", {
-                search: debouncedSearch,
+                search: effectiveSearch,
                 group: "dataset",
                 limit: DATASETS_PER_PAGE,
                 offset: (page - 1) * DATASETS_PER_PAGE,
@@ -93,8 +132,8 @@ export function VariableSelector({
     })
 
     const searchWords = useMemo(
-        () => searchWordsToHighlight(debouncedSearch, SEARCH_FIELDS),
-        [debouncedSearch]
+        () => searchWordsToHighlight(effectiveSearch, SEARCH_FIELDS),
+        [effectiveSearch]
     )
 
     const selectedIds = useMemo(
@@ -102,31 +141,51 @@ export function VariableSelector({
         [chosen]
     )
 
-    const unselect = (id: number) =>
-        setChosen((current) => current.filter((chosen) => chosen.id !== id))
-
     const selection = useMemo(
         () => ({
             selectedIds,
             onToggle: (variable: VariableListItem) =>
-                setChosen((current) => {
-                    if (current.some((chosen) => chosen.id === variable.id))
-                        return current.filter(
+                setChosen((existing) => {
+                    if (existing.some((chosen) => chosen.id === variable.id))
+                        return existing.filter(
                             (chosen) => chosen.id !== variable.id
                         )
-                    const added = {
-                        id: variable.id,
-                        name: variable.name,
-                        datasetName: variable.datasetName,
-                    }
                     // a slot that takes one indicator swaps rather than adds
-                    return slot.allowMultiple ? [...current, added] : [added]
+                    return slot.allowMultiple
+                        ? [...existing, variable]
+                        : [variable]
                 }),
         }),
         [selectedIds, slot.allowMultiple]
     )
 
+    // Pinned above the results, so what the chart already uses — and anything
+    // just ticked — stays visible and untickable however the search narrows
+    const groups: DatasetSearchGroup[] = useMemo(() => {
+        const found = data?.datasets ?? []
+        if (chosen.length === 0) return found
+        const pinned: DatasetSearchGroup = {
+            id: -1,
+            pinned: true,
+            name: `Chosen for ${slot.name} (${chosen.length})`,
+            namespace: "",
+            version: null,
+            shortName: null,
+            matchCount: chosen.length,
+            variables: chosen,
+        }
+        // never twice: a chosen indicator is dropped from its dataset's group
+        const withoutChosen = found.map((group) => ({
+            ...group,
+            variables: group.variables.filter(
+                (variable) => !selectedIds.has(variable.id)
+            ),
+        }))
+        return [pinned, ...withoutChosen]
+    }, [data, chosen, selectedIds, slot.name])
+
     const onSearch = (value: string) => {
+        setHasTyped(true)
         setSearchValue(value)
         setPage(1)
     }
@@ -144,15 +203,15 @@ export function VariableSelector({
             <div className="modal-body">
                 <div className="VariableSelector__results">
                     <GroupedVariableList
-                        groups={data?.datasets ?? []}
-                        isSearch={debouncedSearch.trim().length > 0}
+                        groups={groups}
+                        isSearch={effectiveSearch.trim().length > 0}
                         searchWords={searchWords}
-                        searchValue={debouncedSearch}
+                        searchValue={effectiveSearch}
                         onSearchValue={onSearch}
                         loading={isFetching}
                         selection={selection}
                         search={{
-                            value: searchValue,
+                            value: hasTyped ? searchValue : seed,
                             onChange: onSearch,
                             placeholder:
                                 "Search indicators, e.g. namespace:who deaths",
@@ -190,25 +249,6 @@ export function VariableSelector({
                             )
                         }
                     />
-                </div>
-                <div className="selectedData">
-                    <ul>
-                        {chosen.map((variable) => (
-                            <li key={variable.id}>
-                                <Checkbox
-                                    checked
-                                    onChange={() => unselect(variable.id)}
-                                >
-                                    {variable.name}{" "}
-                                    {variable.datasetName && (
-                                        <span className="VariableSelector__chosen-dataset">
-                                            [{variable.datasetName}]
-                                        </span>
-                                    )}
-                                </Checkbox>
-                            </li>
-                        ))}
-                    </ul>
                 </div>
             </div>
             <div className="modal-footer">

@@ -20,6 +20,7 @@ import {
     getLatestIndicatorIdsByCatalogPath,
     getIndicatorChartConfigRecord,
     getIndicatorChartConfig,
+    getVariablesByIds,
     searchVariables,
     searchVariablesGroupedByDataset,
     updateAllChartsThatInheritFromIndicator,
@@ -90,6 +91,13 @@ export async function getVariablesJson(
     _res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
+    // A chart's own indicators, looked up by id — the picker starts from those
+    const ids = (req.query.ids as string)
+        ?.split(",")
+        .map((id) => parseIntOrUndefined(id.trim()))
+        .filter((id): id is number => id !== undefined)
+    if (ids?.length) return { variables: await getVariablesByIds(ids, trx) }
+
     const limit = parseIntOrUndefined(req.query.limit as string) ?? 50
     const offset = parseIntOrUndefined(req.query.offset as string) ?? 0
     const query = req.query.search as string

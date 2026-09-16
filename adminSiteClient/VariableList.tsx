@@ -49,6 +49,11 @@ export interface DatasetSearchGroup {
     uploadedAt?: Date
     uploadedBy?: string | null
     variables: VariableListItem[]
+    /**
+     * A group assembled by the page rather than by a dataset — the chart's own
+     * indicators in the picker. It has no dataset to link to or count.
+     */
+    pinned?: boolean
 }
 
 interface VariableListProps {
@@ -79,8 +84,11 @@ function plural(count: number, noun: string): string {
  */
 function UsageCell({
     variable,
+    withPopularity,
 }: {
     variable: VariableListItem
+    /** Shown after the counts, where a column of its own was mostly blank. */
+    withPopularity?: boolean
 }): React.ReactElement {
     const charts = variable.charts ?? []
     const multiDims = variable.multiDims ?? []
@@ -129,7 +137,17 @@ function UsageCell({
             )),
         })
 
-    if (!parts.length) return <span className="text-muted">—</span>
+    const popularity = withPopularity ? (
+        <PopularityCell popularity={variable.popularity} inline />
+    ) : null
+
+    if (!parts.length)
+        return (
+            <>
+                <span className="text-muted">—</span>
+                {popularity}
+            </>
+        )
 
     return (
         <>
@@ -154,6 +172,7 @@ function UsageCell({
                     </Popover>
                 </React.Fragment>
             ))}
+            {popularity}
         </>
     )
 }
@@ -161,14 +180,22 @@ function UsageCell({
 /** A 0-1 score reads better against its neighbours than as a number. */
 function PopularityCell({
     popularity,
+    inline,
 }: {
     popularity: number | null | undefined
-}): React.ReactElement {
+    inline?: boolean
+}): React.ReactElement | null {
     if (popularity === null || popularity === undefined)
-        return <span className="text-muted">—</span>
+        return inline ? null : <span className="text-muted">—</span>
     return (
-        <Tooltip title={popularity.toFixed(2)}>
-            <div className="variable-list__popularity">
+        <Tooltip title={`Popularity ${popularity.toFixed(2)}`}>
+            <div
+                className={
+                    inline
+                        ? "variable-list__popularity variable-list__popularity--inline"
+                        : "variable-list__popularity"
+                }
+            >
                 <div
                     className="variable-list__popularity-fill"
                     style={{ width: `${Math.round(popularity * 100)}%` }}
@@ -463,6 +490,12 @@ function DatasetGroupHeader({
     const path = [group.namespace, group.version, group.shortName]
         .filter(Boolean)
         .join("/")
+    if (group.pinned)
+        return (
+            <div className="variable-list__group">
+                <span className="variable-list__group-name">{group.name}</span>
+            </div>
+        )
     return (
         <div className="variable-list__group">
             <Link
@@ -565,9 +598,9 @@ export function GroupedVariableList({
             {
                 title: "Indicator",
                 key: "name",
-                width: "70%",
+                width: "74%",
                 onCell: (row) =>
-                    row.kind === "indicator" ? {} : { colSpan: 3 },
+                    row.kind === "indicator" ? {} : { colSpan: 2 },
                 render: (_, row) => {
                     if (row.kind === "dataset")
                         return (
@@ -642,21 +675,11 @@ export function GroupedVariableList({
             {
                 title: "Used in",
                 key: "usage",
-                width: "16%",
+                width: "26%",
                 onCell: spanned,
                 render: (_, row) =>
                     row.kind === "indicator" ? (
-                        <UsageCell variable={row.variable} />
-                    ) : null,
-            },
-            {
-                title: "Popularity",
-                key: "popularity",
-                width: "14%",
-                onCell: spanned,
-                render: (_, row) =>
-                    row.kind === "indicator" ? (
-                        <PopularityCell popularity={row.variable.popularity} />
+                        <UsageCell variable={row.variable} withPopularity />
                     ) : null,
             },
         ]
