@@ -1,0 +1,9 @@
+.chart-skeleton {
+    position: relative;
+    border: 1px solid $frame-color;
+    border-radius: 2px;
+}
+
+.chart-skeleton .spinner {
+    color: $gray-60;
+}
