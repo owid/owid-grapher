@@ -474,6 +474,7 @@ __metadata:
   resolution: "@owid/bespoke-helpers@workspace:helpers"
   dependencies:
     "@ourworldindata/utils": "link:../../packages/@ourworldindata/utils"
+    "@tanstack/react-query": "npm:^5.101.0"
     typescript: "npm:^7.0.2"
     vitest: "npm:^5.0.0"
   languageName: unknown

@@ -8,12 +8,18 @@ Unlike Grapher charts, bespoke components are fully custom — they have their o
 
 ```
 bespoke/
-├── components/    # Shared component library (React components, hooks, utilities)
+├── components/    # Shared component library (React components)
+├── helpers/       # Shared non-visual utilities
+├── hooks/         # Shared React hooks
 ├── projects/      # Individual bespoke viz projects (each fully self-contained)
 ├── server/        # Dev server (reverse proxy that lazily starts Vite per project)
 ├── shared/        # Shared code between the site code and bespoke projects (e.g. shared types, Shadow DOM utilities)
 └── readme.md
 ```
+
+Read [components/readme.md](components/readme.md) before writing a control, a
+chart frame or a loading state. It lists what is already there, and the three
+import mechanics that are not guessable from the code.
 
 ## How it works
 

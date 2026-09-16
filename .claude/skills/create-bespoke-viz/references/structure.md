@@ -29,8 +29,8 @@ Titles are narrative sentences generated from the current selection ("What did c
 
 ## Loading, errors, empty states
 
-- **Loading**: skeleton on first load (a box with a `<Spinner />` is enough); on refetch keep the old chart visible with a `<Spinner />` overlay, whose container needs `position: relative`. Gate spinners behind `useDelayedLoading` so fast loads don't flash. `<Spinner inline />` works inside text, e.g. a subtitle value that's reloading.
-- **Errors**: render a plain fallback div with a message; parse defensively (filter bad rows with a `console.warn`) rather than throwing.
+- **Loading**: `ChartSkeleton` on first load. On refetch keep the old chart visible with a `<Spinner />` overlay instead, whose container needs `position: relative`. Gate that spinner behind `useDelayedLoading`; `ChartSkeleton` already gates its own. `<Spinner inline />` works inside text, e.g. a subtitle value that's reloading.
+- **Errors**: `ChartError`. It takes no message: which file failed is our concern, not the reader's, so every bespoke chart says the same thing.
 - **Empty states**: when the current selection legitimately has no data, show a "no data" message — a third state, distinct from error and skeleton — optionally with a button switching to a selection that has data.
 
 ## Responsiveness

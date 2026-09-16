@@ -15,6 +15,8 @@ import {
     OTHER_KEY,
 } from "../../../../components/Sankey/SankeyHelpers.js"
 import { MOBILE_BREAKPOINT } from "../../../../components/Sankey/SplitFlowSankey.js"
+import { ChartSkeleton } from "../../../../components/ChartSkeleton/ChartSkeleton.js"
+import { ChartError } from "../../../../components/ChartError/ChartError.js"
 import { useUrlState } from "../../../../hooks/useUrlState.js"
 import { EmbedConfigProvider } from "../../../../hooks/useEmbedConfig.js"
 import { useDelayedLoading } from "../../../../hooks/useDelayedLoading.js"
@@ -198,18 +200,14 @@ function FetchingSankeyVariant({ config }: { config: SankeyVariantConfig }) {
           ? `No immigrants recorded in ${countryLabel} in ${year}.`
           : undefined
 
-    if (
-        metadataStatus === "pending" ||
-        migrationStatus === "pending" ||
-        !isCountryResolved
-    )
-        return <MigrationSkeleton />
+    if (metadataStatus === "pending")
+        return <ChartSkeleton className="migration-chart-box" />
     if (metadataStatus === "error" || !metadata)
-        return (
-            <MigrationChartError message="Failed to load migration metadata" />
-        )
+        return <ChartError className="migration-chart-box" />
+    if (migrationStatus === "pending" || !isCountryResolved)
+        return <ChartSkeleton className="migration-chart-box" />
     if (migrationStatus === "error" || !migration)
-        return <MigrationChartError message="Failed to load migration data" />
+        return <ChartError className="migration-chart-box" />
 
     return (
         <CaptionedSankeyVariant
@@ -401,12 +399,4 @@ function filterRows(
     return rows
         .filter((r) => r.year === year && r.sex === sex && r.value > 0)
         .map((r) => ({ partner: r.partner, value: r.value }))
-}
-
-function MigrationSkeleton() {
-    return <div className="migration-skeleton" />
-}
-
-function MigrationChartError({ message }: { message: string }) {
-    return <div className="migration-chart__error">{message}</div>
 }

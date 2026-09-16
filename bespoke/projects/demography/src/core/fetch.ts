@@ -1,7 +1,7 @@
 import { QueryClient, QueryStatus, useQuery } from "@tanstack/react-query"
 import { fetchJson } from "@ourworldindata/utils"
 import { CountryData, DemographyMetadata } from "./types"
-import { combineStatuses } from "./utils.js"
+import { combineStatuses } from "../../../../helpers/queryStatus.js"
 import { useDelayedLoading } from "../../../../hooks/useDelayedLoading.js"
 
 const BASE_URL = "https://owid-public.owid.io/bespoke/demography"
