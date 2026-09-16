@@ -72,24 +72,27 @@ describe(NewsletterSignupForm, () => {
         expect(screen.getByTestId("turnstile")).toBeInTheDocument()
     })
 
-    it("discards verification when switching away from Brief-only without restarting the challenge", () => {
+    it("keeps completed verification mounted when newsletter choices change", () => {
         renderForm()
         fireEvent.change(screen.getByPlaceholderText("Your email address"), {
             target: { value: "r" },
         })
         act(() => captcha.props.onSuccess?.("captcha-token"))
+        const widget = screen.getByTestId("turnstile")
         fireEvent.click(screen.getByLabelText(/Follow Topics/))
-        expect(screen.queryByTestId("turnstile")).not.toBeInTheDocument()
+        expect(screen.getByTestId("turnstile")).toBe(widget)
         expect(captcha.reset).not.toHaveBeenCalled()
         fireEvent.click(screen.getByLabelText(/Follow Topics/))
-        expect(screen.getByRole("button")).toBeDisabled()
-        act(() => captcha.props.onSuccess?.("fresh-token"))
+        expect(screen.getByTestId("turnstile")).toBe(widget)
         expect(screen.getByRole("button")).not.toBeDisabled()
         fireEvent.click(screen.getByLabelText(/The OWID Brief/))
-        expect(screen.queryByTestId("turnstile")).not.toBeInTheDocument()
+        expect(screen.getByTestId("turnstile")).toBe(widget)
+        expect(screen.getByRole("button")).toBeDisabled()
         expect(captcha.reset).not.toHaveBeenCalled()
         fireEvent.click(screen.getByLabelText(/The OWID Brief/))
-        expect(screen.getByTestId("turnstile")).toBeInTheDocument()
+        expect(screen.getByTestId("turnstile")).toBe(widget)
+        expect(screen.getByRole("button")).not.toBeDisabled()
+        act(() => captcha.props.onExpire?.("captcha-token"))
         expect(screen.getByRole("button")).toBeDisabled()
     })
 

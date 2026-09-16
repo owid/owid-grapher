@@ -54,6 +54,10 @@ export const NewsletterSignupForm = ({
     const [hasEditedForm, setHasEditedForm] = useState(false)
 
     const isSubmittable = subscribeToOwidBrief || followTopics
+    const showCaptcha =
+        hasEditedForm &&
+        ((subscribeToOwidBrief && !followTopics) ||
+            !!spamProtection.captchaToken)
 
     const handleSubmit = async (event: React.SubmitEvent<HTMLFormElement>) => {
         event.preventDefault()
@@ -130,7 +134,8 @@ export const NewsletterSignupForm = ({
                 checked={subscribeToOwidBrief}
                 disabled={isSubscribing}
                 onChange={() => {
-                    spamProtection.clearCaptcha()
+                    if (!spamProtection.captchaToken)
+                        spamProtection.clearCaptcha()
                     setSubscribeToOwidBrief(!subscribeToOwidBrief)
                 }}
             />
@@ -146,7 +151,8 @@ export const NewsletterSignupForm = ({
                 checked={followTopics}
                 disabled={isSubscribing}
                 onChange={() => {
-                    spamProtection.clearCaptcha()
+                    if (!spamProtection.captchaToken)
+                        spamProtection.clearCaptcha()
                     setFollowTopics(!followTopics)
                 }}
             />
@@ -168,7 +174,7 @@ export const NewsletterSignupForm = ({
                 disabled={isSubscribing}
                 onChange={(event) => setEmail(event.target.value)}
             />
-            {hasEditedForm && subscribeToOwidBrief && !followTopics && (
+            {showCaptcha && (
                 <NewsletterSpamProtection {...spamProtection.fieldsProps} />
             )}
             <Button
