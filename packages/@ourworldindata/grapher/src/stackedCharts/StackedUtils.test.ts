@@ -4,7 +4,7 @@ import { ColumnTypeMap, OwidTable } from "@ourworldindata/core-table"
 import { Time } from "@ourworldindata/types"
 import { StackedSeries } from "./StackedConstants"
 import {
-    hasLoneNegativeSeriesAtBottom,
+    findLoneNegativeSeriesAtBottom,
     stackSeriesInBothDirections,
     withMissingValuesAsZeroes,
     withPointsAtZeroLineCrossings,
@@ -117,6 +117,17 @@ const landUseCrossingZero = {
     ],
 }
 
+const allZeros = {
+    seriesName: "allZeros",
+    columnSlug: "allZeros",
+    color: "blue",
+    isAllZeros: true,
+    points: [
+        { position: 1990, time: 1990, value: 0, valueOffset: 0 },
+        { position: 2000, time: 2000, value: 0, valueOffset: 0 },
+    ],
+}
+
 const fossil = {
     seriesName: "fossil",
     columnSlug: "fossil",
@@ -127,14 +138,24 @@ const fossil = {
     ],
 }
 
-describe(hasLoneNegativeSeriesAtBottom, () => {
-    it("is true when only the bottom series goes negative", () => {
+describe(findLoneNegativeSeriesAtBottom, () => {
+    it("returns the bottom series when only it goes negative", () => {
         expect(
-            hasLoneNegativeSeriesAtBottom([landUseCrossingZero, fossil])
-        ).toBe(true)
+            findLoneNegativeSeriesAtBottom([landUseCrossingZero, fossil])
+        ).toBe(landUseCrossingZero)
     })
 
-    it("is false when the bottom series is never negative", () => {
+    it("skips series that are all zeroes when looking for the bottom", () => {
+        expect(
+            findLoneNegativeSeriesAtBottom([
+                allZeros,
+                landUseCrossingZero,
+                fossil,
+            ])
+        ).toBe(landUseCrossingZero)
+    })
+
+    it("returns nothing when the bottom series is never negative", () => {
         const landUse = {
             ...landUseCrossingZero,
             points: [
@@ -142,10 +163,12 @@ describe(hasLoneNegativeSeriesAtBottom, () => {
                 { position: 2000, time: 2000, value: 10, valueOffset: 0 },
             ],
         }
-        expect(hasLoneNegativeSeriesAtBottom([landUse, fossil])).toBe(false)
+        expect(
+            findLoneNegativeSeriesAtBottom([landUse, fossil])
+        ).toBeUndefined()
     })
 
-    it("is false when a series above the bottom one is also negative", () => {
+    it("returns nothing when a series above the bottom one is also negative", () => {
         const alsoNegative = {
             ...fossil,
             points: [
@@ -154,8 +177,8 @@ describe(hasLoneNegativeSeriesAtBottom, () => {
             ],
         }
         expect(
-            hasLoneNegativeSeriesAtBottom([landUseCrossingZero, alsoNegative])
-        ).toBe(false)
+            findLoneNegativeSeriesAtBottom([landUseCrossingZero, alsoNegative])
+        ).toBeUndefined()
     })
 })
 
@@ -180,6 +203,17 @@ describe(withPointsAtZeroLineCrossings, () => {
             [1990, 100, 20],
             [1995, 110, 0],
             [2000, 120, 0],
+        ])
+    })
+
+    it("takes the crossings from the bottom series that gets drawn", () => {
+        const series = withPointsAtZeroLineCrossings(
+            stackSeriesInBothDirections([allZeros, landUseCrossingZero, fossil])
+        )
+        expect(bandsOf(series[1])).toEqual([
+            [1990, 20, 0],
+            [1995, 0, 0],
+            [2000, -20, 0],
         ])
     })
 

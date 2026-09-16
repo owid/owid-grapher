@@ -229,14 +229,18 @@ function simplifyFlatEdge(edge: Point[]): Point[] {
         : edge
 }
 
-/** Whether the only series holding negative values is the bottom one that gets drawn */
-export function hasLoneNegativeSeriesAtBottom<
+/** The bottom series that gets drawn, if it holds the only negative values */
+export function findLoneNegativeSeriesAtBottom<
     PositionType extends StackedPointPositionType,
->(seriesArr: readonly StackedSeries<PositionType>[]): boolean {
+>(
+    seriesArr: readonly StackedSeries<PositionType>[]
+): StackedSeries<PositionType> | undefined {
     const bottomIndex = seriesArr.findIndex((series) => !series.isAllZeros)
     if (bottomIndex === -1 || !hasNegativeValue(seriesArr[bottomIndex]))
-        return false
-    return !seriesArr.slice(bottomIndex + 1).some(hasNegativeValue)
+        return undefined
+    if (seriesArr.slice(bottomIndex + 1).some(hasNegativeValue))
+        return undefined
+    return seriesArr[bottomIndex]
 }
 
 function hasNegativeValue<PositionType extends StackedPointPositionType>(
@@ -304,10 +308,11 @@ export function withPointsAtZeroLineCrossings(
     series: readonly StackedSeries<Time>[]
 ): readonly StackedSeries<Time>[] {
     // Widening this to charts with several negative series makes them worse
-    if (series.length < 2 || !hasLoneNegativeSeriesAtBottom(series))
-        return series
+    if (series.length < 2) return series
+    const bottomSeries = findLoneNegativeSeriesAtBottom(series)
+    if (!bottomSeries) return series
 
-    const crossings = findZeroLineCrossings(series[0].points)
+    const crossings = findZeroLineCrossings(bottomSeries.points)
     if (crossings.length === 0) return series
 
     return stackSeriesInBothDirections(
