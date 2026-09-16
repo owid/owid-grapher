@@ -27,6 +27,6 @@ export const BESPOKE_COMPONENT_REGISTRY: Record<
     "migrant-demographics": {
         scriptUrl: "/migrant-demographics/index.js",
         dataUrl: "https://owid-public.owid.io/bespoke/migrant-demographics",
-        metadataFilename: "migrant-demographics.json",
+        metadataFilename: "migrant-demographics.metadata.json",
     },
 }
