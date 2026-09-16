@@ -1,122 +1,102 @@
 # Testing strategy
 
 Use this guide when choosing, writing, or reviewing tests. Tests should explain
-important behavior to a reviewer and give agents a clear contract to preserve.
-Optimize for useful evidence per line of maintained code, not a target test count
-or the shortest possible suite.
+important behavior to reviewers and give agents a clear contract to preserve.
+Optimize for useful evidence, not test count or minimum suite size.
 
 ## Agent checklist
 
 1. **State the claim and risk.** What behavior matters, and what plausible wrong
-   result should the test reject? Existing coverage may already be sufficient.
+   result must the test reject? Existing coverage may already be enough.
 2. **Agree on the strategy.** Discuss the boundary, representative scenarios,
-   failure cases, and depth with the engineer. Recommend a concrete plan. An
-   already-agreed strategy carries forward; ask again only when a new risk or
-   change of scope requires a decision.
-3. **Choose the lowest-cost faithful boundary.** Start with deterministic
-   in-process tests. Use a database, browser, renderer, built package, or Workers
-   runtime when the claim depends on that boundary. Most changes need one or two
-   regimes, not every regime below.
-4. **Make the evidence discriminating.** Use explicit expected results that
-   distinguish correct behavior from plausible regressions. For a bug fix,
-   propose a failing test first and check that it fails for the expected reason.
-5. **Make the tests readable on their own.** Name the rule, expose significant
-   inputs, and explain non-obvious scenarios. Keep incidental setup subordinate
-   to the behavior. Calibrate the text explaining the tests to the magnitude of the
-   work being tested, which is usually the PR or stack of PRs: a small tweak probably
-   needs no test; the tests for a smaller feature can probably be explained in a few
-   sentences; the tests for a new PR stack that substantially changes a core mechanism
-   of the codebase deserves several paragraphs of explanation to give context for how
-   the behaviour has changed and what the tests verify.
-6. **Preserve existing guarantees when rewriting tests.** Follow the refactoring
-   protocol below. Passing before and after is not evidence of equivalence.
-7. **Run relevant checks and report their limits.** Static checks establish
-   structural validity, not runtime behavior. Report incomplete checks and
-   pre-existing failures separately from regressions.
+   failure cases, and depth with the engineer, then recommend a concrete plan.
+   Carry an agreed plan forward unless a new risk or scope change needs a decision.
+3. **Choose the cheapest faithful boundary.** Prefer deterministic in-process
+   tests, but use MySQL, a browser, the SVG renderer, a built package, or the
+   Workers runtime when the claim depends on it. Most changes need only one or
+   two regimes.
+4. **Use discriminating evidence.** Assert explicit results that distinguish
+   correct behavior from plausible regressions. For a well-understood bug, propose
+   a failing test first and confirm that it fails for the expected reason.
+5. **Make tests self-explanatory.** Name the rule, expose significant inputs, and
+   keep incidental setup subordinate. Explain the strategy in proportion to the
+   change: perhaps nothing for an obvious tweak, a few sentences for a feature,
+   or several paragraphs for a stack that changes a core mechanism.
+6. **Preserve guarantees when rewriting.** Follow the refactoring protocol below;
+   passing before and after does not prove equivalence.
+7. **Run relevant checks and report limits.** Static checks prove structural
+   validity, not runtime behavior. Separate incomplete or pre-existing failures
+   from regressions.
 
-For a well-understood regression, or for changes that lend themselves well for red/green
-TDD tests like very algorithmic changes, discuss the test plan and TDD before changing
-code. For exploratory work, agree on the important invariants once
-the behavior stabilizes and before preparing the PR. For a small obvious change,
+For well-understood regressions and changes suited to red/green TDD, discuss the
+test plan and TDD before changing code. For exploratory work, agree on invariants
+once behavior stabilizes and before preparing the PR. For a small, obvious change,
 propose a brief default, including when existing checks suffice. Use property-based
-testing where appropriate, for example, to validate that serialization and
-deserialization are idempotent.
+tests where they fit, such as checking serialization round trips.
 
 ## Writing high-value tests
 
-A meaningful group should explain why the behavior matters, which contract it
-protects, and how its cases exercise that contract. Use a short comment where
-names and fixtures do not already communicate the rationale; avoid boilerplate
-that merely repeats the tests. Order cases around the rule, its boundaries, and
-counterexamples.
+A meaningful test group says why the behavior matters, which contract it protects,
+and how its cases exercise that contract. Prefer names and fixtures that make this
+clear; add a short comment only for non-obvious rationale. Organize cases around
+the rule, its boundaries, and counterexamples.
 
-### Assertions must distinguish plausible wrong results
+### Make assertions discriminating
 
-Assert enough to reject the wrong outcomes that matter. Include completeness,
-ordering, absence, and intermediate state when they are part of the contract.
-A containment assertion does not prove exact membership or ranking; a row count
-does not prove which rows survived. Empty results can satisfy an upper-bound
-check, and an empty array can satisfy `every`.
+Assert the parts of the result that define the contract, including completeness,
+ordering, absence, and intermediate state where relevant. Containment does not
+prove exact membership or ranking; a row count does not identify the surviving
+rows; empty results can satisfy upper-bound checks and `every`.
 
-Use exact comparisons for small contractual outputs. Project onto relevant
-fields when unrelated metadata is incidental, but do not silently replace an
-existing exact comparison with a weaker subset comparison during a refactor.
-Snapshots are useful only when a reviewer can judge the output.
+Use exact comparisons for small contractual outputs. When unrelated metadata is
+incidental, project onto relevant fields, but do not weaken an existing exact
+comparison during a refactor. Use snapshots only when a reviewer can judge them.
 
-Expected results must be independent of the rule under test. A fixture helper
-may call production code for incidental setup, but do not calculate the expected
-answer with the transformation whose correctness the test claims to establish.
-Integration tests may rely on separately tested helpers; be explicit about what
-that reliance leaves unproven, and assert important conflicting values directly.
+Expected results must be independent of the rule under test. Production code may
+help with incidental fixture setup, but it must not calculate the expected answer
+for the transformation being tested. Integration tests may rely on separately
+tested helpers; state what that leaves unproven and assert important conflicts
+directly.
 
 ### Compress plumbing, preserve distinctions
 
-- Use small fixture builders or request helpers for incidental setup. Keep
-  behavior-defining input values and expected results at the call site.
-- When multiple tests test a grid of permutations, use named table rows when #
-  setup, action, and assertion shape are the same.
-  Include a readable case name in the failure output. Do not add conditional
-  assertions to make unrelated scenarios fit one table.
-- Keep separate cases when the rule, control flow, or failure explanation differs.
-  Keep a multi-step scenario when the sequence itself is the regression, and
-  assert intermediate states that make the sequence meaningful.
+- Extract small builders or request helpers for incidental setup; keep
+  behavior-defining inputs and expected results at the call site.
+- Use named table rows when setup, action, and assertion shape are the same. Keep
+  unrelated rules or control flow separate instead of adding conditional assertions.
+- Preserve multi-step scenarios when the sequence is the regression, including
+  meaningful intermediate assertions.
 - Choose representative partitions and risky interactions. Explain why omitted
-  cases are equivalent; similar final outputs alone do not establish equivalence
-  across different paths or state transitions.
-- Avoid generated Cartesian products without a distinct risk for each dimension.
-  Small finite sets of contractual options can appropriately cover every option.
-- Do not weaken assertions or add retries to hide flaky tests. Improve isolation,
-  diagnostics, and fixtures instead.
+  cases are equivalent; similar outputs do not prove equivalent paths or transitions.
+- Avoid Cartesian products without a distinct risk for each dimension. Exhaustive
+  coverage is appropriate for small finite sets of contractual options.
+- Fix flaky isolation, diagnostics, or fixtures; do not hide failures with weaker
+  assertions or retries.
 
-## Refactoring existing tests without losing guarantees
+## Refactoring tests without losing guarantees
 
-Treat a test rewrite as a change to the evidence. Preserve the boundary being
-exercised as well as the assertions: a state test does not replace API persistence
-evidence even when its expected values match.
+A test rewrite changes the evidence. Preserve both the boundary and the assertions:
+a state test does not replace API persistence evidence, even with the same values.
 
-1. **Inventory the old guarantees.** For each assertion or coherent assertion
-   group, record its significant inputs, action/sequence, expected property,
-   and replacement location. Include negative assertions and intermediate states.
-   Test names are a starting point, not proof of what is currently covered.
-2. **Separate structure from stronger evidence.** First preserve inputs, expected
-   values, matcher strength, checkpoints, and test boundary while naming cases,
-   extracting plumbing, or grouping tests. Put added or strengthened assertions
-   in a subsequent commit or stacked PR. Record gaps between names and actual
-   assertions rather than silently claiming the old suite protected them.
+1. **Inventory existing guarantees.** For each assertion or coherent group, record
+   significant inputs, action or sequence, expected property, and replacement.
+   Include negative assertions and intermediate states; names alone are not proof.
+2. **Separate restructuring from stronger evidence.** First preserve inputs,
+   values, matcher strength, checkpoints, and boundary while improving structure.
+   Add stronger assertions in a later commit or stacked PR, and record gaps between
+   test names and actual evidence.
 3. **Account for every removal.** Map each removed assertion to an equivalent
-   replacement. Removing a case as redundant requires an explanation of why its
-   inputs and path add no distinct protection. Any intentional reduction in
-   protection must be an explicit review decision.
-4. **Check the mapping and execution.** Run the focused suite before and after.
-   Compare assertions and case inputs, not just test counts or line coverage.
-   For an important or ambiguous guarantee, temporarily introduce a targeted
-   defect and verify whether old and new tests reject it for the intended reason.
-   Restore the defect and rerun the final suite. Mutation checks add confidence;
-   they are not a proof of equivalence and need not be exhaustive.
+   replacement. Explain why any removed case adds no distinct protection; reducing
+   protection requires an explicit review decision.
+4. **Compare evidence, not counts.** Run the focused suite before and after, then
+   compare assertions and inputs. For an important or ambiguous guarantee,
+   temporarily introduce a targeted defect and confirm both suites reject it for
+   the intended reason. Restore it and rerun. Mutation checks add confidence but
+   do not prove equivalence.
 5. **Keep review bounded.** Prefer one coherent behavior group per PR. Put the
    preservation mapping, intentional evidence changes, and validation results in
-   the PR's Details block. Avoid maintaining a second permanent copy of the suite
-   or a general-purpose test DSL solely to shorten a pilot.
+   the PR's Details block. Do not maintain a duplicate suite or build a general
+   test DSL merely to shorten a pilot.
 
 Example preservation mapping:
 
@@ -126,117 +106,85 @@ Example preservation mapping:
 | A test name claims the highest score wins, but only checks count          | Add an explicit expected score in a follow-up                   | Stronger evidence; a pre-existing gap |
 | A tab round trip checks empty → populated → empty selection and URL state | Keep all checkpoints in the same scenario                       | None                                  |
 
-A useful review asks: which plausible defects can these tests detect, where can
-I see the expected behavior, and what evidence changed? LOC and runtime are
-secondary measurements; neither measures semantic preservation.
+A useful review asks which plausible defects the tests detect, where expected
+behavior is visible, and what evidence changed. LOC and runtime are secondary;
+neither measures semantic preservation.
 
-## What exists today
+## Repository test regimes
 
-The repository already has useful tests at several boundaries. The problem is
-less a lack of mechanisms than an unclear shared model for choosing between
-them.
+Choose the regime whose boundary the claim depends on. These are complementary,
+not levels every change must climb.
 
 ### Static verification
 
-The main CI workflow runs TypeScript project-reference checking, oxlint,
-format checking, and a generated-Raycast-snippet consistency check. BundleMon
-builds the public-site bundle and enforces compressed JS and CSS budgets.
-These are fast, broad change detectors, but they do not establish runtime
-behavior and should not be presented as behavioral test coverage.
+The main CI workflow runs TypeScript project-reference checks, oxlint, formatting,
+and generated-Raycast-snippet consistency checks. BundleMon builds the public-site
+bundle and enforces compressed JS and CSS budgets. These catch broad structural
+changes but do not establish runtime behavior.
 
 ### In-process tests (Vitest)
 
-The default `vitest.config.ts` suite is the largest and fastest behavioral
-regime. It covers pure functions, state models, parsers, URL migrations,
-serializers, React components in a DOM-like environment, chart layout, and
-other code across packages and applications. React Testing Library cleanup is
-installed globally.
+The default `vitest.config.ts` suite covers pure functions, state models, parsers,
+URL migrations, serializers, React components in a DOM-like environment, chart
+layout, and other package and application code. React Testing Library cleanup is
+global.
 
-These tests are the default for:
-
-- pure transformations and domain rules;
-- state transitions and derived values;
-- rendering behavior that does not require a browser engine;
-- regression examples with small, explicit fixtures; and
-- contracts between modules that can be exercised in one process.
-
-Their main risk is over-testing implementation details or constructing large
-fixtures whose purpose is hard to see. Tests should name observable rules and
-keep setup close to the minimum necessary to demonstrate them.
+This is the default for transformations, domain rules, state transitions, derived
+values, rendering that needs no browser engine, small regression fixtures, and
+in-process module contracts. Test observable rules and avoid large, opaque fixtures
+or implementation-detail assertions.
 
 ### Database and admin API integration tests
 
-`make dbtest` starts a dedicated MySQL 8 container, applies migrations, and
-runs the tests selected by `vitest.db.config.ts`. The suite covers database
-behavior and admin API flows against a real application and database. It is
-serialized because tests currently share a database and a fixed application
-port, and cleanup must prevent state leaking between tests.
+`make dbtest` starts a dedicated MySQL 8 container, applies migrations, and runs
+`vitest.db.config.ts`. Use it for SQL semantics, migrations, triggers, views,
+constraints, transactions, persistence, and the assembled admin HTTP boundary.
+The suite is serialized because tests share a database and fixed application port,
+so cleanup must prevent leakage. Keep logic that does not require MySQL in Vitest.
 
-Use this regime for claims that depend on SQL semantics, migrations, triggers,
-views, constraints, transactions, persistence, or the assembled admin HTTP
-boundary. Keep business logic that does not require MySQL in the faster
-in-process suite.
+### Browser behavioral tests
 
-### Browser behavioral tests (Playwright with BDD generation)
+Playwright generates tests from feature files and runs them in Chromium, Firefox,
+and WebKit. Current scenarios cover search and Wikipedia-archive requests against a
+running baked site; they are not in the main GitHub Actions CI workflow.
 
-The Playwright setup currently generates tests from feature files and runs
-them in Chromium, Firefox, and WebKit. The checked-in scenarios cover search
-flows and Wikipedia-archive request behavior against a running baked site.
-The scripts support local interactive use, but these tests are not part of the
-main GitHub Actions CI workflow.
-
-This is an underused capability. Browser tests are the appropriate evidence
-for critical behavior that crosses real browser layout/events, navigation and
-history, accessibility interactions, network requests, or integration between
-the baked site and an embedded Grapher. Candidate journeys include changing
-Grapher tabs, manipulating bins or selections, preserving URL state, and
-checking a small set of high-value site journeys.
-
-The valuable boundary here is Playwright, not necessarily the Gherkin
-translation layer. The repository should experiment with direct Playwright
-tests alongside the existing feature-based tests and compare readability,
-diagnostics, reuse, and authoring cost before standardizing on either style.
+Use browser tests for critical behavior involving real layout and events,
+navigation/history, accessibility interactions, network requests, or the baked
+site plus embedded Grapher. High-value candidates include tabs, bins, selections,
+URL state, and a small set of critical journeys. The valuable boundary is
+Playwright, not necessarily Gherkin: compare direct Playwright tests with the
+feature-based style before standardizing.
 
 ### SVG output regression tests
 
-The SVG tester renders stored production-like chart, Grapher-view,
-multi-dimensional-view, and thumbnail fixtures and compares normalized SVG
-output with references in a sibling repository. It gives unusually broad
-rendering coverage without browser interaction and produces artifacts for
-human inspection when output changes.
-
-Use it when Grapher rendering may change. It is a broad change detector, not a
-substitute for a focused behavioral test: an intentional visual diff says
-that output changed, while a named test explains the invariant that must hold.
-Reference freshness and human classification of diffs are part of the regime.
+The SVG tester renders production-like chart, Grapher-view, multidimensional-view,
+and thumbnail fixtures, then compares normalized output with references in a
+sibling repository. Use it when Grapher rendering may change. It detects broad
+visual changes but does not explain correctness; focused tests should name key
+invariants, and humans must classify diffs and keep references current.
 
 ### Built-package contract tests
 
-The Grapher package workflow builds and packs the publishable artifact, then
-checks JS imports, DOM mounting, bundled declarations, package metadata, and
-exports/type resolution. These tests deliberately sit outside the default
-Vitest suite because the artifact must exist first.
+The Grapher package workflow builds and packs the publishable artifact, then checks
+JS imports, DOM mounting, declarations, metadata, and export/type resolution.
+These tests sit outside Vitest because the artifact must exist first. Use them for
+consumer-visible contracts that source tests and repository typechecking cannot prove.
 
-Use this boundary for consumer-visible package contracts that source-level
-tests and repository typechecking cannot prove.
+### Runtime and external-service tests
 
-### Runtime-specific and external-service tests
-
-The `functions/test` area includes Node-level integration tests and opt-in E2E
-tests that run handlers in a real Workers runtime or contact services such as
-Algolia and R2. They protect compatibility and integration assumptions that a
-mock cannot establish, but external state makes them slower and less
-deterministic. They should be narrowly scoped, clearly labelled, and kept out
-of the fast suite unless their environment can be made reliable.
+`functions/test` includes Node integration tests and opt-in E2E tests against a real
+Workers runtime or services such as Algolia and R2. They protect runtime and service
+assumptions that mocks cannot prove, but external state makes them slower and less
+deterministic. Keep them narrow, clearly labelled, and outside the fast suite unless
+their environment is reliable.
 
 ### Bespoke project tests and builds
 
-The separate `bespoke` workspace has its own typecheck, Vitest, and build jobs.
-This respects its independent dependency graph while still making all three
-checks required on pull requests. Individual projects can add tests for their
-domain logic and reusable helpers.
+The separate `bespoke` workspace has its own required typecheck, Vitest, and build
+jobs, preserving its independent dependency graph. Projects can add focused tests
+for domain logic and reusable helpers.
 
-## Proposed regimes and responsibilities
+## Regime summary
 
 | Regime                      | Primary question                                               | Good targets                                                                                   | Avoid                                                    |
 | --------------------------- | -------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
@@ -248,6 +196,3 @@ domain logic and reusable helpers.
 | Artifact/consumer contract  | Does what we ship work outside the monorepo?                   | package exports, declarations, mounting built code                                             | source-only implementation rules                         |
 | Runtime/service integration | Do deployment-runtime and external-service assumptions hold?   | Workers APIs, R2, Algolia                                                                      | behavior that can be deterministic in process            |
 | Exploratory/manual          | Are appearance and unfamiliar interactions acceptable?         | intentional visual review, novel or hard-to-automate UX                                        | repeatable critical regressions that should be automated |
-
-These regimes are complementary rather than levels that every change must
-climb. Most changes should use only one or two.
