@@ -9,7 +9,7 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import { useIntersectionObserver } from "usehooks-ts"
 import Image from "./Image.js"
 import { useImage } from "../utils.js"
-import { BESPOKE_COMPONENT_REGISTRY } from "../../bespokeComponentRegistry.js"
+import { BESPOKE_COMPONENT_REGISTRY } from "../../../bespoke/shared/bespokeComponentRegistry.js"
 import { mountBespokeComponentInShadow } from "../../../bespoke/shared/bespokeComponentShadowDom.js"
 import {
     BESPOKE_BASE_URL,

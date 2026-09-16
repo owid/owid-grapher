@@ -15,7 +15,7 @@ import {
     OwidEnrichedGdocBlock,
 } from "@ourworldindata/types"
 import { logErrorAndMaybeCaptureInSentry } from "../../../serverUtils/errorLog.js"
-import { BESPOKE_COMPONENT_REGISTRY } from "../../../site/bespokeComponentRegistry.js"
+import { BESPOKE_COMPONENT_REGISTRY } from "../../../bespoke/shared/bespokeComponentRegistry.js"
 import { GdocBase } from "./GdocBase.js"
 
 const METADATA_FETCH_TIMEOUT_MS = 10_000

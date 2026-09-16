@@ -24,7 +24,7 @@ import mechanics that are not guessable from the code.
 ## How it works
 
 1. Each bespoke component is an ES module that exports a `mount` function
-2. Components are registered in [site/bespokeComponentRegistry.ts](../site/bespokeComponentRegistry.ts) with the URL of that module
+2. Components are registered in [bespoke/shared/bespokeComponentRegistry.ts](./shared/bespokeComponentRegistry.ts) with the URL of that module
 3. When a `{.bespoke-component}` block comes within 400px of the viewport, the code:
     - Looks up the bundle in the registry
     - Creates a Shadow DOM container (for CSS isolation)
@@ -53,7 +53,7 @@ A module may also export `VARIANTS`, a list of `{ name, demoConfig?, demoSize? }
 
 ### Registering a component
 
-Add your bundle to the registry in [site/bespokeComponentRegistry.ts](../site/bespokeComponentRegistry.ts), e.g. like this:
+Add your bundle to the registry in [bespoke/shared/bespokeComponentRegistry.ts](./shared/bespokeComponentRegistry.ts), e.g. like this:
 
 ```ts
 export const BESPOKE_COMPONENT_REGISTRY: Record<
@@ -314,5 +314,5 @@ The dev server will inject this stylesheet into the demo page's `<head>` (outsid
 ## Creating a new bespoke component
 
 1. Copy `bespoke/projects/example/`, rename it, and run `yarn install` from `bespoke/`
-2. Register the bundle in [site/bespokeComponentRegistry.ts](../site/bespokeComponentRegistry.ts)
+2. Register the bundle in [bespoke/shared/bespokeComponentRegistry.ts](./shared/bespokeComponentRegistry.ts)
 3. Add the `{.bespoke-component}` block in your Google Doc

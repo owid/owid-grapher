@@ -4,7 +4,7 @@
  * script and, where one exists, its metadata file.
  */
 
-import type { BespokeComponentDefinition } from "../bespoke/shared/bespokeComponentTypes.js"
+import type { BespokeComponentDefinition } from "./bespokeComponentTypes.ts"
 
 /**
  * Map of component names to their definitions.
