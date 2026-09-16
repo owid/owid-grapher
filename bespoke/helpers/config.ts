@@ -5,10 +5,7 @@
  * config value must not take the whole viz down.
  */
 
-/** How the surrounding page embeds a bespoke component */
-export interface EmbedConfig {
-    urlSync: boolean
-}
+import type { EmbedConfig } from "../shared/embedConfig.js"
 
 /** Props a variant component takes: its parsed config, embed flags included */
 export interface VariantProps<Config> {
@@ -42,5 +39,8 @@ export function parseEnum<T extends string>(
 }
 
 export function parseEmbedConfig(raw: Record<string, string>): EmbedConfig {
-    return { urlSync: parseBoolean(raw.urlSync) }
+    return {
+        urlSync: parseBoolean(raw.urlSync),
+        hideMetadataModal: parseBoolean(raw.hideMetadataModal),
+    }
 }

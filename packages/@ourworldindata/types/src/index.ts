@@ -204,6 +204,8 @@ export {
     type OwidGdocProfileScope,
     type OwidGdocProfileContent,
     type OwidGdocProfileInterface,
+    type OwidGdocFeaturedVizContent,
+    type OwidGdocFeaturedVizInterface,
     type OwidGdocProfileEntitySummary,
     type OwidGdoc,
     type ChronologicalGdoc,
@@ -317,6 +319,12 @@ export {
 
 export type { OwidSource } from "./OwidSource.js"
 export type { OwidOrigin } from "./OwidOrigin.js"
+
+export {
+    type BespokeMetadata,
+    BespokeMetadataSchema,
+    shouldRenderBespokeMetadata,
+} from "./domainTypes/BespokeMetadata.js"
 
 export {
     type OwidVariableDisplayConfigInterface,
@@ -780,6 +788,8 @@ export type {
     MultiDimDataPageConfigRaw,
     MultiDimDataPageInitialViewData,
     MultiDimDataPageProps,
+    MultiDimPageCompanion,
+    MultiDimPageCompanionView,
     FaqEntryKeyedByGdocIdAndFragmentId,
     Choice,
     ChoicesEnriched,
@@ -789,6 +799,7 @@ export type {
     View,
     ViewEnriched,
 } from "./siteTypes/MultiDimDataPage.js"
+export { MULTI_DIM_COMPANION_FILE_SUFFIX } from "./siteTypes/MultiDimDataPage.js"
 
 export {
     GRAPHER_PREVIEW_CLASS,

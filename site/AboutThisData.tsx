@@ -13,7 +13,7 @@ import { DataPageDataV2 } from "@ourworldindata/types"
 import { formatAttributions } from "@ourworldindata/utils"
 import KeyDataTable from "./KeyDataTable.js"
 import TrackedProseLinks from "./TrackedProseLinks.js"
-// Control-arm counterpart of IndicatorMetadataBox toggle tracking — the
+// Control-arm counterpart of IndicatorMetadataBox's toggle tracking — the
 // shared helper guarantees both arms emit identical event names.
 import { logExpandableToggle } from "./metadataExperimentEvents.js"
 
@@ -75,10 +75,6 @@ export default function AboutThisData({
                                                 />
                                             </div>
                                         }
-                                        isStacked={
-                                            !!datapageData.source
-                                                ?.additionalInfo
-                                        }
                                         onToggle={(isOpen) =>
                                             logExpandableToggle(
                                                 "producer_documentation",
@@ -99,10 +95,9 @@ export default function AboutThisData({
                                         }
                                         onToggle={(isOpen) =>
                                             // Control-only: the metadata box
-                                            // drops this section, so it has no
-                                            // treatment counterpart. Tracked to
-                                            // show what control readers open
-                                            // instead.
+                                            // has no counterpart section;
+                                            // tracked to show what control
+                                            // readers open instead.
                                             logExpandableToggle(
                                                 "additional_information",
                                                 isOpen
@@ -119,6 +114,7 @@ export default function AboutThisData({
                                 text="Learn more in the FAQs"
                                 href="#faqs"
                                 icon={faArrowDown}
+                                dataTrackNote="wysk_learn_more_in_faqs"
                             />
                         )}
                     </div>

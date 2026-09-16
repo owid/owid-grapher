@@ -1,3 +1,4 @@
+import { traceJob } from "../serverUtils/sentryTracing.js"
 import path from "path"
 import fs from "fs-extra"
 import * as db from "../db/db.js"
@@ -102,89 +103,105 @@ export async function bakeAllPublishedSlideshows(
     bakedSiteDir: string,
     knex: db.KnexReadonlyTransaction
 ): Promise<void> {
-    const slideshows = await knex<DbPlainSlideshow>(SlideshowsTableName)
-        .where("isPublished", 1)
-        .select()
+    const slideshows = await traceJob("load-slideshows", async () =>
+        knex<DbPlainSlideshow>(SlideshowsTableName)
+            .where("isPublished", 1)
+            .select()
+    )
 
     if (slideshows.length === 0) return
 
-    // Collect all image filenames across all slideshows
-    const allImageFilenames = new Set<string>()
-    for (const slideshow of slideshows) {
-        const config =
-            typeof slideshow.config === "string"
-                ? JSON.parse(slideshow.config)
-                : slideshow.config
-        for (const filename of extractImageFilenames(config.slides)) {
-            allImageFilenames.add(filename)
-        }
-    }
-
-    // Fetch image metadata for all referenced images at once
-    const imageMetadataByFilename: Record<string, ImageMetadata> = {}
-    if (allImageFilenames.size > 0) {
-        const images = await getImagesByFilenames(knex, [...allImageFilenames])
-        for (const image of images) {
-            imageMetadataByFilename[image.filename] = image
-        }
-    }
-
-    // Collect all author names and resolve to LinkedAuthors
-    const allAuthorNames = new Set<string>()
-    for (const slideshow of slideshows) {
-        const config =
-            typeof slideshow.config === "string"
-                ? JSON.parse(slideshow.config)
-                : slideshow.config
-        if (config.authors) {
-            for (const name of config.authors.split(",")) {
-                const trimmed = name.trim()
-                if (trimmed) allAuthorNames.add(trimmed)
+    const { imageMetadataByFilename, allLinkedAuthors } = await traceJob(
+        "prepare-slideshow-pages",
+        async () => {
+            // Collect all image filenames across all slideshows
+            const allImageFilenames = new Set<string>()
+            for (const slideshow of slideshows) {
+                const config =
+                    typeof slideshow.config === "string"
+                        ? JSON.parse(slideshow.config)
+                        : slideshow.config
+                for (const filename of extractImageFilenames(config.slides)) {
+                    allImageFilenames.add(filename)
+                }
             }
+
+            // Fetch image metadata for all referenced images at once
+            const imageMetadataByFilename: Record<string, ImageMetadata> = {}
+            if (allImageFilenames.size > 0) {
+                const images = await getImagesByFilenames(knex, [
+                    ...allImageFilenames,
+                ])
+                for (const image of images) {
+                    imageMetadataByFilename[image.filename] = image
+                }
+            }
+
+            // Collect all author names and resolve to LinkedAuthors
+            const allAuthorNames = new Set<string>()
+            for (const slideshow of slideshows) {
+                const config =
+                    typeof slideshow.config === "string"
+                        ? JSON.parse(slideshow.config)
+                        : slideshow.config
+                if (config.authors) {
+                    for (const name of config.authors.split(",")) {
+                        const trimmed = name.trim()
+                        if (trimmed) allAuthorNames.add(trimmed)
+                    }
+                }
+            }
+            const allLinkedAuthors =
+                allAuthorNames.size > 0
+                    ? await getMinimalAuthorsByNames(knex, [...allAuthorNames])
+                    : []
+            return { imageMetadataByFilename, allLinkedAuthors }
         }
-    }
-    const allLinkedAuthors =
-        allAuthorNames.size > 0
-            ? await getMinimalAuthorsByNames(knex, [...allAuthorNames])
-            : []
+    )
 
     for (const slideshow of slideshows) {
-        const config =
-            typeof slideshow.config === "string"
-                ? JSON.parse(slideshow.config)
-                : slideshow.config
+        await traceJob(
+            "bake-slideshow-page",
+            async () => {
+                const config =
+                    typeof slideshow.config === "string"
+                        ? JSON.parse(slideshow.config)
+                        : slideshow.config
 
-        // Filter linked authors to only those referenced by this slideshow
-        const authorNames = config.authors
-            ? config.authors
-                  .split(",")
-                  .map((n: string) => n.trim())
-                  .filter(Boolean)
-            : []
-        const linkedAuthors = allLinkedAuthors.filter((a) =>
-            authorNames.includes(a.name)
-        )
+                // Filter linked authors to only those referenced by this slideshow
+                const authorNames = config.authors
+                    ? config.authors
+                          .split(",")
+                          .map((n: string) => n.trim())
+                          .filter(Boolean)
+                    : []
+                const linkedAuthors = allLinkedAuthors.filter((a) =>
+                    authorNames.includes(a.name)
+                )
 
-        // Resolve chart types for all chart slides
-        const chartResolutions = await resolveSlideChartTypes(
-            knex,
-            config.slides
-        )
+                // Resolve chart types for all chart slides
+                const chartResolutions = await resolveSlideChartTypes(
+                    knex,
+                    config.slides
+                )
 
-        const html = await renderSlideshowPage(
-            {
-                title: slideshow.title,
-                slug: slideshow.slug,
-                config,
+                const html = await renderSlideshowPage(
+                    {
+                        title: slideshow.title,
+                        slug: slideshow.slug,
+                        config,
+                    },
+                    imageMetadataByFilename,
+                    linkedAuthors,
+                    chartResolutions
+                )
+
+                const outDir = path.join(bakedSiteDir, "slideshows")
+                await fs.mkdirp(outDir)
+                const outPath = path.join(outDir, `${slideshow.slug}.html`)
+                await fs.writeFile(outPath, html)
             },
-            imageMetadataByFilename,
-            linkedAuthors,
-            chartResolutions
+            { "page.slug": slideshow.slug }
         )
-
-        const outDir = path.join(bakedSiteDir, "slideshows")
-        await fs.mkdirp(outDir)
-        const outPath = path.join(outDir, `${slideshow.slug}.html`)
-        await fs.writeFile(outPath, html)
     }
 }

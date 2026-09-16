@@ -30,6 +30,8 @@ export {
     guid,
     TESTING_ONLY_disable_guid,
     pointsToPath,
+    roundForSvg,
+    SVG_PRECISION,
     sortedFindClosestIndex,
     sortedFindClosest,
     isMobile,
@@ -114,6 +116,7 @@ export {
     checkIsGdocPostExcludingFragments,
     checkIsDataInsight,
     checkIsAuthor,
+    checkIsFeaturedViz,
     checkIsChronologicalGdoc,
     checkIsLatestFeedGdoc,
     cartesian,
@@ -161,6 +164,7 @@ export {
 export {
     getOriginAttributions,
     getAttributionFragmentsFromVariable,
+    getAttributionFragmentsFromBespokeMetadata,
     formatAttributions,
     formatAttributionsShortened,
     getETLPathComponents,
@@ -296,6 +300,7 @@ export { OwidVariableDisplayConfig } from "./OwidVariable.js"
 export {
     strToQueryParams,
     queryParamsToStr,
+    multiDimDimensionsToViewQueryStr,
     getWindowQueryStr,
     setWindowQueryStr,
 } from "./urls/UrlUtils.js"
@@ -367,6 +372,7 @@ export {
 export {
     MultiDimDataPageConfig,
     extractMultiDimChoicesFromSearchParams,
+    getMultiDimPageTitle,
     searchParamsToMultiDimView,
 } from "./MultiDimDataPageConfig.js"
 

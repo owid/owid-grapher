@@ -6,6 +6,7 @@ import {
     IndicatorProcessing,
     CodeSnippet,
     DataCitation,
+    ChartLicenseNotice,
 } from "@ourworldindata/components"
 import {
     FaqEntryData,
@@ -22,7 +23,6 @@ import {
     getIndicatorCitations,
 } from "@ourworldindata/utils"
 import { ArticleBlocks } from "./gdocs/components/ArticleBlocks.js"
-import { ChartLicenseNotice } from "./ChartLicenseNotice.js"
 import { SiteAnalytics } from "./SiteAnalytics.js"
 // The control arm of the data page metadata experiment. Its sources and
 // citations render through the same shared components as the treatment arm's

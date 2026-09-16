@@ -1,3 +1,4 @@
+import { traceJob } from "../serverUtils/sentryTracing.js"
 import fs from "fs-extra"
 import path from "path"
 import {
@@ -21,9 +22,13 @@ export const bakeAllPublishedExplorers = async (
     // Remove the existing explorer pages, so that unpublished ones disappear.
     // Only the HTML, since other bake steps write artifacts into this folder
     // (e.g. _explorerRedirects.json) that we must not delete.
-    await removeBakedExplorerPages(outputFolder)
+    await traceJob("cleanup-explorer-pages", () =>
+        removeBakedExplorerPages(outputFolder)
+    )
 
-    const published = await explorerAdminServer.getAllPublishedExplorers(knex)
+    const published = await traceJob("load-explorer-pages", () =>
+        explorerAdminServer.getAllPublishedExplorers(knex)
+    )
     await bakeExplorersToDir(outputFolder, published, knex)
 }
 
@@ -43,18 +48,30 @@ const bakeExplorersToDir = async (
     explorers: ExplorerProgram[] = [],
     knex: db.KnexReadonlyTransaction
 ) => {
-    const latestArchivedBySlug =
-        await getLatestArchivedExplorerPageVersionsIfEnabled(
-            knex,
-            explorers.map((e) => e.slug)
-        )
+    const { latestArchivedBySlug } = await traceJob(
+        "prepare-explorer-pages",
+        async () => {
+            const latestArchivedBySlug =
+                await getLatestArchivedExplorerPageVersionsIfEnabled(
+                    knex,
+                    explorers.map((e) => e.slug)
+                )
+            return { latestArchivedBySlug }
+        }
+    )
 
     for (const explorer of explorers) {
-        await write(
-            `${directory}/${explorer.slug}.html`,
-            await renderExplorerPage(explorer, knex, {
-                archiveContext: latestArchivedBySlug[explorer.slug],
-            })
+        await traceJob(
+            "bake-explorer-page",
+            async () => {
+                await write(
+                    `${directory}/${explorer.slug}.html`,
+                    await renderExplorerPage(explorer, knex, {
+                        archiveContext: latestArchivedBySlug[explorer.slug],
+                    })
+                )
+            },
+            { "page.slug": explorer.slug }
         )
     }
 }
@@ -64,32 +81,52 @@ export const bakeAllExplorerRedirects = async (
     explorerAdminServer: ExplorerAdminServer,
     knex: db.KnexReadonlyTransaction
 ) => {
-    const explorers = await explorerAdminServer.getAllExplorers(knex)
-    const redirects = explorerRedirectTable.rows
+    const { explorers, redirects } = await traceJob(
+        "prepare-explorer-redirects",
+        async () => {
+            const explorers = await explorerAdminServer.getAllExplorers(knex)
+            const redirects = explorerRedirectTable.rows
+            return { explorers, redirects }
+        }
+    )
+
     for (const redirect of redirects) {
-        const { migrationId, path: redirectPath, baseQueryStr } = redirect
-        const transform = explorerUrlMigrationsById[migrationId]
-        if (!transform) {
-            throw new Error(
-                `No explorer URL migration with id '${migrationId}'. Fix the list of explorer redirects and retry.`
-            )
-        }
-        const { explorerSlug } = transform
-        const program = explorers.find(
-            (program) => program.slug === explorerSlug
-        )
-        if (!program) {
-            throw new Error(
-                `No explorer with slug '${explorerSlug}'. Fix the list of explorer redirects and retry.`
-            )
-        }
-        const html = await renderExplorerPage(program, knex, {
-            urlMigrationSpec: {
-                explorerUrlMigrationId: migrationId,
-                baseQueryStr,
+        await traceJob(
+            "bake-explorer-redirect-page",
+            async () => {
+                const {
+                    migrationId,
+                    path: redirectPath,
+                    baseQueryStr,
+                } = redirect
+                const transform = explorerUrlMigrationsById[migrationId]
+                if (!transform) {
+                    throw new Error(
+                        `No explorer URL migration with id '${migrationId}'. Fix the list of explorer redirects and retry.`
+                    )
+                }
+                const { explorerSlug } = transform
+                const program = explorers.find(
+                    (program) => program.slug === explorerSlug
+                )
+                if (!program) {
+                    throw new Error(
+                        `No explorer with slug '${explorerSlug}'. Fix the list of explorer redirects and retry.`
+                    )
+                }
+                const html = await renderExplorerPage(program, knex, {
+                    urlMigrationSpec: {
+                        explorerUrlMigrationId: migrationId,
+                        baseQueryStr,
+                    },
+                })
+                await write(
+                    path.join(outputFolder, `${redirectPath}.html`),
+                    html
+                )
             },
-        })
-        await write(path.join(outputFolder, `${redirectPath}.html`), html)
+            { "page.slug": redirect.path }
+        )
     }
 }
 

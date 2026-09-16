@@ -1,3 +1,4 @@
+import { traceJob } from "../serverUtils/sentryTracing.js"
 import * as _ from "lodash-es"
 import { GrapherPage } from "../site/GrapherPage.js"
 import { DataPageV2 } from "../site/DataPageV2.js"
@@ -462,14 +463,17 @@ export const bakeAllChangedGrapherPagesAndDeleteRemovedGraphers = async (
     bakedSiteDir: string,
     knex: db.KnexReadonlyTransaction
 ) => {
-    const chartsToBake = await knexRaw<
-        Pick<DbPlainChart, "id"> & {
-            config: DbRawChartConfig["config"]
-            slug: string
-        }
-    >(
-        knex,
-        `-- sql
+    const { chartsToBake, jobs } = await traceJob(
+        "prepare-grapher-pages",
+        async () => {
+            const chartsToBake = await knexRaw<
+                Pick<DbPlainChart, "id"> & {
+                    config: DbRawChartConfig["config"]
+                    slug: string
+                }
+            >(
+                knex,
+                `-- sql
         SELECT
             c.id,
             cc.config as config,
@@ -478,27 +482,32 @@ export const bakeAllChangedGrapherPagesAndDeleteRemovedGraphers = async (
         JOIN chart_configs cc ON c.configId = cc.id
         WHERE JSON_EXTRACT(cc.config, "$.isPublished")=true
         ORDER BY cc.slug ASC`
+            )
+
+            await fs.mkdirp(bakedSiteDir + "/grapher")
+
+            // Prefetch imageMetadata and archiveContextDictionary instead of each grapher page fetching them
+            // individually. imageMetadata is used by the google docs powering rich
+            // text (including images) in data pages.
+            const imageMetadataDictionary = await getAllImages(knex).then(
+                (images) => _.keyBy(images, "filename")
+            )
+            const archiveContextDictionary =
+                await getLatestArchivedChartPageVersionsIfEnabled(knex)
+
+            const jobs: BakeSingleGrapherChartArguments[] = chartsToBake.map(
+                (row) => ({
+                    id: row.id,
+                    config: row.config,
+                    bakedSiteDir: bakedSiteDir,
+                    slug: row.slug,
+                    imageMetadataDictionary,
+                    archiveContextDictionary,
+                })
+            )
+            return { chartsToBake, jobs }
+        }
     )
-
-    await fs.mkdirp(bakedSiteDir + "/grapher")
-
-    // Prefetch imageMetadata and archiveContextDictionary instead of each grapher page fetching them
-    // individually. imageMetadata is used by the google docs powering rich
-    // text (including images) in data pages.
-    const imageMetadataDictionary = await getAllImages(knex).then((images) =>
-        _.keyBy(images, "filename")
-    )
-    const archiveContextDictionary =
-        await getLatestArchivedChartPageVersionsIfEnabled(knex)
-
-    const jobs: BakeSingleGrapherChartArguments[] = chartsToBake.map((row) => ({
-        id: row.id,
-        config: row.config,
-        bakedSiteDir: bakedSiteDir,
-        slug: row.slug,
-        imageMetadataDictionary,
-        archiveContextDictionary,
-    }))
 
     const progressBar = new ProgressBar(
         "bake grapher page [:bar] :current/:total :elapseds :rate/s :name\n",
@@ -516,22 +525,30 @@ export const bakeAllChangedGrapherPagesAndDeleteRemovedGraphers = async (
             // be able to use multiple transactions so that we can use
             // multiple connections to the database.
             // Read-write consistency is not a concern here, thankfully.
-            await db.knexReadWriteTransaction(
-                async (knex) => await bakeSingleGrapherChart(job, knex),
-                db.TransactionCloseMode.KeepOpen
+            await traceJob(
+                "bake-grapher-page",
+                async () => {
+                    await db.knexReadWriteTransaction(
+                        async (knex) => await bakeSingleGrapherChart(job, knex),
+                        db.TransactionCloseMode.KeepOpen
+                    )
+                },
+                { "page.slug": job.slug }
             )
             progressBar.tick({ name: job.slug })
         },
         { concurrency: 10 }
     )
 
-    // Multi-dim data pages are baked into the same directory as graphers
-    // and they are handled separately.
-    const multiDimSlugs = await getAllMultiDimDataPageSlugs(knex)
-    const newSlugs = excludeUndefined([
-        ...chartsToBake.map((row) => row.slug),
-        ...multiDimSlugs,
-    ])
-    await deleteOldGraphers(bakedSiteDir, newSlugs)
-    progressBar.tick({ name: `✅ Deleted old graphers` })
+    await traceJob("cleanup-grapher-pages", async () => {
+        // Multi-dim data pages are baked into the same directory as graphers
+        // and they are handled separately.
+        const multiDimSlugs = await getAllMultiDimDataPageSlugs(knex)
+        const newSlugs = excludeUndefined([
+            ...chartsToBake.map((row) => row.slug),
+            ...multiDimSlugs,
+        ])
+        await deleteOldGraphers(bakedSiteDir, newSlugs)
+        progressBar.tick({ name: `✅ Deleted old graphers` })
+    })
 }

@@ -16,8 +16,8 @@ import { AxisConfig } from "../axis/AxisConfig"
 import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
-    GRAPHER_FONT_SCALE_12,
 } from "../core/GrapherConstants"
+import { scaleFontSize } from "../chart/ChartUtils"
 import { MarimekkoBars } from "./MarimekkoBars"
 import { DualAxisComponent } from "../axis/AxisViews"
 import {
@@ -68,7 +68,7 @@ export class MarimekkoChartThumbnail
     }
 
     @computed get labelFontSize(): number {
-        return Math.floor(GRAPHER_FONT_SCALE_12 * this.fontSize)
+        return scaleFontSize(12, this.fontSize)
     }
 
     @computed get labelHeight(): number {
