@@ -103,10 +103,10 @@
         padding-bottom: 8px;
     }
 
-    // the path tail sits beside the name rather than in its own column
+    // the tail sits under the name; it stays a block so it clips with an
+    // ellipsis instead of running across the neighbouring columns
     .variable-list__path {
-        display: inline;
-        margin-left: 8px;
+        margin-top: 1px;
     }
 }
 

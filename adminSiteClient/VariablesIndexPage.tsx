@@ -65,6 +65,10 @@ function SearchSyntaxNote(): React.ReactElement {
     )
 }
 
+function plural(count: number, noun: string): string {
+    return `${count} ${noun}${count === 1 ? "" : "s"}`
+}
+
 /** Datasets per page in the grouped view; each carries up to 5 indicators. */
 const DATASETS_PER_PAGE = 10
 
@@ -166,8 +170,10 @@ export function VariablesIndexPage(): React.ReactElement {
                                         grouped.data?.numTotalRows ?? 0
                                     ).toLocaleString()}{" "}
                                     indicators in{" "}
-                                    {grouped.data?.numTotalDatasets ?? 0}{" "}
-                                    datasets
+                                    {plural(
+                                        grouped.data?.numTotalDatasets ?? 0,
+                                        "dataset"
+                                    )}
                                 </span>
                                 <Pagination
                                     current={page}

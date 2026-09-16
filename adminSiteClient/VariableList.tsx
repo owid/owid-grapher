@@ -280,13 +280,20 @@ function CatalogPathCell({
     )
 }
 
-/** `table#short_name` — the tail a group header doesn't already show. */
-function catalogPathTail(catalogPath: string | undefined): string {
+/**
+ * `table#short_name` — the tail a group header doesn't already show, with the
+ * short name cut the same way the flat list cuts it.
+ */
+function catalogPathTail(
+    catalogPath: string | undefined,
+    searchWords: SearchWord[]
+): string {
     if (!catalogPath) return ""
     const withoutPrefix = catalogPath.replace(/^grapher\//, "")
     const [path, shortName] = withoutPrefix.split("#")
     const table = path.split("/").slice(3).join("/")
-    return shortName ? `${table}#${shortName}` : table
+    if (!shortName) return table
+    return `${table}#${elideShortName(shortName, searchWords)}`
 }
 
 /**
@@ -596,7 +603,10 @@ export function GroupedVariableList({
                                 title={row.variable.catalogPath}
                             >
                                 {pathHighlight(
-                                    catalogPathTail(row.variable.catalogPath)
+                                    catalogPathTail(
+                                        row.variable.catalogPath,
+                                        pathWords
+                                    )
                                 )}
                             </span>
                         </>
