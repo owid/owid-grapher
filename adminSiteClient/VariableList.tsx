@@ -1,11 +1,14 @@
 import * as React from "react"
 import { useMemo } from "react"
 import { Popover, TableColumnsType, TableProps, Tooltip } from "antd"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faEyeSlash, faLock } from "@fortawesome/free-solid-svg-icons"
 
 import { Link } from "./Link.js"
 import { Timeago } from "./Forms.js"
 import { AdminTable, AdminTableSearch } from "./AdminTable.js"
 import {
+    buildRegexFromSearchWord,
     highlightFunctionForSearchWords,
     SearchWord,
 } from "../adminShared/search.js"
@@ -163,6 +166,25 @@ function PopularityCell({
     )
 }
 
+/**
+ * The path is highlighted a segment at a time, so a term spanning a separator
+ * — `ihme_gbd/2026-02-07`, the kind you get from pasting part of a path —
+ * would match none of them. Splitting the term the same way the path is split
+ * highlights every segment it covers.
+ */
+function pathSearchWords(searchWords: SearchWord[]): SearchWord[] {
+    return searchWords.flatMap((searchWord) =>
+        searchWord.word
+            .split(/[/#]/)
+            .filter(Boolean)
+            .map((part) => ({
+                ...searchWord,
+                word: part,
+                regex: buildRegexFromSearchWord(part),
+            }))
+    )
+}
+
 const SHORT_NAME_VISIBLE_LENGTH = 22
 
 /**
@@ -197,15 +219,16 @@ function elideShortName(shortName: string, searchWords: SearchWord[]): string {
  */
 function CatalogPathCell({
     variable,
-    highlight,
     searchWords,
 }: {
     variable: VariableListItem
-    highlight: SearchHighlighter
     searchWords: SearchWord[]
 }): React.ReactElement {
     const { catalogPath, datasetId } = variable
     if (!catalogPath) return <span className="text-muted">—</span>
+
+    const words = pathSearchWords(searchWords)
+    const highlight = highlightFunctionForSearchWords(words)
 
     // `grapher/` is on every row, so it is only noise here
     const [path, shortName] = catalogPath
@@ -240,7 +263,7 @@ function CatalogPathCell({
             )}
             {shortName && (
                 <span className="variable-list__path-short">
-                    #{highlight(elideShortName(shortName, searchWords))}
+                    #{highlight(elideShortName(shortName, words))}
                 </span>
             )}
         </span>
@@ -304,7 +327,6 @@ function createColumns({
             render: (_, variable) => (
                 <CatalogPathCell
                     variable={variable}
-                    highlight={highlight}
                     searchWords={searchWords}
                 />
             ),
@@ -358,11 +380,19 @@ function createColumns({
             render: (name, variable) => (
                 <>
                     {variable.nonRedistributable ? (
-                        <span className="text-secondary">
-                            Non-redistributable:{" "}
-                        </span>
+                        <Tooltip title="Non-redistributable — the data download is disabled on charts using it">
+                            <FontAwesomeIcon
+                                className="variable-list__flag"
+                                icon={faLock}
+                            />
+                        </Tooltip>
                     ) : variable.isPrivate ? (
-                        <span className="text-secondary">Unpublished: </span>
+                        <Tooltip title="Unpublished — its dataset is private">
+                            <FontAwesomeIcon
+                                className="variable-list__flag"
+                                icon={faEyeSlash}
+                            />
+                        </Tooltip>
                     ) : null}
                     <Link to={`/variables/${variable.id}`}>
                         {highlight(name)}
