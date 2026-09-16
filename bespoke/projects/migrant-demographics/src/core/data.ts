@@ -7,7 +7,6 @@ import {
     PopulationTotals,
     PyramidData,
     RawEntityYears,
-    RawMigrantDemographics,
     RawMigrantDemographicsManifest,
     RawYearRecord,
     SexValues,
@@ -15,31 +14,9 @@ import {
 
 const BASE_URL = "https://owid-public.owid.io/bespoke/migrant-demographics"
 const MANIFEST_PATH = `${BASE_URL}/migrant-demographics.metadata.json`
-const WHOLE_FILE_PATH = `${BASE_URL}/migrant-demographics.json`
+const ENTITY_PATH = `${BASE_URL}/migrant-demographics.{code}.json`
 
 export const queryClient = new QueryClient()
-
-export interface MigrantDemographicsData {
-    manifest: MigrantDemographicsManifest
-    entityYearsByName: Map<string, RawEntityYears>
-}
-
-export const useMigrantDemographics = () =>
-    useQuery({
-        queryKey: ["migrant-demographics", "data"],
-        queryFn: async (): Promise<MigrantDemographicsData> => {
-            const raw = await fetchJson<RawMigrantDemographics>(WHOLE_FILE_PATH)
-            const manifest = new MigrantDemographicsManifest(raw)
-            const entityYearsByName = new Map(
-                raw.entities.map((entity) => [
-                    entity.name,
-                    parseEntityYears(entity.data, manifest),
-                ])
-            )
-            return { manifest, entityYearsByName }
-        },
-        staleTime: Infinity,
-    })
 
 export const useMigrantDemographicsManifest = (): {
     data?: MigrantDemographicsManifest
@@ -56,6 +33,36 @@ export const useMigrantDemographicsManifest = (): {
     })
 
     return { data: result.data, status: result.status }
+}
+
+export const useMigrantDemographicsEntity = (
+    entityName: string,
+    manifest?: MigrantDemographicsManifest
+): {
+    data?: RawEntityYears
+    status: QueryStatus
+    isPlaceholderData: boolean
+} => {
+    const code = manifest?.getEntityCode(entityName)
+    const hasUnknownEntity = manifest !== undefined && code === undefined
+
+    const result = useQuery({
+        queryKey: ["migrant-demographics", "entity", code],
+        queryFn: async (): Promise<RawEntityYears> => {
+            const path = ENTITY_PATH.replace("{code}", String(code))
+            const raw = await fetchJson<RawEntityYears>(path)
+            return parseEntityYears(raw, manifest!)
+        },
+        enabled: code !== undefined,
+        placeholderData: (previousData) => previousData,
+        staleTime: Infinity,
+    })
+
+    return {
+        data: result.data,
+        status: hasUnknownEntity ? "error" : result.status,
+        isPlaceholderData: result.isPlaceholderData,
+    }
 }
 
 export class MigrantDemographicsManifest {

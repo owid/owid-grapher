@@ -36,10 +36,6 @@ export interface RawMigrantDemographicsManifest {
     entities: RawManifestEntity[]
 }
 
-export interface RawMigrantDemographics extends RawMigrantDemographicsManifest {
-    entities: (RawManifestEntity & { data: RawEntityYears })[]
-}
-
 /** Values per age band (aligned with `ageBands`, youngest first) */
 export interface SexValues {
     men: number[]

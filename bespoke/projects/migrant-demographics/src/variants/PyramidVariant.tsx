@@ -31,7 +31,7 @@ import {
     computePyramidData,
     MigrantDemographicsManifest,
     queryClient,
-    useMigrantDemographics,
+    useMigrantDemographicsEntity,
     useMigrantDemographicsManifest,
 } from "../core/data.js"
 import {
@@ -106,8 +106,17 @@ function FetchingPyramidVariant({
 
     const { data: manifest, status: manifestStatus } =
         useMigrantDemographicsManifest()
-    const { data, status: dataStatus } = useMigrantDemographics()
-    const status = combineStatuses(manifestStatus, dataStatus)
+
+    // Fall back gracefully when the config or URL asks for something the
+    // data doesn't have
+    const selectedCountry = manifest?.hasEntity(country)
+        ? country
+        : DEFAULT_COUNTRY
+
+    const { data: entityYears, status: entityStatus } =
+        useMigrantDemographicsEntity(selectedCountry, manifest)
+
+    const status = combineStatuses(manifestStatus, entityStatus)
 
     const availableCountryNames = useMemo(
         () => (manifest ? new Set(manifest.entityNames) : undefined),
@@ -122,16 +131,11 @@ function FetchingPyramidVariant({
 
     if (status === "pending")
         return <ChartSkeleton className="migrant-pyramid-chart-box" />
-    if (status === "error" || !manifest || !data)
+    if (status === "error" || !manifest || !entityYears)
         return <ChartError className="migrant-pyramid-chart-box" />
     if (!isCountryResolved)
         return <ChartSkeleton className="migrant-pyramid-chart-box" />
 
-    // Fall back gracefully when the config or URL asks for something the
-    // data doesn't have
-    const selectedCountry = manifest.hasEntity(country)
-        ? country
-        : DEFAULT_COUNTRY
     const selectedYear = manifest.years.includes(year)
         ? year
         : manifest.years[manifest.years.length - 1]
@@ -140,7 +144,7 @@ function FetchingPyramidVariant({
         <CaptionedPyramidVariant
             config={config}
             manifest={manifest}
-            entityYears={data.entityYearsByName.get(selectedCountry) ?? {}}
+            entityYears={entityYears}
             country={selectedCountry}
             year={selectedYear}
             show={show}
