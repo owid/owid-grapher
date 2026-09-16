@@ -18,7 +18,7 @@ import { TimeSlider } from "../../../../components/TimeSlider/TimeSlider.js"
 import { useTippyContainer } from "../../../../hooks/useTippyContainer.js"
 import { useUserCountryInformation } from "../../../../hooks/useUserCountryInformation.js"
 
-import { MigrantDemographics } from "../core/data.js"
+import { MigrantDemographicsManifest } from "../core/data.js"
 import { ShowMode } from "../core/types.js"
 
 // The switcher buttons don't wrap, so below a certain width the full labels
@@ -32,7 +32,7 @@ const SHOW_MODE_DISABLED_REASON =
     "When comparing with native-born residents, values are always shown as a share of each population — there are far more native-born residents than immigrants."
 
 export function PyramidControls({
-    data,
+    manifest,
     country,
     year,
     mode,
@@ -43,7 +43,7 @@ export function PyramidControls({
     setShow,
     setCompare,
 }: {
-    data: MigrantDemographics
+    manifest: MigrantDemographicsManifest
     country: string
     year: number
     mode: ShowMode
@@ -58,7 +58,7 @@ export function PyramidControls({
         <Controls className="migrant-pyramid-controls">
             <ControlsRow>
                 <CountryDropdown
-                    data={data}
+                    manifest={manifest}
                     country={country}
                     setCountry={setCountry}
                 />
@@ -71,7 +71,7 @@ export function PyramidControls({
                 <CompareCheckbox compare={compare} setCompare={setCompare} />
             </ControlsRow>
             <TimeSlider
-                times={data.years}
+                times={manifest.years}
                 selectedTime={year}
                 onChange={setYear}
             />
@@ -80,19 +80,20 @@ export function PyramidControls({
 }
 
 function CountryDropdown({
-    data,
+    manifest,
     country,
     setCountry,
 }: {
-    data: MigrantDemographics
+    manifest: MigrantDemographicsManifest
     country: string
     setCountry: (name: string) => void
 }): React.ReactElement {
     const { data: userCountryInfo } = useUserCountryInformation()
     // `orderOptionsByRelevance` sorts the remainder itself, so no pre-sort here
     const flat = useMemo<BasicDropdownOption[]>(
-        () => data.entityNames.map((name) => ({ value: name, label: name })),
-        [data]
+        () =>
+            manifest.entityNames.map((name) => ({ value: name, label: name })),
+        [manifest]
     )
     const options = useMemo<DropdownCollection>(
         () =>

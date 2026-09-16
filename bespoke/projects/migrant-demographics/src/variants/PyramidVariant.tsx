@@ -24,10 +24,11 @@ import {
 import { formatEntityNameForSentence } from "../../../../helpers/entityNames.js"
 
 import { PyramidVariantConfig } from "../core/config.js"
-import { ShowMode } from "../core/types.js"
+import { RawEntityYears, ShowMode } from "../core/types.js"
 import type { VariantProps } from "../../../../helpers/config.js"
 import {
-    MigrantDemographics,
+    computePyramidData,
+    MigrantDemographicsManifest,
     queryClient,
     useMigrantDemographics,
 } from "../core/data.js"
@@ -104,7 +105,7 @@ function FetchingPyramidVariant({
     const { data, status } = useMigrantDemographics()
 
     const availableCountryNames = useMemo(
-        () => (data ? new Set(data.entityNames) : undefined),
+        () => (data ? new Set(data.manifest.entityNames) : undefined),
         [data]
     )
     const { isResolved: isCountryResolved } = useResolveUserLocation({
@@ -123,15 +124,18 @@ function FetchingPyramidVariant({
 
     // Fall back gracefully when the config or URL asks for something the
     // data doesn't have
-    const selectedCountry = data.hasEntity(country) ? country : DEFAULT_COUNTRY
-    const selectedYear = data.years.includes(year)
+    const selectedCountry = data.manifest.hasEntity(country)
+        ? country
+        : DEFAULT_COUNTRY
+    const selectedYear = data.manifest.years.includes(year)
         ? year
-        : data.years[data.years.length - 1]
+        : data.manifest.years[data.manifest.years.length - 1]
 
     return (
         <CaptionedPyramidVariant
             config={config}
-            data={data}
+            manifest={data.manifest}
+            entityYears={data.entityYearsByName.get(selectedCountry) ?? {}}
             country={selectedCountry}
             year={selectedYear}
             show={show}
@@ -147,7 +151,8 @@ function FetchingPyramidVariant({
 
 function CaptionedPyramidVariant({
     config,
-    data,
+    manifest,
+    entityYears,
     country,
     year,
     show,
@@ -159,7 +164,8 @@ function CaptionedPyramidVariant({
     setCompare,
 }: {
     config: PyramidVariantConfig
-    data: MigrantDemographics
+    manifest: MigrantDemographicsManifest
+    entityYears: RawEntityYears
     country: string
     year: number
     show: ShowMode
@@ -174,21 +180,26 @@ function CaptionedPyramidVariant({
     // native-born residents), so comparison always shows shares
     const mode: ShowMode = compare ? "share" : show
 
-    const pyramidData = useMemo(
-        () => data.getPyramidData(country, year),
-        [data, country, year]
-    )
+    const pyramidData = useMemo(() => {
+        const record = entityYears[String(year)]
+        return record ? computePyramidData(record) : undefined
+    }, [entityYears, year])
     const view = useMemo(
         () =>
             pyramidData
-                ? computePyramidView(pyramidData, data.ageBands, mode, compare)
+                ? computePyramidView(
+                      pyramidData,
+                      manifest.ageBands,
+                      mode,
+                      compare
+                  )
                 : undefined,
-        [pyramidData, data.ageBands, mode, compare]
+        [pyramidData, manifest.ageBands, mode, compare]
     )
     // Fixed across years so the axis is stable while dragging the slider
     const xMax = useMemo(
-        () => computeAxisMax(data, country, mode, compare),
-        [data, country, mode, compare]
+        () => computeAxisMax(entityYears, manifest.ageBands, mode, compare),
+        [entityYears, manifest.ageBands, mode, compare]
     )
 
     // A year with no migrant stock at all draws an empty pyramid and makes
@@ -207,7 +218,7 @@ function CaptionedPyramidVariant({
         <>
             {!config.hideControls && (
                 <PyramidControls
-                    data={data}
+                    manifest={manifest}
                     country={country}
                     year={year}
                     mode={mode}
@@ -270,7 +281,7 @@ function CaptionedPyramidVariant({
                     )}
                 </div>
                 <ChartFooter
-                    source={data.source}
+                    source={manifest.source}
                     note="Immigrants are people living in a country other than the one they were born in. Native-born residents are the total resident population minus the international migrant stock. The age and sex breakdown mostly comes from national censuses. For countries with only one census since 1990, that single profile is carried across all years and scaled to population totals."
                 />
             </Frame>
