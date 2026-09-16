@@ -22,6 +22,7 @@ import {
     useResolveUserLocation,
 } from "../../../../hooks/useResolveUserLocation.js"
 import { formatEntityNameForSentence } from "../../../../helpers/entityNames.js"
+import { combineStatuses } from "../../../../helpers/queryStatus.js"
 
 import { PyramidVariantConfig } from "../core/config.js"
 import { RawEntityYears, ShowMode } from "../core/types.js"
@@ -31,6 +32,7 @@ import {
     MigrantDemographicsManifest,
     queryClient,
     useMigrantDemographics,
+    useMigrantDemographicsManifest,
 } from "../core/data.js"
 import {
     computeAxisMax,
@@ -102,11 +104,14 @@ function FetchingPyramidVariant({
         defaultValue: config.compare,
     })
 
-    const { data, status } = useMigrantDemographics()
+    const { data: manifest, status: manifestStatus } =
+        useMigrantDemographicsManifest()
+    const { data, status: dataStatus } = useMigrantDemographics()
+    const status = combineStatuses(manifestStatus, dataStatus)
 
     const availableCountryNames = useMemo(
-        () => (data ? new Set(data.manifest.entityNames) : undefined),
-        [data]
+        () => (manifest ? new Set(manifest.entityNames) : undefined),
+        [manifest]
     )
     const { isResolved: isCountryResolved } = useResolveUserLocation({
         configCountry: config.country,
@@ -117,24 +122,24 @@ function FetchingPyramidVariant({
 
     if (status === "pending")
         return <ChartSkeleton className="migrant-pyramid-chart-box" />
-    if (status === "error" || !data)
+    if (status === "error" || !manifest || !data)
         return <ChartError className="migrant-pyramid-chart-box" />
     if (!isCountryResolved)
         return <ChartSkeleton className="migrant-pyramid-chart-box" />
 
     // Fall back gracefully when the config or URL asks for something the
     // data doesn't have
-    const selectedCountry = data.manifest.hasEntity(country)
+    const selectedCountry = manifest.hasEntity(country)
         ? country
         : DEFAULT_COUNTRY
-    const selectedYear = data.manifest.years.includes(year)
+    const selectedYear = manifest.years.includes(year)
         ? year
-        : data.manifest.years[data.manifest.years.length - 1]
+        : manifest.years[manifest.years.length - 1]
 
     return (
         <CaptionedPyramidVariant
             config={config}
-            manifest={data.manifest}
+            manifest={manifest}
             entityYears={data.entityYearsByName.get(selectedCountry) ?? {}}
             country={selectedCountry}
             year={selectedYear}

@@ -1,4 +1,4 @@
-import { QueryClient, useQuery } from "@tanstack/react-query"
+import { QueryClient, QueryStatus, useQuery } from "@tanstack/react-query"
 import * as R from "remeda"
 
 import { fetchJson } from "@ourworldindata/utils"
@@ -13,8 +13,9 @@ import {
     SexValues,
 } from "./types.js"
 
-const DATA_URL =
-    "https://owid-public.owid.io/bespoke/migrant-demographics/migrant-demographics.json"
+const BASE_URL = "https://owid-public.owid.io/bespoke/migrant-demographics"
+const MANIFEST_PATH = `${BASE_URL}/migrant-demographics.metadata.json`
+const WHOLE_FILE_PATH = `${BASE_URL}/migrant-demographics.json`
 
 export const queryClient = new QueryClient()
 
@@ -27,7 +28,7 @@ export const useMigrantDemographics = () =>
     useQuery({
         queryKey: ["migrant-demographics", "data"],
         queryFn: async (): Promise<MigrantDemographicsData> => {
-            const raw = await fetchJson<RawMigrantDemographics>(DATA_URL)
+            const raw = await fetchJson<RawMigrantDemographics>(WHOLE_FILE_PATH)
             const manifest = new MigrantDemographicsManifest(raw)
             const entityYearsByName = new Map(
                 raw.entities.map((entity) => [
@@ -37,8 +38,25 @@ export const useMigrantDemographics = () =>
             )
             return { manifest, entityYearsByName }
         },
-        staleTime: Infinity, // The data file is immutable within a session
+        staleTime: Infinity,
     })
+
+export const useMigrantDemographicsManifest = (): {
+    data?: MigrantDemographicsManifest
+    status: QueryStatus
+} => {
+    const result = useQuery({
+        queryKey: ["migrant-demographics", "manifest"],
+        queryFn: async (): Promise<MigrantDemographicsManifest> => {
+            const raw =
+                await fetchJson<RawMigrantDemographicsManifest>(MANIFEST_PATH)
+            return new MigrantDemographicsManifest(raw)
+        },
+        staleTime: Infinity, // The data files are immutable within a session
+    })
+
+    return { data: result.data, status: result.status }
+}
 
 export class MigrantDemographicsManifest {
     readonly ageBands: string[]
