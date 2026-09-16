@@ -51,25 +51,11 @@ export function PyramidVariant({
     config,
     urls,
 }: VariantProps<PyramidVariantConfig>): React.ReactElement {
-    const { width, ref } = useContainerWidth()
-    const isNarrow = width > 0 && width < NARROW_BREAKPOINT
-
     return (
         <EmbedConfigProvider config={config}>
             <NuqsAdapter>
                 <QueryClientProvider client={queryClient}>
-                    <div
-                        ref={ref}
-                        className={cx("migrant-pyramid", {
-                            "migrant-pyramid--narrow": isNarrow,
-                        })}
-                    >
-                        <FetchingPyramidVariant
-                            config={config}
-                            isNarrow={isNarrow}
-                            urls={urls}
-                        />
-                    </div>
+                    <FetchingPyramidVariant config={config} urls={urls} />
                 </QueryClientProvider>
             </NuqsAdapter>
         </EmbedConfigProvider>
@@ -78,11 +64,9 @@ export function PyramidVariant({
 
 function FetchingPyramidVariant({
     config,
-    isNarrow,
     urls,
 }: {
     config: PyramidVariantConfig
-    isNarrow: boolean
     urls: BespokeComponentDataUrls
 }): React.ReactElement {
     const initialCountry =
@@ -124,11 +108,7 @@ function FetchingPyramidVariant({
         data: entityYears,
         status: entityStatus,
         isPlaceholderData,
-    } = useMigrantDemographicsEntity(
-        selectedCountry,
-        metadata,
-        urls.dataUrl
-    )
+    } = useMigrantDemographicsEntity(selectedCountry, metadata, urls.dataUrl)
 
     const status = combineStatuses(metadataStatus, entityStatus)
     const isLoadingCountry = useDelayedLoading(isPlaceholderData)
@@ -164,7 +144,6 @@ function FetchingPyramidVariant({
             year={selectedYear}
             show={show}
             compare={compare}
-            isNarrow={isNarrow}
             isLoading={isLoadingCountry}
             setCountry={setCountry}
             setYear={setYear}
@@ -182,7 +161,6 @@ function CaptionedPyramidVariant({
     year,
     show,
     compare,
-    isNarrow,
     isLoading,
     setCountry,
     setYear,
@@ -196,13 +174,15 @@ function CaptionedPyramidVariant({
     year: number
     show: ShowMode
     compare: boolean
-    isNarrow: boolean
     isLoading: boolean
     setCountry: (name: string) => void
     setYear: (year: number) => void
     setShow: (show: ShowMode) => void
     setCompare: (compare: boolean) => void
 }): React.ReactElement {
+    const { width, ref } = useContainerWidth()
+    const isNarrow = width > 0 && width < NARROW_BREAKPOINT
+
     // Comparing absolute numbers is meaningless (there are far more
     // native-born residents), so comparison always shows shares
     const mode: ShowMode = compare ? "share" : show
@@ -244,7 +224,12 @@ function CaptionedPyramidVariant({
     const hasLegendRow = isShowingNatives || canToggleNatives
 
     return (
-        <>
+        <div
+            ref={ref}
+            className={cx("migrant-pyramid", {
+                "migrant-pyramid--narrow": isNarrow,
+            })}
+        >
             {!config.hideControls && (
                 <PyramidControls
                     metadata={metadata}
@@ -322,7 +307,7 @@ function CaptionedPyramidVariant({
                     note="Immigrants are people living in a country other than the one they were born in. Native-born residents are the total resident population minus the international migrant stock. The age and sex breakdown mostly comes from national censuses. For countries with only one census since 1990, that single profile is carried across all years and scaled to population totals."
                 />
             </Frame>
-        </>
+        </div>
     )
 }
 
