@@ -27,7 +27,7 @@ vi.mock(import("@marsidev/react-turnstile"), async () => {
                     getResponsePromise: vi.fn(),
                     isExpired: () => false,
                 }))
-                return null
+                return <div data-testid="turnstile" />
             }
         ),
     }
@@ -44,6 +44,55 @@ const renderForm = () =>
     )
 
 describe(NewsletterSignupForm, () => {
+    it("starts verification on an email edit, but not on focus", () => {
+        renderForm()
+        const email = screen.getByPlaceholderText("Your email address")
+        expect(screen.queryByTestId("turnstile")).not.toBeInTheDocument()
+        fireEvent.focus(email)
+        fireEvent.focus(screen.getByLabelText(/The OWID Brief/))
+        expect(screen.queryByTestId("turnstile")).not.toBeInTheDocument()
+        fireEvent.change(email, { target: { value: "r" } })
+        expect(screen.getByTestId("turnstile")).toBeInTheDocument()
+    })
+
+    it("only starts verification for a Brief-only subscription", () => {
+        renderForm()
+        const brief = screen.getByLabelText(/The OWID Brief/)
+        const topics = screen.getByLabelText(/Follow Topics/)
+        fireEvent.click(brief)
+        expect(screen.queryByTestId("turnstile")).not.toBeInTheDocument()
+        fireEvent.change(screen.getByPlaceholderText("Your email address"), {
+            target: { value: "r" },
+        })
+        expect(screen.queryByTestId("turnstile")).not.toBeInTheDocument()
+        fireEvent.click(topics)
+        fireEvent.click(brief)
+        expect(screen.queryByTestId("turnstile")).not.toBeInTheDocument()
+        fireEvent.click(topics)
+        expect(screen.getByTestId("turnstile")).toBeInTheDocument()
+    })
+
+    it("discards verification when switching away from Brief-only without restarting the challenge", () => {
+        renderForm()
+        fireEvent.change(screen.getByPlaceholderText("Your email address"), {
+            target: { value: "r" },
+        })
+        act(() => captcha.props.onSuccess?.("captcha-token"))
+        fireEvent.click(screen.getByLabelText(/Follow Topics/))
+        expect(screen.queryByTestId("turnstile")).not.toBeInTheDocument()
+        expect(captcha.reset).not.toHaveBeenCalled()
+        fireEvent.click(screen.getByLabelText(/Follow Topics/))
+        expect(screen.getByRole("button")).toBeDisabled()
+        act(() => captcha.props.onSuccess?.("fresh-token"))
+        expect(screen.getByRole("button")).not.toBeDisabled()
+        fireEvent.click(screen.getByLabelText(/The OWID Brief/))
+        expect(screen.queryByTestId("turnstile")).not.toBeInTheDocument()
+        expect(captcha.reset).not.toHaveBeenCalled()
+        fireEvent.click(screen.getByLabelText(/The OWID Brief/))
+        expect(screen.getByTestId("turnstile")).toBeInTheDocument()
+        expect(screen.getByRole("button")).toBeDisabled()
+    })
+
     it("subscribes in place with the Brief alone, hands over with Follow Topics", () => {
         renderForm()
         const button = screen.getByRole("button")

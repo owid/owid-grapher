@@ -6,13 +6,19 @@ export function useNewsletterSpamProtection() {
     const [captchaToken, setCaptchaToken] = useState("")
     const [error, setError] = useState<string | null>(null)
 
-    function resetCaptcha() {
+    function clearCaptcha() {
         setCaptchaToken("")
+        setError(null)
+    }
+
+    function resetCaptcha() {
+        clearCaptcha()
         ref.current?.reset()
     }
 
     return {
         captchaToken,
+        clearCaptcha,
         resetCaptcha,
         fieldsProps: { ref, error, setError, setCaptchaToken },
     }
