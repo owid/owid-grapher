@@ -25,6 +25,8 @@ import util from "node:util"
 // The demo pages mount a component the way an article does, so they need the same feed root the
 // site would pass it. Importing the setting (rather than reading process.env) also loads the
 // repo's .env, which is what gives a staging server's demo pages that environment's own feed.
+import { escapeJSONStringForInlineScript } from "@ourworldindata/utils"
+
 import { BESPOKE_DATA_URL } from "../../settings/clientSettings.mjs"
 
 const dirname = import.meta.dirname
@@ -364,8 +366,12 @@ function serveDemoPage(
         .replaceAll("{{VITE_DEV_SCRIPTS}}", viteDevScripts)
         .replaceAll("{{ENTRYPOINT_JS}}", jsEntrypoint)
         .replaceAll("{{DEV_ONLY_GLOBAL_CSS}}", devOnlyGlobalCss)
-        // JSON-encoded, quotes included, so the template doesn't have to quote it itself.
-        .replaceAll("{{BESPOKE_DATA_URL}}", JSON.stringify(BESPOKE_DATA_URL))
+        // JSON-encoded, quotes included, so the template doesn't have to quote it itself, and
+        // escaped because it lands in an inline <script>.
+        .replaceAll(
+            "{{BESPOKE_DATA_URL}}",
+            escapeJSONStringForInlineScript(JSON.stringify(BESPOKE_DATA_URL))
+        )
     res.writeHead(200, { "Content-Type": "text/html" })
     res.end(html)
 }
