@@ -179,9 +179,11 @@ function IndicatorMetadataSections({
                     label="How did Our World in Data process this data?"
                     contentId={INDICATOR_PROCESSING_SECTION_ID}
                     content={
-                        <IndicatorProcessing
-                            descriptionProcessing={descriptionProcessing}
-                        />
+                        <TrackedProseLinks note="processing_link">
+                            <IndicatorProcessing
+                                descriptionProcessing={descriptionProcessing}
+                            />
+                        </TrackedProseLinks>
                     }
                     onToggle={(isOpen) =>
                         logExpandableToggle("how_owid_processed_data", isOpen)

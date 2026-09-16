@@ -13,7 +13,8 @@ const analytics = new SiteAnalytics()
  * link, sending the href as the label.
  *
  * Used on both data page designs' "What you should know about this indicator"
- * text, so click-through out of that text is measured the same way in each arm.
+ * text and their "How we process data" section, so click-through out of those
+ * is measured the same way in each arm.
  */
 export default function TrackedProseLinks({
     note,

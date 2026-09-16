@@ -24,6 +24,7 @@ import {
 } from "@ourworldindata/utils"
 import { ArticleBlocks } from "./gdocs/components/ArticleBlocks.js"
 import { SiteAnalytics } from "./SiteAnalytics.js"
+import TrackedProseLinks from "./TrackedProseLinks.js"
 // The control arm of the data page metadata experiment. Its sources and
 // citations render through the same shared components as the treatment arm's
 // metadata box, and the handlers below emit the same events, with the same
@@ -130,9 +131,13 @@ export default function MetadataSection({
                             How we process data at Our World in Data
                         </h3>
                         <div className="col-start-4 span-cols-6 col-lg-start-5 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
-                            <IndicatorProcessing
-                                descriptionProcessing={descriptionProcessing}
-                            />
+                            <TrackedProseLinks note="processing_link">
+                                <IndicatorProcessing
+                                    descriptionProcessing={
+                                        descriptionProcessing
+                                    }
+                                />
+                            </TrackedProseLinks>
                         </div>
                     </div>
                 </div>
