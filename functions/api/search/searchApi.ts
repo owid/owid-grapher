@@ -11,6 +11,7 @@ import { getCanonicalUrl } from "@ourworldindata/components"
 import {
     getFilterNamesOfType,
     buildChartsFacetFilters,
+    formatTopicFacetFilters,
     searchSingleForHitsWithClosestMatches,
     searchTopicPagesOfMatchingCharts,
     MAX_FACET_VALUES,
@@ -258,7 +259,9 @@ export async function searchPages(
     offset: number = 0,
     length: number = 10,
     pageTypes: string[] = ["article", "about-page"],
-    baseUrl: string = "https://ourworldindata.org"
+    baseUrl: string = "https://ourworldindata.org",
+    /** Restrict to pages tagged with any of these topics. */
+    topics: Set<string> = new Set()
 ): Promise<SearchPagesApiResponse> {
     const indexName = getIndexName(SearchIndexName.Pages, config.indexPrefix)
 
@@ -273,7 +276,7 @@ export async function searchPages(
             indexName,
             query,
             filters,
-            facetFilters: [[]],
+            facetFilters: formatTopicFacetFilters(topics),
             attributesToRetrieve: PAGE_ATTRIBUTES,
             highlightPreTag: "<mark>",
             highlightPostTag: "</mark>",
@@ -344,7 +347,8 @@ export async function searchTopicPages(
             offset,
             length,
             pageTypes,
-            baseUrl
+            baseUrl,
+            getFilterNamesOfType(state.filters, FilterType.TOPIC)
         )
 
     return {

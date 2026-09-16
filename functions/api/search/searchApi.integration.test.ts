@@ -444,6 +444,27 @@ describe("searchTopicPages with real Algolia", () => {
         })
     })
 
+    it("keeps the topic filter when falling back to the text search", async () => {
+        // A query no chart matches, so the recommendation is empty and the
+        // fallback text search must still honour the requested topic.
+        const result = await searchTopicPages(
+            algoliaConfig,
+            {
+                query: "max roser",
+                filters: [{ type: FilterType.TOPIC, name: "Health" }],
+                requireAllCountries: false,
+            },
+            await fetchTagGraph(),
+            0,
+            5
+        )
+
+        expect(result.results.length).toBeGreaterThan(0)
+        expect(result.results.map((page) => page.slug)).not.toContain(
+            "economic-growth"
+        )
+    })
+
     it("paginates the recommended topics", async () => {
         const tagGraph = await fetchTagGraph()
         const state = { query: "co2", filters: [], requireAllCountries: false }
