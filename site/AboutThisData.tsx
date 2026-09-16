@@ -13,8 +13,6 @@ import { DataPageDataV2 } from "@ourworldindata/types"
 import { formatAttributions } from "@ourworldindata/utils"
 import KeyDataTable from "./KeyDataTable.js"
 import TrackedProseLinks from "./TrackedProseLinks.js"
-// Control-arm counterpart of IndicatorMetadataBox's toggle tracking — the
-// shared helper guarantees both arms emit identical event names.
 import { logExpandableToggle } from "./metadataExperimentEvents.js"
 
 export default function AboutThisData({
@@ -94,10 +92,6 @@ export default function AboutThisData({
                                             </div>
                                         }
                                         onToggle={(isOpen) =>
-                                            // Control-only: the metadata box
-                                            // has no counterpart section;
-                                            // tracked to show what control
-                                            // readers open instead.
                                             logExpandableToggle(
                                                 "additional_information",
                                                 isOpen

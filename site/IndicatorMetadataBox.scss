@@ -75,14 +75,12 @@
     }
 }
 
-// Producer documentation is free-form markdown rendered inside an
-// ExpandableToggle, outside the expander's `__prose` wrapper. The global reset
-// zeroes list padding, so restore the same list indentation the control
-// design's .key-info__content gives this text (AboutThisData.scss).
+// Restore list indentation lost to the global `ul, ol { padding: 0 }` reset
+// (e.g. /grapher/co2-emissions-transport, "Documentation from data sources").
 .indicator-metadata-box__producer-docs {
     ul,
     ol {
-        padding-left: 1em;
+        padding-left: 1.5em;
         margin: 1em 0;
 
         li {

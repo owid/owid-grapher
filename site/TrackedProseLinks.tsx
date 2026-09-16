@@ -4,17 +4,8 @@ import { SiteAnalytics } from "./SiteAnalytics.js"
 const analytics = new SiteAnalytics()
 
 /**
- * Tracks clicks on links inside a block of rendered prose.
- *
- * Prose comes out of `SimpleMarkdownText`, so its anchors can't carry a
- * `data-track-note` of their own — and putting one on the wrapper would make the
- * global click handler fire on every click in the block, text included. So this
- * listens on the wrapper but only reports when the click actually landed on a
- * link, sending the href as the label.
- *
- * Used on both data page designs' "What you should know about this indicator"
- * text and their "How we process data" section, so click-through out of those
- * is measured the same way in each arm.
+ * Logs clicks on links inside rendered markdown prose (whose anchors can't
+ * carry a data-track-note), with the href as the label.
  */
 export default function TrackedProseLinks({
     note,

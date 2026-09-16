@@ -3,15 +3,9 @@ import { SiteAnalytics } from "./SiteAnalytics.js"
 const analytics = new SiteAnalytics()
 
 /**
- * Logs expand/collapse of a metadata section toggle.
- *
- * One shared helper, deliberately: the data page metadata experiment compares
- * these events across arms, so the control design (AboutThisData,
- * MetadataSection) and the treatment design (IndicatorMetadataBox) must emit
- * byte-identical event names — a rename applied to one copy would silently
- * desynchronise the arms and bias every engagement metric. `target` is a
- * codified identifier rather than the rendered label, so events survive page
- * translation.
+ * Logs expand/collapse of a metadata section toggle. Shared by both data page
+ * designs so they emit identical event names. `target` is a codified id, not
+ * the rendered label, so events survive page translation.
  */
 export function logExpandableToggle(target: string, isOpen: boolean): void {
     analytics.logSiteClick(

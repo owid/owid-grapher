@@ -96,9 +96,6 @@ export const makeLinks = ({
     trackNote,
 }: {
     link?: string
-    /** When set, clicks on the rendered links are tracked under this note.
-     * Opt-in per call site so the same publisher URL is attributable to where it
-     * was clicked (a data page's sources section vs the grapher sources modal). */
     trackNote?: string
 }): React.ReactNode => {
     if (!link) return null

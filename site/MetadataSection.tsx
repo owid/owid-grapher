@@ -25,11 +25,6 @@ import {
 import { ArticleBlocks } from "./gdocs/components/ArticleBlocks.js"
 import { SiteAnalytics } from "./SiteAnalytics.js"
 import TrackedProseLinks from "./TrackedProseLinks.js"
-// The control arm of the data page metadata experiment. Its sources and
-// citations render through the same shared components as the treatment arm's
-// metadata box, and the handlers below emit the same events, with the same
-// targets, as IndicatorMetadataBox — via the shared helper, so the two arms
-// cannot drift apart.
 import { logExpandableToggle } from "./metadataExperimentEvents.js"
 
 const analytics = new SiteAnalytics()

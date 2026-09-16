@@ -123,53 +123,17 @@ export const experiments: Experiment[] = [
     /*
      * Experiment: data-page-metadata-v2
      *
-     * The randomised follow-up to data-page-metadata-v1, which ran at 100%
-     * treatment on 10 pages and so had no control arm — every read was
-     * quasi-experimental. v2 is cluster randomised between pages: 330 data
-     * pages, 165 assigned to the redesign and 165 kept on the current design,
-     * each page fixed to one arm for every visitor. 330 rather than 300 is an
-     * attrition buffer: if a page breaks mid-run (unpublished, re-slugged,
-     * migrated to a multi-dim page) it and its pair partner are dropped and
-     * ≥300 healthy pages remain.
+     * Randomised follow-up to v1: 330 data pages, 165 treatment (metadata box)
+     * / 165 control (current design), cluster randomised by page.
      *
-     * Page-level rather than visitor-level assignment because the two designs
-     * differ in server-rendered markup: serving both from one page would mean
-     * baking both metadata trees and hiding one, which duplicates indexable
-     * content and double-fires the components' own analytics.
+     * Only the treatment pages are listed here, v1-style. The full pre-registered
+     * assignment (both arms, pairs, seed) lives in owid/analytics#1038
+     * (experiments/briefs/data_page_metadata_v2_20260803/). Don't edit this
+     * list mid-run without updating that record; a control page must never
+     * appear here. Arms are identified in the analysis by slug, not by the
+     * GA4 experiment param (the cookie follows visitors onto other pages).
      *
-     * Only the 165 TREATMENT pages are listed here, v1-style: this config's
-     * one job is to make those pages bake with the metadata box. The full
-     * pre-registered assignment — all 330 pages, both arms, the 165 traffic
-     * pairs, seed 20260907, drawn 2026-09-09 before any outcome existed — is
-     * committed in the internal analytics repo
-     * (experiments/briefs/data_page_metadata_v2_20260803/assignment_v2_165T165C.json,
-     * PR owid/analytics#1038), and the analysis identifies arms by slug and
-     * date range from that file. Do not add, remove or re-slug entries here
-     * mid-run without updating the analytics record: the two lists must stay
-     * identical, and a control page must never appear here.
-     *
-     * Eligibility (as drawn): standard single-indicator data page, currently
-     * published per its config JSON, in none of the three redirect ledgers,
-     * ≥5 coview recommendations in related_charts (so the treatment design's
-     * cards render), not in v1, verified live on 2026-09-09. Ranked by past-90-
-     * day first-time landing sessions, matched into rank-adjacent pairs, one
-     * seeded coin flip per pair. Realised traffic split 50.4/49.6.
-     *
-     * Known kludge, accepted: like v1, the middleware sets an
-     * exp-data-page-metadata-v2=treatment cookie at path "/" for visitors of
-     * these pages, which Tag Manager then forwards to GA4 on all their later
-     * page views (including control pages). The GA4 experiment param is
-     * therefore NOT how arms are identified — the slug lists are.
-     *
-     * Conditions:
-     * - (a) control: the current data page (AboutThisData + Sources/Reuse sections)
-     * - (b) treatment: the new metadata box in place of those sections
-     *
-     * Ending the experiment: edit this config and rebake in the same step.
-     * Letting the expiry date flip the gate would leave baked treatment markup
-     * hydrating against control on 165 pages until each one is rebaked. Remove
-     * or update the fixtures in experiments.test.ts in the same PR: they look
-     * this experiment up by id at collection time and fail CI if it is gone.
+     * To end the experiment, edit this config and rebake in the same step.
      */
     new Experiment({
         id: DATA_PAGE_METADATA_V2_EXPERIMENT_ID,
@@ -178,7 +142,6 @@ export const experiments: Experiment[] = [
             { id: "control", fraction: 0.0 },
             { id: DATA_PAGE_METADATA_EXPERIMENT_TREATMENT_ARM, fraction: 1.0 },
         ],
-        // The 165 treatment pages, sorted, exactly as in the analytics record.
         paths: [
             "/grapher/age-dependency-ratio-of-working-age-population",
             "/grapher/age-dependency-ratio-old",
@@ -363,14 +326,8 @@ export function isUrlInActiveExperiment(rawId: string, url: string): boolean {
 }
 
 /**
- * True if the given data page url should render the redesigned metadata layout.
- *
- * Two experiments put a page on the new design, both at 100% treatment on their
- * listed paths: v1 (10 pages) and v2 (the 165 treatment pages of the 330-page
- * randomised design; its controls are not listed here). This is the single
- * source of truth — the baker uses it to decide which pages get the extra
- * per-indicator metadata loaded, and the data page component uses it to pick
- * the markup, so the two can never disagree.
+ * Whether a data page renders the redesigned metadata layout: true for v1's
+ * pages and v2's treatment pages. Used by both the baker and the page component.
  */
 export function isDataPageMetadataRedesignActive(url: string): boolean {
     return (

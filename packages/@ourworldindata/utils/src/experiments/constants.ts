@@ -11,10 +11,5 @@ export const EXPERIMENT_PREFIX = "exp"
 export const DATA_PAGE_METADATA_EXPERIMENT_ID = "data-page-metadata-v1"
 export const DATA_PAGE_METADATA_EXPERIMENT_TREATMENT_ARM = "treatment"
 
-// The randomised follow-up: 330 data pages, cluster randomised page by page;
-// the config lists its 165 treatment pages (the controls live in the analytics
-// repo's pre-registered record). v1's 10 pages stay enrolled in v1 rather than
-// moving here — they already have months of history on the new design, so they
-// can't serve as either arm of a clean randomised comparison. The two path sets
-// are therefore disjoint, and a page shows the redesign if it is in either.
+// Randomised follow-up to v1 (disjoint page sets; v1's pages stay in v1).
 export const DATA_PAGE_METADATA_V2_EXPERIMENT_ID = "data-page-metadata-v2"

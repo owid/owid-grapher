@@ -20,10 +20,6 @@ export interface IndicatorSourcesProps {
         index: number,
         isOpen: boolean
     ) => void
-    /** When set, clicks on the "Retrieved from" publisher links are tracked
-     * under this note. The data page metadata sections pass it; the grapher
-     * sources modal leaves it unset so the experiment's cross-arm publisher
-     * click-through metric isn't polluted by modal clicks. */
     retrievedFromTrackNote?: string
 }
 
