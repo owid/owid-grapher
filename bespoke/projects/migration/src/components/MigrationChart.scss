@@ -1,6 +1,16 @@
 .migration-captioned-chart__chart-area {
     position: relative;
+}
+
+// The skeleton renders in place of the whole variant, not inside the chart area.
+.migration-captioned-chart__chart-area,
+.migration-skeleton {
     height: 450px;
+}
+
+.migration-chart--narrow .migration-captioned-chart__chart-area,
+.migration-chart--narrow .migration-skeleton {
+    height: 380px;
 }
 
 .migration-captioned-chart__empty {
