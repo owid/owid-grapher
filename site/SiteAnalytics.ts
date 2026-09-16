@@ -49,11 +49,12 @@ export class SiteAnalytics extends GrapherAnalytics {
         })
     }
 
-    logDodShown(id: string) {
+    logDodShown(id: string, location?: string) {
         this.logToGA({
             event: EventCategory.DetailOnDemand,
             eventAction: "show",
             eventTarget: id,
+            ...(location !== undefined && { eventContext: location }),
         })
     }
 

@@ -37,6 +37,7 @@ import { ArticleBlocks } from "./gdocs/components/ArticleBlocks.js"
 import { splitDescriptionKey } from "./datapageUtils.js"
 import { SiteAnalytics } from "./SiteAnalytics.js"
 import { logExpandableToggle } from "./metadataExperimentEvents.js"
+import DodLocation from "./DodLocation.js"
 
 const analytics = new SiteAnalytics()
 
@@ -131,10 +132,12 @@ function IndicatorMetadataSections({
             detailsRef={detailsRef}
             preview={
                 descriptionKeyPreview ? (
-                    <SimpleMarkdownText
-                        text={descriptionKeyPreview}
-                        dataTrackNote="wysk_link"
-                    />
+                    <DodLocation location="wysk/preview">
+                        <SimpleMarkdownText
+                            text={descriptionKeyPreview}
+                            dataTrackNote="wysk_link"
+                        />
+                    </DodLocation>
                 ) : undefined
             }
             onToggle={(isOpen) =>
@@ -144,7 +147,10 @@ function IndicatorMetadataSections({
             }
         >
             {descriptionKeyRest && (
-                <div className="metadata-box-expander__remainder metadata-box-expander__prose">
+                <div
+                    className="metadata-box-expander__remainder metadata-box-expander__prose"
+                    data-dod-location="wysk/expanded"
+                >
                     <SimpleMarkdownText
                         text={descriptionKeyRest}
                         dataTrackNote="wysk_link"
@@ -156,33 +162,37 @@ function IndicatorMetadataSections({
                 id="faqs"
                 className="metadata-box-section--faqs"
             >
-                {faqQuestions.map((faq) => (
-                    <ExpandableToggle
-                        key={faq.question}
-                        label={faq.question}
-                        content={
-                            <ArticleBlocks
-                                blocks={faq.answer}
-                                containerType="datapage"
-                            />
-                        }
-                        onToggle={(isOpen) =>
-                            logExpandableToggle(
-                                // untranslated source text
-                                faq.question.slice(0, 100),
-                                isOpen
-                            )
-                        }
-                    />
-                ))}
+                <DodLocation location="faqs">
+                    {faqQuestions.map((faq) => (
+                        <ExpandableToggle
+                            key={faq.question}
+                            label={faq.question}
+                            content={
+                                <ArticleBlocks
+                                    blocks={faq.answer}
+                                    containerType="datapage"
+                                />
+                            }
+                            onToggle={(isOpen) =>
+                                logExpandableToggle(
+                                    // untranslated source text
+                                    faq.question.slice(0, 100),
+                                    isOpen
+                                )
+                            }
+                        />
+                    ))}
+                </DodLocation>
                 <ExpandableToggle
                     label="How did Our World in Data process this data?"
                     contentId={INDICATOR_PROCESSING_SECTION_ID}
                     content={
-                        <IndicatorProcessing
-                            descriptionProcessing={descriptionProcessing}
-                            trackNote="processing_link"
-                        />
+                        <DodLocation location="processing">
+                            <IndicatorProcessing
+                                descriptionProcessing={descriptionProcessing}
+                                trackNote="processing_link"
+                            />
+                        </DodLocation>
                     }
                     onToggle={(isOpen) =>
                         logExpandableToggle("how_owid_processed_data", isOpen)
@@ -197,7 +207,10 @@ function IndicatorMetadataSections({
                             "Principal data source"
                         }
                         content={
-                            <div className="indicator-metadata-box__producer-docs">
+                            <div
+                                className="indicator-metadata-box__producer-docs"
+                                data-dod-location="producer_documentation"
+                            >
                                 <SimpleMarkdownText
                                     text={datapageData.descriptionFromProducer}
                                 />
@@ -216,15 +229,20 @@ function IndicatorMetadataSections({
                 title="Data sources"
                 id={DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID}
             >
-                <IndicatorSources
-                    sources={sourcesForDisplay}
-                    retrievedFromTrackNote="retrieved_from"
-                    hideReuseThisWorkText
-                    hideTeasers
-                    onSourceToggle={(_source, index, isOpen) =>
-                        logExpandableToggle(`data_source_${index + 1}`, isOpen)
-                    }
-                />
+                <DodLocation location="data_sources">
+                    <IndicatorSources
+                        sources={sourcesForDisplay}
+                        retrievedFromTrackNote="retrieved_from"
+                        hideReuseThisWorkText
+                        hideTeasers
+                        onSourceToggle={(_source, index, isOpen) =>
+                            logExpandableToggle(
+                                `data_source_${index + 1}`,
+                                isOpen
+                            )
+                        }
+                    />
+                </DodLocation>
             </MetadataBoxSection>
             {(citationShort || citationLong) && (
                 <MetadataBoxSection title="How to cite">
@@ -357,53 +375,55 @@ export default function IndicatorMetadataBox({
                     {datapageData.titleVariant}
                 </span>
             </h2>
-            <MetadataBoxKeyData>
-                {datapageData.descriptionShort && (
-                    <MetadataBoxKeyDataRow
-                        label="Description"
-                        isFullWidth
-                        isLabelScreenReaderOnly
-                    >
-                        <SimpleMarkdownText
-                            text={datapageData.descriptionShort}
-                        />
-                    </MetadataBoxKeyDataRow>
-                )}
-                {sourceString && (
-                    <MetadataBoxKeyDataRow
-                        label="Data source"
-                        isFullWidth
-                        labelClassName="metadata-box-key-data__key--source"
-                    >
-                        {sourceString}
-                    </MetadataBoxKeyDataRow>
-                )}
-                {datapageData.unit && (
-                    <MetadataBoxKeyDataRow label="Unit">
-                        {datapageData.unit}
-                    </MetadataBoxKeyDataRow>
-                )}
-                {datapageData.dateRange && (
-                    <MetadataBoxKeyDataRow label="Date range">
-                        {datapageData.dateRange}
-                    </MetadataBoxKeyDataRow>
-                )}
-                {datapageData.lastUpdated && (
-                    <MetadataBoxKeyDataRow label="Last updated">
-                        {datapageData.lastUpdated}
-                    </MetadataBoxKeyDataRow>
-                )}
-                {datapageData.nextUpdate && (
-                    <MetadataBoxKeyDataRow label="Next expected update">
-                        {datapageData.nextUpdate}
-                    </MetadataBoxKeyDataRow>
-                )}
-                {owners.length > 0 && (
-                    <MetadataBoxKeyDataRow label="Managed by">
-                        <Byline names={owners} prefix="" />
-                    </MetadataBoxKeyDataRow>
-                )}
-            </MetadataBoxKeyData>
+            <DodLocation location="key_data">
+                <MetadataBoxKeyData>
+                    {datapageData.descriptionShort && (
+                        <MetadataBoxKeyDataRow
+                            label="Description"
+                            isFullWidth
+                            isLabelScreenReaderOnly
+                        >
+                            <SimpleMarkdownText
+                                text={datapageData.descriptionShort}
+                            />
+                        </MetadataBoxKeyDataRow>
+                    )}
+                    {sourceString && (
+                        <MetadataBoxKeyDataRow
+                            label="Data source"
+                            isFullWidth
+                            labelClassName="metadata-box-key-data__key--source"
+                        >
+                            {sourceString}
+                        </MetadataBoxKeyDataRow>
+                    )}
+                    {datapageData.unit && (
+                        <MetadataBoxKeyDataRow label="Unit">
+                            {datapageData.unit}
+                        </MetadataBoxKeyDataRow>
+                    )}
+                    {datapageData.dateRange && (
+                        <MetadataBoxKeyDataRow label="Date range">
+                            {datapageData.dateRange}
+                        </MetadataBoxKeyDataRow>
+                    )}
+                    {datapageData.lastUpdated && (
+                        <MetadataBoxKeyDataRow label="Last updated">
+                            {datapageData.lastUpdated}
+                        </MetadataBoxKeyDataRow>
+                    )}
+                    {datapageData.nextUpdate && (
+                        <MetadataBoxKeyDataRow label="Next expected update">
+                            {datapageData.nextUpdate}
+                        </MetadataBoxKeyDataRow>
+                    )}
+                    {owners.length > 0 && (
+                        <MetadataBoxKeyDataRow label="Managed by">
+                            <Byline names={owners} prefix="" />
+                        </MetadataBoxKeyDataRow>
+                    )}
+                </MetadataBoxKeyData>
+            </DodLocation>
             <IndicatorMetadataSections
                 datapageData={datapageData}
                 faqEntries={faqEntries}

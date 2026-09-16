@@ -37,6 +37,21 @@ export async function runDetailsOnDemand(): Promise<void> {
 
     initializeDetailsOnDemand({
         details,
-        onDodShown: (id) => siteAnalytics.logDodShown(id),
+        onDodShown: (id, dodSpan) =>
+            siteAnalytics.logDodShown(id, getDodLocation(dodSpan)),
     })
+}
+
+export const DOD_LOCATION_ATTR = "data-dod-location"
+
+/**
+ * The page region a DoD span sits in, per the nearest data-dod-location
+ * marker (set on data page sections), or undefined if none.
+ */
+export function getDodLocation(dodSpan: Element): string | undefined {
+    return (
+        dodSpan
+            .closest(`[${DOD_LOCATION_ATTR}]`)
+            ?.getAttribute(DOD_LOCATION_ATTR) ?? undefined
+    )
 }
