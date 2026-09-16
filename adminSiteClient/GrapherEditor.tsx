@@ -62,6 +62,13 @@ export interface GrapherEditorProps {
     baseConfig?: GrapherInterface
 
     // --- Host extensions ---------------------------------------------------
+    /**
+     * Where the chart can be seen as published — the admin's preview page for
+     * a chart it stores. Shown as a link above the preview; absent → no link.
+     * The editor cannot work this out from the config: an id in it says
+     * nothing about who serves that chart.
+     */
+    previewUrl?: string
     /** Tabs the host adds (e.g. revisions, references). */
     extraTabs?: EditorExtraTab[]
     /**
@@ -125,19 +132,18 @@ export class GrapherEditor
         return this.props.onChange
     }
 
-    // The base arrives in the host's form like `config` does; the editor
-    // diffs against it in its own dimension-based form, so translate it too.
-    // No dimension inference for a base: a base naming no columns means
-    // "no column defaults", not "every column".
+    // The base arrives in the host's form like `config` does, and the editor
+    // translates both — it has to merge them in that form first.
     get parentConfig(): GrapherInterface | undefined {
-        const { baseConfig, store } = this.props
-        return baseConfig
-            ? store.toEditorConfig(baseConfig, { inferDimensions: false })
-            : undefined
+        return this.props.baseConfig
     }
 
     // A base config, when given, is always applied.
     readonly isInheritanceEnabled = true
+
+    get previewUrl(): string | undefined {
+        return this.props.previewUrl
+    }
 
     get extraTabs(): EditorExtraTab[] | undefined {
         return this.props.extraTabs

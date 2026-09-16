@@ -55,7 +55,11 @@ export class NarrativeChartSaveButtons extends Component<NarrativeChartSaveButto
                 "You have unsaved changes to this narrative chart. The Data Insight will use the saved version. Do you want to save your changes now before creating the DI?"
             )
             if (!shouldSave) return
-            await editor.saveGrapher()
+            // The DI is built from the saved narrative chart, so a failed
+            // save would have it made from the previous version.
+            let saveFailed = false
+            await editor.saveGrapher({ onError: () => (saveFailed = true) })
+            if (saveFailed) return
         }
         this.isCreateDataInsightModalOpen = true
     }

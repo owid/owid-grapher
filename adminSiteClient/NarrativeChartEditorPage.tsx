@@ -177,6 +177,13 @@ export class NarrativeChartEditorPage extends React.Component<NarrativeChartEdit
                         key={this.props.narrativeChartId}
                         config={this.patchConfig}
                         baseConfig={this.parentConfig}
+                        // A narrative chart has no page of its own; the link
+                        // shows the chart it is based on, as it did before.
+                        previewUrl={
+                            this.parentConfig?.id
+                                ? `/admin/charts/${this.parentConfig.id}/preview`
+                                : undefined
+                        }
                         store={this.store}
                         details={adminDetailsProvider(this.admin)}
                         extraTabs={this.extraTabs}

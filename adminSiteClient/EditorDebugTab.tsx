@@ -73,10 +73,13 @@ class EditorDebugTabForConfig extends Component<{
     }
 
     @action.bound copyYamlToClipboard() {
+        // The host's own form, not the editor's: a store that identifies
+        // columns by slug writes them back as `ySlugs` and friends, and the
+        // dimensions dropped below would be the only binding left.
         // Avoid modifying the original JSON object
         // Due to mobx memoizing computed values, the JSON can be mutated.
         const patchConfig = {
-            ...this.props.editor.patchConfig,
+            ...this.props.editor.hostConfig,
         }
         delete patchConfig.id
         delete patchConfig.dimensions
