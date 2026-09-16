@@ -26,7 +26,6 @@ import {
     SearchWord,
     buildSearchWordsFromSearchString,
     filterFunctionForSearchWords,
-    highlightFunctionForSearchWords,
 } from "../adminShared/search.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -449,10 +448,7 @@ class DatasetEditor extends Component<DatasetEditorProps> {
                 searchWords,
                 (variable: VariableListItem) => [
                     variable.name,
-                    variable.namespace,
-                    variable.dataset,
-                    variable.table,
-                    variable.shortName,
+                    variable.catalogPath,
                     `${variable.id}`,
                 ]
             )
@@ -560,7 +556,6 @@ class DatasetEditor extends Component<DatasetEditorProps> {
     renderTabContent() {
         const { dataset } = this.props
         const { newDataset, activeTab, searchInput, filteredVariables } = this
-        const highlight = highlightFunctionForSearchWords(this.searchWords)
 
         switch (activeTab) {
             case "metadata":
@@ -666,7 +661,7 @@ class DatasetEditor extends Component<DatasetEditorProps> {
                         <VariableList
                             variables={filteredVariables}
                             fields={["usage"]}
-                            searchHighlight={highlight}
+                            searchWords={this.searchWords}
                             search={{
                                 value: searchInput,
                                 onChange: this.onSearchInput,

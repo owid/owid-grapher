@@ -3,6 +3,54 @@
     overflow-y: auto;
 }
 
+.variable-list__usage-part {
+    cursor: help;
+    text-decoration: underline;
+    text-decoration-style: dotted;
+    // so "1 explorer" wraps as a unit rather than splitting across lines
+    white-space: nowrap;
+}
+
+.variable-list__usage-separator {
+    color: #ccc;
+    padding: 0 4px;
+}
+
+.variable-list__path {
+    display: block;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 12px;
+    color: #666;
+    // the short name is elided to keep this on one line; this is the backstop
+    // for a path that is still too long, with the full one on hover
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.variable-list__path-slash {
+    color: #bbb;
+}
+
+.variable-list__path-short {
+    color: #1a1a1a;
+}
+
+.variable-list__popularity {
+    width: 100%;
+    max-width: 90px;
+    height: 6px;
+    border-radius: 3px;
+    background: #ececec;
+    overflow: hidden;
+}
+
+.variable-list__popularity-fill {
+    height: 100%;
+    border-radius: 3px;
+    background: #1d3d63;
+}
+
 .variables-index__help {
     margin-bottom: 16px;
 }

@@ -1,20 +1,22 @@
 import * as React from "react"
 import { useMemo } from "react"
-import { Popover, TableColumnsType, TableProps } from "antd"
+import { Popover, TableColumnsType, TableProps, Tooltip } from "antd"
 
 import { Link } from "./Link.js"
 import { Timeago } from "./Forms.js"
 import { AdminTable, AdminTableSearch } from "./AdminTable.js"
+import {
+    highlightFunctionForSearchWords,
+    SearchWord,
+} from "../adminShared/search.js"
 import { SearchHighlighter } from "./adminTableHelpers.js"
 
 export interface VariableListItem {
     id: number
     name: string
-    namespace?: string
-    version?: string
-    dataset?: string
-    table?: string
-    shortName?: string
+    catalogPath?: string
+    datasetId?: number
+    datasetName?: string
     uploadedAt?: Date
     uploadedBy?: string
     isPrivate?: boolean
@@ -23,27 +25,22 @@ export interface VariableListItem {
     usageCount?: number
     multiDims?: { id: number; slug: string }[]
     explorerSlugs?: string[]
-    /**
-     * 0-1, from the analytics service. Not shown, but it is what a search is
-     * ordered by — see `searchVariables`.
-     */
+    /** 0-1, from the analytics service. Absent for indicators nobody reads. */
     popularity?: number | null
 }
 
 /** Columns beyond the always-present name, in the order they are shown. */
 export type VariableListField =
-    | "namespace"
-    | "version"
-    | "dataset"
-    | "table"
-    | "shortName"
+    | "catalogPath"
     | "uploadedAt"
     | "usage"
+    | "popularity"
 
 interface VariableListProps {
     variables: VariableListItem[]
     fields: VariableListField[]
-    searchHighlight?: SearchHighlighter
+    /** Terms to highlight in the name and catalog path. */
+    searchWords?: SearchWord[]
     search?: AdminTableSearch
     /** Extra controls shown next to the search box. */
     filters?: React.ReactNode
@@ -57,38 +54,14 @@ interface VariableListProps {
     pagination?: TableProps<VariableListItem>["pagination"]
 }
 
-/** Some tables and short names are very long, so truncate them. */
-function truncate(text: string | undefined): string | undefined {
-    if (text && text.length > 20) return text.substring(0, 20) + "..."
-    return text
+function plural(count: number, noun: string): string {
+    return `${count} ${noun}${count === 1 ? "" : "s"}`
 }
 
-function UsageCount({
-    count,
-    label,
-    suffix,
-    children,
-}: {
-    count: number
-    label: string
-    suffix: string
-    children?: React.ReactNode
-}): React.ReactElement {
-    const title = `Used in ${count} ${label}${count === 1 ? "" : "s"}`
-    const text = `${count}${suffix}`
-    if (count === 0) return <span title={title}>{text}</span>
-    return (
-        <Popover title={title} content={children}>
-            <span
-                style={{ cursor: "help" }}
-                className="text-decoration-underline"
-            >
-                {text}
-            </span>
-        </Popover>
-    )
-}
-
+/**
+ * What uses this indicator, naming each kind rather than counting the kinds
+ * that are almost always zero. Hovering lists what they are.
+ */
 function UsageCell({
     variable,
 }: {
@@ -98,55 +71,179 @@ function UsageCell({
     const multiDims = variable.multiDims ?? []
     const explorerSlugs = variable.explorerSlugs ?? []
 
-    if (!variable.usageCount) return <span className="text-muted">—</span>
-
     const sortedCharts = charts.toSorted((a, b) =>
         (a.slug || "").localeCompare(b.slug || "")
     )
 
+    const parts: { key: string; label: string; items: React.ReactNode }[] = []
+    if (charts.length)
+        parts.push({
+            key: "charts",
+            label: plural(charts.length, "chart"),
+            items: sortedCharts.map((chart) => (
+                <li key={chart.id}>
+                    <a
+                        href={`/admin/charts/${chart.id}/edit`}
+                        title={chart.title || undefined}
+                    >
+                        {chart.slug || `Chart #${chart.id}`}
+                    </a>
+                </li>
+            )),
+        })
+    if (multiDims.length)
+        parts.push({
+            key: "multiDims",
+            label: plural(multiDims.length, "multi-dim"),
+            items: multiDims.map((multiDim) => (
+                <li key={multiDim.id}>
+                    <a href={`/admin/multi-dims/${multiDim.id}`}>
+                        {multiDim.slug}
+                    </a>
+                </li>
+            )),
+        })
+    if (explorerSlugs.length)
+        parts.push({
+            key: "explorers",
+            label: plural(explorerSlugs.length, "explorer"),
+            items: explorerSlugs.map((slug) => (
+                <li key={slug}>
+                    <a href={`/admin/explorers/${slug}`}>{slug}</a>
+                </li>
+            )),
+        })
+
+    if (!parts.length) return <span className="text-muted">—</span>
+
     return (
         <>
-            {variable.usageCount} (
-            <UsageCount count={charts.length} label="chart" suffix="C">
-                <ul className="list-unstyled mb-0 variable-list__usage-popover">
-                    {sortedCharts.map((chart) => (
-                        <li key={chart.id}>
-                            <a
-                                href={`/admin/charts/${chart.id}/edit`}
-                                title={chart.title || undefined}
-                            >
-                                {chart.slug || `Chart #${chart.id}`}
-                            </a>
-                        </li>
-                    ))}
-                </ul>
-            </UsageCount>{" "}
-            <UsageCount count={multiDims.length} label="multi-dim" suffix="M">
-                <ul className="list-unstyled mb-0 variable-list__usage-popover">
-                    {multiDims.map((multiDim) => (
-                        <li key={multiDim.id}>
-                            <a href={`/admin/multi-dims/${multiDim.id}`}>
-                                {multiDim.slug}
-                            </a>
-                        </li>
-                    ))}
-                </ul>
-            </UsageCount>{" "}
-            <UsageCount
-                count={explorerSlugs.length}
-                label="path-based explorer"
-                suffix="E"
-            >
-                <ul className="list-unstyled mb-0 variable-list__usage-popover">
-                    {explorerSlugs.map((slug) => (
-                        <li key={slug}>
-                            <a href={`/admin/explorers/${slug}`}>{slug}</a>
-                        </li>
-                    ))}
-                </ul>
-            </UsageCount>
-            )
+            {parts.map((part, index) => (
+                <React.Fragment key={part.key}>
+                    {index > 0 && (
+                        <span className="variable-list__usage-separator">
+                            ·
+                        </span>
+                    )}
+                    <Popover
+                        title={part.label}
+                        content={
+                            <ul className="list-unstyled mb-0 variable-list__usage-popover">
+                                {part.items}
+                            </ul>
+                        }
+                    >
+                        <span className="variable-list__usage-part">
+                            {part.label}
+                        </span>
+                    </Popover>
+                </React.Fragment>
+            ))}
         </>
+    )
+}
+
+/** A 0-1 score reads better against its neighbours than as a number. */
+function PopularityCell({
+    popularity,
+}: {
+    popularity: number | null | undefined
+}): React.ReactElement {
+    if (popularity === null || popularity === undefined)
+        return <span className="text-muted">—</span>
+    return (
+        <Tooltip title={popularity.toFixed(2)}>
+            <div className="variable-list__popularity">
+                <div
+                    className="variable-list__popularity-fill"
+                    style={{ width: `${Math.round(popularity * 100)}%` }}
+                />
+            </div>
+        </Tooltip>
+    )
+}
+
+const SHORT_NAME_VISIBLE_LENGTH = 22
+
+/**
+ * Indicator short names run past 60 characters and what tells them apart sits
+ * at the end, so cut the middle rather than the tail. When the search matched
+ * inside the name, cut around the match instead, so what you searched for is
+ * what you see.
+ */
+function elideShortName(shortName: string, searchWords: SearchWord[]): string {
+    if (shortName.length <= SHORT_NAME_VISIBLE_LENGTH) return shortName
+
+    const match = searchWords
+        .filter((word) => !word.exclude)
+        .map((word) => shortName.search(word.regex))
+        .filter((index) => index >= 0)
+        .sort((a, b) => a - b)[0]
+
+    if (match === undefined)
+        return `${shortName.slice(0, 11)}…${shortName.slice(-10)}`
+
+    const start = Math.max(0, match - 6)
+    const end = Math.min(shortName.length, start + SHORT_NAME_VISIBLE_LENGTH)
+    return `${start > 0 ? "…" : ""}${shortName.slice(start, end)}${
+        end < shortName.length ? "…" : ""
+    }`
+}
+
+/**
+ * The catalog path, which is what the namespace / version / dataset / table /
+ * short name columns were each showing a slice of. The dataset segment links
+ * to the dataset, saving a hop through the indicator page.
+ */
+function CatalogPathCell({
+    variable,
+    highlight,
+    searchWords,
+}: {
+    variable: VariableListItem
+    highlight: SearchHighlighter
+    searchWords: SearchWord[]
+}): React.ReactElement {
+    const { catalogPath, datasetId } = variable
+    if (!catalogPath) return <span className="text-muted">—</span>
+
+    // `grapher/` is on every row, so it is only noise here
+    const [path, shortName] = catalogPath
+        .replace(/^grapher\//, "")
+        .split("#") as [string, string | undefined]
+    const [namespace, version, dataset, ...rest] = path.split("/")
+    const table = rest.join("/")
+
+    const slash = <span className="variable-list__path-slash">/</span>
+
+    return (
+        <span className="variable-list__path" title={catalogPath}>
+            {highlight(namespace)}
+            {slash}
+            {highlight(version)}
+            {slash}
+            {datasetId ? (
+                <Link
+                    to={`/datasets/${datasetId}`}
+                    title={variable.datasetName}
+                >
+                    {highlight(dataset)}
+                </Link>
+            ) : (
+                highlight(dataset)
+            )}
+            {table && (
+                <>
+                    {slash}
+                    {highlight(table)}
+                </>
+            )}
+            {shortName && (
+                <span className="variable-list__path-short">
+                    #{highlight(elideShortName(shortName, searchWords))}
+                </span>
+            )}
+        </span>
     )
 }
 
@@ -158,13 +255,10 @@ function UsageCell({
  */
 const COLUMN_WEIGHTS: Record<VariableListField | "name", number> = {
     name: 28,
-    namespace: 11,
-    version: 8,
-    dataset: 12,
-    table: 11,
-    shortName: 12,
-    usage: 8,
-    uploadedAt: 13,
+    catalogPath: 36,
+    usage: 15,
+    popularity: 7,
+    uploadedAt: 14,
 }
 
 function columnWidths(
@@ -183,10 +277,12 @@ function columnWidths(
 function createColumns({
     fields,
     highlight,
+    searchWords,
     sortable,
 }: {
     fields: VariableListField[]
     highlight: SearchHighlighter
+    searchWords: SearchWord[]
     sortable: boolean
 }): TableColumnsType<VariableListItem> {
     const width = columnWidths(fields)
@@ -194,50 +290,22 @@ function createColumns({
         VariableListField,
         TableColumnsType<VariableListItem>[number]
     > = {
-        namespace: {
-            width: width.namespace,
-            title: "Namespace",
-            dataIndex: "namespace",
-            key: "namespace",
+        catalogPath: {
+            width: width.catalogPath,
+            title: "Catalog path",
+            dataIndex: "catalogPath",
+            key: "catalogPath",
             sorter:
                 sortable &&
                 ((a, b) =>
-                    (a.namespace ?? "").localeCompare(b.namespace ?? "")),
-        },
-        version: {
-            width: width.version,
-            title: "Version",
-            dataIndex: "version",
-            key: "version",
-            sorter:
-                sortable &&
-                ((a, b) => (a.version ?? "").localeCompare(b.version ?? "")),
-        },
-        dataset: {
-            width: width.dataset,
-            title: "Dataset",
-            dataIndex: "dataset",
-            key: "dataset",
-            ellipsis: true,
-            sorter:
-                sortable &&
-                ((a, b) => (a.dataset ?? "").localeCompare(b.dataset ?? "")),
-        },
-        table: {
-            width: width.table,
-            title: "Table",
-            dataIndex: "table",
-            key: "table",
-            ellipsis: true,
-            render: (table) => truncate(table),
-        },
-        shortName: {
-            width: width.shortName,
-            title: "Short name",
-            dataIndex: "shortName",
-            key: "shortName",
-            ellipsis: true,
-            render: (shortName) => truncate(shortName),
+                    (a.catalogPath ?? "").localeCompare(b.catalogPath ?? "")),
+            render: (_, variable) => (
+                <CatalogPathCell
+                    variable={variable}
+                    highlight={highlight}
+                    searchWords={searchWords}
+                />
+            ),
         },
         uploadedAt: {
             width: width.uploadedAt,
@@ -258,13 +326,23 @@ function createColumns({
         },
         usage: {
             width: width.usage,
-            title: "Usage",
+            title: "Used in",
             dataIndex: "usageCount",
             key: "usage",
             sorter:
                 sortable &&
                 ((a, b) => (a.usageCount ?? 0) - (b.usageCount ?? 0)),
             render: (_, variable) => <UsageCell variable={variable} />,
+        },
+        popularity: {
+            width: width.popularity,
+            title: "Popularity",
+            dataIndex: "popularity",
+            key: "popularity",
+            sorter:
+                sortable &&
+                ((a, b) => (a.popularity ?? 0) - (b.popularity ?? 0)),
+            render: (popularity) => <PopularityCell popularity={popularity} />,
         },
     }
 
@@ -294,10 +372,12 @@ function createColumns({
     ]
 }
 
+const NO_SEARCH_WORDS: SearchWord[] = []
+
 export function VariableList({
     variables,
     fields,
-    searchHighlight,
+    searchWords = NO_SEARCH_WORDS,
     search,
     filters,
     loading,
@@ -305,10 +385,9 @@ export function VariableList({
     pagination,
 }: VariableListProps): React.ReactElement {
     const columns = useMemo(() => {
-        const highlight: SearchHighlighter =
-            searchHighlight ?? ((text) => text ?? "")
-        return createColumns({ fields, highlight, sortable })
-    }, [fields, searchHighlight, sortable])
+        const highlight = highlightFunctionForSearchWords(searchWords)
+        return createColumns({ fields, highlight, searchWords, sortable })
+    }, [fields, searchWords, sortable])
 
     return (
         <AdminTable

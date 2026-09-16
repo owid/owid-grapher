@@ -1117,6 +1117,19 @@ export const searchVariables = async (
     return { variables: rows, numTotalRows: numTotalRows }
 }
 
+/**
+ * The nth slash-separated segment of a catalog path, counting `grapher` as 1:
+ * `grapher/ihme_gbd/2026-02-07/gbd_cause_deaths/gbd_cause_deaths#short_name`.
+ *
+ * These are the segments the admin's indicator list shows, so `namespace:`,
+ * `version:`, `dataset:` and `table:` search the path rather than the dataset
+ * columns they were once pointed at — `namespace:ihme_gbd` used to search the
+ * dataset's title and so matched nothing. The dataset's title is `datasetname:`.
+ */
+const catalogPathSegment = (n: number): string =>
+    // the last segment carries the #short_name, which `short:` searches instead
+    `SUBSTRING_INDEX(SUBSTRING_INDEX(SUBSTRING_INDEX(v.catalogPath, '/', ${n}), '/', -1), '#', 1)`
+
 const buildWhereClauses = (query: string): string[] => {
     const whereClauses: string[] = []
 
@@ -1149,6 +1162,13 @@ const buildWhereClauses = (query: string): string[] => {
             const q = part.substring("namespace:".length)
             if (q) {
                 whereClauses.push(
+                    `${not} REGEXP_LIKE(${catalogPathSegment(2)}, ${escape(q)}, 'i')`
+                )
+            }
+        } else if (part.startsWith("datasetname:")) {
+            const q = part.substring("datasetname:".length)
+            if (q) {
+                whereClauses.push(
                     `${not} REGEXP_LIKE(d.name, ${escape(q)}, 'i')`
                 )
             }
@@ -1156,24 +1176,21 @@ const buildWhereClauses = (query: string): string[] => {
             const q = part.substring("version:".length)
             if (q) {
                 whereClauses.push(
-                    `${not} REGEXP_LIKE(d.version, ${escape(q)}, 'i')`
+                    `${not} REGEXP_LIKE(${catalogPathSegment(3)}, ${escape(q)}, 'i')`
                 )
             }
         } else if (part.startsWith("dataset:")) {
             const q = part.substring("dataset:".length)
             if (q) {
                 whereClauses.push(
-                    `${not} REGEXP_LIKE(d.shortName, ${escape(q)}, 'i')`
+                    `${not} REGEXP_LIKE(${catalogPathSegment(4)}, ${escape(q)}, 'i')`
                 )
             }
         } else if (part.startsWith("table:")) {
             const q = part.substring("table:".length)
-            // NOTE: we don't have the table name in any db field, it's horrible to query
             if (q) {
                 whereClauses.push(
-                    `${not} REGEXP_LIKE(SUBSTRING_INDEX(SUBSTRING_INDEX(v.catalogPath, '/', 5), '/', -1), ${escape(
-                        q
-                    )}, 'i')`
+                    `${not} REGEXP_LIKE(${catalogPathSegment(5)}, ${escape(q)}, 'i')`
                 )
             }
         } else if (part.startsWith("short:")) {

@@ -11,22 +11,13 @@ import {
     ADMIN_TABLE_PAGE_SIZE,
     useSearchQueryParam,
 } from "./adminTableHelpers.js"
-import { highlightFunctionForSearchWords } from "../adminShared/search.js"
 import {
     SearchFieldHelp,
     searchWordsToHighlight,
 } from "../adminShared/searchFilter.js"
 import { ETL_WIZARD_URL } from "../settings/clientSettings.mjs"
 
-const FIELDS = [
-    "namespace",
-    "version",
-    "dataset",
-    "table",
-    "shortName",
-    "usage",
-    "uploadedAt",
-] as const
+const FIELDS = ["catalogPath", "usage", "popularity", "uploadedAt"] as const
 
 /**
  * Unlike the other lists, the indicators search runs in SQL (see
@@ -36,11 +27,20 @@ const FIELDS = [
 const SEARCH_FIELDS: SearchFieldHelp[] = [
     { name: "name", type: "string", description: "Indicator name (regex)" },
     { name: "path", type: "string", description: "Catalog path (regex)" },
-    { name: "namespace", type: "string", description: "Dataset name" },
-    { name: "version", type: "string", description: "Dataset version" },
-    { name: "dataset", type: "string", description: "Dataset short name" },
-    { name: "table", type: "string", description: "Table in the catalog path" },
+    {
+        name: "namespace",
+        type: "string",
+        description: "Namespace, the first segment of the path",
+    },
+    { name: "version", type: "string", description: "Version segment" },
+    { name: "dataset", type: "string", description: "Dataset segment" },
+    { name: "table", type: "string", description: "Table segment" },
     { name: "short", type: "string", description: "Indicator short name" },
+    {
+        name: "datasetname",
+        type: "string",
+        description: "The dataset's title",
+    },
     { name: "before", type: "date", description: "Version before this date" },
     { name: "after", type: "date", description: "Version after this date" },
     { name: "is", type: "string", description: "`public` or `private`" },
@@ -84,11 +84,8 @@ export function VariablesIndexPage(): React.ReactElement {
         placeholderData: keepPreviousData,
     })
 
-    const highlight = useMemo(
-        () =>
-            highlightFunctionForSearchWords(
-                searchWordsToHighlight(debouncedSearch, SEARCH_FIELDS)
-            ),
+    const searchWords = useMemo(
+        () => searchWordsToHighlight(debouncedSearch, SEARCH_FIELDS),
         [debouncedSearch]
     )
 
@@ -99,7 +96,7 @@ export function VariablesIndexPage(): React.ReactElement {
                 <VariableList
                     variables={data?.variables ?? []}
                     fields={[...FIELDS]}
-                    searchHighlight={highlight}
+                    searchWords={searchWords}
                     loading={isFetching}
                     sortable={false}
                     search={{
