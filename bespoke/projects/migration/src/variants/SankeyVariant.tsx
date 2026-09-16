@@ -200,14 +200,12 @@ function FetchingSankeyVariant({ config }: { config: SankeyVariantConfig }) {
           ? `No immigrants recorded in ${countryLabel} in ${year}.`
           : undefined
 
-    if (
-        metadataStatus === "pending" ||
-        migrationStatus === "pending" ||
-        !isCountryResolved
-    )
+    if (metadataStatus === "pending")
         return <ChartSkeleton className="migration-skeleton" />
     if (metadataStatus === "error" || !metadata)
         return <ChartError message="Failed to load migration metadata" />
+    if (migrationStatus === "pending" || !isCountryResolved)
+        return <ChartSkeleton className="migration-skeleton" />
     if (migrationStatus === "error" || !migration)
         return <ChartError message="Failed to load migration data" />
 
