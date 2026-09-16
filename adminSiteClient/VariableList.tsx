@@ -1,6 +1,6 @@
 import * as React from "react"
 import { useMemo } from "react"
-import { Popover, TableColumnsType, TableProps, Tooltip } from "antd"
+import { Checkbox, Popover, TableColumnsType, TableProps, Tooltip } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faEyeSlash, faLock } from "@fortawesome/free-solid-svg-icons"
 
@@ -497,6 +497,11 @@ function DatasetGroupHeader({
  * datasets are the useful thing to page through, each showing its most-read
  * few and offering the rest as a narrower search.
  */
+export interface IndicatorSelection {
+    selectedIds: Set<number>
+    onToggle: (variable: VariableListItem) => void
+}
+
 export function GroupedVariableList({
     groups,
     isSearch,
@@ -506,6 +511,7 @@ export function GroupedVariableList({
     search,
     loading,
     footer,
+    selection,
 }: {
     groups: DatasetSearchGroup[]
     /** Groups say "matching indicators" for a search, "indicators" otherwise. */
@@ -517,6 +523,11 @@ export function GroupedVariableList({
     search?: AdminTableSearch
     loading?: boolean
     footer?: React.ReactNode
+    /**
+     * Turns each row into a checkbox rather than a link to the indicator —
+     * what the chart editor's picker needs from the same results.
+     */
+    selection?: IndicatorSelection
 }): React.ReactElement {
     const rows = useMemo(
         (): GroupedRow[] =>
@@ -580,6 +591,27 @@ export function GroupedVariableList({
                             </button>
                         )
                     }
+                    if (selection) {
+                        const { id } = row.variable
+                        return (
+                            <Checkbox
+                                checked={selection.selectedIds.has(id)}
+                                onChange={() =>
+                                    selection.onToggle(row.variable)
+                                }
+                            >
+                                {highlight(row.variable.name)}
+                                {row.variable.nonRedistributable ? (
+                                    <Tooltip title="Non-redistributable — the data download is disabled on charts using it">
+                                        <FontAwesomeIcon
+                                            className="variable-list__flag variable-list__flag--after"
+                                            icon={faLock}
+                                        />
+                                    </Tooltip>
+                                ) : null}
+                            </Checkbox>
+                        )
+                    }
                     return (
                         <>
                             {row.variable.nonRedistributable ? (
@@ -628,7 +660,7 @@ export function GroupedVariableList({
                     ) : null,
             },
         ]
-    }, [searchWords, searchValue, onSearchValue, isSearch])
+    }, [searchWords, searchValue, onSearchValue, isSearch, selection])
 
     return (
         <>

@@ -70,11 +70,7 @@ import {
     handleGetAllMultiDimRedirects,
     getMdimRecordsJson,
 } from "./apiRoutes/mdims.js"
-import {
-    fetchAllWork,
-    fetchNamespaces,
-    fetchSourceById,
-} from "./apiRoutes/misc.js"
+import { fetchAllWork, fetchSourceById } from "./apiRoutes/misc.js"
 import {
     handleGetSiteRedirects,
     handlePostNewSiteRedirect,
@@ -112,13 +108,11 @@ import {
     removeUserImage,
 } from "./apiRoutes/users.js"
 import {
-    getEditorVariablesJson,
     getVariableDataJson,
     getVariableMetadataJson,
     getVariablesJson,
     getLatestIndicatorIdsByCatalogPathJson,
     getVariablesUsagesJson,
-    getVariablesPopularityJson,
     getIndicatorChartConfigJson,
     getVariableJson,
     putIndicatorChartConfig,
@@ -518,11 +512,6 @@ deleteRouteWithRWTransaction(
 
 // Misc routes
 getRouteWithROTransaction(apiRouter, "/all-work", fetchAllWork)
-getRouteWithROTransaction(
-    apiRouter,
-    "/editorData/namespaces.json",
-    fetchNamespaces
-)
 getRouteWithROTransaction(apiRouter, "/sources/:sourceId.json", fetchSourceById)
 
 // Redirects routes
@@ -609,11 +598,6 @@ deleteRouteWithRWTransaction(
 // Variable routes
 getRouteWithROTransaction(
     apiRouter,
-    "/editorData/variables.json",
-    getEditorVariablesJson
-)
-getRouteWithROTransaction(
-    apiRouter,
     "/data/variables/data/:variableStr.json",
     getVariableDataJson
 )
@@ -628,11 +612,6 @@ getRouteWithROTransaction(
     apiRouter,
     "/variables.usages.json",
     getVariablesUsagesJson
-)
-getRouteWithROTransaction(
-    apiRouter,
-    "/variables.popularity.json",
-    getVariablesPopularityJson
 )
 getRouteWithROTransaction(
     apiRouter,

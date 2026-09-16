@@ -115,3 +115,21 @@
 .variables-index__slow-terms {
     margin-bottom: 16px;
 }
+
+.variable-list__flag--after {
+    margin-right: 0;
+    margin-left: 6px;
+}
+
+.VariableSelector__paging {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 12px;
+    color: #666;
+    font-size: 12.5px;
+}
+
+.VariableSelector__chosen-dataset {
+    color: #999;
+}

@@ -62,7 +62,6 @@ import {
     ErrorMessagesForDimensions,
     FieldWithDetailReferences,
 } from "./ChartEditorTypes.js"
-import { Dataset, EditorDatabase } from "./EditorDatabase.js"
 
 export type DetailReferences = Record<FieldWithDetailReferences, string[]>
 
@@ -86,18 +85,15 @@ interface ChartEditorViewProps<Editor> {
 export class ChartEditorView<
     Editor extends AbstractChartEditor,
 > extends React.Component<ChartEditorViewProps<Editor>> {
-    database = new EditorDatabase({})
     details: DetailDictionary = {}
     private cleanupDetailsOnDemand: (() => void) | undefined
 
     constructor(props: ChartEditorViewProps<Editor>) {
         super(props)
 
-        makeObservable<ChartEditorView<Editor>, "_isDbSet">(this, {
-            database: observable.ref,
+        makeObservable(this, {
             details: observable,
             simulateVisionDeficiency: observable,
-            _isDbSet: observable,
         })
     }
 
@@ -109,11 +105,6 @@ export class ChartEditorView<
 
     @computed private get manager(): ChartEditorViewManager<Editor> {
         return this.props.manager
-    }
-
-    private _isDbSet = false
-    @computed get isReady(): boolean {
-        return this._isDbSet
     }
 
     private hasAppliedInitialQueryParams = false
@@ -134,59 +125,6 @@ export class ChartEditorView<
             this.hasAppliedInitialQueryParams = true
             this.grapherState.populateFromQueryParams(initialQueryParams)
         }
-    }
-
-    @action.bound private setDb(json: any): void {
-        this.database = new EditorDatabase(json)
-        this._isDbSet = true
-    }
-
-    async fetchData(): Promise<void> {
-        const { admin } = this.manager
-
-        const [namespaces, variables] = await Promise.all([
-            admin.getJSON(`/api/editorData/namespaces.json`),
-            admin.getJSON(`/api/editorData/variables.json`),
-        ])
-
-        this.setDb(namespaces)
-
-        const groupedByNamespace = _.groupBy(
-            variables.datasets,
-            (d) => d.namespace
-        )
-        for (const namespace in groupedByNamespace) {
-            this.database.dataByNamespace.set(namespace, {
-                datasets: groupedByNamespace[namespace] as Dataset[],
-            })
-        }
-
-        const [usageData, popularityData] = await Promise.all([
-            admin.getJSON<
-                {
-                    variableId: number
-                    usageCount: number
-                }[]
-            >(`/api/variables.usages.json`),
-            admin.getJSON<
-                {
-                    variableId: number
-                    popularity: number
-                }[]
-            >(`/api/variables.popularity.json`),
-        ])
-        this.database.variableUsageCounts = new Map(
-            usageData.map(({ variableId, usageCount }) => [
-                variableId,
-                +usageCount,
-            ])
-        )
-        this.database.variablePopularity = new Map(
-            popularityData.map(({ variableId, popularity }) => [
-                variableId,
-                +popularity,
-            ])
-        )
     }
 
     async fetchDetails(): Promise<void> {
@@ -343,24 +281,26 @@ export class ChartEditorView<
     }
 
     @computed get editor(): Editor | undefined {
-        if (!this.isReady) return undefined
-
         return this.manager.editor
     }
 
     @action.bound refresh(): void {
         void this.fetchDetails()
-        void this.fetchData()
     }
 
     override componentDidMount(): void {
         this.refresh()
         this.disposers.push(
+            // Keyed on the config rather than on the editor: the editor object
+            // exists before the chart it is editing has loaded. That used to
+            // be masked by the editor only appearing once a copy of the
+            // indicator catalogue had downloaded, which no longer happens.
             reaction(
-                () => this.editor,
+                () => this.manager.editor?.originalGrapherConfig,
                 () => {
                     void this.updateGrapher()
-                }
+                },
+                { fireImmediately: true }
             )
         )
         this.disposers.push(
@@ -462,7 +402,6 @@ export class ChartEditorView<
                         {editor.tab === "basic" && (
                             <EditorBasicTab
                                 editor={editor}
-                                database={this.database}
                                 errorMessagesForDimensions={
                                     this.errorMessagesForDimensions
                                 }
