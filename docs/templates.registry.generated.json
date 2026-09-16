@@ -1649,5 +1649,127 @@
     "exemplars": [
       "owid-homepage"
     ]
+  },
+  {
+    "id": "featured-viz",
+    "contentTypeName": "OwidGdocFeaturedVizContent",
+    "sidecarFile": "packages/@ourworldindata/types/src/gdocTypes/templates/FeaturedViz.md",
+    "title": "Featured Viz",
+    "prose": {
+      "intro": "A page built around one custom, interactive data visualization: a bespoke\ncomponent on a full-bleed hero band, with prose above and below it. Published\nunder `/featured-viz/{slug}`.",
+      "whenToUse": "- Presenting a single `{.bespoke-component}` as the page itself, rather than\n  as one block inside a longer piece.",
+      "whenNotToUse": "- Prefer `{template:article}` when the visualization supports a narrative\n  with sections and several charts — an article embeds the same\n  `{.bespoke-component}` inline.\n- Prefer `{template:data-insight}` for a short, chart-led observation around\n  a static image.",
+      "notes": "The hero is the first `{.bespoke-component}` in the body. The page keeps the\nviz's state in the URL, and when the bundle publishes metadata (origins or a\ndescription key) that metadata renders as a methods box beside the hero\ninstead of the component's own metadata modal."
+    },
+    "fields": [
+      {
+        "name": "type",
+        "type": "OwidGdocType.FeaturedViz",
+        "optional": false,
+        "kind": "authored",
+        "description": "Always \"featured-viz\"."
+      },
+      {
+        "name": "title",
+        "type": "string",
+        "optional": false,
+        "kind": "authored",
+        "description": "The page headline, shown above the featured viz."
+      },
+      {
+        "name": "subtitle",
+        "type": "string",
+        "optional": true,
+        "kind": "authored",
+        "description": "Standfirst shown below the title."
+      },
+      {
+        "name": "authors",
+        "type": "string[]",
+        "optional": false,
+        "kind": "authored",
+        "description": "Comma-separated author names. Append a role in parentheses to credit a specific contribution — e.g. \"Jane Doe (Editor)\"."
+      },
+      {
+        "name": "authorRoles",
+        "type": "Record<string, string>",
+        "optional": true,
+        "kind": "computed"
+      },
+      {
+        "name": "dateline",
+        "type": "string",
+        "optional": true,
+        "kind": "authored",
+        "description": "The publication date as displayed under the byline, e.g. \"June 30, 2026\". Omitted, the page shows the publish date."
+      },
+      {
+        "name": "excerpt",
+        "type": "string",
+        "optional": true,
+        "kind": "authored",
+        "description": "Short plain-text summary used in cards and link previews."
+      },
+      {
+        "name": "featured-image",
+        "type": "string",
+        "optional": true,
+        "kind": "authored",
+        "description": "Filename of the image used in cards and social-media previews — the viz needs JavaScript, so it cannot stand in for one."
+      },
+      {
+        "name": "hide-citation",
+        "type": "boolean",
+        "optional": true,
+        "kind": "authored",
+        "description": "Set to true to hide the \"Cite this work\" section at the end of the page and the page citation in the methods box."
+      },
+      {
+        "name": "body",
+        "type": "OwidEnrichedGdocBlock[]",
+        "optional": false,
+        "kind": "authored",
+        "description": "The page body: the featured viz and the prose around it. The first `{.bespoke-component}` block is the hero; see the template skeleton."
+      },
+      {
+        "name": "refs",
+        "type": "{ definitions: RefDictionary; errors: OwidGdocErrorMessage[] }",
+        "optional": true,
+        "kind": "authored",
+        "description": "Footnote definitions for ID-based references, authored as a `[.refs]` block of `id:` + `[.+content]` entries. Inline `{ref}…{/ref}` footnotes need no entry here. See `{guide:refs}`."
+      }
+    ],
+    "adminManagedFields": [
+      "slug",
+      "published",
+      "publishedAt",
+      "publicationContext",
+      "manualBreadcrumbs",
+      "tags"
+    ],
+    "skeleton": [
+      {
+        "name": "The intro",
+        "description": "Optional short paragraph above the viz — a sentence or two on what the reader is looking at. Everything before the featured viz renders in the text column under the header.",
+        "components": [
+          "text"
+        ]
+      },
+      {
+        "name": "The featured viz",
+        "description": "The first bespoke-component block in the body is the page's hero, rendered on its own full-bleed band. When the bundle publishes metadata, a methods box sits beside it. Any later bespoke-component block renders inline like an ordinary block.",
+        "components": [
+          "bespoke-component"
+        ]
+      },
+      {
+        "name": "The explanation",
+        "description": "Prose and headings below the band — what the viz shows, how to read it, where the data comes from.",
+        "components": [
+          "text",
+          "heading"
+        ]
+      }
+    ]
   }
 ]

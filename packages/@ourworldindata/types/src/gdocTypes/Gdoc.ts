@@ -716,6 +716,24 @@ export const OWID_GDOC_HOMEPAGE_CONTENT_KEY_KINDS = {
     authorRoles: "computed", // from authors
 } as const satisfies Record<keyof OwidGdocHomepageContent, GdocContentKeyKind>
 
+/** Kind of every OwidGdocFeaturedVizContent key. */
+export const OWID_GDOC_FEATURED_VIZ_CONTENT_KEY_KINDS = {
+    body: "authored",
+    type: "authored",
+    title: "authored",
+    subtitle: "authored",
+    authors: "authored",
+    dateline: "authored",
+    excerpt: "authored",
+    refs: "authored",
+    "hide-citation": "authored",
+    "featured-image": "authored",
+    authorRoles: "computed", // from authors
+} as const satisfies Record<
+    keyof OwidGdocFeaturedVizContent,
+    GdocContentKeyKind
+>
+
 /** The gdoc types the writing reference documents with a template page,
  *  mapped to the content interface behind each. Every OwidGdocType has an
  *  entry — the `satisfies` clause breaks the build until a new type is
@@ -760,6 +778,10 @@ export const GDOC_TEMPLATE_CONTENT_INTERFACES = {
     [OwidGdocType.Homepage]: {
         interfaceName: "OwidGdocHomepageContent",
         keyKinds: OWID_GDOC_HOMEPAGE_CONTENT_KEY_KINDS,
+    },
+    [OwidGdocType.FeaturedViz]: {
+        interfaceName: "OwidGdocFeaturedVizContent",
+        keyKinds: OWID_GDOC_FEATURED_VIZ_CONTENT_KEY_KINDS,
     },
 } as const satisfies Record<
     OwidGdocType,
