@@ -1,15 +1,12 @@
 import { useMemo } from "react"
-import {
-    QueryClient,
-    QueryClientProvider,
-    QueryStatus,
-} from "@tanstack/react-query"
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { NuqsAdapter } from "nuqs/adapters/react"
 import { parseAsInteger, parseAsString } from "nuqs"
 import * as R from "remeda"
 
 import { Time } from "@ourworldindata/types"
 import { WORLD_ENTITY_NAME } from "@ourworldindata/grapher/src/core/GrapherConstants.js"
+import { combineStatuses } from "../../../../helpers/queryStatus.js"
 
 import type { EmbedConfig } from "../../../../shared/embedConfig.js"
 import { CausesOfDeathConfig } from "../core/config.js"
@@ -190,10 +187,4 @@ function CausesOfDeathSkeleton() {
             <Spinner />
         </div>
     )
-}
-
-function combineStatuses(...statuses: QueryStatus[]): QueryStatus {
-    if (statuses.some((status) => status === "error")) return "error"
-    if (statuses.some((status) => status === "pending")) return "pending"
-    return "success"
 }
