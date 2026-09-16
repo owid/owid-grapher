@@ -14,9 +14,11 @@ import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
 import { ChartSkeleton } from "../../../../components/ChartSkeleton/ChartSkeleton.js"
 import { ChartError } from "../../../../components/ChartError/ChartError.js"
+import { Spinner } from "../../../../components/Spinner/Spinner.js"
 import { useUrlState } from "../../../../hooks/useUrlState.js"
 import { EmbedConfigProvider } from "../../../../hooks/useEmbedConfig.js"
 import { useContainerWidth } from "../../../../hooks/useContainerWidth.js"
+import { useDelayedLoading } from "../../../../hooks/useDelayedLoading.js"
 import {
     isUserLocationCountry,
     useResolveUserLocation,
@@ -113,10 +115,14 @@ function FetchingPyramidVariant({
         ? country
         : DEFAULT_COUNTRY
 
-    const { data: entityYears, status: entityStatus } =
-        useMigrantDemographicsEntity(selectedCountry, manifest)
+    const {
+        data: entityYears,
+        status: entityStatus,
+        isPlaceholderData,
+    } = useMigrantDemographicsEntity(selectedCountry, manifest)
 
     const status = combineStatuses(manifestStatus, entityStatus)
+    const isLoadingCountry = useDelayedLoading(isPlaceholderData)
 
     const availableCountryNames = useMemo(
         () => (manifest ? new Set(manifest.entityNames) : undefined),
@@ -150,6 +156,7 @@ function FetchingPyramidVariant({
             show={show}
             compare={compare}
             isNarrow={isNarrow}
+            isLoading={isLoadingCountry}
             setCountry={setCountry}
             setYear={setYear}
             setShow={setShow}
@@ -167,6 +174,7 @@ function CaptionedPyramidVariant({
     show,
     compare,
     isNarrow,
+    isLoading,
     setCountry,
     setYear,
     setShow,
@@ -180,6 +188,7 @@ function CaptionedPyramidVariant({
     show: ShowMode
     compare: boolean
     isNarrow: boolean
+    isLoading: boolean
     setCountry: (name: string) => void
     setYear: (year: number) => void
     setShow: (show: ShowMode) => void
@@ -253,6 +262,7 @@ function CaptionedPyramidVariant({
                     Native-born residents
                 </div>
                 <div className="migrant-pyramid-captioned-chart__chart-area">
+                    {isLoading && <Spinner />}
                     {view && pyramidData && total > 0 ? (
                         <MigrantPyramid
                             view={view}
