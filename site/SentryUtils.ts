@@ -1,10 +1,9 @@
 import * as Sentry from "@sentry/react"
-import { get as getCookie } from "es-cookie"
+import { get as getCookie, getAll as getAllCookies } from "es-cookie"
 import { getPreferenceValue, PreferenceType } from "./cookiePreferences.js"
 import {
     experiments,
     isInIFrame,
-    getAssignedArms,
     getExperimentState,
 } from "@ourworldindata/utils"
 import {
@@ -123,25 +122,23 @@ function allowRecording(): boolean {
 export function getSessionSampleRate(): number {
     let p = 0
     if (allowRecording()) {
-        // ?? not ||: an arm may legitimately set a rate of 0 (never record)
         p =
-            parseExperimentsSampleRate() ??
+            parseExperimentsSampleRate() ||
             SENTRY_DEFAULT_REPLAYS_SESSION_SAMPLE_RATE
     }
     return p
 }
 
 /**
- * Extracts Sentry replay session sample rates from the experiment arms that
- * apply on the current page.
+ * Parses experiment cookies to extract Sentry replay session sample rates.
  *
- * Covers both kinds of assignment: arms held in a cookie (visitor-assigned) and
- * arms fixed to the page itself (cluster randomised).
+ * This function searches through browser cookies for experiment configurations that contain
+ * Sentry replay sample rate overrides.
  *
  * If multiple experiments specify different sample rates, the highest rate is returned.
  *
  * @returns {number | undefined} The experiment sample rate:
- *   - `undefined` if no experiment applies here, or none of those that do define
+ *   - `undefined` if no experiment cookie exists or the experiment does not define
  *      a sample rate.
  *   - A number between 0 and 1 representing the sample rate from experiments:
  *     - 0 = never record sessions
@@ -150,19 +147,19 @@ export function getSessionSampleRate(): number {
  *   - If multiple experiments specify rates, returns the maximum value
  */
 function parseExperimentsSampleRate(): number | undefined {
-    const pathname = window.location.pathname
-    const assignedArms = getAssignedArms(pathname)
+    const allCookies = getAllCookies()
     const expSentrySampleRates: number[] = []
 
-    for (const [expId, armId] of Object.entries(assignedArms)) {
+    for (const [cookieName, cookieValue] of Object.entries(allCookies)) {
         const exp = experiments
             .filter((e) => !e.isExpired())
-            .find((e) => e.id === expId)
-        if (!exp || !armId) continue
+            .find((e) => e.id === cookieName)
+        if (!exp || !cookieValue) continue
 
+        const pathname = window.location.pathname
         if (!exp.isUrlInPaths(pathname)) continue
 
-        const arm = exp.arms.find((a) => a.id === armId)
+        const arm = exp.arms.find((a) => a.id === cookieValue)
         if (!arm) continue
 
         if (arm.replaysSessionSampleRate !== undefined) {
