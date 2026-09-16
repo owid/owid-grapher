@@ -2,7 +2,7 @@ import { defineConfig, devices } from "@playwright/test"
 
 export default defineConfig({
     testDir: "./playwright",
-    testMatch: "admin.test.ts",
+    testMatch: "**/admin.test.ts",
     timeout: 60_000,
     reporter: [["line"]],
     use: {
@@ -10,7 +10,7 @@ export default defineConfig({
     },
     webServer: {
         command:
-            "DBTEST_APP_ENV=development VITE_PORT=8766 ./db/tests/run-db-tests.sh yarn tsx --tsconfig tsconfig.tsx.json playwright/admin-test-server.ts",
+            "DBTEST_APP_ENV=development ./db/tests/run-db-tests.sh env VITE_PORT=8766 yarn tsx --tsconfig tsconfig.tsx.json playwright/admin-test-server.ts",
         port: 8765,
         reuseExistingServer: false,
         timeout: 120_000,
