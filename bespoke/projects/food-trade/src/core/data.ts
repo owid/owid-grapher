@@ -2,6 +2,8 @@ import { QueryStatus, useQuery } from "@tanstack/react-query"
 
 import { fetchJson } from "@ourworldindata/utils"
 
+import { feedUrl } from "../../../../helpers/feedUrl.js"
+
 import {
     FoodTradeMetadata,
     MetadataJson,
@@ -10,10 +12,11 @@ import {
     TradeRow,
 } from "./types.js"
 
-const BASE_URL = "https://owid-public.owid.io/data/food-trade"
-const METADATA_PATH = `${BASE_URL}/food-trade.metadata.json`
-const PRODUCT_DATA_PATH = (productId: number) =>
-    `${BASE_URL}/food-trade.${productId}.json`
+// ETL step that builds this feed: viz://bespoke/faostat/latest/food_trade
+const FEED = "faostat/latest/food_trade"
+const metadataUrl = () => feedUrl(FEED, "food-trade.metadata.json")
+const productDataUrl = (productId: number) =>
+    feedUrl(FEED, `food-trade.${productId}.json`)
 
 const queryKeys = {
     metadata: () => ["food-trade", "metadata"] as const,
@@ -27,7 +30,7 @@ export const useFoodTradeMetadata = (): {
 } => {
     const result = useQuery({
         queryKey: queryKeys.metadata(),
-        queryFn: () => fetchJson<MetadataJson>(METADATA_PATH),
+        queryFn: () => fetchJson<MetadataJson>(metadataUrl()),
         staleTime: Infinity, // Never refetch
     })
 
@@ -45,7 +48,7 @@ export const useProductTradeData = (
 } => {
     const result = useQuery({
         queryKey: queryKeys.product(productId!),
-        queryFn: () => fetchJson<ProductJson>(PRODUCT_DATA_PATH(productId!)),
+        queryFn: () => fetchJson<ProductJson>(productDataUrl(productId!)),
         enabled: productId !== undefined && metadata !== undefined,
         staleTime: Infinity, // Never refetch
         // Keep the previous product on screen while a new one loads,

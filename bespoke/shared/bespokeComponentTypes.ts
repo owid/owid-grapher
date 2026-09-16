@@ -1,8 +1,20 @@
 type BespokeComponentReturnType = void | undefined | (() => void)
 
+export interface BespokeComponentMountOpts {
+    variant?: string
+    config?: Record<string, string>
+    /**
+     * Root the component's ETL data feed is served from, e.g.
+     * `https://api.ourworldindata.org/v1/bespoke`. The site passes `BESPOKE_DATA_URL` and the dev
+     * server passes the same setting to its demo pages; absent, the component falls back to
+     * production -- see `setFeedRoot` in `bespoke/helpers/feedUrl.ts`.
+     */
+    dataUrl?: string
+}
+
 export type BespokeComponentMountFn = (
     container: HTMLDivElement,
-    opts: { variant?: string; config?: Record<string, string> }
+    opts: BespokeComponentMountOpts
 ) => BespokeComponentReturnType | Promise<BespokeComponentReturnType>
 
 /**
