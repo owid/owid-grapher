@@ -77,7 +77,7 @@
     color: #999;
 }
 
-.variable-list__group-count {
+.variable-list__group-meta {
     margin-left: auto;
     color: #777;
     font-size: 12.5px;
@@ -101,12 +101,6 @@
     .variable-list__row--more > td {
         padding-top: 2px;
         padding-bottom: 8px;
-    }
-
-    // the tail sits under the name; it stays a block so it clips with an
-    // ellipsis instead of running across the neighbouring columns
-    .variable-list__path {
-        margin-top: 1px;
     }
 }
 

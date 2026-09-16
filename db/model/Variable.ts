@@ -1138,6 +1138,9 @@ export interface DatasetSearchGroup {
     shortName: string | null
     /** How many of this dataset's indicators matched, not how many are shown. */
     matchCount: number
+    /** A dataset is uploaded as a whole, so this belongs to the group. */
+    uploadedAt: Date
+    uploadedBy: string | null
     variables: VariableResultView[]
 }
 
@@ -1164,14 +1167,21 @@ export const searchVariablesGroupedByDataset = async (
     knex: db.KnexReadonlyTransaction
 ): Promise<VariablesGroupedSearchResult> => {
     const whereClauses = buildWhereClauses(query)
+    const isSearch = whereClauses.length > 0
     const where = whereClauses.length
         ? "WHERE " + whereClauses.join(" AND ")
+        : ""
+    // Joined only when a search has something to rank: grouping every
+    // indicator through it costs seconds, and browsing ranks by upload date
+    const joinPopularity = isSearch
+        ? `LEFT JOIN analytics_popularity ap
+               ON ap.type = 'indicator' AND ap.slug = v.catalogPath`
         : ""
     const fromWhere = `
         FROM variables AS v
         JOIN active_datasets d ON d.id=v.datasetId
-        LEFT JOIN analytics_popularity ap
-            ON ap.type = 'indicator' AND ap.slug = v.catalogPath
+        LEFT JOIN users u ON u.id=d.dataEditedByUserId
+        ${joinPopularity}
         ${where}
     `
 
@@ -1185,13 +1195,20 @@ export const searchVariablesGroupedByDataset = async (
             d.version,
             d.shortName,
             COUNT(*) AS matchCount,
-            MAX(ap.popularity) AS popularity,
-            MAX(d.dataEditedAt) AS dataEditedAt,
+            ${isSearch ? "MAX(ap.popularity) AS popularity," : ""}
+            MAX(d.dataEditedAt) AS uploadedAt,
+            MAX(u.fullName) AS uploadedBy,
             COUNT(*) OVER () AS numTotalDatasets,
             SUM(COUNT(*)) OVER () AS numTotalRows
         ${fromWhere}
         GROUP BY d.id, d.name, d.namespace, d.version, d.shortName
-        ORDER BY popularity DESC, dataEditedAt DESC
+        ${
+            // Searching ranks datasets by their most-read indicator; browsing
+            // has no relevance to rank by, so the newest upload leads
+            isSearch
+                ? "ORDER BY popularity DESC, uploadedAt DESC"
+                : "ORDER BY uploadedAt DESC"
+        }
         LIMIT ${escape(limit)} OFFSET ${escape(offset)}
     `
     const datasetRows = await queryRegexSafe(sqlDatasets, knex)
@@ -1252,6 +1269,8 @@ export const searchVariablesGroupedByDataset = async (
             version: row.version,
             shortName: row.shortName,
             matchCount: Number(row.matchCount),
+            uploadedAt: row.uploadedAt,
+            uploadedBy: row.uploadedBy,
             variables: variablesByDataset[String(row.id)] ?? [],
         })),
         numTotalDatasets: Number(datasetRows[0].numTotalDatasets),

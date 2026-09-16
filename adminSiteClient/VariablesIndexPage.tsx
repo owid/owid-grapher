@@ -55,8 +55,8 @@ const SEARCH_FIELDS: SearchFieldHelp[] = [
 function SearchSyntaxNote(): React.ReactElement {
     return (
         <p className="variables-index__help">
-            Terms are matched as regular expressions, and results are ordered by
-            popularity. Also try{" "}
+            Grouped by dataset — newest first, or by popularity when you search.
+            Terms are matched as regular expressions. Also try{" "}
             <a href={urljoin(ETL_WIZARD_URL, "indicator_search")}>
                 semantic indicator search
             </a>
@@ -81,14 +81,13 @@ export function VariablesIndexPage(): React.ReactElement {
     // off on every keystroke
     const [debouncedSearch] = useDebounceValue(searchValue, 300)
 
-    // A search matches far more indicators than datasets, so it comes back
-    // grouped by dataset. Browsing without one is a flat list: there is no
-    // relevance to group by, and 1,224 dataset headers would only be a slower
-    // table of contents. Narrowing to one dataset is flat too — that is where
-    // a group's "more in this dataset" lands, and grouping a single group
-    // would just cap it at five again.
-    const isGrouped =
-        debouncedSearch.trim().length > 0 && !/\bdataset:/.test(debouncedSearch)
+    // Results come grouped by the dataset they belong to: a search matches far
+    // more indicators than datasets, and browsing is most useful as the
+    // datasets that changed most recently. The exception is narrowing to one
+    // dataset — where a group's "more in this dataset" lands — since grouping
+    // a single group would just cap it at five again.
+    const isSearch = debouncedSearch.trim().length > 0
+    const isGrouped = !/\bdataset:/.test(debouncedSearch)
 
     const onSearchValue = useCallback(
         (value: string) => {
@@ -152,6 +151,7 @@ export function VariablesIndexPage(): React.ReactElement {
                 {isGrouped ? (
                     <GroupedVariableList
                         groups={grouped.data?.datasets ?? []}
+                        isSearch={isSearch}
                         searchWords={searchWords}
                         searchValue={debouncedSearch}
                         onSearchValue={onSearchValue}

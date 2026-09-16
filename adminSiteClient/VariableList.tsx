@@ -46,6 +46,8 @@ export interface DatasetSearchGroup {
     version: string | null
     shortName: string | null
     matchCount: number
+    uploadedAt?: Date
+    uploadedBy?: string | null
     variables: VariableListItem[]
 }
 
@@ -281,22 +283,6 @@ function CatalogPathCell({
 }
 
 /**
- * `table#short_name` — the tail a group header doesn't already show, with the
- * short name cut the same way the flat list cuts it.
- */
-function catalogPathTail(
-    catalogPath: string | undefined,
-    searchWords: SearchWord[]
-): string {
-    if (!catalogPath) return ""
-    const withoutPrefix = catalogPath.replace(/^grapher\//, "")
-    const [path, shortName] = withoutPrefix.split("#")
-    const table = path.split("/").slice(3).join("/")
-    if (!shortName) return table
-    return `${table}#${elideShortName(shortName, searchWords)}`
-}
-
-/**
  * Relative column widths, turned into percentages over whatever columns a page
  * asks for. Percentages rather than pixels so the table always fills its
  * container exactly: at any window width it fits, with no sideways scrolling,
@@ -468,9 +454,11 @@ type GroupedRow =
 function DatasetGroupHeader({
     group,
     highlight,
+    isSearch,
 }: {
     group: DatasetSearchGroup
     highlight: SearchHighlighter
+    isSearch: boolean
 }): React.ReactElement {
     const path = [group.namespace, group.version, group.shortName]
         .filter(Boolean)
@@ -484,8 +472,20 @@ function DatasetGroupHeader({
                 {highlight(group.name)}
             </Link>
             <span className="variable-list__group-path">{path}</span>
-            <span className="variable-list__group-count">
-                {plural(group.matchCount, "matching indicator")}
+            <span className="variable-list__group-meta">
+                {plural(
+                    group.matchCount,
+                    isSearch ? "matching indicator" : "indicator"
+                )}
+                {group.uploadedAt && (
+                    <>
+                        {" · "}
+                        <Timeago
+                            time={group.uploadedAt}
+                            by={group.uploadedBy ?? "Bulk import"}
+                        />
+                    </>
+                )}
             </span>
         </div>
     )
@@ -499,6 +499,7 @@ function DatasetGroupHeader({
  */
 export function GroupedVariableList({
     groups,
+    isSearch,
     searchWords = NO_SEARCH_WORDS,
     searchValue,
     onSearchValue,
@@ -507,6 +508,8 @@ export function GroupedVariableList({
     footer,
 }: {
     groups: DatasetSearchGroup[]
+    /** Groups say "matching indicators" for a search, "indicators" otherwise. */
+    isSearch: boolean
     searchWords?: SearchWord[]
     /** The query the groups came from, extended by the "more" links. */
     searchValue: string
@@ -543,8 +546,6 @@ export function GroupedVariableList({
 
     const columns = useMemo((): TableColumnsType<GroupedRow> => {
         const highlight = highlightFunctionForSearchWords(searchWords)
-        const pathWords = pathSearchWords(searchWords)
-        const pathHighlight = highlightFunctionForSearchWords(pathWords)
         // A dataset header and a "more" link span the whole width
         const spanned = (row: GroupedRow) =>
             row.kind === "indicator" ? {} : { colSpan: 0 }
@@ -553,15 +554,16 @@ export function GroupedVariableList({
             {
                 title: "Indicator",
                 key: "name",
-                width: "42%",
+                width: "70%",
                 onCell: (row) =>
-                    row.kind === "indicator" ? {} : { colSpan: 4 },
+                    row.kind === "indicator" ? {} : { colSpan: 3 },
                 render: (_, row) => {
                     if (row.kind === "dataset")
                         return (
                             <DatasetGroupHeader
                                 group={row.group}
                                 highlight={highlight}
+                                isSearch={isSearch}
                             />
                         )
                     if (row.kind === "more") {
@@ -595,20 +597,12 @@ export function GroupedVariableList({
                                     />
                                 </Tooltip>
                             ) : null}
-                            <Link to={`/variables/${row.variable.id}`}>
-                                {highlight(row.variable.name)}
-                            </Link>{" "}
-                            <span
-                                className="variable-list__path"
+                            <Link
+                                to={`/variables/${row.variable.id}`}
                                 title={row.variable.catalogPath}
                             >
-                                {pathHighlight(
-                                    catalogPathTail(
-                                        row.variable.catalogPath,
-                                        pathWords
-                                    )
-                                )}
-                            </span>
+                                {highlight(row.variable.name)}
+                            </Link>
                         </>
                     )
                 },
@@ -626,28 +620,15 @@ export function GroupedVariableList({
             {
                 title: "Popularity",
                 key: "popularity",
-                width: "10%",
+                width: "14%",
                 onCell: spanned,
                 render: (_, row) =>
                     row.kind === "indicator" ? (
                         <PopularityCell popularity={row.variable.popularity} />
                     ) : null,
             },
-            {
-                title: "Uploaded",
-                key: "uploadedAt",
-                width: "16%",
-                onCell: spanned,
-                render: (_, row) =>
-                    row.kind === "indicator" ? (
-                        <Timeago
-                            time={row.variable.uploadedAt}
-                            by={row.variable.uploadedBy ?? "Bulk import"}
-                        />
-                    ) : null,
-            },
         ]
-    }, [searchWords, searchValue, onSearchValue])
+    }, [searchWords, searchValue, onSearchValue, isSearch])
 
     return (
         <>
