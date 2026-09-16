@@ -51,6 +51,7 @@ export const NewsletterSignupForm = ({
     const [isSubscribing, setIsSubscribing] = useState(false)
     const [isSubscribed, setIsSubscribed] = useState(false)
     const [error, setError] = useState<string | null>(null)
+    const [hasEditedForm, setHasEditedForm] = useState(false)
 
     const isSubmittable = subscribeToOwidBrief || followTopics
 
@@ -119,6 +120,7 @@ export const NewsletterSignupForm = ({
             className={cx("newsletter-signup-form", className)}
             action="/subscribe"
             onSubmit={handleSubmit}
+            onChange={() => setHasEditedForm(true)}
         >
             <NewsletterOption
                 id={`newsletter-signup-brief-${context}`}
@@ -127,7 +129,10 @@ export const NewsletterSignupForm = ({
                 description={OWID_BRIEF_DESCRIPTION}
                 checked={subscribeToOwidBrief}
                 disabled={isSubscribing}
-                onChange={() => setSubscribeToOwidBrief(!subscribeToOwidBrief)}
+                onChange={() => {
+                    spamProtection.clearCaptcha()
+                    setSubscribeToOwidBrief(!subscribeToOwidBrief)
+                }}
             />
             <NewsletterOption
                 id={`newsletter-signup-topics-${context}`}
@@ -141,7 +146,7 @@ export const NewsletterSignupForm = ({
                 checked={followTopics}
                 disabled={isSubscribing}
                 onChange={() => {
-                    spamProtection.resetCaptcha()
+                    spamProtection.clearCaptcha()
                     setFollowTopics(!followTopics)
                 }}
             />
@@ -163,7 +168,7 @@ export const NewsletterSignupForm = ({
                 disabled={isSubscribing}
                 onChange={(event) => setEmail(event.target.value)}
             />
-            {!followTopics && (
+            {hasEditedForm && subscribeToOwidBrief && !followTopics && (
                 <NewsletterSpamProtection {...spamProtection.fieldsProps} />
             )}
             <Button
