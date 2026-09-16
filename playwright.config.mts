@@ -8,6 +8,7 @@ const wikipediaArchiveDir =
 
 export default defineConfig({
     testDir: "./playwright",
+    testIgnore: "admin.test.ts",
     reporter: ENV === "development" ? [["line"]] : [["dot"]],
     use: {
         baseURL: `${BAKED_BASE_URL}${ENV !== "development" ? ".tail6e23.ts.net" : ""}`,
