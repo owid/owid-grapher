@@ -338,8 +338,8 @@ dbtest: node_modules
 	./db/tests/run-db-tests.sh
 
 playwright-browsers:
-	@echo '==> Installing Playwright browsers'
-	yarn playwright install --with-deps --no-shell
+	@echo '==> Installing Playwright browser'
+	yarn playwright install --with-deps --no-shell chromium
 
 playwright: export TMUX_SESSION_NAME ?= playwright
 
