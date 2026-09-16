@@ -81,27 +81,7 @@ export class GdocFeaturedViz
         }
 
         const parsed = BespokeMetadataSchema.safeParse(json)
-        if (!parsed.success) {
-            await logErrorAndMaybeCaptureInSentry(
-                new Error(
-                    `Metadata for bespoke component "${bundle}" at ${metadataUrl} does not match BespokeMetadataSchema, so "${this.slug}" will render without a methods block: ${parsed.error.message}`
-                )
-            )
-            return
-        }
-
-        if (!shouldRenderBespokeMetadata(parsed.data)) {
-            // z.object strips unknown keys, so a metadata file carrying none
-            // of the schema's fields parses to {}.
-            if (Object.keys(parsed.data).length > 0) {
-                await logErrorAndMaybeCaptureInSentry(
-                    new Error(
-                        `Metadata for bespoke component "${bundle}" at ${metadataUrl} carries some of the schema's fields but neither origins nor a descriptionKey, so "${this.slug}" will render without a methods block`
-                    )
-                )
-            }
-            return
-        }
+        if (!parsed.success || !shouldRenderBespokeMetadata(parsed.data)) return
 
         this.bespokeMetadata = parsed.data
     }
