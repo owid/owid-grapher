@@ -9,8 +9,7 @@ const buildFilterTestIdFromLabel = (
     filterLabel: string
 ): string => `${baseTestId}-${filterType}-${encodeURIComponent(filterLabel)}`
 
-const getSearchInput = (page: Page): Locator =>
-    page.getByTestId("search-input")
+const getSearchInput = (page: Page): Locator => page.getByTestId("search-input")
 
 const getHomepageInput = (page: Page): Locator =>
     page.getByTestId("autocomplete-input")
@@ -55,9 +54,7 @@ const getFilterButton = (
     filterType: FilterType,
     label: string
 ): Locator =>
-    page.getByTestId(
-        buildFilterTestIdFromLabel(baseTestId, filterType, label)
-    )
+    page.getByTestId(buildFilterTestIdFromLabel(baseTestId, filterType, label))
 
 const selectTopicRefinement = async (
     page: Page,
@@ -127,11 +124,7 @@ test.describe("Search", () => {
     test("autocomplete country filters", async ({ page }) => {
         await openSearch(page)
         await getSearchInput(page).fill("co2 fran")
-        await selectAutocompleteSuggestion(
-            page,
-            FilterType.COUNTRY,
-            "France"
-        )
+        await selectAutocompleteSuggestion(page, FilterType.COUNTRY, "France")
 
         await expectActiveCountry(page, "France")
         await expect(getSearchInput(page)).toHaveValue("co2")
@@ -222,7 +215,9 @@ test.describe("Search", () => {
         await expect(page).toHaveURL("/")
     })
 
-    test("shows autocomplete suggestions only after input", async ({ page }) => {
+    test("shows autocomplete suggestions only after input", async ({
+        page,
+    }) => {
         await openSearch(page)
         const searchInput = getSearchInput(page)
         const suggestions = page.getByTestId("search-autocomplete-listbox")
@@ -244,7 +239,9 @@ test.describe("Search", () => {
         await expect(getSearchInput(page)).not.toBeFocused()
     })
 
-    test("discards a local query after filter interactions", async ({ page }) => {
+    test("discards a local query after filter interactions", async ({
+        page,
+    }) => {
         await openSearch(page)
         await selectTopicRefinement(page, "Population & Demographic Change")
         await expectActiveTopic(page, "Population & Demographic Change")
@@ -269,7 +266,9 @@ test.describe("Search", () => {
         await getSearchInput(page).fill(
             "local query that should be discarded after country interaction"
         )
-        await page.getByRole("button", { name: "Open country selector" }).click()
+        await page
+            .getByRole("button", { name: "Open country selector" })
+            .click()
         const albaniaOption = page.getByRole("option", {
             name: "Albania",
             exact: true,
@@ -289,7 +288,9 @@ test.describe("Search", () => {
         await expectUrlParam(page, SearchUrlParam.RESULT_TYPE, "writing")
     })
 
-    test("sanitizes an invalid country value from the URL", async ({ page }) => {
+    test("sanitizes an invalid country value from the URL", async ({
+        page,
+    }) => {
         await openSearch(page, "/search?q=gdp&countries=Franc")
 
         await expect(getSearchInput(page)).toHaveValue("gdp")
