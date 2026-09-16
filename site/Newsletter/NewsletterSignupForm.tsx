@@ -77,6 +77,10 @@ const NewsletterSignupFormInner = ({
     })
 
     const isSubmittable = subscribeToOwidBrief || followTopics
+    const showCaptcha =
+        hasEditedForm &&
+        ((subscribeToOwidBrief && !followTopics) ||
+            !!spamProtection.captchaToken)
 
     const handleSubmit = (event: React.SubmitEvent<HTMLFormElement>) => {
         event.preventDefault()
@@ -138,7 +142,8 @@ const NewsletterSignupFormInner = ({
                 checked={subscribeToOwidBrief}
                 disabled={subscribe.isPending}
                 onChange={() => {
-                    spamProtection.clearCaptcha()
+                    if (!spamProtection.captchaToken)
+                        spamProtection.clearCaptcha()
                     setSubscribeToOwidBrief(!subscribeToOwidBrief)
                 }}
             />
@@ -154,7 +159,8 @@ const NewsletterSignupFormInner = ({
                 checked={followTopics}
                 disabled={subscribe.isPending}
                 onChange={() => {
-                    spamProtection.clearCaptcha()
+                    if (!spamProtection.captchaToken)
+                        spamProtection.clearCaptcha()
                     setFollowTopics(!followTopics)
                 }}
             />
@@ -178,7 +184,7 @@ const NewsletterSignupFormInner = ({
                 disabled={subscribe.isPending}
                 onChange={(event) => setEmail(event.target.value)}
             />
-            {hasEditedForm && subscribeToOwidBrief && !followTopics && (
+            {showCaptcha && (
                 <NewsletterSpamProtection {...spamProtection.fieldsProps} />
             )}
             <Button
