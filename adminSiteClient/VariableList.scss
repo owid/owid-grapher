@@ -140,3 +140,11 @@
     margin-left: 10px;
     vertical-align: middle;
 }
+
+.variable-list__empty-hint {
+    margin-top: 8px;
+
+    code {
+        margin-right: 4px;
+    }
+}

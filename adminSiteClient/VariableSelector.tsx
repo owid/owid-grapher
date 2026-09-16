@@ -38,9 +38,13 @@ const SEARCH_FIELDS: SearchFieldHelp[] = [
     { name: "is", type: "string", description: "`public` or `private`" },
 ]
 
-/** `grapher/who/2026-05-22/gho/gho#x` -> `who` */
+/** `grapher/who/2026-05-22/gho/gho#x` -> ["who", "2026-05-22", "gho"] */
+function pathSegments(catalogPath: string | undefined): string[] {
+    return catalogPath?.replace(/^grapher\//, "").split("/") ?? []
+}
+
 function namespaceOf(catalogPath: string | undefined): string | undefined {
-    return catalogPath?.replace(/^grapher\//, "").split("/")[0]
+    return pathSegments(catalogPath)[0]
 }
 
 interface VariableSelectorProps {
@@ -128,6 +132,9 @@ export function VariableSelector({
                 limit: DATASETS_PER_PAGE,
                 offset: (page - 1) * DATASETS_PER_PAGE,
             }),
+        // The seed is only known once the lookup lands. Searching before then
+        // would spend a query on results nobody sees.
+        enabled: hasTyped || initialIds.length === 0 || hasLookedUp,
         placeholderData: keepPreviousData,
     })
 
@@ -159,30 +166,62 @@ export function VariableSelector({
         [selectedIds, slot.allowMultiple]
     )
 
-    // Pinned above the results, so what the chart already uses — and anything
-    // just ticked — stays visible and untickable however the search narrows
+    // The chart's own indicators lead the results, under their dataset like
+    // any other group, so what a chart already draws reads the same as
+    // everything else. A dataset that also matches the search keeps its own
+    // count and its other indicators below the chosen ones.
     const groups: DatasetSearchGroup[] = useMemo(() => {
         const found = data?.datasets ?? []
         if (chosen.length === 0) return found
-        const pinned: DatasetSearchGroup = {
-            id: -1,
-            pinned: true,
-            name: `Chosen for ${slot.name} (${chosen.length})`,
-            namespace: "",
-            version: null,
-            shortName: null,
-            matchCount: chosen.length,
-            variables: chosen,
+
+        const chosenByDataset = new Map<number, VariableListItem[]>()
+        for (const variable of chosen) {
+            const datasetId = variable.datasetId ?? -1
+            chosenByDataset.set(datasetId, [
+                ...(chosenByDataset.get(datasetId) ?? []),
+                variable,
+            ])
         }
-        // never twice: a chosen indicator is dropped from its dataset's group
-        const withoutChosen = found.map((group) => ({
-            ...group,
-            variables: group.variables.filter(
-                (variable) => !selectedIds.has(variable.id)
-            ),
-        }))
-        return [pinned, ...withoutChosen]
-    }, [data, chosen, selectedIds, slot.name])
+
+        const leading: DatasetSearchGroup[] = []
+        for (const [datasetId, variables] of chosenByDataset) {
+            const fromSearch = found.find((group) => group.id === datasetId)
+            const [namespace, version, dataset] = pathSegments(
+                variables[0].catalogPath
+            )
+            leading.push({
+                id: datasetId,
+                name:
+                    fromSearch?.name ??
+                    variables[0].datasetName ??
+                    "Chosen indicators",
+                namespace: fromSearch?.namespace ?? namespace ?? "",
+                version: fromSearch?.version ?? version ?? null,
+                shortName: fromSearch?.shortName ?? dataset ?? null,
+                uploadedAt: fromSearch?.uploadedAt ?? variables[0].uploadedAt,
+                uploadedBy: fromSearch?.uploadedBy ?? variables[0].uploadedBy,
+                matchCount: fromSearch?.matchCount ?? variables.length,
+                // chosen first, then whatever else that dataset matched
+                variables: [
+                    ...variables,
+                    ...(fromSearch?.variables ?? []).filter(
+                        (variable) => !selectedIds.has(variable.id)
+                    ),
+                ],
+                pinned: datasetId < 0 || !fromSearch,
+            })
+        }
+
+        const rest = found
+            .filter((group) => !chosenByDataset.has(group.id))
+            .map((group) => ({
+                ...group,
+                variables: group.variables.filter(
+                    (variable) => !selectedIds.has(variable.id)
+                ),
+            }))
+        return [...leading, ...rest]
+    }, [data, chosen, selectedIds])
 
     const onSearch = (value: string) => {
         setHasTyped(true)

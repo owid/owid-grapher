@@ -1,10 +1,20 @@
 import * as React from "react"
-import { useMemo } from "react"
-import { Checkbox, Popover, TableColumnsType, TableProps, Tooltip } from "antd"
+import { useContext, useMemo } from "react"
+import { useQuery } from "@tanstack/react-query"
+import {
+    Alert,
+    Button,
+    Checkbox,
+    Popover,
+    TableColumnsType,
+    TableProps,
+    Tooltip,
+} from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faEyeSlash, faLock } from "@fortawesome/free-solid-svg-icons"
 
 import { Link } from "./Link.js"
+import { AdminAppContext } from "./AdminAppContext.js"
 import { Timeago } from "./Forms.js"
 import { AdminTable, AdminTableSearch } from "./AdminTable.js"
 import {
@@ -13,6 +23,10 @@ import {
     SearchWord,
 } from "../adminShared/search.js"
 import { SearchHighlighter } from "./adminTableHelpers.js"
+import {
+    parseSearchQuery,
+    toggleSearchTerm,
+} from "../adminShared/searchFilter.js"
 
 export interface VariableListItem {
     id: number
@@ -50,8 +64,8 @@ export interface DatasetSearchGroup {
     uploadedBy?: string | null
     variables: VariableListItem[]
     /**
-     * A group assembled by the page rather than by a dataset — the chart's own
-     * indicators in the picker. It has no dataset to link to or count.
+     * Shown because the chart already uses these indicators rather than
+     * because they match the search, so the group has no match count.
      */
     pinned?: boolean
 }
@@ -490,26 +504,26 @@ function DatasetGroupHeader({
     const path = [group.namespace, group.version, group.shortName]
         .filter(Boolean)
         .join("/")
-    if (group.pinned)
-        return (
-            <div className="variable-list__group">
-                <span className="variable-list__group-name">{group.name}</span>
-            </div>
-        )
     return (
         <div className="variable-list__group">
-            <Link
-                className="variable-list__group-name"
-                to={`/datasets/${group.id}`}
-            >
-                {highlight(group.name)}
-            </Link>
-            <span className="variable-list__group-path">{path}</span>
+            {group.id > 0 ? (
+                <Link
+                    className="variable-list__group-name"
+                    to={`/datasets/${group.id}`}
+                >
+                    {highlight(group.name)}
+                </Link>
+            ) : (
+                <span className="variable-list__group-name">{group.name}</span>
+            )}
+            {path && <span className="variable-list__group-path">{path}</span>}
             <span className="variable-list__group-meta">
-                {plural(
-                    group.matchCount,
-                    isSearch ? "matching indicator" : "indicator"
-                )}
+                {group.pinned
+                    ? "used by this chart"
+                    : plural(
+                          group.matchCount,
+                          isSearch ? "matching indicator" : "indicator"
+                      )}
                 {group.uploadedAt && (
                     <>
                         {" · "}
@@ -521,6 +535,80 @@ function DatasetGroupHeader({
                 )}
             </span>
         </div>
+    )
+}
+
+/**
+ * A `field:value` term matches exactly and silently, so a search that mixes
+ * one with free text can come back empty without saying which half is to
+ * blame — `namespace:climate civil` finds nothing because "civil" lives in
+ * `democracy`. Says how much the search finds without its fielded terms, and
+ * offers to drop them.
+ */
+function EmptySearchHint({
+    searchValue,
+    onSearchValue,
+}: {
+    searchValue: string
+    onSearchValue: (value: string) => void
+}): React.ReactElement | null {
+    const { admin } = useContext(AdminAppContext)
+
+    const fielded = useMemo(
+        () =>
+            parseSearchQuery(searchValue)
+                .filter((token) => token.field)
+                .map((token) => token.raw),
+        [searchValue]
+    )
+    const widened = useMemo(
+        () =>
+            fielded.reduce(
+                (query, term) => toggleSearchTerm(query, term, false),
+                searchValue
+            ),
+        [searchValue, fielded]
+    )
+
+    const { data } = useQuery({
+        queryKey: ["variable-search-widened", widened],
+        queryFn: () =>
+            admin.getJSONInBackground<{
+                numTotalDatasets: number
+                numTotalRows: number
+            }>("/api/variables.json", {
+                search: widened,
+                group: "dataset",
+                limit: 1,
+                offset: 0,
+            }),
+        enabled: fielded.length > 0 && widened.trim().length > 0,
+    })
+
+    if (fielded.length === 0 || !data?.numTotalRows) return null
+
+    return (
+        <Alert
+            className="variable-list__empty-hint"
+            type="info"
+            showIcon
+            title={
+                <>
+                    Nothing matches{" "}
+                    {fielded.map((term) => (
+                        <code key={term}>{term}</code>
+                    ))}
+                    . <b>{plural(data.numTotalRows, "indicator")}</b> in{" "}
+                    {plural(data.numTotalDatasets, "dataset")} match the rest of
+                    the search.
+                </>
+            }
+            action={
+                <Button size="small" onClick={() => onSearchValue(widened)}>
+                    Search for {`“${widened}”`}
+                </Button>
+            }
+        />
     )
 }
 
@@ -697,6 +785,12 @@ export function GroupedVariableList({
                 search={search}
                 pagination={false}
             />
+            {rows.length === 0 && !loading && (
+                <EmptySearchHint
+                    searchValue={searchValue}
+                    onSearchValue={onSearchValue}
+                />
+            )}
             {footer}
         </>
     )

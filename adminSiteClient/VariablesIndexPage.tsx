@@ -165,14 +165,11 @@ export function VariablesIndexPage(): React.ReactElement {
                                 {unindexedTerms
                                     .map((term: string) => `"${term}"`)
                                     .join(", ")}{" "}
-                                {unindexedTerms.length === 1
-                                    ? "can't"
-                                    : "can't"}{" "}
-                                use the search index — too short, a very common
-                                word, or a regular expression — so this search
-                                reads every indicator and takes a second or two.
-                                Adding another word narrows it first and makes
-                                it quick again.
+                                can't use the search index — too short, a very
+                                common word, or a regular expression — so this
+                                search reads every indicator and takes a second
+                                or two. Adding another word narrows it first and
+                                makes it quick again.
                             </>
                         }
                     />
