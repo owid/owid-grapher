@@ -1357,9 +1357,20 @@ const buildWhereClauses = (query: string): string[] => {
             part = part.substring(1)
             not = "NOT "
         }
+        // A fielded term is a regex on one column, which no index can answer.
+        // Where its value is an ordinary word it is also required through the
+        // full-text index, which narrows to a handful of rows before the regex
+        // runs — `namespace:climate` goes from a second to a few milliseconds.
+        // Same trade as free text: the value matches from the start of a word
+        // rather than anywhere inside one.
+        const alsoIndex = (value: string): void => {
+            if (not === " " && canUseFulltext(value)) fulltextTerms.push(value)
+        }
+
         if (part.startsWith("name:")) {
             const q = part.substring("name:".length)
             if (q) {
+                alsoIndex(q)
                 whereClauses.push(
                     `${not} REGEXP_LIKE(v.name, ${escape(q)}, 'i')`
                 )
@@ -1367,6 +1378,7 @@ const buildWhereClauses = (query: string): string[] => {
         } else if (part.startsWith("path:")) {
             const q = part.substring("path:".length)
             if (q) {
+                alsoIndex(q)
                 whereClauses.push(
                     `${not} REGEXP_LIKE(v.catalogPath, ${escape(q)}, 'i')`
                 )
@@ -1374,6 +1386,7 @@ const buildWhereClauses = (query: string): string[] => {
         } else if (part.startsWith("namespace:")) {
             const q = part.substring("namespace:".length)
             if (q) {
+                alsoIndex(q)
                 whereClauses.push(
                     `${not} REGEXP_LIKE(${catalogPathSegment(2)}, ${escape(q)}, 'i')`
                 )
@@ -1388,6 +1401,7 @@ const buildWhereClauses = (query: string): string[] => {
         } else if (part.startsWith("version:")) {
             const q = part.substring("version:".length)
             if (q) {
+                alsoIndex(q)
                 whereClauses.push(
                     `${not} REGEXP_LIKE(${catalogPathSegment(3)}, ${escape(q)}, 'i')`
                 )
@@ -1395,6 +1409,7 @@ const buildWhereClauses = (query: string): string[] => {
         } else if (part.startsWith("dataset:")) {
             const q = part.substring("dataset:".length)
             if (q) {
+                alsoIndex(q)
                 whereClauses.push(
                     `${not} REGEXP_LIKE(${catalogPathSegment(4)}, ${escape(q)}, 'i')`
                 )
@@ -1402,6 +1417,7 @@ const buildWhereClauses = (query: string): string[] => {
         } else if (part.startsWith("table:")) {
             const q = part.substring("table:".length)
             if (q) {
+                alsoIndex(q)
                 whereClauses.push(
                     `${not} REGEXP_LIKE(${catalogPathSegment(5)}, ${escape(q)}, 'i')`
                 )
@@ -1409,6 +1425,7 @@ const buildWhereClauses = (query: string): string[] => {
         } else if (part.startsWith("short:")) {
             const q = part.substring("short:".length)
             if (q) {
+                alsoIndex(q)
                 whereClauses.push(
                     `${not} REGEXP_LIKE(v.shortName, ${escape(q)}, 'i')`
                 )
