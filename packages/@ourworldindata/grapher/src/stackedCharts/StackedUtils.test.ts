@@ -5,6 +5,7 @@ import { Time } from "@ourworldindata/types"
 import { StackedSeries } from "./StackedConstants"
 import {
     findLoneNegativeSeriesAtBottom,
+    stackSeries,
     stackSeriesInBothDirections,
     withMissingValuesAsZeroes,
     withPointsAtZeroLineCrossings,
@@ -85,6 +86,14 @@ describe(withMissingValuesAsZeroes, () => {
         expect(series[1].points[1].position).toEqual(2001)
         expect(series[1].points[2].position).toEqual(2002)
         expect(series[1].points[3].position).toEqual(2003)
+    })
+})
+
+describe(stackSeries, () => {
+    it("can stack series", () => {
+        const series = stackSeries(withMissingValuesAsZeroes(seriesArr))
+        expect(series[1].points[0].valueOffset).toEqual(10)
+        expect(series[2].points[0].valueOffset).toEqual(12)
     })
 })
 
