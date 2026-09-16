@@ -11,6 +11,7 @@ import { observable, computed, runInAction, action, makeObservable } from "mobx"
 import { Redirect } from "react-router-dom"
 import {
     getParentIndicatorIdFromChartConfig,
+    Json,
     mergeGrapherConfigs,
     slugify,
 } from "@ourworldindata/utils"
@@ -183,7 +184,9 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
             })
         }
         // The store is built with these, so they have to be in before mount.
-        await this.fetchVariableIdsByCatalogPath()
+        // They only power the population/GDP shortcuts, so a failure must not
+        // keep the editor behind its loading blocker.
+        await this.fetchVariableIdsByCatalogPath().catch(() => undefined)
         runInAction(() => (this.isLoaded = true))
     }
 
@@ -210,7 +213,7 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
 
     private async fetchChartJson<T>(
         suffix: string,
-        pick: (json: any) => T,
+        pick: (json: Json) => T,
         apply: (value: T) => void
     ): Promise<void> {
         const { grapherId } = this.props
@@ -613,6 +616,11 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
                         store={this.store}
                         details={adminDetailsProvider(this.admin)}
                         baseConfig={this.baseConfig}
+                        previewUrl={
+                            this.props.grapherId !== undefined
+                                ? `/admin/charts/${this.props.grapherId}/preview`
+                                : undefined
+                        }
                         extraTabs={this.extraTabs}
                         renderNote={(slot) => this.renderNote(slot)}
                         originUrlSuggestions={() =>

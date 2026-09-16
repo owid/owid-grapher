@@ -77,6 +77,10 @@ export class ConfigEditor extends AbstractChartEditor<ConfigEditorManager> {
                     const { patchConfig } = this
                     runInAction(() => {
                         this.parentConfig = base
+                            ? this.fromHostConfig(base, {
+                                  inferDimensions: false,
+                              })
+                            : undefined
                     })
                     this.updateLiveGrapher(
                         mergeGrapherConfigs(
@@ -84,16 +88,23 @@ export class ConfigEditor extends AbstractChartEditor<ConfigEditorManager> {
                             patchConfig
                         )
                     )
+                    // A base that names columns of its own leaves the chart
+                    // pointing at data the store hasn't fetched.
+                    void this.reloadGrapherData()
                 },
                 { equals: comparer.structural }
             )
         )
     }
 
-    /** The host's config, translated into the dimension-based form the
-     *  editor works on (identity for the Data API store). */
-    override get originalGrapherConfig(): GrapherInterface {
-        return this.store.toEditorConfig(super.originalGrapherConfig)
+    /** The host's configs — the chart's patch and the base it sits on —
+     *  translated into the dimension-based form the editor works on
+     *  (identity for the Data API store). */
+    protected override fromHostConfig(
+        config: GrapherInterface,
+        options?: { inferDimensions?: boolean }
+    ): GrapherInterface {
+        return this.store.toEditorConfig(config, options)
     }
 
     /** The patch config in the host's own form: what `onSave` and
@@ -141,9 +152,20 @@ export class ConfigEditor extends AbstractChartEditor<ConfigEditorManager> {
             return
         }
         runInAction(() => {
-            this.savedPatchConfig = saved
+            const savedPatch = saved
                 ? this.store.toEditorConfig(saved)
                 : patchConfig
+            // What the host stored may differ from what we sent it — the
+            // admin fills in a title it derived from the data, for one. Show
+            // that, or the chart reads as modified the moment it was saved.
+            if (this.configsDiffer(savedPatch, patchConfig))
+                this.updateLiveGrapher(
+                    mergeGrapherConfigs(
+                        this.activeParentConfig ?? {},
+                        savedPatch
+                    )
+                )
+            this.savedPatchConfig = savedPatch
         })
     }
 }
