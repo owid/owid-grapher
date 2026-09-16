@@ -12,7 +12,8 @@ import {
 import { Frame } from "../../../../components/Frame/Frame.js"
 import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
-import { Spinner } from "../../../../components/Spinner/Spinner.js"
+import { ChartSkeleton } from "../../../../components/ChartSkeleton/ChartSkeleton.js"
+import { ChartError } from "../../../../components/ChartError/ChartError.js"
 import { useUrlState } from "../../../../hooks/useUrlState.js"
 import { EmbedConfigProvider } from "../../../../hooks/useEmbedConfig.js"
 import { useContainerWidth } from "../../../../hooks/useContainerWidth.js"
@@ -113,12 +114,11 @@ function FetchingPyramidVariant({
         setCountry,
     })
 
-    if (status === "pending" || !isCountryResolved) return <PyramidSkeleton />
+    if (status === "pending" || !isCountryResolved)
+        return <ChartSkeleton className="migrant-pyramid-skeleton" />
     if (status === "error" || !data)
         return (
-            <div className="migrant-pyramid__error">
-                Failed to load the migrant demographics data
-            </div>
+            <ChartError message="Failed to load the migrant demographics data" />
         )
 
     // Fall back gracefully when the config or URL asks for something the
@@ -285,12 +285,4 @@ function chartTitle(country: string, year: number): string {
 function chartSubtitle(country: string, total: number): string {
     const count = formatCountLong(total)
     return `The age and sex profile of the ${count} people living in ${formatEntityNameForSentence(country)} who were born elsewhere.`
-}
-
-function PyramidSkeleton(): React.ReactElement {
-    return (
-        <div className="migrant-pyramid-skeleton">
-            <Spinner />
-        </div>
-    )
 }

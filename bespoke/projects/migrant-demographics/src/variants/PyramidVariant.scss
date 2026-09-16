@@ -45,14 +45,8 @@
 }
 
 .migrant-pyramid-skeleton {
-    position: relative;
     min-height: 480px;
     background: $gray-5;
-}
-
-.migrant-pyramid__error {
-    padding: 24px;
-    color: $error-text-color;
 }
 
 .migrant-pyramid__no-data {
