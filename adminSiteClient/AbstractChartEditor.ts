@@ -191,7 +191,12 @@ export abstract class AbstractChartEditor<
         when(
             () => this.manager.parentConfig !== undefined,
             () => {
-                this.parentConfig = this.manager.parentConfig
+                // No dimension inference for a base: a base naming no columns
+                // means "no column defaults", not "every column".
+                this.parentConfig = this.fromHostConfig(
+                    this.manager.parentConfig!,
+                    { inferDimensions: false }
+                )
                 this.parentVariableId = this.manager.parentVariableId
             }
         )
@@ -206,16 +211,20 @@ export abstract class AbstractChartEditor<
             () =>
                 (this.isInheritanceEnabled = this.manager.isInheritanceEnabled)
         )
+    }
 
-        // The saved baseline: set once the config (and its data, if it has
-        // any) is in, so a freshly opened chart doesn't count as modified.
-        when(
-            () =>
-                this.grapherState.isReady &&
-                (this.grapherState.hasData ||
-                    this.grapherState.dimensions.length === 0),
-            () => (this.savedPatchConfig = this.patchConfig)
-        )
+    /**
+     * Take the config as it stands for the saved state, so what follows
+     * counts as the user's edits. Called by the view once the host's config
+     * (and its data, if it has any) is in, and again after every save.
+     *
+     * Not a `when` on `grapherState.isReady` in the constructor: a freshly
+     * constructed, still empty GrapherState already reports itself ready, so
+     * the baseline would be taken before the config is applied and every
+     * chart would open modified.
+     */
+    @action.bound markAsSaved(): void {
+        this.savedPatchConfig = this.patchConfig
     }
 
     /** Keys of tabs the host adds on top of EDITOR_TABS. */
@@ -264,6 +273,15 @@ export abstract class AbstractChartEditor<
         )
     }
 
+    /** A config as the host gave it, in the form the editor works on.
+     *  Identity unless the editor's store speaks another dialect. */
+    protected fromHostConfig(
+        config: GrapherInterface,
+        _options?: { inferDimensions?: boolean }
+    ): GrapherInterface {
+        return config
+    }
+
     /** original grapher config used to init the grapherState instance */
     @computed get originalGrapherConfig(): GrapherInterface {
         const { patchConfig, parentConfig, etlConfig, isInheritanceEnabled } =
@@ -272,8 +290,15 @@ export abstract class AbstractChartEditor<
             isInheritanceEnabled ? (parentConfig ?? {}) : {},
             etlConfig ?? {}
         )
-        if (_.isEmpty(effectiveParent)) return patchConfig
-        return mergeGrapherConfigs(effectiveParent, patchConfig)
+        // Merged in the host's own form and translated once, not translated
+        // layer by layer: a config that names its columns by slug merges
+        // field by field (`ySlugs` from the base, `colorSlug` from the
+        // patch), while the dimensions the editor works on replace one
+        // another wholesale.
+        if (_.isEmpty(effectiveParent)) return this.fromHostConfig(patchConfig)
+        return this.fromHostConfig(
+            mergeGrapherConfigs(effectiveParent, patchConfig)
+        )
     }
 
     /** live-updating config */
@@ -324,7 +349,8 @@ export abstract class AbstractChartEditor<
         )
     }
 
-    @computed get isModified(): boolean {
+    /** Do two configs differ in anything the user authored? */
+    protected configsDiffer(a: GrapherInterface, b: GrapherInterface): boolean {
         // `version` and `id` are bookkeeping the host stamps onto the config
         // on save, never something the user edited. Comparing them would
         // report a freshly created chart as modified the moment it gets its
@@ -332,14 +358,14 @@ export abstract class AbstractChartEditor<
         const bookkeeping = ["version", "id"]
         // Serialize and deserialize to remove all MobX proxies
         // (toJS does not do a deep conversion of nested objects)
-        const currentPatch = JSON.parse(
-            JSON.stringify(_.omit(this.patchConfig, bookkeeping))
-        )
-        const savedPatch = JSON.parse(
-            JSON.stringify(_.omit(this.savedPatchConfig, bookkeeping))
-        )
+        const strip = (config: GrapherInterface): unknown =>
+            JSON.parse(JSON.stringify(_.omit(config, bookkeeping)))
 
-        return !_.isEqual(currentPatch, savedPatch)
+        return !_.isEqual(strip(a), strip(b))
+    }
+
+    @computed get isModified(): boolean {
+        return this.configsDiffer(this.patchConfig, this.savedPatchConfig)
     }
 
     @computed get features(): EditorFeatures {

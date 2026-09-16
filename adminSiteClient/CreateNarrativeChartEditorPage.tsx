@@ -167,6 +167,13 @@ class CreateNarrativeChartEditorPageInternal extends React.Component<CreateNarra
                     <GrapherEditor
                         config={{}}
                         baseConfig={this.parentConfig}
+                        // The narrative chart doesn't exist yet; the link
+                        // shows the chart it is being based on, as before.
+                        previewUrl={
+                            this.parentConfig?.id
+                                ? `/admin/charts/${this.parentConfig.id}/preview`
+                                : undefined
+                        }
                         initialQueryParams={this.initialQueryParams}
                         store={this.store}
                         details={adminDetailsProvider(this.admin)}

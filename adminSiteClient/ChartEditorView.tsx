@@ -77,6 +77,8 @@ export interface ChartEditorViewManager<Editor> {
      * set it get the authored config as before.
      */
     initialQueryParams?: GrapherQueryParams
+    /** Where the chart can be previewed as published, if anywhere. */
+    previewUrl?: string
 }
 
 interface ChartEditorViewProps<Editor> {
@@ -118,12 +120,21 @@ export class ChartEditorView<
     }
 
     private hasAppliedInitialQueryParams = false
+    private hasTakenSavedBaseline = false
 
     @action.bound async updateGrapher(): Promise<void> {
         const config = this.manager.editor.originalGrapherConfig
         this.manager.editor.grapherState.updateFromObject(config)
         await this.manager.editor.reloadGrapherData()
         this.grapherState.externalBounds = this.bounds
+
+        // The host's config is in, data and all: that is the state the chart
+        // counts as unmodified against. Before the initial query params, so
+        // that a chart opened on a customized view reads as modified.
+        if (!this.hasTakenSavedBaseline) {
+            this.hasTakenSavedBaseline = true
+            this.manager.editor.markAsSaved()
+        }
 
         // Applied after the data load because the time bounds are snapped to
         // the available times and the entity selection is gated on
@@ -399,14 +410,12 @@ export class ChartEditorView<
         // built-in ones.
         const configEditor = isConfigEditorInstance(editor) ? editor : undefined
         const extraTabs = configEditor?.manager.extraTabs ?? []
-        const activeExtraTab = extraTabs.find((tab) => tab.key === editor.tab)
+        const activeExtraTab = extraTabs.find((tab) => tab.key === activeTab)
         const tabLabel = (tab: string): React.ReactNode =>
             extraTabs.find((t) => t.key === tab)?.label ?? _.capitalize(tab)
-        // A config that carries a chart id came from the admin database, so
-        // the admin's preview page can show it.
-        const previewUrl = grapherState.id
-            ? `/admin/charts/${grapherState.id}/preview`
-            : undefined
+        // Where the chart can be seen as readers will see it. Only the host
+        // knows: an id in the config says nothing about who can serve it.
+        const { previewUrl } = this.manager
 
         return (
             <>
