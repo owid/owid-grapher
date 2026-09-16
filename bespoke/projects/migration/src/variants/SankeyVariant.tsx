@@ -201,13 +201,13 @@ function FetchingSankeyVariant({ config }: { config: SankeyVariantConfig }) {
           : undefined
 
     if (metadataStatus === "pending")
-        return <ChartSkeleton className="migration-skeleton" />
+        return <ChartSkeleton className="migration-chart-box" />
     if (metadataStatus === "error" || !metadata)
-        return <ChartError message="Failed to load migration metadata" />
+        return <ChartError className="migration-chart-box" />
     if (migrationStatus === "pending" || !isCountryResolved)
-        return <ChartSkeleton className="migration-skeleton" />
+        return <ChartSkeleton className="migration-chart-box" />
     if (migrationStatus === "error" || !migration)
-        return <ChartError message="Failed to load migration data" />
+        return <ChartError className="migration-chart-box" />
 
     return (
         <CaptionedSankeyVariant

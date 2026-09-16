@@ -2,14 +2,14 @@
     position: relative;
 }
 
-// The skeleton renders in place of the whole variant, not inside the chart area.
+// The skeleton and the error box replace the whole variant, not just the chart area.
 .food-trade-captioned-chart__chart-area,
-.food-trade-skeleton {
+.food-trade-chart-box {
     height: 450px;
 }
 
 .food-trade-chart--narrow .food-trade-captioned-chart__chart-area,
-.food-trade-chart--narrow .food-trade-skeleton {
+.food-trade-chart--narrow .food-trade-chart-box {
     height: 380px;
 }
 

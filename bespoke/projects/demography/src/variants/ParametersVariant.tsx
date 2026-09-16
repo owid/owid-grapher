@@ -60,8 +60,9 @@ function FetchingParametersVariant({
         useDemographyData(entityName)
 
     if (status === "pending")
-        return <ChartSkeleton className="demography-skeleton" />
-    if (!metadata || !entityData) return <ChartError />
+        return <ChartSkeleton className="demography-chart-box" />
+    if (!metadata || !entityData)
+        return <ChartError className="demography-chart-box" />
 
     return (
         <CaptionedParametersVariant

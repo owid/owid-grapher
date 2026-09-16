@@ -143,15 +143,15 @@ function FetchingSankeyVariant({ config }: { config: SankeyVariantConfig }) {
     })
 
     if (metadataStatus === "pending")
-        return <ChartSkeleton className="food-trade-skeleton" />
+        return <ChartSkeleton className="food-trade-chart-box" />
     if (metadataStatus === "error" || !metadata)
-        return <ChartError message="Failed to load trade metadata" />
+        return <ChartError className="food-trade-chart-box" />
     if (productId === undefined)
-        return <ChartError message={`Unknown product: ${product}`} />
+        return <ChartError className="food-trade-chart-box" />
     if (productStatus === "pending" || !isCountryResolved)
-        return <ChartSkeleton className="food-trade-skeleton" />
+        return <ChartSkeleton className="food-trade-chart-box" />
     if (productStatus === "error" || !productData)
-        return <ChartError message="Failed to load trade data" />
+        return <ChartError className="food-trade-chart-box" />
 
     return (
         <CaptionedSankeyVariant

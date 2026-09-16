@@ -2,14 +2,14 @@
     position: relative;
 }
 
-// The skeleton renders in place of the whole variant, not inside the chart area.
+// The skeleton and the error box replace the whole variant, not just the chart area.
 .migration-captioned-chart__chart-area,
-.migration-skeleton {
+.migration-chart-box {
     height: 450px;
 }
 
 .migration-chart--narrow .migration-captioned-chart__chart-area,
-.migration-chart--narrow .migration-skeleton {
+.migration-chart--narrow .migration-chart-box {
     height: 380px;
 }
 

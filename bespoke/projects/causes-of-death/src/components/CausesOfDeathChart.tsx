@@ -119,11 +119,11 @@ function CausesOfDeathChart(props: {
     )
 
     if (loadingStatus === "error") {
-        return <ChartError />
+        return <ChartError className="causes-of-death-chart-box" />
     }
 
     if (loadingStatus === "pending") {
-        return <ChartSkeleton className="causes-of-death-skeleton" />
+        return <ChartSkeleton className="causes-of-death-chart-box" />
     }
 
     // Sanity check
@@ -136,7 +136,7 @@ function CausesOfDeathChart(props: {
         !activeAgeGroup ||
         !activeSex
     )
-        return <ChartError />
+        return <ChartError className="causes-of-death-chart-box" />
 
     return (
         <div className="causes-of-death-chart">

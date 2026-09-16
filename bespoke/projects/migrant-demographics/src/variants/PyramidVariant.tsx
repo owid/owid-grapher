@@ -115,11 +115,9 @@ function FetchingPyramidVariant({
     })
 
     if (status === "pending" || !isCountryResolved)
-        return <ChartSkeleton className="migrant-pyramid-skeleton" />
+        return <ChartSkeleton className="migrant-pyramid-chart-box" />
     if (status === "error" || !data)
-        return (
-            <ChartError message="Failed to load the migrant demographics data" />
-        )
+        return <ChartError className="migrant-pyramid-chart-box" />
 
     // Fall back gracefully when the config or URL asks for something the
     // data doesn't have
