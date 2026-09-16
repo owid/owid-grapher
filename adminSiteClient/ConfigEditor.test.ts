@@ -189,6 +189,29 @@ describe(ConfigEditor, () => {
         ])
     })
 
+    it("doesn't read columns into a saved patch that names none", async () => {
+        const store = makeCsvStore()
+        const editor = new ConfigEditor({
+            manager: {
+                store,
+                patchConfig: { title: "A title" },
+                parentConfig: { ySlugs: "rent_index" },
+                isInheritanceEnabled: true,
+                // the host stores the patch and hands it back
+                onSave: (config) => config,
+            },
+        })
+        editor.grapherState.updateFromObject(editor.originalGrapherConfig)
+        editor.markAsSaved()
+
+        await editor.saveGrapher()
+
+        // inferring every numeric column from the returned patch would put
+        // the base's column back into the patch as if the user had picked it
+        expect(editor.hostConfig.ySlugs).toBeUndefined()
+        expect(editor.isModified).toBe(false)
+    })
+
     it("fires onChange with the new patch as the config is edited", () => {
         const onChange = vi.fn<(config: GrapherInterface) => void>()
         const editor = makeEditor({ onChange })
