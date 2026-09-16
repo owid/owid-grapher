@@ -674,7 +674,7 @@ describe("x/y tolerance", () => {
             ["UK", 2009, null, null, null, null],
             ["UK", 2010, null, null, "Europe", 100],
             // should be removed because it has no X/Y values
-            [2, "USA", "", 2020, null, null, "North America", 0],
+            ["USA", 2020, null, null, "North America", 0],
         ],
         [
             {
