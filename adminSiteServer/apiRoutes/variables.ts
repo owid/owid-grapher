@@ -23,6 +23,7 @@ import {
     getIndicatorChartConfigRecord,
     getIndicatorChartConfig,
     searchVariables,
+    searchVariablesGroupedByDataset,
     updateAllChartsThatInheritFromIndicator,
     updateAllMultiDimViewsThatInheritFromIndicator,
     updateIndicatorChartConfig,
@@ -163,6 +164,9 @@ export async function getVariablesJson(
     const limit = parseIntOrUndefined(req.query.limit as string) ?? 50
     const offset = parseIntOrUndefined(req.query.offset as string) ?? 0
     const query = req.query.search as string
+    // The same search, paged over the datasets the matches belong to
+    if (req.query.group === "dataset")
+        return await searchVariablesGroupedByDataset(query, limit, offset, trx)
     return await searchVariables(query, limit, offset, trx)
 }
 

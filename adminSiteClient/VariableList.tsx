@@ -39,6 +39,16 @@ export type VariableListField =
     | "usage"
     | "popularity"
 
+export interface DatasetSearchGroup {
+    id: number
+    name: string
+    namespace: string
+    version: string | null
+    shortName: string | null
+    matchCount: number
+    variables: VariableListItem[]
+}
+
 interface VariableListProps {
     variables: VariableListItem[]
     fields: VariableListField[]
@@ -270,6 +280,15 @@ function CatalogPathCell({
     )
 }
 
+/** `table#short_name` — the tail a group header doesn't already show. */
+function catalogPathTail(catalogPath: string | undefined): string {
+    if (!catalogPath) return ""
+    const withoutPrefix = catalogPath.replace(/^grapher\//, "")
+    const [path, shortName] = withoutPrefix.split("#")
+    const table = path.split("/").slice(3).join("/")
+    return shortName ? `${table}#${shortName}` : table
+}
+
 /**
  * Relative column widths, turned into percentages over whatever columns a page
  * asks for. Percentages rather than pixels so the table always fills its
@@ -431,5 +450,208 @@ export function VariableList({
             entityName="indicators"
             pagination={pagination}
         />
+    )
+}
+
+type GroupedRow =
+    | { kind: "dataset"; key: string; group: DatasetSearchGroup }
+    | { kind: "indicator"; key: string; variable: VariableListItem }
+    | { kind: "more"; key: string; group: DatasetSearchGroup }
+
+function DatasetGroupHeader({
+    group,
+    highlight,
+}: {
+    group: DatasetSearchGroup
+    highlight: SearchHighlighter
+}): React.ReactElement {
+    const path = [group.namespace, group.version, group.shortName]
+        .filter(Boolean)
+        .join("/")
+    return (
+        <div className="variable-list__group">
+            <Link
+                className="variable-list__group-name"
+                to={`/datasets/${group.id}`}
+            >
+                {highlight(group.name)}
+            </Link>
+            <span className="variable-list__group-path">{path}</span>
+            <span className="variable-list__group-count">
+                {plural(group.matchCount, "matching indicator")}
+            </span>
+        </div>
+    )
+}
+
+/**
+ * Search results grouped by the dataset they belong to. A search matches far
+ * more indicators than datasets — "road deaths" hits 831 across 12 — so the
+ * datasets are the useful thing to page through, each showing its most-read
+ * few and offering the rest as a narrower search.
+ */
+export function GroupedVariableList({
+    groups,
+    searchWords = NO_SEARCH_WORDS,
+    searchValue,
+    onSearchValue,
+    search,
+    loading,
+    footer,
+}: {
+    groups: DatasetSearchGroup[]
+    searchWords?: SearchWord[]
+    /** The query the groups came from, extended by the "more" links. */
+    searchValue: string
+    onSearchValue: (value: string) => void
+    search?: AdminTableSearch
+    loading?: boolean
+    footer?: React.ReactNode
+}): React.ReactElement {
+    const rows = useMemo(
+        (): GroupedRow[] =>
+            groups.flatMap((group) => [
+                {
+                    kind: "dataset" as const,
+                    key: `d${group.id}`,
+                    group,
+                },
+                ...group.variables.map((variable) => ({
+                    kind: "indicator" as const,
+                    key: `v${variable.id}`,
+                    variable,
+                })),
+                ...(group.matchCount > group.variables.length
+                    ? [
+                          {
+                              kind: "more" as const,
+                              key: `m${group.id}`,
+                              group,
+                          },
+                      ]
+                    : []),
+            ]),
+        [groups]
+    )
+
+    const columns = useMemo((): TableColumnsType<GroupedRow> => {
+        const highlight = highlightFunctionForSearchWords(searchWords)
+        const pathWords = pathSearchWords(searchWords)
+        const pathHighlight = highlightFunctionForSearchWords(pathWords)
+        // A dataset header and a "more" link span the whole width
+        const spanned = (row: GroupedRow) =>
+            row.kind === "indicator" ? {} : { colSpan: 0 }
+
+        return [
+            {
+                title: "Indicator",
+                key: "name",
+                width: "42%",
+                onCell: (row) =>
+                    row.kind === "indicator" ? {} : { colSpan: 4 },
+                render: (_, row) => {
+                    if (row.kind === "dataset")
+                        return (
+                            <DatasetGroupHeader
+                                group={row.group}
+                                highlight={highlight}
+                            />
+                        )
+                    if (row.kind === "more") {
+                        const { group } = row
+                        const narrowed = `${searchValue} dataset:${group.shortName}`
+                        return (
+                            <button
+                                type="button"
+                                className="variable-list__group-more"
+                                onClick={() => onSearchValue(narrowed)}
+                            >
+                                {group.matchCount - group.variables.length} more
+                                in this dataset →
+                            </button>
+                        )
+                    }
+                    return (
+                        <>
+                            {row.variable.nonRedistributable ? (
+                                <Tooltip title="Non-redistributable — the data download is disabled on charts using it">
+                                    <FontAwesomeIcon
+                                        className="variable-list__flag"
+                                        icon={faLock}
+                                    />
+                                </Tooltip>
+                            ) : row.variable.isPrivate ? (
+                                <Tooltip title="Unpublished — its dataset is private">
+                                    <FontAwesomeIcon
+                                        className="variable-list__flag"
+                                        icon={faEyeSlash}
+                                    />
+                                </Tooltip>
+                            ) : null}
+                            <Link to={`/variables/${row.variable.id}`}>
+                                {highlight(row.variable.name)}
+                            </Link>{" "}
+                            <span
+                                className="variable-list__path"
+                                title={row.variable.catalogPath}
+                            >
+                                {pathHighlight(
+                                    catalogPathTail(row.variable.catalogPath)
+                                )}
+                            </span>
+                        </>
+                    )
+                },
+            },
+            {
+                title: "Used in",
+                key: "usage",
+                width: "16%",
+                onCell: spanned,
+                render: (_, row) =>
+                    row.kind === "indicator" ? (
+                        <UsageCell variable={row.variable} />
+                    ) : null,
+            },
+            {
+                title: "Popularity",
+                key: "popularity",
+                width: "10%",
+                onCell: spanned,
+                render: (_, row) =>
+                    row.kind === "indicator" ? (
+                        <PopularityCell popularity={row.variable.popularity} />
+                    ) : null,
+            },
+            {
+                title: "Uploaded",
+                key: "uploadedAt",
+                width: "16%",
+                onCell: spanned,
+                render: (_, row) =>
+                    row.kind === "indicator" ? (
+                        <Timeago
+                            time={row.variable.uploadedAt}
+                            by={row.variable.uploadedBy ?? "Bulk import"}
+                        />
+                    ) : null,
+            },
+        ]
+    }, [searchWords, searchValue, onSearchValue])
+
+    return (
+        <>
+            <AdminTable
+                className="variable-list--grouped"
+                columns={columns}
+                dataSource={rows}
+                rowKey="key"
+                rowClassName={(row) => `variable-list__row--${row.kind}`}
+                loading={loading}
+                search={search}
+                pagination={false}
+            />
+            {footer}
+        </>
     )
 }

@@ -1126,6 +1126,139 @@ export const searchVariables = async (
  * columns they were once pointed at — `namespace:ihme_gbd` used to search the
  * dataset's title and so matched nothing. The dataset's title is `datasetname:`.
  */
+/** How many of a dataset's matching indicators a group shows before linking to the rest. */
+export const INDICATORS_PER_DATASET = 5
+
+export interface DatasetSearchGroup {
+    id: number
+    name: string
+    namespace: string
+    version: string | null
+    /** The dataset segment of the catalog path, for narrowing to it. */
+    shortName: string | null
+    /** How many of this dataset's indicators matched, not how many are shown. */
+    matchCount: number
+    variables: VariableResultView[]
+}
+
+export interface VariablesGroupedSearchResult {
+    datasets: DatasetSearchGroup[]
+    numTotalDatasets: number
+    numTotalRows: number
+}
+
+/**
+ * The same search as `searchVariables`, but paging over the datasets the
+ * matches belong to rather than over the matches themselves. A search like
+ * "road deaths" hits 831 indicators across 12 datasets, and the datasets are
+ * the useful unit: each group shows its most-read few and says how many more
+ * it holds.
+ *
+ * Two queries, because the grouped pass can't also carry each dataset's rows.
+ * Both are dominated by the scan the search pays for either way.
+ */
+export const searchVariablesGroupedByDataset = async (
+    query: string,
+    limit: number,
+    offset: number,
+    knex: db.KnexReadonlyTransaction
+): Promise<VariablesGroupedSearchResult> => {
+    const whereClauses = buildWhereClauses(query)
+    const where = whereClauses.length
+        ? "WHERE " + whereClauses.join(" AND ")
+        : ""
+    const fromWhere = `
+        FROM variables AS v
+        JOIN active_datasets d ON d.id=v.datasetId
+        LEFT JOIN analytics_popularity ap
+            ON ap.type = 'indicator' AND ap.slug = v.catalogPath
+        ${where}
+    `
+
+    // `COUNT(*) OVER ()` counts the groups and `SUM(COUNT(*)) OVER ()` the
+    // matches behind them, so one pass answers both totals
+    const sqlDatasets = `
+        SELECT
+            d.id,
+            d.name,
+            d.namespace,
+            d.version,
+            d.shortName,
+            COUNT(*) AS matchCount,
+            MAX(ap.popularity) AS popularity,
+            MAX(d.dataEditedAt) AS dataEditedAt,
+            COUNT(*) OVER () AS numTotalDatasets,
+            SUM(COUNT(*)) OVER () AS numTotalRows
+        ${fromWhere}
+        GROUP BY d.id, d.name, d.namespace, d.version, d.shortName
+        ORDER BY popularity DESC, dataEditedAt DESC
+        LIMIT ${escape(limit)} OFFSET ${escape(offset)}
+    `
+    const datasetRows = await queryRegexSafe(sqlDatasets, knex)
+    if (datasetRows.length === 0)
+        return { datasets: [], numTotalDatasets: 0, numTotalRows: 0 }
+
+    const datasetIds = datasetRows.map((row: any) => row.id)
+
+    const sqlVariables = `
+        SELECT * FROM (
+            SELECT
+                v.id,
+                v.name,
+                v.catalogPath AS catalogPath,
+                d.id AS datasetId,
+                d.name AS datasetName,
+                d.isPrivate AS isPrivate,
+                d.nonRedistributable AS nonRedistributable,
+                d.dataEditedAt AS uploadedAt,
+                u.fullName AS uploadedBy,
+                ap.popularity AS popularity,
+                ROW_NUMBER() OVER (
+                    PARTITION BY v.datasetId
+                    ORDER BY ap.popularity DESC, v.id
+                ) AS rankInDataset
+            FROM variables AS v
+            JOIN active_datasets d ON d.id=v.datasetId
+            LEFT JOIN users u ON u.id=d.dataEditedByUserId
+            LEFT JOIN analytics_popularity ap
+                ON ap.type = 'indicator' AND ap.slug = v.catalogPath
+            ${where ? where + " AND" : "WHERE"} v.datasetId IN (${datasetIds
+                .map((id: number) => escape(id))
+                .join(",")})
+        ) ranked
+        WHERE rankInDataset <= ${escape(INDICATORS_PER_DATASET)}
+        ORDER BY rankInDataset
+    `
+    const variableRows = await queryRegexSafe(sqlVariables, knex)
+
+    const usages = await getVariableUsagesByIds(
+        knex,
+        variableRows.map((row: any) => row.id)
+    )
+    variableRows.forEach((row: any) => {
+        delete row.rankInDataset
+        Object.assign(row, usages.get(row.id) ?? EMPTY_VARIABLE_USAGE)
+    })
+
+    const variablesByDataset = _.groupBy(variableRows, (row: any) =>
+        String(row.datasetId)
+    )
+
+    return {
+        datasets: datasetRows.map((row: any) => ({
+            id: row.id,
+            name: row.name,
+            namespace: row.namespace,
+            version: row.version,
+            shortName: row.shortName,
+            matchCount: Number(row.matchCount),
+            variables: variablesByDataset[String(row.id)] ?? [],
+        })),
+        numTotalDatasets: Number(datasetRows[0].numTotalDatasets),
+        numTotalRows: Number(datasetRows[0].numTotalRows),
+    }
+}
+
 const catalogPathSegment = (n: number): string =>
     // the last segment carries the #short_name, which `short:` searches instead
     `SUBSTRING_INDEX(SUBSTRING_INDEX(SUBSTRING_INDEX(v.catalogPath, '/', ${n}), '/', -1), '#', 1)`

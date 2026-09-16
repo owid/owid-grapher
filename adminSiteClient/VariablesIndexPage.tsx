@@ -1,12 +1,18 @@
 import * as React from "react"
-import { useContext, useMemo, useState } from "react"
+import { useCallback, useContext, useMemo, useState } from "react"
 import { keepPreviousData, useQuery } from "@tanstack/react-query"
 import { useDebounceValue } from "usehooks-ts"
 import urljoin from "url-join"
 
 import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext } from "./AdminAppContext.js"
-import { VariableList, VariableListItem } from "./VariableList.js"
+import { Flex, Pagination } from "antd"
+import {
+    DatasetSearchGroup,
+    GroupedVariableList,
+    VariableList,
+    VariableListItem,
+} from "./VariableList.js"
 import {
     ADMIN_TABLE_PAGE_SIZE,
     useSearchQueryParam,
@@ -59,6 +65,9 @@ function SearchSyntaxNote(): React.ReactElement {
     )
 }
 
+/** Datasets per page in the grouped view; each carries up to 5 indicators. */
+const DATASETS_PER_PAGE = 10
+
 export function VariablesIndexPage(): React.ReactElement {
     const { admin } = useContext(AdminAppContext)
     const [searchValue, setSearchValue] = useSearchQueryParam()
@@ -68,9 +77,34 @@ export function VariablesIndexPage(): React.ReactElement {
     // off on every keystroke
     const [debouncedSearch] = useDebounceValue(searchValue, 300)
 
+    // A search matches far more indicators than datasets, so it comes back
+    // grouped by dataset. Browsing without one is a flat list: there is no
+    // relevance to group by, and 1,224 dataset headers would only be a slower
+    // table of contents. Narrowing to one dataset is flat too — that is where
+    // a group's "more in this dataset" lands, and grouping a single group
+    // would just cap it at five again.
+    const isGrouped =
+        debouncedSearch.trim().length > 0 && !/\bdataset:/.test(debouncedSearch)
+
+    const onSearchValue = useCallback(
+        (value: string) => {
+            setSearchValue(value)
+            setPage(1)
+        },
+        [setSearchValue]
+    )
+
+    const searchProps = {
+        value: searchValue,
+        onChange: onSearchValue,
+        placeholder: "e.g. ^population before:2023 -wdi",
+        autoFocus: true,
+        fields: SEARCH_FIELDS,
+    }
+
     // The indicators table is far too large to send to the browser, so the
     // search runs in SQL and the table is handed one page at a time.
-    const { data, isFetching } = useQuery({
+    const flat = useQuery({
         queryKey: ["variables", debouncedSearch, page, pageSize],
         queryFn: () =>
             admin.getJSONInBackground<{
@@ -82,6 +116,24 @@ export function VariablesIndexPage(): React.ReactElement {
                 offset: (page - 1) * pageSize,
             }),
         placeholderData: keepPreviousData,
+        enabled: !isGrouped,
+    })
+
+    const grouped = useQuery({
+        queryKey: ["variables-grouped", debouncedSearch, page],
+        queryFn: () =>
+            admin.getJSONInBackground<{
+                datasets: DatasetSearchGroup[]
+                numTotalDatasets: number
+                numTotalRows: number
+            }>("/api/variables.json", {
+                search: debouncedSearch,
+                group: "dataset",
+                limit: DATASETS_PER_PAGE,
+                offset: (page - 1) * DATASETS_PER_PAGE,
+            }),
+        placeholderData: keepPreviousData,
+        enabled: isGrouped,
     })
 
     const searchWords = useMemo(
@@ -93,32 +145,62 @@ export function VariablesIndexPage(): React.ReactElement {
         <AdminLayout title="Indicators">
             <main className="VariablesIndexPage">
                 <SearchSyntaxNote />
-                <VariableList
-                    variables={data?.variables ?? []}
-                    fields={[...FIELDS]}
-                    searchWords={searchWords}
-                    loading={isFetching}
-                    sortable={false}
-                    search={{
-                        value: searchValue,
-                        onChange: (value) => {
-                            setSearchValue(value)
-                            setPage(1)
-                        },
-                        placeholder: "e.g. ^population before:2023 -wdi",
-                        autoFocus: true,
-                        fields: SEARCH_FIELDS,
-                    }}
-                    pagination={{
-                        current: page,
-                        pageSize,
-                        total: data?.numTotalRows ?? 0,
-                        onChange: (nextPage, nextPageSize) => {
-                            setPage(nextPage)
-                            setPageSize(nextPageSize)
-                        },
-                    }}
-                />
+                {isGrouped ? (
+                    <GroupedVariableList
+                        groups={grouped.data?.datasets ?? []}
+                        searchWords={searchWords}
+                        searchValue={debouncedSearch}
+                        onSearchValue={onSearchValue}
+                        loading={grouped.isFetching}
+                        search={searchProps}
+                        footer={
+                            <Flex
+                                className="variables-index__pager"
+                                justify="space-between"
+                                align="center"
+                                gap="middle"
+                                wrap
+                            >
+                                <span className="variables-index__pager-total">
+                                    {(
+                                        grouped.data?.numTotalRows ?? 0
+                                    ).toLocaleString()}{" "}
+                                    indicators in{" "}
+                                    {grouped.data?.numTotalDatasets ?? 0}{" "}
+                                    datasets
+                                </span>
+                                <Pagination
+                                    current={page}
+                                    pageSize={DATASETS_PER_PAGE}
+                                    total={grouped.data?.numTotalDatasets ?? 0}
+                                    showSizeChanger={false}
+                                    onChange={setPage}
+                                    showTotal={(total, [from, to]) =>
+                                        `datasets ${from}-${to} of ${total}`
+                                    }
+                                />
+                            </Flex>
+                        }
+                    />
+                ) : (
+                    <VariableList
+                        variables={flat.data?.variables ?? []}
+                        fields={[...FIELDS]}
+                        searchWords={searchWords}
+                        loading={flat.isFetching}
+                        sortable={false}
+                        search={searchProps}
+                        pagination={{
+                            current: page,
+                            pageSize,
+                            total: flat.data?.numTotalRows ?? 0,
+                            onChange: (nextPage, nextPageSize) => {
+                                setPage(nextPage)
+                                setPageSize(nextPageSize)
+                            },
+                        }}
+                    />
+                )}
             </main>
         </AdminLayout>
     )
