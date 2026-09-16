@@ -25,13 +25,5 @@ export default defineConfig({
             // use chromium new headless mode https://playwright.dev/docs/browsers#chromium-new-headless-mode
             use: { ...devices["Desktop Chrome"], channel: "chromium" },
         },
-        {
-            name: "firefox",
-            use: { ...devices["Desktop Firefox"] },
-        },
-        {
-            name: "webkit",
-            use: { ...devices["Desktop Safari"] },
-        },
     ],
 })

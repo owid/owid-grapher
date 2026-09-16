@@ -192,9 +192,9 @@ so cleanup must prevent leakage. Keep logic that does not require MySQL in Vites
 
 ### Browser behavioral tests
 
-Direct Playwright tests run in Chromium, Firefox, and WebKit. Current scenarios
-cover search and Wikipedia-archive requests against a running baked site; they are
-not in the main GitHub Actions CI workflow.
+Direct Playwright tests run in Chromium. Current scenarios cover search and
+Wikipedia-archive requests against a running baked site; they are not in the main
+GitHub Actions CI workflow.
 
 Use browser tests for critical behavior involving real layout and events,
 navigation/history, accessibility interactions, network requests, or the baked
