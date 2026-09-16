@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class AddIndicatorFulltextIndex1789561018351
-    implements MigrationInterface
-{
+export class AddIndicatorFulltextIndex1789561018351 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         // Indicator search matches words in the name and the catalog path.
         // Without an index that is a substring scan of every row — about a
