@@ -60,6 +60,7 @@ const NewsletterSignupFormInner = ({
     const [followTopics, setFollowTopics] = useState(false)
     const spamProtection = useNewsletterSpamProtection()
     const [email, setEmail] = useState("")
+    const [hasEditedForm, setHasEditedForm] = useState(false)
 
     const subscribe = useMutation({
         mutationFn: async (request: EmailNotificationsSubscribeRequest) => {
@@ -127,6 +128,7 @@ const NewsletterSignupFormInner = ({
             className={cx("newsletter-signup-form", className)}
             action="/subscribe"
             onSubmit={handleSubmit}
+            onChange={() => setHasEditedForm(true)}
         >
             <NewsletterOption
                 id={`newsletter-signup-brief-${context}`}
@@ -135,7 +137,10 @@ const NewsletterSignupFormInner = ({
                 description={OWID_BRIEF_DESCRIPTION}
                 checked={subscribeToOwidBrief}
                 disabled={subscribe.isPending}
-                onChange={() => setSubscribeToOwidBrief(!subscribeToOwidBrief)}
+                onChange={() => {
+                    spamProtection.clearCaptcha()
+                    setSubscribeToOwidBrief(!subscribeToOwidBrief)
+                }}
             />
             <NewsletterOption
                 id={`newsletter-signup-topics-${context}`}
@@ -149,7 +154,7 @@ const NewsletterSignupFormInner = ({
                 checked={followTopics}
                 disabled={subscribe.isPending}
                 onChange={() => {
-                    spamProtection.resetCaptcha()
+                    spamProtection.clearCaptcha()
                     setFollowTopics(!followTopics)
                 }}
             />
@@ -173,7 +178,7 @@ const NewsletterSignupFormInner = ({
                 disabled={subscribe.isPending}
                 onChange={(event) => setEmail(event.target.value)}
             />
-            {!followTopics && (
+            {hasEditedForm && subscribeToOwidBrief && !followTopics && (
                 <NewsletterSpamProtection {...spamProtection.fieldsProps} />
             )}
             <Button
