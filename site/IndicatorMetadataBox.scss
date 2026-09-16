@@ -74,3 +74,23 @@
         margin-bottom: 16px;
     }
 }
+
+// Producer documentation is free-form markdown rendered inside an
+// ExpandableToggle, outside the expander's `__prose` wrapper. The global reset
+// zeroes list padding, so restore the same list indentation the control
+// design's .key-info__content gives this text (AboutThisData.scss).
+.indicator-metadata-box__producer-docs {
+    ul,
+    ol {
+        padding-left: 1em;
+        margin: 1em 0;
+
+        li {
+            margin-bottom: 1em;
+
+            &:last-child {
+                margin-bottom: 0;
+            }
+        }
+    }
+}

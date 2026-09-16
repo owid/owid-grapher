@@ -198,9 +198,11 @@ function IndicatorMetadataSections({
                             "Principal data source"
                         }
                         content={
-                            <SimpleMarkdownText
-                                text={datapageData.descriptionFromProducer}
-                            />
+                            <div className="indicator-metadata-box__producer-docs">
+                                <SimpleMarkdownText
+                                    text={datapageData.descriptionFromProducer}
+                                />
+                            </div>
                         }
                         onToggle={(isOpen) =>
                             logExpandableToggle(
