@@ -8,16 +8,15 @@ import type {
     SimulationVariantConfig,
 } from "../core/config.js"
 import type { VariantProps } from "../../../../helpers/config.js"
+import type { BespokeComponentDataUrls } from "owid-bespoke-types"
 import { CHART_FOOTER_SOURCES, DEFAULT_ENTITY_NAME } from "../core/constants.js"
 import { useInitialEntityName } from "../core/useInitialEntityName.js"
 import {
     parseSimulationUrlState,
     type SimulationUrlState,
 } from "../core/urlState.js"
-import {
-    DemographyChartError,
-    DemographySkeleton,
-} from "../components/DemographyLoadAndError.js"
+import { ChartError } from "../../../../components/ChartError/ChartError.js"
+import { ChartSkeleton } from "../../../../components/ChartSkeleton/ChartSkeleton.js"
 import { Spinner } from "../../../../components/Spinner/Spinner.js"
 import {
     EmbedConfigProvider,
@@ -38,6 +37,7 @@ import {
 
 export function SimulationVariant({
     config,
+    urls,
 }: VariantProps<SimulationVariantConfig>): React.ReactElement {
     const { breakpoint, ref: rootRef } = useContainerBreakpoint()
 
@@ -52,7 +52,10 @@ export function SimulationVariant({
                             breakpointClass(breakpoint)
                         )}
                     >
-                        <FetchingSimulationVariant config={config} />
+                        <FetchingSimulationVariant
+                            config={config}
+                            urls={urls}
+                        />
                     </div>
                 </BreakpointProvider>
             </QueryClientProvider>
@@ -62,8 +65,10 @@ export function SimulationVariant({
 
 function FetchingSimulationVariant({
     config,
+    urls,
 }: {
     config: SimulationVariantConfig
+    urls: BespokeComponentDataUrls
 }): React.ReactElement {
     const { urlSync } = useEmbedConfig()
 
@@ -79,7 +84,10 @@ function FetchingSimulationVariant({
         Boolean(urlState.entityName)
     )
     const [entityName, setEntityNameRaw, isInitialEntityNameResolved] =
-        useInitialEntityName(urlState.entityName ?? config.region)
+        useInitialEntityName(
+            urlState.entityName ?? config.region,
+            urls.metadataUrl
+        )
     const setEntityName = useCallback(
         (name: string) => {
             if (urlSync) {
@@ -92,7 +100,7 @@ function FetchingSimulationVariant({
     )
 
     const { metadata, entityData, isLoadingEntityData, status } =
-        useDemographyData(entityName)
+        useDemographyData(entityName, urls)
 
     useEffect(() => {
         if (!metadata) return
@@ -121,9 +129,12 @@ function FetchingSimulationVariant({
         urlState.entityName,
     ])
 
-    if (status === "pending") return <DemographySkeleton />
-    if (metadata && !metadata.slugs[entityName]) return <DemographySkeleton />
-    if (!metadata || !entityData) return <DemographyChartError />
+    if (status === "pending")
+        return <ChartSkeleton className="demography-chart-box" />
+    if (metadata && !metadata.slugs[entityName])
+        return <ChartSkeleton className="demography-chart-box" />
+    if (!metadata || !entityData)
+        return <ChartError className="demography-chart-box" />
 
     return (
         <CaptionedSimulationVariant

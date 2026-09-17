@@ -77,8 +77,38 @@
     width: 100%;
 }
 
+.gdoc-index__docs-links {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: $gray-70;
+}
+
 .gdoc-index__help-link {
-    margin-right: 8px;
+    color: $gray-70;
+
+    &:hover {
+        color: $blue-60;
+        text-decoration: underline;
+    }
+}
+
+.gdoc-index__docs-links-separator {
+    color: $gray-30;
+}
+
+.gdoc-index__beta-chip {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: $gray-70;
+    background: $gray-10;
+    padding: 1px 5px;
+    border-radius: 3px;
 }
 
 .gdoc-index__load-more {

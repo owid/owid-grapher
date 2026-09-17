@@ -4,21 +4,6 @@ import { format, type FormatConfig } from "oxfmt"
 import oxfmtConfig from "../../.oxfmtrc.json"
 import { type SchemaDefinitions, resolveRef } from "./grapherSchemaSource.js"
 
-export type SchemaArtefactSuffix = "json" | "patch.json"
-
-/** The full schema with only `$schema` required */
-export function toPatchSchema(schema: JSONSchema7): JSONSchema7 {
-    if (!schema.$id?.endsWith(".json"))
-        throw new Error(
-            `Expected $id to end in ".json", got ${JSON.stringify(schema.$id)}`
-        )
-
-    const patch = structuredClone(schema)
-    patch.required = ["$schema"]
-    patch.$id = schema.$id.replace(/\.json$/, ".patch.json")
-    return patch
-}
-
 /** Every `default` in the schema as one nested object */
 export function generateDefaultConfig(
     schema: JSONSchema7,
@@ -69,24 +54,8 @@ export const defaultGrapherConfig = ${JSON.stringify(defaultConfig, undefined, 2
     return formatted.code
 }
 
-export function formatSchemaFileName(
-    version: string,
-    suffix: SchemaArtefactSuffix
-): string {
-    return `grapher-schema.${version}.${suffix}`
-}
-
-export interface SchemaArtefact {
-    fileName: string
-    content: string
-}
-
-export function buildSchemaArtefact(
-    version: string,
-    suffix: SchemaArtefactSuffix,
-    content: string
-): SchemaArtefact {
-    return { fileName: formatSchemaFileName(version, suffix), content }
+export function formatSchemaFileName(version: string): string {
+    return `grapher-schema.${version}.json`
 }
 
 export function serializeJson(value: unknown): string {

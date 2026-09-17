@@ -140,6 +140,7 @@ import { makeChartState } from "../chart/ChartTypeMap.js"
 import {
     autoDetectSeriesStrategy,
     autoDetectYColumnSlugs,
+    scaleFontSize,
 } from "../chart/ChartUtils.js"
 import { DimensionSlot } from "../chart/DimensionSlot.js"
 import { GRAPHER_LIGHT_TEXT } from "../color/ColorConstants.js"
@@ -2383,7 +2384,7 @@ export class GrapherState
 
             return new MarkdownTextWrap({
                 text,
-                fontSize: (11 / BASE_FONT_SIZE) * baseFontSize,
+                fontSize: scaleFontSize(11, baseFontSize),
                 // Leave room for padding on the left and right
                 maxWidth:
                     this.staticBounds.width -

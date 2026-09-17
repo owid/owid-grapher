@@ -12,7 +12,11 @@ import {
 import { OwidTable } from "@ourworldindata/core-table"
 import { LineChart } from "../lineCharts/LineChart"
 import { LineChartState } from "../lineCharts/LineChartState"
-import { Bounds, checkIsVeryShortUnit } from "@ourworldindata/utils"
+import {
+    Bounds,
+    checkIsVeryShortUnit,
+    roundForSvg,
+} from "@ourworldindata/utils"
 import { LineChartManager } from "../lineCharts/LineChartConstants"
 import { ColorScale } from "../color/ColorScale.js"
 import * as R from "remeda"
@@ -226,10 +230,10 @@ export class MapSparkline extends React.Component<MapSparklineProps> {
                 >
                     <line
                         className="max-line"
-                        x1={axisBounds.left}
-                        y1={axisBounds.y}
-                        x2={axisBounds.right}
-                        y2={axisBounds.y}
+                        x1={roundForSvg(axisBounds.left)}
+                        y1={roundForSvg(axisBounds.y)}
+                        x2={roundForSvg(axisBounds.right)}
+                        y2={roundForSvg(axisBounds.y)}
                     />
                     <LineChart
                         bounds={this.sparklineBounds}
@@ -237,16 +241,26 @@ export class MapSparkline extends React.Component<MapSparklineProps> {
                     />
                     {maxLabel !== minLabel && (
                         <g className="max axis-label">
-                            <text x={labelX} y={labelTop}>
+                            <text
+                                x={roundForSvg(labelX)}
+                                y={roundForSvg(labelTop)}
+                            >
                                 {maxLabel}
                             </text>
                         </g>
                     )}
                     <g className="min axis-label">
-                        <text className="outline" x={labelX} y={labelBottom}>
+                        <text
+                            className="outline"
+                            x={roundForSvg(labelX)}
+                            y={roundForSvg(labelBottom)}
+                        >
                             {minLabel}
                         </text>
-                        <text x={labelX} y={labelBottom}>
+                        <text
+                            x={roundForSvg(labelX)}
+                            y={roundForSvg(labelBottom)}
+                        >
                             {minLabel}
                         </text>
                     </g>

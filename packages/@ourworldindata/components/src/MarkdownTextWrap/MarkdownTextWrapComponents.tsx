@@ -8,7 +8,7 @@ import {
     IRToken,
 } from "./IRTokens.js"
 import { AbstractTokenTextWrap } from "./AbstractTokenTextWrap.js"
-import { omitUndefinedValues } from "@ourworldindata/utils"
+import { omitUndefinedValues, roundForSvg } from "@ourworldindata/utils"
 
 function MarkdownTextWrapLine({
     line,
@@ -97,16 +97,16 @@ export function MarkdownTextWrapSvg({
     return (
         <g id={id} className="markdown-text-wrap">
             <text
-                x={x.toFixed(1)}
-                y={yOffset.toFixed(1)}
+                x={roundForSvg(x)}
+                y={roundForSvg(yOffset)}
                 style={textWrap.style}
                 {...svgTextProps}
             >
                 {lines.map((line, lineIndex) => (
                     <tspan
                         key={lineIndex}
-                        x={x}
-                        y={getLineY(lineIndex).toFixed(1)}
+                        x={roundForSvg(x)}
+                        y={roundForSvg(getLineY(lineIndex))}
                     >
                         {line.map((token, tokenIndex) =>
                             token.toSVG(tokenIndex)
@@ -117,15 +117,15 @@ export function MarkdownTextWrapSvg({
             {/* SVG doesn't support dotted underlines, so we draw them manually */}
             {detailsMarker === "underline" &&
                 lines.map((line, lineIndex) => {
-                    const lineY = (getLineY(lineIndex) + 2).toFixed(1)
+                    const lineY = roundForSvg(getLineY(lineIndex) + 2)
                     return getDodUnderlineSegments(line).map(
                         (segment, segmentIndex) => (
                             <line
                                 key={`${lineIndex}-${segmentIndex}`}
                                 className="dod-underline"
-                                x1={x + segment.x}
+                                x1={roundForSvg(x + segment.x)}
                                 y1={lineY}
-                                x2={x + segment.x + segment.width}
+                                x2={roundForSvg(x + segment.x + segment.width)}
                                 y2={lineY}
                                 stroke="currentColor"
                                 strokeWidth={1}

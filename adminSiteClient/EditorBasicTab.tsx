@@ -40,6 +40,7 @@ import {
 } from "./EntityPresets.js"
 import {
     DimensionProperty,
+    ColumnSlug,
     OwidVariableId,
     OwidChartDimensionInterface,
     areSetsEqual,
@@ -121,10 +122,10 @@ export class DimensionSlotView<
         void this.updateDimensionsAndRebuildTable(dimensionConfigs)
     }
 
-    @action.bound private onRemoveDimension(variableId: OwidVariableId) {
+    @action.bound private onRemoveDimension(columnSlug: ColumnSlug) {
         void this.updateDimensionsAndRebuildTable(
             this.props.slot.dimensions.filter(
-                (d) => d.variableId !== variableId
+                (d) => d.columnSlug !== columnSlug
             )
         )
     }
@@ -322,7 +323,8 @@ export class DimensionSlotView<
         const { isSelectingVariables } = this
         const { slot, editor, canSwapXAndY, onSwapXAndY } = this.props
         const dimensions = slot.dimensions.map((dim, index) => ({
-            id: dim.variableId,
+            // Every slot has a column slug; only indicator-backed ones have an id.
+            id: dim.columnSlug,
             dim,
             index,
         }))
@@ -368,7 +370,7 @@ export class DimensionSlotView<
                                     slot.isOptional
                                         ? () =>
                                               this.onRemoveDimension(
-                                                  d.dim.variableId
+                                                  d.dim.columnSlug
                                               )
                                         : undefined
                                 }

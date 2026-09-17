@@ -345,6 +345,7 @@ __metadata:
     clsx: "npm:^2.1.1"
     d3-sankey: "npm:^0.12.3"
     react: "npm:^19.2.7"
+    react-aria: "npm:^3.51.0"
     react-aria-components: "npm:^1.18.0"
     remeda: "npm:^2.39.0"
     ts-pattern: "npm:^5.9.0"
@@ -473,6 +474,7 @@ __metadata:
   resolution: "@owid/bespoke-helpers@workspace:helpers"
   dependencies:
     "@ourworldindata/utils": "link:../../packages/@ourworldindata/utils"
+    "@tanstack/react-query": "npm:^5.101.0"
     typescript: "npm:^7.0.2"
     vitest: "npm:^5.0.0"
   languageName: unknown
@@ -2824,7 +2826,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-aria@npm:3.51.0, react-aria@npm:^3.49.0":
+"react-aria@npm:3.51.0, react-aria@npm:^3.49.0, react-aria@npm:^3.51.0":
   version: 3.51.0
   resolution: "react-aria@npm:3.51.0"
   dependencies:

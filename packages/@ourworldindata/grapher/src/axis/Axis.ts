@@ -26,14 +26,11 @@ import {
 } from "./timeAxisTicks.js"
 import { MarkdownTextWrap, TextWrapGroup } from "@ourworldindata/components"
 import { CoreColumn } from "@ourworldindata/core-table"
-import {
-    DEFAULT_GRAPHER_BOUNDS,
-    GRAPHER_FONT_SCALE_11,
-    GRAPHER_FONT_SCALE_12,
-} from "../core/GrapherConstants.js"
+import { DEFAULT_GRAPHER_BOUNDS } from "../core/GrapherConstants.js"
 import { makeAxisLabel } from "./AxisUtils.js"
 import * as R from "remeda"
 import { ComparisonLines } from "../comparisonLine/ComparisonLines"
+import { scaleFontSize } from "../chart/ChartUtils"
 
 interface TickLabelPlacement {
     value: number
@@ -584,11 +581,7 @@ abstract class AbstractAxis {
             console.error(`Placed value is undefined for ${value}`)
             return value
         }
-        return this.snapToSubpixel(placedValue)
-    }
-
-    snapToSubpixel(value: number): number {
-        return parseFloat(value.toFixed(1))
+        return placedValue
     }
 
     /** This function returns the inverse of place - i.e. given a screen space
@@ -600,7 +593,7 @@ abstract class AbstractAxis {
     }
 
     @computed get tickFontSize(): number {
-        return Math.floor(GRAPHER_FONT_SCALE_12 * this.fontSize)
+        return this.config.tickFontSize
     }
 
     @computed protected get baseTicks(): Tickmark[] {
@@ -622,7 +615,7 @@ abstract class AbstractAxis {
     }
 
     @computed get labelFontSize(): number {
-        return Math.floor(GRAPHER_FONT_SCALE_12 * this.fontSize)
+        return this.config.labelFontSize
     }
 
     @computed get labelTextWrap():
@@ -1015,7 +1008,7 @@ export class VerticalAxis extends AbstractAxis {
     @computed get logNoticeTextWrap(): MarkdownTextWrap | undefined {
         if (!this.shouldShowLogNotice) return undefined
 
-        const fontSize = Math.floor(GRAPHER_FONT_SCALE_11 * this.fontSize)
+        const fontSize = scaleFontSize(10.75, this.fontSize)
 
         return new MarkdownTextWrap({
             text: "log axis",
@@ -1110,7 +1103,7 @@ export class DualAxis {
     @computed get comparisonLines(): ComparisonLines {
         return new ComparisonLines(this.props.comparisonLines ?? [], {
             dualAxis: this,
-            fontSize: this.props.verticalAxis.fontSize,
+            baseFontSize: this.props.verticalAxis.fontSize,
         })
     }
 
