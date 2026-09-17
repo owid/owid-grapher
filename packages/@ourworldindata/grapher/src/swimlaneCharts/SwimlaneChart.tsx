@@ -326,13 +326,15 @@ export class SwimlaneChart
         return (
             <g>
                 {this.renderLegend()}
-                <HorizontalAxisComponent
-                    bounds={this.boundsWithoutLegend}
-                    axis={this.xAxis}
-                    tickColor={GRAPHER_LIGHT_TEXT}
-                    showTickMarks={true}
-                    preferredAxisPosition={this.innerBounds.bottom}
-                />
+                {!this.xAxis.hideAxis && (
+                    <HorizontalAxisComponent
+                        bounds={this.boundsWithoutLegend}
+                        axis={this.xAxis}
+                        tickColor={GRAPHER_LIGHT_TEXT}
+                        showTickMarks={true}
+                        preferredAxisPosition={this.innerBounds.bottom}
+                    />
+                )}
                 <HorizontalAxisDomainLine
                     bounds={this.innerBounds}
                     stroke={SOLID_TICK_COLOR}
