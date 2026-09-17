@@ -27,6 +27,14 @@ describe(getSchemaVersion, () => {
             getSchemaVersion({ $schema: formatGrapherSchemaUrl("999", 4) })
         ).toBeNull()
     })
+
+    it("returns null for a schema hosted somewhere else", () => {
+        expect(
+            getSchemaVersion({
+                $schema: `https://example.org/schemas/grapher-schema.${latestSchemaVersion}.json`,
+            })
+        ).toBeNull()
+    })
 })
 
 describe(createSchemaForVersion, () => {

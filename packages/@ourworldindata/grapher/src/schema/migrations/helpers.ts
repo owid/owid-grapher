@@ -36,6 +36,7 @@ export function getSchemaVersion(
     config: UntypedGrapherConfig | MigratableConfig
 ): SchemaVersion | null {
     if (typeof config.$schema !== "string") return null
+    if (!config.$schema.startsWith(`${SCHEMA_URL_BASE}/`)) return null
     const version = parseGrapherSchemaName(config.$schema)?.version
     if (!version || !isValidSchemaVersion(version)) return null
     return version
