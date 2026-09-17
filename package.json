@@ -64,7 +64,8 @@
         "regenerateGdocMarkdown": "tsx --tsconfig tsconfig.tsx.json devTools/regenerateGdocMarkdown.ts",
         "addIncomingForeignKeys": "tsx --tsconfig tsconfig.tsx.json devTools/db-ai-helpers/addIncomingForeignKeys.ts",
         "compareArchiveR2WithDb": "tsx --tsconfig tsconfig.tsx.json devTools/compareArchiveR2WithDb.ts",
-        "checkChartConfigsAgainstSchema": "tsx --tsconfig tsconfig.tsx.json devTools/schema/checkChartConfigsAgainstSchema.ts"
+        "checkChartConfigsAgainstSchema": "tsx --tsconfig tsconfig.tsx.json devTools/schema/checkChartConfigsAgainstSchema.ts",
+        "checkGrapherSchemaRevision": "tsx --tsconfig tsconfig.tsx.json devTools/schema/checkGrapherSchemaRevision.ts"
     },
     "dependencies": {
         "@algolia/autocomplete-js": "^1.19.9",

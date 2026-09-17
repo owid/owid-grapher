@@ -1,11 +1,19 @@
 import { expect, it } from "vitest"
 
-import { defaultGrapherConfig } from "@ourworldindata/grapher"
+import { formatGrapherSchemaUrl } from "@ourworldindata/utils"
+import {
+    defaultGrapherConfig,
+    latestSchemaVersion,
+} from "@ourworldindata/grapher"
 
 import { parseChartConfig } from "./ChartConfigs.js"
 
+const latestSchemaUrlWithoutRevision =
+    formatGrapherSchemaUrl(latestSchemaVersion)
+const outdatedSchemaUrl = formatGrapherSchemaUrl("010")
+
 const outdatedConfig = {
-    $schema: "https://files.ourworldindata.org/schemas/grapher-schema.010.json",
+    $schema: outdatedSchemaUrl,
     dimensions: [
         { variableId: 1, property: "y", display: { yearIsDay: true } },
     ],
@@ -21,7 +29,7 @@ it("returns a config already at the latest schema unchanged", () => {
 
 it("migrates an outdated config to the latest schema", () => {
     const migrated = parseChartConfig(JSON.stringify(outdatedConfig))
-    expect(migrated.$schema).toEqual(defaultGrapherConfig.$schema)
+    expect(migrated.$schema).toEqual(latestSchemaUrlWithoutRevision)
     expect(migrated.dimensions?.[0].display?.timeInterval).toEqual("day")
     expect(migrated.dimensions?.[0].display).not.toHaveProperty("yearIsDay")
 })
@@ -41,8 +49,7 @@ it("returns a config without a $schema field as parsed", () => {
 it("returns a config the migration chokes on at its stored version", () => {
     // the 010 -> 011 step iterates dimensions, which an object is not
     const configWithNonArrayDimensions = {
-        $schema:
-            "https://files.ourworldindata.org/schemas/grapher-schema.010.json",
+        $schema: outdatedSchemaUrl,
         dimensions: { variableId: 1, property: "y" },
     }
     expect(

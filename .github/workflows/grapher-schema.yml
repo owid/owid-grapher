@@ -1,4 +1,4 @@
-name: Check default grapher config
+name: Grapher schema
 on:
   push:
     branches:
@@ -10,11 +10,13 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   commit-default-config:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - name: Clone repository
@@ -49,3 +51,20 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git commit -m "🤖 update default grapher config"
           git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "HEAD:$branch"
+
+  check-schema-revision:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          ref: ${{ github.head_ref }}
+
+      - uses: ./.github/actions/setup-node-yarn-deps
+        with:
+          runPostinstallScripts: false
+
+      - name: Check the schema declares an unpublished revision
+        run: yarn checkGrapherSchemaRevision
