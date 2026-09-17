@@ -17,7 +17,11 @@ import {
 } from "../../adminShared/SqlFilterSExpression.js"
 import { saveGrapher } from "./charts.js"
 import { parseChartConfig } from "../../db/model/ChartConfigs.js"
-import { ingestGrapherConfig } from "../../db/grapherConfigValidation.js"
+import {
+    tryIngestGrapherConfig,
+    formatGrapherConfigIssues,
+    type GrapherConfigValidationIssue,
+} from "../../db/grapherConfigValidation.js"
 import * as db from "../../db/db.js"
 import * as lodash from "lodash-es"
 import { Request } from "../authentication.js"
@@ -130,14 +134,10 @@ export async function updateBulkChartConfigs(
     const validatedConfigMap = new Map<number, GrapherInterface>()
     const rejectedCharts: RejectedChart[] = []
     for (const [id, patchedConfig] of configMap.entries()) {
-        try {
-            validatedConfigMap.set(id, ingestGrapherConfig(patchedConfig))
-        } catch (error) {
-            rejectedCharts.push({
-                id,
-                message: error instanceof Error ? error.message : String(error),
-            })
-        }
+        const ingestResult = tryIngestGrapherConfig(patchedConfig)
+        if (ingestResult.isValid)
+            validatedConfigMap.set(id, ingestResult.config)
+        else rejectedCharts.push({ id, issues: ingestResult.issues })
     }
     if (rejectedCharts.length > 0)
         throw new JsonError(describeRejectedCharts(rejectedCharts), 400)
@@ -155,13 +155,16 @@ export async function updateBulkChartConfigs(
 
 interface RejectedChart {
     id: number
-    message: string
+    issues: GrapherConfigValidationIssue[]
 }
 
 function describeRejectedCharts(rejected: RejectedChart[]): string {
     const reported = rejected
         .slice(0, MAX_REPORTED_REJECTED_CHARTS)
-        .map(({ id, message }) => `Chart ${id}: ${message}`)
+        .map(
+            ({ id, issues }) =>
+                `Chart ${id}: ${formatGrapherConfigIssues(issues)}`
+        )
     const unreported = rejected.length - reported.length
     if (unreported > 0) reported.push(`... and ${unreported} more`)
     return [
