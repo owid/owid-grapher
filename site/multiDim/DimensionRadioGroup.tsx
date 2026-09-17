@@ -1,12 +1,8 @@
 import cx from "clsx"
-import {
-    Label,
-    RadioButton,
-    RadioField,
-    RadioGroup,
-} from "react-aria-components"
+import { RadioButton, RadioField, RadioGroup } from "react-aria-components"
 
 import { DimensionEnriched } from "@ourworldindata/types"
+import DimensionLabel from "./DimensionLabel.js"
 
 export default function DimensionRadioGroup({
     className,
@@ -39,29 +35,29 @@ export default function DimensionRadioGroup({
             // drop keyboard focus.
             isReadOnly={readOnly}
         >
-            <Label className="md-settings__radio-group-label">
-                {dimension.name}
-            </Label>
-            {dimension.choices.map((choice) => (
-                <RadioField
-                    key={choice.slug}
-                    className="md-settings__radio-field"
-                    value={choice.slug}
-                    isDisabled={!availableChoiceSlugs.has(choice.slug)}
-                >
-                    <RadioButton
-                        className="md-settings__radio"
-                        data-track-note="multi-dim-choice-radio"
+            <DimensionLabel dimension={dimension} showChoiceDescriptions />
+            <div className="md-settings__radio-group-options">
+                {dimension.choices.map((choice) => (
+                    <RadioField
+                        key={choice.slug}
+                        className="md-settings__radio-field"
+                        value={choice.slug}
+                        isDisabled={!availableChoiceSlugs.has(choice.slug)}
                     >
-                        <span
-                            className="md-settings__radio-label"
-                            title={choice.name}
+                        <RadioButton
+                            className="md-settings__radio"
+                            data-track-note="multi-dim-choice-radio"
                         >
-                            {choice.name}
-                        </span>
-                    </RadioButton>
-                </RadioField>
-            ))}
+                            <span
+                                className="md-settings__radio-label"
+                                title={choice.name}
+                            >
+                                {choice.name}
+                            </span>
+                        </RadioButton>
+                    </RadioField>
+                ))}
+            </div>
         </RadioGroup>
     )
 }
