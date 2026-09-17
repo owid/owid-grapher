@@ -133,12 +133,12 @@ describe("SimpleMarkdownText dataTrackNote", () => {
         expect(html).not.toContain("node=")
     })
 
-    it("puts dodLocation on detail-on-demand spans only", () => {
+    it("puts dodTrackNote on detail-on-demand spans only", () => {
         const html = renderToStaticMarkup(
-            <SimpleMarkdownText text={text} dodLocation="wysk" />
+            <SimpleMarkdownText text={text} dodTrackNote="wysk" />
         )
         expect(html).toContain('data-id="gdp"')
-        expect(html.match(/data-dod-location="wysk"/g)).toHaveLength(1)
+        expect(html.match(/data-dod-track-note="wysk"/g)).toHaveLength(1)
         expect(html).not.toContain('href="https://example.org/paper" data-dod')
     })
 

@@ -5,7 +5,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 export interface IndicatorProcessingProps {
     descriptionProcessing: string | undefined
     trackNote?: string
-    dodLocation?: string
+    dodTrackNote?: string
 }
 
 export const IndicatorProcessing = (props: IndicatorProcessingProps) => {
@@ -45,7 +45,7 @@ export const IndicatorProcessing = (props: IndicatorProcessingProps) => {
                         <SimpleMarkdownText
                             text={props.descriptionProcessing.trim()}
                             dataTrackNote={props.trackNote}
-                            dodLocation={props.dodLocation}
+                            dodTrackNote={props.dodTrackNote}
                         />
                     </div>
                 </div>

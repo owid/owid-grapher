@@ -111,7 +111,7 @@ export default function MetadataSection({
                                 sources={sourcesForDisplay}
                                 retrievedFromTrackNote="retrieved_from"
                                 descriptionTrackNote="source_link"
-                                dodLocation="data_sources"
+                                dodTrackNote="data_sources"
                                 onSourceToggle={(_source, index, isOpen) =>
                                     analytics.logExpandableToggle(
                                         `data_source_${index + 1}`,
@@ -129,7 +129,7 @@ export default function MetadataSection({
                             <IndicatorProcessing
                                 descriptionProcessing={descriptionProcessing}
                                 trackNote="processing_link"
-                                dodLocation="processing"
+                                dodTrackNote="processing"
                             />
                         </div>
                     </div>

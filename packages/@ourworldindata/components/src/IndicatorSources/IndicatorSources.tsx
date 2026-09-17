@@ -22,7 +22,7 @@ export interface IndicatorSourcesProps {
     ) => void
     retrievedFromTrackNote?: string
     descriptionTrackNote?: string
-    dodLocation?: string
+    dodTrackNote?: string
 }
 
 export const IndicatorSources = (props: IndicatorSourcesProps) => {
@@ -43,7 +43,7 @@ export const IndicatorSources = (props: IndicatorSourcesProps) => {
                         hideReuseThisWorkText={props.hideReuseThisWorkText}
                         retrievedFromTrackNote={props.retrievedFromTrackNote}
                         descriptionTrackNote={props.descriptionTrackNote}
-                        dodLocation={props.dodLocation}
+                        dodTrackNote={props.dodTrackNote}
                     />
                 )
                 const useExpandableToggle =
@@ -92,7 +92,7 @@ const SourceContent = (props: {
     hideReuseThisWorkText?: boolean
     retrievedFromTrackNote?: string
     descriptionTrackNote?: string
-    dodLocation?: string
+    dodTrackNote?: string
 }) => {
     const { source } = props
     const retrievedOn = formatSourceDate(source.retrievedOn, "MMMM D, YYYY")
@@ -108,7 +108,7 @@ const SourceContent = (props: {
                     <SimpleMarkdownText
                         text={source.description.trim()}
                         dataTrackNote={props.descriptionTrackNote}
-                        dodLocation={props.dodLocation}
+                        dodTrackNote={props.dodTrackNote}
                     />
                 </div>
             )}
@@ -123,7 +123,7 @@ const SourceContent = (props: {
                                 <SimpleMarkdownText
                                     text={source.dataPublishedBy.trim()}
                                     dataTrackNote={props.descriptionTrackNote}
-                                    dodLocation={props.dodLocation}
+                                    dodTrackNote={props.dodTrackNote}
                                 />
                             </div>
                         </div>

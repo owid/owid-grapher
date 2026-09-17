@@ -133,7 +133,7 @@ function IndicatorMetadataSections({
                     <SimpleMarkdownText
                         text={descriptionKeyPreview}
                         dataTrackNote="wysk_link"
-                        dodLocation="wysk/preview"
+                        dodTrackNote="wysk/preview"
                     />
                 ) : undefined
             }
@@ -148,7 +148,7 @@ function IndicatorMetadataSections({
                     <SimpleMarkdownText
                         text={descriptionKeyRest}
                         dataTrackNote="wysk_link"
-                        dodLocation="wysk/expanded"
+                        dodTrackNote="wysk/expanded"
                     />
                 </div>
             )}
@@ -183,7 +183,7 @@ function IndicatorMetadataSections({
                         <IndicatorProcessing
                             descriptionProcessing={descriptionProcessing}
                             trackNote="processing_link"
-                            dodLocation="processing"
+                            dodTrackNote="processing"
                         />
                     }
                     onToggle={(isOpen) =>
@@ -205,7 +205,7 @@ function IndicatorMetadataSections({
                             <div className="indicator-metadata-box__producer-docs">
                                 <SimpleMarkdownText
                                     text={datapageData.descriptionFromProducer}
-                                    dodLocation="producer_documentation"
+                                    dodTrackNote="producer_documentation"
                                 />
                             </div>
                         }
@@ -226,7 +226,7 @@ function IndicatorMetadataSections({
                     sources={sourcesForDisplay}
                     retrievedFromTrackNote="retrieved_from"
                     descriptionTrackNote="source_link"
-                    dodLocation="data_sources"
+                    dodTrackNote="data_sources"
                     hideReuseThisWorkText
                     hideTeasers
                     onSourceToggle={(_source, index, isOpen) =>
@@ -383,7 +383,7 @@ export default function IndicatorMetadataBox({
                     >
                         <SimpleMarkdownText
                             text={datapageData.descriptionShort}
-                            dodLocation="key_data"
+                            dodTrackNote="key_data"
                         />
                     </MetadataBoxKeyDataRow>
                 )}

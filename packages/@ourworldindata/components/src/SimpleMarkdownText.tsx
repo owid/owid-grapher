@@ -13,10 +13,10 @@ type SimpleMarkdownTextProps = {
     useParagraphs?: boolean // by default, text is wrapped in <p> tags
     openLinksInNewTab?: boolean // by default, links open in the same tab
     dataTrackNote?: string // if set, every link gets this data-track-note for click tracking
-    dodLocation?: string // if set, every details-on-demand span gets this data-dod-location
+    dodTrackNote?: string // if set, every details-on-demand span gets this data-dod-track-note
 }
 
-const transformDodLinks: Plugin<[{ dodLocation?: string }?], Root> = (
+const transformDodLinks: Plugin<[{ dodTrackNote?: string }?], Root> = (
     options
 ) => {
     return function (tree) {
@@ -36,9 +36,9 @@ const transformDodLinks: Plugin<[{ dodLocation?: string }?], Root> = (
                         node.properties["data-id"] = match.groups?.term
                         node.properties["aria-expanded"] = "false"
                         node.properties["tabindex"] = 0
-                        if (options?.dodLocation)
-                            node.properties["data-dod-location"] =
-                                options.dodLocation
+                        if (options?.dodTrackNote)
+                            node.properties["data-dod-track-note"] =
+                                options.dodTrackNote
                         delete node.properties.href
                     }
                 }
@@ -135,7 +135,7 @@ export class SimpleMarkdownText extends React.Component<SimpleMarkdownTextProps>
     override render(): React.ReactElement | null {
         const options: Omit<MarkdownOptions, "children"> = {
             rehypePlugins: [
-                [transformDodLinks, { dodLocation: this.props.dodLocation }],
+                [transformDodLinks, { dodTrackNote: this.props.dodTrackNote }],
                 transformColorSyntax,
             ],
             remarkPlugins: [remarkPlainLinks],

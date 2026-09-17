@@ -38,21 +38,21 @@ export async function runDetailsOnDemand(): Promise<void> {
     initializeDetailsOnDemand({
         details,
         onDodShown: (id, dodSpan) =>
-            siteAnalytics.logDodShown(id, getDodLocation(dodSpan)),
+            siteAnalytics.logDodShown(id, getDodTrackNote(dodSpan)),
     })
 }
 
-export const DOD_LOCATION_ATTR = "data-dod-location"
+export const DOD_TRACK_NOTE_ATTR = "data-dod-track-note"
 
 /**
  * The page region a DoD span sits in, per its own or the nearest ancestor's
- * data-dod-location (set via SimpleMarkdownText's dodLocation on data pages),
+ * data-dod-track-note (set via SimpleMarkdownText's dodTrackNote on data pages),
  * or undefined if none.
  */
-export function getDodLocation(dodSpan: Element): string | undefined {
+export function getDodTrackNote(dodSpan: Element): string | undefined {
     return (
         dodSpan
-            .closest(`[${DOD_LOCATION_ATTR}]`)
-            ?.getAttribute(DOD_LOCATION_ATTR) ?? undefined
+            .closest(`[${DOD_TRACK_NOTE_ATTR}]`)
+            ?.getAttribute(DOD_TRACK_NOTE_ATTR) ?? undefined
     )
 }

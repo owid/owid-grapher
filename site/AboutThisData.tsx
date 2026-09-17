@@ -52,7 +52,7 @@ export default function AboutThisData({
                                     <SimpleMarkdownText
                                         text={datapageData.descriptionKey.trim()}
                                         dataTrackNote="wysk_link"
-                                        dodLocation="wysk"
+                                        dodTrackNote="wysk"
                                     />
                                 </div>
                             )}
@@ -71,7 +71,7 @@ export default function AboutThisData({
                                                     text={
                                                         datapageData.descriptionFromProducer
                                                     }
-                                                    dodLocation="producer_documentation"
+                                                    dodTrackNote="producer_documentation"
                                                 />
                                             </div>
                                         }
@@ -89,7 +89,7 @@ export default function AboutThisData({
                                         content={
                                             <div
                                                 className="expandable-info-blocks__content"
-                                                data-dod-location="additional_information"
+                                                data-dod-track-note="additional_information"
                                             >
                                                 <HtmlOrSimpleMarkdownText
                                                     text={datapageData.source?.additionalInfo.trim()}
