@@ -106,17 +106,20 @@ export function VariableSelector({
         enabled: initialIds.length > 0,
     })
 
-    // Replaces the sparse versions from the slot with the full rows, once,
-    // so ticking something before the lookup lands is not undone
+    // The looked-up rows replace the sparse versions from the slot, once.
+    // They are the base rather than an overlay because the slot can still be
+    // empty on the first render, before the chart's config has loaded — a
+    // slow database is enough — and a list seeded from it would then stay
+    // empty for good. Anything ticked in the meantime is kept.
     if (current && !hasLookedUp) {
         setHasLookedUp(true)
-        setChosen((existing) =>
-            existing.map(
+        setChosen((existing) => [
+            ...current.variables,
+            ...existing.filter(
                 (variable) =>
-                    current.variables.find((row) => row.id === variable.id) ??
-                    variable
-            )
-        )
+                    !current.variables.some((row) => row.id === variable.id)
+            ),
+        ])
     }
 
     const seededDatasets = new Set(
