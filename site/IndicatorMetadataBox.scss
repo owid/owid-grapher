@@ -74,3 +74,21 @@
         margin-bottom: 16px;
     }
 }
+
+// Restore list indentation lost to the global `ul, ol { padding: 0 }` reset
+// (e.g. /grapher/co2-emissions-transport, "Documentation from data sources").
+.indicator-metadata-box__producer-docs {
+    ul,
+    ol {
+        padding-left: 1.5em;
+        margin: 1em 0;
+
+        li {
+            margin-bottom: 1em;
+
+            &:last-child {
+                margin-bottom: 0;
+            }
+        }
+    }
+}

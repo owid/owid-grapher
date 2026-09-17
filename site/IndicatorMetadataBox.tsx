@@ -39,16 +39,6 @@ import { SiteAnalytics } from "./SiteAnalytics.js"
 
 const analytics = new SiteAnalytics()
 
-// Log expand/collapse of an ExpandableToggle in the metadata box. `target` is a
-// codified, English-language identifier (not the rendered label) so the event
-// isn't affected by browser/page translation.
-function logExpandableToggle(target: string, isOpen: boolean): void {
-    analytics.logSiteClick(
-        isOpen ? "expand_expandable_toggle" : "collapse_expandable_toggle",
-        target
-    )
-}
-
 interface IndicatorMetadataSectionsProps {
     datapageData: DataPageDataV2
     className?: string
@@ -140,7 +130,11 @@ function IndicatorMetadataSections({
             detailsRef={detailsRef}
             preview={
                 descriptionKeyPreview ? (
-                    <SimpleMarkdownText text={descriptionKeyPreview} />
+                    <SimpleMarkdownText
+                        text={descriptionKeyPreview}
+                        dataTrackNote="wysk_link"
+                        dodTrackNote="wysk/preview"
+                    />
                 ) : undefined
             }
             onToggle={(isOpen) =>
@@ -151,7 +145,11 @@ function IndicatorMetadataSections({
         >
             {descriptionKeyRest && (
                 <div className="metadata-box-expander__remainder metadata-box-expander__prose">
-                    <SimpleMarkdownText text={descriptionKeyRest} />
+                    <SimpleMarkdownText
+                        text={descriptionKeyRest}
+                        dataTrackNote="wysk_link"
+                        dodTrackNote="wysk/expanded"
+                    />
                 </div>
             )}
             <MetadataBoxSection
@@ -170,7 +168,7 @@ function IndicatorMetadataSections({
                             />
                         }
                         onToggle={(isOpen) =>
-                            logExpandableToggle(
+                            analytics.logExpandableToggle(
                                 // untranslated source text
                                 faq.question.slice(0, 100),
                                 isOpen
@@ -184,10 +182,15 @@ function IndicatorMetadataSections({
                     content={
                         <IndicatorProcessing
                             descriptionProcessing={descriptionProcessing}
+                            trackNote="processing_link"
+                            dodTrackNote="processing"
                         />
                     }
                     onToggle={(isOpen) =>
-                        logExpandableToggle("how_owid_processed_data", isOpen)
+                        analytics.logExpandableToggle(
+                            "how_owid_processed_data",
+                            isOpen
+                        )
                     }
                 />
             </MetadataBoxSection>
@@ -199,12 +202,16 @@ function IndicatorMetadataSections({
                             "Principal data source"
                         }
                         content={
-                            <SimpleMarkdownText
-                                text={datapageData.descriptionFromProducer}
-                            />
+                            <div className="indicator-metadata-box__producer-docs">
+                                <SimpleMarkdownText
+                                    text={datapageData.descriptionFromProducer}
+                                    dataTrackNote="producer_link"
+                                    dodTrackNote="producer_documentation"
+                                />
+                            </div>
                         }
                         onToggle={(isOpen) =>
-                            logExpandableToggle(
+                            analytics.logExpandableToggle(
                                 "producer_documentation",
                                 isOpen
                             )
@@ -218,10 +225,16 @@ function IndicatorMetadataSections({
             >
                 <IndicatorSources
                     sources={sourcesForDisplay}
+                    retrievedFromTrackNote="retrieved_from"
+                    descriptionTrackNote="source_link"
+                    dodTrackNote="data_sources"
                     hideReuseThisWorkText
                     hideTeasers
                     onSourceToggle={(_source, index, isOpen) =>
-                        logExpandableToggle(`data_source_${index + 1}`, isOpen)
+                        analytics.logExpandableToggle(
+                            `data_source_${index + 1}`,
+                            isOpen
+                        )
                     }
                 />
             </MetadataBoxSection>
@@ -252,7 +265,10 @@ function IndicatorMetadataSections({
                                 </>
                             }
                             onToggle={(isOpen) =>
-                                logExpandableToggle("how_to_cite_page", isOpen)
+                                analytics.logExpandableToggle(
+                                    "how_to_cite_page",
+                                    isOpen
+                                )
                             }
                         />
                     )}
@@ -298,7 +314,10 @@ function IndicatorMetadataSections({
                                 </>
                             }
                             onToggle={(isOpen) =>
-                                logExpandableToggle("how_to_cite_data", isOpen)
+                                analytics.logExpandableToggle(
+                                    "how_to_cite_data",
+                                    isOpen
+                                )
                             }
                         />
                     )}
@@ -365,6 +384,7 @@ export default function IndicatorMetadataBox({
                     >
                         <SimpleMarkdownText
                             text={datapageData.descriptionShort}
+                            dodTrackNote="key_data"
                         />
                     </MetadataBoxKeyDataRow>
                 )}

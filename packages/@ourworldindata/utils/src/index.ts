@@ -389,7 +389,11 @@ export {
     parseArchivalDate,
 } from "./archival/archivalDate.js"
 
-export { experiments, isUrlInActiveExperiment } from "./experiments/config.js"
+export {
+    experiments,
+    isUrlInActiveExperiment,
+    isDataPageMetadataRedesignActive,
+} from "./experiments/config.js"
 export {
     Experiment,
     validateUniqueExperimentIds,

@@ -23,6 +23,9 @@ import {
     getIndicatorCitations,
 } from "@ourworldindata/utils"
 import { ArticleBlocks } from "./gdocs/components/ArticleBlocks.js"
+import { SiteAnalytics } from "./SiteAnalytics.js"
+
+const analytics = new SiteAnalytics()
 
 export default function MetadataSection({
     attributionShort,
@@ -104,7 +107,18 @@ export default function MetadataSection({
                             This data is based on the following sources
                         </h3>
                         <div className="col-start-4 span-cols-6 col-lg-start-5 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
-                            <IndicatorSources sources={sourcesForDisplay} />
+                            <IndicatorSources
+                                sources={sourcesForDisplay}
+                                retrievedFromTrackNote="retrieved_from"
+                                descriptionTrackNote="source_link"
+                                dodTrackNote="data_sources"
+                                onSourceToggle={(_source, index, isOpen) =>
+                                    analytics.logExpandableToggle(
+                                        `data_source_${index + 1}`,
+                                        isOpen
+                                    )
+                                }
+                            />
                         </div>
                     </div>
                     <div className="data-processing grid span-cols-12">
@@ -114,6 +128,8 @@ export default function MetadataSection({
                         <div className="col-start-4 span-cols-6 col-lg-start-5 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
                             <IndicatorProcessing
                                 descriptionProcessing={descriptionProcessing}
+                                trackNote="processing_link"
+                                dodTrackNote="processing"
                             />
                         </div>
                     </div>
@@ -166,6 +182,12 @@ export default function MetadataSection({
                                             code={citationDatapage}
                                             theme="light"
                                             useMarkdown={true}
+                                            onCopy={() =>
+                                                analytics.logSiteClick(
+                                                    "copy_citation",
+                                                    "citation_page"
+                                                )
+                                            }
                                         />
                                     </div>
                                 )}
@@ -177,6 +199,12 @@ export default function MetadataSection({
                                         <DataCitation
                                             citationLong={citationLong}
                                             citationShort={citationShort}
+                                            onCopy={(citation) =>
+                                                analytics.logSiteClick(
+                                                    "copy_citation",
+                                                    citation
+                                                )
+                                            }
                                         />
                                     )}
                                 </div>

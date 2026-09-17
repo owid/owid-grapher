@@ -12,6 +12,9 @@ import {
 import { DataPageDataV2 } from "@ourworldindata/types"
 import { formatAttributions } from "@ourworldindata/utils"
 import KeyDataTable from "./KeyDataTable.js"
+import { SiteAnalytics } from "./SiteAnalytics.js"
+
+const analytics = new SiteAnalytics()
 
 export default function AboutThisData({
     datapageData,
@@ -48,6 +51,8 @@ export default function AboutThisData({
                                 <div className="key-info__key-description">
                                     <SimpleMarkdownText
                                         text={datapageData.descriptionKey.trim()}
+                                        dataTrackNote="wysk_link"
+                                        dodTrackNote="wysk"
                                     />
                                 </div>
                             )}
@@ -66,8 +71,16 @@ export default function AboutThisData({
                                                     text={
                                                         datapageData.descriptionFromProducer
                                                     }
+                                                    dataTrackNote="producer_link"
+                                                    dodTrackNote="producer_documentation"
                                                 />
                                             </div>
+                                        }
+                                        onToggle={(isOpen) =>
+                                            analytics.logExpandableToggle(
+                                                "producer_documentation",
+                                                isOpen
+                                            )
                                         }
                                     />
                                 )}
@@ -75,11 +88,20 @@ export default function AboutThisData({
                                     <ExpandableToggle
                                         label="Additional information about this data"
                                         content={
-                                            <div className="expandable-info-blocks__content">
+                                            <div
+                                                className="expandable-info-blocks__content"
+                                                data-dod-track-note="additional_information"
+                                            >
                                                 <HtmlOrSimpleMarkdownText
                                                     text={datapageData.source?.additionalInfo.trim()}
                                                 />
                                             </div>
+                                        }
+                                        onToggle={(isOpen) =>
+                                            analytics.logExpandableToggle(
+                                                "additional_information",
+                                                isOpen
+                                            )
                                         }
                                     />
                                 )}
@@ -92,6 +114,7 @@ export default function AboutThisData({
                                 text="Learn more in the FAQs"
                                 href="#faqs"
                                 icon={faArrowDown}
+                                dataTrackNote="wysk_learn_more_in_faqs"
                             />
                         )}
                     </div>

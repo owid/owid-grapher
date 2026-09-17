@@ -49,11 +49,21 @@ export class SiteAnalytics extends GrapherAnalytics {
         })
     }
 
-    logDodShown(id: string) {
+    /** Expand/collapse of a data page metadata toggle. `target` is a codified
+     * id, not the rendered label, so events survive page translation. */
+    logExpandableToggle(target: string, isOpen: boolean): void {
+        this.logSiteClick(
+            isOpen ? "expand_expandable_toggle" : "collapse_expandable_toggle",
+            target
+        )
+    }
+
+    logDodShown(id: string, location?: string) {
         this.logToGA({
             event: EventCategory.DetailOnDemand,
             eventAction: "show",
             eventTarget: id,
+            ...(location !== undefined && { eventContext: location }),
         })
     }
 
