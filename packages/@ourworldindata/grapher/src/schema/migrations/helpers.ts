@@ -31,7 +31,8 @@ export function getSchemaVersion(config: AnyConfig): SchemaVersion | null
 export function getSchemaVersion(
     config: AnyConfig | AnyConfigWithValidSchema
 ): SchemaVersion | null {
-    const version = config.$schema?.match(schemaVersionRegex)?.groups?.version
+    if (typeof config.$schema !== "string") return null
+    const version = config.$schema.match(schemaVersionRegex)?.groups?.version
     if (!version || !isValidSchemaVersion(version)) return null
     return version
 }
