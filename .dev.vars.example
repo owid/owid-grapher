@@ -19,15 +19,7 @@ STRIPE_WEBHOOK_SECRET=
 MAILGUN_DOMAIN=
 MAILGUN_SENDING_KEY=
 
-# for subscribing a donor to the donor newsletter
 MAILCHIMP_API_KEY=
-MAILCHIMP_API_SERVER=
-MAILCHIMP_DONOR_LIST_ID=
-
-# required for managing the OWID Brief newsletter via our custom forms
-MAILCHIMP_NEWSLETTER_LIST_ID=
-# Mailchimp interest (group) id of "The OWID Brief" in the newsletter list
-MAILCHIMP_OWID_BRIEF_INTEREST_ID=
 
 # required locally because the site and Functions run on different ports;
 # use this worktree's admin server port when it differs from 3030
