@@ -31,121 +31,33 @@ describe(csvIndicatorStore, () => {
     it("offers every data column as a pickable indicator, categorical ones included", async () => {
         const catalog = await makeStore().catalog!.load()
         expect(catalog.namespaces.map((n) => n.name)).toEqual(["housing.csv"])
+        // a dimension names the column by slug; the id only keys the picker
         expect(catalog.datasets[0].variables).toEqual([
-            { id: 1, name: "Rent index" },
-            { id: 2, name: "vacancy_rate" },
-            { id: 3, name: "region" },
+            { id: 1, slug: "rent_index", name: "Rent index" },
+            { id: 2, slug: "vacancy_rate", name: "vacancy_rate" },
+            { id: 3, slug: "region", name: "region" },
         ])
     })
 
-    it("keeps a categorical colour column through the round trip", () => {
-        const store = makeStore()
-        const editorConfig = store.toEditorConfig({
-            ySlugs: "rent_index",
-            colorSlug: "region",
-        })
-        expect(editorConfig.dimensions).toEqual([
-            { property: DimensionProperty.y, variableId: 1 },
-            { property: DimensionProperty.color, variableId: 3 },
-        ])
-        expect(store.fromEditorConfig(editorConfig)).toEqual({
-            ySlugs: "rent_index",
-            colorSlug: "region",
-        })
-    })
-
-    it("remaps the Table tab's tableSlugs to keys and back", () => {
-        const store = makeStore()
-        const editorConfig = store.toEditorConfig({
-            ySlugs: "rent_index",
-            tableSlugs: "rent_index vacancy_rate",
-        })
-        expect(editorConfig.tableSlugs).toBe("1 2")
-        expect(store.fromEditorConfig(editorConfig).tableSlugs).toBe(
-            "rent_index vacancy_rate"
-        )
-    })
-
-    it("turns slug references into dimensions the editor understands", () => {
-        const editorConfig = makeStore().toEditorConfig({
-            title: "Rents",
-            ySlugs: "rent_index vacancy_rate",
-            colorSlug: "vacancy_rate",
-        })
-        expect(editorConfig.ySlugs).toBeUndefined()
-        expect(editorConfig.colorSlug).toBeUndefined()
-        expect(editorConfig.dimensions).toEqual([
-            { property: DimensionProperty.y, variableId: 1 },
-            { property: DimensionProperty.y, variableId: 2 },
-            { property: DimensionProperty.color, variableId: 2 },
-        ])
-    })
-
-    it("plots every numeric column when the config names none", () => {
-        const editorConfig = makeStore().toEditorConfig({ title: "Rents" })
-        expect(editorConfig.dimensions?.map((d) => d.variableId)).toEqual([
-            1, 2,
-        ])
-    })
-
-    it("does not plot something else when the config names only unknown columns", () => {
-        const editorConfig = makeStore().toEditorConfig({
-            title: "Rents",
-            ySlugs: "does_not_exist",
-        })
-        expect(editorConfig.dimensions).toBeUndefined()
-        // and nothing is invented on the way back out either
-        expect(makeStore().fromEditorConfig(editorConfig)).toEqual({
-            title: "Rents",
-        })
-    })
-
-    it("leaves a base config without dimensions when asked not to infer them", () => {
-        const editorConfig = makeStore().toEditorConfig(
-            { note: "House style" },
-            { inferDimensions: false }
-        )
-        expect(editorConfig).toEqual({ note: "House style" })
-    })
-
-    it("writes slugs back and drops the dimensions on the way out", () => {
-        const hostConfig = makeStore().fromEditorConfig({
-            title: "Rents",
-            dimensions: [
-                { property: DimensionProperty.y, variableId: 2 },
-                { property: DimensionProperty.x, variableId: 1 },
-            ],
-        })
-        expect(hostConfig).toEqual({
-            title: "Rents",
-            ySlugs: "vacancy_rate",
-            xSlug: "rent_index",
-        })
-    })
-
-    it("serves the table with columns renamed to the editor's keys", async () => {
+    it("serves the table under the host's own column slugs", async () => {
         const table = await makeStore().loadTable(
-            [{ property: DimensionProperty.y, variableId: 1 }],
+            [{ property: DimensionProperty.y, slug: "rent_index" }],
             undefined
         )
-        expect(table!.numericColumnSlugs).toEqual(["1", "2"])
-        expect(table!.get("3").values).toEqual(["DE", "DE", "AT", "AT"])
-        expect(table!.get("1").displayName).toBe("Rent index")
-        expect(table!.get("1").unit).toBe("index (2015 = 100)")
+        expect(table!.numericColumnSlugs).toEqual([
+            "rent_index",
+            "vacancy_rate",
+        ])
+        expect(table!.get("region").values).toEqual(["DE", "DE", "AT", "AT"])
+        expect(table!.get("rent_index").displayName).toBe("Rent index")
+        expect(table!.get("rent_index").unit).toBe("index (2015 = 100)")
         // a column without a name keeps its slug as the display name
-        expect(table!.get("2").displayName).toBe("vacancy_rate")
-        expect(table!.get("1").values).toEqual([100, 131, 100, 112])
+        expect(table!.get("vacancy_rate").displayName).toBe("vacancy_rate")
+        expect(table!.get("rent_index").values).toEqual([100, 131, 100, 112])
     })
 
-    it("round-trips a slug config through the editor form", () => {
-        const store = makeStore()
-        const config = {
-            title: "Rents",
-            ySlugs: "rent_index",
-            xSlug: "vacancy_rate",
-        }
-        expect(store.fromEditorConfig(store.toEditorConfig(config))).toEqual(
-            config
-        )
+    it("keeps the table it has when a chart names no columns", async () => {
+        const table = await makeStore().loadTable([], undefined)
+        expect(table).toBeUndefined()
     })
 })

@@ -3,7 +3,11 @@
  */
 import { describe, expect, it, vi } from "vitest"
 import { runInAction } from "mobx"
-import { ColumnTypeNames, GrapherInterface } from "@ourworldindata/types"
+import {
+    ColumnTypeNames,
+    DimensionProperty,
+    GrapherInterface,
+} from "@ourworldindata/types"
 import { ConfigEditor, ConfigEditorManager } from "./ConfigEditor.js"
 import { csvIndicatorStore } from "./indicatorStores.js"
 
@@ -152,64 +156,38 @@ describe(ConfigEditor, () => {
         expect(editor.isModified).toBe(false)
     })
 
-    it("merges a slug-based base and patch in the host's own form", () => {
-        const store = makeCsvStore()
+    it("reads a base and a patch that name columns the flat way", () => {
         const editor = new ConfigEditor({
             manager: {
-                store,
+                store: makeCsvStore(),
                 patchConfig: { colorSlug: "region" },
                 parentConfig: { ySlugs: "rent_index" },
                 isInheritanceEnabled: true,
                 onSave: () => undefined,
             },
         })
-        // Translating the layers one by one would rebuild the dimensions from
-        // the patch alone and drop the base's y column.
+        // The layers merge field by field, and the editor works on the
+        // dimensions they add up to.
         expect(editor.originalGrapherConfig.dimensions).toEqual([
-            { property: "y", variableId: 1 },
-            { property: "color", variableId: 3 },
+            { property: "y", slug: "rent_index" },
+            { property: "color", slug: "region" },
         ])
+        expect(editor.originalGrapherConfig.ySlugs).toBeUndefined()
     })
 
-    it("keeps a slug-based base's columns when the patch names none", () => {
-        const store = makeCsvStore()
+    it("leaves a config that already names its dimensions alone", () => {
+        const dimensions = [
+            { property: DimensionProperty.y, slug: "rent_index" },
+        ]
         const editor = new ConfigEditor({
             manager: {
-                store,
-                patchConfig: { title: "A title" },
-                parentConfig: { ySlugs: "rent_index" },
-                isInheritanceEnabled: true,
+                store: makeCsvStore(),
+                patchConfig: { dimensions, ySlugs: "vacancy_rate" },
+                isInheritanceEnabled: false,
                 onSave: () => undefined,
             },
         })
-        // "names no columns → plot every numeric one" is about the chart as a
-        // whole, so the base's column stands rather than being inferred over.
-        expect(editor.originalGrapherConfig.dimensions).toEqual([
-            { property: "y", variableId: 1 },
-        ])
-    })
-
-    it("doesn't read columns into a saved patch that names none", async () => {
-        const store = makeCsvStore()
-        const editor = new ConfigEditor({
-            manager: {
-                store,
-                patchConfig: { title: "A title" },
-                parentConfig: { ySlugs: "rent_index" },
-                isInheritanceEnabled: true,
-                // the host stores the patch and hands it back
-                onSave: (config) => config,
-            },
-        })
-        editor.grapherState.updateFromObject(editor.originalGrapherConfig)
-        editor.markAsSaved()
-
-        await editor.saveGrapher()
-
-        // inferring every numeric column from the returned patch would put
-        // the base's column back into the patch as if the user had picked it
-        expect(editor.hostConfig.ySlugs).toBeUndefined()
-        expect(editor.isModified).toBe(false)
+        expect(editor.originalGrapherConfig.dimensions).toEqual(dimensions)
     })
 
     it("fires onChange with the new patch as the config is edited", () => {

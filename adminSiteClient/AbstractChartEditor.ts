@@ -8,6 +8,7 @@ import {
 } from "@ourworldindata/utils"
 import {
     ContentGraphLinkType,
+    DimensionProperty,
     OwidChartDimensionInterface,
 } from "@ourworldindata/types"
 import {
@@ -109,6 +110,43 @@ export interface AbstractChartEditorManager {
     originUrlSuggestions?: () => OriginUrlSuggestion[]
 }
 
+/** The flat column-slug fields, and the dimension slot each fills. */
+const SLUG_FIELDS: {
+    property: DimensionProperty
+    field: "ySlugs" | "xSlug" | "sizeSlug" | "colorSlug"
+}[] = [
+    { property: DimensionProperty.y, field: "ySlugs" },
+    { property: DimensionProperty.x, field: "xSlug" },
+    { property: DimensionProperty.size, field: "sizeSlug" },
+    { property: DimensionProperty.color, field: "colorSlug" },
+]
+
+/**
+ * `ySlugs: "a b"` and friends as dimensions, which is what the editor edits.
+ * Both forms render the same and a dimension can say more about its column
+ * (`display`, a colour, a conversion factor), so the editor keeps only the
+ * one form and hands it back that way — a host that saved the flat form gets
+ * dimensions back. A config already naming dimensions is left alone.
+ */
+export function withDimensionsFromColumnSlugs(
+    config: GrapherInterface
+): GrapherInterface {
+    if (config.dimensions?.length) return config
+    const dimensions = SLUG_FIELDS.flatMap(({ property, field }) =>
+        (config[field]?.split(" ") ?? [])
+            .filter((slug) => slug !== "")
+            .map((slug) => ({ property, slug }))
+    )
+    if (!dimensions.length) return config
+    return {
+        ..._.omit(
+            config,
+            SLUG_FIELDS.map((s) => s.field)
+        ),
+        dimensions,
+    }
+}
+
 export interface References {
     postsWordpress?: PostReference[]
     postsGdocs?: PostReference[]
@@ -191,12 +229,7 @@ export abstract class AbstractChartEditor<
         when(
             () => this.manager.parentConfig !== undefined,
             () => {
-                // No dimension inference for a base: a base naming no columns
-                // means "no column defaults", not "every column".
-                this.parentConfig = this.fromHostConfig(
-                    this.manager.parentConfig!,
-                    { inferDimensions: false }
-                )
+                this.parentConfig = this.manager.parentConfig
                 this.parentVariableId = this.manager.parentVariableId
             }
         )
@@ -273,15 +306,6 @@ export abstract class AbstractChartEditor<
         )
     }
 
-    /** A config as the host gave it, in the form the editor works on.
-     *  Identity unless the editor's store speaks another dialect. */
-    protected fromHostConfig(
-        config: GrapherInterface,
-        _options?: { inferDimensions?: boolean }
-    ): GrapherInterface {
-        return config
-    }
-
     /** original grapher config used to init the grapherState instance */
     @computed get originalGrapherConfig(): GrapherInterface {
         const { patchConfig, parentConfig, etlConfig, isInheritanceEnabled } =
@@ -290,15 +314,10 @@ export abstract class AbstractChartEditor<
             isInheritanceEnabled ? (parentConfig ?? {}) : {},
             etlConfig ?? {}
         )
-        // Merged in the host's own form and translated once, not translated
-        // layer by layer: a config that names its columns by slug merges
-        // field by field (`ySlugs` from the base, `colorSlug` from the
-        // patch), while the dimensions the editor works on replace one
-        // another wholesale.
-        if (_.isEmpty(effectiveParent)) return this.fromHostConfig(patchConfig)
-        return this.fromHostConfig(
-            mergeGrapherConfigs(effectiveParent, patchConfig)
-        )
+        const config = _.isEmpty(effectiveParent)
+            ? patchConfig
+            : mergeGrapherConfigs(effectiveParent, patchConfig)
+        return withDimensionsFromColumnSlugs(config)
     }
 
     /** live-updating config */

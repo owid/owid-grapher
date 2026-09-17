@@ -239,13 +239,7 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
             this.indicatorId = indicatorId
             this.indicatorConfig = indicatorConfig
         })
-        await editor.loadPatchConfig(
-            patchConfig,
-            baseConfig &&
-                editor.store.toEditorConfig(baseConfig, {
-                    inferDimensions: false,
-                })
-        )
+        await editor.loadPatchConfig(patchConfig, baseConfig)
     }
 
     private async fetchChartJson<T>(
@@ -393,9 +387,7 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
                 // redirect, or the unsaved-changes prompt fires on our own
                 // navigation. The editor sets the same baseline again from
                 // the return value below.
-                editor.savedPatchConfig = editor.store.toEditorConfig(
-                    json.savedPatch
-                )
+                editor.savedPatchConfig = json.savedPatch
                 this.newChartId = json.chartId
             } else {
                 grapherState.version += 1

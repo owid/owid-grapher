@@ -148,7 +148,7 @@ class CreateNarrativeChartEditorPageInternal extends React.Component<CreateNarra
             // (A direct `history.push` here would run before that render
             // and fire the prompt on our own navigation.)
             runInAction(() => {
-                editor.savedPatchConfig = editor.store.toEditorConfig(patch)
+                editor.savedPatchConfig = patch
                 this.createdId = json.narrativeChartId
             })
         } else {
