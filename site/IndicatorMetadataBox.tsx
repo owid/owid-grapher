@@ -205,6 +205,7 @@ function IndicatorMetadataSections({
                             <div className="indicator-metadata-box__producer-docs">
                                 <SimpleMarkdownText
                                     text={datapageData.descriptionFromProducer}
+                                    dataTrackNote="producer_link"
                                     dodTrackNote="producer_documentation"
                                 />
                             </div>
