@@ -41,12 +41,11 @@ import {
 import {
     DimensionProperty,
     ColumnSlug,
-    OwidVariableId,
     OwidChartDimensionInterface,
     areSetsEqual,
 } from "@ourworldindata/utils"
 import { Section } from "./Forms.js"
-import { VariableSelector } from "./VariableSelector.js"
+import { PickedColumn, VariableSelector } from "./VariableSelector.js"
 import { DimensionCard } from "./DimensionCard.js"
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
 import { EditorDatabase } from "./EditorDatabase.js"
@@ -102,17 +101,19 @@ export class DimensionSlotView<
         return this.props.errorMessagesForDimensions
     }
 
-    @action.bound private async onAddVariables(variableIds: OwidVariableId[]) {
+    @action.bound private async onAddVariables(columns: PickedColumn[]) {
         const { slot } = this.props
 
-        const dimensionConfigs = variableIds.map((id) => {
-            const existingDimension = slot.dimensions.find(
-                (d) => d.variableId === id
+        const dimensionConfigs = columns.map((column) => {
+            const existingDimension = slot.dimensions.find((d) =>
+                column.slug !== undefined
+                    ? d.slug === column.slug
+                    : d.variableId === column.variableId
             )
             return (
                 existingDimension || {
                     property: slot.property,
-                    variableId: id,
+                    ...column,
                 }
             )
         })

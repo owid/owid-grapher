@@ -31,15 +31,15 @@ export interface EditorExtraTab {
 
 export interface ConfigEditorManager extends AbstractChartEditorManager {
     /**
-     * Receives the edited config in the host's form (see `IndicatorStore`).
-     * May return the config as the host actually stored it; the editor then
-     * treats that as the saved state instead of what it sent.
+     * Receives the edited config. May return the config as the host actually
+     * stored it; the editor then treats that as the saved state instead of
+     * what it sent.
      */
     onSave: (
         config: GrapherInterface,
         editor: ConfigEditor
     ) => void | GrapherInterface | Promise<void | GrapherInterface>
-    /** Fires on every change of the edited config, in the host's form. */
+    /** Fires on every change of the edited config. */
     onChange?: (config: GrapherInterface, editor: ConfigEditor) => void
     /**
      * Restrict which tabs the editor shows. Tabs that don't apply to the
@@ -62,7 +62,7 @@ export class ConfigEditor extends AbstractChartEditor<ConfigEditorManager> {
 
         this.disposers.push(
             reaction(
-                () => this.hostConfig,
+                () => this.patchConfig,
                 (config) => this.manager.onChange?.(config, this),
                 { equals: comparer.structural }
             ),
@@ -77,10 +77,6 @@ export class ConfigEditor extends AbstractChartEditor<ConfigEditorManager> {
                     const { patchConfig } = this
                     runInAction(() => {
                         this.parentConfig = base
-                            ? this.fromHostConfig(base, {
-                                  inferDimensions: false,
-                              })
-                            : undefined
                     })
                     this.updateLiveGrapher(
                         mergeGrapherConfigs(
@@ -95,22 +91,6 @@ export class ConfigEditor extends AbstractChartEditor<ConfigEditorManager> {
                 { equals: comparer.structural }
             )
         )
-    }
-
-    /** The host's configs — the chart's patch and the base it sits on —
-     *  translated into the dimension-based form the editor works on
-     *  (identity for the Data API store). */
-    protected override fromHostConfig(
-        config: GrapherInterface,
-        options?: { inferDimensions?: boolean }
-    ): GrapherInterface {
-        return this.store.toEditorConfig(config, options)
-    }
-
-    /** The patch config in the host's own form: what `onSave` and
-     *  `onChange` hand back. */
-    @computed get hostConfig(): GrapherInterface {
-        return this.store.fromEditorConfig(this.patchConfig)
     }
 
     protected override get extraTabKeys(): string[] {
@@ -143,23 +123,16 @@ export class ConfigEditor extends AbstractChartEditor<ConfigEditorManager> {
     async saveGrapher({
         onError,
     }: { onError?: () => void } = {}): Promise<void> {
-        const { patchConfig, hostConfig } = this
+        const { patchConfig } = this
         let saved: GrapherInterface | void
         try {
-            saved = await this.manager.onSave(hostConfig, this)
+            saved = await this.manager.onSave(patchConfig, this)
         } catch {
             onError?.()
             return
         }
         runInAction(() => {
-            const savedPatch = saved
-                ? this.fromHostConfig(saved, {
-                      // What comes back is a patch, so only infer columns
-                      // from it when there is no base underneath to name
-                      // them — as on the initial load.
-                      inferDimensions: this.activeParentConfig === undefined,
-                  })
-                : patchConfig
+            const savedPatch = saved ?? patchConfig
             // What the host stored may differ from what we sent it — the
             // admin fills in a title it derived from the data, for one. Show
             // that, or the chart reads as modified the moment it was saved.

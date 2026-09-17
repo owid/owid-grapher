@@ -1,6 +1,10 @@
 import * as _ from "lodash-es"
 import * as React from "react"
-import { OwidVariableId, excludeUndefined } from "@ourworldindata/utils"
+import {
+    ColumnSlug,
+    OwidVariableId,
+    excludeUndefined,
+} from "@ourworldindata/utils"
 import {
     buildSearchWordsFromSearchString,
     filterFunctionForSearchWords,
@@ -35,12 +39,20 @@ interface VariableSelectorProps<Editor> {
     editor: Editor
     slot: DimensionSlot
     onDismiss: () => void
-    onComplete: (variableIds: OwidVariableId[]) => void
+    onComplete: (columns: PickedColumn[]) => void
+}
+
+/** A column the picker hands back: an OWID indicator, or a host column the
+ *  store offered, which dimensions name by slug. */
+export interface PickedColumn {
+    variableId?: OwidVariableId
+    slug?: ColumnSlug
 }
 
 interface Variable {
     id: number
     name: string
+    slug?: ColumnSlug
     datasetId: number
     datasetName: string
     datasetVersion?: string
@@ -127,6 +139,7 @@ export class VariableSelector<
             sorted.forEach((variable) => {
                 variables.push({
                     id: variable.id,
+                    slug: variable.slug,
                     name: variable.name,
                     datasetId: dataset.id,
                     datasetName: dataset.name,
@@ -529,9 +542,15 @@ export class VariableSelector<
         const { dimensions } = this.props.slot
 
         this.chosenVariables = dimensions.flatMap((d) => {
-            // A slot naming a host-supplied column has no variable to pick.
+            // A dimension naming a host column matches the catalog entry that
+            // offers that slug; an indicator matches by variable id.
             const variableId = d.variableId
-            if (variableId === undefined) return []
+            if (variableId === undefined) {
+                const offered = this.availableVariables.find(
+                    (v) => v.slug !== undefined && v.slug === d.slug
+                )
+                return offered ? [offered] : []
+            }
 
             const { datasetName, datasetId } = d.column
             const dataset =
@@ -558,6 +577,10 @@ export class VariableSelector<
     }
 
     @action.bound onComplete() {
-        this.props.onComplete(this.chosenVariables.map((v) => v.id))
+        this.props.onComplete(
+            this.chosenVariables.map((v) =>
+                v.slug !== undefined ? { slug: v.slug } : { variableId: v.id }
+            )
+        )
     }
 }
