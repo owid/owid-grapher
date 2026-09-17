@@ -141,7 +141,13 @@ export function toPlacedSwimlaneSegmentsByCategoryRank({
     bounds: Bounds
     placeTime: (time: Time) => number
 }): PlacedSwimlaneSegment[] {
-    const bandHeight = bounds.height / categories.values.length
+    const bandHeight = Math.min(
+        bounds.height / categories.values.length,
+        MAX_LANE_HEIGHT
+    )
+    const stackBottom =
+        bounds.bottom -
+        (bounds.height - bandHeight * categories.values.length) / 2
 
     const extents = toContiguousSegmentExtents({
         segments: series.segments,
@@ -156,7 +162,7 @@ export function toPlacedSwimlaneSegmentsByCategoryRank({
                 {
                     ...segment,
                     ...extents[segmentIndex],
-                    y: bounds.bottom - (rank + 1) * bandHeight,
+                    y: stackBottom - (rank + 1) * bandHeight,
                     height: bandHeight,
                 },
             ]

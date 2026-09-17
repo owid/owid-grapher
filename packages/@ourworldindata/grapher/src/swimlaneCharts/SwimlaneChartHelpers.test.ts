@@ -532,7 +532,7 @@ describe(toPlacedSwimlaneSegmentsByCategoryRank, () => {
         expect(segment.y).toEqual(BOUNDS.top)
     })
 
-    it("gives every band the plot height divided by the number of categories", () => {
+    it("shares the plot height out between the categories", () => {
         const [segment] = toPlacedSwimlaneSegmentsByCategoryRank({
             series: series({
                 segments: [
@@ -552,6 +552,44 @@ describe(toPlacedSwimlaneSegmentsByCategoryRank, () => {
 
         expect(segment.height).toEqual(BAND_HEIGHT)
         expect(segment.y + segment.height).toEqual(BOUNDS.bottom)
+    })
+
+    it("caps the band height and centres the stack when the plot is taller than the cap allows", () => {
+        const tallBounds = new Bounds(0, 0, 200, 400)
+        const placed = toPlacedSwimlaneSegmentsByCategoryRank({
+            series: series({
+                segments: [
+                    {
+                        kind: "category",
+                        category: "A",
+                        color: "#123456",
+                        startTime: 2000,
+                        endTime: 2002,
+                    },
+                    {
+                        kind: "category",
+                        category: "D",
+                        color: "#654321",
+                        startTime: 2003,
+                        endTime: 2004,
+                    },
+                ],
+            }),
+            categories: CATEGORIES,
+            bounds: tallBounds,
+            placeTime,
+        })
+
+        const stackHeight = MAX_LANE_HEIGHT * CATEGORIES.values.length
+        const [lowest, highest] = placed
+
+        expect(lowest.height).toEqual(MAX_LANE_HEIGHT)
+        expect(lowest.y + lowest.height).toEqual(
+            tallBounds.bottom - (tallBounds.height - stackHeight) / 2
+        )
+        expect(highest.y).toEqual(
+            tallBounds.top + (tallBounds.height - stackHeight) / 2
+        )
     })
 
     it("drops a missing segment and stops the preceding segment where it began", () => {
