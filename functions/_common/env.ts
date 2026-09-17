@@ -11,10 +11,6 @@ export interface Env {
     MAILGUN_SENDING_KEY: string
     MAILGUN_DOMAIN: string
     MAILCHIMP_API_KEY: string
-    MAILCHIMP_API_SERVER: string
-    MAILCHIMP_DONOR_LIST_ID: string
-    MAILCHIMP_NEWSLETTER_LIST_ID: string
-    MAILCHIMP_OWID_BRIEF_INTEREST_ID: string
     // Postmark server API token used to send email notifications.
     POSTMARK_SERVER_TOKEN: string
     // Override for Postmark's API base URL. Point it at the local Postmark
