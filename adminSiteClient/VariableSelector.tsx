@@ -134,8 +134,29 @@ export function VariableSelector({
     // same rule the indicators page uses.
     const isGrouped = !/\bdataset:/.test(effectiveSearch)
 
+    // The datasets this chart already draws from stay on the first page of
+    // results however the search ranks them. Without this, searching a broad
+    // word puts them beyond page one and the group above shows the chart's
+    // own indicators with none of the ones just searched for.
+    const pinnedDatasetIds = useMemo(
+        () =>
+            [
+                ...new Set(
+                    chosen
+                        .map((variable) => variable.datasetId)
+                        .filter((id) => id !== undefined)
+                ),
+            ].join(","),
+        [chosen]
+    )
+
     const { data, isFetching } = useQuery({
-        queryKey: ["variable-selector", effectiveSearch, page],
+        queryKey: [
+            "variable-selector",
+            effectiveSearch,
+            page,
+            pinnedDatasetIds,
+        ],
         queryFn: () =>
             admin.getJSONInBackground<{
                 datasets: DatasetSearchGroup[]
@@ -146,6 +167,7 @@ export function VariableSelector({
                 group: "dataset",
                 limit: DATASETS_PER_PAGE,
                 offset: (page - 1) * DATASETS_PER_PAGE,
+                pinnedDatasetIds,
             }),
         // The seed is only known once the lookup lands. Searching before then
         // would spend a query on results nobody sees.

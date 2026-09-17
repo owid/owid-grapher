@@ -1213,7 +1213,14 @@ export const searchVariablesGroupedByDataset = async (
     query: string,
     limit: number,
     offset: number,
-    knex: db.KnexReadonlyTransaction
+    knex: db.KnexReadonlyTransaction,
+    /**
+     * Kept at the front of the ranking, so a dataset the caller cares about
+     * is on the first page even when the search matches a hundred others —
+     * the chart editor's picker would otherwise show the chart's own dataset
+     * with none of its matching indicators.
+     */
+    pinnedDatasetIds?: number[]
 ): Promise<VariablesGroupedSearchResult> => {
     const whereClauses = buildWhereClauses(query)
     const isSearch = whereClauses.length > 0
@@ -1225,6 +1232,9 @@ export const searchVariablesGroupedByDataset = async (
     const joinPopularity = isSearch
         ? `LEFT JOIN analytics_popularity ap
                ON ap.type = 'indicator' AND ap.slug = v.catalogPath`
+        : ""
+    const pinned = pinnedDatasetIds?.length
+        ? `d.id IN (${pinnedDatasetIds.map((id) => escape(id)).join(",")})`
         : ""
     const fromWhere = `
         FROM variables AS v
@@ -1255,13 +1265,15 @@ export const searchVariablesGroupedByDataset = async (
         -- by the key alone: the other dataset columns follow from it, and
         -- grouping by the five of them together costs 412ms against 36ms
         GROUP BY d.id
-        ${
-            // Searching ranks datasets by their most-read indicator; browsing
-            // has no relevance to rank by, so the newest upload leads
-            isSearch
-                ? "ORDER BY popularity DESC, uploadedAt DESC"
-                : "ORDER BY uploadedAt DESC"
-        }
+        ORDER BY
+            ${pinned ? `${pinned} DESC,` : ""}
+            ${
+                // Searching ranks datasets by their most-read indicator;
+                // browsing has no relevance to rank by, so the newest leads
+                isSearch
+                    ? "popularity DESC, uploadedAt DESC"
+                    : "uploadedAt DESC"
+            }
         LIMIT ${escape(limit)} OFFSET ${escape(offset)}
     `
     const datasetRows = await queryRegexSafe(sqlDatasets, knex)

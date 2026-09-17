@@ -101,9 +101,21 @@ export async function getVariablesJson(
     const limit = parseIntOrUndefined(req.query.limit as string) ?? 50
     const offset = parseIntOrUndefined(req.query.offset as string) ?? 0
     const query = req.query.search as string
+    // Datasets the caller wants on the first page whatever their ranking —
+    // the ones a chart already draws from
+    const pinnedDatasetIds = (req.query.pinnedDatasetIds as string)
+        ?.split(",")
+        .map((id) => parseIntOrUndefined(id.trim()))
+        .filter((id): id is number => id !== undefined)
     // The same search, paged over the datasets the matches belong to
     if (req.query.group === "dataset")
-        return await searchVariablesGroupedByDataset(query, limit, offset, trx)
+        return await searchVariablesGroupedByDataset(
+            query,
+            limit,
+            offset,
+            trx,
+            pinnedDatasetIds
+        )
     return await searchVariables(query, limit, offset, trx)
 }
 
