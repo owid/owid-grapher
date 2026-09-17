@@ -24,7 +24,6 @@ import {
 } from "@ourworldindata/utils"
 import { ArticleBlocks } from "./gdocs/components/ArticleBlocks.js"
 import { SiteAnalytics } from "./SiteAnalytics.js"
-import { logExpandableToggle } from "./metadataExperimentEvents.js"
 
 const analytics = new SiteAnalytics()
 
@@ -114,7 +113,7 @@ export default function MetadataSection({
                                 descriptionTrackNote="source_link"
                                 dodLocation="data_sources"
                                 onSourceToggle={(_source, index, isOpen) =>
-                                    logExpandableToggle(
+                                    analytics.logExpandableToggle(
                                         `data_source_${index + 1}`,
                                         isOpen
                                     )

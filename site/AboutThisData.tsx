@@ -12,7 +12,9 @@ import {
 import { DataPageDataV2 } from "@ourworldindata/types"
 import { formatAttributions } from "@ourworldindata/utils"
 import KeyDataTable from "./KeyDataTable.js"
-import { logExpandableToggle } from "./metadataExperimentEvents.js"
+import { SiteAnalytics } from "./SiteAnalytics.js"
+
+const analytics = new SiteAnalytics()
 
 export default function AboutThisData({
     datapageData,
@@ -74,7 +76,7 @@ export default function AboutThisData({
                                             </div>
                                         }
                                         onToggle={(isOpen) =>
-                                            logExpandableToggle(
+                                            analytics.logExpandableToggle(
                                                 "producer_documentation",
                                                 isOpen
                                             )
@@ -85,14 +87,17 @@ export default function AboutThisData({
                                     <ExpandableToggle
                                         label="Additional information about this data"
                                         content={
-                                            <div className="expandable-info-blocks__content">
+                                            <div
+                                                className="expandable-info-blocks__content"
+                                                data-dod-location="additional_information"
+                                            >
                                                 <HtmlOrSimpleMarkdownText
                                                     text={datapageData.source?.additionalInfo.trim()}
                                                 />
                                             </div>
                                         }
                                         onToggle={(isOpen) =>
-                                            logExpandableToggle(
+                                            analytics.logExpandableToggle(
                                                 "additional_information",
                                                 isOpen
                                             )

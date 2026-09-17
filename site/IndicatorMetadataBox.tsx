@@ -36,7 +36,6 @@ import { Byline } from "./gdocs/components/Byline.js"
 import { ArticleBlocks } from "./gdocs/components/ArticleBlocks.js"
 import { splitDescriptionKey } from "./datapageUtils.js"
 import { SiteAnalytics } from "./SiteAnalytics.js"
-import { logExpandableToggle } from "./metadataExperimentEvents.js"
 
 const analytics = new SiteAnalytics()
 
@@ -169,7 +168,7 @@ function IndicatorMetadataSections({
                             />
                         }
                         onToggle={(isOpen) =>
-                            logExpandableToggle(
+                            analytics.logExpandableToggle(
                                 // untranslated source text
                                 faq.question.slice(0, 100),
                                 isOpen
@@ -188,7 +187,10 @@ function IndicatorMetadataSections({
                         />
                     }
                     onToggle={(isOpen) =>
-                        logExpandableToggle("how_owid_processed_data", isOpen)
+                        analytics.logExpandableToggle(
+                            "how_owid_processed_data",
+                            isOpen
+                        )
                     }
                 />
             </MetadataBoxSection>
@@ -208,7 +210,7 @@ function IndicatorMetadataSections({
                             </div>
                         }
                         onToggle={(isOpen) =>
-                            logExpandableToggle(
+                            analytics.logExpandableToggle(
                                 "producer_documentation",
                                 isOpen
                             )
@@ -228,7 +230,10 @@ function IndicatorMetadataSections({
                     hideReuseThisWorkText
                     hideTeasers
                     onSourceToggle={(_source, index, isOpen) =>
-                        logExpandableToggle(`data_source_${index + 1}`, isOpen)
+                        analytics.logExpandableToggle(
+                            `data_source_${index + 1}`,
+                            isOpen
+                        )
                     }
                 />
             </MetadataBoxSection>
@@ -259,7 +264,10 @@ function IndicatorMetadataSections({
                                 </>
                             }
                             onToggle={(isOpen) =>
-                                logExpandableToggle("how_to_cite_page", isOpen)
+                                analytics.logExpandableToggle(
+                                    "how_to_cite_page",
+                                    isOpen
+                                )
                             }
                         />
                     )}
@@ -305,7 +313,10 @@ function IndicatorMetadataSections({
                                 </>
                             }
                             onToggle={(isOpen) =>
-                                logExpandableToggle("how_to_cite_data", isOpen)
+                                analytics.logExpandableToggle(
+                                    "how_to_cite_data",
+                                    isOpen
+                                )
                             }
                         />
                     )}

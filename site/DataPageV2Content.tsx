@@ -143,7 +143,10 @@ export const DataPageV2Content = ({
             }}
         >
             <DocumentContext.Provider value={{ isPreviewing }}>
-                <div className="DataPageContent__grapher-for-embed">
+                <div
+                    className="DataPageContent__grapher-for-embed"
+                    data-dod-location="grapher"
+                >
                     <GrapherWithFallback
                         config={mergedGrapherConfig}
                         useProvidedConfigOnly
@@ -157,7 +160,10 @@ export const DataPageV2Content = ({
                 </div>
                 <div className="DataPageContent grid grid-cols-12-full-width">
                     <div className="span-cols-14 grid grid-cols-12-full-width full-width--border">
-                        <div className="chart-key-info col-start-2 span-cols-12">
+                        <div
+                            className="chart-key-info col-start-2 span-cols-12"
+                            data-dod-location="grapher"
+                        >
                             {grapherConfig.slug && (
                                 <GrapherWithFallback
                                     slug={grapherConfig.slug}
