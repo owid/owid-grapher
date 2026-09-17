@@ -1,0 +1,548 @@
+import * as _ from "lodash-es"
+import * as R from "remeda"
+import {
+    Bounds,
+    formatAttributions,
+    getAttributionFragmentsFromVariable,
+    getLastUpdatedFromVariable,
+    getNextUpdateFromVariable,
+    DisplaySource,
+    prepareSourcesForDisplay,
+    OwidSource,
+    IndicatorTitleWithFragments,
+    joinTitleFragments,
+    getIndicatorCitations,
+} from "@ourworldindata/utils"
+import {
+    IndicatorSources,
+    IndicatorProcessing,
+    SimpleMarkdownText,
+    DataCitation,
+    OverlayHeader,
+    CloseButton,
+    LoadingIndicator,
+} from "@ourworldindata/components"
+import * as React from "react"
+import cx from "clsx"
+import { action, computed, makeObservable, observable } from "mobx"
+import { observer } from "mobx-react"
+import { faPencilAlt } from "@fortawesome/free-solid-svg-icons"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { OwidColumnDef } from "@ourworldindata/types"
+import { CoreColumn } from "@ourworldindata/core-table"
+import { SourcesKeyDataTable } from "./SourcesKeyDataTable"
+import { SourcesDescriptions } from "./SourcesDescriptions"
+import { TabItem, Tabs } from "../tabs/Tabs"
+import { TabsWithDropdown } from "../tabs/TabsWithDropdown"
+import { isContinentsVariableId } from "../core/GrapherConstants"
+
+// keep in sync with variables in SourcesModal.scss
+export const MAX_CONTENT_WIDTH = 640
+const TAB_PADDING = 8
+const TAB_FONT_SIZE = 13
+const TAB_GAP = 8
+const TAB_TITLE_SPACING = 6
+
+export interface SourcesContentProps {
+    /** The indicators to show source information for */
+    columns: CoreColumn[]
+    /** Shows a loading indicator instead of the content when false */
+    isReady?: boolean
+    /** Renders the indicator tabs as a scrollable row instead of a dropdown */
+    isNarrow?: boolean
+    /** Width available to the indicator tabs, used to decide how many fit */
+    maxTabsWidth: number
+    /** Links indicator titles to the admin when given */
+    editBaseUrl?: string
+    isEmbeddedInADataPage?: boolean
+    /** Pins the close button to a sticky header instead of floating it */
+    showStickyHeader?: boolean
+    onDismiss: () => void
+}
+
+/**
+ * The "Sources and methodology" content, shared by the in-frame
+ * {@link SourcesModal} and the page-level SourcesPanel.
+ */
+@observer
+export class SourcesContent extends React.Component<SourcesContentProps> {
+    private readonly container = React.createRef<HTMLDivElement>()
+
+    private activeTabKey = ""
+
+    constructor(props: SourcesContentProps) {
+        super(props)
+        makeObservable<SourcesContent, "activeTabKey">(this, {
+            activeTabKey: observable,
+        })
+    }
+
+    @action override componentDidMount(): void {
+        this.activeTabKey = this.tabs[0]?.label.key ?? ""
+    }
+
+    @action.bound private setActiveTabKey(key: string): void {
+        this.activeTabKey = key
+    }
+
+    @computed private get columns(): CoreColumn[] {
+        return this.props.columns
+    }
+
+    private makeTabLabelString(title: string, attribution?: string): string {
+        return `${title} ${attribution ?? ""}`.trim()
+    }
+
+    private makeTabLabelElement(
+        title: string,
+        attribution?: string
+    ): React.ReactElement {
+        return (
+            <>
+                {title}
+                {attribution && (
+                    <span className="attribution">{attribution}</span>
+                )}
+            </>
+        )
+    }
+
+    @computed private get tabs(): {
+        column: CoreColumn
+        title: string
+        label: TabItem
+    }[] {
+        return _.uniqBy(
+            this.columns.map((column) => {
+                let title = column.titlePublicOrDisplayName.title
+
+                // Historical and projected columns may have the same name,
+                // so we add "(projection)" to the title of projected columns
+                // to distinguish them
+                if (
+                    column.isProjection &&
+                    this.columns.some(
+                        (c) => title === c.titlePublicOrDisplayName.title
+                    )
+                )
+                    title += " (projection)"
+
+                const attribution = joinTitleFragments(
+                    column.titlePublicOrDisplayName.attributionShort,
+                    column.titlePublicOrDisplayName.titleVariant
+                )
+
+                return {
+                    title,
+                    column,
+                    label: {
+                        key: this.makeTabLabelString(title, attribution),
+                        element: this.makeTabLabelElement(title, attribution),
+                    },
+                }
+            }),
+            // deduplicate tabs by their label
+            (tab) => tab.label.key
+        )
+    }
+
+    @computed private get tabLabels(): TabItem[] {
+        return this.tabs.map(({ label }) => label)
+    }
+
+    @computed private get tabLabelWidths(): number[] {
+        return this.tabs.map(({ column }) => {
+            const title = `${column.titlePublicOrDisplayName.title}`
+            const fragments = joinTitleFragments(
+                column.titlePublicOrDisplayName.attributionShort,
+                column.titlePublicOrDisplayName.titleVariant
+            )
+            return measureTabWidth(title, fragments)
+        })
+    }
+
+    private renderSource({
+        column,
+        title,
+    }: {
+        column: CoreColumn
+        title?: string
+    }): React.ReactElement {
+        return (
+            <Source
+                title={title}
+                column={column}
+                editBaseUrl={this.props.editBaseUrl}
+                isEmbeddedInADataPage={
+                    this.props.isEmbeddedInADataPage ?? false
+                }
+            />
+        )
+    }
+
+    private renderTabs(): React.ReactElement {
+        // Display horizontally scrolling tabs on mobile
+        if (this.props.isNarrow) {
+            return (
+                <Tabs
+                    className="sources-modal-tabs"
+                    items={this.tabLabels}
+                    selectedKey={this.activeTabKey}
+                    onChange={this.setActiveTabKey}
+                    variant="scroll"
+                />
+            )
+        }
+
+        // Show all tabs if there are 4 or fewer
+        if (this.tabs.length <= 4) {
+            return (
+                <Tabs
+                    className="sources-modal-tabs"
+                    items={this.tabLabels}
+                    selectedKey={this.activeTabKey}
+                    onChange={this.setActiveTabKey}
+                    variant="scroll"
+                />
+            )
+        }
+
+        // Find the subset of tabs that fit into a single line
+        const getVisibleLabels = (labels: TabItem[]): TabItem[] => {
+            // Maximum width available for tabs
+            const maxWidth = this.props.maxTabsWidth
+
+            // Hardcoded width of the "More" button
+            const moreButtonWidth = 74
+
+            const visibleLabels: TabItem[] = []
+            let currentWidth = moreButtonWidth
+            for (const [label, labelWidth] of R.zip(
+                labels,
+                this.tabLabelWidths
+            )) {
+                currentWidth += labelWidth + TAB_GAP
+                if (currentWidth > maxWidth) break
+                visibleLabels.push(label)
+            }
+
+            return visibleLabels
+        }
+
+        const visibleLabels = getVisibleLabels(this.tabLabels)
+
+        // No need for a dropdown if all tabs are visible
+        if (visibleLabels.length === this.tabLabels.length) {
+            return (
+                <Tabs
+                    className="sources-modal-tabs"
+                    items={this.tabLabels}
+                    selectedKey={this.activeTabKey}
+                    onChange={this.setActiveTabKey}
+                    variant="scroll"
+                />
+            )
+        }
+
+        // Ensure at least 3 tabs are visible
+        const numVisibleTabs = Math.max(3, visibleLabels.length)
+
+        return (
+            <TabsWithDropdown
+                className="sources-modal-tabs"
+                items={this.tabLabels}
+                selectedKey={this.activeTabKey}
+                onChange={this.setActiveTabKey}
+                numVisibleTabs={numVisibleTabs}
+                portalContainer={this.container.current ?? undefined}
+            />
+        )
+    }
+
+    private renderMultipleSources(): React.ReactElement {
+        const activeTab = this.tabs.find(
+            (tab) => tab.label.key === this.activeTabKey
+        )
+
+        return (
+            <>
+                <p className="note-multiple-indicators">
+                    This chart is composed of multiple indicators. Select an
+                    indicator for more information.
+                </p>
+                {this.renderTabs()}
+                {activeTab && this.renderSource(activeTab)}
+            </>
+        )
+    }
+
+    private renderNoSources(): React.ReactElement {
+        return (
+            <p className="note-no-sources">
+                No source information is available for the data shown in this
+                chart.
+            </p>
+        )
+    }
+
+    private renderSources(): React.ReactElement | null {
+        // Charts fed with external data (e.g. via GrapherLoader.fromCsv) may
+        // have no columns with source information at all
+        if (this.tabs.length === 0) return this.renderNoSources()
+        return this.tabs.length === 1
+            ? this.renderSource({ column: this.tabs[0].column })
+            : this.renderMultipleSources()
+    }
+
+    override render(): React.ReactElement {
+        const { showStickyHeader, onDismiss } = this.props
+        return (
+            <div className="sources-modal-content" ref={this.container}>
+                {showStickyHeader ? (
+                    <OverlayHeader title="" onDismiss={onDismiss} />
+                ) : (
+                    <CloseButton
+                        className="close-button--top-right"
+                        onClick={onDismiss}
+                    />
+                )}
+                <div
+                    className={cx("scrollable", {
+                        "scrollable--pad-top": !showStickyHeader,
+                    })}
+                >
+                    <div className="centered">
+                        {this.props.isReady ? (
+                            this.renderSources()
+                        ) : (
+                            <LoadingIndicator />
+                        )}
+                    </div>
+                </div>
+            </div>
+        )
+    }
+}
+
+interface SourceProps {
+    column: CoreColumn
+    title?: string
+    editBaseUrl?: string
+    isEmbeddedInADataPage?: boolean
+}
+
+@observer
+export class Source extends React.Component<SourceProps> {
+    constructor(props: SourceProps) {
+        super(props)
+        makeObservable(this)
+    }
+
+    @computed get column(): CoreColumn {
+        return this.props.column
+    }
+
+    @computed get def(): OwidColumnDef & { source?: OwidSource } {
+        return { ...this.column.def, source: this.column.source }
+    }
+
+    @computed private get citations(): { short: string; long: string } {
+        return getIndicatorCitations({
+            indicatorTitle: this.titleWithFragments,
+            origins: this.def.origins ?? [],
+            source: this.source,
+            attributions: getAttributionFragmentsFromVariable(this.def),
+            attributionShort: this.def.presentation?.attributionShort,
+            titleVariant: this.def.presentation?.titleVariant,
+            owidProcessingLevel: this.def.owidProcessingLevel,
+        })
+    }
+
+    @computed private get source(): OwidSource {
+        return this.def.source ?? {}
+    }
+
+    @computed private get titleWithFragments(): IndicatorTitleWithFragments {
+        return this.column.titlePublicOrDisplayName
+    }
+
+    @computed private get title(): string {
+        return this.props.title ?? this.titleWithFragments.title
+    }
+
+    @computed private get editUrl(): string | undefined {
+        if (!this.props.editBaseUrl) return undefined
+
+        // point user directly to the variable edit page if possible
+        if (this.def.owidVariableId) {
+            return `${this.props.editBaseUrl}/variables/${this.def.owidVariableId}`
+        }
+
+        // if that's not possible, point user to the dataset edit page
+        if (this.def.datasetId) {
+            return `${this.props.editBaseUrl}/datasets/${this.def.datasetId}`
+        }
+
+        // we can't link to an edit page for explorers that define the FASTT in TSV
+        return undefined
+    }
+
+    @computed get attributions(): string | undefined {
+        const attributionFragments = getAttributionFragmentsFromVariable(
+            this.def
+        )
+        if (attributionFragments.length === 0) return undefined
+        return formatAttributions(attributionFragments)
+    }
+
+    @computed get lastUpdated(): string | undefined {
+        return getLastUpdatedFromVariable(this.def)
+    }
+
+    @computed get nextUpdate(): string | undefined {
+        return getNextUpdateFromVariable(this.def)
+    }
+
+    @computed get unit(): string | undefined {
+        return this.column.unit
+    }
+
+    @computed private get datapageHasFAQSection(): boolean {
+        const faqCount = this.def.presentation?.faqs?.length ?? 0
+        return !!this.props.isEmbeddedInADataPage && faqCount > 0
+    }
+
+    @computed private get showDescriptions(): boolean {
+        return (
+            !!this.def.descriptionKey ||
+            !!this.def.descriptionFromProducer ||
+            !!this.source.additionalInfo
+        )
+    }
+
+    @computed private get sourcesForDisplay(): DisplaySource[] {
+        return prepareSourcesForDisplay(this.def)
+    }
+
+    @computed protected get sourcesSectionHeading(): string {
+        return "The data of this indicator is based on the following sources:"
+    }
+
+    @computed private get hideSourcesForDisplay(): boolean {
+        // the "Continent" variable curated by OWID is used in many charts but doesn't come with useful source information.
+        // that's why we hide the sources section for this indicator for now, but we might decide to show it in the future.
+        return (
+            !!this.def.owidVariableId &&
+            isContinentsVariableId(this.def.owidVariableId)
+        )
+    }
+
+    @computed private get descriptionBelowTitle(): string | undefined {
+        return this.def.descriptionShort || this.def.description
+    }
+
+    protected renderTitle(): React.ReactElement {
+        return (
+            <h2>
+                <span className="title">{this.title}</span>{" "}
+                {(this.titleWithFragments.attributionShort ||
+                    this.titleWithFragments.titleVariant) && (
+                    <>
+                        <span className="title-fragments">
+                            {joinTitleFragments(
+                                this.titleWithFragments.attributionShort,
+                                this.titleWithFragments.titleVariant
+                            )}
+                        </span>{" "}
+                    </>
+                )}
+                {this.editUrl && (
+                    <a href={this.editUrl}>
+                        <FontAwesomeIcon icon={faPencilAlt} />
+                    </a>
+                )}
+            </h2>
+        )
+    }
+
+    override render(): React.ReactElement {
+        return (
+            <div className="source">
+                {this.renderTitle()}
+                {this.descriptionBelowTitle && (
+                    <div className="description-below-title">
+                        <SimpleMarkdownText text={this.descriptionBelowTitle} />
+                    </div>
+                )}
+                <SourcesKeyDataTable
+                    attribution={this.attributions}
+                    owidProcessingLevel={this.def.owidProcessingLevel}
+                    dateRange={this.def.timespan}
+                    lastUpdated={this.lastUpdated}
+                    nextUpdate={this.nextUpdate}
+                    unit={this.unit}
+                    link={this.source.link}
+                    unitConversionFactor={this.column.unitConversionFactor}
+                    isEmbeddedInADataPage={this.props.isEmbeddedInADataPage}
+                />
+                {this.showDescriptions && (
+                    <SourcesDescriptions
+                        descriptionShort={this.def.descriptionShort}
+                        descriptionKey={this.def.descriptionKey}
+                        hasFaqEntries={this.datapageHasFAQSection}
+                        descriptionFromProducer={
+                            this.def.descriptionFromProducer
+                        }
+                        attributionShort={
+                            this.def.presentation?.attributionShort
+                        }
+                        additionalInfo={this.source.additionalInfo}
+                        isEmbeddedInADataPage={this.props.isEmbeddedInADataPage}
+                    />
+                )}
+                {!this.hideSourcesForDisplay &&
+                    this.sourcesForDisplay &&
+                    this.sourcesForDisplay.length > 0 && (
+                        <>
+                            <h3 className="heading">
+                                {this.sourcesSectionHeading}
+                            </h3>
+                            <IndicatorSources
+                                sources={this.sourcesForDisplay}
+                                isEmbeddedInADataPage={
+                                    this.props.isEmbeddedInADataPage
+                                }
+                            />
+                        </>
+                    )}
+                <h3 className="heading heading--tight">
+                    How we process data at Our World in Data:
+                </h3>
+                <IndicatorProcessing
+                    descriptionProcessing={this.def.descriptionProcessing}
+                />
+                <h3 className="heading heading--tight">
+                    How to cite this data:
+                </h3>
+                <DataCitation
+                    citationShort={this.citations.short}
+                    citationLong={this.citations.long}
+                />
+            </div>
+        )
+    }
+}
+
+const measureTabWidth = (label: string, secondary?: string): number => {
+    const getWidth = (text: string) =>
+        Bounds.forText(text, { fontSize: TAB_FONT_SIZE }).width
+
+    const labelWidth = getWidth(label)
+    const secondaryTextWidth = secondary
+        ? getWidth(secondary) + TAB_TITLE_SPACING
+        : 0
+    const padding = 2 * TAB_PADDING
+    const borderWidth = 2
+
+    return labelWidth + secondaryTextWidth + padding + borderWidth
+}
