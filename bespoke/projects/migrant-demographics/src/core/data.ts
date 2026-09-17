@@ -1,4 +1,4 @@
-import { QueryClient, useQuery } from "@tanstack/react-query"
+import { QueryClient, QueryStatus, useQuery } from "@tanstack/react-query"
 import * as R from "remeda"
 
 import { fetchJson } from "@ourworldindata/utils"
@@ -6,40 +6,74 @@ import { fetchJson } from "@ourworldindata/utils"
 import {
     PopulationTotals,
     PyramidData,
-    RawEntity,
-    RawMigrantDemographics,
+    RawEntityYears,
+    RawMigrantDemographicsMetadata,
     RawYearRecord,
     SexValues,
 } from "./types.js"
 
-const DATA_URL =
-    "https://owid-public.owid.io/bespoke/migrant-demographics/migrant-demographics.json"
+const BASE_URL = "https://owid-public.owid.io/bespoke/migrant-demographics"
+const METADATA_PATH = `${BASE_URL}/migrant-demographics.metadata.json`
+const ENTITY_PATH = `${BASE_URL}/migrant-demographics.{code}.json`
 
 export const queryClient = new QueryClient()
 
-export const useMigrantDemographics = () =>
-    useQuery({
-        queryKey: ["migrant-demographics", "data"],
-        queryFn: async (): Promise<MigrantDemographics> =>
-            new MigrantDemographics(
-                await fetchJson<RawMigrantDemographics>(DATA_URL)
-            ),
-        staleTime: Infinity, // The data file is immutable within a session
+export const useMigrantDemographicsMetadata = (): {
+    data?: MigrantDemographicsMetadata
+    status: QueryStatus
+} => {
+    const result = useQuery({
+        queryKey: ["migrant-demographics", "metadata"],
+        queryFn: async (): Promise<MigrantDemographicsMetadata> => {
+            const raw =
+                await fetchJson<RawMigrantDemographicsMetadata>(METADATA_PATH)
+            return new MigrantDemographicsMetadata(raw)
+        },
+        staleTime: Infinity, // The data files are immutable within a session
     })
 
-export class MigrantDemographics {
+    return { data: result.data, status: result.status }
+}
+
+export const useMigrantDemographicsEntity = (
+    entityName: string,
+    metadata?: MigrantDemographicsMetadata
+): {
+    data?: RawEntityYears
+    status: QueryStatus
+    isPlaceholderData: boolean
+} => {
+    const code = metadata?.getEntityCode(entityName)
+    const hasUnknownEntity = metadata !== undefined && code === undefined
+
+    const result = useQuery({
+        queryKey: ["migrant-demographics", "entity", code],
+        queryFn: async (): Promise<RawEntityYears> => {
+            const path = ENTITY_PATH.replace("{code}", String(code))
+            const raw = await fetchJson<RawEntityYears>(path)
+            return parseEntityYears(raw, metadata!)
+        },
+        enabled: code !== undefined,
+        placeholderData: (previousData) => previousData,
+        staleTime: Infinity,
+    })
+
+    return {
+        data: result.data,
+        status: hasUnknownEntity ? "error" : result.status,
+        isPlaceholderData: result.isPlaceholderData,
+    }
+}
+
+export class MigrantDemographicsMetadata {
     readonly ageBands: string[]
     readonly years: number[]
     readonly source: string
     /** Stable array so consumers can use it as a memo dependency */
     readonly entityNames: string[]
-    /** Entity name → year → record. Entity names are already OWID names. */
-    private readonly recordsByEntityName: Map<
-        string,
-        Record<string, RawYearRecord>
-    >
+    private readonly codesByEntityName: Map<string, number>
 
-    constructor(raw: RawMigrantDemographics) {
+    constructor(raw: RawMigrantDemographicsMetadata) {
         // Without these the chart's geometry degenerates to NaN, so fail into
         // the error state rather than rendering a broken pyramid
         if (!raw.ageBands?.length || !raw.years?.length || !raw.meta?.source)
@@ -51,29 +85,18 @@ export class MigrantDemographics {
         this.years = raw.years
         this.source = raw.meta.source
 
-        this.recordsByEntityName = new Map()
-        for (const entity of raw.entities) {
-            if (entity.isAggregate) continue
-            if (!isValidEntity(entity, raw.years, raw.ageBands.length)) {
-                console.warn(
-                    `[migrant-demographics] Skipping entity with malformed data: ${entity.name}`
-                )
-                continue
-            }
-            this.recordsByEntityName.set(entity.name, entity.data)
-        }
-
-        this.entityNames = [...this.recordsByEntityName.keys()]
+        this.codesByEntityName = new Map(
+            raw.entities.map((entity) => [entity.name, entity.code])
+        )
+        this.entityNames = [...this.codesByEntityName.keys()]
     }
 
     hasEntity(name: string): boolean {
-        return this.recordsByEntityName.has(name)
+        return this.codesByEntityName.has(name)
     }
 
-    getPyramidData(entityName: string, year: number): PyramidData | undefined {
-        const record = this.recordsByEntityName.get(entityName)?.[String(year)]
-        if (!record) return undefined
-        return computePyramidData(record)
+    getEntityCode(name: string): number | undefined {
+        return this.codesByEntityName.get(name)
     }
 }
 
@@ -98,25 +121,28 @@ export function computePyramidData(record: RawYearRecord): PyramidData {
 
 /**
  * An entity needs both a migrant stock and a total resident population in
- * every year. Upstream excludes territories that lack UN/WPP population
- * estimates, so this only fires if the file regresses.
+ * every year the metadata lists. Upstream excludes territories that lack
+ * UN/WPP population estimates, so a throw here means the data regressed.
  */
-function isValidEntity(
-    entity: RawEntity,
-    years: number[],
-    numAgeBands: number
-): boolean {
-    if (!entity.name || !entity.data) return false
-    return years.every((year) => {
-        const record = entity.data[String(year)]
-        if (!record) return false
-        return (
-            isBandAligned(record.m, numAgeBands) &&
-            isBandAligned(record.f, numAgeBands) &&
-            isBandAligned(record.pm, numAgeBands) &&
-            isBandAligned(record.pf, numAgeBands)
-        )
-    })
+export function parseEntityYears(
+    raw: RawEntityYears,
+    metadata: MigrantDemographicsMetadata
+): RawEntityYears {
+    const numAgeBands = metadata.ageBands.length
+    for (const year of metadata.years) {
+        const record = raw[String(year)]
+        if (!record)
+            throw new Error(
+                `[migrant-demographics] Entity data is missing a record for ${year}`
+            )
+        for (const key of ["m", "f", "pm", "pf"] as const) {
+            if (!isBandAligned(record[key], numAgeBands))
+                throw new Error(
+                    `[migrant-demographics] Entity data has ${key} values that do not line up with the ${numAgeBands} age bands in ${year}`
+                )
+        }
+    }
+    return raw
 }
 
 /** Validates untrusted JSON, so the values may be absent at runtime */

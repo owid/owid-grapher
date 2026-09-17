@@ -14,22 +14,27 @@ import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
 import { ChartSkeleton } from "../../../../components/ChartSkeleton/ChartSkeleton.js"
 import { ChartError } from "../../../../components/ChartError/ChartError.js"
+import { Spinner } from "../../../../components/Spinner/Spinner.js"
 import { useUrlState } from "../../../../hooks/useUrlState.js"
 import { EmbedConfigProvider } from "../../../../hooks/useEmbedConfig.js"
 import { useContainerWidth } from "../../../../hooks/useContainerWidth.js"
+import { useDelayedLoading } from "../../../../hooks/useDelayedLoading.js"
 import {
     isUserLocationCountry,
     useResolveUserLocation,
 } from "../../../../hooks/useResolveUserLocation.js"
 import { formatEntityNameForSentence } from "../../../../helpers/entityNames.js"
+import { combineStatuses } from "../../../../helpers/queryStatus.js"
 
 import { PyramidVariantConfig } from "../core/config.js"
-import { ShowMode } from "../core/types.js"
+import { RawEntityYears, ShowMode } from "../core/types.js"
 import type { VariantProps } from "../../../../helpers/config.js"
 import {
-    MigrantDemographics,
+    computePyramidData,
+    MigrantDemographicsMetadata,
     queryClient,
-    useMigrantDemographics,
+    useMigrantDemographicsEntity,
+    useMigrantDemographicsMetadata,
 } from "../core/data.js"
 import {
     computeAxisMax,
@@ -101,11 +106,27 @@ function FetchingPyramidVariant({
         defaultValue: config.compare,
     })
 
-    const { data, status } = useMigrantDemographics()
+    const { data: metadata, status: metadataStatus } =
+        useMigrantDemographicsMetadata()
+
+    // Fall back gracefully when the config or URL asks for something the
+    // data doesn't have
+    const selectedCountry = metadata?.hasEntity(country)
+        ? country
+        : DEFAULT_COUNTRY
+
+    const {
+        data: entityYears,
+        status: entityStatus,
+        isPlaceholderData,
+    } = useMigrantDemographicsEntity(selectedCountry, metadata)
+
+    const status = combineStatuses(metadataStatus, entityStatus)
+    const isLoadingCountry = useDelayedLoading(isPlaceholderData)
 
     const availableCountryNames = useMemo(
-        () => (data ? new Set(data.entityNames) : undefined),
-        [data]
+        () => (metadata ? new Set(metadata.entityNames) : undefined),
+        [metadata]
     )
     const { isResolved: isCountryResolved } = useResolveUserLocation({
         configCountry: config.country,
@@ -116,27 +137,26 @@ function FetchingPyramidVariant({
 
     if (status === "pending")
         return <ChartSkeleton className="migrant-pyramid-chart-box" />
-    if (status === "error" || !data)
+    if (status === "error" || !metadata || !entityYears)
         return <ChartError className="migrant-pyramid-chart-box" />
     if (!isCountryResolved)
         return <ChartSkeleton className="migrant-pyramid-chart-box" />
 
-    // Fall back gracefully when the config or URL asks for something the
-    // data doesn't have
-    const selectedCountry = data.hasEntity(country) ? country : DEFAULT_COUNTRY
-    const selectedYear = data.years.includes(year)
+    const selectedYear = metadata.years.includes(year)
         ? year
-        : data.years[data.years.length - 1]
+        : metadata.years[metadata.years.length - 1]
 
     return (
         <CaptionedPyramidVariant
             config={config}
-            data={data}
+            metadata={metadata}
+            entityYears={entityYears}
             country={selectedCountry}
             year={selectedYear}
             show={show}
             compare={compare}
             isNarrow={isNarrow}
+            isLoading={isLoadingCountry}
             setCountry={setCountry}
             setYear={setYear}
             setShow={setShow}
@@ -147,24 +167,28 @@ function FetchingPyramidVariant({
 
 function CaptionedPyramidVariant({
     config,
-    data,
+    metadata,
+    entityYears,
     country,
     year,
     show,
     compare,
     isNarrow,
+    isLoading,
     setCountry,
     setYear,
     setShow,
     setCompare,
 }: {
     config: PyramidVariantConfig
-    data: MigrantDemographics
+    metadata: MigrantDemographicsMetadata
+    entityYears: RawEntityYears
     country: string
     year: number
     show: ShowMode
     compare: boolean
     isNarrow: boolean
+    isLoading: boolean
     setCountry: (name: string) => void
     setYear: (year: number) => void
     setShow: (show: ShowMode) => void
@@ -174,21 +198,26 @@ function CaptionedPyramidVariant({
     // native-born residents), so comparison always shows shares
     const mode: ShowMode = compare ? "share" : show
 
-    const pyramidData = useMemo(
-        () => data.getPyramidData(country, year),
-        [data, country, year]
-    )
+    const pyramidData = useMemo(() => {
+        const record = entityYears[String(year)]
+        return record ? computePyramidData(record) : undefined
+    }, [entityYears, year])
     const view = useMemo(
         () =>
             pyramidData
-                ? computePyramidView(pyramidData, data.ageBands, mode, compare)
+                ? computePyramidView(
+                      pyramidData,
+                      metadata.ageBands,
+                      mode,
+                      compare
+                  )
                 : undefined,
-        [pyramidData, data.ageBands, mode, compare]
+        [pyramidData, metadata.ageBands, mode, compare]
     )
     // Fixed across years so the axis is stable while dragging the slider
     const xMax = useMemo(
-        () => computeAxisMax(data, country, mode, compare),
-        [data, country, mode, compare]
+        () => computeAxisMax(entityYears, metadata.ageBands, mode, compare),
+        [entityYears, metadata.ageBands, mode, compare]
     )
 
     // A year with no migrant stock at all draws an empty pyramid and makes
@@ -202,12 +231,14 @@ function CaptionedPyramidVariant({
 
     // The outline only appears once the comparison is switched on
     const isShowingNatives = !!view?.natives
+    const canToggleNatives = !config.hideControls
+    const hasLegendRow = isShowingNatives || canToggleNatives
 
     return (
         <>
             {!config.hideControls && (
                 <PyramidControls
-                    data={data}
+                    metadata={metadata}
                     country={country}
                     year={year}
                     mode={mode}
@@ -219,20 +250,28 @@ function CaptionedPyramidVariant({
                     setCompare={setCompare}
                 />
             )}
-            <Frame className="migrant-pyramid-captioned-chart">
+            <Frame
+                className={cx("migrant-pyramid-captioned-chart", {
+                    "migrant-pyramid-captioned-chart--with-legend":
+                        hasLegendRow,
+                })}
+            >
                 <ChartHeader title={title} subtitle={subtitle} />
-                {/* Always rendered so toggling the comparison doesn't
-                    shift the chart below */}
-                <div
-                    className={cx("migrant-pyramid-legend", {
-                        "migrant-pyramid-legend--hidden": !isShowingNatives,
-                    })}
-                    aria-hidden={!isShowingNatives}
-                >
-                    <span className="migrant-pyramid-legend__line" />
-                    Native-born residents
-                </div>
+                {/* Kept in the layout while the comparison can still be
+                    toggled, so switching it doesn't shift the chart below */}
+                {hasLegendRow && (
+                    <div
+                        className={cx("migrant-pyramid-legend", {
+                            "migrant-pyramid-legend--hidden": !isShowingNatives,
+                        })}
+                        aria-hidden={!isShowingNatives}
+                    >
+                        <span className="migrant-pyramid-legend__line" />
+                        Native-born residents
+                    </div>
+                )}
                 <div className="migrant-pyramid-captioned-chart__chart-area">
+                    {isLoading && <Spinner />}
                     {view && pyramidData && total > 0 ? (
                         <MigrantPyramid
                             view={view}
@@ -270,7 +309,7 @@ function CaptionedPyramidVariant({
                     )}
                 </div>
                 <ChartFooter
-                    source={data.source}
+                    source={metadata.source}
                     note="Immigrants are people living in a country other than the one they were born in. Native-born residents are the total resident population minus the international migrant stock. The age and sex breakdown mostly comes from national censuses. For countries with only one census since 1990, that single profile is carried across all years and scaled to population totals."
                 />
             </Frame>

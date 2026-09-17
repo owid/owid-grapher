@@ -72,6 +72,31 @@ export const BESPOKE_COMPONENT_REGISTRY: Record<
 
 A bundle carries its own styles. `vite-plugin-css-position` inlines them into the ES module so they land inside the shadow root.
 
+## Data files
+
+A bundle fetches its data at runtime rather than bundling it. Each one reads a small manifest first and then one file per selection, so a reader downloads only the entity they are looking at.
+
+Two different files are called metadata around here. The registry's `metadataUrl` above is indicator provenance for the featured viz methods box. It has a fixed schema, `BespokeMetadataSchema`, and the baker is what reads it. The `*.metadata.json` files below are dataset manifests the bundle itself reads before it has any data, and each has its own shape. The two are unrelated.
+
+Three bundles get their files from an ETL export step under `etl/steps/export/s3/` in owid/etl, served from the feed root the page passes to `mount()` (see [helpers/feedUrl.ts](helpers/feedUrl.ts)).
+
+| bundle            | ETL step                                         | manifest                              | per-selection file                      |
+| ----------------- | ------------------------------------------------ | ------------------------------------- | --------------------------------------- |
+| `causes-of-death` | `ihme_gbd/latest/gbd_treemap_json`               | `causes-of-death.metadata.json`       | `causes-of-death.<entityId>.json`       |
+| `food-trade`      | `faostat/latest/food_trade`                      | `food-trade.metadata.json`            | `food-trade.<productId>.json`           |
+| `migration`       | `un_migration/latest/migration_stock_flows_json` | `migration-stock-flows.metadata.json` | `migration-stock-flows.<entityId>.json` |
+
+Two are uploaded by hand to `https://owid-public.owid.io/bespoke/<bundle>/`, with the URL hardcoded in the project's `src/core/`.
+
+| bundle                 | manifest                             | per-selection file                   |
+| ---------------------- | ------------------------------------ | ------------------------------------ |
+| `demography`           | `demography.metadata.json`           | `demography.<countrySlug>.data.json` |
+| `migrant-demographics` | `migrant-demographics.metadata.json` | `migrant-demographics.<code>.json`   |
+
+The manifest is the contract. An entity it lists must have a file, and that file must be well formed, because a bundle has no way of knowing otherwise until it has fetched it. An entry whose file is missing or malformed shows the reader an error rather than quietly disappearing from the selector.
+
+When a dataset is re-uploaded, put the per-selection files up before the manifest. The bucket serves each object as it lands, so a new manifest sitting over the old files is a window in which every reader gets an error.
+
 ## Embedding in Google Docs
 
 Use the `{.bespoke-component}` ArchieML block:
