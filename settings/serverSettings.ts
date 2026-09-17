@@ -163,6 +163,9 @@ export const SLACK_BOT_OAUTH_TOKEN: string =
 export const SLACK_ALGOLIA_INDEXING_CHANNEL_ID: string =
     serverSettings.SLACK_ALGOLIA_INDEXING_CHANNEL_ID ?? ""
 
+export const SLACK_CONFIG_VALIDATION_CHANNEL_ID: string =
+    serverSettings.SLACK_CONFIG_VALIDATION_CHANNEL_ID ?? "C5JJW19PS" // #developers-errors-server
+
 export const LEGACY_WORDPRESS_IMAGE_URL: string =
     serverSettings.LEGACY_WORDPRESS_IMAGE_URL ??
     "https://assets.ourworldindata.org/uploads"
