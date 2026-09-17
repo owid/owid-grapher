@@ -1277,6 +1277,13 @@ export class Modal extends React.Component<ModalProps> {
         if (this.dismissable) this.props.onClose()
     }
 
+    @action.bound onKeyDown(event: KeyboardEvent) {
+        // Something inside may want Escape first — an open antd dropdown or
+        // popover, say, which marks the event handled when it closes itself.
+        if (event.key === "Escape" && !event.defaultPrevented)
+            this.props.onClose()
+    }
+
     override componentDidMount() {
         // HACK (Mispy): The normal ways of doing this (stopPropagation etc) don't seem to work here
         this.base.current!.addEventListener("click", () => {
@@ -1287,10 +1294,12 @@ export class Modal extends React.Component<ModalProps> {
             () => document.body.addEventListener("click", this.onClickOutside),
             0
         )
+        document.addEventListener("keydown", this.onKeyDown)
     }
 
     override componentWillUnmount() {
         document.body.removeEventListener("click", this.onClickOutside)
+        document.removeEventListener("keydown", this.onKeyDown)
     }
 
     override render() {
