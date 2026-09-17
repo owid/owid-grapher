@@ -81,6 +81,12 @@ export interface CaptionedChartManager
 
     // controls
     hideControlsRow?: boolean
+    /**
+     * Prototype: when the AI assistant's sidebar control area is active, the
+     * in-chart controls row moves into the sidebar and is hidden here so the
+     * plot gets the reclaimed vertical space
+     */
+    isAssistantControlAreaActive?: boolean
 
     // timeline
     hasTimeline?: boolean
@@ -180,6 +186,7 @@ export class CaptionedChart extends AbstractCaptionedChart {
 
     @computed private get showControlsRow(): boolean {
         if (this.manager.hideControlsRow) return false
+        if (this.manager.isAssistantControlAreaActive) return false
         return ControlsRow.shouldShow(this.manager)
     }
 
