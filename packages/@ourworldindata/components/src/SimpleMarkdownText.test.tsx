@@ -4,6 +4,7 @@
 
 import { describe, expect, it } from "vitest"
 import { render } from "@testing-library/react"
+import { renderToStaticMarkup } from "react-dom/server"
 import { SimpleMarkdownText } from "./SimpleMarkdownText.js"
 
 describe(SimpleMarkdownText, () => {
@@ -108,5 +109,53 @@ describe("SimpleMarkdownText color syntax", () => {
         const span = container.querySelector("span[style]")
         expect(span?.textContent).toBe("ends red")
         expect(container.textContent).toContain("Normal then")
+    })
+})
+
+describe("SimpleMarkdownText dataTrackNote", () => {
+    const text =
+        "Read [the paper](https://example.org/paper) and this [term](#dod:gdp)."
+
+    it("adds no tracking attribute by default", () => {
+        const html = renderToStaticMarkup(<SimpleMarkdownText text={text} />)
+        expect(html).not.toContain("data-track-note")
+        expect(html).not.toContain('target="_blank"')
+    })
+
+    it("puts the note on every link", () => {
+        const html = renderToStaticMarkup(
+            <SimpleMarkdownText text={text} dataTrackNote="wysk_link" />
+        )
+        expect(html).toContain(
+            '<a href="https://example.org/paper" data-track-note="wysk_link">'
+        )
+        expect(html).not.toContain('target="_blank"')
+        expect(html).not.toContain("node=")
+    })
+
+    it("leaves detail-on-demand terms as untracked spans", () => {
+        const html = renderToStaticMarkup(
+            <SimpleMarkdownText text={text} dataTrackNote="wysk_link" />
+        )
+        expect(html).toContain('class="dod-span" data-id="gdp"')
+        expect(html.match(/data-track-note/g)).toHaveLength(1)
+    })
+
+    it("keeps openLinksInNewTab behaviour, with and without a note", () => {
+        const plain = renderToStaticMarkup(
+            <SimpleMarkdownText text={text} openLinksInNewTab />
+        )
+        expect(plain).toContain('target="_blank"')
+        expect(plain).not.toContain("data-track-note")
+        expect(plain).not.toContain("node=")
+        const both = renderToStaticMarkup(
+            <SimpleMarkdownText
+                text={text}
+                openLinksInNewTab
+                dataTrackNote="wysk_link"
+            />
+        )
+        expect(both).toContain('target="_blank"')
+        expect(both).toContain('data-track-note="wysk_link"')
     })
 })

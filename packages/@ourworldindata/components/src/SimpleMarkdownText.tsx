@@ -111,7 +111,8 @@ export class SimpleMarkdownText extends React.Component<SimpleMarkdownTextProps>
         }
 
         if (this.props.openLinksInNewTab || this.props.dataTrackNote) {
-            components.a = ({ children, ...props }) => (
+            // react-markdown passes its hast `node`; don't spread it onto the DOM
+            components.a = ({ children, node: _node, ...props }) => (
                 <a
                     {...props}
                     target={this.props.openLinksInNewTab ? "_blank" : undefined}
