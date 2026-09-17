@@ -800,7 +800,7 @@ export function GroupedVariableList({
                                     className="variable-list__group-more"
                                     onClick={() =>
                                         onSearchValue(
-                                            `${searchValue} dataset:${group.shortName}`
+                                            `${searchValue} datasetid:${group.id}`
                                         )
                                     }
                                 >

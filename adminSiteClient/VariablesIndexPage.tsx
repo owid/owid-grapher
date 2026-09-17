@@ -40,6 +40,11 @@ const SEARCH_FIELDS: SearchFieldHelp[] = [
     },
     { name: "version", type: "string", description: "Version segment" },
     { name: "dataset", type: "string", description: "Dataset segment" },
+    {
+        name: "datasetid",
+        type: "number",
+        description: "Exactly one dataset, by id",
+    },
     { name: "table", type: "string", description: "Table segment" },
     { name: "short", type: "string", description: "Indicator short name" },
     {
@@ -87,7 +92,7 @@ export function VariablesIndexPage(): React.ReactElement {
     // dataset — where a group's "more in this dataset" lands — since grouping
     // a single group would just cap it at five again.
     const isSearch = debouncedSearch.trim().length > 0
-    const isGrouped = !/\bdataset:/.test(debouncedSearch)
+    const isGrouped = !/\bdataset(id)?:/.test(debouncedSearch)
 
     const onSearchValue = useCallback(
         (value: string) => {

@@ -172,8 +172,16 @@ export async function getVariablesJson(
         .filter((id): id is number => id !== undefined)
     if (ids?.length) return { variables: await getVariablesByIds(ids, trx) }
 
-    const limit = parseIntOrUndefined(req.query.limit as string) ?? 50
-    const offset = parseIntOrUndefined(req.query.offset as string) ?? 0
+    // Clamped, not just parsed: a negative number survives `parseIntOrUndefined`
+    // and `LIMIT -1` is a syntax error, so a hand-edited URL would be a 500.
+    const limit = Math.max(
+        0,
+        parseIntOrUndefined(req.query.limit as string) ?? 50
+    )
+    const offset = Math.max(
+        0,
+        parseIntOrUndefined(req.query.offset as string) ?? 0
+    )
     const query = req.query.search as string
     // Datasets the caller wants on the first page whatever their ranking —
     // the ones a chart already draws from

@@ -30,14 +30,6 @@ $admin-section: "section:not(:where(.GrapherComponent *))";
 @import "../packages/@ourworldindata/components/src/styles/typography-constants.scss";
 @import "../packages/@ourworldindata/components/src/styles/typography.scss";
 
-<<<<<<< HEAD
-||||||| parent of 735bc62fb6 (🎉🤖 rebuild the indicators list on a server-side search)
-@import "./AdminTable.scss";
-@import "./VariableList.scss";
-=======
-@import "./AdminTable.scss";
-@import "./VariableList.scss";
->>>>>>> 735bc62fb6 (🎉🤖 rebuild the indicators list on a server-side search)
 @import "./GdocsIndexPage.scss";
 @import "./FeaturedMetricsPage.scss";
 @import "./FilesIndexPage.scss";
@@ -50,6 +42,7 @@ $admin-section: "section:not(:where(.GrapherComponent *))";
 @import "./slideshows/SlideshowAdmin.scss";
 @import "./GdocsReferencePage.scss";
 @import "./AdminTable.scss";
+@import "./VariableList.scss";
 // Slide content styles reused for slideshow preview
 @import "../site/slideshows/SlideContent.scss";
 @import "./SvgTesterSuitePage.scss";

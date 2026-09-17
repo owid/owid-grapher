@@ -22,11 +22,27 @@ describe(canUseFulltext, () => {
         expect(canUseFulltext("where")).toBe(false)
     })
 
+    it("splits a term the way MySQL's tokenizer would", () => {
+        // handed whole, `+age-standardized*` reads as "age but NOT
+        // standardized" and matched none of the 5,751 rows it should
+        expect(canUseFulltext("age-standardized")).toBe(true)
+        expect(canUseFulltext("grapher/who")).toBe(true)
+        expect(canUseFulltext("covid-19")).toBe(true)
+    })
+
+    it("has no usable token when every word is one the index drops", () => {
+        expect(canUseFulltext("who-is")).toBe(false)
+        expect(canUseFulltext("a-b")).toBe(false)
+        expect(canUseFulltext("19")).toBe(false)
+    })
+
     it("rejects terms carrying regex syntax, which the search box advertises", () => {
         expect(canUseFulltext("^population")).toBe(false)
         expect(canUseFulltext("deaths$")).toBe(false)
         expect(canUseFulltext("co(2|₂)")).toBe(false)
         expect(canUseFulltext("gdp.*capita")).toBe(false)
+        // alternation makes the words alternatives, so neither is required
+        expect(canUseFulltext("deaths|births")).toBe(false)
     })
 
     it("is decided per term, so a term means the same whatever surrounds it", () => {

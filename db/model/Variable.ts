@@ -6,6 +6,7 @@ import {
     omitUndefinedValues,
     mergeGrapherConfigs,
     getOwidDataFetchUserAgent,
+    parseIntOrUndefined,
 } from "@ourworldindata/utils"
 import {
     getVariableDataRoute,
@@ -1376,7 +1377,7 @@ const buildWhereClauses = (query: string): string[] => {
         // Same trade as free text: the value matches from the start of a word
         // rather than anywhere inside one.
         const alsoIndex = (value: string): void => {
-            if (not === " " && canUseFulltext(value)) fulltextTerms.push(value)
+            if (not === " ") fulltextTerms.push(...fulltextTokens(value))
         }
 
         if (part.startsWith("name:")) {
@@ -1418,6 +1419,14 @@ const buildWhereClauses = (query: string): string[] => {
                     `${not} REGEXP_LIKE(${catalogPathSegment(3)}, ${escape(q)}, 'i')`
                 )
             }
+        } else if (part.startsWith("datasetid:")) {
+            // Exact, for the "more in this dataset" link: 78 groups of active
+            // datasets share a shortName, so `dataset:` alone would widen the
+            // list to another dataset's indicators and disagree with the count
+            // the link was offering.
+            const id = parseIntOrUndefined(part.substring("datasetid:".length))
+            if (id !== undefined)
+                whereClauses.push(`${not} d.id = ${escape(id)}`)
         } else if (part.startsWith("dataset:")) {
             const q = part.substring("dataset:".length)
             if (q) {
@@ -1466,27 +1475,26 @@ const buildWhereClauses = (query: string): string[] => {
         } else if (part === "is:private") {
             whereClauses.push(`${not} d.isPrivate`)
         } else if (part) {
-            // Plain text, the common case: matched against the name and the
-            // catalog path through the full-text index when it can be, and as
-            // a substring regex when it can't — see `classifyFreeTextTerm`.
-            if (not === "NOT " || !canUseFulltext(part))
-                whereClauses.push(
-                    `${not} (REGEXP_LIKE(v.name, ${escape(
-                        part
-                    )}, 'i') OR REGEXP_LIKE(v.catalogPath, ${escape(
-                        part
-                    )}, 'i'))`
-                )
-            else fulltextTerms.push(part)
+            // Plain text, the common case: a substring regex over the name and
+            // the catalog path, with the index narrowing to the rows worth
+            // running it on.
+            whereClauses.push(
+                `${not} (REGEXP_LIKE(v.name, ${escape(
+                    part
+                )}, 'i') OR REGEXP_LIKE(v.catalogPath, ${escape(part)}, 'i'))`
+            )
+            alsoIndex(part)
         }
     }
 
     if (fulltextTerms.length > 0)
         whereClauses.push(
             `MATCH(v.name, v.catalogPath) AGAINST(${escape(
-                // every term required, each matching from its start so that a
+                // every token required, each matching from its start so that a
                 // half-typed word still narrows
-                fulltextTerms.map((term) => `+${term}*`).join(" ")
+                _.uniq(fulltextTerms)
+                    .map((token) => `+${token}*`)
+                    .join(" ")
             )} IN BOOLEAN MODE)`
         )
 
@@ -1544,22 +1552,49 @@ const FULLTEXT_STOPWORDS = new Set([
     "www",
 ])
 
+/** Regular-expression syntax, which the search box advertises and supports. */
+const REGEX_SYNTAX = /[\\^$.|?*+()[\]{}]/
+
+/** Everything MySQL's tokenizer treats as a word boundary. `_` is not one. */
+const TOKEN_SEPARATOR = /[^\p{L}\p{N}_]+/u
+
 /**
- * Whether a plain-text term can go through the full-text index.
+ * The words to require through the full-text index for a search term.
  *
- * It can't when it is shorter than the index's minimum token length, when it
- * is one of MySQL's stopwords, or when it carries regular-expression syntax —
- * the search box advertises regexes and they have to keep working. Those terms
- * stay a substring scan, which is what every term used to be.
+ * A term is a regex over the whole string, but the index stores words and
+ * boolean mode reads punctuation as operators. Handed a term whole,
+ * `age-standardized` becomes `+age-standardized*`, which MySQL reads as "must
+ * contain age, must NOT contain standardized" — it matched none of the rows it
+ * should. Splitting the term and requiring each usable word instead narrows to
+ * a superset that the regex then filters exactly.
  *
- * Deciding this per term rather than per query matters: a term means the same
- * thing however much of the rest of the query you have typed, so adding a word
- * never re-interprets the words already there.
+ * Words the index doesn't hold are simply left out, so `covid-19` narrows on
+ * `covid` and `grapher/who` on `grapher`. A term carrying regex syntax yields
+ * nothing: alternation makes its words alternatives rather than requirements,
+ * so `deaths|births` must not be turned into "both".
+ */
+function fulltextTokens(term: string): string[] {
+    if (REGEX_SYNTAX.test(term)) return []
+    return term
+        .split(TOKEN_SEPARATOR)
+        .filter(
+            (token) =>
+                token.length >= FULLTEXT_MIN_TERM_LENGTH &&
+                !FULLTEXT_STOPWORDS.has(token.toLowerCase())
+        )
+}
+
+/**
+ * Whether the index can narrow this term at all. When it can't — the term is
+ * too short, a stopword, or a regex — the term is matched by scanning, which
+ * is what every term used to be, and the list says so.
+ *
+ * Decided per term rather than per query: a term means the same thing however
+ * much of the rest of the query you have typed, so adding a word never
+ * re-interprets the words already there.
  */
 export function canUseFulltext(term: string): boolean {
-    if (term.length < FULLTEXT_MIN_TERM_LENGTH) return false
-    if (FULLTEXT_STOPWORDS.has(term.toLowerCase())) return false
-    return !/[\\^$.|?*+()[\]{}]/.test(term)
+    return fulltextTokens(term).length > 0
 }
 
 /** The terms in a query that have to fall back to a substring scan. */
