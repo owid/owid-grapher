@@ -1,19 +1,44 @@
 import * as React from "react"
-import { observer } from "mobx-react"
-import { Popover } from "antd"
+import { useContext, useMemo } from "react"
+import { useQuery } from "@tanstack/react-query"
+import {
+    Alert,
+    Button,
+    Checkbox,
+    Popover,
+    Spin,
+    TableColumnsType,
+    TableProps,
+    Tooltip,
+} from "antd"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faEyeSlash, faLock } from "@fortawesome/free-solid-svg-icons"
 
 import { Link } from "./Link.js"
-import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
+import { AdminAppContext } from "./AdminAppContext.js"
 import { Timeago } from "./Forms.js"
+import {
+    AdminTable,
+    AdminTableSearch,
+    AdminTableToolbar,
+} from "./AdminTable.js"
+import {
+    buildRegexFromSearchWord,
+    highlightFunctionForSearchWords,
+    SearchWord,
+} from "../adminShared/search.js"
+import { SearchHighlighter } from "./adminTableHelpers.js"
+import {
+    parseSearchQuery,
+    toggleSearchTerm,
+} from "../adminShared/searchFilter.js"
 
 export interface VariableListItem {
     id: number
     name: string
-    namespace?: string
-    version?: string
-    dataset?: string
-    table?: string
-    shortName?: string
+    catalogPath?: string
+    datasetId?: number
+    datasetName?: string
     uploadedAt?: Date
     uploadedBy?: string
     isPrivate?: boolean
@@ -22,36 +47,93 @@ export interface VariableListItem {
     usageCount?: number
     multiDims?: { id: number; slug: string }[]
     explorerSlugs?: string[]
+    /** 0-1, from the analytics service. Absent for indicators nobody reads. */
+    popularity?: number | null
 }
 
-interface VariableRowProps {
-    variable: VariableListItem
-    fields: string[]
-    searchHighlight?: (text: string) => string | React.ReactElement
-}
+/** Columns beyond the always-present name, in the order they are shown. */
+export type VariableListField =
+    | "catalogPath"
+    | "uploadedAt"
+    | "usage"
+    | "popularity"
 
-interface ChartItem {
+export interface DatasetSearchGroup {
     id: number
-    slug: string | null
-    title: string | null
+    name: string
+    namespace: string
+    version: string | null
+    shortName: string | null
+    matchCount: number
+    uploadedAt?: Date
+    uploadedBy?: string | null
+    variables: VariableListItem[]
+    /**
+     * Shown because the chart already uses these indicators rather than
+     * because they match the search, so the group has no match count.
+     */
+    pinned?: boolean
+    /**
+     * The caller pages through these indicators itself, so the group holds
+     * one page of them and offers no "more in this dataset" link.
+     */
+    paged?: boolean
 }
 
-const ChartListPopoverContent = ({ charts }: { charts: ChartItem[] }) => {
-    const sortedCharts = React.useMemo(() => {
-        return charts.toSorted((a, b) =>
-            (a.slug || "").localeCompare(b.slug || "")
-        )
-    }, [charts])
+interface VariableListProps {
+    variables: VariableListItem[]
+    fields: VariableListField[]
+    /** Terms to highlight in the name and catalog path. */
+    searchWords?: SearchWord[]
+    search?: AdminTableSearch
+    /** Extra controls shown next to the search box. */
+    filters?: React.ReactNode
+    loading?: boolean
+    /**
+     * Sorting sorts the rows the table was handed, so it is only meaningful
+     * for a list that holds all of them — a server-paginated list would
+     * silently sort the current page alone.
+     */
+    sortable?: boolean
+    pagination?: TableProps<VariableListItem>["pagination"]
+    /**
+     * Turns each row into a checkbox rather than a link to the indicator —
+     * what the chart editor's picker needs once a search has narrowed to one
+     * dataset and grouping has nothing left to group.
+     */
+    selection?: IndicatorSelection
+}
 
-    return (
-        <ul
-            className="list-unstyled mb-0"
-            style={{
-                maxHeight: "80vh",
-                overflowY: "auto",
-            }}
-        >
-            {sortedCharts.map((chart) => (
+function plural(count: number, noun: string): string {
+    return `${count} ${noun}${count === 1 ? "" : "s"}`
+}
+
+/**
+ * What uses this indicator, naming each kind rather than counting the kinds
+ * that are almost always zero. Hovering lists what they are.
+ */
+function UsageCell({
+    variable,
+    withPopularity,
+}: {
+    variable: VariableListItem
+    /** Shown after the counts, where a column of its own was mostly blank. */
+    withPopularity?: boolean
+}): React.ReactElement {
+    const charts = variable.charts ?? []
+    const multiDims = variable.multiDims ?? []
+    const explorerSlugs = variable.explorerSlugs ?? []
+
+    const sortedCharts = charts.toSorted((a, b) =>
+        (a.slug || "").localeCompare(b.slug || "")
+    )
+
+    const parts: { key: string; label: string; items: React.ReactNode }[] = []
+    if (charts.length)
+        parts.push({
+            key: "charts",
+            label: plural(charts.length, "chart"),
+            items: sortedCharts.map((chart) => (
                 <li key={chart.id}>
                     <a
                         href={`/admin/charts/${chart.id}/edit`}
@@ -60,281 +142,687 @@ const ChartListPopoverContent = ({ charts }: { charts: ChartItem[] }) => {
                         {chart.slug || `Chart #${chart.id}`}
                     </a>
                 </li>
+            )),
+        })
+    if (multiDims.length)
+        parts.push({
+            key: "multiDims",
+            label: plural(multiDims.length, "multi-dim"),
+            items: multiDims.map((multiDim) => (
+                <li key={multiDim.id}>
+                    <a href={`/admin/multi-dims/${multiDim.id}`}>
+                        {multiDim.slug}
+                    </a>
+                </li>
+            )),
+        })
+    if (explorerSlugs.length)
+        parts.push({
+            key: "explorers",
+            label: plural(explorerSlugs.length, "explorer"),
+            items: explorerSlugs.map((slug) => (
+                <li key={slug}>
+                    <a href={`/admin/explorers/${slug}`}>{slug}</a>
+                </li>
+            )),
+        })
+
+    const popularity = withPopularity ? (
+        <PopularityCell popularity={variable.popularity} inline />
+    ) : null
+
+    if (!parts.length)
+        return (
+            <>
+                <span className="text-muted">—</span>
+                {popularity}
+            </>
+        )
+
+    return (
+        <>
+            {parts.map((part, index) => (
+                <React.Fragment key={part.key}>
+                    {index > 0 && (
+                        <span className="variable-list__usage-separator">
+                            ·
+                        </span>
+                    )}
+                    <Popover
+                        title={part.label}
+                        content={
+                            <ul className="list-unstyled mb-0 variable-list__usage-popover">
+                                {part.items}
+                            </ul>
+                        }
+                    >
+                        <span className="variable-list__usage-part">
+                            {part.label}
+                        </span>
+                    </Popover>
+                </React.Fragment>
             ))}
-        </ul>
+            {popularity}
+        </>
     )
 }
 
-@observer
-class VariableRow extends React.Component<VariableRowProps> {
-    static override contextType = AdminAppContext
-    declare context: AdminAppContextType
+/** A 0-1 score reads better against its neighbours than as a number. */
+function PopularityCell({
+    popularity,
+    inline,
+}: {
+    popularity: number | null | undefined
+    inline?: boolean
+}): React.ReactElement | null {
+    if (popularity === null || popularity === undefined)
+        return inline ? null : <span className="text-muted">—</span>
+    return (
+        <Tooltip title={`Popularity ${popularity.toFixed(2)}`}>
+            <div
+                className={
+                    inline
+                        ? "variable-list__popularity variable-list__popularity--inline"
+                        : "variable-list__popularity"
+                }
+            >
+                <div
+                    className="variable-list__popularity-fill"
+                    style={{ width: `${Math.round(popularity * 100)}%` }}
+                />
+            </div>
+        </Tooltip>
+    )
+}
 
-    override render() {
-        const { variable, fields, searchHighlight } = this.props
-        const charts = variable.charts ?? []
-        const chartsCount = charts.length
-        const multiDimCount = variable.multiDims?.length ?? 0
-        const explorersCount = variable.explorerSlugs?.length ?? 0
+/**
+ * The path is highlighted a segment at a time, so a term spanning a separator
+ * — `ihme_gbd/2026-02-07`, the kind you get from pasting part of a path —
+ * would match none of them. Splitting the term the same way the path is split
+ * highlights every segment it covers.
+ */
+function pathSearchWords(searchWords: SearchWord[]): SearchWord[] {
+    return searchWords.flatMap((searchWord) =>
+        searchWord.word
+            .split(/[/#]/)
+            .filter(Boolean)
+            .map((part) => ({
+                ...searchWord,
+                word: part,
+                regex: buildRegexFromSearchWord(part),
+            }))
+    )
+}
 
-        return (
-            <tr>
-                <td>
-                    {variable.nonRedistributable ? (
-                        <span className="text-secondary">
-                            Non-redistributable:{" "}
-                        </span>
-                    ) : variable.isPrivate ? (
-                        <span className="text-secondary">Unpublished: </span>
-                    ) : (
-                        ""
-                    )}
-                    <Link to={`/variables/${variable.id}`}>
-                        {searchHighlight
-                            ? searchHighlight(variable.name)
-                            : variable.name}
-                    </Link>
-                </td>
-                {fields.includes("namespace") && <td>{variable.namespace}</td>}
-                {fields.includes("version") && <td>{variable.version}</td>}
-                {fields.includes("dataset") && <td>{variable.dataset}</td>}
-                {fields.includes("table") && (
-                    <td>
-                        {
-                            // Some table are very long, truncate them
-                            variable.table && variable.table.length > 20
-                                ? variable.table.substring(0, 20) + "..."
-                                : variable.table
-                        }
-                    </td>
-                )}
-                {fields.includes("shortName") && (
-                    <td>
-                        {
-                            // Some "short names" are very long, so truncate them
-                            variable.shortName && variable.shortName.length > 20
-                                ? variable.shortName.substring(0, 20) + "..."
-                                : variable.shortName
-                        }
-                    </td>
-                )}
-                {fields.includes("uploadedAt") && (
-                    <td>
+const SHORT_NAME_VISIBLE_LENGTH = 22
+
+/**
+ * Indicator short names run past 60 characters and what tells them apart sits
+ * at the end, so cut the middle rather than the tail. When the search matched
+ * inside the name, cut around the match instead, so what you searched for is
+ * what you see.
+ */
+function elideShortName(shortName: string, searchWords: SearchWord[]): string {
+    if (shortName.length <= SHORT_NAME_VISIBLE_LENGTH) return shortName
+
+    const match = searchWords
+        .filter((word) => !word.exclude)
+        .map((word) => shortName.search(word.regex))
+        .filter((index) => index >= 0)
+        .sort((a, b) => a - b)[0]
+
+    if (match === undefined)
+        return `${shortName.slice(0, 11)}…${shortName.slice(-10)}`
+
+    const start = Math.max(0, match - 6)
+    const end = Math.min(shortName.length, start + SHORT_NAME_VISIBLE_LENGTH)
+    return `${start > 0 ? "…" : ""}${shortName.slice(start, end)}${
+        end < shortName.length ? "…" : ""
+    }`
+}
+
+/**
+ * The catalog path, which is what the namespace / version / dataset / table /
+ * short name columns were each showing a slice of. The dataset segment links
+ * to the dataset, saving a hop through the indicator page.
+ */
+function CatalogPathCell({
+    variable,
+    searchWords,
+}: {
+    variable: VariableListItem
+    searchWords: SearchWord[]
+}): React.ReactElement {
+    const { catalogPath, datasetId } = variable
+    if (!catalogPath) return <span className="text-muted">—</span>
+
+    const words = pathSearchWords(searchWords)
+    const highlight = highlightFunctionForSearchWords(words)
+
+    // `grapher/` is on every row, so it is only noise here
+    const [path, shortName] = catalogPath
+        .replace(/^grapher\//, "")
+        .split("#") as [string, string | undefined]
+    const [namespace, version, dataset, ...rest] = path.split("/")
+    const table = rest.join("/")
+
+    const slash = <span className="variable-list__path-slash">/</span>
+
+    return (
+        <span className="variable-list__path" title={catalogPath}>
+            {highlight(namespace)}
+            {slash}
+            {highlight(version)}
+            {slash}
+            {datasetId ? (
+                <Link
+                    to={`/datasets/${datasetId}`}
+                    title={variable.datasetName}
+                >
+                    {highlight(dataset)}
+                </Link>
+            ) : (
+                highlight(dataset)
+            )}
+            {table && (
+                <>
+                    {slash}
+                    {highlight(table)}
+                </>
+            )}
+            {shortName && (
+                <span className="variable-list__path-short">
+                    #{highlight(elideShortName(shortName, words))}
+                </span>
+            )}
+        </span>
+    )
+}
+
+/**
+ * Relative column widths, turned into percentages over whatever columns a page
+ * asks for. Percentages rather than pixels so the table always fills its
+ * container exactly: at any window width it fits, with no sideways scrolling,
+ * and no column collapses to nothing when the others no longer fit.
+ */
+const COLUMN_WEIGHTS: Record<VariableListField | "name", number> = {
+    name: 35,
+    catalogPath: 35,
+    // "3 charts" is what this says on almost every row; the rare row that also
+    // names a multi-dim and an explorer wraps rather than taxing all the rest
+    usage: 10,
+    popularity: 7,
+    uploadedAt: 13,
+}
+
+function columnWidths(
+    fields: VariableListField[]
+): Record<VariableListField | "name", string> {
+    const shown: (VariableListField | "name")[] = ["name", ...fields]
+    const total = shown.reduce((sum, key) => sum + COLUMN_WEIGHTS[key], 0)
+    return Object.fromEntries(
+        shown.map((key) => [
+            key,
+            `${((COLUMN_WEIGHTS[key] / total) * 100).toFixed(2)}%`,
+        ])
+    ) as Record<VariableListField | "name", string>
+}
+
+function createColumns({
+    fields,
+    highlight,
+    searchWords,
+    sortable,
+    selection,
+}: {
+    fields: VariableListField[]
+    highlight: SearchHighlighter
+    searchWords: SearchWord[]
+    sortable: boolean
+    selection?: IndicatorSelection
+}): TableColumnsType<VariableListItem> {
+    const width = columnWidths(fields)
+    const columnsByField: Record<
+        VariableListField,
+        TableColumnsType<VariableListItem>[number]
+    > = {
+        catalogPath: {
+            width: width.catalogPath,
+            title: "Catalog path",
+            dataIndex: "catalogPath",
+            key: "catalogPath",
+            sorter:
+                sortable &&
+                ((a, b) =>
+                    (a.catalogPath ?? "").localeCompare(b.catalogPath ?? "")),
+            render: (_, variable) => (
+                <CatalogPathCell
+                    variable={variable}
+                    searchWords={searchWords}
+                />
+            ),
+        },
+        uploadedAt: {
+            width: width.uploadedAt,
+            title: "Uploaded",
+            dataIndex: "uploadedAt",
+            key: "uploadedAt",
+            sorter:
+                sortable &&
+                ((a, b) =>
+                    new Date(a.uploadedAt ?? 0).getTime() -
+                    new Date(b.uploadedAt ?? 0).getTime()),
+            render: (uploadedAt, variable) => (
+                <Timeago
+                    time={uploadedAt}
+                    by={variable.uploadedBy ?? "Bulk import"}
+                />
+            ),
+        },
+        usage: {
+            width: width.usage,
+            title: "Used in",
+            dataIndex: "usageCount",
+            key: "usage",
+            sorter:
+                sortable &&
+                ((a, b) => (a.usageCount ?? 0) - (b.usageCount ?? 0)),
+            render: (_, variable) => (
+                <UsageCell
+                    variable={variable}
+                    // no column of its own to go in
+                    withPopularity={!fields.includes("popularity")}
+                />
+            ),
+        },
+        popularity: {
+            width: width.popularity,
+            title: "Popularity",
+            dataIndex: "popularity",
+            key: "popularity",
+            sorter:
+                sortable &&
+                ((a, b) => (a.popularity ?? 0) - (b.popularity ?? 0)),
+            render: (popularity) => <PopularityCell popularity={popularity} />,
+        },
+    }
+
+    return [
+        {
+            width: width.name,
+            title: "Name",
+            dataIndex: "name",
+            key: "name",
+            sorter: sortable && ((a, b) => a.name.localeCompare(b.name)),
+            render: (name, variable) =>
+                selection ? (
+                    <Checkbox
+                        checked={selection.selectedIds.has(variable.id)}
+                        onChange={() => selection.onToggle(variable)}
+                    >
+                        {highlight(name)}
+                        {variable.nonRedistributable ? (
+                            <Tooltip title="Non-redistributable — the data download is disabled on charts using it">
+                                <FontAwesomeIcon
+                                    className="variable-list__flag variable-list__flag--after"
+                                    icon={faLock}
+                                />
+                            </Tooltip>
+                        ) : null}
+                    </Checkbox>
+                ) : (
+                    <>
+                        {variable.nonRedistributable ? (
+                            <Tooltip title="Non-redistributable — the data download is disabled on charts using it">
+                                <FontAwesomeIcon
+                                    className="variable-list__flag"
+                                    icon={faLock}
+                                />
+                            </Tooltip>
+                        ) : variable.isPrivate ? (
+                            <Tooltip title="Unpublished — its dataset is private">
+                                <FontAwesomeIcon
+                                    className="variable-list__flag"
+                                    icon={faEyeSlash}
+                                />
+                            </Tooltip>
+                        ) : null}
+                        <Link to={`/variables/${variable.id}`}>
+                            {highlight(name)}
+                        </Link>
+                    </>
+                ),
+        },
+        ...fields.map((field) => columnsByField[field]),
+    ]
+}
+
+const NO_SEARCH_WORDS: SearchWord[] = []
+
+export function VariableList({
+    variables,
+    fields,
+    searchWords = NO_SEARCH_WORDS,
+    search,
+    filters,
+    loading,
+    sortable = true,
+    pagination,
+    selection,
+}: VariableListProps): React.ReactElement {
+    const columns = useMemo(() => {
+        const highlight = highlightFunctionForSearchWords(searchWords)
+        return createColumns({
+            fields,
+            highlight,
+            searchWords,
+            sortable,
+            selection,
+        })
+    }, [fields, searchWords, sortable, selection])
+
+    return (
+        <AdminTable
+            columns={columns}
+            dataSource={variables}
+            loading={loading}
+            search={search}
+            filters={filters}
+            entityName="indicators"
+            pagination={pagination}
+        />
+    )
+}
+
+function DatasetGroupHeader({
+    group,
+    highlight,
+    isSearch,
+}: {
+    group: DatasetSearchGroup
+    highlight: SearchHighlighter
+    isSearch: boolean
+}): React.ReactElement {
+    const path = [group.namespace, group.version, group.shortName]
+        .filter(Boolean)
+        .join("/")
+    return (
+        <div className="variable-list__group">
+            {group.id > 0 ? (
+                <Link
+                    className="variable-list__group-name"
+                    to={`/datasets/${group.id}`}
+                >
+                    {highlight(group.name)}
+                </Link>
+            ) : (
+                <span className="variable-list__group-name">{group.name}</span>
+            )}
+            {path && <span className="variable-list__group-path">{path}</span>}
+            <span className="variable-list__group-meta">
+                {group.pinned
+                    ? "used by this chart"
+                    : plural(
+                          group.matchCount,
+                          isSearch ? "matching indicator" : "indicator"
+                      )}
+                {group.uploadedAt && (
+                    <>
+                        {" · "}
                         <Timeago
-                            time={variable.uploadedAt}
-                            by={variable.uploadedBy ?? "Bulk import"}
+                            time={group.uploadedAt}
+                            by={group.uploadedBy ?? "Bulk import"}
                         />
-                    </td>
+                    </>
                 )}
-                {fields.includes("usage") && (
-                    <td>
-                        {(variable.usageCount ?? 0) > 0 ? (
-                            <>
-                                {variable.usageCount} (
-                                {chartsCount > 0 ? (
-                                    <Popover
-                                        title={`Used in ${chartsCount} ${
-                                            chartsCount === 1
-                                                ? "chart"
-                                                : "charts"
-                                        }`}
-                                        content={
-                                            <ChartListPopoverContent
-                                                charts={charts}
-                                            />
-                                        }
-                                    >
-                                        <span
-                                            style={{ cursor: "help" }}
-                                            className="text-decoration-underline"
-                                        >
-                                            {chartsCount}C
-                                        </span>
-                                    </Popover>
-                                ) : (
-                                    <span
-                                        title={`Used in ${chartsCount} ${
-                                            chartsCount === 1
-                                                ? "chart"
-                                                : "charts"
-                                        }`}
-                                    >
-                                        {chartsCount}C
-                                    </span>
-                                )}{" "}
-                                {multiDimCount > 0 ? (
-                                    <Popover
-                                        title={`Used in ${multiDimCount} ${
-                                            multiDimCount === 1
-                                                ? "multi-dim"
-                                                : "multi-dims"
-                                        }`}
-                                        content={
-                                            <ul className="list-unstyled mb-0">
-                                                {variable.multiDims!.map(
-                                                    (md) => (
-                                                        <li key={md.id}>
-                                                            <a
-                                                                href={`/admin/multi-dims/${md.id}`}
-                                                            >
-                                                                {md.slug}
-                                                            </a>
-                                                        </li>
-                                                    )
-                                                )}
-                                            </ul>
-                                        }
-                                    >
-                                        <span
-                                            style={{ cursor: "help" }}
-                                            className="text-decoration-underline"
-                                        >
-                                            {multiDimCount}M
-                                        </span>
-                                    </Popover>
-                                ) : (
-                                    <span
-                                        title={`Used in ${multiDimCount} ${
-                                            multiDimCount === 1
-                                                ? "multi-dim"
-                                                : "multi-dims"
-                                        }`}
-                                    >
-                                        {multiDimCount}M
-                                    </span>
-                                )}{" "}
-                                {explorersCount > 0 ? (
-                                    <Popover
-                                        title={`Used in ${explorersCount} path-based ${
-                                            explorersCount === 1
-                                                ? "explorer"
-                                                : "explorers"
-                                        }`}
-                                        content={
-                                            <ul className="list-unstyled mb-0">
-                                                {variable.explorerSlugs!.map(
-                                                    (slug) => (
-                                                        <li key={slug}>
-                                                            <a
-                                                                href={`/admin/explorers/${slug}`}
-                                                            >
-                                                                {slug}
-                                                            </a>
-                                                        </li>
-                                                    )
-                                                )}
-                                            </ul>
-                                        }
-                                    >
-                                        <span
-                                            style={{ cursor: "help" }}
-                                            className="text-decoration-underline"
-                                        >
-                                            {explorersCount}E
-                                        </span>
-                                    </Popover>
-                                ) : (
-                                    <span
-                                        title={`Used in ${explorersCount} path-based ${
-                                            explorersCount === 1
-                                                ? "explorer"
-                                                : "explorers"
-                                        }`}
-                                    >
-                                        {explorersCount}E
-                                    </span>
-                                )}
-                                )
-                            </>
-                        ) : (
-                            <span className="text-muted">—</span>
-                        )}
-                    </td>
-                )}
-            </tr>
-        )
-    }
+            </span>
+        </div>
+    )
 }
 
-export type VariableListSortField = "usageCount"
-export interface VariableListSortConfig {
-    field: VariableListSortField
-    direction: "asc" | "desc"
-}
+/**
+ * A `field:value` term matches exactly and silently, so a search that mixes
+ * one with free text can come back empty without saying which half is to
+ * blame — `namespace:climate civil` finds nothing because "civil" lives in
+ * `democracy`. Says how much the search finds without its fielded terms, and
+ * offers to drop them.
+ */
+function EmptySearchHint({
+    searchValue,
+    onSearchValue,
+}: {
+    searchValue: string
+    onSearchValue: (value: string) => void
+}): React.ReactElement | null {
+    const { admin } = useContext(AdminAppContext)
 
-interface VariableListProps {
-    variables: VariableListItem[]
-    fields: string[]
-    searchHighlight?: (text: string) => string | React.ReactElement
-    sortConfig?: VariableListSortConfig | null
-    onSort?: (config: VariableListSortConfig | null) => void
-}
+    const fielded = useMemo(
+        () =>
+            parseSearchQuery(searchValue)
+                .filter((token) => token.field)
+                .map((token) => token.raw),
+        [searchValue]
+    )
+    const widened = useMemo(
+        () =>
+            fielded.reduce(
+                (query, term) => toggleSearchTerm(query, term, false),
+                searchValue
+            ),
+        [searchValue, fielded]
+    )
 
-@observer
-export class VariableList extends React.Component<VariableListProps> {
-    static override contextType = AdminAppContext
-    declare context: AdminAppContextType
+    const { data } = useQuery({
+        queryKey: ["variable-search-widened", widened],
+        queryFn: () =>
+            admin.getJSONInBackground<{
+                numTotalDatasets: number
+                numTotalRows: number
+            }>("/api/variables.json", {
+                search: widened,
+                group: "dataset",
+                limit: 1,
+                offset: 0,
+            }),
+        enabled: fielded.length > 0 && widened.trim().length > 0,
+    })
 
-    renderSortableHeader(field: VariableListSortField, label: string) {
-        const { sortConfig, onSort } = this.props
-        if (!onSort) return <th>{label}</th>
-        const indicator =
-            sortConfig?.field === field
-                ? sortConfig.direction === "desc"
-                    ? " ↓"
-                    : " ↑"
-                : ""
-        const handleClick = () => {
-            if (!sortConfig || sortConfig.field !== field) {
-                onSort({ field, direction: "desc" })
-            } else if (sortConfig.direction === "desc") {
-                onSort({ field, direction: "asc" })
-            } else {
-                onSort(null)
-            }
-        }
-        return (
-            <th style={{ cursor: "pointer" }} onClick={handleClick}>
-                {label}
-                {indicator}
-            </th>
-        )
-    }
+    if (fielded.length === 0 || !data?.numTotalRows) return null
 
-    override render() {
-        const { props } = this
-        return (
-            <table className="table table-bordered">
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        {props.fields.includes("namespace") && (
-                            <th>Namespace</th>
-                        )}
-                        {props.fields.includes("version") && <th>Version</th>}
-                        {props.fields.includes("dataset") && <th>Dataset</th>}
-                        {props.fields.includes("table") && <th>Table</th>}
-                        {props.fields.includes("shortName") && (
-                            <th>Short name</th>
-                        )}
-                        {props.fields.includes("uploadedAt") && (
-                            <th>Uploaded</th>
-                        )}
-                        {props.fields.includes("usage") &&
-                            this.renderSortableHeader("usageCount", "Usage")}
-                    </tr>
-                </thead>
-                <tbody>
-                    {props.variables.map((variable) => (
-                        <VariableRow
-                            key={variable.id}
-                            fields={this.props.fields}
-                            variable={variable}
-                            searchHighlight={props.searchHighlight}
-                        />
+    return (
+        <Alert
+            className="variable-list__empty-hint"
+            type="info"
+            showIcon
+            title={
+                <>
+                    Nothing matches{" "}
+                    {fielded.map((term) => (
+                        <code key={term}>{term}</code>
                     ))}
-                </tbody>
-            </table>
+                    . <b>{plural(data.numTotalRows, "indicator")}</b> in{" "}
+                    {plural(data.numTotalDatasets, "dataset")} match the rest of
+                    the search.
+                </>
+            }
+            action={
+                <Button size="small" onClick={() => onSearchValue(widened)}>
+                    Search for {`“${widened}”`}
+                </Button>
+            }
+        />
+    )
+}
+
+export interface IndicatorSelection {
+    selectedIds: Set<number>
+    onToggle: (variable: VariableListItem) => void
+}
+
+/** The indicator's own cell: a checkbox when picking, a link when browsing. */
+function IndicatorCell({
+    variable,
+    highlight,
+    selection,
+}: {
+    variable: VariableListItem
+    highlight: SearchHighlighter
+    selection?: IndicatorSelection
+}): React.ReactElement {
+    const flag = variable.nonRedistributable ? (
+        <Tooltip title="Non-redistributable — the data download is disabled on charts using it">
+            <FontAwesomeIcon
+                className={
+                    selection
+                        ? "variable-list__flag variable-list__flag--after"
+                        : "variable-list__flag"
+                }
+                icon={faLock}
+            />
+        </Tooltip>
+    ) : variable.isPrivate && !selection ? (
+        <Tooltip title="Unpublished — its dataset is private">
+            <FontAwesomeIcon
+                className="variable-list__flag"
+                icon={faEyeSlash}
+            />
+        </Tooltip>
+    ) : null
+
+    if (selection)
+        return (
+            <Checkbox
+                checked={selection.selectedIds.has(variable.id)}
+                onChange={() => selection.onToggle(variable)}
+            >
+                {highlight(variable.name)}
+                {flag}
+            </Checkbox>
         )
-    }
+
+    return (
+        <>
+            {flag}
+            <Link to={`/variables/${variable.id}`} title={variable.catalogPath}>
+                {highlight(variable.name)}
+            </Link>
+        </>
+    )
+}
+
+/**
+ * Search results grouped by the dataset they belong to. A search matches far
+ * more indicators than datasets — "road deaths" hits 831 across 12 — so the
+ * datasets are the useful thing to page through, each showing its most-read
+ * few and offering the rest as a narrower search.
+ *
+ * Written as groups of rows rather than through `AdminTable`: a table wants
+ * one flat list, so grouping through it meant a union row type, a flattening
+ * pass and a `colSpan` trick in every cell renderer. One table per group,
+ * sharing the column widths, lines up the same and says what it means.
+ */
+export function GroupedVariableList({
+    groups,
+    isSearch,
+    searchWords = NO_SEARCH_WORDS,
+    searchValue,
+    onSearchValue,
+    search,
+    loading,
+    footer,
+    selection,
+}: {
+    groups: DatasetSearchGroup[]
+    /** Groups say "matching indicators" for a search, "indicators" otherwise. */
+    isSearch: boolean
+    searchWords?: SearchWord[]
+    /** The query the groups came from, extended by the "more" links. */
+    searchValue: string
+    onSearchValue: (value: string) => void
+    search?: AdminTableSearch
+    loading?: boolean
+    footer?: React.ReactNode
+    /**
+     * Turns each row into a checkbox rather than a link to the indicator —
+     * what the chart editor's picker needs from the same results.
+     */
+    selection?: IndicatorSelection
+}): React.ReactElement {
+    const highlight = useMemo(
+        () => highlightFunctionForSearchWords(searchWords),
+        [searchWords]
+    )
+    const width = columnWidths(["usage"])
+
+    return (
+        <div className="variable-list-grouped">
+            <AdminTableToolbar search={search} />
+            <Spin spinning={!!loading}>
+                <div className="variable-list-grouped__header">
+                    <span style={{ width: width.name }}>Indicator</span>
+                    <span style={{ width: width.usage }}>Used in</span>
+                </div>
+                {groups.map((group) => (
+                    <div
+                        className="variable-list-grouped__group"
+                        key={`${group.id}-${group.namespace}-${group.version}`}
+                    >
+                        <DatasetGroupHeader
+                            group={group}
+                            highlight={highlight}
+                            isSearch={isSearch}
+                        />
+                        <table className="variable-list-grouped__table">
+                            <tbody>
+                                {group.variables.map((variable) => (
+                                    <tr key={variable.id}>
+                                        <td style={{ width: width.name }}>
+                                            <IndicatorCell
+                                                variable={variable}
+                                                highlight={highlight}
+                                                selection={selection}
+                                            />
+                                        </td>
+                                        <td style={{ width: width.usage }}>
+                                            <UsageCell
+                                                variable={variable}
+                                                withPopularity
+                                            />
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                        {!group.paged &&
+                            group.matchCount > group.variables.length && (
+                                <button
+                                    type="button"
+                                    className="variable-list__group-more"
+                                    onClick={() =>
+                                        onSearchValue(
+                                            `${searchValue} dataset:${group.shortName}`
+                                        )
+                                    }
+                                >
+                                    {group.matchCount - group.variables.length}{" "}
+                                    more in this dataset →
+                                </button>
+                            )}
+                    </div>
+                ))}
+                {groups.length === 0 && !loading && (
+                    <>
+                        <div className="variable-list-grouped__empty">
+                            No indicators match this search.
+                        </div>
+                        <EmptySearchHint
+                            searchValue={searchValue}
+                            onSearchValue={onSearchValue}
+                        />
+                    </>
+                )}
+            </Spin>
+            {footer}
+        </div>
+    )
 }

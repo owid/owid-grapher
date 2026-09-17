@@ -5,11 +5,11 @@ import {
     migrateGrapherConfigToLatestVersionAndFailOnError,
 } from "@ourworldindata/grapher"
 import {
-    DbRawVariable,
-    DbPlainDataset,
     JsonError,
     DbPlainChart,
+    DbPlainDataset,
     DbRawChartConfig,
+    DbRawVariable,
     GrapherInterface,
     OwidVariableWithSource,
     parseChartConfig,
@@ -22,7 +22,9 @@ import {
     getLatestIndicatorIdsByCatalogPath,
     getIndicatorChartConfigRecord,
     getIndicatorChartConfig,
+    getVariablesByIds,
     searchVariables,
+    searchVariablesGroupedByDataset,
     updateAllChartsThatInheritFromIndicator,
     updateAllMultiDimViewsThatInheritFromIndicator,
     updateIndicatorChartConfig,
@@ -50,6 +52,45 @@ import { Request } from "../authentication.js"
 import { HandlerResponse } from "../FunctionalRouter.js"
 import * as z from "zod"
 
+export async function getVariableDataJson(
+    req: Request,
+    _res: HandlerResponse,
+    _trx: db.KnexReadonlyTransaction
+) {
+    const variableStr = req.params.variableStr
+    if (!variableStr) throw new JsonError("No indicator id given")
+    if (variableStr.includes("+"))
+        throw new JsonError(
+            "Requesting multiple indicators at the same time is no longer supported"
+        )
+    const variableId = parseInt(variableStr)
+    if (isNaN(variableId)) throw new JsonError("Invalid indicator id")
+    return await fetchS3DataValuesByPath(
+        getVariableDataRoute(DATA_API_URL, variableId, { noCache: true })
+    )
+}
+
+export async function getVariableMetadataJson(
+    req: Request,
+    _res: HandlerResponse,
+    _trx: db.KnexReadonlyTransaction
+) {
+    const variableStr = req.params.variableStr
+    if (!variableStr) throw new JsonError("No indicator id given")
+    if (variableStr.includes("+"))
+        throw new JsonError(
+            "Requesting multiple indicators at the same time is no longer supported"
+        )
+    const variableId = parseInt(variableStr)
+    if (isNaN(variableId)) throw new JsonError("Invalid indicator id")
+    return await fetchS3MetadataByPath(
+        getVariableMetadataRoute(DATA_API_URL, variableId, { noCache: true })
+    )
+}
+
+// Still serving the chart editor's indicator picker, which downloads every
+// indicator up front. The picker moves onto `getVariablesJson` in a follow-up,
+// and this goes with it.
 export async function getEditorVariablesJson(
     req: Request,
     _res: HandlerResponse,
@@ -119,50 +160,37 @@ export async function getEditorVariablesJson(
     return { datasets: datasets }
 }
 
-export async function getVariableDataJson(
-    req: Request,
-    _res: HandlerResponse,
-    _trx: db.KnexReadonlyTransaction
-) {
-    const variableStr = req.params.variableStr
-    if (!variableStr) throw new JsonError("No indicator id given")
-    if (variableStr.includes("+"))
-        throw new JsonError(
-            "Requesting multiple indicators at the same time is no longer supported"
-        )
-    const variableId = parseInt(variableStr)
-    if (isNaN(variableId)) throw new JsonError("Invalid indicator id")
-    return await fetchS3DataValuesByPath(
-        getVariableDataRoute(DATA_API_URL, variableId, { noCache: true })
-    )
-}
-
-export async function getVariableMetadataJson(
-    req: Request,
-    _res: HandlerResponse,
-    _trx: db.KnexReadonlyTransaction
-) {
-    const variableStr = req.params.variableStr
-    if (!variableStr) throw new JsonError("No indicator id given")
-    if (variableStr.includes("+"))
-        throw new JsonError(
-            "Requesting multiple indicators at the same time is no longer supported"
-        )
-    const variableId = parseInt(variableStr)
-    if (isNaN(variableId)) throw new JsonError("Invalid indicator id")
-    return await fetchS3MetadataByPath(
-        getVariableMetadataRoute(DATA_API_URL, variableId, { noCache: true })
-    )
-}
-
 export async function getVariablesJson(
     req: Request,
     _res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
+    // A chart's own indicators, looked up by id — the picker starts from those
+    const ids = (req.query.ids as string)
+        ?.split(",")
+        .map((id) => parseIntOrUndefined(id.trim()))
+        .filter((id): id is number => id !== undefined)
+    if (ids?.length) return { variables: await getVariablesByIds(ids, trx) }
+
     const limit = parseIntOrUndefined(req.query.limit as string) ?? 50
+    const offset = parseIntOrUndefined(req.query.offset as string) ?? 0
     const query = req.query.search as string
-    return await searchVariables(query, limit, trx)
+    // Datasets the caller wants on the first page whatever their ranking —
+    // the ones a chart already draws from
+    const pinnedDatasetIds = (req.query.pinnedDatasetIds as string)
+        ?.split(",")
+        .map((id) => parseIntOrUndefined(id.trim()))
+        .filter((id): id is number => id !== undefined)
+    // The same search, paged over the datasets the matches belong to
+    if (req.query.group === "dataset")
+        return await searchVariablesGroupedByDataset(
+            query,
+            limit,
+            offset,
+            trx,
+            pinnedDatasetIds
+        )
+    return await searchVariables(query, limit, offset, trx)
 }
 
 export async function getVariablesUsagesJson(
