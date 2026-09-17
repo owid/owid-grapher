@@ -86,6 +86,12 @@ interface VariableListProps {
      */
     sortable?: boolean
     pagination?: TableProps<VariableListItem>["pagination"]
+    /**
+     * Turns each row into a checkbox rather than a link to the indicator —
+     * what the chart editor's picker needs once a search has narrowed to one
+     * dataset and grouping has nothing left to group.
+     */
+    selection?: IndicatorSelection
 }
 
 function plural(count: number, noun: string): string {
@@ -357,11 +363,13 @@ function createColumns({
     highlight,
     searchWords,
     sortable,
+    selection,
 }: {
     fields: VariableListField[]
     highlight: SearchHighlighter
     searchWords: SearchWord[]
     sortable: boolean
+    selection?: IndicatorSelection
 }): TableColumnsType<VariableListItem> {
     const width = columnWidths(fields)
     const columnsByField: Record<
@@ -409,7 +417,13 @@ function createColumns({
             sorter:
                 sortable &&
                 ((a, b) => (a.usageCount ?? 0) - (b.usageCount ?? 0)),
-            render: (_, variable) => <UsageCell variable={variable} />,
+            render: (_, variable) => (
+                <UsageCell
+                    variable={variable}
+                    // no column of its own to go in
+                    withPopularity={!fields.includes("popularity")}
+                />
+            ),
         },
         popularity: {
             width: width.popularity,
@@ -430,28 +444,44 @@ function createColumns({
             dataIndex: "name",
             key: "name",
             sorter: sortable && ((a, b) => a.name.localeCompare(b.name)),
-            render: (name, variable) => (
-                <>
-                    {variable.nonRedistributable ? (
-                        <Tooltip title="Non-redistributable — the data download is disabled on charts using it">
-                            <FontAwesomeIcon
-                                className="variable-list__flag"
-                                icon={faLock}
-                            />
-                        </Tooltip>
-                    ) : variable.isPrivate ? (
-                        <Tooltip title="Unpublished — its dataset is private">
-                            <FontAwesomeIcon
-                                className="variable-list__flag"
-                                icon={faEyeSlash}
-                            />
-                        </Tooltip>
-                    ) : null}
-                    <Link to={`/variables/${variable.id}`}>
+            render: (name, variable) =>
+                selection ? (
+                    <Checkbox
+                        checked={selection.selectedIds.has(variable.id)}
+                        onChange={() => selection.onToggle(variable)}
+                    >
                         {highlight(name)}
-                    </Link>
-                </>
-            ),
+                        {variable.nonRedistributable ? (
+                            <Tooltip title="Non-redistributable — the data download is disabled on charts using it">
+                                <FontAwesomeIcon
+                                    className="variable-list__flag variable-list__flag--after"
+                                    icon={faLock}
+                                />
+                            </Tooltip>
+                        ) : null}
+                    </Checkbox>
+                ) : (
+                    <>
+                        {variable.nonRedistributable ? (
+                            <Tooltip title="Non-redistributable — the data download is disabled on charts using it">
+                                <FontAwesomeIcon
+                                    className="variable-list__flag"
+                                    icon={faLock}
+                                />
+                            </Tooltip>
+                        ) : variable.isPrivate ? (
+                            <Tooltip title="Unpublished — its dataset is private">
+                                <FontAwesomeIcon
+                                    className="variable-list__flag"
+                                    icon={faEyeSlash}
+                                />
+                            </Tooltip>
+                        ) : null}
+                        <Link to={`/variables/${variable.id}`}>
+                            {highlight(name)}
+                        </Link>
+                    </>
+                ),
         },
         ...fields.map((field) => columnsByField[field]),
     ]
@@ -468,11 +498,18 @@ export function VariableList({
     loading,
     sortable = true,
     pagination,
+    selection,
 }: VariableListProps): React.ReactElement {
     const columns = useMemo(() => {
         const highlight = highlightFunctionForSearchWords(searchWords)
-        return createColumns({ fields, highlight, searchWords, sortable })
-    }, [fields, searchWords, sortable])
+        return createColumns({
+            fields,
+            highlight,
+            searchWords,
+            sortable,
+            selection,
+        })
+    }, [fields, searchWords, sortable, selection])
 
     return (
         <AdminTable
