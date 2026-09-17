@@ -11,7 +11,7 @@ export const BESPOKE_COMPONENT_REGISTRY: Record<
     },
     demography: {
         scriptUrl: "/demography/index.js",
-        dataUrl: "https://owid-public.owid.io/bespoke/demography",
+        dataUrl: "un_wpp/latest/demography",
         metadataFilename: "demography.metadata.json",
     },
     "food-trade": {
@@ -26,7 +26,7 @@ export const BESPOKE_COMPONENT_REGISTRY: Record<
     },
     "migrant-demographics": {
         scriptUrl: "/migrant-demographics/index.js",
-        dataUrl: "https://owid-public.owid.io/bespoke/migrant-demographics",
+        dataUrl: "un_migration/latest/migrant_demographics",
         metadataFilename: "migrant-demographics.metadata.json",
     },
 }
