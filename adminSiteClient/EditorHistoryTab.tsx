@@ -1,6 +1,6 @@
 import { Component } from "react"
 import { observer } from "mobx-react"
-import { ChartEditor, Log } from "./ChartEditor.js"
+import { Log } from "./adminChartApi.js"
 import { Timeago } from "./Forms.js"
 import { computed, observable, makeObservable } from "mobx"
 import { Modal } from "antd"
@@ -112,29 +112,24 @@ class LogRenderer extends Component<LogRendererProps> {
     }
 }
 
-@observer
-export class EditorHistoryTab extends Component<{ editor: ChartEditor }> {
-    constructor(props: { editor: ChartEditor }) {
-        super(props)
-        makeObservable(this)
-    }
-
-    @computed get logs() {
-        return this.props.editor.logs || []
-    }
-
-    override render() {
+/** The revision history of a chart in the admin database. */
+export function EditorHistoryTab({ logs }: { logs: Log[] }) {
+    if (logs.length === 0)
         return (
-            <div>
-                {this.logs.map((log, i) => (
-                    <ul key={i} className="list-group">
-                        <LogRenderer
-                            log={log}
-                            previousLog={this.logs[i + 1]} // Needed for comparison, might be undefined
-                        ></LogRenderer>
-                    </ul>
-                ))}
-            </div>
+            <p className="text-muted p-3">
+                No revisions yet. Every save of the chart adds one here.
+            </p>
         )
-    }
+    return (
+        <div>
+            {logs.map((log, i) => (
+                <ul key={i} className="list-group">
+                    <LogRenderer
+                        log={log}
+                        previousLog={logs[i + 1]} // Needed for comparison, might be undefined
+                    ></LogRenderer>
+                </ul>
+            ))}
+        </div>
+    )
 }

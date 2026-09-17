@@ -11,6 +11,7 @@ import {
     MultipleOwidVariableDataDimensionsMap,
     OwidVariableDataMetadataDimensions,
     OwidVariableMixedData,
+    isIndicatorDimension,
     OwidVariableWithSourceAndDimension,
 } from "@ourworldindata/types"
 import {
@@ -28,7 +29,9 @@ export function useQueryInputTable(
     const { dimensions = [], selectedEntityColors } = chartConfig ?? {}
 
     // Fetch both data and metadata for all variables
-    const variableIds = dimensions.map((d) => d.variableId)
+    const variableIds = dimensions
+        .filter(isIndicatorDimension)
+        .map((d) => d.variableId)
     const { data: variablesDataMap, status } = useQueryVariablesDataAndMetadata(
         variableIds,
         options
@@ -63,7 +66,9 @@ export function useQueryInputTableForMultiDimView(
     const { dimensions = [], selectedEntityColors } = chartConfig ?? {}
 
     // Fetch both data and metadata for all variables
-    const variableIds = dimensions.map((d) => d.variableId)
+    const variableIds = dimensions
+        .filter(isIndicatorDimension)
+        .map((d) => d.variableId)
     const { data: variablesDataMap, status } = useQueryVariablesDataAndMetadata(
         variableIds,
         options
