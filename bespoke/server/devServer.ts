@@ -366,11 +366,9 @@ function serveDemoPage(
         .replaceAll("{{VITE_DEV_SCRIPTS}}", viteDevScripts)
         .replaceAll("{{ENTRYPOINT_JS}}", jsEntrypoint)
         .replaceAll("{{DEV_ONLY_GLOBAL_CSS}}", devOnlyGlobalCss)
-        // JSON-encoded, quotes included, so the template doesn't have to quote it itself, and
-        // escaped because it lands in an inline <script>.
         .replaceAll(
             "{{BESPOKE_DATA_URL}}",
-            escapeJSONStringForInlineScript(JSON.stringify(BESPOKE_DATA_URL))
+            escapeJSONStringForInlineScript(BESPOKE_DATA_URL)
         )
     res.writeHead(200, { "Content-Type": "text/html" })
     res.end(html)

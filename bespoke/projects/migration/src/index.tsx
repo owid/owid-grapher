@@ -13,7 +13,6 @@ import type {
 import StylesTarget from "vite-plugin-css-position/react"
 
 import { parseEmbedConfig } from "../../../helpers/config.js"
-import { setFeedRoot } from "../../../helpers/feedUrl.js"
 
 import "./index.scss"
 
@@ -35,8 +34,13 @@ export const mount: BespokeComponentMountFn = (
         return
     }
 
-    // Before rendering: the data layer reads the feed root when it builds a URL.
-    setFeedRoot(opts.dataUrl)
+    if (!opts.dataUrl || !opts.metadataUrl) {
+        container.textContent =
+            "Missing data URLs: add an entry for this bundle to the bespoke component registry"
+        return
+    }
+
+    const urls = { dataUrl: opts.dataUrl, metadataUrl: opts.metadataUrl }
 
     const rawConfig = opts.config ?? {}
     const config = {
@@ -49,7 +53,7 @@ export const mount: BespokeComponentMountFn = (
         <>
             {/* This is where Vite-injected styles will be placed - make sure to add this to your code so that the styles are correctly injected into the Shadow DOM. */}
             <StylesTarget />
-            <variant.component config={config} />
+            <variant.component config={config} urls={urls} />
         </>
     )
     return () => root.unmount()

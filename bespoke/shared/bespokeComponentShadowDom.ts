@@ -15,6 +15,7 @@ export async function mountBespokeComponentInShadow({
     variant,
     config,
     dataUrl,
+    metadataUrl,
     signal,
 }: {
     container: HTMLDivElement
@@ -22,6 +23,7 @@ export async function mountBespokeComponentInShadow({
     variant?: string
     config?: Record<string, string>
     dataUrl?: string
+    metadataUrl?: string
     signal?: AbortSignal
 }): Promise<{ dispose?: () => void }> {
     let shadowRoot = container.shadowRoot
@@ -49,6 +51,7 @@ export async function mountBespokeComponentInShadow({
         variant,
         config,
         dataUrl,
+        metadataUrl,
     })
     const dispose = typeof result === "function" ? result : undefined
 

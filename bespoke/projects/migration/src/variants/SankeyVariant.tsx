@@ -28,6 +28,7 @@ import {
 
 import { SankeyVariantConfig } from "../core/config.js"
 import type { VariantProps } from "../../../../helpers/config.js"
+import type { BespokeComponentDataUrls } from "owid-bespoke-types"
 import {
     MigrationFlow,
     MigrationRow,
@@ -52,6 +53,7 @@ const queryClient = new QueryClient()
 
 export function SankeyVariant({
     config,
+    urls,
 }: VariantProps<SankeyVariantConfig>): React.ReactElement {
     const { width, ref } = useContainerWidth()
     const isNarrow = width > 0 && width < MOBILE_BREAKPOINT
@@ -66,7 +68,7 @@ export function SankeyVariant({
                             "migration-chart--narrow": isNarrow,
                         })}
                     >
-                        <FetchingSankeyVariant config={config} />
+                        <FetchingSankeyVariant config={config} urls={urls} />
                     </div>
                 </QueryClientProvider>
             </NuqsAdapter>
@@ -76,7 +78,13 @@ export function SankeyVariant({
 
 type Metadata = NonNullable<ReturnType<typeof useMigrationMetadata>["data"]>
 
-function FetchingSankeyVariant({ config }: { config: SankeyVariantConfig }) {
+function FetchingSankeyVariant({
+    config,
+    urls,
+}: {
+    config: SankeyVariantConfig
+    urls: BespokeComponentDataUrls
+}) {
     const initialCountry =
         !config.country || isUserLocationCountry(config.country)
             ? DEFAULT_COUNTRY
@@ -107,7 +115,9 @@ function FetchingSankeyVariant({ config }: { config: SankeyVariantConfig }) {
         defaultValue: config.flow ?? DEFAULT_VIEW,
     })
 
-    const { data: metadata, status: metadataStatus } = useMigrationMetadata()
+    const { data: metadata, status: metadataStatus } = useMigrationMetadata(
+        urls.metadataUrl
+    )
 
     const availableCountryNames = useMemo(
         () =>
@@ -132,7 +142,7 @@ function FetchingSankeyVariant({ config }: { config: SankeyVariantConfig }) {
         data: migration,
         status: migrationStatus,
         isPlaceholderData,
-    } = useMigrationData(countryId, metadata)
+    } = useMigrationData(countryId, metadata, urls.dataUrl)
 
     // Dim the chart and show a spinner while a new country file loads,
     // keeping the previous country on screen until the new one arrives.

@@ -12,13 +12,11 @@ import {
     SexValues,
 } from "./types.js"
 
-const BASE_URL = "https://owid-public.owid.io/bespoke/migrant-demographics"
-const METADATA_PATH = `${BASE_URL}/migrant-demographics.metadata.json`
-const ENTITY_PATH = `${BASE_URL}/migrant-demographics.{code}.json`
-
 export const queryClient = new QueryClient()
 
-export const useMigrantDemographicsMetadata = (): {
+export const useMigrantDemographicsMetadata = (
+    metadataUrl: string
+): {
     data?: MigrantDemographicsMetadata
     status: QueryStatus
 } => {
@@ -26,7 +24,7 @@ export const useMigrantDemographicsMetadata = (): {
         queryKey: ["migrant-demographics", "metadata"],
         queryFn: async (): Promise<MigrantDemographicsMetadata> => {
             const raw =
-                await fetchJson<RawMigrantDemographicsMetadata>(METADATA_PATH)
+                await fetchJson<RawMigrantDemographicsMetadata>(metadataUrl)
             return new MigrantDemographicsMetadata(raw)
         },
         staleTime: Infinity, // The data files are immutable within a session
@@ -37,7 +35,8 @@ export const useMigrantDemographicsMetadata = (): {
 
 export const useMigrantDemographicsEntity = (
     entityName: string,
-    metadata?: MigrantDemographicsMetadata
+    metadata: MigrantDemographicsMetadata | undefined,
+    dataUrl: string
 ): {
     data?: RawEntityYears
     status: QueryStatus
@@ -49,8 +48,9 @@ export const useMigrantDemographicsEntity = (
     const result = useQuery({
         queryKey: ["migrant-demographics", "entity", code],
         queryFn: async (): Promise<RawEntityYears> => {
-            const path = ENTITY_PATH.replace("{code}", String(code))
-            const raw = await fetchJson<RawEntityYears>(path)
+            const raw = await fetchJson<RawEntityYears>(
+                `${dataUrl}/migrant-demographics.${code}.json`
+            )
             return parseEntityYears(raw, metadata!)
         },
         enabled: code !== undefined,

@@ -15,7 +15,9 @@ import {
     OwidEnrichedGdocBlock,
 } from "@ourworldindata/types"
 import { logErrorAndMaybeCaptureInSentry } from "../../../serverUtils/errorLog.js"
-import { BESPOKE_COMPONENT_REGISTRY } from "../../../site/bespokeComponentRegistry.js"
+import { BESPOKE_COMPONENT_REGISTRY } from "../../../bespoke/shared/bespokeComponentRegistry.js"
+import { resolveBespokeComponentUrls } from "../../../bespoke/shared/bespokeComponentUrls.js"
+import { BESPOKE_DATA_URL } from "../../../settings/clientSettings.mjs"
 import { GdocBase } from "./GdocBase.js"
 
 const METADATA_FETCH_TIMEOUT_MS = 10_000
@@ -57,8 +59,12 @@ export class GdocFeaturedViz
         if (!heroBlock) return
 
         const { bundle } = heroBlock
-        const metadataUrl = BESPOKE_COMPONENT_REGISTRY[bundle]?.metadataUrl
-        if (!metadataUrl) return
+        const definition = BESPOKE_COMPONENT_REGISTRY[bundle]
+        if (!definition) return
+
+        const { metadataUrl } = resolveBespokeComponentUrls(definition, {
+            dataBaseUrl: BESPOKE_DATA_URL,
+        })
 
         let json: unknown
         try {
@@ -75,27 +81,7 @@ export class GdocFeaturedViz
         }
 
         const parsed = BespokeMetadataSchema.safeParse(json)
-        if (!parsed.success) {
-            await logErrorAndMaybeCaptureInSentry(
-                new Error(
-                    `Metadata for bespoke component "${bundle}" at ${metadataUrl} does not match BespokeMetadataSchema, so "${this.slug}" will render without a methods block: ${parsed.error.message}`
-                )
-            )
-            return
-        }
-
-        if (!shouldRenderBespokeMetadata(parsed.data)) {
-            // z.object strips unknown keys, so a metadata file carrying none
-            // of the schema's fields parses to {}.
-            if (Object.keys(parsed.data).length > 0) {
-                await logErrorAndMaybeCaptureInSentry(
-                    new Error(
-                        `Metadata for bespoke component "${bundle}" at ${metadataUrl} carries some of the schema's fields but neither origins nor a descriptionKey, so "${this.slug}" will render without a methods block`
-                    )
-                )
-            }
-            return
-        }
+        if (!parsed.success || !shouldRenderBespokeMetadata(parsed.data)) return
 
         this.bespokeMetadata = parsed.data
     }

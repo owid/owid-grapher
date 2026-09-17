@@ -11,6 +11,7 @@ import type {
     PopulationPyramidVariantConfig,
 } from "../core/config.js"
 import type { VariantProps } from "../../../../helpers/config.js"
+import type { BespokeComponentDataUrls } from "owid-bespoke-types"
 import { groupAgeGroupsByZone } from "../core/utils.js"
 import { formatEntityNameForSentence } from "../../../../helpers/entityNames.js"
 import { CountryData, DemographyMetadata } from "../core/types.js"
@@ -41,6 +42,7 @@ import { EntityNameOrSelector } from "../components/EntityNameOrSelector.js"
 
 export function PopulationPyramidVariant({
     config,
+    urls,
 }: VariantProps<PopulationPyramidVariantConfig>): React.ReactElement {
     const { breakpoint, ref: rootRef } = useContainerBreakpoint()
 
@@ -54,7 +56,10 @@ export function PopulationPyramidVariant({
                         breakpointClass(breakpoint)
                     )}
                 >
-                    <FetchingPopulationPyramidVariant config={config} />
+                    <FetchingPopulationPyramidVariant
+                        config={config}
+                        urls={urls}
+                    />
                 </div>
             </BreakpointProvider>
         </QueryClientProvider>
@@ -63,13 +68,18 @@ export function PopulationPyramidVariant({
 
 function FetchingPopulationPyramidVariant({
     config,
+    urls,
 }: {
     config: PopulationPyramidVariantConfig
+    urls: BespokeComponentDataUrls
 }): React.ReactElement {
-    const [entityName, setEntityName] = useInitialEntityName(config.region)
+    const [entityName, setEntityName] = useInitialEntityName(
+        config.region,
+        urls.metadataUrl
+    )
 
     const { metadata, entityData, isLoadingEntityData, status } =
-        useDemographyData(entityName)
+        useDemographyData(entityName, urls)
 
     if (status === "pending")
         return <ChartSkeleton className="demography-chart-box" />

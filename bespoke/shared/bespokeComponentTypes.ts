@@ -1,15 +1,13 @@
 type BespokeComponentReturnType = void | undefined | (() => void)
 
-export interface BespokeComponentMountOpts {
+export interface BespokeComponentDataUrls {
+    dataUrl: string
+    metadataUrl: string
+}
+
+export interface BespokeComponentMountOpts extends Partial<BespokeComponentDataUrls> {
     variant?: string
     config?: Record<string, string>
-    /**
-     * Root the component's ETL data feed is served from, e.g.
-     * `https://api.ourworldindata.org/v1/bespoke`. The site passes `BESPOKE_DATA_URL` and the dev
-     * server passes the same setting to its demo pages; absent, the component falls back to
-     * production -- see `setFeedRoot` in `bespoke/helpers/feedUrl.ts`.
-     */
-    dataUrl?: string
 }
 
 export type BespokeComponentMountFn = (
@@ -41,6 +39,8 @@ export type BespokeComponentVariantsList<VariantName extends string = string> =
 export interface BespokeComponentDefinition {
     /** URL to the ES module that exports the component's mount function, relative to BESPOKE_BASE_URL */
     scriptUrl: string
-    /** Absolute URL to the component's metadata file, served from the public data bucket rather than the site's asset path */
-    metadataUrl?: string
+    /** Folder the component's data files are served from, relative to BESPOKE_DATA_URL */
+    dataUrl: string
+    /** The component's metadata file inside `dataUrl` */
+    metadataFilename: string
 }

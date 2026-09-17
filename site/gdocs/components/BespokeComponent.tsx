@@ -9,25 +9,13 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import { useIntersectionObserver } from "usehooks-ts"
 import Image from "./Image.js"
 import { useImage } from "../utils.js"
-import { BESPOKE_COMPONENT_REGISTRY } from "../../bespokeComponentRegistry.js"
+import { BESPOKE_COMPONENT_REGISTRY } from "../../../bespoke/shared/bespokeComponentRegistry.js"
 import { mountBespokeComponentInShadow } from "../../../bespoke/shared/bespokeComponentShadowDom.js"
+import { resolveBespokeComponentUrls } from "../../../bespoke/shared/bespokeComponentUrls.js"
 import {
     BESPOKE_BASE_URL,
     BESPOKE_DATA_URL,
 } from "../../../settings/clientSettings.mjs"
-import urljoin from "url-join"
-
-// Use the `baseUrl` as a base for the URL constructor if set, and use just the URL (which might be host-relative) if not.
-// If `url` is already absolute, it will effectively just get passed through.
-const makeAbsoluteWithBaseUrl = (url: string, baseUrl: string | undefined) => {
-    baseUrl = baseUrl?.trim()
-    if (!baseUrl) return url
-
-    // url is already absolute, so just return it as is
-    if (url.startsWith("http://") || url.startsWith("https://")) return url
-
-    return urljoin(baseUrl, url)
-}
 
 /**
  * Renders a bespoke component inside a Shadow DOM container.
@@ -73,9 +61,12 @@ export function BespokeComponent({
 
     const fallbackImage = useImage(block.fallbackImageFilename)
 
-    const scriptUrl = useMemo(() => {
+    const urls = useMemo(() => {
         if (!definition || !BESPOKE_BASE_URL.trim()) return undefined
-        return makeAbsoluteWithBaseUrl(definition.scriptUrl, BESPOKE_BASE_URL)
+        return resolveBespokeComponentUrls(definition, {
+            scriptBaseUrl: BESPOKE_BASE_URL,
+            dataBaseUrl: BESPOKE_DATA_URL,
+        })
     }, [definition])
 
     useEffect(() => {
@@ -88,7 +79,7 @@ export function BespokeComponent({
             setError(`Unknown bespoke bundle: "${block.bundle}"`)
             return
         }
-        if (!scriptUrl) {
+        if (!urls) {
             setError("This custom component cannot be displayed on this page.")
             return
         }
@@ -100,10 +91,11 @@ export function BespokeComponent({
 
         mountBespokeComponentInShadow({
             container,
-            scriptUrl,
+            scriptUrl: urls.scriptUrl,
             variant: block.variant,
             config: block.config,
-            dataUrl: BESPOKE_DATA_URL,
+            dataUrl: urls.dataUrl,
+            metadataUrl: urls.metadataUrl,
             signal: abortController.signal,
         })
             .then(({ dispose }) => {
@@ -137,7 +129,7 @@ export function BespokeComponent({
         block.variant,
         block.config,
         definition,
-        scriptUrl,
+        urls,
         hasBeenVisible,
     ])
 

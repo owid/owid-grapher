@@ -34,6 +34,8 @@ In build mode, the demo page uses the built output file (`index.js`) instead of 
 
 Visiting `/<project>/demo` serves a demo page that imports the project's `VARIANTS` list and mounts each variant inside its own Shadow DOM using `mountBespokeComponentInShadow` from `bespoke/shared`. This mirrors the production embedding behavior.
 
+Data feeds come from `BESPOKE_DATA_URL`, the same setting the site reads, so a demo page shows the feed of the environment its server runs in — production locally, where the setting is normally unset, and the branch's own bucket on staging.
+
 `/__all` stacks every project's demo page below each other (except `example`, the starter template), one lazily loaded iframe each — iframes keep each project's Vite client, React copy and `dev-only-global-css` isolated from the others. The frames load as you scroll, which matters on staging, where each project is built on first request.
 
 ### Entrypoints

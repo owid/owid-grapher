@@ -2,8 +2,6 @@ import { QueryStatus, useQuery } from "@tanstack/react-query"
 
 import { fetchJson } from "@ourworldindata/utils"
 
-import { feedUrl } from "../../../../helpers/feedUrl.js"
-
 import {
     FoodTradeMetadata,
     MetadataJson,
@@ -12,25 +10,21 @@ import {
     TradeRow,
 } from "./types.js"
 
-// ETL step that builds this feed: viz://bespoke/faostat/latest/food_trade
-const FEED = "faostat/latest/food_trade"
-const metadataUrl = () => feedUrl(FEED, "food-trade.metadata.json")
-const productDataUrl = (productId: number) =>
-    feedUrl(FEED, `food-trade.${productId}.json`)
-
 const queryKeys = {
     metadata: () => ["food-trade", "metadata"] as const,
     product: (productId: number) =>
         ["food-trade", "product", productId] as const,
 }
 
-export const useFoodTradeMetadata = (): {
+export const useFoodTradeMetadata = (
+    metadataUrl: string
+): {
     data?: FoodTradeMetadata
     status: QueryStatus
 } => {
     const result = useQuery({
         queryKey: queryKeys.metadata(),
-        queryFn: () => fetchJson<MetadataJson>(metadataUrl()),
+        queryFn: () => fetchJson<MetadataJson>(metadataUrl),
         staleTime: Infinity, // Never refetch
     })
 
@@ -40,15 +34,17 @@ export const useFoodTradeMetadata = (): {
 
 export const useProductTradeData = (
     productId: number | undefined,
-    metadata: FoodTradeMetadata | undefined
+    metadata: FoodTradeMetadata | undefined,
+    dataUrl: string
 ): {
     data?: ProductTradeData
     status: QueryStatus
     isPlaceholderData: boolean
 } => {
+    const url = `${dataUrl}/food-trade.${productId}.json`
     const result = useQuery({
         queryKey: queryKeys.product(productId!),
-        queryFn: () => fetchJson<ProductJson>(productDataUrl(productId!)),
+        queryFn: () => fetchJson<ProductJson>(url),
         enabled: productId !== undefined && metadata !== undefined,
         staleTime: Infinity, // Never refetch
         // Keep the previous product on screen while a new one loads,

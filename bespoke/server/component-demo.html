@@ -17,6 +17,8 @@
             import * as ComponentModule from "/{{PROJECT}}/{{ENTRYPOINT_JS}}"
             import { mountBespokeComponentInShadow } from "/__bespoke/shared/bespokeComponentShadowDom.ts"
             import { downloadSvgs } from "/__bespoke/shared/exportSvg.ts"
+            import { BESPOKE_COMPONENT_REGISTRY } from "/__bespoke/shared/bespokeComponentRegistry.ts"
+            import { resolveBespokeComponentUrls } from "/__bespoke/shared/bespokeComponentUrls.ts"
 
             const SIZE_CLASSES = {
                 narrow: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
@@ -26,6 +28,13 @@
 
             const root = document.getElementById("demo-root")
             const { VARIANTS } = ComponentModule
+
+            const definition = BESPOKE_COMPONENT_REGISTRY["{{PROJECT}}"]
+            const { dataUrl, metadataUrl } = definition
+                ? resolveBespokeComponentUrls(definition, {
+                      dataBaseUrl: "{{BESPOKE_DATA_URL}}",
+                  })
+                : {}
 
             if (VARIANTS === undefined) {
                 const errorMessage = document.createElement("div")
@@ -82,9 +91,8 @@
                         scriptUrl: "/{{PROJECT}}/{{ENTRYPOINT_JS}}",
                         variant: variant.name,
                         config: variant.demoConfig,
-                        // Whatever BESPOKE_DATA_URL is for the checkout serving this page: a
-                        // staging server's own feed there, production's on a laptop.
-                        dataUrl: {{BESPOKE_DATA_URL}},
+                        dataUrl,
+                        metadataUrl,
                     })
                 }
             }

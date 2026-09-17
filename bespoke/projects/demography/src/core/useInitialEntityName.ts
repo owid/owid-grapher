@@ -13,7 +13,8 @@ const USER_LOCATION = "userLocation"
  *   and use it if available in the metadata. Falls back to the default.
  */
 export function useInitialEntityName(
-    configRegion: string | undefined
+    configRegion: string | undefined,
+    metadataUrl: string
 ): [string, (name: string) => void, boolean] {
     const isUserLocation = !configRegion || configRegion === USER_LOCATION
     const initialName =
@@ -24,7 +25,7 @@ export function useInitialEntityName(
     const resolved = useRef(!isUserLocation)
 
     const { data: userCountryInfo } = useUserCountryInformation()
-    const { data: metadata } = useDemographyMetadata()
+    const { data: metadata } = useDemographyMetadata(metadataUrl)
 
     useEffect(() => {
         if (resolved.current || !isUserLocation) return
