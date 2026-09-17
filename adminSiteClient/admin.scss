@@ -1,6 +1,8 @@
-/* Chart editor styling */
+/* Admin styling. Plain `.css` dependencies are imported from admin.entry.ts
+   (tippy, react-querybuilder) or linked from adminSiteServer/IndexPage.tsx
+   (fonts): Sass passes `.css` imports through as `@import` rules, which the
+   grapher-editor package build can't resolve. */
 
-@import "../public/fonts.css";
 @import "bootstrap/scss/bootstrap";
 
 // Bare `section` also matches the react-aria dialogs grapher renders inside an
@@ -19,17 +21,13 @@ $admin-section: "section:not(:where(.GrapherComponent *))";
 }
 @import "styles/react-tag-autocomplete";
 
-@import "tippy.js/dist/tippy.css";
-@import "tippy.js/themes/light.css";
-
-@import "react-querybuilder/dist/query-builder.css";
-
 @import "../packages/@ourworldindata/components/src/styles/colors.scss";
 @import "../packages/@ourworldindata/components/src/styles/variables.scss";
 @import "../packages/@ourworldindata/components/src/styles/mixins.scss";
 @import "../packages/@ourworldindata/components/src/styles/typography-constants.scss";
 @import "../packages/@ourworldindata/components/src/styles/typography.scss";
 
+@import "./AdminColorPicker.scss";
 @import "./GdocsIndexPage.scss";
 @import "./FeaturedMetricsPage.scss";
 @import "./FilesIndexPage.scss";

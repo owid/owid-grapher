@@ -25,10 +25,6 @@ import {
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
 import { ErrorMessages } from "./ChartEditorTypes.js"
 import { AutoComplete, Button as AntdButton, Space } from "antd"
-import {
-    BAKED_GRAPHER_URL,
-    ADMIN_BASE_URL,
-} from "../settings/clientSettings.mjs"
 
 interface EditorTextTabProps<Editor> {
     editor: Editor
@@ -107,11 +103,13 @@ export class EditorTextTab<
     }
 
     @computed get hasCopyAdminURLButton() {
-        return !!this.props.editor.grapherState.id
+        const { grapherState, environment } = this.props.editor
+        return !!grapherState.id && !!environment.adminBaseUrl
     }
 
     @computed get hasCopyGrapherURLButton() {
-        return !!this.props.editor.grapherState.isPublished
+        const { grapherState, environment } = this.props.editor
+        return !!grapherState.isPublished && !!environment.bakedGrapherUrl
     }
 
     // Dropdown options for the origin URL autocomplete, in the order the
@@ -470,7 +468,7 @@ export class EditorTextTab<
                                 <AntdButton
                                     onClick={() =>
                                         copyToClipboard(
-                                            `[${grapherState.title}](${ADMIN_BASE_URL}/admin/charts/${grapherState.id}/edit)`
+                                            `[${grapherState.title}](${editor.environment.adminBaseUrl}/admin/charts/${grapherState.id}/edit)`
                                         )
                                     }
                                 >
@@ -481,7 +479,7 @@ export class EditorTextTab<
                                 <AntdButton
                                     onClick={() =>
                                         copyToClipboard(
-                                            `[${grapherState.title}](${BAKED_GRAPHER_URL}/${grapherState.slug})`
+                                            `[${grapherState.title}](${editor.environment.bakedGrapherUrl}/${grapherState.slug})`
                                         )
                                     }
                                 >

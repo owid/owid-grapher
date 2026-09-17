@@ -7,7 +7,6 @@ import { copyToClipboard } from "@ourworldindata/utils"
 import YAML from "yaml"
 import { Modal, notification } from "antd"
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
-import ReactDiffViewer, { DiffMethod } from "react-diff-viewer-continued"
 import { ConfigEditor, isConfigEditorInstance } from "./ConfigEditor.js"
 import { stringify } from "safe-stable-stringify"
 
@@ -40,33 +39,66 @@ class EditorDebugTabForConfig extends Component<{
         this.diffModalOpen = false
     }
 
-    /** The full config side by side with the base it sits on. */
+    /**
+     * Every top-level field where this chart differs from its base, with both
+     * values. A key-by-key table rather than a text diff of the two JSON
+     * documents: it reads better for configs, and it keeps the syntax
+     * highlighter a diff-viewer library would pull in out of the editor bundle.
+     */
     @computed get diffModal() {
         const { fullConfig, parentConfig } = this.props.editor
+        const base = (parentConfig ?? {}) as Record<string, unknown>
+        const full = fullConfig as Record<string, unknown>
+        const keys = _.sortBy(
+            _.union(Object.keys(base), Object.keys(full)).filter(
+                (key) => !_.isEqual(base[key], full[key])
+            )
+        )
+        const show = (value: unknown): string =>
+            value === undefined ? "" : stringify(value, null, 2)
         return (
             <Modal
                 open={this.diffModalOpen}
                 centered
                 width="80vw"
+                title="Differences to the base config"
                 onOk={this.onModalClose}
                 onCancel={this.onModalClose}
                 cancelButtonProps={{ style: { display: "none" } }}
             >
-                <div style={{ maxHeight: "50vh", overflowY: "auto" }}>
-                    <ReactDiffViewer
-                        newValue={stringify(fullConfig, null, 2)}
-                        oldValue={stringify(parentConfig ?? {}, null, 2)}
-                        leftTitle="Base config"
-                        rightTitle="This chart"
-                        compareMethod={DiffMethod.WORDS_WITH_SPACE}
-                        styles={{
-                            contentText: {
-                                wordBreak: "break-word",
-                            },
-                        }}
-                        extraLinesSurroundingDiff={2}
-                        highlightLanguage="json"
-                    />
+                <div style={{ maxHeight: "60vh", overflowY: "auto" }}>
+                    {keys.length === 0 ? (
+                        <p>This chart is identical to its base config.</p>
+                    ) : (
+                        <table className="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Field</th>
+                                    <th>Base config</th>
+                                    <th>This chart</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {keys.map((key) => (
+                                    <tr key={key}>
+                                        <td>
+                                            <code>{key}</code>
+                                        </td>
+                                        <td>
+                                            <pre className="mb-0">
+                                                {show(base[key])}
+                                            </pre>
+                                        </td>
+                                        <td>
+                                            <pre className="mb-0">
+                                                {show(full[key])}
+                                            </pre>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    )}
                 </div>
             </Modal>
         )

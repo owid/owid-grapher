@@ -5,7 +5,7 @@
  * narrative chart.
  */
 import * as React from "react"
-import { Redirect, useLocation } from "react-router-dom"
+import { Prompt, Redirect, useLocation } from "react-router-dom"
 import { action, computed, makeObservable, observable, runInAction } from "mobx"
 import { observer } from "mobx-react"
 import {
@@ -27,9 +27,9 @@ import { NarrativeChartSaveButtons } from "./NarrativeChartSaveButtons.js"
 import { NotFoundPage } from "./NotFoundPage.js"
 import {
     adminDetailsProvider,
+    adminEditorEnvironment,
     adminIndicatorCatalog,
-    defaultEditorEnvironment,
-} from "./editorProviders.js"
+} from "./adminEditorProviders.js"
 import { dataApiIndicatorStore, IndicatorStore } from "./indicatorStores.js"
 import { makeNarrativeChartPatchConfig } from "./narrativeChartConfig.js"
 
@@ -73,6 +73,7 @@ class CreateNarrativeChartEditorPageInternal extends React.Component<CreateNarra
             name: observable,
             nameError: observable,
             createdId: observable.ref,
+            isDirty: observable,
         })
     }
 
@@ -83,6 +84,7 @@ class CreateNarrativeChartEditorPageInternal extends React.Component<CreateNarra
     nameError: string | undefined = undefined
     /** Set once the narrative chart exists, so the page can move to it. */
     createdId: number | undefined = undefined
+    isDirty = false
 
     @computed get admin(): Admin {
         return this.context.admin
@@ -90,7 +92,7 @@ class CreateNarrativeChartEditorPageInternal extends React.Component<CreateNarra
 
     @computed get store(): IndicatorStore {
         return dataApiIndicatorStore({
-            dataApiUrl: defaultEditorEnvironment.dataApiUrl,
+            dataApiUrl: adminEditorEnvironment.dataApiUrl,
             catalog: adminIndicatorCatalog(this.admin),
         })
     }
@@ -160,6 +162,10 @@ class CreateNarrativeChartEditorPageInternal extends React.Component<CreateNarra
     override render(): React.ReactElement {
         return (
             <AdminLayout noSidebar>
+                <Prompt
+                    when={this.isDirty && !this.createdId}
+                    message="Are you sure you want to leave? Unsaved changes will be lost."
+                />
                 {this.createdId && (
                     <Redirect to={`/narrative-charts/${this.createdId}/edit`} />
                 )}
@@ -177,6 +183,11 @@ class CreateNarrativeChartEditorPageInternal extends React.Component<CreateNarra
                         initialQueryParams={this.initialQueryParams}
                         store={this.store}
                         details={adminDetailsProvider(this.admin)}
+                        environment={adminEditorEnvironment}
+                        syncTabWithUrl
+                        onDirtyChange={action(
+                            (isDirty: boolean) => (this.isDirty = isDirty)
+                        )}
                         renderSaveButtons={(editor, editingErrors) => (
                             <NarrativeChartSaveButtons
                                 editor={editor}

@@ -1,0 +1,7 @@
+// Styles for the editor package. The editor's own styles are still part of
+// the admin's stylesheet (Bootstrap plus the editor blocks in admin.scss), so
+// this pulls that in wholesale together with grapher's styles for the
+// preview. Slimming this down to editor-only rules is the Bootstrap → antd
+// migration of the admin, not a concern of this package.
+@import "../../../../adminSiteClient/admin.scss";
+@import "../../grapher/src/core/grapher.scss";

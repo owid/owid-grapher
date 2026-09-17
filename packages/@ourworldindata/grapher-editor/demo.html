@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <title>@ourworldindata/grapher-editor demo</title>
+        <link rel="stylesheet" href="https://ourworldindata.org/fonts.css" />
+        <link rel="stylesheet" href="./dist/editor.css" />
+        <style>
+            body {
+                margin: 0;
+                font-family: system-ui, sans-serif;
+            }
+            .toolbar {
+                display: flex;
+                gap: 12px;
+                align-items: center;
+                padding: 8px 16px;
+                border-bottom: 1px solid #ddd;
+                background: #f7f7f7;
+                font-size: 14px;
+            }
+            #editor {
+                height: calc(100vh - 45px);
+            }
+            #output {
+                position: fixed;
+                right: 16px;
+                bottom: 16px;
+                width: 360px;
+                max-height: 40vh;
+                overflow: auto;
+                margin: 0;
+                padding: 10px;
+                background: #fff;
+                border: 1px solid #ccc;
+                border-radius: 6px;
+                font-size: 12px;
+                display: none;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="toolbar">
+            <strong>@ourworldindata/grapher-editor</strong>
+            <span>
+                A chart config edited against a CSV, with no OWID server
+                involved. Hit <em>Save config</em> to see what a host gets back.
+            </span>
+        </div>
+        <div id="editor"></div>
+        <pre id="output"></pre>
+
+        <script type="module">
+            import {
+                mountGrapherEditor,
+                csvIndicatorStore,
+            } from "./dist/editor.standalone.min.js"
+
+            // The host's own data: a CSV plus column definitions carrying the
+            // metadata the chart shows (name, unit, source).
+            const csv = `entityName,year,rent_index,vacancy_rate,region
+Berlin,2015,100,3.1,DE
+Berlin,2017,112,2.4,DE
+Berlin,2019,124,1.5,DE
+Berlin,2021,131,1.2,DE
+Berlin,2023,142,0.9,DE
+Vienna,2015,100,4.0,AT
+Vienna,2017,104,4.1,AT
+Vienna,2019,108,3.9,AT
+Vienna,2021,112,3.8,AT
+Vienna,2023,117,3.6,AT
+Prague,2015,100,3.5,CZ
+Prague,2017,119,2.6,CZ
+Prague,2019,141,1.9,CZ
+Prague,2021,152,2.2,CZ
+Prague,2023,160,1.7,CZ`
+
+            const columnDefs = [
+                {
+                    slug: "rent_index",
+                    type: "Numeric",
+                    name: "Rent index",
+                    unit: "index (2015 = 100)",
+                    description: "Average asking rent relative to 2015.",
+                    sourceName:
+                        "City statistics offices (made up for the demo)",
+                },
+                {
+                    slug: "vacancy_rate",
+                    type: "Numeric",
+                    name: "Vacancy rate",
+                    unit: "%",
+                    shortUnit: "%",
+                    sourceName:
+                        "City statistics offices (made up for the demo)",
+                },
+            ]
+
+            // The host's own chart config, referencing CSV columns by slug.
+            // In a real site this would be read from a file or a database.
+            const config = {
+                title: "Rents in three cities",
+                subtitle: "Asking rents relative to 2015.",
+                ySlugs: "rent_index",
+                selectedEntityNames: ["Berlin", "Vienna", "Prague"],
+            }
+
+            const output = document.getElementById("output")
+
+            mountGrapherEditor(document.getElementById("editor"), {
+                config,
+                store: csvIndicatorStore({
+                    csv,
+                    columnDefs,
+                    name: "housing.csv",
+                }),
+                onSave: (edited) => {
+                    // Where a host would write the file or call its API.
+                    output.style.display = "block"
+                    output.textContent =
+                        "// onSave received:\n" +
+                        JSON.stringify(edited, null, 2)
+                },
+            })
+        </script>
+    </body>
+</html>
