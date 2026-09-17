@@ -458,6 +458,20 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
         return timeColumn.formatTimeShort(time)
     }
 
+    /** Formats a time as the end of the period it stands for */
+    private formatTimeEnd(time: number): string {
+        const { timeColumn } = this.manager
+        if (!timeColumn) return time.toString()
+        return timeColumn.formatTimeShortEnd(time)
+    }
+
+    /** The time at which the period a time value stands for ends */
+    private periodEndTime(time: Time): Time {
+        const { timeColumn } = this.manager
+        if (!timeColumn) return time
+        return timeColumn.periodEndTime(time)
+    }
+
     @action.bound private togglePlay(): void {
         void this.controller.togglePlay()
     }
@@ -690,7 +704,7 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
 
         if (!this.endTooltipVisible) return undefined
 
-        const formattedEndTime = this.formatTime(this.controller.endTime)
+        const formattedEndTime = this.formatTimeEnd(this.controller.endTime)
 
         if (!this.canEditTimeViaTooltip) {
             return <SimpleTimeTooltip formattedTime={formattedEndTime} />
@@ -718,7 +732,11 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
                 position={position}
                 isEditing={isEditing}
                 formattedTime={formattedEndTime}
-                currentTime={endTime}
+                // Seed the input with the period's last day, so that opening
+                // the picker shows the same period end the label reads. Picked
+                // dates snap back to their own period's time, so re-applying
+                // this value is a no-op.
+                currentTime={this.periodEndTime(endTime)}
                 isDateValid={isDateValid}
                 granularity={this.dateInputGranularity}
                 onStartEditing={() => this.onStartEditing(MarkerType.End)}
@@ -784,9 +802,9 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
         } = controller
 
         const formattedMinTime = this.formatTime(minTime)
-        const formattedMaxTime = this.formatTime(maxTime)
+        const formattedMaxTime = this.formatTimeEnd(maxTime)
         const formattedStartTime = this.formatTime(startTime)
-        const formattedEndTime = this.formatTime(endTime)
+        const formattedEndTime = this.formatTimeEnd(endTime)
         const formattedHoverTime =
             hoverTime !== undefined ? this.formatTime(hoverTime) : undefined
 

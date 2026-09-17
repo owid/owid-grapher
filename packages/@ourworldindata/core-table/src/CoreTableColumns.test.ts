@@ -139,6 +139,19 @@ describe(ColumnTypeNames.Week, () => {
     })
 })
 
+describe("periodEndTime", () => {
+    const day = (iso: string): number =>
+        convertDateToDaysSinceEpoch(dayjs.utc(iso))
+
+    it("ends a pre-epoch week on its own Sunday", () => {
+        // Days-since-epoch runs negative before 2020-01-21, which the timeline
+        // tests (all on 2025-26 dates) never reach: Mon 2019-12-30 starts the
+        // ISO week ending Sun 2020-01-05, across a year boundary as well.
+        const col = new ColumnTypeMap.Week(new OwidTable(), { slug: "test" })
+        expect(col.periodEndTime(day("2019-12-30"))).toEqual(day("2020-01-05"))
+    })
+})
+
 describe("getUniformlySpacedTimes", () => {
     const table = new OwidTable()
 
