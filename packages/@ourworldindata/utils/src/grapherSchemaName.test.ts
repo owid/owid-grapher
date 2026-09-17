@@ -41,7 +41,7 @@ describe(parseGrapherSchemaName, () => {
             "grapher-schema.011.yaml",
             "grapher-schema.011.4.json",
             "grapher-schema.json",
-            "https://example.org/grapher-schema.011.json?v=2",
+            "https://files.ourworldindata.org/schemas/grapher-schema.011.json?v=2",
         ])
             expect(parseGrapherSchemaName(name)).toBeUndefined()
     })

@@ -16,6 +16,7 @@ import {
 } from "./grapherConfigValidation.js"
 
 const latestSchemaUrl = defaultGrapherConfig.$schema
+const foreignSchemaUrl = `https://example.org/schemas/grapher-schema.${latestSchemaVersion}.json`
 
 const baseChartConfig: UntypedGrapherConfig = {
     $schema: defaultGrapherConfig.$schema,
@@ -78,6 +79,16 @@ describe(tryIngestGrapherConfig, () => {
                 {
                     pointer: "/$schema",
                     message: `unknown schema version ${formatGrapherSchemaUrl("099")}; expected ${latestSchemaUrl}`,
+                },
+            ],
+        },
+        {
+            name: "a schema hosted somewhere else",
+            config: { ...baseChartConfig, $schema: foreignSchemaUrl },
+            issues: [
+                {
+                    pointer: "/$schema",
+                    message: `unknown schema version ${foreignSchemaUrl}; expected ${latestSchemaUrl}`,
                 },
             ],
         },
