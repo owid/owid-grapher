@@ -17,8 +17,11 @@ it("returns a valid config as is", () => {
     )
 })
 
-it("throws if the schema field is missing", () => {
-    expect(() => migrateGrapherConfigToLatestVersion({})).toThrow()
+it("returns a config unchanged if the schema field is missing", () => {
+    const configWithoutSchema = { title: "Test" }
+    expect(migrateGrapherConfigToLatestVersion(configWithoutSchema)).toEqual(
+        configWithoutSchema
+    )
 })
 
 it("warns if the schema field is invalid", () => {
