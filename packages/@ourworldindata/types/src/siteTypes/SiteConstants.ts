@@ -6,6 +6,11 @@ export const HIDE_IF_JS_DISABLED_CLASSNAME = "js--hide-if-js-disabled"
 // Used in GrapherWithFallback.tsx
 export const GRAPHER_PREVIEW_CLASS = "grapherPreview"
 
+export const MAILCHIMP_API_SERVER = "us8"
+export const MAILCHIMP_DONOR_LIST_ID = "c713e5a741"
+export const MAILCHIMP_NEWSLETTER_LIST_ID = "2e166c1fc1"
+export const MAILCHIMP_OWID_BRIEF_INTEREST_ID = "7aa5a63b3f"
+
 // Sentry constants
 export const SENTRY_DEFAULT_REPLAYS_SESSION_SAMPLE_RATE = 0.05
 export const SENTRY_SESSION_STORAGE_KEY = "sentryReplaySession"
