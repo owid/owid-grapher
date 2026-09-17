@@ -734,7 +734,7 @@ export class HorizontalAxis extends AbstractAxis {
             const startLabel = Number.isFinite(start)
                 ? this.placeTickLabel(
                       start,
-                      formatColumn.formatTimeShort(start)
+                      formatColumn.formatTimePeriodStart(start)
                   )
                 : undefined
 
@@ -743,7 +743,7 @@ export class HorizontalAxis extends AbstractAxis {
                     ? this.placeTickLabel(
                           end,
                           // Include the full plotted range for sub-yearly data
-                          formatColumn.formatTimeShortEnd(end)
+                          formatColumn.formatTimePeriodEnd(end)
                       )
                     : undefined
 

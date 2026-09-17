@@ -147,23 +147,33 @@ export abstract class AbstractCoreColumn<
         return this.originalTimeColumn.formatValue(time)
     }
 
-    formatTimeShort(time: number): string {
+    /**
+     * Where the period a time value stands for begins, expressed in the next
+     * finer unit: a quarter as its first month ("Q1 2024" → "Jan 2024"), a
+     * week as its first day. Year, month and day columns have no finer unit,
+     * so for them this is `formatTime`. The result is not necessarily shorter
+     * than `formatTime`.
+     */
+    formatTimePeriodStart(time: number): string {
         return this.formatTime(time)
     }
 
-    /** Where the period a time value stands for ends, formatted short */
-    formatTimeShortEnd(time: number): string {
-        return this.formatTimeShort(time)
+    /**
+     * Where the period a time value stands for ends, expressed in the next
+     * finer unit — see `formatTimePeriodStart`.
+     */
+    formatTimePeriodEnd(time: number): string {
+        return this.formatTimePeriodStart(time)
     }
 
     /**
      * Where the period a time value stands for ends, as a time value: the
-     * value counterpart of `formatTimeShortEnd`, for callers that need the
+     * value counterpart of `formatTimePeriodEnd`, for callers that need the
      * time itself rather than a label for it.
      *
      * Columns that store one representative time per period translate it to
      * the period's last day; the rest return the time unchanged, exactly as
-     * `formatTimeShortEnd` formats the time itself for them.
+     * `formatTimePeriodEnd` formats the time itself for them.
      */
     periodEndTime(time: Time): Time {
         return time
@@ -1134,7 +1144,7 @@ class WeekColumn<
     }
 
     // The plain week-start date (ISO-week Monday), e.g. "Jun 1, 2026"
-    override formatTimeShort(time: number): string {
+    override formatTimePeriodStart(time: number): string {
         const monday = convertDaysSinceEpochToDate(time).startOf("isoWeek")
         return monday.format("MMM D, YYYY")
     }
@@ -1147,7 +1157,7 @@ class WeekColumn<
     }
 
     // The plain week-end date (ISO-week Sunday), e.g. "Jun 7, 2026"
-    override formatTimeShortEnd(time: number): string {
+    override formatTimePeriodEnd(time: number): string {
         const sunday = convertDaysSinceEpochToDate(this.periodEndTime(time))
         return sunday.format("MMM D, YYYY")
     }
@@ -1155,7 +1165,7 @@ class WeekColumn<
     // The span from the first day of the start week (ISO-week Monday) to the
     // last day of the end week (Sunday), e.g. "Jun 1, 2026 to Jul 12, 2026".
     override formatTimeRange(startTime: number, endTime: number): string {
-        return `${this.formatTimeShort(startTime)} to ${this.formatTimeShortEnd(endTime)}`
+        return `${this.formatTimePeriodStart(startTime)} to ${this.formatTimePeriodEnd(endTime)}`
     }
 }
 
@@ -1181,7 +1191,7 @@ class QuarterColumn<
     }
 
     // The quarter's start month, e.g. "Jan 2026"
-    override formatTimeShort(time: number): string {
+    override formatTimePeriodStart(time: number): string {
         return convertDaysSinceEpochToDate(time)
             .startOf("quarter")
             .format("MMM YYYY")
@@ -1195,7 +1205,7 @@ class QuarterColumn<
     }
 
     // The quarter's end month, e.g. "Mar 2026"
-    override formatTimeShortEnd(time: number): string {
+    override formatTimePeriodEnd(time: number): string {
         return convertDaysSinceEpochToDate(this.periodEndTime(time)).format(
             "MMM YYYY"
         )
@@ -1204,7 +1214,7 @@ class QuarterColumn<
     // The span from the first month of the start quarter to the last month of
     // the end quarter, e.g. "Jan 2025 to Dec 2026"
     override formatTimeRange(startTime: number, endTime: number): string {
-        return `${this.formatTimeShort(startTime)} to ${this.formatTimeShortEnd(endTime)}`
+        return `${this.formatTimePeriodStart(startTime)} to ${this.formatTimePeriodEnd(endTime)}`
     }
 
     // The first of the epoch's quarter, used as the anchor for counting quarters.

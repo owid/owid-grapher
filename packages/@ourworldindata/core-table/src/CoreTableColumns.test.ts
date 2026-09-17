@@ -31,11 +31,11 @@ describe(ColumnTypeNames.Quarter, () => {
         expect(col.formatForCsv(400)).toEqual("2021-Q1")
     })
 
-    it("formats the short timeline label as the quarter's start month", () => {
+    it("formats the period start as the quarter's start month", () => {
         // day 0 = 2020-01-21 (Q1 2020) → start month Jan 2020
-        expect(col.formatTimeShort(0)).toEqual("Jan 2020")
+        expect(col.formatTimePeriodStart(0)).toEqual("Jan 2020")
         // day 200 = 2020-08-08 (Q3 2020) → start month Jul 2020
-        expect(col.formatTimeShort(200)).toEqual("Jul 2020")
+        expect(col.formatTimePeriodStart(200)).toEqual("Jul 2020")
     })
 
     it("formats a range from start-quarter start month to end-quarter end month", () => {
@@ -131,11 +131,13 @@ describe(ColumnTypeNames.Week, () => {
         ).toEqual("Week of Jun 1, 2026 vs. Week of Jul 6, 2026")
     })
 
-    it("formats the short timeline label as the plain week-start date", () => {
+    it("formats the period start as the plain week-start date", () => {
         const day = (iso: string): number =>
             convertDateToDaysSinceEpoch(dayjs.utc(iso))
         // 2026-06-03 (Wed) → week starts Mon 2026-06-01, no "Week of" prefix
-        expect(col.formatTimeShort(day("2026-06-03"))).toEqual("Jun 1, 2026")
+        expect(col.formatTimePeriodStart(day("2026-06-03"))).toEqual(
+            "Jun 1, 2026"
+        )
     })
 })
 
