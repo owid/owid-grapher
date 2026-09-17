@@ -917,6 +917,16 @@ $nav-height: 45px;
     overflow-y: auto;
 }
 
+// antd puts popovers and tooltips at 1030 and our Bootstrap-style .modal sits
+// at 1050, so anything hovered inside a modal — the "Used in" counts in the
+// chart editor's indicator picker, say — opened behind it and looked dead.
+// Prefixed with `body` to outrank antd's own rule whichever order the
+// stylesheets land in.
+body .ant-popover,
+body .ant-tooltip {
+    z-index: 1060;
+}
+
 .errorMessage {
     // 1 above .ant-modal-mask
     z-index: 2001;
