@@ -7,9 +7,7 @@ import {
 import {
     JsonError,
     DbPlainChart,
-    DbPlainDataset,
     DbRawChartConfig,
-    DbRawVariable,
     GrapherInterface,
     OwidVariableWithSource,
     parseChartConfig,
@@ -86,78 +84,6 @@ export async function getVariableMetadataJson(
     return await fetchS3MetadataByPath(
         getVariableMetadataRoute(DATA_API_URL, variableId, { noCache: true })
     )
-}
-
-// Still serving the chart editor's indicator picker, which downloads every
-// indicator up front. The picker moves onto `getVariablesJson` in a follow-up,
-// and this goes with it.
-export async function getEditorVariablesJson(
-    req: Request,
-    _res: HandlerResponse,
-    trx: db.KnexReadonlyTransaction
-) {
-    const datasets = []
-    const rows = await db.knexRaw<
-        Pick<DbRawVariable, "name" | "id"> & {
-            datasetId: number
-            datasetName: string
-            datasetVersion: string
-        } & Pick<
-                DbPlainDataset,
-                "namespace" | "isPrivate" | "nonRedistributable"
-            >
-    >(
-        trx,
-        `-- sql
-        SELECT
-                v.name,
-                v.id,
-                d.id as datasetId,
-                d.name as datasetName,
-                d.version as datasetVersion,
-                d.namespace,
-                d.isPrivate,
-                d.nonRedistributable
-            FROM variables as v JOIN active_datasets as d ON v.datasetId = d.id
-            ORDER BY d.updatedAt DESC
-            `
-    )
-
-    let dataset:
-        | {
-              id: number
-              name: string
-              version: string
-              namespace: string
-              isPrivate: boolean
-              nonRedistributable: boolean
-              variables: { id: number; name: string }[]
-          }
-        | undefined
-    for (const row of rows) {
-        if (!dataset || row.datasetName !== dataset.name) {
-            if (dataset) datasets.push(dataset)
-
-            dataset = {
-                id: row.datasetId,
-                name: row.datasetName,
-                version: row.datasetVersion,
-                namespace: row.namespace,
-                isPrivate: !!row.isPrivate,
-                nonRedistributable: !!row.nonRedistributable,
-                variables: [],
-            }
-        }
-
-        dataset.variables.push({
-            id: row.id,
-            name: row.name ?? "",
-        })
-    }
-
-    if (dataset) datasets.push(dataset)
-
-    return { datasets: datasets }
 }
 
 export async function getVariablesJson(
