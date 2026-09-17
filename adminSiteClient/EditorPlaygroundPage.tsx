@@ -141,10 +141,11 @@ const SCENARIOS: {
         label: "Your own CSV",
         blurb: (
             <>
-                No OWID data anywhere. The config names CSV columns by slug (
-                <code>ySlugs</code>) and comes back naming them the same way, so
-                it renders with <code>GrapherLoader.fromCsv</code> as is. Column
-                metadata comes from the column definitions.
+                No OWID data anywhere. The config&rsquo;s dimensions name CSV
+                columns by <code>slug</code> instead of by{" "}
+                <code>variableId</code>, so it renders with{" "}
+                <code>GrapherLoader.fromCsv</code> as is. Column metadata comes
+                from the column definitions.
             </>
         ),
     },
@@ -562,9 +563,11 @@ ${tabsLine}${hostLines}
                     >
                         {isCsv ? (
                             <p>
-                                The config references CSV columns by slug (
+                                The config&rsquo;s dimensions name CSV columns
+                                by <code>slug</code>. The flat form (
                                 <code>ySlugs</code>, <code>xSlug</code>,{" "}
-                                <code>colorSlug</code>, <code>sizeSlug</code>).
+                                <code>colorSlug</code>, <code>sizeSlug</code>)
+                                is read too, and comes back as dimensions.
                                 Column definitions carry the metadata the chart
                                 shows: name, unit, description, source.
                             </p>

@@ -27,13 +27,14 @@ import { DetailsProvider, IndicatorCatalog } from "./editorProviders.js"
 import { IndicatorStore } from "./indicatorStores.js"
 
 export interface GrapherEditorProps {
-    /** The chart config to edit, in the store's own form. */
+    /** The chart config to edit. Its dimensions name columns by
+     *  `variableId` or by `slug`, whichever the store resolves. */
     config: GrapherInterface
     /** Where indicator data and metadata come from. */
     store: IndicatorStore
     /**
-     * Receives the edited config, in the store's own form. May return the
-     * config as actually stored, which then counts as the saved state.
+     * Receives the edited config. May return the config as actually stored,
+     * which then counts as the saved state.
      */
     onSave: ConfigEditorManager["onSave"]
     /** Fires on every change of the edited config. */
@@ -132,8 +133,7 @@ export class GrapherEditor
         return this.props.onChange
     }
 
-    // The base arrives in the host's form like `config` does, and the editor
-    // translates both — it has to merge them in that form first.
+    // The base is a config like `config` is; the editor merges them.
     get parentConfig(): GrapherInterface | undefined {
         return this.props.baseConfig
     }

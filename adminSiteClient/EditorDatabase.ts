@@ -3,6 +3,9 @@ import { observable, makeObservable } from "mobx"
 interface Variable {
     id: number
     name: string
+    /** Set when the column is the host's own rather than an OWID indicator:
+     *  dimensions name it by slug and there is no variable id to fetch. */
+    slug?: string
 }
 
 export interface Dataset {
