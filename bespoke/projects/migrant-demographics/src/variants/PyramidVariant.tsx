@@ -231,6 +231,8 @@ function CaptionedPyramidVariant({
 
     // The outline only appears once the comparison is switched on
     const isShowingNatives = !!view?.natives
+    const canToggleNatives = !config.hideControls
+    const hasLegendRow = isShowingNatives || canToggleNatives
 
     return (
         <>
@@ -248,19 +250,26 @@ function CaptionedPyramidVariant({
                     setCompare={setCompare}
                 />
             )}
-            <Frame className="migrant-pyramid-captioned-chart">
+            <Frame
+                className={cx("migrant-pyramid-captioned-chart", {
+                    "migrant-pyramid-captioned-chart--with-legend":
+                        hasLegendRow,
+                })}
+            >
                 <ChartHeader title={title} subtitle={subtitle} />
-                {/* Always rendered so toggling the comparison doesn't
-                    shift the chart below */}
-                <div
-                    className={cx("migrant-pyramid-legend", {
-                        "migrant-pyramid-legend--hidden": !isShowingNatives,
-                    })}
-                    aria-hidden={!isShowingNatives}
-                >
-                    <span className="migrant-pyramid-legend__line" />
-                    Native-born residents
-                </div>
+                {/* Kept in the layout while the comparison can still be
+                    toggled, so switching it doesn't shift the chart below */}
+                {hasLegendRow && (
+                    <div
+                        className={cx("migrant-pyramid-legend", {
+                            "migrant-pyramid-legend--hidden": !isShowingNatives,
+                        })}
+                        aria-hidden={!isShowingNatives}
+                    >
+                        <span className="migrant-pyramid-legend__line" />
+                        Native-born residents
+                    </div>
+                )}
                 <div className="migrant-pyramid-captioned-chart__chart-area">
                     {isLoading && <Spinner />}
                     {view && pyramidData && total > 0 ? (
