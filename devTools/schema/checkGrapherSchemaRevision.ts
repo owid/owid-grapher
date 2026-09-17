@@ -73,18 +73,13 @@ async function fetchPublishedSchema(
     fileName: string
 ): Promise<JSONSchema7 | undefined> {
     const url = `${SCHEMA_URL_BASE}/${fileName}`
-    try {
-        const response = await fetch(url)
-        if (response.ok) return (await response.json()) as JSONSchema7
-        console.log(
-            `${url} responded ${response.status}, so the revision was not checked`
-        )
-    } catch {
-        console.log(
-            `${url} could not be fetched, so the revision was not checked`
-        )
+    const response = await fetch(url)
+    if (response.ok) return (await response.json()) as JSONSchema7
+    if (response.status === 404) {
+        console.log(`${url} is unpublished, so the revision was not checked`)
+        return undefined
     }
-    return undefined
+    throw new Error(`${url} responded ${response.status}`)
 }
 
 void main()
