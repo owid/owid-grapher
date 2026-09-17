@@ -18,7 +18,7 @@
 import "../settings/loadDotenv.mjs"
 import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
-import { getContainerName } from "./stagingHostname.js"
+import { getContainerName } from "../settings/stagingHostname.js"
 
 interface HostArgs {
     branch?: string

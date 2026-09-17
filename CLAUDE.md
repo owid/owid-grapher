@@ -59,6 +59,7 @@ Key facts that span multiple directories:
 ## Database
 
 - Table documentation lives in `db/docs/` — a `README.md` overview plus one `TABLE-NAME.yml` per table. ALWAYS list `db/docs/` and read the relevant table files before constructing a query or writing a migration.
+- `STAGING=1` points any server-side process at the current branch's staging database instead of the local one (`STAGING=<branch>` for another branch's); see the `test-on-staging` skill.
 - `yarn query 'SELECT ...'` — read-only SQL against the local dev DB. `yarn query -s "..."` queries the staging database for the current git branch (e.g. on branch `images-pageviews` it connects to `staging-site-images-pageviews`).
 - DB access convention in code: wrap queries in `knexReadonlyTransaction` / `knexReadWriteTransaction` from `db/db.ts` rather than using a raw knex instance.
 
