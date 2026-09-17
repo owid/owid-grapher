@@ -30,6 +30,8 @@ export {
     guid,
     TESTING_ONLY_disable_guid,
     pointsToPath,
+    roundForSvg,
+    SVG_PRECISION,
     sortedFindClosestIndex,
     sortedFindClosest,
     isMobile,
@@ -92,6 +94,7 @@ export {
     imemo,
     recursivelyMapArticleContent,
     traverseEnrichedBlock,
+    getParseFindings,
     checkNodeIsSpan,
     generateToc,
     toSentenceCase,
@@ -114,6 +117,7 @@ export {
     checkIsGdocPostExcludingFragments,
     checkIsDataInsight,
     checkIsAuthor,
+    checkIsFeaturedViz,
     checkIsChronologicalGdoc,
     checkIsLatestFeedGdoc,
     cartesian,
@@ -124,6 +128,8 @@ export {
     getAllChildrenOfArea,
     flattenNonTopicNodes,
     formatInlineList,
+    formatAuthors,
+    formatAuthorsForBibtex,
     lazy,
     getParentIndicatorIdFromChartConfig,
     isArrayDifferentFromReference,
@@ -157,23 +163,20 @@ export {
 } from "./Util.js"
 
 export {
-    getOriginAttributionFragments,
+    getOriginAttributions,
     getAttributionFragmentsFromVariable,
+    getAttributionFragmentsFromBespokeMetadata,
+    formatAttributions,
+    formatAttributionsShortened,
     getETLPathComponents,
-    formatAuthors,
-    formatAuthorsForBibtex,
     getLastUpdatedFromVariable,
     getNextUpdateFromVariable,
-    getPhraseForProcessingLevel,
-    splitSourceTextIntoFragments,
+    getAttributionWithProcessing,
+    getProcessingPhraseForAttribution,
     prepareSourcesForDisplay,
     formatSourceDate,
     getDateRange,
-    getCitationLong,
-    getCitationShort,
-    getCitationDatapage,
-    getPhraseForArchivalDate,
-    getYearSuffixFromOrigin,
+    getIndicatorCitations,
 } from "./metadataHelpers.js"
 
 export { getAllVariableIds } from "./multiDim.js"
@@ -298,6 +301,7 @@ export { OwidVariableDisplayConfig } from "./OwidVariable.js"
 export {
     strToQueryParams,
     queryParamsToStr,
+    multiDimDimensionsToViewQueryStr,
     getWindowQueryStr,
     setWindowQueryStr,
 } from "./urls/UrlUtils.js"
@@ -369,6 +373,7 @@ export {
 export {
     MultiDimDataPageConfig,
     extractMultiDimChoicesFromSearchParams,
+    getMultiDimPageTitle,
     searchParamsToMultiDimView,
 } from "./MultiDimDataPageConfig.js"
 
@@ -380,6 +385,7 @@ export {
     convertToArchivalDateStringIfNecessary,
     formatAsArchivalDate,
     getDateForArchival,
+    getPhraseForArchivalDate,
     parseArchivalDate,
 } from "./archival/archivalDate.js"
 

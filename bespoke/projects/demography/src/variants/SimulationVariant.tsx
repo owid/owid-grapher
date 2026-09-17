@@ -14,11 +14,13 @@ import {
     parseSimulationUrlState,
     type SimulationUrlState,
 } from "../core/urlState.js"
-import {
-    DemographyChartError,
-    DemographySkeleton,
-} from "../components/DemographyLoadAndError.js"
+import { ChartError } from "../../../../components/ChartError/ChartError.js"
+import { ChartSkeleton } from "../../../../components/ChartSkeleton/ChartSkeleton.js"
 import { Spinner } from "../../../../components/Spinner/Spinner.js"
+import {
+    EmbedConfigProvider,
+    useEmbedConfig,
+} from "../../../../hooks/useEmbedConfig.js"
 import { CountryData, DemographyMetadata, ParameterKey } from "../core/types.js"
 
 import { Frame } from "../../../../components/Frame/Frame.js"
@@ -38,19 +40,21 @@ export function SimulationVariant({
     const { breakpoint, ref: rootRef } = useContainerBreakpoint()
 
     return (
-        <QueryClientProvider client={queryClient}>
-            <BreakpointProvider value={breakpoint}>
-                <div
-                    ref={rootRef}
-                    className={cx(
-                        "demography-chart demography-chart__simulation-variant",
-                        breakpointClass(breakpoint)
-                    )}
-                >
-                    <FetchingSimulationVariant config={config} />
-                </div>
-            </BreakpointProvider>
-        </QueryClientProvider>
+        <EmbedConfigProvider config={config}>
+            <QueryClientProvider client={queryClient}>
+                <BreakpointProvider value={breakpoint}>
+                    <div
+                        ref={rootRef}
+                        className={cx(
+                            "demography-chart demography-chart__simulation-variant",
+                            breakpointClass(breakpoint)
+                        )}
+                    >
+                        <FetchingSimulationVariant config={config} />
+                    </div>
+                </BreakpointProvider>
+            </QueryClientProvider>
+        </EmbedConfigProvider>
     )
 }
 
@@ -59,9 +63,11 @@ function FetchingSimulationVariant({
 }: {
     config: SimulationVariantConfig
 }): React.ReactElement {
+    const { urlSync } = useEmbedConfig()
+
     const urlState = useMemo(
-        () => (config.urlSync ? parseSimulationUrlState() : {}),
-        [config.urlSync]
+        () => (urlSync ? parseSimulationUrlState() : {}),
+        [urlSync]
     )
     const [urlAssumptionState, setUrlAssumptionState] =
         useState<SimulationUrlAssumptionState>(() =>
@@ -74,13 +80,13 @@ function FetchingSimulationVariant({
         useInitialEntityName(urlState.entityName ?? config.region)
     const setEntityName = useCallback(
         (name: string) => {
-            if (config.urlSync) {
+            if (urlSync) {
                 setShouldSyncEntityName(true)
                 setUrlAssumptionState({})
             }
             setEntityNameRaw(name)
         },
-        [config.urlSync, setEntityNameRaw]
+        [urlSync, setEntityNameRaw]
     )
 
     const { metadata, entityData, isLoadingEntityData, status } =
@@ -100,7 +106,7 @@ function FetchingSimulationVariant({
 
     useEffect(() => {
         const shouldSyncAutoDetectedEntityName =
-            config.urlSync &&
+            urlSync &&
             !urlState.entityName &&
             (!config.region || config.region === "userLocation") &&
             isInitialEntityNameResolved
@@ -108,14 +114,17 @@ function FetchingSimulationVariant({
         if (shouldSyncAutoDetectedEntityName) setShouldSyncEntityName(true)
     }, [
         config.region,
-        config.urlSync,
+        urlSync,
         isInitialEntityNameResolved,
         urlState.entityName,
     ])
 
-    if (status === "pending") return <DemographySkeleton />
-    if (metadata && !metadata.slugs[entityName]) return <DemographySkeleton />
-    if (!metadata || !entityData) return <DemographyChartError />
+    if (status === "pending")
+        return <ChartSkeleton className="demography-chart-box" />
+    if (metadata && !metadata.slugs[entityName])
+        return <ChartSkeleton className="demography-chart-box" />
+    if (!metadata || !entityData)
+        return <ChartError className="demography-chart-box" />
 
     return (
         <CaptionedSimulationVariant
@@ -133,7 +142,6 @@ function FetchingSimulationVariant({
             fertilityRateAssumptions={config.fertilityRateAssumptions}
             lifeExpectancyAssumptions={config.lifeExpectancyAssumptions}
             netMigrationRateAssumptions={config.netMigrationRateAssumptions}
-            urlSync={config.urlSync}
             urlFertilityRateAssumptions={
                 urlAssumptionState.fertilityRateAssumptions
             }
@@ -188,7 +196,6 @@ function CaptionedSimulationVariant({
     fertilityRateAssumptions,
     lifeExpectancyAssumptions,
     netMigrationRateAssumptions,
-    urlSync,
     urlFertilityRateAssumptions,
     urlLifeExpectancyAssumptions,
     urlNetMigrationRateAssumptions,
@@ -211,7 +218,6 @@ function CaptionedSimulationVariant({
     fertilityRateAssumptions?: Record<number, number>
     lifeExpectancyAssumptions?: Record<number, number>
     netMigrationRateAssumptions?: Record<number, number>
-    urlSync?: boolean
     urlFertilityRateAssumptions?: Record<number, number>
     urlLifeExpectancyAssumptions?: Record<number, number>
     urlNetMigrationRateAssumptions?: Record<number, number>
@@ -260,7 +266,6 @@ function CaptionedSimulationVariant({
                     fertilityRateAssumptions={fertilityRateAssumptions}
                     lifeExpectancyAssumptions={lifeExpectancyAssumptions}
                     netMigrationRateAssumptions={netMigrationRateAssumptions}
-                    urlSync={urlSync}
                     urlFertilityRateAssumptions={urlFertilityRateAssumptions}
                     urlLifeExpectancyAssumptions={urlLifeExpectancyAssumptions}
                     urlNetMigrationRateAssumptions={

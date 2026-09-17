@@ -4,15 +4,15 @@ import {
     Bounds,
     GridParameters,
     HorizontalAlign,
-    makeFigmaId,
-    exposeInstanceOnWindow,
     SplitBoundsPadding,
+    exposeInstanceOnWindow,
+    makeFigmaId,
+    roundForSvg,
 } from "@ourworldindata/utils"
 import { action, computed, makeObservable, observable } from "mobx"
 import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
-    GRAPHER_FONT_SCALE_18,
 } from "../core/GrapherConstants"
 import {
     ChartErrorInfo,
@@ -22,6 +22,7 @@ import {
     Time,
 } from "@ourworldindata/types"
 import { calculateAspectRatio } from "./FacetChartUtils"
+import { scaleFontSize } from "../chart/ChartUtils"
 import {
     FacetMapManager,
     MapFacetSeries,
@@ -150,7 +151,7 @@ export class FacetMap
     }
 
     @computed private get facetFontSize(): number {
-        return Math.floor(this.fontSize * GRAPHER_FONT_SCALE_18)
+        return scaleFontSize(18, this.fontSize)
     }
 
     @computed private get mapConfig(): MapConfig {
@@ -434,7 +435,7 @@ export class FacetMap
         return new HorizontalCategoricalColorLegendState(
             this.categoricalLegendData,
             {
-                fontSize: this.fontSize,
+                baseFontSize: this.fontSize,
                 width: this.legendMaxWidth,
                 align: HorizontalAlign.center,
             }
@@ -446,7 +447,7 @@ export class FacetMap
         | undefined {
         if (this.numericLegendData.length <= 1) return undefined
         return new HorizontalNumericColorLegendState(this.numericLegendData, {
-            fontSize: this.fontSize,
+            baseFontSize: this.fontSize,
             maxWidth: this.legendMaxWidth,
             align: HorizontalAlign.center,
         })
@@ -594,10 +595,10 @@ export class FacetMap
         ) {
             return (
                 <line
-                    x1={bounds.centerX}
-                    y1={bounds.top}
-                    x2={bounds.centerX}
-                    y2={bounds.bottom}
+                    x1={roundForSvg(bounds.centerX)}
+                    y1={roundForSvg(bounds.top)}
+                    x2={roundForSvg(bounds.centerX)}
+                    y2={roundForSvg(bounds.bottom)}
                     stroke={GRAY_30}
                 />
             )

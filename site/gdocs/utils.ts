@@ -32,7 +32,7 @@ import {
 } from "@ourworldindata/utils"
 import { AttachmentsContext } from "./AttachmentsContext.js"
 import { PROD_URL } from "../SiteConstants.js"
-import { BAKED_BASE_URL, IS_ARCHIVE } from "../../settings/clientSettings.js"
+import { BAKED_BASE_URL, IS_ARCHIVE } from "../../settings/clientSettings.mjs"
 
 const getOrigin = (url: string, base?: string): string | undefined => {
     try {

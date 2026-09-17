@@ -3,7 +3,7 @@ import {
     DEFAULT_THUMBNAIL_FILENAME,
 } from "@ourworldindata/types"
 import { formatAuthors } from "@ourworldindata/utils"
-import { BAKED_BASE_URL } from "../settings/clientSettings.js"
+import { BAKED_BASE_URL } from "../settings/clientSettings.mjs"
 import Image from "./gdocs/components/Image.js"
 
 export default function DataPageResearchAndWriting({

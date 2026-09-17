@@ -82,6 +82,9 @@
                         scriptUrl: "/{{PROJECT}}/{{ENTRYPOINT_JS}}",
                         variant: variant.name,
                         config: variant.demoConfig,
+                        // Whatever BESPOKE_DATA_URL is for the checkout serving this page: a
+                        // staging server's own feed there, production's on a laptop.
+                        dataUrl: {{BESPOKE_DATA_URL}},
                     })
                 }
             }

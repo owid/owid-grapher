@@ -647,13 +647,6 @@ p.article-block__text + #article-licence {
     }
 
     @include md-down {
-        border-left: 1px solid $blue-20;
-        border-right: 1px solid $blue-20;
-        padding: 16px;
-        text-align: center;
-    }
-
-    @include md-down {
         margin-bottom: 16px;
     }
 }
@@ -668,6 +661,24 @@ p.article-block__text + #article-licence {
     padding-right: 16px;
     @include md-up {
         text-align: right;
+    }
+}
+
+.article-block__aside,
+.article-block__aside--right,
+.article-block__aside--left {
+    @include md-down {
+        border: none;
+        padding: 0;
+        text-align: left;
+        margin-top: -12px;
+    }
+}
+
+.article-block__aside-label {
+    display: none;
+    @include md-down {
+        display: inline;
     }
 }
 

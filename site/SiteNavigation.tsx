@@ -30,7 +30,7 @@ import { Menu } from "./SiteConstants.js"
 import { SEARCH_BASE_PATH } from "./search/searchUtils.js"
 
 // Note: tranforming the flag from an env string to a boolean in
-// clientSettings.ts is convoluted due to the two-pass SSR/Vite build process.
+// clientSettings.mts is convoluted due to the two-pass SSR/Vite build process.
 const HAS_DONATION_FLAG = false
 
 export const SiteNavigation = ({

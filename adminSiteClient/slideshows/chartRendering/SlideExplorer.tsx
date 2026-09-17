@@ -8,7 +8,7 @@ import {
     parseSlideChartUrl,
 } from "../../../site/slideshows/slideshowUtils.js"
 import { useEffect, useRef, useState } from "react"
-import { BAKED_BASE_URL } from "../../../settings/clientSettings.js"
+import { BAKED_BASE_URL } from "../../../settings/clientSettings.mjs"
 import { fetchText } from "@ourworldindata/utils"
 import { reaction, runInAction } from "mobx"
 

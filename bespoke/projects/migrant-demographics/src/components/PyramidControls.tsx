@@ -2,7 +2,6 @@ import { useMemo } from "react"
 
 import { Checkbox } from "@ourworldindata/components"
 import { BasicDropdownOption } from "@ourworldindata/grapher"
-import { WORLD_ENTITY_NAME } from "@ourworldindata/grapher/src/core/GrapherConstants.js"
 import { Tippy } from "@ourworldindata/utils"
 
 import {
@@ -99,7 +98,6 @@ function CountryDropdown({
         () =>
             orderOptionsByRelevance(flat, {
                 userCountryInfo,
-                pinnedToTop: [WORLD_ENTITY_NAME],
                 selectedValue: country,
             }),
         [flat, userCountryInfo, country]
@@ -108,12 +106,12 @@ function CountryDropdown({
     return (
         <LabeledDropdown
             className="migrant-pyramid-controls__country"
-            label="Country or region"
+            label="Country"
             options={options}
             selectedValue={country}
             onChange={setCountry}
-            placeholder="Select a country or region…"
-            aria-label="Select a country or region"
+            placeholder="Select a country…"
+            aria-label="Select a country"
             isSearchable
         />
     )

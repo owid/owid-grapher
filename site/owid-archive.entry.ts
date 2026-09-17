@@ -8,7 +8,7 @@ import "./owid.scss"
 // from a very large icon down to a properly sized one a moment later."
 import "@fortawesome/fontawesome-svg-core/styles.css"
 
-import { ENV } from "../settings/clientSettings.js"
+import { ENV } from "../settings/clientSettings.mjs"
 import {
     Grapher,
     renderSingleGrapherOnGrapherPage,

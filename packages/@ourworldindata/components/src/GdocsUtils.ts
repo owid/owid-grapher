@@ -110,6 +110,12 @@ export function getPrefixedGdocPath(
         )
         .with(
             {
+                content: { type: OwidGdocType.FeaturedViz },
+            },
+            () => `${prefix}/featured-viz/${gdoc.slug}`
+        )
+        .with(
+            {
                 content: { type: OwidGdocType.Author },
             },
             () => `${prefix}/team/${gdoc.slug}`
@@ -170,7 +176,8 @@ export function getPageTitle(gdoc: OwidGdoc) {
                         OwidGdocType.AboutPage,
                         OwidGdocType.DataInsight,
                         OwidGdocType.Author,
-                        OwidGdocType.Announcement
+                        OwidGdocType.Announcement,
+                        OwidGdocType.FeaturedViz
                     ),
                 },
             },

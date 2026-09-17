@@ -1,7 +1,12 @@
 import * as React from "react"
 import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
-import { dyFromAlign, makeFigmaId, VerticalAlign } from "@ourworldindata/utils"
+import {
+    VerticalAlign,
+    dyFromAlign,
+    makeFigmaId,
+    roundForSvg,
+} from "@ourworldindata/utils"
 import {
     COMPARISON_LINE_STYLE,
     COMPARISON_LINE_LABEL_STYLE,
@@ -92,8 +97,8 @@ export class VerticalComparisonLine extends React.Component<
         return (
             <text
                 {...COMPARISON_LINE_LABEL_STYLE}
-                x={x}
-                y={y}
+                x={roundForSvg(x)}
+                y={roundForSvg(y)}
                 fontSize={this.fontSize}
                 dy={dyFromAlign(VerticalAlign.bottom)}
                 textAnchor={anchor}
@@ -111,10 +116,10 @@ export class VerticalComparisonLine extends React.Component<
         return (
             <g id={makeFigmaId("comparison-line", this.lineConfig.label)}>
                 <line
-                    x1={x}
-                    y1={y1}
-                    x2={x}
-                    y2={y2}
+                    x1={roundForSvg(x)}
+                    y1={roundForSvg(y1)}
+                    x2={roundForSvg(x)}
+                    y2={roundForSvg(y2)}
                     style={COMPARISON_LINE_STYLE}
                 />
                 {this.renderLabel()}

@@ -20,7 +20,7 @@ import {
     ARCHIVED_THUMBNAIL_FILENAME,
 } from "@ourworldindata/types"
 import type { Knex } from "knex"
-import { BAKED_BASE_URL } from "../../settings/clientSettings.js"
+import { BAKED_BASE_URL } from "../../settings/clientSettings.mjs"
 import { decodeHTML } from "entities"
 
 export const postsTable = "posts"
