@@ -1,4 +1,9 @@
-import { OwidBriefOptInResult } from "@ourworldindata/types"
+import {
+    MAILCHIMP_API_SERVER,
+    MAILCHIMP_NEWSLETTER_LIST_ID,
+    MAILCHIMP_OWID_BRIEF_INTEREST_ID,
+    OwidBriefOptInResult,
+} from "@ourworldindata/types"
 import * as _ from "lodash-es"
 import { Env } from "./env.js"
 
@@ -7,11 +12,6 @@ import { Env } from "./env.js"
 function validateMailchimpConfiguration(env: Env): void {
     const missingVariables: string[] = []
     if (!env.MAILCHIMP_API_KEY) missingVariables.push("MAILCHIMP_API_KEY")
-    if (!env.MAILCHIMP_API_SERVER) missingVariables.push("MAILCHIMP_API_SERVER")
-    if (!env.MAILCHIMP_NEWSLETTER_LIST_ID)
-        missingVariables.push("MAILCHIMP_NEWSLETTER_LIST_ID")
-    if (!env.MAILCHIMP_OWID_BRIEF_INTEREST_ID)
-        missingVariables.push("MAILCHIMP_OWID_BRIEF_INTEREST_ID")
     if (missingVariables.length > 0) {
         throw new Error(
             `Mailchimp configuration is missing: ${missingVariables.join(", ")}`
@@ -34,8 +34,8 @@ async function makeSubscriberHash(email: string): Promise<string> {
         .join("")
 }
 
-async function makeMemberUrl(env: Env, email: string): Promise<string> {
-    return `https://${env.MAILCHIMP_API_SERVER}.api.mailchimp.com/3.0/lists/${env.MAILCHIMP_NEWSLETTER_LIST_ID}/members/${await makeSubscriberHash(email)}`
+async function makeMemberUrl(email: string): Promise<string> {
+    return `https://${MAILCHIMP_API_SERVER}.api.mailchimp.com/3.0/lists/${MAILCHIMP_NEWSLETTER_LIST_ID}/members/${await makeSubscriberHash(email)}`
 }
 
 function makeAuthHeader(env: Env): string {
@@ -109,13 +109,13 @@ export async function enableOwidBriefSubscription(
     email: string
 ): Promise<OwidBriefOptInResult> {
     validateMailchimpConfiguration(env)
-    const memberUrl = await makeMemberUrl(env, email)
-    const interests = { [env.MAILCHIMP_OWID_BRIEF_INTEREST_ID]: true }
+    const memberUrl = await makeMemberUrl(email)
+    const interests = { [MAILCHIMP_OWID_BRIEF_INTEREST_ID]: true }
 
     const member = await fetchMember(env, memberUrl)
     if (member?.status === "cleaned") throw new MailchimpCleanedContactError()
     if (member?.status === "subscribed") {
-        if (member.interests?.[env.MAILCHIMP_OWID_BRIEF_INTEREST_ID] === true) {
+        if (member.interests?.[MAILCHIMP_OWID_BRIEF_INTEREST_ID] === true) {
             return "active"
         }
         if (await writeMember(env, memberUrl, "PATCH", { interests })) {
@@ -157,8 +157,8 @@ export async function disableOwidBriefSubscription(
     email: string
 ): Promise<void> {
     validateMailchimpConfiguration(env)
-    await writeMember(env, await makeMemberUrl(env, email), "PATCH", {
-        interests: { [env.MAILCHIMP_OWID_BRIEF_INTEREST_ID]: false },
+    await writeMember(env, await makeMemberUrl(email), "PATCH", {
+        interests: { [MAILCHIMP_OWID_BRIEF_INTEREST_ID]: false },
     })
 }
 
@@ -168,7 +168,7 @@ export async function unsubscribeFromMailchimp(
     email: string
 ): Promise<void> {
     validateMailchimpConfiguration(env)
-    await writeMember(env, await makeMemberUrl(env, email), "PATCH", {
+    await writeMember(env, await makeMemberUrl(email), "PATCH", {
         status: "unsubscribed",
     })
 }
@@ -179,11 +179,11 @@ export async function getOwidBriefStatus(
     email: string
 ): Promise<boolean> {
     validateMailchimpConfiguration(env)
-    const member = await fetchMember(env, await makeMemberUrl(env, email))
+    const member = await fetchMember(env, await makeMemberUrl(email))
     // Not a list member at all: not subscribed to the Brief.
     if (!member) return false
     return (
         member.status === "subscribed" &&
-        member.interests?.[env.MAILCHIMP_OWID_BRIEF_INTEREST_ID] === true
+        member.interests?.[MAILCHIMP_OWID_BRIEF_INTEREST_ID] === true
     )
 }

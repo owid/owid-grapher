@@ -310,9 +310,7 @@ To inspect outgoing email locally, run `yarn postmarkCatcher` and point
 `POSTMARK_SERVER_TOKEN` value is still required because missing production
 configuration must fail loudly.
 
-The OWID Brief integration likewise requires `MAILCHIMP_API_KEY`,
-`MAILCHIMP_API_SERVER`, `MAILCHIMP_NEWSLETTER_LIST_ID`, and
-`MAILCHIMP_OWID_BRIEF_INTEREST_ID`.
+The OWID Brief integration likewise requires `MAILCHIMP_API_KEY`.
 
 ## `/deleted/:slug`
 
@@ -431,8 +429,6 @@ The thank-you webhook can subscribe donors to a Mailchimp newsletter list. To te
 
 1. Set up the following environment variables in your `.dev.vars`:
     - `MAILCHIMP_API_KEY`: You can find this in 1Password.
-    - `MAILCHIMP_API_SERVER`: The server prefix for our Mailchimp account (e.g., "us1"). You can find this in the URL when you log into Mailchimp (e.g., `https://us1.admin.mailchimp.com`).
-    - `MAILCHIMP_DONOR_LIST_ID`: The ID of the donor newsletter Mailchimp list you want to subscribe donors to. You can find this in 1Password.
 
 2. Run the Stripe client as described in the preceding section.
 
