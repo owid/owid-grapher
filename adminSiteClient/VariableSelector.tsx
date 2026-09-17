@@ -1,6 +1,6 @@
 import * as React from "react"
 import { useContext, useMemo, useState } from "react"
-import { Button } from "antd"
+import { Button, Pagination } from "antd"
 import { keepPreviousData, useQuery } from "@tanstack/react-query"
 import { useDebounceValue } from "usehooks-ts"
 import { OwidVariableId } from "@ourworldindata/utils"
@@ -11,7 +11,6 @@ import { AdminAppContext } from "./AdminAppContext.js"
 import {
     DatasetSearchGroup,
     GroupedVariableList,
-    VariableList,
     VariableListItem,
 } from "./VariableList.js"
 import {
@@ -280,6 +279,46 @@ export function VariableSelector({
         return [...leading, ...rest]
     }, [data, chosen, selectedIds])
 
+    // Naming a dataset pages through its indicators rather than capping them
+    // at five, but they still read as a dataset: the same header, with the
+    // page's rows under it.
+    const pagedGroups: DatasetSearchGroup[] = useMemo(() => {
+        const variables = flat.data?.variables ?? []
+        if (variables.length === 0) return []
+
+        const byDataset = new Map<number, VariableListItem[]>()
+        for (const variable of variables) {
+            const datasetId = variable.datasetId ?? -1
+            byDataset.set(datasetId, [
+                ...(byDataset.get(datasetId) ?? []),
+                variable,
+            ])
+        }
+
+        return [...byDataset].map(([datasetId, rows]) => {
+            const [namespace, version, dataset] = pathSegments(
+                rows[0].catalogPath
+            )
+            return {
+                id: datasetId,
+                name: rows[0].datasetName ?? dataset ?? "Indicators",
+                namespace: namespace ?? "",
+                version: version ?? null,
+                shortName: dataset ?? null,
+                uploadedAt: rows[0].uploadedAt,
+                uploadedBy: rows[0].uploadedBy,
+                // the whole dataset when the page holds only that one,
+                // otherwise just what is on screen
+                matchCount:
+                    byDataset.size === 1
+                        ? (flat.data?.numTotalRows ?? rows.length)
+                        : rows.length,
+                variables: rows,
+                paged: true,
+            }
+        })
+    }, [flat.data])
+
     const onSearch = (value: string) => {
         setHasTyped(true)
         setSearchValue(value)
@@ -349,21 +388,28 @@ export function VariableSelector({
                             }
                         />
                     ) : (
-                        <VariableList
-                            variables={flat.data?.variables ?? []}
-                            fields={["usage"]}
+                        <GroupedVariableList
+                            groups={pagedGroups}
+                            isSearch={effectiveSearch.trim().length > 0}
                             searchWords={searchWords}
+                            searchValue={effectiveSearch}
+                            onSearchValue={onSearch}
                             loading={flat.isFetching}
-                            sortable={false}
                             selection={selection}
                             search={searchProps}
-                            pagination={{
-                                current: page,
-                                pageSize: INDICATORS_PER_PAGE,
-                                total: flat.data?.numTotalRows ?? 0,
-                                showSizeChanger: false,
-                                onChange: setPage,
-                            }}
+                            footer={
+                                <Pagination
+                                    className="VariableSelector__paging"
+                                    current={page}
+                                    pageSize={INDICATORS_PER_PAGE}
+                                    total={flat.data?.numTotalRows ?? 0}
+                                    showSizeChanger={false}
+                                    onChange={setPage}
+                                    showTotal={(total, [from, to]) =>
+                                        `indicators ${from}-${to} of ${total}`
+                                    }
+                                />
+                            }
                         />
                     )}
                 </div>

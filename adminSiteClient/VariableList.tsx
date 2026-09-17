@@ -68,6 +68,11 @@ export interface DatasetSearchGroup {
      * because they match the search, so the group has no match count.
      */
     pinned?: boolean
+    /**
+     * The caller pages through these indicators itself, so the group holds
+     * one page of them and offers no "more in this dataset" link.
+     */
+    paged?: boolean
 }
 
 interface VariableListProps {
@@ -700,7 +705,7 @@ export function GroupedVariableList({
                     key: `v${variable.id}`,
                     variable,
                 })),
-                ...(group.matchCount > group.variables.length
+                ...(!group.paged && group.matchCount > group.variables.length
                     ? [
                           {
                               kind: "more" as const,
