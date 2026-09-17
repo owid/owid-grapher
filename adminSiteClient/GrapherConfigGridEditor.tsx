@@ -9,6 +9,7 @@ import {
     setWindowUrl,
     excludeNull,
     es6mapValues,
+    formatGrapherSchemaUrl,
 } from "@ourworldindata/utils"
 import {
     BulkChartEditRow,
@@ -51,7 +52,7 @@ import {
     Grapher,
     GrapherProgrammaticInterface,
     GrapherState,
-    latestGrapherConfigSchema,
+    latestSchemaVersion,
     loadCatalogData,
     MapChartState,
 } from "@ourworldindata/grapher"
@@ -1069,9 +1070,8 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
     }
 
     async getFieldDefinitions() {
-        const json = await fetch(latestGrapherConfigSchema!).then((response) =>
-            response.json()
-        )
+        const schemaUrl = formatGrapherSchemaUrl(latestSchemaVersion)
+        const json = await fetch(schemaUrl).then((response) => response.json())
         const fieldDescriptions = extractFieldDescriptionsFromSchema(json)
         runInAction(() => {
             // Now that we have the field Definitions we can initialize everything, including
