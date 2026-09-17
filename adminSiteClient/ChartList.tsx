@@ -21,10 +21,13 @@ import {
 import { References } from "./AbstractChartEditor.js"
 import {
     SearchWord,
-    buildSearchWordsFromSearchString,
-    filterFunctionForSearchWords,
     highlightFunctionForSearchWords,
 } from "../adminShared/search.js"
+import {
+    makeSearchFilter,
+    SearchField,
+    searchWordsToHighlight,
+} from "../adminShared/searchFilter.js"
 import { TextField } from "./Forms.js"
 import { Tooltip } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -70,6 +73,78 @@ interface ChartListProps {
     autofocusSearchInput?: boolean
     onDelete?: (chart: ChartListItem) => void
 }
+
+const CHART_SEARCH_FIELDS: SearchField<ChartListItem>[] = [
+    {
+        name: "title",
+        type: "string",
+        description: "Chart title",
+        get: (chart) => chart.title,
+    },
+    {
+        name: "variant",
+        type: "string",
+        description: "Variant name",
+        get: (chart) => chart.variantName,
+    },
+    {
+        name: "slug",
+        type: "string",
+        description: "Slug",
+        get: (chart) => chart.slug,
+    },
+    {
+        name: "notes",
+        type: "string",
+        description: "Internal notes",
+        get: (chart) => chart.internalNotes,
+    },
+    {
+        name: "by",
+        type: "string",
+        description: "Who published or last edited it",
+        get: (chart) => [chart.publishedBy, chart.lastEditedBy],
+    },
+    {
+        name: "tag",
+        type: "string",
+        description: "Tag",
+        get: (chart) => chart.tags.map((tag) => tag.name),
+    },
+    {
+        name: "type",
+        type: "string",
+        description: "Chart type, or Map",
+        get: (chart) => [
+            chart.hasChartTab !== false ? chart.type : undefined,
+            chart.hasMapTab ? "Map" : undefined,
+        ],
+    },
+    {
+        name: "id",
+        type: "number",
+        description: "Chart id",
+        get: (chart) => chart.id,
+    },
+    {
+        name: "published",
+        type: "boolean",
+        description: "Published",
+        get: (chart) => chart.isPublished,
+    },
+    {
+        name: "views",
+        type: "number",
+        description: "Grapher views per day",
+        get: (chart) => chart.grapherViewsPerDay,
+    },
+    {
+        name: "edited",
+        type: "date",
+        description: "When it was last edited",
+        get: (chart) => chart.lastEditedAt,
+    },
+]
 
 @observer
 export class ChartList extends React.Component<ChartListProps> {
@@ -131,12 +206,14 @@ export class ChartList extends React.Component<ChartListProps> {
 
     getSearchInputFromUrl(): string {
         const params = new URLSearchParams(window.location.search)
-        return params.get("chartSearch") || ""
+        // `chartSearch` is the name this page used before the admin's lists
+        // settled on one parameter
+        return params.get("search") || params.get("chartSearch") || ""
     }
 
     setSearchInputInUrl(searchInput: string) {
         const params = queryParamsToStr({
-            chartSearch: searchInput || undefined,
+            search: searchInput || undefined,
         })
         const pathname = window.location.pathname
         const newUrl = `${pathname}${params}`
@@ -153,8 +230,7 @@ export class ChartList extends React.Component<ChartListProps> {
     }
 
     @computed get searchWords(): SearchWord[] {
-        const { searchInput } = this
-        return buildSearchWordsFromSearchString(searchInput)
+        return searchWordsToHighlight(this.searchInput, CHART_SEARCH_FIELDS)
     }
 
     @computed get numTotalCharts() {
@@ -162,26 +238,9 @@ export class ChartList extends React.Component<ChartListProps> {
     }
 
     @computed get chartsFiltered(): ChartListItem[] {
-        const { searchWords } = this
-        const { charts } = this.props
-        if (searchWords.length > 0) {
-            const filterFn = filterFunctionForSearchWords(
-                searchWords,
-                (chart: ChartListItem) => [
-                    chart.title,
-                    chart.variantName,
-                    chart.internalNotes,
-                    chart.publishedBy,
-                    chart.lastEditedBy,
-                    `${chart.id}`,
-                    chart.slug,
-                    chart.hasChartTab !== false ? chart.type : undefined,
-                    chart.hasMapTab ? "Map" : undefined,
-                    ...chart.tags.map((tag) => tag.name),
-                ]
-            )
-            return charts.filter(filterFn)
-        } else return charts
+        return this.props.charts.filter(
+            makeSearchFilter(this.searchInput, CHART_SEARCH_FIELDS)
+        )
     }
 
     @computed get chartsSorted(): ChartListItem[] {

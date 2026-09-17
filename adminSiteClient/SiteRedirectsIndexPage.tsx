@@ -1,18 +1,19 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { useContext, useMemo, useState } from "react"
+import { useContext, useMemo } from "react"
 import {
     Alert,
     Button,
-    Flex,
     Form,
     Input,
     Popconfirm,
     Space,
-    Table,
     TableColumnsType,
     Typography,
     notification,
 } from "antd"
+import { AdminTable } from "./AdminTable.js"
+import { useListSearch } from "./adminTableHelpers.js"
+import { SearchField } from "../adminShared/searchFilter.js"
 import { BAKED_BASE_URL } from "../settings/clientSettings.mjs"
 import { AdminAppContext } from "./AdminAppContext.js"
 import { AdminLayout } from "./AdminLayout.js"
@@ -75,6 +76,21 @@ async function deleteRedirect(admin: Admin, id: number) {
     }
 }
 
+const SEARCH_FIELDS: SearchField<Redirect>[] = [
+    {
+        name: "source",
+        type: "string",
+        description: "Source path",
+        get: (r) => r.source,
+    },
+    {
+        name: "target",
+        type: "string",
+        description: "Target path or URL",
+        get: (r) => r.target,
+    },
+]
+
 function createColumns(
     onDelete: (id: number) => void
 ): TableColumnsType<Redirect> {
@@ -133,7 +149,6 @@ export default function SiteRedirectsIndexPage() {
         notification.useNotification()
     const queryClient = useQueryClient()
     const [form] = Form.useForm<FormData>()
-    const [search, setSearch] = useState("")
 
     const { data: redirects } = useQuery({
         queryKey: ["siteRedirects"],
@@ -183,14 +198,11 @@ export default function SiteRedirectsIndexPage() {
         createMutation.mutate(values)
     }
 
-    const filteredRedirects = useMemo(() => {
-        const query = search.trim().toLowerCase()
-        return redirects?.filter((redirect) =>
-            [redirect.source, redirect.target].some((field) =>
-                field.toLowerCase().includes(query)
-            )
-        )
-    }, [redirects, search])
+    const { results: filteredRedirects, search } = useListSearch(
+        redirects,
+        SEARCH_FIELDS,
+        { placeholder: "Search by source or target", autoFocus: true }
+    )
 
     const columns = useMemo(
         () => createColumns((id) => deleteMutation.mutate(id)),
@@ -356,29 +368,14 @@ export default function SiteRedirectsIndexPage() {
                         </Form.Item>
                     </Form>
 
-                    <div>
-                        <Flex align="center" justify="space-between" gap={24}>
-                            <Input
-                                placeholder="Search by source or target"
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
-                                style={{ width: 400 }}
-                                autoFocus
-                            />
-                            <Typography.Text>
-                                Showing {filteredRedirects?.length ?? 0} of{" "}
-                                {redirects?.length ?? 0} redirects
-                            </Typography.Text>
-                        </Flex>
-                        <Table
-                            columns={columns}
-                            dataSource={filteredRedirects}
-                            rowKey="id"
-                            loading={!redirects}
-                            pagination={{ pageSize: 20 }}
-                            style={{ marginTop: 16 }}
-                        />
-                    </div>
+                    <AdminTable
+                        columns={columns}
+                        dataSource={filteredRedirects}
+                        rowKey="id"
+                        loading={!redirects}
+                        entityName="redirects"
+                        search={search}
+                    />
                 </Space>
             </main>
         </AdminLayout>
