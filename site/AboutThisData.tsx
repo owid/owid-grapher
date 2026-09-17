@@ -12,7 +12,6 @@ import {
 import { DataPageDataV2 } from "@ourworldindata/types"
 import { formatAttributions } from "@ourworldindata/utils"
 import KeyDataTable from "./KeyDataTable.js"
-import DodLocation from "./DodLocation.js"
 import { logExpandableToggle } from "./metadataExperimentEvents.js"
 
 export default function AboutThisData({
@@ -48,12 +47,11 @@ export default function AboutThisData({
                         <div className="key-info__content">
                             {datapageData.descriptionKey && (
                                 <div className="key-info__key-description">
-                                    <DodLocation location="wysk">
-                                        <SimpleMarkdownText
-                                            text={datapageData.descriptionKey.trim()}
-                                            dataTrackNote="wysk_link"
-                                        />
-                                    </DodLocation>
+                                    <SimpleMarkdownText
+                                        text={datapageData.descriptionKey.trim()}
+                                        dataTrackNote="wysk_link"
+                                        dodLocation="wysk"
+                                    />
                                 </div>
                             )}
 
@@ -66,14 +64,12 @@ export default function AboutThisData({
                                                 : "How is this data described by its producer?"
                                         }
                                         content={
-                                            <div
-                                                className="article-block__text"
-                                                data-dod-location="producer_documentation"
-                                            >
+                                            <div className="article-block__text">
                                                 <SimpleMarkdownText
                                                     text={
                                                         datapageData.descriptionFromProducer
                                                     }
+                                                    dodLocation="producer_documentation"
                                                 />
                                             </div>
                                         }
@@ -89,10 +85,7 @@ export default function AboutThisData({
                                     <ExpandableToggle
                                         label="Additional information about this data"
                                         content={
-                                            <div
-                                                className="expandable-info-blocks__content"
-                                                data-dod-location="additional_information"
-                                            >
+                                            <div className="expandable-info-blocks__content">
                                                 <HtmlOrSimpleMarkdownText
                                                     text={datapageData.source?.additionalInfo.trim()}
                                                 />
@@ -120,12 +113,10 @@ export default function AboutThisData({
                         )}
                     </div>
                     <div className="key-info__right span-cols-4 span-lg-cols-5 span-sm-cols-12">
-                        <DodLocation location="key_data">
-                            <KeyDataTable
-                                datapageData={datapageData}
-                                attribution={attribution}
-                            />
-                        </DodLocation>
+                        <KeyDataTable
+                            datapageData={datapageData}
+                            attribution={attribution}
+                        />
                     </div>
                 </>
             ) : (
@@ -137,12 +128,10 @@ export default function AboutThisData({
                         About this data
                     </h2>
                     <div className="col-start-4 span-cols-10 col-lg-start-5 span-lg-cols-8 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
-                        <DodLocation location="key_data">
-                            <KeyDataTable
-                                datapageData={datapageData}
-                                attribution={attribution}
-                            />
-                        </DodLocation>
+                        <KeyDataTable
+                            datapageData={datapageData}
+                            attribution={attribution}
+                        />
                     </div>
                 </>
             )}

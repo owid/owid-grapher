@@ -31,7 +31,6 @@ import IndicatorMetadataBox from "./IndicatorMetadataBox.js"
 import AboutThisData from "./AboutThisData.js"
 import DataPageResearchAndWriting from "./DataPageResearchAndWriting.js"
 import MetadataSection from "./MetadataSection.js"
-import DodLocation from "./DodLocation.js"
 import { SiteQueryClientProvider } from "./SiteQueryClientProvider.js"
 
 declare global {
@@ -145,36 +144,32 @@ export const DataPageV2Content = ({
         >
             <DocumentContext.Provider value={{ isPreviewing }}>
                 <div className="DataPageContent__grapher-for-embed">
-                    <DodLocation location="grapher">
-                        <GrapherWithFallback
-                            config={mergedGrapherConfig}
-                            useProvidedConfigOnly
-                            slug={grapherConfig.slug}
-                            queryStr={queryStr}
-                            enablePopulatingUrlParams
-                            isEmbeddedInAnOwidPage={false}
-                            isEmbeddedInADataPage={false}
-                            isPreviewing={isPreviewing}
-                        />
-                    </DodLocation>
+                    <GrapherWithFallback
+                        config={mergedGrapherConfig}
+                        useProvidedConfigOnly
+                        slug={grapherConfig.slug}
+                        queryStr={queryStr}
+                        enablePopulatingUrlParams
+                        isEmbeddedInAnOwidPage={false}
+                        isEmbeddedInADataPage={false}
+                        isPreviewing={isPreviewing}
+                    />
                 </div>
                 <div className="DataPageContent grid grid-cols-12-full-width">
                     <div className="span-cols-14 grid grid-cols-12-full-width full-width--border">
                         <div className="chart-key-info col-start-2 span-cols-12">
                             {grapherConfig.slug && (
-                                <DodLocation location="grapher">
-                                    <GrapherWithFallback
-                                        slug={grapherConfig.slug}
-                                        config={mergedGrapherConfig}
-                                        useProvidedConfigOnly
-                                        id="explore-the-data"
-                                        queryStr={queryStr}
-                                        enablePopulatingUrlParams
-                                        isEmbeddedInADataPage={true}
-                                        isEmbeddedInAnOwidPage={false}
-                                        isPreviewing={isPreviewing}
-                                    />
-                                </DodLocation>
+                                <GrapherWithFallback
+                                    slug={grapherConfig.slug}
+                                    config={mergedGrapherConfig}
+                                    useProvidedConfigOnly
+                                    id="explore-the-data"
+                                    queryStr={queryStr}
+                                    enablePopulatingUrlParams
+                                    isEmbeddedInADataPage={true}
+                                    isEmbeddedInAnOwidPage={false}
+                                    isPreviewing={isPreviewing}
+                                />
                             )}
                             {!useNewDatapageDesign && (
                                 <AboutThisData

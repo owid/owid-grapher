@@ -45,8 +45,9 @@ export async function runDetailsOnDemand(): Promise<void> {
 export const DOD_LOCATION_ATTR = "data-dod-location"
 
 /**
- * The page region a DoD span sits in, per the nearest data-dod-location
- * marker (set on data page sections), or undefined if none.
+ * The page region a DoD span sits in, per its own or the nearest ancestor's
+ * data-dod-location (set via SimpleMarkdownText's dodLocation on data pages),
+ * or undefined if none.
  */
 export function getDodLocation(dodSpan: Element): string | undefined {
     return (

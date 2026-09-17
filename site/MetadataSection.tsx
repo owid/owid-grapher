@@ -24,7 +24,6 @@ import {
 } from "@ourworldindata/utils"
 import { ArticleBlocks } from "./gdocs/components/ArticleBlocks.js"
 import { SiteAnalytics } from "./SiteAnalytics.js"
-import DodLocation from "./DodLocation.js"
 import { logExpandableToggle } from "./metadataExperimentEvents.js"
 
 const analytics = new SiteAnalytics()
@@ -89,10 +88,7 @@ export default function MetadataSection({
                         >
                             Frequently Asked Questions
                         </h2>
-                        <div
-                            className="faqs__items grid grid-cols-10 grid-lg-cols-9 grid-md-cols-12 span-cols-10 span-lg-cols-9 span-md-cols-12 span-sm-cols-12"
-                            data-dod-location="faqs"
-                        >
+                        <div className="faqs__items grid grid-cols-10 grid-lg-cols-9 grid-md-cols-12 span-cols-10 span-lg-cols-9 span-md-cols-12 span-sm-cols-12">
                             <ArticleBlocks
                                 blocks={faqEntries.faqs}
                                 containerType="datapage"
@@ -111,14 +107,12 @@ export default function MetadataSection({
                         <h3 className="metadata-section__heading span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
                             This data is based on the following sources
                         </h3>
-                        <div
-                            className="col-start-4 span-cols-6 col-lg-start-5 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12"
-                            data-dod-location="data_sources"
-                        >
+                        <div className="col-start-4 span-cols-6 col-lg-start-5 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
                             <IndicatorSources
                                 sources={sourcesForDisplay}
                                 retrievedFromTrackNote="retrieved_from"
                                 descriptionTrackNote="source_link"
+                                dodLocation="data_sources"
                                 onSourceToggle={(_source, index, isOpen) =>
                                     logExpandableToggle(
                                         `data_source_${index + 1}`,
@@ -133,14 +127,11 @@ export default function MetadataSection({
                             How we process data at Our World in Data
                         </h3>
                         <div className="col-start-4 span-cols-6 col-lg-start-5 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
-                            <DodLocation location="processing">
-                                <IndicatorProcessing
-                                    descriptionProcessing={
-                                        descriptionProcessing
-                                    }
-                                    trackNote="processing_link"
-                                />
-                            </DodLocation>
+                            <IndicatorProcessing
+                                descriptionProcessing={descriptionProcessing}
+                                trackNote="processing_link"
+                                dodLocation="processing"
+                            />
                         </div>
                     </div>
                 </div>
