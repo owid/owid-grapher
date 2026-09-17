@@ -12,9 +12,16 @@ $topic-page-header-margin-bottom: 32px;
 
 :root {
     --grid-gap: 24px;
+    --viewport-height: 100vh;
 
     @media (max-width: 768px) {
         --grid-gap: 16px;
+    }
+}
+
+@supports (height: 100dvh) {
+    :root {
+        --viewport-height: 100dvh;
     }
 }
 

@@ -10,11 +10,13 @@ import {
     RawSeries,
 } from "./types.js"
 import { sexFromId } from "./helpers.js"
+import { feedUrl } from "../../../../helpers/feedUrl.js"
 
-const BASE_URL = "https://owid-public.owid.io/data/migration"
-const METADATA_URL = `${BASE_URL}/migration-stock-flows.metadata.json`
+// ETL step that builds this feed: viz://bespoke/un_migration/latest/migration_stock_flows_json
+const FEED = "un_migration/latest/migration_stock_flows_json"
+const metadataUrl = () => feedUrl(FEED, "migration-stock-flows.metadata.json")
 const countryUrl = (entityId: number) =>
-    `${BASE_URL}/migration-stock-flows.${entityId}.json`
+    feedUrl(FEED, `migration-stock-flows.${entityId}.json`)
 
 const queryKeys = {
     metadata: () => ["migration", "metadata"],
@@ -25,7 +27,7 @@ export const useMigrationMetadata = () =>
     useQuery({
         queryKey: queryKeys.metadata(),
         queryFn: async (): Promise<MigrationMetadata> => {
-            const res = await fetch(METADATA_URL)
+            const res = await fetch(metadataUrl())
             if (!res.ok)
                 throw new Error(
                     `Failed to fetch migration metadata: HTTP ${res.status}`

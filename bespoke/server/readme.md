@@ -54,7 +54,9 @@ In dev mode, requests for `/<project>/index.js` are redirected to the source ent
 
 ## Staging
 
-Staging servers run this server too, under pm2 as `yarn startBespokeDevServer --build`, and their `BESPOKE_BASE_URL` points at it — so the bundles a staging article embeds are the ones this server builds. Reach it at `http://staging-site-<branch>:8089/` over Tailscale. (Production is different: there `BESPOKE_BASE_URL` is the statically baked `/assets/bespoke`, and no dev server runs.)
+Staging servers run this server too, under pm2 as `yarn startBespokeDevServer --build`, so the bundles a staging article embeds are the ones this server builds. Reach it at `http://staging-site-<branch>:8089/` over Tailscale. There `BESPOKE_DATA_URL` is that server's own feed root, so a demo page shows the data a branch put on that environment. (Production is different: `BESPOKE_BASE_URL` is the statically baked `/assets/bespoke` and no dev server runs.)
+
+**The demo pages live at `:8089` only.** nginx on a staging server also proxies `/assets/bespoke/` here, but that exists for the bundles an article embeds, so that `BESPOKE_BASE_URL` can be a same-origin relative path. It can't serve the demo pages: Vite runs with `--base /<project>/` and `--base /__bespoke/`, and bakes those root-absolute URLs into every module it transforms, so `http://staging-site-<branch>/assets/bespoke/<project>/demo` returns the HTML and then 404s on everything it references. Nothing in the template can change that.
 
 ## Files
 

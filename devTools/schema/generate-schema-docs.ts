@@ -13,29 +13,14 @@
 
 import * as fs from "node:fs/promises"
 import * as path from "node:path"
-import { fileURLToPath } from "node:url"
 import { parse } from "yaml"
-
-// The subset of JSON Schema used by the Grapher schema.
-interface JsonSchema {
-    $ref?: string
-    $comment?: string
-    type?: string | string[]
-    description?: string
-    default?: unknown
-    const?: unknown
-    enum?: unknown[]
-    format?: string
-    minimum?: number
-    maximum?: number
-    required?: string[]
-    properties?: Record<string, JsonSchema>
-    patternProperties?: Record<string, JsonSchema>
-    additionalProperties?: boolean
-    items?: JsonSchema
-    oneOf?: JsonSchema[]
-    anyOf?: JsonSchema[]
-}
+import type { JSONSchema7, JSONSchema7Definition } from "json-schema"
+import {
+    type SchemaDefinitions,
+    REPO_ROOT,
+    findLatestSchemaFile,
+    resolveRef,
+} from "./grapherSchemaSource.js"
 
 interface SectionSpec {
     title: string
@@ -156,51 +141,7 @@ const SECTIONS: readonly SectionSpec[] = [
 /** Enums with more values than this are collapsed into a details block. */
 const ENUM_INLINE_LIMIT = 12
 
-const scriptDir = path.dirname(fileURLToPath(import.meta.url))
-const repoRoot = path.resolve(scriptDir, "..", "..")
-const schemaDir = path.join(
-    repoRoot,
-    "packages/@ourworldindata/grapher/src/schema"
-)
-const outDir = path.join(repoRoot, "packageDocs/docs/schema-reference")
-const schemaFilePattern = /^grapher-schema\.(?<version>\d+)\.yaml$/
-
-async function findLatestSchemaFile(): Promise<{
-    filePath: string
-    fileName: string
-    version: string
-}> {
-    const candidates = (await fs.readdir(schemaDir))
-        .map((fileName) => {
-            const version = schemaFilePattern.exec(fileName)?.groups?.version
-            if (version === undefined) return undefined
-            return { fileName, version }
-        })
-        .filter((file) => file !== undefined)
-        .sort((a, b) => Number(b.version) - Number(a.version))
-
-    const latest = candidates[0]
-    if (!latest)
-        throw new Error(`No versioned Grapher schema found in ${schemaDir}`)
-
-    return {
-        filePath: path.join(schemaDir, latest.fileName),
-        fileName: latest.fileName,
-        version: latest.version,
-    }
-}
-
-function resolveRef(
-    schema: JsonSchema,
-    defs: Record<string, JsonSchema>
-): JsonSchema {
-    if (!schema.$ref) return schema
-    const defKey = /^#\/\$defs\/(?<key>.+)$/.exec(schema.$ref)?.groups?.key
-    const def = defKey === undefined ? undefined : defs[defKey]
-    if (!def) throw new Error(`Definition "${schema.$ref}" not found`)
-    // Fields set alongside the $ref (e.g. a more specific description) win.
-    return { ...def, ...schema, $ref: undefined }
-}
+const outDir = path.join(REPO_ROOT, "packageDocs/docs/schema-reference")
 
 /** Formats a value the way it would appear in a JSON config. */
 function formatValue(value: unknown): string {
@@ -252,20 +193,18 @@ function formatDescription(description: string): string {
 }
 
 /** A short, TypeScript-flavoured description of the accepted values. */
-function describeType(
-    schema: JsonSchema,
-    defs: Record<string, JsonSchema>
-): string {
+function describeType(schema: JSONSchema7, defs: SchemaDefinitions): string {
     const variants = schema.oneOf ?? schema.anyOf
     if (variants)
         return variants
-            .map((variant) =>
-                variant.enum
+            .map((rawVariant) => {
+                const variant = resolveRef(rawVariant, defs)
+                return variant.enum
                     ? variant.enum
                           .map((value) => JSON.stringify(value))
                           .join(" | ")
-                    : describeType(resolveRef(variant, defs), defs)
-            )
+                    : describeType(variant, defs)
+            })
             .join(" | ")
 
     if (Array.isArray(schema.type)) return schema.type.join(" | ")
@@ -284,8 +223,8 @@ function describeType(
 
 /** The one-line metadata shown underneath a property heading. */
 function renderMeta(
-    schema: JsonSchema,
-    defs: Record<string, JsonSchema>,
+    schema: JSONSchema7,
+    defs: SchemaDefinitions,
     isRequired: boolean
 ): string {
     const parts = [`Type: \`${describeType(schema, defs)}\``]
@@ -304,8 +243,8 @@ function renderMeta(
 
 /** Enum values live on the property itself, or on the items of an array. */
 function getEnumValues(
-    schema: JsonSchema,
-    defs: Record<string, JsonSchema>
+    schema: JSONSchema7,
+    defs: SchemaDefinitions
 ): unknown[] | undefined {
     if (schema.enum) return schema.enum
     if (schema.type === "array" && schema.items) {
@@ -327,13 +266,13 @@ function renderEnum(values: unknown[]): string[] {
 }
 
 function renderPatternProperties(
-    schema: JsonSchema,
-    defs: Record<string, JsonSchema>
+    schema: JSONSchema7,
+    defs: SchemaDefinitions
 ): string[] {
     const pattern = Object.values(schema.patternProperties ?? {})[0]
     if (!pattern) return []
     return [
-        `Keys can be any string; values are of type \`${describeType(pattern, defs)}\`.`,
+        `Keys can be any string; values are of type \`${describeType(resolveRef(pattern, defs), defs)}\`.`,
         "",
     ]
 }
@@ -343,8 +282,8 @@ function renderPatternProperties(
  * of array items, which are too small to deserve their own headings.
  */
 function renderVariants(
-    variants: JsonSchema[],
-    defs: Record<string, JsonSchema>
+    variants: JSONSchema7Definition[],
+    defs: SchemaDefinitions
 ): string[] {
     const lines = ["Each entry is one of:", ""]
     for (const rawVariant of variants) {
@@ -372,8 +311,8 @@ function renderVariants(
 
 function renderProperty(
     propertyPath: string,
-    rawSchema: JsonSchema,
-    defs: Record<string, JsonSchema>,
+    rawSchema: JSONSchema7Definition,
+    defs: SchemaDefinitions,
     depth: number,
     isRequired: boolean
 ): string[] {
@@ -422,11 +361,11 @@ function renderProperty(
 }
 
 function renderPage(
-    schema: JsonSchema,
+    schema: JSONSchema7,
     fileName: string,
     version: string
 ): string {
-    const defs = (schema as { $defs?: Record<string, JsonSchema> }).$defs ?? {}
+    const defs = schema.$defs ?? {}
     const properties = schema.properties ?? {}
     const required = schema.required ?? []
     const jsonUrl = `https://files.ourworldindata.org/schemas/grapher-schema.${version}.json`
@@ -497,7 +436,7 @@ function renderPage(
 
 async function main(): Promise<void> {
     const { filePath, fileName, version } = await findLatestSchemaFile()
-    const schema = parse(await fs.readFile(filePath, "utf8")) as JsonSchema
+    const schema = parse(await fs.readFile(filePath, "utf8")) as JSONSchema7
 
     const markdown = renderPage(schema, fileName, version)
     await fs.mkdir(outDir, { recursive: true })
@@ -505,7 +444,7 @@ async function main(): Promise<void> {
     await fs.writeFile(outFile, markdown)
 
     console.log(
-        `Wrote ${path.relative(repoRoot, outFile)} (${markdown.split("\n").length} lines, ${Math.round(markdown.length / 1024)} KB)`
+        `Wrote ${path.relative(REPO_ROOT, outFile)} (${markdown.split("\n").length} lines, ${Math.round(markdown.length / 1024)} KB)`
     )
 }
 

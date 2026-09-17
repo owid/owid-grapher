@@ -1,7 +1,7 @@
 /**
  * Registry of known bespoke components that can be embedded in gdocs.
- * Each component is identified by a unique name and specifies URLs for
- * its ESM script and CSS stylesheet.
+ * Each component is identified by a unique name and points at its ESM
+ * script and, where one exists, its metadata file.
  */
 
 import type { BespokeComponentDefinition } from "../bespoke/shared/bespokeComponentTypes.js"

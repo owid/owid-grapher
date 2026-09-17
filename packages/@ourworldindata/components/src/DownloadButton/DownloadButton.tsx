@@ -13,6 +13,7 @@ export function DownloadButton({
     description,
     icon,
     previewImageUrl,
+    previewImageDimensions,
     imageStyle,
     trackingNote,
     onClick,
@@ -23,6 +24,7 @@ export function DownloadButton({
     description: string
     icon?: "full" | "selected"
     previewImageUrl?: string
+    previewImageDimensions?: { width: number; height: number }
     imageStyle?: React.CSSProperties
     trackingNote?: string
     onClick: () => void | Promise<void>
@@ -62,9 +64,20 @@ export function DownloadButton({
                     )}
                 </div>
             )}
-            {previewImageUrl && (
-                <div className="download-button__preview-image">
-                    <img src={previewImageUrl} style={imageStyle} />
+            {(previewImageUrl || previewImageDimensions) && (
+                <div
+                    className="download-button__preview-image"
+                    style={previewImageDimensions}
+                >
+                    {previewImageUrl && (
+                        <img
+                            src={previewImageUrl}
+                            width={previewImageDimensions?.width}
+                            height={previewImageDimensions?.height}
+                            style={imageStyle}
+                            alt=""
+                        />
+                    )}
                 </div>
             )}
             <div className="download-button__content">

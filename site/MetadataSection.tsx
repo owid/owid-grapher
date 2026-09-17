@@ -6,6 +6,7 @@ import {
     IndicatorProcessing,
     CodeSnippet,
     DataCitation,
+    ChartLicenseNotice,
 } from "@ourworldindata/components"
 import {
     FaqEntryData,
@@ -19,12 +20,9 @@ import {
 } from "@ourworldindata/types"
 import {
     prepareSourcesForDisplay,
-    getCitationShort,
-    getCitationLong,
-    getCitationDatapage,
+    getIndicatorCitations,
 } from "@ourworldindata/utils"
 import { ArticleBlocks } from "./gdocs/components/ArticleBlocks.js"
-import { ChartLicenseNotice } from "./ChartLicenseNotice.js"
 
 export default function MetadataSection({
     attributionShort,
@@ -59,13 +57,12 @@ export default function MetadataSection({
 }) {
     const sourcesForDisplay = prepareSourcesForDisplay({ origins, source })
     const citationUrl = archiveContext?.archiveUrl ?? canonicalUrl
-    const citationShort = getCitationShort(
-        origins,
-        attributions,
-        owidProcessingLevel
-    )
-    const citationLong = getCitationLong(
-        title,
+    const {
+        short: citationShort,
+        long: citationLong,
+        datapage: citationDatapage,
+    } = getIndicatorCitations({
+        indicatorTitle: title,
         origins,
         source,
         attributions,
@@ -73,16 +70,9 @@ export default function MetadataSection({
         titleVariant,
         owidProcessingLevel,
         citationUrl,
-        archiveContext?.archivalDate
-    )
-    const citationDatapage = getCitationDatapage(
-        title,
-        origins,
-        source,
+        archivalDate: archiveContext?.archivalDate,
         primaryTopic,
-        citationUrl,
-        archiveContext?.archivalDate
-    )
+    })
     return (
         <div className="MetadataSection span-cols-14 grid grid-cols-12-full-width">
             <div className="col-start-2 span-cols-12">

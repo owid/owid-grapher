@@ -8,7 +8,7 @@ import {
     GRAPHER_DB_PORT,
     BAKED_BASE_URL,
 } from "../settings/serverSettings.js"
-import { IS_ARCHIVE } from "../settings/clientSettings.js"
+import { IS_ARCHIVE } from "../settings/clientSettings.mjs"
 import { PROD_URL } from "../site/SiteConstants.js"
 import { registerExitHandler } from "./cleanup.js"
 import { createTagGraph, Url } from "@ourworldindata/utils"
@@ -107,6 +107,7 @@ export function setKnexInstance(knexInstance: Knex<any, any[]>): void {
 const getNewKnexInstance = (): Knex<any, any[]> => {
     return knex({
         client: "mysql2",
+        asyncStackTraces: true,
         connection: {
             host: GRAPHER_DB_HOST,
             user: GRAPHER_DB_USER,
@@ -467,16 +468,22 @@ export const getImageMetadataByFilenames = async (
     return _.keyBy(rows, "filename")
 }
 
+/**
+ * The types baked by `bakeGDocPosts` - doesn't include data insights, author
+ * pages, profiles or the homepage, which all have their own bake steps.
+ */
+export const GDOC_POST_BAKE_TYPES: OwidGdocType[] = [
+    OwidGdocType.Article,
+    OwidGdocType.LinearTopicPage,
+    OwidGdocType.TopicPage,
+    OwidGdocType.AboutPage,
+    OwidGdocType.Announcement,
+    OwidGdocType.FeaturedViz,
+]
+
 export const getPublishedGdocsWithTags = async (
     knex: KnexReadonlyTransaction,
-    // The traditional "post" types - doesn't include data insights, author pages, the homepage, etc.
-    gdocTypes: OwidGdocType[] = [
-        OwidGdocType.Article,
-        OwidGdocType.LinearTopicPage,
-        OwidGdocType.TopicPage,
-        OwidGdocType.AboutPage,
-        OwidGdocType.Announcement,
-    ],
+    gdocTypes: OwidGdocType[] = GDOC_POST_BAKE_TYPES,
     options: { excludeDeprecated?: boolean } = {}
 ): Promise<DBEnrichedPostGdocWithTags[]> => {
     const { excludeDeprecated = false } = options

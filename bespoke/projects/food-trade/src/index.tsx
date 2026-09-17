@@ -7,9 +7,13 @@ import { SankeyVariant } from "./variants/SankeyVariant"
 
 import type {
     BespokeComponentMountFn,
+    BespokeComponentMountOpts,
     BespokeComponentVariantsList,
 } from "owid-bespoke-types"
 import StylesTarget from "vite-plugin-css-position/react"
+
+import { parseEmbedConfig } from "../../../helpers/config.js"
+import { setFeedRoot } from "../../../helpers/feedUrl.js"
 
 import "./index.scss"
 
@@ -23,7 +27,7 @@ export const VARIANTS = [
 
 export const mount: BespokeComponentMountFn = (
     container: HTMLDivElement,
-    opts: { variant?: string; config?: Record<string, string> }
+    opts: BespokeComponentMountOpts
 ) => {
     const variant = VARIANTS.find((v) => v.name === opts.variant)
     if (!variant) {
@@ -31,7 +35,14 @@ export const mount: BespokeComponentMountFn = (
         return
     }
 
-    const config = parseConfig(opts.config ?? {})
+    // Before rendering: the data layer reads the feed root when it builds a URL.
+    setFeedRoot(opts.dataUrl)
+
+    const rawConfig = opts.config ?? {}
+    const config = {
+        ...parseConfig(rawConfig),
+        ...parseEmbedConfig(rawConfig),
+    }
 
     const root = createRoot(container)
     root.render(

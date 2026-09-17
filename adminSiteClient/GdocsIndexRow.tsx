@@ -9,6 +9,7 @@ import {
     faBuildingNgo,
     faUserPen,
     faBullhorn,
+    faChartSimple,
     faFileLines,
     faTriangleExclamation,
 } from "@fortawesome/free-solid-svg-icons"
@@ -20,9 +21,10 @@ import {
     MinimalTagWithMetadata,
     TagGraphRole,
 } from "@ourworldindata/utils"
-import { BAKED_BASE_URL } from "../settings/clientSettings.js"
+import { BAKED_BASE_URL } from "../settings/clientSettings.mjs"
 import { EditableTags } from "./EditableTags.js"
 import { GdocsEditLink } from "./GdocsEditLink.js"
+import { checkCanTagGdocType } from "./gdocsTagging.js"
 import { Link } from "./Link.js"
 
 const iconGdocTypeMap = {
@@ -36,18 +38,11 @@ const iconGdocTypeMap = {
     [OwidGdocType.Author]: <FontAwesomeIcon icon={faUserPen} />,
     [OwidGdocType.Announcement]: <FontAwesomeIcon icon={faBullhorn} />,
     [OwidGdocType.Profile]: <FontAwesomeIcon icon={faFileLines} />,
+    [OwidGdocType.FeaturedViz]: <FontAwesomeIcon icon={faChartSimple} />,
 }
 
 function canTagGdoc(gdoc: OwidGdocIndexItem): boolean {
-    return (
-        !!gdoc.type &&
-        ![
-            OwidGdocType.AboutPage,
-            OwidGdocType.Author,
-            OwidGdocType.Fragment,
-            OwidGdocType.Homepage,
-        ].includes(gdoc.type)
-    )
+    return checkCanTagGdocType(gdoc.type)
 }
 
 function isGdocScheduled(gdoc: OwidGdocIndexItem, now: number): boolean {

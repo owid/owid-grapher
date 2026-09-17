@@ -7,6 +7,8 @@ import type {
 } from "owid-bespoke-types"
 import StylesTarget from "vite-plugin-css-position/react"
 
+import { parseEmbedConfig } from "../../../helpers/config.js"
+
 import { VariantName } from "./core/types.js"
 import { parseConfig } from "./core/config.js"
 import { PyramidVariant } from "./variants/PyramidVariant.js"
@@ -31,7 +33,11 @@ export const mount: BespokeComponentMountFn = (
         return
     }
 
-    const config = parseConfig(opts.config ?? {})
+    const rawConfig = opts.config ?? {}
+    const config = {
+        ...parseConfig(rawConfig),
+        ...parseEmbedConfig(rawConfig),
+    }
 
     const root = createRoot(container)
     root.render(

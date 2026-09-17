@@ -1,12 +1,11 @@
 import * as _ from "lodash-es"
 import { GrapherState } from "@ourworldindata/grapher"
-import { OwidTableSlugs, OwidOrigin } from "@ourworldindata/types"
+import { OwidTableSlugs } from "@ourworldindata/types"
 import {
     getLastUpdatedFromVariable,
     getNextUpdateFromVariable,
-    getCitationShort,
     getAttributionFragmentsFromVariable,
-    getCitationLong,
+    getIndicatorCitations,
     stripDetailOnDemandLinks,
 } from "@ourworldindata/utils"
 import { getGrapherFilters } from "./urlTools.js"
@@ -73,75 +72,27 @@ export function assembleMetadata(
             timespan,
             tolerance,
             type,
-            origins,
-            sourceLink,
-            sourceName,
             owidVariableId,
             shortName,
         } = col.def
         const lastUpdated = getLastUpdatedFromVariable(col.def)
         const nextUpdate = getNextUpdateFromVariable(col.def)
 
-        let condensedOrigins:
-            | Partial<
-                  Pick<
-                      OwidOrigin,
-                      | "attribution"
-                      | "attributionShort"
-                      | "description"
-                      | "urlDownload"
-                      | "urlMain"
-                  >
-              >[]
-            | undefined = origins?.map((origin) => {
-            const {
-                attribution,
-                attributionShort,
-                description,
-                citationFull,
-                urlDownload,
-                urlMain,
-                dateAccessed,
-            } = origin
-            return {
-                attribution,
-                attributionShort,
-                description,
-                urlDownload,
-                urlMain,
-                dateAccessed,
-                citationFull,
-            }
-        })
-
-        if (!condensedOrigins || condensedOrigins.length === 0) {
-            condensedOrigins = [
-                {
-                    attribution: sourceName,
-                    urlMain: sourceLink,
-                },
-            ]
-        }
-
         const def = col.def
 
-        const citationShort = getCitationShort(
-            condensedOrigins,
-            getAttributionFragmentsFromVariable(def),
-            def.owidProcessingLevel
-        )
-
-        const citationLong = getCitationLong(
-            col.titlePublicOrDisplayName,
-            def.origins ?? [],
-            col.source ?? {},
-            getAttributionFragmentsFromVariable(def),
-            def.presentation?.attributionShort,
-            def.presentation?.titleVariant,
-            def.owidProcessingLevel,
-            undefined,
-            undefined
-        )
+        const { short: citationShort, long: citationLong } =
+            getIndicatorCitations({
+                indicatorTitle: col.titlePublicOrDisplayName,
+                origins: def.origins ?? [],
+                source: col.source ?? {},
+                attributions: getAttributionFragmentsFromVariable({
+                    ...def,
+                    source: col.source,
+                }),
+                attributionShort: def.presentation?.attributionShort,
+                titleVariant: def.presentation?.titleVariant,
+                owidProcessingLevel: def.owidProcessingLevel,
+            })
 
         const titleShort = col.titlePublicOrDisplayName.title
         const attributionShort = col.titlePublicOrDisplayName.attributionShort

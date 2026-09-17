@@ -13,7 +13,7 @@ import {
     Typography,
     notification,
 } from "antd"
-import { BAKED_BASE_URL } from "../settings/clientSettings.js"
+import { BAKED_BASE_URL } from "../settings/clientSettings.mjs"
 import { AdminAppContext } from "./AdminAppContext.js"
 import { AdminLayout } from "./AdminLayout.js"
 import { Link } from "./Link.js"

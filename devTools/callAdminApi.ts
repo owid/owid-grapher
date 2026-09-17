@@ -15,7 +15,7 @@
 // service account) unless you pass --userId <id>, which requires that owner
 // to be a superuser.
 
-import "../settings/loadDotenv.js"
+import "../settings/loadDotenv.mjs"
 import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
 import { getContainerName } from "./stagingHostname.js"

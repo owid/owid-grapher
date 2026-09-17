@@ -3,11 +3,12 @@
     "private": true,
     "type": "module",
     "dependencies": {
-        "@ourworldindata/utils": "link:../../packages/@ourworldindata/utils"
+        "@ourworldindata/utils": "link:../../packages/@ourworldindata/utils",
+        "@tanstack/react-query": "^5.101.0"
     },
     "devDependencies": {
         "typescript": "^7.0.2",
-        "vitest": "^4.1.10"
+        "vitest": "^5.0.0"
     },
     "scripts": {
         "build": "",

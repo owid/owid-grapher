@@ -1,6 +1,6 @@
 import { dayjs } from "@ourworldindata/utils"
 import { get as getCookie } from "es-cookie"
-import { REDUCED_TRACKING } from "../settings/clientSettings.js"
+import { REDUCED_TRACKING } from "../settings/clientSettings.mjs"
 
 export enum PreferenceType {
     Analytics = "a",
