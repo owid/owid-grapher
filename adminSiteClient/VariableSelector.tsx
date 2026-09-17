@@ -1,559 +1,437 @@
-import * as _ from "lodash-es"
 import * as React from "react"
-import { OwidVariableId, excludeUndefined } from "@ourworldindata/utils"
-import {
-    buildSearchWordsFromSearchString,
-    filterFunctionForSearchWords,
-    highlightFunctionForSearchWords,
-    SearchWord,
-} from "../adminShared/search.js"
-import {
-    computed,
-    action,
-    observable,
-    IReactionDisposer,
-    makeObservable,
-} from "mobx"
-import { observer } from "mobx-react"
-import { Select } from "antd"
-
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faArchive } from "@fortawesome/free-solid-svg-icons"
-
-import {
-    Dataset,
-    EditorDatabase,
-    Namespace,
-    NamespaceData,
-} from "./EditorDatabase.js"
-import { TextField, Toggle, Modal } from "./Forms.js"
+import { useContext, useMemo, useState } from "react"
+import { Button, Pagination } from "antd"
+import { keepPreviousData, useQuery } from "@tanstack/react-query"
+import { useDebounceValue } from "usehooks-ts"
+import { OwidVariableId } from "@ourworldindata/utils"
 import { DimensionSlot } from "@ourworldindata/grapher"
-import { AbstractChartEditor } from "./AbstractChartEditor.js"
 
-interface VariableSelectorProps<Editor> {
-    database: EditorDatabase
-    editor: Editor
+import { Modal } from "./Forms.js"
+import { AdminAppContext } from "./AdminAppContext.js"
+import {
+    DatasetSearchGroup,
+    GroupedVariableList,
+    VariableListItem,
+} from "./VariableList.js"
+import {
+    SearchFieldHelp,
+    searchWordsToHighlight,
+} from "../adminShared/searchFilter.js"
+
+/** Datasets per page, each showing its most-read handful of indicators. */
+const DATASETS_PER_PAGE = 8
+
+/** Indicators per page once a search has narrowed to a single dataset. */
+const INDICATORS_PER_PAGE = 20
+
+/** Mirrors the indicators list — one search answers both. */
+const SEARCH_FIELDS: SearchFieldHelp[] = [
+    { name: "name", type: "string", description: "Indicator name (regex)" },
+    { name: "path", type: "string", description: "Catalog path (regex)" },
+    {
+        name: "namespace",
+        type: "string",
+        description: "Namespace, the first segment of the path",
+    },
+    { name: "version", type: "string", description: "Version segment" },
+    { name: "dataset", type: "string", description: "Dataset segment" },
+    {
+        name: "datasetid",
+        type: "number",
+        description: "Exactly one dataset, by id",
+    },
+    { name: "table", type: "string", description: "Table segment" },
+    { name: "short", type: "string", description: "Indicator short name" },
+    { name: "datasetname", type: "string", description: "The dataset's title" },
+    { name: "is", type: "string", description: "`public` or `private`" },
+]
+
+/** `grapher/who/2026-05-22/gho/gho#x` -> ["who", "2026-05-22", "gho"] */
+function pathSegments(catalogPath: string | undefined): string[] {
+    return catalogPath?.replace(/^grapher\//, "").split("/") ?? []
+}
+
+/** The dataset segment, which `dataset:` searches. */
+function datasetOf(catalogPath: string | undefined): string | undefined {
+    return pathSegments(catalogPath)[2]
+}
+
+interface VariableSelectorProps {
     slot: DimensionSlot
     onDismiss: () => void
     onComplete: (variableIds: OwidVariableId[]) => void
 }
 
-interface Variable {
-    id: number
-    name: string
-    datasetId: number
-    datasetName: string
-    datasetVersion?: string
-    namespaceName: string
-    usageCount: number
-}
+/**
+ * Picks indicators for a chart's dimension slot, off the same search as
+ * /admin/variables: the same query grammar, the same grouping by dataset, the
+ * same ranking by how much our readers use an indicator.
+ *
+ * It asks the database rather than filtering a copy of every indicator in the
+ * browser, which is what the chart editor used to download on each load.
+ */
+export function VariableSelector({
+    slot,
+    onDismiss,
+    onComplete,
+}: VariableSelectorProps): React.ReactElement {
+    const { admin } = useContext(AdminAppContext)
+    const [searchValue, setSearchValue] = useState("")
+    const [page, setPage] = useState(1)
+    const [debouncedSearch] = useDebounceValue(searchValue, 250)
+    const [hasTyped, setHasTyped] = useState(false)
 
-interface NamespaceOption {
-    value: string
-    label: React.ReactNode
-    searchText: string
-}
+    const [chosen, setChosen] = useState<VariableListItem[]>(() =>
+        slot.dimensions.map((dimension) => ({
+            id: dimension.variableId,
+            name: dimension.column.name,
+            datasetName: dimension.column.datasetName,
+        }))
+    )
+    const [hasLookedUp, setHasLookedUp] = useState(false)
 
-@observer
-export class VariableSelector<
-    Editor extends AbstractChartEditor,
-> extends React.Component<VariableSelectorProps<Editor>> {
-    chosenNamespaces: Namespace[] = []
-    searchInput: string | undefined = undefined
-    isProjection: boolean | undefined = undefined
-    tolerance: number | undefined = undefined
-    chosenVariables: Variable[] = []
-    scrollElement = React.createRef<HTMLDivElement>()
+    // The slot knows its indicators' ids and little else. Looking them up
+    // gives the dataset to open on: 57% of charts with several indicators
+    // take them all from one dataset, so that is where the next one is
+    // likeliest to come from. A chart already spanning several datasets gets
+    // no seed — 92% of those cross a namespace boundary too, so any guess we
+    // made would hide more than it found.
+    const initialIds = useMemo(
+        () => slot.dimensions.map((dimension) => dimension.variableId),
+        [slot]
+    )
+    const { data: current } = useQuery({
+        queryKey: ["variable-selector-current", initialIds],
+        queryFn: () =>
+            admin.getJSONInBackground<{ variables: VariableListItem[] }>(
+                "/api/variables.json",
+                { ids: initialIds.join(",") }
+            ),
+        enabled: initialIds.length > 0,
+    })
 
-    rowOffset: number = 0
-    numVisibleRows: number = 15
-    rowHeight: number = 32
-
-    constructor(props: VariableSelectorProps<Editor>) {
-        super(props)
-
-        makeObservable(this, {
-            chosenNamespaces: observable.ref,
-            searchInput: observable.ref,
-            isProjection: observable.ref,
-            tolerance: observable.ref,
-            chosenVariables: observable.ref,
-            rowOffset: observable,
-            numVisibleRows: observable,
-            rowHeight: observable,
-        })
+    // The looked-up rows replace the sparse versions from the slot, once.
+    // They are the base rather than an overlay because the slot can still be
+    // empty on the first render, before the chart's config has loaded — a
+    // slow database is enough — and a list seeded from it would then stay
+    // empty for good. Anything ticked in the meantime is kept.
+    if (current && !hasLookedUp) {
+        setHasLookedUp(true)
+        setChosen((existing) => [
+            ...current.variables,
+            ...existing.filter(
+                (variable) =>
+                    !current.variables.some((row) => row.id === variable.id)
+            ),
+        ])
     }
 
-    @computed get database(): EditorDatabase {
-        return this.props.database
-    }
+    const seededDatasets = new Set(
+        (current?.variables ?? [])
+            .map((variable) => datasetOf(variable.catalogPath))
+            .filter((dataset) => dataset !== undefined)
+    )
+    const seed =
+        seededDatasets.size === 1 ? `dataset:${[...seededDatasets][0]}` : ""
+    // Only until the first keystroke, so the seed never fights what is typed
+    const effectiveSearch = hasTyped ? debouncedSearch : seed
 
-    @computed get searchWords(): SearchWord[] {
-        const { searchInput } = this
-        return buildSearchWordsFromSearchString(searchInput)
-    }
+    // Grouping a single dataset would only cap it at five again, so naming
+    // one switches to the flat list and pages through its indicators — the
+    // same rule the indicators page uses.
+    const isGrouped = !/\bdataset(id)?:/.test(effectiveSearch)
 
-    @computed get editorData(): NamespaceData[] {
-        // show all variables when no namespaces are selected
-        const currentNamespaces =
-            this.chosenNamespaces.length > 0
-                ? this.chosenNamespaces
-                : this.database.namespaces
+    // The datasets this chart already draws from stay on the first page of
+    // results however the search ranks them. Without this, searching a broad
+    // word puts them beyond page one and the group above shows the chart's
+    // own indicators with none of the ones just searched for.
+    const pinnedDatasetIds = useMemo(
+        () =>
+            [
+                ...new Set(
+                    chosen
+                        .map((variable) => variable.datasetId)
+                        .filter((id) => id !== undefined)
+                ),
+            ].join(","),
+        [chosen]
+    )
 
-        return excludeUndefined(
-            currentNamespaces.map((namespace) =>
-                this.database.dataByNamespace.get(namespace.name)
-            )
-        )
-    }
+    const { data, isFetching } = useQuery({
+        queryKey: [
+            "variable-selector",
+            effectiveSearch,
+            page,
+            pinnedDatasetIds,
+        ],
+        queryFn: () =>
+            admin.getJSONInBackground<{
+                datasets: DatasetSearchGroup[]
+                numTotalDatasets: number
+                numTotalRows: number
+            }>("/api/variables.json", {
+                search: effectiveSearch,
+                group: "dataset",
+                limit: DATASETS_PER_PAGE,
+                offset: (page - 1) * DATASETS_PER_PAGE,
+                pinnedDatasetIds,
+            }),
+        // The seed is only known once the lookup lands. Searching before then
+        // would spend a query on results nobody sees.
+        enabled:
+            isGrouped && (hasTyped || initialIds.length === 0 || hasLookedUp),
+        placeholderData: keepPreviousData,
+    })
 
-    @computed get datasets(): Dataset[] {
-        const datasets = this.editorData.flatMap((d) => d.datasets)
-        return _.sortBy(datasets, (d) => d.name)
-    }
+    const flat = useQuery({
+        queryKey: ["variable-selector-flat", effectiveSearch, page],
+        queryFn: () =>
+            admin.getJSONInBackground<{
+                variables: VariableListItem[]
+                numTotalRows: number
+            }>("/api/variables.json", {
+                search: effectiveSearch,
+                limit: INDICATORS_PER_PAGE,
+                offset: (page - 1) * INDICATORS_PER_PAGE,
+            }),
+        enabled:
+            !isGrouped && (hasTyped || initialIds.length === 0 || hasLookedUp),
+        placeholderData: keepPreviousData,
+    })
 
-    @computed get datasetsById(): Record<number, Dataset> {
-        return _.keyBy(this.datasets, (d) => d.id)
-    }
+    const searchWords = useMemo(
+        () => searchWordsToHighlight(effectiveSearch, SEARCH_FIELDS),
+        [effectiveSearch]
+    )
 
-    @computed get availableVariables(): Variable[] {
-        const { variableUsageCounts } = this.database
-        const variables: Variable[] = []
-        this.datasets.forEach((dataset) => {
-            const sorted = _.sortBy(dataset.variables, [
-                (v) => (variableUsageCounts.get(v.id) ?? 0) * -1,
-                (v) => v.name,
+    const selectedIds = useMemo(
+        () => new Set(chosen.map((variable) => variable.id)),
+        [chosen]
+    )
+
+    const selection = useMemo(
+        () => ({
+            selectedIds,
+            onToggle: (variable: VariableListItem) =>
+                setChosen((existing) => {
+                    if (existing.some((chosen) => chosen.id === variable.id))
+                        return existing.filter(
+                            (chosen) => chosen.id !== variable.id
+                        )
+                    // a slot that takes one indicator swaps rather than adds
+                    return slot.allowMultiple
+                        ? [...existing, variable]
+                        : [variable]
+                }),
+        }),
+        [selectedIds, slot.allowMultiple]
+    )
+
+    // The chart's own indicators lead the results, under their dataset like
+    // any other group, so what a chart already draws reads the same as
+    // everything else. A dataset that also matches the search keeps its own
+    // count and its other indicators below the chosen ones.
+    const groups: DatasetSearchGroup[] = useMemo(() => {
+        const found = data?.datasets ?? []
+        if (chosen.length === 0) return found
+
+        const chosenByDataset = new Map<number, VariableListItem[]>()
+        for (const variable of chosen) {
+            const datasetId = variable.datasetId ?? -1
+            chosenByDataset.set(datasetId, [
+                ...(chosenByDataset.get(datasetId) ?? []),
+                variable,
             ])
-            sorted.forEach((variable) => {
-                variables.push({
-                    id: variable.id,
-                    name: variable.name,
-                    datasetId: dataset.id,
-                    datasetName: dataset.name,
-                    datasetVersion: dataset.version,
-                    namespaceName: dataset.namespace,
-                    usageCount: variableUsageCounts.get(variable.id) ?? 0,
-                    //name: variable.name.includes(dataset.name) ? variable.name : dataset.name + " - " + variable.name
-                })
-            })
-        })
-        return variables
-    }
+        }
 
-    @computed get searchResults(): Variable[] {
-        let results: Variable[] | undefined
-        const { searchWords } = this
-        if (searchWords.length > 0) {
-            const filterFn = filterFunctionForSearchWords(
-                searchWords,
-                (variable: Variable) => [variable.name, variable.datasetName]
+        const leading: DatasetSearchGroup[] = []
+        for (const [datasetId, variables] of chosenByDataset) {
+            const fromSearch = found.find((group) => group.id === datasetId)
+            const [namespace, version, dataset] = pathSegments(
+                variables[0].catalogPath
             )
-            results = this.availableVariables.filter(filterFn)
+            leading.push({
+                id: datasetId,
+                name:
+                    fromSearch?.name ??
+                    variables[0].datasetName ??
+                    "Chosen indicators",
+                namespace: fromSearch?.namespace ?? namespace ?? "",
+                version: fromSearch?.version ?? version ?? null,
+                shortName: fromSearch?.shortName ?? dataset ?? null,
+                uploadedAt: fromSearch?.uploadedAt ?? variables[0].uploadedAt,
+                uploadedBy: fromSearch?.uploadedBy ?? variables[0].uploadedBy,
+                matchCount: fromSearch?.matchCount ?? variables.length,
+                // chosen first, then whatever else that dataset matched
+                variables: [
+                    ...variables,
+                    ...(fromSearch?.variables ?? []).filter(
+                        (variable) => !selectedIds.has(variable.id)
+                    ),
+                ],
+                pinned: datasetId < 0 || !fromSearch,
+            })
         }
-        return results?.length
-            ? results // results.map((result) => result.obj)
-            : []
-    }
 
-    @computed get resultsByDataset(): { [datasetId: number]: Variable[] } {
-        const { searchResults, searchWords, availableVariables } = this
-        let datasetListToUse = searchResults
-        if (searchWords.length === 0) {
-            datasetListToUse = availableVariables
+        const rest = found
+            .filter((group) => !chosenByDataset.has(group.id))
+            .map((group) => ({
+                ...group,
+                variables: group.variables.filter(
+                    (variable) => !selectedIds.has(variable.id)
+                ),
+            }))
+        return [...leading, ...rest]
+    }, [data, chosen, selectedIds])
+
+    // Naming a dataset pages through its indicators rather than capping them
+    // at five, but they still read as a dataset: the same header, with the
+    // page's rows under it.
+    const pagedGroups: DatasetSearchGroup[] = useMemo(() => {
+        const variables = flat.data?.variables ?? []
+        if (variables.length === 0) return []
+
+        const byDataset = new Map<number, VariableListItem[]>()
+        for (const variable of variables) {
+            const datasetId = variable.datasetId ?? -1
+            byDataset.set(datasetId, [
+                ...(byDataset.get(datasetId) ?? []),
+                variable,
+            ])
         }
-        return _.groupBy(datasetListToUse, (d) => d.datasetId)
-    }
 
-    @computed get searchResultRows() {
-        const { resultsByDataset } = this
-
-        const rows: Array<number | Variable[]> = []
-        const unsorted = Object.entries(resultsByDataset)
-        const sorted = _.sortBy(unsorted, ([__, variables]) => {
-            const sizes = _.map(
-                variables,
-                (variable: Variable) => variable.usageCount ?? 0
+        return [...byDataset].map(([datasetId, rows]) => {
+            const [namespace, version, dataset] = pathSegments(
+                rows[0].catalogPath
             )
-            return Math.max(...sizes) * -1
-        })
-        sorted.forEach(([datasetId, variables]) => {
-            rows.push(parseInt(datasetId))
-
-            for (let i = 0; i < variables.length; i += 2) {
-                rows.push(variables.slice(i, i + 2))
-            }
-        })
-        return rows
-    }
-
-    @computed get numTotalRows(): number {
-        return this.searchResultRows.length
-    }
-
-    formatNamespaceLabel(namespace: Namespace) {
-        const { name, description, isArchived } = namespace
-        return (
-            <span className={isArchived ? "muted-option" : ""}>
-                {isArchived && (
-                    <span className="icon">
-                        <FontAwesomeIcon icon={faArchive} />
-                    </span>
-                )}
-                {description ? `${description} — ` : null}
-                {name}
-                {isArchived && <span className="badge">Archived</span>}
-            </span>
-        )
-    }
-
-    filterNamespace(searchText: string, input: string) {
-        return input
-            .split(" ")
-            .map((word) => word.toLowerCase())
-            .map((word) => {
-                return searchText.includes(word)
-            })
-            .every((v) => v)
-    }
-
-    override render() {
-        const { slot } = this.props
-        const { database } = this.props
-        const {
-            searchInput,
-            chosenVariables,
-            datasetsById,
-            rowHeight,
-            rowOffset,
-            numVisibleRows,
-            numTotalRows,
-            searchResultRows,
-            searchWords,
-        } = this
-
-        const highlight = highlightFunctionForSearchWords(searchWords)
-        const namespaceOptions: NamespaceOption[] = database.namespaces.map(
-            (namespace) => ({
-                value: namespace.name,
-                label: this.formatNamespaceLabel(namespace),
-                searchText:
-                    `${namespace.name} ${namespace.description ?? ""}`.toLowerCase(),
-            })
-        )
-
-        return (
-            <Modal onClose={this.onDismiss} className="VariableSelector">
-                <div className="modal-header">
-                    <h5 className="modal-title">
-                        Set indicator{slot.allowMultiple && "s"} for {slot.name}
-                    </h5>
-                </div>
-                <div className="modal-body">
-                    <div>
-                        <div className="searchResults">
-                            <TextField
-                                placeholder="Search..."
-                                value={searchInput}
-                                onValue={this.onSearchInput}
-                                onEnter={this.onSearchEnter}
-                                onEscape={this.onDismiss}
-                                autofocus
-                            />
-                            <div className="form-group">
-                                <label>Namespaces</label>
-                                <Select<string[], NamespaceOption>
-                                    options={namespaceOptions}
-                                    value={this.chosenNamespaces.map(
-                                        (namespace) => namespace.name
-                                    )}
-                                    onChange={this.onNamespace}
-                                    showSearch={{
-                                        filterOption: (inputValue, option) =>
-                                            this.filterNamespace(
-                                                option?.searchText ?? "",
-                                                inputValue
-                                            ),
-                                    }}
-                                    mode="multiple"
-                                    placement="bottomLeft"
-                                    getPopupContainer={(trigger) =>
-                                        trigger.parentElement ?? document.body
-                                    }
-                                    style={{ width: "100%" }}
-                                />
-                            </div>
-                            <div
-                                style={{
-                                    height: numVisibleRows * rowHeight,
-                                    overflowY: "scroll",
-                                }}
-                                onScroll={this.onScroll}
-                                ref={this.scrollElement}
-                            >
-                                <div
-                                    style={{
-                                        height: numTotalRows * rowHeight,
-                                        paddingTop: rowHeight * rowOffset,
-                                    }}
-                                >
-                                    <ul>
-                                        {searchResultRows
-                                            .slice(
-                                                rowOffset,
-                                                rowOffset + numVisibleRows
-                                            )
-                                            .map((d) => {
-                                                if (_.isNumber(d)) {
-                                                    const dataset =
-                                                        datasetsById[d]
-                                                    return (
-                                                        <li
-                                                            key={dataset.id}
-                                                            style={{
-                                                                minWidth:
-                                                                    "100%",
-                                                            }}
-                                                        >
-                                                            <h5
-                                                                style={{
-                                                                    marginTop:
-                                                                        "4px",
-                                                                }}
-                                                            >
-                                                                [
-                                                                {
-                                                                    dataset.namespace
-                                                                }
-                                                                ]{" "}
-                                                                {highlight(
-                                                                    dataset.name
-                                                                )}
-                                                                {dataset.nonRedistributable ? (
-                                                                    <span className="text-danger">
-                                                                        {" "}
-                                                                        (non-redistributable)
-                                                                    </span>
-                                                                ) : dataset.isPrivate ? (
-                                                                    <span className="text-danger">
-                                                                        {" "}
-                                                                        (unpublished)
-                                                                    </span>
-                                                                ) : (
-                                                                    ""
-                                                                )}
-                                                                {dataset.version && (
-                                                                    <small
-                                                                        style={{
-                                                                            marginLeft: 10,
-                                                                        }}
-                                                                    >
-                                                                        {
-                                                                            dataset.version
-                                                                        }
-                                                                    </small>
-                                                                )}
-                                                            </h5>
-                                                        </li>
-                                                    )
-                                                } else {
-                                                    return d.map((v) => (
-                                                        <li
-                                                            key={`${v.id}-${v.name}`}
-                                                            style={{
-                                                                minWidth: "50%",
-                                                            }}
-                                                        >
-                                                            <Toggle
-                                                                value={this.chosenVariables
-                                                                    .map(
-                                                                        (cv) =>
-                                                                            cv.id
-                                                                    )
-                                                                    .includes(
-                                                                        v.id
-                                                                    )}
-                                                                onValue={() =>
-                                                                    this.toggleVariable(
-                                                                        v
-                                                                    )
-                                                                }
-                                                                label={
-                                                                    <div
-                                                                        style={{
-                                                                            overflowWrap:
-                                                                                "anywhere",
-                                                                        }}
-                                                                    >
-                                                                        {highlight(
-                                                                            v.name
-                                                                        )}
-
-                                                                        <span
-                                                                            style={{
-                                                                                fontWeight: 500,
-                                                                                color: "#555",
-                                                                            }}
-                                                                        >
-                                                                            {v.usageCount
-                                                                                ? ` (used ${v.usageCount} times)`
-                                                                                : " (unused)"}
-                                                                        </span>
-                                                                    </div>
-                                                                }
-                                                            />
-                                                        </li>
-                                                    ))
-                                                }
-                                            })}
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                        <div
-                            className="selectedData"
-                            style={{ maxWidth: "33.33%" }}
-                        >
-                            <ul>
-                                {chosenVariables.map((d) => {
-                                    const label = (
-                                        <React.Fragment>
-                                            {d.name}{" "}
-                                            <span style={{ color: "#999" }}>
-                                                [{d.namespaceName}:{" "}
-                                                {d.datasetName}
-                                                {d.datasetVersion &&
-                                                    ` (${d.datasetVersion})`}
-                                                ]
-                                            </span>
-                                        </React.Fragment>
-                                    )
-
-                                    return (
-                                        <li key={d.id}>
-                                            <Toggle
-                                                value={true}
-                                                onValue={() =>
-                                                    this.unselectVariable(d)
-                                                }
-                                                label={label}
-                                            />
-                                        </li>
-                                    )
-                                })}
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-                <div className="modal-footer">
-                    <button className="btn" onClick={this.onDismiss}>
-                        Close
-                    </button>
-                    <button
-                        className="btn btn-success"
-                        onClick={this.onComplete}
-                    >
-                        Set variable{slot.allowMultiple && "s"}
-                    </button>
-                </div>
-            </Modal>
-        )
-    }
-
-    @action.bound onScroll(ev: React.UIEvent<HTMLDivElement>) {
-        const { scrollTop, scrollHeight } = ev.currentTarget
-        const { numTotalRows } = this
-
-        const rowOffset = Math.round((scrollTop / scrollHeight) * numTotalRows)
-        ev.currentTarget.scrollTop = Math.round(
-            (rowOffset / numTotalRows) * scrollHeight
-        )
-
-        this.rowOffset = rowOffset
-    }
-
-    @action.bound onNamespace(selected: string[]) {
-        const selectedSet = new Set(selected)
-        this.chosenNamespaces = this.database.namespaces.filter((namespace) =>
-            selectedSet.has(namespace.name)
-        )
-    }
-
-    @action.bound onSearchInput(input: string) {
-        if (this.searchInput !== input) {
-            this.searchInput = input
-            this.rowOffset = 0
-            if (this.scrollElement.current)
-                this.scrollElement.current.scrollTop = 0
-        }
-    }
-
-    @action.bound selectVariable(variable: Variable) {
-        if (this.props.slot.allowMultiple)
-            this.chosenVariables = this.chosenVariables.concat(variable)
-        else this.chosenVariables = [variable]
-    }
-
-    @action.bound unselectVariable(variable: Variable) {
-        this.chosenVariables = this.chosenVariables.filter(
-            (v) => v.id !== variable.id
-        )
-    }
-
-    @action.bound toggleVariable(variable: Variable) {
-        if (this.chosenVariables.map((v) => v.id).includes(variable.id)) {
-            this.unselectVariable(variable)
-        } else {
-            this.selectVariable(variable)
-        }
-    }
-
-    @action.bound onSearchEnter() {
-        if (this.searchResults.length > 0) {
-            this.selectVariable(this.searchResults[0])
-        }
-    }
-
-    @action.bound onDismiss() {
-        this.props.onDismiss()
-    }
-
-    dispose!: IReactionDisposer
-    base = React.createRef<HTMLDivElement>()
-    override componentDidMount() {
-        this.initChosenVariablesAndNamespaces()
-    }
-
-    @action.bound private initChosenVariablesAndNamespaces() {
-        const { datasetsById } = this
-        const { variableUsageCounts } = this.database
-        const { dimensions } = this.props.slot
-
-        this.chosenVariables = dimensions.map((d) => {
-            const { datasetName, datasetId } = d.column
-            const dataset =
-                datasetId !== undefined ? datasetsById[datasetId] : undefined
-
             return {
-                name: d.column.name,
-                id: d.variableId,
-                usageCount: variableUsageCounts.get(d.variableId) ?? 0,
-                datasetId: datasetId ?? 0,
-                datasetName: datasetName || "",
-                catalogPath: undefined,
-                namespaceName: dataset?.namespace ?? "",
-                datasetVersion: dataset?.version,
+                id: datasetId,
+                name: rows[0].datasetName ?? dataset ?? "Indicators",
+                namespace: namespace ?? "",
+                version: version ?? null,
+                shortName: dataset ?? null,
+                uploadedAt: rows[0].uploadedAt,
+                uploadedBy: rows[0].uploadedBy,
+                // the whole dataset when the page holds only that one,
+                // otherwise just what is on screen
+                matchCount:
+                    byDataset.size === 1
+                        ? (flat.data?.numTotalRows ?? rows.length)
+                        : rows.length,
+                variables: rows,
+                paged: true,
             }
         })
+    }, [flat.data])
 
-        const uniqueNamespaces = _.uniq(
-            this.chosenVariables.map((v) => v.namespaceName)
-        )
-        this.chosenNamespaces = this.database.namespaces.filter((n) => {
-            return uniqueNamespaces.includes(n.name)
-        })
+    const onSearch = (value: string) => {
+        setHasTyped(true)
+        setSearchValue(value)
+        setPage(1)
     }
 
-    @action.bound onComplete() {
-        this.props.onComplete(this.chosenVariables.map((v) => v.id))
+    const searchProps = {
+        value: hasTyped ? searchValue : seed,
+        onChange: onSearch,
+        placeholder: "Search indicators, e.g. namespace:who deaths",
+        autoFocus: true,
+        width: 420,
+        fields: SEARCH_FIELDS,
     }
+
+    const totalDatasets = data?.numTotalDatasets ?? 0
+    const lastPage = Math.ceil(totalDatasets / DATASETS_PER_PAGE)
+
+    return (
+        <Modal onClose={onDismiss} className="VariableSelector">
+            <div className="modal-header">
+                <h5 className="modal-title">
+                    Set indicator{slot.allowMultiple && "s"} for {slot.name}
+                </h5>
+            </div>
+            <div className="modal-body">
+                <div className="VariableSelector__results">
+                    {isGrouped ? (
+                        <GroupedVariableList
+                            groups={groups}
+                            isSearch={effectiveSearch.trim().length > 0}
+                            searchWords={searchWords}
+                            searchValue={effectiveSearch}
+                            onSearchValue={onSearch}
+                            loading={isFetching}
+                            selection={selection}
+                            search={searchProps}
+                            footer={
+                                lastPage > 1 && (
+                                    <div className="VariableSelector__paging">
+                                        <Button
+                                            size="small"
+                                            disabled={page === 1}
+                                            onClick={() => setPage(page - 1)}
+                                        >
+                                            Previous
+                                        </Button>
+                                        <span>
+                                            datasets{" "}
+                                            {(page - 1) * DATASETS_PER_PAGE + 1}
+                                            –
+                                            {Math.min(
+                                                page * DATASETS_PER_PAGE,
+                                                totalDatasets
+                                            )}{" "}
+                                            of {totalDatasets}
+                                        </span>
+                                        <Button
+                                            size="small"
+                                            disabled={page >= lastPage}
+                                            onClick={() => setPage(page + 1)}
+                                        >
+                                            Next
+                                        </Button>
+                                    </div>
+                                )
+                            }
+                        />
+                    ) : (
+                        <GroupedVariableList
+                            groups={pagedGroups}
+                            isSearch={effectiveSearch.trim().length > 0}
+                            searchWords={searchWords}
+                            searchValue={effectiveSearch}
+                            onSearchValue={onSearch}
+                            loading={flat.isFetching}
+                            selection={selection}
+                            search={searchProps}
+                            footer={
+                                <Pagination
+                                    className="VariableSelector__paging"
+                                    current={page}
+                                    pageSize={INDICATORS_PER_PAGE}
+                                    total={flat.data?.numTotalRows ?? 0}
+                                    showSizeChanger={false}
+                                    onChange={setPage}
+                                    showTotal={(total, [from, to]) =>
+                                        `indicators ${from}-${to} of ${total}`
+                                    }
+                                />
+                            }
+                        />
+                    )}
+                </div>
+            </div>
+            <div className="modal-footer">
+                <button className="btn" onClick={onDismiss}>
+                    Close
+                </button>
+                <button
+                    className="btn btn-success"
+                    onClick={() =>
+                        onComplete(chosen.map((variable) => variable.id))
+                    }
+                >
+                    Set variable{slot.allowMultiple && "s"}
+                </button>
+            </div>
+        </Modal>
+    )
 }

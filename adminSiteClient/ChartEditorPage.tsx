@@ -49,6 +49,16 @@ export class ChartEditorPage
             availableTags: observable,
             forceDatapage: observable.ref,
             variableIdsByCatalogPath: observable.ref,
+            // The chart being edited. These were plain fields, so nothing
+            // reacted when they arrived: the editor picked them up only
+            // because it was rendered late enough for the fetch to have
+            // finished, which was itself an accident of how long an unrelated
+            // download took.
+            patchConfig: observable.ref,
+            parentConfig: observable.ref,
+            parentVariableId: observable.ref,
+            etlConfig: observable.ref,
+            isInheritanceEnabled: observable.ref,
         })
     }
 
@@ -72,11 +82,12 @@ export class ChartEditorPage
     async fetchGrapherConfig(): Promise<void> {
         const { grapherId, grapherConfig } = this.props
         if (grapherId !== undefined) {
-            this.patchConfig = await this.context.admin.getJSON(
+            const patchConfig = await this.context.admin.getJSON(
                 `/api/charts/${grapherId}.patchConfig.json`
             )
+            runInAction(() => (this.patchConfig = patchConfig))
         } else if (grapherConfig) {
-            this.patchConfig = grapherConfig
+            runInAction(() => (this.patchConfig = grapherConfig))
         }
     }
 
@@ -94,26 +105,35 @@ export class ChartEditorPage
             // The parent endpoint returns the two layers above the admin's
             // patch separately: the indicator's grapher_config and the
             // chart's own etlConfig. They are merged on the editor side.
-            this.parentConfig = parent?.variableConfig
-            this.parentVariableId = parent?.variableId
-            this.etlConfig = parent?.etlConfig
-            this.isInheritanceEnabled = parent?.isInheritanceEnabled ?? true
-            this.forceDatapage = settings?.forceDatapage ?? false
+            runInAction(() => {
+                this.parentConfig = parent?.variableConfig
+                this.parentVariableId = parent?.variableId
+                this.etlConfig = parent?.etlConfig
+                this.isInheritanceEnabled = parent?.isInheritanceEnabled ?? true
+                this.forceDatapage = settings?.forceDatapage ?? false
+            })
         } else if (grapherConfig) {
             const parentIndicatorId =
                 getParentIndicatorIdFromChartConfig(grapherConfig)
             if (parentIndicatorId) {
-                this.parentConfig = await fetchChartConfigByIndicatorId(
+                const parentConfig = await fetchChartConfigByIndicatorId(
                     this.context.admin,
                     parentIndicatorId
                 )
-                this.parentVariableId = parentIndicatorId
+                runInAction(() => {
+                    this.parentConfig = parentConfig
+                    this.parentVariableId = parentIndicatorId
+                })
             }
-            this.isInheritanceEnabled = true
-            this.forceDatapage = false
+            runInAction(() => {
+                this.isInheritanceEnabled = true
+                this.forceDatapage = false
+            })
         } else {
-            this.isInheritanceEnabled = true
-            this.forceDatapage = false
+            runInAction(() => {
+                this.isInheritanceEnabled = true
+                this.forceDatapage = false
+            })
         }
     }
 
