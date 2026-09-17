@@ -233,6 +233,7 @@ function IndicatorMetadataSections({
                     <IndicatorSources
                         sources={sourcesForDisplay}
                         retrievedFromTrackNote="retrieved_from"
+                        descriptionTrackNote="source_link"
                         hideReuseThisWorkText
                         hideTeasers
                         onSourceToggle={(_source, index, isOpen) =>

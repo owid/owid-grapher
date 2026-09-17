@@ -118,6 +118,7 @@ export default function MetadataSection({
                             <IndicatorSources
                                 sources={sourcesForDisplay}
                                 retrievedFromTrackNote="retrieved_from"
+                                descriptionTrackNote="source_link"
                                 onSourceToggle={(_source, index, isOpen) =>
                                     logExpandableToggle(
                                         `data_source_${index + 1}`,

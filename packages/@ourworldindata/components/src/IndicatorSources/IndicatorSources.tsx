@@ -21,6 +21,7 @@ export interface IndicatorSourcesProps {
         isOpen: boolean
     ) => void
     retrievedFromTrackNote?: string
+    descriptionTrackNote?: string
 }
 
 export const IndicatorSources = (props: IndicatorSourcesProps) => {
@@ -40,6 +41,7 @@ export const IndicatorSources = (props: IndicatorSourcesProps) => {
                         isEmbeddedInADataPage={isEmbeddedInADataPage}
                         hideReuseThisWorkText={props.hideReuseThisWorkText}
                         retrievedFromTrackNote={props.retrievedFromTrackNote}
+                        descriptionTrackNote={props.descriptionTrackNote}
                     />
                 )
                 const useExpandableToggle =
@@ -87,6 +89,7 @@ const SourceContent = (props: {
     isEmbeddedInADataPage: boolean
     hideReuseThisWorkText?: boolean
     retrievedFromTrackNote?: string
+    descriptionTrackNote?: string
 }) => {
     const { source } = props
     const retrievedOn = formatSourceDate(source.retrievedOn, "MMMM D, YYYY")
@@ -99,7 +102,10 @@ const SourceContent = (props: {
         <div className="source">
             {source.description && (
                 <div className="description">
-                    <SimpleMarkdownText text={source.description.trim()} />
+                    <SimpleMarkdownText
+                        text={source.description.trim()}
+                        dataTrackNote={props.descriptionTrackNote}
+                    />
                 </div>
             )}
             {showKeyInfo && (
@@ -112,6 +118,7 @@ const SourceContent = (props: {
                             <div className="source-key-data__content">
                                 <SimpleMarkdownText
                                     text={source.dataPublishedBy.trim()}
+                                    dataTrackNote={props.descriptionTrackNote}
                                 />
                             </div>
                         </div>
