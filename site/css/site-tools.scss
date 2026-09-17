@@ -1,81 +1,107 @@
-.site-tools {
+$site-tools-button-size: 40px;
+$site-tools-button-gap: 8px;
+// Space outside an open popover: the site header, the tool buttons, and the
+// margins above, between, and below them.
+$site-tools-popover-inset: $header-height-md + $vertical-spacing * 3 +
+    $site-tools-button-size;
+
+.site-tools-root {
     display: none;
 }
 
 @include md-up {
-    .site-tools {
-        position: fixed;
+    // A zero-height sticky ruler that travels with the viewport until it
+    // reaches its resting place at the end of the page content, just above the
+    // donate banner. The buttons are positioned against its bottom edge, so
+    // they are permanently visible while scrolling but never end up on top of
+    // the donate banner or the footer links.
+    .site-tools-root {
         display: block;
+        position: sticky;
+        bottom: 0;
+        height: 0;
         z-index: $zindex-popover;
+    }
+
+    .site-tools {
+        position: absolute;
         right: $vertical-spacing;
         bottom: $vertical-spacing;
-        border: none;
-        .hide-wrapper {
-            display: flex;
-            transition:
-                transform var(--duration-popover) var(--ease-out),
-                opacity var(--duration-popover) var(--ease-out);
-            &.hide {
-                transform: translateY(calc(100% + #{$vertical-spacing}));
-                opacity: 0;
-            }
+        display: flex;
+        gap: $site-tools-button-gap;
+    }
 
-            > .active {
-                z-index: $zindex-popover;
+    .site-tools > .active {
+        z-index: $zindex-popover;
+    }
+
+    .site-tools__button {
+        @include popover-box-button;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        width: $site-tools-button-size;
+        height: $site-tools-button-size;
+        padding: 0;
+        // For the link variant, which would otherwise pick up the site's
+        // underlined link styles.
+        text-decoration: none;
+
+        svg {
+            // The mixin adds a right margin to sit next to a text label; the
+            // icon is on its own here, so it needs to stay centered.
+            margin-right: 0;
+        }
+    }
+
+    .site-tools .overlay {
+        @include overlay;
+    }
+
+    .site-tools .box .FeedbackForm {
+        max-height: min(
+            700px,
+            calc(var(--viewport-height) - #{$site-tools-popover-inset})
+        );
+    }
+
+    .site-tools .box {
+        position: absolute;
+        right: 0;
+        bottom: 100%;
+        margin-bottom: $vertical-spacing;
+        max-height: calc(var(--viewport-height) - #{$site-tools-popover-inset});
+        overflow-y: auto;
+        @include popover-box-styles;
+
+        .newsletter-subscription-header {
+            padding: 32px 40px 0 40px;
+            svg {
+                display: none;
+            }
+            h4 {
+                flex: unset;
             }
         }
 
-        .prompt {
-            position: relative;
-            margin-left: 0.75rem;
-        }
-
-        .overlay {
-            @include overlay;
-        }
-
-        .box {
-            position: absolute;
-            bottom: 100%;
-            margin-bottom: $vertical-spacing;
-            right: 0;
-            @include popover-box-styles;
-            .newsletter-subscription-header {
-                padding: 32px 40px 0 40px;
-                svg {
-                    display: none;
-                }
-                h4 {
-                    flex: unset;
-                }
-            }
-
-            .newsletter-subscription-form {
-                padding-top: 16px;
-            }
-        }
-        button,
-        a.prompt {
-            @include popover-box-button;
-        }
-
-        a.prompt-donate {
-            background-color: $vermillion;
-            text-decoration: none;
-
-            &:hover {
-                background-color: $accent-vermillion;
-            }
+        .newsletter-subscription-form {
+            padding-top: 16px;
         }
     }
 }
 
-@media (prefers-reduced-motion: reduce) {
-    .site-tools .hide-wrapper {
-        transition: opacity var(--duration-popover) linear;
+.tippy-box[data-theme~="site-tools"] {
+    background-color: $blue-90;
+    color: $white;
+    border-radius: 3px;
+    @include note-12-medium;
 
-        &.hide {
-            transform: none;
-        }
+    .tippy-content {
+        padding: 4px 8px;
+    }
+
+    .tippy-arrow {
+        color: $blue-90;
     }
 }

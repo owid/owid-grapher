@@ -8,15 +8,18 @@ import {
     SynthesizeFruitTableWithStringValues,
     SynthesizeGDPTable,
     OwidTable,
+    numericDefs,
+    yearDef,
 } from "@ourworldindata/core-table"
 
 import { makeObservable, observable } from "mobx"
 import { AxisConfig } from "../axis/AxisConfig"
 import { SelectionArray } from "../selection/SelectionArray"
-import { ColumnTypeNames, GRAPHER_CHART_TYPES } from "@ourworldindata/utils"
+import { Bounds, GRAPHER_CHART_TYPES } from "@ourworldindata/utils"
 import { FacetStrategy } from "@ourworldindata/types"
 import { StackedAreaChartState } from "./StackedAreaChartState.js"
 import { ChartManager } from "../chart/ChartManager"
+import { FacetChart } from "../facet/FacetChart"
 
 class MockManager implements ChartManager {
     constructor() {
@@ -105,7 +108,7 @@ it("can filter a series when there are no points", () => {
     const table = SynthesizeFruitTable({
         entityCount: 2,
         timeRange: [2000, 2003],
-    }).replaceRandomCells(6, [SampleColumnSlugs.Fruit])
+    }).replaceRandomCells(6, [SampleColumnSlugs.Fruit], 1)
     const chartState = new StackedAreaChartState({
         manager: {
             selection: table.sampleEntityName(1),
@@ -142,23 +145,24 @@ it("filters non-numeric values", () => {
 })
 
 it("should drop missing values at start or end", () => {
-    const csv = `gdp,year,entityName
-    ,2000,france
-    ,2001,france
-    1,2002,france
-    2,2003,france
-    8,2004,france
-    ,2005,france
-    ,2000,uk
-    ,2001,uk
-    5,2002,uk
-    18,2003,uk
-    2,2004,uk
-    ,2005,uk`
-    const table = new OwidTable(csv, [
-        { slug: "gdp", type: ColumnTypeNames.Numeric },
-        { slug: "year", type: ColumnTypeNames.Year },
-    ])
+    const table = new OwidTable(
+        [
+            ["gdp", "year", "entityName"],
+            [null, 2000, "france"],
+            [null, 2001, "france"],
+            [1, 2002, "france"],
+            [2, 2003, "france"],
+            [8, 2004, "france"],
+            [null, 2005, "france"],
+            [null, 2000, "uk"],
+            [null, 2001, "uk"],
+            [5, 2002, "uk"],
+            [18, 2003, "uk"],
+            [2, 2004, "uk"],
+            [null, 2005, "uk"],
+        ],
+        [...numericDefs("gdp"), yearDef()]
+    )
     const manager: ChartManager = {
         table,
         yColumnSlugs: ["gdp"],
@@ -171,19 +175,20 @@ it("should drop missing values at start or end", () => {
 })
 
 it("should mark interpolated and missing values", () => {
-    const csv = `gdp,year,entityName
-    10,2000,france
-    0,2001,france
-    ,2002,france
-    ,2003,france
-    8,2005,france
-    ,2006,france
-    2,2000,uk
-    3,2004,uk`
-    const table = new OwidTable(csv, [
-        { slug: "gdp", type: ColumnTypeNames.Numeric },
-        { slug: "year", type: ColumnTypeNames.Year },
-    ])
+    const table = new OwidTable(
+        [
+            ["gdp", "year", "entityName"],
+            [10, 2000, "france"],
+            [0, 2001, "france"],
+            [null, 2002, "france"],
+            [null, 2003, "france"],
+            [8, 2005, "france"],
+            [null, 2006, "france"],
+            [2, 2000, "uk"],
+            [3, 2004, "uk"],
+        ],
+        [...numericDefs("gdp"), yearDef()]
+    )
 
     const manager: ChartManager = {
         table,
@@ -197,29 +202,78 @@ it("should mark interpolated and missing values", () => {
     const pointsFrance = chartState.series[1].points
     const pointsUK = chartState.series[0].points
 
-    // year 2000
-    expect(pointsFrance[0].interpolated).toBeFalsy()
-    expect(pointsFrance[0].missing).toBeFalsy()
-    expect(pointsUK[0].interpolated).toBeFalsy()
-    expect(pointsUK[0].missing).toBeFalsy()
+    expect(
+        pointsFrance.map((p) => [p.position, !!p.interpolated, !!p.missing])
+    ).toEqual([
+        [2000, false, false],
+        [2001, false, false],
+        [2004, true, false],
+        [2005, false, false],
+    ])
+    expect(
+        pointsUK.map((p) => [p.position, !!p.interpolated, !!p.missing])
+    ).toEqual([
+        [2000, false, false],
+        [2001, true, false],
+        [2004, false, false],
+        [2005, false, true],
+    ])
+})
 
-    // year = 2001
-    expect(pointsFrance[1].interpolated).toBeFalsy()
-    expect(pointsFrance[1].missing).toBeFalsy()
-    expect(pointsUK[1].interpolated).toBeTruthy()
-    expect(pointsUK[1].missing).toBeFalsy()
+it("marks interpolated values the same way when facetted", () => {
+    const table = new OwidTable(
+        [
+            ["gdp", "coal", "year", "entityName"],
+            [10, 1, 2000, "france"],
+            [0, 2, 2001, "france"],
+            [null, 3, 2002, "france"],
+            [null, 4, 2003, "france"],
+            [8, 5, 2005, "france"],
+            [null, 6, 2006, "france"],
+        ],
+        [...numericDefs("gdp", "coal"), yearDef()]
+    )
+    const yColumnSlugs = ["gdp", "coal"]
+    const selection = ["france"]
 
-    // year = 2004
-    expect(pointsFrance[2].interpolated).toBeTruthy()
-    expect(pointsFrance[2].missing).toBeFalsy()
-    expect(pointsUK[2].interpolated).toBeFalsy()
-    expect(pointsUK[2].missing).toBeFalsy()
+    const unfacetted = new StackedAreaChartState({
+        manager: { table, yColumnSlugs, selection },
+    })
+    const interpolatedByColumn = new Map(
+        unfacetted.series.map((series) => [
+            series.seriesName,
+            series.points.map((point) => !!point.interpolated),
+        ])
+    )
+    expect(interpolatedByColumn.get("gdp")).toEqual([
+        false,
+        false,
+        true,
+        true,
+        false,
+    ])
 
-    // year = 2005
-    expect(pointsFrance[3].interpolated).toBeFalsy()
-    expect(pointsFrance[3].missing).toBeFalsy()
-    expect(pointsUK[3].interpolated).toBeFalsy()
-    expect(pointsUK[3].missing).toBeTruthy()
+    // On the facet path Grapher has already run transformTable on this table,
+    // and each facet then transforms it again.
+    const facetChart = new FacetChart({
+        bounds: new Bounds(0, 0, 800, 600),
+        chartTypeName: GRAPHER_CHART_TYPES.StackedArea,
+        manager: {
+            table,
+            transformedTable: unfacetted.transformedTable,
+            yColumnSlugs,
+            selection,
+            facetStrategy: FacetStrategy.metric,
+        },
+    })
+
+    for (const [index, slug] of yColumnSlugs.entries()) {
+        const facetState = facetChart.intermediateChartInstances[index]
+            .chartState as StackedAreaChartState
+        expect(
+            facetState.series[0].points.map((point) => !!point.interpolated)
+        ).toEqual(interpolatedByColumn.get(slug))
+    }
 })
 
 describe("externalLegendBins", () => {

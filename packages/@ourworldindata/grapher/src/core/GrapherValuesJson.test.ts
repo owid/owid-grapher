@@ -19,30 +19,16 @@ import { GrapherProgrammaticInterface } from "./Grapher"
 describe(makeDimensionValuesForTimeDirect, () => {
     const makeTestTable = (): OwidTable => {
         return new OwidTable([
-            {
-                [OwidTableSlugs.EntityName]: "France",
-                [OwidTableSlugs.Time]: 2000,
-                gdp: 1000,
-                population: 60,
-            },
-            {
-                [OwidTableSlugs.EntityName]: "France",
-                [OwidTableSlugs.Time]: 2010,
-                gdp: 1500,
-                population: 65,
-            },
-            {
-                [OwidTableSlugs.EntityName]: "Germany",
-                [OwidTableSlugs.Time]: 2000,
-                gdp: 2000,
-                population: 80,
-            },
-            {
-                [OwidTableSlugs.EntityName]: "Germany",
-                [OwidTableSlugs.Time]: 2010,
-                gdp: 2500,
-                population: 82,
-            },
+            [
+                OwidTableSlugs.EntityName,
+                OwidTableSlugs.Time,
+                "gdp",
+                "population",
+            ],
+            ["France", 2000, 1000, 60],
+            ["France", 2010, 1500, 65],
+            ["Germany", 2000, 2000, 80],
+            ["Germany", 2010, 2500, 82],
         ])
     }
 

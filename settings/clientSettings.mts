@@ -138,6 +138,13 @@ export const IS_RUNNING_INSIDE_VITEST: boolean = !!process.env.VITEST
 export const BESPOKE_BASE_URL: string =
     process.env.BESPOKE_BASE_URL ?? "http://localhost:8089"
 
+// Root of the data feeds ETL builds for bespoke components, passed to each component's mount().
+// ETL writes a feed to the API bucket of the environment it is building, so a staging server sets
+// this to its own (owid/ops), and anything that server's ETL build didn't produce falls back to
+// production's in the api-staging worker.
+export const BESPOKE_DATA_URL: string =
+    process.env.BESPOKE_DATA_URL ?? "https://api.ourworldindata.org/v1/bespoke"
+
 /// Generated properties only, these cannot be overridden directly
 // Whether to only enable cookie-less tracking & never show the cookie notice
 export const REDUCED_TRACKING = IS_ARCHIVE

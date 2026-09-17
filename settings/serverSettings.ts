@@ -4,6 +4,7 @@
 import "./loadDotenv.mjs"
 
 import path from "path"
+import { execSync } from "child_process"
 import findBaseDir from "./findBaseDir.mjs"
 import fs from "fs"
 import ini from "ini"
@@ -13,9 +14,52 @@ const baseDir = findBaseDir(__dirname)
 if (baseDir === undefined) throw new Error("could not locate base package.json")
 
 import * as clientSettings from "./clientSettings.mjs"
+import { getContainerName } from "./stagingHostname.js"
 import { parseIntOrUndefined } from "@ourworldindata/utils"
 
 const serverSettings = process.env ?? {}
+
+/**
+ * `STAGING=1` points the database at the current branch's staging server and
+ * `STAGING=<branch>` at another branch's, so an admin running locally can be
+ * driven against staging's data — code changes show up on save instead of
+ * after a deploy and a bake. The same variable does the same thing in
+ * owid/etl.
+ */
+function stagingBranch(): string | undefined {
+    const staging = serverSettings.STAGING
+    if (!staging || staging === "0") return undefined
+    if (staging !== "1") return staging
+
+    const branch = execSync("git rev-parse --abbrev-ref HEAD", {
+        cwd: baseDir,
+        encoding: "utf8",
+    }).trim()
+    if (branch === "master") {
+        console.warn(
+            "STAGING=1 on master — there is no staging server for it, using the local database"
+        )
+        return undefined
+    }
+    return branch
+}
+
+/**
+ * Staging MySQL listens on Tailscale, so this needs no tunnel and no extra
+ * credentials. It is read-write on a database other people may be testing
+ * against, and every query pays the round trip — so it is somewhere to check
+ * behaviour, not to measure performance.
+ */
+const staging = stagingBranch()
+const stagingDb = staging
+    ? {
+          name: "owid",
+          user: "owid",
+          pass: "",
+          host: getContainerName(staging),
+          port: 3306,
+      }
+    : undefined
 
 export const BASE_DIR: string = baseDir
 export const ENV = clientSettings.ENV
@@ -44,14 +88,19 @@ export const BLOG_POSTS_PER_PAGE: number =
     parseIntOrUndefined(serverSettings.BLOG_POSTS_PER_PAGE) ?? 21
 export const BLOG_SLUG: string = serverSettings.BLOG_SLUG ?? "latest"
 
-export const GRAPHER_DB_NAME: string = serverSettings.GRAPHER_DB_NAME ?? "owid"
-export const GRAPHER_DB_USER: string = serverSettings.GRAPHER_DB_USER ?? "root"
-export const GRAPHER_DB_PASS: string = serverSettings.GRAPHER_DB_PASS ?? ""
+export const GRAPHER_DB_NAME: string =
+    stagingDb?.name ?? serverSettings.GRAPHER_DB_NAME ?? "owid"
+export const GRAPHER_DB_USER: string =
+    stagingDb?.user ?? serverSettings.GRAPHER_DB_USER ?? "root"
+export const GRAPHER_DB_PASS: string =
+    stagingDb?.pass ?? serverSettings.GRAPHER_DB_PASS ?? ""
 export const GRAPHER_DB_HOST: string =
-    serverSettings.GRAPHER_DB_HOST ?? "localhost"
+    stagingDb?.host ?? serverSettings.GRAPHER_DB_HOST ?? "localhost"
 // The OWID stack uses 3307, but incase it's unset, assume user is running a local setup
 export const GRAPHER_DB_PORT: number =
-    parseIntOrUndefined(serverSettings.GRAPHER_DB_PORT) ?? 3306
+    stagingDb?.port ??
+    parseIntOrUndefined(serverSettings.GRAPHER_DB_PORT) ??
+    3306
 
 export const GRAPHER_TEST_DB_NAME: string =
     serverSettings.GRAPHER_TEST_DB_NAME ?? "owid"

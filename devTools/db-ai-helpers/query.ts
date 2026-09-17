@@ -6,7 +6,7 @@ import { dataSource } from "../../db/dataSource.js"
 import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
 
-import { getContainerName } from "../stagingHostname.js"
+import { getContainerName } from "../../settings/stagingHostname.js"
 
 function getCurrentBranch(): string {
     return execSync("git rev-parse --abbrev-ref HEAD", {
