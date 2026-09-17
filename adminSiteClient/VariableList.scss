@@ -61,6 +61,8 @@
 }
 
 .variable-list__group {
+    background: #fafafa;
+    padding: 9px 8px 6px;
     display: flex;
     align-items: baseline;
     gap: 12px;
@@ -92,16 +94,42 @@
     cursor: pointer;
 }
 
-.variable-list--grouped {
-    .variable-list__row--dataset > td {
-        background: #fafafa;
-        border-top: 1px solid #e8e8e8;
+.variable-list-grouped__header {
+    display: flex;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: #fafafa;
+    border-bottom: 1px solid #f0f0f0;
+    padding: 8px 8px;
+    font-weight: 600;
+}
+
+.variable-list-grouped__group {
+    border-top: 1px solid #e8e8e8;
+}
+
+.variable-list-grouped__table {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+
+    td {
+        padding: 5px 8px;
+        border-top: 1px solid #f6f6f6;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
-    .variable-list__row--more > td {
-        padding-top: 2px;
-        padding-bottom: 8px;
+    tr:hover td {
+        background: #fafafa;
     }
+}
+
+.variable-list-grouped__empty {
+    padding: 24px 8px;
+    color: #999;
+    text-align: center;
 }
 
 .variables-index__pager {

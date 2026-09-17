@@ -65,13 +65,58 @@ function SearchHelp({
     )
 }
 
-export interface AdminTableProps<T> extends TableProps<T> {
-    /** Search box rendered above the table, on the left of the toolbar. */
+export interface AdminTableToolbarProps {
+    /** Search box on the left of the toolbar. */
     search?: AdminTableSearch
     /** Extra filter controls rendered next to the search box. */
     filters?: React.ReactNode
-    /** Buttons rendered on the right-hand side of the toolbar. */
+    /** Buttons rendered on the right-hand side. */
     actions?: React.ReactNode
+}
+
+/**
+ * The strip above an admin list: its search box, the syntax help, any filters
+ * and the page's own buttons. Separate from `AdminTable` because a list that
+ * isn't a plain table — the indicators list, grouped by dataset — still wants
+ * the same strip above it.
+ */
+export function AdminTableToolbar({
+    search,
+    filters,
+    actions,
+}: AdminTableToolbarProps): React.ReactElement | null {
+    if (!search && !filters && !actions) return null
+    return (
+        <Flex
+            className="AdminTable__toolbar"
+            align="center"
+            justify="space-between"
+            gap="middle"
+            wrap
+        >
+            <Space size="middle" wrap>
+                {search && (
+                    <Input
+                        placeholder={search.placeholder ?? "Search..."}
+                        value={search.value}
+                        onChange={(e) => search.onChange(e.target.value)}
+                        style={{ width: search.width ?? 500 }}
+                        autoFocus={search.autoFocus}
+                        allowClear
+                    />
+                )}
+                {search?.fields?.length ? (
+                    <SearchHelp fields={search.fields} />
+                ) : null}
+                {filters}
+            </Space>
+            {actions && <Space size="small">{actions}</Space>}
+        </Flex>
+    )
+}
+
+export interface AdminTableProps<T>
+    extends TableProps<T>, AdminTableToolbarProps {
     /** Plural noun used in the pagination summary, e.g. "datasets". */
     entityName?: string
 }
@@ -92,39 +137,13 @@ export function AdminTable<T extends object>({
     pagination,
     ...tableProps
 }: AdminTableProps<T>): React.ReactElement {
-    const hasToolbar = !!(search || filters || actions)
-
     return (
         <div className="AdminTable">
-            {hasToolbar && (
-                <Flex
-                    className="AdminTable__toolbar"
-                    align="center"
-                    justify="space-between"
-                    gap="middle"
-                    wrap
-                >
-                    <Space size="middle" wrap>
-                        {search && (
-                            <Input
-                                placeholder={search.placeholder ?? "Search..."}
-                                value={search.value}
-                                onChange={(e) =>
-                                    search.onChange(e.target.value)
-                                }
-                                style={{ width: search.width ?? 500 }}
-                                autoFocus={search.autoFocus}
-                                allowClear
-                            />
-                        )}
-                        {search?.fields?.length ? (
-                            <SearchHelp fields={search.fields} />
-                        ) : null}
-                        {filters}
-                    </Space>
-                    {actions && <Space size="small">{actions}</Space>}
-                </Flex>
-            )}
+            <AdminTableToolbar
+                search={search}
+                filters={filters}
+                actions={actions}
+            />
             <Table<T>
                 size="small"
                 sticky

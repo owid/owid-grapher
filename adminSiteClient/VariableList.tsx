@@ -6,6 +6,7 @@ import {
     Button,
     Checkbox,
     Popover,
+    Spin,
     TableColumnsType,
     TableProps,
     Tooltip,
@@ -16,7 +17,11 @@ import { faEyeSlash, faLock } from "@fortawesome/free-solid-svg-icons"
 import { Link } from "./Link.js"
 import { AdminAppContext } from "./AdminAppContext.js"
 import { Timeago } from "./Forms.js"
-import { AdminTable, AdminTableSearch } from "./AdminTable.js"
+import {
+    AdminTable,
+    AdminTableSearch,
+    AdminTableToolbar,
+} from "./AdminTable.js"
 import {
     buildRegexFromSearchWord,
     highlightFunctionForSearchWords,
@@ -529,11 +534,6 @@ export function VariableList({
     )
 }
 
-type GroupedRow =
-    | { kind: "dataset"; key: string; group: DatasetSearchGroup }
-    | { kind: "indicator"; key: string; variable: VariableListItem }
-    | { kind: "more"; key: string; group: DatasetSearchGroup }
-
 function DatasetGroupHeader({
     group,
     highlight,
@@ -654,17 +654,73 @@ function EmptySearchHint({
     )
 }
 
-/**
- * Search results grouped by the dataset they belong to. A search matches far
- * more indicators than datasets — "road deaths" hits 831 across 12 — so the
- * datasets are the useful thing to page through, each showing its most-read
- * few and offering the rest as a narrower search.
- */
 export interface IndicatorSelection {
     selectedIds: Set<number>
     onToggle: (variable: VariableListItem) => void
 }
 
+/** The indicator's own cell: a checkbox when picking, a link when browsing. */
+function IndicatorCell({
+    variable,
+    highlight,
+    selection,
+}: {
+    variable: VariableListItem
+    highlight: SearchHighlighter
+    selection?: IndicatorSelection
+}): React.ReactElement {
+    const flag = variable.nonRedistributable ? (
+        <Tooltip title="Non-redistributable — the data download is disabled on charts using it">
+            <FontAwesomeIcon
+                className={
+                    selection
+                        ? "variable-list__flag variable-list__flag--after"
+                        : "variable-list__flag"
+                }
+                icon={faLock}
+            />
+        </Tooltip>
+    ) : variable.isPrivate && !selection ? (
+        <Tooltip title="Unpublished — its dataset is private">
+            <FontAwesomeIcon
+                className="variable-list__flag"
+                icon={faEyeSlash}
+            />
+        </Tooltip>
+    ) : null
+
+    if (selection)
+        return (
+            <Checkbox
+                checked={selection.selectedIds.has(variable.id)}
+                onChange={() => selection.onToggle(variable)}
+            >
+                {highlight(variable.name)}
+                {flag}
+            </Checkbox>
+        )
+
+    return (
+        <>
+            {flag}
+            <Link to={`/variables/${variable.id}`} title={variable.catalogPath}>
+                {highlight(variable.name)}
+            </Link>
+        </>
+    )
+}
+
+/**
+ * Search results grouped by the dataset they belong to. A search matches far
+ * more indicators than datasets — "road deaths" hits 831 across 12 — so the
+ * datasets are the useful thing to page through, each showing its most-read
+ * few and offering the rest as a narrower search.
+ *
+ * Written as groups of rows rather than through `AdminTable`: a table wants
+ * one flat list, so grouping through it meant a union row type, a flattening
+ * pass and a `colSpan` trick in every cell renderer. One table per group,
+ * sharing the column widths, lines up the same and says what it means.
+ */
 export function GroupedVariableList({
     groups,
     isSearch,
@@ -692,148 +748,81 @@ export function GroupedVariableList({
      */
     selection?: IndicatorSelection
 }): React.ReactElement {
-    const rows = useMemo(
-        (): GroupedRow[] =>
-            groups.flatMap((group) => [
-                {
-                    kind: "dataset" as const,
-                    key: `d${group.id}`,
-                    group,
-                },
-                ...group.variables.map((variable) => ({
-                    kind: "indicator" as const,
-                    key: `v${variable.id}`,
-                    variable,
-                })),
-                ...(!group.paged && group.matchCount > group.variables.length
-                    ? [
-                          {
-                              kind: "more" as const,
-                              key: `m${group.id}`,
-                              group,
-                          },
-                      ]
-                    : []),
-            ]),
-        [groups]
+    const highlight = useMemo(
+        () => highlightFunctionForSearchWords(searchWords),
+        [searchWords]
     )
-
-    const columns = useMemo((): TableColumnsType<GroupedRow> => {
-        const highlight = highlightFunctionForSearchWords(searchWords)
-        // A dataset header and a "more" link span the whole width
-        const spanned = (row: GroupedRow) =>
-            row.kind === "indicator" ? {} : { colSpan: 0 }
-
-        return [
-            {
-                title: "Indicator",
-                key: "name",
-                width: "74%",
-                onCell: (row) =>
-                    row.kind === "indicator" ? {} : { colSpan: 2 },
-                render: (_, row) => {
-                    if (row.kind === "dataset")
-                        return (
-                            <DatasetGroupHeader
-                                group={row.group}
-                                highlight={highlight}
-                                isSearch={isSearch}
-                            />
-                        )
-                    if (row.kind === "more") {
-                        const { group } = row
-                        const narrowed = `${searchValue} dataset:${group.shortName}`
-                        return (
-                            <button
-                                type="button"
-                                className="variable-list__group-more"
-                                onClick={() => onSearchValue(narrowed)}
-                            >
-                                {group.matchCount - group.variables.length} more
-                                in this dataset →
-                            </button>
-                        )
-                    }
-                    if (selection) {
-                        const { id } = row.variable
-                        return (
-                            <Checkbox
-                                checked={selection.selectedIds.has(id)}
-                                onChange={() =>
-                                    selection.onToggle(row.variable)
-                                }
-                            >
-                                {highlight(row.variable.name)}
-                                {row.variable.nonRedistributable ? (
-                                    <Tooltip title="Non-redistributable — the data download is disabled on charts using it">
-                                        <FontAwesomeIcon
-                                            className="variable-list__flag variable-list__flag--after"
-                                            icon={faLock}
-                                        />
-                                    </Tooltip>
-                                ) : null}
-                            </Checkbox>
-                        )
-                    }
-                    return (
-                        <>
-                            {row.variable.nonRedistributable ? (
-                                <Tooltip title="Non-redistributable — the data download is disabled on charts using it">
-                                    <FontAwesomeIcon
-                                        className="variable-list__flag"
-                                        icon={faLock}
-                                    />
-                                </Tooltip>
-                            ) : row.variable.isPrivate ? (
-                                <Tooltip title="Unpublished — its dataset is private">
-                                    <FontAwesomeIcon
-                                        className="variable-list__flag"
-                                        icon={faEyeSlash}
-                                    />
-                                </Tooltip>
-                            ) : null}
-                            <Link
-                                to={`/variables/${row.variable.id}`}
-                                title={row.variable.catalogPath}
-                            >
-                                {highlight(row.variable.name)}
-                            </Link>
-                        </>
-                    )
-                },
-            },
-            {
-                title: "Used in",
-                key: "usage",
-                width: "26%",
-                onCell: spanned,
-                render: (_, row) =>
-                    row.kind === "indicator" ? (
-                        <UsageCell variable={row.variable} withPopularity />
-                    ) : null,
-            },
-        ]
-    }, [searchWords, searchValue, onSearchValue, isSearch, selection])
+    const width = columnWidths(["usage"])
 
     return (
-        <>
-            <AdminTable
-                className="variable-list--grouped"
-                columns={columns}
-                dataSource={rows}
-                rowKey="key"
-                rowClassName={(row) => `variable-list__row--${row.kind}`}
-                loading={loading}
-                search={search}
-                pagination={false}
-            />
-            {rows.length === 0 && !loading && (
-                <EmptySearchHint
-                    searchValue={searchValue}
-                    onSearchValue={onSearchValue}
-                />
-            )}
+        <div className="variable-list-grouped">
+            <AdminTableToolbar search={search} />
+            <Spin spinning={!!loading}>
+                <div className="variable-list-grouped__header">
+                    <span style={{ width: width.name }}>Indicator</span>
+                    <span style={{ width: width.usage }}>Used in</span>
+                </div>
+                {groups.map((group) => (
+                    <div
+                        className="variable-list-grouped__group"
+                        key={`${group.id}-${group.namespace}-${group.version}`}
+                    >
+                        <DatasetGroupHeader
+                            group={group}
+                            highlight={highlight}
+                            isSearch={isSearch}
+                        />
+                        <table className="variable-list-grouped__table">
+                            <tbody>
+                                {group.variables.map((variable) => (
+                                    <tr key={variable.id}>
+                                        <td style={{ width: width.name }}>
+                                            <IndicatorCell
+                                                variable={variable}
+                                                highlight={highlight}
+                                                selection={selection}
+                                            />
+                                        </td>
+                                        <td style={{ width: width.usage }}>
+                                            <UsageCell
+                                                variable={variable}
+                                                withPopularity
+                                            />
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                        {!group.paged &&
+                            group.matchCount > group.variables.length && (
+                                <button
+                                    type="button"
+                                    className="variable-list__group-more"
+                                    onClick={() =>
+                                        onSearchValue(
+                                            `${searchValue} dataset:${group.shortName}`
+                                        )
+                                    }
+                                >
+                                    {group.matchCount - group.variables.length}{" "}
+                                    more in this dataset →
+                                </button>
+                            )}
+                    </div>
+                ))}
+                {groups.length === 0 && !loading && (
+                    <>
+                        <div className="variable-list-grouped__empty">
+                            No indicators match this search.
+                        </div>
+                        <EmptySearchHint
+                            searchValue={searchValue}
+                            onSearchValue={onSearchValue}
+                        />
+                    </>
+                )}
+            </Spin>
             {footer}
-        </>
+        </div>
     )
 }
