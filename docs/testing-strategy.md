@@ -38,8 +38,33 @@ tests where they fit, such as checking serialization round trips.
 
 A meaningful test group says why the behavior matters, which contract it protects,
 and how its cases exercise that contract. Prefer names and fixtures that make this
-clear; add a short comment only for non-obvious rationale. Organize cases around
-the rule, its boundaries, and counterexamples.
+clear; add explanatory prose when it provides context that the tests cannot
+express clearly on their own. Organize cases around the rule, its boundaries, and
+counterexamples.
+
+### Write tests as executable review guides
+
+Test suites should help reviewers understand the behavioral contract of the code:
+how an API is intended to be used, which invariants it preserves, and which
+plausible failures it must reject. Prefer clear suite structure, test names,
+fixtures, and assertions over explanatory prose when they are sufficient, but do
+reach for prose to make substantial new test files easier to understand.
+
+Add a file-level overview when the purpose or organization of a new test suite is
+not obvious from the tests themselves. For a focused suite, this may be one or two
+sentences describing the protected contract. For a substantial feature or a change
+to a core architectural mechanism, explain:
+
+- the responsibility and boundary under test;
+- the intended use of the API or mechanism;
+- the key invariants;
+- the important failure modes;
+- and, where useful, how the suite and its core assertions demonstrate them.
+
+Write the overview as enduring documentation of the behavior, not as a history of
+the PR that introduced it. Keep significant inputs and expected results visible in
+individual tests, and update the overview when the suite's contract or organization
+changes. Do not add a header that merely repeats the filename or test names.
 
 ### Make assertions discriminating
 
@@ -62,6 +87,9 @@ directly.
 
 - Extract small builders or request helpers for incidental setup; keep
   behavior-defining inputs and expected results at the call site.
+- Keep builders local until several suites need the same semantic vocabulary.
+  Promote shared test helpers deliberately, and do not add test-only exports to a
+  published package unless that consumer-visible surface is intentional.
 - Use named table rows when setup, action, and assertion shape are the same. Keep
   unrelated rules or control flow separate instead of adding conditional assertions.
 - Preserve multi-step scenarios when the sequence is the regression, including
@@ -72,6 +100,26 @@ directly.
   coverage is appropriate for small finite sets of contractual options.
 - Fix flaky isolation, diagnostics, or fixtures; do not hide failures with weaker
   assertions or retries.
+- Make generated fixtures deterministic by default. Randomized helpers should accept
+  a seed; genuinely randomized or property-based runs should report the seed on
+  failure so the case can be reproduced.
+- Keep assertions and behavior-producing setup inside named tests or their hooks.
+  Suite callbacks should organize and register tests, not perform verification at
+  collection time.
+
+### Make failures reviewable
+
+A regression suite is useful only if a reviewer can understand and act on its
+results. For suites that can produce many failures or diffs, preserve enough context
+to diagnose each result, distinguish unchecked work from an actual failure, and
+prioritize the most consequential changes. When review is long-running, make progress
+resumable where practical without allowing stored results to outlive the run they
+describe.
+
+Measure representative runtime, memory, or artifact-size costs when changing a
+high-volume test path. Report the trade-off rather than weakening evidence solely to
+make the suite faster. Detection remains the test's job; ranking and summaries help
+reviewers triage results but must not silently redefine what passes.
 
 ## Refactoring tests without losing guarantees
 
