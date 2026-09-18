@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useMemo, useRef } from "react"
 import { useSearchParams } from "react-router-dom-v5-compat"
 import {
     LATEST_TYPE_VALUES,
@@ -8,7 +8,11 @@ import {
 } from "@ourworldindata/types"
 import { LiteClient } from "algoliasearch/lite"
 import { useTagGraphTopics } from "../search/searchHooks.js"
-import { useInfiniteLatestPages, useLatestAnalytics } from "./latestHooks.js"
+import {
+    useAreFreshProbesSettled,
+    useInfiniteLatestPages,
+    useLatestAnalytics,
+} from "./latestHooks.js"
 import { LatestTopicFacets } from "./LatestTopicFacets.js"
 import { LatestPageHeader } from "./LatestPageHeader.js"
 import {
@@ -42,10 +46,6 @@ export const LatestSearch = ({
     const [searchParams, setSearchParams] = useSearchParams()
 
     const { allAreas } = useTagGraphTopics(topicTagGraph)
-
-    const [autoExpandedSlug, setAutoExpandedSlug] = useState<null | string>(
-        null
-    )
 
     const state = useMemo(
         () => searchParamsToState(searchParams, allAreas),
@@ -87,12 +87,21 @@ export const LatestSearch = ({
         fetchNextPage,
         hasNextPage,
         isFetchingNextPage,
-        isLoading,
+        isLoading: arePagesLoading,
+        data,
     } = useInfiniteLatestPages({
         topics,
         latestType,
         liteSearchClient,
     })
+
+    // The feed also counts as loading until the first page's bake probes have
+    // settled, so it renders in one commit with its composition final — see
+    // "Bake probes" in latestHooks.ts.
+    const areProbesSettled = useAreFreshProbesSettled(
+        data?.pages[0]?.response.hits ?? []
+    )
+    const isLoading = arePagesLoading || !areProbesSettled
 
     // Disable type options that would yield 0 results given the current
     // topic selection. Never disable the currently active type.
@@ -119,25 +128,33 @@ export const LatestSearch = ({
         return disabled
     }, [allAreas, tagFacetCounts, topics])
 
+    // Read from the URL, not from the DOM: some cards only render once
+    // they're expanded (indexed but not baked yet), and this is what expands them.
+    const hashSlug = window.location.hash.slice(1)
+
     // After the first data load, scroll to the URL hash anchor (e.g.
     // /latest#some-slug) so that links from the homepage land on the
-    // right card. In the old SSR page the browser handled this natively;
-    // in the SPA the elements don't exist until data loads.
+    // right card.
     const didScrollToHash = useRef(false)
     useEffect(() => {
         if (didScrollToHash.current || isLoading || hits.length === 0) return
-        const hash = window.location.hash.slice(1)
-        if (!hash) return
-        const el = document.getElementById(hash)
+        if (!hashSlug) return
+        const el = document.getElementById(hashSlug)
         if (el) {
             el.scrollIntoView()
-            setAutoExpandedSlug(hash)
             didScrollToHash.current = true
         }
         // Depend on `hits.length` rather than `hits` — `hits` is a fresh
         // array every render (from `flatMap`) and would re-fire the effect
         // needlessly.
-    }, [isLoading, hits.length])
+    }, [isLoading, hits.length, hashSlug])
+
+    // Announcements render expanded when we know the reader is after this
+    // content in particular: they filtered for data updates, or followed a
+    // link straight to one card. It's a hard override, not a default — the
+    // card renders without a Read more toggle and can't be collapsed.
+    const isExpanded = (slug: string) =>
+        latestType === "data-update" || slug === hashSlug
 
     return (
         <LatestContext.Provider value={{ analytics }}>
@@ -179,7 +196,7 @@ export const LatestSearch = ({
                             hit={hit}
                             selectedTopic={topics[0]}
                             position={i + 1}
-                            shouldAutoExpand={hit.slug === autoExpandedSlug}
+                            isExpanded={isExpanded(hit.slug)}
                         />
                     ))}
                     {/* Always render the signup block — with 0 or 1 hits it
@@ -195,7 +212,7 @@ export const LatestSearch = ({
                             hit={hit}
                             selectedTopic={topics[0]}
                             position={i + 3}
-                            shouldAutoExpand={hit.slug === autoExpandedSlug}
+                            isExpanded={isExpanded(hit.slug)}
                         />
                     ))}
                     {hasNextPage && (
