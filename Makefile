@@ -33,6 +33,12 @@ endif
 ifdef VITE_PORT
 VITE_PORT := $(strip $(VITE_PORT))
 endif
+ifdef ADMIN_SERVER_HOST
+ADMIN_SERVER_HOST := $(strip $(ADMIN_SERVER_HOST))
+endif
+ifdef BAKED_BASE_URL
+BAKED_BASE_URL := $(strip $(BAKED_BASE_URL))
+endif
 ifdef WRANGLER_PORT
 WRANGLER_PORT := $(strip $(WRANGLER_PORT))
 endif
@@ -341,7 +347,22 @@ playwright-browsers:
 	@echo '==> Installing Playwright browsers'
 	yarn playwright install --with-deps --no-shell
 
-bdd: export TMUX_SESSION_NAME ?= bdd
+# The URL the BDD tests run against — mirrors how BAKED_BASE_URL is resolved in
+# settings/clientSettings.mts, so a checkout on non-default ports says so at
+# launch instead of looking like it targets another checkout's dev server. It is
+# also passed into the session below, where it wins over ADMIN_SERVER_PORT in
+# those settings: new panes inherit the environment of the tmux *server*, which
+# every checkout shares, and dotenv never overrides a variable that is already
+# set — so a server first started from another checkout would otherwise pin the
+# tests to that checkout's ports.
+BDD_BASE_URL = $(or $(BAKED_BASE_URL),http://$(or $(ADMIN_SERVER_HOST),localhost):$(or $(ADMIN_SERVER_PORT),3030))
+
+# The BDD sessions get their own names, derived from the checkout directory:
+# `?=` would let .env's TMUX_SESSION_NAME through and `make bdd` would kill the
+# dev session and reuse its name, while a bare `bdd` would collide with the BDD
+# session of every other checkout on the (shared) tmux server. Fixed rather than
+# configurable, since target-specific values win over command-line ones anyway.
+bdd: export TMUX_SESSION_NAME := bdd-$(notdir $(CURDIR))
 
 bdd: node_modules playwright-browsers
 	@if tmux has-session -t $(TMUX_SESSION_NAME) 2>/dev/null; then \
@@ -349,9 +370,10 @@ bdd: node_modules playwright-browsers
 		tmux kill-session -t $(TMUX_SESSION_NAME); \
 	fi
 
-	@echo '==> Starting BDD test environment'
+	@echo '==> Starting BDD test environment against $(BDD_BASE_URL)'
 	@yarn bddgen
 	tmux new-session -s $(TMUX_SESSION_NAME) \
+		-e BAKED_BASE_URL=$(BDD_BASE_URL) -e BDD_BASE_URL=$(BDD_BASE_URL) \
 		-n watcher 'yarn chokidar "features/**" "site/**/*.{ts,tsx}" -c "yarn bddgen"' \; \
 			set remain-on-exit on \; \
 		set-option -g default-shell $(SCRIPT_SHELL) \; \
@@ -363,7 +385,7 @@ bdd: node_modules playwright-browsers
 		bind K kill-session \; \
 		set -g mouse on
 
-bdd.ui: export TMUX_SESSION_NAME ?= bdd-ui
+bdd.ui: export TMUX_SESSION_NAME := bdd-ui-$(notdir $(CURDIR))
 
 bdd.ui: node_modules playwright-browsers
 	@if tmux has-session -t $(TMUX_SESSION_NAME) 2>/dev/null; then \
@@ -371,9 +393,10 @@ bdd.ui: node_modules playwright-browsers
 		tmux kill-session -t $(TMUX_SESSION_NAME); \
 	fi
 
-	@echo '==> Starting BDD test environment with UI'
+	@echo '==> Starting BDD test environment with UI against $(BDD_BASE_URL)'
 	@yarn bddgen
 	tmux new-session -s $(TMUX_SESSION_NAME) \
+		-e BAKED_BASE_URL=$(BDD_BASE_URL) -e BDD_BASE_URL=$(BDD_BASE_URL) \
 		-n watcher 'yarn chokidar "features/**" "site/**/*.{ts,tsx}" -c "yarn bddgen"' \; \
 			set remain-on-exit on \; \
 		set-option -g default-shell $(SCRIPT_SHELL) \; \

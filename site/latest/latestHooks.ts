@@ -6,7 +6,7 @@ import {
     useQuery,
 } from "@tanstack/react-query"
 import { LiteClient } from "algoliasearch/lite"
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import * as R from "remeda"
 import {
     latestPagesQueryKey,
@@ -22,7 +22,7 @@ import {
 import { OwidGdocType } from "@ourworldindata/utils"
 import { getPrefixedGdocPath } from "@ourworldindata/components"
 import { match } from "ts-pattern"
-import { SiteAnalytics } from "../SiteAnalytics.js"
+import { SiteAnalytics, getLatestExperimentArm } from "../SiteAnalytics.js"
 
 const DEFAULT_PAGE_SIZE = 20
 
@@ -234,4 +234,99 @@ export function useInfiniteLatestPages({
         tagFacetCounts,
         latestTypeFacetCounts,
     }
+}
+
+/*
+ * Sticky filters experiment (exp-latest-sticky-filters-v1).
+ */
+
+/** Read the sticky-filter arm once on mount for the reveal-on-scroll-up hook. */
+export function useLatestStickyFiltersArm(): string | undefined {
+    const [arm, setArm] = useState<string | undefined>(undefined)
+    useEffect(() => {
+        setArm(getLatestExperimentArm())
+    }, [])
+    return arm
+}
+
+/** Where a sticky element sits in the flow, in document coordinates, and the
+ * viewport offset it pins at. A stuck element reports its *pinned* position
+ * through both getBoundingClientRect and offsetTop, so the flow position is
+ * read by dropping it out of sticky positioning for the duration of the
+ * measurement — synchronous, so nothing paints in between. The pin offset is
+ * a custom property so it's readable whichever offset the bar is currently
+ * sticky at. */
+export function getStickyLayout(el: HTMLElement): {
+    layoutTop: number
+    stickyTop: number
+} {
+    const stickyTop =
+        parseFloat(
+            getComputedStyle(el).getPropertyValue(STICKY_FILTERS_TOP_PROPERTY)
+        ) || 0
+    el.style.position = "static"
+    const layoutTop = window.scrollY + el.getBoundingClientRect().top
+    el.style.removeProperty("position")
+    return { layoutTop, stickyTop }
+}
+
+/** Custom property carrying the offset the facets pin at (0 on desktop,
+ * negative on mobile so only the pills stay). Set in LatestSearch.scss. */
+const STICKY_FILTERS_TOP_PROPERTY = "--latest-sticky-filters-top"
+
+/** Custom property carrying the bar's own height, published by
+ * useRevealOnScrollUp so CSS can park the bar that far above the pin
+ * point. Read in LatestSearch.scss. */
+const STICKY_FILTERS_HEIGHT_PROPERTY = "--latest-sticky-filters-height"
+
+/** How far the page has to move before a scroll counts as a change of
+ * direction. Filters out sub-pixel jitter and the tail of iOS rubber-band
+ * overscroll, either of which would otherwise flip the bar in and out. */
+const SCROLL_DIRECTION_THRESHOLD_PX = 4
+
+/** Track scroll direction and publish the bar's height for its CSS offsets.
+ * See README.md for the sticky positioning model. */
+export function useRevealOnScrollUp(
+    enabled: boolean,
+    stickyRef: React.RefObject<HTMLElement | null>
+): boolean {
+    const [isRevealed, setIsRevealed] = useState(false)
+
+    useEffect(() => {
+        if (!enabled) return
+        const el = stickyRef.current
+        if (!el) return
+
+        // CSS parks the bar with `top: calc(pin offset - height)` and
+        // can't measure the height itself.
+        const publishHeight = (): void => {
+            el.style.setProperty(
+                STICKY_FILTERS_HEIGHT_PROPERTY,
+                `${el.offsetHeight}px`
+            )
+        }
+
+        let lastScrollY = window.scrollY
+        const onScroll = (): void => {
+            const scrollY = window.scrollY
+            const delta = scrollY - lastScrollY
+            if (Math.abs(delta) < SCROLL_DIRECTION_THRESHOLD_PX) return
+            lastScrollY = scrollY
+            setIsRevealed(delta < 0)
+        }
+
+        publishHeight()
+        // The bar's height changes when the filters restack at the mobile
+        // breakpoint, putting the type dropdown above the pills.
+        const resizeObserver = new ResizeObserver(publishHeight)
+        resizeObserver.observe(el)
+        window.addEventListener("scroll", onScroll, { passive: true })
+        return () => {
+            window.removeEventListener("scroll", onScroll)
+            resizeObserver.disconnect()
+            el.style.removeProperty(STICKY_FILTERS_HEIGHT_PROPERTY)
+        }
+    }, [enabled, stickyRef])
+
+    return enabled && isRevealed
 }
