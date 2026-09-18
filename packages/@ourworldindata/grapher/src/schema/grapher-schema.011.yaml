@@ -461,6 +461,22 @@ properties:
         additionalProperties: false
     additionalProperties: false
 
+  swimlane:
+    type: object
+    description: Configuration of the swimlane chart
+    properties:
+      segmentLabels:
+        type: string
+        default: categoryAndTimeRange
+        description: |
+          What a segment's label shows:
+          - categoryAndTimeRange: the category name and the time range
+          - none: no segment labels
+        enum:
+          - categoryAndTimeRange
+          - none
+    additionalProperties: false
+
   baseColorScheme:
     $ref: "#/$defs/colorScheme"
   invertColorScheme:
