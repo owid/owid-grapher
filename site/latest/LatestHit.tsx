@@ -11,6 +11,7 @@ type LatestHitProps = {
     selectedTopic?: string
     position: number
     isExpanded: boolean
+    isTypeFiltered: boolean
 }
 
 /** Dispatches to the appropriate per-type hit card. */
@@ -19,6 +20,7 @@ export const LatestHit = ({
     selectedTopic,
     position,
     isExpanded,
+    isTypeFiltered,
 }: LatestHitProps) => {
     return match(hit)
         .with({ type: OwidGdocType.Article }, (hit) => (
@@ -33,6 +35,7 @@ export const LatestHit = ({
                 hit={hit}
                 selectedTopic={selectedTopic}
                 position={position}
+                isExpanded={isExpanded}
             />
         ))
         .with(
@@ -43,6 +46,7 @@ export const LatestHit = ({
                     selectedTopic={selectedTopic}
                     position={position}
                     isExpanded={isExpanded}
+                    showCopyLink={isExpanded && isTypeFiltered}
                 />
             )
         )

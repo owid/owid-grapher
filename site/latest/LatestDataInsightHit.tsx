@@ -13,8 +13,39 @@ import {
 } from "./latestUtils.js"
 import { useLatestContext } from "./LatestContext.js"
 import { useIsLikelyBaked } from "./latestHooks.js"
+import { LatestDataInsightExpanded } from "./LatestDataInsightExpanded.js"
 
+/** Compact cards link to the insight page; expanded cards render it in place.
+ * LatestSearch resolves the presentation from the displayed filter and view. */
 export const LatestDataInsightHit = ({
+    hit,
+    selectedTopic,
+    position,
+    isExpanded,
+}: {
+    hit: PageChronologicalDataInsightRecord
+    selectedTopic?: string
+    position: number
+    isExpanded: boolean
+}) => {
+    if (isExpanded) {
+        return (
+            <LatestDataInsightExpanded
+                hit={hit}
+                selectedTopic={selectedTopic}
+            />
+        )
+    }
+    return (
+        <CondensedDataInsightHit
+            hit={hit}
+            selectedTopic={selectedTopic}
+            position={position}
+        />
+    )
+}
+
+const CondensedDataInsightHit = ({
     hit,
     selectedTopic,
     position,
