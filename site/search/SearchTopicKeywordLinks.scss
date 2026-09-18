@@ -1,0 +1,23 @@
+.search-topic-keyword-links {
+    @include body-3-medium;
+    color: $blue-90;
+    margin-top: 8px;
+}
+
+.search-topic-keyword-links__label {
+    @include body-3-bold;
+    font-style: italic;
+}
+
+.search-topic-keyword-links__link {
+    @include body-3-medium-underlined;
+    background: transparent;
+    border: none;
+    padding: 0;
+    color: inherit;
+    cursor: pointer;
+
+    &:hover {
+        color: $blue-60;
+    }
+}
