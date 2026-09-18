@@ -56,6 +56,7 @@ import {
     toPlacedSwimlaneSegmentsByCategoryRank,
     toPlacedSwimlaneSeries,
 } from "./SwimlaneChartHelpers"
+import { SwimlaneSegmentLabelSettings } from "./SwimlaneLabels"
 import { SwimlaneRow } from "./SwimlaneRow"
 import { SwimlaneSegments } from "./SwimlaneSegments"
 
@@ -203,6 +204,14 @@ export class SwimlaneChart
         return { fontSize, fontWeight: 700, lineHeight: 1 }
     }
 
+    @computed private get segmentLabelStyle(): FontSettings {
+        return {
+            fontSize: scaleFontSize(12, this.fontSize),
+            fontWeight: 700,
+            lineHeight: 1.2,
+        }
+    }
+
     @computed private get sizedSeries(): SizedSwimlaneSeries[] {
         return enrichSeriesWithLabels({
             series: this.series,
@@ -250,6 +259,15 @@ export class SwimlaneChart
         })
     }
 
+    @computed private get segmentLabelSettings(): SwimlaneSegmentLabelSettings {
+        const { timeColumn } = this.chartState.inputTable
+        return {
+            segmentLabels: this.chartState.segmentLabels,
+            fontSettings: this.segmentLabelStyle,
+            formatTime: (time) => timeColumn.formatTime(time),
+        }
+    }
+
     @computed private get rankedSegments(): PlacedSwimlaneSegment[] {
         const ranked = this.chartState.rankedSwimlane
         if (!ranked) return []
@@ -289,7 +307,12 @@ export class SwimlaneChart
 
     private renderLanes(): React.ReactElement[] {
         return this.placedSeries.map((series) => (
-            <SwimlaneRow key={series.seriesName} series={series} y={series.y} />
+            <SwimlaneRow
+                key={series.seriesName}
+                series={series}
+                y={series.y}
+                labelSettings={this.segmentLabelSettings}
+            />
         ))
     }
 
@@ -307,6 +330,7 @@ export class SwimlaneChart
                         key={series.seriesName}
                         series={series}
                         y={0}
+                        labelSettings={this.segmentLabelSettings}
                     />
                 )}
             />
@@ -341,7 +365,10 @@ export class SwimlaneChart
                 />
                 {this.chartState.rankedSwimlane ? (
                     <g id={makeFigmaId("bands")}>
-                        <SwimlaneSegments segments={this.rankedSegments} />
+                        <SwimlaneSegments
+                            segments={this.rankedSegments}
+                            labelSettings={this.segmentLabelSettings}
+                        />
                     </g>
                 ) : (
                     <g id={makeFigmaId("lanes")}>

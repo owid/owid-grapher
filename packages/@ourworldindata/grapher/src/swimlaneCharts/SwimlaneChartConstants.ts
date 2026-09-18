@@ -9,7 +9,8 @@ export const TICK_LABEL_OVERFLOW_PADDING = 2
 export const MIN_SEGMENT_WIDTH = 1
 export const PADDING_BETWEEN_LEGEND_AND_LANES = 8
 export const MAX_LANE_HEIGHT = 36
-export const SEGMENT_LABEL_PADDING = 6
+export const SEGMENT_LABEL_PADDING = 8
+export const SEGMENT_LABEL_TIME_RANGE_FONT_WEIGHT = 500
 
 export type SwimlaneChartManager = ChartManager
 
@@ -48,6 +49,11 @@ export type PlacedSwimlaneSegment = ColoredSwimlaneSegment & {
     y: number
     height: number
 }
+
+export type PlacedSwimlaneCategorySegment = Extract<
+    PlacedSwimlaneSegment,
+    { kind: "category" }
+>
 
 export interface SwimlaneSeries extends ChartSeries {
     seriesName: EntityName

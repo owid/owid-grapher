@@ -9,6 +9,12 @@ export type SwimlaneSegmentLabel =
     | { kind: "categoryOnly"; category: string }
     | { kind: "none" }
 
+export interface SwimlaneSegmentLabelSettings {
+    segmentLabels: SwimlaneSegmentLabels
+    fontSettings: FontSettings
+    formatTime: (time: Time) => string
+}
+
 export function formatSegmentTimeRange({
     startTime,
     endTime,

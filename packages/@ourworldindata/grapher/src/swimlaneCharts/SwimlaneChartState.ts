@@ -11,6 +11,7 @@ import {
     ScaleType,
     SortBy,
     SortConfig,
+    SwimlaneSegmentLabels,
     Time,
 } from "@ourworldindata/types"
 import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
@@ -45,6 +46,7 @@ import {
     toRankedSwimlane,
     toSwimlaneSegments,
 } from "./SwimlaneChartHelpers"
+import { SWIMLANE_CHART_CONFIG_DEFAULTS } from "./SwimlaneChartConfig"
 
 export class SwimlaneChartState implements ChartState, ColorScaleManager {
     manager: SwimlaneChartManager
@@ -117,6 +119,13 @@ export class SwimlaneChartState implements ChartState, ColorScaleManager {
         return (
             ColorScaleConfig.fromDSL(this.colorScaleColumn.def) ??
             this.manager.colorScale
+        )
+    }
+
+    @computed get segmentLabels(): SwimlaneSegmentLabels {
+        return (
+            this.manager.swimlane?.segmentLabels ??
+            SWIMLANE_CHART_CONFIG_DEFAULTS.segmentLabels
         )
     }
 
