@@ -6,6 +6,7 @@ import {
     extractFiltersFromQuery,
 } from "./searchUtils.js"
 import { FilterType, ScoredFilterPositioned } from "@ourworldindata/types"
+import { countriesByName } from "@ourworldindata/utils"
 import { SearchFilterPill } from "./SearchFilterPill.js"
 
 /**
@@ -24,6 +25,7 @@ export const SearchDetectedFilters = ({
         state: { filters, query },
         actions: { replaceQueryWithFilter },
         synonymMap,
+        analytics,
     } = useSearchContext()
 
     // Manual filter suggestions are parsed independently to give shorter exact
@@ -39,16 +41,31 @@ export const SearchDetectedFilters = ({
             { threshold: 0.75, limit: 1 },
             synonymMap
         )
-        // Only show non-exact country matches as suggestions
-        return matches.filter((match) => match.type === FilterType.COUNTRY)
+        return matches.filter(
+            (match) =>
+                // Only show non-exact country matches as suggestions
+                match.type === FilterType.COUNTRY &&
+                // Matching runs against every region so that a longer region
+                // name stops the iteration ("East Germany" found, so "Germany"
+                // isn't), but a historical state is a poor guess at what
+                // someone meant -- "share of people who are undernourished"
+                // suggested "Yemen People's Republic". The autocomplete
+                // suggestions are filtered the same way.
+                countriesByName()[match.name]
+        )
     }, [query, eligibleRegionNames, filters, synonymMap])
 
     const handleFilterClick = useCallback(
         (filter: ScoredFilterPositioned) => {
+            analytics.logSearchDetectedFilterClick({
+                query,
+                filterName: filter.name,
+                filterType: filter.type,
+            })
             // Apply the filter with positions information to handle word removal
             replaceQueryWithFilter(filter)
         },
-        [replaceQueryWithFilter]
+        [replaceQueryWithFilter, analytics, query]
     )
 
     if (!manualFilters.length) return null

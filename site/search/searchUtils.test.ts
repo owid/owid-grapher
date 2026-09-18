@@ -11,7 +11,7 @@ import {
 } from "./searchUtils"
 
 import { FilterType, SynonymMap } from "@ourworldindata/types"
-import { listedRegionsNames } from "@ourworldindata/utils"
+import { listedRegionsNames, countriesByName } from "@ourworldindata/utils"
 
 describe("Fuzzy search in search autocomplete", () => {
     let synonymMap: SynonymMap
@@ -765,6 +765,61 @@ describe("Fuzzy search in search autocomplete", () => {
             expect(result.suggestions[0].type).toBe(FilterType.QUERY)
             expect(result.unmatchedQuery).toBe("nonexistenttopic")
         })
+    })
+})
+
+describe("historical regions are matchable but not suggestable", () => {
+    // SearchDetectedFilters and the autocomplete both match against every
+    // region (so a longer name stops the iteration) and then filter their
+    // suggestions through countriesByName(). This pins that gap: these names
+    // must stay matchable while being excluded from suggestions.
+    it.each([
+        "Yemen People's Republic",
+        "Orange Free State",
+        "Great Colombia",
+        "East Germany",
+    ])("%s is a listed region but not a suggestable country", (name) => {
+        expect(listedRegionsNames()).toContain(name)
+        expect(countriesByName()[name]).toBeUndefined()
+    })
+
+    it("keeps present-day countries suggestable", () => {
+        for (const name of [
+            "Germany",
+            "Yemen",
+            "Poland",
+            "Micronesia (country)",
+        ]) {
+            expect(countriesByName()[name]).toBeDefined()
+        }
+    })
+})
+
+describe("country suggestions ignore parenthesised disambiguators", () => {
+    const regions = listedRegionsNames()
+    const suggest = (query: string) =>
+        extractFiltersFromQuery(
+            query,
+            regions,
+            [],
+            [],
+            { threshold: 0.75, limit: 1 },
+            new Map() as SynonymMap
+        )
+            .filter((filter) => filter.type === FilterType.COUNTRY)
+            .map((filter) => filter.name)
+
+    it.each([
+        "country",
+        "co2 emissions by country",
+        "income by country",
+        "country profile",
+    ])("does not suggest a country for %s", (query) => {
+        expect(suggest(query)).toEqual([])
+    })
+
+    it("still matches the name outside the parentheses", () => {
+        expect(suggest("micronesia")).toContain("Micronesia (country)")
     })
 })
 

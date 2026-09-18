@@ -184,6 +184,29 @@ export class SiteAnalytics extends GrapherAnalytics {
         })
     }
 
+    /**
+     * The "Did you mean? <country>" suggestion under the search bar. Its
+     * impressions can be reconstructed by replaying `searchQuery` through the
+     * matcher, so only the click needs recording.
+     */
+    logSearchDetectedFilterClick({
+        query,
+        filterName,
+        filterType,
+    }: {
+        query: string
+        filterName: string
+        filterType: FilterType
+    }) {
+        this.logToGA({
+            event: EventCategory.SiteSearchDetectedFilterClick,
+            eventAction: "click",
+            searchQuery: query,
+            searchDetectedFilterName: filterName,
+            searchDetectedFilterType: filterType,
+        })
+    }
+
     logGuidedChartLinkClick(url: string) {
         const { path: target, pathNext: targetNext } = splitPathForGA4(url)
         this.logToGA({
