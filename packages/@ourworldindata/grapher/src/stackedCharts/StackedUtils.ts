@@ -44,19 +44,19 @@ export const stackSeriesInBothDirections = <
 >(
     seriesArr: readonly StackedSeries<PositionType>[]
 ): readonly StackedSeries<PositionType>[] => {
-    seriesArr.forEach((series, seriesIndex) => {
-        if (!seriesIndex) return // The first series does not need to be shifted
+    const pointCount = _.max(seriesArr.map((series) => series.points.length))
+    const topOfPositiveStack = new Array<number>(pointCount ?? 0).fill(0)
+    const bottomOfNegativeStack = new Array<number>(pointCount ?? 0).fill(0)
+    seriesArr.forEach((series) => {
         series.points.forEach((point, pointIndex) => {
-            const pointsBelowThisOne = seriesArr
-                .slice(0, seriesIndex)
-                .map((s) => s.points[pointIndex])
-            const pointBelowThisOne =
-                point.value < 0
-                    ? pointsBelowThisOne.findLast((p) => p.value < 0)
-                    : pointsBelowThisOne.findLast((p) => p.value >= 0)
-            point.valueOffset = pointBelowThisOne
-                ? pointBelowThisOne.value + pointBelowThisOne.valueOffset
-                : 0
+            if (point.value < 0) {
+                point.valueOffset = bottomOfNegativeStack[pointIndex]
+                bottomOfNegativeStack[pointIndex] =
+                    point.value + point.valueOffset
+            } else {
+                point.valueOffset = topOfPositiveStack[pointIndex]
+                topOfPositiveStack[pointIndex] = point.value + point.valueOffset
+            }
         })
     })
     return seriesArr
