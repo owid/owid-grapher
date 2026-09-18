@@ -483,18 +483,18 @@ describe("a negative category that is not at the bottom", () => {
                 point.valueOffset + point.value,
             ])
 
-    it("keeps the running-total stack, so no band sweeps through another", () => {
+    it("hangs it below the zero line and closes the gap it leaves behind", () => {
         expect(bandsOf("coal")).toEqual([
             [0, 100],
             [0, 120],
         ])
         expect(bandsOf("netImports")).toEqual([
-            [100, 80],
-            [120, 90],
+            [0, -20],
+            [0, -30],
         ])
         expect(bandsOf("wind")).toEqual([
-            [80, 120],
-            [90, 140],
+            [100, 140],
+            [120, 170],
         ])
     })
 })
@@ -525,7 +525,7 @@ describe("several categories with negative values", () => {
                 point.valueOffset + point.value,
             ])
 
-    it("keeps the running-total stack", () => {
+    it("stacks them downward from the zero line, under the positive ones", () => {
         expect(bandsOf("cfc")).toEqual([
             [0, -10],
             [0, -15],
@@ -535,8 +535,8 @@ describe("several categories with negative values", () => {
             [-15, -45],
         ])
         expect(bandsOf("halons")).toEqual([
-            [-30, 70],
-            [-45, 75],
+            [0, 100],
+            [0, 120],
         ])
     })
 })

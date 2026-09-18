@@ -19,22 +19,6 @@ import { Time } from "@ourworldindata/types"
 import { TimeColumn } from "@ourworldindata/core-table"
 import { StackedBarChartState } from "./StackedBarChartState.js"
 
-/** Shifts up the y values of a Series with Points in place */
-export const stackSeries = <PositionType extends StackedPointPositionType>(
-    seriesArr: readonly StackedSeries<PositionType>[]
-): readonly StackedSeries<PositionType>[] => {
-    seriesArr.forEach((series, seriesIndex) => {
-        if (!seriesIndex) return // The first series does not need to be shifted
-        series.points.forEach((point, pointIndex) => {
-            const pointBelowThisOne =
-                seriesArr[seriesIndex - 1].points[pointIndex]
-            point.valueOffset =
-                pointBelowThisOne.value + pointBelowThisOne.valueOffset
-        })
-    })
-    return seriesArr
-}
-
 /**
  * Shifts up positive y values and shifts down negative y values of a Series
  * with Points in place
@@ -229,26 +213,6 @@ function simplifyFlatEdge(edge: Point[]): Point[] {
         : edge
 }
 
-/** The bottom series that gets drawn, if it holds the only negative values */
-export function findLoneNegativeSeriesAtBottom<
-    PositionType extends StackedPointPositionType,
->(
-    seriesArr: readonly StackedSeries<PositionType>[]
-): StackedSeries<PositionType> | undefined {
-    const bottomIndex = seriesArr.findIndex((series) => !series.isAllZeros)
-    if (bottomIndex === -1 || !hasNegativeValue(seriesArr[bottomIndex]))
-        return undefined
-    if (seriesArr.slice(bottomIndex + 1).some(hasNegativeValue))
-        return undefined
-    return seriesArr[bottomIndex]
-}
-
-function hasNegativeValue<PositionType extends StackedPointPositionType>(
-    series: StackedSeries<PositionType>
-): boolean {
-    return series.points.some((point) => point.value < 0)
-}
-
 function isCrossingZeroLine(
     before: StackedPoint<Time>,
     after: StackedPoint<Time>
@@ -315,20 +279,21 @@ function copyWithZeroLineCrossingPoints(
     return pointsWithCrossings
 }
 
-/** Copies the series with a point added wherever the bottom one passes through zero */
+/** Copies the series with a point added wherever any of them passes through zero */
 export function withPointsAtZeroLineCrossings(
     series: readonly StackedSeries<Time>[]
 ): readonly StackedSeries<Time>[] {
-    // Widening this to charts with several negative series makes them worse
     if (series.length < 2) return series
-    const bottomSeries = findLoneNegativeSeriesAtBottom(series)
-    if (!bottomSeries) return series
 
-    const crossings = findZeroLineCrossings(bottomSeries.points)
+    const crossings = sortNumeric(
+        _.uniq(series.flatMap((s) => findZeroLineCrossings(s.points)))
+    )
     if (crossings.length === 0) return series
 
+    // withMissingValuesAsZeroes gives every series the same positions, so one
+    // grouping indexes them all
     const crossingsByInterval = groupCrossingsByInterval(
-        bottomSeries.points,
+        series[0].points,
         crossings
     )
 
