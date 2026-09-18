@@ -9,17 +9,18 @@ export interface SwimlaneSegmentLabelSettings {
     formatTime: (time: Time) => string
 }
 
+/** The times a segment's category run covers, whether or not the timeline shows them all */
 export function formatSegmentTimeRange({
-    startTime,
-    endTime,
+    runStartTime,
+    runEndTime,
     formatTime,
 }: {
-    startTime: Time
-    endTime: Time
+    runStartTime: Time
+    runEndTime: Time
     formatTime: (time: Time) => string
 }): string {
-    if (startTime === endTime) return formatTime(startTime)
-    return `${formatTime(startTime)}–${formatTime(endTime)}`
+    if (runStartTime === runEndTime) return formatTime(runStartTime)
+    return `${formatTime(runStartTime)}–${formatTime(runEndTime)}`
 }
 
 /** Whether a segment has room for its category above its time range */

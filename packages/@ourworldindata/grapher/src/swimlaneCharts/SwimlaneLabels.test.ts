@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { SwimlaneSegmentLabels } from "@ourworldindata/types"
+import { SwimlaneSegmentLabels, Time } from "@ourworldindata/types"
 import { textWidth } from "../chart/ChartUtils"
 import { FontSettings } from "../core/GrapherConstants"
 import { SEGMENT_LABEL_PADDING } from "./SwimlaneChartConstants"
@@ -104,24 +104,20 @@ describe(shouldLabelSegment, () => {
     })
 })
 
+function timeRange(runStartTime: Time, runEndTime: Time): string {
+    return formatSegmentTimeRange({
+        runStartTime,
+        runEndTime,
+        formatTime: String,
+    })
+}
+
 describe(formatSegmentTimeRange, () => {
     it("renders a single time bare", () => {
-        expect(
-            formatSegmentTimeRange({
-                startTime: 1823,
-                endTime: 1823,
-                formatTime: String,
-            })
-        ).toEqual("1823")
+        expect(timeRange(1823, 1823)).toEqual("1823")
     })
 
     it("renders a span with an en dash", () => {
-        expect(
-            formatSegmentTimeRange({
-                startTime: 1789,
-                endTime: 1795,
-                formatTime: String,
-            })
-        ).toEqual("1789–1795")
+        expect(timeRange(1789, 1795)).toEqual("1789–1795")
     })
 })
