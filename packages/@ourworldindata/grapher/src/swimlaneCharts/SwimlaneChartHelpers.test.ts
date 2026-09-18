@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest"
 
-import { Time } from "@ourworldindata/types"
+import { ColumnTypeNames, Time } from "@ourworldindata/types"
+import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
 import { SeriesLabelState } from "../seriesLabel/SeriesLabelState"
 import {
     MAX_HEIGHT_PER_SERIES,
@@ -10,6 +11,7 @@ import {
 } from "./SwimlaneChartConstants"
 import {
     computeHeightPerSeries,
+    formatSegmentTimeRange,
     toPlacedSwimlaneSeries,
 } from "./SwimlaneChartHelpers"
 
@@ -25,12 +27,23 @@ function makeCategorySegment(
         category,
         startTime,
         endTime,
+        visibleStartTime: startTime,
+        visibleEndTime: endTime,
         color: "#000",
+        categoryLabel: category,
+        timeRangeLabel: `${startTime}–${endTime}`,
     }
 }
 
 function makeMissingSegment(startTime: Time, endTime: Time): SwimlaneSegment {
-    return { kind: "missing", startTime, endTime }
+    return {
+        kind: "missing",
+        startTime,
+        endTime,
+        visibleStartTime: startTime,
+        visibleEndTime: endTime,
+        timeRangeLabel: `${startTime}–${endTime}`,
+    }
 }
 
 function makeSizedSeries(
@@ -63,6 +76,11 @@ function placeRows(
         placeSeries: (seriesName) =>
             (seriesNames.indexOf(seriesName) + 0.5) * heightPerSeries,
         placeTime,
+        shouldShowSegmentLabels: false,
+        segmentLabelStyle: {
+            category: { fontSize: 12, fontWeight: 700, lineHeight: 1.2 },
+            timeRange: { fontSize: 12, fontWeight: 500, lineHeight: 1.2 },
+        },
     })
 }
 
@@ -105,5 +123,38 @@ describe(computeHeightPerSeries, () => {
 
     it("splits the height evenly between many series", () => {
         expect(computeHeightPerSeries({ height: 400, rowCount: 20 })).toBe(20)
+    })
+})
+
+describe(formatSegmentTimeRange, () => {
+    function makeTimeColumn(
+        type: ColumnTypeNames,
+        times: number[]
+    ): CoreColumn {
+        const table = new OwidTable(
+            times.map((time) => ({ entityName: "France", time })),
+            [{ slug: "time", type }]
+        )
+        return table.timeColumn
+    }
+
+    it("formats a single year as one time", () => {
+        expect(
+            formatSegmentTimeRange({
+                startTime: 2000,
+                endTime: 2000,
+                timeColumn: makeTimeColumn(ColumnTypeNames.Year, [2000]),
+            })
+        ).toEqual("2000")
+    })
+
+    it("formats a run of years as a range", () => {
+        expect(
+            formatSegmentTimeRange({
+                startTime: 2000,
+                endTime: 2002,
+                timeColumn: makeTimeColumn(ColumnTypeNames.Year, [2000, 2002]),
+            })
+        ).toEqual("2000 to 2002")
     })
 })

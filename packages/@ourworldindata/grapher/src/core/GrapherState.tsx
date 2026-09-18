@@ -172,6 +172,7 @@ import {
 } from "../mapCharts/MapChartConstants.js"
 import { MapConfig } from "../mapCharts/MapConfig.js"
 import { DumbbellChartConfig } from "../dumbbellCharts/DumbbellChartConfig.js"
+import { SwimlaneChartConfig } from "../swimlaneCharts/SwimlaneChartConfig.js"
 import { getCountriesByRegion } from "../mapCharts/MapHelpers.js"
 import {
     DownloadModalManager,
@@ -388,6 +389,9 @@ export class GrapherState
 
     /** Configuration of the dumbbell chart */
     dumbbell = new DumbbellChartConfig()
+
+    /** Configuration of the swimlane chart */
+    swimlane = new SwimlaneChartConfig()
 
     /** One of the predefined base color schemes. If not provided, a default is automatically chosen based on the chart type. */
     baseColorScheme: ColorSchemeName | undefined = undefined
@@ -718,6 +722,7 @@ export class GrapherState
             colorScale: observable,
             map: observable,
             dumbbell: observable,
+            swimlane: observable,
             dimensions: observable.ref,
             ySlugs: observable,
             xSlug: observable,

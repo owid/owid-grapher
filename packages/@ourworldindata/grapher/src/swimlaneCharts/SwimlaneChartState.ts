@@ -1,15 +1,16 @@
 import * as R from "remeda"
-import { match } from "ts-pattern"
 import { computed, makeObservable } from "mobx"
 import {
     ChartErrorInfo,
     ColorScaleConfigInterface,
     ColorSchemeName,
     ColumnSlug,
+    EntityName,
     ScaleType,
     SortBy,
     SortConfig,
     SortOrder,
+    SwimlaneSegmentLabelMode,
     Time,
 } from "@ourworldindata/types"
 import {
@@ -29,21 +30,24 @@ import {
     keepInputOrder,
     sortByConfig,
 } from "../chart/ChartUtils"
-import { OWID_ERROR_COLOR } from "../color/ColorConstants"
 import { SelectionArray } from "../selection/SelectionArray"
 import { AxisConfig } from "../axis/AxisConfig"
 import { HorizontalAxis } from "../axis/Axis"
 import {
-    SwimlaneSegment,
     isSwimlaneSortKey,
     SWIMLANE_SORT_KEYS,
     SwimlaneCategoryKind,
     SwimlaneChartManager,
+    RawSwimlaneSegment,
     SwimlaneObservation,
     SwimlaneSeries,
     SwimlaneSortKey,
 } from "./SwimlaneChartConstants"
-import { toRawSwimlaneSegments } from "./SwimlaneChartHelpers"
+import {
+    toRawSwimlaneSegments,
+    toSwimlaneSegments,
+} from "./SwimlaneChartHelpers"
+import { SWIMLANE_CHART_CONFIG_DEFAULTS } from "./SwimlaneChartConfig"
 
 export class SwimlaneChartState implements ChartState, ColorScaleManager {
     manager: SwimlaneChartManager
@@ -111,6 +115,13 @@ export class SwimlaneChartState implements ChartState, ColorScaleManager {
         )
     }
 
+    @computed get segmentLabelMode(): SwimlaneSegmentLabelMode {
+        return (
+            this.manager.swimlane?.segmentLabelMode ??
+            SWIMLANE_CHART_CONFIG_DEFAULTS.segmentLabelMode
+        )
+    }
+
     @computed get categoryKind(): SwimlaneCategoryKind | undefined {
         const column = this.colorScaleColumn
         if (!(column instanceof ColumnTypeMap.String)) return undefined
@@ -125,7 +136,13 @@ export class SwimlaneChartState implements ChartState, ColorScaleManager {
             : ColorSchemeName.OwidCategoricalA
     }
 
-    @computed private get timesAsc(): Time[] {
+    @computed private get allTimesAsc(): Time[] {
+        const { numValues, minTime, maxTime } = this.inputYColumn
+        if (numValues === 0) return []
+        return R.range(minTime, maxTime + 1)
+    }
+
+    @computed private get visibleTimesAsc(): Time[] {
         const { startTime, endTime } = this.manager
         if (startTime === undefined || endTime === undefined) return []
         return R.range(startTime, endTime + 1)
@@ -145,40 +162,49 @@ export class SwimlaneChartState implements ChartState, ColorScaleManager {
         return [...SWIMLANE_SORT_KEYS]
     }
 
+    @computed private get rawSegmentsByEntityName(): Map<
+        EntityName,
+        RawSwimlaneSegment[]
+    > {
+        const { inputYColumn, allTimesAsc } = this
+
+        const rowsByEntityNameAndTime = inputYColumn.owidRowByEntityNameAndTime
+
+        return new Map(
+            this.selectionArray.selectedEntityNames
+                .filter((entityName) => rowsByEntityNameAndTime.has(entityName))
+                .map((entityName) => {
+                    const rows =
+                        rowsByEntityNameAndTime.get(entityName)?.values() ?? []
+
+                    const observations: SwimlaneObservation[] = Array.from(rows)
+                        .filter((row) => row.value !== "")
+                        .map((row) => ({ time: row.time, category: row.value }))
+
+                    return [
+                        entityName,
+                        toRawSwimlaneSegments({
+                            observations,
+                            timesAsc: allTimesAsc,
+                        }),
+                    ]
+                })
+        )
+    }
+
     @computed private get unsortedSeries(): SwimlaneSeries[] {
         if (this.yColumn.isMissing) return []
 
-        const { yColumn, timesAsc, colorScale } = this
-        const rowsByEntityNameAndTime = yColumn.owidRowByEntityNameAndTime
+        const { rawSegmentsByEntityName, visibleTimesAsc, colorScale } = this
 
-        return this.selectionArray.selectedEntityNames
-            .filter((entityName) => rowsByEntityNameAndTime.has(entityName))
-            .map((entityName): SwimlaneSeries => {
-                const rows =
-                    rowsByEntityNameAndTime.get(entityName)?.values() ?? []
-
-                const observations: SwimlaneObservation[] = Array.from(rows)
-                    .filter((row) => row.value !== "")
-                    .map((row) => ({ time: row.time, category: row.value }))
-
-                const segments: SwimlaneSegment[] = toRawSwimlaneSegments({
-                    observations,
-                    timesAsc,
-                }).map((segment) =>
-                    match(segment)
-                        .with({ kind: "category" }, (categorySegment) => ({
-                            ...categorySegment,
-                            // A category always has a bin, so the error color should never be drawn
-                            color:
-                                colorScale.getColor(categorySegment.category) ??
-                                OWID_ERROR_COLOR,
-                        }))
-                        .with(
-                            { kind: "missing" },
-                            (missingSegment) => missingSegment
-                        )
-                        .exhaustive()
-                )
+        return Array.from(rawSegmentsByEntityName).map(
+            ([entityName, rawSegments]): SwimlaneSeries => {
+                const segments = toSwimlaneSegments({
+                    rawSegments,
+                    visibleTimesAsc,
+                    colorScale,
+                    timeColumn: this.inputTable.timeColumn,
+                })
 
                 return {
                     seriesName: entityName,
@@ -186,7 +212,8 @@ export class SwimlaneChartState implements ChartState, ColorScaleManager {
                     shortEntityName: getShortNameForEntity(entityName),
                     segments,
                 }
-            })
+            }
+        )
     }
 
     @computed get series(): SwimlaneSeries[] {
@@ -200,10 +227,10 @@ export class SwimlaneChartState implements ChartState, ColorScaleManager {
 
     toHorizontalAxis(config: AxisConfig): HorizontalAxis {
         const axis = config.toHorizontalAxis()
-        const lastTime = R.last(this.timesAsc)
+        const lastTime = R.last(this.visibleTimesAsc)
         // The last segment runs one step past the last time
         axis.updateDomainPreservingUserSettings([
-            R.first(this.timesAsc),
+            R.first(this.visibleTimesAsc),
             lastTime === undefined ? undefined : lastTime + 1,
         ])
         axis.scaleType = ScaleType.linear

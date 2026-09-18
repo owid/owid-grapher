@@ -11,6 +11,10 @@ import { GrapherProgrammaticInterface } from "../core/Grapher"
 import { GrapherState } from "../core/GrapherState"
 import { SwimlaneChart } from "./SwimlaneChart"
 import { SwimlaneChartState } from "./SwimlaneChartState"
+import {
+    PlacedSwimlaneSegment,
+    PlacedSwimlaneSeries,
+} from "./SwimlaneChartConstants"
 
 // France: Monarchy 2000–2002, no data 2003–2004, Republic 2005.
 // Germany: Republic 2000, no data 2001–2002, Republic 2003–2005.
@@ -55,11 +59,26 @@ function makeChart(
     return { grapherState, chart }
 }
 
+function findRow(
+    chart: SwimlaneChart,
+    entityName: string
+): PlacedSwimlaneSeries {
+    const row = chart["placedSeries"].find(
+        (series) => series.entityName === entityName
+    )
+    if (!row) throw new Error(`No row for ${entityName}`)
+    return row
+}
+
 function findLegendLabels(chart: SwimlaneChart): string[] {
     const bins = chart["ordinalLegendState"]
         ? chart["ordinalLegendBins"]
         : chart["categoricalLegendBins"]
     return bins.map((bin) => bin.text)
+}
+
+function hasLabel(segment: PlacedSwimlaneSegment): boolean {
+    return "label" in segment && segment.label !== undefined
 }
 
 describe("legend", () => {
@@ -111,4 +130,27 @@ describe("legend", () => {
             expect(findLegendLabels(chart)).toEqual(["No data", "Republic"])
         }
     )
+})
+
+describe("segments", () => {
+    it("crops a segment the timeline window cuts and labels it with the full run", () => {
+        const { chart } = makeChart(ColumnTypeNames.String, {
+            minTime: 2001,
+            maxTime: 2005,
+        })
+        const segments = findRow(chart, "France").placedSegments
+
+        expect(
+            segments.map(({ isStartCropped, isEndCropped }) => ({
+                isStartCropped,
+                isEndCropped,
+            }))
+        ).toEqual([
+            { isStartCropped: true, isEndCropped: false },
+            { isStartCropped: false, isEndCropped: false },
+            { isStartCropped: false, isEndCropped: false },
+        ])
+        expect(segments[0].timeRangeLabel).toEqual("2000 to 2002")
+        expect(hasLabel(segments[0])).toBe(true)
+    })
 })
