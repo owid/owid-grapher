@@ -1,14 +1,25 @@
+import * as R from "remeda"
 import { SeriesName, Time } from "@ourworldindata/types"
+import { CoreColumn } from "@ourworldindata/core-table"
 import { computeCenteredLabelYPositions } from "../rowSeriesLabels/RowSeriesLabelHelpers.js"
 import { CategoricalBin, NumericBin } from "../color/ColorScaleBin"
+import { ColorScale } from "../color/ColorScale"
+import { OWID_ERROR_COLOR } from "../color/ColorConstants"
+import { textWidth } from "../chart/ChartUtils"
 import {
     ROW_SPACING_FACTOR,
     MAX_HEIGHT_PER_SERIES,
+    PlacedSwimlaneCategorySegment,
     PlacedSwimlaneSegment,
+    PlacedSwimlaneSegmentLabel,
     PlacedSwimlaneSeries,
-    SizedSwimlaneSeries,
-    SwimlaneObservation,
     RawSwimlaneSegment,
+    SizedSwimlaneSeries,
+    SEGMENT_CROP_TAPER_RATIO,
+    SEGMENT_LABEL_PADDING,
+    SwimlaneObservation,
+    SwimlaneSegment,
+    SwimlaneSegmentLabelStyle,
 } from "./SwimlaneChartConstants"
 
 export function toRawSwimlaneSegments({
@@ -26,27 +37,87 @@ export function toRawSwimlaneSegments({
     )
     const categoryByTimeIndex = timesAsc.map((time) => categoryByTime.get(time))
 
-    const segments: RawSwimlaneSegment[] = []
+    const rawSegments: RawSwimlaneSegment[] = []
     let startIndex = 0
     for (let index = 0; index <= lastIndex; index++) {
-        const isRunEnd =
+        const isSegmentEnd =
             index === lastIndex ||
             categoryByTimeIndex[index + 1] !== categoryByTimeIndex[index]
-        if (!isRunEnd) continue
+        if (!isSegmentEnd) continue
 
         const range = {
             startTime: timesAsc[startIndex],
             endTime: timesAsc[index],
         }
         const category = categoryByTimeIndex[index]
-        segments.push(
+        rawSegments.push(
             category === undefined
                 ? { kind: "missing", ...range }
                 : { kind: "category", category, ...range }
         )
         startIndex = index + 1
     }
-    return segments
+    return rawSegments
+}
+
+export function toSwimlaneSegments({
+    rawSegments,
+    visibleTimesAsc,
+    colorScale,
+    timeColumn,
+}: {
+    rawSegments: RawSwimlaneSegment[]
+    visibleTimesAsc: Time[]
+    colorScale: ColorScale
+    timeColumn: CoreColumn
+}): SwimlaneSegment[] {
+    const firstVisibleTime = R.first(visibleTimesAsc)
+    const lastVisibleTime = R.last(visibleTimesAsc)
+    if (firstVisibleTime === undefined || lastVisibleTime === undefined)
+        return []
+
+    return rawSegments
+        .filter(
+            (rawSegment) =>
+                rawSegment.endTime >= firstVisibleTime &&
+                rawSegment.startTime <= lastVisibleTime
+        )
+        .map((rawSegment): SwimlaneSegment => {
+            const common = {
+                visibleStartTime: Math.max(
+                    rawSegment.startTime,
+                    firstVisibleTime
+                ),
+                visibleEndTime: Math.min(rawSegment.endTime, lastVisibleTime),
+                timeRangeLabel: formatSegmentTimeRange({
+                    startTime: rawSegment.startTime,
+                    endTime: rawSegment.endTime,
+                    timeColumn,
+                }),
+            }
+            if (rawSegment.kind === "missing")
+                return { ...rawSegment, ...common }
+            const bin = colorScale.getBinForValue(rawSegment.category)
+            return {
+                ...rawSegment,
+                ...common,
+                categoryLabel: bin?.text ?? rawSegment.category,
+                color: bin?.color ?? OWID_ERROR_COLOR,
+            }
+        })
+}
+
+export function formatSegmentTimeRange({
+    startTime,
+    endTime,
+    timeColumn,
+}: {
+    startTime: Time
+    endTime: Time
+    timeColumn: CoreColumn
+}): string {
+    if (startTime === endTime) return timeColumn.formatTime(startTime)
+    return timeColumn.formatTimeRange(startTime, endTime)
 }
 
 export function computeHeightPerSeries({
@@ -65,12 +136,16 @@ export function toPlacedSwimlaneSeries({
     heightPerSeries,
     placeSeries,
     placeTime,
+    shouldShowSegmentLabels,
+    segmentLabelStyle,
 }: {
     series: SizedSwimlaneSeries[]
     labelX: number
     heightPerSeries: number
     placeSeries: (seriesName: SeriesName) => number
     placeTime: (time: Time) => number
+    shouldShowSegmentLabels: boolean
+    segmentLabelStyle: SwimlaneSegmentLabelStyle
 }): PlacedSwimlaneSeries[] {
     const rowHeight = heightPerSeries * (1 - ROW_SPACING_FACTOR)
 
@@ -81,12 +156,14 @@ export function toPlacedSwimlaneSeries({
             segments,
             placeTime,
         })
-        const placedSegments: PlacedSwimlaneSegment[] = segments.map(
-            (segment, segmentIndex): PlacedSwimlaneSegment => ({
-                ...segment,
+        const placedSegments = segments.map((segment, segmentIndex) =>
+            toPlacedSwimlaneSegment({
+                segment,
                 ...extents[segmentIndex],
                 y: -rowHeight / 2,
                 height: rowHeight,
+                shouldShowLabel: shouldShowSegmentLabels,
+                labelStyle: segmentLabelStyle,
             })
         )
 
@@ -126,13 +203,83 @@ function toContiguousSegmentExtents({
     segments,
     placeTime,
 }: {
-    segments: RawSwimlaneSegment[]
+    segments: SwimlaneSegment[]
     placeTime: (time: Time) => number
 }): { x: number; width: number }[] {
     return segments.map((segment, index) => {
         const nextSegment = segments[index + 1]
-        const x = placeTime(segment.startTime)
-        const right = placeTime(nextSegment?.startTime ?? segment.endTime + 1)
+        const x = placeTime(segment.visibleStartTime)
+        const right = placeTime(
+            nextSegment?.visibleStartTime ?? segment.visibleEndTime + 1
+        )
         return { x, width: right - x }
     })
+}
+
+function toPlacedSwimlaneSegment({
+    segment,
+    x,
+    width,
+    y,
+    height,
+    shouldShowLabel,
+    labelStyle,
+}: {
+    segment: SwimlaneSegment
+    x: number
+    width: number
+    y: number
+    height: number
+    shouldShowLabel: boolean
+    labelStyle: SwimlaneSegmentLabelStyle
+}): PlacedSwimlaneSegment {
+    const isCategory = segment.kind === "category"
+    const isStartCropped =
+        isCategory && segment.startTime < segment.visibleStartTime
+    const isEndCropped = isCategory && segment.endTime > segment.visibleEndTime
+    const cropTaper = Math.min(SEGMENT_CROP_TAPER_RATIO * height, width / 3)
+    const placement = {
+        x,
+        width,
+        y,
+        height,
+        isStartCropped,
+        isEndCropped,
+        cropTaper,
+    }
+
+    if (segment.kind === "missing") return { ...segment, ...placement }
+
+    const placedSegment = { ...segment, ...placement }
+    return {
+        ...placedSegment,
+        label: shouldShowLabel
+            ? placeSegmentLabel(placedSegment, labelStyle)
+            : undefined,
+    }
+}
+
+/** Position of a category segment's two-line label, or undefined if it doesn't fit */
+function placeSegmentLabel(
+    segment: PlacedSwimlaneCategorySegment,
+    style: SwimlaneSegmentLabelStyle
+): PlacedSwimlaneSegmentLabel | undefined {
+    const lineHeight = style.category.fontSize * style.category.lineHeight
+    if (segment.height < 2 * lineHeight) return undefined
+
+    const startInset = segment.isStartCropped ? segment.cropTaper : 0
+    const endInset = segment.isEndCropped ? segment.cropTaper : 0
+    const availableWidth =
+        segment.width - startInset - endInset - 2 * SEGMENT_LABEL_PADDING
+    const widestLine = Math.max(
+        textWidth(segment.categoryLabel, style.category),
+        textWidth(segment.timeRangeLabel, style.timeRange)
+    )
+    if (availableWidth < widestLine) return undefined
+
+    return {
+        x: segment.x + startInset + SEGMENT_LABEL_PADDING,
+        y: segment.y + segment.height / 2 - lineHeight / 2,
+        style,
+    }
 }
