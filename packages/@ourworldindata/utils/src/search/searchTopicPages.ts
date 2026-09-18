@@ -17,10 +17,7 @@ import {
 import { searchSingleForHits } from "./searchClosestMatches.js"
 import { getPrefixedGdocPath } from "../urls/gdocPaths.js"
 
-// Shared between the site's search page (site/search/queries.ts) and the
-// public /api/search Cloudflare function (functions/api/search/searchApi.ts)
-// so both recommend the same topic pages for a query, including when no chart
-// matches it.
+// Shared by the site's search page and /api/search — see ./README.md.
 
 const TOPIC_PAGE_TYPES: readonly OwidGdocType[] = [
     OwidGdocType.TopicPage,

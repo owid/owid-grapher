@@ -1,5 +1,7 @@
 import { Filter, FilterType, SearchFacetFilters } from "@ourworldindata/types"
 
+// Shared by the site's search page and /api/search — see ./README.md.
+
 /**
  * What to pass as `maxValuesPerFacet` when a search needs the *complete* list of
  * a facet's values rather than a sample. Algolia caps facet values at 100 unless
@@ -8,10 +10,6 @@ import { Filter, FilterType, SearchFacetFilters } from "@ourworldindata/types"
  * have no content". 1000 is Algolia's documented maximum.
  */
 export const MAX_FACET_VALUES = 1000
-
-// Shared between the site's client-side Algolia queries (site/search/queries.ts)
-// and the public /api/search Cloudflare function (functions/api/search/searchApi.ts)
-// so that identical filters produce identical Algolia requests in both places.
 
 export type SearchFacetAttribute =
     | "tags" // also used on /latest
