@@ -627,6 +627,15 @@ export interface DumbbellChartConfigInterface {
     trendColorMap?: DumbbellTrendColorMap
 }
 
+export enum SwimlaneSegmentLabels {
+    CategoryAndTimeRange = "categoryAndTimeRange",
+    None = "none",
+}
+
+export interface SwimlaneChartConfigInterface {
+    segmentLabels?: SwimlaneSegmentLabels
+}
+
 export interface MapConfigInterface {
     columnSlug?: ColumnSlug
     time?: TimeBound | TimeBoundValueStr
@@ -708,6 +717,7 @@ export interface GrapherInterface extends SortConfig {
     colorScale?: Partial<ColorScaleConfigInterface>
     map?: Partial<MapConfigInterface>
     dumbbell?: Partial<DumbbellChartConfigInterface>
+    swimlane?: Partial<SwimlaneChartConfigInterface>
 
     // When we move graphers to Git, and remove dimensions, we can clean this up.
     ySlugs?: ColumnSlugs
@@ -859,6 +869,7 @@ export const grapherKeysToSerialize = [
     "missingDataStrategy",
     "peerCountryStrategy",
     "dumbbell",
+    "swimlane",
 
     // Internals
     "adminBaseUrl",
