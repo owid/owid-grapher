@@ -5,6 +5,7 @@ import { Time } from "@ourworldindata/types"
 import { SeriesLabelState } from "../seriesLabel/SeriesLabelState"
 import {
     CategoricalSwimlaneCategories,
+    ColoredSwimlaneCategorySegment,
     LANE_SPACING_FACTOR,
     MAX_LANE_HEIGHT,
     MIN_SEGMENT_WIDTH,
@@ -12,12 +13,15 @@ import {
     SizedSwimlaneSeries,
     SwimlaneObservation,
     SwimlaneSegment,
+    VisibleSwimlaneSegment,
 } from "./SwimlaneChartConstants"
 import {
     toPlacedSwimlaneSegmentsByCategoryRank,
     toPlacedSwimlaneSeries,
     toRankedSwimlane,
+    toSegmentOutlinePath,
     toSwimlaneSegments,
+    toVisibleSwimlaneSegments,
 } from "./SwimlaneChartHelpers"
 
 interface Case {
@@ -249,6 +253,194 @@ describe(toSwimlaneSegments, () => {
     })
 })
 
+interface ClippingCase {
+    name: string
+    segments: SwimlaneSegment[]
+    visibleTimesAsc: Time[]
+    expected: VisibleSwimlaneSegment[]
+}
+
+const A_THEN_B: SwimlaneSegment[] = [
+    { kind: "category", category: "A", startTime: 2000, endTime: 2002 },
+    { kind: "category", category: "B", startTime: 2003, endTime: 2005 },
+]
+
+const clippingCases: ClippingCase[] = [
+    {
+        name: "a window covering every time crops nothing",
+        segments: A_THEN_B,
+        visibleTimesAsc: [2000, 2001, 2002, 2003, 2004, 2005],
+        expected: [
+            {
+                kind: "category",
+                category: "A",
+                startTime: 2000,
+                endTime: 2002,
+                runStartTime: 2000,
+                runEndTime: 2002,
+            },
+            {
+                kind: "category",
+                category: "B",
+                startTime: 2003,
+                endTime: 2005,
+                runStartTime: 2003,
+                runEndTime: 2005,
+            },
+        ],
+    },
+    {
+        name: "a window starting inside the first run keeps the time that run began",
+        segments: A_THEN_B,
+        visibleTimesAsc: [2001, 2002, 2003, 2004, 2005],
+        expected: [
+            {
+                kind: "category",
+                category: "A",
+                startTime: 2001,
+                endTime: 2002,
+                runStartTime: 2000,
+                runEndTime: 2002,
+            },
+            {
+                kind: "category",
+                category: "B",
+                startTime: 2003,
+                endTime: 2005,
+                runStartTime: 2003,
+                runEndTime: 2005,
+            },
+        ],
+    },
+    {
+        name: "a window ending inside the last run keeps the time that run ended",
+        segments: A_THEN_B,
+        visibleTimesAsc: [2000, 2001, 2002, 2003, 2004],
+        expected: [
+            {
+                kind: "category",
+                category: "A",
+                startTime: 2000,
+                endTime: 2002,
+                runStartTime: 2000,
+                runEndTime: 2002,
+            },
+            {
+                kind: "category",
+                category: "B",
+                startTime: 2003,
+                endTime: 2004,
+                runStartTime: 2003,
+                runEndTime: 2005,
+            },
+        ],
+    },
+    {
+        name: "a window starting where a run starts leaves the drawn segment whole",
+        segments: A_THEN_B,
+        visibleTimesAsc: [2003, 2004, 2005],
+        expected: [
+            {
+                kind: "category",
+                category: "B",
+                startTime: 2003,
+                endTime: 2005,
+                runStartTime: 2003,
+                runEndTime: 2005,
+            },
+        ],
+    },
+    {
+        name: "a run reaching past both ends of the window keeps both of its own times",
+        segments: [
+            { kind: "category", category: "A", startTime: 1900, endTime: 2000 },
+        ],
+        visibleTimesAsc: [1950, 1960, 1970],
+        expected: [
+            {
+                kind: "category",
+                category: "A",
+                startTime: 1950,
+                endTime: 1970,
+                runStartTime: 1900,
+                runEndTime: 2000,
+            },
+        ],
+    },
+    {
+        name: "a run cropped down to a single visible time keeps its whole range",
+        segments: A_THEN_B,
+        visibleTimesAsc: [2002, 2003, 2004, 2005],
+        expected: [
+            {
+                kind: "category",
+                category: "A",
+                startTime: 2002,
+                endTime: 2002,
+                runStartTime: 2000,
+                runEndTime: 2002,
+            },
+            {
+                kind: "category",
+                category: "B",
+                startTime: 2003,
+                endTime: 2005,
+                runStartTime: 2003,
+                runEndTime: 2005,
+            },
+        ],
+    },
+    {
+        name: "segments outside the window are dropped",
+        segments: A_THEN_B,
+        visibleTimesAsc: [2004, 2005],
+        expected: [
+            {
+                kind: "category",
+                category: "B",
+                startTime: 2004,
+                endTime: 2005,
+                runStartTime: 2003,
+                runEndTime: 2005,
+            },
+        ],
+    },
+    {
+        name: "a missing segment is clamped to the window and carries no run",
+        segments: [{ kind: "missing", startTime: 2000, endTime: 2005 }],
+        visibleTimesAsc: [2001, 2002],
+        expected: [{ kind: "missing", startTime: 2001, endTime: 2002 }],
+    },
+    {
+        name: "an empty window drops every segment",
+        segments: A_THEN_B,
+        visibleTimesAsc: [],
+        expected: [],
+    },
+]
+
+describe(toVisibleSwimlaneSegments, () => {
+    it.each(clippingCases)(
+        "$name",
+        ({ segments, visibleTimesAsc, expected }) => {
+            expect(
+                toVisibleSwimlaneSegments({ segments, visibleTimesAsc })
+            ).toEqual(expected)
+        }
+    )
+})
+
+describe(toVisibleSwimlaneSegments, () => {
+    it.each(clippingCases)(
+        "$name",
+        ({ segments, visibleTimesAsc, expected }) => {
+            expect(
+                toVisibleSwimlaneSegments({ segments, visibleTimesAsc })
+            ).toEqual(expected)
+        }
+    )
+})
+
 const TIME_DOMAIN: [Time, Time] = [2000, 2004]
 const BOUNDS = new Bounds(0, 0, 200, 100)
 
@@ -261,6 +453,16 @@ function placeTime(time: Time): number {
     return BOUNDS.left + ((time - start) / (end - start)) * BOUNDS.width
 }
 
+function categorySegment(
+    segment: Omit<ColoredSwimlaneCategorySegment, "runStartTime" | "runEndTime">
+): ColoredSwimlaneCategorySegment {
+    return {
+        ...segment,
+        runStartTime: segment.startTime,
+        runEndTime: segment.endTime,
+    }
+}
+
 function series(
     overrides: Partial<SizedSwimlaneSeries> = {}
 ): SizedSwimlaneSeries {
@@ -270,13 +472,13 @@ function series(
         color: "#123456",
         label: label(),
         segments: [
-            {
+            categorySegment({
                 kind: "category",
                 category: "A",
                 color: "#123456",
                 startTime: 2000,
                 endTime: 2004,
-            },
+            }),
         ],
         ...overrides,
     }
@@ -366,20 +568,20 @@ describe(toPlacedSwimlaneSeries, () => {
             series: [
                 series({
                     segments: [
-                        {
+                        categorySegment({
                             kind: "category",
                             category: "A",
                             color: "#123456",
                             startTime: 2000,
                             endTime: 2001,
-                        },
-                        {
+                        }),
+                        categorySegment({
                             kind: "category",
                             category: "B",
                             color: "#654321",
                             startTime: 2002,
                             endTime: 2004,
-                        },
+                        }),
                     ],
                 }),
             ],
@@ -397,13 +599,13 @@ describe(toPlacedSwimlaneSeries, () => {
             series: [
                 series({
                     segments: [
-                        {
+                        categorySegment({
                             kind: "category",
                             category: "A",
                             color: "#123456",
                             startTime: 2001,
                             endTime: 2001,
-                        },
+                        }),
                     ],
                 }),
             ],
@@ -494,13 +696,13 @@ describe(toPlacedSwimlaneSegmentsByCategoryRank, () => {
         const [segment] = toPlacedSwimlaneSegmentsByCategoryRank({
             series: series({
                 segments: [
-                    {
+                    categorySegment({
                         kind: "category",
                         category: "B",
                         color: "#123456",
                         startTime: 2000,
                         endTime: 2004,
-                    },
+                    }),
                 ],
             }),
             categories: CATEGORIES,
@@ -515,13 +717,13 @@ describe(toPlacedSwimlaneSegmentsByCategoryRank, () => {
         const [segment] = toPlacedSwimlaneSegmentsByCategoryRank({
             series: series({
                 segments: [
-                    {
+                    categorySegment({
                         kind: "category",
                         category: "D",
                         color: "#123456",
                         startTime: 2000,
                         endTime: 2004,
-                    },
+                    }),
                 ],
             }),
             categories: CATEGORIES,
@@ -536,13 +738,13 @@ describe(toPlacedSwimlaneSegmentsByCategoryRank, () => {
         const [segment] = toPlacedSwimlaneSegmentsByCategoryRank({
             series: series({
                 segments: [
-                    {
+                    categorySegment({
                         kind: "category",
                         category: "A",
                         color: "#123456",
                         startTime: 2000,
                         endTime: 2004,
-                    },
+                    }),
                 ],
             }),
             categories: CATEGORIES,
@@ -559,20 +761,20 @@ describe(toPlacedSwimlaneSegmentsByCategoryRank, () => {
         const placed = toPlacedSwimlaneSegmentsByCategoryRank({
             series: series({
                 segments: [
-                    {
+                    categorySegment({
                         kind: "category",
                         category: "A",
                         color: "#123456",
                         startTime: 2000,
                         endTime: 2002,
-                    },
-                    {
+                    }),
+                    categorySegment({
                         kind: "category",
                         category: "D",
                         color: "#654321",
                         startTime: 2003,
                         endTime: 2004,
-                    },
+                    }),
                 ],
             }),
             categories: CATEGORIES,
@@ -596,25 +798,25 @@ describe(toPlacedSwimlaneSegmentsByCategoryRank, () => {
         const placed = toPlacedSwimlaneSegmentsByCategoryRank({
             series: series({
                 segments: [
-                    {
+                    categorySegment({
                         kind: "category",
                         category: "A",
                         color: "#123456",
                         startTime: 2000,
                         endTime: 2001,
-                    },
+                    }),
                     {
                         kind: "missing",
                         startTime: 2002,
                         endTime: 2002,
                     },
-                    {
+                    categorySegment({
                         kind: "category",
                         category: "B",
                         color: "#654321",
                         startTime: 2003,
                         endTime: 2004,
-                    },
+                    }),
                 ],
             }),
             categories: CATEGORIES,
@@ -630,13 +832,13 @@ describe(toPlacedSwimlaneSegmentsByCategoryRank, () => {
         const [segment] = toPlacedSwimlaneSegmentsByCategoryRank({
             series: series({
                 segments: [
-                    {
+                    categorySegment({
                         kind: "category",
                         category: "A",
                         color: "#123456",
                         startTime: 2001,
                         endTime: 2001,
-                    },
+                    }),
                 ],
             }),
             categories: CATEGORIES,
@@ -645,5 +847,50 @@ describe(toPlacedSwimlaneSegmentsByCategoryRank, () => {
         })
 
         expect(segment.width).toEqual(MIN_SEGMENT_WIDTH)
+    })
+})
+
+describe(toSegmentOutlinePath, () => {
+    const box = { x: 10, y: 20, width: 60, height: 30 }
+
+    it("tapers the start edge to a point when the window crops it", () => {
+        expect(
+            toSegmentOutlinePath({
+                ...box,
+                isStartCropped: true,
+                isEndCropped: false,
+            })
+        ).toEqual("M 10,35 L 15,20 L 70,20 L 70,50 L 15,50 Z")
+    })
+
+    it("tapers the end edge to a point when the window crops it", () => {
+        expect(
+            toSegmentOutlinePath({
+                ...box,
+                isStartCropped: false,
+                isEndCropped: true,
+            })
+        ).toEqual("M 10,20 L 65,20 L 70,35 L 65,50 L 10,50 Z")
+    })
+
+    it("tapers both edges of a run the window crops on both sides", () => {
+        expect(
+            toSegmentOutlinePath({
+                ...box,
+                isStartCropped: true,
+                isEndCropped: true,
+            })
+        ).toEqual("M 10,35 L 15,20 L 65,20 L 70,35 L 65,50 L 15,50 Z")
+    })
+
+    it("shrinks the taper so a narrow segment keeps a flat side", () => {
+        expect(
+            toSegmentOutlinePath({
+                ...box,
+                width: 6,
+                isStartCropped: true,
+                isEndCropped: false,
+            })
+        ).toEqual("M 10,35 L 12,20 L 16,20 L 16,50 L 12,50 Z")
     })
 })

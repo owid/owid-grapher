@@ -10,6 +10,7 @@ import {
     SEGMENT_LABEL_PADDING,
     SEGMENT_LABEL_TIME_RANGE_FONT_WEIGHT,
 } from "./SwimlaneChartConstants"
+import { toSegmentOutlinePath } from "./SwimlaneChartHelpers"
 import {
     formatSegmentTimeRange,
     shouldLabelSegment,
@@ -27,17 +28,7 @@ export function SwimlaneSegments({
         <>
             {segments.map((segment) => (
                 <g key={segment.startTime}>
-                    <rect
-                        x={roundForSvg(segment.x)}
-                        y={roundForSvg(segment.y)}
-                        width={roundForSvg(segment.width)}
-                        height={roundForSvg(segment.height)}
-                        fill={
-                            segment.kind === "missing"
-                                ? `url(#${Patterns.noDataPattern})`
-                                : segment.color
-                        }
-                    />
+                    <SwimlaneSegmentShape segment={segment} />
                     {segment.kind === "category" && (
                         <SwimlaneSegmentLabelText
                             segment={segment}
@@ -47,6 +38,48 @@ export function SwimlaneSegments({
                 </g>
             ))}
         </>
+    )
+}
+
+function SwimlaneSegmentShape({
+    segment,
+}: {
+    segment: PlacedSwimlaneSegment
+}): React.ReactElement {
+    const { x, y, width, height } = segment
+    const fill =
+        segment.kind === "missing"
+            ? `url(#${Patterns.noDataPattern})`
+            : segment.color
+
+    const isStartCropped =
+        segment.kind === "category" && segment.runStartTime < segment.startTime
+    const isEndCropped =
+        segment.kind === "category" && segment.runEndTime > segment.endTime
+
+    if (!isStartCropped && !isEndCropped)
+        return (
+            <rect
+                x={roundForSvg(x)}
+                y={roundForSvg(y)}
+                width={roundForSvg(width)}
+                height={roundForSvg(height)}
+                fill={fill}
+            />
+        )
+
+    return (
+        <path
+            d={toSegmentOutlinePath({
+                x,
+                y,
+                width,
+                height,
+                isStartCropped,
+                isEndCropped,
+            })}
+            fill={fill}
+        />
     )
 }
 
@@ -61,8 +94,8 @@ function SwimlaneSegmentLabelText({
     const { category, width, height } = segment
 
     const timeRange = formatSegmentTimeRange({
-        startTime: segment.startTime,
-        endTime: segment.endTime,
+        runStartTime: segment.runStartTime,
+        runEndTime: segment.runEndTime,
         formatTime,
     })
 

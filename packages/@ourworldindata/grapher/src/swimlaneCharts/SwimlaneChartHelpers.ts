@@ -1,4 +1,5 @@
-import { Bounds } from "@ourworldindata/utils"
+import * as R from "remeda"
+import { Bounds, roundForSvg } from "@ourworldindata/utils"
 import { Time } from "@ourworldindata/types"
 import { SortKeyFn } from "../chart/ChartUtils"
 import { computeCenteredLabelYPositions } from "../rowSeriesLabels/RowSeriesLabelHelpers.js"
@@ -12,10 +13,12 @@ import {
     PlacedSwimlaneSeries,
     SizedSwimlaneSeries,
     RankedSwimlane,
+    SEGMENT_CROP_TAPER,
     SwimlaneCategories,
     SwimlaneObservation,
     SwimlaneSegment,
     SwimlaneSeries,
+    VisibleSwimlaneSegment,
 } from "./SwimlaneChartConstants"
 
 export function toSwimlaneSegments({
@@ -54,6 +57,80 @@ export function toSwimlaneSegments({
         startIndex = index + 1
     }
     return segments
+}
+
+/** Restricts segments to the times the timeline shows, keeping the whole run each one covers */
+export function toVisibleSwimlaneSegments({
+    segments,
+    visibleTimesAsc,
+}: {
+    segments: SwimlaneSegment[]
+    visibleTimesAsc: Time[]
+}): VisibleSwimlaneSegment[] {
+    const firstVisibleTime = R.first(visibleTimesAsc)
+    const lastVisibleTime = R.last(visibleTimesAsc)
+    if (firstVisibleTime === undefined || lastVisibleTime === undefined)
+        return []
+
+    return segments
+        .filter(
+            (segment) =>
+                segment.endTime >= firstVisibleTime &&
+                segment.startTime <= lastVisibleTime
+        )
+        .map((segment) => {
+            // A run covers consecutive times, so clamping to the window lands on one of its own times
+            const range = {
+                startTime: Math.max(segment.startTime, firstVisibleTime),
+                endTime: Math.min(segment.endTime, lastVisibleTime),
+            }
+            if (segment.kind === "missing") return { ...segment, ...range }
+            return {
+                ...segment,
+                ...range,
+                runStartTime: segment.startTime,
+                runEndTime: segment.endTime,
+            }
+        })
+}
+
+/** Outline of a segment, tapered to a point at each edge the timeline window cropped */
+export function toSegmentOutlinePath({
+    x,
+    y,
+    width,
+    height,
+    isStartCropped,
+    isEndCropped,
+}: {
+    x: number
+    y: number
+    width: number
+    height: number
+    isStartCropped: boolean
+    isEndCropped: boolean
+}): string {
+    const taper = Math.min(SEGMENT_CROP_TAPER, width / 3)
+    const [left, right, top, bottom] = [x, x + width, y, y + height].map(
+        roundForSvg
+    )
+    const middle = roundForSvg(y + height / 2)
+
+    const start = isStartCropped
+        ? [`M ${left},${middle}`, `L ${roundForSvg(left + taper)},${top}`]
+        : [`M ${left},${top}`]
+    const end = isEndCropped
+        ? [
+              `L ${roundForSvg(right - taper)},${top}`,
+              `L ${right},${middle}`,
+              `L ${roundForSvg(right - taper)},${bottom}`,
+          ]
+        : [`L ${right},${top}`, `L ${right},${bottom}`]
+    const close = isStartCropped
+        ? [`L ${roundForSvg(left + taper)},${bottom}`, "Z"]
+        : [`L ${left},${bottom}`, "Z"]
+
+    return [...start, ...end, ...close].join(" ")
 }
 
 export function toRankedSwimlane({
