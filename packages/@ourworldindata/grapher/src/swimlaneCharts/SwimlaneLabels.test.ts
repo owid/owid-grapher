@@ -4,7 +4,7 @@ import { SwimlaneSegmentLabels } from "@ourworldindata/types"
 import { textWidth } from "../chart/ChartUtils"
 import { FontSettings } from "../core/GrapherConstants"
 import { SEGMENT_LABEL_PADDING } from "./SwimlaneChartConstants"
-import { chooseSegmentLabel, formatSegmentTimeRange } from "./SwimlaneLabels"
+import { formatSegmentTimeRange, shouldLabelSegment } from "./SwimlaneLabels"
 
 const FONT_SETTINGS: FontSettings = {
     fontSize: 12,
@@ -13,122 +13,94 @@ const FONT_SETTINGS: FontSettings = {
 }
 const LINE_HEIGHT = FONT_SETTINGS.fontSize * FONT_SETTINGS.lineHeight
 
-describe(chooseSegmentLabel, () => {
-    it("returns twoLines for a wide, tall segment", () => {
-        const category = "High income"
-        const timeRange = "1789–1795"
-        const width =
-            Math.max(
-                textWidth(category, FONT_SETTINGS),
-                textWidth(timeRange, FONT_SETTINGS)
-            ) +
-            2 * SEGMENT_LABEL_PADDING +
-            20
-        const height = 2 * LINE_HEIGHT + 10
+const CATEGORY = "High income"
+const TIME_RANGE = "1789–1795"
 
+function widthFitting(...lines: string[]): number {
+    const widest = Math.max(
+        ...lines.map((line) => textWidth(line, FONT_SETTINGS))
+    )
+    return widest + 2 * SEGMENT_LABEL_PADDING
+}
+
+function labels({
+    width,
+    height,
+    category = CATEGORY,
+    segmentLabels = SwimlaneSegmentLabels.CategoryAndTimeRange,
+}: {
+    width: number
+    height: number
+    category?: string
+    segmentLabels?: SwimlaneSegmentLabels
+}): boolean {
+    return shouldLabelSegment({
+        segmentLabels,
+        category,
+        timeRange: TIME_RANGE,
+        width,
+        height,
+        fontSettings: FONT_SETTINGS,
+    })
+}
+
+describe(shouldLabelSegment, () => {
+    it("labels a segment wide enough for both lines and tall enough for two", () => {
         expect(
-            chooseSegmentLabel({
-                segmentLabels: SwimlaneSegmentLabels.CategoryAndTimeRange,
-                category,
-                timeRange,
-                width,
-                height,
-                fontSettings: FONT_SETTINGS,
+            labels({
+                width: widthFitting(CATEGORY, TIME_RANGE) + 20,
+                height: 2 * LINE_HEIGHT + 10,
             })
-        ).toEqual({ kind: "twoLines", category, timeRange })
+        ).toBe(true)
     })
 
-    it("falls to categoryOnly when the width holds the category but not the time range, at a two-line height", () => {
-        const category = "Low"
-        const timeRange = "1789–1795"
-        const width =
-            textWidth(category, FONT_SETTINGS) + 2 * SEGMENT_LABEL_PADDING + 5
-        const height = 2 * LINE_HEIGHT + 10
-
+    it("labels a segment exactly at the width and height it needs", () => {
         expect(
-            chooseSegmentLabel({
-                segmentLabels: SwimlaneSegmentLabels.CategoryAndTimeRange,
-                category,
-                timeRange,
-                width,
-                height,
-                fontSettings: FONT_SETTINGS,
+            labels({
+                width: widthFitting(CATEGORY, TIME_RANGE),
+                height: 2 * LINE_HEIGHT,
             })
-        ).toEqual({ kind: "categoryOnly", category })
+        ).toBe(true)
     })
 
-    it("returns oneLine for a short, wide segment", () => {
-        const category = "High income"
-        const timeRange = "1789–1795"
-        const oneLineText = `${category}, ${timeRange}`
-        const width =
-            textWidth(oneLineText, FONT_SETTINGS) +
-            2 * SEGMENT_LABEL_PADDING +
-            20
-        const height = LINE_HEIGHT + 5
-
+    it("drops the label when the width holds the category but not the time range", () => {
         expect(
-            chooseSegmentLabel({
-                segmentLabels: SwimlaneSegmentLabels.CategoryAndTimeRange,
-                category,
-                timeRange,
-                width,
-                height,
-                fontSettings: FONT_SETTINGS,
+            labels({
+                category: "Low",
+                width: widthFitting("Low") + 5,
+                height: 2 * LINE_HEIGHT + 10,
             })
-        ).toEqual({ kind: "oneLine", text: oneLineText })
+        ).toBe(false)
     })
 
-    it("returns categoryOnly for a short, narrow segment", () => {
-        const category = "Low income"
-        const timeRange = "1789–1795"
-        const width =
-            textWidth(category, FONT_SETTINGS) + 2 * SEGMENT_LABEL_PADDING + 5
-        const height = LINE_HEIGHT + 5
-
+    it("drops the label when the height holds one line but not two", () => {
         expect(
-            chooseSegmentLabel({
-                segmentLabels: SwimlaneSegmentLabels.CategoryAndTimeRange,
-                category,
-                timeRange,
-                width,
-                height,
-                fontSettings: FONT_SETTINGS,
+            labels({
+                width: widthFitting(CATEGORY, TIME_RANGE) + 20,
+                height: 2 * LINE_HEIGHT - 1,
             })
-        ).toEqual({ kind: "categoryOnly", category })
+        ).toBe(false)
     })
 
-    it("returns none for a category longer than any plausible segment", () => {
-        const category =
-            "An implausibly long category name that no segment could ever fit"
-        const timeRange = "1789–1795"
-        const width =
-            textWidth("Short", FONT_SETTINGS) + 2 * SEGMENT_LABEL_PADDING
-        const height = 2 * LINE_HEIGHT + 10
-
+    it("drops the label for a category longer than any plausible segment", () => {
         expect(
-            chooseSegmentLabel({
-                segmentLabels: SwimlaneSegmentLabels.CategoryAndTimeRange,
-                category,
-                timeRange,
-                width,
-                height,
-                fontSettings: FONT_SETTINGS,
+            labels({
+                category:
+                    "An implausibly long category name that no segment could ever fit",
+                width: widthFitting("Short"),
+                height: 2 * LINE_HEIGHT + 10,
             })
-        ).toEqual({ kind: "none" })
+        ).toBe(false)
     })
 
-    it("returns none whatever the space when segmentLabels is none", () => {
+    it("drops the label whatever the space when segmentLabels is none", () => {
         expect(
-            chooseSegmentLabel({
-                segmentLabels: SwimlaneSegmentLabels.None,
-                category: "High income",
-                timeRange: "1789–1795",
+            labels({
                 width: 10000,
                 height: 10000,
-                fontSettings: FONT_SETTINGS,
+                segmentLabels: SwimlaneSegmentLabels.None,
             })
-        ).toEqual({ kind: "none" })
+        ).toBe(false)
     })
 })
 

@@ -1,5 +1,4 @@
 import React from "react"
-import { match } from "ts-pattern"
 import { dyFromAlign, roundForSvg } from "@ourworldindata/utils"
 import { VerticalAlign } from "@ourworldindata/types"
 import { Patterns } from "../core/GrapherConstants"
@@ -12,9 +11,8 @@ import {
     SEGMENT_LABEL_TIME_RANGE_FONT_WEIGHT,
 } from "./SwimlaneChartConstants"
 import {
-    chooseSegmentLabel,
     formatSegmentTimeRange,
-    SwimlaneSegmentLabel,
+    shouldLabelSegment,
     SwimlaneSegmentLabelSettings,
 } from "./SwimlaneLabels"
 
@@ -60,6 +58,7 @@ function SwimlaneSegmentLabelText({
     labelSettings: SwimlaneSegmentLabelSettings
 }): React.ReactElement | null {
     const { segmentLabels, fontSettings, formatTime } = labelSettings
+    const { category, width, height } = segment
 
     const timeRange = formatSegmentTimeRange({
         startTime: segment.startTime,
@@ -67,23 +66,19 @@ function SwimlaneSegmentLabelText({
         formatTime,
     })
 
-    const label = chooseSegmentLabel({
+    const fits = shouldLabelSegment({
         segmentLabels,
-        category: segment.category,
+        category,
         timeRange,
-        width: segment.width,
-        height: segment.height,
+        width,
+        height,
         fontSettings,
     })
-
-    const lines = toLabelLines(label, fontSettings.fontWeight)
-    if (lines.length === 0) return null
+    if (!fits) return null
 
     const lineHeight = fontSettings.fontSize * fontSettings.lineHeight
     const x = roundForSvg(segment.x + SEGMENT_LABEL_PADDING)
-    const firstLineY = roundForSvg(
-        segment.y + segment.height / 2 - ((lines.length - 1) * lineHeight) / 2
-    )
+    const firstLineY = roundForSvg(segment.y + height / 2 - lineHeight / 2)
     const color = isDarkColor(segment.color) ? "#fff" : GRAY_100
 
     return (
@@ -94,43 +89,16 @@ function SwimlaneSegmentLabelText({
             fontSize={fontSettings.fontSize}
             fill={color}
         >
-            {lines.map((line, index) => (
-                <tspan
-                    key={line.text}
-                    x={x}
-                    dy={index === 0 ? undefined : roundForSvg(lineHeight)}
-                    fontWeight={line.fontWeight}
-                >
-                    {line.text}
-                </tspan>
-            ))}
+            <tspan x={x} fontWeight={fontSettings.fontWeight}>
+                {category}
+            </tspan>
+            <tspan
+                x={x}
+                dy={roundForSvg(lineHeight)}
+                fontWeight={SEGMENT_LABEL_TIME_RANGE_FONT_WEIGHT}
+            >
+                {timeRange}
+            </tspan>
         </text>
     )
-}
-
-interface SwimlaneSegmentLabelLine {
-    text: string
-    fontWeight: number
-}
-
-function toLabelLines(
-    label: SwimlaneSegmentLabel,
-    categoryFontWeight: number
-): SwimlaneSegmentLabelLine[] {
-    return match(label)
-        .with({ kind: "twoLines" }, ({ category, timeRange }) => [
-            { text: category, fontWeight: categoryFontWeight },
-            {
-                text: timeRange,
-                fontWeight: SEGMENT_LABEL_TIME_RANGE_FONT_WEIGHT,
-            },
-        ])
-        .with({ kind: "oneLine" }, ({ text }) => [
-            { text, fontWeight: categoryFontWeight },
-        ])
-        .with({ kind: "categoryOnly" }, ({ category }) => [
-            { text: category, fontWeight: categoryFontWeight },
-        ])
-        .with({ kind: "none" }, () => [])
-        .exhaustive()
 }
