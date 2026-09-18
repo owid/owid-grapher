@@ -196,9 +196,6 @@ export const LatestSearch = ({
                 />
             </div>
             <hr className={LATEST_FILTERS_DIVIDER_CLASSES} />
-            {/* Tied to the type filter alone, so it can't mount or unmount
-                while a feed loads: gating on the hits as well would flash it
-                in and out on a feed that turns out to be empty. */}
             {shouldShowViewToggle && (
                 <LatestViewToggle view={view} onViewChange={setView} />
             )}
