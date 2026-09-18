@@ -123,6 +123,8 @@ export class SwimlaneChartState implements ChartState, ColorScaleManager {
     }
 
     @computed get segmentLabels(): SwimlaneSegmentLabels {
+        if (!this.manager.showSeriesLabels) return SwimlaneSegmentLabels.None
+
         return (
             this.manager.swimlane?.segmentLabels ??
             SWIMLANE_CHART_CONFIG_DEFAULTS.segmentLabels
