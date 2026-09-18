@@ -279,8 +279,7 @@ export class MapChartState implements ChartState, ColorScaleManager {
 
         // If projection info is available, then we can stitch together the
         // historical and projected columns
-        const projectionInfo =
-            this.manager.projectionColumnInfoBySlug?.get(mapColumnSlug)
+        const projectionInfo = this.manager.mapProjectionColumnInfo
         if (projectionInfo) {
             return {
                 type: "historical+projected",
