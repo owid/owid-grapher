@@ -45,5 +45,8 @@ export const extensions = {
     zip: ".zip",
     values: ".values.json",
     searchResult: ".search-result.json",
+    // Keep after `readme` so the redirect regex, which scans these in order,
+    // matches `.readme.md` rather than splitting it into `.readme` + `.md`.
+    markdown: ".md",
 }
 export type Etag = string
