@@ -66,7 +66,7 @@ export const LatestSearch = ({
     // cards that stay on screen while the next results load
     // (keepPreviousData) the way a reset-on-filter-change would.
     const [view, setView] = useState<LatestFeedView>(DEFAULT_LATEST_FEED_VIEW)
-    const showViewToggle = hasViewToggle(latestType)
+    const shouldShowViewToggle = hasViewToggle(latestType)
 
     useLatestAnalytics(state, analytics)
 
@@ -199,7 +199,7 @@ export const LatestSearch = ({
             {/* Tied to the type filter alone, so it can't mount or unmount
                 while a feed loads: gating on the hits as well would flash it
                 in and out on a feed that turns out to be empty. */}
-            {showViewToggle && (
+            {shouldShowViewToggle && (
                 <LatestViewToggle view={view} onViewChange={setView} />
             )}
             {isLoading ? (

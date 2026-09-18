@@ -69,14 +69,9 @@ export const LATEST_FEED_VIEWS = ["expanded", "compact"] as const
 export type LatestFeedView = (typeof LATEST_FEED_VIEWS)[number]
 export const DEFAULT_LATEST_FEED_VIEW: LatestFeedView = "expanded"
 
-/** Type filters that offer the Expanded/Compact control. */
-const LATEST_TYPES_WITH_VIEW_TOGGLE: readonly LatestType[] = ["data-insight"]
-
+/** Whether a type filter offers the Expanded/Compact control. */
 export function hasViewToggle(latestType: LatestType | null): boolean {
-    return (
-        latestType !== null &&
-        LATEST_TYPES_WITH_VIEW_TOGGLE.includes(latestType)
-    )
+    return latestType === "data-insight"
 }
 
 /** Grid positioning applied to the root of every hit card. */
