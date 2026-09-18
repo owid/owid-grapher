@@ -268,33 +268,45 @@ function findZeroLineCrossings(points: StackedPoint<Time>[]): Time[] {
         })
 }
 
-/** Copies one series' points, interpolating its own value at each crossing */
-function copyWithZeroLineCrossingPoints(
+/** Groups crossings by the interval between two points they fall in, indexed by its first point */
+function groupCrossingsByInterval(
     points: StackedPoint<Time>[],
     crossingPositions: Time[]
+): Time[][] {
+    const positions = points.map((point) => point.position)
+    const crossingsByInterval: Time[][] = points.map(() => [])
+    for (const position of crossingPositions)
+        crossingsByInterval[_.sortedIndex(positions, position) - 1].push(
+            position
+        )
+    return crossingsByInterval
+}
+
+/** Copies a series' points, inserting a point at each crossing with this series' value interpolated */
+function copyWithZeroLineCrossingPoints(
+    points: StackedPoint<Time>[],
+    crossingsByInterval: Time[][]
 ): StackedPoint<Time>[] {
     const pointsWithCrossings: StackedPoint<Time>[] = []
-    for (let index = 0; index < points.length; index++) {
-        const point = points[index]
+    points.forEach((point, index) => {
         pointsWithCrossings.push({ ...point })
 
         const next = points[index + 1]
-        if (!next) continue
-        const position = crossingPositions.find(
-            (position) => position > point.position && position < next.position
-        )
-        if (position === undefined) continue
+        if (!next) return
 
-        const fractionOfInterval =
-            (position - point.position) / (next.position - point.position)
-        pointsWithCrossings.push({
-            position,
-            time: position,
-            value:
-                point.value + fractionOfInterval * (next.value - point.value),
-            valueOffset: 0,
-        })
-    }
+        for (const position of crossingsByInterval[index]) {
+            const fractionOfInterval =
+                (position - point.position) / (next.position - point.position)
+            pointsWithCrossings.push({
+                position,
+                time: position,
+                value:
+                    point.value +
+                    fractionOfInterval * (next.value - point.value),
+                valueOffset: 0,
+            })
+        }
+    })
     return pointsWithCrossings
 }
 
@@ -309,10 +321,18 @@ export function withPointsAtZeroLineCrossings(
     const crossings = findZeroLineCrossings(bottomSeries.points)
     if (crossings.length === 0) return series
 
+    const crossingsByInterval = groupCrossingsByInterval(
+        bottomSeries.points,
+        crossings
+    )
+
     return stackSeriesInBothDirections(
         series.map((s) => ({
             ...s,
-            points: copyWithZeroLineCrossingPoints(s.points, crossings),
+            points: copyWithZeroLineCrossingPoints(
+                s.points,
+                crossingsByInterval
+            ),
         }))
     )
 }
