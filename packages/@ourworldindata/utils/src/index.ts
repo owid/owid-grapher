@@ -115,6 +115,8 @@ export {
     copyToClipboard,
     checkIsGdocPost,
     checkIsGdocPostExcludingFragments,
+    checkIsAnnouncement,
+    deriveAnnouncementLatestType,
     checkIsDataInsight,
     checkIsAuthor,
     checkIsFeaturedViz,
