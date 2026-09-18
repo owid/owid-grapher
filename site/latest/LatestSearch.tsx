@@ -171,16 +171,14 @@ export const LatestSearch = ({
     const displayedLatestType = data?.pages[0]?.latestType ?? null
     const activeView = hasViewToggle(displayedLatestType) ? view : undefined
 
-    // Insights expand only in their type-filtered feed. Other announcements
-    // expand for a deep link; data updates also expand under their type filter.
+    // Insights expand only in their type-filtered feed, which defaults to
+    // Expanded — so a deep link already lands on an open card and needs no
+    // case of its own. Other announcements expand for a deep link; data
+    // updates also expand under their type filter.
     const isExpanded = (hit: PageChronologicalRecord): boolean => {
-        const isDeepLinked = hit.slug === hashSlug
         if (hit.type === OwidGdocType.DataInsight)
-            return (
-                activeView !== undefined &&
-                (activeView === "expanded" || isDeepLinked)
-            )
-        return isDeepLinked || displayedLatestType === "data-update"
+            return activeView === "expanded"
+        return hit.slug === hashSlug || displayedLatestType === "data-update"
     }
 
     return (
