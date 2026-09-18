@@ -14,6 +14,7 @@ import {
     FontSettings,
     Patterns,
 } from "../core/GrapherConstants"
+import { AnimatedRows } from "../animation/AnimatedRows"
 import { enrichSeriesWithLabels } from "../rowSeriesLabels/RowSeriesLabelHelpers.js"
 import { NoDataMessage } from "../noDataMessage/NoDataMessage"
 import {
@@ -265,6 +266,32 @@ export class SwimlaneChart
         return undefined
     }
 
+    private renderLanes(): React.ReactElement[] {
+        return this.placedSeries.map((series) => (
+            <SwimlaneRow key={series.seriesName} series={series} y={series.y} />
+        ))
+    }
+
+    private renderAnimatedLanes(): React.ReactElement {
+        return (
+            <AnimatedRows
+                items={this.placedSeries}
+                keyAccessor={(series: PlacedSwimlaneSeries): string =>
+                    series.seriesName
+                }
+                getY={(series: PlacedSwimlaneSeries): number => series.y}
+                immediate={this.manager.disableChartRowAnimation}
+                renderRow={(series): React.ReactElement => (
+                    <SwimlaneRow
+                        key={series.seriesName}
+                        series={series}
+                        y={0}
+                    />
+                )}
+            />
+        )
+    }
+
     override render(): React.ReactElement {
         if (this.chartState.errorInfo.reason)
             return (
@@ -290,9 +317,9 @@ export class SwimlaneChart
                     stroke={SOLID_TICK_COLOR}
                 />
                 <g id={makeFigmaId("lanes")}>
-                    {this.placedSeries.map((series) => (
-                        <SwimlaneRow key={series.seriesName} series={series} />
-                    ))}
+                    {this.manager.isStatic
+                        ? this.renderLanes()
+                        : this.renderAnimatedLanes()}
                 </g>
             </g>
         )

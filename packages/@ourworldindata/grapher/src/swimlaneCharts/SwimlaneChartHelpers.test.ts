@@ -365,13 +365,13 @@ describe(toPlacedSwimlaneSeries, () => {
         const gaps = centres.slice(1).map((y, index) => y - centres[index])
 
         expect(gaps[0]).toBeCloseTo(gaps[1])
-        for (const segment of placed.flatMap(
-            (series) => series.placedSegments
-        )) {
-            expect(segment.y).toBeGreaterThanOrEqual(BOUNDS.top)
-            expect(segment.y + segment.height).toBeLessThanOrEqual(
-                BOUNDS.bottom
-            )
+        for (const series of placed) {
+            for (const segment of series.placedSegments) {
+                expect(series.y + segment.y).toBeGreaterThanOrEqual(BOUNDS.top)
+                expect(
+                    series.y + segment.y + segment.height
+                ).toBeLessThanOrEqual(BOUNDS.bottom)
+            }
         }
     })
 
@@ -396,6 +396,6 @@ describe(toPlacedSwimlaneSeries, () => {
         expect(segment.kind).toEqual("missing")
         expect(segment.x).toEqual(BOUNDS.left)
         expect(segment.x + segment.width).toEqual(BOUNDS.right)
-        expect(segment.y + segment.height / 2).toEqual(placed.y)
+        expect(segment.y + segment.height / 2).toEqual(0)
     })
 })

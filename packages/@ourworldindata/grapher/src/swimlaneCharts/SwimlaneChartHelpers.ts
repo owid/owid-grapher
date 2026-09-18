@@ -67,7 +67,6 @@ export function toPlacedSwimlaneSeries({
 
     return allSeries.map((series, index): PlacedSwimlaneSeries => {
         const y = bounds.top + (index + 0.5) * slotHeight
-        const laneTop = y - laneHeight / 2
 
         const placedSegments: PlacedSwimlaneSegment[] = series.segments.map(
             (segment, segmentIndex): PlacedSwimlaneSegment => {
@@ -82,7 +81,13 @@ export function toPlacedSwimlaneSeries({
                     placeTime(endTime) - x,
                     MIN_SEGMENT_WIDTH
                 )
-                return { ...segment, x, width, y: laneTop, height: laneHeight }
+                return {
+                    ...segment,
+                    x,
+                    width,
+                    y: -laneHeight / 2,
+                    height: laneHeight,
+                }
             }
         )
 
@@ -94,7 +99,7 @@ export function toPlacedSwimlaneSeries({
         return {
             ...series,
             y,
-            labelPosition: { x: labelX, y: labelY },
+            labelPosition: { x: labelX, yOffset: labelY - y },
             placedSegments,
         }
     })
