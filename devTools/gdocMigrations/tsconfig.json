@@ -1,0 +1,21 @@
+{
+    "extends": "../tsconfigs/tsconfig.base.json",
+    "compilerOptions": {
+        "outDir": "../../itsJustJavascript/devTools/gdocMigrations",
+        "rootDir": "."
+    },
+    "references": [
+        {
+            "path": "../../db"
+        },
+        {
+            "path": "../../settings"
+        },
+        {
+            "path": "../../packages/@ourworldindata/types"
+        },
+        {
+            "path": "../../packages/@ourworldindata/utils"
+        }
+    ]
+}
