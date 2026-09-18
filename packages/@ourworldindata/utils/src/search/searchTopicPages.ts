@@ -9,9 +9,7 @@ import { type LiteClient } from "algoliasearch/lite"
 import { formatDisjunctiveFacetFilters } from "./searchFacetFilters.js"
 import { searchSingleForHits } from "./searchClosestMatches.js"
 
-// Shared between the site's search page (site/search/queries.ts) and the
-// public /api/search Cloudflare function (functions/api/search/searchApi.ts)
-// so both recommend the same topic pages for a query.
+// Shared by the site's search page and /api/search — see ./README.md.
 
 export const TOPIC_PAGE_TYPES: readonly OwidGdocType[] = [
     OwidGdocType.TopicPage,
