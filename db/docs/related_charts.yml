@@ -5,6 +5,14 @@ metadata:
 
     This table is populated automatically by the `etl related-charts` CLI and writes them with
     `reviewer = 'production'`.
+
+    The rows are a *candidate pool*, not a final list: the ETL writes more candidates per chart
+    than the site displays, and `getRelatedChartsForChart` (db/model/Chart.ts) re-ranks the pool
+    at bake time into tiers — candidates sharing a topic tag with the source chart first, then
+    those sharing an area (the top-level tag_graph ancestor), then the rest — ordered by `score`
+    within each tier. Coviews alone rank the site's most-viewed charts highly on every popular
+    page, so the tiering is what keeps the recommendations topical. Changing how many candidates
+    are stored is the ETL's `--top` option; changing how they are ranked needs only a re-bake.
 fields:
   id:
     description: Unique identifier for the recommendation row
