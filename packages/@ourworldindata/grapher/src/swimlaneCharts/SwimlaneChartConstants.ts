@@ -61,7 +61,7 @@ export interface PlacedSwimlaneSeries extends Omit<
     "segments"
 > {
     y: number
-    labelPosition: { x: number; y: number }
+    labelPosition: { x: number; yOffset: number }
     placedSegments: PlacedSwimlaneSegment[]
 }
 
