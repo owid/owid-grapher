@@ -448,6 +448,25 @@ properties:
         additionalProperties: false
     additionalProperties: false
 
+  swimlane:
+    type: object
+    description: Configuration of the swimlane chart
+    properties:
+      segmentLabels:
+        type: string
+        default: categoryAndTimeRange
+        description: |
+          The most a swimlane segment's label may show. Labels shrink to fit the
+          segment, so this is a ceiling rather than a demand: a segment too small
+          for the chosen form falls back to a shorter one, or to no label.
+          Unrelated to hideSeriesLabels, which hides the entity labels beside the lanes.
+          - categoryAndTimeRange: show the category and the time range it spans
+          - none: draw no segment labels
+        enum:
+          - categoryAndTimeRange
+          - none
+    additionalProperties: false
+
   baseColorScheme:
     $ref: "#/$defs/colorScheme"
   invertColorScheme:
