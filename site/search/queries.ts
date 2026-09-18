@@ -61,6 +61,10 @@ export const searchQueryKeys = {
         [PAGES_INDEX, "topics", makeStateForKey(state)] as const,
     profiles: (state: SearchState) =>
         [PAGES_INDEX, "profiles", makeStateForKey(state)] as const,
+    // Not an Algolia query: one static JSON behind a 5-minute edge cache,
+    // keyed by its URL so a staging override doesn't share a cache entry with
+    // the production vocabulary. See topicVocabulary.ts.
+    topicVocabulary: (url: string) => ["topicVocabulary", url] as const,
 } as const
 
 export const latestPagesQueryKey = {

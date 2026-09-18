@@ -178,6 +178,20 @@ export function useSearchParamsState(
                 })
             },
 
+            // Compound action to ensure a single entry in the browser history.
+            setTopicAndQuery: (topic: string, query: string) => {
+                updateParams((s) => {
+                    const newFilters = s.filters.filter(
+                        (f) => f.type !== FilterType.TOPIC
+                    )
+                    return {
+                        ...s,
+                        query: query.trim(),
+                        filters: [...newFilters, createTopicFilter(topic)],
+                    }
+                })
+            },
+
             removeTopic: (topic: string) => {
                 updateParams((s) => ({
                     ...s,

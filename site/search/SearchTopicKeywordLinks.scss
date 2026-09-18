@@ -1,0 +1,25 @@
+.search-topic-keyword-links {
+    @include note-1-regular;
+    color: $blue-50;
+    margin-top: 8px;
+}
+
+.search-topic-keyword-links__label {
+    font-weight: 700;
+    font-style: italic;
+}
+
+.search-topic-keyword-links__link {
+    font: inherit;
+    letter-spacing: inherit;
+    text-decoration: underline;
+    background: transparent;
+    border: none;
+    padding: 0;
+    color: inherit;
+    cursor: pointer;
+
+    &:hover {
+        color: $blue-90;
+    }
+}

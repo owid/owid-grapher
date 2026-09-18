@@ -532,6 +532,80 @@ export function findTopicAndRegionFilters(
 }
 
 /**
+ * The single topic the reader has in view as a whole, if they have one. Two
+ * states count, and they are the same situation to a reader — one whole topic,
+ * and no way into it yet:
+ *
+ * - the query names a topic ("energy" → "Energy", "ai" → "Artificial
+ *   Intelligence") and no topic filter is narrowing it;
+ * - exactly one topic filter is applied and there is no query.
+ *
+ * The second is not a nicety: typing the first produces it. The autocomplete's
+ * top suggestion for a query that exactly names a topic is that topic's filter,
+ * so pressing enter on "energy" in the search bar lands on `?topics=Energy`
+ * with an empty query. Only a link straight to `?q=energy` — from the site
+ * header's search, say — keeps the query as typed.
+ *
+ * The query match is exact (after synonym expansion), which is the whole point.
+ * The tempting looser gate — match the query against the topic vocabulary's
+ * keywords — is wrong: those keywords were generated to cover the charts
+ * *within* an already-known topic, not to route a query to one, so "gdp" lands
+ * on Trade & Globalization and "education" on Women's Rights. A query that
+ * merely relates to a topic belongs to the topic-page recommendations, which
+ * rank topics by the charts a search actually returns.
+ */
+export function findWholeTopicInView(
+    query: string,
+    filters: Filter[],
+    allTopics: string[],
+    synonymMap: SynonymMap
+): string | undefined {
+    const selectedTopics = getFilterNamesOfType(filters, FilterType.TOPIC)
+
+    // No query to narrow it: a single topic filter is the topic in view, and
+    // anything else (none, or several) is not one whole topic.
+    if (!query.trim())
+        return selectedTopics.size === 1 ? [...selectedTopics][0] : undefined
+
+    // With a query, only a topic it names counts — and passing the selected
+    // topics suppresses the match once one is applied, since the reader has
+    // then already narrowed.
+    return findTopicAndRegionFilters(
+        splitIntoWords(query),
+        [], // only topics are of interest here, not countries
+        allTopics,
+        new Set(),
+        selectedTopics,
+        synonymMap,
+        { threshold: 1, limit: 1 } // only exact matches
+    ).find((filter) => filter.type === FilterType.TOPIC)?.name
+}
+
+/**
+ * How many suggested searches a topic gets offered.
+ *
+ * The vocabulary's generator publishes as many terms per topic as it is asked
+ * for — eight, at the time of writing — and is not bounded at source. Five is a
+ * length that still scans as a suggestion rather than a second navigation,
+ * which is what eight read as (Marwa, 2026-09-03).
+ */
+export const MAX_SUGGESTED_SEARCHES = 5
+
+/**
+ * The suggested searches actually rendered: the first `maxCount` of them.
+ *
+ * Capped by truncation so the source's order is kept — the vocabulary's terms
+ * are ranked by what each reveals of its topic's charts, so its first five are
+ * its best five.
+ */
+export function capSuggestedSearches<T>(
+    suggestions: readonly T[],
+    maxCount: number = MAX_SUGGESTED_SEARCHES
+): T[] {
+    return suggestions.slice(0, Math.max(maxCount, 0))
+}
+
+/**
  * Detects words that are inside quoted phrases and should be excluded from filter matching.
  * Returns a set of word positions that should be ignored.
  */
