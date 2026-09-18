@@ -3,14 +3,17 @@ import { makeFigmaId, roundForSvg } from "@ourworldindata/utils"
 import { GRAPHER_LIGHT_TEXT } from "../color/ColorConstants.js"
 import { SeriesLabel } from "../seriesLabel/SeriesLabel"
 import { PlacedSwimlaneSeries } from "./SwimlaneChartConstants"
+import { SwimlaneSegmentLabelSettings } from "./SwimlaneLabels"
 import { SwimlaneSegments } from "./SwimlaneSegments"
 
 export function SwimlaneRow({
     series,
     y,
+    labelSettings,
 }: {
     series: PlacedSwimlaneSeries
     y: number
+    labelSettings: SwimlaneSegmentLabelSettings
 }): React.ReactElement {
     return (
         <g
@@ -23,7 +26,10 @@ export function SwimlaneRow({
                 y={series.labelPosition.yOffset}
                 color={{ name: GRAPHER_LIGHT_TEXT }}
             />
-            <SwimlaneSegments segments={series.placedSegments} />
+            <SwimlaneSegments
+                segments={series.placedSegments}
+                labelSettings={labelSettings}
+            />
         </g>
     )
 }

@@ -5,6 +5,7 @@ import {
     FacetStrategy,
     SortBy,
     SortOrder,
+    SwimlaneSegmentLabels,
 } from "@ourworldindata/types"
 import { OwidTable } from "@ourworldindata/core-table"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
@@ -326,5 +327,35 @@ describe("lane order", () => {
             "France",
             "Albania",
         ])
+    })
+})
+
+describe("segmentLabels", () => {
+    const table = ordinalTable([
+        { entityName: "France", time: 2000, cause: "ICD-9" },
+    ])
+    const manager: SwimlaneChartManager = {
+        table,
+        selection: ["France"],
+        yColumnSlugs: ["cause"],
+    }
+
+    it("labels a segment with its category and time range by default", () => {
+        const chartState = new SwimlaneChartState({ manager })
+
+        expect(chartState.segmentLabels).toEqual(
+            SwimlaneSegmentLabels.CategoryAndTimeRange
+        )
+    })
+
+    it("honours the author's choice to label nothing", () => {
+        const chartState = new SwimlaneChartState({
+            manager: {
+                ...manager,
+                swimlane: { segmentLabels: SwimlaneSegmentLabels.None },
+            },
+        })
+
+        expect(chartState.segmentLabels).toEqual(SwimlaneSegmentLabels.None)
     })
 })
