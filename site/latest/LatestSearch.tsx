@@ -118,8 +118,8 @@ export const LatestSearch = ({
     )
     const isLoading = arePagesLoading || !areProbesSettled
 
-    // Disable type options that would yield 0 results given the current
-    // topic selection. Never disable the currently active type.
+    // Disable type options that would yield 0 results under the current
+    // topic selection. Never disable the active type.
     const disabledTypes = useMemo(() => {
         const disabled = new Set<LatestType>()
         for (const value of LATEST_TYPE_VALUES) {
@@ -129,9 +129,8 @@ export const LatestSearch = ({
         return disabled
     }, [latestType, latestTypeFacetCounts])
 
-    // Disable topics that would yield 0 results given the current filters.
-    // Keep selected topics enabled so they can be deselected. Counts exclude
-    // the topic filter, reflecting what each replacement selection would show.
+    // Disable topics that would yield 0 results under the current type
+    // filter. Never disable a selected topic, so it can be deselected.
     const disabledTopics = useMemo(() => {
         const disabled = new Set<string>()
         for (const area of allAreas) {
