@@ -56,7 +56,7 @@ export interface SizedSwimlaneSeries extends SwimlaneSeries {
 
 export interface PlacedSwimlaneSeries extends SizedSwimlaneSeries {
     y: number
-    labelPosition: { x: number; y: number }
+    labelPosition: { x: number; yOffset: number }
     placedSegments: PlacedSwimlaneSegment[]
 }
 
