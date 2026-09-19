@@ -213,7 +213,7 @@ When the Wikipedia archive was first set up, a one-off script was used to popula
 ### Testing
 
 - **Unit tests**: `yarn test run baker/archival/createWikipediaArchive.test.ts` — 13 tests covering `stripGtmScripts` and `rewriteArchiveUrls`.
-- **BDD tests**: `features/wikipedia-archive.feature` verifies that the production archive makes GTM requests while the Wikipedia archive does not. Run with `make bdd` (requires `make playwright-browsers` first). Playwright serves the main archive on port 8764 and the Wikipedia archive on port 8765.
+- **Playwright tests**: `playwright/wikipedia-archive.test.ts` verifies that the Wikipedia archive does not make GTM requests and rewrites legacy detect-country URLs. Run with `make playwright` (requires `make playwright-browsers` first). Playwright serves the Wikipedia archive on port 8765.
 
 ### Deployment
 
