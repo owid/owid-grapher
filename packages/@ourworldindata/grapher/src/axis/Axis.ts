@@ -1060,10 +1060,11 @@ export class DualAxis {
         return axis
     }
 
-    // We calculate an initial height from the range of the input bounds
+    // The horizontal axis is drawn at the width the vertical axis leaves. Its
+    // height includes its label, which wraps to that width
     @computed private get horizontalAxisSize(): number {
         const axis = this.props.horizontalAxis.clone()
-        axis.range = [0, this.bounds.width]
+        axis.range = [0, this.bounds.width - this.verticalAxisSize]
         return axis.size
     }
 
