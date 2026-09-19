@@ -52,6 +52,7 @@
         "test:functions:e2e-r2": "vitest functions/test/grapher-config-r2.e2e.test.ts",
         "test:functions:e2e-search": "vitest functions/test/search.e2e.test.ts",
         "testPlaywright": "playwright test",
+        "testPlaywrightAdmin": "playwright test -c playwright.admin.config.ts",
         "checkRaycastSnippets": "tsx --tsconfig tsconfig.tsx.json devTools/gdocs/raycastSnippets/generateRaycastSnippets.ts --check",
         "typecheck": "tsc -b",
         "generateDbTypes": "npx @rmp135/sql-ts -c db/sql-ts/sql-ts-config.json",

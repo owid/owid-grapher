@@ -337,6 +337,10 @@ dbtest: node_modules
 	@echo '==> Running db test script'
 	./db/tests/run-db-tests.sh
 
+adminplaywright: node_modules playwright-browsers
+	@echo '==> Running admin Playwright tests'
+	yarn testPlaywrightAdmin
+
 playwright-browsers:
 	@echo '==> Installing Playwright browser'
 	yarn playwright install --with-deps --no-shell chromium
