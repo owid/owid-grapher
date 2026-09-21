@@ -1,21 +1,14 @@
 import { OwidVariableRow, SeriesName, Time } from "@ourworldindata/types"
 import { ChartSeries } from "../chart/ChartInterface"
-import {
-    GRAPHER_AREA_OPACITY_DEFAULT,
-    GRAPHER_AREA_OPACITY_HIGHLIGHTED,
-    GRAPHER_AREA_OPACITY_MUTED,
-} from "../core/GrapherConstants"
 import { Point } from "@ourworldindata/utils"
 import { InteractionState } from "../interaction/InteractionState.js"
 import { Emphasis } from "../interaction/Emphasis"
 import { LegendStyleConfig } from "../legend/LegendStyleConfig"
-
-const opacityByEmphasis: Record<Emphasis, number> = {
-    [Emphasis.Default]: GRAPHER_AREA_OPACITY_DEFAULT,
-    [Emphasis.Elevated]: GRAPHER_AREA_OPACITY_DEFAULT,
-    [Emphasis.Highlighted]: GRAPHER_AREA_OPACITY_HIGHLIGHTED,
-    [Emphasis.Muted]: GRAPHER_AREA_OPACITY_MUTED,
-} as const
+import {
+    GRAPHER_AREA_OPACITY_DEFAULT,
+    GRAPHER_AREA_OPACITY_HIGHLIGHTED,
+    GRAPHER_AREA_OPACITY_MUTED,
+} from "../core/GrapherConstants.js"
 
 export interface StackedAreaStyleConfig {
     fillOpacity: number
@@ -28,7 +21,7 @@ export interface StackedBarStyleConfig {
 }
 
 const DEFAULT_STACKED_AREA_STYLE: StackedAreaStyleConfig = {
-    fillOpacity: opacityByEmphasis.default,
+    fillOpacity: GRAPHER_AREA_OPACITY_DEFAULT,
     borderOpacity: 0.7,
     borderWidth: 0.5,
 }
@@ -37,32 +30,32 @@ export const STACKED_AREA_STYLE: Record<Emphasis, StackedAreaStyleConfig> = {
     [Emphasis.Default]: DEFAULT_STACKED_AREA_STYLE,
     [Emphasis.Elevated]: DEFAULT_STACKED_AREA_STYLE,
     [Emphasis.Highlighted]: {
-        fillOpacity: opacityByEmphasis.highlighted,
+        fillOpacity: GRAPHER_AREA_OPACITY_HIGHLIGHTED,
         borderOpacity: 1,
         borderWidth: 1.5,
     },
     [Emphasis.Muted]: {
-        fillOpacity: opacityByEmphasis.muted,
+        fillOpacity: GRAPHER_AREA_OPACITY_MUTED,
         borderOpacity: 0.3,
         borderWidth: 0.5,
     },
 }
 
 export const STACKED_BAR_STYLE: Record<Emphasis, StackedBarStyleConfig> = {
-    [Emphasis.Default]: { opacity: opacityByEmphasis.default },
-    [Emphasis.Elevated]: { opacity: opacityByEmphasis.default },
-    [Emphasis.Highlighted]: { opacity: opacityByEmphasis.highlighted },
-    [Emphasis.Muted]: { opacity: opacityByEmphasis.muted },
+    [Emphasis.Default]: { opacity: GRAPHER_AREA_OPACITY_DEFAULT },
+    [Emphasis.Elevated]: { opacity: GRAPHER_AREA_OPACITY_DEFAULT },
+    [Emphasis.Highlighted]: { opacity: GRAPHER_AREA_OPACITY_HIGHLIGHTED },
+    [Emphasis.Muted]: { opacity: GRAPHER_AREA_OPACITY_MUTED },
 }
 
 export const LEGEND_STYLE_FOR_STACKED_CHARTS: LegendStyleConfig = {
     marker: {
-        default: { opacity: opacityByEmphasis.default },
-        highlighted: { opacity: opacityByEmphasis.highlighted },
-        muted: { opacity: opacityByEmphasis.muted },
+        default: { opacity: GRAPHER_AREA_OPACITY_DEFAULT },
+        highlighted: { opacity: GRAPHER_AREA_OPACITY_HIGHLIGHTED },
+        muted: { opacity: GRAPHER_AREA_OPACITY_MUTED },
     },
     text: {
-        muted: { opacity: opacityByEmphasis.muted },
+        muted: { opacity: GRAPHER_AREA_OPACITY_MUTED },
     },
 }
 

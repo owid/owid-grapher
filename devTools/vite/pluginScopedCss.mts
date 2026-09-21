@@ -42,7 +42,10 @@ function scopeSelectors(scope: string): PostcssPlugin {
             root.walkRules((rule) => {
                 // keyframe selectors (from, to, 50%) are not element selectors
                 const parent = rule.parent as AtRule | undefined
-                if (parent?.type === "atrule" && /keyframes$/i.test(parent.name))
+                if (
+                    parent?.type === "atrule" &&
+                    /keyframes$/i.test(parent.name)
+                )
                     return
                 rule.selectors = rule.selectors.map((selector) => {
                     const trimmed = selector.trim()

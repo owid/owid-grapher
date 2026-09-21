@@ -81,6 +81,15 @@ for setting in \
     grep -q "^${setting%%=*}=" .env || echo "$setting" >> .env
 done
 
+# copy search-only Algolia credentials from the main checkout's .env if present
+MAIN_WORKTREE="$(git worktree list --porcelain | sed -n 's/^worktree //p' | head -n 1)"
+if [ -n "$MAIN_WORKTREE" ] && [ -e "$MAIN_WORKTREE/.env" ]; then
+    for var in ALGOLIA_ID ALGOLIA_SEARCH_KEY; do
+        line="$(grep -E "^[[:space:]]*${var}=" "$MAIN_WORKTREE/.env" | tail -n 1 || true)"
+        [ -n "$line" ] && echo "$line" >> .env
+    done
+fi
+
 echo "==> Wrote .env for this checkout:"
 echo "        TMUX_SESSION_NAME=$TMUX_SESSION_NAME"
 echo "        ADMIN_SERVER_PORT=$ADMIN_SERVER_PORT"

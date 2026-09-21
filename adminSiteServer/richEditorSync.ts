@@ -251,10 +251,7 @@ export async function applyDraftToSyncDocument(
     const pmJson = body.length > 0 ? enrichedBlocksToPmDoc(body) : emptyPmDoc()
     const pmNode = PmNode.fromJSON(serverSchema, pmJson)
     // updateYFragment diffs the fragment against the target doc in place
-    prosemirrorToYXmlFragment(
-        pmNode,
-        liveDoc.getXmlFragment(Y_DOC_FIELD) as never
-    )
+    prosemirrorToYXmlFragment(pmNode, liveDoc.getXmlFragment(Y_DOC_FIELD))
 }
 
 /**

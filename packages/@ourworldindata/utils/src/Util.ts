@@ -26,6 +26,9 @@ import {
     type OwidGdocAuthorInterface,
     type OwidGdoc,
     OwidGdocType,
+    type OwidGdocErrorMessage,
+    OwidGdocErrorMessageType,
+    type OwidGdocPostContent,
     type OwidGdocJSON,
     type Span,
     UserCountryInformation,
@@ -40,6 +43,7 @@ import {
     DbPlainTag,
     AssetMap,
     OwidGdocAboutInterface,
+    OwidGdocFeaturedVizInterface,
     OwidGdocHomepageInterface,
     PrimitiveType,
     GrapherTrendArrowDirection,
@@ -153,7 +157,13 @@ export const getRelativeMouse = (
         | PointerEvent
         | { clientX: number; clientY: number }
 ): PointVector => {
-    const eventOwner = checkIsTouchEvent(event) ? event.targetTouches[0] : event
+    // Touchend events have no active target touches, but changedTouches still
+    // contains the touch point that ended the gesture.
+    const eventOwner = checkIsTouchEvent(event)
+        ? (event.targetTouches[0] ?? event.changedTouches[0])
+        : event
+
+    if (!eventOwner) return new PointVector(0, 0)
 
     const { clientX, clientY } = eventOwner
 
@@ -486,12 +496,20 @@ export const guid = (): number => (_guidsDisabledForTesting ? 1 : ++_guid)
 export const TESTING_ONLY_disable_guid = (): boolean =>
     (_guidsDisabledForTesting = true)
 
+/** Decimal places a number keeps when it is written into an SVG attribute */
+export const SVG_PRECISION = 2
+
+export function roundForSvg(value: number): number {
+    return _.round(value, SVG_PRECISION)
+}
+
 /** Create an SVG path from an array of points */
 export const pointsToPath = (points: Point[]): string => {
     let path = ""
     for (let i = 0; i < points.length; i++) {
-        if (i === 0) path += `M${points[i].x} ${points[i].y}`
-        else path += `L${points[i].x} ${points[i].y}`
+        const x = roundForSvg(points[i].x)
+        const y = roundForSvg(points[i].y)
+        path += i === 0 ? `M${x} ${y}` : `L${x} ${y}`
     }
     return path
 }
@@ -1005,10 +1023,12 @@ export const mapNullToUndefined = <T>(
     array: (T | undefined | null)[]
 ): (T | undefined)[] => array.map((v) => (v === null ? undefined : v))
 
+// A word is treated as an abbreviation, and keeps its casing, if its second
+// character is uppercase (e.g. "CO2", "HIV/AIDS", "SDG").
+const isAbbreviation = (word: string): boolean => /[A-Z]/.test(word.charAt(1))
+
 export const lowerCaseFirstLetterUnlessAbbreviation = (str: string): string =>
-    str.charAt(1).match(/[A-Z]/)
-        ? str
-        : str.charAt(0).toLowerCase() + str.slice(1)
+    isAbbreviation(str) ? str : str.charAt(0).toLowerCase() + str.slice(1)
 
 /**
  * Use with caution - please note that this sort function only sorts on numeric data, and that sorts
@@ -1372,6 +1392,12 @@ export function extractGdocPageData(gdoc: OwidGdoc) {
             return {
                 ...commonProps,
                 ...R.pick(authorGdoc, ["latestWorkLinks"]),
+            }
+        })
+        .when(checkIsFeaturedViz, (featuredVizGdoc) => {
+            return {
+                ...commonProps,
+                ...R.pick(featuredVizGdoc, ["bespokeMetadata"]),
             }
         })
         .otherwise(() => commonProps)
@@ -1907,6 +1933,64 @@ export function traverseEnrichedBlock(
         .exhaustive()
 }
 
+/**
+ * Transcribes the findings the ArchieML parser recorded while parsing —
+ * `parseErrors` on blocks (body and ref contents) and `refs.errors` — into
+ * OwidGdocErrorMessages. Body findings are labelled with the block type
+ * (`[chart] Missing url`) and ref-content findings with the ref id, so the
+ * reader can tell which block a message is about. This function performs NO
+ * judgments of its own: new validation rules belong in `getErrors`'s check
+ * functions (advisory, shown in the admin), not here. Shared by the admin and
+ * the writing reference generator so they can never diverge on what the
+ * parser reported.
+ *
+ * `visitBodyNode` lets a caller collect its own findings from the body walk
+ * this function already performs, rather than walking the body a second time.
+ * It is called per body node, interleaved with that node's parse errors, so
+ * the findings come back in document order. Ref contents are not visited:
+ * the caller's checks are about the document body.
+ */
+export function getParseFindings(
+    content: {
+        body?: OwidEnrichedGdocBlock[]
+        refs?: OwidGdocPostContent["refs"]
+    },
+    visitBodyNode?: (node: OwidEnrichedGdocBlock) => OwidGdocErrorMessage[]
+): OwidGdocErrorMessage[] {
+    const findings: OwidGdocErrorMessage[] = []
+    const transcribe = (
+        property: OwidGdocErrorMessage["property"],
+        blocks: OwidEnrichedGdocBlock[] | undefined,
+        refId?: string,
+        visit?: (node: OwidEnrichedGdocBlock) => OwidGdocErrorMessage[]
+    ): void => {
+        for (const block of blocks ?? []) {
+            traverseEnrichedBlock(block, (node) => {
+                for (const parseError of node.parseErrors ?? []) {
+                    findings.push({
+                        property,
+                        type: parseError.isWarning
+                            ? OwidGdocErrorMessageType.Warning
+                            : OwidGdocErrorMessageType.Error,
+                        message:
+                            refId !== undefined
+                                ? `Parse error in "${refId}" ref content: ${parseError.message}`
+                                : `[${node.type}] ${parseError.message}`,
+                    })
+                }
+                if (visit) findings.push(...visit(node))
+            })
+        }
+    }
+
+    transcribe("body", content.body, undefined, visitBodyNode)
+    for (const ref of Object.values(content.refs?.definitions ?? {})) {
+        transcribe("refs", ref.content, ref.id)
+    }
+    findings.push(...(content.refs?.errors ?? []))
+    return findings
+}
+
 export function checkNodeIsSpan(node: NodeWithUrl): node is Span {
     return "spanType" in node
 }
@@ -1945,9 +2029,71 @@ export function getResearchAndWritingId(heading?: string): string {
     return heading ? slugify(heading) : RESEARCH_AND_WRITING_ID
 }
 
+// Proper nouns that should keep their Title Case even in sentence-case (LTP)
+// headings. Compared case-insensitively against the whole string.
+const CASE_PRESERVED_PHRASES = new Set(
+    ["Human Development Index (HDI)", "SDG Tracker"].map((phrase) =>
+        phrase.toLowerCase()
+    )
+)
+
+// Sentence-cases a heading while preserving abbreviations and known proper
+// nouns. `capitalizeFirstWord` is false for text interpolated mid-heading,
+// e.g. the topic name in "Featured data on economic inequality".
+export function toSentenceCase(
+    str: string,
+    capitalizeFirstWord = true
+): string {
+    if (CASE_PRESERVED_PHRASES.has(str.trim().toLowerCase())) return str
+    return str
+        .split(" ")
+        .map((word, i) => {
+            if (isAbbreviation(word)) return word
+            const lower = word.toLowerCase()
+            return capitalizeFirstWord && i === 0
+                ? lower.charAt(0).toUpperCase() + lower.slice(1)
+                : lower
+        })
+        .join(" ")
+}
+
+// Topic page components have headings written in Title Case (both authored
+// custom titles and our defaults). Only modular topic pages keep Title Case;
+// every other context (linear topic pages, and the fallback when the gdoc type
+// is unknown) renders them in sentence case. Mirrors getTopicPageHeading.
+export function sentenceCaseIfNotTopicPage(
+    title: string | undefined,
+    gdocType?: OwidGdocType,
+    capitalizeFirstWord = true
+): string {
+    if (!title) return ""
+    return gdocType === OwidGdocType.TopicPage
+        ? title
+        : toSentenceCase(title, capitalizeFirstWord)
+}
+
+const topicPageTitleHeadings = {
+    keyCharts: "Key Charts",
+    featuredData: "Featured Data",
+    dataInsights: "Data Insights",
+    researchAndWriting: RESEARCH_AND_WRITING_DEFAULT_HEADING,
+    countryProfiles: "Country Profiles",
+    relatedTopics: "Related Topics",
+}
+
+// Returns the default heading for a topic page component, in Title Case on
+// modular topic pages and sentence case everywhere else.
+export function getTopicPageHeading(
+    key: keyof typeof topicPageTitleHeadings,
+    gdocType: OwidGdocType | undefined
+): string {
+    return sentenceCaseIfNotTopicPage(topicPageTitleHeadings[key], gdocType)
+}
+
 export function generateToc(
     body: OwidEnrichedGdocBlock[] | undefined,
-    isTocForSidebar: boolean = false
+    isTocForSidebar: boolean = false,
+    gdocType?: OwidGdocType
 ): TocHeadingWithSupertitle[] {
     if (!body) return []
 
@@ -1978,7 +2124,7 @@ export function generateToc(
 
             if (child.type === "all-charts") {
                 toc.push({
-                    title: "Key charts",
+                    title: getTopicPageHeading("keyCharts", gdocType),
                     slug: ALL_CHARTS_ID,
                     isSubheading: false,
                 })
@@ -1987,7 +2133,7 @@ export function generateToc(
 
             if (child.type === "featured-metrics") {
                 toc.push({
-                    title: "Featured data",
+                    title: getTopicPageHeading("featuredData", gdocType),
                     slug: FEATURED_METRICS_ID,
                     isSubheading: false,
                 })
@@ -1996,8 +2142,14 @@ export function generateToc(
 
             if (child.type === "research-and-writing") {
                 const { heading } = child
+                const customHeadingCaseCorrected = sentenceCaseIfNotTopicPage(
+                    heading,
+                    gdocType
+                )
                 toc.push({
-                    title: heading || RESEARCH_AND_WRITING_DEFAULT_HEADING,
+                    title:
+                        customHeadingCaseCorrected ||
+                        getTopicPageHeading("researchAndWriting", gdocType),
                     slug: getResearchAndWritingId(heading),
                     isSubheading: false,
                 })
@@ -2005,9 +2157,8 @@ export function generateToc(
             }
 
             if (child.type === "featured-data-insights") {
-                const title = "Data insights"
                 toc.push({
-                    title,
+                    title: getTopicPageHeading("dataInsights", gdocType),
                     slug: FEATURED_DATA_INSIGHTS_ID,
                     isSubheading: false,
                 })
@@ -2017,7 +2168,7 @@ export function generateToc(
             if (child.type === "explore-data-section") {
                 const title = child.title || EXPLORE_DATA_SECTION_DEFAULT_TITLE
                 toc.push({
-                    title,
+                    title: sentenceCaseIfNotTopicPage(title, gdocType),
                     slug: EXPLORE_DATA_SECTION_ID,
                     isSubheading: false,
                 })
@@ -2165,6 +2316,12 @@ export function checkIsAboutPage(
     gdoc: OwidGdoc
 ): gdoc is OwidGdocAboutInterface {
     return gdoc.content.type === OwidGdocType.AboutPage
+}
+
+export function checkIsFeaturedViz(
+    gdoc: OwidGdoc
+): gdoc is OwidGdocFeaturedVizInterface {
+    return gdoc.content.type === OwidGdocType.FeaturedViz
 }
 
 export function checkIsAuthor(gdoc: OwidGdoc): gdoc is OwidGdocAuthorInterface {
@@ -2336,11 +2493,23 @@ export function flattenNonTopicNodes(tagGraph: TagGraphRoot): TagGraphRoot {
 
 export function formatInlineList(
     array: unknown[],
-    connector: "and" | "or" = "and"
+    {
+        connector = "and",
+        oxfordComma = false,
+    }: { connector?: "and" | "or"; oxfordComma?: boolean } = {}
 ): string {
     if (array.length === 0) return ""
     if (array.length === 1) return `${array[0]}`
-    return `${array.slice(0, -1).join(", ")} ${connector} ${R.last(array)}`
+    const comma = oxfordComma && array.length > 2 ? "," : ""
+    return `${array.slice(0, -1).join(", ")}${comma} ${connector} ${R.last(array)}`
+}
+
+export function formatAuthors(authors: string[]): string {
+    return formatInlineList(authors, { oxfordComma: true })
+}
+
+export function formatAuthorsForBibtex(authors: string[]): string {
+    return authors.join(" and ")
 }
 
 // The below comment marks this function as side-effect free, meaning that the bundler
@@ -2378,7 +2547,7 @@ export function traverseObjects<T extends Record<string, any>>(
     return result
 }
 
-export function getParentVariableIdFromChartConfig(
+export function getParentIndicatorIdFromChartConfig(
     config: GrapherInterface
 ): number | undefined {
     const { chartTypes, dimensions } = config

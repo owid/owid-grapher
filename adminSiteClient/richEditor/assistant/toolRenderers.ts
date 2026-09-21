@@ -69,24 +69,30 @@ function makeRenderer(tool: AgentTool): ToolRenderer {
                 content: html`
                     <div class="space-y-2">
                         ${renderHeader(state, FileText, title)}
-                        ${paramLine !== "" && paramLine !== "{}"
-                            ? html`<div
-                                  class="text-xs text-muted-foreground font-mono whitespace-pre-wrap break-all"
-                              >
-                                  ${paramLine}
-                              </div>`
-                            : ""}
-                        ${result
-                            ? html`<pre
-                                  class="text-xs whitespace-pre-wrap max-h-64 overflow-y-auto m-0"
-                              >
-${output
-                                      ? output.length > 4000
-                                          ? output.slice(0, 4000) + "\n…"
-                                          : output
-                                      : "(no output)"}</pre
-                              >`
-                            : ""}
+                        ${
+                            paramLine !== "" && paramLine !== "{}"
+                                ? html`<div
+                                      class="text-xs text-muted-foreground font-mono whitespace-pre-wrap break-all"
+                                  >
+                                      ${paramLine}
+                                  </div>`
+                                : ""
+                        }
+                        ${
+                            result
+                                ? html`<pre
+                                      class="text-xs whitespace-pre-wrap max-h-64 overflow-y-auto m-0"
+                                  >
+${
+                                          output
+                                              ? output.length > 4000
+                                                  ? output.slice(0, 4000) +
+                                                    "\n…"
+                                                  : output
+                                              : "(no output)"
+                                      }</pre>`
+                                : ""
+                        }
                     </div>
                 `,
             }

@@ -20,7 +20,7 @@ import {
     ARCHIVED_THUMBNAIL_FILENAME,
 } from "@ourworldindata/types"
 import type { Knex } from "knex"
-import { BAKED_BASE_URL } from "../../settings/clientSettings.js"
+import { BAKED_BASE_URL } from "../../settings/clientSettings.mjs"
 import { decodeHTML } from "entities"
 
 export const postsTable = "posts"
@@ -100,15 +100,15 @@ export const getPostRelatedCharts = async (
         `-- sql
         SELECT DISTINCT
             chart_configs.slug,
-            chart_configs.full->>"$.title" AS title,
-            chart_configs.full->>"$.variantName" AS variantName,
+            chart_configs.config->>"$.title" AS title,
+            chart_configs.config->>"$.variantName" AS variantName,
             chart_tags.keyChartLevel
         FROM charts
         JOIN chart_configs ON charts.configId=chart_configs.id
         INNER JOIN chart_tags ON charts.id=chart_tags.chartId
         INNER JOIN post_tags ON chart_tags.tagId=post_tags.tag_id
         WHERE post_tags.post_id=${postId}
-        AND chart_configs.full->>"$.isPublished" = "true"
+        AND chart_configs.config->>"$.isPublished" = "true"
         ORDER BY title ASC
     `
     )

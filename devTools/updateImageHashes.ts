@@ -12,7 +12,7 @@
 
 import { createHash } from "crypto"
 import * as db from "../db/db.js"
-import { CLOUDFLARE_IMAGES_URL } from "../settings/clientSettings.js"
+import { CLOUDFLARE_IMAGES_URL } from "../settings/clientSettings.mjs"
 import pMap from "p-map"
 import { DbEnrichedImage } from "@ourworldindata/types"
 

@@ -28,11 +28,13 @@ Pass `--build` to build each project before serving it via `vite preview` instea
 yarn startBespokeDevServer --build
 ```
 
-In build mode, the demo page uses the built output files (`index.js`, `index.css`) instead of source entrypoints. The `/__bespoke/` Vite instance still runs in dev mode to serve the demo infrastructure.
+In build mode, the demo page uses the built output file (`index.js`) instead of the source entrypoint. The `/__bespoke/` Vite instance still runs in dev mode to serve the demo infrastructure.
 
 ### Demo page
 
 Visiting `/<project>/demo` serves a demo page that imports the project's `VARIANTS` list and mounts each variant inside its own Shadow DOM using `mountBespokeComponentInShadow` from `bespoke/shared`. This mirrors the production embedding behavior.
+
+Data feeds come from `BESPOKE_DATA_URL`, the same setting the site reads, so a demo page shows the feed of the environment its server runs in — production locally, where the setting is normally unset, and the branch's own bucket on staging.
 
 `/__all` stacks every project's demo page below each other (except `example`, the starter template), one lazily loaded iframe each — iframes keep each project's Vite client, React copy and `dev-only-global-css` isolated from the others. The frames load as you scroll, which matters on staging, where each project is built on first request.
 
@@ -43,19 +45,20 @@ The demo page reads the `entrypoints` field from each project's `package.json` t
 ```json
 {
     "entrypoints": {
-        "js": "src/index.ts",
-        "css": "src/index.css" // optional
+        "js": "src/index.ts"
     }
 }
 ```
 
-Only `js` is required. If `css` is omitted, the demo page won't load a separate stylesheet — useful when your component injects its own styles via `vite-plugin-css-position`, which is recommended.
+The demo page never loads a separate stylesheet: a project bundles its styles into the module with `vite-plugin-css-position`, so they land inside the Shadow DOM.
 
-In dev mode, requests for `/<project>/index.js` and `/<project>/index.css` are redirected to the corresponding source entrypoints so Vite can serve them. In build mode, these files exist as-is in the build output.
+In dev mode, requests for `/<project>/index.js` are redirected to the source entrypoint so Vite can serve it. In build mode, that file exists as-is in the build output.
 
 ## Staging
 
-Staging servers run this server too, under pm2 as `yarn startBespokeDevServer --build`, and their `BESPOKE_BASE_URL` points at it — so the bundles a staging article embeds are the ones this server builds. Reach it at `http://staging-site-<branch>:8089/` over Tailscale. (Production is different: there `BESPOKE_BASE_URL` is the statically baked `/assets/bespoke`, and no dev server runs.)
+Staging servers run this server too, under pm2 as `yarn startBespokeDevServer --build`, so the bundles a staging article embeds are the ones this server builds. Reach it at `http://staging-site-<branch>:8089/` over Tailscale. There `BESPOKE_DATA_URL` is that server's own feed root, so a demo page shows the data a branch put on that environment. (Production is different: `BESPOKE_BASE_URL` is the statically baked `/assets/bespoke` and no dev server runs.)
+
+**The demo pages live at `:8089` only.** nginx on a staging server also proxies `/assets/bespoke/` here, but that exists for the bundles an article embeds, so that `BESPOKE_BASE_URL` can be a same-origin relative path. It can't serve the demo pages: Vite runs with `--base /<project>/` and `--base /__bespoke/`, and bakes those root-absolute URLs into every module it transforms, so `http://staging-site-<branch>/assets/bespoke/<project>/demo` returns the HTML and then 404s on everything it references. Nothing in the template can change that.
 
 ## Files
 

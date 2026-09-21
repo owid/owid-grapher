@@ -2,7 +2,6 @@ import { useMemo } from "react"
 
 import { Checkbox } from "@ourworldindata/components"
 import { BasicDropdownOption } from "@ourworldindata/grapher"
-import { WORLD_ENTITY_NAME } from "@ourworldindata/grapher/src/core/GrapherConstants.js"
 import { Tippy } from "@ourworldindata/utils"
 
 import {
@@ -19,7 +18,7 @@ import { TimeSlider } from "../../../../components/TimeSlider/TimeSlider.js"
 import { useTippyContainer } from "../../../../hooks/useTippyContainer.js"
 import { useUserCountryInformation } from "../../../../hooks/useUserCountryInformation.js"
 
-import { MigrantDemographics } from "../core/data.js"
+import { MigrantDemographicsMetadata } from "../core/data.js"
 import { ShowMode } from "../core/types.js"
 
 // The switcher buttons don't wrap, so below a certain width the full labels
@@ -33,7 +32,7 @@ const SHOW_MODE_DISABLED_REASON =
     "When comparing with native-born residents, values are always shown as a share of each population — there are far more native-born residents than immigrants."
 
 export function PyramidControls({
-    data,
+    metadata,
     country,
     year,
     mode,
@@ -44,7 +43,7 @@ export function PyramidControls({
     setShow,
     setCompare,
 }: {
-    data: MigrantDemographics
+    metadata: MigrantDemographicsMetadata
     country: string
     year: number
     mode: ShowMode
@@ -59,7 +58,7 @@ export function PyramidControls({
         <Controls className="migrant-pyramid-controls">
             <ControlsRow>
                 <CountryDropdown
-                    data={data}
+                    metadata={metadata}
                     country={country}
                     setCountry={setCountry}
                 />
@@ -72,7 +71,7 @@ export function PyramidControls({
                 <CompareCheckbox compare={compare} setCompare={setCompare} />
             </ControlsRow>
             <TimeSlider
-                times={data.years}
+                times={metadata.years}
                 selectedTime={year}
                 onChange={setYear}
             />
@@ -81,25 +80,25 @@ export function PyramidControls({
 }
 
 function CountryDropdown({
-    data,
+    metadata,
     country,
     setCountry,
 }: {
-    data: MigrantDemographics
+    metadata: MigrantDemographicsMetadata
     country: string
     setCountry: (name: string) => void
 }): React.ReactElement {
     const { data: userCountryInfo } = useUserCountryInformation()
     // `orderOptionsByRelevance` sorts the remainder itself, so no pre-sort here
     const flat = useMemo<BasicDropdownOption[]>(
-        () => data.entityNames.map((name) => ({ value: name, label: name })),
-        [data]
+        () =>
+            metadata.entityNames.map((name) => ({ value: name, label: name })),
+        [metadata]
     )
     const options = useMemo<DropdownCollection>(
         () =>
             orderOptionsByRelevance(flat, {
                 userCountryInfo,
-                pinnedToTop: [WORLD_ENTITY_NAME],
                 selectedValue: country,
             }),
         [flat, userCountryInfo, country]
@@ -108,12 +107,12 @@ function CountryDropdown({
     return (
         <LabeledDropdown
             className="migrant-pyramid-controls__country"
-            label="Country or region"
+            label="Country"
             options={options}
             selectedValue={country}
             onChange={setCountry}
-            placeholder="Select a country or region…"
-            aria-label="Select a country or region"
+            placeholder="Select a country…"
+            aria-label="Select a country"
             isSearchable
         />
     )

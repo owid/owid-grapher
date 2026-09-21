@@ -10,8 +10,11 @@ import {
     Button,
 } from "@ourworldindata/components"
 import { DataPageDataV2 } from "@ourworldindata/types"
+import { formatAttributions } from "@ourworldindata/utils"
 import KeyDataTable from "./KeyDataTable.js"
-import { getAttributionUnshortened } from "./datapageUtils.js"
+import { SiteAnalytics } from "./SiteAnalytics.js"
+
+const analytics = new SiteAnalytics()
 
 export default function AboutThisData({
     datapageData,
@@ -25,7 +28,7 @@ export default function AboutThisData({
     id?: string
 }) {
     const hasDescriptionKey = !!datapageData.descriptionKey
-    const attributionUnshortened = getAttributionUnshortened(datapageData)
+    const attribution = formatAttributions(datapageData.attributions ?? [])
     const id_ = id ?? DATAPAGE_ABOUT_THIS_DATA_SECTION_ID
 
     return (
@@ -48,6 +51,8 @@ export default function AboutThisData({
                                 <div className="key-info__key-description">
                                     <SimpleMarkdownText
                                         text={datapageData.descriptionKey.trim()}
+                                        dataTrackNote="wysk_link"
+                                        dodTrackNote="wysk"
                                     />
                                 </div>
                             )}
@@ -66,12 +71,16 @@ export default function AboutThisData({
                                                     text={
                                                         datapageData.descriptionFromProducer
                                                     }
+                                                    dataTrackNote="producer_link"
+                                                    dodTrackNote="producer_documentation"
                                                 />
                                             </div>
                                         }
-                                        isStacked={
-                                            !!datapageData.source
-                                                ?.additionalInfo
+                                        onToggle={(isOpen) =>
+                                            analytics.logExpandableToggle(
+                                                "producer_documentation",
+                                                isOpen
+                                            )
                                         }
                                     />
                                 )}
@@ -79,11 +88,20 @@ export default function AboutThisData({
                                     <ExpandableToggle
                                         label="Additional information about this data"
                                         content={
-                                            <div className="expandable-info-blocks__content">
+                                            <div
+                                                className="expandable-info-blocks__content"
+                                                data-dod-track-note="additional_information"
+                                            >
                                                 <HtmlOrSimpleMarkdownText
                                                     text={datapageData.source?.additionalInfo.trim()}
                                                 />
                                             </div>
+                                        }
+                                        onToggle={(isOpen) =>
+                                            analytics.logExpandableToggle(
+                                                "additional_information",
+                                                isOpen
+                                            )
                                         }
                                     />
                                 )}
@@ -96,13 +114,14 @@ export default function AboutThisData({
                                 text="Learn more in the FAQs"
                                 href="#faqs"
                                 icon={faArrowDown}
+                                dataTrackNote="wysk_learn_more_in_faqs"
                             />
                         )}
                     </div>
                     <div className="key-info__right span-cols-4 span-lg-cols-5 span-sm-cols-12">
                         <KeyDataTable
                             datapageData={datapageData}
-                            attribution={attributionUnshortened}
+                            attribution={attribution}
                         />
                     </div>
                 </>
@@ -117,7 +136,7 @@ export default function AboutThisData({
                     <div className="col-start-4 span-cols-10 col-lg-start-5 span-lg-cols-8 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
                         <KeyDataTable
                             datapageData={datapageData}
-                            attribution={attributionUnshortened}
+                            attribution={attribution}
                         />
                     </div>
                 </>

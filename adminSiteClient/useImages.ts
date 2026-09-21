@@ -9,7 +9,7 @@ export function useImages() {
     return useQuery<DbEnrichedImageWithPageviews[]>({
         queryKey: ["images"],
         queryFn: async () => {
-            const response = await admin.getJSON<{
+            const response = await admin.getJSONInBackground<{
                 images: DbEnrichedImageWithPageviews[]
             }>("/api/images.json")
             return response.images

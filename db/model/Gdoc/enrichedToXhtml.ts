@@ -897,6 +897,7 @@ function enrichedBlockContentToXhtml(block: OwidEnrichedGdocBlock): string {
                     bundle: b.bundle,
                     variant: b.variant,
                     size: b.size,
+                    fallbackImageFilename: b.fallbackImageFilename,
                     ...Object.fromEntries(
                         Object.entries(b.config).map(([k, v]) => [
                             `config-${k}`,

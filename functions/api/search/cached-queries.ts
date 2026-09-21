@@ -147,6 +147,11 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
         // Re-create the response to make its headers mutable
         const response = new Response(algoliaResponse.body, algoliaResponse)
+        // The runtime decodes a compressed subrequest body but leaves the
+        // headers describing it as encoded, so they no longer match what we
+        // hand on — and caches.default would store that mismatch.
+        response.headers.delete("Content-Encoding")
+        response.headers.delete("Content-Length")
         response.headers.set("Access-Control-Allow-Origin", "*")
         if (algoliaResponse.ok) {
             response.headers.set(

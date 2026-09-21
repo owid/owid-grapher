@@ -1,9 +1,6 @@
 import * as React from "react"
 import { Bounds, HorizontalAlign } from "@ourworldindata/utils"
-import {
-    GRAPHER_FONT_SCALE_11,
-    GRAPHER_FONT_SCALE_12,
-} from "../core/GrapherConstants"
+import { scaleFontSize } from "../chart/ChartUtils"
 import { GRAPHER_LIGHT_TEXT } from "../color/ColorConstants"
 
 export function NoDataSection({
@@ -24,8 +21,8 @@ export function NoDataSection({
             seriesNames.length - displayedNames.length
         )
 
-        const headingFontsize = GRAPHER_FONT_SCALE_11 * baseFontSize
-        const bodyFontsize = GRAPHER_FONT_SCALE_12 * baseFontSize
+        const headingFontsize = scaleFontSize(11, baseFontSize)
+        const bodyFontsize = scaleFontSize(12, baseFontSize)
 
         return (
             <foreignObject

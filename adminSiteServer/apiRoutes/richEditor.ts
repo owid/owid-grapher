@@ -1108,7 +1108,7 @@ export async function resolveEditorReferences(
             "originalHeight",
             "originalWidth",
             "updatedAt",
-        ]) as ImageMetadata
+        ])
     }
 
     return {

@@ -57,7 +57,6 @@ export const SourcesDescriptions = (props: SourcesDescriptionsProps) => {
                         isExpandedDefault={
                             !(props.descriptionShort || props.descriptionKey)
                         }
-                        isStacked={!!props.additionalInfo}
                     />
                 )}
                 {props.additionalInfo && (

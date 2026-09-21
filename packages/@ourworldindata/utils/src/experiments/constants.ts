@@ -10,3 +10,6 @@ export const EXPERIMENT_PREFIX = "exp"
 // which graphers are enrolled.
 export const DATA_PAGE_METADATA_EXPERIMENT_ID = "data-page-metadata-v1"
 export const DATA_PAGE_METADATA_EXPERIMENT_TREATMENT_ARM = "treatment"
+
+// Randomised follow-up to v1 (disjoint page sets; v1's pages stay in v1).
+export const DATA_PAGE_METADATA_V2_EXPERIMENT_ID = "data-page-metadata-v2"

@@ -52,17 +52,20 @@ import { extractFilenamesFromBlock } from "./gdocUtils.js"
 import { getGdocComponentsWithoutChildren } from "./extractGdocComponentInfo.js"
 import { GdocAnnouncement } from "./GdocAnnouncement.js"
 import { GdocProfile } from "./GdocProfile.js"
+import { GdocFeaturedViz } from "./GdocFeaturedViz.js"
 
-export function gdocFromJSON(
-    json: Record<string, any>
-):
+/** Any concrete GdocBase subclass */
+export type AnyGdoc =
     | GdocPost
     | GdocDataInsight
     | GdocHomepage
     | GdocAbout
     | GdocAuthor
     | GdocAnnouncement
-    | GdocProfile {
+    | GdocProfile
+    | GdocFeaturedViz
+
+export function gdocFromJSON(json: Record<string, any>): AnyGdoc {
     if (typeof json.content === "string") {
         json.content = JSON.parse(json.content)
     }
@@ -117,6 +120,9 @@ export function gdocFromJSON(
         .with(OwidGdocType.Profile, () =>
             GdocProfile.create({ ...(json as any) })
         )
+        .with(OwidGdocType.FeaturedViz, () =>
+            GdocFeaturedViz.create({ ...(json as any) })
+        )
         .exhaustive()
 }
 
@@ -151,14 +157,7 @@ export async function createGdocAndInsertIntoDb(
 export async function updateGdocContentOnly(
     knex: KnexReadWriteTransaction,
     id: string,
-    gdoc:
-        | GdocPost
-        | GdocDataInsight
-        | GdocHomepage
-        | GdocAbout
-        | GdocAuthor
-        | GdocAnnouncement
-        | GdocProfile
+    gdoc: AnyGdoc
 ): Promise<void> {
     gdoc.updateMarkdown()
     await knex
@@ -355,15 +354,7 @@ export async function getAndLoadGdocBySlug(
     knex: KnexReadonlyTransaction,
     slug: string,
     types: OwidGdocType[]
-): Promise<
-    | GdocPost
-    | GdocDataInsight
-    | GdocHomepage
-    | GdocAbout
-    | GdocAuthor
-    | GdocAnnouncement
-    | GdocProfile
-> {
+): Promise<AnyGdoc> {
     const base = await getPublishedGdocBaseObjectBySlug(knex, slug, true, types)
     if (!base) {
         throw new Error(
@@ -378,15 +369,7 @@ export async function getAndLoadGdocById(
     id: string,
     contentSource?: GdocsContentSource,
     acceptSuggestions: boolean = false
-): Promise<
-    | GdocPost
-    | GdocDataInsight
-    | GdocHomepage
-    | GdocAbout
-    | GdocAuthor
-    | GdocAnnouncement
-    | GdocProfile
-> {
+): Promise<AnyGdoc> {
     const base = await getGdocBaseObjectById(knex, id, true)
     if (!base)
         throw new Error(`No Google Doc with id "${id}" found in the database`)
@@ -414,15 +397,7 @@ export async function loadGdocFromGdocBase(
     contentSource?: GdocsContentSource,
     acceptSuggestions: boolean = false,
     options?: { loadState?: boolean }
-): Promise<
-    | GdocPost
-    | GdocDataInsight
-    | GdocHomepage
-    | GdocAbout
-    | GdocAuthor
-    | GdocAnnouncement
-    | GdocProfile
-> {
+): Promise<AnyGdoc> {
     const shouldLoadState = options?.loadState ?? true
 
     const type = _.get(base, "content.type") as unknown
@@ -452,6 +427,7 @@ export async function loadGdocFromGdocBase(
         .with(OwidGdocType.Author, () => GdocAuthor.create(base))
         .with(OwidGdocType.Announcement, () => GdocAnnouncement.create(base))
         .with(OwidGdocType.Profile, () => GdocProfile.create(base))
+        .with(OwidGdocType.FeaturedViz, () => GdocFeaturedViz.create(base))
         .exhaustive()
 
     if (contentSource === GdocsContentSource.Gdocs) {
@@ -712,15 +688,7 @@ export function getDbEnrichedGdocFromOwidGdoc(
 export async function upsertGdoc(
     knex: KnexReadWriteTransaction,
     gdoc: GdocBase
-): Promise<
-    | GdocPost
-    | GdocDataInsight
-    | GdocHomepage
-    | GdocAbout
-    | GdocAuthor
-    | GdocAnnouncement
-    | GdocProfile
-> {
+): Promise<AnyGdoc> {
     let sql = undefined
     try {
         gdoc.updateMarkdown()
@@ -772,6 +740,29 @@ type GdocIndexDatabaseRow = Pick<
     subtitle: string | null
 }
 
+async function toGdocIndexItems(
+    knex: KnexReadonlyTransaction,
+    gdocs: GdocIndexDatabaseRow[]
+): Promise<OwidGdocIndexItem[]> {
+    if (!gdocs.length) return []
+
+    const groupedTags = await getTagsGroupedByGdocId(
+        knex,
+        gdocs.map((gdoc) => gdoc.id)
+    )
+    return gdocs.map((gdoc) => ({
+        id: gdoc.id,
+        slug: gdoc.slug,
+        tags: groupedTags.get(gdoc.id) ?? [],
+        published: !!gdoc.published,
+        publishedAt: gdoc.publishedAt,
+        title: gdoc.title ?? "",
+        subtitle: gdoc.subtitle ?? undefined,
+        authors: parsePostGdocsAuthors(gdoc.authors),
+        type: gdoc.type,
+    }))
+}
+
 export async function getAllGdocIndexItemsOrderedByUpdatedAt(
     knex: KnexReadonlyTransaction
 ): Promise<OwidGdocIndexItem[]> {
@@ -795,33 +786,49 @@ export async function getAllGdocIndexItemsOrderedByUpdatedAt(
 
     gdocs.sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())
 
-    const groupedTags = await getTagsGroupedByGdocId(
-        knex,
-        gdocs.map((gdoc) => gdoc.id)
-    )
-    return gdocs.map((gdoc) => ({
-        id: gdoc.id,
-        slug: gdoc.slug,
-        tags: groupedTags.get(gdoc.id) ?? [],
-        published: !!gdoc.published,
-        publishedAt: gdoc.publishedAt,
-        title: gdoc.title ?? "",
-        subtitle: gdoc.subtitle ?? undefined,
-        authors: parsePostGdocsAuthors(gdoc.authors),
-        type: gdoc.type,
-    }))
+    return toGdocIndexItems(knex, gdocs)
+}
+
+export async function getGdocIndexItemsByTagId(
+    knex: KnexReadonlyTransaction,
+    tagId: number,
+    uncategorized: boolean
+): Promise<OwidGdocIndexItem[]> {
+    const query = knex
+        .table<GdocIndexDatabaseRow>(`${PostsGdocsTableName} as pg`)
+        .select(
+            "pg.id",
+            "pg.slug",
+            "pg.type",
+            "pg.authors",
+            "pg.published",
+            "pg.publishedAt",
+            "pg.updatedAt"
+        )
+        .select(
+            knex.raw("pg.content ->> '$.title' AS title"),
+            knex.raw("pg.content ->> '$.subtitle' AS subtitle")
+        )
+
+    if (uncategorized) {
+        query
+            .leftJoin(`${PostsGdocsXTagsTableName} as gt`, "gt.gdocId", "pg.id")
+            .whereNull("gt.tagId")
+    } else {
+        query
+            .join(`${PostsGdocsXTagsTableName} as gt`, "gt.gdocId", "pg.id")
+            .where("gt.tagId", tagId)
+    }
+
+    const gdocs = await query
+    gdocs.sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())
+
+    return toGdocIndexItems(knex, gdocs)
 }
 
 export async function setImagesInContentGraph(
     trx: KnexReadWriteTransaction,
-    gdoc:
-        | GdocPost
-        | GdocDataInsight
-        | GdocHomepage
-        | GdocAbout
-        | GdocAuthor
-        | GdocAnnouncement
-        | GdocProfile
+    gdoc: AnyGdoc
 ): Promise<void> {
     const id = gdoc.id
     // Deleting and recreating these is simpler than tracking orphans over the next code block
