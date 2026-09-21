@@ -120,8 +120,14 @@ export interface SizedSwimlaneSeries extends SwimlaneSeries {
 
 export interface PlacedSwimlaneSeries extends SizedSwimlaneSeries {
     y: number
+    slotHeight: number
     labelPosition: { x: number; yOffset: number }
     placedSegments: PlacedSwimlaneSegment[]
+}
+
+export interface HoveredSwimlanePoint {
+    x: number
+    laneEntityName?: EntityName
 }
 
 export interface RenderSwimlaneSeries extends Omit<

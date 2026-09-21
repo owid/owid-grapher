@@ -1,10 +1,11 @@
 import * as _ from "lodash-es"
 import React from "react"
-import { computed, makeObservable } from "mobx"
+import { action, computed, makeObservable, observable } from "mobx"
 import { observer } from "mobx-react"
 import {
     Bounds,
     exposeInstanceOnWindow,
+    getRelativeMouse,
     makeFigmaId,
     HorizontalAlign,
 } from "@ourworldindata/utils"
@@ -42,6 +43,7 @@ import { HorizontalNumericColorLegendState } from "../legend/HorizontalNumericCo
 import { ExternalColorLegendData } from "../legend/HorizontalColorLegendTypes"
 import {
     ENTITY_LABEL_CHART_GAP,
+    HoveredSwimlanePoint,
     PADDING_BETWEEN_LEGEND_AND_LANES,
     PlacedSwimlaneSeries,
     RenderSwimlaneSeries,
@@ -53,6 +55,7 @@ import {
 import { SwimlaneChartState } from "./SwimlaneChartState"
 import {
     computeLaneSlotHeight,
+    findLaneAtY,
     toPlacedSwimlaneSeries,
     toRenderSwimlaneSeries,
 } from "./SwimlaneChartHelpers"
@@ -66,9 +69,15 @@ export class SwimlaneChart
     extends React.Component<SwimlaneChartProps>
     implements ChartInterface, AxisManager
 {
+    private readonly hitAreaRef = React.createRef<SVGGElement>()
+
+    private hoveredPoint: HoveredSwimlanePoint | undefined = undefined
+
     constructor(props: SwimlaneChartProps) {
         super(props)
-        makeObservable(this)
+        makeObservable<SwimlaneChart, "hoveredPoint">(this, {
+            hoveredPoint: observable,
+        })
     }
 
     @computed get chartState(): SwimlaneChartState {
@@ -259,6 +268,7 @@ export class SwimlaneChart
     @computed private get renderSeries(): RenderSwimlaneSeries[] {
         return toRenderSwimlaneSeries({
             series: this.placedSeries,
+            hoveredPoint: this.hoveredPoint,
             focusArray: this.chartState.focusArray,
         })
     }
@@ -274,6 +284,34 @@ export class SwimlaneChart
 
     override componentDidMount(): void {
         exposeInstanceOnWindow(this)
+    }
+
+    @action.bound private onCursorEnter(
+        ev: React.MouseEvent | React.TouchEvent
+    ): void {
+        this.chartState.focusArray.clear()
+        this.updateHoveredPoint(ev)
+    }
+
+    @action.bound private onCursorMove(
+        ev: React.MouseEvent | React.TouchEvent
+    ): void {
+        this.updateHoveredPoint(ev)
+    }
+
+    @action.bound private onCursorLeave(): void {
+        this.hoveredPoint = undefined
+    }
+
+    private updateHoveredPoint(ev: React.MouseEvent | React.TouchEvent): void {
+        const ref = this.hitAreaRef.current
+        if (!ref) return
+
+        const mouse = getRelativeMouse(ref, ev)
+        this.hoveredPoint = {
+            x: mouse.x,
+            laneEntityName: findLaneAtY(this.placedSeries, mouse.y)?.entityName,
+        }
     }
 
     private renderLegend(): React.ReactElement | undefined {
@@ -359,6 +397,20 @@ export class SwimlaneChart
                         ? this.renderLanes()
                         : this.renderAnimatedLanes()}
                 </g>
+                {!this.manager.isStatic && (
+                    <g
+                        ref={this.hitAreaRef}
+                        onMouseEnter={this.onCursorEnter}
+                        onMouseMove={this.onCursorMove}
+                        onMouseLeave={this.onCursorLeave}
+                        onTouchStart={this.onCursorEnter}
+                        onTouchMove={this.onCursorMove}
+                        onTouchEnd={this.onCursorLeave}
+                        onTouchCancel={this.onCursorLeave}
+                    >
+                        <rect {...this.innerBounds.toProps()} fillOpacity={0} />
+                    </g>
+                )}
             </g>
         )
     }
