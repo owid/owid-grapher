@@ -11,6 +11,7 @@ import * as clientSettings from "./settings/clientSettings.mts"
 import {
     VITE_ASSET_SITE_ENTRY,
     VITE_ENTRYPOINT_INFO,
+    ViteEntryPoint,
     type ViteEntryPointName,
 } from "./site/viteConstants.mts"
 import { pluginScopedCss } from "./devTools/vite/pluginScopedCss.mts"
