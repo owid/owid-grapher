@@ -59,18 +59,22 @@ export type TokenTextWrapProps = {
 export abstract class AbstractTokenTextWrap<
     Props extends TokenTextWrapProps = TokenTextWrapProps,
 > implements ITextWrap {
-    private static readonly defaultOptions = {
+    protected static readonly defaultOptions = {
         maxWidth: Infinity,
         lineHeight: 1.1,
         verticalAlign: VerticalAlign.bottom,
         detailsOrderedByReference: [] as string[],
     } as const satisfies Partial<TokenTextWrapProps>
 
-    private readonly initialProps: Props
+    protected readonly initialProps: Props
     constructor(props: Props) {
         this.initialProps = props
     }
 
+    // `defaultOptions` must not be `private`: private statics lose their
+    // inferred type in the emitted declaration file, which would make the
+    // `keyof typeof` below degenerate to `string | number | symbol` for
+    // package consumers (protected members keep their types).
     @imemo get props(): RequiredBy<
         Props,
         keyof typeof AbstractTokenTextWrap.defaultOptions

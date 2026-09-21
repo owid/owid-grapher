@@ -24,7 +24,7 @@ import {
     GRAPHER_DYNAMIC_THUMBNAIL_URL,
     EXPLORER_DYNAMIC_THUMBNAIL_URL,
     BAKED_GRAPHER_URL,
-} from "../settings/clientSettings.js"
+} from "../settings/clientSettings.mjs"
 import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
 import {
     SearchWord,
@@ -299,7 +299,7 @@ class MultiDimList extends Component<MultiDimListProps> {
                                             )
                                         return githubPath ? (
                                             <a
-                                                href={`https://github.com/owid/etl/tree/master/etl/steps/export/multidim/${githubPath}`}
+                                                href={`https://github.com/owid/etl/tree/master/etl/steps/viz/chart/${githubPath}`}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                             >
@@ -374,7 +374,7 @@ class DatasetTagEditor extends Component<DatasetTagEditorProps> {
         makeObservable(this)
     }
 
-    @action.bound onSaveTags(tags: DbChartTagJoin[]) {
+    @action.bound onSaveTags(tags: DbChartTagJoin[]): void {
         this.props.newDataset.tags = tags
     }
 

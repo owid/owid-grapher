@@ -9,7 +9,7 @@ import {
 import { JsonError } from "@ourworldindata/utils"
 import { Base64String } from "@ourworldindata/types"
 import { R2_REGION } from "../../settings/serverSettings.js"
-import { IS_RUNNING_INSIDE_VITEST } from "../../settings/clientSettings.js"
+import { IS_RUNNING_INSIDE_VITEST } from "../../settings/clientSettings.mjs"
 
 export interface R2Config {
     endpoint: string

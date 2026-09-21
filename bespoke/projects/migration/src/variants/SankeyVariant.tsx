@@ -15,7 +15,10 @@ import {
     OTHER_KEY,
 } from "../../../../components/Sankey/SankeyHelpers.js"
 import { MOBILE_BREAKPOINT } from "../../../../components/Sankey/SplitFlowSankey.js"
+import { ChartSkeleton } from "../../../../components/ChartSkeleton/ChartSkeleton.js"
+import { ChartError } from "../../../../components/ChartError/ChartError.js"
 import { useUrlState } from "../../../../hooks/useUrlState.js"
+import { EmbedConfigProvider } from "../../../../hooks/useEmbedConfig.js"
 import { useDelayedLoading } from "../../../../hooks/useDelayedLoading.js"
 import { useContainerWidth } from "../../../../hooks/useContainerWidth.js"
 import {
@@ -25,6 +28,7 @@ import {
 
 import { SankeyVariantConfig } from "../core/config.js"
 import type { VariantProps } from "../../../../helpers/config.js"
+import type { BespokeComponentDataUrls } from "owid-bespoke-types"
 import {
     MigrationFlow,
     MigrationRow,
@@ -49,31 +53,38 @@ const queryClient = new QueryClient()
 
 export function SankeyVariant({
     config,
+    urls,
 }: VariantProps<SankeyVariantConfig>): React.ReactElement {
     const { width, ref } = useContainerWidth()
     const isNarrow = width > 0 && width < MOBILE_BREAKPOINT
 
     return (
-        <NuqsAdapter>
-            <QueryClientProvider client={queryClient}>
-                <div
-                    ref={ref}
-                    className={cx("migration-chart", {
-                        "migration-chart--narrow": isNarrow,
-                    })}
-                >
-                    <FetchingSankeyVariant config={config} />
-                </div>
-            </QueryClientProvider>
-        </NuqsAdapter>
+        <EmbedConfigProvider config={config}>
+            <NuqsAdapter>
+                <QueryClientProvider client={queryClient}>
+                    <div
+                        ref={ref}
+                        className={cx("migration-chart", {
+                            "migration-chart--narrow": isNarrow,
+                        })}
+                    >
+                        <FetchingSankeyVariant config={config} urls={urls} />
+                    </div>
+                </QueryClientProvider>
+            </NuqsAdapter>
+        </EmbedConfigProvider>
     )
 }
 
 type Metadata = NonNullable<ReturnType<typeof useMigrationMetadata>["data"]>
 
-function FetchingSankeyVariant({ config }: { config: SankeyVariantConfig }) {
-    const urlSync = config.urlSync ?? false
-
+function FetchingSankeyVariant({
+    config,
+    urls,
+}: {
+    config: SankeyVariantConfig
+    urls: BespokeComponentDataUrls
+}) {
     const initialCountry =
         !config.country || isUserLocationCountry(config.country)
             ? DEFAULT_COUNTRY
@@ -83,19 +94,16 @@ function FetchingSankeyVariant({ config }: { config: SankeyVariantConfig }) {
         key: "migrationCountry",
         parser: parseAsString,
         defaultValue: initialCountry,
-        enabled: urlSync,
     })
     const [year, setYear] = useUrlState({
         key: "migrationYear",
         parser: parseAsInteger,
         defaultValue: config.year ?? 2024,
-        enabled: urlSync,
     })
     const [sex, setSex] = useUrlState({
         key: "migrationSex",
         parser: parseAsStringEnum<Sex>(["both", "female", "male"]),
         defaultValue: config.sex ?? "both",
-        enabled: urlSync,
     })
     const [_view, setView] = useUrlState({
         key: "migrationFlow",
@@ -105,10 +113,11 @@ function FetchingSankeyVariant({ config }: { config: SankeyVariantConfig }) {
             "emigrants",
         ]),
         defaultValue: config.flow ?? DEFAULT_VIEW,
-        enabled: urlSync,
     })
 
-    const { data: metadata, status: metadataStatus } = useMigrationMetadata()
+    const { data: metadata, status: metadataStatus } = useMigrationMetadata(
+        urls.metadataUrl
+    )
 
     const availableCountryNames = useMemo(
         () =>
@@ -120,7 +129,6 @@ function FetchingSankeyVariant({ config }: { config: SankeyVariantConfig }) {
     const { isResolved: isCountryResolved } = useResolveUserLocation({
         configCountry: config.country,
         availableCountryNames,
-        urlSync,
         urlStateKey: "migrationCountry",
         setCountry,
     })
@@ -134,7 +142,7 @@ function FetchingSankeyVariant({ config }: { config: SankeyVariantConfig }) {
         data: migration,
         status: migrationStatus,
         isPlaceholderData,
-    } = useMigrationData(countryId, metadata)
+    } = useMigrationData(countryId, metadata, urls.dataUrl)
 
     // Dim the chart and show a spinner while a new country file loads,
     // keeping the previous country on screen until the new one arrives.
@@ -202,18 +210,14 @@ function FetchingSankeyVariant({ config }: { config: SankeyVariantConfig }) {
           ? `No immigrants recorded in ${countryLabel} in ${year}.`
           : undefined
 
-    if (
-        metadataStatus === "pending" ||
-        migrationStatus === "pending" ||
-        !isCountryResolved
-    )
-        return <MigrationSkeleton />
+    if (metadataStatus === "pending")
+        return <ChartSkeleton className="migration-chart-box" />
     if (metadataStatus === "error" || !metadata)
-        return (
-            <MigrationChartError message="Failed to load migration metadata" />
-        )
+        return <ChartError className="migration-chart-box" />
+    if (migrationStatus === "pending" || !isCountryResolved)
+        return <ChartSkeleton className="migration-chart-box" />
     if (migrationStatus === "error" || !migration)
-        return <MigrationChartError message="Failed to load migration data" />
+        return <ChartError className="migration-chart-box" />
 
     return (
         <CaptionedSankeyVariant
@@ -405,12 +409,4 @@ function filterRows(
     return rows
         .filter((r) => r.year === year && r.sex === sex && r.value > 0)
         .map((r) => ({ partner: r.partner, value: r.value }))
-}
-
-function MigrationSkeleton() {
-    return <div className="migration-skeleton" />
-}
-
-function MigrationChartError({ message }: { message: string }) {
-    return <div className="migration-chart__error">{message}</div>
 }

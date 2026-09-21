@@ -38,7 +38,7 @@ export function renderDodContentHtml(text: string): string {
 
 export type InitializeDetailsOnDemandOptions = {
     details: DetailDictionary
-    onDodShown?: (id: string) => void
+    onDodShown?: (id: string, dodSpan: Element) => void
 }
 
 let cleanupPreviousInitialization: (() => void) | undefined
@@ -91,7 +91,7 @@ export function initializeDetailsOnDemand({
             },
             onShow: () => {
                 hideDodsNotContaining(dodSpan)
-                onDodShown?.(id)
+                onDodShown?.(id, dodSpan)
             },
         })
         instancesByDodSpan.set(dodSpan, instance)

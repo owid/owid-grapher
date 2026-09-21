@@ -195,7 +195,7 @@ export async function createNativeGdoc(
         title,
         authors: [user.fullName],
         body: [],
-    } as OwidGdocContent
+    }
 
     const gdoc = gdocFromJSON({ id, slug: slug || slugify(title), content })
     gdoc.updateMarkdown()
@@ -936,7 +936,7 @@ export async function resolveEditorReferences(
             "originalHeight",
             "originalWidth",
             "updatedAt",
-        ]) as ImageMetadata
+        ])
     }
 
     return {

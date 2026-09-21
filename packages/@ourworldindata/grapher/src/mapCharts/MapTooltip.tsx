@@ -16,7 +16,7 @@ import {
     formatTooltipRangeValues,
 } from "../tooltip/Tooltip"
 import { MapChartManager, MapColumnInfo } from "./MapChartConstants"
-import { ColorScale } from "../color/ColorScale"
+import { ColorScale, INAPPLICABLE_LABEL } from "../color/ColorScale"
 import {
     Time,
     EntityName,
@@ -46,6 +46,7 @@ interface MapTooltipProps {
     timeSeriesTable: OwidTable
     targetTime?: Time // show tooltip values for a specific point in time
     targetTimes?: [Time, Time] // show tooltip values for a specific time range (start and end times)
+    inapplicableEntityNamesSet?: Set<EntityName>
     sparklineWidth?: number
     sparklineHeight?: number
     fading?: TooltipFadeMode
@@ -89,6 +90,20 @@ export class MapTooltip
 
     @computed get entityName(): EntityName {
         return this.props.entityName
+    }
+
+    @computed get isInapplicableEntity(): boolean {
+        return (
+            this.props.inapplicableEntityNamesSet?.has(this.entityName) ?? false
+        )
+    }
+
+    @computed get inapplicableValueLabel(): string {
+        // If the custom label for "Not applicable" matches the current entity
+        // name, use the default "Not applicable" text to avoid spelling the
+        // entity name twice (once in the tooltip title, once in the value line)
+        const label = this.lineColorScale.inapplicableLabel
+        return label === this.entityName ? INAPPLICABLE_LABEL : label
     }
 
     @computed private get shouldShowValueRange(): boolean {
@@ -200,6 +215,10 @@ export class MapTooltip
     @computed private get tooltipSubtitle(): string | undefined {
         const { startDatum, endDatum, startTime, endTime } = this
         const { timeColumn } = this.entityTable
+
+        // Not-applicable entities' values are time-invariant,
+        // so showing a time would be misleading
+        if (this.isInapplicableEntity) return undefined
 
         const originalStartTime = startDatum?.originalTime ?? startTime
         const originalEndTime = endDatum?.originalTime ?? endTime
@@ -331,7 +350,11 @@ export class MapTooltip
                     <MapTooltipValue
                         mapColumn={mapColumn}
                         datum={endDatum}
-                        formattedValue={this.formattedEndValue?.label}
+                        formattedValue={
+                            this.isInapplicableEntity
+                                ? this.inapplicableValueLabel
+                                : this.formattedEndValue?.label
+                        }
                         colorScale={colorScale}
                         isProjection={isProjection}
                     />

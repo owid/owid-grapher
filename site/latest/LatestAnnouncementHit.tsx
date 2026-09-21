@@ -38,9 +38,7 @@ export const LatestAnnouncementHit = ({
                     slug={hit.slug}
                     publishedAt={hit.date}
                     authors={hit.authors}
-                    excerpt={hit.excerpt}
                     body={hit.body}
-                    cta={hit.cta}
                     selectedTopic={selectedTopic}
                     onReadMore={() =>
                         analytics.logLatestAnnouncementExpand(hit, position)

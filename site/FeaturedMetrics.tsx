@@ -9,6 +9,11 @@ import { SearchDataResultsSkeleton } from "./search/SearchDataResultsSkeleton.js
 import { Button } from "@ourworldindata/components"
 import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons"
 import cx from "clsx"
+import { useDocumentContext } from "./gdocs/DocumentContext.js"
+import {
+    getTopicPageHeading,
+    sentenceCaseIfNotTopicPage,
+} from "@ourworldindata/utils"
 
 const MAX_MEDIUM_RESULTS = 4
 const MAX_SMALL_RESULTS = 5
@@ -27,6 +32,9 @@ export const FeaturedMetrics = ({
     id = FEATURED_METRICS_ID,
 }: FeaturedMetricsProps) => {
     const liteSearchClient = getLiteSearchClient()
+    const { gdocType } = useDocumentContext()
+    const headingFragment = getTopicPageHeading("featuredData", gdocType)
+    const headingCaseCorrected = `${headingFragment} on ${sentenceCaseIfNotTopicPage(topicName, gdocType, false)}`
 
     const searchState = {
         query: "",
@@ -72,7 +80,7 @@ export const FeaturedMetrics = ({
                 </h2>
             ) : (
                 <h1 className="h1-semibold">
-                    <span>Featured Data on {topicName}</span>
+                    <span>{headingCaseCorrected}</span>
                     <a
                         className="deep-link"
                         aria-labelledby={id}

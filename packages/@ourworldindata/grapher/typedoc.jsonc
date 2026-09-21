@@ -1,0 +1,82 @@
+{
+    "$schema": "https://typedoc.org/schema.json",
+
+    // The API reference is generated from the *bundled* declaration file that
+    // `yarn build` emits, not from the sources: that documents exactly what
+    // consumers of the published package get, and keeps TypeDoc out of the
+    // monorepo's TypeScript 7 project graph (see tsconfig.typedoc.json).
+    // Run `yarn build` before `yarn buildDocsApi`.
+    "entryPoints": ["dist/grapher.d.ts"],
+    "tsconfig": "tsconfig.typedoc.json",
+    "plugin": ["typedoc-plugin-markdown"],
+
+    "out": "../../../packageDocs/docs/api/reference",
+    "cleanOutputDir": true,
+    "readme": "none",
+    "name": "@ourworldindata/grapher",
+    "githubPages": false,
+
+    "excludeExternals": true,
+    "excludeInternal": true,
+    "excludePrivate": true,
+    "excludeProtected": true,
+    // Line references into the 8000-line bundled .d.ts help nobody.
+    "disableSources": true,
+    "sort": ["source-order"],
+
+    // The bundled .d.ts inlines plenty of types that the package doesn't
+    // re-export (CoreTable, GrapherState, ColorSchemeName, ...). They show up
+    // as plain type names rather than links, which is what we want — no need
+    // to be told about each one on every run.
+    "validation": {
+        "notExported": false,
+        "notDocumented": false,
+        "invalidLink": true
+    },
+    "externalSymbolLinkMappings": {
+        "@types/react": {
+            "React.NewLifecycle.getSnapshotBeforeUpdate": "https://react.dev/reference/react/Component#getsnapshotbeforeupdate"
+        }
+    },
+
+    // One page per exported symbol, filed under classes/, interfaces/, ...
+    "outputFileStrategy": "members",
+    "router": "kind",
+    "entryFileName": "index",
+
+    // The Zensical theme supplies the page chrome, so drop TypeDoc's own.
+    "hidePageHeader": true,
+    "hideBreadcrumbs": true,
+    "pageTitleTemplates": {
+        "index": "API reference",
+        "member": "{name}",
+        "module": "{name}"
+    },
+
+    // Signatures and declarations as fenced code blocks, and generics written
+    // as &lt;T&gt; elsewhere — python-markdown would otherwise swallow a bare
+    // `<T>` in prose as an HTML tag.
+    "useCodeBlocks": true,
+    "useHTMLEncodedBrackets": true,
+    "sanitizeComments": true,
+
+    // Tables rather than one heading per member: most of the config surface
+    // (GrapherInterface, OwidColumnDef) is undocumented name/type pairs, which
+    // in list form costs eight lines each and reads far worse.
+    "indexFormat": "table",
+    "parametersFormat": "table",
+    "interfacePropertiesFormat": "table",
+    "classPropertiesFormat": "table",
+    "typeAliasPropertiesFormat": "table",
+    "propertyMembersFormat": "table",
+    "enumMembersFormat": "table",
+    "typeDeclarationFormat": "table",
+    "typeDeclarationVisibility": "compact",
+    "expandObjects": true,
+    "tableColumnSettings": {
+        "hideSources": true,
+        "hideInherited": true,
+        "hideOverrides": true,
+        "hideModifiers": true
+    }
+}

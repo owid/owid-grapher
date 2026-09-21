@@ -80,26 +80,33 @@ $chart-border-radius: 2px;
         border-radius: 0;
         padding-top: 10px;
 
+        // Sheet slides on the compositor. A transition (not keyframes) so that
+        // double-tapping the controls button reverses from the current position
+        // instead of restarting from off-screen.
+        bottom: 0;
+        transition:
+            transform var(--duration-drawer) var(--ease-drawer),
+            opacity var(--duration-popover) var(--ease-out);
+
         .HiddenControlHeader {
             // Remove hidden labels on mobile entirely
             display: none;
         }
 
         &.show-controls-popup {
-            bottom: 0;
-            animation-name: slideUp;
-            animation-duration: 0.5s;
-            transition-timing-function: cubic-bezier();
-            animation-iteration-count: 1;
+            transform: translateY(0);
+            opacity: 1;
             box-shadow: 2px 2px 4px 2px rgba(0, 0, 0, 0.5);
         }
 
         &.hide-controls-popup {
-            bottom: -150%;
-            animation-name: slideDown;
-            animation-duration: 0.5s;
-            transition-timing-function: cubic-bezier();
-            animation-iteration-count: 1;
+            transform: translateY(100%);
+            opacity: 0;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            // Drop the movement, keep the fade.
+            transition: opacity var(--duration-popover) linear;
         }
     }
 
@@ -133,24 +140,4 @@ $chart-border-radius: 2px;
     font-weight: 400;
     min-width: 120px;
     max-width: min(200px, 100%);
-}
-
-@keyframes slideUp {
-    0% {
-        bottom: -150%;
-    }
-
-    100% {
-        bottom: 0;
-    }
-}
-
-@keyframes slideDown {
-    0% {
-        bottom: 0%;
-    }
-
-    100% {
-        bottom: -150%;
-    }
 }

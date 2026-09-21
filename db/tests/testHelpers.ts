@@ -20,11 +20,15 @@ import {
     MultiDimViewDimensionsTableName,
     MultiDimXChartConfigsTableName,
     NarrativeChartsTableName,
+    OriginsTableName,
+    OriginsVariablesTableName,
     PostsGdocsCommentThreadsTableName,
     PostsGdocsCommentsTableName,
+    PostsGdocsComponentsTableName,
     PostsGdocsDraftsTableName,
     PostsGdocsRevisionsTableName,
     PostsGdocsTableName,
+    SourcesTableName,
     TagGraphTableName,
     TagsTableName,
     UsersTableName,
@@ -50,11 +54,15 @@ export const TABLES_IN_USE = [
     ExplorersTableName,
     JobsTableName,
     ChartsTableName,
-    VariablesTableName,
+    OriginsVariablesTableName, // Must come before VariablesTableName and OriginsTableName due to foreign keys
+    VariablesTableName, // Must come before SourcesTableName due to foreign key
+    OriginsTableName,
+    SourcesTableName,
     ChartConfigsTableName,
     DatasetsTableName,
     PostsGdocsCommentsTableName, // Must come before PostsGdocsCommentThreadsTableName due to foreign key
     PostsGdocsCommentThreadsTableName, // Must come before PostsGdocsTableName due to foreign key
+    PostsGdocsComponentsTableName, // Must come before PostsGdocsTableName due to foreign key
     PostsGdocsDraftsTableName, // Must come before PostsGdocsRevisionsTableName due to foreign key
     PostsGdocsRevisionsTableName, // Must come before PostsGdocsTableName due to foreign key
     PostsGdocsTableName,
@@ -78,38 +86,30 @@ export async function insertTestChartConfig(
     config: GrapherInterface = {},
     id: string = uuidv7()
 ): Promise<string> {
-    const serializedConfig = JSON.stringify(config)
-    const row: DbInsertChartConfig = {
-        id,
-        patch: serializedConfig,
-        full: serializedConfig,
-    }
+    const row: DbInsertChartConfig = { id, config: JSON.stringify(config) }
     await knexInstance(ChartConfigsTableName).insert(row)
     return id
 }
 
-/** Inserts a chart_configs row together with the charts row that owns it. */
+/**
+ * Inserts the resolved and patch chart_configs rows together with the charts
+ * row that owns them.
+ */
 export async function insertTestChart(
     knexInstance: Knex<any, unknown[]>,
     {
         config,
         lastEditedByUserId,
     }: { config?: GrapherInterface; lastEditedByUserId: number }
-): Promise<{ chartId: number; configId: string }> {
+): Promise<{ chartId: number; configId: string; patchConfigId: string }> {
     const configId = await insertTestChartConfig(knexInstance, config)
+    const patchConfigId = await insertTestChartConfig(knexInstance, config)
     const row: DbInsertChart = {
         configId,
+        patchConfigId,
         lastEditedAt: new Date(),
         lastEditedByUserId,
     }
     const [chartId] = await knexInstance(ChartsTableName).insert(row)
-    return { chartId, configId }
-}
-
-export function sleep(time: number, value: unknown): Promise<any> {
-    return new Promise((resolve) => {
-        setTimeout(() => {
-            return resolve(value)
-        }, time)
-    })
+    return { chartId, configId, patchConfigId }
 }

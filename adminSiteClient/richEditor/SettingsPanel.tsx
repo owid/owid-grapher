@@ -109,7 +109,9 @@ export function SettingsPanel(props: {
                 layout="vertical"
                 size="small"
                 initialValues={initialValues}
-                onFinish={(values) => void onFinish(values)}
+                onFinish={(values) => {
+                    void onFinish(values)
+                }}
             >
                 <Form.Item
                     label="Title"

@@ -780,15 +780,9 @@ $panel-gap: 12px;
     }
 }
 
-.demography-skeleton {
-    position: relative;
+.demography-chart-box {
     width: min(100%, 1200px);
     height: 600px;
-    border: 1px solid $frame-color;
-
-    .spinner {
-        color: $gray-60;
-    }
 }
 
 .breakpoint-narrow {
