@@ -2,10 +2,13 @@ import * as R from "remeda"
 import { SeriesName, Time } from "@ourworldindata/types"
 import { CoreColumn } from "@ourworldindata/core-table"
 import { computeCenteredLabelYPositions } from "../rowSeriesLabels/RowSeriesLabelHelpers.js"
-import { CategoricalBin, NumericBin } from "../color/ColorScaleBin"
 import { ColorScale } from "../color/ColorScale"
 import { OWID_ERROR_COLOR } from "../color/ColorConstants"
-import { textWidth } from "../chart/ChartUtils"
+import { formatTimeSpan, textWidth } from "../chart/ChartUtils"
+import { resolveEmphasis } from "../interaction/Emphasis"
+import { InteractionState } from "../interaction/InteractionState"
+import { FocusArray } from "../focus/FocusArray"
+import { CategoricalBin, NumericBin } from "../color/ColorScaleBin"
 import {
     ROW_SPACING_FACTOR,
     MAX_HEIGHT_PER_SERIES,
@@ -14,12 +17,15 @@ import {
     PlacedSwimlaneSegmentLabel,
     PlacedSwimlaneSeries,
     RawSwimlaneSegment,
+    RenderSwimlaneSegment,
+    RenderSwimlaneSeries,
     SizedSwimlaneSeries,
     SEGMENT_CROP_TAPER_RATIO,
     SEGMENT_LABEL_PADDING,
     SwimlaneObservation,
     SwimlaneSegment,
     SwimlaneSegmentLabelStyle,
+    SwimlaneTooltipTarget,
 } from "./SwimlaneChartConstants"
 
 export function toRawSwimlaneSegments({
@@ -120,6 +126,20 @@ export function formatSegmentTimeRange({
     return timeColumn.formatTimeRange(startTime, endTime)
 }
 
+/** How long a category segment's whole run lasts, e.g. "2 years" */
+export function formatSegmentDuration({
+    segment,
+    timeColumn,
+}: {
+    segment: SwimlaneSegment
+    timeColumn: CoreColumn
+}): string | undefined {
+    if (segment.kind === "missing") return undefined
+    const duration = segment.endTime - segment.startTime
+    if (duration === 0) return undefined
+    return formatTimeSpan(duration, timeColumn.timeInterval)
+}
+
 export function computeHeightPerSeries({
     height,
     rowCount,
@@ -175,10 +195,93 @@ export function toPlacedSwimlaneSeries({
         return {
             ...sizedSeries,
             y,
+            height: heightPerSeries,
             labelPosition: { x: labelX, yOffset: labelY - y },
             placedSegments,
         }
     })
+}
+
+function toRenderSwimlaneSegments({
+    segments,
+    hoveredStartTime,
+    hoveredLegendBin,
+    isHoverModeActive,
+    focus,
+}: {
+    segments: PlacedSwimlaneSegment[]
+    hoveredStartTime?: Time
+    hoveredLegendBin?: CategoricalBin
+    isHoverModeActive: boolean
+    focus?: InteractionState
+}): RenderSwimlaneSegment[] {
+    return segments.map((segment) => {
+        const category =
+            segment.kind === "category" ? segment.category : undefined
+        const isHovered =
+            segment.startTime === hoveredStartTime ||
+            !!hoveredLegendBin?.contains(category)
+
+        return {
+            ...segment,
+            emphasis: resolveEmphasis({
+                hover: new InteractionState(isHovered, isHoverModeActive),
+                focus,
+            }),
+        }
+    })
+}
+
+export function toRenderSwimlaneSeries({
+    series: allSeries,
+    hoveredSegment,
+    focusArray,
+    hoveredLegendBin,
+}: {
+    series: PlacedSwimlaneSeries[]
+    hoveredSegment?: SwimlaneTooltipTarget
+    focusArray: FocusArray
+    hoveredLegendBin?: CategoricalBin
+}): RenderSwimlaneSeries[] {
+    const isHoverModeActive =
+        hoveredSegment !== undefined || hoveredLegendBin !== undefined
+
+    return allSeries.map((series): RenderSwimlaneSeries => {
+        const focus = focusArray.state(series.seriesName)
+        const hoveredStartTime =
+            hoveredSegment?.entityName === series.entityName
+                ? hoveredSegment.segment.startTime
+                : undefined
+        return {
+            ...series,
+            emphasis: resolveEmphasis({ focus }),
+            placedSegments: toRenderSwimlaneSegments({
+                segments: series.placedSegments,
+                hoveredStartTime,
+                hoveredLegendBin,
+                isHoverModeActive,
+                focus,
+            }),
+        }
+    })
+}
+
+export function findSegmentAtX(
+    segments: PlacedSwimlaneSegment[],
+    x: number
+): PlacedSwimlaneSegment | undefined {
+    return segments.find(
+        (segment) => x >= segment.x && x < segment.x + segment.width
+    )
+}
+
+export function findRowAtY(
+    series: PlacedSwimlaneSeries[],
+    y: number
+): PlacedSwimlaneSeries | undefined {
+    return series.find(
+        ({ y: rowY, height }) => y >= rowY - height / 2 && y < rowY + height / 2
+    )
 }
 
 /** A category as one step of the ordinal legend's numeric strip */
