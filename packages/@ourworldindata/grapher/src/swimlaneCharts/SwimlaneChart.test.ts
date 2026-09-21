@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest"
+import type React from "react"
 import { Bounds } from "@ourworldindata/utils"
 import {
     ColumnTypeNames,
@@ -9,12 +10,15 @@ import {
 import { OwidTable } from "@ourworldindata/core-table"
 import { GrapherProgrammaticInterface } from "../core/Grapher"
 import { GrapherState } from "../core/GrapherState"
+import { Emphasis } from "../interaction/Emphasis"
 import { SwimlaneChart } from "./SwimlaneChart"
 import { SwimlaneChartState } from "./SwimlaneChartState"
 import {
     PlacedSwimlaneSegment,
     PlacedSwimlaneSeries,
 } from "./SwimlaneChartConstants"
+
+const { Highlighted, Muted } = Emphasis
 
 // France: Monarchy 2000–2002, no data 2003–2004, Republic 2005.
 // Germany: Republic 2000, no data 2001–2002, Republic 2003–2005.
@@ -77,9 +81,22 @@ function findLegendLabels(chart: SwimlaneChart): string[] {
     return bins.map((bin) => bin.text)
 }
 
+function findSegmentEmphases(
+    chart: SwimlaneChart,
+    entityName: string
+): Emphasis[] {
+    const row = chart["renderSeries"].find(
+        (series) => series.entityName === entityName
+    )
+    if (!row) throw new Error(`No row for ${entityName}`)
+    return row.placedSegments.map((segment) => segment.emphasis)
+}
+
 function hasLabel(segment: PlacedSwimlaneSegment): boolean {
     return "label" in segment && segment.label !== undefined
 }
+
+const CURSOR_EVENT = {} as React.MouseEvent
 
 describe("legend", () => {
     it("is a numeric legend for an ordinal indicator, in the indicator's order", () => {
@@ -130,6 +147,62 @@ describe("legend", () => {
             expect(findLegendLabels(chart)).toEqual(["No data", "Republic"])
         }
     )
+})
+
+describe("interaction", () => {
+    it("highlights the hovered legend category even when another category shares its label", () => {
+        const { chart } = makeChart(ColumnTypeNames.String, {
+            colorScale: {
+                customCategoryLabels: {
+                    Monarchy: "Regime",
+                    Republic: "Regime",
+                },
+            },
+        })
+        const legendBins = chart["categoricalLegendBins"]
+        expect(legendBins.map((bin) => bin.value)).toEqual([
+            "No data",
+            "Monarchy",
+            "Republic",
+        ])
+
+        chart["onLegendMouseOver"](legendBins[2])
+
+        expect(findSegmentEmphases(chart, "France")).toEqual([
+            Muted,
+            Muted,
+            Highlighted,
+        ])
+        expect(findSegmentEmphases(chart, "Germany")).toEqual([
+            Highlighted,
+            Muted,
+            Highlighted,
+        ])
+    })
+
+    it.each([
+        {
+            interaction: "the cursor enters the plot",
+            interact: (chart: SwimlaneChart): void => {
+                chart["onCursorEnter"](CURSOR_EVENT)
+            },
+        },
+        {
+            interaction: "a legend category is hovered",
+            interact: (chart: SwimlaneChart): void => {
+                chart["onLegendMouseOver"](chart["categoricalLegendBins"][1])
+            },
+        },
+    ])("clears the author's focus when $interaction", ({ interact }) => {
+        const { grapherState, chart } = makeChart(ColumnTypeNames.String, {
+            focusedSeriesNames: ["Germany"],
+        })
+        expect(grapherState.focusArray.seriesNames).toEqual(["Germany"])
+
+        interact(chart)
+
+        expect(grapherState.focusArray.seriesNames).toEqual([])
+    })
 })
 
 describe("segments", () => {

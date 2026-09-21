@@ -208,7 +208,6 @@ export class EditorFeatures {
         return (
             !this.grapherState.isScatter &&
             !this.grapherState.isMarimekko &&
-            !this.grapherState.isSwimlane &&
             this.grapherState.isOnChartTab
         )
     }
