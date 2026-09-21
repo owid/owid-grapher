@@ -8,6 +8,8 @@ import {
     Time,
 } from "@ourworldindata/types"
 import { SeriesLabelState } from "../seriesLabel/SeriesLabelState"
+import { Emphasis } from "../interaction/Emphasis"
+import { GRAPHER_AREA_OPACITY_MUTED } from "../core/GrapherConstants"
 
 export const LANE_SPACING_FACTOR = 0.35
 export const ENTITY_LABEL_CHART_GAP = 8
@@ -22,6 +24,28 @@ export const SEGMENT_LABEL_TIME_RANGE_FONT_WEIGHT = 500
 /** The domain runs one step past the last time, so the last band has room */
 export const SWIMLANE_X_AXIS_CONFIG_DEFAULTS: AxisConfigInterface = {
     isDomainEndExclusive: true,
+}
+
+interface SwimlaneEmphasisStyleConfig {
+    opacity: number
+}
+
+export const SWIMLANE_ROW_STYLE: Record<Emphasis, SwimlaneEmphasisStyleConfig> =
+    {
+        [Emphasis.Default]: { opacity: 1 },
+        [Emphasis.Elevated]: { opacity: 1 },
+        [Emphasis.Highlighted]: { opacity: 1 },
+        [Emphasis.Muted]: { opacity: GRAPHER_AREA_OPACITY_MUTED },
+    }
+
+export const SWIMLANE_SEGMENT_STYLE: Record<
+    Emphasis,
+    SwimlaneEmphasisStyleConfig
+> = {
+    [Emphasis.Default]: { opacity: 1 },
+    [Emphasis.Elevated]: { opacity: 1 },
+    [Emphasis.Highlighted]: { opacity: 1 },
+    [Emphasis.Muted]: { opacity: GRAPHER_AREA_OPACITY_MUTED },
 }
 
 export type SwimlaneChartManager = ChartManager
@@ -67,8 +91,12 @@ export type PlacedSwimlaneSegment = SwimlaneSegment & {
     height: number
 }
 
-export type PlacedSwimlaneCategorySegment = Extract<
-    PlacedSwimlaneSegment,
+export type RenderSwimlaneSegment = PlacedSwimlaneSegment & {
+    emphasis: Emphasis
+}
+
+export type RenderSwimlaneCategorySegment = Extract<
+    RenderSwimlaneSegment,
     { kind: "category" }
 >
 
@@ -90,6 +118,14 @@ export interface PlacedSwimlaneSeries extends Omit<
     y: number
     labelPosition: { x: number; yOffset: number }
     placedSegments: PlacedSwimlaneSegment[]
+}
+
+export interface RenderSwimlaneSeries extends Omit<
+    PlacedSwimlaneSeries,
+    "placedSegments"
+> {
+    emphasis: Emphasis
+    placedSegments: RenderSwimlaneSegment[]
 }
 
 export interface OrdinalSwimlaneCategories {
