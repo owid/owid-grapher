@@ -16,7 +16,7 @@ import {
     GRAPHER_LIGHT_TEXT,
     OWID_NO_DATA_GRAY,
 } from "../color/ColorConstants.js"
-import { BinaryMapPaletteF } from "../color/CustomSchemes.js"
+import { OwidDistinctColors } from "../color/CustomSchemes.js"
 
 /** Horizontal gap between the value label and the dumbbell */
 export const VALUE_LABEL_DOT_GAP = 6
@@ -33,8 +33,8 @@ export const MIN_LEGEND_LABEL_GAP = 8
 export const NO_CHANGE_COLOR = OWID_NO_DATA_GRAY
 
 export const DEFAULT_DUMBBELL_TREND_COLOR_MAP = {
-    increase: BinaryMapPaletteF.colorSets[0][0],
-    decrease: BinaryMapPaletteF.colorSets[0][1],
+    increase: OwidDistinctColors.TealishGreen,
+    decrease: OwidDistinctColors.Coral,
 } satisfies DumbbellTrendColorMap
 
 export const START_COLUMN_COLOR = GRAPHER_DENIM

@@ -72,7 +72,7 @@ describe(convertSelectedChartBlockToNarrativeChart, () => {
                     type: "text",
                     value: [{ spanType: "span-simple-text", text: "hi" }],
                     parseErrors: [],
-                } as OwidEnrichedGdocBlock,
+                },
             ]),
         })
         expect(

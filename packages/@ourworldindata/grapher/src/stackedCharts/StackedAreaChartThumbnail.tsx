@@ -9,8 +9,8 @@ import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
     FontSettings,
-    GRAPHER_FONT_SCALE_12,
 } from "../core/GrapherConstants"
+import { scaleFontSize } from "../chart/ChartUtils"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import { ChartManager } from "../chart/ChartManager"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig"
@@ -102,7 +102,7 @@ export class StackedAreaChartThumbnail
 
     @computed private get labelFontSettings(): FontSettings {
         return {
-            fontSize: Math.floor(GRAPHER_FONT_SCALE_12 * this.fontSize),
+            fontSize: scaleFontSize(12, this.fontSize),
             fontWeight: 500,
             lineHeight: 1,
         }
@@ -246,11 +246,13 @@ export class StackedAreaChartThumbnail
                     axis={this.dualAxis.verticalAxis}
                     bounds={this.dualAxis.innerBounds}
                 />
-                <HorizontalAxisComponent
-                    axis={this.dualAxis.horizontalAxis}
-                    bounds={this.dualAxis.bounds}
-                    showEndpointsOnly
-                />
+                {!this.dualAxis.horizontalAxis.hideAxis && (
+                    <HorizontalAxisComponent
+                        axis={this.dualAxis.horizontalAxis}
+                        bounds={this.dualAxis.bounds}
+                        showEndpointsOnly
+                    />
+                )}
                 <StackedAreas series={this.renderSeries} />
                 {this.anchoredLabelsState && (
                     <AnchoredLabels state={this.anchoredLabelsState} />

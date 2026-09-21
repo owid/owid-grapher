@@ -513,12 +513,28 @@ const parseBespokeComponent = (
         }
     }
 
+    const rawFallbackImageFilename = raw.value.fallbackImageFilename
+    if (
+        rawFallbackImageFilename &&
+        typeof rawFallbackImageFilename !== "string"
+    ) {
+        parseErrors.push({
+            message: "fallbackImageFilename, if specified, must be a string",
+        })
+    }
+
+    const fallbackImageFilename =
+        typeof rawFallbackImageFilename === "string"
+            ? rawFallbackImageFilename
+            : undefined
+
     return {
         type: "bespoke-component",
         bundle: raw.value.bundle,
         variant: raw.value.variant,
         size,
         config,
+        fallbackImageFilename,
         parseErrors,
     }
 }

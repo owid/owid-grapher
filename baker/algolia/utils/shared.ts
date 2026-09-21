@@ -22,7 +22,7 @@ import {
 } from "@ourworldindata/types"
 import urljoin from "url-join"
 import * as R from "remeda"
-import { BAKED_BASE_URL } from "../../../settings/clientSettings.js"
+import { BAKED_BASE_URL } from "../../../settings/clientSettings.mjs"
 import {
     incomeGroupMap,
     DatasetChartRecordDimensions,

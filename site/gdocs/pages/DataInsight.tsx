@@ -3,7 +3,7 @@ import {
     LatestDataInsight,
     OwidGdocDataInsightInterface,
     copyToClipboard,
-    formatInlineList,
+    formatAuthors,
     MinimalTag,
 } from "@ourworldindata/utils"
 import { useContext, useState } from "react"
@@ -20,7 +20,7 @@ import LinkedAuthor from "../components/LinkedAuthor.js"
 import DataInsightDateline from "../components/DataInsightDateline.js"
 import LatestDataInsights from "../components/LatestDataInsights.js"
 import { AttachmentsContext } from "../AttachmentsContext.js"
-import { BAKED_BASE_URL } from "../../../settings/clientSettings.js"
+import { BAKED_BASE_URL } from "../../../settings/clientSettings.mjs"
 import { buildSocialText } from "../socialText.js"
 import { CopySocialButton } from "../components/CopySocialButton.js"
 import { buildLatestPagePath } from "../../latest/latestUtils.js"
@@ -104,7 +104,7 @@ function CopyLinkButton(props: { slug: string }) {
 
 function buildAuthorsNote(authors: string[]): string | undefined {
     if (authors.length === 0) return undefined
-    return `(This Data Insight was written by ${formatInlineList(authors, "and")}.)`
+    return `(This Data Insight was written by ${formatAuthors(authors)}.)`
 }
 
 export const DataInsightBody = (

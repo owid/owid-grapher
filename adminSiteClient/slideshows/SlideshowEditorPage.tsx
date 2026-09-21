@@ -33,7 +33,10 @@ import {
     SlideshowConfig,
 } from "@ourworldindata/types"
 import { slugify, Url } from "@ourworldindata/utils"
-import { toPlaintext } from "@ourworldindata/components"
+import {
+    getPrefersReducedMotion,
+    toPlaintext,
+} from "@ourworldindata/components"
 import { SlideshowEditTab } from "./SlideshowEditTab.js"
 import {
     makeDefaultSlideForTemplate,
@@ -109,7 +112,7 @@ export function SlideshowEditorPage(props: {
 
     useEffect(() => {
         activeThumbRef.current?.scrollIntoView({
-            behavior: "smooth",
+            behavior: getPrefersReducedMotion() ? "auto" : "smooth",
             block: "nearest",
             inline: "nearest",
         })

@@ -20,6 +20,7 @@ import {
 import type { ArchiveGuidedChartRegistration } from "@ourworldindata/grapher"
 import { SiteAnalytics } from "../../SiteAnalytics.js"
 import { useAriaAnnouncer } from "../../AriaAnnouncerUtils.js"
+import { getPrefersReducedMotion } from "@ourworldindata/components"
 
 const analytics = new SiteAnalytics()
 
@@ -126,7 +127,9 @@ export default function GuidedChart({
                 if (!isSticky && !isFullyVisible) {
                     setTimeout(() => {
                         target.scrollIntoView({
-                            behavior: "smooth",
+                            behavior: getPrefersReducedMotion()
+                                ? "auto"
+                                : "smooth",
                             block: "nearest",
                         })
                     }, 100)

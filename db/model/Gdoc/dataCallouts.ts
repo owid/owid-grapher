@@ -37,7 +37,7 @@ import { match } from "ts-pattern"
 import { DATA_API_URL } from "../../../settings/serverSettings.js"
 import * as db from "../../db.js"
 import { mapSlugsToIds, getChartConfigById } from "../Chart.js"
-import { getMergedGrapherConfigForVariable } from "../Variable.js"
+import { getIndicatorChartConfig } from "../Variable.js"
 import { getExplorerBySlug } from "../Explorer.js"
 import { transformExplorerProgramToResolveCatalogPaths } from "../ExplorerCatalogResolver.js"
 import { getMultiDimDataPageBySlug } from "../MultiDimDataPage.js"
@@ -200,7 +200,7 @@ async function prepareCalloutTableForExplorer(
                 }
 
                 const variableConfig =
-                    (await getMergedGrapherConfigForVariable(
+                    (await getIndicatorChartConfig(
                         knex,
                         yVariableIdsList[0]
                     )) ?? {}

@@ -33,7 +33,7 @@ import { GdocBase } from "../../../db/model/Gdoc/GdocBase.js"
 import {
     BAKED_BASE_URL,
     CLOUDFLARE_IMAGES_URL,
-} from "../../../settings/clientSettings.js"
+} from "../../../settings/clientSettings.mjs"
 import { logErrorAndMaybeCaptureInSentry } from "../../../serverUtils/errorLog.js"
 import {
     getFirstBlockOfType,

@@ -1,4 +1,4 @@
-import { QueryParams } from "@ourworldindata/types"
+import { MultiDimDimensionChoices, QueryParams } from "@ourworldindata/types"
 import { omitUndefinedValues } from "../Util.js"
 
 /**
@@ -42,6 +42,20 @@ export const queryParamsToStr = (params: QueryParams): string => {
     // we're relying on `~` (%7E) to not be encoded in some places, so make sure that it never is
     const newQueryStr = queryParams.toString().replace(/%7E/g, "~")
     return newQueryStr.length ? `?${newQueryStr}` : ""
+}
+
+/**
+ * Serialize a multi-dim view's dimension choices into a canonical query
+ * string, e.g. `antigen=hepb_bd&metric=vaccinated`. The parameters are sorted
+ * so the same view always produces the same string; this is used as the
+ * view's identifier.
+ */
+export function multiDimDimensionsToViewQueryStr(
+    dimensions: MultiDimDimensionChoices
+): string {
+    const searchParams = new URLSearchParams(dimensions)
+    searchParams.sort()
+    return searchParams.toString()
 }
 
 export const getWindowQueryStr = (): string => window.location.search

@@ -401,8 +401,8 @@ const fetchGrapherInfo = async (
     return await trx
         .select(
             trx.raw("charts.id as id"),
-            trx.raw("chart_configs.full->>'$.title' as title"),
-            trx.raw("chart_configs.full->>'$.subtitle' as subtitle"),
+            trx.raw("chart_configs.config->>'$.title' as title"),
+            trx.raw("chart_configs.config->>'$.subtitle' as subtitle"),
             "ddc.datasetNamespaces",
             "ddc.datasetVersions",
             "ddc.datasetProducts",
@@ -416,7 +416,7 @@ const fetchGrapherInfo = async (
             "ddc.chartId"
         )
         .whereIn("charts.id", grapherIds)
-        .andWhereRaw("chart_configs.full->>'$.isPublished' = 'true'")
+        .andWhereRaw("chart_configs.config->>'$.isPublished' = 'true'")
         .then((rows) => _.keyBy(rows, "id"))
 }
 

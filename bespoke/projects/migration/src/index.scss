@@ -1,6 +1,7 @@
 @import "normalize.css";
 
 @import "@fortawesome/fontawesome-svg-core/styles.css";
+@import "../../../../packages/@ourworldindata/components/src/styles/fontawesome.scss";
 
 @import "tippy.js/dist/tippy.css";
 @import "tippy.js/themes/light.css";
@@ -18,6 +19,8 @@
 @import "../../../components/Switcher/Switcher.scss";
 @import "../../../components/TimeSlider/TimeSlider.scss";
 @import "../../../components/Spinner/Spinner.scss";
+@import "../../../components/ChartSkeleton/ChartSkeleton.scss";
+@import "../../../components/ChartError/ChartError.scss";
 @import "../../../components/ResponsiveContainer/ResponsiveContainer.scss";
 
 // Project components

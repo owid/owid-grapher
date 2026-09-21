@@ -497,7 +497,7 @@ function useFeaturedMetrics() {
     return useQuery({
         queryKey: ["featuredMetrics"],
         queryFn: async () => {
-            const { featuredMetrics } = await admin.getJSON<{
+            const { featuredMetrics } = await admin.getJSONInBackground<{
                 featuredMetrics: FeaturedMetricByParentTagNameDictionary
             }>("/api/featured-metrics.json")
             return featuredMetrics
@@ -585,15 +585,7 @@ function useUpdateBoost() {
 type UpdateBoostMutation = ReturnType<typeof useUpdateBoost>
 
 export function FeaturedMetricsPage() {
-    const { admin } = useContext(AdminAppContext)
     const [search, setSearch] = useState("")
-
-    useEffect(() => {
-        admin.loadingIndicatorSetting = "off"
-        return () => {
-            admin.loadingIndicatorSetting = "default"
-        }
-    }, [admin])
 
     const featuredMetrics = useFeaturedMetrics()
     const addFeaturedMetric = useAddFeaturedMetric()

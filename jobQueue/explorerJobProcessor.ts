@@ -9,8 +9,8 @@ import {
 import { refreshExplorerViewsForSlug } from "../db/model/ExplorerViews.js"
 import { knexReadWriteTransaction, knexReadonlyTransaction } from "../db/db.js"
 import {
-    saveGrapherConfigToR2ByUUID,
-    deleteGrapherConfigFromR2ByUUID,
+    saveGrapherConfigToR2ByUuid,
+    deleteGrapherConfigFromR2ByUuid,
 } from "../serverUtils/r2/chartConfigR2Helpers.js"
 import { triggerStaticBuild } from "../baker/GrapherBakingUtils.js"
 import { logErrorAndMaybeCaptureInSentry } from "../serverUtils/errorLog.js"
@@ -152,7 +152,7 @@ export async function processExplorerViewsJob(
             await pMap(
                 refreshResult.removedChartConfigIds,
                 async (configId) => {
-                    await deleteGrapherConfigFromR2ByUUID(configId)
+                    await deleteGrapherConfigFromR2ByUuid(configId)
                 },
                 { concurrency: CONCURRENCY }
             )
@@ -163,17 +163,17 @@ export async function processExplorerViewsJob(
             // Fetch chart configs (simple read, no transaction needed)
             const chartConfigs = await knexReadonlyTransaction(async (knex) => {
                 return await knex("chart_configs")
-                    .select("id", "full", "fullMd5")
+                    .select("id", "config", "configMd5")
                     .whereIn("id", refreshResult.updatedChartConfigIds)
             })
 
             await pMap(
                 chartConfigs,
                 async (config) => {
-                    await saveGrapherConfigToR2ByUUID(
+                    await saveGrapherConfigToR2ByUuid(
                         config.id,
-                        config.full,
-                        config.fullMd5
+                        config.config,
+                        config.configMd5
                     )
                 },
                 { concurrency: CONCURRENCY }

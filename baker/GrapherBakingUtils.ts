@@ -4,26 +4,8 @@ import fs from "fs-extra"
 import * as db from "../db/db.js"
 import { DbPlainTag, DbPlainUser } from "@ourworldindata/utils"
 import { isPathRedirectedToExplorer } from "../explorerAdminServer/ExplorerRedirects.js"
-import { hashMd5 } from "../serverUtils/hash.js"
 import { BAKE_ON_CHANGE } from "../settings/serverSettings.js"
 import { DeployQueueServer } from "./DeployQueueServer.js"
-
-// Combines a grapher slug, and potentially its query string, to _part_ of an export file
-// name. It's called fileKey and not fileName because the actual export filename also includes
-// other parts, like chart version and width/height.
-export const grapherSlugToExportFileKey = (
-    slug: string,
-    queryStr: string | undefined,
-    {
-        shouldHashQueryStr = true,
-        separator = "-",
-    }: { shouldHashQueryStr?: boolean; separator?: string } = {}
-) => {
-    const maybeHashedQueryStr = shouldHashQueryStr
-        ? hashMd5(queryStr ?? "")
-        : queryStr
-    return `${slug}${queryStr ? `${separator}${maybeHashedQueryStr}` : ""}`
-}
 
 /**
  * Returns a map that can resolve Tag names and Tag IDs to the Tag's slug

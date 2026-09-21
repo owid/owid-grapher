@@ -204,12 +204,10 @@ export function runsToSpanTree(runs: SpanRun[]): Span[] {
         ) {
             j += 1
         }
-        const inner = runs.slice(i, j).map(
-            (r): SpanRun => ({
-                ...r,
-                marks: r.marks.filter((m) => !runMarksEqual(m, outer)),
-            })
-        )
+        const inner = runs.slice(i, j).map((r): SpanRun => ({
+            ...r,
+            marks: r.marks.filter((m) => !runMarksEqual(m, outer)),
+        }))
         out.push(markToSpan(outer, runsToSpanTree(inner)))
         i = j
     }

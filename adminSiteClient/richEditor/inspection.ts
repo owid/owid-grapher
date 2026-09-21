@@ -177,7 +177,7 @@ export function inspectedBlockFromSelection(
             nodeType,
             blockType: attrsBlockType,
             kind: "attrs",
-            props: node.attrs as Record<string, unknown>,
+            props: node.attrs,
             updateProps: updateSelectedNodeAttrs(
                 (_attrs, newProps) => newProps
             ),
@@ -195,7 +195,7 @@ export function inspectedBlockFromSelection(
             nodeType,
             blockType: block?.type ?? "unknown",
             kind: "raw",
-            props: (block ?? {}) as Record<string, unknown>,
+            props: block ?? {},
             updateProps: () => undefined,
             deleteBlock,
             getPos,

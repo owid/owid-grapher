@@ -1,4 +1,5 @@
 import { liteClient, type LiteClient } from "algoliasearch/lite"
+import { createNullCache } from "@algolia/client-common"
 import { createFetchRequester } from "@algolia/requester-fetch"
 import { Env } from "../../_common/env.js"
 
@@ -36,8 +37,12 @@ export function getIndexName(
 // The same algoliasearch client the site uses. It needs an explicit fetch()
 // requester here because its default requester selection (XHR in browsers,
 // http.Agent in Node) has no automatic Cloudflare Workers case.
+//
+// We disable the cache here because we don't need it with a single search per
+// request, which also makes the client safe to hoist to module scope.
 export function createSearchClient(config: AlgoliaConfig): LiteClient {
     return liteClient(config.appId, config.apiKey, {
         requester: createFetchRequester(),
+        responsesCache: createNullCache(),
     })
 }
