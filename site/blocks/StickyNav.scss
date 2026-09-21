@@ -25,7 +25,7 @@
         }
 
         a {
-            transition: color 0.25s ease-in-out;
+            transition: color var(--duration-hover) ease;
             white-space: nowrap;
 
             &:active,

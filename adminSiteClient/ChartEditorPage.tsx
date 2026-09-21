@@ -1,7 +1,7 @@
 import React from "react"
 import { observer } from "mobx-react"
 import { observable, computed, runInAction, action, makeObservable } from "mobx"
-import { getParentVariableIdFromChartConfig } from "@ourworldindata/utils"
+import { getParentIndicatorIdFromChartConfig } from "@ourworldindata/utils"
 import {
     type AnalyticsGrapherViewWithRank,
     GrapherInterface,
@@ -14,7 +14,7 @@ import {
     ChartEditor,
     Log,
     ChartEditorManager,
-    fetchMergedGrapherConfigByVariableId,
+    fetchChartConfigByIndicatorId,
 } from "./ChartEditor.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { ChartEditorView, ChartEditorViewManager } from "./ChartEditorView.js"
@@ -64,6 +64,8 @@ export class ChartEditorPage
 
     patchConfig: GrapherInterface = {}
     parentConfig: GrapherInterface | undefined = undefined
+    parentVariableId: number | undefined = undefined
+    etlConfig: GrapherInterface | undefined = undefined
 
     isInheritanceEnabled: boolean | undefined = undefined
 
@@ -89,17 +91,23 @@ export class ChartEditorPage
                     `/api/charts/${grapherId}.settings.json`
                 ),
             ])
-            this.parentConfig = parent?.config
-            this.isInheritanceEnabled = parent?.isActive ?? true
+            // The parent endpoint returns the two layers above the admin's
+            // patch separately: the indicator's grapher_config and the
+            // chart's own etlConfig. They are merged on the editor side.
+            this.parentConfig = parent?.variableConfig
+            this.parentVariableId = parent?.variableId
+            this.etlConfig = parent?.etlConfig
+            this.isInheritanceEnabled = parent?.isInheritanceEnabled ?? true
             this.forceDatapage = settings?.forceDatapage ?? false
         } else if (grapherConfig) {
             const parentIndicatorId =
-                getParentVariableIdFromChartConfig(grapherConfig)
+                getParentIndicatorIdFromChartConfig(grapherConfig)
             if (parentIndicatorId) {
-                this.parentConfig = await fetchMergedGrapherConfigByVariableId(
+                this.parentConfig = await fetchChartConfigByIndicatorId(
                     this.context.admin,
                     parentIndicatorId
                 )
+                this.parentVariableId = parentIndicatorId
             }
             this.isInheritanceEnabled = true
             this.forceDatapage = false

@@ -107,6 +107,38 @@ jobs:
       - name: Check Raycast snippets are in sync
         run: yarn checkRaycastSnippets
 
+  # The committed gdocs registries are derived from the .md sidecars + type
+  # definitions. The generator exits non-zero on invalid sidecars/examples,
+  # so that step covers "invalid"; the diff check covers "stale".
+  gdocs-references:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/setup-node-yarn-deps
+        with:
+          runPostinstallScripts: false
+
+      - name: Regenerate gdocs references
+        run: yarn generateGdocsReferences
+
+      # Checks whatever the generator wrote, rather than a hardcoded list:
+      # --porcelain also reports an untracked file, so a newly added registry
+      # is covered without editing this job.
+      - name: Check committed registries are current
+        run: |
+          changed=$(git status --porcelain -- 'packages/@ourworldindata/types/src/gdocTypes/*.registry.generated.json')
+          if [ -n "$changed" ]; then
+            git diff -- 'packages/@ourworldindata/types/src/gdocTypes/*.registry.generated.json'
+            echo "$changed"
+            echo "::error::packages/@ourworldindata/types/src/gdocTypes/*.registry.generated.json are stale or uncommitted. Run 'yarn generateGdocsReferences' and commit the result."
+            exit 1
+          fi
+
   # Runs `bundlemon` on the code to see if our Vite build assets exceed a given file size.
   bundlemon:
     runs-on: ubuntu-latest

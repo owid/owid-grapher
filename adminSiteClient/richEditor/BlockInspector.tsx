@@ -350,7 +350,6 @@ export function BlockInspector(props: {
         setJsonText(JSON.stringify(inspected.props, null, 2))
         setJsonError(null)
         // re-sync when a different block is inspected
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [inspected])
 
     const apply = (updates: Record<string, unknown>): void => {

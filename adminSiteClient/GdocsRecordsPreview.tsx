@@ -75,9 +75,12 @@ export const GdocsRecordsPreview = ({
 
     const recordsQuery = useQuery({
         queryKey: ["gdocRecords", gdocId],
+        meta: { blocksPage: false },
         enabled: open && mode === "records",
         queryFn: async (): Promise<PagesIndexRecordsResponse> => {
-            const response = await admin.getJSON(`/api/gdocs/${gdocId}/records`)
+            const response = await admin.getJSONInBackground(
+                `/api/gdocs/${gdocId}/records`
+            )
             return PagesIndexRecordsResponseSchema.parse(response)
         },
         staleTime: 60 * 1000,
@@ -85,11 +88,12 @@ export const GdocsRecordsPreview = ({
 
     const plaintextQuery = useQuery({
         queryKey: ["gdocPlaintext", gdocId],
+        meta: { blocksPage: false },
         enabled: open && mode === "plaintext",
         queryFn: async (): Promise<{ plaintext: string | undefined }> => {
-            return admin.getJSON<{ plaintext: string | undefined }>(
-                `/api/gdocs/${gdocId}/records?raw=true`
-            )
+            return admin.getJSONInBackground<{
+                plaintext: string | undefined
+            }>(`/api/gdocs/${gdocId}/records?raw=true`)
         },
         staleTime: 60 * 1000,
     })

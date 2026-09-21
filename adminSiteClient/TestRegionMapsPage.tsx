@@ -10,7 +10,7 @@ import {
     useElementBounds,
     type TooltipKey,
 } from "@ourworldindata/grapher"
-import { getRegionDataProviders } from "@ourworldindata/utils"
+import { getRegionSets } from "@ourworldindata/utils"
 import { OwidTable } from "@ourworldindata/core-table"
 import {
     ColorSchemeName,
@@ -19,6 +19,7 @@ import {
     GRAPHER_CHART_TYPES,
     GRAPHER_TAB_CONFIG_OPTIONS,
 } from "@ourworldindata/types"
+import { regionSetLabels } from "./EntityPresets.js"
 import { AdminLayout } from "./AdminLayout.js"
 
 const REGION_COLUMN_SLUG = "region"
@@ -32,12 +33,12 @@ const SYNTHETIC_YEAR = 2025
 const LINE_CHART_START_YEAR = 2000
 const LINE_CHART_END_YEAR = 2025
 
-// One map per region provider (and tier) defined in the regions data,
+// One map per region set defined in the regions data,
 // plus the two OWID groupings
 const REGION_MAP_KEYS: TooltipKey[] = [
     "continents",
     "incomeGroups",
-    ...[...getRegionDataProviders()].sort(),
+    ...[...getRegionSets()].sort(),
 ]
 
 function synthesizeRegionMapTable(key: TooltipKey): OwidTable {
@@ -88,10 +89,10 @@ function synthesizeRegionLineChartTable(key: TooltipKey): OwidTable {
     ])
 }
 
-// The labels aren't unique across a provider's tiers (e.g. all three UN M49
-// levels share one label), so the key is appended to disambiguate
 function makeRegionMapTitle(key: TooltipKey): string {
-    return `${regionGroupLabels[key]} (${key})`
+    return key === "continents" || key === "incomeGroups"
+        ? regionGroupLabels[key]
+        : regionSetLabels[key]
 }
 
 function makeRegionMapGrapherState(key: TooltipKey): GrapherState {
@@ -126,9 +127,7 @@ function makeRegionLineChartGrapherState(key: TooltipKey): GrapherState {
     return grapherState
 }
 
-// Whether every region of the provider has a hard-coded color (regions are
-// keyed identically in ContinentColors and MapContinentColors, so checking
-// one dictionary is enough)
+// Whether every region of the set has a hard-coded color
 function hasHardCodedColors(key: TooltipKey): boolean {
     return getRegionsForKey(key).every(
         (region) =>
@@ -164,11 +163,11 @@ export function TestRegionMapsPage() {
         })
         return [
             {
-                heading: "Providers with hard-coded region colors",
+                heading: "Region sets with hard-coded colors",
                 regionMaps: pinnedKeys.map(makeStates),
             },
             {
-                heading: "Providers without hard-coded region colors",
+                heading: "Region sets without hard-coded colors",
                 regionMaps: unpinnedKeys.map(makeStates),
             },
         ]

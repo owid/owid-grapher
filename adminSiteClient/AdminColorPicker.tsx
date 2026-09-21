@@ -21,21 +21,16 @@ import {
     Tooltip,
     OverlayArrow,
 } from "react-aria-components"
-import { ColorSchemeName, lastOfNonEmptyArray } from "@ourworldindata/utils"
 import {
-    ColorSchemes,
-    ContinentColors,
-    EnergyColors,
-    OwidDistinctColors,
-    OwidDistinctLinesColors,
-    OwidMapColors,
-} from "@ourworldindata/grapher"
+    getAdminColorPalette,
+    type ColorPaletteKey,
+    type PaletteGroup,
+} from "./colorPalettes.js"
 import "./AdminColorPicker.scss"
 
 interface AdminColorPickerProps {
     color?: string
-    showLineChartColors: boolean
-    baseColorScheme?: ColorSchemeName
+    palette: ColorPaletteKey
     onColor: (color: string | undefined) => void
     /** Called when the picker's intrinsic size changes (e.g. on details toggle). */
     onResize?: () => void
@@ -43,11 +38,11 @@ interface AdminColorPickerProps {
 
 type TabKey = "all" | "regions" | "energy" | "hue"
 
-interface ColorMeta {
+interface SwatchInfo {
     hex: string
     name?: string
     regions: string[]
-    energy?: string
+    energy: string[]
 }
 
 const DEFAULT_COLOR = "#000000"
@@ -57,34 +52,6 @@ const DEFAULT_COLOR = "#000000"
 // every show, sibling pickers can't drift out of sync.
 let lastSelectedTab: TabKey = "all"
 let isCustomSectionOpen = false
-
-/** Turn camelCase identifiers ("SubSaharanAfrica") into readable labels. */
-function humanizeName(name: string): string {
-    if (name.includes(" ")) return name
-    return name.replace(/([a-z])([A-Z])/g, "$1 $2")
-}
-
-/** Build a case-insensitive hex → name lookup (last match wins, like remeda's invert). */
-function invertColorMap(map: Record<string, string>): Record<string, string> {
-    const result: Record<string, string> = {}
-    for (const [name, hex] of Object.entries(map))
-        result[hex.toUpperCase()] = name
-    return result
-}
-
-/** Build a case-insensitive hex → all (deduped, humanized) names mapping. */
-function groupNamesByHex(
-    map: Record<string, string>
-): Record<string, string[]> {
-    const result: Record<string, string[]> = {}
-    for (const [name, hex] of Object.entries(map)) {
-        const key = hex.toUpperCase()
-        const label = humanizeName(name)
-        const list = (result[key] ??= [])
-        if (!list.includes(label)) list.push(label)
-    }
-    return result
-}
 
 /** Parse a hex string into an HSB color so the area/slider channels line up. */
 function toHsbColor(hex: string): Color {
@@ -103,34 +70,19 @@ function hueOf(hex: string): number {
     }
 }
 
-/**
- * The context-aware OWID Distinct palette, mirroring the previous react-color
- * picker: special map colors for the categorical map scheme, otherwise the
- * distinct (or distinct-lines) palette.
- */
-function getGridColors(
-    showLineChartColors: boolean,
-    baseColorScheme?: ColorSchemeName
-): string[] {
-    if (baseColorScheme === ColorSchemeName.OwidCategoricalMap)
-        return Object.values(OwidMapColors)
-
-    const scheme = showLineChartColors
-        ? ColorSchemes.get(ColorSchemeName.OwidDistinctLines)
-        : ColorSchemes.get(ColorSchemeName["owid-distinct"])
-    return lastOfNonEmptyArray(scheme.colorSets)
-}
-
 export function AdminColorPicker({
     color,
-    showLineChartColors,
-    baseColorScheme,
+    palette: paletteKey,
     onColor,
     onResize,
 }: AdminColorPickerProps): ReactElement {
+    const palette = getAdminColorPalette(paletteKey)
+
     // The picker remounts on every popover open (Tippy `lazy`), so these
     // initializers always pick up the latest shared UI state.
+    const hasEnergyTab = palette.energy.entries.length > 0
     const [tab, setTab] = useState<TabKey>(lastSelectedTab)
+    const effectiveTab = tab === "energy" && !hasEnergyTab ? "all" : tab
     const selectTab = (key: TabKey): void => {
         lastSelectedTab = key
         setTab(key)
@@ -160,52 +112,19 @@ export function AdminColorPicker({
         )
     }, [color])
 
-    const nameByHex = useMemo(
-        () =>
-            invertColorMap({
-                ...OwidDistinctColors,
-                ...OwidDistinctLinesColors,
-                ...OwidMapColors,
-            }),
-        []
-    )
-    const regionsByHex = useMemo(() => groupNamesByHex(ContinentColors), [])
-    const energyByHex = useMemo(() => invertColorMap(EnergyColors), [])
-
-    // The line-chart palette swaps in darker variants (PeachDarker, etc.) that
-    // aren't keys in ContinentColors/EnergyColors. Map each darker hex back to
-    // its base hex so region/energy metadata still resolves.
-    const baseHexByDarkerHex = useMemo(() => {
-        const result: Record<string, string> = {}
-        const distinct = OwidDistinctColors as Record<string, string>
-        for (const [name, hex] of Object.entries(OwidDistinctLinesColors)) {
-            if (!name.endsWith("Darker")) continue
-            const baseHex = distinct[name.replace(/Darker$/, "")]
-            if (baseHex) result[hex.toUpperCase()] = baseHex.toUpperCase()
-        }
-        return result
-    }, [])
-
-    const metaFor = (hex: string): ColorMeta => {
+    const infoFor = (hex: string): SwatchInfo => {
         const key = hex.toUpperCase()
-        const baseKey = baseHexByDarkerHex[key] ?? key
         return {
             hex,
-            name: nameByHex[key] ? humanizeName(nameByHex[key]) : undefined,
-            regions: regionsByHex[baseKey] ?? [],
-            energy: energyByHex[baseKey]
-                ? humanizeName(energyByHex[baseKey])
-                : undefined,
+            name: palette.nameByHex[key],
+            regions: palette.regions.labelsByHex[key] ?? [],
+            energy: palette.energy.labelsByHex[key] ?? [],
         }
     }
 
-    const gridColors = useMemo(
-        () => getGridColors(showLineChartColors, baseColorScheme),
-        [showLineChartColors, baseColorScheme]
-    )
     const hueSortedColors = useMemo(
-        () => [...gridColors].sort((a, b) => hueOf(a) - hueOf(b)),
-        [gridColors]
+        () => [...palette.swatches].sort((a, b) => hueOf(a) - hueOf(b)),
+        [palette]
     )
     const queryTokens = query.trim().toLowerCase().split(/\s+/).filter(Boolean)
     const matches = (...texts: (string | undefined)[]): boolean => {
@@ -249,7 +168,7 @@ export function AdminColorPicker({
         }
     }
 
-    const renderTooltip = (meta: ColorMeta): ReactElement => (
+    const renderTooltip = (info: SwatchInfo): ReactElement => (
         <Tooltip
             className="AdminColorPicker__tooltip"
             placement="bottom"
@@ -260,23 +179,23 @@ export function AdminColorPicker({
                     <path d="M0 0 L4 4 L8 0" />
                 </svg>
             </OverlayArrow>
-            {meta.name && (
+            {info.name && (
                 <div className="AdminColorPicker__tooltip-row AdminColorPicker__tooltip-row--name">
-                    {meta.name}
+                    {info.name}
                 </div>
             )}
-            {meta.regions.map((region) => (
+            {info.regions.map((region) => (
                 <div key={region} className="AdminColorPicker__tooltip-row">
                     🌍 {region}
                 </div>
             ))}
-            {meta.energy && (
-                <div className="AdminColorPicker__tooltip-row">
-                    ⚡ {meta.energy}
+            {info.energy.map((energy) => (
+                <div key={energy} className="AdminColorPicker__tooltip-row">
+                    ⚡ {energy}
                 </div>
-            )}
+            ))}
             <div className="AdminColorPicker__tooltip-row AdminColorPicker__tooltip-row--hex">
-                {meta.hex.toUpperCase()}
+                {info.hex.toUpperCase()}
             </div>
         </Tooltip>
     )
@@ -284,8 +203,8 @@ export function AdminColorPicker({
     const isSelected = (hex: string): boolean =>
         color?.toLowerCase() === hex.toLowerCase()
 
-    const renderTile = (meta: ColorMeta, key: string): ReactElement => {
-        const { hex } = meta
+    const renderTile = (info: SwatchInfo, key: string): ReactElement => {
+        const { hex } = info
         return (
             <TooltipTrigger key={key} delay={0} closeDelay={0}>
                 <Button
@@ -293,10 +212,10 @@ export function AdminColorPicker({
                         "AdminColorPicker__tile--selected": isSelected(hex),
                     })}
                     style={{ backgroundColor: hex }}
-                    aria-label={`${meta.name ?? hex} (${hex})`}
+                    aria-label={`${info.name ?? hex} (${hex})`}
                     onPress={() => onColor(hex)}
                 />
-                {renderTooltip(meta)}
+                {renderTooltip(info)}
             </TooltipTrigger>
         )
     }
@@ -306,7 +225,7 @@ export function AdminColorPicker({
         hex: string,
         key: string
     ): ReactElement => {
-        const meta = metaFor(hex)
+        const info = infoFor(hex)
         return (
             <TooltipTrigger key={key} delay={0} closeDelay={0}>
                 <Button
@@ -324,16 +243,16 @@ export function AdminColorPicker({
                         {displayName}
                     </span>
                 </Button>
-                {renderTooltip(meta)}
+                {renderTooltip(info)}
             </TooltipTrigger>
         )
     }
 
     const renderGrid = (colors: string[]): ReactElement => {
         const visible = colors
-            .map(metaFor)
-            .filter((meta) =>
-                matches(meta.name, ...meta.regions, meta.energy, meta.hex)
+            .map(infoFor)
+            .filter((info) =>
+                matches(info.name, ...info.regions, ...info.energy, info.hex)
             )
         if (visible.length === 0)
             return (
@@ -341,23 +260,14 @@ export function AdminColorPicker({
             )
         return (
             <div className="AdminColorPicker__grid">
-                {visible.map((meta, i) => renderTile(meta, `${meta.hex}-${i}`))}
+                {visible.map((info, i) => renderTile(info, `${info.hex}-${i}`))}
             </div>
         )
     }
 
-    const renderCards = (entries: [string, string][]): ReactElement => {
-        // Deduplicate by displayed region name (e.g. "NorthAmerica" and
-        // "North America" collapse to a single card).
-        const seenNames = new Set<string>()
-        const deduped = entries.filter(([name]) => {
-            const label = humanizeName(name)
-            if (seenNames.has(label)) return false
-            seenNames.add(label)
-            return true
-        })
-        const visible = deduped.filter(([name, hex]) =>
-            matches(humanizeName(name), name, hex)
+    const renderCards = (group: PaletteGroup): ReactElement => {
+        const visible = group.entries.filter((entry) =>
+            matches(entry.label, entry.name, entry.hex)
         )
         if (visible.length === 0)
             return (
@@ -365,8 +275,8 @@ export function AdminColorPicker({
             )
         return (
             <div className="AdminColorPicker__cards">
-                {visible.map(([name, hex]) =>
-                    renderCard(humanizeName(name), hex, name)
+                {visible.map((entry) =>
+                    renderCard(entry.label, entry.hex, entry.name)
                 )}
             </div>
         )
@@ -374,6 +284,12 @@ export function AdminColorPicker({
 
     return (
         <div className="AdminColorPicker">
+            <div className="AdminColorPicker__banner">
+                <span className="AdminColorPicker__banner-label">
+                    {palette.label}
+                </span>
+            </div>
+
             <SearchField
                 className="AdminColorPicker__search"
                 aria-label="Search colors"
@@ -388,7 +304,7 @@ export function AdminColorPicker({
 
             <Tabs
                 className="AdminColorPicker__tabs"
-                selectedKey={tab}
+                selectedKey={effectiveTab}
                 onSelectionChange={(key: Key) => selectTab(key as TabKey)}
             >
                 <TabList
@@ -401,23 +317,27 @@ export function AdminColorPicker({
                     <Tab id="regions" className="AdminColorPicker__chip">
                         🌍 Regions
                     </Tab>
-                    <Tab id="energy" className="AdminColorPicker__chip">
-                        ⚡ Energy
-                    </Tab>
+                    {hasEnergyTab && (
+                        <Tab id="energy" className="AdminColorPicker__chip">
+                            ⚡ Energy
+                        </Tab>
+                    )}
                     <Tab id="hue" className="AdminColorPicker__chip">
                         🎨 By hue
                     </Tab>
                 </TabList>
 
                 <TabPanel id="all" className="AdminColorPicker__panel">
-                    {renderGrid(gridColors)}
+                    {renderGrid(palette.swatches)}
                 </TabPanel>
                 <TabPanel id="regions" className="AdminColorPicker__panel">
-                    {renderCards(Object.entries(ContinentColors))}
+                    {renderCards(palette.regions)}
                 </TabPanel>
-                <TabPanel id="energy" className="AdminColorPicker__panel">
-                    {renderCards(Object.entries(EnergyColors))}
-                </TabPanel>
+                {hasEnergyTab && (
+                    <TabPanel id="energy" className="AdminColorPicker__panel">
+                        {renderCards(palette.energy)}
+                    </TabPanel>
+                )}
                 <TabPanel id="hue" className="AdminColorPicker__panel">
                     {renderGrid(hueSortedColors)}
                 </TabPanel>

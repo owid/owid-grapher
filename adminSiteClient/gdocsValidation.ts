@@ -5,7 +5,7 @@ import {
     OwidGdocErrorMessageType,
     OwidGdocType,
     checkIsOwidGdocType,
-    traverseEnrichedBlock,
+    getParseFindings,
     OwidGdocErrorMessageProperty,
     OwidGdoc,
     checkIsGdocPost,
@@ -13,6 +13,8 @@ import {
     OwidGdocDataInsightInterface,
     checkIsAuthor,
     OwidGdocAuthorInterface,
+    checkIsFeaturedViz,
+    OwidGdocFeaturedVizInterface,
     getFilenameExtension,
     OwidEnrichedGdocBlock,
 } from "@ourworldindata/utils"
@@ -57,19 +59,19 @@ function getEmbedUrlsFromBlock(block: OwidEnrichedGdocBlock): string[] {
     return []
 }
 
-function validateEmbedUrls(
-    block: OwidEnrichedGdocBlock,
-    errors: OwidGdocErrorMessage[]
-) {
-    for (const url of getEmbedUrlsFromBlock(block)) {
-        if (isInternalAdminUrl(url)) {
-            errors.push({
-                property: "body",
-                type: OwidGdocErrorMessageType.Error,
-                message: `This gdoc contains an embed pointing at an internal admin URL (${url}) — this will be blocked by Cloudflare Access for readers. Use the public URL instead.`,
-            })
-        }
-    }
+// Returns rather than pushes so that getParseFindings can interleave these
+// with the parse errors of the same block, keeping the admin's error list in
+// document order.
+function getEmbedUrlErrors(
+    block: OwidEnrichedGdocBlock
+): OwidGdocErrorMessage[] {
+    return getEmbedUrlsFromBlock(block)
+        .filter(isInternalAdminUrl)
+        .map((url) => ({
+            property: "body" as const,
+            type: OwidGdocErrorMessageType.Error,
+            message: `This gdoc contains an embed pointing at an internal admin URL (${url}) — this will be blocked by Cloudflare Access for readers. Use the public URL instead.`,
+        }))
 }
 
 function validateTitle(gdoc: OwidGdoc, errors: OwidGdocErrorMessage[]) {
@@ -130,60 +132,27 @@ function validateBody(gdoc: OwidGdoc, errors: OwidGdocErrorMessage[]) {
     if (!gdoc.content.body) {
         errors.push(getMissingContentPropertyError("body"))
     } else {
-        for (const block of gdoc.content.body) {
-            traverseEnrichedBlock(block, (block) => {
-                errors.push(
-                    ...block.parseErrors.map((parseError) => ({
-                        message: parseError.message,
-                        type: parseError.isWarning
-                            ? OwidGdocErrorMessageType.Warning
-                            : OwidGdocErrorMessageType.Error,
-                        property: "body" as const,
-                    }))
-                )
-                validateEmbedUrls(block, errors)
-            })
-        }
+        // Findings the parser recorded while parsing, transcribed by the same
+        // shared function the writing-reference generator uses. The embed
+        // check rides along on that traversal rather than walking the body
+        // again — getErrors re-runs on every edit to the settings form.
+        errors.push(
+            ...getParseFindings({ body: gdoc.content.body }, getEmbedUrlErrors)
+        )
     }
 }
 
-function validateRefs(
-    gdoc: OwidGdocPostInterface,
-    errors: OwidGdocErrorMessage[]
-) {
-    if (gdoc.content.refs) {
-        // Errors due to refs being unused / undefined / malformed
-        if (gdoc.content.refs.errors.length) {
-            errors.push(...gdoc.content.refs.errors)
-        }
-        // Errors due to the content of the refs having parse errors
-        if (gdoc.content.refs.definitions) {
-            Object.values(gdoc.content.refs.definitions).map((definition) => {
-                definition.content.map((block) => {
-                    traverseEnrichedBlock(block, (node) => {
-                        if (node.parseErrors.length) {
-                            for (const parseError of node.parseErrors) {
-                                errors.push({
-                                    message: `Parse error in "${definition.id}" ref content: ${parseError.message}`,
-                                    property: "refs",
-                                    type: parseError.isWarning
-                                        ? OwidGdocErrorMessageType.Warning
-                                        : OwidGdocErrorMessageType.Error,
-                                })
-                            }
-                        }
-                    })
-                })
-            })
-        }
-    }
+function validateRefs(gdoc: OwidGdoc, errors: OwidGdocErrorMessage[]) {
+    // Unused/undefined/malformed refs, and parse errors inside ref contents
+    if ("refs" in gdoc.content)
+        errors.push(...getParseFindings({ refs: gdoc.content.refs }))
 }
 
 // Kind of arbitrary, see https://github.com/owid/owid-grapher/issues/2983
 export const EXCERPT_MAX_LENGTH = 175
 
 function validateExcerpt(
-    gdoc: OwidGdocPostInterface,
+    gdoc: OwidGdocPostInterface | OwidGdocFeaturedVizInterface,
     errors: OwidGdocErrorMessage[]
 ) {
     if (!gdoc.content.excerpt) {
@@ -194,6 +163,15 @@ function validateExcerpt(
             type: OwidGdocErrorMessageType.Warning,
             message: `Long excerpts may not display well in our list of articles or on social media.`,
         })
+    }
+}
+
+function validateFeaturedImage(
+    gdoc: OwidGdocFeaturedVizInterface,
+    errors: OwidGdocErrorMessage[]
+) {
+    if (!gdoc.content["featured-image"]) {
+        errors.push(getMissingContentPropertyError("featured-image"))
     }
 }
 
@@ -341,12 +319,12 @@ export const getErrors = (gdoc: OwidGdoc): OwidGdocErrorMessage[] => {
     validateTitle(gdoc, errors)
     validateSlug(gdoc, errors)
     validateBody(gdoc, errors)
+    validateRefs(gdoc, errors)
     validatePublishedAt(gdoc, errors)
     validateContentType(gdoc, errors)
     validateDeprecationNotice(gdoc, errors)
 
     if (checkIsGdocPost(gdoc)) {
-        validateRefs(gdoc, errors)
         validateExcerpt(gdoc, errors)
         validateManualBreadcrumbs(gdoc, errors)
         validateAtomFields(gdoc, errors)
@@ -355,6 +333,9 @@ export const getErrors = (gdoc: OwidGdoc): OwidGdocErrorMessage[] => {
         validateDataInsightImage(gdoc, errors)
     } else if (checkIsAuthor(gdoc)) {
         validateSocials(gdoc, errors)
+    } else if (checkIsFeaturedViz(gdoc)) {
+        validateExcerpt(gdoc, errors)
+        validateFeaturedImage(gdoc, errors)
     }
 
     return errors

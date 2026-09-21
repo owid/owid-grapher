@@ -1,16 +1,30 @@
 import { expect, it, describe } from "vitest"
 
 import { CoreTable } from "./CoreTable.js"
-import { TransformType, ColumnTypeNames } from "@ourworldindata/types"
+import {
+    TransformType,
+    ColumnTypeNames,
+    CoreColumnDef,
+    CoreMatrix,
+} from "@ourworldindata/types"
 import { ErrorValueTypes, isNotErrorValue } from "./ErrorValues.js"
+import { numericDefs } from "./testData/columnDefs.js"
 
-const sampleCsv = `country,population
+const sampleRows: CoreMatrix = [
+    ["country", "population"],
+    ["iceland", 1],
+    ["france", 50],
+    ["usa", 300],
+    ["canada", 20],
+]
+
+describe("creating tables", () => {
+    const sampleCsv = `country,population
 iceland,1
 france,50
 usa,300
 canada,20`
 
-describe("creating tables", () => {
     it("can create tables from csv", () => {
         const table = new CoreTable(sampleCsv)
         expect(table.numRows).toEqual(4)
@@ -30,31 +44,41 @@ population,Population in 2020`
 
     describe("transforms", () => {
         it("can create columns from transforms", () => {
-            const table = new CoreTable(
-                sampleCsv,
-                `slug,name,transform
-country,Region,
-population,Population in 2020,
-popTimes10,Pop times 10,multiplyBy population 10`
-            )
+            const table = new CoreTable(sampleRows, [
+                { slug: "country", name: "Region" },
+                { slug: "population", name: "Population in 2020" },
+                {
+                    slug: "popTimes10",
+                    name: "Pop times 10",
+                    transform: "multiplyBy population 10",
+                },
+            ])
             expect(table.get("popTimes10").valuesIncludingErrorValues).toEqual([
                 10, 500, 3000, 200,
             ])
         })
 
         describe("runs transforms just once", () => {
+            const columnDefs: CoreColumnDef[] = [
+                { slug: "country", name: "Region" },
+                { slug: "population", name: "Population in 2020" },
+                {
+                    slug: "popChange",
+                    name: "Pop change",
+                    transform: "percentChange time country population 2",
+                },
+            ]
             const table = new CoreTable(
-                `country,population
-iceland,1
-iceland,2
-iceland,3
-france,50
-france,60
-france,75`,
-                `slug,name,transform
-country,Region,
-population,Population in 2020,
-popChange,Pop change,percentChange time country population 2`
+                [
+                    ["country", "population"],
+                    ["iceland", 1],
+                    ["iceland", 2],
+                    ["iceland", 3],
+                    ["france", 50],
+                    ["france", 60],
+                    ["france", 75],
+                ],
+                columnDefs
             )
             const expected = [
                 ErrorValueTypes.NoValueToCompareAgainst,
@@ -84,11 +108,13 @@ popChange,Pop change,percentChange time country population 2`
 
         describe("copies data & metadata for duplicate transform", () => {
             const table = new CoreTable(
-                `country,population
-iceland,1
-iceland,2
-france,50
-france,60`,
+                [
+                    ["country", "population"],
+                    ["iceland", 1],
+                    ["iceland", 2],
+                    ["france", 50],
+                    ["france", 60],
+                ],
                 [
                     {
                         slug: "country",
@@ -131,8 +157,8 @@ france,60`,
     })
 
     it("can combine tables", () => {
-        const table = new CoreTable(sampleCsv).concat([
-            new CoreTable(sampleCsv),
+        const table = new CoreTable(sampleRows).concat([
+            new CoreTable(sampleRows),
         ])
         expect(table.numRows).toEqual(8)
     })
@@ -161,16 +187,16 @@ france,60`,
 
     it("can handle when a blank column type is provided", () => {
         expect(
-            new CoreTable("", [{ slug: "gdp", type: "" as any }]).numRows
+            new CoreTable([], [{ slug: "gdp", type: "" as any }]).numRows
         ).toEqual(0)
     })
 
     it("always parses all values in all rows to Javascript primitives when the table is initially loaded", () => {
-        const rows = [
-            { country: "USA", gdp: 2000 },
-            { country: "Germany", gdp: undefined },
-        ]
-        const table = new CoreTable(rows)
+        const table = new CoreTable([
+            ["country", "gdp"],
+            ["USA", 2000],
+            ["Germany", undefined],
+        ])
         expect(table.get("gdp").numValues).toEqual(1)
     })
 
@@ -207,19 +233,16 @@ france,60`,
     })
 
     describe("loading from matrix", () => {
-        const sampleRows = [
-            {
-                year: 2020,
-                time: 2020,
-                entityName: "United States",
-                population: 3e8,
-                entityId: 1,
-                entityCode: "USA",
-            },
-        ]
-        const matrix = [
-            Object.keys(sampleRows[0]),
-            Object.values(sampleRows[0]),
+        const matrix: CoreMatrix = [
+            [
+                "year",
+                "time",
+                "entityName",
+                "population",
+                "entityId",
+                "entityCode",
+            ],
+            [2020, 2020, "United States", 3e8, 1, "USA"],
         ]
         const table = new CoreTable(matrix)
         expect(table.numRows).toEqual(1)
@@ -239,19 +262,22 @@ france,60`,
     })
 
     it("handles ErrorValues when serializing to a matrix", () => {
-        const table = new CoreTable([{ country: "usa", gdp: undefined }])
+        const table = new CoreTable([
+            ["country", "gdp"],
+            ["usa", undefined],
+        ])
         expect(table.toMatrix()[1][1]).toEqual(undefined)
     })
 
     it("can create a table with columns but no rows", () => {
         expect(
-            new CoreTable({}, [{ slug: "entityId" }]).get("entityId").values
+            new CoreTable([], [{ slug: "entityId" }]).get("entityId").values
         ).toEqual([])
     })
 
     it("can create a table with an empty column", () => {
         const table = new CoreTable(
-            [{ color: "blue" }],
+            [["color"], ["blue"]],
             [{ slug: "name", type: ColumnTypeNames.String }]
         )
         expect(table.columnSlugs).toEqual(["name", "color"])
@@ -260,11 +286,12 @@ france,60`,
 })
 
 it("can complete a table", () => {
-    const csv = `country,year
-usa,2000
-usa,2002
-uk,2001`
-    const table = new CoreTable(csv)
+    const table = new CoreTable([
+        ["country", "year"],
+        ["usa", 2000],
+        ["usa", 2002],
+        ["uk", 2001],
+    ])
     expect(table.numRows).toEqual(3)
     const completed = table.complete(["country", "year"])
 
@@ -283,12 +310,14 @@ uk,2001`
 })
 
 it("can sort a table", () => {
-    const table = new CoreTable(`country,year,population
-uk,1800,100
-iceland,1700,200
-iceland,1800,300
-uk,1700,400
-germany,1400,500`)
+    const table = new CoreTable([
+        ["country", "year", "population"],
+        ["uk", 1800, 100],
+        ["iceland", 1700, 200],
+        ["iceland", 1800, 300],
+        ["uk", 1700, 400],
+        ["germany", 1400, 500],
+    ])
 
     const sorted = table.sortBy(["country", "year"])
     expect(sorted.rows).toEqual([
@@ -302,7 +331,7 @@ germany,1400,500`)
 
 describe("adding rows", () => {
     describe("adding rows is immutable", () => {
-        const table = new CoreTable(sampleCsv)
+        const table = new CoreTable(sampleRows)
         expect(table.numRows).toEqual(4)
 
         let expandedTable = table.appendRows(
@@ -325,17 +354,19 @@ describe("adding rows", () => {
     })
 
     it("can drop rows", () => {
-        const table = new CoreTable(sampleCsv)
+        const table = new CoreTable(sampleRows)
         expect(table.dropRowsAt([0, 1, 3]).numRows).toEqual(1)
     })
 })
 
 describe("column operations", () => {
     it("can add a column from an array", () => {
-        let table = new CoreTable({
-            scores: [0, 1, 2],
-            team: ["usa", "france", "canada"],
-        })
+        let table = new CoreTable([
+            ["scores", "team"],
+            [0, "usa"],
+            [1, "france"],
+            [2, "canada"],
+        ])
         table = table.appendColumns([
             {
                 slug: "population",
@@ -346,7 +377,10 @@ describe("column operations", () => {
     })
 
     it("can rename a column", () => {
-        let table = new CoreTable([{ pop: 123, year: 2000 }])
+        let table = new CoreTable([
+            ["pop", "year"],
+            [123, 2000],
+        ])
         table = table.renameColumns({ pop: "Population" })
         expect(table.columnSlugs).toEqual(["Population", "year"])
         const firstRow = table.firstRow as any
@@ -366,21 +400,21 @@ describe("column operations", () => {
     })
 
     it("can drop columns", () => {
-        const rows = [
-            { country: "USA", year: 1999 },
-            { country: "Germany", year: 2000 },
-        ]
-        const table = new CoreTable(rows)
+        const table = new CoreTable([
+            ["country", "year"],
+            ["USA", 1999],
+            ["Germany", 2000],
+        ])
         expect(table.columnSlugs).toEqual(["country", "year"])
         expect(table.dropColumns(["year"]).columnSlugs).toEqual(["country"])
     })
 
     it("can select a set of columns", () => {
-        const rows = [
-            { country: "USA", year: 1999, gdp: 10001 },
-            { country: "Germany", year: 2000, gdp: 20002 },
-        ]
-        const table = new CoreTable(rows)
+        const table = new CoreTable([
+            ["country", "year", "gdp"],
+            ["USA", 1999, 10001],
+            ["Germany", 2000, 20002],
+        ])
         expect(table.columnSlugs).toEqual(["country", "year", "gdp"])
         expect(table.select(["country", "gdp"]).columnSlugs).toEqual([
             "country",
@@ -389,11 +423,11 @@ describe("column operations", () => {
     })
 
     it("can transform columns", () => {
-        const rows = [
-            { country: "USA", year: 1999 },
-            { country: "Germany", year: 2000 },
-        ]
-        const table = new CoreTable(rows)
+        const table = new CoreTable([
+            ["country", "year"],
+            ["USA", 1999],
+            ["Germany", 2000],
+        ])
         expect(table.columnNames).toEqual(["country", "Year"])
         expect(
             table.updateDefs((def) => {
@@ -407,12 +441,12 @@ describe("column operations", () => {
 })
 
 describe("searching", () => {
-    const rows = [
-        { country: "USA", year: 1999 },
-        { country: "Germany", year: 2000 },
-        { country: "Germany", year: 2001 },
-    ]
-    const table = new CoreTable(rows)
+    const table = new CoreTable([
+        ["country", "year"],
+        ["USA", 1999],
+        ["Germany", 2000],
+        ["Germany", 2001],
+    ])
 
     it("can filter by exact matches to certain columns", () => {
         expect(table.where({ country: "Germany" }).numRows).toEqual(2)
@@ -441,25 +475,25 @@ describe("searching", () => {
 
     it("can get the domain across all columns", () => {
         const table = new CoreTable(
-            `gdp,perCapita
-0,123.1
-12,300
-20,40`,
             [
-                { slug: "gdp", type: ColumnTypeNames.Numeric },
-                { slug: "perCapita", type: ColumnTypeNames.Numeric },
-            ]
+                ["gdp", "perCapita"],
+                [0, 123.1],
+                [12, 300],
+                [20, 40],
+            ],
+            numericDefs("gdp", "perCapita")
         )
         const domainFor = table.domainFor(["gdp", "perCapita"])
         expect(domainFor).toEqual([0, 300])
     })
 
     it("can get annotations for a row", () => {
-        const csv = `entityName,pop,notes,year
-usa,322,in hundreds of millions,2000
-hi,1,in millions,2000
-hi,1,,2001`
-        const table = new CoreTable(csv)
+        const table = new CoreTable([
+            ["entityName", "pop", "notes", "year"],
+            ["usa", 322, "in hundreds of millions", 2000],
+            ["hi", 1, "in millions", 2000],
+            ["hi", 1, null, 2001],
+        ])
 
         const annotationsColumn = table.get("notes")
         const entityNameMap =
@@ -473,7 +507,7 @@ hi,1,,2001`
 
 describe("filtering", () => {
     describe("row filter", () => {
-        const rootTable = new CoreTable(sampleCsv)
+        const rootTable = new CoreTable(sampleRows)
         const filteredTable = rootTable.rowFilter(
             (row) => parseInt(row.population) > 40,
             "Pop filter"
@@ -496,16 +530,18 @@ describe("filtering", () => {
         })
 
         it("can filter all", () => {
-            const table = new CoreTable(`country,pop
-    usa,123
-    can,333`)
+            const table = new CoreTable([
+                ["country", "pop"],
+                ["usa", 123],
+                ["can", 333],
+            ])
             const allFiltered = table.rowFilter(() => false, "filter all")
             expect(allFiltered.get("pop").values).toEqual([])
         })
     })
 
     describe("column filter", () => {
-        const rootTable = new CoreTable(sampleCsv)
+        const rootTable = new CoreTable(sampleRows)
         const filteredTable = rootTable.columnFilter(
             "population",
             (v) => parseInt(v as any) > 40,
@@ -552,9 +588,11 @@ describe("filtering", () => {
         })
 
         it("can filter all", () => {
-            const table = new CoreTable(`country,pop
-            usa,123
-            can,333`)
+            const table = new CoreTable([
+                ["country", "pop"],
+                ["usa", 123],
+                ["can", 333],
+            ])
             const allFiltered = table.columnFilter(
                 "pop",
                 () => false,
@@ -566,7 +604,7 @@ describe("filtering", () => {
 })
 
 describe("debug tools", () => {
-    const table = new CoreTable(sampleCsv).dropColumns(["population"])
+    const table = new CoreTable(sampleRows).dropColumns(["population"])
 
     it("can dump its ancestors", () => {
         expect(table.ancestors.length).toEqual(2)
@@ -575,8 +613,10 @@ describe("debug tools", () => {
 
 describe("value operations", () => {
     it("can detect all integers", () => {
-        const table = new CoreTable(`gdp,perCapita
-123,123.1`)
+        const table = new CoreTable([
+            ["gdp", "perCapita"],
+            [123, 123.1],
+        ])
         expect(table.get("gdp").isAllIntegers).toBeTruthy()
         expect(table.get("perCapita").isAllIntegers).toBeFalsy()
     })
@@ -584,10 +624,11 @@ describe("value operations", () => {
     it("can get all defined values for a column", () => {
         const table = new CoreTable(
             [
-                { pop: undefined, year: 1999 },
-                { pop: 123, year: 2000 },
+                ["pop", "year"],
+                [undefined, 1999],
+                [123, 2000],
             ],
-            [{ type: ColumnTypeNames.Numeric, slug: "pop" }]
+            numericDefs("pop")
         )
         expect(table.get("pop").numValues).toEqual(1)
         expect(table.get("pop").numErrorValues).toEqual(1)
@@ -596,8 +637,9 @@ describe("value operations", () => {
 
     it("can replace cells for log scale", () => {
         let table = new CoreTable([
-            { pop: -20, gdp: 100, births: -4 },
-            { pop: 0, gdp: -2, births: 20 },
+            ["pop", "gdp", "births"],
+            [-20, 100, -4],
+            [0, -2, 20],
         ])
         expect(table.get("pop").numValues).toEqual(2)
         expect(table.get("gdp").numValues).toEqual(2)
@@ -609,11 +651,12 @@ describe("value operations", () => {
 })
 
 describe("index", () => {
-    const leftTable = new CoreTable({
-        country: ["usa", "can", "fra"],
-        time: [2000, 2001, 2002],
-        color: ["red", "green", "red"],
-    })
+    const leftTable = new CoreTable([
+        ["country", "time", "color"],
+        ["usa", 2000, "red"],
+        ["can", 2001, "green"],
+        ["fra", 2002, "red"],
+    ])
 
     it("can create indices", () => {
         const index = leftTable.rowIndex(["color"])

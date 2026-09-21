@@ -189,7 +189,13 @@ export async function createNativeGdoc(
     const { title, slug, type } = req.body as RichEditorCreateNativeGdocRequest
     if (!title) throw new JsonError("title is required", 400)
     const docType = (type ?? OwidGdocType.DataInsight) as OwidGdocType
-    if (![OwidGdocType.DataInsight, OwidGdocType.Article].includes(docType)) {
+    // Explicit comparisons (rather than .includes) so TS narrows docType to the
+    // two supported literals; otherwise the content literal below is checked
+    // against the whole OwidGdocContent union.
+    if (
+        docType !== OwidGdocType.DataInsight &&
+        docType !== OwidGdocType.Article
+    ) {
         throw new JsonError(
             `Native creation is not supported for type ${type}`,
             400
@@ -203,7 +209,7 @@ export async function createNativeGdoc(
         title,
         authors: [user.fullName],
         body: [],
-    } as OwidGdocContent
+    }
 
     const gdoc = gdocFromJSON({ id, slug: slug || slugify(title), content })
     gdoc.updateMarkdown()
@@ -947,7 +953,7 @@ export async function resolveEditorReferences(
             "originalHeight",
             "originalWidth",
             "updatedAt",
-        ]) as ImageMetadata
+        ])
     }
 
     return {

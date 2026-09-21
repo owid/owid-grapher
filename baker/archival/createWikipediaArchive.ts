@@ -4,7 +4,7 @@ import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
 import pMap from "p-map"
 import * as R from "remeda"
-import { ARCHIVE_BASE_URL } from "../../settings/clientSettings.js"
+import { ARCHIVE_BASE_URL } from "../../settings/clientSettings.mjs"
 import { WIKIPEDIA_ARCHIVE_BASE_URL } from "../../settings/serverSettings.js"
 
 /**

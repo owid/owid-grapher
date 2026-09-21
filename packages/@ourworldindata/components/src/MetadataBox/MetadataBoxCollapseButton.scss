@@ -1,0 +1,33 @@
+.metadata-box {
+    position: relative;
+}
+
+.metadata-box-collapse-button {
+    display: none;
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    padding: 24px;
+    padding-bottom: 16px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    @include note-13-medium;
+    color: $blue-50;
+    &:hover {
+        text-decoration: none;
+    }
+}
+
+.metadata-box-collapse-button__chevron {
+    font-size: 0.75em;
+    margin-left: 6px;
+    position: relative;
+    top: -1px;
+}
+
+.metadata-box:has(.metadata-box-expander__details[open]) {
+    .metadata-box-collapse-button {
+        display: inline-block;
+    }
+}

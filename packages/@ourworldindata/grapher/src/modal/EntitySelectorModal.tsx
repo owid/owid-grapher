@@ -12,6 +12,7 @@ import { DEFAULT_GRAPHER_BOUNDS } from "../core/GrapherConstants"
 export interface EntitySelectorModalManager extends EntitySelectorManager {
     isEntitySelectorModalOrDrawerOpen?: boolean
     frameBounds?: Bounds
+    base: React.RefObject<HTMLDivElement | null>
 }
 
 @observer
@@ -44,6 +45,8 @@ export class EntitySelectorModal extends React.Component<{
     override render(): React.ReactElement {
         return (
             <Modal
+                ariaLabel="Entity selector"
+                grapherRef={this.manager.base}
                 onDismiss={this.onDismiss}
                 bounds={this.modalBounds}
                 isHeightFixed={true}

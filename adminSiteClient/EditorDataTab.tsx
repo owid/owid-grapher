@@ -104,7 +104,11 @@ class EntityListItem extends React.Component<EntityListItemProps> {
                     <ColorBox
                         color={color}
                         onColor={this.onColor}
-                        showLineChartColors={editor.grapherState.isLineChart}
+                        palette={
+                            editor.grapherState.isLineChart
+                                ? "chartLines"
+                                : "chart"
+                        }
                     />
                     {entityName}
                 </div>

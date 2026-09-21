@@ -181,12 +181,6 @@ const PageChronologicalAnnouncementRecordPayloadSchema = z.strictObject({
     type: z.literal(OwidGdocType.Announcement),
     latestType: z.enum(ANNOUNCEMENT_LATEST_TYPES),
     body: OwidEnrichedGdocBlocksSchema,
-    cta: z.optional(
-        z.strictObject({
-            text: z.string(),
-            url: z.string(),
-        })
-    ),
     linkedAuthors: z.optional(
         castSchemaOutput<LinkedAuthor[]>(z.array(z.any()))
     ),

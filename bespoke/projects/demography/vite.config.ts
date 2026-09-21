@@ -1,35 +1,14 @@
-import { defineConfig, withFilter } from "vite"
+import { defineConfig } from "vite"
 import pluginReact from "@vitejs/plugin-react"
 import { viteCssPosition } from "vite-plugin-css-position"
-import pluginSwc from "@rollup/plugin-swc"
 
+import { pluginSwcDecorators } from "../../../rolldown.config-common.mts"
+import { DEDUPED_PACKAGES } from "../../shared/viteDedupe.js"
 import { entrypoints } from "./package.json"
 
 export default defineConfig({
     plugins: [
-        withFilter(
-            // Use swc to transform decorators, since rolldown/oxc doesn't support modern decorators yet. We could remove this once they do - see https://github.com/oxc-project/oxc/issues/9170.
-            pluginSwc({
-                swc: {
-                    jsc: {
-                        parser: {
-                            syntax: "typescript",
-                            decorators: true,
-                        },
-                        transform: {
-                            decoratorVersion: "2023-11",
-                            useDefineForClassFields: true,
-                        },
-
-                        // This setting we need to override from @rollup/plugin-swc's default, otherwise it will not put optional properties on classes (e.g. `class A { optionalProp?: string }`), thereby breaking mobx decorators
-                        loose: false,
-                        target: "esnext",
-                    },
-                },
-            }),
-            // Only run this transform if the file contains a decorator.
-            { transform: { code: /[^"]@/, id: /.*\.(ts|tsx)$/ } }
-        ),
+        pluginSwcDecorators(),
         pluginReact(),
         // This plugin allows us to Vite-inject styles directly into the Shadow DOM, and still use HMR in development.
         // Use <StylesTarget /> in the React tree to specify where the styles should be injected.
@@ -38,19 +17,7 @@ export default defineConfig({
         }),
     ],
     resolve: {
-        // The linked @ourworldindata/* packages and the shared
-        // bespoke/{components,hooks} workspaces resolve their dependencies
-        // relative to their real paths, which would load a second copy of
-        // React (breaking hooks) or @tanstack/react-query (breaking the
-        // QueryClient context, since each copy has its own React context).
-        // This forces these to resolve to a single copy in this project's
-        // node_modules.
-        dedupe: [
-            "react",
-            "react-dom",
-            "@react-stately/flags",
-            "@tanstack/react-query",
-        ],
+        dedupe: DEDUPED_PACKAGES,
     },
     build: {
         lib: {
