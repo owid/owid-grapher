@@ -3,7 +3,7 @@ import {
     LATEST_TYPE_LABELS,
     OwidGdocAnnouncementInterface,
 } from "@ourworldindata/types"
-import { formatInlineList } from "@ourworldindata/utils"
+import { formatAuthors } from "@ourworldindata/utils"
 import { useContext } from "react"
 import * as React from "react"
 import { AnnouncementContent } from "../../latest/AnnouncementContent.js"
@@ -33,7 +33,7 @@ function buildAuthorsNote(
 ): string | undefined {
     if (authors.length === 0) return undefined
     const kicker = LATEST_TYPE_LABELS[latestType].toLowerCase()
-    return `This ${kicker} was led by ${formatInlineList(authors, "and")}.`
+    return `This ${kicker} was led by ${formatAuthors(authors)}.`
 }
 
 export const AnnouncementPage = ({
@@ -44,8 +44,6 @@ export const AnnouncementPage = ({
 }: AnnouncementProps): React.ReactElement => {
     const { linkedDocuments } = useContext(AttachmentsContext)
     const latestType = deriveAnnouncementLatestType(content.kicker)
-    // CTA-only announcements have an empty body (enforced by
-    // GdocAnnouncement._validateSubclass), so there's nothing to copy.
     const shouldShowCopySocialButton =
         SOCIAL_LATEST_TYPES.includes(latestType) && content.body.length > 0
     return (
@@ -58,9 +56,7 @@ export const AnnouncementPage = ({
                     slug={slug}
                     publishedAt={publishedAt}
                     authors={content.authors}
-                    excerpt={content.excerpt}
                     body={content.body}
-                    cta={content.cta}
                     isStandalone
                 />
                 {shouldShowCopySocialButton && (

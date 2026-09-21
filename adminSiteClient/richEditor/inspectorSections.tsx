@@ -456,16 +456,16 @@ export function CodeSection({
                 value={lines.map((line) => line.value.text).join("\n")}
                 onChange={(event) =>
                     apply({
-                        text: event.target.value.split("\n").map(
-                            (line): EnrichedBlockSimpleText => ({
+                        text: event.target.value
+                            .split("\n")
+                            .map((line): EnrichedBlockSimpleText => ({
                                 type: "simple-text",
                                 value: {
                                     spanType: "span-simple-text",
                                     text: line,
                                 },
                                 parseErrors: [],
-                            })
-                        ),
+                            })),
                     })
                 }
             />
@@ -658,7 +658,7 @@ export function SocialsSection({
                             onChange={(type) =>
                                 update({
                                     ...link,
-                                    type: type as SocialLinkType | undefined,
+                                    type: type,
                                 })
                             }
                             options={Object.values(SocialLinkType).map(
@@ -1045,7 +1045,7 @@ export function PersonSection({
                         "type" | "parseErrors"
                     >
                 }
-                update={(person) => apply(person as Record<string, unknown>)}
+                update={(person) => apply(person)}
             />
             <JsonOnlyHint what="The social links list" />
         </>

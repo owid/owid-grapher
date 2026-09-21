@@ -15,6 +15,7 @@ import {
     ValueRange,
     OwidVariableRoundingMode,
     isSubYearly,
+    excludeUndefined,
 } from "@ourworldindata/utils"
 import { ComparisonLineConfig } from "@ourworldindata/types"
 import { AxisConfig, AxisManager } from "./AxisConfig"
@@ -25,14 +26,11 @@ import {
 } from "./timeAxisTicks.js"
 import { MarkdownTextWrap, TextWrapGroup } from "@ourworldindata/components"
 import { CoreColumn } from "@ourworldindata/core-table"
-import {
-    DEFAULT_GRAPHER_BOUNDS,
-    GRAPHER_FONT_SCALE_11,
-    GRAPHER_FONT_SCALE_12,
-} from "../core/GrapherConstants.js"
+import { DEFAULT_GRAPHER_BOUNDS } from "../core/GrapherConstants.js"
 import { makeAxisLabel } from "./AxisUtils.js"
 import * as R from "remeda"
 import { ComparisonLines } from "../comparisonLine/ComparisonLines"
+import { scaleFontSize } from "../chart/ChartUtils"
 
 interface TickLabelPlacement {
     value: number
@@ -110,6 +108,7 @@ abstract class AbstractAxis {
 
     abstract placeTickLabel(value: number): TickLabelPlacement
     abstract get tickLabels(): TickLabelPlacement[]
+    abstract get endpointTickLabels(): TickLabelPlacement[]
 
     @computed get hideAxis(): boolean {
         return this.config.hideAxis ?? false
@@ -582,11 +581,7 @@ abstract class AbstractAxis {
             console.error(`Placed value is undefined for ${value}`)
             return value
         }
-        return this.snapToSubpixel(placedValue)
-    }
-
-    snapToSubpixel(value: number): number {
-        return parseFloat(value.toFixed(1))
+        return placedValue
     }
 
     /** This function returns the inverse of place - i.e. given a screen space
@@ -598,7 +593,7 @@ abstract class AbstractAxis {
     }
 
     @computed get tickFontSize(): number {
-        return Math.floor(GRAPHER_FONT_SCALE_12 * this.fontSize)
+        return this.config.tickFontSize
     }
 
     @computed protected get baseTicks(): Tickmark[] {
@@ -620,7 +615,7 @@ abstract class AbstractAxis {
     }
 
     @computed get labelFontSize(): number {
-        return Math.floor(GRAPHER_FONT_SCALE_12 * this.fontSize)
+        return this.config.labelFontSize
     }
 
     @computed get labelTextWrap():
@@ -726,6 +721,39 @@ export class HorizontalAxis extends AbstractAxis {
 
     @computed get size(): number {
         return this.height
+    }
+
+    @computed get endpointTickLabels(): TickLabelPlacement[] {
+        const { formatColumn } = this
+
+        // For time columns, ticks sit on calendar-nice values that don't
+        // necessarily include the endpoints, so use the domain instead
+        if (formatColumn?.isTimeColumn) {
+            const [start, end] = this.domain
+
+            const startLabel = Number.isFinite(start)
+                ? this.placeTickLabel(
+                      start,
+                      formatColumn.formatTimeShort(start)
+                  )
+                : undefined
+
+            const endLabel =
+                Number.isFinite(end) && end !== start
+                    ? this.placeTickLabel(
+                          end,
+                          // Include the full plotted range for sub-yearly data
+                          formatColumn.formatTimeShortEnd(end)
+                      )
+                    : undefined
+
+            return hideOverlappingTickLabels(
+                excludeUndefined([startLabel, endLabel]),
+                { padding: 3 }
+            )
+        }
+
+        return pickOutermostTickLabels(this.tickLabels, (label) => label.x)
     }
 
     protected override get baseTicks(): Tickmark[] {
@@ -908,6 +936,10 @@ export class VerticalAxis extends AbstractAxis {
         return this.width
     }
 
+    @computed get endpointTickLabels(): TickLabelPlacement[] {
+        return pickOutermostTickLabels(this.tickLabels, (label) => label.y)
+    }
+
     @computed get tickLabels(): TickLabelPlacement[] {
         const { domain } = this
 
@@ -976,7 +1008,7 @@ export class VerticalAxis extends AbstractAxis {
     @computed get logNoticeTextWrap(): MarkdownTextWrap | undefined {
         if (!this.shouldShowLogNotice) return undefined
 
-        const fontSize = Math.floor(GRAPHER_FONT_SCALE_11 * this.fontSize)
+        const fontSize = scaleFontSize(10.75, this.fontSize)
 
         return new MarkdownTextWrap({
             text: "log axis",
@@ -1071,7 +1103,7 @@ export class DualAxis {
     @computed get comparisonLines(): ComparisonLines {
         return new ComparisonLines(this.props.comparisonLines ?? [], {
             dualAxis: this,
-            fontSize: this.props.verticalAxis.fontSize,
+            baseFontSize: this.props.verticalAxis.fontSize,
         })
     }
 
@@ -1105,6 +1137,14 @@ function labelsFit(
             return false
     }
     return true
+}
+
+function pickOutermostTickLabels(
+    tickLabels: TickLabelPlacement[],
+    position: (label: TickLabelPlacement) => number
+): TickLabelPlacement[] {
+    if (tickLabels.length < 2) return tickLabels
+    return [_.minBy(tickLabels, position)!, _.maxBy(tickLabels, position)!]
 }
 
 /**

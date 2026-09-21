@@ -10,6 +10,7 @@ import {
 
 export const dbTestConfig = {
     client: "mysql2",
+    asyncStackTraces: true,
     connection: {
         database: GRAPHER_TEST_DB_NAME,
         user: GRAPHER_TEST_DB_USER,

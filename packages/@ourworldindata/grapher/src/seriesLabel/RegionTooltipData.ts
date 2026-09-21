@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import * as R from "remeda"
 import {
     checkIsAggregate,
@@ -5,12 +6,15 @@ import {
     Aggregate,
     Continent,
     IncomeGroup,
-    getAggregatesByProvider,
+    getAggregatesInRegionSet,
     getContinents,
     getIncomeGroups,
     Region,
-    RegionDataProvider,
-    RequiredBy,
+    RegionSet,
+    type AggregateWithPublisher,
+    type OwidContinentName,
+    type OwidIncomeGroupName,
+    type SuffixedRegionName,
 } from "@ourworldindata/utils"
 import {
     CategoricalMapPalette17,
@@ -19,7 +23,7 @@ import {
 import { parseLabel } from "../core/RegionGroups.js"
 import { getCountriesByRegion } from "../mapCharts/MapHelpers.js"
 
-export type TooltipKey = RegionDataProvider | "incomeGroups" | "continents"
+export type TooltipKey = RegionSet | "incomeGroups" | "continents"
 
 export interface TooltipRegion {
     name: EntityName
@@ -65,9 +69,11 @@ const descriptions: Record<TooltipKey, string> = {
         "The **Institute for Health Metrics and Evaluation (IHME)** groups countries into 21 regions for its Global Burden of Disease (GBD) study:",
 }
 
-// Geographic display order: left-to-right on the map.
-// Providers without a custom order will be sorted alphabetically.
-const customRegionDisplayOrder: Partial<Record<TooltipKey, string[]>> = {
+// Geographic display order: left-to-right on the map
+export const customRegionDisplayOrder: Record<
+    TooltipKey,
+    (SuffixedRegionName | OwidContinentName | OwidIncomeGroupName)[]
+> = {
     continents: [
         "North America",
         "South America",
@@ -280,8 +286,8 @@ const customRegionDisplayOrder: Partial<Record<TooltipKey, string[]>> = {
     ],
     ihme_gbd_2: [
         "High-income North America (IHME GBD)",
-        "Central Latin America (IHME GBD)",
         "Caribbean (IHME GBD)",
+        "Central Latin America (IHME GBD)",
         "Andean Latin America (IHME GBD)",
         "Tropical Latin America (IHME GBD)",
         "Southern Latin America (IHME GBD)",
@@ -305,31 +311,30 @@ const customRegionDisplayOrder: Partial<Record<TooltipKey, string[]>> = {
 
 export function hasTooltipData(
     region: Region
-): region is RequiredBy<Aggregate, "definedBy"> {
-    return checkIsAggregate(region) && region.definedBy !== undefined
+): region is AggregateWithPublisher {
+    return (
+        checkIsAggregate(region) &&
+        region.definedBy !== undefined &&
+        region.publisher !== undefined
+    )
 }
 
 export function getDescriptionForKey(key: TooltipKey): string {
     return descriptions[key]
 }
 
-export function getRegionsForKey(key: TooltipKey): TooltipRegion[] {
+function _getRegionsForKey(key: TooltipKey): readonly TooltipRegion[] {
     const regions =
         key === "incomeGroups"
             ? getIncomeGroups()
             : key === "continents"
               ? getContinents()
-              : getAggregatesByProvider(key)
+              : getAggregatesInRegionSet(key)
 
-    const customOrder = customRegionDisplayOrder[key]
-    const sortFn = (
-        region: Aggregate | IncomeGroup | Continent
-    ): number | string => {
-        if (customOrder) {
-            const index = customOrder.indexOf(region.name)
-            return index >= 0 ? index : Infinity
-        }
-        return parseLabel(region.name).name
+    const displayOrder: readonly string[] = customRegionDisplayOrder[key]
+    const sortFn = (region: Aggregate | IncomeGroup | Continent): number => {
+        const index = displayOrder.indexOf(region.name)
+        return index >= 0 ? index : Infinity
     }
 
     return R.pipe(
@@ -346,9 +351,11 @@ export function getRegionsForKey(key: TooltipKey): TooltipRegion[] {
     )
 }
 
+export const getRegionsForKey = _.memoize(_getRegionsForKey)
+
 /** Build a map from country name to its color and region */
 export function buildCountryMap(
-    regions: TooltipRegion[]
+    regions: readonly TooltipRegion[]
 ): Map<EntityName, { region: EntityName; color: string }> {
     const map = new Map<string, { color: string; region: string }>()
     for (const region of regions) {

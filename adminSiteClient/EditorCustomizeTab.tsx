@@ -740,7 +740,7 @@ class TrendColorField extends React.Component<{
                 <ColorBox
                     color={color}
                     onColor={this.onColor}
-                    showLineChartColors={false}
+                    palette="chart"
                 />
                 <span>{_.capitalize(field)}</span>
             </>
@@ -1044,7 +1044,6 @@ export class EditorCustomizeTab<
                             grapherState.chartType ??
                             GRAPHER_CHART_TYPES.LineChart
                         }
-                        showLineChartColors={grapherState.isLineChart}
                         features={{
                             legendDescription: true,
                         }}

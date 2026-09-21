@@ -466,7 +466,7 @@ describe(enrichedBlockToXhtml, () => {
                             size: BlockSize.Wide,
                             parseErrors: [],
                             id: "chart-3",
-                        } as OwidEnrichedGdocBlock,
+                        },
                     ],
                     parseErrors: [],
                     id: "section-4",

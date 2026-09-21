@@ -15,26 +15,24 @@ import {
     type DocToolHost,
 } from "./docTools.js"
 
-const textBlock = (text: string, id?: string): OwidEnrichedGdocBlock =>
-    ({
-        type: "text",
-        value: [{ spanType: "span-simple-text", text }],
-        parseErrors: [],
-        ...(id ? { id } : {}),
-    }) as OwidEnrichedGdocBlock
+const textBlock = (text: string, id?: string): OwidEnrichedGdocBlock => ({
+    type: "text",
+    value: [{ spanType: "span-simple-text", text }],
+    parseErrors: [],
+    ...(id ? { id } : {}),
+})
 
 const headingBlock = (
     text: string,
     level: number,
     id?: string
-): OwidEnrichedGdocBlock =>
-    ({
-        type: "heading",
-        text: [{ spanType: "span-simple-text", text }],
-        level,
-        parseErrors: [],
-        ...(id ? { id } : {}),
-    }) as OwidEnrichedGdocBlock
+): OwidEnrichedGdocBlock => ({
+    type: "heading",
+    text: [{ spanType: "span-simple-text", text }],
+    level,
+    parseErrors: [],
+    ...(id ? { id } : {}),
+})
 
 const chartBlock = (url: string, id?: string): OwidEnrichedGdocBlock =>
     ({
@@ -105,7 +103,7 @@ async function run(
 ): Promise<string> {
     const tool = bag.tools.get(name)
     if (!tool) throw new Error(`no tool ${name}`)
-    const result = await tool.execute("call-1", params, undefined as never)
+    const result = await tool.execute("call-1", params, undefined)
     return result.content
         .filter((c): c is { type: "text"; text: string } => c.type === "text")
         .map((c) => c.text)

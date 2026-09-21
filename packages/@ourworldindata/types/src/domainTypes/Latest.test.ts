@@ -34,8 +34,7 @@ describe("chronological page record schema", () => {
                 ...baseRecord,
                 type: OwidGdocType.Announcement,
                 latestType: "announcement",
-                body: [],
-                cta: { text: "Read more", url: "/test-page" },
+                body: [{ type: "text" }],
             },
             {
                 ...baseRecord,
@@ -61,7 +60,6 @@ describe("chronological page record schema", () => {
             latestType: "data-insight",
             body: [],
             featuredImage: "article-only.png",
-            cta: { text: "Announcement only", url: "/test-page" },
         })
 
         expect(parsed.success).toBe(false)
@@ -71,7 +69,7 @@ describe("chronological page record schema", () => {
         const parsed = PageChronologicalRecordSchema.safeParse({
             ...baseRecord,
             type: OwidGdocType.TopicPage,
-            latestType: undefined,
+            latestType: "article",
         })
 
         expect(parsed.success).toBe(false)

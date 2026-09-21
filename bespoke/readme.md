@@ -8,22 +8,30 @@ Unlike Grapher charts, bespoke components are fully custom — they have their o
 
 ```
 bespoke/
-├── components/    # Shared component library (React components, hooks, utilities)
+├── components/    # Shared component library (React components)
+├── helpers/       # Shared non-visual utilities
+├── hooks/         # Shared React hooks
 ├── projects/      # Individual bespoke viz projects (each fully self-contained)
 ├── server/        # Dev server (reverse proxy that lazily starts Vite per project)
 ├── shared/        # Shared code between the site code and bespoke projects (e.g. shared types, Shadow DOM utilities)
 └── readme.md
 ```
 
+Read [components/readme.md](components/readme.md) before writing a control, a
+chart frame or a loading state. It lists what is already there, and the three
+import mechanics that are not guessable from the code.
+
 ## How it works
 
 1. Each bespoke component is an ES module that exports a `mount` function
-2. Components are registered in [site/bespokeComponentRegistry.ts](../site/bespokeComponentRegistry.ts) with URLs to their JS and CSS bundles
-3. When an article containing a `{.bespoke-component}` block is rendered, the code:
+2. Components are registered in [bespoke/shared/bespokeComponentRegistry.ts](./shared/bespokeComponentRegistry.ts), which says where their script and their data files live
+3. When a `{.bespoke-component}` block comes within 400px of the viewport, the code:
     - Looks up the bundle in the registry
     - Creates a Shadow DOM container (for CSS isolation)
-    - Dynamically imports the JS module and, if a CSS URL is registered, loads the CSS into the shadow root
+    - Dynamically imports the JS module, which carries its own styles inlined
     - Calls the module's `mount()` function with the container and config
+
+Mounting is lazy and happens once: a component far down a long article never loads for a reader who doesn't scroll to it.
 
 ### The `mount` interface
 
@@ -32,18 +40,27 @@ Your ES module must export a `mount` function:
 ```ts
 export function mount(
     container: HTMLDivElement,
-    opts: { variant?: string; config?: Record<string, string> }
-): void | Promise<void> | Promise<() => void>
+    opts: {
+        variant?: string
+        config?: Record<string, string>
+        dataUrl?: string
+        metadataUrl?: string
+    }
+): void | (() => void) | Promise<void | (() => void)>
 ```
 
 - **`container`** — A div inside the Shadow DOM into which you render your viz. The div is created for you.
 - **`opts.variant`** — Optional string to distinguish multiple instances of the same bundle within an article. Useful for embedding different views (e.g. a map and a chart) that share state.
 - **`opts.config`** — Key-value pairs passed from the ArchieML block.
+- **`opts.dataUrl`** — URL of the folder this bundle's data files live in, resolved from its registry entry for the environment being served.
+- **`opts.metadataUrl`** — URL of the metadata file inside that folder, from the entry's `metadataFilename`.
 - **Return value** — Optionally return a cleanup/disposal function that will be called on unmount.
+
+A module may also export `VARIANTS`, a list of `{ name, demoConfig?, demoSize? }` entries. The site ignores it; the dev server's demo page reads it to mount every variant, and shows an error instead of the component when it is missing.
 
 ### Registering a component
 
-Add your bundle to the registry in [site/bespokeComponentRegistry.ts](../site/bespokeComponentRegistry.ts), e.g. like this:
+Add your bundle to the registry in [bespoke/shared/bespokeComponentRegistry.ts](./shared/bespokeComponentRegistry.ts), e.g. like this:
 
 ```ts
 export const BESPOKE_COMPONENT_REGISTRY: Record<
@@ -52,14 +69,42 @@ export const BESPOKE_COMPONENT_REGISTRY: Record<
 > = {
     "income-plots": {
         scriptUrl: "/income-plots/index.js",
-        cssUrl: "/income-plots/index.css", // optional
+        dataUrl: "wb/latest/income_plots",
+        metadataFilename: "income-plots.metadata.json",
     },
 }
 ```
 
-The URLs are resolved against `BESPOKE_BASE_URL` (defaults to the local dev server, `http://localhost:8089`).
+Both URLs may be relative or absolute, and an absolute one is passed through untouched.
 
-The `cssUrl` is optional — if your component manages its own styles (e.g. via `vite-plugin-css-position` injecting CSS into the Shadow DOM from JS), you can omit it.
+| field       | relative to                                                             |
+| ----------- | ----------------------------------------------------------------------- |
+| `scriptUrl` | `BESPOKE_BASE_URL` (defaults to the local dev server, `localhost:8089`) |
+| `dataUrl`   | `BESPOKE_DATA_URL`, so a relative value is an ETL feed step             |
+
+`BESPOKE_DATA_URL` is the data root of the environment being served, either production or a staging server's own bucket, where that branch's ETL build lands. A bundle whose data is published by hand gives an absolute `dataUrl` and is served the same file everywhere.
+
+`metadataFilename` is a filename inside `dataUrl` that the bundle fetches itself, handed to it as `opts.metadataUrl`. A featured viz page fetches the same file at bake time, validates it against `BespokeMetadataSchema`, and renders the methods-and-sources box under the band from the fields it carries.
+
+`resolveBespokeComponentUrls` resolves all of this wherever a bundle is embedded (the site, the baker, the demo pages), so the bundle receives finished URLs.
+
+A bundle carries its own styles. `vite-plugin-css-position` inlines them into the ES module so they land inside the shadow root.
+
+## Data files
+
+A bundle fetches its data at runtime rather than bundling it. Each one reads a small manifest first and then one file per selection, so a reader downloads only the entity they are looking at.
+
+Bundles get their files from an ETL export step under `etl/steps/export/s3/` in owid/etl, so their registry entry gives the step as a relative `dataUrl`.
+
+| bundle            | ETL step                                         | manifest                              | per-selection file                      |
+| ----------------- | ------------------------------------------------ | ------------------------------------- | --------------------------------------- |
+| `causes-of-death` | `ihme_gbd/latest/gbd_treemap_json`               | `causes-of-death.metadata.json`       | `causes-of-death.<entityId>.json`       |
+| `food-trade`      | `faostat/latest/food_trade`                      | `food-trade.metadata.json`            | `food-trade.<productId>.json`           |
+| `migration`       | `un_migration/latest/migration_stock_flows_json` | `migration-stock-flows.metadata.json` | `migration-stock-flows.<entityId>.json` |
+
+The manifest is the contract. An entity it lists must have a file, and that file must be well formed, because a bundle has no way of knowing otherwise until it has fetched it. An entry whose file is missing or malformed shows the reader an error rather than quietly disappearing from the selector.
+
+When a dataset is re-uploaded, put the per-selection files up before the manifest. The bucket serves each object as it lands, so a new manifest sitting over the old files is a window in which every reader gets an error.
 
 ## Embedding in Google Docs
 
@@ -70,6 +115,7 @@ Use the `{.bespoke-component}` ArchieML block:
   bundle: income-plots
   variant: distribution
   size: wide # options: narrow, wide, widest
+  fallbackImageFilename: income-distribution.png
   {.config}
     country: USA
     year: 2020
@@ -79,12 +125,29 @@ Use the `{.bespoke-component}` ArchieML block:
 
 ### Properties
 
-| Property  | Required | Default | Description                                                                                         |
-| --------- | -------- | ------- | --------------------------------------------------------------------------------------------------- |
-| `bundle`  | Yes      | —       | Name of the component in the registry                                                               |
-| `variant` | No       | —       | Identifier for this instance; multiple instances of the same bundle can use variants to share state |
-| `size`    | No       | `wide`  | Layout width: `narrow`, `wide`, or `widest`                                                         |
-| `config`  | No       | `{}`    | Key-value pairs passed to the mount function. Values must be strings (no nesting).                  |
+| Property                | Required | Default | Description                                                                                         |
+| ----------------------- | -------- | ------- | --------------------------------------------------------------------------------------------------- |
+| `bundle`                | Yes      | —       | Name of the component in the registry                                                               |
+| `variant`               | No       | —       | Identifier for this instance; multiple instances of the same bundle can use variants to share state |
+| `size`                  | No       | `wide`  | Layout width: `narrow`, `wide`, or `widest`                                                         |
+| `config`                | No       | `{}`    | Key-value pairs passed to the mount function. Values must be strings (no nesting).                  |
+| `fallbackImageFilename` | No       | —       | Image shown in the component's place when JavaScript is unavailable                                 |
+
+### Rendering without JavaScript
+
+A bespoke component is client-side JavaScript, so it renders nothing for a
+reader who doesn't have it. Set `fallbackImageFilename` to an image uploaded
+through the admin and that image takes the component's place. It never renders
+when JavaScript is available.
+
+The `defaultAlt` on the admin image row is the only description such a reader
+gets. The admin raises an error when no image matches the filename, and a
+warning when the matching image has no alt text.
+
+Without a fallback image the block shows the site's "JavaScript needs to be
+enabled" notice instead. For one figure among many in an article that is a fine
+outcome. A featured viz page is nothing but its viz, so the admin warns when the
+featured viz has no fallback image.
 
 ### Embedding in a key insight
 
@@ -122,6 +185,44 @@ Two things to know when authoring one of these:
 
 Note that every slide of a key insights block is in the DOM from page load, not just the active one — so a bespoke component in slide 3 mounts and fetches its data even if the reader never opens that slide.
 
+## Featured viz pages
+
+A bespoke component can also be the subject of its own page, rather than one
+figure inside an article. Those are gdocs of type `featured-viz`, published at
+`/featured-viz/<slug>`, and they behave differently in three ways:
+
+- **The first top-level `{.bespoke-component}` block is the featured viz.** It
+  renders on a full-bleed blue band, at the width its `size` asks for. Later
+  bespoke blocks on the page render as ordinary blocks.
+- **The featured viz drives the URL.** The page forces `urlSync` on for it, so
+  the page URL is shareable at a particular view. Every bundle syncs without
+  code of its own, because `useUrlState` takes the flag from the embed config.
+  There is no opt-out: a featured viz page whose URL doesn't track its viz is
+  not worth publishing.
+- **The featured viz's metadata is already on the page.** The page renders the
+  methods-and-sources box under the band, built from the same metadata file the
+  viz would show in its modal. So it forces `hideMetadataModal` on for the
+  featured viz, and `BespokeMetadataProvider` drops the footer's "Learn more
+  about this data" link along with the modal behind it. Later bespoke blocks
+  keep theirs.
+
+Everything else on the page is authored as in a normal article, and any block an
+article supports works there.
+
+### More than one bespoke block
+
+Expected, and fine. A page often embeds the same viz several times with
+different settings and talks about each one. Only the first top-level bespoke
+block is the featured viz: the rest render as ordinary figures, with no blue
+band, no `urlSync`, and their metadata modal left in place.
+
+Keeping `urlSync` on the featured viz alone is deliberate. The page URL stands
+for the featured viz's state, the thing a reader shares. So a second component
+writing its own params would pollute it, and a second component of the _same_
+bundle would fight it for the same keys. The cross-instance state sharing
+described under "Sharing state between variants" is an in-article device; it
+doesn't apply here.
+
 ## Sizing
 
 The **width** of your component is determined by the `size` property in the ArchieML block:
@@ -134,9 +235,6 @@ On smaller screens, these map to other grid-based widths. See [site/gdocs/compon
 
 Ideally, your component adapts fluidly to any width given by its container. But if you need a `max-width` or a set of "good" widths, that's fine too.
 
-There is currently no mechanism for specifying dimensions ahead of time to prevent layout shifts. Components are rendered at whatever size the container provides once they load, and there will be a layout shift.
-We might add a way to specify dimensions for the loading state in the future.
-
 ## Shadow DOM considerations
 
 Components run inside a Shadow DOM, which provides full CSS encapsulation but comes with trade-offs:
@@ -147,62 +245,17 @@ Components run inside a Shadow DOM, which provides full CSS encapsulation but co
 
 ### CSS injection with `vite-plugin-css-position`
 
-By default, Vite injects CSS into the document `<head>`, which doesn't work for components running inside a Shadow DOM. [`vite-plugin-css-position`](https://www.npmjs.com/package/vite-plugin-css-position) solves this by letting you specify where styles should be injected using a `<StylesTarget />` React component. During development, this gives you CSS HMR even in Shadow DOM mode; in production builds, it uses `vite-plugin-css-injected-by-js` to bundle the CSS into the JS output.
-
-To use it, add the plugin to your `vite.config.ts`:
-
-```ts
-import { viteCssPosition } from "vite-plugin-css-position"
-
-export default defineConfig({
-    plugins: [react(), viteCssPosition({ enableDev: true })],
-    // ...
-})
-```
-
-Then render `<StylesTarget />` in your component tree:
-
-```tsx
-import StylesTarget from "vite-plugin-css-position/react"
-
-root.render(
-    <>
-        <StylesTarget />
-        <YourComponent />
-    </>
-)
-```
+Vite injects CSS into the document `<head>` by default, which never reaches a Shadow DOM. [`vite-plugin-css-position`](https://www.npmjs.com/package/vite-plugin-css-position) redirects it to a `<StylesTarget />` you render in the component tree — CSS HMR in development, styles inlined into the JS output for production. `example` has both halves wired up, in `vite.config.ts` and `src/index.tsx`.
 
 ## Projects
 
 Each project under `bespoke/projects/` is fully self-contained. A project has its own `package.json`, its own dependencies, and its own build step. For deployment, [buildBespokeProjects.sh](buildBespokeProjects.sh) runs every project's build and collects the outputs into `dist/assets-bespoke/<name>/` at the repo root.
 
-This means each project is responsible for:
-
-- Managing its own dependencies (projects are yarn workspaces of `bespoke/` — run `yarn install` from there)
-- Defining its own build command that produces the ES-module output (and optionally a CSS file)
-- Bundling everything it needs — shared site styles, fonts, etc. are not available inside the Shadow DOM
-
-Projects can import shared code from `bespoke/components/` if needed, but must bundle it into their output.
+So each project manages its own dependencies (projects are yarn workspaces of `bespoke/` — run `yarn install` from there) and defines its own build command producing the ES-module output. Shared code from `bespoke/components/` is bundled into that output like any other import.
 
 ### Build setup
 
-Projects use [Vite library mode](https://vite.dev/guide/build.html#library-mode) to produce the ESM module and optionally a CSS file. A minimal `vite.config.ts`:
-
-```ts
-import { defineConfig } from "vite"
-
-export default defineConfig({
-    build: {
-        lib: {
-            entry: "src/index.ts",
-            formats: ["es"],
-            fileName: "bundle",
-        },
-        outDir: "dist",
-    },
-})
-```
+Projects use [Vite library mode](https://vite.dev/guide/build.html#library-mode) to produce the ESM module. Copy `example/vite.config.ts` rather than writing one: it wires up the CSS injection described above, the shared `DEDUPED_PACKAGES` list, and the entrypoints the dev server reads out of `package.json`.
 
 ## Sharing state between variants
 
@@ -212,53 +265,17 @@ For example, an article might embed a map and a line chart from the same bundle.
 
 ### Jotai for shared state
 
-[Jotai](https://jotai.org/) is a lightweight atomic state library for React. It works well here because:
-
-- **Module-level atoms** — You define atoms (small units of state) at the module scope. Since all variants share the same module, they automatically share the same atoms. It's like `useState`, but with the reactive state defined outside of the component, and thereby shareable across all instances.
-- **Fine-grained reactivity** — Components only re-render when the specific atoms they subscribe to change, keeping things fast.
-- **Minimal boilerplate** — No providers, reducers, or context setup needed.
-
-A basic example:
+We use [Jotai](https://jotai.org/). Atoms defined at module scope are shared by every variant of the bundle with no provider or context setup:
 
 ```ts
-// shared state — defined once at module scope, shared across all variants
+// atoms.ts — one instance, shared by every variant
 import { atom } from "jotai"
 export const selectedCountryAtom = atom<string>("USA")
 ```
 
-```tsx
-// variant: "map" — writes to the shared atom
-import { useAtom } from "jotai"
-import { selectedCountryAtom } from "./atoms"
+One variant writes it with `useAtom`, another reads it with `useAtomValue`. `example` does exactly that across `src/core/atoms.ts`, `Picker.tsx` and `Display.tsx`.
 
-function Map() {
-    const [, setCountry] = useAtom(selectedCountryAtom)
-    return <WorldMap onSelect={setCountry} />
-}
-```
-
-```tsx
-// variant: "line-chart" — reads from the shared atom
-import { useAtomValue } from "jotai"
-import { selectedCountryAtom } from "./atoms"
-
-function LineChart() {
-    const country = useAtomValue(selectedCountryAtom)
-    return <Chart country={country} />
-}
-```
-
-Your `mount` function then renders the right component based on `opts.variant`:
-
-```ts
-export function mount(container, { variant }) {
-    const root = createRoot(container)
-    if (variant === "map") root.render(<Map />)
-    else if (variant === "line-chart") root.render(<LineChart />)
-}
-```
-
-You don't have to use jotai — any module-scoped state (a plain variable, an event emitter, MobX, etc.) will work since all variants share the same module. Jotai is just a good and easy choice for React projects.
+Any module-scoped state works — a plain variable, an event emitter, MobX — since all variants share the module. Jotai is just the easy choice for React.
 
 ## Shared types
 
@@ -296,7 +313,6 @@ To fix this, add a `dev-only-global-css` entrypoint to your project's `package.j
 {
     "entrypoints": {
         "js": "src/index.tsx",
-        "css": "src/index.css", // optional
         "dev-only-global-css": "src/dev-only-global-css.css"
     }
 }
@@ -306,8 +322,6 @@ The dev server will inject this stylesheet into the demo page's `<head>` (outsid
 
 ## Creating a new bespoke component
 
-1. Create a new directory under `bespoke/projects/`
-2. Set up your project with its own `package.json` and build tooling to output an ESM module (`.mjs`) and optionally a CSS file
-3. Export a `mount` function from the entry point
-4. Register the bundle in [site/bespokeComponentRegistry.ts](../site/bespokeComponentRegistry.ts)
-5. Add the `{.bespoke-component}` block in your Google Doc
+1. Copy `bespoke/projects/example/`, rename it, and run `yarn install` from `bespoke/`
+2. Register the bundle in [bespoke/shared/bespokeComponentRegistry.ts](./shared/bespokeComponentRegistry.ts)
+3. Add the `{.bespoke-component}` block in your Google Doc

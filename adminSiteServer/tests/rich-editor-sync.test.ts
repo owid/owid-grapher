@@ -35,12 +35,11 @@ import { getAdminTestEnv } from "./testEnv.js"
 const env = getAdminTestEnv()
 const schema = getSchema(getRichEditorBaseExtensions())
 
-const makeTextBlock = (text: string): OwidEnrichedGdocBlock =>
-    ({
-        type: "text",
-        value: [{ spanType: "span-simple-text", text }],
-        parseErrors: [],
-    }) as OwidEnrichedGdocBlock
+const makeTextBlock = (text: string): OwidEnrichedGdocBlock => ({
+    type: "text",
+    value: [{ spanType: "span-simple-text", text }],
+    parseErrors: [],
+})
 
 interface TestClient {
     ydoc: Y.Doc
@@ -112,7 +111,7 @@ function textOf(body: OwidEnrichedGdocBlock[]): string[] {
 /** Apply a whole-body edit to a client's ydoc, like an editor would. */
 function editBody(ydoc: Y.Doc, body: OwidEnrichedGdocBlock[]): void {
     const pmNode = PmNode.fromJSON(schema, enrichedBlocksToPmDoc(body))
-    prosemirrorToYXmlFragment(pmNode, ydoc.getXmlFragment("default") as never)
+    prosemirrorToYXmlFragment(pmNode, ydoc.getXmlFragment("default"))
 }
 
 function waitFor(

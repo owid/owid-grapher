@@ -1,6 +1,7 @@
 import * as _ from "lodash-es"
 import { Component, createRef } from "react"
 import cx from "clsx"
+import { getPrefersReducedMotion } from "@ourworldindata/components"
 
 function getTotalOffset(element: HTMLElement): {
     x: number
@@ -103,7 +104,7 @@ class StickyNav extends Component<
                     ] as HTMLElement
                     const containerPadding = 32
                     current.scrollTo({
-                        behavior: "smooth",
+                        behavior: getPrefersReducedMotion() ? "auto" : "smooth",
                         left: listItem.offsetLeft - containerPadding,
                     })
                 }

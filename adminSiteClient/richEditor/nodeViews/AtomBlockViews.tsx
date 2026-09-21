@@ -13,7 +13,7 @@ import {
     Span,
 } from "@ourworldindata/types"
 import { spansToUnformattedPlainText } from "@ourworldindata/utils"
-import { GRAPHER_DYNAMIC_CONFIG_URL } from "../../../settings/clientSettings.js"
+import { GRAPHER_DYNAMIC_CONFIG_URL } from "../../../settings/clientSettings.mjs"
 import { useEditingSessionGrapherState } from "../chartEditing/ChartEditingContext.js"
 import { useNarrativeChartInfo } from "../chartEditing/useNarrativeChartInfo.js"
 import { parseGrapherUrl } from "../grapherUrls.js"

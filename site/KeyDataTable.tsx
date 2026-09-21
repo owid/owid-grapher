@@ -47,6 +47,7 @@ export default function KeyDataTable({
                     <div>
                         <SimpleMarkdownText
                             text={datapageData.descriptionShort}
+                            dodTrackNote="key_data"
                             useParagraphs={false}
                         />
                     </div>

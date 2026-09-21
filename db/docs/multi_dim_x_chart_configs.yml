@@ -15,7 +15,10 @@ fields:
   variableId:
     description: Foreign key to variables table for the variable being visualized
   chartConfigId:
-    description: Foreign key to chart_configs table for the chart configuration
+    description: |
+      Foreign key to chart_configs table for the config that is rendered for this
+      view: the y indicator's config merged with the view's layer derived from the
+      multi dim config.
   createdAt:
     description: Timestamp when the configuration was created
   updatedAt:

@@ -32,7 +32,7 @@ import {
     BAKED_GRAPHER_URL,
     CATALOG_URL,
     DATA_API_URL,
-} from "../../settings/clientSettings.js"
+} from "../../settings/clientSettings.mjs"
 
 export default function MultiDim({
     config,
@@ -156,16 +156,10 @@ export default function MultiDim({
             )
         }
 
-        const variables = newView.indicators?.["y"]
-        const adminEditPath =
-            variables?.length === 1
-                ? `variables/${variables[0].id}/config`
-                : undefined
         const analyticsContext = {
             slug: slug ?? undefined,
             viewConfigId: newView.fullConfigId,
         }
-        manager.current.adminEditPath = adminEditPath
         manager.current.analyticsContext = analyticsContext
         manager.current.adminCreateNarrativeChartPath = `narrative-charts/create?type=multiDim&chartConfigId=${newView.fullConfigId}`
         if (slug) manager.current.baseUrl = `${BAKED_GRAPHER_URL}/${slug}`

@@ -13,7 +13,7 @@ import {
     BAKED_GRAPHER_URL,
     CATALOG_URL,
     DATA_API_URL,
-} from "../../../settings/clientSettings.js"
+} from "../../../settings/clientSettings.mjs"
 
 export interface LiveChartEmbedProps {
     /** URL to fetch the full grapher config from */

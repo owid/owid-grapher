@@ -8,6 +8,7 @@ import { Frame } from "../../../../components/Frame/Frame.js"
 
 import type { PopulationVariantConfig } from "../core/config.js"
 import type { VariantProps } from "../../../../helpers/config.js"
+import type { BespokeComponentDataUrls } from "owid-bespoke-types"
 import type { CountryData, DemographyMetadata } from "../core/types.js"
 
 import { queryClient, useDemographyData } from "../core/fetch.js"
@@ -27,10 +28,8 @@ import {
     breakpointClass,
 } from "../core/useBreakpoint.js"
 
-import {
-    DemographyChartError,
-    DemographySkeleton,
-} from "../components/DemographyLoadAndError.js"
+import { ChartError } from "../../../../components/ChartError/ChartError.js"
+import { ChartSkeleton } from "../../../../components/ChartSkeleton/ChartSkeleton.js"
 import { Spinner } from "../../../../components/Spinner/Spinner.js"
 import { PopulationChart } from "../components/PopulationChart.js"
 import { ParameterChartsDisclosure } from "../components/ParameterChartsDisclosure.js"
@@ -38,6 +37,7 @@ import { EntityNameOrSelector } from "../components/EntityNameOrSelector.js"
 
 export function PopulationVariant({
     config,
+    urls,
 }: VariantProps<PopulationVariantConfig>): React.ReactElement {
     const { breakpoint, ref: rootRef } = useContainerBreakpoint()
 
@@ -51,7 +51,7 @@ export function PopulationVariant({
                         breakpointClass(breakpoint)
                     )}
                 >
-                    <FetchingPopulationVariant config={config} />
+                    <FetchingPopulationVariant config={config} urls={urls} />
                 </div>
             </BreakpointProvider>
         </QueryClientProvider>
@@ -60,16 +60,23 @@ export function PopulationVariant({
 
 function FetchingPopulationVariant({
     config,
+    urls,
 }: {
     config: PopulationVariantConfig
+    urls: BespokeComponentDataUrls
 }): React.ReactElement {
-    const [entityName, setEntityName] = useInitialEntityName(config.region)
+    const [entityName, setEntityName] = useInitialEntityName(
+        config.region,
+        urls.metadataUrl
+    )
 
     const { metadata, entityData, isLoadingEntityData, status } =
-        useDemographyData(entityName)
+        useDemographyData(entityName, urls)
 
-    if (status === "pending") return <DemographySkeleton />
-    if (!metadata || !entityData) return <DemographyChartError />
+    if (status === "pending")
+        return <ChartSkeleton className="demography-chart-box" />
+    if (!metadata || !entityData)
+        return <ChartError className="demography-chart-box" />
 
     return (
         <CaptionedPopulationVariant

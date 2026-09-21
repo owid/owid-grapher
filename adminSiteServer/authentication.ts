@@ -307,9 +307,10 @@ async function identifyWebsocketUser(request: {
             request.socketRemoteAddress
         )
         if (!clientIp) return undefined
-        const ipToUserMap = await getTailscaleIpToUserMap().catch(
-            () => ({}) as Record<string, string>
-        )
+        // annotated rather than asserted on the catch value, so the empty
+        // fallback still types as a string map
+        const ipToUserMap: Record<string, string> =
+            await getTailscaleIpToUserMap().catch(() => ({}))
         let loginName: string | undefined = ipToUserMap[clientIp]
         if (!loginName && isLoopbackIp(request.socketRemoteAddress)) {
             loginName =

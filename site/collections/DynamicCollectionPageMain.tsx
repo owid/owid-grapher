@@ -1,6 +1,6 @@
 import * as React from "react"
 import ReactDOM from "react-dom/client"
-import { BAKED_BASE_URL } from "../../settings/clientSettings.js"
+import { BAKED_BASE_URL } from "../../settings/clientSettings.mjs"
 import { DYNAMIC_COLLECTION_PAGE_CONTAINER_ID } from "@ourworldindata/utils"
 import { ObservableMap, observable } from "mobx"
 import { Grapher } from "@ourworldindata/grapher"

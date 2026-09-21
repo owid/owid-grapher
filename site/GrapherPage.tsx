@@ -24,7 +24,7 @@ import {
     BAKED_GRAPHER_URL,
     CATALOG_URL,
     DATA_API_URL,
-} from "../settings/clientSettings.js"
+} from "../settings/clientSettings.mjs"
 import { ChartListItemVariant } from "./ChartListItemVariant.js"
 import { Head } from "./Head.js"
 import { IFrameDetector } from "./IframeDetector.js"

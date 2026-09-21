@@ -211,7 +211,7 @@ export function inspectedBlockFromSelection(
             blockId,
             blockType: attrsBlockType,
             kind: "attrs",
-            props: attrsProps as Record<string, unknown>,
+            props: attrsProps,
             updateProps: updateSelectedNodeAttrs((attrs, newProps) => ({
                 ...newProps,
                 blockId: attrs.blockId ?? null,
@@ -231,7 +231,7 @@ export function inspectedBlockFromSelection(
             blockId,
             blockType: block?.type ?? "unknown",
             kind: "raw",
-            props: (block ?? {}) as Record<string, unknown>,
+            props: block ?? {},
             updateProps: () => undefined,
             deleteBlock,
             getPos,

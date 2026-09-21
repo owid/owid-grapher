@@ -1,0 +1,6 @@
+{
+    "$schema": "../../node_modules/wrangler/config-schema.json",
+    "name": "owid-functions-multi-dim-e2e-tests",
+    "main": "./multi-dim-meta-tags.e2e.worker.ts",
+    "compatibility_date": "2025-05-05"
+}

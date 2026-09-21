@@ -523,7 +523,7 @@ function elementToRawBlock(element: Element): OwidRawGdocBlock {
         .with("pull-quote", (): RawBlockPullQuote => ({
             type: "pull-quote",
             value: {
-                align: attribs.align as "left" | "right" | undefined,
+                align: attribs.align,
                 quote: attribs.quote,
                 content: getAllChildElements(element).map(elementToRawBlock),
             },
@@ -606,7 +606,7 @@ function elementToRawBlock(element: Element): OwidRawGdocBlock {
             type: "explore-data-section",
             value: {
                 title: attribs.title,
-                align: attribs.align as "left" | "right" | undefined,
+                align: attribs.align,
                 content: getAllChildElements(element).map(elementToRawBlock),
             },
         }))
@@ -959,7 +959,7 @@ function elementToRawBlock(element: Element): OwidRawGdocBlock {
         .with("resource-panel", (): RawBlockResourcePanel => ({
             type: "resource-panel",
             value: {
-                icon: attribs.icon as "link" | "download" | undefined,
+                icon: attribs.icon,
                 kicker: attribs.kicker,
                 title: attribs.title,
                 buttonText: attribs.buttonText,
@@ -1033,6 +1033,7 @@ function elementToRawBlock(element: Element): OwidRawGdocBlock {
                 bundle: attribs.bundle,
                 variant: attribs.variant,
                 size: attribs.size as BlockSize | undefined,
+                fallbackImageFilename: attribs.fallbackImageFilename,
                 config: Object.fromEntries(
                     Object.entries(attribs)
                         .filter(([k]) => k.startsWith("config-"))
@@ -1111,7 +1112,7 @@ function attachBlockIds(
 ): void {
     if (!block) return
     const id = element.attribs?.id
-    if (id) (block as { id?: string }).id = id
+    if (id) block.id = id
     const enriched = block as OwidEnrichedGdocBlock
     switch (enriched.type) {
         case "sticky-right":

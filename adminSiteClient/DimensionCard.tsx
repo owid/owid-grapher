@@ -145,7 +145,11 @@ export class DimensionCard<
                         <ColorBox
                             color={this.color}
                             onColor={this.onColor}
-                            showLineChartColors={grapherState.isLineChart}
+                            palette={
+                                grapherState.isLineChart
+                                    ? "chartLines"
+                                    : "chart"
+                            }
                         />
                     </div>
                     <Link
