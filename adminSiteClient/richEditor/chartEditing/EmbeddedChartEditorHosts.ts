@@ -13,6 +13,7 @@ import {
     NarrativeChartEditorManager,
 } from "../../NarrativeChartEditor.js"
 import { References } from "../../AbstractChartEditor.js"
+import { MinimalTagWithMetadata } from "../../TagGraphMetadata.js"
 import {
     GDP_PER_CAPITA_CATALOG_PATH,
     POPULATION_CATALOG_PATH,
@@ -42,7 +43,7 @@ export class EmbeddedChartEditorHost implements ChartEditorManager {
     redirects: ChartRedirect[] = []
     views: AnalyticsGrapherViewWithRank | undefined = undefined
     tags: DbChartTagJoin[] | undefined = undefined
-    availableTags: DbChartTagJoin[] | undefined = undefined
+    availableTags: MinimalTagWithMetadata[] | undefined = undefined
     forceDatapage: boolean | undefined = undefined
 
     editor: ChartEditor | undefined = undefined

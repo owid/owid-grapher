@@ -15,15 +15,16 @@ import { zoom } from "d3-zoom"
 // @ts-expect-error no types available
 import versor from "versor"
 import {
-    makeFigmaId,
     Bounds,
-    isTouchDevice,
-    getRelativeMouse,
-    checkIsTouchEvent,
-    PointVector,
-    MapRegionName,
-    excludeUndefined,
     EntityName,
+    MapRegionName,
+    PointVector,
+    checkIsTouchEvent,
+    excludeUndefined,
+    getRelativeMouse,
+    isTouchDevice,
+    makeFigmaId,
+    roundForSvg,
 } from "@ourworldindata/utils"
 import {
     Annotation,
@@ -54,7 +55,6 @@ import {
     CountryWithNoData,
     ExternalValueAnnotation,
     InternalValueAnnotation,
-    NoDataPattern,
     ProjectedDataPattern,
 } from "./MapComponents"
 import { Patterns } from "../core/GrapherConstants"
@@ -479,6 +479,17 @@ export class ChoroplethGlobe extends React.Component<{
         }
     }
 
+    @action.bound private onClickFeature(
+        feature: GlobeRenderFeature,
+        event: SVGMouseEvent
+    ): void {
+        // Don't invoke a second click on the parent
+        // that catches clicks on 'nearby' features
+        event.stopPropagation()
+
+        this.onClick(feature)
+    }
+
     @action.bound private onDocumentPointerDown(): void {
         this.clearHover()
     }
@@ -676,9 +687,9 @@ export class ChoroplethGlobe extends React.Component<{
             <>
                 <circle
                     id={makeFigmaId("globe-sphere")}
-                    cx={this.globeCenter[0]}
-                    cy={this.globeCenter[1]}
-                    r={this.globeRadius}
+                    cx={roundForSvg(this.globeCenter[0])}
+                    cy={roundForSvg(this.globeCenter[1])}
+                    r={roundForSvg(this.globeRadius)}
                     fill="#fafafa"
                 />
                 <path
@@ -718,34 +729,31 @@ export class ChoroplethGlobe extends React.Component<{
     }
 
     renderFeaturesWithNoData(): React.ReactElement | undefined {
-        if (this.featuresWithNoData.length === 0) return
+        const {
+            featuresWithNoData,
+            manager: { inapplicableEntityNamesSet },
+        } = this
 
-        const patternId = Patterns.noDataPatternForGlobe
+        if (featuresWithNoData.length === 0) return
 
         return (
             <g
                 id={makeFigmaId("countries-without-data")}
                 className="noDataFeatures"
             >
-                <defs>
-                    <NoDataPattern patternId={patternId} />
-                </defs>
-
-                {this.featuresWithNoData.map((feature) => (
+                {featuresWithNoData.map((feature) => (
                     <CountryWithNoData
                         key={feature.id}
                         feature={feature}
                         path={this.getPath(feature)}
-                        patternId={patternId}
+                        patternId={
+                            inapplicableEntityNamesSet?.has(feature.id)
+                                ? Patterns.inapplicablePattern
+                                : Patterns.noDataPattern
+                        }
                         isSelected={this.manager.isSelected?.(feature.id)}
                         hover={this.manager.getHoverState?.(feature.id)}
-                        onClick={(event) => {
-                            // don't invoke a second click on parent that
-                            // catches clicks on 'nearby' features
-                            event.stopPropagation()
-
-                            this.onClick(feature)
-                        }}
+                        onClick={this.onClickFeature}
                         onPointerEnter={this.onPointerEnterFeature}
                         onPointerLeave={this.onPointerLeaveFeature}
                     />
@@ -799,13 +807,7 @@ export class ChoroplethGlobe extends React.Component<{
                             path={this.getPath(feature)}
                             isSelected={this.manager.isSelected?.(feature.id)}
                             hover={this.manager.getHoverState?.(feature.id)}
-                            onClick={(event) => {
-                                // don't invoke a second click on parent that
-                                // catches clicks on 'nearby' features
-                                event.stopPropagation()
-
-                                this.onClick(feature)
-                            }}
+                            onClick={this.onClickFeature}
                             onPointerEnter={this.onPointerEnterFeature}
                             onPointerLeave={this.onPointerLeaveFeature}
                         />

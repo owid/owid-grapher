@@ -34,7 +34,7 @@ import {
     EXPLORER_DYNAMIC_THUMBNAIL_URL,
     GRAPHER_DYNAMIC_THUMBNAIL_URL,
     IS_ARCHIVE,
-} from "../../../settings/clientSettings.js"
+} from "../../../settings/clientSettings.mjs"
 import { PROD_URL } from "../../../site/SiteConstants.js"
 import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
 import { match, P } from "ts-pattern"
@@ -1461,7 +1461,7 @@ export class GdocBase implements OwidGdocBaseInterface {
         await this.loadNarrativeChartsInfo(knex)
         await this.loadLinkedStaticViz(knex)
         await this.loadAndClearLinkedCallouts(knex) // clones and reassigns this.content
-        await this._loadSubclassAttachments(knex) // for GdocHomepage, mutates linkedCharts and linkedDocuments
+        await this._loadSubclassAttachments(knex)
         await this.validate(knex)
     }
 
@@ -1505,7 +1505,6 @@ export function rawGdocToMinimalPost(
         type: row.type as OwidGdocType,
         "featured-image": featuredImage,
         kicker: content.kicker,
-        cta: content.cta,
     }
 }
 

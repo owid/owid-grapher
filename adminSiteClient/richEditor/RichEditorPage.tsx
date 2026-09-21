@@ -560,7 +560,7 @@ function RichEditorPageForId(props: { id: string }): React.ReactElement {
         )
     }
 
-    const docType = gdoc.content.type as OwidGdocType | undefined
+    const docType = gdoc.content.type
     const isPublished = published ?? gdoc.published
     const title = docTitle ?? gdoc.content.title ?? "Untitled"
     const paletteItems = getBlockItemsForDocType(docType)
@@ -625,7 +625,9 @@ function RichEditorPageForId(props: { id: string }): React.ReactElement {
                                     saveState.kind === "saving" ||
                                     saveState.kind === "conflict"
                                 }
-                                onClick={() => void doSave("manual")}
+                                onClick={() => {
+                                    void doSave("manual")
+                                }}
                             >
                                 Save
                             </Button>
@@ -635,7 +637,9 @@ function RichEditorPageForId(props: { id: string }): React.ReactElement {
                                 type="primary"
                                 loading={publishing}
                                 disabled={saveState.kind === "conflict"}
-                                onClick={() => void doPublish()}
+                                onClick={() => {
+                                    void doPublish()
+                                }}
                                 menu={{
                                     items: [
                                         {
@@ -651,8 +655,9 @@ function RichEditorPageForId(props: { id: string }): React.ReactElement {
                                                     okButtonProps: {
                                                         danger: true,
                                                     },
-                                                    onOk: () =>
-                                                        void doUnpublish(),
+                                                    onOk: () => {
+                                                        void doUnpublish()
+                                                    },
                                                 })
                                             },
                                         },
@@ -665,7 +670,9 @@ function RichEditorPageForId(props: { id: string }): React.ReactElement {
                             <Popconfirm
                                 title="Publish this document?"
                                 description="It will go live on the site with the next deploy."
-                                onConfirm={() => void doPublish()}
+                                onConfirm={() => {
+                                    void doPublish()
+                                }}
                             >
                                 <Button
                                     type="primary"
@@ -728,7 +735,9 @@ function RichEditorPageForId(props: { id: string }): React.ReactElement {
                         action={
                             <Button
                                 size="small"
-                                onClick={() => void doSave("manual")}
+                                onClick={() => {
+                                    void doSave("manual")
+                                }}
                             >
                                 Retry
                             </Button>
@@ -885,9 +894,9 @@ function RichEditorPageForId(props: { id: string }): React.ReactElement {
                                                           environment={
                                                               chartEditing.environment
                                                           }
-                                                          onClose={() =>
+                                                          onClose={() => {
                                                               void chartEditing.contextValue.closeSession()
-                                                          }
+                                                          }}
                                                       />
                                                   ),
                                               },
@@ -989,7 +998,7 @@ function RichEditorPageForId(props: { id: string }): React.ReactElement {
                                                           }
                                                         : null
                                                 }
-                                                onThreadsChanged={() =>
+                                                onThreadsChanged={() => {
                                                     void queryClient.invalidateQueries(
                                                         {
                                                             queryKey: [
@@ -998,7 +1007,7 @@ function RichEditorPageForId(props: { id: string }): React.ReactElement {
                                                             ],
                                                         }
                                                     )
-                                                }
+                                                }}
                                             />
                                         ),
                                     },
@@ -1091,7 +1100,9 @@ function InlineTitleField(props: {
             variant="borderless"
             value={value}
             onChange={(event) => setValue(event.target.value)}
-            onBlur={() => void save()}
+            onBlur={() => {
+                void save()
+            }}
             onPressEnter={(event) => {
                 event.preventDefault()
                 event.currentTarget.blur()

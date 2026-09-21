@@ -1,8 +1,8 @@
 import { formatValue } from "@ourworldindata/utils"
 import { OwidVariableRoundingMode } from "@ourworldindata/types"
 
-import { MigrantDemographics } from "./data.js"
-import { PyramidData, SexValues, ShowMode } from "./types.js"
+import { computePyramidData } from "./data.js"
+import { PyramidData, RawEntityYears, SexValues, ShowMode } from "./types.js"
 
 /** One age band's values, as the pyramid draws them */
 export interface PyramidRow {
@@ -49,18 +49,16 @@ export function computePyramidView(
  * while the user drags the time slider.
  */
 export function computeAxisMax(
-    data: MigrantDemographics,
-    entityName: string,
+    entityYears: RawEntityYears,
+    ageBands: string[],
     mode: ShowMode,
     compareWithNatives: boolean
 ): number {
     let max = 0
-    for (const year of data.years) {
-        const pyramidData = data.getPyramidData(entityName, year)
-        if (!pyramidData) continue
+    for (const record of Object.values(entityYears)) {
         const view = computePyramidView(
-            pyramidData,
-            data.ageBands,
+            computePyramidData(record),
+            ageBands,
             mode,
             compareWithNatives
         )

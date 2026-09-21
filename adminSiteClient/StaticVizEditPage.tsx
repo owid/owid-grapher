@@ -97,7 +97,7 @@ function useInitializeForm(
         queryKey: ["static-viz", staticVizId],
         queryFn: async () => {
             if (!isEdit) return null
-            const response = await admin.getJSON(
+            const response = await admin.getJSONInBackground(
                 `/api/static-viz/${staticVizId}.json`
             )
             return response.staticViz as DbEnrichedStaticViz
@@ -153,7 +153,7 @@ export function StaticVizEditPage() {
     >({
         queryKey: ["images"],
         queryFn: async () => {
-            const response = await admin.getJSON("/api/images.json")
+            const response = await admin.getJSONInBackground("/api/images.json")
             return response.images.sort((a: DbRawImage, b: DbRawImage) =>
                 a.filename.localeCompare(b.filename)
             )
@@ -163,7 +163,7 @@ export function StaticVizEditPage() {
     const { data: grapherSlugs } = useQuery({
         queryKey: ["grapherSlugs"],
         queryFn: async () => {
-            const response = await admin.getJSON<{
+            const response = await admin.getJSONInBackground<{
                 charts: ChartListItem[]
             }>("/api/charts.json")
             return [

@@ -1,16 +1,15 @@
 import * as _ from "lodash-es"
 import {
-    ChartConfigsTableName,
     DbEnrichedMultiDimDataPage,
-    DbRawChartConfig,
     getUniqueNamesFromTagHierarchies,
     merge,
     dimensionsToViewId,
     MultiDimDataPageConfig,
-    parseChartConfig,
+    multiDimDimensionsToViewQueryStr,
 } from "@ourworldindata/utils"
 import { toPlaintext } from "@ourworldindata/components"
 import * as db from "../../../db/db.js"
+import { getChartConfigsByUuids } from "../../../db/model/ChartConfigs.js"
 import { getAllPublishedMultiDimDataPages } from "../../../db/model/MultiDimDataPage.js"
 import { logErrorAndMaybeCaptureInSentry } from "../../../serverUtils/errorLog.js"
 import {
@@ -21,18 +20,15 @@ import {
     IndexingContext,
 } from "@ourworldindata/types"
 import { createMultiDimIndexingContext } from "./context.js"
+import { attributeLinksToViewIds } from "./mdimViewsLogic.js"
 import {
-    attributeLinksToViewIds,
-    dimensionsToSortedQueryStr,
-} from "./mdimViewsLogic.js"
-import {
-    getRelevantVariableIds,
-    getRelevantVariableMetadata,
+    getMultiDimViewTitle,
+    getRelevantIndicatorIds,
+    getRelevantIndicatorMetadata,
 } from "../../MultiDimBaker.js"
 import { GrapherState } from "@ourworldindata/grapher"
 import {
     computeRecordScore,
-    maybeAddChangeInPrefix,
     parseJsonStringArray,
     uniqNonEmptyStrings,
 } from "./shared.js"
@@ -42,16 +38,6 @@ import pMap from "p-map"
 
 // Published multi-dim must have a slug.
 type PublishedMultiDimWithSlug = DbEnrichedMultiDimDataPage & { slug: string }
-
-async function getChartConfigsByIds(
-    knex: db.KnexReadonlyTransaction,
-    ids: string[]
-) {
-    const rows = await knex<DbRawChartConfig>(ChartConfigsTableName)
-        .select("id", "full")
-        .whereIn("id", ids)
-    return new Map(rows.map((row) => [row.id, parseChartConfig(row.full)]))
-}
 
 async function getDatasetDimensionsByVariableIds(
     trx: db.KnexReadonlyTransaction,
@@ -94,15 +80,15 @@ async function getRecords(
     console.log(
         `Creating ${multiDim.config.views.length} records for mdim ${slug}`
     )
-    const chartConfigs = await getChartConfigsByIds(
+    const chartConfigs = await getChartConfigsByUuids(
         trx,
         multiDim.config.views.map((view) => view.fullConfigId)
     )
-    const relevantVariableIds = getRelevantVariableIds(multiDim.config)
+    const relevantIndicatorIds = getRelevantIndicatorIds(multiDim.config)
     const relevantVariableMetadata =
-        await getRelevantVariableMetadata(relevantVariableIds)
+        await getRelevantIndicatorMetadata(relevantIndicatorIds)
     const datasetDimensionsByVariableId =
-        await getDatasetDimensionsByVariableIds(trx, [...relevantVariableIds])
+        await getDatasetDimensionsByVariableIds(trx, [...relevantIndicatorIds])
     const linksFromGdocs = await getPublishedLinksTo(
         trx,
         [slug],
@@ -132,21 +118,14 @@ async function getRecords(
             )
         }
         const grapherState = new GrapherState(chartConfig)
-        const queryStr = dimensionsToSortedQueryStr(view.dimensions)
+        const queryStr = multiDimDimensionsToViewQueryStr(view.dimensions)
         const variableId = view.indicators.y[0].id
         const metadata = merge(
             relevantVariableMetadata[variableId],
             multiDim.config.metadata ?? {},
             view.metadata ?? {}
         )
-        const title = maybeAddChangeInPrefix(
-            metadata.presentation?.titlePublic ||
-                chartConfig.title ||
-                metadata.display?.name ||
-                metadata.name ||
-                "",
-            grapherState.shouldAddChangeInPrefixToTitle
-        )
+        const title = getMultiDimViewTitle(metadata, chartConfig, grapherState)
         const titleVariant =
             view.indicators.y.length === 1
                 ? metadata.presentation?.titleVariant

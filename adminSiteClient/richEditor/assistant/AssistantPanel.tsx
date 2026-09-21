@@ -121,18 +121,20 @@ export default function AssistantPanel(
                     <Button
                         size="small"
                         icon={<FontAwesomeIcon icon={faPlus} />}
-                        onClick={() => void chat?.newSession()}
+                        onClick={() => {
+                            void chat?.newSession()
+                        }}
                     >
                         New chat
                     </Button>
                     <Button
                         size="small"
                         icon={<FontAwesomeIcon icon={faClockRotateLeft} />}
-                        onClick={() =>
-                            void SessionListDialog.open(
-                                (sessionId) => void chat?.loadSession(sessionId)
-                            )
-                        }
+                        onClick={() => {
+                            void SessionListDialog.open((sessionId) => {
+                                void chat?.loadSession(sessionId)
+                            })
+                        }}
                     >
                         History
                     </Button>
@@ -180,7 +182,7 @@ function VfsBrowser(props: { code: CodeHost }): React.ReactElement {
                         <li key={file.path}>
                             <button
                                 type="button"
-                                onClick={() =>
+                                onClick={() => {
                                     void props.code
                                         .readFile(file.path, {
                                             maxChars: 20_000,
@@ -191,7 +193,7 @@ function VfsBrowser(props: { code: CodeHost }): React.ReactElement {
                                                 text: read.text,
                                             })
                                         )
-                                }
+                                }}
                             >
                                 {file.path}
                             </button>{" "}

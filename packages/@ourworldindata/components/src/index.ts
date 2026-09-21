@@ -56,6 +56,24 @@ export {
 } from "./IndicatorKeyData/IndicatorKeyData.js"
 export { IndicatorProcessing } from "./IndicatorProcessing/IndicatorProcessing.js"
 
+export { MetadataBoxExpander } from "./MetadataBox/MetadataBoxExpander.js"
+export { MetadataBoxCollapseButton } from "./MetadataBox/MetadataBoxCollapseButton.js"
+export { MetadataBoxSection } from "./MetadataBox/MetadataBoxSection.js"
+export { MetadataBoxReuseNotice } from "./MetadataBox/MetadataBoxReuseNotice.js"
+export {
+    MetadataBoxKeyData,
+    MetadataBoxKeyDataRow,
+} from "./MetadataBox/MetadataBoxKeyData.js"
+export { ChartLicenseNotice } from "./ChartLicenseNotice/ChartLicenseNotice.js"
+
+export {
+    BespokeMetadataHeading,
+    BESPOKE_METADATA_FALLBACK_TITLE,
+} from "./BespokeMetadata/BespokeMetadataHeading.js"
+export { BespokeMetadataKeyData } from "./BespokeMetadata/BespokeMetadataKeyData.js"
+export { getBespokeKeyDataRows } from "./BespokeMetadata/bespokeKeyDataRows.js"
+export { BespokeMetadataSections } from "./BespokeMetadata/BespokeMetadataSections.js"
+
 export { LabeledSwitch } from "./LabeledSwitch/LabeledSwitch.js"
 export { Checkbox } from "./Checkbox.js"
 export { RadioButton } from "./RadioButton.js"
@@ -100,3 +118,7 @@ export { reactRenderToStringClientOnly } from "./reactUtil.js"
 
 export { GrapherTabIcon } from "./GrapherTabIcon.js"
 export { GrapherTrendArrow } from "./GrapherTrendArrow.js"
+export {
+    getPrefersReducedMotion,
+    usePrefersReducedMotion,
+} from "./usePrefersReducedMotion.js"

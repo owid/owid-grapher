@@ -153,11 +153,11 @@ export async function getDodsUsage(
     const chartsUsagePromise = knexRaw<{ slug: string; config: string }>(
         knex,
         `-- sql
-        SELECT cc.slug, cc.full AS config
+        SELECT cc.slug, cc.config AS config
         FROM ${ChartConfigsTableName} cc
         JOIN ${ChartsTableName} c ON c.configId = cc.id
-        WHERE cc.full LIKE "%#dod:%"
-        AND cc.full->>"$.isPublished" = "true"`
+        WHERE cc.config LIKE "%#dod:%"
+        AND cc.config->>"$.isPublished" = "true"`
     ).then((rows) =>
         rows.reduce(
             (acc, cur) => {

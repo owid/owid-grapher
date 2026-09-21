@@ -1,20 +1,36 @@
 import { expect, it, describe } from "vitest"
 
-import {
-    SortOrder,
-    SortBy,
-    ColumnTypeNames,
-    MissingDataStrategy,
-} from "@ourworldindata/utils"
+import { SortOrder, SortBy, MissingDataStrategy } from "@ourworldindata/utils"
 import {
     OwidTable,
     SampleColumnSlugs,
     SynthesizeFruitTable,
+    numericDefs,
+    yearDef,
 } from "@ourworldindata/core-table"
 import { ChartManager } from "../chart/ChartManager"
 import { SelectionArray } from "../selection/SelectionArray"
 import { StackedDiscreteBarChart } from "./StackedDiscreteBarChart"
 import { StackedDiscreteBarChartState } from "./StackedDiscreteBarChartState"
+
+function makeStackedDiscreteBar(
+    rows: (number | string | null)[][],
+    config: Partial<ChartManager> = {}
+): { chartState: StackedDiscreteBarChartState; table: OwidTable } {
+    const table = new OwidTable(
+        [["coal", "gas", "year", "entityName"], ...rows],
+        [...numericDefs("coal", "gas"), yearDef()]
+    )
+    const chartState = new StackedDiscreteBarChartState({
+        manager: {
+            table,
+            selection: table.availableEntityNames,
+            yColumnSlugs: ["coal", "gas"],
+            ...config,
+        },
+    })
+    return { chartState, table }
+}
 
 it("can create a chart", () => {
     const table = SynthesizeFruitTable({
@@ -38,263 +54,170 @@ it("can create a chart", () => {
 })
 
 it("can display a StackedDiscreteBar chart in relative mode", () => {
-    const csv = `coal,gas,year,entityName
-    20,30,2000,France
-    6,14,2000,Spain`
-    const table = new OwidTable(csv, [
-        { slug: "coal", type: ColumnTypeNames.Numeric },
-        { slug: "gas", type: ColumnTypeNames.Numeric },
-        { slug: "year", type: ColumnTypeNames.Year },
-    ])
+    const { chartState } = makeStackedDiscreteBar(
+        [
+            [20, 30, 2000, "France"],
+            [6, 14, 2000, "Spain"],
+        ],
+        { isRelativeMode: true }
+    )
 
-    const manager: ChartManager = {
-        table,
-        selection: table.availableEntityNames,
-        yColumnSlugs: ["coal", "gas"],
-        isRelativeMode: true,
-    }
-    const chartState = new StackedDiscreteBarChartState({ manager })
-
-    // Check that our absolute values get properly transformed into percentages
     expect(chartState.errorInfo.reason).toEqual("")
     expect(chartState.series.length).toEqual(2)
-    expect(chartState.series[0].points).toEqual([
-        {
-            position: "France",
-            value: 40,
-            valueOffset: 0,
-            time: 2000,
-            missing: false,
-        },
-        {
-            position: "Spain",
-            value: 30,
-            valueOffset: 0,
-            time: 2000,
-            missing: false,
-        },
+    expect(
+        chartState.series[0].points.map((p) => [
+            p.position,
+            p.value,
+            p.valueOffset,
+        ])
+    ).toEqual([
+        ["France", 40, 0],
+        ["Spain", 30, 0],
     ])
-    expect(chartState.series[1].points).toEqual([
-        {
-            position: "France",
-            value: 60,
-            valueOffset: 40,
-            time: 2000,
-            missing: false,
-        },
-        {
-            position: "Spain",
-            value: 70,
-            valueOffset: 30,
-            time: 2000,
-            missing: false,
-        },
+    expect(
+        chartState.series[1].points.map((p) => [
+            p.position,
+            p.value,
+            p.valueOffset,
+        ])
+    ).toEqual([
+        ["France", 60, 40],
+        ["Spain", 70, 30],
     ])
 })
 
 it("can display a chart with missing variable data for some entities", () => {
-    const csv = `coal,gas,year,entityName
-    20,,2000,France
-    ,14,2000,Spain`
-    const table = new OwidTable(csv, [
-        { slug: "coal", type: ColumnTypeNames.Numeric },
-        { slug: "gas", type: ColumnTypeNames.Numeric },
-        { slug: "year", type: ColumnTypeNames.Year },
+    const { chartState, table } = makeStackedDiscreteBar([
+        [20, null, 2000, "France"],
+        [null, 14, 2000, "Spain"],
     ])
 
-    const manager: ChartManager = {
-        table,
-        selection: table.availableEntityNames,
-        yColumnSlugs: ["coal", "gas"],
-    }
-    const chartState = new StackedDiscreteBarChartState({ manager })
-
-    // Check that our absolute values get properly transformed into percentages
     expect(chartState.errorInfo.reason).toEqual("")
     expect(
         chartState.transformTableForSelection(table).availableEntityNames
     ).toEqual(["France", "Spain"])
 
     expect(chartState.series.length).toEqual(2)
-    expect(chartState.series[0].points).toEqual([
-        {
-            position: "France",
-            value: 20,
-            valueOffset: 0,
-            time: 2000,
-            missing: false,
-        },
-        {
-            position: "Spain",
-            value: 0,
-            valueOffset: 0,
-            time: 0,
-            missing: true,
-        },
+    expect(
+        chartState.series[0].points.map((p) => [
+            p.position,
+            p.value,
+            p.valueOffset,
+            p.missing,
+        ])
+    ).toEqual([
+        ["France", 20, 0, false],
+        ["Spain", 0, 0, true],
     ])
-    expect(chartState.series[1].points).toEqual([
-        {
-            position: "France",
-            value: 0,
-            valueOffset: 20,
-            time: 0,
-            missing: true,
-        },
-        {
-            position: "Spain",
-            value: 14,
-            valueOffset: 0,
-            time: 2000,
-            missing: false,
-        },
+    expect(
+        chartState.series[1].points.map((p) => [
+            p.position,
+            p.value,
+            p.valueOffset,
+            p.missing,
+        ])
+    ).toEqual([
+        ["France", 0, 20, true],
+        ["Spain", 14, 0, false],
     ])
 })
 
 it("can display a chart with missing variable data for some entities, while hiding missing data", () => {
-    const csv = `coal,gas,year,entityName
-    20,,2000,France
-    10,20,2000,Italy
-    ,14,2000,Spain`
-    const table = new OwidTable(csv, [
-        { slug: "coal", type: ColumnTypeNames.Numeric },
-        { slug: "gas", type: ColumnTypeNames.Numeric },
-        { slug: "year", type: ColumnTypeNames.Year },
-    ])
+    const { chartState, table } = makeStackedDiscreteBar(
+        [
+            [20, null, 2000, "France"],
+            [10, 20, 2000, "Italy"],
+            [null, 14, 2000, "Spain"],
+        ],
+        { missingDataStrategy: MissingDataStrategy.hide }
+    )
 
-    const manager: ChartManager = {
-        table,
-        selection: table.availableEntityNames,
-        yColumnSlugs: ["coal", "gas"],
-        missingDataStrategy: MissingDataStrategy.hide,
-    }
-    const chartState = new StackedDiscreteBarChartState({ manager })
-
-    // Check that our absolute values get properly transformed into percentages
     expect(chartState.errorInfo.reason).toEqual("")
     expect(
         chartState.transformTableForSelection(table).availableEntityNames
     ).toEqual(["Italy"])
 
     expect(chartState.series.length).toEqual(2)
-    expect(chartState.series[0].points).toEqual([
-        {
-            position: "Italy",
-            value: 10,
-            valueOffset: 0,
-            time: 2000,
-            missing: false,
-        },
-    ])
-    expect(chartState.series[1].points).toEqual([
-        {
-            position: "Italy",
-            value: 20,
-            valueOffset: 10,
-            time: 2000,
-            missing: false,
-        },
-    ])
+    expect(
+        chartState.series[0].points.map((p) => [
+            p.position,
+            p.value,
+            p.valueOffset,
+        ])
+    ).toEqual([["Italy", 10, 0]])
+    expect(
+        chartState.series[1].points.map((p) => [
+            p.position,
+            p.value,
+            p.valueOffset,
+        ])
+    ).toEqual([["Italy", 20, 10]])
 })
 
 it("can display a chart with missing variable data for some entities, while hiding missing data in relative mode", () => {
-    const csv = `coal,gas,year,entityName
-    20,,2000,France
-    10,30,2000,Italy
-    ,14,2000,Spain`
-    const table = new OwidTable(csv, [
-        { slug: "coal", type: ColumnTypeNames.Numeric },
-        { slug: "gas", type: ColumnTypeNames.Numeric },
-        { slug: "year", type: ColumnTypeNames.Year },
-    ])
+    const { chartState, table } = makeStackedDiscreteBar(
+        [
+            [20, null, 2000, "France"],
+            [10, 30, 2000, "Italy"],
+            [null, 14, 2000, "Spain"],
+        ],
+        { isRelativeMode: true }
+    )
 
-    const manager: ChartManager = {
-        table,
-        selection: table.availableEntityNames,
-        yColumnSlugs: ["coal", "gas"],
-        isRelativeMode: true,
-    }
-    const chartState = new StackedDiscreteBarChartState({ manager })
-
-    // Check that our absolute values get properly transformed into percentages
     expect(chartState.errorInfo.reason).toEqual("")
     expect(
         chartState.transformTableForSelection(table).availableEntityNames
     ).toEqual(["Italy"])
 
     expect(chartState.series.length).toEqual(2)
-    expect(chartState.series[0].points).toEqual([
-        {
-            position: "Italy",
-            value: 25,
-            valueOffset: 0,
-            time: 2000,
-            missing: false,
-        },
-    ])
-    expect(chartState.series[1].points).toEqual([
-        {
-            position: "Italy",
-            value: 75,
-            valueOffset: 25,
-            time: 2000,
-            missing: false,
-        },
-    ])
+    expect(
+        chartState.series[0].points.map((p) => [
+            p.position,
+            p.value,
+            p.valueOffset,
+        ])
+    ).toEqual([["Italy", 25, 0]])
+    expect(
+        chartState.series[1].points.map((p) => [
+            p.position,
+            p.value,
+            p.valueOffset,
+        ])
+    ).toEqual([["Italy", 75, 25]])
 })
 
 it("can display chart with negative values", () => {
-    const csv = `coal,gas,year,entityName
--20,30,2000,France
-40,10,2000,Spain`
-    const table = new OwidTable(csv, [
-        { slug: "coal", type: ColumnTypeNames.Numeric },
-        { slug: "gas", type: ColumnTypeNames.Numeric },
-        { slug: "year", type: ColumnTypeNames.Year },
+    const { chartState } = makeStackedDiscreteBar([
+        [-20, 30, 2000, "France"],
+        [40, 10, 2000, "Spain"],
     ])
-
-    const manager: ChartManager = {
-        table,
-        selection: table.availableEntityNames,
-        yColumnSlugs: ["coal", "gas"],
-    }
-    const chartState = new StackedDiscreteBarChartState({ manager })
 
     expect(chartState.errorInfo.reason).toEqual("")
     expect(chartState.series.length).toEqual(2)
 
-    expect(chartState.series[0].points).toEqual([
-        {
-            position: "France",
-            value: -20,
-            valueOffset: 0,
-            time: 2000,
-            missing: false,
-        },
-        {
-            position: "Spain",
-            value: 40,
-            valueOffset: 0,
-            time: 2000,
-            missing: false,
-        },
+    expect(
+        chartState.series[0].points.map((p) => [
+            p.position,
+            p.value,
+            p.valueOffset,
+            p.time,
+        ])
+    ).toEqual([
+        ["France", -20, 0, 2000],
+        ["Spain", 40, 0, 2000],
     ])
 
-    expect(chartState.series[1].points).toEqual([
-        {
-            position: "France",
-            value: 30,
-            // offset is 0 because the previous series has a negative value
-            valueOffset: 0,
-            time: 2000,
-            missing: false,
-        },
-        {
-            position: "Spain",
-            value: 10,
-            valueOffset: 40,
-            time: 2000,
-            missing: false,
-        },
+    expect(
+        chartState.series[1].points.map((p) => [
+            p.position,
+            p.value,
+            p.valueOffset,
+            p.time,
+        ])
+    ).toEqual([
+        // offset is 0 because the previous series has a negative value
+        ["France", 30, 0, 2000],
+        ["Spain", 10, 40, 2000],
     ])
 })
 
@@ -313,8 +236,8 @@ describe("columns as series", () => {
     const chart = new StackedDiscreteBarChart({ chartState })
 
     it("renders the legend items in the order of yColumns", () => {
-        expect(chart.categoricalLegendData.length).toEqual(2)
-        expect(chart.categoricalLegendData.map((bin) => bin.value)).toEqual([
+        expect(chart["categoricalLegendData"].length).toEqual(2)
+        expect(chart["categoricalLegendData"].map((bin) => bin.value)).toEqual([
             SampleColumnSlugs.Fruit,
             SampleColumnSlugs.Vegetables,
         ])
@@ -330,16 +253,15 @@ describe("columns as series", () => {
 })
 
 describe("sorting", () => {
-    const csv = `coal,gas,year,entityName
-    10,20,2000,France
-    35,2,2000,Spain
-    11,8,2000,Germany`
-    const columnDef = [
-        { slug: "coal", type: ColumnTypeNames.Numeric },
-        { slug: "gas", type: ColumnTypeNames.Numeric },
-        { slug: "year", type: ColumnTypeNames.Year },
-    ]
-    const table = new OwidTable(csv, columnDef)
+    const table = new OwidTable(
+        [
+            ["coal", "gas", "year", "entityName"],
+            [10, 20, 2000, "France"],
+            [35, 2, 2000, "Spain"],
+            [11, 8, 2000, "Germany"],
+        ],
+        [...numericDefs("coal", "gas"), yearDef()]
+    )
 
     const baseManager: ChartManager = {
         table,
@@ -450,12 +372,16 @@ describe("sorting", () => {
     })
 
     it("can sort by column that's missing values", () => {
-        const csv = `coal,gas,year,entityName
-    ,20,2000,France
-    ,2,2000,Spain
-    9,8,2000,Germany
-    11,,2000,Belgium`
-        const table = new OwidTable(csv, columnDef)
+        const table = new OwidTable(
+            [
+                ["coal", "gas", "year", "entityName"],
+                [null, 20, 2000, "France"],
+                [null, 2, 2000, "Spain"],
+                [9, 8, 2000, "Germany"],
+                [11, null, 2000, "Belgium"],
+            ],
+            [...numericDefs("coal", "gas"), yearDef()]
+        )
 
         const chartState = new StackedDiscreteBarChartState({
             manager: {
@@ -496,7 +422,7 @@ describe("showLegend", () => {
             manager: { ...baseManager, showLegend: true },
         })
         const chart = new StackedDiscreteBarChart({ chartState })
-        expect(chart["legend"].height).toBeGreaterThan(0)
+        expect(chart["legendState"].height).toBeGreaterThan(0)
         expect(chart["categoricalLegendData"].length).toBeGreaterThan(0)
         expect(chart["externalLegend"]).toBeUndefined()
     })
@@ -506,7 +432,7 @@ describe("showLegend", () => {
             manager: { ...baseManager, showLegend: false },
         })
         const chart = new StackedDiscreteBarChart({ chartState })
-        expect(chart["legend"].height).toEqual(0)
+        expect(chart["legendState"].height).toEqual(0)
         expect(chart["categoricalLegendData"].length).toEqual(0)
         expect(chart["externalLegend"]?.categoricalLegendData?.length).toEqual(
             2

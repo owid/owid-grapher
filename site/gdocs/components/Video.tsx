@@ -6,7 +6,7 @@ import {
 } from "@ourworldindata/utils"
 import { useImage } from "../utils.js"
 import SpanElements from "./SpanElements.js"
-import { CLOUDFLARE_IMAGES_URL } from "../../../settings/clientSettings.js"
+import { CLOUDFLARE_IMAGES_URL } from "../../../settings/clientSettings.mjs"
 import { useDocumentContext } from "../DocumentContext.js"
 
 interface VideoProps {

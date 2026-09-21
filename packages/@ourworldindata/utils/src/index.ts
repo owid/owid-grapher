@@ -30,6 +30,8 @@ export {
     guid,
     TESTING_ONLY_disable_guid,
     pointsToPath,
+    roundForSvg,
+    SVG_PRECISION,
     sortedFindClosestIndex,
     sortedFindClosest,
     isMobile,
@@ -92,8 +94,12 @@ export {
     imemo,
     recursivelyMapArticleContent,
     traverseEnrichedBlock,
+    getParseFindings,
     checkNodeIsSpan,
     generateToc,
+    toSentenceCase,
+    getTopicPageHeading,
+    sentenceCaseIfNotTopicPage,
     groupTocIntoSections,
     getResearchAndWritingId,
     extractLinksFromMarkdown,
@@ -111,6 +117,7 @@ export {
     checkIsGdocPostExcludingFragments,
     checkIsDataInsight,
     checkIsAuthor,
+    checkIsFeaturedViz,
     checkIsChronologicalGdoc,
     checkIsLatestFeedGdoc,
     cartesian,
@@ -121,8 +128,10 @@ export {
     getAllChildrenOfArea,
     flattenNonTopicNodes,
     formatInlineList,
+    formatAuthors,
+    formatAuthorsForBibtex,
     lazy,
-    getParentVariableIdFromChartConfig,
+    getParentIndicatorIdFromChartConfig,
     isArrayDifferentFromReference,
     readFromAssetMap,
     getUniqueNamesFromTagHierarchies,
@@ -154,23 +163,20 @@ export {
 } from "./Util.js"
 
 export {
-    getOriginAttributionFragments,
+    getOriginAttributions,
     getAttributionFragmentsFromVariable,
+    getAttributionFragmentsFromBespokeMetadata,
+    formatAttributions,
+    formatAttributionsShortened,
     getETLPathComponents,
-    formatAuthors,
-    formatAuthorsForBibtex,
     getLastUpdatedFromVariable,
     getNextUpdateFromVariable,
-    getPhraseForProcessingLevel,
-    splitSourceTextIntoFragments,
+    getAttributionWithProcessing,
+    getProcessingPhraseForAttribution,
     prepareSourcesForDisplay,
     formatSourceDate,
     getDateRange,
-    getCitationLong,
-    getCitationShort,
-    getCitationDatapage,
-    getPhraseForArchivalDate,
-    getYearSuffixFromOrigin,
+    getIndicatorCitations,
 } from "./metadataHelpers.js"
 
 export { getAllVariableIds } from "./multiDim.js"
@@ -218,9 +224,14 @@ export {
     type Country,
     type IncomeGroup,
     type OwidIncomeGroupCode,
+    type OwidIncomeGroupName,
     type Continent,
+    type OwidContinentName,
     type Aggregate,
-    type RegionDataProvider,
+    type AggregateWithPublisher,
+    type RegionSet,
+    type RegionPublisher,
+    type SuffixedRegionName,
     regions,
     countries,
     listedRegionsNames,
@@ -230,8 +241,12 @@ export {
     getRegionByNameOrVariantName,
     getContinents,
     getAggregates,
-    getAggregatesByProvider,
-    getRegionDataProviders,
+    getAggregatesInRegionSet,
+    getRegionSets,
+    getRegionPublishers,
+    parseRegionNameSuffix,
+    toPublisherLookupKey,
+    type RegionNameSuffix,
     countriesByName,
     incomeGroupsByCode,
     getRegionAlternativeNames,
@@ -286,6 +301,7 @@ export { OwidVariableDisplayConfig } from "./OwidVariable.js"
 export {
     strToQueryParams,
     queryParamsToStr,
+    multiDimDimensionsToViewQueryStr,
     getWindowQueryStr,
     setWindowQueryStr,
 } from "./urls/UrlUtils.js"
@@ -330,6 +346,8 @@ export {
 
 export { Tippy, TippyIfInteractive } from "./Tippy.js"
 
+export { useSpinDelay } from "./useSpinDelay.js"
+
 // This re-exports everything in the types package from the utils package. This is done so that
 // the transition is easier - we might want to get rid of this and rewrite all the imports instead
 // but it's a lot of work
@@ -355,6 +373,7 @@ export {
 export {
     MultiDimDataPageConfig,
     extractMultiDimChoicesFromSearchParams,
+    getMultiDimPageTitle,
     searchParamsToMultiDimView,
 } from "./MultiDimDataPageConfig.js"
 
@@ -366,10 +385,15 @@ export {
     convertToArchivalDateStringIfNecessary,
     formatAsArchivalDate,
     getDateForArchival,
+    getPhraseForArchivalDate,
     parseArchivalDate,
 } from "./archival/archivalDate.js"
 
-export { experiments, isUrlInActiveExperiment } from "./experiments/config.js"
+export {
+    experiments,
+    isUrlInActiveExperiment,
+    isDataPageMetadataRedesignActive,
+} from "./experiments/config.js"
 export {
     Experiment,
     validateUniqueExperimentIds,
@@ -402,6 +426,7 @@ export {
     formatCountryFacetFilters,
     formatTopicFacetFilters,
     buildChartsFacetFilters,
+    MAX_FACET_VALUES,
 } from "./search/searchFacetFilters.js"
 
 export {

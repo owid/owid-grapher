@@ -48,10 +48,7 @@ import {
     indexIndividualGdocInChronological,
     removeIndividualGdocFromChronological,
 } from "../../baker/algolia/utils/pagesChronological.js"
-import { GdocAbout } from "../../db/model/Gdoc/GdocAbout.js"
-import { GdocAuthor } from "../../db/model/Gdoc/GdocAuthor.js"
 import { getMinimalGdocPostsByIds } from "../../db/model/Gdoc/GdocBase.js"
-import { GdocDataInsight } from "../../db/model/Gdoc/GdocDataInsight.js"
 import { prepareCalloutTableForUrl } from "../../db/model/Gdoc/dataCallouts.js"
 import {
     prepareCalloutTable,
@@ -71,15 +68,13 @@ import {
     setTagsForGdoc,
     loadGdocFromGdocBase,
     getGdocBaseObjectById,
+    type AnyGdoc,
 } from "../../db/model/Gdoc/GdocFactory.js"
-import { GdocHomepage } from "../../db/model/Gdoc/GdocHomepage.js"
-import { GdocPost } from "../../db/model/Gdoc/GdocPost.js"
 import { enqueueLightningChange } from "./routeUtils.js"
 import { triggerStaticBuild } from "../../baker/GrapherBakingUtils.js"
 import * as db from "../../db/db.js"
 import { Request } from "../authentication.js"
 import { HandlerResponse } from "../FunctionalRouter.js"
-import { GdocAnnouncement } from "../../db/model/Gdoc/GdocAnnouncement.js"
 import { GdocProfile } from "../../db/model/Gdoc/GdocProfile.js"
 
 export async function getAllGdocIndexItems(
@@ -341,22 +336,8 @@ function checkIsProfile(gdoc: { content: { type?: OwidGdocType } }): boolean {
 export async function indexAndBakeGdocIfNeccesary(
     trx: db.KnexReadWriteTransaction,
     user: Required<DbInsertUser>,
-    prevGdoc:
-        | GdocPost
-        | GdocDataInsight
-        | GdocHomepage
-        | GdocAbout
-        | GdocAuthor
-        | GdocAnnouncement
-        | GdocProfile,
-    nextGdoc:
-        | GdocPost
-        | GdocDataInsight
-        | GdocHomepage
-        | GdocAbout
-        | GdocAuthor
-        | GdocAnnouncement
-        | GdocProfile
+    prevGdoc: AnyGdoc,
+    nextGdoc: AnyGdoc
 ) {
     const prevJson = prevGdoc.toJSON()
     const nextJson = nextGdoc.toJSON()
@@ -430,14 +411,7 @@ export async function indexAndBakeGdocIfNeccesary(
 
 export async function validateSlugCollisionsIfPublishing(
     trx: db.KnexReadonlyTransaction,
-    gdoc:
-        | GdocPost
-        | GdocDataInsight
-        | GdocHomepage
-        | GdocAbout
-        | GdocAuthor
-        | GdocAnnouncement
-        | GdocProfile
+    gdoc: AnyGdoc
 ) {
     if (!gdoc.published) return
 

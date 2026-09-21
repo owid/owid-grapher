@@ -80,4 +80,7 @@ export {
     availableTransformNames,
     applyTransforms,
     parseTransformString,
+    TransformParamType,
 } from "./Transforms.js"
+
+export { numericDefs, stringDefs, yearDef } from "./testData/columnDefs.js"

@@ -5,18 +5,17 @@ import { observer } from "mobx-react"
 import {
     Bounds,
     Time,
-    getRelativeMouse,
     excludeUndefined,
-    makeFigmaId,
-    guid,
     exposeInstanceOnWindow,
+    getRelativeMouse,
+    guid,
+    makeFigmaId,
+    roundForSvg,
 } from "@ourworldindata/utils"
 import { DualAxisComponent } from "../axis/AxisViews"
 import { NoDataMessage } from "../noDataMessage/NoDataMessage"
-import {
-    VerticalColorLegend,
-    VerticalColorLegendManager,
-} from "../legend/VerticalColorLegend"
+import { VerticalColorLegend } from "../legend/VerticalColorLegend"
+import { VerticalColorLegendState } from "../legend/VerticalColorLegendState"
 import { TooltipFooterIcon } from "../tooltip/TooltipProps.js"
 import {
     Tooltip,
@@ -43,10 +42,10 @@ import { Color, HorizontalAlign, SeriesName } from "@ourworldindata/types"
 import { getHoverStateForSeries } from "../chart/ChartUtils"
 import { InteractionState } from "../interaction/InteractionState"
 import { resolveEmphasis, Emphasis } from "../interaction/Emphasis"
-import {
-    HorizontalCategoricalColorLegend,
-    HorizontalColorLegendManager,
-} from "../legend/HorizontalColorLegends"
+import { BinEmphasis, toBinEmphasis } from "../legend/LegendStyleConfig"
+import { HorizontalCategoricalColorLegend } from "../legend/HorizontalCategoricalColorLegend"
+import { HorizontalCategoricalColorLegendState } from "../legend/HorizontalCategoricalColorLegendState"
+import { ExternalColorLegendData } from "../legend/HorizontalColorLegendTypes"
 import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig.js"
 
@@ -64,11 +63,7 @@ export type StackedBarChartProps = ChartComponentProps<StackedBarChartState>
 @observer
 export class StackedBarChart
     extends React.Component<StackedBarChartProps>
-    implements
-        ChartInterface,
-        AxisManager,
-        VerticalColorLegendManager,
-        HorizontalColorLegendManager
+    implements ChartInterface, AxisManager
 {
     readonly minBarSpacing = 4
 
@@ -103,7 +98,7 @@ export class StackedBarChart
         return this.props.bounds ?? DEFAULT_GRAPHER_BOUNDS
     }
 
-    @computed get isStatic(): boolean {
+    @computed private get isStatic(): boolean {
         return this.manager.isStatic ?? false
     }
 
@@ -178,7 +173,7 @@ export class StackedBarChart
         return !!(this.manager.isSemiNarrow || this.manager.isStaticAndSmall)
     }
 
-    @computed get legendAlign(): HorizontalAlign {
+    @computed private get legendAlign(): HorizontalAlign {
         return HorizontalAlign.left
     }
 
@@ -192,7 +187,7 @@ export class StackedBarChart
 
     @computed private get paddingForLegendTop(): number {
         return this.showHorizontalLegend
-            ? this.horizontalColorLegend.height + 8
+            ? this.horizontalColorLegendState.height + 8
             : 0
     }
 
@@ -242,7 +237,7 @@ export class StackedBarChart
     }
 
     /** All colors that are currently hovered or focused */
-    @computed get activeColors(): string[] {
+    @computed private get activeColors(): string[] {
         const hoveredSeriesNamesSet = new Set(this.hoveredSeriesNames)
         const hoveredColors = this.series
             .filter((g) => hoveredSeriesNamesSet.has(g.seriesName))
@@ -259,7 +254,9 @@ export class StackedBarChart
         return activeColors
     }
 
-    resolveLegendBinEmphasis(bin: ColorScaleBin): Emphasis {
+    private readonly resolveLegendBinEmphasis = (
+        bin: ColorScaleBin
+    ): Emphasis => {
         const isActive = this.activeColors?.includes(bin.color)
 
         if (this.activeColors.length === 0) return Emphasis.Default
@@ -267,7 +264,14 @@ export class StackedBarChart
         return isActive ? Emphasis.Highlighted : Emphasis.Muted
     }
 
-    @computed get categoricalLegendData(): CategoricalBin[] {
+    @computed private get categoricalLegendEmphasis(): BinEmphasis {
+        return toBinEmphasis(
+            this.categoricalLegendData,
+            this.resolveLegendBinEmphasis
+        )
+    }
+
+    @computed private get categoricalLegendData(): CategoricalBin[] {
         return this.series
             .map(
                 (series, index) =>
@@ -281,13 +285,7 @@ export class StackedBarChart
             .toReversed() // Vertical legend orders things in the opposite direction we want
     }
 
-    @computed get legendWidth(): number {
-        return this.showHorizontalLegend
-            ? this.bounds.width
-            : this.verticalColorLegend.width
-    }
-
-    @computed get maxLegendWidth(): number {
+    @computed private get maxLegendWidth(): number {
         return this.showHorizontalLegend
             ? this.bounds.width
             : this.sidebarMaxWidth
@@ -310,7 +308,7 @@ export class StackedBarChart
         const {
             sidebarMinWidth,
             sidebarMaxWidth,
-            verticalColorLegend: legendDimensions,
+            verticalColorLegendState: legendDimensions,
         } = this
         return Math.max(
             Math.min(legendDimensions.width, sidebarMaxWidth),
@@ -318,16 +316,26 @@ export class StackedBarChart
         )
     }
 
-    @computed private get verticalColorLegend(): VerticalColorLegend {
-        return new VerticalColorLegend({ manager: this })
+    @computed private get verticalColorLegendState(): VerticalColorLegendState {
+        return new VerticalColorLegendState(this.categoricalLegendData, {
+            baseFontSize: this.fontSize,
+            maxWidth: this.maxLegendWidth,
+        })
     }
 
     @computed
-    private get horizontalColorLegend(): HorizontalCategoricalColorLegend {
-        return new HorizontalCategoricalColorLegend({ manager: this })
+    private get horizontalColorLegendState(): HorizontalCategoricalColorLegendState {
+        return new HorizontalCategoricalColorLegendState(
+            this.categoricalLegendData,
+            {
+                baseFontSize: this.fontSize,
+                width: this.bounds.width,
+                align: this.legendAlign,
+            }
+        )
     }
 
-    @computed get externalLegend(): HorizontalColorLegendManager | undefined {
+    @computed get externalLegend(): ExternalColorLegendData | undefined {
         if (!this.showLegend) {
             const categoricalLegendData = this.chartState.unstackedSeries
                 .map(
@@ -343,7 +351,7 @@ export class StackedBarChart
 
             return {
                 categoricalLegendData,
-                legendStyleConfig: this.legendStyleConfig,
+                categoricalLegendStyleConfig: this.legendStyleConfig,
             }
         }
         return undefined
@@ -479,9 +487,27 @@ export class StackedBarChart
         if (!showLegend) return
 
         return showHorizontalLegend ? (
-            <HorizontalCategoricalColorLegend manager={this} />
+            <HorizontalCategoricalColorLegend
+                state={this.horizontalColorLegendState}
+                x={this.legendX}
+                y={this.categoryLegendY}
+                interactive={!this.isStatic}
+                styleConfig={this.legendStyleConfig}
+                binEmphasis={this.categoricalLegendEmphasis}
+                onMouseOver={this.onLegendMouseOver}
+                onMouseLeave={this.onLegendMouseLeave}
+            />
         ) : (
-            <VerticalColorLegend manager={this} />
+            <VerticalColorLegend
+                state={this.verticalColorLegendState}
+                x={this.legendX}
+                y={this.legendY}
+                interactive={!this.isStatic}
+                styleConfig={this.legendStyleConfig}
+                binEmphasis={this.categoricalLegendEmphasis}
+                onMouseOver={this.onLegendMouseOver}
+                onMouseLeave={this.onLegendMouseLeave}
+            />
         )
     }
 
@@ -521,16 +547,12 @@ export class StackedBarChart
         const { bounds } = this
 
         return (
-            <g
-                width={bounds.width}
-                height={bounds.height}
-                onMouseMove={this.onMouseMove}
-            >
+            <g onMouseMove={this.onMouseMove}>
                 <rect
-                    x={bounds.left}
-                    y={bounds.top}
-                    width={bounds.width}
-                    height={bounds.height}
+                    x={roundForSvg(bounds.left)}
+                    y={roundForSvg(bounds.top)}
+                    width={roundForSvg(bounds.width)}
+                    height={roundForSvg(bounds.height)}
                     opacity={0}
                     fill="rgba(255,255,255,0)"
                 />
@@ -547,7 +569,7 @@ export class StackedBarChart
 
         if (this.chartState.errorInfo.reason)
             return (
-                <g width={bounds.width} height={bounds.height}>
+                <g>
                     {this.renderAxis()}
                     <NoDataMessage
                         manager={this.manager}
@@ -562,16 +584,16 @@ export class StackedBarChart
             : this.renderInteractive()
     }
 
-    @computed get categoryLegendY(): number {
+    @computed private get categoryLegendY(): number {
         return this.bounds.top
     }
 
-    @computed get legendY(): number {
+    @computed private get legendY(): number {
         // Small offset aligns the legend with the chart area's top edge in relative mode
         return this.bounds.top + 3
     }
 
-    @computed get legendX(): number {
+    @computed private get legendX(): number {
         return this.showHorizontalLegend
             ? this.bounds.left
             : this.bounds.right - this.sidebarWidth

@@ -1,0 +1,8 @@
+// Font Awesome 7 gives every inline icon a fixed width of 1.25em by default
+// (width: var(--fa-width, 1.25em)), where v6 sized icons by the aspect ratio
+// of their viewBox. Restore the v6 behavior so narrow icons (carets, chevrons,
+// the timeline play button, ...) don't reserve extra horizontal space.
+// Icons rendered with the `fixedWidth` prop (.fa-fw) keep their fixed width.
+.svg-inline--fa:not(.fa-fw) {
+    --fa-width: auto;
+}
