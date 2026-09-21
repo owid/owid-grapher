@@ -10,6 +10,7 @@ import {
 import { SeriesLabelState } from "../seriesLabel/SeriesLabelState"
 import { Emphasis } from "../interaction/Emphasis"
 import { GRAPHER_AREA_OPACITY_MUTED } from "../core/GrapherConstants"
+import { LegendStyleConfig } from "../legend/LegendStyleConfig"
 
 export const LANE_SPACING_FACTOR = 0.35
 export const ENTITY_LABEL_CHART_GAP = 8
@@ -46,6 +47,12 @@ export const SWIMLANE_SEGMENT_STYLE: Record<
     [Emphasis.Elevated]: { opacity: 1 },
     [Emphasis.Highlighted]: { opacity: 1 },
     [Emphasis.Muted]: { opacity: GRAPHER_AREA_OPACITY_MUTED },
+}
+
+/** Only the muted state is styled, so an unhovered legend renders as it does without a config */
+export const SWIMLANE_LEGEND_STYLE: LegendStyleConfig = {
+    marker: { [Emphasis.Muted]: { opacity: GRAPHER_AREA_OPACITY_MUTED } },
+    text: { [Emphasis.Muted]: { opacity: GRAPHER_AREA_OPACITY_MUTED } },
 }
 
 export type SwimlaneChartManager = ChartManager
@@ -116,8 +123,14 @@ export interface PlacedSwimlaneSeries extends Omit<
     "segments"
 > {
     y: number
+    slotHeight: number
     labelPosition: { x: number; yOffset: number }
     placedSegments: PlacedSwimlaneSegment[]
+}
+
+export interface HoveredSwimlanePoint {
+    x: number
+    laneEntityName?: EntityName
 }
 
 export interface RenderSwimlaneSeries extends Omit<
