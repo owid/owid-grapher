@@ -3,13 +3,17 @@ import { expect, it, describe } from "vitest"
 import * as _ from "lodash-es"
 import { Bounds } from "@ourworldindata/utils"
 import { FacetChart } from "./FacetChart"
-import { SynthesizeGDPTable, OwidTable } from "@ourworldindata/core-table"
-import { ChartManager } from "../chart/ChartManager"
+import {
+    SynthesizeGDPTable,
+    OwidTable,
+    numericDefs,
+    yearDef,
+} from "@ourworldindata/core-table"
+import { FacetChartManager, FacetChartProps } from "./FacetChartConstants"
 import {
     GRAPHER_CHART_TYPES,
     FacetAxisDomain,
     FacetStrategy,
-    ColumnTypeNames,
 } from "@ourworldindata/types"
 import { LineChart } from "../lineCharts/LineChart"
 
@@ -17,13 +21,23 @@ const allElementsAreEqual = (array: any[]): boolean => {
     return _.uniq(array).length === 1
 }
 
-it("can create a new FacetChart", () => {
-    const table = SynthesizeGDPTable({ timeRange: [2000, 2010] })
-    const manager: ChartManager = {
+function makeFacetChart(
+    table: OwidTable,
+    config: Partial<FacetChartManager> = {},
+    props: Partial<Omit<FacetChartProps, "manager">> = {}
+): { manager: FacetChartManager; chart: FacetChart } {
+    const manager: FacetChartManager = {
         table,
         selection: table.availableEntityNames,
+        ...config,
     }
-    const chart = new FacetChart({ manager })
+    const chart = new FacetChart({ manager, ...props })
+    return { manager, chart }
+}
+
+it("can create a new FacetChart", () => {
+    const table = SynthesizeGDPTable({ timeRange: [2000, 2010] })
+    const { manager, chart } = makeFacetChart(table)
 
     // default to country facets
     expect(chart.series.length).toEqual(2)
@@ -35,14 +49,11 @@ it("can create a new FacetChart", () => {
 
 it("uses the transformed data for display in country mode", () => {
     const table = SynthesizeGDPTable({ timeRange: [2000, 2010] })
-    const manager: ChartManager = {
-        table,
-        selection: table.availableEntityNames,
+    const { chart } = makeFacetChart(table, {
         // simulate the transformation that is done by Grapher on the data
         transformedTable: table.filterByTimeRange(2002, 2008),
         facetStrategy: FacetStrategy.entity,
-    }
-    const chart = new FacetChart({ manager })
+    })
 
     // we should be using the transformed table
     chart.series.forEach((s) => {
@@ -56,18 +67,14 @@ describe("uniform axes", () => {
         timeRange: [2000, 2010],
         entityCount: 6,
     })
-    const manager: ChartManager = {
+    const { chart } = makeFacetChart(
         table,
-        selection: table.availableEntityNames,
-        facetStrategy: FacetStrategy.entity,
-        yAxisConfig: {
-            facetDomain: FacetAxisDomain.shared,
+        {
+            facetStrategy: FacetStrategy.entity,
+            yAxisConfig: { facetDomain: FacetAxisDomain.shared },
         },
-    }
-    const chart = new FacetChart({
-        manager,
-        chartTypeName: GRAPHER_CHART_TYPES.LineChart,
-    })
+        { chartTypeName: GRAPHER_CHART_TYPES.LineChart }
+    )
     const yAxisConfigs = chart.placedSeries.map(
         (series) => series.manager.yAxisConfig
     )
@@ -143,19 +150,17 @@ describe("shared x axis", () => {
         timeRange: [2000, 2010],
         entityCount: 12,
     })
-    const manager: ChartManager = {
+    const { chart } = makeFacetChart(
         table,
-        selection: table.availableEntityNames,
-        facetStrategy: FacetStrategy.entity,
-        yAxisConfig: {
-            facetDomain: FacetAxisDomain.shared,
+        {
+            facetStrategy: FacetStrategy.entity,
+            yAxisConfig: { facetDomain: FacetAxisDomain.shared },
         },
-    }
-    const chart = new FacetChart({
-        manager,
-        chartTypeName: GRAPHER_CHART_TYPES.StackedBar,
-        bounds: new Bounds(0, 0, 400, 300),
-    })
+        {
+            chartTypeName: GRAPHER_CHART_TYPES.StackedBar,
+            bounds: new Bounds(0, 0, 400, 300),
+        }
+    )
     const xAxisConfigs = chart.placedSeries.map(
         (series) => series.manager.xAxisConfig
     )
@@ -178,9 +183,7 @@ describe("config overrides", () => {
         timeRange: [2000, 2010],
         entityCount: 6,
     })
-    const manager: ChartManager = {
-        table,
-        selection: table.availableEntityNames,
+    const config: Partial<FacetChartManager> = {
         facetStrategy: FacetStrategy.entity,
         yAxisConfig: {
             tickFormattingOptions: { numberAbbreviation: "long" },
@@ -189,8 +192,7 @@ describe("config overrides", () => {
             max: 1e15,
         },
     }
-    const chart = new FacetChart({
-        manager,
+    const { chart } = makeFacetChart(table, config, {
         chartTypeName: GRAPHER_CHART_TYPES.LineChart,
     })
 
@@ -204,17 +206,17 @@ describe("config overrides", () => {
     })
 
     it("preserves axis nice parameter for independent axes", () => {
-        const newManager: ChartManager = {
-            ...manager,
-            yAxisConfig: {
-                facetDomain: FacetAxisDomain.independent,
-                nice: true,
+        const { chart } = makeFacetChart(
+            table,
+            {
+                ...config,
+                yAxisConfig: {
+                    facetDomain: FacetAxisDomain.independent,
+                    nice: true,
+                },
             },
-        }
-        const chart = new FacetChart({
-            manager: newManager,
-            chartTypeName: GRAPHER_CHART_TYPES.LineChart,
-        })
+            { chartTypeName: GRAPHER_CHART_TYPES.LineChart }
+        )
         expect(chart.placedSeries[0].manager.yAxisConfig?.nice).toEqual(true)
     })
 
@@ -237,28 +239,23 @@ describe("global legend", () => {
         new Map(chart.series.map((s) => [s.seriesName, s.color]))
 
     it("consistently assigns entity colors", () => {
-        // The order of lines is important here! see the explanation above.
-        const csv = `gdp,co2,year,entityName
-1,,2000,germany
-2,1,2000,france
-3,2,2001,france
-4,3,2001,germany`
-        const table = new OwidTable(csv, [
-            { slug: "gdp", type: ColumnTypeNames.Numeric },
-            { slug: "co2", type: ColumnTypeNames.Numeric },
-            { slug: "year", type: ColumnTypeNames.Year },
-            { slug: "entityName", type: ColumnTypeNames.EntityName },
-        ])
+        // The order of rows is important here! see the explanation above.
+        const table = new OwidTable(
+            [
+                ["gdp", "co2", "year", "entityName"],
+                [1, null, 2000, "germany"],
+                [2, 1, 2000, "france"],
+                [3, 2, 2001, "france"],
+                [4, 3, 2001, "germany"],
+            ],
+            [...numericDefs("gdp", "co2"), yearDef()]
+        )
 
-        const manager: ChartManager = {
+        const { chart } = makeFacetChart(
             table,
-            selection: table.availableEntityNames,
-            facetStrategy: FacetStrategy.metric,
-        }
-        const chart = new FacetChart({
-            manager,
-            chartTypeName: GRAPHER_CHART_TYPES.LineChart,
-        })
+            { facetStrategy: FacetStrategy.metric },
+            { chartTypeName: GRAPHER_CHART_TYPES.LineChart }
+        )
 
         const legend = chart.categoricalLegendData
         const colors = new Map(legend.map((bin) => [bin.value, bin.color]))

@@ -27,6 +27,12 @@ export class ColorScheme implements ColorSchemeInterface {
         colorSets.forEach((set) => (this.colorSets[set.length] = set))
     }
 
+    /** How many colors the scheme defines, before any interpolation */
+    get paletteSize(): number {
+        if (this.colorSets.length === 0) return 0
+        return lastOfNonEmptyArray(this.colorSets).length
+    }
+
     improviseGradientFromShorter(
         shortColors: Color[],
         numColors: number

@@ -19,6 +19,7 @@ import {
     type Key,
 } from "react-aria-components"
 import { LATEST_TYPE_VALUES, LatestType } from "@ourworldindata/types"
+import { getPrefersReducedMotion } from "@ourworldindata/components"
 import { latestTypeLabelPlural } from "./latestUtils.js"
 
 /**
@@ -35,7 +36,7 @@ const TopicPill = ({ itemId: _itemId, ...props }: TopicPillProps) => {
 
 function scrollPillIntoView(node: Element | null): void {
     node?.scrollIntoView({
-        behavior: "smooth",
+        behavior: getPrefersReducedMotion() ? "auto" : "smooth",
         inline: "center",
         block: "nearest",
     })

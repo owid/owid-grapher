@@ -5,7 +5,7 @@ import {
 } from "@ourworldindata/types"
 import { parseIntOrUndefined } from "@ourworldindata/utils"
 import { getGptTopicSuggestions } from "../../db/model/Chart.js"
-import { CLOUDFLARE_IMAGES_URL } from "../../settings/clientSettings.js"
+import { CLOUDFLARE_IMAGES_URL } from "../../settings/clientSettings.mjs"
 import {
     fetchGptGeneratedAltText,
     fetchGptGeneratedTextFromImage,

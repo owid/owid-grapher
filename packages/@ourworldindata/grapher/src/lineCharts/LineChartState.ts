@@ -263,9 +263,9 @@ export class LineChartState implements ChartState, ColorScaleManager {
         if (this.selectionArray.numSelectedEntities > 1)
             strategies.push(FacetStrategy.entity)
 
-        const numNonProjectionColumns = this.yColumns.filter(
-            (c) => !c.display?.isProjection
-        ).length
+        const numNonProjectionColumns = this.inputTable
+            .getColumns(this.yColumnSlugs)
+            .filter((column) => !column.display?.isProjection).length
         if (numNonProjectionColumns > 1) strategies.push(FacetStrategy.metric)
 
         return strategies

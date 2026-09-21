@@ -7,9 +7,9 @@ import {
     Bounds,
     canWriteToClipboard,
     fetchWithTimeout,
-    getOriginAttributionFragments,
+    getOriginAttributions,
     makeDownloadCodeExamples,
-    getPhraseForProcessingLevel,
+    getProcessingPhraseForAttribution,
     SERVER_SIDE_DOWNLOAD_HELP_TEXT,
     triggerDownloadFromBlob,
     triggerDownloadFromUrl,
@@ -53,8 +53,8 @@ import {
 } from "@ourworldindata/core-table"
 import { Modal } from "./Modal"
 import { GrapherRasterizeFn } from "../captionedChart/StaticChartRasterizer.js"
+import { TabPanel } from "react-aria-components"
 import { TabItem, Tabs } from "../tabs/Tabs.js"
-import * as R from "remeda"
 import {
     DEFAULT_GRAPHER_BOUNDS,
     DEFAULT_GRAPHER_BOUNDS_SQUARE,
@@ -75,6 +75,7 @@ export interface DownloadModalManager {
     detailsOrderedByReference?: string[]
     activeModal?: GrapherModal
     frameBounds?: Bounds
+    base: React.RefObject<HTMLDivElement | null>
     captionedChartBounds?: Bounds
     isOnChartOrMapTab?: boolean
     isOnArchivalPage?: boolean
@@ -140,14 +141,6 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
         return this.props.manager.activeDownloadModalTab
     }
 
-    @computed private get isVisTabActive() {
-        return this.activeTab === DownloadModalTabName.Vis
-    }
-
-    @computed private get isDataTabActive() {
-        return this.activeTab === DownloadModalTabName.Data
-    }
-
     @action.bound private onTabChange(key: DownloadModalTabName) {
         this.props.manager.activeDownloadModalTab = key
     }
@@ -159,6 +152,8 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
     override render(): React.ReactElement {
         return (
             <Modal
+                ariaLabel="Download"
+                grapherRef={this.props.manager.base}
                 bounds={this.modalBounds}
                 onDismiss={this.onDismiss}
                 alignVertical="top"
@@ -171,47 +166,37 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
                         title="Download"
                         onDismiss={this.onDismiss}
                     />
-                    <div className="download-modal__tab-list">
-                        <Tabs
-                            variant="slim"
-                            items={this.tabItems}
-                            selectedKey={this.activeTab}
-                            onChange={this.onTabChange}
-                        />
-                    </div>
-
-                    {/* Tabs */}
-                    {/**
-                     * We only hide the inactive tab with display: none and don't unmount it,
-                     * so that the tab state (selected radio buttons, etc) is preserved
-                     * when switching between tabs.
-                     */}
-                    <div className="download-modal__tab-panel" role="tabpanel">
-                        <div
-                            className="download-modal__tab-content"
-                            style={{
-                                display: this.isVisTabActive
-                                    ? undefined
-                                    : "none",
-                            }}
-                            role="tab"
-                            aria-hidden={!this.isVisTabActive}
-                        >
-                            <DownloadModalVisTab {...this.props} />
+                    <Tabs
+                        variant="slim"
+                        items={this.tabItems}
+                        selectedKey={this.activeTab}
+                        onChange={this.onTabChange}
+                        className="download-modal__tab-list"
+                        containerClassName="download-modal__tabs"
+                    >
+                        {/**
+                         * The inactive tab panel stays mounted (shouldForceMount)
+                         * and is only hidden via CSS, so that the tab state
+                         * (selected radio buttons, etc) is preserved when
+                         * switching between tabs.
+                         */}
+                        <div className="download-modal__tab-panel">
+                            <TabPanel
+                                id={DownloadModalTabName.Vis}
+                                shouldForceMount
+                                className="download-modal__tab-content"
+                            >
+                                <DownloadModalVisTab {...this.props} />
+                            </TabPanel>
+                            <TabPanel
+                                id={DownloadModalTabName.Data}
+                                shouldForceMount
+                                className="download-modal__tab-content"
+                            >
+                                <DownloadModalDataTab {...this.props} />
+                            </TabPanel>
                         </div>
-                        <div
-                            className="download-modal__tab-content"
-                            style={{
-                                display: this.isDataTabActive
-                                    ? undefined
-                                    : "none",
-                            }}
-                            role="tab"
-                            aria-hidden={!this.isDataTabActive}
-                        >
-                            <DownloadModalDataTab {...this.props} />
-                        </div>
-                    </div>
+                    </Tabs>
                 </div>
             </Modal>
         )
@@ -423,13 +408,11 @@ export class DownloadModalVisTab extends React.Component<DownloadModalProps> {
             previewHeight = (targetHeight / targetWidth) * previewWidth
         }
 
-        const imageStyle = {
-            minWidth: previewWidth,
-            minHeight: previewHeight,
-            maxWidth: previewWidth,
-            maxHeight: previewHeight,
-            opacity: this.isReady ? 1 : 0,
+        const previewImageDimensions = {
+            width: Math.round(previewWidth),
+            height: Math.round(previewHeight),
         }
+        const imageStyle = { opacity: this.isReady ? 1 : 0 }
 
         return (
             <div>
@@ -480,6 +463,7 @@ export class DownloadModalVisTab extends React.Component<DownloadModalProps> {
                                 title="Image (PNG)"
                                 description="Suitable for most uses, widely compatible."
                                 previewImageUrl={pngPreviewUrl}
+                                previewImageDimensions={previewImageDimensions}
                                 onClick={this.onPngDownload}
                                 imageStyle={imageStyle}
                                 trackingNote="chart_download_modal_vis_png"
@@ -489,6 +473,7 @@ export class DownloadModalVisTab extends React.Component<DownloadModalProps> {
                                 title="Vector graphic (SVG)"
                                 description="For high quality prints, or further editing the chart in graphics software."
                                 previewImageUrl={svgPreviewUrl}
+                                previewImageDimensions={previewImageDimensions}
                                 onClick={this.onSvgDownload}
                                 imageStyle={imageStyle}
                                 trackingNote="chart_download_modal_vis_svg"
@@ -565,20 +550,16 @@ const SourceAndCitationSection = ({ table }: { table?: OwidTable }) => {
         (o) => o.urlMain ?? o.datePublished
     )
 
-    const attributions = getOriginAttributionFragments(originsUniq)
+    const attributions = getOriginAttributions(originsUniq)
 
-    const sourceLinks = R.zip(attributions, originsUniq).map(
-        ([attribution, origin]) => {
-            const link = origin?.urlMain
-
-            if (link)
-                return (
-                    <li key={link}>
-                        <a href={link}>{attribution}</a>
-                    </li>
-                )
-            else return <li key={attribution}>{attribution}</li>
-        }
+    const sourceLinks = attributions.map(({ label, url }) =>
+        url ? (
+            <li key={url}>
+                <a href={url}>{label}</a>
+            </li>
+        ) : (
+            <li key={label}>{label}</li>
+        )
     )
 
     // Find the highest processing level of all columns
@@ -590,12 +571,10 @@ const SourceAndCitationSection = ({ table }: { table?: OwidTable }) => {
             return undefined
         }, undefined)
 
-    const sourceIsOwid =
-        attributions.length === 1 &&
-        attributions[0].toLowerCase() === "our world in data"
-    const processingLevelPhrase = !sourceIsOwid
-        ? getPhraseForProcessingLevel(owidProcessingLevel)
-        : undefined
+    const processingLevelPhrase = getProcessingPhraseForAttribution(
+        attributions.map(({ label }) => label),
+        owidProcessingLevel
+    )
     const fullProcessingPhrase = processingLevelPhrase ? (
         <>
             {" "}

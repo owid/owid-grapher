@@ -4,7 +4,7 @@ import type { QueryStatus } from "@tanstack/react-query"
 import { CloseButton, LoadingIndicator } from "@ourworldindata/components"
 import { ArchivalDateString, ArchiveVersions } from "@ourworldindata/types"
 import { parseArchivalDate } from "@ourworldindata/utils"
-import { ARCHIVE_BASE_URL, IS_ARCHIVE } from "../../settings/clientSettings.js"
+import { ARCHIVE_BASE_URL, IS_ARCHIVE } from "../../settings/clientSettings.mjs"
 import { DATE_FORMAT, TIME_FORMAT } from "./ArchiveNavigation.js"
 
 const BASE_URL = IS_ARCHIVE ? "" : ARCHIVE_BASE_URL

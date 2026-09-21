@@ -179,6 +179,50 @@ export {
 export * from "./gdocTypes/ArchieMlComponents.js"
 
 export {
+    COMPONENT_CATEGORIES,
+    type ComponentCategory,
+    type ComponentReference,
+    type ComponentExample,
+    type ComponentProp,
+    type ComponentRegistry,
+    type PinnedExampleRef,
+    proseText,
+    type SidecarProse,
+    type SidecarExample,
+    type SidecarExampleFlavour,
+    type SidecarSectionKey,
+    type RelatedRef,
+    type RelatedRefKind,
+} from "./gdocTypes/ComponentReference.js"
+
+export type {
+    TemplateReference,
+    TemplateField,
+    TemplateSkeletonPart,
+} from "./gdocTypes/TemplateReference.js"
+
+export {
+    GUIDE_CATEGORIES,
+    type GuideCategory,
+    type GuideReference,
+} from "./gdocTypes/GuideReference.js"
+
+export {
+    COMPONENT_USAGE_LABELS,
+    componentUsageLabel,
+    type ComponentUsageLabel,
+    type ComponentUsageByDocType,
+    type ComponentUsage,
+    type GdocsReferenceUsage,
+    type ComponentInstance,
+    type ComponentVariation,
+    type ComponentInstancesResponse,
+    type SyntheticExampleInfo,
+    type ExemplarOutline,
+    type TemplateExemplarsResponse,
+} from "./gdocTypes/GdocsReferenceApi.js"
+
+export {
     ChartConfigType,
     OwidGdocPublicationContext,
     OwidGdocAuthoringMode,
@@ -205,6 +249,8 @@ export {
     type OwidGdocProfileScope,
     type OwidGdocProfileContent,
     type OwidGdocProfileInterface,
+    type OwidGdocFeaturedVizContent,
+    type OwidGdocFeaturedVizInterface,
     type OwidGdocProfileEntitySummary,
     type OwidGdoc,
     type ChronologicalGdoc,
@@ -238,6 +284,16 @@ export {
     type TopicPageOrphanReport,
     type NarrativeChartInfo,
     type OwidGdocDataInsightIndexItem,
+    type GdocContentKeyKind,
+    OWID_GDOC_POST_CONTENT_KEY_KINDS,
+    OWID_GDOC_DATA_INSIGHT_CONTENT_KEY_KINDS,
+    OWID_GDOC_ANNOUNCEMENT_CONTENT_KEY_KINDS,
+    OWID_GDOC_AUTHOR_CONTENT_KEY_KINDS,
+    OWID_GDOC_PROFILE_CONTENT_KEY_KINDS,
+    OWID_GDOC_ABOUT_CONTENT_KEY_KINDS,
+    OWID_GDOC_HOMEPAGE_CONTENT_KEY_KINDS,
+    GDOC_TEMPLATE_CONTENT_INTERFACES,
+    OWID_GDOC_ADMIN_MANAGED_KEYS,
 } from "./gdocTypes/Gdoc.js"
 
 export {
@@ -318,6 +374,12 @@ export {
 
 export type { OwidSource } from "./OwidSource.js"
 export type { OwidOrigin } from "./OwidOrigin.js"
+
+export {
+    type BespokeMetadata,
+    BespokeMetadataSchema,
+    shouldRenderBespokeMetadata,
+} from "./domainTypes/BespokeMetadata.js"
 
 export {
     type OwidVariableDisplayConfigInterface,
@@ -408,7 +470,6 @@ export {
     type DbInsertChartConfig,
     type DbRawChartConfig,
     type DbEnrichedChartConfig,
-    parseChartConfigsRow,
     parseChartConfig,
     serializeChartConfig,
     ChartConfigsTableName,
@@ -797,6 +858,8 @@ export type {
     MultiDimDataPageConfigRaw,
     MultiDimDataPageInitialViewData,
     MultiDimDataPageProps,
+    MultiDimPageCompanion,
+    MultiDimPageCompanionView,
     FaqEntryKeyedByGdocIdAndFragmentId,
     Choice,
     ChoicesEnriched,
@@ -806,6 +869,7 @@ export type {
     View,
     ViewEnriched,
 } from "./siteTypes/MultiDimDataPage.js"
+export { MULTI_DIM_COMPANION_FILE_SUFFIX } from "./siteTypes/MultiDimDataPage.js"
 
 export {
     GRAPHER_PREVIEW_CLASS,

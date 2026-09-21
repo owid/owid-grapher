@@ -10,10 +10,8 @@ import {
 } from "./apiRoutes/slideshows.js"
 import { DeployQueueServer } from "../baker/DeployQueueServer.js"
 import {
-    updateVariableAnnotations,
     getChartBulkUpdate,
     updateBulkChartConfigs,
-    getVariableAnnotations,
 } from "./apiRoutes/bulkUpdates.js"
 import {
     getNarrativeCharts,
@@ -70,6 +68,14 @@ import {
     getImageUsageHandler,
 } from "./apiRoutes/images.js"
 import { getFiles, uploadFileToR2 } from "./apiRoutes/files.js"
+import { getComponentsReference } from "./apiRoutes/components.js"
+import { getTemplatesReference } from "./apiRoutes/templates.js"
+import { getGuidesReference } from "./apiRoutes/guides.js"
+import {
+    getComponentInstances,
+    getGdocsReferenceUsage,
+    getTemplateExemplars,
+} from "./apiRoutes/gdocsReference.js"
 import {
     handlePutMultiDim,
     handleGetMultiDim,
@@ -128,17 +134,13 @@ import {
     getVariableDataJson,
     getVariableMetadataJson,
     getVariablesJson,
-    getLatestVariableIdsByCatalogPathJson,
+    getLatestIndicatorIdsByCatalogPathJson,
     getVariablesUsagesJson,
-    getVariablesGrapherConfigETLPatchConfigJson,
-    getVariablesGrapherConfigAdminPatchConfigJson,
-    getVariablesMergedGrapherConfigJson,
-    getVariablesVariableIdJson,
-    putVariablesVariableIdGrapherConfigETL,
-    deleteVariablesVariableIdGrapherConfigETL,
-    putVariablesVariableIdGrapherConfigAdmin,
-    deleteVariablesVariableIdGrapherConfigAdmin,
-    getVariablesVariableIdChartsJson,
+    getIndicatorChartConfigJson,
+    getVariableJson,
+    putIndicatorChartConfig,
+    deleteIndicatorChartConfig,
+    postVariablesDelete,
 } from "./apiRoutes/variables.js"
 import { FunctionalRouter } from "./FunctionalRouter.js"
 import {
@@ -166,6 +168,8 @@ import {
     deleteChart,
     getChartTagsJson,
     getChartRecordsJson,
+    upsertEtlConfigByChartConfigId,
+    deleteChartsChartIdEtlConfig,
 } from "./apiRoutes/charts.js"
 import { getChartConfig } from "./apiRoutes/chartConfigs.js"
 import {
@@ -206,21 +210,11 @@ import {
 const apiRouter = new FunctionalRouter()
 
 // Bulk chart update routes
-patchRouteWithRWTransaction(
-    apiRouter,
-    "/variable-annotations",
-    updateVariableAnnotations
-)
 getRouteWithROTransaction(apiRouter, "/chart-bulk-update", getChartBulkUpdate)
 patchRouteWithRWTransaction(
     apiRouter,
     "/chart-bulk-update",
     updateBulkChartConfigs
-)
-getRouteWithROTransaction(
-    apiRouter,
-    "/variable-annotations",
-    getVariableAnnotations
 )
 
 // Chart routes
@@ -283,6 +277,18 @@ postRouteWithRWTransaction(
 )
 putRouteWithRWTransaction(apiRouter, "/charts/:chartId", updateChart)
 deleteRouteWithRWTransaction(apiRouter, "/charts/:chartId", deleteChart)
+deleteRouteWithRWTransaction(
+    apiRouter,
+    "/charts/:chartId/etlConfig",
+    deleteChartsChartIdEtlConfig
+)
+// ETL config pushes are addressed by the chart's config UUID and have upsert
+// semantics: the chart is created if it doesn't exist yet
+putRouteWithRWTransaction(
+    apiRouter,
+    "/charts/by-config/:chartConfigId/etlConfig",
+    upsertEtlConfigByChartConfigId
+)
 
 // Chart config routes
 getRouteWithROTransaction(
@@ -660,6 +666,7 @@ getRouteWithROTransaction(
     getVariableMetadataJson
 )
 getRouteWithROTransaction(apiRouter, "/variables.json", getVariablesJson)
+postRouteWithRWTransaction(apiRouter, "/variables/delete", postVariablesDelete)
 getRouteWithROTransaction(
     apiRouter,
     "/variables.usages.json",
@@ -668,55 +675,29 @@ getRouteWithROTransaction(
 getRouteWithROTransaction(
     apiRouter,
     "/variables.latestByCatalogPath.json",
-    getLatestVariableIdsByCatalogPathJson
+    getLatestIndicatorIdsByCatalogPathJson
 )
 getRouteWithROTransaction(
     apiRouter,
-    "/variables/grapherConfigETL/:variableId.patchConfig.json",
-    getVariablesGrapherConfigETLPatchConfigJson
-)
-getRouteWithROTransaction(
-    apiRouter,
-    "/variables/grapherConfigAdmin/:variableId.patchConfig.json",
-    getVariablesGrapherConfigAdminPatchConfigJson
-)
-getRouteWithROTransaction(
-    apiRouter,
-    "/variables/mergedGrapherConfig/:variableId.json",
-    getVariablesMergedGrapherConfigJson
+    "/variables/:variableId.config.json",
+    getIndicatorChartConfigJson
 )
 // Used in VariableEditPage
 getRouteWithROTransaction(
     apiRouter,
     "/variables/:variableId.json",
-    getVariablesVariableIdJson
+    getVariableJson
 )
 // inserts a new config or updates an existing one
 putRouteWithRWTransaction(
     apiRouter,
     "/variables/:variableId/grapherConfigETL",
-    putVariablesVariableIdGrapherConfigETL
+    putIndicatorChartConfig
 )
 deleteRouteWithRWTransaction(
     apiRouter,
     "/variables/:variableId/grapherConfigETL",
-    deleteVariablesVariableIdGrapherConfigETL
-)
-// inserts a new config or updates an existing one
-putRouteWithRWTransaction(
-    apiRouter,
-    "/variables/:variableId/grapherConfigAdmin",
-    putVariablesVariableIdGrapherConfigAdmin
-)
-deleteRouteWithRWTransaction(
-    apiRouter,
-    "/variables/:variableId/grapherConfigAdmin",
-    deleteVariablesVariableIdGrapherConfigAdmin
-)
-getRouteWithROTransaction(
-    apiRouter,
-    "/variables/:variableId/charts.json",
-    getVariablesVariableIdChartsJson
+    deleteIndicatorChartConfig
 )
 
 // Figma routes
@@ -729,6 +710,30 @@ postRouteWithRWTransaction(apiRouter, "/slack/sendMessage", sendMessageToSlack)
 apiRouter.get("/svgtester/suites.json", getSvgTesterSuites)
 apiRouter.get("/svgtester/:suite/results.json", getSvgTesterResults)
 apiRouter.router.get("/svgtester/:suite/:kind/:filename", getSvgTesterSvg)
+
+// ArchieML component, gdoc template and guide references (served from the
+// committed registry JSONs)
+apiRouter.get("/gdocs-reference/components.json", getComponentsReference)
+apiRouter.get("/gdocs-reference/templates.json", getTemplatesReference)
+apiRouter.get("/gdocs-reference/guides.json", getGuidesReference)
+
+// The live half of the writing reference: component usage across published
+// docs, real instances with provenance, and template exemplar outlines
+getRouteWithROTransaction(
+    apiRouter,
+    "/gdocs-reference/usage.json",
+    getGdocsReferenceUsage
+)
+getRouteWithROTransaction(
+    apiRouter,
+    "/gdocs-reference/components/:id/instances.json",
+    getComponentInstances
+)
+getRouteWithROTransaction(
+    apiRouter,
+    "/gdocs-reference/templates/:id/exemplars.json",
+    getTemplateExemplars
+)
 
 // Deploy helpers
 apiRouter.get("/deploys.json", async () => ({

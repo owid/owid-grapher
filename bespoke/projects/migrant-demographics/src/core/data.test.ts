@@ -1,7 +1,17 @@
 import { describe, expect, it } from "vitest"
 
-import { computePyramidData, MigrantDemographics } from "./data.js"
-import { RAW, RECORD } from "./testFixtures.js"
+import {
+    computePyramidData,
+    MigrantDemographicsMetadata,
+    parseEntityYears,
+} from "./data.js"
+import {
+    KENYA_YEARS,
+    METADATA,
+    RECORD,
+    RECORD_WITHOUT_POPULATION,
+    UNITED_STATES_YEARS,
+} from "./testFixtures.js"
 
 describe(computePyramidData, () => {
     it("derives native-born values and totals", () => {
@@ -23,23 +33,67 @@ describe(computePyramidData, () => {
     })
 })
 
-describe(MigrantDemographics, () => {
-    const data = new MigrantDemographics(RAW)
+describe(MigrantDemographicsMetadata, () => {
+    const metadata = new MigrantDemographicsMetadata(METADATA)
 
-    it("skips entities with malformed data", () => {
-        expect(data.entityNames).toEqual(["World", "United States", "Kenya"])
-        expect(data.hasEntity("United States")).toBe(true)
-        expect(data.hasEntity("Broken")).toBe(false)
+    it("lists entity names in file order", () => {
+        expect(metadata.entityNames).toEqual(["United States", "Kenya"])
     })
 
-    it("skips entities without total-population data", () => {
-        expect(data.hasEntity("Monaco")).toBe(false)
+    it("knows which entities it has", () => {
+        expect(metadata.hasEntity("United States")).toBe(true)
+        expect(metadata.hasEntity("Broken")).toBe(false)
     })
 
-    it("returns pyramid data by entity name and year", () => {
-        expect(data.getPyramidData("World", 2010)?.migrantsTotal.total).toBe(
-            100
+    it("resolves an entity's code", () => {
+        expect(metadata.getEntityCode("Kenya")).toBe(404)
+        expect(metadata.getEntityCode("Broken")).toBeUndefined()
+    })
+
+    it("throws when the file is missing its age bands", () => {
+        expect(
+            () => new MigrantDemographicsMetadata({ ...METADATA, ageBands: [] })
+        ).toThrow()
+    })
+})
+
+describe(parseEntityYears, () => {
+    const metadata = new MigrantDemographicsMetadata(METADATA)
+
+    it("returns the year map for a well-formed entity", () => {
+        expect(parseEntityYears(UNITED_STATES_YEARS, metadata)).toBe(
+            UNITED_STATES_YEARS
         )
-        expect(data.getPyramidData("World", 1990)).toBeUndefined()
+    })
+
+    it("throws when a year's record is missing", () => {
+        const missingYear = { "2020": UNITED_STATES_YEARS["2020"] }
+        expect(() => parseEntityYears(missingYear, metadata)).toThrow(
+            "missing a record for 2010"
+        )
+    })
+
+    it("throws when a record has no total population", () => {
+        expect(() =>
+            parseEntityYears(
+                {
+                    "2010": RECORD_WITHOUT_POPULATION,
+                    "2020": RECORD_WITHOUT_POPULATION,
+                },
+                metadata
+            )
+        ).toThrow("pm values")
+    })
+
+    it("throws when a band array is the wrong length", () => {
+        expect(() =>
+            parseEntityYears(
+                {
+                    "2010": { m: [1], f: [1, 2], pm: [1, 2], pf: [1, 2] },
+                    "2020": KENYA_YEARS["2020"],
+                },
+                metadata
+            )
+        ).toThrow("m values")
     })
 })

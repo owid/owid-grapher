@@ -12,7 +12,7 @@ import {
     deleteFromCloudflare,
     fetchGptGeneratedTextFromImage,
 } from "../imagesHelpers.js"
-import { CLOUDFLARE_IMAGES_URL } from "../../settings/clientSettings.js"
+import { CLOUDFLARE_IMAGES_URL } from "../../settings/clientSettings.mjs"
 import { extractSqlError } from "./routeUtils.js"
 import { triggerStaticBuild } from "../../baker/GrapherBakingUtils.js"
 import * as db from "../../db/db.js"

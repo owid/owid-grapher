@@ -11,6 +11,7 @@ import {
 import {
     DATAPAGE_ABOUT_THIS_DATA_SECTION_ID,
     DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID,
+    getPrefersReducedMotion,
     MarkdownTextWrap,
     MarkdownTextWrapHtml,
     MarkdownTextWrapSvg,
@@ -33,6 +34,7 @@ import {
     GrapherModal,
 } from "../core/GrapherConstants"
 import { GRAPHER_LIGHT_TEXT } from "../color/ColorConstants"
+import { scaleFontSize } from "../chart/ChartUtils"
 
 /*
 
@@ -247,14 +249,14 @@ abstract class AbstractFooter<
 
     @computed protected get fontSize(): number {
         if (this.useBaseFontSize) {
-            return (11 / BASE_FONT_SIZE) * this.baseFontSize
+            return scaleFontSize(11, this.baseFontSize)
         }
         return this.manager.isMedium ? 11 : 12
     }
 
     @computed protected get sourcesFontSize(): number {
         if (this.useBaseFontSize) {
-            return (12 / BASE_FONT_SIZE) * this.baseFontSize
+            return scaleFontSize(12, this.baseFontSize)
         }
         return this.manager.isSmall ? 12 : 13
     }
@@ -488,7 +490,9 @@ abstract class AbstractFooter<
             return
         }
         sourcesElement.closest("details")?.setAttribute("open", "")
-        sourcesElement.scrollIntoView({ behavior: "smooth" })
+        sourcesElement.scrollIntoView({
+            behavior: getPrefersReducedMotion() ? "auto" : "smooth",
+        })
         this.manager.isInFullScreenMode = false
     }
 
@@ -570,7 +574,9 @@ abstract class AbstractFooter<
                             document.getElementById(datapageSectionId)
                         if (sourcesElement && sourcesElement.scrollIntoView) {
                             sourcesElement.scrollIntoView({
-                                behavior: "smooth",
+                                behavior: getPrefersReducedMotion()
+                                    ? "auto"
+                                    : "smooth",
                             })
                             this.manager.isInFullScreenMode = false
                         } else if (sourcesElement) {
@@ -841,9 +847,7 @@ export class StaticFooter extends AbstractFooter<StaticFooterProps> {
 
     protected override get fontSize(): number {
         if (this.manager.isStaticAndSmall) return 14
-        return this.useBaseFontSize
-            ? Math.round((13 / BASE_FONT_SIZE) * this.baseFontSize)
-            : 13
+        return this.useBaseFontSize ? scaleFontSize(13, this.baseFontSize) : 13
     }
 
     protected override get sourcesFontSize(): number {

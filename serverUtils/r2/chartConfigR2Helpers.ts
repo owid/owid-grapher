@@ -22,7 +22,7 @@ const getChartConfigS3Client = lazy(() =>
     })
 )
 
-export async function saveGrapherConfigToR2ByUUID(
+export async function saveGrapherConfigToR2ByUuid(
     uuid: string,
     chartConfigStringified: string,
     configMd5FromDb: Base64String
@@ -30,15 +30,15 @@ export async function saveGrapherConfigToR2ByUUID(
     console.log("Saving grapher config to R2 by UUID:", uuid)
     await saveGrapherConfigToR2(
         chartConfigStringified,
-        R2GrapherConfigDirectory.byUUID,
+        R2GrapherConfigDirectory.byUuid,
         `${uuid}.json`,
         configMd5FromDb
     )
 }
 
-export async function deleteGrapherConfigFromR2ByUUID(id: string) {
+export async function deleteGrapherConfigFromR2ByUuid(id: string) {
     await deleteGrapherConfigFromR2(
-        R2GrapherConfigDirectory.byUUID,
+        R2GrapherConfigDirectory.byUuid,
         `${id}.json`
     )
 }

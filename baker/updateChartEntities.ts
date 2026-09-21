@@ -51,7 +51,7 @@ const preFetchCommonVariables = async (
             FROM chart_dimensions cd
             JOIN charts c ON cd.chartId = c.id
             JOIN chart_configs cc ON c.configId = cc.id
-            WHERE cc.full ->> "$.isPublished" = "true"
+            WHERE cc.config ->> "$.isPublished" = "true"
             GROUP BY variableId
             ORDER BY COUNT(variableId) DESC
             LIMIT ??
@@ -141,14 +141,14 @@ export const obtainAvailableEntitiesForGraphers = async (
     const entityNameToIdMap = await mapEntityNamesToEntityIds(trx)
 
     const allPublishedGraphers = await db.knexRaw<
-        Pick<DbPlainChart, "id"> & { config: DbRawChartConfig["full"] }
+        Pick<DbPlainChart, "id"> & { config: DbRawChartConfig["config"] }
     >(
         trx,
         `-- sql
-            SELECT c.id, cc.full as config
+            SELECT c.id, cc.config as config
             FROM charts c
             JOIN chart_configs cc ON c.configId = cc.id
-            WHERE cc.full ->> "$.isPublished" = 'true'
+            WHERE cc.config ->> "$.isPublished" = 'true'
             ${chartIds?.length ? `AND c.id IN (${chartIds.join(",")})` : ""}
         `
     )

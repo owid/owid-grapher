@@ -558,7 +558,6 @@ export enum ColorSchemeName {
     BinaryMapPaletteC = "BinaryMapPaletteC",
     BinaryMapPaletteD = "BinaryMapPaletteD",
     BinaryMapPaletteE = "BinaryMapPaletteE",
-    BinaryMapPaletteF = "BinaryMapPaletteF",
     SingleColorGradientDenim = "SingleColorGradientDenim",
     SingleColorGradientTeal = "SingleColorGradientTeal",
     SingleColorGradientPurple = "SingleColorGradientPurple",
@@ -678,6 +677,7 @@ export interface GrapherInterface extends SortConfig {
     hideTotalValueLabel?: boolean
     excludedEntityNames?: EntityName[]
     includedEntityNames?: EntityName[]
+    inapplicableEntityNames?: EntityName[]
     selectedEntityNames?: EntityName[]
     selectedEntityColors?: { [entityName: string]: string | undefined }
     focusedSeriesNames?: SeriesName[]
@@ -835,6 +835,7 @@ export const grapherKeysToSerialize = [
     "sortColumnSlug",
     "excludedEntityNames",
     "includedEntityNames",
+    "inapplicableEntityNames",
     "selectedFacetStrategy",
     "hideFacetControl",
     "comparisonLines",

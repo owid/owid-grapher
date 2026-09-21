@@ -251,7 +251,9 @@ function RichEditorPageForId(props: { id: string }): React.ReactElement {
                                 saveState.kind === "saving" ||
                                 saveState.kind === "conflict"
                             }
-                            onClick={() => void doSave("manual")}
+                            onClick={() => {
+                                void doSave("manual")
+                            }}
                         >
                             Save
                         </Button>
@@ -283,7 +285,9 @@ function RichEditorPageForId(props: { id: string }): React.ReactElement {
                         action={
                             <Button
                                 size="small"
-                                onClick={() => void doSave("manual")}
+                                onClick={() => {
+                                    void doSave("manual")
+                                }}
                             >
                                 Retry
                             </Button>

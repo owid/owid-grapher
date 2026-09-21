@@ -1,34 +1,29 @@
-import { EnrichedBlockBespokeComponent } from "@ourworldindata/types"
+import {
+    EnrichedBlockBespokeComponent,
+    HIDE_IF_JS_DISABLED_CLASSNAME,
+    HIDE_IF_JS_ENABLED_CLASSNAME,
+} from "@ourworldindata/types"
 import { LoadingIndicator } from "@ourworldindata/components"
 import cx from "clsx"
 import { useEffect, useMemo, useRef, useState } from "react"
-import { BESPOKE_COMPONENT_REGISTRY } from "../../bespokeComponentRegistry.js"
+import { useIntersectionObserver } from "usehooks-ts"
+import Image from "./Image.js"
+import { useImage } from "../utils.js"
+import { BESPOKE_COMPONENT_REGISTRY } from "../../../bespoke/shared/bespokeComponentRegistry.js"
 import { mountBespokeComponentInShadow } from "../../../bespoke/shared/bespokeComponentShadowDom.js"
-import { BESPOKE_BASE_URL } from "../../../settings/clientSettings.js"
-import urljoin from "url-join"
-
-// Use the `baseUrl` as a base for the URL constructor if set, and use just the URL (which might be host-relative) if not.
-// If `url` is already absolute, it will effectively just get passed through.
-const makeAbsoluteWithBaseUrl = (url: string, baseUrl: string | undefined) => {
-    baseUrl = baseUrl?.trim()
-    if (!baseUrl) return url
-
-    // url is already absolute, so just return it as is
-    if (url.startsWith("http://") || url.startsWith("https://")) return url
-
-    return urljoin(baseUrl, url)
-}
+import { resolveBespokeComponentUrls } from "../../../bespoke/shared/bespokeComponentUrls.js"
+import {
+    BESPOKE_BASE_URL,
+    BESPOKE_DATA_URL,
+} from "../../../settings/clientSettings.mjs"
 
 /**
  * Renders a bespoke component inside a Shadow DOM container.
  *
  * This is not a normal React component - it renders client-only and mounts
  * an external ES module into a Shadow DOM. This allows embedding
- * independently-built components that have their own bundled JS and CSS,
+ * independently-built components that bundle their own JS and CSS,
  * isolated from the rest of the page styles.
- *
- * On the server, this renders an empty div. On the client, useEffect dynamically
- * imports the module and calls its `mount` function.
  *
  * Example ArchieML:
  * {.bespoke-component}
@@ -52,27 +47,31 @@ export function BespokeComponent({
     const [isLoading, setIsLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
 
+    // Defer loading the component's JS until it approaches the viewport
+    const { ref: intersectionRef, isIntersecting: hasBeenVisible } =
+        useIntersectionObserver({
+            rootMargin: "400px",
+            freezeOnceVisible: true,
+        })
+
     const definition = useMemo(
         () => BESPOKE_COMPONENT_REGISTRY[block.bundle],
         [block.bundle]
     )
 
-    const { scriptUrl, cssUrl } = useMemo(() => {
-        if (!definition || !BESPOKE_BASE_URL.trim())
-            return { scriptUrl: undefined, cssUrl: undefined }
+    const fallbackImage = useImage(block.fallbackImageFilename)
 
-        return {
-            scriptUrl: makeAbsoluteWithBaseUrl(
-                definition.scriptUrl,
-                BESPOKE_BASE_URL
-            ),
-            cssUrl:
-                definition.cssUrl &&
-                makeAbsoluteWithBaseUrl(definition.cssUrl, BESPOKE_BASE_URL),
-        }
+    const urls = useMemo(() => {
+        if (!definition || !BESPOKE_BASE_URL.trim()) return undefined
+        return resolveBespokeComponentUrls(definition, {
+            scriptBaseUrl: BESPOKE_BASE_URL,
+            dataBaseUrl: BESPOKE_DATA_URL,
+        })
     }, [definition])
 
     useEffect(() => {
+        if (!hasBeenVisible) return
+
         const container = containerRef.current
         if (!container) return
 
@@ -80,7 +79,7 @@ export function BespokeComponent({
             setError(`Unknown bespoke bundle: "${block.bundle}"`)
             return
         }
-        if (!scriptUrl) {
+        if (!urls) {
             setError("This custom component cannot be displayed on this page.")
             return
         }
@@ -92,10 +91,11 @@ export function BespokeComponent({
 
         mountBespokeComponentInShadow({
             container,
-            scriptUrl,
-            cssUrl,
+            scriptUrl: urls.scriptUrl,
             variant: block.variant,
             config: block.config,
+            dataUrl: urls.dataUrl,
+            metadataUrl: urls.metadataUrl,
             signal: abortController.signal,
         })
             .then(({ dispose }) => {
@@ -129,8 +129,8 @@ export function BespokeComponent({
         block.variant,
         block.config,
         definition,
-        scriptUrl,
-        cssUrl,
+        urls,
+        hasBeenVisible,
     ])
 
     if (error) {
@@ -138,8 +138,25 @@ export function BespokeComponent({
     }
 
     return (
-        <div className={className}>
-            {isLoading && <LoadingIndicator />}
+        <div className={className} ref={intersectionRef}>
+            {isLoading && (
+                <div className={HIDE_IF_JS_DISABLED_CLASSNAME}>
+                    <LoadingIndicator />
+                </div>
+            )}
+            {fallbackImage ? (
+                <Image
+                    className={cx(
+                        HIDE_IF_JS_ENABLED_CLASSNAME,
+                        "bespoke-component__fallback-image"
+                    )}
+                    imageData={fallbackImage}
+                    containerType={`bespoke-component--${block.size}`}
+                    shouldLightbox={false}
+                />
+            ) : (
+                <div className="js--show-warning-block-if-js-disabled" />
+            )}
             <div ref={containerRef}></div>
         </div>
     )

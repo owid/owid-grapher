@@ -78,13 +78,13 @@ export const getGrapherChecksumsFromDb = async (
         SELECT
             c.id AS chartId,
             cc.slug AS chartSlug,
-            cc.fullMd5 AS chartConfigMd5,
+            cc.configMd5 AS chartConfigMd5,
             JSON_OBJECTAGG(v.id, JSON_OBJECT("metadataChecksum", v.metadataChecksum, "dataChecksum", v.dataChecksum)) AS indicators
         FROM charts c
         JOIN chart_configs cc on c.configId = cc.id
         JOIN chart_dimensions cd on cd.chartId = c.id
         JOIN variables v on cd.variableId = v.id
-        WHERE cc.full ->> "$.isPublished" = "true"
+        WHERE cc.config ->> "$.isPublished" = "true"
         ${slugs ? `AND cc.slug IN (${slugs.map(() => "?").join(",")})` : ""}
         GROUP BY c.id
         ORDER BY c.id
@@ -232,7 +232,7 @@ export const getMultiDimChecksumsFromDb = async (
         SELECT
             mdxcc.multiDimId,
             mdxcc.chartConfigId,
-            cc.fullMd5 AS chartConfigMd5
+            cc.configMd5 AS chartConfigMd5
         FROM multi_dim_x_chart_configs mdxcc
         JOIN chart_configs cc ON mdxcc.chartConfigId = cc.id
         WHERE mdxcc.multiDimId IN (${multiDimPages.map(() => "?").join(",")})`,
@@ -361,8 +361,8 @@ export const getExplorerChecksumsFromDb = async (
         SELECT
             ev.explorerSlug,
             ev.chartConfigId,
-            cc.fullMd5 AS chartConfigMd5,
-            cc.full AS chartConfigFull
+            cc.configMd5 AS chartConfigMd5,
+            cc.config AS chartConfigFull
         FROM explorer_views ev
         JOIN chart_configs cc ON ev.chartConfigId = cc.id
         WHERE ev.chartConfigId IS NOT NULL
@@ -489,9 +489,9 @@ export const getNarrativeChartChecksumsFromDb = async (
         .select(
             "nc.id",
             "nc.name",
-            "cc.fullMd5 as chartConfigMd5",
+            "cc.configMd5 as chartConfigMd5",
             "nc.queryParamsForParentChartMd5",
-            "cc.full as config"
+            "cc.config as config"
         )
         .join("chart_configs as cc", "nc.chartConfigId", "cc.id")
 

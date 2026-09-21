@@ -83,7 +83,8 @@ details.ExpandableToggle {
     }
 }
 
-details.ExpandableToggle--stacked {
+// Rows in a run share one border between them
+details.ExpandableToggle:has(+ .ExpandableToggle, + .NonExpandable) {
     border-bottom: none;
 }
 

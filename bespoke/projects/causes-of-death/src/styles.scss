@@ -70,15 +70,9 @@
     }
 }
 
-.causes-of-death-skeleton {
-    position: relative;
+.causes-of-death-chart-box {
     width: min(100%, 900px);
     height: 600px;
-    border: 1px solid $frame-color;
-
-    .spinner {
-        color: $gray-60;
-    }
 }
 
 .causes-of-death-tooltip__value {

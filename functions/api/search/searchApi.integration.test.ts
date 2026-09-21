@@ -108,6 +108,27 @@ describe("searchCharts with real Algolia", () => {
         ).rejects.toThrow(/does not exist. Available topics:/)
     })
 
+    it("does not claim a valid topic doesn't exist just because the search found nothing", async () => {
+        // The topic list this validation consults comes from a facet query, and
+        // Algolia caps facet values at 100 unless asked for more, while the
+        // index carries ~140 topic tags. "Polio" is a real topic that falls
+        // outside the 100 commonest, so before maxValuesPerFacet was set this
+        // rejected it as nonexistent whenever a query returned nothing.
+        const result = await searchCharts(
+            algoliaConfig,
+            {
+                query: "zzzzqqqqnotarealquery",
+                filters: [{ type: FilterType.TOPIC, name: "Polio" }],
+                requireAllCountries: false,
+            },
+            0,
+            5
+        )
+
+        expect(result.nbHits).toBe(0)
+        expect(result.results).toEqual([])
+    })
+
     it("handles pagination", async () => {
         const page0 = await searchCharts(
             algoliaConfig,

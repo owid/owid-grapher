@@ -66,6 +66,9 @@
 
 // These rules are currently used elsewhere in the site. e.g. Explorers
 // so we can't scope them to be grapher-only
+// (fontawesome.scss additionally must stay unscoped because grapher portals
+// icons outside of .GrapherComponent: pinned tooltips, popovers, tippy)
+@import "../../../components/src/styles/fontawesome.scss";
 @import "../controls/entityPicker/EntityPicker.scss";
 @import "../fullScreen/FullScreen.scss";
 @import "../../../components/src/Checkbox.scss";
@@ -97,6 +100,7 @@
 }
 
 .GrapherComponent {
+    box-sizing: border-box;
     display: inline-block;
     text-align: left;
 
@@ -112,8 +116,37 @@
     border: 1px solid $frame-color;
     z-index: $zindex-chart;
 
+    font-family: $sans-serif-font-stack;
+
     * {
         box-sizing: border-box;
+    }
+
+    // The OWID site resets these globally (site/css/general.scss), but the
+    // standalone grapher package can't rely on a host page doing the same, so
+    // mirror the resets grapher's styles implicitly depend on. The selectors
+    // are wrapped in :where() to keep their specificity at zero, like the
+    // global element selectors they stand in for — otherwise they'd outrank
+    // component rules such as .close-button's border.
+    :where(&) :where(ul, ol) {
+        margin: 0;
+        padding: 0;
+    }
+
+    :where(&) :where(button) {
+        border: none;
+    }
+
+    :where(&) :where(a) {
+        cursor: pointer;
+    }
+
+    // Form controls have `font` set by the UA stylesheet, so they never inherit
+    // the font-family above — they have to be named explicitly or they render in
+    // Arial. This is why the site needs its own copy of this rule on top of the
+    // one on `html`.
+    :where(&) :where(button, input, optgroup, select, textarea) {
+        font-family: $sans-serif-font-stack;
     }
 
     button {

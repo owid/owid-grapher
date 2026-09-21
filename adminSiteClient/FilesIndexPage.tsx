@@ -25,9 +25,9 @@ type FileMap = {
 }
 
 async function fetchFiles(admin: Admin): Promise<FileMap> {
-    const { files } = await admin.getJSON<{ files: DbPlainFile[] }>(
-        "/api/files.json"
-    )
+    const { files } = await admin.getJSONInBackground<{
+        files: DbPlainFile[]
+    }>("/api/files.json")
     return files.reduce((acc, file) => {
         const pathSegments = file.path.split("/")
         let current = acc

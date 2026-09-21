@@ -471,15 +471,15 @@ async function pickDisplayEntitiesForMarimekko({
     catalogUrl: string
     entity?: EntityName
 }): Promise<EntityName[]> {
-    const { items, colorColumnSlug, xColumnSlug } = chartState
+    const { series, colorColumnSlug, xColumnSlug } = chartState
 
     // Helper functions
-    type MarimekkoItem = MarimekkoChartState["items"][number]
+    type MarimekkoItem = MarimekkoChartState["series"][number]
     const getName = (item: MarimekkoItem) => item.entityName
     const getColor = (item: MarimekkoItem) =>
         item.entityColor?.colorDomainValue ?? ""
     const getX = (item: MarimekkoItem) => item.xPoint?.value ?? 0
-    const getY = (item: MarimekkoItem) => item.bars[0]?.yPoint?.value ?? 0
+    const getY = (item: MarimekkoItem) => item.yPoint?.value ?? 0
 
     // Color of the entity picked by the user
     const pickedColor =
@@ -494,7 +494,7 @@ async function pickDisplayEntitiesForMarimekko({
     // When both color and x dimensions are available, select the entity
     // with the largest x from each color group
     if (colorColumnSlug && xColumnSlug) {
-        return maxByGroup(items, getColor, getX)
+        return maxByGroup(series, getColor, getX)
             .filter(isDifferentFromPickedColor)
             .map(getName)
     }
@@ -509,7 +509,7 @@ async function pickDisplayEntitiesForMarimekko({
         const getPopulation = (item: MarimekkoItem) =>
             populationByEntityName?.get(item.entityName) ?? 0
 
-        return maxByGroup(items, getColor, getPopulation)
+        return maxByGroup(series, getColor, getPopulation)
             .filter(isDifferentFromPickedColor)
             .map(getName)
     }
@@ -518,14 +518,14 @@ async function pickDisplayEntitiesForMarimekko({
     // with the largest x
     if (xColumnSlug) {
         return R.pipe(
-            items,
+            series,
             R.sortBy((item) => -getX(item)),
             R.map(getName)
         )
     }
 
     return R.pipe(
-        items,
+        series,
         R.sortBy((item) => -getY(item)),
         R.map(getName)
     )

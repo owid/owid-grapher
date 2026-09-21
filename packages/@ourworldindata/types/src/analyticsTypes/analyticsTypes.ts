@@ -429,6 +429,8 @@ export interface DetailOnDemandParams {
     eventAction: "show" | string
     /** Target element ID */
     eventTarget: string
+    /** Page region of the DoD span (data pages only, e.g. "wysk", "faqs") */
+    eventContext?: string
     /** Explorer path if triggered from explorer */
     explorerPath?: string
     /** Grapher path if triggered from grapher */
