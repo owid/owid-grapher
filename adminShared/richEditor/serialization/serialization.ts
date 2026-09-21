@@ -309,7 +309,7 @@ export function enrichedBlockToPmNode(
     block: OwidEnrichedGdocBlock
 ): PmNodeJson {
     const { id, ...rest } = block
-    const node = enrichedBlockWithoutIdToPmNode(rest as OwidEnrichedGdocBlock)
+    const node = enrichedBlockWithoutIdToPmNode(rest)
     // Identity travels as the node's blockId attr; block types without a
     // BlockFrame (text flow) never carry ids
     if (id && isIdentifiedNodeName(node.type)) {

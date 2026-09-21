@@ -1,31 +1,26 @@
+import * as React from "react"
 import { useEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
-import { TagGraphNode, TagGraphRoot } from "@ourworldindata/utils"
+import { TagGraphRoot } from "@ourworldindata/utils"
 import classnames from "clsx"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faTimes } from "@fortawesome/free-solid-svg-icons"
-import { SiteNavigationToggle } from "./SiteNavigationToggle.js"
-import { Menu } from "./SiteConstants.js"
+import { faCaretDown, faTimes } from "@fortawesome/free-solid-svg-icons"
 import { SiteAbout } from "./SiteAbout.js"
 import { SiteResources } from "./SiteResources.js"
 import { SiteMobileArea } from "./SiteMobileArea.js"
 import { SEARCH_BASE_PATH } from "./search/searchUtils.js"
 import { FeedbackForm } from "./Feedback.js"
-import { Button } from "@ourworldindata/components"
+import { Button, getPrefersReducedMotion } from "@ourworldindata/components"
 import { buildLatestPagePath } from "./latest/latestUtils.js"
+import { MOBILE_MENU_DETAILS_NAME } from "./SiteConstants.js"
 
 export const SiteMobileMenu = ({
     tagGraph,
-    menu,
-    toggleMenu,
     className,
 }: {
     tagGraph?: TagGraphRoot
-    menu: Menu | null
-    toggleMenu: (menu: Menu) => void
     className?: string
 }) => {
-    const [activeArea, setActiveArea] = useState<TagGraphNode | null>(null)
     const [isFeedbackOpen, setIsFeedbackOpen] = useState(false)
     const menuRef = useRef<HTMLDivElement>(null)
 
@@ -36,11 +31,19 @@ export const SiteMobileMenu = ({
             document.documentElement.classList.remove("no-scroll")
         }
     }, [isFeedbackOpen])
-    const toggleArea = (area: TagGraphNode) => {
-        if (activeArea === area) {
-            setActiveArea(null)
-        } else {
-            setActiveArea(area)
+
+    const scrollMenuIntoView = (
+        event: React.ToggleEvent<HTMLDetailsElement>
+    ) => {
+        if (event.newState !== "open" || !menuRef.current) return
+        const menuBottomOffset = menuRef.current.getBoundingClientRect().bottom
+
+        // put bottom of the menu at the bottom of the viewport if it's offscreen
+        if (menuBottomOffset > window.innerHeight) {
+            window.scrollTo({
+                top: menuBottomOffset - window.innerHeight + window.scrollY,
+                behavior: getPrefersReducedMotion() ? "auto" : "smooth",
+            })
         }
     }
 
@@ -51,12 +54,7 @@ export const SiteMobileMenu = ({
                     <span className="section__header">Browse by topic</span>
                     <ul className="section__dropdown--topics">
                         {tagGraph?.children.map((area) => (
-                            <SiteMobileArea
-                                key={area.id}
-                                area={area}
-                                isActive={activeArea === area}
-                                toggleArea={toggleArea}
-                            />
+                            <SiteMobileArea key={area.id} area={area} />
                         ))}
                     </ul>
                 </li>
@@ -71,42 +69,38 @@ export const SiteMobileMenu = ({
                     </a>
                 </li>
                 <li>
-                    <SiteNavigationToggle
-                        ariaLabel="Toggle resources menu"
-                        isActive={menu === Menu.Resources}
-                        onToggle={() =>
-                            toggleMenu(
-                                menu === Menu.Resources
-                                    ? Menu.Topics
-                                    : Menu.Resources
-                            )
-                        }
-                        dropdown={<SiteResources />}
-                        withCaret={true}
-                        className="SiteNavigationToggle--lvl1"
-                        shouldScrollIntoView
-                        menuRef={menuRef}
+                    <details
+                        name={MOBILE_MENU_DETAILS_NAME}
+                        onToggle={scrollMenuIntoView}
                     >
-                        Resources
-                    </SiteNavigationToggle>
+                        <summary className="section__header">
+                            Resources
+                            <FontAwesomeIcon
+                                className="SiteMobileMenu__caret"
+                                icon={faCaretDown}
+                            />
+                        </summary>
+                        <div className="SiteMobileMenu__dropdown">
+                            <SiteResources />
+                        </div>
+                    </details>
                 </li>
                 <li>
-                    <SiteNavigationToggle
-                        ariaLabel="Toggle about menu"
-                        isActive={menu === Menu.About}
-                        onToggle={() =>
-                            toggleMenu(
-                                menu === Menu.About ? Menu.Topics : Menu.About
-                            )
-                        }
-                        dropdown={<SiteAbout />}
-                        withCaret={true}
-                        className="SiteNavigationToggle--lvl1"
-                        shouldScrollIntoView
-                        menuRef={menuRef}
+                    <details
+                        name={MOBILE_MENU_DETAILS_NAME}
+                        onToggle={scrollMenuIntoView}
                     >
-                        About
-                    </SiteNavigationToggle>
+                        <summary className="section__header">
+                            About
+                            <FontAwesomeIcon
+                                className="SiteMobileMenu__caret"
+                                icon={faCaretDown}
+                            />
+                        </summary>
+                        <div className="SiteMobileMenu__dropdown">
+                            <SiteAbout />
+                        </div>
+                    </details>
                 </li>
                 <li>
                     <a href="/donate" className="donate">

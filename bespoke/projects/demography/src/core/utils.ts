@@ -16,7 +16,6 @@ import type {
 } from "./types"
 import { formatValue } from "@ourworldindata/utils"
 import { OwidVariableRoundingMode } from "@ourworldindata/types"
-import { QueryStatus } from "@tanstack/react-query"
 
 export function formatPopulationValueShort(value: number): string {
     if (Math.abs(value) < 1) {
@@ -114,12 +113,6 @@ export function groupByAgeRange(
         grouped[ageGroup] = sum
     }
     return grouped
-}
-
-export function combineStatuses(...statuses: QueryStatus[]): QueryStatus {
-    if (statuses.some((status) => status === "error")) return "error"
-    if (statuses.some((status) => status === "pending")) return "pending"
-    return "success"
 }
 
 // -- Age group helpers --

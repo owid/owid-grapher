@@ -1,16 +1,17 @@
 import { useMemo } from "react"
-import {
-    QueryClient,
-    QueryClientProvider,
-    QueryStatus,
-} from "@tanstack/react-query"
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { NuqsAdapter } from "nuqs/adapters/react"
 import { parseAsInteger, parseAsString } from "nuqs"
 import * as R from "remeda"
 
 import { Time } from "@ourworldindata/types"
 import { WORLD_ENTITY_NAME } from "@ourworldindata/grapher/src/core/GrapherConstants.js"
+import { ChartError } from "../../../../components/ChartError/ChartError.js"
+import { ChartSkeleton } from "../../../../components/ChartSkeleton/ChartSkeleton.js"
+import { combineStatuses } from "../../../../helpers/queryStatus.js"
 
+import type { VariantProps } from "../../../../helpers/config.js"
+import type { BespokeComponentDataUrls } from "owid-bespoke-types"
 import { CausesOfDeathConfig } from "../core/config.js"
 import {
     useCausesOfDeathEntityData,
@@ -21,9 +22,8 @@ import { CausesOfDeathCaptionedChart } from "./CausesOfDeathCaptionedChart.js"
 import { CausesOfDeathControls } from "./CausesOfDeathControls.js"
 
 import { useUrlState } from "../../../../hooks/useUrlState.js"
+import { EmbedConfigProvider } from "../../../../hooks/useEmbedConfig.js"
 import { useDelayedLoading } from "../../../../hooks/useDelayedLoading.js"
-
-import { Spinner } from "../../../../components/Spinner/Spinner.js"
 
 const DEFAULT_AGE_GROUP = "All ages"
 const DEFAULT_SEX = "Both sexes"
@@ -35,57 +35,57 @@ const LATEST_YEAR = -1
 
 const queryClient = new QueryClient()
 
-export function CausesOfDeathChartWithProviders(props: {
-    container?: HTMLDivElement
-    config?: CausesOfDeathConfig
-}): React.ReactElement {
+export function CausesOfDeathChartWithProviders(
+    props: VariantProps<CausesOfDeathConfig>
+): React.ReactElement {
     return (
-        <NuqsAdapter>
-            <QueryClientProvider client={queryClient}>
-                <CausesOfDeathChart config={props.config} />
-            </QueryClientProvider>
-        </NuqsAdapter>
+        <EmbedConfigProvider config={props.config}>
+            <NuqsAdapter>
+                <QueryClientProvider client={queryClient}>
+                    <CausesOfDeathChart
+                        config={props.config}
+                        urls={props.urls}
+                    />
+                </QueryClientProvider>
+            </NuqsAdapter>
+        </EmbedConfigProvider>
     )
 }
 
 function CausesOfDeathChart(props: {
-    config?: CausesOfDeathConfig
+    config: CausesOfDeathConfig
+    urls: BespokeComponentDataUrls
 }): React.ReactElement {
-    const { config } = props
+    const { config, urls } = props
 
-    const urlSync = config?.urlSync ?? false
-
-    // State, synced to the URL if the urlSync flag is set
+    // State, synced to the URL when the embedding page asks for it
     const [ageGroup, setAgeGroup] = useUrlState({
         key: "causesOfDeathAge",
         parser: parseAsString,
-        defaultValue: config?.ageGroup ?? DEFAULT_AGE_GROUP,
-        enabled: urlSync,
+        defaultValue: config.ageGroup ?? DEFAULT_AGE_GROUP,
     })
     const [sex, setSex] = useUrlState({
         key: "causesOfDeathSex",
         parser: parseAsString,
-        defaultValue: config?.sex ?? DEFAULT_SEX,
-        enabled: urlSync,
+        defaultValue: config.sex ?? DEFAULT_SEX,
     })
     const [entityName, setEntityName] = useUrlState({
         key: "causesOfDeathRegion",
         parser: parseAsString,
-        defaultValue: config?.region ?? DEFAULT_ENTITY_NAME,
-        enabled: urlSync,
+        defaultValue: config.region ?? DEFAULT_ENTITY_NAME,
     })
     const [year, setYear] = useUrlState({
         key: "causesOfDeathYear",
         parser: parseAsInteger,
-        defaultValue: config?.year ?? LATEST_YEAR,
-        enabled: urlSync,
+        defaultValue: config.year ?? LATEST_YEAR,
     })
 
     // Fetch the metadata and the data for the selected entity
-    const metadataResponse = useCausesOfDeathMetadata()
+    const metadataResponse = useCausesOfDeathMetadata(urls.metadataUrl)
     const entityDataResponse = useCausesOfDeathEntityData(
         entityName,
-        metadataResponse.data
+        metadataResponse.data,
+        urls.dataUrl
     )
 
     // Only show loading overlays after 300ms delay to prevent flashing
@@ -124,11 +124,11 @@ function CausesOfDeathChart(props: {
     )
 
     if (loadingStatus === "error") {
-        return <CausesOfDeathChartError />
+        return <ChartError className="causes-of-death-chart-box" />
     }
 
     if (loadingStatus === "pending") {
-        return <CausesOfDeathSkeleton />
+        return <ChartSkeleton className="causes-of-death-chart-box" />
     }
 
     // Sanity check
@@ -141,11 +141,11 @@ function CausesOfDeathChart(props: {
         !activeAgeGroup ||
         !activeSex
     )
-        return <CausesOfDeathChartError />
+        return <ChartError className="causes-of-death-chart-box" />
 
     return (
         <div className="causes-of-death-chart">
-            {!config?.hideControls && (
+            {!config.hideControls && (
                 <CausesOfDeathControls
                     metadata={metadata}
                     ageGroup={ageGroup}
@@ -180,22 +180,4 @@ function resolveYear(year: Time, metadata: CausesOfDeathMetadata): Time {
     const { start, end } = metadata.timeRange
     if (year === LATEST_YEAR) return end
     return R.clamp(year, { min: start, max: end })
-}
-
-function CausesOfDeathChartError() {
-    return <div>Causes of Death visualization can't be loaded</div>
-}
-
-function CausesOfDeathSkeleton() {
-    return (
-        <div className="causes-of-death-skeleton">
-            <Spinner />
-        </div>
-    )
-}
-
-function combineStatuses(...statuses: QueryStatus[]): QueryStatus {
-    if (statuses.some((status) => status === "error")) return "error"
-    if (statuses.some((status) => status === "pending")) return "pending"
-    return "success"
 }

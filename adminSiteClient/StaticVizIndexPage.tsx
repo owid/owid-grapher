@@ -204,7 +204,9 @@ export function StaticVizIndexPage() {
     const { data: staticVizResponse, isLoading } = useQuery({
         queryKey: ["static-viz"],
         queryFn: () => {
-            return admin.getJSON<DbEnrichedStaticViz[]>("/api/static-viz.json")
+            return admin.getJSONInBackground<DbEnrichedStaticViz[]>(
+                "/api/static-viz.json"
+            )
         },
     })
 

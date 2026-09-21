@@ -5,7 +5,7 @@ import {
 import {
     EXPLORER_DYNAMIC_THUMBNAIL_URL,
     GRAPHER_DYNAMIC_THUMBNAIL_URL,
-} from "../../../settings/clientSettings"
+} from "../../../settings/clientSettings.mjs"
 import Image from "./Image"
 
 export const Thumbnail = ({

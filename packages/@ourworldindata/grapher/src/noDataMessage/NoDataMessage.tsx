@@ -8,10 +8,10 @@ import {
     DEFAULT_GRAPHER_BOUNDS,
     DEFAULT_GRAPHER_ENTITY_TYPE,
     DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL,
-    GRAPHER_FONT_SCALE_14,
 } from "../core/GrapherConstants"
 import { Halo, TextWrap, TextWrapSvg } from "@ourworldindata/components"
 import { GRAPHER_DARK_TEXT, GRAPHER_LIGHT_TEXT } from "../color/ColorConstants"
+import { roundFontSize, scaleFontSize } from "../chart/ChartUtils"
 
 export interface NoDataMessageManager {
     canChangeEntity?: boolean
@@ -47,7 +47,7 @@ export class NoDataMessage extends React.Component<NoDataMessageProps> {
 
     @computed private get fontSize(): number {
         const baseFontSize = this.manager.fontSize ?? BASE_FONT_SIZE
-        return Math.floor(GRAPHER_FONT_SCALE_14 * baseFontSize)
+        return scaleFontSize(14, baseFontSize)
     }
 
     override render(): React.ReactElement {
@@ -70,7 +70,7 @@ export class NoDataMessage extends React.Component<NoDataMessageProps> {
 
         const center = bounds.centerPos
         const showHelpText = !isStatic && !!helpText
-        const helpTextFontSize = Math.floor(0.9 * fontSize)
+        const helpTextFontSize = roundFontSize(0.9 * fontSize)
 
         const maxWidth = bounds.width - 2 * fontSize
         const messageWrap = new TextWrap({

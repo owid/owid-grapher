@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { MinimalExplorerInfo } from "@ourworldindata/types"
-import { EXPLORER_DYNAMIC_THUMBNAIL_URL } from "../settings/clientSettings.js"
+import { EXPLORER_DYNAMIC_THUMBNAIL_URL } from "../settings/clientSettings.mjs"
 import { faHeartBroken } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"

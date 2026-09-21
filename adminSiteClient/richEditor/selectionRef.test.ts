@@ -8,12 +8,11 @@ import { getRichEditorBaseExtensions } from "../../adminShared/richEditor/extens
 import { enrichedBlocksToPmDoc } from "../../adminShared/richEditor/serialization/serialization.js"
 import { resolveSelectionRef, selectionRefFromEditor } from "./selectionRef.js"
 
-const textBlock = (text: string): OwidEnrichedGdocBlock =>
-    ({
-        type: "text",
-        value: [{ spanType: "span-simple-text", text }],
-        parseErrors: [],
-    }) as OwidEnrichedGdocBlock
+const textBlock = (text: string): OwidEnrichedGdocBlock => ({
+    type: "text",
+    value: [{ spanType: "span-simple-text", text }],
+    parseErrors: [],
+})
 
 const chartBlock: OwidEnrichedGdocBlock = {
     type: "chart",

@@ -123,7 +123,9 @@ export function CommentsPanel(props: {
                     size="small"
                     loading={submitting}
                     disabled={!newComment.trim()}
-                    onClick={() => void createThread()}
+                    onClick={() => {
+                        void createThread()
+                    }}
                 >
                     {hasTextSelection
                         ? "Comment on selection"
@@ -240,7 +242,9 @@ function ThreadCard(props: {
                             size="small"
                             type="text"
                             disabled={busy}
-                            onClick={() => void setStatus("open")}
+                            onClick={() => {
+                                void setStatus("open")
+                            }}
                         >
                             Reopen
                         </Button>
@@ -249,7 +253,9 @@ function ThreadCard(props: {
                             size="small"
                             type="text"
                             disabled={busy}
-                            onClick={() => void setStatus("resolved")}
+                            onClick={() => {
+                                void setStatus("resolved")
+                            }}
                         >
                             Resolve
                         </Button>
@@ -303,7 +309,9 @@ function ThreadCard(props: {
                         <Button
                             size="small"
                             loading={busy}
-                            onClick={() => void submitReply()}
+                            onClick={() => {
+                                void submitReply()
+                            }}
                         >
                             Reply
                         </Button>

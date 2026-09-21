@@ -34,7 +34,7 @@ import {
     uploadImageFromSourceUrl,
 } from "./imagesHelpers"
 import { AdminAppContext } from "./AdminAppContext"
-import { GRAPHER_DYNAMIC_THUMBNAIL_URL } from "../settings/clientSettings"
+import { GRAPHER_DYNAMIC_THUMBNAIL_URL } from "../settings/clientSettings.mjs"
 import { LoadingImage } from "./ReuploadImageForDataInsightModal"
 import { ApiNarrativeChartOverview } from "../adminShared/AdminTypes"
 import {
