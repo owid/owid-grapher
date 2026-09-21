@@ -5,6 +5,8 @@ import { Time } from "@ourworldindata/types"
 import { SeriesLabelState } from "../seriesLabel/SeriesLabelState"
 import { Emphasis } from "../interaction/Emphasis"
 import { FocusArray } from "../focus/FocusArray"
+import { CategoricalBin } from "../color/ColorScaleBin"
+import { NO_DATA_LABEL } from "../color/ColorScale"
 import {
     ColoredSwimlaneCategorySegment,
     LANE_SPACING_FACTOR,
@@ -504,6 +506,17 @@ function series(
     }
 }
 
+function categoricalBin(value: string): CategoricalBin {
+    return new CategoricalBin({
+        index: 0,
+        value,
+        label: value,
+        color: "#000000",
+    })
+}
+
+const NO_DATA_BIN = categoricalBin(NO_DATA_LABEL)
+
 describe(toPlacedSwimlaneSeries, () => {
     it("returns an empty array for no series", () => {
         expect(
@@ -824,6 +837,39 @@ describe(toRenderSwimlaneSegments, () => {
         expect(rendered[0].emphasis).toEqual(Emphasis.Highlighted)
         expect(rendered[1].emphasis).toEqual(Emphasis.Muted)
     })
+
+    it("highlights the missing segments and mutes the category segments when the no-data bin is hovered", () => {
+        const [placed] = toPlacedSwimlaneSeries({
+            series: [
+                series({
+                    segments: [
+                        {
+                            kind: "missing",
+                            startTime: 2000,
+                            endTime: 2001,
+                        },
+                        categorySegment({
+                            kind: "category",
+                            category: "A",
+                            color: "#123456",
+                            startTime: 2002,
+                            endTime: 2004,
+                        }),
+                    ],
+                }),
+            ],
+            bounds: BOUNDS,
+            placeTime,
+        })
+
+        const rendered = toRenderSwimlaneSegments({
+            segments: placed.placedSegments,
+            hoveredLegendBin: NO_DATA_BIN,
+        })
+
+        expect(rendered[0].emphasis).toEqual(Emphasis.Highlighted)
+        expect(rendered[1].emphasis).toEqual(Emphasis.Muted)
+    })
 })
 
 describe(toRenderSwimlaneSeries, () => {
@@ -1004,5 +1050,95 @@ describe(toRenderSwimlaneSeries, () => {
         expect(renderedFrance.placedSegments[0].emphasis).toEqual(
             Emphasis.Highlighted
         )
+    })
+
+    it("highlights every segment of the hovered category across every lane and mutes the rest", () => {
+        const placed = placedFranceWithTwoSegmentsAndChile()
+
+        const [renderedFrance, renderedChile] = toRenderSwimlaneSeries({
+            series: placed,
+            focusArray: new FocusArray(),
+            hoveredLegendBin: categoricalBin("A"),
+        })
+
+        expect(renderedFrance.placedSegments[0].emphasis).toEqual(
+            Emphasis.Highlighted
+        )
+        expect(renderedFrance.placedSegments[1].emphasis).toEqual(
+            Emphasis.Muted
+        )
+        expect(
+            renderedChile.placedSegments.every(
+                (segment) => segment.emphasis === Emphasis.Highlighted
+            )
+        ).toBe(true)
+    })
+
+    it("mutes every segment of a lane whose segments are all of another category", () => {
+        const placed = toPlacedSwimlaneSeries({
+            series: [
+                series({ seriesName: "France", entityName: "France" }),
+                series({
+                    seriesName: "Chile",
+                    entityName: "Chile",
+                    segments: [
+                        categorySegment({
+                            kind: "category",
+                            category: "B",
+                            color: "#654321",
+                            startTime: 2000,
+                            endTime: 2004,
+                        }),
+                    ],
+                }),
+            ],
+            bounds: BOUNDS,
+            placeTime,
+        })
+
+        const [renderedFrance, renderedChile] = toRenderSwimlaneSeries({
+            series: placed,
+            focusArray: new FocusArray(),
+            hoveredLegendBin: categoricalBin("A"),
+        })
+
+        expect(
+            renderedFrance.placedSegments.every(
+                (segment) => segment.emphasis === Emphasis.Highlighted
+            )
+        ).toBe(true)
+        expect(
+            renderedChile.placedSegments.every(
+                (segment) => segment.emphasis === Emphasis.Muted
+            )
+        ).toBe(true)
+    })
+
+    it("keeps a segment of the hovered category Highlighted inside a lane muted by focus", () => {
+        const placed = placedFranceWithTwoSegmentsAndChile()
+        const focusArray = new FocusArray().add("Chile")
+
+        const [renderedFrance] = toRenderSwimlaneSeries({
+            series: placed,
+            focusArray,
+            hoveredLegendBin: categoricalBin("A"),
+        })
+
+        expect(renderedFrance.emphasis).toEqual(Emphasis.Muted)
+        expect(renderedFrance.placedSegments[0].emphasis).toEqual(
+            Emphasis.Highlighted
+        )
+    })
+
+    it("leaves row emphasis at Default under legend hover", () => {
+        const rendered = toRenderSwimlaneSeries({
+            series: placedFranceAndChile(),
+            focusArray: new FocusArray(),
+            hoveredLegendBin: categoricalBin("A"),
+        })
+
+        for (const row of rendered) {
+            expect(row.emphasis).toEqual(Emphasis.Default)
+        }
     })
 })

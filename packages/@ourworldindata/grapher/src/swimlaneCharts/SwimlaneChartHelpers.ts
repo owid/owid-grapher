@@ -5,6 +5,7 @@ import { computeCenteredLabelYPositions } from "../rowSeriesLabels/RowSeriesLabe
 import { resolveEmphasis } from "../interaction/Emphasis"
 import { InteractionState } from "../interaction/InteractionState"
 import { FocusArray } from "../focus/FocusArray"
+import { CategoricalBin, isNoDataBin } from "../color/ColorScaleBin"
 import {
     ENTITY_LABEL_CHART_GAP,
     HoveredSwimlanePoint,
@@ -212,29 +213,45 @@ export function toPlacedSwimlaneSeries({
 export function toRenderSwimlaneSegments({
     segments,
     hoveredSegment,
+    hoveredLegendBin,
     focus,
 }: {
     segments: PlacedSwimlaneSegment[]
     hoveredSegment?: PlacedSwimlaneSegment
+    hoveredLegendBin?: CategoricalBin
     focus?: InteractionState
 }): RenderSwimlaneSegment[] {
-    return segments.map((segment) => ({
-        ...segment,
-        emphasis: resolveEmphasis({
-            hover: InteractionState.for(segment, hoveredSegment),
-            focus,
-        }),
-    }))
+    const isHoverModeActive =
+        hoveredSegment !== undefined || hoveredLegendBin !== undefined
+
+    return segments.map((segment) => {
+        const isInHoveredBin =
+            hoveredLegendBin !== undefined &&
+            (segment.kind === "missing"
+                ? isNoDataBin(hoveredLegendBin)
+                : hoveredLegendBin.contains(segment.category))
+        const isHovered = segment === hoveredSegment || isInHoveredBin
+
+        return {
+            ...segment,
+            emphasis: resolveEmphasis({
+                hover: new InteractionState(isHovered, isHoverModeActive),
+                focus,
+            }),
+        }
+    })
 }
 
 export function toRenderSwimlaneSeries({
     series: allSeries,
     hoveredPoint,
     focusArray,
+    hoveredLegendBin,
 }: {
     series: PlacedSwimlaneSeries[]
     hoveredPoint?: HoveredSwimlanePoint
     focusArray: FocusArray
+    hoveredLegendBin?: CategoricalBin
 }): RenderSwimlaneSeries[] {
     const hoveredSeries = allSeries.find(
         (series) => series.seriesName === hoveredPoint?.laneEntityName
@@ -252,6 +269,7 @@ export function toRenderSwimlaneSeries({
             placedSegments: toRenderSwimlaneSegments({
                 segments: series.placedSegments,
                 hoveredSegment,
+                hoveredLegendBin,
                 focus,
             }),
         }

@@ -41,6 +41,8 @@ import { HorizontalCategoricalColorLegendState } from "../legend/HorizontalCateg
 import { HorizontalNumericColorLegend } from "../legend/HorizontalNumericColorLegend"
 import { HorizontalNumericColorLegendState } from "../legend/HorizontalNumericColorLegendState"
 import { ExternalColorLegendData } from "../legend/HorizontalColorLegendTypes"
+import { BinEmphasis, toBinEmphasis } from "../legend/LegendStyleConfig"
+import { Emphasis } from "../interaction/Emphasis"
 import {
     ENTITY_LABEL_CHART_GAP,
     HoveredSwimlanePoint,
@@ -48,6 +50,7 @@ import {
     PlacedSwimlaneSeries,
     RenderSwimlaneSeries,
     SizedSwimlaneSeries,
+    SWIMLANE_LEGEND_STYLE,
     SwimlaneChartManager,
     SwimlaneSeries,
     TICK_LABEL_OVERFLOW_PADDING,
@@ -72,12 +75,17 @@ export class SwimlaneChart
     private readonly hitAreaRef = React.createRef<SVGGElement>()
 
     private hoveredPoint: HoveredSwimlanePoint | undefined = undefined
+    private hoveredLegendBin: ColorScaleBin | undefined = undefined
 
     constructor(props: SwimlaneChartProps) {
         super(props)
-        makeObservable<SwimlaneChart, "hoveredPoint">(this, {
-            hoveredPoint: observable,
-        })
+        makeObservable<SwimlaneChart, "hoveredPoint" | "hoveredLegendBin">(
+            this,
+            {
+                hoveredPoint: observable,
+                hoveredLegendBin: observable.ref,
+            }
+        )
     }
 
     @computed get chartState(): SwimlaneChartState {
@@ -125,6 +133,38 @@ export class SwimlaneChart
 
     @computed private get legendBinSize(): number {
         return 0.625 * this.fontSize
+    }
+
+    /** The hovered legend category, resolved to its real bin regardless of which legend produced it */
+    @computed private get hoveredCategoricalBin(): CategoricalBin | undefined {
+        const hoveredBin =
+            this.hoveredLegendBin ?? this.manager.externalLegendHoverBin
+        if (!hoveredBin) return undefined
+        return this.categoricalLegendBins.find(
+            (bin) => bin.text === hoveredBin.text
+        )
+    }
+
+    private readonly resolveLegendBinEmphasis = (
+        bin: ColorScaleBin
+    ): Emphasis => {
+        const hovered = this.hoveredCategoricalBin
+        if (!hovered) return Emphasis.Default
+        return bin.text === hovered.text ? Emphasis.Highlighted : Emphasis.Muted
+    }
+
+    @computed private get ordinalLegendEmphasis(): BinEmphasis {
+        return toBinEmphasis(
+            this.ordinalLegendBins,
+            this.resolveLegendBinEmphasis
+        )
+    }
+
+    @computed private get categoricalLegendEmphasis(): BinEmphasis {
+        return toBinEmphasis(
+            this.categoricalLegendBins,
+            this.resolveLegendBinEmphasis
+        )
     }
 
     @computed private get ordinalLegendState():
@@ -270,6 +310,7 @@ export class SwimlaneChart
             series: this.placedSeries,
             hoveredPoint: this.hoveredPoint,
             focusArray: this.chartState.focusArray,
+            hoveredLegendBin: this.hoveredCategoricalBin,
         })
     }
 
@@ -303,6 +344,15 @@ export class SwimlaneChart
         this.hoveredPoint = undefined
     }
 
+    @action.bound private onLegendMouseOver(bin: ColorScaleBin): void {
+        this.chartState.focusArray.clear()
+        this.hoveredLegendBin = bin
+    }
+
+    @action.bound private onLegendMouseLeave(): void {
+        this.hoveredLegendBin = undefined
+    }
+
     private updateHoveredPoint(ev: React.MouseEvent | React.TouchEvent): void {
         const ref = this.hitAreaRef.current
         if (!ref) return
@@ -321,7 +371,11 @@ export class SwimlaneChart
                     state={this.ordinalLegendState}
                     x={this.bounds.x}
                     y={this.bounds.top}
-                    interactive={false}
+                    interactive={!this.manager.isStatic}
+                    styleConfig={SWIMLANE_LEGEND_STYLE}
+                    binEmphasis={this.ordinalLegendEmphasis}
+                    onMouseOver={this.onLegendMouseOver}
+                    onMouseLeave={this.onLegendMouseLeave}
                 />
             )
         if (this.categoricalLegendState)
@@ -330,7 +384,11 @@ export class SwimlaneChart
                     state={this.categoricalLegendState}
                     x={this.bounds.x}
                     y={this.bounds.top}
-                    interactive={false}
+                    interactive={!this.manager.isStatic}
+                    styleConfig={SWIMLANE_LEGEND_STYLE}
+                    binEmphasis={this.categoricalLegendEmphasis}
+                    onMouseOver={this.onLegendMouseOver}
+                    onMouseLeave={this.onLegendMouseLeave}
                 />
             )
         return undefined
