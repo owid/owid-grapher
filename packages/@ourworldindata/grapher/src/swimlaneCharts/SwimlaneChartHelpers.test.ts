@@ -4,6 +4,8 @@ import { Bounds } from "@ourworldindata/utils"
 import { Time } from "@ourworldindata/types"
 import { SeriesLabelState } from "../seriesLabel/SeriesLabelState"
 import { FocusArray } from "../focus/FocusArray"
+import { CategoricalBin } from "../color/ColorScaleBin"
+import { NO_DATA_LABEL } from "../color/ColorScale"
 import { Emphasis } from "../interaction/Emphasis"
 import {
     ColoredSwimlaneSegment,
@@ -11,6 +13,8 @@ import {
     SizedSwimlaneSeries,
 } from "./SwimlaneChartConstants"
 import {
+    findLaneAtY,
+    findSegmentAtX,
     toPlacedSwimlaneSeries,
     toRenderSwimlaneSeries,
     toSegmentOutlinePath,
@@ -104,9 +108,48 @@ describe("placement", () => {
             )
         )
 
-        expect(lanes[1].y - lanes[0].y).toBeCloseTo(20)
+        expect(lanes.map((lane) => lane.slotHeight)).toEqual(Array(20).fill(20))
         expect(lanes[0].y).toBeCloseTo(10)
         expect(lanes[19].y).toBeCloseTo(390)
+    })
+})
+
+describe("hit-testing", () => {
+    const [france, germany] = placeLanes([
+        makeSizedSeries("France", [
+            makeCategorySegment("X", 2000, 2001),
+            makeCategorySegment("Y", 2002, 2003),
+        ]),
+        makeSizedSeries("Germany", [makeCategorySegment("X", 2000, 2003)]),
+    ])
+    const [x, y] = france.placedSegments
+
+    it("finds a segment from its start up to, but not including, its end", () => {
+        expect(findSegmentAtX(france.placedSegments, 0)).toBe(x)
+        expect(findSegmentAtX(france.placedSegments, 19.9)).toBe(x)
+        expect(findSegmentAtX(france.placedSegments, 20)).toBe(y)
+    })
+
+    it("finds no segment before the first or after the last", () => {
+        expect(findSegmentAtX(france.placedSegments, -1)).toBeUndefined()
+        expect(findSegmentAtX(france.placedSegments, 40)).toBeUndefined()
+    })
+
+    it("finds a lane from the top of its slot up to, but not including, the next", () => {
+        const lanes = placeLanes(
+            [makeSizedSeries("France", []), makeSizedSeries("Germany", [])],
+            new Bounds(0, 0, 200, 40)
+        )
+
+        expect(findLaneAtY(lanes, 0)).toBe(lanes[0])
+        expect(findLaneAtY(lanes, 19.9)).toBe(lanes[0])
+        expect(findLaneAtY(lanes, 20)).toBe(lanes[1])
+        expect(findLaneAtY(lanes, 40)).toBeUndefined()
+    })
+
+    it("finds no lane above or below the centered block of lanes", () => {
+        expect(findLaneAtY([france, germany], 100)).toBeUndefined()
+        expect(findLaneAtY([france, germany], 300)).toBeUndefined()
     })
 })
 
@@ -123,6 +166,10 @@ describe("emphasis", () => {
         ]),
     ])
 
+    function makeBin(value: string): CategoricalBin {
+        return new CategoricalBin({ index: 0, value, label: value, color: "" })
+    }
+
     function findEmphases(
         options: Omit<Parameters<typeof toRenderSwimlaneSeries>[0], "series">
     ): { lane: Emphasis; segments: Emphasis[] }[] {
@@ -138,13 +185,55 @@ describe("emphasis", () => {
 
     const { Default, Highlighted, Muted } = Emphasis
 
-    it("is default everywhere without focus", () => {
+    it("is default everywhere without hover or focus, also when hovering past the last segment", () => {
         const expected = [
             { lane: Default, segments: [Default, Default, Default] },
             { lane: Default, segments: [Default, Default] },
         ]
 
         expect(findEmphases({ focusArray: new FocusArray() })).toEqual(expected)
+        expect(
+            findEmphases({
+                focusArray: new FocusArray(),
+                hoveredPoint: { x: 100, laneEntityName: "France" },
+            })
+        ).toEqual(expected)
+    })
+
+    it("highlights the hovered segment and mutes every other segment in every lane", () => {
+        expect(
+            findEmphases({
+                focusArray: new FocusArray(),
+                hoveredPoint: { x: 5, laneEntityName: "France" },
+            })
+        ).toEqual([
+            { lane: Default, segments: [Highlighted, Muted, Muted] },
+            { lane: Default, segments: [Muted, Muted] },
+        ])
+    })
+
+    it("highlights a hovered legend category in every lane", () => {
+        expect(
+            findEmphases({
+                focusArray: new FocusArray(),
+                hoveredLegendBin: makeBin("X"),
+            })
+        ).toEqual([
+            { lane: Default, segments: [Highlighted, Muted, Muted] },
+            { lane: Default, segments: [Muted, Highlighted] },
+        ])
+    })
+
+    it("highlights only missing segments for the no-data legend bin", () => {
+        expect(
+            findEmphases({
+                focusArray: new FocusArray(),
+                hoveredLegendBin: makeBin(NO_DATA_LABEL),
+            })
+        ).toEqual([
+            { lane: Default, segments: [Muted, Highlighted, Muted] },
+            { lane: Default, segments: [Muted, Muted] },
+        ])
     })
 
     it("highlights a focused lane and mutes the others", () => {
