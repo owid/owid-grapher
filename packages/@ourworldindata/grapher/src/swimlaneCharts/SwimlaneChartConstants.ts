@@ -2,6 +2,8 @@ import { ChartManager } from "../chart/ChartManager"
 import { ChartSeries } from "../chart/ChartInterface"
 import { Color, EntityName, SortBy, Time } from "@ourworldindata/types"
 import { SeriesLabelState } from "../seriesLabel/SeriesLabelState"
+import { Emphasis } from "../interaction/Emphasis"
+import { GRAPHER_AREA_OPACITY_MUTED } from "../core/GrapherConstants"
 
 export const LANE_SPACING_FACTOR = 0.35
 export const ENTITY_LABEL_CHART_GAP = 8
@@ -13,6 +15,28 @@ export const SEGMENT_LABEL_PADDING = 8
 /** Length of a cropped segment's point, as a fraction of the segment's height */
 export const SEGMENT_CROP_TAPER_RATIO = 0.4
 export const SEGMENT_LABEL_TIME_RANGE_FONT_WEIGHT = 500
+
+interface SwimlaneEmphasisStyleConfig {
+    opacity: number
+}
+
+export const SWIMLANE_ROW_STYLE: Record<Emphasis, SwimlaneEmphasisStyleConfig> =
+    {
+        [Emphasis.Default]: { opacity: 1 },
+        [Emphasis.Elevated]: { opacity: 1 },
+        [Emphasis.Highlighted]: { opacity: 1 },
+        [Emphasis.Muted]: { opacity: GRAPHER_AREA_OPACITY_MUTED },
+    }
+
+export const SWIMLANE_SEGMENT_STYLE: Record<
+    Emphasis,
+    SwimlaneEmphasisStyleConfig
+> = {
+    [Emphasis.Default]: { opacity: 1 },
+    [Emphasis.Elevated]: { opacity: 1 },
+    [Emphasis.Highlighted]: { opacity: 1 },
+    [Emphasis.Muted]: { opacity: GRAPHER_AREA_OPACITY_MUTED },
+}
 
 export type SwimlaneChartManager = ChartManager
 
@@ -74,6 +98,15 @@ export type PlacedSwimlaneCategorySegment = Extract<
     { kind: "category" }
 >
 
+export type RenderSwimlaneSegment = PlacedSwimlaneSegment & {
+    emphasis: Emphasis
+}
+
+export type RenderSwimlaneCategorySegment = Extract<
+    RenderSwimlaneSegment,
+    { kind: "category" }
+>
+
 export interface SwimlaneSeries extends ChartSeries {
     seriesName: EntityName
     entityName: EntityName
@@ -89,6 +122,14 @@ export interface PlacedSwimlaneSeries extends SizedSwimlaneSeries {
     y: number
     labelPosition: { x: number; yOffset: number }
     placedSegments: PlacedSwimlaneSegment[]
+}
+
+export interface RenderSwimlaneSeries extends Omit<
+    PlacedSwimlaneSeries,
+    "placedSegments"
+> {
+    emphasis: Emphasis
+    placedSegments: RenderSwimlaneSegment[]
 }
 
 export interface OrdinalSwimlaneCategories {

@@ -3,6 +3,8 @@ import { expect, it, describe } from "vitest"
 import { Bounds } from "@ourworldindata/utils"
 import { Time } from "@ourworldindata/types"
 import { SeriesLabelState } from "../seriesLabel/SeriesLabelState"
+import { Emphasis } from "../interaction/Emphasis"
+import { FocusArray } from "../focus/FocusArray"
 import {
     ColoredSwimlaneCategorySegment,
     LANE_SPACING_FACTOR,
@@ -15,6 +17,8 @@ import {
 } from "./SwimlaneChartConstants"
 import {
     toPlacedSwimlaneSeries,
+    toRenderSwimlaneSegments,
+    toRenderSwimlaneSeries,
     toSegmentOutlinePath,
     toSwimlaneSegments,
     toVisibleSwimlaneSegments,
@@ -663,5 +667,91 @@ describe(toSegmentOutlinePath, () => {
                 isEndCropped: false,
             })
         ).toEqual("M 10,35 L 12,20 L 16,20 L 16,50 L 12,50 Z")
+    })
+})
+
+describe(toRenderSwimlaneSegments, () => {
+    it("yields Default for every segment when no focus is given", () => {
+        const [placed] = toPlacedSwimlaneSeries({
+            series: [series()],
+            bounds: BOUNDS,
+            placeTime,
+        })
+
+        const rendered = toRenderSwimlaneSegments({
+            segments: placed.placedSegments,
+        })
+
+        expect(
+            rendered.every((segment) => segment.emphasis === Emphasis.Default)
+        ).toBe(true)
+    })
+})
+
+describe(toRenderSwimlaneSeries, () => {
+    function placedFranceAndChile(): ReturnType<typeof toPlacedSwimlaneSeries> {
+        return toPlacedSwimlaneSeries({
+            series: [
+                series({ seriesName: "France", entityName: "France" }),
+                series({ seriesName: "Chile", entityName: "Chile" }),
+            ],
+            bounds: BOUNDS,
+            placeTime,
+        })
+    }
+
+    it("leaves every row and every segment at Default when the focus array is empty", () => {
+        const rendered = toRenderSwimlaneSeries({
+            series: placedFranceAndChile(),
+            focusArray: new FocusArray(),
+        })
+
+        for (const row of rendered) {
+            expect(row.emphasis).toEqual(Emphasis.Default)
+            expect(
+                row.placedSegments.every(
+                    (segment) => segment.emphasis === Emphasis.Default
+                )
+            ).toBe(true)
+        }
+    })
+
+    it("highlights a focused lane and mutes its neighbours", () => {
+        const focusArray = new FocusArray().add("France")
+        const [france, chile] = toRenderSwimlaneSeries({
+            series: placedFranceAndChile(),
+            focusArray,
+        })
+
+        expect(france.emphasis).toEqual(Emphasis.Highlighted)
+        expect(
+            france.placedSegments.every(
+                (segment) => segment.emphasis === Emphasis.Highlighted
+            )
+        ).toBe(true)
+
+        expect(chile.emphasis).toEqual(Emphasis.Muted)
+        expect(
+            chile.placedSegments.every(
+                (segment) => segment.emphasis === Emphasis.Muted
+            )
+        ).toBe(true)
+    })
+
+    it("mutes every lane when the focused name matches none of them", () => {
+        const focusArray = new FocusArray().add("Germany")
+        const rendered = toRenderSwimlaneSeries({
+            series: placedFranceAndChile(),
+            focusArray,
+        })
+
+        for (const row of rendered) {
+            expect(row.emphasis).toEqual(Emphasis.Muted)
+            expect(
+                row.placedSegments.every(
+                    (segment) => segment.emphasis === Emphasis.Muted
+                )
+            ).toBe(true)
+        }
     })
 })

@@ -44,6 +44,7 @@ import {
     ENTITY_LABEL_CHART_GAP,
     PADDING_BETWEEN_LEGEND_AND_LANES,
     PlacedSwimlaneSeries,
+    RenderSwimlaneSeries,
     SizedSwimlaneSeries,
     SwimlaneChartManager,
     SwimlaneSeries,
@@ -53,6 +54,7 @@ import { SwimlaneChartState } from "./SwimlaneChartState"
 import {
     computeLaneSlotHeight,
     toPlacedSwimlaneSeries,
+    toRenderSwimlaneSeries,
 } from "./SwimlaneChartHelpers"
 import { SwimlaneSegmentLabelSettings } from "./SwimlaneLabels"
 import { SwimlaneRow } from "./SwimlaneRow"
@@ -254,6 +256,13 @@ export class SwimlaneChart
         })
     }
 
+    @computed private get renderSeries(): RenderSwimlaneSeries[] {
+        return toRenderSwimlaneSeries({
+            series: this.placedSeries,
+            focusArray: this.chartState.focusArray,
+        })
+    }
+
     @computed private get segmentLabelSettings(): SwimlaneSegmentLabelSettings {
         const { timeColumn } = this.chartState.inputTable
         return {
@@ -290,7 +299,7 @@ export class SwimlaneChart
     }
 
     private renderLanes(): React.ReactElement[] {
-        return this.placedSeries.map((series) => (
+        return this.renderSeries.map((series) => (
             <SwimlaneRow
                 key={series.seriesName}
                 series={series}
@@ -303,11 +312,11 @@ export class SwimlaneChart
     private renderAnimatedLanes(): React.ReactElement {
         return (
             <AnimatedRows
-                items={this.placedSeries}
-                keyAccessor={(series: PlacedSwimlaneSeries): string =>
+                items={this.renderSeries}
+                keyAccessor={(series: RenderSwimlaneSeries): string =>
                     series.seriesName
                 }
-                getY={(series: PlacedSwimlaneSeries): number => series.y}
+                getY={(series: RenderSwimlaneSeries): number => series.y}
                 immediate={this.manager.disableChartRowAnimation}
                 renderRow={(series): React.ReactElement => (
                     <SwimlaneRow
