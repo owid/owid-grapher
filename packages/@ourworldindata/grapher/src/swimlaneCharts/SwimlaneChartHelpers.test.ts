@@ -3,6 +3,8 @@ import { describe, expect, it } from "vitest"
 import { Bounds } from "@ourworldindata/utils"
 import { Time } from "@ourworldindata/types"
 import { SeriesLabelState } from "../seriesLabel/SeriesLabelState"
+import { FocusArray } from "../focus/FocusArray"
+import { Emphasis } from "../interaction/Emphasis"
 import {
     ColoredSwimlaneSegment,
     PlacedSwimlaneSeries,
@@ -10,6 +12,7 @@ import {
 } from "./SwimlaneChartConstants"
 import {
     toPlacedSwimlaneSeries,
+    toRenderSwimlaneSeries,
     toSegmentOutlinePath,
 } from "./SwimlaneChartHelpers"
 
@@ -104,6 +107,53 @@ describe("placement", () => {
         expect(lanes[1].y - lanes[0].y).toBeCloseTo(20)
         expect(lanes[0].y).toBeCloseTo(10)
         expect(lanes[19].y).toBeCloseTo(390)
+    })
+})
+
+describe("emphasis", () => {
+    const lanes = placeLanes([
+        makeSizedSeries("France", [
+            makeCategorySegment("X", 2000, 2001),
+            makeMissingSegment(2002, 2002),
+            makeCategorySegment("Y", 2003, 2003),
+        ]),
+        makeSizedSeries("Germany", [
+            makeCategorySegment("Y", 2000, 2001),
+            makeCategorySegment("X", 2002, 2003),
+        ]),
+    ])
+
+    function findEmphases(
+        options: Omit<Parameters<typeof toRenderSwimlaneSeries>[0], "series">
+    ): { lane: Emphasis; segments: Emphasis[] }[] {
+        return toRenderSwimlaneSeries({ series: lanes, ...options }).map(
+            (series) => ({
+                lane: series.emphasis,
+                segments: series.placedSegments.map(
+                    (segment) => segment.emphasis
+                ),
+            })
+        )
+    }
+
+    const { Default, Highlighted, Muted } = Emphasis
+
+    it("is default everywhere without focus", () => {
+        const expected = [
+            { lane: Default, segments: [Default, Default, Default] },
+            { lane: Default, segments: [Default, Default] },
+        ]
+
+        expect(findEmphases({ focusArray: new FocusArray() })).toEqual(expected)
+    })
+
+    it("highlights a focused lane and mutes the others", () => {
+        expect(
+            findEmphases({ focusArray: new FocusArray().add("Germany") })
+        ).toEqual([
+            { lane: Muted, segments: [Muted, Muted, Muted] },
+            { lane: Highlighted, segments: [Highlighted, Highlighted] },
+        ])
     })
 })
 

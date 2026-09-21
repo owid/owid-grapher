@@ -2,12 +2,17 @@ import * as R from "remeda"
 import { Bounds, roundForSvg } from "@ourworldindata/utils"
 import { Time } from "@ourworldindata/types"
 import { computeCenteredLabelYPositions } from "../rowSeriesLabels/RowSeriesLabelHelpers.js"
+import { resolveEmphasis } from "../interaction/Emphasis"
+import { InteractionState } from "../interaction/InteractionState"
+import { FocusArray } from "../focus/FocusArray"
 import {
     ENTITY_LABEL_CHART_GAP,
     LANE_SPACING_FACTOR,
     MAX_LANE_HEIGHT,
     PlacedSwimlaneSegment,
     PlacedSwimlaneSeries,
+    RenderSwimlaneSegment,
+    RenderSwimlaneSeries,
     SizedSwimlaneSeries,
     SEGMENT_CROP_TAPER_RATIO,
     SwimlaneObservation,
@@ -197,6 +202,39 @@ export function toPlacedSwimlaneSeries({
             y,
             labelPosition: { x: labelX, yOffset: labelY - y },
             placedSegments,
+        }
+    })
+}
+
+export function toRenderSwimlaneSegments({
+    segments,
+    focus,
+}: {
+    segments: PlacedSwimlaneSegment[]
+    focus?: InteractionState
+}): RenderSwimlaneSegment[] {
+    return segments.map((segment) => ({
+        ...segment,
+        emphasis: resolveEmphasis({ focus }),
+    }))
+}
+
+export function toRenderSwimlaneSeries({
+    series: allSeries,
+    focusArray,
+}: {
+    series: PlacedSwimlaneSeries[]
+    focusArray: FocusArray
+}): RenderSwimlaneSeries[] {
+    return allSeries.map((series): RenderSwimlaneSeries => {
+        const focus = focusArray.state(series.seriesName)
+        return {
+            ...series,
+            emphasis: resolveEmphasis({ focus }),
+            placedSegments: toRenderSwimlaneSegments({
+                segments: series.placedSegments,
+                focus,
+            }),
         }
     })
 }

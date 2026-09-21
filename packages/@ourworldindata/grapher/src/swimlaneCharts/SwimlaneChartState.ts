@@ -19,6 +19,7 @@ import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
 import { ChartState } from "../chart/ChartInterface"
 import { ColorScale, ColorScaleManager } from "../color/ColorScale"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
+import { FocusArray } from "../focus/FocusArray"
 import {
     autoDetectYColumnSlugs,
     getDefaultFailMessage,
@@ -86,6 +87,10 @@ export class SwimlaneChartState implements ChartState, ColorScaleManager {
 
     @computed get selectionArray(): SelectionArray {
         return makeSelectionArray(this.manager.selection)
+    }
+
+    @computed get focusArray(): FocusArray {
+        return this.manager.focusArray ?? new FocusArray()
     }
 
     @computed get yColumnSlugs(): ColumnSlug[] {
