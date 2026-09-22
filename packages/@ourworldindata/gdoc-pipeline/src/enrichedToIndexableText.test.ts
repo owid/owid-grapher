@@ -68,6 +68,7 @@ describe(enrichedBlocksToIndexableText, () => {
                 {
                     spanType: "span-ref",
                     url: "#note-4",
+                    sourceForm: { kind: "inline", content: [] },
                     children: [
                         {
                             spanType: "span-superscript",
