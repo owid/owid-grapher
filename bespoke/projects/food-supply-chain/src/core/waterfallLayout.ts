@@ -1,5 +1,6 @@
 import { tickStep } from "d3-array"
 
+import { STAGE_GROUPS, StageGroup } from "./stageGroups.js"
 import { Waterfall, WaterfallStep } from "./waterfall.js"
 
 /** Shortest bar the chart draws */
@@ -61,12 +62,23 @@ export interface PlacedTick {
     gridline: PlacedLine
 }
 
+export interface PlacedGroup {
+    group: StageGroup
+    band: PlacedLine
+}
+
 export interface WaterfallLayout {
     steps: PlacedStep[]
     total: PlacedStep
     connectors: PlacedLine[]
     ticks: PlacedTick[]
     zeroLine: PlacedLine
+    groups: PlacedGroup[]
+}
+
+/** The pixels a group's band runs over, given the pixels one column gets */
+export function groupBandLength(slotWidth: number, stageCount: number): number {
+    return slotWidth * (stageCount - 2 * SLOT_PADDING_RATIO)
 }
 
 export function layOutWaterfall(
@@ -101,6 +113,11 @@ interface PlannedTick {
     gridline: Extent
 }
 
+interface PlannedGroup {
+    group: StageGroup
+    band: Extent
+}
+
 interface WaterfallPlan {
     /** The waterfall's domain widened to the outermost ticks */
     valueDomain: Span
@@ -111,6 +128,7 @@ interface WaterfallPlan {
     connectors: Extent[]
     ticks: PlannedTick[]
     zeroLine: Extent
+    groups: PlannedGroup[]
 }
 
 function planWaterfall(waterfall: Waterfall): WaterfallPlan {
@@ -137,7 +155,44 @@ function planWaterfall(waterfall: Waterfall): WaterfallPlan {
             gridline: { value: { from: value, to: value }, step: stepDomain },
         })),
         zeroLine: { value: { from: 0, to: 0 }, step: stepDomain },
+        groups: planGroups(waterfall.steps, valueDomain),
     }
+}
+
+function planGroups(steps: WaterfallStep[], valueDomain: Span): PlannedGroup[] {
+    const slotIndexByKey = new Map(
+        steps.map((step, index) => [step.key, index])
+    )
+
+    return STAGE_GROUPS.flatMap((group) => {
+        const slotIndices = group.stageKeys
+            .map((key) => slotIndexByKey.get(key))
+            .filter((index) => index !== undefined)
+        if (slotIndices.length === 0) return []
+        if (!areSlotsContiguous(slotIndices)) return []
+
+        const first = Math.min(...slotIndices)
+        const last = Math.max(...slotIndices)
+
+        return [
+            {
+                group,
+                band: {
+                    value: { from: valueDomain.from, to: valueDomain.from },
+                    step: {
+                        from: paddedSlotSpan(first).from,
+                        to: paddedSlotSpan(last).to,
+                    },
+                },
+            },
+        ]
+    })
+}
+
+function areSlotsContiguous(slotIndices: number[]): boolean {
+    const first = Math.min(...slotIndices)
+    const last = Math.max(...slotIndices)
+    return last - first + 1 === slotIndices.length
 }
 
 /** The total column, as the step from zero that it draws */
@@ -324,6 +379,10 @@ function projectPlan(
             gridline: projection.toSegment(scaleExtent(tick.gridline, scales)),
         })),
         zeroLine: projection.toSegment(scaleExtent(plan.zeroLine, scales)),
+        groups: plan.groups.map((planned) => ({
+            group: planned.group,
+            band: projection.toSegment(scaleExtent(planned.band, scales)),
+        })),
     }
 }
 
