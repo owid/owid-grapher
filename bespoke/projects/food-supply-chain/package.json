@@ -24,6 +24,7 @@
         "@visx/group": "^4.0.0",
         "@visx/responsive": "^4.0.0",
         "clsx": "^2.1.1",
+        "d3-array": "^3.2.4",
         "normalize.css": "^8.0.1",
         "nuqs": "^2.8.9",
         "react": "^19.2.7",
@@ -36,6 +37,7 @@
     "devDependencies": {
         "@rollup/plugin-swc": "^0.4.1",
         "@swc/core": "^1.15.41",
+        "@types/d3-array": "^3.2.1",
         "@types/react": "^19.2.17",
         "@types/react-dom": "^19.2.3",
         "@vitejs/plugin-react": "^6.0.4",

@@ -3,7 +3,7 @@ export type VariantName = "waterfall"
 export const MEASURES = ["energy", "protein", "mass"] as const
 export type Measure = (typeof MEASURES)[number]
 
-/** Stage keys come from the manifest, so they are not a literal union */
+/** Keys as the manifest spells them; the set is not known at compile time */
 export type StageKey = string
 
 export interface FlowStage {
