@@ -12,6 +12,7 @@ import {
 } from "./SwimlaneChartConstants"
 import { SwimlaneChartState } from "./SwimlaneChartState"
 import { findSegmentAtTime } from "./SwimlaneChartHelpers"
+import { formatSegmentTimeRange } from "./SwimlaneLabels"
 
 export interface SwimlaneChartTooltipProps {
     id: number
@@ -51,12 +52,15 @@ export class SwimlaneChartTooltip extends React.Component<SwimlaneChartTooltipPr
         const { chartState } = this
         return [
             {
-                label: chartState.formatColumn.displayName,
                 formatValue: (value: unknown): string =>
                     R.isString(value)
                         ? (chartState.colorScale.getBinForValue(value)?.text ??
                           value)
                         : String(value),
+            },
+            {
+                formatValue: (value: unknown): string => String(value),
+                secondary: true,
             },
         ]
     }
@@ -78,12 +82,22 @@ export class SwimlaneChartTooltip extends React.Component<SwimlaneChartTooltipPr
             categorySegment?.color ?? this.chartState.colorScale.noDataColor
         const opacity = blurred ? GRAPHER_OPACITY_MUTED : 1
 
+        const timeRange = categorySegment
+            ? `(${formatSegmentTimeRange({
+                  runStartTime: categorySegment.runStartTime,
+                  runEndTime: categorySegment.runEndTime,
+                  formatTime: (time) =>
+                      this.chartState.formatColumn.formatTime(time),
+              })})`
+            : // An undefined value would make the row read "No data" twice
+              ""
+
         return {
             name: series.seriesName,
             swatch: { color, opacity },
             blurred,
             focused: series.seriesName === this.props.hoveredEntityName,
-            values: [categorySegment?.category],
+            values: [categorySegment?.category, timeRange],
         }
     }
 

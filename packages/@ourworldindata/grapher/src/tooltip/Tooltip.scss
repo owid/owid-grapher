@@ -275,6 +275,10 @@
                             color: $light-grey;
                         }
 
+                        &.secondary {
+                            font-weight: $medium;
+                        }
+
                         & + .series-value {
                             padding-left: 0.5em;
                         }
@@ -353,6 +357,11 @@
                             &.time-notice {
                                 font-weight: $medium;
                             }
+                        }
+
+                        // The rules above set the weight of every value cell
+                        td.series-value.secondary {
+                            font-weight: $medium;
                         }
                     }
 
