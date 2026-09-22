@@ -8,7 +8,6 @@ import {
     ManifestJson,
 } from "./types.js"
 
-/** Turn the raw manifest into the domain model; nothing downstream revalidates */
 export function parseManifest(raw: ManifestJson): FoodSupplyChainManifest {
     const flowStages: FlowStage[] = []
     let totalStage: { key: string; name: string } | undefined

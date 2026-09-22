@@ -8,12 +8,9 @@ import {
 export interface WaterfallStep {
     key: StageKey
     name: string
-    /** Signed; the sign is the only direction signal downstream */
     delta: number
-    /** Running balance before this step */
-    start: number
-    /** Running balance after this step */
-    end: number
+    balanceBefore: number
+    balanceAfter: number
 }
 
 export interface Waterfall {
@@ -43,9 +40,15 @@ export function buildWaterfall({
     const steps: WaterfallStep[] = manifest.flowStages.map((stage) => {
         const value = values[stage.key][yearIndex]
         const delta = stage.direction === "in" ? value : -value
-        const start = balance
+        const balanceBefore = balance
         balance += delta
-        return { key: stage.key, name: stage.name, delta, start, end: balance }
+        return {
+            key: stage.key,
+            name: stage.name,
+            delta,
+            balanceBefore,
+            balanceAfter: balance,
+        }
     })
 
     const totalValue = values[manifest.totalStage.key][yearIndex]
@@ -55,7 +58,7 @@ export function buildWaterfall({
         value: totalValue,
     }
 
-    const ends = steps.map((step) => step.end)
+    const ends = steps.map((step) => step.balanceAfter)
     const domain: [number, number] = [
         Math.min(0, ...ends, totalValue),
         Math.max(0, ...ends, totalValue),
