@@ -658,8 +658,10 @@ export class LineChartThumbnail
         return min <= 0 && max >= 0
     }
 
-    @computed private get allValues(): LinePoint[] {
-        return this.placedSeries.flatMap((series) => series.points)
+    @computed private get allTimes(): Time[] {
+        return this.placedSeries.flatMap((series) =>
+            series.points.map((point) => point.x)
+        )
     }
 
     @computed get activeTimes(): Time[] {
@@ -704,7 +706,7 @@ export class LineChartThumbnail
             mouse: getRelativeMouse(ref, ev),
             innerBounds: this.dualAxis.innerBounds,
             horizontalAxis: this.dualAxis.horizontalAxis,
-            allValues: this.allValues,
+            times: this.allTimes,
         })
 
         this.tooltipState.target =
