@@ -3,15 +3,22 @@ import { QueryClientProvider } from "@tanstack/react-query"
 import { NuqsAdapter } from "nuqs/adapters/react"
 import { parseAsInteger, parseAsString, parseAsStringEnum } from "nuqs"
 
+import { Frame } from "../../../../components/Frame/Frame.js"
+import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
+import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
 import { ChartError } from "../../../../components/ChartError/ChartError.js"
 import { ChartSkeleton } from "../../../../components/ChartSkeleton/ChartSkeleton.js"
+import { Spinner } from "../../../../components/Spinner/Spinner.js"
 import { useChartDimensions } from "../../../../hooks/useDimensions.js"
+import { useContainerWidth } from "../../../../hooks/useContainerWidth.js"
 import { useUrlState } from "../../../../hooks/useUrlState.js"
 import { EmbedConfigProvider } from "../../../../hooks/useEmbedConfig.js"
+import { useDelayedLoading } from "../../../../hooks/useDelayedLoading.js"
 import {
     isUserLocationCountry,
     useResolveUserLocation,
 } from "../../../../hooks/useResolveUserLocation.js"
+import { formatEntityNameForSentence } from "../../../../helpers/entityNames.js"
 import type { VariantProps } from "../../../../helpers/config.js"
 import type { BespokeComponentDataUrls } from "owid-bespoke-types"
 
@@ -24,7 +31,13 @@ import {
     useEntityData,
     useFoodSupplyChainManifest,
 } from "../core/data.js"
-import { MEASURES, Measure } from "../core/types.js"
+import {
+    FoodSupplyChainEntity,
+    FoodSupplyChainManifest,
+    MEASURES,
+    Measure,
+} from "../core/types.js"
+import { buildSubtitle, buildTitle } from "../core/title.js"
 import { buildWaterfall, Waterfall } from "../core/waterfall.js"
 
 // The World region: a stable OWID region slug, unlike entity ids.
@@ -36,15 +49,22 @@ const DEFAULT_YEAR = 9999
 // Matches the fixed height of the skeleton and error boxes below.
 const CHART_DIMENSIONS_CONFIG = { minHeight: 400, maxHeight: 400 }
 
+const FOOTER_NOTE =
+    "Figures are per person per day, from the FAO's Supply Utilization Accounts. A country that re-exports food can show far more entering its food system than its own population could eat."
+
 export function WaterfallVariant({
     config,
     urls,
 }: VariantProps<FoodSupplyChainConfig>): React.ReactElement {
+    const { ref } = useContainerWidth()
+
     return (
         <EmbedConfigProvider config={config}>
             <NuqsAdapter>
                 <QueryClientProvider client={queryClient}>
-                    <FetchingWaterfallVariant config={config} urls={urls} />
+                    <div ref={ref} className="food-supply-chain-chart">
+                        <FetchingWaterfallVariant config={config} urls={urls} />
+                    </div>
                 </QueryClientProvider>
             </NuqsAdapter>
         </EmbedConfigProvider>
@@ -107,10 +127,12 @@ function FetchingWaterfallVariant({
     const entity =
         manifest?.entityBySlug.get(countrySlug) ??
         manifest?.entityByName.get(countrySlug)
-    const { data: entityData, status: entityStatus } = useEntityData(
-        entity?.id,
-        urls.dataUrl
-    )
+    const {
+        data: entityData,
+        status: entityStatus,
+        isPlaceholderData,
+    } = useEntityData(entity?.id, urls.dataUrl)
+    const isLoading = useDelayedLoading(isPlaceholderData)
 
     if (manifestStatus === "pending")
         return <ChartSkeleton className="food-supply-chain-chart-box" />
@@ -123,24 +145,85 @@ function FetchingWaterfallVariant({
         return <ChartError className="food-supply-chain-chart-box" />
 
     const year = clampYear(entityData.years, selectedYear) ?? selectedYear
-
     const waterfall = buildWaterfall({ manifest, entityData, measure, year })
-    if (!waterfall)
-        return <ChartError className="food-supply-chain-chart-box" />
 
     return (
+        <CaptionedWaterfallVariant
+            config={config}
+            manifest={manifest}
+            entity={entity}
+            measure={measure}
+            year={year}
+            years={entityData.years}
+            waterfall={waterfall}
+            isLoading={isLoading}
+            setEntityName={setCountry}
+            setMeasure={setMeasure}
+            setYear={setYear}
+        />
+    )
+}
+
+function CaptionedWaterfallVariant({
+    config,
+    manifest,
+    entity,
+    measure,
+    year,
+    years,
+    waterfall,
+    isLoading,
+    setEntityName,
+    setMeasure,
+    setYear,
+}: {
+    config: FoodSupplyChainConfig
+    manifest: FoodSupplyChainManifest
+    entity: FoodSupplyChainEntity
+    measure: Measure
+    year: number
+    years: number[]
+    waterfall: Waterfall | undefined
+    isLoading: boolean
+    setEntityName: (name: string) => void
+    setMeasure: (measure: Measure) => void
+    setYear: (year: number) => void
+}): React.ReactElement {
+    return (
         <>
-            <FoodSupplyChainControls
-                manifest={manifest}
-                entityName={entity.name}
-                measure={measure}
-                year={year}
-                years={entityData.years}
-                setEntityName={setCountry}
-                setMeasure={setMeasure}
-                setYear={setYear}
-            />
-            <MeasuredWaterfall waterfall={waterfall} />
+            {!config.hideControls && (
+                <FoodSupplyChainControls
+                    manifest={manifest}
+                    entityName={entity.name}
+                    measure={measure}
+                    year={year}
+                    years={years}
+                    setEntityName={setEntityName}
+                    setMeasure={setMeasure}
+                    setYear={setYear}
+                />
+            )}
+            <Frame className="food-supply-chain-captioned-chart">
+                <ChartHeader
+                    title={config.title ?? buildTitle(entity.name)}
+                    subtitle={
+                        config.subtitle ??
+                        buildSubtitle(manifest.units[measure], year)
+                    }
+                />
+                <div className="food-supply-chain-captioned-chart__chart-area">
+                    {isLoading && <Spinner />}
+                    {waterfall ? (
+                        <MeasuredWaterfall waterfall={waterfall} />
+                    ) : (
+                        <NoDataMessage entityName={entity.name} year={year} />
+                    )}
+                </div>
+                <ChartFooter
+                    source={manifest.sources.join("; ")}
+                    note={FOOTER_NOTE}
+                />
+            </Frame>
         </>
     )
 }
@@ -163,6 +246,20 @@ function MeasuredWaterfall({
                     height={dimensions.height}
                 />
             )}
+        </div>
+    )
+}
+
+function NoDataMessage({
+    entityName,
+    year,
+}: {
+    entityName: string
+    year: number
+}): React.ReactElement {
+    return (
+        <div className="food-supply-chain-captioned-chart__no-data">
+            No data for {formatEntityNameForSentence(entityName)} in {year}.
         </div>
     )
 }

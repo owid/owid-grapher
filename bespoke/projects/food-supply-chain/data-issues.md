@@ -196,6 +196,8 @@ accounting terms. The viz will write reader-facing labels for all twelve, and
 it would be better if those lived in the manifest next to the keys than in the
 front end, since the next consumer of this data will write them again.
 
+The chart now carries these labels, in `src/core/stageLabels.ts`.
+
 ## Summary for the data team
 
 Worth acting on, roughly in order:
