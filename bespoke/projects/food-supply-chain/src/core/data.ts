@@ -28,7 +28,7 @@ export const useFoodSupplyChainManifest = (
     const result = useQuery({
         queryKey: queryKeys.manifest(),
         queryFn: () => fetchJson<ManifestJson>(metadataUrl),
-        staleTime: Infinity, // Never refetch
+        staleTime: Infinity,
     })
 
     const data = useMemo(
@@ -51,9 +51,7 @@ export const useEntityData = (
         queryKey: queryKeys.entity(entityId),
         queryFn: () => fetchJson<EntityJson>(url),
         enabled: entityId !== undefined,
-        staleTime: Infinity, // Never refetch
-        // Keep the previous entity on screen while a new one loads, so
-        // entity switches don't flash the skeleton.
+        staleTime: Infinity,
         placeholderData: (previousData) => previousData,
     })
 

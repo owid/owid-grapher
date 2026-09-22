@@ -16,7 +16,6 @@ import { parseEmbedConfig } from "../../../helpers/config.js"
 
 import "./index.scss"
 
-// Enable react-aria's internal Shadow DOM handling paths.
 // Must be called before any react-aria components render.
 enableShadowDOM()
 
@@ -51,7 +50,6 @@ export const mount: BespokeComponentMountFn = (
     const root = createRoot(container)
     root.render(
         <>
-            {/* This is where Vite-injected styles will be placed - make sure to add this to your code so that the styles are correctly injected into the Shadow DOM. */}
             <StylesTarget />
             <variant.component config={config} urls={urls} />
         </>
