@@ -1,0 +1,151 @@
+// Ask-AI demand probe. Rendered under the chart on data pages when the
+// ?askai=v2|v3|v5 query param is present. See the brief in the analytics repo:
+// experiments/briefs/ask_ai_button_20260828
+.ask-ai {
+    margin: 24px 0 32px;
+    padding: 24px;
+    background-color: $blue-5;
+    border-top: 1px solid $blue-20;
+
+    @include sm-only {
+        padding: 16px;
+        margin: 16px 0 24px;
+    }
+}
+
+.ask-ai__header {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+// Signals that the whole block is a trial, in every arm. Amber rather than
+// the block's blue so it reads as a caveat, not another control.
+.ask-ai__badge {
+    @include body-3-bold;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 2px 8px;
+    // NB the amber scale is light-only ($amber-110 is lighter than $amber),
+    // so the text colour has to come from elsewhere to stay legible.
+    background-color: $amber-10;
+    color: $blue-90;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-size: 11px;
+    line-height: 18px;
+    white-space: nowrap;
+
+    svg {
+        font-size: 10px;
+    }
+}
+
+.ask-ai__heading {
+    @include h3-bold;
+    margin: 0;
+    color: $blue-90;
+}
+
+.ask-ai__intro {
+    @include body-3-medium;
+    margin: 0 0 16px;
+    max-width: 60ch;
+    color: $gray-70;
+}
+
+.ask-ai__presets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.ask-ai__preset {
+    @include body-3-medium;
+    padding: 6px 12px;
+    background-color: white;
+    border: 1px solid $blue-20;
+    color: $blue-90;
+    cursor: pointer;
+
+    &:hover {
+        background-color: $blue-10;
+    }
+
+    &[aria-pressed="true"] {
+        background-color: $blue-90;
+        border-color: $blue-90;
+        color: white;
+    }
+}
+
+.ask-ai__field {
+    display: block;
+    margin-bottom: 16px;
+}
+
+.ask-ai__label {
+    @include body-3-bold;
+    display: block;
+    margin-bottom: 4px;
+    color: $blue-90;
+}
+
+.ask-ai__input {
+    @include body-3-medium;
+    width: 100%;
+    max-width: 640px;
+    padding: 8px 12px;
+    border: 1px solid $blue-20;
+    background-color: white;
+    color: $blue-90;
+    resize: vertical;
+    font-family: inherit;
+
+    &::placeholder {
+        color: $gray-60;
+    }
+
+    &:focus-visible {
+        outline: 2px solid $accent-electric-blue;
+        outline-offset: -1px;
+    }
+}
+
+.ask-ai__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.ask-ai__button {
+    @include body-3-bold;
+    display: inline-flex;
+    align-items: center;
+    height: 32px;
+    padding: 0 16px;
+    background-color: $blue-90;
+    border: none;
+    color: white;
+    cursor: pointer;
+
+    &:hover {
+        background-color: $blue-100;
+    }
+
+    &:focus-visible {
+        outline: 2px solid $accent-electric-blue;
+        outline-offset: 2px;
+    }
+}
+
+.ask-ai__privacy {
+    @include body-3-medium;
+    margin: 12px 0 0;
+    max-width: 60ch;
+    color: $gray-60;
+}
