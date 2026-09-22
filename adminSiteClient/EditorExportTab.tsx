@@ -25,6 +25,7 @@ type ExportSettings = Required<
         | "forceHideAnnotationFieldsInTitle"
         | "hideSubtitle"
         | "hideNote"
+        | "hideToleranceNotice"
         | "hideOriginUrl"
         | "shouldIncludeDetailsInStaticExport"
     >
@@ -57,6 +58,7 @@ const DEFAULT_SETTINGS: ExportSettings = {
     },
     hideSubtitle: false,
     hideNote: false,
+    hideToleranceNotice: false,
     hideOriginUrl: false,
     shouldIncludeDetailsInStaticExport: false,
 }
@@ -146,6 +148,7 @@ export class EditorExportTab<
                 this.grapherState.forceHideAnnotationFieldsInTitle,
             hideSubtitle: this.grapherState.hideSubtitle,
             hideNote: this.grapherState.hideNote,
+            hideToleranceNotice: this.grapherState.hideToleranceNotice,
             hideOriginUrl: this.grapherState.hideOriginUrl,
             shouldIncludeDetailsInStaticExport:
                 this.grapherState.shouldIncludeDetailsInStaticExport,
@@ -185,6 +188,7 @@ export class EditorExportTab<
                 this.settings.forceHideAnnotationFieldsInTitle,
             hideSubtitle: this.settings.hideSubtitle,
             hideNote: this.settings.hideNote,
+            hideToleranceNotice: this.settings.hideToleranceNotice,
             hideOriginUrl: this.settings.hideOriginUrl,
             shouldIncludeDetailsInStaticExport:
                 this.settings.shouldIncludeDetailsInStaticExport,
@@ -306,6 +310,16 @@ export class EditorExportTab<
                             value={!this.settings.hideNote}
                             onValue={action(
                                 (value) => (this.settings.hideNote = !value)
+                            )}
+                        />
+                    )}
+                    {this.grapherState.toleranceNotice && (
+                        <Toggle
+                            label="Note: automatic tolerance notice"
+                            value={!this.settings.hideToleranceNotice}
+                            onValue={action(
+                                (value) =>
+                                    (this.settings.hideToleranceNotice = !value)
                             )}
                         />
                     )}

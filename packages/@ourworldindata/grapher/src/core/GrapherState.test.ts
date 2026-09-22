@@ -1437,6 +1437,31 @@ describe("toleranceNotice", () => {
         it("stands alone when there is no authored note", () => {
             expect(makeGrapherWithTolerance().effectiveNote).toEqual(NOTICE)
         })
+
+        it("can be hidden without hiding the authored note", () => {
+            const grapher = makeGrapherWithTolerance({
+                note: "Values are adjusted.",
+            })
+            grapher.hideToleranceNotice = true
+            expect(grapher.effectiveNote).toEqual("Values are adjusted.")
+        })
+
+        it("survives hiding the authored note", () => {
+            const grapher = makeGrapherWithTolerance({
+                note: "Values are adjusted.",
+            })
+            grapher.hideNote = true
+            expect(grapher.effectiveNote).toEqual(NOTICE)
+        })
+
+        it("leaves no note behind when both are hidden", () => {
+            const grapher = makeGrapherWithTolerance({
+                note: "Values are adjusted.",
+            })
+            grapher.hideNote = true
+            grapher.hideToleranceNotice = true
+            expect(grapher.effectiveNote).toBeUndefined()
+        })
     })
 })
 

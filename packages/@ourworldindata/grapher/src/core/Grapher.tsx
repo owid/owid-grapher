@@ -78,6 +78,7 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     hideTitle?: boolean
     hideSubtitle?: boolean
     hideNote?: boolean
+    hideToleranceNotice?: boolean
     hideOriginUrl?: boolean
     hideFullscreenButton?: boolean
     hideDownloadButton?: boolean

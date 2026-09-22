@@ -262,7 +262,7 @@ abstract class AbstractFooter<
     }
 
     @computed protected get showNote(): boolean {
-        return !this.manager.hideNote && !!this.noteText
+        return !!this.noteText
     }
 
     @computed private get actionButtonsWidthWithIconsOnly(): number {

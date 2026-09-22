@@ -597,6 +597,7 @@ export class GrapherState
     hideTitle = false
     hideSubtitle = false
     hideNote = false
+    hideToleranceNotice = false
     hideOriginUrl = false
     hideFullscreenButton = false
     hideDownloadButton = false
@@ -764,6 +765,7 @@ export class GrapherState
             hideTitle: observable,
             hideSubtitle: observable,
             hideNote: observable,
+            hideToleranceNotice: observable,
             hideOriginUrl: observable,
             hideFullscreenButton: observable,
             hideDownloadButton: observable,
@@ -2533,13 +2535,16 @@ export class GrapherState
 
     /**
      * Effective note resolved from the authored note, with the tolerance
-     * notice appended when tolerance was applied to something on screen
+     * notice appended when tolerance was applied to something on screen.
+     * Either part can be hidden on its own (used by the static export).
      */
     @computed get effectiveNote(): string | undefined {
-        const { note, toleranceNotice } = this
-        if (!toleranceNotice) return note
+        const authoredNote = this.hideNote ? undefined : this.note?.trim()
+        const toleranceNotice = this.hideToleranceNotice
+            ? undefined
+            : this.toleranceNotice
 
-        const authoredNote = note?.trim()
+        if (!toleranceNotice) return authoredNote
         if (!authoredNote) return toleranceNotice
 
         // Run the two together as sentences
