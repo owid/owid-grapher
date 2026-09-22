@@ -258,6 +258,59 @@
       ]
     },
     {
+      "id": "food-supply-chain",
+      "entryFile": "bespoke/projects/food-supply-chain/src/index.tsx",
+      "prose": {
+        "intro": ""
+      },
+      "examples": [],
+      "variants": [
+        {
+          "name": "waterfall",
+          "description": "Waterfall of how much food a country produces and where it goes",
+          "defaultSize": "widest",
+          "archie": "{.bespoke-component}\nbundle: food-supply-chain\nvariant: waterfall\nsize: widest\n{}\n"
+        }
+      ],
+      "config": [
+        {
+          "name": "title",
+          "type": "string",
+          "description": "Chart title, replacing the generated one. Also hides the controls"
+        },
+        {
+          "name": "subtitle",
+          "type": "string",
+          "description": "Chart subtitle, replacing the generated one. Also hides the controls"
+        },
+        {
+          "name": "country",
+          "type": "string",
+          "description": "Country or region shown first, World if unset. `userLocation` picks the user's country"
+        },
+        {
+          "name": "measure",
+          "type": "enum",
+          "values": [
+            "calories",
+            "protein"
+          ],
+          "description": "Measure shown first: calories or protein",
+          "default": "calories"
+        },
+        {
+          "name": "year",
+          "type": "integer",
+          "description": "Year shown first, the latest if unset. If it is unavailable, uses the closest year in the data"
+        },
+        {
+          "name": "hideControls",
+          "type": "boolean",
+          "description": "Hide the country, measure and year controls"
+        }
+      ]
+    },
+    {
       "id": "food-trade",
       "entryFile": "bespoke/projects/food-trade/src/index.tsx",
       "prose": {
