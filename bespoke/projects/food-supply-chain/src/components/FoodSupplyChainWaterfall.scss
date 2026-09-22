@@ -1,0 +1,32 @@
+@use "../../../../../packages/@ourworldindata/components/src/styles/typography-constants"
+    as typography;
+
+.food-supply-chain-chart-box {
+    height: 400px;
+}
+
+.food-supply-chain-waterfall {
+    display: block;
+}
+
+.food-supply-chain-waterfall__gridline {
+    stroke-width: 1;
+}
+
+.food-supply-chain-waterfall__zero-line {
+    stroke-width: 1.5;
+}
+
+.food-supply-chain-waterfall__connector {
+    stroke-width: 1;
+}
+
+.food-supply-chain-waterfall__tick-label,
+.food-supply-chain-waterfall__value-label,
+.food-supply-chain-waterfall__caption {
+    font-family: typography.$sans-serif-font-stack;
+}
+
+.food-supply-chain-waterfall__value-label {
+    font-weight: 700;
+}
