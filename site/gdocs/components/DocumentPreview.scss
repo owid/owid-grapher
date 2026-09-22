@@ -1,0 +1,27 @@
+.document-preview {
+    --thumbnail-width: 80px;
+    display: flex;
+    gap: 12px;
+    padding: 8px;
+    text-align: left;
+}
+
+.document-preview__thumbnail {
+    flex-shrink: 0;
+    object-fit: contain;
+    align-self: start;
+    width: var(--thumbnail-width);
+}
+
+.document-preview__title {
+    @include h4-semibold;
+    line-height: 1.3125;
+    margin: 0;
+    color: $blue-90;
+}
+
+.document-preview__subtitle {
+    @include note-13-medium;
+    margin: 4px 0 0;
+    color: $blue-70;
+}
