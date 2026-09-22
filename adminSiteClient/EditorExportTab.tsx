@@ -298,10 +298,6 @@ export class EditorExportTab<
                             )}
                         />
                     )}
-                    {/* Read live: the effective note picks up the automatic
-                        tolerance notice, which is only known once the
-                        grapher is ready, and hiding the note doesn't
-                        change it */}
                     {this.grapherState.effectiveNote && (
                         <Toggle
                             label="Note"
