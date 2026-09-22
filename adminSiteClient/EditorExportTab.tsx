@@ -36,7 +36,6 @@ type OriginalGrapher = Pick<
     | "shouldAddEntitySuffixToTitle"
     | "shouldAddTimeSuffixToTitle"
     | "effectiveSubtitle"
-    | "note"
     | "originUrl"
     | "shouldIncludeDetailsInStaticExport"
     | "detailsOrderedByReference"
@@ -161,7 +160,6 @@ export class EditorExportTab<
             shouldAddTimeSuffixToTitle:
                 this.grapherState.shouldAddTimeSuffixToTitle,
             effectiveSubtitle: this.grapherState.effectiveSubtitle,
-            note: this.grapherState.note,
             originUrl: this.grapherState.originUrl,
             shouldIncludeDetailsInStaticExport:
                 this.grapherState.shouldIncludeDetailsInStaticExport,
@@ -300,7 +298,7 @@ export class EditorExportTab<
                             )}
                         />
                     )}
-                    {this.originalGrapher.note && (
+                    {this.grapherState.effectiveNote && (
                         <Toggle
                             label="Note"
                             value={!this.settings.hideNote}
