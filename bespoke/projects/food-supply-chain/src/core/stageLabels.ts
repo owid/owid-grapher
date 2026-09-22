@@ -1,5 +1,7 @@
 import { StageKey } from "./types.js"
 
+export const TOTAL_STAGE_KEY = "food"
+
 /**
  * Reader-facing names for the manifest's accounting terms.
  *
@@ -21,7 +23,7 @@ export const STAGE_LABELS: Record<StageKey, string> = {
     animal_products: "Animal products",
     tourist_consumption: "Eaten by tourists",
     residuals: "Statistical gap",
-    food: "Food available to eat",
+    [TOTAL_STAGE_KEY]: "Food available to eat",
 }
 
 /** The reader-facing name for a stage, falling back to the manifest's own */

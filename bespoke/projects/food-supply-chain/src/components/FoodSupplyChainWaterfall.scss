@@ -21,9 +21,14 @@
     stroke-width: 1;
 }
 
+.food-supply-chain-waterfall__group-band {
+    stroke-width: 1;
+}
+
 .food-supply-chain-waterfall__tick-label,
 .food-supply-chain-waterfall__value-label,
-.food-supply-chain-waterfall__caption {
+.food-supply-chain-waterfall__caption,
+.food-supply-chain-waterfall__group-label {
     font-family: typography.$sans-serif-font-stack;
 }
 
