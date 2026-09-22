@@ -13,6 +13,10 @@ import {
     AXIS_LABEL_WIDTH,
     CAPTION_FONT_SIZE,
     CAPTION_GAP,
+    GROUP_BAND_GAP,
+    GROUP_LABEL_FONT_SIZE,
+    GROUP_LABEL_FONT_WEIGHT,
+    GROUP_LABEL_GAP,
     MAX_CAPTION_LINES,
     COLORS,
     PLOT_MARGIN_RIGHT,
@@ -22,9 +26,16 @@ import {
     VALUE_LABEL_GAP,
 } from "../core/constants.js"
 import { formatMeasureValue } from "../core/format.js"
+import { STAGE_GROUPS } from "../core/stageGroups.js"
 import { stageLabel } from "../core/stageLabels.js"
+import { StageKey } from "../core/types.js"
 import { Waterfall } from "../core/waterfall.js"
-import { layOutWaterfall, PlacedStep } from "../core/waterfallLayout.js"
+import {
+    groupBandLength,
+    layOutWaterfall,
+    PlacedLine,
+    PlacedStep,
+} from "../core/waterfallLayout.js"
 import { FoodSupplyChainTooltip } from "./FoodSupplyChainTooltip.js"
 
 export interface FoodSupplyChainWaterfallProps {
@@ -84,11 +95,29 @@ export function FoodSupplyChainWaterfall({
         slotWidth
     )
 
+    const groupLabelTextWraps = new Map(
+        STAGE_GROUPS.map((group) => [
+            group.key,
+            buildGroupLabelTextWrap(
+                group.label,
+                groupBandLength(slotWidth, group.stageKeys.length)
+            ),
+        ])
+    )
+
+    const captionHeight = Math.max(
+        ...captionTextWraps.map((wrap) => wrap.height),
+        totalCaptionTextWrap.height
+    )
+    const groupLabelHeight = Math.max(
+        ...[...groupLabelTextWraps.values()].map((wrap) => wrap.height)
+    )
     const bottomMargin =
-        Math.max(
-            ...captionTextWraps.map((wrap) => wrap.height),
-            totalCaptionTextWrap.height
-        ) + CAPTION_GAP
+        CAPTION_GAP +
+        captionHeight +
+        GROUP_BAND_GAP +
+        GROUP_LABEL_GAP +
+        groupLabelHeight
 
     const boxHeight = height - PLOT_MARGIN_TOP - bottomMargin
     if (boxHeight <= 0) return null
@@ -102,6 +131,7 @@ export function FoodSupplyChainWaterfall({
     const layout = layOutWaterfall(waterfall, box)
     const span = waterfall.domain[1] - waterfall.domain[0]
     const captionY = box.y + box.height + CAPTION_GAP
+    const bandY = captionY + captionHeight + GROUP_BAND_GAP
     const hoveredStep = hover
         ? [...layout.steps, layout.total].find(
               (step) => step.step.key === hover.stepKey
@@ -185,6 +215,14 @@ export function FoodSupplyChainWaterfall({
                     captionTextWrap={totalCaptionTextWrap}
                     captionY={captionY}
                 />
+                {layout.groups.map(({ group, band }) => (
+                    <GroupBand
+                        key={group.key}
+                        band={band}
+                        labelTextWrap={groupLabelTextWraps.get(group.key)}
+                        bandY={bandY}
+                    />
+                ))}
                 {[...layout.steps, layout.total].map((step) => (
                     <rect
                         key={step.step.key}
@@ -284,6 +322,48 @@ function StepMarks({
             />
         </g>
     )
+}
+
+function GroupBand({
+    band,
+    labelTextWrap,
+    bandY,
+}: {
+    band: PlacedLine
+    labelTextWrap: TextWrap | undefined
+    bandY: number
+}): React.ReactElement | null {
+    if (!labelTextWrap) return null
+
+    return (
+        <g className="food-supply-chain-waterfall__group">
+            <line
+                className="food-supply-chain-waterfall__group-band"
+                x1={band.x1}
+                y1={bandY}
+                x2={band.x2}
+                y2={bandY}
+                stroke={COLORS.groupBand}
+            />
+            <TextWrapSvg
+                className="food-supply-chain-waterfall__group-label"
+                textWrap={labelTextWrap}
+                x={(band.x1 + band.x2) / 2}
+                y={bandY + GROUP_LABEL_GAP}
+                textAnchor="middle"
+                fill={COLORS.groupLabel}
+            />
+        </g>
+    )
+}
+
+function buildGroupLabelTextWrap(text: string, bandLength: number): TextWrap {
+    return new TextWrap({
+        text,
+        maxWidth: bandLength,
+        fontSize: GROUP_LABEL_FONT_SIZE,
+        fontWeight: GROUP_LABEL_FONT_WEIGHT,
+    })
 }
 
 /** A caption's TextWrap, truncated to at most MAX_CAPTION_LINES lines */
