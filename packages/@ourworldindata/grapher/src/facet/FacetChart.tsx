@@ -494,7 +494,6 @@ export class FacetChart
             GRAPHER_CHART_TYPES.StackedBar,
             GRAPHER_CHART_TYPES.StackedArea,
             GRAPHER_CHART_TYPES.SlopeChart,
-            GRAPHER_CHART_TYPES.Swimlane,
         ]
 
         const { facetBounds } = this

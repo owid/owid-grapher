@@ -90,7 +90,7 @@ describe("errorInfo", () => {
 })
 
 describe("availableFacetStrategies", () => {
-    it("offers entity facets for an ordinal column with several entities", () => {
+    it("offers no facets, whatever the column and however many entities", () => {
         const table = ordinalTable([
             { entityName: "France", time: 2000, cause: "ICD-9" },
             { entityName: "Germany", time: 2000, cause: "ICD-8" },
@@ -99,43 +99,6 @@ describe("availableFacetStrategies", () => {
             table,
             selection: ["France", "Germany"],
             yColumnSlugs: ["cause"],
-        }
-        const chartState = new SwimlaneChartState({ manager })
-
-        expect(chartState.availableFacetStrategies).toEqual([
-            FacetStrategy.none,
-            FacetStrategy.entity,
-        ])
-    })
-
-    it("offers no facets for an ordinal column with a single entity", () => {
-        const table = ordinalTable([
-            { entityName: "France", time: 2000, cause: "ICD-9" },
-        ])
-        const manager: SwimlaneChartManager = {
-            table,
-            selection: ["France"],
-            yColumnSlugs: ["cause"],
-        }
-        const chartState = new SwimlaneChartState({ manager })
-
-        expect(chartState.availableFacetStrategies).toEqual([
-            FacetStrategy.none,
-        ])
-    })
-
-    it("offers no facets for a categorical column, even with several entities", () => {
-        const table = new OwidTable(
-            [
-                { entityName: "France", time: 2000, grouping: "Europe" },
-                { entityName: "Nigeria", time: 2000, grouping: "Africa" },
-            ],
-            [{ slug: "grouping", type: ColumnTypeNames.String }]
-        )
-        const manager: SwimlaneChartManager = {
-            table,
-            selection: ["France", "Nigeria"],
-            yColumnSlugs: ["grouping"],
         }
         const chartState = new SwimlaneChartState({ manager })
 

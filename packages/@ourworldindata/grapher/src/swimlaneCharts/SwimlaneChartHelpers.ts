@@ -6,15 +6,11 @@ import {
     LANE_SPACING_FACTOR,
     MAX_LANE_HEIGHT,
     MIN_SEGMENT_WIDTH,
-    OrdinalSwimlaneCategories,
     PlacedSwimlaneSegment,
     PlacedSwimlaneSeries,
     SizedSwimlaneSeries,
-    RankedSwimlane,
-    SwimlaneCategories,
     SwimlaneObservation,
     SwimlaneSegment,
-    SwimlaneSeries,
 } from "./SwimlaneChartConstants"
 
 export function toSwimlaneSegments({
@@ -53,17 +49,6 @@ export function toSwimlaneSegments({
         startIndex = index + 1
     }
     return segments
-}
-
-export function toRankedSwimlane({
-    series,
-    categories,
-}: {
-    series: SwimlaneSeries[]
-    categories: SwimlaneCategories | undefined
-}): RankedSwimlane | undefined {
-    if (series.length !== 1 || categories?.kind !== "ordinal") return undefined
-    return { series: series[0], categories }
 }
 
 export function computeLaneSlotHeight({
@@ -127,46 +112,6 @@ export function toPlacedSwimlaneSeries({
             placedSegments,
         }
     })
-}
-
-export function toPlacedSwimlaneSegmentsByCategoryRank({
-    series,
-    categories,
-    bounds,
-    placeTime,
-}: {
-    series: SwimlaneSeries
-    categories: OrdinalSwimlaneCategories
-    bounds: Bounds
-    placeTime: (time: Time) => number
-}): PlacedSwimlaneSegment[] {
-    const bandHeight = Math.min(
-        bounds.height / categories.values.length,
-        MAX_LANE_HEIGHT
-    )
-    const stackBottom =
-        bounds.bottom -
-        (bounds.height - bandHeight * categories.values.length) / 2
-
-    const extents = toContiguousSegmentExtents({
-        segments: series.segments,
-        placeTime,
-    })
-
-    return series.segments.flatMap(
-        (segment, segmentIndex): PlacedSwimlaneSegment[] => {
-            if (segment.kind === "missing") return []
-            const rank = categories.values.indexOf(segment.category)
-            return [
-                {
-                    ...segment,
-                    ...extents[segmentIndex],
-                    y: stackBottom - (rank + 1) * bandHeight,
-                    height: bandHeight,
-                },
-            ]
-        }
-    )
 }
 
 function toContiguousSegmentExtents({
