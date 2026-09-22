@@ -17,7 +17,7 @@ describe(formatMeasureValue, () => {
         expect(formatMeasureValue(1234.5, { span: 35_800 })).toBe("1,235")
     })
 
-    it("formats a mass-scale value with two decimals", () => {
+    it("formats a protein-scale value with two decimals", () => {
         expect(formatMeasureValue(1.234, { span: 1.7 })).toBe("1.23")
     })
 })
