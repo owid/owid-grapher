@@ -1,9 +1,14 @@
+import { useCallback, useRef, useState } from "react"
+
 import {
     shortenWithEllipsis,
     TextWrap,
 } from "@ourworldindata/components/src/TextWrap/TextWrap.js"
 import { TextWrapSvg } from "@ourworldindata/components/src/TextWrap/TextWrapComponents.js"
+import { getRelativeMouse, isTouchDevice, Point } from "@ourworldindata/utils"
+import { GrapherTooltipAnchor } from "@ourworldindata/types"
 
+import { usePinnedTooltip } from "../../../../hooks/usePinnedTooltip.js"
 import {
     AXIS_LABEL_WIDTH,
     CAPTION_FONT_SIZE,
@@ -20,6 +25,7 @@ import { formatMeasureValue } from "../core/format.js"
 import { stageLabel } from "../core/stageLabels.js"
 import { Waterfall } from "../core/waterfall.js"
 import { layOutWaterfall, PlacedStep } from "../core/waterfallLayout.js"
+import { FoodSupplyChainTooltip } from "./FoodSupplyChainTooltip.js"
 
 export interface FoodSupplyChainWaterfallProps {
     waterfall: Waterfall
@@ -27,11 +33,45 @@ export interface FoodSupplyChainWaterfallProps {
     height: number
 }
 
+/** The hovered or touch-pinned column, at the mouse position that triggered it */
+interface Hover {
+    stepKey: StageKey
+    position: Point
+}
+
 export function FoodSupplyChainWaterfall({
     waterfall,
     width,
     height,
 }: FoodSupplyChainWaterfallProps): React.ReactElement | null {
+    const svgRef = useRef<SVGSVGElement>(null)
+    const [hover, setHover] = useState<Hover | undefined>(undefined)
+
+    const dismissHover = useCallback(() => setHover(undefined), [])
+    const { ref: containerRef, isPinned } = usePinnedTooltip<HTMLDivElement>(
+        hover !== undefined,
+        dismissHover
+    )
+
+    const onStepMouseEnter = useCallback(
+        (stepKey: StageKey, event: React.MouseEvent) => {
+            if (!svgRef.current) return
+            const position = getRelativeMouse(svgRef.current, event.nativeEvent)
+            setHover({ stepKey, position })
+        },
+        []
+    )
+    const onStepMouseMove = useCallback((event: React.MouseEvent) => {
+        if (!svgRef.current) return
+        const position = getRelativeMouse(svgRef.current, event.nativeEvent)
+        setHover((prev) => (prev ? { ...prev, position } : prev))
+    }, [])
+    const onStepMouseLeave = useCallback(() => {
+        // usePinnedTooltip owns dismissal on touch
+        if (isTouchDevice()) return
+        setHover(undefined)
+    }, [])
+
     const plotWidth = width - AXIS_LABEL_WIDTH - PLOT_MARGIN_RIGHT
     if (plotWidth <= 0) return null
 
@@ -62,75 +102,118 @@ export function FoodSupplyChainWaterfall({
     const layout = layOutWaterfall(waterfall, box)
     const span = waterfall.domain[1] - waterfall.domain[0]
     const captionY = box.y + box.height + CAPTION_GAP
+    const hoveredStep = hover
+        ? [...layout.steps, layout.total].find(
+              (step) => step.step.key === hover.stepKey
+          )
+        : undefined
 
     return (
-        <svg
-            className="food-supply-chain-waterfall"
-            width={width}
-            height={height}
-            viewBox={`0 0 ${width} ${height}`}
-        >
-            {layout.ticks.map((tick) => (
-                <g key={tick.value}>
-                    <line
-                        className="food-supply-chain-waterfall__gridline"
-                        x1={tick.gridline.x1}
-                        y1={tick.gridline.y1}
-                        x2={tick.gridline.x2}
-                        y2={tick.gridline.y2}
-                        stroke={COLORS.gridline}
-                    />
-                    <text
-                        className="food-supply-chain-waterfall__tick-label"
-                        x={tick.gridline.x1}
-                        y={tick.gridline.y1}
-                        dx={-8}
-                        textAnchor="end"
-                        dominantBaseline="middle"
-                        fontSize={TICK_LABEL_FONT_SIZE}
-                        fill={COLORS.tickLabel}
-                    >
-                        {formatMeasureValue(tick.value, { span })}
-                    </text>
-                </g>
-            ))}
-            <line
-                className="food-supply-chain-waterfall__zero-line"
-                x1={layout.zeroLine.x1}
-                y1={layout.zeroLine.y1}
-                x2={layout.zeroLine.x2}
-                y2={layout.zeroLine.y2}
-                stroke={COLORS.zeroLine}
-            />
-            {layout.connectors.map((connector, index) => (
+        <div ref={containerRef}>
+            <svg
+                ref={svgRef}
+                className="food-supply-chain-waterfall"
+                width={width}
+                height={height}
+                viewBox={`0 0 ${width} ${height}`}
+            >
+                {layout.ticks.map((tick) => (
+                    <g key={tick.value}>
+                        <line
+                            className="food-supply-chain-waterfall__gridline"
+                            x1={tick.gridline.x1}
+                            y1={tick.gridline.y1}
+                            x2={tick.gridline.x2}
+                            y2={tick.gridline.y2}
+                            stroke={COLORS.gridline}
+                        />
+                        <text
+                            className="food-supply-chain-waterfall__tick-label"
+                            x={tick.gridline.x1}
+                            y={tick.gridline.y1}
+                            dx={-8}
+                            textAnchor="end"
+                            dominantBaseline="middle"
+                            fontSize={TICK_LABEL_FONT_SIZE}
+                            fill={COLORS.tickLabel}
+                        >
+                            {formatMeasureValue(tick.value, { span })}
+                        </text>
+                    </g>
+                ))}
                 <line
-                    key={index}
-                    className="food-supply-chain-waterfall__connector"
-                    x1={connector.x1}
-                    y1={connector.y1}
-                    x2={connector.x2}
-                    y2={connector.y2}
-                    stroke={COLORS.connector}
+                    className="food-supply-chain-waterfall__zero-line"
+                    x1={layout.zeroLine.x1}
+                    y1={layout.zeroLine.y1}
+                    x2={layout.zeroLine.x2}
+                    y2={layout.zeroLine.y2}
+                    stroke={COLORS.zeroLine}
                 />
-            ))}
-            {layout.steps.map((step, index) => (
+                {layout.connectors.map((connector, index) => (
+                    <line
+                        key={index}
+                        className="food-supply-chain-waterfall__connector"
+                        x1={connector.x1}
+                        y1={connector.y1}
+                        x2={connector.x2}
+                        y2={connector.y2}
+                        stroke={COLORS.connector}
+                    />
+                ))}
+                {layout.steps.map((step, index) => (
+                    <StepMarks
+                        key={step.step.key}
+                        step={step}
+                        span={span}
+                        isTotal={false}
+                        isDimmed={
+                            hover !== undefined &&
+                            hover.stepKey !== step.step.key
+                        }
+                        captionTextWrap={captionTextWraps[index]}
+                        captionY={captionY}
+                    />
+                ))}
                 <StepMarks
-                    key={step.step.key}
-                    step={step}
+                    step={layout.total}
                     span={span}
-                    isTotal={false}
-                    captionTextWrap={captionTextWraps[index]}
+                    isTotal
+                    isDimmed={
+                        hover !== undefined &&
+                        hover.stepKey !== waterfall.total.key
+                    }
+                    captionTextWrap={totalCaptionTextWrap}
                     captionY={captionY}
                 />
-            ))}
-            <StepMarks
-                step={layout.total}
-                span={span}
-                isTotal
-                captionTextWrap={totalCaptionTextWrap}
-                captionY={captionY}
-            />
-        </svg>
+                {[...layout.steps, layout.total].map((step) => (
+                    <rect
+                        key={step.step.key}
+                        className="food-supply-chain-waterfall__hit-area"
+                        x={step.slot.x}
+                        y={step.slot.y}
+                        width={step.slot.width}
+                        height={step.slot.height}
+                        fill="transparent"
+                        onMouseEnter={(event) =>
+                            onStepMouseEnter(step.step.key, event)
+                        }
+                        onMouseMove={onStepMouseMove}
+                        onMouseLeave={onStepMouseLeave}
+                    />
+                ))}
+            </svg>
+            {hover && hoveredStep && (
+                <FoodSupplyChainTooltip
+                    step={hoveredStep}
+                    isTotal={hover.stepKey === waterfall.total.key}
+                    unit={waterfall.unit}
+                    span={span}
+                    position={hover.position}
+                    containerBounds={isPinned ? undefined : { width, height }}
+                    anchor={isPinned ? GrapherTooltipAnchor.Bottom : undefined}
+                />
+            )}
+        </div>
     )
 }
 
@@ -138,12 +221,14 @@ function StepMarks({
     step,
     span,
     isTotal,
+    isDimmed,
     captionTextWrap,
     captionY,
 }: {
     step: PlacedStep
     span: number
     isTotal: boolean
+    isDimmed: boolean
     captionTextWrap: TextWrap
     captionY: number
 }): React.ReactElement {
@@ -161,7 +246,13 @@ function StepMarks({
         : formatMeasureValue(delta, { span, showPlus: true })
 
     return (
-        <g>
+        <g
+            className={
+                isDimmed
+                    ? "food-supply-chain-waterfall__step--dimmed"
+                    : undefined
+            }
+        >
             {step.bar && (
                 <rect
                     className="food-supply-chain-waterfall__bar"
