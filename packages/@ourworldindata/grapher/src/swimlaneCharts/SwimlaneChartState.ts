@@ -33,7 +33,6 @@ import { HorizontalAxis } from "../axis/Axis"
 import {
     ColoredSwimlaneSegment,
     isSwimlaneSortKey,
-    RankedSwimlane,
     SWIMLANE_SORT_KEYS,
     SwimlaneCategories,
     SwimlaneChartManager,
@@ -41,7 +40,7 @@ import {
     SwimlaneSeries,
     SwimlaneSortKey,
 } from "./SwimlaneChartConstants"
-import { toRankedSwimlane, toSwimlaneSegments } from "./SwimlaneChartHelpers"
+import { toSwimlaneSegments } from "./SwimlaneChartHelpers"
 
 export class SwimlaneChartState implements ChartState, ColorScaleManager {
     manager: SwimlaneChartManager
@@ -211,13 +210,6 @@ export class SwimlaneChartState implements ChartState, ColorScaleManager {
         return SortBy.entityName
     }
 
-    @computed get rankedSwimlane(): RankedSwimlane | undefined {
-        return toRankedSwimlane({
-            series: this.series,
-            categories: this.categories,
-        })
-    }
-
     toHorizontalAxis(config: AxisConfig): HorizontalAxis {
         const axis = config.toHorizontalAxis()
         axis.updateDomainPreservingUserSettings([
@@ -231,15 +223,7 @@ export class SwimlaneChartState implements ChartState, ColorScaleManager {
     }
 
     @computed get availableFacetStrategies(): FacetStrategy[] {
-        const strategies = [FacetStrategy.none]
-
-        if (
-            this.categories?.kind === "ordinal" &&
-            this.selectionArray.numSelectedEntities > 1
-        )
-            strategies.push(FacetStrategy.entity)
-
-        return strategies
+        return [FacetStrategy.none]
     }
 
     @computed get errorInfo(): ChartErrorInfo {

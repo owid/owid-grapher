@@ -43,7 +43,6 @@ import { ExternalColorLegendData } from "../legend/HorizontalColorLegendTypes"
 import {
     ENTITY_LABEL_CHART_GAP,
     PADDING_BETWEEN_LEGEND_AND_LANES,
-    PlacedSwimlaneSegment,
     PlacedSwimlaneSeries,
     SizedSwimlaneSeries,
     SwimlaneChartManager,
@@ -53,11 +52,9 @@ import {
 import { SwimlaneChartState } from "./SwimlaneChartState"
 import {
     computeLaneSlotHeight,
-    toPlacedSwimlaneSegmentsByCategoryRank,
     toPlacedSwimlaneSeries,
 } from "./SwimlaneChartHelpers"
 import { SwimlaneRow } from "./SwimlaneRow"
-import { SwimlaneSegments } from "./SwimlaneSegments"
 
 export type SwimlaneChartProps = ChartComponentProps<SwimlaneChartState>
 
@@ -225,11 +222,9 @@ export class SwimlaneChart
     }
 
     @computed get axisBounds(): Bounds {
-        return this.chartState.rankedSwimlane
-            ? this.boundsWithoutLegend
-            : this.boundsWithoutLegend.padLeft(
-                  this.entityLabelMaxWidth + ENTITY_LABEL_CHART_GAP
-              )
+        return this.boundsWithoutLegend.padLeft(
+            this.entityLabelMaxWidth + ENTITY_LABEL_CHART_GAP
+        )
     }
 
     @computed get xAxis(): HorizontalAxis {
@@ -245,17 +240,6 @@ export class SwimlaneChart
     @computed private get placedSeries(): PlacedSwimlaneSeries[] {
         return toPlacedSwimlaneSeries({
             series: this.sizedSeries,
-            bounds: this.innerBounds,
-            placeTime: (time) => this.xAxis.place(time),
-        })
-    }
-
-    @computed private get rankedSegments(): PlacedSwimlaneSegment[] {
-        const ranked = this.chartState.rankedSwimlane
-        if (!ranked) return []
-        return toPlacedSwimlaneSegmentsByCategoryRank({
-            series: ranked.series,
-            categories: ranked.categories,
             bounds: this.innerBounds,
             placeTime: (time) => this.xAxis.place(time),
         })
@@ -326,30 +310,22 @@ export class SwimlaneChart
         return (
             <g>
                 {this.renderLegend()}
-                {!this.xAxis.hideAxis && (
-                    <HorizontalAxisComponent
-                        bounds={this.boundsWithoutLegend}
-                        axis={this.xAxis}
-                        tickColor={GRAPHER_LIGHT_TEXT}
-                        showTickMarks={true}
-                        preferredAxisPosition={this.innerBounds.bottom}
-                    />
-                )}
+                <HorizontalAxisComponent
+                    bounds={this.boundsWithoutLegend}
+                    axis={this.xAxis}
+                    tickColor={GRAPHER_LIGHT_TEXT}
+                    showTickMarks={true}
+                    preferredAxisPosition={this.innerBounds.bottom}
+                />
                 <HorizontalAxisDomainLine
                     bounds={this.innerBounds}
                     stroke={SOLID_TICK_COLOR}
                 />
-                {this.chartState.rankedSwimlane ? (
-                    <g id={makeFigmaId("bands")}>
-                        <SwimlaneSegments segments={this.rankedSegments} />
-                    </g>
-                ) : (
-                    <g id={makeFigmaId("lanes")}>
-                        {this.manager.isStatic
-                            ? this.renderLanes()
-                            : this.renderAnimatedLanes()}
-                    </g>
-                )}
+                <g id={makeFigmaId("lanes")}>
+                    {this.manager.isStatic
+                        ? this.renderLanes()
+                        : this.renderAnimatedLanes()}
+                </g>
             </g>
         )
     }

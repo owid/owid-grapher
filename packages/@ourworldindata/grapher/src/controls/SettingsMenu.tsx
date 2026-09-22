@@ -49,7 +49,6 @@ const {
     StackedBar,
     Marimekko,
     SlopeChart,
-    Swimlane,
 } = GRAPHER_CHART_TYPES
 
 export interface SettingsMenuManager
@@ -135,8 +134,7 @@ export class SettingsMenu extends React.Component<SettingsMenuProps> {
         // don't offer to make the y range relative if the range is discrete
         return (
             this.manager.facetStrategy !== FacetStrategy.none &&
-            this.chartType !== StackedDiscreteBar &&
-            this.chartType !== Swimlane
+            this.chartType !== StackedDiscreteBar
         )
     }
 
@@ -191,7 +189,6 @@ export class SettingsMenu extends React.Component<SettingsMenuProps> {
             StackedDiscreteBar,
             LineChart,
             SlopeChart,
-            Swimlane,
         ].includes(this.chartType as any)
 
         const hasProjection = filledDimensions.some(

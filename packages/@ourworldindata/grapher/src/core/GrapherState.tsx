@@ -2567,8 +2567,7 @@ export class GrapherState
             this.isOnChartTab &&
             (seriesStrategy !== SeriesStrategy.entity ||
                 !this.showLegend ||
-                !this.showSeriesLabels ||
-                this.isOnSwimlaneTab) &&
+                !this.showSeriesLabels) &&
             selectedEntityNames.length === 1 &&
             (showEntityAnnotation ||
                 this.canChangeEntity ||
