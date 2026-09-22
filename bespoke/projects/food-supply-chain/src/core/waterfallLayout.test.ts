@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest"
 
+import { STAGE_GROUPS } from "./stageGroups.js"
 import {
     EntityData,
     FlowStage,
@@ -91,6 +92,39 @@ describe(layOutWaterfall, () => {
         expect(tourism?.captionAnchor).toBeDefined()
     })
 
+    it("spans each group's band over exactly its own columns", () => {
+        const layout = layOutWaterfall(fixtureGroupedWaterfall(), BOX)
+
+        expect(layout.groups.map((placed) => placed.group.key)).toEqual(
+            STAGE_GROUPS.map((group) => group.key)
+        )
+        for (const placed of layout.groups) {
+            expect(stepKeysUnderBand(layout.steps, placed.band)).toEqual(
+                placed.group.stageKeys
+            )
+            expect(stepKeysUnderBand([layout.total], placed.band)).toEqual([])
+        }
+    })
+
+    it("drops a band whose stages are no longer side by side", () => {
+        const reordered = MANIFEST_FLOW_STAGES.filter(
+            (stage) => stage.key !== "animal_products"
+        )
+        reordered.unshift(
+            MANIFEST_FLOW_STAGES.find(
+                (stage) => stage.key === "animal_products"
+            )!
+        )
+        const layout = layOutWaterfall(fixtureGroupedWaterfall(reordered), BOX)
+
+        expect(layout.groups.map((placed) => placed.group.key)).not.toContain(
+            "animals"
+        )
+        expect(layout.groups.map((placed) => placed.group.key)).toContain(
+            "adjustments"
+        )
+    })
+
     it("puts the zero line strictly inside the box for a domain straddling zero", () => {
         const waterfall = fixtureWaterfall({
             crop: [10],
@@ -104,6 +138,18 @@ describe(layOutWaterfall, () => {
         expect(layout.zeroLine.y1).toBeLessThan(BOX.y + BOX.height)
     })
 })
+
+function stepKeysUnderBand(
+    steps: PlacedStep[],
+    band: { x1: number; x2: number }
+): StageKey[] {
+    return steps
+        .filter(
+            (step) =>
+                step.valueAnchor.x > band.x1 && step.valueAnchor.x < band.x2
+        )
+        .map((step) => step.step.key)
+}
 
 function hasEdgeAt(bar: { y: number; height: number }, y: number): boolean {
     return Math.abs(bar.y - y) < 1e-6 || Math.abs(bar.y + bar.height - y) < 1e-6
@@ -120,6 +166,41 @@ function fixtureWaterfall(values: Record<StageKey, number[]>): Waterfall {
     return buildWaterfall({
         manifest,
         entityData,
+        measure: "energy",
+        year: 2020,
+    })!
+}
+
+const MANIFEST_FLOW_STAGES: FlowStage[] = [
+    { key: "crop_production", name: "Crop production", direction: "in" },
+    { key: "imports", name: "Imports", direction: "in" },
+    { key: "exports", name: "Exports", direction: "out" },
+    { key: "stock_variation", name: "Stock change", direction: "in" },
+    { key: "seed", name: "Seed", direction: "out" },
+    { key: "losses", name: "Losses", direction: "out" },
+    { key: "other_uses", name: "Non-food uses", direction: "out" },
+    { key: "processing_net", name: "Processing, net", direction: "in" },
+    { key: "feed", name: "Animal feed", direction: "out" },
+    { key: "animal_products", name: "Livestock and fish", direction: "in" },
+    {
+        key: "tourist_consumption",
+        name: "Tourist consumption",
+        direction: "out",
+    },
+    { key: "residuals", name: "Residuals", direction: "out" },
+]
+
+function fixtureGroupedWaterfall(
+    flowStages: FlowStage[] = MANIFEST_FLOW_STAGES
+): Waterfall {
+    const values = Object.fromEntries([
+        ...flowStages.map((stage) => [stage.key, [10]]),
+        ["crop_production", [200]],
+        ["food", [140]],
+    ])
+    return buildWaterfall({
+        manifest: fixtureManifest(flowStages),
+        entityData: fixtureEntityData([2020], values),
         measure: "energy",
         year: 2020,
     })!
