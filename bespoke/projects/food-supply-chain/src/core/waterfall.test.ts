@@ -42,8 +42,8 @@ describe(buildWaterfall, () => {
             measure: "energy",
             year: 2020,
         })!
-        expect(result.steps[0].start).toBe(0)
-        expect(result.steps[1].start).toBe(result.steps[0].end)
+        expect(result.steps[0].balanceBefore).toBe(0)
+        expect(result.steps[1].balanceBefore).toBe(result.steps[0].balanceAfter)
     })
 
     it("closes the last step's end to the total's value", () => {
@@ -62,7 +62,9 @@ describe(buildWaterfall, () => {
             measure: "energy",
             year: 2020,
         })!
-        expect(result.steps.at(-1)!.end).toBeCloseTo(result.total.value)
+        expect(result.steps.at(-1)!.balanceAfter).toBeCloseTo(
+            result.total.value
+        )
     })
 
     it("extends the domain's lower bound below zero when the balance dips", () => {
