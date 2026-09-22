@@ -14,6 +14,13 @@ export const BESPOKE_COMPONENT_REGISTRY: Record<
         dataUrl: "un_wpp/latest/demography",
         metadataFilename: "demography.metadata.json",
     },
+    // owid/owid-issues#2526: no ETL bespoke feed step exists yet, so this
+    // points at the raw data bucket. Swap dataUrl to the ETL path once it does.
+    "food-supply-chain": {
+        scriptUrl: "/food-supply-chain/index.js",
+        dataUrl: "https://owid-public.owid.io/data/food-supply-chain",
+        metadataFilename: "food-supply-chain.metadata.json",
+    },
     "food-trade": {
         scriptUrl: "/food-trade/index.js",
         dataUrl: "faostat/latest/food_trade",
