@@ -110,7 +110,7 @@ function fixtureManifest(flowStages: FlowStage[]): FoodSupplyChainManifest {
     return {
         flowStages,
         totalStage: { key: "food", name: "Food available to eat" },
-        units: { energy: "kcal", protein: "g", mass: "kg" },
+        units: { energy: "kcal", protein: "g" },
         sources: [],
         method: "",
         entities: [],
@@ -125,6 +125,6 @@ function fixtureEntityData(
 ): EntityData {
     return {
         years,
-        values: { energy: values, protein: values, mass: values },
+        values: { energy: values, protein: values },
     }
 }
