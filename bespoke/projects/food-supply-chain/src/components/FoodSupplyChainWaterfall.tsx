@@ -17,6 +17,7 @@ import {
     VALUE_LABEL_GAP,
 } from "../core/constants.js"
 import { formatMeasureValue } from "../core/format.js"
+import { stageLabel } from "../core/stageLabels.js"
 import { Waterfall } from "../core/waterfall.js"
 import { layOutWaterfall, PlacedStep } from "../core/waterfallLayout.js"
 
@@ -36,10 +37,10 @@ export function FoodSupplyChainWaterfall({
 
     const slotWidth = plotWidth / (waterfall.steps.length + 1)
     const captionTextWraps = waterfall.steps.map((step) =>
-        buildCaptionTextWrap(step.name, slotWidth)
+        buildCaptionTextWrap(stageLabel(step.key, step.name), slotWidth)
     )
     const totalCaptionTextWrap = buildCaptionTextWrap(
-        waterfall.total.name,
+        stageLabel(waterfall.total.key, waterfall.total.name),
         slotWidth
     )
 
