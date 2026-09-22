@@ -466,12 +466,14 @@ __metadata:
     "@rollup/plugin-swc": "npm:^0.4.1"
     "@swc/core": "npm:^1.15.41"
     "@tanstack/react-query": "npm:^5.101.0"
+    "@types/d3-array": "npm:^3.2.1"
     "@types/react": "npm:^19.2.17"
     "@types/react-dom": "npm:^19.2.3"
     "@visx/group": "npm:^4.0.0"
     "@visx/responsive": "npm:^4.0.0"
     "@vitejs/plugin-react": "npm:^6.0.4"
     clsx: "npm:^2.1.1"
+    d3-array: "npm:^3.2.4"
     normalize.css: "npm:^8.0.1"
     nuqs: "npm:^2.8.9"
     react: "npm:^19.2.7"
@@ -1141,7 +1143,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/d3-array@npm:*":
+"@types/d3-array@npm:*, @types/d3-array@npm:^3.2.1":
   version: 3.2.2
   resolution: "@types/d3-array@npm:3.2.2"
   checksum: 10/1afebd05b688cafaaea295f765b409789f088b274b8a7ca40a4bc2b79760044a898e06a915f40bbc59cf39eabdd2b5d32e960b136fc025fd05c9a9d4435614c6
@@ -2030,7 +2032,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"d3-array@npm:2 - 3, d3-array@npm:2.10.0 - 3, d3-array@npm:2.5.0 - 3, d3-array@npm:3, d3-array@npm:^3.2.0":
+"d3-array@npm:2 - 3, d3-array@npm:2.10.0 - 3, d3-array@npm:2.5.0 - 3, d3-array@npm:3, d3-array@npm:^3.2.0, d3-array@npm:^3.2.4":
   version: 3.2.4
   resolution: "d3-array@npm:3.2.4"
   dependencies:
