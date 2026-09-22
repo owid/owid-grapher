@@ -1,6 +1,6 @@
 export type VariantName = "waterfall"
 
-export const MEASURES = ["energy", "protein", "mass"] as const
+export const MEASURES = ["energy", "protein"] as const
 export type Measure = (typeof MEASURES)[number]
 
 /** Keys as the manifest spells them; the set is not known at compile time */
@@ -47,5 +47,4 @@ export type EntityJson = {
     years: number[]
     energy: Record<string, number[]>
     protein: Record<string, number[]>
-    mass: Record<string, number[]>
 }

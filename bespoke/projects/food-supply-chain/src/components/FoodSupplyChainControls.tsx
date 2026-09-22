@@ -19,7 +19,6 @@ import { FoodSupplyChainManifest, Measure } from "../core/types.js"
 const MEASURE_ITEMS: SwitcherItem<Measure>[] = [
     { key: "energy", element: "Calories" },
     { key: "protein", element: "Protein" },
-    { key: "mass", element: "Weight" },
 ]
 
 export function FoodSupplyChainControls({

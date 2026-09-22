@@ -44,7 +44,6 @@ export function parseEntityData(raw: EntityJson): EntityData {
         values: {
             energy: raw.energy,
             protein: raw.protein,
-            mass: raw.mass,
         },
     }
 }
