@@ -1,0 +1,88 @@
+// keep in sync with variables in SourcesPanel.tsx
+$sources-panel-width: 560px;
+
+.grapher-sources-panel-overlay {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+
+    z-index: $zindex-sources-panel;
+    // the shared scrim the in-frame modal and the slide-in drawer use
+    background-color: $overlay-scrim;
+}
+
+// The panel is portaled to the document body (see SourcesPanel.tsx), so unlike
+// the in-frame modal it inherits none of the base typography and resets that
+// .GrapherComponent sets up further down in grapher.scss. Repeat the ones the
+// sources styles rely on, but none of grapher's sizing or positioning.
+.grapher-sources-panel,
+.grapher-sources-panel :is(h2, p, ul, ol) {
+    font-family: $sans-serif-font-stack;
+}
+
+.grapher-sources-panel {
+    --modal-padding: 24px;
+
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: min($sources-panel-width, 100%);
+
+    background: #fff;
+    box-shadow: 0 4px 30px 0 rgba(0, 0, 0, 0.15);
+
+    font-size: 16px;
+    line-height: 1em;
+    color: $gray-80;
+    text-align: left;
+
+    * {
+        box-sizing: border-box;
+    }
+
+    // Wrapped in :where() to keep their specificity at zero, like the global
+    // element selectors they stand in for.
+    :where(&) :where(ul, ol) {
+        margin: 0;
+        padding: 0;
+    }
+
+    :where(&) :where(button) {
+        border: none;
+    }
+
+    :where(&) :where(a) {
+        cursor: pointer;
+    }
+
+    :where(&) :where(button, input, optgroup, select, textarea) {
+        font-family: $sans-serif-font-stack;
+    }
+
+    button {
+        background: none;
+    }
+
+    // customize css of the <CodeSnippet> component, as the modal does
+    .wp-code-snippet {
+        --code-snippet-border: #{$gray-20};
+        --code-snippet-background-light: #{$gray-5};
+        --code-snippet-text: #{$gray-70};
+        --code-snippet-button: #{$gray-80};
+        --code-snippet-button-hover: #{$gray-70};
+        --code-snippet-button-active: #{$gray-70};
+
+        margin-bottom: 0 !important;
+    }
+}
+
+.grapher-sources-panel--narrow {
+    --modal-padding: 16px;
+
+    .wp-code-snippet {
+        padding: 16px;
+    }
+}
