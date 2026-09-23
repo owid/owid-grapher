@@ -39,6 +39,7 @@ import {
     TOTAL_LABEL_FONT_WEIGHT,
     VALUE_LABEL_FONT_SIZE,
     VALUE_LABEL_FONT_WEIGHT,
+    VALUE_LABEL_LINE_HEIGHT,
     VALUE_LABEL_SIDE_GAP,
 } from "../core/constants.js"
 import {
@@ -110,6 +111,14 @@ export function FoodSupplyChainWaterfallHorizontal({
             showPlus: true,
         })
     )
+    const wrappedStepValueLabelLines = waterfall.steps.map((step) =>
+        waterfall.isUnitWrappable
+            ? [
+                  formatMeasureValue(step.delta, { span, showPlus: true }),
+                  waterfall.shortUnit,
+              ]
+            : undefined
+    )
     const totalValueLabelText = formatMeasureValue(waterfall.total.value, {
         span,
         unit: waterfall.shortUnit,
@@ -145,8 +154,8 @@ export function FoodSupplyChainWaterfallHorizontal({
                 buildAxisLabel({
                     from: step.balanceBefore,
                     to: step.balanceAfter,
-                    // a step of zero draws no label
-                    text: step.delta === 0 ? "" : stepValueLabelTexts[index],
+                    text: stepValueLabelTexts[index],
+                    wrappedLines: wrappedStepValueLabelLines[index],
                     isTotal: false,
                     preferredSide: isAddition(step) ? "right" : "left",
                     tickValues,
@@ -320,9 +329,9 @@ export function FoodSupplyChainWaterfallHorizontal({
                         isDimmed={hover !== undefined}
                     />
                 )}
-                {layout.groups.map(({ group, box: groupBox }) => {
+                {layout.groups.map(({ group, box: groupBox, isLabelled }) => {
                     const textWrap = groupHeaderTextWraps.get(group.key)
-                    if (!textWrap) return null
+                    if (!isLabelled || !textWrap) return null
                     return (
                         <Halo
                             key={group.key}
@@ -345,7 +354,12 @@ export function FoodSupplyChainWaterfallHorizontal({
                         key={step.step.key}
                         step={step}
                         captionTextWrap={captionTextWraps[index]}
-                        valueLabelText={stepValueLabelTexts[index]}
+                        valueLabelLines={
+                            (valueAxis.isWrapped[index] &&
+                                wrappedStepValueLabelLines[index]) || [
+                                stepValueLabelTexts[index],
+                            ]
+                        }
                         valueLabelSide={valueAxis.sides[index]}
                         isTotal={false}
                         isDimmed={
@@ -363,7 +377,7 @@ export function FoodSupplyChainWaterfallHorizontal({
                 <RowMarks
                     step={layout.total}
                     captionTextWrap={totalCaptionTextWrap}
-                    valueLabelText={totalValueLabelText}
+                    valueLabelLines={[totalValueLabelText]}
                     valueLabelSide={valueAxis.sides[waterfall.steps.length]}
                     isTotal
                     isDimmed={
@@ -409,7 +423,7 @@ export function FoodSupplyChainWaterfallHorizontal({
 function RowMarks({
     step,
     captionTextWrap,
-    valueLabelText,
+    valueLabelLines,
     valueLabelSide,
     isTotal,
     isDimmed,
@@ -418,7 +432,8 @@ function RowMarks({
 }: {
     step: PlacedStep
     captionTextWrap: TextWrap
-    valueLabelText: string
+    /** One line, or two with the unit on the second */
+    valueLabelLines: string[]
     valueLabelSide: LabelSide
     isTotal: boolean
     isDimmed: boolean
@@ -433,6 +448,9 @@ function RowMarks({
           ? COLORS.add
           : COLORS.subtract
     const rowCentre = step.slot.y + step.slot.height / 2
+    const valueLabelFontSize = isTotal
+        ? TOTAL_LABEL_FONT_SIZE
+        : VALUE_LABEL_FONT_SIZE
 
     return (
         <g
@@ -466,25 +484,19 @@ function RowMarks({
                         outlineColor={backgroundColor}
                         outlineWidth={LABEL_HALO_WIDTH}
                     >
-                        <text
-                            className="food-supply-chain-waterfall__value-label"
-                            y={rowCentre}
-                            dominantBaseline="middle"
-                            fontSize={
-                                isTotal
-                                    ? TOTAL_LABEL_FONT_SIZE
-                                    : VALUE_LABEL_FONT_SIZE
-                            }
+                        <ValueLabel
+                            lines={valueLabelLines}
+                            bar={step.bar}
+                            side={valueLabelSide}
+                            rowCentre={rowCentre}
+                            fontSize={valueLabelFontSize}
                             fontWeight={
                                 isTotal
                                     ? TOTAL_LABEL_FONT_WEIGHT
                                     : VALUE_LABEL_FONT_WEIGHT
                             }
                             fill={barColor}
-                            {...placeValueLabel(step.bar, valueLabelSide)}
-                        >
-                            {valueLabelText}
-                        </text>
+                        />
                     </Halo>
                 </>
             )}
@@ -549,6 +561,55 @@ function BarArrow({
     )
 }
 
+/** A bar's value label beside it, its lines centred on the row */
+function ValueLabel({
+    lines,
+    bar,
+    side,
+    rowCentre,
+    fontSize,
+    fontWeight,
+    fill,
+    style,
+}: {
+    lines: string[]
+    bar: PlacedBar
+    side: LabelSide
+    rowCentre: number
+    fontSize: number
+    fontWeight: number
+    fill: string
+    /** Set by Halo on its copy */
+    style?: React.CSSProperties
+}): React.ReactElement {
+    const { x, textAnchor } = placeValueLabel(bar, side)
+    const lineHeight = fontSize * VALUE_LABEL_LINE_HEIGHT
+    return (
+        <text
+            className="food-supply-chain-waterfall__value-label"
+            textAnchor={textAnchor}
+            dominantBaseline="middle"
+            fontSize={fontSize}
+            fontWeight={fontWeight}
+            fill={fill}
+            style={style}
+        >
+            {lines.map((line, index) => (
+                <tspan
+                    key={index}
+                    x={x}
+                    y={
+                        rowCentre +
+                        (index - (lines.length - 1) / 2) * lineHeight
+                    }
+                >
+                    {line}
+                </tspan>
+            ))}
+        </text>
+    )
+}
+
 function placeValueLabel(
     bar: PlacedBar,
     side: LabelSide
@@ -563,6 +624,7 @@ function buildAxisLabel({
     from,
     to,
     text,
+    wrappedLines,
     isTotal,
     preferredSide,
     tickValues,
@@ -570,21 +632,30 @@ function buildAxisLabel({
     from: number
     to: number
     text: string
+    /** The text as two lines, with the unit on the second */
+    wrappedLines?: string[]
     isTotal: boolean
     preferredSide: LabelSide
     tickValues: number[]
 }): AxisLabel {
     const domainStart = tickValues[0]
     const domainSpan = tickValues[tickValues.length - 1] - domainStart
-    const textWidth = Bounds.forText(text, {
-        fontSize: isTotal ? TOTAL_LABEL_FONT_SIZE : VALUE_LABEL_FONT_SIZE,
-        fontWeight: isTotal ? TOTAL_LABEL_FONT_WEIGHT : VALUE_LABEL_FONT_WEIGHT,
-    }).width
+    const measureTextWidth = (line: string): number =>
+        Bounds.forText(line, {
+            fontSize: isTotal ? TOTAL_LABEL_FONT_SIZE : VALUE_LABEL_FONT_SIZE,
+            fontWeight: isTotal
+                ? TOTAL_LABEL_FONT_WEIGHT
+                : VALUE_LABEL_FONT_WEIGHT,
+        }).width
+    // a gap to the bar, and one to the plot's edge
+    const gaps = 2 * VALUE_LABEL_SIDE_GAP
     return {
         barStart: (Math.min(from, to) - domainStart) / domainSpan,
         barEnd: (Math.max(from, to) - domainStart) / domainSpan,
-        // a gap to the bar, and one to the plot's edge
-        width: text ? textWidth + 2 * VALUE_LABEL_SIDE_GAP : 0,
+        width: measureTextWidth(text) + gaps,
+        wrappedWidth:
+            wrappedLines &&
+            Math.max(...wrappedLines.map(measureTextWidth)) + gaps,
         preferredSide,
     }
 }

@@ -30,6 +30,8 @@ export const COLORS = {
 export const TICK_LABEL_FONT_SIZE = 12
 export const VALUE_LABEL_FONT_SIZE = 12
 export const VALUE_LABEL_FONT_WEIGHT = 400
+/** Line height of a value label with its unit on a second line, relative to its font size */
+export const VALUE_LABEL_LINE_HEIGHT = 1.1
 export const TOTAL_LABEL_FONT_SIZE = 14
 export const TOTAL_LABEL_FONT_WEIGHT = 600
 export const CAPTION_FONT_SIZE = 12
