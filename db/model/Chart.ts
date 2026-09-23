@@ -22,6 +22,7 @@ import {
     DbEnrichedChartConfig,
     GrapherChartType,
     RelatedChartsTableName,
+    TagGraphRootName,
 } from "@ourworldindata/types"
 import { OpenAI } from "openai"
 import { zodResponseFormat } from "openai/helpers/zod"
@@ -670,6 +671,20 @@ export const getRelatedChartsForVariable = async (
 
 // Currently only returns charts from ETL (i.e. with "production" as reviewer)
 // Can be changed if we we want manually-added related charts
+//
+// The ETL writes a *pool* of coview candidates per chart (more than we display),
+// and we re-rank that pool here into three tiers:
+//
+//   1. candidates sharing a topic tag with the source chart
+//   2. candidates sharing an area (the top-level tag_graph ancestor of a tag,
+//      e.g. "Energy and Environment")
+//   3. everything else
+//
+// ordered by coview score within each tier. Coviews on their own put the site's
+// most-viewed charts on every popular page — "Population" and "Life expectancy"
+// next to CO₂ emissions per capita — because those charts are viewed in the same
+// sessions as everything else. Tiering demotes them without discarding them, so a
+// chart whose pool has no topical candidates still gets a full list.
 export const getRelatedChartsForChart = async (
     knex: db.KnexReadonlyTransaction,
     chartId: number,
@@ -678,28 +693,67 @@ export const getRelatedChartsForChart = async (
     return db.knexRaw<RelatedChart>(
         knex,
         `-- sql
-            SELECT
-                charts.id AS chartId,
-                chart_configs.slug,
-                chart_configs.config->>"$.title" AS title,
-                chart_configs.config->>"$.variantName" AS variantName
-            FROM ${RelatedChartsTableName} rc
-            JOIN charts ON charts.id = rc.relatedChartId
-            JOIN chart_configs ON charts.configId = chart_configs.id
-            WHERE rc.chartId = ?
-                AND rc.relatedChartId != rc.chartId
-                AND rc.reviewer = 'production'
-                AND rc.label = 'good'
-                AND chart_configs.config->>"$.isPublished" = "true"
-                AND NOT EXISTS (
-                    SELECT 1 FROM chart_tags ct
-                    JOIN tags t ON ct.tagId = t.id
-                    WHERE ct.chartId = charts.id AND t.name = 'Unlisted'
-                )
-            ORDER BY rc.score DESC
+            WITH RECURSIVE areaTags AS (
+                -- (area, tag) closure over the tag graph. Areas are the direct
+                -- children of the root; each one is seeded as its own descendant
+                -- so charts tagged with an area directly also match.
+                SELECT tg.childId AS areaId, tg.childId AS tagId
+                FROM tag_graph tg
+                JOIN tags root ON root.id = tg.parentId
+                WHERE root.name = ?
+
+                UNION DISTINCT
+
+                SELECT areaTags.areaId, tg.childId
+                FROM tag_graph tg
+                JOIN areaTags ON areaTags.tagId = tg.parentId
+            ),
+            sourceTags AS (
+                SELECT tagId FROM chart_tags WHERE chartId = ?
+            ),
+            sourceAreas AS (
+                SELECT DISTINCT areaTags.areaId
+                FROM areaTags
+                JOIN sourceTags ON sourceTags.tagId = areaTags.tagId
+            ),
+            candidates AS (
+                SELECT
+                    charts.id AS chartId,
+                    chart_configs.slug AS slug,
+                    chart_configs.config->>"$.title" AS title,
+                    chart_configs.config->>"$.variantName" AS variantName,
+                    rc.score AS score,
+                    EXISTS (
+                        SELECT 1 FROM chart_tags ct
+                        JOIN sourceTags ON sourceTags.tagId = ct.tagId
+                        WHERE ct.chartId = charts.id
+                    ) AS sharesTag,
+                    EXISTS (
+                        SELECT 1 FROM chart_tags ct
+                        JOIN areaTags ON areaTags.tagId = ct.tagId
+                        JOIN sourceAreas ON sourceAreas.areaId = areaTags.areaId
+                        WHERE ct.chartId = charts.id
+                    ) AS sharesArea
+                FROM ${RelatedChartsTableName} rc
+                JOIN charts ON charts.id = rc.relatedChartId
+                JOIN chart_configs ON charts.configId = chart_configs.id
+                WHERE rc.chartId = ?
+                    AND rc.relatedChartId != rc.chartId
+                    AND rc.reviewer = 'production'
+                    AND rc.label = 'good'
+                    AND chart_configs.config->>"$.isPublished" = "true"
+                    AND NOT EXISTS (
+                        SELECT 1 FROM chart_tags ct
+                        JOIN tags t ON ct.tagId = t.id
+                        WHERE ct.chartId = charts.id AND t.name = 'Unlisted'
+                    )
+            )
+            SELECT chartId, slug, title, variantName
+            FROM candidates
+            ORDER BY sharesTag DESC, sharesArea DESC, score DESC
             LIMIT ?
         `,
-        [chartId, limit]
+        [TagGraphRootName, chartId, chartId, limit]
     )
 }
 
