@@ -52,7 +52,7 @@ export function FoodSupplyChainControls({
         <Controls className="food-supply-chain-controls">
             <ControlsRow>
                 <EntityDropdown
-                    label="Country"
+                    label="Country or region"
                     availableEntities={availableEntities}
                     selectedEntityName={entityName}
                     onChange={setEntityName}
