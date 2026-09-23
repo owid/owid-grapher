@@ -23,15 +23,12 @@ import type { BespokeComponentDataUrls } from "owid-bespoke-types"
 
 import { FoodSupplyChainControls } from "../components/FoodSupplyChainControls.js"
 import {
+    doesVerticalLayoutFit,
     FoodSupplyChainWaterfall,
-    measureVerticalSlotWidth,
 } from "../components/FoodSupplyChainWaterfall.js"
 import { FoodSupplyChainWaterfallHorizontal } from "../components/FoodSupplyChainWaterfallHorizontal.js"
 import { FoodSupplyChainConfig } from "../core/config.js"
-import {
-    MIN_VERTICAL_SLOT_WIDTH,
-    VERTICAL_CHART_HEIGHT,
-} from "../core/constants.js"
+import { VERTICAL_CHART_HEIGHT } from "../core/constants.js"
 import { clampYear } from "../core/clampYear.js"
 import {
     queryClient,
@@ -246,8 +243,7 @@ function MeasuredWaterfall({
 }): React.ReactElement {
     const { ref, width } = useContainerWidth()
 
-    const isHorizontal =
-        measureVerticalSlotWidth(waterfall, width) < MIN_VERTICAL_SLOT_WIDTH
+    const isHorizontal = !doesVerticalLayoutFit(waterfall, width)
 
     return (
         <div ref={ref}>
