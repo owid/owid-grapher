@@ -4,6 +4,7 @@ import {
     OwidTable,
 } from "@ourworldindata/core-table"
 import {
+    ColumnSlug,
     Time,
     TimeInterval,
     TimeRange,
@@ -46,7 +47,10 @@ export function makeToleranceNotice({
 
     return formatToleranceNotice({
         timeColumn: transformedTable.timeColumn,
-        timeRange: inputTable.timeRange,
+        timeRange: getTimeRangeOfColumns(
+            inputTable,
+            appliedColumns.map((column) => column.slug)
+        ),
         timeTolerance: statedTolerance,
         toleranceStrategy,
     })
@@ -163,6 +167,22 @@ function columnsWithToleranceApplied(
 
         return false
     })
+}
+
+/** The first and last time any of the given columns has data for in `table` */
+function getTimeRangeOfColumns(
+    table: OwidTable,
+    slugs: ColumnSlug[]
+): TimeRange | undefined {
+    const tableColumns = slugs
+        .filter((slug) => table.has(slug))
+        .map((slug) => table.get(slug))
+    if (!tableColumns.length) return undefined
+
+    return [
+        Math.min(...tableColumns.map((column) => column.minTime)),
+        Math.max(...tableColumns.map((column) => column.maxTime)),
+    ]
 }
 
 /** The tolerance in words, e.g. "3 years" or "a year" */
