@@ -17,3 +17,18 @@
 .deforestation-controls__switcher-wrapper .switcher__button {
     padding: 0 18px;
 }
+
+// The period switcher keeps its natural width; the slider takes the rest of
+// the row and wraps under it when the row is too narrow for both
+.deforestation-controls
+    .deforestation-controls__time-row
+    > .deforestation-controls__period {
+    flex: 0 0 auto;
+}
+
+.deforestation-controls
+    .deforestation-controls__time-row
+    > .deforestation-controls__time-slider {
+    flex: 1 1 240px;
+    width: auto;
+}
