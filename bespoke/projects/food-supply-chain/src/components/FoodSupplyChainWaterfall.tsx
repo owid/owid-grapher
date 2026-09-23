@@ -124,7 +124,7 @@ export function FoodSupplyChainWaterfall({
             formatMeasureValue(step.delta, {
                 span,
                 unit,
-                showPlus: index > 0,
+                showPlus: index > 0 && step.delta !== 0,
             })
         )
     const stepValuesWithUnit = formatStepValues(waterfall.shortUnit)
@@ -404,7 +404,9 @@ function StepMarks({
 }): React.ReactElement {
     const barColor = isTotal
         ? COLORS.total
-        : isAddition(step.step)
+        : step.step.delta === 0
+          ? COLORS.unchanged
+          : isAddition(step.step)
           ? COLORS.add
           : COLORS.subtract
 

@@ -105,7 +105,7 @@ describe(buildWaterfall, () => {
         expect(result.domain[0]).toBe(0)
     })
 
-    it("leaves out a step of zero", () => {
+    it("keeps a step of zero", () => {
         const manifest = fixtureManifest([
             { key: "crop", name: "Crop production", direction: "in" },
             { key: "tourism", name: "Tourist consumption", direction: "out" },
@@ -125,6 +125,7 @@ describe(buildWaterfall, () => {
         })!
         expect(result.steps.map((step) => step.key)).toEqual([
             "crop",
+            "tourism",
             "exports",
         ])
     })

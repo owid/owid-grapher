@@ -40,7 +40,7 @@ export function findExcludedStageKeys(entitySlug: string): StageKey[] {
     return entitySlug === WORLD_ENTITY_SLUG ? TRADE_STAGE_KEYS : []
 }
 
-/** Leaves out steps of zero, and the stages in `excludedStageKeys` altogether */
+/** Leaves out the stages in `excludedStageKeys` altogether */
 export function buildWaterfall({
     manifest,
     entityData,
@@ -76,7 +76,6 @@ export function buildWaterfall({
                 balanceAfter: balance,
             }
         })
-        .filter((step) => step.delta !== 0)
 
     const totalValue = values[manifest.totalStage.key][yearIndex]
     const total = {

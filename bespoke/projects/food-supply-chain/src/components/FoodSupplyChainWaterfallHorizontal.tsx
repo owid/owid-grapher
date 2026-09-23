@@ -58,6 +58,7 @@ import {
     measureGroupHeaderSlots,
     PlacedBar,
     PlacedLine,
+    PlacedRect,
     PlacedStep,
 } from "../core/waterfallLayout.js"
 import { FoodSupplyChainTooltip } from "./FoodSupplyChainTooltip.js"
@@ -108,7 +109,7 @@ export function FoodSupplyChainWaterfallHorizontal({
         formatMeasureValue(step.delta, {
             span,
             unit: waterfall.shortUnit,
-            showPlus: index > 0,
+            showPlus: index > 0 && step.delta !== 0,
         })
     )
     const wrappedStepValueLabelLines = waterfall.steps.map((step, index) =>
@@ -116,7 +117,7 @@ export function FoodSupplyChainWaterfallHorizontal({
             ? [
                   formatMeasureValue(step.delta, {
                       span,
-                      showPlus: index > 0,
+                      showPlus: index > 0 && step.delta !== 0,
                   }),
                   waterfall.shortUnit,
               ]
@@ -452,7 +453,9 @@ function RowMarks({
 }): React.ReactElement {
     const barColor = isTotal
         ? COLORS.total
-        : isAddition(step.step)
+        : step.step.delta === 0
+          ? COLORS.unchanged
+          : isAddition(step.step)
           ? COLORS.add
           : COLORS.subtract
     const rowCentre = step.slot.y + step.slot.height / 2
@@ -487,27 +490,27 @@ function RowMarks({
                         fill={barColor}
                     />
                     {showArrow && <BarArrow step={step} bar={step.bar} />}
-                    <Halo
-                        id={`${step.step.key}-value-label-halo`}
-                        outlineColor={backgroundColor}
-                        outlineWidth={LABEL_HALO_WIDTH}
-                    >
-                        <ValueLabel
-                            lines={valueLabelLines}
-                            bar={step.bar}
-                            side={valueLabelSide}
-                            rowCentre={rowCentre}
-                            fontSize={valueLabelFontSize}
-                            fontWeight={
-                                isTotal
-                                    ? TOTAL_LABEL_FONT_WEIGHT
-                                    : VALUE_LABEL_FONT_WEIGHT
-                            }
-                            fill={barColor}
-                        />
-                    </Halo>
                 </>
             )}
+            <Halo
+                id={`${step.step.key}-value-label-halo`}
+                outlineColor={backgroundColor}
+                outlineWidth={LABEL_HALO_WIDTH}
+            >
+                <ValueLabel
+                    lines={valueLabelLines}
+                    bar={step.bar ?? { x: step.valueAnchor.x, width: 0 }}
+                    side={valueLabelSide}
+                    rowCentre={rowCentre}
+                    fontSize={valueLabelFontSize}
+                    fontWeight={
+                        isTotal
+                            ? TOTAL_LABEL_FONT_WEIGHT
+                            : VALUE_LABEL_FONT_WEIGHT
+                    }
+                    fill={barColor}
+                />
+            </Halo>
         </g>
     )
 }
@@ -581,7 +584,8 @@ function ValueLabel({
     style,
 }: {
     lines: string[]
-    bar: PlacedBar
+    /** Zero-width at the running balance for a step with no bar */
+    bar: Pick<PlacedRect, "x" | "width">
     side: LabelSide
     rowCentre: number
     fontSize: number
@@ -619,7 +623,7 @@ function ValueLabel({
 }
 
 function placeValueLabel(
-    bar: PlacedBar,
+    bar: Pick<PlacedRect, "x" | "width">,
     side: LabelSide
 ): { x: number; textAnchor: "start" | "end" } {
     return side === "right"

@@ -14,6 +14,8 @@ export const COLORS = {
     add: OwidDistinctColors.TealishGreen,
     /** A step that subtracts from it */
     subtract: OwidDistinctColors.RustyOrange,
+    /** A step of zero */
+    unchanged: GRAPHER_LIGHT_TEXT,
     /** The food available to eat */
     total: OwidDistinctColors.MidnightBlue,
     gridline: GRAY_20,
