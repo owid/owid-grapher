@@ -93,6 +93,8 @@ export interface WaterfallLayout {
     steps: PlacedStep[]
     total: PlacedStep
     connectors: PlacedConnector[]
+    /** From the last drawn step's bar to the total's, at the total's value */
+    totalConnector?: PlacedLine
     ticks: PlacedTick[]
     zeroLine: PlacedLine
     groups: PlacedGroup[]
@@ -219,6 +221,7 @@ interface WaterfallPlan {
     steps: PlannedStep[]
     total: PlannedStep
     connectors: PlannedConnector[]
+    totalConnector?: Extent
     ticks: PlannedTick[]
     zeroLine: Extent
     groups: PlannedGroup[]
@@ -253,6 +256,7 @@ function planWaterfall(
         steps,
         total,
         connectors: planConnectors(steps),
+        totalConnector: planTotalConnector(steps, total),
         ticks: ticks.map((value) => ({
             value,
             gridline: { value: { from: value, to: value }, step: stepDomain },
@@ -408,6 +412,20 @@ function planConnectors(slots: PlannedStep[]): PlannedConnector[] {
     return connectors
 }
 
+function planTotalConnector(
+    steps: PlannedStep[],
+    total: PlannedStep
+): Extent | undefined {
+    const drawnSteps = steps.filter((planned) => planned.bar)
+    const lastBar = drawnSteps[drawnSteps.length - 1]?.bar
+    if (!lastBar || !total.bar) return undefined
+    const value = total.step.balanceAfter
+    return {
+        value: { from: value, to: value },
+        step: { from: lastBar.step.to, to: total.bar.step.from },
+    }
+}
+
 /** Round tick values covering the domain, and the domain widened to reach them */
 function chooseTicks(
     domain: [number, number],
@@ -548,6 +566,9 @@ function projectPlan(
             leftStep: planned.leftStep,
             line: projection.toSegment(scaleExtent(planned.line, scales)),
         })),
+        totalConnector:
+            plan.totalConnector &&
+            projection.toSegment(scaleExtent(plan.totalConnector, scales)),
         ticks: plan.ticks.map((tick) => ({
             value: tick.value,
             gridline: projection.toSegment(scaleExtent(tick.gridline, scales)),
