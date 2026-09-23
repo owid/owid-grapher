@@ -44,7 +44,9 @@ import {
     resolveYearIndexRange,
     rowsForYearRange,
     sumRows,
+    worldContextForYearRange,
 } from "../core/helpers.js"
+import { getGroupClearedFor } from "../core/commodityGroups.js"
 import { DeforestationChart } from "../components/DeforestationChart.js"
 import { DeforestationControls } from "../components/DeforestationControls.js"
 
@@ -206,6 +208,17 @@ function FetchingSankeyVariant({
                 : [],
         [data, yearIndex, startIndex, endIndex]
     )
+    const worldContext = useMemo(
+        () =>
+            metadata && yearIndex >= 0
+                ? worldContextForYearRange(
+                      metadata.worldTotals,
+                      startIndex,
+                      endIndex
+                  )
+                : undefined,
+        [metadata, yearIndex, startIndex, endIndex]
+    )
     const importsTotal = useMemo(() => sumRows(importRows), [importRows])
     const exportsTotal = useMemo(() => sumRows(exportRows), [exportRows])
 
@@ -262,6 +275,7 @@ function FetchingSankeyVariant({
             importRows={importRows}
             exportRows={exportRows}
             total={total}
+            worldContext={worldContext}
             isLoading={isLoading}
             isNarrow={isNarrow}
             setCountry={setCountry}
@@ -284,6 +298,7 @@ function CaptionedSankeyVariant({
     importRows,
     exportRows,
     total,
+    worldContext,
     isLoading,
     isNarrow,
     setCountry,
@@ -302,6 +317,7 @@ function CaptionedSankeyVariant({
     importRows: TradeRow[]
     exportRows: TradeRow[]
     total: number
+    worldContext: WorldContext | undefined
     isLoading: boolean
     isNarrow: boolean
     setCountry: (name: string) => void
@@ -329,8 +345,9 @@ function CaptionedSankeyVariant({
                 yearRange,
                 total,
                 domesticShare,
+                worldContext,
             }),
-        [view, displayedCountry, yearRange, total, domesticShare]
+        [view, displayedCountry, yearRange, total, domesticShare, worldContext]
     )
 
     return (
@@ -392,6 +409,8 @@ function CaptionedSankeyVariant({
 const NOTE =
     "Figures are deforestation risk embedded in trade: an estimate of how much deforestation a country is exposed to through the commodities it produces or consumes, not confirmed sourcing from a particular cleared area."
 
+type WorldContext = ReturnType<typeof worldContextForYearRange>
+
 /** The narrative title and subtitle for the current selection. */
 function buildCaption({
     view,
@@ -399,6 +418,7 @@ function buildCaption({
     yearRange,
     total,
     domesticShare,
+    worldContext,
 }: {
     view: View
     country: string
@@ -406,6 +426,7 @@ function buildCaption({
     total: number
     /** Share of this view's flow the country both produced and consumed */
     domesticShare: number
+    worldContext: WorldContext | undefined
 }): { title: string; subtitle: string } {
     const amount = formatHectares(total)
     const articulated = articulateEntity(country)
@@ -417,14 +438,22 @@ function buildCaption({
             ? `${formatShare(domesticShare)} of it was for commodities that were both produced & consumed in ${articulated}.`
             : ""
 
+    // The world's total for scale, with what drove the largest share of it
+    const worldClause = worldContext
+        ? `For context, ${when} a total of ${formatHectares(worldContext.total)} of forest was cleared worldwide for agriculture, ${
+              worldContext.topShare > 0.5 ? "most of it" : "the largest share"
+          } (${formatShare(worldContext.topShare)}) for ${getGroupClearedFor(worldContext.topGroup)}.`
+        : ""
+    const subtitle = [domesticClause, worldClause].filter(Boolean).join(" ")
+
     if (view === "consumption")
         return {
             title: `${R.capitalize(amount)} of forest were cleared ${when} for agricultural products consumed in ${articulated}. Where were these products produced?`,
-            subtitle: domesticClause,
+            subtitle,
         }
 
     return {
         title: `${R.capitalize(articulated)} cleared ${amount} of forest ${when} for agriculture. Where were these products consumed?`,
-        subtitle: domesticClause,
+        subtitle,
     }
 }

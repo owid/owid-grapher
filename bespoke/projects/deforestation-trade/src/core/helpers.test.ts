@@ -5,6 +5,7 @@ import {
     formatYearRange,
     resolveYearIndexRange,
     rowsForYearRange,
+    worldContextForYearRange,
 } from "./helpers.js"
 import type { TradeSeries } from "./types.js"
 
@@ -81,5 +82,33 @@ describe("year range labels", () => {
         expect(describeYearRange({ start: 2019, end: 2023 })).toBe(
             "between 2019 and 2023"
         )
+    })
+})
+
+describe(worldContextForYearRange, () => {
+    const worldTotals = [
+        { group: "Pasture", values: [60, 40, 30] },
+        { group: "Cereals", values: [40, 60, 30] },
+        { group: "Vegetables", values: [0, 0, 40] },
+    ]
+
+    it("sums a single year and names its largest group", () => {
+        expect(worldContextForYearRange(worldTotals, 0, 0)).toEqual({
+            total: 100,
+            topGroup: "Pasture",
+            topShare: 0.6,
+        })
+    })
+
+    it("sums every group over a range of years", () => {
+        expect(worldContextForYearRange(worldTotals, 1, 2)).toEqual({
+            total: 200,
+            topGroup: "Cereals",
+            topShare: 0.45,
+        })
+    })
+
+    it("has nothing to say without data", () => {
+        expect(worldContextForYearRange([], 0, 0)).toBeUndefined()
     })
 })
