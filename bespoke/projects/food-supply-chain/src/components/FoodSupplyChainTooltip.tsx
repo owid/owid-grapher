@@ -10,6 +10,8 @@ import { PlacedStep } from "../core/waterfallLayout.js"
 export interface FoodSupplyChainTooltipProps {
     step: PlacedStep
     isTotal: boolean
+    /** Whether this is the first step, which starts from zero */
+    isFirstStep: boolean
     /** Short form, e.g. "kcal" */
     unit: string
     year: number
@@ -22,6 +24,7 @@ export interface FoodSupplyChainTooltipProps {
 export function FoodSupplyChainTooltip({
     step,
     isTotal,
+    isFirstStep,
     unit,
     year,
     span,
@@ -35,6 +38,8 @@ export function FoodSupplyChainTooltip({
         : delta > 0
           ? COLORS.add
           : COLORS.subtract
+
+    const isFromZero = isTotal || isFirstStep
 
     return (
         <TooltipCard
@@ -50,16 +55,18 @@ export function FoodSupplyChainTooltip({
         >
             <TooltipValue
                 label={
-                    isTotal ? "Per person per day" : "Change per person per day"
+                    isFromZero
+                        ? "Per person per day"
+                        : "Change per person per day"
                 }
                 value={formatMeasureValue(delta, {
                     span,
                     unit,
-                    showPlus: !isTotal,
+                    showPlus: !isFromZero,
                 })}
                 color={color}
             />
-            {!isTotal && (
+            {!isFromZero && (
                 <TooltipValue
                     label="Running total"
                     value={formatMeasureValue(balanceAfter, { span, unit })}

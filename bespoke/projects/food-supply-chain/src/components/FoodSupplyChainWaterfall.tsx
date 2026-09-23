@@ -118,8 +118,12 @@ export function FoodSupplyChainWaterfall({
         )
     )
     const formatStepValues = (unit?: string): string[] =>
-        waterfall.steps.map((step) =>
-            formatMeasureValue(step.delta, { span, unit, showPlus: true })
+        waterfall.steps.map((step, index) =>
+            formatMeasureValue(step.delta, {
+                span,
+                unit,
+                showPlus: index > 0,
+            })
         )
     const stepValuesWithUnit = formatStepValues(waterfall.shortUnit)
     const doStepValuesWithUnitFit = stepValuesWithUnit.every(
@@ -262,6 +266,7 @@ export function FoodSupplyChainWaterfall({
                         step={step}
                         valueLabelText={valueLabelTexts[index]}
                         isTotal={false}
+                        showArrow={index > 0}
                         isDimmed={
                             hover !== undefined &&
                             hover.stepKey !== step.step.key
@@ -278,6 +283,7 @@ export function FoodSupplyChainWaterfall({
                     step={layout.total}
                     valueLabelText={totalValueLabelText}
                     isTotal
+                    showArrow={false}
                     isDimmed={
                         hover !== undefined &&
                         hover.stepKey !== waterfall.total.key
@@ -305,6 +311,7 @@ export function FoodSupplyChainWaterfall({
                 <FoodSupplyChainTooltip
                     step={hoveredStep}
                     isTotal={hover.stepKey === waterfall.total.key}
+                    isFirstStep={hover.stepKey === waterfall.steps[0]?.key}
                     unit={waterfall.shortUnit}
                     year={waterfall.year}
                     span={span}
@@ -355,6 +362,7 @@ function StepMarks({
     step,
     valueLabelText,
     isTotal,
+    showArrow,
     isDimmed,
     captionTextWrap,
     backgroundColor,
@@ -362,6 +370,7 @@ function StepMarks({
     step: PlacedStep
     valueLabelText: string
     isTotal: boolean
+    showArrow: boolean
     isDimmed: boolean
     /** Absent for the total, whose box carries its label */
     captionTextWrap?: TextWrap
@@ -395,7 +404,7 @@ function StepMarks({
                         height={step.bar.height}
                         fill={barColor}
                     />
-                    {!isTotal && <BarArrow step={step} bar={step.bar} />}
+                    {showArrow && <BarArrow step={step} bar={step.bar} />}
                 </>
             )}
             <Halo

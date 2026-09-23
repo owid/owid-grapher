@@ -104,17 +104,20 @@ export function FoodSupplyChainWaterfallHorizontal({
             fontSize: TICK_LABEL_FONT_SIZE,
         }
     ).width
-    const stepValueLabelTexts = waterfall.steps.map((step) =>
+    const stepValueLabelTexts = waterfall.steps.map((step, index) =>
         formatMeasureValue(step.delta, {
             span,
             unit: waterfall.shortUnit,
-            showPlus: true,
+            showPlus: index > 0,
         })
     )
-    const wrappedStepValueLabelLines = waterfall.steps.map((step) =>
+    const wrappedStepValueLabelLines = waterfall.steps.map((step, index) =>
         waterfall.isUnitWrappable
             ? [
-                  formatMeasureValue(step.delta, { span, showPlus: true }),
+                  formatMeasureValue(step.delta, {
+                      span,
+                      showPlus: index > 0,
+                  }),
                   waterfall.shortUnit,
               ]
             : undefined
@@ -362,6 +365,7 @@ export function FoodSupplyChainWaterfallHorizontal({
                         }
                         valueLabelSide={valueAxis.sides[index]}
                         isTotal={false}
+                        showArrow={index > 0}
                         isDimmed={
                             hover !== undefined &&
                             hover.stepKey !== step.step.key
@@ -380,6 +384,7 @@ export function FoodSupplyChainWaterfallHorizontal({
                     valueLabelLines={[totalValueLabelText]}
                     valueLabelSide={valueAxis.sides[waterfall.steps.length]}
                     isTotal
+                    showArrow={false}
                     isDimmed={
                         hover !== undefined &&
                         hover.stepKey !== waterfall.total.key
@@ -408,6 +413,7 @@ export function FoodSupplyChainWaterfallHorizontal({
                 <FoodSupplyChainTooltip
                     step={hoveredStep}
                     isTotal={hover.stepKey === waterfall.total.key}
+                    isFirstStep={hover.stepKey === waterfall.steps[0]?.key}
                     unit={waterfall.shortUnit}
                     year={waterfall.year}
                     span={span}
@@ -426,6 +432,7 @@ function RowMarks({
     valueLabelLines,
     valueLabelSide,
     isTotal,
+    showArrow,
     isDimmed,
     captionRight,
     backgroundColor,
@@ -436,6 +443,7 @@ function RowMarks({
     valueLabelLines: string[]
     valueLabelSide: LabelSide
     isTotal: boolean
+    showArrow: boolean
     isDimmed: boolean
     /** Where the caption's lines end */
     captionRight: number
@@ -478,7 +486,7 @@ function RowMarks({
                         height={step.bar.height}
                         fill={barColor}
                     />
-                    {!isTotal && <BarArrow step={step} bar={step.bar} />}
+                    {showArrow && <BarArrow step={step} bar={step.bar} />}
                     <Halo
                         id={`${step.step.key}-value-label-halo`}
                         outlineColor={backgroundColor}
