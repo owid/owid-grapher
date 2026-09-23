@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query"
 import { Editor } from "@tiptap/core"
 import { DbPlainDod } from "@ourworldindata/types"
 import { AdminAppContext } from "../AdminAppContext.js"
-import { pmMarkNames } from "./serialization/pmJson.js"
+import { pmMarkNames } from "../../adminShared/richEditor/serialization/pmJson.js"
 
 // Inline-formatting toolbar above the canvas: bold/italic/underline plus the
 // OWID-specific marks — links, details-on-demand, and footnote refs.

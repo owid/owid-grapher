@@ -23,8 +23,6 @@ import { dayjs } from "@ourworldindata/utils"
 import {
     RichEditorCommentThreadsResponse,
     RichEditorGdocResponse,
-    RichEditorPresenceEditor,
-    RichEditorPresenceResponse,
     RichEditorPublishResponse,
     RichEditorPublishValidationResponse,
     RichEditorRevisionsResponse,
@@ -37,7 +35,7 @@ import {
     getBlockItemsForDocType,
     RichEditorBlockItem,
 } from "./blockRegistry.js"
-import { pmDocToEnrichedBlocks } from "./serialization/serialization.js"
+import { pmDocToEnrichedBlocks } from "../../adminShared/richEditor/serialization/serialization.js"
 import { applyCommentMarks, collectCommentAnchors } from "./comments.js"
 import { computeConversionReport } from "./conversionReport.js"
 import { CommentsPanel } from "./CommentsPanel.js"
@@ -55,6 +53,11 @@ import {
 import { ChartEditingContext } from "./chartEditing/ChartEditingContext.js"
 import { useChartEditingState } from "./chartEditing/useChartEditingState.js"
 import { EmbeddedChartEditorPanel } from "./chartEditing/EmbeddedChartEditorPanel.js"
+import {
+    RichEditorSyncStatus,
+    useAwarenessPeers,
+    useRichEditorCollaboration,
+} from "./collaboration.js"
 
 type SaveState =
     | { kind: "saved"; at: Date | null }
@@ -64,7 +67,6 @@ type SaveState =
     | { kind: "error"; message: string }
 
 const AUTOSAVE_DEBOUNCE_MS = 2000
-const PRESENCE_HEARTBEAT_MS = 20_000
 
 export function RichEditorPage(
     props: RouteComponentProps<{ id: string }>
@@ -124,6 +126,30 @@ function CreateNativeGdocPage(
                                     value: OwidGdocType.Article,
                                     label: "Article (beta)",
                                 },
+                                {
+                                    value: OwidGdocType.LinearTopicPage,
+                                    label: "Linear topic page (beta)",
+                                },
+                                {
+                                    value: OwidGdocType.TopicPage,
+                                    label: "Topic page (beta)",
+                                },
+                                {
+                                    value: OwidGdocType.AboutPage,
+                                    label: "About page (beta)",
+                                },
+                                {
+                                    value: OwidGdocType.Announcement,
+                                    label: "Announcement (beta)",
+                                },
+                                {
+                                    value: OwidGdocType.Author,
+                                    label: "Author (beta)",
+                                },
+                                {
+                                    value: OwidGdocType.Profile,
+                                    label: "Profile (beta)",
+                                },
                             ]}
                         />
                     </Form.Item>
@@ -152,6 +178,14 @@ function RichEditorPageForId(props: { id: string }): React.ReactElement {
 
     const isNative =
         gdocQuery.data?.authoringMode === OwidGdocAuthoringMode.Native
+
+    // Live collaboration is the default for native docs; ?sync=0 falls back
+    // to the legacy REST autosave path (rollout escape hatch)
+    const syncEnabled =
+        isNative &&
+        new URLSearchParams(window.location.search).get("sync") !== "0"
+    const collab = useRichEditorCollaboration(id, syncEnabled, admin.username)
+    const peers = useAwarenessPeers(collab.collaboration)
 
     const threadsQuery = useQuery<RichEditorCommentThreadsResponse>({
         queryKey: ["richEditorComments", id],
@@ -219,9 +253,6 @@ function RichEditorPageForId(props: { id: string }): React.ReactElement {
     // was clicked while a component was selected)
     const [pendingInsert, setPendingInsert] =
         useState<RichEditorBlockItem | null>(null)
-    const [activeEditors, setActiveEditors] = useState<
-        RichEditorPresenceEditor[]
-    >([])
     const [publishing, setPublishing] = useState(false)
 
     // Local overrides for fields the page mutates without refetching
@@ -235,48 +266,36 @@ function RichEditorPageForId(props: { id: string }): React.ReactElement {
         }
     }, [gdocQuery.data])
 
-    // Presence heartbeat while the editor is open
+    // The ydoc was discarded and reseeded server-side (schema bump, idle
+    // disposal) while this client was away: local Yjs state belongs to a
+    // dead generation and must not merge. Reload to join the new one.
     useEffect(() => {
-        if (!isNative) return undefined
-        let cancelled = false
-        const beat = async (): Promise<void> => {
-            try {
-                const response = await admin.rawRequest(
-                    `/api/gdocs/${id}/presence`,
-                    JSON.stringify({}),
-                    "POST"
-                )
-                if (!response.ok) return
-                const payload =
-                    (await response.json()) as RichEditorPresenceResponse
-                if (!cancelled) setActiveEditors(payload.editors)
-            } catch {
-                // presence is advisory; ignore failures
-            }
-        }
-        void beat()
-        const interval = setInterval(() => {
-            void beat()
-        }, PRESENCE_HEARTBEAT_MS)
-        return () => {
-            cancelled = true
-            clearInterval(interval)
-        }
-    }, [admin, id, isNative])
+        if (!collab.generationChanged) return
+        Modal.warning({
+            title: "This document was reset on the server",
+            content:
+                "Reloading to pick up the current version. Unsynced local changes could not be kept.",
+            okText: "Reload",
+            onOk: () => window.location.reload(),
+        })
+    }, [collab.generationChanged])
 
-    // Highlight comment ranges once both the editor and the threads are ready
+    // Highlight comment ranges once the editor, the threads and (in sync
+    // mode) the initial server sync are ready — before sync the doc is empty
+    // and the stored positions would be meaningless
     const marksAppliedRef = useRef(false)
     useEffect(() => {
         if (
             !marksAppliedRef.current &&
             editorInstance &&
+            (!syncEnabled || collab.synced) &&
             threadsQuery.data &&
             threadsQuery.data.threads.length > 0
         ) {
             applyCommentMarks(editorInstance, threadsQuery.data.threads)
             marksAppliedRef.current = true
         }
-    }, [editorInstance, threadsQuery.data])
+    }, [editorInstance, threadsQuery.data, syncEnabled, collab.synced])
 
     const doSave = useCallback(
         async (kind: "autosave" | "manual") => {
@@ -332,28 +351,96 @@ function RichEditorPageForId(props: { id: string }): React.ReactElement {
         [admin, id, queryClient]
     )
 
+    // In sync mode the body is persisted server-side; the client's only
+    // save-adjacent duty is reporting comment-anchor positions, which move
+    // with every edit (local or remote)
+    const reportCommentAnchors = useCallback(async () => {
+        const editor = editorRef.current
+        if (!editor) return
+        const commentAnchors = collectCommentAnchors(editor, threadsRef.current)
+        if (commentAnchors.length === 0) return
+        try {
+            await admin.requestJSON(
+                `/api/gdocs/${id}/commentAnchors`,
+                { commentAnchors },
+                "PUT"
+            )
+            if (commentAnchors.some((anchor) => anchor.orphaned)) {
+                await queryClient.invalidateQueries({
+                    queryKey: ["richEditorComments", id],
+                })
+            }
+        } catch {
+            // anchor refresh is best-effort; the next edit retries
+        }
+    }, [admin, id, queryClient])
+
     const onDirty = useCallback(() => {
+        if (saveTimeout.current) clearTimeout(saveTimeout.current)
+        if (syncEnabled) {
+            saveTimeout.current = setTimeout(() => {
+                void reportCommentAnchors()
+            }, AUTOSAVE_DEBOUNCE_MS)
+            return
+        }
         setSaveState((current) =>
             current.kind === "conflict" ? current : { kind: "dirty" }
         )
-        if (saveTimeout.current) clearTimeout(saveTimeout.current)
         saveTimeout.current = setTimeout(() => {
             void doSave("autosave")
         }, AUTOSAVE_DEBOUNCE_MS)
-    }, [doSave])
+    }, [doSave, reportCommentAnchors, syncEnabled])
 
     const doPublish = useCallback(async () => {
         // flush pending edits first so the draft head is what gets published
         if (saveTimeout.current) clearTimeout(saveTimeout.current)
-        await doSave("manual")
+        if (syncEnabled) {
+            // the sync server owns the draft head: persist its pending store,
+            // then publish against the fresh head
+            await admin.requestJSON(`/api/gdocs/${id}/syncFlush`, {}, "POST")
+            const fresh = await admin.getJSON<RichEditorGdocResponse>(
+                `/api/gdocs/${id}/editor`
+            )
+            baseRevisionIdRef.current = fresh.draftRevisionId
+        } else {
+            await doSave("manual")
+        }
         setPublishing(true)
         try {
-            const response = await admin.rawRequest(
+            let response = await admin.rawRequest(
                 `/api/gdocs/${id}/publish`,
                 JSON.stringify({ baseRevisionId: baseRevisionIdRef.current }),
                 "POST"
             )
+            if (response.status === 409 && syncEnabled) {
+                // someone kept typing between flush and publish; retry once
+                // against the newest head
+                await admin.requestJSON(
+                    `/api/gdocs/${id}/syncFlush`,
+                    {},
+                    "POST"
+                )
+                const fresh = await admin.getJSON<RichEditorGdocResponse>(
+                    `/api/gdocs/${id}/editor`
+                )
+                baseRevisionIdRef.current = fresh.draftRevisionId
+                response = await admin.rawRequest(
+                    `/api/gdocs/${id}/publish`,
+                    JSON.stringify({
+                        baseRevisionId: baseRevisionIdRef.current,
+                    }),
+                    "POST"
+                )
+            }
             if (response.status === 409) {
+                if (syncEnabled) {
+                    Modal.error({
+                        title: "Publishing failed",
+                        content:
+                            "The document kept changing while publishing. Try again when things settle.",
+                    })
+                    return
+                }
                 setSaveState({ kind: "conflict" })
                 return
             }
@@ -401,7 +488,7 @@ function RichEditorPageForId(props: { id: string }): React.ReactElement {
         } finally {
             setPublishing(false)
         }
-    }, [admin, doSave, id, queryClient])
+    }, [admin, doSave, id, queryClient, syncEnabled])
 
     const doUnpublish = useCallback(async () => {
         setPublishing(true)
@@ -413,8 +500,10 @@ function RichEditorPageForId(props: { id: string }): React.ReactElement {
         }
     }, [admin, id])
 
-    // flush pending changes when leaving the page
+    // flush pending changes when leaving the page (REST mode only: in sync
+    // mode edits stream to the server as they happen)
     useEffect(() => {
+        if (syncEnabled) return undefined
         const beforeUnload = (event: BeforeUnloadEvent): void => {
             if (saveState.kind === "dirty" || saveState.kind === "saving") {
                 event.preventDefault()
@@ -422,7 +511,7 @@ function RichEditorPageForId(props: { id: string }): React.ReactElement {
         }
         window.addEventListener("beforeunload", beforeUnload)
         return () => window.removeEventListener("beforeunload", beforeUnload)
-    }, [saveState.kind])
+    }, [saveState.kind, syncEnabled])
 
     if (gdocQuery.isLoading) {
         return (
@@ -504,24 +593,33 @@ function RichEditorPageForId(props: { id: string }): React.ReactElement {
                             <Tag color={isPublished ? "green" : "default"}>
                                 {isPublished ? "published" : "draft"}
                             </Tag>
-                            <SaveStatus state={saveState} />
+                            {syncEnabled ? (
+                                <SyncStatus
+                                    status={collab.status}
+                                    synced={collab.synced}
+                                />
+                            ) : (
+                                <SaveStatus state={saveState} />
+                            )}
                         </Space>
                     </div>
                     <Space>
                         <Button onClick={() => setRevisionsOpen(true)}>
                             History
                         </Button>
-                        <Button
-                            disabled={
-                                saveState.kind === "saving" ||
-                                saveState.kind === "conflict"
-                            }
-                            onClick={() => {
-                                void doSave("manual")
-                            }}
-                        >
-                            Save
-                        </Button>
+                        {!syncEnabled && (
+                            <Button
+                                disabled={
+                                    saveState.kind === "saving" ||
+                                    saveState.kind === "conflict"
+                                }
+                                onClick={() => {
+                                    void doSave("manual")
+                                }}
+                            >
+                                Save
+                            </Button>
+                        )}
                         {isPublished ? (
                             <Dropdown.Button
                                 type="primary"
@@ -576,16 +674,27 @@ function RichEditorPageForId(props: { id: string }): React.ReactElement {
                     </Space>
                 </header>
 
-                {activeEditors.length > 0 && (
+                {peers.length > 0 && (
                     <Alert
                         type="info"
                         showIcon
-                        title={`${activeEditors
-                            .map((editor) => editor.fullName)
-                            .join(", ")} ${
-                            activeEditors.length === 1 ? "is" : "are"
-                        } also editing this document`}
-                        description="There is no real-time merging yet: the last save wins, and you will be warned if someone else saved first."
+                        title={
+                            <Space size="small" wrap>
+                                {peers.map((peer) => (
+                                    <Tag key={peer.clientId} color={peer.color}>
+                                        {peer.name}
+                                        {peer.kind === "agent"
+                                            ? " (agent)"
+                                            : ""}
+                                    </Tag>
+                                ))}
+                                <span>
+                                    {peers.length === 1 ? "is" : "are"} also
+                                    editing this document
+                                </span>
+                            </Space>
+                        }
+                        description="Edits merge live — you are looking at the same document."
                     />
                 )}
 
@@ -666,6 +775,7 @@ function RichEditorPageForId(props: { id: string }): React.ReactElement {
                                 key={`title-${id}`}
                                 gdocId={id}
                                 title={title}
+                                force={syncEnabled}
                                 getBaseRevisionId={() =>
                                     baseRevisionIdRef.current
                                 }
@@ -674,49 +784,61 @@ function RichEditorPageForId(props: { id: string }): React.ReactElement {
                                     setDocTitle(newTitle)
                                 }}
                             />
-                            <RichEditor
-                                initialBody={gdoc.content.body ?? []}
-                                editorRef={editorRef}
-                                requestImageRef={requestImageRef}
-                                onDirty={onDirty}
-                                docType={docType}
-                                onCreate={setEditorInstance}
-                                onSelectionChange={(editor) => {
-                                    setHasTextSelection(
-                                        hasTextRangeSelection(editor)
-                                    )
-                                    setSelectionVersion(
-                                        (version) => version + 1
-                                    )
-                                    // selecting a component (via its hover
-                                    // border or body) opens it in the right rail
-                                    const key = selectionBlockKey(editor)
-                                    if (key === inspectedKeyRef.current) return
-                                    inspectedKeyRef.current = key
-                                    const block =
-                                        inspectedBlockFromSelection(editor)
-                                    setInspected(block)
-                                    const selectionPos =
-                                        editor.state.selection.from
-                                    setRailTab((current) => {
-                                        // while the embedded chart editor is open,
-                                        // interacting with its own block (or
-                                        // deselecting) must not switch tabs
-                                        if (
-                                            current === "chart" &&
-                                            (!block ||
-                                                chartEditingSession?.blockPos ===
-                                                    selectionPos)
+                            {syncEnabled && !collab.collaboration ? (
+                                <div className="rich-editor-canvas">
+                                    Connecting…
+                                </div>
+                            ) : (
+                                <RichEditor
+                                    initialBody={gdoc.content.body ?? []}
+                                    editorRef={editorRef}
+                                    requestImageRef={requestImageRef}
+                                    onDirty={onDirty}
+                                    docType={docType}
+                                    collaboration={
+                                        syncEnabled
+                                            ? collab.collaboration
+                                            : null
+                                    }
+                                    onCreate={setEditorInstance}
+                                    onSelectionChange={(editor) => {
+                                        setHasTextSelection(
+                                            hasTextRangeSelection(editor)
                                         )
-                                            return current
-                                        return block
-                                            ? "block"
-                                            : current === "block"
-                                              ? "settings"
-                                              : current
-                                    })
-                                }}
-                            />
+                                        setSelectionVersion(
+                                            (version) => version + 1
+                                        )
+                                        // selecting a component (via its hover
+                                        // border or body) opens it in the right rail
+                                        const key = selectionBlockKey(editor)
+                                        if (key === inspectedKeyRef.current)
+                                            return
+                                        inspectedKeyRef.current = key
+                                        const block =
+                                            inspectedBlockFromSelection(editor)
+                                        setInspected(block)
+                                        const selectionPos =
+                                            editor.state.selection.from
+                                        setRailTab((current) => {
+                                            // while the embedded chart editor is open,
+                                            // interacting with its own block (or
+                                            // deselecting) must not switch tabs
+                                            if (
+                                                current === "chart" &&
+                                                (!block ||
+                                                    chartEditingSession?.blockPos ===
+                                                        selectionPos)
+                                            )
+                                                return current
+                                            return block
+                                                ? "block"
+                                                : current === "block"
+                                                  ? "settings"
+                                                  : current
+                                        })
+                                    }}
+                                />
+                            )}
                         </div>
                         <aside
                             className={
@@ -778,6 +900,7 @@ function RichEditorPageForId(props: { id: string }): React.ReactElement {
                                                 published={isPublished}
                                                 content={gdoc.content}
                                                 slug={docSlug ?? gdoc.slug}
+                                                force={syncEnabled}
                                                 getBaseRevisionId={() =>
                                                     baseRevisionIdRef.current
                                                 }
@@ -822,6 +945,16 @@ function RichEditorPageForId(props: { id: string }): React.ReactElement {
                                                 editor={editorInstance}
                                                 hasTextSelection={
                                                     hasTextSelection
+                                                }
+                                                selectedBlock={
+                                                    inspected?.blockId
+                                                        ? {
+                                                              blockId:
+                                                                  inspected.blockId,
+                                                              blockType:
+                                                                  inspected.blockType,
+                                                          }
+                                                        : null
                                                 }
                                                 onThreadsChanged={() => {
                                                     void queryClient.invalidateQueries(
@@ -892,6 +1025,8 @@ function RichEditorPageForId(props: { id: string }): React.ReactElement {
 function InlineTitleField(props: {
     gdocId: string
     title: string
+    /** Synced docs skip the revision check (the sync server owns the head) */
+    force: boolean
     getBaseRevisionId: () => number | null
     onSaved: (revisionId: number, title: string) => void
 }): React.ReactElement {
@@ -906,6 +1041,7 @@ function InlineTitleField(props: {
             JSON.stringify({
                 settings: { title: trimmed },
                 baseRevisionId: props.getBaseRevisionId(),
+                ...(props.force ? { force: true } : {}),
             }),
             "PUT"
         )
@@ -931,6 +1067,24 @@ function InlineTitleField(props: {
             }}
         />
     )
+}
+
+function SyncStatus(props: {
+    status: RichEditorSyncStatus
+    synced: boolean
+}): React.ReactElement {
+    const { status, synced } = props
+    if (status === "connected" && synced) {
+        return <Typography.Text type="secondary">Synced</Typography.Text>
+    }
+    if (status === "disconnected") {
+        return (
+            <Typography.Text type="warning">
+                Offline — edits buffer locally and merge on reconnect
+            </Typography.Text>
+        )
+    }
+    return <Typography.Text type="secondary">Connecting…</Typography.Text>
 }
 
 function SaveStatus(props: { state: SaveState }): React.ReactElement {

@@ -65,8 +65,13 @@ import {
     createGdocCommentThread,
     replyToGdocCommentThread,
     updateGdocCommentThread,
-    heartbeatGdocPresence,
+    updateGdocCommentAnchors,
 } from "./apiRoutes/richEditor.js"
+import {
+    applyDraftToSyncDocument,
+    flushRichEditorSyncDocument,
+} from "./richEditorSync.js"
+import * as db from "../db/db.js"
 import {
     getImagesHandler,
     postImageHandler,
@@ -440,11 +445,16 @@ getRouteWithROTransaction(
     "/gdocs/:id/revisions/:revisionId",
     getGdocRevision
 )
-postRouteWithRWTransaction(
-    apiRouter,
-    "/gdocs/:id/revisions/:revisionId/restore",
-    restoreGdocRevision
-)
+// Restore runs in its own transaction, then reconciles the live sync
+// document post-commit (the restored body is applied to the Yjs doc as a
+// remote edit, or the stored blob is dropped for a reseed on next open)
+apiRouter.post("/gdocs/:id/revisions/:revisionId/restore", async (req, res) => {
+    const result = await db.knexReadWriteTransaction((trx) =>
+        restoreGdocRevision(req, res as any, trx)
+    )
+    await applyDraftToSyncDocument(req.params.id)
+    return result
+})
 postRouteWithRWTransaction(
     apiRouter,
     "/gdocs/:id/convertToNative",
@@ -486,11 +496,18 @@ putRouteWithRWTransaction(
     "/gdocs/:id/comments/:threadId",
     updateGdocCommentThread
 )
-postRouteWithRWTransaction(
+putRouteWithRWTransaction(
     apiRouter,
-    "/gdocs/:id/presence",
-    heartbeatGdocPresence
+    "/gdocs/:id/commentAnchors",
+    updateGdocCommentAnchors
 )
+// Flush the sync server's pending store for this doc (no transaction: the
+// flush runs the materialization in its own transaction; wrapping it here
+// would hand the route a stale snapshot of the rows the flush just wrote)
+apiRouter.post("/gdocs/:id/syncFlush", async (req) => {
+    await flushRichEditorSyncDocument(req.params.id)
+    return { success: true }
+})
 
 // Data insight routes
 getRouteWithROTransaction(

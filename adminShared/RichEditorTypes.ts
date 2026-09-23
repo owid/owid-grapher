@@ -36,6 +36,12 @@ export interface RichEditorCommentAnchorUpdate {
     orphaned: boolean
 }
 
+/** A block selected in the canvas, offered as a comment target */
+export interface RichEditorSelectedBlock {
+    blockId: string
+    blockType: string
+}
+
 export interface RichEditorSaveBodyRequest {
     body: OwidEnrichedGdocBlock[]
     /** The draft revision this save is based on; null if no draft existed */
@@ -140,7 +146,16 @@ export interface RichEditorSaveSettingsRequest {
     /** Row-level fields; only editable while the doc is unpublished */
     slug?: string
     baseRevisionId: number | null
+    /**
+     * Skip the optimistic-concurrency check. Used by synced documents, where
+     * the sync server's materialization bumps the draft head continuously so
+     * clients cannot hold a current baseRevisionId.
+     */
+    force?: boolean
 }
+
+/** The websocket path the rich editor sync server listens on */
+export const RICH_EDITOR_SYNC_PATH = "/admin/api/richEditorSync"
 
 // ── Comments ───────────────────────────────────────────────────────────────
 
@@ -159,6 +174,8 @@ export interface RichEditorCommentThread {
     gdocId: string
     status: PostGdocCommentThreadStatus
     anchorType: PostGdocCommentAnchorType
+    /** Rich-editor block id, set for block-anchored threads */
+    anchorBlockId: string | null
     anchorFrom: number | null
     anchorTo: number | null
     anchorText: string | null
@@ -175,6 +192,8 @@ export interface RichEditorCommentThreadsResponse {
 
 export interface RichEditorCreateThreadRequest {
     anchorType: PostGdocCommentAnchorType
+    /** Required for block threads: the target block's stable id */
+    anchorBlockId?: string | null
     anchorFrom?: number | null
     anchorTo?: number | null
     anchorText?: string | null
@@ -189,15 +208,33 @@ export interface RichEditorUpdateThreadRequest {
     status: Extract<PostGdocCommentThreadStatus, "open" | "resolved">
 }
 
-// ── Presence ───────────────────────────────────────────────────────────────
+// (Presence types were removed with the heartbeat presence endpoint —
+// presence now travels in the sync connection's awareness states.)
 
-export interface RichEditorPresenceEditor {
-    userId: number
-    fullName: string
-    lastSeen: string
-}
+// ── Selection references ────────────────────────────────────────────────────
 
-export interface RichEditorPresenceResponse {
-    /** Other users with the editor open on this doc (excludes the requester) */
-    editors: RichEditorPresenceEditor[]
-}
+/**
+ * A serializable reference to "this" — the selection a command should act
+ * on. This is the addressing vocabulary shared by humans and agents: block
+ * refs use stable block ids, text refs use Yjs relative positions (which
+ * survive concurrent edits and resolve in any client of the same document
+ * generation), falling back to absolute positions outside sync mode. A ref
+ * whose target vanished resolves to null — consumers show an orphan state,
+ * never a silent mis-target.
+ */
+export type RichEditorSelectionRef =
+    | { kind: "document" }
+    | { kind: "block"; blockId: string; blockType: string }
+    | {
+          kind: "text"
+          /** y-prosemirror relative positions (JSON-encoded), in sync mode */
+          anchor?: unknown
+          head?: unknown
+          /** absolute positions, only valid against an unchanged doc */
+          absoluteAnchor?: number
+          absoluteHead?: number
+          /** the containing framed block, for context and orphan fallback */
+          blockId: string | null
+          /** the selected text at capture time, for prompts and orphan UI */
+          excerpt: string
+      }

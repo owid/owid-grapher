@@ -10,6 +10,8 @@ fields:
     description: "'open', 'resolved' (dismissed by an author, can be reopened) or 'orphaned' (the anchored text/block was deleted)"
   anchorType:
     description: "'range' (a text selection), 'block' (an atom block such as an image) or 'document' (no specific anchor)"
+  anchorBlockId:
+    description: For block threads, the rich editor's stable block id (the enriched block's `id` in the native draft); null for range/document threads
   anchorFrom:
     description: ProseMirror start position of the anchor in the draft doc; null for document-level threads
   anchorTo:

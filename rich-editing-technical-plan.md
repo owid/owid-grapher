@@ -297,6 +297,10 @@ Deviations/notes: slug→chart-id resolution uses the charts list (redirected sl
 
 - Yjs adoption (sync server, live cursors, agent collaborators); topic pages / linear topic pages / remaining doc types; retire gdocs ingestion for migrated types.
 
+### 10d. Status (2026-07-04): M5 built (pulled ahead of M4)
+
+Daniel decided to build the real-time substrate before the AI side panel so agents can join documents as Yjs collaborators. Shipped on `rich-editing-m5` per the detailed plan in `rich-editing-m5-plan.md` (see its §7b status): stable block ids (persisted in drafts, stripped from live content) with block-anchored comments; a Hocuspocus sync server on the admin origin (seed from draft JSON, debounced store + materialization back through the draft/revision path, restore diffed into live sessions, schema-version reseeds, generation guard, idle disposal); live remote carets, whole-block selection outlines and awareness presence (heartbeat presence deleted); native editing for all remaining doc types with key-insights/explorer-tiles/pill-row promoted to first-class atoms; and `SelectionRef` — the serializable selection vocabulary (block ids + Yjs relative positions) that comments now use and the M4 command layer will consume. Corpus 1,173/1,173 throughout; retiring gdocs ingestion for migrated types remains open.
+
 ---
 
 ## 11. Risks & mitigations

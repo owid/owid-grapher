@@ -1,4 +1,5 @@
 import {
+    Extension,
     Extensions,
     Mark,
     Node,
@@ -9,15 +10,26 @@ import { StarterKit } from "@tiptap/starter-kit"
 import { Subscript } from "@tiptap/extension-subscript"
 import { Superscript } from "@tiptap/extension-superscript"
 import {
+    identifiedNodeNames,
     pmMarkNames,
     pmNodeNames,
     propsAtomBlockTypes,
 } from "./serialization/pmJson.js"
 
 // The TipTap extensions defining the rich editor's document schema. This
-// module must stay headless-safe (no React imports): it is used both by the
-// editor and by node-side scripts that validate serialized documents against
-// the schema. NodeViews are attached in the editor by extending these nodes.
+// module must stay headless-safe (no React imports): it is used by the
+// editor, by node-side scripts that validate serialized documents against
+// the schema, and by the sync server to seed and materialize Yjs documents.
+// NodeViews are attached in the editor by extending these nodes.
+
+/**
+ * Bump whenever the ProseMirror schema changes in a way that makes stored
+ * Yjs documents invalid (node/mark renames or removals, content-expression
+ * changes, attr renames). The sync server discards and reseeds ydoc rows
+ * with a stale version from the materialized draft JSON — never migrate a
+ * ydoc in place. Purely additive changes (a new node type) don't need a bump.
+ */
+export const RICH_EDITOR_PM_SCHEMA_VERSION = 1
 
 // `block*` rather than the default `block+`: empty documents exist in
 // production (fragments used as pure front-matter containers)
@@ -485,10 +497,41 @@ const OwidSpanFallback = Mark.create({
 })
 
 /**
+ * Stable block identity: every framed block node carries a `blockId` attr,
+ * mapped to the enriched block's optional `id` by the serialization layer.
+ * The attr is part of the base schema (headless validation and the sync
+ * server must know it); generating/deduplicating ids is the editor-side
+ * BlockIdAssignment plugin's job. Not rendered to HTML: a copy of a block
+ * is a new block.
+ */
+const OwidBlockIdentity = Extension.create({
+    name: "blockIdentity",
+    addGlobalAttributes() {
+        return [
+            {
+                types: identifiedNodeNames,
+                attributes: {
+                    blockId: {
+                        default: null,
+                        rendered: false,
+                        keepOnSplit: false,
+                    },
+                },
+            },
+        ]
+    },
+})
+
+/**
  * The schema-defining extensions, shared between the editor (which layers
  * NodeViews and interaction extensions on top) and headless validation.
+ * With `collaboration`, TipTap's own undo/redo is disabled — the Yjs
+ * binding supplies per-client undo instead (you undo your edits, not your
+ * colleague's).
  */
-export function getRichEditorBaseExtensions(): Extensions {
+export function getRichEditorBaseExtensions(
+    options: { collaboration?: boolean } = {}
+): Extensions {
     return [
         StarterKit.configure({
             document: false,
@@ -501,6 +544,7 @@ export function getRichEditorBaseExtensions(): Extensions {
             // hard breaks may carry formatting marks (span-newline inside
             // formatting spans)
             hardBreak: { keepMarks: true },
+            ...(options.collaboration ? { undoRedo: false } : {}),
         }),
         OwidDocument,
         OwidHeading,
@@ -530,5 +574,6 @@ export function getRichEditorBaseExtensions(): Extensions {
         OwidDod,
         OwidSpanQuote,
         OwidSpanFallback,
+        OwidBlockIdentity,
     ]
 }

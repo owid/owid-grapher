@@ -8,6 +8,12 @@ export type ParseError = {
 
 export type EnrichedBlockWithParseErrors = {
     parseErrors: ParseError[]
+    /**
+     * Stable block identity assigned by the rich editor. Present only in
+     * native drafts and revisions (used for comment anchors and command
+     * addressing); stripped whenever content is written to posts_gdocs.
+     */
+    id?: string
 }
 
 export enum BlockSize {
