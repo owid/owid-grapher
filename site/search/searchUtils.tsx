@@ -459,6 +459,22 @@ export const getFilterIcon = (filter: Filter) => {
         .exhaustive()
 }
 
+/**
+ * A few region names carry a parenthesised disambiguator -- "Micronesia
+ * (country)", "Sudan (former)". It tells a reader which Micronesia is meant; it
+ * is not part of the name anyone searches for. Matching it means "co2 emissions
+ * by country" and "country profile" suggest Micronesia, so a match that lands
+ * only inside the parentheses doesn't count.
+ */
+function matchIsOnlyInsideParentheses(
+    target: string,
+    indexes: readonly number[]
+): boolean {
+    const open = target.indexOf("(")
+    if (open === -1) return false
+    return indexes.every((index) => index >= open)
+}
+
 export function findTopicAndRegionFilters(
     words: string[],
     allRegionsNames: string[],
@@ -492,6 +508,10 @@ export function findTopicAndRegionFilters(
             .filter(
                 (result: FuzzySearchResult) =>
                     !selectedRegionNames.has(result.target)
+            )
+            .filter(
+                (result: FuzzySearchResult) =>
+                    !matchIsOnlyInsideParentheses(result.target, result.indexes)
             )
             .map((result: FuzzySearchResult) => ({
                 ...createCountryFilter(result.target),
