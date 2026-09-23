@@ -11,6 +11,21 @@ export interface Env {
     MAILCHIMP_API_KEY: string
     MAILCHIMP_API_SERVER: string
     MAILCHIMP_DONOR_LIST_ID: string
+    MAILCHIMP_NEWSLETTER_LIST_ID: string
+    MAILCHIMP_OWID_BRIEF_INTEREST_ID: string
+    // Postmark server API token used to send email notifications.
+    POSTMARK_SERVER_TOKEN: string
+    // Override for Postmark's API base URL. Point it at the local Postmark
+    // catcher (yarn postmarkCatcher) to inspect emails during development
+    // without sending anything.
+    POSTMARK_API_BASE_URL?: string
+    // Override the public site origin in local development, where Pages
+    // Functions and the site run on different ports.
+    EMAIL_NOTIFICATIONS_SITE_BASE_URL?: string
+    // Basic-auth password for Postmark webhooks (Postmark has no HMAC
+    // signatures).
+    POSTMARK_WEBHOOK_SECRET: string
+    EMAIL_NOTIFICATIONS_DB: D1Database
     CF_PAGES_BRANCH: string
     CLOUDFLARE_IMAGES_API_KEY: string
     CLOUDFLARE_IMAGES_URL: string
