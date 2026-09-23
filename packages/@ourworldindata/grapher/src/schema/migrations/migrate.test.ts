@@ -8,7 +8,11 @@ import {
 } from "../defaultGrapherConfig"
 import { migrateGrapherConfigToLatestVersion } from "./migrate"
 import { runMigration } from "./migrations"
-import { getSchemaVersion, isOutdatedVersion } from "./helpers"
+import {
+    createSchemaForVersion,
+    getSchemaVersion,
+    isOutdatedVersion,
+} from "./helpers"
 import { MIGRATION_FIXTURES, PATCH_STACK_FIXTURES } from "./migrations.fixture"
 import * as _ from "lodash-es"
 
@@ -45,8 +49,7 @@ it("warns if the schema field is invalid", () => {
 
 it("runs multiple migrations if necessary", () => {
     const outdatedConfig = {
-        $schema:
-            "https://files.ourworldindata.org/schemas/grapher-schema.003.json",
+        $schema: createSchemaForVersion("003"),
         data: { availableEntities: [] }, // removed in v4
         hideLinesOutsideTolerance: true, // removed in v5
     }
@@ -57,15 +60,13 @@ it("runs multiple migrations if necessary", () => {
 
 it("doesn't mutate the given config", () => {
     const outdatedConfig = {
-        $schema:
-            "https://files.ourworldindata.org/schemas/grapher-schema.004.json",
+        $schema: createSchemaForVersion("004"),
         hideLinesOutsideTolerance: true,
     }
     const validConfig = migrateGrapherConfigToLatestVersion(outdatedConfig)
     expect(validConfig).not.toHaveProperty("hideLinesOutsideTolerance")
     expect(outdatedConfig).toEqual({
-        $schema:
-            "https://files.ourworldindata.org/schemas/grapher-schema.004.json",
+        $schema: createSchemaForVersion("004"),
         hideLinesOutsideTolerance: true,
     })
 })
