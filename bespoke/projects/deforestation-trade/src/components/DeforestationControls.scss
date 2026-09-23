@@ -1,0 +1,19 @@
+.deforestation-controls .controls__row > * {
+    flex: 1 1 0;
+}
+
+.deforestation-controls__switcher-wrapper {
+    display: flex;
+}
+
+.deforestation-controls__switcher-wrapper .switcher {
+    flex: 1 1 0;
+}
+
+.deforestation-controls__switcher-wrapper .switcher__item {
+    min-width: 64px;
+}
+
+.deforestation-controls__switcher-wrapper .switcher__button {
+    padding: 0 18px;
+}

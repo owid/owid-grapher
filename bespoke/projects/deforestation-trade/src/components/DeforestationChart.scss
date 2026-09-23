@@ -1,0 +1,36 @@
+.deforestation-captioned-chart__chart-area {
+    position: relative;
+}
+
+// The skeleton and the error box replace the whole variant, not just the chart area.
+.deforestation-captioned-chart__chart-area,
+.deforestation-chart-box {
+    height: 540px;
+}
+
+.deforestation-chart--narrow .deforestation-captioned-chart__chart-area,
+.deforestation-chart--narrow .deforestation-chart-box {
+    height: 440px;
+}
+
+.deforestation-captioned-chart__empty {
+    box-sizing: border-box;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 24px;
+    text-align: center;
+}
+
+.deforestation-captioned-chart__empty-message {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.4;
+    max-width: 420px;
+    color: $light-text;
+    font-style: italic;
+}

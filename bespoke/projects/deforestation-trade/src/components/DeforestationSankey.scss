@@ -1,0 +1,119 @@
+.deforestation-sankey {
+    width: 100%;
+    height: 100%;
+    max-width: 1000px;
+    margin-inline: auto;
+}
+
+// The chart takes the height left over by the legend row below it
+.deforestation-sankey__chart-area {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+// The shared container stretches to the full height by default; here the
+// SVG is drawn shorter to leave room for the legend, so let it size itself
+.deforestation-sankey__chart-area .sankey-container {
+    height: auto;
+}
+
+// Commodities too small to be labelled in the chart; the top margin must
+// match `LEGEND_GAP` in DeforestationSankey.tsx
+.deforestation-sankey__legend {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: 8px;
+    row-gap: 4px;
+    margin-top: 6px;
+    font-size: 12px;
+    line-height: 16px;
+}
+
+.deforestation-sankey__legend--right {
+    justify-content: flex-end;
+}
+
+.deforestation-sankey__legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    white-space: nowrap;
+}
+
+.deforestation-sankey__legend-item svg {
+    flex: 0 0 auto;
+}
+
+.deforestation-sankey .sankey__label tspan:first-child {
+    font-weight: 600;
+}
+
+.deforestation-sankey .sankey__label tspan:not(:first-child) {
+    fill: $light-text;
+}
+
+.deforestation-sankey__tooltip-note {
+    color: $light-text;
+    font-size: 12px;
+    padding: 4px 0 0;
+}
+
+.deforestation-sankey__tooltip-more {
+    color: $light-text;
+    font-size: 12px;
+    padding: 4px 0 0;
+}
+
+.deforestation-sankey__tooltip-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding-top: 6px;
+    font-size: 13px;
+}
+
+// The value line inside a group tooltip is a TooltipValue block; keep it on
+// the icon's baseline rather than in a block of its own
+.deforestation-sankey__tooltip-group .variable {
+    margin: 0;
+}
+
+.deforestation-sankey__tooltip-group-icon {
+    flex: 0 0 auto;
+}
+
+.deforestation-sankey__commodity-table {
+    border-collapse: collapse;
+    margin-top: 6px;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.deforestation-sankey__commodity-table td {
+    padding: 1px 0;
+    vertical-align: middle;
+}
+
+// Written with the table as parent so they outrank the generic cell padding
+.deforestation-sankey__commodity-table
+    .deforestation-sankey__commodity-table-icon {
+    width: 14px;
+    padding-right: 6px;
+    line-height: 0;
+}
+
+.deforestation-sankey__commodity-table
+    .deforestation-sankey__commodity-table-name {
+    color: $dark-text;
+    padding-right: 16px;
+    white-space: nowrap;
+}
+
+.deforestation-sankey__commodity-table-value {
+    color: $light-text;
+    text-align: right;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}

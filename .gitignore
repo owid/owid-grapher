@@ -92,3 +92,6 @@ packageDocs/.cache/
 # BMAD
 /_bmad/
 /_bmad-output/
+
+# Hand-built bespoke data files served by the dev server (see bespoke/projects/*/scripts)
+bespoke/projects/*/data/
