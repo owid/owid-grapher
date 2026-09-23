@@ -1,0 +1,61 @@
+.deforestation-controls .controls__row > * {
+    flex: 1 1 0;
+}
+
+.deforestation-controls__switcher-wrapper {
+    display: flex;
+}
+
+.deforestation-controls__switcher-wrapper .switcher {
+    flex: 1 1 0;
+}
+
+.deforestation-controls__switcher-wrapper .switcher__item {
+    min-width: 64px;
+}
+
+.deforestation-controls__switcher-wrapper .switcher__button {
+    padding: 0 18px;
+}
+
+// The period switcher and the slider split the row in half, lining up with
+// the two controls in the row above (same gap as `.controls__row`); on
+// narrow screens the slider wraps under the switcher, close enough to read
+// as the same control
+.deforestation-controls__time-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: 16px;
+    row-gap: 6px;
+}
+
+// Half the row (less half the gap), also when the slider is hidden for a
+// preset period; where half is too narrow for its labels, the switcher keeps
+// the width they need and the slider gives it up
+.deforestation-controls__period-switcher {
+    flex: 0 1 calc(50% - 8px);
+}
+
+.deforestation-controls__time-slider {
+    flex: 1 1 0;
+    min-width: 0;
+    width: auto;
+}
+
+// Three labels need the switcher's usual padding to fit in half a row, and
+// never shrink below their text
+.deforestation-controls__period-switcher .switcher__item {
+    flex: 1 0 auto;
+}
+
+.deforestation-controls__period-switcher .switcher__button {
+    padding: 0 8px;
+}
+
+// On narrow screens the switcher spans the row like the one above it, and
+// the slider wraps under it
+.deforestation-chart--narrow .deforestation-controls__period-switcher,
+.deforestation-chart--narrow .deforestation-controls__time-slider {
+    flex: 1 1 100%;
+}

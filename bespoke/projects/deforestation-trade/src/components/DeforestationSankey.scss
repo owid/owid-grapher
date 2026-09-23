@@ -1,0 +1,161 @@
+.deforestation-sankey {
+    width: 100%;
+    height: 100%;
+    max-width: 1000px;
+    margin-inline: auto;
+}
+
+.deforestation-sankey__chart-area {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+.deforestation-sankey .sankey__label tspan:first-child {
+    font-weight: 600;
+}
+
+.deforestation-sankey .sankey__label tspan:not(:first-child) {
+    fill: $light-text;
+}
+
+.deforestation-sankey__tooltip-note {
+    color: $light-text;
+    font-size: 12px;
+    padding: 4px 0 0;
+}
+
+.deforestation-sankey__tooltip-description {
+    margin: 0 0 10px;
+    color: $light-text;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.deforestation-sankey__tooltip-headline {
+    display: flex;
+    flex-direction: column;
+}
+
+.deforestation-sankey__tooltip-headline-value {
+    color: $dark-text;
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.deforestation-sankey__tooltip-headline-share {
+    color: $light-text;
+    font-size: 12px;
+}
+
+// Small-caps label over a tooltip's list, like the controls' labels
+.deforestation-sankey__tooltip-section-heading {
+    margin: 12px 0 4px;
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: $light-text;
+}
+
+.deforestation-sankey__share-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.deforestation-sankey__share-table td {
+    padding: 2px 0;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+.deforestation-sankey__share-table .deforestation-sankey__share-table-name {
+    color: $dark-text;
+    padding-right: 12px;
+}
+
+.deforestation-sankey__share-table .deforestation-sankey__share-table-bar {
+    width: 48px;
+    padding-right: 10px;
+}
+
+.deforestation-sankey__share-table-bar-fill {
+    height: 8px;
+    min-width: 1px;
+    border-radius: 1px;
+}
+
+.deforestation-sankey__share-table .deforestation-sankey__share-table-value {
+    color: $dark-text;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    padding-right: 12px;
+}
+
+.deforestation-sankey__share-table .deforestation-sankey__share-table-share {
+    width: 40px;
+    color: $light-text;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+.deforestation-sankey__tooltip-more {
+    color: $light-text;
+    font-size: 12px;
+    padding: 4px 0 0;
+}
+
+.deforestation-sankey__tooltip-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding-top: 6px;
+    font-size: 13px;
+}
+
+// The value line inside a group tooltip is a TooltipValue block; keep it on
+// the icon's baseline rather than in a block of its own
+.deforestation-sankey__tooltip-group .variable {
+    margin: 0;
+}
+
+.deforestation-sankey__tooltip-group-icon {
+    flex: 0 0 auto;
+}
+
+.deforestation-sankey__commodity-table {
+    border-collapse: collapse;
+    margin-top: 6px;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.deforestation-sankey__commodity-table td {
+    padding: 1px 0;
+    vertical-align: middle;
+}
+
+// Written with the table as parent so they outrank the generic cell padding
+.deforestation-sankey__commodity-table
+    .deforestation-sankey__commodity-table-icon {
+    width: 14px;
+    padding-right: 6px;
+    line-height: 0;
+}
+
+.deforestation-sankey__commodity-table
+    .deforestation-sankey__commodity-table-name {
+    color: $dark-text;
+    padding-right: 16px;
+    white-space: nowrap;
+}
+
+.deforestation-sankey__commodity-table-value {
+    color: $light-text;
+    text-align: right;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}

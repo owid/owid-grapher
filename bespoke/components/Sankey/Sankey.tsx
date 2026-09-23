@@ -27,8 +27,40 @@ import { match } from "ts-pattern"
 /* Horizontal gap between a node's edge and its label */
 export const BAND_LABEL_GAP = 6
 
+/** Width and height of a node's optional icon, drawn next to its label */
+export const SANKEY_ICON_SIZE = 16
+
+/** Horizontal gap between a node's icon and its label text */
+export const SANKEY_ICON_TEXT_GAP = 8
+
+/** How far the white disc behind an icon extends past the icon's box */
+const ICON_BACKING_PADDING = 2
+
 /** Vertical gap between a node's value label and its label */
 const VALUE_LABEL_GAP = 2
+
+/** How far a ribbon reaches under a middle node's band, in px */
+const RIBBON_NODE_OVERLAP = 0.5
+
+/** Smallest height a node's band is drawn at, however small its value */
+const MIN_NODE_DRAWN_HEIGHT = 1
+
+/** Vertical gap between the column headings and the top of the chart */
+const COLUMN_HEADING_GAP = 8
+
+/**
+ * Where a column heading's baseline sits below the top of its row, in ems.
+ * Placed explicitly rather than with `dominant-baseline="hanging"`, whose
+ * position browsers synthesize differently: Android Chrome puts it low
+ * enough for the glyphs to poke out of the top of the SVG and be clipped.
+ */
+const COLUMN_HEADING_BASELINE_EM = 0.9
+
+/** Smallest horizontal gap between two neighbouring column headings */
+const COLUMN_HEADING_MIN_SPACING = 16
+
+const COLUMN_HEADING_FONT_WEIGHT = 400
+const COLUMN_HEADING_EMPHASIS_FONT_WEIGHT = 700
 
 /** Extra vertical pixels past a link's band edge that still count as a hit */
 const LINK_BAND_GAP_TOLERANCE = 6
@@ -54,6 +86,12 @@ interface SankeyProps {
     linkLowVolumeThreshold?: number
     nodeColor?: (node: SankeyNode) => string
     linkColor?: (link: SankeyLink) => string
+    /**
+     * Whether a link below `linkLowVolumeThreshold` is drawn faded; default
+     * all of them. Exempt links whose neighbours would otherwise show a pale
+     * stripe through one continuous block of colour.
+     */
+    canFadeLowVolumeLink?: (link: SankeyLink) => boolean
     /** Outer padding around the whole visualization */
     margin?: Margin
     /** Floor for the inner padding that reserves space for labels */
@@ -70,6 +108,26 @@ interface SankeyProps {
     /** Whitespace between a node's band and the flow path */
     bandFlowGap?: number
     fontSettings?: FontSettings
+    /**
+     * One heading per column, left to right, drawn above the chart and
+     * aligned with that column's labels (so they stay put however the label
+     * margins come out). Reserves its own space at the top. A heading is a
+     * plain string or a run of parts, some emphasised — e.g. the three
+     * headings can together read as one sentence whose key words stand out.
+     */
+    columnHeadings?: SankeyColumnHeading[]
+    /**
+     * Shorter sets of headings to fall back on, in order, when the preferred
+     * `columnHeadings` don't fit side by side at the current width. If none
+     * fits, the last set is drawn with overlapping headings pushed apart.
+     */
+    columnHeadingFallbacks?: SankeyColumnHeading[][]
+    /**
+     * Which side of a middle column's band its labels sit on (they lie over
+     * the ribbons either way). Default right; pick the side whose ribbons are
+     * calmer.
+     */
+    middleLabelSide?: "left" | "right"
     getNodeTooltip?: (args: NodeTooltipArgs) => SankeyTooltip | undefined
     getLinkTooltip?: (args: LinkTooltipArgs) => SankeyTooltip | undefined
     onNodeClick?: (node: SankeyNode) => void
@@ -79,6 +137,12 @@ interface SankeyProps {
     isLinkClickable?: (link: SankeyLink) => boolean
     /** Other links to be highlighted as a group with the hovered one */
     getRelatedLinks?: (link: SankeyLink) => SankeyLink[]
+    /**
+     * Links beyond the hovered node's own that should light up with it, e.g.
+     * where its flows continue in the next column. Without it a node hover
+     * highlights just the links touching the node.
+     */
+    getRelatedLinksForNode?: (args: NodeTooltipArgs) => SankeyLink[]
 }
 
 export type NodeTooltipArgs = {
@@ -101,24 +165,58 @@ export type SankeyNode = {
     id: string
     label: string
     valueLabel?: string
+    /**
+     * Optional icon drawn next to the node's label, between the node's band
+     * and the label text. Any SVG content designed for a `0 0 16 16` viewBox.
+     */
+    icon?: React.ReactNode
 }
 
 export type SankeyLink = {
     source: string
     target: string
     value: number
+    /**
+     * Tells apart parallel links between the same two nodes (e.g. one link
+     * per upstream partner into a shared sink), so each can be drawn,
+     * coloured and highlighted on its own. Part of the link's identity; omit
+     * it when every source → target pair is unique.
+     */
+    category?: string
 }
 
 /** Which side of a link (or, equivalently, which column of the chart). */
 export type LinkSide = "source" | "target"
+
+/**
+ * Which column a node sits in: the outer left one, the outer right one, or
+ * any column in between (only possible in graphs with three or more columns).
+ */
+export type SankeyNodeSide = "left" | "right" | "middle"
 
 type PlacedSankeyLabel = {
     nodeId: string
     x: number
     y: number
     textAnchor: "start" | "end"
+    side: SankeyNodeSide
     label: TextWrap
     valueLabel?: TextWrap
+    icon?: React.ReactNode
+    /** False on a node too short for its icon: the text keeps the icon's
+     *  space so labels in a column stay aligned, but the icon isn't drawn */
+    isIconVisible: boolean
+}
+
+export type SankeyColumnHeadingPart = { text: string; emphasis?: boolean }
+export type SankeyColumnHeading = string | SankeyColumnHeadingPart[]
+
+type PlacedColumnHeading = {
+    columnIndex: number
+    parts: SankeyColumnHeadingPart[]
+    x: number
+    y: number
+    textAnchor: "start" | "middle" | "end"
 }
 
 type Margin = { top: number; right: number; bottom: number; left: number }
@@ -141,6 +239,7 @@ export function Sankey({
     linkLowVolumeThreshold,
     nodeColor,
     linkColor,
+    canFadeLowVolumeLink,
     margin = DEFAULT_MARGIN,
     innerMargin,
     anchorNodeId,
@@ -148,8 +247,12 @@ export function Sankey({
     bandWidth = 4,
     bandFlowGap = 3,
     fontSettings = DEFAULT_FONT_SETTINGS,
+    columnHeadings,
+    columnHeadingFallbacks,
+    middleLabelSide = "right",
     getLinkTooltip,
     getRelatedLinks,
+    getRelatedLinksForNode,
     getNodeTooltip,
     isNodeHoverable,
     onNodeClick,
@@ -165,20 +268,41 @@ export function Sankey({
         const sourceNodeSet = new Set(links.map((l) => l.source))
         const targetNodeSet = new Set(links.map((l) => l.target))
 
-        const sourceNodes = nodes.filter((n) => sourceNodeSet.has(n.id))
-        const targetNodes = nodes.filter((n) => targetNodeSet.has(n.id))
+        // d3-sankey hasn't run yet, so node columns aren't known here; derive
+        // them from the link sets instead. Nodes in a middle column would
+        // otherwise reserve space on both outer margins.
+        const nodeSides = new Map(
+            nodes.map((n) => [
+                n.id,
+                getNodeSideFromLinks({
+                    isLinkSource: sourceNodeSet.has(n.id),
+                    isLinkTarget: targetNodeSet.has(n.id),
+                }),
+            ])
+        )
+        const leftNodes = nodes.filter((n) => nodeSides.get(n.id) === "left")
+        const rightNodes = nodes.filter((n) => nodeSides.get(n.id) === "right")
 
-        const leftLabelWidth = measureMaxLabelWidth(sourceNodes, fontSettings)
-        const rightLabelWidth = measureMaxLabelWidth(targetNodes, fontSettings)
+        // The outer headings start and end at the chart's edges and run
+        // towards the middle, over the chart if need be, so they reserve no
+        // room of their own
+        const leftLabelWidth = measureMaxLabelWidth(leftNodes, fontSettings)
+        const rightLabelWidth = measureMaxLabelWidth(rightNodes, fontSettings)
 
         // To prevent the first and last label to overflow
         const verticalLabelPadding = getSankeyVerticalLabelPadding(fontSettings)
 
+        const headingHeight = getColumnHeadingsHeight(
+            columnHeadings,
+            fontSettings
+        )
+
         const resolvedInnerMargin: Margin = {
-            top: Math.max(
-                verticalLabelPadding,
-                innerMargin?.top ?? DEFAULT_MARGIN.top
-            ),
+            top:
+                Math.max(
+                    verticalLabelPadding,
+                    innerMargin?.top ?? DEFAULT_MARGIN.top
+                ) + headingHeight,
             bottom: Math.max(
                 verticalLabelPadding,
                 innerMargin?.bottom ?? DEFAULT_MARGIN.bottom
@@ -249,17 +373,62 @@ export function Sankey({
         anchorNodeId,
         innerMargin,
         fontSettings,
+        columnHeadings,
     ])
 
     const labels = useMemo<PlacedSankeyLabel[]>(
-        () => placeSankeyLabels({ layout, nodePadding, fontSettings }),
-        [layout, nodePadding, fontSettings]
+        () =>
+            placeSankeyLabels({
+                layout,
+                nodePadding,
+                fontSettings,
+                middleLabelSide,
+            }),
+        [layout, nodePadding, fontSettings, middleLabelSide]
+    )
+
+    const headings = useMemo<PlacedColumnHeading[]>(
+        () =>
+            placeColumnHeadings({
+                layout,
+                candidates: [
+                    ...(columnHeadings ? [columnHeadings] : []),
+                    ...(columnHeadingFallbacks ?? []),
+                ],
+                fontSettings,
+                top: margin.top,
+                left: margin.left,
+                right: width - margin.right,
+            }),
+        [
+            layout,
+            columnHeadings,
+            columnHeadingFallbacks,
+            fontSettings,
+            margin.top,
+            margin.left,
+            margin.right,
+            width,
+        ]
     )
 
     const svgRef = useRef<SVGSVGElement>(null)
 
-    const [hover, setHover] = useState<HoverState | null>(null)
+    const [rawHover, setHover] = useState<HoverState | null>(null)
     const dismissTooltip = useCallback(() => setHover(null), [])
+
+    // A hovered node or link belongs to the layout it was found in. When the
+    // graph changes underneath a resting cursor (e.g. a click navigated to a
+    // new selection), the stale hover would describe a flow that no longer
+    // exists, so treat it as no hover until the next mouse move.
+    const hover = useMemo<HoverState | null>(() => {
+        if (!rawHover || !layout) return null
+        const isCurrent = match(rawHover)
+            .with({ kind: "link" }, (h) => layout.links.includes(h.link))
+            .with({ kind: "node" }, (h) => layout.nodes.includes(h.node))
+            .exhaustive()
+        return isCurrent ? rawHover : null
+    }, [rawHover, layout])
     const { ref: containerRef, isPinned } = usePinnedTooltip<HTMLDivElement>(
         hover !== null,
         dismissTooltip
@@ -350,25 +519,40 @@ export function Sankey({
         ]
     )
 
-    /** Links related to the hovered link that should also be highlighted */
+    /**
+     * Links related to the hovered link or node that should be highlighted
+     * with it, e.g. the continuation of a flow in the next column
+     */
     const hoverRelatedLinks = useMemo<LaidOutLink[]>(() => {
-        if (!hover || hover.kind !== "link" || !getRelatedLinks || !layout)
-            return []
+        if (!hover || !layout) return []
 
-        const relatedData = getRelatedLinks(toLinkData(hover.link))
+        const relatedData = match(hover)
+            .with({ kind: "link" }, (h) =>
+                getRelatedLinks ? getRelatedLinks(toLinkData(h.link)) : []
+            )
+            .with({ kind: "node" }, (h) =>
+                getRelatedLinksForNode
+                    ? getRelatedLinksForNode({
+                          node: toNodeData(h.node),
+                          incomingLinks: (h.node.targetLinks ?? []).map(
+                              toLinkData
+                          ),
+                          outgoingLinks: (h.node.sourceLinks ?? []).map(
+                              toLinkData
+                          ),
+                      })
+                    : []
+            )
+            .exhaustive()
 
         if (relatedData.length === 0) return []
 
-        const relatedKeys = new Set(
-            relatedData.map((l) => makeLinkKey(l.source, l.target))
-        )
+        const relatedKeys = new Set(relatedData.map((l) => makeLinkKey(l)))
 
         return layout.links.filter((l) =>
-            relatedKeys.has(
-                makeLinkKey(makeNodeId(l.source), makeNodeId(l.target))
-            )
+            relatedKeys.has(makeLinkKey(toLinkData(l)))
         )
-    }, [hover, getRelatedLinks, layout])
+    }, [hover, getRelatedLinks, getRelatedLinksForNode, layout])
 
     const activeLinks = useMemo(() => {
         if (!hover) return new Set<LaidOutLink>()
@@ -381,9 +565,11 @@ export function Sankey({
                 for (const l of hoverRelatedLinks) set.add(l)
             })
             .with({ kind: "node" }, (hover) => {
-                // Node hover lights up every link touching this node
+                // Node hover lights up every link touching this node, and
+                // wherever those flows continue
                 for (const l of hover.node.sourceLinks ?? []) set.add(l)
                 for (const l of hover.node.targetLinks ?? []) set.add(l)
+                for (const l of hoverRelatedLinks) set.add(l)
             })
             .exhaustive()
 
@@ -428,6 +614,10 @@ export function Sankey({
 
     const hoveredNodeId = hover?.kind === "node" ? hover.node.id : undefined
     const hoveredLink = hover?.kind === "link" ? hover.link : undefined
+    const linkBundles = bundleParallelLinks(
+        linksInRenderOrder,
+        (link) => link === hoveredLink || activeLinks.has(link)
+    )
 
     // Use the wrapper div's dimensions, not the SVG's: the SVG can be
     // shorter than its grid cell (SplitFlowSankey shrinks one half to
@@ -479,18 +669,24 @@ export function Sankey({
                 }
             >
                 <g className="sankey__links">
-                    {linksInRenderOrder.map((link) => (
+                    {linkBundles.map((bundle) => (
                         <SankeyLinkView
-                            key={makeLinkKey(
-                                makeNodeId(link.source),
-                                makeNodeId(link.target)
-                            )}
-                            link={link}
+                            key={makeLinkKey(toLinkData(bundle[0]))}
+                            links={bundle}
                             linkColor={linkColor}
-                            isHovered={hoveredLink === link}
-                            isActive={activeLinks.has(link)}
+                            isHovered={
+                                hoveredLink !== undefined &&
+                                bundle.includes(hoveredLink)
+                            }
+                            isActive={activeLinks.has(bundle[0])}
                             totalFlowVolume={totalFlowVolume}
-                            linkLowVolumeThreshold={linkLowVolumeThreshold}
+                            linkLowVolumeThreshold={
+                                canFadeLowVolumeLink?.(
+                                    toLinkData(bundle[0])
+                                ) === false
+                                    ? undefined
+                                    : linkLowVolumeThreshold
+                            }
                         />
                     ))}
                 </g>
@@ -507,6 +703,41 @@ export function Sankey({
                         />
                     ))}
                 </g>
+                {headings.length > 0 && (
+                    <g className="sankey__column-headings">
+                        {headings.map((heading) => (
+                            <text
+                                key={heading.columnIndex}
+                                className="sankey__column-heading"
+                                x={heading.x}
+                                y={
+                                    heading.y +
+                                    fontSettings.fontSize *
+                                        COLUMN_HEADING_BASELINE_EM
+                                }
+                                textAnchor={heading.textAnchor}
+                                fontSize={fontSettings.fontSize}
+                                fontWeight={COLUMN_HEADING_FONT_WEIGHT}
+                            >
+                                {heading.parts.map((part, i) =>
+                                    part.emphasis ? (
+                                        <tspan
+                                            key={i}
+                                            className="sankey__column-heading-emphasis"
+                                            fontWeight={
+                                                COLUMN_HEADING_EMPHASIS_FONT_WEIGHT
+                                            }
+                                        >
+                                            {part.text}
+                                        </tspan>
+                                    ) : (
+                                        <tspan key={i}>{part.text}</tspan>
+                                    )
+                                )}
+                            </text>
+                        ))}
+                    </g>
+                )}
                 <g className="sankey__labels">
                     {labels.map((label, i) => (
                         <SankeyLabel
@@ -539,30 +770,59 @@ export function Sankey({
     )
 }
 
+/**
+ * Groups parallel links — the same two nodes, told apart only by their
+ * category — so each group is drawn as one ribbon. Drawn separately,
+ * neighbouring translucent ribbons leave anti-aliasing seams between them.
+ * Highlighted and plain links are grouped apart, so a highlight still picks
+ * out its own; a plain group may then span a highlighted link between two of
+ * its own, which is fine since highlighted links are opaque and drawn later.
+ * Keeps the given render order, a group taking the place of its first member.
+ */
+function bundleParallelLinks(
+    links: LaidOutLink[],
+    isHighlighted: (link: LaidOutLink) => boolean
+): LaidOutLink[][] {
+    const bundles = new Map<string, LaidOutLink[]>()
+    for (const link of links) {
+        const key = [
+            makeNodeId(link.source),
+            makeNodeId(link.target),
+            isHighlighted(link),
+        ].join("|")
+        const bundle = bundles.get(key)
+        if (bundle) bundle.push(link)
+        else bundles.set(key, [link])
+    }
+    return [...bundles.values()]
+}
+
+/** One ribbon for one link, or for a bundle of parallel ones */
 function SankeyLinkView({
-    link,
+    links,
     linkColor,
     isHovered,
     isActive,
     totalFlowVolume,
     linkLowVolumeThreshold,
 }: {
-    link: LaidOutLink
+    links: LaidOutLink[]
     linkColor?: (link: SankeyLink) => string
     isHovered?: boolean
     isActive?: boolean
     totalFlowVolume?: number
     linkLowVolumeThreshold?: number
 }): React.ReactElement | null {
-    const path = makeSankeyRibbonPath(link)
+    const path = makeSankeyRibbonPath(links)
     if (!path) return null
 
-    const color = linkColor?.(toLinkData(link)) ?? GRAPHER_DENIM
+    const color = linkColor?.(toLinkData(links[0])) ?? GRAPHER_DENIM
 
+    const value = links.reduce((sum, link) => sum + link.value, 0)
     const isLowVolume =
         totalFlowVolume &&
         linkLowVolumeThreshold &&
-        link.value / totalFlowVolume < linkLowVolumeThreshold
+        value / totalFlowVolume < linkLowVolumeThreshold
 
     const className = cx("sankey__link", {
         "sankey__link--hovered": isHovered,
@@ -576,32 +836,40 @@ function SankeyLinkView({
 // d3-sankey builds a single curved centerline for each link, and the visible band is a thick stroke around it.
 // This works well for thin links, but for wider, bendy links it can result in messy-looking ribbons and overlaps.
 // Instead, we build a filled ribbon. This keeps large links from visually spilling over neighboring ribbons on sharp bends.
-function makeSankeyRibbonPath(link: LaidOutLink): string | null {
-    const sourceNode = link.source as LaidOutNode
-    const targetNode = link.target as LaidOutNode
+// Parallel links (all between the same two nodes) make one ribbon spanning
+// all of theirs.
+function makeSankeyRibbonPath(links: LaidOutLink[]): string | null {
+    const sourceNode = links[0].source as LaidOutNode
+    const targetNode = links[0].target as LaidOutNode
 
-    const x0 = sourceNode.x1
-    const x1 = targetNode.x0
-    const y0 = link.y0
-    const y1 = link.y1
-    const width = link.width ?? 0
+    if (sourceNode.x1 === undefined || targetNode.x0 === undefined) return null
+    // A middle node's band spans its full width and touches its ribbons, so
+    // tuck their ends under it: edge to edge, anti-aliasing would leave a
+    // hairline between the two
+    const x0 =
+        sourceNode.x1 -
+        (getNodeSide(sourceNode) === "middle" ? RIBBON_NODE_OVERLAP : 0)
+    const x1 =
+        targetNode.x0 +
+        (getNodeSide(targetNode) === "middle" ? RIBBON_NODE_OVERLAP : 0)
 
-    if (
-        x0 === undefined ||
-        x1 === undefined ||
-        y0 === undefined ||
-        y1 === undefined ||
-        width <= 0
-    ) {
-        return null
+    let y0Top = Infinity
+    let y0Bottom = -Infinity
+    let y1Top = Infinity
+    let y1Bottom = -Infinity
+    for (const link of links) {
+        const width = link.width ?? 0
+        if (link.y0 === undefined || link.y1 === undefined || width <= 0)
+            continue
+        const halfWidth = Math.max(0.25, width / 2)
+        y0Top = Math.min(y0Top, link.y0 - halfWidth)
+        y0Bottom = Math.max(y0Bottom, link.y0 + halfWidth)
+        y1Top = Math.min(y1Top, link.y1 - halfWidth)
+        y1Bottom = Math.max(y1Bottom, link.y1 + halfWidth)
     }
+    if (y0Top === Infinity) return null
 
-    const halfWidth = Math.max(0.25, width / 2)
     const xi = (x0 + x1) / 2
-    const y0Top = y0 - halfWidth
-    const y0Bottom = y0 + halfWidth
-    const y1Top = y1 - halfWidth
-    const y1Bottom = y1 + halfWidth
 
     return [
         `M${x0},${y0Top}`, // start point: left top
@@ -631,10 +899,17 @@ function SankeyNodeView({
     const x1 = node.x1 ?? 0
     const y0 = node.y0 ?? 0
     const y1 = node.y1 ?? 0
-    const h = Math.max(0, y1 - y0)
+    // A node too small to see still gets a hairline, centred on it: its links
+    // are drawn at least that thick, and without the band a middle node's
+    // ribbons would visibly break off on either side of it
+    const h = Math.max(MIN_NODE_DRAWN_HEIGHT, y1 - y0)
+    const y = (y0 + y1 - h) / 2
 
-    const isLeftSide = isNodeOnLeftSide(node)
-    const x = isLeftSide ? x0 : x1 - bandWidth
+    // Middle-column nodes have no outer edge to hug, so their band spans the
+    // node's full width
+    const side = getNodeSide(node)
+    const x = side === "right" ? x1 - bandWidth : x0
+    const w = side === "middle" ? Math.max(0, x1 - x0) : bandWidth
 
     const fill = nodeColor?.(node) ?? GRAPHER_DENIM
 
@@ -648,8 +923,8 @@ function SankeyNodeView({
         <rect
             className={className}
             x={x}
-            y={y0}
-            width={bandWidth}
+            y={y}
+            width={w}
             height={h}
             fill={fill}
         />
@@ -668,10 +943,43 @@ function SankeyLabel({
     isAnchored?: boolean
 }): React.ReactElement {
     const className = cx("sankey__label", {
+        "sankey__label--inner": label.side === "middle",
         "sankey__label--hovered": isHovered,
         "sankey__label--active": isActive,
         "sankey__label--anchored": isAnchored,
     })
+
+    // The icon always sits nearest the node's band, with the text after it
+    const isTextAnchoredAtEnd = label.textAnchor === "end"
+    const textOffset = getIconLabelOffset(label)
+    const textX = isTextAnchoredAtEnd
+        ? label.x - textOffset
+        : label.x + textOffset
+
+    // The icon sits on a white disc so it stays legible over the ribbons
+    const iconX = isTextAnchoredAtEnd ? label.x - SANKEY_ICON_SIZE : label.x
+    const iconY = label.y - 0.5 * SANKEY_ICON_SIZE
+    const icon =
+        label.icon && label.isIconVisible ? (
+            <>
+                <circle
+                    className="sankey__label-icon-backing"
+                    cx={iconX + 0.5 * SANKEY_ICON_SIZE}
+                    cy={label.y}
+                    r={0.5 * SANKEY_ICON_SIZE + ICON_BACKING_PADDING}
+                />
+                <svg
+                    className="sankey__label-icon"
+                    x={iconX}
+                    y={iconY}
+                    width={SANKEY_ICON_SIZE}
+                    height={SANKEY_ICON_SIZE}
+                    viewBox={`0 0 ${SANKEY_ICON_SIZE} ${SANKEY_ICON_SIZE}`}
+                >
+                    {label.icon}
+                </svg>
+            </>
+        ) : null
 
     if (label.valueLabel) {
         const labelY =
@@ -680,16 +988,17 @@ function SankeyLabel({
 
         return (
             <g className={className}>
+                {icon}
                 <TextWrapSvg
                     textWrap={label.label}
-                    x={label.x}
+                    x={textX}
                     y={labelY}
                     textAnchor={label.textAnchor}
                     fill={GRAPHER_DARK_TEXT}
                 />
                 <TextWrapSvg
                     textWrap={label.valueLabel}
-                    x={label.x}
+                    x={textX}
                     y={valueLabelY}
                     textAnchor={label.textAnchor}
                     fill={GRAPHER_LIGHT_TEXT}
@@ -700,9 +1009,10 @@ function SankeyLabel({
 
     return (
         <g className={className}>
+            {icon}
             <TextWrapSvg
                 textWrap={label.label}
-                x={label.x}
+                x={textX}
                 y={label.y}
                 textAnchor={label.textAnchor}
                 fill={GRAPHER_DARK_TEXT}
@@ -715,15 +1025,17 @@ function placeSankeyLabels({
     layout,
     nodePadding,
     fontSettings,
+    middleLabelSide,
 }: {
     layout: LaidOutGraph | null
     nodePadding: number
     fontSettings: FontSettings
+    middleLabelSide: "left" | "right"
 }): PlacedSankeyLabel[] {
     if (!layout) return []
 
     return layout.nodes.flatMap((node) => {
-        const { label, valueLabel } = node
+        const { label, valueLabel, icon } = node
 
         const x0 = node.x0 ?? 0
         const x1 = node.x1 ?? 0
@@ -731,10 +1043,23 @@ function placeSankeyLabels({
         const y1 = node.y1 ?? 0
         const nodeHeight = y1 - y0
 
-        const isLeftSide = isNodeOnLeftSide(node)
-        const x = isLeftSide ? x0 - BAND_LABEL_GAP : x1 + BAND_LABEL_GAP
+        // Middle-column labels sit to the right of the node, like right-column
+        // ones, but over the ribbons rather than in an outer margin
+        // Outer labels sit in the outer margins; middle-column labels lie over
+        // the ribbons on whichever side the caller prefers
+        const side = getNodeSide(node)
+        const labelSide = side === "middle" ? middleLabelSide : side
+        const x =
+            labelSide === "left" ? x0 - BAND_LABEL_GAP : x1 + BAND_LABEL_GAP
         const y = (y0 + y1) / 2
-        const textAnchor = isLeftSide ? "end" : "start"
+        const textAnchor = labelSide === "left" ? "end" : "start"
+
+        // An icon needs its own height between neighbouring nodes; on a node
+        // too short for it, hide it rather than let it overlap the next label.
+        // The text keeps the icon's space either way, so a column's labels
+        // line up.
+        const nodeHeightWithPadding = nodeHeight + nodePadding
+        const isIconVisible = nodeHeightWithPadding >= SANKEY_ICON_SIZE
 
         const labelTextWrap = new TextWrap({
             ...fontSettings,
@@ -757,7 +1082,6 @@ function placeSankeyLabels({
                 valueLabelTextWrap.height +
                 VALUE_LABEL_GAP
 
-            const nodeHeightWithPadding = nodeHeight + nodePadding
             const shouldShowValueLabel =
                 nodeHeightWithPadding >= totalLabelHeight
 
@@ -767,10 +1091,13 @@ function placeSankeyLabels({
                     x,
                     y,
                     textAnchor,
+                    side,
                     label: labelTextWrap,
                     valueLabel: shouldShowValueLabel
                         ? valueLabelTextWrap
                         : undefined,
+                    icon,
+                    isIconVisible,
                 },
             ]
         } else {
@@ -780,11 +1107,159 @@ function placeSankeyLabels({
                     x,
                     y,
                     textAnchor,
+                    side,
                     label: labelTextWrap,
+                    icon,
+                    isIconVisible,
                 },
             ]
         }
     })
+}
+
+function toColumnHeadingParts(
+    heading: SankeyColumnHeading | undefined
+): SankeyColumnHeadingPart[] {
+    if (heading === undefined) return []
+    if (typeof heading === "string") return heading ? [{ text: heading }] : []
+    return heading.filter((part) => part.text)
+}
+
+/** Width of a heading's text, part by part since emphasis changes the weight */
+function measureColumnHeadingWidth(
+    parts: SankeyColumnHeadingPart[],
+    fontSettings: FontSettings
+): number {
+    let width = 0
+    for (const part of parts)
+        width += textWidth(part.text, {
+            ...fontSettings,
+            fontWeight: part.emphasis
+                ? COLUMN_HEADING_EMPHASIS_FONT_WEIGHT
+                : COLUMN_HEADING_FONT_WEIGHT,
+        })
+    return width
+}
+
+/** Vertical space the column headings take above the chart, 0 without any */
+function getColumnHeadingsHeight(
+    columnHeadings: SankeyColumnHeading[] | undefined,
+    fontSettings: FontSettings
+): number {
+    if (!columnHeadings?.some((h) => toColumnHeadingParts(h).length > 0))
+        return 0
+    return fontSettings.fontSize * fontSettings.lineHeight + COLUMN_HEADING_GAP
+}
+
+/**
+ * One heading per column. The outer ones sit at the chart's edges — the left
+ * one starting at the left edge, so a sentence spread over the columns
+ * begins where the eye starts, the right one ending at the right edge; a
+ * middle one is centred over its column's bands.
+ *
+ * `candidates` are heading sets in order of preference; the first whose
+ * headings fit side by side wins. If none fits, the last one is drawn with
+ * overlapping headings pushed apart, keeping them inside the chart's edges
+ * for as long as they fit at all.
+ */
+function placeColumnHeadings({
+    layout,
+    candidates,
+    fontSettings,
+    top,
+    left,
+    right,
+}: {
+    layout: LaidOutGraph | null
+    candidates: SankeyColumnHeading[][]
+    fontSettings: FontSettings
+    top: number
+    left: number
+    right: number
+}): PlacedColumnHeading[] {
+    if (!layout || candidates.length === 0) return []
+
+    const depths = [...new Set(layout.nodes.map((n) => n.depth ?? 0))].toSorted(
+        (a, b) => a - b
+    )
+
+    type Measured = PlacedColumnHeading & { start: number; end: number }
+    const place = (columnHeadings: SankeyColumnHeading[]): Measured[] =>
+        depths.flatMap((depth, columnIndex) => {
+            const parts = toColumnHeadingParts(columnHeadings[columnIndex])
+            const node = layout.nodes.find((n) => (n.depth ?? 0) === depth)
+            if (parts.length === 0 || !node) return []
+
+            const side = getNodeSide(node)
+            const x0 = node.x0 ?? 0
+            const x1 = node.x1 ?? 0
+            const placement = match(side)
+                .returnType<Pick<PlacedColumnHeading, "x" | "textAnchor">>()
+                .with("left", () => ({ x: left, textAnchor: "start" }))
+                .with("middle", () => ({
+                    x: (x0 + x1) / 2,
+                    textAnchor: "middle",
+                }))
+                .with("right", () => ({ x: right, textAnchor: "end" }))
+                .exhaustive()
+            const width = measureColumnHeadingWidth(parts, fontSettings)
+            const start = match(placement.textAnchor)
+                .with("start", () => placement.x)
+                .with("middle", () => placement.x - width / 2)
+                .with("end", () => placement.x - width)
+                .exhaustive()
+            return [
+                {
+                    columnIndex,
+                    parts,
+                    y: top,
+                    ...placement,
+                    start,
+                    end: start + width,
+                },
+            ]
+        })
+
+    const fits = (headings: Measured[]): boolean =>
+        headings.every(
+            (h, i) =>
+                h.start >= left &&
+                h.end <= right &&
+                (i === 0 ||
+                    h.start >= headings[i - 1].end + COLUMN_HEADING_MIN_SPACING)
+        )
+
+    const attempts = candidates.map(place)
+    const fitting = attempts.find(fits)
+    const chosen = fitting ?? attempts.at(-1) ?? []
+
+    // Resolve overlaps left to right: a heading starts no earlier than the
+    // previous one ends, plus a gap
+    const shifts = chosen.map(() => 0)
+    for (let i = 1; i < chosen.length; i++) {
+        const previousEnd = chosen[i - 1].end + shifts[i - 1]
+        const overlap =
+            previousEnd + COLUMN_HEADING_MIN_SPACING - chosen[i].start
+        shifts[i] = Math.max(0, overlap)
+    }
+    // Then right to left, pulling back whatever that pushed past the right
+    // edge, without pushing any heading past the left edge
+    let nextStart = right + COLUMN_HEADING_MIN_SPACING
+    for (let i = chosen.length - 1; i >= 0; i--) {
+        const heading = chosen[i]
+        const excess =
+            heading.end + shifts[i] - (nextStart - COLUMN_HEADING_MIN_SPACING)
+        if (excess > 0)
+            shifts[i] -= Math.min(excess, heading.start + shifts[i] - left)
+        nextStart = heading.start + shifts[i]
+    }
+    return chosen.map((heading, i) => ({
+        columnIndex: heading.columnIndex,
+        parts: heading.parts,
+        x: heading.x + shifts[i],
+        y: heading.y,
+        textAnchor: heading.textAnchor,
+    }))
 }
 
 function shiftNodeVertically(node: LaidOutNode, dy: number): void {
@@ -801,8 +1276,36 @@ function shiftNodeVertically(node: LaidOutNode, dy: number): void {
     }
 }
 
-function isNodeOnLeftSide(node: LaidOutNode): boolean {
-    return (node.depth ?? 0) <= (node.height ?? 0)
+/**
+ * Which column a laid-out node sits in. d3-sankey gives every node a `depth`
+ * (columns to its left) and a `height` (columns to its right), so a node with
+ * columns on both sides is a middle one.
+ */
+function getNodeSide(node: LaidOutNode): SankeyNodeSide {
+    const depth = node.depth ?? 0
+    const height = node.height ?? 0
+    if (depth > 0 && height > 0) return "middle"
+    return depth <= height ? "left" : "right"
+}
+
+/**
+ * Which column a node sits in, derived from whether it appears as a link
+ * source, a link target, or both. Used where node depths aren't available
+ * yet, i.e. before d3-sankey has laid the graph out.
+ *
+ * Returns undefined for a node without any links, which sits in no column.
+ */
+export function getNodeSideFromLinks({
+    isLinkSource,
+    isLinkTarget,
+}: {
+    isLinkSource: boolean
+    isLinkTarget: boolean
+}): SankeyNodeSide | undefined {
+    if (isLinkSource && isLinkTarget) return "middle"
+    if (isLinkSource) return "left"
+    if (isLinkTarget) return "right"
+    return undefined
 }
 
 function makeNodeId(
@@ -813,8 +1316,13 @@ function makeNodeId(
     return (endpoint as SankeyLayoutNode).id
 }
 
-function makeLinkKey(source: string, target: string): string {
-    return `${source}->${target}`
+function makeLinkKey({
+    source,
+    target,
+    category,
+}: Pick<SankeyLink, "source" | "target" | "category">): string {
+    const key = `${source}->${target}`
+    return category === undefined ? key : `${key}#${category}`
 }
 
 function toLinkData(link: LaidOutLink): SankeyLink {
@@ -823,6 +1331,7 @@ function toLinkData(link: LaidOutLink): SankeyLink {
         source: makeNodeId(link.source),
         target: makeNodeId(link.target),
         value: l.value,
+        category: l.category,
     }
 }
 
@@ -831,6 +1340,7 @@ function toNodeData(node: LaidOutNode): SankeyNode {
         id: node.id,
         label: node.label,
         valueLabel: node.valueLabel,
+        icon: node.icon,
     }
 }
 
@@ -847,10 +1357,17 @@ export function measureMaxLabelWidthForNode(
     node: SankeyNode,
     fontSettings: FontSettings
 ): number {
-    return Math.max(
-        textWidth(node.label, fontSettings),
-        node.valueLabel ? textWidth(node.valueLabel, fontSettings) : 0
+    return (
+        Math.max(
+            textWidth(node.label, fontSettings),
+            node.valueLabel ? textWidth(node.valueLabel, fontSettings) : 0
+        ) + getIconLabelOffset(node)
     )
+}
+
+/** Horizontal space an icon takes up ahead of its label text, if any */
+function getIconLabelOffset(node: { icon?: React.ReactNode }): number {
+    return node.icon ? SANKEY_ICON_SIZE + SANKEY_ICON_TEXT_GAP : 0
 }
 
 function textWidth(text: string, fontSettings: FontSettings): number {
@@ -910,10 +1427,15 @@ function calculateNodeHitBounds(
     )
     if (!label) return bandBounds
 
-    const width = Math.max(label.label.width, label.valueLabel?.width ?? 0)
-    const height =
+    const width =
+        Math.max(label.label.width, label.valueLabel?.width ?? 0) +
+        getIconLabelOffset(label)
+    const textHeight =
         label.label.height +
         (label.valueLabel ? VALUE_LABEL_GAP + label.valueLabel.height : 0)
+    const height = label.icon
+        ? Math.max(textHeight, SANKEY_ICON_SIZE)
+        : textHeight
 
     const labelX = label.textAnchor === "end" ? label.x - width : label.x
     const labelBounds = new Bounds(labelX, label.y - height / 2, width, height)
