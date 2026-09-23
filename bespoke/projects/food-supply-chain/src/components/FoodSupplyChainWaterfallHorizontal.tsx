@@ -456,8 +456,8 @@ function RowMarks({
         : step.step.delta === 0
           ? COLORS.unchanged
           : isAddition(step.step)
-          ? COLORS.add
-          : COLORS.subtract
+            ? COLORS.add
+            : COLORS.subtract
     const rowCentre = step.slot.y + step.slot.height / 2
     const valueLabelFontSize = isTotal
         ? TOTAL_LABEL_FONT_SIZE
