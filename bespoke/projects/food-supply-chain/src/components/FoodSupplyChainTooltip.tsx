@@ -35,9 +35,11 @@ export function FoodSupplyChainTooltip({
     const { name, delta, balanceAfter } = step.step
     const color = isTotal
         ? COLORS.total
-        : delta > 0
-          ? COLORS.add
-          : COLORS.subtract
+        : delta === 0
+          ? COLORS.unchanged
+          : delta > 0
+            ? COLORS.add
+            : COLORS.subtract
 
     const isFromZero = isTotal || isFirstStep
 
@@ -62,7 +64,7 @@ export function FoodSupplyChainTooltip({
                 value={formatMeasureValue(delta, {
                     span,
                     unit,
-                    showPlus: !isFromZero,
+                    showPlus: !isFromZero && delta !== 0,
                 })}
                 color={color}
             />
