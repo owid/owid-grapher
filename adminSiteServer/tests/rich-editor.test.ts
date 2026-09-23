@@ -1,5 +1,7 @@
+import * as _ from "lodash-es"
 import { describe, expect, it } from "vitest"
 import {
+    NARRATIVE_CHART_PROPS_TO_OMIT,
     OwidGdocAuthoringMode,
     PostsGdocsCommentThreadsTableName,
     PostsGdocsDraftsTableName,
@@ -7,6 +9,7 @@ import {
     PostsGdocsTableName,
     type DbRawPostGdoc,
 } from "@ourworldindata/types"
+import { latestGrapherConfigSchema } from "@ourworldindata/grapher"
 import { getAdminTestEnv } from "./testEnv.js"
 
 const env = getAdminTestEnv()
@@ -510,6 +513,52 @@ describe("rich editor API", { timeout: 20000 }, () => {
             body: JSON.stringify({ narrativeChartNames: ["does-not-exist"] }),
         })
         expect(resolved.narrativeCharts).toEqual({})
+    })
+
+    it("resolves narrative charts with their id, slug and config id", async () => {
+        // Mirrors the rich editor's create-narrative-chart flow: create a
+        // parent chart, derive a narrative chart from its full config, then
+        // resolve it by name.
+        const chartResponse = await env.request({
+            method: "POST",
+            path: "/charts",
+            body: JSON.stringify({
+                $schema: latestGrapherConfigSchema,
+                slug: "parent-chart",
+                title: "Parent chart",
+                chartTypes: ["LineChart"],
+                isPublished: true,
+            }),
+        })
+        const parentChartId = chartResponse.chartId
+
+        const fullConfig = await env.fetchJson(
+            `/charts/${parentChartId}.config.json`
+        )
+        const created = await env.request({
+            method: "POST",
+            path: "/narrative-charts",
+            body: JSON.stringify({
+                type: "chart",
+                name: "parent-chart-nc",
+                parentChartId,
+                config: _.omit(fullConfig, NARRATIVE_CHART_PROPS_TO_OMIT),
+            }),
+        })
+        expect(created.narrativeChartId).toBeGreaterThan(0)
+
+        const resolved = await env.request({
+            method: "POST",
+            path: "/editor/resolveReferences",
+            body: JSON.stringify({
+                narrativeChartNames: ["parent-chart-nc", "does-not-exist"],
+            }),
+        })
+        const info = resolved.narrativeCharts["parent-chart-nc"]
+        expect(info.id).toBe(created.narrativeChartId)
+        expect(info.parentChartSlug).toBe("parent-chart")
+        expect(typeof info.chartConfigId).toBe("string")
+        expect(resolved.narrativeCharts["does-not-exist"]).toBeUndefined()
     })
 
     it("answers presence heartbeats", async () => {
