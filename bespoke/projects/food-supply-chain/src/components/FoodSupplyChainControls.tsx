@@ -66,8 +66,13 @@ export function FoodSupplyChainControls({
                         ariaLabel="Measure"
                     />
                 </LabeledControl>
+                <TimeSlider
+                    className="food-supply-chain-controls__time-slider"
+                    times={years}
+                    selectedTime={year}
+                    onChange={setYear}
+                />
             </ControlsRow>
-            <TimeSlider times={years} selectedTime={year} onChange={setYear} />
         </Controls>
     )
 }
