@@ -12,6 +12,7 @@ import {
     ErrorValue,
     OwidChartDimensionInterfaceWithMandatorySlug,
     OwidChartDimensionInterface,
+    isIndicatorDimension,
     EntityName,
     TimeInterval,
 } from "@ourworldindata/types"
@@ -52,12 +53,21 @@ export const legacyToOwidTableAndDimensionsWithMandatorySlug = (
         | { [entityName: string]: string | undefined }
         | undefined
 ): OwidTable => {
-    const dimensionsWithSlug = dimensions?.map((dimension) => ({
-        ...dimension,
-        slug:
-            dimension.slug ??
-            getDimensionColumnSlug(dimension.variableId, dimension.targetYear),
-    }))
+    // Only indicator-backed slots have anything to assemble here; a slot
+    // naming a host-supplied column is that host's to provide. An authored
+    // slug still wins, so two slots on one indicator at different target
+    // years keep their distinct columns.
+    const dimensionsWithSlug = dimensions
+        .filter(isIndicatorDimension)
+        .map((dimension) => ({
+            ...dimension,
+            slug:
+                dimension.slug ??
+                getDimensionColumnSlug(
+                    dimension.variableId,
+                    dimension.targetYear
+                ),
+        }))
     return legacyToOwidTableAndDimensions(
         json,
         dimensionsWithSlug,
@@ -96,6 +106,8 @@ export const legacyToOwidTableAndDimensions = (
     const variableTablesToJoinByDay: OwidTable[] = []
     const variableTablesWithYearToJoinByEntityOnly: OwidTable[] = []
     for (const dimension of dimensionColumns) {
+        // Slots naming a host-supplied column have no indicator to convert.
+        if (dimension.variableId === undefined) continue
         const variable = json.get(dimension.variableId)
 
         // TODO: this shouldn't happen but it does sometimes
