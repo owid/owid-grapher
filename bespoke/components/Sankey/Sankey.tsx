@@ -39,6 +39,9 @@ const ICON_BACKING_PADDING = 2
 /** Vertical gap between a node's value label and its label */
 const VALUE_LABEL_GAP = 2
 
+/** Smallest height a node's band is drawn at, however small its value */
+const MIN_NODE_DRAWN_HEIGHT = 1
+
 /** Vertical gap between the column headings and the top of the chart */
 const COLUMN_HEADING_GAP = 8
 
@@ -854,7 +857,11 @@ function SankeyNodeView({
     const x1 = node.x1 ?? 0
     const y0 = node.y0 ?? 0
     const y1 = node.y1 ?? 0
-    const h = Math.max(0, y1 - y0)
+    // A node too small to see still gets a hairline, centred on it: its links
+    // are drawn at least that thick, and without the band a middle node's
+    // ribbons would visibly break off on either side of it
+    const h = Math.max(MIN_NODE_DRAWN_HEIGHT, y1 - y0)
+    const y = (y0 + y1 - h) / 2
 
     // Middle-column nodes have no outer edge to hug, so their band spans the
     // node's full width
@@ -874,7 +881,7 @@ function SankeyNodeView({
         <rect
             className={className}
             x={x}
-            y={y0}
+            y={y}
             width={w}
             height={h}
             fill={fill}
