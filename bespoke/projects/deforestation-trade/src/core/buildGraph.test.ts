@@ -120,7 +120,7 @@ describe(buildCountryGraph, () => {
         expect(graph.total).toBe(0)
         expect(graph.otherBreakdown).toEqual({ left: [], right: [] })
         expect(graph.headings).toEqual([
-            "Producing country",
+            "Producing countries",
             "Commodity",
             `${COUNTRY}!`,
         ])
@@ -170,13 +170,13 @@ describe(buildCountryGraph, () => {
 
     it("names the country in the heading of its own column", () => {
         expect(buildCountry(partnerRows([1])).headings).toEqual([
-            "Producing country",
+            "Producing countries",
             "Commodity",
             `${COUNTRY}!`,
         ])
         expect(
             buildCountry(partnerRows([1]), { view: "production" }).headings
-        ).toEqual([`${COUNTRY}!`, "Commodity", "Consumed in"])
+        ).toEqual([`${COUNTRY}!`, "Commodity", "Consuming countries"])
     })
 
     it("drops zero, negative and non-finite rows", () => {

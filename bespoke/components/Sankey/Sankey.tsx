@@ -1098,8 +1098,9 @@ function getColumnHeadingsHeight(
  * middle one is centred over its column's bands.
  *
  * `candidates` are heading sets in order of preference; the first whose
- * headings fit side by side wins. If none fits, the last one is drawn with a
- * heading that would run into the one before it pushed to the right.
+ * headings fit side by side wins. If none fits, the last one is drawn with
+ * overlapping headings pushed apart, keeping them inside the chart's edges
+ * for as long as they fit at all.
  */
 function placeColumnHeadings({
     layout,
@@ -1174,21 +1175,31 @@ function placeColumnHeadings({
 
     // Resolve overlaps left to right: a heading starts no earlier than the
     // previous one ends, plus a gap
-    const placed: PlacedColumnHeading[] = []
-    let previousEnd = -Infinity
-    for (const heading of chosen) {
-        const overlap = previousEnd + COLUMN_HEADING_MIN_SPACING - heading.start
-        const shift = overlap > 0 ? overlap : 0
-        placed.push({
-            columnIndex: heading.columnIndex,
-            parts: heading.parts,
-            x: heading.x + shift,
-            y: heading.y,
-            textAnchor: heading.textAnchor,
-        })
-        previousEnd = heading.end + shift
+    const shifts = chosen.map(() => 0)
+    for (let i = 1; i < chosen.length; i++) {
+        const previousEnd = chosen[i - 1].end + shifts[i - 1]
+        const overlap =
+            previousEnd + COLUMN_HEADING_MIN_SPACING - chosen[i].start
+        shifts[i] = Math.max(0, overlap)
     }
-    return placed
+    // Then right to left, pulling back whatever that pushed past the right
+    // edge, without pushing any heading past the left edge
+    let nextStart = right + COLUMN_HEADING_MIN_SPACING
+    for (let i = chosen.length - 1; i >= 0; i--) {
+        const heading = chosen[i]
+        const excess =
+            heading.end + shifts[i] - (nextStart - COLUMN_HEADING_MIN_SPACING)
+        if (excess > 0)
+            shifts[i] -= Math.min(excess, heading.start + shifts[i] - left)
+        nextStart = heading.start + shifts[i]
+    }
+    return chosen.map((heading, i) => ({
+        columnIndex: heading.columnIndex,
+        parts: heading.parts,
+        x: heading.x + shifts[i],
+        y: heading.y,
+        textAnchor: heading.textAnchor,
+    }))
 }
 
 function shiftNodeVertically(node: LaidOutNode, dy: number): void {

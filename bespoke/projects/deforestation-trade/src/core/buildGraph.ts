@@ -358,7 +358,7 @@ function buildThreeColumnGraph({
 }: {
     left: ColumnInput
     right: ColumnInput
-    headings: [string, string, string]
+    headings: SankeyGraph["headings"]
     headingSentence: SankeyGraph["headingSentence"]
     total: number
     formatValue: (v: number) => string
@@ -518,13 +518,17 @@ export function buildCountryGraph({
         : countryLabel
     const countryAtStart = needsArticle ? `The ${countryLabel}` : countryLabel
     const headings = match(view)
-        .returnType<[string, string, string]>()
+        .returnType<SankeyGraph["headings"]>()
         .with("consumption", () => [
-            "Producing country",
+            "Producing countries",
             "Commodity",
             countryLabel,
         ])
-        .with("production", () => [countryLabel, "Commodity", "Consumed in"])
+        .with("production", () => [
+            countryLabel,
+            "Commodity",
+            "Consuming countries",
+        ])
         .exhaustive()
     const headingSentence = match(view)
         .returnType<SankeyGraph["headingSentence"]>()
