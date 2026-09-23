@@ -37,13 +37,14 @@ export const VALUE_LABEL_LINE_HEIGHT = 1.1
 export const TOTAL_LABEL_FONT_SIZE = 14
 export const TOTAL_LABEL_FONT_WEIGHT = 700
 export const CAPTION_FONT_SIZE = 12
+export const VERTICAL_CAPTION_FONT_SIZE = 11
 export const CAPTION_FONT_WEIGHT = 400
 export const GROUP_LABEL_FONT_SIZE = 13
 export const GROUP_LABEL_FONT_WEIGHT = 700
 export const TOTAL_BOX_LABEL_FONT_WEIGHT = 600
-export const MAX_CAPTION_LINES = 3
+export const MAX_CAPTION_LINES = 4
 /** How far a caption word too long for its column may run into the gap after it */
-export const MAX_CAPTION_OVERFLOW = 6
+export const MAX_CAPTION_OVERFLOW = 8
 /** Minimum space between a column's value label and the next column's bar */
 export const MIN_LABEL_SPACING = 6
 

@@ -12,7 +12,6 @@ import {
     ARROW_MIN_LENGTH,
     ARROW_OPACITY,
     ARROW_WIDTH,
-    CAPTION_FONT_SIZE,
     CAPTION_FONT_WEIGHT,
     CAPTION_VALUE_LABEL_GAP,
     CONNECTOR_WIDTH,
@@ -36,6 +35,7 @@ import {
     VALUE_LABEL_FONT_SIZE,
     VALUE_LABEL_FONT_WEIGHT,
     VALUE_LABEL_GAP,
+    VERTICAL_CAPTION_FONT_SIZE,
 } from "../core/constants.js"
 import { formatMeasureValue } from "../core/format.js"
 import { STAGE_GROUPS } from "../core/stageGroups.js"
@@ -346,7 +346,7 @@ export function doesVerticalLayoutFit(
         const wrap = new TextWrap({
             text: step.name,
             maxWidth,
-            fontSize: CAPTION_FONT_SIZE,
+            fontSize: VERTICAL_CAPTION_FONT_SIZE,
             fontWeight: CAPTION_FONT_WEIGHT,
         })
         return (
@@ -636,7 +636,7 @@ function buildCaptionTextWrap(text: string, slotWidth: number): TextWrap {
         text,
         maxWidth: captionLength(slotWidth),
         maxLines: MAX_CAPTION_LINES,
-        fontSize: CAPTION_FONT_SIZE,
+        fontSize: VERTICAL_CAPTION_FONT_SIZE,
         fontWeight: CAPTION_FONT_WEIGHT,
     })
 }
