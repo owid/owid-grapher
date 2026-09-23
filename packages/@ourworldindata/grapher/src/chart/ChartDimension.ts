@@ -19,7 +19,8 @@ import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
 // and a particular variable that it requests as data
 class ChartDimensionDefaults implements OwidChartDimensionInterface {
     property!: DimensionProperty
-    variableId!: OwidVariableId
+    // Undefined when the slot names a host-supplied column by slug instead.
+    variableId?: OwidVariableId
 
     // check on: malaria-deaths-comparisons and computing-efficiency
 
@@ -97,14 +98,24 @@ export class ChartDimension
 
         deleteRuntimeAndUnchangedProps(obj, new ChartDimensionDefaults())
 
+        // An authored slug is part of the config and has to survive the round
+        // trip; a slug derived from the variable id is not.
+        if (this._slug !== undefined) obj.slug = this._slug
+
         return trimObject(obj)
     }
 
-    // Do not persist yet, until we migrate off VariableIds
+    /**
+     * The slug as authored, when the config named a column of the host's own
+     * table. Indicator-backed dimensions leave this unset and derive their
+     * slug from the variable id instead, which is why it is only written back
+     * out in `toObject` when it was authored.
+     */
     _slug: ColumnSlug | undefined = undefined
 
     @computed get slug(): ColumnSlug {
         if (this._slug) return this._slug
+        if (this.variableId === undefined) return ""
         return getDimensionColumnSlug(this.variableId, this.targetYear)
     }
 
@@ -117,6 +128,6 @@ export class ChartDimension
     }
 
     @computed get columnSlug(): string {
-        return this.slug ?? this.variableId.toString()
+        return this.slug
     }
 }

@@ -412,6 +412,7 @@ export const getExplorerChecksumsFromDb = async (
         if (config.dimensions) {
             for (const dimension of config.dimensions) {
                 const variableId = dimension.variableId
+                if (variableId === undefined) continue
                 variablesByExplorerSlug.get(slug)?.add(variableId)
                 allVariableIds.add(variableId)
             }
