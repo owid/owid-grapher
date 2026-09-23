@@ -1,1 +1,870 @@
-{"timeRange":{"start":2005,"end":2023},"years":[2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021,2022,2023],"source":"Singh, Persson, Croft, Kastner & West (2026) - DeDuCE model and physical trade model, via DeforestationFootprint.earth (CC BY 4.0)","dimensions":{"entities":[{"id":1,"name":"Afghanistan","iso":"AFG","region":"Rest of Asia"},{"id":2,"name":"Albania","iso":"ALB","region":"Europe"},{"id":3,"name":"Algeria","iso":"DZA","region":"Africa"},{"id":4,"name":"Angola","iso":"AGO","region":"Africa"},{"id":5,"name":"Antigua and Barbuda","iso":"ATG","region":"North and Central America"},{"id":6,"name":"Argentina","iso":"ARG","region":"South America"},{"id":7,"name":"Armenia","iso":"ARM","region":"Rest of Asia"},{"id":8,"name":"Australia","iso":"AUS","region":"Oceania"},{"id":9,"name":"Austria","iso":"AUT","region":"Europe"},{"id":10,"name":"Azerbaijan","iso":"AZE","region":"Rest of Asia"},{"id":11,"name":"Bahamas","iso":"BHS","region":"North and Central America"},{"id":12,"name":"Bahrain","iso":"BHR","region":"Rest of Asia"},{"id":13,"name":"Bangladesh","iso":"BGD","region":"Rest of Asia"},{"id":14,"name":"Barbados","iso":"BRB","region":"North and Central America"},{"id":15,"name":"Belarus","iso":"BLR","region":"Europe"},{"id":16,"name":"Belgium","iso":"BEL","region":"Europe"},{"id":17,"name":"Belize","iso":"BLZ","region":"North and Central America"},{"id":18,"name":"Benin","iso":"BEN","region":"Africa"},{"id":19,"name":"Bhutan","iso":"BTN","region":"Rest of Asia"},{"id":20,"name":"Bolivia","iso":"BOL","region":"South America"},{"id":21,"name":"Bosnia and Herzegovina","iso":"BIH","region":"Europe"},{"id":22,"name":"Botswana","iso":"BWA","region":"Africa"},{"id":23,"name":"Brazil","iso":"BRA","region":"South America"},{"id":24,"name":"Brunei","iso":"BRN","region":"Southeast Asia"},{"id":25,"name":"Bulgaria","iso":"BGR","region":"Europe"},{"id":26,"name":"Burkina Faso","iso":"BFA","region":"Africa"},{"id":27,"name":"Burundi","iso":"BDI","region":"Africa"},{"id":28,"name":"Cabo Verde","iso":"CPV","region":"Africa"},{"id":29,"name":"Cambodia","iso":"KHM","region":"Southeast Asia"},{"id":30,"name":"Cameroon","iso":"CMR","region":"Africa"},{"id":31,"name":"Canada","iso":"CAN","region":"North and Central America"},{"id":32,"name":"Central African Republic","iso":"CAF","region":"Africa"},{"id":33,"name":"Chad","iso":"TCD","region":"Africa"},{"id":34,"name":"Chile","iso":"CHL","region":"South America"},{"id":35,"name":"China","iso":"CHN","region":"North Asia"},{"id":36,"name":"Colombia","iso":"COL","region":"South America"},{"id":37,"name":"Comoros","iso":"COM","region":"Africa"},{"id":38,"name":"Cook Islands","iso":"COK","region":"Oceania"},{"id":39,"name":"Costa Rica","iso":"CRI","region":"North and Central America"},{"id":40,"name":"Croatia","iso":"HRV","region":"Europe"},{"id":41,"name":"Cuba","iso":"CUB","region":"North and Central America"},{"id":42,"name":"Cyprus","iso":"CYP","region":"Rest of Asia"},{"id":43,"name":"Czechia","iso":"CZE","region":"Europe"},{"id":44,"name":"Côte d'Ivoire","iso":"CIV","region":"Africa"},{"id":45,"name":"Democratic Republic of the Congo","iso":"COD","region":"Africa"},{"id":46,"name":"Denmark","iso":"DNK","region":"Europe"},{"id":47,"name":"Djibouti","iso":"DJI","region":"Africa"},{"id":48,"name":"Dominica","iso":"DMA","region":"North and Central America"},{"id":49,"name":"Dominican Republic","iso":"DOM","region":"North and Central America"},{"id":50,"name":"Ecuador","iso":"ECU","region":"South America"},{"id":51,"name":"Egypt","iso":"EGY","region":"Africa"},{"id":52,"name":"El Salvador","iso":"SLV","region":"North and Central America"},{"id":53,"name":"Equatorial Guinea","iso":"GNQ","region":"Africa"},{"id":54,"name":"Eritrea","iso":"ERI","region":"Africa"},{"id":55,"name":"Estonia","iso":"EST","region":"Europe"},{"id":56,"name":"Ethiopia","iso":"ETH","region":"Africa"},{"id":57,"name":"Faroe Islands","iso":"FRO","region":"Europe"},{"id":58,"name":"Fiji","iso":"FJI","region":"Oceania"},{"id":59,"name":"Finland","iso":"FIN","region":"Europe"},{"id":60,"name":"France","iso":"FRA","region":"Europe"},{"id":61,"name":"French Guiana","iso":"GUF","region":"South America"},{"id":62,"name":"French Polynesia","iso":"PYF","region":"Oceania"},{"id":63,"name":"Gabon","iso":"GAB","region":"Africa"},{"id":64,"name":"Gambia","iso":"GMB","region":"Africa"},{"id":65,"name":"Georgia","iso":"GEO","region":"Rest of Asia"},{"id":66,"name":"Germany","iso":"DEU","region":"Europe"},{"id":67,"name":"Ghana","iso":"GHA","region":"Africa"},{"id":68,"name":"Greece","iso":"GRC","region":"Europe"},{"id":69,"name":"Grenada","iso":"GRD","region":"South America"},{"id":70,"name":"Guadeloupe","iso":"GLP","region":"North and Central America"},{"id":71,"name":"Guatemala","iso":"GTM","region":"North and Central America"},{"id":72,"name":"Guinea","iso":"GIN","region":"Africa"},{"id":73,"name":"Guinea-Bissau","iso":"GNB","region":"Africa"},{"id":74,"name":"Guyana","iso":"GUY","region":"South America"},{"id":75,"name":"Haiti","iso":"HTI","region":"North and Central America"},{"id":76,"name":"Honduras","iso":"HND","region":"North and Central America"},{"id":77,"name":"Hungary","iso":"HUN","region":"Europe"},{"id":78,"name":"Iceland","iso":"ISL","region":"Europe"},{"id":79,"name":"India","iso":"IND","region":"Rest of Asia"},{"id":80,"name":"Indonesia","iso":"IDN","region":"Southeast Asia"},{"id":81,"name":"Iran","iso":"IRN","region":"Rest of Asia"},{"id":82,"name":"Iraq","iso":"IRQ","region":"Rest of Asia"},{"id":83,"name":"Ireland","iso":"IRL","region":"Europe"},{"id":84,"name":"Israel","iso":"ISR","region":"Rest of Asia"},{"id":85,"name":"Italy","iso":"ITA","region":"Europe"},{"id":86,"name":"Jamaica","iso":"JAM","region":"North and Central America"},{"id":87,"name":"Japan","iso":"JPN","region":"Rest of Asia"},{"id":88,"name":"Jordan","iso":"JOR","region":"Rest of Asia"},{"id":89,"name":"Kazakhstan","iso":"KAZ","region":"North Asia"},{"id":90,"name":"Kenya","iso":"KEN","region":"Africa"},{"id":91,"name":"Kiribati","iso":"KIR","region":"Oceania"},{"id":92,"name":"Kuwait","iso":"KWT","region":"Rest of Asia"},{"id":93,"name":"Kyrgyzstan","iso":"KGZ","region":"Rest of Asia"},{"id":94,"name":"Laos","iso":"LAO","region":"Southeast Asia"},{"id":95,"name":"Latvia","iso":"LVA","region":"Europe"},{"id":96,"name":"Lebanon","iso":"LBN","region":"Rest of Asia"},{"id":97,"name":"Lesotho","iso":"LSO","region":"Africa"},{"id":98,"name":"Liberia","iso":"LBR","region":"Africa"},{"id":99,"name":"Libya","iso":"LBY","region":"Africa"},{"id":100,"name":"Lithuania","iso":"LTU","region":"Europe"},{"id":101,"name":"Luxembourg","iso":"LUX","region":"Europe"},{"id":102,"name":"Madagascar","iso":"MDG","region":"Africa"},{"id":103,"name":"Malawi","iso":"MWI","region":"Africa"},{"id":104,"name":"Malaysia","iso":"MYS","region":"Southeast Asia"},{"id":105,"name":"Maldives","iso":"MDV","region":"Rest of Asia"},{"id":106,"name":"Mali","iso":"MLI","region":"Africa"},{"id":107,"name":"Malta","iso":"MLT","region":"Europe"},{"id":108,"name":"Marshall Islands","iso":"MHL","region":"Oceania"},{"id":109,"name":"Martinique","iso":"MTQ","region":"North and Central America"},{"id":110,"name":"Mauritania","iso":"MRT","region":"Africa"},{"id":111,"name":"Mauritius","iso":"MUS","region":"Africa"},{"id":112,"name":"Micronesia","iso":"FSM","region":"Oceania"},{"id":113,"name":"Moldova","iso":"MDA","region":"Europe"},{"id":114,"name":"Mongolia","iso":"MNG","region":"North Asia"},{"id":115,"name":"Morocco","iso":"MAR","region":"Africa"},{"id":116,"name":"Mozambique","iso":"MOZ","region":"Africa"},{"id":117,"name":"Myanmar","iso":"MMR","region":"Southeast Asia"},{"id":118,"name":"México","iso":"MEX","region":"North and Central America"},{"id":119,"name":"Namibia","iso":"NAM","region":"Africa"},{"id":120,"name":"Nauru","iso":"NRU","region":"Oceania"},{"id":121,"name":"Nepal","iso":"NPL","region":"Rest of Asia"},{"id":122,"name":"Netherlands","iso":"NLD","region":"Europe"},{"id":123,"name":"New Caledonia","iso":"NCL","region":"Oceania"},{"id":124,"name":"New Zealand","iso":"NZL","region":"Oceania"},{"id":125,"name":"Nicaragua","iso":"NIC","region":"North and Central America"},{"id":126,"name":"Niger","iso":"NER","region":"Africa"},{"id":127,"name":"Nigeria","iso":"NGA","region":"Africa"},{"id":128,"name":"Niue","iso":"NIU","region":"Oceania"},{"id":129,"name":"North Korea","iso":"PRK","region":"Rest of Asia"},{"id":130,"name":"North Macedonia","iso":"MKD","region":"Europe"},{"id":131,"name":"Norway","iso":"NOR","region":"Europe"},{"id":132,"name":"Oman","iso":"OMN","region":"Rest of Asia"},{"id":133,"name":"Pakistan","iso":"PAK","region":"Rest of Asia"},{"id":134,"name":"Palestine","iso":"PSE","region":"Rest of Asia"},{"id":135,"name":"Panama","iso":"PAN","region":"North and Central America"},{"id":136,"name":"Papua New Guinea","iso":"PNG","region":"Oceania"},{"id":137,"name":"Paraguay","iso":"PRY","region":"South America"},{"id":138,"name":"Peru","iso":"PER","region":"South America"},{"id":139,"name":"Philippines","iso":"PHL","region":"Southeast Asia"},{"id":140,"name":"Poland","iso":"POL","region":"Europe"},{"id":141,"name":"Portugal","iso":"PRT","region":"Europe"},{"id":142,"name":"Puerto Rico","iso":"PRI","region":"North and Central America"},{"id":143,"name":"Qatar","iso":"QAT","region":"Rest of Asia"},{"id":144,"name":"Republic of the Congo","iso":"COG","region":"Africa"},{"id":145,"name":"Romania","iso":"ROU","region":"Europe"},{"id":146,"name":"Russia","iso":"RUS","region":"North Asia"},{"id":147,"name":"Rwanda","iso":"RWA","region":"Africa"},{"id":148,"name":"Réunion","iso":"REU","region":"Africa"},{"id":149,"name":"Saint Kitts and Nevis","iso":"KNA","region":"North and Central America"},{"id":150,"name":"Saint Lucia","iso":"LCA","region":"North and Central America"},{"id":151,"name":"Saint Vincent and the Grenadines","iso":"VCT","region":"North and Central America"},{"id":152,"name":"Samoa","iso":"WSM","region":"Oceania"},{"id":153,"name":"Saudi Arabia","iso":"SAU","region":"Rest of Asia"},{"id":154,"name":"Senegal","iso":"SEN","region":"Africa"},{"id":155,"name":"Serbia","iso":"SRB","region":"Europe"},{"id":156,"name":"Serbia and Montenegro","iso":"SRB and MNE","region":"Europe"},{"id":157,"name":"Seychelles","iso":"SYC","region":"Africa"},{"id":158,"name":"Sierra Leone","iso":"SLE","region":"Africa"},{"id":159,"name":"Singapore","iso":"SGP","region":"Southeast Asia"},{"id":160,"name":"Slovakia","iso":"SVK","region":"Europe"},{"id":161,"name":"Slovenia","iso":"SVN","region":"Europe"},{"id":162,"name":"Solomon Islands","iso":"SLB","region":"Oceania"},{"id":163,"name":"Somalia","iso":"SOM","region":"Africa"},{"id":164,"name":"South Africa","iso":"ZAF","region":"Africa"},{"id":165,"name":"South Korea","iso":"KOR","region":"Rest of Asia"},{"id":166,"name":"South Sudan","iso":"SSD","region":"Africa"},{"id":167,"name":"Spain","iso":"ESP","region":"Europe"},{"id":168,"name":"Sri Lanka","iso":"LKA","region":"Rest of Asia"},{"id":169,"name":"Sudan","iso":"SDN","region":"Africa"},{"id":170,"name":"Sudan and South Sudan","iso":"SDN and SSD","region":"Africa"},{"id":171,"name":"Suriname","iso":"SUR","region":"South America"},{"id":172,"name":"Swaziland","iso":"SWZ","region":"Africa"},{"id":173,"name":"Sweden","iso":"SWE","region":"Europe"},{"id":174,"name":"Switzerland","iso":"CHE","region":"Europe"},{"id":175,"name":"Syria","iso":"SYR","region":"Rest of Asia"},{"id":176,"name":"São Tomé and Príncipe","iso":"STP","region":"Africa"},{"id":177,"name":"Taiwan","iso":"TWN","region":"Rest of Asia"},{"id":178,"name":"Tajikistan","iso":"TJK","region":"Rest of Asia"},{"id":179,"name":"Tanzania","iso":"TZA","region":"Africa"},{"id":180,"name":"Thailand","iso":"THA","region":"Southeast Asia"},{"id":181,"name":"Timor-Leste","iso":"TLS","region":"Southeast Asia"},{"id":182,"name":"Togo","iso":"TGO","region":"Africa"},{"id":183,"name":"Tokelau","iso":"TKL","region":"Oceania"},{"id":184,"name":"Tonga","iso":"TON","region":"Oceania"},{"id":185,"name":"Trinidad and Tobago","iso":"TTO","region":"South America"},{"id":186,"name":"Tunisia","iso":"TUN","region":"Africa"},{"id":187,"name":"Turkey","iso":"TUR","region":"Rest of Asia"},{"id":188,"name":"Turkmenistan","iso":"TKM","region":"Rest of Asia"},{"id":189,"name":"Tuvalu","iso":"TUV","region":"Oceania"},{"id":190,"name":"Uganda","iso":"UGA","region":"Africa"},{"id":191,"name":"Ukraine","iso":"UKR","region":"Europe"},{"id":192,"name":"United Arab Emirates","iso":"ARE","region":"Rest of Asia"},{"id":193,"name":"United Kingdom","iso":"GBR","region":"Europe"},{"id":194,"name":"United States","iso":"USA","region":"North and Central America"},{"id":195,"name":"Uruguay","iso":"URY","region":"South America"},{"id":196,"name":"Uzbekistan","iso":"UZB","region":"Rest of Asia"},{"id":197,"name":"Vanuatu","iso":"VUT","region":"Oceania"},{"id":198,"name":"Venezuela","iso":"VEN","region":"South America"},{"id":199,"name":"Vietnam","iso":"VNM","region":"Southeast Asia"},{"id":200,"name":"Yemen","iso":"YEM","region":"Rest of Asia"},{"id":201,"name":"Zambia","iso":"ZMB","region":"Africa"},{"id":202,"name":"Zimbabwe","iso":"ZWE","region":"Africa"}],"commodityGroups":[{"id":1,"name":"Cereals"},{"id":2,"name":"Edible roots and tubers with high starch or inulin content"},{"id":3,"name":"Fibre crops"},{"id":4,"name":"Fruit and nuts"},{"id":5,"name":"Oilseeds and oleaginous fruits"},{"id":6,"name":"Pasture"},{"id":7,"name":"Pulses (dried leguminous vegetables)"},{"id":8,"name":"Stimulant, spice and aromatic crops"},{"id":9,"name":"Vegetables"}]},"title":"Deforestation embedded in agricultural trade","descriptionShort":"Hectares of amortized deforestation risk embedded in agricultural commodities, attributed to both the producing and the consuming country.","descriptionKey":"Deforestation risk embedded in trade is an estimate of how much deforestation is associated with the agricultural commodities a country produces or consumes. It is calculated with a physical trade model that attributes deforestation in producing countries to the countries that ultimately consume those commodities. It therefore measures exposure, and does not confirm that a given shipment was sourced from a specific cleared area. Deforestation is amortized over a multi-year window following the DeDuCE model, so a single clearing event is spread across several years. The estimates cover cropland and pasture expansion for agricultural commodities.","attribution":"Singh, Persson, Croft, Kastner & West (2026) via DeforestationFootprint.earth","attributionShort":"DeforestationFootprint.earth","origins":[{"producer":"Singh, Persson, Croft, Kastner & West","title":"DeDuCE model and physical trade model","citationFull":"Singh, Persson, Croft, Kastner & West (2026) - DeDuCE model and physical trade model, via DeforestationFootprint.earth (CC BY 4.0)","urlMain":"https://deforestationfootprint.earth/trade","datePublished":"2026","license":{"name":"CC BY 4.0","url":"https://creativecommons.org/licenses/by/4.0/"}}],"unit":"hectares","shortUnit":"ha","timespan":"2005-2023","license":"cc-by"}
+{
+    "timeRange": { "start": 2005, "end": 2023 },
+    "years": [
+        2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016,
+        2017, 2018, 2019, 2020, 2021, 2022, 2023
+    ],
+    "source": "Singh, Persson, Croft, Kastner & West (2026) - DeDuCE model and physical trade model, via DeforestationFootprint.earth (CC BY 4.0)",
+    "dimensions": {
+        "entities": [
+            {
+                "id": 1,
+                "name": "Afghanistan",
+                "iso": "AFG",
+                "region": "Rest of Asia"
+            },
+            { "id": 2, "name": "Albania", "iso": "ALB", "region": "Europe" },
+            { "id": 3, "name": "Algeria", "iso": "DZA", "region": "Africa" },
+            { "id": 4, "name": "Angola", "iso": "AGO", "region": "Africa" },
+            {
+                "id": 5,
+                "name": "Antigua and Barbuda",
+                "iso": "ATG",
+                "region": "North and Central America"
+            },
+            {
+                "id": 6,
+                "name": "Argentina",
+                "iso": "ARG",
+                "region": "South America"
+            },
+            {
+                "id": 7,
+                "name": "Armenia",
+                "iso": "ARM",
+                "region": "Rest of Asia"
+            },
+            { "id": 8, "name": "Australia", "iso": "AUS", "region": "Oceania" },
+            { "id": 9, "name": "Austria", "iso": "AUT", "region": "Europe" },
+            {
+                "id": 10,
+                "name": "Azerbaijan",
+                "iso": "AZE",
+                "region": "Rest of Asia"
+            },
+            {
+                "id": 11,
+                "name": "Bahamas",
+                "iso": "BHS",
+                "region": "North and Central America"
+            },
+            {
+                "id": 12,
+                "name": "Bahrain",
+                "iso": "BHR",
+                "region": "Rest of Asia"
+            },
+            {
+                "id": 13,
+                "name": "Bangladesh",
+                "iso": "BGD",
+                "region": "Rest of Asia"
+            },
+            {
+                "id": 14,
+                "name": "Barbados",
+                "iso": "BRB",
+                "region": "North and Central America"
+            },
+            { "id": 15, "name": "Belarus", "iso": "BLR", "region": "Europe" },
+            { "id": 16, "name": "Belgium", "iso": "BEL", "region": "Europe" },
+            {
+                "id": 17,
+                "name": "Belize",
+                "iso": "BLZ",
+                "region": "North and Central America"
+            },
+            { "id": 18, "name": "Benin", "iso": "BEN", "region": "Africa" },
+            {
+                "id": 19,
+                "name": "Bhutan",
+                "iso": "BTN",
+                "region": "Rest of Asia"
+            },
+            {
+                "id": 20,
+                "name": "Bolivia",
+                "iso": "BOL",
+                "region": "South America"
+            },
+            {
+                "id": 21,
+                "name": "Bosnia and Herzegovina",
+                "iso": "BIH",
+                "region": "Europe"
+            },
+            { "id": 22, "name": "Botswana", "iso": "BWA", "region": "Africa" },
+            {
+                "id": 23,
+                "name": "Brazil",
+                "iso": "BRA",
+                "region": "South America"
+            },
+            {
+                "id": 24,
+                "name": "Brunei",
+                "iso": "BRN",
+                "region": "Southeast Asia"
+            },
+            { "id": 25, "name": "Bulgaria", "iso": "BGR", "region": "Europe" },
+            {
+                "id": 26,
+                "name": "Burkina Faso",
+                "iso": "BFA",
+                "region": "Africa"
+            },
+            { "id": 27, "name": "Burundi", "iso": "BDI", "region": "Africa" },
+            {
+                "id": 28,
+                "name": "Cabo Verde",
+                "iso": "CPV",
+                "region": "Africa"
+            },
+            {
+                "id": 29,
+                "name": "Cambodia",
+                "iso": "KHM",
+                "region": "Southeast Asia"
+            },
+            { "id": 30, "name": "Cameroon", "iso": "CMR", "region": "Africa" },
+            {
+                "id": 31,
+                "name": "Canada",
+                "iso": "CAN",
+                "region": "North and Central America"
+            },
+            {
+                "id": 32,
+                "name": "Central African Republic",
+                "iso": "CAF",
+                "region": "Africa"
+            },
+            { "id": 33, "name": "Chad", "iso": "TCD", "region": "Africa" },
+            {
+                "id": 34,
+                "name": "Chile",
+                "iso": "CHL",
+                "region": "South America"
+            },
+            { "id": 35, "name": "China", "iso": "CHN", "region": "North Asia" },
+            {
+                "id": 36,
+                "name": "Colombia",
+                "iso": "COL",
+                "region": "South America"
+            },
+            { "id": 37, "name": "Comoros", "iso": "COM", "region": "Africa" },
+            {
+                "id": 38,
+                "name": "Cook Islands",
+                "iso": "COK",
+                "region": "Oceania"
+            },
+            {
+                "id": 39,
+                "name": "Costa Rica",
+                "iso": "CRI",
+                "region": "North and Central America"
+            },
+            { "id": 40, "name": "Croatia", "iso": "HRV", "region": "Europe" },
+            {
+                "id": 41,
+                "name": "Cuba",
+                "iso": "CUB",
+                "region": "North and Central America"
+            },
+            {
+                "id": 42,
+                "name": "Cyprus",
+                "iso": "CYP",
+                "region": "Rest of Asia"
+            },
+            { "id": 43, "name": "Czechia", "iso": "CZE", "region": "Europe" },
+            {
+                "id": 44,
+                "name": "Côte d'Ivoire",
+                "iso": "CIV",
+                "region": "Africa"
+            },
+            {
+                "id": 45,
+                "name": "Democratic Republic of the Congo",
+                "iso": "COD",
+                "region": "Africa"
+            },
+            { "id": 46, "name": "Denmark", "iso": "DNK", "region": "Europe" },
+            { "id": 47, "name": "Djibouti", "iso": "DJI", "region": "Africa" },
+            {
+                "id": 48,
+                "name": "Dominica",
+                "iso": "DMA",
+                "region": "North and Central America"
+            },
+            {
+                "id": 49,
+                "name": "Dominican Republic",
+                "iso": "DOM",
+                "region": "North and Central America"
+            },
+            {
+                "id": 50,
+                "name": "Ecuador",
+                "iso": "ECU",
+                "region": "South America"
+            },
+            { "id": 51, "name": "Egypt", "iso": "EGY", "region": "Africa" },
+            {
+                "id": 52,
+                "name": "El Salvador",
+                "iso": "SLV",
+                "region": "North and Central America"
+            },
+            {
+                "id": 53,
+                "name": "Equatorial Guinea",
+                "iso": "GNQ",
+                "region": "Africa"
+            },
+            { "id": 54, "name": "Eritrea", "iso": "ERI", "region": "Africa" },
+            { "id": 55, "name": "Estonia", "iso": "EST", "region": "Europe" },
+            { "id": 56, "name": "Ethiopia", "iso": "ETH", "region": "Africa" },
+            {
+                "id": 57,
+                "name": "Faroe Islands",
+                "iso": "FRO",
+                "region": "Europe"
+            },
+            { "id": 58, "name": "Fiji", "iso": "FJI", "region": "Oceania" },
+            { "id": 59, "name": "Finland", "iso": "FIN", "region": "Europe" },
+            { "id": 60, "name": "France", "iso": "FRA", "region": "Europe" },
+            {
+                "id": 61,
+                "name": "French Guiana",
+                "iso": "GUF",
+                "region": "South America"
+            },
+            {
+                "id": 62,
+                "name": "French Polynesia",
+                "iso": "PYF",
+                "region": "Oceania"
+            },
+            { "id": 63, "name": "Gabon", "iso": "GAB", "region": "Africa" },
+            { "id": 64, "name": "Gambia", "iso": "GMB", "region": "Africa" },
+            {
+                "id": 65,
+                "name": "Georgia",
+                "iso": "GEO",
+                "region": "Rest of Asia"
+            },
+            { "id": 66, "name": "Germany", "iso": "DEU", "region": "Europe" },
+            { "id": 67, "name": "Ghana", "iso": "GHA", "region": "Africa" },
+            { "id": 68, "name": "Greece", "iso": "GRC", "region": "Europe" },
+            {
+                "id": 69,
+                "name": "Grenada",
+                "iso": "GRD",
+                "region": "South America"
+            },
+            {
+                "id": 70,
+                "name": "Guadeloupe",
+                "iso": "GLP",
+                "region": "North and Central America"
+            },
+            {
+                "id": 71,
+                "name": "Guatemala",
+                "iso": "GTM",
+                "region": "North and Central America"
+            },
+            { "id": 72, "name": "Guinea", "iso": "GIN", "region": "Africa" },
+            {
+                "id": 73,
+                "name": "Guinea-Bissau",
+                "iso": "GNB",
+                "region": "Africa"
+            },
+            {
+                "id": 74,
+                "name": "Guyana",
+                "iso": "GUY",
+                "region": "South America"
+            },
+            {
+                "id": 75,
+                "name": "Haiti",
+                "iso": "HTI",
+                "region": "North and Central America"
+            },
+            {
+                "id": 76,
+                "name": "Honduras",
+                "iso": "HND",
+                "region": "North and Central America"
+            },
+            { "id": 77, "name": "Hungary", "iso": "HUN", "region": "Europe" },
+            { "id": 78, "name": "Iceland", "iso": "ISL", "region": "Europe" },
+            {
+                "id": 79,
+                "name": "India",
+                "iso": "IND",
+                "region": "Rest of Asia"
+            },
+            {
+                "id": 80,
+                "name": "Indonesia",
+                "iso": "IDN",
+                "region": "Southeast Asia"
+            },
+            {
+                "id": 81,
+                "name": "Iran",
+                "iso": "IRN",
+                "region": "Rest of Asia"
+            },
+            {
+                "id": 82,
+                "name": "Iraq",
+                "iso": "IRQ",
+                "region": "Rest of Asia"
+            },
+            { "id": 83, "name": "Ireland", "iso": "IRL", "region": "Europe" },
+            {
+                "id": 84,
+                "name": "Israel",
+                "iso": "ISR",
+                "region": "Rest of Asia"
+            },
+            { "id": 85, "name": "Italy", "iso": "ITA", "region": "Europe" },
+            {
+                "id": 86,
+                "name": "Jamaica",
+                "iso": "JAM",
+                "region": "North and Central America"
+            },
+            {
+                "id": 87,
+                "name": "Japan",
+                "iso": "JPN",
+                "region": "Rest of Asia"
+            },
+            {
+                "id": 88,
+                "name": "Jordan",
+                "iso": "JOR",
+                "region": "Rest of Asia"
+            },
+            {
+                "id": 89,
+                "name": "Kazakhstan",
+                "iso": "KAZ",
+                "region": "North Asia"
+            },
+            { "id": 90, "name": "Kenya", "iso": "KEN", "region": "Africa" },
+            { "id": 91, "name": "Kiribati", "iso": "KIR", "region": "Oceania" },
+            {
+                "id": 92,
+                "name": "Kuwait",
+                "iso": "KWT",
+                "region": "Rest of Asia"
+            },
+            {
+                "id": 93,
+                "name": "Kyrgyzstan",
+                "iso": "KGZ",
+                "region": "Rest of Asia"
+            },
+            {
+                "id": 94,
+                "name": "Laos",
+                "iso": "LAO",
+                "region": "Southeast Asia"
+            },
+            { "id": 95, "name": "Latvia", "iso": "LVA", "region": "Europe" },
+            {
+                "id": 96,
+                "name": "Lebanon",
+                "iso": "LBN",
+                "region": "Rest of Asia"
+            },
+            { "id": 97, "name": "Lesotho", "iso": "LSO", "region": "Africa" },
+            { "id": 98, "name": "Liberia", "iso": "LBR", "region": "Africa" },
+            { "id": 99, "name": "Libya", "iso": "LBY", "region": "Africa" },
+            {
+                "id": 100,
+                "name": "Lithuania",
+                "iso": "LTU",
+                "region": "Europe"
+            },
+            {
+                "id": 101,
+                "name": "Luxembourg",
+                "iso": "LUX",
+                "region": "Europe"
+            },
+            {
+                "id": 102,
+                "name": "Madagascar",
+                "iso": "MDG",
+                "region": "Africa"
+            },
+            { "id": 103, "name": "Malawi", "iso": "MWI", "region": "Africa" },
+            {
+                "id": 104,
+                "name": "Malaysia",
+                "iso": "MYS",
+                "region": "Southeast Asia"
+            },
+            {
+                "id": 105,
+                "name": "Maldives",
+                "iso": "MDV",
+                "region": "Rest of Asia"
+            },
+            { "id": 106, "name": "Mali", "iso": "MLI", "region": "Africa" },
+            { "id": 107, "name": "Malta", "iso": "MLT", "region": "Europe" },
+            {
+                "id": 108,
+                "name": "Marshall Islands",
+                "iso": "MHL",
+                "region": "Oceania"
+            },
+            {
+                "id": 109,
+                "name": "Martinique",
+                "iso": "MTQ",
+                "region": "North and Central America"
+            },
+            {
+                "id": 110,
+                "name": "Mauritania",
+                "iso": "MRT",
+                "region": "Africa"
+            },
+            {
+                "id": 111,
+                "name": "Mauritius",
+                "iso": "MUS",
+                "region": "Africa"
+            },
+            {
+                "id": 112,
+                "name": "Micronesia",
+                "iso": "FSM",
+                "region": "Oceania"
+            },
+            { "id": 113, "name": "Moldova", "iso": "MDA", "region": "Europe" },
+            {
+                "id": 114,
+                "name": "Mongolia",
+                "iso": "MNG",
+                "region": "North Asia"
+            },
+            { "id": 115, "name": "Morocco", "iso": "MAR", "region": "Africa" },
+            {
+                "id": 116,
+                "name": "Mozambique",
+                "iso": "MOZ",
+                "region": "Africa"
+            },
+            {
+                "id": 117,
+                "name": "Myanmar",
+                "iso": "MMR",
+                "region": "Southeast Asia"
+            },
+            {
+                "id": 118,
+                "name": "México",
+                "iso": "MEX",
+                "region": "North and Central America"
+            },
+            { "id": 119, "name": "Namibia", "iso": "NAM", "region": "Africa" },
+            { "id": 120, "name": "Nauru", "iso": "NRU", "region": "Oceania" },
+            {
+                "id": 121,
+                "name": "Nepal",
+                "iso": "NPL",
+                "region": "Rest of Asia"
+            },
+            {
+                "id": 122,
+                "name": "Netherlands",
+                "iso": "NLD",
+                "region": "Europe"
+            },
+            {
+                "id": 123,
+                "name": "New Caledonia",
+                "iso": "NCL",
+                "region": "Oceania"
+            },
+            {
+                "id": 124,
+                "name": "New Zealand",
+                "iso": "NZL",
+                "region": "Oceania"
+            },
+            {
+                "id": 125,
+                "name": "Nicaragua",
+                "iso": "NIC",
+                "region": "North and Central America"
+            },
+            { "id": 126, "name": "Niger", "iso": "NER", "region": "Africa" },
+            { "id": 127, "name": "Nigeria", "iso": "NGA", "region": "Africa" },
+            { "id": 128, "name": "Niue", "iso": "NIU", "region": "Oceania" },
+            {
+                "id": 129,
+                "name": "North Korea",
+                "iso": "PRK",
+                "region": "Rest of Asia"
+            },
+            {
+                "id": 130,
+                "name": "North Macedonia",
+                "iso": "MKD",
+                "region": "Europe"
+            },
+            { "id": 131, "name": "Norway", "iso": "NOR", "region": "Europe" },
+            {
+                "id": 132,
+                "name": "Oman",
+                "iso": "OMN",
+                "region": "Rest of Asia"
+            },
+            {
+                "id": 133,
+                "name": "Pakistan",
+                "iso": "PAK",
+                "region": "Rest of Asia"
+            },
+            {
+                "id": 134,
+                "name": "Palestine",
+                "iso": "PSE",
+                "region": "Rest of Asia"
+            },
+            {
+                "id": 135,
+                "name": "Panama",
+                "iso": "PAN",
+                "region": "North and Central America"
+            },
+            {
+                "id": 136,
+                "name": "Papua New Guinea",
+                "iso": "PNG",
+                "region": "Oceania"
+            },
+            {
+                "id": 137,
+                "name": "Paraguay",
+                "iso": "PRY",
+                "region": "South America"
+            },
+            {
+                "id": 138,
+                "name": "Peru",
+                "iso": "PER",
+                "region": "South America"
+            },
+            {
+                "id": 139,
+                "name": "Philippines",
+                "iso": "PHL",
+                "region": "Southeast Asia"
+            },
+            { "id": 140, "name": "Poland", "iso": "POL", "region": "Europe" },
+            { "id": 141, "name": "Portugal", "iso": "PRT", "region": "Europe" },
+            {
+                "id": 142,
+                "name": "Puerto Rico",
+                "iso": "PRI",
+                "region": "North and Central America"
+            },
+            {
+                "id": 143,
+                "name": "Qatar",
+                "iso": "QAT",
+                "region": "Rest of Asia"
+            },
+            {
+                "id": 144,
+                "name": "Republic of the Congo",
+                "iso": "COG",
+                "region": "Africa"
+            },
+            { "id": 145, "name": "Romania", "iso": "ROU", "region": "Europe" },
+            {
+                "id": 146,
+                "name": "Russia",
+                "iso": "RUS",
+                "region": "North Asia"
+            },
+            { "id": 147, "name": "Rwanda", "iso": "RWA", "region": "Africa" },
+            { "id": 148, "name": "Réunion", "iso": "REU", "region": "Africa" },
+            {
+                "id": 149,
+                "name": "Saint Kitts and Nevis",
+                "iso": "KNA",
+                "region": "North and Central America"
+            },
+            {
+                "id": 150,
+                "name": "Saint Lucia",
+                "iso": "LCA",
+                "region": "North and Central America"
+            },
+            {
+                "id": 151,
+                "name": "Saint Vincent and the Grenadines",
+                "iso": "VCT",
+                "region": "North and Central America"
+            },
+            { "id": 152, "name": "Samoa", "iso": "WSM", "region": "Oceania" },
+            {
+                "id": 153,
+                "name": "Saudi Arabia",
+                "iso": "SAU",
+                "region": "Rest of Asia"
+            },
+            { "id": 154, "name": "Senegal", "iso": "SEN", "region": "Africa" },
+            { "id": 155, "name": "Serbia", "iso": "SRB", "region": "Europe" },
+            {
+                "id": 156,
+                "name": "Serbia and Montenegro",
+                "iso": "SRB and MNE",
+                "region": "Europe"
+            },
+            {
+                "id": 157,
+                "name": "Seychelles",
+                "iso": "SYC",
+                "region": "Africa"
+            },
+            {
+                "id": 158,
+                "name": "Sierra Leone",
+                "iso": "SLE",
+                "region": "Africa"
+            },
+            {
+                "id": 159,
+                "name": "Singapore",
+                "iso": "SGP",
+                "region": "Southeast Asia"
+            },
+            { "id": 160, "name": "Slovakia", "iso": "SVK", "region": "Europe" },
+            { "id": 161, "name": "Slovenia", "iso": "SVN", "region": "Europe" },
+            {
+                "id": 162,
+                "name": "Solomon Islands",
+                "iso": "SLB",
+                "region": "Oceania"
+            },
+            { "id": 163, "name": "Somalia", "iso": "SOM", "region": "Africa" },
+            {
+                "id": 164,
+                "name": "South Africa",
+                "iso": "ZAF",
+                "region": "Africa"
+            },
+            {
+                "id": 165,
+                "name": "South Korea",
+                "iso": "KOR",
+                "region": "Rest of Asia"
+            },
+            {
+                "id": 166,
+                "name": "South Sudan",
+                "iso": "SSD",
+                "region": "Africa"
+            },
+            { "id": 167, "name": "Spain", "iso": "ESP", "region": "Europe" },
+            {
+                "id": 168,
+                "name": "Sri Lanka",
+                "iso": "LKA",
+                "region": "Rest of Asia"
+            },
+            { "id": 169, "name": "Sudan", "iso": "SDN", "region": "Africa" },
+            {
+                "id": 170,
+                "name": "Sudan and South Sudan",
+                "iso": "SDN and SSD",
+                "region": "Africa"
+            },
+            {
+                "id": 171,
+                "name": "Suriname",
+                "iso": "SUR",
+                "region": "South America"
+            },
+            {
+                "id": 172,
+                "name": "Swaziland",
+                "iso": "SWZ",
+                "region": "Africa"
+            },
+            { "id": 173, "name": "Sweden", "iso": "SWE", "region": "Europe" },
+            {
+                "id": 174,
+                "name": "Switzerland",
+                "iso": "CHE",
+                "region": "Europe"
+            },
+            {
+                "id": 175,
+                "name": "Syria",
+                "iso": "SYR",
+                "region": "Rest of Asia"
+            },
+            {
+                "id": 176,
+                "name": "São Tomé and Príncipe",
+                "iso": "STP",
+                "region": "Africa"
+            },
+            {
+                "id": 177,
+                "name": "Taiwan",
+                "iso": "TWN",
+                "region": "Rest of Asia"
+            },
+            {
+                "id": 178,
+                "name": "Tajikistan",
+                "iso": "TJK",
+                "region": "Rest of Asia"
+            },
+            { "id": 179, "name": "Tanzania", "iso": "TZA", "region": "Africa" },
+            {
+                "id": 180,
+                "name": "Thailand",
+                "iso": "THA",
+                "region": "Southeast Asia"
+            },
+            {
+                "id": 181,
+                "name": "Timor-Leste",
+                "iso": "TLS",
+                "region": "Southeast Asia"
+            },
+            { "id": 182, "name": "Togo", "iso": "TGO", "region": "Africa" },
+            { "id": 183, "name": "Tokelau", "iso": "TKL", "region": "Oceania" },
+            { "id": 184, "name": "Tonga", "iso": "TON", "region": "Oceania" },
+            {
+                "id": 185,
+                "name": "Trinidad and Tobago",
+                "iso": "TTO",
+                "region": "South America"
+            },
+            { "id": 186, "name": "Tunisia", "iso": "TUN", "region": "Africa" },
+            {
+                "id": 187,
+                "name": "Turkey",
+                "iso": "TUR",
+                "region": "Rest of Asia"
+            },
+            {
+                "id": 188,
+                "name": "Turkmenistan",
+                "iso": "TKM",
+                "region": "Rest of Asia"
+            },
+            { "id": 189, "name": "Tuvalu", "iso": "TUV", "region": "Oceania" },
+            { "id": 190, "name": "Uganda", "iso": "UGA", "region": "Africa" },
+            { "id": 191, "name": "Ukraine", "iso": "UKR", "region": "Europe" },
+            {
+                "id": 192,
+                "name": "United Arab Emirates",
+                "iso": "ARE",
+                "region": "Rest of Asia"
+            },
+            {
+                "id": 193,
+                "name": "United Kingdom",
+                "iso": "GBR",
+                "region": "Europe"
+            },
+            {
+                "id": 194,
+                "name": "United States",
+                "iso": "USA",
+                "region": "North and Central America"
+            },
+            {
+                "id": 195,
+                "name": "Uruguay",
+                "iso": "URY",
+                "region": "South America"
+            },
+            {
+                "id": 196,
+                "name": "Uzbekistan",
+                "iso": "UZB",
+                "region": "Rest of Asia"
+            },
+            { "id": 197, "name": "Vanuatu", "iso": "VUT", "region": "Oceania" },
+            {
+                "id": 198,
+                "name": "Venezuela",
+                "iso": "VEN",
+                "region": "South America"
+            },
+            {
+                "id": 199,
+                "name": "Vietnam",
+                "iso": "VNM",
+                "region": "Southeast Asia"
+            },
+            {
+                "id": 200,
+                "name": "Yemen",
+                "iso": "YEM",
+                "region": "Rest of Asia"
+            },
+            { "id": 201, "name": "Zambia", "iso": "ZMB", "region": "Africa" },
+            { "id": 202, "name": "Zimbabwe", "iso": "ZWE", "region": "Africa" }
+        ],
+        "commodityGroups": [
+            { "id": 1, "name": "Cereals" },
+            {
+                "id": 2,
+                "name": "Edible roots and tubers with high starch or inulin content"
+            },
+            { "id": 3, "name": "Fibre crops" },
+            { "id": 4, "name": "Fruit and nuts" },
+            { "id": 5, "name": "Oilseeds and oleaginous fruits" },
+            { "id": 6, "name": "Pasture" },
+            { "id": 7, "name": "Pulses (dried leguminous vegetables)" },
+            { "id": 8, "name": "Stimulant, spice and aromatic crops" },
+            { "id": 9, "name": "Vegetables" }
+        ]
+    },
+    "title": "Deforestation embedded in agricultural trade",
+    "descriptionShort": "Hectares of amortized deforestation risk embedded in agricultural commodities, attributed to both the producing and the consuming country.",
+    "descriptionKey": "Deforestation risk embedded in trade is an estimate of how much deforestation is associated with the agricultural commodities a country produces or consumes. It is calculated with a physical trade model that attributes deforestation in producing countries to the countries that ultimately consume those commodities. It therefore measures exposure, and does not confirm that a given shipment was sourced from a specific cleared area. Deforestation is amortized over a multi-year window following the DeDuCE model, so a single clearing event is spread across several years. The estimates cover cropland and pasture expansion for agricultural commodities.",
+    "attribution": "Singh, Persson, Croft, Kastner & West (2026) via DeforestationFootprint.earth",
+    "attributionShort": "DeforestationFootprint.earth",
+    "origins": [
+        {
+            "producer": "Singh, Persson, Croft, Kastner & West",
+            "title": "DeDuCE model and physical trade model",
+            "citationFull": "Singh, Persson, Croft, Kastner & West (2026) - DeDuCE model and physical trade model, via DeforestationFootprint.earth (CC BY 4.0)",
+            "urlMain": "https://deforestationfootprint.earth/trade",
+            "datePublished": "2026",
+            "license": {
+                "name": "CC BY 4.0",
+                "url": "https://creativecommons.org/licenses/by/4.0/"
+            }
+        }
+    ],
+    "unit": "hectares",
+    "shortUnit": "ha",
+    "timespan": "2005-2023",
+    "license": "cc-by"
+}
