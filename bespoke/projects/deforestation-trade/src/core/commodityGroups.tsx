@@ -29,15 +29,12 @@ export const COMMODITY_GROUPS: Record<
         /** What the group covers, with its biggest drivers of deforestation
          *  first (worldwide, 2023); shown in the group's tooltip */
         description: string
-        /** Ends "…of forest was cleared, most of it for ___" */
-        clearedFor: string
         color: string
         icon: IconDefinition
     }
 > = {
     Cereals: {
         shortLabel: "Cereals",
-        clearedFor: "cereals",
         description:
             "Forest cleared to grow grain crops, mainly rice and maize, but also barley, wheat, sorghum and millet.",
         color: OwidDistinctColors.Camel,
@@ -45,7 +42,6 @@ export const COMMODITY_GROUPS: Record<
     },
     "Edible roots and tubers with high starch or inulin content": {
         shortLabel: "Roots & tubers",
-        clearedFor: "roots and tubers",
         description:
             "Forest cleared to grow starchy root crops, mostly cassava, but also yams, potatoes, sweet potatoes and taro.",
         color: OwidDistinctColors.Copper,
@@ -53,7 +49,6 @@ export const COMMODITY_GROUPS: Record<
     },
     "Fibre crops": {
         shortLabel: "Fibre crops",
-        clearedFor: "fibre crops like rubber and cotton",
         description:
             "Forest cleared to grow crops used as materials rather than food, mostly rubber trees and cotton, but also tobacco, sisal and jute.",
         color: OwidDistinctColors.Teal,
@@ -61,7 +56,6 @@ export const COMMODITY_GROUPS: Record<
     },
     "Fruit and nuts": {
         shortLabel: "Fruit & nuts",
-        clearedFor: "fruit and nuts",
         description:
             "Forest cleared to grow fruit and nut trees, such as plantains, cashews and bananas, but also guavas, mangoes and avocados.",
         color: OwidDistinctColors.OliveGreen,
@@ -69,7 +63,6 @@ export const COMMODITY_GROUPS: Record<
     },
     "Oilseeds and oleaginous fruits": {
         shortLabel: "Oilseeds (soy, palm)",
-        clearedFor: "oilseeds like soy and palm oil",
         description:
             "Forest cleared to grow crops for vegetable oil and animal feed, mainly soybeans and oil palms, but also sunflowers, groundnuts, rapeseed and coconuts.",
         color: OwidDistinctColors.RustyOrange,
@@ -77,7 +70,6 @@ export const COMMODITY_GROUPS: Record<
     },
     Pasture: {
         shortLabel: "Beef (pasture)",
-        clearedFor: "beef herding",
         description:
             "Forest cleared to create pasture for grazing cattle, raised for beef.",
         color: OwidDistinctColors.Maroon,
@@ -85,7 +77,6 @@ export const COMMODITY_GROUPS: Record<
     },
     "Pulses (dried leguminous vegetables)": {
         shortLabel: "Pulses",
-        clearedFor: "pulses",
         description:
             "Forest cleared to grow beans and other legumes that are sold dried, mainly common beans and cowpeas, but also chickpeas, pigeon peas and lentils.",
         color: OwidDistinctColors.DarkOliveGreen,
@@ -93,7 +84,6 @@ export const COMMODITY_GROUPS: Record<
     },
     "Stimulant, spice and aromatic crops": {
         shortLabel: "Stimulants (cocoa, coffee)",
-        clearedFor: "cocoa, coffee and other stimulant crops",
         description:
             "Forest cleared to grow cocoa and coffee, but also tea, maté, and spices such as nutmeg, cardamom and cinnamon.",
         color: OwidDistinctColors.Purple,
@@ -101,7 +91,6 @@ export const COMMODITY_GROUPS: Record<
     },
     Vegetables: {
         shortLabel: "Vegetables",
-        clearedFor: "vegetables",
         description:
             "Forest cleared to grow vegetables, such as okra, onions and tomatoes, but also peppers, green maize and pumpkins.",
         color: OwidDistinctColors.Lime,
@@ -114,10 +103,6 @@ const FALLBACK_COLOR: string = OwidDistinctColors.Denim
 const FALLBACK_ICON = faLeaf
 
 /** The short, chart-ready label; an unknown group falls back to its own name. */
-export function getGroupClearedFor(name: string): string {
-    return COMMODITY_GROUPS[name]?.clearedFor ?? name.toLowerCase()
-}
-
 export function getGroupDescription(name: string): string | undefined {
     return COMMODITY_GROUPS[name]?.description
 }

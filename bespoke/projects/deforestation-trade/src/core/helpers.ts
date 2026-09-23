@@ -119,23 +119,18 @@ export function rowsForYearRange(
 }
 
 /**
- * Worldwide deforestation over an inclusive range of year indices, and the
- * commodity group that drove the largest share of it; undefined without data.
+ * Worldwide deforestation over an inclusive range of year indices, summed
+ * over every commodity group; undefined without data.
  */
-export function worldContextForYearRange(
+export function worldTotalForYearRange(
     worldTotals: WorldGroupTotal[],
     startIndex: number,
     endIndex: number
-): { total: number; topGroup: string; topShare: number } | undefined {
-    const byGroup = worldTotals.map(({ group, values }) => {
-        let value = 0
-        for (let i = startIndex; i <= endIndex; i++) value += values[i] ?? 0
-        return { group, value }
-    })
-    const total = byGroup.reduce((sum, g) => sum + g.value, 0)
-    if (total <= 0) return undefined
-    const top = byGroup.reduce((a, b) => (b.value > a.value ? b : a))
-    return { total, topGroup: top.group, topShare: top.value / total }
+): number | undefined {
+    let total = 0
+    for (const { values } of worldTotals)
+        for (let i = startIndex; i <= endIndex; i++) total += values[i] ?? 0
+    return total > 0 ? total : undefined
 }
 
 export function sumRows(rows: TradeRow[]): number {

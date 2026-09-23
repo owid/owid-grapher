@@ -1,24 +1,3 @@
-.deforestation-heading {
-    margin-bottom: 24px;
-}
-
-.deforestation-heading__title {
-    font-family: $serif-font-stack;
-    font-size: 2rem;
-    font-weight: 600;
-    line-height: 1.25;
-    color: $blue-90;
-    margin: 0;
-    margin-bottom: 2px;
-}
-
-.deforestation-heading__description {
-    font-size: 1rem;
-    line-height: 1.5;
-    color: $blue-90;
-    margin: 0;
-}
-
 .deforestation-chart--narrow .deforestation-controls {
     border: none;
     padding: 0;
@@ -31,14 +10,6 @@
 .deforestation-chart--narrow .deforestation-controls .controls__row > * {
     flex: 0 0 auto;
     width: 100%;
-}
-
-.deforestation-chart--narrow .deforestation-heading__title {
-    font-size: 1.5rem;
-}
-
-.deforestation-chart--narrow .deforestation-heading__description {
-    font-size: 0.875rem;
 }
 
 .deforestation-chart--narrow .deforestation-captioned-chart {

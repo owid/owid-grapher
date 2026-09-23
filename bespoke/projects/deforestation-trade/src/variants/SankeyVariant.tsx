@@ -44,9 +44,8 @@ import {
     resolveYearIndexRange,
     rowsForYearRange,
     sumRows,
-    worldContextForYearRange,
+    worldTotalForYearRange,
 } from "../core/helpers.js"
-import { getGroupClearedFor } from "../core/commodityGroups.js"
 import { DeforestationChart } from "../components/DeforestationChart.js"
 import { DeforestationControls } from "../components/DeforestationControls.js"
 
@@ -208,10 +207,10 @@ function FetchingSankeyVariant({
                 : [],
         [data, yearIndex, startIndex, endIndex]
     )
-    const worldContext = useMemo(
+    const worldTotal = useMemo(
         () =>
             metadata && yearIndex >= 0
-                ? worldContextForYearRange(
+                ? worldTotalForYearRange(
                       metadata.worldTotals,
                       startIndex,
                       endIndex
@@ -275,7 +274,7 @@ function FetchingSankeyVariant({
             importRows={importRows}
             exportRows={exportRows}
             total={total}
-            worldContext={worldContext}
+            worldTotal={worldTotal}
             isLoading={isLoading}
             isNarrow={isNarrow}
             setCountry={setCountry}
@@ -298,7 +297,7 @@ function CaptionedSankeyVariant({
     importRows,
     exportRows,
     total,
-    worldContext,
+    worldTotal,
     isLoading,
     isNarrow,
     setCountry,
@@ -317,7 +316,7 @@ function CaptionedSankeyVariant({
     importRows: TradeRow[]
     exportRows: TradeRow[]
     total: number
-    worldContext: WorldContext | undefined
+    worldTotal: number | undefined
     isLoading: boolean
     isNarrow: boolean
     setCountry: (name: string) => void
@@ -345,41 +344,27 @@ function CaptionedSankeyVariant({
                 yearRange,
                 total,
                 domesticShare,
-                worldContext,
+                worldTotal,
             }),
-        [view, displayedCountry, yearRange, total, domesticShare, worldContext]
+        [view, displayedCountry, yearRange, total, domesticShare, worldTotal]
     )
 
     return (
         <>
             {!shouldHideChrome && (
-                <>
-                    <header className="deforestation-heading">
-                        <h1 className="deforestation-heading__title">
-                            How much deforestation is caused by the products we
-                            produce and consume?
-                        </h1>
-                        <p className="deforestation-heading__description">
-                            The estimated amount of deforestation caused by the
-                            production and consumption of agricultural
-                            commodities. This is adjusted for trade between
-                            countries using models of deforestation risk.
-                        </p>
-                    </header>
-                    <DeforestationControls
-                        metadata={metadata}
-                        country={country}
-                        yearRange={yearRange}
-                        period={period}
-                        view={view}
-                        viewDisabledReason={viewDisabledReason}
-                        hideFlowSwitcher={config.hideFlowSwitcher}
-                        setCountry={setCountry}
-                        setYear={setYear}
-                        setPeriod={setPeriod}
-                        setView={setView}
-                    />
-                </>
+                <DeforestationControls
+                    metadata={metadata}
+                    country={country}
+                    yearRange={yearRange}
+                    period={period}
+                    view={view}
+                    viewDisabledReason={viewDisabledReason}
+                    hideFlowSwitcher={config.hideFlowSwitcher}
+                    setCountry={setCountry}
+                    setYear={setYear}
+                    setPeriod={setPeriod}
+                    setView={setView}
+                />
             )}
             <BespokeMetadataProvider metadata={metadata.bespoke}>
                 <Frame className="deforestation-captioned-chart">
@@ -409,8 +394,6 @@ function CaptionedSankeyVariant({
 const NOTE =
     "Figures are deforestation risk embedded in trade: an estimate of how much deforestation a country is exposed to through the commodities it produces or consumes, not confirmed sourcing from a particular cleared area."
 
-type WorldContext = ReturnType<typeof worldContextForYearRange>
-
 /** The narrative title and subtitle for the current selection. */
 function buildCaption({
     view,
@@ -418,7 +401,7 @@ function buildCaption({
     yearRange,
     total,
     domesticShare,
-    worldContext,
+    worldTotal,
 }: {
     view: View
     country: string
@@ -426,7 +409,7 @@ function buildCaption({
     total: number
     /** Share of this view's flow the country both produced and consumed */
     domesticShare: number
-    worldContext: WorldContext | undefined
+    worldTotal: number | undefined
 }): { title: string; subtitle: string } {
     const amount = formatHectares(total)
     const articulated = articulateEntity(country)
@@ -438,11 +421,9 @@ function buildCaption({
             ? `${formatShare(domesticShare)} of it was for commodities that were both produced & consumed in ${articulated}.`
             : ""
 
-    // The world's total for scale, with what drove the largest share of it
-    const worldClause = worldContext
-        ? `For context, ${when} a total of ${formatHectares(worldContext.total)} of forest was cleared worldwide for agriculture, ${
-              worldContext.topShare > 0.5 ? "most of it" : "the largest share"
-          } (${formatShare(worldContext.topShare)}) for ${getGroupClearedFor(worldContext.topGroup)}.`
+    // The world's total for scale
+    const worldClause = worldTotal
+        ? `For context, ${when} a total of ${formatHectares(worldTotal)} of forest was cleared worldwide for agriculture.`
         : ""
     const subtitle = [domesticClause, worldClause].filter(Boolean).join(" ")
 
@@ -453,7 +434,7 @@ function buildCaption({
         }
 
     return {
-        title: `${R.capitalize(articulated)} cleared ${amount} of forest ${when} for agriculture. Where were these products consumed?`,
+        title: `${R.capitalize(articulated)} cleared ${amount} of forest for agriculture ${when}. Where were these products consumed?`,
         subtitle,
     }
 }
