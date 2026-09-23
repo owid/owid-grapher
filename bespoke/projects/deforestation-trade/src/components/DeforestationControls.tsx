@@ -23,7 +23,7 @@ import { TimeSlider } from "../../../../components/TimeSlider/TimeSlider.js"
 import { useTippyContainer } from "../../../../hooks/useTippyContainer.js"
 import { useUserCountryInformation } from "../../../../hooks/useUserCountryInformation.js"
 
-import { DeforestationMetadata, View } from "../core/types.js"
+import { DeforestationMetadata, Period, View } from "../core/types.js"
 
 // Production reads left to right (the country → where its output went),
 // consumption right to left (where its intake came from → the country)
@@ -48,25 +48,36 @@ const VIEW_ITEMS: SwitcherItem<View>[] = [
     },
 ]
 
+const PERIOD_ITEMS: SwitcherItem<Period>[] = [
+    { key: "single-year", element: "Single year" },
+    { key: "last-5-years", element: "Last 5 years" },
+    { key: "last-10-years", element: "Last 10 years" },
+]
+
 export function DeforestationControls({
     metadata,
     country,
     year,
+    period,
     view,
     viewDisabledReason,
     hideFlowSwitcher,
     setCountry,
     setYear,
+    setPeriod,
     setView,
 }: {
     metadata: DeforestationMetadata
     country: string
+    /** The year on the slider; the period's end year while a preset is on */
     year: number
+    period: Period
     view: View
     viewDisabledReason?: string
     hideFlowSwitcher?: boolean
     setCountry: (name: string) => void
     setYear: (year: number) => void
+    setPeriod: (period: Period) => void
     setView: (view: View) => void
 }): React.ReactElement {
     return (
@@ -86,11 +97,19 @@ export function DeforestationControls({
                     setCountry={setCountry}
                 />
             </ControlsRow>
-            <TimeSlider
-                times={metadata.years}
-                selectedTime={year}
-                onChange={setYear}
-            />
+            <ControlsRow className="deforestation-controls__time-row">
+                <PeriodSwitcher period={period} setPeriod={setPeriod} />
+                {/* A preset period is pinned to the data's last years, so the
+                    slider has nothing to pick */}
+                {period === "single-year" && (
+                    <TimeSlider
+                        className="deforestation-controls__time-slider"
+                        times={metadata.years}
+                        selectedTime={year}
+                        onChange={setYear}
+                    />
+                )}
+            </ControlsRow>
         </Controls>
     )
 }
@@ -170,6 +189,28 @@ function ViewSwitcher({
                     />
                 </div>
             </Tippy>
+        </LabeledControl>
+    )
+}
+
+function PeriodSwitcher({
+    period,
+    setPeriod,
+}: {
+    period: Period
+    setPeriod: (period: Period) => void
+}) {
+    return (
+        <LabeledControl
+            label="Time period"
+            className="deforestation-controls__period"
+        >
+            <Switcher
+                items={PERIOD_ITEMS}
+                selectedKey={period}
+                onChange={setPeriod}
+                ariaLabel="Show a single year or the sum of the last years"
+            />
         </LabeledControl>
     )
 }

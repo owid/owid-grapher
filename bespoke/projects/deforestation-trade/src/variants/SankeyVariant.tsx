@@ -27,18 +27,30 @@ import type { VariantProps } from "../../../../helpers/config.js"
 import type { BespokeComponentDataUrls } from "owid-bespoke-types"
 
 import { DeforestationConfig } from "../core/config.js"
-import { DeforestationMetadata, TradeRow, View, VIEWS } from "../core/types.js"
+import {
+    DeforestationMetadata,
+    Period,
+    PERIODS,
+    TradeRow,
+    View,
+    VIEWS,
+    YearRange,
+} from "../core/types.js"
 import { useCountryData, useDeforestationMetadata } from "../core/data.js"
 import {
+    describeYearRange,
     formatHectares,
     formatShare,
-    rowsForYear,
+    resolveYearIndexRange,
+    rowsForYearRange,
     sumRows,
 } from "../core/helpers.js"
 import { DeforestationChart } from "../components/DeforestationChart.js"
 import { DeforestationControls } from "../components/DeforestationControls.js"
 
 const DEFAULT_VIEW: View = "production"
+
+const DEFAULT_PERIOD: Period = "single-year"
 
 /** Shown when the embed names no country: the largest producer of embedded
  *  deforestation, and the one the chart is most often about. */
@@ -106,6 +118,11 @@ function FetchingSankeyVariant({
         parser: parseAsInteger,
         defaultValue: config.year ?? DEFAULT_YEAR,
     })
+    const [period, setPeriod] = useUrlState({
+        key: "deforestationPeriod",
+        parser: parseAsStringEnum<Period>([...PERIODS]),
+        defaultValue: config.period ?? DEFAULT_PERIOD,
+    })
     const [storedView, setView] = useUrlState({
         key: "deforestationFlow",
         parser: parseAsStringEnum<View>([...VIEWS]),
@@ -149,25 +166,50 @@ function FetchingSankeyVariant({
         const index = metadata.years.indexOf(year)
         return index >= 0 ? index : metadata.years.length - 1
     }, [metadata, year])
-    const displayedYear =
-        metadata && yearIndex >= 0 ? metadata.years[yearIndex] : year
+
+    // A preset period always ends at the data's most recent year; only a
+    // single year follows the slider
+    const { startIndex, endIndex } = useMemo(
+        () =>
+            resolveYearIndexRange(
+                period,
+                yearIndex,
+                metadata?.years.length ?? 0
+            ),
+        [period, yearIndex, metadata]
+    )
+    const yearRange: YearRange = useMemo(
+        () =>
+            metadata && yearIndex >= 0
+                ? {
+                      start: metadata.years[startIndex],
+                      end: metadata.years[endIndex],
+                  }
+                : { start: year, end: year },
+        [metadata, yearIndex, startIndex, endIndex, year]
+    )
 
     // In a country's own data, domestic production is a flow from the country
-    // to itself, so it is already part of both blocks
+    // to itself, so it is already part of both blocks. Over a multi-year
+    // period every flow is the sum of its years.
     const importRows = useMemo(
         () =>
-            data && yearIndex >= 0 ? rowsForYear(data.imports, yearIndex) : [],
-        [data, yearIndex]
+            data && yearIndex >= 0
+                ? rowsForYearRange(data.imports, startIndex, endIndex)
+                : [],
+        [data, yearIndex, startIndex, endIndex]
     )
     const exportRows = useMemo(
         () =>
-            data && yearIndex >= 0 ? rowsForYear(data.exports, yearIndex) : [],
-        [data, yearIndex]
+            data && yearIndex >= 0
+                ? rowsForYearRange(data.exports, startIndex, endIndex)
+                : [],
+        [data, yearIndex, startIndex, endIndex]
     )
     const importsTotal = useMemo(() => sumRows(importRows), [importRows])
     const exportsTotal = useMemo(() => sumRows(exportRows), [exportRows])
 
-    // When the selected country has data on only one side in this year, the
+    // When the selected country has data on only one side in this period, the
     // other view has nothing to show — coerce the displayed view to the side
     // that has data and disable the switcher. The stored preference is left
     // untouched, so it comes back on a selection that has both.
@@ -186,10 +228,11 @@ function FetchingSankeyVariant({
     const total = view === "consumption" ? importsTotal : exportsTotal
 
     const countryLabel = R.capitalize(articulateEntity(displayedCountry))
+    const whenRecorded = describeYearRange(yearRange)
     const viewDisabledReason: string | undefined = onlyConsumption
-        ? `No deforestation embedded in ${countryLabel}'s production recorded in ${displayedYear}.`
+        ? `No deforestation embedded in ${countryLabel}'s production recorded ${whenRecorded}.`
         : onlyProduction
-          ? `No deforestation embedded in ${countryLabel}'s consumption recorded in ${displayedYear}.`
+          ? `No deforestation embedded in ${countryLabel}'s consumption recorded ${whenRecorded}.`
           : undefined
 
     if (metadataStatus === "pending")
@@ -212,7 +255,8 @@ function FetchingSankeyVariant({
             metadata={metadata}
             country={country}
             displayedCountry={displayedCountry}
-            year={displayedYear}
+            yearRange={yearRange}
+            period={period}
             view={view}
             viewDisabledReason={viewDisabledReason}
             importRows={importRows}
@@ -222,6 +266,7 @@ function FetchingSankeyVariant({
             isNarrow={isNarrow}
             setCountry={setCountry}
             setYear={setYear}
+            setPeriod={setPeriod}
             setView={setView}
         />
     )
@@ -232,7 +277,8 @@ function CaptionedSankeyVariant({
     metadata,
     country,
     displayedCountry,
-    year,
+    yearRange,
+    period,
     view,
     viewDisabledReason,
     importRows,
@@ -242,13 +288,15 @@ function CaptionedSankeyVariant({
     isNarrow,
     setCountry,
     setYear,
+    setPeriod,
     setView,
 }: {
     config: DeforestationConfig
     metadata: DeforestationMetadata
     country: string
     displayedCountry: string
-    year: number
+    yearRange: YearRange
+    period: Period
     view: View
     viewDisabledReason: string | undefined
     importRows: TradeRow[]
@@ -258,6 +306,7 @@ function CaptionedSankeyVariant({
     isNarrow: boolean
     setCountry: (name: string) => void
     setYear: (year: number) => void
+    setPeriod: (period: Period) => void
     setView: (view: View) => void
 }) {
     const shouldHideChrome =
@@ -277,11 +326,11 @@ function CaptionedSankeyVariant({
             buildCaption({
                 view,
                 country: displayedCountry,
-                year,
+                yearRange,
                 total,
                 domesticShare,
             }),
-        [view, displayedCountry, year, total, domesticShare]
+        [view, displayedCountry, yearRange, total, domesticShare]
     )
 
     return (
@@ -303,12 +352,14 @@ function CaptionedSankeyVariant({
                     <DeforestationControls
                         metadata={metadata}
                         country={country}
-                        year={year}
+                        year={yearRange.end}
+                        period={period}
                         view={view}
                         viewDisabledReason={viewDisabledReason}
                         hideFlowSwitcher={config.hideFlowSwitcher}
                         setCountry={setCountry}
                         setYear={setYear}
+                        setPeriod={setPeriod}
                         setView={setView}
                     />
                 </>
@@ -322,7 +373,7 @@ function CaptionedSankeyVariant({
                     <DeforestationChart
                         view={view}
                         country={displayedCountry}
-                        year={year}
+                        yearRange={yearRange}
                         importRows={importRows}
                         exportRows={exportRows}
                         total={total}
@@ -345,19 +396,20 @@ const NOTE =
 function buildCaption({
     view,
     country,
-    year,
+    yearRange,
     total,
     domesticShare,
 }: {
     view: View
     country: string
-    year: number
+    yearRange: YearRange
     total: number
     /** Share of this view's flow the country both produced and consumed */
     domesticShare: number
 }): { title: string; subtitle: string } {
     const amount = formatHectares(total)
     const articulated = articulateEntity(country)
+    const when = describeYearRange(yearRange)
 
     // Only worth spelling out when there is any domestic production at all
     const domesticClause =
@@ -367,12 +419,12 @@ function buildCaption({
 
     if (view === "consumption")
         return {
-            title: `${R.capitalize(amount)} of forest were cleared in ${year} for agricultural products consumed in ${articulated}. Where were these products produced?`,
+            title: `${R.capitalize(amount)} of forest were cleared ${when} for agricultural products consumed in ${articulated}. Where were these products produced?`,
             subtitle: domesticClause,
         }
 
     return {
-        title: `${R.capitalize(articulated)} cleared ${amount} of forest in ${year} for agriculture. Where were these products consumed?`,
+        title: `${R.capitalize(articulated)} cleared ${amount} of forest ${when} for agriculture. Where were these products consumed?`,
         subtitle: domesticClause,
     }
 }
