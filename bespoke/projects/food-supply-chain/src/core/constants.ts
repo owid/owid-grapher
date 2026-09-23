@@ -93,3 +93,5 @@ export const BOX_GAP = 8
 export const VALUE_LABEL_SIDE_GAP = 4
 /** Minimum space between neighbouring tick labels */
 export const MIN_TICK_LABEL_SPACING = 8
+/** How far short of its maxWidth a TextWrap breaks a line, see `TextWrap.lines` */
+export const TEXT_WRAP_BREAK_MARGIN = 10
