@@ -3,6 +3,17 @@ export type VariantName = "waterfall"
 export const MEASURES = ["energy", "protein"] as const
 export type Measure = (typeof MEASURES)[number]
 
+/** Abbreviated units, for labels too tight for the manifest's spelled-out ones */
+export const SHORT_UNIT_BY_MEASURE: Record<Measure, string> = {
+    energy: "kcal",
+    protein: "g",
+}
+
+/** Measures whose short unit is brief enough to repeat on every step's label */
+export const MEASURES_WITH_UNIT_ON_STEPS: ReadonlySet<Measure> = new Set([
+    "protein",
+])
+
 /** Keys as the manifest spells them; the set is not known at compile time */
 export type StageKey = string
 
