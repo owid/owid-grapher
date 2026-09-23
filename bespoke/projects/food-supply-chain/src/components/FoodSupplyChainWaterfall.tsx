@@ -23,6 +23,8 @@ import {
     GROUP_LABEL_GAP,
     LABEL_HALO_WIDTH,
     MAX_CAPTION_LINES,
+    MAX_CAPTION_OVERFLOW,
+    MIN_VERTICAL_SLOT_WIDTH,
     MIN_LABEL_SPACING,
     COLORS,
     PLOT_MARGIN_BOTTOM,
@@ -324,8 +326,31 @@ export function FoodSupplyChainWaterfall({
     )
 }
 
+/** Whether the vertical chart fits this width with every caption whole */
+export function doesVerticalLayoutFit(
+    waterfall: Waterfall,
+    width: number
+): boolean {
+    const slotWidth = measureVerticalSlotWidth(waterfall, width)
+    if (slotWidth < MIN_VERTICAL_SLOT_WIDTH) return false
+
+    const maxWidth = captionLength(slotWidth)
+    return waterfall.steps.every((step) => {
+        const wrap = new TextWrap({
+            text: step.name,
+            maxWidth,
+            fontSize: CAPTION_FONT_SIZE,
+            fontWeight: CAPTION_FONT_WEIGHT,
+        })
+        return (
+            wrap.lineCount <= MAX_CAPTION_LINES &&
+            wrap.width <= maxWidth + MAX_CAPTION_OVERFLOW
+        )
+    })
+}
+
 /** The pixels one step's column gets at this width */
-export function measureVerticalSlotWidth(
+function measureVerticalSlotWidth(
     waterfall: Waterfall,
     width: number
 ): number {
