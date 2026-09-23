@@ -7,6 +7,14 @@ export const VIEWS = ["production", "consumption"] as const
  *  consumed, or where what it consumed was produced */
 export type View = (typeof VIEWS)[number]
 
+export const PERIODS = ["single-year", "last-5-years", "last-10-years"] as const
+/** How much time the chart sums over: the year on the slider, or the last
+ *  N years of the data, ending at its most recent year */
+export type Period = (typeof PERIODS)[number]
+
+/** The inclusive span of years the chart shows; `start === end` for a single year */
+export type YearRange = { start: number; end: number }
+
 export type Entity = { id: number; name: string; iso: string; region: string }
 export type CommodityGroup = { id: number; name: string }
 

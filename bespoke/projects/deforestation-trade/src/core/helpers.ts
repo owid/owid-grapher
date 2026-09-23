@@ -1,7 +1,7 @@
 import { formatValue } from "@ourworldindata/utils"
 import { OwidVariableRoundingMode } from "@ourworldindata/types"
 
-import { TradeRow, TradeSeries } from "./types.js"
+import { Period, TradeRow, TradeSeries, YearRange } from "./types.js"
 
 /** Hectares of amortized deforestation risk, e.g. "1.2 million hectares", or
  *  "1.2 million ha" in the short form used for chart labels. Numbers are never
@@ -49,16 +49,64 @@ export function capItems<T>(items: T[]): { visible: T[]; hiddenCount: number } {
     return { visible, hiddenCount: items.length - visible.length }
 }
 
-/** Slice every series at one year, dropping the gaps. A `null` is "no data"
- *  and a zero or negative value carries no flow, so neither becomes a link. */
-export function rowsForYear(
+/** How many years a preset period spans; `undefined` for a single year */
+export function getPeriodLength(period: Period): number | undefined {
+    switch (period) {
+        case "single-year":
+            return undefined
+        case "last-5-years":
+            return 5
+        case "last-10-years":
+            return 10
+    }
+}
+
+/**
+ * The inclusive index range of `years` a period covers. A preset ends at the
+ * most recent year and reaches back as far as the data allows; a single year
+ * is the given index.
+ */
+export function resolveYearIndexRange(
+    period: Period,
+    yearIndex: number,
+    yearCount: number
+): { startIndex: number; endIndex: number } {
+    const length = getPeriodLength(period)
+    if (length === undefined)
+        return { startIndex: yearIndex, endIndex: yearIndex }
+    const endIndex = yearCount - 1
+    return { startIndex: Math.max(0, endIndex - length + 1), endIndex }
+}
+
+/** "2023", or "2019–2023" for a span of years, as a chart label */
+export function formatYearRange({ start, end }: YearRange): string {
+    return start === end ? String(start) : `${start}–${end}`
+}
+
+/** "in 2023", or "between 2019 and 2023", to drop into a sentence */
+export function describeYearRange({ start, end }: YearRange): string {
+    return start === end ? `in ${start}` : `between ${start} and ${end}`
+}
+
+/**
+ * Sum every series over an inclusive range of year indices, dropping the
+ * gaps. A `null` is "no trade recorded" in that year — the source only lists
+ * flows that carried something — so it adds nothing, and a series that adds
+ * up to no flow at all becomes no link. A single year is the range `[i, i]`.
+ */
+export function rowsForYearRange(
     series: TradeSeries[],
-    yearIndex: number
+    startIndex: number,
+    endIndex: number
 ): TradeRow[] {
     const rows: TradeRow[] = []
     for (const s of series) {
-        const value = s.values[yearIndex]
-        if (value === null || value === undefined || value <= 0) continue
+        let value = 0
+        for (let i = startIndex; i <= endIndex; i++) {
+            const v = s.values[i]
+            if (v !== null && v !== undefined && v > 0) value += v
+        }
+        if (value <= 0) continue
         rows.push({ partner: s.partner, group: s.group, value })
     }
     return rows

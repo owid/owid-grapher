@@ -46,7 +46,13 @@ import {
     GroupIcon,
     renderGroupIcon,
 } from "../core/commodityGroups.js"
-import { capItems, formatHectares, formatShare } from "../core/helpers.js"
+import {
+    capItems,
+    formatHectares,
+    formatShare,
+    formatYearRange,
+} from "../core/helpers.js"
+import type { YearRange } from "../core/types.js"
 import type { DeforestationChartProps } from "./DeforestationChart.js"
 
 /** Commodity groups below this share of the column are not labelled in the
@@ -76,7 +82,7 @@ export type DeforestationSankeyProps = Pick<
     DeforestationChartProps,
     | "view"
     | "country"
-    | "year"
+    | "yearRange"
     | "importRows"
     | "exportRows"
     | "setCountry"
@@ -101,7 +107,7 @@ export function DeforestationSankey(
 function DeforestationSankeyContent({
     view,
     country,
-    year,
+    yearRange,
     importRows,
     exportRows,
     setCountry,
@@ -292,9 +298,9 @@ function DeforestationSankeyContent({
                 ...args,
                 labelById,
                 graph,
-                year,
+                yearRange,
             }),
-        [labelById, graph, year]
+        [labelById, graph, yearRange]
     )
 
     // A ribbon gets the tooltip of what it stands for: its commodity on the
@@ -325,10 +331,17 @@ function DeforestationSankeyContent({
                 outgoingLinks: nodeLinks.filter((l) => l.source === nodeId),
                 labelById,
                 graph,
-                year,
+                yearRange,
             })
         },
-        [partnerKeyOfLink, linksByGroup, linksByPartner, labelById, graph, year]
+        [
+            partnerKeyOfLink,
+            linksByGroup,
+            linksByPartner,
+            labelById,
+            graph,
+            yearRange,
+        ]
     )
 
     const headingFallbacks = useMemo(() => [graph.headings], [graph.headings])
@@ -467,15 +480,15 @@ function makeNodeTooltip({
     outgoingLinks,
     labelById,
     graph,
-    year,
+    yearRange,
 }: NodeTooltipArgs & {
     labelById: Map<string, string>
     graph: SankeyGraph
-    year: number
+    yearRange: YearRange
 }): SankeyTooltip | undefined {
     if (isFocusNodeId(node.id)) return undefined
 
-    const subtitle = String(year)
+    const subtitle = formatYearRange(yearRange)
     const value = Math.max(sumLinks(incomingLinks), sumLinks(outgoingLinks))
     const share = <ValueWithShare value={value} total={graph.total} />
 

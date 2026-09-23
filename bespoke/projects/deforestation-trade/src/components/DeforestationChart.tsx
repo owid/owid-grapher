@@ -1,8 +1,8 @@
 import { articulateEntity } from "@ourworldindata/utils"
 
 import { Spinner } from "../../../../components/Spinner/Spinner.js"
-import { TradeRow, View } from "../core/types.js"
-import { possessiveEntity } from "../core/helpers.js"
+import { TradeRow, View, YearRange } from "../core/types.js"
+import { describeYearRange, possessiveEntity } from "../core/helpers.js"
 import { DeforestationSankey } from "./DeforestationSankey.js"
 
 export interface DeforestationChartProps {
@@ -10,12 +10,13 @@ export interface DeforestationChartProps {
     view: View
     /** The country on screen. */
     country: string
-    year: number
-    /** Producer → group flows for `year`: who produced the deforestation
-     *  embedded in what this country consumes. */
+    /** The years on screen; a multi-year range is summed. */
+    yearRange: YearRange
+    /** Producer → group flows over `yearRange`: who produced the
+     *  deforestation embedded in what this country consumes. */
     importRows: TradeRow[]
-    /** Group → consumer flows for `year`: who consumes what this country
-     *  produced. */
+    /** Group → consumer flows over `yearRange`: who consumes what this
+     *  country produced. */
     exportRows: TradeRow[]
     /** Hectares the current view sums to, for shares and labels. */
     total: number
@@ -31,7 +32,7 @@ export interface DeforestationChartProps {
 export function DeforestationChart({
     view,
     country,
-    year,
+    yearRange,
     importRows,
     exportRows,
     isLoading,
@@ -48,12 +49,12 @@ export function DeforestationChart({
         <div className="deforestation-captioned-chart__chart-area">
             {isLoading && <Spinner />}
             {hasNoData ? (
-                <NoData country={country} year={year} />
+                <NoData country={country} yearRange={yearRange} />
             ) : (
                 <DeforestationSankey
                     view={view}
                     country={country}
-                    year={year}
+                    yearRange={yearRange}
                     importRows={importRows}
                     exportRows={exportRows}
                     setCountry={setCountry}
@@ -67,17 +68,17 @@ export function DeforestationChart({
 
 function NoData({
     country,
-    year,
+    yearRange,
 }: {
     country: string
-    year: number
+    yearRange: YearRange
 }): React.ReactElement {
     return (
         <div className="deforestation-captioned-chart__empty">
             <p className="deforestation-captioned-chart__empty-message">
                 No deforestation embedded in{" "}
-                {possessiveEntity(articulateEntity(country))} trade was recorded
-                in {year}.
+                {possessiveEntity(articulateEntity(country))} trade was recorded{" "}
+                {describeYearRange(yearRange)}.
             </p>
         </div>
     )
