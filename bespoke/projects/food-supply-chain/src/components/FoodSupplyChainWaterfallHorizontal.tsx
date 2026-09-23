@@ -19,10 +19,10 @@ import {
     COLORS,
     CONNECTOR_WIDTH,
     GROUP_BOX_CORNER_RADIUS,
-    GROUP_HEADER_FONT_WEIGHT,
     GROUP_HEADER_GAP,
     GROUP_HEADER_INSET,
     GROUP_LABEL_FONT_SIZE,
+    GROUP_LABEL_FONT_WEIGHT,
     GROUP_LABEL_INSET,
     LABEL_HALO_WIDTH,
     MAX_CAPTION_COLUMN_SHARE,
@@ -199,7 +199,7 @@ export function FoodSupplyChainWaterfallHorizontal({
                 maxWidth: width - 2 * GROUP_LABEL_INSET,
                 maxLines: 1,
                 fontSize: GROUP_LABEL_FONT_SIZE,
-                fontWeight: GROUP_HEADER_FONT_WEIGHT,
+                fontWeight: GROUP_LABEL_FONT_WEIGHT,
             }),
         ])
     )
