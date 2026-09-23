@@ -140,14 +140,14 @@ export function countStepAxisSlots(
     return planStepAxis(steps, groupHeaderSlots, boxGapSlots).totalSlot.to
 }
 
-/** The group header room, in slots, that starts a group's box `headerHeightPx` above its first slot */
+/** The group header room, in slots, that leaves `headerHeightPx` open above a group's box */
 export function measureGroupHeaderSlots(
     headerHeightPx: number,
     slotLengthPx: number
 ): number {
     return (
-        headerHeightPx / slotLengthPx +
-        SLOT_PADDING_RATIO -
+        headerHeightPx / slotLengthPx -
+        SLOT_PADDING_RATIO +
         GROUP_BOX_OVERHANG_RATIO
     )
 }
@@ -276,10 +276,7 @@ function planWaterfall(
             box: {
                 value: valueDomain,
                 step: {
-                    from:
-                        barSpan(slots[first]).from -
-                        (isLabelled ? groupHeaderSlots : 0) -
-                        GROUP_BOX_OVERHANG_RATIO,
+                    from: barSpan(slots[first]).from - GROUP_BOX_OVERHANG_RATIO,
                     to: barSpan(slots[last]).to + GROUP_BOX_OVERHANG_RATIO,
                 },
             },

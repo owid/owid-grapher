@@ -20,8 +20,7 @@ import {
     CONNECTOR_WIDTH,
     GROUP_BOX_CORNER_RADIUS,
     GROUP_HEADER_GAP,
-    GROUP_HEADER_INSET,
-    GROUP_LABEL_FONT_SIZE,
+    GROUP_HEADER_TOP_GAP,
     GROUP_LABEL_FONT_WEIGHT,
     GROUP_LABEL_INSET,
     LABEL_HALO_WIDTH,
@@ -143,10 +142,19 @@ export function FoodSupplyChainWaterfallHorizontal({
             TOTAL_BOX_LABEL_FONT_WEIGHT
         ).width
     )
-    const captionColumnWidth = Math.min(
-        GROUP_LABEL_INSET + longestCaptionWidth + CAPTION_COLUMN_GAP,
-        MAX_CAPTION_COLUMN_SHARE * width
+    const longestGroupLabelWidth = Math.max(
+        ...STAGE_GROUPS.map(
+            (group) => buildGroupLabelTextWrap(group.label, Infinity).width
+        )
     )
+    const captionColumnWidth =
+        Math.max(
+            Math.min(
+                GROUP_LABEL_INSET + longestCaptionWidth,
+                MAX_CAPTION_COLUMN_SHARE * width - CAPTION_COLUMN_GAP
+            ),
+            longestGroupLabelWidth
+        ) + CAPTION_COLUMN_GAP
     const captionMaxWidth =
         captionColumnWidth -
         GROUP_LABEL_INSET -
@@ -198,21 +206,18 @@ export function FoodSupplyChainWaterfallHorizontal({
     const groupHeaderTextWraps = new Map(
         STAGE_GROUPS.map((group) => [
             group.key,
-            buildTruncatedTextWrap({
-                text: group.label,
-                maxWidth: width - 2 * GROUP_LABEL_INSET,
-                maxLines: 1,
-                fontSize: GROUP_LABEL_FONT_SIZE,
-                fontWeight: GROUP_LABEL_FONT_WEIGHT,
-            }),
+            buildGroupLabelTextWrap(
+                group.label,
+                captionColumnWidth - CAPTION_COLUMN_GAP + TEXT_WRAP_BREAK_MARGIN
+            ),
         ])
     )
     const groupHeaderHeight =
-        GROUP_HEADER_INSET +
         Math.max(
             ...[...groupHeaderTextWraps.values()].map((wrap) => wrap.height)
         ) +
-        GROUP_HEADER_GAP
+        GROUP_HEADER_GAP +
+        GROUP_HEADER_TOP_GAP
     const stepAxisSpacing = {
         groupHeaderSlots: measureGroupHeaderSlots(groupHeaderHeight, rowHeight),
         boxGapSlots: BOX_GAP / rowHeight,
@@ -337,20 +342,14 @@ export function FoodSupplyChainWaterfallHorizontal({
                     const textWrap = groupHeaderTextWraps.get(group.key)
                     if (!isLabelled || !textWrap) return null
                     return (
-                        <Halo
+                        <TextWrapSvg
                             key={group.key}
-                            id={`${group.key}-group-label-halo`}
-                            outlineColor={COLORS.groupBox}
-                            outlineWidth={LABEL_HALO_WIDTH}
-                        >
-                            <TextWrapSvg
-                                className="food-supply-chain-waterfall__group-label"
-                                textWrap={textWrap}
-                                x={GROUP_LABEL_INSET}
-                                y={groupBox.y + GROUP_HEADER_INSET}
-                                fill={COLORS.groupLabel}
-                            />
-                        </Halo>
+                            className="food-supply-chain-waterfall__group-label"
+                            textWrap={textWrap}
+                            x={0}
+                            y={groupBox.y - GROUP_HEADER_GAP - textWrap.height}
+                            fill={COLORS.groupLabel}
+                        />
                     )
                 })}
                 {layout.steps.map((step, index) => (
@@ -708,5 +707,15 @@ function buildRowCaptionTextWrap(
         maxLines: MAX_ROW_CAPTION_LINES,
         fontSize: CAPTION_FONT_SIZE,
         fontWeight,
+    })
+}
+
+function buildGroupLabelTextWrap(text: string, maxWidth: number): TextWrap {
+    return buildTruncatedTextWrap({
+        text,
+        maxWidth,
+        maxLines: 1,
+        fontSize: CAPTION_FONT_SIZE,
+        fontWeight: GROUP_LABEL_FONT_WEIGHT,
     })
 }
