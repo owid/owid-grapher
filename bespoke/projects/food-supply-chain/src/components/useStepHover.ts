@@ -1,9 +1,12 @@
-import { useCallback, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 
 import { getRelativeMouse, isTouchDevice, Point } from "@ourworldindata/utils"
 
 import { usePinnedTooltip } from "../../../../hooks/usePinnedTooltip.js"
 import { StageKey } from "../core/types.js"
+
+/** How long a hover outlives the step the pointer left, unless it enters another */
+const HOVER_CLEAR_DELAY_MS = 150
 
 /** The hovered or touch-pinned step, at the mouse position that triggered it */
 export interface StepHover {
@@ -22,6 +25,12 @@ export function useStepHover(): {
 } {
     const svgRef = useRef<SVGSVGElement>(null)
     const [hover, setHover] = useState<StepHover | undefined>(undefined)
+    const clearTimeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined)
+    const cancelPendingClear = useCallback(() => {
+        clearTimeout(clearTimeoutRef.current)
+        clearTimeoutRef.current = undefined
+    }, [])
+    useEffect(() => cancelPendingClear, [cancelPendingClear])
 
     const dismissHover = useCallback(() => setHover(undefined), [])
     const { ref: containerRef, isPinned } = usePinnedTooltip<HTMLDivElement>(
@@ -32,10 +41,11 @@ export function useStepHover(): {
     const onStepMouseEnter = useCallback(
         (stepKey: StageKey, event: React.MouseEvent) => {
             if (!svgRef.current) return
+            cancelPendingClear()
             const position = getRelativeMouse(svgRef.current, event.nativeEvent)
             setHover({ stepKey, position })
         },
-        []
+        [cancelPendingClear]
     )
     const onStepMouseMove = useCallback((event: React.MouseEvent) => {
         if (!svgRef.current) return
@@ -45,8 +55,12 @@ export function useStepHover(): {
     const onStepMouseLeave = useCallback(() => {
         // usePinnedTooltip owns dismissal on touch
         if (isTouchDevice()) return
-        setHover(undefined)
-    }, [])
+        cancelPendingClear()
+        clearTimeoutRef.current = setTimeout(
+            () => setHover(undefined),
+            HOVER_CLEAR_DELAY_MS
+        )
+    }, [cancelPendingClear])
 
     return {
         svgRef,
