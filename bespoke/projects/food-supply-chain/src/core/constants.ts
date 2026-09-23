@@ -55,7 +55,7 @@ export const VALUE_LABEL_GAP = 8
 /** Space between a step's caption and the value label below it */
 export const CAPTION_VALUE_LABEL_GAP = 3
 /** Space between an arrow's ends and its bar's ends */
-export const ARROW_INSET = 4
+export const ARROW_INSET = 8
 /** Shortest arrow drawn inside a bar */
 export const ARROW_MIN_LENGTH = 10
 export const ARROW_WIDTH = 1.5
