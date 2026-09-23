@@ -36,6 +36,7 @@ import {
     VALUE_LABEL_FONT_WEIGHT,
     VALUE_LABEL_GAP,
     VERTICAL_CAPTION_FONT_SIZE,
+    TEXT_WRAP_BREAK_MARGIN,
 } from "../core/constants.js"
 import { formatMeasureValue } from "../core/format.js"
 import { STAGE_GROUPS } from "../core/stageGroups.js"
@@ -622,7 +623,7 @@ function BarArrow({
 function buildGroupLabelTextWrap(text: string, maxWidth: number): TextWrap {
     return new TextWrap({
         text,
-        maxWidth,
+        maxWidth: maxWidth + TEXT_WRAP_BREAK_MARGIN,
         fontSize: GROUP_LABEL_FONT_SIZE,
         fontWeight: GROUP_LABEL_FONT_WEIGHT,
     })
