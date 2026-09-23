@@ -278,7 +278,7 @@ export class FacetMap
             base,
             tooltip,
             shouldPinTooltipToBottom,
-            projectionColumnInfoBySlug,
+            mapProjectionColumnInfo,
             isFaceted,
             yColumnSlug,
         } = manager
@@ -303,7 +303,7 @@ export class FacetMap
                 shouldPinTooltipToBottom,
                 externalLegendHoverBin: legendHoverBin,
                 logGrapherInteractionEvent,
-                projectionColumnInfoBySlug,
+                mapProjectionColumnInfo,
                 highlightedTimesInTooltip: targetTimes,
                 mapViewport,
                 isFaceted,

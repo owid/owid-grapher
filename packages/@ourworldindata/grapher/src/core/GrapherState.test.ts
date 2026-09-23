@@ -19,6 +19,7 @@ import {
     GrapherTabName,
     MultipleOwidVariableDataDimensionsMap,
     CoreValueType,
+    OwidVariableDimensions,
 } from "@ourworldindata/types"
 import {
     TimeBoundValue,
@@ -60,6 +61,12 @@ it("can get dimension slots", () => {
 
     grapher.chartTypes = [GRAPHER_CHART_TYPES.ScatterPlot]
     expect(grapher.dimensionSlots.length).toBe(4)
+
+    // Charts with a map tab get an additional map slot
+    grapher.hasMapTab = true
+    expect(grapher.dimensionSlots.map((slot) => slot.property)).toContain(
+        DimensionProperty.map
+    )
 })
 
 describe("toObject", () => {
@@ -154,11 +161,18 @@ describe("a grapher built from a legacy config", () => {
         selectedEntityNames: ["Iceland", "Afghanistan"],
     }
 
-    const makeOwidDataset = (
+    const makeVariableDimensions = (
         entities: { name: string; id: number; code?: string }[] = [
             { name: "Afghanistan", id: 15, code: "AFG" },
             { name: "Iceland", id: 207, code: "ISL" },
         ]
+    ): OwidVariableDimensions => ({
+        entities: { values: entities },
+        years: { values: [{ id: 2000 }, { id: 2010 }] },
+    })
+
+    const makeOwidDataset = (
+        entities?: { name: string; id: number; code?: string }[]
     ): MultipleOwidVariableDataDimensionsMap =>
         new Map([
             [
@@ -168,14 +182,21 @@ describe("a grapher built from a legacy config", () => {
                     metadata: {
                         id: 3512,
                         display: { name: displayName },
-                        dimensions: {
-                            entities: { values: entities },
-                            years: { values: [{ id: 2000 }, { id: 2010 }] },
-                        },
+                        dimensions: makeVariableDimensions(entities),
                     },
                 },
             ],
         ])
+
+    const mapVariable = {
+        data: variableData,
+        metadata: {
+            id: 4001,
+            descriptionShort: "Short description of the map variable",
+            display: { name: "Map variable" },
+            dimensions: makeVariableDimensions(),
+        },
+    }
 
     const makeLegacyGrapher = (
         config: GrapherProgrammaticInterface = legacyConfig,
@@ -223,6 +244,76 @@ describe("a grapher built from a legacy config", () => {
         } as GrapherInterface
         const grapher = new GrapherState(config)
         expect(grapher.mapColumnSlug).toEqual("3512")
+    })
+
+    it("uses the dedicated map dimension as the map column, ignoring map.columnSlug", () => {
+        const config = {
+            ...legacyConfig,
+            map: { columnSlug: "3512" },
+            dimensions: [
+                ...legacyConfig.dimensions!,
+                { variableId: 4001, property: DimensionProperty.map },
+            ],
+        } as GrapherInterface
+        const grapher = new GrapherState(config)
+        expect(grapher.mapColumnSlug).toEqual("4001")
+    })
+
+    it("does not auto-plot the map column on chart tabs if the chart only has a map dimension", () => {
+        const grapher = makeLegacyGrapher(
+            {
+                ...legacyConfig,
+                tab: GRAPHER_TAB_CONFIG_OPTIONS.chart,
+                dimensions: [
+                    { variableId: 4001, property: DimensionProperty.map },
+                ],
+            },
+            new Map([[4001, mapVariable]])
+        )
+        expect(grapher.chartState.errorInfo.reason).toEqual(
+            "Missing Y axis column"
+        )
+    })
+
+    describe("default title and subtitle with a dedicated map dimension", () => {
+        const configWithMapDimension = {
+            ...legacyConfig,
+            dimensions: [
+                ...legacyConfig.dimensions!,
+                { variableId: 4001, property: DimensionProperty.map },
+            ],
+        } as GrapherInterface
+
+        const makeGrapher = (config: GrapherInterface): GrapherState =>
+            makeLegacyGrapher(config, makeOwidDataset().set(4001, mapVariable))
+
+        it("derives the default title and subtitle from the map column on the map tab", () => {
+            const grapher = makeGrapher({
+                ...configWithMapDimension,
+                tab: GRAPHER_TAB_CONFIG_OPTIONS.map,
+            })
+            expect(grapher.defaultTitle).toEqual("Map variable")
+            expect(grapher.effectiveSubtitle).toEqual(
+                "Short description of the map variable"
+            )
+        })
+
+        it("derives the default title and subtitle from the y column on the chart tab", () => {
+            const grapher = makeGrapher({
+                ...configWithMapDimension,
+                tab: GRAPHER_TAB_CONFIG_OPTIONS.chart,
+            })
+            expect(grapher.defaultTitle).toEqual(displayName)
+            expect(grapher.effectiveSubtitle).toEqual("")
+        })
+
+        it("derives the default title from the y column on the map tab if no map dimension is given", () => {
+            const grapher = makeGrapher({
+                ...legacyConfig,
+                tab: GRAPHER_TAB_CONFIG_OPTIONS.map,
+            })
+            expect(grapher.defaultTitle).toEqual(displayName)
+        })
     })
 
     it("can generate a url with country selection", () => {

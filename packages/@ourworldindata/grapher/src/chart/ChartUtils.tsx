@@ -50,7 +50,9 @@ import * as R from "remeda"
 export const autoDetectYColumnSlugs = (manager: ChartManager): string[] => {
     if (manager.yColumnSlugs?.length) return manager.yColumnSlugs
     if (manager.yColumnSlug) return [manager.yColumnSlug]
-    return manager.table.numericColumnSlugs
+    return manager.table.numericColumnSlugs.filter(
+        (slug) => slug !== manager.mapColumnSlug
+    )
 }
 
 export const getDefaultFailMessage = (manager: ChartManager): string => {
