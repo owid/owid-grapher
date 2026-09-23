@@ -9,7 +9,6 @@ import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
 import { ChartError } from "../../../../components/ChartError/ChartError.js"
 import { ChartSkeleton } from "../../../../components/ChartSkeleton/ChartSkeleton.js"
 import { Spinner } from "../../../../components/Spinner/Spinner.js"
-import { useChartDimensions } from "../../../../hooks/useDimensions.js"
 import { useContainerWidth } from "../../../../hooks/useContainerWidth.js"
 import { useUrlState } from "../../../../hooks/useUrlState.js"
 import { EmbedConfigProvider } from "../../../../hooks/useEmbedConfig.js"
@@ -23,8 +22,16 @@ import type { VariantProps } from "../../../../helpers/config.js"
 import type { BespokeComponentDataUrls } from "owid-bespoke-types"
 
 import { FoodSupplyChainControls } from "../components/FoodSupplyChainControls.js"
-import { FoodSupplyChainWaterfall } from "../components/FoodSupplyChainWaterfall.js"
+import {
+    FoodSupplyChainWaterfall,
+    measureVerticalSlotWidth,
+} from "../components/FoodSupplyChainWaterfall.js"
+import { FoodSupplyChainWaterfallHorizontal } from "../components/FoodSupplyChainWaterfallHorizontal.js"
 import { FoodSupplyChainConfig } from "../core/config.js"
+import {
+    MIN_VERTICAL_SLOT_WIDTH,
+    VERTICAL_CHART_HEIGHT,
+} from "../core/constants.js"
 import { clampYear } from "../core/clampYear.js"
 import {
     queryClient,
@@ -45,9 +52,6 @@ const DEFAULT_ENTITY_SLUG = "world"
 const DEFAULT_MEASURE: Measure = "energy"
 /** Later than any year the data has, so the clamp lands on the entity's latest */
 const DEFAULT_YEAR = 9999
-
-// Matches the fixed height of the skeleton and error boxes below.
-const CHART_DIMENSIONS_CONFIG = { minHeight: 400, maxHeight: 400 }
 
 const FOOTER_NOTE =
     "Figures are per person per day, from the FAO's Supply Utilization Accounts. A country that re-exports food can show far more entering its food system than its own population could eat."
@@ -230,19 +234,26 @@ function MeasuredWaterfall({
 }: {
     waterfall: Waterfall
 }): React.ReactElement {
-    const { ref, dimensions } = useChartDimensions<HTMLDivElement>({
-        config: CHART_DIMENSIONS_CONFIG,
-    })
+    const { ref, width } = useContainerWidth()
+
+    const isHorizontal =
+        measureVerticalSlotWidth(waterfall, width) < MIN_VERTICAL_SLOT_WIDTH
 
     return (
         <div ref={ref}>
-            {dimensions.width > 0 && dimensions.height > 0 && (
-                <FoodSupplyChainWaterfall
-                    waterfall={waterfall}
-                    width={dimensions.width}
-                    height={dimensions.height}
-                />
-            )}
+            {width > 0 &&
+                (isHorizontal ? (
+                    <FoodSupplyChainWaterfallHorizontal
+                        waterfall={waterfall}
+                        width={width}
+                    />
+                ) : (
+                    <FoodSupplyChainWaterfall
+                        waterfall={waterfall}
+                        width={width}
+                        height={VERTICAL_CHART_HEIGHT}
+                    />
+                ))}
         </div>
     )
 }

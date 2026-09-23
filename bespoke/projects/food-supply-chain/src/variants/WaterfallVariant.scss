@@ -1,12 +1,11 @@
 .food-supply-chain-captioned-chart__chart-area {
     position: relative;
-    height: 400px;
 }
 
 .food-supply-chain-captioned-chart__no-data {
     display: flex;
     align-items: center;
     justify-content: center;
-    height: 100%;
+    height: 400px;
     color: $light-text;
 }
