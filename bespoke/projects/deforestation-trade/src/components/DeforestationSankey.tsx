@@ -59,6 +59,10 @@ import type { DeforestationChartProps } from "./DeforestationChart.js"
  *  chart — their labels would pile up — but listed in a legend underneath */
 const MIN_LABELLED_GROUP_SHARE = 0.05
 
+/** On narrow screens no commodity group is labelled in the chart: the nodes
+ *  carry only their icons and every label moves to the legend */
+const LABEL_NO_GROUPS = Infinity
+
 /** Vertical gap between the chart and the legend of unlabelled groups;
  *  matches the legend's margin in the SCSS */
 const LEGEND_GAP = 6
@@ -134,23 +138,28 @@ function DeforestationSankeyContent({
                 view,
                 formatValue,
                 getGroupLabel,
-                minLabelledGroupShare: MIN_LABELLED_GROUP_SHARE,
+                minLabelledGroupShare: isNarrow
+                    ? LABEL_NO_GROUPS
+                    : MIN_LABELLED_GROUP_SHARE,
             }),
-        [view, country, importRows, exportRows, formatValue]
+        [view, country, importRows, exportRows, formatValue, isNarrow]
     )
 
-    // Labelled commodity nodes carry their group's glyph next to the label
+    // Labelled commodity nodes carry their group's glyph next to the label.
+    // On narrow screens the glyph stands alone and the legend names it; the
+    // Sankey drops it on nodes too short to fit it.
     const nodes = useMemo<SankeyNode[]>(
         () =>
             graph.nodes.map((node) => {
                 const group = getGroupFromNodeId(node.id)
-                if (group === undefined || node.label === "") return node
+                if (group === undefined) return node
+                if (node.label === "" && !isNarrow) return node
                 return {
                     ...node,
                     icon: renderGroupIcon(group, getGroupColor(group)),
                 }
             }),
-        [graph.nodes]
+        [graph.nodes, isNarrow]
     )
 
     const countryLabel = getEntityShortLabel(country)
