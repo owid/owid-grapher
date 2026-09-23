@@ -218,13 +218,15 @@ function TimePeriodControl({
             className="deforestation-controls__time"
         >
             <div className="deforestation-controls__time-controls">
-                <Switcher
-                    className="deforestation-controls__period-switcher"
-                    items={PERIOD_ITEMS}
-                    selectedKey={period}
-                    onChange={setPeriod}
-                    ariaLabel="Show a single year or the sum of the last years"
-                />
+                {/* Wrapped like the view switcher, so the two match */}
+                <div className="deforestation-controls__switcher-wrapper deforestation-controls__period-switcher">
+                    <Switcher
+                        items={PERIOD_ITEMS}
+                        selectedKey={period}
+                        onChange={setPeriod}
+                        ariaLabel="Show a single year or the sum of the last years"
+                    />
+                </div>
                 <TimeSlider
                     className="deforestation-controls__time-slider"
                     times={metadata.years}
