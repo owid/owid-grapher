@@ -1,8 +1,8 @@
-import { useCallback, useMemo, useRef, useState } from "react"
-import cx from "clsx"
+import { useCallback, useMemo } from "react"
 import * as R from "remeda"
 
 import { OwidDistinctColors } from "@ourworldindata/grapher"
+import { articulateEntity } from "@ourworldindata/utils"
 import {
     TooltipTable,
     TooltipValue,
@@ -52,21 +52,18 @@ import {
     formatHectares,
     formatShare,
     formatYearRange,
+    possessiveEntity,
 } from "../core/helpers.js"
 import type { YearRange } from "../core/types.js"
 import type { DeforestationChartProps } from "./DeforestationChart.js"
 
 /** Commodity groups below this share of the column are not labelled in the
- *  chart — their labels would pile up — but listed in a legend underneath */
+ *  chart — their labels would pile up; their tooltips still name them */
 const MIN_LABELLED_GROUP_SHARE = 0.05
 
 /** On narrow screens no commodity group is labelled in the chart: the nodes
- *  carry only their icons and every label moves to the legend */
+ *  carry only their icons, and their tooltips name them */
 const LABEL_NO_GROUPS = Infinity
-
-/** Vertical gap between the chart and the legend of unlabelled groups;
- *  matches the legend's margin in the SCSS */
-const LEGEND_GAP = 6
 
 /** Group icons in tooltips are bigger than the ones beside the chart's labels */
 const TOOLTIP_GROUP_ICON_SIZE = 28
@@ -147,8 +144,8 @@ function DeforestationSankeyContent({
     )
 
     // Labelled commodity nodes carry their group's glyph next to the label.
-    // On narrow screens the glyph stands alone and the legend names it; the
-    // Sankey drops it on nodes too short to fit it.
+    // On narrow screens the glyph stands alone; the Sankey drops it on nodes
+    // too short to fit it.
     const nodes = useMemo<SankeyNode[]>(
         () =>
             graph.nodes.map((node) => {
@@ -356,23 +353,13 @@ function DeforestationSankeyContent({
 
     const headingFallbacks = useMemo(() => [graph.headings], [graph.headings])
 
-    const [legendRef, legendHeight] = useMeasuredHeight<HTMLDivElement>()
-    // The legend's hovered commodity, highlighted in the chart
-    const [hoveredLegendGroup, setHoveredLegendGroup] = useState<
-        string | undefined
-    >(undefined)
-    const chartHeight =
-        graph.unlabelledGroups.length > 0
-            ? Math.max(0, height - (legendHeight ?? 0) - LEGEND_GAP)
-            : height
-
     return (
         <div className="deforestation-sankey__chart-area">
             <Sankey
                 nodes={nodes}
                 links={graph.links}
                 width={width}
-                height={chartHeight}
+                height={height}
                 // In production view the wide, simple ribbons are on the left
                 // of the commodity bar; in consumption view on the right —
                 // put the labels over those
@@ -399,89 +386,9 @@ function DeforestationSankeyContent({
                 isNodeHoverable={isNodeHoverable}
                 isNodeClickable={isNodeClickable}
                 onNodeClick={onNodeClick}
-                highlightedNodeId={
-                    hoveredLegendGroup !== undefined
-                        ? makeGroupId(hoveredLegendGroup)
-                        : undefined
-                }
             />
-            {graph.unlabelledGroups.length > 0 && (
-                <UnlabelledGroupsLegend
-                    ref={legendRef}
-                    groups={graph.unlabelledGroups}
-                    // Sits under the commodity labels: left of the bar in
-                    // the production view, right of it in the consumption view
-                    align={view === "production" ? "left" : "right"}
-                    onGroupHover={setHoveredLegendGroup}
-                />
-            )}
         </div>
     )
-}
-
-/** The commodities too small to be labelled in the chart, with their icons */
-function UnlabelledGroupsLegend({
-    groups,
-    align,
-    onGroupHover,
-    ref,
-}: {
-    groups: string[]
-    align: "left" | "right"
-    onGroupHover: (group: string | undefined) => void
-    ref: (node: HTMLDivElement | null) => void
-}): React.ReactElement {
-    return (
-        <div
-            ref={ref}
-            className={cx("deforestation-sankey__legend", {
-                "deforestation-sankey__legend--right": align === "right",
-            })}
-        >
-            {groups.map((group) => (
-                <span
-                    key={group}
-                    className="deforestation-sankey__legend-item"
-                    onMouseEnter={() => onGroupHover(group)}
-                    onMouseLeave={() => onGroupHover(undefined)}
-                    // The flow's color, darkened a little to stay legible
-                    style={{
-                        color: `color-mix(in srgb, ${getGroupColor(group)} 80%, black)`,
-                    }}
-                >
-                    <GroupIcon group={group} size={14} />
-                    {getGroupLabel(group)}
-                </span>
-            ))}
-        </div>
-    )
-}
-
-/** Track an element's rendered height, so the chart can take exactly the
- *  space the legend leaves it however the legend wraps */
-function useMeasuredHeight<E extends HTMLElement>(): [
-    (node: E | null) => void,
-    number | undefined,
-] {
-    const [height, setHeight] = useState<number | undefined>(undefined)
-    const observerRef = useRef<ResizeObserver | null>(null)
-    const ref = useCallback((node: E | null) => {
-        observerRef.current?.disconnect()
-        observerRef.current = null
-        if (!node || typeof ResizeObserver === "undefined") {
-            setHeight(undefined)
-            return
-        }
-        const measure = (): void => {
-            const measured = node.offsetHeight
-            setHeight((prev) => (prev === measured ? prev : measured))
-        }
-        measure()
-        const observer = new ResizeObserver(measure)
-        observer.observe(node)
-        observerRef.current = observer
-    }, [])
-    return [ref, height]
 }
 
 // ---------------------------------------------------------------------------
@@ -521,21 +428,51 @@ function makeNodeTooltip({
         ).map(([id, value]) => ({ id, value }))
 
         const description = getGroupDescription(group)
+        const shareOfTotal = graph.total > 0 ? value / graph.total : 0
+        // "of Brazil's total": the chart is about the selected country
+        const countryLabel = [...labelById].find(([id]) =>
+            isFocusNodeId(id)
+        )?.[1]
+        const ofTotal = countryLabel
+            ? `of ${possessiveEntity(articulateEntity(countryLabel))} total`
+            : "of the total"
         return {
             title: getGroupLabel(group),
             subtitle,
             content: (
                 <>
-                    <GroupLine group={group}>{share}</GroupLine>
                     {description && (
                         <p className="deforestation-sankey__tooltip-description">
                             {description}
                         </p>
                     )}
-                    <BreakdownTable
+                    <GroupLine group={group}>
+                        <div className="deforestation-sankey__tooltip-headline">
+                            <span className="deforestation-sankey__tooltip-headline-value">
+                                {formatHectares(value)}
+                            </span>
+                            {formatShare(shareOfTotal) && (
+                                <span className="deforestation-sankey__tooltip-headline-share">
+                                    {formatShare(shareOfTotal)} {ofTotal}
+                                </span>
+                            )}
+                        </div>
+                    </GroupLine>
+                    <PartnerShareTable
+                        heading={
+                            isPartnerSideIncoming
+                                ? "Produced in"
+                                : "Consumed in"
+                        }
+                        color={getGroupColor(group)}
+                        total={value}
                         rows={R.pipe(
                             rows,
-                            R.sortBy([(r) => r.value, "desc"]),
+                            // Largest first, with the "Other countries" rest last
+                            R.sortBy(
+                                [(r) => isOtherNodeId(r.id), "asc"],
+                                [(r) => r.value, "desc"]
+                            ),
                             R.map((r) => ({
                                 name: labelById.get(r.id) ?? r.id,
                                 value: r.value,
@@ -645,6 +582,68 @@ function CommodityBreakdownTable({
             {hiddenCount > 0 && (
                 <div className="deforestation-sankey__tooltip-more">
                     + {hiddenCount} more
+                </div>
+            )}
+        </>
+    )
+}
+
+/**
+ * A commodity's partners, each with its hectares, its share of the commodity
+ * and a bar in the commodity's colour scaled to the largest row
+ */
+function PartnerShareTable({
+    heading,
+    color,
+    total,
+    rows,
+}: {
+    heading: string
+    color: string
+    total: number
+    rows: { name: string; value: number }[]
+}): React.ReactElement | null {
+    const { visible, hiddenCount } = capItems(rows)
+    if (visible.length === 0) return null
+    const maxValue = Math.max(...visible.map((r) => r.value))
+
+    return (
+        <>
+            <div className="deforestation-sankey__tooltip-section-heading">
+                {heading}
+            </div>
+            <table className="deforestation-sankey__share-table">
+                <tbody>
+                    {visible.map((row) => (
+                        <tr key={row.name}>
+                            <td className="deforestation-sankey__share-table-name">
+                                {row.name}
+                            </td>
+                            <td className="deforestation-sankey__share-table-bar">
+                                <div
+                                    className="deforestation-sankey__share-table-bar-fill"
+                                    style={{
+                                        width: `${maxValue > 0 ? (row.value / maxValue) * 100 : 0}%`,
+                                        backgroundColor: color,
+                                    }}
+                                />
+                            </td>
+                            <td className="deforestation-sankey__share-table-value">
+                                {formatHectares(row.value, { short: true })}
+                            </td>
+                            <td className="deforestation-sankey__share-table-share">
+                                {total > 0
+                                    ? formatShare(row.value / total)
+                                    : ""}
+                            </td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+            {hiddenCount > 0 && (
+                <div className="deforestation-sankey__tooltip-more">
+                    + {hiddenCount} more{" "}
+                    {hiddenCount === 1 ? "country" : "countries"}
                 </div>
             )}
         </>
