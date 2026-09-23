@@ -16,6 +16,7 @@ export type Period = (typeof PERIODS)[number]
 export type YearRange = { start: number; end: number }
 
 export type Entity = { id: number; name: string; iso: string; region: string }
+export type WorldGroupTotal = { group: string; values: number[] }
 export type CommodityGroup = { id: number; name: string }
 
 // ---------------------------------------------------------------------------
@@ -50,6 +51,8 @@ export type RawMetadataJson = BespokeMetadata & {
         entities: Entity[]
         commodityGroups: CommodityGroup[]
     }
+    /** Worldwide hectares per commodity group, `values` aligned to `years` */
+    worldTotals?: { commodityGroup: number; values: number[] }[]
 }
 
 // ---------------------------------------------------------------------------
@@ -63,6 +66,8 @@ export type DeforestationMetadata = {
     commodityGroups: CommodityGroup[]
     entityById: Map<number, Entity>
     entityByName: Map<string, Entity>
+    /** Worldwide hectares per commodity group (by name), aligned to `years` */
+    worldTotals: WorldGroupTotal[]
     /** The validated `BespokeMetadataSchema` part, if it parsed */
     bespoke: BespokeMetadata | undefined
 }

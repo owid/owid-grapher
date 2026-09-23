@@ -4,7 +4,7 @@ Reads the lossless flow file (`deforestation-trade-flows.json`, the shared
 `{timeRange, years, source, dimensions, flows}` schema) and writes the files the
 bundle fetches at runtime:
 
-    deforestation-trade.metadata.json   manifest + BespokeMetadata fields
+    deforestation-trade.metadata.json   manifest, world totals + BespokeMetadata fields
     deforestation-trade.<entityId>.json one file per entity (imports + exports)
 
 The output contract is `src/core/types.ts` (`RawFlowBlock`, `RawCountryJson`,
@@ -41,11 +41,31 @@ Values = list  # list[float | None], aligned to `years`
 # ---------------------------------------------------------------------------
 
 
-def build_metadata(raw: dict) -> dict:
-    """The manifest (years, dimensions) plus the `BespokeMetadataSchema` fields
-    that feed the methods-and-sources box."""
+def build_world_totals(
+    flows: list[tuple[int, int, int, Values]], group_ids: list[int], num_years: int
+) -> list[dict]:
+    """Worldwide hectares per commodity group, aligned to `years`: the sum of
+    every flow, each counted once (a flow is one producer and one consumer)."""
+    sums = {group_id: [0.0] * num_years for group_id in group_ids}
+    for _producer, _consumer, group, values in flows:
+        for i, v in enumerate(values):
+            if v is not None:
+                sums[group][i] += v
+    return [
+        {
+            "commodityGroup": group_id,
+            "values": [round(v, DECIMALS) for v in sums[group_id]],
+        }
+        for group_id in group_ids
+    ]
+
+
+def build_metadata(raw: dict, flows: list[tuple[int, int, int, Values]]) -> dict:
+    """The manifest (years, dimensions, world totals) plus the
+    `BespokeMetadataSchema` fields that feed the methods-and-sources box."""
     time_range = raw["timeRange"]
     source = raw["source"]
+    group_ids = [g["id"] for g in raw["dimensions"]["commodityGroups"]]
     return {
         "timeRange": time_range,
         "years": raw["years"],
@@ -54,6 +74,7 @@ def build_metadata(raw: dict) -> dict:
             "entities": raw["dimensions"]["entities"],
             "commodityGroups": raw["dimensions"]["commodityGroups"],
         },
+        "worldTotals": build_world_totals(flows, group_ids, len(raw["years"])),
         "title": "Deforestation embedded in agricultural trade",
         "descriptionShort": (
             "Hectares of amortized deforestation risk embedded in agricultural "
@@ -197,7 +218,7 @@ def main() -> None:
     outdir: Path = args.outdir
     outdir.mkdir(parents=True, exist_ok=True)
 
-    write_json(outdir / f"{FILE_PREFIX}.metadata.json", build_metadata(raw))
+    write_json(outdir / f"{FILE_PREFIX}.metadata.json", build_metadata(raw, flows))
 
     countries = build_country_files(
         flows, [entity["id"] for entity in raw["dimensions"]["entities"]]
