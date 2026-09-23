@@ -39,6 +39,9 @@ const ICON_BACKING_PADDING = 2
 /** Vertical gap between a node's value label and its label */
 const VALUE_LABEL_GAP = 2
 
+/** How far a ribbon reaches under a middle node's band, in px */
+const RIBBON_NODE_OVERLAP = 0.5
+
 /** Smallest height a node's band is drawn at, however small its value */
 const MIN_NODE_DRAWN_HEIGHT = 1
 
@@ -83,6 +86,12 @@ interface SankeyProps {
     linkLowVolumeThreshold?: number
     nodeColor?: (node: SankeyNode) => string
     linkColor?: (link: SankeyLink) => string
+    /**
+     * Whether a link below `linkLowVolumeThreshold` is drawn faded; default
+     * all of them. Exempt links whose neighbours would otherwise show a pale
+     * stripe through one continuous block of colour.
+     */
+    canFadeLowVolumeLink?: (link: SankeyLink) => boolean
     /** Outer padding around the whole visualization */
     margin?: Margin
     /** Floor for the inner padding that reserves space for labels */
@@ -239,6 +248,7 @@ export function Sankey({
     linkLowVolumeThreshold,
     nodeColor,
     linkColor,
+    canFadeLowVolumeLink,
     margin = DEFAULT_MARGIN,
     innerMargin,
     anchorNodeId,
@@ -622,6 +632,10 @@ export function Sankey({
 
     const hoveredNodeId = focus?.kind === "node" ? focus.node.id : undefined
     const hoveredLink = focus?.kind === "link" ? focus.link : undefined
+    const linkBundles = bundleParallelLinks(
+        linksInRenderOrder,
+        (link) => link === hoveredLink || activeLinks.has(link)
+    )
 
     // Use the wrapper div's dimensions, not the SVG's: the SVG can be
     // shorter than its grid cell (SplitFlowSankey shrinks one half to
@@ -673,15 +687,24 @@ export function Sankey({
                 }
             >
                 <g className="sankey__links">
-                    {linksInRenderOrder.map((link) => (
+                    {linkBundles.map((bundle) => (
                         <SankeyLinkView
-                            key={makeLinkKey(toLinkData(link))}
-                            link={link}
+                            key={makeLinkKey(toLinkData(bundle[0]))}
+                            links={bundle}
                             linkColor={linkColor}
-                            isHovered={hoveredLink === link}
-                            isActive={activeLinks.has(link)}
+                            isHovered={
+                                hoveredLink !== undefined &&
+                                bundle.includes(hoveredLink)
+                            }
+                            isActive={activeLinks.has(bundle[0])}
                             totalFlowVolume={totalFlowVolume}
-                            linkLowVolumeThreshold={linkLowVolumeThreshold}
+                            linkLowVolumeThreshold={
+                                canFadeLowVolumeLink?.(
+                                    toLinkData(bundle[0])
+                                ) === false
+                                    ? undefined
+                                    : linkLowVolumeThreshold
+                            }
                         />
                     ))}
                 </g>
@@ -765,30 +788,59 @@ export function Sankey({
     )
 }
 
+/**
+ * Groups parallel links — the same two nodes, told apart only by their
+ * category — so each group is drawn as one ribbon. Drawn separately,
+ * neighbouring translucent ribbons leave anti-aliasing seams between them.
+ * Highlighted and plain links are grouped apart, so a highlight still picks
+ * out its own; a plain group may then span a highlighted link between two of
+ * its own, which is fine since highlighted links are opaque and drawn later.
+ * Keeps the given render order, a group taking the place of its first member.
+ */
+function bundleParallelLinks(
+    links: LaidOutLink[],
+    isHighlighted: (link: LaidOutLink) => boolean
+): LaidOutLink[][] {
+    const bundles = new Map<string, LaidOutLink[]>()
+    for (const link of links) {
+        const key = [
+            makeNodeId(link.source),
+            makeNodeId(link.target),
+            isHighlighted(link),
+        ].join("|")
+        const bundle = bundles.get(key)
+        if (bundle) bundle.push(link)
+        else bundles.set(key, [link])
+    }
+    return [...bundles.values()]
+}
+
+/** One ribbon for one link, or for a bundle of parallel ones */
 function SankeyLinkView({
-    link,
+    links,
     linkColor,
     isHovered,
     isActive,
     totalFlowVolume,
     linkLowVolumeThreshold,
 }: {
-    link: LaidOutLink
+    links: LaidOutLink[]
     linkColor?: (link: SankeyLink) => string
     isHovered?: boolean
     isActive?: boolean
     totalFlowVolume?: number
     linkLowVolumeThreshold?: number
 }): React.ReactElement | null {
-    const path = makeSankeyRibbonPath(link)
+    const path = makeSankeyRibbonPath(links)
     if (!path) return null
 
-    const color = linkColor?.(toLinkData(link)) ?? GRAPHER_DENIM
+    const color = linkColor?.(toLinkData(links[0])) ?? GRAPHER_DENIM
 
+    const value = links.reduce((sum, link) => sum + link.value, 0)
     const isLowVolume =
         totalFlowVolume &&
         linkLowVolumeThreshold &&
-        link.value / totalFlowVolume < linkLowVolumeThreshold
+        value / totalFlowVolume < linkLowVolumeThreshold
 
     const className = cx("sankey__link", {
         "sankey__link--hovered": isHovered,
@@ -802,32 +854,40 @@ function SankeyLinkView({
 // d3-sankey builds a single curved centerline for each link, and the visible band is a thick stroke around it.
 // This works well for thin links, but for wider, bendy links it can result in messy-looking ribbons and overlaps.
 // Instead, we build a filled ribbon. This keeps large links from visually spilling over neighboring ribbons on sharp bends.
-function makeSankeyRibbonPath(link: LaidOutLink): string | null {
-    const sourceNode = link.source as LaidOutNode
-    const targetNode = link.target as LaidOutNode
+// Parallel links (all between the same two nodes) make one ribbon spanning
+// all of theirs.
+function makeSankeyRibbonPath(links: LaidOutLink[]): string | null {
+    const sourceNode = links[0].source as LaidOutNode
+    const targetNode = links[0].target as LaidOutNode
 
-    const x0 = sourceNode.x1
-    const x1 = targetNode.x0
-    const y0 = link.y0
-    const y1 = link.y1
-    const width = link.width ?? 0
+    if (sourceNode.x1 === undefined || targetNode.x0 === undefined) return null
+    // A middle node's band spans its full width and touches its ribbons, so
+    // tuck their ends under it: edge to edge, anti-aliasing would leave a
+    // hairline between the two
+    const x0 =
+        sourceNode.x1 -
+        (getNodeSide(sourceNode) === "middle" ? RIBBON_NODE_OVERLAP : 0)
+    const x1 =
+        targetNode.x0 +
+        (getNodeSide(targetNode) === "middle" ? RIBBON_NODE_OVERLAP : 0)
 
-    if (
-        x0 === undefined ||
-        x1 === undefined ||
-        y0 === undefined ||
-        y1 === undefined ||
-        width <= 0
-    ) {
-        return null
+    let y0Top = Infinity
+    let y0Bottom = -Infinity
+    let y1Top = Infinity
+    let y1Bottom = -Infinity
+    for (const link of links) {
+        const width = link.width ?? 0
+        if (link.y0 === undefined || link.y1 === undefined || width <= 0)
+            continue
+        const halfWidth = Math.max(0.25, width / 2)
+        y0Top = Math.min(y0Top, link.y0 - halfWidth)
+        y0Bottom = Math.max(y0Bottom, link.y0 + halfWidth)
+        y1Top = Math.min(y1Top, link.y1 - halfWidth)
+        y1Bottom = Math.max(y1Bottom, link.y1 + halfWidth)
     }
+    if (y0Top === Infinity) return null
 
-    const halfWidth = Math.max(0.25, width / 2)
     const xi = (x0 + x1) / 2
-    const y0Top = y0 - halfWidth
-    const y0Bottom = y0 + halfWidth
-    const y1Top = y1 - halfWidth
-    const y1Bottom = y1 + halfWidth
 
     return [
         `M${x0},${y0Top}`, // start point: left top
