@@ -9,6 +9,15 @@ export const BESPOKE_COMPONENT_REGISTRY: Record<
         dataUrl: "ihme_gbd/latest/gbd_treemap_json",
         metadataFilename: "causes-of-death.metadata.json",
     },
+    "deforestation-trade": {
+        scriptUrl: "/deforestation-trade/index.js",
+        // Hand-built data files (see the project's scripts/buildData.py), so
+        // the URL is absolute and the same file is served everywhere. Move it
+        // to "https://owid-public.owid.io/bespoke/deforestation-trade" once
+        // they are uploaded.
+        dataUrl: "http://localhost:8089/deforestation-trade",
+        metadataFilename: "deforestation-trade.metadata.json",
+    },
     demography: {
         scriptUrl: "/demography/index.js",
         dataUrl: "un_wpp/latest/demography",

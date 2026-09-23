@@ -106,6 +106,12 @@ __metadata:
   languageName: node
   linkType: soft
 
+"@ourworldindata/components@link:../../../packages/@ourworldindata/components::locator=%40owid%2Fbespoke-deforestation-trade%40workspace%3Aprojects%2Fdeforestation-trade":
+  version: 0.0.0-use.local
+  resolution: "@ourworldindata/components@link:../../../packages/@ourworldindata/components::locator=%40owid%2Fbespoke-deforestation-trade%40workspace%3Aprojects%2Fdeforestation-trade"
+  languageName: node
+  linkType: soft
+
 "@ourworldindata/components@link:../../../packages/@ourworldindata/components::locator=%40owid%2Fbespoke-demography%40workspace%3Aprojects%2Fdemography":
   version: 0.0.0-use.local
   resolution: "@ourworldindata/components@link:../../../packages/@ourworldindata/components::locator=%40owid%2Fbespoke-demography%40workspace%3Aprojects%2Fdemography"
@@ -142,6 +148,12 @@ __metadata:
   languageName: node
   linkType: soft
 
+"@ourworldindata/core-table@link:../../../packages/@ourworldindata/core-table::locator=%40owid%2Fbespoke-deforestation-trade%40workspace%3Aprojects%2Fdeforestation-trade":
+  version: 0.0.0-use.local
+  resolution: "@ourworldindata/core-table@link:../../../packages/@ourworldindata/core-table::locator=%40owid%2Fbespoke-deforestation-trade%40workspace%3Aprojects%2Fdeforestation-trade"
+  languageName: node
+  linkType: soft
+
 "@ourworldindata/core-table@link:../../../packages/@ourworldindata/core-table::locator=%40owid%2Fbespoke-food-trade%40workspace%3Aprojects%2Ffood-trade":
   version: 0.0.0-use.local
   resolution: "@ourworldindata/core-table@link:../../../packages/@ourworldindata/core-table::locator=%40owid%2Fbespoke-food-trade%40workspace%3Aprojects%2Ffood-trade"
@@ -157,6 +169,12 @@ __metadata:
 "@ourworldindata/grapher@link:../../../packages/@ourworldindata/grapher::locator=%40owid%2Fbespoke-causes-of-death%40workspace%3Aprojects%2Fcauses-of-death":
   version: 0.0.0-use.local
   resolution: "@ourworldindata/grapher@link:../../../packages/@ourworldindata/grapher::locator=%40owid%2Fbespoke-causes-of-death%40workspace%3Aprojects%2Fcauses-of-death"
+  languageName: node
+  linkType: soft
+
+"@ourworldindata/grapher@link:../../../packages/@ourworldindata/grapher::locator=%40owid%2Fbespoke-deforestation-trade%40workspace%3Aprojects%2Fdeforestation-trade":
+  version: 0.0.0-use.local
+  resolution: "@ourworldindata/grapher@link:../../../packages/@ourworldindata/grapher::locator=%40owid%2Fbespoke-deforestation-trade%40workspace%3Aprojects%2Fdeforestation-trade"
   languageName: node
   linkType: soft
 
@@ -202,6 +220,12 @@ __metadata:
   languageName: node
   linkType: soft
 
+"@ourworldindata/types@link:../../../packages/@ourworldindata/types::locator=%40owid%2Fbespoke-deforestation-trade%40workspace%3Aprojects%2Fdeforestation-trade":
+  version: 0.0.0-use.local
+  resolution: "@ourworldindata/types@link:../../../packages/@ourworldindata/types::locator=%40owid%2Fbespoke-deforestation-trade%40workspace%3Aprojects%2Fdeforestation-trade"
+  languageName: node
+  linkType: soft
+
 "@ourworldindata/types@link:../../../packages/@ourworldindata/types::locator=%40owid%2Fbespoke-demography%40workspace%3Aprojects%2Fdemography":
   version: 0.0.0-use.local
   resolution: "@ourworldindata/types@link:../../../packages/@ourworldindata/types::locator=%40owid%2Fbespoke-demography%40workspace%3Aprojects%2Fdemography"
@@ -235,6 +259,12 @@ __metadata:
 "@ourworldindata/utils@link:../../../packages/@ourworldindata/utils::locator=%40owid%2Fbespoke-causes-of-death%40workspace%3Aprojects%2Fcauses-of-death":
   version: 0.0.0-use.local
   resolution: "@ourworldindata/utils@link:../../../packages/@ourworldindata/utils::locator=%40owid%2Fbespoke-causes-of-death%40workspace%3Aprojects%2Fcauses-of-death"
+  languageName: node
+  linkType: soft
+
+"@ourworldindata/utils@link:../../../packages/@ourworldindata/utils::locator=%40owid%2Fbespoke-deforestation-trade%40workspace%3Aprojects%2Fdeforestation-trade":
+  version: 0.0.0-use.local
+  resolution: "@ourworldindata/utils@link:../../../packages/@ourworldindata/utils::locator=%40owid%2Fbespoke-deforestation-trade%40workspace%3Aprojects%2Fdeforestation-trade"
   languageName: node
   linkType: soft
 
@@ -344,6 +374,47 @@ __metadata:
     ts-pattern: "npm:^5.9.0"
     typescript: "npm:^7.0.2"
     vitest: "npm:^5.0.3"
+  languageName: unknown
+  linkType: soft
+
+"@owid/bespoke-deforestation-trade@workspace:projects/deforestation-trade":
+  version: 0.0.0-use.local
+  resolution: "@owid/bespoke-deforestation-trade@workspace:projects/deforestation-trade"
+  dependencies:
+    "@fortawesome/fontawesome-svg-core": "npm:^7.3.1"
+    "@fortawesome/free-solid-svg-icons": "npm:^7.3.1"
+    "@fortawesome/react-fontawesome": "npm:^3.5.0"
+    "@ourworldindata/components": "link:../../../packages/@ourworldindata/components"
+    "@ourworldindata/core-table": "link:../../../packages/@ourworldindata/core-table"
+    "@ourworldindata/grapher": "link:../../../packages/@ourworldindata/grapher"
+    "@ourworldindata/types": "link:../../../packages/@ourworldindata/types"
+    "@ourworldindata/utils": "link:../../../packages/@ourworldindata/utils"
+    "@react-stately/flags": "npm:^3.2.1"
+    "@rollup/plugin-swc": "npm:^0.4.1"
+    "@swc/core": "npm:^1.15.41"
+    "@tanstack/react-query": "npm:^5.101.0"
+    "@types/d3-sankey": "npm:^0.12.5"
+    "@types/react": "npm:^19.2.17"
+    "@types/react-dom": "npm:^19.2.3"
+    "@visx/group": "npm:^4.0.0"
+    "@visx/responsive": "npm:^4.0.0"
+    "@vitejs/plugin-react": "npm:^6.0.4"
+    clsx: "npm:^2.1.1"
+    d3-sankey: "npm:^0.12.3"
+    normalize.css: "npm:^8.0.1"
+    nuqs: "npm:^2.8.9"
+    react: "npm:^19.2.7"
+    react-aria: "npm:^3.49.0"
+    react-aria-components: "npm:^1.18.0"
+    react-dom: "npm:^19.2.7"
+    react-stately: "npm:^3.47.0"
+    remeda: "npm:^2.39.0"
+    sass: "npm:^1.101.0"
+    ts-pattern: "npm:^5.9.0"
+    typescript: "npm:^7.0.2"
+    vite: "npm:^8.1.5"
+    vite-plugin-css-position: "npm:^2.0.9"
+    vitest: "npm:^5.0.0"
   languageName: unknown
   linkType: soft
 
@@ -899,9 +970,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@swc/core-darwin-arm64@npm:1.16.18":
+  version: 1.16.18
+  resolution: "@swc/core-darwin-arm64@npm:1.16.18"
+  conditions: os=darwin & cpu=arm64
+  languageName: node
+  linkType: hard
+
 "@swc/core-darwin-x64@npm:1.16.13":
   version: 1.16.13
   resolution: "@swc/core-darwin-x64@npm:1.16.13"
+  conditions: os=darwin & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@swc/core-darwin-x64@npm:1.16.18":
+  version: 1.16.18
+  resolution: "@swc/core-darwin-x64@npm:1.16.18"
   conditions: os=darwin & cpu=x64
   languageName: node
   linkType: hard
@@ -913,9 +998,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@swc/core-linux-arm-gnueabihf@npm:1.16.18":
+  version: 1.16.18
+  resolution: "@swc/core-linux-arm-gnueabihf@npm:1.16.18"
+  conditions: os=linux & cpu=arm
+  languageName: node
+  linkType: hard
+
 "@swc/core-linux-arm64-gnu@npm:1.16.13":
   version: 1.16.13
   resolution: "@swc/core-linux-arm64-gnu@npm:1.16.13"
+  conditions: os=linux & cpu=arm64 & libc=glibc
+  languageName: node
+  linkType: hard
+
+"@swc/core-linux-arm64-gnu@npm:1.16.18":
+  version: 1.16.18
+  resolution: "@swc/core-linux-arm64-gnu@npm:1.16.18"
   conditions: os=linux & cpu=arm64 & libc=glibc
   languageName: node
   linkType: hard
@@ -927,9 +1026,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@swc/core-linux-arm64-musl@npm:1.16.18":
+  version: 1.16.18
+  resolution: "@swc/core-linux-arm64-musl@npm:1.16.18"
+  conditions: os=linux & cpu=arm64 & libc=musl
+  languageName: node
+  linkType: hard
+
 "@swc/core-linux-ppc64-gnu@npm:1.16.13":
   version: 1.16.13
   resolution: "@swc/core-linux-ppc64-gnu@npm:1.16.13"
+  conditions: os=linux & cpu=ppc64 & libc=glibc
+  languageName: node
+  linkType: hard
+
+"@swc/core-linux-ppc64-gnu@npm:1.16.18":
+  version: 1.16.18
+  resolution: "@swc/core-linux-ppc64-gnu@npm:1.16.18"
   conditions: os=linux & cpu=ppc64 & libc=glibc
   languageName: node
   linkType: hard
@@ -941,9 +1054,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@swc/core-linux-s390x-gnu@npm:1.16.18":
+  version: 1.16.18
+  resolution: "@swc/core-linux-s390x-gnu@npm:1.16.18"
+  conditions: os=linux & cpu=s390x & libc=glibc
+  languageName: node
+  linkType: hard
+
 "@swc/core-linux-x64-gnu@npm:1.16.13":
   version: 1.16.13
   resolution: "@swc/core-linux-x64-gnu@npm:1.16.13"
+  conditions: os=linux & cpu=x64 & libc=glibc
+  languageName: node
+  linkType: hard
+
+"@swc/core-linux-x64-gnu@npm:1.16.18":
+  version: 1.16.18
+  resolution: "@swc/core-linux-x64-gnu@npm:1.16.18"
   conditions: os=linux & cpu=x64 & libc=glibc
   languageName: node
   linkType: hard
@@ -955,9 +1082,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@swc/core-linux-x64-musl@npm:1.16.18":
+  version: 1.16.18
+  resolution: "@swc/core-linux-x64-musl@npm:1.16.18"
+  conditions: os=linux & cpu=x64 & libc=musl
+  languageName: node
+  linkType: hard
+
 "@swc/core-win32-arm64-msvc@npm:1.16.13":
   version: 1.16.13
   resolution: "@swc/core-win32-arm64-msvc@npm:1.16.13"
+  conditions: os=win32 & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"@swc/core-win32-arm64-msvc@npm:1.16.18":
+  version: 1.16.18
+  resolution: "@swc/core-win32-arm64-msvc@npm:1.16.18"
   conditions: os=win32 & cpu=arm64
   languageName: node
   linkType: hard
@@ -969,10 +1110,76 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@swc/core-win32-ia32-msvc@npm:1.16.18":
+  version: 1.16.18
+  resolution: "@swc/core-win32-ia32-msvc@npm:1.16.18"
+  conditions: os=win32 & cpu=ia32
+  languageName: node
+  linkType: hard
+
 "@swc/core-win32-x64-msvc@npm:1.16.13":
   version: 1.16.13
   resolution: "@swc/core-win32-x64-msvc@npm:1.16.13"
   conditions: os=win32 & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@swc/core-win32-x64-msvc@npm:1.16.18":
+  version: 1.16.18
+  resolution: "@swc/core-win32-x64-msvc@npm:1.16.18"
+  conditions: os=win32 & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@swc/core@npm:^1.15.41":
+  version: 1.16.18
+  resolution: "@swc/core@npm:1.16.18"
+  dependencies:
+    "@swc/core-darwin-arm64": "npm:1.16.18"
+    "@swc/core-darwin-x64": "npm:1.16.18"
+    "@swc/core-linux-arm-gnueabihf": "npm:1.16.18"
+    "@swc/core-linux-arm64-gnu": "npm:1.16.18"
+    "@swc/core-linux-arm64-musl": "npm:1.16.18"
+    "@swc/core-linux-ppc64-gnu": "npm:1.16.18"
+    "@swc/core-linux-s390x-gnu": "npm:1.16.18"
+    "@swc/core-linux-x64-gnu": "npm:1.16.18"
+    "@swc/core-linux-x64-musl": "npm:1.16.18"
+    "@swc/core-win32-arm64-msvc": "npm:1.16.18"
+    "@swc/core-win32-ia32-msvc": "npm:1.16.18"
+    "@swc/core-win32-x64-msvc": "npm:1.16.18"
+    "@swc/counter": "npm:^0.1.3"
+    "@swc/types": "npm:^0.1.28"
+  peerDependencies:
+    "@swc/helpers": ">=0.5.17"
+  dependenciesMeta:
+    "@swc/core-darwin-arm64":
+      optional: true
+    "@swc/core-darwin-x64":
+      optional: true
+    "@swc/core-linux-arm-gnueabihf":
+      optional: true
+    "@swc/core-linux-arm64-gnu":
+      optional: true
+    "@swc/core-linux-arm64-musl":
+      optional: true
+    "@swc/core-linux-ppc64-gnu":
+      optional: true
+    "@swc/core-linux-s390x-gnu":
+      optional: true
+    "@swc/core-linux-x64-gnu":
+      optional: true
+    "@swc/core-linux-x64-musl":
+      optional: true
+    "@swc/core-win32-arm64-msvc":
+      optional: true
+    "@swc/core-win32-ia32-msvc":
+      optional: true
+    "@swc/core-win32-x64-msvc":
+      optional: true
+  peerDependenciesMeta:
+    "@swc/helpers":
+      optional: true
+  checksum: 10/0fb69dbac5e94fbea4afeb1e59444d1238eac32cb8ec7b51aa862ec1588e54eb3ad34c56668edc3b78701ae2c73196e183726359b782768bed6dd3b9d949c310
   languageName: node
   linkType: hard
 
@@ -1057,6 +1264,24 @@ __metadata:
   version: 5.104.1
   resolution: "@tanstack/query-core@npm:5.104.1"
   checksum: 10/05a4410e32e91eb471a7ca1f420c839b49a11367e15a3cebe8ca94e6bfdfbd3bf75a8c22da664746032113419da95d4a37a3be18471fab009d94601d9295d890
+  languageName: node
+  linkType: hard
+
+"@tanstack/query-core@npm:5.104.2":
+  version: 5.104.2
+  resolution: "@tanstack/query-core@npm:5.104.2"
+  checksum: 10/52475453c5361d538ee48c64c21dd3d2ce10f1071e705857e8985b83970b7afc4be514a234c4ebebb63e1b7a5f2a86cd4927d19547d730e6b3c26c76166af583
+  languageName: node
+  linkType: hard
+
+"@tanstack/react-query@npm:^5.101.0":
+  version: 5.104.2
+  resolution: "@tanstack/react-query@npm:5.104.2"
+  dependencies:
+    "@tanstack/query-core": "npm:5.104.2"
+  peerDependencies:
+    react: ^18 || ^19
+  checksum: 10/664a72b9047af976cdde495084ed8134c74bdc4e491abd2afd49275c40c160e0d5cc2eb23ccfe1ecadea82e9c7b46e945b701508233a31d6fd149b2282af2f2e
   languageName: node
   linkType: hard
 
@@ -1493,7 +1718,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react-dom@npm:^19.3.0":
+"@types/react-dom@npm:^19.2.3, @types/react-dom@npm:^19.3.0":
   version: 19.3.0
   resolution: "@types/react-dom@npm:19.3.0"
   peerDependencies:
@@ -1502,7 +1727,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react@npm:^19.3.0":
+"@types/react@npm:^19.2.17, @types/react@npm:^19.3.0":
   version: 19.3.0
   resolution: "@types/react@npm:19.3.0"
   dependencies:
@@ -1821,7 +2046,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@vitejs/plugin-react@npm:^6.1.2":
+"@vitejs/plugin-react@npm:^6.0.4, @vitejs/plugin-react@npm:^6.1.2":
   version: 6.1.2
   resolution: "@vitejs/plugin-react@npm:6.1.2"
   dependencies:
@@ -1862,10 +2087,37 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@vitest/mocker@npm:5.0.4":
+  version: 5.0.4
+  resolution: "@vitest/mocker@npm:5.0.4"
+  dependencies:
+    "@jridgewell/trace-mapping": "npm:0.3.31"
+    "@vitest/spy": "npm:5.0.4"
+    estree-walker: "npm:^3.0.3"
+    magic-string: "npm:^1.4.3"
+  peerDependencies:
+    msw: ^2.4.9 || ^3.0.0
+    vite: ^6.0.0 || ^7.0.0 || ^8.0.0
+  peerDependenciesMeta:
+    msw:
+      optional: true
+    vite:
+      optional: true
+  checksum: 10/1662524351b8091edfa9f2e81c668c9217e0c4e03a2fcf6d0aef92c4e655ae038514133ee41c87cd1ce8b0dcaa3d743b8bac87c3b20b30caf57ffb0fc86adde8
+  languageName: node
+  linkType: hard
+
 "@vitest/spy@npm:5.0.3":
   version: 5.0.3
   resolution: "@vitest/spy@npm:5.0.3"
   checksum: 10/df07c7648f43225656d1856a10459254c3e0fe5e788b7f80cd49de4a1d9ed87dfc7c29fb328fba6df6a0d3d74f76a3ee41ef27710409fba233d9310b854c9cb4
+  languageName: node
+  linkType: hard
+
+"@vitest/spy@npm:5.0.4":
+  version: 5.0.4
+  resolution: "@vitest/spy@npm:5.0.4"
+  checksum: 10/4542798541e7419f1593d10e013cc7aee369628566cb695bde7ae053da8ec030e39c143e2f4d9da682da9cda640a725ec3a256a1636538a7b83c64d31cae791f
   languageName: node
   linkType: hard
 
@@ -1906,7 +2158,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"chai@npm:^6.2.2":
+"chai@npm:^6.2.2, chai@npm:^6.3.0":
   version: 6.3.0
   resolution: "chai@npm:6.3.0"
   checksum: 10/8798b98c6df6ad8d880239e8d6a2de8a1472c4dd19430e712bd1d846433679be8217427a2ceb9344af2db108a99030a6eaee689aa19baed7f917fa90354a50fa
@@ -2644,7 +2896,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"magic-string@npm:^1.2.3":
+"magic-string@npm:^1.2.3, magic-string@npm:^1.4.3":
   version: 1.4.3
   resolution: "magic-string@npm:1.4.3"
   dependencies:
@@ -2732,7 +2984,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nuqs@npm:^2.10.2":
+"nuqs@npm:^2.10.2, nuqs@npm:^2.8.9":
   version: 2.10.2
   resolution: "nuqs@npm:2.10.2"
   dependencies:
@@ -2766,6 +3018,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"obug@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "obug@npm:3.0.0"
+  checksum: 10/34da05e0d4d517401bbeb99909b63a944b877b4c7736af84f49cd17fc9b50b2d04bffd85de5a1d183c8c55151b644464b58fb680da35acc67e569babf7f2a796
+  languageName: node
+  linkType: hard
+
 "picocolors@npm:^1.1.1":
   version: 1.1.1
   resolution: "picocolors@npm:1.1.1"
@@ -2795,6 +3054,25 @@ __metadata:
   version: 7.0.0
   resolution: "proc-log@npm:7.0.0"
   checksum: 10/97cd9f4a8a0d84e42ee91e106e5ba5edcb954521e8dbe26ee6ad31396e5c12cc2be5e5b6be7b53fa5a69959afbacd32719106e2d6f45802e34b31d9a3a01ec20
+  languageName: node
+  linkType: hard
+
+"react-aria-components@npm:^1.18.0":
+  version: 1.22.1
+  resolution: "react-aria-components@npm:1.22.1"
+  dependencies:
+    "@internationalized/date": "npm:^3.12.4"
+    "@internationalized/string": "npm:^3.2.10"
+    "@react-types/shared": "npm:^3.37.0"
+    "@swc/helpers": "npm:^0.5.0"
+    client-only: "npm:^0.0.1"
+    react-aria: "npm:3.53.1"
+    react-stately: "npm:3.51.0"
+    use-sync-external-store: "npm:^1.6.0"
+  peerDependencies:
+    react: ^16.8.0 || ^17.0.0-rc.1 || ^18.0.0 || ^19.0.0-rc.1
+    react-dom: ^16.8.0 || ^17.0.0-rc.1 || ^18.0.0 || ^19.0.0-rc.1
+  checksum: 10/8ce60fbbf22ffe829ba52c52cbf0f934502144b02a01748852db66131257f4d571bd8e3e45e889cca8b2d1b974317cffdf9dc0a86c8131757dd4e53fa3419c25
   languageName: node
   linkType: hard
 
@@ -2837,7 +3115,27 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-dom@npm:^19.3.0":
+"react-aria@npm:3.53.1, react-aria@npm:^3.49.0":
+  version: 3.53.1
+  resolution: "react-aria@npm:3.53.1"
+  dependencies:
+    "@internationalized/date": "npm:^3.12.4"
+    "@internationalized/number": "npm:^3.6.9"
+    "@internationalized/string": "npm:^3.2.10"
+    "@react-types/shared": "npm:^3.37.0"
+    "@swc/helpers": "npm:^0.5.0"
+    aria-hidden: "npm:^1.2.3"
+    clsx: "npm:^2.0.0"
+    react-stately: "npm:3.51.0"
+    use-sync-external-store: "npm:^1.6.0"
+  peerDependencies:
+    react: ^16.8.0 || ^17.0.0-rc.1 || ^18.0.0 || ^19.0.0-rc.1
+    react-dom: ^16.8.0 || ^17.0.0-rc.1 || ^18.0.0 || ^19.0.0-rc.1
+  checksum: 10/90720299dc55e60b5b39a5473fd3bb7409a168325362eb9f2639028aae8a5a5316942cc72a10dac177fd44e17a9f968d789ed9dde780685f35dafb5ff7fa6998
+  languageName: node
+  linkType: hard
+
+"react-dom@npm:^19.2.7, react-dom@npm:^19.3.0":
   version: 19.3.0
   resolution: "react-dom@npm:19.3.0"
   dependencies:
@@ -2848,7 +3146,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-stately@npm:3.51.0, react-stately@npm:^3.46.0, react-stately@npm:^3.51.0":
+"react-stately@npm:3.51.0, react-stately@npm:^3.46.0, react-stately@npm:^3.47.0, react-stately@npm:^3.51.0":
   version: 3.51.0
   resolution: "react-stately@npm:3.51.0"
   dependencies:
@@ -2864,7 +3162,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react@npm:^19.3.0":
+"react@npm:^19.2.7, react@npm:^19.3.0":
   version: 19.3.0
   resolution: "react@npm:19.3.0"
   checksum: 10/e98669f09750c41abb1bf020af67cc847e018c91a8c5413d3f40ddd737e3daef6e419bcd1521b113fda73fd667ae82d5f0e9d9e3ff462faeb82059c09e7f04b1
@@ -2898,7 +3196,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"remeda@npm:^2.51.0":
+"remeda@npm:^2.39.0, remeda@npm:^2.51.0":
   version: 2.51.0
   resolution: "remeda@npm:2.51.0"
   checksum: 10/1f3c94189d21f446eabd98c34beb4f5b199f15be8c84888bc49fb79636eb511d575f856d4b62cc1f9f542a355bf9819f6767e13d5575e31ac8c5241b5c7dbd80
@@ -2995,7 +3293,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"sass@npm:^1.105.1":
+"sass@npm:^1.101.0, sass@npm:^1.105.1":
   version: 1.105.1
   resolution: "sass@npm:1.105.1"
   dependencies:
@@ -3042,7 +3340,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"std-env@npm:^4.2.0":
+"std-env@npm:^4.2.0, std-env@npm:^4.3.0":
   version: 4.3.0
   resolution: "std-env@npm:4.3.0"
   checksum: 10/1a44e665e05aafab70880b253d7c3ee96611e375dec317e8af2392305e68809decd399a78fd2480c687705e29836137dac49f4df19ce0470d50dd48aabd54d26
@@ -3069,7 +3367,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tinyexec@npm:^1.3.0":
+"tinybench@npm:^6.2.2":
+  version: 6.2.2
+  resolution: "tinybench@npm:6.2.2"
+  checksum: 10/66fc85c584761dba305f01781f3e579fe35a0067139c14e66d52eb7eaad5626e1e78eb3f2c5f8ece857b181dc0e1ec22f7e967ad49997b3818c8f53643d99b0a
+  languageName: node
+  linkType: hard
+
+"tinyexec@npm:^1.3.0, tinyexec@npm:^1.3.1":
   version: 1.3.1
   resolution: "tinyexec@npm:1.3.1"
   checksum: 10/9c7a8ce2633f76c776d9ff663531c7b34d605f41909c2f97a27397e8c12bcaf721dae7680b6683232ffe7a6d465090be9926d5ffd00b5d7be9336a43b45289b1
@@ -3267,6 +3572,35 @@ __metadata:
   languageName: node
   linkType: hard
 
+"vite-plugin-css-injected-by-js@npm:^3.5.2":
+  version: 3.5.2
+  resolution: "vite-plugin-css-injected-by-js@npm:3.5.2"
+  peerDependencies:
+    vite: ">2.0.0-0"
+  checksum: 10/be1ca1c71c31042dbca49d78ed58c88d3ffbbcf84024120f72d1daeebd489ad0ec4a0f1179adfeb196052d52b09226bff7d0979e0ef0be3e87e47b15eb728270
+  languageName: node
+  linkType: hard
+
+"vite-plugin-css-position@npm:^2.0.9":
+  version: 2.0.9
+  resolution: "vite-plugin-css-position@npm:2.0.9"
+  dependencies:
+    vite-plugin-css-injected-by-js: "npm:^3.5.2"
+  peerDependencies:
+    react: ^19.0.0
+    react-dom: ^19.0.0
+    vue: ^3.5.22
+  peerDependenciesMeta:
+    react:
+      optional: true
+    react-dom:
+      optional: true
+    vue:
+      optional: true
+  checksum: 10/83c27cfd88a8664ea415033fc86c46d6f2765e6443c6d12246a1a54e82141eb4f6faaac389ce267ddf96ec802eca6fcae2e98209ae9105d5a3fe29493dd10755
+  languageName: node
+  linkType: hard
+
 "vite-plugin-css-position@npm:^3.0.1":
   version: 3.0.1
   resolution: "vite-plugin-css-position@npm:3.0.1"
@@ -3286,7 +3620,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vite@npm:^8.3.4":
+"vite@npm:^8.1.5, vite@npm:^8.3.4":
   version: 8.3.4
   resolution: "vite@npm:8.3.4"
   dependencies:
@@ -3340,6 +3674,67 @@ __metadata:
   bin:
     vite: bin/vite.js
   checksum: 10/b1f7cbae6aae9ce8851c5ac86fde04b2193379d33eca99da653d4a4cff61705381a954bacc5a985aacad65ee72e783b19c12a2eca95ef3c97aeb91f147f371de
+  languageName: node
+  linkType: hard
+
+"vitest@npm:^5.0.0":
+  version: 5.0.4
+  resolution: "vitest@npm:5.0.4"
+  dependencies:
+    "@types/chai": "npm:^5.2.2"
+    "@vitest/mocker": "npm:5.0.4"
+    chai: "npm:^6.3.0"
+    es-module-lexer: "npm:^2.3.2"
+    expect-type: "npm:^1.4.0"
+    magic-string: "npm:^1.4.3"
+    obug: "npm:^3.0.0"
+    picomatch: "npm:^4.0.7"
+    std-env: "npm:^4.3.0"
+    tinybench: "npm:^6.2.2"
+    tinyexec: "npm:^1.3.1"
+    tinyglobby: "npm:^0.2.17"
+    why-is-node-running: "npm:3.2.1"
+  peerDependencies:
+    "@edge-runtime/vm": "*"
+    "@opentelemetry/api": ^1.9.0
+    "@types/node": ^22.0.0 || >=24.0.0
+    "@vitest/browser-playwright": 5.0.4
+    "@vitest/browser-preview": 5.0.4
+    "@vitest/browser-webdriverio": ^5.0.0-beta.5 || >=5.0.0
+    "@vitest/coverage-istanbul": 5.0.4
+    "@vitest/coverage-v8": 5.0.4
+    "@vitest/ui": 5.0.4
+    happy-dom: "*"
+    jsdom: "*"
+    vite: ^6.4.0 || ^7.0.0 || ^8.0.0
+  peerDependenciesMeta:
+    "@edge-runtime/vm":
+      optional: true
+    "@opentelemetry/api":
+      optional: true
+    "@types/node":
+      optional: true
+    "@vitest/browser-playwright":
+      optional: true
+    "@vitest/browser-preview":
+      optional: true
+    "@vitest/browser-webdriverio":
+      optional: true
+    "@vitest/coverage-istanbul":
+      optional: true
+    "@vitest/coverage-v8":
+      optional: true
+    "@vitest/ui":
+      optional: true
+    happy-dom:
+      optional: true
+    jsdom:
+      optional: true
+    vite:
+      optional: false
+  bin:
+    vitest: ./vitest.mjs
+  checksum: 10/6fc8171d7f00519b03583d4d5901999d5462653d03610db13a454824464edb6f2a94f7139f06e872aa1a7e11bf095ef5f9bdda0c59a6787f7aea68592617a0f9
   languageName: node
   linkType: hard
 
