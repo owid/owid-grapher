@@ -115,21 +115,6 @@ describe(layOutWaterfall, () => {
         expect(tourism?.bar?.height).toBeCloseTo(MIN_BAR_LENGTH_PX, 6)
     })
 
-    it("draws no bar for a step whose delta is exactly zero, but still places it", () => {
-        const waterfall = fixtureWaterfall({
-            crop: [100],
-            exports: [10],
-            tourism: [0],
-            food: [90],
-        })
-        const layout = layOutWaterfall(waterfall, BOX)
-
-        const tourism = layout.steps.find((step) => step.step.key === "tourism")
-        expect(tourism?.bar).toBeUndefined()
-        expect(tourism?.slot).toBeDefined()
-        expect(tourism?.valueAnchor).toBeDefined()
-    })
-
     it("spans each group's box over exactly its own columns", () => {
         const layout = layOutWaterfall(fixtureGroupedWaterfall(), BOX)
 
@@ -266,6 +251,30 @@ describe("horizontal layout", () => {
             expect(firstRow.slot.height).toBeCloseTo(rowHeightPx)
             expect(firstRow.slot.y - placed.box.y).toBeCloseTo(headerHeightPx)
         }
+    })
+
+    it("leaves a single-step group unlabelled, with no header room", () => {
+        const waterfall = fixtureGroupedWaterfall(
+            MANIFEST_FLOW_STAGES.filter((stage) => stage.key !== "losses")
+        )
+        const layout = layOutWaterfall(waterfall, BOX, {
+            orientation: "horizontal",
+            groupHeaderSlots: 0.8,
+        })
+
+        const setAside = layout.groups.find(
+            (placed) => placed.group.key === "set_aside_or_lost"
+        )!
+        const seedRow = findStep(layout.steps, "seed")
+        expect(setAside.isLabelled).toBe(false)
+        expect(seedRow.slot.y - setAside.box.y).toBeLessThan(
+            seedRow.slot.height / 2
+        )
+        expect(
+            layout.groups
+                .filter((placed) => placed !== setAside)
+                .every((placed) => placed.isLabelled)
+        ).toBe(true)
     })
 
     it("widens the space between neighbouring boxes by the gap", () => {

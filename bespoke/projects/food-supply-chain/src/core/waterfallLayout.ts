@@ -22,7 +22,7 @@ export type WaterfallOrientation = "vertical" | "horizontal"
 
 export interface WaterfallLayoutOptions {
     orientation?: WaterfallOrientation
-    /** Room before each group's first slot, in slots */
+    /** Room before each labelled group's first slot, in slots */
     groupHeaderSlots?: number
     /** Extra room before each group's box and the total's, in slots */
     boxGapSlots?: number
@@ -85,6 +85,8 @@ export interface PlacedTick {
 
 export interface PlacedGroup {
     group: StageGroup
+    /** See isGroupLabelled */
+    isLabelled: boolean
     /** The group's columns, over the plot's whole value range */
     box: PlacedRect
 }
@@ -100,6 +102,11 @@ export interface WaterfallLayout {
     groups: PlacedGroup[]
     /** The total's column, over the plot's whole value range */
     totalBox: PlacedRect
+}
+
+/** Whether a group with this many steps gets a label, and the header room for one */
+export function isGroupLabelled(stepCount: number): boolean {
+    return stepCount > 1
 }
 
 /** The pixels one step's column gets */
@@ -210,6 +217,7 @@ interface PlannedTick {
 
 interface PlannedGroup {
     group: StageGroup
+    isLabelled: boolean
     box: Extent
 }
 
@@ -262,14 +270,15 @@ function planWaterfall(
             gridline: { value: { from: value, to: value }, step: stepDomain },
         })),
         zeroLine: { value: { from: 0, to: 0 }, step: stepDomain },
-        groups: groupRanges.map(({ group, first, last }) => ({
+        groups: groupRanges.map(({ group, first, last, isLabelled }) => ({
             group,
+            isLabelled,
             box: {
                 value: valueDomain,
                 step: {
                     from:
                         barSpan(slots[first]).from -
-                        groupHeaderSlots -
+                        (isLabelled ? groupHeaderSlots : 0) -
                         GROUP_BOX_OVERHANG_RATIO,
                     to: barSpan(slots[last]).to + GROUP_BOX_OVERHANG_RATIO,
                 },
@@ -296,20 +305,26 @@ interface GroupRange {
     group: StageGroup
     first: number
     last: number
+    isLabelled: boolean
 }
 
-/** Each step's slot and the total's, with the gap and header room before each group's first slot */
+/** Each step's slot and the total's, with the gap before each group's first slot and the header room before each labelled one's */
 function planStepAxis(
     steps: WaterfallStep[],
     groupHeaderSlots: number,
     boxGapSlots: number
 ): { slots: Span[]; totalSlot: Span; groupRanges: GroupRange[] } {
     const groupRanges = findGroupRanges(steps)
-    const groupStarts = new Set(groupRanges.map((range) => range.first))
+    const groupRangeByStart = new Map(
+        groupRanges.map((range) => [range.first, range])
+    )
 
     let cursor = 0
     const slots = steps.map((_, index) => {
-        if (groupStarts.has(index)) cursor += boxGapSlots + groupHeaderSlots
+        const groupRange = groupRangeByStart.get(index)
+        if (groupRange)
+            cursor +=
+                boxGapSlots + (groupRange.isLabelled ? groupHeaderSlots : 0)
         const slot = { from: cursor, to: cursor + 1 }
         cursor += 1
         return slot
@@ -338,6 +353,7 @@ function findGroupRanges(steps: WaterfallStep[]): GroupRange[] {
                 group,
                 first: Math.min(...slotIndices),
                 last: Math.max(...slotIndices),
+                isLabelled: isGroupLabelled(slotIndices.length),
             },
         ]
     })
@@ -579,6 +595,7 @@ function projectPlan(
         ),
         groups: plan.groups.map((planned) => ({
             group: planned.group,
+            isLabelled: planned.isLabelled,
             box: toRect(projection.toSegment(scaleExtent(planned.box, scales))),
         })),
     }

@@ -9,6 +9,12 @@ export const SHORT_UNIT_BY_MEASURE: Record<Measure, string> = {
     protein: "g",
 }
 
+/** Whether a value label short of room may put its unit on a line of its own */
+export const IS_UNIT_WRAPPABLE_BY_MEASURE: Record<Measure, boolean> = {
+    energy: true,
+    protein: false,
+}
+
 /** Keys as the manifest spells them; the set is not known at compile time */
 export type StageKey = string
 

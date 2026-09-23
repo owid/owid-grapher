@@ -45,7 +45,11 @@ import {
     Measure,
 } from "../core/types.js"
 import { buildSubtitle, buildTitle } from "../core/title.js"
-import { buildWaterfall, Waterfall } from "../core/waterfall.js"
+import {
+    buildWaterfall,
+    findExcludedStageKeys,
+    Waterfall,
+} from "../core/waterfall.js"
 
 // The World region: a stable OWID region slug, unlike entity ids.
 const DEFAULT_ENTITY_SLUG = "world"
@@ -149,7 +153,13 @@ function FetchingWaterfallVariant({
         return <ChartError className="food-supply-chain-chart-box" />
 
     const year = clampYear(entityData.years, selectedYear) ?? selectedYear
-    const waterfall = buildWaterfall({ manifest, entityData, measure, year })
+    const waterfall = buildWaterfall({
+        manifest,
+        entityData,
+        measure,
+        year,
+        excludedStageKeys: findExcludedStageKeys(entity.slug),
+    })
 
     return (
         <CaptionedWaterfallVariant
