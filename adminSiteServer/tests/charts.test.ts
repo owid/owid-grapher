@@ -91,6 +91,18 @@ describe("Charts API", { timeout: 15000 }, () => {
         expect(await env.getCount(ChartsTableName)).toBe(0)
         expect(await env.getCount(ChartConfigsTableName)).toBe(0)
     })
+
+    it("rejects a chart config with an unknown key", async () => {
+        const response = await env.request({
+            method: "POST",
+            path: "/charts",
+            body: JSON.stringify({ ...testChartConfig, hideLegend: true }),
+        })
+        expect(response.success).toBe(false)
+        expect(response.error.message).toContain("/hideLegend")
+        expect(await env.getCount(ChartsTableName)).toBe(0)
+        expect(await env.getCount(ChartConfigsTableName)).toBe(0)
+    })
 })
 
 describe("Indicator-level chart configs", { timeout: 15000 }, () => {
@@ -664,8 +676,9 @@ describe("Indicator-level chart configs", { timeout: 15000 }, () => {
             method: "PUT",
             path: `/variables/${variableId}/grapherConfigETL`,
             body: JSON.stringify(invalidConfig),
+            expectStatus: 400,
         })
-        expect(response.success).toBe(false)
+        expect(response.error.message).toContain("/$schema")
     })
 
     it("should return an error if the schema is invalid", async () => {
@@ -677,8 +690,22 @@ describe("Indicator-level chart configs", { timeout: 15000 }, () => {
             method: "PUT",
             path: `/variables/${variableId}/grapherConfigETL`,
             body: JSON.stringify(invalidConfig),
+            expectStatus: 400,
         })
-        expect(response.success).toBe(false)
+        expect(response.error.message).toContain("/$schema")
+    })
+
+    it("rejects an indicator ETL config with an unknown key", async () => {
+        const response = await env.request({
+            method: "PUT",
+            path: `/variables/${variableId}/grapherConfigETL`,
+            body: JSON.stringify({
+                $schema: latestGrapherConfigSchema,
+                hideLegend: true,
+            }),
+            expectStatus: 400,
+        })
+        expect(response.error.message).toContain("/hideLegend")
     })
 })
 
@@ -1233,13 +1260,34 @@ describe("Chart-level ETL configs", { timeout: 15000 }, () => {
 
         const putResponse = await env.request({
             method: "PUT",
-            path: `${await etlConfigPath(chartId)}`,
+            path: await etlConfigPath(chartId),
             body: JSON.stringify({
                 // no $schema
                 title: "T",
             }),
+            expectStatus: 400,
         })
-        expect(putResponse.success).toBe(false)
+        expect(putResponse.error.message).toContain("/$schema")
+    })
+
+    it("rejects a chart-level etlConfig with an unknown key", async () => {
+        const response = await env.request({
+            method: "POST",
+            path: "/charts",
+            body: JSON.stringify(testChartConfig),
+        })
+        const chartId = response.chartId
+
+        const putResponse = await env.request({
+            method: "PUT",
+            path: await etlConfigPath(chartId),
+            body: JSON.stringify({
+                $schema: latestGrapherConfigSchema,
+                hideLegend: true,
+            }),
+            expectStatus: 400,
+        })
+        expect(putResponse.error.message).toContain("/hideLegend")
     })
 })
 

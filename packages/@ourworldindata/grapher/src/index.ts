@@ -125,11 +125,12 @@ export {
     type SlideShowManager,
     SlideShowController,
 } from "./slideshowController/SlideShowController"
-export { defaultGrapherConfig } from "./schema/defaultGrapherConfig"
 export {
-    migrateGrapherConfigToLatestVersion,
-    migrateGrapherConfigToLatestVersionAndFailOnError,
-} from "./schema/migrations/migrate"
+    defaultGrapherConfig,
+    latestSchemaVersion,
+} from "./schema/defaultGrapherConfig"
+export { migrateGrapherConfigToLatestVersion } from "./schema/migrations/migrate"
+export { getSchemaVersion, type AnyConfig } from "./schema/migrations/helpers"
 export { generateGrapherImageSrcSet } from "./chart/ChartUtils"
 export {
     useMaybeGlobalGrapherStateRef,

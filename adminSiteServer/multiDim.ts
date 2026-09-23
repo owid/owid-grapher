@@ -25,8 +25,13 @@ import { mergeGrapherConfigs, dimensionsToViewId } from "@ourworldindata/utils"
 import * as db from "../db/db.js"
 import {
     buildMdimViewPatchConfig,
+    getMdimViewConfigWithSchema,
     upsertMultiDimDataPage,
 } from "../db/model/MultiDimDataPage.js"
+import {
+    assertValidGrapherConfig,
+    ingestGrapherConfig,
+} from "../db/grapherConfigValidation.js"
 import { upsertMultiDimXChartConfigs } from "../db/model/MultiDimXChartConfigs.js"
 import {
     getIndicatorChartConfigs,
@@ -238,7 +243,7 @@ export async function upsertMultiDim(
         knex,
         rawConfig
     )
-    validateViewConfigSchemas(config)
+    validateViewConfigs(config)
     const indicatorConfigs = await getIndicatorChartConfigs(
         knex,
         _.uniq(config.views.map((view) => view.indicators.y[0].id))
@@ -258,18 +263,25 @@ export async function upsertMultiDim(
     )
     const reusedChartConfigIds = new Set<string>()
 
+    const preparedViews = config.views.map((view) => {
+        const variableId = view.indicators.y[0].id
+        const patchGrapherConfig = buildMdimViewPatchConfig(
+            config,
+            view,
+            existingIsPublished
+        )
+        const fullGrapherConfig = mergeGrapherConfigs(
+            indicatorConfigs.get(variableId) ?? {},
+            patchGrapherConfig
+        )
+
+        assertValidGrapherConfig(fullGrapherConfig)
+
+        return { view, fullGrapherConfig }
+    })
+
     const enrichedViews = await Promise.all(
-        config.views.map(async (view) => {
-            const variableId = view.indicators.y[0].id
-            const patchGrapherConfig = buildMdimViewPatchConfig(
-                config,
-                view,
-                existingIsPublished
-            )
-            const fullGrapherConfig = mergeGrapherConfigs(
-                indicatorConfigs.get(variableId) ?? {},
-                patchGrapherConfig
-            )
+        preparedViews.map(async ({ view, fullGrapherConfig }) => {
             const existingChartConfigId = existingViewIdsToChartConfigIds.get(
                 dimensionsToViewId(view.dimensions)
             )
@@ -322,23 +334,12 @@ export async function upsertMultiDim(
     return multiDimId
 }
 
-/** Throws if any view config does not declare a schema version */
-function validateViewConfigSchemas(
-    config: MultiDimDataPageConfigPreProcessed
-): void {
-    if (config.grapherConfigSchema) return
-    const viewIds = config.views
-        .filter((view) => view.config && !view.config.$schema)
-        .map((view) => dimensionsToViewId(view.dimensions))
-    if (viewIds.length === 0) return
-
-    // Pages can have thousands of views, so only name the first few
-    const sample = viewIds.slice(0, 5).join(", ")
-    const more = viewIds.length > 5 ? `, and ${viewIds.length - 5} more` : ""
-    throw new JsonError(
-        `${viewIds.length} view config(s) declare no schema version (${sample}${more}). ` +
-            `Set $schema on each view config, or grapherConfigSchema on the multi-dim config.`
-    )
+/** Throws if any view config declares no schema version or fails validation */
+function validateViewConfigs(config: MultiDimDataPageConfigPreProcessed): void {
+    for (const view of config.views) {
+        const viewConfig = getMdimViewConfigWithSchema(config, view)
+        if (viewConfig) ingestGrapherConfig(viewConfig)
+    }
 }
 
 async function getViewChartConfigs(
