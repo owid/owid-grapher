@@ -14,6 +14,7 @@ import { enrichedBlocksToPmDoc } from "../../adminShared/richEditor/serializatio
 import { Collaboration } from "@tiptap/extension-collaboration"
 import { CollaborationCaret } from "@tiptap/extension-collaboration-caret"
 import { SlashCommands } from "./SlashCommands.js"
+import { PaletteDrop } from "./paletteDrop.js"
 import { CommentMark } from "./comments.js"
 import { BlockIdAssignment, ensureBlockIds } from "./blockIdentity.js"
 import type { RichEditorCollaboration } from "./collaboration.js"
@@ -172,6 +173,11 @@ export function RichEditor(props: {
     collaboration?: RichEditorCollaboration | null
     onCreate?: (editor: Editor) => void
     onSelectionChange?: (editor: Editor) => void
+    /**
+     * A block item from the insert palette was dropped on the canvas: the
+     * item's key and the block boundary to insert it at.
+     */
+    onPaletteDrop?: (itemKey: string, pos: number) => void
 }): React.ReactElement {
     const {
         initialBody,
@@ -182,6 +188,7 @@ export function RichEditor(props: {
         collaboration,
         onCreate,
         onSelectionChange,
+        onPaletteDrop,
     } = props
 
     // Set when a slash-menu "Image" command is waiting for the user to pick
@@ -196,6 +203,8 @@ export function RichEditor(props: {
     onCreateRef.current = onCreate
     const onSelectionChangeRef = useRef(onSelectionChange)
     onSelectionChangeRef.current = onSelectionChange
+    const onPaletteDropRef = useRef(onPaletteDrop)
+    onPaletteDropRef.current = onPaletteDrop
     if (requestImageRef) {
         requestImageRef.current = (insert) =>
             setPendingImageInsert(() => insert)
@@ -240,6 +249,10 @@ export function RichEditor(props: {
             SlashCommands.configure({
                 onRequestImage: (insert) => setPendingImageInsert(() => insert),
                 docType,
+            }),
+            PaletteDrop.configure({
+                onDrop: (itemKey, pos) =>
+                    onPaletteDropRef.current?.(itemKey, pos),
             }),
         ]
         // the editor schema is fixed after mount

@@ -513,3 +513,22 @@ export function placeCursorBelowSelectedBlock(editor: Editor): boolean {
         .setTextSelection(pos + 1)
         .run()
 }
+
+/**
+ * Insert an empty paragraph at the given block boundary (e.g. the position a
+ * palette item was dropped at) and put the cursor inside it, so a subsequent
+ * insert command lands there. Same mechanics as the selection-relative
+ * helpers above.
+ */
+export function placeCursorAtBlockBoundary(
+    editor: Editor,
+    pos: number
+): boolean {
+    const clamped = Math.max(0, Math.min(pos, editor.state.doc.content.size))
+    return editor
+        .chain()
+        .focus()
+        .insertContentAt(clamped, { type: pmNodeNames.paragraph })
+        .setTextSelection(clamped + 1)
+        .run()
+}

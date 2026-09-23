@@ -11,6 +11,7 @@ import {
     PostGdocCommentThreadStatus,
     PostGdocRevisionKind,
 } from "@ourworldindata/types"
+import type { OwidGdocPageData, ProfileEntity } from "@ourworldindata/utils"
 
 // Request/response types for the rich editor API, shared between
 // adminSiteServer and adminSiteClient.
@@ -238,3 +239,30 @@ export type RichEditorSelectionRef =
           /** the selected text at capture time, for prompts and orphan UI */
           excerpt: string
       }
+
+// ── Preview (render the draft through the site components) ────────────────
+
+export interface RichEditorPreviewRequest {
+    /**
+     * The body as the editor currently has it (it may be ahead of the
+     * persisted draft head); the remaining content fields come from the
+     * draft. Omit to preview the draft head as stored.
+     */
+    body?: OwidEnrichedGdocBlock[]
+    /** Profiles: the entity to instantiate the template for (default: first in scope) */
+    entity?: string
+}
+
+export interface RichEditorPreviewResponse {
+    /**
+     * The same payload the site page embeds as `_OWID_GDOC_PROPS`: content
+     * plus every attachment the site components read from
+     * AttachmentsContext, with dates serialized as strings.
+     */
+    gdoc: OwidGdocPageData
+    /** Validation messages the gdoc pipeline produced for this content */
+    errors: OwidGdocErrorMessage[]
+    /** Profiles: the entities in scope, and the one this preview shows */
+    profileEntities?: ProfileEntity[]
+    profileEntity?: ProfileEntity
+}

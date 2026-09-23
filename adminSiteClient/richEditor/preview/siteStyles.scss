@@ -1,0 +1,5 @@
+// The site's stylesheet, for rendering the site components inside the
+// admin. Scoped to `.rich-editor-preview` at build time by pluginScopedCss
+// (see vite.config-common.mts): every selector is prefixed with that class,
+// and the site's html/body rules apply to the container instead.
+@import "../../../site/owid.scss";
