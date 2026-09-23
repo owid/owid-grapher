@@ -2,13 +2,14 @@ import { OwidDistinctColors } from "@ourworldindata/grapher/src/color/CustomSche
 import {
     GRAY_5,
     GRAY_20,
-    GRAY_50,
     GRAY_60,
+    GRAPHER_BACKGROUND,
     GRAPHER_DARK_TEXT,
     GRAPHER_LIGHT_TEXT,
 } from "@ourworldindata/grapher/src/color/ColorConstants.js"
 
 export const COLORS = {
+    background: GRAPHER_BACKGROUND,
     /** A step that adds to the running balance */
     add: OwidDistinctColors.TealishGreen,
     /** A step that subtracts from it */
@@ -17,37 +18,48 @@ export const COLORS = {
     total: OwidDistinctColors.MidnightBlue,
     gridline: GRAY_20,
     zeroLine: GRAY_60,
-    connector: GRAY_50,
     tickLabel: GRAPHER_LIGHT_TEXT,
-    valueLabelInsideBar: "#fff",
-    caption: GRAPHER_LIGHT_TEXT,
+    arrow: "#fff",
+    caption: GRAPHER_DARK_TEXT,
     groupBox: GRAY_5,
-    groupLabelBox: GRAY_20,
     groupLabel: GRAPHER_DARK_TEXT,
+    totalBox: "#ebf0f7",
+    totalLabel: OwidDistinctColors.MidnightBlue,
 }
 
 export const TICK_LABEL_FONT_SIZE = 12
 export const VALUE_LABEL_FONT_SIZE = 12
-export const VALUE_LABEL_FONT_WEIGHT = 700
+export const VALUE_LABEL_FONT_WEIGHT = 400
 export const TOTAL_LABEL_FONT_SIZE = 14
+export const TOTAL_LABEL_FONT_WEIGHT = 600
 export const CAPTION_FONT_SIZE = 12
-export const GROUP_LABEL_FONT_SIZE = 11
-export const GROUP_LABEL_FONT_WEIGHT = 700
+export const CAPTION_FONT_WEIGHT = 400
+export const GROUP_LABEL_FONT_SIZE = 12
+export const GROUP_LABEL_FONT_WEIGHT = 400
+export const TOTAL_BOX_LABEL_FONT_WEIGHT = 600
 export const MAX_CAPTION_LINES = 3
+/** Minimum space between a column's value label and the next column's bar */
+export const MIN_LABEL_SPACING = 6
 
-/** Left margin, wide enough for the longest tick label the data produces */
-export const AXIS_LABEL_WIDTH = 56
-export const PLOT_MARGIN_TOP = 24
+/** Space between a tick label and the plot */
+export const TICK_LABEL_GAP = 8
 export const PLOT_MARGIN_RIGHT = 8
-export const CAPTION_GAP = 8
-export const TOTAL_LABEL_GAP = 8
-/** Minimum space between a label inside a bar and the bar's edges */
-export const VALUE_LABEL_INSET = 4
-/** Distance from a bar's far end to the base of its arrow */
-export const ARROW_GAP = 1
-export const ARROW_HEIGHT = 10
-export const ARROW_HALF_WIDTH = 8
-export const GROUP_LABEL_GAP = 16
-/** Inset between a group's label box and the label it encloses */
-export const GROUP_BOX_PADDING = 6
+export const PLOT_MARGIN_BOTTOM = 6
+export const CONNECTOR_WIDTH = 1
+/** Outline around step labels that masks the lines behind them */
+export const LABEL_HALO_WIDTH = 3
+/** Space between a bar and its value label */
+export const VALUE_LABEL_GAP = 8
+/** Space between a step's caption and the value label below it */
+export const CAPTION_VALUE_LABEL_GAP = 3
+/** Space between an arrow's ends and its bar's ends */
+export const ARROW_INSET = 4
+/** Shortest arrow drawn inside a bar */
+export const ARROW_MIN_LENGTH = 10
+export const ARROW_WIDTH = 1.5
+export const ARROW_OPACITY = 0.8
+/** Space between a group's label and the tallest caption below it */
+export const GROUP_LABEL_GAP = 8
+/** Inset between a group's box and the label in its corner */
+export const GROUP_LABEL_INSET = 10
 export const GROUP_BOX_CORNER_RADIUS = 2

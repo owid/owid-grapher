@@ -1,8 +1,8 @@
 import {
     EntityData,
+    FlowStage,
     FoodSupplyChainManifest,
     Measure,
-    MEASURES_WITH_UNIT_ON_STEPS,
     SHORT_UNIT_BY_MEASURE,
     StageKey,
 } from "./types.js"
@@ -10,6 +10,7 @@ import {
 export interface WaterfallStep {
     key: StageKey
     name: string
+    direction: FlowStage["direction"]
     delta: number
     balanceBefore: number
     balanceAfter: number
@@ -21,8 +22,11 @@ export interface Waterfall {
     domain: [number, number]
     year: number
     shortUnit: string
-    /** Absent when step labels show the bare number */
-    stepLabelUnit?: string
+}
+
+/** Whether a step adds to the running balance; a step of zero goes by its stage's direction */
+export function isAddition(step: WaterfallStep): boolean {
+    return step.delta === 0 ? step.direction === "in" : step.delta > 0
 }
 
 export function buildWaterfall({
@@ -50,6 +54,7 @@ export function buildWaterfall({
         return {
             key: stage.key,
             name: stage.name,
+            direction: stage.direction,
             delta,
             balanceBefore,
             balanceAfter: balance,
@@ -75,8 +80,5 @@ export function buildWaterfall({
         domain,
         year,
         shortUnit: SHORT_UNIT_BY_MEASURE[measure],
-        stepLabelUnit: MEASURES_WITH_UNIT_ON_STEPS.has(measure)
-            ? SHORT_UNIT_BY_MEASURE[measure]
-            : undefined,
     }
 }
