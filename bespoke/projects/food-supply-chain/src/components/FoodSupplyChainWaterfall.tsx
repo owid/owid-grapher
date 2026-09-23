@@ -145,21 +145,28 @@ export function FoodSupplyChainWaterfall({
         unit: waterfall.shortUnit,
     })
 
-    const clearanceAboveBars = Math.max(
-        ...waterfall.steps.map(
-            (step, index) =>
-                measureCaptionOffset() + captionTextWraps[index].height
-        ),
-        VALUE_LABEL_GAP + TOTAL_LABEL_FONT_SIZE
-    )
-
     const groupBoxTop = 0
     const groupLabelY = groupBoxTop + GROUP_LABEL_INSET
     const columnTop = groupLabelY + groupLabelHeight + GROUP_LABEL_GAP
-    const plotTop = columnTop + clearanceAboveBars
-    const bottomMargin = PLOT_MARGIN_BOTTOM
+    const plotBottom = height - PLOT_MARGIN_BOTTOM
+    const plotTop = placePlotTop({
+        columnTop,
+        plotBottom,
+        tickValues: chooseTickValues(waterfall.domain),
+        labelledBarTops: [
+            ...waterfall.steps.map((step, index) => ({
+                value: Math.max(step.balanceBefore, step.balanceAfter),
+                labelHeight:
+                    measureCaptionOffset() + captionTextWraps[index].height,
+            })),
+            {
+                value: Math.max(0, waterfall.total.value),
+                labelHeight: VALUE_LABEL_GAP + TOTAL_LABEL_FONT_SIZE,
+            },
+        ],
+    })
 
-    const boxHeight = height - plotTop - bottomMargin
+    const boxHeight = plotBottom - plotTop
     if (boxHeight <= 0) return null
 
     const box = {
@@ -551,6 +558,32 @@ function getValueLabelFontSize(isTotal: boolean): number {
 }
 
 /** Distance from the top of a step's bar to the bottom of its caption, with the value label in between */
+/** The highest the plot can start with every bar's labels still below `columnTop` */
+function placePlotTop({
+    columnTop,
+    plotBottom,
+    tickValues,
+    labelledBarTops,
+}: {
+    columnTop: number
+    plotBottom: number
+    tickValues: number[]
+    /** Where each bar ends at the top, and the height its labels take up above it */
+    labelledBarTops: { value: number; labelHeight: number }[]
+}): number {
+    const domainStart = tickValues[0]
+    const domainEnd = tickValues[tickValues.length - 1]
+    return Math.max(
+        columnTop,
+        ...labelledBarTops.map(({ value, labelHeight }) => {
+            // The bar top's distance below the plot's top, as a share of the plot's height
+            const depth = (domainEnd - value) / (domainEnd - domainStart)
+            if (depth >= 1) return columnTop
+            return (columnTop + labelHeight - depth * plotBottom) / (1 - depth)
+        })
+    )
+}
+
 function measureCaptionOffset(): number {
     return VALUE_LABEL_GAP + VALUE_LABEL_FONT_SIZE + CAPTION_VALUE_LABEL_GAP
 }
