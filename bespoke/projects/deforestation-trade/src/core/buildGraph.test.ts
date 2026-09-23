@@ -326,9 +326,6 @@ describe(buildCountryGraph, () => {
             "",
         ])
         expect(groupNodes[2].valueLabel).toBeUndefined()
-        expect(graph.unlabelledGroups).toEqual(["rice"])
-        // Without a threshold every group is labelled
-        expect(buildCountry(partnerRows([1])).unlabelledGroups).toEqual([])
     })
 
     it("orders the commodity column by total, largest first", () => {

@@ -143,12 +143,6 @@ interface SankeyProps {
      * highlights just the links touching the node.
      */
     getRelatedLinksForNode?: (args: NodeTooltipArgs) => SankeyLink[]
-    /**
-     * A node to highlight as if it were hovered, without a tooltip, e.g. when
-     * its entry in a legend outside the chart is hovered. A hover within the
-     * chart takes precedence.
-     */
-    highlightedNodeId?: string
 }
 
 export type NodeTooltipArgs = {
@@ -232,12 +226,9 @@ type LaidOutGraph = SankeyGraph<SankeyLayoutNode, SankeyLink>
 type LaidOutNode = D3SankeyNode<SankeyLayoutNode, SankeyLink>
 type LaidOutLink = D3SankeyLink<SankeyLayoutNode, SankeyLink>
 
-/** What the chart is focused on: the hovered or highlighted link or node */
-type FocusState =
-    | { kind: "link"; link: LaidOutLink }
-    | { kind: "node"; node: LaidOutNode }
-
-type HoverState = FocusState & { position: { x: number; y: number } }
+type HoverState =
+    | { kind: "link"; link: LaidOutLink; position: { x: number; y: number } }
+    | { kind: "node"; node: LaidOutNode; position: { x: number; y: number } }
 
 export function Sankey({
     nodes,
@@ -268,7 +259,6 @@ export function Sankey({
     isNodeClickable,
     onLinkClick,
     isLinkClickable,
-    highlightedNodeId,
 }: SankeyProps): React.ReactElement | null {
     const nodeWidth = bandWidth + bandFlowGap
 
@@ -439,14 +429,6 @@ export function Sankey({
             .exhaustive()
         return isCurrent ? rawHover : null
     }, [rawHover, layout])
-    // A hover within the chart wins over a highlight requested from outside
-    const focus = useMemo<FocusState | null>(() => {
-        if (hover) return hover
-        if (highlightedNodeId === undefined || !layout) return null
-        const node = layout.nodes.find((n) => n.id === highlightedNodeId)
-        return node ? { kind: "node", node } : null
-    }, [hover, highlightedNodeId, layout])
-
     const { ref: containerRef, isPinned } = usePinnedTooltip<HTMLDivElement>(
         hover !== null,
         dismissTooltip
@@ -542,9 +524,9 @@ export function Sankey({
      * with it, e.g. the continuation of a flow in the next column
      */
     const hoverRelatedLinks = useMemo<LaidOutLink[]>(() => {
-        if (!focus || !layout) return []
+        if (!hover || !layout) return []
 
-        const relatedData = match(focus)
+        const relatedData = match(hover)
             .with({ kind: "link" }, (h) =>
                 getRelatedLinks ? getRelatedLinks(toLinkData(h.link)) : []
             )
@@ -570,13 +552,13 @@ export function Sankey({
         return layout.links.filter((l) =>
             relatedKeys.has(makeLinkKey(toLinkData(l)))
         )
-    }, [focus, getRelatedLinks, getRelatedLinksForNode, layout])
+    }, [hover, getRelatedLinks, getRelatedLinksForNode, layout])
 
     const activeLinks = useMemo(() => {
-        if (!focus) return new Set<LaidOutLink>()
+        if (!hover) return new Set<LaidOutLink>()
 
         const set = new Set<LaidOutLink>()
-        match(focus)
+        match(hover)
             .with({ kind: "link" }, (hover) => {
                 // Highlight the hovered link and any related links
                 set.add(hover.link)
@@ -592,10 +574,10 @@ export function Sankey({
             .exhaustive()
 
         return set
-    }, [focus, hoverRelatedLinks])
+    }, [hover, hoverRelatedLinks])
 
     const activeNodeIds = useMemo(() => {
-        if (!focus) return new Set<string>()
+        if (!hover) return new Set<string>()
 
         const ids = new Set<string>()
 
@@ -606,10 +588,10 @@ export function Sankey({
         }
 
         // Highlight the hovered node itself
-        if (focus.kind === "node") ids.add(focus.node.id)
+        if (hover.kind === "node") ids.add(hover.node.id)
 
         return ids
-    }, [focus, activeLinks])
+    }, [hover, activeLinks])
 
     // Re-order links so that active links render last so they paint on top
     // of unfocused ribbons
@@ -630,8 +612,8 @@ export function Sankey({
 
     if (!layout) return null
 
-    const hoveredNodeId = focus?.kind === "node" ? focus.node.id : undefined
-    const hoveredLink = focus?.kind === "link" ? focus.link : undefined
+    const hoveredNodeId = hover?.kind === "node" ? hover.node.id : undefined
+    const hoveredLink = hover?.kind === "link" ? hover.link : undefined
     const linkBundles = bundleParallelLinks(
         linksInRenderOrder,
         (link) => link === hoveredLink || activeLinks.has(link)

@@ -85,9 +85,6 @@ export type SankeyGraph = {
     total: number
     /** Partners folded into the "Other" node on each side, largest first; empty when there is none */
     otherBreakdown: { left: EntityTotal[]; right: EntityTotal[] }
-    /** Commodity groups too small for a label of their own (below
-     *  `minLabelledGroupShare` of the column), in column order, for a legend */
-    unlabelledGroups: string[]
 }
 
 type Limits = {
@@ -393,17 +390,14 @@ function buildThreeColumnGraph({
             headingSentence,
             total: 0,
             otherBreakdown: EMPTY_BREAKDOWN(),
-            unlabelledGroups: [],
         }
 
     const groupColumnTotal = R.sumBy(groupOrder, (g) => groupValues.get(g) ?? 0)
     // Groups too small for a readable label are left unlabelled in the chart
-    // and reported for a legend instead
     const isLabelled = (group: string): boolean =>
         groupColumnTotal > 0 &&
         (groupValues.get(group) ?? 0) / groupColumnTotal >=
             limits.minLabelledGroupShare
-    const unlabelledGroups = groupOrder.filter((g) => !isLabelled(g))
     const groupNodes: SankeyNode[] = groupOrder.map((group) =>
         isLabelled(group)
             ? {
@@ -475,7 +469,6 @@ function buildThreeColumnGraph({
         headingSentence,
         total,
         otherBreakdown: { left: leftSide.other, right: rightSide.other },
-        unlabelledGroups,
     }
 }
 
