@@ -45,7 +45,7 @@ import {
     layOutWaterfall,
     measureSlotWidth,
     PlacedBar,
-    PlacedConnector,
+    PlacedLine,
     PlacedRect,
     PlacedStep,
     totalBoxLength,
@@ -228,10 +228,24 @@ export function FoodSupplyChainWaterfall({
                 {layout.connectors.map((connector, index) => (
                     <Connector
                         key={index}
-                        connector={connector}
+                        line={connector.line}
+                        isAddition={connector.leftStep.delta > 0}
+                        color={
+                            connector.leftStep.delta > 0
+                                ? COLORS.add
+                                : COLORS.subtract
+                        }
                         isDimmed={hover !== undefined}
                     />
                 ))}
+                {layout.totalConnector && (
+                    <Connector
+                        line={layout.totalConnector}
+                        isAddition={waterfall.total.value > 0}
+                        color={COLORS.total}
+                        isDimmed={hover !== undefined}
+                    />
+                )}
                 {layout.steps.map((step, index) =>
                     step.step.delta === 0 ? null : (
                         <StepMarks
@@ -418,14 +432,17 @@ function StepMarks({
 
 /** A line from one bar to the next, shifted half its width onto the left bar's side of their shared edge */
 function Connector({
-    connector,
+    line,
+    isAddition,
+    color,
     isDimmed,
 }: {
-    connector: PlacedConnector
+    line: PlacedLine
+    /** Whether the bar it leaves adds to the balance, which decides the side it shifts to */
+    isAddition: boolean
+    color: string
     isDimmed: boolean
 }): React.ReactElement {
-    const { leftStep, line } = connector
-    const isAddition = leftStep.delta > 0
     // An addition's bar lies below its far end on screen, a subtraction's above
     const y = line.y1 + ((isAddition ? 1 : -1) * CONNECTOR_WIDTH) / 2
     return (
@@ -438,7 +455,7 @@ function Connector({
             y1={y}
             x2={line.x2}
             y2={y}
-            stroke={isAddition ? COLORS.add : COLORS.subtract}
+            stroke={color}
             strokeWidth={CONNECTOR_WIDTH}
         />
     )
