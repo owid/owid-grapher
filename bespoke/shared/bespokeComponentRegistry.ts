@@ -11,11 +11,11 @@ export const BESPOKE_COMPONENT_REGISTRY: Record<
     },
     "deforestation-trade": {
         scriptUrl: "/deforestation-trade/index.js",
-        // Hand-built data files (see the project's scripts/buildData.py), so
-        // the URL is absolute and the same file is served everywhere. Move it
-        // to "https://owid-public.owid.io/bespoke/deforestation-trade" once
-        // they are uploaded.
-        dataUrl: "http://localhost:8089/deforestation-trade",
+        // Hand-built data files (see the project's scripts/buildData.py),
+        // committed to the repo and shipped next to the script until an ETL
+        // step publishes them
+        dataUrl: "/deforestation-trade",
+        dataBundled: true,
         metadataFilename: "deforestation-trade.metadata.json",
     },
     demography: {

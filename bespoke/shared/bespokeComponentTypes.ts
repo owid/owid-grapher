@@ -41,6 +41,12 @@ export interface BespokeComponentDefinition {
     scriptUrl: string
     /** Folder the component's data files are served from, relative to BESPOKE_DATA_URL */
     dataUrl: string
+    /**
+     * The data files ship in the bundle's own build output instead of an ETL
+     * feed, so `dataUrl` is relative to BESPOKE_BASE_URL like `scriptUrl`. A
+     * stopgap for data that has no ETL step yet.
+     */
+    dataBundled?: boolean
     /** The component's metadata file inside `dataUrl` */
     metadataFilename: string
 }

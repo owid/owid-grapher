@@ -82,7 +82,7 @@ Both URLs may be relative or absolute, and an absolute one is passed through unt
 | `scriptUrl` | `BESPOKE_BASE_URL` (defaults to the local dev server, `localhost:8089`) |
 | `dataUrl`   | `BESPOKE_DATA_URL`, so a relative value is an ETL feed step             |
 
-`BESPOKE_DATA_URL` is the data root of the environment being served, either production or a staging server's own bucket, where that branch's ETL build lands. A bundle whose data is published by hand gives an absolute `dataUrl` and is served the same file everywhere.
+`BESPOKE_DATA_URL` is the data root of the environment being served, either production or a staging server's own bucket, where that branch's ETL build lands. A bundle whose data is published by hand gives an absolute `dataUrl` and is served the same file everywhere. As a stopgap before either exists, a bundle can commit its data files and ship them in its build output: `dataBundled: true` resolves `dataUrl` against `BESPOKE_BASE_URL` instead, like `scriptUrl` (see deforestation-trade).
 
 `metadataFilename` is a filename inside `dataUrl` that the bundle fetches itself, handed to it as `opts.metadataUrl`. A featured viz page fetches the same file at bake time, validates it against `BespokeMetadataSchema`, and renders the methods-and-sources box under the band from the fields it carries.
 

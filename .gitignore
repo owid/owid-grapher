@@ -87,6 +87,3 @@ packageDocs/docs/schema-reference/
 packageDocs/site/
 packageDocs/.venv/
 packageDocs/.cache/
-
-# Hand-built bespoke data files served by the dev server (see bespoke/projects/*/scripts)
-bespoke/projects/*/data/
