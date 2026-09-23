@@ -29,7 +29,6 @@ export function parseManifest(raw: ManifestJson): FoodSupplyChainManifest {
     return {
         flowStages,
         totalStage,
-        units: raw.units,
         sources: raw.sources,
         method: raw.method,
         entities,

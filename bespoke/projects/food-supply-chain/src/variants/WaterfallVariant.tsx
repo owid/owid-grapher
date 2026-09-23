@@ -205,11 +205,8 @@ function CaptionedWaterfallVariant({
             )}
             <Frame className="food-supply-chain-captioned-chart">
                 <ChartHeader
-                    title={config.title ?? buildTitle(entity.name)}
-                    subtitle={
-                        config.subtitle ??
-                        buildSubtitle(manifest.units[measure], year)
-                    }
+                    title={config.title ?? buildTitle(entity.name, measure)}
+                    subtitle={config.subtitle ?? buildSubtitle(measure, year)}
                 />
                 <div className="food-supply-chain-captioned-chart__chart-area">
                     {isLoading && <Spinner />}
