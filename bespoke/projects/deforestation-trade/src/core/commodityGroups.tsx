@@ -24,50 +24,75 @@ import { OwidDistinctColors } from "@ourworldindata/grapher"
  */
 export const COMMODITY_GROUPS: Record<
     string,
-    { shortLabel: string; color: string; icon: IconDefinition }
+    {
+        shortLabel: string
+        /** What the group covers, with its biggest drivers of deforestation
+         *  first (worldwide, 2023); shown in the group's tooltip */
+        description: string
+        color: string
+        icon: IconDefinition
+    }
 > = {
     Cereals: {
         shortLabel: "Cereals",
+        description:
+            "Forest cleared to grow grain crops, mainly rice and maize, but also barley, wheat, sorghum and millet.",
         color: OwidDistinctColors.Camel,
         icon: faWheatAwn,
     },
     "Edible roots and tubers with high starch or inulin content": {
         shortLabel: "Roots & tubers",
+        description:
+            "Forest cleared to grow starchy root crops, mostly cassava, but also yams, potatoes, sweet potatoes and taro.",
         color: OwidDistinctColors.Copper,
         icon: faLeaf,
     },
     "Fibre crops": {
         shortLabel: "Fibre crops",
+        description:
+            "Forest cleared to grow crops used as materials rather than food, mostly rubber trees and cotton, but also tobacco, sisal and jute.",
         color: OwidDistinctColors.Teal,
         icon: faShirt,
     },
     "Fruit and nuts": {
         shortLabel: "Fruit & nuts",
+        description:
+            "Forest cleared to grow fruit and nut trees, such as plantains, cashews and bananas, but also guavas, mangoes and avocados.",
         color: OwidDistinctColors.OliveGreen,
         icon: faAppleWhole,
     },
     "Oilseeds and oleaginous fruits": {
         shortLabel: "Oilseeds (soy, palm)",
+        description:
+            "Forest cleared to grow crops for vegetable oil and animal feed, mainly soybeans and oil palms, but also sunflowers, groundnuts, rapeseed and coconuts.",
         color: OwidDistinctColors.RustyOrange,
         icon: faBottleDroplet,
     },
     Pasture: {
         shortLabel: "Beef (pasture)",
+        description:
+            "Forest cleared to create pasture for grazing cattle, raised for beef.",
         color: OwidDistinctColors.Maroon,
         icon: faCow,
     },
     "Pulses (dried leguminous vegetables)": {
         shortLabel: "Pulses",
+        description:
+            "Forest cleared to grow beans and other legumes that are sold dried, mainly common beans and cowpeas, but also chickpeas, pigeon peas and lentils.",
         color: OwidDistinctColors.DarkOliveGreen,
         icon: faBowlRice,
     },
     "Stimulant, spice and aromatic crops": {
         shortLabel: "Stimulants (cocoa, coffee)",
+        description:
+            "Forest cleared to grow cocoa and coffee, but also tea, maté, and spices such as nutmeg, cardamom and cinnamon.",
         color: OwidDistinctColors.Purple,
         icon: faMugHot,
     },
     Vegetables: {
         shortLabel: "Vegetables",
+        description:
+            "Forest cleared to grow vegetables, such as okra, onions and tomatoes, but also peppers, green maize and pumpkins.",
         color: OwidDistinctColors.Lime,
         icon: faCarrot,
     },
@@ -78,6 +103,10 @@ const FALLBACK_COLOR: string = OwidDistinctColors.Denim
 const FALLBACK_ICON = faLeaf
 
 /** The short, chart-ready label; an unknown group falls back to its own name. */
+export function getGroupDescription(name: string): string | undefined {
+    return COMMODITY_GROUPS[name]?.description
+}
+
 export function getGroupLabel(name: string): string {
     return COMMODITY_GROUPS[name]?.shortLabel ?? name
 }

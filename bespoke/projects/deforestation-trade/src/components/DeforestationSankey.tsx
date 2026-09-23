@@ -42,6 +42,7 @@ import {
 } from "../core/buildGraph.js"
 import {
     getGroupColor,
+    getGroupDescription,
     getGroupLabel,
     GroupIcon,
     renderGroupIcon,
@@ -519,12 +520,18 @@ function makeNodeTooltip({
             isPartnerSideIncoming ? link.source : link.target
         ).map(([id, value]) => ({ id, value }))
 
+        const description = getGroupDescription(group)
         return {
             title: getGroupLabel(group),
             subtitle,
             content: (
                 <>
                     <GroupLine group={group}>{share}</GroupLine>
+                    {description && (
+                        <p className="deforestation-sankey__tooltip-description">
+                            {description}
+                        </p>
+                    )}
                     <BreakdownTable
                         rows={R.pipe(
                             rows,
