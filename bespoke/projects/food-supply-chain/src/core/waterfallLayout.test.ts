@@ -92,21 +92,32 @@ describe(layOutWaterfall, () => {
         expect(tourism?.captionAnchor).toBeDefined()
     })
 
-    it("spans each group's band over exactly its own columns", () => {
+    it("spans each group's box over exactly its own columns", () => {
         const layout = layOutWaterfall(fixtureGroupedWaterfall(), BOX)
 
         expect(layout.groups.map((placed) => placed.group.key)).toEqual(
             STAGE_GROUPS.map((group) => group.key)
         )
         for (const placed of layout.groups) {
-            expect(stepKeysUnderBand(layout.steps, placed.band)).toEqual(
+            expect(stepKeysInsideGroupBox(layout.steps, placed.box)).toEqual(
                 placed.group.stageKeys
             )
-            expect(stepKeysUnderBand([layout.total], placed.band)).toEqual([])
+            expect(stepKeysInsideGroupBox([layout.total], placed.box)).toEqual(
+                []
+            )
         }
     })
 
-    it("drops a band whose stages are no longer side by side", () => {
+    it("runs each group's box the full height of the plot", () => {
+        const layout = layOutWaterfall(fixtureGroupedWaterfall(), BOX)
+
+        for (const placed of layout.groups) {
+            expect(placed.box.y).toBeCloseTo(BOX.y)
+            expect(placed.box.height).toBeCloseTo(BOX.height)
+        }
+    })
+
+    it("drops a box whose stages are no longer side by side", () => {
         const reordered = MANIFEST_FLOW_STAGES.filter(
             (stage) => stage.key !== "animal_products"
         )
@@ -118,7 +129,7 @@ describe(layOutWaterfall, () => {
         const layout = layOutWaterfall(fixtureGroupedWaterfall(reordered), BOX)
 
         expect(layout.groups.map((placed) => placed.group.key)).not.toContain(
-            "animals"
+            "turned_into_other_products"
         )
         expect(layout.groups.map((placed) => placed.group.key)).toContain(
             "adjustments"
@@ -139,14 +150,15 @@ describe(layOutWaterfall, () => {
     })
 })
 
-function stepKeysUnderBand(
+function stepKeysInsideGroupBox(
     steps: PlacedStep[],
-    band: { x1: number; x2: number }
+    box: { x: number; width: number }
 ): StageKey[] {
     return steps
         .filter(
             (step) =>
-                step.valueAnchor.x > band.x1 && step.valueAnchor.x < band.x2
+                step.valueAnchor.x > box.x &&
+                step.valueAnchor.x < box.x + box.width
         )
         .map((step) => step.step.key)
 }

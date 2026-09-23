@@ -2,6 +2,8 @@ import {
     EntityData,
     FoodSupplyChainManifest,
     Measure,
+    MEASURES_WITH_UNIT_ON_STEPS,
+    SHORT_UNIT_BY_MEASURE,
     StageKey,
 } from "./types.js"
 
@@ -17,7 +19,10 @@ export interface Waterfall {
     steps: WaterfallStep[]
     total: { key: StageKey; name: string; value: number }
     domain: [number, number]
-    unit: string
+    year: number
+    shortUnit: string
+    /** Absent when step labels show the bare number */
+    stepLabelUnit?: string
 }
 
 export function buildWaterfall({
@@ -64,5 +69,14 @@ export function buildWaterfall({
         Math.max(0, ...ends, totalValue),
     ]
 
-    return { steps, total, domain, unit: manifest.units[measure] }
+    return {
+        steps,
+        total,
+        domain,
+        year,
+        shortUnit: SHORT_UNIT_BY_MEASURE[measure],
+        stepLabelUnit: MEASURES_WITH_UNIT_ON_STEPS.has(measure)
+            ? SHORT_UNIT_BY_MEASURE[measure]
+            : undefined,
+    }
 }

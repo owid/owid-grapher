@@ -5,13 +5,14 @@ import { TooltipValue } from "@ourworldindata/grapher/src/tooltip/TooltipContent
 
 import { COLORS } from "../core/constants.js"
 import { formatMeasureValue } from "../core/format.js"
-import { stageLabel } from "../core/stageLabels.js"
 import { PlacedStep } from "../core/waterfallLayout.js"
 
 export interface FoodSupplyChainTooltipProps {
     step: PlacedStep
     isTotal: boolean
+    /** Short form, e.g. "kcal" */
     unit: string
+    year: number
     span: number
     position: Point
     containerBounds?: { width: number; height: number }
@@ -22,12 +23,13 @@ export function FoodSupplyChainTooltip({
     step,
     isTotal,
     unit,
+    year,
     span,
     position,
     containerBounds,
     anchor,
 }: FoodSupplyChainTooltipProps): React.ReactElement {
-    const { key, name, delta, balanceAfter } = step.step
+    const { name, delta, balanceAfter } = step.step
     const color = isTotal
         ? COLORS.total
         : delta > 0
@@ -41,11 +43,15 @@ export function FoodSupplyChainTooltip({
             y={position.y}
             offsetX={8}
             offsetY={8}
-            title={stageLabel(key, name)}
+            title={name}
+            subtitle={year}
             containerBounds={containerBounds}
             anchor={anchor}
         >
             <TooltipValue
+                label={
+                    isTotal ? "Per person per day" : "Change per person per day"
+                }
                 value={formatMeasureValue(delta, {
                     span,
                     unit,
@@ -57,7 +63,6 @@ export function FoodSupplyChainTooltip({
                 <TooltipValue
                     label="Running total"
                     value={formatMeasureValue(balanceAfter, { span, unit })}
-                    color={color}
                 />
             )}
         </TooltipCard>
