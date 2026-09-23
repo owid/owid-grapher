@@ -23,8 +23,8 @@ export const VARIANTS = [
     {
         name: "waterfall",
         component: WaterfallVariant,
-        demoConfig: {},
-        demoSize: "widest",
+        demoConfig: { urlSync: "true" },
+        demoSize: "wide", // "widest",
     },
 ] satisfies BespokeComponentVariantsList<VariantName>
 
