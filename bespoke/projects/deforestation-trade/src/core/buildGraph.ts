@@ -506,7 +506,7 @@ export function buildCountryGraph({
     maxNodesToShrinkOther?: number
     minNodeShare?: number
     /** Groups below this share of the commodity column get no label; 0
-     *  labels every group */
+     *  labels every group, anything above 1 labels none */
     minLabelledGroupShare?: number
 }): SankeyGraph {
     const countryLabel = getPartnerLabel(country)

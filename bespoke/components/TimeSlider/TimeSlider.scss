@@ -36,6 +36,12 @@
             background: $active-fill;
             color: $blue-90;
         }
+
+        &:disabled {
+            color: $light-text;
+            background-color: $light-fill;
+            cursor: default;
+        }
     }
 
     &__control {
@@ -56,6 +62,34 @@
         padding: 12px 0;
         box-sizing: content-box !important;
         background-clip: content-box !important;
+    }
+
+    // The span of times the chart covers, drawn in place of the thumb like
+    // a two-handled timeline's selection: a knob at each end, filled between
+    &__range {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+    }
+
+    &__range-fill {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        height: 2px;
+        background: $default-knob;
+    }
+
+    &__range-knob {
+        position: absolute;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        height: $handle-diameter;
+        width: $handle-diameter;
+        border-radius: 100%;
+        background: $default-knob;
+        border: 2px solid #fff;
+        box-sizing: border-box;
     }
 
     .date + .slider {
