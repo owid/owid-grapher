@@ -5,46 +5,10 @@
     margin-inline: auto;
 }
 
-// The chart takes the height left over by the legend row below it
 .deforestation-sankey__chart-area {
     width: 100%;
     height: 100%;
     position: relative;
-}
-
-// The shared container stretches to the full height by default; here the
-// SVG is drawn shorter to leave room for the legend, so let it size itself
-.deforestation-sankey__chart-area .sankey-container {
-    height: auto;
-}
-
-// Commodities too small to be labelled in the chart; the top margin must
-// match `LEGEND_GAP` in DeforestationSankey.tsx
-.deforestation-sankey__legend {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    column-gap: 8px;
-    row-gap: 4px;
-    margin-top: 6px;
-    font-size: 12px;
-    line-height: 16px;
-}
-
-.deforestation-sankey__legend--right {
-    justify-content: flex-end;
-}
-
-.deforestation-sankey__legend-item {
-    display: inline-flex;
-    align-items: center;
-    gap: 3px;
-    white-space: nowrap;
-    user-select: none;
-}
-
-.deforestation-sankey__legend-item svg {
-    flex: 0 0 auto;
 }
 
 .deforestation-sankey .sankey__label tspan:first-child {
@@ -62,10 +26,80 @@
 }
 
 .deforestation-sankey__tooltip-description {
-    margin: 6px 0 4px;
+    margin: 0 0 10px;
+    color: $light-text;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.deforestation-sankey__tooltip-headline {
+    display: flex;
+    flex-direction: column;
+}
+
+.deforestation-sankey__tooltip-headline-value {
+    color: $dark-text;
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.deforestation-sankey__tooltip-headline-share {
     color: $light-text;
     font-size: 12px;
+}
+
+// Small-caps label over a tooltip's list, like the controls' labels
+.deforestation-sankey__tooltip-section-heading {
+    margin: 12px 0 4px;
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: $light-text;
+}
+
+.deforestation-sankey__share-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
     line-height: 1.4;
+}
+
+.deforestation-sankey__share-table td {
+    padding: 2px 0;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+.deforestation-sankey__share-table .deforestation-sankey__share-table-name {
+    color: $dark-text;
+    padding-right: 12px;
+}
+
+.deforestation-sankey__share-table .deforestation-sankey__share-table-bar {
+    width: 48px;
+    padding-right: 10px;
+}
+
+.deforestation-sankey__share-table-bar-fill {
+    height: 8px;
+    min-width: 1px;
+    border-radius: 1px;
+}
+
+.deforestation-sankey__share-table .deforestation-sankey__share-table-value {
+    color: $dark-text;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    padding-right: 12px;
+}
+
+.deforestation-sankey__share-table .deforestation-sankey__share-table-share {
+    width: 40px;
+    color: $light-text;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
 }
 
 .deforestation-sankey__tooltip-more {
