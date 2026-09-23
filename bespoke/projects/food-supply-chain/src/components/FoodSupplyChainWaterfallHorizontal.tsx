@@ -32,6 +32,7 @@ import {
     PLOT_MARGIN_RIGHT,
     ROW_PADDING,
     TICK_LABEL_FONT_SIZE,
+    TEXT_WRAP_BREAK_MARGIN,
     TICK_LABEL_GAP,
     TOTAL_BOX_LABEL_FONT_WEIGHT,
     TOTAL_LABEL_FONT_SIZE,
@@ -63,9 +64,6 @@ import {
 import { FoodSupplyChainTooltip } from "./FoodSupplyChainTooltip.js"
 import { buildTruncatedTextWrap } from "./truncatedTextWrap.js"
 import { useStepHover } from "./useStepHover.js"
-
-/** How far short of its maxWidth a TextWrap breaks a line, see `TextWrap.lines` */
-const TEXT_WRAP_BREAK_MARGIN = 10
 
 export interface FoodSupplyChainWaterfallHorizontalProps {
     waterfall: Waterfall
