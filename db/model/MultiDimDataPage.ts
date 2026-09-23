@@ -48,13 +48,10 @@ export function buildMdimViewPatchConfig(
     view: View<IndicatorsAfterPreProcessing>,
     published?: boolean
 ): GrapherInterface {
-    let viewGrapherConfig: GrapherInterface =
-        getMdimViewConfigWithSchema(config, view) ?? {}
-
-    if ("$schema" in viewGrapherConfig) {
-        viewGrapherConfig =
-            migrateGrapherConfigToLatestVersion(viewGrapherConfig)
-    }
+    const viewGrapherConfig: GrapherInterface =
+        migrateGrapherConfigToLatestVersion(
+            getMdimViewConfigWithSchema(config, view) ?? {}
+        )
 
     const mainGrapherConfig: GrapherInterface = {
         $schema: defaultGrapherConfig.$schema,
