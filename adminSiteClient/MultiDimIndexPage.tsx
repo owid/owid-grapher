@@ -4,20 +4,23 @@ import {
     useQuery,
     useQueryClient,
 } from "@tanstack/react-query"
-import { useContext, useMemo, useState } from "react"
+import { useContext, useState } from "react"
 import {
     Button,
     Checkbox,
-    Flex,
-    Input,
     Popconfirm,
-    Space,
     Switch,
-    Table,
     TableColumnsType,
     Typography,
     notification,
 } from "antd"
+import { AdminTable } from "./AdminTable.js"
+import { useListSearch } from "./adminTableHelpers.js"
+import {
+    hasSearchTerm,
+    SearchField,
+    toggleSearchTerm,
+} from "../adminShared/searchFilter.js"
 import { Admin } from "./Admin.js"
 import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext } from "./AdminAppContext.js"
@@ -44,6 +47,43 @@ type ApiMultiDim = {
 type MultiDim = Omit<ApiMultiDim, "updatedAt"> & {
     updatedAt: Date
 }
+
+/** The checkbox writes this into the search box, so the filter is in the URL. */
+const PUBLISHED_TERM = "published:true"
+
+const SEARCH_FIELDS: SearchField<MultiDim>[] = [
+    {
+        name: "title",
+        type: "string",
+        description: "Title",
+        get: (m) => m.title,
+    },
+    { name: "slug", type: "string", description: "Slug", get: (m) => m.slug },
+    {
+        name: "path",
+        type: "string",
+        description: "Catalog path",
+        get: (m) => m.catalogPath,
+    },
+    {
+        name: "published",
+        type: "boolean",
+        description: "Published",
+        get: (m) => m.published,
+    },
+    {
+        name: "views",
+        type: "number",
+        description: "Pageviews over 14 days",
+        get: (m) => m.pageviews,
+    },
+    {
+        name: "updated",
+        type: "date",
+        description: "Last updated",
+        get: (m) => m.updatedAt,
+    },
+]
 
 function PreviewLink({
     slug,
@@ -303,7 +343,6 @@ export function MultiDimIndexPage() {
     const { admin } = useContext(AdminAppContext)
     const [notificationApi, notificationContextHolder] =
         notification.useNotification()
-    const [search, setSearch] = useState("")
     const queryClient = useQueryClient()
 
     const { data } = useQuery({
@@ -339,17 +378,11 @@ export function MultiDimIndexPage() {
         },
     })
 
-    const [showOnlyPublished, setShowOnlyPublished] = useState(false)
-
-    const filteredMdims = useMemo(() => {
-        const query = search.trim().toLowerCase()
-        return data?.filter((mdim) => {
-            if (showOnlyPublished && !mdim.published) return false
-            return [mdim.title, mdim.slug ?? ""].some((field) =>
-                field.toLowerCase().includes(query)
-            )
-        })
-    }, [data, search, showOnlyPublished])
+    const { results: filteredMdims, search } = useListSearch(
+        data,
+        SEARCH_FIELDS,
+        { placeholder: "Search by title or slug", autoFocus: true }
+    )
 
     const columns = createColumns(slugMutation, publishMutation)
 
@@ -357,26 +390,33 @@ export function MultiDimIndexPage() {
         <AdminLayout title="Multidimensional Data Pages">
             {notificationContextHolder}
             <main>
-                <Space orientation="vertical" size="middle">
-                    <Flex align="center" justify="space-between" gap={24}>
-                        <Space size="middle">
-                            <Input
-                                placeholder="Search by title or slug"
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
-                                style={{ width: 500 }}
-                                autoFocus
-                            />
-                            <Checkbox
-                                checked={showOnlyPublished}
-                                onChange={(e) =>
-                                    setShowOnlyPublished(e.target.checked)
-                                }
-                            >
-                                Show only published
-                            </Checkbox>
-                        </Space>
-                        <Space>
+                <AdminTable
+                    columns={columns}
+                    dataSource={filteredMdims}
+                    rowKey={(x) => x.id}
+                    entityName="multi-dims"
+                    search={search}
+                    filters={
+                        <Checkbox
+                            checked={hasSearchTerm(
+                                search.value,
+                                PUBLISHED_TERM
+                            )}
+                            onChange={(e) =>
+                                search.onChange(
+                                    toggleSearchTerm(
+                                        search.value,
+                                        PUBLISHED_TERM,
+                                        e.target.checked
+                                    )
+                                )
+                            }
+                        >
+                            Show only published
+                        </Checkbox>
+                    }
+                    actions={
+                        <>
                             <a
                                 href={urljoin(
                                     ADMIN_BASE_URL,
@@ -394,14 +434,9 @@ export function MultiDimIndexPage() {
                             >
                                 Docs
                             </a>
-                        </Space>
-                    </Flex>
-                    <Table
-                        columns={columns}
-                        dataSource={filteredMdims}
-                        rowKey={(x) => x.id}
-                    />
-                </Space>
+                        </>
+                    }
+                />
             </main>
         </AdminLayout>
     )

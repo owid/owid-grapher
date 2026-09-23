@@ -1,25 +1,15 @@
 import { useCallback, useContext, useEffect, useMemo, useState } from "react"
 import * as React from "react"
-import {
-    Button,
-    Flex,
-    Input,
-    Modal,
-    Space,
-    Table,
-    TableColumnsType,
-} from "antd"
+import { Button, Modal, Space, TableColumnsType } from "antd"
+import { AdminTable } from "../AdminTable.js"
+import { useListSearch } from "../adminTableHelpers.js"
+import { SearchField } from "../../adminShared/searchFilter.js"
 
 import { AdminLayout } from "../AdminLayout.js"
 import { AdminAppContext } from "../AdminAppContext.js"
 import { Timeago } from "../Forms.js"
 import { ApiSlideshowOverview } from "../../adminShared/AdminTypes.js"
 import { Link } from "../Link.js"
-import {
-    buildSearchWordsFromSearchString,
-    filterFunctionForSearchWords,
-    highlightFunctionForSearchWords,
-} from "../../adminShared/search.js"
 
 function createColumns(ctx: {
     highlightFn: (
@@ -99,34 +89,39 @@ function createColumns(ctx: {
     ]
 }
 
+const SEARCH_FIELDS: SearchField<ApiSlideshowOverview>[] = [
+    {
+        name: "title",
+        type: "string",
+        description: "Title",
+        get: (s) => s.title,
+    },
+    { name: "slug", type: "string", description: "Slug", get: (s) => s.slug },
+    {
+        name: "author",
+        type: "string",
+        description: "Author",
+        get: (s) => s.authorName,
+    },
+    {
+        name: "id",
+        type: "number",
+        description: "Slideshow id",
+        get: (s) => s.id,
+    },
+]
+
 export function SlideshowsIndexPage() {
     const { admin } = useContext(AdminAppContext)
     const [slideshows, setSlideshows] = useState<ApiSlideshowOverview[]>([])
-    const [searchValue, setSearchValue] = useState("")
-
-    const searchWords = useMemo(
-        () => buildSearchWordsFromSearchString(searchValue),
-        [searchValue]
-    )
-
-    const filteredSlideshows = useMemo(() => {
-        const filterFn = filterFunctionForSearchWords(
-            searchWords,
-            (slideshow: ApiSlideshowOverview) => [
-                `${slideshow.id}`,
-                slideshow.title,
-                slideshow.slug,
-                slideshow.authorName,
-            ]
-        )
-
-        return slideshows.filter(filterFn)
-    }, [slideshows, searchWords])
-
-    const highlightFn = useMemo(
-        () => highlightFunctionForSearchWords(searchWords),
-        [searchWords]
-    )
+    const {
+        results: filteredSlideshows,
+        highlight: highlightFn,
+        search,
+    } = useListSearch(slideshows, SEARCH_FIELDS, {
+        placeholder: "Search slideshows...",
+        autoFocus: true,
+    })
 
     const deleteFn = useCallback(
         (slideshowId: number) => {
@@ -169,21 +164,17 @@ export function SlideshowsIndexPage() {
     return (
         <AdminLayout title="Slideshows">
             <main>
-                <Flex justify="space-between">
-                    <Input
-                        placeholder="Search"
-                        value={searchValue}
-                        onChange={(e) => setSearchValue(e.target.value)}
-                        style={{ width: 500, marginBottom: 20 }}
-                    />
-                    <Link to="/slideshows/create">
-                        <Button type="primary">Create slideshow</Button>
-                    </Link>
-                </Flex>
-                <Table
+                <AdminTable
                     columns={columns}
                     dataSource={filteredSlideshows}
                     rowKey="id"
+                    entityName="slideshows"
+                    search={search}
+                    actions={
+                        <Link to="/slideshows/create">
+                            <Button type="primary">Create slideshow</Button>
+                        </Link>
+                    }
                 />
             </main>
         </AdminLayout>
