@@ -155,8 +155,8 @@ export function FoodSupplyChainWaterfall({
 
     const groupBoxTop = 0
     const groupLabelY = groupBoxTop + GROUP_LABEL_INSET
-    const plotTop =
-        groupLabelY + groupLabelHeight + GROUP_LABEL_GAP + clearanceAboveBars
+    const columnTop = groupLabelY + groupLabelHeight + GROUP_LABEL_GAP
+    const plotTop = columnTop + clearanceAboveBars
     const bottomMargin = PLOT_MARGIN_BOTTOM
 
     const boxHeight = height - plotTop - bottomMargin
@@ -297,9 +297,9 @@ export function FoodSupplyChainWaterfall({
                         key={step.step.key}
                         className="food-supply-chain-waterfall__hit-area"
                         x={step.slot.x}
-                        y={step.slot.y}
+                        y={columnTop}
                         width={step.slot.width}
-                        height={step.slot.height}
+                        height={step.slot.y + step.slot.height - columnTop}
                         fill="transparent"
                         onMouseEnter={(event) =>
                             onStepMouseEnter(step.step.key, event)
