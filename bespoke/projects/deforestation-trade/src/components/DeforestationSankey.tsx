@@ -387,6 +387,10 @@ function DeforestationSankeyContent({
                 }
                 nodeColor={getNodeColor}
                 linkColor={getLinkColor}
+                // Every band on the selected country's side runs into the same
+                // node, so a faded one would show as a pale stripe through its
+                // commodity's ribbon
+                canFadeLowVolumeLink={(link) => !isFocusLayerLink(link)}
                 getRelatedLinks={getRelatedLinks}
                 getRelatedLinksForNode={getRelatedLinksForNode}
                 getLinkTooltip={getLinkTooltip}
