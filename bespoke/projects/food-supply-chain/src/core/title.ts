@@ -1,21 +1,21 @@
-import * as R from "remeda"
-
 import { formatEntityNameForSentence } from "../../../../helpers/entityNames.js"
+import { Measure } from "./types.js"
 
-/** The chart's title, as a sentence about the selected country */
-export function buildTitle(entityName: string): string {
+/** The chart's title, as a question about the selected country */
+export function buildTitle(entityName: string, measure: Measure): string {
     const formattedName = dropDisambiguator(
         formatEntityNameForSentence(entityName)
     )
-    const possessive = formattedName.endsWith("s")
-        ? `${formattedName}'`
-        : `${formattedName}'s`
-    return `What happens to ${possessive} food?`
+    return measure === "energy"
+        ? `How many calories does ${formattedName} produce, and where do they go?`
+        : `How much protein does ${formattedName} produce, and where does it go?`
 }
 
-/** The chart's subtitle: the measure's unit and the year */
-export function buildSubtitle(unit: string, year: number): string {
-    return `${R.capitalize(unit)}, ${year}`
+/** The chart's subtitle: what the values measure, and the year */
+export function buildSubtitle(measure: Measure, year: number): string {
+    const quantity =
+        measure === "energy" ? "number of kilocalories" : "grams of protein"
+    return `Measured as the average ${quantity} per person per day at each stage, in ${year}.`
 }
 
 /** Drops an OWID disambiguator, so "Micronesia (country)" reads as "Micronesia" */
