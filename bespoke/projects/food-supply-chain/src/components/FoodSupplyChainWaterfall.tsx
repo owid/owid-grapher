@@ -357,10 +357,7 @@ export function doesVerticalLayoutFit(
 }
 
 /** The pixels one step's column gets at this width */
-function measureVerticalSlotWidth(
-    waterfall: Waterfall,
-    width: number
-): number {
+function measureVerticalSlotWidth(waterfall: Waterfall, width: number): number {
     const plotWidth =
         width -
         measureAxisLabelWidth(buildTickLabels(waterfall)) -
@@ -414,8 +411,8 @@ function StepMarks({
         : step.step.delta === 0
           ? COLORS.unchanged
           : isAddition(step.step)
-          ? COLORS.add
-          : COLORS.subtract
+            ? COLORS.add
+            : COLORS.subtract
 
     const labelX =
         step.slot.x + step.slot.width - captionLength(step.slot.width)
