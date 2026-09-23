@@ -48,7 +48,6 @@ export abstract class AbstractStackedChartState implements ChartState {
     abstract shouldRunLinearInterpolation: boolean
 
     abstract get series(): readonly StackedSeries<number>[]
-    abstract get yDomain(): [number, number]
     abstract get useValueBasedColorScheme(): boolean
 
     constructor({ manager }: { manager: ChartManager }) {
@@ -191,6 +190,13 @@ export abstract class AbstractStackedChartState implements ChartState {
         return this.series.flatMap((series) => series.points)
     }
 
+    @computed get yDomain(): [number, number] {
+        const yValues = this.allStackedPoints.map(
+            (point) => point.value + point.valueOffset
+        )
+        return [_.min([0, ...yValues]) ?? 0, _.max([0, ...yValues]) ?? 0]
+    }
+
     @computed get colorMap(): CategoricalColorMap {
         return this.isEntitySeries
             ? this.inputTable.entityNameColorIndex
@@ -299,15 +305,10 @@ export abstract class AbstractStackedChartState implements ChartState {
     }
 
     @computed get midpoints(): number[] {
-        let prevY = 0
         return this.series.map((series) => {
-            const lastValue = R.last(series.points)
-            if (!lastValue) return 0
-
-            const y = lastValue.value + lastValue.valueOffset
-            const middleY = prevY + (y - prevY) / 2
-            prevY = y
-            return middleY
+            const lastPoint = R.last(series.points)
+            if (!lastPoint) return 0
+            return lastPoint.valueOffset + lastPoint.value / 2
         })
     }
 
