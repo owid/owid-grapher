@@ -1,7 +1,13 @@
 import { formatValue } from "@ourworldindata/utils"
 import { OwidVariableRoundingMode } from "@ourworldindata/types"
 
-import { Period, TradeRow, TradeSeries, YearRange } from "./types.js"
+import {
+    Period,
+    TradeRow,
+    TradeSeries,
+    WorldGroupTotal,
+    YearRange,
+} from "./types.js"
 
 /** Hectares of amortized deforestation risk, e.g. "1.2 million hectares", or
  *  "1.2 million ha" in the short form used for chart labels. Numbers are never
@@ -110,6 +116,26 @@ export function rowsForYearRange(
         rows.push({ partner: s.partner, group: s.group, value })
     }
     return rows
+}
+
+/**
+ * Worldwide deforestation over an inclusive range of year indices, and the
+ * commodity group that drove the largest share of it; undefined without data.
+ */
+export function worldContextForYearRange(
+    worldTotals: WorldGroupTotal[],
+    startIndex: number,
+    endIndex: number
+): { total: number; topGroup: string; topShare: number } | undefined {
+    const byGroup = worldTotals.map(({ group, values }) => {
+        let value = 0
+        for (let i = startIndex; i <= endIndex; i++) value += values[i] ?? 0
+        return { group, value }
+    })
+    const total = byGroup.reduce((sum, g) => sum + g.value, 0)
+    if (total <= 0) return undefined
+    const top = byGroup.reduce((a, b) => (b.value > a.value ? b : a))
+    return { total, topGroup: top.group, topShare: top.value / total }
 }
 
 export function sumRows(rows: TradeRow[]): number {

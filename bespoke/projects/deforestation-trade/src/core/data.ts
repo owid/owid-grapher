@@ -85,6 +85,11 @@ export const useCountryData = (
 function buildMetadata(raw: RawMetadataJson): DeforestationMetadata {
     const { commodityGroups } = raw.dimensions
     const entities = raw.dimensions.entities.map(canonicalizeEntityName)
+    const groupNameById = new Map(commodityGroups.map((g) => [g.id, g.name]))
+    const worldTotals = (raw.worldTotals ?? []).flatMap((t) => {
+        const group = groupNameById.get(t.commodityGroup)
+        return group === undefined ? [] : [{ group, values: t.values }]
+    })
 
     return {
         years: raw.years,
@@ -93,6 +98,7 @@ function buildMetadata(raw: RawMetadataJson): DeforestationMetadata {
         commodityGroups,
         entityById: new Map(entities.map((e) => [e.id, e])),
         entityByName: new Map(entities.map((e) => [e.name, e])),
+        worldTotals,
         bespoke: parseBespokeMetadata(raw),
     }
 }
