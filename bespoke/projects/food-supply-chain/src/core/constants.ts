@@ -75,7 +75,7 @@ export const GROUP_BOX_CORNER_RADIUS = 2
 export const MIN_VERTICAL_SLOT_WIDTH = 44
 export const VERTICAL_CHART_HEIGHT = 400
 
-/** The horizontal chart's widest caption column, as a share of its width */
+/** The horizontal chart's widest row captions, as a share of its width; group labels can widen the column past it */
 export const MAX_CAPTION_COLUMN_SHARE = 0.4
 export const MAX_ROW_CAPTION_LINES = 2
 /** Space between the caption column and the plot */
@@ -83,9 +83,9 @@ export const CAPTION_COLUMN_GAP = 8
 /** Space above and below a row's caption */
 export const ROW_PADDING = 4
 export const MIN_ROW_HEIGHT = 24
-/** Space between a group box's top and its header */
-export const GROUP_HEADER_INSET = 6
-/** Space between a group's header and its first row */
+/** Space above a group's label, beyond the gap between boxes */
+export const GROUP_HEADER_TOP_GAP = 6
+/** Space between a group's label and the box below it */
 export const GROUP_HEADER_GAP = 6
 /** Space between neighbouring boxes in the horizontal chart, beyond what their overhang leaves */
 export const BOX_GAP = 8

@@ -224,7 +224,7 @@ describe("horizontal layout", () => {
         }
     })
 
-    it("starts each group's box the header's height above its first row", () => {
+    it("leaves the header's height open above each labelled group's box", () => {
         const waterfall = fixtureGroupedWaterfall()
         const headerHeightPx = 20
         const rowHeightPx = 30
@@ -248,8 +248,11 @@ describe("horizontal layout", () => {
         expect(layout.groups).toHaveLength(STAGE_GROUPS.length)
         for (const placed of layout.groups) {
             const firstRow = findStep(layout.steps, placed.group.stageKeys[0])
+            const rowAbove = layout.steps[layout.steps.indexOf(firstRow) - 1]
             expect(firstRow.slot.height).toBeCloseTo(rowHeightPx)
-            expect(firstRow.slot.y - placed.box.y).toBeCloseTo(headerHeightPx)
+            expect(
+                placed.box.y - (rowAbove.slot.y + rowAbove.slot.height)
+            ).toBeCloseTo(headerHeightPx)
         }
     })
 
