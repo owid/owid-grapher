@@ -154,13 +154,7 @@ export function FoodSupplyChainWaterfall({
     )
     const formatStepValues = (unit?: string): string[] =>
         waterfall.steps.map((step) =>
-            step.delta === 0
-                ? `${isAddition(step) ? "+" : "-"}${formatMeasureValue(0, { span, unit })}`
-                : formatMeasureValue(step.delta, {
-                      span,
-                      unit,
-                      showPlus: true,
-                  })
+            formatMeasureValue(step.delta, { span, unit, showPlus: true })
         )
     const stepValuesWithUnit = formatStepValues(waterfall.shortUnit)
     const doStepValuesWithUnitFit = stepValuesWithUnit.every(
@@ -283,24 +277,26 @@ export function FoodSupplyChainWaterfall({
                         isDimmed={hover !== undefined}
                     />
                 ))}
-                {layout.steps.map((step, index) => (
-                    <StepMarks
-                        key={step.step.key}
-                        step={step}
-                        valueLabelText={valueLabelTexts[index]}
-                        isTotal={false}
-                        isDimmed={
-                            hover !== undefined &&
-                            hover.stepKey !== step.step.key
-                        }
-                        captionTextWrap={captionTextWraps[index]}
-                        backgroundColor={
-                            groupedStepKeys.has(step.step.key)
-                                ? COLORS.groupBox
-                                : COLORS.background
-                        }
-                    />
-                ))}
+                {layout.steps.map((step, index) =>
+                    step.step.delta === 0 ? null : (
+                        <StepMarks
+                            key={step.step.key}
+                            step={step}
+                            valueLabelText={valueLabelTexts[index]}
+                            isTotal={false}
+                            isDimmed={
+                                hover !== undefined &&
+                                hover.stepKey !== step.step.key
+                            }
+                            captionTextWrap={captionTextWraps[index]}
+                            backgroundColor={
+                                groupedStepKeys.has(step.step.key)
+                                    ? COLORS.groupBox
+                                    : COLORS.background
+                            }
+                        />
+                    )
+                )}
                 <StepMarks
                     step={layout.total}
                     valueLabelText={totalValueLabelText}
