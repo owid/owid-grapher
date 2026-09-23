@@ -1,1 +1,72 @@
-{"imports":{"partners":[80,23,58],"groups":[5,6,6],"values":[[27.4,null,0.8,0.9,null,21.2,10.3,0.5,null,15.1,0.4,null,null,null,null,null,null,null,null],[null,null,null,2.7,2.7,null,null,null,null,null,null,null,null,null,null,null,null,null,null],[null,null,null,1.0,null,null,null,null,null,null,0.6,null,null,null,null,null,null,null,null]]},"exports":{"partners":[],"groups":[],"values":[]}}
+{
+    "imports": {
+        "partners": [80, 23, 58],
+        "groups": [5, 6, 6],
+        "values": [
+            [
+                27.4,
+                null,
+                0.8,
+                0.9,
+                null,
+                21.2,
+                10.3,
+                0.5,
+                null,
+                15.1,
+                0.4,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+            ],
+            [
+                null,
+                null,
+                null,
+                2.7,
+                2.7,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+            ],
+            [
+                null,
+                null,
+                null,
+                1.0,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                0.6,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+            ]
+        ]
+    },
+    "exports": { "partners": [], "groups": [], "values": [] }
+}
