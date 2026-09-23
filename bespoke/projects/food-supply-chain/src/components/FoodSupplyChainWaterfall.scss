@@ -14,10 +14,6 @@
 }
 
 .food-supply-chain-waterfall__zero-line {
-    stroke-width: 1.5;
-}
-
-.food-supply-chain-waterfall__connector {
     stroke-width: 1;
 }
 
@@ -28,6 +24,7 @@
     font-family: typography.$sans-serif-font-stack;
 }
 
-.food-supply-chain-waterfall__step--dimmed {
+.food-supply-chain-waterfall__step--dimmed,
+.food-supply-chain-waterfall__connector--dimmed {
     opacity: 0.4;
 }

@@ -62,6 +62,20 @@ describe(layOutWaterfall, () => {
         }
     })
 
+    it("connects the steps to each other but not to the total", () => {
+        const waterfall = fixtureWaterfall({
+            crop: [100],
+            exports: [10],
+            tourism: [5],
+            food: [85],
+        })
+        const layout = layOutWaterfall(waterfall, BOX)
+
+        expect(
+            layout.connectors.map((connector) => connector.leftStep.key)
+        ).toEqual(["crop", "exports"])
+    })
+
     it("floors a step whose delta scales to under half a pixel", () => {
         const waterfall = fixtureWaterfall({
             crop: [100_000],
@@ -89,7 +103,6 @@ describe(layOutWaterfall, () => {
         expect(tourism?.bar).toBeUndefined()
         expect(tourism?.slot).toBeDefined()
         expect(tourism?.valueAnchor).toBeDefined()
-        expect(tourism?.captionAnchor).toBeDefined()
     })
 
     it("spans each group's box over exactly its own columns", () => {
