@@ -30,10 +30,11 @@
     row-gap: 6px;
 }
 
-// Where half the row is too narrow for its labels, the switcher keeps the
-// width they need and the slider gives it up
+// Half the row (less half the gap), also when the slider is hidden for a
+// preset period; where half is too narrow for its labels, the switcher keeps
+// the width they need and the slider gives it up
 .deforestation-controls__period-switcher {
-    flex: 1 1 0;
+    flex: 0 1 calc(50% - 8px);
 }
 
 .deforestation-controls__time-slider {
