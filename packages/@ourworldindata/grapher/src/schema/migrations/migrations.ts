@@ -4,7 +4,7 @@
 // version NNN to MMM and nothing else, then add its `"NNN"` entry to `MIGRATION_STEPS`.
 
 import {
-    type AnyConfigWithValidSchema,
+    type MigratableConfig,
     createSchemaForVersion,
     getNextSchemaVersion,
     type OutdatedSchemaVersion,
@@ -12,15 +12,15 @@ import {
 } from "./helpers"
 import { GRAPHER_CHART_TYPES } from "@ourworldindata/types"
 
-type MigrationStep = (config: AnyConfigWithValidSchema) => void
+type MigrationStep = (config: MigratableConfig) => void
 
 // see https://github.com/owid/owid-grapher/commit/26f2a0d1790c71bdda7e12f284ca552945d2f6ef
-const migrateFrom001To002 = (config: AnyConfigWithValidSchema): void => {
+const migrateFrom001To002 = (config: MigratableConfig): void => {
     delete config.selectedData
 }
 
 // see https://github.com/owid/owid-grapher/commit/4525ad81fb7064709ffab83677a8b0354b324dfb
-const migrateFrom002To003 = (config: AnyConfigWithValidSchema): void => {
+const migrateFrom002To003 = (config: MigratableConfig): void => {
     if (config.hideTitleAnnotation) {
         config.hideTitleAnnotations = {
             entity: true,
@@ -32,16 +32,16 @@ const migrateFrom002To003 = (config: AnyConfigWithValidSchema): void => {
 }
 
 // see https://github.com/owid/owid-grapher/commit/1776721253cf61d7f1e24ebadeaf7a7ca2f43ced
-const migrateFrom003To004 = (config: AnyConfigWithValidSchema): void => {
+const migrateFrom003To004 = (config: MigratableConfig): void => {
     delete config.data
 }
 
 // see https://github.com/owid/owid-grapher/commit/1d67de3174764a413bc5055fbdf34efb2b49e079
-const migrateFrom004To005 = (config: AnyConfigWithValidSchema): void => {
+const migrateFrom004To005 = (config: MigratableConfig): void => {
     delete config.hideLinesOutsideTolerance
 }
 
-const migrateFrom005To006 = (config: AnyConfigWithValidSchema): void => {
+const migrateFrom005To006 = (config: MigratableConfig): void => {
     const { type = GRAPHER_CHART_TYPES.LineChart, hasChartTab = true } = config
 
     // add types field
@@ -53,7 +53,7 @@ const migrateFrom005To006 = (config: AnyConfigWithValidSchema): void => {
     delete config.hasChartTab
 }
 
-const migrateFrom006To007 = (config: AnyConfigWithValidSchema): void => {
+const migrateFrom006To007 = (config: MigratableConfig): void => {
     // rename map.projection to map.region
     if (config.map?.projection) {
         config.map.region = config.map.projection
@@ -61,7 +61,7 @@ const migrateFrom006To007 = (config: AnyConfigWithValidSchema): void => {
     }
 }
 
-const migrateFrom007To008 = (config: AnyConfigWithValidSchema): void => {
+const migrateFrom007To008 = (config: MigratableConfig): void => {
     // remove colorScale.customNumericMinValue, merge it into colorScale.customNumericValues
     if (config.map?.colorScale?.customNumericValues) {
         config.map.colorScale.customNumericValues = [
@@ -84,7 +84,7 @@ const migrateFrom007To008 = (config: AnyConfigWithValidSchema): void => {
     }
 }
 
-const migrateFrom008To009 = (config: AnyConfigWithValidSchema): void => {
+const migrateFrom008To009 = (config: MigratableConfig): void => {
     if ((config.map?.colorScale?.binningStrategy ?? "manual") !== "manual") {
         config.map.colorScale.binningStrategy = "auto"
     }
@@ -102,7 +102,7 @@ const migrateFrom008To009 = (config: AnyConfigWithValidSchema): void => {
     }
 }
 
-const migrateFrom009To010 = (config: AnyConfigWithValidSchema): void => {
+const migrateFrom009To010 = (config: MigratableConfig): void => {
     // Rename hideLegend to hideSeriesLabels
     if (config.hideLegend) {
         config.hideSeriesLabels = true
@@ -110,7 +110,7 @@ const migrateFrom009To010 = (config: AnyConfigWithValidSchema): void => {
     }
 }
 
-const migrateFrom010To011 = (config: AnyConfigWithValidSchema): void => {
+const migrateFrom010To011 = (config: MigratableConfig): void => {
     // Drop the deprecated yearIsDay flag in favor of timeInterval
     for (const dimension of config.dimensions ?? []) {
         const display = dimension.display
@@ -140,7 +140,7 @@ const MIGRATION_STEPS: Record<OutdatedSchemaVersion, MigrationStep> = {
 
 /** Applies the step for `version`, restamps `$schema` and returns the new version */
 export const runMigration = (
-    config: AnyConfigWithValidSchema,
+    config: MigratableConfig,
     version: OutdatedSchemaVersion
 ): SchemaVersion => {
     MIGRATION_STEPS[version](config)
