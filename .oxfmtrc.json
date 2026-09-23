@@ -29,6 +29,7 @@
         "packages/@ourworldindata/*/dist/",
         "dist/",
         "grapherData/",
+        "bespoke/projects/*/data/",
         ".vscode/",
         ".claude/settings.local.json",
         "*.handlebars",
