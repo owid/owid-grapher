@@ -42,6 +42,14 @@ const VALUE_LABEL_GAP = 2
 /** Vertical gap between the column headings and the top of the chart */
 const COLUMN_HEADING_GAP = 8
 
+/**
+ * Where a column heading's baseline sits below the top of its row, in ems.
+ * Placed explicitly rather than with `dominant-baseline="hanging"`, whose
+ * position browsers synthesize differently: Android Chrome puts it low
+ * enough for the glyphs to poke out of the top of the SVG and be clipped.
+ */
+const COLUMN_HEADING_BASELINE_EM = 0.9
+
 /** Smallest horizontal gap between two neighbouring column headings */
 const COLUMN_HEADING_MIN_SPACING = 16
 
@@ -694,9 +702,12 @@ export function Sankey({
                                 key={heading.columnIndex}
                                 className="sankey__column-heading"
                                 x={heading.x}
-                                y={heading.y}
+                                y={
+                                    heading.y +
+                                    fontSettings.fontSize *
+                                        COLUMN_HEADING_BASELINE_EM
+                                }
                                 textAnchor={heading.textAnchor}
-                                dominantBaseline="hanging"
                                 fontSize={fontSettings.fontSize}
                                 fontWeight={COLUMN_HEADING_FONT_WEIGHT}
                             >
