@@ -47,7 +47,8 @@ export function makeToleranceNotice({
 
     return formatToleranceNotice({
         timeColumn: transformedTable.timeColumn,
-        timeRange: getTimeRangeOfColumns(
+        timeRange: inputTable.timeRange,
+        substitutedTimeRange: getTimeRangeOfColumns(
             inputTable,
             appliedColumns.map((column) => column.slug)
         ),
@@ -60,11 +61,14 @@ export function formatToleranceNotice({
     timeColumn,
     timeTolerance,
     timeRange,
+    substitutedTimeRange,
     toleranceStrategy = ToleranceStrategy.closest,
 }: {
     timeColumn: CoreColumn
     timeTolerance: number
     timeRange: TimeRange | undefined
+    /** The times substituted values come from, if narrower than `timeRange` */
+    substitutedTimeRange?: TimeRange
     toleranceStrategy?: ToleranceStrategy
 }): string | undefined {
     if (!timeTolerance || timeColumn.isMissing) return undefined
@@ -87,14 +91,16 @@ export function formatToleranceNotice({
     // all other cases (time range plotted, sub-yearly data) use a simpler notice
     if (targetTime !== undefined && !isSubYearly(timeColumn.timeInterval)) {
         // A one-directional strategy reaches to one side of the time shown only
+        const [firstSubstitutedTime, lastSubstitutedTime] =
+            substitutedTimeRange ?? timeRange
         const from =
             toleranceStrategy === ToleranceStrategy.forwards
                 ? targetTime
-                : Math.max(targetTime - timeTolerance, firstTime)
+                : Math.max(targetTime - timeTolerance, firstSubstitutedTime)
         const to =
             toleranceStrategy === ToleranceStrategy.backwards
                 ? targetTime
-                : Math.min(targetTime + timeTolerance, lastTime)
+                : Math.min(targetTime + timeTolerance, lastSubstitutedTime)
 
         // The target year has no data, so a window ending on it stops a year short
         const start = from === targetTime ? from + 1 : from

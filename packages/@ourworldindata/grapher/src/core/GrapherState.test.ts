@@ -1369,6 +1369,37 @@ describe("toleranceNotice", () => {
         )
     })
 
+    it("names the year when a substituted column has data for a single year", () => {
+        const grapher = new GrapherState({
+            table: new OwidTable(
+                [
+                    ["entityName", "year", "coal", "gas"],
+                    // Gas only has data for 2020
+                    ["France", 2020, 30, 40],
+                    ["France", 2025, 31, ""],
+                ],
+                [
+                    { slug: "coal", type: ColumnTypeNames.Numeric },
+                    {
+                        slug: "gas",
+                        type: ColumnTypeNames.Numeric,
+                        tolerance: 5,
+                    },
+                    { slug: "year", type: ColumnTypeNames.Year },
+                ]
+            ),
+            ySlugs: "coal gas",
+            chartTypes: [GRAPHER_CHART_TYPES.StackedDiscreteBar],
+            selectedEntityNames: ["France"],
+            minTime: 2025,
+            maxTime: 2025,
+        })
+
+        expect(grapher.toleranceNotice).toEqual(
+            "Where data for 2025 is unavailable, the value from 2020 is shown instead."
+        )
+    })
+
     describe("only when tolerance is actually applied", () => {
         // Every country has data for every year
         const completeTable = (): OwidTable =>
