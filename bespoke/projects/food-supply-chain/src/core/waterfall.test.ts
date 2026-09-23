@@ -6,7 +6,7 @@ import {
     FoodSupplyChainManifest,
     StageKey,
 } from "./types.js"
-import { buildWaterfall } from "./waterfall.js"
+import { buildWaterfall, findExcludedStageKeys } from "./waterfall.js"
 
 describe(buildWaterfall, () => {
     it('computes a positive delta for an "out" stage with a negative value', () => {
@@ -103,6 +103,63 @@ describe(buildWaterfall, () => {
             year: 2020,
         })!
         expect(result.domain[0]).toBe(0)
+    })
+
+    it("leaves out a step of zero", () => {
+        const manifest = fixtureManifest([
+            { key: "crop", name: "Crop production", direction: "in" },
+            { key: "tourism", name: "Tourist consumption", direction: "out" },
+            { key: "exports", name: "Exports", direction: "out" },
+        ])
+        const entityData = fixtureEntityData([2020], {
+            crop: [20],
+            tourism: [0],
+            exports: [5],
+            food: [15],
+        })
+        const result = buildWaterfall({
+            manifest,
+            entityData,
+            measure: "energy",
+            year: 2020,
+        })!
+        expect(result.steps.map((step) => step.key)).toEqual([
+            "crop",
+            "exports",
+        ])
+    })
+
+    it("leaves excluded stages out of the running balance", () => {
+        const manifest = fixtureManifest([
+            { key: "crop", name: "Crop production", direction: "in" },
+            { key: "imports", name: "Imports", direction: "in" },
+            { key: "seed", name: "Seed", direction: "out" },
+        ])
+        const entityData = fixtureEntityData([2020], {
+            crop: [20],
+            imports: [5],
+            seed: [3],
+            food: [17],
+        })
+        const result = buildWaterfall({
+            manifest,
+            entityData,
+            measure: "energy",
+            year: 2020,
+            excludedStageKeys: ["imports"],
+        })!
+        expect(result.steps.map((step) => step.key)).toEqual(["crop", "seed"])
+        expect(result.steps[1].balanceBefore).toBe(20)
+    })
+})
+
+describe(findExcludedStageKeys, () => {
+    it("excludes imports and exports for the world", () => {
+        expect(findExcludedStageKeys("world")).toEqual(["imports", "exports"])
+    })
+
+    it("excludes nothing for a country", () => {
+        expect(findExcludedStageKeys("france")).toEqual([])
     })
 })
 

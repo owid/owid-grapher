@@ -42,6 +42,7 @@ import {
     captionLength,
     chooseTickValues,
     groupBoxLength,
+    isGroupLabelled,
     layOutWaterfall,
     measureSlotWidth,
     PlacedBar,
@@ -91,15 +92,24 @@ export function FoodSupplyChainWaterfall({
         totalBoxLength(slotWidth) - 2 * GROUP_LABEL_INSET
     )
 
+    const stepKeys = new Set(waterfall.steps.map((step) => step.key))
     const groupLabelTextWraps = new Map(
-        STAGE_GROUPS.map((group) => [
-            group.key,
-            buildGroupLabelTextWrap(
-                group.label,
-                groupBoxLength(slotWidth, group.stageKeys.length) -
-                    2 * GROUP_LABEL_INSET
-            ),
-        ])
+        STAGE_GROUPS.flatMap((group) => {
+            const stageCount = group.stageKeys.filter((key) =>
+                stepKeys.has(key)
+            ).length
+            if (!isGroupLabelled(stageCount)) return []
+            return [
+                [
+                    group.key,
+                    buildGroupLabelTextWrap(
+                        group.label,
+                        groupBoxLength(slotWidth, stageCount) -
+                            2 * GROUP_LABEL_INSET
+                    ),
+                ] as const,
+            ]
+        })
     )
 
     const groupLabelHeight = Math.max(
@@ -246,26 +256,24 @@ export function FoodSupplyChainWaterfall({
                         isDimmed={hover !== undefined}
                     />
                 )}
-                {layout.steps.map((step, index) =>
-                    step.step.delta === 0 ? null : (
-                        <StepMarks
-                            key={step.step.key}
-                            step={step}
-                            valueLabelText={valueLabelTexts[index]}
-                            isTotal={false}
-                            isDimmed={
-                                hover !== undefined &&
-                                hover.stepKey !== step.step.key
-                            }
-                            captionTextWrap={captionTextWraps[index]}
-                            backgroundColor={
-                                groupedStepKeys.has(step.step.key)
-                                    ? COLORS.groupBox
-                                    : COLORS.background
-                            }
-                        />
-                    )
-                )}
+                {layout.steps.map((step, index) => (
+                    <StepMarks
+                        key={step.step.key}
+                        step={step}
+                        valueLabelText={valueLabelTexts[index]}
+                        isTotal={false}
+                        isDimmed={
+                            hover !== undefined &&
+                            hover.stepKey !== step.step.key
+                        }
+                        captionTextWrap={captionTextWraps[index]}
+                        backgroundColor={
+                            groupedStepKeys.has(step.step.key)
+                                ? COLORS.groupBox
+                                : COLORS.background
+                        }
+                    />
+                ))}
                 <StepMarks
                     step={layout.total}
                     valueLabelText={totalValueLabelText}
@@ -477,9 +485,7 @@ function GroupBox({
     labelY: number
     fill: string
     labelColor: string
-}): React.ReactElement | null {
-    if (!labelTextWrap) return null
-
+}): React.ReactElement {
     return (
         <g className="food-supply-chain-waterfall__group">
             <rect
@@ -491,13 +497,15 @@ function GroupBox({
                 rx={GROUP_BOX_CORNER_RADIUS}
                 fill={fill}
             />
-            <TextWrapSvg
-                className="food-supply-chain-waterfall__group-label"
-                textWrap={labelTextWrap}
-                x={box.x + GROUP_LABEL_INSET}
-                y={labelY}
-                fill={labelColor}
-            />
+            {labelTextWrap && (
+                <TextWrapSvg
+                    className="food-supply-chain-waterfall__group-label"
+                    textWrap={labelTextWrap}
+                    x={box.x + GROUP_LABEL_INSET}
+                    y={labelY}
+                    fill={labelColor}
+                />
+            )}
         </g>
     )
 }
