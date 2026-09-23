@@ -7,12 +7,14 @@ import {
     FoodSupplyChainManifest,
     ManifestJson,
 } from "./types.js"
+import { STAGE_LABELS } from "./stageLabels.js"
 
 export function parseManifest(raw: ManifestJson): FoodSupplyChainManifest {
     const flowStages: FlowStage[] = []
     let totalStage: { key: string; name: string } | undefined
     for (const stage of raw.stages) {
-        const { key, name, direction } = stage
+        const { key, direction } = stage
+        const name = STAGE_LABELS[key] ?? stage.name
         if (direction === "total") totalStage = { key, name }
         else if (direction === "in" || direction === "out")
             flowStages.push({ key, name, direction })
