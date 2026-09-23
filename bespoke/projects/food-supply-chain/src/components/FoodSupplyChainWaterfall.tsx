@@ -1,22 +1,12 @@
-import { useCallback, useRef, useState } from "react"
 import cx from "clsx"
 
-import {
-    shortenWithEllipsis,
-    TextWrap,
-} from "@ourworldindata/components/src/TextWrap/TextWrap.js"
+import { TextWrap } from "@ourworldindata/components/src/TextWrap/TextWrap.js"
 import { TextWrapSvg } from "@ourworldindata/components/src/TextWrap/TextWrapComponents.js"
 import { Halo } from "@ourworldindata/components/src/Halo/Halo.js"
-import {
-    Bounds,
-    getRelativeMouse,
-    isTouchDevice,
-    Point,
-} from "@ourworldindata/utils"
+import { Bounds } from "@ourworldindata/utils"
 import { GrapherTooltipAnchor } from "@ourworldindata/types"
 import { BezierArrow } from "@ourworldindata/grapher"
 
-import { usePinnedTooltip } from "../../../../hooks/usePinnedTooltip.js"
 import {
     ARROW_INSET,
     ARROW_MIN_LENGTH,
@@ -47,7 +37,6 @@ import {
 } from "../core/constants.js"
 import { formatMeasureValue } from "../core/format.js"
 import { STAGE_GROUPS } from "../core/stageGroups.js"
-import { StageKey } from "../core/types.js"
 import { isAddition, Waterfall } from "../core/waterfall.js"
 import {
     captionLength,
@@ -62,6 +51,8 @@ import {
     totalBoxLength,
 } from "../core/waterfallLayout.js"
 import { FoodSupplyChainTooltip } from "./FoodSupplyChainTooltip.js"
+import { buildTruncatedTextWrap } from "./truncatedTextWrap.js"
+import { useStepHover } from "./useStepHover.js"
 
 export interface FoodSupplyChainWaterfallProps {
     waterfall: Waterfall
@@ -69,60 +60,24 @@ export interface FoodSupplyChainWaterfallProps {
     height: number
 }
 
-/** The hovered or touch-pinned column, at the mouse position that triggered it */
-interface Hover {
-    stepKey: StageKey
-    position: Point
-}
-
 export function FoodSupplyChainWaterfall({
     waterfall,
     width,
     height,
 }: FoodSupplyChainWaterfallProps): React.ReactElement | null {
-    const svgRef = useRef<SVGSVGElement>(null)
-    const [hover, setHover] = useState<Hover | undefined>(undefined)
-
-    const dismissHover = useCallback(() => setHover(undefined), [])
-    const { ref: containerRef, isPinned } = usePinnedTooltip<HTMLDivElement>(
-        hover !== undefined,
-        dismissHover
-    )
-
-    const onStepMouseEnter = useCallback(
-        (stepKey: StageKey, event: React.MouseEvent) => {
-            if (!svgRef.current) return
-            const position = getRelativeMouse(svgRef.current, event.nativeEvent)
-            setHover({ stepKey, position })
-        },
-        []
-    )
-    const onStepMouseMove = useCallback((event: React.MouseEvent) => {
-        if (!svgRef.current) return
-        const position = getRelativeMouse(svgRef.current, event.nativeEvent)
-        setHover((prev) => (prev ? { ...prev, position } : prev))
-    }, [])
-    const onStepMouseLeave = useCallback(() => {
-        // usePinnedTooltip owns dismissal on touch
-        if (isTouchDevice()) return
-        setHover(undefined)
-    }, [])
+    const {
+        svgRef,
+        containerRef,
+        hover,
+        isPinned,
+        onStepMouseEnter,
+        onStepMouseMove,
+        onStepMouseLeave,
+    } = useStepHover()
 
     const span = waterfall.domain[1] - waterfall.domain[0]
-    const tickLabels = new Map(
-        chooseTickValues(waterfall.domain).map((value) => [
-            value,
-            formatMeasureValue(value, { span, unit: waterfall.shortUnit }),
-        ])
-    )
-    const axisLabelWidth =
-        Math.max(
-            ...[...tickLabels.values()].map(
-                (label) =>
-                    Bounds.forText(label, { fontSize: TICK_LABEL_FONT_SIZE })
-                        .width
-            )
-        ) + TICK_LABEL_GAP
+    const tickLabels = buildTickLabels(waterfall)
+    const axisLabelWidth = measureAxisLabelWidth(tickLabels)
 
     const plotWidth = width - axisLabelWidth - PLOT_MARGIN_RIGHT
     if (plotWidth <= 0) return null
@@ -340,6 +295,40 @@ export function FoodSupplyChainWaterfall({
     )
 }
 
+/** The pixels one step's column gets at this width */
+export function measureVerticalSlotWidth(
+    waterfall: Waterfall,
+    width: number
+): number {
+    const plotWidth =
+        width -
+        measureAxisLabelWidth(buildTickLabels(waterfall)) -
+        PLOT_MARGIN_RIGHT
+    return measureSlotWidth(plotWidth, waterfall.steps.length)
+}
+
+function buildTickLabels(waterfall: Waterfall): Map<number, string> {
+    const span = waterfall.domain[1] - waterfall.domain[0]
+    return new Map(
+        chooseTickValues(waterfall.domain).map((value) => [
+            value,
+            formatMeasureValue(value, { span, unit: waterfall.shortUnit }),
+        ])
+    )
+}
+
+function measureAxisLabelWidth(tickLabels: Map<number, string>): number {
+    return (
+        Math.max(
+            ...[...tickLabels.values()].map(
+                (label) =>
+                    Bounds.forText(label, { fontSize: TICK_LABEL_FONT_SIZE })
+                        .width
+            )
+        ) + TICK_LABEL_GAP
+    )
+}
+
 function StepMarks({
     step,
     valueLabelText,
@@ -548,29 +537,11 @@ function buildGroupLabelTextWrap(text: string, maxWidth: number): TextWrap {
     })
 }
 
-/** A caption's TextWrap, truncated to at most MAX_CAPTION_LINES lines */
 function buildCaptionTextWrap(text: string, slotWidth: number): TextWrap {
-    const maxWidth = captionLength(slotWidth)
-    const wrap = new TextWrap({
+    return buildTruncatedTextWrap({
         text,
-        maxWidth,
-        fontSize: CAPTION_FONT_SIZE,
-        fontWeight: CAPTION_FONT_WEIGHT,
-    })
-    if (wrap.lines.length <= MAX_CAPTION_LINES) return wrap
-
-    const kept = wrap.lines.slice(0, MAX_CAPTION_LINES).map((line) => line.text)
-    kept[kept.length - 1] = shortenWithEllipsis(
-        kept[kept.length - 1],
-        maxWidth,
-        {
-            fontSize: CAPTION_FONT_SIZE,
-            fontWeight: CAPTION_FONT_WEIGHT,
-        }
-    )
-    return new TextWrap({
-        text: kept.join("\n"),
-        maxWidth,
+        maxWidth: captionLength(slotWidth),
+        maxLines: MAX_CAPTION_LINES,
         fontSize: CAPTION_FONT_SIZE,
         fontWeight: CAPTION_FONT_WEIGHT,
     })

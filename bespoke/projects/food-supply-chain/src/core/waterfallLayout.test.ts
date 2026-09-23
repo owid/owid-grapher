@@ -10,9 +10,13 @@ import {
 import { buildWaterfall, Waterfall } from "./waterfall.js"
 import {
     Box,
+    countStepAxisSlots,
     MIN_BAR_LENGTH_PX,
     layOutWaterfall,
+    measureGroupHeaderSlots,
+    PlacedRect,
     PlacedStep,
+    WaterfallLayout,
 } from "./waterfallLayout.js"
 
 const BOX: Box = { x: 10, y: 20, width: 300, height: 200 }
@@ -162,6 +166,154 @@ describe(layOutWaterfall, () => {
         expect(layout.zeroLine.y1).toBeLessThan(BOX.y + BOX.height)
     })
 })
+
+describe("horizontal layout", () => {
+    /** BOX turned on its side, so both layouts get the same pixels along each axis */
+    const TRANSPOSED_BOX: Box = { x: 10, y: 20, width: 200, height: 300 }
+
+    it("places the same bars as the vertical layout, transposed", () => {
+        const waterfall = fixtureWaterfall({
+            crop: [100],
+            exports: [10],
+            tourism: [5],
+            food: [85],
+        })
+        const vertical = layOutWaterfall(waterfall, BOX)
+        const horizontal = layOutWaterfall(waterfall, TRANSPOSED_BOX, {
+            orientation: "horizontal",
+        })
+
+        const verticalSteps = [...vertical.steps, vertical.total]
+        const horizontalSteps = [...horizontal.steps, horizontal.total]
+        expect(horizontalSteps.map((step) => step.step.key)).toEqual(
+            verticalSteps.map((step) => step.step.key)
+        )
+        verticalSteps.forEach((verticalStep, index) => {
+            const verticalBar = verticalStep.bar!
+            const horizontalBar = horizontalSteps[index].bar!
+            // Values run up the vertical box and rightwards across the horizontal one
+            expect(
+                horizontalBar.x -
+                    TRANSPOSED_BOX.x -
+                    (BOX.y + BOX.height - verticalBar.y - verticalBar.height)
+            ).toBeCloseTo(0, 6)
+            expect(horizontalBar.width).toBeCloseTo(verticalBar.height, 6)
+            expect(horizontalBar.y - TRANSPOSED_BOX.y).toBeCloseTo(
+                verticalBar.x - BOX.x,
+                6
+            )
+            expect(horizontalBar.height).toBeCloseTo(verticalBar.width, 6)
+        })
+    })
+
+    it("runs its gridlines down the box, top to bottom", () => {
+        const layout = layOutWaterfall(fixtureGroupedWaterfall(), BOX, {
+            orientation: "horizontal",
+        })
+
+        for (const tick of layout.ticks) {
+            expect(tick.gridline.x1).toBe(tick.gridline.x2)
+            expect(tick.gridline.y1).toBeCloseTo(BOX.y)
+            expect(tick.gridline.y2).toBeCloseTo(BOX.y + BOX.height)
+        }
+    })
+
+    it("starts each group's box the header's height above its first row", () => {
+        const waterfall = fixtureGroupedWaterfall()
+        const headerHeightPx = 20
+        const rowHeightPx = 30
+        const groupHeaderSlots = measureGroupHeaderSlots(
+            headerHeightPx,
+            rowHeightPx
+        )
+        const box: Box = {
+            x: 10,
+            y: 20,
+            width: 300,
+            height:
+                rowHeightPx *
+                countStepAxisSlots(waterfall.steps, { groupHeaderSlots }),
+        }
+        const layout = layOutWaterfall(waterfall, box, {
+            orientation: "horizontal",
+            groupHeaderSlots,
+        })
+
+        expect(layout.groups).toHaveLength(STAGE_GROUPS.length)
+        for (const placed of layout.groups) {
+            const firstRow = findStep(layout.steps, placed.group.stageKeys[0])
+            expect(firstRow.slot.height).toBeCloseTo(rowHeightPx)
+            expect(firstRow.slot.y - placed.box.y).toBeCloseTo(headerHeightPx)
+        }
+    })
+
+    it("widens the space between neighbouring boxes by the gap", () => {
+        const waterfall = fixtureGroupedWaterfall()
+        const boxGapSlots = 0.5
+        const withoutGap = layOutWaterfall(waterfall, BOX, {
+            orientation: "horizontal",
+        })
+        const box: Box = {
+            ...BOX,
+            height:
+                (BOX.height *
+                    countStepAxisSlots(waterfall.steps, { boxGapSlots })) /
+                countStepAxisSlots(waterfall.steps, {}),
+        }
+        const withGap = layOutWaterfall(waterfall, box, {
+            orientation: "horizontal",
+            boxGapSlots,
+        })
+
+        const slotLengthPx = withoutGap.steps[0].slot.height
+        const boxGaps = (layout: WaterfallLayout): number[] => {
+            const boxes = [
+                ...layout.groups.map((placed) => placed.box),
+                layout.totalBox,
+            ]
+            return boxes
+                .slice(1)
+                .map((next, i) => next.y - (boxes[i].y + boxes[i].height))
+        }
+        boxGaps(withGap).forEach((gap, i) =>
+            expect(gap - boxGaps(withoutGap)[i]).toBeCloseTo(
+                boxGapSlots * slotLengthPx
+            )
+        )
+    })
+
+    it("keeps each group's rows, and only those, inside its box", () => {
+        const layout = layOutWaterfall(fixtureGroupedWaterfall(), BOX, {
+            orientation: "horizontal",
+            groupHeaderSlots: 0.8,
+        })
+
+        for (const placed of layout.groups) {
+            expect(stepKeysInsideRowsOf(layout.steps, placed.box)).toEqual(
+                placed.group.stageKeys
+            )
+        }
+    })
+})
+
+function findStep(steps: PlacedStep[], key: StageKey): PlacedStep {
+    const step = steps.find((candidate) => candidate.step.key === key)
+    if (!step) throw new Error(`No step ${key}`)
+    return step
+}
+
+function stepKeysInsideRowsOf(
+    steps: PlacedStep[],
+    box: PlacedRect
+): StageKey[] {
+    return steps
+        .filter(
+            (step) =>
+                step.valueAnchor.y > box.y &&
+                step.valueAnchor.y < box.y + box.height
+        )
+        .map((step) => step.step.key)
+}
 
 function stepKeysInsideGroupBox(
     steps: PlacedStep[],

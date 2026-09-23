@@ -13,7 +13,20 @@ const GROUP_BOX_OVERHANG_RATIO = 0.08
 /** The total's column width, in step columns */
 const TOTAL_SLOT_SPAN = 1.5
 
-const TICK_COUNT = 5
+const TICK_COUNT_BY_ORIENTATION: Record<WaterfallOrientation, number> = {
+    vertical: 5,
+    horizontal: 3,
+}
+
+export type WaterfallOrientation = "vertical" | "horizontal"
+
+export interface WaterfallLayoutOptions {
+    orientation?: WaterfallOrientation
+    /** Room before each group's first slot, in slots */
+    groupHeaderSlots?: number
+    /** Extra room before each group's box and the total's, in slots */
+    boxGapSlots?: number
+}
 
 export interface Box {
     x: number
@@ -110,21 +123,58 @@ export function totalBoxLength(slotWidth: number): number {
     )
 }
 
+/** Slots on the step axis: one per step, the total's wider one, and the room around the boxes */
+export function countStepAxisSlots(
+    steps: WaterfallStep[],
+    { groupHeaderSlots = 0, boxGapSlots = 0 }: WaterfallLayoutOptions
+): number {
+    return planStepAxis(steps, groupHeaderSlots, boxGapSlots).totalSlot.to
+}
+
+/** The group header room, in slots, that starts a group's box `headerHeightPx` above its first slot */
+export function measureGroupHeaderSlots(
+    headerHeightPx: number,
+    slotLengthPx: number
+): number {
+    return (
+        headerHeightPx / slotLengthPx +
+        SLOT_PADDING_RATIO -
+        GROUP_BOX_OVERHANG_RATIO
+    )
+}
+
 /** The pixels a caption gets, from its bar's left edge to the end of its slot */
 export function captionLength(slotWidth: number): number {
     return slotWidth * (1 - SLOT_PADDING_RATIO)
 }
 
 /** The values the value axis puts a tick and gridline at */
-export function chooseTickValues(domain: [number, number]): number[] {
-    return chooseTicks(domain).ticks
+export function chooseTickValues(
+    domain: [number, number],
+    orientation: WaterfallOrientation = "vertical"
+): number[] {
+    return chooseTicks(domain, TICK_COUNT_BY_ORIENTATION[orientation]).ticks
 }
 
 export function layOutWaterfall(
     waterfall: Waterfall,
-    box: Box
+    box: Box,
+    {
+        orientation = "vertical",
+        groupHeaderSlots = 0,
+        boxGapSlots = 0,
+    }: WaterfallLayoutOptions = {}
 ): WaterfallLayout {
-    return projectPlan(planWaterfall(waterfall), box, VERTICAL_PROJECTION)
+    return projectPlan(
+        planWaterfall(
+            waterfall,
+            TICK_COUNT_BY_ORIENTATION[orientation],
+            groupHeaderSlots,
+            boxGapSlots
+        ),
+        box,
+        PROJECTIONS[orientation]
+    )
 }
 
 /** A closed interval on one axis; a point is an interval whose ends are equal */
@@ -175,15 +225,26 @@ interface WaterfallPlan {
     totalBox: Extent
 }
 
-function planWaterfall(waterfall: Waterfall): WaterfallPlan {
-    const { ticks, domain: valueDomain } = chooseTicks(waterfall.domain)
-    const stepCount = waterfall.steps.length
-    const stepDomain: Span = { from: 0, to: stepCount + TOTAL_SLOT_SPAN }
+function planWaterfall(
+    waterfall: Waterfall,
+    tickCount: number,
+    groupHeaderSlots: number,
+    boxGapSlots: number
+): WaterfallPlan {
+    const { ticks, domain: valueDomain } = chooseTicks(
+        waterfall.domain,
+        tickCount
+    )
+    const { slots, totalSlot, groupRanges } = planStepAxis(
+        waterfall.steps,
+        groupHeaderSlots,
+        boxGapSlots
+    )
+    const stepDomain: Span = { from: 0, to: totalSlot.to }
 
     const steps = waterfall.steps.map((step, index) =>
-        planStep(step, slotSpan(index), valueDomain)
+        planStep(step, slots[index], valueDomain)
     )
-    const totalSlot: Span = { from: stepCount, to: stepCount + TOTAL_SLOT_SPAN }
     const total = planStep(totalAsStep(waterfall.total), totalSlot, valueDomain)
 
     return {
@@ -197,7 +258,19 @@ function planWaterfall(waterfall: Waterfall): WaterfallPlan {
             gridline: { value: { from: value, to: value }, step: stepDomain },
         })),
         zeroLine: { value: { from: 0, to: 0 }, step: stepDomain },
-        groups: planGroups(waterfall.steps, valueDomain),
+        groups: groupRanges.map(({ group, first, last }) => ({
+            group,
+            box: {
+                value: valueDomain,
+                step: {
+                    from:
+                        barSpan(slots[first]).from -
+                        groupHeaderSlots -
+                        GROUP_BOX_OVERHANG_RATIO,
+                    to: barSpan(slots[last]).to + GROUP_BOX_OVERHANG_RATIO,
+                },
+            },
+        })),
         totalBox: {
             value: valueDomain,
             step: {
@@ -214,7 +287,37 @@ function planWaterfall(waterfall: Waterfall): WaterfallPlan {
     }
 }
 
-function planGroups(steps: WaterfallStep[], valueDomain: Span): PlannedGroup[] {
+/** A placed group, as the indices of its first and last step */
+interface GroupRange {
+    group: StageGroup
+    first: number
+    last: number
+}
+
+/** Each step's slot and the total's, with the gap and header room before each group's first slot */
+function planStepAxis(
+    steps: WaterfallStep[],
+    groupHeaderSlots: number,
+    boxGapSlots: number
+): { slots: Span[]; totalSlot: Span; groupRanges: GroupRange[] } {
+    const groupRanges = findGroupRanges(steps)
+    const groupStarts = new Set(groupRanges.map((range) => range.first))
+
+    let cursor = 0
+    const slots = steps.map((_, index) => {
+        if (groupStarts.has(index)) cursor += boxGapSlots + groupHeaderSlots
+        const slot = { from: cursor, to: cursor + 1 }
+        cursor += 1
+        return slot
+    })
+    cursor += boxGapSlots
+    const totalSlot = { from: cursor, to: cursor + TOTAL_SLOT_SPAN }
+
+    return { slots, totalSlot, groupRanges }
+}
+
+/** The groups whose stages are all side by side, in the order they appear */
+function findGroupRanges(steps: WaterfallStep[]): GroupRange[] {
     const slotIndexByKey = new Map(
         steps.map((step, index) => [step.key, index])
     )
@@ -226,23 +329,11 @@ function planGroups(steps: WaterfallStep[], valueDomain: Span): PlannedGroup[] {
         if (slotIndices.length === 0) return []
         if (!areSlotsContiguous(slotIndices)) return []
 
-        const first = Math.min(...slotIndices)
-        const last = Math.max(...slotIndices)
-
         return [
             {
                 group,
-                box: {
-                    value: valueDomain,
-                    step: {
-                        from:
-                            barSpan(slotSpan(first)).from -
-                            GROUP_BOX_OVERHANG_RATIO,
-                        to:
-                            barSpan(slotSpan(last)).to +
-                            GROUP_BOX_OVERHANG_RATIO,
-                    },
-                },
+                first: Math.min(...slotIndices),
+                last: Math.max(...slotIndices),
             },
         ]
     })
@@ -318,7 +409,10 @@ function planConnectors(slots: PlannedStep[]): PlannedConnector[] {
 }
 
 /** Round tick values covering the domain, and the domain widened to reach them */
-function chooseTicks(domain: [number, number]): {
+function chooseTicks(
+    domain: [number, number],
+    tickCount: number
+): {
     ticks: number[]
     domain: Span
 } {
@@ -328,7 +422,7 @@ function chooseTicks(domain: [number, number]): {
         hi += 1
     }
 
-    const step = tickStep(lo, hi, TICK_COUNT)
+    const step = tickStep(lo, hi, tickCount)
     const from = Math.floor(lo / step) * step
     const to = Math.ceil(hi / step) * step
 
@@ -337,11 +431,6 @@ function chooseTicks(domain: [number, number]): {
     for (let i = 0; i <= count; i++) ticks.push(from + i * step)
 
     return { ticks, domain: { from, to } }
-}
-
-/** The interval slot `index` occupies */
-function slotSpan(index: number): Span {
-    return { from: index, to: index + 1 }
 }
 
 /** Where a slot's bar goes: one slot wide less its padding, centred in the slot */
@@ -388,6 +477,25 @@ const VERTICAL_PROJECTION: ScreenProjection = {
         x2: px.alongStep.to,
         y2: px.alongValue.to,
     }),
+}
+
+/** Values run rightwards across the box, steps run down it */
+const HORIZONTAL_PROJECTION: ScreenProjection = {
+    axes: (box) => ({
+        alongValue: { from: box.x, to: box.x + box.width },
+        alongStep: { from: box.y, to: box.y + box.height },
+    }),
+    toSegment: (px) => ({
+        x1: px.alongValue.from,
+        y1: px.alongStep.from,
+        x2: px.alongValue.to,
+        y2: px.alongStep.to,
+    }),
+}
+
+const PROJECTIONS: Record<WaterfallOrientation, ScreenProjection> = {
+    vertical: VERTICAL_PROJECTION,
+    horizontal: HORIZONTAL_PROJECTION,
 }
 
 function projectPlan(
