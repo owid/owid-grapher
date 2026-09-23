@@ -46,6 +46,7 @@ export enum EventCategory {
     SiteSearchAutocompleteClick = "owid.site_search_autocomplete_click",
     SiteSearchResultClick = "owid.site_search_result_click",
     SiteFormSubmit = "owid.site_form_submit",
+    SiteFindInPage = "owid.site_find_in_page",
     DetailOnDemand = "owid.detail_on_demand",
     SiteGuidedChartLinkClick = "owid.site_guided_chart_link_click",
     SiteChartPreviewMouseover = "owid.site_chart_preview_mouseover",
@@ -81,6 +82,7 @@ export type EventParamsMap = {
     [EventCategory.SiteUserSurvey]: SiteUserSurveyParams
     [EventCategory.SiteClick]: SiteClickParams
     [EventCategory.SiteFormSubmit]: SiteFormSubmitParams
+    [EventCategory.SiteFindInPage]: SiteFindInPageParams
     [EventCategory.SiteInstantSearchClick]: SiteInstantSearchClickParams
     [EventCategory.SiteError]: SiteErrorParams
     [EventCategory.Filter]: FilterParams
@@ -176,6 +178,18 @@ export interface SiteFormSubmitParams {
     /** Action type - form submission type */
     eventAction: "newsletter-subscribe" | "donate"
     /** Target element or label */
+    eventTarget?: string
+}
+
+export interface SiteFindInPageParams {
+    /** 'open' = the browser's find shortcut was pressed (logged at most once
+     * per page view). 'reveal' = the browser's find-in-page expanded a
+     * collapsed <details> section to show a match (at most once per section
+     * per page view). The browser never exposes the searched text. */
+    eventAction: "open" | "reveal"
+    /** For 'open': the shortcut pressed ('mod+f' or 'f3') */
+    eventContext?: string
+    /** For 'reveal': the revealed section's summary text */
     eventTarget?: string
 }
 

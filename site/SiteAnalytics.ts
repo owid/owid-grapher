@@ -399,6 +399,99 @@ export class SiteAnalytics extends GrapherAnalytics {
         )
     }
 
+    /**
+     * Track use of the browser's own find-in-page (Cmd/Ctrl+F). The find bar
+     * itself is invisible to page scripts, so we log two proxies:
+     *
+     * - "open": the find shortcut reaching the page. Misses find opened from
+     *   the browser menu, which is how mobile users open it, so treat this
+     *   as a desktop signal.
+     * - "reveal": a collapsed <details> section opening with no page
+     *   interaction just before it. Chromium browsers auto-expand <details>
+     *   when a find match is inside one (see ExpandableToggle), so this
+     *   tells us which hidden section a user was searching for.
+     *
+     * Returns a function that removes the listeners.
+     */
+    startFindInPageTracking(): () => void {
+        const controller = new AbortController()
+        const listenerOptions = {
+            capture: true,
+            passive: true,
+            signal: controller.signal,
+        }
+        let hasLoggedOpen = false
+        // Time of the last pointer press/keypress in the page. A <details>
+        // opening right after one was opened by the user (or by UI code
+        // reacting to them), not by find-in-page.
+        let lastInteractionAt = -Infinity
+        const revealed = new WeakSet<HTMLDetailsElement>()
+
+        document.addEventListener(
+            "keydown",
+            (ev) => {
+                const isModF =
+                    (ev.metaKey || ev.ctrlKey) &&
+                    !ev.altKey &&
+                    !ev.shiftKey &&
+                    (ev.key.toLowerCase() === "f" || ev.code === "KeyF")
+                const isF3 = ev.key === "F3"
+                if (!isModF && !isF3) {
+                    lastInteractionAt = ev.timeStamp
+                    return
+                }
+                if (hasLoggedOpen || ev.repeat) return
+                hasLoggedOpen = true
+                this.logFindInPageOpen(isModF ? "mod+f" : "f3")
+            },
+            listenerOptions
+        )
+
+        document.addEventListener(
+            "pointerdown",
+            (ev) => (lastInteractionAt = ev.timeStamp),
+            listenerOptions
+        )
+
+        // `toggle` doesn't bubble, but capture listeners still see it
+        document.addEventListener(
+            "toggle",
+            (ev) => {
+                const details = ev.target
+                if (!(details instanceof HTMLDetailsElement)) return
+                if (!details.open || revealed.has(details)) return
+                if (ev.timeStamp - lastInteractionAt < 1000) return
+                revealed.add(details)
+                const summary = details.querySelector(":scope > summary")
+                this.logFindInPageReveal(
+                    (summary?.textContent ?? "")
+                        .replace(/\s+/g, " ")
+                        .trim()
+                        .slice(0, 100)
+                )
+            },
+            listenerOptions
+        )
+
+        return () => controller.abort()
+    }
+
+    private logFindInPageOpen(shortcut: "mod+f" | "f3") {
+        this.logToGA({
+            event: EventCategory.SiteFindInPage,
+            eventAction: "open",
+            eventContext: shortcut,
+        })
+    }
+
+    private logFindInPageReveal(summaryText: string) {
+        this.logToGA({
+            event: EventCategory.SiteFindInPage,
+            eventAction: "reveal",
+            eventTarget: summaryText,
+        })
+    }
+
     private logBrowserTranslationEvent(ctx: {
         from: string | null
         to: string | null
