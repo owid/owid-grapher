@@ -51,6 +51,27 @@ describe(resolveBespokeComponentUrls, () => {
         })
     })
 
+    it("resolves bundled data against the script base", () => {
+        const urls = resolveBespokeComponentUrls(
+            {
+                scriptUrl: "/deforestation-trade/index.js",
+                dataUrl: "/deforestation-trade",
+                dataBundled: true,
+                metadataFilename: "deforestation-trade.metadata.json",
+            },
+            {
+                scriptBaseUrl: SCRIPT_BASE_URL,
+                dataBaseUrl: STAGING_DATA_BASE_URL,
+            }
+        )
+
+        expect(urls).toEqual({
+            scriptUrl: `${SCRIPT_BASE_URL}/deforestation-trade/index.js`,
+            dataUrl: `${SCRIPT_BASE_URL}/deforestation-trade`,
+            metadataUrl: `${SCRIPT_BASE_URL}/deforestation-trade/deforestation-trade.metadata.json`,
+        })
+    })
+
     it("falls back to production data when no environment is given", () => {
         const urls = resolveBespokeComponentUrls(
             {

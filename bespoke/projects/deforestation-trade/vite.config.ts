@@ -19,12 +19,12 @@ export default defineConfig({
     resolve: {
         dedupe: DEDUPED_PACKAGES,
     },
-    // `data/` holds the hand-built data files (see scripts/buildData.py) so the
-    // dev server can serve them at /deforestation-trade/<file>; they are not
-    // part of the production bundle, which fetches them from the bucket.
+    // `data/` holds the hand-built data files (see scripts/buildData.py). The
+    // dev server serves them at /deforestation-trade/<file>, and the build
+    // copies them next to index.js, where the registry's `dataBundled` entry
+    // points. Both go once an ETL step publishes the data.
     publicDir: "data",
     build: {
-        copyPublicDir: false,
         lib: {
             entry: entrypoints.js,
             formats: ["es"],
