@@ -4,12 +4,14 @@ import { STAGE_GROUPS, StageGroup } from "./stageGroups.js"
 import { Waterfall, WaterfallStep } from "./waterfall.js"
 
 /** Shortest bar the chart draws */
-export const MIN_BAR_LENGTH_PX = 0.5
+export const MIN_BAR_LENGTH_PX = 1
 
 /** Share of a slot left empty on each side of its bar */
-const SLOT_PADDING_RATIO = 0.2
+const SLOT_PADDING_RATIO = 0.15
 /** How far a group's box reaches past its outer bars, in slots */
 const GROUP_BOX_OVERHANG_RATIO = 0.08
+/** The total's column width, in step columns */
+const TOTAL_SLOT_SPAN = 1.5
 
 const TICK_COUNT = 5
 
@@ -54,8 +56,12 @@ export interface PlacedStep {
     bar?: PlacedBar
     /** The far end of the bar */
     valueAnchor: PlacedPoint
-    /** The low end of the value axis */
-    captionAnchor: PlacedPoint
+}
+
+export interface PlacedConnector {
+    /** The step whose bar the connector leaves from */
+    leftStep: WaterfallStep
+    line: PlacedLine
 }
 
 export interface PlacedTick {
@@ -73,10 +79,17 @@ export interface PlacedGroup {
 export interface WaterfallLayout {
     steps: PlacedStep[]
     total: PlacedStep
-    connectors: PlacedLine[]
+    connectors: PlacedConnector[]
     ticks: PlacedTick[]
     zeroLine: PlacedLine
     groups: PlacedGroup[]
+    /** The total's column, over the plot's whole value range */
+    totalBox: PlacedRect
+}
+
+/** The pixels one step's column gets */
+export function measureSlotWidth(plotWidth: number, stepCount: number): number {
+    return plotWidth / (stepCount + TOTAL_SLOT_SPAN)
 }
 
 /** The pixels a group's box runs over, given the pixels one column gets */
@@ -85,6 +98,26 @@ export function groupBoxLength(slotWidth: number, stageCount: number): number {
         slotWidth *
         (stageCount - 2 * SLOT_PADDING_RATIO + 2 * GROUP_BOX_OVERHANG_RATIO)
     )
+}
+
+/** The pixels the total's box runs over, given the pixels one step's column gets */
+export function totalBoxLength(slotWidth: number): number {
+    return (
+        slotWidth *
+        (TOTAL_SLOT_SPAN -
+            2 * SLOT_PADDING_RATIO +
+            2 * GROUP_BOX_OVERHANG_RATIO)
+    )
+}
+
+/** The pixels a caption gets, from its bar's left edge to the end of its slot */
+export function captionLength(slotWidth: number): number {
+    return slotWidth * (1 - SLOT_PADDING_RATIO)
+}
+
+/** The values the value axis puts a tick and gridline at */
+export function chooseTickValues(domain: [number, number]): number[] {
+    return chooseTicks(domain).ticks
 }
 
 export function layOutWaterfall(
@@ -111,7 +144,11 @@ interface PlannedStep {
     slot: Extent
     bar?: Extent
     valueAnchor: Extent
-    captionAnchor: Extent
+}
+
+interface PlannedConnector {
+    leftStep: WaterfallStep
+    line: Extent
 }
 
 interface PlannedTick {
@@ -127,41 +164,53 @@ interface PlannedGroup {
 interface WaterfallPlan {
     /** The waterfall's domain widened to the outermost ticks */
     valueDomain: Span
-    /** `[0, slotCount]`, one unit per column */
+    /** One unit per step's column, then the total's wider one */
     stepDomain: Span
     steps: PlannedStep[]
     total: PlannedStep
-    connectors: Extent[]
+    connectors: PlannedConnector[]
     ticks: PlannedTick[]
     zeroLine: Extent
     groups: PlannedGroup[]
+    totalBox: Extent
 }
 
 function planWaterfall(waterfall: Waterfall): WaterfallPlan {
     const { ticks, domain: valueDomain } = chooseTicks(waterfall.domain)
-    const stepDomain: Span = { from: 0, to: waterfall.steps.length + 1 }
+    const stepCount = waterfall.steps.length
+    const stepDomain: Span = { from: 0, to: stepCount + TOTAL_SLOT_SPAN }
 
     const steps = waterfall.steps.map((step, index) =>
-        planStep(step, index, valueDomain)
+        planStep(step, slotSpan(index), valueDomain)
     )
-    const total = planStep(
-        totalAsStep(waterfall.total),
-        waterfall.steps.length,
-        valueDomain
-    )
+    const totalSlot: Span = { from: stepCount, to: stepCount + TOTAL_SLOT_SPAN }
+    const total = planStep(totalAsStep(waterfall.total), totalSlot, valueDomain)
 
     return {
         valueDomain,
         stepDomain,
         steps,
         total,
-        connectors: planConnectors([...steps, total]),
+        connectors: planConnectors(steps),
         ticks: ticks.map((value) => ({
             value,
             gridline: { value: { from: value, to: value }, step: stepDomain },
         })),
         zeroLine: { value: { from: 0, to: 0 }, step: stepDomain },
         groups: planGroups(waterfall.steps, valueDomain),
+        totalBox: {
+            value: valueDomain,
+            step: {
+                from:
+                    totalSlot.from +
+                    SLOT_PADDING_RATIO -
+                    GROUP_BOX_OVERHANG_RATIO,
+                to:
+                    totalSlot.to -
+                    SLOT_PADDING_RATIO +
+                    GROUP_BOX_OVERHANG_RATIO,
+            },
+        },
     }
 }
 
@@ -187,9 +236,11 @@ function planGroups(steps: WaterfallStep[], valueDomain: Span): PlannedGroup[] {
                     value: valueDomain,
                     step: {
                         from:
-                            paddedSlotSpan(first).from -
+                            barSpan(slotSpan(first)).from -
                             GROUP_BOX_OVERHANG_RATIO,
-                        to: paddedSlotSpan(last).to + GROUP_BOX_OVERHANG_RATIO,
+                        to:
+                            barSpan(slotSpan(last)).to +
+                            GROUP_BOX_OVERHANG_RATIO,
                     },
                 },
             },
@@ -206,17 +257,24 @@ function areSlotsContiguous(slotIndices: number[]): boolean {
 /** The total column, as the step from zero that it draws */
 function totalAsStep(total: Waterfall["total"]): WaterfallStep {
     const { key, name, value } = total
-    return { key, name, delta: value, balanceBefore: 0, balanceAfter: value }
+    return {
+        key,
+        name,
+        direction: "in",
+        delta: value,
+        balanceBefore: 0,
+        balanceAfter: value,
+    }
 }
 
 function planStep(
     step: WaterfallStep,
-    slotIndex: number,
+    slot: Span,
     valueDomain: Span
 ): PlannedStep {
     return {
         step,
-        slot: { value: valueDomain, step: slotSpan(slotIndex) },
+        slot: { value: valueDomain, step: slot },
         bar:
             step.delta === 0
                 ? undefined
@@ -225,33 +283,35 @@ function planStep(
                           from: step.balanceBefore,
                           to: step.balanceAfter,
                       },
-                      step: paddedSlotSpan(slotIndex),
+                      step: barSpan(slot),
                   },
         valueAnchor: {
             value: { from: step.balanceAfter, to: step.balanceAfter },
-            step: slotCentre(slotIndex),
-        },
-        captionAnchor: {
-            value: { from: valueDomain.from, to: valueDomain.from },
-            step: slotCentre(slotIndex),
+            step: slotCentre(slot),
         },
     }
 }
 
 /** One connector per adjacent pair of drawn bars, at the value they share */
-function planConnectors(slots: PlannedStep[]): Extent[] {
+function planConnectors(slots: PlannedStep[]): PlannedConnector[] {
     const stepsWithBars = slots.filter(
         (planned): planned is PlannedStep & { bar: Extent } =>
             planned.bar !== undefined
     )
 
-    const connectors: Extent[] = []
+    const connectors: PlannedConnector[] = []
     for (let i = 0; i < stepsWithBars.length - 1; i++) {
         const left = stepsWithBars[i]
         const right = stepsWithBars[i + 1]
         connectors.push({
-            value: { from: left.step.balanceAfter, to: left.step.balanceAfter },
-            step: { from: left.bar.step.to, to: right.bar.step.from },
+            leftStep: left.step,
+            line: {
+                value: {
+                    from: left.step.balanceAfter,
+                    to: left.step.balanceAfter,
+                },
+                step: { from: left.bar.step.to, to: right.bar.step.from },
+            },
         })
     }
     return connectors
@@ -284,17 +344,17 @@ function slotSpan(index: number): Span {
     return { from: index, to: index + 1 }
 }
 
-/** Slot `index` less its padding, which is where the bar goes */
-function paddedSlotSpan(index: number): Span {
-    return {
-        from: index + SLOT_PADDING_RATIO,
-        to: index + 1 - SLOT_PADDING_RATIO,
-    }
+/** Where a slot's bar goes: one slot wide less its padding, centred in the slot */
+function barSpan(slot: Span): Span {
+    const centre = slotCentre(slot).from
+    const halfWidth = 0.5 - SLOT_PADDING_RATIO
+    return { from: centre - halfWidth, to: centre + halfWidth }
 }
 
-/** The centre of slot `index`, as an interval whose ends coincide */
-function slotCentre(index: number): Span {
-    return { from: index + 0.5, to: index + 0.5 }
+/** The centre of a slot, as an interval whose ends coincide */
+function slotCentre(slot: Span): Span {
+    const centre = (slot.from + slot.to) / 2
+    return { from: centre, to: centre }
 }
 
 /** A mark after scaling, as the pixels it covers along each axis */
@@ -370,23 +430,24 @@ function projectPlan(
             valueAnchor: toPoint(
                 projection.toSegment(scaleExtent(planned.valueAnchor, scales))
             ),
-            captionAnchor: toPoint(
-                projection.toSegment(scaleExtent(planned.captionAnchor, scales))
-            ),
         }
     }
 
     return {
         steps: plan.steps.map(placeStep),
         total: placeStep(plan.total),
-        connectors: plan.connectors.map((extent) =>
-            projection.toSegment(scaleExtent(extent, scales))
-        ),
+        connectors: plan.connectors.map((planned) => ({
+            leftStep: planned.leftStep,
+            line: projection.toSegment(scaleExtent(planned.line, scales)),
+        })),
         ticks: plan.ticks.map((tick) => ({
             value: tick.value,
             gridline: projection.toSegment(scaleExtent(tick.gridline, scales)),
         })),
         zeroLine: projection.toSegment(scaleExtent(plan.zeroLine, scales)),
+        totalBox: toRect(
+            projection.toSegment(scaleExtent(plan.totalBox, scales))
+        ),
         groups: plan.groups.map((planned) => ({
             group: planned.group,
             box: toRect(projection.toSegment(scaleExtent(planned.box, scales))),
@@ -394,12 +455,17 @@ function projectPlan(
     }
 }
 
+/** Scales an extent to pixels, rounding the value axis to whole pixels */
 function scaleExtent(
     extent: Extent,
     scales: { value: LinearScale; step: LinearScale }
 ): PxExtent {
+    const alongValue = scaleSpan(extent.value, scales.value)
     return {
-        alongValue: scaleSpan(extent.value, scales.value),
+        alongValue: {
+            from: Math.round(alongValue.from),
+            to: Math.round(alongValue.to),
+        },
         alongStep: scaleSpan(extent.step, scales.step),
     }
 }
