@@ -352,7 +352,7 @@ function CaptionedSankeyVariant({
                     <DeforestationControls
                         metadata={metadata}
                         country={country}
-                        year={yearRange.end}
+                        yearRange={yearRange}
                         period={period}
                         view={view}
                         viewDisabledReason={viewDisabledReason}

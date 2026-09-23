@@ -18,17 +18,28 @@
     padding: 0 18px;
 }
 
-// The period switcher keeps its natural width; the slider takes the rest of
-// the row and wraps under it when the row is too narrow for both
-.deforestation-controls
-    .deforestation-controls__time-row
-    > .deforestation-controls__period {
+// The period switcher keeps its natural width and the slider takes the rest
+// of the row; on narrow screens the slider wraps under the switcher, close
+// enough to read as the same control
+.deforestation-controls__time-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: 16px;
+    row-gap: 6px;
+}
+
+.deforestation-controls__period-switcher {
     flex: 0 0 auto;
 }
 
-.deforestation-controls
-    .deforestation-controls__time-row
-    > .deforestation-controls__time-slider {
+.deforestation-controls__time-slider {
     flex: 1 1 240px;
     width: auto;
+}
+
+// On narrow screens the switcher spans the row like the one above it, and
+// the slider wraps under it
+.deforestation-chart--narrow .deforestation-controls__period-switcher {
+    flex: 1 1 100%;
 }

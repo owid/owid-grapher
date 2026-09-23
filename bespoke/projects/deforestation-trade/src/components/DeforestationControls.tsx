@@ -23,7 +23,12 @@ import { TimeSlider } from "../../../../components/TimeSlider/TimeSlider.js"
 import { useTippyContainer } from "../../../../hooks/useTippyContainer.js"
 import { useUserCountryInformation } from "../../../../hooks/useUserCountryInformation.js"
 
-import { DeforestationMetadata, Period, View } from "../core/types.js"
+import {
+    DeforestationMetadata,
+    Period,
+    View,
+    YearRange,
+} from "../core/types.js"
 
 // Production reads left to right (the country → where its output went),
 // consumption right to left (where its intake came from → the country)
@@ -57,7 +62,7 @@ const PERIOD_ITEMS: SwitcherItem<Period>[] = [
 export function DeforestationControls({
     metadata,
     country,
-    year,
+    yearRange,
     period,
     view,
     viewDisabledReason,
@@ -69,8 +74,8 @@ export function DeforestationControls({
 }: {
     metadata: DeforestationMetadata
     country: string
-    /** The year on the slider; the period's end year while a preset is on */
-    year: number
+    /** The years on screen: the slider's year, or a preset's span */
+    yearRange: YearRange
     period: Period
     view: View
     viewDisabledReason?: string
@@ -97,19 +102,13 @@ export function DeforestationControls({
                     setCountry={setCountry}
                 />
             </ControlsRow>
-            <ControlsRow className="deforestation-controls__time-row">
-                <PeriodSwitcher period={period} setPeriod={setPeriod} />
-                {/* A preset period is pinned to the data's last years, so the
-                    slider has nothing to pick */}
-                {period === "single-year" && (
-                    <TimeSlider
-                        className="deforestation-controls__time-slider"
-                        times={metadata.years}
-                        selectedTime={year}
-                        onChange={setYear}
-                    />
-                )}
-            </ControlsRow>
+            <TimePeriodControl
+                metadata={metadata}
+                yearRange={yearRange}
+                period={period}
+                setYear={setYear}
+                setPeriod={setPeriod}
+            />
         </Controls>
     )
 }
@@ -193,24 +192,52 @@ function ViewSwitcher({
     )
 }
 
-function PeriodSwitcher({
+/**
+ * The period switcher with the year slider under it, as one labelled
+ * control. A preset period is pinned to the data's last years, so the slider
+ * then only marks the span it covers and can't be moved — and the controls
+ * keep their height when the reader switches.
+ */
+function TimePeriodControl({
+    metadata,
+    yearRange,
     period,
+    setYear,
     setPeriod,
 }: {
+    metadata: DeforestationMetadata
+    yearRange: YearRange
     period: Period
+    setYear: (year: number) => void
     setPeriod: (period: Period) => void
 }) {
+    const isSingleYear = period === "single-year"
     return (
         <LabeledControl
             label="Time period"
-            className="deforestation-controls__period"
+            className="deforestation-controls__time"
         >
-            <Switcher
-                items={PERIOD_ITEMS}
-                selectedKey={period}
-                onChange={setPeriod}
-                ariaLabel="Show a single year or the sum of the last years"
-            />
+            <div className="deforestation-controls__time-controls">
+                <Switcher
+                    className="deforestation-controls__period-switcher"
+                    items={PERIOD_ITEMS}
+                    selectedKey={period}
+                    onChange={setPeriod}
+                    ariaLabel="Show a single year or the sum of the last years"
+                />
+                <TimeSlider
+                    className="deforestation-controls__time-slider"
+                    times={metadata.years}
+                    selectedTime={yearRange.end}
+                    onChange={setYear}
+                    highlightedRange={
+                        isSingleYear
+                            ? undefined
+                            : [yearRange.start, yearRange.end]
+                    }
+                    isDisabled={!isSingleYear}
+                />
+            </div>
         </LabeledControl>
     )
 }
