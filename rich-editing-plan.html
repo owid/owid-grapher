@@ -1,0 +1,1828 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Rich Editing at OWID — Project Plan</title>
+        <style>
+            :root {
+                --sand: #fbf9f3;
+                --ink: #1d2b3d;
+                --ink-secondary: #4d5f72;
+                --ink-muted: #8494a5;
+                --navy: #12294a;
+                --blue: #3360a9;
+                --green: #0d8f57;
+                --rust: #b13507;
+                --line: #e3ded2;
+                --card: #ffffff;
+                --code-bg: #eef1f5;
+            }
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+            html,
+            body {
+                height: 100%;
+            }
+            body {
+                font-family: "Lato", "Helvetica Neue", Arial, sans-serif;
+                background: var(--sand);
+                color: var(--ink);
+                overflow: hidden;
+            }
+            .deck {
+                height: 100vh;
+                position: relative;
+            }
+            .slide {
+                position: absolute;
+                inset: 0;
+                display: none;
+                flex-direction: column;
+                padding: 4.5rem 6rem 5rem;
+                max-width: 1280px;
+                margin: 0 auto;
+            }
+            .slide.active {
+                display: flex;
+            }
+            .kicker {
+                font-size: 0.78rem;
+                letter-spacing: 0.18em;
+                text-transform: uppercase;
+                color: var(--rust);
+                font-weight: 700;
+                margin-bottom: 0.9rem;
+            }
+            h1,
+            h2 {
+                font-family:
+                    "Playfair Display", Georgia, "Times New Roman", serif;
+                color: var(--navy);
+                font-weight: 600;
+                line-height: 1.15;
+            }
+            h1 {
+                font-size: 3.4rem;
+            }
+            h2 {
+                font-size: 2.1rem;
+                margin-bottom: 1.6rem;
+            }
+            h3 {
+                font-size: 1.02rem;
+                color: var(--navy);
+                margin-bottom: 0.4rem;
+            }
+            p,
+            li {
+                font-size: 1.02rem;
+                line-height: 1.55;
+                color: var(--ink-secondary);
+            }
+            strong {
+                color: var(--ink);
+            }
+            .slide-body {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                min-height: 0;
+            }
+            .columns {
+                display: flex;
+                gap: 2.5rem;
+                flex: 1;
+                min-height: 0;
+            }
+            .col {
+                flex: 1;
+                min-width: 0;
+            }
+            ul.plain {
+                list-style: none;
+            }
+            ul.plain > li {
+                padding-left: 1.4rem;
+                position: relative;
+                margin-bottom: 0.85rem;
+            }
+            ul.plain > li::before {
+                content: "";
+                position: absolute;
+                left: 0;
+                top: 0.52em;
+                width: 0.55rem;
+                height: 0.55rem;
+                border-radius: 2px;
+                background: var(--blue);
+            }
+            ul.plain > li.li-green::before {
+                background: var(--green);
+            }
+            ul.plain > li.li-rust::before {
+                background: var(--rust);
+            }
+            code {
+                font-family: "SFMono-Regular", Consolas, Menlo, monospace;
+                font-size: 0.86em;
+                background: var(--code-bg);
+                padding: 0.1em 0.35em;
+                border-radius: 3px;
+                color: var(--navy);
+            }
+            .cards {
+                display: grid;
+                gap: 1.1rem;
+            }
+            .cards.two {
+                grid-template-columns: 1fr 1fr;
+            }
+            .cards.three {
+                grid-template-columns: 1fr 1fr 1fr;
+            }
+            .card {
+                background: var(--card);
+                border: 1px solid var(--line);
+                border-radius: 8px;
+                padding: 1.15rem 1.3rem;
+                box-shadow: 0 1px 2px rgba(29, 43, 61, 0.05);
+            }
+            .card .num {
+                font-family: "Playfair Display", Georgia, serif;
+                font-size: 1.9rem;
+                color: var(--blue);
+                font-weight: 600;
+                display: block;
+                margin-bottom: 0.15rem;
+            }
+            .card p {
+                font-size: 0.92rem;
+            }
+            .tag {
+                display: inline-block;
+                font-size: 0.68rem;
+                font-weight: 700;
+                letter-spacing: 0.08em;
+                text-transform: uppercase;
+                padding: 0.18rem 0.55rem;
+                border-radius: 99px;
+                margin-bottom: 0.55rem;
+            }
+            .tag.blue {
+                background: #e2eaf6;
+                color: var(--blue);
+            }
+            .tag.green {
+                background: #dff2e8;
+                color: var(--green);
+            }
+            .tag.rust {
+                background: #f8e4da;
+                color: var(--rust);
+            }
+            .tag.gray {
+                background: #ebe8df;
+                color: var(--ink-secondary);
+            }
+
+            /* footer chrome */
+            .chrome {
+                position: fixed;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 0.8rem 1.6rem;
+                font-size: 0.78rem;
+                color: var(--ink-muted);
+                user-select: none;
+                z-index: 10;
+            }
+            .chrome .nav button {
+                background: none;
+                border: 1px solid var(--line);
+                border-radius: 6px;
+                color: var(--ink-secondary);
+                font-size: 0.95rem;
+                width: 2.1rem;
+                height: 2.1rem;
+                cursor: pointer;
+                margin-left: 0.4rem;
+            }
+            .chrome .nav button:hover {
+                background: #f1ede2;
+            }
+            .progress {
+                position: fixed;
+                top: 0;
+                left: 0;
+                height: 3px;
+                background: var(--rust);
+                transition: width 0.25s ease;
+                z-index: 11;
+            }
+
+            /* pipeline diagram */
+            .pipeline {
+                display: flex;
+                align-items: stretch;
+                gap: 0.6rem;
+                margin: 1.4rem 0 1.8rem;
+            }
+            .pipe-step {
+                background: var(--card);
+                border: 1px solid var(--line);
+                border-radius: 8px;
+                padding: 0.85rem 1rem;
+                flex: 1;
+                text-align: center;
+            }
+            .pipe-step b {
+                display: block;
+                font-size: 0.92rem;
+                color: var(--navy);
+                margin-bottom: 0.2rem;
+            }
+            .pipe-step span {
+                font-size: 0.78rem;
+                color: var(--ink-muted);
+            }
+            .pipe-arrow {
+                align-self: center;
+                color: var(--ink-muted);
+                font-size: 1.2rem;
+            }
+            .pipe-step.dim {
+                opacity: 0.55;
+                border-style: dashed;
+            }
+            .pipe-step.hot {
+                border-color: var(--green);
+                border-width: 2px;
+            }
+
+            /* bar chart */
+            .chart {
+                flex: 1;
+                min-height: 0;
+                display: flex;
+                flex-direction: column;
+            }
+            .chart-legend {
+                display: flex;
+                gap: 1.4rem;
+                margin-bottom: 0.9rem;
+                font-size: 0.82rem;
+                color: var(--ink-secondary);
+            }
+            .chart-legend .swatch {
+                display: inline-block;
+                width: 0.8rem;
+                height: 0.8rem;
+                border-radius: 3px;
+                margin-right: 0.4rem;
+                vertical-align: -2px;
+            }
+            .bar-row {
+                display: flex;
+                align-items: center;
+                margin-bottom: 2px;
+                height: 24px;
+            }
+            .bar-row .bar-label {
+                width: 160px;
+                flex: none;
+                font-size: 0.82rem;
+                color: var(--ink-secondary);
+                text-align: right;
+                padding-right: 0.8rem;
+                font-family: Consolas, Menlo, monospace;
+            }
+            .bar-row .bar-track {
+                display: block;
+                flex: 1;
+                position: relative;
+                height: 18px;
+            }
+            .bar-row .bar {
+                display: block;
+                height: 18px;
+                border-radius: 0 4px 4px 0;
+                background: var(--blue);
+                min-width: 3px;
+                position: relative;
+                transition: opacity 0.15s;
+            }
+            .bar-row:hover .bar {
+                opacity: 0.8;
+            }
+            .bar-row .bar.di {
+                background: var(--green);
+            }
+            .bar-row .bar-value {
+                position: absolute;
+                left: 100%;
+                top: 50%;
+                transform: translateY(-50%);
+                padding-left: 0.5rem;
+                font-size: 0.8rem;
+                color: var(--ink);
+                white-space: nowrap;
+            }
+            .chart-note {
+                font-size: 0.82rem;
+                color: var(--ink-muted);
+                margin-top: 0.9rem;
+            }
+
+            /* wireframe mocks */
+            .mock {
+                background: var(--card);
+                border: 1px solid var(--line);
+                border-radius: 10px;
+                box-shadow: 0 6px 24px rgba(29, 43, 61, 0.09);
+                flex: 1;
+                min-height: 0;
+                display: flex;
+                flex-direction: column;
+                overflow: hidden;
+            }
+            .mock-titlebar {
+                background: #f4f1e8;
+                border-bottom: 1px solid var(--line);
+                padding: 0.45rem 0.9rem;
+                display: flex;
+                align-items: center;
+                gap: 0.45rem;
+                font-size: 0.74rem;
+                color: var(--ink-muted);
+            }
+            .mock-titlebar .dot {
+                width: 0.6rem;
+                height: 0.6rem;
+                border-radius: 50%;
+                background: #d8d3c4;
+            }
+            .mock-main {
+                flex: 1;
+                display: flex;
+                min-height: 0;
+            }
+            .mock-rail {
+                width: 190px;
+                flex: none;
+                border-right: 1px solid var(--line);
+                padding: 0.8rem;
+                background: #faf8f1;
+                overflow: hidden;
+            }
+            .mock-rail.right {
+                border-right: 0;
+                border-left: 1px solid var(--line);
+                width: 230px;
+            }
+            .mock-rail h4 {
+                font-size: 0.68rem;
+                letter-spacing: 0.1em;
+                text-transform: uppercase;
+                color: var(--ink-muted);
+                margin: 0.3rem 0 0.6rem;
+            }
+            .mock-canvas {
+                flex: 1;
+                padding: 1.4rem 2.2rem;
+                overflow: hidden;
+                position: relative;
+            }
+            .block-item {
+                background: #fff;
+                border: 1px solid var(--line);
+                border-radius: 6px;
+                padding: 0.42rem 0.6rem;
+                font-size: 0.78rem;
+                color: var(--ink-secondary);
+                margin-bottom: 0.45rem;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+            .block-item .cnt {
+                font-size: 0.68rem;
+                color: var(--ink-muted);
+            }
+            .skel {
+                border-radius: 4px;
+                background: #e9e5d9;
+                height: 0.62rem;
+                margin-bottom: 0.55rem;
+            }
+            .skel.w40 {
+                width: 40%;
+            }
+            .skel.w60 {
+                width: 60%;
+            }
+            .skel.w80 {
+                width: 80%;
+            }
+            .skel.w95 {
+                width: 95%;
+            }
+            .skel.title {
+                height: 1.3rem;
+                width: 70%;
+                background: #d9d4c5;
+                margin-bottom: 1rem;
+            }
+            .mock-chartblock {
+                border: 2px solid var(--blue);
+                border-radius: 8px;
+                padding: 0.8rem;
+                margin: 0.9rem 0;
+                position: relative;
+                background: #fdfdfb;
+            }
+            .mock-chartblock .cog {
+                position: absolute;
+                top: 0.5rem;
+                right: 0.5rem;
+                width: 1.5rem;
+                height: 1.5rem;
+                border-radius: 50%;
+                background: var(--blue);
+                color: #fff;
+                font-size: 0.8rem;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .mock-chartblock .fakechart {
+                display: flex;
+                align-items: flex-end;
+                gap: 5px;
+                height: 74px;
+                padding: 0 0.4rem;
+            }
+            .mock-chartblock .fakechart i {
+                flex: 1;
+                background: #b9c9e2;
+                border-radius: 3px 3px 0 0;
+                display: block;
+            }
+            .mock-chartblock .caption {
+                font-size: 0.68rem;
+                color: var(--ink-muted);
+                margin-top: 0.5rem;
+            }
+            .mock-toolbar {
+                position: absolute;
+                display: flex;
+                gap: 2px;
+                background: var(--navy);
+                border-radius: 6px;
+                padding: 0.25rem 0.35rem;
+            }
+            .mock-toolbar i {
+                font-style: normal;
+                color: #cfdaeb;
+                font-size: 0.72rem;
+                padding: 0.12rem 0.45rem;
+                border-radius: 4px;
+            }
+            .mock-toolbar i.on {
+                background: #2b4a77;
+                color: #fff;
+            }
+            .slashmenu {
+                background: #fff;
+                border: 1px solid var(--line);
+                border-radius: 8px;
+                box-shadow: 0 8px 22px rgba(29, 43, 61, 0.15);
+                width: 240px;
+                overflow: hidden;
+                font-size: 0.8rem;
+            }
+            .slashmenu .sm-item {
+                padding: 0.45rem 0.8rem;
+                display: flex;
+                gap: 0.6rem;
+                align-items: center;
+                color: var(--ink-secondary);
+            }
+            .slashmenu .sm-item.sel {
+                background: #e9effa;
+                color: var(--navy);
+            }
+            .slashmenu .sm-item .ic {
+                width: 1.4rem;
+                height: 1.4rem;
+                border-radius: 4px;
+                background: var(--code-bg);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 0.72rem;
+                color: var(--blue);
+                flex: none;
+            }
+            .comment-bubble {
+                background: #fff;
+                border: 1px solid var(--line);
+                border-left: 3px solid var(--rust);
+                border-radius: 6px;
+                padding: 0.55rem 0.7rem;
+                font-size: 0.74rem;
+                color: var(--ink-secondary);
+                margin-bottom: 0.6rem;
+                box-shadow: 0 2px 8px rgba(29, 43, 61, 0.07);
+            }
+            .comment-bubble b {
+                color: var(--ink);
+                font-size: 0.74rem;
+            }
+            .comment-bubble .meta {
+                color: var(--ink-muted);
+                font-size: 0.66rem;
+                margin-top: 0.2rem;
+            }
+            .hl {
+                background: #fbe3c9;
+                border-bottom: 2px solid var(--rust);
+            }
+
+            /* roadmap */
+            .roadmap {
+                display: flex;
+                flex-direction: column;
+                gap: 0.7rem;
+                margin-top: 0.4rem;
+            }
+            .ms {
+                display: flex;
+                gap: 1.1rem;
+                align-items: flex-start;
+            }
+            .ms .badge {
+                flex: none;
+                width: 3.2rem;
+                text-align: center;
+                font-weight: 700;
+                font-size: 0.82rem;
+                background: var(--navy);
+                color: #fff;
+                border-radius: 6px;
+                padding: 0.35rem 0;
+                margin-top: 0.1rem;
+            }
+            .ms.green .badge {
+                background: var(--green);
+            }
+            .ms .ms-body b {
+                color: var(--navy);
+                font-size: 0.95rem;
+            }
+            .ms .ms-body p {
+                font-size: 0.88rem;
+                margin-top: 0.1rem;
+            }
+
+            table.risks {
+                border-collapse: collapse;
+                width: 100%;
+                font-size: 0.88rem;
+            }
+            table.risks th,
+            table.risks td {
+                text-align: left;
+                padding: 0.5rem 0.8rem;
+                border-bottom: 1px solid var(--line);
+                color: var(--ink-secondary);
+                vertical-align: top;
+                line-height: 1.4;
+            }
+            table.risks th {
+                color: var(--navy);
+                font-size: 0.78rem;
+                text-transform: uppercase;
+                letter-spacing: 0.06em;
+            }
+            table.risks td:first-child {
+                color: var(--ink);
+                font-weight: 600;
+                width: 34%;
+            }
+
+            .footnote {
+                font-size: 0.8rem;
+                color: var(--ink-muted);
+                margin-top: 1.2rem;
+            }
+            .title-slide {
+                justify-content: center;
+            }
+            .title-slide .sub {
+                font-size: 1.25rem;
+                color: var(--ink-secondary);
+                margin-top: 1.3rem;
+                max-width: 46rem;
+            }
+            .title-slide .meta {
+                margin-top: 3rem;
+                font-size: 0.85rem;
+                color: var(--ink-muted);
+            }
+        </style>
+    </head>
+    <body data-palette="#3360a9,#0d8f57">
+        <div class="progress" id="progress"></div>
+        <div class="deck" id="deck">
+            <!-- 1 · Title -->
+            <section class="slide title-slide">
+                <div class="kicker">Proposal · July 2026</div>
+                <h1>Writing at OWID, natively</h1>
+                <p class="sub">
+                    A rich, in-browser editing experience for our content —
+                    replacing ArchieML-in-Google-Docs with a block editor that
+                    knows our components, previews live, and hosts feedback
+                    where the writing happens.
+                </p>
+                <p class="meta">
+                    Companion document:
+                    <code>rich-editing-technical-plan.md</code> · Navigate with
+                    ← → keys
+                </p>
+            </section>
+
+            <!-- 2 · Today -->
+            <section class="slide">
+                <div class="kicker">Where we are</div>
+                <h2>Today: authoring happens two tools away from the result</h2>
+                <div class="slide-body">
+                    <div class="pipeline">
+                        <div class="pipe-step">
+                            <b>Google Doc</b
+                            ><span>ArchieML syntax by hand</span>
+                        </div>
+                        <div class="pipe-arrow">→</div>
+                        <div class="pipe-step">
+                            <b>Fetch + parse</b
+                            ><span>gdoc → ArchieML → enriched JSON</span>
+                        </div>
+                        <div class="pipe-arrow">→</div>
+                        <div class="pipe-step">
+                            <b>Admin preview</b
+                            ><span>server-rendered iframe</span>
+                        </div>
+                        <div class="pipe-arrow">→</div>
+                        <div class="pipe-step">
+                            <b>Publish</b><span>bake to static site</span>
+                        </div>
+                    </div>
+                    <div class="columns">
+                        <div class="col">
+                            <h3>What this costs us</h3>
+                            <ul class="plain">
+                                <li>
+                                    Authors write
+                                    <strong>syntax, not documents</strong> —
+                                    <code>{.chart}</code> blocks, key–value
+                                    props, indentation rules.
+                                </li>
+                                <li>
+                                    The feedback loop is
+                                    <strong
+                                        >edit → switch tab → wait for refetch →
+                                        full iframe reload</strong
+                                    >, losing scroll position.
+                                </li>
+                                <li>
+                                    Components are
+                                    <strong>invisible until previewed</strong>;
+                                    discovering what exists means reading docs.
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="col">
+                            <h3>
+                                What Google Docs gives us today (must not
+                                regress)
+                            </h3>
+                            <ul class="plain">
+                                <li class="li-green">
+                                    <strong>Fluent prose writing</strong> —
+                                    typing is never interrupted.
+                                </li>
+                                <li class="li-green">
+                                    <strong
+                                        >In-situ comments &amp;
+                                        suggestions</strong
+                                    >
+                                    — our whole review culture lives there.
+                                </li>
+                                <li class="li-green">
+                                    <strong>Revision history</strong> — safe to
+                                    experiment, easy to restore.
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 3 · Discovery -->
+            <section class="slide">
+                <div class="kicker">Codebase investigation</div>
+                <h2>The foundations already exist</h2>
+                <div class="slide-body">
+                    <div
+                        class="cards two"
+                        style="flex: 1; align-content: start"
+                    >
+                        <div class="card">
+                            <span class="tag green">Content model</span>
+                            <h3>The block JSON is already the CMS</h3>
+                            <p>
+                                ArchieML is only an ingestion syntax. Rendering,
+                                baking and search all consume
+                                <code>OwidEnrichedGdocBlock[]</code> stored in
+                                <code>posts_gdocs.content</code> — a typed union
+                                of ~65 block types. The editor operates on this
+                                model directly; ArchieML disappears.
+                            </p>
+                        </div>
+                        <div class="card">
+                            <span class="tag green">Rendering</span>
+                            <h3>Every block renders client-side</h3>
+                            <p>
+                                <code>ArticleBlock.tsx</code> dispatches all
+                                block types in the browser. The SSR iframe
+                                preview is a historical choice, not a necessity
+                                — the site renderer can be the live editing
+                                canvas itself.
+                            </p>
+                        </div>
+                        <div class="card">
+                            <span class="tag green">Charts</span>
+                            <h3>The chart editor is a reusable engine</h3>
+                            <p>
+                                Grapher renders from a config, fully
+                                client-side. The editor is factored as
+                                <code>AbstractChartEditor</code> + tab
+                                components + a live
+                                <code>&lt;Grapher&gt;</code>, already reused
+                                three ways — embeddable as an in-article
+                                overlay.
+                            </p>
+                        </div>
+                        <div class="card">
+                            <span class="tag rust">Greenfield</span>
+                            <h3>
+                                Comments &amp; collaboration: nothing exists
+                            </h3>
+                            <p>
+                                All review workflow lives inside Google Docs.
+                                Comments, presence, and revision history are the
+                                genuinely new subsystems we take ownership of.
+                                Images, by contrast, are already fully native
+                                (Cloudflare Images + picker UI).
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 4 · Usage data -->
+            <section class="slide">
+                <div class="kicker">The data · published documents</div>
+                <h2>Usage is very top-heavy — and that's good news</h2>
+                <div class="slide-body">
+                    <div class="columns">
+                        <div class="col" style="flex: 1.5">
+                            <div class="chart">
+                                <div class="chart-legend">
+                                    <span
+                                        ><span
+                                            class="swatch"
+                                            style="background: var(--green)"
+                                        ></span
+                                        >Data-insight block set (v1)</span
+                                    >
+                                    <span
+                                        ><span
+                                            class="swatch"
+                                            style="background: var(--blue)"
+                                        ></span
+                                        >Article &amp; topic-page blocks
+                                        (v2)</span
+                                    >
+                                </div>
+                                <div id="bars"></div>
+                                <p class="chart-note">
+                                    Instances per component across all 1,177
+                                    published documents (source:
+                                    <code>posts_gdocs_components</code>, July
+                                    2026). A further ~40 block types have fewer
+                                    than 75 instances each.
+                                </p>
+                            </div>
+                        </div>
+                        <div class="col" style="flex: 0.8">
+                            <div
+                                class="cards"
+                                style="grid-template-columns: 1fr"
+                            >
+                                <div class="card">
+                                    <span class="num">≈95%</span>
+                                    <p>
+                                        of all component instances are covered
+                                        by just the
+                                        <strong>top 8 block types</strong>.
+                                    </p>
+                                </div>
+                                <div class="card">
+                                    <span class="num">435</span>
+                                    <p>
+                                        <strong>data insights</strong> — our
+                                        highest-volume doc type — use almost
+                                        nothing but text, image and cta. The
+                                        ideal pilot.
+                                    </p>
+                                </div>
+                                <div class="card">
+                                    <span class="num">495</span>
+                                    <p>
+                                        <strong>articles</strong> hold the
+                                        complexity: charts, sticky layouts,
+                                        footnotes. They are milestone two.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 5 · Vision: the surface -->
+            <section class="slide">
+                <div class="kicker">The vision</div>
+                <h2>
+                    One surface: write, arrange, preview — all the same thing
+                </h2>
+                <div class="slide-body">
+                    <div class="mock">
+                        <div class="mock-titlebar">
+                            <span class="dot"></span><span class="dot"></span
+                            ><span class="dot"></span> admin · Editing “Global
+                            deforestation has peaked” · <em>saved just now</em>
+                        </div>
+                        <div class="mock-main">
+                            <div class="mock-rail">
+                                <h4>Insert block</h4>
+                                <div class="block-item">
+                                    Text <span class="cnt">¶</span>
+                                </div>
+                                <div class="block-item">
+                                    Heading <span class="cnt">H</span>
+                                </div>
+                                <div class="block-item">
+                                    Chart <span class="cnt">▤</span>
+                                </div>
+                                <div class="block-item">
+                                    Image <span class="cnt">▣</span>
+                                </div>
+                                <div class="block-item">
+                                    Sticky right <span class="cnt">▦</span>
+                                </div>
+                                <div class="block-item">
+                                    Callout <span class="cnt">❞</span>
+                                </div>
+                                <div class="block-item">
+                                    Prominent link <span class="cnt">↗</span>
+                                </div>
+                                <h4 style="margin-top: 0.9rem">
+                                    Ranked by usage<br />for this doc type
+                                </h4>
+                            </div>
+                            <div class="mock-canvas">
+                                <div class="skel title"></div>
+                                <div class="skel w95"></div>
+                                <div class="skel w80"></div>
+                                <div class="skel w60"></div>
+                                <div class="mock-chartblock">
+                                    <div class="cog">⚙</div>
+                                    <div class="fakechart">
+                                        <i style="height: 30%"></i
+                                        ><i style="height: 45%"></i
+                                        ><i style="height: 38%"></i
+                                        ><i style="height: 62%"></i
+                                        ><i style="height: 74%"></i
+                                        ><i style="height: 90%"></i>
+                                    </div>
+                                    <div class="caption">
+                                        Live Grapher — the real chart,
+                                        interactive, in the flow of the text
+                                    </div>
+                                </div>
+                                <div class="skel w95"></div>
+                                <div class="skel w80"></div>
+                                <div class="skel w40"></div>
+                            </div>
+                            <div class="mock-rail right">
+                                <h4>Settings · Comments · History</h4>
+                                <div class="comment-bubble">
+                                    <b>Hannah</b> — can we lead with the
+                                    regional numbers here?
+                                    <div class="meta">
+                                        on ¶ 3 · 2 replies · unresolved
+                                    </div>
+                                </div>
+                                <div
+                                    class="comment-bubble"
+                                    style="border-left-color: var(--green)"
+                                >
+                                    <b>Max</b> — updated the chart to 2025 data
+                                    ✓
+                                    <div class="meta">on chart · resolved</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="footnote">
+                        The canvas <em>is</em> the site renderer — the same
+                        React components the public page uses, wrapped in
+                        editing chrome. No iframe, no refetch, no lost scroll
+                        position.
+                    </p>
+                </div>
+            </section>
+
+            <!-- 6 · Writing flow -->
+            <section class="slide">
+                <div class="kicker">Principle 1 · Fluency</div>
+                <h2>Writing must never wait for the tool</h2>
+                <div class="slide-body">
+                    <div class="columns">
+                        <div class="col">
+                            <ul class="plain">
+                                <li>
+                                    <strong>Type-first.</strong> Enter continues
+                                    a paragraph. Markdown shortcuts as you type:
+                                    <code>#</code> heading, <code>-</code> list,
+                                    <code>&gt;</code> quote,
+                                    <code>**bold**</code>.
+                                </li>
+                                <li>
+                                    <strong>Slash menu.</strong>
+                                    <code>/</code> opens an inline inserter,
+                                    fuzzy-searchable, ranked by real
+                                    per-doc-type usage — a heading is two
+                                    keystrokes, never a drag.
+                                </li>
+                                <li>
+                                    <strong
+                                        >Drag &amp; drop is for
+                                        arranging,</strong
+                                    >
+                                    not for writing. The palette exists for
+                                    discovery; the keyboard is the fast path.
+                                </li>
+                                <li>
+                                    <strong
+                                        >Paste from Google Docs works.</strong
+                                    >
+                                    Headings, lists, links, bold — pasted prose
+                                    becomes proper blocks. This is also our
+                                    manual migration story.
+                                </li>
+                                <li>
+                                    <strong>Undo is universal.</strong> One
+                                    history across text edits, block moves, and
+                                    settings.
+                                </li>
+                            </ul>
+                        </div>
+                        <div
+                            class="col"
+                            style="
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                            "
+                        >
+                            <div>
+                                <p
+                                    style="
+                                        font-size: 0.85rem;
+                                        color: var(--ink-muted);
+                                        margin-bottom: 0.6rem;
+                                    "
+                                >
+                                    Typing <code>/ch</code> …
+                                </p>
+                                <div class="slashmenu">
+                                    <div class="sm-item sel">
+                                        <span class="ic">▤</span> Chart
+                                        <span
+                                            style="
+                                                margin-left: auto;
+                                                color: var(--ink-muted);
+                                                font-size: 0.68rem;
+                                            "
+                                            >most used</span
+                                        >
+                                    </div>
+                                    <div class="sm-item">
+                                        <span class="ic">▶</span> Chart story
+                                    </div>
+                                    <div class="sm-item">
+                                        <span class="ic">▦</span> Chart rows
+                                    </div>
+                                    <div class="sm-item">
+                                        <span class="ic">▥</span> All charts
+                                        (topic)
+                                    </div>
+                                    <div class="sm-item">
+                                        <span class="ic">✎</span> Narrative
+                                        chart
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 7 · Blocks -->
+            <section class="slide">
+                <div class="kicker">
+                    Principle 2 · Components as first-class citizens
+                </div>
+                <h2>Every block renders real, and knows how to be edited</h2>
+                <div class="slide-body">
+                    <div class="columns">
+                        <div class="col">
+                            <h3>Three kinds of blocks, three editing modes</h3>
+                            <ul class="plain">
+                                <li>
+                                    <strong>Flow blocks</strong> (text,
+                                    headings, lists, quotes, callouts) — edited
+                                    directly in place, like any document editor.
+                                </li>
+                                <li>
+                                    <strong>Atom blocks</strong> (chart, image,
+                                    video, prominent-link, cta …) — render the
+                                    <em>actual site component</em>, selected as
+                                    a unit. Hover reveals a toolbar: cogwheel →
+                                    inspector, drag, duplicate, delete.
+                                </li>
+                                <li>
+                                    <strong>Containers</strong> (sticky-right,
+                                    side-by-side, gray-section, expander) — real
+                                    layout CSS in the canvas, with drop zones
+                                    for their children.
+                                </li>
+                            </ul>
+                            <h3 style="margin-top: 1.2rem">
+                                And a safety valve
+                            </h3>
+                            <ul class="plain">
+                                <li class="li-rust">
+                                    Any block type the editor doesn't fully
+                                    support yet renders as a
+                                    <strong>read-only raw card</strong> and
+                                    survives saving untouched — exotic blocks
+                                    never make a document uneditable.
+                                </li>
+                            </ul>
+                        </div>
+                        <div
+                            class="col"
+                            style="display: flex; align-items: center"
+                        >
+                            <div style="width: 100%; position: relative">
+                                <div
+                                    class="mock-toolbar"
+                                    style="
+                                        position: relative;
+                                        display: inline-flex;
+                                        margin-bottom: 0.5rem;
+                                    "
+                                >
+                                    <i class="on">⚙ Options</i
+                                    ><i>✎ Customize chart</i><i>⠿ Move</i
+                                    ><i>⊕</i><i>✕</i>
+                                </div>
+                                <div
+                                    class="mock-chartblock"
+                                    style="margin-top: 0"
+                                >
+                                    <div class="fakechart">
+                                        <i style="height: 20%"></i
+                                        ><i style="height: 35%"></i
+                                        ><i style="height: 55%"></i
+                                        ><i style="height: 48%"></i
+                                        ><i style="height: 70%"></i
+                                        ><i style="height: 88%"></i
+                                        ><i style="height: 80%"></i>
+                                    </div>
+                                    <div class="caption">
+                                        chart · share-of-forest-area — size:
+                                        wide · tab: chart
+                                    </div>
+                                </div>
+                                <p
+                                    style="
+                                        font-size: 0.82rem;
+                                        color: var(--ink-muted);
+                                    "
+                                >
+                                    The inspector edits the block's props with
+                                    proper pickers — chart search, image
+                                    library, tag selectors — not raw key–value
+                                    text.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 8 · In-situ chart editing -->
+            <section class="slide">
+                <div class="kicker">Principle 3 · The cogwheel</div>
+                <h2>Tweak the chart where you're writing about it</h2>
+                <div class="slide-body">
+                    <div class="columns">
+                        <div class="col">
+                            <ul class="plain">
+                                <li>
+                                    <strong>Stage A — embed options.</strong>
+                                    Cogwheel opens the block inspector: size,
+                                    height, tab, query params, caption.
+                                </li>
+                                <li>
+                                    <strong
+                                        >Stage B — “Customize this
+                                        chart.”</strong
+                                    >
+                                    Overlays a focused slice of the chart editor
+                                    (basic · text · customize tabs) around the
+                                    live chart, in the writing surface.
+                                </li>
+                                <li class="li-rust">
+                                    <strong>The subtlety:</strong> charts are
+                                    shared entities — editing one here would
+                                    change it on its data page and every other
+                                    article. Our block model already has the
+                                    answer: in-situ customization creates a
+                                    <strong>narrative chart</strong> (an
+                                    article-scoped variant), via the flow that
+                                    exists today.
+                                </li>
+                            </ul>
+                            <p class="footnote">
+                                Feasible because the chart editor is already an
+                                embeddable engine — the same machinery powers
+                                chart, indicator, and narrative-chart editing
+                                today.
+                            </p>
+                        </div>
+                        <div class="col">
+                            <div class="mock" style="min-height: 320px">
+                                <div class="mock-titlebar">
+                                    <span class="dot"></span> Customizing:
+                                    share-of-forest-area → narrative chart
+                                </div>
+                                <div class="mock-main">
+                                    <div class="mock-rail">
+                                        <h4>Basic · Text · Customize</h4>
+                                        <div class="block-item">
+                                            Title override
+                                        </div>
+                                        <div class="block-item">
+                                            Entities: World, Brazil
+                                        </div>
+                                        <div class="block-item">
+                                            Time range: 1990–2025
+                                        </div>
+                                        <div class="block-item">
+                                            Hide relative toggle
+                                        </div>
+                                    </div>
+                                    <div
+                                        class="mock-canvas"
+                                        style="
+                                            display: flex;
+                                            align-items: center;
+                                        "
+                                    >
+                                        <div
+                                            class="mock-chartblock"
+                                            style="width: 100%; margin: 0"
+                                        >
+                                            <div class="fakechart">
+                                                <i style="height: 80%"></i
+                                                ><i style="height: 74%"></i
+                                                ><i style="height: 66%"></i
+                                                ><i style="height: 60%"></i
+                                                ><i style="height: 52%"></i
+                                                ><i style="height: 47%"></i>
+                                            </div>
+                                            <div class="caption">
+                                                Live preview updates as you edit
+                                                — same Grapher instance
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 9 · Comments -->
+            <section class="slide">
+                <div class="kicker">
+                    Principle 4 · Feedback where the writing is
+                </div>
+                <h2>Comments and review, in-situ</h2>
+                <div class="slide-body">
+                    <div class="columns">
+                        <div class="col">
+                            <ul class="plain">
+                                <li>
+                                    <strong>Range comments</strong> on selected
+                                    text — anchored as editor marks, they move
+                                    with the text through edits, splits, and
+                                    rewrites.
+                                </li>
+                                <li>
+                                    <strong>Block comments</strong> on charts,
+                                    images, and other atoms — every block gets a
+                                    stable id (which later also serves AI edits
+                                    and deep links).
+                                </li>
+                                <li>
+                                    <strong>Never lost:</strong> if commented
+                                    text is deleted, the thread becomes
+                                    <em>orphaned</em> and stays listed — same
+                                    guarantee Google Docs gives.
+                                </li>
+                                <li>
+                                    <strong>Presence &amp; protection:</strong>
+                                    “Fiona is editing” banners plus stale-write
+                                    detection. No hard locks; real-time
+                                    co-editing (Yjs) is architected-for but
+                                    deferred — it will matter for
+                                    <em>agent</em> collaboration too.
+                                </li>
+                                <li>
+                                    <strong>Revision history</strong> with
+                                    restore — autosaves pruned, every publish
+                                    kept forever.
+                                </li>
+                            </ul>
+                        </div>
+                        <div
+                            class="col"
+                            style="display: flex; align-items: center"
+                        >
+                            <div style="width: 100%">
+                                <div class="card" style="margin-bottom: 1rem">
+                                    <p
+                                        style="
+                                            font-size: 0.95rem;
+                                            line-height: 1.6;
+                                        "
+                                    >
+                                        Deforestation has slowed in most
+                                        regions, but
+                                        <span class="hl"
+                                            >the tropics tell a different
+                                            story</span
+                                        >, where primary forest loss …
+                                    </p>
+                                </div>
+                                <div class="comment-bubble">
+                                    <b>Hannah Ritchie</b> — “different story”
+                                    undersells it; cite the 2025 numbers?
+                                    <div class="meta">
+                                        2 min ago · Reply · Resolve
+                                    </div>
+                                </div>
+                                <div
+                                    class="comment-bubble"
+                                    style="border-left-color: var(--blue)"
+                                >
+                                    <b>You</b> — good call, pulling them in now.
+                                    <div class="meta">just now</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 10 · AI panel -->
+            <section class="slide">
+                <div class="kicker">
+                    Stage 2 · Designed-for now, built later
+                </div>
+                <h2>An AI co-author with structural hands</h2>
+                <div class="slide-body">
+                    <div class="columns">
+                        <div class="col">
+                            <ul class="plain">
+                                <li>
+                                    <strong
+                                        >A chat rail beside the
+                                        document.</strong
+                                    >
+                                    “Tighten the intro”, “move the chart above
+                                    the fold”, “add a callout summarizing the 3
+                                    key numbers”.
+                                </li>
+                                <li>
+                                    <strong
+                                        >Structural edit tools, not text
+                                        dumps.</strong
+                                    >
+                                    The AI edits through the same command layer
+                                    as the keyboard and palette:
+                                    <code>insertBlock</code>,
+                                    <code>replaceBlock</code>,
+                                    <code>moveBlock</code>,
+                                    <code>editTextRange</code> — addressed by
+                                    block ids.
+                                </li>
+                                <li>
+                                    <strong
+                                        >Suggestions, not silent edits.</strong
+                                    >
+                                    AI changes land as reviewable track-changes,
+                                    meeting the comments system where humans
+                                    already review.
+                                </li>
+                            </ul>
+                            <p class="footnote">
+                                Why it's cheap later: every editor mutation is
+                                already a transaction, blocks already have ids,
+                                and the enriched JSON is already the
+                                model-friendly representation of a document.
+                                Stage 1 builds the rails; stage 2 puts the agent
+                                on them.
+                            </p>
+                        </div>
+                        <div class="col">
+                            <div
+                                class="cards"
+                                style="grid-template-columns: 1fr"
+                            >
+                                <div class="card">
+                                    <span class="tag blue">V1 groundwork</span>
+                                    <p>
+                                        Transaction-only mutations · stable
+                                        block ids · typed command layer ·
+                                        enriched-JSON doc format
+                                    </p>
+                                </div>
+                                <div class="card">
+                                    <span class="tag gray">Stage 2</span>
+                                    <p>
+                                        Chat rail · Claude API proxy on the
+                                        admin server · edit tools · suggestion
+                                        mode
+                                    </p>
+                                </div>
+                                <div class="card">
+                                    <span class="tag gray">Later</span>
+                                    <p>
+                                        Yjs real-time → agents as long-lived
+                                        collaborators in the doc, alongside
+                                        humans
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 11 · Decisions -->
+            <section class="slide">
+                <div class="kicker">Direction</div>
+                <h2>Four decisions, made</h2>
+                <div class="slide-body">
+                    <div
+                        class="cards two"
+                        style="flex: 1; align-content: start"
+                    >
+                        <div class="card">
+                            <span class="tag blue">Source of truth</span>
+                            <h3>Native-first, per-doc opt-in migration</h3>
+                            <p>
+                                New docs are born in the CMS. Existing gdocs
+                                keep working unchanged; each converts one-way
+                                when its authors are ready. No write-back to
+                                Google. The two pipelines coexist until adoption
+                                retires the old one, doc type by doc type.
+                            </p>
+                        </div>
+                        <div class="card">
+                            <span class="tag blue">Editor foundation</span>
+                            <h3>TipTap / ProseMirror</h3>
+                            <p>
+                                The industry-standard engine behind Notion-class
+                                editors. React node views let our blocks render
+                                through the existing site components; the
+                                richest ecosystem for comments, track-changes,
+                                and (later) Yjs collaboration.
+                            </p>
+                        </div>
+                        <div class="card">
+                            <span class="tag blue">Collaboration v1</span>
+                            <h3>Comments + presence, multiplayer-ready</h3>
+                            <p>
+                                In-situ threads and soft locking from day one.
+                                Real-time co-editing deferred — but the document
+                                format and mutation model are chosen to be
+                                Yjs-compatible, for humans and agents alike.
+                            </p>
+                        </div>
+                        <div class="card">
+                            <span class="tag blue">First milestone</span>
+                            <h3>Data insights first</h3>
+                            <p>
+                                435 published docs, three block types, constant
+                                authoring volume. Validates the entire stack —
+                                editor, comments, publishing — in the smallest
+                                real arena. Articles follow.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 12 · Architecture -->
+            <section class="slide">
+                <div class="kicker">How it fits</div>
+                <h2>A new producer, not a new pipeline</h2>
+                <div class="slide-body">
+                    <div class="pipeline">
+                        <div class="pipe-step dim">
+                            <b>Google Docs path</b
+                            ><span>stays for unconverted docs</span>
+                        </div>
+                        <div class="pipe-arrow">↘</div>
+                        <div class="pipe-step hot">
+                            <b>posts_gdocs.content</b
+                            ><span>enriched JSON — unchanged</span>
+                        </div>
+                        <div class="pipe-arrow">↖</div>
+                        <div class="pipe-step hot">
+                            <b>Rich editor</b
+                            ><span
+                                >drafts + revisions + comments (new
+                                tables)</span
+                            >
+                        </div>
+                    </div>
+                    <div class="columns">
+                        <div class="col">
+                            <h3>Untouched</h3>
+                            <ul class="plain">
+                                <li class="li-green">
+                                    Baker, public site, search indexing, derived
+                                    tables — they keep reading the same JSON
+                                    they read today.
+                                </li>
+                                <li class="li-green">
+                                    The block type system — the editor maps
+                                    ProseMirror ⇄
+                                    <code>OwidEnrichedGdocBlock[]</code>
+                                    losslessly, proven by a round-trip test over
+                                    <em>every published document</em> in CI.
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="col">
+                            <h3>New</h3>
+                            <ul class="plain">
+                                <li>
+                                    Draft + revision + comment tables;
+                                    save/publish/presence endpoints.
+                                </li>
+                                <li>
+                                    Batched reference resolution (charts,
+                                    images, indicators) so the canvas renders
+                                    live — also fixes a known N+1 the current
+                                    preview suffers from.
+                                </li>
+                                <li>
+                                    The editor app itself, in the admin, behind
+                                    a feature flag.
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 13 · Roadmap -->
+            <section class="slide">
+                <div class="kicker">Sequencing</div>
+                <h2>Roadmap</h2>
+                <div class="slide-body">
+                    <div class="roadmap">
+                        <div class="ms">
+                            <div class="badge">M0</div>
+                            <div class="ms-body">
+                                <b>Foundation</b>
+                                <p>
+                                    PM schema + lossless serialization for core
+                                    blocks · round-trip harness in CI ·
+                                    draft/revision storage ·
+                                    reference-resolution endpoint · editor shell
+                                    behind a flag.
+                                    <em
+                                        >Exit: round-trip green on 100% of data
+                                        insights, ≥95% of all published
+                                        docs.</em
+                                    >
+                                </p>
+                            </div>
+                        </div>
+                        <div class="ms green">
+                            <div class="badge">M1</div>
+                            <div class="ms-body">
+                                <b>Data insights GA</b>
+                                <p>
+                                    Full DI authoring · comments v1 · presence ·
+                                    revision history · publish path · per-doc
+                                    conversion.
+                                    <em
+                                        >Exit: new DIs are no longer created in
+                                        Google Docs.</em
+                                    >
+                                </p>
+                            </div>
+                        </div>
+                        <div class="ms">
+                            <div class="badge">M2</div>
+                            <div class="ms-body">
+                                <b>Articles beta</b>
+                                <p>
+                                    Charts, layout containers, footnotes,
+                                    details-on-demand, the top ~15 block types
+                                    first-class; the tail rides the raw-block
+                                    safety valve. Conversion opens to articles.
+                                </p>
+                            </div>
+                        </div>
+                        <div class="ms">
+                            <div class="badge">M3</div>
+                            <div class="ms-body">
+                                <b>In-situ chart editing</b>
+                                <p>
+                                    Chart-editor engine extracted into an
+                                    overlay; “Customize this chart” →
+                                    narrative-chart flow in the canvas.
+                                </p>
+                            </div>
+                        </div>
+                        <div class="ms">
+                            <div class="badge">M4</div>
+                            <div class="ms-body">
+                                <b>AI co-author</b>
+                                <p>
+                                    Chat rail + structural edit tools +
+                                    suggestion mode (separate detailed plan).
+                                </p>
+                            </div>
+                        </div>
+                        <div class="ms">
+                            <div class="badge">M5+</div>
+                            <div class="ms-body">
+                                <b>Real-time &amp; long tail</b>
+                                <p>
+                                    Yjs multiplayer (humans and agents) · topic
+                                    pages · remaining doc types · retire gdocs
+                                    ingestion per doc type as adoption
+                                    completes.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 14 · Risks -->
+            <section class="slide">
+                <div class="kicker">Eyes open</div>
+                <h2>Risks &amp; how we hold them</h2>
+                <div class="slide-body">
+                    <table class="risks">
+                        <tr>
+                            <th>Risk</th>
+                            <th>Mitigation</th>
+                        </tr>
+                        <tr>
+                            <td>Serialization infidelity corrupts content</td>
+                            <td>
+                                Round-trip harness over the full published
+                                corpus in CI from day one; unsupported blocks
+                                pass through opaquely; publish snapshots are
+                                immutable and restorable.
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                Editing feels worse than Google Docs → no
+                                adoption
+                            </td>
+                            <td>
+                                Data insights first (small blast radius);
+                                paste-from-gdocs quality bar; revision history
+                                at parity before pushing conversion; authors in
+                                the beta from M1.
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Canvas performance with many live charts</td>
+                            <td>
+                                Charts render as thumbnails until
+                                visible/focused, then hydrate; measured against
+                                our heaviest real articles before M2 exits.
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Two authoring pipelines forever</td>
+                            <td>
+                                One-way conversion (the native set only grows) +
+                                per-doc-type “default to native” switches + an
+                                explicit retirement criterion per doc type.
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                Site CSS vs admin CSS conflicts in the canvas
+                            </td>
+                            <td>
+                                Scoped canvas stylesheet, spiked in M0 before
+                                anything depends on it.
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </section>
+
+            <!-- 15 · Next steps -->
+            <section class="slide">
+                <div class="kicker">Now</div>
+                <h2>Next steps</h2>
+                <div class="slide-body">
+                    <ul class="plain" style="max-width: 52rem">
+                        <li>
+                            <strong>Socialize this plan</strong> with the
+                            content and product teams — especially the per-doc
+                            migration story and the “data insights first”
+                            scoping.
+                        </li>
+                        <li>
+                            <strong>Two technical spikes</strong> (≈ days, not
+                            weeks): TipTap NodeViews rendering
+                            <code>ArticleBlock</code> components with scoped
+                            site CSS; and the enriched ⇄ ProseMirror round-trip
+                            on real data-insight content.
+                        </li>
+                        <li>
+                            <strong>Then commit to M0</strong> — the foundation
+                            work is unglamorous but small, and everything
+                            user-visible builds on it.
+                        </li>
+                    </ul>
+                    <p class="footnote">
+                        Full technical detail — schema mapping, storage design,
+                        endpoints, comment anchoring, migration mechanics, open
+                        questions — in
+                        <code>rich-editing-technical-plan.md</code>.
+                    </p>
+                </div>
+            </section>
+        </div>
+
+        <div class="chrome">
+            <span id="slidelabel">1 / 15</span>
+            <span>Rich Editing at OWID · July 2026</span>
+            <span class="nav">
+                <button id="prev" aria-label="Previous slide">←</button>
+                <button id="next" aria-label="Next slide">→</button>
+            </span>
+        </div>
+
+        <script>
+            ;(function () {
+                // --- bar chart data (published docs, posts_gdocs_components, 2026-07) ---
+                var data = [
+                    { type: "text", n: 30065, di: true },
+                    { type: "heading", n: 4847, di: false },
+                    { type: "chart", n: 2028, di: false },
+                    { type: "image", n: 1302, di: true },
+                    { type: "list", n: 690, di: false },
+                    { type: "prominent-link", n: 675, di: false },
+                    { type: "callout", n: 420, di: false },
+                    { type: "sticky-right", n: 404, di: false },
+                    { type: "horizontal-rule", n: 313, di: false },
+                    { type: "side-by-side", n: 202, di: false },
+                    { type: "cta", n: 197, di: true },
+                    { type: "all-charts", n: 108, di: false },
+                    { type: "aside", n: 91, di: false },
+                    { type: "chart-story", n: 87, di: false },
+                ]
+                var max = data[0].n
+                var bars = document.getElementById("bars")
+                data.forEach(function (d) {
+                    var row = document.createElement("div")
+                    row.className = "bar-row"
+                    row.title =
+                        d.type +
+                        ": " +
+                        d.n.toLocaleString("en-US") +
+                        " instances"
+                    var pct = Math.max((d.n / max) * 100, 0.35)
+                    row.innerHTML =
+                        '<span class="bar-label">' +
+                        d.type +
+                        "</span>" +
+                        '<span class="bar-track"><span class="bar' +
+                        (d.di ? " di" : "") +
+                        '" style="width:' +
+                        pct.toFixed(2) +
+                        '%">' +
+                        '<span class="bar-value">' +
+                        d.n.toLocaleString("en-US") +
+                        "</span></span></span>"
+                    bars.appendChild(row)
+                })
+
+                // --- slideshow ---
+                var slides = Array.prototype.slice.call(
+                    document.querySelectorAll(".slide")
+                )
+                var label = document.getElementById("slidelabel")
+                var progress = document.getElementById("progress")
+                var i = 0
+                var fromHash = parseInt((location.hash || "").slice(1), 10)
+                if (fromHash >= 1 && fromHash <= slides.length) i = fromHash - 1
+
+                function show(n) {
+                    i = Math.max(0, Math.min(slides.length - 1, n))
+                    slides.forEach(function (s, k) {
+                        s.classList.toggle("active", k === i)
+                    })
+                    label.textContent = i + 1 + " / " + slides.length
+                    progress.style.width = ((i + 1) / slides.length) * 100 + "%"
+                    history.replaceState(null, "", "#" + (i + 1))
+                }
+                document
+                    .getElementById("prev")
+                    .addEventListener("click", function () {
+                        show(i - 1)
+                    })
+                document
+                    .getElementById("next")
+                    .addEventListener("click", function () {
+                        show(i + 1)
+                    })
+                window.addEventListener("hashchange", function () {
+                    var n = parseInt((location.hash || "").slice(1), 10)
+                    if (n >= 1 && n <= slides.length && n - 1 !== i) show(n - 1)
+                })
+                document.addEventListener("keydown", function (e) {
+                    if (
+                        e.key === "ArrowRight" ||
+                        e.key === "PageDown" ||
+                        e.key === " "
+                    ) {
+                        show(i + 1)
+                        e.preventDefault()
+                    }
+                    if (e.key === "ArrowLeft" || e.key === "PageUp") {
+                        show(i - 1)
+                        e.preventDefault()
+                    }
+                    if (e.key === "Home") show(0)
+                    if (e.key === "End") show(slides.length - 1)
+                })
+                show(i)
+            })()
+        </script>
+    </body>
+</html>

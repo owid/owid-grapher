@@ -234,6 +234,15 @@ export function GdocsIndexPage(props: RouteComponentProps): React.ReactElement {
                         }}
                     />
                     <button
+                        className="btn btn-secondary text-nowrap"
+                        onClick={() =>
+                            props.history.push(`${props.match.path}/new/edit`)
+                        }
+                    >
+                        <FontAwesomeIcon icon={faCirclePlus} /> New native draft
+                        (beta)
+                    </button>
+                    <button
                         className="btn btn-primary text-nowrap"
                         onClick={() =>
                             props.history.push(`${props.match.path}/add`)

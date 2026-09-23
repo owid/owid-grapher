@@ -46,6 +46,8 @@ fields:
     description: Timestamp when the post was last updated from Google Docs
   publicationContext:
     description: Publication context ('listed' or 'unlisted')
+  authoringMode:
+    description: Which pipeline authors the body content. 'gdocs' (default) means the content is fetched from Google Docs; 'native' means it is edited in the admin rich editor and the enriched JSON in this table (plus posts_gdocs_drafts) is the source of truth.
   revisionId:
     description: Google Docs revision ID for tracking document versions
   manualBreadcrumbs:
