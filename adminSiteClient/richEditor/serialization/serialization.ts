@@ -105,10 +105,16 @@ function runsToPmInline(runs: SpanRun[]): PmNodeJson[] {
     return nodes
 }
 
+// Marks that only exist in the editing surface (e.g. comment highlights) and
+// must never leak into the enriched content
+const EDITOR_ONLY_MARKS = new Set<string>(["comment"])
+
 function pmInlineToRuns(nodes: PmNodeJson[] | undefined): SpanRun[] {
     const runs: SpanRun[] = []
     for (const node of nodes ?? []) {
-        const marks = (node.marks ?? []).map(pmMarkToRunMark)
+        const marks = (node.marks ?? [])
+            .filter((mark) => !EDITOR_ONLY_MARKS.has(mark.type))
+            .map(pmMarkToRunMark)
         if (node.type === pmNodeNames.text) {
             if (node.text) runs.push({ kind: "text", text: node.text, marks })
         } else if (node.type === pmNodeNames.hardBreak) {

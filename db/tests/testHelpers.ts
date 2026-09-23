@@ -22,6 +22,8 @@ import {
     NarrativeChartsTableName,
     OriginsTableName,
     OriginsVariablesTableName,
+    PostsGdocsCommentThreadsTableName,
+    PostsGdocsCommentsTableName,
     PostsGdocsComponentsTableName,
     PostsGdocsDraftsTableName,
     PostsGdocsRevisionsTableName,
@@ -58,6 +60,8 @@ export const TABLES_IN_USE = [
     SourcesTableName,
     ChartConfigsTableName,
     DatasetsTableName,
+    PostsGdocsCommentsTableName, // Must come before PostsGdocsCommentThreadsTableName due to foreign key
+    PostsGdocsCommentThreadsTableName, // Must come before PostsGdocsTableName due to foreign key
     PostsGdocsComponentsTableName, // Must come before PostsGdocsTableName due to foreign key
     PostsGdocsDraftsTableName, // Must come before PostsGdocsRevisionsTableName due to foreign key
     PostsGdocsRevisionsTableName, // Must come before PostsGdocsTableName due to foreign key
