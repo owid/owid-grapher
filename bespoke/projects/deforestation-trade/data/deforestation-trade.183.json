@@ -1,1 +1,30 @@
-{"imports":{"partners":[23],"groups":[5],"values":[[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,3.0,null,null,null]]},"exports":{"partners":[],"groups":[],"values":[]}}
+{
+    "imports": {
+        "partners": [23],
+        "groups": [5],
+        "values": [
+            [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                3.0,
+                null,
+                null,
+                null
+            ]
+        ]
+    },
+    "exports": { "partners": [], "groups": [], "values": [] }
+}
