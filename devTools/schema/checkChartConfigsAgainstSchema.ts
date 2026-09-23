@@ -13,8 +13,7 @@ import {
 } from "../../db/db.js"
 import {
     type GrapherConfigValidationIssue,
-    GrapherConfigValidationError,
-    ingestGrapherConfig,
+    tryIngestGrapherConfig,
 } from "../../db/grapherConfigValidation.js"
 import {
     ADMIN_BASE_URL,
@@ -361,8 +360,16 @@ function processRow(
     }
 
     increment(report.validatedCounts, indexed.column)
-    const config = parseChartConfig(row.config, { skipMigration: true })
-    validateConfig(report, indexed.column, indexed.owner, config)
+    const owner = indexed.owner
+    try {
+        const config = parseChartConfig(row.config, { skipMigration: true })
+        validateConfig(report, indexed.column, owner, config)
+    } catch (error) {
+        report.unexpectedFailures.push({
+            owner,
+            message: error instanceof Error ? error.message : String(error),
+        })
+    }
 }
 
 function validateConfig(
@@ -371,18 +378,10 @@ function validateConfig(
     owner: OwnerRef,
     config: GrapherInterface
 ): void {
-    try {
-        ingestGrapherConfig(config)
-    } catch (error) {
-        if (error instanceof GrapherConfigValidationError) {
-            for (const issue of error.issues)
-                recordValidationIssue(report, column, owner, issue)
-        } else
-            report.unexpectedFailures.push({
-                owner,
-                message: error instanceof Error ? error.message : String(error),
-            })
-    }
+    const ingestResult = tryIngestGrapherConfig(config)
+    if (ingestResult.isValid) return
+    for (const issue of ingestResult.issues)
+        recordValidationIssue(report, column, owner, issue)
 }
 
 async function walkChartConfigs(
