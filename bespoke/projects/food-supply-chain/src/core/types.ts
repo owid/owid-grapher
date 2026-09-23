@@ -32,7 +32,6 @@ export interface FoodSupplyChainEntity {
 export interface FoodSupplyChainManifest {
     flowStages: FlowStage[]
     totalStage: { key: StageKey; name: string }
-    units: Record<Measure, string>
     sources: string[]
     method: string
     entities: FoodSupplyChainEntity[]
