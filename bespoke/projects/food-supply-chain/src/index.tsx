@@ -20,7 +20,12 @@ import "./index.scss"
 enableShadowDOM()
 
 export const VARIANTS = [
-    { name: "waterfall", component: WaterfallVariant, demoConfig: {} },
+    {
+        name: "waterfall",
+        component: WaterfallVariant,
+        demoConfig: {},
+        demoSize: "widest",
+    },
 ] satisfies BespokeComponentVariantsList<VariantName>
 
 export const mount: BespokeComponentMountFn = (
