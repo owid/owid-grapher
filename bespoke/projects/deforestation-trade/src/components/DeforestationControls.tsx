@@ -227,18 +227,16 @@ function TimePeriodControl({
                         ariaLabel="Show a single year or the sum of the last years"
                     />
                 </div>
-                <TimeSlider
-                    className="deforestation-controls__time-slider"
-                    times={metadata.years}
-                    selectedTime={yearRange.end}
-                    onChange={setYear}
-                    highlightedRange={
-                        isSingleYear
-                            ? undefined
-                            : [yearRange.start, yearRange.end]
-                    }
-                    isDisabled={!isSingleYear}
-                />
+                {/* A preset period always ends in the latest year, so there
+                    is nothing to pick on the timeline */}
+                {isSingleYear && (
+                    <TimeSlider
+                        className="deforestation-controls__time-slider"
+                        times={metadata.years}
+                        selectedTime={yearRange.end}
+                        onChange={setYear}
+                    />
+                )}
             </div>
         </LabeledControl>
     )
