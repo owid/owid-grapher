@@ -19,6 +19,8 @@ The Our World in Data monorepo: the Grapher charting library, the chart/data adm
 
 ### Checks and tests
 
+Read `docs/testing-strategy.md` when choosing, writing, or refactoring tests. It covers readable contracts, representative scenarios, and preserving guarantees during test rewrites.
+
 - `yarn typecheck` — `tsc -b` over all project references.
 - `yarn testLintChanged` / `yarn fixLintChanged` — oxlint on uncommitted files (`testLint` / `fixLint` for the whole repo).
 - `yarn testFormatChanged` / `yarn fixFormatChanged` — **oxfmt**, not prettier. Never run prettier here.
