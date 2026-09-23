@@ -1,10 +1,12 @@
 import { useCallback, useRef, useState } from "react"
+import cx from "clsx"
 
 import {
     shortenWithEllipsis,
     TextWrap,
 } from "@ourworldindata/components/src/TextWrap/TextWrap.js"
 import { TextWrapSvg } from "@ourworldindata/components/src/TextWrap/TextWrapComponents.js"
+import { Halo } from "@ourworldindata/components/src/Halo/Halo.js"
 import {
     Bounds,
     getRelativeMouse,
@@ -12,41 +14,52 @@ import {
     Point,
 } from "@ourworldindata/utils"
 import { GrapherTooltipAnchor } from "@ourworldindata/types"
+import { BezierArrow } from "@ourworldindata/grapher"
 
 import { usePinnedTooltip } from "../../../../hooks/usePinnedTooltip.js"
 import {
-    ARROW_GAP,
-    ARROW_HALF_WIDTH,
-    ARROW_HEIGHT,
-    AXIS_LABEL_WIDTH,
+    ARROW_INSET,
+    ARROW_MIN_LENGTH,
+    ARROW_OPACITY,
+    ARROW_WIDTH,
     CAPTION_FONT_SIZE,
-    CAPTION_GAP,
+    CAPTION_FONT_WEIGHT,
+    CAPTION_VALUE_LABEL_GAP,
+    CONNECTOR_WIDTH,
     GROUP_BOX_CORNER_RADIUS,
-    GROUP_BOX_PADDING,
+    GROUP_LABEL_INSET,
     GROUP_LABEL_FONT_SIZE,
     GROUP_LABEL_FONT_WEIGHT,
     GROUP_LABEL_GAP,
+    LABEL_HALO_WIDTH,
     MAX_CAPTION_LINES,
+    MIN_LABEL_SPACING,
     COLORS,
+    PLOT_MARGIN_BOTTOM,
     PLOT_MARGIN_RIGHT,
-    PLOT_MARGIN_TOP,
     TICK_LABEL_FONT_SIZE,
+    TICK_LABEL_GAP,
     TOTAL_LABEL_FONT_SIZE,
+    TOTAL_LABEL_FONT_WEIGHT,
     VALUE_LABEL_FONT_SIZE,
     VALUE_LABEL_FONT_WEIGHT,
-    TOTAL_LABEL_GAP,
-    VALUE_LABEL_INSET,
+    VALUE_LABEL_GAP,
 } from "../core/constants.js"
 import { formatMeasureValue } from "../core/format.js"
 import { STAGE_GROUPS } from "../core/stageGroups.js"
 import { StageKey } from "../core/types.js"
-import { Waterfall } from "../core/waterfall.js"
+import { isAddition, Waterfall } from "../core/waterfall.js"
 import {
+    captionLength,
+    chooseTickValues,
     groupBoxLength,
     layOutWaterfall,
+    measureSlotWidth,
     PlacedBar,
+    PlacedConnector,
     PlacedRect,
     PlacedStep,
+    totalBoxLength,
 } from "../core/waterfallLayout.js"
 import { FoodSupplyChainTooltip } from "./FoodSupplyChainTooltip.js"
 
@@ -95,58 +108,106 @@ export function FoodSupplyChainWaterfall({
         setHover(undefined)
     }, [])
 
-    const plotWidth = width - AXIS_LABEL_WIDTH - PLOT_MARGIN_RIGHT
+    const span = waterfall.domain[1] - waterfall.domain[0]
+    const tickLabels = new Map(
+        chooseTickValues(waterfall.domain).map((value) => [
+            value,
+            formatMeasureValue(value, { span, unit: waterfall.shortUnit }),
+        ])
+    )
+    const axisLabelWidth =
+        Math.max(
+            ...[...tickLabels.values()].map(
+                (label) =>
+                    Bounds.forText(label, { fontSize: TICK_LABEL_FONT_SIZE })
+                        .width
+            )
+        ) + TICK_LABEL_GAP
+
+    const plotWidth = width - axisLabelWidth - PLOT_MARGIN_RIGHT
     if (plotWidth <= 0) return null
 
-    const slotWidth = plotWidth / (waterfall.steps.length + 1)
+    const slotWidth = measureSlotWidth(plotWidth, waterfall.steps.length)
     const captionTextWraps = waterfall.steps.map((step) =>
         buildCaptionTextWrap(step.name, slotWidth)
     )
-    const totalCaptionTextWrap = buildCaptionTextWrap(
+    const totalLabelTextWrap = buildGroupLabelTextWrap(
         waterfall.total.name,
-        slotWidth
+        totalBoxLength(slotWidth) - 2 * GROUP_LABEL_INSET
     )
 
     const groupLabelTextWraps = new Map(
         STAGE_GROUPS.map((group) => [
             group.key,
             buildGroupLabelTextWrap(
-                group.label.toUpperCase(),
+                group.label,
                 groupBoxLength(slotWidth, group.stageKeys.length) -
-                    2 * GROUP_BOX_PADDING
+                    2 * GROUP_LABEL_INSET
             ),
         ])
     )
 
-    const captionHeight = Math.max(
-        ...captionTextWraps.map((wrap) => wrap.height),
-        totalCaptionTextWrap.height
-    )
     const groupLabelHeight = Math.max(
-        ...[...groupLabelTextWraps.values()].map((wrap) => wrap.height)
+        ...[...groupLabelTextWraps.values(), totalLabelTextWrap].map(
+            (wrap) => wrap.height
+        )
     )
-    const bottomMargin =
-        CAPTION_GAP +
-        captionHeight +
-        GROUP_LABEL_GAP +
-        groupLabelHeight +
-        GROUP_BOX_PADDING
+    const formatStepValues = (unit?: string): string[] =>
+        waterfall.steps.map((step) =>
+            step.delta === 0
+                ? `${isAddition(step) ? "+" : "-"}${formatMeasureValue(0, { span, unit })}`
+                : formatMeasureValue(step.delta, {
+                      span,
+                      unit,
+                      showPlus: true,
+                  })
+        )
+    const stepValuesWithUnit = formatStepValues(waterfall.shortUnit)
+    const doStepValuesWithUnitFit = stepValuesWithUnit.every(
+        (text) =>
+            Bounds.forText(text, {
+                fontSize: VALUE_LABEL_FONT_SIZE,
+                fontWeight: VALUE_LABEL_FONT_WEIGHT,
+            }).width +
+                MIN_LABEL_SPACING <=
+            slotWidth
+    )
+    const valueLabelTexts = doStepValuesWithUnitFit
+        ? stepValuesWithUnit
+        : formatStepValues()
+    const totalValueLabelText = formatMeasureValue(waterfall.total.value, {
+        span,
+        unit: waterfall.shortUnit,
+    })
 
-    const boxHeight = height - PLOT_MARGIN_TOP - bottomMargin
+    const clearanceAboveBars = Math.max(
+        ...waterfall.steps.map(
+            (step, index) =>
+                measureCaptionOffset() + captionTextWraps[index].height
+        ),
+        VALUE_LABEL_GAP + TOTAL_LABEL_FONT_SIZE
+    )
+
+    const groupBoxTop = 0
+    const groupLabelY = groupBoxTop + GROUP_LABEL_INSET
+    const plotTop =
+        groupLabelY + groupLabelHeight + GROUP_LABEL_GAP + clearanceAboveBars
+    const bottomMargin = PLOT_MARGIN_BOTTOM
+
+    const boxHeight = height - plotTop - bottomMargin
     if (boxHeight <= 0) return null
 
     const box = {
-        x: AXIS_LABEL_WIDTH,
-        y: PLOT_MARGIN_TOP,
+        x: axisLabelWidth,
+        y: plotTop,
         width: plotWidth,
         height: boxHeight,
     }
     const layout = layOutWaterfall(waterfall, box)
-    const span = waterfall.domain[1] - waterfall.domain[0]
-    const captionY = box.y + box.height + CAPTION_GAP
-    const groupLabelY = captionY + captionHeight + GROUP_LABEL_GAP
-    const groupBoxTop = box.y - ARROW_GAP - ARROW_HEIGHT - GROUP_BOX_PADDING
-    const groupBoxBottom = groupLabelY + groupLabelHeight + GROUP_BOX_PADDING
+    const groupBoxBottom = box.y + box.height
+    const groupedStepKeys = new Set(
+        layout.groups.flatMap(({ group }) => group.stageKeys)
+    )
     const hoveredStep = hover
         ? [...layout.steps, layout.total].find(
               (step) => step.step.key === hover.stepKey
@@ -170,8 +231,19 @@ export function FoodSupplyChainWaterfall({
                         bottom={groupBoxBottom}
                         labelTextWrap={groupLabelTextWraps.get(group.key)}
                         labelY={groupLabelY}
+                        fill={COLORS.groupBox}
+                        labelColor={COLORS.groupLabel}
                     />
                 ))}
+                <GroupBox
+                    box={layout.totalBox}
+                    top={groupBoxTop}
+                    bottom={groupBoxBottom}
+                    labelTextWrap={totalLabelTextWrap}
+                    labelY={groupLabelY}
+                    fill={COLORS.totalBox}
+                    labelColor={COLORS.totalLabel}
+                />
                 {layout.ticks.map((tick) => (
                     <g key={tick.value}>
                         <line
@@ -186,13 +258,13 @@ export function FoodSupplyChainWaterfall({
                             className="food-supply-chain-waterfall__tick-label"
                             x={tick.gridline.x1}
                             y={tick.gridline.y1}
-                            dx={-8}
+                            dx={-TICK_LABEL_GAP}
                             textAnchor="end"
                             dominantBaseline="middle"
                             fontSize={TICK_LABEL_FONT_SIZE}
                             fill={COLORS.tickLabel}
                         >
-                            {formatMeasureValue(tick.value, { span })}
+                            {tickLabels.get(tick.value)}
                         </text>
                     </g>
                 ))}
@@ -205,42 +277,39 @@ export function FoodSupplyChainWaterfall({
                     stroke={COLORS.zeroLine}
                 />
                 {layout.connectors.map((connector, index) => (
-                    <line
+                    <Connector
                         key={index}
-                        className="food-supply-chain-waterfall__connector"
-                        x1={connector.x1}
-                        y1={connector.y1}
-                        x2={connector.x2}
-                        y2={connector.y2}
-                        stroke={COLORS.connector}
+                        connector={connector}
+                        isDimmed={hover !== undefined}
                     />
                 ))}
                 {layout.steps.map((step, index) => (
                     <StepMarks
                         key={step.step.key}
                         step={step}
-                        span={span}
-                        unit={waterfall.stepLabelUnit}
+                        valueLabelText={valueLabelTexts[index]}
                         isTotal={false}
                         isDimmed={
                             hover !== undefined &&
                             hover.stepKey !== step.step.key
                         }
                         captionTextWrap={captionTextWraps[index]}
-                        captionY={captionY}
+                        backgroundColor={
+                            groupedStepKeys.has(step.step.key)
+                                ? COLORS.groupBox
+                                : COLORS.background
+                        }
                     />
                 ))}
                 <StepMarks
                     step={layout.total}
-                    span={span}
-                    unit={waterfall.shortUnit}
+                    valueLabelText={totalValueLabelText}
                     isTotal
                     isDimmed={
                         hover !== undefined &&
                         hover.stepKey !== waterfall.total.key
                     }
-                    captionTextWrap={totalCaptionTextWrap}
-                    captionY={captionY}
+                    backgroundColor={COLORS.totalBox}
                 />
                 {[...layout.steps, layout.total].map((step) => (
                     <rect
@@ -277,33 +346,30 @@ export function FoodSupplyChainWaterfall({
 
 function StepMarks({
     step,
-    span,
-    unit,
+    valueLabelText,
     isTotal,
     isDimmed,
     captionTextWrap,
-    captionY,
+    backgroundColor,
 }: {
     step: PlacedStep
-    span: number
-    unit: string | undefined
+    valueLabelText: string
     isTotal: boolean
     isDimmed: boolean
-    captionTextWrap: TextWrap
-    captionY: number
+    /** Absent for the total, whose box carries its label */
+    captionTextWrap?: TextWrap
+    /** What the labels sit on, which their halo takes the colour of */
+    backgroundColor: string
 }): React.ReactElement {
-    const { delta } = step.step
     const barColor = isTotal
         ? COLORS.total
-        : delta > 0
+        : isAddition(step.step)
           ? COLORS.add
           : COLORS.subtract
 
-    const valueLabelText = formatMeasureValue(delta, {
-        span,
-        unit,
-        showPlus: true,
-    })
+    const labelX =
+        step.slot.x + step.slot.width - captionLength(step.slot.width)
+
     return (
         <g
             className={
@@ -313,74 +379,83 @@ function StepMarks({
             }
         >
             {step.bar && (
-                <rect
-                    className="food-supply-chain-waterfall__bar"
-                    x={step.bar.x}
-                    y={step.bar.y}
-                    width={step.bar.width}
-                    height={step.bar.height}
-                    fill={barColor}
-                />
+                <>
+                    <rect
+                        className="food-supply-chain-waterfall__bar"
+                        x={step.bar.x}
+                        y={step.bar.y}
+                        width={step.bar.width}
+                        height={step.bar.height}
+                        fill={barColor}
+                    />
+                    {!isTotal && <BarArrow step={step} bar={step.bar} />}
+                </>
             )}
-            {!isTotal && step.bar && (
-                <path
-                    className="food-supply-chain-waterfall__arrow"
-                    d={buildArrowPath(step, step.bar)}
-                    fill={barColor}
-                />
-            )}
-            {isTotal ? (
+            <Halo
+                id={`${step.step.key}-value-label-halo`}
+                outlineColor={backgroundColor}
+                outlineWidth={LABEL_HALO_WIDTH}
+            >
                 <text
                     className="food-supply-chain-waterfall__value-label"
-                    x={step.valueAnchor.x}
-                    y={step.valueAnchor.y}
-                    dy={
-                        delta >= 0
-                            ? -TOTAL_LABEL_GAP
-                            : TOTAL_LABEL_FONT_SIZE + TOTAL_LABEL_GAP
+                    x={isTotal ? step.valueAnchor.x : labelX}
+                    y={measureBarTop(step) - VALUE_LABEL_GAP}
+                    textAnchor={isTotal ? "middle" : "start"}
+                    fontSize={getValueLabelFontSize(isTotal)}
+                    fontWeight={
+                        isTotal
+                            ? TOTAL_LABEL_FONT_WEIGHT
+                            : VALUE_LABEL_FONT_WEIGHT
                     }
-                    textAnchor="middle"
-                    fontSize={TOTAL_LABEL_FONT_SIZE}
-                    fontWeight={VALUE_LABEL_FONT_WEIGHT}
                     fill={barColor}
                 >
-                    {formatMeasureValue(delta, { span, unit })}
+                    {valueLabelText}
                 </text>
-            ) : (
-                step.bar &&
-                doesLabelFitInsideBar(valueLabelText, step.bar) && (
-                    <text
-                        className="food-supply-chain-waterfall__value-label"
-                        x={step.bar.x + step.bar.width / 2}
-                        y={
-                            delta > 0
-                                ? step.bar.y +
-                                  VALUE_LABEL_INSET +
-                                  VALUE_LABEL_FONT_SIZE / 2
-                                : step.bar.y +
-                                  step.bar.height -
-                                  VALUE_LABEL_INSET -
-                                  VALUE_LABEL_FONT_SIZE / 2
-                        }
-                        textAnchor="middle"
-                        dominantBaseline="central"
-                        fontSize={VALUE_LABEL_FONT_SIZE}
-                        fontWeight={VALUE_LABEL_FONT_WEIGHT}
-                        fill={COLORS.valueLabelInsideBar}
-                    >
-                        {valueLabelText}
-                    </text>
-                )
+            </Halo>
+            {captionTextWrap && (
+                <Halo
+                    id={`${step.step.key}-caption-halo`}
+                    outlineColor={backgroundColor}
+                    outlineWidth={LABEL_HALO_WIDTH}
+                >
+                    <TextWrapSvg
+                        className="food-supply-chain-waterfall__caption"
+                        textWrap={captionTextWrap}
+                        x={labelX}
+                        y={placeCaptionTop(step, captionTextWrap.height)}
+                        fill={COLORS.caption}
+                    />
+                </Halo>
             )}
-            <TextWrapSvg
-                className="food-supply-chain-waterfall__caption"
-                textWrap={captionTextWrap}
-                x={step.captionAnchor.x}
-                y={captionY}
-                textAnchor="middle"
-                fill={COLORS.caption}
-            />
         </g>
+    )
+}
+
+/** A line from one bar to the next, shifted half its width onto the left bar's side of their shared edge */
+function Connector({
+    connector,
+    isDimmed,
+}: {
+    connector: PlacedConnector
+    isDimmed: boolean
+}): React.ReactElement {
+    const { leftStep, line } = connector
+    const isAddition = leftStep.delta > 0
+    // An addition's bar lies below its far end on screen, a subtraction's above
+    const y = line.y1 + ((isAddition ? 1 : -1) * CONNECTOR_WIDTH) / 2
+    return (
+        <line
+            className={cx(
+                "food-supply-chain-waterfall__connector",
+                isDimmed && "food-supply-chain-waterfall__connector--dimmed"
+            )}
+            x1={line.x1}
+            y1={y}
+            x2={line.x2}
+            y2={y}
+            stroke={isAddition ? COLORS.add : COLORS.subtract}
+            strokeWidth={CONNECTOR_WIDTH}
+        />
     )
 }
 
@@ -390,12 +465,16 @@ function GroupBox({
     bottom,
     labelTextWrap,
     labelY,
+    fill,
+    labelColor,
 }: {
     box: PlacedRect
     top: number
     bottom: number
     labelTextWrap: TextWrap | undefined
     labelY: number
+    fill: string
+    labelColor: string
 }): React.ReactElement | null {
     if (!labelTextWrap) return null
 
@@ -408,48 +487,60 @@ function GroupBox({
                 width={box.width}
                 height={bottom - top}
                 rx={GROUP_BOX_CORNER_RADIUS}
-                fill={COLORS.groupBox}
-            />
-            <rect
-                className="food-supply-chain-waterfall__group-label-box"
-                x={box.x}
-                y={labelY - GROUP_BOX_PADDING}
-                width={box.width}
-                height={bottom - labelY + GROUP_BOX_PADDING}
-                rx={GROUP_BOX_CORNER_RADIUS}
-                fill={COLORS.groupLabelBox}
+                fill={fill}
             />
             <TextWrapSvg
                 className="food-supply-chain-waterfall__group-label"
                 textWrap={labelTextWrap}
-                x={box.x + box.width / 2}
+                x={box.x + GROUP_LABEL_INSET}
                 y={labelY}
-                textAnchor="middle"
-                fill={COLORS.groupLabel}
+                fill={labelColor}
             />
         </g>
     )
 }
 
-function doesLabelFitInsideBar(text: string, bar: PlacedBar): boolean {
-    const textWidth = Bounds.forText(text, {
-        fontSize: VALUE_LABEL_FONT_SIZE,
-        fontWeight: VALUE_LABEL_FONT_WEIGHT,
-    }).width
-    return (
-        bar.width >= textWidth + 2 * VALUE_LABEL_INSET &&
-        bar.height >= VALUE_LABEL_FONT_SIZE + 2 * VALUE_LABEL_INSET
-    )
+function getValueLabelFontSize(isTotal: boolean): number {
+    return isTotal ? TOTAL_LABEL_FONT_SIZE : VALUE_LABEL_FONT_SIZE
 }
 
-/** A triangle just past the bar's far end, pointing the way the balance moves */
-function buildArrowPath(step: PlacedStep, bar: PlacedBar): string {
-    const { x, y } = step.valueAnchor
-    const direction = step.step.delta > 0 ? -1 : 1
-    const halfWidth = Math.min(ARROW_HALF_WIDTH, bar.width / 2)
-    const baseY = y + direction * ARROW_GAP
-    const tipY = baseY + direction * ARROW_HEIGHT
-    return `M ${x},${tipY} L ${x - halfWidth},${baseY} L ${x + halfWidth},${baseY} Z`
+/** Distance from the top of a step's bar to the bottom of its caption, with the value label in between */
+function measureCaptionOffset(): number {
+    return VALUE_LABEL_GAP + VALUE_LABEL_FONT_SIZE + CAPTION_VALUE_LABEL_GAP
+}
+
+/** The top of a step's bar, or where it would start for a step of zero */
+function measureBarTop(step: PlacedStep): number {
+    return step.bar?.y ?? step.valueAnchor.y
+}
+
+function placeCaptionTop(step: PlacedStep, captionHeight: number): number {
+    return measureBarTop(step) - measureCaptionOffset() - captionHeight
+}
+
+/** An arrow through the bar, pointing the way the balance moves; drawn only if the bar has room for it */
+function BarArrow({
+    step,
+    bar,
+}: {
+    step: PlacedStep
+    bar: PlacedBar
+}): React.ReactElement | null {
+    if (bar.height < ARROW_MIN_LENGTH + 2 * ARROW_INSET) return null
+
+    // +1 walks down the screen from the far end, -1 walks up
+    const direction = step.step.delta > 0 ? 1 : -1
+    const { x, y: farEndY } = step.valueAnchor
+    return (
+        <BezierArrow
+            className="food-supply-chain-waterfall__arrow"
+            start={{ x, y: farEndY + direction * (bar.height - ARROW_INSET) }}
+            end={{ x, y: farEndY + direction * ARROW_INSET }}
+            width={ARROW_WIDTH}
+            color={COLORS.arrow}
+            opacity={ARROW_OPACITY}
+        />
+    )
 }
 
 function buildGroupLabelTextWrap(text: string, maxWidth: number): TextWrap {
@@ -463,8 +554,13 @@ function buildGroupLabelTextWrap(text: string, maxWidth: number): TextWrap {
 
 /** A caption's TextWrap, truncated to at most MAX_CAPTION_LINES lines */
 function buildCaptionTextWrap(text: string, slotWidth: number): TextWrap {
-    const maxWidth = slotWidth - 4
-    const wrap = new TextWrap({ text, maxWidth, fontSize: CAPTION_FONT_SIZE })
+    const maxWidth = captionLength(slotWidth)
+    const wrap = new TextWrap({
+        text,
+        maxWidth,
+        fontSize: CAPTION_FONT_SIZE,
+        fontWeight: CAPTION_FONT_WEIGHT,
+    })
     if (wrap.lines.length <= MAX_CAPTION_LINES) return wrap
 
     const kept = wrap.lines.slice(0, MAX_CAPTION_LINES).map((line) => line.text)
@@ -473,11 +569,13 @@ function buildCaptionTextWrap(text: string, slotWidth: number): TextWrap {
         maxWidth,
         {
             fontSize: CAPTION_FONT_SIZE,
+            fontWeight: CAPTION_FONT_WEIGHT,
         }
     )
     return new TextWrap({
         text: kept.join("\n"),
         maxWidth,
         fontSize: CAPTION_FONT_SIZE,
+        fontWeight: CAPTION_FONT_WEIGHT,
     })
 }

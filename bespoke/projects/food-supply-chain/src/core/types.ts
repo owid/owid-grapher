@@ -9,11 +9,6 @@ export const SHORT_UNIT_BY_MEASURE: Record<Measure, string> = {
     protein: "g",
 }
 
-/** Measures whose short unit is brief enough to repeat on every step's label */
-export const MEASURES_WITH_UNIT_ON_STEPS: ReadonlySet<Measure> = new Set([
-    "protein",
-])
-
 /** Keys as the manifest spells them; the set is not known at compile time */
 export type StageKey = string
 
