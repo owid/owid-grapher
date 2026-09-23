@@ -13,6 +13,7 @@ export default defineConfig({
             "adminSiteServer/app.test.ts",
             "adminSiteServer/tests/**",
             "bespoke/**",
+            "playwright/**",
         ],
         pool: "threads",
         setupFiles: ["devTools/vitest-setup.ts"],

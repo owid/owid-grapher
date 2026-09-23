@@ -28,7 +28,7 @@ Read `docs/testing-strategy.md` when choosing, writing, or refactoring tests. It
 - `make dbtest` — DB and API test suite (`db/tests/**`, `adminSiteServer/tests/**`). Spins up its own MySQL container and runs migrations; these tests are excluded from `yarn test`.
 - `make test` — the CI bundle: lint + format check + unit tests.
 - `make svgtest` — SVG regression tests for chart rendering; uses a sibling `../owid-grapher-svgs` checkout and opens an HTML diff report on failure. Run when touching grapher rendering code.
-- `yarn testBdd` / `make bdd` — Playwright BDD tests driven by `features/*.feature` (requires the dev stack running).
+- `yarn testPlaywright` / `make playwright` — direct Playwright browser tests (requires the dev stack running).
 - `yarn testBundlemon` — builds the site bundle and checks it against the size budgets in `.bundlemonrc.json`; CI blocks PRs that exceed them. Relevant when adding dependencies or imports to site code.
 
 ### Git
