@@ -39,6 +39,9 @@ export const IndexPage = (props: {
                     type="image/svg+xml"
                 />
                 <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+                {/* Site fonts (Lato, Playfair Display) so the rich editor
+                    canvas can match the article typography */}
+                <link rel="stylesheet" href="/fonts.css" />
                 {assets.forHeader}
             </head>
             <body>

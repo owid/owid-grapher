@@ -480,6 +480,38 @@ describe("rich editor API", { timeout: 20000 }, () => {
         expect(list.threads[0].comments).toHaveLength(2)
     })
 
+    it("creates native articles when requested, rejects unsupported types", async () => {
+        const created = await env.request({
+            method: "POST",
+            path: "/gdocs/createNative",
+            body: JSON.stringify({
+                title: "A native article",
+                type: "article",
+            }),
+        })
+        expect(created.content.type).toBe("article")
+        expect(created.authoringMode).toBe(OwidGdocAuthoringMode.Native)
+
+        const rejected = await rawRequest({
+            method: "POST",
+            path: "/gdocs/createNative",
+            body: JSON.stringify({
+                title: "A native homepage",
+                type: "homepage",
+            }),
+        })
+        expect(rejected.status).toBe(400)
+    })
+
+    it("resolves narrative chart references without error", async () => {
+        const resolved = await env.request({
+            method: "POST",
+            path: "/editor/resolveReferences",
+            body: JSON.stringify({ narrativeChartNames: ["does-not-exist"] }),
+        })
+        expect(resolved.narrativeCharts).toEqual({})
+    })
+
     it("answers presence heartbeats", async () => {
         const created = await createNativeDoc("Presence test")
         const presence = await env.request({
