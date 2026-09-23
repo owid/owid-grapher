@@ -56,7 +56,7 @@ import {
     layOutWaterfall,
     measureGroupHeaderSlots,
     PlacedBar,
-    PlacedConnector,
+    PlacedLine,
     PlacedStep,
 } from "../core/waterfallLayout.js"
 import { FoodSupplyChainTooltip } from "./FoodSupplyChainTooltip.js"
@@ -302,10 +302,24 @@ export function FoodSupplyChainWaterfallHorizontal({
                 {layout.connectors.map((connector, index) => (
                     <Connector
                         key={index}
-                        connector={connector}
+                        line={connector.line}
+                        isAddition={connector.leftStep.delta > 0}
+                        color={
+                            connector.leftStep.delta > 0
+                                ? COLORS.add
+                                : COLORS.subtract
+                        }
                         isDimmed={hover !== undefined}
                     />
                 ))}
+                {layout.totalConnector && (
+                    <Connector
+                        line={layout.totalConnector}
+                        isAddition={waterfall.total.value > 0}
+                        color={COLORS.total}
+                        isDimmed={hover !== undefined}
+                    />
+                )}
                 {layout.groups.map(({ group, box: groupBox }) => {
                     const textWrap = groupHeaderTextWraps.get(group.key)
                     if (!textWrap) return null
@@ -480,14 +494,17 @@ function RowMarks({
 
 /** A line from one bar to the next, shifted half its width onto the upper bar's side of their shared edge */
 function Connector({
-    connector,
+    line,
+    isAddition,
+    color,
     isDimmed,
 }: {
-    connector: PlacedConnector
+    line: PlacedLine
+    /** Whether the bar it leaves adds to the balance, which decides the side it shifts to */
+    isAddition: boolean
+    color: string
     isDimmed: boolean
 }): React.ReactElement {
-    const { leftStep, line } = connector
-    const isAddition = leftStep.delta > 0
     // An addition's bar lies left of its far end on screen, a subtraction's right
     const x = line.x1 + ((isAddition ? -1 : 1) * CONNECTOR_WIDTH) / 2
     return (
@@ -500,7 +517,7 @@ function Connector({
             y1={line.y1}
             x2={x}
             y2={line.y2}
-            stroke={isAddition ? COLORS.add : COLORS.subtract}
+            stroke={color}
             strokeWidth={CONNECTOR_WIDTH}
         />
     )

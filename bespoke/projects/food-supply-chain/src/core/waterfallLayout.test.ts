@@ -80,6 +80,27 @@ describe(layOutWaterfall, () => {
         ).toEqual(["crop", "exports"])
     })
 
+    it("connects the last drawn step to the total at the total's value", () => {
+        const waterfall = fixtureWaterfall({
+            crop: [100],
+            exports: [10],
+            tourism: [0],
+            food: [90],
+        })
+        const layout = layOutWaterfall(waterfall, BOX, {
+            orientation: "horizontal",
+        })
+
+        const exports = layout.steps.find((step) => step.step.key === "exports")
+        const totalBar = layout.total.bar!
+        expect(layout.totalConnector).toEqual({
+            x1: layout.total.valueAnchor.x,
+            y1: exports!.bar!.y + exports!.bar!.height,
+            x2: layout.total.valueAnchor.x,
+            y2: totalBar.y,
+        })
+    })
+
     it("floors a step whose delta scales to under half a pixel", () => {
         const waterfall = fixtureWaterfall({
             crop: [100_000],
