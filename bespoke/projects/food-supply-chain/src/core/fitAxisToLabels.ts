@@ -8,6 +8,8 @@ export interface AxisLabel {
     barEnd: number
     /** Pixels the label takes up beside the bar */
     width: number
+    /** Pixels it takes up with its unit on a second line; absent when the unit can't wrap */
+    wrappedWidth?: number
     preferredSide: LabelSide
 }
 
@@ -16,12 +18,15 @@ export interface FittedAxis {
     length: number
     /** The side each label ends up on, in the order given */
     sides: LabelSide[]
+    /** Whether each label puts its unit on a second line, in the order given */
+    isWrapped: boolean[]
 }
 
 /**
  * The longest axis that keeps every label within `availableLength` pixels.
  * Right labels shorten the axis until they fit; a left label with no room
- * before the axis start moves to its bar's right instead.
+ * before the axis start wraps its unit if that makes it fit, and moves to its
+ * bar's right otherwise.
  */
 export function fitAxisToLabels(
     labels: AxisLabel[],
@@ -30,6 +35,7 @@ export function fitAxisToLabels(
     endMargin: number
 ): FittedAxis {
     const sides = labels.map((label) => label.preferredSide)
+    const isWrapped = labels.map(() => false)
 
     // Moving a label right can only shorten the axis, which can only push
     // more left labels out, so this settles after at most one pass per label
@@ -40,14 +46,17 @@ export function fitAxisToLabels(
             availableLength,
             endMargin
         )
-        const crampedIndices = labels
-            .map((label, index) => index)
-            .filter(
-                (index) =>
-                    sides[index] === "left" &&
-                    labels[index].barStart * length < labels[index].width
-            )
-        if (crampedIndices.length === 0) return { length, sides }
+        const crampedIndices: number[] = []
+        labels.forEach((label, index) => {
+            isWrapped[index] = false
+            if (sides[index] !== "left") return
+            const room = label.barStart * length
+            if (label.width <= room) return
+            if (label.wrappedWidth !== undefined && label.wrappedWidth <= room)
+                isWrapped[index] = true
+            else crampedIndices.push(index)
+        })
+        if (crampedIndices.length === 0) return { length, sides, isWrapped }
         for (const index of crampedIndices) sides[index] = "right"
     }
 }
