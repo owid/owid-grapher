@@ -7,7 +7,9 @@ import { Waterfall, WaterfallStep } from "./waterfall.js"
 export const MIN_BAR_LENGTH_PX = 0.5
 
 /** Share of a slot left empty on each side of its bar */
-const SLOT_PADDING_RATIO = 0.15
+const SLOT_PADDING_RATIO = 0.2
+/** How far a group's box reaches past its outer bars, in slots */
+const GROUP_BOX_OVERHANG_RATIO = 0.08
 
 const TICK_COUNT = 5
 
@@ -64,7 +66,8 @@ export interface PlacedTick {
 
 export interface PlacedGroup {
     group: StageGroup
-    band: PlacedLine
+    /** The group's columns, over the plot's whole value range */
+    box: PlacedRect
 }
 
 export interface WaterfallLayout {
@@ -76,9 +79,12 @@ export interface WaterfallLayout {
     groups: PlacedGroup[]
 }
 
-/** The pixels a group's band runs over, given the pixels one column gets */
-export function groupBandLength(slotWidth: number, stageCount: number): number {
-    return slotWidth * (stageCount - 2 * SLOT_PADDING_RATIO)
+/** The pixels a group's box runs over, given the pixels one column gets */
+export function groupBoxLength(slotWidth: number, stageCount: number): number {
+    return (
+        slotWidth *
+        (stageCount - 2 * SLOT_PADDING_RATIO + 2 * GROUP_BOX_OVERHANG_RATIO)
+    )
 }
 
 export function layOutWaterfall(
@@ -115,7 +121,7 @@ interface PlannedTick {
 
 interface PlannedGroup {
     group: StageGroup
-    band: Extent
+    box: Extent
 }
 
 interface WaterfallPlan {
@@ -177,11 +183,13 @@ function planGroups(steps: WaterfallStep[], valueDomain: Span): PlannedGroup[] {
         return [
             {
                 group,
-                band: {
-                    value: { from: valueDomain.from, to: valueDomain.from },
+                box: {
+                    value: valueDomain,
                     step: {
-                        from: paddedSlotSpan(first).from,
-                        to: paddedSlotSpan(last).to,
+                        from:
+                            paddedSlotSpan(first).from -
+                            GROUP_BOX_OVERHANG_RATIO,
+                        to: paddedSlotSpan(last).to + GROUP_BOX_OVERHANG_RATIO,
                     },
                 },
             },
@@ -381,7 +389,7 @@ function projectPlan(
         zeroLine: projection.toSegment(scaleExtent(plan.zeroLine, scales)),
         groups: plan.groups.map((planned) => ({
             group: planned.group,
-            band: projection.toSegment(scaleExtent(planned.band, scales)),
+            box: toRect(projection.toSegment(scaleExtent(planned.box, scales))),
         })),
     }
 }

@@ -8,24 +8,19 @@ export interface StageGroup {
 
 export const STAGE_GROUPS: StageGroup[] = [
     {
-        key: "supply",
-        label: "Grown and imported",
-        stageKeys: ["crop_production", "imports"],
+        key: "trade_and_storage",
+        label: "Trade and storage",
+        stageKeys: ["imports", "exports", "stock_variation"],
     },
     {
-        key: "outbound",
-        label: "Exported or stored",
-        stageKeys: ["exports", "stock_variation"],
+        key: "set_aside_or_lost",
+        label: "Set aside or lost",
+        stageKeys: ["seed", "losses"],
     },
     {
-        key: "non_food",
-        label: "Lost or used elsewhere",
-        stageKeys: ["seed", "losses", "other_uses", "processing_net"],
-    },
-    {
-        key: "animals",
-        label: "Through animals",
-        stageKeys: ["feed", "animal_products"],
+        key: "turned_into_other_products",
+        label: "Turned into other products",
+        stageKeys: ["other_uses", "processing_net", "feed", "animal_products"],
     },
     {
         key: "adjustments",
