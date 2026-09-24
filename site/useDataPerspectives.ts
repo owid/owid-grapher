@@ -144,7 +144,8 @@ export function useDataPerspectives(slug: string | undefined): {
     // The first change away from the applied perspective marks the narrative
     // stale. `hide` and `disable` are pure CSS (see wrapperClassName), so the
     // title's space and the subtitle stay put; `revert` restores the chart's
-    // own title and subtitle.
+    // own title and subtitle (and, with nothing to go back to, shows no
+    // restore control).
     useEffect(() => {
         if (!isNarrative) return
         let dispose: (() => void) | undefined

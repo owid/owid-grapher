@@ -42,7 +42,8 @@ export type DataPerspectivesStyle = "panel" | "card" | "seamless" | "narrative"
  *   hide    — (default) the title becomes blank space; its room is kept
  *   disable — the title stays, greyed and struck through
  *   revert  — the chart's original title and subtitle come back
- * Each offers a control to jump back to the perspective.
+ * hide and disable offer a control to jump back to the perspective; revert
+ * doesn't, since the chart is simply back to its own title.
  */
 export type DataPerspectivesNarrativeStale = "hide" | "disable" | "revert"
 

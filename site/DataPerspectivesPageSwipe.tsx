@@ -154,14 +154,16 @@ export function DataPerspectivesPageSwipe({
 
     // Where the restore control goes, relative to this component. Grapher draws
     // the title, so we measure it rather than inject into it: in `hide` mode
-    // the button takes the blank title's place (left-aligned, first line);
-    // otherwise it sits right after the end of the title's last line.
+    // the button takes the blank title's place (left-aligned, first line); in
+    // `disable` mode it sits right after the end of the struck-through title.
     const [restoreAt, setRestoreAt] = useState<{
         left: number
         top: number
     } | null>(null)
     useEffect(() => {
-        if (!narrativeStale) {
+        // `revert` hands the chart its own title back, so there's nothing to
+        // restore to: no control at all.
+        if (!narrativeStale || narrativeStaleMode === "revert") {
             setRestoreAt(null)
             return
         }
