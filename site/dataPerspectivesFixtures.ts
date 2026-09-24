@@ -19,7 +19,7 @@ export interface DataPerspective {
 export const DATA_PERSPECTIVES: Record<string, DataPerspective[]> = {
     "prevalence-of-undernourishment": [
         {
-            title: "How did hunger change in different world regions?",
+            title: "How has hunger changed in different world regions?",
             queryParams: "",
         },
         {
