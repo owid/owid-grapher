@@ -15,6 +15,7 @@ import {
     PagesIndexRecordsResponse,
     RedirectsTableName,
     OwidGdocType,
+    GdocChartPreviewRefreshResult,
 } from "@ourworldindata/types"
 import {
     checkIsChronologicalGdoc,
@@ -68,6 +69,7 @@ import {
     getGdocBaseObjectById,
     type AnyGdoc,
 } from "../../db/model/Gdoc/GdocFactory.js"
+import { refreshGdocChartPreviews } from "../../db/model/Gdoc/chartPreviews/refreshGdocChartPreviews.js"
 import { enqueueLightningChange } from "./routeUtils.js"
 import { triggerStaticBuild } from "../../baker/GrapherBakingUtils.js"
 import * as db from "../../db/db.js"
@@ -622,6 +624,21 @@ export async function setGdocTags(
     await setTagsForGdoc(trx, gdocId, tagIdsAsObjects)
 
     return { success: true }
+}
+
+/**
+ * Updates the chart preview images above chart components in the Google Doc
+ * itself, so authors see the current version of each chart while writing.
+ */
+export async function refreshGdocChartPreviewsInDoc(
+    req: Request,
+    res: HandlerResponse,
+    trx: db.KnexReadonlyTransaction
+): Promise<GdocChartPreviewRefreshResult> {
+    const { gdocId } = req.params
+    return refreshGdocChartPreviews(trx, gdocId, {
+        insertMissing: req.body?.insertMissing === true,
+    })
 }
 
 /**
