@@ -323,16 +323,57 @@ async function resolveGrapherLinks(
     return targets
 }
 
+/** Narrative charts render their merged config, which is stored per chart */
+async function resolveNarrativeCharts(
+    knex: db.KnexReadonlyTransaction,
+    names: { key: string; name: string }[]
+): Promise<Map<string, ResolvedTarget>> {
+    const targets = new Map<string, ResolvedTarget>()
+    if (names.length === 0) return targets
+    const rows: { name: string; chartConfigId: string }[] = await knex(
+        "narrative_charts"
+    )
+        .select("name", "chartConfigId")
+        .whereIn("name", _.uniq(names.map(({ name }) => name)))
+    const configIdsByName = new Map(
+        rows.map((row) => [row.name, row.chartConfigId])
+    )
+    const configs = await getChartConfigsById(knex, [
+        ...configIdsByName.values(),
+    ])
+    for (const { key, name } of names) {
+        const configId = configIdsByName.get(name)
+        const info = configId ? configs.get(configId) : undefined
+        targets.set(
+            key,
+            info
+                ? { status: "resolved", info, queryStr: "" }
+                : {
+                      status: "unresolved",
+                      message: "No narrative chart with this name",
+                  }
+        )
+    }
+    return targets
+}
+
 export async function resolveChartPreviewSources(
     knex: db.KnexReadonlyTransaction,
     specs: ChartPreviewComponentSpec[]
 ): Promise<Map<string, ChartPreviewSource>> {
     const sources = new Map<string, ChartPreviewSource>()
     const grapherLinks: GrapherLink[] = []
+    const narrativeChartNames: { key: string; name: string }[] = []
+    const seen = new Set<string>()
 
     for (const spec of specs) {
         const key = chartPreviewSpecKey(spec)
-        if (sources.has(key)) continue
+        if (seen.has(key)) continue
+        seen.add(key)
+        if (spec.type === "narrative-chart") {
+            narrativeChartNames.push({ key, name: spec.target })
+            continue
+        }
         const url = Url.fromURL(spec.target)
         if (url.isGrapher && url.slug) {
             grapherLinks.push({
@@ -348,7 +389,10 @@ export async function resolveChartPreviewSources(
         }
     }
 
-    const targets = await resolveGrapherLinks(knex, grapherLinks)
+    const targets = new Map([
+        ...(await resolveGrapherLinks(knex, grapherLinks)),
+        ...(await resolveNarrativeCharts(knex, narrativeChartNames)),
+    ])
 
     const checksums = await getVariableChecksums(
         knex,
