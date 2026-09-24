@@ -154,6 +154,9 @@ export const GDOCS_DONATE_FAQS_DOCUMENT_ID: string =
 export const GDOCS_CHART_PREVIEW_GRAPHER_URL: string =
     serverSettings.GDOCS_CHART_PREVIEW_GRAPHER_URL ??
     clientSettings.GRAPHER_DYNAMIC_THUMBNAIL_URL
+export const GDOCS_CHART_PREVIEW_EXPLORER_URL: string =
+    serverSettings.GDOCS_CHART_PREVIEW_EXPLORER_URL ??
+    clientSettings.EXPLORER_DYNAMIC_THUMBNAIL_URL
 
 // Load R2 credentials from rclone config
 let rcloneConfig: any = {}

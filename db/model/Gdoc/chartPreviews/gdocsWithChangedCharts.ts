@@ -1,8 +1,8 @@
 import * as db from "../../../db.js"
 
 /**
- * Gdocs with chart components pointing at charts, multi-dims or narrative
- * charts whose config or
+ * Gdocs with chart components pointing at charts, multi-dims, narrative charts
+ * or explorers whose config or
  * data changed since the given date, i.e. those whose preview images may be outdated.
  *
  * This is deliberately generous (indicators are touched by every ETL run, even
@@ -82,6 +82,33 @@ export async function getGdocIdsWithChangedCharts(
                 ON mx.id = nc.parentMultiDimXChartConfigId
             JOIN variables v ON v.id = mx.variableId
             WHERE v.updatedAt >= ?
+        ),
+        changed_explorers AS (
+            SELECT slug
+            FROM explorers
+            WHERE updatedAt >= ?
+            UNION
+            SELECT ev.explorerSlug AS slug
+            FROM explorer_views ev
+            JOIN chart_configs cc ON cc.id = ev.chartConfigId
+            WHERE cc.updatedAt >= ?
+            UNION
+            SELECT ev.explorerSlug AS slug
+            FROM explorer_variables ev
+            JOIN variables v ON v.id = ev.variableId
+            WHERE v.updatedAt >= ?
+            UNION
+            SELECT ec.explorerSlug AS slug
+            FROM explorer_charts ec
+            JOIN chart_dimensions cd ON cd.chartId = ec.chartId
+            JOIN variables v ON v.id = cd.variableId
+            WHERE v.updatedAt >= ?
+            UNION
+            -- Explorers that now redirect to a multi-dim
+            SELECT REPLACE(mdr.source, '/explorers/', '')
+            FROM changed_multi_dims cm
+            JOIN multi_dim_redirects mdr ON mdr.multiDimId = cm.id
+            WHERE mdr.source LIKE '/explorers/%'
         )
         SELECT DISTINCT l.sourceId AS gdocId
         FROM posts_gdocs_links l
@@ -91,8 +118,13 @@ export async function getGdocIdsWithChangedCharts(
         SELECT l.sourceId AS gdocId
         FROM posts_gdocs_links l
         JOIN changed_narrative_charts n ON n.name = l.target
-        WHERE l.linkType = 'narrative-chart'`,
-        [since, since, since, since, since, since, since, since, since]
+        WHERE l.linkType = 'narrative-chart'
+        UNION
+        SELECT l.sourceId AS gdocId
+        FROM posts_gdocs_links l
+        JOIN changed_explorers e ON e.slug = l.target
+        WHERE l.linkType = 'explorer' AND l.componentType = 'chart'`,
+        Array(13).fill(since)
     )
     return rows.map((row) => row.gdocId)
 }
