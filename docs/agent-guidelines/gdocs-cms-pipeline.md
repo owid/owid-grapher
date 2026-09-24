@@ -19,6 +19,8 @@ Supporting type definitions live in `packages/@ourworldindata/types/src/gdocType
 
 Service account credentials from `settings/serverSettings.js` are wrapped by `OwidGoogleAuth` to produce cached, scope-limited `GoogleAuth` instances (`getGoogleReadonlyAuth` for ingestion, `getGoogleReadWriteAuth` when we need to write back to Docs).
 
+One such write-back is keeping the chart preview images above chart components current, see `gdocs-chart-previews.md`.
+
 The two most common ingestion entry points are:
 
 1. `createGdocAndInsertIntoDb` in `GdocFactory.ts`, which fetches the latest version of a Google Doc and stores it in `posts_gdocs`.

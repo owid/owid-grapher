@@ -48,6 +48,7 @@ import { deleteGdoc, updateGdoc } from "./gdocsApi.js"
 import { useUpdateGdocTags } from "./gdocsQueries.js"
 import { IconBadge } from "./IconBadge.js"
 import { GdocsMoreMenu } from "./GdocsMoreMenu.js"
+import { GdocsChartPreviewsModal } from "./GdocsChartPreviewsModal.js"
 import { GdocsEditLink } from "./GdocsEditLink.js"
 import { openSuccessNotification } from "./gdocsNotifications.js"
 import { GdocsDiffButton } from "./GdocsDiffButton.js"
@@ -93,6 +94,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
     >()
     const [isDiffOpen, setDiffOpen] = useState(false)
     const [isRecordsOpen, setRecordsOpen] = useState(false)
+    const [isChartPreviewsOpen, setChartPreviewsOpen] = useState(false)
     const [recordsPreviewMode, setRecordsPreviewMode] =
         useState<RecordsPreviewMode>("records")
     const [errors, setErrors] = React.useState<OwidGdocErrorMessage[]>()
@@ -450,6 +452,9 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                                 isMobilePreviewActive={isMobilePreviewActive}
                                 toggleMobilePreview={toggleMobilePreview}
                                 onOpenRecords={() => setRecordsOpen(true)}
+                                onOpenChartPreviews={() =>
+                                    setChartPreviewsOpen(true)
+                                }
                             />
                         </Space>
                     </Col>
@@ -643,6 +648,11 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                         mode={recordsPreviewMode}
                     />
                 </Drawer>
+                <GdocsChartPreviewsModal
+                    gdocId={currentGdoc.id}
+                    isOpen={isChartPreviewsOpen}
+                    onClose={() => setChartPreviewsOpen(false)}
+                />
 
                 <div className="iframe-container">
                     {/*
