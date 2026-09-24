@@ -8,6 +8,7 @@ describe("data perspectives URL variants", () => {
             layout: "off",
             style: "panel",
             narrativeStale: "hide",
+            upNext: false,
             hintReset: false,
             ignored: [],
         })
@@ -34,6 +35,11 @@ describe("data perspectives URL variants", () => {
                     .narrativeStale
             ).toBe(mode)
         }
+    })
+
+    it("turns on the Up next carousel", () => {
+        expect(parseDataPerspectivesVariant("?dpUpNext=1").upNext).toBe(true)
+        expect(parseDataPerspectivesVariant("?dpUpNext=1").ignored).toEqual([])
     })
 
     it("is forgiving about case and singular/plural", () => {
@@ -119,5 +125,22 @@ describe("swipe nudge memory", () => {
 
         vi.restoreAllMocks()
         vi.unstubAllGlobals()
+    })
+})
+
+describe("up next articles", () => {
+    it("carry a title, byline, date and opening text", async () => {
+        const { UP_NEXT_ARTICLES } = await import("./upNextArticles.js")
+        for (const articles of Object.values(UP_NEXT_ARTICLES)) {
+            for (const a of articles) {
+                expect(a.url.startsWith("https://ourworldindata.org/")).toBe(
+                    true
+                )
+                expect(a.title.length).toBeGreaterThan(0)
+                expect(a.authors.length).toBeGreaterThan(0)
+                expect(a.publishedAt).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+                expect(a.paragraphs.length).toBeGreaterThan(0)
+            }
+        }
     })
 })

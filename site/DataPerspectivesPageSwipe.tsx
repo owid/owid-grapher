@@ -41,7 +41,8 @@ const RESTORE_ICON_SIZE = 22
 function isInteractiveTarget(target: EventTarget | null): boolean {
     if (!(target instanceof Element)) return false
     return !!target.closest(
-        "input, select, textarea, [draggable='true'], .slider, .timeline-component"
+        // .dp-up-next is the article carousel, which has its own swipe.
+        "input, select, textarea, [draggable='true'], .slider, .timeline-component, .dp-up-next"
     )
 }
 

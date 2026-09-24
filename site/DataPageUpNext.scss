@@ -1,0 +1,128 @@
+// ?dpUpNext=1 — the "Up next" article carousel (DataPageUpNext.tsx).
+
+.dp-up-next {
+    margin: 24px 0 32px;
+    padding: 16px;
+    border: 1px solid $blue-10;
+    border-radius: 8px;
+    background-color: $white;
+    // Horizontal drags move the articles; vertical ones still scroll the page.
+    touch-action: pan-y;
+}
+
+.dp-up-next__header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.dp-up-next__label {
+    @include overline-black-caps;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    color: $blue-60;
+}
+
+.dp-up-next__label-arrow {
+    font-size: 12px;
+}
+
+.dp-up-next__counter {
+    @include body-3-medium;
+    color: $blue-50;
+    font-variant-numeric: tabular-nums;
+}
+
+.dp-up-next__viewport {
+    overflow: hidden;
+}
+
+.dp-up-next__stage {
+    will-change: transform;
+    user-select: none;
+}
+
+.dp-up-next__card {
+    display: block;
+    color: inherit;
+    text-decoration: none;
+
+    &:hover .dp-up-next__title {
+        text-decoration: underline;
+        text-underline-offset: 3px;
+    }
+
+    &:focus-visible {
+        outline: 2px solid $blue-60;
+        outline-offset: 4px;
+    }
+}
+
+.dp-up-next__title {
+    @include h3-bold;
+    margin: 0 0 6px;
+    color: $blue-90;
+}
+
+.dp-up-next__meta {
+    @include body-3-medium;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+    margin: 0 0 12px;
+    color: $blue-50;
+}
+
+// The opening of the article, fading out after a few lines so it reads as the
+// start of something rather than a summary of it.
+.dp-up-next__excerpt {
+    max-height: 11.5em;
+    overflow: hidden;
+    color: $blue-90;
+    mask-image: linear-gradient(to bottom, #000 55%, transparent);
+
+    p {
+        @include body-2-regular;
+        margin: 0 0 0.8em;
+    }
+}
+
+.dp-up-next__continue {
+    @include body-3-bold;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 8px;
+    color: $blue-60;
+}
+
+.dp-up-next__dots {
+    list-style: none;
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin: 14px 0 0;
+    padding: 0;
+}
+
+.dp-up-next__dot {
+    width: 8px;
+    height: 8px;
+    padding: 0;
+    border-radius: 50%;
+    background-color: $blue-20;
+    cursor: pointer;
+    // A bigger hit area than the dot itself, for thumbs.
+    box-sizing: content-box;
+    background-clip: content-box;
+    border: 6px solid transparent;
+    margin: -6px;
+
+    &.dp-up-next__dot--active {
+        background-color: $blue-60;
+    }
+}

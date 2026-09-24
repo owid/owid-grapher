@@ -40,6 +40,8 @@ import { useDataPerspectives } from "./useDataPerspectives.js"
 import { DataPerspectivesPageSwipe } from "./DataPerspectivesPageSwipe.js"
 import { DataPerspectivesAccordion } from "./DataPerspectivesAccordion.js"
 import { DataPerspectivesIgnoredParams } from "./DataPerspectivesIgnoredParams.js"
+import { DataPageUpNext } from "./DataPageUpNext.js"
+import { UP_NEXT_ARTICLES } from "./upNextArticles.js"
 
 declare global {
     interface Window {
@@ -111,6 +113,13 @@ export const DataPageV2Content = ({
     // Data perspectives prototype (?dpLayout=pageswipe|accordion). With no
     // dpLayout the page renders exactly as it does without the prototype.
     const dp = useDataPerspectives(slug)
+    // ?dpUpNext=1: an "Up next" article carousel in place of Research & writing.
+    const upNextArticles =
+        dp.variant.upNext && slug ? (UP_NEXT_ARTICLES[slug] ?? []) : []
+    const upNext =
+        upNextArticles.length > 0 ? (
+            <DataPageUpNext articles={upNextArticles} />
+        ) : null
 
     const relatedResearch = processRelatedResearch(
         datapageData.relatedResearch,
@@ -281,9 +290,11 @@ export const DataPageV2Content = ({
                             relatedResearch &&
                             relatedResearch.length > 0 && (
                                 <div className="datapage-research-and-writing-v2 col-start-2 span-cols-12">
-                                    <DataPageResearchAndWriting
-                                        relatedResearch={relatedResearch}
-                                    />
+                                    {upNext ?? (
+                                        <DataPageResearchAndWriting
+                                            relatedResearch={relatedResearch}
+                                        />
+                                    )}
                                 </div>
                             )}
 
@@ -322,12 +333,15 @@ export const DataPageV2Content = ({
                     {!useNewDatapageDesign && (
                         <>
                             <div className="col-start-2 span-cols-12">
-                                {relatedResearch &&
-                                    relatedResearch.length > 0 && (
-                                        <DataPageResearchAndWriting
-                                            relatedResearch={relatedResearch}
-                                        />
-                                    )}
+                                {upNext ??
+                                    (relatedResearch &&
+                                        relatedResearch.length > 0 && (
+                                            <DataPageResearchAndWriting
+                                                relatedResearch={
+                                                    relatedResearch
+                                                }
+                                            />
+                                        ))}
                                 {datapageData.allCharts &&
                                 datapageData.allCharts.length > 0 ? (
                                     <div

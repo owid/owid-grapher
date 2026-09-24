@@ -14,6 +14,9 @@
  *   ?dpNarrativeStale=hide|disable|revert   (dpStyle=narrative only)
  *       What happens to the narrative title once the reader changes the view.
  *
+ *   ?dpUpNext=1
+ *       An "Up next" article carousel in place of Research & writing.
+ *
  *   ?dpHintReset=1
  *       Testing aid: forget whether this browser has seen the swipe nudge.
  */
@@ -47,6 +50,8 @@ export interface DataPerspectivesVariant {
     layout: DataPerspectivesLayout
     style: DataPerspectivesStyle
     narrativeStale: DataPerspectivesNarrativeStale
+    /** The "Up next" article carousel, in place of Research & writing. */
+    upNext: boolean
     /** Forget whether this browser has seen the swipe nudge (for testing). */
     hintReset: boolean
     /** `dp…` params that were present but couldn't be used (typos etc). */
@@ -56,7 +61,13 @@ export interface DataPerspectivesVariant {
 const LAYOUTS = ["off", "pageswipe", "accordion"]
 const STYLES = ["panel", "card", "seamless", "narrative"]
 const NARRATIVE_STALE = ["hide", "disable", "revert"]
-const KNOWN_KEYS = ["dpLayout", "dpStyle", "dpNarrativeStale", "dpHintReset"]
+const KNOWN_KEYS = [
+    "dpLayout",
+    "dpStyle",
+    "dpNarrativeStale",
+    "dpUpNext",
+    "dpHintReset",
+]
 
 interface LenientParams {
     get: (key: string) => string | null
@@ -127,6 +138,7 @@ export function parseDataPerspectivesVariant(
             "hide",
             params
         ),
+        upNext: params.get("dpUpNext") === "1",
         hintReset: params.get("dpHintReset") === "1",
         ignored: params.ignored,
     }
