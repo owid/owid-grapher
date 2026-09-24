@@ -77,18 +77,38 @@
     color: $blue-50;
 }
 
-// The opening of the article, fading out after a few lines so it reads as the
-// start of something rather than a summary of it.
+// The opening of the article — long enough to get invested in (roughly 18
+// lines on a phone), fading out only at the very end so it reads as the start
+// of something rather than a summary of it.
 .dp-up-next__excerpt {
-    max-height: 11.5em;
+    max-height: 27em;
     overflow: hidden;
     color: $blue-90;
-    mask-image: linear-gradient(to bottom, #000 55%, transparent);
+    mask-image: linear-gradient(to bottom, #000 78%, transparent);
+
+    p,
+    li {
+        @include body-2-regular;
+    }
 
     p {
-        @include body-2-regular;
         margin: 0 0 0.8em;
     }
+
+    ul {
+        margin: 0 0 0.8em;
+        padding-left: 1.25em;
+    }
+
+    li {
+        margin-bottom: 0.3em;
+    }
+}
+
+.dp-up-next__subheading {
+    @include body-1-bold;
+    margin: 1.1em 0 0.4em;
+    color: $blue-90;
 }
 
 .dp-up-next__continue {

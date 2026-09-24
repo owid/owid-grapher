@@ -2,7 +2,7 @@ import { useState, useRef, useCallback } from "react"
 import cx from "clsx"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons"
-import { UpNextArticle } from "./upNextArticles.js"
+import { UpNextArticle, UpNextBlock } from "./upNextArticles.js"
 import { useSwipeStage, SwipeDirection } from "./useSwipeStage.js"
 
 /**
@@ -27,6 +27,21 @@ const formatDate = (isoDate: string): string => {
 const formatAuthors = (authors: string[]): string => {
     if (authors.length <= 2) return authors.join(" and ")
     return `${authors.slice(0, -1).join(", ")}, and ${authors[authors.length - 1]}`
+}
+
+/** One block of the article's opening: a paragraph, section heading or list. */
+function ExcerptBlock({ block }: { block: UpNextBlock }) {
+    if (block.kind === "heading")
+        return <h4 className="dp-up-next__subheading">{block.text}</h4>
+    if (block.kind === "list")
+        return (
+            <ul>
+                {block.items.map((item, i) => (
+                    <li key={i}>{item}</li>
+                ))}
+            </ul>
+        )
+    return <p>{block.text}</p>
 }
 
 export function DataPageUpNext({ articles }: { articles: UpNextArticle[] }) {
@@ -111,8 +126,8 @@ export function DataPageUpNext({ articles }: { articles: UpNextArticle[] }) {
                         {/* The opening of the article itself, fading out:
                             reading has already begun. */}
                         <div className="dp-up-next__excerpt">
-                            {article.paragraphs.map((paragraph, i) => (
-                                <p key={i}>{paragraph}</p>
+                            {article.excerpt.map((block, i) => (
+                                <ExcerptBlock key={i} block={block} />
                             ))}
                         </div>
                         <span className="dp-up-next__continue">

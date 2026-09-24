@@ -142,7 +142,9 @@ describe("up next articles", () => {
                 expect(a.title.length).toBeGreaterThan(0)
                 expect(a.authors.length).toBeGreaterThan(0)
                 expect(a.publishedAt).toMatch(/^\d{4}-\d{2}-\d{2}$/)
-                expect(a.paragraphs.length).toBeGreaterThan(0)
+                expect(a.excerpt.length).toBeGreaterThan(0)
+                // Opens on the article's words, not a heading.
+                expect(a.excerpt[0].kind).toBe("paragraph")
             }
         }
     })
