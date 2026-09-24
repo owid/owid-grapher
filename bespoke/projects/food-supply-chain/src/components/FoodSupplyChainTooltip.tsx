@@ -15,7 +15,7 @@ export interface FoodSupplyChainTooltipProps {
     /** Short form, e.g. "kcal" */
     unit: string
     year: number
-    span: number
+    numDecimalPlaces: number
     position: Point
     containerBounds?: { width: number; height: number }
     anchor?: GrapherTooltipAnchor
@@ -27,7 +27,7 @@ export function FoodSupplyChainTooltip({
     isFirstStep,
     unit,
     year,
-    span,
+    numDecimalPlaces,
     position,
     containerBounds,
     anchor,
@@ -62,7 +62,7 @@ export function FoodSupplyChainTooltip({
                         : "Change per person per day"
                 }
                 value={formatMeasureValue(delta, {
-                    span,
+                    numDecimalPlaces,
                     unit,
                     showPlus: !isFromZero && delta !== 0,
                 })}
@@ -71,7 +71,10 @@ export function FoodSupplyChainTooltip({
             {!isFromZero && (
                 <TooltipValue
                     label="Running total"
-                    value={formatMeasureValue(balanceAfter, { span, unit })}
+                    value={formatMeasureValue(balanceAfter, {
+                        numDecimalPlaces,
+                        unit,
+                    })}
                 />
             )}
         </TooltipCard>

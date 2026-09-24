@@ -9,6 +9,12 @@ export const SHORT_UNIT_BY_MEASURE: Record<Measure, string> = {
     protein: "g",
 }
 
+/** Decimal places every value of a measure is written with */
+export const NUM_DECIMAL_PLACES_BY_MEASURE: Record<Measure, number> = {
+    energy: 0,
+    protein: 1,
+}
+
 /** Whether a value label short of room may put its unit on a line of its own */
 export const IS_UNIT_WRAPPABLE_BY_MEASURE: Record<Measure, boolean> = {
     energy: true,
