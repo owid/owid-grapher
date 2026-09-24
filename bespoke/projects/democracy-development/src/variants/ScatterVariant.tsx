@@ -243,20 +243,6 @@ function CaptionedScatterVariant({
 
     return (
         <>
-            {!config.hideControls && (
-                <DemocracyControls
-                    years={years}
-                    year={year}
-                    colorByRegion={colorByRegion}
-                    sizeByPopulation={sizeByPopulation}
-                    fixedAxes={fixedAxes}
-                    isPopulationLoading={isPopulationLoading}
-                    setYear={setYear}
-                    setColorByRegion={setColorByRegion}
-                    setSizeByPopulation={setSizeByPopulation}
-                    setFixedAxes={setFixedAxes}
-                />
-            )}
             <Frame className="democracy-development__box">
                 <ChartHeader
                     title={config.title ?? DEFAULT_TITLE}
@@ -273,6 +259,20 @@ function CaptionedScatterVariant({
                 />
                 <ChartFooter source={sources} />
             </Frame>
+            {!config.hideControls && (
+                <DemocracyControls
+                    years={years}
+                    year={year}
+                    colorByRegion={colorByRegion}
+                    sizeByPopulation={sizeByPopulation}
+                    fixedAxes={fixedAxes}
+                    isPopulationLoading={isPopulationLoading}
+                    setYear={setYear}
+                    setColorByRegion={setColorByRegion}
+                    setSizeByPopulation={setSizeByPopulation}
+                    setFixedAxes={setFixedAxes}
+                />
+            )}
         </>
     )
 }
