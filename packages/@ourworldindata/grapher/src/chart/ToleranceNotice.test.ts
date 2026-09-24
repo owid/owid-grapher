@@ -202,4 +202,17 @@ describe(formatToleranceNotice, () => {
             })
         ).toBeUndefined()
     })
+
+    it("states the tolerance when the applied columns span less than it", () => {
+        expect(
+            formatToleranceNotice({
+                timeColumn: yearColumn([2000, 2020]),
+                timeTolerance: 5,
+                timeRange: [2000, 2020],
+                appliedColumnsTimeRange: [2000, 2003],
+            })
+        ).toEqual(
+            "Where data is unavailable, the closest value within 5 years is shown instead."
+        )
+    })
 })

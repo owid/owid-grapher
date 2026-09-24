@@ -1327,6 +1327,79 @@ describe("toleranceNotice", () => {
         )
     })
 
+    it("bounds the window by the applied columns' own years", () => {
+        const grapher = new GrapherState({
+            table: new OwidTable(
+                [
+                    ["entityName", "year", "gini", "income", "pop"],
+                    ["France", 2020, 30, 40, 60],
+                    ["France", 2025, 31, 41, 61],
+                    // Germany lacks gini and income for 2025
+                    ["Germany", 2020, 32, 42, 80],
+                    ["Germany", 2025, "", "", 81],
+                    // Population projections run far past the other columns
+                    ["France", 2100, "", "", 55],
+                    ["Germany", 2100, "", "", 70],
+                ],
+                [
+                    {
+                        slug: "gini",
+                        type: ColumnTypeNames.Numeric,
+                        tolerance: 5,
+                    },
+                    {
+                        slug: "income",
+                        type: ColumnTypeNames.Numeric,
+                        tolerance: 5,
+                    },
+                    { slug: "pop", type: ColumnTypeNames.Numeric },
+                    { slug: "year", type: ColumnTypeNames.Year },
+                ]
+            ),
+            ySlugs: "gini",
+            xSlug: "income",
+            sizeSlug: "pop",
+            chartTypes: [GRAPHER_CHART_TYPES.ScatterPlot],
+            minTime: 2025,
+            maxTime: 2025,
+        })
+
+        expect(grapher.toleranceNotice).toEqual(
+            "Where data for 2025 is unavailable, the value from the closest year between 2020 and 2024 is shown instead."
+        )
+    })
+
+    it("names the year when an applied column has data for a single year", () => {
+        const grapher = new GrapherState({
+            table: new OwidTable(
+                [
+                    ["entityName", "year", "coal", "gas"],
+                    // Gas only has data for 2020
+                    ["France", 2020, 30, 40],
+                    ["France", 2025, 31, ""],
+                ],
+                [
+                    { slug: "coal", type: ColumnTypeNames.Numeric },
+                    {
+                        slug: "gas",
+                        type: ColumnTypeNames.Numeric,
+                        tolerance: 5,
+                    },
+                    { slug: "year", type: ColumnTypeNames.Year },
+                ]
+            ),
+            ySlugs: "coal gas",
+            chartTypes: [GRAPHER_CHART_TYPES.StackedDiscreteBar],
+            selectedEntityNames: ["France"],
+            minTime: 2025,
+            maxTime: 2025,
+        })
+
+        expect(grapher.toleranceNotice).toEqual(
+            "Where data for 2025 is unavailable, the value from 2020 is shown instead."
+        )
+    })
+
     describe("only when tolerance is actually applied", () => {
         // Every country has data for every year
         const completeTable = (): OwidTable =>
