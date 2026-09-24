@@ -79,7 +79,7 @@ export function FoodSupplyChainWaterfall({
         onStepMouseLeave,
     } = useStepHover()
 
-    const span = waterfall.domain[1] - waterfall.domain[0]
+    const { numDecimalPlaces } = waterfall
     const tickLabels = buildTickLabels(waterfall)
     const axisLabelWidth = measureAxisLabelWidth(tickLabels)
 
@@ -123,7 +123,7 @@ export function FoodSupplyChainWaterfall({
     const formatStepValues = (unit?: string): string[] =>
         waterfall.steps.map((step, index) =>
             formatMeasureValue(step.delta, {
-                span,
+                numDecimalPlaces,
                 unit,
                 showPlus: index > 0 && step.delta !== 0,
             })
@@ -142,7 +142,7 @@ export function FoodSupplyChainWaterfall({
         ? stepValuesWithUnit
         : formatStepValues()
     const totalValueLabelText = formatMeasureValue(waterfall.total.value, {
-        span,
+        numDecimalPlaces,
         unit: waterfall.shortUnit,
     })
 
@@ -324,7 +324,7 @@ export function FoodSupplyChainWaterfall({
                     isFirstStep={hover.stepKey === waterfall.steps[0]?.key}
                     unit={waterfall.shortUnit}
                     year={waterfall.year}
-                    span={span}
+                    numDecimalPlaces={numDecimalPlaces}
                     position={hover.position}
                     containerBounds={isPinned ? undefined : { width, height }}
                     anchor={isPinned ? GrapherTooltipAnchor.Bottom : undefined}
@@ -367,11 +367,14 @@ function measureVerticalSlotWidth(waterfall: Waterfall, width: number): number {
 }
 
 function buildTickLabels(waterfall: Waterfall): Map<number, string> {
-    const span = waterfall.domain[1] - waterfall.domain[0]
+    const { numDecimalPlaces } = waterfall
     return new Map(
         chooseTickValues(waterfall.domain).map((value) => [
             value,
-            formatMeasureValue(value, { span, unit: waterfall.shortUnit }),
+            formatMeasureValue(value, {
+                numDecimalPlaces,
+                unit: waterfall.shortUnit,
+            }),
         ])
     )
 }
