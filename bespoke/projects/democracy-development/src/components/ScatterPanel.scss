@@ -1,0 +1,48 @@
+.democracy-panel {
+    box-sizing: border-box;
+    margin-bottom: 8px;
+}
+
+.democracy-panel__header {
+    margin-bottom: 4px;
+}
+
+.democracy-panel__title {
+    font-size: 0.9375rem;
+    font-weight: 700;
+    line-height: 1.2;
+    color: $gray-100;
+    margin: 0 0 2px;
+}
+
+.democracy-panel__subtitle {
+    font-size: 0.75rem;
+    line-height: 1.3;
+    color: $light-text;
+    margin: 0;
+    // Keep panels in a row the same height regardless of subtitle length
+    min-height: 2.6em;
+}
+
+.democracy-panel__plot {
+    position: relative;
+}
+
+.democracy-panel__svg {
+    display: block;
+    overflow: visible;
+    touch-action: pan-y;
+    cursor: default;
+}
+
+.democracy-panel__hover-label {
+    pointer-events: none;
+}
+
+.democracy-panel__empty-corner {
+    pointer-events: none;
+}
+
+.democracy-grid--single-column .democracy-panel__subtitle {
+    min-height: 0;
+}

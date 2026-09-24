@@ -1,0 +1,19 @@
+// Two self-labelling checkboxes side by side above the time slider
+.democracy-controls .controls__row {
+    column-gap: 24px;
+}
+
+// Border-box so the box is really 16px (the shadow DOM has no global
+// border-box like the site), and a matching line height on the label
+.democracy-controls__checkbox .custom {
+    box-sizing: border-box;
+}
+
+.democracy-controls__checkbox .label {
+    line-height: 16px;
+}
+
+.democracy-development--narrow .democracy-controls .controls__row {
+    flex-direction: column;
+    align-items: stretch;
+}
