@@ -37,7 +37,10 @@ import DataPageResearchAndWriting from "./DataPageResearchAndWriting.js"
 import MetadataSection from "./MetadataSection.js"
 import { SiteQueryClientProvider } from "./SiteQueryClientProvider.js"
 import { useDataPerspectives } from "./useDataPerspectives.js"
-import { DataPerspectivesPageSwipe } from "./DataPerspectivesPageSwipe.js"
+import {
+    DataPerspectivesPageSwipe,
+    DATA_PERSPECTIVES_DOTS_SLOT_ID,
+} from "./DataPerspectivesPageSwipe.js"
 import { DataPerspectivesAccordion } from "./DataPerspectivesAccordion.js"
 import { DataPerspectivesIgnoredParams } from "./DataPerspectivesIgnoredParams.js"
 import { DataPageUpNext } from "./DataPageUpNext.js"
@@ -216,45 +219,57 @@ export const DataPageV2Content = ({
                               dp.variant.layout === "pageswipe" ? (
                                 // Provides grapherStateRef, so swiping can
                                 // drive this chart in place.
-                                <GuidedChartContext.Provider
-                                    value={{
-                                        grapherStateRef:
-                                            dp.grapherStateRef as React.RefObject<GrapherState>,
-                                        chartRef:
-                                            dp.chartRef as React.RefObject<HTMLDivElement>,
-                                    }}
-                                >
+                                <>
+                                    {/* The swipe dots render into this slot, above
+                                    the panel and outside what slides: the
+                                    position indicator stays put while the
+                                    perspectives move. */}
                                     <div
-                                        className={dp.wrapperClassName}
-                                        ref={dp.chartRef}
+                                        id={DATA_PERSPECTIVES_DOTS_SLOT_ID}
+                                        className="data-perspectives-pageswipe__dots-slot"
+                                    />
+                                    <GuidedChartContext.Provider
+                                        value={{
+                                            grapherStateRef:
+                                                dp.grapherStateRef as React.RefObject<GrapherState>,
+                                            chartRef:
+                                                dp.chartRef as React.RefObject<HTMLDivElement>,
+                                        }}
                                     >
-                                        <DataPerspectivesPageSwipe
-                                            perspectives={dp.perspectives}
-                                            style={dp.variant.style}
-                                            hintReset={dp.variant.hintReset}
-                                            narrativeStale={dp.narrativeStale}
-                                            narrativeStaleMode={
-                                                dp.variant.narrativeStale
-                                            }
-                                            onSelect={dp.applyPerspective}
-                                            onRestoreNarrative={
-                                                dp.restoreNarrative
-                                            }
-                                        />
+                                        <div
+                                            className={dp.wrapperClassName}
+                                            ref={dp.chartRef}
+                                        >
+                                            <DataPerspectivesPageSwipe
+                                                perspectives={dp.perspectives}
+                                                style={dp.variant.style}
+                                                hintReset={dp.variant.hintReset}
+                                                narrativeStale={
+                                                    dp.narrativeStale
+                                                }
+                                                narrativeStaleMode={
+                                                    dp.variant.narrativeStale
+                                                }
+                                                onSelect={dp.applyPerspective}
+                                                onRestoreNarrative={
+                                                    dp.restoreNarrative
+                                                }
+                                            />
 
-                                        <GrapherWithFallback
-                                            slug={grapherConfig.slug}
-                                            config={mergedGrapherConfig}
-                                            useProvidedConfigOnly
-                                            id="explore-the-data"
-                                            queryStr={queryStr}
-                                            enablePopulatingUrlParams
-                                            isEmbeddedInADataPage={true}
-                                            isEmbeddedInAnOwidPage={false}
-                                            isPreviewing={isPreviewing}
-                                        />
-                                    </div>
-                                </GuidedChartContext.Provider>
+                                            <GrapherWithFallback
+                                                slug={grapherConfig.slug}
+                                                config={mergedGrapherConfig}
+                                                useProvidedConfigOnly
+                                                id="explore-the-data"
+                                                queryStr={queryStr}
+                                                enablePopulatingUrlParams
+                                                isEmbeddedInADataPage={true}
+                                                isEmbeddedInAnOwidPage={false}
+                                                isPreviewing={isPreviewing}
+                                            />
+                                        </div>
+                                    </GuidedChartContext.Provider>
+                                </>
                             ) : grapherConfig.slug ? (
                                 <GrapherWithFallback
                                     slug={grapherConfig.slug}

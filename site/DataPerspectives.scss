@@ -36,13 +36,14 @@ body.dp-pageswipe-active {
     position: relative;
 }
 
-// Dots at the top: the signal that there's more to swipe through.
+// Dots above the panel, outside what slides: the signal that there's more to
+// swipe through, and a position indicator that stays put.
 .data-perspectives-pageswipe__dots {
     list-style: none;
     display: flex;
     justify-content: center;
     gap: 8px;
-    margin: 2px 0 12px;
+    margin: 0 0 12px;
     padding: 0;
 }
 
@@ -62,6 +63,15 @@ body.dp-pageswipe-active {
     &.data-perspectives-pageswipe__dot--active {
         background-color: $blue-60;
     }
+}
+
+// On the grey page (panel / narrative) the light inactive dots nearly vanish,
+// so they go one shade darker there.
+body.dp-page-grey
+    .data-perspectives-pageswipe__dot:not(
+        .data-perspectives-pageswipe__dot--active
+    ) {
+    background-color: $blue-30;
 }
 
 .data-perspectives-pageswipe__card {

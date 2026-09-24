@@ -27,6 +27,13 @@ import {
  * Vertical drags are left to the browser, so the page still scrolls.
  */
 
+/**
+ * Where the dots go: a slot the data page renders just above the sliding
+ * panel. The dots stay driven by this component's state, but live outside
+ * what slides, so the position indicator doesn't move with the content.
+ */
+export const DATA_PERSPECTIVES_DOTS_SLOT_ID = "data-perspectives-dots"
+
 /** The nudge waits for the reader to take in the first view. */
 const HINT_DELAY_MS = 5000
 /** Days before the nudge may show again to someone who's never swiped. */
@@ -66,6 +73,7 @@ export function DataPerspectivesPageSwipe({
     onRestoreNarrative?: () => void
 }) {
     const [index, setIndex] = useState(0)
+    const [dotsSlot, setDotsSlot] = useState<HTMLElement | null>(null)
     const rootRef = useRef<HTMLDivElement | null>(null)
     // What slides is the whole chart block (chart + this caption), not just
     // this component, so it reads as the perspective moving.
@@ -82,6 +90,7 @@ export function DataPerspectivesPageSwipe({
     })
 
     useEffect(() => {
+        setDotsSlot(document.getElementById(DATA_PERSPECTIVES_DOTS_SLOT_ID))
         stageRef.current =
             rootRef.current?.closest<HTMLElement>(".chart-with-perspectives") ??
             null
@@ -228,24 +237,32 @@ export function DataPerspectivesPageSwipe({
 
     return (
         <div className="data-perspectives-pageswipe" ref={rootRef}>
-            {/* Dots at the top: the conventional signal that there's more to
-                swipe through, and a way to jump. */}
-            <ol className="data-perspectives-pageswipe__dots">
-                {perspectives.map((p, i) => (
-                    <li key={p.queryParams}>
-                        <button
-                            type="button"
-                            className={cx("data-perspectives-pageswipe__dot", {
-                                "data-perspectives-pageswipe__dot--active":
-                                    i === index,
-                            })}
-                            aria-label={`Perspective ${i + 1} of ${perspectives.length}: ${p.title}`}
-                            aria-current={i === index || undefined}
-                            onClick={() => jumpTo(i)}
-                        />
-                    </li>
-                ))}
-            </ol>
+            {/* Dots above the panel: the signal that there's more to swipe
+                through, and a way to jump. Portalled out of the sliding
+                panel so they stay still while the perspectives move. */}
+            {dotsSlot &&
+                createPortal(
+                    <ol className="data-perspectives-pageswipe__dots">
+                        {perspectives.map((p, i) => (
+                            <li key={p.queryParams}>
+                                <button
+                                    type="button"
+                                    className={cx(
+                                        "data-perspectives-pageswipe__dot",
+                                        {
+                                            "data-perspectives-pageswipe__dot--active":
+                                                i === index,
+                                        }
+                                    )}
+                                    aria-label={`Perspective ${i + 1} of ${perspectives.length}: ${p.title}`}
+                                    aria-current={i === index || undefined}
+                                    onClick={() => jumpTo(i)}
+                                />
+                            </li>
+                        ))}
+                    </ol>,
+                    dotsSlot
+                )}
 
             {/* In the narrative style the chart itself carries the title, so
                 there's nothing to show here. */}
