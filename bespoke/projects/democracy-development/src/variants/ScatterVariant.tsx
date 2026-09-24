@@ -30,7 +30,6 @@ import {
 import { computeAxisRange } from "../core/layout.js"
 import {
     buildScatterPoints,
-    buildTrajectory,
     getSliderYears,
     getValuesFromYear,
 } from "../core/scatterData.js"
@@ -40,7 +39,6 @@ import type {
     IndicatorData,
     IndicatorKey,
     ScatterPoint,
-    TrajectoryPoint,
 } from "../core/types.js"
 import {
     DemocracyControls,
@@ -221,28 +219,6 @@ function CaptionedScatterVariant({
             ? selectedCountry
             : undefined
 
-    // The highlighted country's path is only needed for one country at a
-    // time, so it is built on demand and cached until the year changes
-    const getTrajectory = useMemo(() => {
-        const cache = new Map<string, TrajectoryPoint[]>()
-        return (entityName: string, key: IndicatorKey): TrajectoryPoint[] => {
-            const cacheKey = `${key}:${entityName}`
-            let path = cache.get(cacheKey)
-            if (!path) {
-                path = buildTrajectory({
-                    democracy,
-                    indicator: indicators[key],
-                    entityName,
-                    fromYear: START_YEAR,
-                    toYear: year,
-                    tolerance: MATCH_TOLERANCE_YEARS,
-                })
-                cache.set(cacheKey, path)
-            }
-            return path
-        }
-    }, [democracy, indicators, year])
-
     const pointsByIndicator = useMemo(
         () =>
             Object.fromEntries(
@@ -340,7 +316,6 @@ function CaptionedScatterVariant({
                     sizeByPopulation={sizeByPopulation}
                     showTriangles
                     selectedEntity={selectedEntity}
-                    getTrajectory={getTrajectory}
                 />
                 <ChartFooter source={sources} />
             </Frame>
