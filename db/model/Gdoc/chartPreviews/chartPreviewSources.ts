@@ -7,7 +7,10 @@ import {
     searchParamsToMultiDimView,
     strToQueryParams,
 } from "@ourworldindata/utils"
-import { GDOCS_CHART_PREVIEW_GRAPHER_URL } from "../../../../settings/serverSettings.js"
+import {
+    GDOCS_CHART_PREVIEW_EXPLORER_URL,
+    GDOCS_CHART_PREVIEW_GRAPHER_URL,
+} from "../../../../settings/serverSettings.js"
 import * as db from "../../../db.js"
 import { getMultiDimDataPageBySlug } from "../../MultiDimDataPage.js"
 import { getMultiDimRedirectTargets } from "../../MultiDimRedirects.js"
@@ -18,7 +21,8 @@ import { type ChartPreviewComponentSpec } from "./chartPreviewBlocks.js"
  * preview image.
  *
  * The URL carries a version hash of everything that changes what the chart
- * looks like: its config and the data and metadata of the indicators it shows.
+ * looks like: its config and the data and metadata of the indicators it shows
+ * (for explorers: the explorer config, its views and all their indicators).
  * Google keeps the URL an image was inserted from (as `sourceUri`), so an
  * image is up to date exactly when its `sourceUri` equals the URL we'd insert
  * now. The hash also busts the thumbnail cache on Cloudflare.
@@ -64,11 +68,27 @@ async function getVariableChecksums(
     return new Map(rows.map((row) => [row.id, row]))
 }
 
+/** What a component renders, and what the image depends on */
+type ResolvedTarget =
+    | {
+          status: "resolved"
+          /** The PNG URL without query params */
+          baseUrl: string
+          queryStr: string
+          /** Hashes of the configs involved */
+          configHashes: string[]
+          /** Indicators whose checksums go into the version */
+          variableIds: number[]
+      }
+    | { status: "unresolved"; message: string }
+
+type ResolvedGrapherTarget = Extract<ResolvedTarget, { status: "resolved" }>
+
 function computeVersion(
-    info: ChartConfigVersionInfo,
+    target: ResolvedGrapherTarget,
     checksums: VariableChecksums
 ): string {
-    const variables = info.variableIds
+    const variables = target.variableIds
         .toSorted((a, b) => a - b)
         .map((id) => {
             const checksum = checksums.get(id)
@@ -77,7 +97,9 @@ function computeVersion(
     return crypto
         .createHash("md5")
         .update(
-            [PREVIEW_FORMAT_VERSION, info.configMd5, ...variables].join("|")
+            [PREVIEW_FORMAT_VERSION, ...target.configHashes, ...variables].join(
+                "|"
+            )
         )
         .digest("hex")
         .slice(0, 12)
@@ -93,19 +115,20 @@ function appendVersion(
 }
 
 /**
- * Charts are rendered by config id rather than slug, so that drafts render too
- * and a slug change doesn't break the preview.
+ * Grapher configs are rendered by id rather than slug, so that drafts render
+ * too and a slug change doesn't break the preview.
  */
-function makeGrapherPreviewUrl(
+function makeGrapherTarget(
     info: ChartConfigVersionInfo,
-    queryStr: string,
-    checksums: VariableChecksums
-): string {
-    return appendVersion(
-        `${GDOCS_CHART_PREVIEW_GRAPHER_URL}/by-uuid/${info.configId}.png`,
+    queryStr: string
+): ResolvedTarget {
+    return {
+        status: "resolved",
+        baseUrl: `${GDOCS_CHART_PREVIEW_GRAPHER_URL}/by-uuid/${info.configId}.png`,
         queryStr,
-        computeVersion(info, checksums)
-    )
+        configHashes: [info.configMd5],
+        variableIds: info.variableIds,
+    }
 }
 
 /**
@@ -194,11 +217,6 @@ async function getChartConfigsById(
     )
 }
 
-/** What a component renders: a grapher config, shown with some query params */
-type ResolvedTarget =
-    | { status: "resolved"; info: ChartConfigVersionInfo; queryStr: string }
-    | { status: "unresolved"; message: string }
-
 interface GrapherLink {
     key: string
     slug: string
@@ -268,7 +286,7 @@ async function resolveMultiDimLinks(
         targets.set(
             key,
             info
-                ? { status: "resolved", info, queryStr }
+                ? makeGrapherTarget(info, queryStr)
                 : { status: "unresolved", message: "Multi-dim view not found" }
         )
     }
@@ -304,13 +322,122 @@ async function resolveGrapherLinks(
                 },
             })
         } else if (chart) {
-            targets.set(link.key, {
-                status: "resolved",
-                info: chart,
-                queryStr: queryParamsToStr(link.queryParams),
-            })
+            targets.set(
+                link.key,
+                makeGrapherTarget(chart, queryParamsToStr(link.queryParams))
+            )
         } else {
             multiDimLinks.push(link)
+        }
+    }
+
+    for (const [key, target] of await resolveMultiDimLinks(
+        knex,
+        multiDimLinks
+    )) {
+        targets.set(key, target)
+    }
+    return targets
+}
+
+/**
+ * Explorers are rendered from their published page, which picks the view from
+ * the query params. Only published explorers can be rendered. Explorers that
+ * now redirect to a multi-dim resolve like on the site.
+ *
+ * The version covers the explorer config, the grapher configs of all its
+ * views and the checksums of the indicators it uses, aggregated in SQL since
+ * an explorer can have thousands of views. Data loaded from CSV files isn't
+ * covered.
+ */
+async function resolveExplorerLinks(
+    knex: db.KnexReadonlyTransaction,
+    links: GrapherLink[]
+): Promise<Map<string, ResolvedTarget>> {
+    const targets = new Map<string, ResolvedTarget>()
+    if (links.length === 0) return targets
+    const slugs = _.uniq(links.map((link) => link.slug))
+    const multiDimRedirects = await getMultiDimRedirectTargets(
+        knex,
+        slugs,
+        "/explorers/"
+    )
+    const rows = await db.knexRaw<{
+        slug: string
+        isPublished: number
+        configMd5: string
+        viewsHash: string | null
+        variablesHash: string | null
+    }>(
+        knex,
+        `-- sql
+        SELECT
+            e.slug,
+            e.isPublished,
+            MD5(e.config) AS configMd5,
+            (
+                SELECT BIT_XOR(CRC32(cc.configMd5))
+                FROM explorer_views ev
+                JOIN chart_configs cc ON cc.id = ev.chartConfigId
+                WHERE ev.explorerSlug = e.slug
+            ) AS viewsHash,
+            (
+                SELECT BIT_XOR(CRC32(CONCAT_WS(
+                    ':', v.id, v.dataChecksum, v.metadataChecksum
+                )))
+                FROM variables v
+                WHERE v.id IN (
+                    SELECT variableId
+                    FROM explorer_variables
+                    WHERE explorerSlug = e.slug
+                    UNION
+                    SELECT cd.variableId
+                    FROM explorer_charts ec
+                    JOIN chart_dimensions cd ON cd.chartId = ec.chartId
+                    WHERE ec.explorerSlug = e.slug
+                )
+            ) AS variablesHash
+        FROM explorers e
+        WHERE e.slug IN (?)`,
+        [slugs]
+    )
+    const explorersBySlug = new Map(rows.map((row) => [row.slug, row]))
+
+    const multiDimLinks: GrapherLink[] = []
+    for (const link of links) {
+        const redirect = multiDimRedirects.get(link.slug)
+        const explorer = explorersBySlug.get(link.slug)
+        if (redirect) {
+            multiDimLinks.push({
+                key: link.key,
+                slug: redirect.targetSlug,
+                queryParams: {
+                    ...strToQueryParams(redirect.queryStr),
+                    ...link.queryParams,
+                },
+            })
+        } else if (!explorer) {
+            targets.set(link.key, {
+                status: "unresolved",
+                message: "No explorer with this slug",
+            })
+        } else if (!explorer.isPublished) {
+            targets.set(link.key, {
+                status: "unresolved",
+                message: "Only published explorers can be rendered",
+            })
+        } else {
+            targets.set(link.key, {
+                status: "resolved",
+                baseUrl: `${GDOCS_CHART_PREVIEW_EXPLORER_URL}/${link.slug}.png`,
+                queryStr: queryParamsToStr(link.queryParams),
+                configHashes: [
+                    explorer.configMd5,
+                    String(explorer.viewsHash),
+                    String(explorer.variablesHash),
+                ],
+                variableIds: [],
+            })
         }
     }
 
@@ -347,7 +474,7 @@ async function resolveNarrativeCharts(
         targets.set(
             key,
             info
-                ? { status: "resolved", info, queryStr: "" }
+                ? makeGrapherTarget(info, "")
                 : {
                       status: "unresolved",
                       message: "No narrative chart with this name",
@@ -363,6 +490,7 @@ export async function resolveChartPreviewSources(
 ): Promise<Map<string, ChartPreviewSource>> {
     const sources = new Map<string, ChartPreviewSource>()
     const grapherLinks: GrapherLink[] = []
+    const explorerLinks: GrapherLink[] = []
     const narrativeChartNames: { key: string; name: string }[] = []
     const seen = new Set<string>()
 
@@ -375,29 +503,29 @@ export async function resolveChartPreviewSources(
             continue
         }
         const url = Url.fromURL(spec.target)
+        const link = { key, slug: url.slug ?? "", queryParams: url.queryParams }
         if (url.isGrapher && url.slug) {
-            grapherLinks.push({
-                key,
-                slug: url.slug,
-                queryParams: url.queryParams,
-            })
+            grapherLinks.push(link)
+        } else if (url.isExplorer && url.slug) {
+            explorerLinks.push(link)
         } else {
             sources.set(key, {
                 status: "unresolved",
-                message: "Not a link to a grapher chart",
+                message: "Not a link to a chart or explorer",
             })
         }
     }
 
     const targets = new Map([
         ...(await resolveGrapherLinks(knex, grapherLinks)),
+        ...(await resolveExplorerLinks(knex, explorerLinks)),
         ...(await resolveNarrativeCharts(knex, narrativeChartNames)),
     ])
 
     const checksums = await getVariableChecksums(
         knex,
         [...targets.values()].flatMap((target) =>
-            target.status === "resolved" ? target.info.variableIds : []
+            target.status === "resolved" ? target.variableIds : []
         )
     )
     for (const [key, target] of targets) {
@@ -406,10 +534,10 @@ export async function resolveChartPreviewSources(
             target.status === "resolved"
                 ? {
                       status: "resolved",
-                      imageUrl: makeGrapherPreviewUrl(
-                          target.info,
+                      imageUrl: appendVersion(
+                          target.baseUrl,
                           target.queryStr,
-                          checksums
+                          computeVersion(target, checksums)
                       ),
                   }
                 : target
