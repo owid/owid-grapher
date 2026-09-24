@@ -181,3 +181,31 @@ export function resolveVariantSearch(): string {
 export function thumbQueryString(queryParams: string): string {
     return `?${queryParams}&imType=thumbnail&imMinimal=0`
 }
+
+/**
+ * `url` with the `dp…` params from `variantSearch` appended — after grapher's
+ * own params, and only those it doesn't already carry.
+ *
+ * Deliberately string-based rather than going through URLSearchParams, which
+ * would re-encode grapher's `~` separators (`country=AGO~ETH` → `AGO%7EETH`).
+ */
+export function withVariantParams(url: string, variantSearch: string): string {
+    const ours = [...new URLSearchParams(variantSearch)].filter(([key]) =>
+        key.toLowerCase().startsWith("dp")
+    )
+    if (ours.length === 0) return url
+    const hashAt = url.indexOf("#")
+    const hash = hashAt === -1 ? "" : url.slice(hashAt)
+    const beforeHash = hashAt === -1 ? url : url.slice(0, hashAt)
+    const queryAt = beforeHash.indexOf("?")
+    const path = queryAt === -1 ? beforeHash : beforeHash.slice(0, queryAt)
+    const query = queryAt === -1 ? "" : beforeHash.slice(queryAt + 1)
+    const existing = new URLSearchParams(query)
+    const extras = ours
+        .filter(([key]) => !existing.has(key))
+        .map(
+            ([k, val]) => `${encodeURIComponent(k)}=${encodeURIComponent(val)}`
+        )
+    const nextQuery = [query, ...extras].filter(Boolean).join("&")
+    return `${path}${nextQuery ? `?${nextQuery}` : ""}${hash}`
+}

@@ -7,6 +7,7 @@ import {
     DataPerspectivesVariant,
     parseDataPerspectivesVariant,
     resolveVariantSearch,
+    withVariantParams,
 } from "./dataPerspectivesVariant.js"
 import {
     DataPerspective,
@@ -59,9 +60,42 @@ export function useDataPerspectives(slug: string | undefined): {
     const [variant, setVariant] = useState(() =>
         parseDataPerspectivesVariant(undefined)
     )
+    const [variantSearch, setVariantSearch] = useState("")
     useEffect(() => {
-        setVariant(parseDataPerspectivesVariant(resolveVariantSearch()))
+        const search = resolveVariantSearch()
+        setVariantSearch(search)
+        setVariant(parseDataPerspectivesVariant(search))
     }, [])
+
+    // Keep the dp… params in the address bar. Grapher writes its state to the
+    // URL with history.replaceState and its own query string only, which drops
+    // them — so after one swipe the URL no longer says which variant you're
+    // on. While a variant is active, anything written for this page gets them
+    // appended back after grapher's own params.
+    useEffect(() => {
+        if (!new URLSearchParams(variantSearch).size) return
+        const replaceState = history.replaceState
+        history.replaceState = function (data, unused, url) {
+            const next =
+                typeof url === "string" || url instanceof URL
+                    ? new URL(url, window.location.href)
+                    : undefined
+            const samePage = next?.pathname === window.location.pathname
+            const kept =
+                next && samePage
+                    ? withVariantParams(
+                          `${next.pathname}${next.search}${next.hash}`,
+                          variantSearch
+                      )
+                    : url
+            return replaceState.call(this, data, unused, kept)
+        }
+        // Restore them now too, in case grapher already wrote before this ran.
+        history.replaceState(history.state, "", window.location.href)
+        return () => {
+            history.replaceState = replaceState
+        }
+    }, [variantSearch])
 
     const grapherStateRef = useRef<GrapherState | null>(null)
     const chartRef = useRef<HTMLDivElement | null>(null)

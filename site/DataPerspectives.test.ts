@@ -1,5 +1,8 @@
 import { expect, it, describe, vi } from "vitest"
-import { parseDataPerspectivesVariant } from "./dataPerspectivesVariant.js"
+import {
+    parseDataPerspectivesVariant,
+    withVariantParams,
+} from "./dataPerspectivesVariant.js"
 import { DATA_PERSPECTIVES } from "./dataPerspectivesFixtures.js"
 
 describe("data perspectives URL variants", () => {
@@ -142,5 +145,43 @@ describe("up next articles", () => {
                 expect(a.paragraphs.length).toBeGreaterThan(0)
             }
         }
+    })
+})
+
+describe("keeping the variant in the URL", () => {
+    const variant = "?dpLayout=pageswipe&dpStyle=narrative"
+
+    it("appends the dp params after grapher's own", () => {
+        expect(
+            withVariantParams("/grapher/x?tab=map&time=2003..latest", variant)
+        ).toBe(
+            "/grapher/x?tab=map&time=2003..latest&dpLayout=pageswipe&dpStyle=narrative"
+        )
+    })
+
+    it("leaves grapher's ~ separators unencoded", () => {
+        expect(
+            withVariantParams("/grapher/x?country=AGO~ETH~NPL", variant)
+        ).toBe(
+            "/grapher/x?country=AGO~ETH~NPL&dpLayout=pageswipe&dpStyle=narrative"
+        )
+    })
+
+    it("handles an empty query, a hash, and params already present", () => {
+        expect(withVariantParams("/grapher/x", variant)).toBe(
+            "/grapher/x?dpLayout=pageswipe&dpStyle=narrative"
+        )
+        expect(withVariantParams("/grapher/x?tab=map#faq", variant)).toBe(
+            "/grapher/x?tab=map&dpLayout=pageswipe&dpStyle=narrative#faq"
+        )
+        expect(
+            withVariantParams("/grapher/x?dpLayout=pageswipe", variant)
+        ).toBe("/grapher/x?dpLayout=pageswipe&dpStyle=narrative")
+    })
+
+    it("does nothing without dp params", () => {
+        expect(withVariantParams("/grapher/x?tab=map", "?country=~SWE")).toBe(
+            "/grapher/x?tab=map"
+        )
     })
 })
