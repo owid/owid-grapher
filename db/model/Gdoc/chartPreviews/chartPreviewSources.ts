@@ -1,7 +1,16 @@
 import crypto from "crypto"
-import { Url } from "@ourworldindata/utils"
+import * as _ from "lodash-es"
+import {
+    QueryParams,
+    Url,
+    queryParamsToStr,
+    searchParamsToMultiDimView,
+    strToQueryParams,
+} from "@ourworldindata/utils"
 import { GDOCS_CHART_PREVIEW_GRAPHER_URL } from "../../../../settings/serverSettings.js"
 import * as db from "../../../db.js"
+import { getMultiDimDataPageBySlug } from "../../MultiDimDataPage.js"
+import { getMultiDimRedirectTargets } from "../../MultiDimRedirects.js"
 import { type ChartPreviewComponentSpec } from "./chartPreviewBlocks.js"
 
 /**
@@ -153,23 +162,183 @@ async function getChartConfigsBySlug(
     )
 }
 
+async function getChartConfigsById(
+    knex: db.KnexReadonlyTransaction,
+    ids: string[]
+): Promise<Map<string, ChartConfigVersionInfo>> {
+    if (ids.length === 0) return new Map()
+    const rows = await db.knexRaw<{
+        configId: string
+        configMd5: string
+        variableIds: unknown
+    }>(
+        knex,
+        `-- sql
+        SELECT
+            id AS configId,
+            configMd5,
+            JSON_EXTRACT(config, '$.dimensions[*].variableId') AS variableIds
+        FROM chart_configs
+        WHERE id IN (?)`,
+        [[...new Set(ids)]]
+    )
+    return new Map(
+        rows.map((row) => [
+            row.configId,
+            {
+                configId: row.configId,
+                configMd5: row.configMd5,
+                variableIds: parseVariableIds(row.variableIds),
+            },
+        ])
+    )
+}
+
+/** What a component renders: a grapher config, shown with some query params */
+type ResolvedTarget =
+    | { status: "resolved"; info: ChartConfigVersionInfo; queryStr: string }
+    | { status: "unresolved"; message: string }
+
+interface GrapherLink {
+    key: string
+    slug: string
+    queryParams: QueryParams
+}
+
+/**
+ * Multi-dims render the grapher config of the view the query params select.
+ * The dimension params only pick the view, so they're dropped from the image
+ * URL; the remaining ones (time, country, tab, ...) apply to the view.
+ */
+async function resolveMultiDimLinks(
+    knex: db.KnexReadonlyTransaction,
+    links: GrapherLink[]
+): Promise<Map<string, ResolvedTarget>> {
+    const targets = new Map<string, ResolvedTarget>()
+    const multiDims = new Map(
+        await Promise.all(
+            _.uniq(links.map((link) => link.slug)).map(
+                async (slug) =>
+                    [
+                        slug,
+                        await getMultiDimDataPageBySlug(knex, slug, {
+                            onlyPublished: false,
+                        }),
+                    ] as const
+            )
+        )
+    )
+
+    const views: { key: string; viewConfigId: string; queryStr: string }[] = []
+    for (const { key, slug, queryParams } of links) {
+        const multiDim = multiDims.get(slug)
+        if (!multiDim) {
+            targets.set(key, {
+                status: "unresolved",
+                message: "No chart or multi-dim with this slug",
+            })
+            continue
+        }
+        const { config } = multiDim
+        try {
+            const view = searchParamsToMultiDimView(
+                config,
+                new URLSearchParams(queryParamsToStr(queryParams))
+            )
+            const dimensionSlugs = config.dimensions.map((d) => d.slug)
+            views.push({
+                key,
+                viewConfigId: view.fullConfigId,
+                queryStr: queryParamsToStr(_.omit(queryParams, dimensionSlugs)),
+            })
+        } catch {
+            targets.set(key, {
+                status: "unresolved",
+                message: "No view of this multi-dim matches the link",
+            })
+        }
+    }
+
+    const viewConfigs = await getChartConfigsById(
+        knex,
+        views.map((view) => view.viewConfigId)
+    )
+    for (const { key, viewConfigId, queryStr } of views) {
+        const info = viewConfigs.get(viewConfigId)
+        targets.set(
+            key,
+            info
+                ? { status: "resolved", info, queryStr }
+                : { status: "unresolved", message: "Multi-dim view not found" }
+        )
+    }
+    return targets
+}
+
+/**
+ * Resolves /grapher/ links the way the site does: an old chart slug that now
+ * redirects to a multi-dim goes there, then standalone charts, then multi-dims
+ */
+async function resolveGrapherLinks(
+    knex: db.KnexReadonlyTransaction,
+    links: GrapherLink[]
+): Promise<Map<string, ResolvedTarget>> {
+    const targets = new Map<string, ResolvedTarget>()
+    const slugs = _.uniq(links.map((link) => link.slug))
+    const [multiDimRedirects, chartsBySlug] = await Promise.all([
+        getMultiDimRedirectTargets(knex, slugs, "/grapher/"),
+        getChartConfigsBySlug(knex, slugs),
+    ])
+
+    const multiDimLinks: GrapherLink[] = []
+    for (const link of links) {
+        const redirect = multiDimRedirects.get(link.slug)
+        const chart = chartsBySlug.get(link.slug)
+        if (redirect) {
+            multiDimLinks.push({
+                key: link.key,
+                slug: redirect.targetSlug,
+                queryParams: {
+                    ...strToQueryParams(redirect.queryStr),
+                    ...link.queryParams,
+                },
+            })
+        } else if (chart) {
+            targets.set(link.key, {
+                status: "resolved",
+                info: chart,
+                queryStr: queryParamsToStr(link.queryParams),
+            })
+        } else {
+            multiDimLinks.push(link)
+        }
+    }
+
+    for (const [key, target] of await resolveMultiDimLinks(
+        knex,
+        multiDimLinks
+    )) {
+        targets.set(key, target)
+    }
+    return targets
+}
+
 export async function resolveChartPreviewSources(
     knex: db.KnexReadonlyTransaction,
     specs: ChartPreviewComponentSpec[]
 ): Promise<Map<string, ChartPreviewSource>> {
     const sources = new Map<string, ChartPreviewSource>()
-    const grapherSpecs: { key: string; slug: string; queryStr: string }[] = []
+    const grapherLinks: GrapherLink[] = []
 
     for (const spec of specs) {
         const key = chartPreviewSpecKey(spec)
         if (sources.has(key)) continue
         const url = Url.fromURL(spec.target)
         if (url.isGrapher && url.slug) {
-            grapherSpecs.push({ key, slug: url.slug, queryStr: url.queryStr })
-            // Placeholder until resolved below, also dedupes
-            sources.set(key, {
-                status: "unresolved",
-                message: "No chart with this slug",
+            grapherLinks.push({
+                key,
+                slug: url.slug,
+                queryParams: url.queryParams,
             })
         } else {
             sources.set(key, {
@@ -179,21 +348,28 @@ export async function resolveChartPreviewSources(
         }
     }
 
-    const configsBySlug = await getChartConfigsBySlug(
-        knex,
-        grapherSpecs.map((spec) => spec.slug)
-    )
+    const targets = await resolveGrapherLinks(knex, grapherLinks)
+
     const checksums = await getVariableChecksums(
         knex,
-        [...configsBySlug.values()].flatMap((info) => info.variableIds)
+        [...targets.values()].flatMap((target) =>
+            target.status === "resolved" ? target.info.variableIds : []
+        )
     )
-    for (const { key, slug, queryStr } of grapherSpecs) {
-        const info = configsBySlug.get(slug)
-        if (!info) continue
-        sources.set(key, {
-            status: "resolved",
-            imageUrl: makeGrapherPreviewUrl(info, queryStr, checksums),
-        })
+    for (const [key, target] of targets) {
+        sources.set(
+            key,
+            target.status === "resolved"
+                ? {
+                      status: "resolved",
+                      imageUrl: makeGrapherPreviewUrl(
+                          target.info,
+                          target.queryStr,
+                          checksums
+                      ),
+                  }
+                : target
+        )
     }
 
     return sources
