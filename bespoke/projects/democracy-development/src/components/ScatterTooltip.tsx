@@ -1,3 +1,4 @@
+import { useLayoutEffect, useState } from "react"
 import { format } from "d3-format"
 
 import { GrapherTooltipAnchor } from "@ourworldindata/types"
@@ -29,6 +30,14 @@ export function ScatterTooltip({
     isPinned: boolean
     containerBounds: { width: number; height: number }
 }): React.ReactElement {
+    // TooltipCard measures itself after its first render and only clamps
+    // to the container on the next one, which a still pointer never
+    // triggers. Re-render once after each new target so it does.
+    const [, setMeasured] = useState(0)
+    useLayoutEffect(() => {
+        setMeasured((n) => n + 1)
+    }, [point.entityName, hover.panelKey])
+
     const indicatorIsOlder = point.indicator.year !== year
     return (
         <TooltipCard

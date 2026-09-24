@@ -2,7 +2,7 @@ import { format } from "d3-format"
 
 import { GRAPHER_DENIM } from "@ourworldindata/grapher/src/color/ColorConstants.js"
 
-import type { IndicatorSpec } from "./types.js"
+import type { AxisRange, IndicatorSpec } from "./types.js"
 
 export const DATA_API_URL = "https://api.ourworldindata.org/v1/indicators/"
 
@@ -11,8 +11,7 @@ export const DEMOCRACY_VARIABLE_ID = 1209797
 /** Population (historical), used for sizing */
 export const POPULATION_VARIABLE_ID = 953903
 
-export const DEMOCRACY_DOMAIN: [number, number] = [0, 1]
-export const DEMOCRACY_TICKS = [0, 0.5, 1]
+export const DEMOCRACY_RANGE: AxisRange = { domain: [0, 1], ticks: [0, 0.5, 1] }
 
 /** The slider starts here: the first year all four indicators cover */
 export const START_YEAR = 1990
@@ -41,8 +40,6 @@ export const INDICATOR_SPECS: IndicatorSpec[] = [
         subtitle:
             "Average economic output per person per year, in international-$ at 2021 prices; adjusted for inflation and price differences between countries. Shown on a log scale.",
         scale: "log",
-        domain: [500, 200_000],
-        ticks: [1_000, 10_000, 100_000],
         formatTick: formatDollarTick,
         formatValue: formatDollarValue,
         emptyCornerAtLowValue: true,
@@ -51,11 +48,8 @@ export const INDICATOR_SPECS: IndicatorSpec[] = [
         key: "childMortality",
         variableId: 1271844,
         title: "Child mortality rate",
-        subtitle:
-            "Share of newborns who die before reaching the age of five. Shown on a log scale.",
-        scale: "log",
-        domain: [0.1, 50],
-        ticks: [0.1, 1, 10, 50],
+        subtitle: "Share of newborns who die before reaching the age of five.",
+        scale: "linear",
         formatTick: (v) => `${v}%`,
         formatValue: (v) => `${formatPercent1(v)}%`,
         emptyCornerAtLowValue: false,
@@ -67,8 +61,6 @@ export const INDICATOR_SPECS: IndicatorSpec[] = [
         subtitle:
             "Share of the population living on less than $10 a day, at 2021 prices; adjusted for price differences between countries. Based on household surveys, so many countries only have data every few years.",
         scale: "linear",
-        domain: [0, 100],
-        ticks: [0, 25, 50, 75, 100],
         formatTick: (v) => `${v}%`,
         formatValue: (v) => `${formatPercent1(v)}%`,
         emptyCornerAtLowValue: false,
@@ -80,8 +72,6 @@ export const INDICATOR_SPECS: IndicatorSpec[] = [
         subtitle:
             "Number of years a child starting school can expect to spend in education if current enrollment rates persist.",
         scale: "linear",
-        domain: [0, 25],
-        ticks: [0, 5, 10, 15, 20, 25],
         formatTick: (v) => `${v}`,
         formatValue: (v) => `${formatYears1(v)} years`,
         emptyCornerAtLowValue: true,

@@ -22,10 +22,6 @@ export interface IndicatorSpec {
     /** Panel subtitle: definition, unit, and anything that used to be a footnote */
     subtitle: string
     scale: "linear" | "log"
-    /** Fixed axis range, shared across all years so dots visibly move over time */
-    domain: [number, number]
-    /** Axis tick values */
-    ticks: number[]
     formatTick: (value: number) => string
     formatValue: (value: number) => string
     /**
@@ -76,4 +72,10 @@ export interface HoverState {
     /** The panel the pointer is in; the tooltip renders there */
     panelKey: IndicatorKey
     position: { x: number; y: number }
+}
+
+/** An axis range with the tick values to draw along it */
+export interface AxisRange {
+    domain: [number, number]
+    ticks: number[]
 }

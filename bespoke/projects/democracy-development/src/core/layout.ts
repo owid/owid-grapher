@@ -1,12 +1,13 @@
 import { scaleLinear, scaleLog, scaleSqrt } from "d3-scale"
 
-import {
-    DEMOCRACY_DOMAIN,
-    DEMOCRACY_TICKS,
-    POPULATION_RADIUS_RANGE,
-} from "./constants.js"
+import { DEMOCRACY_RANGE, POPULATION_RADIUS_RANGE } from "./constants.js"
 import type { Corner } from "./emptyCornerTriangle.js"
-import type { DemocracyAxis, IndicatorSpec, ScatterPoint } from "./types.js"
+import type {
+    AxisRange,
+    DemocracyAxis,
+    IndicatorSpec,
+    ScatterPoint,
+} from "./types.js"
 
 export interface AxisDef {
     domain: [number, number]
@@ -32,19 +33,82 @@ export interface PanelAxes {
 }
 
 const DEMOCRACY_AXIS_DEF: AxisDef = {
-    domain: DEMOCRACY_DOMAIN,
+    ...DEMOCRACY_RANGE,
     scale: "linear",
-    ticks: DEMOCRACY_TICKS,
     formatTick: (v) => `${v}`,
 }
 
-function indicatorAxisDef(spec: IndicatorSpec): AxisDef {
+function indicatorAxisDef(spec: IndicatorSpec, range: AxisRange): AxisDef {
     return {
-        domain: spec.domain,
+        ...range,
         scale: spec.scale,
-        ticks: spec.ticks,
         formatTick: spec.formatTick,
     }
+}
+
+const LINEAR_TICK_COUNT = 5
+/** Mantissas a log axis may start or end on: 1, 2, 5 times a power of ten */
+const LOG_NICE_MANTISSAS = [1, 2, 5, 10]
+
+/**
+ * A readable axis range covering `values`.
+ *
+ * All four indicators are non-negative quantities, so a linear axis always
+ * starts at zero and rounds its top up to a tick. A log axis snaps both ends
+ * outwards to 1, 2 or 5 times a power of ten and ticks at the powers of ten
+ * inside, adding the 2 and 5 marks when that would leave fewer than two.
+ */
+export function computeAxisRange(
+    values: number[],
+    scale: "linear" | "log"
+): AxisRange {
+    const positive = values.filter((v) => Number.isFinite(v) && v > 0)
+    if (scale === "linear") {
+        const max = Math.max(0, ...positive)
+        const linear = scaleLinear()
+            .domain([0, max > 0 ? max : 1])
+            .nice(LINEAR_TICK_COUNT)
+        const [lo, hi] = linear.domain() as [number, number]
+        return { domain: [lo, hi], ticks: linear.ticks(LINEAR_TICK_COUNT) }
+    }
+    if (positive.length === 0) return { domain: [1, 10], ticks: [1, 10] }
+    const lo = niceLogBound(Math.min(...positive), "floor")
+    const hi = niceLogBound(Math.max(...positive), "ceil")
+    let ticks = powersOfTen(lo, hi)
+    if (ticks.length < 2)
+        ticks = powersOfTen(lo, hi, [1, 2, 5]).filter((t) => t >= lo && t <= hi)
+    return { domain: [lo, hi], ticks }
+}
+
+function niceLogBound(value: number, direction: "floor" | "ceil"): number {
+    const exponent = Math.floor(Math.log10(value))
+    const magnitude = Math.pow(10, exponent)
+    const mantissa = value / magnitude
+    const candidates = LOG_NICE_MANTISSAS
+    const snapped =
+        direction === "floor"
+            ? [...candidates].reverse().find((m) => m <= mantissa + 1e-9)
+            : candidates.find((m) => m >= mantissa - 1e-9)
+    return (snapped ?? 1) * magnitude
+}
+
+function powersOfTen(
+    lo: number,
+    hi: number,
+    mantissas: number[] = [1]
+): number[] {
+    const ticks: number[] = []
+    for (
+        let exponent = Math.floor(Math.log10(lo));
+        exponent <= Math.ceil(Math.log10(hi));
+        exponent++
+    ) {
+        for (const m of mantissas) {
+            const tick = m * Math.pow(10, exponent)
+            if (tick >= lo - 1e-9 && tick <= hi + 1e-9) ticks.push(tick)
+        }
+    }
+    return ticks
 }
 
 function makeScale(axis: AxisDef, range: [number, number]): PixelScale {
@@ -60,16 +124,18 @@ function makeScale(axis: AxisDef, range: [number, number]): PixelScale {
  */
 export function getPanelAxes({
     spec,
+    range,
     democracyAxis,
     plotWidth,
     plotHeight,
 }: {
     spec: IndicatorSpec
+    range: AxisRange
     democracyAxis: DemocracyAxis
     plotWidth: number
     plotHeight: number
 }): PanelAxes {
-    const indicatorAxis = indicatorAxisDef(spec)
+    const indicatorAxis = indicatorAxisDef(spec, range)
     const democracyOnY = democracyAxis === "y"
     const x = democracyOnY ? indicatorAxis : DEMOCRACY_AXIS_DEF
     const y = democracyOnY ? DEMOCRACY_AXIS_DEF : indicatorAxis

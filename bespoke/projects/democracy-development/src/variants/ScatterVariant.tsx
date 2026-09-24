@@ -27,8 +27,14 @@ import {
     useDevelopmentIndicators,
     usePopulationIndicator,
 } from "../core/data.js"
-import { buildScatterPoints, getSliderYears } from "../core/scatterData.js"
+import { computeAxisRange } from "../core/layout.js"
+import {
+    buildScatterPoints,
+    getSliderYears,
+    getValuesFromYear,
+} from "../core/scatterData.js"
 import type {
+    AxisRange,
     DemocracyAxis,
     IndicatorData,
     IndicatorKey,
@@ -39,7 +45,7 @@ import { ScatterGrid } from "../components/ScatterGrid.js"
 
 const queryClient = new QueryClient()
 
-const DEFAULT_DEMOCRACY_AXIS: DemocracyAxis = "y"
+const DEFAULT_DEMOCRACY_AXIS: DemocracyAxis = "x"
 
 export function ScatterVariant({
     config,
@@ -82,6 +88,11 @@ function FetchingScatterVariant({
         parser: parseAsBoolean,
         defaultValue: config.sizeByPopulation ?? false,
     })
+    const [fixedAxes, setFixedAxes] = useUrlState({
+        key: "democracyFixedAxes",
+        parser: parseAsBoolean,
+        defaultValue: config.fixedAxes ?? false,
+    })
     // 0 stands for "the latest year" until the data says what that is
     const [requestedYear, setYear] = useUrlState({
         key: "democracyYear",
@@ -119,9 +130,11 @@ function FetchingScatterVariant({
             requestedYear={requestedYear}
             colorByRegion={colorByRegion}
             sizeByPopulation={sizeByPopulation}
+            fixedAxes={fixedAxes}
             setYear={setYear}
             setColorByRegion={setColorByRegion}
             setSizeByPopulation={setSizeByPopulation}
+            setFixedAxes={setFixedAxes}
         />
     )
 }
@@ -135,9 +148,11 @@ function CaptionedScatterVariant({
     requestedYear,
     colorByRegion,
     sizeByPopulation,
+    fixedAxes,
     setYear,
     setColorByRegion,
     setSizeByPopulation,
+    setFixedAxes,
 }: {
     config: ScatterVariantConfig
     democracy: IndicatorData
@@ -147,9 +162,11 @@ function CaptionedScatterVariant({
     requestedYear: number
     colorByRegion: boolean
     sizeByPopulation: boolean
+    fixedAxes: boolean
     setYear: (year: number) => void
     setColorByRegion: (value: boolean) => void
     setSizeByPopulation: (value: boolean) => void
+    setFixedAxes: (value: boolean) => void
 }): React.ReactElement {
     const years = useMemo(
         () => getSliderYears(democracy, START_YEAR),
@@ -177,6 +194,40 @@ function CaptionedScatterVariant({
         [democracy, indicators, population, sizeByPopulation, year]
     )
 
+    // Axis ranges either follow the selected year's dots, so the association
+    // fills each panel, or cover every value since the slider's first year
+    // so dots can be compared across years
+    const fixedRanges = useMemo(
+        () =>
+            Object.fromEntries(
+                INDICATOR_SPECS.map((spec) => [
+                    spec.key,
+                    computeAxisRange(
+                        getValuesFromYear(indicators[spec.key], START_YEAR),
+                        spec.scale
+                    ),
+                ])
+            ) as Record<IndicatorKey, AxisRange>,
+        [indicators]
+    )
+    const rangesByIndicator = useMemo(
+        () =>
+            fixedAxes
+                ? fixedRanges
+                : (Object.fromEntries(
+                      INDICATOR_SPECS.map((spec) => [
+                          spec.key,
+                          computeAxisRange(
+                              pointsByIndicator[spec.key].map(
+                                  (p) => p.indicator.value
+                              ),
+                              spec.scale
+                          ),
+                      ])
+                  ) as Record<IndicatorKey, AxisRange>),
+        [fixedAxes, fixedRanges, pointsByIndicator]
+    )
+
     const sources = useMemo(() => {
         const all = [
             democracy,
@@ -198,10 +249,12 @@ function CaptionedScatterVariant({
                     year={year}
                     colorByRegion={colorByRegion}
                     sizeByPopulation={sizeByPopulation}
+                    fixedAxes={fixedAxes}
                     isPopulationLoading={isPopulationLoading}
                     setYear={setYear}
                     setColorByRegion={setColorByRegion}
                     setSizeByPopulation={setSizeByPopulation}
+                    setFixedAxes={setFixedAxes}
                 />
             )}
             <Frame className="democracy-development__box">
@@ -211,6 +264,7 @@ function CaptionedScatterVariant({
                 />
                 <ScatterGrid
                     pointsByIndicator={pointsByIndicator}
+                    rangesByIndicator={rangesByIndicator}
                     year={year}
                     democracyAxis={democracyAxis}
                     colorByRegion={colorByRegion}

@@ -112,3 +112,20 @@ export function getSliderYears(
     for (let year = start; year <= end; year++) years.push(year)
     return years
 }
+
+/**
+ * Every country value of an indicator from `startYear` on: what a fixed axis
+ * has to cover so that no dot leaves the panel in any year of the slider.
+ */
+export function getValuesFromYear(
+    indicator: IndicatorData,
+    startYear: number
+): number[] {
+    const values: number[] = []
+    for (const series of indicator.byEntity.values()) {
+        for (let i = 0; i < series.years.length; i++) {
+            if (series.years[i] >= startYear) values.push(series.values[i])
+        }
+    }
+    return values
+}

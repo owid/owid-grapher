@@ -17,6 +17,7 @@ import {
 } from "../core/emptyCornerTriangle.js"
 import { getPanelAxes, type AxisDef, type PixelScale } from "../core/layout.js"
 import type {
+    AxisRange,
     DemocracyAxis,
     HoverState,
     IndicatorSpec,
@@ -32,6 +33,7 @@ const DIMMED_COLOR = GRAY_30
 
 export interface PanelProps {
     spec: IndicatorSpec
+    range: AxisRange
     points: ScatterPoint[]
     year: number
     width: number
@@ -48,6 +50,7 @@ export interface PanelProps {
 
 export function ScatterPanel({
     spec,
+    range,
     points,
     year,
     width,
@@ -66,8 +69,9 @@ export function ScatterPanel({
     const svgHeight = plotHeight + MARGIN.top + MARGIN.bottom
 
     const axes = useMemo(
-        () => getPanelAxes({ spec, democracyAxis, plotWidth, plotHeight }),
-        [spec, democracyAxis, plotWidth, plotHeight]
+        () =>
+            getPanelAxes({ spec, range, democracyAxis, plotWidth, plotHeight }),
+        [spec, range, democracyAxis, plotWidth, plotHeight]
     )
 
     // Pixel positions, largest dots first so small ones stay clickable on top

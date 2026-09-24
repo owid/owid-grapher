@@ -15,8 +15,10 @@ export interface ScatterVariantConfig {
     colorByRegion?: boolean
     /** Start with dots sized by population */
     sizeByPopulation?: boolean
-    /** Put the democracy index on the x or y axis (default: y) */
+    /** Put the democracy index on the x or y axis (default: x) */
     democracyAxis?: DemocracyAxis
+    /** Start with axis ranges fixed across all years rather than fitted to the selected year */
+    fixedAxes?: boolean
 }
 
 export function parseConfig(raw: Record<string, string>): ScatterVariantConfig {
@@ -28,5 +30,6 @@ export function parseConfig(raw: Record<string, string>): ScatterVariantConfig {
         colorByRegion: parseBoolean(raw.colorByRegion),
         sizeByPopulation: parseBoolean(raw.sizeByPopulation),
         democracyAxis: parseEnum(raw.democracyAxis, DEMOCRACY_AXES),
+        fixedAxes: parseBoolean(raw.fixedAxes),
     }
 }

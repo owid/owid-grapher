@@ -11,19 +11,23 @@ export function DemocracyControls({
     year,
     colorByRegion,
     sizeByPopulation,
+    fixedAxes,
     isPopulationLoading,
     setYear,
     setColorByRegion,
     setSizeByPopulation,
+    setFixedAxes,
 }: {
     years: number[]
     year: number
     colorByRegion: boolean
     sizeByPopulation: boolean
+    fixedAxes: boolean
     isPopulationLoading: boolean
     setYear: (year: number) => void
     setColorByRegion: (value: boolean) => void
     setSizeByPopulation: (value: boolean) => void
+    setFixedAxes: (value: boolean) => void
 }): React.ReactElement {
     // Grapher's native-input checkbox — don't swap for react-aria, whose
     // press handling drops clicks without pointer events (light trackpad taps)
@@ -45,6 +49,12 @@ export function DemocracyControls({
                             ? "Size by population (loading…)"
                             : "Size by population"
                     }
+                />
+                <Checkbox
+                    className="democracy-controls__checkbox"
+                    checked={fixedAxes}
+                    onChange={(e) => setFixedAxes(e.target.checked)}
+                    label="Fix axis ranges across years"
                 />
             </ControlsRow>
             <TimeSlider times={years} selectedTime={year} onChange={setYear} />

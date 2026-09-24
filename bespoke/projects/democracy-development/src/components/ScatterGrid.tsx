@@ -13,6 +13,7 @@ import {
 } from "../core/constants.js"
 import { getGridLayout, makeRadiusScale } from "../core/layout.js"
 import type {
+    AxisRange,
     DemocracyAxis,
     HoverState,
     IndicatorKey,
@@ -29,6 +30,7 @@ export function getContinentColor(continent: string): string {
 
 export function ScatterGrid({
     pointsByIndicator,
+    rangesByIndicator,
     year,
     democracyAxis,
     colorByRegion,
@@ -36,6 +38,7 @@ export function ScatterGrid({
     showTriangles,
 }: {
     pointsByIndicator: Record<IndicatorKey, ScatterPoint[]>
+    rangesByIndicator: Record<IndicatorKey, AxisRange>
     year: number
     democracyAxis: DemocracyAxis
     colorByRegion: boolean
@@ -113,6 +116,7 @@ export function ScatterGrid({
                         <ScatterPanel
                             key={spec.key}
                             spec={spec}
+                            range={rangesByIndicator[spec.key]}
                             points={pointsByIndicator[spec.key]}
                             year={year}
                             width={layout.panelWidth}
