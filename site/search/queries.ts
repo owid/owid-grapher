@@ -217,10 +217,14 @@ export async function queryDataInsights(
         page,
     }
 
-    return searchSingleForHitsWithClosestMatches<DataInsightHit>(
-        liteSearchClient,
-        searchParams
-    )
+    // Selected countries are part of the query, so the closest-matches
+    // fallback would drop them as optional words and show results that
+    // ignore the country filter. An empty section is the honest answer.
+    const search = hasCountry
+        ? searchSingleForHits
+        : searchSingleForHitsWithClosestMatches
+
+    return search<DataInsightHit>(liteSearchClient, searchParams)
 }
 
 export async function queryArticles(
@@ -274,10 +278,12 @@ export async function queryArticles(
         length,
     }
 
-    return searchSingleForHitsWithClosestMatches<FlatArticleHit>(
-        liteSearchClient,
-        searchParams
-    )
+    // No closest-matches fallback with a country filter (see queryDataInsights)
+    const search = hasCountry
+        ? searchSingleForHits
+        : searchSingleForHitsWithClosestMatches
+
+    return search<FlatArticleHit>(liteSearchClient, searchParams)
 }
 
 export async function queryTopicPages(
