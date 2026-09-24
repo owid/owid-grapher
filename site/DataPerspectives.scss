@@ -1,0 +1,1256 @@
+// Prototype: data perspectives array shown alongside the data page grapher.
+// Layout variants are driven by URL params — see DataPerspectives.tsx.
+
+$dp-rail-width: 232px;
+$dp-strip-thumb-width: 220px;
+
+// Wrapper around the grapher + the perspectives array. Position modifiers set
+// the flex direction; the grapher always keeps the flexible remainder.
+.chart-with-perspectives {
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+    // The array (and its detail box) can be taller than the grapher; without
+    // this the grid row below it starts too high and the two overlap.
+    margin-bottom: 24px;
+
+    > .GrapherWithFallback {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
+    &.chart-with-perspectives--left {
+        flex-direction: row-reverse;
+    }
+    &.chart-with-perspectives--right {
+        flex-direction: row;
+    }
+    // In a column flex container `align-items: flex-start` would shrink the
+    // grapher to its content width, so stretch it back to full width.
+    &.chart-with-perspectives--above {
+        flex-direction: column-reverse;
+        align-items: stretch;
+    }
+    &.chart-with-perspectives--below {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    // On small screens a side column is never worth the width: collapse to a
+    // horizontal strip under the chart regardless of the chosen position.
+    @include sm-only {
+        flex-direction: column !important;
+        align-items: stretch;
+        gap: 16px;
+    }
+}
+
+.data-perspectives {
+    flex: 0 0 auto;
+
+    &.data-perspectives--left,
+    &.data-perspectives--right {
+        width: $dp-rail-width;
+
+        @include sm-only {
+            width: 100%;
+        }
+    }
+
+    &.data-perspectives--above,
+    &.data-perspectives--below {
+        width: 100%;
+    }
+}
+
+.data-perspectives__header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.data-perspectives__heading {
+    @include overline-black-caps;
+    color: $blue-50;
+    margin: 0;
+}
+
+.data-perspectives__reset {
+    @include body-3-medium;
+    background: none;
+    border: none;
+    padding: 0;
+    color: $blue-60;
+    text-decoration: underline;
+    cursor: pointer;
+
+    &:hover {
+        color: $blue-90;
+    }
+}
+
+.data-perspectives__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    gap: 12px;
+}
+
+// --- layouts -------------------------------------------------------------
+
+.data-perspectives--layout-rail .data-perspectives__list {
+    flex-direction: column;
+}
+
+.data-perspectives--layout-strip .data-perspectives__list {
+    flex-direction: row;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding-bottom: 8px;
+
+    .data-perspectives__item {
+        flex: 0 0 $dp-strip-thumb-width;
+        scroll-snap-align: start;
+    }
+}
+
+.data-perspectives--layout-grid .data-perspectives__list {
+    flex-direction: row;
+    flex-wrap: wrap;
+
+    .data-perspectives__item {
+        flex: 1 1 $dp-strip-thumb-width;
+        max-width: 320px;
+    }
+}
+
+// On small screens the chosen layout still governs: a rail stays a vertical
+// list (full width, since there's no side column to sit in), a grid drops to
+// two columns, and a strip is already a strip.
+@include sm-only {
+    .data-perspectives--layout-rail .data-perspectives__list {
+        flex-direction: column;
+
+        .data-perspectives__item {
+            flex: 1 1 auto;
+        }
+    }
+
+    .data-perspectives--layout-grid .data-perspectives__list {
+        .data-perspectives__item {
+            flex: 1 1 calc(50% - 12px);
+            max-width: none;
+        }
+    }
+}
+
+// --- item ----------------------------------------------------------------
+
+.data-perspectives__item {
+    margin: 0;
+}
+
+.data-perspectives__button {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: 1px solid $blue-10;
+    border-radius: 4px;
+    padding: 8px;
+    cursor: pointer;
+    transition:
+        border-color 0.1s ease,
+        background-color 0.1s ease;
+
+    &:hover {
+        border-color: $blue-30;
+        background-color: $blue-5;
+    }
+
+    &:focus-visible {
+        outline: 2px solid $blue-60;
+        outline-offset: 1px;
+    }
+
+    &.data-perspectives__button--selected {
+        border-color: $blue-60;
+        background-color: $blue-5;
+    }
+}
+
+.data-perspectives__thumb {
+    display: block;
+    position: relative;
+
+    picture,
+    img {
+        display: block;
+        width: 100%;
+        height: auto;
+    }
+}
+
+// Thumbnail-only density: the title is revealed over the image on hover/focus.
+.data-perspectives__hover-title {
+    @include body-3-medium;
+    position: absolute;
+    inset: auto 0 0 0;
+    padding: 6px 8px;
+    background: rgba(0, 0, 0, 0.72);
+    color: #fff;
+    opacity: 0;
+    transition: opacity 0.1s ease;
+
+    .data-perspectives__button:hover &,
+    .data-perspectives__button:focus-visible & {
+        opacity: 1;
+    }
+}
+
+.data-perspectives__title {
+    @include body-3-medium;
+    display: block;
+    margin-top: 8px;
+    color: $blue-90;
+}
+
+.data-perspectives__text {
+    @include body-3-medium;
+    display: block;
+    margin-top: 4px;
+    color: $blue-60;
+}
+
+// --- shared detail box ---------------------------------------------------
+
+.data-perspectives__detail {
+    margin-top: 12px;
+    padding: 12px;
+    background-color: $blue-5;
+    border-radius: 4px;
+    min-height: 72px;
+}
+
+.data-perspectives__detail-title {
+    @include body-2-semibold;
+    margin: 0 0 4px;
+    color: $blue-90;
+}
+
+.data-perspectives__detail-text,
+.data-perspectives__detail-placeholder {
+    @include body-3-medium;
+    margin: 0;
+    color: $blue-60;
+}
+
+// --- swipe deck (?dpLayout=swipe) ----------------------------------------
+
+.data-perspectives-deck__viewport {
+    position: relative;
+    overflow: hidden;
+    border-radius: 4px;
+    // Let the page scroll vertically while we claim horizontal drags.
+    touch-action: pan-y;
+    cursor: grab;
+
+    &:active {
+        cursor: grabbing;
+    }
+
+    &:focus-visible {
+        outline: 2px solid $blue-60;
+        outline-offset: 2px;
+    }
+}
+
+.data-perspectives-deck__track {
+    display: flex;
+    transition: transform 0.25s ease;
+
+    // No transition while a finger is down, so the card tracks the drag.
+    &.data-perspectives-deck__track--dragging {
+        transition: none;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        transition: none;
+    }
+}
+
+.data-perspectives-deck__card {
+    flex: 0 0 100%;
+    padding: 8px;
+    // Stop the browser's native image drag from fighting the swipe.
+    user-select: none;
+
+    img {
+        pointer-events: none;
+    }
+}
+
+.data-perspectives-deck__thumb {
+    display: block;
+
+    picture,
+    img {
+        display: block;
+        width: 100%;
+        height: auto;
+    }
+}
+
+.data-perspectives-deck__title {
+    @include body-2-semibold;
+    margin: 8px 0 0;
+    color: $blue-90;
+}
+
+.data-perspectives-deck__text {
+    @include body-3-medium;
+    margin: 4px 0 0;
+    color: $blue-60;
+}
+
+// --- the swipe hint ------------------------------------------------------
+
+// A floating pill rather than a full scrim: a scrim washes out the card's own
+// title and text, which makes the whole thing read as disabled.
+.data-perspectives-deck__hint {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 10px 18px;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.78);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    pointer-events: none;
+    animation: data-perspectives-hint-out 0.3s ease 5.7s forwards;
+}
+
+.data-perspectives-deck__hint-icon {
+    font-size: 20px;
+    color: #fff;
+    // The hand points up by default; rotate it to read as a sideways swipe.
+    transform: rotate(-90deg);
+    animation: data-perspectives-swipe 1.6s ease-in-out infinite;
+}
+
+.data-perspectives-deck__hint-label {
+    @include body-3-medium;
+    color: #fff;
+    white-space: nowrap;
+}
+
+// The icon is rotated -90deg, so translateY moves it horizontally on screen.
+// Keep the amplitude small or it slides into the label.
+@keyframes data-perspectives-swipe {
+    0%,
+    100% {
+        transform: rotate(-90deg) translateY(7px);
+    }
+    50% {
+        transform: rotate(-90deg) translateY(-7px);
+    }
+}
+
+@keyframes data-perspectives-hint-out {
+    to {
+        opacity: 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .data-perspectives-deck__hint-icon,
+    .data-perspectives-deck__hint {
+        animation: none;
+    }
+}
+
+// --- dots + counter ------------------------------------------------------
+
+.data-perspectives-deck__footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.data-perspectives-deck__dots {
+    list-style: none;
+    display: flex;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+}
+
+.data-perspectives-deck__dot {
+    width: 8px;
+    height: 8px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background-color: $blue-20;
+    cursor: pointer;
+
+    &.data-perspectives-deck__dot--active {
+        background-color: $blue-60;
+    }
+}
+
+.data-perspectives-deck__counter {
+    @include body-3-medium;
+    margin: 0;
+    color: $blue-50;
+}
+
+// --- swipe anywhere on the page (?dpLayout=pageswipe) --------------------
+
+// The perspective's title and text (position is shown by the dots above).
+.data-perspectives-pageswipe__card {
+    padding: 12px 14px;
+    border-radius: 4px;
+    background-color: $blue-5;
+
+    // panel / seamless / narrative: no box, so the card and the chart below
+    // read as one continuous block rather than a caption on a separate chart.
+    &.data-perspectives-pageswipe__card--panel,
+    &.data-perspectives-pageswipe__card--seamless,
+    &.data-perspectives-pageswipe__card--narrative {
+        padding: 0 0 8px;
+        background: none;
+    }
+}
+
+.data-perspectives-pageswipe__title {
+    @include body-2-semibold;
+    margin: 0;
+    color: $blue-90;
+}
+
+.data-perspectives-pageswipe__text {
+    @include body-3-medium;
+    margin: 8px 0 0;
+    color: $blue-60;
+}
+
+.data-perspectives-pageswipe {
+    position: relative;
+}
+
+.data-perspectives-pageswipe__hint {
+    // Fixed near the bottom of the screen; `bottom` is set inline, so it can
+    // sit above the cookie banner when that's open.
+    position: fixed;
+    left: 50%;
+    z-index: 40;
+    // Tighter corners than the other nudges: the countdown bar runs along the
+    // bottom edge, and a pill would clip it into a sliver.
+    border-radius: 6px;
+    overflow: hidden;
+    background: rgba(0, 0, 0, 0.8);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    white-space: nowrap;
+    pointer-events: none;
+    transform: translateX(-50%);
+    animation: dp-hint-in 0.3s ease both;
+}
+
+.data-perspectives-pageswipe__hint-body {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 10px 16px 12px;
+}
+
+// Upright hand, travelling left: the conventional "swipe" demonstration.
+.data-perspectives-pageswipe__hint-icon {
+    font-size: 20px;
+    color: #fff;
+    animation: dp-hand-swipe-left 1.4s ease-in-out infinite;
+}
+
+.data-perspectives-pageswipe__hint-label {
+    @include body-3-medium;
+    color: #fff;
+}
+
+// Drains from full width to zero over the nudge's lifetime, so it's clear it
+// will go away on its own.
+.data-perspectives-pageswipe__hint-timer {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 3px;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.85);
+    transform-origin: left center;
+    animation: dp-hint-countdown var(--dp-hint-duration, 5000ms) linear forwards;
+}
+
+@keyframes dp-hand-swipe-left {
+    0% {
+        transform: translateX(10px);
+        opacity: 0;
+    }
+    15% {
+        opacity: 1;
+    }
+    70% {
+        transform: translateX(-14px);
+        opacity: 1;
+    }
+    100% {
+        transform: translateX(-14px);
+        opacity: 0;
+    }
+}
+
+@keyframes dp-hint-countdown {
+    from {
+        transform: scaleX(1);
+    }
+    to {
+        transform: scaleX(0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .data-perspectives-pageswipe__hint-icon {
+        animation: none;
+    }
+    // The countdown still matters without motion, so it stays — it's slow,
+    // linear and small.
+}
+
+// --- expandable list, no chart at the top (?dpLayout=accordion) ----------
+
+.data-perspectives-accordion {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.data-perspectives-accordion__item {
+    border-bottom: 1px solid $blue-10;
+
+    &:first-child {
+        border-top: 1px solid $blue-10;
+    }
+}
+
+.data-perspectives-accordion__header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 12px 0;
+    background: none;
+    border: none;
+    text-align: left;
+    cursor: pointer;
+
+    &:hover .data-perspectives-accordion__title {
+        color: $blue-60;
+    }
+
+    &:focus-visible {
+        outline: 2px solid $blue-60;
+        outline-offset: -2px;
+    }
+}
+
+.data-perspectives-accordion__thumb {
+    flex: 0 0 96px;
+
+    picture,
+    img {
+        display: block;
+        width: 100%;
+        height: auto;
+        border: 1px solid $blue-10;
+        border-radius: 3px;
+    }
+}
+
+.data-perspectives-accordion__heading {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.data-perspectives-accordion__title {
+    @include body-2-semibold;
+    display: block;
+    color: $blue-90;
+}
+
+.data-perspectives-accordion__text {
+    @include body-3-medium;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin-top: 2px;
+    color: $blue-60;
+}
+
+.data-perspectives-accordion__chevron {
+    flex: 0 0 auto;
+    color: $blue-50;
+    transition: transform 0.15s ease;
+
+    .data-perspectives-accordion__item--expanded & {
+        transform: rotate(180deg);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        transition: none;
+    }
+}
+
+.data-perspectives-accordion__body {
+    padding-bottom: 16px;
+}
+
+.data-perspectives-accordion__body-text {
+    @include body-3-medium;
+    margin: 0 0 12px;
+    color: $blue-60;
+}
+
+// --- full-screen explorer (?dpLayout=explorer) --------------------------
+
+// The explorer is the whole screen: nothing behind it scrolls, and the rest of
+// the data page (metadata, related content, footer) is hidden while it's up.
+html.dp-explorer-active {
+    &,
+    body {
+        overflow: hidden;
+        height: 100%;
+        overscroll-behavior: none;
+    }
+
+    .indicator-metadata-box,
+    .datapage-research-and-writing-v2,
+    .datapage-v2__related-charts-heading,
+    .related-data-charts,
+    .MetadataSection,
+    .DataPageContent__grapher-for-embed,
+    .site-footer {
+        display: none;
+    }
+}
+
+.dp-explorer {
+    // Pinned under the site nav (its `top` is measured and set inline), so it
+    // takes exactly the rest of the viewport and can't be scrolled.
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 5;
+    display: flex;
+    flex-direction: column;
+    padding: 0 16px 8px;
+    overflow: hidden;
+    background: #fff;
+    // Both axes are ours: this is what lets a vertical swipe reach us instead
+    // of being taken by the browser as a scroll.
+    touch-action: none;
+}
+
+.dp-explorer__bar {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 0;
+}
+
+.dp-explorer__counter {
+    @include body-3-medium;
+    color: $blue-50;
+    font-variant-numeric: tabular-nums;
+}
+
+.dp-explorer__meta-button {
+    @include body-3-medium;
+    padding: 6px 12px;
+    border: 1px solid $blue-20;
+    border-radius: 999px;
+    background: none;
+    color: $blue-90;
+    cursor: pointer;
+
+    &:hover {
+        border-color: $blue-60;
+    }
+}
+
+// The chart and its caption move together when you swipe: that pair is "the
+// perspective".
+.dp-explorer__stage {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    will-change: transform;
+    user-select: none;
+}
+
+.dp-explorer__chart {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+
+    // Every wrapper between here and the grapher figure has to carry the
+    // height, or the chart sizes to its own aspect ratio and overflows.
+    // site/css/chart.scss gives every chart figure `min-height: 540px` and a
+    // viewport-based height; in a one-screen shell the chart gets whatever
+    // is left, so both have to yield or the axis and timeline get clipped.
+    > div,
+    .GrapherWithFallback,
+    figure.chart {
+        height: 100% !important;
+        min-height: 0 !important;
+        max-height: none !important;
+    }
+}
+
+.dp-explorer__caption {
+    flex: 0 0 auto;
+    padding-bottom: 8px;
+}
+
+.dp-explorer__title {
+    @include body-2-semibold;
+    margin: 0;
+    color: $blue-90;
+}
+
+.dp-explorer__text {
+    @include body-3-medium;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin: 4px 0 0;
+    color: $blue-60;
+}
+
+// Naming each swipe's destination, so neither axis is a blind leap. Stacked,
+// because side by side the two labels truncated each other.
+.dp-explorer__axes {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding-top: 8px;
+    margin-top: 8px;
+    border-top: 1px solid $blue-10;
+}
+
+.dp-explorer__axis {
+    @include body-3-medium;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    color: $blue-50;
+}
+
+.dp-explorer__axis-label {
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dp-explorer__hint {
+    position: absolute;
+    left: 50%;
+    top: 45%;
+    transform: translate(-50%, -50%);
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 10px 18px;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.78);
+    white-space: nowrap;
+    pointer-events: none;
+    animation: dp-hint-in 0.3s ease both;
+}
+
+.dp-explorer__overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    // The overlay scrolls normally, unlike the explorer behind it.
+    touch-action: auto;
+}
+
+.dp-explorer__overlay-bar {
+    flex: 0 0 auto;
+    display: flex;
+    justify-content: flex-end;
+    padding: 8px 16px;
+    border-bottom: 1px solid $blue-10;
+}
+
+.dp-explorer__close {
+    padding: 4px 8px;
+    border: none;
+    background: none;
+    font-size: 20px;
+    color: $blue-90;
+    cursor: pointer;
+}
+
+.dp-explorer__overlay-body {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    padding: 0 16px 24px;
+}
+
+// While pageswipe is active: horizontal drags belong to us (vertical still
+// scrolls natively), and the chart block can slide past the edge without
+// giving the page a horizontal scrollbar.
+body.dp-pageswipe-active {
+    touch-action: pan-y;
+    overflow-x: hidden;
+
+    .chart-with-perspectives {
+        will-change: transform;
+        user-select: none;
+    }
+}
+
+// Pageswipe leads with the perspective: it goes above the chart and spans the
+// full width, whatever position `dp` asks for.
+.chart-with-perspectives.chart-with-perspectives--pageswipe {
+    flex-direction: column !important;
+    align-items: stretch;
+
+    > .data-perspectives {
+        order: -1;
+        width: 100%;
+    }
+}
+
+// --- swipe nudge -----------------------------------------------------------
+
+@keyframes dp-hint-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+// The stage "peeks": slides a little way and springs back, twice, so the
+// gesture is shown rather than only described. Toggled by useSwipeHint.
+.dp-swipe-peek {
+    animation: dp-swipe-peek 1.6s ease-in-out 0.4s 2;
+}
+
+@keyframes dp-swipe-peek {
+    0%,
+    45%,
+    100% {
+        transform: translate3d(0, 0, 0);
+    }
+    20% {
+        transform: translate3d(-44px, 0, 0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .dp-swipe-peek {
+        animation: none;
+    }
+}
+
+// panel / seamless / narrative: drop the grapher's own border too, for the
+// same reason.
+.chart-with-perspectives--style-panel,
+.chart-with-perspectives--style-seamless,
+.chart-with-perspectives--style-narrative {
+    .GrapherComponent {
+        border-color: transparent;
+    }
+}
+
+// panel / narrative: the page goes light grey and the perspective + chart sit
+// together in one white panel — one object, which is also exactly the thing
+// that slides when you swipe.
+body.dp-page-grey {
+    background-color: $gray-10;
+}
+
+.chart-with-perspectives.chart-with-perspectives--style-panel,
+.chart-with-perspectives.chart-with-perspectives--style-narrative {
+    padding: 12px 12px 4px;
+    border-radius: 8px;
+    background-color: $white;
+    // Close the gap between the perspective and the chart: distance reads as
+    // "separate things".
+    gap: 0;
+
+    // One shared left edge for the perspective text and the chart title.
+    // Grapher draws its content 17px inside its own box, so the perspective is
+    // indented by the same amount; and on phones the chart's
+    // `full-width-on-mobile` negative margins (see gdocs/components/Chart.scss)
+    // are cancelled, since here the panel — not the screen — is the frame.
+    > .data-perspectives {
+        padding: 0 17px;
+    }
+
+    .GrapherWithFallback.full-width-on-mobile {
+        margin-left: 0;
+        margin-right: 0;
+    }
+}
+
+// --- pageswipe dots + restore -------------------------------------------
+
+.data-perspectives-pageswipe__dots {
+    list-style: none;
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin: 2px 0 12px;
+    padding: 0;
+}
+
+.data-perspectives-pageswipe__dot {
+    width: 8px;
+    height: 8px;
+    padding: 0;
+    border-radius: 50%;
+    background-color: $blue-20;
+    cursor: pointer;
+    // A bigger hit area than the dot itself, for thumbs.
+    box-sizing: content-box;
+    background-clip: content-box;
+    border: 6px solid transparent;
+    margin: -6px;
+
+    &.data-perspectives-pageswipe__dot--active {
+        background-color: $blue-60;
+    }
+}
+
+// A small icon floated at the end of the chart's (narrative) title.
+.data-perspectives-pageswipe__restore-icon {
+    position: absolute;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    border: 1px solid $blue-20;
+    border-radius: 50%;
+    background: $white;
+    color: $blue-60;
+    font-size: 11px;
+    cursor: pointer;
+
+    &:hover {
+        border-color: $blue-60;
+        color: $blue-90;
+    }
+
+    &:focus-visible {
+        outline: 2px solid $blue-60;
+        outline-offset: 1px;
+    }
+}
+
+// Once the reader changes the view, the narrative title no longer describes it.
+//   dpNarrativeStale=hide    — the title becomes blank space (its room is kept,
+//                              so nothing below it jumps)
+//   dpNarrativeStale=disable — the title stays, greyed and struck through
+.chart-with-perspectives--narrative-hidden .GrapherComponent h1 {
+    visibility: hidden;
+}
+
+.chart-with-perspectives--narrative-disabled .GrapherComponent h1 {
+    color: $blue-40;
+    text-decoration: line-through;
+    text-decoration-thickness: 1px;
+}
+
+// --- bottom drawer (?dpDrawer=perspectives|related) ---------------------
+
+.dp-drawer__backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 30;
+    background: rgba(0, 0, 0, 0.25);
+    animation: dp-hint-in 0.2s ease both;
+}
+
+.dp-drawer {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 31;
+    display: flex;
+    flex-direction: column;
+    max-height: 56vh;
+    background: #fff;
+    border-radius: 12px 12px 0 0;
+    box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.15);
+
+    // Height is set inline (it depends on the cookie banner); this only adds
+    // the opening motion.
+    &.dp-drawer--open {
+        animation: dp-drawer-up 0.22s ease-out both;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        &.dp-drawer--open {
+            animation: none;
+        }
+    }
+}
+
+@keyframes dp-drawer-up {
+    from {
+        transform: translateY(30%);
+    }
+    to {
+        transform: translateY(0);
+    }
+}
+
+.dp-drawer__handle {
+    flex: 0 0 auto;
+    display: block;
+    width: 100%;
+    padding: 6px 16px 10px;
+    border: none;
+    background: none;
+    text-align: left;
+    cursor: pointer;
+}
+
+.dp-drawer__grabber {
+    display: block;
+    width: 36px;
+    height: 4px;
+    margin: 0 auto 8px;
+    border-radius: 2px;
+    background: $blue-20;
+}
+
+.dp-drawer__handle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.dp-drawer__label {
+    @include body-2-semibold;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: $blue-90;
+}
+
+.dp-drawer__count {
+    @include body-3-medium;
+    min-width: 20px;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: $blue-10;
+    color: $blue-60;
+    text-align: center;
+}
+
+.dp-drawer__toggle-icon {
+    color: $blue-50;
+}
+
+.dp-drawer__body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 0 16px 16px;
+    border-top: 1px solid $blue-10;
+}
+
+.dp-drawer__section-heading {
+    @include overline-black-caps;
+    margin: 14px 0 8px;
+    color: $blue-50;
+}
+
+.dp-drawer__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.dp-drawer__body--vertical .dp-drawer__list {
+    padding-top: 10px;
+}
+
+.dp-drawer__item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 8px;
+    border: 1px solid $blue-10;
+    border-radius: 4px;
+    background: none;
+    text-align: left;
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+
+    &:hover {
+        border-color: $blue-30;
+        background: $blue-5;
+    }
+
+    &.dp-drawer__item--selected {
+        border-color: $blue-60;
+        background: $blue-5;
+    }
+}
+
+.dp-drawer__thumb {
+    flex: 0 0 96px;
+
+    picture,
+    img {
+        display: block;
+        width: 100%;
+        height: auto;
+        border-radius: 2px;
+    }
+}
+
+.dp-drawer__item-text {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.dp-drawer__item-title {
+    @include body-3-medium;
+    display: block;
+    color: $blue-90;
+    font-weight: 700;
+}
+
+.dp-drawer__item-desc {
+    @include body-3-medium;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin-top: 2px;
+    color: $blue-60;
+}
+
+// Horizontal variant: a row of cards you scroll sideways.
+.dp-drawer__body--horizontal .dp-drawer__list {
+    flex-direction: row;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding: 10px 0 8px;
+
+    > li {
+        flex: 0 0 200px;
+        scroll-snap-align: start;
+    }
+
+    .dp-drawer__item {
+        flex-direction: column;
+        align-items: stretch;
+        height: 100%;
+    }
+
+    .dp-drawer__thumb {
+        flex: 0 0 auto;
+    }
+}
+
+// Prototype aid: which dp… params were ignored (typos, unknown values).
+.dp-ignored-params {
+    @include body-3-medium;
+    position: fixed;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 100000;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    max-width: calc(100vw - 16px);
+    padding: 6px 10px;
+    border-radius: 4px;
+    background: #fff3cd;
+    border: 1px solid #e0b000;
+    color: #5c4400;
+
+    code {
+        font-size: 12px;
+        word-break: break-all;
+    }
+
+    button {
+        padding: 0 4px;
+        border: none;
+        background: none;
+        font-size: 18px;
+        line-height: 1;
+        color: inherit;
+        cursor: pointer;
+    }
+}
+
+// dpDrawer=metadata: the box's expanded view, shown outright — so its own
+// show-more/less toggle and collapse button have nothing to do in here.
+.dp-drawer__metadata {
+    padding-top: 8px;
+
+    // !important: the expander's own summary styles are more specific.
+    .metadata-box-expander__summary,
+    .metadata-box-collapse-button {
+        display: none !important;
+    }
+
+    .indicator-metadata-box {
+        margin: 0;
+        padding: 0;
+        border: none;
+        background: none;
+    }
+}
