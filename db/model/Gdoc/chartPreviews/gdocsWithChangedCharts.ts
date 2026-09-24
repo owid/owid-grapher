@@ -1,8 +1,8 @@
 import * as db from "../../../db.js"
 
 /**
- * Gdocs with chart components pointing at charts whose config or data changed
- * since the given date, i.e. those whose preview images may be outdated.
+ * Gdocs with chart components pointing at charts or multi-dims whose config or
+ * data changed since the given date, i.e. those whose preview images may be outdated.
  *
  * This is deliberately generous (indicators are touched by every ETL run, even
  * if their data stays the same): refreshing a doc whose images are already up
@@ -27,6 +27,21 @@ export async function getGdocIdsWithChangedCharts(
             JOIN variables v ON v.id = cd.variableId
             WHERE v.updatedAt >= ?
         ),
+        changed_multi_dims AS (
+            SELECT id
+            FROM multi_dim_data_pages
+            WHERE updatedAt >= ?
+            UNION
+            SELECT mx.multiDimId AS id
+            FROM multi_dim_x_chart_configs mx
+            JOIN chart_configs cc ON cc.id = mx.chartConfigId
+            WHERE cc.updatedAt >= ?
+            UNION
+            SELECT mx.multiDimId AS id
+            FROM multi_dim_x_chart_configs mx
+            JOIN variables v ON v.id = mx.variableId
+            WHERE v.updatedAt >= ?
+        ),
         changed_slugs AS (
             SELECT cc.slug
             FROM changed_charts ch
@@ -36,12 +51,22 @@ export async function getGdocIdsWithChangedCharts(
             SELECT r.slug
             FROM changed_charts ch
             JOIN chart_slug_redirects r ON r.chart_id = ch.id
+            UNION
+            SELECT m.slug
+            FROM changed_multi_dims cm
+            JOIN multi_dim_data_pages m ON m.id = cm.id
+            UNION
+            -- Old chart slugs that now redirect to a multi-dim
+            SELECT REPLACE(mdr.source, '/grapher/', '')
+            FROM changed_multi_dims cm
+            JOIN multi_dim_redirects mdr ON mdr.multiDimId = cm.id
+            WHERE mdr.source LIKE '/grapher/%'
         )
         SELECT DISTINCT l.sourceId AS gdocId
         FROM posts_gdocs_links l
         JOIN changed_slugs s ON s.slug = l.target
         WHERE l.linkType = 'grapher' AND l.componentType = 'chart'`,
-        [since, since]
+        [since, since, since, since, since]
     )
     return rows.map((row) => row.gdocId)
 }
