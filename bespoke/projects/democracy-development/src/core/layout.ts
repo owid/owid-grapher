@@ -50,26 +50,39 @@ const LINEAR_TICK_COUNT = 5
 /** Mantissas a log axis may start or end on: 1, 2, 5 times a power of ten */
 const LOG_NICE_MANTISSAS = [1, 2, 5, 10]
 
+/** A nice() step may pad the data by at most this share of its range */
+const MAX_NICE_PADDING = 0.25
+
 /**
  * A readable axis range covering `values`.
  *
- * All four indicators are non-negative quantities, so a linear axis always
- * starts at zero and rounds its top up to a tick. A log axis snaps both ends
- * outwards to 1, 2 or 5 times a power of ten and ticks at the powers of ten
- * inside, adding the 2 and 5 marks when that would leave fewer than two.
+ * A linear axis rounds its ends outwards to a tick; with `startAtZero` the
+ * lower end is pinned to zero. If rounding to about five ticks would pad the
+ * data by more than a quarter of its range, a finer step is used instead, so
+ * a panel doesn't sit half empty. A log axis snaps both ends outwards to
+ * 1, 2 or 5 times a power of ten and ticks at the powers of ten inside,
+ * adding the 2 and 5 marks when that would leave fewer than two.
  */
 export function computeAxisRange(
     values: number[],
-    scale: "linear" | "log"
+    scale: "linear" | "log",
+    { startAtZero = true }: { startAtZero?: boolean } = {}
 ): AxisRange {
     const positive = values.filter((v) => Number.isFinite(v) && v > 0)
     if (scale === "linear") {
-        const max = Math.max(0, ...positive)
-        const linear = scaleLinear()
-            .domain([0, max > 0 ? max : 1])
-            .nice(LINEAR_TICK_COUNT)
-        const [lo, hi] = linear.domain() as [number, number]
-        return { domain: [lo, hi], ticks: linear.ticks(LINEAR_TICK_COUNT) }
+        const max = positive.length ? Math.max(...positive) : 1
+        const min = startAtZero || !positive.length ? 0 : Math.min(...positive)
+        const span = Math.max(max - min, 1e-9)
+        for (const tickCount of [LINEAR_TICK_COUNT, 2 * LINEAR_TICK_COUNT]) {
+            const linear = scaleLinear().domain([min, max]).nice(tickCount)
+            const [lo, hi] = linear.domain() as [number, number]
+            const padding = Math.max(min - lo, hi - max) / span
+            if (padding <= MAX_NICE_PADDING || tickCount > LINEAR_TICK_COUNT)
+                return {
+                    domain: [lo, hi],
+                    ticks: linear.ticks(LINEAR_TICK_COUNT),
+                }
+        }
     }
     if (positive.length === 0) return { domain: [1, 10], ticks: [1, 10] }
     const lo = niceLogBound(Math.min(...positive), "floor")

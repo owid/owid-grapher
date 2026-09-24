@@ -204,7 +204,8 @@ function CaptionedScatterVariant({
                     spec.key,
                     computeAxisRange(
                         getValuesFromYear(indicators[spec.key], START_YEAR),
-                        spec.scale
+                        spec.scale,
+                        { startAtZero: spec.startAtZero }
                     ),
                 ])
             ) as Record<IndicatorKey, AxisRange>,
@@ -221,25 +222,41 @@ function CaptionedScatterVariant({
                               pointsByIndicator[spec.key].map(
                                   (p) => p.indicator.value
                               ),
-                              spec.scale
+                              spec.scale,
+                              { startAtZero: spec.startAtZero }
                           ),
                       ])
                   ) as Record<IndicatorKey, AxisRange>),
         [fixedAxes, fixedRanges, pointsByIndicator]
     )
 
+    // One entry per panel, so a reader can tell which source is behind which chart
     const sources = useMemo(() => {
-        const all = [
-            democracy,
-            ...INDICATOR_SPECS.map((spec) => indicators[spec.key]),
-            ...(sizeByPopulation && population ? [population] : []),
-        ].flatMap((d) => d.metadata.attributions)
-        return [...new Set(all)].join("; ")
+        const entries: [string, IndicatorData][] = [
+            ["Liberal Democracy Index", democracy],
+            ...INDICATOR_SPECS.map((spec): [string, IndicatorData] => [
+                spec.title,
+                indicators[spec.key],
+            ]),
+            ...(sizeByPopulation && population
+                ? [["Population", population] as [string, IndicatorData]]
+                : []),
+        ]
+        // Semicolons separate panels, so the ones inside a curated
+        // attribution ("Gapminder (2015); UN IGME (2025)") become commas
+        return entries
+            .map(
+                ([label, data]) =>
+                    `${label}: ${data.metadata.attributions
+                        .join(", ")
+                        .replace(/;\s*/g, ", ")}`
+            )
+            .join("; ")
     }, [democracy, indicators, population, sizeByPopulation])
 
     const subtitle =
         config.subtitle ??
-        `The charts show how four measures of development relate to countries' scores on V-Dem's Liberal Democracy Index in ${year}, from 0 (least democratic) to 1 (most democratic). The index covers free and fair elections, constraints on power, and civil rights. Each dot pairs a country's democracy score with its latest value for an indicator from ${year} or the five years before. Shaded corners mark combinations no country falls into.`
+        `The charts show how four measures of development relate to countries' scores on V-Dem's Liberal Democracy Index. The index covers free and fair elections, constraints on power, and civil rights. Shaded corners mark combinations no country falls into.`
 
     return (
         <>

@@ -23,6 +23,18 @@ describe(computeAxisRange, () => {
         expect(range.ticks.length).toBeGreaterThanOrEqual(2)
     })
 
+    it("can leave the zero baseline behind and tighten the range", () => {
+        const range = computeAxisRange([6.5, 12, 21], "linear", {
+            startAtZero: false,
+        })
+        expect(range.domain[0]).toBeGreaterThan(0)
+        expect(range.domain[0]).toBeLessThanOrEqual(6.5)
+        expect(range.domain[1]).toBeGreaterThanOrEqual(21)
+        // rounding to fives would give [5, 25]: too much padding for a
+        // 14.5-year spread, so a finer step is used
+        expect(range.domain[1]).toBeLessThan(25)
+    })
+
     it("copes with no values", () => {
         expect(computeAxisRange([], "linear").domain).toEqual([0, 1])
         expect(computeAxisRange([], "log").domain).toEqual([1, 10])

@@ -40,9 +40,11 @@ export const INDICATOR_SPECS: IndicatorSpec[] = [
         subtitle:
             "Average economic output per person per year, in international-$ at 2021 prices; adjusted for inflation and price differences between countries. Shown on a log scale.",
         scale: "log",
+        startAtZero: false,
         formatTick: formatDollarTick,
         formatValue: formatDollarValue,
         emptyCornerAtLowValue: true,
+        annotation: "Highly democratic countries are rarely poor",
     },
     {
         key: "childMortality",
@@ -50,9 +52,12 @@ export const INDICATOR_SPECS: IndicatorSpec[] = [
         title: "Child mortality rate",
         subtitle: "Share of newborns who die before reaching the age of five.",
         scale: "linear",
+        startAtZero: true,
         formatTick: (v) => `${v}%`,
         formatValue: (v) => `${formatPercent1(v)}%`,
         emptyCornerAtLowValue: false,
+        annotation:
+            "Highly democratic countries rarely have high child mortality rates",
     },
     {
         key: "poverty",
@@ -61,9 +66,12 @@ export const INDICATOR_SPECS: IndicatorSpec[] = [
         subtitle:
             "Share of the population living on less than $10 a day, at 2021 prices; adjusted for price differences between countries. Based on household surveys, so many countries only have data every few years.",
         scale: "linear",
+        startAtZero: true,
         formatTick: (v) => `${v}%`,
         formatValue: (v) => `${formatPercent1(v)}%`,
         emptyCornerAtLowValue: false,
+        annotation:
+            "Highly democratic countries rarely have widespread poverty",
     },
     {
         key: "schooling",
@@ -72,9 +80,14 @@ export const INDICATOR_SPECS: IndicatorSpec[] = [
         subtitle:
             "Number of years a child starting school can expect to spend in education if current enrollment rates persist.",
         scale: "linear",
+        // Expected schooling sits between roughly 5 and 23 years everywhere,
+        // so a zero baseline would leave the lower fifth of the panel empty
+        startAtZero: false,
         formatTick: (v) => `${v}`,
         formatValue: (v) => `${formatYears1(v)} years`,
         emptyCornerAtLowValue: true,
+        annotation:
+            "Highly democratic countries rarely have short expected schooling",
     },
 ]
 

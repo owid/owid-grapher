@@ -22,6 +22,8 @@ export interface IndicatorSpec {
     /** Panel subtitle: definition, unit, and anything that used to be a footnote */
     subtitle: string
     scale: "linear" | "log"
+    /** Whether a linear axis has to start at zero; off for indicators whose values never come near it */
+    startAtZero: boolean
     formatTick: (value: number) => string
     formatValue: (value: number) => string
     /**
@@ -30,6 +32,8 @@ export interface IndicatorSpec {
      * or at the high end (child mortality: they rarely have high mortality).
      */
     emptyCornerAtLowValue: boolean
+    /** Written inside the shaded empty corner */
+    annotation: string
 }
 
 /** One indicator's values, grouped by entity and sorted by year */

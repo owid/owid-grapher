@@ -3,6 +3,7 @@ import cx from "clsx"
 
 import { getRelativeMouse, isTouchDevice } from "@ourworldindata/utils"
 import {
+    GRAPHER_DENIM,
     GRAPHER_LIGHT_TEXT,
     GRAY_10,
     GRAY_20,
@@ -14,6 +15,7 @@ import {
 import {
     findEmptyCornerTriangle,
     getTriangleVertices,
+    type CornerTriangle,
 } from "../core/emptyCornerTriangle.js"
 import { getPanelAxes, type AxisDef, type PixelScale } from "../core/layout.js"
 import type {
@@ -30,6 +32,7 @@ const TICK_FONT_SIZE = 11
 /** How far from a dot's edge the pointer may be and still pick it up */
 const HOVER_SLACK = 10
 const DIMMED_COLOR = GRAY_30
+const ANNOTATION_COLOR = GRAPHER_DENIM
 
 export interface PanelProps {
     spec: IndicatorSpec
@@ -217,6 +220,14 @@ export function ScatterPanel({
                                 )
                             })}
                         </g>
+                        {triangle && (
+                            <CornerAnnotation
+                                triangle={triangle}
+                                text={spec.annotation}
+                                plotWidth={plotWidth}
+                                plotHeight={plotHeight}
+                            />
+                        )}
                         {hoveredPlaced && (
                             <HoverLabel
                                 x={hoveredPlaced.cx}
@@ -385,6 +396,91 @@ function HoverLabel({
             paintOrder="stroke"
         >
             {text}
+        </text>
+    )
+}
+
+const ANNOTATION_FONT_SIZE = 11
+const ANNOTATION_LINE_HEIGHT = 14
+/** Rough width of a character at that size, for wrapping without measuring */
+const ANNOTATION_CHAR_WIDTH = 5.6
+const ANNOTATION_INSET = 8
+
+/**
+ * The static chart's explanation of an empty corner, written inside the
+ * shaded triangle. Lines are wrapped to the width the triangle offers at
+ * their own height, since the hypotenuse takes room away from lines further
+ * from the corner edge; the note is dropped rather than squeezed when the
+ * triangle can't hold at least its first two lines.
+ */
+function CornerAnnotation({
+    triangle,
+    text,
+    plotWidth,
+    plotHeight,
+}: {
+    triangle: CornerTriangle
+    text: string
+    plotWidth: number
+    plotHeight: number
+}): React.ReactElement | null {
+    const { corner, legU, legV } = triangle
+    const legWidth = legU * plotWidth
+    const legHeight = legV * plotHeight
+
+    // Available width at a distance `d` (px) from the corner's horizontal edge
+    const widthAt = (d: number): number =>
+        Math.max(0, legWidth * (1 - d / legHeight) - 2 * ANNOTATION_INSET)
+
+    const words = text.split(" ")
+    const lines: string[] = []
+    let current = ""
+    for (const word of words) {
+        const lineTop =
+            ANNOTATION_INSET + (lines.length + 1) * ANNOTATION_LINE_HEIGHT
+        const maxChars = Math.floor(widthAt(lineTop) / ANNOTATION_CHAR_WIDTH)
+        const candidate = current ? `${current} ${word}` : word
+        if (candidate.length <= maxChars) {
+            current = candidate
+        } else if (current) {
+            lines.push(current)
+            current = word
+            const nextTop =
+                ANNOTATION_INSET + (lines.length + 1) * ANNOTATION_LINE_HEIGHT
+            if (word.length > widthAt(nextTop) / ANNOTATION_CHAR_WIDTH)
+                return null
+        } else {
+            return null
+        }
+    }
+    if (current) lines.push(current)
+    if (lines.length === 0) return null
+
+    const x = corner.u === 0 ? ANNOTATION_INSET : plotWidth - ANNOTATION_INSET
+    const textAnchor = corner.u === 0 ? "start" : "end"
+    const fromTop = corner.v === 0
+    return (
+        <text
+            className="democracy-panel__annotation"
+            fontSize={ANNOTATION_FONT_SIZE}
+            fill={ANNOTATION_COLOR}
+            textAnchor={textAnchor}
+        >
+            {lines.map((line, i) => {
+                // Lines read top to bottom either way; in a bottom corner the
+                // block is pushed up so its last line sits above the edge
+                const row = fromTop ? i : i - (lines.length - 1)
+                const y = fromTop
+                    ? ANNOTATION_INSET + (row + 1) * ANNOTATION_LINE_HEIGHT - 3
+                    : plotHeight -
+                      ANNOTATION_INSET +
+                      row * ANNOTATION_LINE_HEIGHT
+                return (
+                    <tspan key={i} x={x} y={y}>
+                        {line}
+                    </tspan>
+                )
+            })}
         </text>
     )
 }

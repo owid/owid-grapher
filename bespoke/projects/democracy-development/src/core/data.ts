@@ -104,10 +104,16 @@ function sortSeriesByYear(series: IndicatorSeries): void {
     series.values = order.map((o) => series.values[o.index])
 }
 
-/** "V-Dem (2026)"-style attributions, one per producer */
+/**
+ * "V-Dem (2026)"-style attributions. The curated `presentation.attribution`
+ * wins where the ETL set one, since it is written for a chart footer;
+ * otherwise one entry per origin.
+ */
 function getAttributions(
     metadata: OwidVariableWithSourceAndDimension
 ): string[] {
+    const curated = metadata.presentation?.attribution
+    if (curated) return [curated]
     const fromOrigins = (metadata.origins ?? []).flatMap((origin) => {
         if (origin.attribution) return [origin.attribution]
         if (!origin.producer) return []
