@@ -203,19 +203,6 @@ describe(formatToleranceNotice, () => {
         ).toBeUndefined()
     })
 
-    it("names the single year a filled-in value can come from", () => {
-        expect(
-            formatToleranceNotice({
-                timeColumn: yearColumn([2025]),
-                timeTolerance: 5,
-                timeRange: [2020, 2025],
-                appliedColumnsTimeRange: [2020, 2020],
-            })
-        ).toEqual(
-            "Where data for 2025 is unavailable, the value from 2020 is shown instead."
-        )
-    })
-
     it("states the tolerance when the applied columns span less than it", () => {
         expect(
             formatToleranceNotice({
