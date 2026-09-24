@@ -45,13 +45,16 @@ export function makeToleranceNotice({
     const statedTolerance =
         timeTolerance ?? (appliedTolerance || configuredTolerance)
 
+    const timeRange = inputTable.timeRange
+    const appliedColumnsTimeRange = getTimeRangeOfColumns(
+        inputTable,
+        appliedColumns.map((column) => column.slug)
+    )
+
     return formatToleranceNotice({
         timeColumn: transformedTable.timeColumn,
-        timeRange: inputTable.timeRange,
-        substitutedTimeRange: getTimeRangeOfColumns(
-            inputTable,
-            appliedColumns.map((column) => column.slug)
-        ),
+        timeRange,
+        appliedColumnsTimeRange,
         timeTolerance: statedTolerance,
         toleranceStrategy,
     })
@@ -61,14 +64,13 @@ export function formatToleranceNotice({
     timeColumn,
     timeTolerance,
     timeRange,
-    substitutedTimeRange,
+    appliedColumnsTimeRange,
     toleranceStrategy = ToleranceStrategy.closest,
 }: {
     timeColumn: CoreColumn
     timeTolerance: number
     timeRange: TimeRange | undefined
-    /** The times substituted values come from, if narrower than `timeRange` */
-    substitutedTimeRange?: TimeRange
+    appliedColumnsTimeRange?: TimeRange
     toleranceStrategy?: ToleranceStrategy
 }): string | undefined {
     if (!timeTolerance || timeColumn.isMissing) return undefined
@@ -91,16 +93,16 @@ export function formatToleranceNotice({
     // all other cases (time range plotted, sub-yearly data) use a simpler notice
     if (targetTime !== undefined && !isSubYearly(timeColumn.timeInterval)) {
         // A one-directional strategy reaches to one side of the time shown only
-        const [firstSubstitutedTime, lastSubstitutedTime] =
-            substitutedTimeRange ?? timeRange
+        const [firstAppliedTime, lastAppliedTime] =
+            appliedColumnsTimeRange ?? timeRange
         const from =
             toleranceStrategy === ToleranceStrategy.forwards
                 ? targetTime
-                : Math.max(targetTime - timeTolerance, firstSubstitutedTime)
+                : Math.max(targetTime - timeTolerance, firstAppliedTime)
         const to =
             toleranceStrategy === ToleranceStrategy.backwards
                 ? targetTime
-                : Math.min(targetTime + timeTolerance, lastSubstitutedTime)
+                : Math.min(targetTime + timeTolerance, lastAppliedTime)
 
         // The target year has no data, so a window ending on it stops a year short
         const start = from === targetTime ? from + 1 : from

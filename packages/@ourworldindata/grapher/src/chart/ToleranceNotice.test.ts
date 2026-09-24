@@ -209,7 +209,7 @@ describe(formatToleranceNotice, () => {
                 timeColumn: yearColumn([2025]),
                 timeTolerance: 5,
                 timeRange: [2020, 2025],
-                substitutedTimeRange: [2020, 2020],
+                appliedColumnsTimeRange: [2020, 2020],
             })
         ).toEqual(
             "Where data for 2025 is unavailable, the value from 2020 is shown instead."
@@ -222,7 +222,7 @@ describe(formatToleranceNotice, () => {
                 timeColumn: yearColumn([2000, 2020]),
                 timeTolerance: 5,
                 timeRange: [2000, 2020],
-                substitutedTimeRange: [2000, 2003],
+                appliedColumnsTimeRange: [2000, 2003],
             })
         ).toEqual(
             "Where data is unavailable, the closest value within 5 years is shown instead."
