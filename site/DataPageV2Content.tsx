@@ -1,5 +1,9 @@
 import { useMemo, useEffect, useState } from "react"
-import { GrapherProgrammaticInterface } from "@ourworldindata/grapher"
+import {
+    GrapherProgrammaticInterface,
+    GuidedChartContext,
+    GrapherState,
+} from "@ourworldindata/grapher"
 import { DATAPAGE_ABOUT_THIS_DATA_SECTION_ID } from "@ourworldindata/components"
 import {
     EXPERIMENT_ARM_SEPARATOR,
@@ -32,6 +36,15 @@ import AboutThisData from "./AboutThisData.js"
 import DataPageResearchAndWriting from "./DataPageResearchAndWriting.js"
 import MetadataSection from "./MetadataSection.js"
 import { SiteQueryClientProvider } from "./SiteQueryClientProvider.js"
+import { useDataPerspectives } from "./useDataPerspectives.js"
+import {
+    DataPerspectivesPageSwipe,
+    DATA_PERSPECTIVES_DOTS_SLOT_ID,
+} from "./DataPerspectivesPageSwipe.js"
+import { DataPerspectivesAccordion } from "./DataPerspectivesAccordion.js"
+import { DataPerspectivesIgnoredParams } from "./DataPerspectivesIgnoredParams.js"
+import { DataPageUpNext } from "./DataPageUpNext.js"
+import { UP_NEXT_ARTICLES } from "./upNextArticles.js"
 
 declare global {
     interface Window {
@@ -100,6 +113,17 @@ export const DataPageV2Content = ({
         [grapherConfig, archiveContext, useNewDatapageDesign]
     )
 
+    // Data perspectives prototype (?dpLayout=pageswipe|accordion). With no
+    // dpLayout the page renders exactly as it does without the prototype.
+    const dp = useDataPerspectives(slug)
+    // ?dpUpNext=1: an "Up next" article carousel in place of Research & writing.
+    const upNextArticles =
+        dp.variant.upNext && slug ? (UP_NEXT_ARTICLES[slug] ?? []) : []
+    const upNext =
+        upNextArticles.length > 0 ? (
+            <DataPageUpNext articles={upNextArticles} />
+        ) : null
+
     const relatedResearch = processRelatedResearch(
         datapageData.relatedResearch,
         datapageData.topicTagsLinks ?? []
@@ -143,6 +167,7 @@ export const DataPageV2Content = ({
             }}
         >
             <DocumentContext.Provider value={{ isPreviewing }}>
+                <DataPerspectivesIgnoredParams ignored={dp.variant.ignored} />
                 <div
                     className="DataPageContent__grapher-for-embed"
                     data-dod-track-note="grapher"
@@ -164,7 +189,88 @@ export const DataPageV2Content = ({
                             className="chart-key-info col-start-2 span-cols-12"
                             data-dod-track-note="grapher"
                         >
-                            {grapherConfig.slug && (
+                            {grapherConfig.slug &&
+                            dp.variant.layout === "accordion" ? (
+                                // The page becomes a list of perspectives, each
+                                // expanding into its own chart, in place of the
+                                // page's chart.
+                                <DataPerspectivesAccordion
+                                    slug={grapherConfig.slug}
+                                    perspectives={dp.perspectives}
+                                    renderGrapher={(queryParams) => (
+                                        <GrapherWithFallback
+                                            key={queryParams}
+                                            slug={grapherConfig.slug}
+                                            // Several graphers take turns here;
+                                            // none of them should own the URL.
+                                            config={{
+                                                ...mergedGrapherConfig,
+                                                bindUrlToWindow: false,
+                                            }}
+                                            useProvidedConfigOnly
+                                            queryStr={`?${queryParams}`}
+                                            isEmbeddedInADataPage={true}
+                                            isEmbeddedInAnOwidPage={false}
+                                            isPreviewing={isPreviewing}
+                                        />
+                                    )}
+                                />
+                            ) : grapherConfig.slug &&
+                              dp.variant.layout === "pageswipe" ? (
+                                // Provides grapherStateRef, so swiping can
+                                // drive this chart in place.
+                                <>
+                                    {/* The swipe dots render into this slot, above
+                                    the panel and outside what slides: the
+                                    position indicator stays put while the
+                                    perspectives move. */}
+                                    <div
+                                        id={DATA_PERSPECTIVES_DOTS_SLOT_ID}
+                                        className="data-perspectives-pageswipe__dots-slot"
+                                    />
+                                    <GuidedChartContext.Provider
+                                        value={{
+                                            grapherStateRef:
+                                                dp.grapherStateRef as React.RefObject<GrapherState>,
+                                            chartRef:
+                                                dp.chartRef as React.RefObject<HTMLDivElement>,
+                                        }}
+                                    >
+                                        <div
+                                            className={dp.wrapperClassName}
+                                            ref={dp.chartRef}
+                                        >
+                                            <DataPerspectivesPageSwipe
+                                                perspectives={dp.perspectives}
+                                                style={dp.variant.style}
+                                                hintReset={dp.variant.hintReset}
+                                                narrativeStale={
+                                                    dp.narrativeStale
+                                                }
+                                                narrativeStaleMode={
+                                                    dp.variant.narrativeStale
+                                                }
+                                                onSelect={dp.applyPerspective}
+                                                onRestoreNarrative={
+                                                    dp.restoreNarrative
+                                                }
+                                            />
+
+                                            <GrapherWithFallback
+                                                slug={grapherConfig.slug}
+                                                config={mergedGrapherConfig}
+                                                useProvidedConfigOnly
+                                                id="explore-the-data"
+                                                queryStr={queryStr}
+                                                enablePopulatingUrlParams
+                                                isEmbeddedInADataPage={true}
+                                                isEmbeddedInAnOwidPage={false}
+                                                isPreviewing={isPreviewing}
+                                            />
+                                        </div>
+                                    </GuidedChartContext.Provider>
+                                </>
+                            ) : grapherConfig.slug ? (
                                 <GrapherWithFallback
                                     slug={grapherConfig.slug}
                                     config={mergedGrapherConfig}
@@ -176,7 +282,7 @@ export const DataPageV2Content = ({
                                     isEmbeddedInAnOwidPage={false}
                                     isPreviewing={isPreviewing}
                                 />
-                            )}
+                            ) : null}
                             {!useNewDatapageDesign && (
                                 <AboutThisData
                                     datapageData={datapageData}
@@ -199,9 +305,11 @@ export const DataPageV2Content = ({
                             relatedResearch &&
                             relatedResearch.length > 0 && (
                                 <div className="datapage-research-and-writing-v2 col-start-2 span-cols-12">
-                                    <DataPageResearchAndWriting
-                                        relatedResearch={relatedResearch}
-                                    />
+                                    {upNext ?? (
+                                        <DataPageResearchAndWriting
+                                            relatedResearch={relatedResearch}
+                                        />
+                                    )}
                                 </div>
                             )}
 
@@ -240,12 +348,15 @@ export const DataPageV2Content = ({
                     {!useNewDatapageDesign && (
                         <>
                             <div className="col-start-2 span-cols-12">
-                                {relatedResearch &&
-                                    relatedResearch.length > 0 && (
-                                        <DataPageResearchAndWriting
-                                            relatedResearch={relatedResearch}
-                                        />
-                                    )}
+                                {upNext ??
+                                    (relatedResearch &&
+                                        relatedResearch.length > 0 && (
+                                            <DataPageResearchAndWriting
+                                                relatedResearch={
+                                                    relatedResearch
+                                                }
+                                            />
+                                        ))}
                                 {datapageData.allCharts &&
                                 datapageData.allCharts.length > 0 ? (
                                     <div
