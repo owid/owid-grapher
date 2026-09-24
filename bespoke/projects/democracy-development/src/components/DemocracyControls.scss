@@ -17,3 +17,46 @@
     flex-direction: column;
     align-items: stretch;
 }
+
+.democracy-controls__country {
+    flex: 1 1 0;
+    min-width: 220px;
+    max-width: 360px;
+}
+
+.democracy-controls__timeline {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.democracy-controls__timeline .time-slider {
+    flex: 1 1 0;
+}
+
+.democracy-controls__play {
+    flex: 0 0 auto;
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 4px;
+    background: $gray-10;
+    color: $gray-90;
+    font-size: 13px;
+    display: grid;
+    place-content: center;
+    cursor: pointer;
+
+    &:hover {
+        background: $gray-20;
+    }
+
+    &:active {
+        background: $blue-20;
+        color: $blue-90;
+    }
+}
+
+.democracy-development--narrow .democracy-controls__country {
+    max-width: none;
+}

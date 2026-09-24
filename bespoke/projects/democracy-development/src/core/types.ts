@@ -71,6 +71,13 @@ export interface ScatterPoint {
     population?: number
 }
 
+/** One year on a country's path through a panel */
+export interface TrajectoryPoint {
+    year: number
+    democracy: MatchedValue
+    indicator: MatchedValue
+}
+
 export interface HoverState {
     entityName: EntityName
     /** The panel the pointer is in; the tooltip renders there */

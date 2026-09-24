@@ -11,6 +11,8 @@ export interface ScatterVariantConfig {
     hideControls?: boolean
     /** Initial slider year */
     year?: number
+    /** Country highlighted at first */
+    country?: string
     /** Start with continents coloured */
     colorByRegion?: boolean
     /** Start with dots sized by population */
@@ -27,6 +29,7 @@ export function parseConfig(raw: Record<string, string>): ScatterVariantConfig {
         subtitle: raw.subtitle,
         hideControls: parseBoolean(raw.hideControls),
         year: parseInteger(raw.year),
+        country: raw.country,
         colorByRegion: parseBoolean(raw.colorByRegion),
         sizeByPopulation: parseBoolean(raw.sizeByPopulation),
         democracyAxis: parseEnum(raw.democracyAxis, DEMOCRACY_AXES),

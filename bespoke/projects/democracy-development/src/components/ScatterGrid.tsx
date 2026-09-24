@@ -18,9 +18,12 @@ import type {
     HoverState,
     IndicatorKey,
     ScatterPoint,
+    TrajectoryPoint,
 } from "../core/types.js"
 import { RegionLegend } from "./RegionLegend.js"
 import { ScatterPanel } from "./ScatterPanel.js"
+
+const NO_TRAJECTORY: TrajectoryPoint[] = []
 
 const CONTINENT_COLORS: Record<string, string> = ContinentColors
 
@@ -36,6 +39,8 @@ export function ScatterGrid({
     colorByRegion,
     sizeByPopulation,
     showTriangles,
+    selectedEntity,
+    getTrajectory,
 }: {
     pointsByIndicator: Record<IndicatorKey, ScatterPoint[]>
     rangesByIndicator: Record<IndicatorKey, AxisRange>
@@ -44,6 +49,8 @@ export function ScatterGrid({
     colorByRegion: boolean
     sizeByPopulation: boolean
     showTriangles: boolean
+    selectedEntity: string | undefined
+    getTrajectory: (entityName: string, key: IndicatorKey) => TrajectoryPoint[]
 }): React.ReactElement {
     const [hover, setHover] = useState<HoverState | undefined>(undefined)
     const clearHover = useCallback(() => setHover(undefined), [])
@@ -56,6 +63,8 @@ export function ScatterGrid({
     // it and the variant's outer width
     const { width, ref: widthRef } = useContainerWidth()
     const layout = getGridLayout(width)
+
+    const highlightedEntity = hover?.entityName ?? selectedEntity
 
     const getColor = useCallback(
         (point: ScatterPoint) =>
@@ -127,6 +136,12 @@ export function ScatterGrid({
                             showPopulation={sizeByPopulation}
                             showTriangle={showTriangles}
                             hover={hover}
+                            selectedEntity={selectedEntity}
+                            trajectory={
+                                highlightedEntity
+                                    ? getTrajectory(highlightedEntity, spec.key)
+                                    : NO_TRAJECTORY
+                            }
                             isPinned={isPinned}
                             onHover={setHover}
                         />

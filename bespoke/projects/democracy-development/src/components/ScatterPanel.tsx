@@ -24,6 +24,7 @@ import type {
     HoverState,
     IndicatorSpec,
     ScatterPoint,
+    TrajectoryPoint,
 } from "../core/types.js"
 import { ScatterTooltip } from "./ScatterTooltip.js"
 
@@ -47,6 +48,10 @@ export interface PanelProps {
     showPopulation: boolean
     showTriangle: boolean
     hover: HoverState | undefined
+    /** A country picked in the controls, highlighted until it is cleared */
+    selectedEntity: string | undefined
+    /** The highlighted country's path up to the selected year */
+    trajectory: TrajectoryPoint[]
     isPinned: boolean
     onHover: (hover: HoverState | undefined) => void
 }
@@ -64,9 +69,12 @@ export function ScatterPanel({
     showPopulation,
     showTriangle,
     hover,
+    selectedEntity,
+    trajectory,
     isPinned,
     onHover,
 }: PanelProps): React.ReactElement {
+    const clipId = `democracy-panel-clip-${spec.key}`
     const svgRef = useRef<SVGSVGElement>(null)
     const plotWidth = Math.max(width - MARGIN.left - MARGIN.right, 0)
     const svgHeight = plotHeight + MARGIN.top + MARGIN.bottom
@@ -104,11 +112,21 @@ export function ScatterPanel({
         })
     }, [placed, axes.emptyCorner, plotWidth, plotHeight, showTriangle])
 
-    const hoveredEntity = hover?.entityName
+    const hoveredEntity = hover?.entityName ?? selectedEntity
     const hoveredPlaced = hoveredEntity
         ? placed.find((d) => d.point.entityName === hoveredEntity)
         : undefined
     const isThisPanelHovered = hover?.panelKey === spec.key
+
+    const trajectoryPath = useMemo(() => {
+        if (trajectory.length < 2) return undefined
+        return trajectory
+            .map(
+                (t) =>
+                    `${axes.xScale(axes.getX(t))},${axes.yScale(axes.getY(t))}`
+            )
+            .join(" ")
+    }, [trajectory, axes])
 
     const handlePointerMove = useCallback(
         (event: React.PointerEvent<SVGSVGElement>) => {
@@ -161,6 +179,16 @@ export function ScatterPanel({
                     onPointerLeave={handlePointerLeave}
                     onPointerDown={handlePointerMove}
                 >
+                    <defs>
+                        <clipPath id={clipId}>
+                            <rect
+                                x={-1}
+                                y={-1}
+                                width={plotWidth + 2}
+                                height={plotHeight + 2}
+                            />
+                        </clipPath>
+                    </defs>
                     <g transform={`translate(${MARGIN.left},${MARGIN.top})`}>
                         {triangle && (
                             <polygon
@@ -193,6 +221,22 @@ export function ScatterPanel({
                             plotHeight={plotHeight}
                         />
                         <AxisY axis={axes.y} scale={axes.yScale} />
+                        {trajectoryPath && (
+                            <polyline
+                                className="democracy-panel__trajectory"
+                                points={trajectoryPath}
+                                fill="none"
+                                stroke={
+                                    hoveredPlaced
+                                        ? getColor(hoveredPlaced.point)
+                                        : GRAY_90
+                                }
+                                strokeWidth={1.5}
+                                strokeOpacity={0.7}
+                                strokeLinejoin="round"
+                                clipPath={`url(#${clipId})`}
+                            />
+                        )}
                         <g className="democracy-panel__dots">
                             {placed.map(({ point, cx, cy, r }) => {
                                 const isHovered =

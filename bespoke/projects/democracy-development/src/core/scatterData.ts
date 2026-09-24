@@ -6,6 +6,7 @@ import type {
     IndicatorSeries,
     MatchedValue,
     ScatterPoint,
+    TrajectoryPoint,
 } from "./types.js"
 
 /**
@@ -128,4 +129,46 @@ export function getValuesFromYear(
         }
     }
     return values
+}
+
+/**
+ * One country's path through a panel: its (democracy, indicator) pair for
+ * every year from `fromYear` to `toYear` that has both, matched by the same
+ * rule as the dots. Drawn behind the highlighted dot as a trail.
+ */
+export function buildTrajectory({
+    democracy,
+    indicator,
+    entityName,
+    fromYear,
+    toYear,
+    tolerance,
+}: {
+    democracy: IndicatorData
+    indicator: IndicatorData
+    entityName: EntityName
+    fromYear: number
+    toYear: number
+    tolerance: number
+}): TrajectoryPoint[] {
+    const democracySeries = democracy.byEntity.get(entityName)
+    const indicatorSeries = indicator.byEntity.get(entityName)
+    if (!democracySeries || !indicatorSeries) return []
+    const path: TrajectoryPoint[] = []
+    for (let year = fromYear; year <= toYear; year++) {
+        const democracyValue = getValueInYear(democracySeries, year)
+        if (!democracyValue) continue
+        const indicatorValue = getLatestValueUpTo(
+            indicatorSeries,
+            year,
+            tolerance
+        )
+        if (!indicatorValue) continue
+        path.push({
+            year,
+            democracy: democracyValue,
+            indicator: indicatorValue,
+        })
+    }
+    return path
 }

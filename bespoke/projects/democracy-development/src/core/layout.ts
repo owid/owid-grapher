@@ -21,13 +21,16 @@ export type PixelScale = ((value: number) => number) & {
     domain: () => number[]
 }
 
+/** What a panel needs to place a mark: a dot or one year of a trajectory */
+export type PlottedValues = Pick<ScatterPoint, "democracy" | "indicator">
+
 export interface PanelAxes {
     x: AxisDef
     y: AxisDef
     xScale: PixelScale
     yScale: PixelScale
-    getX: (point: ScatterPoint) => number
-    getY: (point: ScatterPoint) => number
+    getX: (point: PlottedValues) => number
+    getY: (point: PlottedValues) => number
     /** The corner of the plot area where countries are rarely found */
     emptyCorner: Corner
 }

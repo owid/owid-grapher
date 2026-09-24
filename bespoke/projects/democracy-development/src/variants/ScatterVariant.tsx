@@ -1,8 +1,8 @@
-import { useMemo } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import cx from "clsx"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { NuqsAdapter } from "nuqs/adapters/react"
-import { parseAsBoolean, parseAsInteger } from "nuqs"
+import { parseAsBoolean, parseAsInteger, parseAsString } from "nuqs"
 
 import { Frame } from "../../../../components/Frame/Frame.js"
 import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
@@ -30,6 +30,7 @@ import {
 import { computeAxisRange } from "../core/layout.js"
 import {
     buildScatterPoints,
+    buildTrajectory,
     getSliderYears,
     getValuesFromYear,
 } from "../core/scatterData.js"
@@ -39,13 +40,19 @@ import type {
     IndicatorData,
     IndicatorKey,
     ScatterPoint,
+    TrajectoryPoint,
 } from "../core/types.js"
-import { DemocracyControls } from "../components/DemocracyControls.js"
+import {
+    DemocracyControls,
+    NO_COUNTRY,
+} from "../components/DemocracyControls.js"
 import { ScatterGrid } from "../components/ScatterGrid.js"
 
 const queryClient = new QueryClient()
 
 const DEFAULT_DEMOCRACY_AXIS: DemocracyAxis = "x"
+/** How long the play button rests on each year */
+const PLAY_INTERVAL_MS = 700
 
 export function ScatterVariant({
     config,
@@ -87,6 +94,11 @@ function FetchingScatterVariant({
         key: "democracySizeByPopulation",
         parser: parseAsBoolean,
         defaultValue: config.sizeByPopulation ?? false,
+    })
+    const [selectedCountry, setSelectedCountry] = useUrlState({
+        key: "democracyCountry",
+        parser: parseAsString,
+        defaultValue: config.country ?? NO_COUNTRY,
     })
     const [fixedAxes, setFixedAxes] = useUrlState({
         key: "democracyFixedAxes",
@@ -131,10 +143,12 @@ function FetchingScatterVariant({
             colorByRegion={colorByRegion}
             sizeByPopulation={sizeByPopulation}
             fixedAxes={fixedAxes}
+            selectedCountry={selectedCountry}
             setYear={setYear}
             setColorByRegion={setColorByRegion}
             setSizeByPopulation={setSizeByPopulation}
             setFixedAxes={setFixedAxes}
+            setSelectedCountry={setSelectedCountry}
         />
     )
 }
@@ -149,10 +163,12 @@ function CaptionedScatterVariant({
     colorByRegion,
     sizeByPopulation,
     fixedAxes,
+    selectedCountry,
     setYear,
     setColorByRegion,
     setSizeByPopulation,
     setFixedAxes,
+    setSelectedCountry,
 }: {
     config: ScatterVariantConfig
     democracy: IndicatorData
@@ -163,10 +179,12 @@ function CaptionedScatterVariant({
     colorByRegion: boolean
     sizeByPopulation: boolean
     fixedAxes: boolean
+    selectedCountry: string
     setYear: (year: number) => void
     setColorByRegion: (value: boolean) => void
     setSizeByPopulation: (value: boolean) => void
     setFixedAxes: (value: boolean) => void
+    setSelectedCountry: (name: string) => void
 }): React.ReactElement {
     const years = useMemo(
         () => getSliderYears(democracy, START_YEAR),
@@ -176,6 +194,54 @@ function CaptionedScatterVariant({
     const year = years.includes(requestedYear) ? requestedYear : latestYear
 
     const democracyAxis = config.democracyAxis ?? DEFAULT_DEMOCRACY_AXIS
+
+    // Play: step through the years, stopping at the last one. Any manual
+    // change of the year while playing also stops it, via the effect below.
+    const [isPlaying, setIsPlaying] = useState(false)
+    const togglePlaying = useCallback(() => {
+        if (!isPlaying && year === latestYear) setYear(years[0])
+        setIsPlaying((playing) => !playing)
+    }, [isPlaying, year, latestYear, years, setYear])
+    useEffect(() => {
+        if (!isPlaying) return
+        if (year >= latestYear) {
+            setIsPlaying(false)
+            return
+        }
+        const timer = window.setTimeout(
+            () => setYear(year + 1),
+            PLAY_INTERVAL_MS
+        )
+        return () => window.clearTimeout(timer)
+    }, [isPlaying, year, latestYear, setYear])
+
+    const countries = useMemo(() => [...democracy.byEntity.keys()], [democracy])
+    const selectedEntity =
+        selectedCountry && democracy.byEntity.has(selectedCountry)
+            ? selectedCountry
+            : undefined
+
+    // The highlighted country's path is only needed for one country at a
+    // time, so it is built on demand and cached until the year changes
+    const getTrajectory = useMemo(() => {
+        const cache = new Map<string, TrajectoryPoint[]>()
+        return (entityName: string, key: IndicatorKey): TrajectoryPoint[] => {
+            const cacheKey = `${key}:${entityName}`
+            let path = cache.get(cacheKey)
+            if (!path) {
+                path = buildTrajectory({
+                    democracy,
+                    indicator: indicators[key],
+                    entityName,
+                    fromYear: START_YEAR,
+                    toYear: year,
+                    tolerance: MATCH_TOLERANCE_YEARS,
+                })
+                cache.set(cacheKey, path)
+            }
+            return path
+        }
+    }, [democracy, indicators, year])
 
     const pointsByIndicator = useMemo(
         () =>
@@ -273,6 +339,8 @@ function CaptionedScatterVariant({
                     colorByRegion={colorByRegion}
                     sizeByPopulation={sizeByPopulation}
                     showTriangles
+                    selectedEntity={selectedEntity}
+                    getTrajectory={getTrajectory}
                 />
                 <ChartFooter source={sources} />
             </Frame>
@@ -283,11 +351,16 @@ function CaptionedScatterVariant({
                     colorByRegion={colorByRegion}
                     sizeByPopulation={sizeByPopulation}
                     fixedAxes={fixedAxes}
+                    countries={countries}
+                    selectedCountry={selectedEntity ?? NO_COUNTRY}
+                    isPlaying={isPlaying}
                     isPopulationLoading={isPopulationLoading}
                     setYear={setYear}
                     setColorByRegion={setColorByRegion}
                     setSizeByPopulation={setSizeByPopulation}
                     setFixedAxes={setFixedAxes}
+                    setSelectedCountry={setSelectedCountry}
+                    togglePlaying={togglePlaying}
                 />
             )}
         </>

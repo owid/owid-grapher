@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest"
 
 import {
     buildScatterPoints,
+    buildTrajectory,
     getLatestValueUpTo,
     getSliderYears,
     getValueInYear,
@@ -104,5 +105,42 @@ describe(getSliderYears, () => {
         expect(getSliderYears(makeIndicator({}, 2012), 2010)).toEqual([
             2010, 2011, 2012,
         ])
+    })
+})
+
+describe(buildTrajectory, () => {
+    it("follows one country year by year, skipping years without a pair", () => {
+        const democracy = makeIndicator({
+            France: {
+                years: [2000, 2001, 2002, 2003],
+                values: [0.7, 0.71, 0.72, 0.73],
+            },
+        })
+        const indicator = makeIndicator({
+            France: { years: [2000, 2002], values: [10, 12] },
+        })
+        const path = buildTrajectory({
+            democracy,
+            indicator,
+            entityName: "France",
+            fromYear: 2000,
+            toYear: 2003,
+            tolerance: 1,
+        })
+        expect(path.map((p) => p.year)).toEqual([2000, 2001, 2002, 2003])
+        expect(path.map((p) => p.indicator.value)).toEqual([10, 10, 12, 12])
+    })
+
+    it("is empty for an unknown country", () => {
+        expect(
+            buildTrajectory({
+                democracy: makeIndicator({}),
+                indicator: makeIndicator({}),
+                entityName: "Atlantis",
+                fromYear: 2000,
+                toYear: 2001,
+                tolerance: 5,
+            })
+        ).toEqual([])
     })
 })
