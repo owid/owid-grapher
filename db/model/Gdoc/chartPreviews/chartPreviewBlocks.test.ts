@@ -179,6 +179,27 @@ describe(findChartPreviewBlocks, () => {
         ).toEqual([URL_A, URL_B, URL_A])
     })
 
+    it("finds narrative charts by name, ignoring links", () => {
+        const document = makeDocument(
+            makeContent([
+                [{ image: "kix.1" }],
+                ["{.narrative-chart}"],
+                ["name: ", { link: URL_A, text: "my-narrative" }],
+                ["{}"],
+                ["narrative-chart: other-narrative"],
+            ])
+        )
+        expect(
+            findChartPreviewBlocks(document).map((b) => [
+                b.spec,
+                b.image?.objectId,
+            ])
+        ).toEqual([
+            [{ type: "narrative-chart", target: "my-narrative" }, "kix.1"],
+            [{ type: "narrative-chart", target: "other-narrative" }, undefined],
+        ])
+    })
+
     it("skips components without a url", () => {
         const document = makeDocument(
             makeContent([["{.chart}"], ["caption: hi"], ["{}"], ["{.image}"]])

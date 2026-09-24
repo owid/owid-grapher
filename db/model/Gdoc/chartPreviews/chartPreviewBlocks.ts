@@ -15,11 +15,11 @@ import { type docs_v1 } from "@googleapis/docs"
  * swap in fresh renders.
  */
 
-export type ChartPreviewComponentType = "chart"
+export type ChartPreviewComponentType = "chart" | "narrative-chart"
 
 export interface ChartPreviewComponentSpec {
     type: ChartPreviewComponentType
-    /** The chart URL for `chart` */
+    /** The chart URL for `chart`, the name for `narrative-chart` */
     target: string
 }
 
@@ -49,8 +49,13 @@ const INSERTED_IMAGE_WIDTH_PT = 468
 // this for its closing `{}` in case it's malformed
 const MAX_COMPONENT_LINES = 40
 
-const COMPONENT_KEYS: Record<ChartPreviewComponentType, string> = {
-    chart: "url",
+/** The property of each component that says what it shows */
+const COMPONENT_TARGETS: Record<
+    ChartPreviewComponentType,
+    { key: string; isUrl: boolean }
+> = {
+    chart: { key: "url", isUrl: true },
+    "narrative-chart": { key: "name", isUrl: false },
 }
 
 function parseParagraph(
@@ -109,9 +114,16 @@ function collectParagraphGroups(
     return groups
 }
 
-/** Mirrors extractUrl: plain text URLs win, otherwise use the link target */
-function valueOrLink(value: string, paragraph: ParsedParagraph): string {
-    if (value.startsWith("http") || !paragraph.linkUrl) return value
+/**
+ * For URLs, mirrors extractUrl: plain text URLs win, otherwise use the link
+ * target
+ */
+function readTarget(
+    value: string,
+    paragraph: ParsedParagraph,
+    isUrl: boolean
+): string {
+    if (!isUrl || value.startsWith("http") || !paragraph.linkUrl) return value
     return paragraph.linkUrl
 }
 
@@ -122,14 +134,17 @@ function matchComponent(
     const paragraph = paragraphs[index]
     const text = paragraph.text.trim()
 
-    for (const [type, key] of Object.entries(COMPONENT_KEYS) as [
+    for (const [type, { key, isUrl }] of Object.entries(COMPONENT_TARGETS) as [
         ChartPreviewComponentType,
-        string,
+        { key: string; isUrl: boolean },
     ][]) {
         // Single-line form, e.g. `chart: https://...`
         const inline = text.match(new RegExp(`^${type}\\s*:\\s*(.+)$`))
         if (inline) {
-            return { type, target: valueOrLink(inline[1].trim(), paragraph) }
+            return {
+                type,
+                target: readTarget(inline[1].trim(), paragraph, isUrl),
+            }
         }
 
         // Object form, e.g. `{.chart}` followed by `url: https://...` and `{}`
@@ -144,7 +159,7 @@ function matchComponent(
             if (/^\{\s*\}$/.test(line)) return undefined
             const match = line.match(keyRegex)
             if (match) {
-                const target = valueOrLink(match[1].trim(), paragraphs[i])
+                const target = readTarget(match[1].trim(), paragraphs[i], isUrl)
                 return target ? { type, target } : undefined
             }
         }

@@ -1,7 +1,8 @@
 import * as db from "../../../db.js"
 
 /**
- * Gdocs with chart components pointing at charts or multi-dims whose config or
+ * Gdocs with chart components pointing at charts, multi-dims or narrative
+ * charts whose config or
  * data changed since the given date, i.e. those whose preview images may be outdated.
  *
  * This is deliberately generous (indicators are touched by every ETL run, even
@@ -61,12 +62,37 @@ export async function getGdocIdsWithChangedCharts(
             FROM changed_multi_dims cm
             JOIN multi_dim_redirects mdr ON mdr.multiDimId = cm.id
             WHERE mdr.source LIKE '/grapher/%'
+        ),
+        changed_narrative_charts AS (
+            -- The merged config is rewritten when the parent chart changes
+            SELECT nc.name
+            FROM narrative_charts nc
+            JOIN chart_configs cc ON cc.id = nc.chartConfigId
+            WHERE nc.updatedAt >= ? OR cc.updatedAt >= ?
+            UNION
+            SELECT nc.name
+            FROM narrative_charts nc
+            JOIN chart_dimensions cd ON cd.chartId = nc.parentChartId
+            JOIN variables v ON v.id = cd.variableId
+            WHERE v.updatedAt >= ?
+            UNION
+            SELECT nc.name
+            FROM narrative_charts nc
+            JOIN multi_dim_x_chart_configs mx
+                ON mx.id = nc.parentMultiDimXChartConfigId
+            JOIN variables v ON v.id = mx.variableId
+            WHERE v.updatedAt >= ?
         )
         SELECT DISTINCT l.sourceId AS gdocId
         FROM posts_gdocs_links l
         JOIN changed_slugs s ON s.slug = l.target
-        WHERE l.linkType = 'grapher' AND l.componentType = 'chart'`,
-        [since, since, since, since, since]
+        WHERE l.linkType = 'grapher' AND l.componentType = 'chart'
+        UNION
+        SELECT l.sourceId AS gdocId
+        FROM posts_gdocs_links l
+        JOIN changed_narrative_charts n ON n.name = l.target
+        WHERE l.linkType = 'narrative-chart'`,
+        [since, since, since, since, since, since, since, since, since]
     )
     return rows.map((row) => row.gdocId)
 }
