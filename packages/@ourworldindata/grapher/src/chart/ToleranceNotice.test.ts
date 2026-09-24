@@ -203,7 +203,7 @@ describe(formatToleranceNotice, () => {
         ).toBeUndefined()
     })
 
-    it("names the single year a substituted value can come from", () => {
+    it("names the single year a filled-in value can come from", () => {
         expect(
             formatToleranceNotice({
                 timeColumn: yearColumn([2025]),
@@ -216,7 +216,7 @@ describe(formatToleranceNotice, () => {
         )
     })
 
-    it("states the window when only the substituted times fall within the tolerance", () => {
+    it("states the tolerance when the applied columns span less than it", () => {
         expect(
             formatToleranceNotice({
                 timeColumn: yearColumn([2000, 2020]),

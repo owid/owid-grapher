@@ -1327,7 +1327,7 @@ describe("toleranceNotice", () => {
         )
     })
 
-    it("bounds the window by the substituted columns' own years", () => {
+    it("bounds the window by the applied columns' own years", () => {
         const grapher = new GrapherState({
             table: new OwidTable(
                 [
@@ -1369,7 +1369,7 @@ describe("toleranceNotice", () => {
         )
     })
 
-    it("names the year when a substituted column has data for a single year", () => {
+    it("names the year when an applied column has data for a single year", () => {
         const grapher = new GrapherState({
             table: new OwidTable(
                 [
