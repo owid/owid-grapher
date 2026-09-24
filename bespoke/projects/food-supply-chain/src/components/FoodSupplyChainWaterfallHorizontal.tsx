@@ -85,11 +85,11 @@ export function FoodSupplyChainWaterfallHorizontal({
         onStepMouseLeave,
     } = useStepHover()
 
-    const span = waterfall.domain[1] - waterfall.domain[0]
+    const { numDecimalPlaces } = waterfall
     const tickValues = chooseTickValues(waterfall.domain, "horizontal")
     const tickLabels = tickValues.map((value, index) =>
         formatMeasureValue(value, {
-            span,
+            numDecimalPlaces,
             unit:
                 index === tickValues.length - 1
                     ? waterfall.shortUnit
@@ -104,7 +104,7 @@ export function FoodSupplyChainWaterfallHorizontal({
     ).width
     const stepValueLabelTexts = waterfall.steps.map((step, index) =>
         formatMeasureValue(step.delta, {
-            span,
+            numDecimalPlaces,
             unit: waterfall.shortUnit,
             showPlus: index > 0 && step.delta !== 0,
         })
@@ -113,7 +113,7 @@ export function FoodSupplyChainWaterfallHorizontal({
         waterfall.isUnitWrappable
             ? [
                   formatMeasureValue(step.delta, {
-                      span,
+                      numDecimalPlaces,
                       showPlus: index > 0 && step.delta !== 0,
                   }),
                   waterfall.shortUnit,
@@ -121,7 +121,7 @@ export function FoodSupplyChainWaterfallHorizontal({
             : undefined
     )
     const totalValueLabelText = formatMeasureValue(waterfall.total.value, {
-        span,
+        numDecimalPlaces,
         unit: waterfall.shortUnit,
     })
 
@@ -414,7 +414,7 @@ export function FoodSupplyChainWaterfallHorizontal({
                     isFirstStep={hover.stepKey === waterfall.steps[0]?.key}
                     unit={waterfall.shortUnit}
                     year={waterfall.year}
-                    span={span}
+                    numDecimalPlaces={numDecimalPlaces}
                     position={hover.position}
                     containerBounds={isPinned ? undefined : { width, height }}
                     anchor={isPinned ? GrapherTooltipAnchor.Bottom : undefined}

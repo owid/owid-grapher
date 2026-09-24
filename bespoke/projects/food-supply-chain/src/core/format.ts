@@ -1,25 +1,23 @@
 import { formatValue } from "@ourworldindata/utils"
 
-/** Decimal places that keep a value readable at the scale of the given span */
-export function decimalPlacesForSpan(span: number): number {
-    const absSpan = Math.abs(span)
-    if (absSpan >= 100) return 0
-    if (absSpan >= 10) return 1
-    return 2
-}
-
-/** A value as the chart writes it */
+/** A value as the chart writes it; one that would round to zero reads "<0.1 g" */
 export function formatMeasureValue(
     value: number,
     {
-        span,
+        numDecimalPlaces,
         unit,
         showPlus,
-    }: { span: number; unit?: string; showPlus?: boolean }
+    }: { numDecimalPlaces: number; unit?: string; showPlus?: boolean }
 ): string {
-    return formatValue(value, {
-        numDecimalPlaces: decimalPlacesForSpan(span),
-        unit,
-        showPlus,
-    })
+    const smallestShownValue = 10 ** -numDecimalPlaces
+    if (value !== 0 && Math.abs(value) < smallestShownValue / 2) {
+        const sign = value < 0 ? "-" : showPlus ? "+" : ""
+        const bound = formatValue(smallestShownValue, {
+            numDecimalPlaces,
+            unit,
+        })
+        return `${sign}<${bound}`
+    }
+
+    return formatValue(value, { numDecimalPlaces, unit, showPlus })
 }

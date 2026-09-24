@@ -4,6 +4,7 @@ import {
     FoodSupplyChainManifest,
     IS_UNIT_WRAPPABLE_BY_MEASURE,
     Measure,
+    NUM_DECIMAL_PLACES_BY_MEASURE,
     SHORT_UNIT_BY_MEASURE,
     StageKey,
 } from "./types.js"
@@ -24,6 +25,7 @@ export interface Waterfall {
     year: number
     shortUnit: string
     isUnitWrappable: boolean
+    numDecimalPlaces: number
 }
 
 const WORLD_ENTITY_SLUG = "world"
@@ -97,5 +99,6 @@ export function buildWaterfall({
         year,
         shortUnit: SHORT_UNIT_BY_MEASURE[measure],
         isUnitWrappable: IS_UNIT_WRAPPABLE_BY_MEASURE[measure],
+        numDecimalPlaces: NUM_DECIMAL_PLACES_BY_MEASURE[measure],
     }
 }
