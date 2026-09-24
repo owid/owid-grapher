@@ -4,6 +4,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faChevronDown } from "@fortawesome/free-solid-svg-icons"
 import GrapherImage from "./GrapherImage.js"
 import { DataPerspective } from "./dataPerspectivesFixtures.js"
+import { thumbQueryString } from "./dataPerspectivesVariant.js"
 
 /**
  * Swipeless mobile variant (`?dpLayout=accordion`): no chart at the top of the
@@ -16,13 +17,11 @@ import { DataPerspective } from "./dataPerspectivesFixtures.js"
 export function DataPerspectivesAccordion({
     slug,
     perspectives,
-    thumbQueryString,
     renderGrapher,
     onExpand,
 }: {
     slug: string
     perspectives: DataPerspective[]
-    thumbQueryString: (queryParams: string) => string
     /** Renders a live grapher for one perspective's query params. */
     renderGrapher: (queryParams: string) => React.ReactNode
     onExpand?: (index: number) => void
@@ -42,7 +41,6 @@ export function DataPerspectivesAccordion({
         <ol className="data-perspectives-accordion">
             {perspectives.map((p, index) => {
                 const isExpanded = expanded === index
-                const label = p.title ?? "Another view of this data"
                 return (
                     <li
                         className={cx("data-perspectives-accordion__item", {
@@ -64,20 +62,15 @@ export function DataPerspectivesAccordion({
                                         queryString={thumbQueryString(
                                             p.queryParams
                                         )}
-                                        alt={label}
+                                        alt={p.title}
                                         noFormatting
                                     />
                                 </span>
                             )}
                             <span className="data-perspectives-accordion__heading">
                                 <span className="data-perspectives-accordion__title">
-                                    {label}
+                                    {p.title}
                                 </span>
-                                {p.text && !isExpanded && (
-                                    <span className="data-perspectives-accordion__text">
-                                        {p.text}
-                                    </span>
-                                )}
                             </span>
                             <FontAwesomeIcon
                                 icon={faChevronDown}
@@ -87,11 +80,6 @@ export function DataPerspectivesAccordion({
 
                         {isExpanded && (
                             <div className="data-perspectives-accordion__body">
-                                {p.text && (
-                                    <p className="data-perspectives-accordion__body-text">
-                                        {p.text}
-                                    </p>
-                                )}
                                 {renderGrapher(p.queryParams)}
                             </div>
                         )}

@@ -19,13 +19,19 @@ import {
 } from "./swipeHintMemory.js"
 
 /**
- * Mobile variant (`?dpLayout=pageswipe`): the whole page is the swipe surface.
- * A horizontal drag anywhere moves the chart block with your finger; release
- * past the threshold and it slides off-screen, the next perspective is applied
- * while it's out of view, and it slides back in from the other side.
+ * `?dpLayout=pageswipe`: the whole page is the swipe surface. A horizontal
+ * drag anywhere moves the chart block with your finger; release past the
+ * threshold and it slides off-screen, the next perspective is applied while
+ * it's out of view, and it slides back in from the other side.
  *
  * Vertical drags are left to the browser, so the page still scrolls.
  */
+
+/** The nudge waits for the reader to take in the first view. */
+const HINT_DELAY_MS = 5000
+/** Days before the nudge may show again to someone who's never swiped. */
+const HINT_REPEAT_DAYS = 7
+const RESTORE_ICON_SIZE = 22
 
 /**
  * Only controls with their own drag behaviour keep the gesture. Links and
@@ -40,36 +46,28 @@ function isInteractiveTarget(target: EventTarget | null): boolean {
 }
 
 export function DataPerspectivesPageSwipe({
-    slug,
     perspectives,
     onSelect,
-    hintDelayMs,
-    hintRepeatDays,
-    hintReset,
     style,
+    hintReset,
     narrativeStale = false,
     narrativeStaleMode = "hide",
     onRestoreNarrative,
-    hintLabel = "Next view",
 }: {
-    slug: string
     perspectives: DataPerspective[]
-    onSelect: (href: string, index: number) => void
-    hintDelayMs: number
-    hintRepeatDays: number
-    hintReset: boolean
+    /** Apply perspective `index` to the page's chart. */
+    onSelect: (index: number) => void
     style: DataPerspectivesStyle
+    hintReset: boolean
     /** The reader has changed the view, so the narrative no longer fits it. */
     narrativeStale?: boolean
-    /** hide: the button takes the blank title's place; disable: it follows it. */
     narrativeStaleMode?: DataPerspectivesNarrativeStale
     onRestoreNarrative?: () => void
-    hintLabel?: string
 }) {
     const [index, setIndex] = useState(0)
     const rootRef = useRef<HTMLDivElement | null>(null)
-    // The thing that slides is the whole chart block (chart + this caption),
-    // not just this component, so it reads as the perspective moving.
+    // What slides is the whole chart block (chart + this caption), not just
+    // this component, so it reads as the perspective moving.
     const stageRef = useRef<HTMLElement | null>(null)
     const indexRef = useRef(index)
     indexRef.current = index
@@ -79,7 +77,7 @@ export function DataPerspectivesPageSwipe({
     const [hintEligible] = useState(() => {
         if (typeof window === "undefined") return false
         if (hintReset) resetSwipeHintMemory()
-        return shouldShowSwipeHint(hintRepeatDays)
+        return shouldShowSwipeHint(HINT_REPEAT_DAYS)
     })
 
     useEffect(() => {
@@ -98,12 +96,9 @@ export function DataPerspectivesPageSwipe({
     }, [style])
 
     const hint = useSwipeHint({
-        stageRef,
-        delayMs: hintDelayMs,
+        delayMs: HINT_DELAY_MS,
         enabled: hintEligible,
         onShow: recordSwipeHintShown,
-        // The nudge demonstrates the gesture itself; the page stays still.
-        peek: false,
     })
 
     // Pinned near the bottom of the screen — but lifted above the cookie
@@ -115,9 +110,9 @@ export function DataPerspectivesPageSwipe({
     const goToIndex = useCallback(
         (next: number) => {
             setIndex(next)
-            onSelect(`/grapher/${slug}?${perspectives[next].queryParams}`, next)
+            onSelect(next)
         },
-        [onSelect, perspectives, slug]
+        [onSelect]
     )
 
     const canGo = useCallback(
@@ -156,9 +151,10 @@ export function DataPerspectivesPageSwipe({
         )
     }
 
-    // Where the end of the chart title's last line is, relative to this
-    // component, so the restore icon can sit right after it.
-    const RESTORE_ICON_SIZE = 22
+    // Where the restore control goes, relative to this component. Grapher draws
+    // the title, so we measure it rather than inject into it: in `hide` mode
+    // the button takes the blank title's place (left-aligned, first line);
+    // otherwise it sits right after the end of the title's last line.
     const [restoreAt, setRestoreAt] = useState<{
         left: number
         top: number
@@ -177,49 +173,43 @@ export function DataPerspectivesPageSwipe({
             const range = document.createRange()
             range.selectNodeContents(h1)
             const lines = [...range.getClientRects()].filter((r) => r.width > 0)
-            const last = lines[lines.length - 1]
-            if (!last) return
+            if (!lines.length) return
             const box = root.getBoundingClientRect()
             const titleBox = h1.getBoundingClientRect()
+            const first = lines[0]
+            const last = lines[lines.length - 1]
+            const centredOn = (line: DOMRect) =>
+                line.top - box.top + (line.height - RESTORE_ICON_SIZE) / 2
+
             if (narrativeStaleMode === "hide") {
-                // The title is blank space now, so the button takes its place:
-                // left-aligned, on the title's first line.
-                const first = lines[0]
                 setRestoreAt({
                     left: titleBox.left - box.left,
-                    top:
-                        first.top -
-                        box.top +
-                        (first.height - RESTORE_ICON_SIZE) / 2,
+                    top: centredOn(first),
                 })
-                return
+            } else if (
+                last.right + 6 + RESTORE_ICON_SIZE <=
+                titleBox.right + 4
+            ) {
+                setRestoreAt({
+                    left: last.right - box.left + 6,
+                    top: centredOn(last),
+                })
+            } else {
+                // No room on the last line: start of the next one.
+                setRestoreAt({
+                    left: titleBox.left - box.left,
+                    top: last.bottom - box.top + 2,
+                })
             }
-            const fits =
-                last.right + 6 + RESTORE_ICON_SIZE <= titleBox.right + 4
-            setRestoreAt(
-                fits
-                    ? {
-                          left: last.right - box.left + 6,
-                          top:
-                              last.top -
-                              box.top +
-                              (last.height - RESTORE_ICON_SIZE) / 2,
-                      }
-                    : // No room on the last line: start of the next one.
-                      {
-                          left: titleBox.left - box.left,
-                          top: last.bottom - box.top + 2,
-                      }
-            )
         }
         place()
-        // The title changes (hide mode reverts it) and re-wraps on resize.
-        const header = stageRef.current?.querySelector(".GrapherComponent")
+        // The title changes (revert swaps it) and re-wraps on resize.
+        const chart = stageRef.current?.querySelector(".GrapherComponent")
         const observer = new MutationObserver(() =>
             requestAnimationFrame(place)
         )
-        if (header)
-            observer.observe(header, {
+        if (chart)
+            observer.observe(chart, {
                 subtree: true,
                 childList: true,
                 characterData: true,
@@ -235,8 +225,8 @@ export function DataPerspectivesPageSwipe({
 
     return (
         <div className="data-perspectives-pageswipe" ref={rootRef}>
-            {/* Dots at the very top of the perspective: the conventional
-                signal that there's more to swipe through, and a way to jump. */}
+            {/* Dots at the top: the conventional signal that there's more to
+                swipe through, and a way to jump. */}
             <ol className="data-perspectives-pageswipe__dots">
                 {perspectives.map((p, i) => (
                     <li key={p.queryParams}>
@@ -246,7 +236,7 @@ export function DataPerspectivesPageSwipe({
                                 "data-perspectives-pageswipe__dot--active":
                                     i === index,
                             })}
-                            aria-label={`Perspective ${i + 1} of ${perspectives.length}${p.title ? `: ${p.title}` : ""}`}
+                            aria-label={`Perspective ${i + 1} of ${perspectives.length}: ${p.title}`}
                             aria-current={i === index || undefined}
                             onClick={() => jumpTo(i)}
                         />
@@ -254,10 +244,9 @@ export function DataPerspectivesPageSwipe({
                 ))}
             </ol>
 
-            {/* No "Data perspective · 1/5" label: the dots above carry
-                position. In the narrative style the chart itself carries the
-                title, so there's no card at all. */}
-            {style !== "narrative" && (
+            {/* In the narrative style the chart itself carries the title, so
+                there's nothing to show here. */}
+            {style !== "narrative" && current && (
                 <div
                     className={cx(
                         "data-perspectives-pageswipe__card",
@@ -266,31 +255,23 @@ export function DataPerspectivesPageSwipe({
                     aria-live="polite"
                 >
                     <p className="data-perspectives-pageswipe__title">
-                        {current?.title ?? "Another view of this data"}
+                        {current.title}
                     </p>
-                    {current?.text && (
-                        <p className="data-perspectives-pageswipe__text">
-                            {current.text}
-                        </p>
-                    )}
                 </div>
             )}
 
-            {restoreAt &&
-                onRestoreNarrative && (
-                    // Floated at the end of the chart's title (which grapher
-                    // draws, so we measure it rather than inject into it).
-                    <button
-                        type="button"
-                        className="data-perspectives-pageswipe__restore-icon"
-                        style={{ left: restoreAt.left, top: restoreAt.top }}
-                        onClick={onRestoreNarrative}
-                        aria-label="Back to this view"
-                        title="Back to this view"
-                    >
-                        <FontAwesomeIcon icon={faRotateLeft} />
-                    </button>
-                )}
+            {restoreAt && onRestoreNarrative && (
+                <button
+                    type="button"
+                    className="data-perspectives-pageswipe__restore-icon"
+                    style={{ left: restoreAt.left, top: restoreAt.top }}
+                    onClick={onRestoreNarrative}
+                    aria-label="Back to this view"
+                    title="Back to this view"
+                >
+                    <FontAwesomeIcon icon={faRotateLeft} />
+                </button>
+            )}
 
             {hint.visible &&
                 // Portalled: the chart block this sits in is transformed while
@@ -308,7 +289,7 @@ export function DataPerspectivesPageSwipe({
                                 className="data-perspectives-pageswipe__hint-icon"
                             />
                             <span className="data-perspectives-pageswipe__hint-label">
-                                {hintLabel}
+                                Next view
                             </span>
                         </div>
                         {/* Drains to zero as the nudge's time runs out. */}

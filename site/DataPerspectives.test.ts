@@ -1,185 +1,81 @@
 import { expect, it, describe, vi } from "vitest"
 import { parseDataPerspectivesVariant } from "./dataPerspectivesVariant.js"
+import { DATA_PERSPECTIVES } from "./dataPerspectivesFixtures.js"
 
 describe("data perspectives URL variants", () => {
-    it("defaults to a left-hand rail with titles", () => {
+    it("is off unless a layout is asked for", () => {
         expect(parseDataPerspectivesVariant("")).toEqual({
-            position: "left",
-            layout: "rail",
-            density: "title",
-            chrome: "bare",
-            axes: "articles",
+            layout: "off",
             style: "panel",
             narrativeStale: "hide",
-            drawer: "off",
-            drawerLayout: "vertical",
-            hintDelayMs: 3000,
-            hintRepeatDays: 7,
             hintReset: false,
-            count: undefined,
             ignored: [],
         })
     })
 
-    it("pairs a side position with a rail and above/below with a strip", () => {
-        expect(parseDataPerspectivesVariant("?dp=right").layout).toEqual("rail")
-        expect(parseDataPerspectivesVariant("?dp=above").layout).toEqual(
-            "strip"
+    it("reads the two layouts", () => {
+        expect(parseDataPerspectivesVariant("?dpLayout=pageswipe").layout).toBe(
+            "pageswipe"
         )
-        expect(parseDataPerspectivesVariant("?dp=below").layout).toEqual(
-            "strip"
-        )
-    })
-
-    it("lets an explicit layout override the pairing", () => {
-        expect(
-            parseDataPerspectivesVariant("?dp=above&dpLayout=grid").layout
-        ).toEqual("grid")
-    })
-
-    it("reads position, density and count", () => {
-        expect(
-            parseDataPerspectivesVariant("?dp=off&dpDensity=detail&dpN=3")
-        ).toEqual({
-            position: "off",
-            layout: "strip",
-            density: "detail",
-            chrome: "bare",
-            axes: "articles",
-            style: "panel",
-            narrativeStale: "hide",
-            drawer: "off",
-            drawerLayout: "vertical",
-            hintDelayMs: 3000,
-            hintRepeatDays: 7,
-            hintReset: false,
-            count: 3,
-            ignored: [],
-        })
-    })
-
-    it("accepts the mobile swipe deck layout", () => {
-        expect(
-            parseDataPerspectivesVariant("?dp=below&dpLayout=swipe").layout
-        ).toEqual("swipe")
-    })
-
-    it("accepts every mobile layout", () => {
-        for (const layout of ["swipe", "pageswipe", "accordion", "explorer"]) {
-            expect(
-                parseDataPerspectivesVariant(`?dpLayout=${layout}`).layout
-            ).toEqual(layout)
-        }
-    })
-
-    it("reads the explorer swipe axes, defaulting to articles", () => {
-        expect(parseDataPerspectivesVariant("").axes).toEqual("articles")
-        expect(parseDataPerspectivesVariant("?dpAxes=pages").axes).toEqual(
-            "pages"
-        )
-        expect(parseDataPerspectivesVariant("?dpAxes=sideways").axes).toEqual(
-            "articles"
+        expect(parseDataPerspectivesVariant("?dpLayout=accordion").layout).toBe(
+            "accordion"
         )
     })
 
-    it("reads the swipe nudge delay in seconds, defaulting to 3", () => {
-        expect(parseDataPerspectivesVariant("").hintDelayMs).toEqual(3000)
-        expect(
-            parseDataPerspectivesVariant("?dpHintDelay=1.5").hintDelayMs
-        ).toEqual(1500)
-        expect(
-            parseDataPerspectivesVariant("?dpHintDelay=0").hintDelayMs
-        ).toEqual(0)
-        expect(
-            parseDataPerspectivesVariant("?dpHintDelay=-4").hintDelayMs
-        ).toEqual(3000)
-    })
-
-    it("reads the perspective style, defaulting to panel", () => {
-        expect(parseDataPerspectivesVariant("").style).toEqual("panel")
+    it("reads every style and stale mode", () => {
         for (const style of ["panel", "card", "seamless", "narrative"]) {
             expect(
                 parseDataPerspectivesVariant(`?dpStyle=${style}`).style
-            ).toEqual(style)
+            ).toBe(style)
         }
-        expect(parseDataPerspectivesVariant("?dpStyle=loud").style).toEqual(
-            "panel"
-        )
-    })
-
-    it("waits longer before nudging in pageswipe", () => {
-        expect(
-            parseDataPerspectivesVariant("?dpLayout=pageswipe").hintDelayMs
-        ).toEqual(5000)
-        expect(
-            parseDataPerspectivesVariant("?dpLayout=pageswipe&dpHintDelay=2")
-                .hintDelayMs
-        ).toEqual(2000)
-    })
-
-    it("reads the drawer, narrative and nudge-memory params", () => {
-        const v = parseDataPerspectivesVariant(
-            "?dpDrawer=related&dpDrawerLayout=horizontal&dpNarrativeStale=disable&dpHintRepeatDays=14&dpHintReset=1"
-        )
-        expect(v.drawer).toEqual("related")
-        expect(v.drawerLayout).toEqual("horizontal")
-        expect(v.narrativeStale).toEqual("disable")
-        expect(v.hintRepeatDays).toEqual(14)
-        expect(v.hintReset).toBe(true)
-        expect(
-            parseDataPerspectivesVariant("?dpDrawer=everywhere").drawer
-        ).toEqual("off")
+        for (const mode of ["hide", "disable", "revert"]) {
+            expect(
+                parseDataPerspectivesVariant(`?dpNarrativeStale=${mode}`)
+                    .narrativeStale
+            ).toBe(mode)
+        }
     })
 
     it("is forgiving about case and singular/plural", () => {
         const v = parseDataPerspectivesVariant(
-            "?dpdrawer=Perspective&DPLAYOUT=pageswipe&dpStyle=NARRATIVE"
+            "?DPLAYOUT=Pageswipe&dpstyle=NARRATIVES"
         )
-        expect(v.drawer).toEqual("perspectives")
-        expect(v.layout).toEqual("pageswipe")
-        expect(v.style).toEqual("narrative")
+        expect(v.layout).toBe("pageswipe")
+        expect(v.style).toBe("narrative")
         expect(v.ignored).toEqual([])
-        expect(
-            parseDataPerspectivesVariant("?dpDrawer=metadata").drawer
-        ).toEqual("metadata")
     })
 
     it("reports what it couldn't use, rather than silently ignoring it", () => {
-        expect(
-            parseDataPerspectivesVariant(
-                "?dpDrawer=foo&dpDrawr=perspectives&dpN=lots&country=~SWE"
-            ).ignored
-        ).toEqual(["dpDrawr=perspectives", "dpDrawer=foo", "dpN=lots"])
-    })
-
-    it("keeps full chart chrome when asked", () => {
-        expect(parseDataPerspectivesVariant("?dpChrome=full").chrome).toEqual(
-            "full"
-        )
-    })
-
-    it("ignores unknown or nonsensical values", () => {
         const v = parseDataPerspectivesVariant(
-            "?dp=sideways&dpDensity=huge&dpN=-2"
+            "?dpLayout=rail&dpDrawer=metadata&dpStyle=loud&country=~SWE"
         )
-        expect(v.position).toEqual("left")
-        expect(v.density).toEqual("title")
-        expect(v.count).toBeUndefined()
+        expect(v.layout).toBe("off")
+        expect(v.style).toBe("panel")
+        expect(v.ignored).toEqual([
+            "dpDrawer=metadata",
+            "dpLayout=rail",
+            "dpStyle=loud",
+        ])
     })
 })
 
 describe("data perspective fixtures", () => {
-    it("every perspective names its tab explicitly", async () => {
-        const { DATA_PERSPECTIVES } =
-            await import("./dataPerspectivesFixtures.js")
-        for (const [slug, perspectives] of Object.entries(DATA_PERSPECTIVES)) {
+    it("are just a title and a grapher query string", () => {
+        for (const perspectives of Object.values(DATA_PERSPECTIVES)) {
             for (const p of perspectives) {
-                const params = new URLSearchParams(p.queryParams)
-                expect(
-                    params.has("tab"),
-                    `${slug}: "${p.queryParams}" has no tab`
-                ).toBe(true)
+                expect(Object.keys(p).sort()).toEqual(["queryParams", "title"])
+                expect(p.title.length).toBeGreaterThan(0)
+                // A query string, not a URL: no leading "?" or host.
+                expect(p.queryParams.startsWith("?")).toBe(false)
+                expect(p.queryParams.includes("://")).toBe(false)
             }
+        }
+    })
+
+    it("have distinct query strings (they key the dots and rows)", () => {
+        for (const perspectives of Object.values(DATA_PERSPECTIVES)) {
+            const params = perspectives.map((p) => p.queryParams)
+            expect(new Set(params).size).toBe(params.length)
         }
     })
 })
