@@ -14,6 +14,23 @@
     @include body-2-bold-tight;
 }
 
+.newsletter-subscription-form__checkbox {
+    margin: 0;
+    flex: 1 1 100%;
+
+    // Line the box up with the title rather than the top of the label, which
+    // also holds the description.
+    --checkbox-first-line-height: 1.3125rem; // one line of body-2-bold-tight
+
+    .label {
+        // The shared checkbox component styles its label for grapher; here the
+        // form's own typography and colors apply.
+        @include body-3-medium;
+        letter-spacing: normal; // reset the grapher label's tracking
+        color: inherit;
+    }
+}
+
 // hidden by default, shown on the /subscribe page and homepage
 .newsletter-subscription-form__label-frequency {
     display: none;
@@ -22,6 +39,7 @@
 }
 
 .newsletter-subscription-form__label-text {
+    display: block;
     color: $blue-60;
 }
 
@@ -29,16 +47,12 @@
 .newsletter-subscription-form__example-link {
     @include owid-link-60;
     display: none;
-    padding: 0 0.5rem;
+    // aligns the link with the label text, past the checkbox
+    padding-left: $checkbox-size + 8px;
 }
 
 .newsletter-subscription-form__alert {
     color: $error-text-color;
-}
-
-.newsletter-subscription-form__checkbox {
-    margin: 0;
-    flex: 1 1 100%;
 }
 
 .newsletter-subscription-form__email-submit {
