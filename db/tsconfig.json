@@ -7,6 +7,7 @@
     "references": [
         { "path": "../packages/@ourworldindata/components" },
         { "path": "../packages/@ourworldindata/explorer" },
+        { "path": "../packages/@ourworldindata/gdoc-pipeline" },
         { "path": "../packages/@ourworldindata/grapher" },
         { "path": "../packages/@ourworldindata/types" },
         { "path": "../packages/@ourworldindata/utils" },

@@ -26,7 +26,7 @@ import { viteAssetsForSite } from "../site/viteUtils.js"
 import { renderToHtmlPage } from "../serverUtils/serverUtil.js"
 import { BAKED_BASE_URL } from "../settings/serverSettings.js"
 import * as db from "../db/db.js"
-import { archieToEnriched } from "../db/model/Gdoc/archieToEnriched.js"
+import { archieToEnriched } from "@ourworldindata/gdoc-pipeline"
 import {
     gdocFromJSON,
     getGdocBaseObjectById,

@@ -21,16 +21,18 @@ import { getEntitiesForProfile } from "@ourworldindata/utils"
 import { profileEntitySlug } from "../../db/model/Gdoc/GdocProfile.js"
 import { convertHeadingTextToId } from "@ourworldindata/components"
 import * as db from "../../db/db.js"
-import { archieToEnriched } from "../../db/model/Gdoc/archieToEnriched.js"
-import { enrichedBlockToRawBlock } from "../../db/model/Gdoc/enrichedToRaw.js"
-import { enumerateGdocComponentsWithoutChildren } from "../../db/model/Gdoc/extractGdocComponentInfo.js"
+import {
+    archieToEnriched,
+    enrichedBlockToRawBlock,
+    enumerateGdocComponentsWithoutChildren,
+    OwidRawGdocBlockToArchieMLString,
+} from "@ourworldindata/gdoc-pipeline"
 import { resolveBlockAtPath } from "../gdocsReferencePreview.js"
 import {
     MinimalBlock,
     minimizeRaw,
     sanitizeLegacySpans,
 } from "../gdocsReferenceMinimal.js"
-import { OwidRawGdocBlockToArchieMLString } from "../../db/model/Gdoc/rawToArchie.js"
 import { intParam, stringParam } from "../queryParams.js"
 import { Request } from "../authentication.js"
 import { HandlerResponse } from "../FunctionalRouter.js"
