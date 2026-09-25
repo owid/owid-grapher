@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest"
-import { searchCharts, searchPages } from "./searchApi.js"
-import { FilterType } from "@ourworldindata/types"
+import { searchCharts, searchPages, searchTopicPages } from "./searchApi.js"
+import { FilterType, OwidGdocType, TagGraphRoot } from "@ourworldindata/types"
 import type { AlgoliaConfig } from "./algoliaClient.js"
 
 describe("searchCharts with real Algolia", () => {
@@ -406,5 +406,88 @@ describe("searchPages with real Algolia", () => {
         result.results.forEach((hit) => {
             expect(hit.url).toMatch(/^https:\/\/staging-pr-123\.owid\.io\//)
         })
+    })
+})
+
+describe("searchTopicPages with real Algolia", () => {
+    const algoliaConfig: AlgoliaConfig = {
+        appId: "ASCB5XMYF2",
+        apiKey: "bafe9c4659e5657bf750a38fbee5c269",
+        indexPrefix: undefined,
+    }
+    const fetchTagGraph = (): Promise<TagGraphRoot> =>
+        fetch("https://ourworldindata.org/topicTagGraph.json").then((r) =>
+            r.json()
+        )
+
+    it("recommends the Economic Growth page for 'gdp'", async () => {
+        const result = await searchTopicPages(
+            algoliaConfig,
+            { query: "gdp", filters: [], requireAllCountries: false },
+            await fetchTagGraph(),
+            0,
+            3
+        )
+
+        expect(result.query).toBe("gdp")
+        expect(result.results[0].slug).toBe("economic-growth")
+        expect(result.results[0].url).toBe(
+            "https://ourworldindata.org/economic-growth"
+        )
+        expect(result.results.length).toBe(3)
+        expect(result.nbHits).toBeGreaterThan(3)
+        result.results.forEach((page) => {
+            expect([
+                OwidGdocType.TopicPage,
+                OwidGdocType.LinearTopicPage,
+            ]).toContain(page.type)
+        })
+    })
+
+    it("keeps the topic filter when falling back to the text search", async () => {
+        // A query no chart matches, so the recommendation is empty and the
+        // fallback text search must still honour the requested topic.
+        const result = await searchTopicPages(
+            algoliaConfig,
+            {
+                query: "max roser",
+                filters: [{ type: FilterType.TOPIC, name: "Health" }],
+                requireAllCountries: false,
+            },
+            await fetchTagGraph(),
+            0,
+            5
+        )
+
+        expect(result.results.length).toBeGreaterThan(0)
+        expect(result.results.map((page) => page.slug)).not.toContain(
+            "economic-growth"
+        )
+    })
+
+    it("paginates the recommended topics", async () => {
+        const tagGraph = await fetchTagGraph()
+        const state = { query: "co2", filters: [], requireAllCountries: false }
+        const page1 = await searchTopicPages(
+            algoliaConfig,
+            state,
+            tagGraph,
+            0,
+            2
+        )
+        const page2 = await searchTopicPages(
+            algoliaConfig,
+            state,
+            tagGraph,
+            2,
+            2
+        )
+
+        expect(page1.results.length).toBe(2)
+        expect(page2.results.length).toBe(2)
+        expect(page1.nbHits).toBe(page2.nbHits)
+        expect(page1.results.map((p) => p.slug)).not.toContain(
+            page2.results[0].slug
+        )
     })
 })
