@@ -10,6 +10,7 @@ export const Checkbox = ({
     label,
     disabled,
     id,
+    autoComplete,
     "data-test": testHook,
 }: {
     className?: string
@@ -18,6 +19,7 @@ export const Checkbox = ({
     label: React.ReactNode
     disabled?: boolean
     id?: string
+    autoComplete?: React.InputHTMLAttributes<HTMLInputElement>["autoComplete"]
     "data-test"?: string
 }) => {
     return (
@@ -36,6 +38,7 @@ export const Checkbox = ({
                     checked={checked}
                     onChange={onChange}
                     disabled={disabled}
+                    autoComplete={autoComplete}
                 />
                 <div className="custom">
                     {checked && <FontAwesomeIcon icon={faCheck} />}

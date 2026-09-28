@@ -1,4 +1,4 @@
-.subscribe-page {
+.old-subscribe-page {
     --row-gap: 32px;
 
     background-color: $gray-5;
@@ -9,7 +9,7 @@
         --row-gap: 16px;
     }
 
-    .subscribe-page__heading {
+    .old-subscribe-page__heading {
         margin-top: 0;
         margin-bottom: 4px;
         @include sm-only {
