@@ -3,6 +3,7 @@
     "name": "owid-functions-search-e2e-tests",
     "main": "./search.e2e.worker.ts",
     "compatibility_date": "2025-05-05",
+    "compatibility_flags": ["nodejs_compat"],
     "vars": {
         // Same read-only, search-only production key used by
         // searchApi.integration.test.ts — public by design (client-side

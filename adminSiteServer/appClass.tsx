@@ -1,5 +1,4 @@
 import express, { NextFunction } from "express"
-import * as Sentry from "@sentry/node"
 import cookieParser from "cookie-parser"
 import http from "http"
 import {
@@ -207,10 +206,6 @@ export class OwidAdminApp {
             // todo (DB): we probably always want to have this
             app.use("/", mockSiteRouter)
         }
-
-        // Add this after all routes, but before any other error-handling
-        // middlewares are defined.
-        Sentry.setupExpressErrorHandler(app)
 
         // Give full error messages, including in production
         app.use(this.errorHandler)

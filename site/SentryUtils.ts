@@ -260,6 +260,13 @@ export function updateSentryTags() {
     updateSentryExperimentTags()
 }
 
+export function setSentryTagsAndAttributes(tags: Record<string, string>): void {
+    // Tags annotate error events; Sentry v11's streamed spans only carry
+    // attributes, so set both to keep the same context searchable in each.
+    Sentry.setTags(tags)
+    Sentry.setAttributes(tags)
+}
+
 /**
  * Updates the Sentry experiment tags from the current experiment state.
  */
@@ -272,7 +279,7 @@ export function updateSentryExperimentTags() {
                 value.arm,
             ])
         )
-        Sentry.setTags(tags)
+        setSentryTagsAndAttributes(tags)
     }
 }
 
@@ -311,6 +318,6 @@ function extractGaClientIdFromCookie(): string | undefined {
 function updateSentryReferrerTag() {
     if (document.referrer) {
         const ref = new URL(document.referrer).hostname
-        Sentry.setTag("referrer", ref)
+        setSentryTagsAndAttributes({ referrer: ref })
     }
 }
