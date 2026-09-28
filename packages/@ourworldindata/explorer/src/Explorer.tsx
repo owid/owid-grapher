@@ -63,7 +63,7 @@ import {
 import classNames from "clsx"
 import { action, computed, makeObservable, observable, reaction } from "mobx"
 import { observer } from "mobx-react"
-import React, { useCallback, useEffect, useState } from "react"
+import React, { useState, useSyncExternalStore } from "react"
 import { createRoot } from "react-dom/client"
 import { ExplorerControlBar, ExplorerControlPanel } from "./ExplorerControls.js"
 import { ExplorerProgram } from "./ExplorerProgram.js"
@@ -107,31 +107,23 @@ export interface ExplorerProps extends SerializedGridProgram {
     loadInputTableForConfig?: FetchInputTableForConfigFn
 }
 
+// The admin writes the unsaved draft to localStorage, possibly from another
+// tab, so poll for changes
+const subscribeToLocalStoragePolling = (onChange: () => void): (() => void) => {
+    const interval = setInterval(onChange, 1000)
+    return () => clearInterval(interval)
+}
+
 const LivePreviewComponent = (props: ExplorerProps) => {
     const [useLocalStorage, setUseLocalStorage] = useState(true)
-    const [renderedProgram, setRenderedProgram] = useState("")
-    const [hasLocalStorage, setHasLocalStorage] = useState(false)
-
-    const updateProgram = useCallback(() => {
-        const localStorageProgram = localStorage.getItem(
-            UNSAVED_EXPLORER_DRAFT + props.slug
-        )
-        let program: string
-        if (useLocalStorage) program = localStorageProgram ?? props.program
-        else program = props.program
-
-        setHasLocalStorage(!!localStorageProgram)
-        setRenderedProgram((previousProgram) => {
-            if (program === previousProgram) return previousProgram
-            return program
-        })
-    }, [props.program, props.slug, useLocalStorage])
-
-    useEffect(() => {
-        updateProgram()
-        const interval = setInterval(updateProgram, 1000)
-        return () => clearInterval(interval)
-    }, [updateProgram])
+    const localStorageProgram = useSyncExternalStore(
+        subscribeToLocalStoragePolling,
+        () => localStorage.getItem(UNSAVED_EXPLORER_DRAFT + props.slug)
+    )
+    const hasLocalStorage = !!localStorageProgram
+    const renderedProgram = useLocalStorage
+        ? (localStorageProgram ?? props.program)
+        : props.program
 
     const newProps = { ...props, program: renderedProgram }
 
