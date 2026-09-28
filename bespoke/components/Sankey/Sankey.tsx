@@ -159,7 +159,10 @@ export function Sankey({
 }: SankeyProps): React.ReactElement | null {
     const nodeWidth = bandWidth + bandFlowGap
 
-    const layout = useMemo<LaidOutGraph | null>(() => {
+    const layoutResult = useMemo<{
+        graph: LaidOutGraph
+        height: number
+    } | null>(() => {
         if (nodes.length === 0 || width <= 0 || height <= 0) return null
 
         const sourceNodeSet = new Set(links.map((l) => l.source))
@@ -199,9 +202,11 @@ export function Sankey({
             right: margin.right + resolvedInnerMargin.right,
         }
 
-        if (resolvedMargin.top + resolvedMargin.bottom >= height) {
-            height += resolvedMargin.top + resolvedMargin.bottom
-        }
+        // Grow the chart if the margins alone would take up all of its height
+        const layoutHeight =
+            resolvedMargin.top + resolvedMargin.bottom >= height
+                ? height + resolvedMargin.top + resolvedMargin.bottom
+                : height
 
         const generator = d3Sankey<SankeyLayoutNode, SankeyLink>()
             .nodeId((d) => d.id)
@@ -211,7 +216,10 @@ export function Sankey({
             .linkSort(null) // Sort by input order
             .extent([
                 [resolvedMargin.left, resolvedMargin.top],
-                [width - resolvedMargin.right, height - resolvedMargin.bottom],
+                [
+                    width - resolvedMargin.right,
+                    layoutHeight - resolvedMargin.bottom,
+                ],
             ])
             .iterations(anchorNodeId ? 0 : 32) // Skip relaxation if anchored
 
@@ -237,7 +245,7 @@ export function Sankey({
             }
         }
 
-        return result
+        return { graph: result, height: layoutHeight }
     }, [
         nodes,
         links,
@@ -250,6 +258,8 @@ export function Sankey({
         innerMargin,
         fontSettings,
     ])
+    const layout = layoutResult?.graph ?? null
+    const svgHeight = layoutResult?.height ?? height
 
     const labels = useMemo<PlacedSankeyLabel[]>(
         () => placeSankeyLabels({ layout, nodePadding, fontSettings }),
@@ -435,7 +445,7 @@ export function Sankey({
     const containerEl = containerRef.current
     const tooltipBounds = containerEl
         ? { width: containerEl.clientWidth, height: containerEl.clientHeight }
-        : { width, height }
+        : { width, height: svgHeight }
 
     const tooltip: SankeyTooltip | undefined = match(hover)
         .with({ kind: "link" }, ({ link }) =>
@@ -467,8 +477,8 @@ export function Sankey({
                 ref={svgRef}
                 className="sankey"
                 width={width}
-                height={height}
-                viewBox={`0 0 ${width} ${height}`}
+                height={svgHeight}
+                viewBox={`0 0 ${width} ${svgHeight}`}
                 onMouseMove={onSvgMouseMove}
                 onMouseLeave={onSvgMouseLeave}
                 onClick={onNodeClick || onLinkClick ? onSvgClick : undefined}
