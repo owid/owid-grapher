@@ -16,21 +16,15 @@ import {
  * A column definition says what a column *is*, and belongs to whoever supplies
  * the data. A dimension's `display` says what *this chart* makes of it: call
  * it something else here, show two decimals here. The two are the same shape,
- * and the chart's wins.
+ * and the chart's wins. Where several slots name one column, the first one's
+ * display is used.
  *
- * Two of those fields are not just recorded but acted on, exactly as
- * `legacyToOwidTableAndDimensions` acts on them while assembling an
- * indicator-backed table: `conversionFactor` scales the column's values (and
- * turns an integer column numeric when the factor isn't whole), and `color`
- * is copied onto the def itself, which is where the charts that colour a whole
- * series by column (discrete bar, Marimekko, dumbbell) read it from.
+ * Two of those fields are not just recorded but acted on. `conversionFactor`
+ * scales the column's values (and turns an integer column numeric when the
+ * factor isn't whole), and `color` is copied onto the def itself. Because of
+ * the scaling, a table's values must go through this exactly once.
  *
- * Charts built from OWID indicators get all of this for free, because the
- * table is assembled from those indicators. A chart built on a table the host
- * already has needs it done explicitly, which is what this is for.
- *
- * Returns the table unchanged when no slot overrides anything, so it costs
- * nothing on the common path.
+ * Returns the table unchanged when no slot overrides anything.
  */
 export const applyDimensionDisplayOverrides = (
     table: OwidTable,

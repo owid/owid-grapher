@@ -82,7 +82,7 @@ describe(applyDimensionDisplayOverrides, () => {
         ).toBe(table)
     })
 
-    it("ignores indicator-backed slots, whose display is folded in on assembly", () => {
+    it("skips a slot without a slug", () => {
         const table = applyDimensionDisplayOverrides(makeTable(), [
             {
                 property: DimensionProperty.y,
@@ -94,7 +94,7 @@ describe(applyDimensionDisplayOverrides, () => {
         expect(table.get("rent_index").displayName).toBe("Rent index")
     })
 
-    it("scales the column's values by a conversion factor, as the indicator path does", () => {
+    it("scales the column's values by a conversion factor", () => {
         const table = applyDimensionDisplayOverrides(makeTable(), [
             {
                 property: DimensionProperty.y,

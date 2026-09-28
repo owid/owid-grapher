@@ -18,6 +18,7 @@ import {
     legacyToOwidTableAndDimensions,
     legacyToOwidTableAndDimensionsWithMandatorySlug,
 } from "./LegacyToOwidTable"
+import { ChartDimension } from "../chart/ChartDimension"
 import {
     MultipleOwidVariableDataDimensionsMap,
     OwidVariableDataMetadataDimensions,
@@ -135,6 +136,25 @@ describe(legacyToOwidTableAndDimensions, () => {
                 name: "Indicator name",
                 unit: "kg",
             })
+        })
+
+        it("applies a ChartDimension instance's conversionFactor", () => {
+            const dimension = new ChartDimension(
+                {
+                    variableId: 2,
+                    display: { conversionFactor: 10 },
+                    property: DimensionProperty.y,
+                },
+                { table: new OwidTable() }
+            )
+            const table = legacyToOwidTableAndDimensions(
+                legacyVariableConfig,
+                [dimension],
+                undefined
+            )
+
+            expect(table.rows[0]["2"]).toEqual(80)
+            expect(table.get("2").def.display?.conversionFactor).toEqual(10)
         })
 
         it("turns an integer column numeric under a non-whole conversionFactor", () => {

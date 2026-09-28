@@ -45,6 +45,7 @@ import {
 import { isContinentsVariableId } from "./GrapherConstants"
 import * as R from "remeda"
 import { getDimensionColumnSlug } from "../chart/ChartDimension.js"
+import { applyDimensionDisplayOverrides } from "./applyDimensionDisplay.js"
 
 export const legacyToOwidTableAndDimensionsWithMandatorySlug = (
     json: MultipleOwidVariableDataDimensionsMap,
@@ -123,7 +124,6 @@ export const legacyToOwidTableAndDimensions = (
 
         // Value column
         const valueColumnDef = columnDefFromOwidVariable(variable.metadata)
-        const valueColumnColor = dimension.display?.color
         // Ensure the column slug is unique by copying it from the dimensions
         // (there can be two columns of the same variable with different targetTimes)
         if (dimension.slug) valueColumnDef.slug = dimension.slug
@@ -131,15 +131,10 @@ export const legacyToOwidTableAndDimensions = (
         // Because database columns can contain mixed types, we want to avoid
         // parsing for Grapher data until we fix that.
         valueColumnDef.skipParsing = true
-        if (valueColumnColor) {
-            valueColumnDef.color = valueColumnColor
-        }
-        if (dimension) {
-            valueColumnDef.display = {
-                ...trimObject(valueColumnDef.display),
-                ...trimObject(dimension.display),
-            }
-        }
+        valueColumnDef.display = _.omit(
+            trimObject(valueColumnDef.display),
+            "conversionFactor"
+        )
         if (dimension.targetYear !== undefined)
             valueColumnDef.targetTime = dimension.targetYear
         columnDefs.set(valueColumnDef.slug, valueColumnDef)
@@ -165,29 +160,12 @@ export const legacyToOwidTableAndDimensions = (
         // see comment above about entityMetaById[id]
         const entityCodes = entityIds.map((id) => entityMetaById[id]?.code)
 
-        // If there is a conversionFactor, apply it.
-        let values = variable.data.values || []
-        const conversionFactor = valueColumnDef.display?.conversionFactor
-        if (conversionFactor !== undefined) {
-            values = values.map((value) =>
-                _.isNumber(value) ? value * conversionFactor : value
-            )
-
-            // If a non-int conversion factor is applied to an integer column,
-            // we end up with a numeric column.
-            if (
-                valueColumnDef.type === ColumnTypeNames.Integer &&
-                !_.isInteger(conversionFactor)
-            )
-                valueColumnDef.type = ColumnTypeNames.Numeric
-        }
-
         const columnStore: { [key: string]: any[] } = {
             [OwidTableSlugs.EntityId]: entityIds,
             [OwidTableSlugs.EntityCode]: entityCodes,
             [OwidTableSlugs.EntityName]: entityNames,
             [timeColumnDef.slug]: times,
-            [valueColumnDef.slug]: values,
+            [valueColumnDef.slug]: variable.data.values || [],
         }
 
         if (annotationColumnDef) {
@@ -207,7 +185,7 @@ export const legacyToOwidTableAndDimensions = (
         // entities columns only, excluding any time columns.
         // We do this by dropping the column. We interpolate before which adds an originalTime
         // column which can be used to recover the time.
-        const targetTime = dimension?.targetYear
+        const targetTime = dimension.targetYear
         if (_.isNumber(targetTime)) {
             variableTable = variableTable
                 // interpolateColumnWithTolerance() won't handle injecting times beyond the current
@@ -217,7 +195,8 @@ export const legacyToOwidTableAndDimensions = (
                 // This is why we use filterByTargetTimes() which handles that case.
                 .filterByTargetTimes(
                     [targetTime],
-                    valueColumnDef.display?.tolerance
+                    dimension.display?.tolerance ??
+                        variable.metadata.display?.tolerance
                 )
                 // Interpolate with 0 to add originalTimes column
                 .interpolateColumnWithTolerance(valueColumnDef.slug, {
@@ -405,7 +384,33 @@ export const legacyToOwidTableAndDimensions = (
             },
         ])
     }
-    return joinedVariablesTable
+
+    return applyDimensionDisplayOverrides(
+        joinedVariablesTable,
+        dimensions.map((dimension) =>
+            withPendingIndicatorFactor(dimension, json)
+        )
+    )
+}
+
+/** The slot, with its indicator's `conversionFactor` as its display's default */
+const withPendingIndicatorFactor = (
+    dimension: OwidChartDimensionInterfaceWithMandatorySlug,
+    json: MultipleOwidVariableDataDimensionsMap
+): OwidChartDimensionInterfaceWithMandatorySlug => {
+    const indicatorFactor =
+        dimension.variableId !== undefined
+            ? json.get(dimension.variableId)?.metadata.display?.conversionFactor
+            : undefined
+    return {
+        property: dimension.property,
+        variableId: dimension.variableId,
+        slug: dimension.slug,
+        display: {
+            conversionFactor: indicatorFactor,
+            ...trimObject(dimension.display ?? {}),
+        },
+    }
 }
 
 const fullJoinTables = (
