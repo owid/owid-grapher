@@ -4,6 +4,8 @@ import { ADMIN_SERVER_PORT, testServerEnv } from "./playwright/admin/ports.js"
 export default defineConfig({
     testDir: "./playwright/admin",
     testMatch: "**/*.test.ts",
+    // per port, so that suites running side by side don't clear each other's
+    outputDir: `test-results/admin-${ADMIN_SERVER_PORT}`,
     fullyParallel: true,
     timeout: 60_000,
     reporter: [["line"]],
@@ -12,13 +14,9 @@ export default defineConfig({
         trace: "retain-on-failure",
     },
     webServer: {
-        // The db test script sources .env, so the server's environment is
-        // passed through `env` to take precedence over it
-        command: [
-            "DBTEST_APP_ENV=development ./db/tests/run-db-tests.sh env",
-            ...Object.entries(testServerEnv).map(([k, v]) => `${k}=${v}`),
-            "yarn tsx --tsconfig tsconfig.tsx.json playwright/admin/server.ts",
-        ].join(" "),
+        command:
+            "./db/tests/run-db-tests.sh yarn tsx --tsconfig tsconfig.tsx.json playwright/admin/server.ts",
+        env: { DBTEST_APP_ENV: "development", ...testServerEnv },
         port: ADMIN_SERVER_PORT,
         reuseExistingServer: false,
         timeout: 120_000,

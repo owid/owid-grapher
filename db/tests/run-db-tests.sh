@@ -8,7 +8,10 @@ set -o nounset
 # test database, initialize it and then run the tests
 
 if [ -e .env ]; then
+    # variables that are already exported take precedence over .env
+    preset_env=$(export -p)
     source .env
+    eval "$preset_env"
 fi
 
 # Some developers enable Algolia indexing in their local .env, but it interferes

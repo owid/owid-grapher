@@ -24,11 +24,15 @@ const yDimensions = (
 
 export const defaultSelection = [entities.france.name, entities.kenya.name]
 
+// A fixed title keeps the editor from filling in the automatic one on save
+const title = "Test chart"
+
 function chartOfType(
     chartType: GrapherChartType,
     indicators: FixtureIndicator[]
 ): GrapherInterface {
     return {
+        title,
         chartTypes: [chartType],
         dimensions: yDimensions(indicators),
         selectedEntityNames: defaultSelection,
@@ -58,6 +62,7 @@ export const dumbbellChart = (...y: FixtureIndicator[]): GrapherInterface =>
     chartOfType(GRAPHER_CHART_TYPES.Dumbbell, y)
 
 export const mapChart = (y: FixtureIndicator): GrapherInterface => ({
+    title,
     chartTypes: [],
     hasMapTab: true,
     tab: "map",
@@ -76,6 +81,7 @@ export function scatterPlot({
     color?: FixtureIndicator
 }): GrapherInterface {
     return {
+        title,
         chartTypes: [GRAPHER_CHART_TYPES.ScatterPlot],
         dimensions: [
             dimension(DimensionProperty.y, y),
@@ -94,6 +100,7 @@ export function marimekkoChart({
     y: FixtureIndicator
 }): GrapherInterface {
     return {
+        title,
         chartTypes: [GRAPHER_CHART_TYPES.Marimekko],
         dimensions: [
             dimension(DimensionProperty.y, y),

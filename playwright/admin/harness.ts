@@ -19,6 +19,7 @@ import {
     type Page,
     type Request,
 } from "@playwright/test"
+import { isDeepStrictEqual } from "node:util"
 import type { GrapherInterface } from "@ourworldindata/types"
 import { latestGrapherConfigSchema } from "@ourworldindata/grapher"
 import { HOST } from "./ports.js"
@@ -76,10 +77,14 @@ export const test = base.extend<AdminFixtures>({
 
     openEditor: async ({ page }, use) => {
         await use(async (chart) => {
+            const response = await page.request.get(
+                `/admin/api/charts/${chart.id}.patchConfig.json`
+            )
+            const openedPatch = (await response.json()) as GrapherInterface
             await page.goto(`/admin/charts/${chart.id}/edit`, {
                 waitUntil: "commit",
             })
-            const editor = new ChartEditorPage(page, chart.id)
+            const editor = new ChartEditorPage(page, chart.id, openedPatch)
             await editor.waitUntilReady()
             return editor
         })
@@ -112,10 +117,12 @@ const exactly = (text: string): RegExp =>
     new RegExp(`^\\s*${text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*$`)
 
 export class ChartEditorPage {
-    /** The id of the edited chart; undefined until a new chart is saved */
     constructor(
         readonly page: Page,
-        readonly chartId?: number
+        /** The id of the edited chart; undefined for a new chart */
+        readonly chartId?: number,
+        /** The chart's stored patch config when the editor was opened */
+        readonly openedPatch: GrapherInterface = {}
     ) {}
 
     /** The left-hand panel with the tabs, form and save buttons */
@@ -212,6 +219,17 @@ export class ChartEditorPage {
         )
     }
 
+    /**
+     * Saves the chart and returns how the sent patch differs from the one
+     * the chart had when the editor was opened, as a map from dotted config
+     * paths to new values (undefined for removed ones). Asserting on the
+     * whole result checks both that the control wrote its field and that it
+     * changed nothing else.
+     */
+    async saveChanges(): Promise<ConfigChanges> {
+        return diffConfigs(this.openedPatch, await this.save())
+    }
+
     /** Clicks a button that saves the chart and returns the sent patch */
     async saveWith(button: Locator): Promise<GrapherInterface> {
         const [request] = await Promise.all([
@@ -227,6 +245,50 @@ export class ChartEditorPage {
         ).toMatchObject({ success: true })
         return request.postDataJSON()
     }
+}
+
+/** Changed config values by dotted path, e.g. `{ "map.time": 2010 }` */
+export type ConfigChanges = Record<string, unknown>
+
+// Not part of what the editor authors: the server bumps it on every save
+const IGNORED_PATHS = new Set(["version"])
+
+function diffConfigs(
+    before: GrapherInterface,
+    after: GrapherInterface
+): ConfigChanges {
+    const beforeLeaves = flattenConfig(before)
+    const afterLeaves = flattenConfig(after)
+    const changes: ConfigChanges = {}
+    for (const path of new Set([
+        ...beforeLeaves.keys(),
+        ...afterLeaves.keys(),
+    ])) {
+        if (IGNORED_PATHS.has(path)) continue
+        const value = afterLeaves.get(path)
+        if (!isDeepStrictEqual(beforeLeaves.get(path), value))
+            changes[path] = value
+    }
+    return changes
+}
+
+/** Maps the dotted path of every non-object value (arrays included) to it */
+function flattenConfig(
+    config: object,
+    prefix = "",
+    leaves = new Map<string, unknown>()
+): Map<string, unknown> {
+    for (const [key, value] of Object.entries(config)) {
+        const path = prefix + key
+        const isNested =
+            typeof value === "object" &&
+            value !== null &&
+            !Array.isArray(value) &&
+            Object.keys(value).length > 0
+        if (isNested) flattenConfig(value, `${path}.`, leaves)
+        else leaves.set(path, value)
+    }
+    return leaves
 }
 
 /** Saving an existing chart PUTs to its id, saving a new one POSTs */
