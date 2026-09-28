@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useMemo, useState } from "react"
 import cx from "clsx"
 import { QueryClientProvider } from "@tanstack/react-query"
 
@@ -102,32 +102,37 @@ function FetchingSimulationVariant({
     const { metadata, entityData, isLoadingEntityData, status } =
         useDemographyData(entityName, urls)
 
-    useEffect(() => {
-        if (!metadata) return
-        if (metadata.slugs[entityName]) return
-
+    // Fall back to another entity if the selected one has no data
+    if (metadata && !metadata.slugs[entityName]) {
         const fallbackEntityName =
             config.region && metadata.slugs[config.region]
                 ? config.region
                 : DEFAULT_ENTITY_NAME
-        setEntityNameRaw(fallbackEntityName)
-        setShouldSyncEntityName(false)
-    }, [config.region, entityName, metadata, setEntityNameRaw])
+        if (entityName !== fallbackEntityName) {
+            setEntityNameRaw(fallbackEntityName)
+            setShouldSyncEntityName(false)
+        }
+    }
 
-    useEffect(() => {
-        const shouldSyncAutoDetectedEntityName =
-            urlSync &&
-            !urlState.entityName &&
-            (!config.region || config.region === "userLocation") &&
-            isInitialEntityNameResolved
-
+    // Start syncing the entity name to the URL once it's been auto-detected
+    const shouldSyncAutoDetectedEntityName =
+        urlSync &&
+        !urlState.entityName &&
+        (!config.region || config.region === "userLocation") &&
+        isInitialEntityNameResolved
+    const [
+        prevShouldSyncAutoDetectedEntityName,
+        setPrevShouldSyncAutoDetectedEntityName,
+    ] = useState(false)
+    if (
+        shouldSyncAutoDetectedEntityName !==
+        prevShouldSyncAutoDetectedEntityName
+    ) {
+        setPrevShouldSyncAutoDetectedEntityName(
+            shouldSyncAutoDetectedEntityName
+        )
         if (shouldSyncAutoDetectedEntityName) setShouldSyncEntityName(true)
-    }, [
-        config.region,
-        urlSync,
-        isInitialEntityNameResolved,
-        urlState.entityName,
-    ])
+    }
 
     if (status === "pending")
         return <ChartSkeleton className="demography-chart-box" />
