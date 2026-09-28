@@ -116,6 +116,7 @@ export function SlideshowEditorPage(props: {
             block: "nearest",
             inline: "nearest",
         })
+        // oxlint-disable-next-line react/exhaustive-effect-dependencies -- scroll the new active thumbnail into view
     }, [currentSlideIndex])
 
     const bumpChartApplyVersion = useCallback(() => {

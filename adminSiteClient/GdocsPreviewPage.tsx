@@ -1,5 +1,11 @@
-import { useCallback, useContext, useEffect, useRef, useState } from "react"
-import * as React from "react"
+import {
+    useCallback,
+    useContext,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+} from "react"
 import { AdminLayout } from "./AdminLayout.js"
 import {
     GdocPostSettings,
@@ -18,7 +24,6 @@ import {
     GdocsContentSource,
     getOwidGdocFromJSON,
     OwidGdocJSON,
-    OwidGdocErrorMessage,
     OwidGdocErrorMessageType,
     slugify,
     MinimalTag,
@@ -95,7 +100,6 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
     const [isRecordsOpen, setRecordsOpen] = useState(false)
     const [recordsPreviewMode, setRecordsPreviewMode] =
         useState<RecordsPreviewMode>("records")
-    const [errors, setErrors] = React.useState<OwidGdocErrorMessage[]>()
     const { admin } = useContext(AdminAppContext)
 
     const [isMobilePreviewActive, setIsMobilePreviewActive] = useState(false)
@@ -155,7 +159,10 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
         }
     }, [])
 
-    useEffect(() => {
+    // Reset the state when navigating to another gdoc
+    const [prevId, setPrevId] = useState(id)
+    if (id !== prevId) {
+        setPrevId(id)
         setAcceptSuggestions(false)
         setGdoc((prev) =>
             prev.original === undefined && prev.current === undefined
@@ -163,7 +170,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                 : { original: undefined, current: undefined }
         )
         setRecordsOpen(false)
-    }, [id])
+    }
 
     // initialize
     // `admin` is a MobX store, so mutating it is how we update it
@@ -217,6 +224,12 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
         originalGdoc,
         currentGdoc,
         hasChanges
+    )
+
+    // Errors and validation status
+    const errors = useMemo(
+        () => (currentGdoc ? getErrors(currentGdoc) : undefined),
+        [currentGdoc]
     )
 
     const hasWarnings =
@@ -301,13 +314,6 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
     const handleDiffClose = () => {
         setDiffOpen(false)
     }
-
-    // Handle errors and validation status
-    useEffect(() => {
-        if (!currentGdoc) return
-        const errors = getErrors(currentGdoc)
-        setErrors(errors)
-    }, [currentGdoc])
 
     if (criticalErrorMessage) {
         return (
