@@ -1,6 +1,6 @@
 ---
 name: add-tests
-description: Inspect the current pull request, stacked pull requests, branch, or working-tree change; draft a risk-based test plan; interview the user to agree on what deserves testing, the faithful test boundary, representative cases, and explanatory comments; then implement the agreed tests. Use when asked to add tests, decide test coverage for current work, test a PR or PR stack, or turn a completed change into a reviewed test plan and test suite.
+description: Inspect the current pull request, stacked pull requests, branch, or working-tree change; draft a risk-based test plan; interview the user to agree on what deserves testing, the faithful test boundary, representative cases, and explanatory comments; then implement the agreed tests. Use when asked to add tests, decide test coverage for current work, test a PR or PR stack, or turn a completed change into a reviewed test plan and test suite. Pass `decide-for-me` to skip the interview and have the agent take its own recommendations.
 metadata:
     internal: true
 ---
@@ -10,6 +10,20 @@ metadata:
 Build agreement on useful evidence before writing tests. Optimize for the
 smallest suite that rejects plausible regressions, not for test count or blanket
 coverage.
+
+## Modes
+
+- **Interview (default).** Draft a plan, interview the user, and implement only
+  what they agree to.
+- **Decide-for-me (opt-in).** Use this mode only when the user explicitly asks
+  for it: they pass `decide-for-me` as an argument, or say they don't want to be
+  interviewed and you should make the testing decisions yourself. Everything
+  else stays the same: read the policy, inspect the scope, draft the plan with
+  the same care, then take your own recommendation at every decision point that
+  would otherwise go to the user. Record each such decision and your reasons, and
+  include them in the final report (step 7) so the user can review them
+  afterwards. Never infer this mode from silence, urgency, or a
+  non-interactive session.
 
 ## 1. Read the testing policy
 
@@ -21,8 +35,12 @@ Do not edit tests or production code yet.
 
 ## 2. Establish the review range
 
-Inspect the repository rather than asking the user to restate work that Git can
-show. Start with:
+If the user names specific files, modules, or behaviors to test, that is the
+scope: treat their current behavior as the contract and skip the PR and stack
+inspection below, while still reading nearby code, callers, and existing tests.
+
+Otherwise, inspect the repository rather than asking the user to restate work
+that Git can show. Start with:
 
 - current branch, worktree status, recent commits, and upstream/tracking state;
 - the current PR's title, body, base, commits, and changed files when GitHub CLI
@@ -85,14 +103,14 @@ Name relevant tests and say exactly what they already prove or fail to prove.
 
 For each proposed test or coherent group, specify:
 
-| Field | Content |
-| --- | --- |
-| Claim | Observable rule protected |
-| Boundary | Unit/state/component, DB/API, browser, SVG, artifact, runtime, or manual |
-| Cases | Representative success, boundary, failure, and sequence cases only where distinct |
-| Evidence | Concrete assertions that distinguish correct behavior from likely regressions |
-| Placement | Proposed test file or suite |
-| Cost | Runtime, fixture, brittleness, or maintenance tradeoff |
+| Field     | Content                                                                           |
+| --------- | --------------------------------------------------------------------------------- |
+| Claim     | Observable rule protected                                                         |
+| Boundary  | Unit/state/component, DB/API, browser, SVG, artifact, runtime, or manual          |
+| Cases     | Representative success, boundary, failure, and sequence cases only where distinct |
+| Evidence  | Concrete assertions that distinguish correct behavior from likely regressions     |
+| Placement | Proposed test file or suite                                                       |
+| Cost      | Runtime, fixture, brittleness, or maintenance tradeoff                            |
 
 Include the focused commands that would validate the finished tests.
 
@@ -147,6 +165,12 @@ Do not treat silence as approval. Do not start implementation until the user
 agrees. Preserve the agreed plan across later turns unless new evidence or a scope
 change requires another decision.
 
+In decide-for-me mode, skip this interview: answer each of the three questions
+yourself with your recommended option, write down the answer and the tradeoff
+you accepted, and proceed to implementation with that as the agreed plan. Ask
+anyway only if a decision would be destructive or reach outside the requested
+scope, such as changing production code or adding a new dependency.
+
 ## 6. Implement the agreement
 
 Once approved:
@@ -160,16 +184,33 @@ Once approved:
    a revision necessary before changing its substance.
 5. For a well-understood regression, demonstrate the expected pre-fix failure
    when practical, then restore the implementation and show the passing result.
-6. Run the focused tests first, then the relevant repository checks from
+6. Check that the suite rejects breakage. List the decision points in the code
+   under test: guard clauses, fallbacks and defaults (`??`, `||`, ternaries),
+   predicate edges (what counts as empty, `<` versus `<=`), and special cases.
+   Break each one temporarily, for example by dropping the guard, flipping the
+   comparison, or swapping the fallback. Run the focused tests, confirm that at
+   least one fails, then restore the code exactly. This is a check, not a
+   production change, so do it even when told not to modify production code;
+   confirm with `git diff` that the code is restored. Make the breaks with direct
+   edits; if you write a helper script, put it outside the repository and delete
+   it afterwards, so that `git status` shows only the new tests. A decision
+   point that no test catches either gets a test or goes under deliberate
+   exclusions with a reason. Also re-check any test that claims to exercise an edge, such as
+   floating-point tolerance, against the corresponding broken version.
+7. Run the focused tests first, then the relevant repository checks from
    `AGENTS.md`. Report environmental limits and pre-existing failures separately.
 
 If implementation reveals a materially different risk, boundary, or required
 scenario, stop and amend the plan with the user rather than silently expanding
-the suite.
+the suite. In decide-for-me mode, amend the plan yourself and record the change
+and its reason for the final report.
 
 ## 7. Report evidence
 
 Summarize what each new test proves, what remains outside automated coverage, and
-the exact commands and results. For stacks, distinguish cumulative guarantees
+the exact commands and results, including which temporary breakages the suite
+caught and which it didn't. For stacks, distinguish cumulative guarantees
 from tests that belong to an individual PR layer so reviewers can decide where
-the test commit should live.
+the test commit should live. In decide-for-me mode, also list the decisions you
+made on the user's behalf (value, boundary, depth and comment level) with a
+one-line reason each.
