@@ -11,6 +11,7 @@ export type RawBlockBespokeComponent = {
     }
 }
 
+/** @see [BespokeComponent.md](./BespokeComponent.md) */
 export type EnrichedBlockBespokeComponent = {
     type: "bespoke-component"
     bundle: string

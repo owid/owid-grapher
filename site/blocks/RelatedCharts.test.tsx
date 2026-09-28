@@ -4,7 +4,7 @@
 
 import { expect, it } from "vitest"
 import { render, screen, fireEvent } from "@testing-library/react"
-import { GRAPHER_DYNAMIC_THUMBNAIL_URL } from "../../settings/clientSettings.js"
+import { GRAPHER_DYNAMIC_THUMBNAIL_URL } from "../../settings/clientSettings.mjs"
 import { KeyChartLevel } from "@ourworldindata/utils"
 import { RelatedCharts } from "./RelatedCharts.js"
 

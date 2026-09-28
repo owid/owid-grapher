@@ -10,7 +10,7 @@ import {
     ADMIN_BASE_URL,
     BAKED_GRAPHER_URL,
     GRAPHER_DYNAMIC_THUMBNAIL_URL,
-} from "../settings/clientSettings.js"
+} from "../settings/clientSettings.mjs"
 import { ChartListItem } from "./ChartList.js"
 import {
     GRAPHER_CHART_TYPES,

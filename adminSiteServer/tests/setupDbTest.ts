@@ -1,7 +1,7 @@
 import { vi } from "vitest"
 import path from "path"
 import fs from "fs"
-import findProjectBaseDir from "../../settings/findBaseDir.js"
+import findProjectBaseDir from "../../settings/findBaseDir.mjs"
 
 // Ensure Google Docs API calls read from local test-files fixtures
 const baseDir = findProjectBaseDir(__dirname)

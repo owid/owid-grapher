@@ -9,6 +9,7 @@ import {
     GdocAboutPageSettings,
     GdocAnnouncementSettings,
     GdocProfileSettings,
+    GdocFeaturedVizSettings,
 } from "./GdocsSettingsForms.js"
 import { AdminAppContext } from "./AdminAppContext.js"
 import { getCanonicalUrl } from "@ourworldindata/components"
@@ -59,7 +60,7 @@ import {
 import {
     BAKED_BASE_URL,
     PUBLISHED_AT_FORMAT,
-} from "../settings/clientSettings.js"
+} from "../settings/clientSettings.mjs"
 import { RouteComponentProps } from "react-router-dom"
 import * as R from "remeda"
 
@@ -554,6 +555,22 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                             },
                             (gdoc) => (
                                 <GdocAboutPageSettings
+                                    gdoc={gdoc}
+                                    setCurrentGdoc={(updatedGdoc) =>
+                                        setCurrentGdoc(() => updatedGdoc)
+                                    }
+                                    errors={errors}
+                                />
+                            )
+                        )
+                        .with(
+                            {
+                                content: {
+                                    type: OwidGdocType.FeaturedViz,
+                                },
+                            },
+                            (gdoc) => (
+                                <GdocFeaturedVizSettings
                                     gdoc={gdoc}
                                     setCurrentGdoc={(updatedGdoc) =>
                                         setCurrentGdoc(() => updatedGdoc)

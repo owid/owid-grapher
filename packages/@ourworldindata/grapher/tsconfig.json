@@ -1,6 +1,11 @@
 {
     "extends": "../../../devTools/tsconfigs/tsconfig.base.json",
-    "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.json"],
+    "include": [
+        "src/**/*.ts",
+        "src/**/*.tsx",
+        "src/**/*.json",
+        "../../../devTools/types/vitest.d.ts"
+    ],
     "compilerOptions": {
         "module": "es2022",
         "outDir": "./dist"

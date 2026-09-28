@@ -1,7 +1,7 @@
 import * as React from "react"
 import { scaleLinear } from "d3-scale"
 import { extent, line } from "d3"
-import { Bounds } from "@ourworldindata/utils"
+import { Bounds, roundForSvg } from "@ourworldindata/utils"
 import { OwidVariableRow } from "@ourworldindata/types"
 import { GRAPHER_DENIM, GRAY_30 } from "../color/ColorConstants"
 import { SparklineHighlight } from "../dataTable/DataTableConstants"
@@ -45,8 +45,8 @@ export function Sparkline({
         .range([bounds.bottom, bounds.top])
 
     const makePath = line<OwidVariableRow<number>>()
-        .x((row) => xScale(row.originalTime))
-        .y((row) => yScale(row.value))
+        .x((row) => roundForSvg(xScale(row.originalTime)))
+        .y((row) => roundForSvg(yScale(row.value)))
 
     const path = makePath(owidRows)
     if (!path) return null
@@ -66,10 +66,10 @@ export function Sparkline({
                 .map((highlight) => (
                     <line
                         key={highlight.time}
-                        x1={xScale(highlight.time)}
-                        x2={xScale(highlight.time)}
+                        x1={roundForSvg(xScale(highlight.time))}
+                        x2={roundForSvg(xScale(highlight.time))}
                         y1={0}
-                        y2={height}
+                        y2={roundForSvg(height)}
                         stroke={GRAY_30}
                     />
                 ))}
@@ -89,8 +89,8 @@ export function Sparkline({
                 .map((highlight) => (
                     <circle
                         key={highlight.time}
-                        cx={xScale(highlight.time)}
-                        cy={yScale(highlight.value!)}
+                        cx={roundForSvg(xScale(highlight.time))}
+                        cy={roundForSvg(yScale(highlight.value!))}
                         r={dotSize}
                         fill={color}
                         stroke="#fff"

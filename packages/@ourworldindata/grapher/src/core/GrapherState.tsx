@@ -111,6 +111,7 @@ import {
     observable,
     autorun,
     runInAction,
+    untracked,
 } from "mobx"
 import React from "react"
 import * as R from "remeda"
@@ -139,6 +140,7 @@ import { makeChartState } from "../chart/ChartTypeMap.js"
 import {
     autoDetectSeriesStrategy,
     autoDetectYColumnSlugs,
+    scaleFontSize,
 } from "../chart/ChartUtils.js"
 import { DimensionSlot } from "../chart/DimensionSlot.js"
 import { GRAPHER_LIGHT_TEXT } from "../color/ColorConstants.js"
@@ -1018,7 +1020,7 @@ export class GrapherState
      */
     @computed get tableAfterAuthorTimelineAndActiveChartTransform(): OwidTable {
         const table = this.table
-        if (!this.isReady || !this.isOnChartOrMapTab) return table
+        if (!this.isReady) return table
 
         const startMark = performance.now()
 
@@ -1055,7 +1057,7 @@ export class GrapherState
         if (
             this.isOnDiscreteBarTab ||
             this.isOnMarimekkoTab ||
-            this.checkIsTwoColumnDumbbell(this.activeTab)
+            this.isOnTwoColumnDumbbellTab
         )
             return table.filterByTargetTimes([endTime])
 
@@ -1583,9 +1585,12 @@ export class GrapherState
         })
     }
 
+    @computed private get activeChartTypeOrDefault(): GrapherChartType {
+        return this.activeChartType ?? this.defaultChartType
+    }
+
     @computed get chartStateExceptMap(): ChartState {
-        const chartType = this.activeChartType ?? this.defaultChartType
-        return makeChartState(chartType, this)
+        return makeChartState(this.activeChartTypeOrDefault, this)
     }
 
     @computed private get chartSeriesNames(): SeriesName[] {
@@ -1709,7 +1714,8 @@ export class GrapherState
     // Exclusively used for the performance.measurement API, so that DevTools can show some context
     createPerformanceMeasurement(name: string, startMark: number): void {
         const endMark = performance.now()
-        const detail = {
+        // This runs inside computeds; keep performance metadata reads from becoming dependencies
+        const detail = untracked(() => ({
             devtools: {
                 track: "Grapher",
                 properties: [
@@ -1719,7 +1725,7 @@ export class GrapherState
                     ["tab", this.tab],
                 ],
             },
-        }
+        }))
 
         try {
             performance.measure(name, {
@@ -1807,13 +1813,16 @@ export class GrapherState
 
         const columnSlugs = this.isOnMapTab ? mapColumnSlugs : yColumnSlugs
 
-        // Generate the times only after the chart transform has been applied, so that we don't show
-        // times on the timeline for which data may not exist, e.g. when the selected entity
-        // doesn't contain data for all years in the table.
-        // -@danielgavrilov, 2020-10-22
-        return this.tableAfterAuthorTimelineAndActiveChartTransform.getTimesUniqSortedAscForColumns(
-            columnSlugs
-        )
+        // Generate the times only after the chart transform has been applied,
+        // so that we don't show times on the timeline for which data may not
+        // exist, e.g. when the selected entity doesn't contain data for all
+        // years in the table. The table tab is the exception: it uses the
+        // untransformed table so that the timeline includes all data available
+        // in the table.
+        const table = this.isOnTableTab
+            ? this.table
+            : this.tableAfterAuthorTimelineAndActiveChartTransform
+        return table.getTimesUniqSortedAscForColumns(columnSlugs)
     }
 
     /** Plots time on the x-axis */
@@ -2375,7 +2384,7 @@ export class GrapherState
 
             return new MarkdownTextWrap({
                 text,
-                fontSize: (11 / BASE_FONT_SIZE) * baseFontSize,
+                fontSize: scaleFontSize(11, baseFontSize),
                 // Leave room for padding on the left and right
                 maxWidth:
                     this.staticBounds.width -
@@ -3018,6 +3027,10 @@ export class GrapherState
 
     @computed get isOnDumbbellTab(): boolean {
         return this.activeChartType === GRAPHER_CHART_TYPES.Dumbbell
+    }
+
+    @computed private get isOnTwoColumnDumbbellTab(): boolean {
+        return this.checkIsTwoColumnDumbbell(this.activeTab)
     }
 
     @computed get hasLineChart(): boolean {

@@ -2,7 +2,7 @@
 // set up before any errors are thrown.
 import "../../serverUtils/instrument.js"
 
-import * as Sentry from "@sentry/node"
+import { runSentryScript } from "../../serverUtils/sentryTracing.js"
 import { SearchClient } from "algoliasearch"
 import * as db from "../../db/db.js"
 import { ALGOLIA_INDEXING } from "../../settings/serverSettings.js"
@@ -32,7 +32,7 @@ import { indexIndividualGdocInChronological } from "./utils/pagesChronological.j
 const indexScheduledPagesChronologicalToAlgolia = async () => {
     if (!ALGOLIA_INDEXING) {
         console.log("Algolia indexing is disabled. Exiting.")
-        process.exit(0)
+        return
     }
 
     const client = getAlgoliaClient()
@@ -68,8 +68,6 @@ const indexScheduledPagesChronologicalToAlgolia = async () => {
             }
         }
     }, db.TransactionCloseMode.Close)
-
-    process.exit(0)
 }
 
 /** Returns the subset of `objectIDs` that aren't yet present in `indexName`. */
@@ -91,9 +89,7 @@ async function getUnindexedObjectIds(
     return objectIDs.filter((_, i) => results[i] === null)
 }
 
-indexScheduledPagesChronologicalToAlgolia().catch(async (e) => {
-    console.error("Error in indexScheduledPagesChronologicalToAlgolia:", e)
-    Sentry.captureException(e)
-    await Sentry.close()
-    process.exit(1)
-})
+void runSentryScript(
+    "indexScheduledPagesChronologicalToAlgolia",
+    indexScheduledPagesChronologicalToAlgolia
+)

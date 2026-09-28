@@ -5,6 +5,7 @@ import {
     PointVector,
     makeFigmaId,
     pointsToPath,
+    roundForSvg,
 } from "@ourworldindata/utils"
 import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
@@ -120,7 +121,7 @@ export class Lines extends React.Component<LinesProps> {
                 id={makeFigmaId("outline", series.displayName)}
                 placedPoints={series.placedPoints}
                 stroke={outlineColor}
-                strokeWidth={outlineWidth.toFixed(1)}
+                strokeWidth={roundForSvg(outlineWidth)}
             />
         )
 
@@ -129,7 +130,7 @@ export class Lines extends React.Component<LinesProps> {
                 id={makeFigmaId("line", series.seriesName)}
                 points={series.placedPoints}
                 strokeLinejoin="round"
-                strokeWidth={strokeWidth.toFixed(1)}
+                strokeWidth={roundForSvg(strokeWidth)}
                 strokeDasharray={strokeDasharray}
                 strokeOpacity={strokeOpacity}
             />
@@ -138,7 +139,7 @@ export class Lines extends React.Component<LinesProps> {
                 id={makeFigmaId("line", series.seriesName)}
                 placedPoints={series.placedPoints}
                 stroke={color}
-                strokeWidth={strokeWidth.toFixed(1)}
+                strokeWidth={roundForSvg(strokeWidth)}
                 strokeOpacity={strokeOpacity}
                 strokeDasharray={strokeDasharray}
             />
@@ -184,9 +185,9 @@ export class Lines extends React.Component<LinesProps> {
                     <circle
                         id={makeFigmaId(horizontalAxis.formatTick(value.time))}
                         key={index}
-                        cx={value.x}
-                        cy={value.y}
-                        r={this.markerRadius}
+                        cx={roundForSvg(value.x)}
+                        cy={roundForSvg(value.y)}
+                        r={roundForSvg(this.markerRadius)}
                         fill={value.color}
                         stroke={outlineColor}
                         strokeWidth={outlineWidth}
@@ -218,6 +219,8 @@ export class Lines extends React.Component<LinesProps> {
         const { bounds } = this
         return (
             <g className="Lines">
+                {/* Integer on purpose: a fractional rect shaves hairlines off
+                    the edges of the lines it clips */}
                 <rect
                     x={Math.round(bounds.x)}
                     y={Math.round(bounds.y)}

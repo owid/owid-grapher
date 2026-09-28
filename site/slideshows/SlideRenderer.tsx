@@ -2,7 +2,7 @@ import React from "react"
 import cx from "clsx"
 import { Slide, SlideTemplate, ImageMetadata } from "@ourworldindata/types"
 import { SimpleMarkdownText } from "@ourworldindata/components"
-import { CLOUDFLARE_IMAGES_URL } from "../../settings/clientSettings.js"
+import { CLOUDFLARE_IMAGES_URL } from "../../settings/clientSettings.mjs"
 import { GrapherFigureView } from "../GrapherFigureView.js"
 import {
     getSlideAspectRatio,

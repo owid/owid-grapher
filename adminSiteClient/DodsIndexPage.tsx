@@ -29,7 +29,7 @@ import {
 } from "@ourworldindata/components"
 import TextArea from "antd/es/input/TextArea.js"
 import { match } from "ts-pattern"
-import { BAKED_BASE_URL } from "../settings/clientSettings.js"
+import { BAKED_BASE_URL } from "../settings/clientSettings.mjs"
 import { extractDetailsFromSyntax } from "@ourworldindata/utils"
 
 type ValidPhrasingContent = Extract<

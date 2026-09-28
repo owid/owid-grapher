@@ -53,7 +53,7 @@ import { copyToClipboard, dayjs, RequiredBy } from "@ourworldindata/utils"
 import {
     BAKED_BASE_URL,
     GRAPHER_DYNAMIC_THUMBNAIL_URL,
-} from "../settings/clientSettings.js"
+} from "../settings/clientSettings.mjs"
 import { AdminAppContext } from "./AdminAppContext.js"
 import {
     fetchFigmaProvidedImageUrl,

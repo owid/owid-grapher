@@ -3,6 +3,13 @@ interface MarkdownBlock {
     lines: string[]
 }
 
+export interface DescriptionKeySplit {
+    /** Shown above the fold of the metadata box */
+    preview: string
+    /** Revealed when the box is expanded */
+    remainder: string
+}
+
 const LIST_ITEM_START = /^\s*([-*+]|\d+[.)])\s/
 const HEADING_START = /^#{1,6}\s/
 
@@ -120,22 +127,33 @@ function findPreviewEnd(blocks: MarkdownBlock[]): number {
     return previewEnd
 }
 
-/**
- * Split a descriptionKey markdown string into a preview (shown above the fold
- * of the metadata box) and a remainder (revealed when the box is expanded).
- *
- * The remainder is rendered as real content inside the box's <details>, not
- * hidden with CSS, so the box works without JavaScript and browsers can
- * auto-expand it when in-page search (Cmd-F) matches hidden text.
- */
-export function splitDescriptionKey(markdown: string): {
-    preview: string
-    remainder: string
-} {
-    const blocks = parseMarkdownBlocks(markdown)
-    const previewEnd = findPreviewEnd(blocks)
+function findEndOfFirstContentBlock(blocks: MarkdownBlock[]): number {
+    const firstContentIndex = blocks.findIndex(
+        (block) => block.type !== "heading"
+    )
+    return firstContentIndex === -1 ? blocks.length : firstContentIndex + 1
+}
+
+function splitBlocksAt(
+    blocks: MarkdownBlock[],
+    previewEnd: number
+): DescriptionKeySplit {
     return {
         preview: joinMarkdownBlocks(blocks.slice(0, previewEnd)),
         remainder: joinMarkdownBlocks(blocks.slice(previewEnd)),
     }
+}
+
+/** Split a descriptionKey markdown string by the shape of its blocks */
+export function splitDescriptionKey(markdown: string): DescriptionKeySplit {
+    const blocks = parseMarkdownBlocks(markdown)
+    return splitBlocksAt(blocks, findPreviewEnd(blocks))
+}
+
+/** Split a descriptionKey markdown string after its first block */
+export function splitDescriptionKeyAfterFirstBlock(
+    markdown: string
+): DescriptionKeySplit {
+    const blocks = parseMarkdownBlocks(markdown)
+    return splitBlocksAt(blocks, findEndOfFirstContentBlock(blocks))
 }

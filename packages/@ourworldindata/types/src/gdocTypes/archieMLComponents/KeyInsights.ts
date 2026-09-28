@@ -36,6 +36,7 @@ export type EnrichedBlockKeyInsightsSlide = {
     content: OwidEnrichedGdocBlock[]
 }
 
+/** @see [KeyInsights.md](./KeyInsights.md) */
 export type EnrichedBlockKeyInsights = {
     type: "key-insights"
     heading: string

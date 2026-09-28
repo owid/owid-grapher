@@ -41,6 +41,12 @@ export function getPrefixedGdocPath(
         )
         .with(
             {
+                content: { type: OwidGdocType.FeaturedViz },
+            },
+            () => `${prefix}/featured-viz/${gdoc.slug}`
+        )
+        .with(
+            {
                 content: { type: OwidGdocType.Author },
             },
             () => `${prefix}/team/${gdoc.slug}`

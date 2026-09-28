@@ -117,7 +117,8 @@ export function getPageTitle(gdoc: OwidGdoc) {
                         OwidGdocType.AboutPage,
                         OwidGdocType.DataInsight,
                         OwidGdocType.Author,
-                        OwidGdocType.Announcement
+                        OwidGdocType.Announcement,
+                        OwidGdocType.FeaturedViz
                     ),
                 },
             },

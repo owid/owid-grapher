@@ -1,5 +1,5 @@
 import * as R from "remeda"
-import { PointVector, makeFigmaId } from "@ourworldindata/utils"
+import { PointVector, makeFigmaId, roundForSvg } from "@ourworldindata/utils"
 import { observer } from "mobx-react"
 import * as React from "react"
 import { MultiColorPolyline } from "./MultiColorPolyline"
@@ -41,8 +41,8 @@ export class ScatterPoint extends React.Component<ScatterPointProps> {
 
         const isLabelled = series.allLabels.some((label) => !label.isHidden)
         const size = value.size
-        const cx = value.position.x.toFixed(2)
-        const cy = value.position.y.toFixed(2)
+        const cx = roundForSvg(value.position.x)
+        const cy = roundForSvg(value.position.y)
         const stroke = isLayerMode ? "#bbb" : isLabelled ? "#333" : "#666"
 
         return (
@@ -63,13 +63,13 @@ export class ScatterPoint extends React.Component<ScatterPointProps> {
                         cy={cy}
                         fill="none"
                         stroke={color}
-                        r={(size + 3).toFixed(2)}
+                        r={roundForSvg(size + 3)}
                     />
                 )}
                 <circle
                     cx={cx}
                     cy={cy}
-                    r={size.toFixed(2)}
+                    r={roundForSvg(size)}
                     fill={color}
                     opacity={SCATTER_POINT_OPACITY}
                     stroke={stroke}
@@ -119,9 +119,9 @@ export class ScatterLine extends React.Component<ScatterLineProps> {
                 className={series.displayKey}
             >
                 <circle
-                    cx={firstValue.position.x.toFixed(2)}
-                    cy={firstValue.position.y.toFixed(2)}
-                    r={(1 + firstValue.size / 2).toFixed(1)}
+                    cx={roundForSvg(firstValue.position.x)}
+                    cy={roundForSvg(firstValue.position.y)}
+                    r={roundForSvg(1 + firstValue.size / 2)}
                     fill={isLayerMode ? "#e2e2e2" : firstValue.color}
                     stroke="none"
                     opacity={opacity}
@@ -132,7 +132,7 @@ export class ScatterLine extends React.Component<ScatterLineProps> {
                         y: v.position.y,
                         color: isLayerMode ? "#ccc" : v.color,
                     }))}
-                    strokeWidth={series.size.toFixed(2)}
+                    strokeWidth={roundForSvg(series.size)}
                     opacity={opacity}
                     style={{ transition: "stroke 250ms" }}
                 />

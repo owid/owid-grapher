@@ -401,6 +401,13 @@ export function roundFontSize(fontSize: number): number {
     return Math.round(fontSize * 2) / 2
 }
 
+export function scaleFontSize(
+    sizeAtBase16: number,
+    baseFontSize: number
+): number {
+    return roundFontSize((sizeAtBase16 / BASE_FONT_SIZE) * baseFontSize)
+}
+
 /**
  * Checks whether a pair of observations spanning two points in time is valid
  * given tolerance

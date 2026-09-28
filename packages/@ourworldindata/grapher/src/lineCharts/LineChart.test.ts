@@ -22,14 +22,22 @@ import { OWID_NO_DATA_GRAY } from "../color/ColorConstants"
 import { LineChart } from "./LineChart"
 import { LineChartState } from "./LineChartState"
 
+function makeLineChart(manager: LineChartManager): {
+    chartState: LineChartState
+    chart: LineChart
+} {
+    const chartState = new LineChartState({ manager })
+    const chart = new LineChart({ chartState })
+    return { chartState, chart }
+}
+
 it("can create a new chart", () => {
     const table = SynthesizeGDPTable({ timeRange: [2000, 2010] })
     const manager: ChartManager = {
         table,
         yColumnSlugs: [SampleColumnSlugs.GDP],
     }
-    const chartState = new LineChartState({ manager })
-    const chart = new LineChart({ chartState })
+    const { chartState, chart } = makeLineChart(manager)
 
     expect(chartState.errorInfo.reason).toBeTruthy()
 
@@ -56,18 +64,15 @@ it("can filter points with negative values when using a log scale", () => {
         yColumnSlugs: [SampleColumnSlugs.Fruit],
         selection: table.availableEntityNames,
     }
-    const chartState = new LineChartState({ manager })
-    const chart = new LineChart({ chartState })
+    const { chart } = makeLineChart(manager)
     expect(chart.series.length).toEqual(2)
 
-    const logScaleManager = {
+    const { chart: logChart } = makeLineChart({
         ...manager,
         yAxisConfig: {
             scaleType: ScaleType.log,
         },
-    }
-    const logChartState = new LineChartState({ manager: logScaleManager })
-    const logChart = new LineChart({ chartState: logChartState })
+    })
     expect(logChart.yAxis.domain[0]).toBeGreaterThan(0)
     expect(logChart.series.length).toEqual(2)
 })
@@ -86,8 +91,7 @@ it("filters non-numeric values", () => {
         yColumnSlugs: [SampleColumnSlugs.Fruit],
         selection: table.availableEntityNames,
     }
-    const chartState = new LineChartState({ manager })
-    const chart = new LineChart({ chartState })
+    const { chart } = makeLineChart(manager)
     expect(chart.series.length).toEqual(2)
 })
 
@@ -100,8 +104,7 @@ describe("series naming in multi-column mode", () => {
             canSelectMultipleEntities: false,
             selection: [table.availableEntityNames[0]],
         }
-        const chartState = new LineChartState({ manager })
-        const chart = new LineChart({ chartState })
+        const { chart } = makeLineChart(manager)
         expect(chart.series[0].seriesName).not.toContain(" - ")
     })
 
@@ -111,8 +114,7 @@ describe("series naming in multi-column mode", () => {
             canSelectMultipleEntities: true,
             selection: [table.availableEntityNames[0]],
         }
-        const chartState = new LineChartState({ manager })
-        const chart = new LineChart({ chartState })
+        const { chart } = makeLineChart(manager)
         expect(chart.series[0].seriesName).toContain(" - ")
     })
 
@@ -122,8 +124,7 @@ describe("series naming in multi-column mode", () => {
             canSelectMultipleEntities: false,
             selection: table.availableEntityNames,
         }
-        const chartState = new LineChartState({ manager })
-        const chart = new LineChart({ chartState })
+        const { chart } = makeLineChart(manager)
         expect(chart.series[0].seriesName).toContain(" - ")
     })
 })
@@ -142,8 +143,7 @@ describe("colors", () => {
             table,
             selection,
         }
-        const chartState = new LineChartState({ manager })
-        const chart = new LineChart({ chartState })
+        const { chart } = makeLineChart(manager)
         expect(chart.series.map((series) => series.color)).toEqual([
             "blue",
             "red",
@@ -167,8 +167,7 @@ describe("colors", () => {
             selection,
             seriesStrategy: SeriesStrategy.column,
         }
-        const chartState = new LineChartState({ manager })
-        const chart = new LineChart({ chartState })
+        const { chart } = makeLineChart(manager)
         const series = chart.series
 
         expect(series).toHaveLength(1)
@@ -183,8 +182,7 @@ describe("colors", () => {
             selection,
             seriesColorMap: new Map(),
         }
-        const chartState = new LineChartState({ manager })
-        const chart = new LineChart({ chartState })
+        const { chart } = makeLineChart(manager)
         const series = chart.series
         expect(series).toHaveLength(2)
 
@@ -217,8 +215,7 @@ describe("colors", () => {
             facetStrategy: FacetStrategy.entity,
             canSelectMultipleEntities: true,
         }
-        const chartState = new LineChartState({ manager })
-        const chart = new LineChart({ chartState })
+        const { chart } = makeLineChart(manager)
         const series = chart.series
 
         expect(series).toHaveLength(2)
@@ -251,8 +248,7 @@ describe("colors", () => {
             seriesStrategy: SeriesStrategy.column,
             canSelectMultipleEntities: true,
         }
-        const chartState = new LineChartState({ manager })
-        const chart = new LineChart({ chartState })
+        const { chart } = makeLineChart(manager)
         const series = chart.series
 
         expect(series).toHaveLength(2)
@@ -281,8 +277,7 @@ it("reverses order of plotted series to plot the first one over the others", () 
         selection: ["usa"],
         seriesStrategy: SeriesStrategy.column,
     }
-    const chartState = new LineChartState({ manager })
-    const chart = new LineChart({ chartState })
+    const { chart } = makeLineChart(manager)
 
     expect(chart.placedSeries).toHaveLength(2)
     expect(chart.placedSeries[0].seriesName).toEqual("pop")
@@ -300,24 +295,18 @@ describe("externalLegendBins", () => {
     }
 
     it("doesn't expose externalLegendBins when legend is shown", () => {
-        const chartState = new LineChartState({
-            manager: {
-                ...baseManager,
-                showSeriesLabels: true,
-            },
+        const { chart } = makeLineChart({
+            ...baseManager,
+            showSeriesLabels: true,
         })
-        const chart = new LineChart({ chartState })
         expect(chart["externalLegend"]).toBeUndefined()
     })
 
     it("exposes externalLegendBins when legend is hidden", () => {
-        const chartState = new LineChartState({
-            manager: {
-                ...baseManager,
-                showSeriesLabels: false,
-            },
+        const { chart } = makeLineChart({
+            ...baseManager,
+            showSeriesLabels: false,
         })
-        const chart = new LineChart({ chartState })
         expect(chart["externalLegend"]?.categoricalLegendData?.length).toEqual(
             2
         )
@@ -374,8 +363,7 @@ describe("color scale", () => {
                 customNumericValues: [0, 1.5, 2.5],
             },
         }
-        const chartState = new LineChartState({ manager })
-        const chart = new LineChart({ chartState })
+        const { chart } = makeLineChart(manager)
         const noDataColor = OWID_NO_DATA_GRAY
 
         expect(chart.series).toHaveLength(1)
@@ -427,8 +415,7 @@ describe("color scale", () => {
             selection: ["usa"],
             seriesStrategy: SeriesStrategy.column,
         }
-        const chartState = new LineChartState({ manager })
-        const chart = new LineChart({ chartState })
+        const { chart } = makeLineChart(manager)
 
         expect(chart.series).toHaveLength(1)
         expect(chart.series[0].points).toHaveLength(4)
@@ -453,8 +440,7 @@ it("ignores x-axis config when a scatter plot is present", () => {
         hasScatter: true,
         xAxisConfig: { label: "Custom X Axis Label" },
     }
-    const chartState = new LineChartState({ manager })
-    const chart = new LineChart({ chartState })
+    const { chart } = makeLineChart(manager)
 
     // x-axis label is ignored because a scatter tab is present
     expect(chart.xAxis.label).toBe("")
