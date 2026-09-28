@@ -230,8 +230,6 @@ const SORT_BY_LABELS: Record<Exclude<SortBy, SortBy.column>, string> = {
     [SortBy.change]: "Change",
     [SortBy.startValue]: "Start value",
     [SortBy.endValue]: "End value",
-    [SortBy.firstCategory]: "First category",
-    [SortBy.lastCategory]: "Last category",
 }
 
 const SORT_BY_DISPLAY_ORDER: SortBy[] = [
@@ -241,8 +239,6 @@ const SORT_BY_DISPLAY_ORDER: SortBy[] = [
     SortBy.change,
     SortBy.startValue,
     SortBy.endValue,
-    SortBy.firstCategory,
-    SortBy.lastCategory,
     SortBy.column,
 ]
 

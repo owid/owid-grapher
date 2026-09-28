@@ -1,6 +1,5 @@
 import { Bounds } from "@ourworldindata/utils"
 import { Time } from "@ourworldindata/types"
-import { SortKeyFn } from "../chart/ChartUtils"
 import { computeCenteredLabelYPositions } from "../rowSeriesLabels/RowSeriesLabelHelpers.js"
 import {
     ENTITY_LABEL_CHART_GAP,
@@ -11,7 +10,6 @@ import {
     SizedSwimlaneSeries,
     SwimlaneObservation,
     SwimlaneSegment,
-    SwimlaneSeries,
 } from "./SwimlaneChartConstants"
 
 export function toSwimlaneSegments({
@@ -105,48 +103,4 @@ export function toPlacedSwimlaneSeries({
             placedSegments,
         }
     })
-}
-
-/** Sort key that orders series by the category they start or end on */
-export function sortByCategory({
-    series: allSeries,
-    boundary,
-    categories,
-}: {
-    series: SwimlaneSeries[]
-    boundary: "first" | "last"
-    categories: string[]
-}): SortKeyFn<SwimlaneSeries>[] {
-    const rankedCategories =
-        boundary === "first" ? categories.toReversed() : categories
-
-    const sortCriteriaByEntityName = new Map(
-        allSeries.map((series) => {
-            const segment =
-                boundary === "first"
-                    ? series.segments.find(
-                          (segment) => segment.kind === "category"
-                      )
-                    : series.segments.findLast(
-                          (segment) => segment.kind === "category"
-                      )
-
-            return [
-                series.entityName,
-                {
-                    categoryRank: segment
-                        ? rankedCategories.indexOf(segment.category)
-                        : -1,
-                    duration: segment ? segment.endTime - segment.startTime : 0,
-                },
-            ]
-        })
-    )
-
-    return [
-        (series) =>
-            sortCriteriaByEntityName.get(series.entityName)?.categoryRank,
-        (series) => sortCriteriaByEntityName.get(series.entityName)?.duration,
-        (series) => series.entityName,
-    ]
 }

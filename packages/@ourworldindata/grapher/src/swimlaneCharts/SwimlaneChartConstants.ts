@@ -68,12 +68,7 @@ export type SwimlaneCategories =
     | { kind: "ordinal"; values: string[] }
     | { kind: "categorical"; values: string[] }
 
-export const SWIMLANE_SORT_KEYS = [
-    SortBy.custom,
-    SortBy.entityName,
-    SortBy.firstCategory,
-    SortBy.lastCategory,
-] as const
+export const SWIMLANE_SORT_KEYS = [SortBy.custom, SortBy.entityName] as const
 export type SwimlaneSortKey = (typeof SWIMLANE_SORT_KEYS)[number]
 
 export function isSwimlaneSortKey(sortBy: SortBy): sortBy is SwimlaneSortKey {
