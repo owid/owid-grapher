@@ -166,6 +166,8 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
     }, [id])
 
     // initialize
+    // `admin` is a MobX store, so mutating it is how we update it
+    /* oxlint-disable react/immutability */
     useEffect(() => {
         let isMounted = true
         async function fetchLatestGdoc() {
@@ -209,6 +211,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
             admin.loadingIndicatorSetting = "default"
         }
     }, [admin, acceptSuggestions, fetchGdoc, handleError])
+    /* oxlint-enable react/immutability */
 
     const isLightningUpdate = useLightningUpdate(
         originalGdoc,

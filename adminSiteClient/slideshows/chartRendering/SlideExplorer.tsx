@@ -7,7 +7,7 @@ import {
     getSlideshowGrapherConfig,
     parseSlideChartUrl,
 } from "../../../site/slideshows/slideshowUtils.js"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useEffectEvent, useRef, useState } from "react"
 import { BAKED_BASE_URL } from "../../../settings/clientSettings.mjs"
 import { fetchText } from "@ourworldindata/utils"
 import { reaction, runInAction } from "mobx"
@@ -41,12 +41,16 @@ export function SlideExplorer(props: {
     const { url, onQueryStringChange, interactiveCharts, onChartReady } = props
     const parsed = parseSlideChartUrl(url)
     const explorerRef = useRef<Explorer>(null)
-    const onChangeRef = useRef(onQueryStringChange)
-    onChangeRef.current = onQueryStringChange
-    const onChartReadyRef = useRef(onChartReady)
-    onChartReadyRef.current = onChartReady
-    const interactiveChartsRef = useRef(interactiveCharts)
-    interactiveChartsRef.current = interactiveCharts
+    // Effect events, so that the reactions below always see the latest props
+    const handleQueryStringChange = useEffectEvent((queryString: string) =>
+        onQueryStringChange?.(queryString)
+    )
+    const handleChartReady = useEffectEvent(
+        (info: { title: string; subtitle: string }) => onChartReady?.(info)
+    )
+    const getInteractiveCharts = useEffectEvent(
+        () => interactiveCharts ?? false
+    )
 
     const explorerPropsKey = `${parsed.slug}\n${parsed.queryString ?? ""}`
     const [explorerPropsState, setExplorerPropsState] = useState<{
@@ -111,13 +115,12 @@ export function SlideExplorer(props: {
                 () => explorer.grapherState?.isReady,
                 (isReady) => {
                     if (!isReady) return
-                    onChartReadyRef.current?.({
+                    handleChartReady({
                         title: explorer.grapherState.fullTitle,
                         subtitle: explorer.grapherState.effectiveSubtitle,
                     })
                     const config = getSlideshowGrapherConfig({
-                        interactiveCharts:
-                            interactiveChartsRef.current ?? false,
+                        interactiveCharts: getInteractiveCharts(),
                     })
                     runInAction(() => {
                         Object.assign(explorer.grapherState, config)
@@ -132,7 +135,7 @@ export function SlideExplorer(props: {
             reaction(
                 () => explorer.queryStr,
                 (queryStr) => {
-                    onChangeRef.current?.(withoutHiddenControls(queryStr))
+                    handleQueryStringChange(withoutHiddenControls(queryStr))
                 }
             )
         )

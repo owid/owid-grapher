@@ -275,9 +275,27 @@ export function Sankey({
         dismissTooltip
     )
 
+    // Use the wrapper div's dimensions, not the SVG's: the SVG can be
+    // shorter than its grid cell (SplitFlowSankey shrinks one half to
+    // equalize scale), which would clip the tooltip near the bottom edge
+    const [containerSize, setContainerSize] = useState<{
+        width: number
+        height: number
+    } | null>(null)
+
     const onSvgMouseMove = useCallback(
         (event: React.MouseEvent<SVGSVGElement>) => {
             if (!svgRef.current || !layout) return
+            const containerEl = containerRef.current
+            if (containerEl) {
+                const width = containerEl.clientWidth
+                const height = containerEl.clientHeight
+                setContainerSize((prev) =>
+                    prev?.width === width && prev.height === height
+                        ? prev
+                        : { width, height }
+                )
+            }
             const mouse = getRelativeMouse(svgRef.current, event.nativeEvent)
             if (getNodeTooltip) {
                 const node = findNodeAtPoint({
@@ -313,7 +331,14 @@ export function Sankey({
             }
             setHover(null)
         },
-        [getLinkTooltip, getNodeTooltip, isNodeHoverable, labels, layout]
+        [
+            containerRef,
+            getLinkTooltip,
+            getNodeTooltip,
+            isNodeHoverable,
+            labels,
+            layout,
+        ]
     )
 
     const onSvgMouseLeave = useCallback(() => setHover(null), [])
@@ -439,13 +464,7 @@ export function Sankey({
     const hoveredNodeId = hover?.kind === "node" ? hover.node.id : undefined
     const hoveredLink = hover?.kind === "link" ? hover.link : undefined
 
-    // Use the wrapper div's dimensions, not the SVG's: the SVG can be
-    // shorter than its grid cell (SplitFlowSankey shrinks one half to
-    // equalize scale), which would clip the tooltip near the bottom edge
-    const containerEl = containerRef.current
-    const tooltipBounds = containerEl
-        ? { width: containerEl.clientWidth, height: containerEl.clientHeight }
-        : { width, height: svgHeight }
+    const tooltipBounds = containerSize ?? { width, height: svgHeight }
 
     const tooltip: SankeyTooltip | undefined = match(hover)
         .with({ kind: "link" }, ({ link }) =>
