@@ -176,6 +176,21 @@
         "react/require-render-return": "error",
         "react/rules-of-hooks": "error",
 
+        // Rules of React checks powered by React Compiler's analysis
+        // (lint-only, we don't run the compiler itself).
+        // https://oxc.rs/blog/2026-08-18-react-compiler-support.html
+        "react/capitalized-calls": "error",
+        "react/error-boundaries": "error",
+        "react/globals": "error",
+        "react/incompatible-library": "error",
+        "react/memo-dependencies": "error",
+        "react/no-deriving-state-in-effects": "error",
+        "react/purity": "error",
+        "react/set-state-in-render": "error",
+        "react/static-components": "error",
+        "react/use-memo": "error",
+        "react/void-use-memo": "error",
+
         "typescript/await-thenable": "warn",
         "typescript/ban-ts-comment": "error",
         "typescript/consistent-type-exports": [
