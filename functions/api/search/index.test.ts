@@ -224,6 +224,43 @@ describe("Search API endpoint", () => {
         })
     })
 
+    describe("unknown parameters", () => {
+        it("rejects the search page's resultType with a hint", async () => {
+            const mockSearchCharts = vi.spyOn(searchApi, "searchCharts")
+
+            const request = new Request(
+                "http://localhost/api/search?q=deaths&resultType=writing"
+            )
+            const response = await onRequestGet({
+                request,
+                env: mockEnv,
+            } as any)
+
+            expect(response.status).toBe(400)
+            const body = await response.json()
+            assert(typeof body === "object" && body !== null && "error" in body)
+            expect(body.error).toContain('"resultType"')
+            expect(body.error).toContain("type=pages")
+            expect(mockSearchCharts).not.toHaveBeenCalled()
+        })
+
+        it("rejects a misspelled parameter", async () => {
+            const request = new Request(
+                "http://localhost/api/search?q=deaths&topic=Health"
+            )
+            const response = await onRequestGet({
+                request,
+                env: mockEnv,
+            } as any)
+
+            expect(response.status).toBe(400)
+            const body = await response.json()
+            assert(typeof body === "object" && body !== null && "error" in body)
+            expect(body.error).toContain('"topic"')
+            expect(body.error).toContain("topics")
+        })
+    })
+
     describe("topic page recommendations", () => {
         const tagGraph = { name: "tag-graph-root", children: [] }
         const envWithAssets = {

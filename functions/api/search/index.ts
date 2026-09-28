@@ -27,6 +27,27 @@ type SearchType = "charts" | "pages"
 // a Set for O(1) membership checks.
 const VALID_PAGE_TYPES = new Set<string>(ALL_GDOC_TYPES)
 
+// Every query parameter this endpoint reads. Anything else is rejected, so a
+// misspelled or misplaced parameter fails loudly instead of being silently
+// ignored (e.g. the search page's `resultType=writing` would otherwise return
+// charts, since `type` defaults to "charts").
+const KNOWN_PARAMS = new Set<string>([
+    "type",
+    SearchUrlParam.QUERY,
+    SearchUrlParam.COUNTRY,
+    SearchUrlParam.TOPIC,
+    SearchUrlParam.REQUIRE_ALL_COUNTRIES,
+    "pageTypes",
+    "page",
+    "hitsPerPage",
+])
+
+// Hints for parameters people carry over from the search page's URL.
+const PARAM_HINTS: Record<string, string> = {
+    [SearchUrlParam.RESULT_TYPE]:
+        'Use "type=pages" to search writing, or "type=charts" for charts.',
+}
+
 /**
  * The topic tag graph the site bakes to /topicTagGraph.json; it maps tag
  * names to topic page slugs for topic page recommendations.
@@ -54,6 +75,21 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         if (!hasSearchEnvVars(env)) {
             throw new Error(
                 "Missing environment variables. Please check that both ALGOLIA_ID and ALGOLIA_SEARCH_KEY are set."
+            )
+        }
+
+        const unknownParams = [...new Set(url.searchParams.keys())].filter(
+            (param) => !KNOWN_PARAMS.has(param)
+        )
+        if (unknownParams.length > 0) {
+            const hints = unknownParams
+                .map((param) => PARAM_HINTS[param])
+                .filter(Boolean)
+            throw new SearchValidationError(
+                [
+                    `Unknown parameter(s): "${unknownParams.join('", "')}". Valid parameters: ${Array.from(KNOWN_PARAMS).join(", ")}.`,
+                    ...hints,
+                ].join(" ")
             )
         }
 
