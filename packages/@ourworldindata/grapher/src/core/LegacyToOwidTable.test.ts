@@ -1,6 +1,7 @@
 import { expect, it, describe } from "vitest"
 
 import {
+    ColumnTypeNames,
     GRAPHER_CHART_TYPES,
     OwidTableSlugs,
     StandardOwidColumnDefs,
@@ -20,6 +21,7 @@ import {
 import {
     MultipleOwidVariableDataDimensionsMap,
     OwidVariableDataMetadataDimensions,
+    OwidVariableDisplayConfig,
     DimensionProperty,
 } from "@ourworldindata/utils"
 
@@ -82,6 +84,7 @@ describe(legacyToOwidTableAndDimensions, () => {
 
             // Apply the chart-level conversionFactor (10)
             expect(table.rows[0]["2"]).toEqual(80)
+            expect(table.get("2").def.display?.conversionFactor).toEqual(10)
         })
 
         it("applies the more variable-level conversionFactor if a chart-level one is not present", () => {
@@ -93,6 +96,161 @@ describe(legacyToOwidTableAndDimensions, () => {
 
             // Apply the variable-level conversionFactor (100)
             expect(table.rows[0]["2"]).toEqual(800)
+            expect(table.get("2").def.display?.conversionFactor).toEqual(100)
+        })
+
+        it("applies the indicator's conversionFactor under a ChartDimension's display with no fields set", () => {
+            const variableConfig: MultipleOwidVariableDataDimensionsMap =
+                new Map([
+                    [
+                        2,
+                        {
+                            ...legacyVariableEntry,
+                            metadata: {
+                                ...legacyVariableEntry.metadata,
+                                display: {
+                                    conversionFactor: 100,
+                                    name: "Indicator name",
+                                    unit: "kg",
+                                },
+                            },
+                        },
+                    ],
+                ])
+            const table = legacyToOwidTableAndDimensionsWithMandatorySlug(
+                variableConfig,
+                [
+                    {
+                        variableId: 2,
+                        display: new OwidVariableDisplayConfig(),
+                        property: DimensionProperty.y,
+                    },
+                ],
+                undefined
+            )
+
+            expect(table.rows[0]["2"]).toEqual(800)
+            expect(table.get("2").def.display).toMatchObject({
+                conversionFactor: 100,
+                name: "Indicator name",
+                unit: "kg",
+            })
+        })
+
+        it("turns an integer column numeric under a non-whole conversionFactor", () => {
+            const variableConfig: MultipleOwidVariableDataDimensionsMap =
+                new Map([
+                    [
+                        2,
+                        {
+                            ...legacyVariableEntry,
+                            metadata: {
+                                ...legacyVariableEntry.metadata,
+                                type: "int",
+                                display: {},
+                            },
+                        },
+                    ],
+                ])
+            const table = legacyToOwidTableAndDimensionsWithMandatorySlug(
+                variableConfig,
+                [
+                    {
+                        variableId: 2,
+                        display: { conversionFactor: 0.5 },
+                        property: DimensionProperty.y,
+                    },
+                ],
+                undefined
+            )
+
+            expect(table.rows[0]["2"]).toEqual(4)
+            expect(table.get("2").def.type).toEqual(ColumnTypeNames.Numeric)
+        })
+    })
+
+    describe("slot display", () => {
+        it("takes the first slot's display when two slots share a slug", () => {
+            const table = legacyToOwidTableAndDimensionsWithMandatorySlug(
+                legacyVariableConfig,
+                [
+                    {
+                        variableId: 2,
+                        display: { name: "First", unit: "kg" },
+                        property: DimensionProperty.y,
+                    },
+                    {
+                        variableId: 2,
+                        display: {
+                            name: "Second",
+                            unit: "t",
+                            conversionFactor: 10,
+                        },
+                        property: DimensionProperty.x,
+                    },
+                ],
+                undefined
+            )
+
+            const column = table.get("2")
+            expect(column.def.display).toMatchObject({
+                name: "First",
+                unit: "kg",
+                conversionFactor: 100,
+            })
+            expect(column.valuesIncludingErrorValues).toEqual([800])
+        })
+
+        it("filters to the target year with the slot's tolerance", () => {
+            const variableConfig: MultipleOwidVariableDataDimensionsMap =
+                new Map([
+                    [2, legacyVariableEntry],
+                    [
+                        3,
+                        {
+                            data: {
+                                entities: [1],
+                                values: [30],
+                                years: [2019],
+                            },
+                            metadata: {
+                                id: 3,
+                                display: { tolerance: 0 },
+                                dimensions: {
+                                    years: { values: [{ id: 2019 }] },
+                                    entities: {
+                                        values: [
+                                            {
+                                                name: "World",
+                                                code: "OWID_WRL",
+                                                id: 1,
+                                            },
+                                        ],
+                                    },
+                                },
+                            },
+                        },
+                    ],
+                ])
+            const valuesAtTargetYear = (
+                slotDisplay?: OwidVariableDisplayConfigInterface
+            ): unknown[] =>
+                legacyToOwidTableAndDimensionsWithMandatorySlug(
+                    variableConfig,
+                    [
+                        { variableId: 2, property: DimensionProperty.y },
+                        {
+                            variableId: 3,
+                            property: DimensionProperty.x,
+                            targetYear: 2020,
+                            display: slotDisplay,
+                        },
+                    ],
+                    undefined
+                ).get("3-2020").valuesIncludingErrorValues
+
+            expect(valuesAtTargetYear()).not.toContain(30)
+            expect(valuesAtTargetYear({ tolerance: 1 })).toEqual([30])
         })
     })
 
