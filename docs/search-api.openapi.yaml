@@ -33,6 +33,10 @@ paths:
 
         - For **chart search**: Filter by countries, topics, and entity availability
         - For **page search**: Find articles, research papers, and informational content
+
+        Parameters not listed below are rejected with a 400 rather than ignored.
+        In particular, the search page's `resultType` parameter isn't accepted
+        here: use `type=pages` to search writing.
       operationId: search
       tags:
         - Search
@@ -206,14 +210,19 @@ paths:
                     length: 20
 
         "400":
-          description: Bad request - invalid parameters
+          description: Bad request - invalid parameter values or unknown parameters
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-              example:
-                error: "Invalid parameter value"
-                message: "hitsPerPage must be between 1 and 100"
+              examples:
+                invalidValue:
+                  value:
+                    error: "Invalid parameter value"
+                    message: "hitsPerPage must be between 1 and 100"
+                unknownParameter:
+                  value:
+                    error: 'Unknown parameter(s): "resultType". Valid parameters: type, q, countries, topics, requireAllCountries, pageTypes, page, hitsPerPage. Use "type=pages" to search writing, or "type=charts" for charts.'
 
         "500":
           description: Internal server error
