@@ -149,6 +149,27 @@ async function getAvailableTopics(config: AlgoliaConfig): Promise<string[]> {
     return Object.keys(response.results[0].facets?.tags ?? {}).sort()
 }
 
+/**
+ * Throws a SearchValidationError when the filters name a topic that doesn't
+ * exist. Only worth calling after an empty result, since it costs a request.
+ */
+async function assertTopicsExist(
+    config: AlgoliaConfig,
+    filters: Filter[]
+): Promise<void> {
+    const requestedTopics = getFilterNamesOfType(filters, FilterType.TOPIC)
+    if (requestedTopics.size === 0) return
+    const availableTopics = await getAvailableTopics(config)
+    const invalidTopics = Array.from(requestedTopics).filter(
+        (topic) => !availableTopics.includes(topic)
+    )
+    if (invalidTopics.length > 0) {
+        throw new SearchValidationError(
+            `No results found. The topic "${invalidTopics.join('", "')}" does not exist. Available topics: ${availableTopics.join(", ")}`
+        )
+    }
+}
+
 export async function searchCharts(
     config: AlgoliaConfig,
     state: SearchState,
@@ -184,21 +205,7 @@ export async function searchCharts(
     )
 
     // If we got zero results and user is filtering by topic, check if the topic exists
-    const requestedTopics = getFilterNamesOfType(
-        state.filters,
-        FilterType.TOPIC
-    )
-    if (result.nbHits === 0 && requestedTopics.size > 0) {
-        const availableTopics = await getAvailableTopics(config)
-        const invalidTopics = Array.from(requestedTopics).filter(
-            (topic) => !availableTopics.includes(topic)
-        )
-        if (invalidTopics.length > 0) {
-            throw new SearchValidationError(
-                `No results found. The topic "${invalidTopics.join('", "')}" does not exist. Available topics: ${availableTopics.join(", ")}`
-            )
-        }
-    }
+    if (result.nbHits === 0) await assertTopicsExist(config, state.filters)
 
     // Clean up the hits and add URL
     const cleanedHits = result.hits.map((hit): EnrichedSearchChartHit => {
@@ -336,8 +343,8 @@ export async function searchTopicPages(
             length,
         }
     )
-    if (!result)
-        return searchPages(
+    if (!result) {
+        const fallback = await searchPages(
             config,
             state.query,
             offset,
@@ -346,6 +353,10 @@ export async function searchTopicPages(
             baseUrl,
             getFilterNamesOfType(state.filters, FilterType.TOPIC)
         )
+        if (fallback.nbHits === 0)
+            await assertTopicsExist(config, state.filters)
+        return fallback
+    }
 
     return {
         query: state.query,

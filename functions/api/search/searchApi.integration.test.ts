@@ -465,6 +465,24 @@ describe("searchTopicPages with real Algolia", () => {
         )
     })
 
+    it("rejects a topic that doesn't exist", async () => {
+        await expect(
+            searchTopicPages(
+                algoliaConfig,
+                {
+                    query: "gdp",
+                    filters: [
+                        { type: FilterType.TOPIC, name: "InvalidTopicName123" },
+                    ],
+                    requireAllCountries: false,
+                },
+                await fetchTagGraph(),
+                0,
+                5
+            )
+        ).rejects.toThrow(/does not exist. Available topics:/)
+    })
+
     it("paginates the recommended topics", async () => {
         const tagGraph = await fetchTagGraph()
         const state = { query: "co2", filters: [], requireAllCountries: false }
