@@ -10,7 +10,7 @@
         "@ourworldindata/grapher": "workspace:^",
         "@ourworldindata/types": "workspace:^",
         "@ourworldindata/utils": "workspace:^",
-        "@sentry/cloudflare": "^10.70.0",
+        "@sentry/cloudflare": "^11.0.0",
         "algoliasearch": "^5.57.0",
         "cookie": "^2.0.1",
         "entities": "^8.0.0",
