@@ -197,7 +197,9 @@ export class ChartEditorPage {
 
     /** Accepts the next `window.confirm` (e.g. when publishing) */
     acceptNextDialog(): void {
-        this.page.once("dialog", (dialog) => void dialog.accept())
+        this.page.once("dialog", async (dialog) => {
+            await dialog.accept()
+        })
     }
 
     /**
@@ -205,7 +207,9 @@ export class ChartEditorPage {
      * sent to the server, after checking that the server accepted it.
      */
     async save(): Promise<GrapherInterface> {
-        return this.saveWith(this.button(/^(Create draft|Save draft|Update chart)$/))
+        return this.saveWith(
+            this.button(/^(Create draft|Save draft|Update chart)$/)
+        )
     }
 
     /** Clicks a button that saves the chart and returns the sent patch */

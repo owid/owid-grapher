@@ -23,6 +23,7 @@
         { "path": "./devTools/schema" },
         { "path": "./devTools/svgTester" },
         { "path": "./devTools/syncGraphersToR2" },
+        { "path": "./playwright" },
         { "path": "./settings" },
         { "path": "./site" }
     ]

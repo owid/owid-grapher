@@ -31,9 +31,9 @@ test("excluding an entity from a scatter plot", async ({
     const excluded = form.locator(".excludedEntities li")
     await expect(excluded).toHaveCount(0)
 
-    await editor.field("Exclude individual entities").selectOption(
-        entities.france.name
-    )
+    await editor
+        .field("Exclude individual entities")
+        .selectOption(entities.france.name)
 
     await expect(excluded).toHaveText([entities.france.name])
     const patch = await editor.save()

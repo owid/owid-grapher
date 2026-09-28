@@ -133,7 +133,8 @@ export const indicators = {
         type: "float",
         dataset: datasets.economy,
         // matches GDP_PER_CAPITA_CATALOG_PATH, the default scatter x-axis
-        catalogPath: "grapher/worldbank_wdi/2025-01-01/wdi/wdi#ny_gdp_pcap_pp_kd",
+        catalogPath:
+            "grapher/worldbank_wdi/2025-01-01/wdi/wdi#ny_gdp_pcap_pp_kd",
         entities: countriesAndWorld,
         value: linear(2000, 3000, 250),
     },
@@ -163,8 +164,7 @@ export const indicators = {
         catalogPath: "grapher/test/2024-01-01/economy/economy#gdp_growth",
         entities: countriesAndWorld,
         // alternates between positive and negative values
-        value: (_entity, entityIndex, year) =>
-            ((entityIndex + year) % 5) - 2,
+        value: (_entity, entityIndex, year) => ((entityIndex + year) % 5) - 2,
     },
     coalEmissions: {
         id: 1006,
@@ -244,18 +244,14 @@ export const dods = [
 export const allIndicators: FixtureIndicator[] = Object.values(indicators)
 
 const years = (): number[] =>
-    Array.from(
-        { length: LAST_YEAR - FIRST_YEAR + 1 },
-        (_, i) => FIRST_YEAR + i
-    )
+    Array.from({ length: LAST_YEAR - FIRST_YEAR + 1 }, (_, i) => FIRST_YEAR + i)
 
 /** The indicator's values in the shape of the data API's `{id}.data.json` */
 export function indicatorData(
     indicator: FixtureIndicator
 ): OwidVariableMixedData {
     const data: OwidVariableMixedData = { values: [], years: [], entities: [] }
-    const indicatorYears =
-        indicator.type === "ordinal" ? [LAST_YEAR] : years()
+    const indicatorYears = indicator.type === "ordinal" ? [LAST_YEAR] : years()
     indicator.entities.forEach((entity, entityIndex) => {
         for (const year of indicatorYears) {
             const value = indicator.value(entity, entityIndex, year)

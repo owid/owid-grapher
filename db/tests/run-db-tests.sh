@@ -39,6 +39,16 @@ DBTESTS_COMPOSE=(
 # Create log directory
 mkdir -p tmp-logs
 
+# Set DBTEST_USE_EXISTING_DB=1 to run against an already running MySQL (e.g.
+# a native one in a sandbox without Docker). The GRAPHER_TEST_DB_* database
+# must already exist and contain the pre-migrations schema; pending migrations
+# are still applied below.
+MARK_TEST_DB_DIRTY=(./devTools/docker/mark-test-mysql-dirty.sh)
+if [ "${DBTEST_USE_EXISTING_DB:-}" = "1" ]; then
+    DBTESTS_COMPOSE=(true)
+    MARK_TEST_DB_DIRTY=(true)
+fi
+
 # Always try to stop the compose stack when exiting (success or failure)
 cleanup() {
     "${DBTESTS_COMPOSE[@]}" stop >/dev/null 2>&1 || true
@@ -91,12 +101,12 @@ echo 'running tests'
 if ! "${TEST_COMMAND[@]}" >tmp-logs/tests.log 2>&1
 then
     show_log_on_error "tmp-logs/tests.log" "Tests"
-    ./devTools/docker/mark-test-mysql-dirty.sh >/dev/null 2>&1
+    "${MARK_TEST_DB_DIRTY[@]}" >/dev/null 2>&1
     "${DBTESTS_COMPOSE[@]}" stop >/dev/null 2>&1
     exit 23
 else
     echo '✅ DB tests succeeded'
-    ./devTools/docker/mark-test-mysql-dirty.sh >/dev/null 2>&1
+    "${MARK_TEST_DB_DIRTY[@]}" >/dev/null 2>&1
     "${DBTESTS_COMPOSE[@]}" stop >/dev/null 2>&1
     exit 0
 fi
