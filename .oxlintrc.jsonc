@@ -72,7 +72,10 @@
                             // Polyfills must be bundled from source ahead of all other code
                             "!@ourworldindata/utils/src/polyfills.js",
                             // scss can only be imported from source
-                            "!@ourworldindata/grapher/src/core/grapher.scss"
+                            "!@ourworldindata/grapher/src/core/grapher.scss",
+                            // Admin-serving data, not part of the package's type
+                            // surface: five consumers, all in adminSiteServer.
+                            "!@ourworldindata/types/src/gdocTypes/*.registry.generated.json"
                         ],
                         "message": "Import from the package entry point instead"
                     }

@@ -1,6 +1,9 @@
-import { formatAuthors, OwidGdocType } from "@ourworldindata/utils"
+import {
+    formatAuthors,
+    getPrefixedGdocPath,
+    OwidGdocType,
+} from "@ourworldindata/utils"
 import { PageChronologicalDataInsightRecord } from "@ourworldindata/types"
-import { getPrefixedGdocPath } from "@ourworldindata/components"
 import { AttachmentsContext } from "../gdocs/AttachmentsContext.js"
 import Image from "../gdocs/components/Image.js"
 import { ArticleBlocks } from "../gdocs/components/ArticleBlocks.js"

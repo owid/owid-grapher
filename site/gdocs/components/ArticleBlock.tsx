@@ -138,6 +138,7 @@ function ArticleBlockInternal({
                     getLayout(`aside--${position}`)
                 )}
             >
+                <span className="article-block__aside-label">Aside: </span>
                 {caption ? (
                     <SpanElements
                         spans={caption}

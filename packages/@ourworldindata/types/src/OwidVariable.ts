@@ -1,4 +1,6 @@
-import { OwidOrigin } from "./OwidOrigin.js"
+import { z } from "zod/mini"
+import type { OwidOrigin } from "./OwidOrigin.js"
+import type { SchemaFor } from "./domainTypes/Various.js"
 import { OwidSource } from "./OwidSource.js"
 import { OwidVariableDisplayConfigInterface } from "./OwidVariableDisplayConfigInterface.js"
 
@@ -107,6 +109,11 @@ export interface OwidLicense {
     name: string
     url: string
 }
+
+export const OwidLicenseSchema = z.object({
+    name: z.string(),
+    url: z.string(),
+} satisfies SchemaFor<OwidLicense>)
 
 export interface OwidVariablePresentation {
     titlePublic?: string

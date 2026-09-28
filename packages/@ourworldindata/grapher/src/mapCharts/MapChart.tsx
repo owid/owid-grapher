@@ -538,7 +538,7 @@ export class MapChart
         return new HorizontalCategoricalColorLegendState(
             this.categoricalLegendData,
             {
-                fontSize: this.fontSize,
+                baseFontSize: this.fontSize,
                 width: this.legendMaxWidth,
                 align: HorizontalAlign.center,
             }
@@ -551,7 +551,7 @@ export class MapChart
         if (!this.manager.showLegend || this.numericLegendData.length <= 1)
             return undefined
         return new HorizontalNumericColorLegendState(this.numericLegendData, {
-            fontSize: this.fontSize,
+            baseFontSize: this.fontSize,
             maxWidth: this.legendMaxWidth,
             align: HorizontalAlign.center,
             binSize: this.numericBinSize,

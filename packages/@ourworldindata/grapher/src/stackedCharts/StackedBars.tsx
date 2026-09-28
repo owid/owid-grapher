@@ -5,7 +5,7 @@ import {
     RenderStackedBarSeries,
     STACKED_BAR_STYLE,
 } from "./StackedConstants"
-import { makeFigmaId, makeSafeForCSS } from "@ourworldindata/utils"
+import { makeFigmaId, makeSafeForCSS, roundForSvg } from "@ourworldindata/utils"
 import { Emphasis } from "../interaction/Emphasis"
 
 export function StackedBars({
@@ -41,10 +41,10 @@ export function StackedBars({
                             <rect
                                 key={index}
                                 id={makeFigmaId(bar.formattedTime)}
-                                x={bar.x}
-                                y={bar.y}
-                                width={bar.barWidth}
-                                height={bar.barHeight}
+                                x={roundForSvg(bar.x)}
+                                y={roundForSvg(bar.y)}
+                                width={roundForSvg(bar.barWidth)}
+                                height={roundForSvg(bar.barHeight)}
                                 fill={bar.color ?? series.color}
                                 opacity={barOpacity}
                                 onMouseOver={() => onMouseOver?.(bar, series)}

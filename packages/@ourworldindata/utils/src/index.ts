@@ -30,6 +30,8 @@ export {
     guid,
     TESTING_ONLY_disable_guid,
     pointsToPath,
+    roundForSvg,
+    SVG_PRECISION,
     sortedFindClosestIndex,
     sortedFindClosest,
     isMobile,
@@ -92,6 +94,7 @@ export {
     imemo,
     recursivelyMapArticleContent,
     traverseEnrichedBlock,
+    getParseFindings,
     checkNodeIsSpan,
     generateToc,
     toSentenceCase,
@@ -114,6 +117,7 @@ export {
     checkIsGdocPostExcludingFragments,
     checkIsDataInsight,
     checkIsAuthor,
+    checkIsFeaturedViz,
     checkIsChronologicalGdoc,
     checkIsLatestFeedGdoc,
     cartesian,
@@ -161,6 +165,7 @@ export {
 export {
     getOriginAttributions,
     getAttributionFragmentsFromVariable,
+    getAttributionFragmentsFromBespokeMetadata,
     formatAttributions,
     formatAttributionsShortened,
     getETLPathComponents,
@@ -303,6 +308,8 @@ export {
 
 export { Url, setWindowUrl, getWindowUrl } from "./urls/Url.js"
 
+export { getPrefixedGdocPath } from "./urls/gdocPaths.js"
+
 export { type UrlMigration, performUrlMigrations } from "./urls/UrlMigration.js"
 
 export {
@@ -384,7 +391,11 @@ export {
     parseArchivalDate,
 } from "./archival/archivalDate.js"
 
-export { experiments, isUrlInActiveExperiment } from "./experiments/config.js"
+export {
+    experiments,
+    isUrlInActiveExperiment,
+    isDataPageMetadataRedesignActive,
+} from "./experiments/config.js"
 export {
     Experiment,
     validateUniqueExperimentIds,
@@ -424,6 +435,13 @@ export {
     searchSingleForHits,
     searchSingleForHitsWithClosestMatches,
 } from "./search/searchClosestMatches.js"
+
+export {
+    TOPIC_PAGE_TYPES,
+    isTopicPageType,
+    rankTopicsOfChartHits,
+    searchTopicPagesOfMatchingCharts,
+} from "./search/searchTopicPages.js"
 
 export { isEmptyQuerySearchPayload } from "./search/emptyQuerySearchPayload.js"
 

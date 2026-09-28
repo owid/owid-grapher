@@ -1,8 +1,18 @@
 type BespokeComponentReturnType = void | undefined | (() => void)
 
+export interface BespokeComponentDataUrls {
+    dataUrl: string
+    metadataUrl: string
+}
+
+export interface BespokeComponentMountOpts extends Partial<BespokeComponentDataUrls> {
+    variant?: string
+    config?: Record<string, string>
+}
+
 export type BespokeComponentMountFn = (
     container: HTMLDivElement,
-    opts: { variant?: string; config?: Record<string, string> }
+    opts: BespokeComponentMountOpts
 ) => BespokeComponentReturnType | Promise<BespokeComponentReturnType>
 
 /**
@@ -27,6 +37,10 @@ export type BespokeComponentVariantsList<VariantName extends string = string> =
     BespokeComponentVariantsEntry<VariantName>[]
 
 export interface BespokeComponentDefinition {
-    /** URL to the ES module that exports the component's mount function */
+    /** URL to the ES module that exports the component's mount function, relative to BESPOKE_BASE_URL */
     scriptUrl: string
+    /** Folder the component's data files are served from, relative to BESPOKE_DATA_URL */
+    dataUrl: string
+    /** The component's metadata file inside `dataUrl` */
+    metadataFilename: string
 }

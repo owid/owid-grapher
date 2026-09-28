@@ -1,5 +1,6 @@
 import * as React from "react"
 import { TextWrap } from "./TextWrap"
+import { roundForSvg } from "@ourworldindata/utils"
 
 export function TextWrapSvg({
     textWrap,
@@ -22,10 +23,10 @@ export function TextWrapSvg({
     return (
         <text
             id={id}
-            fontSize={fontSize.toFixed(2)}
+            fontSize={roundForSvg(fontSize)}
             fontWeight={fontWeight}
-            x={renderX.toFixed(1)}
-            y={renderY.toFixed(1)}
+            x={roundForSvg(renderX)}
+            y={roundForSvg(renderY)}
             {...svgTextProps}
         >
             {lines.map((line, i) => {
@@ -36,14 +37,18 @@ export function TextWrapSvg({
                     return (
                         <tspan
                             key={i}
-                            x={lineX}
-                            y={lineY}
+                            x={roundForSvg(lineX)}
+                            y={roundForSvg(lineY)}
                             dangerouslySetInnerHTML={{ __html: line.text }}
                         />
                     )
                 else
                     return (
-                        <tspan key={i} x={lineX} y={lineY}>
+                        <tspan
+                            key={i}
+                            x={roundForSvg(lineX)}
+                            y={roundForSvg(lineY)}
+                        >
                             {line.text}
                         </tspan>
                     )
