@@ -121,8 +121,11 @@ paths:
             Comma-separated list of page content types to search. Only applicable
             when `type=pages`. Defaults to `article,about-page` when omitted.
 
-            Asking for topic pages alone (`topic-page`, `linear-topic-page`, or
-            both) with a non-empty query returns topic *recommendations* rather
+            `topic-page` returns topic pages in both of their layouts (a result's
+            `type` is `topic-page` or `linear-topic-page`).
+
+            Asking for topic pages alone (`pageTypes=topic-page`) with a
+            non-empty query returns topic *recommendations* rather
             than a text search: the topics of the best-ranked charts matching the
             query, weighted by rank, so `q=gdp` leads with the Economic Growth page.
             `countries`, `topics` and `requireAllCountries` then apply to that

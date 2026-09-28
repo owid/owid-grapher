@@ -249,7 +249,7 @@ describe("Search API endpoint", () => {
             const mockSearchPages = vi.spyOn(searchApi, "searchPages")
 
             const request = new Request(
-                "http://localhost/api/search?q=gdp&type=pages&pageTypes=topic-page,linear-topic-page&countries=France"
+                "http://localhost/api/search?q=gdp&type=pages&pageTypes=topic-page&countries=France"
             )
             await onRequestGet({ request, env: envWithAssets } as any)
 
@@ -263,7 +263,6 @@ describe("Search API endpoint", () => {
                 tagGraph,
                 0,
                 20,
-                ["topic-page", "linear-topic-page"],
                 "http://localhost"
             )
             expect(mockSearchPages).not.toHaveBeenCalled()
@@ -283,7 +282,14 @@ describe("Search API endpoint", () => {
             )
             await onRequestGet({ request, env: envWithAssets } as any)
 
-            expect(mockSearchPages).toHaveBeenCalled()
+            expect(mockSearchPages).toHaveBeenCalledWith(
+                expect.anything(),
+                "gdp",
+                0,
+                20,
+                ["article", "topic-page", "linear-topic-page"],
+                "http://localhost"
+            )
             expect(mockSearchTopicPages).not.toHaveBeenCalled()
         })
 

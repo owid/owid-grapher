@@ -15,6 +15,7 @@ import {
     searchSingleForHitsWithClosestMatches,
     searchTopicPagesOfMatchingCharts,
     MAX_FACET_VALUES,
+    TOPIC_PAGE_TYPES,
 } from "@ourworldindata/utils"
 import {
     getIndexName,
@@ -308,10 +309,6 @@ export async function searchTopicPages(
     tagGraph: TagGraphRoot,
     offset: number = 0,
     length: number = 10,
-    pageTypes: OwidGdocType[] = [
-        OwidGdocType.TopicPage,
-        OwidGdocType.LinearTopicPage,
-    ],
     baseUrl: string = "https://ourworldindata.org"
 ): Promise<SearchPagesApiResponse> {
     const client = createSearchClient(config)
@@ -334,7 +331,6 @@ export async function searchTopicPages(
                 requireAllCountries: state.requireAllCountries,
             }),
             tagGraph,
-            pageTypes,
             attributesToRetrieve: PAGE_ATTRIBUTES,
             offset,
             length,
@@ -346,7 +342,7 @@ export async function searchTopicPages(
             state.query,
             offset,
             length,
-            pageTypes,
+            [...TOPIC_PAGE_TYPES],
             baseUrl,
             getFilterNamesOfType(state.filters, FilterType.TOPIC)
         )

@@ -8,6 +8,7 @@ import { type SearchResponse } from "algoliasearch"
 import { type LiteClient } from "algoliasearch/lite"
 import { formatDisjunctiveFacetFilters } from "./searchFacetFilters.js"
 import { searchSingleForHits } from "./searchClosestMatches.js"
+import { getPrefixedGdocPath } from "../urls/gdocPaths.js"
 
 // Shared between the site's search page (site/search/queries.ts) and the
 // public /api/search Cloudflare function (functions/api/search/searchApi.ts)
@@ -94,8 +95,6 @@ export async function searchTopicPagesOfMatchingCharts<
         query: string
         chartsFacetFilters: SearchFacetFilters
         tagGraph: TagGraphRoot
-        /** Which topic page types to return; defaults to all of them. */
-        pageTypes?: readonly OwidGdocType[]
         attributesToRetrieve: string[]
         offset: number
         length: number
@@ -123,26 +122,37 @@ export async function searchTopicPagesOfMatchingCharts<
     let chartsResponse = await searchCharts("prefixNone")
     if (chartsResponse.hits.length === 0)
         chartsResponse = await searchCharts("prefixLast")
-    const topics = rankTopicsOfChartHits(chartsResponse.hits, params.tagGraph)
-    if (topics.length === 0) return undefined
+    const rankedTopics = rankTopicsOfChartHits(
+        chartsResponse.hits,
+        params.tagGraph
+    )
+    if (rankedTopics.length === 0) return undefined
 
     // The topic list is short (a few dozen at most), so fetch every page in
     // one request and paginate locally. Algolia returns them in its own
-    // order; the facet order is what we want.
-    const pageTypes = params.pageTypes ?? TOPIC_PAGE_TYPES
+    // order; the ranking is what we want. Both layouts of topic page are
+    // always returned: which one a topic uses is a presentation detail.
+    // The paths are sorted because this request goes through the search
+    // cache (api/search/cached-queries), whose key would otherwise depend on
+    // the order of the topics.
+    const paths = rankedTopics.flatMap((topic) =>
+        TOPIC_PAGE_TYPES.map((type) =>
+            getPrefixedGdocPath("", { slug: topic.slug, content: { type } })
+        )
+    )
     const pagesResponse = await searchSingleForHits<THit>(liteSearchClient, {
         indexName: params.pagesIndexName,
         query: "",
-        filters: pageTypes.map((type) => `type:${type}`).join(" OR "),
+        filters: TOPIC_PAGE_TYPES.map((type) => `type:${type}`).join(" OR "),
         facetFilters: formatDisjunctiveFacetFilters(
-            new Set(topics.map((topic) => `/${topic.slug}`)),
+            new Set(paths.sort()),
             "path"
         ),
         attributesToRetrieve: params.attributesToRetrieve,
-        hitsPerPage: topics.length,
+        hitsPerPage: rankedTopics.length,
     })
     const hitBySlug = new Map(pagesResponse.hits.map((hit) => [hit.slug, hit]))
-    const orderedHits = topics.flatMap(
+    const orderedHits = rankedTopics.flatMap(
         (topic) => hitBySlug.get(topic.slug) ?? []
     )
 

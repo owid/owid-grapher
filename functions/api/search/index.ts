@@ -11,12 +11,11 @@ import {
 import {
     FilterType,
     Filter,
-    OwidGdocType,
     SearchUrlParam,
     ALL_GDOC_TYPES,
     TagGraphRoot,
 } from "@ourworldindata/types"
-import { isTopicPageType } from "@ourworldindata/utils"
+import { isTopicPageType, TOPIC_PAGE_TYPES } from "@ourworldindata/utils"
 
 const DEFAULT_HITS_PER_PAGE = 20
 const MAX_HITS_PER_PAGE = 100
@@ -109,6 +108,16 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
                     `Invalid pageTypes value(s): "${invalidTypes.join('", "')}". Valid types: ${Array.from(VALID_PAGE_TYPES).join(", ")}`
                 )
             }
+            // Topic pages come in two layouts (topic-page and
+            // linear-topic-page), which is a presentation detail: asking for
+            // either returns both.
+            if (pageTypes.some(isTopicPageType))
+                pageTypes = [
+                    ...new Set([
+                        ...pageTypes.filter((t) => !isTopicPageType(t)),
+                        ...TOPIC_PAGE_TYPES,
+                    ]),
+                ]
         }
 
         // Parse pagination parameters
@@ -212,7 +221,6 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
                           await fetchTagGraph(env, baseUrl),
                           page * hitsPerPage, // Convert page to offset
                           hitsPerPage,
-                          pageTypes as OwidGdocType[],
                           baseUrl
                       )
                     : await searchPages(

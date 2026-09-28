@@ -195,6 +195,33 @@ describe(searchTopicPagesOfMatchingCharts, () => {
         })
     })
 
+    it("requests the pages in a fixed order, so the cache key ignores the ranking", async () => {
+        const client = makeClient([
+            { hits: [hit("Poverty"), hit("Economic Growth")] },
+            {
+                hits: [
+                    { slug: "economic-growth", title: "Economic Growth" },
+                    { slug: "poverty", title: "Poverty" },
+                ],
+                nbHits: 2,
+            },
+        ])
+
+        const result = await searchTopicPagesOfMatchingCharts<MockHit>(
+            client as never,
+            params
+        )
+
+        expect(result?.hits.map((hit) => hit.slug)).toEqual([
+            "poverty",
+            "economic-growth",
+        ])
+        const [pagesRequest] = client.searchForHits.mock.calls[1][0]
+        expect(pagesRequest.facetFilters).toEqual([
+            ["path:/economic-growth", "path:/poverty"],
+        ])
+    })
+
     it("paginates locally and skips topics whose page is not in the index", async () => {
         const client = makeClient([
             {
