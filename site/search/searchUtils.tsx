@@ -846,29 +846,6 @@ export const createDatasetProducerFilter = createFilter(
     FilterType.DATASET_PRODUCER
 )
 
-/**
- * Returns a click handler that focuses an input element when clicking on the
- * target element or its children. If checkTargetEquality is true, only focus
- * the input if the click happened on the element where the handler is
- * attached (effectively not registering clicks on children).
- */
-export const createFocusInputOnClickHandler = (
-    inputRef: ForwardedRef<HTMLInputElement>,
-
-    checkTargetEquality: boolean = false
-) => {
-    const handleClick = (e: React.MouseEvent) => {
-        if (
-            (!checkTargetEquality || e.target === e.currentTarget) &&
-            isCurrentRef(inputRef)
-        ) {
-            inputRef.current.focus()
-        }
-    }
-
-    return handleClick
-}
-
 /*
  * Type guard to check if a ref is a RefObject with a non-null current property
  */

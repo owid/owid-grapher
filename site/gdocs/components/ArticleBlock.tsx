@@ -59,7 +59,7 @@ import { BespokeComponent } from "./BespokeComponent.js"
 import { Container, getLayout } from "./layout.js"
 import { Expander } from "./Expander.js"
 import { BlockSize, ChartConfigType } from "@ourworldindata/types"
-import { useLinkedChart } from "../utils.js"
+import { normalizeBlockType, useLinkedChart } from "../utils.js"
 import { ResourcePanel } from "./ResourcePanel.js"
 import { Cta } from "./Cta.js"
 import { AttachmentsContext } from "../AttachmentsContext.js"
@@ -72,7 +72,7 @@ import { DataCalloutGroup } from "./DataCalloutGroup.js"
 import { CountryProfileSelector } from "./CountryProfileSelector.js"
 
 function ArticleBlockInternal({
-    b: block,
+    b: rawBlock,
     containerType = "default",
     toc,
     shouldRenderLinks = true,
@@ -85,7 +85,7 @@ function ArticleBlockInternal({
     interactiveImages?: boolean
 }) {
     const { tags } = useContext(AttachmentsContext)
-    block.type = block.type.toLowerCase() as any // this comes from the user and may not be all lowercase, enforce it here
+    const block = normalizeBlockType(rawBlock)
 
     const { linkedChart } = useLinkedChart(
         block.type === "chart" ? block.url : ""
