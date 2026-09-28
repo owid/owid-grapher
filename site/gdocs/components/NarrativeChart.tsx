@@ -34,7 +34,7 @@ export default function NarrativeChart({
     const refChartContainer = useRef<HTMLDivElement>(null)
     const { isPreviewing, archiveContext } = useDocumentContext()
     const isClient = useIsClient()
-    useEmbedChart(0, refChartContainer, isPreviewing)
+    useEmbedChart(refChartContainer, isPreviewing)
 
     const viewMetadata = useLinkedNarrativeChart(d.name)
 

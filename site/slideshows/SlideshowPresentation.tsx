@@ -97,6 +97,7 @@ export function SlideshowPresentation(props: {
     // slide's background.
     const [isHydrated, setIsHydrated] = useState(isControlled)
     useLayoutEffect(() => {
+        // oxlint-disable-next-line react/set-state-in-effect -- flips before the first paint after hydration
         setIsHydrated(true)
     }, [])
 

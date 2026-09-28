@@ -28,7 +28,7 @@ export default function Chart({
     const { isPreviewing, archiveContext } = useDocumentContext()
     const refChartContainer = useRef<HTMLDivElement>(null)
     const archiveIframeRef = useRef<HTMLIFrameElement | null>(null)
-    useEmbedChart(0, refChartContainer, isPreviewing)
+    useEmbedChart(refChartContainer, isPreviewing)
 
     // Register the chart with GuidedChartContext for guided chart scrollTo on mobile
     const guidedChartContext = useContext(GuidedChartContext)
@@ -116,7 +116,6 @@ export default function Chart({
         archiveUrl?.fullUrl,
         archivedChartVersion?.archiveUrl,
         archivedChartVersion,
-        resolvedUrl,
         resolvedQueryParams,
     ])
 
