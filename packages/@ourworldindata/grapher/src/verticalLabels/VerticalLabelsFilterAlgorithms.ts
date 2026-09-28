@@ -4,7 +4,6 @@ import {
     computeHeight,
     VerticalLabelsFilterAlgorithmContext,
     pickAsManyAsPossibleWithRetry,
-    pickCandidate,
     pickCandidateWithMaxDistanceToReferenceCandidate,
     pickCandidateWithRetry,
 } from "./VerticalLabelsHelpers"
@@ -120,14 +119,18 @@ export function findSeriesThatFitIntoTheAvailableSpace(
     }
 
     // Pick two candidates with maximal distance to each other
-    const maxCandidate = _.maxBy(series, (c) => c.midY)
-    if (maxCandidate) {
-        context = pickCandidate(context, maxCandidate)
-
+    context = pickCandidateWithRetry({
+        context,
+        candidateSubset: series,
+        getCandidateFromSubset: (candidates) =>
+            _.maxBy(candidates, (c) => c.midY),
+    })
+    const referenceCandidate = context.sortedKeepSeries[0]
+    if (referenceCandidate) {
         context = pickCandidateWithMaxDistanceToReferenceCandidate({
             context,
             candidateSubset: series,
-            referenceCandidate: context.sortedKeepSeries[0],
+            referenceCandidate,
         })
     }
 
