@@ -113,8 +113,12 @@ export type EditorTabName =
     | "Export"
     | "Debug"
 
-const exactly = (text: string): RegExp =>
-    new RegExp(`^\\s*${text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*$`)
+export const escapeRegExp = (text: string): string =>
+    text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+
+/** Matches exactly this text, ignoring surrounding whitespace */
+export const exactly = (text: string): RegExp =>
+    new RegExp(`^\\s*${escapeRegExp(text)}\\s*$`)
 
 export class ChartEditorPage {
     constructor(
@@ -145,14 +149,22 @@ export class ChartEditorPage {
     }
 
     async waitUntilReady(): Promise<void> {
-        await expect(this.settings.locator(".nav-tabs")).toBeVisible()
-        await expect(this.page.locator(".LoadingBlocker")).toHaveCount(0)
-        await expect(this.preview.locator(".GrapherComponent")).toBeVisible()
+        // loading the admin bundle takes a few seconds on a busy machine
+        const timeout = 20_000
+        await expect(this.settings.locator(".nav-tabs")).toBeVisible({
+            timeout,
+        })
+        await expect(this.page.locator(".LoadingBlocker")).toHaveCount(0, {
+            timeout,
+        })
+        await expect(this.preview.locator(".GrapherComponent")).toBeVisible({
+            timeout,
+        })
         if (this.chartId !== undefined)
             await expect(
                 this.preview.getByText("No table loaded yet"),
                 "the chart's data has loaded"
-            ).toHaveCount(0)
+            ).toHaveCount(0, { timeout })
     }
 
     async openTab(name: EditorTabName): Promise<Locator> {
@@ -180,6 +192,56 @@ export class ChartEditorPage {
             .first()
     }
 
+    /**
+     * An antd select, found by the text its form group starts with (a
+     * `<label>` or, in some sections, a bare text node)
+     */
+    antSelect(label: string, scope: Locator = this.form): Locator {
+        return scope
+            .locator(".form-group")
+            .filter({ hasText: new RegExp(`^\\s*${escapeRegExp(label)}`) })
+            .locator(".ant-select")
+            .first()
+    }
+
+    /**
+     * Opens an antd select and picks the option with exactly this text (or
+     * matching this pattern, for options with a second line). Searchable
+     * selects (like the color scheme ones) only render the options in view,
+     * so pass `search` to type the option's name first.
+     */
+    async chooseAntOption(
+        select: Locator,
+        option: string | RegExp,
+        { search = false }: { search?: boolean } = {}
+    ): Promise<void> {
+        await select.click()
+        if (search && typeof option === "string")
+            await select.locator("input").fill(option)
+        await this.page
+            .locator(".ant-select-dropdown:visible .ant-select-item-option")
+            .filter({
+                hasText: typeof option === "string" ? exactly(option) : option,
+            })
+            .click()
+    }
+
+    /**
+     * Picks a color in a color box's picker by typing its hex code. The
+     * picker reports colors after a debounce, so this waits until the box
+     * shows the color.
+     */
+    async pickColor(colorBox: Locator, hex: string): Promise<void> {
+        await colorBox.click()
+        const picker = this.page.locator(".colorpicker-tooltip")
+        const custom = picker.locator("details.AdminColorPicker__custom")
+        if (!(await custom.evaluate((el: HTMLDetailsElement) => el.open)))
+            await custom.locator("summary").click()
+        await picker.getByRole("textbox", { name: "Hex color" }).fill(hex)
+        await expect(colorBox).toHaveCSS("background-color", hexToRgb(hex))
+        await this.page.keyboard.press("Escape")
+    }
+
     checkbox(label: string, scope: Locator = this.form): Locator {
         return scope.getByRole("checkbox", { name: label, exact: true })
     }
@@ -202,11 +264,26 @@ export class ChartEditorPage {
         await field.blur()
     }
 
-    /** Accepts the next `window.confirm` (e.g. when publishing) */
-    acceptNextDialog(): void {
-        this.page.once("dialog", async (dialog) => {
-            await dialog.accept()
-        })
+    /**
+     * Accepts the next `window.confirm` (e.g. when publishing) and resolves
+     * to its message
+     */
+    acceptNextDialog(): Promise<string> {
+        return this.handleNextDialog("accept")
+    }
+
+    /** Dismisses the next `window.confirm` and resolves to its message */
+    dismissNextDialog(): Promise<string> {
+        return this.handleNextDialog("dismiss")
+    }
+
+    private handleNextDialog(action: "accept" | "dismiss"): Promise<string> {
+        return new Promise((resolve) =>
+            this.page.once("dialog", async (dialog) => {
+                resolve(dialog.message())
+                await dialog[action]()
+            })
+        )
     }
 
     /**
@@ -230,8 +307,26 @@ export class ChartEditorPage {
         return diffConfigs(this.openedPatch, await this.save())
     }
 
+    /**
+     * How the chart's stored patch differs from the one it had when the
+     * editor was opened, in the same form as `saveChanges`. The server diffs
+     * the sent patch against the chart's parent configs again, so for charts
+     * that inherit, this is what shows which fields became overrides: the
+     * editor e.g. always sends the effective title, inherited or not.
+     */
+    async storedChanges(): Promise<ConfigChanges> {
+        const response = await this.page.request.get(
+            `/admin/api/charts/${this.chartId}.patchConfig.json`
+        )
+        return diffConfigs(this.openedPatch, await response.json())
+    }
+
     /** Clicks a button that saves the chart and returns the sent patch */
     async saveWith(button: Locator): Promise<GrapherInterface> {
+        await expect(
+            button,
+            "saving is possible (editing errors disable it)"
+        ).toBeEnabled()
         const [request] = await Promise.all([
             this.page.waitForRequest((request) =>
                 isChartSave(request, this.chartId)
@@ -245,6 +340,11 @@ export class ChartEditorPage {
         ).toMatchObject({ success: true })
         return request.postDataJSON()
     }
+}
+
+function hexToRgb(hex: string): string {
+    const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16))
+    return `rgb(${r}, ${g}, ${b})`
 }
 
 /** Changed config values by dotted path, e.g. `{ "map.time": 2010 }` */
@@ -272,7 +372,11 @@ function diffConfigs(
     return changes
 }
 
-/** Maps the dotted path of every non-object value (arrays included) to it */
+/**
+ * Maps the dotted path of every non-object value (arrays included) to it.
+ * Empty objects count as absent: the editor sometimes sends one for a
+ * section that has no settings, e.g. `map.colorScale: {}`.
+ */
 function flattenConfig(
     config: object,
     prefix = "",
@@ -280,12 +384,9 @@ function flattenConfig(
 ): Map<string, unknown> {
     for (const [key, value] of Object.entries(config)) {
         const path = prefix + key
-        const isNested =
-            typeof value === "object" &&
-            value !== null &&
-            !Array.isArray(value) &&
-            Object.keys(value).length > 0
-        if (isNested) flattenConfig(value, `${path}.`, leaves)
+        const isObject =
+            typeof value === "object" && value !== null && !Array.isArray(value)
+        if (isObject) flattenConfig(value, `${path}.`, leaves)
         else leaves.set(path, value)
     }
     return leaves

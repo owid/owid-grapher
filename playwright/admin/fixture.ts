@@ -12,12 +12,13 @@
  * entity selection deterministic: with ten or fewer available entities it
  * selects all of them instead of sampling.
  */
-import type {
-    GrapherInterface,
-    OwidVariableDisplayConfigInterface,
-    OwidVariableMixedData,
-    OwidVariableType,
-    OwidVariableWithSourceAndDimension,
+import {
+    ColorSchemeName,
+    type GrapherInterface,
+    type OwidVariableDisplayConfigInterface,
+    type OwidVariableMixedData,
+    type OwidVariableType,
+    type OwidVariableWithSourceAndDimension,
 } from "@ourworldindata/types"
 
 export interface FixtureEntity {
@@ -124,6 +125,38 @@ export const indicators = {
             note: "Inherited note from the indicator.",
             hasMapTab: true,
         },
+    },
+    renewablesShare: {
+        id: 1009,
+        name: "Share of energy from renewables",
+        unit: "%",
+        shortUnit: "%",
+        type: "float",
+        dataset: datasets.energy,
+        catalogPath: "grapher/test/2024-01-01/energy/energy#renewables_share",
+        entities: countriesAndWorld,
+        value: linear(5, 4, 1),
+        // settings that other controls inherit, apart from texts
+        grapherConfigETL: {
+            minTime: 2005,
+            selectedEntityNames: ["France", "Germany"],
+            hasMapTab: true,
+            map: { colorScale: { baseColorScheme: ColorSchemeName.Reds } },
+        },
+    },
+    electricityAccess: {
+        id: 1010,
+        name: "Share with access to electricity",
+        unit: "%",
+        shortUnit: "%",
+        type: "float",
+        dataset: datasets.energy,
+        catalogPath: "grapher/test/2024-01-01/energy/energy#electricity_access",
+        entities: countriesAndWorld,
+        value: linear(50, 5, 1),
+        // kept apart from renewablesShare: an inherited focus is invalid, and
+        // blocks saving, on charts that don't plot the focused series
+        grapherConfigETL: { focusedSeriesNames: ["France"] },
     },
     gdpPerCapita: {
         id: 1003,
