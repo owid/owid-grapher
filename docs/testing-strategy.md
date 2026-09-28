@@ -172,7 +172,7 @@ changes but do not establish runtime behavior.
 
 ### In-process tests (Vitest)
 
-The default `vitest.config.ts` suite covers pure functions, state models, parsers,
+The default `vitest.config.mts` suite covers pure functions, state models, parsers,
 URL migrations, serializers, React components in a DOM-like environment, chart
 layout, and other package and application code. React Testing Library cleanup is
 global.
