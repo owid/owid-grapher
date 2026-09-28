@@ -27,10 +27,11 @@ type SearchType = "charts" | "pages"
 // a Set for O(1) membership checks.
 const VALID_PAGE_TYPES = new Set<string>(ALL_GDOC_TYPES)
 
-// Every query parameter this endpoint reads. Anything else is rejected, so a
-// misspelled or misplaced parameter fails loudly instead of being silently
-// ignored (e.g. the search page's `resultType=writing` would otherwise return
-// charts, since `type` defaults to "charts").
+// Every query parameter this endpoint reads. Anything else is ignored, since
+// callers routinely append their own (utm_* tags, cache-busters), but it's
+// named in a `warnings` field so a misspelled or misplaced parameter is still
+// visible (e.g. the search page's `resultType=writing` returns charts, since
+// `type` defaults to "charts").
 const KNOWN_PARAMS = new Set<string>([
     "type",
     SearchUrlParam.QUERY,
@@ -78,20 +79,21 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
             )
         }
 
+        // utm_* tags are expected noise, not mistakes worth a warning
         const unknownParams = [...new Set(url.searchParams.keys())].filter(
-            (param) => !KNOWN_PARAMS.has(param)
+            (param) => !KNOWN_PARAMS.has(param) && !param.startsWith("utm_")
         )
-        if (unknownParams.length > 0) {
-            const hints = unknownParams
-                .map((param) => PARAM_HINTS[param])
-                .filter(Boolean)
-            throw new SearchValidationError(
-                [
-                    `Unknown parameter(s): "${unknownParams.join('", "')}". Valid parameters: ${Array.from(KNOWN_PARAMS).join(", ")}.`,
-                    ...hints,
-                ].join(" ")
-            )
-        }
+        const warnings =
+            unknownParams.length > 0
+                ? [
+                      [
+                          `Ignored unknown parameter(s): "${unknownParams.join('", "')}". Valid parameters: ${Array.from(KNOWN_PARAMS).join(", ")}.`,
+                          ...unknownParams
+                              .map((param) => PARAM_HINTS[param])
+                              .filter(Boolean),
+                      ].join(" "),
+                  ]
+                : undefined
 
         // Determine search type
         const searchType: SearchType =
@@ -275,7 +277,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
                       baseUrl
                   )
 
-        return new Response(JSON.stringify(results, null, 2), {
+        return new Response(JSON.stringify({ ...results, warnings }, null, 2), {
             status: 200,
             headers: {
                 "Content-Type": "application/json",
