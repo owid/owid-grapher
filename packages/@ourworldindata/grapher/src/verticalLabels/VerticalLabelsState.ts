@@ -11,7 +11,10 @@ import { AxisConfig } from "../axis/AxisConfig.js"
 import {
     findImportantSeriesThatFitIntoTheAvailableSpace,
     findSeriesThatFitIntoTheAvailableSpace,
+    findSeriesThatFitWithHighlights,
+    FilterAlgorithm,
 } from "./VerticalLabelsFilterAlgorithms.js"
+import { computeHeight } from "./VerticalLabelsHelpers.js"
 import {
     ANNOTATION_PADDING,
     DEFAULT_CONNECTOR_LINE_WIDTH,
@@ -302,32 +305,31 @@ export class VerticalLabelsState {
         )
     }
 
-    private computeHeight(series: PlacedLabelSeries[]): number {
-        return (
-            _.sumBy(series, (series) => series.bounds.height) +
-            (series.length - 1) * LEGEND_ITEM_MIN_SPACING
-        )
+    @computed private get availableHeight(): number {
+        const [min, max] = this.legendY
+        return Math.abs(max - min)
+    }
+
+    @computed private get filterCandidates(): PlacedLabelSeries[] {
+        return this.seriesSortedByImportance ?? this.initialPlacedSeries
+    }
+
+    @computed private get filterAlgorithm(): FilterAlgorithm {
+        return this.options.seriesNamesSortedByImportance
+            ? findImportantSeriesThatFitIntoTheAvailableSpace
+            : findSeriesThatFitIntoTheAvailableSpace
     }
 
     @computed get visiblePlacedSeries(): PlacedLabelSeries[] {
-        const { initialPlacedSeries, seriesSortedByImportance, legendY } = this
-        const availableHeight = Math.abs(legendY[1] - legendY[0])
-        const totalHeight = this.computeHeight(initialPlacedSeries)
+        const { initialPlacedSeries, availableHeight } = this
 
-        // early return if filtering is not needed
+        // Early return if filtering is not needed
+        const totalHeight = computeHeight(initialPlacedSeries)
         if (totalHeight <= availableHeight) return initialPlacedSeries
 
-        // if a list of series sorted by importance is provided, use it
-        if (seriesSortedByImportance) {
-            return findImportantSeriesThatFitIntoTheAvailableSpace(
-                seriesSortedByImportance,
-                availableHeight
-            )
-        }
-
-        // otherwise use the default filtering
-        return findSeriesThatFitIntoTheAvailableSpace(
-            initialPlacedSeries,
+        return findSeriesThatFitWithHighlights(
+            this.filterCandidates,
+            this.filterAlgorithm,
             availableHeight
         )
     }
@@ -337,7 +339,7 @@ export class VerticalLabelsState {
     }
 
     @computed get visibleSeriesHeight(): number {
-        return this.computeHeight(this.visiblePlacedSeries)
+        return computeHeight(this.visiblePlacedSeries)
     }
 
     // Does this placement need line markers or is the position of the labels already clear?
