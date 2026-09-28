@@ -1,4 +1,4 @@
-import { makeFigmaId, PointVector } from "@ourworldindata/utils"
+import { PointVector, makeFigmaId, roundForSvg } from "@ourworldindata/utils"
 import { RenderSlopeChartSeries } from "./SlopeChartConstants"
 import { LINE_STYLE } from "../lineCharts/LineChartConstants.js"
 import { GRAPHER_BACKGROUND } from "../color/ColorConstants"
@@ -69,26 +69,26 @@ function LineWithDots({
         <g id={id} opacity={opacity} className="slope">
             <circle
                 id={makeFigmaId("start-point")}
-                cx={startPoint.x}
-                cy={startPoint.y}
-                r={radius}
+                cx={roundForSvg(startPoint.x)}
+                cy={roundForSvg(startPoint.y)}
+                r={roundForSvg(radius)}
                 fill={color}
             />
             <circle
                 id={makeFigmaId("end-point")}
-                cx={endPoint.x}
-                cy={endPoint.y}
-                r={radius}
+                cx={roundForSvg(endPoint.x)}
+                cy={roundForSvg(endPoint.y)}
+                r={roundForSvg(radius)}
                 fill={color}
             />
             <line
                 id={makeFigmaId("line")}
-                x1={startPoint.x}
-                y1={startPoint.y}
-                x2={endPoint.x}
-                y2={endPoint.y}
+                x1={roundForSvg(startPoint.x)}
+                y1={roundForSvg(startPoint.y)}
+                x2={roundForSvg(endPoint.x)}
+                y2={roundForSvg(endPoint.y)}
                 stroke={color}
-                strokeWidth={lineWidth.toFixed(1)}
+                strokeWidth={roundForSvg(lineWidth)}
             />
         </g>
     )

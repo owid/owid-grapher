@@ -6,22 +6,18 @@ import {
     SynthesizeGDPTable,
 } from "./OwidTableSynthesizers.js"
 import { OwidTable } from "./OwidTable.js"
+import { numericDefs, yearDef } from "./testData/columnDefs.js"
 import {
     ColumnTypeNames,
+    CoreMatrix,
     OwidColumnDef,
     OwidTableSlugs,
 } from "@ourworldindata/types"
 import { ErrorValueTypes } from "./ErrorValues.js"
 
-const sampleRows = [
-    {
-        year: 2020,
-        time: 2020,
-        entityName: "United States",
-        population: 3e8,
-        entityId: 1,
-        entityCode: "USA",
-    },
+const sampleRows: CoreMatrix = [
+    ["year", "time", "entityName", "population", "entityId", "entityCode"],
+    [2020, 2020, "United States", 3e8, 1, "USA"],
 ]
 
 it("can create a table and detect columns", () => {
@@ -32,10 +28,7 @@ it("can create a table and detect columns", () => {
 
 it("can create a new table by adding a column", () => {
     const table = new OwidTable(sampleRows, [
-        {
-            slug: "populationInMillions",
-            values: sampleRows.map((row) => row.population / 1000000),
-        },
+        { slug: "populationInMillions", values: [3e8 / 1000000] },
     ])
     expect(table.rows[0].populationInMillions).toEqual(300)
 })
@@ -63,7 +56,7 @@ it("can drop random cells", () => {
     expect(table.get(SampleColumnSlugs.GDP).numValues).toBe(10)
     expect(
         table
-            .replaceRandomCells(7, [SampleColumnSlugs.GDP])
+            .replaceRandomCells(7, [SampleColumnSlugs.GDP], 1)
             .get(SampleColumnSlugs.GDP).numValues
     ).toBe(3)
 })
@@ -84,13 +77,16 @@ it("can group data by entity and time", () => {
 
 describe("timeColumn", () => {
     it("uses 'time' as the canonical timeColumn", () => {
-        const columnStore = {
-            [OwidTableSlugs.EntityName]: ["usa"],
-            [OwidTableSlugs.Time]: [2000],
-            year: [2000],
-            day: ["2000-01-01"],
-            x: [0],
-        }
+        const rows: CoreMatrix = [
+            [
+                OwidTableSlugs.EntityName,
+                OwidTableSlugs.Time,
+                "year",
+                "day",
+                "x",
+            ],
+            ["usa", 2000, 2000, "2000-01-01", 0],
+        ]
         const colDefs: OwidColumnDef[] = [
             {
                 slug: "year",
@@ -109,26 +105,26 @@ describe("timeColumn", () => {
                 type: ColumnTypeNames.Numeric,
             },
         ]
-        const table = new OwidTable(columnStore, colDefs)
+        const table = new OwidTable(rows, colDefs)
         expect(table.timeColumn.slug).toEqual(OwidTableSlugs.Time)
     })
 
     it("prefers a day column when both year and day are in the chart", () => {
-        const csv = `entityName,entityCode,entityId,pop,year,day
-    usa,usa,1,322,2000,2`
-
-        const table = new OwidTable(csv)
+        const table = new OwidTable([
+            ["entityName", "entityCode", "entityId", "pop", "year", "day"],
+            ["usa", "usa", 1, 322, 2000, 2],
+        ])
         expect(table.timeColumn.slug).toBe("day")
     })
 })
 
 it("can get the latest values for an entity", () => {
-    const csv = `entityName,entityCode,entityId,pop,year,coal
-usa,usa,1,322,2000,10
-usa,usa,1,322,2001,
-usa,usa,1,4,2002,`
-
-    const table = new OwidTable(csv)
+    const table = new OwidTable([
+        ["entityName", "entityCode", "entityId", "pop", "year", "coal"],
+        ["usa", "usa", 1, 322, 2000, 10],
+        ["usa", "usa", 1, 322, 2001, null],
+        ["usa", "usa", 1, 4, 2002, null],
+    ])
     expect(table.getLatestValueForEntity("usa", "coal")).toBe(10)
     expect(table.getLatestValueForEntity("usa", "pop")).toBe(4)
     expect(table.getLatestValueForEntity("does not exit", "pop")).toBe(
@@ -146,13 +142,15 @@ it("can synth numerics", () => {
     expect(typeof row.value).toEqual("number")
 })
 
-const basicTableCsv = `entityName,entityCode,entityId,gdp,pop
-iceland,ice,1,123123456.2,3
-usa,us,2,23,
-france,fr,3,23,4`
+const basicTableRows: CoreMatrix = [
+    ["entityName", "entityCode", "entityId", "gdp", "pop"],
+    ["iceland", "ice", 1, 123123456.2, 3],
+    ["usa", "us", 2, 23, null],
+    ["france", "fr", 3, 23, 4],
+]
 
 it("can get entities with required columns", () => {
-    const table = new OwidTable(basicTableCsv)
+    const table = new OwidTable(basicTableRows)
     expect(table.get("pop").def.type).toEqual(ColumnTypeNames.Numeric)
     expect(table.get("pop").uniqEntityNames.length).toEqual(2)
     expect(table.entitiesWith(["gdp"]).size).toEqual(3)
@@ -160,7 +158,7 @@ it("can get entities with required columns", () => {
 })
 
 it("can export a clean csv", () => {
-    const table = new OwidTable(basicTableCsv)
+    const table = new OwidTable(basicTableRows)
     expect(table.toPrettyCsv()).toEqual(`Entity,Code,gdp,pop
 france,fr,23,4
 iceland,ice,123123456.2,3
@@ -168,7 +166,7 @@ usa,us,23,`)
 })
 
 it("can handle columns with commas", () => {
-    const table = new OwidTable(basicTableCsv)
+    const table = new OwidTable(basicTableRows)
     table.get("gdp").def.name = "Gross, Domestic, Product"
     expect(table.toPrettyCsv())
         .toEqual(`Entity,Code,"Gross, Domestic, Product",pop
@@ -202,12 +200,12 @@ describe("time filtering", () => {
     })
 
     it("time options are sorted in ascending order", () => {
-        const csv = `entityName,entityId,entityCode,day,value
-usa,1,usa,-4,1
-usa,1,usa,1,1
-usa,1,usa,-5,1`
-
-        const table = new OwidTable(csv)
+        const table = new OwidTable([
+            ["entityName", "entityId", "entityCode", "day", "value"],
+            ["usa", 1, "usa", -4, 1],
+            ["usa", 1, "usa", 1, 1],
+            ["usa", 1, "usa", -5, 1],
+        ])
         const timeOptions = table.getTimesUniqSortedAscForColumns(["value"])
         expect(timeOptions).toEqual([-5, -4, 1])
     })
@@ -279,20 +277,9 @@ usa,1,usa,-5,1`
 
     it("keeps the correct row when entity times are unsorted and tolerance is used", () => {
         const table = new OwidTable([
-            {
-                entityName: "usa",
-                entityId: 1,
-                entityCode: "usa",
-                time: 2001,
-                value: 1,
-            },
-            {
-                entityName: "usa",
-                entityId: 1,
-                entityCode: "usa",
-                time: 2000,
-                value: 2,
-            },
+            ["entityName", "entityId", "entityCode", "time", "value"],
+            ["usa", 1, "usa", 2001, 1],
+            ["usa", 1, "usa", 2000, 2],
         ])
 
         const filtered = table.filterByTargetTimes([2000], 1)
@@ -304,48 +291,35 @@ usa,1,usa,-5,1`
 })
 
 describe("rolling averages", () => {
-    const rows = [
-        {
-            year: 2020,
-            time: 2020,
-            entityName: "United States",
-            population: 3e8,
-            entityId: 1,
-            entityCode: "USA",
-            continent: "North America",
-        },
-        {
-            year: 2020,
-            time: 2020,
-            entityName: "World",
-            population: 10e8,
-            entityId: 12,
-            entityCode: "World",
-            continent: "",
-        },
-        {
-            year: 2020,
-            time: 2020,
-            entityName: "United States",
-            population: 3e8,
-            entityId: 1,
-            entityCode: "USA",
-            continent: "North America",
-        },
+    const rows: CoreMatrix = [
+        [
+            "year",
+            "time",
+            "entityName",
+            "population",
+            "entityId",
+            "entityCode",
+            "continent",
+        ],
+        [2020, 2020, "United States", 3e8, 1, "USA", "North America"],
+        [2020, 2020, "World", 10e8, 12, "World", ""],
+        [2020, 2020, "United States", 3e8, 1, "USA", "North America"],
     ]
-    const colLength = Object.keys(rows[0]).length
+    const [header, ...dataRows] = rows
     const table = new OwidTable(rows)
     it("a column can be added", () => {
-        expect(table.numRows).toEqual(rows.length)
-        expect(table.numColumns).toEqual(colLength)
+        expect(table.numRows).toEqual(dataRows.length)
+        expect(table.numColumns).toEqual(header.length)
         const newTable = table.appendColumns([
             {
                 slug: "populationInMillions",
-                values: rows.map((row) => row.population / 1000000),
+                values: table
+                    .get("population")
+                    .values.map((population) => population / 1000000),
             },
         ])
         expect(newTable.rows[0].populationInMillions).toEqual(300)
-        expect(newTable.numColumns).toEqual(colLength + 1)
+        expect(newTable.numColumns).toEqual(header.length + 1)
     })
 
     // sortedUniqNonEmptyStringVals
@@ -397,13 +371,21 @@ describe("relative mode", () => {
 describe("time domain", () => {
     it("can get the time domain across columns", () => {
         const table = new OwidTable(
-            `gdp,perCapita,day,entityName,entityId,entityCode
-0,123.1,0,usa,,
-12,300,1,usa,,
-20,,2,usa,,`,
             [
-                { slug: "gdp", type: ColumnTypeNames.Numeric },
-                { slug: "perCapita", type: ColumnTypeNames.Numeric },
+                [
+                    "gdp",
+                    "perCapita",
+                    "day",
+                    "entityName",
+                    "entityId",
+                    "entityCode",
+                ],
+                [0, 123.1, 0, "usa", null, null],
+                [12, 300, 1, "usa", null, null],
+                [20, null, 2, "usa", null, null],
+            ],
+            [
+                ...numericDefs("gdp", "perCapita"),
                 { slug: "day", type: ColumnTypeNames.Day },
             ]
         )
@@ -414,14 +396,13 @@ describe("time domain", () => {
 
     it("can get minTime and maxTimes when years are initially unsorted", () => {
         const table = new OwidTable(
-            `gdp,day,entityName,entityId,entityCode
-0,2000,usa,,
-12,1950,usa,,
-20,1970,usa,,`,
             [
-                { slug: "gdp", type: ColumnTypeNames.Numeric },
-                { slug: "day", type: ColumnTypeNames.Day },
-            ]
+                ["gdp", "day", "entityName", "entityId", "entityCode"],
+                [0, 2000, "usa", null, null],
+                [12, 1950, "usa", null, null],
+                [20, 1970, "usa", null, null],
+            ],
+            [...numericDefs("gdp"), { slug: "day", type: ColumnTypeNames.Day }]
         )
 
         expect(table.get("gdp").minTime).toEqual(1950)
@@ -432,19 +413,18 @@ describe("time domain", () => {
 
 describe("linear interpolation", () => {
     const table = new OwidTable(
-        `gdp,year,entityName
-10,2000,france
-0,2001,france
-,2002,france
-,2003,france
-8,2005,france
-,2006,france
-2,2000,uk
-3,2004,uk`,
         [
-            { slug: "gdp", type: ColumnTypeNames.Numeric },
-            { slug: "year", type: ColumnTypeNames.Year },
-        ]
+            ["gdp", "year", "entityName"],
+            [10, 2000, "france"],
+            [0, 2001, "france"],
+            [null, 2002, "france"],
+            [null, 2003, "france"],
+            [8, 2005, "france"],
+            [null, 2006, "france"],
+            [2, 2000, "uk"],
+            [3, 2004, "uk"],
+        ],
+        [...numericDefs("gdp"), yearDef()]
     )
 
     it("applies interpolation without extrapolation", () => {
@@ -529,19 +509,18 @@ describe("linear interpolation", () => {
 
 describe("tolerance", () => {
     const table = new OwidTable(
-        `gdp,year,entityName,entityId,entityCode
-,2000,france,1,
-2,2000,uk,2,
-0,2001,france,1,
-,2002,france,1,
-,2003,france,1,
-3,2004,uk,2,
-1,2005,france,1,
-,2006,france,1,`,
         [
-            { slug: "gdp", type: ColumnTypeNames.Numeric },
-            { slug: "year", type: ColumnTypeNames.Year },
-        ]
+            ["gdp", "year", "entityName", "entityId", "entityCode"],
+            [null, 2000, "france", 1, null],
+            [2, 2000, "uk", 2, null],
+            [0, 2001, "france", 1, null],
+            [null, 2002, "france", 1, null],
+            [null, 2003, "france", 1, null],
+            [3, 2004, "uk", 2, null],
+            [1, 2005, "france", 1, null],
+            [null, 2006, "france", 1, null],
+        ],
+        [...numericDefs("gdp"), yearDef()]
     )
 
     function applyTolerance(table: OwidTable): OwidTable {
@@ -618,16 +597,15 @@ describe("tolerance", () => {
 
     it("doesn't leak between entities", () => {
         const table = new OwidTable(
-            `gdp,year,entityName,entityId,entityCode
-,2000,france,1,
-,2000,germany,1,
-,2001,germany,1,
-3,2000,uk,2,
-,2001,uk,2,`,
             [
-                { slug: "gdp", type: ColumnTypeNames.Numeric },
-                { slug: "year", type: ColumnTypeNames.Year },
-            ]
+                ["gdp", "year", "entityName", "entityId", "entityCode"],
+                [null, 2000, "france", 1, null],
+                [null, 2000, "germany", 1, null],
+                [null, 2001, "germany", 1, null],
+                [3, 2000, "uk", 2, null],
+                [null, 2001, "uk", 2, null],
+            ],
+            [...numericDefs("gdp"), yearDef()]
         )
         const toleranceTable = table.interpolateColumnWithTolerance("gdp", {
             toleranceOverride: 1,
@@ -648,10 +626,11 @@ describe("tolerance", () => {
 })
 
 it("assigns originalTime as 'originalTime' in owidRows", () => {
-    const csv = `gdp,year,entityName,entityId,entityCode
-1000,2019,USA,,
-1001,2020,UK,,`
-    const table = new OwidTable(csv).interpolateColumnWithTolerance("gdp", {
+    const table = new OwidTable([
+        ["gdp", "year", "entityName", "entityId", "entityCode"],
+        [1000, 2019, "USA", null, null],
+        [1001, 2020, "UK", null, null],
+    ]).interpolateColumnWithTolerance("gdp", {
         toleranceOverride: 1,
     })
     const owidRows = table.get("gdp").owidRows
@@ -676,12 +655,14 @@ it("assigns originalTime as 'originalTime' in owidRows", () => {
 })
 
 it("handles tsv column definitions", () => {
-    const dataCsv = `gdp,annotation,year,entityName,entityId,entityCode
-1000,low,2019,USA,,
-1001,high,2020,UK,,`
+    const rows: CoreMatrix = [
+        ["gdp", "annotation", "year", "entityName", "entityId", "entityCode"],
+        [1000, "low", 2019, "USA", null, null],
+        [1001, "high", 2020, "UK", null, null],
+    ]
     const defTsv = `slug	annotationsColumnSlug
 gdp	annotation`
-    const table = new OwidTable(dataCsv, defTsv)
+    const table = new OwidTable(rows, defTsv)
     expect(table.get("gdp").def.annotationsColumnSlug).toEqual("annotation")
 })
 
@@ -689,8 +670,9 @@ describe("printing", () => {
     it("can export a clean csv with dates", () => {
         const table = new OwidTable(
             [
-                { entityName: "Aruba", day: 1, annotation: "Something, foo" },
-                { entityName: "Canada", day: 2 },
+                ["entityName", "day", "annotation"],
+                ["Aruba", 1, "Something, foo"],
+                ["Canada", 2, null],
             ],
             [
                 { slug: "entityName" },
@@ -706,8 +688,7 @@ Canada,2020-01-23,`)
 
     it("can format a value", () => {
         const table = new OwidTable(
-            `growthRate
-123`,
+            [["growthRate"], [123]],
             [
                 {
                     slug: "growthRate",

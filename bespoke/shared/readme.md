@@ -6,6 +6,9 @@ Shared TypeScript modules used by both the bespoke projects and the site renderi
 
 - **bespokeComponentTypes.ts** — Type definitions for the bespoke component interface (`BespokeComponentModule`, `BespokeComponentMountFn`, `BespokeComponentVariantsList`, etc.). Imported by projects via the `owid-bespoke-types` TS path alias.
 - **bespokeComponentShadowDom.ts** — Utilities for mounting a bespoke component inside a Shadow DOM: creates the shadow root, loads CSS via a `<link>` element, dynamically imports the JS module, and calls `mount()`. Used by both the site's `BespokeComponent.tsx` and the dev server's demo page.
+- **bespokeComponentRegistry.ts** — The bundles that can be embedded in a gdoc, and where each one's script and data files live.
+- **bespokeComponentUrls.ts** — `resolveBespokeComponentUrls`, which turns a registry entry into the URLs of the environment being served.
+- **embedConfig.ts** — The `EmbedConfig` flags an embedding page sets on a bespoke component (`urlSync`, `hideMetadataModal`), and `serializeEmbedConfig` for writing them into a block's string config. `bespoke/helpers/config.ts` parses them back out.
 
 ## How projects import from here
 

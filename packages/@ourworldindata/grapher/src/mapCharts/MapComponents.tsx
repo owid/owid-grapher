@@ -1,5 +1,5 @@
 import React from "react"
-import { makeFigmaId } from "@ourworldindata/utils"
+import { makeFigmaId, roundForSvg } from "@ourworldindata/utils"
 import {
     BLUR_FILL_OPACITY,
     BLUR_STROKE_OPACITY,
@@ -70,9 +70,9 @@ export function CountryWithData<Feature extends RenderFeature>({
 
     const stroke =
         isHovered || isSelected ? HOVER_STROKE_COLOR : DEFAULT_STROKE_COLOR
-    const strokeWidth = R.round(
-        getStrokeWidth({ isHovered, isSelected }) / strokeScale,
-        3
+    const strokeWidth = scaleStrokeWidth(
+        getStrokeWidth({ isHovered, isSelected }),
+        strokeScale
     )
     const strokeOpacity = hover?.background ? BLUR_STROKE_OPACITY : 1
 
@@ -123,9 +123,9 @@ export function CountryWithNoData<Feature extends RenderFeature>({
     const isHovered = hover?.active ?? false
 
     const stroke = isHovered || isSelected ? HOVER_STROKE_COLOR : "#aaa"
-    const strokeWidth = R.round(
-        getStrokeWidth({ isHovered, isSelected }) / strokeScale,
-        3
+    const strokeWidth = scaleStrokeWidth(
+        getStrokeWidth({ isHovered, isSelected }),
+        strokeScale
     )
     const strokeOpacity = hover?.background ? BLUR_STROKE_OPACITY : 1
 
@@ -220,18 +220,16 @@ function DottedProjectedDataPattern({
         <pattern
             id={patternId}
             patternUnits="userSpaceOnUse"
-            width={patternSize}
-            height={patternSize}
+            width={roundForSvg(patternSize)}
+            height={roundForSvg(patternSize)}
             patternTransform={`rotate(45) scale(${roundedScale})`}
         >
-            {/* colored background */}
             <rect width={patternSize} height={patternSize} fill={color} />
 
-            {/* dots */}
             <circle
-                cx={patternSize / 2}
-                cy={patternSize / 2}
-                r={dotSize}
+                cx={roundForSvg(patternSize / 2)}
+                cy={roundForSvg(patternSize / 2)}
+                r={roundForSvg(dotSize)}
                 fill="black"
                 fillOpacity={opacity}
             />
@@ -251,14 +249,16 @@ export function InternalValueAnnotation({
     const { id, text, color, placedBounds, fontSize } = annotation
 
     const showHalo = showOutline && isDarkColor(color)
-    const strokeWidth = R.round(DEFAULT_STROKE_WIDTH / strokeScale, 3)
+    const strokeWidth = scaleStrokeWidth(DEFAULT_STROKE_WIDTH, strokeScale)
 
     return (
         <Halo id={id} outlineWidth={3} show={showHalo}>
             <text
                 id={makeFigmaId(id)}
-                x={placedBounds.topLeft.x}
-                y={placedBounds.topLeft.y + placedBounds.height - 1}
+                x={roundForSvg(placedBounds.topLeft.x)}
+                y={roundForSvg(
+                    placedBounds.topLeft.y + placedBounds.height - 1
+                )}
                 fontSize={fontSize}
                 fontWeight={700}
                 fill={color}
@@ -295,17 +295,17 @@ export function ExternalValueAnnotation({
     return (
         <g id={makeFigmaId(id)}>
             <line
-                x1={markerStart[0]}
-                y1={markerStart[1]}
-                x2={markerEnd[0]}
-                y2={markerEnd[1]}
+                x1={roundForSvg(markerStart[0])}
+                y1={roundForSvg(markerStart[1])}
+                x2={roundForSvg(markerEnd[0])}
+                y2={roundForSvg(markerEnd[1])}
                 stroke={annotation.color}
                 strokeWidth={lineStrokeWidth}
                 style={{ pointerEvents: "none" }}
             />
             <text
-                x={placedBounds.x}
-                y={placedBounds.y + placedBounds.height - 1}
+                x={roundForSvg(placedBounds.x)}
+                y={roundForSvg(placedBounds.y + placedBounds.height - 1)}
                 fontSize={fontSize}
                 strokeWidth={textStrokeWidth}
                 fill={annotation.color}
@@ -319,6 +319,10 @@ export function ExternalValueAnnotation({
             </text>
         </g>
     )
+}
+
+function scaleStrokeWidth(strokeWidth: number, strokeScale: number): number {
+    return R.round(strokeWidth / strokeScale, 3)
 }
 
 function getStrokeWidth({

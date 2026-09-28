@@ -1,0 +1,349 @@
+[
+  {
+    "id": "data-callout-functions",
+    "title": "Data callout functions",
+    "category": "Charts & data",
+    "sidecarFile": "packages/@ourworldindata/types/src/gdocTypes/guides/data-callout-functions.md",
+    "description": "$latestTime() and $latestValue() interpolate live chart values into text inside {.data-callout} and {.data-callout-group} blocks. Both read from the chart at the callout's url, so the wording stays correct as the chart's underlying data changes.",
+    "prose": {
+      "intro": "`$latestTime()` and `$latestValue()` interpolate live chart values into text\ninside `{.data-callout}` and `{.data-callout-group}` blocks. Both\nread from the chart at the callout's `url`, so the wording stays correct as\nthe chart's underlying data changes.\n\n```archie\n{.data-callout}\nurl: https://ourworldindata.org/grapher/life-expectancy?country=CAN\n[.+content]\nIn $latestTime(), Canada's life expectancy was $latestValue()\n[]\n{}\n```",
+      "notes": "## Functions\n\n- `$latestTime()`: the time of the chart's most recent data point, written\n  the way the chart itself formats a single point in time — a year, e.g.\n  \"2023\", or a day-level date, e.g. \"Jan 15, 2024\".\n- `$latestValue()`: that data point's value, formatted the way the chart\n  formats it.\n- `$latestValueWithUnit()`: the same value with an abbreviated unit.\n\nFor a chart with more than one y-indicator, pass the column's short name as\nan argument to say which one you mean, e.g. `$latestTime(emissions_total)`\nand `$latestValue(emissions_total)` to pick out\n[trade-adjusted emissions](https://ourworldindata.org/grapher/production-vs-consumption-co2-emissions?country=~USA)\non a chart that plots several. A chart with a single y-indicator doesn't\nneed the argument.\n\nTo pin the callout to a specific period instead of the chart's latest, add\n`time` to the `url`, e.g. `?country=CAN&time=earliest..1861`. `$latestTime()`\nthen means \"the latest time for this particular view\" — which may not be\nthe chart's true latest.\n\n## Finding column names\n\nVisit `/admin/callout-functions` and paste in the chart's URL: it lists\nevery function string available for that chart, including the exact\nargument to pass for each indicator the chart exposes, ready to copy into a\ncallout.\n\n## When there is no data\n\nIf the chart at `url` has no data for the country the callout resolves to,\nthe whole `{.data-callout}` — or the whole `{.data-callout-group}`\nif none of its callouts have data — is dropped rather than rendering blank.\nIn `{template:profile}`, a profile where every callout in the body\nends up with no data for a given entity is not baked for that entity at\nall."
+    },
+    "examples": [
+      {
+        "archie": "{.data-callout}\nurl: https://ourworldindata.org/grapher/life-expectancy?country=CAN\n[.+content]\nIn $latestTime(), Canada's life expectancy was $latestValue()\n[]\n{}",
+        "flavour": "archie",
+        "section": "intro",
+        "position": 0
+      }
+    ],
+    "related": [
+      {
+        "kind": "component",
+        "id": "data-callout"
+      },
+      {
+        "kind": "component",
+        "id": "data-callout-group"
+      },
+      {
+        "kind": "template",
+        "id": "profile"
+      }
+    ]
+  },
+  {
+    "id": "deprecating-an-article",
+    "title": "Deprecating an article",
+    "category": "Publishing",
+    "sidecarFile": "packages/@ourworldindata/types/src/gdocTypes/guides/deprecating-an-article.md",
+    "description": "A [+deprecation-notice] block above [+body] marks an article as archived.",
+    "prose": {
+      "intro": "A `[+deprecation-notice]` block above `[+body]` marks an article as\narchived.",
+      "notes": "## The notice\n\n```archie-document\ntitle: Marriage and divorce trends\ntype: article\nauthors: Our World in Data\n\n[+deprecation-notice]\nThis article was originally published in 2016. It is now archived and not being updated. For our current work on this topic, see our topic page on [Marriages and Divorces](https://docs.google.com/document/d/1tqoeu-Qe0qvQi2FwhI5xWhxQbR1hzgxJ-ZjzetJFj_s/edit).\n[]\n\n[+body]\nMarriage rates have fallen across most regions since the mid-20th century.\n[]\n```\n\nOnly text formatting is allowed inside the block — each paragraph becomes\na plain text block, not a component.\n\n## What changes on the site\n\n- A banner is shown prominently at the top of the article.\n- The article gets an archived-look thumbnail wherever it's thumbnailed —\n  prominent links, recirc cards, social-media previews.\n- The citation and licence sections are altered to discourage citing and\n  reusing the article.\n- The article is excluded from the site's search index entirely.\n\n## Editorial checklist\n\n- Replace interactive charts in the article with their static versions,\n  and set up a redirect from the interactive chart URL to the article URL.\n- Link to a related topic page or other up-to-date work in the notice\n  itself.\n\nOnly articles use this field — other document types ignore a\n`deprecation-notice` even if one is present in their front matter."
+    },
+    "examples": [
+      {
+        "archie": "title: Marriage and divorce trends\ntype: article\nauthors: Our World in Data\n\n[+deprecation-notice]\nThis article was originally published in 2016. It is now archived and not being updated. For our current work on this topic, see our topic page on [Marriages and Divorces](https://docs.google.com/document/d/1tqoeu-Qe0qvQi2FwhI5xWhxQbR1hzgxJ-ZjzetJFj_s/edit).\n[]\n\n[+body]\nMarriage rates have fallen across most regions since the mid-20th century.\n[]",
+        "flavour": "archie-document",
+        "section": "notes",
+        "position": 0
+      }
+    ]
+  },
+  {
+    "id": "details-on-demand",
+    "title": "Details on demand",
+    "category": "Writing",
+    "sidecarFile": "packages/@ourworldindata/types/src/gdocTypes/guides/details-on-demand.md",
+    "description": "A detail on demand (DoD) is a definition popup attached to a phrase, keyed by an id.",
+    "prose": {
+      "intro": "A detail on demand (DoD) is a definition popup attached to a phrase,\nkeyed by an id.",
+      "notes": "## In a document\n\nLink the phrase to `#dod:your_id` using Google Docs' link tool — the id\nis whatever follows `#dod:`. That link becomes an anchor in the\nArchieML the document produces, not something you type by hand:\n\n```archie\nDetails on demand let you define <a href=\"#dod:primaryenergy\">primary energy</a> once and reuse it across the site.\n```\n\n## In chart subtitles and footers\n\nGrapher and explorer subtitles and footers use markdown instead of a\nDocs link, e.g. `[Primary energy](#dod:primaryenergy)`.\n\n## Where the definitions live\n\nDefinitions are not authored inside the document itself: each DoD is a\nrow in the `dods` database table, managed at /admin/dods, and every\ndocument's `details` dictionary is populated from that table at\nrender/bake time.\n\nA DoD is a popup attached to a phrase; a ref (`{guide:refs}`) is a\nfootnote collected at the end of the page. Use a DoD for a definition\nthe reader can look up inline, a ref for a source."
+    },
+    "examples": [
+      {
+        "archie": "Details on demand let you define <a href=\"#dod:primaryenergy\">primary energy</a> once and reuse it across the site.",
+        "flavour": "archie",
+        "section": "notes",
+        "position": 0
+      }
+    ],
+    "related": [
+      {
+        "kind": "guide",
+        "id": "refs"
+      }
+    ]
+  },
+  {
+    "id": "headings-and-structure",
+    "title": "Headings and structure",
+    "category": "Structure",
+    "sidecarFile": "packages/@ourworldindata/types/src/gdocTypes/guides/headings-and-structure.md",
+    "description": "Headings come from the Google Docs text styles, not from ArchieML: apply Heading 1, Heading 2 or Heading 3 to a line and it becomes a {.heading} block at that level. The rule of thumb is to open every main section with Heading 1 and nest with Heading 2, then Heading 3 — three levels at most.",
+    "prose": {
+      "intro": "Headings come from the Google Docs text styles, not from ArchieML: apply\nHeading 1, Heading 2 or Heading 3 to a line and it becomes a\n`{.heading}` block at that level. The rule of thumb is to open every main\nsection with Heading 1 and nest with Heading 2, then Heading 3 — three\nlevels at most.\n\n```archie\n{.heading}\ntext: A main section\nlevel: 1\n{}\n```",
+      "notes": "## Heading levels\n\n- **Heading 1** titles a primary section — the largest heading available in\n  body text, so it should also title the first section of an article.\n- **Heading 2** titles a subsection and belongs only inside a section that\n  already has a Heading 1.\n- **Heading 3** titles a sub-subsection inside a Heading 2 section.\n\nDeeper Docs styles (Heading 4 and 5) render as small overlines; avoid them\nin articles.\n\n## Separating primary sections\n\nA `{.horizontal-rule}` between two Heading 1 sections gives the reader a\nvisual break. Use it between primary sections only, never between a\nheading and its own content.\n\n```archie\n{.horizontal-rule}\n{}\n```\n\nHeadings generate the sidebar table of contents (`sidebar-toc` on\n`{template:article}`) and the anchors that sticky-nav targets point at, so\na heading's wording is also its URL fragment."
+    },
+    "examples": [
+      {
+        "archie": "{.heading}\ntext: A main section\nlevel: 1\n{}",
+        "flavour": "archie",
+        "section": "intro",
+        "position": 0
+      },
+      {
+        "archie": "{.horizontal-rule}\n{}",
+        "flavour": "archie",
+        "section": "notes",
+        "position": 0
+      }
+    ],
+    "related": [
+      {
+        "kind": "component",
+        "id": "heading"
+      },
+      {
+        "kind": "component",
+        "id": "horizontal-rule"
+      },
+      {
+        "kind": "template",
+        "id": "article"
+      }
+    ]
+  },
+  {
+    "id": "linking",
+    "title": "Linking to documents",
+    "category": "Writing",
+    "sidecarFile": "packages/@ourworldindata/types/src/gdocTypes/guides/linking.md",
+    "description": "Link to one of our own documents with its Google Docs URL rather than its ourworldindata.org URL. The admin resolves the Docs URL to the document's published slug at render time, so the link survives slug changes.",
+    "prose": {
+      "intro": "Link to one of our own documents with its Google Docs URL rather than its\nourworldindata.org URL. The admin resolves the Docs URL to the document's\npublished slug at render time, so the link survives slug changes.",
+      "notes": "## In prose\n\nPaste the Google Docs link directly into the text, or use Google Docs'\nown \"Insert Link\" dialogue to search for the document.\n\n## In components\n\nComponents that link to a document take the same Google Docs URL in a\n`url` property — for example `{.prominent-link}`:\n\n```archie\n{.prominent-link}\nurl: https://docs.google.com/document/d/1Lo3CtGGESA3iQVrlhlQZbtG15ecUNt1Qfk2X3iBlwIk\n{}\n```\n\n## When it does not resolve\n\nThe link only resolves once the target document is registered in the\nadmin at /admin/gdocs. If the target document is registered but not yet\npublished, the admin flags the link as a warning until it is. A link to\nan external, non-gdoc URL needs its own link text (or, for a component, its\nown `title`) since there's no document to fetch one from.\n\nLegacy ourworldindata.org URLs still work, but they point at a fixed\npath and won't follow the target if its slug changes later."
+    },
+    "examples": [
+      {
+        "archie": "{.prominent-link}\nurl: https://docs.google.com/document/d/1Lo3CtGGESA3iQVrlhlQZbtG15ecUNt1Qfk2X3iBlwIk\n{}",
+        "flavour": "archie",
+        "section": "notes",
+        "position": 0
+      }
+    ],
+    "related": [
+      {
+        "kind": "component",
+        "id": "prominent-link"
+      }
+    ]
+  },
+  {
+    "id": "previewing-and-publishing",
+    "title": "Previewing and publishing",
+    "category": "Publishing",
+    "sidecarFile": "packages/@ourworldindata/types/src/gdocTypes/guides/previewing-and-publishing.md",
+    "description": "How a Google Doc becomes a page.",
+    "prose": {
+      "intro": "How a Google Doc becomes a page.",
+      "notes": "## Previewing\n\nPreview a document at\n`https://admin.owid.io/admin/gdocs/<GDOC_ID>/preview`, where `GDOC_ID` is\nthe long segment of the document's own Google Docs URL (the part after\n`/document/d/`). The document must already be registered at /admin/gdocs\nfor this to work — see `{guide:linking}`.\n\n## Data insights\n\nData insights are drafted from the\n[Data Insight default GDoc template](https://docs.google.com/document/d/1R_0rPmbofVnNrFUUUtqPvWCLypOzG_AqVJHSq99x3IA/edit)\nand stored on Drive in\n[this folder](https://drive.google.com/drive/u/0/folders/1tImR6L-viqlABvPVw_5nUez9CVYag5el).\nThe image is square, 2160px wide, exported from the chart's export tab,\nand referenced with an `{.image}` block. See `{template:data-insight}`.\n\n## Publishing\n\nPublishing (or updating a published document) happens from the document's\npage in the admin and, alongside indexing it for search, enqueues a\nstatic-site rebuild through the deploy queue — the change goes live once\nthat bake completes."
+    },
+    "examples": [],
+    "related": [
+      {
+        "kind": "guide",
+        "id": "linking"
+      },
+      {
+        "kind": "component",
+        "id": "image"
+      },
+      {
+        "kind": "template",
+        "id": "data-insight"
+      }
+    ]
+  },
+  {
+    "id": "profile-placeholders",
+    "title": "Country profile placeholders",
+    "category": "Charts & data",
+    "sidecarFile": "packages/@ourworldindata/types/src/gdocTypes/guides/profile-placeholders.md",
+    "description": "A country profile is written once and instantiated for every entity in its scope. Codewords in the body get replaced with that entity's name, code, or phrasing variant each time the page is baked.",
+    "prose": {
+      "intro": "A country profile is written once and instantiated for every entity in\nits scope. Codewords in the body get replaced with that entity's name,\ncode, or phrasing variant each time the page is baked.\n\nSee `{template:profile}` for the front-matter fields that define a\nprofile's scope.\n\n```archie\n$EntityName’s population has grown steadily since 1950.\n\n{.chart}\nurl: https://ourworldindata.org/grapher/population?country=$entityCode\n{}\n```",
+      "notes": "## Placeholders\n\n- `$entityName`: the entity's name, with an article where English needs\n  one — \"Australia\", \"the United Kingdom\". Use it mid-sentence.\n- `$EntityName`: the same, capitalized for the start of a sentence —\n  \"Australia\", \"The United Kingdom\".\n- `$noArticleEntityName`: the bare name with no article — \"Australia\",\n  \"United Kingdom\". Use it where an article would read wrong, e.g. linking\n  to a search page with a country filter applied.\n- `$entityCode`: the entity's code — \"AUS\", \"GBR\" for countries, an\n  `OWID_`-prefixed code for continents. Use it in chart query params, e.g.\n  `country=$entityCode`.\n\n`$entityName`, `$EntityName` and `$noArticleEntityName` each also have a\npossessive form, written with an apostrophe-s the way Google Docs types it\n(a curly apostrophe, e.g. `$entityName’s`) — not a straight one. There is no\npossessive form for `$entityCode`.\n\n## Scope and exclude\n\nWhich entities a profile is instantiated for, and which specific ones to\nleave out, are front-matter fields — see `{template:profile}` for\n`scope` and `exclude`. Entities are matched by name, not by code — a\ncomma-separated list can name `countries`, `continents`, `all`, or the\nname of one specific entity. A few codes work too, but only because\nthey happen to be registered variant names, e.g. `USA`.\n\n## Not baked without data\n\nA profile built around `{.data-callout}` blocks may end up with some,\nall, or none of them renderable for a given entity, depending on data\navailability — see `{guide:data-callout-functions}`. Say a profile has\nten callouts:\n\n- All ten render for the UK — the page bakes, every section shows.\n- Four of the ten render for Somalia — the page bakes, the other six\n  sections are hidden.\n- None render for Kosovo — the page isn't baked for Kosovo at all."
+    },
+    "examples": [
+      {
+        "archie": "$EntityName’s population has grown steadily since 1950.\n\n{.chart}\nurl: https://ourworldindata.org/grapher/population?country=$entityCode\n{}",
+        "flavour": "archie",
+        "section": "intro",
+        "position": 0
+      }
+    ],
+    "related": [
+      {
+        "kind": "template",
+        "id": "profile"
+      },
+      {
+        "kind": "component",
+        "id": "data-callout"
+      },
+      {
+        "kind": "guide",
+        "id": "data-callout-functions"
+      }
+    ]
+  },
+  {
+    "id": "refs",
+    "title": "Refs and footnotes",
+    "category": "Writing",
+    "sidecarFile": "packages/@ourworldindata/types/src/gdocTypes/guides/refs.md",
+    "description": "A ref is a footnote: a superscript number in the text and the source it points at, collected in the endnotes at the end of the page. Write refs in two forms — with an ID you define once in the front matter, or inline where the claim is made.",
+    "prose": {
+      "intro": "A ref is a footnote: a superscript number in the text and the source it\npoints at, collected in the endnotes at the end of the page. Write refs in\ntwo forms — with an ID you define once in the front matter, or inline where\nthe claim is made.",
+      "notes": "## ID-based refs\n\nDefine the ref in a `[.refs]` block in the front matter (outside `[+body]`),\nthen cite it anywhere with `{ref}the_id{/ref}`. The same ID can be cited\nseveral times and gets one footnote number.\n\n```archie-document\ntitle: Refs example\ntype: article\nauthors: Our World in Data\n\n[.refs]\nid: un_wpp_2024\n[.+content]\nUN, World Population Prospects (2024).\n[]\n[]\n\n[+body]\nFertility has halved since 1950.{ref}un_wpp_2024{/ref} The decline has\nbeen fastest in Asia.{ref}un_wpp_2024{/ref}\n[]\n```\n\nIf the text between `{ref}` and `{/ref}` contains no whitespace, it is\nread as an ID and looked up in the `[.refs]` block. A cited ID with no\ndefinition is a parse error the admin reports on the document.\n\n## Inline refs\n\nWrite the source itself between the tags. Handy for a one-off citation you\nwant to keep next to its claim.\n\n```archie\nLife expectancy in Japan reached 84 years.{ref}WHO, Global Health\nObservatory (2023).{/ref}\n```\n\nTwo inline refs with exactly the same text share a footnote number. If you\nfind yourself repeating one, give it an ID instead.\n\nRefs work in any paragraph of prose and inside blocks that hold text, such\nas `{.callout}` or `{.expandable-paragraph}`. Details on demand are a\ndifferent mechanism — a popup rather than a footnote — see\n`{guide:details-on-demand}`."
+    },
+    "examples": [
+      {
+        "archie": "title: Refs example\ntype: article\nauthors: Our World in Data\n\n[.refs]\nid: un_wpp_2024\n[.+content]\nUN, World Population Prospects (2024).\n[]\n[]\n\n[+body]\nFertility has halved since 1950.{ref}un_wpp_2024{/ref} The decline has\nbeen fastest in Asia.{ref}un_wpp_2024{/ref}\n[]",
+        "flavour": "archie-document",
+        "section": "notes",
+        "position": 0
+      },
+      {
+        "archie": "Life expectancy in Japan reached 84 years.{ref}WHO, Global Health\nObservatory (2023).{/ref}",
+        "flavour": "archie",
+        "section": "notes",
+        "position": 1
+      }
+    ],
+    "related": [
+      {
+        "kind": "component",
+        "id": "callout"
+      },
+      {
+        "kind": "component",
+        "id": "expandable-paragraph"
+      },
+      {
+        "kind": "guide",
+        "id": "details-on-demand"
+      }
+    ]
+  },
+  {
+    "id": "sticky-nav",
+    "title": "Sticky nav on topic pages",
+    "category": "Structure",
+    "sidecarFile": "packages/@ourworldindata/types/src/gdocTypes/guides/sticky-nav.md",
+    "description": "Topic pages get a pinned navigation bar generated from their headings.",
+    "prose": {
+      "intro": "Topic pages get a pinned navigation bar generated from their headings.",
+      "notes": "## Automatic buttons\n\nThe site always adds an \"Introduction\" button pointing at `#introduction`,\nthen scans the body's headings for slugs matching one of these patterns:\n\n- a heading starting with \"Acknowledgements\" → **Acknowledgements**\n- a heading starting with \"Country Profiles\" → **Country Profiles**\n- a heading starting with \"Explore data on …\" or \"Explore our data on …\"\n  → **Data Explorer**\n- a heading matching \"Key Insights\" anywhere in its slug → **Key\n  Insights**\n- a heading matching \"All Charts\" anywhere in its slug → **Charts**\n- a heading matching \"Research & Writing\" anywhere in its slug →\n  **Research & Writing**\n\nThe first three patterns only match at the start of the heading's slug;\nthe last three match anywhere in it, so \"Key Insights on Poverty\" still\nyields a button — the button itself always reads \"Key Insights\".\n\nA `{.key-insights}`, `{.all-charts}`, or `{.research-and-writing}` block\nadds its matching button too, whenever the block is present in the body —\nno heading match is needed for these.\n\n## Manual override\n\nIf your headings aren't matched by the patterns above, specify the sticky\nnav yourself: a `[.sticky-nav]` array of `target:` (an anchor starting with\n`#`) and `text:` pairs in the front matter, outside `[+body]`. An explicit\n`[.sticky-nav]` is used as-is instead of the automatic buttons.\n\n```archie-document\ntitle: Fertility topic page\ntype: topic-page\nauthors: Our World in Data\n\n[.sticky-nav]\ntarget: #introduction\ntext: Introduction\n\ntarget: #children-per-woman\ntext: Children per woman\n[]\n\n[+body]\n{.heading}\ntext: Children per woman\nlevel: 1\n{}\n\nThe fertility rate is the average number of children born per woman.\n[]\n```\n\n## Linear topic pages\n\nThe automatic buttons, and the sticky nav itself, only apply to\n`type: topic-page` documents. A `[.sticky-nav]` block written on a\n`type: linear-topic-page` document is discarded and has no effect. See\n`{template:linear-topic-page}`.\n\nSticky nav targets are heading anchors, so renaming a heading changes its\ntarget — see `{guide:headings-and-structure}`."
+    },
+    "examples": [
+      {
+        "archie": "title: Fertility topic page\ntype: topic-page\nauthors: Our World in Data\n\n[.sticky-nav]\ntarget: #introduction\ntext: Introduction\n\ntarget: #children-per-woman\ntext: Children per woman\n[]\n\n[+body]\n{.heading}\ntext: Children per woman\nlevel: 1\n{}\n\nThe fertility rate is the average number of children born per woman.\n[]",
+        "flavour": "archie-document",
+        "section": "notes",
+        "position": 0
+      }
+    ],
+    "related": [
+      {
+        "kind": "component",
+        "id": "key-insights"
+      },
+      {
+        "kind": "component",
+        "id": "all-charts"
+      },
+      {
+        "kind": "component",
+        "id": "research-and-writing"
+      },
+      {
+        "kind": "template",
+        "id": "linear-topic-page"
+      },
+      {
+        "kind": "guide",
+        "id": "headings-and-structure"
+      }
+    ]
+  },
+  {
+    "id": "writing-basics",
+    "title": "Writing basics",
+    "category": "Writing",
+    "sidecarFile": "packages/@ourworldindata/types/src/gdocTypes/guides/writing-basics.md",
+    "description": "A document is front matter followed by a [+body] … [] block. Everything you write inside [+body] becomes the article's content; a plain paragraph of text becomes a {.text} block with no key of its own.",
+    "prose": {
+      "intro": "A document is front matter followed by a `[+body]` … `[]` block. Everything\nyou write inside `[+body]` becomes the article's content; a plain paragraph\nof text becomes a `{.text}` block with no key of its own.",
+      "notes": "## Front matter and body\n\n```archie-document\ntitle: Population growth\ntype: article\nauthors: Our World in Data\n\n[+body]\nGlobal population has grown rapidly since 1950.\n\nIt is expected to peak later this century.\n[]\n```\n\n## Formatting\n\nBold, italic, links, superscript and subscript all carry through from\nGoogle Docs formatting — apply them in the Doc, not in ArchieML. Inline\nHTML is not allowed except for rare cases that Docs formatting can't\ncover; for those, use an `{.html}` block instead.\n\n## Comments and skipped lines\n\nLines between `:skip` and `:endskip` are ignored by the parser. Google\nDocs' own commenting feature is usually the better tool for a note to a\ncollaborator; reach for `:skip` only when you're writing directly in the\n`[+body]` block.\n\n```archie\nThis paragraph is published as usual.\n\n:skip\nThis line is a comment and is ignored.\n:endskip\n```\n\n## Escaping a leading colon\n\nA paragraph starting with a word followed by a colon is parsed as an\nArchieML key. Escape the colon to write it as prose:\n\n```archie\nBlah\\: an explanation of blah\n```\n\n## Lists\n\nGoogle Docs bullet formatting becomes a `{.list}` block automatically —\nyou don't write it explicitly. Numbered lists must be written out as a\n`{.numbered-list}` block, one `*` per item:\n\n```archie\n[.numbered-list]\n* Numbered\n* List\n[]\n```\n\nNested lists are not supported\n([issue #2468](https://github.com/owid/owid-grapher/issues/2468)).\n\nFor footnotes, see `{guide:refs}`; for definition popups, see\n`{guide:details-on-demand}`; for section headings, see\n`{guide:headings-and-structure}`."
+    },
+    "examples": [
+      {
+        "archie": "title: Population growth\ntype: article\nauthors: Our World in Data\n\n[+body]\nGlobal population has grown rapidly since 1950.\n\nIt is expected to peak later this century.\n[]",
+        "flavour": "archie-document",
+        "section": "notes",
+        "position": 0
+      },
+      {
+        "archie": "This paragraph is published as usual.\n\n:skip\nThis line is a comment and is ignored.\n:endskip",
+        "flavour": "archie",
+        "section": "notes",
+        "position": 1
+      },
+      {
+        "archie": "Blah\\: an explanation of blah",
+        "flavour": "archie",
+        "section": "notes",
+        "position": 2
+      },
+      {
+        "archie": "[.numbered-list]\n* Numbered\n* List\n[]",
+        "flavour": "archie",
+        "section": "notes",
+        "position": 3
+      }
+    ],
+    "related": [
+      {
+        "kind": "component",
+        "id": "text"
+      },
+      {
+        "kind": "component",
+        "id": "html"
+      },
+      {
+        "kind": "component",
+        "id": "list"
+      },
+      {
+        "kind": "component",
+        "id": "numbered-list"
+      },
+      {
+        "kind": "guide",
+        "id": "refs"
+      },
+      {
+        "kind": "guide",
+        "id": "details-on-demand"
+      },
+      {
+        "kind": "guide",
+        "id": "headings-and-structure"
+      }
+    ]
+  }
+]

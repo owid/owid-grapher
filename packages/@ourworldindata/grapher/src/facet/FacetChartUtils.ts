@@ -1,11 +1,7 @@
 import * as _ from "lodash-es"
 import { IDEAL_PLOT_ASPECT_RATIO } from "@ourworldindata/utils"
-import {
-    BASE_FONT_SIZE,
-    GRAPHER_FONT_SCALE_11,
-    GRAPHER_FONT_SCALE_15,
-} from "../core/GrapherConstants"
-import { roundFontSize } from "../chart/ChartUtils"
+import { BASE_FONT_SIZE } from "../core/GrapherConstants"
+import { roundFontSize, scaleFontSize } from "../chart/ChartUtils"
 
 const SMALL_CELL_LENGTH = 125
 const LARGE_CELL_LENGTH = 490
@@ -22,9 +18,11 @@ export const getFacetLabelFontSize = ({
     baseFontSize?: number
     minSize?: number
 }): number => {
-    const minFontSize = Math.max(minSize, GRAPHER_FONT_SCALE_11 * baseFontSize)
-    const maxFontSize =
-        GRAPHER_FONT_SCALE_15 * Math.min(baseFontSize, BASE_FONT_SIZE)
+    const minFontSize = Math.max(minSize, scaleFontSize(11, baseFontSize))
+    const maxFontSize = scaleFontSize(
+        15,
+        Math.min(baseFontSize, BASE_FONT_SIZE)
+    )
 
     // Available room as a single number (width-pixels): the width, but capped at
     // what it'd be at the ideal aspect ratio, so short-and-wide cells are driven

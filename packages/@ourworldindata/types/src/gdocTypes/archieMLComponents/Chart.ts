@@ -22,6 +22,7 @@ export type RawBlockChart = {
     value: RawBlockChartValue | string
 }
 
+/** @see [Chart.md](./Chart.md) */
 export type EnrichedBlockChart = {
     type: "chart"
     url: string
