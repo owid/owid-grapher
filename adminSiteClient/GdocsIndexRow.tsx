@@ -1,4 +1,5 @@
 import * as React from "react"
+import { useState } from "react"
 import cx from "clsx"
 import {
     faHouse,
@@ -91,7 +92,8 @@ export function GdocsIndexRow({
     onUpdateTags,
     canEditTags = true,
 }: GdocsIndexRowProps): React.ReactElement {
-    const isScheduled = isGdocScheduled(gdoc, Date.now())
+    const [now] = useState(() => Date.now())
+    const isScheduled = isGdocScheduled(gdoc, now)
     const tagWarning = getTagWarning(gdoc, orphanTagIds)
 
     return (

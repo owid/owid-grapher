@@ -126,10 +126,14 @@ function AltTextEditor({
     const [value, setValue] = useState(text)
     const [savedValue, setSavedValue] = useState(text)
 
-    useEffect(() => {
+    // Reset the editor when the alt text changes from the outside
+    // https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes
+    const [prevText, setPrevText] = useState(text)
+    if (text !== prevText) {
+        setPrevText(text)
         setValue(text)
         setSavedValue(text)
-    }, [text])
+    }
 
     const saveAltText = useCallback(
         (newValue: string) => {

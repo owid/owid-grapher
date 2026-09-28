@@ -68,11 +68,6 @@ export function BilateralFlowSankey({
         [flows, maxNodes, minNodeShare, formatValue]
     )
 
-    const getEntityIdsFromNodes = (nodes: SankeyNode[]) =>
-        nodes
-            .map((n) => getEntityFromNodeId(n.id))
-            .filter((e) => e !== OTHER_KEY)
-
     const sourceIds = useMemo(
         () => getEntityIdsFromNodes(sourceNodes),
         [sourceNodes]
@@ -185,6 +180,12 @@ export function BilateralFlowSankey({
             isLinkClickable={onSelectEntity ? isLinkClickable : undefined}
         />
     )
+}
+
+function getEntityIdsFromNodes(nodes: SankeyNode[]): string[] {
+    return nodes
+        .map((n) => getEntityFromNodeId(n.id))
+        .filter((e) => e !== OTHER_KEY)
 }
 
 function buildTooltipArgs({

@@ -175,10 +175,11 @@ const LivePreviewComponent = (props: ExplorerProps) => {
                     </Tippy>
                 </div>
             )}
+            {/* Remount whenever the program changes, since Explorer only reads it on mount */}
             <Explorer
                 {...newProps}
                 queryStr={window?.location?.search ?? ""}
-                key={Date.now()}
+                key={renderedProgram}
                 isPreview={true}
             />
         </>
