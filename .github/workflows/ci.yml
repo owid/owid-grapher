@@ -46,6 +46,12 @@ jobs:
   admin-playwright:
     runs-on: ubuntu-latest
 
+    # Each shard starts its own test database and admin server
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
+
     steps:
       - name: Clone repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -61,8 +67,8 @@ jobs:
         run: yarn playwright install --with-deps --no-shell chromium
 
       - name: Run admin Playwright tests
-        run: yarn testPlaywrightAdmin
-        timeout-minutes: 6
+        run: yarn testPlaywrightAdmin --shard=${{ matrix.shard }}/3
+        timeout-minutes: 12
 
   typecheck:
     runs-on: ubuntu-latest
