@@ -24,27 +24,28 @@ export function useAdminJson<T>(
     path: string | undefined
 ): T | undefined | null {
     const { admin } = useContext(AdminAppContext)
-    const [result, setResult] = useState<T | undefined | null>(undefined)
+    // Tagged with the path it was fetched for, so that a result for a
+    // previous path reads as still loading
+    const [result, setResult] = useState<{ path: string; value: T | null }>()
     useEffect(() => {
         if (!path) return
         let cancelled = false
-        setResult(undefined)
         admin
             .getJSON(path)
             // getJSON's Json constraint rejects named interfaces (they lack
             // an implicit index signature); the cast is as safe as any other
             // typed API response.
             .then((json) => {
-                if (!cancelled) setResult(json as unknown as T)
+                if (!cancelled) setResult({ path, value: json as unknown as T })
             })
             .catch(() => {
-                if (!cancelled) setResult(null)
+                if (!cancelled) setResult({ path, value: null })
             })
         return () => {
             cancelled = true
         }
     }, [admin, path])
-    return path ? result : undefined
+    return path && result?.path === path ? result.value : undefined
 }
 
 // Component docs live as .md sidecars in the repo, gated by CI; the reference

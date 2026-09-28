@@ -70,11 +70,10 @@ export function SlideExplorer(props: {
 
     // Fetch explorer HTML when the explorer slug changes. Query string changes
     // are applied below from the already-fetched HTML so chart-originated URL
-    // persistence doesn't force a network refetch.
+    // persistence doesn't force a network refetch. (No need to reset the state
+    // first: it's keyed, so a stale result never shows.)
     useEffect(() => {
         let cancelled = false
-        setExplorerHtmlState(null)
-        setExplorerPropsState(null)
         const explorerUrl = `${BAKED_BASE_URL}/explorers/${parsed.slug}`
         void fetchText(explorerUrl).then((html) => {
             if (!cancelled) setExplorerHtmlState({ slug: parsed.slug, html })
@@ -87,7 +86,6 @@ export function SlideExplorer(props: {
     useEffect(() => {
         if (!explorerHtml) return
         let cancelled = false
-        setExplorerPropsState(null)
         void buildExplorerProps(
             explorerHtml,
             withHiddenControls(parsed.queryString)
@@ -141,6 +139,7 @@ export function SlideExplorer(props: {
         )
 
         return () => disposers.forEach((d) => d())
+        // oxlint-disable-next-line react/exhaustive-effect-dependencies -- re-run for the Explorer rendered with new props
     }, [explorerProps])
 
     if (!explorerProps) {

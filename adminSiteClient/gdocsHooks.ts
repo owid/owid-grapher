@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useMemo } from "react"
 import {
     OwidGdoc,
     OwidGdocProfileInterface,
@@ -12,14 +12,10 @@ export const useGdocsChanged = (
     prevGdoc: OwidGdoc | undefined,
     nextGdoc: OwidGdoc | undefined
 ) => {
-    const [hasChanges, setHasChanges] = useState(false)
-
-    useEffect(() => {
-        if (!prevGdoc || !nextGdoc) return
-        setHasChanges(checkHasChanges(prevGdoc, nextGdoc))
-    }, [prevGdoc, nextGdoc])
-
-    return hasChanges
+    return useMemo(
+        () => !!prevGdoc && !!nextGdoc && checkHasChanges(prevGdoc, nextGdoc),
+        [prevGdoc, nextGdoc]
+    )
 }
 
 export const useLightningUpdate = (
@@ -27,16 +23,13 @@ export const useLightningUpdate = (
     nextGdoc: OwidGdoc | undefined,
     hasChanges: boolean
 ) => {
-    const [isLightningDeploy, setLightningUpdate] = useState(false)
-
-    useEffect(() => {
-        if (!checkIsGdocPost(prevGdoc) || !checkIsGdocPost(nextGdoc)) return
-        setLightningUpdate(
-            checkIsLightningUpdate(prevGdoc, nextGdoc, hasChanges)
-        )
-    }, [prevGdoc, nextGdoc, hasChanges])
-
-    return isLightningDeploy
+    return useMemo(
+        () =>
+            checkIsGdocPost(prevGdoc) &&
+            checkIsGdocPost(nextGdoc) &&
+            checkIsLightningUpdate(prevGdoc, nextGdoc, hasChanges),
+        [prevGdoc, nextGdoc, hasChanges]
+    )
 }
 
 /**
@@ -68,11 +61,10 @@ export function useCountryProfileSelection(
         string | undefined
     >()
 
-    React.useEffect(() => {
-        if (selectedEntity === undefined && !!entitiesInScope.length) {
-            setSelectedEntity(entitiesInScope[0].value)
-        }
-    }, [entitiesInScope, selectedEntity])
+    // Default to the first entity once there are any
+    if (selectedEntity === undefined && !!entitiesInScope.length) {
+        setSelectedEntity(entitiesInScope[0].value)
+    }
 
     return { entitiesInScope, selectedEntity, setSelectedEntity }
 }
