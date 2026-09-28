@@ -5,6 +5,7 @@ import {
     DimensionProperty,
     type OwidColumnDef,
 } from "@ourworldindata/types"
+import { OwidVariableDisplayConfig } from "@ourworldindata/utils"
 import { applyDimensionDisplayOverrides } from "./applyDimensionDisplay.js"
 
 const csv = `entityName,year,rent_index,vacancy_rate,dwellings
@@ -134,5 +135,51 @@ describe(applyDimensionDisplayOverrides, () => {
         ])
 
         expect(table.get("rent_index").def.color).toBe("#c15065")
+    })
+
+    it("leaves the def alone where the slot's display is undefined", () => {
+        const table = applyDimensionDisplayOverrides(makeTable(), [
+            {
+                property: DimensionProperty.y,
+                slug: "rent_index",
+                display: new OwidVariableDisplayConfig({ unit: "points" }),
+            },
+        ])
+
+        const column = table.get("rent_index")
+        expect(column.unit).toBe("points")
+        expect(column.displayName).toBe("Rent index")
+        expect(column.numDecimalPlaces).toBe(1)
+    })
+
+    it("takes the display of the first slot naming a column", () => {
+        const table = applyDimensionDisplayOverrides(makeTable(), [
+            {
+                property: DimensionProperty.y,
+                slug: "rent_index",
+                display: { name: "Rents" },
+            },
+            {
+                property: DimensionProperty.x,
+                slug: "rent_index",
+                display: { name: "Ignored", unit: "Ignored" },
+            },
+        ])
+
+        const column = table.get("rent_index")
+        expect(column.displayName).toBe("Rents")
+        expect(column.unit).toBe("index (2015 = 100)")
+    })
+
+    it("doesn't copy an empty color onto the def", () => {
+        const table = applyDimensionDisplayOverrides(makeTable(), [
+            {
+                property: DimensionProperty.y,
+                slug: "rent_index",
+                display: { color: "", name: "Rents" },
+            },
+        ])
+
+        expect(table.get("rent_index").def.color).toBeUndefined()
     })
 })

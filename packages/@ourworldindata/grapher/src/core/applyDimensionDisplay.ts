@@ -1,7 +1,10 @@
 import * as _ from "lodash-es"
 import { OwidTable } from "@ourworldindata/core-table"
+import { trimObject } from "@ourworldindata/utils"
 import {
     ColumnTypeNames,
+    TransformType,
+    type ColumnSlug,
     type OwidChartDimensionInterface,
     type OwidColumnDef,
     type OwidVariableDisplayConfigInterface,
@@ -33,17 +36,23 @@ export const applyDimensionDisplayOverrides = (
     table: OwidTable,
     dimensions: OwidChartDimensionInterface[] | undefined
 ): OwidTable => {
-    const displayBySlug = new Map<string, OwidVariableDisplayConfigInterface>()
-    for (const dimension of dimensions ?? []) {
-        const { slug, display } = dimension
-        if (slug === undefined || display === undefined) continue
-        if (Object.keys(display).length === 0) continue
-        if (!table.has(slug)) continue
-        displayBySlug.set(slug, { ...displayBySlug.get(slug), ...display })
+    const displayBySlug = new Map<
+        ColumnSlug,
+        OwidVariableDisplayConfigInterface
+    >()
+    for (const { slug, display } of _.uniqBy(
+        dimensions ?? [],
+        (dimension) => dimension.slug
+    )) {
+        if (slug === undefined || !table.has(slug)) continue
+        const definedDisplay = trimObject(display ?? {})
+        if (Object.keys(definedDisplay).length > 0)
+            displayBySlug.set(slug, definedDisplay)
     }
     if (displayBySlug.size === 0) return table
 
-    let result = table.updateDefs((def: OwidColumnDef) => {
+    const columnStore = { ...table.columnStore }
+    const defs = table.defs.map((def) => {
         const display = displayBySlug.get(def.slug)
         if (!display) return def
 
@@ -51,24 +60,25 @@ export const applyDimensionDisplayOverrides = (
             ...def,
             display: { ...def.display, ...display },
         }
-        if (display.color !== undefined) updated.color = display.color
-        // A non-integer factor applied to an integer column leaves it numeric.
+        if (display.color) updated.color = display.color
+
+        const { conversionFactor } = display
+        if (conversionFactor !== undefined && conversionFactor !== 1)
+            columnStore[def.slug] = columnStore[def.slug].map((value) =>
+                _.isNumber(value) ? value * conversionFactor : value
+            )
         if (
             updated.type === ColumnTypeNames.Integer &&
-            display.conversionFactor !== undefined &&
-            !_.isInteger(display.conversionFactor)
+            conversionFactor !== undefined &&
+            !_.isInteger(conversionFactor)
         )
             updated.type = ColumnTypeNames.Numeric
         return updated
     })
 
-    for (const [slug, display] of displayBySlug) {
-        const { conversionFactor } = display
-        if (conversionFactor === undefined || conversionFactor === 1) continue
-        result = result.replaceCells([slug], (value) =>
-            _.isNumber(value) ? value * conversionFactor : value
-        )
-    }
-
-    return result
+    return new OwidTable(columnStore, defs, {
+        parent: table,
+        tableDescription: "Applied slot display",
+        transformCategory: TransformType.UpdateColumnDefs,
+    })
 }
