@@ -104,6 +104,10 @@ export class DiscreteBarChart
         return this.manager.fontSize ?? BASE_FONT_SIZE
     }
 
+    @computed private get showLabels(): boolean {
+        return !this.manager.hideAxesAndLabels
+    }
+
     @computed private get barCount(): number {
         return this.series.length
     }
@@ -150,7 +154,7 @@ export class DiscreteBarChart
 
     // The amount of space we need to allocate for bar end labels on the right
     @computed private get rightValueLabelsWidth(): number {
-        if (!this.hasPositive) return 0
+        if (!this.showLabels || !this.hasPositive) return 0
 
         const labelsWidths = this.series
             .filter((series) => series.value >= 0)
@@ -214,6 +218,7 @@ export class DiscreteBarChart
      * and the padding between them.
      */
     @computed private get leftLabelsWidth(): number {
+        if (!this.showLabels) return 0
         const labelWidths = this.sizedSeries.map((series) => {
             const textWidth = Math.max(
                 series.label?.width ?? 0,
@@ -360,7 +365,7 @@ export class DiscreteBarChart
         series: RenderDiscreteBarSeries,
         y = 0
     ): React.ReactElement | null {
-        if (!series.label) return null
+        if (!this.showLabels || !series.label) return null
 
         return (
             <SeriesLabel
@@ -376,7 +381,11 @@ export class DiscreteBarChart
         series: RenderDiscreteBarSeries,
         y = 0
     ): React.ReactElement | null {
-        if (!series.annotationTextWrap || series.annotationY === undefined) {
+        if (
+            !this.showLabels ||
+            !series.annotationTextWrap ||
+            series.annotationY === undefined
+        ) {
             return null
         }
 
@@ -397,7 +406,8 @@ export class DiscreteBarChart
     private renderValueLabel(
         series: RenderDiscreteBarSeries,
         y = 0
-    ): React.ReactElement {
+    ): React.ReactElement | null {
+        if (!this.showLabels) return null
         const label = this.formatValue(series)
         return (
             <text
@@ -532,7 +542,8 @@ export class DiscreteBarChart
         )
     }
 
-    private renderAxis(): React.ReactElement {
+    private renderAxis(): React.ReactElement | null {
+        if (!this.showLabels) return null
         return (
             <HorizontalAxisZeroLine
                 axis={this.yAxis}

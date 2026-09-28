@@ -551,6 +551,12 @@ export class GrapherState
      */
     useMinimalLabeling = false
 
+    /**
+     * Strips a thumbnail down to its data marks: no axes, series labels or
+     * legends. Used where the surrounding UI already describes the chart
+     */
+    hideAxesAndLabels = false
+
     // Bounds
     staticBounds: Bounds = DEFAULT_GRAPHER_BOUNDS
     _externalBounds: Bounds | undefined = undefined
@@ -775,6 +781,7 @@ export class GrapherState
             hideShareButton: observable,
             hideExploreTheDataButton: observable,
             useMinimalLabeling: observable,
+            hideAxesAndLabels: observable,
         })
 
         this.updateFromObject(options)
@@ -1495,20 +1502,22 @@ export class GrapherState
     }
 
     @computed get yAxisConfig(): Readonly<AxisConfigInterface> {
-        return this.yAxis.toObject()
+        const config = this.yAxis.toObject()
+        return this.hideAxesAndLabels ? { ...config, hideAxis: true } : config
     }
 
     @computed get xAxisConfig(): Readonly<AxisConfigInterface> {
-        return this.xAxis.toObject()
+        const config = this.xAxis.toObject()
+        return this.hideAxesAndLabels ? { ...config, hideAxis: true } : config
     }
 
     @computed get showSeriesLabels(): boolean {
-        return !this.hideSeriesLabels
+        return !this.hideSeriesLabels && !this.hideAxesAndLabels
     }
 
     @computed get showLegend(): boolean {
         // Don't show any legends in minimal mode
-        if (this.useMinimalLabeling) return false
+        if (this.useMinimalLabeling || this.hideAxesAndLabels) return false
 
         // Hide the legend for stacked bar charts if the legend only ever shows a single entity
         if (this.isOnStackedBarTab) {

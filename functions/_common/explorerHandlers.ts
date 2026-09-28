@@ -69,6 +69,8 @@ async function initGrapherForExplorerView(
     if (options.grapherProps?.useMinimalLabeling)
         explorer.grapherState.useMinimalLabeling =
             options.grapherProps.useMinimalLabeling
+    if (options.grapherProps?.hideAxesAndLabels)
+        explorer.grapherState.hideAxesAndLabels = true
     explorer.grapherState.initialOptions = { baseFontSize: options.fontSize }
 
     return {
