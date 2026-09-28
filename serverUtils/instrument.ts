@@ -6,7 +6,7 @@ import { openAIIntegration } from "@sentry/node"
 if (!process.env.VITEST) {
     // Ensure to call this before importing any other modules!
     Sentry.init({
-        dataCollection: { userInfo: true }, // fine to enable in the backend, there's no relevant user data
+        dataCollection: { userInfo: true }, // fine to enable broader data collection in the backend
         dsn: SENTRY_ADMIN_DSN,
         integrations: [
             nodeProfilingIntegration(),

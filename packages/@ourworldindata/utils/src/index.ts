@@ -447,3 +447,5 @@ export {
     serializeDecisionTree,
     deserializeDecisionTree,
 } from "./QueryParamDecisionTree.js"
+
+export { SENTRY_DATA_COLLECTION } from "./sentry.js"
