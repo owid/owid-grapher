@@ -308,6 +308,8 @@ export {
 
 export { Url, setWindowUrl, getWindowUrl } from "./urls/Url.js"
 
+export { getPrefixedGdocPath } from "./urls/gdocPaths.js"
+
 export { type UrlMigration, performUrlMigrations } from "./urls/UrlMigration.js"
 
 export {
@@ -433,6 +435,13 @@ export {
     searchSingleForHits,
     searchSingleForHitsWithClosestMatches,
 } from "./search/searchClosestMatches.js"
+
+export {
+    TOPIC_PAGE_TYPES,
+    isTopicPageType,
+    rankTopicsOfChartHits,
+    searchTopicPagesOfMatchingCharts,
+} from "./search/searchTopicPages.js"
 
 export { isEmptyQuerySearchPayload } from "./search/emptyQuerySearchPayload.js"
 

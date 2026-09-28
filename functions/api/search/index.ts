@@ -4,6 +4,7 @@ import { getAlgoliaConfig } from "./algoliaClient.js"
 import {
     searchCharts,
     searchPages,
+    searchTopicPages,
     SearchState,
     SearchValidationError,
 } from "./searchApi.js"
@@ -12,7 +13,9 @@ import {
     Filter,
     SearchUrlParam,
     ALL_GDOC_TYPES,
+    TagGraphRoot,
 } from "@ourworldindata/types"
+import { isTopicPageType, TOPIC_PAGE_TYPES } from "@ourworldindata/utils"
 
 const DEFAULT_HITS_PER_PAGE = 20
 const MAX_HITS_PER_PAGE = 100
@@ -23,6 +26,21 @@ type SearchType = "charts" | "pages"
 // gdoc content types the `pageTypes` param (type=pages only) may request, as
 // a Set for O(1) membership checks.
 const VALID_PAGE_TYPES = new Set<string>(ALL_GDOC_TYPES)
+
+/**
+ * The topic tag graph the site bakes to /topicTagGraph.json; it maps tag
+ * names to topic page slugs for topic page recommendations.
+ */
+async function fetchTagGraph(env: Env, baseUrl: string): Promise<TagGraphRoot> {
+    const response = await env.ASSETS.fetch(
+        new URL("/topicTagGraph.json", baseUrl)
+    )
+    if (!response.ok)
+        throw new Error(
+            `Failed to fetch /topicTagGraph.json: ${response.status}`
+        )
+    return response.json()
+}
 
 const hasSearchEnvVars = (env: Env): boolean => {
     return !!env.ALGOLIA_ID && !!env.ALGOLIA_SEARCH_KEY
@@ -90,6 +108,16 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
                     `Invalid pageTypes value(s): "${invalidTypes.join('", "')}". Valid types: ${Array.from(VALID_PAGE_TYPES).join(", ")}`
                 )
             }
+            // Topic pages come in two layouts (topic-page and
+            // linear-topic-page), which is a presentation detail: asking for
+            // either returns both.
+            if (pageTypes.some(isTopicPageType))
+                pageTypes = [
+                    ...new Set([
+                        ...pageTypes.filter((t) => !isTopicPageType(t)),
+                        ...TOPIC_PAGE_TYPES,
+                    ]),
+                ]
         }
 
         // Parse pagination parameters
@@ -174,17 +202,35 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         // Extract base URL from request (for staging/preview deployments)
         const baseUrl = `${url.protocol}//${url.host}`
 
+        // A search for topic pages alone is a recommendation ("which topics
+        // is this query about?") and is answered from the matching charts,
+        // like the site's search page does. Mixed page types and empty
+        // queries stay a plain text search.
+        const wantsTopicPagesOnly =
+            pageTypes !== undefined &&
+            pageTypes.every(isTopicPageType) &&
+            query.trim() !== ""
+
         // Perform search based on type
         const results =
             searchType === "pages"
-                ? await searchPages(
-                      algoliaConfig,
-                      query,
-                      page * hitsPerPage, // Convert page to offset
-                      hitsPerPage,
-                      pageTypes, // undefined -> searchPages()'s own default
-                      baseUrl
-                  )
+                ? wantsTopicPagesOnly
+                    ? await searchTopicPages(
+                          algoliaConfig,
+                          searchState,
+                          await fetchTagGraph(env, baseUrl),
+                          page * hitsPerPage, // Convert page to offset
+                          hitsPerPage,
+                          baseUrl
+                      )
+                    : await searchPages(
+                          algoliaConfig,
+                          query,
+                          page * hitsPerPage, // Convert page to offset
+                          hitsPerPage,
+                          pageTypes, // undefined -> searchPages()'s own default
+                          baseUrl
+                      )
                 : await searchCharts(
                       algoliaConfig,
                       searchState,
