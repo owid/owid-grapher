@@ -8,7 +8,6 @@ import {
     getRelativeMouse,
     guid,
     makeFigmaId,
-    roundForSvg,
     HorizontalAlign,
 } from "@ourworldindata/utils"
 import {
@@ -29,7 +28,6 @@ import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 import { HorizontalAxis } from "../axis/Axis"
 import { ChartInterface } from "../chart/ChartInterface"
 import { TooltipState } from "../tooltip/Tooltip"
-import { findClosestTimeAtMouse } from "../lineCharts/LineChartHelpers"
 import { roundFontSize, scaleFontSize } from "../chart/ChartUtils"
 import { GRAPHER_LIGHT_TEXT } from "../color/ColorConstants.js"
 import { ChartComponentProps } from "../chart/ChartTypeMap"
@@ -49,7 +47,6 @@ import { BinEmphasis, toBinEmphasis } from "../legend/LegendStyleConfig"
 import { Emphasis } from "../interaction/Emphasis"
 import {
     ENTITY_LABEL_CHART_GAP,
-    HOVERED_TIME_MARKER_COLOR,
     HoveredSwimlanePoint,
     PADDING_BETWEEN_LEGEND_AND_LANES,
     PlacedSwimlaneSeries,
@@ -65,6 +62,7 @@ import { SwimlaneChartState } from "./SwimlaneChartState"
 import {
     computeLaneSlotHeight,
     findLaneAtY,
+    findSegmentAtX,
     toPlacedSwimlaneSeries,
     toRenderSwimlaneSeries,
 } from "./SwimlaneChartHelpers"
@@ -385,35 +383,14 @@ export class SwimlaneChart
         if (!ref) return
 
         const mouse = getRelativeMouse(ref, ev)
-        this.hoveredPoint = {
-            x: mouse.x,
-            laneEntityName: findLaneAtY(this.placedSeries, mouse.y)?.entityName,
-        }
+        const lane = findLaneAtY(this.placedSeries, mouse.y)
+        this.hoveredPoint = { x: mouse.x, laneEntityName: lane?.entityName }
 
-        const hoverTime = findClosestTimeAtMouse({
-            mouse,
-            innerBounds: this.innerBounds,
-            horizontalAxis: this.xAxis,
-            times: this.chartState.visibleTimesAsc,
-        })
+        const segment = lane
+            ? findSegmentAtX(lane.placedSegments, mouse.x)
+            : undefined
         this.tooltipState.target =
-            hoverTime === undefined ? null : { time: hoverTime }
-    }
-
-    private renderHoveredTimeMarker(): React.ReactElement | null {
-        const target = this.tooltipState.target
-        if (!target) return null
-
-        const x = roundForSvg(this.xAxis.place(target.time))
-        return (
-            <line
-                x1={x}
-                x2={x}
-                y1={roundForSvg(this.innerBounds.top)}
-                y2={roundForSvg(this.innerBounds.bottom)}
-                stroke={HOVERED_TIME_MARKER_COLOR}
-            />
-        )
+            lane && segment ? { entityName: lane.entityName, segment } : null
     }
 
     private renderLegend(): React.ReactElement | undefined {
@@ -502,7 +479,6 @@ export class SwimlaneChart
                     bounds={this.innerBounds}
                     stroke={SOLID_TICK_COLOR}
                 />
-                {this.renderHoveredTimeMarker()}
                 <g id={makeFigmaId("lanes")}>
                     {this.manager.isStatic
                         ? this.renderLanes()
@@ -529,11 +505,6 @@ export class SwimlaneChart
                             id={this.tooltipId}
                             chartState={this.chartState}
                             tooltipState={this.tooltipState}
-                            series={this.renderSeries}
-                            hoveredEntityName={
-                                this.hoveredPoint?.laneEntityName
-                            }
-                            xAxisLabel={this.xAxis.label}
                             dismissTooltip={this.dismissTooltip}
                         />
                     </>

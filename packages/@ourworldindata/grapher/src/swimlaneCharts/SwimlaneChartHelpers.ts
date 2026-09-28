@@ -294,15 +294,6 @@ export function findSegmentAtX(
     return x >= segment.x && x < segment.x + segment.width ? segment : undefined
 }
 
-export function findSegmentAtTime<Segment extends SwimlaneSegment>(
-    segments: Segment[],
-    time: Time
-): Segment | undefined {
-    return segments.find(
-        (segment) => time >= segment.startTime && time <= segment.endTime
-    )
-}
-
 export function findLaneAtY(
     series: PlacedSwimlaneSeries[],
     y: number

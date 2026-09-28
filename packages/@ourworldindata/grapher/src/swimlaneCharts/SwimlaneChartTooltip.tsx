@@ -1,26 +1,17 @@
 import React from "react"
 import { observer } from "mobx-react"
-import * as R from "remeda"
-import { EntityName } from "@ourworldindata/types"
-import { Tooltip, TooltipState, TooltipTable } from "../tooltip/Tooltip"
-import { TooltipTableProps } from "../tooltip/TooltipProps.js"
-import { GRAPHER_OPACITY_MUTED } from "../core/GrapherConstants"
-import { Emphasis } from "../interaction/Emphasis"
-import {
-    RenderSwimlaneSeries,
-    SwimlaneTooltipTarget,
-} from "./SwimlaneChartConstants"
+import { Time } from "@ourworldindata/types"
+import { Tooltip, TooltipState } from "../tooltip/Tooltip"
+import { formatTimeSpan } from "../chart/ChartUtils"
+import { darkenColorForText } from "../color/ColorUtils"
+import { SwimlaneTooltipTarget } from "./SwimlaneChartConstants"
 import { SwimlaneChartState } from "./SwimlaneChartState"
-import { findSegmentAtTime } from "./SwimlaneChartHelpers"
 import { formatSegmentTimeRange } from "./SwimlaneLabels"
 
 export interface SwimlaneChartTooltipProps {
     id: number
     chartState: SwimlaneChartState
     tooltipState: TooltipState<SwimlaneTooltipTarget>
-    series: RenderSwimlaneSeries[]
-    hoveredEntityName?: EntityName
-    xAxisLabel?: string
     dismissTooltip: () => void
 }
 
@@ -34,75 +25,64 @@ export class SwimlaneChartTooltip extends React.Component<SwimlaneChartTooltipPr
         return this.props.tooltipState.target ?? undefined
     }
 
-    private get title(): string {
-        const { target } = this
-        if (!target) return ""
-        return this.chartState.formatColumn.formatTime(target.time)
+    /** The whole category run, or the gap itself for missing data */
+    private get timeRange(): { startTime: Time; endTime: Time } | undefined {
+        const segment = this.target?.segment
+        if (!segment) return undefined
+        return segment.kind === "category"
+            ? { startTime: segment.runStartTime, endTime: segment.runEndTime }
+            : { startTime: segment.startTime, endTime: segment.endTime }
     }
 
-    private get titleAnnotation(): string {
-        return this.props.xAxisLabel ? `(${this.props.xAxisLabel})` : ""
+    private get formattedTimeRange(): string | undefined {
+        const { timeRange } = this
+        if (!timeRange) return undefined
+        const { timeColumn } = this.chartState.inputTable
+        return formatSegmentTimeRange({
+            runStartTime: timeRange.startTime,
+            runEndTime: timeRange.endTime,
+            formatTime: (time) => timeColumn.formatTime(time),
+        })
     }
 
-    private get subtitle(): string | undefined {
-        return this.chartState.formatColumn.displayUnit
+    private get formattedDuration(): string | undefined {
+        const { timeRange } = this
+        if (!timeRange || this.target?.segment.kind === "missing")
+            return undefined
+        const duration = timeRange.endTime - timeRange.startTime
+        if (duration === 0) return undefined
+        return formatTimeSpan(
+            duration,
+            this.chartState.inputTable.timeColumn.timeInterval
+        )
     }
 
-    private get columns(): TooltipTableProps["columns"] {
-        const { chartState } = this
-        return [
-            {
-                formatValue: (value: unknown): string =>
-                    R.isString(value)
-                        ? (chartState.colorScale.getBinForValue(value)?.text ??
-                          value)
-                        : String(value),
-            },
-            {
-                formatValue: (value: unknown): string => String(value),
-                secondary: true,
-            },
-        ]
-    }
+    private renderCategory(): React.ReactElement | null {
+        const segment = this.target?.segment
+        if (!segment) return null
 
-    private toTooltipTableRow(
-        series: RenderSwimlaneSeries
-    ): TooltipTableProps["rows"][number] {
-        const { target } = this
+        if (segment.kind === "missing")
+            return (
+                <div className="swimlane-tooltip__category swimlane-tooltip__category--missing">
+                    No data
+                </div>
+            )
 
-        const segment = target
-            ? findSegmentAtTime(series.segments, target.time)
-            : undefined
-        const categorySegment =
-            segment?.kind === "category" ? segment : undefined
-
-        const blurred =
-            series.emphasis === Emphasis.Muted || categorySegment === undefined
-        const color =
-            categorySegment?.color ?? this.chartState.colorScale.noDataColor
-        const opacity = blurred ? GRAPHER_OPACITY_MUTED : 1
-
-        const timeRange = categorySegment
-            ? `(${formatSegmentTimeRange({
-                  runStartTime: categorySegment.runStartTime,
-                  runEndTime: categorySegment.runEndTime,
-                  formatTime: (time) =>
-                      this.chartState.formatColumn.formatTime(time),
-              })})`
-            : // An undefined value would make the row read "No data" twice
-              ""
-
-        return {
-            name: series.seriesName,
-            swatch: { color, opacity },
-            blurred,
-            focused: series.seriesName === this.props.hoveredEntityName,
-            values: [categorySegment?.category, timeRange],
-        }
+        const label =
+            this.chartState.colorScale.getBinForValue(segment.category)?.text ??
+            segment.category
+        return (
+            <div
+                className="swimlane-tooltip__category"
+                style={{ color: darkenColorForText(segment.color) }}
+            >
+                {label}
+            </div>
+        )
     }
 
     override render(): React.ReactElement | null {
-        const { target } = this
+        const { target, formattedDuration } = this
         const { position, fading } = this.props.tooltipState
 
         if (!target) return null
@@ -117,19 +97,19 @@ export class SwimlaneChartTooltip extends React.Component<SwimlaneChartTooltipPr
                 offsetXDirection="left"
                 offsetX={20}
                 offsetY={-16}
-                title={this.title}
-                titleAnnotation={this.titleAnnotation}
-                subtitle={this.subtitle}
-                subtitleFormat="unit"
+                title={target.entityName}
+                subtitle={this.formattedTimeRange}
                 dissolve={fading}
                 dismiss={this.props.dismissTooltip}
             >
-                <TooltipTable
-                    columns={this.columns}
-                    rows={this.props.series.map((series) =>
-                        this.toTooltipTableRow(series)
+                <div className="swimlane-tooltip">
+                    {this.renderCategory()}
+                    {formattedDuration && (
+                        <div className="swimlane-tooltip__duration">
+                            {formattedDuration}
+                        </div>
                     )}
-                />
+                </div>
             </Tooltip>
         )
     }

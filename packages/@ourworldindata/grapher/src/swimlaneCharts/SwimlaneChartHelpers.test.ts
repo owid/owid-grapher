@@ -20,7 +20,6 @@ import {
 } from "./SwimlaneChartConstants"
 import {
     findLaneAtY,
-    findSegmentAtTime,
     findSegmentAtX,
     toPlacedSwimlaneSeries,
     toRenderSwimlaneSegments,
@@ -742,42 +741,6 @@ describe(findSegmentAtX, () => {
         ]
 
         expect(findSegmentAtX(overlapping, 12)).toBe(overlapping[1])
-    })
-})
-
-describe(findSegmentAtTime, () => {
-    const withGap: SwimlaneSegment[] = [
-        { kind: "category", category: "A", startTime: 2000, endTime: 2002 },
-        { kind: "missing", startTime: 2003, endTime: 2004 },
-        { kind: "category", category: "B", startTime: 2005, endTime: 2005 },
-    ]
-
-    it("finds the category segment at a time inside it", () => {
-        expect(findSegmentAtTime(withGap, 2001)).toBe(withGap[0])
-    })
-
-    it("finds the category segment at its start time", () => {
-        expect(findSegmentAtTime(withGap, 2000)).toBe(withGap[0])
-    })
-
-    it("finds the category segment at its end time", () => {
-        expect(findSegmentAtTime(withGap, 2002)).toBe(withGap[0])
-    })
-
-    it("finds the missing segment at a time inside a gap", () => {
-        expect(findSegmentAtTime(withGap, 2003)).toBe(withGap[1])
-    })
-
-    it("finds nothing before the first segment", () => {
-        expect(findSegmentAtTime(withGap, 1999)).toBeUndefined()
-    })
-
-    it("finds nothing after the last segment", () => {
-        expect(findSegmentAtTime(withGap, 2006)).toBeUndefined()
-    })
-
-    it("returns undefined for an empty list", () => {
-        expect(findSegmentAtTime([], 2000)).toBeUndefined()
     })
 })
 

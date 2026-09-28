@@ -5,6 +5,7 @@ import {
     Box,
     excludeUndefined,
     getRegionByName,
+    isSubYearly,
     Url,
 } from "@ourworldindata/utils"
 import {
@@ -23,6 +24,7 @@ import {
     SortConfig,
     SortOrder,
     OwidVariableRow,
+    TimeInterval,
 } from "@ourworldindata/types"
 import { LineChartSeries } from "../lineCharts/LineChartConstants"
 import { SelectionArray } from "../selection/SelectionArray"
@@ -427,4 +429,15 @@ export function isToleranceDistanceValid(args: {
 
     const minRequiredGap = Math.min(tolerance, end.time - start.time)
     return end.originalTime - start.originalTime >= minRequiredGap
+}
+
+/** A span of time in words, e.g. "3 years" or "a year" */
+export function formatTimeSpan(
+    timeSpan: number,
+    timeInterval: TimeInterval
+): string {
+    // Sub-yearly times are stored as days, so their spans are in days
+    const unit = isSubYearly(timeInterval) ? "day" : "year"
+
+    return timeSpan === 1 ? `a ${unit}` : `${timeSpan} ${unit}s`
 }

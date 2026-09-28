@@ -16,7 +16,6 @@ export const SEGMENT_LABEL_PADDING = 8
 /** Length of a cropped segment's point, as a fraction of the segment's height */
 export const SEGMENT_CROP_TAPER_RATIO = 0.4
 export const SEGMENT_LABEL_TIME_RANGE_FONT_WEIGHT = 500
-export const HOVERED_TIME_MARKER_COLOR = "rgba(180,180,180,.4)"
 
 interface SwimlaneEmphasisStyleConfig {
     opacity: number
@@ -139,7 +138,8 @@ export interface HoveredSwimlanePoint {
 }
 
 export interface SwimlaneTooltipTarget {
-    time: Time
+    entityName: EntityName
+    segment: ColoredSwimlaneSegment
 }
 
 export interface RenderSwimlaneSeries extends Omit<

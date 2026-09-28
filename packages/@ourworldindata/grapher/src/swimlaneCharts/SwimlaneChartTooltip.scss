@@ -1,0 +1,17 @@
+@at-root {
+    .swimlane-tooltip__category {
+        font-size: 16px;
+        font-weight: 700;
+        line-height: 1.2;
+    }
+
+    .swimlane-tooltip__category--missing {
+        color: $gray-60;
+    }
+
+    .swimlane-tooltip__duration {
+        color: $gray-80;
+        font-size: 12px;
+        line-height: 18px;
+    }
+}
