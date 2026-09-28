@@ -225,8 +225,19 @@ describe("Search API endpoint", () => {
     })
 
     describe("unknown parameters", () => {
-        it("rejects the search page's resultType with a hint", async () => {
-            const mockSearchCharts = vi.spyOn(searchApi, "searchCharts")
+        const chartsResponse = {
+            query: "deaths",
+            results: [],
+            nbHits: 0,
+            page: 0,
+            nbPages: 0,
+            hitsPerPage: 20,
+        }
+
+        it("ignores the search page's resultType, with a warning and a hint", async () => {
+            const mockSearchCharts = vi
+                .spyOn(searchApi, "searchCharts")
+                .mockResolvedValue(chartsResponse)
 
             const request = new Request(
                 "http://localhost/api/search?q=deaths&resultType=writing"
@@ -236,15 +247,22 @@ describe("Search API endpoint", () => {
                 env: mockEnv,
             } as any)
 
-            expect(response.status).toBe(400)
+            expect(response.status).toBe(200)
+            expect(mockSearchCharts).toHaveBeenCalled()
             const body = await response.json()
-            assert(typeof body === "object" && body !== null && "error" in body)
-            expect(body.error).toContain('"resultType"')
-            expect(body.error).toContain("type=pages")
-            expect(mockSearchCharts).not.toHaveBeenCalled()
+            assert(
+                typeof body === "object" && body !== null && "warnings" in body
+            )
+            expect(body.warnings).toEqual([
+                expect.stringMatching(/"resultType".*type=pages/),
+            ])
         })
 
-        it("rejects a misspelled parameter", async () => {
+        it("names a misspelled parameter in a warning", async () => {
+            vi.spyOn(searchApi, "searchCharts").mockResolvedValue(
+                chartsResponse
+            )
+
             const request = new Request(
                 "http://localhost/api/search?q=deaths&topic=Health"
             )
@@ -253,11 +271,31 @@ describe("Search API endpoint", () => {
                 env: mockEnv,
             } as any)
 
-            expect(response.status).toBe(400)
+            expect(response.status).toBe(200)
             const body = await response.json()
-            assert(typeof body === "object" && body !== null && "error" in body)
-            expect(body.error).toContain('"topic"')
-            expect(body.error).toContain("topics")
+            assert(
+                typeof body === "object" && body !== null && "warnings" in body
+            )
+            expect(body.warnings).toEqual([expect.stringContaining('"topic"')])
+        })
+
+        it("accepts utm_* tags without a warning", async () => {
+            vi.spyOn(searchApi, "searchCharts").mockResolvedValue(
+                chartsResponse
+            )
+
+            const request = new Request(
+                "http://localhost/api/search?q=deaths&utm_source=owid-skills"
+            )
+            const response = await onRequestGet({
+                request,
+                env: mockEnv,
+            } as any)
+
+            expect(response.status).toBe(200)
+            const body = await response.json()
+            assert(typeof body === "object" && body !== null)
+            expect(body).not.toHaveProperty("warnings")
         })
     })
 
