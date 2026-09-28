@@ -52,10 +52,6 @@ export enum SortBy {
     startValue = "startValue",
     /** Sort by the end value (dumbbell charts) */
     endValue = "endValue",
-    /** Sort by the category an entity starts on (swimlane charts) */
-    firstCategory = "firstCategory",
-    /** Sort by the category an entity ends on (swimlane charts) */
-    lastCategory = "lastCategory",
 }
 
 export interface SortConfig {

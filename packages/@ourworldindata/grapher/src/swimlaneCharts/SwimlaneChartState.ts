@@ -39,7 +39,7 @@ import {
     SwimlaneSeries,
     SwimlaneSortKey,
 } from "./SwimlaneChartConstants"
-import { sortByCategory, toSwimlaneSegments } from "./SwimlaneChartHelpers"
+import { toSwimlaneSegments } from "./SwimlaneChartHelpers"
 
 export class SwimlaneChartState implements ChartState, ColorScaleManager {
     manager: SwimlaneChartManager
@@ -195,24 +195,12 @@ export class SwimlaneChartState implements ChartState, ColorScaleManager {
     }
 
     @computed get series(): SwimlaneSeries[] {
-        const categories = this.categories?.values ?? []
-
         const keyFns: Record<SwimlaneSortKey, SortKey<SwimlaneSeries>> = {
             [SortBy.custom]: (series): number =>
                 this.selectionArray.selectedEntityNames.indexOf(
                     series.entityName
                 ),
             [SortBy.entityName]: (series): string => series.entityName,
-            [SortBy.firstCategory]: sortByCategory({
-                series: this.unsortedSeries,
-                boundary: "first",
-                categories,
-            }),
-            [SortBy.lastCategory]: sortByCategory({
-                series: this.unsortedSeries,
-                boundary: "last",
-                categories,
-            }),
         }
 
         return sortByConfig(this.unsortedSeries, this.sortConfig, keyFns)
@@ -223,7 +211,7 @@ export class SwimlaneChartState implements ChartState, ColorScaleManager {
     }
 
     @computed get defaultSortKey(): SwimlaneSortKey {
-        return SortBy.lastCategory
+        return SortBy.entityName
     }
 
     toHorizontalAxis(config: AxisConfig): HorizontalAxis {

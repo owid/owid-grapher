@@ -619,8 +619,6 @@ properties:
       - change: sort by the change between the start and end values (dumbbell charts only)
       - startValue: sort by the start value (dumbbell charts only)
       - endValue: sort by the end value (dumbbell charts only)
-      - firstCategory: sort by the category an entity starts on (swimlane charts only)
-      - lastCategory: sort by the category an entity ends on (swimlane charts only)
     default: total
     enum:
       - column
@@ -630,8 +628,6 @@ properties:
       - change
       - startValue
       - endValue
-      - firstCategory
-      - lastCategory
   sortOrder:
     type: string
     description: Sort order
