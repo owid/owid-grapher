@@ -88,10 +88,11 @@ export function CountryProfileSelector({
     const { linkedDocument, errorMessage } = useLinkedDocument(block.url)
     const [searchTerm, setSearchTerm] = useState("")
 
+    const availableEntityCodes = linkedDocument?.availableEntityCodes
     const allCountries = useMemo(() => {
-        if (!linkedDocument?.availableEntityCodes) return []
-        return resolveCountriesToItems(linkedDocument.availableEntityCodes)
-    }, [linkedDocument?.availableEntityCodes])
+        if (!availableEntityCodes) return []
+        return resolveCountriesToItems(availableEntityCodes)
+    }, [availableEntityCodes])
 
     const defaultCountries = useMemo(() => {
         const names = block.defaultCountries.length

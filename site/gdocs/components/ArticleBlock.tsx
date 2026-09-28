@@ -114,6 +114,7 @@ function ArticleBlockInternal({
     useEffect(() => {
         if (typeof window !== "undefined") {
             const s = getExperimentState()
+            // oxlint-disable-next-line react/set-state-in-effect -- read client-only experiment cookies after hydration
             setExperimentState(s)
         }
     }, [])

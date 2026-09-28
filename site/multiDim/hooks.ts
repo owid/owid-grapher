@@ -73,39 +73,30 @@ export function useMultiDimAnalytics(
     const [hasBeenVisible, setHasBeenVisible] = useState(false)
 
     useEffect(() => {
-        if (!containerRef) {
-            setHasBeenVisible(true)
-            return undefined
-        }
+        const container = containerRef?.current
+        if (!container || !("IntersectionObserver" in window)) return undefined
 
-        const container = containerRef.current
-        if (!container) return undefined
-
-        if ("IntersectionObserver" in window) {
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach((entry) => {
-                    if (entry.isIntersecting) {
-                        setHasBeenVisible(true)
-                        observer.disconnect()
-                    }
-                })
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                    setHasBeenVisible(true)
+                    observer.disconnect()
+                }
             })
-            observer.observe(container)
-            return () => observer.disconnect()
-        }
-
-        setHasBeenVisible(true)
-        return undefined
+        })
+        observer.observe(container)
+        return () => observer.disconnect()
     }, [containerRef])
 
     useEffect(() => {
         // Log analytics event on page load and when the settings change, but
-        // only once the multi-dim has become visible.
-        if (
-            slug &&
-            hasBeenVisible &&
-            !_.isEqual(settings, oldSettingsRef.current)
-        ) {
+        // only once the multi-dim has become visible. Without a container to
+        // observe, treat it as visible right away.
+        const isVisible =
+            hasBeenVisible ||
+            !containerRef ||
+            !("IntersectionObserver" in window)
+        if (slug && isVisible && !_.isEqual(settings, oldSettingsRef.current)) {
             const newView = config.findViewByDimensions(settings)
             if (newView) {
                 analytics.logGrapherView(slug, {
@@ -114,5 +105,5 @@ export function useMultiDimAnalytics(
             }
             oldSettingsRef.current = { ...settings }
         }
-    }, [config, hasBeenVisible, slug, settings])
+    }, [config, containerRef, hasBeenVisible, slug, settings])
 }

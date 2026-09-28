@@ -91,9 +91,7 @@ export const SidebarTableOfContents = ({
     // rotate / zoom) so it isn't stranded over the sidebar.
     const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false)
     const isDesktop = useMediaQuery(`(min-width: ${SIDEBAR_TOC_SM + 1}px)`)
-    useEffect(() => {
-        if (isDesktop) setIsMobileDrawerOpen(false)
-    }, [isDesktop])
+    if (isDesktop && isMobileDrawerOpen) setIsMobileDrawerOpen(false)
 
     // No H1 sections → no sidebar. This is intentional: an LTP with no H1s is
     // an editorial fix, not a runtime fallback.

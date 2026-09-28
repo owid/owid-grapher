@@ -76,6 +76,7 @@ export function SiteSlideExplorer(props: {
         )
 
         return () => dispose()
+        // oxlint-disable-next-line react/exhaustive-effect-dependencies -- the Explorer (and explorerRef) only mounts once explorerProps have loaded
     }, [explorerProps, interactiveCharts])
 
     if (!explorerProps) {

@@ -1,4 +1,4 @@
-import React, { useState, useLayoutEffect } from "react"
+import React, { useState } from "react"
 import {
     TagGraphNode,
     TagGraphRoot,
@@ -22,19 +22,13 @@ export const SiteNavigationTopics = ({
         tagGraph?.children[0] || null
     )
 
-    const [numTopicColumns, setNumTopicColumns] = useState(1)
-
     // calculate the number of 10 topic columns we need based on the number of topics
-    // using useLayoutEffect to avoid a flash of the wrong number of columns when switching categories
-    useLayoutEffect(() => {
-        if (activeArea) {
-            const topics = getAllChildrenOfArea(activeArea).filter(
-                (topic) => topic.slug
-            )
-            const numColumns = Math.ceil(topics.length / 10)
-            setNumTopicColumns(numColumns)
-        }
-    }, [activeArea])
+    const numTopicColumns = activeArea
+        ? Math.ceil(
+              getAllChildrenOfArea(activeArea).filter((topic) => topic.slug)
+                  .length / 10
+          )
+        : 1
 
     const stopPropagation = (e: React.MouseEvent) => {
         e.stopPropagation()
