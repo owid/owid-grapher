@@ -196,6 +196,12 @@ Direct Playwright tests run in Chromium. Current scenarios cover search and
 Wikipedia-archive requests against a running baked site; they are not in the main
 GitHub Actions CI workflow.
 
+The chart editor has its own browser suite in `playwright/admin/` (`yarn
+testPlaywrightAdmin`, run in CI). It starts the admin against a test database with
+a few synthetic indicators, and each test seeds its own chart, drives one editor
+control and asserts on the config change that saving sends, so tests run in
+parallel without cleanup. See `playwright/admin/README.md`.
+
 Use browser tests for critical behavior involving real layout and events,
 navigation/history, accessibility interactions, network requests, or the baked
 site plus embedded Grapher. High-value candidates include tabs, bins, selections,
