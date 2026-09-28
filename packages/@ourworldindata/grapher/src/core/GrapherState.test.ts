@@ -35,6 +35,8 @@ import {
     SynthesizeGDPTable,
     OwidTable,
     ErrorValueTypes,
+    numericDefs,
+    yearDef,
 } from "@ourworldindata/core-table"
 import { legacyToCurrentGrapherQueryParams } from "./GrapherUrlMigrations"
 import { setSelectedEntityNamesParam } from "./EntityUrlBuilder"
@@ -1324,6 +1326,79 @@ describe("toleranceNotice", () => {
         // gdp's 3 years, not pop's 10, which isn't currently applied
         expect(grapher.toleranceNotice).toEqual(
             "Where data is unavailable, the closest value within 3 years is shown instead."
+        )
+    })
+
+    it("bounds the window by the applied columns' own years", () => {
+        const grapher = new GrapherState({
+            table: new OwidTable(
+                [
+                    ["entityName", "year", "gini", "income", "pop"],
+                    ["France", 2020, 30, 40, 60],
+                    ["France", 2025, 31, 41, 61],
+                    // Germany lacks gini and income for 2025
+                    ["Germany", 2020, 32, 42, 80],
+                    ["Germany", 2025, null, null, 81],
+                    // Population projections run far past the other columns
+                    ["France", 2100, null, null, 55],
+                    ["Germany", 2100, null, null, 70],
+                ],
+                [
+                    {
+                        slug: "gini",
+                        type: ColumnTypeNames.Numeric,
+                        tolerance: 5,
+                    },
+                    {
+                        slug: "income",
+                        type: ColumnTypeNames.Numeric,
+                        tolerance: 5,
+                    },
+                    ...numericDefs("pop"),
+                    yearDef(),
+                ]
+            ),
+            ySlugs: "gini",
+            xSlug: "income",
+            sizeSlug: "pop",
+            chartTypes: [GRAPHER_CHART_TYPES.ScatterPlot],
+            minTime: 2025,
+            maxTime: 2025,
+        })
+
+        expect(grapher.toleranceNotice).toEqual(
+            "Where data for 2025 is unavailable, the value from the closest year between 2020 and 2024 is shown instead."
+        )
+    })
+
+    it("names the year when an applied column has data for a single year", () => {
+        const grapher = new GrapherState({
+            table: new OwidTable(
+                [
+                    ["entityName", "year", "coal", "gas"],
+                    // Gas only has data for 2020
+                    ["France", 2020, 30, 40],
+                    ["France", 2025, 31, null],
+                ],
+                [
+                    ...numericDefs("coal"),
+                    {
+                        slug: "gas",
+                        type: ColumnTypeNames.Numeric,
+                        tolerance: 5,
+                    },
+                    yearDef(),
+                ]
+            ),
+            ySlugs: "coal gas",
+            chartTypes: [GRAPHER_CHART_TYPES.StackedDiscreteBar],
+            selectedEntityNames: ["France"],
+            minTime: 2025,
+            maxTime: 2025,
+        })
+
+        expect(grapher.toleranceNotice).toEqual(
+            "Where data for 2025 is unavailable, the value from 2020 is shown instead."
         )
     })
 
