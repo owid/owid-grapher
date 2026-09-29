@@ -27,10 +27,10 @@ export interface LegacyDimensionsManager {
     table: OwidTable
 }
 
-export function getDimensionColumnSlug(
-    variableId: OwidVariableId,
-    targetYear: Time | undefined
-): ColumnSlug {
+export function getIndicatorColumnSlug({
+    variableId,
+    targetYear,
+}: Pick<IndicatorDimensionInterface, "variableId" | "targetYear">): ColumnSlug {
     if (targetYear) return `${variableId}-${targetYear}`
     return variableId.toString()
 }
@@ -107,10 +107,7 @@ export class ChartDimension implements Persistable {
 
     @computed get columnSlug(): ColumnSlug {
         return "variableId" in this.source
-            ? getDimensionColumnSlug(
-                  this.source.variableId,
-                  this.source.targetYear
-              )
+            ? getIndicatorColumnSlug(this.source)
             : this.source.slug
     }
 }
