@@ -74,22 +74,21 @@ interface OwidChartDimensionBaseInterface {
 /** A slot filled by an OWID indicator, fetched from the data API */
 export interface IndicatorDimensionInterface extends OwidChartDimensionBaseInterface {
     variableId: OwidVariableId
+    slug?: never
     /** Pins the slot to a single year, as scatter plots and Marimekko charts do for x or size */
     targetYear?: Time
-    slug?: never
 }
 
 /** A slot filled by a column of a table the host supplies */
-export interface HostColumnDimensionInterface extends OwidChartDimensionBaseInterface {
+export interface SlugDimensionInterface extends OwidChartDimensionBaseInterface {
     slug: ColumnSlug
     variableId?: never
-    targetYear?: never
+    targetYear?: never // Not supported
 }
 
-/** A slot names its column by `variableId` or by `slug`, never both */
 export type OwidChartDimensionInterface =
     | IndicatorDimensionInterface
-    | HostColumnDimensionInterface
+    | SlugDimensionInterface
 
 export const isIndicatorDimension = (
     dimension: OwidChartDimensionInterface

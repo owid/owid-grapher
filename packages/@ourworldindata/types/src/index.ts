@@ -400,7 +400,7 @@ export {
     type SubYearlyTimeInterval,
     type OwidChartDimensionInterface,
     type IndicatorDimensionInterface,
-    type HostColumnDimensionInterface,
+    type SlugDimensionInterface,
     isIndicatorDimension,
 } from "./OwidVariableDisplayConfigInterface.js"
 
