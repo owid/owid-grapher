@@ -3,14 +3,14 @@ import { describe, expect, it } from "vitest"
 import {
     EntityData,
     FlowStage,
-    FoodSupplyChainManifest,
+    FoodSupplyChainMetadata,
     StageKey,
 } from "./types.js"
 import { buildWaterfall, findExcludedStageKeys } from "./waterfall.js"
 
 describe(buildWaterfall, () => {
     it('computes a positive delta for an "out" stage with a negative value', () => {
-        const manifest = fixtureManifest([
+        const metadata = fixtureMetadata([
             { key: "exports", name: "Exports", direction: "out" },
         ])
         const entityData = fixtureEntityData([2020], {
@@ -18,7 +18,7 @@ describe(buildWaterfall, () => {
             food: [10],
         })
         const result = buildWaterfall({
-            manifest,
+            metadata,
             entityData,
             measure: "energy",
             year: 2020,
@@ -27,7 +27,7 @@ describe(buildWaterfall, () => {
     })
 
     it("chains each step's start to the previous end, starting at zero", () => {
-        const manifest = fixtureManifest([
+        const metadata = fixtureMetadata([
             { key: "crop", name: "Crop production", direction: "in" },
             { key: "exports", name: "Exports", direction: "out" },
         ])
@@ -37,7 +37,7 @@ describe(buildWaterfall, () => {
             food: [15],
         })
         const result = buildWaterfall({
-            manifest,
+            metadata,
             entityData,
             measure: "energy",
             year: 2020,
@@ -47,7 +47,7 @@ describe(buildWaterfall, () => {
     })
 
     it("closes the last step's end to the total's value", () => {
-        const manifest = fixtureManifest([
+        const metadata = fixtureMetadata([
             { key: "crop", name: "Crop production", direction: "in" },
             { key: "exports", name: "Exports", direction: "out" },
         ])
@@ -57,7 +57,7 @@ describe(buildWaterfall, () => {
             food: [15],
         })
         const result = buildWaterfall({
-            manifest,
+            metadata,
             entityData,
             measure: "energy",
             year: 2020,
@@ -68,7 +68,7 @@ describe(buildWaterfall, () => {
     })
 
     it("extends the domain's lower bound below zero when the balance dips", () => {
-        const manifest = fixtureManifest([
+        const metadata = fixtureMetadata([
             { key: "crop", name: "Crop production", direction: "in" },
             { key: "exports", name: "Exports", direction: "out" },
         ])
@@ -78,7 +78,7 @@ describe(buildWaterfall, () => {
             food: [-40],
         })
         const result = buildWaterfall({
-            manifest,
+            metadata,
             entityData,
             measure: "energy",
             year: 2020,
@@ -87,7 +87,7 @@ describe(buildWaterfall, () => {
     })
 
     it("returns a domain lower bound of zero when the balance never dips", () => {
-        const manifest = fixtureManifest([
+        const metadata = fixtureMetadata([
             { key: "crop", name: "Crop production", direction: "in" },
             { key: "imports", name: "Imports", direction: "in" },
         ])
@@ -97,7 +97,7 @@ describe(buildWaterfall, () => {
             food: [15],
         })
         const result = buildWaterfall({
-            manifest,
+            metadata,
             entityData,
             measure: "energy",
             year: 2020,
@@ -106,7 +106,7 @@ describe(buildWaterfall, () => {
     })
 
     it("keeps a step of zero", () => {
-        const manifest = fixtureManifest([
+        const metadata = fixtureMetadata([
             { key: "crop", name: "Crop production", direction: "in" },
             { key: "tourism", name: "Tourist consumption", direction: "out" },
             { key: "exports", name: "Exports", direction: "out" },
@@ -118,7 +118,7 @@ describe(buildWaterfall, () => {
             food: [15],
         })
         const result = buildWaterfall({
-            manifest,
+            metadata,
             entityData,
             measure: "energy",
             year: 2020,
@@ -131,7 +131,7 @@ describe(buildWaterfall, () => {
     })
 
     it("leaves excluded stages out of the running balance", () => {
-        const manifest = fixtureManifest([
+        const metadata = fixtureMetadata([
             { key: "crop", name: "Crop production", direction: "in" },
             { key: "imports", name: "Imports", direction: "in" },
             { key: "seed", name: "Seed", direction: "out" },
@@ -143,7 +143,7 @@ describe(buildWaterfall, () => {
             food: [17],
         })
         const result = buildWaterfall({
-            manifest,
+            metadata,
             entityData,
             measure: "energy",
             year: 2020,
@@ -156,23 +156,23 @@ describe(buildWaterfall, () => {
 
 describe(findExcludedStageKeys, () => {
     it("excludes imports and exports for the world", () => {
-        expect(findExcludedStageKeys("world")).toEqual(["imports", "exports"])
+        expect(findExcludedStageKeys("World")).toEqual(["imports", "exports"])
     })
 
     it("excludes nothing for a country", () => {
-        expect(findExcludedStageKeys("france")).toEqual([])
+        expect(findExcludedStageKeys("France")).toEqual([])
     })
 })
 
-function fixtureManifest(flowStages: FlowStage[]): FoodSupplyChainManifest {
+function fixtureMetadata(flowStages: FlowStage[]): FoodSupplyChainMetadata {
     return {
         flowStages,
         totalStage: { key: "food", name: "Food available to eat" },
         sources: [],
         method: "",
         entities: [],
-        entityBySlug: new Map(),
         entityByName: new Map(),
+        entityNames: new Set(),
     }
 }
 

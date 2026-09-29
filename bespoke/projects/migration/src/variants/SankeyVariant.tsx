@@ -22,7 +22,7 @@ import { EmbedConfigProvider } from "../../../../hooks/useEmbedConfig.js"
 import { useDelayedLoading } from "../../../../hooks/useDelayedLoading.js"
 import { useContainerWidth } from "../../../../hooks/useContainerWidth.js"
 import {
-    isUserLocationCountry,
+    findInitialCountry,
     useResolveUserLocation,
 } from "../../../../hooks/useResolveUserLocation.js"
 
@@ -85,10 +85,7 @@ function FetchingSankeyVariant({
     config: SankeyVariantConfig
     urls: BespokeComponentDataUrls
 }) {
-    const initialCountry =
-        !config.country || isUserLocationCountry(config.country)
-            ? DEFAULT_COUNTRY
-            : config.country
+    const initialCountry = findInitialCountry(config.country, DEFAULT_COUNTRY)
 
     const [country, setCountry] = useUrlState({
         key: "migrationCountry",

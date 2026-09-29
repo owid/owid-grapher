@@ -1,8 +1,10 @@
+import { WORLD_ENTITY_NAME } from "@ourworldindata/grapher/src/core/GrapherConstants.js"
+
 import { COLORS } from "./constants.js"
 import {
     EntityData,
     FlowStage,
-    FoodSupplyChainManifest,
+    FoodSupplyChainMetadata,
     IS_UNIT_WRAPPABLE_BY_MEASURE,
     Measure,
     NUM_DECIMAL_PLACES_BY_MEASURE,
@@ -29,7 +31,6 @@ export interface Waterfall {
     numDecimalPlaces: number
 }
 
-const WORLD_ENTITY_SLUG = "world"
 const TRADE_STAGE_KEYS: StageKey[] = ["imports", "exports"]
 
 /** Whether a step adds to the running balance; a step of zero goes by its stage's direction */
@@ -43,19 +44,19 @@ export function chooseStepColor(step: WaterfallStep, isTotal: boolean): string {
     return isAddition(step) ? COLORS.add : COLORS.subtract
 }
 
-export function findExcludedStageKeys(entitySlug: string): StageKey[] {
-    return entitySlug === WORLD_ENTITY_SLUG ? TRADE_STAGE_KEYS : []
+export function findExcludedStageKeys(entityName: string): StageKey[] {
+    return entityName === WORLD_ENTITY_NAME ? TRADE_STAGE_KEYS : []
 }
 
 /** Leaves out the stages in `excludedStageKeys` altogether */
 export function buildWaterfall({
-    manifest,
+    metadata,
     entityData,
     measure,
     year,
     excludedStageKeys = [],
 }: {
-    manifest: FoodSupplyChainManifest
+    metadata: FoodSupplyChainMetadata
     entityData: EntityData
     measure: Measure
     year: number
@@ -67,7 +68,7 @@ export function buildWaterfall({
     const values = entityData.values[measure]
 
     let balance = 0
-    const steps: WaterfallStep[] = manifest.flowStages
+    const steps: WaterfallStep[] = metadata.flowStages
         .filter((stage) => !excludedStageKeys.includes(stage.key))
         .map((stage) => {
             const value = values[stage.key][yearIndex]
@@ -84,10 +85,10 @@ export function buildWaterfall({
             }
         })
 
-    const totalValue = values[manifest.totalStage.key][yearIndex]
+    const totalValue = values[metadata.totalStage.key][yearIndex]
     const total = {
-        key: manifest.totalStage.key,
-        name: manifest.totalStage.name,
+        key: metadata.totalStage.key,
+        name: metadata.totalStage.name,
         value: totalValue,
     }
 
