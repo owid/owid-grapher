@@ -49,3 +49,34 @@ describe("a slot naming a host-supplied column", () => {
         })
     })
 })
+
+describe("pinning a slot to a year", () => {
+    const manager = { table: BlankOwidTable() }
+
+    it("names the indicator column by variable id and year", () => {
+        const dimension = new ChartDimension(
+            { property: DimensionProperty.x, variableId: 1 },
+            manager
+        )
+        dimension.targetYear = 2000
+        expect(dimension.columnSlug).toBe("1-2000")
+        expect(dimension.toObject()).toEqual({
+            property: DimensionProperty.x,
+            variableId: 1,
+            targetYear: 2000,
+        })
+    })
+
+    it("leaves a host column as it is", () => {
+        const dimension = new ChartDimension(
+            { property: DimensionProperty.x, slug: "rent_index" },
+            manager
+        )
+        dimension.targetYear = 2000
+        expect(dimension.targetYear).toBeUndefined()
+        expect(dimension.toObject()).toEqual({
+            property: DimensionProperty.x,
+            slug: "rent_index",
+        })
+    })
+})

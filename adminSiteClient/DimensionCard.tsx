@@ -149,13 +149,17 @@ export class DimensionCard<
                             }
                         />
                     </div>
-                    <Link
-                        to={`/variables/${dimension.variableId}`}
-                        className="dimensionLink"
-                        target="_blank"
-                    >
-                        {column.name}
-                    </Link>
+                    {dimension.variableId !== undefined ? (
+                        <Link
+                            to={`/variables/${dimension.variableId}`}
+                            className="dimensionLink"
+                            target="_blank"
+                        >
+                            {column.name}
+                        </Link>
+                    ) : (
+                        <span>{column.name}</span>
+                    )}
                     <div>
                         {this.props.onEdit && (
                             <div
