@@ -843,10 +843,10 @@ export class GrapherState
     }
 
     toObject(): GrapherInterface {
-        const obj = objectWithPersistablesToObject(
+        const obj: GrapherInterface = objectWithPersistablesToObject(
             this,
             grapherKeysToSerialize
-        ) as GrapherInterface
+        )
 
         // Persist selection and focus
         obj.selectedEntityNames = this.selection.selectedEntityNames
@@ -4359,7 +4359,7 @@ export class GrapherState
     }
 }
 
-export const defaultObject = objectWithPersistablesToObject(
+export const defaultObject: GrapherInterface = objectWithPersistablesToObject(
     new GrapherState({}),
     grapherKeysToSerialize
-) as GrapherInterface
+)
