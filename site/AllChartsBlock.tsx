@@ -1,6 +1,14 @@
-import { useMemo, useRef, useState, useEffect, Fragment } from "react"
+import {
+    useMemo,
+    useRef,
+    useState,
+    useEffect,
+    useCallback,
+    Fragment,
+} from "react"
 import { useQuery, keepPreviousData } from "@tanstack/react-query"
 import cx from "clsx"
+import { reaction } from "mobx"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
     faChevronDown,
@@ -21,6 +29,8 @@ import { Button } from "@ourworldindata/components"
 import {
     GRAPHER_THUMBNAIL_HEIGHT,
     GRAPHER_THUMBNAIL_WIDTH,
+    GrapherState,
+    GuidedChartContext,
     makeLabelForGrapherTab,
     mapGrapherTabNameToQueryParam,
 } from "@ourworldindata/grapher"
@@ -520,6 +530,20 @@ const AllChartsLeftPane = (props: AllChartsLeftPaneProps) => {
         undefined
     )
 
+    // The view the chart on the right is *actually* showing, which is what the
+    // row's thumbnails highlight. Not the same thing as `selectedTab`: that is
+    // only what a thumbnail click asked for, and it is `undefined` both before
+    // anything has been clicked and after a row is selected by its text, while
+    // the chart beside it is plainly showing one of the views the thumbnails
+    // offer. It also goes stale the moment the visitor uses Grapher's own tab
+    // bar. Only the live Grapher knows the answer, so it reports it — see
+    // AllChartsSidecar. `undefined` means the chart is on a view the row
+    // doesn't offer as a thumbnail (the table), or hasn't loaded yet; either
+    // way no thumbnail is highlighted.
+    const [activeTab, setActiveTab] = useState<GrapherTabName | undefined>(
+        undefined
+    )
+
     // Where a result set starts out. On the accordion layout the first row opens
     // with its chart showing, so the block never presents a phone with a list of
     // titles and no chart at all — the counterpart of the desktop sidecar, which
@@ -611,6 +635,8 @@ const AllChartsLeftPane = (props: AllChartsLeftPaneProps) => {
                             selectedIndex={selectedIndex}
                             expandedIndex={expandedIndex}
                             selectedTab={selectedTab}
+                            activeTab={activeTab}
+                            onActiveTabChange={setActiveTab}
                             onRowClick={handleRowClick}
                             onThumbnailClick={handleThumbnailClick}
                             detectedCountries={detectedCountries}
@@ -664,6 +690,7 @@ const AllChartsLeftPane = (props: AllChartsLeftPaneProps) => {
                         hit={selectedHit}
                         detectedCountries={detectedCountries}
                         tab={selectedTab}
+                        onActiveTabChange={setActiveTab}
                     />
                 )}
             </div>
@@ -742,7 +769,9 @@ const AllChartsTable = ({
     selectedIndex,
     expandedIndex,
     selectedTab,
+    activeTab,
     onRowClick,
+    onActiveTabChange,
     onThumbnailClick,
     detectedCountries,
     searchPhrase,
@@ -755,7 +784,9 @@ const AllChartsTable = ({
     selectedIndex: number
     expandedIndex: number | null
     selectedTab?: GrapherTabName
+    activeTab?: GrapherTabName
     onRowClick: (index: number) => void
+    onActiveTabChange: (tab?: GrapherTabName) => void
     onThumbnailClick: (index: number, tab?: GrapherTabName) => void
     detectedCountries: string[]
     searchPhrase: string
@@ -782,6 +813,8 @@ const AllChartsTable = ({
                     isSelected={index === selectedIndex}
                     isExpanded={index === expandedIndex}
                     selectedTab={selectedTab}
+                    activeTab={activeTab}
+                    onActiveTabChange={onActiveTabChange}
                     onSelect={() => onRowClick(index)}
                     onSelectTab={(tab) => onThumbnailClick(index, tab)}
                     detectedCountries={detectedCountries}
@@ -819,37 +852,35 @@ function getSidecarViewQueryStr(
 const MAX_ROW_THUMBNAILS = 3
 
 /**
- * The views a row offers as thumbnails, in priority order: the chart's primary
- * chart type, then its map, then its remaining chart types.
+ * The views a row offers as thumbnails, in the order Grapher's own tab bar
+ * lists them — a row reading map, line, bar belongs to a chart whose tabs read
+ * Map | Line | Bar, so a visitor can match one to the other at a glance
+ * (Marwa, 2026-09-29).
  *
- * Every slot names its view explicitly. A slot that named none — leaving the
- * chart to open on its own default view — rendered the map a second time on
- * every chart that opens on the map, because the Algolia record says which
- * tabs a chart has (`availableTabs`) but not which one it opens on, so the
- * duplicate couldn't be spotted and skipped (Marwa, 2026-09-29). Naming every
- * view instead makes the row's thumbnails distinct by construction, and a
- * chart with fewer views than the cap gets fewer thumbnails rather than a
- * repeated one — a map-only chart gets exactly one.
+ * That order comes free: the Algolia record's `availableTabs` is Grapher's
+ * `availableTabs` verbatim (see getChartsRecords in
+ * baker/algolia/utils/charts.ts), which is built as table, map, then the
+ * chart types — the tab bar's order. So the strip is that list with the table
+ * dropped and the cap applied, and nothing here re-sorts it.
+ *
+ * Every slot names its view explicitly, which is what keeps the views
+ * distinct: a slot that named none — leaving the chart to open on its own
+ * default view — rendered the map a second time on every chart that opens on
+ * the map, because the record says which tabs a chart has but not which one it
+ * opens on. A chart with fewer views than the cap gets fewer thumbnails rather
+ * than a repeated one — a map-only chart gets exactly one.
  *
  * The table is never offered: the thumbnail renderer has no table to draw and
  * answers a `tab=table` request with the chart instead.
  */
 // oxlint-disable-next-line react/only-export-components -- exported for AllChartsBlock.test.ts; the rule is about fast refresh, and this is a pure helper
 export function getRowThumbnailTabs(hit: SearchChartHit): GrapherTabName[] {
-    const chartTabs = hit.availableTabs.filter(
-        (tab) =>
-            tab !== GRAPHER_TAB_NAMES.Table &&
-            tab !== GRAPHER_TAB_NAMES.WorldMap
+    const tabs = hit.availableTabs.filter(
+        (tab) => tab !== GRAPHER_TAB_NAMES.Table
     )
-    const hasMapTab = hit.availableTabs.includes(GRAPHER_TAB_NAMES.WorldMap)
-    const orderedTabs = [
-        ...chartTabs.slice(0, 1),
-        ...(hasMapTab ? [GRAPHER_TAB_NAMES.WorldMap] : []),
-        ...chartTabs.slice(1),
-    ]
     // Belt and braces against a record that lists a tab twice: the cap would
     // otherwise spend one of the three slots on a repeat.
-    return [...new Set(orderedTabs)].slice(0, MAX_ROW_THUMBNAILS)
+    return [...new Set(tabs)].slice(0, MAX_ROW_THUMBNAILS)
 }
 
 /**
@@ -859,12 +890,16 @@ export function getRowThumbnailTabs(hit: SearchChartHit): GrapherTabName[] {
  */
 const AllChartsRowThumbnails = ({
     hit,
-    selectedTab,
+    activeTab,
     isSelected,
     onSelectTab,
 }: {
     hit: SearchChartHit
-    selectedTab?: GrapherTabName
+    // The view the chart beside the list is showing, reported by that chart
+    // rather than inferred from the last thumbnail clicked — so the strip is
+    // right on first load and after a tab change made inside Grapher, not just
+    // after a click here.
+    activeTab?: GrapherTabName
     isSelected: boolean
     onSelectTab: (tab: GrapherTabName) => void
 }) => {
@@ -880,9 +915,9 @@ const AllChartsRowThumbnails = ({
                         type="button"
                         className={cx("all-charts-block__row-thumbnail", {
                             "all-charts-block__row-thumbnail--active":
-                                isSelected && selectedTab === tab,
+                                isSelected && activeTab === tab,
                         })}
-                        aria-pressed={isSelected && selectedTab === tab}
+                        aria-pressed={isSelected && activeTab === tab}
                         aria-label={`${label}: ${hit.title}`}
                         onClick={() => onSelectTab(tab)}
                     >
@@ -941,8 +976,10 @@ const AllChartsTableRow = ({
     isSelected,
     isExpanded,
     selectedTab,
+    activeTab,
     onSelect,
     onSelectTab,
+    onActiveTabChange,
     detectedCountries,
     searchPhrase,
     duplicatedTitles,
@@ -951,8 +988,10 @@ const AllChartsTableRow = ({
     isSelected: boolean
     isExpanded: boolean
     selectedTab?: GrapherTabName
+    activeTab?: GrapherTabName
     onSelect: () => void
     onSelectTab: (tab?: GrapherTabName) => void
+    onActiveTabChange: (tab?: GrapherTabName) => void
     detectedCountries: string[]
     searchPhrase: string
     duplicatedTitles: ReadonlySet<string>
@@ -1055,7 +1094,7 @@ const AllChartsTableRow = ({
                     as well. */}
                 <AllChartsRowThumbnails
                     hit={hit}
-                    selectedTab={selectedTab}
+                    activeTab={activeTab}
                     isSelected={isSelected}
                     onSelectTab={onSelectTab}
                 />
@@ -1071,6 +1110,14 @@ const AllChartsTableRow = ({
                         hit={hit}
                         detectedCountries={detectedCountries}
                         tab={isSelected ? selectedTab : undefined}
+                        // Only the selected row's chart drives the highlight,
+                        // because only the selected row's thumbnails show it.
+                        // On this layout the expanded row is the selected one
+                        // anyway; an expanded row that isn't reports nothing
+                        // rather than highlighting another row's strip.
+                        onActiveTabChange={
+                            isSelected ? onActiveTabChange : undefined
+                        }
                     />
                 </div>
             )}
@@ -1082,10 +1129,17 @@ const AllChartsSidecar = ({
     hit,
     detectedCountries,
     tab,
+    onActiveTabChange,
 }: {
     hit: SearchChartHit
     detectedCountries: string[]
     tab?: GrapherTabName
+    /**
+     * Called with the view this chart is showing, whenever it changes — on
+     * load with the view the chart chose for itself, and again every time the
+     * visitor uses Grapher's own tab bar. The row's thumbnails highlight it.
+     */
+    onActiveTabChange?: (tab?: GrapherTabName) => void
 }) => {
     const { isPreviewing } = useDocumentContext()
 
@@ -1100,32 +1154,71 @@ const AllChartsSidecar = ({
     const configUrl =
         hit.type === "chart" ? undefined : constructConfigUrl({ hit })
 
+    // Which view this chart is on is something only the chart knows: the
+    // Algolia record lists a chart's tabs but not which one it opens on, and
+    // the visitor can switch tabs inside Grapher without touching a thumbnail.
+    // Grapher hands its state to whoever provides a GuidedChartContext (see
+    // useMaybeGlobalGrapherStateRef), which is how the guided-chart blocks
+    // drive a chart from the prose around it — the same door serves here, in
+    // the other direction: we only read `activeTab` off it.
+    const registerGrapherState = useCallback(
+        (grapherState: GrapherState) => {
+            if (!onActiveTabChange) return () => undefined
+            const dispose = reaction(
+                // Not until the config has landed: before that the state is
+                // still on its constructed default, and reporting that would
+                // highlight a guessed view for as long as the chart takes to
+                // load — often the wrong one, since a map chart's default is
+                // not the map.
+                () =>
+                    grapherState.isConfigReady
+                        ? grapherState.activeTab
+                        : undefined,
+                (activeTab) => onActiveTabChange(activeTab),
+                { fireImmediately: true }
+            )
+            return () => {
+                dispose()
+                // The chart is going away — usually because another one is
+                // taking its place, and the new one's view is not this one's.
+                onActiveTabChange(undefined)
+            }
+        },
+        [onActiveTabChange]
+    )
+    const guidedChartContextValue = useMemo(
+        () => ({ registerGrapherState }),
+        [registerGrapherState]
+    )
+
     return (
-        <GrapherWithFallback
-            // Remount when the selected indicator *or* the view of it changes
-            // so Grapher fully re-initializes (config, tabs, entity
-            // selection) — in particular, picking up a newly detected country
-            // in `queryStr`, which Grapher only reads at initialization.
-            //
-            // The chart half of that key is its identity rather than its
-            // `objectID`, so the FM→plain record swap on the first keystroke
-            // no longer counts as a change of chart: without this the sidecar
-            // remounted and restarted its loading spinner while the visitor
-            // typed, blanking a chart that hadn't actually changed. The
-            // `queryStr` half is unchanged, so a change of country still
-            // remounts and re-applies the entity selection.
-            key={`${getChartHitIdentity(hit)}${queryStr}`}
-            slug={hit.type === "chart" ? hit.slug : undefined}
-            configUrl={configUrl}
-            className="all-charts-block__grapher"
-            id={`all-charts-grapher-${hit.objectID}`}
-            queryStr={queryStr}
-            enablePopulatingUrlParams={false}
-            isEmbeddedInAnOwidPage={true}
-            isEmbeddedInADataPage={false}
-            config={{ enableKeyboardShortcuts: false }}
-            isPreviewing={isPreviewing}
-        />
+        <GuidedChartContext.Provider value={guidedChartContextValue}>
+            <GrapherWithFallback
+                // Remount when the selected indicator *or* the view of it changes
+                // so Grapher fully re-initializes (config, tabs, entity
+                // selection) — in particular, picking up a newly detected country
+                // in `queryStr`, which Grapher only reads at initialization.
+                //
+                // The chart half of that key is its identity rather than its
+                // `objectID`, so the FM→plain record swap on the first keystroke
+                // no longer counts as a change of chart: without this the sidecar
+                // remounted and restarted its loading spinner while the visitor
+                // typed, blanking a chart that hadn't actually changed. The
+                // `queryStr` half is unchanged, so a change of country still
+                // remounts and re-applies the entity selection.
+                key={`${getChartHitIdentity(hit)}${queryStr}`}
+                slug={hit.type === "chart" ? hit.slug : undefined}
+                configUrl={configUrl}
+                className="all-charts-block__grapher"
+                id={`all-charts-grapher-${hit.objectID}`}
+                queryStr={queryStr}
+                enablePopulatingUrlParams={false}
+                isEmbeddedInAnOwidPage={true}
+                isEmbeddedInADataPage={false}
+                config={{ enableKeyboardShortcuts: false }}
+                isPreviewing={isPreviewing}
+            />
+        </GuidedChartContext.Provider>
     )
 }
 

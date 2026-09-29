@@ -81,10 +81,12 @@ describe(getRowThumbnailTabs, () => {
     const hitWithTabs = (availableTabs: GrapherTabName[]) =>
         ({ availableTabs }) as SearchChartHit
 
-    it("names every view explicitly, so the map is never rendered twice", () => {
-        // The bug this guards: the first slot used to be the chart's own
-        // default view, requested with no `tab` param. On a chart that opens
-        // on the map, that slot and the map slot rendered the same image.
+    it("offers the views in the order Grapher's own tab bar lists them", () => {
+        // A chart whose tab bar reads Table | Map | Line | Bar gets a strip
+        // reading map, line, bar — so the row and the chart beside it can be
+        // read against each other. `availableTabs` is already in tab-bar
+        // order, so this is that list with the table dropped and nothing
+        // re-sorted (Marwa, 2026-09-29).
         expect(
             getRowThumbnailTabs(
                 hitWithTabs([
@@ -95,10 +97,22 @@ describe(getRowThumbnailTabs, () => {
                 ])
             )
         ).toEqual([
-            GRAPHER_TAB_NAMES.LineChart,
             GRAPHER_TAB_NAMES.WorldMap,
+            GRAPHER_TAB_NAMES.LineChart,
             GRAPHER_TAB_NAMES.DiscreteBar,
         ])
+    })
+
+    it("leaves a chart without a map in its own order", () => {
+        expect(
+            getRowThumbnailTabs(
+                hitWithTabs([
+                    GRAPHER_TAB_NAMES.Table,
+                    GRAPHER_TAB_NAMES.LineChart,
+                    GRAPHER_TAB_NAMES.DiscreteBar,
+                ])
+            )
+        ).toEqual([GRAPHER_TAB_NAMES.LineChart, GRAPHER_TAB_NAMES.DiscreteBar])
     })
 
     it("offers a map-only chart exactly one thumbnail", () => {
@@ -124,9 +138,27 @@ describe(getRowThumbnailTabs, () => {
                 ])
             )
         ).toEqual([
-            GRAPHER_TAB_NAMES.LineChart,
             GRAPHER_TAB_NAMES.WorldMap,
+            GRAPHER_TAB_NAMES.LineChart,
             GRAPHER_TAB_NAMES.SlopeChart,
+        ])
+    })
+
+    it("spends no slot on a view a record happens to list twice", () => {
+        expect(
+            getRowThumbnailTabs(
+                hitWithTabs([
+                    GRAPHER_TAB_NAMES.Table,
+                    GRAPHER_TAB_NAMES.WorldMap,
+                    GRAPHER_TAB_NAMES.LineChart,
+                    GRAPHER_TAB_NAMES.LineChart,
+                    GRAPHER_TAB_NAMES.DiscreteBar,
+                ])
+            )
+        ).toEqual([
+            GRAPHER_TAB_NAMES.WorldMap,
+            GRAPHER_TAB_NAMES.LineChart,
+            GRAPHER_TAB_NAMES.DiscreteBar,
         ])
     })
 })
