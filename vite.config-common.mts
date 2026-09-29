@@ -14,6 +14,7 @@ import {
     ViteEntryPoint,
     type ViteEntryPointName,
 } from "./site/viteConstants.mts"
+import { pluginScopedCss } from "./devTools/vite/pluginScopedCss.mts"
 
 export const commonPlugins = (): PluginOption[] => [
     pluginSwcDecorators(),
@@ -91,6 +92,12 @@ export const defineViteConfigForEntrypoint = (
         },
         plugins: [
             ...commonPlugins(),
+            pluginScopedCss({
+                // the rich editor's preview renders the site's components
+                // (and stylesheet) inside the admin page
+                "adminSiteClient/richEditor/preview/siteStyles.scss":
+                    ".rich-editor-preview",
+            }),
             // Put the Sentry vite plugin after all other plugins.
             clientSettings.LOAD_SENTRY &&
                 sentryVitePlugin({

@@ -52,6 +52,7 @@ import {
 import {
     createNativeGdoc,
     getGdocForEditor,
+    previewGdocForEditor,
     saveGdocBody,
     saveGdocEditorSettings,
     getGdocRevisions,
@@ -439,6 +440,11 @@ postRouteWithRWTransaction(apiRouter, "/gdocs/:gdocId/setTags", setGdocTags)
 // Rich editor routes (native gdoc editing)
 postRouteWithRWTransaction(apiRouter, "/gdocs/createNative", createNativeGdoc)
 getRouteWithROTransaction(apiRouter, "/gdocs/:id/editor", getGdocForEditor)
+postRouteWithRWTransaction(
+    apiRouter,
+    "/gdocs/:id/editorPreview",
+    previewGdocForEditor
+)
 putRouteWithRWTransaction(apiRouter, "/gdocs/:id/body", saveGdocBody)
 getRouteWithROTransaction(apiRouter, "/gdocs/:id/revisions", getGdocRevisions)
 getRouteWithROTransaction(

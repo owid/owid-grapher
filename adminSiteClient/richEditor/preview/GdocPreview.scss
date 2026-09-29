@@ -1,0 +1,31 @@
+// Chrome around the preview. The site stylesheet itself is in
+// siteStyles.scss, scoped to .rich-editor-preview.
+
+.rich-editor-preview {
+    // the site page is the full viewport width; give the preview the same
+    // footing, clipping the full-bleed grid's horizontal overflow like
+    // html { overflow-x: hidden } does on the site
+    overflow-x: hidden;
+    // the containing block and stacking context the page's absolutely
+    // positioned, full-bleed elements (article header banner, admin bar)
+    // are laid out against on the site
+    position: relative;
+    z-index: 0;
+    border: 1px solid #e5e1d8;
+    border-radius: 8px;
+    min-height: 60vh;
+}
+
+.rich-editor-preview__toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+}
+
+.rich-editor-preview__status {
+    padding: 48px;
+    text-align: center;
+    color: #8a8577;
+}
