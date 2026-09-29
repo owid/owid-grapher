@@ -1,13 +1,7 @@
 import { formatValue } from "@ourworldindata/utils"
 import { OwidVariableRoundingMode } from "@ourworldindata/types"
 
-import {
-    Period,
-    TradeRow,
-    TradeSeries,
-    WorldGroupTotal,
-    YearRange,
-} from "./types.js"
+import { Period, TradeRow, TradeSeries, YearRange } from "./types.js"
 
 /** Hectares of amortized deforestation risk, e.g. "1.2 million hectares", or
  *  "1.2 million ha" in the short form used for chart labels. Numbers are never
@@ -119,17 +113,16 @@ export function rowsForYearRange(
 }
 
 /**
- * Worldwide deforestation over an inclusive range of year indices, summed
- * over every commodity group; undefined without data.
+ * Worldwide deforestation over an inclusive range of year indices;
+ * undefined without data.
  */
 export function worldTotalForYearRange(
-    worldTotals: WorldGroupTotal[],
+    worldTotals: number[],
     startIndex: number,
     endIndex: number
 ): number | undefined {
     let total = 0
-    for (const { values } of worldTotals)
-        for (let i = startIndex; i <= endIndex; i++) total += values[i] ?? 0
+    for (let i = startIndex; i <= endIndex; i++) total += worldTotals[i] ?? 0
     return total > 0 ? total : undefined
 }
 

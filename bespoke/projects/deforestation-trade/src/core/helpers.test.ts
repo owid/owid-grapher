@@ -86,17 +86,13 @@ describe("year range labels", () => {
 })
 
 describe(worldTotalForYearRange, () => {
-    const worldTotals = [
-        { group: "Pasture", values: [60, 40, 30] },
-        { group: "Cereals", values: [40, 60, 30] },
-        { group: "Vegetables", values: [0, 0, 40] },
-    ]
+    const worldTotals = [100, 60, 140]
 
-    it("sums every group in a single year", () => {
+    it("reads a single year", () => {
         expect(worldTotalForYearRange(worldTotals, 0, 0)).toBe(100)
     })
 
-    it("sums every group over a range of years", () => {
+    it("sums a range of years", () => {
         expect(worldTotalForYearRange(worldTotals, 1, 2)).toBe(200)
     })
 
