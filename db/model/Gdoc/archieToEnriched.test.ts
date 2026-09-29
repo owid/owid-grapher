@@ -41,9 +41,7 @@ it("Can extract multiple refs from some text and refer to an earlier footnote wh
 it("Can extract an inline ref", () => {
     expect(extractRefs(`I am a thing{ref}I am an inline ref{/ref}`)).toEqual({
         extractedText: `I am a thing<a class="ref" href="#note-1"><sup>1</sup></a>`,
-        refsByFirstAppearance: new Set([
-            "796885412908186a5e57f2e753ab697b85666afe",
-        ]),
+        refsByFirstAppearance: new Set(["inline-1"]),
         rawInlineRefs: [
             {
                 content: [
@@ -52,7 +50,7 @@ it("Can extract an inline ref", () => {
                         value: "I am an inline ref",
                     },
                 ],
-                id: "796885412908186a5e57f2e753ab697b85666afe",
+                id: "inline-1",
             },
         ],
     })
@@ -65,10 +63,7 @@ it("Can extract an inline ref and an ID ref", () => {
         )
     ).toEqual({
         extractedText: `I am a thing<a class="ref" href="#note-1"><sup>1</sup></a> and another thing<a class="ref" href="#note-2"><sup>2</sup></a>`,
-        refsByFirstAppearance: new Set([
-            "796885412908186a5e57f2e753ab697b85666afe",
-            "some_id",
-        ]),
+        refsByFirstAppearance: new Set(["inline-1", "some_id"]),
         rawInlineRefs: [
             {
                 content: [
@@ -77,7 +72,7 @@ it("Can extract an inline ref and an ID ref", () => {
                         value: "I am an inline ref",
                     },
                 ],
-                id: "796885412908186a5e57f2e753ab697b85666afe",
+                id: "inline-1",
             },
         ],
     })
@@ -90,10 +85,7 @@ it("Can extract an inline ref and an ID ref and then refer back to a previous in
         )
     ).toEqual({
         extractedText: `I am a thing<a class="ref" href="#note-1"><sup>1</sup></a> and another thing<a class="ref" href="#note-2"><sup>2</sup></a> and me again<a class="ref" href="#note-1"><sup>1</sup></a>`,
-        refsByFirstAppearance: new Set([
-            "796885412908186a5e57f2e753ab697b85666afe",
-            "some_id",
-        ]),
+        refsByFirstAppearance: new Set(["inline-1", "some_id"]),
         rawInlineRefs: [
             {
                 content: [
@@ -102,7 +94,7 @@ it("Can extract an inline ref and an ID ref and then refer back to a previous in
                         value: "I am an inline ref",
                     },
                 ],
-                id: "796885412908186a5e57f2e753ab697b85666afe",
+                id: "inline-1",
             },
         ],
     })
@@ -165,9 +157,9 @@ it("Can index intermingled inline and ID refs correctly", () => {
         extractedText: `I am a thing<a class="ref" href="#note-1"><sup>1</sup></a> and another thing<a class="ref" href="#note-2"><sup>2</sup></a> with more <a class="ref" href="#note-3"><sup>3</sup></a> and even more<a class="ref" href="#note-4"><sup>4</sup></a>`,
         refsByFirstAppearance: new Set([
             "some_id",
-            "3d708842b0da8d18eabe4d2212ba27646ed20f49",
+            "inline-1",
             "another_id",
-            "f5c4fee26da4a46180cef44bc019ec072ec66f3f",
+            "inline-2",
         ]),
         rawInlineRefs: [
             {
@@ -177,7 +169,7 @@ it("Can index intermingled inline and ID refs correctly", () => {
                         value: "An inline ref",
                     },
                 ],
-                id: "3d708842b0da8d18eabe4d2212ba27646ed20f49",
+                id: "inline-1",
             },
             {
                 content: [
@@ -186,7 +178,7 @@ it("Can index intermingled inline and ID refs correctly", () => {
                         value: "Another inline ref",
                     },
                 ],
-                id: "f5c4fee26da4a46180cef44bc019ec072ec66f3f",
+                id: "inline-2",
             },
         ],
     })

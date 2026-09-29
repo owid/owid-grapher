@@ -49,7 +49,7 @@ The result is an ArchieML document string with HTML inline fragments.
 
 We pre-process the Archie text before loading it:
 
-- **Inline references** — `{ref}…{/ref}` syntax is expanded by `extractRefs`. Inline references are hashed to stable IDs, replaced with numbered `<a class="ref"><sup>…</sup></a>` tags, and their content is queued so it can be appended to `refs`.
+- **Inline references** — `{ref}…{/ref}` syntax is expanded by `extractRefs`. Inline references are assigned sequential IDs (`inline-1`, `inline-2`, …), replaced with numbered `<a class="ref"><sup>…</sup></a>` tags, and their content is queued so it can be appended to `refs`.
 - **Whitespace inside links** — strip pure whitespace anchor tags and move leading whitespace outside of the `<a>` tag.
 - **Front matter normalisation** — `lowercaseObjectKeys` makes front matter case-insensitive (so `Title:` works), `"true"/"false"` are coerced to booleans, and any front matter value with HTML is run through `extractUrl` so the canonical href is used.
 
@@ -104,7 +104,7 @@ After enrichment and validation, `upsertGdoc` serialises the enriched content to
 - **List delimiters** — Google lists auto-close; to keep Archie response deterministic we track `context.isInList` and emit `[]` when the next paragraph is not a list item.
 - **Tables require opt-in** — Only tables preceded by `{.table}` are parsed into structured blocks. Otherwise we assume they are layout tables and drop them to avoid surprising structure in the output.
 - **Heading supertitles** — We still rely on the vertical tab (`\u000b`) separator to distinguish supertitles, so authors must avoid using that character inside nested spans.
-- **Footnotes** — Inline `{ref}` blocks hash their content to a stable ID, letting multiple mentions reuse the same footnote number. Missing definitions or unused IDs surface explicit errors in the admin.
+- **Footnotes** — Inline `{ref}` blocks assign sequential IDs to unique content, letting multiple mentions reuse the same footnote number. Missing definitions or unused IDs surface explicit errors in the admin.
 - **Legacy callouts & prominent links** — Because authors historically used ad-hoc markup, we heuristically upgrade known patterns (e.g., `.pcrm` divs, “related chart” blockquotes).
 - **URL hygiene** — `parseText` warns on `owid.cloud` URLs so we catch staging leftovers early, and front matter links always resolve to their `<a href>` targets.
 - **Whitespace handling** — `GdocBase.validate` guards against vertical tabs, carriage returns, and tabs sneaking into serialized JSON to prevent rendering issues.
