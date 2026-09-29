@@ -1,0 +1,29 @@
+.democracy-grid__panels {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.democracy-legend {
+    display: flex;
+    flex-wrap: wrap;
+    column-gap: 16px;
+    row-gap: 4px;
+    list-style: none;
+    margin: 0 0 12px;
+    padding: 0;
+    font-size: 0.75rem;
+    color: $dark-text;
+}
+
+.democracy-legend__item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.democracy-legend__swatch {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
