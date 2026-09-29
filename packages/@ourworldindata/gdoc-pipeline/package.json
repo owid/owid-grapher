@@ -63,7 +63,7 @@
         "bumpp": "^12.2.0",
         "cheerio": "^1.2.0",
         "domhandler": "^5.0.3",
-        "es-module-lexer": "^2.3.1",
+        "es-module-lexer": "^3.0.2",
         "lodash-es": "^4.18.1",
         "publint": "^0.3.23",
         "remeda": "^2.42.0",

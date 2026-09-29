@@ -7,7 +7,7 @@
 import * as fs from "node:fs"
 import * as path from "node:path"
 import { fileURLToPath, pathToFileURL } from "node:url"
-import { init as initEsModuleLexer, parse } from "es-module-lexer"
+import { init as initEsModuleLexer, parse } from "es-module-lexer/minimal"
 import { beforeAll, describe, expect, it } from "vitest"
 
 const pkgDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
@@ -49,7 +49,7 @@ describe("dist/gdoc-pipeline.js", () => {
         // workspace packages that uses them ever stops being treeshaken away,
         // it shows up here as an import instead of silently bloating the
         // bundle.
-        await initEsModuleLexer
+        await initEsModuleLexer()
         const source = fs.readFileSync(npmBuildPath, "utf8")
         const [imports] = parse(source, "gdoc-pipeline.js")
         const specifiers = imports
