@@ -220,11 +220,13 @@ consumer-visible contracts that source tests and repository typechecking cannot 
 
 ### Runtime and external-service tests
 
-`functions/test` includes Node integration tests and opt-in E2E tests against a real
+`functions/test` includes Node integration tests and E2E tests against a real
 Workers runtime or services such as Algolia and R2. They protect runtime and service
 assumptions that mocks cannot prove, but external state makes them slower and less
-deterministic. Keep them narrow, clearly labelled, and outside the fast suite unless
-their environment is reliable.
+deterministic. The E2E tests (`*.e2e.test.ts`) currently run in the default Vitest
+suite, and so in CI; the `test:functions:e2e-*` scripts run one of them on its own.
+Keep new ones narrow and clearly labelled, and exclude them from the default suite
+unless their environment is reliable.
 
 ### Bespoke project tests and builds
 
