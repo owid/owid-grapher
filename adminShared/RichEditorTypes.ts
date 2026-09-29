@@ -96,11 +96,17 @@ export interface RichEditorResolveReferencesRequest {
     narrativeChartNames?: string[]
 }
 
+/**
+ * NarrativeChartInfo (the shared site attachment shape) plus the numeric id,
+ * which the rich editor needs to open the narrative chart in the chart editor.
+ */
+export type RichEditorNarrativeChartInfo = NarrativeChartInfo & { id: number }
+
 export interface RichEditorResolveReferencesResponse {
     linkedCharts: Record<string, LinkedChart>
     imageMetadata: Record<string, ImageMetadata>
     linkedDocuments: Record<string, OwidGdocMinimalPostInterface>
-    narrativeCharts: Record<string, NarrativeChartInfo>
+    narrativeCharts: Record<string, RichEditorNarrativeChartInfo>
 }
 
 // ── Publish ────────────────────────────────────────────────────────────────
