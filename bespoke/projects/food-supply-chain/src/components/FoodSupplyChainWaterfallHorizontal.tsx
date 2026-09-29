@@ -1,4 +1,7 @@
-import { TextWrap } from "@ourworldindata/components/src/TextWrap/TextWrap.js"
+import {
+    TEXT_WRAP_BREAK_MARGIN,
+    TextWrap,
+} from "@ourworldindata/components/src/TextWrap/TextWrap.js"
 import { TextWrapSvg } from "@ourworldindata/components/src/TextWrap/TextWrapComponents.js"
 import { Halo } from "@ourworldindata/components/src/Halo/Halo.js"
 import { Bounds } from "@ourworldindata/utils"
@@ -29,7 +32,6 @@ import {
     PLOT_MARGIN_RIGHT,
     ROW_PADDING,
     TICK_LABEL_FONT_SIZE,
-    TEXT_WRAP_BREAK_MARGIN,
     TICK_LABEL_GAP,
     TOTAL_BOX_LABEL_FONT_WEIGHT,
     TOTAL_LABEL_FONT_SIZE,

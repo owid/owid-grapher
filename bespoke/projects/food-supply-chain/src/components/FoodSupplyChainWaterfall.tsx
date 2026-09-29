@@ -1,4 +1,7 @@
-import { TextWrap } from "@ourworldindata/components/src/TextWrap/TextWrap.js"
+import {
+    TEXT_WRAP_BREAK_MARGIN,
+    TextWrap,
+} from "@ourworldindata/components/src/TextWrap/TextWrap.js"
 import { TextWrapSvg } from "@ourworldindata/components/src/TextWrap/TextWrapComponents.js"
 import { Halo } from "@ourworldindata/components/src/Halo/Halo.js"
 import { Bounds } from "@ourworldindata/utils"
@@ -33,7 +36,6 @@ import {
     VALUE_LABEL_FONT_WEIGHT,
     VALUE_LABEL_GAP,
     VERTICAL_CAPTION_FONT_SIZE,
-    TEXT_WRAP_BREAK_MARGIN,
 } from "../core/constants.js"
 import { formatMeasureValue } from "../core/format.js"
 import { STAGE_GROUPS } from "../core/stageGroups.js"
