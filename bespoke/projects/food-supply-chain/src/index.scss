@@ -9,7 +9,6 @@
 @import "./grapher.scss";
 @import "./base.scss";
 
-// Shared components
 @import "../../../components/Frame/Frame.scss";
 @import "../../../components/Controls/Controls.scss";
 @import "../../../components/ChartHeader/ChartHeader.scss";
@@ -21,9 +20,7 @@
 @import "../../../components/ChartError/ChartError.scss";
 @import "../../../components/ResponsiveContainer/ResponsiveContainer.scss";
 
-// Project components
 @import "./components/FoodSupplyChainWaterfall.scss";
 @import "./components/FoodSupplyChainControls.scss";
 
-// Variants
 @import "./variants/WaterfallVariant.scss";

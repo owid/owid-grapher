@@ -5,10 +5,8 @@ import { getRelativeMouse, isTouchDevice, Point } from "@ourworldindata/utils"
 import { usePinnedTooltip } from "../../../../hooks/usePinnedTooltip.js"
 import { StageKey } from "../core/types.js"
 
-/** How long a hover outlives the step the pointer left, unless it enters another */
 const HOVER_CLEAR_DELAY_MS = 150
 
-/** The hovered or touch-pinned step, at the mouse position that triggered it */
 export interface StepHover {
     stepKey: StageKey
     position: Point
@@ -53,7 +51,6 @@ export function useStepHover(): {
         setHover((prev) => (prev ? { ...prev, position } : prev))
     }, [])
     const onStepMouseLeave = useCallback(() => {
-        // usePinnedTooltip owns dismissal on touch
         if (isTouchDevice()) return
         cancelPendingClear()
         clearTimeoutRef.current = setTimeout(

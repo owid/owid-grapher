@@ -29,7 +29,6 @@ export interface Waterfall {
 }
 
 const WORLD_ENTITY_SLUG = "world"
-/** Stages that only move food between countries */
 const TRADE_STAGE_KEYS: StageKey[] = ["imports", "exports"]
 
 /** Whether a step adds to the running balance; a step of zero goes by its stage's direction */
@@ -37,7 +36,6 @@ export function isAddition(step: WaterfallStep): boolean {
     return step.delta === 0 ? step.direction === "in" : step.delta > 0
 }
 
-/** Stages left out of the waterfall, running balance included */
 export function findExcludedStageKeys(entitySlug: string): StageKey[] {
     return entitySlug === WORLD_ENTITY_SLUG ? TRADE_STAGE_KEYS : []
 }

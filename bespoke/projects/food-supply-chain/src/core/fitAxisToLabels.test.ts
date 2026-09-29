@@ -88,9 +88,7 @@ describe(fitAxisToLabels, () => {
 
     it("moves a left label pushed out by another label's move", () => {
         const labels: AxisLabel[] = [
-            // Has room on the left only while the axis is long
             { barStart: 0.2, barEnd: 0.3, width: 35, preferredSide: "left" },
-            // Moves right, onto the far end, and shortens the axis
             { barStart: 0.1, barEnd: 1, width: 60, preferredSide: "left" },
         ]
         const fitted = fitAxisToLabels(labels, 200, 0)

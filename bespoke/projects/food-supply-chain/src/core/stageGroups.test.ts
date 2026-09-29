@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest"
 
 import { STAGE_GROUPS } from "./stageGroups.js"
 
-/** The manifest's flow stages that sit in a group, without the total */
 const GROUPED_FLOW_STAGE_KEYS = [
     "imports",
     "exports",

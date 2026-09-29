@@ -1,5 +1,3 @@
-import cx from "clsx"
-
 import { TextWrap } from "@ourworldindata/components/src/TextWrap/TextWrap.js"
 import { TextWrapSvg } from "@ourworldindata/components/src/TextWrap/TextWrapComponents.js"
 import { Halo } from "@ourworldindata/components/src/Halo/Halo.js"
@@ -14,7 +12,6 @@ import {
     ARROW_WIDTH,
     CAPTION_FONT_WEIGHT,
     CAPTION_VALUE_LABEL_GAP,
-    CONNECTOR_WIDTH,
     GROUP_BOX_CORNER_RADIUS,
     GROUP_LABEL_INSET,
     GROUP_LABEL_FONT_SIZE,
@@ -49,11 +46,11 @@ import {
     layOutWaterfall,
     measureSlotWidth,
     PlacedBar,
-    PlacedLine,
     PlacedRect,
     PlacedStep,
     totalBoxLength,
 } from "../core/waterfallLayout.js"
+import { FoodSupplyChainConnector } from "./FoodSupplyChainConnector.js"
 import { FoodSupplyChainTooltip } from "./FoodSupplyChainTooltip.js"
 import { buildTruncatedTextWrap } from "./truncatedTextWrap.js"
 import { useStepHover } from "./useStepHover.js"
@@ -156,12 +153,12 @@ export function FoodSupplyChainWaterfall({
         tickValues: chooseTickValues(waterfall.domain),
         labelledBarTops: [
             ...waterfall.steps.map((step, index) => ({
-                value: Math.max(step.balanceBefore, step.balanceAfter),
+                topValue: Math.max(step.balanceBefore, step.balanceAfter),
                 labelHeight:
                     measureCaptionOffset() + captionTextWraps[index].height,
             })),
             {
-                value: Math.max(0, waterfall.total.value),
+                topValue: Math.max(0, waterfall.total.value),
                 labelHeight: VALUE_LABEL_GAP + TOTAL_LABEL_FONT_SIZE,
             },
         ],
@@ -250,12 +247,11 @@ export function FoodSupplyChainWaterfall({
                     stroke={COLORS.zeroLine}
                 />
                 {layout.connectors.map((connector, index) => (
-                    <Connector
+                    <FoodSupplyChainConnector
                         key={index}
                         line={connector.line}
-                        isAddition={connector.leftStep.delta > 0}
                         color={
-                            connector.leftStep.delta > 0
+                            connector.fromStep.delta > 0
                                 ? COLORS.add
                                 : COLORS.subtract
                         }
@@ -263,9 +259,8 @@ export function FoodSupplyChainWaterfall({
                     />
                 ))}
                 {layout.totalConnector && (
-                    <Connector
+                    <FoodSupplyChainConnector
                         line={layout.totalConnector}
-                        isAddition={waterfall.total.value > 0}
                         color={COLORS.total}
                         isDimmed={hover !== undefined}
                     />
@@ -322,7 +317,7 @@ export function FoodSupplyChainWaterfall({
                     step={hoveredStep}
                     isTotal={hover.stepKey === waterfall.total.key}
                     isFirstStep={hover.stepKey === waterfall.steps[0]?.key}
-                    unit={waterfall.shortUnit}
+                    shortUnit={waterfall.shortUnit}
                     year={waterfall.year}
                     numDecimalPlaces={numDecimalPlaces}
                     position={hover.position}
@@ -357,7 +352,6 @@ export function doesVerticalLayoutFit(
     })
 }
 
-/** The pixels one step's column gets at this width */
 function measureVerticalSlotWidth(waterfall: Waterfall, width: number): number {
     const plotWidth =
         width -
@@ -407,7 +401,6 @@ function StepMarks({
     isDimmed: boolean
     /** Absent for the total, whose box carries its label */
     captionTextWrap?: TextWrap
-    /** What the labels sit on, which their halo takes the colour of */
     backgroundColor: string
 }): React.ReactElement {
     const barColor = isTotal
@@ -482,37 +475,6 @@ function StepMarks({
     )
 }
 
-/** A line from one bar to the next, shifted half its width onto the left bar's side of their shared edge */
-function Connector({
-    line,
-    isAddition,
-    color,
-    isDimmed,
-}: {
-    line: PlacedLine
-    /** Whether the bar it leaves adds to the balance, which decides the side it shifts to */
-    isAddition: boolean
-    color: string
-    isDimmed: boolean
-}): React.ReactElement {
-    // An addition's bar lies below its far end on screen, a subtraction's above
-    const y = line.y1 + ((isAddition ? 1 : -1) * CONNECTOR_WIDTH) / 2
-    return (
-        <line
-            className={cx(
-                "food-supply-chain-waterfall__connector",
-                isDimmed && "food-supply-chain-waterfall__connector--dimmed"
-            )}
-            x1={line.x1}
-            y1={y}
-            x2={line.x2}
-            y2={y}
-            stroke={color}
-            strokeWidth={CONNECTOR_WIDTH}
-        />
-    )
-}
-
 function GroupBox({
     box,
     top,
@@ -558,8 +520,11 @@ function getValueLabelFontSize(isTotal: boolean): number {
     return isTotal ? TOTAL_LABEL_FONT_SIZE : VALUE_LABEL_FONT_SIZE
 }
 
-/** Distance from the top of a step's bar to the bottom of its caption, with the value label in between */
-/** The highest the plot can start with every bar's labels still below `columnTop` */
+interface LabelledBarTop {
+    topValue: number
+    labelHeight: number
+}
+
 function placePlotTop({
     columnTop,
     plotBottom,
@@ -569,19 +534,39 @@ function placePlotTop({
     columnTop: number
     plotBottom: number
     tickValues: number[]
-    /** Where each bar ends at the top, and the height its labels take up above it */
-    labelledBarTops: { value: number; labelHeight: number }[]
+    labelledBarTops: LabelledBarTop[]
 }): number {
-    const domainStart = tickValues[0]
-    const domainEnd = tickValues[tickValues.length - 1]
+    const domain = {
+        from: tickValues[0],
+        to: tickValues[tickValues.length - 1],
+    }
     return Math.max(
         columnTop,
-        ...labelledBarTops.map(({ value, labelHeight }) => {
-            // The bar top's distance below the plot's top, as a share of the plot's height
-            const depth = (domainEnd - value) / (domainEnd - domainStart)
-            if (depth >= 1) return columnTop
-            return (columnTop + labelHeight - depth * plotBottom) / (1 - depth)
-        })
+        ...labelledBarTops.map((bar) =>
+            placePlotTopForBar(bar, { columnTop, plotBottom, domain })
+        )
+    )
+}
+
+/** The plot top at which this bar's labels end exactly at `columnTop` */
+function placePlotTopForBar(
+    { topValue, labelHeight }: LabelledBarTop,
+    {
+        columnTop,
+        plotBottom,
+        domain,
+    }: {
+        columnTop: number
+        plotBottom: number
+        domain: { from: number; to: number }
+    }
+): number {
+    const shareBelowPlotTop = (domain.to - topValue) / (domain.to - domain.from)
+    if (shareBelowPlotTop >= 1) return columnTop
+    // Solves plotTop + shareBelowPlotTop * (plotBottom - plotTop) - labelHeight = columnTop
+    return (
+        (columnTop + labelHeight - shareBelowPlotTop * plotBottom) /
+        (1 - shareBelowPlotTop)
     )
 }
 
@@ -589,7 +574,6 @@ function measureCaptionOffset(): number {
     return VALUE_LABEL_GAP + VALUE_LABEL_FONT_SIZE + CAPTION_VALUE_LABEL_GAP
 }
 
-/** The top of a step's bar, or where it would start for a step of zero */
 function measureBarTop(step: PlacedStep): number {
     return step.bar?.y ?? step.valueAnchor.y
 }
@@ -598,7 +582,6 @@ function placeCaptionTop(step: PlacedStep, captionHeight: number): number {
     return measureBarTop(step) - measureCaptionOffset() - captionHeight
 }
 
-/** An arrow through the bar, pointing the way the balance moves; drawn only if the bar has room for it */
 function BarArrow({
     step,
     bar,
@@ -608,14 +591,13 @@ function BarArrow({
 }): React.ReactElement | null {
     if (bar.height < ARROW_MIN_LENGTH + 2 * ARROW_INSET) return null
 
-    // +1 walks down the screen from the far end, -1 walks up
-    const direction = step.step.delta > 0 ? 1 : -1
+    const intoBarSign = step.step.delta > 0 ? 1 : -1
     const { x, y: farEndY } = step.valueAnchor
     return (
         <BezierArrow
             className="food-supply-chain-waterfall__arrow"
-            start={{ x, y: farEndY + direction * (bar.height - ARROW_INSET) }}
-            end={{ x, y: farEndY + direction * ARROW_INSET }}
+            start={{ x, y: farEndY + intoBarSign * (bar.height - ARROW_INSET) }}
+            end={{ x, y: farEndY + intoBarSign * ARROW_INSET }}
             width={ARROW_WIDTH}
             color={COLORS.arrow}
             opacity={ARROW_OPACITY}
