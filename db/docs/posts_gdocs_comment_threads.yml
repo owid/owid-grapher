@@ -1,0 +1,26 @@
+metadata:
+  description: |
+    Comment threads on natively-edited gdocs (rich editor collaboration). A thread is anchored to a text range or a block via ProseMirror positions in the draft document, or to the document as a whole. Threads whose anchor was deleted become 'orphaned' rather than disappearing, so no discussion is ever silently lost. The individual messages live in posts_gdocs_comments.
+fields:
+  id:
+    description: Auto-incrementing thread id
+  gdocId:
+    description: Foreign key to posts_gdocs
+  status:
+    description: "'open', 'resolved' (dismissed by an author, can be reopened) or 'orphaned' (the anchored text/block was deleted)"
+  anchorType:
+    description: "'range' (a text selection), 'block' (an atom block such as an image) or 'document' (no specific anchor)"
+  anchorFrom:
+    description: ProseMirror start position of the anchor in the draft doc; null for document-level threads
+  anchorTo:
+    description: ProseMirror end position of the anchor in the draft doc; null for document-level threads
+  anchorText:
+    description: Snapshot of the anchored text, used for display and as context when a thread is orphaned
+  createdAt:
+    description: When the thread was created
+  createdBy:
+    description: Foreign key to users; who started the thread
+  resolvedAt:
+    description: When the thread was resolved; null while open
+  resolvedBy:
+    description: Foreign key to users; who resolved the thread
