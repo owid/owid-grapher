@@ -102,7 +102,9 @@ export class OwidAdminApp {
                     <IndexPage
                         email={res.locals.user.email}
                         username={res.locals.user.fullName}
-                        isSuperuser={res.locals.user.isSuperuser}
+                        // stored as a tinyint, but the grapher only
+                        // recognizes window.admin by a boolean isSuperuser
+                        isSuperuser={!!res.locals.user.isSuperuser}
                     />
                 )
             )
