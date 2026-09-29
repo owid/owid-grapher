@@ -225,6 +225,7 @@ export {
 export {
     ChartConfigType,
     OwidGdocPublicationContext,
+    OwidGdocAuthoringMode,
     type OwidGdocErrorMessageProperty,
     type OwidGdocErrorMessage,
     OwidGdocErrorMessageType,
@@ -661,6 +662,21 @@ export {
     parsePostsGdocsWithTagsRow,
     serializePostsGdocsRow,
 } from "./dbTypes/PostsGdocs.js"
+export {
+    type DbInsertPostGdocDraft,
+    type DbRawPostGdocDraft,
+    type DbEnrichedPostGdocDraft,
+    parsePostGdocDraftRow,
+    PostsGdocsDraftsTableName,
+} from "./dbTypes/PostsGdocsDrafts.js"
+export {
+    type PostGdocRevisionKind,
+    type DbInsertPostGdocRevision,
+    type DbRawPostGdocRevision,
+    type DbEnrichedPostGdocRevision,
+    parsePostGdocRevisionRow,
+    PostsGdocsRevisionsTableName,
+} from "./dbTypes/PostsGdocsRevisions.js"
 export {
     type DbPlainPostGdocLink,
     type DbInsertPostGdocLink,
