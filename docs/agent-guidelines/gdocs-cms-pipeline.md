@@ -49,7 +49,7 @@ The result is an ArchieML document string with HTML inline fragments.
 
 We pre-process the Archie text before loading it:
 
-- **Inline references** — `{ref}…{/ref}` syntax is expanded by `extractRefs`. Inline references are assigned IDs based on their overall footnote number (`ref-1`, `ref-2`, …), with a numeric suffix when needed to avoid named reference IDs, replaced with numbered `<a class="ref"><sup>…</sup></a>` tags, and their content is queued so it can be appended to `refs`.
+- **Inline references** — `{ref}…{/ref}` syntax is expanded by `extractRefs`. Inline references are assigned IDs based on their overall footnote number (`inline-ref 1`, `inline-ref 2`, …), with a space to distinguish them from named reference IDs, replaced with numbered `<a class="ref"><sup>…</sup></a>` tags, and their content is queued so it can be appended to `refs`.
 - **Whitespace inside links** — strip pure whitespace anchor tags and move leading whitespace outside of the `<a>` tag.
 - **Front matter normalisation** — `lowercaseObjectKeys` makes front matter case-insensitive (so `Title:` works), `"true"/"false"` are coerced to booleans, and any front matter value with HTML is run through `extractUrl` so the canonical href is used.
 
