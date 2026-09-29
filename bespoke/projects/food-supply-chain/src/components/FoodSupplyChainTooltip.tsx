@@ -3,7 +3,7 @@ import { GrapherTooltipAnchor } from "@ourworldindata/types"
 import { TooltipCard } from "@ourworldindata/grapher/src/tooltip/TooltipCard.js"
 import { TooltipValue } from "@ourworldindata/grapher/src/tooltip/TooltipContents.js"
 
-import { formatMeasureValue } from "../core/format.js"
+import { formatMeasureValue } from "../core/text.js"
 import { chooseStepColor } from "../core/waterfall.js"
 import { PlacedStep } from "../core/waterfallLayout.js"
 

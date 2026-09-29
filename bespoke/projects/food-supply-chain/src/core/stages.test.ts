@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { STAGE_GROUPS } from "./stageGroups.js"
+import { STAGE_GROUPS } from "./stages.js"
 
 const GROUPED_FLOW_STAGE_KEYS = [
     "imports",

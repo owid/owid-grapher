@@ -14,7 +14,7 @@ import {
 } from "../../../../components/Switcher/Switcher.js"
 import { TimeSlider } from "../../../../components/TimeSlider/TimeSlider.js"
 
-import { FoodSupplyChainManifest, Measure } from "../core/types.js"
+import { FoodSupplyChainMetadata, Measure } from "../core/types.js"
 
 const MEASURE_ITEMS: SwitcherItem<Measure>[] = [
     { key: "energy", element: "Calories" },
@@ -22,7 +22,7 @@ const MEASURE_ITEMS: SwitcherItem<Measure>[] = [
 ]
 
 export function FoodSupplyChainControls({
-    manifest,
+    metadata,
     entityName,
     measure,
     year,
@@ -31,7 +31,7 @@ export function FoodSupplyChainControls({
     setMeasure,
     setYear,
 }: {
-    manifest: FoodSupplyChainManifest
+    metadata: FoodSupplyChainMetadata
     entityName: string
     measure: Measure
     year: number
@@ -42,10 +42,11 @@ export function FoodSupplyChainControls({
 }): React.ReactElement {
     const availableEntities = useMemo<BasicDropdownOption[]>(
         () =>
-            manifest.entities
-                .map((entity) => ({ value: entity.name, label: entity.name }))
-                .sort((a, b) => a.label.localeCompare(b.label)),
-        [manifest.entities]
+            metadata.entities.map((entity) => ({
+                value: entity.name,
+                label: entity.name,
+            })),
+        [metadata.entities]
     )
 
     return (

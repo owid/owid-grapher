@@ -1,8 +1,9 @@
-import { useCallback, useMemo } from "react"
+import { useMemo } from "react"
 import { QueryClientProvider } from "@tanstack/react-query"
 import { NuqsAdapter } from "nuqs/adapters/react"
 import { parseAsInteger, parseAsString, parseAsStringEnum } from "nuqs"
 import { findClosestTime } from "@ourworldindata/utils"
+import { WORLD_ENTITY_NAME } from "@ourworldindata/grapher/src/core/GrapherConstants.js"
 
 import { Frame } from "../../../../components/Frame/Frame.js"
 import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
@@ -15,7 +16,7 @@ import { useUrlState } from "../../../../hooks/useUrlState.js"
 import { EmbedConfigProvider } from "../../../../hooks/useEmbedConfig.js"
 import { useDelayedLoading } from "../../../../hooks/useDelayedLoading.js"
 import {
-    isUserLocationCountry,
+    findInitialCountry,
     useResolveUserLocation,
 } from "../../../../hooks/useResolveUserLocation.js"
 import { formatEntityNameForSentence } from "../../../../helpers/entityNames.js"
@@ -33,17 +34,17 @@ import { VERTICAL_CHART_HEIGHT } from "../core/constants.js"
 import {
     queryClient,
     useEntityData,
-    useFoodSupplyChainManifest,
+    useFoodSupplyChainMetadata,
 } from "../core/data.js"
 import { MEASURES, Measure } from "../core/types.js"
-import { buildSubtitle, buildTitle } from "../core/title.js"
+import { buildSubtitle, buildTitle } from "../core/text.js"
 import {
     buildWaterfall,
     findExcludedStageKeys,
     Waterfall,
 } from "../core/waterfall.js"
 
-const DEFAULT_ENTITY_SLUG = "world"
+const DEFAULT_ENTITY_NAME = WORLD_ENTITY_NAME
 const DEFAULT_MEASURE: Measure = "energy"
 const LATEST_YEAR = Infinity
 
@@ -58,9 +59,7 @@ export function WaterfallVariant({
         <EmbedConfigProvider config={config}>
             <NuqsAdapter>
                 <QueryClientProvider client={queryClient}>
-                    <div className="food-supply-chain-chart">
-                        <FetchingWaterfallVariant config={config} urls={urls} />
-                    </div>
+                    <FetchingWaterfallVariant config={config} urls={urls} />
                 </QueryClientProvider>
             </NuqsAdapter>
         </EmbedConfigProvider>
@@ -74,54 +73,38 @@ function FetchingWaterfallVariant({
     config: FoodSupplyChainConfig
     urls: BespokeComponentDataUrls
 }): React.ReactElement {
-    const isUserLocation = isUserLocationCountry(config.country)
-    const initialCountrySlugOrName =
-        config.country && !isUserLocation ? config.country : DEFAULT_ENTITY_SLUG
+    const initialCountryName = findInitialCountry(
+        config.country,
+        DEFAULT_ENTITY_NAME
+    )
 
-    const [countrySlugOrName, setCountrySlug] = useUrlState({
-        key: "foodSupplyChainCountry",
+    const [countryName, setCountry] = useUrlState({
+        key: "country",
         parser: parseAsString,
-        defaultValue: initialCountrySlugOrName,
+        defaultValue: initialCountryName,
     })
     const [measure, setMeasure] = useUrlState({
-        key: "foodSupplyChainMeasure",
+        key: "measure",
         parser: parseAsStringEnum<Measure>([...MEASURES]),
         defaultValue: DEFAULT_MEASURE,
     })
     const [selectedYear, setYear] = useUrlState({
-        key: "foodSupplyChainYear",
+        key: "year",
         parser: parseAsInteger,
         defaultValue: LATEST_YEAR,
     })
 
-    const { data: manifest, status: manifestStatus } =
-        useFoodSupplyChainManifest(urls.metadataUrl)
+    const { data: metadata, status: metadataStatus } =
+        useFoodSupplyChainMetadata(urls.metadataUrl)
 
-    const setCountry = useCallback(
-        (name: string) => {
-            const slug = manifest?.entityByName.get(name)?.slug
-            if (slug) setCountrySlug(slug)
-        },
-        [manifest, setCountrySlug]
-    )
-
-    const availableCountryNames = useMemo(
-        () =>
-            manifest
-                ? new Set(manifest.entities.map((e) => e.name))
-                : undefined,
-        [manifest]
-    )
     const { isResolved: isCountryResolved } = useResolveUserLocation({
         configCountry: config.country,
-        availableCountryNames,
-        urlStateKey: "foodSupplyChainCountry",
+        availableCountryNames: metadata?.entityNames,
+        urlStateKey: "country",
         setCountry,
     })
 
-    const entity =
-        manifest?.entityBySlug.get(countrySlugOrName) ??
-        manifest?.entityByName.get(countrySlugOrName)
+    const entity = metadata?.entityByName.get(countryName)
     const {
         data: entityData,
         status: entityStatus,
@@ -134,21 +117,21 @@ function FetchingWaterfallVariant({
         : selectedYear
     const waterfall = useMemo(
         () =>
-            manifest && entity && entityData
+            metadata && entity && entityData
                 ? buildWaterfall({
-                      manifest,
+                      metadata,
                       entityData,
                       measure,
                       year,
-                      excludedStageKeys: findExcludedStageKeys(entity.slug),
+                      excludedStageKeys: findExcludedStageKeys(entity.name),
                   })
                 : undefined,
-        [manifest, entity, entityData, measure, year]
+        [metadata, entity, entityData, measure, year]
     )
 
-    if (manifestStatus === "pending")
+    if (metadataStatus === "pending")
         return <ChartSkeleton className="food-supply-chain-chart-box" />
-    if (manifestStatus === "error" || !manifest)
+    if (metadataStatus === "error" || !metadata)
         return <ChartError className="food-supply-chain-chart-box" />
     if (!entity) return <ChartError className="food-supply-chain-chart-box" />
     if (entityStatus === "pending" || !isCountryResolved)
@@ -160,7 +143,7 @@ function FetchingWaterfallVariant({
         <>
             {!config.hideControls && (
                 <FoodSupplyChainControls
-                    manifest={manifest}
+                    metadata={metadata}
                     entityName={entity.name}
                     measure={measure}
                     year={year}
@@ -184,7 +167,7 @@ function FetchingWaterfallVariant({
                     )}
                 </div>
                 <ChartFooter
-                    source={manifest.sources.join("; ")}
+                    source={metadata.sources.join("; ")}
                     note={FOOTER_NOTE}
                 />
             </Frame>

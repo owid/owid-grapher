@@ -2,7 +2,7 @@
 
 Written 2026-09-21, against the SCL-based files Pablo published on 2026-09-14.
 
-- Manifest: `https://owid-public.owid.io/data/food-supply-chain/food-supply-chain.metadata.json`
+- Metadata: `https://owid-public.owid.io/data/food-supply-chain/food-supply-chain.metadata.json`
 - Data: `https://owid-public.owid.io/data/food-supply-chain/food-supply-chain.<id>.json`
 
 I fetched all 189 entity files and checked every entity, measure and year:
@@ -78,7 +78,7 @@ which is the shape the design handoff hinted at. **That is worse**, not better:
 others import their feed, so the netted step swings sharply negative. Don't do
 that one.
 
-For now the chart keeps the manifest's order and lets the axis go negative,
+For now the chart keeps the metadata file's order and lets the axis go negative,
 which is Sophia's call. But if the stage order in `stages[]` were changed to put
 supply first, the chart would inherit the fix for free and the presentation
 order would stop being a thing the front end overrides.
@@ -131,9 +131,9 @@ October 2025 pending a review, and that ETL keeps them alive by combining the
 latest FBS release with the previous one. That trick has not been applied to
 SCL. It sounds like it could be.
 
-## 4. Year coverage varies per entity, and the manifest doesn't say so
+## 4. Year coverage varies per entity, and the metadata file doesn't say so
 
-The manifest declares `timeRange: { start: 2010, end: 2023 }`. That is the
+The metadata file declares `timeRange: { start: 2010, end: 2023 }`. That is the
 union, not what any given entity has.
 
 | coverage            | entities |
@@ -150,7 +150,7 @@ Tonga and Tuvalu (2019 onwards), Cuba (stops at 2019) and North Korea (stops at
 This is fine as data. It is awkward as an interface, because the year control
 can only find out what years an entity has after it has fetched that entity's
 file, so the slider has to rebuild and the selection has to clamp on every
-entity change. If the manifest carried a per-entity year range, or even just a
+entity change. If the metadata file carried a per-entity year range, or even just a
 first and last year per entity, that would go away.
 
 ## 5. `direction` doesn't tell you which way a bar points
@@ -166,7 +166,7 @@ than subtract:
 
 `exports` is negative once, which is probably worth a look on its own.
 
-Not a bug, but worth stating in the manifest's own terms: `direction` is the
+Not a bug, but worth stating in the metadata file's own terms: `direction` is the
 sign convention for the arithmetic, not a claim about which way the bar goes.
 The chart computes a signed delta and reads the sign off that. Anybody else
 consuming these files will hit the same thing.
@@ -193,7 +193,7 @@ and at Mongolia on the same day.
 Not a data problem, just a note on what the chart has to supply. "Processing,
 net", "Residuals and balancing" and "Industrial and other non-food uses" are
 accounting terms. The viz will write reader-facing labels for all twelve, and
-it would be better if those lived in the manifest next to the keys than in the
+it would be better if those lived in the metadata file next to the keys than in the
 front end, since the next consumer of this data will write them again.
 
 The chart now carries these labels, in `src/core/stageLabels.ts`.
@@ -209,5 +209,5 @@ Worth acting on, roughly in order:
 3. Apply the FBS backfill trick to SCL, or otherwise recover Japan, Sudan,
    Somalia, South Sudan, Mali, Chad, Benin, Togo, Burundi, CAR, Eritrea,
    Singapore and Palestine.
-4. Put per-entity year coverage in the manifest.
-5. Consider adding reader-facing stage labels and descriptions to the manifest.
+4. Put per-entity year coverage in the metadata file.
+5. Consider adding reader-facing stage labels and descriptions to the metadata file.

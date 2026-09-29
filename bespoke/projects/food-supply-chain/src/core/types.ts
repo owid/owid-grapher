@@ -19,7 +19,7 @@ export const IS_UNIT_WRAPPABLE_BY_MEASURE: Record<Measure, boolean> = {
     protein: false,
 }
 
-/** Keys as the manifest spells them; the set is not known at compile time */
+/** Keys as the metadata file spells them; the set is not known at compile time */
 export type StageKey = string
 
 export interface FlowStage {
@@ -31,17 +31,17 @@ export interface FlowStage {
 export interface FoodSupplyChainEntity {
     id: number
     name: string
-    slug: string
 }
 
-export interface FoodSupplyChainManifest {
+export interface FoodSupplyChainMetadata {
     flowStages: FlowStage[]
     totalStage: { key: StageKey; name: string }
     sources: string[]
     method: string
+    /** Sorted by name */
     entities: FoodSupplyChainEntity[]
-    entityBySlug: Map<string, FoodSupplyChainEntity>
     entityByName: Map<string, FoodSupplyChainEntity>
+    entityNames: Set<string>
 }
 
 export interface EntityData {
@@ -49,7 +49,7 @@ export interface EntityData {
     values: Record<Measure, Record<StageKey, number[]>>
 }
 
-export type ManifestJson = {
+export type MetadataJson = {
     method: string
     sources: string[]
     timeRange: { start: number; end: number }

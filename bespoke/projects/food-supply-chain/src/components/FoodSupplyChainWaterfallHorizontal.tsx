@@ -43,29 +43,29 @@ import {
     VALUE_LABEL_LINE_HEIGHT,
     VALUE_LABEL_SIDE_GAP,
 } from "../core/constants.js"
-import {
-    AxisLabel,
-    FittedAxis,
-    fitAxisToLabels,
-    LabelSide,
-} from "../core/fitAxisToLabels.js"
-import { formatMeasureValue } from "../core/format.js"
-import { STAGE_GROUPS } from "../core/stageGroups.js"
+import { formatMeasureValue } from "../core/text.js"
+import { STAGE_GROUPS } from "../core/stages.js"
 import { StageKey } from "../core/types.js"
 import { chooseStepColor, isAddition, Waterfall } from "../core/waterfall.js"
 import {
+    AxisLabel,
     chooseTickValues,
     countStepAxisSlots,
+    FittedAxis,
+    fitAxisToLabels,
+    LabelSide,
     layOutWaterfall,
     measureGroupHeaderSlots,
     PlacedRect,
     PlacedStep,
     WaterfallLayout,
 } from "../core/waterfallLayout.js"
-import { FoodSupplyChainConnector } from "./FoodSupplyChainConnector.js"
 import { FoodSupplyChainTooltip } from "./FoodSupplyChainTooltip.js"
-import { buildTruncatedTextWrap } from "./truncatedTextWrap.js"
-import { useStepHover } from "./useStepHover.js"
+import {
+    buildTruncatedTextWrap,
+    FoodSupplyChainConnector,
+    useStepHover,
+} from "./waterfallShared.js"
 
 export interface FoodSupplyChainWaterfallHorizontalProps {
     waterfall: Waterfall
