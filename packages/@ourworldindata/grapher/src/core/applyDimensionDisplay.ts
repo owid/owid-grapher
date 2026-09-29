@@ -11,7 +11,6 @@ import {
     type OwidVariableDisplayConfigInterface,
 } from "@ourworldindata/types"
 
-/** A slot's display, addressed by the column it applies to */
 export interface ColumnDisplayOverride {
     columnSlug: ColumnSlug
     display: OwidVariableDisplayConfigInterface | undefined
@@ -20,15 +19,10 @@ export interface ColumnDisplayOverride {
 /**
  * Lay each slot's `display` over the definition of the column it points at.
  *
- * A column definition says what a column *is*, and belongs to whoever supplies
- * the data. A dimension's `display` says what *this chart* makes of it: call
- * it something else here, show two decimals here. The two are the same shape,
- * and the chart's wins.
- *
  * Only slots naming a column of the host's own table are applied. Indicator
  * slots get their display from the OWID pipeline when it builds the table.
  *
- * Two of those fields are not just recorded but acted on. `conversionFactor`
+ * Two `display` fields are not just recorded but acted on. `conversionFactor`
  * scales the column's values (and turns an integer column numeric when the
  * factor isn't whole), and `color` is copied onto the def itself. Because of
  * the scaling, a table's values must go through this exactly once.
@@ -48,10 +42,6 @@ export const applyDimensionDisplayOverrides = (
         )
     )
 
-/**
- * Lay each display over the definition of the column it names. Where several
- * overrides name one column, the first one wins.
- */
 export const applyColumnDisplayOverrides = (
     table: OwidTable,
     overrides: ColumnDisplayOverride[]

@@ -66,14 +66,6 @@ export const TIME_INTERVALS = [
 
 export type SubYearlyTimeInterval = (typeof SUB_YEARLY_TIME_INTERVALS)[number]
 
-/**
- * One slot of a chart (its y values, its x values, what colours or sizes the
- * points) bound to one column of data, plus what this chart says about that
- * column.
- *
- * `display` belongs to the chart, not to the data: it overrides what the
- * column's own definition says.
- */
 interface OwidChartDimensionBaseInterface {
     property: DimensionProperty
     display?: OwidVariableDisplayConfigInterface

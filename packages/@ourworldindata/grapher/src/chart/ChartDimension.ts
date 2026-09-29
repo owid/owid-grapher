@@ -18,7 +18,6 @@ import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
 // and a particular variable that it requests as data
 class ChartDimensionDefaults {
     property!: DimensionProperty
-    // Undefined when the slot names a host-supplied column by slug instead.
     variableId?: OwidVariableId
 
     // check on: malaria-deaths-comparisons and computing-efficiency
@@ -64,7 +63,7 @@ export class ChartDimension
         super()
 
         makeObservable(this, {
-            _slug: observable,
+            authoredSlug: observable,
         })
         this.manager = manager
         if (obj) this.updateFromObject(obj)
@@ -95,23 +94,21 @@ export class ChartDimension
 
         deleteRuntimeAndUnchangedProps(obj, new ChartDimensionDefaults())
 
-        // An authored slug is part of the config; a derived one is not
-        if (this._slug !== undefined) obj.slug = this._slug
+        if (this.authoredSlug !== undefined) obj.slug = this.authoredSlug
 
         return trimObject(obj) as OwidChartDimensionInterface
     }
 
-    /** The slug as authored, set only when the slot names a host column */
-    _slug: ColumnSlug | undefined = undefined
+    authoredSlug: ColumnSlug | undefined = undefined
 
     @computed get slug(): ColumnSlug {
-        if (this._slug) return this._slug
+        if (this.authoredSlug) return this.authoredSlug
         if (this.variableId === undefined) return ""
         return getDimensionColumnSlug(this.variableId, this.targetYear)
     }
 
     set slug(value: ColumnSlug | undefined) {
-        this._slug = value
+        this.authoredSlug = value
     }
 
     @computed get column(): CoreColumn {

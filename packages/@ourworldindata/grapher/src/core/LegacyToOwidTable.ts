@@ -54,7 +54,6 @@ export const legacyToOwidTableAndDimensions = (
         | { [entityName: string]: string | undefined }
         | undefined
 ): OwidTable => {
-    // Slots naming a host-supplied column are that host's to provide
     const indicatorDimensions = dimensions.filter(isIndicatorDimension)
 
     // Entity meta map
@@ -96,7 +95,6 @@ export const legacyToOwidTableAndDimensions = (
 
         // Value column
         const valueColumnDef = columnDefFromOwidVariable(variable.metadata)
-        // There can be two columns of the same variable with different targetTimes
         valueColumnDef.slug = indicatorColumnSlug(dimension)
         // Because database columns can contain mixed types, we want to avoid
         // parsing for Grapher data until we fix that.
@@ -369,7 +367,6 @@ const indicatorColumnSlug = (
 ): ColumnSlug =>
     getDimensionColumnSlug(dimension.variableId, dimension.targetYear)
 
-/** The slot's display, with its indicator's `conversionFactor` as the default */
 const displayWithIndicatorFactor = (
     dimension: IndicatorDimensionInterface,
     json: MultipleOwidVariableDataDimensionsMap
