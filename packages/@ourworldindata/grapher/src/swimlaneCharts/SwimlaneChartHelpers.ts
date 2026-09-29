@@ -12,14 +12,18 @@ import {
     LANE_SPACING_FACTOR,
     MAX_LANE_HEIGHT,
     MIN_SEGMENT_WIDTH,
+    OrdinalSwimlaneCategories,
     PlacedSwimlaneSegment,
     PlacedSwimlaneSeries,
     RenderSwimlaneSegment,
     RenderSwimlaneSeries,
+    RankedSwimlane,
     SizedSwimlaneSeries,
     SEGMENT_CROP_TAPER_RATIO,
+    SwimlaneCategories,
     SwimlaneObservation,
     SwimlaneSegment,
+    SwimlaneSeries,
     VisibleSwimlaneSegment,
 } from "./SwimlaneChartConstants"
 
@@ -146,6 +150,17 @@ export function toSegmentOutlinePath({
     return [...start, ...end, ...close].join(" ")
 }
 
+export function toRankedSwimlane({
+    series,
+    categories,
+}: {
+    series: SwimlaneSeries[]
+    categories: SwimlaneCategories | undefined
+}): RankedSwimlane | undefined {
+    if (series.length !== 1 || categories?.kind !== "ordinal") return undefined
+    return { series: series[0], categories }
+}
+
 export function computeLaneSlotHeight({
     plotHeight,
     laneCount,
@@ -208,6 +223,46 @@ export function toPlacedSwimlaneSeries({
             placedSegments,
         }
     })
+}
+
+export function toPlacedSwimlaneSegmentsByCategoryRank({
+    series,
+    categories,
+    bounds,
+    placeTime,
+}: {
+    series: SwimlaneSeries
+    categories: OrdinalSwimlaneCategories
+    bounds: Bounds
+    placeTime: (time: Time) => number
+}): PlacedSwimlaneSegment[] {
+    const bandHeight = Math.min(
+        bounds.height / categories.values.length,
+        MAX_LANE_HEIGHT
+    )
+    const stackBottom =
+        bounds.bottom -
+        (bounds.height - bandHeight * categories.values.length) / 2
+
+    const extents = toContiguousSegmentExtents({
+        segments: series.segments,
+        placeTime,
+    })
+
+    return series.segments.flatMap(
+        (segment, segmentIndex): PlacedSwimlaneSegment[] => {
+            if (segment.kind === "missing") return []
+            const rank = categories.values.indexOf(segment.category)
+            return [
+                {
+                    ...segment,
+                    ...extents[segmentIndex],
+                    y: stackBottom - (rank + 1) * bandHeight,
+                    height: bandHeight,
+                },
+            ]
+        }
+    )
 }
 
 export function toRenderSwimlaneSegments({
@@ -302,6 +357,17 @@ export function findLaneAtY(
         ({ y: laneY, slotHeight }) =>
             y >= laneY - slotHeight / 2 && y < laneY + slotHeight / 2
     )
+}
+
+export function findRankedSegmentAt(
+    segments: PlacedSwimlaneSegment[],
+    { x, y }: { x: number; y: number }
+): PlacedSwimlaneSegment | undefined {
+    const segment = findSegmentAtX(segments, x)
+    if (!segment) return undefined
+    return y >= segment.y && y < segment.y + segment.height
+        ? segment
+        : undefined
 }
 
 function toContiguousSegmentExtents({

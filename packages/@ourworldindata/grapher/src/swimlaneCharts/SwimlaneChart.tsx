@@ -49,7 +49,9 @@ import {
     ENTITY_LABEL_CHART_GAP,
     HoveredSwimlanePoint,
     PADDING_BETWEEN_LEGEND_AND_LANES,
+    PlacedSwimlaneSegment,
     PlacedSwimlaneSeries,
+    RenderSwimlaneSegment,
     RenderSwimlaneSeries,
     SizedSwimlaneSeries,
     SWIMLANE_LEGEND_STYLE,
@@ -62,12 +64,16 @@ import { SwimlaneChartState } from "./SwimlaneChartState"
 import {
     computeLaneSlotHeight,
     findLaneAtY,
+    findRankedSegmentAt,
     findSegmentAtX,
+    toPlacedSwimlaneSegmentsByCategoryRank,
     toPlacedSwimlaneSeries,
+    toRenderSwimlaneSegments,
     toRenderSwimlaneSeries,
 } from "./SwimlaneChartHelpers"
 import { SwimlaneSegmentLabelSettings } from "./SwimlaneLabels"
 import { SwimlaneRow } from "./SwimlaneRow"
+import { SwimlaneSegments } from "./SwimlaneSegments"
 import { SwimlaneChartTooltip } from "./SwimlaneChartTooltip"
 
 export type SwimlaneChartProps = ChartComponentProps<SwimlaneChartState>
@@ -86,16 +92,21 @@ export class SwimlaneChart
 
     private hoveredPoint: HoveredSwimlanePoint | undefined = undefined
     private hoveredLegendBin: ColorScaleBin | undefined = undefined
+    private hoveredRankedSegment: PlacedSwimlaneSegment | undefined = undefined
 
     constructor(props: SwimlaneChartProps) {
         super(props)
         makeObservable<
             SwimlaneChart,
-            "tooltipState" | "hoveredPoint" | "hoveredLegendBin"
+            | "tooltipState"
+            | "hoveredPoint"
+            | "hoveredLegendBin"
+            | "hoveredRankedSegment"
         >(this, {
             tooltipState: observable,
             hoveredPoint: observable,
             hoveredLegendBin: observable.ref,
+            hoveredRankedSegment: observable.ref,
         })
     }
 
@@ -293,9 +304,11 @@ export class SwimlaneChart
     }
 
     @computed get axisBounds(): Bounds {
-        return this.boundsWithoutLegend.padLeft(
-            this.entityLabelMaxWidth + ENTITY_LABEL_CHART_GAP
-        )
+        return this.chartState.rankedSwimlane
+            ? this.boundsWithoutLegend
+            : this.boundsWithoutLegend.padLeft(
+                  this.entityLabelMaxWidth + ENTITY_LABEL_CHART_GAP
+              )
     }
 
     @computed get xAxis(): HorizontalAxis {
@@ -322,6 +335,28 @@ export class SwimlaneChart
             hoveredPoint: this.hoveredPoint,
             focusArray: this.chartState.focusArray,
             hoveredLegendBin: this.hoveredCategoricalBin,
+        })
+    }
+
+    @computed private get rankedSegments(): PlacedSwimlaneSegment[] {
+        const ranked = this.chartState.rankedSwimlane
+        if (!ranked) return []
+        return toPlacedSwimlaneSegmentsByCategoryRank({
+            series: ranked.series,
+            categories: ranked.categories,
+            bounds: this.innerBounds,
+            placeTime: (time) => this.xAxis.place(time),
+        })
+    }
+
+    @computed private get rankedRenderSegments(): RenderSwimlaneSegment[] {
+        const ranked = this.chartState.rankedSwimlane
+        if (!ranked) return []
+        return toRenderSwimlaneSegments({
+            segments: this.rankedSegments,
+            hoveredSegment: this.hoveredRankedSegment,
+            hoveredLegendBin: this.hoveredCategoricalBin,
+            focus: this.chartState.focusArray.state(ranked.series.seriesName),
         })
     }
 
@@ -357,6 +392,7 @@ export class SwimlaneChart
 
     @action.bound private onCursorLeave(): void {
         this.hoveredPoint = undefined
+        this.hoveredRankedSegment = undefined
         if (!this.manager.shouldPinTooltipToBottom) {
             this.dismissTooltip()
         }
@@ -383,6 +419,17 @@ export class SwimlaneChart
         if (!ref) return
 
         const mouse = getRelativeMouse(ref, ev)
+
+        const ranked = this.chartState.rankedSwimlane
+        if (ranked) {
+            const segment = findRankedSegmentAt(this.rankedSegments, mouse)
+            this.hoveredRankedSegment = segment
+            this.tooltipState.target = segment
+                ? { entityName: ranked.series.entityName, segment }
+                : null
+            return
+        }
+
         const lane = findLaneAtY(this.placedSeries, mouse.y)
         this.hoveredPoint = { x: mouse.x, laneEntityName: lane?.entityName }
 
@@ -479,11 +526,20 @@ export class SwimlaneChart
                     bounds={this.innerBounds}
                     stroke={SOLID_TICK_COLOR}
                 />
-                <g id={makeFigmaId("lanes")}>
-                    {this.manager.isStatic
-                        ? this.renderLanes()
-                        : this.renderAnimatedLanes()}
-                </g>
+                {this.chartState.rankedSwimlane ? (
+                    <g id={makeFigmaId("bands")}>
+                        <SwimlaneSegments
+                            segments={this.rankedRenderSegments}
+                            labelSettings={this.segmentLabelSettings}
+                        />
+                    </g>
+                ) : (
+                    <g id={makeFigmaId("lanes")}>
+                        {this.manager.isStatic
+                            ? this.renderLanes()
+                            : this.renderAnimatedLanes()}
+                    </g>
+                )}
                 {!this.manager.isStatic && (
                     <>
                         <g

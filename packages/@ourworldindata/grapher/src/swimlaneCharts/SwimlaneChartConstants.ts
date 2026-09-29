@@ -164,6 +164,11 @@ export type SwimlaneCategories =
     | OrdinalSwimlaneCategories
     | CategoricalSwimlaneCategories
 
+export interface RankedSwimlane {
+    series: SwimlaneSeries
+    categories: OrdinalSwimlaneCategories
+}
+
 export const SWIMLANE_SORT_KEYS = [SortBy.custom, SortBy.entityName] as const
 export type SwimlaneSortKey = (typeof SWIMLANE_SORT_KEYS)[number]
 
