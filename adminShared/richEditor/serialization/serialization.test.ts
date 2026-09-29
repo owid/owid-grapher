@@ -319,11 +319,38 @@ describe("block identity", () => {
         expect(back.every((block) => block.id === undefined)).toBe(true)
     })
 
-    it("drops ids on text-flow blocks instead of round-tripping them", () => {
+    it("round-trips ids on text-flow blocks, including nested ones", () => {
         const back = roundTrip([
-            { type: "text", value: [], parseErrors: [], id: "never-kept" },
+            { type: "text", value: [], parseErrors: [], id: "text-id" },
+            {
+                type: "heading",
+                text: [],
+                level: 2,
+                parseErrors: [],
+                id: "heading-id",
+            },
+            { type: "horizontal-rule", parseErrors: [], id: "hr-id" },
+            {
+                type: "blockquote",
+                text: [
+                    {
+                        type: "text",
+                        value: [],
+                        parseErrors: [],
+                        id: "quoted-text-id",
+                    },
+                ],
+                parseErrors: [],
+                id: "quote-id",
+            },
         ])
-        expect(back[0].id).toBeUndefined()
+        expect(back[0].id).toBe("text-id")
+        expect(back[1].id).toBe("heading-id")
+        expect(back[2].id).toBe("hr-id")
+        expect(back[3].id).toBe("quote-id")
+        expect((back[3] as { text: OwidEnrichedGdocBlock[] }).text[0].id).toBe(
+            "quoted-text-id"
+        )
     })
 
     it("stripBlockIds removes ids recursively without mutating", () => {
@@ -333,6 +360,24 @@ describe("block identity", () => {
         expect(JSON.stringify(stripped)).not.toContain("layout-id-3")
         // input untouched
         expect(identifiedBody[0].id).toBe("chart-id-1")
+    })
+
+    it("stripBlockIds reaches text-flow containers", () => {
+        const stripped = stripBlockIds([
+            {
+                type: "blockquote",
+                text: [{ type: "text", value: [], parseErrors: [], id: "t1" }],
+                parseErrors: [],
+                id: "q1",
+            },
+            {
+                type: "list",
+                items: [{ type: "text", value: [], parseErrors: [], id: "t2" }],
+                parseErrors: [],
+                id: "l1",
+            },
+        ] as OwidEnrichedGdocBlock[])
+        expect(JSON.stringify(stripped)).not.toContain('"id"')
     })
 
     it("ids are ignored by normalized body comparison", () => {

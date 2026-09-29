@@ -3,6 +3,7 @@ import * as Y from "yjs"
 import {
     relativePositionToAbsolutePosition,
     ySyncPluginKey,
+    yUndoPluginKey,
 } from "@tiptap/y-tiptap"
 
 // y-tiptap's types resolve prosemirror-state through its own peer instance,
@@ -23,3 +24,12 @@ export interface YSyncPluginState {
 
 export const syncPluginKey =
     ySyncPluginKey as unknown as PluginKey<YSyncPluginState>
+
+export interface YUndoPluginState {
+    undoManager?: {
+        stopCapturing(): void
+    }
+}
+
+export const undoPluginKey =
+    yUndoPluginKey as unknown as PluginKey<YUndoPluginState>

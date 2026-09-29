@@ -74,6 +74,36 @@ export function normalizeValue(value: unknown): unknown {
             ) {
                 continue
             }
+            // the raw→enriched parsers default `size` to "wide" when absent
+            // (charts, images, videos, ...), so "wide" and absent are
+            // semantically identical; legacy stored content omits the key
+            if (key === "size" && isEnrichedBlock && record[key] === "wide") {
+                continue
+            }
+            // same for the research-and-writing display flags, which default
+            // to false and are absent in content predating them
+            if (
+                record.type === "research-and-writing" &&
+                (key === "hide-authors" || key === "hide-date") &&
+                record[key] === false
+            ) {
+                continue
+            }
+            // parseAuthors strips a trailing "(role)" parenthetical from each
+            // author name, so content predating that behavior can never
+            // survive a trip through the parser; compare the stripped form
+            if (
+                key === "authors" &&
+                Array.isArray(record[key]) &&
+                (record[key] as unknown[]).every(
+                    (item) => typeof item === "string"
+                )
+            ) {
+                out[key] = (record[key] as string[]).map((author) =>
+                    author.replace(/^(.+?)\s*\(([^)]+)\)\s*$/, "$1").trim()
+                )
+                continue
+            }
             const normalized = normalizeValue(record[key])
             if (normalized === undefined || normalized === null) continue
             out[key] = normalized
