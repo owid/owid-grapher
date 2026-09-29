@@ -50,6 +50,17 @@ function makeGrapherState(
     })
 }
 
+function findLane(container: HTMLElement, entityName: string): Element {
+    const lane = container.querySelector(`#lanes [id="${entityName}"]`)
+    if (!lane) throw new Error(`No lane for ${entityName}`)
+    return lane
+}
+
+/** Rects and paths drawn for a lane's segments, in time order */
+function findSegmentShapes(lane: Element): Element[] {
+    return Array.from(lane.querySelectorAll("rect, path"))
+}
+
 beforeAll(() => {
     // Grapher waits for its element to become visible, which never happens in happy-dom
     vi.stubGlobal(
@@ -134,5 +145,26 @@ describe("SwimlaneChart", () => {
             container.querySelector(".categoricalColorLegend")
         ).not.toBeNull()
         expect(container.querySelector(".numericColorLegend")).toBeNull()
+    })
+
+    it("tapers a segment the timeline window crops and labels it with the full run", () => {
+        const { container } = render(
+            <Grapher
+                grapherState={makeGrapherState(ColumnTypeNames.String, {
+                    minTime: 2001,
+                    maxTime: 2005,
+                })}
+            />
+        )
+        const france = findLane(container, "France")
+
+        expect(
+            findSegmentShapes(france).map((shape) =>
+                shape.tagName.toLowerCase()
+            )
+        ).toEqual(["path", "rect", "rect"])
+        expect(
+            within(france as HTMLElement).getByText("2000–2002")
+        ).toBeTruthy()
     })
 })

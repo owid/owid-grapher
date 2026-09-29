@@ -3,7 +3,31 @@ import { describe, expect, it } from "vitest"
 import { SwimlaneSegmentLabels } from "@ourworldindata/types"
 import { textWidth } from "../chart/ChartUtils"
 import { FontSettings } from "../core/GrapherConstants"
-import { shouldLabelSegment } from "./SwimlaneLabels"
+import { formatSegmentTimeRange, shouldLabelSegment } from "./SwimlaneLabels"
+
+describe(formatSegmentTimeRange, () => {
+    const formatTime = (time: number): string => `Y${time}`
+
+    it("formats a single-time run as one time", () => {
+        expect(
+            formatSegmentTimeRange({
+                runStartTime: 2000,
+                runEndTime: 2000,
+                formatTime,
+            })
+        ).toEqual("Y2000")
+    })
+
+    it("formats a longer run as a range", () => {
+        expect(
+            formatSegmentTimeRange({
+                runStartTime: 2000,
+                runEndTime: 2002,
+                formatTime,
+            })
+        ).toEqual("Y2000–Y2002")
+    })
+})
 
 describe(shouldLabelSegment, () => {
     const fontSettings: FontSettings = {

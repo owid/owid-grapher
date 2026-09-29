@@ -83,12 +83,16 @@ describe("segments", () => {
                 category: "X",
                 startTime: 2000,
                 endTime: 2001,
+                runStartTime: 2000,
+                runEndTime: 2001,
             },
             {
                 kind: "category",
                 category: "Y",
                 startTime: 2002,
                 endTime: 2002,
+                runStartTime: 2002,
+                runEndTime: 2002,
             },
             { kind: "missing", startTime: 2003, endTime: 2003 },
         ])
@@ -109,6 +113,8 @@ describe("segments", () => {
                 category: "X",
                 startTime: 2000,
                 endTime: 2000,
+                runStartTime: 2000,
+                runEndTime: 2000,
             },
             { kind: "missing", startTime: 2001, endTime: 2001 },
             {
@@ -116,6 +122,8 @@ describe("segments", () => {
                 category: "X",
                 startTime: 2002,
                 endTime: 2002,
+                runStartTime: 2002,
+                runEndTime: 2002,
             },
         ])
     })
@@ -134,6 +142,8 @@ describe("segments", () => {
                 category: "X",
                 startTime: 2000,
                 endTime: 2000,
+                runStartTime: 2000,
+                runEndTime: 2000,
             },
             { kind: "missing", startTime: 2001, endTime: 2009 },
             {
@@ -141,6 +151,8 @@ describe("segments", () => {
                 category: "X",
                 startTime: 2010,
                 endTime: 2010,
+                runStartTime: 2010,
+                runEndTime: 2010,
             },
         ])
     })
@@ -157,6 +169,30 @@ describe("segments", () => {
         expect(
             findSegments(chartState, "France").map((segment) => segment.kind)
         ).toEqual(["category", "missing", "category"])
+    })
+
+    it("clips segments to the timeline window but keeps the full run", () => {
+        const chartState = makeChartState(
+            makeCategoricalTable([
+                { entityName: "France", time: 1999, status: "W" },
+                { entityName: "France", time: 2000, status: "X" },
+                { entityName: "France", time: 2001, status: "X" },
+                { entityName: "France", time: 2002, status: "X" },
+                { entityName: "France", time: 2003, status: "Y" },
+            ]),
+            { startTime: 2001, endTime: 2002 }
+        )
+
+        expect(findSegments(chartState, "France")).toEqual([
+            {
+                kind: "category",
+                category: "X",
+                startTime: 2001,
+                endTime: 2002,
+                runStartTime: 2000,
+                runEndTime: 2002,
+            },
+        ])
     })
 })
 

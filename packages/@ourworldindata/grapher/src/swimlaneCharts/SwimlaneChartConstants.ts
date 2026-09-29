@@ -9,6 +9,8 @@ export const TICK_LABEL_OVERFLOW_PADDING = 2
 export const PADDING_BETWEEN_LEGEND_AND_LANES = 8
 export const MAX_LANE_HEIGHT = 36
 export const SEGMENT_LABEL_PADDING = 8
+/** Length of a cropped segment's point, as a fraction of the segment's height */
+export const SEGMENT_CROP_TAPER_RATIO = 0.4
 export const SEGMENT_LABEL_TIME_RANGE_FONT_WEIGHT = 500
 
 export type SwimlaneChartManager = ChartManager
@@ -34,7 +36,24 @@ export interface SwimlaneMissingSegment extends SwimlaneSegmentRange {
 
 export type SwimlaneSegment = SwimlaneCategorySegment | SwimlaneMissingSegment
 
-export type ColoredSwimlaneCategorySegment = SwimlaneCategorySegment & {
+/**
+ * The whole run of a category, which reaches beyond `startTime` and `endTime`
+ * whenever the timeline window crops the segment drawn for it
+ */
+export interface SwimlaneSegmentRun {
+    runStartTime: Time
+    runEndTime: Time
+}
+
+export type VisibleSwimlaneCategorySegment = SwimlaneCategorySegment &
+    SwimlaneSegmentRun
+
+/** Missing segments carry no run, since they are never labelled */
+export type VisibleSwimlaneSegment =
+    | VisibleSwimlaneCategorySegment
+    | SwimlaneMissingSegment
+
+export type ColoredSwimlaneCategorySegment = VisibleSwimlaneCategorySegment & {
     color: Color
 }
 

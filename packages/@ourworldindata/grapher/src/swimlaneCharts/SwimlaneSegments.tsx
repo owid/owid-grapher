@@ -10,6 +10,10 @@ import {
     SEGMENT_LABEL_TIME_RANGE_FONT_WEIGHT,
 } from "./SwimlaneChartConstants"
 import {
+    computeSegmentCropTaper,
+    toSegmentOutlinePath,
+} from "./SwimlaneChartHelpers"
+import {
     formatSegmentTimeRange,
     shouldLabelSegment,
     SwimlaneSegmentLabelSettings,
@@ -28,16 +32,9 @@ export function SwimlaneSegments({
         <>
             {segments.map((segment) => (
                 <g key={segment.startTime}>
-                    <rect
-                        x={roundForSvg(segment.x)}
-                        y={roundForSvg(segment.y)}
-                        width={roundForSvg(segment.width)}
-                        height={roundForSvg(segment.height)}
-                        fill={
-                            segment.kind === "missing"
-                                ? `url(#${noDataPatternId})`
-                                : segment.color
-                        }
+                    <SwimlaneSegmentShape
+                        segment={segment}
+                        noDataPatternId={noDataPatternId}
                     />
                     {segment.kind === "category" && (
                         <SwimlaneSegmentLabelText
@@ -48,6 +45,46 @@ export function SwimlaneSegments({
                 </g>
             ))}
         </>
+    )
+}
+
+function SwimlaneSegmentShape({
+    segment,
+    noDataPatternId,
+}: {
+    segment: PlacedSwimlaneSegment
+    noDataPatternId: string
+}): React.ReactElement {
+    const { x, y, width, height } = segment
+    const fill =
+        segment.kind === "missing" ? `url(#${noDataPatternId})` : segment.color
+
+    const isStartCropped = isSegmentStartCropped(segment)
+    const isEndCropped = isSegmentEndCropped(segment)
+
+    if (!isStartCropped && !isEndCropped)
+        return (
+            <rect
+                x={roundForSvg(x)}
+                y={roundForSvg(y)}
+                width={roundForSvg(width)}
+                height={roundForSvg(height)}
+                fill={fill}
+            />
+        )
+
+    return (
+        <path
+            d={toSegmentOutlinePath({
+                x,
+                y,
+                width,
+                height,
+                isStartCropped,
+                isEndCropped,
+            })}
+            fill={fill}
+        />
     )
 }
 
@@ -62,23 +99,27 @@ function SwimlaneSegmentLabelText({
     const { category, width, height } = segment
 
     const timeRange = formatSegmentTimeRange({
-        startTime: segment.startTime,
-        endTime: segment.endTime,
+        runStartTime: segment.runStartTime,
+        runEndTime: segment.runEndTime,
         formatTime,
     })
+
+    const taper = computeSegmentCropTaper({ width, height })
+    const startInset = isSegmentStartCropped(segment) ? taper : 0
+    const endInset = isSegmentEndCropped(segment) ? taper : 0
 
     const fits = shouldLabelSegment({
         segmentLabels,
         category,
         timeRange,
-        width,
+        width: width - startInset - endInset,
         height,
         fontSettings,
     })
     if (!fits) return null
 
     const lineHeight = fontSettings.fontSize * fontSettings.lineHeight
-    const x = roundForSvg(segment.x + SEGMENT_LABEL_PADDING)
+    const x = roundForSvg(segment.x + startInset + SEGMENT_LABEL_PADDING)
     const firstLineY = roundForSvg(segment.y + height / 2 - lineHeight / 2)
     const color = isDarkColor(segment.color) ? "#fff" : GRAY_100
 
@@ -102,4 +143,14 @@ function SwimlaneSegmentLabelText({
             </tspan>
         </text>
     )
+}
+
+function isSegmentStartCropped(segment: PlacedSwimlaneSegment): boolean {
+    return (
+        segment.kind === "category" && segment.runStartTime < segment.startTime
+    )
+}
+
+function isSegmentEndCropped(segment: PlacedSwimlaneSegment): boolean {
+    return segment.kind === "category" && segment.runEndTime > segment.endTime
 }
