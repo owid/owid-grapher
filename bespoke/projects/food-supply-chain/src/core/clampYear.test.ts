@@ -14,4 +14,8 @@ describe(clampYear, () => {
     it("clamps to the last year when selected is later", () => {
         expect(clampYear([2010, 2011, 2018], 2023)).toBe(2018)
     })
+
+    it("clamps an infinite selection to the latest year, in any order", () => {
+        expect(clampYear([2018, 2010, 2011], Infinity)).toBe(2018)
+    })
 })

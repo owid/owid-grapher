@@ -1,6 +1,5 @@
 export type LabelSide = "left" | "right"
 
-/** A label beside a bar on an axis */
 export interface AxisLabel {
     /** Where the bar's left end sits, from 0 at the axis start to 1 at its end */
     barStart: number
@@ -31,34 +30,36 @@ export interface FittedAxis {
 export function fitAxisToLabels(
     labels: AxisLabel[],
     availableLength: number,
-    /** Room kept free past the axis end */
     endMargin: number
 ): FittedAxis {
     const sides = labels.map((label) => label.preferredSide)
-    const isWrapped = labels.map(() => false)
-
-    // Moving a label right can only shorten the axis, which can only push
-    // more left labels out, so this settles after at most one pass per label
-    for (;;) {
-        const length = measureLongestAxis(
-            labels,
-            sides,
-            availableLength,
-            endMargin
-        )
-        const crampedIndices: number[] = []
-        labels.forEach((label, index) => {
-            isWrapped[index] = false
-            if (sides[index] !== "left") return
-            const room = label.barStart * length
-            if (label.width <= room) return
-            if (label.wrappedWidth !== undefined && label.wrappedWidth <= room)
-                isWrapped[index] = true
-            else crampedIndices.push(index)
-        })
-        if (crampedIndices.length === 0) return { length, sides, isWrapped }
-        for (const index of crampedIndices) sides[index] = "right"
+    let fit = measureFit(labels, sides, availableLength, endMargin)
+    while (fit.crampedIndices.length > 0) {
+        for (const index of fit.crampedIndices) sides[index] = "right"
+        fit = measureFit(labels, sides, availableLength, endMargin)
     }
+    return { length: fit.length, sides, isWrapped: fit.isWrapped }
+}
+
+/** The longest axis for these sides, and the left labels that don't fit before it even wrapped */
+function measureFit(
+    labels: AxisLabel[],
+    sides: LabelSide[],
+    availableLength: number,
+    endMargin: number
+): { length: number; isWrapped: boolean[]; crampedIndices: number[] } {
+    const length = measureLongestAxis(labels, sides, availableLength, endMargin)
+    const isWrapped = labels.map(() => false)
+    const crampedIndices: number[] = []
+    labels.forEach((label, index) => {
+        if (sides[index] !== "left") return
+        const room = label.barStart * length
+        if (label.width <= room) return
+        if (label.wrappedWidth !== undefined && label.wrappedWidth <= room)
+            isWrapped[index] = true
+        else crampedIndices.push(index)
+    })
+    return { length, isWrapped, crampedIndices }
 }
 
 function measureLongestAxis(
