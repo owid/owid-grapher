@@ -10,7 +10,7 @@ import {
     PlacedSwimlaneSegment,
     PlacedSwimlaneSeries,
     SizedSwimlaneSeries,
-    SEGMENT_CROP_TAPER,
+    SEGMENT_CROP_TAPER_RATIO,
     SwimlaneObservation,
     SwimlaneSegment,
     VisibleSwimlaneSegment,
@@ -89,6 +89,17 @@ export function toVisibleSwimlaneSegments({
         })
 }
 
+/** Length of the point drawn at each cropped edge of a segment */
+export function computeSegmentCropTaper({
+    width,
+    height,
+}: {
+    width: number
+    height: number
+}): number {
+    return Math.min(SEGMENT_CROP_TAPER_RATIO * height, width / 3)
+}
+
 /** Outline of a segment, tapered to a point at each edge the timeline window cropped */
 export function toSegmentOutlinePath({
     x,
@@ -105,7 +116,7 @@ export function toSegmentOutlinePath({
     isStartCropped: boolean
     isEndCropped: boolean
 }): string {
-    const taper = Math.min(SEGMENT_CROP_TAPER, width / 3)
+    const taper = computeSegmentCropTaper({ width, height })
     const [left, right, top, bottom] = [x, x + width, y, y + height].map(
         roundForSvg
     )

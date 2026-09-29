@@ -10,7 +10,10 @@ import {
     SEGMENT_LABEL_PADDING,
     SEGMENT_LABEL_TIME_RANGE_FONT_WEIGHT,
 } from "./SwimlaneChartConstants"
-import { toSegmentOutlinePath } from "./SwimlaneChartHelpers"
+import {
+    computeSegmentCropTaper,
+    toSegmentOutlinePath,
+} from "./SwimlaneChartHelpers"
 import {
     formatSegmentTimeRange,
     shouldLabelSegment,
@@ -52,10 +55,8 @@ function SwimlaneSegmentShape({
             ? `url(#${Patterns.noDataPattern})`
             : segment.color
 
-    const isStartCropped =
-        segment.kind === "category" && segment.runStartTime < segment.startTime
-    const isEndCropped =
-        segment.kind === "category" && segment.runEndTime > segment.endTime
+    const isStartCropped = isSegmentStartCropped(segment)
+    const isEndCropped = isSegmentEndCropped(segment)
 
     if (!isStartCropped && !isEndCropped)
         return (
@@ -99,18 +100,22 @@ function SwimlaneSegmentLabelText({
         formatTime,
     })
 
+    const taper = computeSegmentCropTaper({ width, height })
+    const startInset = isSegmentStartCropped(segment) ? taper : 0
+    const endInset = isSegmentEndCropped(segment) ? taper : 0
+
     const fits = shouldLabelSegment({
         segmentLabels,
         category,
         timeRange,
-        width,
+        width: width - startInset - endInset,
         height,
         fontSettings,
     })
     if (!fits) return null
 
     const lineHeight = fontSettings.fontSize * fontSettings.lineHeight
-    const x = roundForSvg(segment.x + SEGMENT_LABEL_PADDING)
+    const x = roundForSvg(segment.x + startInset + SEGMENT_LABEL_PADDING)
     const firstLineY = roundForSvg(segment.y + height / 2 - lineHeight / 2)
     const color = isDarkColor(segment.color) ? "#fff" : GRAY_100
 
@@ -134,4 +139,14 @@ function SwimlaneSegmentLabelText({
             </tspan>
         </text>
     )
+}
+
+function isSegmentStartCropped(segment: RenderSwimlaneSegment): boolean {
+    return (
+        segment.kind === "category" && segment.runStartTime < segment.startTime
+    )
+}
+
+function isSegmentEndCropped(segment: RenderSwimlaneSegment): boolean {
+    return segment.kind === "category" && segment.runEndTime > segment.endTime
 }

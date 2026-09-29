@@ -631,7 +631,7 @@ describe(toSegmentOutlinePath, () => {
                 isStartCropped: true,
                 isEndCropped: false,
             })
-        ).toEqual("M 10,35 L 15,20 L 70,20 L 70,50 L 15,50 Z")
+        ).toEqual("M 10,35 L 22,20 L 70,20 L 70,50 L 22,50 Z")
     })
 
     it("tapers the end edge to a point when the window crops it", () => {
@@ -641,7 +641,7 @@ describe(toSegmentOutlinePath, () => {
                 isStartCropped: false,
                 isEndCropped: true,
             })
-        ).toEqual("M 10,20 L 65,20 L 70,35 L 65,50 L 10,50 Z")
+        ).toEqual("M 10,20 L 58,20 L 70,35 L 58,50 L 10,50 Z")
     })
 
     it("tapers both edges of a run the window crops on both sides", () => {
@@ -651,7 +651,7 @@ describe(toSegmentOutlinePath, () => {
                 isStartCropped: true,
                 isEndCropped: true,
             })
-        ).toEqual("M 10,35 L 15,20 L 65,20 L 70,35 L 65,50 L 15,50 Z")
+        ).toEqual("M 10,35 L 22,20 L 58,20 L 70,35 L 58,50 L 22,50 Z")
     })
 
     it("shrinks the taper so a narrow segment keeps a flat side", () => {
