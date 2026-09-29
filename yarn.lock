@@ -2351,7 +2351,7 @@ __metadata:
     vitest: "npm:^5.0.0"
     zod: "npm:^4.5.4"
   peerDependencies:
-    "@googleapis/docs": ^9.0.0
+    "@googleapis/docs": ^13.0.0
     zod: ^4.4.3
   peerDependenciesMeta:
     "@googleapis/docs":
