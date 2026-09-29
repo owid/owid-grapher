@@ -146,6 +146,10 @@ export function OwidGdoc({
                     isPreviewing,
                     archiveContext,
                     gdocType: props.content.type,
+                    footnotes:
+                        "refs" in props.content
+                            ? props.content.refs?.definitions
+                            : undefined,
                 }}
             >
                 <SiteQueryClientProvider>

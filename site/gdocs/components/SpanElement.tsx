@@ -8,6 +8,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faEye } from "@fortawesome/free-solid-svg-icons"
 import { spansToUnformattedPlainText } from "@ourworldindata/utils"
 import cx from "clsx"
+import { Footnote } from "../../Footnote.js"
 import { useCalloutValue } from "../utils.js"
 import { useHasHydrated } from "../../hooks.js"
 
@@ -55,12 +56,7 @@ export default function SpanElement({
         )
         .with({ spanType: "span-ref" }, (span) =>
             shouldRenderLinks ? (
-                <a href={span.url} className="ref">
-                    <SpanElements
-                        spans={span.children}
-                        shouldRenderLinks={shouldRenderLinks}
-                    />
-                </a>
+                <Footnote span={span} />
             ) : (
                 <span className="ref">
                     <SpanElements
