@@ -11,7 +11,7 @@ import {
     AxisMinMaxValueStr,
     GrapherChartType,
     DimensionProperty,
-    HostColumnDimensionInterface,
+    SlugDimensionInterface,
     IndicatorDimensionInterface,
 } from "@ourworldindata/types"
 import {
@@ -80,7 +80,7 @@ const ExplorerRootDef: CellDef = {
     grammar: ExplorerGrammar,
 }
 
-type ChartDimensionInterfaceBySlug = HostColumnDimensionInterface & {
+type ChartDimensionInterfaceBySlug = SlugDimensionInterface & {
     type: "slug"
 }
 

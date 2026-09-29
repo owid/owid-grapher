@@ -11,7 +11,7 @@ import {
     Time,
 } from "@ourworldindata/utils"
 import {
-    type HostColumnDimensionInterface,
+    type SlugDimensionInterface,
     type IndicatorDimensionInterface,
     isIndicatorDimension,
 } from "@ourworldindata/types"
@@ -20,7 +20,7 @@ import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
 /** The part of a slot that names its column */
 type DimensionColumnSource =
     | Pick<IndicatorDimensionInterface, "variableId" | "targetYear">
-    | Pick<HostColumnDimensionInterface, "slug">
+    | Pick<SlugDimensionInterface, "slug">
 
 // todo: remove when we remove dimensions
 export interface LegacyDimensionsManager {
