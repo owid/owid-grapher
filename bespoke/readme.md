@@ -82,7 +82,7 @@ Both URLs may be relative or absolute, and an absolute one is passed through unt
 | `scriptUrl` | `BESPOKE_BASE_URL` (defaults to the local dev server, `localhost:8089`) |
 | `dataUrl`   | `BESPOKE_DATA_URL`, so a relative value is an ETL feed step             |
 
-`BESPOKE_DATA_URL` is the data root of the environment being served, either production or a staging server's own bucket, where that branch's ETL build lands. A bundle whose data is published by hand gives an absolute `dataUrl` and is served the same file everywhere. As a stopgap before either exists, a bundle can commit its data files and ship them in its build output: `dataBundled: true` resolves `dataUrl` against `BESPOKE_BASE_URL` instead, like `scriptUrl` (see deforestation-trade).
+`BESPOKE_DATA_URL` is the data root of the environment being served, either production or a staging server's own bucket, where that branch's ETL build lands. A bundle whose data is published by hand gives an absolute `dataUrl` and is served the same file everywhere.
 
 `metadataFilename` is a filename inside `dataUrl` that the bundle fetches itself, handed to it as `opts.metadataUrl`. A featured viz page fetches the same file at bake time, validates it against `BespokeMetadataSchema`, and renders the methods-and-sources box under the band from the fields it carries.
 
@@ -96,11 +96,12 @@ A bundle fetches its data at runtime rather than bundling it. Each one reads a s
 
 Bundles get their files from an ETL export step under `etl/steps/export/s3/` in owid/etl, so their registry entry gives the step as a relative `dataUrl`.
 
-| bundle            | ETL step                                         | manifest                              | per-selection file                      |
-| ----------------- | ------------------------------------------------ | ------------------------------------- | --------------------------------------- |
-| `causes-of-death` | `ihme_gbd/latest/gbd_treemap_json`               | `causes-of-death.metadata.json`       | `causes-of-death.<entityId>.json`       |
-| `food-trade`      | `faostat/latest/food_trade`                      | `food-trade.metadata.json`            | `food-trade.<productId>.json`           |
-| `migration`       | `un_migration/latest/migration_stock_flows_json` | `migration-stock-flows.metadata.json` | `migration-stock-flows.<entityId>.json` |
+| bundle                | ETL step                                         | manifest                              | per-selection file                      |
+| --------------------- | ------------------------------------------------ | ------------------------------------- | --------------------------------------- |
+| `causes-of-death`     | `ihme_gbd/latest/gbd_treemap_json`               | `causes-of-death.metadata.json`       | `causes-of-death.<entityId>.json`       |
+| `deforestation-trade` | `forests/latest/deforestation_trade`             | `deforestation-trade.metadata.json`   | `deforestation-trade.<entityId>.json`   |
+| `food-trade`          | `faostat/latest/food_trade`                      | `food-trade.metadata.json`            | `food-trade.<productId>.json`           |
+| `migration`           | `un_migration/latest/migration_stock_flows_json` | `migration-stock-flows.metadata.json` | `migration-stock-flows.<entityId>.json` |
 
 The manifest is the contract. An entity it lists must have a file, and that file must be well formed, because a bundle has no way of knowing otherwise until it has fetched it. An entry whose file is missing or malformed shows the reader an error rather than quietly disappearing from the selector.
 
