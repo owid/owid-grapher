@@ -29,10 +29,15 @@ async function downloadSvg(editor: ChartEditorPage): Promise<string> {
     return readFile(await download.path(), "utf8")
 }
 
-/** The text content of the exported title */
-function titleText(svg: string): string {
-    const title = svg.match(/<a id="title"[^>]*>(.*?)<\/a>/s)?.[1] ?? ""
-    return title.replace(/<[^>]+>/g, "")
+/** The text content of the exported title, parsed by the browser */
+function titleText(editor: ChartEditorPage, svg: string): Promise<string> {
+    return editor.page.evaluate(
+        (svg) =>
+            new DOMParser()
+                .parseFromString(svg, "image/svg+xml")
+                .getElementById("title")?.textContent ?? "",
+        svg
+    )
 }
 
 test.describe("displayed elements", () => {
@@ -79,11 +84,15 @@ test.describe("displayed elements", () => {
             await seedChart(discreteBarChart(indicators.lifeExpectancy))
         )
         await editor.openTab("Export")
-        expect(titleText(await downloadSvg(editor))).toBe("Test chart2020")
+        expect(await titleText(editor, await downloadSvg(editor))).toBe(
+            "Test chart2020"
+        )
 
         await editor.checkbox("Title suffix: automatic time").uncheck()
 
-        expect(titleText(await downloadSvg(editor))).toBe("Test chart")
+        expect(await titleText(editor, await downloadSvg(editor))).toBe(
+            "Test chart"
+        )
     })
 
     test('ticking "Details on demand" adds the referenced details to the export', async ({

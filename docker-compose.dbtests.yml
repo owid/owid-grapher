@@ -28,6 +28,10 @@ services:
       DB_ROOT_PASS: weeniest-stretch-contaminate-gnarl
       DB_ROOT_HOST: db
       DATA_FOLDER: "/tmp-downloads"
+      # interpolated so that exported values take precedence over .env
+      GRAPHER_TEST_DB_NAME: ${GRAPHER_TEST_DB_NAME}
+      GRAPHER_TEST_DB_USER: ${GRAPHER_TEST_DB_USER}
+      GRAPHER_TEST_DB_PASS: ${GRAPHER_TEST_DB_PASS}
     env_file:
       - .env
     depends_on:

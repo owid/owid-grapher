@@ -53,13 +53,13 @@ starts "failing" as an unexpected pass: remove the `test.fail()`.
 
 ## Options
 
-| Variable                                     | Effect                                                                                                       |
-| -------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| `ADMIN_TEST_VITE_DEV=1`                      | Serves the admin client from a Vite dev server instead of a build: starts faster, but page loads are slower  |
-| `ADMIN_TEST_PORT=<port>`                     | Moves the admin server (and the Vite and data API ports after it), e.g. to run two suites side by side       |
-| `GRAPHER_TEST_DB_NAME=<name>`                | Uses another test database, also for running suites side by side                                             |
-| `DBTEST_USE_EXISTING_DB=1`                   | Uses a running MySQL instead of starting the Docker container (the database needs the pre-migrations schema) |
-| `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=<path>` | Uses a preinstalled Chromium, e.g. in sandboxes that can't download browsers                                 |
+| Variable                                     | Effect                                                                                                                                                                      |
+| -------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ADMIN_TEST_VITE_DEV=1`                      | Serves the admin client from a Vite dev server instead of a build: starts faster, but page loads are slower                                                                 |
+| `ADMIN_TEST_PORT=<port>`                     | Moves the admin server (and the Vite and data API ports after it), e.g. to run two suites side by side                                                                      |
+| `GRAPHER_TEST_DB_NAME=<name>`                | Uses another test database, also for running suites side by side (only with `DBTEST_USE_EXISTING_DB=1`: Docker runs share one container, which each run stops when it ends) |
+| `DBTEST_USE_EXISTING_DB=1`                   | Uses a running MySQL instead of starting the Docker container (the database needs the pre-migrations schema)                                                                |
+| `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=<path>` | Uses a preinstalled Chromium, e.g. in sandboxes that can't download browsers                                                                                                |
 
 The test server's database sessions use `READ COMMITTED` isolation. Under the
 default `REPEATABLE READ`, concurrent chart saves deadlock on `chart_dimensions`
