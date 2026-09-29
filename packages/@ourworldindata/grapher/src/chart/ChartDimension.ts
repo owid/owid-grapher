@@ -5,37 +5,22 @@ import {
     DimensionProperty,
     OwidVariableId,
     Persistable,
-    deleteRuntimeAndUnchangedProps,
     updatePersistables,
     OwidVariableDisplayConfig,
     OwidChartDimensionInterface,
     Time,
-    objectWithPersistablesToObject,
 } from "@ourworldindata/utils"
+import {
+    type HostColumnDimensionInterface,
+    type IndicatorDimensionInterface,
+    isIndicatorDimension,
+} from "@ourworldindata/types"
 import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
 
-// A chart "dimension" represents a binding between a chart
-// and a particular variable that it requests as data
-class ChartDimensionDefaults {
-    property!: DimensionProperty
-    variableId?: OwidVariableId
-
-    // check on: malaria-deaths-comparisons and computing-efficiency
-
-    display = new OwidVariableDisplayConfig() // todo: make persistable
-
-    // XXX move this somewhere else, it's only used for scatter x override and Marimekko override
-    targetYear: Time | undefined = undefined
-
-    constructor() {
-        makeObservable(this, {
-            property: observable,
-            variableId: observable,
-            display: observable,
-            targetYear: observable,
-        })
-    }
-}
+/** The part of a slot that names its column */
+type DimensionColumnSource =
+    | Pick<IndicatorDimensionInterface, "variableId" | "targetYear">
+    | Pick<HostColumnDimensionInterface, "slug">
 
 // todo: remove when we remove dimensions
 export interface LegacyDimensionsManager {
@@ -50,23 +35,30 @@ export function getDimensionColumnSlug(
     return variableId.toString()
 }
 
-export class ChartDimension
-    extends ChartDimensionDefaults
-    implements Persistable
-{
+// A chart "dimension" represents a binding between a chart
+// and a particular variable that it requests as data
+export class ChartDimension implements Persistable {
+    property!: DimensionProperty
+
+    // check on: malaria-deaths-comparisons and computing-efficiency
+
+    display = new OwidVariableDisplayConfig() // todo: make persistable
+
+    source!: DimensionColumnSource
+
     private readonly manager: LegacyDimensionsManager
 
     constructor(
         obj: OwidChartDimensionInterface,
         manager: LegacyDimensionsManager
     ) {
-        super()
-
         makeObservable(this, {
-            authoredSlug: observable,
+            property: observable,
+            display: observable,
+            source: observable.ref,
         })
         this.manager = manager
-        if (obj) this.updateFromObject(obj)
+        this.updateFromObject(obj)
     }
 
     @computed private get table(): OwidTable {
@@ -76,46 +68,44 @@ export class ChartDimension
     updateFromObject(obj: OwidChartDimensionInterface): void {
         if (obj.display) updatePersistables(this, { display: obj.display })
 
-        this.targetYear = obj.targetYear
-        this.variableId = obj.variableId
         this.property = obj.property
-        this.slug = obj.slug
+        this.source = isIndicatorDimension(obj)
+            ? { variableId: obj.variableId, targetYear: obj.targetYear }
+            : { slug: obj.slug }
     }
 
     toObject(): OwidChartDimensionInterface {
-        const keysToSerialize = [
-            "variableId",
-            "property",
-            "display",
-            "targetYear",
-        ]
-        const obj: Partial<ChartDimensionDefaults> & { slug?: ColumnSlug } =
-            objectWithPersistablesToObject(this, keysToSerialize)
-
-        deleteRuntimeAndUnchangedProps(obj, new ChartDimensionDefaults())
-
-        if (this.authoredSlug !== undefined) obj.slug = this.authoredSlug
-
-        return trimObject(obj) as OwidChartDimensionInterface
+        return trimObject({
+            property: this.property,
+            display: this.display.toObject(),
+            ...this.source,
+        })
     }
 
-    authoredSlug: ColumnSlug | undefined = undefined
-
-    @computed get slug(): ColumnSlug {
-        if (this.authoredSlug) return this.authoredSlug
-        if (this.variableId === undefined) return ""
-        return getDimensionColumnSlug(this.variableId, this.targetYear)
+    @computed get variableId(): OwidVariableId | undefined {
+        return "variableId" in this.source ? this.source.variableId : undefined
     }
 
-    set slug(value: ColumnSlug | undefined) {
-        this.authoredSlug = value
+    // XXX move this somewhere else, it's only used for scatter x override and Marimekko override
+    @computed get targetYear(): Time | undefined {
+        return "variableId" in this.source ? this.source.targetYear : undefined
+    }
+
+    set targetYear(value: Time | undefined) {
+        if (!("variableId" in this.source)) return // a host column has no year to pin
+        this.source = { ...this.source, targetYear: value }
     }
 
     @computed get column(): CoreColumn {
         return this.table.get(this.columnSlug)
     }
 
-    @computed get columnSlug(): string {
-        return this.slug
+    @computed get columnSlug(): ColumnSlug {
+        return "variableId" in this.source
+            ? getDimensionColumnSlug(
+                  this.source.variableId,
+                  this.source.targetYear
+              )
+            : this.source.slug
     }
 }
