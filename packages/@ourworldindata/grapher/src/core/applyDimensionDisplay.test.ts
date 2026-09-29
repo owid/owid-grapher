@@ -94,6 +94,19 @@ describe(applyDimensionDisplayOverrides, () => {
         expect(table.get("rent_index").displayName).toBe("Rent index")
     })
 
+    it("leaves an indicator slot to the OWID pipeline, even when it names a slug", () => {
+        const table = applyDimensionDisplayOverrides(makeTable(), [
+            {
+                property: DimensionProperty.y,
+                variableId: 815383,
+                slug: "vacancy_rate",
+                display: { conversionFactor: 100 },
+            },
+        ])
+
+        expect(table.get("vacancy_rate").values[0]).toBe(3.1)
+    })
+
     it("scales the column's values by a conversion factor", () => {
         const table = applyDimensionDisplayOverrides(makeTable(), [
             {
