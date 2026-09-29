@@ -278,10 +278,50 @@ export const getRelatedResearchAndWritingForVariables = async (
     knex: db.KnexReadonlyTransaction,
     variableIds: Iterable<number>
 ): Promise<DataPageRelatedResearch[]> => {
+    const ids = [...variableIds]
+    // Start from the indicators' chart dimensions and work outwards, so the
+    // indexes on chart_dimensions.variableId and posts_gdocs_links.target
+    // narrow the rows early instead of scanning every embedded chart link.
     const gdocsPosts: RelatedResearchQueryResult[] = await db.knexRaw(
         knex,
         `-- sql
-        SELECT DISTINCT
+        WITH chart_slug_mapping AS (
+            -- Current slugs of charts using the indicators, unless the chart is
+            -- a draft reusing a slug that still redirects to another chart
+            SELECT cc.slug AS target_slug
+            FROM chart_dimensions cd
+                JOIN charts c ON c.id = cd.chartId
+                JOIN chart_configs cc ON cc.id = c.configId
+            WHERE
+                cd.variableId IN (?)
+                AND cd.property IN ('x', 'y') -- ignore cases where the indicator is size, color etc
+                AND (
+                    cc.config ->> '$.isPublished' = 'true'
+                    OR NOT EXISTS (
+                        SELECT 1
+                        FROM chart_slug_redirects csr
+                        WHERE csr.slug = cc.slug AND csr.chart_id != c.id
+                    )
+                )
+            UNION
+            -- Old slugs of those charts, unless another published chart now
+            -- uses the slug (drafts may reuse it, but the redirect still applies)
+            SELECT csr.slug AS target_slug
+            FROM chart_dimensions cd
+                JOIN chart_slug_redirects csr ON csr.chart_id = cd.chartId
+            WHERE
+                cd.variableId IN (?)
+                AND cd.property IN ('x', 'y')
+                AND NOT EXISTS (
+                    SELECT 1
+                    FROM chart_configs cc
+                        JOIN charts c ON c.configId = cc.id
+                    WHERE
+                        cc.slug = csr.slug
+                        AND cc.config ->> '$.isPublished' = 'true'
+                )
+        )
+        SELECT
             p.content ->> '$.title' AS title,
             p.slug AS postSlug,
             p.authors,
@@ -297,23 +337,22 @@ export const getRelatedResearchAndWritingForVariables = async (
                     pt.gdocId = p.id
             ) AS tags
         FROM
-            posts_gdocs_links pl
-            JOIN posts_gdocs p ON pl.sourceId = p.id
-            LEFT JOIN chart_configs cc ON pl.target = cc.slug
-            LEFT JOIN charts c ON c.configId = cc.id
-            LEFT JOIN chart_slug_redirects csr ON pl.target = csr.slug
-            JOIN chart_dimensions cd ON cd.chartId = COALESCE(csr.chart_id, c.id)
+            posts_gdocs p
             LEFT JOIN analytics_pageviews pv ON pv.url = CONCAT('https://ourworldindata.org/', p.slug)
-            LEFT JOIN posts_gdocs_x_tags pt ON pt.gdocId = p.id
         WHERE
-            pl.linkType = 'grapher'
-            AND pl.componentType = 'chart' -- this filters out links in tags and keeps only embedded charts
-            AND cd.variableId IN (?)
-            AND cd.property IN ('x', 'y') -- ignore cases where the indicator is size, color etc
+            p.id IN (
+                SELECT pl.sourceId
+                FROM
+                    posts_gdocs_links pl
+                    JOIN chart_slug_mapping csm ON pl.target = csm.target_slug
+                WHERE
+                    pl.linkType = 'grapher'
+                    AND pl.componentType = 'chart' -- this filters out links in tags and keeps only embedded charts
+            )
             AND p.published = 1
             AND p.type != 'fragment'
         ORDER BY pageviews DESC`,
-        [variableIds]
+        [ids, ids]
     )
 
     const allSortedRelatedResearch = gdocsPosts.map((post) => {
@@ -329,9 +368,8 @@ export const getRelatedResearchAndWritingForVariables = async (
             tags: parsedTags,
         }
     })
-    // the queries above use distinct but because of the information we pull in if the same piece of research
-    // uses different charts that all use a single indicator we would get duplicates for the post to link to so
-    // here we deduplicate by url. The first item is retained by uniqBy, latter ones are discarded.
+    // Guard against duplicates, e.g. if analytics_pageviews has more than one row for a url.
+    // The first (most viewed) item is retained by uniqBy, latter ones are discarded.
     return _.uniqBy(allSortedRelatedResearch, "url").slice(0, 20)
 }
 
