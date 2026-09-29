@@ -42,22 +42,16 @@ Values = list  # list[float | None], aligned to `years`
 
 
 def build_world_totals(
-    flows: list[tuple[int, int, int, Values]], group_ids: list[int], num_years: int
-) -> list[dict]:
-    """Worldwide hectares per commodity group, aligned to `years`: the sum of
-    every flow, each counted once (a flow is one producer and one consumer)."""
-    sums = {group_id: [0.0] * num_years for group_id in group_ids}
-    for _producer, _consumer, group, values in flows:
+    flows: list[tuple[int, int, int, Values]], num_years: int
+) -> list[float]:
+    """Worldwide hectares per year, aligned to `years`: the sum of every flow,
+    each counted once (a flow is one producer and one consumer)."""
+    sums = [0.0] * num_years
+    for _producer, _consumer, _group, values in flows:
         for i, v in enumerate(values):
             if v is not None:
-                sums[group][i] += v
-    return [
-        {
-            "commodityGroup": group_id,
-            "values": [round(v, DECIMALS) for v in sums[group_id]],
-        }
-        for group_id in group_ids
-    ]
+                sums[i] += v
+    return [round(v, DECIMALS) for v in sums]
 
 
 def build_metadata(raw: dict, flows: list[tuple[int, int, int, Values]]) -> dict:
@@ -65,7 +59,6 @@ def build_metadata(raw: dict, flows: list[tuple[int, int, int, Values]]) -> dict
     `BespokeMetadataSchema` fields that feed the methods-and-sources box."""
     time_range = raw["timeRange"]
     source = raw["source"]
-    group_ids = [g["id"] for g in raw["dimensions"]["commodityGroups"]]
     return {
         "timeRange": time_range,
         "years": raw["years"],
@@ -74,7 +67,7 @@ def build_metadata(raw: dict, flows: list[tuple[int, int, int, Values]]) -> dict
             "entities": raw["dimensions"]["entities"],
             "commodityGroups": raw["dimensions"]["commodityGroups"],
         },
-        "worldTotals": build_world_totals(flows, group_ids, len(raw["years"])),
+        "worldTotals": build_world_totals(flows, len(raw["years"])),
         "title": "Deforestation embedded in agricultural trade",
         "descriptionShort": (
             "Hectares of amortized deforestation risk embedded in agricultural "
