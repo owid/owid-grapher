@@ -14,13 +14,19 @@ const openWikipediaArchive = async (
     return requests
 }
 
+/** Whether the URL points at the host or one of its subdomains */
+const isOnHost = (url: string, host: string): boolean => {
+    const { hostname } = new URL(url)
+    return hostname === host || hostname.endsWith(`.${host}`)
+}
+
 test.describe("Wikipedia archive", () => {
     test("does not make Google Tag Manager requests", async ({ page }) => {
         const requests = await openWikipediaArchive(page, "life-expectancy")
 
         await page.waitForTimeout(3_000)
         expect(
-            requests.filter((url) => url.includes("googletagmanager.com"))
+            requests.filter((url) => isOnHost(url, "googletagmanager.com"))
         ).toEqual([])
     })
 
@@ -39,7 +45,7 @@ test.describe("Wikipedia archive", () => {
         // to the legacy service cannot slip past the negative assertion.
         await page.waitForTimeout(3_000)
         expect(
-            requests.filter((url) => url.includes("detect-country.owid.io"))
+            requests.filter((url) => isOnHost(url, "detect-country.owid.io"))
         ).toEqual([])
     })
 })
