@@ -1,6 +1,8 @@
 metadata:
   description: |
     Variables represent individual indicators or metrics (e.g., 'GDP per capita', 'Life expectancy'). Variables are the fundamental data units that get visualized in charts. A variable can carry a default chart configuration that charts inherit from, authored in the ETL python codebase and pointed at by patchConfigIdETL.
+
+    `name` and `catalogPath` carry a joint FULLTEXT index (ft_variables_name_catalogPath) that the admin's indicator search matches against; without it a search is a substring scan of every row. It costs something on write, so bulk inserts of variables pay for it.
   incoming_foreign_keys:
     - table: chart_dimensions
       column: variableId

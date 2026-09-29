@@ -44,6 +44,7 @@ $admin-section: "section:not(:where(.GrapherComponent *))";
 // Slide content styles reused for slideshow preview
 @import "../site/slideshows/SlideContent.scss";
 @import "./SvgTesterSuitePage.scss";
+@import "./VariableList.scss";
 
 html {
     font-size: 14px;
