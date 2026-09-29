@@ -47,6 +47,9 @@ function startsWithNewline(text: string): boolean {
  * Shortens text to fit within a target width using binary search.
  * Returns the longest substring that fits within the target width.
  */
+/** How far short of `maxWidth` a line breaks */
+export const TEXT_WRAP_BREAK_MARGIN = 10
+
 export const shortenForTargetWidth = (
     text: string,
     targetWidth: number,
@@ -267,7 +270,8 @@ export class TextWrap implements ITextWrap {
 
             if (
                 startsWithNewline(fragment.text) ||
-                (nextBounds.width + 10 > maxWidth && line.length >= 1)
+                (nextBounds.width + TEXT_WRAP_BREAK_MARGIN > maxWidth &&
+                    line.length >= 1)
             ) {
                 // Introduce a newline _before_ this word
                 lines.push({
