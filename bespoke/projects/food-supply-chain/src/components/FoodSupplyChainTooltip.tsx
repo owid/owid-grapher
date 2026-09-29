@@ -3,8 +3,8 @@ import { GrapherTooltipAnchor } from "@ourworldindata/types"
 import { TooltipCard } from "@ourworldindata/grapher/src/tooltip/TooltipCard.js"
 import { TooltipValue } from "@ourworldindata/grapher/src/tooltip/TooltipContents.js"
 
-import { COLORS } from "../core/constants.js"
 import { formatMeasureValue } from "../core/format.js"
+import { chooseStepColor } from "../core/waterfall.js"
 import { PlacedStep } from "../core/waterfallLayout.js"
 
 export interface FoodSupplyChainTooltipProps {
@@ -31,14 +31,6 @@ export function FoodSupplyChainTooltip({
     anchor,
 }: FoodSupplyChainTooltipProps): React.ReactElement {
     const { name, delta, balanceAfter } = step.step
-    const color = isTotal
-        ? COLORS.total
-        : delta === 0
-          ? COLORS.unchanged
-          : delta > 0
-            ? COLORS.add
-            : COLORS.subtract
-
     const isFromZero = isTotal || isFirstStep
 
     return (
@@ -64,7 +56,7 @@ export function FoodSupplyChainTooltip({
                     unit: shortUnit,
                     showPlus: !isFromZero && delta !== 0,
                 })}
-                color={color}
+                color={chooseStepColor(step.step, isTotal)}
             />
             {!isFromZero && (
                 <TooltipValue

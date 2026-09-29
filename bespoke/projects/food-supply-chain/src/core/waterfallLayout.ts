@@ -28,13 +28,6 @@ export interface WaterfallLayoutOptions {
     boxGapSlots?: number
 }
 
-export interface Box {
-    x: number
-    y: number
-    width: number
-    height: number
-}
-
 export interface PlacedPoint {
     x: number
     y: number
@@ -54,18 +47,13 @@ export interface PlacedRect {
     height: number
 }
 
-export interface PlacedBar extends PlacedRect {
-    /** True when MIN_BAR_LENGTH_PX won over the step's own length */
-    isFloored: boolean
-}
-
 export interface PlacedStep {
     /** The model step this column draws; the total's runs from zero to its value */
     step: WaterfallStep
     /** The whole slot across the value axis: the hit area and the caption's column */
     slot: PlacedRect
     /** Absent when the delta is exactly zero */
-    bar?: PlacedBar
+    bar?: PlacedRect
     /** The far end of the bar */
     valueAnchor: PlacedPoint
 }
@@ -117,12 +105,7 @@ export function groupBoxLength(slotWidth: number, stageCount: number): number {
 }
 
 export function totalBoxLength(slotWidth: number): number {
-    return (
-        slotWidth *
-        (TOTAL_SLOT_SPAN -
-            2 * SLOT_PADDING_RATIO +
-            2 * GROUP_BOX_OVERHANG_RATIO)
-    )
+    return groupBoxLength(slotWidth, TOTAL_SLOT_SPAN)
 }
 
 /** Slots on the step axis: one per step, the total's wider one, and the room around the boxes */
@@ -159,7 +142,7 @@ export function chooseTickValues(
 
 export function layOutWaterfall(
     waterfall: Waterfall,
-    box: Box,
+    box: PlacedRect,
     {
         orientation = "vertical",
         groupHeaderSlots = 0,
@@ -472,7 +455,7 @@ interface LinearScale {
 
 interface ScreenProjection {
     /** The pixels each axis gets from the box, running in its screen direction */
-    axes(box: Box): PxExtent
+    axes(box: PlacedRect): PxExtent
     /** Assigns the two px spans to screen axes, keeping each one's direction */
     toSegment(px: PxExtent): PlacedLine
 }
@@ -510,7 +493,7 @@ const PROJECTIONS: Record<WaterfallOrientation, ScreenProjection> = {
 
 function projectPlan(
     plan: WaterfallPlan,
-    box: Box,
+    box: PlacedRect,
     projection: ScreenProjection
 ): WaterfallLayout {
     const axes = projection.axes(box)
@@ -520,23 +503,19 @@ function projectPlan(
     }
 
     const placeStep = (planned: PlannedStep): PlacedStep => {
-        let bar: PlacedBar | undefined
+        let bar: PlacedRect | undefined
         if (planned.bar) {
             const px = scaleExtent(planned.bar, scales)
-            const { span: alongValue, isFloored } = floorBarLength(
-                px.alongValue,
-                planned.step.delta,
-                axes.alongValue
+            bar = toRect(
+                projection.toSegment({
+                    alongValue: floorBarLength(
+                        px.alongValue,
+                        planned.step.delta,
+                        axes.alongValue
+                    ),
+                    alongStep: px.alongStep,
+                })
             )
-            bar = {
-                ...toRect(
-                    projection.toSegment({
-                        alongValue,
-                        alongStep: px.alongStep,
-                    })
-                ),
-                isFloored,
-            }
         }
 
         return {
@@ -630,13 +609,9 @@ function shiftOntoFromBar(
     }
 }
 
-function floorBarLength(
-    bar: Span,
-    delta: number,
-    axis: Span
-): { span: Span; isFloored: boolean } {
+function floorBarLength(bar: Span, delta: number, axis: Span): Span {
     const length = Math.abs(bar.to - bar.from)
-    if (length >= MIN_BAR_LENGTH_PX) return { span: bar, isFloored: false }
+    if (length >= MIN_BAR_LENGTH_PX) return bar
 
     const direction = Math.sign(axis.to - axis.from) * Math.sign(delta)
     const to = bar.from + direction * MIN_BAR_LENGTH_PX
@@ -650,10 +625,7 @@ function floorBarLength(
     if (spanMax > axisMax) overhang = spanMax - axisMax
     else if (spanMin < axisMin) overhang = spanMin - axisMin
 
-    return {
-        span: { from: bar.from - overhang, to: to - overhang },
-        isFloored: true,
-    }
+    return { from: bar.from - overhang, to: to - overhang }
 }
 
 function toRect(segment: PlacedLine): PlacedRect {

@@ -1,3 +1,5 @@
+import { useMemo } from "react"
+
 import {
     TEXT_WRAP_BREAK_MARGIN,
     TextWrap,
@@ -39,7 +41,8 @@ import {
 } from "../core/constants.js"
 import { formatMeasureValue } from "../core/format.js"
 import { STAGE_GROUPS } from "../core/stageGroups.js"
-import { isAddition, Waterfall } from "../core/waterfall.js"
+import { StageKey } from "../core/types.js"
+import { chooseStepColor, Waterfall } from "../core/waterfall.js"
 import {
     captionLength,
     chooseTickValues,
@@ -47,10 +50,10 @@ import {
     isGroupLabelled,
     layOutWaterfall,
     measureSlotWidth,
-    PlacedBar,
     PlacedRect,
     PlacedStep,
     totalBoxLength,
+    WaterfallLayout,
 } from "../core/waterfallLayout.js"
 import { FoodSupplyChainConnector } from "./FoodSupplyChainConnector.js"
 import { FoodSupplyChainTooltip } from "./FoodSupplyChainTooltip.js"
@@ -78,108 +81,24 @@ export function FoodSupplyChainWaterfall({
         onStepMouseLeave,
     } = useStepHover()
 
-    const { numDecimalPlaces } = waterfall
-    const tickLabels = buildTickLabels(waterfall)
-    const axisLabelWidth = measureAxisLabelWidth(tickLabels)
-
-    const plotWidth = width - axisLabelWidth - PLOT_MARGIN_RIGHT
-    if (plotWidth <= 0) return null
-
-    const slotWidth = measureSlotWidth(plotWidth, waterfall.steps.length)
-    const captionTextWraps = waterfall.steps.map((step) =>
-        buildCaptionTextWrap(step.name, slotWidth)
+    const chart = useMemo(
+        () => planVerticalChart(waterfall, width, height),
+        [waterfall, width, height]
     )
-    const totalLabelTextWrap = buildGroupLabelTextWrap(
-        waterfall.total.name,
-        totalBoxLength(slotWidth) - 2 * GROUP_LABEL_INSET
-    )
-
-    const stepKeys = new Set(waterfall.steps.map((step) => step.key))
-    const groupLabelTextWraps = new Map(
-        STAGE_GROUPS.flatMap((group) => {
-            const stageCount = group.stageKeys.filter((key) =>
-                stepKeys.has(key)
-            ).length
-            if (!isGroupLabelled(stageCount)) return []
-            return [
-                [
-                    group.key,
-                    buildGroupLabelTextWrap(
-                        group.label,
-                        groupBoxLength(slotWidth, stageCount) -
-                            2 * GROUP_LABEL_INSET
-                    ),
-                ] as const,
-            ]
-        })
-    )
-
-    const groupLabelHeight = Math.max(
-        ...[...groupLabelTextWraps.values(), totalLabelTextWrap].map(
-            (wrap) => wrap.height
-        )
-    )
-    const formatStepValues = (unit?: string): string[] =>
-        waterfall.steps.map((step, index) =>
-            formatMeasureValue(step.delta, {
-                numDecimalPlaces,
-                unit,
-                showPlus: index > 0 && step.delta !== 0,
-            })
-        )
-    const stepValuesWithUnit = formatStepValues(waterfall.shortUnit)
-    const doStepValuesWithUnitFit = stepValuesWithUnit.every(
-        (text) =>
-            Bounds.forText(text, {
-                fontSize: VALUE_LABEL_FONT_SIZE,
-                fontWeight: VALUE_LABEL_FONT_WEIGHT,
-            }).width +
-                MIN_LABEL_SPACING <=
-            slotWidth
-    )
-    const valueLabelTexts = doStepValuesWithUnitFit
-        ? stepValuesWithUnit
-        : formatStepValues()
-    const totalValueLabelText = formatMeasureValue(waterfall.total.value, {
-        numDecimalPlaces,
-        unit: waterfall.shortUnit,
-    })
-
-    const groupBoxTop = 0
-    const groupLabelY = groupBoxTop + GROUP_LABEL_INSET
-    const columnTop = groupLabelY + groupLabelHeight + GROUP_LABEL_GAP
-    const plotBottom = height - PLOT_MARGIN_BOTTOM
-    const plotTop = placePlotTop({
+    if (!chart) return null
+    const {
+        tickLabels,
+        captionTextWraps,
+        totalLabelTextWrap,
+        groupLabelTextWraps,
+        valueLabelTexts,
+        totalValueLabelText,
         columnTop,
         plotBottom,
-        tickValues: chooseTickValues(waterfall.domain),
-        labelledBarTops: [
-            ...waterfall.steps.map((step, index) => ({
-                topValue: Math.max(step.balanceBefore, step.balanceAfter),
-                labelHeight:
-                    measureCaptionOffset() + captionTextWraps[index].height,
-            })),
-            {
-                topValue: Math.max(0, waterfall.total.value),
-                labelHeight: VALUE_LABEL_GAP + TOTAL_LABEL_FONT_SIZE,
-            },
-        ],
-    })
+        layout,
+        groupedStepKeys,
+    } = chart
 
-    const boxHeight = plotBottom - plotTop
-    if (boxHeight <= 0) return null
-
-    const box = {
-        x: axisLabelWidth,
-        y: plotTop,
-        width: plotWidth,
-        height: boxHeight,
-    }
-    const layout = layOutWaterfall(waterfall, box)
-    const groupBoxBottom = box.y + box.height
-    const groupedStepKeys = new Set(
-        layout.groups.flatMap(({ group }) => group.stageKeys)
-    )
     const hoveredStep = hover
         ? [...layout.steps, layout.total].find(
               (step) => step.step.key === hover.stepKey
@@ -199,20 +118,16 @@ export function FoodSupplyChainWaterfall({
                     <GroupBox
                         key={group.key}
                         box={groupBox}
-                        top={groupBoxTop}
-                        bottom={groupBoxBottom}
+                        bottom={plotBottom}
                         labelTextWrap={groupLabelTextWraps.get(group.key)}
-                        labelY={groupLabelY}
                         fill={COLORS.groupBox}
                         labelColor={COLORS.groupLabel}
                     />
                 ))}
                 <GroupBox
                     box={layout.totalBox}
-                    top={groupBoxTop}
-                    bottom={groupBoxBottom}
+                    bottom={plotBottom}
                     labelTextWrap={totalLabelTextWrap}
-                    labelY={groupLabelY}
                     fill={COLORS.totalBox}
                     labelColor={COLORS.totalLabel}
                 />
@@ -321,7 +236,7 @@ export function FoodSupplyChainWaterfall({
                     isFirstStep={hover.stepKey === waterfall.steps[0]?.key}
                     shortUnit={waterfall.shortUnit}
                     year={waterfall.year}
-                    numDecimalPlaces={numDecimalPlaces}
+                    numDecimalPlaces={waterfall.numDecimalPlaces}
                     position={hover.position}
                     containerBounds={isPinned ? undefined : { width, height }}
                     anchor={isPinned ? GrapherTooltipAnchor.Bottom : undefined}
@@ -329,6 +244,137 @@ export function FoodSupplyChainWaterfall({
             )}
         </div>
     )
+}
+
+interface VerticalChartPlan {
+    tickLabels: Map<number, string>
+    captionTextWraps: TextWrap[]
+    totalLabelTextWrap: TextWrap
+    groupLabelTextWraps: Map<string, TextWrap>
+    valueLabelTexts: string[]
+    totalValueLabelText: string
+    columnTop: number
+    plotBottom: number
+    layout: WaterfallLayout
+    groupedStepKeys: Set<StageKey>
+}
+
+function planVerticalChart(
+    waterfall: Waterfall,
+    width: number,
+    height: number
+): VerticalChartPlan | undefined {
+    const { numDecimalPlaces } = waterfall
+    const tickLabels = buildTickLabels(waterfall)
+    const axisLabelWidth = measureAxisLabelWidth(tickLabels)
+
+    const plotWidth = width - axisLabelWidth - PLOT_MARGIN_RIGHT
+    if (plotWidth <= 0) return undefined
+
+    const slotWidth = measureSlotWidth(plotWidth, waterfall.steps.length)
+    const captionTextWraps = waterfall.steps.map((step) =>
+        buildCaptionTextWrap(step.name, slotWidth)
+    )
+    const totalLabelTextWrap = buildGroupLabelTextWrap(
+        waterfall.total.name,
+        totalBoxLength(slotWidth) - 2 * GROUP_LABEL_INSET
+    )
+
+    const stepKeys = new Set(waterfall.steps.map((step) => step.key))
+    const groupLabelTextWraps = new Map(
+        STAGE_GROUPS.flatMap((group) => {
+            const stageCount = group.stageKeys.filter((key) =>
+                stepKeys.has(key)
+            ).length
+            if (!isGroupLabelled(stageCount)) return []
+            return [
+                [
+                    group.key,
+                    buildGroupLabelTextWrap(
+                        group.label,
+                        groupBoxLength(slotWidth, stageCount) -
+                            2 * GROUP_LABEL_INSET
+                    ),
+                ] as const,
+            ]
+        })
+    )
+
+    const groupLabelHeight = Math.max(
+        ...[...groupLabelTextWraps.values(), totalLabelTextWrap].map(
+            (wrap) => wrap.height
+        )
+    )
+    const formatStepValues = (unit?: string): string[] =>
+        waterfall.steps.map((step, index) =>
+            formatMeasureValue(step.delta, {
+                numDecimalPlaces,
+                unit,
+                showPlus: index > 0 && step.delta !== 0,
+            })
+        )
+    const stepValuesWithUnit = formatStepValues(waterfall.shortUnit)
+    const doStepValuesWithUnitFit = stepValuesWithUnit.every(
+        (text) =>
+            Bounds.forText(text, {
+                fontSize: VALUE_LABEL_FONT_SIZE,
+                fontWeight: VALUE_LABEL_FONT_WEIGHT,
+            }).width +
+                MIN_LABEL_SPACING <=
+            slotWidth
+    )
+    const valueLabelTexts = doStepValuesWithUnitFit
+        ? stepValuesWithUnit
+        : formatStepValues()
+    const totalValueLabelText = formatMeasureValue(waterfall.total.value, {
+        numDecimalPlaces,
+        unit: waterfall.shortUnit,
+    })
+
+    const columnTop = GROUP_LABEL_INSET + groupLabelHeight + GROUP_LABEL_GAP
+    const plotBottom = height - PLOT_MARGIN_BOTTOM
+    const plotTop = placePlotTop({
+        columnTop,
+        plotBottom,
+        tickValues: chooseTickValues(waterfall.domain),
+        labelledBarTops: [
+            ...waterfall.steps.map((step, index) => ({
+                topValue: Math.max(step.balanceBefore, step.balanceAfter),
+                labelHeight: CAPTION_OFFSET + captionTextWraps[index].height,
+            })),
+            {
+                topValue: Math.max(0, waterfall.total.value),
+                labelHeight: VALUE_LABEL_GAP + TOTAL_LABEL_FONT_SIZE,
+            },
+        ],
+    })
+
+    const boxHeight = plotBottom - plotTop
+    if (boxHeight <= 0) return undefined
+
+    const box = {
+        x: axisLabelWidth,
+        y: plotTop,
+        width: plotWidth,
+        height: boxHeight,
+    }
+    const layout = layOutWaterfall(waterfall, box)
+    const groupedStepKeys = new Set(
+        layout.groups.flatMap(({ group }) => group.stageKeys)
+    )
+
+    return {
+        tickLabels,
+        captionTextWraps,
+        totalLabelTextWrap,
+        groupLabelTextWraps,
+        valueLabelTexts,
+        totalValueLabelText,
+        columnTop,
+        plotBottom,
+        layout,
+        groupedStepKeys,
+    }
 }
 
 /** Whether the vertical chart fits this width with every caption whole */
@@ -405,13 +451,7 @@ function StepMarks({
     captionTextWrap?: TextWrap
     backgroundColor: string
 }): React.ReactElement {
-    const barColor = isTotal
-        ? COLORS.total
-        : step.step.delta === 0
-          ? COLORS.unchanged
-          : isAddition(step.step)
-            ? COLORS.add
-            : COLORS.subtract
+    const barColor = chooseStepColor(step.step, isTotal)
 
     const labelX =
         step.slot.x + step.slot.width - captionLength(step.slot.width)
@@ -479,18 +519,14 @@ function StepMarks({
 
 function GroupBox({
     box,
-    top,
     bottom,
     labelTextWrap,
-    labelY,
     fill,
     labelColor,
 }: {
     box: PlacedRect
-    top: number
     bottom: number
     labelTextWrap: TextWrap | undefined
-    labelY: number
     fill: string
     labelColor: string
 }): React.ReactElement {
@@ -499,9 +535,9 @@ function GroupBox({
             <rect
                 className="food-supply-chain-waterfall__group-box"
                 x={box.x}
-                y={top}
+                y={0}
                 width={box.width}
-                height={bottom - top}
+                height={bottom}
                 rx={GROUP_BOX_CORNER_RADIUS}
                 fill={fill}
             />
@@ -510,7 +546,7 @@ function GroupBox({
                     className="food-supply-chain-waterfall__group-label"
                     textWrap={labelTextWrap}
                     x={box.x + GROUP_LABEL_INSET}
-                    y={labelY}
+                    y={GROUP_LABEL_INSET}
                     fill={labelColor}
                 />
             )}
@@ -572,16 +608,15 @@ function placePlotTopForBar(
     )
 }
 
-function measureCaptionOffset(): number {
-    return VALUE_LABEL_GAP + VALUE_LABEL_FONT_SIZE + CAPTION_VALUE_LABEL_GAP
-}
+const CAPTION_OFFSET =
+    VALUE_LABEL_GAP + VALUE_LABEL_FONT_SIZE + CAPTION_VALUE_LABEL_GAP
 
 function measureBarTop(step: PlacedStep): number {
     return step.bar?.y ?? step.valueAnchor.y
 }
 
 function placeCaptionTop(step: PlacedStep, captionHeight: number): number {
-    return measureBarTop(step) - measureCaptionOffset() - captionHeight
+    return measureBarTop(step) - CAPTION_OFFSET - captionHeight
 }
 
 function BarArrow({
@@ -589,7 +624,7 @@ function BarArrow({
     bar,
 }: {
     step: PlacedStep
-    bar: PlacedBar
+    bar: PlacedRect
 }): React.ReactElement | null {
     if (bar.height < ARROW_MIN_LENGTH + 2 * ARROW_INSET) return null
 

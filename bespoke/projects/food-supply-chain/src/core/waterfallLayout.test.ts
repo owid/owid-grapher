@@ -10,7 +10,6 @@ import {
 } from "./types.js"
 import { buildWaterfall, Waterfall } from "./waterfall.js"
 import {
-    Box,
     countStepAxisSlots,
     MIN_BAR_LENGTH_PX,
     layOutWaterfall,
@@ -20,7 +19,7 @@ import {
     WaterfallLayout,
 } from "./waterfallLayout.js"
 
-const BOX: Box = { x: 10, y: 20, width: 300, height: 200 }
+const BOX: PlacedRect = { x: 10, y: 20, width: 300, height: 200 }
 
 describe(layOutWaterfall, () => {
     it("sits every bar, and the total's bar, inside the box on both axes", () => {
@@ -112,7 +111,6 @@ describe(layOutWaterfall, () => {
         const layout = layOutWaterfall(waterfall, BOX)
 
         const tourism = layout.steps.find((step) => step.step.key === "tourism")
-        expect(tourism?.bar?.isFloored).toBe(true)
         expect(tourism?.bar?.height).toBeCloseTo(MIN_BAR_LENGTH_PX, 6)
     })
 
@@ -175,7 +173,7 @@ describe(layOutWaterfall, () => {
 })
 
 describe("horizontal layout", () => {
-    const TRANSPOSED_BOX: Box = { x: 10, y: 20, width: 200, height: 300 }
+    const TRANSPOSED_BOX: PlacedRect = { x: 10, y: 20, width: 200, height: 300 }
 
     it("places the same bars as the vertical layout, transposed", () => {
         const waterfall = fixtureWaterfall({
@@ -231,7 +229,7 @@ describe("horizontal layout", () => {
             headerHeightPx,
             rowHeightPx
         )
-        const box: Box = {
+        const box: PlacedRect = {
             x: 10,
             y: 20,
             width: 300,
@@ -285,7 +283,7 @@ describe("horizontal layout", () => {
         const withoutGap = layOutWaterfall(waterfall, BOX, {
             orientation: "horizontal",
         })
-        const box: Box = {
+        const box: PlacedRect = {
             ...BOX,
             height:
                 (BOX.height *
