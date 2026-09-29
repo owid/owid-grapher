@@ -1,3 +1,5 @@
+import { useMemo } from "react"
+
 import {
     TEXT_WRAP_BREAK_MARGIN,
     TextWrap,
@@ -43,21 +45,22 @@ import {
 } from "../core/constants.js"
 import {
     AxisLabel,
+    FittedAxis,
     fitAxisToLabels,
     LabelSide,
 } from "../core/fitAxisToLabels.js"
 import { formatMeasureValue } from "../core/format.js"
 import { STAGE_GROUPS } from "../core/stageGroups.js"
-import { isAddition, Waterfall } from "../core/waterfall.js"
+import { StageKey } from "../core/types.js"
+import { chooseStepColor, isAddition, Waterfall } from "../core/waterfall.js"
 import {
-    Box,
     chooseTickValues,
     countStepAxisSlots,
     layOutWaterfall,
     measureGroupHeaderSlots,
-    PlacedBar,
     PlacedRect,
     PlacedStep,
+    WaterfallLayout,
 } from "../core/waterfallLayout.js"
 import { FoodSupplyChainConnector } from "./FoodSupplyChainConnector.js"
 import { FoodSupplyChainTooltip } from "./FoodSupplyChainTooltip.js"
@@ -84,167 +87,26 @@ export function FoodSupplyChainWaterfallHorizontal({
         onStepMouseLeave,
     } = useStepHover()
 
-    const { numDecimalPlaces } = waterfall
-    const tickValues = chooseTickValues(waterfall.domain, "horizontal")
-    const tickLabels = tickValues.map((value, index) =>
-        formatMeasureValue(value, {
-            numDecimalPlaces,
-            unit:
-                index === tickValues.length - 1
-                    ? waterfall.shortUnit
-                    : undefined,
-        })
+    const chart = useMemo(
+        () => planHorizontalChart(waterfall, width),
+        [waterfall, width]
     )
-    const lastTickLabelWidth = Bounds.forText(
-        tickLabels[tickLabels.length - 1],
-        {
-            fontSize: TICK_LABEL_FONT_SIZE,
-        }
-    ).width
-    const stepValueLabelTexts = waterfall.steps.map((step, index) =>
-        formatMeasureValue(step.delta, {
-            numDecimalPlaces,
-            unit: waterfall.shortUnit,
-            showPlus: index > 0 && step.delta !== 0,
-        })
-    )
-    const wrappedStepValueLabelLines = waterfall.steps.map((step, index) =>
-        waterfall.isUnitWrappable
-            ? [
-                  formatMeasureValue(step.delta, {
-                      numDecimalPlaces,
-                      showPlus: index > 0 && step.delta !== 0,
-                  }),
-                  waterfall.shortUnit,
-              ]
-            : undefined
-    )
-    const totalValueLabelText = formatMeasureValue(waterfall.total.value, {
-        numDecimalPlaces,
-        unit: waterfall.shortUnit,
-    })
+    if (!chart) return null
+    const {
+        tickLabels,
+        shownTickLabelIndices,
+        stepValueLabelLines,
+        totalValueLabelText,
+        captionTextWraps,
+        totalCaptionTextWrap,
+        captionRight,
+        groupHeaderTextWraps,
+        valueAxis,
+        height,
+        layout,
+        groupedStepKeys,
+    } = chart
 
-    const longestCaptionWidth = Math.max(
-        ...waterfall.steps.map(
-            (step) =>
-                buildRowCaptionTextWrap(
-                    step.name,
-                    Infinity,
-                    CAPTION_FONT_WEIGHT
-                ).width
-        ),
-        buildRowCaptionTextWrap(
-            waterfall.total.name,
-            Infinity,
-            TOTAL_BOX_LABEL_FONT_WEIGHT
-        ).width
-    )
-    const longestGroupLabelWidth = Math.max(
-        ...STAGE_GROUPS.map(
-            (group) => buildGroupLabelTextWrap(group.label, Infinity).width
-        )
-    )
-    const captionColumnWidth =
-        Math.max(
-            Math.min(
-                GROUP_LABEL_INSET + longestCaptionWidth,
-                MAX_CAPTION_COLUMN_SHARE * width - CAPTION_COLUMN_GAP
-            ),
-            longestGroupLabelWidth
-        ) + CAPTION_COLUMN_GAP
-    const captionMaxWidth =
-        captionColumnWidth -
-        GROUP_LABEL_INSET -
-        CAPTION_COLUMN_GAP +
-        TEXT_WRAP_BREAK_MARGIN
-    const valueAxis = fitAxisToLabels(
-        [
-            ...waterfall.steps.map((step, index) =>
-                buildAxisLabel({
-                    from: step.balanceBefore,
-                    to: step.balanceAfter,
-                    text: stepValueLabelTexts[index],
-                    wrappedLines: wrappedStepValueLabelLines[index],
-                    isTotal: false,
-                    preferredSide: isAddition(step) ? "right" : "left",
-                    tickValues,
-                })
-            ),
-            buildAxisLabel({
-                from: 0,
-                to: waterfall.total.value,
-                text: totalValueLabelText,
-                isTotal: true,
-                preferredSide: "right",
-                tickValues,
-            }),
-        ],
-        width - captionColumnWidth,
-        Math.max(PLOT_MARGIN_RIGHT, lastTickLabelWidth / 2)
-    )
-    if (captionMaxWidth <= TEXT_WRAP_BREAK_MARGIN || valueAxis.length <= 0)
-        return null
-
-    const captionTextWraps = waterfall.steps.map((step) =>
-        buildRowCaptionTextWrap(step.name, captionMaxWidth, CAPTION_FONT_WEIGHT)
-    )
-    const totalCaptionTextWrap = buildRowCaptionTextWrap(
-        waterfall.total.name,
-        captionMaxWidth,
-        TOTAL_BOX_LABEL_FONT_WEIGHT
-    )
-    const rowHeight = Math.max(
-        MIN_ROW_HEIGHT,
-        ...[...captionTextWraps, totalCaptionTextWrap].map(
-            (wrap) => wrap.height + 2 * ROW_PADDING
-        )
-    )
-
-    const groupHeaderTextWraps = new Map(
-        STAGE_GROUPS.map((group) => [
-            group.key,
-            buildGroupLabelTextWrap(
-                group.label,
-                captionColumnWidth - CAPTION_COLUMN_GAP + TEXT_WRAP_BREAK_MARGIN
-            ),
-        ])
-    )
-    const groupHeaderHeight =
-        Math.max(
-            ...[...groupHeaderTextWraps.values()].map((wrap) => wrap.height)
-        ) +
-        GROUP_HEADER_GAP +
-        GROUP_HEADER_TOP_GAP
-    const stepAxisSpacing = {
-        groupHeaderSlots: measureGroupHeaderSlots(groupHeaderHeight, rowHeight),
-        boxGapSlots: BOX_GAP / rowHeight,
-    }
-
-    const plotTop = TICK_LABEL_FONT_SIZE + TICK_LABEL_GAP
-    const box: Box = {
-        x: captionColumnWidth,
-        y: plotTop,
-        width: valueAxis.length,
-        height:
-            rowHeight * countStepAxisSlots(waterfall.steps, stepAxisSpacing),
-    }
-    const height = box.y + box.height + PLOT_MARGIN_BOTTOM
-    const layout = layOutWaterfall(waterfall, box, {
-        orientation: "horizontal",
-        ...stepAxisSpacing,
-    })
-
-    const groupedStepKeys = new Set(
-        layout.groups.flatMap(({ group }) => group.stageKeys)
-    )
-    const captionRight = captionColumnWidth - CAPTION_COLUMN_GAP
-    const shownTickLabelIndices = chooseShownTickLabels(
-        layout.ticks.map((tick) => tick.gridline.x1),
-        tickLabels.map(
-            (label) =>
-                Bounds.forText(label, { fontSize: TICK_LABEL_FONT_SIZE }).width
-        )
-    )
     const hoveredStep = hover
         ? [...layout.steps, layout.total].find(
               (step) => step.step.key === hover.stepKey
@@ -255,7 +117,7 @@ export function FoodSupplyChainWaterfallHorizontal({
         <div ref={containerRef}>
             <svg
                 ref={svgRef}
-                className="food-supply-chain-waterfall food-supply-chain-waterfall--horizontal"
+                className="food-supply-chain-waterfall"
                 width={width}
                 height={height}
                 viewBox={`0 0 ${width} ${height}`}
@@ -352,12 +214,7 @@ export function FoodSupplyChainWaterfallHorizontal({
                         key={step.step.key}
                         step={step}
                         captionTextWrap={captionTextWraps[index]}
-                        valueLabelLines={
-                            (valueAxis.isWrapped[index] &&
-                                wrappedStepValueLabelLines[index]) || [
-                                stepValueLabelTexts[index],
-                            ]
-                        }
+                        valueLabelLines={stepValueLabelLines[index]}
                         valueLabelSide={valueAxis.sides[index]}
                         isTotal={false}
                         showArrow={index > 0}
@@ -411,7 +268,7 @@ export function FoodSupplyChainWaterfallHorizontal({
                     isFirstStep={hover.stepKey === waterfall.steps[0]?.key}
                     shortUnit={waterfall.shortUnit}
                     year={waterfall.year}
-                    numDecimalPlaces={numDecimalPlaces}
+                    numDecimalPlaces={waterfall.numDecimalPlaces}
                     position={hover.position}
                     containerBounds={isPinned ? undefined : { width, height }}
                     anchor={isPinned ? GrapherTooltipAnchor.Bottom : undefined}
@@ -419,6 +276,200 @@ export function FoodSupplyChainWaterfallHorizontal({
             )}
         </div>
     )
+}
+
+interface HorizontalChartPlan {
+    tickLabels: string[]
+    shownTickLabelIndices: Set<number>
+    stepValueLabelLines: string[][]
+    totalValueLabelText: string
+    captionTextWraps: TextWrap[]
+    totalCaptionTextWrap: TextWrap
+    captionRight: number
+    groupHeaderTextWraps: Map<string, TextWrap>
+    valueAxis: FittedAxis
+    height: number
+    layout: WaterfallLayout
+    groupedStepKeys: Set<StageKey>
+}
+
+function planHorizontalChart(
+    waterfall: Waterfall,
+    width: number
+): HorizontalChartPlan | undefined {
+    const { numDecimalPlaces } = waterfall
+    const tickValues = chooseTickValues(waterfall.domain, "horizontal")
+    const tickLabels = tickValues.map((value, index) =>
+        formatMeasureValue(value, {
+            numDecimalPlaces,
+            unit:
+                index === tickValues.length - 1
+                    ? waterfall.shortUnit
+                    : undefined,
+        })
+    )
+    const lastTickLabelWidth = Bounds.forText(
+        tickLabels[tickLabels.length - 1],
+        {
+            fontSize: TICK_LABEL_FONT_SIZE,
+        }
+    ).width
+    const stepValueLabelTexts = waterfall.steps.map((step, index) =>
+        formatMeasureValue(step.delta, {
+            numDecimalPlaces,
+            unit: waterfall.shortUnit,
+            showPlus: index > 0 && step.delta !== 0,
+        })
+    )
+    const wrappedStepValueLabelLines = waterfall.steps.map((step, index) =>
+        waterfall.isUnitWrappable
+            ? [
+                  formatMeasureValue(step.delta, {
+                      numDecimalPlaces,
+                      showPlus: index > 0 && step.delta !== 0,
+                  }),
+                  waterfall.shortUnit,
+              ]
+            : undefined
+    )
+    const totalValueLabelText = formatMeasureValue(waterfall.total.value, {
+        numDecimalPlaces,
+        unit: waterfall.shortUnit,
+    })
+
+    const measureCaptionWidth = (text: string, fontWeight: number): number =>
+        Bounds.forText(text, { fontSize: CAPTION_FONT_SIZE, fontWeight }).width
+    const longestCaptionWidth = Math.max(
+        ...waterfall.steps.map((step) =>
+            measureCaptionWidth(step.name, CAPTION_FONT_WEIGHT)
+        ),
+        measureCaptionWidth(waterfall.total.name, TOTAL_BOX_LABEL_FONT_WEIGHT)
+    )
+    const longestGroupLabelWidth = Math.max(
+        ...STAGE_GROUPS.map((group) =>
+            measureCaptionWidth(group.label, GROUP_LABEL_FONT_WEIGHT)
+        )
+    )
+    const captionColumnWidth =
+        Math.max(
+            Math.min(
+                GROUP_LABEL_INSET + longestCaptionWidth,
+                MAX_CAPTION_COLUMN_SHARE * width - CAPTION_COLUMN_GAP
+            ),
+            longestGroupLabelWidth
+        ) + CAPTION_COLUMN_GAP
+    const captionRight = captionColumnWidth - CAPTION_COLUMN_GAP
+    const captionMaxWidth =
+        captionRight - GROUP_LABEL_INSET + TEXT_WRAP_BREAK_MARGIN
+    const valueAxis = fitAxisToLabels(
+        [
+            ...waterfall.steps.map((step, index) =>
+                buildAxisLabel({
+                    from: step.balanceBefore,
+                    to: step.balanceAfter,
+                    text: stepValueLabelTexts[index],
+                    wrappedLines: wrappedStepValueLabelLines[index],
+                    isTotal: false,
+                    preferredSide: isAddition(step) ? "right" : "left",
+                    tickValues,
+                })
+            ),
+            buildAxisLabel({
+                from: 0,
+                to: waterfall.total.value,
+                text: totalValueLabelText,
+                isTotal: true,
+                preferredSide: "right",
+                tickValues,
+            }),
+        ],
+        width - captionColumnWidth,
+        Math.max(PLOT_MARGIN_RIGHT, lastTickLabelWidth / 2)
+    )
+    if (captionMaxWidth <= TEXT_WRAP_BREAK_MARGIN || valueAxis.length <= 0)
+        return undefined
+
+    const captionTextWraps = waterfall.steps.map((step) =>
+        buildRowCaptionTextWrap(step.name, captionMaxWidth, CAPTION_FONT_WEIGHT)
+    )
+    const totalCaptionTextWrap = buildRowCaptionTextWrap(
+        waterfall.total.name,
+        captionMaxWidth,
+        TOTAL_BOX_LABEL_FONT_WEIGHT
+    )
+    const rowHeight = Math.max(
+        MIN_ROW_HEIGHT,
+        ...[...captionTextWraps, totalCaptionTextWrap].map(
+            (wrap) => wrap.height + 2 * ROW_PADDING
+        )
+    )
+
+    const groupHeaderTextWraps = new Map(
+        STAGE_GROUPS.map((group) => [
+            group.key,
+            buildGroupLabelTextWrap(
+                group.label,
+                captionRight + TEXT_WRAP_BREAK_MARGIN
+            ),
+        ])
+    )
+    const groupHeaderHeight =
+        Math.max(
+            ...[...groupHeaderTextWraps.values()].map((wrap) => wrap.height)
+        ) +
+        GROUP_HEADER_GAP +
+        GROUP_HEADER_TOP_GAP
+    const stepAxisSpacing = {
+        groupHeaderSlots: measureGroupHeaderSlots(groupHeaderHeight, rowHeight),
+        boxGapSlots: BOX_GAP / rowHeight,
+    }
+
+    const plotTop = TICK_LABEL_FONT_SIZE + TICK_LABEL_GAP
+    const box: PlacedRect = {
+        x: captionColumnWidth,
+        y: plotTop,
+        width: valueAxis.length,
+        height:
+            rowHeight * countStepAxisSlots(waterfall.steps, stepAxisSpacing),
+    }
+    const height = box.y + box.height + PLOT_MARGIN_BOTTOM
+    const layout = layOutWaterfall(waterfall, box, {
+        orientation: "horizontal",
+        ...stepAxisSpacing,
+    })
+
+    const groupedStepKeys = new Set(
+        layout.groups.flatMap(({ group }) => group.stageKeys)
+    )
+    const shownTickLabelIndices = chooseShownTickLabels(
+        layout.ticks.map((tick) => tick.gridline.x1),
+        tickLabels.map(
+            (label) =>
+                Bounds.forText(label, { fontSize: TICK_LABEL_FONT_SIZE }).width
+        )
+    )
+    const stepValueLabelLines = waterfall.steps.map(
+        (_, index) =>
+            (valueAxis.isWrapped[index] &&
+                wrappedStepValueLabelLines[index]) || [
+                stepValueLabelTexts[index],
+            ]
+    )
+
+    return {
+        tickLabels,
+        shownTickLabelIndices,
+        stepValueLabelLines,
+        totalValueLabelText,
+        captionTextWraps,
+        totalCaptionTextWrap,
+        captionRight,
+        groupHeaderTextWraps,
+        valueAxis,
+        height,
+        layout,
+        groupedStepKeys,
+    }
 }
 
 function RowMarks({
@@ -442,13 +493,7 @@ function RowMarks({
     captionRight: number
     backgroundColor: string
 }): React.ReactElement {
-    const barColor = isTotal
-        ? COLORS.total
-        : step.step.delta === 0
-          ? COLORS.unchanged
-          : isAddition(step.step)
-            ? COLORS.add
-            : COLORS.subtract
+    const barColor = chooseStepColor(step.step, isTotal)
     const rowCentre = step.slot.y + step.slot.height / 2
     const valueLabelFontSize = isTotal
         ? TOTAL_LABEL_FONT_SIZE
@@ -511,7 +556,7 @@ function BarArrow({
     bar,
 }: {
     step: PlacedStep
-    bar: PlacedBar
+    bar: PlacedRect
 }): React.ReactElement | null {
     if (bar.width < ARROW_MIN_LENGTH + 2 * ARROW_INSET) return null
 
@@ -538,7 +583,6 @@ function ValueLabel({
     fontSize,
     fontWeight,
     fill,
-    style,
 }: {
     lines: string[]
     bar: Pick<PlacedRect, "x" | "width">
@@ -547,7 +591,6 @@ function ValueLabel({
     fontSize: number
     fontWeight: number
     fill: string
-    style?: React.CSSProperties
 }): React.ReactElement {
     const { x, textAnchor } = placeValueLabel(bar, side)
     const lineHeight = fontSize * VALUE_LABEL_LINE_HEIGHT
@@ -559,7 +602,6 @@ function ValueLabel({
             fontSize={fontSize}
             fontWeight={fontWeight}
             fill={fill}
-            style={style}
         >
             {lines.map((line, index) => (
                 <tspan
@@ -612,9 +654,7 @@ function buildAxisLabel({
                 ? TOTAL_LABEL_FONT_WEIGHT
                 : VALUE_LABEL_FONT_WEIGHT,
         }).width
-    const gapToBar = VALUE_LABEL_SIDE_GAP
-    const gapToPlotEdge = VALUE_LABEL_SIDE_GAP
-    const gaps = gapToBar + gapToPlotEdge
+    const gaps = 2 * VALUE_LABEL_SIDE_GAP // one to the bar, one to the plot edge
     return {
         barStart: (Math.min(from, to) - domainStart) / domainSpan,
         barEnd: (Math.max(from, to) - domainStart) / domainSpan,

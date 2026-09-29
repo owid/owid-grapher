@@ -1,3 +1,4 @@
+import { COLORS } from "./constants.js"
 import {
     EntityData,
     FlowStage,
@@ -34,6 +35,12 @@ const TRADE_STAGE_KEYS: StageKey[] = ["imports", "exports"]
 /** Whether a step adds to the running balance; a step of zero goes by its stage's direction */
 export function isAddition(step: WaterfallStep): boolean {
     return step.delta === 0 ? step.direction === "in" : step.delta > 0
+}
+
+export function chooseStepColor(step: WaterfallStep, isTotal: boolean): string {
+    if (isTotal) return COLORS.total
+    if (step.delta === 0) return COLORS.unchanged
+    return isAddition(step) ? COLORS.add : COLORS.subtract
 }
 
 export function findExcludedStageKeys(entitySlug: string): StageKey[] {
