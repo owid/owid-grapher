@@ -2,7 +2,11 @@ import { expect, it } from "vitest"
 
 import { load } from "archieml"
 
-import { extractRefs, stripIgnoredArchieml } from "./archieToEnriched.js"
+import {
+    archieToEnriched,
+    extractRefs,
+    stripIgnoredArchieml,
+} from "./archieToEnriched.js"
 
 it("Can extract a ref from some text", () => {
     expect(
@@ -41,7 +45,7 @@ it("Can extract multiple refs from some text and refer to an earlier footnote wh
 it("Can extract an inline ref", () => {
     expect(extractRefs(`I am a thing{ref}I am an inline ref{/ref}`)).toEqual({
         extractedText: `I am a thing<a class="ref" href="#note-1"><sup>1</sup></a>`,
-        refsByFirstAppearance: new Set(["inline-1"]),
+        refsByFirstAppearance: new Set(["ref-1"]),
         rawInlineRefs: [
             {
                 content: [
@@ -50,7 +54,7 @@ it("Can extract an inline ref", () => {
                         value: "I am an inline ref",
                     },
                 ],
-                id: "inline-1",
+                id: "ref-1",
             },
         ],
     })
@@ -63,7 +67,7 @@ it("Can extract an inline ref and an ID ref", () => {
         )
     ).toEqual({
         extractedText: `I am a thing<a class="ref" href="#note-1"><sup>1</sup></a> and another thing<a class="ref" href="#note-2"><sup>2</sup></a>`,
-        refsByFirstAppearance: new Set(["inline-1", "some_id"]),
+        refsByFirstAppearance: new Set(["ref-1", "some_id"]),
         rawInlineRefs: [
             {
                 content: [
@@ -72,7 +76,7 @@ it("Can extract an inline ref and an ID ref", () => {
                         value: "I am an inline ref",
                     },
                 ],
-                id: "inline-1",
+                id: "ref-1",
             },
         ],
     })
@@ -85,7 +89,7 @@ it("Can extract an inline ref and an ID ref and then refer back to a previous in
         )
     ).toEqual({
         extractedText: `I am a thing<a class="ref" href="#note-1"><sup>1</sup></a> and another thing<a class="ref" href="#note-2"><sup>2</sup></a> and me again<a class="ref" href="#note-1"><sup>1</sup></a>`,
-        refsByFirstAppearance: new Set(["inline-1", "some_id"]),
+        refsByFirstAppearance: new Set(["ref-1", "some_id"]),
         rawInlineRefs: [
             {
                 content: [
@@ -94,7 +98,7 @@ it("Can extract an inline ref and an ID ref and then refer back to a previous in
                         value: "I am an inline ref",
                     },
                 ],
-                id: "inline-1",
+                id: "ref-1",
             },
         ],
     })
@@ -157,9 +161,9 @@ it("Can index intermingled inline and ID refs correctly", () => {
         extractedText: `I am a thing<a class="ref" href="#note-1"><sup>1</sup></a> and another thing<a class="ref" href="#note-2"><sup>2</sup></a> with more <a class="ref" href="#note-3"><sup>3</sup></a> and even more<a class="ref" href="#note-4"><sup>4</sup></a>`,
         refsByFirstAppearance: new Set([
             "some_id",
-            "inline-1",
+            "ref-2",
             "another_id",
-            "inline-2",
+            "ref-4",
         ]),
         rawInlineRefs: [
             {
@@ -169,7 +173,7 @@ it("Can index intermingled inline and ID refs correctly", () => {
                         value: "An inline ref",
                     },
                 ],
-                id: "inline-1",
+                id: "ref-2",
             },
             {
                 content: [
@@ -178,8 +182,63 @@ it("Can index intermingled inline and ID refs correctly", () => {
                         value: "Another inline ref",
                     },
                 ],
-                id: "inline-2",
+                id: "ref-4",
             },
         ],
     })
+})
+
+it("Uses the overall footnote number for inline IDs and deduplicates repeated refs", () => {
+    const result = extractRefs(
+        "{ref}First inline ref{/ref}{ref}some_ref_id{/ref}{ref}some_ref_id{/ref}{ref}First inline ref{/ref}{ref}Second inline ref{/ref}"
+    )
+    expect([...result.refsByFirstAppearance]).toEqual([
+        "ref-1",
+        "some_ref_id",
+        "ref-3",
+    ])
+    expect(result.extractedText.match(/href="[^"]+"/g)).toEqual([
+        'href="#note-1"',
+        'href="#note-2"',
+        'href="#note-2"',
+        'href="#note-1"',
+        'href="#note-3"',
+    ])
+})
+
+it("Avoids named IDs even when their first appearance is later in the document", () => {
+    const result = extractRefs(
+        "{ref}First inline ref{/ref}{ref}ref-1{/ref}{ref}ref-1-1{/ref}{ref}First inline ref{/ref}{ref}Second inline ref{/ref}"
+    )
+    expect([...result.refsByFirstAppearance]).toEqual([
+        "ref-1-2",
+        "ref-1",
+        "ref-1-1",
+        "ref-4",
+    ])
+    expect(result.rawInlineRefs).toMatchObject([
+        { id: "ref-1-2" },
+        { id: "ref-4" },
+    ])
+})
+
+it("Preserves unused named definitions and their validation errors", () => {
+    const result = archieToEnriched(`
+[+body]
+Text{ref}An inline ref{/ref}
+[]
+[refs]
+id: ref-1
+[.+content]
+Named reference content
+[]
+[]
+`)
+    expect(result.refs?.definitions["ref-1"].index).toBe(-1)
+    expect(result.refs?.definitions["ref-1-1"].index).toBe(0)
+    expect(result.refs?.errors).toContainEqual(
+        expect.objectContaining({
+            message: `A ref with ID "ref-1" has been defined but isn't used in this document`,
+        })
+    )
 })

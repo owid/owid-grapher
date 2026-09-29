@@ -1,4 +1,5 @@
 import * as _ from "lodash-es"
+import * as R from "remeda"
 import { load } from "archieml"
 import {
     OwidGdocPostContent,
@@ -152,6 +153,24 @@ export function extractRefs(text: string): {
     const rawInlineRefs: unknown[] = []
     const inlineRefIds = new Map<string, string>()
     const rawRefStrings = text.match(new RegExp(RefRegExp, "gims")) || []
+    // Reserve named references before assigning any generated IDs, including
+    // definitions that are unused (which must still produce a validation error).
+    const namedRefIds = new Set(
+        rawRefStrings
+            .filter((rawRef) => !rawRef.includes(" "))
+            .map((rawRef) => rawRef.slice("{ref}".length, -"{/ref}".length))
+    )
+    const rawDefinitions: unknown = lowercaseObjectKeys(load(text)).refs
+    if (Array.isArray(rawDefinitions)) {
+        for (const definition of rawDefinitions) {
+            if (
+                R.isPlainObject(definition) &&
+                typeof definition.id === "string"
+            ) {
+                namedRefIds.add(definition.id)
+            }
+        }
+    }
 
     for (const rawRef of rawRefStrings) {
         const isInlineRef = rawRef.includes(" ")
@@ -165,7 +184,13 @@ export function extractRefs(text: string): {
 
         const isNewInlineRef = isInlineRef && !inlineRefIds.has(contentOrId)
         if (isNewInlineRef) {
-            inlineRefIds.set(contentOrId, `inline-${inlineRefIds.size + 1}`)
+            const baseId = `ref-${refsByFirstAppearance.size + 1}`
+            let id = baseId
+            let suffix = 1
+            while (namedRefIds.has(id)) {
+                id = `${baseId}-${suffix++}`
+            }
+            inlineRefIds.set(contentOrId, id)
         }
         const id = isInlineRef ? inlineRefIds.get(contentOrId)! : contentOrId
 
