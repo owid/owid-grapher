@@ -853,16 +853,10 @@ test.describe("Dimension card", () => {
         { label: "Hide relative change column", field: "hideRelativeChange" },
     ]
     for (const { label, field } of tableColumnToggles) {
-        // BUG: without an existing display.tableDisplay, the toggle creates
-        // an empty tableDisplay but writes the value to a throwaway object
-        // (DimensionCard's tableDisplaySettings destructures `tableDisplay =
-        // {}` before assigning a new object to the display), so the first
-        // click is lost and the checkbox stays unticked.
         test(`ticking "${label}" writes display.tableDisplay.${field}`, async ({
             seedChart,
             openEditor,
         }) => {
-            test.fail()
             const editor = await openEditor(
                 await seedChart(lineChart(indicators.lifeExpectancy))
             )
@@ -990,14 +984,10 @@ test.describe("Dimension card", () => {
         })
     })
 
-    // BUG: binding the display name back to the data removes display.name
-    // but doesn't rebuild the table, so the field keeps showing the old
-    // override ("Life span") as the automatic value until the data reloads.
     test("binding the display name to the data shows the indicator's name", async ({
         seedChart,
         openEditor,
     }) => {
-        test.fail()
         const editor = await openEditor(
             await seedChart({
                 ...lineChart(indicators.lifeExpectancy),
