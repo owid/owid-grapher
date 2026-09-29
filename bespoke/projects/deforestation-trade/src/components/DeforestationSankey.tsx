@@ -222,16 +222,6 @@ function DeforestationSankeyContent({
         return map
     }, [graph.links])
 
-    // A ribbon between the partners and the commodities stands for its
-    // partner; one between the commodities and the selected country — where
-    // every partner's band runs into the same node — stands for its commodity
-    const isFocusLayerLink = (link: SankeyLink): boolean =>
-        isFocusNodeId(link.source) || isFocusNodeId(link.target)
-    const isSameLink = (a: SankeyLink, b: SankeyLink): boolean =>
-        a.source === b.source &&
-        a.target === b.target &&
-        a.category === b.category
-
     const getRelatedLinks = useCallback(
         (link: SankeyLink): SankeyLink[] => {
             const key = isFocusLayerLink(link)
@@ -695,6 +685,21 @@ function BreakdownTable({
                 </div>
             )}
         </>
+    )
+}
+
+/** A ribbon between the partners and the commodities stands for its
+ *  partner; one between the commodities and the selected country — where
+ *  every partner's band runs into the same node — stands for its commodity */
+function isFocusLayerLink(link: SankeyLink): boolean {
+    return isFocusNodeId(link.source) || isFocusNodeId(link.target)
+}
+
+function isSameLink(a: SankeyLink, b: SankeyLink): boolean {
+    return (
+        a.source === b.source &&
+        a.target === b.target &&
+        a.category === b.category
     )
 }
 
