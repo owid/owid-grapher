@@ -10,6 +10,8 @@ export interface DbInsertPostGdocCommentThread {
     gdocId: string
     status?: PostGdocCommentThreadStatus
     anchorType?: PostGdocCommentAnchorType
+    /** Rich-editor block id, set for block-anchored threads */
+    anchorBlockId?: string | null
     anchorFrom?: number | null
     anchorTo?: number | null
     anchorText?: string | null

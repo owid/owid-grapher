@@ -7,15 +7,15 @@ import { describe, expect, it } from "vitest"
 import { getSchema } from "@tiptap/core"
 import { Node as PmNode } from "@tiptap/pm/model"
 import { enrichedBlockExamples } from "../db/model/Gdoc/exampleEnrichedBlocks.js"
-import { getRichEditorBaseExtensions } from "../adminSiteClient/richEditor/extensions.js"
+import { getRichEditorBaseExtensions } from "../adminShared/richEditor/extensions.js"
 import {
     enrichedBlocksToPmDoc,
     pmDocToEnrichedBlocks,
-} from "../adminSiteClient/richEditor/serialization/serialization.js"
+} from "../adminShared/richEditor/serialization/serialization.js"
 import {
     enrichedBodiesMatch,
     normalizedBodyKey,
-} from "../adminSiteClient/richEditor/serialization/normalizeForComparison.js"
+} from "../adminShared/richEditor/serialization/normalizeForComparison.js"
 
 describe("rich editor round-trip over example blocks", () => {
     const schema = getSchema(getRichEditorBaseExtensions())

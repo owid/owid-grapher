@@ -1,7 +1,7 @@
 import * as Sentry from "@sentry/node"
 import express from "express"
 import * as db from "../db/db.js"
-import { CLOUDFLARE_AUD } from "../settings/serverSettings.js"
+import { CLOUDFLARE_AUD, ENV } from "../settings/serverSettings.js"
 import * as jose from "jose"
 import {
     AdminApiKeysTableName,
@@ -235,6 +235,122 @@ export async function devAuthMiddleware(
     return next()
 }
 
+/**
+ * Authenticate a raw HTTP upgrade request (websocket handshake for the rich
+ * editor sync server). Runs the same checks as the /admin middleware chain —
+ * Bearer API key, then the per-environment identity source — but against a
+ * plain node request instead of an express req/res pair. Returns null when
+ * no active user can be established; the caller must refuse the connection.
+ */
+export async function authenticateWebsocketUpgrade(request: {
+    headers: Record<string, string | string[] | undefined>
+    socketRemoteAddress?: string
+}): Promise<DbPlainUser | null> {
+    const user = await identifyWebsocketUser(request)
+    if (!user?.isActive) return null
+    await db.knexReadWriteTransaction(async (trx) => {
+        await updateUserLastSeen(trx, user.id)
+    })
+    return user
+}
+
+async function identifyWebsocketUser(request: {
+    headers: Record<string, string | string[] | undefined>
+    socketRemoteAddress?: string
+}): Promise<DbPlainUser | undefined> {
+    // Bearer API key (tests, scripts, agents)
+    const authorizationHeader = headerValue(request.headers[API_KEY_HEADER])
+    const bearerPrefix = "Bearer "
+    if (authorizationHeader?.trim().startsWith(bearerPrefix)) {
+        const apiKey = authorizationHeader.trim().slice(bearerPrefix.length)
+        if (apiKey) {
+            return db.knexReadWriteTransaction(async (trx) => {
+                const apiKeyRow = await findAdminApiKey(apiKey, trx)
+                if (!apiKeyRow) return undefined
+                return trx<DbPlainUser>(UsersTableName)
+                    .where({ id: apiKeyRow.userId })
+                    .first()
+            })
+        }
+    }
+
+    if (ENV === "production") {
+        const jwt = parseCookieHeader(headerValue(request.headers.cookie))[
+            CLOUDFLARE_COOKIE_NAME
+        ]
+        if (!jwt || !CLOUDFLARE_AUD) return undefined
+        let verified: jose.JWTVerifyResult<jose.JWTPayload>
+        try {
+            verified = await jose.jwtVerify(jwt, jwks, {
+                audience: CLOUDFLARE_AUD,
+                issuer: CLOUDFLARE_TEAM_DOMAIN,
+            })
+        } catch {
+            return undefined
+        }
+        if (!verified.payload.email) return undefined
+        return db
+            .knexInstance()
+            .table(UsersTableName)
+            .where({ email: verified.payload.email })
+            .first<DbPlainUser>()
+    }
+
+    if (ENV === "staging") {
+        // Mirror the regular HTTP staging auth (tailscaleAuthMiddleware):
+        // behind tailscale-serve → nginx, X-Forwarded-For is a comma-
+        // separated chain ("100.x.y.z, 127.0.0.1") — the tailnet client is
+        // the FIRST entry — and Tailscale Serve's identity header is the
+        // fallback for requests whose source IP isn't in the tailnet map.
+        const clientIp = parseForwardedClientIp(
+            headerValue(request.headers["x-forwarded-for"]),
+            request.socketRemoteAddress
+        )
+        if (!clientIp) return undefined
+        // annotated rather than asserted on the catch value, so the empty
+        // fallback still types as a string map
+        const ipToUserMap: Record<string, string> =
+            await getTailscaleIpToUserMap().catch(() => ({}))
+        let loginName: string | undefined = ipToUserMap[clientIp]
+        if (!loginName && isLoopbackIp(request.socketRemoteAddress)) {
+            loginName =
+                headerValue(
+                    request.headers[TAILSCALE_USER_LOGIN_HEADER]
+                )?.trim() || undefined
+        }
+        if (!loginName) return undefined
+        return db
+            .knexInstance()
+            .table(UsersTableName)
+            .where({ githubUsername: loginName })
+            .orWhere({ email: loginName })
+            .first<DbPlainUser>()
+    }
+
+    // development
+    return getDevAdminUser()
+}
+
+function headerValue(value: string | string[] | undefined): string | undefined {
+    if (Array.isArray(value)) return value[0]
+    return value
+}
+
+function parseCookieHeader(
+    cookieHeader: string | undefined
+): Record<string, string> {
+    const cookies: Record<string, string> = {}
+    if (!cookieHeader) return cookies
+    for (const pair of cookieHeader.split(";")) {
+        const separatorIndex = pair.indexOf("=")
+        if (separatorIndex === -1) continue
+        const name = pair.slice(0, separatorIndex).trim()
+        const value = pair.slice(separatorIndex + 1).trim()
+        if (name) cookies[name] = decodeURIComponent(value)
+    }
+    return cookies
+}
+
 export function requireAdminAuthMiddleware(
     _req: express.Request,
     res: express.Response,
@@ -286,17 +402,28 @@ export function isLoopbackIp(ip: string | undefined): boolean {
     return ip === "127.0.0.1" || ip === "::1" || ip === "localhost"
 }
 
-export function getClientIp(req: express.Request): string | undefined {
-    let ip =
-        (req.headers["x-forwarded-for"] as string | undefined)
-            ?.split(",")[0]
-            ?.trim() ||
-        req.socket.remoteAddress ||
-        req.ip
+/**
+ * The real client IP behind reverse proxies: the FIRST entry of
+ * X-Forwarded-For (each proxy hop appends its peer), falling back to the
+ * socket peer address. Shared by the HTTP middleware (getClientIp) and the
+ * websocket upgrade auth so the two can't drift.
+ */
+export function parseForwardedClientIp(
+    xForwardedFor: string | undefined,
+    socketRemoteAddress: string | undefined
+): string | undefined {
+    let ip = xForwardedFor?.split(",")[0]?.trim() || socketRemoteAddress
     if (ip?.startsWith("::ffff:")) {
         ip = ip.replace("::ffff:", "")
     }
-    return ip
+    return ip || undefined
+}
+
+export function getClientIp(req: express.Request): string | undefined {
+    return parseForwardedClientIp(
+        req.headers["x-forwarded-for"] as string | undefined,
+        req.socket.remoteAddress || req.ip
+    )
 }
 
 function getApiKeyFromRequest(req: express.Request): string | undefined {
