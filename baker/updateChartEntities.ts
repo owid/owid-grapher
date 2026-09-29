@@ -107,7 +107,7 @@ const obtainAvailableEntitiesForGrapherConfig = async (
     // TODO: Daniel grapher state refactoring: check if this works as expected
     grapher.inputTable = legacyToOwidTableAndDimensions(
         variableData,
-        grapher.dimensions,
+        grapher.dimensions.map((dimension) => dimension.toObject()),
         grapher.selectedEntityColors
     )
 

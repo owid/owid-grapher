@@ -71,43 +71,35 @@ export type SubYearlyTimeInterval = (typeof SUB_YEARLY_TIME_INTERVALS)[number]
  * points) bound to one column of data, plus what this chart says about that
  * column.
  *
- * The column is named either by `variableId`, an OWID indicator fetched from
- * the data API, or by `slug`, a column in a table the host supplies. Exactly
- * one of the two is the authored form; see `OwidChartDimensionInterfaceWithMandatoryVariableId`
- * for the OWID-only pipelines that always have an indicator.
- *
  * `display` belongs to the chart, not to the data: it overrides what the
- * column's own definition says, and it is the reason a slot is an object
- * rather than a bare column name.
+ * column's own definition says.
  */
-export interface OwidChartDimensionInterface {
+interface OwidChartDimensionBaseInterface {
     property: DimensionProperty
-    targetYear?: Time
     display?: OwidVariableDisplayConfigInterface
-    variableId?: OwidVariableId
-    slug?: ColumnSlug
 }
 
-/**
- * A dimension after the table has been assembled, when every slot knows which
- * column of that table it points at.
- */
-export interface OwidChartDimensionInterfaceWithMandatorySlug extends OwidChartDimensionInterface {
-    slug: ColumnSlug
-}
-
-/**
- * A dimension bound to an OWID indicator. Everything that reads chart configs
- * out of our own database (the baker, archival, the admin) works with these:
- * a chart row's dimensions always name an indicator.
- */
-export interface OwidChartDimensionInterfaceWithMandatoryVariableId extends OwidChartDimensionInterface {
+/** A slot filled by an OWID indicator, fetched from the data API */
+export interface IndicatorDimensionInterface extends OwidChartDimensionBaseInterface {
     variableId: OwidVariableId
+    /** Pins the slot to a single year, as scatter plots and Marimekko charts do for x or size */
+    targetYear?: Time
+    slug?: never
 }
 
-/** Whether this slot is filled by an OWID indicator rather than by a column
- *  the host supplied. */
+/** A slot filled by a column of a table the host supplies */
+export interface HostColumnDimensionInterface extends OwidChartDimensionBaseInterface {
+    slug: ColumnSlug
+    variableId?: never
+    targetYear?: never
+}
+
+/** A slot names its column by `variableId` or by `slug`, never both */
+export type OwidChartDimensionInterface =
+    | IndicatorDimensionInterface
+    | HostColumnDimensionInterface
+
 export const isIndicatorDimension = (
     dimension: OwidChartDimensionInterface
-): dimension is OwidChartDimensionInterfaceWithMandatoryVariableId =>
+): dimension is IndicatorDimensionInterface =>
     dimension.variableId !== undefined

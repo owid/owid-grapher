@@ -10,14 +10,13 @@ import {
     OwidVariableDisplayConfig,
     OwidChartDimensionInterface,
     Time,
-    OwidChartDimensionInterfaceWithMandatorySlug,
     objectWithPersistablesToObject,
 } from "@ourworldindata/utils"
 import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
 
 // A chart "dimension" represents a binding between a chart
 // and a particular variable that it requests as data
-class ChartDimensionDefaults implements OwidChartDimensionInterface {
+class ChartDimensionDefaults {
     property!: DimensionProperty
     // Undefined when the slot names a host-supplied column by slug instead.
     variableId?: OwidVariableId
@@ -54,7 +53,7 @@ export function getDimensionColumnSlug(
 
 export class ChartDimension
     extends ChartDimensionDefaults
-    implements Persistable, OwidChartDimensionInterfaceWithMandatorySlug
+    implements Persistable
 {
     private readonly manager: LegacyDimensionsManager
 
@@ -91,26 +90,18 @@ export class ChartDimension
             "display",
             "targetYear",
         ]
-        const obj: OwidChartDimensionInterface = objectWithPersistablesToObject(
-            this,
-            keysToSerialize
-        )
+        const obj: Partial<ChartDimensionDefaults> & { slug?: ColumnSlug } =
+            objectWithPersistablesToObject(this, keysToSerialize)
 
         deleteRuntimeAndUnchangedProps(obj, new ChartDimensionDefaults())
 
-        // An authored slug is part of the config and has to survive the round
-        // trip; a slug derived from the variable id is not.
+        // An authored slug is part of the config; a derived one is not
         if (this._slug !== undefined) obj.slug = this._slug
 
-        return trimObject(obj)
+        return trimObject(obj) as OwidChartDimensionInterface
     }
 
-    /**
-     * The slug as authored, when the config named a column of the host's own
-     * table. Indicator-backed dimensions leave this unset and derive their
-     * slug from the variable id instead, which is why it is only written back
-     * out in `toObject` when it was authored.
-     */
+    /** The slug as authored, set only when the slot names a host column */
     _slug: ColumnSlug | undefined = undefined
 
     @computed get slug(): ColumnSlug {

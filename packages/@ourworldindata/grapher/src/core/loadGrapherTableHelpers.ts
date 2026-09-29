@@ -6,7 +6,7 @@ import {
     OwidChartDimensionInterface,
     OwidVariableDataMetadataDimensions,
 } from "@ourworldindata/utils"
-import { legacyToOwidTableAndDimensionsWithMandatorySlug } from "./LegacyToOwidTable.js"
+import { legacyToOwidTableAndDimensions } from "./LegacyToOwidTable.js"
 import {
     loadVariablesDataSite,
     loadVariableDataAndMetadata,
@@ -37,7 +37,7 @@ export const fetchInputTableForConfig: FetchInputTableForConfigFn = async (
         args.noCache,
         args.loadMetadataOnly
     )
-    const inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
+    const inputTable = legacyToOwidTableAndDimensions(
         variablesDataMap,
         dimensions,
         args.selectedEntityColors
@@ -109,7 +109,7 @@ export function getCachingInputTableFetcher(
             variables.map((v) => [v, cache.get(v)!])
         )
 
-        const inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
+        const inputTable = legacyToOwidTableAndDimensions(
             variablesDataMap,
             indicatorDimensions,
             selectedEntityColors

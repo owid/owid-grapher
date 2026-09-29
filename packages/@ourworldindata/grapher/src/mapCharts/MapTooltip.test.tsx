@@ -7,10 +7,10 @@ import { render, fireEvent, screen } from "@testing-library/react"
 import { Grapher } from "../core/Grapher.js"
 import { GrapherState } from "../core/GrapherState.js"
 import { legacyMapGrapher, legacyMapGrapherData } from "./MapChart.sample.js"
-import { legacyToOwidTableAndDimensionsWithMandatorySlug } from "../core/LegacyToOwidTable.js"
+import { legacyToOwidTableAndDimensions } from "../core/LegacyToOwidTable.js"
 
 const state = new GrapherState({ ...legacyMapGrapher })
-state.inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
+state.inputTable = legacyToOwidTableAndDimensions(
     legacyMapGrapherData,
     legacyMapGrapher.dimensions!,
     legacyMapGrapher.selectedEntityColors
@@ -86,7 +86,7 @@ test("map tooltip renders custom no data label", () => {
             },
         },
     })
-    customState.inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
+    customState.inputTable = legacyToOwidTableAndDimensions(
         legacyMapGrapherData,
         legacyMapGrapher.dimensions!,
         legacyMapGrapher.selectedEntityColors

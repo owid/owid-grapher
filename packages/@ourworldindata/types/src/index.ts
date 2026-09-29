@@ -397,8 +397,8 @@ export {
     TIME_INTERVALS,
     type SubYearlyTimeInterval,
     type OwidChartDimensionInterface,
-    type OwidChartDimensionInterfaceWithMandatorySlug,
-    type OwidChartDimensionInterfaceWithMandatoryVariableId,
+    type IndicatorDimensionInterface,
+    type HostColumnDimensionInterface,
     isIndicatorDimension,
 } from "./OwidVariableDisplayConfigInterface.js"
 

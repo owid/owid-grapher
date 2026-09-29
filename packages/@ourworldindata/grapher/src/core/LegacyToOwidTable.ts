@@ -9,7 +9,7 @@ import {
     OwidColumnDef,
     OwidVariableDimensions,
     ErrorValue,
-    OwidChartDimensionInterfaceWithMandatorySlug,
+    IndicatorDimensionInterface,
     OwidChartDimensionInterface,
     OwidVariableDisplayConfigInterface,
     isIndicatorDimension,
@@ -47,42 +47,16 @@ import * as R from "remeda"
 import { getDimensionColumnSlug } from "../chart/ChartDimension.js"
 import { applyColumnDisplayOverrides } from "./applyDimensionDisplay.js"
 
-export const legacyToOwidTableAndDimensionsWithMandatorySlug = (
+export const legacyToOwidTableAndDimensions = (
     json: MultipleOwidVariableDataDimensionsMap,
     dimensions: OwidChartDimensionInterface[],
     selectedEntityColors:
         | { [entityName: string]: string | undefined }
         | undefined
 ): OwidTable => {
-    // Only indicator-backed slots have anything to assemble here; a slot
-    // naming a host-supplied column is that host's to provide. An authored
-    // slug still wins, so two slots on one indicator at different target
-    // years keep their distinct columns.
-    const dimensionsWithSlug = dimensions
-        .filter(isIndicatorDimension)
-        .map((dimension) => ({
-            ...dimension,
-            slug:
-                dimension.slug ??
-                getDimensionColumnSlug(
-                    dimension.variableId,
-                    dimension.targetYear
-                ),
-        }))
-    return legacyToOwidTableAndDimensions(
-        json,
-        dimensionsWithSlug,
-        selectedEntityColors
-    )
-}
+    // Slots naming a host-supplied column are that host's to provide
+    const indicatorDimensions = dimensions.filter(isIndicatorDimension)
 
-export const legacyToOwidTableAndDimensions = (
-    json: MultipleOwidVariableDataDimensionsMap,
-    dimensions: OwidChartDimensionInterfaceWithMandatorySlug[],
-    selectedEntityColors:
-        | { [entityName: string]: string | undefined }
-        | undefined
-): OwidTable => {
     // Entity meta map
 
     const entityMeta = [...json.values()].flatMap(
@@ -101,14 +75,12 @@ export const legacyToOwidTableAndDimensions = (
 
     // We need to create a column for each unique [variable, targetTime] pair. So there can be
     // multiple columns for a single variable.
-    const dimensionColumns = _.uniqBy(dimensions, (dim) => dim.slug)
+    const dimensionColumns = _.uniqBy(indicatorDimensions, indicatorColumnSlug)
 
     const variableTablesToJoinByYear: OwidTable[] = []
     const variableTablesToJoinByDay: OwidTable[] = []
     const variableTablesWithYearToJoinByEntityOnly: OwidTable[] = []
     for (const dimension of dimensionColumns) {
-        // Slots naming a host-supplied column have no indicator to convert.
-        if (dimension.variableId === undefined) continue
         const variable = json.get(dimension.variableId)
 
         // TODO: this shouldn't happen but it does sometimes
@@ -124,10 +96,8 @@ export const legacyToOwidTableAndDimensions = (
 
         // Value column
         const valueColumnDef = columnDefFromOwidVariable(variable.metadata)
-        // Ensure the column slug is unique by copying it from the dimensions
-        // (there can be two columns of the same variable with different targetTimes)
-        if (dimension.slug) valueColumnDef.slug = dimension.slug
-        else throw new Error("Dimension slug was undefined")
+        // There can be two columns of the same variable with different targetTimes
+        valueColumnDef.slug = indicatorColumnSlug(dimension)
         // Because database columns can contain mixed types, we want to avoid
         // parsing for Grapher data until we fix that.
         valueColumnDef.skipParsing = true
@@ -387,27 +357,27 @@ export const legacyToOwidTableAndDimensions = (
 
     return applyColumnDisplayOverrides(
         joinedVariablesTable,
-        dimensions.map((dimension) => ({
-            columnSlug: dimension.slug,
+        indicatorDimensions.map((dimension) => ({
+            columnSlug: indicatorColumnSlug(dimension),
             display: displayWithIndicatorFactor(dimension, json),
         }))
     )
 }
 
+const indicatorColumnSlug = (
+    dimension: IndicatorDimensionInterface
+): ColumnSlug =>
+    getDimensionColumnSlug(dimension.variableId, dimension.targetYear)
+
 /** The slot's display, with its indicator's `conversionFactor` as the default */
 const displayWithIndicatorFactor = (
-    dimension: OwidChartDimensionInterfaceWithMandatorySlug,
+    dimension: IndicatorDimensionInterface,
     json: MultipleOwidVariableDataDimensionsMap
-): OwidVariableDisplayConfigInterface => {
-    const indicatorFactor =
-        dimension.variableId !== undefined
-            ? json.get(dimension.variableId)?.metadata.display?.conversionFactor
-            : undefined
-    return {
-        conversionFactor: indicatorFactor,
-        ...trimObject(dimension.display ?? {}),
-    }
-}
+): OwidVariableDisplayConfigInterface => ({
+    conversionFactor: json.get(dimension.variableId)?.metadata.display
+        ?.conversionFactor,
+    ...trimObject(dimension.display ?? {}),
+})
 
 const fullJoinTables = (
     tables: OwidTable[],

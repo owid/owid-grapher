@@ -843,10 +843,10 @@ export class GrapherState
     }
 
     toObject(): GrapherInterface {
-        const obj: GrapherInterface = objectWithPersistablesToObject(
+        const obj = objectWithPersistablesToObject(
             this,
             grapherKeysToSerialize
-        )
+        ) as GrapherInterface
 
         // Persist selection and focus
         obj.selectedEntityNames = this.selection.selectedEntityNames
@@ -2203,10 +2203,7 @@ export class GrapherState
             if (!slot.allowMultiple)
                 validDimensions = _.uniqWith(
                     validDimensions,
-                    (
-                        a: OwidChartDimensionInterface,
-                        b: OwidChartDimensionInterface
-                    ) =>
+                    (a: ChartDimension, b: ChartDimension) =>
                         a.property === slot.property &&
                         a.property === b.property
                 )
@@ -4361,4 +4358,4 @@ export class GrapherState
 export const defaultObject = objectWithPersistablesToObject(
     new GrapherState({}),
     grapherKeysToSerialize
-)
+) as GrapherInterface

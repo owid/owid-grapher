@@ -54,7 +54,9 @@ async function fetchAndRenderGrapherToSvg(
 
     grapherLogger.log("initGrapher")
     const fetchTablePromise = fetchInputTableForConfig({
-        dimensions: grapher.grapherState.dimensions,
+        dimensions: grapher.grapherState.dimensions.map((dimension) =>
+            dimension.toObject()
+        ),
         selectedEntityColors: grapher.grapherState.selectedEntityColors,
         dataApiUrl: getDataApiUrl(env),
     })
