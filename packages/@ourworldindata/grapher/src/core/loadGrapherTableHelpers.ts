@@ -66,15 +66,14 @@ export function getCachingInputTableFetcher(
         | undefined = undefined
 
     return async (
-        dimensionsMobx: OwidChartDimensionInterface[],
+        dimensions: OwidChartDimensionInterface[],
         selectedEntityColorsMobx:
             | { [entityName: string]: string | undefined }
             | undefined
     ) => {
-        // Check if dimensions have changed
-        const dimensions = dimensionsMobx.map((x) => toJS(x)) // Convert MobX observable to plain object
         const selectedEntityColors = toJS(selectedEntityColorsMobx)
 
+        // Check if dimensions have changed
         if (
             _.isEqual(previousDimensions, dimensions) &&
             _.isEqual(previousSelectedEntityColors, selectedEntityColors)
