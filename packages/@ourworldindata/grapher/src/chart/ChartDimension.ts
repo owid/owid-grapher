@@ -92,7 +92,12 @@ export class ChartDimension implements Persistable {
     }
 
     set targetYear(value: Time | undefined) {
-        if (!("variableId" in this.source)) return // a host column has no year to pin
+        if (!("variableId" in this.source)) {
+            if (value === undefined) return
+            throw new Error(
+                `Cannot pin host column "${this.source.slug}" to a year; targetYear needs a variableId dimension`
+            )
+        }
         this.source = { ...this.source, targetYear: value }
     }
 

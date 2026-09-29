@@ -3098,6 +3098,10 @@ export class GrapherState
         this.xDimension!.targetYear = value
     }
 
+    @computed get canOverrideXTime(): boolean {
+        return this.xDimension?.variableId !== undefined
+    }
+
     @computed get defaultBounds(): Bounds {
         return new Bounds(0, 0, DEFAULT_GRAPHER_WIDTH, DEFAULT_GRAPHER_HEIGHT)
     }
