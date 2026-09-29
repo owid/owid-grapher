@@ -1,7 +1,7 @@
 import { RcFile } from "antd/es/upload/interface.js"
 import { Admin } from "./Admin"
 import { DbEnrichedImageWithUserId } from "@ourworldindata/types"
-import { CLOUDFLARE_IMAGES_URL } from "../settings/clientSettings"
+import { CLOUDFLARE_IMAGES_URL } from "../settings/clientSettings.mjs"
 
 export type File = string | Blob | RcFile
 

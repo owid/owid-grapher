@@ -141,6 +141,7 @@ function RegionMapFigure({ grapherState }: { grapherState: GrapherState }) {
     const base = useRef<HTMLDivElement>(null)
     const bounds = useElementBounds(base, null)
     useEffect(() => {
+        // oxlint-disable-next-line react/immutability -- updating MobX state
         if (bounds) grapherState.externalBounds = bounds
     }, [bounds, grapherState])
     return (

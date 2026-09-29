@@ -1,5 +1,11 @@
-import { useCallback, useContext, useEffect, useRef, useState } from "react"
-import * as React from "react"
+import {
+    useCallback,
+    useContext,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+} from "react"
 import { AdminLayout } from "./AdminLayout.js"
 import {
     GdocPostSettings,
@@ -9,6 +15,7 @@ import {
     GdocAboutPageSettings,
     GdocAnnouncementSettings,
     GdocProfileSettings,
+    GdocFeaturedVizSettings,
 } from "./GdocsSettingsForms.js"
 import { AdminAppContext } from "./AdminAppContext.js"
 import { getCanonicalUrl } from "@ourworldindata/components"
@@ -17,7 +24,6 @@ import {
     GdocsContentSource,
     getOwidGdocFromJSON,
     OwidGdocJSON,
-    OwidGdocErrorMessage,
     OwidGdocErrorMessageType,
     slugify,
     MinimalTag,
@@ -59,7 +65,7 @@ import {
 import {
     BAKED_BASE_URL,
     PUBLISHED_AT_FORMAT,
-} from "../settings/clientSettings.js"
+} from "../settings/clientSettings.mjs"
 import { RouteComponentProps } from "react-router-dom"
 import * as R from "remeda"
 
@@ -94,7 +100,6 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
     const [isRecordsOpen, setRecordsOpen] = useState(false)
     const [recordsPreviewMode, setRecordsPreviewMode] =
         useState<RecordsPreviewMode>("records")
-    const [errors, setErrors] = React.useState<OwidGdocErrorMessage[]>()
     const { admin } = useContext(AdminAppContext)
 
     const [isMobilePreviewActive, setIsMobilePreviewActive] = useState(false)
@@ -154,7 +159,10 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
         }
     }, [])
 
-    useEffect(() => {
+    // Reset the state when navigating to another gdoc
+    const [prevId, setPrevId] = useState(id)
+    if (id !== prevId) {
+        setPrevId(id)
         setAcceptSuggestions(false)
         setGdoc((prev) =>
             prev.original === undefined && prev.current === undefined
@@ -162,9 +170,11 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                 : { original: undefined, current: undefined }
         )
         setRecordsOpen(false)
-    }, [id])
+    }
 
     // initialize
+    // `admin` is a MobX store, so mutating it is how we update it
+    /* oxlint-disable react/immutability */
     useEffect(() => {
         let isMounted = true
         async function fetchLatestGdoc() {
@@ -208,11 +218,18 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
             admin.loadingIndicatorSetting = "default"
         }
     }, [admin, acceptSuggestions, fetchGdoc, handleError])
+    /* oxlint-enable react/immutability */
 
     const isLightningUpdate = useLightningUpdate(
         originalGdoc,
         currentGdoc,
         hasChanges
+    )
+
+    // Errors and validation status
+    const errors = useMemo(
+        () => (currentGdoc ? getErrors(currentGdoc) : undefined),
+        [currentGdoc]
     )
 
     const hasWarnings =
@@ -297,13 +314,6 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
     const handleDiffClose = () => {
         setDiffOpen(false)
     }
-
-    // Handle errors and validation status
-    useEffect(() => {
-        if (!currentGdoc) return
-        const errors = getErrors(currentGdoc)
-        setErrors(errors)
-    }, [currentGdoc])
 
     if (criticalErrorMessage) {
         return (
@@ -554,6 +564,22 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                             },
                             (gdoc) => (
                                 <GdocAboutPageSettings
+                                    gdoc={gdoc}
+                                    setCurrentGdoc={(updatedGdoc) =>
+                                        setCurrentGdoc(() => updatedGdoc)
+                                    }
+                                    errors={errors}
+                                />
+                            )
+                        )
+                        .with(
+                            {
+                                content: {
+                                    type: OwidGdocType.FeaturedViz,
+                                },
+                            },
+                            (gdoc) => (
+                                <GdocFeaturedVizSettings
                                     gdoc={gdoc}
                                     setCurrentGdoc={(updatedGdoc) =>
                                         setCurrentGdoc(() => updatedGdoc)

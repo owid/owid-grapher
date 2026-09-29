@@ -26,6 +26,9 @@ import {
     type OwidGdocAuthorInterface,
     type OwidGdoc,
     OwidGdocType,
+    type OwidGdocErrorMessage,
+    OwidGdocErrorMessageType,
+    type OwidGdocPostContent,
     type OwidGdocJSON,
     type Span,
     UserCountryInformation,
@@ -40,6 +43,7 @@ import {
     DbPlainTag,
     AssetMap,
     OwidGdocAboutInterface,
+    OwidGdocFeaturedVizInterface,
     OwidGdocHomepageInterface,
     PrimitiveType,
     GrapherTrendArrowDirection,
@@ -492,12 +496,20 @@ export const guid = (): number => (_guidsDisabledForTesting ? 1 : ++_guid)
 export const TESTING_ONLY_disable_guid = (): boolean =>
     (_guidsDisabledForTesting = true)
 
+/** Decimal places a number keeps when it is written into an SVG attribute */
+export const SVG_PRECISION = 2
+
+export function roundForSvg(value: number): number {
+    return _.round(value, SVG_PRECISION)
+}
+
 /** Create an SVG path from an array of points */
 export const pointsToPath = (points: Point[]): string => {
     let path = ""
     for (let i = 0; i < points.length; i++) {
-        if (i === 0) path += `M${points[i].x} ${points[i].y}`
-        else path += `L${points[i].x} ${points[i].y}`
+        const x = roundForSvg(points[i].x)
+        const y = roundForSvg(points[i].y)
+        path += i === 0 ? `M${x} ${y}` : `L${x} ${y}`
     }
     return path
 }
@@ -1382,6 +1394,12 @@ export function extractGdocPageData(gdoc: OwidGdoc) {
                 ...R.pick(authorGdoc, ["latestWorkLinks"]),
             }
         })
+        .when(checkIsFeaturedViz, (featuredVizGdoc) => {
+            return {
+                ...commonProps,
+                ...R.pick(featuredVizGdoc, ["bespokeMetadata"]),
+            }
+        })
         .otherwise(() => commonProps)
 }
 
@@ -1915,6 +1933,64 @@ export function traverseEnrichedBlock(
         .exhaustive()
 }
 
+/**
+ * Transcribes the findings the ArchieML parser recorded while parsing —
+ * `parseErrors` on blocks (body and ref contents) and `refs.errors` — into
+ * OwidGdocErrorMessages. Body findings are labelled with the block type
+ * (`[chart] Missing url`) and ref-content findings with the ref id, so the
+ * reader can tell which block a message is about. This function performs NO
+ * judgments of its own: new validation rules belong in `getErrors`'s check
+ * functions (advisory, shown in the admin), not here. Shared by the admin and
+ * the writing reference generator so they can never diverge on what the
+ * parser reported.
+ *
+ * `visitBodyNode` lets a caller collect its own findings from the body walk
+ * this function already performs, rather than walking the body a second time.
+ * It is called per body node, interleaved with that node's parse errors, so
+ * the findings come back in document order. Ref contents are not visited:
+ * the caller's checks are about the document body.
+ */
+export function getParseFindings(
+    content: {
+        body?: OwidEnrichedGdocBlock[]
+        refs?: OwidGdocPostContent["refs"]
+    },
+    visitBodyNode?: (node: OwidEnrichedGdocBlock) => OwidGdocErrorMessage[]
+): OwidGdocErrorMessage[] {
+    const findings: OwidGdocErrorMessage[] = []
+    const transcribe = (
+        property: OwidGdocErrorMessage["property"],
+        blocks: OwidEnrichedGdocBlock[] | undefined,
+        refId?: string,
+        visit?: (node: OwidEnrichedGdocBlock) => OwidGdocErrorMessage[]
+    ): void => {
+        for (const block of blocks ?? []) {
+            traverseEnrichedBlock(block, (node) => {
+                for (const parseError of node.parseErrors ?? []) {
+                    findings.push({
+                        property,
+                        type: parseError.isWarning
+                            ? OwidGdocErrorMessageType.Warning
+                            : OwidGdocErrorMessageType.Error,
+                        message:
+                            refId !== undefined
+                                ? `Parse error in "${refId}" ref content: ${parseError.message}`
+                                : `[${node.type}] ${parseError.message}`,
+                    })
+                }
+                if (visit) findings.push(...visit(node))
+            })
+        }
+    }
+
+    transcribe("body", content.body, undefined, visitBodyNode)
+    for (const ref of Object.values(content.refs?.definitions ?? {})) {
+        transcribe("refs", ref.content, ref.id)
+    }
+    findings.push(...(content.refs?.errors ?? []))
+    return findings
+}
+
 export function checkNodeIsSpan(node: NodeWithUrl): node is Span {
     return "spanType" in node
 }
@@ -2240,6 +2316,12 @@ export function checkIsAboutPage(
     gdoc: OwidGdoc
 ): gdoc is OwidGdocAboutInterface {
     return gdoc.content.type === OwidGdocType.AboutPage
+}
+
+export function checkIsFeaturedViz(
+    gdoc: OwidGdoc
+): gdoc is OwidGdocFeaturedVizInterface {
+    return gdoc.content.type === OwidGdocType.FeaturedViz
 }
 
 export function checkIsAuthor(gdoc: OwidGdoc): gdoc is OwidGdocAuthorInterface {

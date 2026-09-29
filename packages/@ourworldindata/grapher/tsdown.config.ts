@@ -1,8 +1,8 @@
 import { defineConfig, type UserConfig } from "tsdown"
+import optimizeReactAriaLocales from "@react-aria/optimize-locales-plugin"
 // The build config is reaching outside of the package, which is okay here.
 import {
     BUILD_TARGET,
-    pluginOptimizeReactAriaLocales,
     pluginSwcDecorators,
     scssPreprocessorOptions,
     // oxlint-disable-next-line import-x-js/no-relative-packages
@@ -44,7 +44,7 @@ const shared = {
     },
     plugins: [
         pluginSwcDecorators(),
-        pluginOptimizeReactAriaLocales({ locales: ["en-US"] }),
+        optimizeReactAriaLocales.rolldown({ locales: ["en-US"] }),
     ],
     deps: {
         // Grapher's runtime dependencies (d3, mobx, lodash-es, ...) are meant to

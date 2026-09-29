@@ -14,7 +14,7 @@ import {
 import {
     DATA_API_URL,
     MULTI_DIM_DYNAMIC_CONFIG_URL,
-} from "../../settings/clientSettings.js"
+} from "../../settings/clientSettings.mjs"
 
 export const cachedGetVariableMetadata = _.memoize(
     async (

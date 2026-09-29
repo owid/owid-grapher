@@ -6,6 +6,7 @@ import {
     excludeUndefined,
     EntityName,
     MapRegionName,
+    roundForSvg,
 } from "@ourworldindata/utils"
 import { computed, action, observable, makeObservable } from "mobx"
 import { observer } from "mobx-react"
@@ -632,10 +633,10 @@ export class ChoroplethMap extends React.Component<{
                 }}
             >
                 <rect
-                    x={bounds.x}
-                    y={bounds.y}
-                    width={bounds.width}
-                    height={bounds.height}
+                    x={roundForSvg(bounds.x)}
+                    y={roundForSvg(bounds.y)}
+                    width={roundForSvg(bounds.width)}
+                    height={roundForSvg(bounds.height)}
                     fill="rgba(255,255,255,0)"
                     opacity={0}
                 />

@@ -4,7 +4,7 @@ import {
     useQuery,
 } from "@tanstack/react-query"
 import { LiteClient } from "algoliasearch/lite"
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import * as R from "remeda"
 import {
     latestPagesQueryKey,
@@ -41,8 +41,8 @@ export function useIsLikelyBaked(
     href: string,
     publishedAt: string | Date
 ): boolean {
-    const isFresh =
-        Date.now() - new Date(publishedAt).getTime() < FRESH_WINDOW_MS
+    const [now] = useState(() => Date.now())
+    const isFresh = now - new Date(publishedAt).getTime() < FRESH_WINDOW_MS
 
     const { data } = useQuery({
         queryKey: ["isLikelyBaked", href],

@@ -12,7 +12,7 @@ import { Section, Toggle } from "./Forms.js"
 import { GrapherState } from "@ourworldindata/grapher"
 import { triggerDownloadFromBlob } from "@ourworldindata/utils"
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
-import { ETL_WIZARD_URL } from "../settings/clientSettings.js"
+import { ETL_WIZARD_URL } from "../settings/clientSettings.mjs"
 import { faHatWizard, faDownload } from "@fortawesome/free-solid-svg-icons"
 import { Button } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -36,7 +36,6 @@ type OriginalGrapher = Pick<
     | "shouldAddEntitySuffixToTitle"
     | "shouldAddTimeSuffixToTitle"
     | "effectiveSubtitle"
-    | "note"
     | "originUrl"
     | "shouldIncludeDetailsInStaticExport"
     | "detailsOrderedByReference"
@@ -161,7 +160,6 @@ export class EditorExportTab<
             shouldAddTimeSuffixToTitle:
                 this.grapherState.shouldAddTimeSuffixToTitle,
             effectiveSubtitle: this.grapherState.effectiveSubtitle,
-            note: this.grapherState.note,
             originUrl: this.grapherState.originUrl,
             shouldIncludeDetailsInStaticExport:
                 this.grapherState.shouldIncludeDetailsInStaticExport,
@@ -300,7 +298,7 @@ export class EditorExportTab<
                             )}
                         />
                     )}
-                    {this.originalGrapher.note && (
+                    {this.grapherState.effectiveNote && (
                         <Toggle
                             label="Note"
                             value={!this.settings.hideNote}

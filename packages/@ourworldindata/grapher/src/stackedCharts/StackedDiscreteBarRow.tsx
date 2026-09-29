@@ -1,6 +1,11 @@
 import * as _ from "lodash-es"
 import React from "react"
-import { Bounds, makeFigmaId, dyFromAlign } from "@ourworldindata/utils"
+import {
+    Bounds,
+    dyFromAlign,
+    makeFigmaId,
+    roundForSvg,
+} from "@ourworldindata/utils"
 import { VerticalAlign } from "@ourworldindata/types"
 import { STACKED_BAR_STYLE } from "./StackedConstants"
 import {
@@ -53,7 +58,7 @@ export function StackedDiscreteBarRow({
     return (
         <g
             id={makeFigmaId(entityName)}
-            transform={`translate(0, ${y})`}
+            transform={`translate(0, ${roundForSvg(y)})`}
             opacity={1}
         >
             {segments.map((segment) => (
@@ -80,9 +85,9 @@ export function StackedDiscreteBarRow({
             />
             {showTotalValueLabel && (
                 <text
-                    transform={`translate(${
+                    transform={`translate(${roundForSvg(
                         yAxis.place(lastValue) + labelToBarPadding
-                    }, 0)`}
+                    )}, 0)`}
                     dy={dyFromAlign(VerticalAlign.middle)}
                     opacity={labelStyle.opacity}
                     fill="#555"
@@ -135,19 +140,21 @@ function StackedDiscreteBar({
                 id={makeFigmaId("bar")}
                 x={0}
                 y={0}
-                transform={`translate(${segment.x}, ${-barHeight / 2})`}
-                width={segment.barWidth}
-                height={barHeight}
+                transform={`translate(${roundForSvg(segment.x)}, ${roundForSvg(
+                    -barHeight / 2
+                )})`}
+                width={roundForSvg(segment.barWidth)}
+                height={roundForSvg(barHeight)}
                 fill={segment.color}
                 opacity={segmentStyle.opacity}
                 style={{ transition: "height 200ms ease" }}
             />
             {canShowLabel && (
                 <text
-                    x={segment.x + segment.barWidth / 2}
+                    x={roundForSvg(segment.x + segment.barWidth / 2)}
                     y={0}
-                    width={segment.barWidth}
-                    height={barHeight}
+                    width={roundForSvg(segment.barWidth)}
+                    height={roundForSvg(barHeight)}
                     fill={labelColor}
                     opacity={labelOpacity}
                     fontSize={labelFontSize}

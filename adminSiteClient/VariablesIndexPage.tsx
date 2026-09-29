@@ -15,7 +15,7 @@ import { AdminLayout } from "./AdminLayout.js"
 import { TextField, FieldsRow } from "./Forms.js"
 import { VariableList, VariableListItem } from "./VariableList.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
-import { ETL_WIZARD_URL } from "../settings/clientSettings.js"
+import { ETL_WIZARD_URL } from "../settings/clientSettings.mjs"
 import urljoin from "url-join"
 
 @observer

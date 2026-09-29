@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react"
+import { useState } from "react"
 import { useUserCountryInformation } from "../../../../hooks/useUserCountryInformation.js"
 import { DEFAULT_ENTITY_NAME } from "./constants.js"
 import { useDemographyMetadata } from "./fetch.js"
@@ -13,7 +13,8 @@ const USER_LOCATION = "userLocation"
  *   and use it if available in the metadata. Falls back to the default.
  */
 export function useInitialEntityName(
-    configRegion: string | undefined
+    configRegion: string | undefined,
+    metadataUrl: string
 ): [string, (name: string) => void, boolean] {
     const isUserLocation = !configRegion || configRegion === USER_LOCATION
     const initialName =
@@ -21,23 +22,19 @@ export function useInitialEntityName(
 
     const [entityName, setEntityName] = useState(initialName)
     const [isResolved, setIsResolved] = useState(!isUserLocation)
-    const resolved = useRef(!isUserLocation)
 
     const { data: userCountryInfo } = useUserCountryInformation()
-    const { data: metadata } = useDemographyMetadata()
+    const { data: metadata } = useDemographyMetadata(metadataUrl)
 
-    useEffect(() => {
-        if (resolved.current || !isUserLocation) return
-        if (!userCountryInfo || !metadata) return
-
-        resolved.current = true
+    // Resolve once, as soon as the user's location and the metadata are known
+    if (!isResolved && isUserLocation && userCountryInfo && metadata) {
         setIsResolved(true)
 
         const availableSet = new Set(metadata.countries)
         if (availableSet.has(userCountryInfo.name)) {
             setEntityName(userCountryInfo.name)
         }
-    }, [isUserLocation, userCountryInfo, metadata])
+    }
 
     return [entityName, setEntityName, isResolved]
 }

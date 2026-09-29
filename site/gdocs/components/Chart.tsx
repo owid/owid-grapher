@@ -28,15 +28,15 @@ export default function Chart({
     const { isPreviewing, archiveContext } = useDocumentContext()
     const refChartContainer = useRef<HTMLDivElement>(null)
     const archiveIframeRef = useRef<HTMLIFrameElement | null>(null)
-    useEmbedChart(0, refChartContainer, isPreviewing)
+    useEmbedChart(refChartContainer, isPreviewing)
 
-    // Connect chart ref to GuidedChartContext for guided chart scrollTo on mobile
+    // Register the chart with GuidedChartContext for guided chart scrollTo on mobile
     const guidedChartContext = useContext(GuidedChartContext)
+    const registerChartElement = guidedChartContext?.registerChartElement
     useEffect(() => {
-        if (guidedChartContext?.chartRef && refChartContainer.current) {
-            guidedChartContext.chartRef.current = refChartContainer.current
-        }
-    }, [guidedChartContext])
+        if (!registerChartElement || !refChartContainer.current) return
+        return registerChartElement(refChartContainer.current)
+    }, [registerChartElement])
 
     // d.url may use an old slug that has since had a redirect created for it
     // useLinkedChart references a hashmap that has resolved these old slugs to their current chart
@@ -116,7 +116,6 @@ export default function Chart({
         archiveUrl?.fullUrl,
         archivedChartVersion?.archiveUrl,
         archivedChartVersion,
-        resolvedUrl,
         resolvedQueryParams,
     ])
 

@@ -39,7 +39,7 @@ export interface MarkLine {
 export interface HorizontalNumericColorLegendOptions {
     /** The legend shrinks to its ideal width and aligns itself within this. */
     maxWidth: number
-    fontSize?: number
+    baseFontSize?: number
     title?: string
     align?: HorizontalAlign
     tickSize?: number
@@ -49,7 +49,7 @@ export interface HorizontalNumericColorLegendOptions {
 export interface HorizontalCategoricalColorLegendOptions {
     /** The legend always fills this, wrapping its marks onto as many lines as it needs. */
     width: number
-    fontSize?: number
+    baseFontSize?: number
     align?: HorizontalAlign
 }
 
@@ -63,7 +63,6 @@ export interface HorizontalColorLegendProps<State> {
     onMouseEnter?: (bin: ColorScaleBin) => void
     onMouseOver?: (bin: ColorScaleBin) => void
     onMouseLeave?: () => void
-    onTouchSelect?: (bin: ColorScaleBin) => void
 }
 
 /**

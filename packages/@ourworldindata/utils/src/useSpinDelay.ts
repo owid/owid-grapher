@@ -30,6 +30,8 @@ export function useSpinDelay(
     const [state, setState] = useState<SpinDelayState>(initialState)
     const timeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
+    // A timer-driven state machine, so it transitions from within the effect
+    /* oxlint-disable react/set-state-in-effect */
     useEffect(() => {
         if (loading && (state === "IDLE" || isSsr)) {
             clearTimeout(timeout.current)
@@ -60,6 +62,7 @@ export function useSpinDelay(
         resolvedOptions.minDuration,
         isSsr,
     ])
+    /* oxlint-enable react/set-state-in-effect */
 
     useEffect((): (() => void) => {
         return (): void => clearTimeout(timeout.current)

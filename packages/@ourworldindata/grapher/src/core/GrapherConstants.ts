@@ -29,8 +29,6 @@ export const GRAPHER_FOOTER_CLASS = "footer"
 export const DEFAULT_GRAPHER_ENTITY_TYPE = "country or region"
 export const DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL = "countries and regions"
 
-export const GRAPHER_LOADING_STATE_EVENT_NAME = "grapherLoadingStateChanged"
-
 export const DEFAULT_GRAPHER_WIDTH = 850
 export const DEFAULT_GRAPHER_HEIGHT = 600
 
@@ -70,18 +68,6 @@ export const GRAPHER_AREA_OPACITY_MUTED = 0.3
 export const GRAPHER_AREA_OPACITY_HIGHLIGHTED = 1
 
 export const BASE_FONT_SIZE = 16
-
-export const GRAPHER_FONT_SCALE_9_6 = 9.6 / BASE_FONT_SIZE
-export const GRAPHER_FONT_SCALE_10 = 10 / BASE_FONT_SIZE
-export const GRAPHER_FONT_SCALE_10_5 = 10.5 / BASE_FONT_SIZE
-export const GRAPHER_FONT_SCALE_11 = 11 / BASE_FONT_SIZE
-export const GRAPHER_FONT_SCALE_11_2 = 11.2 / BASE_FONT_SIZE
-export const GRAPHER_FONT_SCALE_12 = 12 / BASE_FONT_SIZE
-export const GRAPHER_FONT_SCALE_12_8 = 12.8 / BASE_FONT_SIZE
-export const GRAPHER_FONT_SCALE_13 = 13 / BASE_FONT_SIZE
-export const GRAPHER_FONT_SCALE_14 = 14 / BASE_FONT_SIZE
-export const GRAPHER_FONT_SCALE_15 = 15 / BASE_FONT_SIZE
-export const GRAPHER_FONT_SCALE_18 = 18 / BASE_FONT_SIZE
 
 // keep in sync with $max-tooltip-width in Tooltip.scss
 export const GRAPHER_MAX_TOOLTIP_WIDTH = 400

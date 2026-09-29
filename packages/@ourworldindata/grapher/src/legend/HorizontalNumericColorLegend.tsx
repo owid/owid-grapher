@@ -1,9 +1,10 @@
 import * as React from "react"
 import {
-    dyFromAlign,
-    removeAllWhitespace,
-    makeFigmaId,
     VerticalAlign,
+    dyFromAlign,
+    makeFigmaId,
+    removeAllWhitespace,
+    roundForSvg,
 } from "@ourworldindata/utils"
 import { TextWrapSvg } from "@ourworldindata/components"
 import { ColorScaleBin, isNumericBin } from "../color/ColorScaleBin"
@@ -19,6 +20,7 @@ import {
     HorizontalColorLegendProps,
     PositionedBin,
 } from "./HorizontalColorLegendTypes"
+import { useDismissOnOutsidePointerDownOrUnmount } from "../hooks.js"
 import {
     ARROW_SIZE,
     DEFAULT_NUMERIC_BIN_STROKE,
@@ -39,7 +41,6 @@ export function HorizontalNumericColorLegend(
         onMouseEnter,
         onMouseOver,
         onMouseLeave,
-        onTouchSelect,
     } = props
     const {
         numericLabels,
@@ -50,10 +51,16 @@ export function HorizontalNumericColorLegend(
         titlePosition,
     } = state
 
+    const isHoverable = interactive && !!onMouseOver
+    useDismissOnOutsidePointerDownOrUnmount(
+        isHoverable ? onMouseLeave : undefined
+    )
+
     const defaultTextColor =
         styleConfig?.text?.default?.color ?? DEFAULT_TEXT_COLOR
 
     const bottomY = y + height
+    const labelStripHeight = Math.max(0, height - binSize)
 
     const markerStyleFor = (bin: ColorScaleBin): LegendMarkerStyle =>
         resolveLegendMarkerStyle(styleConfig, binEmphasis?.get(bin), {
@@ -65,14 +72,14 @@ export function HorizontalNumericColorLegend(
     const onPointerEnter =
         (bin: ColorScaleBin) =>
         (event: React.PointerEvent): void => {
-            if (event.pointerType === "touch" && onTouchSelect) return
+            if (event.pointerType === "touch") return
 
             onMouseEnter?.(bin)
             onMouseOver?.(bin)
         }
 
     const onPointerLeave = (event: React.PointerEvent): void => {
-        if (event.pointerType === "touch" && onTouchSelect) return
+        if (event.pointerType === "touch") return
 
         onMouseLeave?.()
     }
@@ -80,7 +87,10 @@ export function HorizontalNumericColorLegend(
     const onPointerUp =
         (bin: ColorScaleBin) =>
         (event: React.PointerEvent): void => {
-            if (event.pointerType === "touch") onTouchSelect?.(bin)
+            if (event.pointerType === "touch") {
+                onMouseEnter?.(bin)
+                onMouseOver?.(bin)
+            }
         }
 
     const renderBin = (
@@ -90,7 +100,7 @@ export function HorizontalNumericColorLegend(
         const bin = positionedBin.bin
         const style = markerStyleFor(bin)
         const fill = bin.patternRef ? `url(#${bin.patternRef})` : style.fill
-        const inert = isHighlightOverlay || !interactive
+        const inert = isHighlightOverlay || !isHoverable
 
         return (
             <NumericBinRect
@@ -117,8 +127,6 @@ export function HorizontalNumericColorLegend(
         )
     }
 
-    const showTouchHitAreas = interactive && !!onTouchSelect
-
     return (
         <g
             id={makeFigmaId("numeric-color-legend")}
@@ -132,10 +140,16 @@ export function HorizontalNumericColorLegend(
                         <line
                             key={index}
                             id={makeFigmaId(label.text)}
-                            x1={x + label.bounds.x + label.bounds.width / 2}
-                            y1={bottomY - binSize}
-                            x2={x + label.bounds.x + label.bounds.width / 2}
-                            y2={bottomY + label.bounds.y + label.bounds.height}
+                            x1={roundForSvg(
+                                x + label.bounds.x + label.bounds.width / 2
+                            )}
+                            y1={roundForSvg(bottomY - binSize)}
+                            x2={roundForSvg(
+                                x + label.bounds.x + label.bounds.width / 2
+                            )}
+                            y2={roundForSvg(
+                                bottomY + label.bounds.y + label.bounds.height
+                            )}
                             // if we use a light color for stroke (e.g. white), we want it to stay
                             // "invisible", except for raised labels, where we want *some* contrast.
                             stroke={
@@ -175,8 +189,8 @@ export function HorizontalNumericColorLegend(
                     return (
                         <text
                             key={index}
-                            x={x + label.bounds.x}
-                            y={bottomY + label.bounds.y}
+                            x={roundForSvg(x + label.bounds.x)}
+                            y={roundForSvg(bottomY + label.bounds.y)}
                             // we can't use dominant-baseline to do proper alignment since our svg-to-png library Sharp
                             // doesn't support that (https://github.com/lovell/sharp/issues/1996), so we'll have to make
                             // do with some rough positioning.
@@ -189,17 +203,15 @@ export function HorizontalNumericColorLegend(
                     )
                 })}
             </g>
-            {showTouchHitAreas && (
-                // Add invisible hit areas above each swatch for touch interaction.
-                // They are the height of the legend labels, and only handle touch events.
+            {isHoverable && (
                 <g id={makeFigmaId("swatch-hit-areas")} aria-hidden="true">
                     {positionedBins.map((positionedBin, index) => (
                         <rect
                             key={index}
-                            x={x + positionedBin.x}
-                            y={y}
-                            width={positionedBin.width}
-                            height={Math.max(0, height - binSize)}
+                            x={roundForSvg(x + positionedBin.x)}
+                            y={roundForSvg(y)}
+                            width={roundForSvg(positionedBin.width)}
+                            height={roundForSvg(labelStripHeight)}
                             fill="transparent"
                             pointerEvents="all"
                             onPointerUp={onPointerUp(positionedBin.bin)}
@@ -234,11 +246,11 @@ const NumericBinRect = (props: NumericBinRectProps): React.ReactElement => {
         const a = ARROW_SIZE
         const w = width - a
         const d = removeAllWhitespace(`
-            M ${x}, ${y}
-            l ${w}, 0
-            l ${a}, ${height / 2}
-            l ${-a}, ${height / 2}
-            l ${-w}, 0
+            M ${roundForSvg(x)}, ${roundForSvg(y)}
+            l ${roundForSvg(w)}, 0
+            l ${roundForSvg(a)}, ${roundForSvg(height / 2)}
+            l ${roundForSvg(-a)}, ${roundForSvg(height / 2)}
+            l ${roundForSvg(-w)}, 0
             z
         `)
         return <path d={d} {...restProps} />
@@ -246,15 +258,23 @@ const NumericBinRect = (props: NumericBinRectProps): React.ReactElement => {
         const a = ARROW_SIZE
         const w = width - a
         const d = removeAllWhitespace(`
-            M ${x + a}, ${y}
-            l ${w}, 0
-            l 0, ${height}
-            l ${-w}, 0
-            l ${-a}, ${-height / 2}
+            M ${roundForSvg(x + a)}, ${roundForSvg(y)}
+            l ${roundForSvg(w)}, 0
+            l 0, ${roundForSvg(height)}
+            l ${roundForSvg(-w)}, 0
+            l ${roundForSvg(-a)}, ${roundForSvg(-height / 2)}
             z
         `)
         return <path d={d} {...restProps} />
     } else {
-        return <rect x={x} y={y} width={width} height={height} {...restProps} />
+        return (
+            <rect
+                x={roundForSvg(x)}
+                y={roundForSvg(y)}
+                width={roundForSvg(width)}
+                height={roundForSvg(height)}
+                {...restProps}
+            />
+        )
     }
 }

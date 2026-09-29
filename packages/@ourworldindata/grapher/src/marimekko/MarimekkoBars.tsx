@@ -1,10 +1,16 @@
-import { dyFromAlign, makeFigmaId, VerticalAlign } from "@ourworldindata/utils"
+import {
+    VerticalAlign,
+    dyFromAlign,
+    makeFigmaId,
+    roundForSvg,
+} from "@ourworldindata/utils"
 import {
     MARIMEKKO_BAR_STYLE,
     MarimekkoNoDataArea,
     RenderMarimekkoSeries,
 } from "./MarimekkoChartConstants"
-import { GRAPHER_FONT_SCALE_12, Patterns } from "../core/GrapherConstants"
+import { Patterns } from "../core/GrapherConstants"
+import { scaleFontSize } from "../chart/ChartUtils"
 
 const PLACEHOLDER_COLOR = "#555"
 
@@ -31,10 +37,10 @@ export function MarimekkoBars({
         <>
             {noDataArea && (
                 <rect
-                    x={noDataArea.x}
-                    y={noDataArea.y}
-                    width={noDataArea.width}
-                    height={noDataArea.height}
+                    x={roundForSvg(noDataArea.x)}
+                    y={roundForSvg(noDataArea.y)}
+                    width={roundForSvg(noDataArea.width)}
+                    height={roundForSvg(noDataArea.height)}
                     fill={`url(#${Patterns.noDataPattern})`}
                     opacity={0.5}
                 ></rect>
@@ -50,10 +56,12 @@ export function MarimekkoBars({
             ))}
             {!isFocusModeActive && noDataArea && (
                 <text
-                    transform={`translate(${noDataArea.labelX}, ${noDataArea.labelY}) rotate(-90)`}
+                    transform={`translate(${roundForSvg(
+                        noDataArea.labelX
+                    )}, ${roundForSvg(noDataArea.labelY)}) rotate(-90)`}
                     fontWeight={700}
                     fill="#666"
-                    fontSize={GRAPHER_FONT_SCALE_12 * fontSize}
+                    fontSize={scaleFontSize(12, fontSize)}
                     textAnchor="middle"
                     dy={dyFromAlign(VerticalAlign.middle)}
                     style={{ pointerEvents: "none" }}
@@ -89,16 +97,16 @@ function MarimekkoBar({
         <g
             id={makeFigmaId("bar", entityName)}
             className="bar"
-            transform={`translate(${barX}, 0)`}
+            transform={`translate(${roundForSvg(barX)}, 0)`}
             onMouseOver={(ev): void => onEntityMouseOver?.(entityName, ev)}
             onMouseLeave={(): void => onEntityMouseLeave?.()}
             onClick={(): void => onEntityClick?.(entityName)}
         >
             <rect
                 x={0}
-                y={barY - barHeight}
-                width={barWidth}
-                height={barHeight}
+                y={roundForSvg(barY - barHeight)}
+                width={roundForSvg(barWidth)}
+                height={roundForSvg(barHeight)}
                 fill={barColor}
                 fillOpacity={fillOpacity}
                 stroke={barColor}

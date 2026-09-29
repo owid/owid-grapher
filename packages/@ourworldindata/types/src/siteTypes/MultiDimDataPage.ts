@@ -127,6 +127,37 @@ export interface MultiDimDataPageInitialViewData extends DataPageDataV2 {
     faqs: FaqLink[]
 }
 
+/** Suffix of the companion file baked alongside every multi-dim data page. */
+export const MULTI_DIM_COMPANION_FILE_SUFFIX = ".multi-dim.json"
+
+/**
+ * Companion JSON file baked alongside every multi-dim data page at
+ * /grapher/{slug}.multi-dim.json. The Cloudflare Function serving /grapher/[slug]
+ * reads it to enrich the page with view-specific data — currently the page
+ * title served to search engines (see rewriteMetaTags).
+ *
+ * New functionality goes in as additional fields — per-view fields on
+ * MultiDimPageCompanionView, or page-level fields here.
+ */
+export interface MultiDimPageCompanion {
+    /**
+     * The page title (see getMultiDimPageTitle), without the site-name
+     * suffix, e.g. "Childhood vaccination coverage - by vaccine".
+     */
+    title: string
+    /**
+     * Per-view data, keyed by the view's canonical dimensions query string
+     * (see multiDimDimensionsToViewQueryStr), e.g.
+     * "antigen=hepb_bd&metric=vaccinated".
+     */
+    views: Record<string, MultiDimPageCompanionView>
+}
+
+export interface MultiDimPageCompanionView {
+    /** The view's grapher title, e.g. "Share of children vaccinated". */
+    title: string
+}
+
 export interface MultiDimDataPageProps {
     baseUrl: string
     canonicalUrl: string
