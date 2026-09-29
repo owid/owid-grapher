@@ -17,10 +17,7 @@ import {
 import { logErrorAndMaybeCaptureInSentry } from "../../../serverUtils/errorLog.js"
 import { BESPOKE_COMPONENT_REGISTRY } from "../../../bespoke/shared/bespokeComponentRegistry.js"
 import { resolveBespokeComponentUrls } from "../../../bespoke/shared/bespokeComponentUrls.js"
-import {
-    BESPOKE_BASE_URL,
-    BESPOKE_DATA_URL,
-} from "../../../settings/clientSettings.mjs"
+import { BESPOKE_DATA_URL } from "../../../settings/clientSettings.mjs"
 import { GdocBase } from "./GdocBase.js"
 
 const METADATA_FETCH_TIMEOUT_MS = 10_000
@@ -66,7 +63,6 @@ export class GdocFeaturedViz
         if (!definition) return
 
         const { metadataUrl } = resolveBespokeComponentUrls(definition, {
-            scriptBaseUrl: BESPOKE_BASE_URL,
             dataBaseUrl: BESPOKE_DATA_URL,
         })
 

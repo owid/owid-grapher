@@ -19,7 +19,8 @@ export type Entity = { id: number; name: string; iso: string; region: string }
 export type CommodityGroup = { id: number; name: string }
 
 // ---------------------------------------------------------------------------
-// Wire format (what scripts/buildData.py writes and the bundle fetches)
+// Wire format (what the owid/etl step viz://bespoke/forests/latest/
+// deforestation_trade writes and the bundle fetches)
 // ---------------------------------------------------------------------------
 
 /**
@@ -40,9 +41,10 @@ export type RawFlowBlock = {
  *  country itself) appear in both blocks. */
 export type RawCountryJson = { imports: RawFlowBlock; exports: RawFlowBlock }
 
-/** `deforestation-trade.metadata.json`: the manifest plus the fields of
- *  `BespokeMetadataSchema` for the methods-and-sources box. */
-export type RawMetadataJson = BespokeMetadata & {
+/** `deforestation-trade.metadata.json`: the manifest. It may also carry the
+ *  fields of `BespokeMetadataSchema` for the methods-and-sources box; the ETL
+ *  feed doesn't yet, so they're optional. */
+export type RawMetadataJson = Partial<BespokeMetadata> & {
     timeRange: { start: number; end: number }
     years: number[]
     source: string

@@ -20,10 +20,7 @@ export function resolveBespokeComponentUrls(
     const dataBase = dataBaseUrl?.trim() || PRODUCTION_DATA_BASE_URL
 
     const scriptUrl = resolveUrl(definition.scriptUrl, scriptBaseUrl)
-    const dataUrl = resolveUrl(
-        definition.dataUrl,
-        definition.dataBundled ? scriptBaseUrl : dataBase
-    )
+    const dataUrl = resolveUrl(definition.dataUrl, dataBase)
     const metadataUrl = resolveUrl(definition.metadataFilename, dataUrl)
 
     return { scriptUrl, dataUrl, metadataUrl }
