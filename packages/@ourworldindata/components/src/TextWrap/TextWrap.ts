@@ -43,13 +43,13 @@ function startsWithNewline(text: string): boolean {
     return text.startsWith("\n")
 }
 
+/** How far short of `maxWidth` a line breaks */
+export const TEXT_WRAP_BREAK_MARGIN = 10
+
 /**
  * Shortens text to fit within a target width using binary search.
  * Returns the longest substring that fits within the target width.
  */
-/** How far short of `maxWidth` a line breaks */
-export const TEXT_WRAP_BREAK_MARGIN = 10
-
 export const shortenForTargetWidth = (
     text: string,
     targetWidth: number,

@@ -2,6 +2,7 @@ import { useCallback, useMemo } from "react"
 import { QueryClientProvider } from "@tanstack/react-query"
 import { NuqsAdapter } from "nuqs/adapters/react"
 import { parseAsInteger, parseAsString, parseAsStringEnum } from "nuqs"
+import { findClosestTime } from "@ourworldindata/utils"
 
 import { Frame } from "../../../../components/Frame/Frame.js"
 import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
@@ -29,18 +30,12 @@ import {
 import { FoodSupplyChainWaterfallHorizontal } from "../components/FoodSupplyChainWaterfallHorizontal.js"
 import { FoodSupplyChainConfig } from "../core/config.js"
 import { VERTICAL_CHART_HEIGHT } from "../core/constants.js"
-import { clampYear } from "../core/clampYear.js"
 import {
     queryClient,
     useEntityData,
     useFoodSupplyChainManifest,
 } from "../core/data.js"
-import {
-    FoodSupplyChainEntity,
-    FoodSupplyChainManifest,
-    MEASURES,
-    Measure,
-} from "../core/types.js"
+import { MEASURES, Measure } from "../core/types.js"
 import { buildSubtitle, buildTitle } from "../core/title.js"
 import {
     buildWaterfall,
@@ -59,13 +54,11 @@ export function WaterfallVariant({
     config,
     urls,
 }: VariantProps<FoodSupplyChainConfig>): React.ReactElement {
-    const { ref } = useContainerWidth()
-
     return (
         <EmbedConfigProvider config={config}>
             <NuqsAdapter>
                 <QueryClientProvider client={queryClient}>
-                    <div ref={ref} className="food-supply-chain-chart">
+                    <div className="food-supply-chain-chart">
                         <FetchingWaterfallVariant config={config} urls={urls} />
                     </div>
                 </QueryClientProvider>
@@ -136,6 +129,23 @@ function FetchingWaterfallVariant({
     } = useEntityData(entity?.id, urls.dataUrl)
     const isLoading = useDelayedLoading(isPlaceholderData)
 
+    const year = entityData
+        ? (findClosestTime(entityData.years, selectedYear) ?? selectedYear)
+        : selectedYear
+    const waterfall = useMemo(
+        () =>
+            manifest && entity && entityData
+                ? buildWaterfall({
+                      manifest,
+                      entityData,
+                      measure,
+                      year,
+                      excludedStageKeys: findExcludedStageKeys(entity.slug),
+                  })
+                : undefined,
+        [manifest, entity, entityData, measure, year]
+    )
+
     if (manifestStatus === "pending")
         return <ChartSkeleton className="food-supply-chain-chart-box" />
     if (manifestStatus === "error" || !manifest)
@@ -146,57 +156,6 @@ function FetchingWaterfallVariant({
     if (entityStatus === "error" || !entityData)
         return <ChartError className="food-supply-chain-chart-box" />
 
-    const year = clampYear(entityData.years, selectedYear) ?? selectedYear
-    const waterfall = buildWaterfall({
-        manifest,
-        entityData,
-        measure,
-        year,
-        excludedStageKeys: findExcludedStageKeys(entity.slug),
-    })
-
-    return (
-        <CaptionedWaterfallVariant
-            config={config}
-            manifest={manifest}
-            entity={entity}
-            measure={measure}
-            year={year}
-            years={entityData.years}
-            waterfall={waterfall}
-            isLoading={isLoading}
-            setEntityName={setCountry}
-            setMeasure={setMeasure}
-            setYear={setYear}
-        />
-    )
-}
-
-function CaptionedWaterfallVariant({
-    config,
-    manifest,
-    entity,
-    measure,
-    year,
-    years,
-    waterfall,
-    isLoading,
-    setEntityName,
-    setMeasure,
-    setYear,
-}: {
-    config: FoodSupplyChainConfig
-    manifest: FoodSupplyChainManifest
-    entity: FoodSupplyChainEntity
-    measure: Measure
-    year: number
-    years: number[]
-    waterfall: Waterfall | undefined
-    isLoading: boolean
-    setEntityName: (name: string) => void
-    setMeasure: (measure: Measure) => void
-    setYear: (year: number) => void
-}): React.ReactElement {
     return (
         <>
             {!config.hideControls && (
@@ -205,8 +164,8 @@ function CaptionedWaterfallVariant({
                     entityName={entity.name}
                     measure={measure}
                     year={year}
-                    years={years}
-                    setEntityName={setEntityName}
+                    years={entityData.years}
+                    setEntityName={setCountry}
                     setMeasure={setMeasure}
                     setYear={setYear}
                 />
