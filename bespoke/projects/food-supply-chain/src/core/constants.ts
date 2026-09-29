@@ -77,4 +77,3 @@ export const GROUP_HEADER_GAP = 6
 export const BOX_GAP = 8
 export const VALUE_LABEL_SIDE_GAP = 4
 export const MIN_TICK_LABEL_SPACING = 8
-export const TEXT_WRAP_BREAK_MARGIN = 10
