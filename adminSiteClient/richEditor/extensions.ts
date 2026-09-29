@@ -8,7 +8,11 @@ import {
 import { StarterKit } from "@tiptap/starter-kit"
 import { Subscript } from "@tiptap/extension-subscript"
 import { Superscript } from "@tiptap/extension-superscript"
-import { pmMarkNames, pmNodeNames } from "./serialization/pmJson.js"
+import {
+    pmMarkNames,
+    pmNodeNames,
+    propsAtomBlockTypes,
+} from "./serialization/pmJson.js"
 
 // The TipTap extensions defining the rich editor's document schema. This
 // module must stay headless-safe (no React imports): it is used both by the
@@ -62,6 +66,7 @@ const OwidBlockquote = Node.create({
     group: "block",
     content: "paragraph+",
     defining: true,
+    draggable: true,
     addAttributes() {
         return { citation: { default: null } }
     },
@@ -81,6 +86,7 @@ const OwidCallout = Node.create({
     group: "block",
     content: "(paragraph | heading | bulletList)*",
     defining: true,
+    draggable: true,
     addAttributes() {
         return { icon: { default: null }, title: { default: null } }
     },
@@ -162,6 +168,225 @@ const OwidRawBlock = Node.create({
         ]
     },
 })
+
+/**
+ * Atom node whose `props` attr carries the enriched block verbatim (minus
+ * parseErrors). Round-trips trivially; NodeViews and the block inspector
+ * read/write `props`.
+ */
+function createPropsAtomNode(name: string, blockType: string): Node {
+    return Node.create({
+        name,
+        group: "block",
+        atom: true,
+        draggable: true,
+        addAttributes() {
+            return { props: { default: {} } }
+        },
+        parseHTML() {
+            return [{ tag: `div[data-rich-block="${name}"]` }]
+        },
+        renderHTML() {
+            return [
+                "div",
+                { "data-rich-block": name, class: `rich-block-${blockType}` },
+                `[${blockType}]`,
+            ]
+        },
+    })
+}
+
+const propsAtomNodes = Object.entries(propsAtomBlockTypes).map(
+    ([blockType, nodeName]) => createPropsAtomNode(nodeName, blockType)
+)
+
+// An aside is a margin note: a single line of inline content
+const OwidAside = Node.create({
+    name: pmNodeNames.aside,
+    group: "block",
+    content: "inline*",
+    defining: true,
+    draggable: true,
+    addAttributes() {
+        return { position: { default: null } }
+    },
+    parseHTML() {
+        return [{ tag: "aside[data-rich-aside]" }]
+    },
+    renderHTML() {
+        return ["aside", { "data-rich-aside": "", class: "rich-aside" }, 0]
+    },
+})
+
+// A pull quote's big quote text lives in the `quote` attr (edited via the
+// inspector); its content hole holds the attribution/context text blocks
+const OwidPullQuote = Node.create({
+    name: pmNodeNames.pullQuote,
+    group: "block",
+    content: "paragraph*",
+    defining: true,
+    isolating: true,
+    draggable: true,
+    addAttributes() {
+        return { quote: { default: "" }, align: { default: "left" } }
+    },
+    parseHTML() {
+        return [{ tag: "blockquote[data-rich-pull-quote]" }]
+    },
+    renderHTML() {
+        return [
+            "blockquote",
+            { "data-rich-pull-quote": "", class: "rich-pull-quote" },
+            0,
+        ]
+    },
+})
+
+// Tables are nested containers (table > row > cell) so that cells hold real
+// editable blocks — anything can be typed or dragged into a cell
+const OwidTableBlock = Node.create({
+    name: pmNodeNames.tableBlock,
+    group: "block",
+    content: "tableRow*",
+    defining: true,
+    isolating: true,
+    draggable: true,
+    addAttributes() {
+        return {
+            template: { default: "header-row" },
+            size: { default: "narrow" },
+            // Span[] carried opaquely; editable as plain text in the inspector
+            caption: { default: null },
+        }
+    },
+    parseHTML() {
+        return [{ tag: "div[data-rich-table]" }]
+    },
+    renderHTML() {
+        return ["div", { "data-rich-table": "", class: "rich-table" }, 0]
+    },
+})
+
+const OwidTableRow = Node.create({
+    name: pmNodeNames.tableRow,
+    content: "tableCell*",
+    parseHTML() {
+        return [{ tag: "div[data-rich-table-row]" }]
+    },
+    renderHTML() {
+        return [
+            "div",
+            { "data-rich-table-row": "", class: "rich-table__row" },
+            0,
+        ]
+    },
+})
+
+const OwidTableCell = Node.create({
+    name: pmNodeNames.tableCell,
+    content: "block*",
+    defining: true,
+    isolating: true,
+    parseHTML() {
+        return [{ tag: "div[data-rich-table-cell]" }]
+    },
+    renderHTML() {
+        return [
+            "div",
+            { "data-rich-table-cell": "", class: "rich-table__cell" },
+            0,
+        ]
+    },
+})
+
+function createBlockContainerNode(name: string, className: string): Node {
+    return Node.create({
+        name,
+        group: "block",
+        content: "block*",
+        defining: true,
+        isolating: true,
+        draggable: true,
+        parseHTML() {
+            return [{ tag: `section[data-rich-container="${name}"]` }]
+        },
+        renderHTML() {
+            return [
+                "section",
+                { "data-rich-container": name, class: className },
+                0,
+            ]
+        },
+    })
+}
+
+const OwidGraySection = createBlockContainerNode(
+    pmNodeNames.graySection,
+    "rich-gray-section"
+)
+const OwidExpandableParagraph = createBlockContainerNode(
+    pmNodeNames.expandableParagraph,
+    "rich-expandable-paragraph"
+)
+
+// One column of a two-column layout container. Not insertable on its own;
+// only valid inside the layout nodes below.
+const OwidLayoutColumn = Node.create({
+    name: pmNodeNames.layoutColumn,
+    content: "block*",
+    defining: true,
+    isolating: true,
+    addAttributes() {
+        return { side: { default: "left" } }
+    },
+    parseHTML() {
+        return [{ tag: "div[data-rich-layout-column]" }]
+    },
+    renderHTML({ node }) {
+        return [
+            "div",
+            {
+                "data-rich-layout-column": String(node.attrs.side),
+                class: `rich-layout-column rich-layout-column--${node.attrs.side}`,
+            },
+            0,
+        ]
+    },
+})
+
+function createTwoColumnNode(name: string, className: string): Node {
+    return Node.create({
+        name,
+        group: "block",
+        content: "layoutColumn layoutColumn",
+        defining: true,
+        isolating: true,
+        draggable: true,
+        parseHTML() {
+            return [{ tag: `section[data-rich-layout="${name}"]` }]
+        },
+        renderHTML() {
+            return [
+                "section",
+                { "data-rich-layout": name, class: className },
+                0,
+            ]
+        },
+    })
+}
+
+const OwidStickyRight = createTwoColumnNode(
+    pmNodeNames.stickyRight,
+    "rich-two-column rich-two-column--sticky-right"
+)
+const OwidStickyLeft = createTwoColumnNode(
+    pmNodeNames.stickyLeft,
+    "rich-two-column rich-two-column--sticky-left"
+)
+const OwidSideBySide = createTwoColumnNode(
+    pmNodeNames.sideBySide,
+    "rich-two-column rich-two-column--side-by-side"
+)
 
 const OwidSpanCallout = Node.create({
     name: pmNodeNames.spanCallout,
@@ -284,6 +509,18 @@ export function getRichEditorBaseExtensions(): Extensions {
         OwidImage,
         OwidCta,
         OwidRawBlock,
+        ...propsAtomNodes,
+        OwidAside,
+        OwidPullQuote,
+        OwidTableBlock,
+        OwidTableRow,
+        OwidTableCell,
+        OwidGraySection,
+        OwidExpandableParagraph,
+        OwidLayoutColumn,
+        OwidStickyRight,
+        OwidStickyLeft,
+        OwidSideBySide,
         OwidSpanCallout,
         Subscript,
         Superscript,

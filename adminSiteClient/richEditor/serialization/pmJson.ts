@@ -32,6 +32,44 @@ export const pmNodeNames = {
     hardBreak: "hardBreak",
     spanCallout: "spanCallout",
     text: "text",
+    // atoms whose `props` attr carries the enriched block verbatim
+    chart: "chart",
+    narrativeChart: "narrativeChart",
+    video: "video",
+    prominentLink: "prominentLink",
+    recirc: "recirc",
+    researchAndWriting: "researchAndWriting",
+    allCharts: "allCharts",
+    // editable containers
+    pullQuote: "pullQuote",
+    tableBlock: "tableBlock",
+    tableRow: "tableRow",
+    tableCell: "tableCell",
+    aside: "aside",
+    graySection: "graySection",
+    expandableParagraph: "expandableParagraph",
+    stickyRight: "stickyRight",
+    stickyLeft: "stickyLeft",
+    sideBySide: "sideBySide",
+    layoutColumn: "layoutColumn",
+} as const
+
+/** The enriched block types that map to a uniform props-carrying atom node */
+export const propsAtomBlockTypes = {
+    chart: pmNodeNames.chart,
+    "narrative-chart": pmNodeNames.narrativeChart,
+    video: pmNodeNames.video,
+    "prominent-link": pmNodeNames.prominentLink,
+    recirc: pmNodeNames.recirc,
+    "research-and-writing": pmNodeNames.researchAndWriting,
+    "all-charts": pmNodeNames.allCharts,
+} as const
+
+/** The two-column layout containers, all shaped {left, right} */
+export const twoColumnBlockTypes = {
+    "sticky-right": pmNodeNames.stickyRight,
+    "sticky-left": pmNodeNames.stickyLeft,
+    "side-by-side": pmNodeNames.sideBySide,
 } as const
 
 export const pmMarkNames = {
