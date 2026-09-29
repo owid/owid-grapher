@@ -1076,3 +1076,106 @@ $canvas-wide-measure: 1280px;
         box-shadow: none;
     }
 }
+
+// ── props containers (expander, data callout, topic page intro, …) ─────────
+
+.rich-props-container {
+    border: 1px dashed #d5e2f0;
+    border-radius: 8px;
+    padding: 8px 12px;
+}
+
+.rich-props-container__header {
+    padding: 4px 0 8px;
+    border-bottom: 1px solid #edf2f8;
+    margin-bottom: 8px;
+    color: #1d3d63;
+
+    p {
+        margin: 2px 0 0;
+        color: #577291;
+        font-size: 0.875rem;
+    }
+}
+
+.rich-props-container__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.rich-props-container__chip {
+    background: #f3f7fb;
+    border: 1px solid #d5e2f0;
+    border-radius: 12px;
+    padding: 2px 10px;
+    font-size: 12px;
+    color: #577291;
+}
+
+.rich-align-block__content--center {
+    text-align: center;
+}
+
+.rich-align-block__content--right {
+    text-align: right;
+}
+
+// ── key insights ────────────────────────────────────────────────────────────
+
+.rich-key-insights__slides {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.rich-key-insight-slide {
+    border: 1px solid #e5e1d8;
+    border-radius: 6px;
+    background: #fff;
+}
+
+.rich-key-insight-slide__header {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    padding: 6px 12px;
+    background: #faf9f6;
+    border-bottom: 1px solid #e5e1d8;
+    border-radius: 6px 6px 0 0;
+    cursor: pointer;
+
+    &:hover {
+        background: #f3f7fb;
+    }
+}
+
+.rich-key-insight-slide__visual {
+    color: #8a8577;
+    font-size: 12px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.rich-key-insight-slide__content {
+    padding: 8px 12px;
+    // keep the slide clickable/typable even when empty
+    min-height: 32px;
+}
+
+// ── generic atom cards ──────────────────────────────────────────────────────
+
+.rich-atom-block__code {
+    margin: 0;
+    padding: 12px;
+    background: #f6f5f2;
+    border-radius: 4px;
+    font-size: 12px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: 320px;
+    overflow-y: auto;
+    color: #514f49;
+}

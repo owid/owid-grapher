@@ -14,6 +14,7 @@ import {
     pmMarkNames,
     pmNodeNames,
     propsAtomBlockTypes,
+    propsContainerBlockTypes,
 } from "./serialization/pmJson.js"
 
 // The TipTap extensions defining the rich editor's document schema. This
@@ -28,8 +29,11 @@ import {
  * changes, attr renames). The sync server discards and reseeds ydoc rows
  * with a stale version from the materialized draft JSON — never migrate a
  * ydoc in place. Purely additive changes (a new node type) don't need a bump.
+ *
+ * v2: keyInsights changed from a props atom to an editable container of
+ * keyInsightSlide nodes.
  */
-export const RICH_EDITOR_PM_SCHEMA_VERSION = 1
+export const RICH_EDITOR_PM_SCHEMA_VERSION = 2
 
 // `block*` rather than the default `block+`: empty documents exist in
 // production (fragments used as pure front-matter containers)
@@ -211,6 +215,112 @@ function createPropsAtomNode(name: string, blockType: string): Node {
 const propsAtomNodes = Object.entries(propsAtomBlockTypes).map(
     ([blockType, nodeName]) => createPropsAtomNode(nodeName, blockType)
 )
+
+/**
+ * Editable container whose non-content fields travel in a `props` attr,
+ * mirroring the props atoms (see propsContainerBlockTypes).
+ */
+function createPropsContainerNode(
+    name: string,
+    blockType: string,
+    content: string
+): Node {
+    return Node.create({
+        name,
+        group: "block",
+        content,
+        defining: true,
+        isolating: true,
+        draggable: true,
+        addAttributes() {
+            return { props: { default: {} } }
+        },
+        parseHTML() {
+            return [{ tag: `section[data-rich-container="${name}"]` }]
+        },
+        renderHTML() {
+            return [
+                "section",
+                {
+                    "data-rich-container": name,
+                    class: `rich-block-${blockType}`,
+                },
+                0,
+            ]
+        },
+    })
+}
+
+// topic-page-intro and pull-chart hold text paragraphs only; the rest hold
+// arbitrary blocks
+const propsContainerContentExpressions: Record<string, string> = {
+    [pmNodeNames.topicPageIntro]: "paragraph*",
+    [pmNodeNames.pullChart]: "paragraph*",
+}
+
+const propsContainerNodes = Object.entries(propsContainerBlockTypes).map(
+    ([blockType, nodeName]) =>
+        createPropsContainerNode(
+            nodeName,
+            blockType,
+            propsContainerContentExpressions[nodeName] ?? "block*"
+        )
+)
+
+// Key insights nest one more level: the container holds slides, each slide
+// holds blocks. Slides are structural children (like table rows): not
+// draggable, not identified, addressed via their parent.
+const OwidKeyInsights = Node.create({
+    name: pmNodeNames.keyInsights,
+    group: "block",
+    content: `${pmNodeNames.keyInsightSlide}*`,
+    defining: true,
+    isolating: true,
+    draggable: true,
+    addAttributes() {
+        return { props: { default: {} } }
+    },
+    parseHTML() {
+        return [
+            {
+                tag: `section[data-rich-container="${pmNodeNames.keyInsights}"]`,
+            },
+        ]
+    },
+    renderHTML() {
+        return [
+            "section",
+            {
+                "data-rich-container": pmNodeNames.keyInsights,
+                class: "rich-block-key-insights",
+            },
+            0,
+        ]
+    },
+})
+
+const OwidKeyInsightSlide = Node.create({
+    name: pmNodeNames.keyInsightSlide,
+    content: "block*",
+    defining: true,
+    isolating: true,
+    addAttributes() {
+        return { props: { default: {} } }
+    },
+    parseHTML() {
+        return [{ tag: "div[data-rich-key-insight-slide]" }]
+    },
+    renderHTML() {
+        return [
+            "div",
+            {
+                "data-rich-key-insight-slide": "",
+                class: "rich-key-insight-slide",
+            },
+            0,
+        ]
+    },
+})
 
 // An aside is a margin note: a single line of inline content
 const OwidAside = Node.create({
@@ -554,6 +664,9 @@ export function getRichEditorBaseExtensions(
         OwidCta,
         OwidRawBlock,
         ...propsAtomNodes,
+        ...propsContainerNodes,
+        OwidKeyInsights,
+        OwidKeyInsightSlide,
         OwidAside,
         OwidPullQuote,
         OwidTableBlock,
