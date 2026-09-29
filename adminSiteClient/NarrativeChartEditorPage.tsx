@@ -5,7 +5,11 @@ import type { History } from "history"
 import { GrapherInterface } from "@ourworldindata/types"
 import { Admin } from "./Admin.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
-import { ChartEditorView, ChartEditorViewManager } from "./ChartEditorView.js"
+import {
+    ChartEditorLoading,
+    ChartEditorView,
+    ChartEditorViewManager,
+} from "./ChartEditorView.js"
 import {
     NarrativeChartEditor,
     NarrativeChartEditorManager,
@@ -32,8 +36,12 @@ export class NarrativeChartEditorPage
 
         makeObservable(this, {
             references: observable,
+            isConfigLoaded: observable.ref,
         })
     }
+
+    // See ChartEditorLoading
+    isConfigLoaded = false
 
     id?: number
     name?: string
@@ -60,6 +68,7 @@ export class NarrativeChartEditorPage
         this.parentChartId = data.parentChartId
         this.parentConfig = data.parentConfigFull
         this.parentUrl = data.parentUrl
+        runInAction(() => (this.isConfigLoaded = true))
     }
 
     @computed get admin(): Admin {
@@ -104,6 +113,7 @@ export class NarrativeChartEditorPage
     }
 
     override render(): React.ReactElement {
+        if (!this.isConfigLoaded) return <ChartEditorLoading />
         return <ChartEditorView manager={this} />
     }
 }

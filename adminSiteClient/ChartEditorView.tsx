@@ -82,6 +82,21 @@ interface ChartEditorViewProps<Editor> {
     manager: ChartEditorViewManager<Editor>
 }
 
+/**
+ * What the editor pages show while they load a chart's config layers:
+ * `ChartEditorView` applies those to the chart only once, when its indicator
+ * database has loaded, so it must not be mounted before they are here
+ */
+export function ChartEditorLoading(): React.ReactElement {
+    return (
+        <AdminLayout noSidebar>
+            <main className="ChartEditorPage">
+                <LoadingBlocker isLoading />
+            </main>
+        </AdminLayout>
+    )
+}
+
 @observer
 export class ChartEditorView<
     Editor extends AbstractChartEditor,
