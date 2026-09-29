@@ -34,11 +34,9 @@ import { faFigma } from "@fortawesome/free-brands-svg-icons"
 import { AdminLayout } from "./AdminLayout.js"
 import { Timeago } from "./Forms.js"
 import { ColumnsType } from "antd/es/table/InternalTable.js"
-import {
-    buildSearchWordsFromSearchString,
-    filterFunctionForSearchWords,
-    highlightFunctionForSearchWords,
-} from "../adminShared/search.js"
+import { SearchField } from "../adminShared/searchFilter.js"
+import { useListSearch } from "./adminTableHelpers.js"
+import { SearchHelp } from "./AdminTable.js"
 import { Admin } from "./Admin.js"
 import {
     ALL_GRAPHER_CHART_TYPES,
@@ -94,6 +92,46 @@ const panoramaIcon = <FontAwesomeIcon icon={faPanorama} size="sm" />
 const plusIcon = <FontAwesomeIcon icon={faPlus} size="sm" />
 
 const NotificationContext = createContext(null)
+
+const SEARCH_FIELDS: SearchField<OwidGdocDataInsightIndexItem>[] = [
+    {
+        name: "title",
+        type: "string",
+        description: "Title",
+        get: (d) => d.title,
+    },
+    { name: "slug", type: "string", description: "Slug", get: (d) => d.slug },
+    {
+        name: "type",
+        type: "string",
+        description: "Chart type",
+        get: (d) => _.startCase(d.chartType),
+    },
+    {
+        name: "tag",
+        type: "string",
+        description: "Topic tag",
+        get: (d) => d.tags?.map((tag) => tag.name),
+    },
+    {
+        name: "author",
+        type: "string",
+        description: "Author",
+        get: (d) => d.authors,
+    },
+    {
+        name: "text",
+        type: "string",
+        description: "Body text",
+        get: (d) => d.markdown ?? "",
+    },
+    {
+        name: "published",
+        type: "boolean",
+        description: "Published",
+        get: (d) => d.published,
+    },
+]
 
 function createColumns(ctx: {
     availableTopicTags: MinimalTagWithMetadata[]
@@ -308,7 +346,6 @@ export function DataInsightIndexPage() {
         [availableTags]
     )
 
-    const [searchValue, setSearchValue] = useState("")
     const [topicTagFilter, setTopicTagFilter] = useState<string | undefined>()
     const [chartTypeFilter, setChartTypeFilter] = useState<
         GrapherChartOrMapType | undefined
@@ -330,12 +367,7 @@ export function DataInsightIndexPage() {
     const [notificationApi, notificationContextHolder] =
         notification.useNotification()
 
-    const searchWords = useMemo(
-        () => buildSearchWordsFromSearchString(searchValue),
-        [searchValue]
-    )
-
-    const filteredDataInsights = useMemo(() => {
+    const prefilteredDataInsights = useMemo(() => {
         const topicTagFilterFn = (
             dataInsight: OwidGdocDataInsightIndexItem
         ) => {
@@ -370,32 +402,21 @@ export function DataInsightIndexPage() {
             }
         }
 
-        const searchFilterFn = filterFunctionForSearchWords(
-            searchWords,
-            (dataInsight: OwidGdocDataInsightIndexItem) => [
-                dataInsight.title,
-                dataInsight.slug,
-                _.startCase(dataInsight.chartType),
-                ...(dataInsight.tags ?? []).map((tag) => tag.name),
-                ...dataInsight.authors,
-                dataInsight.markdown ?? "",
-            ]
-        )
-
         return dataInsights.filter(
             (di) =>
                 topicTagFilterFn(di) &&
                 chartTypeFilterFn(di) &&
-                publicationFilterFn(di) &&
-                searchFilterFn(di)
+                publicationFilterFn(di)
         )
-    }, [
-        dataInsights,
-        topicTagFilter,
-        chartTypeFilter,
-        publicationFilter,
-        searchWords,
-    ])
+    }, [dataInsights, topicTagFilter, chartTypeFilter, publicationFilter])
+
+    const {
+        results: filteredDataInsights,
+        highlight: highlightFn,
+        search,
+    } = useListSearch(prefilteredDataInsights, SEARCH_FIELDS)
+    const searchValue = search.value
+    const setSearchValue = search.onChange
 
     // Reset to page 1 when filters change
     useEffect(() => {
@@ -477,8 +498,6 @@ export function DataInsightIndexPage() {
     )
 
     const columns = useMemo(() => {
-        const highlightFn = highlightFunctionForSearchWords(searchWords)
-
         const triggerImageUploadFlow = (
             dataInsight: DataInsightIndexItemThatCanBeUploaded
         ) => setDataInsightForImageUpload(dataInsight)
@@ -493,7 +512,7 @@ export function DataInsightIndexPage() {
             triggerImageUploadFlow,
         })
     }, [
-        searchWords,
+        highlightFn,
         availableTags,
         availableTopicTags,
         tagGraphRolesById,
@@ -573,6 +592,7 @@ export function DataInsightIndexPage() {
                                 }}
                                 style={{ width: 350 }}
                             />
+                            <SearchHelp fields={SEARCH_FIELDS} />
                             <Select
                                 value={topicTagFilter}
                                 placeholder="Select a topic tag..."
