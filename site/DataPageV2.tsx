@@ -130,6 +130,16 @@ export const DataPageV2 = (props: {
                     />
                 )}
                 <IFrameDetector />
+                {/* Agents that don't negotiate content look for this link and
+                    fetch it as a second request; without it they only ever see
+                    the HTML, whose chart is client-rendered. Every published
+                    chart with indicator metadata renders through here rather
+                    than through GrapherPage, so the link has to be in both. */}
+                <link
+                    rel="alternate"
+                    type="text/markdown"
+                    href={`${canonicalUrl}.md`}
+                />
                 <link rel="preconnect" href={dataApiOrigin} />
                 {variableIds.flatMap((variableId) =>
                     [
