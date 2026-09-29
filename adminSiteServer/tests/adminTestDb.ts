@@ -69,17 +69,9 @@ export async function resetDbButKeepBaselines(testKnex: Knex): Promise<void> {
     )
 }
 
-export async function setupAdminTestDatabase({
-    serverPool,
-}: {
-    /** Overrides for the connection pool of the server under test */
-    serverPool?: Knex.PoolConfig
-} = {}): Promise<AdminTestDatabase> {
+export async function setupAdminTestDatabase(): Promise<AdminTestDatabase> {
     const testKnex = knex(dbTestConfig)
-    const serverKnex = knex({
-        ...dbTestConfig,
-        pool: { ...dbTestConfig.pool, ...serverPool },
-    })
+    const serverKnex = knex(dbTestConfig)
     const { apiKey, userId } = await seedBaselineData(testKnex)
 
     await resetDbButKeepBaselines(testKnex)
