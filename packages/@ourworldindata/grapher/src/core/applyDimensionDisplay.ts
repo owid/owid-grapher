@@ -4,11 +4,18 @@ import { trimObject } from "@ourworldindata/utils"
 import {
     ColumnTypeNames,
     TransformType,
+    isIndicatorDimension,
     type ColumnSlug,
     type OwidChartDimensionInterface,
     type OwidColumnDef,
     type OwidVariableDisplayConfigInterface,
 } from "@ourworldindata/types"
+
+/** A slot's display, addressed by the column it applies to */
+export interface ColumnDisplayOverride {
+    columnSlug: ColumnSlug
+    display: OwidVariableDisplayConfigInterface | undefined
+}
 
 /**
  * Lay each slot's `display` over the definition of the column it points at.
@@ -16,8 +23,10 @@ import {
  * A column definition says what a column *is*, and belongs to whoever supplies
  * the data. A dimension's `display` says what *this chart* makes of it: call
  * it something else here, show two decimals here. The two are the same shape,
- * and the chart's wins. Where several slots name one column, the first one's
- * display is used.
+ * and the chart's wins.
+ *
+ * Only slots naming a column of the host's own table are applied. Indicator
+ * slots get their display from the OWID pipeline when it builds the table.
  *
  * Two of those fields are not just recorded but acted on. `conversionFactor`
  * scales the column's values (and turns an integer column numeric when the
@@ -29,19 +38,36 @@ import {
 export const applyDimensionDisplayOverrides = (
     table: OwidTable,
     dimensions: OwidChartDimensionInterface[] | undefined
+): OwidTable =>
+    applyColumnDisplayOverrides(
+        table,
+        (dimensions ?? []).flatMap((dimension) =>
+            !isIndicatorDimension(dimension) && dimension.slug !== undefined
+                ? [{ columnSlug: dimension.slug, display: dimension.display }]
+                : []
+        )
+    )
+
+/**
+ * Lay each display over the definition of the column it names. Where several
+ * overrides name one column, the first one wins.
+ */
+export const applyColumnDisplayOverrides = (
+    table: OwidTable,
+    overrides: ColumnDisplayOverride[]
 ): OwidTable => {
     const displayBySlug = new Map<
         ColumnSlug,
         OwidVariableDisplayConfigInterface
     >()
-    for (const { slug, display } of _.uniqBy(
-        dimensions ?? [],
-        (dimension) => dimension.slug
+    for (const { columnSlug, display } of _.uniqBy(
+        overrides,
+        (override) => override.columnSlug
     )) {
-        if (slug === undefined || !table.has(slug)) continue
+        if (!table.has(columnSlug)) continue
         const definedDisplay = trimObject(display ?? {})
         if (Object.keys(definedDisplay).length > 0)
-            displayBySlug.set(slug, definedDisplay)
+            displayBySlug.set(columnSlug, definedDisplay)
     }
     if (displayBySlug.size === 0) return table
 

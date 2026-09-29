@@ -11,6 +11,7 @@ import {
     ErrorValue,
     OwidChartDimensionInterfaceWithMandatorySlug,
     OwidChartDimensionInterface,
+    OwidVariableDisplayConfigInterface,
     isIndicatorDimension,
     EntityName,
     TimeInterval,
@@ -44,7 +45,7 @@ import {
 import { isContinentsVariableId } from "./GrapherConstants"
 import * as R from "remeda"
 import { getDimensionColumnSlug } from "../chart/ChartDimension.js"
-import { applyDimensionDisplayOverrides } from "./applyDimensionDisplay.js"
+import { applyColumnDisplayOverrides } from "./applyDimensionDisplay.js"
 
 export const legacyToOwidTableAndDimensionsWithMandatorySlug = (
     json: MultipleOwidVariableDataDimensionsMap,
@@ -384,31 +385,27 @@ export const legacyToOwidTableAndDimensions = (
         ])
     }
 
-    return applyDimensionDisplayOverrides(
+    return applyColumnDisplayOverrides(
         joinedVariablesTable,
-        dimensions.map((dimension) =>
-            withPendingIndicatorFactor(dimension, json)
-        )
+        dimensions.map((dimension) => ({
+            columnSlug: dimension.slug,
+            display: displayWithIndicatorFactor(dimension, json),
+        }))
     )
 }
 
-/** The slot, with its indicator's `conversionFactor` as its display's default */
-const withPendingIndicatorFactor = (
+/** The slot's display, with its indicator's `conversionFactor` as the default */
+const displayWithIndicatorFactor = (
     dimension: OwidChartDimensionInterfaceWithMandatorySlug,
     json: MultipleOwidVariableDataDimensionsMap
-): OwidChartDimensionInterfaceWithMandatorySlug => {
+): OwidVariableDisplayConfigInterface => {
     const indicatorFactor =
         dimension.variableId !== undefined
             ? json.get(dimension.variableId)?.metadata.display?.conversionFactor
             : undefined
     return {
-        property: dimension.property,
-        variableId: dimension.variableId,
-        slug: dimension.slug,
-        display: {
-            conversionFactor: indicatorFactor,
-            ...trimObject(dimension.display ?? {}),
-        },
+        conversionFactor: indicatorFactor,
+        ...trimObject(dimension.display ?? {}),
     }
 }
 
