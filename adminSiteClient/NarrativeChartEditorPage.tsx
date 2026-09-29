@@ -32,6 +32,7 @@ export class NarrativeChartEditorPage
 
         makeObservable(this, {
             references: observable,
+            isConfigLoaded: observable,
         })
     }
 
@@ -48,18 +49,25 @@ export class NarrativeChartEditorPage
 
     references: References | undefined = undefined
 
+    isConfigLoaded = false
+
     async fetchNarrativeChartData(): Promise<void> {
-        const data = await this.context.admin.getJSON(
-            `/api/narrative-charts/${this.narrativeChartId}.config.json`
-        )
-        this.id = data.id
-        this.name = data.name
-        this.configId = data.chartConfigId
-        this.fullConfig = data.configFull
-        this.patchConfig = data.configPatch
-        this.parentChartId = data.parentChartId
-        this.parentConfig = data.parentConfigFull
-        this.parentUrl = data.parentUrl
+        try {
+            const data = await this.context.admin.getJSON(
+                `/api/narrative-charts/${this.narrativeChartId}.config.json`
+            )
+            this.id = data.id
+            this.name = data.name
+            this.configId = data.chartConfigId
+            this.fullConfig = data.configFull
+            this.patchConfig = data.configPatch
+            this.parentChartId = data.parentChartId
+            this.parentConfig = data.parentConfigFull
+            this.parentUrl = data.parentUrl
+        } finally {
+            // opens even when the fetch failed, which the admin reports
+            runInAction(() => (this.isConfigLoaded = true))
+        }
     }
 
     @computed get admin(): Admin {

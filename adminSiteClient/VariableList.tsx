@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query"
 import {
     Alert,
     Button,
+    Checkbox,
     Popover,
     Spin,
     Table,
@@ -71,6 +72,16 @@ export interface DatasetSearchGroup {
     uploadedAt?: Date
     uploadedBy?: string | null
     variables: VariableListItem[]
+    /**
+     * Shown because its indicators are ticked in the picker rather than
+     * because they match the search, so the group has no match count.
+     */
+    pinned?: boolean
+    /**
+     * The caller pages through these indicators itself, so the group holds
+     * one page of them and offers no "more in this dataset" link.
+     */
+    paged?: boolean
 }
 
 interface VariableListProps {
@@ -91,6 +102,12 @@ interface VariableListProps {
      */
     sortable?: boolean
     pagination?: TableProps<VariableListItem>["pagination"]
+    /**
+     * Turns each row into a checkbox rather than a link to the indicator —
+     * what the chart editor's picker needs once a search has narrowed to one
+     * dataset and grouping has nothing left to group.
+     */
+    selection?: IndicatorSelection
 }
 
 function plural(count: number, noun: string): string {
@@ -363,11 +380,13 @@ function createColumns({
     highlight,
     searchWords,
     sortable,
+    selection,
 }: {
     fields: VariableListField[]
     highlight: SearchHighlighter
     searchWords: SearchWord[]
     sortable: boolean
+    selection?: IndicatorSelection
 }): TableColumnsType<VariableListItem> {
     const width = columnWidths(fields)
     const columnsByField: Record<
@@ -443,7 +462,11 @@ function createColumns({
             key: "name",
             sorter: sortable && ((a, b) => a.name.localeCompare(b.name)),
             render: (_, variable) => (
-                <IndicatorCell variable={variable} highlight={highlight} />
+                <IndicatorCell
+                    variable={variable}
+                    highlight={highlight}
+                    selection={selection}
+                />
             ),
         },
         ...fields.map((field) => columnsByField[field]),
@@ -462,11 +485,18 @@ export function VariableList({
     loading,
     sortable = true,
     pagination,
+    selection,
 }: VariableListProps): React.ReactElement {
     const columns = useMemo(() => {
         const highlight = highlightFunctionForSearchWords(searchWords)
-        return createColumns({ fields, highlight, searchWords, sortable })
-    }, [fields, searchWords, sortable])
+        return createColumns({
+            fields,
+            highlight,
+            searchWords,
+            sortable,
+            selection,
+        })
+    }, [fields, searchWords, sortable, selection])
 
     return (
         <div className="variable-list">
@@ -509,18 +539,24 @@ function DatasetGroupHeader({
         .join("/")
     return (
         <div className="variable-list__group">
-            <Link
-                className="variable-list__group-name"
-                to={`/datasets/${group.id}`}
-            >
-                {highlight(group.name)}
-            </Link>
+            {group.id > 0 ? (
+                <Link
+                    className="variable-list__group-name"
+                    to={`/datasets/${group.id}`}
+                >
+                    {highlight(group.name)}
+                </Link>
+            ) : (
+                <span className="variable-list__group-name">{group.name}</span>
+            )}
             {path && <span className="variable-list__group-path">{path}</span>}
             <span className="variable-list__group-meta">
-                {plural(
-                    group.matchCount,
-                    isSearch ? "matching indicator" : "indicator"
-                )}
+                {group.pinned
+                    ? "selected"
+                    : plural(
+                          group.matchCount,
+                          isSearch ? "matching indicator" : "indicator"
+                      )}
                 {group.uploadedAt && (
                     <>
                         {" · "}
@@ -599,31 +635,51 @@ function EmptySearchHint({
     )
 }
 
-/** The indicator's own cell: its name, linking to the indicator. */
+export interface IndicatorSelection {
+    selectedIds: Set<number>
+    onToggle: (variable: VariableListItem) => void
+}
+
+/** The indicator's own cell: a checkbox when picking, a link when browsing. */
 function IndicatorCell({
     variable,
     highlight,
+    selection,
 }: {
     variable: VariableListItem
     highlight: SearchHighlighter
+    selection?: IndicatorSelection
 }): React.ReactElement {
+    // After the name in a checkbox, before it in a link. Both flags show when
+    // picking too: the picker is where "is this safe to put on a chart?" is
+    // asked, and a fifth of all indicators are private.
+    const flagClass = selection
+        ? "variable-list__flag variable-list__flag--after"
+        : "variable-list__flag"
+    const flag = variable.nonRedistributable ? (
+        <Tooltip title="Non-redistributable — the data download is disabled on charts using it">
+            <FontAwesomeIcon className={flagClass} icon={faLock} />
+        </Tooltip>
+    ) : variable.isPrivate ? (
+        <Tooltip title="Unpublished — its dataset is private">
+            <FontAwesomeIcon className={flagClass} icon={faEyeSlash} />
+        </Tooltip>
+    ) : null
+
+    if (selection)
+        return (
+            <Checkbox
+                checked={selection.selectedIds.has(variable.id)}
+                onChange={() => selection.onToggle(variable)}
+            >
+                {highlight(variable.name)}
+                {flag}
+            </Checkbox>
+        )
+
     return (
         <>
-            {variable.nonRedistributable ? (
-                <Tooltip title="Non-redistributable — the data download is disabled on charts using it">
-                    <FontAwesomeIcon
-                        className="variable-list__flag"
-                        icon={faLock}
-                    />
-                </Tooltip>
-            ) : variable.isPrivate ? (
-                <Tooltip title="Unpublished — its dataset is private">
-                    <FontAwesomeIcon
-                        className="variable-list__flag"
-                        icon={faEyeSlash}
-                    />
-                </Tooltip>
-            ) : null}
+            {flag}
             <Link to={`/variables/${variable.id}`} title={variable.catalogPath}>
                 {highlight(variable.name)}
             </Link>
@@ -652,6 +708,7 @@ export function GroupedVariableList({
     loading,
     footer,
     notice,
+    selection,
 }: {
     groups: DatasetSearchGroup[]
     /** Groups say "matching indicators" for a search, "indicators" otherwise. */
@@ -665,6 +722,11 @@ export function GroupedVariableList({
     footer?: React.ReactNode
     /** Shown under the search box, where it doesn't push the box around. */
     notice?: React.ReactNode
+    /**
+     * Turns each row into a checkbox rather than a link to the indicator —
+     * what the chart editor's picker needs from the same results.
+     */
+    selection?: IndicatorSelection
 }): React.ReactElement {
     const highlight = useMemo(
         () => highlightFunctionForSearchWords(searchWords),
@@ -699,6 +761,7 @@ export function GroupedVariableList({
                                             <IndicatorCell
                                                 variable={variable}
                                                 highlight={highlight}
+                                                selection={selection}
                                             />
                                         </td>
                                         <td style={{ width: width.usage }}>
@@ -711,30 +774,32 @@ export function GroupedVariableList({
                                 ))}
                             </tbody>
                         </table>
-                        {group.matchCount > group.variables.length && (
-                            <button
-                                type="button"
-                                className="variable-list__group-more"
-                                onClick={() =>
-                                    onSearchValue(
-                                        // the dataset first: it's what the
-                                        // link narrows to
-                                        [
-                                            `datasetid:${group.id}`,
-                                            searchValue.trim(),
-                                        ]
-                                            .filter(Boolean)
-                                            .join(" ")
-                                    )
-                                }
-                            >
-                                {group.matchCount - group.variables.length} more
-                                in this dataset →
-                            </button>
-                        )}
+                        {!group.paged &&
+                            group.matchCount > group.variables.length && (
+                                <button
+                                    type="button"
+                                    className="variable-list__group-more"
+                                    onClick={() =>
+                                        onSearchValue(
+                                            // the dataset first: it's what the
+                                            // link narrows to
+                                            [
+                                                `datasetid:${group.id}`,
+                                                searchValue.trim(),
+                                            ]
+                                                .filter(Boolean)
+                                                .join(" ")
+                                        )
+                                    }
+                                >
+                                    {group.matchCount - group.variables.length}{" "}
+                                    more in this dataset →
+                                </button>
+                            )}
                     </div>
                 ))}
-                {groups.length === 0 && !loading && (
+                {/* ticked rows can remain when nothing else does */}
+                {groups.every((group) => group.pinned) && !loading && (
                     <>
                         <div className="variable-list-grouped__empty">
                             No indicators match this search.

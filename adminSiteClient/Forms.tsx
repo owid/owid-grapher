@@ -1277,6 +1277,18 @@ export class Modal extends React.Component<ModalProps> {
         if (this.dismissable) this.props.onClose()
     }
 
+    @action.bound onKeyDown(event: KeyboardEvent) {
+        if (event.key !== "Escape" || event.defaultPrevented) return
+        // Only for the modal being used: when focus is in something opened on
+        // top of it — an error dialog, say — that gets the key instead
+        const focused = document.activeElement
+        const isFocusElsewhere =
+            focused &&
+            focused !== document.body &&
+            !this.base.current?.contains(focused)
+        if (!isFocusElsewhere) this.props.onClose()
+    }
+
     override componentDidMount() {
         // HACK (Mispy): The normal ways of doing this (stopPropagation etc) don't seem to work here
         this.base.current!.addEventListener("click", () => {
@@ -1287,10 +1299,12 @@ export class Modal extends React.Component<ModalProps> {
             () => document.body.addEventListener("click", this.onClickOutside),
             0
         )
+        document.addEventListener("keydown", this.onKeyDown)
     }
 
     override componentWillUnmount() {
         document.body.removeEventListener("click", this.onClickOutside)
+        document.removeEventListener("keydown", this.onKeyDown)
     }
 
     override render() {

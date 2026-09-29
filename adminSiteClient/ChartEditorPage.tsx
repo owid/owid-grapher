@@ -49,6 +49,7 @@ export class ChartEditorPage
             availableTags: observable,
             forceDatapage: observable.ref,
             variableIdsByCatalogPath: observable.ref,
+            isConfigLoaded: observable,
         })
     }
 
@@ -68,6 +69,8 @@ export class ChartEditorPage
     etlConfig: GrapherInterface | undefined = undefined
 
     isInheritanceEnabled: boolean | undefined = undefined
+
+    isConfigLoaded = false
 
     async fetchGrapherConfig(): Promise<void> {
         const { grapherId, grapherConfig } = this.props
@@ -197,8 +200,16 @@ export class ChartEditorPage
     }
 
     @action.bound refresh(): void {
-        void this.fetchGrapherConfig()
-        void this.fetchParentConfig()
+        // Both layers before the editor opens: its baseline for "has anything
+        // changed" is taken once the chart is ready, and diffing the patch
+        // against a parent that hasn't arrived yet would mark it modified.
+        // Settled rather than all-fulfilled, so a failed fetch — which the
+        // admin already reports — still opens the editor, as it always has.
+        this.isConfigLoaded = false
+        void Promise.allSettled([
+            this.fetchGrapherConfig(),
+            this.fetchParentConfig(),
+        ]).then(() => runInAction(() => (this.isConfigLoaded = true)))
         void this.fetchLogs()
         void this.fetchRefs()
         void this.fetchRedirects()
