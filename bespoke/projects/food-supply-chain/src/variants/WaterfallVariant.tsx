@@ -48,9 +48,6 @@ const DEFAULT_ENTITY_NAME = WORLD_ENTITY_NAME
 const DEFAULT_MEASURE: Measure = "energy"
 const LATEST_YEAR = Infinity
 
-const FOOTER_NOTE =
-    "Figures are per person per day, from the FAO's Supply Utilization Accounts. A country that re-exports food can show far more entering its food system than its own population could eat."
-
 export function WaterfallVariant({
     config,
     urls,
@@ -166,10 +163,7 @@ function FetchingWaterfallVariant({
                         <NoDataMessage entityName={entity.name} year={year} />
                     )}
                 </div>
-                <ChartFooter
-                    source={metadata.sources.join("; ")}
-                    note={FOOTER_NOTE}
-                />
+                <ChartFooter source={metadata.sources.join("; ")} />
             </Frame>
         </>
     )
