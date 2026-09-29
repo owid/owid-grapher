@@ -41,12 +41,14 @@ export class EditorMarimekkoTab<
         return (
             <div className="EditorMarimekkoTab">
                 <Section name="Filtering">
-                    <NumberField
-                        label="Override X axis target year"
-                        value={this.xOverrideTimeInputField}
-                        onValue={this.onXOverrideYear}
-                        allowNegative
-                    />
+                    {grapherState.canOverrideXTime && (
+                        <NumberField
+                            label="Override X axis target year"
+                            value={this.xOverrideTimeInputField}
+                            onValue={this.onXOverrideYear}
+                            allowNegative
+                        />
+                    )}
 
                     <Toggle
                         label="Exclude entities that do not belong in any color group"

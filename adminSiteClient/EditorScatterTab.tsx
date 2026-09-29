@@ -84,12 +84,16 @@ export class EditorScatterTab<
                         value={!!grapherState.hideConnectedScatterLines}
                         onValue={this.onToggleConnection}
                     />
-                    <NumberField
-                        label="Override X axis target year"
-                        value={this.xOverrideTimeInputValue}
-                        onValue={(val) => (this.xOverrideTimeInputValue = val)}
-                        allowNegative
-                    />
+                    {grapherState.canOverrideXTime && (
+                        <NumberField
+                            label="Override X axis target year"
+                            value={this.xOverrideTimeInputValue}
+                            onValue={(val) =>
+                                (this.xOverrideTimeInputValue = val)
+                            }
+                            allowNegative
+                        />
+                    )}
                 </Section>
                 <Section name="Point Labels">
                     <SelectField

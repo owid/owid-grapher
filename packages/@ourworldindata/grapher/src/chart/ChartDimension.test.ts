@@ -67,16 +67,24 @@ describe("pinning a slot to a year", () => {
         })
     })
 
-    it("leaves a host column as it is", () => {
+    it("refuses to pin a host column", () => {
         const dimension = new ChartDimension(
             { property: DimensionProperty.x, slug: "rent_index" },
             manager
         )
-        dimension.targetYear = 2000
-        expect(dimension.targetYear).toBeUndefined()
+        expect(() => (dimension.targetYear = 2000)).toThrow()
         expect(dimension.toObject()).toEqual({
             property: DimensionProperty.x,
             slug: "rent_index",
         })
+    })
+
+    it("accepts clearing the year on a host column", () => {
+        const dimension = new ChartDimension(
+            { property: DimensionProperty.x, slug: "rent_index" },
+            manager
+        )
+        dimension.targetYear = undefined
+        expect(dimension.targetYear).toBeUndefined()
     })
 })
