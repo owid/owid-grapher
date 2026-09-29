@@ -4,11 +4,14 @@
 //
 // Requires `yarn build` to have run first; execute via `yarn testPackage`.
 
-import * as fs from "node:fs"
 import * as path from "node:path"
 import { fileURLToPath, pathToFileURL } from "node:url"
-import { init as initEsModuleLexer, parse } from "es-module-lexer/minimal"
 import { beforeAll, describe, expect, it } from "vitest"
+import {
+    assertFilesExist,
+    readImportSpecifiers,
+    // oxlint-disable-next-line import-x-js/no-relative-packages
+} from "../../packageTest-common.mts"
 
 const pkgDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 const distDir = path.join(pkgDir, "dist")
@@ -32,12 +35,7 @@ const PUBLIC_EXPORTS = [
 ]
 
 beforeAll(() => {
-    for (const file of [npmBuildPath, dtsPath]) {
-        if (!fs.existsSync(file))
-            throw new Error(
-                `Missing build output ${path.relative(pkgDir, file)} — run \`yarn build\` in packages/@ourworldindata/gdoc-pipeline first.`
-            )
-    }
+    assertFilesExist(pkgDir, [npmBuildPath, dtsPath], "`yarn build`")
 })
 
 describe("dist/gdoc-pipeline.js", () => {
@@ -49,13 +47,7 @@ describe("dist/gdoc-pipeline.js", () => {
         // workspace packages that uses them ever stops being treeshaken away,
         // it shows up here as an import instead of silently bloating the
         // bundle.
-        await initEsModuleLexer()
-        const source = fs.readFileSync(npmBuildPath, "utf8")
-        const [imports] = parse(source, "gdoc-pipeline.js")
-        const specifiers = imports
-            .map((imp) => imp.n)
-            .filter((name) => name !== undefined)
-        expect(specifiers).toEqual([])
+        expect([...(await readImportSpecifiers(npmBuildPath))]).toEqual([])
     })
 
     it("exports the public API and runs the pipeline end-to-end", async () => {

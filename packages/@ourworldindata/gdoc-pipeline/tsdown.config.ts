@@ -1,10 +1,12 @@
 import { defineConfig, type UserConfig } from "tsdown"
 // The build config is reaching outside of the package, which is okay here.
+// oxlint-disable-next-line import-x-js/no-relative-packages
+import { pluginSwcDecorators } from "../../../rolldown.config-common.mts"
 import {
-    BUILD_TARGET,
-    pluginSwcDecorators,
+    dtsBundleOptions,
+    packageBuildOptions,
     // oxlint-disable-next-line import-x-js/no-relative-packages
-} from "../../../rolldown.config-common.mts"
+} from "../tsdown.config-common.mts"
 
 // Builds the @ourworldindata/gdoc-pipeline npm package. See readme.md for how
 // the outputs are meant to be consumed.
@@ -19,23 +21,16 @@ import {
 
 // Options that apply to both entries below.
 const shared = {
-    entry: { "gdoc-pipeline": "./src/index.ts" },
-    outDir: "./dist",
     // The pipeline is isomorphic: it runs in browsers (e.g. Chrome
-    // extensions) as well as Node. "browser" is the stricter platform — it
-    // makes the build fail if a node builtin ever sneaks back in.
-    platform: "browser",
-    target: BUILD_TARGET,
-    sourcemap: true,
-    // Emit `.js` rather than `.mjs` - the package is "type": "module", so `.js`
-    // is unambiguous.
-    fixedExtension: false,
+    // extensions) as well as Node. The shared "browser" platform is the
+    // stricter one — it makes the build fail if a node builtin ever sneaks
+    // back in.
+    ...packageBuildOptions,
+    entry: { "gdoc-pipeline": "./src/index.ts" },
     // The workspace packages that get bundled (see below) contain MobX
     // decorator syntax in some of their modules; the plugin keeps rolldown
     // able to transform whatever of that survives treeshaking.
     plugins: [pluginSwcDecorators()],
-    // Types are built separately from the same entry.
-    dts: false,
 } satisfies UserConfig
 
 export default defineConfig([
@@ -73,29 +68,6 @@ export default defineConfig([
         // built bundle end-to-end to prove nothing needed was lost.
         treeshake: { moduleSideEffects: false },
     },
-    // The bundled type declarations. Emits no JS of its own (`emitDtsOnly`).
-    {
-        ...shared,
-        name: "types",
-        // Includes the sources of this package's workspace dependencies so
-        // their types can be inlined into the bundle.
-        tsconfig: "../tsconfig.tsdown.json",
-        deps: {
-            // Types from our own workspace packages (@ourworldindata/*) are
-            // inlined into the bundle, all other imports stay external.
-            alwaysBundle: [/^@ourworldindata\//],
-            // The workspace packages we inline have their own dependencies
-            // (dayjs, zod, ...) that aren't in this package.json, so tsdown
-            // wouldn't auto-externalize them. Everything that's not a relative
-            // import or a workspace package must stay external.
-            neverBundle: (id: string) =>
-                !id.startsWith(".") &&
-                !id.startsWith("/") &&
-                !id.startsWith("@ourworldindata/"),
-        },
-        // Drop side-effect-only imports of external modules from the bundle —
-        // consumers may not have those packages installed.
-        treeshake: { moduleSideEffects: false },
-        dts: { emitDtsOnly: true },
-    },
+    // The bundled type declarations, from the same entry.
+    { ...shared, ...dtsBundleOptions },
 ])
