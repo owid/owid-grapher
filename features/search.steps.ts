@@ -169,20 +169,6 @@ When("I navigate forward", async ({ page }) => {
     await page.goForward()
 })
 
-When("I click on the {string} suggestion", async ({ page }, suggestionName) => {
-    const suggestionsContainer = page.getByTestId("search-detected-filters")
-    await expect(suggestionsContainer).toBeVisible()
-    const button = suggestionsContainer.getByTestId(
-        buildFilterTestIdFromLabel(
-            "search-detected-filter-button",
-            FilterType.COUNTRY,
-            suggestionName
-        )
-    )
-    await expect(button).toBeVisible()
-    await button.click()
-})
-
 // --- Then steps ---
 
 Then("I see {string} as an active topic filter", async ({ page }, topic) => {
@@ -336,30 +322,6 @@ Then("suggestions should be visible", async ({ page }) => {
     const suggestions = page.getByTestId("search-autocomplete-listbox")
     await expect(suggestions).toBeVisible()
 })
-
-Then("I see a {string} suggestion", async ({ page }, label) => {
-    const container = page.getByTestId("search-detected-filters")
-    await expect(container).toBeVisible()
-    await expect(
-        container.getByTestId("search-detected-filters-label")
-    ).toHaveText(label)
-})
-
-Then(
-    '{string} is shown as a "Did you mean?" suggestion',
-    async ({ page }, name) => {
-        const container = page.getByTestId("search-detected-filters")
-        await expect(container).toBeVisible()
-        const button = container.getByTestId(
-            buildFilterTestIdFromLabel(
-                "search-detected-filter-button",
-                FilterType.COUNTRY,
-                name
-            )
-        )
-        await expect(button).toBeVisible()
-    }
-)
 
 Then("I should be on the homepage", async ({ page }) => {
     await expect(page).toHaveURL("/")

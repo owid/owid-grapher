@@ -34,7 +34,6 @@ import { SearchTemplatesAll } from "./SearchTemplatesAll.js"
 import { SearchTemplatesData } from "./SearchTemplatesData.js"
 import { SearchTemplatesWriting } from "./SearchTemplatesWriting.js"
 import { SearchNoResults } from "./SearchNoResults.js"
-import { SearchDetectedFilters } from "./SearchDetectedFilters.js"
 import { buildSynonymMap } from "./synonymUtils.js"
 import { SiteAnalytics } from "../SiteAnalytics.js"
 import { PoweredBy } from "react-instantsearch"
@@ -124,9 +123,6 @@ export const Search = ({
                     key={stateToSearchParams(state).toString()}
                     autoFocus={shouldAutoFocus}
                     allTopics={eligibleTopics}
-                />
-                <SearchDetectedFilters
-                    eligibleRegionNames={eligibleRegionNames}
                 />
             </div>
             <div className="search-filters span-cols-12 col-start-2">
