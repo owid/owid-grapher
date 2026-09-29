@@ -64,7 +64,7 @@ import { SearchFilterPill } from "./search/SearchFilterPill.js"
 import { useVisibleChartHits } from "./useVisibleChartHits.js"
 import { PreviewVariant } from "./search/SearchChartHitRichDataTypes.js"
 import { MEDIUM_BREAKPOINT_MEDIA_QUERY } from "./SiteConstants.js"
-import { TOPIC_VOCABULARY_URL } from "../settings/clientSettings.js"
+import { TOPIC_VOCABULARY_URL } from "../settings/clientSettings.mjs"
 
 const SEARCH_DEBOUNCE_MS = 200
 
@@ -365,6 +365,7 @@ export const AllChartsBlock = ({
     const [stickyNavElement, setStickyNavElement] =
         useState<HTMLElement | null>(null)
     useEffect(() => {
+        // oxlint-disable-next-line react/set-state-in-effect -- the nav is a DOM node outside this tree, so it can only be found after mount
         setStickyNavElement(document.querySelector<HTMLElement>(".sticky-nav"))
     }, [])
     // A ref object rather than the element, because that is what the hook takes;
@@ -542,7 +543,9 @@ const AllChartsLeftPane = (props: AllChartsLeftPaneProps) => {
     // desktop (hidden by CSS), and mounting a Grapher into a hidden element
     // would render a second copy of the chart already in the sidecar.
     useEffect(() => {
+        // oxlint-disable-next-line react/set-state-in-effect -- an initial value can't do this; see the note above
         setExpandedIndex(isAccordionLayout ? 0 : null)
+        // oxlint-disable-next-line react/exhaustive-effect-dependencies -- `resultKey` is the trigger, not a value the effect reads: a new result set re-opens row 0
     }, [resultKey, isAccordionLayout])
 
     // Only the rows on screen: a topic's chart list is unbounded, so the block
@@ -816,32 +819,37 @@ function getSidecarViewQueryStr(
 const MAX_ROW_THUMBNAILS = 3
 
 /**
- * The views a row offers as thumbnails, in priority order: the chart's own
- * default view, then its map, then its remaining chart types. `undefined` is
- * that default view — the Algolia record says which tabs a chart has but not
- * which one it opens on, so it is requested with no `tab` param at all, exactly
- * as the sidecar loads it. A chart whose only view is a map therefore already
- * has that map in the first slot, and is not offered it twice.
+ * The views a row offers as thumbnails, in priority order: the chart's primary
+ * chart type, then its map, then its remaining chart types.
+ *
+ * Every slot names its view explicitly. A slot that named none — leaving the
+ * chart to open on its own default view — rendered the map a second time on
+ * every chart that opens on the map, because the Algolia record says which
+ * tabs a chart has (`availableTabs`) but not which one it opens on, so the
+ * duplicate couldn't be spotted and skipped (Marwa, 2026-09-29). Naming every
+ * view instead makes the row's thumbnails distinct by construction, and a
+ * chart with fewer views than the cap gets fewer thumbnails rather than a
+ * repeated one — a map-only chart gets exactly one.
  *
  * The table is never offered: the thumbnail renderer has no table to draw and
  * answers a `tab=table` request with the chart instead.
  */
-function getRowThumbnailTabs(
-    hit: SearchChartHit
-): (GrapherTabName | undefined)[] {
+// oxlint-disable-next-line react/only-export-components -- exported for AllChartsBlock.test.ts; the rule is about fast refresh, and this is a pure helper
+export function getRowThumbnailTabs(hit: SearchChartHit): GrapherTabName[] {
     const chartTabs = hit.availableTabs.filter(
         (tab) =>
             tab !== GRAPHER_TAB_NAMES.Table &&
             tab !== GRAPHER_TAB_NAMES.WorldMap
     )
-    const hasSeparateMapTab =
-        hit.availableTabs.includes(GRAPHER_TAB_NAMES.WorldMap) &&
-        chartTabs.length > 0
-    return [
-        undefined,
-        ...(hasSeparateMapTab ? [GRAPHER_TAB_NAMES.WorldMap] : []),
+    const hasMapTab = hit.availableTabs.includes(GRAPHER_TAB_NAMES.WorldMap)
+    const orderedTabs = [
+        ...chartTabs.slice(0, 1),
+        ...(hasMapTab ? [GRAPHER_TAB_NAMES.WorldMap] : []),
         ...chartTabs.slice(1),
-    ].slice(0, MAX_ROW_THUMBNAILS)
+    ]
+    // Belt and braces against a record that lists a tab twice: the cap would
+    // otherwise spend one of the three slots on a repeat.
+    return [...new Set(orderedTabs)].slice(0, MAX_ROW_THUMBNAILS)
 }
 
 /**
@@ -858,19 +866,17 @@ const AllChartsRowThumbnails = ({
     hit: SearchChartHit
     selectedTab?: GrapherTabName
     isSelected: boolean
-    onSelectTab: (tab?: GrapherTabName) => void
+    onSelectTab: (tab: GrapherTabName) => void
 }) => {
     const tabs = useMemo(() => getRowThumbnailTabs(hit), [hit])
 
     return (
         <div className="all-charts-block__row-thumbnails">
             {tabs.map((tab) => {
-                const label = tab
-                    ? makeLabelForGrapherTab(tab, { format: "long" })
-                    : "Default view"
+                const label = makeLabelForGrapherTab(tab, { format: "long" })
                 return (
                     <button
-                        key={tab ?? "default"}
+                        key={tab}
                         type="button"
                         className={cx("all-charts-block__row-thumbnail", {
                             "all-charts-block__row-thumbnail--active":
