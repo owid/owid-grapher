@@ -83,7 +83,7 @@ export function getCachingInputTableFetcher(
         if (dimensions.length === 0) return undefined
 
         const variables = dimensions.map((d) => d.variableId)
-        const variablesToFetch = variables.filter((v) => !cache.has(v))
+        const variablesToFetch = _.uniq(variables.filter((v) => !cache.has(v)))
 
         if (variablesToFetch.length > 0) {
             const fetchedData = await Promise.all(

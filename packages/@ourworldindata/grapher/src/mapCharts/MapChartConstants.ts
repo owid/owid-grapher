@@ -150,7 +150,7 @@ export interface MapChartManager extends ChartManager {
         action: GrapherInteractionEvent,
         target?: string
     ) => void
-    projectionColumnInfoBySlug?: Map<ColumnSlug, ProjectionColumnInfo>
+    mapProjectionColumnInfo?: ProjectionColumnInfo
 }
 
 export interface GlobeViewport {

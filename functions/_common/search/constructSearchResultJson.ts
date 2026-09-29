@@ -185,9 +185,11 @@ export async function constructSearchResultJson(
         ]),
     }
 
-    const unit = grapherState.transformedTable.get(
-        grapherState.yColumnSlug
-    ).unit
+    const firstTab = layout[0]?.grapherTab
+    const [unitColumnSlug] = firstTab
+        ? grapherState.getPrimaryColumnSlugsForTab(firstTab)
+        : grapherState.yColumnSlugs
+    const unit = grapherState.transformedTable.get(unitColumnSlug).unit
     const strippedUnit = unit ? stripOuterParentheses(unit) : undefined
 
     return omitUndefinedValues({

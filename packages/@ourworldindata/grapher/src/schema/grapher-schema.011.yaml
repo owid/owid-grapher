@@ -85,6 +85,7 @@ properties:
             - "size"
             - "color"
             - "table"
+            - "map"
         display:
           type: object
           properties:
