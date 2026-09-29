@@ -529,7 +529,6 @@ export class VariableSelector<
         const { dimensions } = this.props.slot
 
         this.chosenVariables = dimensions.flatMap((d) => {
-            // A slot naming a host-supplied column has no variable to pick.
             const variableId = d.variableId
             if (variableId === undefined) return []
 

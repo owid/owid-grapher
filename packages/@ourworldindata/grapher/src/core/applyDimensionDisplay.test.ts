@@ -47,10 +47,8 @@ describe(applyDimensionDisplayOverrides, () => {
         ])
 
         const column = table.get("rent_index")
-        // The chart's name and rounding win...
         expect(column.displayName).toBe("Rents")
         expect(column.numDecimalPlaces).toBe(0)
-        // ...and what the chart says nothing about is left alone.
         expect(column.unit).toBe("index (2015 = 100)")
     })
 
@@ -105,9 +103,7 @@ describe(applyDimensionDisplayOverrides, () => {
 
         const column = table.get("vacancy_rate")
         expect(column.values.slice(0, 2)).toEqual([310, 120])
-        // The factor stays on the def too, so the sources modal can report it.
         expect(column.unitConversionFactor).toBe(100)
-        // A column no slot converts keeps its values.
         expect(table.get("rent_index").values[0]).toBe(100)
     })
 

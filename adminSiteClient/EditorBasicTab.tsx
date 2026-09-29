@@ -343,7 +343,6 @@ export class DimensionSlotView<
         const { isSelectingVariables } = this
         const { slot, editor, canSwapXAndY, onSwapXAndY } = this.props
         const dimensions = slot.dimensions.map((dim, index) => ({
-            // Every slot has a column slug; only indicator-backed ones have an id.
             id: dim.columnSlug,
             dim,
             index,

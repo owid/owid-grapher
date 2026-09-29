@@ -25,11 +25,11 @@ export type FetchInputTableForConfigFn = (args: {
 export const fetchInputTableForConfig: FetchInputTableForConfigFn = async (
     args
 ) => {
-    // Only indicator-backed slots have anything to fetch; a config naming the
-    // host's own columns brings its own table.
-    const dimensions = (args.dimensions ?? []).filter(isIndicatorDimension)
-    if (dimensions.length === 0) return undefined
-    const variables = dimensions.map((d) => d.variableId)
+    const indicatorDimensions = (args.dimensions ?? []).filter(
+        isIndicatorDimension
+    )
+    if (indicatorDimensions.length === 0) return undefined
+    const variables = indicatorDimensions.map((d) => d.variableId)
     const variablesDataMap = await loadVariablesDataSite(
         variables,
         args.dataApiUrl,
@@ -39,7 +39,7 @@ export const fetchInputTableForConfig: FetchInputTableForConfigFn = async (
     )
     const inputTable = legacyToOwidTableAndDimensions(
         variablesDataMap,
-        dimensions,
+        indicatorDimensions,
         args.selectedEntityColors
     )
 
@@ -73,7 +73,6 @@ export function getCachingInputTableFetcher(
     ) => {
         const selectedEntityColors = toJS(selectedEntityColorsMobx)
 
-        // Check if dimensions have changed
         if (
             _.isEqual(previousDimensions, dimensions) &&
             _.isEqual(previousSelectedEntityColors, selectedEntityColors)

@@ -340,16 +340,12 @@ function renderProperty(
         isArray && schema.items ? resolveRef(schema.items, defs) : schema
     const childPath = isArray ? `${propertyPath}[]` : propertyPath
 
-    // An `anyOf` whose branches carry no shape of their own is a constraint
-    // ("name the column by variableId or by slug"), not a set of alternative
-    // item shapes; the item's own `properties` are still what to document.
-    const variants = isArray
-        ? (shape.anyOf ?? shape.oneOf)?.filter(
-              (variant) => resolveRef(variant, defs).properties
-          )
-        : undefined
-    if (variants?.length) {
-        lines.push(...renderVariants(variants, defs))
+    const variants = isArray ? (shape.anyOf ?? shape.oneOf) : undefined
+    const objectVariants = variants?.filter(
+        (variant) => resolveRef(variant, defs).properties
+    )
+    if (objectVariants?.length) {
+        lines.push(...renderVariants(objectVariants, defs))
     } else {
         for (const [key, child] of Object.entries(shape.properties ?? {})) {
             lines.push(
