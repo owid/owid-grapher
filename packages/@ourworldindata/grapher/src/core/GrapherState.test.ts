@@ -44,7 +44,7 @@ import { MapConfig } from "../mapCharts/MapConfig"
 import { TimelineDragTarget } from "../timeline/TimelineController"
 import { SelectionArray } from "../selection/SelectionArray"
 import { latestGrapherConfigSchema } from "./GrapherConstants.js"
-import { legacyToOwidTableAndDimensionsWithMandatorySlug } from "./LegacyToOwidTable.js"
+import { legacyToOwidTableAndDimensions } from "./LegacyToOwidTable.js"
 import { GrapherProgrammaticInterface } from "./Grapher.js"
 import { GrapherState } from "./GrapherState"
 
@@ -184,7 +184,7 @@ describe("a grapher built from a legacy config", () => {
         owidDataset = makeOwidDataset()
     ): GrapherState => {
         const grapher = new GrapherState(config)
-        grapher.inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
+        grapher.inputTable = legacyToOwidTableAndDimensions(
             owidDataset,
             config.dimensions!,
             config.selectedEntityColors
@@ -303,10 +303,9 @@ describe("projectionColumnInfoBySlug", () => {
     const createYDimensionsForSlugs = (
         slugs: string[]
     ): OwidChartDimensionInterface[] =>
-        slugs.map((slug, i) => ({
+        slugs.map((slug) => ({
             slug,
             property: DimensionProperty.y,
-            variableId: 100 + i,
         }))
 
     const createOwidTableForColumns = (
@@ -1528,7 +1527,6 @@ describe("download", () => {
                 {
                     slug: SampleColumnSlugs.GDP,
                     property: DimensionProperty.y,
-                    variableId: 1,
                 },
             ],
         })
@@ -2314,12 +2312,10 @@ describe("relative mode follows the facet strategy in effect", () => {
                 {
                     slug: SampleColumnSlugs.GDP,
                     property: DimensionProperty.y,
-                    variableId: 1,
                 },
                 {
                     slug: SampleColumnSlugs.Population,
                     property: DimensionProperty.y,
-                    variableId: 2,
                 },
             ],
         })
@@ -2368,7 +2364,6 @@ describe("relative mode follows the facet strategy in effect", () => {
                 {
                     slug: SampleColumnSlugs.GDP,
                     property: DimensionProperty.y,
-                    variableId: 1,
                 },
             ],
         })
@@ -2422,12 +2417,10 @@ describe("relative mode follows the facet strategy in effect", () => {
                 {
                     slug: SampleColumnSlugs.GDP,
                     property: DimensionProperty.y,
-                    variableId: 1,
                 },
                 {
                     slug: SampleColumnSlugs.Population,
                     property: DimensionProperty.y,
-                    variableId: 2,
                 },
             ],
         })
@@ -2820,9 +2813,9 @@ describe("time and year url params", () => {
             maxTime: 5000,
             hasMapTab: true,
         })
-        state.inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
+        state.inputTable = legacyToOwidTableAndDimensions(
             dataset,
-            state.dimensions,
+            state.dimensions.map((dimension) => dimension.toObject()),
             {}
         )
         return state

@@ -3,7 +3,7 @@ import { OwidTable } from "@ourworldindata/core-table"
 import {
     getVariableDataRoute,
     getVariableMetadataRoute,
-    legacyToOwidTableAndDimensionsWithMandatorySlug,
+    legacyToOwidTableAndDimensions,
 } from "@ourworldindata/grapher"
 import {
     GrapherInterface,
@@ -41,7 +41,7 @@ export function useQueryInputTable(
     if (status !== "success" || !variablesDataMap) return { status }
 
     // Transform the fetched variable data and metadata into Grapher's input table format
-    const inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
+    const inputTable = legacyToOwidTableAndDimensions(
         variablesDataMap,
         dimensions,
         selectedEntityColors
@@ -102,7 +102,7 @@ export function useQueryInputTableForMultiDimView(
     }
 
     // Transform the fetched variable data and metadata into Grapher's input table format
-    const inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
+    const inputTable = legacyToOwidTableAndDimensions(
         variablesDataMap,
         dimensions,
         selectedEntityColors

@@ -24,9 +24,13 @@ function makeEditor(dimensions: OwidChartDimensionInterface[]): ChartEditor {
 }
 
 describe("ChartEditor.reloadGrapherData", () => {
-    it("passes plain dimensions that keep an authored slug", async () => {
+    it("passes dimension configs, not ChartDimension instances", async () => {
         const editor = makeEditor([
-            { property: DimensionProperty.y, variableId: 123, slug: "gdp_alt" },
+            {
+                property: DimensionProperty.x,
+                variableId: 123,
+                targetYear: 2000,
+            },
         ])
         const loader = vi.fn().mockResolvedValue(undefined)
         editor.cachingGrapherDataLoader = loader
@@ -34,7 +38,11 @@ describe("ChartEditor.reloadGrapherData", () => {
         await editor.reloadGrapherData()
 
         expect(loader.mock.calls[0][0]).toEqual([
-            { property: DimensionProperty.y, variableId: 123, slug: "gdp_alt" },
+            {
+                property: DimensionProperty.x,
+                variableId: 123,
+                targetYear: 2000,
+            },
         ])
     })
 })

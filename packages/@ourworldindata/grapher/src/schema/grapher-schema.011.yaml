@@ -69,15 +69,24 @@ properties:
       description: |
         One slot of the chart bound to one column of data. The column is named
         either by variableId, an OWID indicator, or by slug, a column of a
-        table the embedding page supplies. Charts stored in our database always
-        use variableId.
+        table the embedding page supplies, never both. Charts stored in our
+        database always use variableId.
       required:
         - property
-      anyOf:
+      oneOf:
         - required:
             - variableId
+          not:
+            required:
+              - slug
         - required:
             - slug
+          not:
+            anyOf:
+              - required:
+                  - variableId
+              - required:
+                  - targetYear
       properties:
         targetYear:
           type: integer

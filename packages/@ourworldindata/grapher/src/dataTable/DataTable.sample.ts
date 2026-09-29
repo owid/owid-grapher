@@ -9,7 +9,7 @@ import {
     createOwidTestDataset,
     fakeEntities,
 } from "../testData/OwidTestData"
-import { legacyToOwidTableAndDimensionsWithMandatorySlug } from "../core/LegacyToOwidTable.js"
+import { legacyToOwidTableAndDimensions } from "../core/LegacyToOwidTable.js"
 
 export const childMortalityGrapher = (
     props: Partial<GrapherInterface> = {}
@@ -52,7 +52,7 @@ export const childMortalityGrapher = (
         dimensions,
         ...props,
     })
-    state.inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
+    state.inputTable = legacyToOwidTableAndDimensions(
         owidDataset,
         dimensions,
         {}
@@ -94,7 +94,7 @@ export const GrapherWithIncompleteData = (
             },
         },
     ]
-    const inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
+    const inputTable = legacyToOwidTableAndDimensions(
         createOwidTestDataset([{ metadata, data }]),
         dimensions,
         {}
@@ -140,7 +140,7 @@ export const GrapherWithAggregates = (
             property: DimensionProperty.y,
         },
     ]
-    const inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
+    const inputTable = legacyToOwidTableAndDimensions(
         createOwidTestDataset([
             { metadata: childMortalityMetadata, data: childMortalityData },
         ]),
@@ -189,7 +189,7 @@ export const GrapherWithMultipleVariablesAndMultipleYears = (
             { year: 2019, entity: fakeEntities.World, value: 10 },
         ],
     }
-    const inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
+    const inputTable = legacyToOwidTableAndDimensions(
         createOwidTestDataset([
             abovePovertyLineDataset,
             belowPovertyLineDataset,

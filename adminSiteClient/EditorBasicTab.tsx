@@ -117,7 +117,7 @@ export class DimensionSlotView<
                 (d) => d.variableId === id
             )
             return (
-                existingDimension || {
+                existingDimension?.toObject() ?? {
                     property: slot.property,
                     variableId: id,
                 }
@@ -132,9 +132,9 @@ export class DimensionSlotView<
 
     @action.bound private onRemoveDimension(columnSlug: ColumnSlug) {
         void this.updateDimensionsAndRebuildTable(
-            this.props.slot.dimensions.filter(
-                (d) => d.columnSlug !== columnSlug
-            )
+            this.props.slot.dimensions
+                .filter((d) => d.columnSlug !== columnSlug)
+                .map((d) => d.toObject())
         )
         this.updateParentConfig()
     }
@@ -144,7 +144,9 @@ export class DimensionSlotView<
         // after the grapher state refactor this led to weird issues like
         // the color change of a variable not being reflected visually,
         // even though the value registered correctly in the grapher state instance.
-        void this.updateDimensionsAndRebuildTable(this.props.slot.dimensions)
+        void this.updateDimensionsAndRebuildTable(
+            this.props.slot.dimensions.map((d) => d.toObject())
+        )
         this.updateParentConfig()
     }
 
@@ -325,7 +327,7 @@ export class DimensionSlotView<
     }
 
     @action.bound private async onDragEnd(items: { dim: ChartDimension }[]) {
-        const newDimensions = items.map(({ dim }) => dim)
+        const newDimensions = items.map(({ dim }) => dim.toObject())
 
         void this.updateDimensionsAndRebuildTable(newDimensions)
         this.updateParentConfig()
