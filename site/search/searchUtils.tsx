@@ -475,6 +475,21 @@ function matchIsOnlyInsideParentheses(
     return indexes.every((index) => index >= open)
 }
 
+/**
+ * Whether a matched filter may be offered as a country suggestion, by the
+ * autocomplete or the "Did you mean?" chip. We match on all regions to stop the
+ * iteration when a region is found, and avoid suggesting countries contained in
+ * that region's name (e.g. if "East Germany" is found, stop the iteration to
+ * prevent finding "Germany"). But a historical region or aggregate is a poor
+ * guess at what someone meant, so only present-day countries are suggested.
+ */
+export function isSuggestableCountry(filter: ScoredFilter): boolean {
+    return (
+        filter.type === FilterType.COUNTRY &&
+        countriesByName()[filter.name] !== undefined
+    )
+}
+
 export function findTopicAndRegionFilters(
     words: string[],
     allRegionsNames: string[],
@@ -682,17 +697,10 @@ export function suggestFiltersFromQuerySuffix(
 
     const countryMatches = matchedFilters.filter(
         (f) =>
+            isSuggestableCountry(f) &&
             // remove exact matches from country suggestions, as exact matches are
             // already handled by automatic filters (see SearchDetectedFilters).
-            f.type === FilterType.COUNTRY &&
-            f.score !== 1 &&
-            // we matched on all regions to stop the iteration when a region is
-            // found, and avoid suggesting countries contained in that region's
-            // name (e.g. if "East Germany" is found, stop the iteration to
-            // prevent finding "Germany"). However, we don't want to pollute the
-            // autocomplete results with historical regions or aggregates, so we
-            // filter them out of the suggestions.
-            countriesByName()[f.name]
+            f.score !== 1
     )
 
     const topicMatches = matchedFilters.filter(

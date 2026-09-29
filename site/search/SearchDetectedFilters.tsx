@@ -4,9 +4,9 @@ import {
     buildFilterTestId,
     getFilterIcon,
     extractFiltersFromQuery,
+    isSuggestableCountry,
 } from "./searchUtils.js"
-import { FilterType, ScoredFilterPositioned } from "@ourworldindata/types"
-import { countriesByName } from "@ourworldindata/utils"
+import { ScoredFilterPositioned } from "@ourworldindata/types"
 import { SearchFilterPill } from "./SearchFilterPill.js"
 
 /**
@@ -41,18 +41,7 @@ export const SearchDetectedFilters = ({
             { threshold: 0.75, limit: 1 },
             synonymMap
         )
-        return matches.filter(
-            (match) =>
-                // Only show non-exact country matches as suggestions
-                match.type === FilterType.COUNTRY &&
-                // Matching runs against every region so that a longer region
-                // name stops the iteration ("East Germany" found, so "Germany"
-                // isn't), but a historical state is a poor guess at what
-                // someone meant -- "share of people who are undernourished"
-                // suggested "Yemen People's Republic". The autocomplete
-                // suggestions are filtered the same way.
-                countriesByName()[match.name]
-        )
+        return matches.filter(isSuggestableCountry)
     }, [query, eligibleRegionNames, filters, synonymMap])
 
     const handleFilterClick = useCallback(
