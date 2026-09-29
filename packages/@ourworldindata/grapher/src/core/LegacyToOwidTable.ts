@@ -11,7 +11,6 @@ import {
     ErrorValue,
     IndicatorDimensionInterface,
     OwidChartDimensionInterface,
-    OwidVariableDisplayConfigInterface,
     isIndicatorDimension,
     EntityName,
     TimeInterval,
@@ -44,8 +43,11 @@ import {
 } from "@ourworldindata/utils"
 import { isContinentsVariableId } from "./GrapherConstants"
 import * as R from "remeda"
-import { getDimensionColumnSlug } from "../chart/ChartDimension.js"
-import { applyColumnDisplayOverrides } from "./applyDimensionDisplay.js"
+import { getIndicatorColumnSlug } from "../chart/ChartDimension.js"
+import {
+    applyColumnDisplayOverrides,
+    type ColumnDisplayOverride,
+} from "./applyDimensionDisplay.js"
 
 export const legacyToOwidTableAndDimensions = (
     json: MultipleOwidVariableDataDimensionsMap,
@@ -74,7 +76,10 @@ export const legacyToOwidTableAndDimensions = (
 
     // We need to create a column for each unique [variable, targetTime] pair. So there can be
     // multiple columns for a single variable.
-    const dimensionColumns = _.uniqBy(indicatorDimensions, indicatorColumnSlug)
+    const dimensionColumns = _.uniqBy(
+        indicatorDimensions,
+        getIndicatorColumnSlug
+    )
 
     const variableTablesToJoinByYear: OwidTable[] = []
     const variableTablesToJoinByDay: OwidTable[] = []
@@ -95,7 +100,7 @@ export const legacyToOwidTableAndDimensions = (
 
         // Value column
         const valueColumnDef = columnDefFromOwidVariable(variable.metadata)
-        valueColumnDef.slug = indicatorColumnSlug(dimension)
+        valueColumnDef.slug = getIndicatorColumnSlug(dimension)
         // Because database columns can contain mixed types, we want to avoid
         // parsing for Grapher data until we fix that.
         valueColumnDef.skipParsing = true
@@ -355,25 +360,22 @@ export const legacyToOwidTableAndDimensions = (
 
     return applyColumnDisplayOverrides(
         joinedVariablesTable,
-        indicatorDimensions.map((dimension) => ({
-            columnSlug: indicatorColumnSlug(dimension),
-            display: displayWithIndicatorFactor(dimension, json),
-        }))
+        indicatorDimensions.map((dimension) =>
+            getIndicatorDisplayOverride(dimension, json)
+        )
     )
 }
 
-const indicatorColumnSlug = (
-    dimension: IndicatorDimensionInterface
-): ColumnSlug =>
-    getDimensionColumnSlug(dimension.variableId, dimension.targetYear)
-
-const displayWithIndicatorFactor = (
+const getIndicatorDisplayOverride = (
     dimension: IndicatorDimensionInterface,
     json: MultipleOwidVariableDataDimensionsMap
-): OwidVariableDisplayConfigInterface => ({
-    conversionFactor: json.get(dimension.variableId)?.metadata.display
-        ?.conversionFactor,
-    ...trimObject(dimension.display ?? {}),
+): ColumnDisplayOverride => ({
+    columnSlug: getIndicatorColumnSlug(dimension),
+    display: {
+        conversionFactor: json.get(dimension.variableId)?.metadata.display
+            ?.conversionFactor,
+        ...trimObject(dimension.display ?? {}),
+    },
 })
 
 const fullJoinTables = (
