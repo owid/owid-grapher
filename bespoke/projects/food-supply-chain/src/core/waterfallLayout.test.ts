@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest"
 
+import { CONNECTOR_WIDTH } from "./constants.js"
 import { STAGE_GROUPS } from "./stageGroups.js"
 import {
     EntityData,
@@ -76,7 +77,7 @@ describe(layOutWaterfall, () => {
         const layout = layOutWaterfall(waterfall, BOX)
 
         expect(
-            layout.connectors.map((connector) => connector.leftStep.key)
+            layout.connectors.map((connector) => connector.fromStep.key)
         ).toEqual(["crop", "exports"])
     })
 
@@ -94,9 +95,9 @@ describe(layOutWaterfall, () => {
         const exports = layout.steps.find((step) => step.step.key === "exports")
         const totalBar = layout.total.bar!
         expect(layout.totalConnector).toEqual({
-            x1: layout.total.valueAnchor.x,
+            x1: layout.total.valueAnchor.x - CONNECTOR_WIDTH / 2,
             y1: exports!.bar!.y + exports!.bar!.height,
-            x2: layout.total.valueAnchor.x,
+            x2: layout.total.valueAnchor.x - CONNECTOR_WIDTH / 2,
             y2: totalBar.y,
         })
     })
@@ -174,7 +175,6 @@ describe(layOutWaterfall, () => {
 })
 
 describe("horizontal layout", () => {
-    /** BOX turned on its side, so both layouts get the same pixels along each axis */
     const TRANSPOSED_BOX: Box = { x: 10, y: 20, width: 200, height: 300 }
 
     it("places the same bars as the vertical layout, transposed", () => {
@@ -197,7 +197,6 @@ describe("horizontal layout", () => {
         verticalSteps.forEach((verticalStep, index) => {
             const verticalBar = verticalStep.bar!
             const horizontalBar = horizontalSteps[index].bar!
-            // Values run up the vertical box and rightwards across the horizontal one
             expect(
                 horizontalBar.x -
                     TRANSPOSED_BOX.x -

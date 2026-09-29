@@ -3,13 +3,11 @@ export type VariantName = "waterfall"
 export const MEASURES = ["energy", "protein"] as const
 export type Measure = (typeof MEASURES)[number]
 
-/** Abbreviated units, for labels too tight for the manifest's spelled-out ones */
 export const SHORT_UNIT_BY_MEASURE: Record<Measure, string> = {
     energy: "kcal",
     protein: "g",
 }
 
-/** Decimal places every value of a measure is written with */
 export const NUM_DECIMAL_PLACES_BY_MEASURE: Record<Measure, number> = {
     energy: 0,
     protein: 1,

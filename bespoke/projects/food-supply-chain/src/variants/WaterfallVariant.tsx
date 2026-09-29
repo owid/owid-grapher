@@ -48,11 +48,9 @@ import {
     Waterfall,
 } from "../core/waterfall.js"
 
-// The World region: a stable OWID region slug, unlike entity ids.
 const DEFAULT_ENTITY_SLUG = "world"
 const DEFAULT_MEASURE: Measure = "energy"
-/** Later than any year the data has, so the clamp lands on the entity's latest */
-const DEFAULT_YEAR = 9999
+const LATEST_YEAR = Infinity
 
 const FOOTER_NOTE =
     "Figures are per person per day, from the FAO's Supply Utilization Accounts. A country that re-exports food can show far more entering its food system than its own population could eat."
@@ -84,13 +82,13 @@ function FetchingWaterfallVariant({
     urls: BespokeComponentDataUrls
 }): React.ReactElement {
     const isUserLocation = isUserLocationCountry(config.country)
-    const initialCountrySlug =
+    const initialCountrySlugOrName =
         config.country && !isUserLocation ? config.country : DEFAULT_ENTITY_SLUG
 
-    const [countrySlug, setCountrySlug] = useUrlState({
+    const [countrySlugOrName, setCountrySlug] = useUrlState({
         key: "foodSupplyChainCountry",
         parser: parseAsString,
-        defaultValue: initialCountrySlug,
+        defaultValue: initialCountrySlugOrName,
     })
     const [measure, setMeasure] = useUrlState({
         key: "foodSupplyChainMeasure",
@@ -100,7 +98,7 @@ function FetchingWaterfallVariant({
     const [selectedYear, setYear] = useUrlState({
         key: "foodSupplyChainYear",
         parser: parseAsInteger,
-        defaultValue: DEFAULT_YEAR,
+        defaultValue: LATEST_YEAR,
     })
 
     const { data: manifest, status: manifestStatus } =
@@ -128,10 +126,9 @@ function FetchingWaterfallVariant({
         setCountry,
     })
 
-    // The URL carries a slug; the config carries a country name, as authors write it
     const entity =
-        manifest?.entityBySlug.get(countrySlug) ??
-        manifest?.entityByName.get(countrySlug)
+        manifest?.entityBySlug.get(countrySlugOrName) ??
+        manifest?.entityByName.get(countrySlugOrName)
     const {
         data: entityData,
         status: entityStatus,

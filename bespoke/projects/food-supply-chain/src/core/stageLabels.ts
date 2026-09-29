@@ -1,6 +1,5 @@
 import { StageKey } from "./types.js"
 
-/** Reader-facing names for the manifest's stages, by key */
 export const STAGE_LABELS: Record<StageKey, string> = {
     crop_production: "Crops grown",
     imports: "Imports",

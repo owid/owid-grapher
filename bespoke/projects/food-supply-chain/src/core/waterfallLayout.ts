@@ -1,9 +1,9 @@
 import { tickStep } from "d3-array"
 
+import { CONNECTOR_WIDTH } from "./constants.js"
 import { STAGE_GROUPS, StageGroup } from "./stageGroups.js"
 import { Waterfall, WaterfallStep } from "./waterfall.js"
 
-/** Shortest bar the chart draws */
 export const MIN_BAR_LENGTH_PX = 1
 
 /** Share of a slot left empty on each side of its bar */
@@ -59,7 +59,6 @@ export interface PlacedBar extends PlacedRect {
     isFloored: boolean
 }
 
-/** One column of the chart, whether or not it draws a bar */
 export interface PlacedStep {
     /** The model step this column draws; the total's runs from zero to its value */
     step: WaterfallStep
@@ -72,20 +71,17 @@ export interface PlacedStep {
 }
 
 export interface PlacedConnector {
-    /** The step whose bar the connector leaves from */
-    leftStep: WaterfallStep
+    fromStep: WaterfallStep
     line: PlacedLine
 }
 
 export interface PlacedTick {
     value: number
-    /** Runs the length of the step axis */
     gridline: PlacedLine
 }
 
 export interface PlacedGroup {
     group: StageGroup
-    /** See isGroupLabelled */
     isLabelled: boolean
     /** The group's columns, over the plot's whole value range */
     box: PlacedRect
@@ -109,12 +105,10 @@ export function isGroupLabelled(stepCount: number): boolean {
     return stepCount > 1
 }
 
-/** The pixels one step's column gets */
 export function measureSlotWidth(plotWidth: number, stepCount: number): number {
     return plotWidth / (stepCount + TOTAL_SLOT_SPAN)
 }
 
-/** The pixels a group's box runs over, given the pixels one column gets */
 export function groupBoxLength(slotWidth: number, stageCount: number): number {
     return (
         slotWidth *
@@ -122,7 +116,6 @@ export function groupBoxLength(slotWidth: number, stageCount: number): number {
     )
 }
 
-/** The pixels the total's box runs over, given the pixels one step's column gets */
 export function totalBoxLength(slotWidth: number): number {
     return (
         slotWidth *
@@ -157,7 +150,6 @@ export function captionLength(slotWidth: number): number {
     return slotWidth * (1 - SLOT_PADDING_RATIO)
 }
 
-/** The values the value axis puts a tick and gridline at */
 export function chooseTickValues(
     domain: [number, number],
     orientation: WaterfallOrientation = "vertical"
@@ -192,7 +184,6 @@ interface Span {
     to: number
 }
 
-/** A mark, as the value interval it covers crossed with the step interval it covers */
 interface Extent {
     value: Span
     step: Span
@@ -206,7 +197,7 @@ interface PlannedStep {
 }
 
 interface PlannedConnector {
-    leftStep: WaterfallStep
+    fromStep: WaterfallStep
     line: Extent
 }
 
@@ -297,7 +288,6 @@ function planWaterfall(
     }
 }
 
-/** A placed group, as the indices of its first and last step */
 interface GroupRange {
     group: StageGroup
     first: number
@@ -305,7 +295,6 @@ interface GroupRange {
     isLabelled: boolean
 }
 
-/** Each step's slot and the total's, with the gap before each group's first slot and the header room before each labelled one's */
 function planStepAxis(
     steps: WaterfallStep[],
     groupHeaderSlots: number,
@@ -332,7 +321,6 @@ function planStepAxis(
     return { slots, totalSlot, groupRanges }
 }
 
-/** The groups whose stages are all side by side, in the order they appear */
 function findGroupRanges(steps: WaterfallStep[]): GroupRange[] {
     const slotIndexByKey = new Map(
         steps.map((step, index) => [step.key, index])
@@ -362,7 +350,6 @@ function areSlotsContiguous(slotIndices: number[]): boolean {
     return last - first + 1 === slotIndices.length
 }
 
-/** The total column, as the step from zero that it draws */
 function totalAsStep(total: Waterfall["total"]): WaterfallStep {
     const { key, name, value } = total
     return {
@@ -400,7 +387,6 @@ function planStep(
     }
 }
 
-/** One connector per adjacent pair of drawn bars, at the value they share */
 function planConnectors(slots: PlannedStep[]): PlannedConnector[] {
     const stepsWithBars = slots.filter(
         (planned): planned is PlannedStep & { bar: Extent } =>
@@ -412,7 +398,7 @@ function planConnectors(slots: PlannedStep[]): PlannedConnector[] {
         const left = stepsWithBars[i]
         const right = stepsWithBars[i + 1]
         connectors.push({
-            leftStep: left.step,
+            fromStep: left.step,
             line: {
                 value: {
                     from: left.step.balanceAfter,
@@ -439,7 +425,6 @@ function planTotalConnector(
     }
 }
 
-/** Round tick values covering the domain, and the domain widened to reach them */
 function chooseTicks(
     domain: [number, number],
     tickCount: number
@@ -464,20 +449,17 @@ function chooseTicks(
     return { ticks, domain: { from, to } }
 }
 
-/** Where a slot's bar goes: one slot wide less its padding, centred in the slot */
 function barSpan(slot: Span): Span {
     const centre = slotCentre(slot).from
     const halfWidth = 0.5 - SLOT_PADDING_RATIO
     return { from: centre - halfWidth, to: centre + halfWidth }
 }
 
-/** The centre of a slot, as an interval whose ends coincide */
 function slotCentre(slot: Span): Span {
     const centre = (slot.from + slot.to) / 2
     return { from: centre, to: centre }
 }
 
-/** A mark after scaling, as the pixels it covers along each axis */
 interface PxExtent {
     alongValue: Span
     alongStep: Span
@@ -488,7 +470,6 @@ interface LinearScale {
     range: Span
 }
 
-/** The only code that knows which screen axis carries values */
 interface ScreenProjection {
     /** The pixels each axis gets from the box, running in its screen direction */
     axes(box: Box): PxExtent
@@ -496,7 +477,6 @@ interface ScreenProjection {
     toSegment(px: PxExtent): PlacedLine
 }
 
-/** Values run up the box, steps run left to right */
 const VERTICAL_PROJECTION: ScreenProjection = {
     axes: (box) => ({
         alongValue: { from: box.y + box.height, to: box.y },
@@ -510,7 +490,6 @@ const VERTICAL_PROJECTION: ScreenProjection = {
     }),
 }
 
-/** Values run rightwards across the box, steps run down it */
 const HORIZONTAL_PROJECTION: ScreenProjection = {
     axes: (box) => ({
         alongValue: { from: box.x, to: box.x + box.width },
@@ -576,12 +555,24 @@ function projectPlan(
         steps: plan.steps.map(placeStep),
         total: placeStep(plan.total),
         connectors: plan.connectors.map((planned) => ({
-            leftStep: planned.leftStep,
-            line: projection.toSegment(scaleExtent(planned.line, scales)),
+            fromStep: planned.fromStep,
+            line: projection.toSegment(
+                shiftOntoFromBar(
+                    scaleExtent(planned.line, scales),
+                    planned.fromStep.delta,
+                    axes.alongValue
+                )
+            ),
         })),
         totalConnector:
             plan.totalConnector &&
-            projection.toSegment(scaleExtent(plan.totalConnector, scales)),
+            projection.toSegment(
+                shiftOntoFromBar(
+                    scaleExtent(plan.totalConnector, scales),
+                    plan.total.step.delta,
+                    axes.alongValue
+                )
+            ),
         ticks: plan.ticks.map((tick) => ({
             value: tick.value,
             gridline: projection.toSegment(scaleExtent(tick.gridline, scales)),
@@ -598,7 +589,6 @@ function projectPlan(
     }
 }
 
-/** Scales an extent to pixels, rounding the value axis to whole pixels */
 function scaleExtent(
     extent: Extent,
     scales: { value: LinearScale; step: LinearScale }
@@ -622,10 +612,24 @@ function scaleSpan(span: Span, scale: LinearScale): Span {
     }
 }
 
-/**
- * Grows a bar shorter than MIN_BAR_LENGTH_PX to that length, keeping its near
- * end and sliding it back inside the axis when the floor pushes it out.
- */
+/** Moves a connector half its width along the value axis, onto the side of the bar it leaves */
+function shiftOntoFromBar(
+    connector: PxExtent,
+    fromBarDelta: number,
+    valueAxis: Span
+): PxExtent {
+    const towardsNearEnd =
+        -Math.sign(valueAxis.to - valueAxis.from) * Math.sign(fromBarDelta)
+    const shift = (towardsNearEnd * CONNECTOR_WIDTH) / 2
+    return {
+        alongValue: {
+            from: connector.alongValue.from + shift,
+            to: connector.alongValue.to + shift,
+        },
+        alongStep: connector.alongStep,
+    }
+}
+
 function floorBarLength(
     bar: Span,
     delta: number,
@@ -652,7 +656,6 @@ function floorBarLength(
     }
 }
 
-/** Normalises a directed segment into an SVG rect */
 function toRect(segment: PlacedLine): PlacedRect {
     return {
         x: Math.min(segment.x1, segment.x2),
@@ -662,7 +665,6 @@ function toRect(segment: PlacedLine): PlacedRect {
     }
 }
 
-/** The start of a segment */
 function toPoint(segment: PlacedLine): PlacedPoint {
     return { x: segment.x1, y: segment.y1 }
 }

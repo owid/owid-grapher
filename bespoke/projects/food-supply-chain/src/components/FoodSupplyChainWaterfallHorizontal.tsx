@@ -1,5 +1,3 @@
-import cx from "clsx"
-
 import { TextWrap } from "@ourworldindata/components/src/TextWrap/TextWrap.js"
 import { TextWrapSvg } from "@ourworldindata/components/src/TextWrap/TextWrapComponents.js"
 import { Halo } from "@ourworldindata/components/src/Halo/Halo.js"
@@ -17,7 +15,6 @@ import {
     CAPTION_FONT_SIZE,
     CAPTION_FONT_WEIGHT,
     COLORS,
-    CONNECTOR_WIDTH,
     GROUP_BOX_CORNER_RADIUS,
     GROUP_HEADER_GAP,
     GROUP_HEADER_TOP_GAP,
@@ -57,10 +54,10 @@ import {
     layOutWaterfall,
     measureGroupHeaderSlots,
     PlacedBar,
-    PlacedLine,
     PlacedRect,
     PlacedStep,
 } from "../core/waterfallLayout.js"
+import { FoodSupplyChainConnector } from "./FoodSupplyChainConnector.js"
 import { FoodSupplyChainTooltip } from "./FoodSupplyChainTooltip.js"
 import { buildTruncatedTextWrap } from "./truncatedTextWrap.js"
 import { useStepHover } from "./useStepHover.js"
@@ -316,12 +313,11 @@ export function FoodSupplyChainWaterfallHorizontal({
                     stroke={COLORS.zeroLine}
                 />
                 {layout.connectors.map((connector, index) => (
-                    <Connector
+                    <FoodSupplyChainConnector
                         key={index}
                         line={connector.line}
-                        isAddition={connector.leftStep.delta > 0}
                         color={
-                            connector.leftStep.delta > 0
+                            connector.fromStep.delta > 0
                                 ? COLORS.add
                                 : COLORS.subtract
                         }
@@ -329,9 +325,8 @@ export function FoodSupplyChainWaterfallHorizontal({
                     />
                 ))}
                 {layout.totalConnector && (
-                    <Connector
+                    <FoodSupplyChainConnector
                         line={layout.totalConnector}
-                        isAddition={waterfall.total.value > 0}
                         color={COLORS.total}
                         isDimmed={hover !== undefined}
                     />
@@ -412,7 +407,7 @@ export function FoodSupplyChainWaterfallHorizontal({
                     step={hoveredStep}
                     isTotal={hover.stepKey === waterfall.total.key}
                     isFirstStep={hover.stepKey === waterfall.steps[0]?.key}
-                    unit={waterfall.shortUnit}
+                    shortUnit={waterfall.shortUnit}
                     year={waterfall.year}
                     numDecimalPlaces={numDecimalPlaces}
                     position={hover.position}
@@ -437,15 +432,12 @@ function RowMarks({
 }: {
     step: PlacedStep
     captionTextWrap: TextWrap
-    /** One line, or two with the unit on the second */
     valueLabelLines: string[]
     valueLabelSide: LabelSide
     isTotal: boolean
     showArrow: boolean
     isDimmed: boolean
-    /** Where the caption's lines end */
     captionRight: number
-    /** What the value label sits on, which its halo takes the colour of */
     backgroundColor: string
 }): React.ReactElement {
     const barColor = isTotal
@@ -512,38 +504,6 @@ function RowMarks({
     )
 }
 
-/** A line from one bar to the next, shifted half its width onto the upper bar's side of their shared edge */
-function Connector({
-    line,
-    isAddition,
-    color,
-    isDimmed,
-}: {
-    line: PlacedLine
-    /** Whether the bar it leaves adds to the balance, which decides the side it shifts to */
-    isAddition: boolean
-    color: string
-    isDimmed: boolean
-}): React.ReactElement {
-    // An addition's bar lies left of its far end on screen, a subtraction's right
-    const x = line.x1 + ((isAddition ? -1 : 1) * CONNECTOR_WIDTH) / 2
-    return (
-        <line
-            className={cx(
-                "food-supply-chain-waterfall__connector",
-                isDimmed && "food-supply-chain-waterfall__connector--dimmed"
-            )}
-            x1={x}
-            y1={line.y1}
-            x2={x}
-            y2={line.y2}
-            stroke={color}
-            strokeWidth={CONNECTOR_WIDTH}
-        />
-    )
-}
-
-/** An arrow through the bar, pointing the way the balance moves; drawn only if the bar has room for it */
 function BarArrow({
     step,
     bar,
@@ -553,15 +513,14 @@ function BarArrow({
 }): React.ReactElement | null {
     if (bar.width < ARROW_MIN_LENGTH + 2 * ARROW_INSET) return null
 
-    // +1 walks right from the far end, -1 walks left
-    const direction = step.step.delta > 0 ? -1 : 1
+    const intoBarSign = step.step.delta > 0 ? -1 : 1
     const { x: farEndX } = step.valueAnchor
     const y = bar.y + bar.height / 2
     return (
         <BezierArrow
             className="food-supply-chain-waterfall__arrow"
-            start={{ x: farEndX + direction * (bar.width - ARROW_INSET), y }}
-            end={{ x: farEndX + direction * ARROW_INSET, y }}
+            start={{ x: farEndX + intoBarSign * (bar.width - ARROW_INSET), y }}
+            end={{ x: farEndX + intoBarSign * ARROW_INSET, y }}
             width={ARROW_WIDTH}
             color={COLORS.arrow}
             opacity={ARROW_OPACITY}
@@ -569,7 +528,6 @@ function BarArrow({
     )
 }
 
-/** A bar's value label beside it, its lines centred on the row */
 function ValueLabel({
     lines,
     bar,
@@ -581,14 +539,12 @@ function ValueLabel({
     style,
 }: {
     lines: string[]
-    /** Zero-width at the running balance for a step with no bar */
     bar: Pick<PlacedRect, "x" | "width">
     side: LabelSide
     rowCentre: number
     fontSize: number
     fontWeight: number
     fill: string
-    /** Set by Halo on its copy */
     style?: React.CSSProperties
 }): React.ReactElement {
     const { x, textAnchor } = placeValueLabel(bar, side)
@@ -628,7 +584,6 @@ function placeValueLabel(
         : { x: bar.x - VALUE_LABEL_SIDE_GAP, textAnchor: "end" }
 }
 
-/** A value label as the room it needs beside a bar running from `from` to `to` */
 function buildAxisLabel({
     from,
     to,
@@ -641,7 +596,6 @@ function buildAxisLabel({
     from: number
     to: number
     text: string
-    /** The text as two lines, with the unit on the second */
     wrappedLines?: string[]
     isTotal: boolean
     preferredSide: LabelSide
@@ -656,8 +610,9 @@ function buildAxisLabel({
                 ? TOTAL_LABEL_FONT_WEIGHT
                 : VALUE_LABEL_FONT_WEIGHT,
         }).width
-    // a gap to the bar, and one to the plot's edge
-    const gaps = 2 * VALUE_LABEL_SIDE_GAP
+    const gapToBar = VALUE_LABEL_SIDE_GAP
+    const gapToPlotEdge = VALUE_LABEL_SIDE_GAP
+    const gaps = gapToBar + gapToPlotEdge
     return {
         barStart: (Math.min(from, to) - domainStart) / domainSpan,
         barEnd: (Math.max(from, to) - domainStart) / domainSpan,
@@ -669,10 +624,6 @@ function buildAxisLabel({
     }
 }
 
-/**
- * The tick labels to draw, centred on the given positions: every one if none
- * overlap, else every other one, and so on, always keeping the last
- */
 function chooseShownTickLabels(
     positions: number[],
     labelWidths: number[]

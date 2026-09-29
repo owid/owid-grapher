@@ -4,9 +4,12 @@ export function clampYear(
     selected: number
 ): number | undefined {
     if (years.length === 0) return undefined
-    return years.reduce((nearest, year) =>
-        Math.abs(year - selected) <= Math.abs(nearest - selected)
+    return years.reduce((nearest, year) => {
+        const distance = Math.abs(year - selected)
+        const nearestDistance = Math.abs(nearest - selected)
+        return distance < nearestDistance ||
+            (distance === nearestDistance && year > nearest)
             ? year
             : nearest
-    )
+    })
 }
