@@ -27,18 +27,18 @@ export function FoodSupplyChainControls({
     measure,
     year,
     years,
-    setEntityName,
-    setMeasure,
-    setYear,
+    onEntityNameChange,
+    onMeasureChange,
+    onYearChange,
 }: {
     metadata: FoodSupplyChainMetadata
     entityName: string
     measure: Measure
     year: number
     years: number[]
-    setEntityName: (name: string) => void
-    setMeasure: (measure: Measure) => void
-    setYear: (year: number) => void
+    onEntityNameChange: (name: string) => void
+    onMeasureChange: (measure: Measure) => void
+    onYearChange: (year: number) => void
 }): React.ReactElement {
     const availableEntities = useMemo<BasicDropdownOption[]>(
         () =>
@@ -56,14 +56,14 @@ export function FoodSupplyChainControls({
                     label="Country or region"
                     availableEntities={availableEntities}
                     selectedEntityName={entityName}
-                    onChange={setEntityName}
+                    onChange={onEntityNameChange}
                     isSearchable
                 />
                 <LabeledControl label="Measure">
                     <Switcher
                         items={MEASURE_ITEMS}
                         selectedKey={measure}
-                        onChange={setMeasure}
+                        onChange={onMeasureChange}
                         ariaLabel="Measure"
                     />
                 </LabeledControl>
@@ -71,7 +71,7 @@ export function FoodSupplyChainControls({
                     className="food-supply-chain-controls__time-slider"
                     times={years}
                     selectedTime={year}
-                    onChange={setYear}
+                    onChange={onYearChange}
                 />
             </ControlsRow>
         </Controls>

@@ -130,6 +130,27 @@ describe(buildWaterfall, () => {
         ])
     })
 
+    it("keeps float noise out of a running balance that cancels out", () => {
+        const metadata = fixtureMetadata([
+            { key: "crop", name: "Crop production", direction: "in" },
+            { key: "imports", name: "Imports", direction: "in" },
+            { key: "exports", name: "Exports", direction: "out" },
+        ])
+        const entityData = fixtureEntityData([2020], {
+            crop: [10.1],
+            imports: [0.2],
+            exports: [10.3],
+            food: [0],
+        })
+        const result = buildWaterfall({
+            metadata,
+            entityData,
+            measure: "protein",
+            year: 2020,
+        })!
+        expect(Math.abs(result.steps[2].balanceAfter)).toBe(0)
+    })
+
     it("leaves excluded stages out of the running balance", () => {
         const metadata = fixtureMetadata([
             { key: "crop", name: "Crop production", direction: "in" },

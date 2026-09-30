@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest"
 
-import { buildSubtitle, buildTitle, formatMeasureValue } from "./text.js"
+import {
+    buildSubtitle,
+    buildTitle,
+    buildTruncatedTextWrap,
+    formatMeasureValue,
+} from "./text.js"
 
 describe(formatMeasureValue, () => {
     it("rounds to the given decimal places", () => {
@@ -64,10 +69,37 @@ describe(buildTitle, () => {
         )
     })
 
+    it("asks about an income group in the plural", () => {
+        expect(buildTitle("High-income countries", "energy")).toBe(
+            "How many calories do high-income countries produce, and where do they go?"
+        )
+        expect(buildTitle("High-income countries", "protein")).toBe(
+            "How much protein do high-income countries produce, and where does it go?"
+        )
+    })
+
     it("drops the suffix from Micronesia (country)", () => {
         expect(buildTitle("Micronesia (country)", "energy")).toBe(
             "How many calories does Micronesia produce, and where do they go?"
         )
+    })
+})
+
+describe(buildTruncatedTextWrap, () => {
+    it("keeps a cut text to at most the given lines, however full the last one is", () => {
+        const text =
+            "alpha beta gamma delta epsilon zeta eta theta iota kappa lambda"
+        for (let maxWidth = 60; maxWidth <= 150; maxWidth++) {
+            const wrap = buildTruncatedTextWrap({
+                text,
+                maxWidth,
+                maxLines: 2,
+                fontSize: 12,
+                fontWeight: 400,
+            })
+            expect(wrap.lines.length).toBeLessThanOrEqual(2)
+            expect(wrap.lines.at(-1)!.text.endsWith("…")).toBe(true)
+        }
     })
 })
 
