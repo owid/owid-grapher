@@ -6,8 +6,6 @@
 }
 
 .all-charts-block__panes {
-    // Ahead of the media query below: a declaration after a nested rule is a
-    // fatal Sass deprecation here (see `mixed-decls` in vite.config-common.mts).
     align-items: start;
     display: grid;
     // The block itself already spans the full 12-column content grid (see the

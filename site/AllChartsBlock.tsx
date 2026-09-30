@@ -933,15 +933,15 @@ const AllChartsRowThumbnails = ({
                                 hit,
                                 grapherParams: toGrapherQueryParams({ tab }),
                                 variant: PreviewVariant.Thumbnail,
-                                // The chart geometry with as little labelling
-                                // as the thumbnail renderer will drop: no map
-                                // legend, no "No data" key, no series names
-                                // (see useMinimalLabeling in
-                                // packages/@ourworldindata/grapher/src/core/GrapherState.tsx).
-                                // A thumbnail is 160px wide here, where any
-                                // label is illegible anyway and only eats the
-                                // room the chart itself could fill (Marwa,
-                                // 2026-09-30).
+                                // As little labelling as the thumbnail
+                                // renderer will drop, so the chart itself gets
+                                // the room: at a third of the list pane a
+                                // label is illegible anyway (Marwa,
+                                // 2026-09-30). See useMinimalLabeling in
+                                // packages/@ourworldindata/grapher — it takes
+                                // a map's legend and "No data" key away
+                                // outright, and trades a line's series names
+                                // for its values rather than dropping both.
                                 isMinimal: true,
                             })}
                             alt=""
