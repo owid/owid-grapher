@@ -116,6 +116,7 @@ export const AnnouncementPage = ({
                 seeAllHref={buildLatestPagePath(latestType)}
                 items={announcementsToCarouselItems(otherAnnouncements)}
                 theme="white"
+                tall
             />
         </div>
     )

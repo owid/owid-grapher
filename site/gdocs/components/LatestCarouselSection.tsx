@@ -16,6 +16,7 @@ export default function LatestCarouselSection({
     seeAllHref,
     items,
     theme,
+    tall,
 }: {
     className?: string
     heading: string
@@ -23,6 +24,7 @@ export default function LatestCarouselSection({
     seeAllHref: string
     items: LatestCarouselItem[]
     theme?: LatestCarouselTheme
+    tall?: boolean
 }) {
     if (!items.length) return null
 
@@ -38,6 +40,7 @@ export default function LatestCarouselSection({
                 seeAllHref={seeAllHref}
                 seeAllText={seeAllText}
                 theme={theme}
+                tall={tall}
             />
         </div>
     )

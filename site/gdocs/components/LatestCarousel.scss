@@ -110,6 +110,26 @@ html:not(.js-enabled) .latest-carousel__card,
     }
 }
 
+// Data update thumbnails are usually 4:5 charts, 298 × 372.5px at the
+// widest card. Give them 15px more than data insights so they fit
+// without scrolling, and grow the card by the same so the text below
+// keeps its room.
+.latest-carousel--tall {
+    @include md-down {
+        .latest-carousel__card {
+            height: 553px;
+        }
+
+        .latest-carousel__card-left picture {
+            max-height: 375px;
+        }
+
+        .latest-carousel__card__see-all {
+            padding: 265px 0;
+        }
+    }
+}
+
 .latest-carousel__card--snapped .latest-carousel__card__link {
     box-shadow: 0 4px 24px 0 rgba(0, 0, 0, 0.08);
 }
@@ -131,6 +151,13 @@ html:not(.js-enabled) .latest-carousel__card,
     display: flex;
     height: 100%;
 
+    // In the stacked layout, take only the image's height and leave the rest
+    // to the text. With height: 100% on both, flexbox splits the card in half,
+    // leaving a gap under wide images.
+    @include md-down {
+        height: auto;
+    }
+
     picture {
         height: 100%;
 
@@ -146,6 +173,7 @@ html:not(.js-enabled) .latest-carousel__card,
         max-width: initial;
 
         @include md-down {
+            display: block;
             height: auto;
             max-width: 100%;
         }
@@ -158,6 +186,11 @@ html:not(.js-enabled) .latest-carousel__card,
     height: 100%;
     min-height: 0;
     overflow: hidden;
+
+    @include md-down {
+        flex: 1;
+        height: auto;
+    }
 }
 
 .latest-carousel__card-body {

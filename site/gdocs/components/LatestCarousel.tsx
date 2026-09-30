@@ -35,12 +35,15 @@ export default function LatestCarousel({
     seeAllHref,
     seeAllText,
     theme = "blue",
+    tall = false,
 }: {
     className?: string
     items: LatestCarouselItem[]
     seeAllHref: string
     seeAllText: string
     theme?: LatestCarouselTheme
+    /** Room for 4:5 thumbnails on small screens, e.g. data update charts. */
+    tall?: boolean
 }) {
     const scrollerRef = useRef<HTMLUListElement>(null)
     const [selectedIndex, setSelectedIndex] = useState(0)
@@ -96,6 +99,7 @@ export default function LatestCarousel({
         <div
             className={cx("latest-carousel", className, {
                 "latest-carousel--white": theme === "white",
+                "latest-carousel--tall": tall,
             })}
         >
             <ul className="latest-carousel__card-container" ref={scrollerRef}>
