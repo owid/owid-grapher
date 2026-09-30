@@ -118,3 +118,37 @@ GrapherLoader.fromCsv({
 ```
 
 The footer's attribution line is assembled from `sourceName` and the origins' producers (or set it directly via the config's `sourceDesc`). `additionalInfo`, `descriptionFromProducer`, and `presentation` (e.g. `titlePublic`, `attributionShort`) are also supported — see the `OwidColumnDef` type for the full surface.
+
+## Overriding metadata for one chart
+
+A column definition describes the column itself, so every chart drawn from that
+table sees it. When one chart needs to say something different, put a
+`dimensions` entry in its config that names the column by `slug` and carries a
+`display` block. It is laid over the column's own definition, and only for that
+chart:
+
+```js
+GrapherLoader.fromCsv({
+    config: {
+        title: "Cows per capita",
+        dimensions: [
+            {
+                property: "y",
+                slug: "cows", // a column of your table, not an OWID indicator
+                display: { name: "Cattle", numDecimalPlaces: 1 },
+            },
+        ],
+    },
+    csvUrl: "./cows.csv",
+    columnDefs: [{ slug: "cows", type: "Numeric", name: "Cows per capita" }],
+}).mount(container)
+```
+
+A dimension is the same object OWID's own charts use to name an indicator, with
+`slug` in place of `variableId`, so anything `display` supports works here too.
+`ySlugs` and its siblings remain the short way to say the same thing when no
+override is needed.
+
+If you build the table yourself and hand it to `fromTable`, this happens for
+you. If you assign `grapherState.inputTable` directly, call
+`applyDimensionDisplayOverrides(table, config.dimensions)` first.

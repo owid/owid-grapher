@@ -95,6 +95,7 @@ export {
     legacyToOwidTableAndDimensions,
     legacyToOwidTableAndDimensionsWithMandatorySlug,
 } from "./core/LegacyToOwidTable"
+export { applyDimensionDisplayOverrides } from "./core/applyDimensionDisplay.js"
 export { getErrorMessageRelatedQuestionUrl } from "./core/relatedQuestion"
 export { MapChartState } from "./mapCharts/MapChartState"
 export { MapConfig } from "./mapCharts/MapConfig"

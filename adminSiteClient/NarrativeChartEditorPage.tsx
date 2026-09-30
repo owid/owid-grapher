@@ -1,109 +1,217 @@
+/**
+ * The admin's editor for an existing narrative chart: `GrapherEditor` with
+ * the parent chart's full config as the base, plus the narrative chart's
+ * record (its name, references, the parent link) plugged in from here.
+ */
 import React from "react"
 import { observer } from "mobx-react"
 import { computed, action, runInAction, observable, makeObservable } from "mobx"
 import type { History } from "history"
 import { GrapherInterface } from "@ourworldindata/types"
+import { CodeSnippet } from "@ourworldindata/components"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faFile } from "@fortawesome/free-solid-svg-icons"
 import { Admin } from "./Admin.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
-import { ChartEditorView, ChartEditorViewManager } from "./ChartEditorView.js"
-import {
-    NarrativeChartEditor,
-    NarrativeChartEditorManager,
-} from "./NarrativeChartEditor.js"
+import { AdminLayout } from "./AdminLayout.js"
+import { LoadingBlocker, Section } from "./Forms.js"
+import { GrapherEditor } from "./GrapherEditor.js"
+import { ConfigEditor, EditorExtraTab } from "./ConfigEditor.js"
 import { References } from "./AbstractChartEditor.js"
+import { EditorReferencesTabForNarrativeChart } from "./EditorReferencesTab.js"
+import { NarrativeChartSaveButtons } from "./NarrativeChartSaveButtons.js"
+import {
+    adminOriginUrlSuggestions,
+    getFullReferencesCount,
+} from "./adminChartApi.js"
+import {
+    adminDetailsProvider,
+    adminIndicatorCatalog,
+    defaultEditorEnvironment,
+} from "./editorProviders.js"
+import { dataApiIndicatorStore, IndicatorStore } from "./indicatorStores.js"
+import { makeNarrativeChartPatchConfig } from "./narrativeChartConfig.js"
 
 interface NarrativeChartEditorPageProps {
     narrativeChartId: number
     history: History
 }
 
+/** The ArchieML that embeds a narrative chart in a Google Doc. */
+export function NarrativeChartInfo({ name }: { name: string }) {
+    // In theory, it'd be great to use `rawToArchie` here, but that's in the `db` package
+    const gdocSnippet = `{.narrative-chart}
+  name: ${name}
+{}`
+    return (
+        <Section name="Narrative chart">
+            <p>
+                You are editing the config of a narrative chart named{" "}
+                <i>{name}</i>.
+            </p>
+            <h6>
+                <FontAwesomeIcon icon={faFile} /> GDoc ArchieML snippet
+            </h6>
+            <CodeSnippet code={gdocSnippet} forceShowCopyButton />
+        </Section>
+    )
+}
+
 @observer
-export class NarrativeChartEditorPage
-    extends React.Component<NarrativeChartEditorPageProps>
-    implements
-        NarrativeChartEditorManager,
-        ChartEditorViewManager<NarrativeChartEditor>
-{
+export class NarrativeChartEditorPage extends React.Component<NarrativeChartEditorPageProps> {
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
     constructor(props: NarrativeChartEditorPageProps) {
         super(props)
-
         makeObservable(this, {
+            isLoaded: observable,
+            name: observable.ref,
+            configId: observable.ref,
+            patchConfig: observable.ref,
+            parentConfig: observable.ref,
+            parentUrl: observable.ref,
             references: observable,
         })
     }
 
-    id?: number
-    name?: string
-    configId?: string
+    isLoaded = false
+    name = ""
+    configId = ""
     patchConfig: GrapherInterface = {}
-    fullConfig: GrapherInterface = {}
-    parentChartId: number = 0
-    parentConfig: GrapherInterface = {}
+    /** The parent chart's full config: what this narrative chart is a patch on. */
+    parentConfig: GrapherInterface | undefined = undefined
     parentUrl: string | null = null
-
-    isInheritanceEnabled: boolean | undefined = true
-
     references: References | undefined = undefined
-
-    async fetchNarrativeChartData(): Promise<void> {
-        const data = await this.context.admin.getJSON(
-            `/api/narrative-charts/${this.narrativeChartId}.config.json`
-        )
-        this.id = data.id
-        this.name = data.name
-        this.configId = data.chartConfigId
-        this.fullConfig = data.configFull
-        this.patchConfig = data.configPatch
-        this.parentChartId = data.parentChartId
-        this.parentConfig = data.parentConfigFull
-        this.parentUrl = data.parentUrl
-    }
 
     @computed get admin(): Admin {
         return this.context.admin
     }
 
-    @computed get history(): History {
-        return this.props.history
+    @computed get store(): IndicatorStore {
+        return dataApiIndicatorStore({
+            dataApiUrl: defaultEditorEnvironment.dataApiUrl,
+            catalog: adminIndicatorCatalog(this.admin),
+        })
     }
 
-    @computed get narrativeChartId(): number {
-        return this.props.narrativeChartId
-    }
-
-    @computed get editor(): NarrativeChartEditor {
-        return new NarrativeChartEditor({ manager: this })
+    async fetchNarrativeChartData(): Promise<void> {
+        const data = await this.admin.getJSON(
+            `/api/narrative-charts/${this.props.narrativeChartId}.config.json`
+        )
+        runInAction(() => {
+            this.name = data.name
+            this.configId = data.chartConfigId
+            this.patchConfig = data.configPatch
+            this.parentConfig = data.parentConfigFull
+            this.parentUrl = data.parentUrl
+            this.isLoaded = true
+        })
     }
 
     async fetchRefs(): Promise<void> {
-        const { admin } = this.context
-        const json =
-            this.narrativeChartId === undefined
-                ? {}
-                : await admin.getJSON(
-                      `/api/narrative-charts/${this.narrativeChartId}.references.json`
-                  )
+        const json = await this.admin.getJSON(
+            `/api/narrative-charts/${this.props.narrativeChartId}.references.json`
+        )
         runInAction(() => (this.references = json.references))
     }
 
-    @action.bound onNameChange(_: string) {
-        // Name is not editable once the narrative chart is created.
-        return undefined
-    }
-
-    @action.bound refresh(): void {
+    override componentDidMount(): void {
         void this.fetchNarrativeChartData()
         void this.fetchRefs()
     }
 
-    override componentDidMount(): void {
-        this.refresh()
+    /**
+     * A narrative chart is saved as a special patch: what it adds on top of
+     * its parent, minus the props a narrative chart never carries, plus the
+     * props it always persists (see `makeNarrativeChartPatchConfig`). The
+     * editor's own generic patch is returned as the saved baseline, so the
+     * editor's "modified" state stays consistent with what it computes.
+     */
+    @action.bound async onSave(
+        patch: GrapherInterface,
+        editor: ConfigEditor
+    ): Promise<GrapherInterface> {
+        const json = await this.admin.requestJSON(
+            `/api/narrative-charts/${this.props.narrativeChartId}`,
+            {
+                config: makeNarrativeChartPatchConfig(
+                    editor.liveConfigWithDefaults,
+                    editor.activeParentConfigWithDefaults
+                ),
+            },
+            "PUT"
+        )
+        if (!json.success) throw new Error(json.errorMsg ?? "Saving failed")
+        return patch
+    }
+
+    @computed get extraTabs(): EditorExtraTab[] {
+        const refsCount = this.references
+            ? getFullReferencesCount(this.references)
+            : undefined
+        return [
+            {
+                key: "narrative",
+                label: "Narrative chart",
+                render: () => <NarrativeChartInfo name={this.name} />,
+            },
+            {
+                key: "refs",
+                label: refsCount !== undefined ? `Refs (${refsCount})` : "Refs",
+                render: () => (
+                    <EditorReferencesTabForNarrativeChart
+                        references={this.references}
+                        configId={this.configId}
+                    />
+                ),
+            },
+        ]
     }
 
     override render(): React.ReactElement {
-        return <ChartEditorView manager={this} />
+        return (
+            <AdminLayout noSidebar>
+                {this.isLoaded ? (
+                    <GrapherEditor
+                        key={this.props.narrativeChartId}
+                        config={this.patchConfig}
+                        baseConfig={this.parentConfig}
+                        // A narrative chart has no page of its own; the link
+                        // shows the chart it is based on, as it did before.
+                        previewUrl={
+                            this.parentConfig?.id
+                                ? `/admin/charts/${this.parentConfig.id}/preview`
+                                : undefined
+                        }
+                        store={this.store}
+                        details={adminDetailsProvider(this.admin)}
+                        extraTabs={this.extraTabs}
+                        originUrlSuggestions={() =>
+                            adminOriginUrlSuggestions(
+                                this.admin,
+                                this.references
+                            )
+                        }
+                        renderSaveButtons={(editor, editingErrors) => (
+                            <NarrativeChartSaveButtons
+                                editor={editor}
+                                editingErrors={editingErrors}
+                                parentUrl={this.parentUrl}
+                                existing={{
+                                    name: this.name,
+                                    configId: this.configId,
+                                }}
+                            />
+                        )}
+                        onSave={this.onSave}
+                    />
+                ) : (
+                    <main className="ChartEditorPage">
+                        <LoadingBlocker isLoading />
+                    </main>
+                )}
+            </AdminLayout>
+        )
     }
 }
