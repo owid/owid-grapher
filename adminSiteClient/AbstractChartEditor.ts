@@ -69,6 +69,12 @@ export interface AbstractChartEditorManager {
     etlConfig?: GrapherInterface
     isInheritanceEnabled?: boolean
     variableIdsByCatalogPath?: Record<string, number | null>
+    /**
+     * True when the editor is mounted inside another page (e.g. the rich
+     * article editor's side rail) rather than on its own editor page.
+     * Embedded editors must not read or write the page URL.
+     */
+    embedded?: boolean
 }
 
 export interface References {
@@ -141,8 +147,10 @@ export abstract class AbstractChartEditor<
                 ? "mobile"
                 : "desktop"
 
-        this.readInitialTabFromUrl()
-        this.setupTabUrlSync()
+        if (!this.manager.embedded) {
+            this.readInitialTabFromUrl()
+            this.setupTabUrlSync()
+        }
 
         when(
             () => this.manager.parentConfig !== undefined,

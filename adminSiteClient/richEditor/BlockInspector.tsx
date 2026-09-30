@@ -1,4 +1,4 @@
-import { useContext, useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import {
     Alert,
     AutoComplete,
@@ -12,16 +12,20 @@ import {
     Space,
     Typography,
 } from "antd"
-import { useQuery } from "@tanstack/react-query"
 import {
     EnrichedBlockResearchAndWritingLink,
     EnrichedHybridLink,
     Span,
 } from "@ourworldindata/types"
 import { spansToUnformattedPlainText } from "@ourworldindata/utils"
-import { AdminAppContext } from "../AdminAppContext.js"
 import { ImageSelectorModal } from "../ImageSelectorModal.js"
 import { InspectedBlock } from "./inspection.js"
+import { parseGrapherUrl } from "./grapherUrls.js"
+import { GRAPHER_URL_PREFIX, useChartList } from "./useChartList.js"
+import {
+    ChartBlockActions,
+    NarrativeChartBlockActions,
+} from "./chartEditing/ChartBlockActions.js"
 
 // The right-rail block inspector (stage A of the in-situ chart editing
 // plan): opened by selecting a component in the canvas, it shows typed
@@ -29,66 +33,67 @@ import { InspectedBlock } from "./inspection.js"
 // everything else. Edits are applied as ProseMirror attribute updates, so
 // undo/redo covers them.
 
-const GRAPHER_URL_PREFIX = "https://ourworldindata.org/grapher/"
-
-interface ChartListItem {
-    id: number
-    title: string
-    slug: string
-    isPublished: boolean
-}
-
-function useChartList(): ChartListItem[] {
-    const { admin } = useContext(AdminAppContext)
-    const chartsQuery = useQuery({
-        queryKey: ["richEditorChartList"],
-        // fail-soft: without the chart list the field still accepts pasted
-        // grapher URLs, so a failing list endpoint must not break the editor
-        queryFn: async () => {
-            const response = await admin.rawRequest(
-                "/api/charts.json",
-                undefined,
-                "GET"
-            )
-            if (!response.ok) return { charts: [] }
-            return (await response.json()) as { charts: ChartListItem[] }
-        },
-        staleTime: Infinity,
-        retry: false,
-    })
-    return chartsQuery.data?.charts ?? []
-}
-
 function ChartUrlField(props: {
     value: string
     onChange: (url: string) => void
 }): React.ReactElement {
     const charts = useChartList()
-    const [search, setSearch] = useState("")
+    // What the input currently shows. Typing must NOT write the block's url
+    // (a half-typed search would break the chart in the canvas): the value is
+    // only committed when an option is picked or a valid grapher URL is
+    // pasted; anything else is reverted on blur.
+    const [text, setText] = useState(props.value)
+
+    useEffect(() => {
+        setText(props.value)
+        // re-sync when a different block is inspected or the url is changed
+        // from elsewhere (e.g. the JSON editor)
+    }, [props.value])
+
     const options = useMemo(() => {
-        const query = search.trim().toLowerCase()
-        if (!query) return []
+        const raw = text.trim()
+        if (!raw || raw === props.value) return []
+        // pasted grapher URLs search by their slug
+        const query = (parseGrapherUrl(raw)?.slug ?? raw).toLowerCase()
         return charts
             .filter((chart) => chart.isPublished && chart.slug)
             .filter(
                 (chart) =>
-                    chart.title?.toLowerCase().includes(query) ||
-                    chart.slug?.toLowerCase().includes(query)
+                    chart.slug.toLowerCase().includes(query) ||
+                    String(chart.id) === query
             )
             .slice(0, 20)
             .map((chart) => ({
                 value: `${GRAPHER_URL_PREFIX}${chart.slug}`,
-                label: `${chart.title} (${chart.slug})`,
+                label: `${chart.slug} — ${chart.title}`,
             }))
-    }, [charts, search])
+    }, [charts, text, props.value])
+
+    const commitOrRevert = (): void => {
+        const raw = text.trim()
+        // allow clearing the block's chart explicitly
+        if (raw === "") {
+            if (props.value !== "") props.onChange("")
+            return
+        }
+        if (raw !== props.value && parseGrapherUrl(raw)) {
+            props.onChange(raw)
+            return
+        }
+        setText(props.value)
+    }
 
     return (
         <AutoComplete
-            value={props.value}
+            value={text}
             options={options}
-            showSearch={{ onSearch: setSearch }}
-            onChange={(value) => props.onChange(String(value))}
-            placeholder="Search published charts or paste a grapher URL"
+            showSearch={{ onSearch: setText }}
+            onSelect={(value) => {
+                setText(String(value))
+                props.onChange(String(value))
+            }}
+            onBlur={commitOrRevert}
+            placeholder="Search by chart slug or id, or paste a grapher URL"
         />
     )
 }
@@ -459,6 +464,10 @@ export function BlockInspector(props: {
                                 }
                             />
                         </Form.Item>
+                        <ChartBlockActions
+                            inspected={inspected}
+                            chartUrl={String(draft.url ?? "")}
+                        />
                     </>
                 )
             case "narrative-chart":
@@ -490,6 +499,10 @@ export function BlockInspector(props: {
                                 }
                             />
                         </Form.Item>
+                        <NarrativeChartBlockActions
+                            inspected={inspected}
+                            name={String(draft.name ?? "")}
+                        />
                     </>
                 )
             case "image":
