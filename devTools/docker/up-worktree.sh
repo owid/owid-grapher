@@ -54,18 +54,20 @@ tmux new-session -d -s "$SESSION" -c "$PWD" -n admin \
 echo '==> Waiting for the admin server to come up (can take a few minutes)'
 for i in $(seq 1 180); do
     curl -sf -o /dev/null "http://localhost:${ADMIN_SERVER_PORT}/" && break
+    if ! tmux has-session -t "$SESSION" 2>/dev/null; then
+        echo
+        echo "ERROR: the '$SESSION' tmux session is gone, check logs/admin-server.log"
+        exit 1
+    fi
     # a server that crashed on startup never comes up, so stop waiting as soon as
-    # one of the panes has died (remain-on-exit keeps it around to read)
-    dead_window="$(tmux list-panes -s -t "$SESSION" -F '#{pane_dead} #{window_name}' 2>/dev/null | awk '$1 == 1 { print $2; exit }')"
+    # one of the panes has died (remain-on-exit keeps it around to read); a pane that
+    # died before remain-on-exit was set takes the whole session with it, hence the
+    # check above
+    dead_window="$( (tmux list-panes -s -t "$SESSION" -F '#{pane_dead} #{window_name}' 2>/dev/null || true) | awk '$1 == 1 { print $2; exit }')"
     if [ -n "$dead_window" ]; then
         echo
         echo "ERROR: the $dead_window server exited during startup:"
         tmux capture-pane -p -t "$SESSION:$dead_window" | sed '/^$/d' | tail -n 20
-        exit 1
-    fi
-    if ! tmux has-session -t "$SESSION" 2>/dev/null; then
-        echo
-        echo "ERROR: the '$SESSION' tmux session is gone, check logs/admin-server.log"
         exit 1
     fi
     if [ "$i" -eq 180 ]; then
