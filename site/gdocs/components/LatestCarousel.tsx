@@ -257,6 +257,7 @@ const CarouselCard = memo(function CarouselCard({
                             blocks={otherBlocks}
                             containerType="data-insight"
                             shouldRenderLinks={false}
+                            interactiveImages={false}
                         />
                     </div>
                 </div>

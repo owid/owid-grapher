@@ -27,10 +27,14 @@ const analytics = new SiteAnalytics()
 export default function GuidedChart({
     d,
     containerType = "default",
+    shouldRenderLinks = true,
+    interactiveImages = true,
 }: {
     d: EnrichedBlockGuidedChart
     containerType?: Container
     className?: string
+    shouldRenderLinks?: boolean
+    interactiveImages?: boolean
 }) {
     const stateRef = useRef<GrapherState | null>(null)
     const chartRef = useRef<HTMLDivElement | null>(null)
@@ -173,7 +177,12 @@ export default function GuidedChart({
                 },
             }}
         >
-            <ArticleBlocks blocks={d.content} containerType={containerType} />
+            <ArticleBlocks
+                blocks={d.content}
+                containerType={containerType}
+                shouldRenderLinks={shouldRenderLinks}
+                interactiveImages={interactiveImages}
+            />
         </GuidedChartContext.Provider>
     )
 }

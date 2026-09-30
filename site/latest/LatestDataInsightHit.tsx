@@ -83,6 +83,7 @@ export const LatestDataInsightHit = ({
                             <ArticleBlocks
                                 blocks={otherBlocks}
                                 shouldRenderLinks={false}
+                                interactiveImages={false}
                             />
                         </div>
                     </div>
