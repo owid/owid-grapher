@@ -139,6 +139,21 @@ $latest-sticky-filters-mobile-hidden-row: $latest-sticky-filters-padding + 32px;
     @include latest-sticky-filters-pinned;
 }
 
+// Make room for the pinned bar above deep-linked cards (not needed in the
+// reveal arm, where the bar hides as the page scrolls down).
+.exp-latest-sticky-filters-v1--fully-sticky .latest-page > [id] {
+    // Top and bottom padding + 32px pills, then the 24px that deep-linked
+    // cards get when nothing is pinned (`.latest-page [id]`, LatestPage.scss).
+    scroll-margin-top: 2 * $latest-sticky-filters-padding + 32px + 24px;
+
+    @include sm-only {
+        // 16px gap + 24px topics label + 32px pills then the facets' mobile
+        // margin
+        scroll-margin-top: 16px + 24px + 32px +
+            $latest-facets-mobile-margin-bottom;
+    }
+}
+
 // No height fallback: before the hook measures the bar, top computes to auto.
 .exp-latest-sticky-filters-v1--reveal-on-scroll-up {
     .latest-search__facets-container {
