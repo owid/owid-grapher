@@ -281,6 +281,7 @@ export class FacetMap
             projectionColumnInfoBySlug,
             isFaceted,
             yColumnSlug,
+            patternScale,
         } = manager
 
         return series.map((series, index) => {
@@ -308,6 +309,7 @@ export class FacetMap
                 mapViewport,
                 isFaceted,
                 yColumnSlug,
+                patternScale,
                 ...series.manager,
             }
 
