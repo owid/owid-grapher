@@ -101,6 +101,7 @@ export class ChartEditorView<
         makeObservable(this, {
             details: observable,
             simulateVisionDeficiency: observable,
+            configuredEditor: observable.ref,
         })
     }
 
@@ -116,9 +117,25 @@ export class ChartEditorView<
 
     private hasAppliedInitialQueryParams = false
 
+    // The editor whose config has been applied to its chart. The tabs mount
+    // only after that: they arm reactions on the chart when they mount (the
+    // Basic tab resets the default selection when the dimensions change), and
+    // React mounts them before this view's componentDidMount applies the
+    // config, so a page that mounts this view with its config already loaded
+    // would otherwise have them rewrite the chart as it opens.
+    configuredEditor: Editor | undefined = undefined
+
+    @computed private get readyEditor(): Editor | undefined {
+        const { editor } = this
+        return editor !== undefined && editor === this.configuredEditor
+            ? editor
+            : undefined
+    }
+
     @action.bound async updateGrapher(): Promise<void> {
         const config = this.manager.editor.originalGrapherConfig
         this.manager.editor.grapherState.updateFromObject(config)
+        this.configuredEditor = this.manager.editor
         await this.manager.editor.reloadGrapherData()
         this.grapherState.externalBounds = this.bounds
 
@@ -348,11 +365,12 @@ export class ChartEditorView<
                 <main className="ChartEditorPage">
                     <LoadingBlocker
                         isLoading={
-                            this.editor === undefined ||
-                            !!this.editor.currentRequest
+                            this.readyEditor === undefined ||
+                            !!this.readyEditor.currentRequest
                         }
                     />
-                    {this.editor !== undefined && this.renderReady(this.editor)}
+                    {this.readyEditor !== undefined &&
+                        this.renderReady(this.readyEditor)}
                 </main>
             </AdminLayout>
         )
