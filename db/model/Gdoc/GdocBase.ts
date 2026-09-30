@@ -371,18 +371,10 @@ export class GdocBase implements OwidGdocBaseInterface {
     }
 
     async loadLinkedAuthors(knex: db.KnexReadonlyTransaction): Promise<void> {
-        const authors = await getMinimalAuthorsByNames(
+        this.linkedAuthors = await getMinimalAuthorsByNames(
             knex,
             this.content.authors
         )
-        const authorRoles = this.content.authorRoles
-        if (authorRoles) {
-            for (const author of authors) {
-                const role = authorRoles[author.name]
-                if (role) author.role = role
-            }
-        }
-        this.linkedAuthors = authors
     }
 
     get links(): DbInsertPostGdocLink[] {

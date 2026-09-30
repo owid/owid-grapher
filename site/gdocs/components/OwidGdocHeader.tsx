@@ -196,7 +196,10 @@ function OwidTopicPageHeader({ content }: { content: OwidGdocPostContent }) {
             </p>
             {content.authors.length > 0 && (
                 <p className="topic-page-header__byline col-start-2 span-cols-8 col-sm-start-2 span-sm-cols-12">
-                    <Byline names={content.authors} />
+                    <Byline
+                        names={content.authors}
+                        authorRoles={content.authorRoles}
+                    />
                 </p>
             )}
             <div className="topic-page-header__cta-buttons col-start-2 span-cols-8 col-sm-start-2 span-sm-cols-12">
@@ -228,7 +231,10 @@ function OwidLinearTopicPageHeader({
             </p>
             {content.authors.length > 0 && (
                 <p className="topic-page-header__byline col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2">
-                    <Byline names={content.authors} />
+                    <Byline
+                        names={content.authors}
+                        authorRoles={content.authorRoles}
+                    />
                 </p>
             )}
             <p className="topic-page-header__dateline body-3-medium-italic col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2">
