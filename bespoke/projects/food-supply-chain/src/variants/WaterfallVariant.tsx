@@ -171,7 +171,10 @@ function MeasuredWaterfall({
 }): React.ReactElement {
     const { ref, width } = useContainerWidth()
 
-    const isHorizontal = !doesVerticalLayoutFit(waterfall, width)
+    const isHorizontal = useMemo(
+        () => !doesVerticalLayoutFit(waterfall, width),
+        [waterfall, width]
+    )
 
     return (
         <div ref={ref}>
