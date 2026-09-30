@@ -16,7 +16,9 @@ installs_running_here() {
     # `yarn install` and bare `yarn` both install; the corepack shim shows up as
     # yarn.js. Other yarn commands (`yarn startSiteFront`) must not match.
     for pid in $(pgrep -f -- '(^|/)yarn(\.c?js)? install( |$)|(^|/)yarn(\.c?js)?$' || true); do
-        cwd="$(lsof -a -p "$pid" -d cwd -Fn 2>/dev/null | sed -n 's/^n//p')"
+        # /proc on Linux (agent images may not ship lsof), lsof on macOS; the
+        # process may have exited since pgrep saw it, which must not end the script
+        cwd="$(readlink "/proc/$pid/cwd" 2>/dev/null || lsof -a -p "$pid" -d cwd -Fn 2>/dev/null | sed -n 's/^n//p' || true)"
         [ "$cwd" = "$HERE" ] && return 0
     done
     return 1
