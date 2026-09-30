@@ -1,5 +1,5 @@
 import React from "react"
-import { Bounds, makeFigmaId } from "@ourworldindata/utils"
+import { Bounds, makeFigmaId, roundForSvg } from "@ourworldindata/utils"
 import { HorizontalAxis } from "../axis/Axis"
 import { HorizontalAxisGridLines } from "../axis/AxisViews"
 import { GRAPHER_DARK_TEXT } from "../color/ColorConstants"
@@ -22,8 +22,10 @@ export function SlopeChartXAxis({
                     {axis.tickLabels.map((label) => (
                         <text
                             key={label.value}
-                            x={axis.place(label.value)}
-                            y={bounds.bottom + padding + axis.tickFontSize}
+                            x={roundForSvg(axis.place(label.value))}
+                            y={roundForSvg(
+                                bounds.bottom + padding + axis.tickFontSize
+                            )}
                             textAnchor="middle"
                             fontSize={axis.tickFontSize}
                             fill={GRAPHER_DARK_TEXT}

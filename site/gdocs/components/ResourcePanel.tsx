@@ -5,7 +5,7 @@ import {
 } from "@ourworldindata/types"
 import { useContext } from "react"
 import { AttachmentsContext } from "../AttachmentsContext"
-import { BAKED_BASE_URL } from "../../../settings/clientSettings"
+import { BAKED_BASE_URL } from "../../../settings/clientSettings.mjs"
 import { HybridLinkList } from "./HybridLinkList"
 import { Button } from "@ourworldindata/components"
 import { queryParamsToStr } from "@ourworldindata/utils"

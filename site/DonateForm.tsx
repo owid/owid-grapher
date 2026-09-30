@@ -23,7 +23,7 @@ import {
     DONATE_API_URL,
     BAKED_BASE_URL,
     TURNSTILE_SITE_KEY,
-} from "../settings/clientSettings.js"
+} from "../settings/clientSettings.mjs"
 import { Checkbox } from "@ourworldindata/components"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowRight, faInfoCircle } from "@fortawesome/free-solid-svg-icons"

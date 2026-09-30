@@ -1,5 +1,8 @@
 #! /usr/bin/env node
 
+import "../serverUtils/instrument.js"
+import * as Sentry from "@sentry/node"
+
 import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
 import { BakeStep, BakeStepConfig, bakeSteps, SiteBaker } from "./SiteBaker.js"
@@ -49,6 +52,7 @@ void yargs(hideBin(process.argv))
         async ({ baseUrl, dir, steps }) => {
             const bakeSteps = steps ? new Set(steps as BakeStep[]) : undefined
             await bakeDomainToFolder(baseUrl, dir, bakeSteps)
+            await Sentry.close(2000)
             process.exit(0)
         }
     )

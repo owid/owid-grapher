@@ -106,6 +106,7 @@ export interface ChoroplethMapManager {
     onMapMouseLeave?: () => void
     isMapSelectionEnabled?: boolean
     isStatic?: boolean
+    patternScale?: number
     binColors?: string[]
     hasProjectedData?: boolean
     inapplicableEntityNamesSet?: Set<EntityName>

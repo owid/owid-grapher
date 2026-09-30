@@ -1,0 +1,4 @@
+interface:
+  display_name: "Add Tests"
+  short_description: "Plan and agree on high-value tests"
+  default_prompt: "Use $add-tests to inspect this PR and agree on a test plan with me."

@@ -12,6 +12,7 @@ import {
     exposeInstanceOnWindow,
     makeFigmaId,
     bind,
+    roundForSvg,
 } from "@ourworldindata/utils"
 import { action, computed, makeObservable, observable } from "mobx"
 import { observer } from "mobx-react"
@@ -20,8 +21,8 @@ import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
     FontSettings,
-    GRAPHER_FONT_SCALE_12,
 } from "../core/GrapherConstants"
+import { roundFontSize, scaleFontSize } from "../chart/ChartUtils"
 import { enrichSeriesWithLabels } from "../rowSeriesLabels/RowSeriesLabelHelpers.js"
 import {
     HorizontalAxisComponent,
@@ -265,7 +266,7 @@ export class StackedDiscreteBarChart
         return new HorizontalCategoricalColorLegendState(
             this.categoricalLegendData,
             {
-                fontSize: this.fontSize,
+                baseFontSize: this.fontSize,
                 width: this.legendWidth,
                 align: HorizontalAlign.left,
             }
@@ -292,9 +293,11 @@ export class StackedDiscreteBarChart
     }
 
     @computed private get labelFontSize(): number {
-        return Math.min(
-            GRAPHER_FONT_SCALE_12 * this.fontSize,
-            1.1 * this.availableHeightPerSeries
+        return roundFontSize(
+            Math.min(
+                scaleFontSize(12, this.fontSize),
+                1.1 * this.availableHeightPerSeries
+            )
         )
     }
 
@@ -695,10 +698,10 @@ export class StackedDiscreteBarChart
         return (
             <g ref={this.base} onMouseMove={this.onMouseMove}>
                 <rect
-                    x={bounds.left}
-                    y={bounds.top}
-                    width={bounds.width}
-                    height={bounds.height}
+                    x={roundForSvg(bounds.left)}
+                    y={roundForSvg(bounds.top)}
+                    width={roundForSvg(bounds.width)}
+                    height={roundForSvg(bounds.height)}
                     opacity={0}
                     fill="rgba(255,255,255,0)"
                 />

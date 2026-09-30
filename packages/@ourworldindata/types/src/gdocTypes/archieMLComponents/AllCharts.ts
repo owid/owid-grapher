@@ -11,6 +11,7 @@ export type RawBlockAllCharts = {
     }
 }
 
+/** @see [AllCharts.md](./AllCharts.md) */
 export type EnrichedBlockAllCharts = {
     type: "all-charts"
     heading: string

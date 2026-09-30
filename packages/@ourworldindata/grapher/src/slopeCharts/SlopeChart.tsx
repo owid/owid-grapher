@@ -3,15 +3,16 @@ import * as R from "remeda"
 import React from "react"
 import {
     Bounds,
-    exposeInstanceOnWindow,
     PointVector,
-    makeFigmaId,
-    guid,
-    excludeUndefined,
-    getRelativeMouse,
-    dyFromAlign,
-    domainExtent,
     calculateTrendDirection,
+    domainExtent,
+    dyFromAlign,
+    excludeUndefined,
+    exposeInstanceOnWindow,
+    getRelativeMouse,
+    guid,
+    makeFigmaId,
+    roundForSvg,
 } from "@ourworldindata/utils"
 import { observable, computed, action, makeObservable } from "mobx"
 import { observer } from "mobx-react"
@@ -19,8 +20,6 @@ import { NoDataMessage } from "../noDataMessage/NoDataMessage"
 import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
-    GRAPHER_FONT_SCALE_11,
-    GRAPHER_FONT_SCALE_12,
 } from "../core/GrapherConstants"
 import {
     SeriesName,
@@ -41,7 +40,7 @@ import {
     SlopeChartManager,
 } from "./SlopeChartConstants"
 import { CoreColumn } from "@ourworldindata/core-table"
-import { getHoverStateForSeries } from "../chart/ChartUtils"
+import { getHoverStateForSeries, scaleFontSize } from "../chart/ChartUtils"
 import { HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import { VerticalAxisZeroLine } from "../axis/AxisViews"
 import { NoDataSection } from "../scatterCharts/NoDataSection"
@@ -254,10 +253,7 @@ export class SlopeChart
 
     @computed private get xAxisHeight(): number {
         if (this.xAxisConfig.hideTickLabels) return 0
-        const axisTickFontSize = Math.floor(
-            GRAPHER_FONT_SCALE_12 * this.fontSize
-        )
-        return axisTickFontSize + TIME_LABEL_PADDING
+        return this.xAxisConfig.tickFontSize + TIME_LABEL_PADDING
     }
 
     @computed get yAxisConfig(): AxisConfig {
@@ -368,7 +364,7 @@ export class SlopeChart
             yAxis: () => this.yAxis,
             yRange: () => this.labelsYRange,
             maxWidth: this.maxLabelsWidth,
-            fontSize: this.fontSize,
+            baseFontSize: this.fontSize,
             verticalAlign: VerticalAlign.top,
             showRegionTooltip: !this.manager.isStatic,
         }
@@ -631,7 +627,7 @@ export class SlopeChart
     }
 
     @computed private get zeroLineLabelFontSize(): number {
-        return GRAPHER_FONT_SCALE_12 * this.fontSize
+        return scaleFontSize(12, this.fontSize)
     }
 
     @computed private get shouldShowZeroLine(): boolean {
@@ -956,10 +952,10 @@ export class SlopeChart
                 onMouseLeave={this.onMouseLeave}
             >
                 <rect
-                    x={this.startX}
-                    y={this.bounds.y}
-                    width={this.endX - this.startX}
-                    height={this.bounds.height}
+                    x={roundForSvg(this.startX)}
+                    y={roundForSvg(this.bounds.y)}
+                    width={roundForSvg(this.endX - this.startX)}
+                    height={roundForSvg(this.bounds.height)}
                     fillOpacity={0}
                 />
                 {this.renderSlopes()}
@@ -1008,8 +1004,8 @@ export class SlopeChart
                     />
                 )}
                 <text
-                    x={labelX}
-                    y={this.yAxis.place(0).toFixed(2)}
+                    x={roundForSvg(labelX)}
+                    y={roundForSvg(this.yAxis.place(0))}
                     textAnchor="end"
                     dy={dyFromAlign(VerticalAlign.middle)}
                     fontSize={this.zeroLineLabelFontSize}
@@ -1028,7 +1024,7 @@ export class SlopeChart
         // are hidden (e.g. for inner facets), hide the notice as well
         if (this.xAxis.config.hideTickLabels) return null
 
-        const fontSize = GRAPHER_FONT_SCALE_11 * this.fontSize
+        const fontSize = scaleFontSize(11, this.fontSize)
 
         const longText = "plotted on a logarithmic axis"
         const shortText = "log axis"
@@ -1063,8 +1059,8 @@ export class SlopeChart
 
         return (
             <text
-                x={midX}
-                y={y}
+                x={roundForSvg(midX)}
+                y={roundForSvg(y)}
                 fontSize={fontSize}
                 textAnchor="middle"
                 fill={GRAPHER_DARK_TEXT}
@@ -1122,8 +1118,8 @@ export class SlopeChart
             return (
                 <Halo id="x-axis-zero-label" fontSize={this.labelsFontSize}>
                     <text
-                        x={this.startX}
-                        y={this.yAxis.place(0)}
+                        x={roundForSvg(this.startX)}
+                        y={roundForSvg(this.yAxis.place(0))}
                         textAnchor="end"
                         dx={-VERTICAL_LABELS_PADDING - 4}
                         dy={dyFromAlign(VerticalAlign.middle)}

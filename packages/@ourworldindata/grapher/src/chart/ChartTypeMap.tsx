@@ -149,6 +149,8 @@ export const ChartComponent = ({
 }: ChartFactoryProps): React.ReactElement => {
     const validChartState = chartState ?? makeChartState(chartType, manager)
     const ChartClass = getChartComponentClass(chartType, variant)
+    // ChartClass is looked up from static maps, so it's stable across renders
+    // oxlint-disable-next-line react/static-components
     return <ChartClass {...componentProps} chartState={validChartState} />
 }
 

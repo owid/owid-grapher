@@ -5,7 +5,7 @@ const { CACHED_QUERIES_URL } = vi.hoisted(() => ({
     CACHED_QUERIES_URL: "https://example.org/api/search/cached-queries",
 }))
 
-vi.mock(import("../../settings/clientSettings.js"), () => ({
+vi.mock(import("../../settings/clientSettings.mjs"), () => ({
     ALGOLIA_ID: "TESTAPPID",
     ALGOLIA_SEARCH_KEY: "test-search-key",
     ALGOLIA_CACHED_QUERIES_URL: CACHED_QUERIES_URL,

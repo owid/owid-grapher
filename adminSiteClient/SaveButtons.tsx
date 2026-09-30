@@ -63,8 +63,8 @@ class SaveButtonsForChart extends Component<SaveButtonsProps<ChartEditor>> {
 
     @action.bound onPublishToggle() {
         if (this.props.editor.grapherState.isPublished)
-            this.props.editor.unpublishGrapher()
-        else this.props.editor.publishGrapher()
+            void this.props.editor.unpublishGrapher()
+        else void this.props.editor.publishGrapher()
     }
 
     @action.bound onDeleteChart() {

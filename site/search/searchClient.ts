@@ -1,4 +1,4 @@
-import { ALGOLIA_INDEX_PREFIX } from "../../settings/clientSettings.js"
+import { ALGOLIA_INDEX_PREFIX } from "../../settings/clientSettings.mjs"
 import { SearchIndexName } from "@ourworldindata/types"
 
 export const getIndexName = (index: SearchIndexName | string): string => {

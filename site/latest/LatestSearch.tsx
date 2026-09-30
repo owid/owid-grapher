@@ -131,6 +131,7 @@ export const LatestSearch = ({
         const el = document.getElementById(hash)
         if (el) {
             el.scrollIntoView()
+            // oxlint-disable-next-line react/set-state-in-effect -- the card only exists in the DOM once the data has loaded
             setAutoExpandedSlug(hash)
             didScrollToHash.current = true
         }

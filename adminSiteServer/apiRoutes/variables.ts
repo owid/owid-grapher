@@ -29,7 +29,7 @@ import {
     deleteIndicators,
 } from "../../db/model/Variable.js"
 import { enqueueExplorerRefreshJobsForDependencies } from "../../db/model/Explorer.js"
-import { DATA_API_URL } from "../../settings/clientSettings.js"
+import { DATA_API_URL } from "../../settings/clientSettings.mjs"
 import * as db from "../../db/db.js"
 import {
     getParentIndicatorIdFromChartConfig,

@@ -143,10 +143,12 @@ export const getPrimaryTopic = async (
     if (!topicSlug) return undefined
 
     if (topicSlug) {
+        // The citation only needs the gdoc's own fields, so skip loading its
+        // tags and breadcrumbs (several queries per baked data page)
         const gdoc = await getPublishedGdocBaseObjectBySlug(
             knex,
             topicSlug,
-            true,
+            false,
             [OwidGdocType.TopicPage, OwidGdocType.LinearTopicPage]
         )
         if (gdoc) {

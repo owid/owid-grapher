@@ -16,8 +16,10 @@ export interface ArchiveGuidedChartRegistration {
 }
 
 export interface GuidedChartContextValue {
-    grapherStateRef: React.RefObject<GrapherState>
-    chartRef?: React.RefObject<HTMLDivElement>
+    /** Called with the chart's GrapherState; returns a function to unregister */
+    registerGrapherState?: (grapherState: GrapherState) => () => void
+    /** Called with the chart's container element; returns a function to unregister */
+    registerChartElement?: (element: HTMLDivElement) => () => void
     onGuidedChartLinkClick?: (href: string) => void
     registerArchiveChart?: (
         registration: ArchiveGuidedChartRegistration
@@ -36,27 +38,27 @@ export const GuidedChartContext =
     React.createContext<GuidedChartContextValue | null>(null)
 
 /**
- * If called within a `GuidedChartContext`, sets the context's `grapherStateRef`
- * to a new `GrapherState` instance initialized with the provided config.
- * If no context is available, returns a local ref initialized with the config.
- * This is so the `GrapherState` can be controlled from a GuidedChart,
- * but also allows for local usage when not
+ * Returns a ref holding a new `GrapherState` initialized with the provided
+ * config. If called within a `GuidedChartContext`, also registers the
+ * `GrapherState` with it, so it can be controlled from a GuidedChart.
  */
 export function useMaybeGlobalGrapherStateRef(
     config: GrapherProgrammaticInterface
 ): React.RefObject<GrapherState> {
-    const context = React.useContext(GuidedChartContext)
-    const localRef = React.useRef<GrapherState | null>(null)
+    const registerGrapherState =
+        React.useContext(GuidedChartContext)?.registerGrapherState
+    const grapherStateRef = React.useRef<GrapherState | null>(null)
 
-    // If a context is provided, use it; otherwise, use the local ref
-    const refToUse = context?.grapherStateRef || localRef
-
-    // Only initialize if the ref is empty
-    if (!refToUse.current) {
-        refToUse.current = new GrapherState(config)
+    if (grapherStateRef.current === null) {
+        grapherStateRef.current = new GrapherState(config)
     }
 
-    return refToUse as React.RefObject<GrapherState>
+    React.useEffect(() => {
+        if (!registerGrapherState || !grapherStateRef.current) return
+        return registerGrapherState(grapherStateRef.current)
+    }, [registerGrapherState])
+
+    return grapherStateRef as React.RefObject<GrapherState>
 }
 
 export function useGuidedChartLinkHandler():

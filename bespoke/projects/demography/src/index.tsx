@@ -3,6 +3,7 @@ import { enableShadowDOM } from "@react-stately/flags"
 
 import type {
     BespokeComponentMountFn,
+    BespokeComponentMountOpts,
     BespokeComponentVariantsList,
 } from "owid-bespoke-types"
 import StylesTarget from "vite-plugin-css-position/react"
@@ -50,13 +51,21 @@ export const VARIANTS = [
 
 export const mount: BespokeComponentMountFn = (
     container: HTMLDivElement,
-    opts: { variant?: string; config?: Record<string, string> }
+    opts: BespokeComponentMountOpts
 ) => {
     const variant = VARIANTS.find((v) => v.name === opts.variant)
     if (!variant) {
         container.textContent = `Unknown variant: "${opts.variant}"`
         return
     }
+
+    if (!opts.dataUrl || !opts.metadataUrl) {
+        container.textContent =
+            "Missing data URLs: add an entry for this bundle to the bespoke component registry"
+        return
+    }
+
+    const urls = { dataUrl: opts.dataUrl, metadataUrl: opts.metadataUrl }
 
     const rawConfig = opts.config ?? {}
     const config = {
@@ -68,7 +77,7 @@ export const mount: BespokeComponentMountFn = (
     root.render(
         <>
             <StylesTarget />
-            <variant.component config={config} />
+            <variant.component config={config} urls={urls} />
         </>
     )
     return () => root.unmount()

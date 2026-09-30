@@ -32,6 +32,7 @@ import {
     buildChartsFacetFilters,
     searchSingleForHits,
     searchSingleForHitsWithClosestMatches,
+    searchTopicPagesOfMatchingCharts,
     MAX_FACET_VALUES,
 } from "@ourworldindata/utils"
 import { RichDataComponentVariant } from "./SearchChartHitRichDataTypes.js"
@@ -258,10 +259,14 @@ export async function queryDataInsights(
         page,
     }
 
-    return searchSingleForHitsWithClosestMatches<DataInsightHit>(
-        liteSearchClient,
-        searchParams
-    )
+    // Selected countries are part of the query, so the closest-matches
+    // fallback would drop them as optional words and show results that
+    // ignore the country filter. An empty section is the honest answer.
+    const search = hasCountry
+        ? searchSingleForHits
+        : searchSingleForHitsWithClosestMatches
+
+    return search<DataInsightHit>(liteSearchClient, searchParams)
 }
 
 export async function queryArticles(
@@ -315,32 +320,88 @@ export async function queryArticles(
         length,
     }
 
-    return searchSingleForHitsWithClosestMatches<FlatArticleHit>(
-        liteSearchClient,
-        searchParams
-    )
+    // No closest-matches fallback with a country filter (see queryDataInsights)
+    const search = hasCountry
+        ? searchSingleForHits
+        : searchSingleForHitsWithClosestMatches
+
+    return search<FlatArticleHit>(liteSearchClient, searchParams)
 }
 
+const TOPIC_PAGE_TYPE_FILTER = `type:${OwidGdocType.TopicPage} OR type:${OwidGdocType.LinearTopicPage}`
+const TOPIC_PAGE_ATTRIBUTES = [
+    "title",
+    "type",
+    "slug",
+    "excerpt",
+    "excerptLong",
+]
+
+/**
+ * Topic pages to recommend for the current search.
+ *
+ * With a query, the topics come from the best-ranked charts that match it,
+ * weighted by rank, and the topic pages are shown in that order (see searchTopicPagesOfMatchingCharts
+ * in @ourworldindata/utils for why the topic pages' own text is a poor guide). Without a query, or when
+ * no chart matches, the topic pages are searched directly, as any other page.
+ */
 export async function queryTopicPages(
     liteSearchClient: LiteClient,
     state: SearchState,
+    tagGraph: TagGraphRoot,
     offset: number = 0,
     length: number
-) {
+): Promise<SearchResponse<TopicPageHit>> {
+    if (state.query.trim()) {
+        const response = await queryTopicPagesOfMatchingCharts(
+            liteSearchClient,
+            state,
+            tagGraph,
+            offset,
+            length
+        )
+        if (response) return response
+    }
+    return queryTopicPagesByText(liteSearchClient, state, offset, length)
+}
+
+async function queryTopicPagesOfMatchingCharts(
+    liteSearchClient: LiteClient,
+    state: SearchState,
+    tagGraph: TagGraphRoot,
+    offset: number,
+    length: number
+): Promise<SearchResponse<TopicPageHit> | undefined> {
+    return searchTopicPagesOfMatchingCharts<TopicPageHit>(liteSearchClient, {
+        chartsIndexName: CHARTS_INDEX,
+        pagesIndexName: PAGES_INDEX,
+        query: state.query,
+        chartsFacetFilters: buildChartsFacetFilters({
+            query: state.query,
+            filters: state.filters,
+            requireAllCountries: state.requireAllCountries,
+        }),
+        tagGraph,
+        attributesToRetrieve: TOPIC_PAGE_ATTRIBUTES,
+        offset,
+        length,
+    })
+}
+
+async function queryTopicPagesByText(
+    liteSearchClient: LiteClient,
+    state: SearchState,
+    offset: number,
+    length: number
+): Promise<SearchResponse<TopicPageHit>> {
     const selectedTopics = getFilterNamesOfType(state.filters, FilterType.TOPIC)
 
     const searchParams = {
         indexName: PAGES_INDEX,
         query: state.query,
-        filters: `type:${OwidGdocType.TopicPage} OR type:${OwidGdocType.LinearTopicPage}`,
+        filters: TOPIC_PAGE_TYPE_FILTER,
         facetFilters: formatTopicFacetFilters(selectedTopics),
-        attributesToRetrieve: [
-            "title",
-            "type",
-            "slug",
-            "excerpt",
-            "excerptLong",
-        ],
+        attributesToRetrieve: TOPIC_PAGE_ATTRIBUTES,
         highlightPreTag: "<mark>",
         highlightPostTag: "</mark>",
         offset,

@@ -159,7 +159,10 @@ export function Sankey({
 }: SankeyProps): React.ReactElement | null {
     const nodeWidth = bandWidth + bandFlowGap
 
-    const layout = useMemo<LaidOutGraph | null>(() => {
+    const layoutResult = useMemo<{
+        graph: LaidOutGraph
+        height: number
+    } | null>(() => {
         if (nodes.length === 0 || width <= 0 || height <= 0) return null
 
         const sourceNodeSet = new Set(links.map((l) => l.source))
@@ -199,9 +202,11 @@ export function Sankey({
             right: margin.right + resolvedInnerMargin.right,
         }
 
-        if (resolvedMargin.top + resolvedMargin.bottom >= height) {
-            height += resolvedMargin.top + resolvedMargin.bottom
-        }
+        // Grow the chart if the margins alone would take up all of its height
+        const layoutHeight =
+            resolvedMargin.top + resolvedMargin.bottom >= height
+                ? height + resolvedMargin.top + resolvedMargin.bottom
+                : height
 
         const generator = d3Sankey<SankeyLayoutNode, SankeyLink>()
             .nodeId((d) => d.id)
@@ -211,7 +216,10 @@ export function Sankey({
             .linkSort(null) // Sort by input order
             .extent([
                 [resolvedMargin.left, resolvedMargin.top],
-                [width - resolvedMargin.right, height - resolvedMargin.bottom],
+                [
+                    width - resolvedMargin.right,
+                    layoutHeight - resolvedMargin.bottom,
+                ],
             ])
             .iterations(anchorNodeId ? 0 : 32) // Skip relaxation if anchored
 
@@ -237,7 +245,7 @@ export function Sankey({
             }
         }
 
-        return result
+        return { graph: result, height: layoutHeight }
     }, [
         nodes,
         links,
@@ -250,6 +258,8 @@ export function Sankey({
         innerMargin,
         fontSettings,
     ])
+    const layout = layoutResult?.graph ?? null
+    const svgHeight = layoutResult?.height ?? height
 
     const labels = useMemo<PlacedSankeyLabel[]>(
         () => placeSankeyLabels({ layout, nodePadding, fontSettings }),
@@ -265,9 +275,27 @@ export function Sankey({
         dismissTooltip
     )
 
+    // Use the wrapper div's dimensions, not the SVG's: the SVG can be
+    // shorter than its grid cell (SplitFlowSankey shrinks one half to
+    // equalize scale), which would clip the tooltip near the bottom edge
+    const [containerSize, setContainerSize] = useState<{
+        width: number
+        height: number
+    } | null>(null)
+
     const onSvgMouseMove = useCallback(
         (event: React.MouseEvent<SVGSVGElement>) => {
             if (!svgRef.current || !layout) return
+            const containerEl = containerRef.current
+            if (containerEl) {
+                const width = containerEl.clientWidth
+                const height = containerEl.clientHeight
+                setContainerSize((prev) =>
+                    prev?.width === width && prev.height === height
+                        ? prev
+                        : { width, height }
+                )
+            }
             const mouse = getRelativeMouse(svgRef.current, event.nativeEvent)
             if (getNodeTooltip) {
                 const node = findNodeAtPoint({
@@ -303,7 +331,14 @@ export function Sankey({
             }
             setHover(null)
         },
-        [getLinkTooltip, getNodeTooltip, isNodeHoverable, labels, layout]
+        [
+            containerRef,
+            getLinkTooltip,
+            getNodeTooltip,
+            isNodeHoverable,
+            labels,
+            layout,
+        ]
     )
 
     const onSvgMouseLeave = useCallback(() => setHover(null), [])
@@ -429,13 +464,7 @@ export function Sankey({
     const hoveredNodeId = hover?.kind === "node" ? hover.node.id : undefined
     const hoveredLink = hover?.kind === "link" ? hover.link : undefined
 
-    // Use the wrapper div's dimensions, not the SVG's: the SVG can be
-    // shorter than its grid cell (SplitFlowSankey shrinks one half to
-    // equalize scale), which would clip the tooltip near the bottom edge
-    const containerEl = containerRef.current
-    const tooltipBounds = containerEl
-        ? { width: containerEl.clientWidth, height: containerEl.clientHeight }
-        : { width, height }
+    const tooltipBounds = containerSize ?? { width, height: svgHeight }
 
     const tooltip: SankeyTooltip | undefined = match(hover)
         .with({ kind: "link" }, ({ link }) =>
@@ -467,8 +496,8 @@ export function Sankey({
                 ref={svgRef}
                 className="sankey"
                 width={width}
-                height={height}
-                viewBox={`0 0 ${width} ${height}`}
+                height={svgHeight}
+                viewBox={`0 0 ${width} ${svgHeight}`}
                 onMouseMove={onSvgMouseMove}
                 onMouseLeave={onSvgMouseLeave}
                 onClick={onNodeClick || onLinkClick ? onSvgClick : undefined}
