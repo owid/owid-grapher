@@ -45,7 +45,6 @@ export const MAX_CAPTION_OVERFLOW = 8
 export const MIN_LABEL_SPACING = 6
 
 export const TICK_LABEL_GAP = 8
-export const PLOT_MARGIN_RIGHT = 8
 export const PLOT_MARGIN_BOTTOM = 6
 export const CONNECTOR_WIDTH = 1
 export const LABEL_HALO_WIDTH = 3

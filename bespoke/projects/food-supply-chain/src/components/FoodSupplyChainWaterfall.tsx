@@ -29,7 +29,6 @@ import {
     MIN_LABEL_SPACING,
     COLORS,
     PLOT_MARGIN_BOTTOM,
-    PLOT_MARGIN_RIGHT,
     TICK_LABEL_FONT_SIZE,
     TICK_LABEL_GAP,
     TOTAL_LABEL_FONT_SIZE,
@@ -50,6 +49,7 @@ import { chooseStepColor, Waterfall } from "../core/waterfall.js"
 import {
     captionLength,
     chooseTickValues,
+    chooseValueDomain,
     groupBoxLength,
     isGroupLabelled,
     layOutWaterfall,
@@ -268,9 +268,9 @@ function planVerticalWaterfall(
     const numDecimalPlaces = NUM_DECIMAL_PLACES_BY_MEASURE[waterfall.measure]
     const shortUnit = SHORT_UNIT_BY_MEASURE[waterfall.measure]
     const tickLabels = buildTickLabels(waterfall)
-    const axisLabelWidth = measureAxisLabelWidth(tickLabels)
+    const tickLabelWidth = measureTickLabelWidth(tickLabels)
 
-    const plotWidth = width - axisLabelWidth - PLOT_MARGIN_RIGHT
+    const plotWidth = width - tickLabelWidth
     if (plotWidth <= 0) return undefined
 
     const slotWidth = measureSlotWidth(plotWidth, waterfall.steps.length)
@@ -335,10 +335,9 @@ function planVerticalWaterfall(
 
     const columnTop = GROUP_LABEL_INSET + groupLabelHeight + GROUP_LABEL_GAP
     const plotBottom = height - PLOT_MARGIN_BOTTOM
-    const plotTop = placePlotTop({
-        columnTop,
-        plotBottom,
-        tickValues: chooseTickValues(waterfall.domain),
+    const plotHeight = measurePlotHeight({
+        availableHeight: plotBottom - columnTop,
+        valueDomain: chooseValueDomain(waterfall.domain),
         labelledBarTops: [
             ...waterfall.steps.map((step, index) => ({
                 topValue: Math.max(step.balanceBefore, step.balanceAfter),
@@ -351,14 +350,13 @@ function planVerticalWaterfall(
         ],
     })
 
-    const boxHeight = plotBottom - plotTop
-    if (boxHeight <= 0) return undefined
+    if (plotHeight <= 0) return undefined
 
     const box = {
-        x: axisLabelWidth,
-        y: plotTop,
+        x: tickLabelWidth,
+        y: plotBottom - plotHeight,
         width: plotWidth,
-        height: boxHeight,
+        height: plotHeight,
     }
     const layout = layOutWaterfall(waterfall, box)
     const groupedStepKeys = new Set(
@@ -402,10 +400,7 @@ export function doesVerticalLayoutFit(
 }
 
 function measureVerticalSlotWidth(waterfall: Waterfall, width: number): number {
-    const plotWidth =
-        width -
-        measureAxisLabelWidth(buildTickLabels(waterfall)) -
-        PLOT_MARGIN_RIGHT
+    const plotWidth = width - measureTickLabelWidth(buildTickLabels(waterfall))
     return measureSlotWidth(plotWidth, waterfall.steps.length)
 }
 
@@ -423,7 +418,7 @@ function buildTickLabels(waterfall: Waterfall): Map<number, string> {
     )
 }
 
-function measureAxisLabelWidth(tickLabels: Map<number, string>): number {
+function measureTickLabelWidth(tickLabels: Map<number, string>): number {
     return (
         Math.max(
             ...[...tickLabels.values()].map(
@@ -558,53 +553,24 @@ function getValueLabelFontSize(isTotal: boolean): number {
     return isTotal ? TOTAL_LABEL_FONT_SIZE : VALUE_LABEL_FONT_SIZE
 }
 
-interface LabelledBarTop {
-    topValue: number
-    labelHeight: number
-}
-
-function placePlotTop({
-    columnTop,
-    plotBottom,
-    tickValues,
+/** The tallest plot that keeps every bar's labels below the columns' top */
+function measurePlotHeight({
+    availableHeight,
+    valueDomain: [from, to],
     labelledBarTops,
 }: {
-    columnTop: number
-    plotBottom: number
-    tickValues: number[]
-    labelledBarTops: LabelledBarTop[]
+    availableHeight: number
+    valueDomain: [number, number]
+    labelledBarTops: { topValue: number; labelHeight: number }[]
 }): number {
-    const domain = {
-        from: tickValues[0],
-        to: tickValues[tickValues.length - 1],
-    }
-    return Math.max(
-        columnTop,
-        ...labelledBarTops.map((bar) =>
-            placePlotTopForBar(bar, { columnTop, plotBottom, domain })
-        )
-    )
-}
-
-/** The plot top at which this bar's labels end exactly at `columnTop` */
-function placePlotTopForBar(
-    { topValue, labelHeight }: LabelledBarTop,
-    {
-        columnTop,
-        plotBottom,
-        domain,
-    }: {
-        columnTop: number
-        plotBottom: number
-        domain: { from: number; to: number }
-    }
-): number {
-    const shareBelowPlotTop = (domain.to - topValue) / (domain.to - domain.from)
-    if (shareBelowPlotTop >= 1) return columnTop
-    // Solves plotTop + shareBelowPlotTop * (plotBottom - plotTop) - labelHeight = columnTop
-    return (
-        (columnTop + labelHeight - shareBelowPlotTop * plotBottom) /
-        (1 - shareBelowPlotTop)
+    return Math.min(
+        availableHeight,
+        ...labelledBarTops.flatMap(({ topValue, labelHeight }) => {
+            const heightShare = (topValue - from) / (to - from)
+            // A bar at the very bottom sets no limit, however tall its labels
+            if (heightShare <= 0) return []
+            return [(availableHeight - labelHeight) / heightShare]
+        })
     )
 }
 
