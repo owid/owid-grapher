@@ -1,6 +1,6 @@
 {
     "name": "@ourworldindata/gdoc-pipeline",
-    "version": "0.0.0",
+    "version": "0.1.0",
     "description": "OWID's Google Docs / ArchieML content pipeline: converts Google Docs documents to ArchieML, parses ArchieML into enriched content blocks, and serializes enriched blocks back to ArchieML, Markdown and indexable text.",
     "repository": {
         "type": "git",
