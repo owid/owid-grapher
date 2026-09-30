@@ -1,7 +1,5 @@
 import * as _ from "lodash-es"
-import * as R from "remeda"
 import { load } from "archieml"
-import { createHash } from "crypto"
 import {
     OwidGdocPostContent,
     recursivelyMapArticleContent,
@@ -139,7 +137,7 @@ export function stripIgnoredArchieml(text: string): string {
 
 // Match all curly bracket {ref}some_id{/ref} and {ref}I am an inline ref{/ref} syntax in the text
 // Iterate through them
-// If it's an inline ref, hash its contents to use as an ID and parse it
+// If it's an inline ref, assign a sequential ID to its contents and parse it
 // Record the index of the FIRST reference to each ID so that IDs can be referenced multiple times but use the same footnote number
 // Replace the curly bracket syntax with <a> tags which htmlToSpans will convert later
 export function extractRefs(text: string): {
@@ -152,6 +150,7 @@ export function extractRefs(text: string): {
 
     const refsByFirstAppearance = new Set<string>()
     const rawInlineRefs: unknown[] = []
+    const inlineRefIds = new Map<string, string>()
     const rawRefStrings = text.match(new RegExp(RefRegExp, "gims")) || []
 
     for (const rawRef of rawRefStrings) {
@@ -164,9 +163,15 @@ export function extractRefs(text: string): {
         ) as RegExpMatchArray
         const contentOrId = match[1]
 
-        const id = isInlineRef
-            ? createHash("sha1").update(contentOrId).digest("hex")
-            : contentOrId
+        const isNewInlineRef = isInlineRef && !inlineRefIds.has(contentOrId)
+        if (isNewInlineRef) {
+            // Named refs cannot contain spaces, so this ID cannot clash with one.
+            inlineRefIds.set(
+                contentOrId,
+                `inline-ref ${refsByFirstAppearance.size + 1}`
+            )
+        }
+        const id = isInlineRef ? inlineRefIds.get(contentOrId)! : contentOrId
 
         refsByFirstAppearance.add(id)
         const index = [...refsByFirstAppearance].indexOf(id)
@@ -186,25 +191,14 @@ export function extractRefs(text: string): {
             `<a class="ref" href="#note-${footnoteNumber}"><sup>${footnoteNumber}</sup></a>`
         )
 
-        if (isInlineRef) {
-            const isAlreadySeen = Boolean(
-                rawInlineRefs.find(
-                    (rawInlineRef) =>
-                        R.isPlainObject(rawInlineRef) &&
-                        "id" in rawInlineRef &&
-                        typeof rawInlineRef.id === "string" &&
-                        rawInlineRef.id === id
-                )
-            )
-            if (!isAlreadySeen) {
-                const rawInlineRef = load(`
+        if (isNewInlineRef) {
+            const rawInlineRef = load(`
                 id: ${id}
                 [.+content]
                 ${contentOrId}
                 []
             `)
-                rawInlineRefs.push(rawInlineRef)
-            }
+            rawInlineRefs.push(rawInlineRef)
         }
     }
 
