@@ -41,7 +41,11 @@ import {
 } from "../core/constants.js"
 import { formatMeasureValue } from "../core/text.js"
 import { STAGE_GROUPS } from "../core/stages.js"
-import { StageKey } from "../core/types.js"
+import {
+    NUM_DECIMAL_PLACES_BY_MEASURE,
+    SHORT_UNIT_BY_MEASURE,
+    StageKey,
+} from "../core/types.js"
 import { chooseStepColor, Waterfall } from "../core/waterfall.js"
 import {
     captionLength,
@@ -236,9 +240,8 @@ export function FoodSupplyChainWaterfall({
                     step={hoveredStep}
                     isTotal={hover.stepKey === waterfall.total.key}
                     isFirstStep={hover.stepKey === waterfall.steps[0]?.key}
-                    shortUnit={waterfall.shortUnit}
                     year={waterfall.year}
-                    numDecimalPlaces={waterfall.numDecimalPlaces}
+                    measure={waterfall.measure}
                     position={hover.position}
                     containerBounds={isPinned ? undefined : { width, height }}
                     anchor={isPinned ? GrapherTooltipAnchor.Bottom : undefined}
@@ -266,7 +269,8 @@ function planVerticalChart(
     width: number,
     height: number
 ): VerticalChartPlan | undefined {
-    const { numDecimalPlaces } = waterfall
+    const numDecimalPlaces = NUM_DECIMAL_PLACES_BY_MEASURE[waterfall.measure]
+    const shortUnit = SHORT_UNIT_BY_MEASURE[waterfall.measure]
     const tickLabels = buildTickLabels(waterfall)
     const axisLabelWidth = measureAxisLabelWidth(tickLabels)
 
@@ -315,7 +319,7 @@ function planVerticalChart(
                 showPlus: index > 0 && step.delta !== 0,
             })
         )
-    const stepValuesWithUnit = formatStepValues(waterfall.shortUnit)
+    const stepValuesWithUnit = formatStepValues(shortUnit)
     const doStepValuesWithUnitFit = stepValuesWithUnit.every(
         (text) =>
             Bounds.forText(text, {
@@ -330,7 +334,7 @@ function planVerticalChart(
         : formatStepValues()
     const totalValueLabelText = formatMeasureValue(waterfall.total.value, {
         numDecimalPlaces,
-        unit: waterfall.shortUnit,
+        unit: shortUnit,
     })
 
     const columnTop = GROUP_LABEL_INSET + groupLabelHeight + GROUP_LABEL_GAP
@@ -411,13 +415,14 @@ function measureVerticalSlotWidth(waterfall: Waterfall, width: number): number {
 }
 
 function buildTickLabels(waterfall: Waterfall): Map<number, string> {
-    const { numDecimalPlaces } = waterfall
+    const numDecimalPlaces = NUM_DECIMAL_PLACES_BY_MEASURE[waterfall.measure]
+    const shortUnit = SHORT_UNIT_BY_MEASURE[waterfall.measure]
     return new Map(
         chooseTickValues(waterfall.domain).map((value) => [
             value,
             formatMeasureValue(value, {
                 numDecimalPlaces,
-                unit: waterfall.shortUnit,
+                unit: shortUnit,
             }),
         ])
     )
