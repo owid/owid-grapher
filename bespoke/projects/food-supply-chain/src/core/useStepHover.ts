@@ -53,11 +53,8 @@ export function useStepHover(): {
     const onStepMouseLeave = useCallback(() => {
         if (isTouchDevice()) return
         cancelPendingClear()
-        clearTimeoutRef.current = setTimeout(
-            () => setHover(undefined),
-            HOVER_CLEAR_DELAY_MS
-        )
-    }, [cancelPendingClear])
+        clearTimeoutRef.current = setTimeout(dismissHover, HOVER_CLEAR_DELAY_MS)
+    }, [cancelPendingClear, dismissHover])
 
     return {
         svgRef,

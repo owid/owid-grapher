@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest"
+import { Box } from "@ourworldindata/types"
 
 import { CONNECTOR_WIDTH } from "./constants.js"
 import { STAGE_GROUPS } from "./stages.js"
@@ -16,12 +17,11 @@ import {
     MIN_BAR_LENGTH_PX,
     layOutWaterfall,
     measureGroupHeaderSlots,
-    PlacedRect,
     PlacedStep,
     WaterfallLayout,
 } from "./waterfallLayout.js"
 
-const BOX: PlacedRect = { x: 10, y: 20, width: 300, height: 200 }
+const BOX: Box = { x: 10, y: 20, width: 300, height: 200 }
 
 describe(layOutWaterfall, () => {
     it("sits every bar, and the total's bar, inside the box on both axes", () => {
@@ -175,7 +175,7 @@ describe(layOutWaterfall, () => {
 })
 
 describe("horizontal layout", () => {
-    const TRANSPOSED_BOX: PlacedRect = { x: 10, y: 20, width: 200, height: 300 }
+    const TRANSPOSED_BOX: Box = { x: 10, y: 20, width: 200, height: 300 }
 
     it("places the same bars as the vertical layout, transposed", () => {
         const waterfall = fixtureWaterfall({
@@ -231,7 +231,7 @@ describe("horizontal layout", () => {
             headerHeightPx,
             rowHeightPx
         )
-        const box: PlacedRect = {
+        const box: Box = {
             x: 10,
             y: 20,
             width: 300,
@@ -285,7 +285,7 @@ describe("horizontal layout", () => {
         const withoutGap = layOutWaterfall(waterfall, BOX, {
             orientation: "horizontal",
         })
-        const box: PlacedRect = {
+        const box: Box = {
             ...BOX,
             height:
                 (BOX.height *
@@ -334,10 +334,7 @@ function findStep(steps: PlacedStep[], key: StageKey): PlacedStep {
     return step
 }
 
-function stepKeysInsideRowsOf(
-    steps: PlacedStep[],
-    box: PlacedRect
-): StageKey[] {
+function stepKeysInsideRowsOf(steps: PlacedStep[], box: Box): StageKey[] {
     return steps
         .filter(
             (step) =>
@@ -420,7 +417,6 @@ function fixtureMetadata(flowStages: FlowStage[]): FoodSupplyChainMetadata {
         flowStages,
         totalStage: { key: "food", name: "Food available to eat" },
         sources: [],
-        method: "",
         entities: [],
         entityByName: new Map(),
         entityNames: new Set(),
