@@ -19,7 +19,6 @@ import {
     findInitialCountry,
     useResolveUserLocation,
 } from "../../../../hooks/useResolveUserLocation.js"
-import { formatEntityNameForSentence } from "../../../../helpers/entityNames.js"
 import type { VariantProps } from "../../../../helpers/config.js"
 import type { BespokeComponentDataUrls } from "owid-bespoke-types"
 
@@ -133,7 +132,7 @@ function FetchingWaterfallVariant({
     if (!entity) return <ChartError className="food-supply-chain-chart-box" />
     if (entityStatus === "pending" || !isCountryResolved)
         return <ChartSkeleton className="food-supply-chain-chart-box" />
-    if (entityStatus === "error" || !entityData)
+    if (entityStatus === "error" || !entityData || !waterfall)
         return <ChartError className="food-supply-chain-chart-box" />
 
     return (
@@ -157,11 +156,7 @@ function FetchingWaterfallVariant({
                 />
                 <div className="food-supply-chain-captioned-chart__chart-area">
                     {isLoading && <Spinner />}
-                    {waterfall ? (
-                        <MeasuredWaterfall waterfall={waterfall} />
-                    ) : (
-                        <NoDataMessage entityName={entity.name} year={year} />
-                    )}
+                    <MeasuredWaterfall waterfall={waterfall} />
                 </div>
                 <ChartFooter source={metadata.sources.join("; ")} />
             </Frame>
@@ -193,20 +188,6 @@ function MeasuredWaterfall({
                         height={VERTICAL_CHART_HEIGHT}
                     />
                 ))}
-        </div>
-    )
-}
-
-function NoDataMessage({
-    entityName,
-    year,
-}: {
-    entityName: string
-    year: number
-}): React.ReactElement {
-    return (
-        <div className="food-supply-chain-captioned-chart__no-data">
-            No data for {formatEntityNameForSentence(entityName)} in {year}.
         </div>
     )
 }
