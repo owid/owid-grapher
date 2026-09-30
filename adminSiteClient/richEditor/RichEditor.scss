@@ -928,3 +928,57 @@ $canvas-wide-measure: 1280px;
         height: 20px;
     }
 }
+
+// ── Live collaboration ──────────────────────────────────────────────────────
+
+// Remote text carets (CollaborationCaret defaults)
+.collaboration-carets__caret {
+    border-left: 1px solid;
+    border-right: 1px solid;
+    margin-left: -1px;
+    margin-right: -1px;
+    pointer-events: none;
+    position: relative;
+    word-break: normal;
+}
+
+.collaboration-carets__label {
+    border-radius: 3px 3px 3px 0;
+    color: #fff;
+    font-family: -apple-system, sans-serif;
+    font-size: 11px;
+    font-style: normal;
+    font-weight: 600;
+    left: -1px;
+    line-height: normal;
+    padding: 0.1rem 0.3rem;
+    position: absolute;
+    top: -1.4em;
+    user-select: none;
+    white-space: nowrap;
+}
+
+// A remote user's whole-block selection: colored outline + name chip on the
+// block (inline selection highlights are invisible on atom blocks)
+.rich-editor-remote-block-selection {
+    outline: 2px solid var(--remote-selection-color, #ffa500);
+    outline-offset: 2px;
+    position: relative;
+}
+
+.rich-editor-remote-block-selection::before {
+    content: attr(data-remote-user);
+    position: absolute;
+    top: -20px;
+    right: -2px;
+    z-index: 5;
+    background: var(--remote-selection-color, #ffa500);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: normal;
+    padding: 0.1rem 0.3rem;
+    border-radius: 3px 3px 0 0;
+    pointer-events: none;
+    white-space: nowrap;
+}

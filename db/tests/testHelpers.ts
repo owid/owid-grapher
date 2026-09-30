@@ -28,6 +28,7 @@ import {
     PostsGdocsDraftsTableName,
     PostsGdocsRevisionsTableName,
     PostsGdocsTableName,
+    PostsGdocsYdocsTableName,
     SourcesTableName,
     TagGraphTableName,
     TagsTableName,
@@ -63,6 +64,7 @@ export const TABLES_IN_USE = [
     PostsGdocsCommentsTableName, // Must come before PostsGdocsCommentThreadsTableName due to foreign key
     PostsGdocsCommentThreadsTableName, // Must come before PostsGdocsTableName due to foreign key
     PostsGdocsComponentsTableName, // Must come before PostsGdocsTableName due to foreign key
+    PostsGdocsYdocsTableName, // Must come before PostsGdocsTableName due to foreign key
     PostsGdocsDraftsTableName, // Must come before PostsGdocsRevisionsTableName due to foreign key
     PostsGdocsRevisionsTableName, // Must come before PostsGdocsTableName due to foreign key
     PostsGdocsTableName,

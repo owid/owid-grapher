@@ -14,6 +14,8 @@ interface SettingsFormValues {
     grapherUrl?: string
     narrativeChart?: string
     figmaUrl?: string
+    authorRole?: string
+    profileScope?: string
 }
 
 /**
@@ -28,14 +30,25 @@ export function SettingsPanel(props: {
     content: OwidGdocContent
     slug: string
     getBaseRevisionId: () => number | null
+    /** Synced docs skip the revision check (the sync server owns the head) */
+    force?: boolean
     onSaved: (revisionId: number, values: SettingsFormValues) => void
 }): React.ReactElement {
-    const { gdocId, docType, published, content, slug, getBaseRevisionId } =
-        props
+    const {
+        gdocId,
+        docType,
+        published,
+        content,
+        slug,
+        getBaseRevisionId,
+        force,
+    } = props
     const { admin } = useContext(AdminAppContext)
     const [saving, setSaving] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const isDataInsight = docType === OwidGdocType.DataInsight
+    const isAuthor = docType === OwidGdocType.Author
+    const isProfile = docType === OwidGdocType.Profile
 
     const contentFields = content as unknown as Record<string, unknown>
     const initialValues: SettingsFormValues = {
@@ -45,6 +58,8 @@ export function SettingsPanel(props: {
         grapherUrl: contentFields["grapher-url"] as string | undefined,
         narrativeChart: contentFields["narrative-chart"] as string | undefined,
         figmaUrl: contentFields["figma-url"] as string | undefined,
+        authorRole: contentFields["role"] as string | undefined,
+        profileScope: contentFields["scope"] as string | undefined,
     }
 
     const onFinish = async (values: SettingsFormValues): Promise<void> => {
@@ -62,9 +77,14 @@ export function SettingsPanel(props: {
                               "figma-url": values.figmaUrl || null,
                           }
                         : {}),
+                    ...(isAuthor ? { role: values.authorRole ?? "" } : {}),
+                    ...(isProfile
+                        ? { scope: values.profileScope || null }
+                        : {}),
                 },
                 slug: values.slug,
                 baseRevisionId: getBaseRevisionId(),
+                ...(force ? { force: true } : {}),
             }
             const response = await admin.rawRequest(
                 `/api/gdocs/${gdocId}/editorSettings`,
@@ -163,6 +183,32 @@ export function SettingsPanel(props: {
                             <Input placeholder="https://www.figma.com/…" />
                         </Form.Item>
                     </>
+                )}
+                {isAuthor && (
+                    <Form.Item
+                        label="Role"
+                        name="authorRole"
+                        extra="Shown under the author's name on the site."
+                    >
+                        <Input placeholder="e.g. Senior Researcher" />
+                    </Form.Item>
+                )}
+                {isProfile && (
+                    <Form.Item
+                        label="Scope"
+                        name="profileScope"
+                        extra="Which entities this profile is instantiated for."
+                    >
+                        <Select
+                            allowClear
+                            placeholder="all"
+                            options={[
+                                { value: "countries" },
+                                { value: "continents" },
+                                { value: "all" },
+                            ]}
+                        />
+                    </Form.Item>
                 )}
                 <Space>
                     <Button type="primary" htmlType="submit" loading={saving}>

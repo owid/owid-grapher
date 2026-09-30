@@ -6,6 +6,7 @@ import { getRichEditorBaseExtensions } from "../extensions.js"
 import {
     enrichedBlocksToPmDoc,
     pmDocToEnrichedBlocks,
+    stripBlockIds,
 } from "./serialization.js"
 import { enrichedBodiesMatch } from "./normalizeForComparison.js"
 import { runsToSpanTree, spanTreeToRuns } from "./spanRuns.js"
@@ -267,6 +268,77 @@ describe("enriched ⇄ ProseMirror serialization", () => {
         const pmDoc = enrichedBlocksToPmDoc(original)
         expect(pmDoc.content?.[0].content?.[0].type).toBe("rawBlock")
         expect(enrichedBodiesMatch(original, roundTrip(original))).toBe(true)
+    })
+})
+
+describe("block identity", () => {
+    const schema = getSchema(getRichEditorBaseExtensions())
+
+    const identifiedBody: OwidEnrichedGdocBlock[] = [
+        {
+            type: "chart",
+            url: "https://ourworldindata.org/grapher/life-expectancy",
+            size: BlockSize.Wide,
+            parseErrors: [],
+            id: "chart-id-1",
+        },
+        {
+            type: "sticky-right",
+            left: [{ type: "text", value: [], parseErrors: [] }],
+            right: [
+                {
+                    type: "image",
+                    filename: "test.png",
+                    size: BlockSize.Wide,
+                    hasOutline: false,
+                    parseErrors: [],
+                    id: "image-id-2",
+                },
+            ],
+            parseErrors: [],
+            id: "layout-id-3",
+        },
+    ]
+
+    it("round-trips block ids through PM (schema-valid)", () => {
+        const pmDoc = enrichedBlocksToPmDoc(identifiedBody)
+        expect(() => PmNode.fromJSON(schema, pmDoc).check()).not.toThrow()
+        const back = pmDocToEnrichedBlocks(pmDoc)
+        expect(back[0].id).toBe("chart-id-1")
+        expect(back[1].id).toBe("layout-id-3")
+        expect(
+            (back[1] as { right: OwidEnrichedGdocBlock[] }).right[0].id
+        ).toBe("image-id-2")
+    })
+
+    it("does not invent ids for blocks without one", () => {
+        const back = roundTrip([
+            { type: "horizontal-rule", parseErrors: [] },
+            { type: "text", value: [], parseErrors: [] },
+        ])
+        expect(back.every((block) => block.id === undefined)).toBe(true)
+    })
+
+    it("drops ids on text-flow blocks instead of round-tripping them", () => {
+        const back = roundTrip([
+            { type: "text", value: [], parseErrors: [], id: "never-kept" },
+        ])
+        expect(back[0].id).toBeUndefined()
+    })
+
+    it("stripBlockIds removes ids recursively without mutating", () => {
+        const stripped = stripBlockIds(identifiedBody)
+        expect(JSON.stringify(stripped)).not.toContain("chart-id-1")
+        expect(JSON.stringify(stripped)).not.toContain("image-id-2")
+        expect(JSON.stringify(stripped)).not.toContain("layout-id-3")
+        // input untouched
+        expect(identifiedBody[0].id).toBe("chart-id-1")
+    })
+
+    it("ids are ignored by normalized body comparison", () => {
+        expect(
+            enrichedBodiesMatch(identifiedBody, stripBlockIds(identifiedBody))
+        ).toBe(true)
     })
 })
 

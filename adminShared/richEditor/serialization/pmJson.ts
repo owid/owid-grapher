@@ -40,6 +40,9 @@ export const pmNodeNames = {
     recirc: "recirc",
     researchAndWriting: "researchAndWriting",
     allCharts: "allCharts",
+    keyInsights: "keyInsights",
+    explorerTiles: "explorerTiles",
+    pillRow: "pillRow",
     // editable containers
     pullQuote: "pullQuote",
     tableBlock: "tableBlock",
@@ -63,6 +66,9 @@ export const propsAtomBlockTypes = {
     recirc: pmNodeNames.recirc,
     "research-and-writing": pmNodeNames.researchAndWriting,
     "all-charts": pmNodeNames.allCharts,
+    "key-insights": pmNodeNames.keyInsights,
+    "explorer-tiles": pmNodeNames.explorerTiles,
+    "pill-row": pmNodeNames.pillRow,
 } as const
 
 /** The two-column layout containers, all shaped {left, right} */
@@ -71,6 +77,44 @@ export const twoColumnBlockTypes = {
     "sticky-left": pmNodeNames.stickyLeft,
     "side-by-side": pmNodeNames.sideBySide,
 } as const
+
+/**
+ * The node types that carry a stable block identity (`blockId` attr ↔
+ * enriched `id`): every block type with a BlockFrame — atoms and containers —
+ * but not plain text-flow nodes (paragraph, heading, lists, hr), which are
+ * addressed via their containing block or text ranges.
+ */
+export const identifiedNodeNames: string[] = [
+    pmNodeNames.image,
+    pmNodeNames.cta,
+    pmNodeNames.rawBlock,
+    pmNodeNames.chart,
+    pmNodeNames.narrativeChart,
+    pmNodeNames.video,
+    pmNodeNames.prominentLink,
+    pmNodeNames.recirc,
+    pmNodeNames.researchAndWriting,
+    pmNodeNames.allCharts,
+    pmNodeNames.keyInsights,
+    pmNodeNames.explorerTiles,
+    pmNodeNames.pillRow,
+    pmNodeNames.aside,
+    pmNodeNames.pullQuote,
+    pmNodeNames.tableBlock,
+    pmNodeNames.blockquote,
+    pmNodeNames.callout,
+    pmNodeNames.graySection,
+    pmNodeNames.expandableParagraph,
+    pmNodeNames.stickyRight,
+    pmNodeNames.stickyLeft,
+    pmNodeNames.sideBySide,
+]
+
+const identifiedNodeNameSet = new Set(identifiedNodeNames)
+
+export function isIdentifiedNodeName(name: string): boolean {
+    return identifiedNodeNameSet.has(name)
+}
 
 export const pmMarkNames = {
     bold: "bold",

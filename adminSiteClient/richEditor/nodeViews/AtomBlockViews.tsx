@@ -3,7 +3,10 @@ import { NodeViewProps, NodeViewWrapper } from "@tiptap/react"
 import {
     EnrichedBlockAllCharts,
     EnrichedBlockChart,
+    EnrichedBlockExplorerTiles,
+    EnrichedBlockKeyInsights,
     EnrichedBlockNarrativeChart,
+    EnrichedBlockPillRow,
     EnrichedBlockProminentLink,
     EnrichedBlockRecirc,
     EnrichedBlockResearchAndWriting,
@@ -322,6 +325,79 @@ export function ResearchAndWritingBlockView(
             <div className="rich-atom-block__card">
                 Research &amp; Writing section (rendered on the site; edited in
                 the right rail)
+            </div>
+        </BlockChrome>
+    )
+}
+
+export function KeyInsightsBlockView(props: NodeViewProps): React.ReactElement {
+    const block = getBlockProps(props) as unknown as Omit<
+        EnrichedBlockKeyInsights,
+        "type"
+    >
+    const slides = block.insights ?? []
+    return (
+        <BlockChrome
+            nodeViewProps={props}
+            blockType="key-insights"
+            summary={block.heading ?? ""}
+        >
+            <div className="rich-atom-block__card">
+                <strong>{block.heading || "Key insights"}</strong>
+                <ol>
+                    {slides.map((slide, index) => (
+                        <li key={index}>{slide.title}</li>
+                    ))}
+                </ol>
+            </div>
+        </BlockChrome>
+    )
+}
+
+export function ExplorerTilesBlockView(
+    props: NodeViewProps
+): React.ReactElement {
+    const block = getBlockProps(props) as unknown as Omit<
+        EnrichedBlockExplorerTiles,
+        "type"
+    >
+    return (
+        <BlockChrome
+            nodeViewProps={props}
+            blockType="explorer-tiles"
+            summary={block.title ?? ""}
+        >
+            <div className="rich-atom-block__card">
+                <strong>{block.title || "Explorer tiles"}</strong>
+                {block.subtitle && <p>{block.subtitle}</p>}
+                <ul>
+                    {(block.explorers ?? []).map((explorer, index) => (
+                        <li key={index}>{explorer.url}</li>
+                    ))}
+                </ul>
+            </div>
+        </BlockChrome>
+    )
+}
+
+export function PillRowBlockView(props: NodeViewProps): React.ReactElement {
+    const block = getBlockProps(props) as unknown as Omit<
+        EnrichedBlockPillRow,
+        "type"
+    >
+    return (
+        <BlockChrome
+            nodeViewProps={props}
+            blockType="pill-row"
+            summary={block.title ?? ""}
+        >
+            <div className="rich-atom-block__card">
+                <strong>{block.title}</strong>
+                <ul>
+                    {(block.pills ?? []).map((pill, index) => (
+                        <li key={index}>{pill.text || pill.url}</li>
+                    ))}
+                </ul>
             </div>
         </BlockChrome>
     )
