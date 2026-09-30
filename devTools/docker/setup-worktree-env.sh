@@ -2,8 +2,7 @@
 # Write a .env that lets this checkout run its own dev environment next to the
 # ones in your other checkouts: same MySQL, but its own admin/vite/functions ports
 # and its own tmux session name. Idempotent — an existing .env is left alone,
-# except that a worktree's .env written before the functions server had a port
-# gets one added.
+# except that a worktree's .env from before the functions server gets its port.
 #
 # Called by `make setup.worktree` and `make up.worktree`. Worktree managers like
 # Orca can run it as their repo setup hook (`yarn install && make setup.worktree`)
@@ -30,41 +29,36 @@ claimed_ports() {
         fi
     done
 }
-CLAIMED="$(claimed_ports)"
 
 port_taken() {
+    # computed on first use, so the common case (a .env that needs nothing)
+    # doesn't read every other checkout's .env
+    [ -n "${CLAIMED+x}" ] || CLAIMED="$(claimed_ports)"
+    grep -qxF "$1" <<<"$CLAIMED" && return 0
     # the dev servers listen on ::1, so probe localhost rather than 127.0.0.1
-    (exec 3<>"/dev/tcp/localhost/$1") 2>/dev/null && return 0
-    grep -qxF "$1" <<<"$CLAIMED"
+    (exec 3<>"/dev/tcp/localhost/$1") 2>/dev/null
 }
 
 if [ -e .env ]; then
-    # worktrees set up before `make up.worktree` started the functions server
-    # have no port for it; add one rather than make them recreate their .env
-    if ! is_main_checkout && ! grep -q '^WRANGLER_PORT=' .env; then
-        admin_port="$(sed -n 's/^ADMIN_SERVER_PORT=\([0-9]*\).*/\1/p' .env | tail -n 1)"
-        # the same offset as the other two when it's free, so the three still
-        # read as a set (3457 -> 8457 -> 9457); any free one otherwise
-        candidate=$((admin_port + 6000))
-        if [ -z "$admin_port" ] || [ "$candidate" -lt 9000 ] || [ "$candidate" -gt 9999 ] || port_taken "$candidate"; then
-            candidate=""
-            for _ in $(seq 1 100); do
-                port=$((9000 + RANDOM % 1000))
-                if ! port_taken "$port"; then
-                    candidate="$port"
-                    break
-                fi
-            done
-        fi
-        if [ -z "$candidate" ]; then
-            echo 'ERROR: found no free port in 9000-9999 for the functions server after 100 tries'
-            exit 1
-        fi
-        echo "WRANGLER_PORT=$candidate" >> .env
-        echo "==> .env already exists, added the functions server's port: WRANGLER_PORT=$candidate"
+    if grep -q '^WRANGLER_PORT=' .env || is_main_checkout; then
+        echo '==> .env already exists, leaving it untouched'
         exit 0
     fi
-    echo '==> .env already exists, leaving it untouched'
+    # a worktree set up before `make up.worktree` started the functions server
+    # has no port for it. Its admin port's offset is already reserved for it (a
+    # new worktree only takes an offset free in all three ranges), so the
+    # matching 9xxx port can only be busy with something outside this repo.
+    admin_port="$(set -a && . ./.env && echo "${ADMIN_SERVER_PORT:-}")"
+    wrangler_port=$((${admin_port:-0} + 6000))
+    if [ -z "$admin_port" ] || port_taken "$wrangler_port"; then
+        echo "ERROR: couldn't pick a port for the functions server; set WRANGLER_PORT in .env by hand"
+        exit 1
+    fi
+    # a hand-edited .env may not end in a newline, and the line would be glued
+    # onto the last setting
+    [ -z "$(tail -c 1 .env)" ] || echo >> .env
+    echo "WRANGLER_PORT=$wrangler_port" >> .env
+    echo "==> .env already exists, added the functions server's port: WRANGLER_PORT=$wrangler_port"
     exit 0
 fi
 

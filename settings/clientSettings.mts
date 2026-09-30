@@ -34,16 +34,14 @@ export const ARCHIVE_BASE_URL: string | null =
 export const BAKED_GRAPHER_URL: string =
     process.env.BAKED_GRAPHER_URL ?? `${BAKED_BASE_URL}/grapher`
 
-// Thumbnails are rendered by Cloudflare functions (functions/grapher/[slug].ts,
-// functions/explorers/[slug].ts), which the admin server doesn't serve, so in
-// development they come from production by default. Set these to
-// http://localhost:<WRANGLER_PORT>/grapher and …/explorers to test changes to
-// the rendering against the local functions server.
+// Thumbnails are rendered by Cloudflare functions, which the admin server doesn't
+// serve, so in development they come from production unless set (e.g. to the
+// local functions server, http://localhost:<WRANGLER_PORT>/grapher).
 export const GRAPHER_DYNAMIC_THUMBNAIL_URL: string =
     process.env.GRAPHER_DYNAMIC_THUMBNAIL_URL ??
     (ENV === "development"
         ? "https://ourworldindata.org/grapher"
-        : `${BAKED_GRAPHER_URL}`)
+        : BAKED_GRAPHER_URL)
 
 export const EXPLORER_DYNAMIC_THUMBNAIL_URL: string =
     process.env.EXPLORER_DYNAMIC_THUMBNAIL_URL ??

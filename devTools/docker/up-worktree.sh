@@ -23,7 +23,7 @@ set +a
 export COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-owid-grapher}"
 export ADMIN_SERVER_PORT="${ADMIN_SERVER_PORT:-3031}"
 export VITE_PORT="${VITE_PORT:-8091}"
-export WRANGLER_PORT="${WRANGLER_PORT:-8789}"
+export WRANGLER_PORT="${WRANGLER_PORT:?is missing from .env, run make setup.worktree}"
 # never wait on an interactive prompt when corepack fetches yarn
 export COREPACK_ENABLE_DOWNLOAD_PROMPT="${COREPACK_ENABLE_DOWNLOAD_PROMPT:-0}"
 SESSION="${TMUX_SESSION_NAME:-grapher-$(basename "$PWD")}"
@@ -39,21 +39,33 @@ if tmux has-session -t "=$SESSION" 2>/dev/null; then
     tmux kill-session -t "=$SESSION"
 fi
 
-# the ports are spelled out in the commands rather than exported: a new session
-# on an already-running tmux server inherits that server's environment, not ours.
-# That includes vite's ADMIN_SERVER_PORT, which the site's client settings are
-# built from — left out, the page asks whichever checkout started the tmux server
-# for its chart configs.
+# A new session on an already-running tmux server gets that server's
+# environment, not ours, and dotenv never overrides a variable that is already
+# set — so a port another checkout left in the tmux server would silently win
+# over this worktree's .env (vite would then fetch chart configs from that
+# checkout's admin server). Hand the session everything in .env, plus the
+# defaults above, explicitly.
+session_env=()
+while read -r name; do
+    session_env+=(-e "$name=${!name}")
+done < <({
+    sed -n 's/^\([A-Za-z_][A-Za-z0-9_]*\)=.*/\1/p' .env
+    printf '%s\n' COMPOSE_PROJECT_NAME ADMIN_SERVER_PORT VITE_PORT WRANGLER_PORT COREPACK_ENABLE_DOWNLOAD_PROMPT
+} | sort -u)
+
+# the functions window is marked @optional: it exits during startup without
+# Cloudflare credentials, and the site works without it
 echo "==> Starting the admin server, vite and the functions server in the detached '$SESSION' tmux session"
-tmux new-session -d -s "$SESSION" -c "$PWD" -n admin \
-        "devTools/docker/wait-for-mysql.sh && ADMIN_SERVER_PORT=$ADMIN_SERVER_PORT VITE_PORT=$VITE_PORT yarn startAdminDevServer 2>&1 | tee logs/admin-server.log" \; \
+tmux new-session -d -s "$SESSION" "${session_env[@]}" -c "$PWD" -n admin \
+        "devTools/docker/wait-for-mysql.sh && yarn startAdminDevServer 2>&1 | tee logs/admin-server.log" \; \
         set remain-on-exit on \; \
     new-window -c "$PWD" -n vite \
-        "ADMIN_SERVER_PORT=$ADMIN_SERVER_PORT VITE_PORT=$VITE_PORT yarn startSiteFront 2>&1 | tee logs/vite.log" \; \
+        "yarn startSiteFront 2>&1 | tee logs/vite.log" \; \
         set remain-on-exit on \; \
     new-window -c "$PWD" -n functions \
-        "WRANGLER_PORT=$WRANGLER_PORT yarn startLocalCloudflareFunctions 2>&1 | tee logs/functions.log" \; \
+        "yarn startLocalCloudflareFunctions 2>&1 | tee logs/functions.log" \; \
         set remain-on-exit on \; \
+        set -w @optional 1 \; \
     bind R respawn-pane -k \; \
     bind X kill-pane \; \
     set -g mouse on
@@ -63,15 +75,14 @@ for i in $(seq 1 180); do
     curl -sf -o /dev/null "http://localhost:${ADMIN_SERVER_PORT}/" && break
     # a server that crashed on startup never comes up, so stop waiting as soon as
     # one of the panes has died (remain-on-exit keeps it around to read); a pane that
-    # died before remain-on-exit was set takes the whole session with it. The
-    # functions server is left out: it exits during startup without Cloudflare
-    # credentials, and the site works without it.
-    if ! panes="$(tmux list-panes -s -t "=$SESSION" -F '#{pane_dead} #{window_name}' 2>/dev/null)"; then
+    # died before remain-on-exit was set takes the whole session with it. Windows
+    # marked @optional are allowed to die.
+    if ! panes="$(tmux list-panes -s -t "=$SESSION" -F '#{pane_dead} #{?@optional,optional,required} #{window_name}' 2>/dev/null)"; then
         echo
         echo "ERROR: the '$SESSION' tmux session is gone, check logs/admin-server.log"
         exit 1
     fi
-    dead_window="$(awk '$1 == 1 && $2 != "functions" { print $2; exit }' <<<"$panes")"
+    dead_window="$(awk '$1 == 1 && $2 == "required" { print $3; exit }' <<<"$panes")"
     if [ -n "$dead_window" ]; then
         echo
         echo "ERROR: the $dead_window server exited during startup:"
