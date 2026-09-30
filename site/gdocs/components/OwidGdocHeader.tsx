@@ -119,8 +119,9 @@ function OwidArticleHeader({
                         {content.authors.length > 0 && (
                             <div>
                                 <Byline
-                                    names={content.authors}
+                                    authors={content.authors}
                                     authorRoles={content.authorRoles}
+                                    contributors={content.contributors}
                                 />
                             </div>
                         )}
@@ -197,8 +198,9 @@ function OwidTopicPageHeader({ content }: { content: OwidGdocPostContent }) {
             {content.authors.length > 0 && (
                 <p className="topic-page-header__byline col-start-2 span-cols-8 col-sm-start-2 span-sm-cols-12">
                     <Byline
-                        names={content.authors}
+                        authors={content.authors}
                         authorRoles={content.authorRoles}
+                        contributors={content.contributors}
                     />
                 </p>
             )}
@@ -232,8 +234,9 @@ function OwidLinearTopicPageHeader({
             {content.authors.length > 0 && (
                 <p className="topic-page-header__byline col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2">
                     <Byline
-                        names={content.authors}
+                        authors={content.authors}
                         authorRoles={content.authorRoles}
+                        contributors={content.contributors}
                     />
                 </p>
             )}

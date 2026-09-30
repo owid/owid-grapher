@@ -1,27 +1,46 @@
 import { Fragment, type ReactNode } from "react"
+import { CREDITS_ID } from "@ourworldindata/utils"
 import LinkedAuthor from "./LinkedAuthor.js"
 
 export const Byline = ({
-    names,
+    authors,
     authorRoles,
+    contributors = [],
     prefix = "By ",
 }: {
-    names: string[]
+    authors: string[]
     authorRoles?: Record<string, string>
+    contributors?: string[]
     prefix?: ReactNode
 }) => {
+    const items: { key: string; node: ReactNode }[] = authors.map((name) => ({
+        key: name,
+        node: <LinkedAuthor name={name} role={authorRoles?.[name]} />,
+    }))
+
+    if (contributors.length > 0)
+        items.push({
+            key: CREDITS_ID,
+            node: (
+                <a href={`#${CREDITS_ID}`}>
+                    {contributors.length}{" "}
+                    {contributors.length === 1 ? "contributor" : "contributors"}
+                </a>
+            ),
+        })
+
     return (
         <>
             {prefix}
-            {names.map((name, index) => {
-                const isLast = index === names.length - 1
-                const isSecondToLast = index === names.length - 2
+            {items.map(({ key, node }, index) => {
+                const isLast = index === items.length - 1
+                const isSecondToLast = index === items.length - 2
                 return (
-                    <Fragment key={name}>
-                        <LinkedAuthor name={name} role={authorRoles?.[name]} />
-                        {/* Use Oxford comma when there are more than two authors. */}
-                        {!isLast && names.length > 2 && ", "}
-                        {isSecondToLast && names.length > 1 && " and "}
+                    <Fragment key={key}>
+                        {node}
+                        {/* Use Oxford comma when there are more than two items. */}
+                        {!isLast && items.length > 2 && ", "}
+                        {isSecondToLast && items.length > 1 && " and "}
                     </Fragment>
                 )
             })}

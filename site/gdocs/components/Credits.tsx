@@ -1,4 +1,4 @@
-import { EnrichedBlockText } from "@ourworldindata/types"
+import { CREDITS_ID, EnrichedBlockText } from "@ourworldindata/types"
 import { Byline } from "./Byline.js"
 import Paragraph from "./Paragraph.js"
 
@@ -18,7 +18,10 @@ export default function Credits({
     if (contributors.length === 0 && acknowledgements.length === 0) return null
 
     return (
-        <section className="credits span-cols-14 grid grid-cols-12-full-width">
+        <section
+            id={CREDITS_ID}
+            className="credits span-cols-14 grid grid-cols-12-full-width"
+        >
             <hr className="credits__divider col-start-2 span-cols-12" />
             <div className="credits__body col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12">
                 <h3 className="credits__heading">
@@ -26,13 +29,13 @@ export default function Credits({
                 </h3>
                 {authors.length > 0 && (
                     <p className="credits__paragraph">
-                        <Byline names={authors} authorRoles={authorRoles} />.
+                        <Byline authors={authors} authorRoles={authorRoles} />.
                     </p>
                 )}
                 {contributors.length > 0 && (
                     <p className="credits__paragraph">
                         <Byline
-                            names={contributors}
+                            authors={contributors}
                             authorRoles={contributorRoles}
                             prefix="With contributions from "
                         />
