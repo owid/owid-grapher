@@ -1167,6 +1167,31 @@ export interface VariablesGroupedSearchResult {
 }
 
 /**
+ * The indicators a chart already uses, for the picker: it knows their ids and
+ * nothing else, and needs their dataset and catalog path to show them and to
+ * open on the namespace they came from.
+ */
+export const getVariablesByIds = async (
+    ids: number[],
+    knex: db.KnexReadonlyTransaction
+): Promise<VariableResultView[]> => {
+    if (ids.length === 0) return []
+    const rows = await knexRaw<any>(
+        knex,
+        `-- sql
+        SELECT ${RESULT_COLUMNS}
+        FROM variables AS v
+        JOIN datasets d ON d.id = v.datasetId
+        LEFT JOIN users u ON u.id = d.dataEditedByUserId
+        ${JOIN_POPULARITY}
+        WHERE v.id IN (?)`,
+        [ids]
+    )
+    await attachVariableUsages(knex, rows)
+    return rows
+}
+
+/**
  * The same search as `searchVariables`, but paging over the datasets the
  * matches belong to rather than over the matches themselves. A search like
  * "road deaths" hits 831 indicators across 12 datasets, and the datasets are
@@ -1180,11 +1205,18 @@ export const searchVariablesGroupedByDataset = (
     query: string,
     limit: number,
     offset: number,
-    knex: db.KnexReadonlyTransaction
+    knex: db.KnexReadonlyTransaction,
+    pinnedDatasetIds?: number[]
 ): Promise<VariablesGroupedSearchResult> =>
     reportingRegexErrors(
         () =>
-            searchVariablesGroupedByDatasetOrThrow(query, limit, offset, knex),
+            searchVariablesGroupedByDatasetOrThrow(
+                query,
+                limit,
+                offset,
+                knex,
+                pinnedDatasetIds
+            ),
         {
             datasets: [],
             numTotalDatasets: 0,
@@ -1197,7 +1229,15 @@ const searchVariablesGroupedByDatasetOrThrow = async (
     query: string,
     limit: number,
     offset: number,
-    knex: db.KnexReadonlyTransaction
+    knex: db.KnexReadonlyTransaction,
+    /**
+     * Ranked first when they match the search, so a dataset the caller cares
+     * about is on the first page even when a hundred others match too — the
+     * chart editor's picker would otherwise show the chart's own dataset with
+     * none of its matching indicators. Only reorders: a pinned dataset that
+     * doesn't match stays out.
+     */
+    pinnedDatasetIds?: number[]
 ): Promise<VariablesGroupedSearchResult> => {
     const whereClauses = buildWhereClauses(query)
     const isSearch = whereClauses.length > 0
@@ -1205,6 +1245,9 @@ const searchVariablesGroupedByDatasetOrThrow = async (
     // Joined only when a search has something to rank: grouping every
     // indicator through it costs seconds, and browsing ranks by upload date
     const joinPopularity = isSearch ? JOIN_POPULARITY : ""
+    const pinned = pinnedDatasetIds?.length
+        ? `d.id IN (${pinnedDatasetIds.map((id) => escape(id)).join(",")})`
+        : ""
     const fromWhere = `
         FROM variables AS v
         JOIN active_datasets d ON d.id=v.datasetId
@@ -1235,6 +1278,7 @@ const searchVariablesGroupedByDatasetOrThrow = async (
         -- grouping by the five of them together costs 412ms against 36ms
         GROUP BY d.id
         ORDER BY
+            ${pinned ? `${pinned} DESC,` : ""}
             ${
                 // Searching ranks datasets by their most-read indicator;
                 // browsing has no relevance to rank by, so the newest leads

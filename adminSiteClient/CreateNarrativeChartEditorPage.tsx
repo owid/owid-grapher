@@ -1,6 +1,6 @@
 import * as React from "react"
 import { useHistory, useLocation } from "react-router-dom"
-import { action, computed, makeObservable, observable } from "mobx"
+import { action, computed, makeObservable, observable, runInAction } from "mobx"
 import { observer } from "mobx-react"
 import type { History } from "history"
 
@@ -68,6 +68,7 @@ class CreateNarrativeChartEditorPageInternal
         makeObservable(this, {
             name: observable,
             nameError: observable,
+            isConfigLoaded: observable,
         })
     }
 
@@ -84,11 +85,17 @@ class CreateNarrativeChartEditorPageInternal
 
     references = undefined
 
+    isConfigLoaded = false
+
     async fetchNarrativeChartData(): Promise<void> {
-        const chartConfig = await this.context.admin.getJSON(
-            `/api/chart-configs/${this.props.chartConfigId}.config.json`
-        )
-        this.parentConfig = chartConfig
+        try {
+            this.parentConfig = await this.context.admin.getJSON(
+                `/api/chart-configs/${this.props.chartConfigId}.config.json`
+            )
+        } finally {
+            // opens even when the fetch failed, which the admin reports
+            runInAction(() => (this.isConfigLoaded = true))
+        }
     }
 
     @computed get admin(): Admin {

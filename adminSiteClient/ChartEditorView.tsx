@@ -62,13 +62,19 @@ import {
     ErrorMessagesForDimensions,
     FieldWithDetailReferences,
 } from "./ChartEditorTypes.js"
-import { Dataset, EditorDatabase } from "./EditorDatabase.js"
 
 export type DetailReferences = Record<FieldWithDetailReferences, string[]>
 
 export interface ChartEditorViewManager<Editor> {
     admin: Admin
     editor: Editor
+    /**
+     * Whether the chart's config — and, for a chart that inherits, its
+     * parent's — has arrived. Nothing about the editor is built before then:
+     * the dimension slots arm reactions that would otherwise rewrite the
+     * authored selection when the chart's data lands on an empty chart.
+     */
+    isConfigLoaded: boolean
     /**
      * Query params to apply to the grapher once, after the initial data load.
      * Used when creating a narrative chart from a customized chart, so that the
@@ -86,18 +92,16 @@ interface ChartEditorViewProps<Editor> {
 export class ChartEditorView<
     Editor extends AbstractChartEditor,
 > extends React.Component<ChartEditorViewProps<Editor>> {
-    database = new EditorDatabase({})
     details: DetailDictionary = {}
     private cleanupDetailsOnDemand: (() => void) | undefined
 
     constructor(props: ChartEditorViewProps<Editor>) {
         super(props)
 
-        makeObservable<ChartEditorView<Editor>, "_isDbSet">(this, {
-            database: observable.ref,
+        makeObservable(this, {
             details: observable,
             simulateVisionDeficiency: observable,
-            _isDbSet: observable,
+            configuredEditor: observable.ref,
         })
     }
 
@@ -111,16 +115,27 @@ export class ChartEditorView<
         return this.props.manager
     }
 
-    private _isDbSet = false
-    @computed get isReady(): boolean {
-        return this._isDbSet
-    }
-
     private hasAppliedInitialQueryParams = false
+
+    // The editor whose config has been applied to its chart. The tabs mount
+    // only after that: they arm reactions on the chart when they mount (the
+    // Basic tab resets the default selection when the dimensions change), and
+    // React mounts them before this view's componentDidMount applies the
+    // config, so a page that mounts this view with its config already loaded
+    // would otherwise have them rewrite the chart as it opens.
+    configuredEditor: Editor | undefined = undefined
+
+    @computed private get readyEditor(): Editor | undefined {
+        const { editor } = this
+        return editor !== undefined && editor === this.configuredEditor
+            ? editor
+            : undefined
+    }
 
     @action.bound async updateGrapher(): Promise<void> {
         const config = this.manager.editor.originalGrapherConfig
         this.manager.editor.grapherState.updateFromObject(config)
+        this.configuredEditor = this.manager.editor
         await this.manager.editor.reloadGrapherData()
         this.grapherState.externalBounds = this.bounds
 
@@ -134,45 +149,6 @@ export class ChartEditorView<
             this.hasAppliedInitialQueryParams = true
             this.grapherState.populateFromQueryParams(initialQueryParams)
         }
-    }
-
-    @action.bound private setDb(json: any): void {
-        this.database = new EditorDatabase(json)
-        this._isDbSet = true
-    }
-
-    async fetchData(): Promise<void> {
-        const { admin } = this.manager
-
-        const [namespaces, variables] = await Promise.all([
-            admin.getJSON(`/api/editorData/namespaces.json`),
-            admin.getJSON(`/api/editorData/variables.json`),
-        ])
-
-        this.setDb(namespaces)
-
-        const groupedByNamespace = _.groupBy(
-            variables.datasets,
-            (d) => d.namespace
-        )
-        for (const namespace in groupedByNamespace) {
-            this.database.dataByNamespace.set(namespace, {
-                datasets: groupedByNamespace[namespace] as Dataset[],
-            })
-        }
-
-        const usageData = await admin.getJSON<
-            {
-                variableId: number
-                usageCount: number
-            }[]
-        >(`/api/variables.usages.json`)
-        this.database.variableUsageCounts = new Map(
-            usageData.map(({ variableId, usageCount }) => [
-                variableId,
-                +usageCount,
-            ])
-        )
     }
 
     async fetchDetails(): Promise<void> {
@@ -329,24 +305,27 @@ export class ChartEditorView<
     }
 
     @computed get editor(): Editor | undefined {
-        if (!this.isReady) return undefined
-
+        if (!this.manager.isConfigLoaded) return undefined
         return this.manager.editor
     }
 
     @action.bound refresh(): void {
         void this.fetchDetails()
-        void this.fetchData()
     }
 
     override componentDidMount(): void {
         this.refresh()
         this.disposers.push(
+            // On the editor itself rather than on `isConfigLoaded`: the editor
+            // is a computed that builds a new instance whenever nothing is
+            // observing it, so reacting to the flag alone would configure a
+            // throwaway instance while the one on screen stayed empty.
             reaction(
                 () => this.editor,
-                () => {
-                    void this.updateGrapher()
-                }
+                (editor) => {
+                    if (editor) void this.updateGrapher()
+                },
+                { fireImmediately: true }
             )
         )
         this.disposers.push(
@@ -386,11 +365,12 @@ export class ChartEditorView<
                 <main className="ChartEditorPage">
                     <LoadingBlocker
                         isLoading={
-                            this.editor === undefined ||
-                            !!this.editor.currentRequest
+                            this.readyEditor === undefined ||
+                            !!this.readyEditor.currentRequest
                         }
                     />
-                    {this.editor !== undefined && this.renderReady(this.editor)}
+                    {this.readyEditor !== undefined &&
+                        this.renderReady(this.readyEditor)}
                 </main>
             </AdminLayout>
         )
@@ -448,7 +428,6 @@ export class ChartEditorView<
                         {editor.tab === "basic" && (
                             <EditorBasicTab
                                 editor={editor}
-                                database={this.database}
                                 errorMessagesForDimensions={
                                     this.errorMessagesForDimensions
                                 }

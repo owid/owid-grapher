@@ -7,9 +7,7 @@ import {
 import {
     JsonError,
     DbPlainChart,
-    DbPlainDataset,
     DbRawChartConfig,
-    DbRawVariable,
     GrapherInterface,
     OwidVariableWithSource,
     parseChartConfig,
@@ -22,6 +20,7 @@ import {
     getLatestIndicatorIdsByCatalogPath,
     getIndicatorChartConfigRecord,
     getIndicatorChartConfig,
+    getVariablesByIds,
     searchVariables,
     searchVariablesGroupedByDataset,
     updateAllChartsThatInheritFromIndicator,
@@ -87,76 +86,13 @@ export async function getVariableMetadataJson(
     )
 }
 
-// Still serving the chart editor's indicator picker, which downloads every
-// indicator up front. The picker moves onto `getVariablesJson` in a follow-up,
-// and this goes with it.
-export async function getEditorVariablesJson(
-    req: Request,
-    _res: HandlerResponse,
-    trx: db.KnexReadonlyTransaction
-) {
-    const datasets = []
-    const rows = await db.knexRaw<
-        Pick<DbRawVariable, "name" | "id"> & {
-            datasetId: number
-            datasetName: string
-            datasetVersion: string
-        } & Pick<
-                DbPlainDataset,
-                "namespace" | "isPrivate" | "nonRedistributable"
-            >
-    >(
-        trx,
-        `-- sql
-        SELECT
-                v.name,
-                v.id,
-                d.id as datasetId,
-                d.name as datasetName,
-                d.version as datasetVersion,
-                d.namespace,
-                d.isPrivate,
-                d.nonRedistributable
-            FROM variables as v JOIN active_datasets as d ON v.datasetId = d.id
-            ORDER BY d.updatedAt DESC
-            `
-    )
-
-    let dataset:
-        | {
-              id: number
-              name: string
-              version: string
-              namespace: string
-              isPrivate: boolean
-              nonRedistributable: boolean
-              variables: { id: number; name: string }[]
-          }
-        | undefined
-    for (const row of rows) {
-        if (!dataset || row.datasetName !== dataset.name) {
-            if (dataset) datasets.push(dataset)
-
-            dataset = {
-                id: row.datasetId,
-                name: row.datasetName,
-                version: row.datasetVersion,
-                namespace: row.namespace,
-                isPrivate: !!row.isPrivate,
-                nonRedistributable: !!row.nonRedistributable,
-                variables: [],
-            }
-        }
-
-        dataset.variables.push({
-            id: row.id,
-            name: row.name ?? "",
-        })
-    }
-
-    if (dataset) datasets.push(dataset)
-
-    return { datasets: datasets }
+/** `1,2,3` from a query string, ignoring anything that isn't a number. */
+function parseIdList(param: unknown): number[] {
+    if (typeof param !== "string") return []
+    return param
+        .split(",")
+        .map((id) => parseIntOrUndefined(id.trim()))
+        .filter((id): id is number => id !== undefined)
 }
 
 export async function getVariablesJson(
@@ -164,6 +100,10 @@ export async function getVariablesJson(
     _res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
+    // A chart's own indicators, looked up by id — the picker starts from those
+    const ids = parseIdList(req.query.ids)
+    if (ids.length) return { variables: await getVariablesByIds(ids, trx) }
+
     // Clamped, not just parsed: a negative number survives `parseIntOrUndefined`
     // and `LIMIT -1` is a syntax error, so a hand-edited URL would be a 500.
     const limit = Math.max(
@@ -175,31 +115,18 @@ export async function getVariablesJson(
         parseIntOrUndefined(req.query.offset as string) ?? 0
     )
     const query = req.query.search as string
+    // Datasets to rank first when they match — the ones a chart draws from
+    const pinnedDatasetIds = parseIdList(req.query.pinnedDatasetIds)
     // The same search, paged over the datasets the matches belong to
     if (req.query.group === "dataset")
-        return await searchVariablesGroupedByDataset(query, limit, offset, trx)
+        return await searchVariablesGroupedByDataset(
+            query,
+            limit,
+            offset,
+            trx,
+            pinnedDatasetIds
+        )
     return await searchVariables(query, limit, offset, trx)
-}
-
-export async function getVariablesUsagesJson(
-    req: Request,
-    _res: HandlerResponse,
-    trx: db.KnexReadonlyTransaction
-) {
-    const query = `-- sql
-    SELECT
-        variableId,
-        COUNT(DISTINCT chartId) AS usageCount
-    FROM
-        chart_dimensions
-    GROUP BY
-        variableId
-    ORDER BY
-        usageCount DESC`
-
-    const rows = await db.knexRaw(trx, query)
-
-    return rows
 }
 
 export async function getLatestIndicatorIdsByCatalogPathJson(

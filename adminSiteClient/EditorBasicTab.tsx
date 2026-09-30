@@ -49,7 +49,6 @@ import { Section, TextField } from "./Forms.js"
 import { VariableSelector } from "./VariableSelector.js"
 import { DimensionCard } from "./DimensionCard.js"
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
-import { EditorDatabase } from "./EditorDatabase.js"
 import { isChartEditorInstance } from "./ChartEditor.js"
 import { ErrorMessagesForDimensions } from "./ChartEditorTypes.js"
 import { EditableTags } from "./EditableTags.js"
@@ -73,7 +72,6 @@ import { Tag } from "antd"
 interface DimensionSlotViewProps<Editor> {
     slot: DimensionSlot
     editor: Editor
-    database: EditorDatabase
     errorMessagesForDimensions: ErrorMessagesForDimensions
     canSwapXAndY?: boolean
     onSwapXAndY?: () => void
@@ -410,8 +408,6 @@ export class DimensionSlotView<
                 )}
                 {isSelectingVariables && (
                     <VariableSelector
-                        editor={editor}
-                        database={this.props.database}
                         slot={slot}
                         onDismiss={action(
                             () => (this.isSelectingVariables = false)
@@ -426,7 +422,6 @@ export class DimensionSlotView<
 
 interface VariablesSectionProps<Editor> {
     editor: Editor
-    database: EditorDatabase
     errorMessagesForDimensions: ErrorMessagesForDimensions
 }
 
@@ -518,7 +513,6 @@ class VariablesSection<
                             key={slot.name}
                             slot={slot}
                             editor={props.editor}
-                            database={props.database}
                             errorMessagesForDimensions={
                                 props.errorMessagesForDimensions
                             }
@@ -572,7 +566,6 @@ const TagsSection = (props: {
 
 interface EditorBasicTabProps<Editor> {
     editor: Editor
-    database: EditorDatabase
     errorMessagesForDimensions: ErrorMessagesForDimensions
 }
 
@@ -870,7 +863,6 @@ export class EditorBasicTab<
                 </Section>
                 <VariablesSection
                     editor={editor}
-                    database={this.props.database}
                     errorMessagesForDimensions={
                         this.props.errorMessagesForDimensions
                     }

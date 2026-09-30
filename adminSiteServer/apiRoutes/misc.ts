@@ -5,7 +5,6 @@ import {
 } from "@ourworldindata/types"
 
 import * as db from "../../db/db.js"
-import * as lodash from "lodash-es"
 import { expectInt } from "../../serverUtils/serverUtil.js"
 import { Request } from "../authentication.js"
 import { HandlerResponse } from "../FunctionalRouter.js"
@@ -46,35 +45,6 @@ export async function fetchAllWork(
 
     res.type("text/plain")
     return archieLines.join("\n\n")
-}
-
-export async function fetchNamespaces(
-    req: Request,
-    res: HandlerResponse,
-    trx: db.KnexReadonlyTransaction
-) {
-    const rows = await db.knexRaw<{
-        name: string
-        description?: string
-        isArchived: boolean
-    }>(
-        trx,
-        `SELECT DISTINCT
-            namespace AS name,
-            namespaces.description AS description,
-            namespaces.isArchived AS isArchived
-        FROM active_datasets
-        JOIN namespaces ON namespaces.name = active_datasets.namespace`
-    )
-
-    return {
-        namespaces: lodash
-            .sortBy(rows, (row) => row.description)
-            .map((namespace) => ({
-                ...namespace,
-                isArchived: !!namespace.isArchived,
-            })),
-    }
 }
 
 export async function fetchSourceById(
