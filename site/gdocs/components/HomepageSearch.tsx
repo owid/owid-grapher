@@ -82,8 +82,8 @@ export function HomepageSearch(props: { className?: string }) {
     return (
         <div className={props.className}>
             <h2 className="h1-semibold span-cols-6 col-start-5 span-md-cols-10 col-md-start-3 span-sm-cols-12 col-sm-start-2">
-                Research and data to make progress against the world’s largest
-                problems.
+                The world is awful. The world is much better. The world can be
+                much better.
             </h2>
             <a
                 href={`${BAKED_BASE_URL}/about#our-mission`}
