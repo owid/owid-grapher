@@ -269,11 +269,19 @@
 }
 
 // The selected row is bounded by its own pale panel, so the list's rules stop
-// at its edges rather than running into them — the one below it is its own, the
-// one above it belongs to the row before (:has, degrading to a drawn rule in
-// Firefox <121; see docs/browser-support.md). The list has no rule above its
-// first row at all, so a selected first row needs nothing extra here.
-.all-charts-block__row--selected,
+// at its edges rather than running into them. The list has no rule above its
+// first row at all, so a selected first row needs nothing beyond this.
+.all-charts-block__row--selected {
+    border-bottom-color: transparent;
+}
+
+// And the rule above a selected row, which belongs to the row before it. A
+// rule of its own rather than another selector on the one above: an
+// unsupported `:has` makes a selector invalid, and an invalid selector
+// invalidates the whole list it appears in, so sharing one rule would cost
+// Firefox <121 the divider suppression above *as well as* the one below (see
+// docs/browser-support.md). Split, those browsers keep the one that matters
+// and just draw the upper rule as they do today.
 .all-charts-block__row:has(+ .all-charts-block__row--selected) {
     border-bottom-color: transparent;
 }
