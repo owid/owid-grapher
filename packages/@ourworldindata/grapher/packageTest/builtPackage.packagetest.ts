@@ -13,6 +13,11 @@ import * as path from "node:path"
 import { fileURLToPath, pathToFileURL } from "node:url"
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest"
 import { defaultGrapherConfig } from "../src/schema/defaultGrapherConfig.js"
+import {
+    assertFilesExist,
+    readImportSpecifiers,
+    // oxlint-disable-next-line import-x-js/no-relative-packages
+} from "../../packageTest-common.mts"
 
 afterEach(() => {
     vi.unstubAllGlobals()
@@ -25,7 +30,6 @@ const npmBuildPath = path.join(distDir, "grapher.react.js")
 const standalonePath = path.join(distDir, "grapher.standalone.min.js")
 const cssPath = path.join(distDir, "grapher.css")
 const schemaPath = path.join(distDir, "grapher-schema.json")
-const dtsPath = path.join(distDir, "grapher.d.ts")
 
 const PUBLIC_EXPORTS = [
     "Grapher",
@@ -45,18 +49,11 @@ function assertHasPublicExports(mod: Record<string, unknown>): void {
 }
 
 beforeAll(() => {
-    for (const file of [
-        npmBuildPath,
-        standalonePath,
-        cssPath,
-        schemaPath,
-        dtsPath,
-    ]) {
-        if (!fs.existsSync(file))
-            throw new Error(
-                `Missing build output ${path.relative(pkgDir, file)} — run \`yarn build\` in packages/@ourworldindata/grapher first.`
-            )
-    }
+    assertFilesExist(
+        pkgDir,
+        [npmBuildPath, standalonePath, cssPath, schemaPath],
+        "`yarn build`"
+    )
 })
 
 // Grapher renders lazily once scrolled into view. happy-dom does no layout,
@@ -106,10 +103,10 @@ describe("npm build (dist/grapher.react.js)", () => {
         assertHasPublicExports(mod)
     })
 
-    it("keeps react and react-dom external", () => {
-        const source = fs.readFileSync(npmBuildPath, "utf8")
-        expect(source).toMatch(/from\s*["']react["']/)
-        expect(source).toMatch(/from\s*["']react-dom\/client["']/)
+    it("keeps react and react-dom external", async () => {
+        const specifiers = await readImportSpecifiers(npmBuildPath)
+        expect(specifiers).toContain("react")
+        expect(specifiers).toContain("react-dom/client")
     })
 
     it("contains no runtime require calls", () => {
@@ -215,14 +212,15 @@ describe("standalone bundle (dist/grapher.standalone.min.js)", () => {
         assertHasPublicExports(mod)
     })
 
-    it("has no external imports (react is bundled in)", () => {
-        const source = fs.readFileSync(standalonePath, "utf8")
+    it("has no external imports (react is bundled in)", async () => {
         // The bundle must be usable from a plain HTML page, so it may not
         // import any bare module specifiers.
-        expect(source).not.toMatch(/from\s*["']react["']/)
-        expect(source).not.toMatch(/from\s*["'](?![./])/)
+        const specifiers = await readImportSpecifiers(standalonePath)
+        expect([...specifiers].filter((s) => !s.startsWith("."))).toEqual([])
         // ... nor call `__require` at runtime (see the npm build test).
-        expect(source).not.toMatch(/__require\(/)
+        expect(fs.readFileSync(standalonePath, "utf8")).not.toMatch(
+            /__require\(/
+        )
     })
 })
 
@@ -241,21 +239,5 @@ describe("JSON schema (dist/grapher-schema.json)", () => {
         }
 
         expect(schema.$id).toBe(defaultGrapherConfig.$schema)
-    })
-})
-
-describe("type declarations (dist/grapher.d.ts)", () => {
-    it("does not augment the global scope or third-party modules", () => {
-        // A `declare global` block (or a top-level module augmentation like
-        // `declare module "react"`) anywhere in our source ends up in the
-        // bundled declarations, where it silently rewrites those types in
-        // every consumer's project — e.g. a Window augmentation would make
-        // `window.admin` an `any` for everyone who imports this package.
-        // Keep such augmentations out of the published type surface; type
-        // globals locally at the use site instead (see getWindowAdmin in
-        // GrapherState.tsx).
-        const dts = fs.readFileSync(dtsPath, "utf8")
-        expect(dts).not.toMatch(/^\s*declare\s+global\b/m)
-        expect(dts).not.toMatch(/^\s*declare\s+module\s+["']/m)
     })
 })

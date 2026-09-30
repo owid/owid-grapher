@@ -5,7 +5,6 @@ import {
     EntityName,
     NumericCatalogKey,
     PeerCountryStrategy,
-    PeerCountryStrategyQueryParam,
     Time,
 } from "@ourworldindata/types"
 import {
@@ -77,19 +76,7 @@ type SelectPeerCountriesParams =
     | WithStrategy<SelectNeighborsAsPeersParams, PeerCountryStrategy.Neighbors>
     | { peerCountryStrategy: PeerCountryStrategy.None }
 
-/** Check if the given string is a valid PeerCountryStrategy */
-function isValidPeerCountryStrategy(
-    candidate: string
-): candidate is PeerCountryStrategy {
-    return Object.values(PeerCountryStrategy).includes(candidate as any)
-}
-
-/** Check if the given string is a valid PeerCountryStrategyQueryParam */
-export function isValidPeerCountryStrategyQueryParam(
-    candidate: string
-): candidate is PeerCountryStrategyQueryParam {
-    return candidate === "auto" || isValidPeerCountryStrategy(candidate)
-}
+export { isValidPeerCountryStrategyQueryParam } from "@ourworldindata/types"
 
 /**
  * Selects peer countries for a grapher based on the configured strategy.

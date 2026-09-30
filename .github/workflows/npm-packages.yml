@@ -1,16 +1,16 @@
-name: Grapher package
+name: npm packages
 
-# Builds the standalone @ourworldindata/grapher npm package / CDN bundle and
-# runs the smoke tests in packages/@ourworldindata/grapher/packageTest/
-# against the build outputs: importability of both JS builds, mounting a
-# chart from the built code, and typechecking the packed type declarations.
+# Builds each of our published npm packages and runs the smoke tests in
+# packages/@ourworldindata/<package>/packageTest/ against the build outputs:
+# importability of the JS builds, running the built code (mounting a chart,
+# converting ArchieML), and typechecking the packed type declarations.
 on:
   pull_request:
     paths:
       - "packages/@ourworldindata/**"
       - "rolldown.config-common.mts"
       - "yarn.lock"
-      - ".github/workflows/grapher-package.yml"
+      - ".github/workflows/npm-packages.yml"
   push:
     branches:
       - master
@@ -18,14 +18,19 @@ on:
 permissions:
   contents: read
 
-defaults:
-  run:
-    working-directory: packages/@ourworldindata/grapher
-
 jobs:
   test-package:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+
+    strategy:
+      fail-fast: false
+      matrix:
+        package: [grapher, gdoc-pipeline]
+
+    defaults:
+      run:
+        working-directory: packages/@ourworldindata/${{ matrix.package }}
 
     steps:
       - name: Clone repository

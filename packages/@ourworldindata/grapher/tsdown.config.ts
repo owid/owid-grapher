@@ -2,11 +2,15 @@ import { defineConfig, type UserConfig } from "tsdown"
 import optimizeReactAriaLocales from "@react-aria/optimize-locales-plugin"
 // The build config is reaching outside of the package, which is okay here.
 import {
-    BUILD_TARGET,
     pluginSwcDecorators,
     scssPreprocessorOptions,
     // oxlint-disable-next-line import-x-js/no-relative-packages
 } from "../../../rolldown.config-common.mts"
+import {
+    dtsBundleOptions,
+    packageBuildOptions,
+    // oxlint-disable-next-line import-x-js/no-relative-packages
+} from "../tsdown.config-common.mts"
 
 // Builds the standalone @ourworldindata/grapher npm package / CDN bundle.
 // See readme.md ("Build outputs") and https://docs.owid.io/projects/grapher/
@@ -24,13 +28,7 @@ const REACT_EXTERNALS = [/^react($|\/)/, /^react-dom($|\/)/]
 
 // Options that apply to all three entries below.
 const shared = {
-    outDir: "./dist",
-    platform: "browser",
-    target: BUILD_TARGET,
-    sourcemap: true,
-    // Emit `.js` rather than `.mjs` - the package is "type": "module", so `.js`
-    // is unambiguous.
-    fixedExtension: false,
+    ...packageBuildOptions,
     define: {
         "process.env.NODE_ENV": JSON.stringify("production"),
     },
@@ -54,8 +52,6 @@ const shared = {
         // ... which means we don't want to be warned about it either.
         onlyBundle: false,
     },
-    // Types are built separately, from the CSS-free `grapher.public.ts` entry.
-    dts: false,
 } satisfies UserConfig
 
 export default defineConfig([
@@ -91,32 +87,12 @@ export default defineConfig([
         minify: true,
     },
     // The bundled type declarations for the public API, shared by both builds
-    // above. Emits no JS of its own (`emitDtsOnly`), and uses the CSS- and
-    // polyfill-free grapher.public.ts entry - the declaration pass runs through
-    // tsgo, which has no idea what to do with an `import "./core/grapher.scss"`.
+    // above. Uses the CSS- and polyfill-free grapher.public.ts entry - the
+    // declaration pass runs through tsgo, which has no idea what to do with an
+    // `import "./core/grapher.scss"`.
     {
         ...shared,
-        name: "types",
+        ...dtsBundleOptions,
         entry: { grapher: "./src/grapher.public.ts" },
-        // Includes the sources of grapher's workspace dependencies so their
-        // types can be inlined into the bundle.
-        tsconfig: "../tsconfig.tsdown.json",
-        deps: {
-            // Types from our own workspace packages (@ourworldindata/*) are
-            // inlined into the bundle, all other imports stay external.
-            alwaysBundle: [/^@ourworldindata\//],
-            // The workspace packages we inline have their own dependencies
-            // (dayjs, zod, ...) that aren't in grapher's package.json, so tsdown
-            // wouldn't auto-externalize them. Everything that's not a relative
-            // import or a workspace package must stay external.
-            neverBundle: (id: string) =>
-                !id.startsWith(".") &&
-                !id.startsWith("/") &&
-                !id.startsWith("@ourworldindata/"),
-        },
-        // Drop side-effect-only imports (`import "dayjs"`) of external modules
-        // from the bundle — consumers may not have those packages installed.
-        treeshake: { moduleSideEffects: false },
-        dts: { emitDtsOnly: true },
     },
 ])

@@ -101,6 +101,7 @@ export {
     PeerCountryStrategy,
     type PeerCountryStrategyQueryParam,
     VALID_PEER_COUNTRY_STRATEGY_QUERY_PARAMS,
+    isValidPeerCountryStrategyQueryParam,
     type RelatedQuestionsConfig,
     FacetStrategy,
     type SeriesColorMap,
