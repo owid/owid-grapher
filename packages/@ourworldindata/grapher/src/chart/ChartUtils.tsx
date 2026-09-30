@@ -330,11 +330,15 @@ export function InapplicablePattern({
     )
 }
 
-export function ChartPatternDefs(): React.ReactElement {
+export function ChartPatternDefs({
+    scale = 1,
+}: {
+    scale?: number
+}): React.ReactElement {
     return (
         <defs>
-            <NoDataPattern />
-            <InapplicablePattern />
+            <NoDataPattern scale={scale} />
+            <InapplicablePattern scale={scale} />
         </defs>
     )
 }

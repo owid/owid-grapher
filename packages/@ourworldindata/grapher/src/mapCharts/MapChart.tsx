@@ -208,6 +208,10 @@ export class MapChart
         this.hoverBracket = undefined
     }
 
+    @computed get patternScale(): number {
+        return this.manager.patternScale ?? 1
+    }
+
     @computed get mapConfig(): MapConfig {
         return this.chartState.mapConfig
     }
