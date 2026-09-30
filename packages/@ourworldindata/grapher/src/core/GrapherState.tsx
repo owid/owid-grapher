@@ -3769,6 +3769,16 @@ export class GrapherState
         return staticPixelCount < 0.66 * idealPixelCount
     }
 
+    @computed get patternScale(): number {
+        if (!this.isStatic) return 1
+        const { defaultBounds, staticBounds } = this
+        const sizeRatio = Math.min(
+            staticBounds.width / defaultBounds.width,
+            staticBounds.height / defaultBounds.height
+        )
+        return R.clamp(Math.sqrt(sizeRatio), { min: 0.75, max: 1 })
+    }
+
     @computed get isExportingForWikimedia(): boolean {
         return this.isExportingToSvgOrPng && this.isWikimediaExport
     }

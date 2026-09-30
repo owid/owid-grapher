@@ -773,6 +773,7 @@ export class ChoroplethGlobe extends React.Component<{
                         <ProjectedDataPattern
                             key={PROJECTED_DATA_LEGEND_COLOR}
                             color={PROJECTED_DATA_LEGEND_COLOR}
+                            scale={this.manager.patternScale}
                             forLegend
                         />
 
@@ -782,6 +783,7 @@ export class ChoroplethGlobe extends React.Component<{
                             <ProjectedDataPattern
                                 key={`${color}-${index}`}
                                 color={color}
+                                scale={this.manager.patternScale}
                                 forLegend
                             />
                         ))}
@@ -791,6 +793,7 @@ export class ChoroplethGlobe extends React.Component<{
                             <ProjectedDataPattern
                                 key={`${color}-${index}`}
                                 color={color}
+                                scale={this.manager.patternScale}
                             />
                         ))}
                     </defs>
