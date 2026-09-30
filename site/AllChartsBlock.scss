@@ -289,7 +289,7 @@
 }
 
 .all-charts-block__row {
-    border-bottom: 1px solid $gray-20;
+    border-bottom: 1px solid $blue-20;
 }
 
 .all-charts-block__row--selected .all-charts-block__row-body {
@@ -328,7 +328,7 @@
     flex: 1 1 auto;
     display: flex;
     align-items: flex-start;
-    gap: 12px;
+    gap: 16px;
     min-width: 0;
     padding: 12px 13px; // 3px accent border + 13px = 16px of left inset
     cursor: pointer;
@@ -360,7 +360,9 @@
     // and the browser still reserves the right box before the image lands.
     width: 170px;
     height: auto;
-    border: 1px solid $gray-20;
+    // The mockup's thin light frame is $blue-20 rather than the $gray-20 this
+    // started at, so it matches the row divider under it (Marwa, 2026-09-30).
+    border: 1px solid $blue-20;
     background-color: $white;
 
     @include sm-only {
@@ -494,6 +496,55 @@
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
+}
+
+// The row's other views, as a line of small text links under the source line:
+// Grapher's own tab icon and label for each, so the row names the same set of
+// views as the tab bar in the chart beside the list. Only rendered where the
+// chart has more than one view (see getRowChartTypeTabs).
+.all-charts-block__row-types {
+    display: flex;
+    flex-wrap: wrap;
+    // 14px in the mockup, measured between one label and the next icon.
+    gap: 4px 14px;
+    // On top of the 2px the text stack already puts between its lines, for the
+    // 6px the mockup leaves between the source line and this one.
+    margin-top: 4px;
+}
+
+// One view: an icon in $blue-50 and a label in $blue-90, at the size and
+// weight of the source line above it. A <button> rather than a link because it
+// changes the chart beside the list rather than navigating. Only the padding
+// and the background need resetting — general.scss already drops a button's
+// border and gives it the site's sans stack.
+.all-charts-block__row-type {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 0;
+    background: none;
+    color: $blue-50;
+    font-size: 12px;
+    line-height: 1.5;
+    cursor: pointer;
+
+    &:hover .all-charts-block__row-type-label {
+        text-decoration: underline;
+    }
+}
+
+// The view the chart beside the list is *actually* on, which the chart itself
+// reports (see AllChartsSidecar) rather than it being the last one clicked.
+.all-charts-block__row-type--active {
+    color: $blue-90;
+
+    .all-charts-block__row-type-label {
+        font-weight: 700;
+    }
+}
+
+.all-charts-block__row-type-label {
+    color: $blue-90;
 }
 
 // Mobile/tablet accordion panel holding the inline chart for the currently

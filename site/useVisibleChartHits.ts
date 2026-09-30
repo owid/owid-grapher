@@ -43,7 +43,9 @@ export function useVisibleChartHits<T>(
     // clicking the reveal control, which changes the rows on screen but not the
     // query, is never undone by this effect.
     useEffect(() => {
+        // oxlint-disable-next-line react/set-state-in-effect -- resets the row-cap reveal when the query changes; the rule arrived with the master merge
         setIsListExpanded(false)
+        // oxlint-disable-next-line react/exhaustive-effect-dependencies -- `query` is the trigger, not a value the effect reads: a new query resets the row-cap reveal; the rule arrived with the master merge
     }, [query])
 
     const visibleHits = useMemo(
