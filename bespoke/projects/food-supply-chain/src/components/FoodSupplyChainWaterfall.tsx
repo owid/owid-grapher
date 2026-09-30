@@ -38,7 +38,8 @@ import {
     VALUE_LABEL_GAP,
     VERTICAL_CAPTION_FONT_SIZE,
 } from "../core/constants.js"
-import { formatMeasureValue } from "../core/text.js"
+import { buildTruncatedTextWrap, formatMeasureValue } from "../core/text.js"
+import { useStepHover } from "../core/useStepHover.js"
 import { STAGE_GROUPS } from "../core/stages.js"
 import {
     NUM_DECIMAL_PLACES_BY_MEASURE,
@@ -60,11 +61,7 @@ import {
     WaterfallLayout,
 } from "../core/waterfallLayout.js"
 import { FoodSupplyChainTooltip } from "./FoodSupplyChainTooltip.js"
-import {
-    buildTruncatedTextWrap,
-    FoodSupplyChainConnector,
-    useStepHover,
-} from "./waterfallShared.js"
+import { FoodSupplyChainConnector } from "./FoodSupplyChainConnector.js"
 
 export interface FoodSupplyChainWaterfallProps {
     waterfall: Waterfall
