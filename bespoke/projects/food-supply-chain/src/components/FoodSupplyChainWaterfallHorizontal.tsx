@@ -56,7 +56,6 @@ import {
     AxisLabel,
     chooseTickValues,
     countStepAxisSlots,
-    FittedAxis,
     fitAxisToLabels,
     LabelSide,
     layOutWaterfall,
@@ -92,25 +91,24 @@ export function FoodSupplyChainWaterfallHorizontal({
         onStepMouseLeave,
     } = useStepHover()
 
-    const chart = useMemo(
-        () => planHorizontalChart(waterfall, width),
+    const plan = useMemo(
+        () => planHorizontalWaterfall(waterfall, width),
         [waterfall, width]
     )
-    if (!chart) return null
+    if (!plan) return null
     const {
         tickLabels,
-        shownTickLabelIndices,
         stepValueLabelLines,
         totalValueLabelText,
         captionTextWraps,
         totalCaptionTextWrap,
         captionRight,
         groupHeaderTextWraps,
-        valueAxis,
+        valueLabelSides,
         height,
         layout,
         groupedStepKeys,
-    } = chart
+    } = plan
 
     const hoveredStep = hover
         ? [...layout.steps, layout.total].find(
@@ -148,7 +146,7 @@ export function FoodSupplyChainWaterfallHorizontal({
                     rx={GROUP_BOX_CORNER_RADIUS}
                     fill={COLORS.totalBox}
                 />
-                {layout.ticks.map((tick, index) => (
+                {layout.ticks.map((tick) => (
                     <g key={tick.value}>
                         <line
                             className="food-supply-chain-waterfall__gridline"
@@ -158,7 +156,7 @@ export function FoodSupplyChainWaterfallHorizontal({
                             y2={tick.gridline.y2}
                             stroke={COLORS.gridline}
                         />
-                        {shownTickLabelIndices.has(index) && (
+                        {tickLabels.has(tick.value) && (
                             <text
                                 className="food-supply-chain-waterfall__tick-label"
                                 x={tick.gridline.x1}
@@ -168,7 +166,7 @@ export function FoodSupplyChainWaterfallHorizontal({
                                 fontSize={TICK_LABEL_FONT_SIZE}
                                 fill={COLORS.tickLabel}
                             >
-                                {tickLabels[index]}
+                                {tickLabels.get(tick.value)}
                             </text>
                         )}
                     </g>
@@ -220,7 +218,7 @@ export function FoodSupplyChainWaterfallHorizontal({
                         step={step}
                         captionTextWrap={captionTextWraps[index]}
                         valueLabelLines={stepValueLabelLines[index]}
-                        valueLabelSide={valueAxis.sides[index]}
+                        valueLabelSide={valueLabelSides[index]}
                         isTotal={false}
                         showArrow={index > 0}
                         isDimmed={
@@ -239,7 +237,7 @@ export function FoodSupplyChainWaterfallHorizontal({
                     step={layout.total}
                     captionTextWrap={totalCaptionTextWrap}
                     valueLabelLines={[totalValueLabelText]}
-                    valueLabelSide={valueAxis.sides[waterfall.steps.length]}
+                    valueLabelSide={valueLabelSides[waterfall.steps.length]}
                     isTotal
                     showArrow={false}
                     isDimmed={
@@ -282,25 +280,26 @@ export function FoodSupplyChainWaterfallHorizontal({
     )
 }
 
-interface HorizontalChartPlan {
-    tickLabels: string[]
-    shownTickLabelIndices: Set<number>
+interface HorizontalWaterfallPlan {
+    /** Only the tick labels that are shown, by tick value */
+    tickLabels: Map<number, string>
     stepValueLabelLines: string[][]
     totalValueLabelText: string
     captionTextWraps: TextWrap[]
     totalCaptionTextWrap: TextWrap
     captionRight: number
     groupHeaderTextWraps: Map<string, TextWrap>
-    valueAxis: FittedAxis
+    /** One per step, then the total's */
+    valueLabelSides: LabelSide[]
     height: number
     layout: WaterfallLayout
     groupedStepKeys: Set<StageKey>
 }
 
-function planHorizontalChart(
+function planHorizontalWaterfall(
     waterfall: Waterfall,
     width: number
-): HorizontalChartPlan | undefined {
+): HorizontalWaterfallPlan | undefined {
     const numDecimalPlaces = NUM_DECIMAL_PLACES_BY_MEASURE[waterfall.measure]
     const shortUnit = SHORT_UNIT_BY_MEASURE[waterfall.measure]
     const tickValues = chooseTickValues(waterfall.domain, "horizontal")
@@ -459,15 +458,20 @@ function planHorizontalChart(
     )
 
     return {
-        tickLabels,
-        shownTickLabelIndices,
+        tickLabels: new Map(
+            tickValues.flatMap((value, index) =>
+                shownTickLabelIndices.has(index)
+                    ? [[value, tickLabels[index]] as const]
+                    : []
+            )
+        ),
         stepValueLabelLines,
         totalValueLabelText,
         captionTextWraps,
         totalCaptionTextWrap,
         captionRight,
         groupHeaderTextWraps,
-        valueAxis,
+        valueLabelSides: valueAxis.sides,
         height,
         layout,
         groupedStepKeys,
