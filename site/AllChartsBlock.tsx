@@ -87,6 +87,113 @@ const ACCORDION_LAYOUT_MEDIA_QUERY = MEDIUM_BREAKPOINT_MEDIA_QUERY
 const SEARCH_PLACEHOLDER =
     "Search indicators by name, keyword, country, or source…"
 
+// The background treatments in the mockups, switchable while they are being
+// compared (Marwa, 2026-09-30: "maybe you can add a dropdown or toggle or some
+// kind of affordance to switch between them on the staging site"). Every value
+// that differs between them is a custom property in AllChartsBlock.scss; all
+// that happens here is setting the attribute those hang off, from the query
+// parameter below.
+//
+// Prototype scaffolding, not a feature: once one of them is chosen, this, the
+// switcher, the query parameter and the per-variant overrides in the
+// stylesheet all come out and the chosen values become the block's own.
+const ALL_CHARTS_VARIANTS = ["v1", "v2", "v3", "v4", "v5"] as const
+
+type AllChartsVariant = (typeof ALL_CHARTS_VARIANTS)[number]
+
+// V3 is the treatment that landed, so it is what the block looks like with no
+// parameter set, and the parameter is dropped again when it is selected —
+// there is no URL that pins the default, because the bare URL is the default.
+const ALL_CHARTS_DEFAULT_VARIANT: AllChartsVariant = "v3"
+
+// Kept in the URL rather than only in component state so that one specific
+// treatment can be linked to.
+const ALL_CHARTS_VARIANT_PARAM = "allChartsVariant"
+
+// What distinguishes each one, for the switcher's options — enough to tell
+// them apart in the list without having to try them all.
+const ALL_CHARTS_VARIANT_LABELS: Record<AllChartsVariant, string> = {
+    v1: "V1 — tinted page, vermillion accent",
+    v2: "V2 — white page, chart card framed",
+    v3: "V3 — white page, tinted selected row",
+    v4: "V4 — tinted page, blue accent",
+    v5: "V5 — as V4, panel stops at the list edge",
+}
+
+const isAllChartsVariant = (value: string | null): value is AllChartsVariant =>
+    value !== null && ALL_CHARTS_VARIANTS.some((variant) => variant === value)
+
+/**
+ * The treatment currently selected, read from (and written back to) the query
+ * string so a link can carry it.
+ *
+ * The parameter is read after mount rather than during the first render: the
+ * page is statically baked, so a first render that already reflected the query
+ * string would not match the markup the baker produced.
+ */
+const useAllChartsVariant = (): [
+    AllChartsVariant,
+    (variant: AllChartsVariant) => void,
+] => {
+    const [variant, setVariant] = useState<AllChartsVariant>(
+        ALL_CHARTS_DEFAULT_VARIANT
+    )
+
+    useEffect(() => {
+        const fromUrl = new URLSearchParams(window.location.search).get(
+            ALL_CHARTS_VARIANT_PARAM
+        )
+        // oxlint-disable-next-line react/set-state-in-effect -- the query string is only readable after mount, see above
+        if (isAllChartsVariant(fromUrl)) setVariant(fromUrl)
+    }, [])
+
+    const selectVariant = useCallback((next: AllChartsVariant) => {
+        setVariant(next)
+        const url = new URL(window.location.href)
+        if (next === ALL_CHARTS_DEFAULT_VARIANT)
+            url.searchParams.delete(ALL_CHARTS_VARIANT_PARAM)
+        else url.searchParams.set(ALL_CHARTS_VARIANT_PARAM, next)
+        // replaceState rather than pushState: flipping through five treatments
+        // shouldn't leave five entries to walk back through.
+        window.history.replaceState(null, "", url)
+    }, [])
+
+    return [variant, selectVariant]
+}
+
+/**
+ * The switcher itself. Sits above the heading rather than inside the sticky
+ * unit with it, so that it stays outside the design being compared.
+ */
+const AllChartsVariantSwitcher = ({
+    variant,
+    onVariantChange,
+    id,
+}: {
+    variant: AllChartsVariant
+    onVariantChange: (variant: AllChartsVariant) => void
+    id: string
+}) => (
+    <div className="all-charts-block__variant-switcher">
+        <label htmlFor={id}>Design variant</label>
+        <select
+            id={id}
+            className="all-charts-block__variant-select"
+            value={variant}
+            onChange={(event) => {
+                const next = event.target.value
+                if (isAllChartsVariant(next)) onVariantChange(next)
+            }}
+        >
+            {ALL_CHARTS_VARIANTS.map((option) => (
+                <option key={option} value={option}>
+                    {ALL_CHARTS_VARIANT_LABELS[option]}
+                </option>
+            ))}
+        </select>
+    </div>
+)
+
 export type SuggestedChip = {
     key: string
     label: string
@@ -389,12 +496,17 @@ export const AllChartsBlock = ({
         box: "border-box",
     })
 
+    const [variant, setVariant] = useAllChartsVariant()
+
     if (isError || !topicName) return null
 
     return (
         <section
             className={cx(className, "all-charts-block")}
             id={id}
+            // Every per-treatment value hangs off this attribute in
+            // AllChartsBlock.scss (see useAllChartsVariant above).
+            data-all-charts-variant={variant}
             style={
                 {
                     "--all-charts-block-pinned-above-height": `${stickyNavHeight ?? 0}px`,
@@ -402,6 +514,11 @@ export const AllChartsBlock = ({
                 } as React.CSSProperties
             }
         >
+            <AllChartsVariantSwitcher
+                variant={variant}
+                onVariantChange={setVariant}
+                id={`${id}-variant`}
+            />
             <div
                 className="all-charts-block__sticky-header"
                 ref={stickyHeaderRef}
