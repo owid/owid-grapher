@@ -501,17 +501,29 @@ $all-charts-thumbnails-per-row: 3;
     // Without this the flex item won't shrink below the image's intrinsic
     // width, and the strip overflows the row instead of fitting the pane.
     min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
     padding: 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+    text-align: left;
+
+    &:hover .all-charts-block__row-thumbnail-image {
+        border-color: $blue-40;
+    }
+}
+
+// The bordered preview image itself. The border lives here rather than on the
+// button so the caption below sits outside it.
+.all-charts-block__row-thumbnail-image {
+    display: block;
     border: 1px solid $gray-20;
     background-color: $white;
-    cursor: pointer;
     // The image is the whole content, so there is no line box to leave a
     // descender's worth of space under it.
     line-height: 0;
-
-    &:hover {
-        border-color: $blue-40;
-    }
 
     img {
         display: block;
@@ -520,18 +532,34 @@ $all-charts-thumbnails-per-row: 3;
     }
 }
 
+// The view's name ("World map", "Line chart", …) under its thumbnail. Same
+// typeface and colour as the "Source: …" line, a size smaller.
+.all-charts-block__row-thumbnail-caption {
+    // Buttons don't inherit the body font, so the source line's is restated.
+    font-family: $sans-serif-font-stack;
+    color: $blue-50;
+    font-size: 11px;
+    font-weight: 400;
+    line-height: 1.4;
+}
+
 // The view currently in the chart beside the list, on the selected row. Uses
 // the same vermillion as the selected row's own accent border.
 .all-charts-block__row-thumbnail--active {
-    border-color: $vermillion;
-    box-shadow: inset 0 0 0 1px $vermillion;
-
-    // The hover border above is a class plus a pseudo-class, so it outranks
-    // this rule's plain class and would grey out the active thumbnail for as
-    // long as the pointer sits on it — including straight after the click that
-    // activated it.
-    &:hover {
+    .all-charts-block__row-thumbnail-image {
         border-color: $vermillion;
+        box-shadow: inset 0 0 0 1px $vermillion;
+    }
+
+    // The hover border above is a class plus a pseudo-class, so it would
+    // otherwise grey out the active thumbnail for as long as the pointer sits
+    // on it — including straight after the click that activated it.
+    &:hover .all-charts-block__row-thumbnail-image {
+        border-color: $vermillion;
+    }
+
+    .all-charts-block__row-thumbnail-caption {
+        font-weight: 700;
     }
 }
 

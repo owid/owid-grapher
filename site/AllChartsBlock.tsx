@@ -921,20 +921,31 @@ const AllChartsRowThumbnails = ({
                         aria-label={`${label}: ${hit.title}`}
                         onClick={() => onSelectTab(tab)}
                     >
-                        <img
-                            src={constructPreviewUrl({
-                                hit,
-                                grapherParams: toGrapherQueryParams({ tab }),
-                                variant: PreviewVariant.Thumbnail,
-                            })}
-                            alt=""
-                            loading="lazy"
-                            // The thumbnail's own dimensions, so the browser can
-                            // reserve the right box before the image lands — a
-                            // topic page can hold nearly 200 rows of these.
-                            width={GRAPHER_THUMBNAIL_WIDTH}
-                            height={GRAPHER_THUMBNAIL_HEIGHT}
-                        />
+                        <span className="all-charts-block__row-thumbnail-image">
+                            <img
+                                src={constructPreviewUrl({
+                                    hit,
+                                    grapherParams: toGrapherQueryParams({
+                                        tab,
+                                    }),
+                                    variant: PreviewVariant.Thumbnail,
+                                })}
+                                alt=""
+                                loading="lazy"
+                                // The thumbnail's own dimensions, so the browser
+                                // can reserve the right box before the image
+                                // lands — a topic page can hold nearly 200 rows
+                                // of these.
+                                width={GRAPHER_THUMBNAIL_WIDTH}
+                                height={GRAPHER_THUMBNAIL_HEIGHT}
+                            />
+                        </span>
+                        <span
+                            className="all-charts-block__row-thumbnail-caption"
+                            aria-hidden
+                        >
+                            {label}
+                        </span>
                     </button>
                 )
             })}
