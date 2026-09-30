@@ -242,3 +242,26 @@ Named reference content
         })
     )
 })
+
+// Known limitation: a manually defined ID containing spaces can collide with a
+// generated inline ID. We accept this unlikely edge case rather than complicate
+// reference handling; the inline ref silently absorbs the unused definition.
+// Note that this is an `it.fails()` test. See #7349 for context.
+it.fails("Reports an unused named definition that collides with a generated inline ID", () => {
+    const result = archieToEnriched(`
+[+body]
+Text{ref}An inline ref{/ref}
+[]
+[refs]
+id: inline-ref 1
+[.+content]
+Manually written note
+[]
+[]
+`)
+    expect(result.refs?.errors).toContainEqual(
+        expect.objectContaining({
+            message: `A ref with ID "inline-ref 1" has been defined but isn't used in this document`,
+        })
+    )
+})
