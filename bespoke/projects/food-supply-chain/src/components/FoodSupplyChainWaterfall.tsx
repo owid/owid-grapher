@@ -87,11 +87,11 @@ export function FoodSupplyChainWaterfall({
         onStepMouseLeave,
     } = useStepHover()
 
-    const chart = useMemo(
-        () => planVerticalChart(waterfall, width, height),
+    const plan = useMemo(
+        () => planVerticalWaterfall(waterfall, width, height),
         [waterfall, width, height]
     )
-    if (!chart) return null
+    if (!plan) return null
     const {
         tickLabels,
         captionTextWraps,
@@ -100,10 +100,9 @@ export function FoodSupplyChainWaterfall({
         valueLabelTexts,
         totalValueLabelText,
         columnTop,
-        plotBottom,
         layout,
         groupedStepKeys,
-    } = chart
+    } = plan
 
     const hoveredStep = hover
         ? [...layout.steps, layout.total].find(
@@ -124,7 +123,6 @@ export function FoodSupplyChainWaterfall({
                     <GroupBox
                         key={group.key}
                         box={groupBox}
-                        bottom={plotBottom}
                         labelTextWrap={groupLabelTextWraps.get(group.key)}
                         fill={COLORS.groupBox}
                         labelColor={COLORS.groupLabel}
@@ -132,7 +130,6 @@ export function FoodSupplyChainWaterfall({
                 ))}
                 <GroupBox
                     box={layout.totalBox}
-                    bottom={plotBottom}
                     labelTextWrap={totalLabelTextWrap}
                     fill={COLORS.totalBox}
                     labelColor={COLORS.totalLabel}
@@ -251,7 +248,7 @@ export function FoodSupplyChainWaterfall({
     )
 }
 
-interface VerticalChartPlan {
+interface VerticalWaterfallPlan {
     tickLabels: Map<number, string>
     captionTextWraps: TextWrap[]
     totalLabelTextWrap: TextWrap
@@ -259,16 +256,15 @@ interface VerticalChartPlan {
     valueLabelTexts: string[]
     totalValueLabelText: string
     columnTop: number
-    plotBottom: number
     layout: WaterfallLayout
     groupedStepKeys: Set<StageKey>
 }
 
-function planVerticalChart(
+function planVerticalWaterfall(
     waterfall: Waterfall,
     width: number,
     height: number
-): VerticalChartPlan | undefined {
+): VerticalWaterfallPlan | undefined {
     const numDecimalPlaces = NUM_DECIMAL_PLACES_BY_MEASURE[waterfall.measure]
     const shortUnit = SHORT_UNIT_BY_MEASURE[waterfall.measure]
     const tickLabels = buildTickLabels(waterfall)
@@ -377,7 +373,6 @@ function planVerticalChart(
         valueLabelTexts,
         totalValueLabelText,
         columnTop,
-        plotBottom,
         layout,
         groupedStepKeys,
     }
@@ -526,13 +521,11 @@ function StepMarks({
 
 function GroupBox({
     box,
-    bottom,
     labelTextWrap,
     fill,
     labelColor,
 }: {
     box: PlacedRect
-    bottom: number
     labelTextWrap: TextWrap | undefined
     fill: string
     labelColor: string
@@ -544,7 +537,7 @@ function GroupBox({
                 x={box.x}
                 y={0}
                 width={box.width}
-                height={bottom}
+                height={box.y + box.height}
                 rx={GROUP_BOX_CORNER_RADIUS}
                 fill={fill}
             />
