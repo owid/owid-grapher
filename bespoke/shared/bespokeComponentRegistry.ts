@@ -16,7 +16,7 @@ export const BESPOKE_COMPONENT_REGISTRY: Record<
     },
     "food-supply-chain": {
         scriptUrl: "/food-supply-chain/index.js",
-        dataUrl: "https://owid-public.owid.io/data/food-supply-chain",
+        dataUrl: "faostat/latest/food_supply_chain",
         metadataFilename: "food-supply-chain.metadata.json",
     },
     "food-trade": {
