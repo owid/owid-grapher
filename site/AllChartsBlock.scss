@@ -293,7 +293,10 @@
 }
 
 .all-charts-block__row--selected .all-charts-block__row-body {
-    border-left-color: $vermillion;
+    // $blue-40 rather than the $vermillion this started at: measured off
+    // Marwa's mockup, where the accent beside the selected row is #98a9bd
+    // (2026-09-30). The pale $blue-5 fill beside it is unchanged.
+    border-left-color: $blue-40;
     background-color: $blue-5;
 
     // The plain hover fill below matches this rule's specificity and is
@@ -395,21 +398,6 @@
     font-weight: 800;
 }
 
-// The chart's variant name ("age-standardized", "Stacked areas"), appended to
-// the title on the rows that need it — only where two charts on the topic share
-// a title (see getChartHitVariantName). It is a disambiguator, not part of the
-// name, so typographically it *is* the "Source:" line beneath it: same family,
-// size, weight and $blue-50 (Marwa, 2026-09-03, replacing a grey 0.85em span).
-// Those four come from that line's own rule, whose selector list this joins
-// below, rather than being restated here.
-.all-charts-block__row-variant {
-    margin-left: 4px;
-    // The one thing the shared rule can't supply: this span is nested inside
-    // the serif title, so the body font has to be reasserted to match the
-    // source line, which simply inherits it.
-    font-family: $sans-serif-font-stack;
-}
-
 .all-charts-block__row-subtitle {
     color: $blue-50;
     font-size: 12px;
@@ -452,8 +440,13 @@
 // search reveals the subtitle above it. It used to be the darker $blue-90,
 // giving the attribution more presence than the description above it; with the
 // description hidden by default there is nothing left for it to compete with.
-// The variant name is styled from here too (see above); only the flex layout
-// below it is the source line's own.
+//
+// The variant name ("age-standardized", "Current estimates") is styled from
+// here too, and this is now its only rule: it sits on its own line under the
+// title (Marwa's mockup, 2026-09-30), so it inherits the body font instead of
+// having to reassert it from inside the serif title. Which rows get one is
+// unchanged — only those whose title collides with another on the topic, see
+// getChartHitVariantName. Only the flex layout below is the source line's own.
 .all-charts-block__row-source,
 .all-charts-block__row-variant {
     color: $blue-50;

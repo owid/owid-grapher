@@ -1099,12 +1099,20 @@ const AllChartsTableRow = ({
                                 text={hit.title}
                                 searchPhrase={searchPhrase}
                             />
-                            {variantName && (
-                                <span className="all-charts-block__row-variant">
-                                    {variantName}
-                                </span>
-                            )}
                         </span>
+                        {/* On its own line under the title rather than
+                            appended to it (Marwa's mockup, 2026-09-30:
+                            "Multidimensional Poverty Index (MPI)" over
+                            "Current estimates"). Which rows get one, and how
+                            it looks, are unchanged — it is still only the
+                            rows whose title collides with another on the
+                            topic, still styled as the "Source:" line below
+                            it. */}
+                        {variantName && (
+                            <span className="all-charts-block__row-variant">
+                                {variantName}
+                            </span>
+                        )}
                         {isSearching && hit.subtitle && (
                             <span className="all-charts-block__row-subtitle">
                                 <HighlightedQueryText
