@@ -42,7 +42,8 @@ import {
     VALUE_LABEL_LINE_HEIGHT,
     VALUE_LABEL_SIDE_GAP,
 } from "../core/constants.js"
-import { formatMeasureValue } from "../core/text.js"
+import { buildTruncatedTextWrap, formatMeasureValue } from "../core/text.js"
+import { useStepHover } from "../core/useStepHover.js"
 import { STAGE_GROUPS } from "../core/stages.js"
 import {
     IS_UNIT_WRAPPABLE_BY_MEASURE,
@@ -64,11 +65,7 @@ import {
     WaterfallLayout,
 } from "../core/waterfallLayout.js"
 import { FoodSupplyChainTooltip } from "./FoodSupplyChainTooltip.js"
-import {
-    buildTruncatedTextWrap,
-    FoodSupplyChainConnector,
-    useStepHover,
-} from "./waterfallShared.js"
+import { FoodSupplyChainConnector } from "./FoodSupplyChainConnector.js"
 
 export interface FoodSupplyChainWaterfallHorizontalProps {
     waterfall: Waterfall
