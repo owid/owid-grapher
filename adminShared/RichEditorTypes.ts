@@ -4,7 +4,10 @@ import {
     OwidEnrichedGdocBlock,
     OwidGdocAuthoringMode,
     OwidGdocContent,
+    OwidGdocErrorMessage,
     OwidGdocMinimalPostInterface,
+    PostGdocCommentAnchorType,
+    PostGdocCommentThreadStatus,
     PostGdocRevisionKind,
 } from "@ourworldindata/types"
 
@@ -23,11 +26,22 @@ export interface RichEditorGdocResponse {
     updatedAt: string | null
 }
 
+export interface RichEditorCommentAnchorUpdate {
+    threadId: number
+    /** New ProseMirror positions in the saved draft doc; null if the anchor vanished */
+    anchorFrom: number | null
+    anchorTo: number | null
+    anchorText: string | null
+    orphaned: boolean
+}
+
 export interface RichEditorSaveBodyRequest {
     body: OwidEnrichedGdocBlock[]
     /** The draft revision this save is based on; null if no draft existed */
     baseRevisionId: number | null
     kind?: Extract<PostGdocRevisionKind, "autosave" | "manual">
+    /** Updated comment anchor positions, mapped through the client's edits */
+    commentAnchors?: RichEditorCommentAnchorUpdate[]
 }
 
 export interface RichEditorSaveBodyResponse {
@@ -82,4 +96,97 @@ export interface RichEditorResolveReferencesResponse {
     linkedCharts: Record<string, LinkedChart>
     imageMetadata: Record<string, ImageMetadata>
     linkedDocuments: Record<string, OwidGdocMinimalPostInterface>
+}
+
+// ── Publish ────────────────────────────────────────────────────────────────
+
+export interface RichEditorPublishRequest {
+    /** Concurrency check: the draft revision the author is looking at */
+    baseRevisionId: number | null
+}
+
+export interface RichEditorPublishResponse {
+    revisionId: number
+    published: boolean
+    publishedAt: string | null
+    slug: string
+}
+
+/** Returned with a 400 when validation errors block publishing */
+export interface RichEditorPublishValidationResponse {
+    error: {
+        message: string
+        status: 400
+    }
+    validationErrors: OwidGdocErrorMessage[]
+}
+
+// ── Settings (non-body content fields + row fields) ───────────────────────
+
+export interface RichEditorSaveSettingsRequest {
+    /** Content fields to merge into the draft (body is not allowed here) */
+    settings: Record<string, unknown>
+    /** Row-level fields; only editable while the doc is unpublished */
+    slug?: string
+    baseRevisionId: number | null
+}
+
+// ── Comments ───────────────────────────────────────────────────────────────
+
+export interface RichEditorComment {
+    id: number
+    threadId: number
+    userId: number | null
+    userFullName: string | null
+    text: string
+    createdAt: string
+    updatedAt: string
+}
+
+export interface RichEditorCommentThread {
+    id: number
+    gdocId: string
+    status: PostGdocCommentThreadStatus
+    anchorType: PostGdocCommentAnchorType
+    anchorFrom: number | null
+    anchorTo: number | null
+    anchorText: string | null
+    createdAt: string
+    createdBy: number | null
+    createdByFullName: string | null
+    resolvedAt: string | null
+    comments: RichEditorComment[]
+}
+
+export interface RichEditorCommentThreadsResponse {
+    threads: RichEditorCommentThread[]
+}
+
+export interface RichEditorCreateThreadRequest {
+    anchorType: PostGdocCommentAnchorType
+    anchorFrom?: number | null
+    anchorTo?: number | null
+    anchorText?: string | null
+    text: string
+}
+
+export interface RichEditorReplyRequest {
+    text: string
+}
+
+export interface RichEditorUpdateThreadRequest {
+    status: Extract<PostGdocCommentThreadStatus, "open" | "resolved">
+}
+
+// ── Presence ───────────────────────────────────────────────────────────────
+
+export interface RichEditorPresenceEditor {
+    userId: number
+    fullName: string
+    lastSeen: string
+}
+
+export interface RichEditorPresenceResponse {
+    /** Other users with the editor open on this doc (excludes the requester) */
+    editors: RichEditorPresenceEditor[]
 }
