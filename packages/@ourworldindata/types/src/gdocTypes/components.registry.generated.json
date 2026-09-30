@@ -109,6 +109,12 @@
           "type": "{ url: string }[]",
           "optional": false,
           "description": "Charts to pin at the front of the listing, authored as a `[.top]` … `[]` section with one `url:` line per chart (a Grapher URL). Listed charts appear first, in the order given, ahead of the admin-pinned key charts. Omitted, the admin's key-chart ordering is used unchanged; an entry that isn't a `url:` line drops the block."
+        },
+        {
+          "name": "suggested",
+          "type": "string[]",
+          "optional": false,
+          "description": "Editorially chosen search terms, shown as clickable chips above the block's search box. Authored as a `[.suggested]` … `[]` section with one `* ` line per term. Blank entries are dropped and at most the first five chips are shown. Omitted, the block falls back to the search terms published for the document's topic."
         }
       ],
       "valueProps": [],
