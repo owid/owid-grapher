@@ -37,7 +37,6 @@ export interface FoodSupplyChainMetadata {
     flowStages: FlowStage[]
     totalStage: { key: StageKey; name: string }
     sources: string[]
-    method: string
     /** Sorted by name */
     entities: FoodSupplyChainEntity[]
     entityByName: Map<string, FoodSupplyChainEntity>

@@ -5,26 +5,42 @@ import {
 import { formatValue } from "@ourworldindata/utils"
 
 import { formatEntityNameForSentence } from "../../../../helpers/entityNames.js"
-import { Measure } from "./types.js"
+import {
+    Measure,
+    NUM_DECIMAL_PLACES_BY_MEASURE,
+    SHORT_UNIT_BY_MEASURE,
+} from "./types.js"
 
 const ENTITY_NAME_SUFFIXES_TO_STRIP = ["27", "country"]
 
-/** A value as the chart writes it; one too small for `numDecimalPlaces` shows down to its first significant digit */
+/** A value of `measure` as the chart writes it; one too small for the measure's precision shows down to its first significant digit */
 export function formatMeasureValue(
     value: number,
+    measure: Measure,
     {
-        numDecimalPlaces,
-        unit,
+        withUnit = true,
         showPlus,
-    }: { numDecimalPlaces: number; unit?: string; showPlus?: boolean }
+    }: { withUnit?: boolean; showPlus?: boolean } = {}
 ): string {
     return formatValue(value, {
         numDecimalPlaces: Math.max(
-            numDecimalPlaces,
+            NUM_DECIMAL_PLACES_BY_MEASURE[measure],
             findFirstSignificantDecimalPlace(value)
         ),
-        unit,
+        unit: withUnit ? SHORT_UNIT_BY_MEASURE[measure] : undefined,
         showPlus,
+    })
+}
+
+/** A step's change, with a plus sign unless the step starts from zero */
+export function formatStepDelta(
+    delta: number,
+    measure: Measure,
+    { isFromZero, withUnit }: { isFromZero: boolean; withUnit?: boolean }
+): string {
+    return formatMeasureValue(delta, measure, {
+        withUnit,
+        showPlus: !isFromZero && delta !== 0,
     })
 }
 

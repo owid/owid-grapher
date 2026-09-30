@@ -1,7 +1,10 @@
 import { scaleLinear, ScaleLinear } from "d3-scale"
+import { Box } from "@ourworldindata/types"
+import { Point } from "@ourworldindata/utils"
 
 import { CONNECTOR_WIDTH } from "./constants.js"
 import { STAGE_GROUPS, StageGroup } from "./stages.js"
+import { StageKey } from "./types.js"
 import { Waterfall, WaterfallStep } from "./waterfall.js"
 
 export const MIN_BAR_LENGTH_PX = 1
@@ -28,11 +31,6 @@ export interface WaterfallLayoutOptions {
     boxGapSlots?: number
 }
 
-export interface PlacedPoint {
-    x: number
-    y: number
-}
-
 export interface PlacedLine {
     x1: number
     y1: number
@@ -40,22 +38,15 @@ export interface PlacedLine {
     y2: number
 }
 
-export interface PlacedRect {
-    x: number
-    y: number
-    width: number
-    height: number
-}
-
 export interface PlacedStep {
     /** The model step this column draws; the total's runs from zero to its value */
     step: WaterfallStep
     /** The whole slot across the value axis: the hit area and the caption's column */
-    slot: PlacedRect
+    slot: Box
     /** Absent when the delta is exactly zero */
-    bar?: PlacedRect
+    bar?: Box
     /** The far end of the bar */
-    valueAnchor: PlacedPoint
+    valueAnchor: Point
 }
 
 export interface PlacedConnector {
@@ -72,7 +63,7 @@ export interface PlacedGroup {
     group: StageGroup
     isLabelled: boolean
     /** The group's columns, over the plot's whole value range */
-    box: PlacedRect
+    box: Box
 }
 
 export interface WaterfallLayout {
@@ -85,27 +76,35 @@ export interface WaterfallLayout {
     zeroLine: PlacedLine
     groups: PlacedGroup[]
     /** The total's column, over the plot's whole value range */
-    totalBox: PlacedRect
-}
-
-/** Whether a group with this many steps gets a label, and the header room for one */
-export function isGroupLabelled(stepCount: number): boolean {
-    return stepCount > 1
+    totalBox: Box
 }
 
 export function measureSlotWidth(plotWidth: number, stepCount: number): number {
     return plotWidth / (stepCount + TOTAL_SLOT_SPAN)
 }
 
-export function groupBoxLength(slotWidth: number, stageCount: number): number {
-    return (
-        slotWidth *
-        (stageCount - 2 * SLOT_PADDING_RATIO + 2 * GROUP_BOX_OVERHANG_RATIO)
-    )
+/** The labelled groups and each one's box length, and the total box's, in slots along an axis with no room around the boxes */
+export function measureLabelledBoxLengths(steps: WaterfallStep[]): {
+    groups: { group: StageGroup; boxLength: number }[]
+    totalBoxLength: number
+} {
+    const { slots, totalSlot, groupRanges } = planStepAxis(steps, 0, 0)
+    return {
+        groups: groupRanges
+            .filter((range) => range.isLabelled)
+            .map(({ group, first, last }) => ({
+                group,
+                boxLength: measureSpanLength(
+                    boxSpan(slots[first], slots[last])
+                ),
+            })),
+        totalBoxLength: measureSpanLength(boxSpan(totalSlot, totalSlot)),
+    }
 }
 
-export function totalBoxLength(slotWidth: number): number {
-    return groupBoxLength(slotWidth, TOTAL_SLOT_SPAN)
+/** The steps drawn inside a group's box */
+export function findGroupedStepKeys(layout: WaterfallLayout): Set<StageKey> {
+    return new Set(layout.groups.flatMap(({ group }) => group.stageKeys))
 }
 
 /** Slots on the step axis: one per step, the total's wider one, and the room around the boxes */
@@ -133,28 +132,23 @@ export function captionLength(slotWidth: number): number {
     return slotWidth * (1 - SLOT_PADDING_RATIO)
 }
 
-export function chooseTickValues(
+/** The tick values, and the waterfall's domain widened to the outermost ticks */
+export function chooseTicks(
     domain: [number, number],
     orientation: WaterfallOrientation = "vertical"
-): number[] {
-    return chooseTicks(domain, TICK_COUNT_BY_ORIENTATION[orientation]).ticks
-}
-
-/** The waterfall's domain widened to the outermost ticks */
-export function chooseValueDomain(
-    domain: [number, number],
-    orientation: WaterfallOrientation = "vertical"
-): [number, number] {
-    const { from, to } = chooseTicks(
-        domain,
-        TICK_COUNT_BY_ORIENTATION[orientation]
-    ).domain
-    return [from, to]
+): { ticks: number[]; domain: Span } {
+    const tickCount = TICK_COUNT_BY_ORIENTATION[orientation]
+    const [lo, hi] = domain
+    const scale = scaleLinear()
+        .domain(lo === hi ? [lo - 1, hi + 1] : [lo, hi])
+        .nice(tickCount)
+    const [from, to] = scale.domain()
+    return { ticks: scale.ticks(tickCount), domain: { from, to } }
 }
 
 export function layOutWaterfall(
     waterfall: Waterfall,
-    box: PlacedRect,
+    box: Box,
     {
         orientation = "vertical",
         groupHeaderSlots = 0,
@@ -162,19 +156,14 @@ export function layOutWaterfall(
     }: WaterfallLayoutOptions = {}
 ): WaterfallLayout {
     return projectPlan(
-        planWaterfall(
-            waterfall,
-            TICK_COUNT_BY_ORIENTATION[orientation],
-            groupHeaderSlots,
-            boxGapSlots
-        ),
+        planWaterfall(waterfall, orientation, groupHeaderSlots, boxGapSlots),
         box,
         PROJECTIONS[orientation]
     )
 }
 
 /** A closed interval on one axis; a point is an interval whose ends are equal */
-interface Span {
+export interface Span {
     from: number
     to: number
 }
@@ -224,13 +213,13 @@ interface WaterfallPlan {
 
 function planWaterfall(
     waterfall: Waterfall,
-    tickCount: number,
+    orientation: WaterfallOrientation,
     groupHeaderSlots: number,
     boxGapSlots: number
 ): WaterfallPlan {
     const { ticks, domain: valueDomain } = chooseTicks(
         waterfall.domain,
-        tickCount
+        orientation
     )
     const { slots, totalSlot, groupRanges } = planStepAxis(
         waterfall.steps,
@@ -261,25 +250,10 @@ function planWaterfall(
             isLabelled,
             box: {
                 value: valueDomain,
-                step: {
-                    from: barSpan(slots[first]).from - GROUP_BOX_OVERHANG_RATIO,
-                    to: barSpan(slots[last]).to + GROUP_BOX_OVERHANG_RATIO,
-                },
+                step: boxSpan(slots[first], slots[last]),
             },
         })),
-        totalBox: {
-            value: valueDomain,
-            step: {
-                from:
-                    totalSlot.from +
-                    SLOT_PADDING_RATIO -
-                    GROUP_BOX_OVERHANG_RATIO,
-                to:
-                    totalSlot.to -
-                    SLOT_PADDING_RATIO +
-                    GROUP_BOX_OVERHANG_RATIO,
-            },
-        },
+        totalBox: { value: valueDomain, step: boxSpan(totalSlot, totalSlot) },
     }
 }
 
@@ -333,7 +307,7 @@ function findGroupRanges(steps: WaterfallStep[]): GroupRange[] {
                 group,
                 first: Math.min(...slotIndices),
                 last: Math.max(...slotIndices),
-                isLabelled: isGroupLabelled(slotIndices.length),
+                isLabelled: slotIndices.length > 1,
             },
         ]
     })
@@ -420,25 +394,22 @@ function planTotalConnector(
     }
 }
 
-function chooseTicks(
-    domain: [number, number],
-    tickCount: number
-): {
-    ticks: number[]
-    domain: Span
-} {
-    const [lo, hi] = domain
-    const scale = scaleLinear()
-        .domain(lo === hi ? [lo - 1, hi + 1] : [lo, hi])
-        .nice(tickCount)
-    const [from, to] = scale.domain()
-    return { ticks: scale.ticks(tickCount), domain: { from, to } }
-}
-
 function barSpan(slot: Span): Span {
     const centre = slotCentre(slot).from
     const halfWidth = 0.5 - SLOT_PADDING_RATIO
     return { from: centre - halfWidth, to: centre + halfWidth }
+}
+
+/** From the first slot's bar to the last slot's, reaching past both by the overhang */
+function boxSpan(firstSlot: Span, lastSlot: Span): Span {
+    return {
+        from: firstSlot.from + SLOT_PADDING_RATIO - GROUP_BOX_OVERHANG_RATIO,
+        to: lastSlot.to - SLOT_PADDING_RATIO + GROUP_BOX_OVERHANG_RATIO,
+    }
+}
+
+function measureSpanLength(span: Span): number {
+    return span.to - span.from
 }
 
 function slotCentre(slot: Span): Span {
@@ -453,7 +424,7 @@ interface PxExtent {
 
 interface ScreenProjection {
     /** The pixels each axis gets from the box, running in its screen direction */
-    axes(box: PlacedRect): PxExtent
+    axes(box: Box): PxExtent
     /** Assigns the two px spans to screen axes, keeping each one's direction */
     toSegment(px: PxExtent): PlacedLine
 }
@@ -491,7 +462,7 @@ const PROJECTIONS: Record<WaterfallOrientation, ScreenProjection> = {
 
 function projectPlan(
     plan: WaterfallPlan,
-    box: PlacedRect,
+    box: Box,
     projection: ScreenProjection
 ): WaterfallLayout {
     const axes = projection.axes(box)
@@ -501,7 +472,7 @@ function projectPlan(
     }
 
     const placeStep = (planned: PlannedStep): PlacedStep => {
-        let bar: PlacedRect | undefined
+        let bar: Box | undefined
         if (planned.bar) {
             const px = scaleExtent(planned.bar, scales)
             bar = toRect(
@@ -633,7 +604,7 @@ function floorBarLength(bar: Span, delta: number, axis: Span): Span {
     return { from: bar.from - overhang, to: to - overhang }
 }
 
-function toRect(segment: PlacedLine): PlacedRect {
+function toRect(segment: PlacedLine): Box {
     return {
         x: Math.min(segment.x1, segment.x2),
         y: Math.min(segment.y1, segment.y2),
@@ -642,7 +613,7 @@ function toRect(segment: PlacedLine): PlacedRect {
     }
 }
 
-function toPoint(segment: PlacedLine): PlacedPoint {
+function toPoint(segment: PlacedLine): Point {
     return { x: segment.x1, y: segment.y1 }
 }
 

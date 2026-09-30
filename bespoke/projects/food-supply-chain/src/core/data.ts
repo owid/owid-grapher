@@ -89,7 +89,6 @@ export function parseMetadata(raw: MetadataJson): FoodSupplyChainMetadata {
         flowStages,
         totalStage,
         sources: raw.sources,
-        method: raw.method,
         entities,
         entityByName: new Map(entities.map((entity) => [entity.name, entity])),
         entityNames: new Set(entities.map((entity) => entity.name)),

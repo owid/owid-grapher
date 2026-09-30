@@ -4,46 +4,38 @@ import { buildSubtitle, buildTitle, formatMeasureValue } from "./text.js"
 
 describe(formatMeasureValue, () => {
     it("rounds to the given decimal places", () => {
-        expect(formatMeasureValue(1234.5, { numDecimalPlaces: 0 })).toBe(
+        expect(formatMeasureValue(1234.5, "energy", { withUnit: false })).toBe(
             "1,235"
         )
-        expect(formatMeasureValue(2.21, { numDecimalPlaces: 1 })).toBe("2.2")
+        expect(formatMeasureValue(2.21, "protein", { withUnit: false })).toBe(
+            "2.2"
+        )
     })
 
     it("shows a small value down to its first significant digit", () => {
-        expect(
-            formatMeasureValue(0.034, {
-                numDecimalPlaces: 1,
-                unit: "g",
-                showPlus: true,
-            })
-        ).toBe("+0.03 g")
-        expect(formatMeasureValue(0.4, { numDecimalPlaces: 0 })).toBe("0.4")
-        expect(formatMeasureValue(0.0004, { numDecimalPlaces: 1 })).toBe(
+        expect(formatMeasureValue(0.034, "protein", { showPlus: true })).toBe(
+            "+0.03 g"
+        )
+        expect(formatMeasureValue(0.4, "energy", { withUnit: false })).toBe(
+            "0.4"
+        )
+        expect(formatMeasureValue(0.0004, "protein", { withUnit: false })).toBe(
             "0.0004"
         )
     })
 
     it("keeps the sign of a small negative value", () => {
-        expect(
-            formatMeasureValue(-0.03, { numDecimalPlaces: 1, unit: "g" })
-        ).toBe("-0.03 g")
+        expect(formatMeasureValue(-0.03, "protein")).toBe("-0.03 g")
     })
 
     it("keeps the sign of a small value just under the smallest step", () => {
-        expect(
-            formatMeasureValue(0.07, {
-                numDecimalPlaces: 1,
-                unit: "g",
-                showPlus: true,
-            })
-        ).toBe("+0.07 g")
+        expect(formatMeasureValue(0.07, "protein", { showPlus: true })).toBe(
+            "+0.07 g"
+        )
     })
 
     it("writes zero as zero", () => {
-        expect(formatMeasureValue(0, { numDecimalPlaces: 1, unit: "g" })).toBe(
-            "0 g"
-        )
+        expect(formatMeasureValue(0, "protein")).toBe("0 g")
     })
 })
 

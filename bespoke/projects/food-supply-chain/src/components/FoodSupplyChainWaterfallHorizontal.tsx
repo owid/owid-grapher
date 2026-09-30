@@ -7,7 +7,7 @@ import {
 import { TextWrapSvg } from "@ourworldindata/components/src/TextWrap/TextWrapComponents.js"
 import { Halo } from "@ourworldindata/components/src/Halo/Halo.js"
 import { Bounds } from "@ourworldindata/utils"
-import { GrapherTooltipAnchor } from "@ourworldindata/types"
+import { Box } from "@ourworldindata/types"
 import { BezierArrow } from "@ourworldindata/grapher"
 
 import {
@@ -42,31 +42,35 @@ import {
     VALUE_LABEL_LINE_HEIGHT,
     VALUE_LABEL_SIDE_GAP,
 } from "../core/constants.js"
-import { buildTruncatedTextWrap, formatMeasureValue } from "../core/text.js"
+import {
+    buildTruncatedTextWrap,
+    formatMeasureValue,
+    formatStepDelta,
+} from "../core/text.js"
 import { useStepHover } from "../core/useStepHover.js"
 import { STAGE_GROUPS } from "../core/stages.js"
 import {
     IS_UNIT_WRAPPABLE_BY_MEASURE,
-    NUM_DECIMAL_PLACES_BY_MEASURE,
     SHORT_UNIT_BY_MEASURE,
     StageKey,
 } from "../core/types.js"
 import { chooseStepColor, isAddition, Waterfall } from "../core/waterfall.js"
 import {
     AxisLabel,
-    chooseTickValues,
-    chooseValueDomain,
+    chooseTicks,
     countStepAxisSlots,
+    findGroupedStepKeys,
     fitAxisToLabels,
     LabelSide,
     layOutWaterfall,
     measureGroupHeaderSlots,
-    PlacedRect,
+    measureLabelledBoxLengths,
     PlacedStep,
+    Span,
     WaterfallLayout,
 } from "../core/waterfallLayout.js"
 import { FoodSupplyChainTooltip } from "./FoodSupplyChainTooltip.js"
-import { FoodSupplyChainConnector } from "./FoodSupplyChainConnector.js"
+import { FoodSupplyChainConnectors } from "./FoodSupplyChainConnectors.js"
 
 export interface FoodSupplyChainWaterfallHorizontalProps {
     waterfall: Waterfall
@@ -106,12 +110,6 @@ export function FoodSupplyChainWaterfallHorizontal({
         layout,
         groupedStepKeys,
     } = plan
-
-    const hoveredStep = hover
-        ? [...layout.steps, layout.total].find(
-              (step) => step.step.key === hover.stepKey
-          )
-        : undefined
 
     return (
         <div ref={containerRef}>
@@ -168,36 +166,13 @@ export function FoodSupplyChainWaterfallHorizontal({
                         )}
                     </g>
                 ))}
-                <line
-                    className="food-supply-chain-waterfall__zero-line"
-                    x1={layout.zeroLine.x1}
-                    y1={layout.zeroLine.y1}
-                    x2={layout.zeroLine.x2}
-                    y2={layout.zeroLine.y2}
-                    stroke={COLORS.zeroLine}
+                <FoodSupplyChainConnectors
+                    layout={layout}
+                    isDimmed={hover !== undefined}
                 />
-                {layout.connectors.map((connector, index) => (
-                    <FoodSupplyChainConnector
-                        key={index}
-                        line={connector.line}
-                        color={
-                            connector.fromStep.delta > 0
-                                ? COLORS.add
-                                : COLORS.subtract
-                        }
-                        isDimmed={hover !== undefined}
-                    />
-                ))}
-                {layout.totalConnector && (
-                    <FoodSupplyChainConnector
-                        line={layout.totalConnector}
-                        color={COLORS.total}
-                        isDimmed={hover !== undefined}
-                    />
-                )}
-                {layout.groups.map(({ group, box: groupBox, isLabelled }) => {
+                {layout.groups.map(({ group, box: groupBox }) => {
                     const textWrap = groupHeaderTextWraps.get(group.key)
-                    if (!isLabelled || !textWrap) return null
+                    if (!textWrap) return null
                     return (
                         <TextWrapSvg
                             key={group.key}
@@ -261,16 +236,14 @@ export function FoodSupplyChainWaterfallHorizontal({
                     />
                 ))}
             </svg>
-            {hover && hoveredStep && (
+            {hover && (
                 <FoodSupplyChainTooltip
-                    step={hoveredStep}
-                    isTotal={hover.stepKey === waterfall.total.key}
-                    isFirstStep={hover.stepKey === waterfall.steps[0]?.key}
-                    year={waterfall.year}
-                    measure={waterfall.measure}
-                    position={hover.position}
-                    containerBounds={isPinned ? undefined : { width, height }}
-                    anchor={isPinned ? GrapherTooltipAnchor.Bottom : undefined}
+                    waterfall={waterfall}
+                    layout={layout}
+                    hover={hover}
+                    isPinned={isPinned}
+                    width={width}
+                    height={height}
                 />
             )}
         </div>
@@ -297,44 +270,38 @@ function planHorizontalWaterfall(
     waterfall: Waterfall,
     width: number
 ): HorizontalWaterfallPlan | undefined {
-    const numDecimalPlaces = NUM_DECIMAL_PLACES_BY_MEASURE[waterfall.measure]
-    const shortUnit = SHORT_UNIT_BY_MEASURE[waterfall.measure]
-    const tickValues = chooseTickValues(waterfall.domain, "horizontal")
-    const valueDomain = chooseValueDomain(waterfall.domain, "horizontal")
+    const { measure } = waterfall
+    const { ticks: tickValues, domain: valueDomain } = chooseTicks(
+        waterfall.domain,
+        "horizontal"
+    )
     const tickLabels = tickValues.map((value, index) =>
-        formatMeasureValue(value, {
-            numDecimalPlaces,
-            unit: index === tickValues.length - 1 ? shortUnit : undefined,
+        formatMeasureValue(value, measure, {
+            withUnit: index === tickValues.length - 1,
         })
     )
-    const lastTickLabelWidth = Bounds.forText(
-        tickLabels[tickLabels.length - 1],
-        {
-            fontSize: TICK_LABEL_FONT_SIZE,
-        }
-    ).width
+    const tickLabelWidths = tickLabels.map(
+        (label) =>
+            Bounds.forText(label, { fontSize: TICK_LABEL_FONT_SIZE }).width
+    )
     const stepValueLabelTexts = waterfall.steps.map((step, index) =>
-        formatMeasureValue(step.delta, {
-            numDecimalPlaces,
-            unit: shortUnit,
-            showPlus: index > 0 && step.delta !== 0,
-        })
+        formatStepDelta(step.delta, measure, { isFromZero: index === 0 })
     )
     const wrappedStepValueLabelLines = waterfall.steps.map((step, index) =>
-        IS_UNIT_WRAPPABLE_BY_MEASURE[waterfall.measure]
+        IS_UNIT_WRAPPABLE_BY_MEASURE[measure]
             ? [
-                  formatMeasureValue(step.delta, {
-                      numDecimalPlaces,
-                      showPlus: index > 0 && step.delta !== 0,
+                  formatStepDelta(step.delta, measure, {
+                      isFromZero: index === 0,
+                      withUnit: false,
                   }),
-                  shortUnit,
+                  SHORT_UNIT_BY_MEASURE[measure],
               ]
             : undefined
     )
-    const totalValueLabelText = formatMeasureValue(waterfall.total.value, {
-        numDecimalPlaces,
-        unit: shortUnit,
-    })
+    const totalValueLabelText = formatMeasureValue(
+        waterfall.total.value,
+        measure
+    )
 
     const measureCaptionWidth = (text: string, fontWeight: number): number =>
         Bounds.forText(text, { fontSize: CAPTION_FONT_SIZE, fontWeight }).width
@@ -349,15 +316,14 @@ function planHorizontalWaterfall(
             measureCaptionWidth(group.label, GROUP_LABEL_FONT_WEIGHT)
         )
     )
-    const captionColumnWidth =
-        Math.max(
-            Math.min(
-                GROUP_LABEL_INSET + longestCaptionWidth,
-                MAX_CAPTION_COLUMN_SHARE * width - CAPTION_COLUMN_GAP
-            ),
-            longestGroupLabelWidth
-        ) + CAPTION_COLUMN_GAP
-    const captionRight = captionColumnWidth - CAPTION_COLUMN_GAP
+    const captionRight = Math.max(
+        Math.min(
+            GROUP_LABEL_INSET + longestCaptionWidth,
+            MAX_CAPTION_COLUMN_SHARE * width - CAPTION_COLUMN_GAP
+        ),
+        longestGroupLabelWidth
+    )
+    const captionColumnWidth = captionRight + CAPTION_COLUMN_GAP
     const captionMaxWidth =
         captionRight - GROUP_LABEL_INSET + TEXT_WRAP_BREAK_MARGIN
     const valueAxis = fitAxisToLabels(
@@ -383,7 +349,7 @@ function planHorizontalWaterfall(
             }),
         ],
         width - captionColumnWidth,
-        lastTickLabelWidth / 2
+        tickLabelWidths[tickLabelWidths.length - 1] / 2
     )
     if (captionMaxWidth <= TEXT_WRAP_BREAK_MARGIN || valueAxis.length <= 0)
         return undefined
@@ -404,9 +370,9 @@ function planHorizontalWaterfall(
     )
 
     const groupHeaderTextWraps = new Map(
-        STAGE_GROUPS.map((group) => [
+        measureLabelledBoxLengths(waterfall.steps).groups.map(({ group }) => [
             group.key,
-            buildGroupLabelTextWrap(
+            buildGroupHeaderTextWrap(
                 group.label,
                 captionRight + TEXT_WRAP_BREAK_MARGIN
             ),
@@ -414,6 +380,7 @@ function planHorizontalWaterfall(
     )
     const groupHeaderHeight =
         Math.max(
+            0,
             ...[...groupHeaderTextWraps.values()].map((wrap) => wrap.height)
         ) +
         GROUP_HEADER_GAP +
@@ -424,7 +391,7 @@ function planHorizontalWaterfall(
     }
 
     const plotTop = TICK_LABEL_FONT_SIZE + TICK_LABEL_GAP
-    const box: PlacedRect = {
+    const box: Box = {
         x: captionColumnWidth,
         y: plotTop,
         width: valueAxis.length,
@@ -437,15 +404,9 @@ function planHorizontalWaterfall(
         ...stepAxisSpacing,
     })
 
-    const groupedStepKeys = new Set(
-        layout.groups.flatMap(({ group }) => group.stageKeys)
-    )
     const shownTickLabelIndices = chooseShownTickLabels(
         layout.ticks.map((tick) => tick.gridline.x1),
-        tickLabels.map(
-            (label) =>
-                Bounds.forText(label, { fontSize: TICK_LABEL_FONT_SIZE }).width
-        )
+        tickLabelWidths
     )
     const stepValueLabelLines = waterfall.steps.map(
         (_, index) =>
@@ -472,7 +433,7 @@ function planHorizontalWaterfall(
         valueLabelSides: valueAxis.sides,
         height,
         layout,
-        groupedStepKeys,
+        groupedStepKeys: findGroupedStepKeys(layout),
     }
 }
 
@@ -560,7 +521,7 @@ function BarArrow({
     bar,
 }: {
     step: PlacedStep
-    bar: PlacedRect
+    bar: Box
 }): React.ReactElement | null {
     if (bar.width < ARROW_MIN_LENGTH + 2 * ARROW_INSET) return null
 
@@ -589,7 +550,7 @@ function ValueLabel({
     fill,
 }: {
     lines: string[]
-    bar: Pick<PlacedRect, "x" | "width">
+    bar: Pick<Box, "x" | "width">
     side: LabelSide
     rowCentre: number
     fontSize: number
@@ -624,7 +585,7 @@ function ValueLabel({
 }
 
 function placeValueLabel(
-    bar: Pick<PlacedRect, "x" | "width">,
+    bar: Pick<Box, "x" | "width">,
     side: LabelSide
 ): { x: number; textAnchor: "start" | "end" } {
     return side === "right"
@@ -639,7 +600,7 @@ function buildAxisLabel({
     wrappedLines,
     isTotal,
     preferredSide,
-    valueDomain: [domainStart, domainEnd],
+    valueDomain: { from: domainStart, to: domainEnd },
 }: {
     from: number
     to: number
@@ -647,7 +608,7 @@ function buildAxisLabel({
     wrappedLines?: string[]
     isTotal: boolean
     preferredSide: LabelSide
-    valueDomain: [number, number]
+    valueDomain: Span
 }): AxisLabel {
     const domainSpan = domainEnd - domainStart
     const measureTextWidth = (line: string): number =>
@@ -704,7 +665,7 @@ function buildRowCaptionTextWrap(
     })
 }
 
-function buildGroupLabelTextWrap(text: string, maxWidth: number): TextWrap {
+function buildGroupHeaderTextWrap(text: string, maxWidth: number): TextWrap {
     return buildTruncatedTextWrap({
         text,
         maxWidth,
