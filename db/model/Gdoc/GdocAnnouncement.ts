@@ -10,7 +10,7 @@ import {
 } from "@ourworldindata/utils"
 import * as db from "../../../db/db.js"
 import { GdocBase } from "./GdocBase.js"
-import { getLatestAnnouncements } from "./GdocFactory.js"
+import { getLatestAnnouncementsByType } from "./GdocFactory.js"
 
 export class GdocAnnouncement
     extends GdocBase
@@ -30,10 +30,12 @@ export class GdocAnnouncement
     override _loadSubclassAttachments = async (
         knex: db.KnexReadWriteTransaction
     ): Promise<void> => {
-        const { announcements, imageMetadata } = await getLatestAnnouncements(
-            knex,
-            deriveAnnouncementLatestType(this.content.kicker)
-        )
+        const latestAnnouncementsByType =
+            await getLatestAnnouncementsByType(knex)
+        const { announcements, imageMetadata } =
+            latestAnnouncementsByType[
+                deriveAnnouncementLatestType(this.content.kicker)
+            ]
         this.latestAnnouncements = announcements
         this.imageMetadata = { ...this.imageMetadata, ...imageMetadata }
     }
