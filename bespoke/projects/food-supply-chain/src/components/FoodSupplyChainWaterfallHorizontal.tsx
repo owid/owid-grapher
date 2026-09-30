@@ -55,6 +55,7 @@ import { chooseStepColor, isAddition, Waterfall } from "../core/waterfall.js"
 import {
     AxisLabel,
     chooseTickValues,
+    chooseValueDomain,
     countStepAxisSlots,
     fitAxisToLabels,
     LabelSide,
@@ -299,6 +300,7 @@ function planHorizontalWaterfall(
     const numDecimalPlaces = NUM_DECIMAL_PLACES_BY_MEASURE[waterfall.measure]
     const shortUnit = SHORT_UNIT_BY_MEASURE[waterfall.measure]
     const tickValues = chooseTickValues(waterfall.domain, "horizontal")
+    const valueDomain = chooseValueDomain(waterfall.domain, "horizontal")
     const tickLabels = tickValues.map((value, index) =>
         formatMeasureValue(value, {
             numDecimalPlaces,
@@ -368,7 +370,7 @@ function planHorizontalWaterfall(
                     wrappedLines: wrappedStepValueLabelLines[index],
                     isTotal: false,
                     preferredSide: isAddition(step) ? "right" : "left",
-                    tickValues,
+                    valueDomain,
                 })
             ),
             buildAxisLabel({
@@ -377,7 +379,7 @@ function planHorizontalWaterfall(
                 text: totalValueLabelText,
                 isTotal: true,
                 preferredSide: "right",
-                tickValues,
+                valueDomain,
             }),
         ],
         width - captionColumnWidth,
@@ -637,7 +639,7 @@ function buildAxisLabel({
     wrappedLines,
     isTotal,
     preferredSide,
-    tickValues,
+    valueDomain: [domainStart, domainEnd],
 }: {
     from: number
     to: number
@@ -645,10 +647,9 @@ function buildAxisLabel({
     wrappedLines?: string[]
     isTotal: boolean
     preferredSide: LabelSide
-    tickValues: number[]
+    valueDomain: [number, number]
 }): AxisLabel {
-    const domainStart = tickValues[0]
-    const domainSpan = tickValues[tickValues.length - 1] - domainStart
+    const domainSpan = domainEnd - domainStart
     const measureTextWidth = (line: string): number =>
         Bounds.forText(line, {
             fontSize: isTotal ? TOTAL_LABEL_FONT_SIZE : VALUE_LABEL_FONT_SIZE,
