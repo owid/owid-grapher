@@ -1,6 +1,7 @@
 /**
- * The Revisions tab lists the chart's saved versions; the Refs tab lists
- * where the chart is used and manages the URLs that redirect to it.
+ * The Revisions tab lists the chart's saves and can restore one or discard
+ * unsaved changes; the Refs tab lists where the chart is used and manages the
+ * URLs that redirect to it.
  */
 import { expect, test } from "./harness.js"
 import { indicators } from "./fixture.js"
@@ -15,26 +16,74 @@ test.describe("Revisions tab", () => {
             await seedChart(lineChart(indicators.lifeExpectancy))
         )
         const form = await editor.openTab("Revisions")
-        const revisions = form.locator(".list-group-item")
+        const saves = form.locator(".ant-timeline-item")
         // creating the chart stored its first revision
-        await expect(revisions).toHaveCount(1)
-        await expect(form.getByRole("button", { name: /Compare/ })).toHaveCount(
-            0
-        )
+        await expect(saves).toHaveCount(1)
+        await expect(editor.button("View", saves.first())).toBeVisible()
+        await expect(editor.button("Restore", form)).toHaveCount(0)
 
         await editor.openTab("Text")
         await editor.fill(editor.field("Subtitle"), "A revised subtitle")
         await editor.save()
         await editor.openTab("Revisions")
 
-        await expect(revisions).toHaveCount(2)
-        await expect(revisions.first()).toContainText("by Admin")
-        await revisions
-            .first()
-            .getByRole("button", { name: /Compare/ })
-            .click()
+        await expect(saves).toHaveCount(2)
+        await expect(saves.first()).toContainText("Admin")
+        await expect(saves.first()).toContainText("subtitle")
+        await expect(editor.button("Restore", saves.first())).toHaveCount(0)
+        await editor.button("Compare", saves.first()).click()
         const diff = editor.page.getByRole("dialog")
         await expect(diff).toContainText('"subtitle": "A revised subtitle"')
+    })
+
+    test("restoring an earlier save loads it into the editor for the next save", async ({
+        seedChart,
+        openEditor,
+    }) => {
+        const editor = await openEditor(
+            await seedChart(lineChart(indicators.lifeExpectancy))
+        )
+        await editor.openTab("Text")
+        const savedSubtitle = await editor.field("Subtitle").inputValue()
+        await editor.fill(editor.field("Subtitle"), "A revised subtitle")
+        await editor.save()
+
+        const form = await editor.openTab("Revisions")
+        const saves = form.locator(".ant-timeline-item")
+        await editor.button("Restore", saves.last()).click()
+        await editor
+            .button("Restore this version", editor.page.getByRole("dialog"))
+            .click()
+
+        await expect(saves.first()).toContainText("Unsaved changes")
+        await editor.openTab("Text")
+        await expect(editor.field("Subtitle")).toHaveValue(savedSubtitle)
+        expect(await editor.saveChanges()).toEqual({})
+    })
+
+    test("discarding unsaved changes returns the editor to the last save", async ({
+        seedChart,
+        openEditor,
+    }) => {
+        const editor = await openEditor(
+            await seedChart(lineChart(indicators.lifeExpectancy))
+        )
+        await editor.openTab("Text")
+        const savedSubtitle = await editor.field("Subtitle").inputValue()
+        await editor.fill(editor.field("Subtitle"), "An unsaved subtitle")
+
+        const form = await editor.openTab("Revisions")
+        const unsaved = form
+            .locator(".ant-timeline-item")
+            .filter({ hasText: "Unsaved changes" })
+        await editor.button("Compare", unsaved).click()
+        await editor
+            .button("Discard unsaved changes", editor.page.getByRole("dialog"))
+            .click()
+
+        await expect(unsaved).toHaveCount(0)
+        await editor.openTab("Text")
+        await expect(editor.field("Subtitle")).toHaveValue(savedSubtitle)
     })
 })
 
