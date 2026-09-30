@@ -5,10 +5,7 @@ import {
     EntityData,
     FlowStage,
     FoodSupplyChainMetadata,
-    IS_UNIT_WRAPPABLE_BY_MEASURE,
     Measure,
-    NUM_DECIMAL_PLACES_BY_MEASURE,
-    SHORT_UNIT_BY_MEASURE,
     StageKey,
 } from "./types.js"
 
@@ -26,9 +23,7 @@ export interface Waterfall {
     total: { key: StageKey; name: string; value: number }
     domain: [number, number]
     year: number
-    shortUnit: string
-    isUnitWrappable: boolean
-    numDecimalPlaces: number
+    measure: Measure
 }
 
 const TRADE_STAGE_KEYS: StageKey[] = ["imports", "exports"]
@@ -103,8 +98,6 @@ export function buildWaterfall({
         total,
         domain,
         year,
-        shortUnit: SHORT_UNIT_BY_MEASURE[measure],
-        isUnitWrappable: IS_UNIT_WRAPPABLE_BY_MEASURE[measure],
-        numDecimalPlaces: NUM_DECIMAL_PLACES_BY_MEASURE[measure],
+        measure,
     }
 }

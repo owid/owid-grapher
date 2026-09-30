@@ -45,7 +45,12 @@ import {
 } from "../core/constants.js"
 import { formatMeasureValue } from "../core/text.js"
 import { STAGE_GROUPS } from "../core/stages.js"
-import { StageKey } from "../core/types.js"
+import {
+    IS_UNIT_WRAPPABLE_BY_MEASURE,
+    NUM_DECIMAL_PLACES_BY_MEASURE,
+    SHORT_UNIT_BY_MEASURE,
+    StageKey,
+} from "../core/types.js"
 import { chooseStepColor, isAddition, Waterfall } from "../core/waterfall.js"
 import {
     AxisLabel,
@@ -266,9 +271,8 @@ export function FoodSupplyChainWaterfallHorizontal({
                     step={hoveredStep}
                     isTotal={hover.stepKey === waterfall.total.key}
                     isFirstStep={hover.stepKey === waterfall.steps[0]?.key}
-                    shortUnit={waterfall.shortUnit}
                     year={waterfall.year}
-                    numDecimalPlaces={waterfall.numDecimalPlaces}
+                    measure={waterfall.measure}
                     position={hover.position}
                     containerBounds={isPinned ? undefined : { width, height }}
                     anchor={isPinned ? GrapherTooltipAnchor.Bottom : undefined}
@@ -297,15 +301,13 @@ function planHorizontalChart(
     waterfall: Waterfall,
     width: number
 ): HorizontalChartPlan | undefined {
-    const { numDecimalPlaces } = waterfall
+    const numDecimalPlaces = NUM_DECIMAL_PLACES_BY_MEASURE[waterfall.measure]
+    const shortUnit = SHORT_UNIT_BY_MEASURE[waterfall.measure]
     const tickValues = chooseTickValues(waterfall.domain, "horizontal")
     const tickLabels = tickValues.map((value, index) =>
         formatMeasureValue(value, {
             numDecimalPlaces,
-            unit:
-                index === tickValues.length - 1
-                    ? waterfall.shortUnit
-                    : undefined,
+            unit: index === tickValues.length - 1 ? shortUnit : undefined,
         })
     )
     const lastTickLabelWidth = Bounds.forText(
@@ -317,24 +319,24 @@ function planHorizontalChart(
     const stepValueLabelTexts = waterfall.steps.map((step, index) =>
         formatMeasureValue(step.delta, {
             numDecimalPlaces,
-            unit: waterfall.shortUnit,
+            unit: shortUnit,
             showPlus: index > 0 && step.delta !== 0,
         })
     )
     const wrappedStepValueLabelLines = waterfall.steps.map((step, index) =>
-        waterfall.isUnitWrappable
+        IS_UNIT_WRAPPABLE_BY_MEASURE[waterfall.measure]
             ? [
                   formatMeasureValue(step.delta, {
                       numDecimalPlaces,
                       showPlus: index > 0 && step.delta !== 0,
                   }),
-                  waterfall.shortUnit,
+                  shortUnit,
               ]
             : undefined
     )
     const totalValueLabelText = formatMeasureValue(waterfall.total.value, {
         numDecimalPlaces,
-        unit: waterfall.shortUnit,
+        unit: shortUnit,
     })
 
     const measureCaptionWidth = (text: string, fontWeight: number): number =>
