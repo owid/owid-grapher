@@ -38,6 +38,7 @@ export const LatestAnnouncementHit = ({
                     slug={hit.slug}
                     publishedAt={hit.date}
                     authors={hit.authors}
+                    authorRoles={hit.authorRoles}
                     body={hit.body}
                     selectedTopic={selectedTopic}
                     onReadMore={() =>

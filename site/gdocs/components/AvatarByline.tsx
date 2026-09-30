@@ -5,9 +5,11 @@ import LinkedAuthor from "./LinkedAuthor.js"
  * when an author has no photo. Callers supply spacing through className. */
 export default function AvatarByline({
     authors,
+    authorRoles,
     className,
 }: {
     authors: string[]
+    authorRoles?: Record<string, string>
     /** Layout hooks the caller owns — margins, z-index — not type or colour. */
     className?: string
 }) {
@@ -19,6 +21,7 @@ export default function AvatarByline({
                     key={name}
                     className="avatar-byline__author"
                     name={name}
+                    role={authorRoles?.[name]}
                     includeImage={true}
                 />
             ))}

@@ -145,6 +145,7 @@ const PageChronologicalDataInsightRecordPayloadSchema = z.strictObject({
     linkedAuthors: z.optional(
         castSchemaOutput<LinkedAuthor[]>(z.array(z.any()))
     ),
+    authorRoles: z.optional(z.record(z.string(), z.string())),
 })
 export type PageChronologicalDataInsightRecordPayload = z.infer<
     typeof PageChronologicalDataInsightRecordPayloadSchema
@@ -190,6 +191,7 @@ const PageChronologicalAnnouncementRecordPayloadSchema = z.strictObject({
     linkedAuthors: z.optional(
         castSchemaOutput<LinkedAuthor[]>(z.array(z.any()))
     ),
+    authorRoles: z.optional(z.record(z.string(), z.string())),
 })
 export type PageChronologicalAnnouncementRecordPayload = z.infer<
     typeof PageChronologicalAnnouncementRecordPayloadSchema
