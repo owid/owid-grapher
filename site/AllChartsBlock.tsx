@@ -414,25 +414,25 @@ export const AllChartsBlock = ({
                         href={`#${id}`}
                     />
                 </h1>
-                {/* Laid out on the same two-column grid as the panes below, so
-                    the input keeps the width of the list pane it belongs to
-                    while the sticky unit's white background spans the whole
-                    block. */}
-                <div className="all-charts-block__sticky-header-columns">
-                    <div className="all-charts-block__sticky-header-search">
-                        <AllChartsSearchInput
-                            query={query}
-                            onQueryChange={setQuery}
-                            producerFilters={producerFilters}
-                            onRemoveProducerFilter={removeProducerFilter}
-                        />
-                    </div>
-                </div>
+                {/* Full width, spanning both panes rather than sitting in the
+                    first column of the grid below it: the input searches the
+                    whole block, not just the list, and the mockup gives it the
+                    block's own width (Marwa, 2026-09-30). */}
+                <AllChartsSearchInput
+                    query={query}
+                    onQueryChange={setQuery}
+                    producerFilters={producerFilters}
+                    onRemoveProducerFilter={removeProducerFilter}
+                />
             </div>
+            {/* Above the panes and as wide as the search input it belongs to,
+                rather than inside the list pane: a narrow column wrapped the
+                line onto two, and it left the chart sidecar starting a line's
+                height above the first row instead of level with it. */}
+            <AllChartsSuggestedSearches chips={suggestedChips} />
             <div className="all-charts-block__panes">
                 <AllChartsLeftPane
                     query={query}
-                    suggestedChips={suggestedChips}
                     hits={hits}
                     // The skeleton also covers the window where the results
                     // are in but the baseline that orders them isn't (see
@@ -456,7 +456,6 @@ export const AllChartsBlock = ({
 
 type AllChartsLeftPaneProps = {
     query: string
-    suggestedChips: SuggestedChip[]
     hits: SearchChartHit[]
     isLoading: boolean
     isFetching: boolean
@@ -470,7 +469,6 @@ type AllChartsLeftPaneProps = {
 const AllChartsLeftPane = (props: AllChartsLeftPaneProps) => {
     const {
         query,
-        suggestedChips,
         hits,
         isLoading,
         isFetching,
@@ -601,25 +599,6 @@ const AllChartsLeftPane = (props: AllChartsLeftPaneProps) => {
     return (
         <>
             <div className="all-charts-block__left">
-                {suggestedChips.length > 0 && (
-                    <div className="all-charts-block__suggested">
-                        <span className="all-charts-block__suggested-label">
-                            Suggested:{" "}
-                        </span>
-                        {suggestedChips.map((chip, index) => (
-                            <Fragment key={chip.key}>
-                                <button
-                                    type="button"
-                                    className="all-charts-block__suggested-link"
-                                    onClick={chip.onClick}
-                                >
-                                    {chip.label}
-                                </button>
-                                {index < suggestedChips.length - 1 && ", "}
-                            </Fragment>
-                        ))}
-                    </div>
-                )}
                 {isLoading ? (
                     <SearchDataResultsSkeleton />
                 ) : hits.length === 0 ? (
@@ -695,6 +674,34 @@ const AllChartsLeftPane = (props: AllChartsLeftPaneProps) => {
                 )}
             </div>
         </>
+    )
+}
+
+/**
+ * The "Suggested: …" line under the search input. A sibling of the input rather
+ * than part of the list pane, so it has the full width of the block and reads
+ * as belonging to the search above it (see the note at its call site).
+ */
+const AllChartsSuggestedSearches = ({ chips }: { chips: SuggestedChip[] }) => {
+    if (chips.length === 0) return null
+    return (
+        <div className="all-charts-block__suggested">
+            <span className="all-charts-block__suggested-label">
+                Suggested:{" "}
+            </span>
+            {chips.map((chip, index) => (
+                <Fragment key={chip.key}>
+                    <button
+                        type="button"
+                        className="all-charts-block__suggested-link"
+                        onClick={chip.onClick}
+                    >
+                        {chip.label}
+                    </button>
+                    {index < chips.length - 1 && ", "}
+                </Fragment>
+            ))}
+        </div>
     )
 }
 
@@ -926,6 +933,16 @@ const AllChartsRowThumbnails = ({
                                 hit,
                                 grapherParams: toGrapherQueryParams({ tab }),
                                 variant: PreviewVariant.Thumbnail,
+                                // The chart geometry with as little labelling
+                                // as the thumbnail renderer will drop: no map
+                                // legend, no "No data" key, no series names
+                                // (see useMinimalLabeling in
+                                // packages/@ourworldindata/grapher/src/core/GrapherState.tsx).
+                                // A thumbnail is 160px wide here, where any
+                                // label is illegible anyway and only eats the
+                                // room the chart itself could fill (Marwa,
+                                // 2026-09-30).
+                                isMinimal: true,
                             })}
                             alt=""
                             loading="lazy"
