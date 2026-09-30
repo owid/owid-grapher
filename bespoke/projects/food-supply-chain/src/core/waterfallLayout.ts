@@ -1,4 +1,4 @@
-import { tickStep } from "d3-array"
+import { scaleLinear } from "d3-scale"
 
 import { CONNECTOR_WIDTH } from "./constants.js"
 import { STAGE_GROUPS, StageGroup } from "./stages.js"
@@ -415,21 +415,12 @@ function chooseTicks(
     ticks: number[]
     domain: Span
 } {
-    let [lo, hi] = domain
-    if (lo === hi) {
-        lo -= 1
-        hi += 1
-    }
-
-    const step = tickStep(lo, hi, tickCount)
-    const from = Math.floor(lo / step) * step
-    const to = Math.ceil(hi / step) * step
-
-    const count = Math.round((to - from) / step)
-    const ticks: number[] = []
-    for (let i = 0; i <= count; i++) ticks.push(from + i * step)
-
-    return { ticks, domain: { from, to } }
+    const [lo, hi] = domain
+    const scale = scaleLinear()
+        .domain(lo === hi ? [lo - 1, hi + 1] : [lo, hi])
+        .nice(tickCount)
+    const [from, to] = scale.domain()
+    return { ticks: scale.ticks(tickCount), domain: { from, to } }
 }
 
 function barSpan(slot: Span): Span {
