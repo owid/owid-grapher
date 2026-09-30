@@ -13,7 +13,7 @@ const GROUPED_FLOW_STAGE_KEYS = [
     "feed",
     "animal_products",
     "tourist_consumption",
-    "residuals",
+    "data_adjustments",
 ]
 
 describe("the stage grouping", () => {
