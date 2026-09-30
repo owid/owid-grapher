@@ -135,8 +135,9 @@ function FeaturedVizHeader({
             {content.authors.length > 0 && (
                 <p className="featured-viz-header__byline col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12">
                     <Byline
-                        names={content.authors}
+                        authors={content.authors}
                         authorRoles={content.authorRoles}
+                        contributors={content.contributors}
                     />
                 </p>
             )}
