@@ -31,7 +31,6 @@ import {
     MIN_ROW_HEIGHT,
     MIN_TICK_LABEL_SPACING,
     PLOT_MARGIN_BOTTOM,
-    PLOT_MARGIN_RIGHT,
     ROW_PADDING,
     TICK_LABEL_FONT_SIZE,
     TICK_LABEL_GAP,
@@ -385,7 +384,7 @@ function planHorizontalWaterfall(
             }),
         ],
         width - captionColumnWidth,
-        Math.max(PLOT_MARGIN_RIGHT, lastTickLabelWidth / 2)
+        lastTickLabelWidth / 2
     )
     if (captionMaxWidth <= TEXT_WRAP_BREAK_MARGIN || valueAxis.length <= 0)
         return undefined

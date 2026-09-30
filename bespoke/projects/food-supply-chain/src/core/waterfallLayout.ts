@@ -140,6 +140,18 @@ export function chooseTickValues(
     return chooseTicks(domain, TICK_COUNT_BY_ORIENTATION[orientation]).ticks
 }
 
+/** The waterfall's domain widened to the outermost ticks */
+export function chooseValueDomain(
+    domain: [number, number],
+    orientation: WaterfallOrientation = "vertical"
+): [number, number] {
+    const { from, to } = chooseTicks(
+        domain,
+        TICK_COUNT_BY_ORIENTATION[orientation]
+    ).domain
+    return [from, to]
+}
+
 export function layOutWaterfall(
     waterfall: Waterfall,
     box: PlacedRect,
