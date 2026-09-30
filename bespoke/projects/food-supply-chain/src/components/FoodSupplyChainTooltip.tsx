@@ -4,6 +4,11 @@ import { TooltipCard } from "@ourworldindata/grapher/src/tooltip/TooltipCard.js"
 import { TooltipValue } from "@ourworldindata/grapher/src/tooltip/TooltipContents.js"
 
 import { formatMeasureValue } from "../core/text.js"
+import {
+    Measure,
+    NUM_DECIMAL_PLACES_BY_MEASURE,
+    SHORT_UNIT_BY_MEASURE,
+} from "../core/types.js"
 import { chooseStepColor } from "../core/waterfall.js"
 import { PlacedStep } from "../core/waterfallLayout.js"
 
@@ -11,9 +16,8 @@ export interface FoodSupplyChainTooltipProps {
     step: PlacedStep
     isTotal: boolean
     isFirstStep: boolean
-    shortUnit: string
     year: number
-    numDecimalPlaces: number
+    measure: Measure
     position: Point
     containerBounds?: { width: number; height: number }
     anchor?: GrapherTooltipAnchor
@@ -23,14 +27,15 @@ export function FoodSupplyChainTooltip({
     step,
     isTotal,
     isFirstStep,
-    shortUnit,
     year,
-    numDecimalPlaces,
+    measure,
     position,
     containerBounds,
     anchor,
 }: FoodSupplyChainTooltipProps): React.ReactElement {
     const { name, delta, balanceAfter } = step.step
+    const numDecimalPlaces = NUM_DECIMAL_PLACES_BY_MEASURE[measure]
+    const shortUnit = SHORT_UNIT_BY_MEASURE[measure]
     const isFromZero = isTotal || isFirstStep
 
     return (
