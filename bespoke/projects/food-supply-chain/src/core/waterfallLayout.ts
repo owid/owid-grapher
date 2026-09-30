@@ -95,10 +95,10 @@ export function measureLabelledBoxLengths(steps: WaterfallStep[]): {
             .map(({ group, first, last }) => ({
                 group,
                 boxLength: measureSpanLength(
-                    boxSpan(slots[first], slots[last])
+                    findBoxSpan(slots[first], slots[last])
                 ),
             })),
-        totalBoxLength: measureSpanLength(boxSpan(totalSlot, totalSlot)),
+        totalBoxLength: measureSpanLength(findBoxSpan(totalSlot, totalSlot)),
     }
 }
 
@@ -128,7 +128,7 @@ export function measureGroupHeaderSlots(
 }
 
 /** The pixels a caption gets, from its bar's left edge to the end of its slot */
-export function captionLength(slotWidth: number): number {
+export function measureCaptionLength(slotWidth: number): number {
     return slotWidth * (1 - SLOT_PADDING_RATIO)
 }
 
@@ -231,7 +231,11 @@ function planWaterfall(
     const steps = waterfall.steps.map((step, index) =>
         planStep(step, slots[index], valueDomain)
     )
-    const total = planStep(totalAsStep(waterfall.total), totalSlot, valueDomain)
+    const total = planStep(
+        convertTotalToStep(waterfall.total),
+        totalSlot,
+        valueDomain
+    )
 
     return {
         valueDomain,
@@ -250,10 +254,13 @@ function planWaterfall(
             isLabelled,
             box: {
                 value: valueDomain,
-                step: boxSpan(slots[first], slots[last]),
+                step: findBoxSpan(slots[first], slots[last]),
             },
         })),
-        totalBox: { value: valueDomain, step: boxSpan(totalSlot, totalSlot) },
+        totalBox: {
+            value: valueDomain,
+            step: findBoxSpan(totalSlot, totalSlot),
+        },
     }
 }
 
@@ -319,7 +326,7 @@ function areSlotsContiguous(slotIndices: number[]): boolean {
     return last - first + 1 === slotIndices.length
 }
 
-function totalAsStep(total: Waterfall["total"]): WaterfallStep {
+function convertTotalToStep(total: Waterfall["total"]): WaterfallStep {
     const { key, name, value } = total
     return {
         key,
@@ -347,11 +354,11 @@ function planStep(
                           from: step.balanceBefore,
                           to: step.balanceAfter,
                       },
-                      step: barSpan(slot),
+                      step: findBarSpan(slot),
                   },
         valueAnchor: {
             value: { from: step.balanceAfter, to: step.balanceAfter },
-            step: slotCentre(slot),
+            step: findSlotCentre(slot),
         },
     }
 }
@@ -394,14 +401,14 @@ function planTotalConnector(
     }
 }
 
-function barSpan(slot: Span): Span {
-    const centre = slotCentre(slot).from
+function findBarSpan(slot: Span): Span {
+    const centre = findSlotCentre(slot).from
     const halfWidth = 0.5 - SLOT_PADDING_RATIO
     return { from: centre - halfWidth, to: centre + halfWidth }
 }
 
 /** From the first slot's bar to the last slot's, reaching past both by the overhang */
-function boxSpan(firstSlot: Span, lastSlot: Span): Span {
+function findBoxSpan(firstSlot: Span, lastSlot: Span): Span {
     return {
         from: firstSlot.from + SLOT_PADDING_RATIO - GROUP_BOX_OVERHANG_RATIO,
         to: lastSlot.to - SLOT_PADDING_RATIO + GROUP_BOX_OVERHANG_RATIO,
@@ -412,7 +419,7 @@ function measureSpanLength(span: Span): number {
     return span.to - span.from
 }
 
-function slotCentre(slot: Span): Span {
+function findSlotCentre(slot: Span): Span {
     const centre = (slot.from + slot.to) / 2
     return { from: centre, to: centre }
 }

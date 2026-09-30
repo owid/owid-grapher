@@ -103,9 +103,10 @@ function FetchingWaterfallVariant({
     const entity = metadata?.entityByName.get(countryName)
     const {
         data: entityData,
+        dataEntity,
         status: entityStatus,
         isPlaceholderData,
-    } = useEntityData(entity?.id, urls.dataUrl)
+    } = useEntityData(entity, urls.dataUrl)
     const isLoading = useDelayedLoading(isPlaceholderData)
 
     const year = entityData
@@ -113,16 +114,16 @@ function FetchingWaterfallVariant({
         : selectedYear
     const waterfall = useMemo(
         () =>
-            metadata && entity && entityData
+            metadata && entityData && dataEntity
                 ? buildWaterfall({
                       metadata,
                       entityData,
                       measure,
                       year,
-                      excludedStageKeys: findExcludedStageKeys(entity.name),
+                      excludedStageKeys: findExcludedStageKeys(dataEntity.name),
                   })
                 : undefined,
-        [metadata, entity, entityData, measure, year]
+        [metadata, entityData, dataEntity, measure, year]
     )
 
     if (metadataStatus === "pending")
@@ -132,7 +133,7 @@ function FetchingWaterfallVariant({
     if (!entity) return <ChartError className="food-supply-chain-chart-box" />
     if (entityStatus === "pending" || !isCountryResolved)
         return <ChartSkeleton className="food-supply-chain-chart-box" />
-    if (entityStatus === "error" || !entityData || !waterfall)
+    if (entityStatus === "error" || !entityData || !dataEntity || !waterfall)
         return <ChartError className="food-supply-chain-chart-box" />
 
     return (
@@ -144,14 +145,14 @@ function FetchingWaterfallVariant({
                     measure={measure}
                     year={year}
                     years={entityData.years}
-                    setEntityName={setCountry}
-                    setMeasure={setMeasure}
-                    setYear={setYear}
+                    onEntityNameChange={setCountry}
+                    onMeasureChange={setMeasure}
+                    onYearChange={setYear}
                 />
             )}
             <Frame className="food-supply-chain-captioned-chart">
                 <ChartHeader
-                    title={config.title ?? buildTitle(entity.name, measure)}
+                    title={config.title ?? buildTitle(dataEntity.name, measure)}
                     subtitle={config.subtitle ?? buildSubtitle(measure, year)}
                 />
                 <div className="food-supply-chain-captioned-chart__chart-area">

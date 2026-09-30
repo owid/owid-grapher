@@ -1,8 +1,13 @@
 import {
     shortenWithEllipsis,
+    TEXT_WRAP_BREAK_MARGIN,
     TextWrap,
 } from "@ourworldindata/components/src/TextWrap/TextWrap.js"
-import { formatValue } from "@ourworldindata/utils"
+import {
+    checkIsIncomeGroup,
+    formatValue,
+    getRegionByName,
+} from "@ourworldindata/utils"
 
 import { formatEntityNameForSentence } from "../../../../helpers/entityNames.js"
 import {
@@ -64,7 +69,7 @@ export function buildTruncatedTextWrap({
     const kept = wrap.lines.slice(0, maxLines).map((line) => line.text)
     kept[kept.length - 1] = shortenWithEllipsis(
         kept[kept.length - 1],
-        maxWidth,
+        maxWidth - TEXT_WRAP_BREAK_MARGIN,
         { fontSize, fontWeight }
     )
     return new TextWrap({
@@ -80,15 +85,22 @@ export function buildTitle(entityName: string, measure: Measure): string {
         entityName,
         ENTITY_NAME_SUFFIXES_TO_STRIP
     )
+    const verb = isPluralEntityName(entityName) ? "do" : "does"
     return measure === "energy"
-        ? `How many calories does ${formattedName} produce, and where do they go?`
-        : `How much protein does ${formattedName} produce, and where does it go?`
+        ? `How many calories ${verb} ${formattedName} produce, and where do they go?`
+        : `How much protein ${verb} ${formattedName} produce, and where does it go?`
 }
 
 export function buildSubtitle(measure: Measure, year: number): string {
     const quantity =
         measure === "energy" ? "number of kilocalories" : "grams of protein"
     return `Measured as the average ${quantity} per person per day at each stage, in ${year}.`
+}
+
+/** Whether the entity's name is a plural noun, as income groups' names are */
+function isPluralEntityName(entityName: string): boolean {
+    const region = getRegionByName(entityName)
+    return region !== undefined && checkIsIncomeGroup(region)
 }
 
 /** 1 for 0.3, 2 for 0.03; zero or less for values of 1 and above */

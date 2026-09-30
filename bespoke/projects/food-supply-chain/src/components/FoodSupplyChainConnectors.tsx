@@ -1,6 +1,7 @@
 import cx from "clsx"
 
 import { COLORS, CONNECTOR_WIDTH } from "../core/constants.js"
+import { chooseStepColor } from "../core/waterfall.js"
 import { PlacedLine, WaterfallLayout } from "../core/waterfallLayout.js"
 
 /** The zero line, the connectors between bars, and the one into the total */
@@ -25,11 +26,7 @@ export function FoodSupplyChainConnectors({
                 <Connector
                     key={index}
                     line={connector.line}
-                    color={
-                        connector.fromStep.delta > 0
-                            ? COLORS.add
-                            : COLORS.subtract
-                    }
+                    color={chooseStepColor(connector.fromStep, false)}
                     isDimmed={isDimmed}
                 />
             ))}

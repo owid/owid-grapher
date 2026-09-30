@@ -1,4 +1,3 @@
-import { useMemo } from "react"
 import { QueryClient, QueryStatus, useQuery } from "@tanstack/react-query"
 
 import { fetchJson } from "@ourworldindata/utils"
@@ -8,6 +7,7 @@ import {
     EntityData,
     EntityJson,
     FlowStage,
+    FoodSupplyChainEntity,
     FoodSupplyChainMetadata,
     MetadataJson,
 } from "./types.js"
@@ -28,41 +28,40 @@ export const useFoodSupplyChainMetadata = (
 } => {
     const result = useQuery({
         queryKey: queryKeys.metadata(),
-        queryFn: () => fetchJson<MetadataJson>(metadataUrl),
+        queryFn: async () =>
+            parseMetadata(await fetchJson<MetadataJson>(metadataUrl)),
         staleTime: Infinity,
     })
-
-    const data = useMemo(
-        () => (result.data ? parseMetadata(result.data) : undefined),
-        [result.data]
-    )
-    return { data, status: result.status }
+    return { data: result.data, status: result.status }
 }
 
+/** The data of `entity`, or of the previous entity while `entity`'s loads */
 export const useEntityData = (
-    entityId: number | undefined,
+    entity: FoodSupplyChainEntity | undefined,
     dataUrl: string
 ): {
     data?: EntityData
+    /** The entity `data` belongs to */
+    dataEntity?: FoodSupplyChainEntity
     status: QueryStatus
     isPlaceholderData: boolean
 } => {
-    const url = `${dataUrl}/food-supply-chain.${entityId}.json`
+    const url = `${dataUrl}/food-supply-chain.${entity?.id}.json`
     const result = useQuery({
-        queryKey: queryKeys.entity(entityId),
-        queryFn: () => fetchJson<EntityJson>(url),
-        enabled: entityId !== undefined,
+        queryKey: queryKeys.entity(entity?.id),
+        queryFn: async () => ({
+            // The query only runs once there is an entity
+            entity: entity!,
+            entityData: parseEntityData(await fetchJson<EntityJson>(url)),
+        }),
+        enabled: entity !== undefined,
         staleTime: Infinity,
         placeholderData: (previousData) => previousData,
     })
 
-    const data = useMemo(
-        () => (result.data ? parseEntityData(result.data) : undefined),
-        [result.data]
-    )
-
     return {
-        data,
+        data: result.data?.entityData,
+        dataEntity: result.data?.entity,
         status: result.status,
         isPlaceholderData: result.isPlaceholderData,
     }

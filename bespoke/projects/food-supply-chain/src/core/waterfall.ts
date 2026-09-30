@@ -1,3 +1,4 @@
+import * as R from "remeda"
 import { WORLD_ENTITY_NAME } from "@ourworldindata/grapher/src/core/GrapherConstants.js"
 
 import { COLORS } from "./constants.js"
@@ -27,6 +28,9 @@ export interface Waterfall {
 }
 
 const TRADE_STAGE_KEYS: StageKey[] = ["imports", "exports"]
+
+/** Rounds away the float noise that summing the stages leaves in the running balance */
+const BALANCE_DECIMAL_PLACES = 9
 
 /** Whether a step adds to the running balance; a step of zero goes by its stage's direction */
 export function isAddition(step: WaterfallStep): boolean {
@@ -69,7 +73,7 @@ export function buildWaterfall({
             const value = values[stage.key][yearIndex]
             const delta = stage.direction === "in" ? value : -value
             const balanceBefore = balance
-            balance += delta
+            balance = R.round(balance + delta, BALANCE_DECIMAL_PLACES)
             return {
                 key: stage.key,
                 name: stage.name,

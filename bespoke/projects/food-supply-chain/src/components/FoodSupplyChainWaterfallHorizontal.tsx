@@ -548,6 +548,8 @@ function ValueLabel({
     fontSize,
     fontWeight,
     fill,
+    id,
+    style,
 }: {
     lines: string[]
     bar: Pick<Box, "x" | "width">
@@ -556,11 +558,16 @@ function ValueLabel({
     fontSize: number
     fontWeight: number
     fill: string
+    /** Set by Halo on the outline copy it draws behind the label */
+    id?: string
+    style?: React.CSSProperties
 }): React.ReactElement {
     const { x, textAnchor } = placeValueLabel(bar, side)
     const lineHeight = fontSize * VALUE_LABEL_LINE_HEIGHT
     return (
         <text
+            id={id}
+            style={style}
             className="food-supply-chain-waterfall__value-label"
             textAnchor={textAnchor}
             dominantBaseline="middle"

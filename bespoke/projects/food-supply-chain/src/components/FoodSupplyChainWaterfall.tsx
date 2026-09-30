@@ -47,10 +47,10 @@ import { useStepHover } from "../core/useStepHover.js"
 import { StageKey } from "../core/types.js"
 import { chooseStepColor, Waterfall } from "../core/waterfall.js"
 import {
-    captionLength,
     chooseTicks,
     findGroupedStepKeys,
     layOutWaterfall,
+    measureCaptionLength,
     measureLabelledBoxLengths,
     measureSlotWidth,
     PlacedStep,
@@ -331,7 +331,7 @@ export function doesVerticalLayoutFit(
     const slotWidth = measureVerticalSlotWidth(waterfall, width)
     if (slotWidth < MIN_VERTICAL_SLOT_WIDTH) return false
 
-    const maxWidth = captionLength(slotWidth)
+    const maxWidth = measureCaptionLength(slotWidth)
     return waterfall.steps.every((step) => {
         const wrap = new TextWrap({
             text: step.name,
@@ -393,7 +393,7 @@ function StepMarks({
     const barColor = chooseStepColor(step.step, isTotal)
 
     const labelX =
-        step.slot.x + step.slot.width - captionLength(step.slot.width)
+        step.slot.x + step.slot.width - measureCaptionLength(step.slot.width)
 
     return (
         <g
@@ -560,7 +560,7 @@ function buildGroupLabelTextWrap(text: string, maxWidth: number): TextWrap {
 function buildCaptionTextWrap(text: string, slotWidth: number): TextWrap {
     return buildTruncatedTextWrap({
         text,
-        maxWidth: captionLength(slotWidth),
+        maxWidth: measureCaptionLength(slotWidth),
         maxLines: MAX_CAPTION_LINES,
         fontSize: VERTICAL_CAPTION_FONT_SIZE,
         fontWeight: CAPTION_FONT_WEIGHT,
