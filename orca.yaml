@@ -11,10 +11,8 @@
 # settings win instead. Available in both scripts: $ORCA_ROOT_PATH (the main
 # checkout), $ORCA_WORKTREE_PATH, $ORCA_WORKSPACE_NAME.
 #
-# The agent waits for setup because it will usually run `make up.worktree`, and
-# the dev servers crash on startup if `yarn install` is still running. Orca reads
-# this key regardless of the command source policy above.
-setupAgentStartupPolicy: wait-for-setup
+# The agent starts right away rather than after setup; `make up.worktree` waits for
+# the setup script's `yarn install` itself if it is still running.
 scripts:
   setup: |
     make setup.worktree

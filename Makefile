@@ -37,7 +37,7 @@ ifdef WRANGLER_PORT
 WRANGLER_PORT := $(strip $(WRANGLER_PORT))
 endif
 
-.PHONY: help up up.headless up.worktree setup.worktree require.worktree up.full down down.headless down.worktree refresh refresh.wp refresh.private refresh.full migrate svgtest svgtest.reset svgtest.full svgtest.grapher-views svgtest.mdims svgtest.thumbnails svgtest.md5s bdd bdd.ui check-not-prod
+.PHONY: help up up.headless up.worktree setup.worktree wait.yarn-install require.worktree up.full down down.headless down.worktree refresh refresh.wp refresh.private refresh.full migrate svgtest svgtest.reset svgtest.full svgtest.grapher-views svgtest.mdims svgtest.thumbnails svgtest.md5s bdd bdd.ui check-not-prod
 
 help:
 	@echo 'Available commands:'
@@ -143,12 +143,17 @@ require.headless:
 # `setup.worktree` writes the .env this reads, so don't export ports here: make
 # includes .env when it parses this file, i.e. before that .env exists on a
 # freshly created worktree. up-worktree.sh sources it once it is there.
-up.worktree: require.worktree setup.worktree node_modules
+up.worktree: require.worktree setup.worktree wait.yarn-install node_modules
 	@make validate.env
 	@./devTools/docker/up-worktree.sh
 
 setup.worktree:
 	@./devTools/docker/setup-worktree-env.sh
+
+# before `node_modules`, so a checkout mid-install (Orca's setup script) finishes
+# that install instead of make starting a second one next to it
+wait.yarn-install:
+	@./devTools/docker/wait-for-yarn-install.sh
 
 down.worktree: TMUX_SESSION_NAME ?= grapher-$(notdir $(CURDIR))
 down.worktree:
