@@ -1,4 +1,4 @@
-import { scaleLinear } from "d3-scale"
+import { scaleLinear, ScaleLinear } from "d3-scale"
 
 import { CONNECTOR_WIDTH } from "./constants.js"
 import { STAGE_GROUPS, StageGroup } from "./stages.js"
@@ -451,11 +451,6 @@ interface PxExtent {
     alongStep: Span
 }
 
-interface LinearScale {
-    domain: Span
-    range: Span
-}
-
 interface ScreenProjection {
     /** The pixels each axis gets from the box, running in its screen direction */
     axes(box: PlacedRect): PxExtent
@@ -501,8 +496,8 @@ function projectPlan(
 ): WaterfallLayout {
     const axes = projection.axes(box)
     const scales = {
-        value: { domain: plan.valueDomain, range: axes.alongValue },
-        step: { domain: plan.stepDomain, range: axes.alongStep },
+        value: scaleSpanToSpan(plan.valueDomain, axes.alongValue),
+        step: scaleSpanToSpan(plan.stepDomain, axes.alongStep),
     }
 
     const placeStep = (planned: PlannedStep): PlacedStep => {
@@ -573,7 +568,10 @@ function projectPlan(
 
 function scaleExtent(
     extent: Extent,
-    scales: { value: LinearScale; step: LinearScale }
+    scales: {
+        value: ScaleLinear<number, number>
+        step: ScaleLinear<number, number>
+    }
 ): PxExtent {
     const alongValue = scaleSpan(extent.value, scales.value)
     return {
@@ -585,13 +583,17 @@ function scaleExtent(
     }
 }
 
-function scaleSpan(span: Span, scale: LinearScale): Span {
-    const { domain, range } = scale
-    const factor = (range.to - range.from) / (domain.to - domain.from)
-    return {
-        from: range.from + (span.from - domain.from) * factor,
-        to: range.from + (span.to - domain.from) * factor,
-    }
+function scaleSpanToSpan(
+    domain: Span,
+    range: Span
+): ScaleLinear<number, number> {
+    return scaleLinear()
+        .domain([domain.from, domain.to])
+        .range([range.from, range.to])
+}
+
+function scaleSpan(span: Span, scale: ScaleLinear<number, number>): Span {
+    return { from: scale(span.from), to: scale(span.to) }
 }
 
 /** Moves a connector half its width along the value axis, onto the side of the bar it leaves */
