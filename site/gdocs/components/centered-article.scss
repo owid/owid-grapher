@@ -412,65 +412,46 @@ h3.article-block__heading.has-supertitle {
 .centered-article-header__meta-container {
     border-bottom: 1px solid $blue-10;
     border-top: 1px solid $blue-10;
-    padding: 32px 0;
+    padding: 16px 0;
+    row-gap: 8px;
     color: $blue-60;
     @include body-3-regular;
 
     a {
         text-underline-offset: 5px;
-        margin-bottom: 8px;
         @include owid-link-60;
         &:visited {
             color: $blue-60;
         }
     }
 
-    .centered-article-header__links a {
-        @include md-down {
-            margin: 0;
-            &:last-child {
-                margin-top: 4px;
-            }
-        }
-    }
-
     svg {
-        margin-right: 8px;
+        margin-right: 4px;
     }
+}
 
-    @include sm-up {
-        > div:not(:last-child) {
-            border-right: 1px solid $blue-10;
-        }
-    }
+.centered-article-header__byline {
+    text-align: center;
+    text-wrap: balance;
+}
 
-    @include sm-only {
-        padding: 16px 0;
-        > div:not(:last-child) {
-            border-bottom: 1px solid $blue-10;
-            padding-bottom: 16px;
-            margin-bottom: 16px;
-        }
-    }
+.centered-article-header__meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px 24px;
 }
 
 .centered-article-header__meta-container-left {
     display: flex;
     flex-direction: column;
     gap: 8px;
-    padding: 0 24px;
-}
-
-.centered-article-header__browse-versions-button {
-    @include owid-link-60;
-    padding: 0;
-    background-color: transparent;
-    display: inline;
-    cursor: pointer;
+    padding: 16px 24px;
 }
 
 .footnote-container,
 #article-citation,
+#article-past-versions,
 #article-licence {
     @include body-3-medium;
     color: $blue-60;

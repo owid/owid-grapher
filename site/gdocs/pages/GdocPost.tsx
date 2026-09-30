@@ -17,6 +17,7 @@ import { OwidGdocHeader } from "../components/OwidGdocHeader.js"
 import StickyNav from "../../blocks/StickyNav.js"
 import { buildGdocCitation } from "../utils.js"
 import { CitationSection } from "../components/CitationSection.js"
+import { PastVersionsSection } from "../components/PastVersionsSection.js"
 import { LicenseSection } from "../components/LicenseSection.js"
 import { SidebarTableOfContents } from "../../SidebarTableOfContents.js"
 import { useDocumentContext } from "../DocumentContext.js"
@@ -144,6 +145,7 @@ export function GdocPost({
                     isDeprecated={isDeprecated}
                 />
             )}
+            {postType === OwidGdocType.Article && <PastVersionsSection />}
             <LicenseSection isDeprecated={isDeprecated} />
         </article>
     )
