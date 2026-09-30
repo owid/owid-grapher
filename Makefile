@@ -82,9 +82,9 @@ up: require create-if-missing.env tmp-downloads/owid_metadata.sql.gz node_module
 	@make validate.env
 	@make check-port-3306
 
-	@if tmux has-session -t $(TMUX_SESSION_NAME) 2>/dev/null; then \
+	@if tmux has-session -t =$(TMUX_SESSION_NAME) 2>/dev/null; then \
 		echo '==> Killing existing tmux session'; \
-		tmux kill-session -t $(TMUX_SESSION_NAME); \
+		tmux kill-session -t =$(TMUX_SESSION_NAME); \
 	fi
 
 	@echo '==> Starting dev environment'
@@ -158,7 +158,7 @@ wait.yarn-install:
 down.worktree: TMUX_SESSION_NAME ?= grapher-$(notdir $(CURDIR))
 down.worktree:
 	@echo '==> Killing the $(TMUX_SESSION_NAME) tmux session'
-	@tmux kill-session -t $(TMUX_SESSION_NAME) 2>/dev/null || echo '    (no such session, nothing to stop)'
+	@tmux kill-session -t =$(TMUX_SESSION_NAME) 2>/dev/null || echo '    (no such session, nothing to stop)'
 	@echo '==> Leaving MySQL up, your other checkouts share it (stop it with `make down`)'
 
 require.worktree: require.headless
@@ -175,9 +175,9 @@ up.full: require create-if-missing.env.full tmp-downloads/owid_metadata.sql.gz n
 	@make validate.env.full
 	@make check-port-3306
 
-	@if tmux has-session -t $(TMUX_SESSION_NAME) 2>/dev/null; then \
+	@if tmux has-session -t =$(TMUX_SESSION_NAME) 2>/dev/null; then \
 		echo '==> Killing existing tmux session'; \
-		tmux kill-session -t $(TMUX_SESSION_NAME); \
+		tmux kill-session -t =$(TMUX_SESSION_NAME); \
 	fi
 
 	@echo '==> Starting dev environment'
@@ -349,9 +349,9 @@ playwright-browsers:
 bdd: export TMUX_SESSION_NAME ?= bdd
 
 bdd: node_modules playwright-browsers
-	@if tmux has-session -t $(TMUX_SESSION_NAME) 2>/dev/null; then \
+	@if tmux has-session -t =$(TMUX_SESSION_NAME) 2>/dev/null; then \
 		echo '==> Killing existing tmux session'; \
-		tmux kill-session -t $(TMUX_SESSION_NAME); \
+		tmux kill-session -t =$(TMUX_SESSION_NAME); \
 	fi
 
 	@echo '==> Starting BDD test environment'
@@ -371,9 +371,9 @@ bdd: node_modules playwright-browsers
 bdd.ui: export TMUX_SESSION_NAME ?= bdd-ui
 
 bdd.ui: node_modules playwright-browsers
-	@if tmux has-session -t $(TMUX_SESSION_NAME) 2>/dev/null; then \
+	@if tmux has-session -t =$(TMUX_SESSION_NAME) 2>/dev/null; then \
 		echo '==> Killing existing tmux session'; \
-		tmux kill-session -t $(TMUX_SESSION_NAME); \
+		tmux kill-session -t =$(TMUX_SESSION_NAME); \
 	fi
 
 	@echo '==> Starting BDD test environment with UI'
