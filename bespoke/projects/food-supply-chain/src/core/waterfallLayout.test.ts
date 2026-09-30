@@ -393,7 +393,7 @@ const MANIFEST_FLOW_STAGES: FlowStage[] = [
         name: "Tourist consumption",
         direction: "out",
     },
-    { key: "residuals", name: "Residuals", direction: "out" },
+    { key: "data_adjustments", name: "Data adjustments", direction: "out" },
 ]
 
 function fixtureGroupedWaterfall(

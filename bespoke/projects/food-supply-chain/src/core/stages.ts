@@ -12,7 +12,7 @@ export const STAGE_LABELS: Record<StageKey, string> = {
     feed: "Fed to animals",
     animal_products: "Meat, dairy, eggs, fish",
     tourist_consumption: "Eaten by visitors",
-    residuals: "Data adjustment",
+    data_adjustments: "Data adjustment",
     food: "Available to eat",
 }
 
@@ -41,6 +41,6 @@ export const STAGE_GROUPS: StageGroup[] = [
     {
         key: "adjustments",
         label: "Adjustments",
-        stageKeys: ["tourist_consumption", "residuals"],
+        stageKeys: ["tourist_consumption", "data_adjustments"],
     },
 ]
