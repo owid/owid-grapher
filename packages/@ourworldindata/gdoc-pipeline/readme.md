@@ -3,7 +3,7 @@
 The pure conversion layer of [Our World in Data](https://ourworldindata.org/)'s Google-Docs-based CMS. Content on ourworldindata.org is authored in Google Docs using [ArchieML](http://archieml.org/); this package converts between the formats involved:
 
 - **Google Docs → ArchieML**: `gdocToArchie` walks a document's JSON (as returned by the Google Docs API) and produces ArchieML text, serializing rich text as HTML spans.
-- **ArchieML → enriched blocks**: `archieToEnriched` parses ArchieML text into OWID's typed content blocks (`OwidEnrichedGdocBlock`), including ref extraction, per-component parsing and validation (`rawToEnriched`), and HTML span parsing (`htmlToEnriched`). Parsing never throws — every block carries a `parseErrors` array.
+- **ArchieML → enriched blocks**: `archieToEnriched` parses ArchieML text into OWID's typed content blocks (`OwidEnrichedGdocBlock`), including ref extraction, per-component parsing and validation (`rawToEnriched`), and HTML span parsing (`htmlToEnriched`). Problems inside a block are reported rather than thrown — every block carries a `parseErrors` array — but malformed top-level structure can still throw (e.g. `body: hello`, where `body` is a string instead of a `[+body]` list), so wrap calls in `try`/`catch` when parsing incomplete or user-edited documents.
 - **Enriched blocks → ArchieML**: `enrichedToRaw` + `rawToArchie` serialize blocks back to ArchieML text.
 - **Enriched blocks → Markdown / indexable text**: `enrichedToMarkdown` and `enrichedToIndexableText` render blocks as plain text for search indexing and fallbacks.
 
