@@ -29,6 +29,7 @@ Read `docs/testing-strategy.md` when choosing, writing, or refactoring tests. It
 - `make test` — the CI bundle: lint + format check + unit tests.
 - `make svgtest` — SVG regression tests for chart rendering; uses a sibling `../owid-grapher-svgs` checkout and opens an HTML diff report on failure. Run when touching grapher rendering code.
 - `yarn testPlaywright` / `make playwright` — direct Playwright browser tests (requires the dev stack running).
+- `yarn testPlaywrightAdmin` — chart editor browser tests; starts its own test database and admin server (see `playwright/admin/README.md`).
 - `yarn testBundlemon` — builds the site bundle and checks it against the size budgets in `.bundlemonrc.json`; CI blocks PRs that exceed them. Relevant when adding dependencies or imports to site code.
 
 ### Git

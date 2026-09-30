@@ -19,6 +19,8 @@ import {
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { ChartEditorView, ChartEditorViewManager } from "./ChartEditorView.js"
 import { References } from "./AbstractChartEditor.js"
+import { AdminLayout } from "./AdminLayout.js"
+import { LoadingBlocker } from "./Forms.js"
 import {
     GDP_PER_CAPITA_CATALOG_PATH,
     POPULATION_CATALOG_PATH,
@@ -49,8 +51,14 @@ export class ChartEditorPage
             availableTags: observable,
             forceDatapage: observable.ref,
             variableIdsByCatalogPath: observable.ref,
+            isConfigLoaded: observable.ref,
         })
     }
+
+    // The editor view applies the config layers to the chart once, as soon as
+    // its indicator database has loaded, so it must not be mounted before
+    // they are here
+    isConfigLoaded = false
 
     logs: Log[] = []
     references: References | undefined = undefined
@@ -196,9 +204,13 @@ export class ChartEditorPage
         return new ChartEditor({ manager: this })
     }
 
+    async fetchConfigLayers(): Promise<void> {
+        await Promise.all([this.fetchGrapherConfig(), this.fetchParentConfig()])
+        runInAction(() => (this.isConfigLoaded = true))
+    }
+
     @action.bound refresh(): void {
-        void this.fetchGrapherConfig()
-        void this.fetchParentConfig()
+        void this.fetchConfigLayers()
         void this.fetchLogs()
         void this.fetchRefs()
         void this.fetchRedirects()
@@ -224,6 +236,14 @@ export class ChartEditorPage
     }
 
     override render(): React.ReactElement {
+        if (!this.isConfigLoaded)
+            return (
+                <AdminLayout noSidebar>
+                    <main className="ChartEditorPage">
+                        <LoadingBlocker isLoading />
+                    </main>
+                </AdminLayout>
+            )
         return <ChartEditorView manager={this} />
     }
 }

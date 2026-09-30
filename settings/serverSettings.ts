@@ -78,6 +78,8 @@ export const WIKIPEDIA_ARCHIVE_BASE_URL: string | null =
 export const CLOUDFLARE_IMAGES_URL = clientSettings.CLOUDFLARE_IMAGES_URL
 
 export const VITE_PREVIEW: boolean = serverSettings.VITE_PREVIEW === "true"
+// Where the admin server looks for built Vite assets, relative to the repo root
+export const VITE_DIST_DIR: string = serverSettings.VITE_DIST_DIR || "dist"
 
 export const ADMIN_BASE_URL: string = clientSettings.ADMIN_BASE_URL
 
