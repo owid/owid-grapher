@@ -56,6 +56,18 @@ describe(buildTitle, () => {
             "How many calories does the United States produce, and where do they go?"
         )
     })
+
+    it("drops the suffix and articulates the European Union", () => {
+        expect(buildTitle("European Union (27)", "energy")).toBe(
+            "How many calories does the European Union produce, and where do they go?"
+        )
+    })
+
+    it("drops the suffix from Micronesia (country)", () => {
+        expect(buildTitle("Micronesia (country)", "energy")).toBe(
+            "How many calories does Micronesia produce, and where do they go?"
+        )
+    })
 })
 
 describe(buildSubtitle, () => {
