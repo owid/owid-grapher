@@ -136,6 +136,138 @@ describe("enriched ⇄ ProseMirror serialization", () => {
         ]
         expect(enrichedBodiesMatch(original, roundTrip(original))).toBe(true)
     })
+
+    it("round-trips chart blocks as first-class props atoms", () => {
+        const original: OwidEnrichedGdocBlock[] = [
+            {
+                type: "chart",
+                url: "https://ourworldindata.org/grapher/life-expectancy?tab=map",
+                size: BlockSize.Wide,
+                height: "700",
+                caption: [
+                    { spanType: "span-simple-text", text: "Life expectancy, " },
+                    {
+                        spanType: "span-italic",
+                        children: [
+                            { spanType: "span-simple-text", text: "at birth" },
+                        ],
+                    },
+                ],
+                parseErrors: [],
+            },
+        ]
+        const pmDoc = enrichedBlocksToPmDoc(original)
+        expect(pmDoc.content?.[0].type).toBe("chart")
+        expect(() => PmNode.fromJSON(schema, pmDoc).check()).not.toThrow()
+        expect(roundTrip(original)).toEqual(original)
+    })
+
+    it("round-trips sticky-right with nested content in both columns", () => {
+        const original: OwidEnrichedGdocBlock[] = [
+            {
+                type: "sticky-right",
+                left: [
+                    {
+                        type: "text",
+                        value: [
+                            {
+                                spanType: "span-simple-text",
+                                text: "Prose on the left",
+                            },
+                        ],
+                        parseErrors: [],
+                    },
+                    {
+                        type: "heading",
+                        level: 2,
+                        text: [
+                            { spanType: "span-simple-text", text: "Section" },
+                        ],
+                        parseErrors: [],
+                    },
+                ],
+                right: [
+                    {
+                        type: "chart",
+                        url: "https://ourworldindata.org/grapher/co2",
+                        size: BlockSize.Wide,
+                        parseErrors: [],
+                    },
+                ],
+                parseErrors: [],
+            },
+        ]
+        const pmDoc = enrichedBlocksToPmDoc(original)
+        expect(() => PmNode.fromJSON(schema, pmDoc).check()).not.toThrow()
+        expect(enrichedBodiesMatch(original, roundTrip(original))).toBe(true)
+    })
+
+    it("round-trips gray sections, asides and expandable paragraphs", () => {
+        const original: OwidEnrichedGdocBlock[] = [
+            {
+                type: "gray-section",
+                items: [
+                    {
+                        type: "text",
+                        value: [
+                            { spanType: "span-simple-text", text: "Shaded" },
+                        ],
+                        parseErrors: [],
+                    },
+                    {
+                        type: "chart",
+                        url: "https://ourworldindata.org/grapher/co2",
+                        size: BlockSize.Wide,
+                        parseErrors: [],
+                    },
+                ],
+                parseErrors: [],
+            },
+            {
+                type: "aside",
+                position: "right" as never,
+                caption: [
+                    { spanType: "span-simple-text", text: "A margin note" },
+                ],
+                parseErrors: [],
+            },
+            {
+                type: "expandable-paragraph",
+                items: [
+                    {
+                        type: "text",
+                        value: [
+                            { spanType: "span-simple-text", text: "Hidden" },
+                        ],
+                        parseErrors: [],
+                    },
+                ],
+                parseErrors: [],
+            },
+        ]
+        const pmDoc = enrichedBlocksToPmDoc(original)
+        expect(() => PmNode.fromJSON(schema, pmDoc).check()).not.toThrow()
+        expect(enrichedBodiesMatch(original, roundTrip(original))).toBe(true)
+    })
+
+    it("keeps unsupported blocks nested inside containers as raw blocks", () => {
+        const original: OwidEnrichedGdocBlock[] = [
+            {
+                type: "gray-section",
+                items: [
+                    {
+                        type: "sdg-grid",
+                        items: [{ goal: "No poverty", link: "https://x" }],
+                        parseErrors: [],
+                    } as never,
+                ],
+                parseErrors: [],
+            },
+        ]
+        const pmDoc = enrichedBlocksToPmDoc(original)
+        expect(pmDoc.content?.[0].content?.[0].type).toBe("rawBlock")
+        expect(enrichedBodiesMatch(original, roundTrip(original))).toBe(true)
+    })
 })
 
 describe("span runs", () => {

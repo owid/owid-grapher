@@ -1,4 +1,5 @@
 import {
+    BlockPositionChoice,
     BlockSize,
     BlockVisibility,
     EnrichedBlockBlockquote,
@@ -7,12 +8,24 @@ import {
     EnrichedBlockImage,
     EnrichedBlockList,
     EnrichedBlockNumberedList,
+    EnrichedBlockPullQuote,
+    EnrichedBlockTable,
     EnrichedBlockText,
     OwidEnrichedGdocBlock,
+    PullQuoteAlignment,
     Span,
     SpanCallout,
+    TableSize,
+    TableTemplate,
 } from "@ourworldindata/types"
-import { PmMarkJson, PmNodeJson, pmMarkNames, pmNodeNames } from "./pmJson.js"
+import {
+    PmMarkJson,
+    PmNodeJson,
+    pmMarkNames,
+    pmNodeNames,
+    propsAtomBlockTypes,
+    twoColumnBlockTypes,
+} from "./pmJson.js"
 import {
     RunMark,
     RunMarkType,
@@ -237,11 +250,113 @@ function pmNodeToHeading(node: PmNodeJson): OwidEnrichedGdocBlock {
     }
 }
 
+const nodeNameToPropsAtomBlockType = Object.fromEntries(
+    Object.entries(propsAtomBlockTypes).map(([blockType, nodeName]) => [
+        nodeName,
+        blockType,
+    ])
+)
+
+const nodeNameToTwoColumnBlockType = Object.fromEntries(
+    Object.entries(twoColumnBlockTypes).map(([blockType, nodeName]) => [
+        nodeName,
+        blockType,
+    ])
+)
+
+function propsAtomToPmNode(block: OwidEnrichedGdocBlock): PmNodeJson {
+    const { parseErrors: _parseErrors, ...props } = block as Record<
+        string,
+        unknown
+    > & { parseErrors?: unknown }
+    delete props.type
+    return {
+        type: propsAtomBlockTypes[
+            block.type as keyof typeof propsAtomBlockTypes
+        ],
+        attrs: { props: structuredClone(props) },
+    }
+}
+
+function twoColumnToPmNode(
+    block: OwidEnrichedGdocBlock & {
+        left: OwidEnrichedGdocBlock[]
+        right: OwidEnrichedGdocBlock[]
+    }
+): PmNodeJson {
+    return {
+        type: twoColumnBlockTypes[
+            block.type as keyof typeof twoColumnBlockTypes
+        ],
+        content: [
+            {
+                type: pmNodeNames.layoutColumn,
+                attrs: { side: "left" },
+                content: block.left.map(enrichedBlockToPmNode),
+            },
+            {
+                type: pmNodeNames.layoutColumn,
+                attrs: { side: "right" },
+                content: block.right.map(enrichedBlockToPmNode),
+            },
+        ],
+    }
+}
+
 /** Convert one enriched block to a ProseMirror node. */
 export function enrichedBlockToPmNode(
     block: OwidEnrichedGdocBlock
 ): PmNodeJson {
+    if (block.type in propsAtomBlockTypes) return propsAtomToPmNode(block)
+    if (block.type in twoColumnBlockTypes) {
+        return twoColumnToPmNode(
+            block as OwidEnrichedGdocBlock & {
+                left: OwidEnrichedGdocBlock[]
+                right: OwidEnrichedGdocBlock[]
+            }
+        )
+    }
     switch (block.type) {
+        case "aside":
+            return {
+                type: pmNodeNames.aside,
+                attrs: { position: block.position ?? null },
+                content: spansToInlineContent(block.caption),
+            }
+        case "gray-section":
+            return {
+                type: pmNodeNames.graySection,
+                content: block.items.map(enrichedBlockToPmNode),
+            }
+        case "expandable-paragraph":
+            return {
+                type: pmNodeNames.expandableParagraph,
+                content: block.items.map(enrichedBlockToPmNode),
+            }
+        case "pull-quote":
+            return {
+                type: pmNodeNames.pullQuote,
+                attrs: { quote: block.quote, align: block.align },
+                content: block.content.map(textBlockToParagraph),
+            }
+        case "table":
+            return {
+                type: pmNodeNames.tableBlock,
+                attrs: {
+                    template: block.template,
+                    size: block.size,
+                    caption: block.caption
+                        ? structuredClone(block.caption)
+                        : null,
+                },
+                content: block.rows.map((row) => ({
+                    type: pmNodeNames.tableRow,
+                    content: row.cells.map((cell) => ({
+                        type: pmNodeNames.tableCell,
+                        content: cell.content.map(enrichedBlockToPmNode),
+                    })),
+                })),
+            }
         case "text":
             return textBlockToParagraph(block)
         case "heading":
@@ -299,7 +414,77 @@ export function enrichedBlockToPmNode(
 /** Convert one ProseMirror node back to an enriched block. */
 export function pmNodeToEnrichedBlock(node: PmNodeJson): OwidEnrichedGdocBlock {
     const attrs = node.attrs ?? {}
+    const propsAtomType = nodeNameToPropsAtomBlockType[node.type]
+    if (propsAtomType) {
+        return {
+            ...structuredClone(attrs.props as Record<string, unknown>),
+            type: propsAtomType,
+            parseErrors: [],
+        } as unknown as OwidEnrichedGdocBlock
+    }
+    const twoColumnType = nodeNameToTwoColumnBlockType[node.type]
+    if (twoColumnType) {
+        const columns = node.content ?? []
+        return {
+            type: twoColumnType,
+            left: (columns[0]?.content ?? []).map(pmNodeToEnrichedBlock),
+            right: (columns[1]?.content ?? []).map(pmNodeToEnrichedBlock),
+            parseErrors: [],
+        } as OwidEnrichedGdocBlock
+    }
     switch (node.type) {
+        case pmNodeNames.aside: {
+            const aside: OwidEnrichedGdocBlock = {
+                type: "aside",
+                caption: inlineContentToSpans(node.content),
+                parseErrors: [],
+            }
+            if (isPresent(attrs.position))
+                aside.position = attrs.position as BlockPositionChoice
+            return aside
+        }
+        case pmNodeNames.graySection:
+            return {
+                type: "gray-section",
+                items: (node.content ?? []).map(pmNodeToEnrichedBlock),
+                parseErrors: [],
+            }
+        case pmNodeNames.expandableParagraph:
+            return {
+                type: "expandable-paragraph",
+                items: (node.content ?? []).map(pmNodeToEnrichedBlock),
+                parseErrors: [],
+            }
+        case pmNodeNames.pullQuote: {
+            const pullQuote: EnrichedBlockPullQuote = {
+                type: "pull-quote",
+                content: (node.content ?? []).map(paragraphToTextBlock),
+                align: (attrs.align ?? "left") as PullQuoteAlignment,
+                quote: String(attrs.quote ?? ""),
+                parseErrors: [],
+            }
+            return pullQuote
+        }
+        case pmNodeNames.tableBlock: {
+            const table: EnrichedBlockTable = {
+                type: "table",
+                template: (attrs.template ?? "header-row") as TableTemplate,
+                size: (attrs.size ?? "narrow") as TableSize,
+                rows: (node.content ?? []).map((row) => ({
+                    type: "table-row",
+                    cells: (row.content ?? []).map((cell) => ({
+                        type: "table-cell",
+                        content: (cell.content ?? []).map(
+                            pmNodeToEnrichedBlock
+                        ),
+                    })),
+                })),
+                parseErrors: [],
+            }
+            if (isPresent(attrs.caption))
+                table.caption = structuredClone(attrs.caption) as Span[]
+            return table
+        }
         case pmNodeNames.paragraph:
             return paragraphToTextBlock(node)
         case pmNodeNames.heading:
@@ -346,7 +531,7 @@ export function pmNodeToEnrichedBlock(node: PmNodeJson): OwidEnrichedGdocBlock {
                 hasOutline: Boolean(attrs.hasOutline),
                 parseErrors: [],
             }
-            if (attrs.smallFilename)
+            if (isPresent(attrs.smallFilename))
                 image.smallFilename = String(attrs.smallFilename)
             if (isPresent(attrs.alt)) image.alt = String(attrs.alt)
             if (attrs.caption)
