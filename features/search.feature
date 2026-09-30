@@ -34,22 +34,6 @@ Feature: Search autocomplete
         Then the url no longer contains country filters
         And the url no longer contains query filters
 
-    Scenario: "Did you mean?" country filters
-        Given I am on the search page
-        When I type "gdp franc" in the search autocomplete input
-        And I press "Enter"
-        Then I see a "Did you mean?" suggestion
-        And "France" is shown as a "Did you mean?" suggestion
-        When I click on the "France" suggestion
-        Then I see "France" as an active country filter
-        And the search autocomplete input contains "gdp"
-        And the url contains the query "gdp" and the country "France"
-        When I navigate back to the previous search state
-        Then the url no longer contains country filters
-        Then the url no longer contains query filters
-        When I navigate forward
-        Then the url contains the query "gdp" and the country "France"
-
     Scenario: Search from homepage with country extraction
         Given I am on the homepage
         When I click on the homepage autocomplete input
