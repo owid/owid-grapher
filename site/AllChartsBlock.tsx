@@ -1050,16 +1050,24 @@ const AllChartsRowThumbnails = ({
                                 hit,
                                 grapherParams: toGrapherQueryParams({ tab }),
                                 variant: PreviewVariant.Thumbnail,
-                                // As little labelling as the thumbnail
-                                // renderer will drop, so the chart itself gets
-                                // the room: at a third of the list pane a
-                                // label is illegible anyway (Marwa,
-                                // 2026-09-30). See useMinimalLabeling in
-                                // packages/@ourworldindata/grapher — it takes
-                                // a map's legend and "No data" key away
-                                // outright, and trades a line's series names
-                                // for its values rather than dropping both.
+                                // No labelling at all, so the chart itself
+                                // gets the whole frame: at a third of the list
+                                // pane every label in one of these is
+                                // illegible anyway, and the row's title and
+                                // source line above already say what it is
+                                // (Marwa, 2026-09-30).
+                                //
+                                // Both flags, not just the second: imMinimal
+                                // is what takes a map's legend and "No data"
+                                // key away, and a map has no axes or series
+                                // labels for imBare to act on. imBare covers
+                                // the rest — series and entity names, value
+                                // labels, axis lines and tick labels — and
+                                // hands the space back to the plot. See
+                                // useMinimalLabeling and useBareLabeling in
+                                // packages/@ourworldindata/grapher.
                                 isMinimal: true,
+                                isBare: true,
                             })}
                             alt=""
                             loading="lazy"

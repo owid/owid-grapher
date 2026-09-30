@@ -351,9 +351,14 @@ export class FacetChart
         const hideStartValueLabel =
             this.variant === GrapherVariant.Thumbnail &&
             this.manager.variant !== GrapherVariant.Thumbnail
-        const showSeriesLabels = useMinimalLabeling
-            ? true
-            : !this.hideFacetLegends
+        // Bare labelling has no series labels, so it wins over the line-chart
+        // thumbnail exception above (see GrapherState.useBareLabeling).
+        const useBareLabeling = !!this.manager.useBareLabeling
+        const showSeriesLabels = useBareLabeling
+            ? false
+            : useMinimalLabeling
+              ? true
+              : !this.hideFacetLegends
 
         return series.map((series, index) => {
             const { bounds } = gridBoundsArr[index]
@@ -391,6 +396,7 @@ export class FacetChart
                 shouldPinTooltipToBottom,
                 externalLegendHoverBin: legendHoverBin,
                 useMinimalLabeling,
+                useBareLabeling,
                 hideStartValueLabel,
                 // Allow labels in line chart thumbnails to overflow facet bounds
                 chartAreaPadding: Infinity,
@@ -740,7 +746,8 @@ export class FacetChart
     @computed private get showLegend(): boolean {
         const { isNumericLegend, categoricalLegendData, numericLegendData } =
             this
-        if (this.manager.useMinimalLabeling) return false
+        if (this.manager.useMinimalLabeling || this.manager.useBareLabeling)
+            return false
         const hasBins =
             categoricalLegendData.length > 0 || numericLegendData.length > 0
         if (!hasBins) return false
