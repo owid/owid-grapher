@@ -10,31 +10,40 @@ describe(formatMeasureValue, () => {
         expect(formatMeasureValue(2.21, { numDecimalPlaces: 1 })).toBe("2.2")
     })
 
-    it("writes a small positive value as below the smallest shown step", () => {
+    it("shows a small value down to its first significant digit", () => {
         expect(
-            formatMeasureValue(0.03, {
+            formatMeasureValue(0.034, {
                 numDecimalPlaces: 1,
                 unit: "g",
                 showPlus: true,
             })
-        ).toBe("+<0.1 g")
-        expect(formatMeasureValue(0.3, { numDecimalPlaces: 0 })).toBe("<1")
+        ).toBe("+0.03 g")
+        expect(formatMeasureValue(0.4, { numDecimalPlaces: 0 })).toBe("0.4")
+        expect(formatMeasureValue(0.0004, { numDecimalPlaces: 1 })).toBe(
+            "0.0004"
+        )
     })
 
     it("keeps the sign of a small negative value", () => {
         expect(
             formatMeasureValue(-0.03, { numDecimalPlaces: 1, unit: "g" })
-        ).toBe("-<0.1 g")
+        ).toBe("-0.03 g")
+    })
+
+    it("keeps the sign of a small value just under the smallest step", () => {
+        expect(
+            formatMeasureValue(0.07, {
+                numDecimalPlaces: 1,
+                unit: "g",
+                showPlus: true,
+            })
+        ).toBe("+0.07 g")
     })
 
     it("writes zero as zero", () => {
         expect(formatMeasureValue(0, { numDecimalPlaces: 1, unit: "g" })).toBe(
             "0 g"
         )
-    })
-
-    it("rounds a value at the rounding boundary normally", () => {
-        expect(formatMeasureValue(-0.05, { numDecimalPlaces: 1 })).toBe("-0.1")
     })
 })
 
