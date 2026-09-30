@@ -770,6 +770,7 @@ export const constructPreviewUrl = ({
     grapherParams,
     variant,
     isMinimal,
+    isBare,
     fontSize,
     imageWidth,
     imageHeight,
@@ -778,6 +779,7 @@ export const constructPreviewUrl = ({
     grapherParams?: GrapherQueryParams
     variant: PreviewVariant
     isMinimal?: boolean
+    isBare?: boolean
     fontSize?: number
     imageWidth?: number
     imageHeight?: number
@@ -790,6 +792,9 @@ export const constructPreviewUrl = ({
         omitUndefinedValues({
             imType: variant === "large" ? "uncaptioned" : variant,
             imMinimal: isMinimal ? "1" : "0",
+            // Only sent when asked for, so the thumbnails that don't want it
+            // keep the URL — and so the cached image — they have today.
+            imBare: isBare ? "1" : undefined,
             imFontSize: fontSize?.toString(),
             imWidth: imageWidth?.toString(),
             imHeight: imageHeight?.toString(),

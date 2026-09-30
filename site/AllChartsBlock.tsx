@@ -1074,16 +1074,24 @@ const AllChartsTableRow = ({
                         className="all-charts-block__row-thumbnail"
                         src={constructPreviewUrl({
                             hit,
-                            // No text in the image at all — no legend, no
-                            // series or value labels, just the map or chart
-                            // geometry. At 170px a label is illegible, and an
-                            // illegible label reads as a rendering fault
-                            // rather than as information (Marwa, 2026-09-30).
-                            // See getNakedThumbnailOptions in
-                            // functions/_common/imageOptions.ts for what the
-                            // endpoint does with this.
-                            variant: PreviewVariant.NakedThumbnail,
+                            variant: PreviewVariant.Thumbnail,
+                            // No labelling at all, so the chart itself gets
+                            // the whole frame: at 170px every label in one of
+                            // these is illegible anyway, and the row's title
+                            // and source line beside it already say what it is
+                            // (Marwa, 2026-09-30).
+                            //
+                            // Both flags, not just the second: imMinimal is
+                            // what takes a map's legend and "No data" key
+                            // away, and a map has no axes or series labels for
+                            // imBare to act on. imBare covers the rest —
+                            // series and entity names, value labels, axis
+                            // lines and tick labels — and hands the space back
+                            // to the plot. See useMinimalLabeling and
+                            // useBareLabeling in
+                            // packages/@ourworldindata/grapher.
                             isMinimal: true,
+                            isBare: true,
                         })}
                         alt=""
                         loading="lazy"

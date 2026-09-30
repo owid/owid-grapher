@@ -94,6 +94,16 @@ const getThumbnailOptions = (params: URLSearchParams): ImageOptions => {
             params.get("imMinimal")! === "1"
     }
 
+    // A step beyond imMinimal: no labelling at all, so the thumbnail is the
+    // chart's bare geometry and the plot fills the frame. Its own parameter
+    // rather than a stronger imMinimal, because the thumbnails that already
+    // ask for imMinimal depend on what it does today — see
+    // GrapherState.useBareLabeling.
+    if (params.has("imBare")) {
+        if (!options.grapherProps) options.grapherProps = {}
+        options.grapherProps.useBareLabeling = params.get("imBare")! === "1"
+    }
+
     if (params.has("imFontSize"))
         options.fontSize = parseInt(params.get("imFontSize")!)
 
@@ -120,42 +130,6 @@ const getThumbnailOptions = (params: URLSearchParams): ImageOptions => {
     return options
 }
 
-/**
- * A thumbnail with no text of its own: the map or chart geometry and nothing
- * else. At the ~170px the all-charts block renders these at, any label is
- * illegible, and an illegible label reads as a rendering fault rather than as
- * information (Marwa, 2026-09-30).
- *
- * Most of the chrome is already gone at this size: `imType=thumbnail` renders
- * with `GrapherVariant.Thumbnail`, and a static export only draws the header
- * and footer for `GrapherVariant.Default` (see Chart.renderStatic), so the
- * title, subtitle, source line and logo never appear. What is left is inside
- * the chart itself, and two existing Grapher flags take it away:
- *
- * - `useMinimalLabeling` drops every legend, including a map's colour scale
- *   and its "No data" key (see showLegend in GrapherState).
- * - `hideSeriesLabels` drops the series names *and* the start/end value
- *   labels that minimal labeling otherwise keeps in their place (see
- *   LineChartThumbnail) — "28.5"/"73.2" at the ends of each line.
- *
- * Both are forced here rather than left to `imMinimal`, so the image this
- * `imType` names is the same image whatever else the query string says.
- *
- * Axis tick labels are not covered: a time series keeps its first and last
- * year. Hiding those means passing `xAxis`/`yAxis` config through, which
- * would overwrite the chart's own axis settings (see initGrapher, where
- * grapherProps is spread over the chart's config).
- */
-const getNakedThumbnailOptions = (params: URLSearchParams): ImageOptions => {
-    const options = getThumbnailOptions(params)
-    options.grapherProps = {
-        ...options.grapherProps,
-        useMinimalLabeling: true,
-        hideSeriesLabels: true,
-    }
-    return options
-}
-
 export const extractOptions = (params: URLSearchParams): ImageOptions => {
     const options: Partial<ImageOptions> = {}
 
@@ -164,8 +138,6 @@ export const extractOptions = (params: URLSearchParams): ImageOptions => {
     if (imType === "twitter") return TWITTER_OPTIONS
     else if (imType === "og") return OPEN_GRAPH_OPTIONS
     else if (imType === "thumbnail") return getThumbnailOptions(params)
-    else if (imType === "naked-thumbnail")
-        return getNakedThumbnailOptions(params)
     else if (imType === "square") return getSquareOptions(params)
 
     if (imType === "uncaptioned") {
@@ -174,6 +146,9 @@ export const extractOptions = (params: URLSearchParams): ImageOptions => {
         if (params.has("imMinimal")) {
             options.grapherProps.useMinimalLabeling =
                 params.get("imMinimal")! === "1"
+        }
+        if (params.has("imBare")) {
+            options.grapherProps.useBareLabeling = params.get("imBare")! === "1"
         }
     }
 

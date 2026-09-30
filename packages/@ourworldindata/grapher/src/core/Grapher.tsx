@@ -74,6 +74,7 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     staticBounds?: Bounds
     variant?: GrapherVariant
     useMinimalLabeling?: boolean
+    useBareLabeling?: boolean
 
     hideTitle?: boolean
     hideSubtitle?: boolean
