@@ -109,6 +109,7 @@ export const LatestDataUpdateHit = ({
                             <AvatarByline
                                 className="latest-data-update-hit__byline"
                                 authors={hit.authors}
+                                authorRoles={hit.authorRoles}
                             />
                         ) : (
                             <p className="latest-data-update-hit__authors">
