@@ -459,8 +459,8 @@ h3.article-block__heading.has-supertitle {
 
     h3 {
         @include h3-bold;
-        color: $blue-50;
-        margin: 24px 0 16px;
+        color: $blue-90;
+        margin: 0 0 8px;
     }
 
     a {
@@ -519,10 +519,8 @@ h3.article-block__heading.has-supertitle {
 }
 
 #article-citation {
-    padding-top: 48px;
-    h3 {
-        margin-top: 0;
-    }
+    padding-top: 32px;
+    padding-bottom: 24px;
     p {
         margin-bottom: 16px;
         color: $blue-90;
@@ -531,16 +529,56 @@ h3.article-block__heading.has-supertitle {
         margin-bottom: 0;
         font-size: 0.875rem;
     }
-    > div:last-child {
-        padding-bottom: 48px;
-        border-bottom: 1px solid $blue-20;
+}
+
+#article-past-versions,
+#article-licence {
+    padding-top: 24px;
+    padding-bottom: 24px;
+}
+
+#article-citation + #article-past-versions,
+#article-citation + #article-licence,
+#article-past-versions + #article-licence {
+    border-top: 1px solid $blue-10;
+}
+
+.past-versions-section__content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+
+    @include sm-only {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    p {
+        max-width: 503px;
+        margin: 0;
+    }
+}
+
+.owid-btn.past-versions-section__browse-button {
+    flex-shrink: 0;
+    padding: 8.5px 16px;
+    border-color: $blue-60;
+    color: $blue-60;
+
+    &:hover {
+        border-color: $blue-90;
+        color: $blue-90;
     }
 }
 
 #article-licence {
-    padding-top: 48px;
-    padding-bottom: 48px;
-    text-align: center;
+    padding-bottom: 40px;
+
+    img {
+        display: block;
+        margin-bottom: 16px;
+    }
 }
 
 // When we disable citations then #article-license follows the above content directly. If there
