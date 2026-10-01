@@ -98,13 +98,23 @@ const SEARCH_PLACEHOLDER =
 // Prototype scaffolding, not a feature: once one of them is chosen, this, the
 // switcher, the query parameter and the per-variant overrides in the
 // stylesheet all come out and the chosen values become the block's own.
-const ALL_CHARTS_VARIANTS = ["v1", "v2", "v3", "v4", "v5"] as const
+//
+// V4 came out of the picker on 2026-10-01 as redundant against V5. The gap in
+// the numbering is deliberate: the treatments are referred to by number in
+// conversation and in links that have already been shared, so the rest keep
+// the numbers they were given. V4's override block is still in
+// AllChartsBlock.scss, unreachable: V5 repeats its values rather than
+// inheriting them, so leaving that block alone is the one change that cannot
+// disturb V5 while the designs are still being compared.
+const ALL_CHARTS_VARIANTS = ["v1", "v2", "v3", "v5"] as const
 
 type AllChartsVariant = (typeof ALL_CHARTS_VARIANTS)[number]
 
 // V3 is the treatment that landed, so it is what the block looks like with no
 // parameter set, and the parameter is dropped again when it is selected —
 // there is no URL that pins the default, because the bare URL is the default.
+// A parameter that names no variant lands here too — `?allChartsVariant=v4`,
+// now that V4 is gone — rather than erroring or leaving the block unstyled.
 const ALL_CHARTS_DEFAULT_VARIANT: AllChartsVariant = "v3"
 
 // Kept in the URL rather than only in component state so that one specific
@@ -117,8 +127,7 @@ const ALL_CHARTS_VARIANT_LABELS: Record<AllChartsVariant, string> = {
     v1: "V1 — tinted page, vermillion accent",
     v2: "V2 — white page, chart card framed",
     v3: "V3 — white page, tinted selected row",
-    v4: "V4 — tinted page, blue accent",
-    v5: "V5 — as V4, panel stops at the list edge",
+    v5: "V5 — tinted page, blue accent, panel stops at the list edge",
 }
 
 const isAllChartsVariant = (value: string | null): value is AllChartsVariant =>
