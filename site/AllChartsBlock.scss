@@ -404,14 +404,15 @@ $all-charts-panes-gap: 24px;
     // 11px beside the 3px accent border is the design's 14px from the panel's
     // left edge to the title's first letter.
     //
-    // The vertical padding is two pixels short at the bottom on purpose. The
+    // The vertical padding is a pixel short at the bottom on purpose. The
     // design's rows are 94px apart with no variance, and that 94 includes each
     // row's own 1px divider, so the padding and the text stack have 93px to
-    // share. The stack measures 65px (a 21px title line, an 18px source line,
-    // an 18px link line, and the 2px, 2px and 4px that separate them), leaving
-    // 28px: 15 above puts the title's baseline where the design has it, and the
-    // remaining 13 below closes the row on 94 exactly.
-    padding: 15px 11px 13px;
+    // share. The stack measures 64px — a 20px title line, an 18px source line,
+    // an 18px link line, and the 2px, 2px and 4px that separate them (the title
+    // is 20 and not 21 because of the variant-name rule above) — which leaves
+    // 29px: 15 above puts the title's baseline where the design has it, and the
+    // remaining 14 below closes the row on 94 exactly.
+    padding: 15px 11px 14px;
     cursor: pointer;
 }
 
@@ -505,6 +506,18 @@ $all-charts-panes-gap: 24px;
     font-size: 12px;
     font-weight: 400;
     line-height: 1.5;
+}
+
+// The one thing the variant must not take from the rule above: its leading.
+// This span is inline *inside* the serif title, so the title's line box has to
+// hold it, and at 1.5 its 18px inline box sits a fraction of a pixel below the
+// title's own 20px box — enough to round the line box, and the row with it, to
+// 21px. Rows with a variant name then stood a pixel taller than rows without
+// one, where the design has every row the same height. Matching the title's
+// leading keeps this span inside the title's box; at 12px against 16px nothing
+// about how it looks changes.
+.all-charts-block__row-variant {
+    line-height: 1.25;
 }
 
 .all-charts-block__row-source {
