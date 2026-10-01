@@ -26,10 +26,12 @@ export default function NarrativeChart({
     d,
     className,
     fullWidthOnMobile = false,
+    shouldRenderLinks = true,
 }: {
     d: EnrichedBlockNarrativeChart
     className?: string
     fullWidthOnMobile?: boolean
+    shouldRenderLinks?: boolean
 }) {
     const refChartContainer = useRef<HTMLDivElement>(null)
     const { isPreviewing, archiveContext } = useDocumentContext()
@@ -75,6 +77,19 @@ export default function NarrativeChart({
         fallback: `${GRAPHER_DYNAMIC_THUMBNAIL_URL}/by-uuid/${viewMetadata.chartConfigId}.png`,
     })
     const shouldRenderImage = isOnArchivalPage || !isClient
+    const imageClassName = cx({
+        [HIDE_IF_JS_ENABLED_CLASSNAME]: !isOnArchivalPage,
+    })
+    const image = (
+        <img
+            className="GrapherImage"
+            src={imageSrc}
+            alt={viewMetadata.title}
+            width={DEFAULT_GRAPHER_WIDTH}
+            height={DEFAULT_GRAPHER_HEIGHT}
+            loading="lazy"
+        />
+    )
 
     return (
         <div
@@ -106,29 +121,22 @@ export default function NarrativeChart({
                             metadataStringified,
                     })}
                 >
-                    {shouldRenderImage && (
-                        <a
-                            className={cx({
-                                [HIDE_IF_JS_ENABLED_CLASSNAME]:
-                                    !isOnArchivalPage,
-                            })}
-                            href={linkTarget}
-                        >
-                            <img
-                                className="GrapherImage"
-                                src={imageSrc}
-                                alt={viewMetadata.title}
-                                width={DEFAULT_GRAPHER_WIDTH}
-                                height={DEFAULT_GRAPHER_HEIGHT}
-                                loading="lazy"
-                            />
-                        </a>
-                    )}
+                    {shouldRenderImage &&
+                        (shouldRenderLinks ? (
+                            <a className={imageClassName} href={linkTarget}>
+                                {image}
+                            </a>
+                        ) : (
+                            <div className={imageClassName}>{image}</div>
+                        ))}
                 </figure>
             </div>
             {d.caption ? (
                 <figcaption>
-                    <SpanElements spans={d.caption} />
+                    <SpanElements
+                        spans={d.caption}
+                        shouldRenderLinks={shouldRenderLinks}
+                    />
                 </figcaption>
             ) : null}
         </div>

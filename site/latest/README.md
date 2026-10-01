@@ -2,7 +2,7 @@
 
 ## Overview
 
-The `/latest` page is a single-page app that renders a chronological feed of all editorial content — articles, data insights, announcements, data updates, and website upgrades — with topic and content-type filters and infinite scroll.
+The `/latest` page is a single-page app that renders a chronological feed of all editorial content — articles, data insights, announcements, data updates, and website upgrades — with topic and content-type filters and a Load more button.
 
 The baker emits a shell page ([`site/LatestPage.tsx`](../LatestPage.tsx)) carrying only the topic tag graph; everything else mounts client-side.
 
@@ -16,7 +16,7 @@ Gdoc components (images, article blocks, linked-author pills, …) normally rend
 
 The contract has two ends:
 
-- **Indexing side** (in [`baker/algolia/utils/pagesChronological.ts`](../../baker/algolia/utils/pagesChronological.ts)) decides, per content type, which linked content to load from the DB and which fields to write onto the record. A `ts-pattern` `.exhaustive()` match enforces that adding a new content type forces an explicit choice on each side.
+- **Indexing side** (in [`baker/algolia/utils/pagesChronological.ts`](../../baker/algolia/utils/pagesChronological.ts)) decides, per content type, which linked content to load from the DB and which fields to write onto the record.
 - **Rendering side** (in [`makeAttachments`](./latestUtils.ts) here) reads those fields back out into the shape gdoc components expect, then wraps each card in an `AttachmentsContext.Provider`.
 
 ### 2. Two indexing paths, one record shape
@@ -43,19 +43,20 @@ A single Algolia call ([`queryLatestPages`](../search/queries.ts)) issues three 
 
 ### 5. `latestType` is a derived field for the content-type filter
 
-The `/latest` filter offers five options: article, data insight, data update, website upgrade, announcement. The first two are distinct gdoc types, but the last three are all _announcement_ gdocs distinguished only by their editorial _kicker_. The indexer derives a `latestType` per record (kicker for announcements, gdoc type otherwise) so the filter can treat them as five separate values. The raw gdoc type stays on the record for card dispatch and the atom feed.
+The type filter distinguishes articles, data insights, and announcement kinds such as data updates and website upgrades. The indexer derives `latestType` from the gdoc type or announcement kicker. The original gdoc type remains on the record for card dispatch and the atom feed.
 
-### 6. Articles are the only type with card variants
+### 6. Card variants: index-time vs. render-time
 
-Articles expose two card-only override fields, and each follows the same shape: an authoring choice in the gdoc → conditional behavior in the indexer (which linked content to load) → variant rendering in the card.
+Every content type renders more than one way in the feed. What matters for the indexer is _when_ that choice is made:
 
-`latest-feed-featured-image` swaps the card thumbnail (the article page itself still uses `featured-image`). `latest-feed-excerpt` switches the excerpt from the default plain text to ArticleBlocks (with internal links and formatting) plus a "Read the article" affordance — see [`LatestArticleHit`](./LatestArticleHit.tsx). The rich-excerpt path is also why the indexer conditionally loads linked charts/documents for articles.
+- **Index time** — articles only. The choice is authored in the gdoc, so the indexer can see it and load (and store) just what that variant needs.
+- **Render time** — everything else. The variant depends on the active filter, a toggle, or a click, none of which exist when the record is built. The indexer therefore loads linked content unconditionally: every variant has to render from the record alone, with no further fetch.
 
-Every other type renders one way, so the indexer loads their linked content unconditionally.
+**Articles** expose two card-only override fields (`latest-feed-featured-image` and `latest-feed-excerpt`), each following the same shape: an authoring choice in the gdoc → conditional behavior in the indexer → variant rendering in the card. The rich-excerpt path is why the indexer conditionally loads linked charts/documents for articles.
 
-### 7. Standalone announcement pages are a preview surface
+**Data insights** vary by _where_ they render. In the unfiltered feed they're a condensed teaser linking to their page. With the data-insight type filter on, the feed offers a **View: Expanded / Compact** toggle ([`LatestViewToggle`](./LatestViewToggle.tsx)): Expanded shows each insight whole, read in place ([`LatestDataInsightExpanded`](./LatestDataInsightExpanded.tsx)); Compact is the very same teaser as the unfiltered feed — one card design, one behaviour, wherever it appears.
 
-Each announcement is also baked as a standalone page, primarily for editor preview. Nothing on the site links to it and there's no back-nav — not by design, just unaddressed (compare data insight permalinks, which are shareable and breadcrumb back to `/latest?type=data-insight`). The bake is kept in case we make announcement URLs shareable later.
+**Announcements and data updates** collapse to a teaser in the unfiltered feed and show their full body once the type filter is on — or, for announcements, once the reader clicks _Read more_ ([`ExpandableText`](./ExpandableText.tsx)). Both transitions happen in the browser from data the record already carries. Similar to data insights, compact data update cards link to their standalone page.
 
 ## Component layout
 
@@ -63,8 +64,10 @@ Each announcement is also baked as a standalone page, primarily for editor previ
 LatestSearchWrapper            (Algolia LiteClient + QueryClientProvider)
   └── LatestSearch             (URL state, queries, result list)
         ├── LatestTopicFacets  (topic pills + content-type dropdown)
-        └── LatestHit          (per-type dispatcher)
+        ├── LatestViewToggle   (Expanded / Compact; shown for supported type filters on desktop)
+        └── LatestHit          (per-type/subtype dispatcher)
               ├── LatestArticleHit
               ├── LatestDataInsightHit
+              ├── LatestDataUpdateHit
               └── LatestAnnouncementHit
 ```

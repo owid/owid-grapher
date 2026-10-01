@@ -1,4 +1,4 @@
-.latest-data-insights {
+.latest-carousel {
     position: relative;
     margin-bottom: 24px;
 
@@ -7,7 +7,7 @@
     }
 }
 
-.latest-data-insights__card-container {
+.latest-carousel__card-container {
     display: flex;
     gap: var(--grid-gap);
     list-style: none;
@@ -23,7 +23,7 @@
     scrollbar-width: thin;
 }
 
-html.js-enabled .latest-data-insights__card-container {
+html.js-enabled .latest-carousel__card-container {
     // Hide the scrollbar; the carousel is controlled via the arrow buttons
     // (desktop) and swiping (mobile). Without JS there are no buttons, so we
     // keep a thin scrollbar as a scroll affordance.
@@ -34,7 +34,7 @@ html.js-enabled .latest-data-insights__card-container {
     }
 }
 
-.latest-data-insights__card {
+.latest-carousel__card {
     flex: 0 0 845px;
     height: 322px;
     scroll-snap-align: start;
@@ -52,12 +52,12 @@ html.js-enabled .latest-data-insights__card-container {
     }
 }
 
-html:not(.js-enabled) .latest-data-insights__card,
-.latest-data-insights__card--snapped {
+html:not(.js-enabled) .latest-carousel__card,
+.latest-carousel__card--snapped {
     opacity: 1;
 }
 
-.latest-data-insights__card__data-insight {
+.latest-carousel__card__link {
     display: flex;
     height: 100%;
     gap: 16px 24px;
@@ -76,12 +76,8 @@ html:not(.js-enabled) .latest-data-insights__card,
     &:hover {
         background: $accent-pale-blue;
 
-        .latest-data-insights__card-body:before {
-            background: linear-gradient(
-                180deg,
-                rgba(231, 242, 255, 0) 50%,
-                #e7f2ff 100%
-            );
+        .latest-carousel__card-body:before {
+            @include fade-out-overlay($accent-pale-blue);
         }
     }
 
@@ -90,26 +86,77 @@ html:not(.js-enabled) .latest-data-insights__card,
     }
 }
 
-.latest-data-insights__card--snapped .latest-data-insights__card__data-insight {
+// White cards mirror .latest-data-update-hit__card in the feed: white at rest,
+// $blue-5 on hover, thumbnail outlined so it doesn't melt into the card.
+.latest-carousel--white {
+    .latest-carousel__card__link {
+        background: $white;
+
+        &:hover {
+            background: $blue-5;
+
+            .latest-carousel__card-body:before {
+                @include fade-out-overlay($blue-5);
+            }
+        }
+    }
+
+    .latest-carousel__card-body:before {
+        @include fade-out-overlay($white);
+    }
+
+    .latest-carousel__card-left img {
+        outline: 1px solid $blue-10;
+    }
+}
+
+// Data update thumbnails are usually 4:5 charts, 298 × 372.5px at the
+// widest card. Give them 15px more than data insights so they fit
+// without scrolling, and grow the card by the same so the text below
+// keeps its room.
+.latest-carousel--tall {
+    @include md-down {
+        .latest-carousel__card {
+            height: 553px;
+        }
+
+        .latest-carousel__card-left picture {
+            max-height: 375px;
+        }
+
+        .latest-carousel__card__see-all {
+            padding: 265px 0;
+        }
+    }
+}
+
+.latest-carousel__card--snapped .latest-carousel__card__link {
     box-shadow: 0 4px 24px 0 rgba(0, 0, 0, 0.08);
 }
 
-.latest-data-insights__card__see-all {
+.latest-carousel__card__see-all {
     padding: 257px 0;
 }
 
 @include sm-up {
-    .latest-data-insights__card--see-all,
-    .latest-data-insights__dot--see-all {
+    .latest-carousel__card--see-all,
+    .latest-carousel__dot--see-all {
         display: none;
     }
 }
 
 // Sizing flex child picture elements is finnicky on Safari.
 // Make sure you test all 3 browsers if you're making changes here.
-.latest-data-insights__card-left {
+.latest-carousel__card-left {
     display: flex;
     height: 100%;
+
+    // In the stacked layout, take only the image's height and leave the rest
+    // to the text. With height: 100% on both, flexbox splits the card in half,
+    // leaving a gap under wide images.
+    @include md-down {
+        height: auto;
+    }
 
     picture {
         height: 100%;
@@ -126,21 +173,27 @@ html:not(.js-enabled) .latest-data-insights__card,
         max-width: initial;
 
         @include md-down {
+            display: block;
             height: auto;
             max-width: 100%;
         }
     }
 }
 
-.latest-data-insights__card-right {
+.latest-carousel__card-right {
     display: flex;
     flex-direction: column;
     height: 100%;
     min-height: 0;
     overflow: hidden;
+
+    @include md-down {
+        flex: 1;
+        height: auto;
+    }
 }
 
-.latest-data-insights__card-body {
+.latest-carousel__card-body {
     position: relative;
     overflow: hidden;
 
@@ -151,39 +204,18 @@ html:not(.js-enabled) .latest-data-insights__card,
         position: absolute;
         left: 0;
         top: 0;
-        background: linear-gradient(
-            180deg,
-            rgba(219, 229, 240, 0) 50%,
-            $blue-20 100%
-        );
+        @include fade-out-overlay($blue-20);
     }
 }
 
-.latest-data-insights__card-continue {
-    @include body-3-medium;
-
-    @include md-down {
-        display: none;
-    }
+// Same size as the dateline on the standalone page these cards sit under,
+// and as the /latest feed cards' — the card being in a carousel is no
+// reason for its date to read larger than the same date elsewhere.
+.latest-carousel__card-dateline {
+    @include h6-black-caps;
 }
 
-.latest-data-insights__card-dateline {
-    @include h5-black-caps;
-
-    @include md-down {
-        @include h6-black-caps;
-    }
-}
-
-.latest-data-insights__card-date {
-    margin-left: 8px;
-
-    @include md-down {
-        margin-left: 6px;
-    }
-}
-
-.latest-data-insights__card .latest-data-insights__card-title {
+.latest-carousel__card .latest-carousel__card-title {
     margin: 0 0 8px 0;
 
     @include subtitle-2-bold;
@@ -193,13 +225,13 @@ html:not(.js-enabled) .latest-data-insights__card,
     }
 }
 
-.latest-data-insights__card-authors {
+.latest-carousel__card-authors {
     @include body-3-medium-italic;
     color: $blue-50;
     margin: 0 0 8px 0;
 }
 
-.latest-data-insights__control-button {
+.latest-carousel__control-button {
     --button-size: 40px;
     position: absolute;
     display: flex;
@@ -212,28 +244,28 @@ html:not(.js-enabled) .latest-data-insights__card,
     padding: 0;
     border-radius: 50%;
 
-    &--prev {
-        left: 8px;
-
-        @include xlg-up {
-            left: -60px;
-        }
-    }
-
-    &--next {
-        right: 8px;
-
-        @include xlg-up {
-            right: -60px;
-        }
-    }
-
     @include md-down {
         display: none;
     }
 }
 
-.latest-data-insights__dots {
+.latest-carousel__control-button--prev {
+    left: 8px;
+
+    @include xlg-up {
+        left: -60px;
+    }
+}
+
+.latest-carousel__control-button--next {
+    right: 8px;
+
+    @include xlg-up {
+        right: -60px;
+    }
+}
+
+.latest-carousel__dots {
     position: absolute;
     display: flex;
     justify-content: center;
@@ -249,7 +281,7 @@ html:not(.js-enabled) .latest-data-insights__card,
     }
 }
 
-.latest-data-insights__dot {
+.latest-carousel__dot {
     background-color: $blue-30;
     width: 8px;
     height: 8px;
@@ -259,7 +291,7 @@ html:not(.js-enabled) .latest-data-insights__card,
         background-color var(--duration-popover) var(--ease-out);
 }
 
-.latest-data-insights__dot--selected {
+.latest-carousel__dot--selected {
     background-color: $blue-70;
     transform: scale(1.5);
 }

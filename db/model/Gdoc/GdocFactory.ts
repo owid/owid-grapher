@@ -1,6 +1,9 @@
 import * as _ from "lodash-es"
+import * as R from "remeda"
 import { match, P } from "ts-pattern"
 import {
+    ANNOUNCEMENT_LATEST_TYPES,
+    AnnouncementLatestType,
     ARCHIVED_THUMBNAIL_FILENAME,
     DbEnrichedPostGdoc,
     DbInsertPostGdocLink,
@@ -9,10 +12,12 @@ import {
     DbRawPostGdoc,
     GdocsContentSource,
     ImageMetadata,
+    LatestAnnouncement,
     LatestDataInsight,
     OwidEnrichedGdocBlock,
     OwidGdoc,
     OwidGdocBaseInterface,
+    OwidGdocAnnouncementContent,
     OwidGdocDataInsightContent,
     OwidGdocIndexItem,
     OwidGdocMinimalPostInterface,
@@ -24,6 +29,7 @@ import {
     PostsGdocsXImagesTableName,
     PostsGdocsXTagsTableName,
     checkIsOwidGdocType,
+    deriveAnnouncementLatestType,
     formatDate,
     parsePostGdocContent,
     parsePostGdocsAuthors,
@@ -514,6 +520,9 @@ export async function getAndLoadLastPublishedDataInsights(
     )
 }
 
+/** How many cards an "Our latest …" carousel holds. */
+const LATEST_CAROUSEL_SIZE = 7
+
 export async function getLatestDataInsights(
     knex: KnexReadonlyTransaction
 ): Promise<{
@@ -528,8 +537,8 @@ export async function getLatestDataInsights(
          AND published = 1
          AND publishedAt <= NOW()
          ORDER BY publishedAt DESC
-         LIMIT 7`,
-        { type: OwidGdocType.DataInsight }
+         LIMIT :limit`,
+        { type: OwidGdocType.DataInsight, limit: LATEST_CAROUSEL_SIZE }
     )
     const dataInsights = rows.map((row) => {
         return {
@@ -553,6 +562,100 @@ export async function getLatestDataInsights(
         dataInsights,
         imageMetadata: await getImageMetadataByFilenames(knex, [...filenames]),
     }
+}
+
+export type LatestAnnouncements = {
+    announcements: LatestAnnouncement[]
+    imageMetadata: Record<string, ImageMetadata>
+}
+
+/**
+ * The most recent published announcements of each kind, for the carousel at
+ * the bottom of an announcement page.
+ *
+ * Two steps on purpose. Kickers are only guaranteed to be canonical slugs
+ * ("data-update") since GdocAnnouncement started validating them; older
+ * announcements carry prose variants ("Data update"), which a SQL equality
+ * match would silently skip — leaving rarer kinds with a one-card carousel and
+ * no error to notice. So we read every published announcement's kicker (id +
+ * kicker only, so this stays cheap), bucket them through
+ * deriveAnnouncementLatestType — the same function the feed and the indexer
+ * use — and only then fetch the content of the handful we're keeping.
+ */
+export async function getLatestAnnouncementsByType(
+    knex: KnexReadonlyTransaction
+): Promise<Record<AnnouncementLatestType, LatestAnnouncements>> {
+    const kickerRows = await knexRaw<{ id: string; kicker: string | null }>(
+        knex,
+        `-- sql
+         SELECT id, content->>'$.kicker' AS kicker
+         FROM posts_gdocs
+         WHERE type = :type
+         AND published = 1
+         AND publishedAt <= NOW()
+         ORDER BY publishedAt DESC`,
+        { type: OwidGdocType.Announcement }
+    )
+    const idsByType = R.fromKeys(ANNOUNCEMENT_LATEST_TYPES, (latestType) =>
+        kickerRows
+            .filter(
+                (row) =>
+                    deriveAnnouncementLatestType(row.kicker ?? undefined) ===
+                    latestType
+            )
+            .slice(0, LATEST_CAROUSEL_SIZE)
+            .map((row) => row.id)
+    )
+
+    const allIds = Object.values(idsByType).flat()
+    const rows =
+        allIds.length > 0
+            ? await knexRaw<DbRawPostGdoc>(
+                  knex,
+                  `-- sql
+                   SELECT id, slug, publishedAt, content
+                   FROM posts_gdocs
+                   WHERE id IN (:ids)
+                   ORDER BY publishedAt DESC`,
+                  { ids: allIds }
+              )
+            : []
+    const announcements = rows.map((row) => ({
+        ...row,
+        content: parsePostGdocContent(
+            row.content
+        ) as OwidGdocAnnouncementContent,
+    }))
+
+    // Fetch the images of all kinds in one query, then split them per kind
+    const filenamesById = new Map<string, string[]>()
+    for (const announcement of announcements) {
+        const filenames = new Set<string>()
+        for (const block of announcement.content.body) {
+            traverseEnrichedBlock(block, (block) => {
+                for (const filename of extractFilenamesFromBlock(block)) {
+                    filenames.add(filename)
+                }
+            })
+        }
+        filenamesById.set(announcement.id, [...filenames])
+    }
+    const allImageMetadata = await getImageMetadataByFilenames(knex, [
+        ...new Set([...filenamesById.values()].flat()),
+    ])
+
+    return R.mapValues(idsByType, (ids) => {
+        const announcementsOfType = announcements.filter((announcement) =>
+            ids.includes(announcement.id)
+        )
+        const filenames = announcementsOfType.flatMap(
+            (announcement) => filenamesById.get(announcement.id) ?? []
+        )
+        return {
+            announcements: announcementsOfType,
+            imageMetadata: _.pick(allImageMetadata, filenames),
+        }
+    })
 }
 
 export async function getAndLoadPublishedGdocPosts(

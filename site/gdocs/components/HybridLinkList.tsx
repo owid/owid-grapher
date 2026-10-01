@@ -1,10 +1,34 @@
+import { ReactNode } from "react"
 import { EnrichedHybridLink, Url } from "@ourworldindata/utils"
 import { useLinkedChart, useLinkedDocument } from "../utils"
 import { Thumbnail } from "./Thumbnail"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons"
 
-function HybridGdocLink(props: EnrichedHybridLink) {
+type HybridLinkProps = EnrichedHybridLink & { shouldRenderLinks: boolean }
+
+/** A div instead of an <a> when links are off, e.g. inside a card that is
+ * itself a link. */
+function HybridLinkTarget({
+    href,
+    shouldRenderLinks,
+    children,
+}: {
+    href: string
+    shouldRenderLinks: boolean
+    children: ReactNode
+}) {
+    if (!shouldRenderLinks) {
+        return <div className="hybrid-link-item__link">{children}</div>
+    }
+    return (
+        <a className="hybrid-link-item__link" href={href}>
+            {children}
+        </a>
+    )
+}
+
+function HybridGdocLink(props: HybridLinkProps) {
     const { linkedDocument } = useLinkedDocument(props.url)
 
     // Checking for slug, because url always contains https://ourworldindata.org
@@ -16,7 +40,10 @@ function HybridGdocLink(props: EnrichedHybridLink) {
 
     return (
         <li className="hybrid-link-item">
-            <a href={linkedDocument.url}>
+            <HybridLinkTarget
+                href={linkedDocument.url}
+                shouldRenderLinks={props.shouldRenderLinks}
+            >
                 <Thumbnail
                     thumbnail={linkedDocument["featured-image"]}
                     className="hybrid-link-thumbnail"
@@ -25,12 +52,12 @@ function HybridGdocLink(props: EnrichedHybridLink) {
                     <h4>{title}</h4>
                     <p>{subtitle}</p>
                 </div>
-            </a>
+            </HybridLinkTarget>
         </li>
     )
 }
 
-function HybridChartLink(props: EnrichedHybridLink) {
+function HybridChartLink(props: HybridLinkProps) {
     const { linkedChart } = useLinkedChart(props.url)
     if (!linkedChart) return null
 
@@ -39,7 +66,10 @@ function HybridChartLink(props: EnrichedHybridLink) {
 
     return (
         <li className="hybrid-link-item">
-            <a href={linkedChart.resolvedUrl}>
+            <HybridLinkTarget
+                href={linkedChart.resolvedUrl}
+                shouldRenderLinks={props.shouldRenderLinks}
+            >
                 <Thumbnail
                     thumbnail={linkedChart.thumbnail}
                     className="hybrid-link-thumbnail"
@@ -48,15 +78,18 @@ function HybridChartLink(props: EnrichedHybridLink) {
                     <h4>{title}</h4>
                     <p>{subtitle}</p>
                 </div>
-            </a>
+            </HybridLinkTarget>
         </li>
     )
 }
 
-function HybridExternalLink(props: EnrichedHybridLink) {
+function HybridExternalLink(props: HybridLinkProps) {
     return (
         <li className="hybrid-link-item hybrid-link-item--external">
-            <a href={props.url}>
+            <HybridLinkTarget
+                href={props.url}
+                shouldRenderLinks={props.shouldRenderLinks}
+            >
                 {props.thumbnail && (
                     <Thumbnail
                         thumbnail={props.thumbnail}
@@ -73,23 +106,47 @@ function HybridExternalLink(props: EnrichedHybridLink) {
                     </h4>
                     <p>{props.subtitle}</p>
                 </div>
-            </a>
+            </HybridLinkTarget>
         </li>
     )
 }
 
-export function HybridLinkList({ links }: { links: EnrichedHybridLink[] }) {
+export function HybridLinkList({
+    links,
+    shouldRenderLinks = true,
+}: {
+    links: EnrichedHybridLink[]
+    shouldRenderLinks?: boolean
+}) {
     return (
         <ul className="hybrid-link-list">
             {links.map((link) => {
                 const url = Url.fromURL(link.url)
                 if (url.isGoogleDoc) {
-                    return <HybridGdocLink {...link} key={link.url} />
+                    return (
+                        <HybridGdocLink
+                            {...link}
+                            key={link.url}
+                            shouldRenderLinks={shouldRenderLinks}
+                        />
+                    )
                 }
                 if (url.isGrapher || url.isExplorer) {
-                    return <HybridChartLink {...link} key={link.url} />
+                    return (
+                        <HybridChartLink
+                            {...link}
+                            key={link.url}
+                            shouldRenderLinks={shouldRenderLinks}
+                        />
+                    )
                 }
-                return <HybridExternalLink {...link} key={link.url} />
+                return (
+                    <HybridExternalLink
+                        {...link}
+                        key={link.url}
+                        shouldRenderLinks={shouldRenderLinks}
+                    />
+                )
             })}
         </ul>
     )

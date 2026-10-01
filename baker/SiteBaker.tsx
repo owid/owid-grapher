@@ -31,6 +31,9 @@ import {
 } from "../baker/siteRenderers.js"
 import { makeSitemap } from "../baker/sitemap.js"
 import {
+    AnnouncementLatestType,
+    checkIsAnnouncement,
+    deriveAnnouncementLatestType,
     LinkedAuthor,
     LinkedChart,
     LinkedIndicator,
@@ -73,7 +76,9 @@ import {
 import {
     gdocFromJSON,
     getMinimalGdocBaseObjects,
+    getLatestAnnouncementsByType,
     getLatestDataInsights,
+    LatestAnnouncements,
     getAndLoadGdocBySlug,
 } from "../db/model/Gdoc/GdocFactory.js"
 import { getBakePath } from "@ourworldindata/components"
@@ -120,6 +125,11 @@ type PrefetchedAttachments = {
     linkedIndicators: Record<number, LinkedIndicator>
     linkedNarrativeCharts: Record<string, NarrativeChartInfo>
     linkedStaticViz: Record<string, LinkedStaticViz>
+    // For the carousel at the bottom of announcement pages
+    latestAnnouncementsByType: Record<
+        AnnouncementLatestType,
+        LatestAnnouncements
+    >
 }
 
 // These aren't all "wordpress" steps
@@ -584,6 +594,11 @@ export class SiteBaker {
                         `✅ Prefetched ${staticVizList.length} static viz`
                     )
 
+                    console.log("Prefetching latest announcements")
+                    const latestAnnouncementsByType =
+                        await getLatestAnnouncementsByType(knex)
+                    console.log("✅ Prefetched latest announcements")
+
                     const prefetchedAttachments = {
                         donors,
                         linkedAuthors: publishedAuthors,
@@ -600,6 +615,7 @@ export class SiteBaker {
                         linkedIndicators: datapageIndicatorsById,
                         linkedNarrativeCharts: narrativeChartsInfoByName,
                         linkedStaticViz: staticVizByName,
+                        latestAnnouncementsByType,
                     }
                     return prefetchedAttachments
                 }
@@ -678,6 +694,8 @@ export class SiteBaker {
                     this._prefetchedAttachmentsCache.linkedStaticViz,
                     linkedStaticVizNames
                 ),
+                latestAnnouncementsByType:
+                    this._prefetchedAttachmentsCache.latestAnnouncementsByType,
             }
         }
         return this._prefetchedAttachmentsCache
@@ -785,6 +803,22 @@ export class SiteBaker {
                         attachments.linkedNarrativeCharts
                     publishedGdoc.linkedStaticViz = attachments.linkedStaticViz
                     await publishedGdoc.loadAndClearLinkedCallouts(knex)
+
+                    if (checkIsAnnouncement(publishedGdoc)) {
+                        // Announcement pages carry a carousel of the latest
+                        // announcements of their own kind
+                        const { announcements, imageMetadata } =
+                            attachments.latestAnnouncementsByType[
+                                deriveAnnouncementLatestType(
+                                    publishedGdoc.content.kicker
+                                )
+                            ]
+                        publishedGdoc.latestAnnouncements = announcements
+                        publishedGdoc.imageMetadata = {
+                            ...publishedGdoc.imageMetadata,
+                            ...imageMetadata,
+                        }
+                    }
 
                     if (
                         !publishedGdoc.manualBreadcrumbs?.length &&
