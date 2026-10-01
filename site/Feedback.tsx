@@ -1,16 +1,12 @@
 import * as React from "react"
 import { observer } from "mobx-react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import {
-    faCommentAlt,
-    faTimes,
-    faPaperPlane,
-} from "@fortawesome/free-solid-svg-icons"
+import { faCommentAlt, faPaperPlane } from "@fortawesome/free-solid-svg-icons"
 import { observable, action, toJS, computed, makeObservable } from "mobx"
 import classnames from "clsx"
 import { BAKED_BASE_URL } from "../settings/clientSettings.mjs"
 import { stringifyUnknownError } from "@ourworldindata/utils"
-import { SiteToolsButton } from "./SiteToolsButton.js"
+import { SiteToolsDialog } from "./SiteToolsDialog.js"
 
 const sendFeedback = async (feedback: Feedback) => {
     const json = {
@@ -213,58 +209,66 @@ const topicNotices = new Map<SpecialFeedbackTopic, React.ReactElement>([
     [SpecialFeedbackTopic.Teaching, teachingNotice],
 ])
 
-interface FeedbackFormProps {
-    onClose?: () => void
-    autofocus?: boolean
-}
-
-@observer
-export class FeedbackForm extends React.Component<FeedbackFormProps> {
+class FeedbackFormState {
     feedback: Feedback = new Feedback()
     loading: boolean = false
     done: boolean = false
     error: string | undefined
 
-    constructor(props: FeedbackFormProps) {
-        super(props)
-
+    constructor() {
         makeObservable(this, {
             loading: observable,
             done: observable,
             error: observable,
         })
     }
+}
+
+interface FeedbackFormProps {
+    onClose?: () => void
+    autofocus?: boolean
+    formState?: FeedbackFormState
+}
+
+@observer
+export class FeedbackForm extends React.Component<FeedbackFormProps> {
+    private readonly formState: FeedbackFormState
+
+    constructor(props: FeedbackFormProps) {
+        super(props)
+        this.formState = props.formState ?? new FeedbackFormState()
+    }
 
     async submit() {
         try {
-            await sendFeedback(this.feedback)
-            this.feedback.clear()
-            this.done = true
+            await sendFeedback(this.formState.feedback)
+            this.formState.feedback.clear()
+            this.formState.done = true
         } catch (err) {
-            this.error = stringifyUnknownError(err)
+            this.formState.error = stringifyUnknownError(err)
         } finally {
-            this.loading = false
+            this.formState.loading = false
         }
     }
 
     @action.bound onSubmit(e: React.SubmitEvent<HTMLFormElement>) {
         e.preventDefault()
-        this.done = false
-        this.error = undefined
-        this.loading = true
+        this.formState.done = false
+        this.formState.error = undefined
+        this.formState.loading = true
         void this.submit()
     }
 
     @action.bound onName(e: React.ChangeEvent<HTMLInputElement>) {
-        this.feedback.name = e.currentTarget.value
+        this.formState.feedback.name = e.currentTarget.value
     }
 
     @action.bound onEmail(e: React.ChangeEvent<HTMLInputElement>) {
-        this.feedback.email = e.currentTarget.value
+        this.formState.feedback.email = e.currentTarget.value
     }
 
     @action.bound onMessage(e: React.ChangeEvent<HTMLTextAreaElement>) {
-        this.feedback.message = e.currentTarget.value
+        this.formState.feedback.message = e.currentTarget.value
     }
 
     @action.bound onClose() {
@@ -272,17 +276,18 @@ export class FeedbackForm extends React.Component<FeedbackFormProps> {
             this.props.onClose()
         }
         // Clear the form after closing, in case the user has a 2nd message to send later.
-        this.done = false
+        this.formState.done = false
     }
 
     @computed private get specialTopic(): SpecialFeedbackTopic | undefined {
-        const { message } = this.feedback
+        const { message } = this.formState.feedback
         return topicMatchers.find((matcher) => matcher.regex.test(message))
             ?.topic
     }
 
     renderBody() {
-        const { loading, done, specialTopic } = this
+        const { loading, done } = this.formState
+        const { specialTopic } = this
         const autofocus = this.props.autofocus ?? true
 
         if (done) {
@@ -333,6 +338,8 @@ export class FeedbackForm extends React.Component<FeedbackFormProps> {
                             id="feedback.message"
                             className="sentry-mask"
                             onChange={this.onMessage}
+                            value={this.formState.feedback.message}
+                            autoFocus={autofocus}
                             rows={5}
                             minLength={30}
                             required
@@ -351,7 +358,7 @@ export class FeedbackForm extends React.Component<FeedbackFormProps> {
                             id="feedback.name"
                             className="sentry-mask"
                             onChange={this.onName}
-                            autoFocus={autofocus}
+                            value={this.formState.feedback.name}
                             disabled={loading}
                         />
                     </div>
@@ -361,6 +368,7 @@ export class FeedbackForm extends React.Component<FeedbackFormProps> {
                             id="feedback.email"
                             className="sentry-mask"
                             onChange={this.onEmail}
+                            value={this.formState.feedback.email}
                             type="email"
                             disabled={loading}
                         />
@@ -371,10 +379,12 @@ export class FeedbackForm extends React.Component<FeedbackFormProps> {
                             you.
                         </small>
                     </div>
-                    {this.error ? (
-                        <div style={{ color: "red" }}>{this.error}</div>
+                    {this.formState.error ? (
+                        <div style={{ color: "red" }}>
+                            {this.formState.error}
+                        </div>
                     ) : undefined}
-                    {this.done ? (
+                    {this.formState.done ? (
                         <div style={{ color: "green" }}>
                             Thanks for your feedback!
                         </div>
@@ -397,7 +407,7 @@ export class FeedbackForm extends React.Component<FeedbackFormProps> {
         return (
             <form
                 className={classnames("FeedbackForm", {
-                    loading: this.loading,
+                    loading: this.formState.loading,
                 })}
                 onSubmit={this.onSubmit}
             >
@@ -409,6 +419,8 @@ export class FeedbackForm extends React.Component<FeedbackFormProps> {
 
 @observer
 export class FeedbackPrompt extends React.Component {
+    // Keep drafts and pending submissions across modal close/reopen.
+    private readonly formState = new FeedbackFormState()
     isOpen: boolean = false
 
     constructor(props: Record<string, never>) {
@@ -419,49 +431,30 @@ export class FeedbackPrompt extends React.Component {
         })
     }
 
-    @action.bound toggleOpen() {
-        this.isOpen = !this.isOpen
+    @action.bound onOpenChange(isOpen: boolean) {
+        this.isOpen = isOpen
     }
 
     @action.bound onClose() {
         this.isOpen = false
     }
 
-    @action.bound onClickOutside() {
-        this.onClose()
-    }
-
     override render() {
         return (
-            <div
-                className={`feedbackPromptContainer${
-                    this.isOpen ? " active" : ""
-                }`}
+            <SiteToolsDialog
+                className="feedbackPromptContainer"
+                isOpen={this.isOpen}
+                onOpenChange={this.onOpenChange}
+                label="Feedback"
+                closeLabel="Close feedback form"
+                icon={faCommentAlt}
+                dataTrackNote="page_open_feedback"
             >
-                {/* We are keeping the form always rendered to avoid wiping all contents
-                when a user accidentally closes the form */}
-                <div style={{ display: this.isOpen ? "block" : "none" }}>
-                    <div className="overlay" onClick={this.onClickOutside} />
-                    <div className="box">
-                        <FeedbackForm onClose={this.onClose} />
-                    </div>
-                </div>
-                {this.isOpen ? (
-                    <SiteToolsButton
-                        icon={faTimes}
-                        label="Close feedback form"
-                        tooltip={false}
-                        onClick={this.toggleOpen}
-                    />
-                ) : (
-                    <SiteToolsButton
-                        icon={faCommentAlt}
-                        label="Feedback"
-                        dataTrackNote="page_open_feedback"
-                        onClick={this.toggleOpen}
-                    />
-                )}
-            </div>
+                <FeedbackForm
+                    onClose={this.onClose}
+                    formState={this.formState}
+                />
+            </SiteToolsDialog>
         )
     }
 }
