@@ -37,6 +37,7 @@ import {
     DEFAULT_GRAPHER_BOUNDS,
     GRAPHER_MAX_TOOLTIP_WIDTH,
     Patterns,
+    makePatternId,
 } from "../core/GrapherConstants"
 import { ChartInterface } from "../chart/ChartInterface"
 import {
@@ -212,6 +213,10 @@ export class MapChart
         return this.manager.patternScale ?? 1
     }
 
+    @computed get patternIdSuffix(): string | undefined {
+        return this.manager.patternIdSuffix
+    }
+
     @computed get mapConfig(): MapConfig {
         return this.chartState.mapConfig
     }
@@ -344,19 +349,25 @@ export class MapChart
         if (isNoDataBin(bin))
             return new CategoricalBin({
                 ...bin.props,
-                patternRef: Patterns.noDataPattern,
+                patternRef: makePatternId(
+                    Patterns.noDataPattern,
+                    this.patternIdSuffix
+                ),
             }) as Bin
 
         if (isInapplicableBin(bin))
             return new CategoricalBin({
                 ...bin.props,
-                patternRef: Patterns.inapplicablePattern,
+                patternRef: makePatternId(
+                    Patterns.inapplicablePattern,
+                    this.patternIdSuffix
+                ),
             }) as Bin
 
         if (isProjectedDataBin(bin)) {
             const patternRef = makeProjectedDataPatternId(
                 PROJECTED_DATA_LEGEND_COLOR,
-                { forLegend: true }
+                { forLegend: true, idSuffix: this.patternIdSuffix }
             )
             return new CategoricalBin({ ...bin.props, patternRef }) as Bin
         }
@@ -364,6 +375,7 @@ export class MapChart
         if (this.shouldAddProjectionPatternToLegendBins) {
             const patternRef = makeProjectedDataPatternId(bin.color, {
                 forLegend: true,
+                idSuffix: this.patternIdSuffix,
             })
             return (
                 bin instanceof CategoricalBin

@@ -168,6 +168,7 @@ export class MarimekkoChartThumbnail
                     series={this.renderSeries}
                     noDataArea={toMarimekkoNoDataArea(this.placedSeries)}
                     fontSize={this.fontSize}
+                    patternIdSuffix={this.manager.patternIdSuffix}
                     isFocusModeActive={this.chartState.isFocusModeActive}
                 />
                 <MarimekkoInternalLabels

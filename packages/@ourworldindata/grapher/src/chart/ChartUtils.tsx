@@ -31,6 +31,7 @@ import {
     SVG_STYLE_PROPS,
     BASE_FONT_SIZE,
     Patterns,
+    makePatternId,
     GRAPHER_IMAGE_WIDTH_1X,
     GRAPHER_IMAGE_WIDTH_2X,
     FontSettings,
@@ -332,13 +333,24 @@ export function InapplicablePattern({
 
 export function ChartPatternDefs({
     scale = 1,
+    idSuffix,
 }: {
     scale?: number
+    idSuffix?: string
 }): React.ReactElement {
     return (
         <defs>
-            <NoDataPattern scale={scale} />
-            <InapplicablePattern scale={scale} />
+            <NoDataPattern
+                patternId={makePatternId(Patterns.noDataPattern, idSuffix)}
+                scale={scale}
+            />
+            <InapplicablePattern
+                patternId={makePatternId(
+                    Patterns.inapplicablePattern,
+                    idSuffix
+                )}
+                scale={scale}
+            />
         </defs>
     )
 }

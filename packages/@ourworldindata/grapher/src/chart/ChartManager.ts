@@ -98,6 +98,8 @@ export interface ChartManager {
 
     externalLegendHoverBin?: ColorScaleBin | undefined
     patternScale?: number
+    /** Makes SVG pattern ids unique per grapher instance, see makePatternId */
+    patternIdSuffix?: string
 
     /** Used by FacetChart to align chart content across facets */
     sharedVerticalLabelWidths?: SideWidths

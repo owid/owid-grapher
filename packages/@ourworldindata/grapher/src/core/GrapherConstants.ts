@@ -143,6 +143,16 @@ export enum Patterns {
     projectedDataPatternForLegend = "projectedDataPatternForLegend",
 }
 
+/**
+ * SVG ids are resolved document-wide, so every grapher on a page needs its own
+ * pattern ids. Otherwise, `url(#id)` resolves to the pattern of the first
+ * grapher on the page, which doesn't render if that grapher is hidden (e.g.
+ * inside a collapsed accordion or an inactive tab).
+ */
+export function makePatternId(baseId: string, idSuffix?: string): string {
+    return idSuffix ? `${baseId}-${idSuffix}` : baseId
+}
+
 export const SVG_STYLE_PROPS: React.CSSProperties = {
     fontFamily:
         "Lato, 'Helvetica Neue', Helvetica, Arial, 'Liberation Sans', sans-serif",
