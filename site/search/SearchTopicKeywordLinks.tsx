@@ -1,14 +1,15 @@
-import { Fragment, useMemo } from "react"
+import { Fragment, type ReactElement, useMemo } from "react"
 import * as R from "remeda"
 import { useQuery } from "@tanstack/react-query"
 import { SearchResultType } from "@ourworldindata/types"
 import { useSearchContext } from "./SearchContext.js"
 import { findWholeTopicInView } from "./searchUtils.js"
+import { isQueryKeptAsTyped } from "./searchState.js"
 import { fetchTopicVocabulary, suggestedKeywords } from "./topicVocabulary.js"
 import { searchQueryKeys } from "./queries.js"
 
-// The vocabulary's generator publishes up to eight terms per topic. Five still
-// scans as a suggestion rather than a second navigation, which eight read as.
+// The vocabulary's generator publishes more terms per topic than read as a
+// suggestion; past this many the line starts to read as a second navigation.
 // Truncating keeps the vocabulary's order, which ranks its best terms first.
 const MAX_SUGGESTED_SEARCHES = 5
 
@@ -25,15 +26,19 @@ const MAX_SUGGESTED_SEARCHES = 5
  */
 export const SearchTopicKeywordLinks = ({
     allTopics,
+    eligibleRegionNames,
 }: {
     allTopics: string[]
-}) => {
+    eligibleRegionNames: string[]
+}): ReactElement | null => {
     const {
-        state: { query, filters },
+        state,
         actions: { setTopicAndQuery },
         templateConfig,
         synonymMap,
+        analytics,
     } = useSearchContext()
+    const { query, filters } = state
 
     const topicName = useMemo(
         () => findWholeTopicInView(query, filters, allTopics, synonymMap),
@@ -55,12 +60,42 @@ export const SearchTopicKeywordLinks = ({
         staleTime: Infinity,
     })
 
-    if (!isApplicable) return null
-    const keywords = R.take(
-        suggestedKeywords(topicName, vocabulary?.[topicName]),
-        MAX_SUGGESTED_SEARCHES
+    // Memoized because checking each keyword runs the same country detection
+    // as a search, and this re-renders with everything on the search page.
+    const keywords = useMemo(
+        () =>
+            isApplicable
+                ? R.take(
+                      suggestedKeywords(
+                          topicName,
+                          vocabulary?.[topicName]
+                      ).filter(
+                          // A keyword that contains a country's name, like
+                          // "guinea worm", would have that word turned into a
+                          // country filter on the way to the URL, so the link
+                          // would search for something other than what it says.
+                          (keyword) =>
+                              isQueryKeptAsTyped(
+                                  state,
+                                  keyword,
+                                  eligibleRegionNames,
+                                  synonymMap
+                              )
+                      ),
+                      MAX_SUGGESTED_SEARCHES
+                  )
+                : [],
+        [
+            isApplicable,
+            topicName,
+            vocabulary,
+            state,
+            eligibleRegionNames,
+            synonymMap,
+        ]
     )
-    if (!keywords.length) return null
+
+    if (!isApplicable || !keywords.length) return null
 
     return (
         <div
@@ -82,7 +117,14 @@ export const SearchTopicKeywordLinks = ({
                         // throw the reader back out to the ambiguity the link
                         // just resolved. The filter stays visible and
                         // removable, so they can.
-                        onClick={() => setTopicAndQuery(topicName, keyword)}
+                        onClick={() => {
+                            analytics.logSiteClick(
+                                "search-topic-keyword-link",
+                                // `<1-indexed position>:<topic>:<keyword>`
+                                [index + 1, topicName, keyword].join(":")
+                            )
+                            setTopicAndQuery(topicName, keyword)
+                        }}
                         className="search-topic-keyword-links__link"
                     >
                         {keyword}

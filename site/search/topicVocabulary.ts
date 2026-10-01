@@ -1,3 +1,4 @@
+import * as R from "remeda"
 import { fetchJson, getRegionByNameOrVariantName } from "@ourworldindata/utils"
 import {
     DEFAULT_TOPIC_VOCABULARY_URL,
@@ -37,9 +38,11 @@ export function indexTopicVocabularyByName(data: unknown): TopicVocabulary {
             (entry as PublishedTopicVocabularyEntry) ?? {}
         if (typeof topicName !== "string" || !topicName) continue
         if (!Array.isArray(keywords)) continue
-        vocabulary[topicName] = keywords.filter(
-            (keyword): keyword is string =>
-                typeof keyword === "string" && keyword.length > 0
+        vocabulary[topicName] = R.unique(
+            keywords.filter(
+                (keyword): keyword is string =>
+                    typeof keyword === "string" && keyword.length > 0
+            )
         )
     }
     return vocabulary

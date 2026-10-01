@@ -139,7 +139,10 @@ export const Search = ({
                 <SearchDetectedFilters
                     eligibleRegionNames={eligibleRegionNames}
                 />
-                <SearchTopicKeywordLinks allTopics={eligibleTopics} />
+                <SearchTopicKeywordLinks
+                    allTopics={eligibleTopics}
+                    eligibleRegionNames={eligibleRegionNames}
+                />
             </div>
             <div className="search-filters span-cols-12 col-start-2">
                 <SearchTopicsRefinementList topicType={topicType} />

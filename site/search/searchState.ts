@@ -478,3 +478,20 @@ export function applyAutomaticFilters(
 
     return replaceQueryWordsWithFilters(state, countryMatches)
 }
+
+/**
+ * Whether `query` would be searched for as written in the current state, rather
+ * than having some of its words turned into country filters by
+ * applyAutomaticFilters, which every action applies on its way to the URL.
+ */
+export function isQueryKeptAsTyped(
+    state: SearchState,
+    query: string,
+    allRegionNames: string[],
+    synonymMap: SynonymMap
+): boolean {
+    return (
+        applyAutomaticFilters({ ...state, query }, allRegionNames, synonymMap)
+            .query === query
+    )
+}

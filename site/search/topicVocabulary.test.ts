@@ -64,7 +64,7 @@ describe(indexTopicVocabularyByName, () => {
                 "wrong-type": { topic_name: "Wrong Type", keywords: "nope" },
                 "junk-keywords": {
                     topic_name: "Junk Keywords",
-                    keywords: ["Kept", "", null, 7],
+                    keywords: ["Kept", "", null, 7, "Kept"],
                 },
                 nothing: null,
             })

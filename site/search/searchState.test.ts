@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest"
-import { searchParamsToState, stateToSearchParams } from "./searchState.js"
+import {
+    isQueryKeptAsTyped,
+    searchParamsToState,
+    stateToSearchParams,
+} from "./searchState.js"
+import { buildSynonymMap } from "./synonymUtils.js"
+import { listedRegionsNames } from "@ourworldindata/utils"
 import {
     createDatasetProductsFilter,
     createDatasetNamespaceFilter,
@@ -69,5 +75,31 @@ describe("searchState URL parsing", () => {
         expect(
             getFilterNamesOfType(parsed.filters, FilterType.DATASET_PRODUCER)
         ).toEqual(new Set(["World Bank", "UNICEF"]))
+    })
+})
+
+describe(isQueryKeptAsTyped, () => {
+    const state: SearchState = {
+        query: "",
+        requireAllCountries: false,
+        resultType: SearchResultType.ALL,
+        filters: [],
+    }
+    const keptAsTyped = (query: string) =>
+        isQueryKeptAsTyped(
+            state,
+            query,
+            listedRegionsNames(),
+            buildSynonymMap()
+        )
+
+    it("keeps a query that names no country", () => {
+        expect(keptAsTyped("solar")).toBe(true)
+        expect(keptAsTyped("fossil fuels")).toBe(true)
+    })
+
+    it("flags a query that would lose a word to a country filter", () => {
+        // A real keyword of two topics: "guinea" becomes a Guinea filter.
+        expect(keptAsTyped("guinea worm")).toBe(false)
     })
 })

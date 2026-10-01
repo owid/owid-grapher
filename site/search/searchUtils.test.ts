@@ -9,6 +9,7 @@ import {
     extractFiltersFromQuery,
     createCountryFilter,
     findWholeTopicInView,
+    createDatasetProducerFilter,
 } from "./searchUtils"
 import { buildSynonymMap } from "./synonymUtils"
 
@@ -900,6 +901,20 @@ describe(findWholeTopicInView, () => {
                 topicInView("", [
                     createTopicFilter("Energy"),
                     createTopicFilter("Poverty"),
+                ])
+            ).toBeUndefined()
+        })
+
+        it("stays quiet when a dataset filter narrows the topic", () => {
+            expect(
+                topicInView("", [
+                    createTopicFilter("Energy"),
+                    createDatasetProducerFilter("World Bank"),
+                ])
+            ).toBeUndefined()
+            expect(
+                topicInView("energy", [
+                    createDatasetProducerFilter("World Bank"),
                 ])
             ).toBeUndefined()
         })

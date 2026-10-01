@@ -574,6 +574,10 @@ export function findWholeTopicInView(
     allTopics: string[],
     synonymMap: SynonymMap
 ): string | undefined {
+    // A dataset filter narrows the results well below the topic the keywords
+    // were drawn from, so they could lead to nothing.
+    if (hasDatasetFilters(filters)) return undefined
+
     const selectedTopics = getFilterNamesOfType(filters, FilterType.TOPIC)
 
     // No query to narrow it: a single topic filter is the topic in view, and
