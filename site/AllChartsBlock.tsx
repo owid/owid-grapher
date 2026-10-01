@@ -1,4 +1,11 @@
-import { useMemo, useRef, useState, useEffect, Fragment } from "react"
+import {
+    useMemo,
+    useRef,
+    useState,
+    useEffect,
+    useCallback,
+    Fragment,
+} from "react"
 import { useQuery, keepPreviousData } from "@tanstack/react-query"
 import cx from "clsx"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -8,14 +15,23 @@ import {
     faTimesCircle,
 } from "@fortawesome/free-solid-svg-icons"
 import { useDebounceValue, useMediaQuery, useResizeObserver } from "usehooks-ts"
+import { reaction } from "mobx"
 import {
     SearchResultType,
     SearchChartHit,
     FilterType,
     ALL_CHARTS_ID,
+    GRAPHER_TAB_NAMES,
+    GrapherTabName,
 } from "@ourworldindata/types"
 import { listedRegionsNames } from "@ourworldindata/utils"
-import { Button } from "@ourworldindata/components"
+import { Button, GrapherTabIcon } from "@ourworldindata/components"
+import {
+    GrapherState,
+    GuidedChartContext,
+    makeLabelForGrapherTab,
+    mapGrapherTabNameToQueryParam,
+} from "@ourworldindata/grapher"
 import { GrapherWithFallback } from "./GrapherWithFallback.js"
 import { useDocumentContext } from "./gdocs/DocumentContext.js"
 import {
@@ -393,25 +409,25 @@ export const AllChartsBlock = ({
                         href={`#${id}`}
                     />
                 </h1>
-                {/* Laid out on the same two-column grid as the panes below, so
-                    the input keeps the width of the list pane it belongs to
-                    while the sticky unit's white background spans the whole
-                    block. */}
-                <div className="all-charts-block__sticky-header-columns">
-                    <div className="all-charts-block__sticky-header-search">
-                        <AllChartsSearchInput
-                            query={query}
-                            onQueryChange={setQuery}
-                            producerFilters={producerFilters}
-                            onRemoveProducerFilter={removeProducerFilter}
-                        />
-                    </div>
-                </div>
+                {/* Full width, spanning both panes rather than sitting in the
+                    first column of the grid below it: the input searches the
+                    whole block, not just the list, and the design gives it the
+                    block's own width. */}
+                <AllChartsSearchInput
+                    query={query}
+                    onQueryChange={setQuery}
+                    producerFilters={producerFilters}
+                    onRemoveProducerFilter={removeProducerFilter}
+                />
             </div>
+            {/* Above the panes and as wide as the search input it belongs to,
+                rather than inside the list pane: a narrow column wrapped the
+                line onto two, and that left the chart sidecar starting a line's
+                height above the first row instead of level with it. */}
+            <AllChartsSuggestedSearches chips={suggestedChips} />
             <div className="all-charts-block__panes">
                 <AllChartsLeftPane
                     query={query}
-                    suggestedChips={suggestedChips}
                     hits={hits}
                     // The skeleton also covers the window where the results
                     // are in but the baseline that orders them isn't (see
@@ -435,7 +451,6 @@ export const AllChartsBlock = ({
 
 type AllChartsLeftPaneProps = {
     query: string
-    suggestedChips: SuggestedChip[]
     hits: SearchChartHit[]
     isLoading: boolean
     isFetching: boolean
@@ -449,7 +464,6 @@ type AllChartsLeftPaneProps = {
 const AllChartsLeftPane = (props: AllChartsLeftPaneProps) => {
     const {
         query,
-        suggestedChips,
         hits,
         isLoading,
         isFetching,
@@ -502,6 +516,28 @@ const AllChartsLeftPane = (props: AllChartsLeftPaneProps) => {
     const [expandedIndex, setExpandedIndex] = useState<number | null>(null)
     const isAccordionLayout = useMediaQuery(ACCORDION_LAYOUT_MEDIA_QUERY)
 
+    // Which view of the selected chart the sidecar should open on, when it was
+    // picked from one of a row's chart-type links; `undefined` is the chart's
+    // own default view, which is both where the block opens and where selecting
+    // a row by its text goes back to.
+    const [selectedTab, setSelectedTab] = useState<GrapherTabName | undefined>(
+        undefined
+    )
+
+    // The view the chart on the right is *actually* showing, which is what the
+    // row's chart-type links highlight. Not the same thing as `selectedTab`:
+    // that is only what a link click asked for, and it is `undefined` both
+    // before anything has been clicked and after a row is selected by its text,
+    // while the chart beside it is plainly showing one of the views the links
+    // offer. It also goes stale the moment the visitor uses Grapher's own tab
+    // bar. Only the live Grapher knows the answer, so it reports it — see
+    // AllChartsSidecar. `undefined` means the chart is on a view the row
+    // doesn't list (its data table) or hasn't loaded yet; either way no link is
+    // highlighted.
+    const [activeTab, setActiveTab] = useState<GrapherTabName | undefined>(
+        undefined
+    )
+
     // Where a result set starts out. On the accordion layout the first row opens
     // with its chart showing, so the block never presents a phone with a list of
     // titles and no chart at all — the counterpart of the desktop sidecar, which
@@ -537,10 +573,26 @@ const AllChartsLeftPane = (props: AllChartsLeftPaneProps) => {
         query
     )
 
+    // Selecting a row by its text opens the sidecar on the chart's own default
+    // view, which is what the block itself opens on. Clearing `selectedTab` is
+    // what makes that true a second time: without it a row picked after a
+    // chart-type link would inherit that link's view.
     const handleRowClick = (index: number) => {
         const hit = hits[index]
         if (hit) setSelectedIdentity(getChartHitIdentity(hit))
+        setSelectedTab(undefined)
         setExpandedIndex((prev) => (prev === index ? null : index))
+    }
+
+    // A chart-type link selects its row like the row's text does, and
+    // additionally sets the view. It never collapses the row it belongs to: on
+    // the accordion layout the chart it just picked a view for is the one
+    // inside that row.
+    const handleChartTypeClick = (index: number, tab: GrapherTabName) => {
+        const hit = hits[index]
+        if (hit) setSelectedIdentity(getChartHitIdentity(hit))
+        setSelectedTab(tab)
+        if (isAccordionLayout) setExpandedIndex(index)
     }
 
     const selectedHit = hits[selectedIndex]
@@ -548,25 +600,6 @@ const AllChartsLeftPane = (props: AllChartsLeftPaneProps) => {
     return (
         <>
             <div className="all-charts-block__left">
-                {suggestedChips.length > 0 && (
-                    <div className="all-charts-block__suggested">
-                        <span className="all-charts-block__suggested-label">
-                            Suggested:{" "}
-                        </span>
-                        {suggestedChips.map((chip, index) => (
-                            <Fragment key={chip.key}>
-                                <button
-                                    type="button"
-                                    className="all-charts-block__suggested-link"
-                                    onClick={chip.onClick}
-                                >
-                                    {chip.label}
-                                </button>
-                                {index < suggestedChips.length - 1 && ", "}
-                            </Fragment>
-                        ))}
-                    </div>
-                )}
                 {isLoading ? (
                     <SearchDataResultsSkeleton />
                 ) : hits.length === 0 ? (
@@ -581,7 +614,11 @@ const AllChartsLeftPane = (props: AllChartsLeftPaneProps) => {
                             hits={visibleHits}
                             selectedIndex={selectedIndex}
                             expandedIndex={expandedIndex}
+                            selectedTab={selectedTab}
+                            activeTab={activeTab}
+                            onActiveTabChange={setActiveTab}
                             onRowClick={handleRowClick}
+                            onChartTypeClick={handleChartTypeClick}
                             detectedCountries={detectedCountries}
                             searchPhrase={searchPhrase}
                             duplicatedTitles={duplicatedTitles}
@@ -632,10 +669,40 @@ const AllChartsLeftPane = (props: AllChartsLeftPaneProps) => {
                     <AllChartsSidecar
                         hit={selectedHit}
                         detectedCountries={detectedCountries}
+                        tab={selectedTab}
+                        onActiveTabChange={setActiveTab}
                     />
                 )}
             </div>
         </>
+    )
+}
+
+/**
+ * The "Suggested: …" line under the search input. A sibling of the input rather
+ * than part of the list pane, so it has the full width of the block and reads
+ * as belonging to the search above it (see the note at its call site).
+ */
+const AllChartsSuggestedSearches = ({ chips }: { chips: SuggestedChip[] }) => {
+    if (chips.length === 0) return null
+    return (
+        <div className="all-charts-block__suggested">
+            <span className="all-charts-block__suggested-label">
+                Suggested:{" "}
+            </span>
+            {chips.map((chip, index) => (
+                <Fragment key={chip.key}>
+                    <button
+                        type="button"
+                        className="all-charts-block__suggested-link"
+                        onClick={chip.onClick}
+                    >
+                        {chip.label}
+                    </button>
+                    {index < chips.length - 1 && ", "}
+                </Fragment>
+            ))}
+        </div>
     )
 }
 
@@ -709,7 +776,11 @@ const AllChartsTable = ({
     hits,
     selectedIndex,
     expandedIndex,
+    selectedTab,
+    activeTab,
+    onActiveTabChange,
     onRowClick,
+    onChartTypeClick,
     detectedCountries,
     searchPhrase,
     duplicatedTitles,
@@ -720,7 +791,11 @@ const AllChartsTable = ({
     hits: readonly SearchChartHit[]
     selectedIndex: number
     expandedIndex: number | null
+    selectedTab?: GrapherTabName
+    activeTab?: GrapherTabName
+    onActiveTabChange: (tab?: GrapherTabName) => void
     onRowClick: (index: number) => void
+    onChartTypeClick: (index: number, tab: GrapherTabName) => void
     detectedCountries: string[]
     searchPhrase: string
     duplicatedTitles: ReadonlySet<string>
@@ -745,7 +820,11 @@ const AllChartsTable = ({
                     hit={hit}
                     isSelected={index === selectedIndex}
                     isExpanded={index === expandedIndex}
+                    selectedTab={selectedTab}
+                    activeTab={activeTab}
+                    onActiveTabChange={onActiveTabChange}
                     onSelect={() => onRowClick(index)}
+                    onSelectChartType={(tab) => onChartTypeClick(index, tab)}
                     detectedCountries={detectedCountries}
                     searchPhrase={searchPhrase}
                     duplicatedTitles={duplicatedTitles}
@@ -759,12 +838,120 @@ const AllChartsTable = ({
  * The Grapher view the sidecar is showing for a hit, as a query string — e.g.
  * "?country=~ESP" when the search names a country this chart has data for, and
  * "" when it doesn't.
+ *
+ * `tab` is the view picked from one of the row's chart-type links, if any;
+ * without it the chart opens on whatever view it chooses for itself.
  */
 function getSidecarViewQueryStr(
     hit: SearchChartHit,
-    detectedCountries: string[]
+    detectedCountries: string[],
+    tab?: GrapherTabName
 ): string {
-    return getEntityQueryStr(pickEntitiesForChartHit(hit, detectedCountries))
+    const entityQueryStr = getEntityQueryStr(
+        pickEntitiesForChartHit(hit, detectedCountries)
+    )
+    if (!tab) return entityQueryStr
+    const tabQueryStr = `tab=${mapGrapherTabNameToQueryParam(tab)}`
+    return entityQueryStr
+        ? `${entityQueryStr}&${tabQueryStr}`
+        : `?${tabQueryStr}`
+}
+
+/**
+ * The chart types a row lists under its source line: every view the chart has
+ * except its data table.
+ *
+ * The order comes free. The Algolia record's `availableTabs` is Grapher's own
+ * `availableTabs` verbatim (see getChartsRecords in
+ * baker/algolia/utils/charts.ts), which is built as table, then map, then the
+ * chart types — the order of Grapher's tab bar. So this is that list with the
+ * table dropped, and nothing here re-sorts it. A row with a map and three
+ * chart types reads "Map Line Bar Marimekko", which is what the design shows.
+ *
+ * The map is listed like any other view. Rows here picture nothing — there is
+ * no thumbnail — so every view the chart has is one a reader can only get to
+ * by asking for it, and the map is no different from the rest.
+ *
+ * The table is the one exclusion: it is not a view of the chart anyone picks
+ * from an index of charts, and it is reachable from the chart's own tab bar
+ * anyway.
+ *
+ * Degrades honestly at both ends: a chart with one view besides the table
+ * lists one link, and a chart with nothing but a table lists none, which
+ * renders no link row at all rather than an empty one.
+ */
+// oxlint-disable-next-line react/only-export-components -- exported for AllChartsBlock.test.ts; the rule is about fast refresh, and this is a pure helper
+export function getRowChartTypeTabs(hit: SearchChartHit): GrapherTabName[] {
+    // Belt and braces against a record that lists a tab twice, which would
+    // otherwise show the same view in two places.
+    return [
+        ...new Set(
+            (hit.availableTabs ?? []).filter(
+                (tab) => tab !== GRAPHER_TAB_NAMES.Table
+            )
+        ),
+    ]
+}
+
+/**
+ * The row's views, as a line of small links under its source line — Grapher's
+ * own tab icon and label for each, so they read as the same set of views as the
+ * tab bar in the chart beside the list. Text links rather than thumbnails,
+ * deliberately: the design names the views rather than picturing them.
+ */
+const AllChartsRowChartTypes = ({
+    hit,
+    activeTab,
+    isSelected,
+    onSelectChartType,
+}: {
+    hit: SearchChartHit
+    // The view the chart beside the list is showing, reported by that chart
+    // rather than inferred from the last link clicked — so the highlight is
+    // right on first load and after a tab change made inside Grapher, not just
+    // after a click here.
+    activeTab?: GrapherTabName
+    isSelected: boolean
+    onSelectChartType: (tab: GrapherTabName) => void
+}) => {
+    const tabs = useMemo(() => getRowChartTypeTabs(hit), [hit])
+
+    if (tabs.length === 0) return null
+
+    return (
+        <span className="all-charts-block__row-types">
+            {tabs.map((tab) => (
+                <button
+                    key={tab}
+                    type="button"
+                    className={cx("all-charts-block__row-type", {
+                        "all-charts-block__row-type--active":
+                            isSelected && activeTab === tab,
+                    })}
+                    aria-pressed={isSelected && activeTab === tab}
+                    aria-label={`${makeLabelForGrapherTab(tab, {
+                        format: "long",
+                    })}: ${hit.title}`}
+                    // These sit inside the row's own click target, which
+                    // selects the row and toggles its accordion — so both
+                    // handlers stop the event here. Without that a click would
+                    // set the view and then immediately have the row's handler
+                    // clear it again, and on the accordion layout the same tap
+                    // would collapse the chart it just picked a view for.
+                    onClick={(event) => {
+                        event.stopPropagation()
+                        onSelectChartType(tab)
+                    }}
+                    onKeyDown={(event) => event.stopPropagation()}
+                >
+                    <GrapherTabIcon tab={tab} />
+                    <span className="all-charts-block__row-type-label">
+                        {makeLabelForGrapherTab(tab)}
+                    </span>
+                </button>
+            ))}
+        </span>
+    )
 }
 
 /**
@@ -800,7 +987,11 @@ const AllChartsTableRow = ({
     hit,
     isSelected,
     isExpanded,
+    selectedTab,
+    activeTab,
+    onActiveTabChange,
     onSelect,
+    onSelectChartType,
     detectedCountries,
     searchPhrase,
     duplicatedTitles,
@@ -808,7 +999,11 @@ const AllChartsTableRow = ({
     hit: SearchChartHit
     isSelected: boolean
     isExpanded: boolean
+    selectedTab?: GrapherTabName
+    activeTab?: GrapherTabName
+    onActiveTabChange: (tab?: GrapherTabName) => void
     onSelect: () => void
+    onSelectChartType: (tab: GrapherTabName) => void
     detectedCountries: string[]
     searchPhrase: string
     duplicatedTitles: ReadonlySet<string>
@@ -899,6 +1094,12 @@ const AllChartsTableRow = ({
                             </span>
                         </span>
                     )}
+                    <AllChartsRowChartTypes
+                        hit={hit}
+                        activeTab={activeTab}
+                        isSelected={isSelected}
+                        onSelectChartType={onSelectChartType}
+                    />
                     {shownEntities.length > 0 && (
                         <span className="all-charts-block__row-tag">
                             {shownEntities.join(", ")}
@@ -916,6 +1117,8 @@ const AllChartsTableRow = ({
                     <AllChartsSidecar
                         hit={hit}
                         detectedCountries={detectedCountries}
+                        tab={selectedTab}
+                        onActiveTabChange={onActiveTabChange}
                     />
                 </div>
             )}
@@ -926,9 +1129,19 @@ const AllChartsTableRow = ({
 const AllChartsSidecar = ({
     hit,
     detectedCountries,
+    tab,
+    onActiveTabChange,
 }: {
     hit: SearchChartHit
     detectedCountries: string[]
+    /** The view picked from one of a row's chart-type links, if any. */
+    tab?: GrapherTabName
+    /**
+     * Called with the view this chart is showing, whenever it changes — on load
+     * with the view the chart chose for itself, and again every time the visitor
+     * uses Grapher's own tab bar. The row's chart-type links highlight it.
+     */
+    onActiveTabChange?: (tab?: GrapherTabName) => void
 }) => {
     const { isPreviewing } = useDocumentContext()
 
@@ -937,38 +1150,77 @@ const AllChartsSidecar = ({
     // don't track entity changes made inside Grapher back to the search bar.
     // Shared with the row's "Explore the data" href — see
     // getSidecarViewQueryStr.
-    const queryStr = getSidecarViewQueryStr(hit, detectedCountries)
+    const queryStr = getSidecarViewQueryStr(hit, detectedCountries, tab)
 
     // Plain charts can be loaded by slug; mdim/explorer views need a config URL.
     const configUrl =
         hit.type === "chart" ? undefined : constructConfigUrl({ hit })
 
+    // Which view this chart is on is something only the chart knows: the
+    // Algolia record lists a chart's tabs but not which one it opens on, and
+    // the visitor can switch tabs inside Grapher without touching a link here.
+    // Grapher hands its state to whoever provides a GuidedChartContext, which
+    // is how the guided-chart blocks drive a chart from the prose around it —
+    // the same door serves here, in the other direction: we only read
+    // `activeTab` off it, and change nothing.
+    const registerGrapherState = useCallback(
+        (grapherState: GrapherState) => {
+            if (!onActiveTabChange) return () => undefined
+            const dispose = reaction(
+                // Not until the config has landed: before that the state is
+                // still on its constructed default, and reporting that would
+                // highlight a guessed view for as long as the chart takes to
+                // load — often the wrong one, since a map chart's default is
+                // not the map.
+                () =>
+                    grapherState.isConfigReady
+                        ? grapherState.activeTab
+                        : undefined,
+                (activeTab) => onActiveTabChange(activeTab),
+                { fireImmediately: true }
+            )
+            return () => {
+                dispose()
+                // The chart is going away — usually because another one is
+                // taking its place, and the new one's view is not this one's.
+                onActiveTabChange(undefined)
+            }
+        },
+        [onActiveTabChange]
+    )
+    const guidedChartContextValue = useMemo(
+        () => ({ registerGrapherState }),
+        [registerGrapherState]
+    )
+
     return (
-        <GrapherWithFallback
-            // Remount when the selected indicator *or* the view of it changes
-            // so Grapher fully re-initializes (config, tabs, entity
-            // selection) — in particular, picking up a newly detected country
-            // in `queryStr`, which Grapher only reads at initialization.
-            //
-            // The chart half of that key is its identity rather than its
-            // `objectID`, so the FM→plain record swap on the first keystroke
-            // no longer counts as a change of chart: without this the sidecar
-            // remounted and restarted its loading spinner while the visitor
-            // typed, blanking a chart that hadn't actually changed. The
-            // `queryStr` half is unchanged, so a change of country still
-            // remounts and re-applies the entity selection.
-            key={`${getChartHitIdentity(hit)}${queryStr}`}
-            slug={hit.type === "chart" ? hit.slug : undefined}
-            configUrl={configUrl}
-            className="all-charts-block__grapher"
-            id={`all-charts-grapher-${hit.objectID}`}
-            queryStr={queryStr}
-            enablePopulatingUrlParams={false}
-            isEmbeddedInAnOwidPage={true}
-            isEmbeddedInADataPage={false}
-            config={{ enableKeyboardShortcuts: false }}
-            isPreviewing={isPreviewing}
-        />
+        <GuidedChartContext.Provider value={guidedChartContextValue}>
+            <GrapherWithFallback
+                // Remount when the selected indicator *or* the view of it changes
+                // so Grapher fully re-initializes (config, tabs, entity
+                // selection) — in particular, picking up a newly detected country
+                // in `queryStr`, which Grapher only reads at initialization.
+                //
+                // The chart half of that key is its identity rather than its
+                // `objectID`, so the FM→plain record swap on the first keystroke
+                // no longer counts as a change of chart: without this the sidecar
+                // remounted and restarted its loading spinner while the visitor
+                // typed, blanking a chart that hadn't actually changed. The
+                // `queryStr` half is unchanged, so a change of country still
+                // remounts and re-applies the entity selection.
+                key={`${getChartHitIdentity(hit)}${queryStr}`}
+                slug={hit.type === "chart" ? hit.slug : undefined}
+                configUrl={configUrl}
+                className="all-charts-block__grapher"
+                id={`all-charts-grapher-${hit.objectID}`}
+                queryStr={queryStr}
+                enablePopulatingUrlParams={false}
+                isEmbeddedInAnOwidPage={true}
+                isEmbeddedInADataPage={false}
+                config={{ enableKeyboardShortcuts: false }}
+                isPreviewing={isPreviewing}
+            />
+        </GuidedChartContext.Provider>
     )
 }
 

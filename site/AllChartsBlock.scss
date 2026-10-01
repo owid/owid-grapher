@@ -1,15 +1,46 @@
+// The gap between the two panes, which is also the content grid's own gutter —
+// the panes sit on real grid columns (see .all-charts-block__panes below).
+$all-charts-panes-gap: 24px;
+
 .all-charts-block {
+    // Positions the full-bleed tint below, and nothing else: a grid item's
+    // layout is unaffected by it, and with z-index left at `auto` it is not a
+    // stacking context either, so the sticky heading below keeps competing with
+    // the same elements it does today.
+    position: relative;
+
     .all-charts-block__heading {
         margin-bottom: $margin-bottom-section-heading-ltp;
         text-align: left;
     }
 }
 
-// The two-column layout the block uses above the accordion breakpoint. Shared by
-// the panes and by the sticky header above them (see
-// .all-charts-block__sticky-header-columns), so the search input can line up
-// with the list pane it belongs to while the header spans the whole block.
-@mixin all-charts-block-columns {
+// The page tint the design puts behind the whole block. A pseudo-element rather
+// than a background on the block itself, so it can reach past the content
+// column to both window edges.
+//
+// It covers the block's own height and no more, so on a topic page the tinted
+// band starts at the block rather than under the page's sub-nav as the mockup
+// shows it. That is a known and accepted limit of doing this from inside the
+// block.
+.all-charts-block::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    // Out to the window's edges from a container centred in it, without needing
+    // to know how wide the container is.
+    left: calc(50% - 50vw);
+    right: calc(50% - 50vw);
+    background-color: $blue-5;
+    z-index: -1;
+}
+
+.all-charts-block__panes {
+    // Ahead of the media query below: a declaration after a nested rule is a
+    // fatal Sass deprecation here (see `mixed-decls` in
+    // vite.config-common.mts).
+    align-items: start;
     display: grid;
     // The block itself already spans the full 12-column content grid (see the
     // "featured-metrics" entry in site/gdocs/components/layout.ts), so the two
@@ -24,26 +55,33 @@
     // itself, whereas the list only reflows its text. The row text is kept
     // within the narrower list pane by clamping the subtitle and source lines
     // instead (see .all-charts-block__row-subtitle and -row-source below).
-    grid-template-columns: 5fr 7fr;
-    gap: 24px;
+    //
+    // All twelve columns are declared and the panes span five and seven of
+    // them, rather than the `5fr 7fr` this used to be. Those are not the same
+    // split: two `fr` tracks share the width *left over* after one gap, so each
+    // track ends up a twelfth of (content - 24px) plus its share of nothing,
+    // putting the boundary ~4px to the right of the design's column 6 and
+    // making the chart card ~4px narrower than the grid it is drawn on.
+    // Spanning real columns puts both panes on the grid the design is built
+    // against, and keeps doing so at any content width.
+    grid-template-columns: repeat(12, 1fr);
+    gap: $all-charts-panes-gap;
 
     @include md-down {
         grid-template-columns: 1fr;
     }
 }
 
-.all-charts-block__panes {
-    // Ahead of the mixin, which ends in a media query: a declaration after a
-    // nested rule is a fatal Sass deprecation here (see `mixed-decls` in
-    // vite.config-common.mts).
-    align-items: start;
-    @include all-charts-block-columns;
-}
-
 .all-charts-block__left {
+    // Columns 1-5 of the twelve declared above.
+    grid-column: span 5;
     display: flex;
     flex-direction: column;
     min-width: 0;
+
+    @include md-down {
+        grid-column: auto;
+    }
 }
 
 // How far from the top of the viewport the block's sticky pieces come to rest:
@@ -88,12 +126,15 @@
     // not reach, so rows scroll up through it and reappear above the heading.
     top: var(--all-charts-block-pinned-above-height, 0px);
     z-index: 1;
-    // Solid white, so a row scrolling up underneath is hidden outright and cut
-    // off with a hard edge at the bottom of the bar, rather than showing through
-    // it. An earlier version faded to transparent, which let rows dissolve out
-    // from under the input — the designer's reference has the row clipped
-    // cleanly instead.
-    background-color: $white;
+    // Opaque, so a row scrolling up underneath is hidden outright and cut off
+    // with a hard edge at the bottom of the bar, rather than showing through it.
+    // An earlier version faded to transparent, which let rows dissolve out from
+    // under the input — the design has the row clipped cleanly instead.
+    //
+    // The page tint rather than white: this band sits over the tint behind the
+    // block (see .all-charts-block::before), and any other colour would read as
+    // a strip of a different shade with rows disappearing into it.
+    background-color: $blue-5;
     // 12px of padding below the input extends the opaque background past it,
     // then a smaller margin makes up the rest of the original 16px gap to the
     // suggested-searches row beneath.
@@ -112,19 +153,9 @@
     }
 }
 
-.all-charts-block__sticky-header-columns {
-    @include all-charts-block-columns;
-}
-
-// Holds the search input in the first column of that grid, so it keeps the width
-// of the list pane below it. A wrapper rather than putting the input straight
-// into the grid: the input comes with an active-filters row beneath it, and both
-// belong in the same column.
-.all-charts-block__sticky-header-search {
-    min-width: 0;
-}
-
 .all-charts-block__right {
+    // Columns 6-12 of the twelve declared on .all-charts-block__panes.
+    grid-column: span 7;
     min-width: 0;
     position: sticky;
     // Below the sticky heading + search bar above, which is opaque: pinned at
@@ -141,6 +172,26 @@
     figure[data-grapher-src]:not(.grapherPreview),
     figure.grapher-component:not(.grapherPreview) {
         height: $grapher-height;
+        // A <figure> is one of the few elements browsers give margins of their
+        // own: `margin: 1em 40px`. Nothing here overrode it for the sidecar —
+        // the site's own reset for grapher figures only applies inside
+        // `.article-content`, and this block is in a gdoc's
+        // `.centered-article-container` — so the chart card was drawn 16px
+        // below the top of the list beside it and 40px in from each edge of its
+        // own column. That accounts for the card not lining up with the first
+        // row's top edge, and for the card's margins reading wider than the
+        // design's.
+        //
+        // Grapher measures this figure to size itself, so clearing the margins
+        // and filling the column is what actually makes the chart wider rather
+        // than just moving it. Same fix as .all-charts-block__row-accordion's
+        // figure below, which only ever covered the mobile accordion.
+        //
+        // `margin: 0` here together with `width: 100%`, never `margin-left: 0`
+        // on the chart element itself: that hands it the figure-grapher-reset
+        // mixin's own `width: 100%` and balloons the card.
+        width: 100%;
+        margin: 0;
     }
 
     // Below this breakpoint the persistent sidecar is replaced by an
@@ -167,15 +218,20 @@
 .all-charts-block__search-icon {
     position: absolute;
     left: 12px;
-    color: $gray-70;
+    color: $blue-50;
     pointer-events: none;
 }
 
 .all-charts-block__search-input {
     width: 100%;
-    padding: 12px 36px 12px 36px;
-    border: 1px solid $gray-30;
-    border-radius: 4px;
+    // 14px rather than 12px of vertical padding, which puts the field at the
+    // design's 48px.
+    padding: 14px 36px 14px 36px;
+    // $blue-20, matching the row dividers below it, where this used to be
+    // $gray-30.
+    border: 1px solid $blue-20;
+    // Square. The design has no rounded corner anywhere in this block.
+    border-radius: 0;
     font-size: 16px;
     color: $text-color;
     // Both of these are here to stop the browser painting the field for us.
@@ -196,7 +252,7 @@
     }
 
     &::placeholder {
-        color: $gray-70;
+        color: $blue-50;
     }
 
     // Hide the native search input clear button so it doesn't clash with
@@ -247,14 +303,14 @@
     font-size: 12px;
     font-weight: 700;
     letter-spacing: 0.04em;
-    color: $gray-70;
+    color: $blue-60;
 }
 
 .all-charts-block__suggested-link {
     padding: 0;
     border: none;
     background: none;
-    color: $blue-60;
+    color: $blue-90;
     font-size: 13px;
     font-weight: 400;
     text-decoration: underline;
@@ -274,7 +330,8 @@
     list-style: none;
     margin: 0;
     padding: 0;
-    border-top: 1px solid $gray-20;
+    // No rule above the first row: the design opens the list with the selected
+    // row's white panel, and a divider over it reads as a stray line.
     transition: opacity 100ms ease-out;
 }
 
@@ -289,19 +346,33 @@
 }
 
 .all-charts-block__row {
-    border-bottom: 1px solid $gray-20;
+    border-bottom: 1px solid $blue-20;
 }
 
+// The selected row carries no divider — but the border stays, turned
+// transparent, rather than being removed: dropping it outright would make this
+// one row a pixel shorter than every other and put the whole list half a pixel
+// out of step below it.
+.all-charts-block__row--selected {
+    border-bottom-color: transparent;
+}
+
+// The selected row's white panel against the tinted page, picked out with a
+// left accent bar.
+//
+// The panel stops at the list pane's own right edge, leaving the full gutter
+// between it and the chart card as page tint. That is the design: no negative
+// margin carries the fill across the gap.
 .all-charts-block__row--selected .all-charts-block__row-body {
-    border-left-color: $vermillion;
-    background-color: $blue-5;
+    border-left-color: $blue-50;
+    background-color: $white;
 
     // The plain hover fill below matches this rule's specificity and is
     // declared later in the file, so without this the selected row loses its
-    // blue and turns grey for as long as the pointer is over it — including
-    // straight after the click that selected it.
+    // white and takes the hover tint for as long as the pointer is over it —
+    // including straight after the click that selected it.
     &:hover {
-        background-color: $blue-5;
+        background-color: $white;
     }
 }
 
@@ -313,8 +384,11 @@
     display: flex;
     border-left: 3px solid transparent;
 
+    // One step of blue down from the page tint behind it. A flat $gray-5 reads
+    // as a desaturated grey patch on a tinted page rather than as a hover, and
+    // there is nothing in the token scale between $blue-5 and white.
     &:hover {
-        background-color: $gray-5;
+        background-color: $blue-10;
     }
 }
 
@@ -327,7 +401,16 @@
     flex-direction: column;
     gap: 2px;
     min-width: 0;
-    padding: 12px 13px; // 3px accent border + 13px = 16px of left inset
+    // 11px beside the 3px accent border is the design's 14px from the panel's
+    // left edge to the title's first letter.
+    //
+    // The vertical padding is a pixel short at the bottom on purpose. The
+    // design's rows are 94px apart with no variance, and the text stack between
+    // them is a fixed 64px (a 20px title line, an 18px source line, an 18px link
+    // line, and the 2px, 2px and 4px that separate them) — so the padding has
+    // 29px to spend, and splitting it 15/14 puts the title's baseline where the
+    // design has it while the row's border-box lands on 94 exactly.
+    padding: 15px 11px 14px;
     cursor: pointer;
 }
 
@@ -459,6 +542,52 @@
     text-overflow: ellipsis;
 }
 
+// The row's line of chart-type links, one per view the chart has (see
+// getRowChartTypeTabs). Each is Grapher's own tab icon followed by its label.
+.all-charts-block__row-types {
+    display: flex;
+    flex-wrap: wrap;
+    // 13px between one label and the next icon, which is what the design
+    // measures; the 4px is the gap between lines when the row wraps.
+    gap: 4px 13px;
+    // On top of the 2px the text stack already puts between its lines, for the
+    // 6px the design leaves between the source line and this one.
+    margin-top: 4px;
+}
+
+.all-charts-block__row-type {
+    display: flex;
+    align-items: center;
+    // The design's gap between a link's icon and its label.
+    gap: 5px;
+    padding: 0;
+    background: none;
+    // The icon's colour; the label below sets its own.
+    color: $blue-50;
+    font-size: 12px;
+    line-height: 1.5;
+    cursor: pointer;
+
+    &:hover .all-charts-block__row-type-label {
+        text-decoration: underline;
+    }
+}
+
+// The view the chart beside the list is actually showing, which is the one link
+// that isn't an invitation to go somewhere (see `activeTab` in
+// AllChartsBlock.tsx).
+.all-charts-block__row-type--active {
+    color: $blue-90;
+
+    .all-charts-block__row-type-label {
+        font-weight: 700;
+    }
+}
+
+.all-charts-block__row-type-label {
+    color: $blue-90;
+}
+
 // Mobile/tablet accordion panel holding the inline chart for the currently
 // expanded row. Hidden on wider viewports, where the persistent sidecar
 // (.all-charts-block__right) is used instead.
@@ -471,7 +600,7 @@
     // title.
     padding: 16px 13px 16px 16px;
     background-color: $blue-5;
-    border-top: 1px solid $gray-20;
+    border-top: 1px solid $blue-20;
 
     @include md-down {
         display: block;
