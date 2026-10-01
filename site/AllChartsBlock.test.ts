@@ -1,5 +1,6 @@
 import { expect, it, describe } from "vitest"
 import {
+    ChartRecordType,
     GRAPHER_TAB_NAMES,
     GrapherTabName,
     SearchChartHit,
@@ -8,7 +9,11 @@ import {
     indexTopicVocabularyByName,
     suggestedKeywords,
 } from "./search/topicVocabulary.js"
-import { getRowThumbnailTabs } from "./AllChartsBlock.js"
+import {
+    getPrimaryNonMapTab,
+    getRowThumbnailPreviewUrl,
+    getRowThumbnailTabs,
+} from "./AllChartsBlock.js"
 
 describe(suggestedKeywords, () => {
     it("suggests the vocabulary's terms in the vocabulary's own order", () => {
@@ -160,5 +165,114 @@ describe(getRowThumbnailTabs, () => {
             GRAPHER_TAB_NAMES.LineChart,
             GRAPHER_TAB_NAMES.DiscreteBar,
         ])
+    })
+})
+
+describe(getPrimaryNonMapTab, () => {
+    const hitWithTabs = (availableTabs: GrapherTabName[]) =>
+        ({ availableTabs }) as SearchChartHit
+
+    it("picks the first chart type after the table and the map", () => {
+        // What the sidecar opens on when a search names a country: the map is
+        // the one view that draws the same picture whatever is selected, so
+        // showing it would leave nothing on screen saying the search had done
+        // anything (Marwa, 2026-10-01).
+        expect(
+            getPrimaryNonMapTab(
+                hitWithTabs([
+                    GRAPHER_TAB_NAMES.Table,
+                    GRAPHER_TAB_NAMES.WorldMap,
+                    GRAPHER_TAB_NAMES.LineChart,
+                    GRAPHER_TAB_NAMES.DiscreteBar,
+                ])
+            )
+        ).toEqual(GRAPHER_TAB_NAMES.LineChart)
+    })
+
+    it("picks the leading chart type when there is no map to skip", () => {
+        expect(
+            getPrimaryNonMapTab(
+                hitWithTabs([
+                    GRAPHER_TAB_NAMES.Table,
+                    GRAPHER_TAB_NAMES.DiscreteBar,
+                    GRAPHER_TAB_NAMES.LineChart,
+                ])
+            )
+        ).toEqual(GRAPHER_TAB_NAMES.DiscreteBar)
+    })
+
+    it("has nothing to offer a map-only chart, which stays on its map", () => {
+        // Rather than naming a tab the chart hasn't got.
+        expect(
+            getPrimaryNonMapTab(
+                hitWithTabs([
+                    GRAPHER_TAB_NAMES.Table,
+                    GRAPHER_TAB_NAMES.WorldMap,
+                ])
+            )
+        ).toBeUndefined()
+    })
+})
+
+describe(getRowThumbnailPreviewUrl, () => {
+    const hit = {
+        type: ChartRecordType.Chart,
+        slug: "life-expectancy",
+        availableTabs: [
+            GRAPHER_TAB_NAMES.Table,
+            GRAPHER_TAB_NAMES.WorldMap,
+            GRAPHER_TAB_NAMES.LineChart,
+        ],
+    } as SearchChartHit
+
+    it("puts the selected countries in the URL, not just on the chart", () => {
+        // These are static images cached by URL, so a selection that isn't in
+        // the URL is a selection the visitor never sees.
+        const url = getRowThumbnailPreviewUrl(
+            hit,
+            GRAPHER_TAB_NAMES.LineChart,
+            ["Spain", "France"]
+        )
+        // Serialised as the entity codes Grapher reads, not the typed names.
+        expect(url).toContain("country=ESP~FRA")
+        // And the view the thumbnail is for survives alongside them.
+        expect(url).toContain("tab=line")
+    })
+
+    it("gives two country selections two different URLs", () => {
+        // The point of the above: same chart, same view, different picture.
+        expect(
+            getRowThumbnailPreviewUrl(hit, GRAPHER_TAB_NAMES.LineChart, [
+                "Spain",
+            ])
+        ).not.toEqual(
+            getRowThumbnailPreviewUrl(hit, GRAPHER_TAB_NAMES.LineChart, [
+                "France",
+            ])
+        )
+    })
+
+    it("leaves the map's URL alone whatever is selected", () => {
+        // A map draws every country whatever is selected, so a country in its
+        // URL would only split one cached image into one per combination and
+        // render the same picture. Verified against the deployed thumbnail
+        // function, which returns a byte-identical PNG either way.
+        expect(
+            getRowThumbnailPreviewUrl(hit, GRAPHER_TAB_NAMES.WorldMap, [
+                "Spain",
+            ])
+        ).toEqual(
+            getRowThumbnailPreviewUrl(hit, GRAPHER_TAB_NAMES.WorldMap, [])
+        )
+    })
+
+    it("keeps asking for the text-free thumbnail", () => {
+        const url = getRowThumbnailPreviewUrl(
+            hit,
+            GRAPHER_TAB_NAMES.LineChart,
+            []
+        )
+        expect(url).toContain("imMinimal=1")
+        expect(url).toContain("imBare=1")
     })
 })

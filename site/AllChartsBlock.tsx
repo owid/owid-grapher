@@ -23,6 +23,7 @@ import {
     ALL_CHARTS_ID,
     GRAPHER_TAB_NAMES,
     GrapherTabName,
+    EntityName,
 } from "@ourworldindata/types"
 import { listedRegionsNames } from "@ourworldindata/utils"
 import { Button } from "@ourworldindata/components"
@@ -951,21 +952,58 @@ const AllChartsTable = ({
 }
 
 /**
+ * A chart's primary non-map view, or `undefined` for a chart that only has a
+ * map. The record's `availableTabs` is Grapher's own tab list — table, map,
+ * then the chart types, in tab-bar order (see getRowThumbnailTabs) — so the
+ * first entry that is neither is the view the chart leads with.
+ */
+// oxlint-disable-next-line react/only-export-components -- exported for AllChartsBlock.test.ts; the rule is about fast refresh, and this is a pure helper
+export function getPrimaryNonMapTab(
+    hit: SearchChartHit
+): GrapherTabName | undefined {
+    return hit.availableTabs.find(
+        (tab) =>
+            tab !== GRAPHER_TAB_NAMES.Table &&
+            tab !== GRAPHER_TAB_NAMES.WorldMap
+    )
+}
+
+/**
  * The Grapher view the sidecar is showing for a hit, as a query string — e.g.
  * "?country=~ESP" when the search names a country this chart has data for, and
  * "" when it doesn't. `tab` is the view picked from the row's thumbnails, if
- * any; without one the chart opens on its own default view.
+ * any.
+ *
+ * Without one, a chart whose search selected a country opens on its primary
+ * non-map view rather than its own default. A map is the one view that does
+ * not render an entity selection at all — it draws every country whatever is
+ * selected, which is verifiable: the same thumbnail URL with and without a
+ * `country` param comes back byte for byte identical. So a chart that defaults
+ * to its map answered a country search by showing exactly what it showed
+ * before, and nothing on screen said the search had done anything (Marwa,
+ * 2026-09-03 and again 2026-10-01). A map-only chart stays on its map: there
+ * is no other view to send it to, and naming a tab the chart hasn't got would
+ * be worse than leaving it be.
+ *
+ * This only sets the view the chart *opens* on. Which view it is *showing*
+ * still comes back from the live Grapher (see AllChartsSidecar's
+ * registerGrapherState), so the thumbnail highlight follows the chart here
+ * exactly as it does after a tab change made inside Grapher.
  */
 function getSidecarViewQueryStr(
     hit: SearchChartHit,
     detectedCountries: string[],
     tab?: GrapherTabName
 ): string {
-    const entityQueryStr = getEntityQueryStr(
-        pickEntitiesForChartHit(hit, detectedCountries)
-    )
-    if (!tab) return entityQueryStr
-    const tabQueryStr = `tab=${mapGrapherTabNameToQueryParam(tab)}`
+    const entities = pickEntitiesForChartHit(hit, detectedCountries)
+    const entityQueryStr = getEntityQueryStr(entities)
+    // Entities rather than `detectedCountries`: a country the search named but
+    // this chart has no data for selects nothing, so there is nothing for a
+    // non-map view to reveal and the chart keeps its own default.
+    const viewTab =
+        tab ?? (entities.length > 0 ? getPrimaryNonMapTab(hit) : undefined)
+    if (!viewTab) return entityQueryStr
+    const tabQueryStr = `tab=${mapGrapherTabNameToQueryParam(viewTab)}`
     return entityQueryStr
         ? `${entityQueryStr}&${tabQueryStr}`
         : `?${tabQueryStr}`
@@ -1008,6 +1046,101 @@ export function getRowThumbnailTabs(hit: SearchChartHit): GrapherTabName[] {
 }
 
 /**
+ * The preview image for one view of one row's chart.
+ *
+ * `entities` are the countries the search selected that this chart has data
+ * for. They go into the URL rather than being applied to the image afterwards
+ * because that is the only thing that can change the picture: these are static
+ * images, cached by URL, so a selection that isn't in the URL is a selection
+ * the visitor never sees (Marwa, 2026-10-01).
+ *
+ * The map view is the exception, and is drawn for no entities at all. It is the
+ * one view that renders the same picture whatever is selected — the deployed
+ * thumbnail function returns a byte-identical PNG for a map with and without a
+ * `country` param — so putting the selection in its URL would split one cached
+ * image into one per combination of countries, on a renderer a whole search is
+ * already queueing against, and produce the same image at the end of it. The
+ * map stays in the strip, which goes on mirroring Grapher's tab bar; it is the
+ * chart beside the list that moves off the map when a country is named (see
+ * getSidecarViewQueryStr).
+ */
+// oxlint-disable-next-line react/only-export-components -- exported for AllChartsBlock.test.ts; the rule is about fast refresh, and this is a pure helper
+export function getRowThumbnailPreviewUrl(
+    hit: SearchChartHit,
+    tab: GrapherTabName,
+    entities: EntityName[]
+): string {
+    return constructPreviewUrl({
+        hit,
+        grapherParams: toGrapherQueryParams({
+            tab,
+            entities: tab === GRAPHER_TAB_NAMES.WorldMap ? [] : entities,
+        }),
+        variant: PreviewVariant.Thumbnail,
+        // No labelling at all, so the chart itself gets the whole frame: at a
+        // third of the list pane every label in one of these is illegible
+        // anyway, and the row's title and source line above already say what it
+        // is (Marwa, 2026-09-30).
+        //
+        // Both flags, not just the second: imMinimal is what takes a map's
+        // legend and "No data" key away, and a map has no axes or series labels
+        // for imBare to act on. imBare covers the rest — series and entity
+        // names, value labels, axis lines and tick labels — and hands the space
+        // back to the plot. See useMinimalLabeling and useBareLabeling in
+        // packages/@ourworldindata/grapher.
+        isMinimal: true,
+        isBare: true,
+    })
+}
+
+// How many times a thumbnail that failed to load is requested before the row
+// gives up on it and leaves the slot empty.
+const THUMBNAIL_LOAD_ATTEMPTS = 2
+
+/**
+ * One thumbnail's image, re-requested once if it fails to load, and left out
+ * altogether rather than showing the browser's broken-image icon if it fails
+ * again.
+ *
+ * These are rendered on demand by a Cloudflare function, and a search can ask
+ * it for sixty-odd charts at once. Every URL this block builds was checked
+ * against that function and answers 200 with a valid 1200x640 PNG: for every
+ * combination of record type (chart, multi-dimensional view, explorer view)
+ * and chart type on a topic, and for a hundred uncached requests in parallel
+ * (2026-10-01). A strip of broken thumbnails is therefore the renderer having
+ * a bad moment rather than a URL this block got wrong — but an <img> that
+ * fails once stays broken for as long as the row is on screen, which is how
+ * one bad moment became the permanent row of broken-image icons the designer
+ * photographed. Asking again is what that case needs; nothing here can stop
+ * the renderer failing, and this does not pretend to.
+ */
+const AllChartsRowThumbnailImage = ({ src }: { src: string }) => {
+    const [attempt, setAttempt] = useState(1)
+
+    if (attempt > THUMBNAIL_LOAD_ATTEMPTS) return null
+
+    return (
+        <img
+            // A distinct URL per attempt, so a retry is a fresh request rather
+            // than the browser or the CDN handing back the failure it already
+            // has. The renderer ignores params it doesn't know (verified
+            // against the deployed function: the same URL with an extra param
+            // returns the identical image), so this costs the first attempt —
+            // the one that almost always succeeds — nothing at all.
+            src={attempt === 1 ? src : `${src}&imgRetry=${attempt}`}
+            onError={() => setAttempt((n) => n + 1)}
+            alt=""
+            loading="lazy"
+            // The thumbnail's own dimensions, so the browser can reserve the
+            // right box before the image lands — a topic page can hold nearly
+            // 200 rows of these.
+            width={GRAPHER_THUMBNAIL_WIDTH}
+            height={GRAPHER_THUMBNAIL_HEIGHT}
+        />
+    )
+}
+
+/**
  * A row's thumbnails: one static preview per view of the chart, from the same
  * thumbnail endpoint the search results' previews use (see constructPreviewUrl).
  * Clicking one selects the row and puts that view in the chart beside it.
@@ -1017,6 +1150,7 @@ const AllChartsRowThumbnails = ({
     activeTab,
     isSelected,
     onSelectTab,
+    entities,
 }: {
     hit: SearchChartHit
     // The view the chart beside the list is showing, reported by that chart
@@ -1026,6 +1160,12 @@ const AllChartsRowThumbnails = ({
     activeTab?: GrapherTabName
     isSelected: boolean
     onSelectTab: (tab: GrapherTabName) => void
+    // The countries the search selected that this chart actually has data for
+    // — the same list the row shows as a tag and the chart beside it opens
+    // with. The previews are drawn for these rather than for the chart's own
+    // default entities, so a strip stops showing a world the visitor has
+    // narrowed away from (Marwa, 2026-10-01).
+    entities: EntityName[]
 }) => {
     const tabs = useMemo(() => getRowThumbnailTabs(hit), [hit])
 
@@ -1033,6 +1173,7 @@ const AllChartsRowThumbnails = ({
         <div className="all-charts-block__row-thumbnails">
             {tabs.map((tab) => {
                 const label = makeLabelForGrapherTab(tab, { format: "long" })
+                const src = getRowThumbnailPreviewUrl(hit, tab, entities)
                 return (
                     <button
                         key={tab}
@@ -1045,37 +1186,11 @@ const AllChartsRowThumbnails = ({
                         aria-label={`${label}: ${hit.title}`}
                         onClick={() => onSelectTab(tab)}
                     >
-                        <img
-                            src={constructPreviewUrl({
-                                hit,
-                                grapherParams: toGrapherQueryParams({ tab }),
-                                variant: PreviewVariant.Thumbnail,
-                                // No labelling at all, so the chart itself
-                                // gets the whole frame: at a third of the list
-                                // pane every label in one of these is
-                                // illegible anyway, and the row's title and
-                                // source line above already say what it is
-                                // (Marwa, 2026-09-30).
-                                //
-                                // Both flags, not just the second: imMinimal
-                                // is what takes a map's legend and "No data"
-                                // key away, and a map has no axes or series
-                                // labels for imBare to act on. imBare covers
-                                // the rest — series and entity names, value
-                                // labels, axis lines and tick labels — and
-                                // hands the space back to the plot. See
-                                // useMinimalLabeling and useBareLabeling in
-                                // packages/@ourworldindata/grapher.
-                                isMinimal: true,
-                                isBare: true,
-                            })}
-                            alt=""
-                            loading="lazy"
-                            // The thumbnail's own dimensions, so the browser can
-                            // reserve the right box before the image lands — a
-                            // topic page can hold nearly 200 rows of these.
-                            width={GRAPHER_THUMBNAIL_WIDTH}
-                            height={GRAPHER_THUMBNAIL_HEIGHT}
+                        <AllChartsRowThumbnailImage
+                            // A new URL is a new image, and so a fresh set of
+                            // load attempts rather than the previous image's.
+                            key={src}
+                            src={src}
                         />
                     </button>
                 )
@@ -1239,6 +1354,7 @@ const AllChartsTableRow = ({
                     activeTab={activeTab}
                     isSelected={isSelected}
                     onSelectTab={onSelectTab}
+                    entities={shownEntities}
                 />
             </div>
             {/* Mobile/tablet accordion panel: the persistent sidecar
