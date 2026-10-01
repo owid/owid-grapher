@@ -2,7 +2,7 @@ import { getRegionByNameOrVariantName } from "@ourworldindata/utils"
 import {
     DEFAULT_TOPIC_VOCABULARY_URL,
     TOPIC_VOCABULARY_URL,
-} from "../../settings/clientSettings.js"
+} from "../../settings/clientSettings.mjs"
 
 // The vocabulary as published: keyed by topic slug, each entry carrying the
 // topic's name, its keywords, and generation stats we have no use for here.

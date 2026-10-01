@@ -28,7 +28,7 @@ import {
     SelectAllHitsCommand,
 } from "./ExplorerCommands.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
-import { ENV } from "../settings/clientSettings.js"
+import { ENV } from "../settings/clientSettings.mjs"
 
 const RESERVED_NAMES = [DefaultNewExplorerSlug, "index", "new", "create"] // don't allow authors to save explorers with these names, otherwise might create some annoying situations.
 

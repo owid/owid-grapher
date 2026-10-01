@@ -330,11 +330,15 @@ export function InapplicablePattern({
     )
 }
 
-export function ChartPatternDefs(): React.ReactElement {
+export function ChartPatternDefs({
+    scale = 1,
+}: {
+    scale?: number
+}): React.ReactElement {
     return (
         <defs>
-            <NoDataPattern />
-            <InapplicablePattern />
+            <NoDataPattern scale={scale} />
+            <InapplicablePattern scale={scale} />
         </defs>
     )
 }
@@ -399,6 +403,13 @@ export function textWidth(text: string, fontSettings: FontSettings): number {
 
 export function roundFontSize(fontSize: number): number {
     return Math.round(fontSize * 2) / 2
+}
+
+export function scaleFontSize(
+    sizeAtBase16: number,
+    baseFontSize: number
+): number {
+    return roundFontSize((sizeAtBase16 / BASE_FONT_SIZE) * baseFontSize)
 }
 
 /**

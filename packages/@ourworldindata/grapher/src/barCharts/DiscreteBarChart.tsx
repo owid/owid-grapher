@@ -1,13 +1,14 @@
 import * as _ from "lodash-es"
 import React from "react"
 import {
-    exposeInstanceOnWindow,
-    Bounds,
-    Time,
-    HorizontalAlign,
     AxisAlign,
-    makeFigmaId,
+    Bounds,
+    HorizontalAlign,
+    Time,
     dyFromAlign,
+    exposeInstanceOnWindow,
+    makeFigmaId,
+    roundForSvg,
 } from "@ourworldindata/utils"
 import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
@@ -17,12 +18,12 @@ import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
     FontSettings,
-    GRAPHER_FONT_SCALE_12,
 } from "../core/GrapherConstants"
 import { NoDataMessage } from "../noDataMessage/NoDataMessage"
 import { HorizontalAxisZeroLine } from "../axis/AxisViews"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 import { ChartInterface } from "../chart/ChartInterface"
+import { roundFontSize, scaleFontSize } from "../chart/ChartUtils"
 import {
     BAR_SPACING_FACTOR,
     DISCRETE_BAR_STYLE,
@@ -112,9 +113,11 @@ export class DiscreteBarChart
     }
 
     @computed private get labelFontSize(): number {
-        return Math.min(
-            GRAPHER_FONT_SCALE_12 * this.fontSize,
-            1.1 * this.availableHeightPerSeries
+        return roundFontSize(
+            Math.min(
+                scaleFontSize(12, this.fontSize),
+                1.1 * this.availableHeightPerSeries
+            )
         )
     }
 
@@ -145,9 +148,19 @@ export class DiscreteBarChart
         return this.series.some((d) => d.value < 0)
     }
 
+    /**
+     * Bare labelling leaves only the bars (see GrapherState.useBareLabeling).
+     * This chart draws its entity names and values itself rather than through
+     * an axis or a series label, so unlike every other type it has to be told
+     * here; `showSeriesLabels` is not consulted anywhere in it.
+     */
+    @computed private get hideLabels(): boolean {
+        return !!this.manager.useBareLabeling
+    }
+
     // The amount of space we need to allocate for bar end labels on the right
     @computed private get rightValueLabelsWidth(): number {
-        if (!this.hasPositive) return 0
+        if (this.hideLabels || !this.hasPositive) return 0
 
         const labelsWidths = this.series
             .filter((series) => series.value >= 0)
@@ -211,6 +224,9 @@ export class DiscreteBarChart
      * and the padding between them.
      */
     @computed private get leftLabelsWidth(): number {
+        // Nothing to the left of the bars, so they start at the frame's edge.
+        if (this.hideLabels) return 0
+
         const labelWidths = this.sizedSeries.map((series) => {
             const textWidth = Math.max(
                 series.label?.width ?? 0,
@@ -341,9 +357,11 @@ export class DiscreteBarChart
                 id={makeFigmaId(series.seriesName)}
                 x={0}
                 y={0}
-                transform={`translate(${series.barX}, ${y - this.barHeight / 2})`}
-                width={series.barWidth}
-                height={this.barHeight}
+                transform={`translate(${roundForSvg(series.barX)}, ${roundForSvg(
+                    y - this.barHeight / 2
+                )})`}
+                width={roundForSvg(series.barWidth)}
+                height={roundForSvg(this.barHeight)}
                 fill={barColor}
                 opacity={DISCRETE_BAR_STYLE[series.emphasis].barOpacity}
                 style={{ transition: "height 200ms ease" }}
@@ -399,7 +417,9 @@ export class DiscreteBarChart
                 key={`value-label-${series.seriesName}`}
                 x={0}
                 y={0}
-                transform={`translate(${series.valueLabelX}, ${y})`}
+                transform={`translate(${roundForSvg(series.valueLabelX)}, ${roundForSvg(
+                    y
+                )})`}
                 fill={GRAPHER_DARK_TEXT}
                 dy={dyFromAlign(VerticalAlign.middle)}
                 textAnchor={series.value < 0 ? "end" : "start"}
@@ -550,9 +570,9 @@ export class DiscreteBarChart
                 {this.renderLegend()}
                 {this.renderAxis()}
                 {this.renderBars()}
-                {this.renderValueLabels()}
-                {this.renderEntityLabels()}
-                {this.renderEntityAnnotations()}
+                {!this.hideLabels && this.renderValueLabels()}
+                {!this.hideLabels && this.renderEntityLabels()}
+                {!this.hideLabels && this.renderEntityAnnotations()}
             </>
         )
     }
@@ -645,7 +665,7 @@ export class DiscreteBarChart
         | undefined {
         if (!this.manager.showLegend) return undefined
         return new HorizontalNumericColorLegendState(this.numericLegendData, {
-            fontSize: this.fontSize,
+            baseFontSize: this.fontSize,
             maxWidth: this.bounds.width,
             align: HorizontalAlign.center,
             title: this.legendTitle,
@@ -700,7 +720,7 @@ function StripedProjectedDataPattern({
                 x1="0"
                 y1="0"
                 x2="0"
-                y2={size}
+                y2={roundForSvg(size)}
                 stroke={color}
                 strokeWidth={strokeWidth}
             />

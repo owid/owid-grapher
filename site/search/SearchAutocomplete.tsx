@@ -57,8 +57,13 @@ export const SearchAutocomplete = ({
             synonymMap
         )
 
+        // The suggestions live in the autocomplete context, which the search
+        // input shares for keyboard navigation, so we sync them from here
+        // (together with the matching unmatched query)
+        /* oxlint-disable react/set-state-in-effect */
         setSuggestions(result.suggestions)
         setUnmatchedQuery(result.unmatchedQuery)
+        /* oxlint-enable react/set-state-in-effect */
     }, [debouncedLocalQuery, allTopics, filters, synonymMap, setSuggestions])
 
     const setQueries = useCallback(

@@ -1,8 +1,7 @@
 import { ReactNode, forwardRef, ForwardedRef, useRef } from "react"
-import { useMediaQuery } from "usehooks-ts"
+import { useIsClient, useMediaQuery } from "usehooks-ts"
 import { SMALL_BREAKPOINT_MEDIA_QUERY } from "../SiteConstants.js"
 import {
-    createFocusInputOnClickHandler,
     isCurrentRef,
     getSearchAutocompleteId,
     getSearchAutocompleteItemId,
@@ -31,6 +30,7 @@ export const SearchInput = forwardRef(
         inputRef: ForwardedRef<HTMLInputElement>
     ) => {
         const isSmallScreen = useMediaQuery(SMALL_BREAKPOINT_MEDIA_QUERY)
+        const isClient = useIsClient()
         const hasUserInteracted = useRef(false)
         const {
             activeIndex,
@@ -42,8 +42,8 @@ export const SearchInput = forwardRef(
         } = useSearchAutocomplete()
 
         let placeholder = ""
-        if (isCurrentRef(inputRef)) {
-            // Only set the placeholder once the component has rendered so that useMediaQuery has a chance to initialize
+        if (isClient) {
+            // Only set the placeholder on the client so that useMediaQuery has a chance to initialize
             // Otherwise on mobile it will flash from the desktop version to the mobile placeholder
             placeholder = isSmallScreen
                 ? "Search data, topics, countries or keywords…"
@@ -101,7 +101,9 @@ export const SearchInput = forwardRef(
         // readers might be clicking on. Do register clicks on children, as we
         // want clicks removing active filters or resetting the search to focus
         // the input.
-        const handleFormClick = createFocusInputOnClickHandler(inputRef)
+        const handleFormClick = (): void => {
+            if (isCurrentRef(inputRef)) inputRef.current.focus()
+        }
 
         return (
             <form

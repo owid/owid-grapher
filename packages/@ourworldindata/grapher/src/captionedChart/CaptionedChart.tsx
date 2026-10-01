@@ -6,6 +6,7 @@ import {
     Bounds,
     exposeInstanceOnWindow,
     makeFigmaId,
+    roundForSvg,
 } from "@ourworldindata/utils"
 import {
     MarkdownTextWrap,
@@ -443,21 +444,20 @@ export class StaticCaptionedChart extends AbstractCaptionedChart {
             <>
                 <line
                     id={makeFigmaId("separator-line")}
-                    x1={this.framePaddingHorizontal}
-                    y1={this.bounds.height}
-                    x2={
+                    x1={roundForSvg(this.framePaddingHorizontal)}
+                    y1={roundForSvg(this.bounds.height)}
+                    x2={roundForSvg(
                         this.boundsForChartArea.width +
-                        this.framePaddingHorizontal
-                    }
-                    y2={this.bounds.height}
+                            this.framePaddingHorizontal
+                    )}
+                    y2={roundForSvg(this.bounds.height)}
                     stroke="#e7e7e7"
                 ></line>
                 <g
                     id={makeFigmaId("details")}
-                    transform={`translate(15, ${
-                        // + padding below the grey line
+                    transform={`translate(15, ${roundForSvg(
                         this.bounds.height + this.framePaddingVertical
-                    })`}
+                    )})`}
                 >
                     {this.manager.detailRenderers.map((detail, i) => {
                         previousOffset = yOffset

@@ -1,4 +1,5 @@
 import * as React from "react"
+import { useState } from "react"
 import cx from "clsx"
 import {
     faHouse,
@@ -9,6 +10,7 @@ import {
     faBuildingNgo,
     faUserPen,
     faBullhorn,
+    faChartSimple,
     faFileLines,
     faTriangleExclamation,
 } from "@fortawesome/free-solid-svg-icons"
@@ -20,7 +22,7 @@ import {
     MinimalTagWithMetadata,
     TagGraphRole,
 } from "@ourworldindata/utils"
-import { BAKED_BASE_URL } from "../settings/clientSettings.js"
+import { BAKED_BASE_URL } from "../settings/clientSettings.mjs"
 import { EditableTags } from "./EditableTags.js"
 import { GdocsEditLink } from "./GdocsEditLink.js"
 import { checkCanTagGdocType } from "./gdocsTagging.js"
@@ -37,6 +39,7 @@ const iconGdocTypeMap = {
     [OwidGdocType.Author]: <FontAwesomeIcon icon={faUserPen} />,
     [OwidGdocType.Announcement]: <FontAwesomeIcon icon={faBullhorn} />,
     [OwidGdocType.Profile]: <FontAwesomeIcon icon={faFileLines} />,
+    [OwidGdocType.FeaturedViz]: <FontAwesomeIcon icon={faChartSimple} />,
 }
 
 function canTagGdoc(gdoc: OwidGdocIndexItem): boolean {
@@ -89,7 +92,8 @@ export function GdocsIndexRow({
     onUpdateTags,
     canEditTags = true,
 }: GdocsIndexRowProps): React.ReactElement {
-    const isScheduled = isGdocScheduled(gdoc, Date.now())
+    const [now] = useState(() => Date.now())
+    const isScheduled = isGdocScheduled(gdoc, now)
     const tagWarning = getTagWarning(gdoc, orphanTagIds)
 
     return (

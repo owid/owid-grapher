@@ -32,7 +32,7 @@ import {
     BAKED_BASE_URL,
     BAKED_GRAPHER_URL,
     ADMIN_BASE_URL,
-} from "../settings/clientSettings.js"
+} from "../settings/clientSettings.mjs"
 
 interface EditorTextTabProps<Editor> {
     editor: Editor

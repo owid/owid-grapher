@@ -19,7 +19,7 @@ import {
 import {
     BAKED_GRAPHER_URL,
     GRAPHER_DYNAMIC_THUMBNAIL_URL,
-} from "../../../settings/clientSettings.js"
+} from "../../../settings/clientSettings.mjs"
 import { queryParamsToStr, readFromAssetMap } from "@ourworldindata/utils"
 
 export default function NarrativeChart({
@@ -34,7 +34,7 @@ export default function NarrativeChart({
     const refChartContainer = useRef<HTMLDivElement>(null)
     const { isPreviewing, archiveContext } = useDocumentContext()
     const isClient = useIsClient()
-    useEmbedChart(0, refChartContainer, isPreviewing)
+    useEmbedChart(refChartContainer, isPreviewing)
 
     const viewMetadata = useLinkedNarrativeChart(d.name)
 

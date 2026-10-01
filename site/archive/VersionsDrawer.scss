@@ -1,6 +1,9 @@
 .versions-drawer-overlay {
     position: fixed;
     inset: 0;
+    // `inset: 0` can extend behind mobile browser chrome. Use the dynamic
+    // viewport height where supported, with `100vh` as a fallback.
+    height: var(--viewport-height);
     display: flex;
     justify-content: flex-end;
     background: rgba(0, 0, 0, 0.4);
@@ -32,7 +35,7 @@
 
 .versions-drawer-dialog {
     pointer-events: auto;
-    height: 100vh;
+    height: 100%;
     width: min(408px, 100%);
     background-color: $white;
     color: $blue-90;
@@ -198,8 +201,8 @@
     }
 
     .versions-drawer-dialog {
-        height: min(490px, 100vh);
-        max-height: 100vh;
+        height: min(490px, var(--viewport-height));
+        max-height: var(--viewport-height);
         width: 100%;
     }
 }

@@ -21,7 +21,6 @@ import { action, computed, makeObservable, observable } from "mobx"
 import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
-    GRAPHER_FONT_SCALE_12,
 } from "../core/GrapherConstants"
 import {
     GRAPHER_CHART_TYPES,
@@ -213,10 +212,10 @@ export class FacetChart
 
     @computed private get facetBaseFontSize(): number {
         // Facets scale internal font sizes like axis ticks and labels from
-        // this base size, with the largest of them using GRAPHER_FONT_SCALE_12.
+        // this base size, with the largest of them using size 12.
         // Dividing by that factor keeps the biggest internal font at the label
         // size; the extra 0.9 keeps it slightly smaller.
-        return (this.facetLabelFontSize / GRAPHER_FONT_SCALE_12) * 0.9
+        return ((this.facetLabelFontSize * BASE_FONT_SIZE) / 12) * 0.9
     }
 
     @computed private get yAxisConfig(): AxisConfig {
@@ -352,9 +351,14 @@ export class FacetChart
         const hideStartValueLabel =
             this.variant === GrapherVariant.Thumbnail &&
             this.manager.variant !== GrapherVariant.Thumbnail
-        const showSeriesLabels = useMinimalLabeling
-            ? true
-            : !this.hideFacetLegends
+        // Bare labelling has no series labels, so it wins over the line-chart
+        // thumbnail exception above (see GrapherState.useBareLabeling).
+        const useBareLabeling = !!this.manager.useBareLabeling
+        const showSeriesLabels = useBareLabeling
+            ? false
+            : useMinimalLabeling
+              ? true
+              : !this.hideFacetLegends
 
         return series.map((series, index) => {
             const { bounds } = gridBoundsArr[index]
@@ -392,6 +396,7 @@ export class FacetChart
                 shouldPinTooltipToBottom,
                 externalLegendHoverBin: legendHoverBin,
                 useMinimalLabeling,
+                useBareLabeling,
                 hideStartValueLabel,
                 // Allow labels in line chart thumbnails to overflow facet bounds
                 chartAreaPadding: Infinity,
@@ -741,7 +746,8 @@ export class FacetChart
     @computed private get showLegend(): boolean {
         const { isNumericLegend, categoricalLegendData, numericLegendData } =
             this
-        if (this.manager.useMinimalLabeling) return false
+        if (this.manager.useMinimalLabeling || this.manager.useBareLabeling)
+            return false
         const hasBins =
             categoricalLegendData.length > 0 || numericLegendData.length > 0
         if (!hasBins) return false
@@ -933,7 +939,7 @@ export class FacetChart
                 state: new HorizontalNumericColorLegendState(
                     this.numericLegendData,
                     {
-                        fontSize: this.fontSize,
+                        baseFontSize: this.fontSize,
                         maxWidth: this.legendMaxWidth,
                         title: this.legendTitle,
                         align: this.legendAlign,
@@ -948,7 +954,7 @@ export class FacetChart
             state: new HorizontalCategoricalColorLegendState(
                 this.categoricalLegendData,
                 {
-                    fontSize: this.fontSize,
+                    baseFontSize: this.fontSize,
                     width: this.legendMaxWidth,
                     align: this.legendAlign,
                 }

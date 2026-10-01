@@ -40,6 +40,7 @@ $admin-section: "section:not(:where(.GrapherComponent *))";
 @import "./StaticViz.scss";
 @import "./MultiDimDetailPage.scss";
 @import "./slideshows/SlideshowAdmin.scss";
+@import "./GdocsReferencePage.scss";
 // Slide content styles reused for slideshow preview
 @import "../site/slideshows/SlideContent.scss";
 @import "./SvgTesterSuitePage.scss";

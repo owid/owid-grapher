@@ -7,12 +7,13 @@ import { SortOrder } from "@ourworldindata/types"
 import {
     Bounds,
     PointVector,
-    sortNumeric,
-    makeSafeForCSS,
     getRelativeMouse,
-    intersection,
     guid,
+    intersection,
     makeFigmaId,
+    makeSafeForCSS,
+    roundForSvg,
+    sortNumeric,
 } from "@ourworldindata/utils"
 import { computed, action, observable, makeObservable } from "mobx"
 import { observer } from "mobx-react"
@@ -28,7 +29,7 @@ import {
     SCATTER_POINT_MIN_RADIUS,
     SCATTER_POINT_HOVER_TARGET_RANGE,
     ScatterRenderPoint,
-    SCATTER_LABEL_MIN_FONT_SIZE_FACTOR,
+    SCATTER_LABEL_MIN_FONT_SIZE,
 } from "./ScatterPlotChartConstants"
 import { ScatterLine, ScatterPoint } from "./ScatterPoints"
 import {
@@ -40,8 +41,8 @@ import {
 import { Triangle } from "./Triangle"
 import { ColorScale } from "../color/ColorScale"
 import { BASE_FONT_SIZE } from "../core/GrapherConstants"
+import { roundFontSize, scaleFontSize } from "../chart/ChartUtils"
 
-// This is the component that actually renders the points. The higher level ScatterPlot class renders points, legends, comparison lines, etc.
 @observer
 export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLabelsProps> {
     base = React.createRef<SVGGElement>()
@@ -151,9 +152,14 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
             value !== undefined
                 ? this.fontScale(value)
                 : this.fontScale.range()[0]
-        return Math.max(
-            fontSize,
-            SCATTER_LABEL_MIN_FONT_SIZE_FACTOR * this.props.baseFontSize
+        return roundFontSize(
+            Math.max(
+                fontSize,
+                scaleFontSize(
+                    SCATTER_LABEL_MIN_FONT_SIZE,
+                    this.props.baseFontSize
+                )
+            )
         )
     }
 
@@ -466,11 +472,11 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
                             >
                                 <text
                                     id={makeFigmaId("label", label.text)}
-                                    x={label.bounds.x.toFixed(2)}
-                                    y={(
+                                    x={roundForSvg(label.bounds.x)}
+                                    y={roundForSvg(
                                         label.bounds.y + label.bounds.height
-                                    ).toFixed(2)}
-                                    fontSize={label.fontSize.toFixed(2)}
+                                    )}
+                                    fontSize={label.fontSize}
                                     fontWeight={label.fontWeight}
                                     fill={isLayerMode ? "#aaa" : label.color}
                                     style={{ pointerEvents: "none" }}
@@ -538,16 +544,16 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
                                         y: point.position.y,
                                         color: point.color,
                                     }))}
-                                    strokeWidth={strokeWidth}
+                                    strokeWidth={roundForSvg(strokeWidth)}
                                     opacity={opacity}
                                 />
                             )}
                             {(series.isFocus || hideConnectedScatterLines) &&
                                 firstValue && (
                                     <circle
-                                        cx={firstValue.position.x}
-                                        cy={firstValue.position.y}
-                                        r={radius}
+                                        cx={roundForSvg(firstValue.position.x)}
+                                        cy={roundForSvg(firstValue.position.y)}
+                                        r={roundForSvg(radius)}
                                         fill={firstValue.color}
                                         opacity={opacity}
                                         stroke={firstValue.color}
@@ -565,9 +571,9 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
                                     .map((v, index) => (
                                         <circle
                                             key={index}
-                                            cx={v.position.x}
-                                            cy={v.position.y}
-                                            r={radius}
+                                            cx={roundForSvg(v.position.x)}
+                                            cy={roundForSvg(v.position.y)}
+                                            r={roundForSvg(radius)}
                                             fill={v.color}
                                             stroke="none"
                                         />
@@ -603,10 +609,10 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
                             >
                                 <text
                                     id={makeFigmaId("label", series.seriesName)}
-                                    x={label.bounds.x.toFixed(2)}
-                                    y={(
+                                    x={roundForSvg(label.bounds.x)}
+                                    y={roundForSvg(
                                         label.bounds.y + label.bounds.height
-                                    ).toFixed(2)}
+                                    )}
                                     fontSize={label.fontSize}
                                     fontWeight={label.fontWeight}
                                     fill={label.color}
@@ -644,19 +650,19 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
             >
                 <rect
                     key="background"
-                    x={bounds.x}
-                    y={bounds.y}
-                    width={bounds.width}
-                    height={bounds.height}
+                    x={roundForSvg(bounds.x)}
+                    y={roundForSvg(bounds.y)}
+                    width={roundForSvg(bounds.width)}
+                    height={roundForSvg(bounds.height)}
                     fill="rgba(255,255,255,0)"
                 />
                 <defs>
                     <clipPath id={`scatterBounds-${renderUid}`}>
                         <rect
-                            x={clipBounds.x}
-                            y={clipBounds.y}
-                            width={clipBounds.width}
-                            height={clipBounds.height}
+                            x={roundForSvg(clipBounds.x)}
+                            y={roundForSvg(clipBounds.y)}
+                            width={roundForSvg(clipBounds.width)}
+                            height={roundForSvg(clipBounds.height)}
                         />
                     </clipPath>
                 </defs>

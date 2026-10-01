@@ -35,6 +35,7 @@ export interface ChartManager {
 
     variant?: GrapherVariant
     useMinimalLabeling?: boolean
+    useBareLabeling?: boolean
     hideStartValueLabel?: boolean // Only used in LineChartThumbnail
     chartAreaPadding?: number
 
@@ -97,6 +98,7 @@ export interface ChartManager {
     showNoDataArea?: boolean // No data area in Marimekko charts
 
     externalLegendHoverBin?: ColorScaleBin | undefined
+    patternScale?: number
 
     /** Used by FacetChart to align chart content across facets */
     sharedVerticalLabelWidths?: SideWidths

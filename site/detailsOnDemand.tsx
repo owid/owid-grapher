@@ -1,4 +1,4 @@
-import { BAKED_BASE_URL } from "../settings/clientSettings.js"
+import { BAKED_BASE_URL } from "../settings/clientSettings.mjs"
 import {
     ArchiveMetaInformation,
     DetailDictionary,
@@ -37,6 +37,22 @@ export async function runDetailsOnDemand(): Promise<void> {
 
     initializeDetailsOnDemand({
         details,
-        onDodShown: (id) => siteAnalytics.logDodShown(id),
+        onDodShown: (id, dodSpan) =>
+            siteAnalytics.logDodShown(id, getDodTrackNote(dodSpan)),
     })
+}
+
+export const DOD_TRACK_NOTE_ATTR = "data-dod-track-note"
+
+/**
+ * The page region a DoD span sits in, per its own or the nearest ancestor's
+ * data-dod-track-note (set via SimpleMarkdownText's dodTrackNote on data pages),
+ * or undefined if none.
+ */
+export function getDodTrackNote(dodSpan: Element): string | undefined {
+    return (
+        dodSpan
+            .closest(`[${DOD_TRACK_NOTE_ATTR}]`)
+            ?.getAttribute(DOD_TRACK_NOTE_ATTR) ?? undefined
+    )
 }

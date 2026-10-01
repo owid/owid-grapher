@@ -15,15 +15,16 @@ import { zoom } from "d3-zoom"
 // @ts-expect-error no types available
 import versor from "versor"
 import {
-    makeFigmaId,
     Bounds,
-    isTouchDevice,
-    getRelativeMouse,
-    checkIsTouchEvent,
-    PointVector,
-    MapRegionName,
-    excludeUndefined,
     EntityName,
+    MapRegionName,
+    PointVector,
+    checkIsTouchEvent,
+    excludeUndefined,
+    getRelativeMouse,
+    isTouchDevice,
+    makeFigmaId,
+    roundForSvg,
 } from "@ourworldindata/utils"
 import {
     Annotation,
@@ -686,9 +687,9 @@ export class ChoroplethGlobe extends React.Component<{
             <>
                 <circle
                     id={makeFigmaId("globe-sphere")}
-                    cx={this.globeCenter[0]}
-                    cy={this.globeCenter[1]}
-                    r={this.globeRadius}
+                    cx={roundForSvg(this.globeCenter[0])}
+                    cy={roundForSvg(this.globeCenter[1])}
+                    r={roundForSvg(this.globeRadius)}
                     fill="#fafafa"
                 />
                 <path
@@ -772,6 +773,7 @@ export class ChoroplethGlobe extends React.Component<{
                         <ProjectedDataPattern
                             key={PROJECTED_DATA_LEGEND_COLOR}
                             color={PROJECTED_DATA_LEGEND_COLOR}
+                            scale={this.manager.patternScale}
                             forLegend
                         />
 
@@ -781,6 +783,7 @@ export class ChoroplethGlobe extends React.Component<{
                             <ProjectedDataPattern
                                 key={`${color}-${index}`}
                                 color={color}
+                                scale={this.manager.patternScale}
                                 forLegend
                             />
                         ))}
@@ -790,6 +793,7 @@ export class ChoroplethGlobe extends React.Component<{
                             <ProjectedDataPattern
                                 key={`${color}-${index}`}
                                 color={color}
+                                scale={this.manager.patternScale}
                             />
                         ))}
                     </defs>

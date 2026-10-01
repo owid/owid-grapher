@@ -6,6 +6,7 @@ import {
     excludeUndefined,
     EntityName,
     MapRegionName,
+    roundForSvg,
 } from "@ourworldindata/utils"
 import { computed, action, observable, makeObservable } from "mobx"
 import { observer } from "mobx-react"
@@ -120,6 +121,10 @@ export class ChoroplethMap extends React.Component<{
             bounds.width / viewportWidth,
             bounds.height / viewportHeight
         )
+    }
+
+    @computed private get featurePatternScale(): number {
+        return (this.manager.patternScale ?? 1) / this.viewportScale
     }
 
     @computed private get viewportScaleSqrt(): number {
@@ -495,11 +500,11 @@ export class ChoroplethMap extends React.Component<{
                 <defs>
                     <NoDataPattern
                         patternId={Patterns.noDataPatternForMap}
-                        scale={1 / this.viewportScale} // The scale is crucial and projection specific
+                        scale={this.featurePatternScale}
                     />
                     <InapplicablePattern
                         patternId={Patterns.inapplicablePatternForMap}
-                        scale={1 / this.viewportScale}
+                        scale={this.featurePatternScale}
                     />
                 </defs>
 
@@ -535,15 +540,17 @@ export class ChoroplethMap extends React.Component<{
                         <ProjectedDataPattern
                             key={PROJECTED_DATA_LEGEND_COLOR}
                             color={PROJECTED_DATA_LEGEND_COLOR}
+                            scale={this.manager.patternScale}
                             forLegend
                         />
                         {/* Patterns used by the map legend. The map legend can't re-use
-                            the features' patterns defined below because those are scaled
-                            by the viewport. */}
+                            the features' patterns defined below because those also undo
+                            the map's viewport scale. */}
                         {this.binColors.map((color, index) => (
                             <ProjectedDataPattern
                                 key={`${color}-${index}`}
                                 color={color}
+                                scale={this.manager.patternScale}
                                 forLegend
                             />
                         ))}
@@ -553,7 +560,7 @@ export class ChoroplethMap extends React.Component<{
                             <ProjectedDataPattern
                                 key={`${color}-${index}`}
                                 color={color}
-                                scale={1 / this.viewportScale}
+                                scale={this.featurePatternScale}
                             />
                         ))}
                     </defs>
@@ -632,10 +639,10 @@ export class ChoroplethMap extends React.Component<{
                 }}
             >
                 <rect
-                    x={bounds.x}
-                    y={bounds.y}
-                    width={bounds.width}
-                    height={bounds.height}
+                    x={roundForSvg(bounds.x)}
+                    y={roundForSvg(bounds.y)}
+                    width={roundForSvg(bounds.width)}
+                    height={roundForSvg(bounds.height)}
                     fill="rgba(255,255,255,0)"
                     opacity={0}
                 />
