@@ -41,6 +41,7 @@ import {
     formatFeaturedMetricFacetFilter,
     formatCountryFacetFilters,
     formatTopicFacetFilters,
+    stripDetailOnDemandLinks,
 } from "@ourworldindata/utils"
 import {
     generateSelectedEntityNamesParam,
@@ -132,6 +133,28 @@ export type ChartHitMatchFields = {
 }
 
 /**
+ * One of a hit's text fields reduced to what a row can actually print.
+ *
+ * The indexed `title` and `subtitle` are the authored strings, so they can
+ * carry detail-on-demand markup — a poverty chart's subtitle reads "living
+ * below the [International Poverty Line](#dod:international-poverty-line) of $3
+ * per day". Grapher renders that as a hover tooltip over the linked words, and
+ * the block can't: a row is a dense line in a scannable index whose whole body
+ * is one click target for selecting the chart, so a tooltip inside it would
+ * fight the row's own click behaviour. The link's words are kept and the
+ * `(#dod:…)` target dropped, using the same `stripDetailOnDemandLinks` the data
+ * downloads' readme and metadata use for the same reason.
+ *
+ * Deliberately applied before the query is matched, by both the row filter and
+ * the bolding, so the words compared against are exactly the ones on screen: a
+ * word inside a link's text still bolds, nothing bolds inside a `#dod:` target
+ * nobody sees, and no offset is measured over characters that aren't printed.
+ */
+export function getChartHitDisplayText(text: string): string {
+    return stripDetailOnDemandLinks(text)
+}
+
+/**
  * The text of a chart hit as the all-charts block actually renders it: the row's
  * title, its subtitle, and each producer named in its "Source:" line — kept as
  * separate strings rather than joined, so a query can never be satisfied by
@@ -151,7 +174,9 @@ function getChartHitRowTexts(hit: ChartHitMatchFields): string[] {
         hit.title ?? "",
         hit.subtitle ?? "",
         ...(hit.datasetProducers ?? []),
-    ].filter((text) => text !== "")
+    ]
+        .map(getChartHitDisplayText)
+        .filter((text) => text !== "")
 }
 
 /**

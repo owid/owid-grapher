@@ -16,6 +16,7 @@ import {
     filterChartHitsByQueryWords,
     textContainsAllQueryWords,
     splitTextByQueryWordMatches,
+    getChartHitDisplayText,
     getDuplicatedChartTitles,
     getChartHitVariantName,
     ALL_CHARTS_INITIAL_ROW_COUNT,
@@ -1617,5 +1618,84 @@ describe(getChartHitVariantName, () => {
                 duplicated
             )
         ).toBeUndefined()
+    })
+})
+
+describe(getChartHitDisplayText, () => {
+    // The real subtitle of /grapher/share-of-population-in-extreme-poverty,
+    // which is what put the raw markup on screen in the first place.
+    const POVERTY_SUBTITLE =
+        "Extreme poverty is defined as living below the [International Poverty Line](#dod:international-poverty-line) of $3 per day. This data is adjusted for inflation and differences in living costs between countries."
+
+    it("prints a detail-on-demand link as its own words", () => {
+        expect(getChartHitDisplayText(POVERTY_SUBTITLE)).toEqual(
+            "Extreme poverty is defined as living below the International Poverty Line of $3 per day. This data is adjusted for inflation and differences in living costs between countries."
+        )
+    })
+
+    it("handles several links in one string", () => {
+        expect(
+            getChartHitDisplayText(
+                "[Extreme poverty](#dod:extreme-poverty) measured against the [International Poverty Line](#dod:international_poverty-line)."
+            )
+        ).toEqual(
+            "Extreme poverty measured against the International Poverty Line."
+        )
+    })
+
+    it("leaves a string without the markup exactly as it was", () => {
+        // Most subtitles, and every producer name in a "Source:" line.
+        const plain =
+            "Multidimensional poverty is defined as being deprived in a range of health, education and living standards indicators."
+        expect(getChartHitDisplayText(plain)).toEqual(plain)
+        expect(
+            getChartHitDisplayText("World Bank Poverty and Inequality Platform")
+        ).toEqual("World Bank Poverty and Inequality Platform")
+        expect(getChartHitDisplayText("")).toEqual("")
+    })
+
+    it("leaves an ordinary markdown link alone", () => {
+        // Only the `#dod:` form is a tooltip we can't render; a real URL is not
+        // this function's business.
+        const text = "See [the data](https://ourworldindata.org/poverty)."
+        expect(getChartHitDisplayText(text)).toEqual(text)
+    })
+
+    describe("composed with the row filter and the bolding", () => {
+        const matched = (text: string, query: string) =>
+            splitTextByQueryWordMatches(getChartHitDisplayText(text), query)
+                .filter((segment) => segment.isMatch)
+                .map((segment) => segment.text)
+
+        it("bolds a word inside a link's text", () => {
+            // "poverty" sits inside the link, so stripping has to come first
+            // for it to be bolded at all — and the bold run is the words as
+            // printed, with no stray brackets in or around it.
+            expect(matched(POVERTY_SUBTITLE, "international poverty")).toEqual([
+                "poverty",
+                "International Poverty",
+            ])
+        })
+
+        it("bolds nothing inside a #dod: target", () => {
+            // Before the strip, "line" matched twice over: once in the link's
+            // words and once in `international-poverty-line`, which the reader
+            // never sees.
+            expect(matched(POVERTY_SUBTITLE, "line")).toEqual(["Line"])
+        })
+
+        it("keeps the row filter matching only the printed words", () => {
+            const hit = {
+                title: "Share of population living in extreme poverty",
+                subtitle: POVERTY_SUBTITLE,
+            }
+            // A word that only ever appeared in the markup no longer keeps a
+            // row in the list.
+            expect(filterChartHitsByQueryWords([hit], "dod")).toEqual([])
+            // ...while the link's own words still do.
+            expect(
+                filterChartHitsByQueryWords([hit], "international poverty line")
+            ).toEqual([hit])
+        })
     })
 })

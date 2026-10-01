@@ -55,6 +55,7 @@ import {
     pickEntitiesForChartHit,
     filterChartHitsByQueryWords,
     splitTextByQueryWordMatches,
+    getChartHitDisplayText,
     getDuplicatedChartTitles,
     getChartHitVariantName,
     removeMatchedWordsWithStopWords,
@@ -1063,7 +1064,7 @@ const AllChartsRowChartTypes = ({
                     aria-pressed={isSelected && activeTab === tab}
                     aria-label={`${makeLabelForGrapherTab(tab, {
                         format: "long",
-                    })}: ${hit.title}`}
+                    })}: ${getChartHitDisplayText(hit.title)}`}
                     // These sit inside the row's own click target, which
                     // selects the row and toggles its accordion — so both
                     // handlers stop the event here. Without that a click would
@@ -1089,7 +1090,8 @@ const AllChartsRowChartTypes = ({
 /**
  * A row's text with the words the search matched in bold. The segments come from
  * the same normalisation the row filter uses, so the bold words are exactly the
- * ones that kept this row in the list (see splitTextByQueryWordMatches).
+ * ones that kept this row in the list (see splitTextByQueryWordMatches), over the
+ * same stripped text the filter compared against (see getChartHitDisplayText).
  */
 const HighlightedQueryText = ({
     text,
@@ -1099,7 +1101,14 @@ const HighlightedQueryText = ({
     searchPhrase: string
 }) => {
     const segments = useMemo(
-        () => splitTextByQueryWordMatches(text, searchPhrase),
+        // Stripped before the words are matched, not after: the segments are
+        // what gets rendered, so the markup has to be gone by the time the
+        // offsets are measured. See getChartHitDisplayText.
+        () =>
+            splitTextByQueryWordMatches(
+                getChartHitDisplayText(text),
+                searchPhrase
+            ),
         [text, searchPhrase]
     )
     return (
