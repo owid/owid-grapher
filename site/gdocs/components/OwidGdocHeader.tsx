@@ -198,7 +198,7 @@ function OwidLinearTopicPageHeader({
                 </p>
             )}
             {hasLinearTopicToc && (
-                <div className="topic-page-header__cta-buttons linear-topic-page-header__cta-buttons col-start-11 span-cols-3 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2">
+                <div className="topic-page-header__cta-buttons linear-topic-page-header__cta-buttons col-start-11 span-cols-3 col-lg-start-5 span-lg-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2">
                     {!content["hide-citation"] && (
                         <a href={`#${CITATION_ID}`}>
                             <FontAwesomeIcon icon={faBook} />
