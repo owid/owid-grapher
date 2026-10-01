@@ -404,13 +404,14 @@ $all-charts-panes-gap: 24px;
     // 11px beside the 3px accent border is the design's 14px from the panel's
     // left edge to the title's first letter.
     //
-    // The vertical padding is a pixel short at the bottom on purpose. The
-    // design's rows are 94px apart with no variance, and the text stack between
-    // them is a fixed 64px (a 20px title line, an 18px source line, an 18px link
-    // line, and the 2px, 2px and 4px that separate them) — so the padding has
-    // 29px to spend, and splitting it 15/14 puts the title's baseline where the
-    // design has it while the row's border-box lands on 94 exactly.
-    padding: 15px 11px 14px;
+    // The vertical padding is two pixels short at the bottom on purpose. The
+    // design's rows are 94px apart with no variance, and that 94 includes each
+    // row's own 1px divider, so the padding and the text stack have 93px to
+    // share. The stack measures 65px (a 21px title line, an 18px source line,
+    // an 18px link line, and the 2px, 2px and 4px that separate them), leaving
+    // 28px: 15 above puts the title's baseline where the design has it, and the
+    // remaining 13 below closes the row on 94 exactly.
+    padding: 15px 11px 13px;
     cursor: pointer;
 }
 
