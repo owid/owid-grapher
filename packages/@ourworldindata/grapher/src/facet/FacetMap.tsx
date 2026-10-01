@@ -282,6 +282,7 @@ export class FacetMap
             isFaceted,
             yColumnSlug,
             patternScale,
+            patternIdSuffix,
         } = manager
 
         return series.map((series, index) => {
@@ -310,6 +311,7 @@ export class FacetMap
                 isFaceted,
                 yColumnSlug,
                 patternScale,
+                patternIdSuffix,
                 ...series.manager,
             }
 

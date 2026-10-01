@@ -40,7 +40,7 @@ import {
     ProjectedDataPattern,
 } from "./MapComponents"
 import { InapplicablePattern } from "../chart/ChartUtils"
-import { Patterns } from "../core/GrapherConstants"
+import { Patterns, makePatternId } from "../core/GrapherConstants"
 import {
     detectNearbyFeature,
     getCountriesByRegion,
@@ -492,6 +492,16 @@ export class ChoroplethMap extends React.Component<{
 
         if (featuresWithNoData.length === 0) return
 
+        const { patternIdSuffix } = this.manager
+        const noDataPatternId = makePatternId(
+            Patterns.noDataPatternForMap,
+            patternIdSuffix
+        )
+        const inapplicablePatternId = makePatternId(
+            Patterns.inapplicablePatternForMap,
+            patternIdSuffix
+        )
+
         return (
             <g
                 id={makeFigmaId("countries-without-data")}
@@ -499,11 +509,11 @@ export class ChoroplethMap extends React.Component<{
             >
                 <defs>
                     <NoDataPattern
-                        patternId={Patterns.noDataPatternForMap}
+                        patternId={noDataPatternId}
                         scale={this.featurePatternScale}
                     />
                     <InapplicablePattern
-                        patternId={Patterns.inapplicablePatternForMap}
+                        patternId={inapplicablePatternId}
                         scale={this.featurePatternScale}
                     />
                 </defs>
@@ -514,8 +524,8 @@ export class ChoroplethMap extends React.Component<{
                         feature={feature}
                         patternId={
                             inapplicableEntityNamesSet?.has(feature.id)
-                                ? Patterns.inapplicablePatternForMap
-                                : Patterns.noDataPatternForMap
+                                ? inapplicablePatternId
+                                : noDataPatternId
                         }
                         isSelected={this.manager.isSelected?.(feature.id)}
                         hover={this.manager.getHoverState?.(feature.id)}
@@ -538,6 +548,7 @@ export class ChoroplethMap extends React.Component<{
                     <defs>
                         {/* Pattern used by the map legend for the projected data bin */}
                         <ProjectedDataPattern
+                            idSuffix={this.manager.patternIdSuffix}
                             key={PROJECTED_DATA_LEGEND_COLOR}
                             color={PROJECTED_DATA_LEGEND_COLOR}
                             scale={this.manager.patternScale}
@@ -548,6 +559,7 @@ export class ChoroplethMap extends React.Component<{
                             the map's viewport scale. */}
                         {this.binColors.map((color, index) => (
                             <ProjectedDataPattern
+                                idSuffix={this.manager.patternIdSuffix}
                                 key={`${color}-${index}`}
                                 color={color}
                                 scale={this.manager.patternScale}
@@ -558,6 +570,7 @@ export class ChoroplethMap extends React.Component<{
                         {/* Pattern used by features */}
                         {this.binColors.map((color, index) => (
                             <ProjectedDataPattern
+                                idSuffix={this.manager.patternIdSuffix}
                                 key={`${color}-${index}`}
                                 color={color}
                                 scale={this.featurePatternScale}
@@ -571,6 +584,7 @@ export class ChoroplethMap extends React.Component<{
                     if (!series) return null
                     return (
                         <CountryWithData
+                            patternIdSuffix={this.manager.patternIdSuffix}
                             key={feature.id}
                             feature={feature}
                             series={series}
