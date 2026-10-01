@@ -126,6 +126,102 @@ describe(getRowThumbnailTab, () => {
     it("has no view for a record with no tabs at all", () => {
         expect(getRowThumbnailTab({} as SearchChartHit)).toBeUndefined()
     })
+
+    // A map shows every country whatever the search says, so a row sitting
+    // next to a world map while reading "Italy" ignored the filter as far as
+    // the reader can tell (Marwa, 2026-10-01). Such a row drops to its first
+    // chart type, which the thumbnail then renders for that country.
+    describe("while a country filter reaches the row", () => {
+        const italy = ["Italy"]
+
+        it("drops off the map onto the first chart type", () => {
+            expect(
+                getRowThumbnailTab(
+                    hitWithTabs([
+                        GRAPHER_TAB_NAMES.Table,
+                        GRAPHER_TAB_NAMES.WorldMap,
+                        GRAPHER_TAB_NAMES.LineChart,
+                        GRAPHER_TAB_NAMES.DiscreteBar,
+                    ]),
+                    italy
+                )
+            ).toEqual(GRAPHER_TAB_NAMES.LineChart)
+        })
+
+        it("keeps the map for a chart that has no other view", () => {
+            expect(
+                getRowThumbnailTab(
+                    hitWithTabs([
+                        GRAPHER_TAB_NAMES.Table,
+                        GRAPHER_TAB_NAMES.WorldMap,
+                    ]),
+                    italy
+                )
+            ).toEqual(GRAPHER_TAB_NAMES.WorldMap)
+        })
+
+        it("keeps the map where the only other view says nothing about one country", () => {
+            // "Multidimensional Poverty Index (MPI)", whose only chart type is
+            // a Marimekko: for one country that comes back as a single
+            // hairline bar among a hundred pale ones at 170px, and as no mark
+            // at all for a country the chart has no data for. The map is the
+            // better thumbnail even filtered. See
+            // TABS_UNREADABLE_FOR_ONE_COUNTRY.
+            expect(
+                getRowThumbnailTab(
+                    hitWithTabs([
+                        GRAPHER_TAB_NAMES.Table,
+                        GRAPHER_TAB_NAMES.WorldMap,
+                        GRAPHER_TAB_NAMES.Marimekko,
+                    ]),
+                    italy
+                )
+            ).toEqual(GRAPHER_TAB_NAMES.WorldMap)
+        })
+
+        it("passes over such a view to reach one that does", () => {
+            expect(
+                getRowThumbnailTab(
+                    hitWithTabs([
+                        GRAPHER_TAB_NAMES.Table,
+                        GRAPHER_TAB_NAMES.WorldMap,
+                        GRAPHER_TAB_NAMES.Marimekko,
+                        GRAPHER_TAB_NAMES.LineChart,
+                    ]),
+                    italy
+                )
+            ).toEqual(GRAPHER_TAB_NAMES.LineChart)
+        })
+
+        it("changes nothing for a chart with no map", () => {
+            expect(
+                getRowThumbnailTab(
+                    hitWithTabs([
+                        GRAPHER_TAB_NAMES.Table,
+                        GRAPHER_TAB_NAMES.StackedArea,
+                    ]),
+                    italy
+                )
+            ).toEqual(GRAPHER_TAB_NAMES.StackedArea)
+        })
+    })
+
+    it("keeps the map where the search names a country the chart lacks", () => {
+        // The filter is read per row, as the entities the search turned up on
+        // *this* chart (see pickEntitiesForChartHit). None, and nothing is
+        // passed to the thumbnail either — so flipping would swap a legible
+        // world map for an unfiltered line chart.
+        expect(
+            getRowThumbnailTab(
+                hitWithTabs([
+                    GRAPHER_TAB_NAMES.Table,
+                    GRAPHER_TAB_NAMES.WorldMap,
+                    GRAPHER_TAB_NAMES.LineChart,
+                ]),
+                []
+            )
+        ).toEqual(GRAPHER_TAB_NAMES.WorldMap)
+    })
 })
 
 describe(getRowChartTypeTabs, () => {
@@ -241,5 +337,57 @@ describe(getRowChartTypeTabs, () => {
 
     it("lists nothing for a record with no tabs at all", () => {
         expect(getRowChartTypeTabs({} as SearchChartHit)).toEqual([])
+    })
+
+    describe("while a country filter reaches the row", () => {
+        const italy = ["Italy"]
+
+        it("drops the view the thumbnail flipped to, and still omits the map", () => {
+            // "Share of population living in extreme poverty" with "italy"
+            // searched: the thumbnail is now the line chart, so the row offers
+            // Bar and Marimekko. The map stays unlisted either way.
+            expect(
+                getRowChartTypeTabs(
+                    hitWithTabs([
+                        GRAPHER_TAB_NAMES.Table,
+                        GRAPHER_TAB_NAMES.WorldMap,
+                        GRAPHER_TAB_NAMES.LineChart,
+                        GRAPHER_TAB_NAMES.DiscreteBar,
+                        GRAPHER_TAB_NAMES.Marimekko,
+                    ]),
+                    italy
+                )
+            ).toEqual([
+                GRAPHER_TAB_NAMES.DiscreteBar,
+                GRAPHER_TAB_NAMES.Marimekko,
+            ])
+        })
+
+        it("still lists the view a row kept its map for", () => {
+            // The MPI row: the thumbnail stayed on the map, so the Marimekko
+            // is still the one alternative worth naming.
+            expect(
+                getRowChartTypeTabs(
+                    hitWithTabs([
+                        GRAPHER_TAB_NAMES.Table,
+                        GRAPHER_TAB_NAMES.WorldMap,
+                        GRAPHER_TAB_NAMES.Marimekko,
+                    ]),
+                    italy
+                )
+            ).toEqual([GRAPHER_TAB_NAMES.Marimekko])
+        })
+
+        it("lists nothing for a map-only chart", () => {
+            expect(
+                getRowChartTypeTabs(
+                    hitWithTabs([
+                        GRAPHER_TAB_NAMES.Table,
+                        GRAPHER_TAB_NAMES.WorldMap,
+                    ]),
+                    italy
+                )
+            ).toEqual([])
+        })
     })
 })

@@ -548,14 +548,34 @@ const AllChartsLeftPane = (props: AllChartsLeftPaneProps) => {
         undefined
     )
 
+    // The view the selected row's own thumbnail is showing, which is where the
+    // sidecar belongs whenever nothing has asked for another one.
+    const selectedRowThumbnailTab = useMemo(() => {
+        const hit = hits[selectedIndex]
+        if (!hit) return undefined
+        return getRowThumbnailTab(
+            hit,
+            pickEntitiesForChartHit(hit, detectedCountries)
+        )
+    }, [hits, selectedIndex, detectedCountries])
+
     // Before anything has been clicked, the sidecar should still open on the
     // view the first row's thumbnail is showing, so the outline is right on
     // load rather than only after the first click.
+    //
+    // A `selectedTab` of the map is overridden rather than kept, and only it:
+    // the map is never offered by the chart-type links, so the only way to
+    // have asked for it is a row click, i.e. a snapshot of a thumbnail that
+    // was showing the map at the time. Once a country filter takes that row
+    // off the map (see getRowThumbnailTab) the snapshot is stale, and leaving
+    // the sidecar on a world map beside a row that has flipped to Italy would
+    // also drop the outline off the thumbnail and highlight no link at all.
     const effectiveSelectedTab =
-        selectedTab ??
-        (hits[selectedIndex]
-            ? getRowThumbnailTab(hits[selectedIndex])
-            : undefined)
+        selectedTab === undefined ||
+        (selectedTab === GRAPHER_TAB_NAMES.WorldMap &&
+            selectedRowThumbnailTab !== GRAPHER_TAB_NAMES.WorldMap)
+            ? selectedRowThumbnailTab
+            : selectedTab
 
     // The view the chart on the right is *actually* showing, which is what the
     // row's chart-type links highlight. Not the same thing as `selectedTab`:
@@ -614,7 +634,14 @@ const AllChartsLeftPane = (props: AllChartsLeftPaneProps) => {
     const handleRowClick = (index: number) => {
         const hit = hits[index]
         if (hit) setSelectedIdentity(getChartHitIdentity(hit))
-        setSelectedTab(hit ? getRowThumbnailTab(hit) : undefined)
+        setSelectedTab(
+            hit
+                ? getRowThumbnailTab(
+                      hit,
+                      pickEntitiesForChartHit(hit, detectedCountries)
+                  )
+                : undefined
+        )
         setExpandedIndex((prev) => (prev === index ? null : index))
     }
 
@@ -888,9 +915,39 @@ function getRowViews(hit: SearchChartHit): GrapherTabName[] {
 }
 
 /**
+ * Views that say nothing useful about one country, so a country-filtered row
+ * doesn't flip to them.
+ *
+ * Only the Marimekko. It plots every entity whatever the filter says and marks
+ * the selected one by colour alone, which at the row's 170px comes back as a
+ * single hairline bar among a hundred pale ones — and, where the country has
+ * no data in that chart, as no mark at all, i.e. a thumbnail the filter
+ * visibly didn't change. Checked against the rendered image for the
+ * Multidimensional Poverty Index row, whose only chart type this is (Marwa,
+ * 2026-10-01).
+ */
+const TABS_UNREADABLE_FOR_ONE_COUNTRY: readonly GrapherTabName[] = [
+    GRAPHER_TAB_NAMES.Marimekko,
+]
+
+/**
  * The view a row's thumbnail is rendered on: the map where the chart has one,
  * otherwise its first chart type. Which is just the first of the row's views,
  * since `availableTabs` already puts the map ahead of the chart types.
+ *
+ * Except while a country filter is in effect on this row, when the map is the
+ * one view that can't answer the question just asked: it shows every country
+ * whatever the filter says, so the row would sit next to a world map while
+ * reading "Italy". Such a row drops to its first chart type instead, which the
+ * thumbnail then renders for that country (Marwa, 2026-10-01).
+ *
+ * The filter is taken per row rather than from the query, as `shownEntities` —
+ * the entities the search turned up *on this chart*. A country the chart has
+ * no data for is no filter at all: nothing is passed to the thumbnail, so
+ * flipping away from the map would only swap a legible world map for an
+ * unfiltered chart type. Two cases keep the map for the same reason: a chart
+ * with a map and no other view, and one whose only other view says nothing
+ * about a single country (see TABS_UNREADABLE_FOR_ONE_COUNTRY).
  *
  * The thumbnail asks for this view *explicitly* rather than letting the chart
  * open on its own default, because the Algolia record doesn't say what that
@@ -904,9 +961,21 @@ function getRowViews(hit: SearchChartHit): GrapherTabName[] {
  */
 // oxlint-disable-next-line react/only-export-components -- exported for AllChartsBlock.test.ts; the rule is about fast refresh, and this is a pure helper
 export function getRowThumbnailTab(
-    hit: SearchChartHit
+    hit: SearchChartHit,
+    // The entities the search turned up for this chart (see
+    // pickEntitiesForChartHit). Empty means no country filter reaches this
+    // row, which is the block's resting state.
+    shownEntities: readonly string[] = []
 ): GrapherTabName | undefined {
-    return getRowViews(hit)[0]
+    const views = getRowViews(hit)
+    if (views[0] !== GRAPHER_TAB_NAMES.WorldMap || shownEntities.length === 0)
+        return views[0]
+    return (
+        views
+            .slice(1)
+            .find((tab) => !TABS_UNREADABLE_FOR_ONE_COUNTRY.includes(tab)) ??
+        views[0]
+    )
 }
 
 /**
@@ -927,10 +996,24 @@ export function getRowThumbnailTab(
  * region", a stacked area chart with no map, lists nothing; and "Share in
  * poverty relative to different poverty lines", a line chart with a bar view
  * and no map, lists Bar alone rather than the Line and Bar it used to.
+ *
+ * Search "italy" and the first of those rows lists Bar and Marimekko instead:
+ * its thumbnail has flipped off the map onto the line chart, so the line
+ * chart is what there is no longer any point offering.
  */
 // oxlint-disable-next-line react/only-export-components -- exported for AllChartsBlock.test.ts; the rule is about fast refresh, and this is a pure helper
-export function getRowChartTypeTabs(hit: SearchChartHit): GrapherTabName[] {
-    return getRowViews(hit).slice(1)
+export function getRowChartTypeTabs(
+    hit: SearchChartHit,
+    shownEntities: readonly string[] = []
+): GrapherTabName[] {
+    const thumbnailTab = getRowThumbnailTab(hit, shownEntities)
+    // The map is never one of these links, whichever view the thumbnail ends
+    // up on: it is either what the thumbnail is already showing, or the view
+    // the country filter just ruled out. A reader who wants it has Grapher's
+    // own tab bar in the chart beside the list.
+    return getRowViews(hit).filter(
+        (tab) => tab !== GRAPHER_TAB_NAMES.WorldMap && tab !== thumbnailTab
+    )
 }
 
 /**
@@ -942,11 +1025,16 @@ export function getRowChartTypeTabs(hit: SearchChartHit): GrapherTabName[] {
  */
 const AllChartsRowChartTypes = ({
     hit,
+    shownEntities,
     activeTab,
     isSelected,
     onSelectChartType,
 }: {
     hit: SearchChartHit
+    // The entities the search turned up for this chart, because which views
+    // are listed depends on which one the thumbnail took — see
+    // getRowThumbnailTab.
+    shownEntities: readonly string[]
     // The view the chart beside the list is showing, reported by that chart
     // rather than inferred from the last link clicked — so the highlight is
     // right on first load and after a tab change made inside Grapher, not just
@@ -955,7 +1043,10 @@ const AllChartsRowChartTypes = ({
     isSelected: boolean
     onSelectChartType: (tab: GrapherTabName) => void
 }) => {
-    const tabs = useMemo(() => getRowChartTypeTabs(hit), [hit])
+    const tabs = useMemo(
+        () => getRowChartTypeTabs(hit, shownEntities),
+        [hit, shownEntities]
+    )
 
     if (tabs.length === 0) return null
 
@@ -1050,11 +1141,15 @@ const AllChartsTableRow = ({
     duplicatedTitles: ReadonlySet<string>
 }) => {
     // Entities from the query that are actually available on this chart.
-    const shownEntities = pickEntitiesForChartHit(hit, detectedCountries)
+    const shownEntities = useMemo(
+        () => pickEntitiesForChartHit(hit, detectedCountries),
+        [hit, detectedCountries]
+    )
 
     // The view the thumbnail is rendered on, which is also the view the row
-    // selects by default and the one the chart-type links leave out.
-    const thumbnailTab = getRowThumbnailTab(hit)
+    // selects by default and the one the chart-type links leave out. Depends
+    // on the entities above it: a country filter takes a row off the map.
+    const thumbnailTab = getRowThumbnailTab(hit, shownEntities)
 
     // Rendered as a single "Source: …" line under the title rather than in a
     // column of its own, so the row reads as one block of text instead of a
@@ -1134,8 +1229,9 @@ const AllChartsTableRow = ({
                             // sidecar use, so a country search re-renders the
                             // thumbnail for that country instead of leaving a
                             // world view beside a filtered row (Marwa,
-                            // 2026-10-01). On a map view it changes nothing —
-                            // a map already shows every country.
+                            // 2026-10-01). Which is also why the view above
+                            // moves off the map for such a row: a map shows
+                            // every country whatever the entities say.
                             grapherParams: toGrapherQueryParams({
                                 entities: shownEntities,
                                 tab: thumbnailTab,
@@ -1213,6 +1309,7 @@ const AllChartsTableRow = ({
                         )}
                         <AllChartsRowChartTypes
                             hit={hit}
+                            shownEntities={shownEntities}
                             activeTab={activeTab}
                             isSelected={isSelected}
                             onSelectChartType={onSelectChartType}
