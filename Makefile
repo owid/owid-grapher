@@ -163,6 +163,7 @@ down.worktree:
 
 require.worktree: require.headless
 	@which tmux >/dev/null 2>&1 || (echo "ERROR: tmux is required."; exit 1)
+	@which mysql >/dev/null 2>&1 || (echo "ERROR: the mysql client is required (macOS: brew install mysql-client, then add it to your PATH as brew says)."; exit 1)
 
 up.full: export DEBUG = 'knex:query'
 up.full: export COMPOSE_PROJECT_NAME ?= owid-grapher
@@ -266,6 +267,7 @@ require:
 	@which docker >/dev/null 2>&1 || (echo "ERROR: docker compose is required."; exit 1)
 	@which yarn >/dev/null 2>&1 || (echo "ERROR: yarn is required."; exit 1)
 	@which tmux >/dev/null 2>&1 || (echo "ERROR: tmux is required."; exit 1)
+	@which mysql >/dev/null 2>&1 || (echo "ERROR: the mysql client is required (macOS: brew install mysql-client, then add it to your PATH as brew says)."; exit 1)
 	@which finger >/dev/null 2>&1 || (echo "ERROR: finger is required."; exit 1)
 
 guard-%:
