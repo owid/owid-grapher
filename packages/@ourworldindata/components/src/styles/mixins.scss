@@ -447,27 +447,56 @@
     }
 }
 
+/*******************************************************************************
+ * Checkboxes
+ *
+ * Tokens shared by the two ways we draw a checkbox:
+ * - the <Checkbox> component (components/src/Checkbox.scss), used wherever a
+ *   checkbox is interactive — the grapher entity selector, the download and
+ *   embed modals, the donate form, the cookie preferences, the newsletter
+ *   subscribe form;
+ * - the `owid-checkbox` mixin below, which styles a bare native input used as
+ *   a read-only selection indicator, where the surrounding row handles the
+ *   clicking (the search country selector).
+ *
+ * They live here rather than in Checkbox.scss because the site's stylesheet
+ * doesn't import that file (it gets the component's styles through
+ * grapher.scss) but does need the size to align labels against.
+ *
+ * The admin's checkboxes come from antd and are not covered by these.
+ */
+
+$checkbox-size: 16px;
+$checkbox-border-radius: 2px;
+$checkbox-stroke: $gray-30;
+$checkbox-stroke-hover: $blue-30;
+$checkbox-fill-checked: $blue-30;
+$checkbox-fill-pressed: $blue-30;
+
 @mixin owid-checkbox {
     background: #fff;
     appearance: none;
-    width: 16px;
-    height: 16px;
-    outline: 1px solid $gray-30;
-    border-radius: 0;
+    width: $checkbox-size;
+    height: $checkbox-size;
+    // the border is drawn as an outline so that the box stays exactly
+    // $checkbox-size wide; Safari rounds an outline only from 16.4 on, where
+    // this degrades to a square ring around a rounded fill
+    outline: 1px solid $checkbox-stroke;
+    border-radius: $checkbox-border-radius;
     &:focus {
         outline-color: $blue-60;
     }
 
     &:active {
-        background-color: $blue-10;
+        background-color: $checkbox-fill-pressed;
     }
     &:checked {
-        background-color: $blue-50;
-        outline-color: $blue-50;
+        background-color: $checkbox-fill-checked;
+        outline-color: $checkbox-fill-checked;
         &:before {
             position: absolute;
-            width: 16px;
-            height: 16px;
+            width: $checkbox-size;
+            height: $checkbox-size;
             content: "";
             clip-path: path(
                 "M3.087,8.509C2.799,8.218 2.802,7.749 3.093,7.461C3.383,7.173 3.853,7.176 4.141,7.466L6.528,9.878L11.862,4.547C12.152,4.257 12.621,4.258 12.91,4.547C13.2,4.836 13.199,5.306 12.91,5.595L7.049,11.453C6.909,11.593 6.72,11.671 6.523,11.67C6.326,11.67 6.137,11.59 5.998,11.45L3.087,8.509Z"
