@@ -354,6 +354,7 @@ export const AllChartsBlock = ({
     const [stickyNavElement, setStickyNavElement] =
         useState<HTMLElement | null>(null)
     useEffect(() => {
+        // oxlint-disable-next-line react/set-state-in-effect -- the nav is a DOM node outside this tree, so it can only be found after mount
         setStickyNavElement(document.querySelector<HTMLElement>(".sticky-nav"))
     }, [])
     // A ref object rather than the element, because that is what the hook takes;
@@ -524,7 +525,9 @@ const AllChartsLeftPane = (props: AllChartsLeftPaneProps) => {
     // desktop (hidden by CSS), and mounting a Grapher into a hidden element
     // would render a second copy of the chart already in the sidecar.
     useEffect(() => {
+        // oxlint-disable-next-line react/set-state-in-effect -- an initial value can't do this; see the note above
         setExpandedIndex(isAccordionLayout ? 0 : null)
+        // oxlint-disable-next-line react/exhaustive-effect-dependencies -- `resultKey` is the trigger, not a value the effect reads: a new result set re-opens row 0
     }, [resultKey, isAccordionLayout])
 
     // Only the rows on screen: a topic's chart list is unbounded, so the block
