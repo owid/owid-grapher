@@ -346,6 +346,13 @@
     // the row rather than wrapping.
     flex: 1 1 auto;
     min-width: 0;
+    // Full height of the row's content box, overriding the `flex-start` the
+    // row sets for the thumbnail beside it — that one has to keep its own
+    // aspect-ratio height and would be stretched out of shape. This column is
+    // what the chart-type row's `margin-top: auto` pushes against, so without
+    // it that row has no free space to be pushed through and stays directly
+    // under the source line (Marwa, 2026-10-01).
+    align-self: stretch;
     display: flex;
     flex-direction: column;
     gap: 2px;
@@ -393,11 +400,15 @@
     font-weight: 600;
     font-size: 16px;
     // Explicit rather than relying on the inherited html line-height
-    // (1.6), which is too loose for a compact table row heading. Tighter
-    // than the 1.5 used for 16px serif headings elsewhere (h4-semibold in
-    // typography.scss) so the title sits snugly above the subtitle within
-    // the row's 2px stack gap.
-    line-height: 1.25;
+    // (1.6), which is too loose for a compact table row heading, but still
+    // tighter than the 1.5 used for 16px serif headings elsewhere
+    // (h4-semibold in typography.scss).
+    //
+    // 1.375 is the mockup's 22px at this 16px size: her two-line titles put
+    // 22px between one line's descenders and the next's, where the 1.25 this
+    // started at gives 20 and reads a line tighter than the design
+    // (measured off Marwa's mockup, 2026-10-01).
+    line-height: 1.375;
     color: $text-color;
 }
 
@@ -512,9 +523,27 @@
     flex-wrap: wrap;
     // 14px in the mockup, measured between one label and the next icon.
     gap: 4px 14px;
-    // On top of the 2px the text stack already puts between its lines, for the
-    // 6px the mockup leaves between the source line and this one.
-    margin-top: 4px;
+    // Bottom-aligned within the row rather than following the source line, so
+    // the chart types line up across rows however many lines the title above
+    // them takes (Marwa, 2026-10-01). The free space in the text column —
+    // which is stretched to the row's full content height, see
+    // .all-charts-block__row-text — is collected above this row instead of
+    // below it, which puts its bottom edge on the row's content-box bottom.
+    //
+    // In the mockup that edge is also the bottom edge of the thumbnail, and
+    // for the same reason: the thumbnail is the tallest thing in the row, so
+    // it is what sets the content box's height. The two only come apart on a
+    // row whose text outgrows the thumbnail (a wrapped title with a variant
+    // name under it), and there the row's own bottom is the one to follow —
+    // the thumbnail's would leave the chart types overlapping the text.
+    margin-top: auto;
+    // The 6px the mockup leaves between the source line and this one, on top
+    // of the 2px the text stack already puts between its lines. Padding
+    // rather than the margin this used to be: an auto margin above swallows
+    // the row's free space, and would swallow a fixed margin along with it,
+    // closing the gap to the source line on the rows that have no free space
+    // to give.
+    padding-top: 4px;
 }
 
 // One view: an icon in $blue-50 and a label in $blue-90, at the size and
