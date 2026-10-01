@@ -1,6 +1,6 @@
 import { expect, it, describe } from "vitest"
 
-import { ColumnTypeNames } from "@ourworldindata/types"
+import { ColumnTypeNames, SortBy, SortOrder } from "@ourworldindata/types"
 import { OwidTable } from "@ourworldindata/core-table"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
 import { SwimlaneChartState } from "./SwimlaneChartState"
@@ -144,7 +144,7 @@ describe("series", () => {
         expect(segment).toMatchObject({ category: "ICD-9", color: "#123456" })
     })
 
-    it("comes back in selection order", () => {
+    it("comes back in selection order under custom sort", () => {
         const table = ordinalTable([
             { entityName: "France", time: 2000, cause: "ICD-9" },
             { entityName: "Zimbabwe", time: 2000, cause: "ICD-8" },
@@ -154,6 +154,7 @@ describe("series", () => {
             table,
             selection: ["France", "Zimbabwe", "Albania"],
             yColumnSlugs: ["cause"],
+            sortConfig: { sortBy: SortBy.custom, sortOrder: SortOrder.asc },
         }
         const chartState = new SwimlaneChartState({ manager })
 
@@ -230,5 +231,76 @@ describe("series", () => {
         expect(
             chartState.series[0].segments.map((segment) => segment.kind)
         ).toEqual(["category", "missing", "category"])
+    })
+})
+
+describe("lane order", () => {
+    const table = ordinalTable([
+        { entityName: "France", time: 2000, cause: "ICD-9" },
+        { entityName: "Albania", time: 2000, cause: "ICD-7" },
+        { entityName: "Zimbabwe", time: 2000, cause: "ICD-8" },
+    ])
+    const manager: SwimlaneChartManager = {
+        table,
+        selection: ["France", "Albania", "Zimbabwe"],
+        yColumnSlugs: ["cause"],
+    }
+
+    function toLaneOrder(chartState: SwimlaneChartState): string[] {
+        return chartState.series.map((series) => series.seriesName)
+    }
+
+    it("defaults to entityName, descending", () => {
+        const chartState = new SwimlaneChartState({ manager })
+
+        expect(chartState.sortConfig.sortBy).toEqual(SortBy.entityName)
+        expect(toLaneOrder(chartState)).toEqual([
+            "Zimbabwe",
+            "France",
+            "Albania",
+        ])
+    })
+
+    it("sortOrder asc reverses the order", () => {
+        const chartState = new SwimlaneChartState({
+            manager: {
+                ...manager,
+                sortConfig: {
+                    sortBy: SortBy.entityName,
+                    sortOrder: SortOrder.asc,
+                },
+            },
+        })
+
+        expect(toLaneOrder(chartState)).toEqual([
+            "Albania",
+            "France",
+            "Zimbabwe",
+        ])
+    })
+
+    it("custom keeps the selection order, reversed under desc", () => {
+        const chartState = new SwimlaneChartState({
+            manager: { ...manager, sortConfig: { sortBy: SortBy.custom } },
+        })
+
+        expect(toLaneOrder(chartState)).toEqual([
+            "Zimbabwe",
+            "Albania",
+            "France",
+        ])
+    })
+
+    it("falls back to entityName when the configured sort key is another chart type's", () => {
+        const chartState = new SwimlaneChartState({
+            manager: { ...manager, sortConfig: { sortBy: SortBy.change } },
+        })
+
+        expect(chartState.sortConfig.sortBy).toEqual(SortBy.entityName)
+        expect(toLaneOrder(chartState)).toEqual([
+            "Zimbabwe",
+            "France",
+            "Albania",
+        ])
     })
 })

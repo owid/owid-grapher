@@ -3668,6 +3668,10 @@ export class GrapherState
         )
     }
 
+    @computed get defaultSortKey(): SortBy {
+        return this.chartStateExceptMap.defaultSortKey ?? SortBy.total
+    }
+
     @computed get availableSortKeysAcrossChartTypes(): SortBy[] {
         const keys = this.validChartTypes.flatMap(
             (chartType) =>

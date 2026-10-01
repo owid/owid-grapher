@@ -610,7 +610,8 @@ properties:
   sortBy:
     type: string
     description: |
-      Sort criterion (used by discrete bar, stacked discrete bar, and dumbbell charts).
+      Sort criterion (used by discrete bar, stacked discrete bar, dumbbell and swimlane charts).
+      Chart types that don't support the given criterion fall back to their own default.
       - column: sort by the value of a specific column, identified by sortColumnSlug
       - total: sort by the total across all columns
       - entityName: sort alphabetically by entity name
