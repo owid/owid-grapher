@@ -28,8 +28,8 @@ export const COLORS = {
 export const TICK_LABEL_FONT_SIZE = 11
 export const VALUE_LABEL_FONT_SIZE = 12
 export const VALUE_LABEL_FONT_WEIGHT = 600
-/** Line height of a value label with its unit on a second line, relative to its font size */
-export const VALUE_LABEL_LINE_HEIGHT = 1.1
+/** Distance from a line's visual centre down to its baseline, relative to its font size, matching TextWrap's SVG rendering */
+export const VALUE_LABEL_BASELINE_OFFSET = 0.37
 export const TOTAL_LABEL_FONT_SIZE = 14
 export const TOTAL_LABEL_FONT_WEIGHT = 700
 export const CAPTION_FONT_SIZE = 12
