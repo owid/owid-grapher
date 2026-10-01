@@ -29,12 +29,14 @@ import {
     MapColumnInfo,
     PROJECTED_DATA_LEGEND_COLOR,
     MapViewport,
+    MAP_NARROW_VIEWPORT_MAX_WIDTH,
 } from "./MapChartConstants"
 import { MapConfig } from "./MapConfig"
 import { ColorScale, INAPPLICABLE_LABEL } from "../color/ColorScale"
 import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
+    GRAPHER_FRAME_PADDING_HORIZONTAL,
     GRAPHER_MAX_TOOLTIP_WIDTH,
     Patterns,
 } from "../core/GrapherConstants"
@@ -81,6 +83,8 @@ export const PADDING_BETWEEN_MAP_AND_LEGEND = 8
 export const PADDING_BELOW_MAP_LEGEND = 4
 export const PADDING_BETWEEN_MAP_LEGENDS = 4
 export const MAP_LEGEND_MAX_WIDTH_RATIO = 0.95
+// On narrow screens, the 2D map extends into the frame padding, leaving only this much space on either side
+export const MAP_NARROW_FRAME_PADDING_HORIZONTAL = 4
 
 @observer
 export class MapChart
@@ -311,8 +315,30 @@ export class MapChart
         return this.manager.fontSize ?? BASE_FONT_SIZE
     }
 
+    // On narrow screens, the width of the 2D map is the limiting factor,
+    // so we let the map extend into the horizontal frame padding
+    @computed private get shouldExtendMapIntoFramePadding(): boolean {
+        return (
+            !this.isStatic &&
+            !this.isFaceted &&
+            !this.mapConfig.globe.isActive &&
+            this.bounds.width <= MAP_NARROW_VIEWPORT_MAX_WIDTH
+        )
+    }
+
     @computed get choroplethMapBounds(): Bounds {
-        return this.bounds.padBottom(
+        const bounds = this.shouldExtendMapIntoFramePadding
+            ? this.bounds.expand({
+                  left:
+                      GRAPHER_FRAME_PADDING_HORIZONTAL -
+                      MAP_NARROW_FRAME_PADDING_HORIZONTAL,
+                  right:
+                      GRAPHER_FRAME_PADDING_HORIZONTAL -
+                      MAP_NARROW_FRAME_PADDING_HORIZONTAL,
+              })
+            : this.bounds
+
+        return bounds.padBottom(
             this.legendHeight
                 ? this.legendHeight +
                       PADDING_BETWEEN_MAP_AND_LEGEND +

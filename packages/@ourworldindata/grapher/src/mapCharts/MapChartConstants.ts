@@ -196,6 +196,21 @@ export const MAP_VIEWPORT_FACETED_WORLD: MapViewport = {
     ratio: 2.29,
 }
 
+// Custom viewport for the World map on narrow screens (e.g. phones in portrait mode).
+// There, the map's width is the limiting factor, so we crop the empty stretches of the
+// Pacific at the left and right edges (keeping the land from Chukotka/Alaska to Fiji/Tuvalu)
+// to render the map as large as possible
+export const MAP_VIEWPORT_NARROW_WORLD: MapViewport = {
+    x: 0.545,
+    y: 0.5,
+    width: 0.91,
+    height: 1.01,
+    ratio: 2.1,
+}
+
+/** Maps with bounds of this width or less use a narrow viewport, if one is available */
+export const MAP_NARROW_VIEWPORT_MAX_WIDTH = 550
+
 export interface Circle {
     cx: number // center x
     cy: number // center y
