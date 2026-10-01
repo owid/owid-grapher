@@ -81,8 +81,12 @@
     align-self: end;
     margin: 0;
 
-    @include md-down {
+    @include lg-down {
         margin-top: 8px;
+    }
+
+    a {
+        white-space: nowrap;
     }
 }
 
