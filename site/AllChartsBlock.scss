@@ -27,6 +27,13 @@ $all-charts-panes-gap: 24px;
     // is showing in the chart beside the list.
     --all-charts-accent: #{$blue-40};
     --all-charts-row-bg-selected: #{$blue-5};
+    // The fill a row takes under the pointer. One step of blue down from the
+    // variant's own page background, which is the whole rule: $blue-5 here
+    // where the page is white, $blue-10 on the treatments whose page is
+    // already $blue-5 (below). It used to be a flat $gray-5 (#f7f7f7) for
+    // every treatment, which on a tinted page read as a desaturated grey patch
+    // rather than a hover (Marwa, 2026-10-01).
+    --all-charts-row-bg-hover: #{$blue-5};
     // How far a fill reaches into the gap between the panes. At 0 the selected
     // row's panel and the chart card are two boxes with a gap between them; at
     // the full gap they meet and read as one region.
@@ -73,6 +80,7 @@ $all-charts-panes-gap: 24px;
     --all-charts-page-bg: #{$blue-5};
     --all-charts-accent: #{$vermillion};
     --all-charts-row-bg-selected: #{$white};
+    --all-charts-row-bg-hover: #{$blue-10};
     --all-charts-gutter-fill: #{$all-charts-panes-gap};
 }
 
@@ -92,6 +100,7 @@ $all-charts-panes-gap: 24px;
     --all-charts-page-bg: #{$blue-5};
     --all-charts-accent: #{$blue-50};
     --all-charts-row-bg-selected: #{$white};
+    --all-charts-row-bg-hover: #{$blue-10};
     --all-charts-gutter-fill: #{$all-charts-panes-gap};
     --all-charts-input-bg: transparent;
     --all-charts-input-border: #{$blue-30};
@@ -103,6 +112,7 @@ $all-charts-panes-gap: 24px;
     --all-charts-page-bg: #{$blue-5};
     --all-charts-accent: #{$blue-50};
     --all-charts-row-bg-selected: #{$white};
+    --all-charts-row-bg-hover: #{$blue-10};
     --all-charts-input-bg: transparent;
     --all-charts-input-border: #{$blue-30};
 }
@@ -144,7 +154,16 @@ $all-charts-panes-gap: 24px;
     // itself, whereas the list only reflows its text. The row text is kept
     // within the narrower list pane by clamping the subtitle and source lines
     // instead (see .all-charts-block__row-subtitle and -row-source below).
-    grid-template-columns: 5fr 7fr;
+    //
+    // All twelve columns are declared and the panes span five and seven of
+    // them, rather than the `5fr 7fr` this used to be. Those are not the same
+    // split: two `fr` tracks share the width *left over* after one gap, so
+    // each track ends up a twelfth of (content - 24px) plus its share of
+    // nothing, putting the boundary 4px to the right of the design's column 6
+    // and making the chart card 4px narrower than the grid it is drawn on.
+    // Spanning real columns puts both panes on the grid the mockups are built
+    // against (Marwa, 2026-10-01), and keeps doing so at any content width.
+    grid-template-columns: repeat(12, 1fr);
     gap: $all-charts-panes-gap;
 
     @include md-down {
@@ -153,9 +172,15 @@ $all-charts-panes-gap: 24px;
 }
 
 .all-charts-block__left {
+    // Columns 1-5 of the twelve declared above.
+    grid-column: span 5;
     display: flex;
     flex-direction: column;
     min-width: 0;
+
+    @include md-down {
+        grid-column: auto;
+    }
 }
 
 // How far from the top of the viewport the block's sticky pieces come to rest:
@@ -229,6 +254,8 @@ $all-charts-panes-gap: 24px;
 }
 
 .all-charts-block__right {
+    // Columns 6-12 of the twelve declared on .all-charts-block__panes.
+    grid-column: span 7;
     min-width: 0;
     // The frame a variant puts around the chart card, reaching back across the
     // gap between the panes so it meets the list rather than floating beside
@@ -257,6 +284,25 @@ $all-charts-panes-gap: 24px;
     figure[data-grapher-src]:not(.grapherPreview),
     figure.grapher-component:not(.grapherPreview) {
         height: $grapher-height;
+        // A <figure> is one of the few elements browsers give margins of their
+        // own: `margin: 1em 40px`. Nothing here overrode it for the sidecar —
+        // the site's own reset for grapher figures only applies inside
+        // `.article-content`, and this block is in a gdoc's
+        // `.centered-article-container` — so the chart card was drawn 16px
+        // below the top of the list beside it and 40px in from each edge of
+        // its own column. That accounted for all three of the designer's
+        // layout notes at once (Marwa, 2026-10-01): the chart's top edge not
+        // lining up with the first row's, margins reading wider than the
+        // design's, and the selected row's fill stopping 40px short of a chart
+        // card it is supposed to meet (see --all-charts-gutter-fill).
+        //
+        // Grapher measures this figure to size itself, so clearing the
+        // margins and filling the column is what actually makes the chart
+        // wider rather than just moving it. Same fix as
+        // .all-charts-block__row-accordion's figure below, which only ever
+        // covered the mobile accordion.
+        width: 100%;
+        margin: 0;
     }
 
     // Below this breakpoint the persistent sidecar is replaced by an
@@ -457,7 +503,7 @@ $all-charts-panes-gap: 24px;
     border-left: 3px solid transparent;
 
     &:hover {
-        background-color: $gray-5;
+        background-color: var(--all-charts-row-bg-hover);
     }
 }
 
