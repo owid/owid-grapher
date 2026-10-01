@@ -2,13 +2,20 @@ import * as R from "remeda"
 import { Bounds, roundForSvg } from "@ourworldindata/utils"
 import { Time } from "@ourworldindata/types"
 import { computeCenteredLabelYPositions } from "../rowSeriesLabels/RowSeriesLabelHelpers.js"
+import { resolveEmphasis } from "../interaction/Emphasis"
+import { InteractionState } from "../interaction/InteractionState"
+import { FocusArray } from "../focus/FocusArray"
+import { CategoricalBin, isNoDataBin } from "../color/ColorScaleBin"
 import {
     ENTITY_LABEL_CHART_GAP,
+    HoveredSwimlanePoint,
     LANE_SPACING_FACTOR,
     MAX_LANE_HEIGHT,
     MIN_SEGMENT_WIDTH,
     PlacedSwimlaneSegment,
     PlacedSwimlaneSeries,
+    RenderSwimlaneSegment,
+    RenderSwimlaneSeries,
     SizedSwimlaneSeries,
     SEGMENT_CROP_TAPER_RATIO,
     SwimlaneObservation,
@@ -196,10 +203,105 @@ export function toPlacedSwimlaneSeries({
         return {
             ...series,
             y,
+            slotHeight,
             labelPosition: { x: labelX, yOffset: labelY - y },
             placedSegments,
         }
     })
+}
+
+export function toRenderSwimlaneSegments({
+    segments,
+    hoveredSegment,
+    hoveredLegendBin,
+    focus,
+}: {
+    segments: PlacedSwimlaneSegment[]
+    hoveredSegment?: PlacedSwimlaneSegment
+    hoveredLegendBin?: CategoricalBin
+    focus?: InteractionState
+}): RenderSwimlaneSegment[] {
+    const isHoverModeActive =
+        hoveredSegment !== undefined || hoveredLegendBin !== undefined
+
+    return segments.map((segment) => {
+        const isInHoveredBin =
+            hoveredLegendBin !== undefined &&
+            (segment.kind === "missing"
+                ? isNoDataBin(hoveredLegendBin)
+                : hoveredLegendBin.contains(segment.category))
+        const isHovered = segment === hoveredSegment || isInHoveredBin
+
+        return {
+            ...segment,
+            emphasis: resolveEmphasis({
+                hover: new InteractionState(isHovered, isHoverModeActive),
+                focus,
+            }),
+        }
+    })
+}
+
+export function toRenderSwimlaneSeries({
+    series: allSeries,
+    hoveredPoint,
+    focusArray,
+    hoveredLegendBin,
+}: {
+    series: PlacedSwimlaneSeries[]
+    hoveredPoint?: HoveredSwimlanePoint
+    focusArray: FocusArray
+    hoveredLegendBin?: CategoricalBin
+}): RenderSwimlaneSeries[] {
+    const hoveredSeries = allSeries.find(
+        (series) => series.seriesName === hoveredPoint?.laneEntityName
+    )
+    const hoveredSegment =
+        hoveredSeries && hoveredPoint
+            ? findSegmentAtX(hoveredSeries.placedSegments, hoveredPoint.x)
+            : undefined
+
+    return allSeries.map((series): RenderSwimlaneSeries => {
+        const focus = focusArray.state(series.seriesName)
+        return {
+            ...series,
+            emphasis: resolveEmphasis({ focus }),
+            placedSegments: toRenderSwimlaneSegments({
+                segments: series.placedSegments,
+                hoveredSegment,
+                hoveredLegendBin,
+                focus,
+            }),
+        }
+    })
+}
+
+export function findSegmentAtX(
+    segments: PlacedSwimlaneSegment[],
+    x: number
+): PlacedSwimlaneSegment | undefined {
+    if (segments.length === 0) return undefined
+
+    let low = 0
+    let high = segments.length - 1
+    while (low < high) {
+        const mid = Math.ceil((low + high) / 2)
+        if (segments[mid].x <= x) low = mid
+        else high = mid - 1
+    }
+
+    const segment = segments[low]
+    return x >= segment.x && x < segment.x + segment.width ? segment : undefined
+}
+
+export function findLaneAtY(
+    series: PlacedSwimlaneSeries[],
+    y: number
+): PlacedSwimlaneSeries | undefined {
+    return series.find(
+        ({ y: laneY, slotHeight }) =>
+            y >= laneY - slotHeight / 2 && y < laneY + slotHeight / 2
+    )
 }
 
 function toContiguousSegmentExtents({

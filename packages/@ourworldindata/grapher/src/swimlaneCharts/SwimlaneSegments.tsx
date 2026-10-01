@@ -5,10 +5,11 @@ import { Patterns } from "../core/GrapherConstants"
 import { GRAY_100 } from "../color/ColorConstants"
 import { isDarkColor } from "../color/ColorUtils"
 import {
-    PlacedSwimlaneCategorySegment,
-    PlacedSwimlaneSegment,
+    RenderSwimlaneCategorySegment,
+    RenderSwimlaneSegment,
     SEGMENT_LABEL_PADDING,
     SEGMENT_LABEL_TIME_RANGE_FONT_WEIGHT,
+    SWIMLANE_SEGMENT_STYLE,
 } from "./SwimlaneChartConstants"
 import {
     computeSegmentCropTaper,
@@ -24,7 +25,7 @@ export function SwimlaneSegments({
     segments,
     labelSettings,
 }: {
-    segments: PlacedSwimlaneSegment[]
+    segments: RenderSwimlaneSegment[]
     labelSettings: SwimlaneSegmentLabelSettings
 }): React.ReactElement {
     return (
@@ -47,13 +48,14 @@ export function SwimlaneSegments({
 function SwimlaneSegmentShape({
     segment,
 }: {
-    segment: PlacedSwimlaneSegment
+    segment: RenderSwimlaneSegment
 }): React.ReactElement {
     const { x, y, width, height } = segment
     const fill =
         segment.kind === "missing"
             ? `url(#${Patterns.noDataPattern})`
             : segment.color
+    const opacity = SWIMLANE_SEGMENT_STYLE[segment.emphasis].opacity
 
     const isStartCropped = isSegmentStartCropped(segment)
     const isEndCropped = isSegmentEndCropped(segment)
@@ -66,6 +68,7 @@ function SwimlaneSegmentShape({
                 width={roundForSvg(width)}
                 height={roundForSvg(height)}
                 fill={fill}
+                opacity={opacity}
             />
         )
 
@@ -80,6 +83,7 @@ function SwimlaneSegmentShape({
                 isEndCropped,
             })}
             fill={fill}
+            opacity={opacity}
         />
     )
 }
@@ -88,7 +92,7 @@ function SwimlaneSegmentLabelText({
     segment,
     labelSettings,
 }: {
-    segment: PlacedSwimlaneCategorySegment
+    segment: RenderSwimlaneCategorySegment
     labelSettings: SwimlaneSegmentLabelSettings
 }): React.ReactElement | null {
     const { segmentLabels, fontSettings, formatTime } = labelSettings
@@ -118,6 +122,7 @@ function SwimlaneSegmentLabelText({
     const x = roundForSvg(segment.x + startInset + SEGMENT_LABEL_PADDING)
     const firstLineY = roundForSvg(segment.y + height / 2 - lineHeight / 2)
     const color = isDarkColor(segment.color) ? "#fff" : GRAY_100
+    const opacity = SWIMLANE_SEGMENT_STYLE[segment.emphasis].opacity
 
     return (
         <text
@@ -126,6 +131,7 @@ function SwimlaneSegmentLabelText({
             dy={dyFromAlign(VerticalAlign.middle)}
             fontSize={fontSettings.fontSize}
             fill={color}
+            opacity={opacity}
         >
             <tspan x={x} fontWeight={fontSettings.fontWeight}>
                 {category}

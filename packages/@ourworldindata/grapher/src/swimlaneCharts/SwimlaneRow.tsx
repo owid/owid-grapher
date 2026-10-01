@@ -2,7 +2,10 @@ import React from "react"
 import { makeFigmaId, roundForSvg } from "@ourworldindata/utils"
 import { GRAPHER_LIGHT_TEXT } from "../color/ColorConstants.js"
 import { SeriesLabel } from "../seriesLabel/SeriesLabel"
-import { PlacedSwimlaneSeries } from "./SwimlaneChartConstants"
+import {
+    RenderSwimlaneSeries,
+    SWIMLANE_ROW_STYLE,
+} from "./SwimlaneChartConstants"
 import { SwimlaneSegmentLabelSettings } from "./SwimlaneLabels"
 import { SwimlaneSegments } from "./SwimlaneSegments"
 
@@ -11,7 +14,7 @@ export function SwimlaneRow({
     y,
     labelSettings,
 }: {
-    series: PlacedSwimlaneSeries
+    series: RenderSwimlaneSeries
     y: number
     labelSettings: SwimlaneSegmentLabelSettings
 }): React.ReactElement {
@@ -25,6 +28,7 @@ export function SwimlaneRow({
                 x={series.labelPosition.x}
                 y={series.labelPosition.yOffset}
                 color={{ name: GRAPHER_LIGHT_TEXT }}
+                opacity={SWIMLANE_ROW_STYLE[series.emphasis].opacity}
             />
             <SwimlaneSegments
                 segments={series.placedSegments}

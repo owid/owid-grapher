@@ -105,6 +105,7 @@ const VIEW_MATRIX_BY_CHART_TYPE: Record<GrapherChartType, ViewMatrix> = {
     [GRAPHER_CHART_TYPES.Swimlane]: {
         tab: ["chart"],
         time: timeOptionsAll,
+        focus: focusOptions,
     },
 }
 
@@ -204,7 +205,11 @@ const EXCLUDE_VIEWS_BY_CHART_TYPE: Record<
         // Test focus mode only in the default view
         { focus: "<firstSeries>", yScale: ScaleType.log },
     ],
-    [GRAPHER_CHART_TYPES.Swimlane]: [],
+    [GRAPHER_CHART_TYPES.Swimlane]: [
+        // Test focus mode only in the default view
+        { focus: "<firstSeries>", time: TimePoint.earliest },
+        { focus: "<firstSeries>", time: TimePoint.latest },
+    ],
 }
 
 export const queryStringsByChartType = Object.fromEntries(

@@ -28,7 +28,6 @@ import { ChartInterface } from "../chart/ChartInterface"
 import {
     LineChartSeries,
     LineChartManager,
-    LinePoint,
     PlacedLineChartSeries,
     RenderLineChartSeries,
     CATEGORICAL_LEGEND_STYLE,
@@ -119,8 +118,10 @@ export class LineChart
         this.debouncedClearVerticalLabelHover()
     }
 
-    @computed private get allValues(): LinePoint[] {
-        return this.placedSeries.flatMap((series) => series.points)
+    @computed private get allTimes(): Time[] {
+        return this.placedSeries.flatMap((series) =>
+            series.points.map((point) => point.x)
+        )
     }
 
     @action.bound private onCursorMove(
@@ -142,7 +143,7 @@ export class LineChart
             mouse,
             innerBounds: this.dualAxis.innerBounds,
             horizontalAxis: this.dualAxis.horizontalAxis,
-            allValues: this.allValues,
+            times: this.allTimes,
         })
 
         // Be sure all lines are un-dimmed if the cursor is above the graph itself
