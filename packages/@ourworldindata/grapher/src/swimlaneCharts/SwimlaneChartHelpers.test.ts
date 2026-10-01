@@ -4,6 +4,8 @@ import { Bounds } from "@ourworldindata/utils"
 import { Time } from "@ourworldindata/types"
 import { SeriesLabelState } from "../seriesLabel/SeriesLabelState"
 import {
+    LANE_SPACING_FACTOR,
+    MAX_LANE_HEIGHT,
     MIN_SEGMENT_WIDTH,
     SizedSwimlaneSeries,
     SwimlaneObservation,
@@ -373,6 +375,23 @@ describe(toPlacedSwimlaneSeries, () => {
                 ).toBeLessThanOrEqual(BOUNDS.bottom)
             }
         }
+
+        const slotHeight = BOUNDS.height / placed.length
+        expect(placed[0].placedSegments[0].height).toBeCloseTo(
+            slotHeight * (1 - LANE_SPACING_FACTOR)
+        )
+    })
+
+    it("caps the lane height and centres the lane block when the plot is taller than the cap allows", () => {
+        const tallBounds = new Bounds(0, 0, 200, 400)
+        const [placed] = toPlacedSwimlaneSeries({
+            series: [series()],
+            bounds: tallBounds,
+            placeTime,
+        })
+
+        expect(placed.placedSegments[0].height).toBeCloseTo(MAX_LANE_HEIGHT)
+        expect(placed.y).toEqual(tallBounds.top + tallBounds.height / 2)
     })
 
     it("places a missing segment with the same geometry as a category segment", () => {

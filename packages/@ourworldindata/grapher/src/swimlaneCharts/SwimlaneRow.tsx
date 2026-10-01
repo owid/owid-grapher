@@ -1,9 +1,9 @@
 import React from "react"
 import { makeFigmaId, roundForSvg } from "@ourworldindata/utils"
 import { GRAPHER_LIGHT_TEXT } from "../color/ColorConstants.js"
-import { Patterns } from "../core/GrapherConstants"
 import { SeriesLabel } from "../seriesLabel/SeriesLabel"
 import { PlacedSwimlaneSeries } from "./SwimlaneChartConstants"
+import { SwimlaneSegments } from "./SwimlaneSegments"
 
 export function SwimlaneRow({
     series,
@@ -23,20 +23,7 @@ export function SwimlaneRow({
                 y={series.labelPosition.yOffset}
                 color={{ name: GRAPHER_LIGHT_TEXT }}
             />
-            {series.placedSegments.map((segment) => (
-                <rect
-                    key={segment.startTime}
-                    x={segment.x}
-                    y={segment.y}
-                    width={segment.width}
-                    height={segment.height}
-                    fill={
-                        segment.kind === "missing"
-                            ? `url(#${Patterns.noDataPattern})`
-                            : segment.color
-                    }
-                />
-            ))}
+            <SwimlaneSegments segments={series.placedSegments} />
         </g>
     )
 }

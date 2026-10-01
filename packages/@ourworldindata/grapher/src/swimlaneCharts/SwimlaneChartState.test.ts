@@ -1,6 +1,11 @@
 import { expect, it, describe } from "vitest"
 
-import { ColumnTypeNames, SortBy, SortOrder } from "@ourworldindata/types"
+import {
+    ColumnTypeNames,
+    FacetStrategy,
+    SortBy,
+    SortOrder,
+} from "@ourworldindata/types"
 import { OwidTable } from "@ourworldindata/core-table"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
 import { SwimlaneChartState } from "./SwimlaneChartState"
@@ -81,6 +86,25 @@ describe("errorInfo", () => {
         expect(chartState.errorInfo.reason).toEqual(
             "Requires an indicator with categorical values"
         )
+    })
+})
+
+describe("availableFacetStrategies", () => {
+    it("offers no facets, whatever the column and however many entities", () => {
+        const table = ordinalTable([
+            { entityName: "France", time: 2000, cause: "ICD-9" },
+            { entityName: "Germany", time: 2000, cause: "ICD-8" },
+        ])
+        const manager: SwimlaneChartManager = {
+            table,
+            selection: ["France", "Germany"],
+            yColumnSlugs: ["cause"],
+        }
+        const chartState = new SwimlaneChartState({ manager })
+
+        expect(chartState.availableFacetStrategies).toEqual([
+            FacetStrategy.none,
+        ])
     })
 })
 
