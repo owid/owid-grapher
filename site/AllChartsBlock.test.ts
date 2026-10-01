@@ -8,7 +8,7 @@ import {
     indexTopicVocabularyByName,
     suggestedKeywords,
 } from "./search/topicVocabulary.js"
-import { getRowChartTypeTabs } from "./AllChartsBlock.js"
+import { getRowChartTypeTabs, getRowThumbnailTab } from "./AllChartsBlock.js"
 
 describe(suggestedKeywords, () => {
     it("suggests the vocabulary's terms in the vocabulary's own order", () => {
@@ -77,16 +77,68 @@ describe(indexTopicVocabularyByName, () => {
     })
 })
 
+describe(getRowThumbnailTab, () => {
+    const hitWithTabs = (availableTabs: GrapherTabName[]) =>
+        ({ availableTabs }) as SearchChartHit
+
+    it("shows the map when the chart has one", () => {
+        expect(
+            getRowThumbnailTab(
+                hitWithTabs([
+                    GRAPHER_TAB_NAMES.Table,
+                    GRAPHER_TAB_NAMES.WorldMap,
+                    GRAPHER_TAB_NAMES.LineChart,
+                    GRAPHER_TAB_NAMES.DiscreteBar,
+                ])
+            )
+        ).toEqual(GRAPHER_TAB_NAMES.WorldMap)
+    })
+
+    it("shows the first chart type when the chart has no map", () => {
+        // "Share in poverty relative to different poverty lines" in Marwa's
+        // mockup: a line chart with a bar view and no map, whose thumbnail is
+        // the line chart.
+        expect(
+            getRowThumbnailTab(
+                hitWithTabs([
+                    GRAPHER_TAB_NAMES.Table,
+                    GRAPHER_TAB_NAMES.LineChart,
+                    GRAPHER_TAB_NAMES.DiscreteBar,
+                ])
+            )
+        ).toEqual(GRAPHER_TAB_NAMES.LineChart)
+    })
+
+    it("never shows the table", () => {
+        expect(
+            getRowThumbnailTab(
+                hitWithTabs([
+                    GRAPHER_TAB_NAMES.Table,
+                    GRAPHER_TAB_NAMES.StackedArea,
+                ])
+            )
+        ).toEqual(GRAPHER_TAB_NAMES.StackedArea)
+        expect(
+            getRowThumbnailTab(hitWithTabs([GRAPHER_TAB_NAMES.Table]))
+        ).toBeUndefined()
+    })
+
+    it("has no view for a record with no tabs at all", () => {
+        expect(getRowThumbnailTab({} as SearchChartHit)).toBeUndefined()
+    })
+})
+
 describe(getRowChartTypeTabs, () => {
     const hitWithTabs = (availableTabs: GrapherTabName[]) =>
         ({ availableTabs }) as SearchChartHit
 
     it("lists the chart types in the order Grapher's own tab bar does", () => {
         // "Share of population living in extreme poverty" in Marwa's mockup:
-        // a tab bar reading Table | Map | Line | Bar | Marimekko, and a row
-        // reading "Line Bar Marimekko". `availableTabs` is already in tab-bar
-        // order, so this is that list with the table and the map dropped and
-        // nothing re-sorted (Marwa, 2026-09-29).
+        // a tab bar reading Table | Map | Line | Bar | Marimekko, a map
+        // thumbnail, and a row reading "Line Bar Marimekko". `availableTabs`
+        // is already in tab-bar order, so this is that list with the table and
+        // the thumbnail's own view dropped and nothing re-sorted (Marwa,
+        // 2026-09-29).
         expect(
             getRowChartTypeTabs(
                 hitWithTabs([
@@ -104,9 +156,10 @@ describe(getRowChartTypeTabs, () => {
         ])
     })
 
-    it("lists a chart with several chart types and no map", () => {
-        // "Share in poverty relative to different poverty lines": a line
-        // chart with a bar view and no map, listing "Line Bar".
+    it("never repeats the view the thumbnail is already showing", () => {
+        // The duplication Marwa reported on 2026-10-01: a line-chart thumbnail
+        // beside a row that also offered a "Line" link. The thumbnail is the
+        // line chart, so only the bar view is left to offer.
         expect(
             getRowChartTypeTabs(
                 hitWithTabs([
@@ -115,10 +168,10 @@ describe(getRowChartTypeTabs, () => {
                     GRAPHER_TAB_NAMES.DiscreteBar,
                 ])
             )
-        ).toEqual([GRAPHER_TAB_NAMES.LineChart, GRAPHER_TAB_NAMES.DiscreteBar])
+        ).toEqual([GRAPHER_TAB_NAMES.DiscreteBar])
     })
 
-    it("lists a single chart type when the chart also has a map", () => {
+    it("lists a single chart type when the thumbnail is the map", () => {
         // "Multidimensional Poverty Index (MPI)": the thumbnail is the map,
         // and the row lists just "Marimekko" — the other view it has.
         expect(
@@ -135,7 +188,7 @@ describe(getRowChartTypeTabs, () => {
     it("lists nothing for a chart whose only view is its chart type", () => {
         // "Total population living in extreme poverty by world region": a
         // stacked area chart with no map, which the mockup gives no list at
-        // all. One link repeating what the thumbnail already shows is noise.
+        // all. Its thumbnail *is* that view, so nothing is left.
         expect(
             getRowChartTypeTabs(
                 hitWithTabs([
@@ -157,7 +210,7 @@ describe(getRowChartTypeTabs, () => {
         ).toEqual([])
     })
 
-    it("never lists the map itself, which the thumbnail already shows", () => {
+    it("never lists the map, which the thumbnail shows whenever there is one", () => {
         expect(
             getRowChartTypeTabs(
                 hitWithTabs([
@@ -177,6 +230,7 @@ describe(getRowChartTypeTabs, () => {
             getRowChartTypeTabs(
                 hitWithTabs([
                     GRAPHER_TAB_NAMES.Table,
+                    GRAPHER_TAB_NAMES.WorldMap,
                     GRAPHER_TAB_NAMES.LineChart,
                     GRAPHER_TAB_NAMES.LineChart,
                     GRAPHER_TAB_NAMES.DiscreteBar,

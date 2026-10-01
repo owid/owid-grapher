@@ -5,10 +5,9 @@
     }
 }
 
-// The two-column layout the block uses above the accordion breakpoint. Shared by
-// the panes and by the sticky header above them (see
-// .all-charts-block__sticky-header-columns), so the search input can line up
-// with the list pane it belongs to while the header spans the whole block.
+// The two-column layout the block uses above the accordion breakpoint. The
+// panes alone: the heading, the search bar and the suggested searches above
+// them all span the full width of the block (Marwa's mockup, 2026-09-30).
 @mixin all-charts-block-columns {
     display: grid;
     // The block itself already spans the full 12-column content grid (see the
@@ -112,18 +111,6 @@
     }
 }
 
-.all-charts-block__sticky-header-columns {
-    @include all-charts-block-columns;
-}
-
-// Holds the search input in the first column of that grid, so it keeps the width
-// of the list pane below it. A wrapper rather than putting the input straight
-// into the grid: the input comes with an active-filters row beneath it, and both
-// belong in the same column.
-.all-charts-block__sticky-header-search {
-    min-width: 0;
-}
-
 .all-charts-block__right {
     min-width: 0;
     position: sticky;
@@ -173,8 +160,12 @@
 
 .all-charts-block__search-input {
     width: 100%;
-    padding: 12px 36px 12px 36px;
-    border: 1px solid $gray-30;
+    // 14px rather than 12px of vertical padding, which puts the field at the
+    // mockup's 48px (Marwa, 2026-09-30).
+    padding: 14px 36px 14px 36px;
+    // $blue-20, matching the row dividers and thumbnail frames below it, where
+    // this used to be $gray-30 (Marwa's mockup, 2026-09-30).
+    border: 1px solid $blue-20;
     border-radius: 4px;
     font-size: 16px;
     color: $text-color;
@@ -236,6 +227,9 @@
     cursor: pointer;
 }
 
+// Directly under the search bar and, like it, the full width of the block —
+// not inside the list pane. Being outside the panes is also what lets the
+// first row and the chart sidecar start at the same height.
 .all-charts-block__suggested {
     margin-bottom: 16px;
     font-size: 13px;
@@ -371,6 +365,15 @@
     @include sm-only {
         width: 120px;
     }
+}
+
+// The thumbnail is one of the row's views, so it gets the same highlight the
+// chart-type links get when the chart beside the list is on it (Marwa,
+// 2026-10-01). An outline rather than a thicker border: a border would change
+// the image's box and shift the row's text by a pixel as it came and went.
+.all-charts-block__row-thumbnail--active {
+    outline: 2px solid $blue-50;
+    outline-offset: -1px;
 }
 
 .all-charts-block__row-title {

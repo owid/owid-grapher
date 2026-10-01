@@ -49,6 +49,7 @@ import {
     createDatasetProducerFilter,
     constructConfigUrl,
     constructPreviewUrl,
+    toGrapherQueryParams,
     getEntityQueryStr,
     extractFiltersFromQuery,
     pickEntitiesForChartHit,
@@ -413,25 +414,44 @@ export const AllChartsBlock = ({
                         href={`#${id}`}
                     />
                 </h1>
-                {/* Laid out on the same two-column grid as the panes below, so
-                    the input keeps the width of the list pane it belongs to
-                    while the sticky unit's white background spans the whole
-                    block. */}
-                <div className="all-charts-block__sticky-header-columns">
-                    <div className="all-charts-block__sticky-header-search">
-                        <AllChartsSearchInput
-                            query={query}
-                            onQueryChange={setQuery}
-                            producerFilters={producerFilters}
-                            onRemoveProducerFilter={removeProducerFilter}
-                        />
-                    </div>
-                </div>
+                {/* Full width, across both panes rather than boxed into the
+                    list pane's column (Marwa's mockup, 2026-09-30): the search
+                    filters the whole block, not just the list, and at the
+                    list pane's width the placeholder was being clipped. */}
+                <AllChartsSearchInput
+                    query={query}
+                    onQueryChange={setQuery}
+                    producerFilters={producerFilters}
+                    onRemoveProducerFilter={removeProducerFilter}
+                />
             </div>
+            {/* Between the sticky header and the panes, not inside the list
+                pane: full width like the search bar it belongs to, and —
+                because it no longer sits on top of the list — the first row
+                and the chart sidecar start at the same height, which is how
+                the mockup has them. */}
+            {suggestedChips.length > 0 && (
+                <div className="all-charts-block__suggested">
+                    <span className="all-charts-block__suggested-label">
+                        Suggested:{" "}
+                    </span>
+                    {suggestedChips.map((chip, index) => (
+                        <Fragment key={chip.key}>
+                            <button
+                                type="button"
+                                className="all-charts-block__suggested-link"
+                                onClick={chip.onClick}
+                            >
+                                {chip.label}
+                            </button>
+                            {index < suggestedChips.length - 1 && ", "}
+                        </Fragment>
+                    ))}
+                </div>
+            )}
             <div className="all-charts-block__panes">
                 <AllChartsLeftPane
                     query={query}
-                    suggestedChips={suggestedChips}
                     hits={hits}
                     // The skeleton also covers the window where the results
                     // are in but the baseline that orders them isn't (see
@@ -455,7 +475,6 @@ export const AllChartsBlock = ({
 
 type AllChartsLeftPaneProps = {
     query: string
-    suggestedChips: SuggestedChip[]
     hits: SearchChartHit[]
     isLoading: boolean
     isFetching: boolean
@@ -469,7 +488,6 @@ type AllChartsLeftPaneProps = {
 const AllChartsLeftPane = (props: AllChartsLeftPaneProps) => {
     const {
         query,
-        suggestedChips,
         hits,
         isLoading,
         isFetching,
@@ -530,6 +548,15 @@ const AllChartsLeftPane = (props: AllChartsLeftPaneProps) => {
         undefined
     )
 
+    // Before anything has been clicked, the sidecar should still open on the
+    // view the first row's thumbnail is showing, so the outline is right on
+    // load rather than only after the first click.
+    const effectiveSelectedTab =
+        selectedTab ??
+        (hits[selectedIndex]
+            ? getRowThumbnailTab(hits[selectedIndex])
+            : undefined)
+
     // The view the chart on the right is *actually* showing, which is what the
     // row's chart-type links highlight. Not the same thing as `selectedTab`:
     // that is only what a link click asked for, and it is `undefined` both
@@ -579,10 +606,15 @@ const AllChartsLeftPane = (props: AllChartsLeftPaneProps) => {
         query
     )
 
+    // Selecting a row — by its text or by its thumbnail, which share one click
+    // target — opens the sidecar on the view the thumbnail is showing, so the
+    // chart that appears is the one the row just pictured, and the outline on
+    // the thumbnail is right. Not the chart's own default: the Algolia record
+    // doesn't say what that is (see getRowThumbnailTab).
     const handleRowClick = (index: number) => {
         const hit = hits[index]
         if (hit) setSelectedIdentity(getChartHitIdentity(hit))
-        setSelectedTab(undefined)
+        setSelectedTab(hit ? getRowThumbnailTab(hit) : undefined)
         setExpandedIndex((prev) => (prev === index ? null : index))
     }
 
@@ -602,25 +634,6 @@ const AllChartsLeftPane = (props: AllChartsLeftPaneProps) => {
     return (
         <>
             <div className="all-charts-block__left">
-                {suggestedChips.length > 0 && (
-                    <div className="all-charts-block__suggested">
-                        <span className="all-charts-block__suggested-label">
-                            Suggested:{" "}
-                        </span>
-                        {suggestedChips.map((chip, index) => (
-                            <Fragment key={chip.key}>
-                                <button
-                                    type="button"
-                                    className="all-charts-block__suggested-link"
-                                    onClick={chip.onClick}
-                                >
-                                    {chip.label}
-                                </button>
-                                {index < suggestedChips.length - 1 && ", "}
-                            </Fragment>
-                        ))}
-                    </div>
-                )}
                 {isLoading ? (
                     <SearchDataResultsSkeleton />
                 ) : hits.length === 0 ? (
@@ -635,7 +648,7 @@ const AllChartsLeftPane = (props: AllChartsLeftPaneProps) => {
                             hits={visibleHits}
                             selectedIndex={selectedIndex}
                             expandedIndex={expandedIndex}
-                            selectedTab={selectedTab}
+                            selectedTab={effectiveSelectedTab}
                             activeTab={activeTab}
                             onActiveTabChange={setActiveTab}
                             onRowClick={handleRowClick}
@@ -690,7 +703,7 @@ const AllChartsLeftPane = (props: AllChartsLeftPaneProps) => {
                     <AllChartsSidecar
                         hit={selectedHit}
                         detectedCountries={detectedCountries}
-                        tab={selectedTab}
+                        tab={effectiveSelectedTab}
                         onActiveTabChange={setActiveTab}
                     />
                 )}
@@ -849,48 +862,75 @@ function getSidecarViewQueryStr(
 }
 
 /**
- * The chart types a row lists under its source line, in the order Grapher's own
- * tab bar lists them — a row reading "Line Bar Marimekko" belongs to a chart
- * whose tab bar reads Line | Bar | Marimekko, so a visitor can match one to the
- * other at a glance (Marwa, 2026-09-29).
+ * The row's own views, in the order Grapher's own tab bar lists them: the one
+ * its thumbnail shows, and then the rest.
  *
- * That order comes free: the Algolia record's `availableTabs` is Grapher's
+ * That order comes free. The Algolia record's `availableTabs` is Grapher's
  * `availableTabs` verbatim (see getChartsRecords in
- * baker/algolia/utils/charts.ts), which is built as table, map, then the chart
- * types — the tab bar's order. So this is that list with the table and the map
+ * baker/algolia/utils/charts.ts), which is built as table, then map, then the
+ * chart types — the tab bar's order. So this is that list with the table
  * dropped, and nothing here re-sorts it.
  *
- * The result is empty unless the chart genuinely has more than one view: a
- * chart whose only view is its single chart type has nothing to offer here, and
- * a row of one link that just repeats what the thumbnail already shows is
- * noise. A single chart type *plus* a map does qualify — the map is a second
- * view, it's the one the thumbnail shows, and the chart type is the one the
- * link gets you to (Marwa's mockup, 2026-09-30: "Multidimensional Poverty
- * Index (MPI)" lists just "Marimekko" because it also has a map, while "Total
- * population living in extreme poverty by world region", a stacked area chart
- * with no map, lists nothing).
- *
- * The map itself is never listed: the row's thumbnail is already the map on
- * every chart that has one, and the table never is — it is not a view of the
- * data anyone picks from a list of chart types.
+ * The table is dropped because it is not a view of the chart anyone picks from
+ * a row: the thumbnail renderer has no table to draw, and it is reachable from
+ * the sidecar's own tab bar anyway.
  */
-// oxlint-disable-next-line react/only-export-components -- exported for AllChartsBlock.test.ts; the rule is about fast refresh, and this is a pure helper
-export function getRowChartTypeTabs(hit: SearchChartHit): GrapherTabName[] {
-    const availableTabs = hit.availableTabs ?? []
-    const hasMapTab = availableTabs.includes(GRAPHER_TAB_NAMES.WorldMap)
+function getRowViews(hit: SearchChartHit): GrapherTabName[] {
     // Belt and braces against a record that lists a tab twice, which would
-    // otherwise render the same link twice.
-    const chartTypes = [
+    // otherwise show the same view in two places.
+    return [
         ...new Set(
-            availableTabs.filter(
-                (tab) =>
-                    tab !== GRAPHER_TAB_NAMES.Table &&
-                    tab !== GRAPHER_TAB_NAMES.WorldMap
+            (hit.availableTabs ?? []).filter(
+                (tab) => tab !== GRAPHER_TAB_NAMES.Table
             )
         ),
     ]
-    if (chartTypes.length <= 1 && !hasMapTab) return []
-    return chartTypes
+}
+
+/**
+ * The view a row's thumbnail is rendered on: the map where the chart has one,
+ * otherwise its first chart type. Which is just the first of the row's views,
+ * since `availableTabs` already puts the map ahead of the chart types.
+ *
+ * The thumbnail asks for this view *explicitly* rather than letting the chart
+ * open on its own default, because the Algolia record doesn't say what that
+ * default is — it lists a chart's tabs and nothing more (see ChartRecord in
+ * packages/@ourworldindata/types). Naming the view is what lets the row know
+ * what its own thumbnail is showing, which is what the list below it excludes
+ * and what the outline on it tracks.
+ *
+ * `undefined` for a record with no view but the table, which shouldn't happen
+ * but shouldn't crash the row either.
+ */
+// oxlint-disable-next-line react/only-export-components -- exported for AllChartsBlock.test.ts; the rule is about fast refresh, and this is a pure helper
+export function getRowThumbnailTab(
+    hit: SearchChartHit
+): GrapherTabName | undefined {
+    return getRowViews(hit)[0]
+}
+
+/**
+ * The chart types a row lists under its source line: every view it has except
+ * the one its thumbnail is already showing.
+ *
+ * Excluding the thumbnail's view is the point. A row whose thumbnail is the
+ * line chart and which also offers a "Line" link shows the same view twice and
+ * reads as a bug (Marwa, 2026-10-01). So the thumbnail is the first view and
+ * these are the alternatives to it — which is also why a chart whose only view
+ * is one chart type lists nothing at all: its thumbnail is that view, and
+ * there is nothing left to offer.
+ *
+ * Against Marwa's mockup of 2026-09-30, where the thumbnail is the map on
+ * every chart that has one: "Share of population living in extreme poverty"
+ * lists Line, Bar, Marimekko; "Multidimensional Poverty Index (MPI)" lists
+ * just Marimekko; "Total population living in extreme poverty by world
+ * region", a stacked area chart with no map, lists nothing; and "Share in
+ * poverty relative to different poverty lines", a line chart with a bar view
+ * and no map, lists Bar alone rather than the Line and Bar it used to.
+ */
+// oxlint-disable-next-line react/only-export-components -- exported for AllChartsBlock.test.ts; the rule is about fast refresh, and this is a pure helper
+export function getRowChartTypeTabs(hit: SearchChartHit): GrapherTabName[] {
+    return getRowViews(hit).slice(1)
 }
 
 /**
@@ -1012,6 +1052,10 @@ const AllChartsTableRow = ({
     // Entities from the query that are actually available on this chart.
     const shownEntities = pickEntitiesForChartHit(hit, detectedCountries)
 
+    // The view the thumbnail is rendered on, which is also the view the row
+    // selects by default and the one the chart-type links leave out.
+    const thumbnailTab = getRowThumbnailTab(hit)
+
     // Rendered as a single "Source: …" line under the title rather than in a
     // column of its own, so the row reads as one block of text instead of a
     // table cell.
@@ -1071,9 +1115,31 @@ const AllChartsTableRow = ({
                         leading the row visually doesn't put anything ahead of
                         the title for a screen reader. */}
                     <img
-                        className="all-charts-block__row-thumbnail"
+                        className={cx("all-charts-block__row-thumbnail", {
+                            // Outlined when the chart beside the list is on
+                            // the view this thumbnail shows, so the thumbnail
+                            // reads as the selected one among the row's views
+                            // (Marwa, 2026-10-01). Driven by the sidecar's
+                            // live activeTab, like the links below it.
+                            "all-charts-block__row-thumbnail--active":
+                                isSelected && activeTab === thumbnailTab,
+                        })}
                         src={constructPreviewUrl({
                             hit,
+                            // The view is named rather than left to the
+                            // chart's own default, which the Algolia record
+                            // doesn't carry — see getRowThumbnailTab. The
+                            // entities are the ones the search turned up for
+                            // this chart, the same list the row's chip and the
+                            // sidecar use, so a country search re-renders the
+                            // thumbnail for that country instead of leaving a
+                            // world view beside a filtered row (Marwa,
+                            // 2026-10-01). On a map view it changes nothing —
+                            // a map already shows every country.
+                            grapherParams: toGrapherQueryParams({
+                                entities: shownEntities,
+                                tab: thumbnailTab,
+                            }),
                             variant: PreviewVariant.Thumbnail,
                             // No labelling at all, so the chart itself gets
                             // the whole frame: at 170px every label in one of
