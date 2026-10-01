@@ -176,6 +176,10 @@ function OwidLinearTopicPageHeader({
 }: {
     content: OwidGdocPostContent
 }) {
+    const hasLinearTopicToc = content.body?.some(
+        (block) => block.type === "ltp-toc"
+    )
+
     return (
         <header className="topic-page-header grid span-cols-14 grid-cols-12-full-width">
             <h1 className="display-2-semibold col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2">
@@ -184,27 +188,29 @@ function OwidLinearTopicPageHeader({
             <p className="topic-page-header__subtitle body-1-regular col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2">
                 {content.subtitle}
             </p>
-            <div className="linear-topic-page-header__meta col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2">
-                {content.authors.length > 0 && (
-                    <p className="topic-page-header__byline">
-                        <Byline
-                            authors={content.authors}
-                            authorRoles={content.authorRoles}
-                            contributors={content.contributors}
-                        />
-                    </p>
-                )}
-                <div className="topic-page-header__cta-buttons">
-                    <a href={`#${CITATION_ID}`}>
-                        <FontAwesomeIcon icon={faBook} />
-                        Cite this work
-                    </a>
+            {content.authors.length > 0 && (
+                <p className="topic-page-header__byline col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2">
+                    <Byline
+                        authors={content.authors}
+                        authorRoles={content.authorRoles}
+                        contributors={content.contributors}
+                    />
+                </p>
+            )}
+            {hasLinearTopicToc && (
+                <div className="topic-page-header__cta-buttons linear-topic-page-header__cta-buttons col-start-11 span-cols-3 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2">
+                    {!content["hide-citation"] && (
+                        <a href={`#${CITATION_ID}`}>
+                            <FontAwesomeIcon icon={faBook} />
+                            Cite this work
+                        </a>
+                    )}
                     <a href={`#${LICENSE_ID}`}>
                         <FontAwesomeIcon icon={faCreativeCommons} />
                         Reuse this work
                     </a>
                 </div>
-            </div>
+            )}
             <p className="topic-page-header__dateline body-3-medium-italic col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2">
                 {content.dateline}
             </p>

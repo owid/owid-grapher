@@ -59,18 +59,6 @@
     }
 }
 
-.linear-topic-page-header__meta {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    align-items: baseline;
-    gap: 8px 24px;
-
-    .topic-page-header__cta-buttons {
-        margin: 0;
-    }
-}
-
 .topic-page-header__cta-buttons {
     margin-top: 14px;
     margin-bottom: 32px;
@@ -86,6 +74,15 @@
     svg {
         color: $blue-50;
         margin-right: 4px;
+    }
+}
+
+.linear-topic-page-header__cta-buttons {
+    align-self: end;
+    margin: 0;
+
+    @include md-down {
+        margin-top: 8px;
     }
 }
 
