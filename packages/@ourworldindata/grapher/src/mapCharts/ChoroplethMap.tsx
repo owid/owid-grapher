@@ -27,6 +27,8 @@ import {
     PROJECTED_DATA_LEGEND_COLOR,
     MapViewport,
     MAP_VIEWPORTS,
+    MAP_VIEWPORT_NARROW_WORLD,
+    MAP_NARROW_VIEWPORT_MAX_WIDTH,
     MAP_REGION_LABELS,
 } from "./MapChartConstants"
 import { getGeoFeaturesForMap } from "./GeoFeatures"
@@ -95,7 +97,16 @@ export class ChoroplethMap extends React.Component<{
     }
 
     @computed private get viewport(): MapViewport {
-        return this.manager.mapViewport ?? MAP_VIEWPORTS[this.mapConfig.region]
+        if (this.manager.mapViewport) return this.manager.mapViewport
+
+        const { region } = this.mapConfig
+        if (
+            region === MapRegionName.World &&
+            this.bounds.width <= MAP_NARROW_VIEWPORT_MAX_WIDTH
+        )
+            return MAP_VIEWPORT_NARROW_WORLD
+
+        return MAP_VIEWPORTS[region]
     }
 
     @computed.struct private get choroplethData(): ChoroplethSeriesByName {
