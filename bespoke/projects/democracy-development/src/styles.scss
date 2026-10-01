@@ -616,28 +616,199 @@
     }
 }
 
-// ---- Tooltip: grapher's Tooltip.scss does the rest ----
+// ---- Tooltip: grapher's tooltip/Tooltip.scss, which only applies inside .GrapherComponent, ported ----
 .dd-tooltip {
     position: absolute;
     z-index: 20;
     pointer-events: none;
 
-    .Tooltip .variable .values .time-notice svg {
-        width: 13px;
-        height: 13px;
+    &.fixed-bottom {
+        position: fixed;
+        left: 50%;
+        bottom: 4px;
+        width: calc(100% - 8px);
+        max-width: 400px;
+        transform: translateX(-50%);
+
+        .Tooltip {
+            pointer-events: auto;
+        }
     }
 
-    .Tooltip .series-list td.series-value .yr {
-        color: #787878;
-        font-weight: 400;
-        font-size: 12px;
-        margin-left: 4px;
-    }
+    .Tooltip {
+        border-radius: 4px;
+        border: 1px solid $gray-20;
+        box-shadow: 0 4px 40px rgba(0, 0, 0, 0.2);
+        background: white;
+        text-align: left;
+        font-family: $sans-serif-font-stack;
+        font-size: 16px;
+        max-width: 400px;
+        min-width: 220px;
+        color: #2d2d2d;
 
-    .Tooltip .endmatter .line svg {
-        width: 12px;
-        height: 12px;
-        flex-shrink: 0;
-        margin-top: 1px;
+        p {
+            margin: 0;
+        }
+
+        .frontmatter {
+            background: #f0f0f0;
+            color: #000;
+            padding: 8px 12px;
+            border-radius: 3px 3px 0 0;
+
+            .title {
+                font-size: 14px;
+                font-weight: 700;
+                line-height: 1.125em;
+
+                .annotation {
+                    font-weight: 400;
+                    color: #787878;
+                    font-size: 0.9em;
+                    margin-left: 4px;
+                }
+            }
+
+            .subtitle {
+                margin: 4px 0 2px;
+                font-size: 12px;
+                font-weight: 400;
+                letter-spacing: 0.01em;
+            }
+        }
+
+        .content {
+            padding: 8px 12px;
+        }
+
+        .variable {
+            .definition {
+                color: $gray-70;
+                font-size: 12px;
+                line-height: 15px;
+                letter-spacing: 0.01em;
+                font-weight: 700;
+
+                .unit {
+                    font-weight: 400;
+                    margin-left: 0.25em;
+
+                    &::before {
+                        content: "(";
+                    }
+
+                    &::after {
+                        content: ")";
+                    }
+                }
+            }
+
+            .values {
+                display: flex;
+                align-items: baseline;
+                justify-content: space-between;
+                color: #2d2d2d;
+                padding: 2px 0;
+                line-height: 21px;
+                font-size: 18px;
+                font-weight: 700;
+                gap: 12px;
+
+                .term.no-data {
+                    color: #999;
+                    font-weight: 400;
+                    font-size: 14px;
+                }
+
+                .time-notice {
+                    font-weight: 400;
+                    font-size: 14px;
+                    color: #787878;
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 5px;
+                    white-space: nowrap;
+
+                    svg {
+                        width: 13px;
+                        height: 13px;
+                    }
+                }
+            }
+
+            & + .variable {
+                margin-top: 4px;
+                padding-top: 8px;
+                border-top: 1px solid $gray-30;
+            }
+        }
+
+        table.series-list {
+            color: #2d2d2d;
+            font-size: 14px;
+            line-height: 22px;
+            font-weight: 400;
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 6px;
+            padding-top: 6px;
+            border-top: 1px solid $gray-30;
+
+            td {
+                vertical-align: baseline;
+                padding: 0;
+            }
+
+            td.series-name {
+                padding-right: 0.9em;
+                line-height: 16px;
+                width: 100%;
+                color: $gray-70;
+                font-size: 12px;
+                letter-spacing: 0.01em;
+                padding-top: 3px;
+            }
+
+            td.series-value {
+                font-weight: 700;
+                text-align: right;
+                white-space: nowrap;
+
+                &.missing {
+                    color: $gray-30;
+                    font-weight: 400;
+                }
+
+                .yr {
+                    color: #787878;
+                    font-weight: 400;
+                    font-size: 12px;
+                    margin-left: 4px;
+                }
+            }
+        }
+
+        .endmatter {
+            color: #787878;
+            padding: 4px 12px;
+            border-top: 1px solid $gray-30;
+            font-size: 12px;
+            line-height: 15px;
+
+            .line {
+                margin: 4px 0;
+                display: flex;
+                gap: 6px;
+                align-items: flex-start;
+
+                svg {
+                    width: 12px;
+                    height: 12px;
+                    flex-shrink: 0;
+                    margin-top: 1px;
+                }
+            }
+        }
     }
 }
