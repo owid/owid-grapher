@@ -635,6 +635,18 @@ $all-charts-panes-gap: 24px;
     line-height: 1.5;
 }
 
+// The one thing the variant must not take from the rule above: its leading.
+// This span is inline *inside* the serif title, so the title's line box has to
+// hold it, and at 1.5 its 18px inline box sits a fraction of a pixel below the
+// title's own 20px box — enough to round the line box, and the row with it, to
+// 21px. Rows with a variant name then stood a pixel taller than rows without
+// one, where the design has every row the same height. Matching the title's
+// leading keeps this span inside the title's box; at 12px against 16px nothing
+// about how it looks changes.
+.all-charts-block__row-variant {
+    line-height: 1.25;
+}
+
 .all-charts-block__row-source {
     // The source stays on one line however long the producer list is — some
     // run to a dozen organisations ("Food and Agriculture Organization of the
