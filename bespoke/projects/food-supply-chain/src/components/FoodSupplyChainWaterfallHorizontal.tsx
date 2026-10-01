@@ -37,9 +37,9 @@ import {
     TOTAL_BOX_LABEL_FONT_WEIGHT,
     TOTAL_LABEL_FONT_SIZE,
     TOTAL_LABEL_FONT_WEIGHT,
+    VALUE_LABEL_BASELINE_OFFSET,
     VALUE_LABEL_FONT_SIZE,
     VALUE_LABEL_FONT_WEIGHT,
-    VALUE_LABEL_LINE_HEIGHT,
     VALUE_LABEL_SIDE_GAP,
 } from "../core/constants.js"
 import {
@@ -49,19 +49,14 @@ import {
 } from "../core/text.js"
 import { useStepHover } from "../core/useStepHover.js"
 import { STAGE_GROUPS } from "../core/stages.js"
-import {
-    IS_UNIT_WRAPPABLE_BY_MEASURE,
-    SHORT_UNIT_BY_MEASURE,
-    StageKey,
-} from "../core/types.js"
-import { chooseStepColor, isAddition, Waterfall } from "../core/waterfall.js"
+import { StageKey } from "../core/types.js"
+import { chooseStepColor, Waterfall } from "../core/waterfall.js"
 import {
     AxisLabel,
     chooseTicks,
     countStepAxisSlots,
     findGroupedStepKeys,
     fitAxisToLabels,
-    LabelSide,
     layOutWaterfall,
     measureGroupHeaderSlots,
     measureLabelledBoxLengths,
@@ -99,13 +94,12 @@ export function FoodSupplyChainWaterfallHorizontal({
     if (!plan) return null
     const {
         tickLabels,
-        stepValueLabelLines,
+        stepValueLabelTexts,
         totalValueLabelText,
         captionTextWraps,
         totalCaptionTextWrap,
         captionRight,
         groupHeaderTextWraps,
-        valueLabelSides,
         height,
         layout,
         groupedStepKeys,
@@ -189,8 +183,7 @@ export function FoodSupplyChainWaterfallHorizontal({
                         key={step.step.key}
                         step={step}
                         captionTextWrap={captionTextWraps[index]}
-                        valueLabelLines={stepValueLabelLines[index]}
-                        valueLabelSide={valueLabelSides[index]}
+                        valueLabelText={stepValueLabelTexts[index]}
                         isTotal={false}
                         showArrow={index > 0}
                         isDimmed={
@@ -208,8 +201,7 @@ export function FoodSupplyChainWaterfallHorizontal({
                 <RowMarks
                     step={layout.total}
                     captionTextWrap={totalCaptionTextWrap}
-                    valueLabelLines={[totalValueLabelText]}
-                    valueLabelSide={valueLabelSides[waterfall.steps.length]}
+                    valueLabelText={totalValueLabelText}
                     isTotal
                     showArrow={false}
                     isDimmed={
@@ -253,14 +245,13 @@ export function FoodSupplyChainWaterfallHorizontal({
 interface HorizontalWaterfallPlan {
     /** Only the tick labels that are shown, by tick value */
     tickLabels: Map<number, string>
-    stepValueLabelLines: string[][]
+    stepValueLabelTexts: string[]
     totalValueLabelText: string
     captionTextWraps: TextWrap[]
     totalCaptionTextWrap: TextWrap
     captionRight: number
     groupHeaderTextWraps: Map<string, TextWrap>
     /** One per step, then the total's */
-    valueLabelSides: LabelSide[]
     height: number
     layout: WaterfallLayout
     groupedStepKeys: Set<StageKey>
@@ -286,17 +277,6 @@ function planHorizontalWaterfall(
     )
     const stepValueLabelTexts = waterfall.steps.map((step, index) =>
         formatStepDelta(step.delta, measure, { isFromZero: index === 0 })
-    )
-    const wrappedStepValueLabelLines = waterfall.steps.map((step, index) =>
-        IS_UNIT_WRAPPABLE_BY_MEASURE[measure]
-            ? [
-                  formatStepDelta(step.delta, measure, {
-                      isFromZero: index === 0,
-                      withUnit: false,
-                  }),
-                  SHORT_UNIT_BY_MEASURE[measure],
-              ]
-            : undefined
     )
     const totalValueLabelText = formatMeasureValue(
         waterfall.total.value,
@@ -326,16 +306,14 @@ function planHorizontalWaterfall(
     const captionColumnWidth = captionRight + CAPTION_COLUMN_GAP
     const captionMaxWidth =
         captionRight - GROUP_LABEL_INSET + TEXT_WRAP_BREAK_MARGIN
-    const valueAxis = fitAxisToLabels(
+    const valueAxisLength = fitAxisToLabels(
         [
             ...waterfall.steps.map((step, index) =>
                 buildAxisLabel({
                     from: step.balanceBefore,
                     to: step.balanceAfter,
                     text: stepValueLabelTexts[index],
-                    wrappedLines: wrappedStepValueLabelLines[index],
                     isTotal: false,
-                    preferredSide: isAddition(step) ? "right" : "left",
                     valueDomain,
                 })
             ),
@@ -344,14 +322,13 @@ function planHorizontalWaterfall(
                 to: waterfall.total.value,
                 text: totalValueLabelText,
                 isTotal: true,
-                preferredSide: "right",
                 valueDomain,
             }),
         ],
         width - captionColumnWidth,
         tickLabelWidths[tickLabelWidths.length - 1] / 2
     )
-    if (captionMaxWidth <= TEXT_WRAP_BREAK_MARGIN || valueAxis.length <= 0)
+    if (captionMaxWidth <= TEXT_WRAP_BREAK_MARGIN || valueAxisLength <= 0)
         return undefined
 
     const captionTextWraps = waterfall.steps.map((step) =>
@@ -394,7 +371,7 @@ function planHorizontalWaterfall(
     const box: Box = {
         x: captionColumnWidth,
         y: plotTop,
-        width: valueAxis.length,
+        width: valueAxisLength,
         height:
             rowHeight * countStepAxisSlots(waterfall.steps, stepAxisSpacing),
     }
@@ -408,13 +385,6 @@ function planHorizontalWaterfall(
         layout.ticks.map((tick) => tick.gridline.x1),
         tickLabelWidths
     )
-    const stepValueLabelLines = waterfall.steps.map(
-        (_, index) =>
-            (valueAxis.isWrapped[index] &&
-                wrappedStepValueLabelLines[index]) || [
-                stepValueLabelTexts[index],
-            ]
-    )
 
     return {
         tickLabels: new Map(
@@ -424,13 +394,12 @@ function planHorizontalWaterfall(
                     : []
             )
         ),
-        stepValueLabelLines,
+        stepValueLabelTexts,
         totalValueLabelText,
         captionTextWraps,
         totalCaptionTextWrap,
         captionRight,
         groupHeaderTextWraps,
-        valueLabelSides: valueAxis.sides,
         height,
         layout,
         groupedStepKeys: findGroupedStepKeys(layout),
@@ -440,8 +409,7 @@ function planHorizontalWaterfall(
 function RowMarks({
     step,
     captionTextWrap,
-    valueLabelLines,
-    valueLabelSide,
+    valueLabelText,
     isTotal,
     showArrow,
     isDimmed,
@@ -450,8 +418,7 @@ function RowMarks({
 }: {
     step: PlacedStep
     captionTextWrap: TextWrap
-    valueLabelLines: string[]
-    valueLabelSide: LabelSide
+    valueLabelText: string
     isTotal: boolean
     showArrow: boolean
     isDimmed: boolean
@@ -499,9 +466,8 @@ function RowMarks({
                 outlineWidth={LABEL_HALO_WIDTH}
             >
                 <ValueLabel
-                    lines={valueLabelLines}
+                    text={valueLabelText}
                     bar={step.bar ?? { x: step.valueAnchor.x, width: 0 }}
-                    side={valueLabelSide}
                     rowCentre={rowCentre}
                     fontSize={valueLabelFontSize}
                     fontWeight={
@@ -541,9 +507,8 @@ function BarArrow({
 }
 
 function ValueLabel({
-    lines,
+    text,
     bar,
-    side,
     rowCentre,
     fontSize,
     fontWeight,
@@ -551,9 +516,8 @@ function ValueLabel({
     id,
     style,
 }: {
-    lines: string[]
+    text: string
     bar: Pick<Box, "x" | "width">
-    side: LabelSide
     rowCentre: number
     fontSize: number
     fontWeight: number
@@ -562,78 +526,44 @@ function ValueLabel({
     id?: string
     style?: React.CSSProperties
 }): React.ReactElement {
-    const { x, textAnchor } = placeValueLabel(bar, side)
-    const lineHeight = fontSize * VALUE_LABEL_LINE_HEIGHT
     return (
         <text
             id={id}
             style={style}
             className="food-supply-chain-waterfall__value-label"
-            textAnchor={textAnchor}
-            dominantBaseline="middle"
+            x={bar.x + bar.width + VALUE_LABEL_SIDE_GAP}
+            y={rowCentre + fontSize * VALUE_LABEL_BASELINE_OFFSET}
             fontSize={fontSize}
             fontWeight={fontWeight}
             fill={fill}
         >
-            {lines.map((line, index) => (
-                <tspan
-                    key={index}
-                    x={x}
-                    y={
-                        rowCentre +
-                        (index - (lines.length - 1) / 2) * lineHeight
-                    }
-                >
-                    {line}
-                </tspan>
-            ))}
+            {text}
         </text>
     )
-}
-
-function placeValueLabel(
-    bar: Pick<Box, "x" | "width">,
-    side: LabelSide
-): { x: number; textAnchor: "start" | "end" } {
-    return side === "right"
-        ? { x: bar.x + bar.width + VALUE_LABEL_SIDE_GAP, textAnchor: "start" }
-        : { x: bar.x - VALUE_LABEL_SIDE_GAP, textAnchor: "end" }
 }
 
 function buildAxisLabel({
     from,
     to,
     text,
-    wrappedLines,
     isTotal,
-    preferredSide,
     valueDomain: { from: domainStart, to: domainEnd },
 }: {
     from: number
     to: number
     text: string
-    wrappedLines?: string[]
     isTotal: boolean
-    preferredSide: LabelSide
     valueDomain: Span
 }): AxisLabel {
     const domainSpan = domainEnd - domainStart
-    const measureTextWidth = (line: string): number =>
-        Bounds.forText(line, {
-            fontSize: isTotal ? TOTAL_LABEL_FONT_SIZE : VALUE_LABEL_FONT_SIZE,
-            fontWeight: isTotal
-                ? TOTAL_LABEL_FONT_WEIGHT
-                : VALUE_LABEL_FONT_WEIGHT,
-        }).width
+    const textWidth = Bounds.forText(text, {
+        fontSize: isTotal ? TOTAL_LABEL_FONT_SIZE : VALUE_LABEL_FONT_SIZE,
+        fontWeight: isTotal ? TOTAL_LABEL_FONT_WEIGHT : VALUE_LABEL_FONT_WEIGHT,
+    }).width
     const gaps = 2 * VALUE_LABEL_SIDE_GAP // one to the bar, one to the plot edge
     return {
-        barStart: (Math.min(from, to) - domainStart) / domainSpan,
         barEnd: (Math.max(from, to) - domainStart) / domainSpan,
-        width: measureTextWidth(text) + gaps,
-        wrappedWidth:
-            wrappedLines &&
-            Math.max(...wrappedLines.map(measureTextWidth)) + gaps,
-        preferredSide,
+        width: textWidth + gaps,
     }
 }
 

@@ -13,12 +13,6 @@ export const NUM_DECIMAL_PLACES_BY_MEASURE: Record<Measure, number> = {
     protein: 1,
 }
 
-/** Whether a value label short of room may put its unit on a line of its own */
-export const IS_UNIT_WRAPPABLE_BY_MEASURE: Record<Measure, boolean> = {
-    energy: true,
-    protein: false,
-}
-
 /** Keys as the metadata file spells them; the set is not known at compile time */
 export type StageKey = string
 
