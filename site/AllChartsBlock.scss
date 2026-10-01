@@ -1,6 +1,10 @@
 .all-charts-block {
     .all-charts-block__heading {
-        margin-bottom: $margin-bottom-section-heading-ltp;
+        // 25px rather than the section default of 32px, which is what the
+        // mockup leaves between the heading and the search bar below it
+        // (Marwa, 2026-10-01). Scoped to this block: the variable is shared
+        // with every other section heading on the site.
+        margin-bottom: 25px;
         text-align: left;
     }
 }
@@ -128,6 +132,11 @@
     figure[data-grapher-src]:not(.grapherPreview),
     figure.grapher-component:not(.grapherPreview) {
         height: $grapher-height;
+        // The site gives a standalone chart figure 16px of air above it, which
+        // here pushed the card 16px below the first row beside it. The mockup
+        // has their top edges level (Marwa, 2026-10-01), and the pane is
+        // already spaced by the block around it.
+        margin-top: 0;
     }
 
     // Below this breakpoint the persistent sidecar is replaced by an
