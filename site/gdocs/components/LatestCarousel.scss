@@ -1,3 +1,6 @@
+$latest-carousel-card-height: 322px; // desktop
+$latest-carousel-card-padding: 16px;
+
 .latest-carousel {
     position: relative;
     margin-bottom: 24px;
@@ -36,7 +39,7 @@ html.js-enabled .latest-carousel__card-container {
 
 .latest-carousel__card {
     flex: 0 0 845px;
-    height: 322px;
+    height: $latest-carousel-card-height;
     scroll-snap-align: start;
     // A flick advances at most one card instead of flying past several.
     scroll-snap-stop: always;
@@ -63,7 +66,7 @@ html:not(.js-enabled) .latest-carousel__card,
     gap: 16px 24px;
     color: $blue-90;
     background: $blue-20;
-    padding: 16px;
+    padding: $latest-carousel-card-padding;
 
     .article-block__text {
         @include body-3-medium;
@@ -167,10 +170,15 @@ html:not(.js-enabled) .latest-carousel__card,
         }
     }
 
+    // Fill the card's height, but no wider than a square image would be
+    // (the card's inner height), so wide images don't crowd out the text.
+    // Wide images end up shorter than the card, aligned to the top.
     img {
-        height: 100%;
+        height: auto;
         width: auto;
-        max-width: initial;
+        max-height: 100%;
+        max-width: $latest-carousel-card-height - 2 *
+            $latest-carousel-card-padding;
 
         @include md-down {
             display: block;
