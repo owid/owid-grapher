@@ -176,10 +176,6 @@ function OwidLinearTopicPageHeader({
 }: {
     content: OwidGdocPostContent
 }) {
-    const hasLinearTopicToc = content.body?.some(
-        (block) => block.type === "ltp-toc"
-    )
-
     return (
         <header className="topic-page-header grid span-cols-14 grid-cols-12-full-width">
             <h1 className="display-2-semibold col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2">
@@ -197,20 +193,18 @@ function OwidLinearTopicPageHeader({
                     />
                 </p>
             )}
-            {hasLinearTopicToc && (
-                <div className="topic-page-header__cta-buttons linear-topic-page-header__cta-buttons col-start-11 span-cols-3 col-lg-start-5 span-lg-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2">
-                    {!content["hide-citation"] && (
-                        <a href={`#${CITATION_ID}`}>
-                            <FontAwesomeIcon icon={faBook} />
-                            Cite this work
-                        </a>
-                    )}
-                    <a href={`#${LICENSE_ID}`}>
-                        <FontAwesomeIcon icon={faCreativeCommons} />
-                        Reuse this work
+            <div className="topic-page-header__cta-buttons linear-topic-page-header__cta-buttons col-start-11 span-cols-3 col-lg-start-5 span-lg-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2">
+                {!content["hide-citation"] && (
+                    <a href={`#${CITATION_ID}`}>
+                        <FontAwesomeIcon icon={faBook} />
+                        Cite this work
                     </a>
-                </div>
-            )}
+                )}
+                <a href={`#${LICENSE_ID}`}>
+                    <FontAwesomeIcon icon={faCreativeCommons} />
+                    Reuse this work
+                </a>
+            </div>
             <p className="topic-page-header__dateline body-3-medium-italic col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2">
                 {content.dateline}
             </p>
