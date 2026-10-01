@@ -36,6 +36,7 @@ import { SearchTemplatesWriting } from "./SearchTemplatesWriting.js"
 import { SearchNoResults } from "./SearchNoResults.js"
 import { SearchDetectedFilters } from "./SearchDetectedFilters.js"
 import { SearchTopicKeywordLinks } from "./SearchTopicKeywordLinks.js"
+import { TOPIC_VOCABULARY_QUERY_KEY } from "./queries.js"
 import { buildSynonymMap } from "./synonymUtils.js"
 import { SiteAnalytics } from "../SiteAnalytics.js"
 import { PoweredBy } from "react-instantsearch"
@@ -72,7 +73,11 @@ export const Search = ({
     // Handle analytics tracking (skips initial page load)
     useSearchAnalytics(state, analytics)
 
-    const isFetching = useIsFetching()
+    // The topic vocabulary only feeds the refine-search links, so a slow or
+    // failing fetch of it mustn't hold back the empty-results state.
+    const isFetching = useIsFetching({
+        predicate: (query) => query.queryKey[0] !== TOPIC_VOCABULARY_QUERY_KEY,
+    })
     const hasSearchError = useHasSearchError()
 
     // The Searchbar is re-mounted whenever the search state changes (see its

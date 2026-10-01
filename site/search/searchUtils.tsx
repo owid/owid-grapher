@@ -577,9 +577,14 @@ export function findWholeTopicInView(
     const selectedTopics = getFilterNamesOfType(filters, FilterType.TOPIC)
 
     // No query to narrow it: a single topic filter is the topic in view, and
-    // anything else (none, or several) is not one whole topic.
-    if (!query.trim())
-        return selectedTopics.size === 1 ? [...selectedTopics][0] : undefined
+    // anything else (none, several, or an area, which is stored as a topic
+    // filter too) is not one whole topic.
+    if (!query.trim()) {
+        const [selectedTopic] = selectedTopics
+        return selectedTopics.size === 1 && allTopics.includes(selectedTopic)
+            ? selectedTopic
+            : undefined
+    }
 
     // With a query, only a topic it names counts — and passing the selected
     // topics suppresses the match once one is applied, since the reader has
@@ -601,7 +606,7 @@ export function findWholeTopicInView(
  * The vocabulary's generator publishes as many terms per topic as it is asked
  * for — eight, at the time of writing — and is not bounded at source. Five is a
  * length that still scans as a suggestion rather than a second navigation,
- * which is what eight read as (Marwa, 2026-09-03).
+ * which is what eight read as.
  */
 export const MAX_SUGGESTED_SEARCHES = 5
 

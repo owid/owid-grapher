@@ -905,6 +905,13 @@ describe(findWholeTopicInView, () => {
                 ])
             ).toBeUndefined()
         })
+
+        it("stays quiet for an area, which the vocabulary doesn't cover", () => {
+            // Areas are stored as topic filters too.
+            expect(
+                topicInView("", [createTopicFilter("Health")])
+            ).toBeUndefined()
+        })
     })
 })
 

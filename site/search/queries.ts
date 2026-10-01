@@ -41,6 +41,8 @@ function makeStateForKey(state: SearchState) {
     return R.pick(state, ["query", "filters", "requireAllCountries"])
 }
 
+export const TOPIC_VOCABULARY_QUERY_KEY = "topicVocabulary"
+
 /**
  * Query Key factory for search
  * Provides hierarchical query keys for better cache management and invalidation
@@ -64,7 +66,8 @@ export const searchQueryKeys = {
     // Not an Algolia query: one static JSON behind a 5-minute edge cache,
     // keyed by its URL so a staging override doesn't share a cache entry with
     // the production vocabulary. See topicVocabulary.ts.
-    topicVocabulary: (url: string) => ["topicVocabulary", url] as const,
+    topicVocabulary: (url: string) =>
+        [TOPIC_VOCABULARY_QUERY_KEY, url] as const,
 } as const
 
 export const latestPagesQueryKey = {
