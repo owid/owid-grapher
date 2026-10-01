@@ -48,7 +48,10 @@ function OwidArticleHeader({
     const date = (
         <div suppressHydrationWarning={true}>
             {versionsFileUrl ? (
-                <a href={`#${PAST_VERSIONS_ID}`}>
+                <a
+                    href={`#${PAST_VERSIONS_ID}`}
+                    suppressHydrationWarning={true}
+                >
                     <FontAwesomeIcon icon={faClockRotateLeft} />
                     {dateText}
                 </a>
