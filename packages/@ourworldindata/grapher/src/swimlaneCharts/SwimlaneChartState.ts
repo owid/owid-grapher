@@ -1,0 +1,205 @@
+import * as R from "remeda"
+import { match } from "ts-pattern"
+import { computed, makeObservable } from "mobx"
+import {
+    ChartErrorInfo,
+    ColorScaleConfigInterface,
+    ColorSchemeName,
+    ColumnSlug,
+    FacetStrategy,
+    JsTypes,
+    ScaleType,
+    Time,
+} from "@ourworldindata/types"
+import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
+import { ChartState } from "../chart/ChartInterface"
+import { ColorScale, ColorScaleManager } from "../color/ColorScale"
+import { ColorScaleConfig } from "../color/ColorScaleConfig"
+import {
+    autoDetectYColumnSlugs,
+    getDefaultFailMessage,
+    getShortNameForEntity,
+    makeSelectionArray,
+} from "../chart/ChartUtils"
+import { OWID_ERROR_COLOR } from "../color/ColorConstants"
+import { SelectionArray } from "../selection/SelectionArray"
+import { AxisConfig } from "../axis/AxisConfig"
+import { HorizontalAxis } from "../axis/Axis"
+import {
+    ColoredSwimlaneSegment,
+    SwimlaneCategories,
+    SwimlaneChartManager,
+    SwimlaneObservation,
+    SwimlaneSeries,
+} from "./SwimlaneChartConstants"
+import { toSwimlaneSegments } from "./SwimlaneChartHelpers"
+
+export class SwimlaneChartState implements ChartState, ColorScaleManager {
+    manager: SwimlaneChartManager
+
+    colorScale: ColorScale
+    hasNoDataBin = true
+
+    constructor({ manager }: { manager: SwimlaneChartManager }) {
+        this.manager = manager
+        this.colorScale = new ColorScale(this)
+        makeObservable(this)
+    }
+
+    @computed get defaultBaseColorScheme(): ColorSchemeName {
+        return this.categories?.kind === "ordinal"
+            ? ColorSchemeName.SingleColorGradientDenim
+            : ColorSchemeName.OwidCategoricalA
+    }
+
+    @computed get inputTable(): OwidTable {
+        return this.manager.table
+    }
+
+    @computed get transformedTable(): OwidTable {
+        return (
+            this.manager.transformedTable ??
+            this.transformTable(this.inputTable)
+        )
+    }
+
+    transformTable(table: OwidTable): OwidTable {
+        if (!this.yColumnSlug) return table
+
+        return table.filterByEntityNames(
+            this.selectionArray.selectedEntityNames
+        )
+    }
+
+    @computed get selectionArray(): SelectionArray {
+        return makeSelectionArray(this.manager.selection)
+    }
+
+    @computed get yColumnSlugs(): ColumnSlug[] {
+        return autoDetectYColumnSlugs(this.manager)
+    }
+
+    @computed get yColumnSlug(): ColumnSlug | undefined {
+        return this.yColumnSlugs[0]
+    }
+
+    @computed get yColumn(): CoreColumn {
+        return this.transformedTable.get(this.yColumnSlug)
+    }
+
+    @computed get formatColumn(): CoreColumn {
+        return this.yColumn
+    }
+
+    @computed get inputYColumn(): CoreColumn {
+        return this.inputTable.get(this.yColumnSlug)
+    }
+
+    @computed get colorScaleColumn(): CoreColumn {
+        return this.inputYColumn
+    }
+
+    @computed get colorScaleConfig(): ColorScaleConfigInterface | undefined {
+        return (
+            ColorScaleConfig.fromDSL(this.colorScaleColumn.def) ??
+            this.manager.colorScale
+        )
+    }
+
+    @computed get categories(): SwimlaneCategories | undefined {
+        const column = this.colorScaleColumn
+        if (column.isMissing || column.jsType !== JsTypes.string)
+            return undefined
+
+        const values: string[] = column.sortedUniqNonEmptyStringVals
+        return column.allowedValuesSorted
+            ? { kind: "ordinal", values }
+            : { kind: "categorical", values }
+    }
+
+    @computed private get timesAsc(): Time[] {
+        const { startTime, endTime } = this.manager
+        const times = this.inputYColumn.uniqTimesAsc
+        if (startTime === undefined || endTime === undefined) return times
+        return times.filter((time) => time >= startTime && time <= endTime)
+    }
+
+    @computed get series(): SwimlaneSeries[] {
+        if (this.yColumn.isMissing) return []
+
+        const { yColumn, timesAsc, colorScale } = this
+
+        return this.selectionArray.selectedEntityNames.map(
+            (entityName): SwimlaneSeries => {
+                const rows =
+                    yColumn.owidRowByEntityNameAndTime
+                        .get(entityName)
+                        ?.values() ?? []
+
+                const observations: SwimlaneObservation[] = Array.from(rows)
+                    .filter((row) => R.isString(row.value) && row.value !== "")
+                    .map((row) => ({ time: row.time, category: row.value }))
+
+                const segments: ColoredSwimlaneSegment[] = toSwimlaneSegments({
+                    observations,
+                    timesAsc,
+                }).map((segment) =>
+                    match(segment)
+                        .with({ kind: "category" }, (categorySegment) => ({
+                            ...categorySegment,
+                            // A category always has a bin, so the error color should never be drawn
+                            color:
+                                colorScale.getColor(categorySegment.category) ??
+                                OWID_ERROR_COLOR,
+                        }))
+                        .with(
+                            { kind: "missing" },
+                            (missingSegment) => missingSegment
+                        )
+                        .exhaustive()
+                )
+
+                const lastCategorySegment = R.last(
+                    segments.filter((segment) => segment.kind === "category")
+                )
+
+                return {
+                    seriesName: entityName,
+                    entityName,
+                    shortEntityName: getShortNameForEntity(entityName),
+                    color: lastCategorySegment?.color ?? colorScale.noDataColor,
+                    segments,
+                }
+            }
+        )
+    }
+
+    toHorizontalAxis(config: AxisConfig): HorizontalAxis {
+        const axis = config.toHorizontalAxis()
+        axis.updateDomainPreservingUserSettings([
+            R.first(this.timesAsc),
+            R.last(this.timesAsc),
+        ])
+        axis.scaleType = ScaleType.linear
+        axis.formatColumn = this.inputTable.timeColumn
+        axis.hideFractionalTicks = true
+        return axis
+    }
+
+    @computed get availableFacetStrategies(): FacetStrategy[] {
+        return [FacetStrategy.none]
+    }
+
+    @computed get errorInfo(): ChartErrorInfo {
+        const message = getDefaultFailMessage(this.manager)
+        if (message) return { reason: message }
+
+        if (this.yColumnSlugs.length > 1)
+            return { reason: "Only one indicator can be shown at a time" }
+
+        if (!this.categories)
+            return { reason: "Requires an indicator with categorical values" }
+
+        return { reason: "" }
+    }
+}

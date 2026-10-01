@@ -1827,7 +1827,12 @@ export class GrapherState
 
     /** Plots time on the x-axis */
     @computed private get hasTimeDimension(): boolean {
-        return this.isStackedBar || this.isStackedArea || this.isLineChart
+        return (
+            this.isStackedBar ||
+            this.isStackedArea ||
+            this.isLineChart ||
+            this.isSwimlane
+        )
     }
 
     @computed private get hasTimeDimensionButTimelineIsHidden(): boolean {
@@ -2014,6 +2019,7 @@ export class GrapherState
         return (
             tabName === GRAPHER_TAB_NAMES.LineChart ||
             tabName === GRAPHER_TAB_NAMES.SlopeChart ||
+            tabName === GRAPHER_TAB_NAMES.Swimlane ||
             (tabName === GRAPHER_TAB_NAMES.Dumbbell &&
                 !this.checkIsTwoColumnDumbbell(tabName))
         )
@@ -2993,6 +2999,10 @@ export class GrapherState
         return this.chartType === GRAPHER_CHART_TYPES.Dumbbell
     }
 
+    @computed get isSwimlane(): boolean {
+        return this.chartType === GRAPHER_CHART_TYPES.Swimlane
+    }
+
     @computed get isOnLineChartTab(): boolean {
         return this.activeChartType === GRAPHER_CHART_TYPES.LineChart
     }
@@ -3023,6 +3033,10 @@ export class GrapherState
 
     @computed get isOnStackedDiscreteBarTab(): boolean {
         return this.activeChartType === GRAPHER_CHART_TYPES.StackedDiscreteBar
+    }
+
+    @computed get isOnSwimlaneTab(): boolean {
+        return this.activeChartType === GRAPHER_CHART_TYPES.Swimlane
     }
 
     @computed get isOnDumbbellTab(): boolean {
@@ -3071,8 +3085,12 @@ export class GrapherState
         return this.validChartTypeSet.has(GRAPHER_CHART_TYPES.Dumbbell)
     }
 
+    @computed get hasSwimlane(): boolean {
+        return this.validChartTypeSet.has(GRAPHER_CHART_TYPES.Swimlane)
+    }
+
     @computed get supportsMultipleYColumns(): boolean {
-        return !this.isScatter && !this.isMarimekko
+        return !this.isScatter && !this.isMarimekko && !this.isSwimlane
     }
 
     /** Time scatters plot time on the x-axis */
@@ -3621,6 +3639,7 @@ export class GrapherState
 
         if (
             !this.isOnDumbbellTab &&
+            !this.isOnSwimlaneTab &&
             this.addCountryMode === EntitySelectionMode.SingleEntity &&
             this.selection.selectedEntityNames.length > 1
         ) {
@@ -4234,7 +4253,8 @@ export class GrapherState
                 this.isOnStackedBarTab ||
                 this.isOnDiscreteBarTab ||
                 this.isOnStackedDiscreteBarTab ||
-                this.isOnDumbbellTab)
+                this.isOnDumbbellTab ||
+                this.isOnSwimlaneTab)
         )
     }
 
