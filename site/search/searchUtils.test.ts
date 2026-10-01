@@ -9,8 +9,6 @@ import {
     extractFiltersFromQuery,
     createCountryFilter,
     findWholeTopicInView,
-    capSuggestedSearches,
-    MAX_SUGGESTED_SEARCHES,
 } from "./searchUtils"
 import { buildSynonymMap } from "./synonymUtils"
 
@@ -912,49 +910,5 @@ describe(findWholeTopicInView, () => {
                 topicInView("", [createTopicFilter("Health")])
             ).toBeUndefined()
         })
-    })
-})
-
-describe(capSuggestedSearches, () => {
-    // A topic's terms as the vocabulary publishes them: up to eight, already
-    // ranked by what each reveals of that topic's charts.
-    const vocabularyTerms = [
-        "CO₂ emissions",
-        "electricity",
-        "battery",
-        "solar",
-        "fossil fuels",
-        "oil",
-        "energy intensity",
-        "biofuel",
-    ]
-
-    it("offers five suggestions out of the vocabulary's eight", () => {
-        expect(capSuggestedSearches(vocabularyTerms)).toHaveLength(
-            MAX_SUGGESTED_SEARCHES
-        )
-    })
-
-    it("keeps the vocabulary's own order, taking its first five", () => {
-        // Load-bearing: the vocabulary ranks its terms by coverage, so its
-        // first five are its best five — the cap must truncate rather than
-        // choose.
-        expect(capSuggestedSearches(vocabularyTerms)).toEqual(
-            vocabularyTerms.slice(0, MAX_SUGGESTED_SEARCHES)
-        )
-    })
-
-    it("leaves a list already at or under the cap alone", () => {
-        const four = vocabularyTerms.slice(0, 4)
-        expect(capSuggestedSearches(four)).toEqual(four)
-        const five = vocabularyTerms.slice(0, 5)
-        expect(capSuggestedSearches(five)).toEqual(five)
-        expect(capSuggestedSearches([])).toEqual([])
-    })
-
-    it("does not mutate the list it caps", () => {
-        const terms = [...vocabularyTerms]
-        capSuggestedSearches(terms)
-        expect(terms).toEqual(vocabularyTerms)
     })
 })

@@ -93,8 +93,19 @@ export function useSearchParamsState(
         [setSearchParams, state, eligibleRegionNames, synonymMap]
     )
 
-    const actions = useMemo<SearchActions>(
-        () => ({
+    const actions = useMemo<SearchActions>(() => {
+        // Compound action to ensure a single entry in the browser history.
+        const setTopicAndQuery = (topic: string, query: string): void =>
+            updateParams((s) => ({
+                ...s,
+                query: query.trim(),
+                filters: [
+                    ...s.filters.filter((f) => f.type !== FilterType.TOPIC),
+                    createTopicFilter(topic),
+                ],
+            }))
+
+        return {
             setQuery: (query: string) => {
                 updateParams((s) => ({ ...s, query: query.trim() }))
             },
@@ -165,32 +176,11 @@ export function useSearchParamsState(
             },
 
             // Compound action to ensure a single entry in the browser history.
-            setTopicAndClearQuery: (topic: string) => {
-                updateParams((s) => {
-                    const newFilters = s.filters.filter(
-                        (f) => f.type !== FilterType.TOPIC
-                    )
-                    return {
-                        ...s,
-                        query: "",
-                        filters: [...newFilters, createTopicFilter(topic)],
-                    }
-                })
-            },
+            setTopicAndClearQuery: (topic: string) =>
+                setTopicAndQuery(topic, ""),
 
             // Compound action to ensure a single entry in the browser history.
-            setTopicAndQuery: (topic: string, query: string) => {
-                updateParams((s) => {
-                    const newFilters = s.filters.filter(
-                        (f) => f.type !== FilterType.TOPIC
-                    )
-                    return {
-                        ...s,
-                        query: query.trim(),
-                        filters: [...newFilters, createTopicFilter(topic)],
-                    }
-                })
-            },
+            setTopicAndQuery,
 
             removeTopic: (topic: string) => {
                 updateParams((s) => ({
@@ -253,9 +243,8 @@ export function useSearchParamsState(
             reset: () => {
                 setSearchParams(new URLSearchParams())
             },
-        }),
-        [updateParams, setSearchParams]
-    )
+        }
+    }, [updateParams, setSearchParams])
 
     return { state, actions }
 }

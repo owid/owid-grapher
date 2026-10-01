@@ -601,30 +601,6 @@ export function findWholeTopicInView(
 }
 
 /**
- * How many suggested searches a topic gets offered.
- *
- * The vocabulary's generator publishes as many terms per topic as it is asked
- * for — eight, at the time of writing — and is not bounded at source. Five is a
- * length that still scans as a suggestion rather than a second navigation,
- * which is what eight read as.
- */
-export const MAX_SUGGESTED_SEARCHES = 5
-
-/**
- * The suggested searches actually rendered: the first `maxCount` of them.
- *
- * Capped by truncation so the source's order is kept — the vocabulary's terms
- * are ranked by what each reveals of its topic's charts, so its first five are
- * its best five.
- */
-export function capSuggestedSearches<T>(
-    suggestions: readonly T[],
-    maxCount: number = MAX_SUGGESTED_SEARCHES
-): T[] {
-    return suggestions.slice(0, Math.max(maxCount, 0))
-}
-
-/**
  * Detects words that are inside quoted phrases and should be excluded from filter matching.
  * Returns a set of word positions that should be ignored.
  */

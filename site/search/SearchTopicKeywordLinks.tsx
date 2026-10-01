@@ -1,11 +1,16 @@
 import { Fragment, useMemo } from "react"
+import * as R from "remeda"
 import { useQuery } from "@tanstack/react-query"
 import { SearchResultType } from "@ourworldindata/types"
 import { useSearchContext } from "./SearchContext.js"
-import { capSuggestedSearches, findWholeTopicInView } from "./searchUtils.js"
+import { findWholeTopicInView } from "./searchUtils.js"
 import { fetchTopicVocabulary, suggestedKeywords } from "./topicVocabulary.js"
 import { searchQueryKeys } from "./queries.js"
-import { TOPIC_VOCABULARY_URL } from "../../settings/clientSettings.mjs"
+
+// The vocabulary's generator publishes up to eight terms per topic. Five still
+// scans as a suggestion rather than a second navigation, which eight read as.
+// Truncating keeps the vocabulary's order, which ranks its best terms first.
+const MAX_SUGGESTED_SEARCHES = 5
 
 /**
  * When the reader has a whole topic in view and nothing narrowing it — they
@@ -44,23 +49,18 @@ export const SearchTopicKeywordLinks = ({
     // The vocabulary is ~230 KB, so it is only fetched once the gate above has
     // fired — most searches never request it.
     const { data: vocabulary } = useQuery({
-        queryKey: searchQueryKeys.topicVocabulary(TOPIC_VOCABULARY_URL),
+        queryKey: searchQueryKeys.topicVocabulary,
         queryFn: fetchTopicVocabulary,
         enabled: isApplicable,
         staleTime: Infinity,
     })
 
-    const keywords = useMemo(
-        () =>
-            topicName
-                ? capSuggestedSearches(
-                      suggestedKeywords(topicName, vocabulary?.[topicName])
-                  )
-                : [],
-        [vocabulary, topicName]
+    if (!isApplicable) return null
+    const keywords = R.take(
+        suggestedKeywords(topicName, vocabulary?.[topicName]),
+        MAX_SUGGESTED_SEARCHES
     )
-
-    if (!isApplicable || !topicName || !keywords.length) return null
+    if (!keywords.length) return null
 
     return (
         <div

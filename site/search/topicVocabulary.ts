@@ -1,4 +1,4 @@
-import { getRegionByNameOrVariantName } from "@ourworldindata/utils"
+import { fetchJson, getRegionByNameOrVariantName } from "@ourworldindata/utils"
 import {
     DEFAULT_TOPIC_VOCABULARY_URL,
     TOPIC_VOCABULARY_URL,
@@ -46,12 +46,7 @@ export function indexTopicVocabularyByName(data: unknown): TopicVocabulary {
 }
 
 async function fetchVocabularyFrom(url: string): Promise<TopicVocabulary> {
-    const response = await fetch(url)
-    if (!response.ok)
-        throw new Error(
-            `Failed to fetch the topic vocabulary from ${url}: ${response.status}`
-        )
-    return indexTopicVocabularyByName(await response.json())
+    return indexTopicVocabularyByName(await fetchJson<unknown>(url))
 }
 
 /**
