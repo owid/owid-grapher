@@ -1,0 +1,1081 @@
+import {
+    BlockSize,
+    EnrichedBlockChart,
+    EnrichedBlockPerson,
+    EnrichedBlockText,
+    HorizontalAlign,
+    OwidEnrichedGdocBlock,
+    SocialLinkType,
+    Span,
+    SpanSimpleText,
+} from "@ourworldindata/types"
+
+const spanSimpleText: SpanSimpleText = {
+    spanType: "span-simple-text",
+    text: "This is a text block with",
+}
+
+const boldLinkExampleText: Span[] = [
+    {
+        spanType: "span-simple-text",
+        text: "This is a text block with ",
+    },
+    {
+        spanType: "span-bold",
+        children: [
+            {
+                spanType: "span-link",
+                url: "https://ourworldindata.org",
+                children: [
+                    {
+                        spanType: "span-simple-text",
+                        text: "a link",
+                    },
+                ],
+            },
+        ],
+    },
+]
+
+const enrichedBlockText: EnrichedBlockText = {
+    type: "text",
+    value: boldLinkExampleText,
+    parseErrors: [],
+}
+
+const enrichedChart: EnrichedBlockChart = {
+    type: "chart",
+    url: "https://ourworldindata.org/grapher/total-cases-covid-19",
+    size: BlockSize.Wide,
+    parseErrors: [],
+}
+
+const enrichedBlockPerson: EnrichedBlockPerson = {
+    type: "person",
+    image: "example.png",
+    name: "Max Roser",
+    title: "Founder and Executive Co-Director",
+    url: "https://docs.google.com/document/d/7Kj2Pq5MvNxRzF8tLwB3nY9pQx4vC8mXkHs6jWn3-Hy/edit",
+    text: [enrichedBlockText],
+    socials: [
+        {
+            type: SocialLinkType.X,
+            url: "https://x.com/MaxCRoser",
+            text: "@MaxCRoser",
+            parseErrors: [],
+        },
+        {
+            type: SocialLinkType.Mastodon,
+            url: "https://mas.to/@maxroser",
+            text: "@maxroser",
+            parseErrors: [],
+        },
+        {
+            type: SocialLinkType.Bluesky,
+            url: "https://bsky.app/profile/maxroser.bsky.social",
+            text: "@maxroser.bsky.social",
+            parseErrors: [],
+        },
+        {
+            type: SocialLinkType.Threads,
+            url: "https://www.threads.net/@max.roser.ox",
+            text: "@max.roser.ox",
+            parseErrors: [],
+        },
+    ],
+
+    parseErrors: [],
+}
+
+export const enrichedBlockExamples: Record<
+    OwidEnrichedGdocBlock["type"],
+    OwidEnrichedGdocBlock
+> = {
+    text: enrichedBlockText,
+    "simple-text": {
+        type: "simple-text",
+        value: {
+            spanType: "span-simple-text",
+            text: "This is a simple text block",
+        },
+        parseErrors: [],
+    },
+    "chart-rows": {
+        type: "chart-rows",
+        kicker: "More views of this data",
+        title: "Daily incomes by decile",
+        source: "Global Carbon Budget (2025)",
+        rows: [
+            {
+                image: "life-expectancy-thumbnail.png",
+                url: "/grapher/life-expectancy",
+                caption: [
+                    {
+                        spanType: "span-simple-text",
+                        text: "Life expectancy at birth",
+                    },
+                ],
+                content: [
+                    {
+                        type: "text",
+                        value: [
+                            {
+                                spanType: "span-simple-text",
+                                text: "Life expectancy has more than doubled.",
+                            },
+                        ],
+                        parseErrors: [],
+                    },
+                ],
+            },
+            {
+                image: "gdp-per-capita-thumbnail.png",
+                url: "/grapher/gdp-per-capita",
+                caption: [
+                    { spanType: "span-simple-text", text: "GDP per capita" },
+                ],
+                content: [
+                    {
+                        type: "text",
+                        value: [
+                            {
+                                spanType: "span-simple-text",
+                                text: "GDP per capita has grown steadily.",
+                            },
+                        ],
+                        parseErrors: [],
+                    },
+                ],
+            },
+        ],
+        parseErrors: [],
+    },
+    "pull-chart": {
+        type: "pull-chart",
+        align: "left-center",
+        image: "chart-thumbnail.png",
+        url: "/grapher/population",
+        content: [
+            {
+                type: "text",
+                value: [
+                    {
+                        spanType: "span-simple-text",
+                        text: "World population has grown rapidly.",
+                    },
+                ],
+                parseErrors: [],
+            },
+        ],
+        parseErrors: [],
+    },
+    "all-charts": {
+        type: "all-charts",
+        heading: "All our charts on Poverty",
+        top: [{ url: "https://ourworldindata.org/grapher/poverty-over-time" }],
+        suggested: ["child poverty", "extreme poverty", "income inequality"],
+        parseErrors: [],
+    },
+    aside: {
+        type: "aside",
+        position: "right",
+        caption: boldLinkExampleText,
+        parseErrors: [],
+    },
+    chart: {
+        type: "chart",
+        url: "https://ourworldindata.org/grapher/total-cases-covid-19",
+        height: "400",
+        size: BlockSize.Wide,
+        caption: boldLinkExampleText,
+        parseErrors: [],
+    },
+    "narrative-chart": {
+        type: "narrative-chart",
+        name: "world-has-become-less-democratic",
+        height: "400",
+        size: BlockSize.Wide,
+        caption: boldLinkExampleText,
+        parseErrors: [],
+    },
+    code: {
+        type: "code",
+        text: [
+            {
+                type: "simple-text",
+                value: {
+                    spanType: "span-simple-text",
+                    text: '<iframe src="https://ourworldindata.org/grapher/children-per-woman-un?region=Africa&tab=map" loading="lazy" style="width: 100%; height: 600px; border: 0px none;" allow="web-share; clipboard-write"></iframe>',
+                },
+                parseErrors: [],
+            },
+        ],
+        parseErrors: [],
+    },
+    "cookie-notice": {
+        type: "cookie-notice",
+        parseErrors: [],
+    },
+    cta: {
+        type: "cta",
+        text: "Click me",
+        url: "https://ourworldindata.org",
+        parseErrors: [],
+    },
+    donors: {
+        type: "donors",
+        value: {},
+        parseErrors: [],
+    },
+    callout: {
+        type: "callout",
+        icon: "info",
+        parseErrors: [],
+        text: [
+            {
+                type: "text",
+                value: [
+                    {
+                        spanType: "span-simple-text",
+                        text: "I am a callout block. I highlight information.",
+                    },
+                ],
+                parseErrors: [],
+            },
+            {
+                type: "text",
+                value: [
+                    {
+                        spanType: "span-simple-text",
+                        text: "I am a second paragraph in the callout block.",
+                    },
+                ],
+                parseErrors: [],
+            },
+            {
+                type: "list",
+                items: [enrichedBlockText],
+                parseErrors: [],
+            },
+            {
+                type: "heading",
+                level: 1,
+                text: [spanSimpleText],
+                parseErrors: [],
+            },
+        ],
+        title: "Hey, listen!",
+    },
+    "chart-story": {
+        type: "chart-story",
+        items: [
+            {
+                narrative: enrichedBlockText,
+                chart: enrichedChart,
+                technical: [enrichedBlockText],
+            },
+        ],
+        parseErrors: [],
+    },
+    "additional-charts": {
+        type: "additional-charts",
+        items: [boldLinkExampleText],
+        parseErrors: [],
+    },
+    image: {
+        type: "image",
+        filename: "example.png",
+        hasOutline: true,
+        alt: "",
+        caption: [spanSimpleText],
+        size: BlockSize.Wide,
+        visibility: "desktop",
+        parseErrors: [],
+    },
+    video: {
+        type: "video",
+        url: "https://ourworldindata.org/assets/videos/example.mp4",
+        filename: "https://ourworldindata.org/assets/images/example-poster.jpg",
+        caption: boldLinkExampleText,
+        shouldLoop: true,
+        shouldAutoplay: true,
+        visibility: "mobile",
+        parseErrors: [],
+    },
+    "static-viz": {
+        type: "static-viz",
+        name: "some-static-viz",
+        size: BlockSize.Wide,
+        caption: boldLinkExampleText,
+        hasOutline: true,
+        parseErrors: [],
+    },
+    list: {
+        type: "list",
+        items: [enrichedBlockText],
+        parseErrors: [],
+    },
+    "numbered-list": {
+        type: "numbered-list",
+        items: [enrichedBlockText],
+        parseErrors: [],
+    },
+    people: {
+        type: "people",
+        items: [enrichedBlockPerson, enrichedBlockPerson],
+        parseErrors: [],
+    },
+    "people-rows": {
+        type: "people-rows",
+        columns: "2",
+        people: [enrichedBlockPerson, enrichedBlockPerson],
+        parseErrors: [],
+    },
+    person: enrichedBlockPerson,
+    "pull-quote": {
+        type: "pull-quote",
+        quote: "To be or not to be, that is the question.",
+        content: [
+            {
+                type: "text",
+                value: [
+                    {
+                        spanType: "span-simple-text",
+                        text: "I am a paragraph that has a pullquote to the right of it.",
+                    },
+                ],
+                parseErrors: [],
+            },
+        ],
+        align: "right",
+        parseErrors: [],
+    },
+    "horizontal-rule": {
+        type: "horizontal-rule",
+        value: {},
+        parseErrors: [],
+    },
+    "guided-chart": {
+        type: "guided-chart",
+        content: [
+            {
+                type: "chart",
+                url: "https://ourworldindata.org/grapher/life-expectancy",
+                size: BlockSize.Wide,
+                parseErrors: [],
+            },
+            {
+                type: "text",
+                value: [
+                    {
+                        spanType: "span-simple-text",
+                        text: "This is explanatory text that goes along with the guided chart. You can ",
+                    },
+                    {
+                        spanType: "span-guided-chart-link",
+                        url: "https://ourworldindata.org/grapher/life-expectancy?tab=map&time=2020&country=USA~GBR",
+                        children: [
+                            {
+                                spanType: "span-simple-text",
+                                text: "click here to see the map view",
+                            },
+                        ],
+                    },
+                    {
+                        spanType: "span-simple-text",
+                        text: " for specific countries.",
+                    },
+                ],
+                parseErrors: [],
+            },
+        ],
+        parseErrors: [],
+    },
+    recirc: {
+        type: "recirc",
+        title: "Continue reading",
+        align: "center",
+        links: [
+            {
+                url: "https://docs.google.com/document/d/abcd-1234/edit",
+                type: "hybrid-link",
+            },
+            {
+                url: "https://ourworldindata.org/grapher/life-expectancy",
+                title: "Life expectancy",
+                subtitle: "This is an inspiring chart",
+                type: "hybrid-link",
+            },
+        ],
+        parseErrors: [],
+    },
+    ["subscribe-banner"]: {
+        type: "subscribe-banner",
+        align: "center",
+        parseErrors: [],
+    },
+    ["resource-panel"]: {
+        type: "resource-panel",
+        icon: "chart",
+        kicker: "Resources",
+        title: "Data on a topic",
+        links: [
+            {
+                url: "https://docs.google.com/document/d/abcd-1234/edit",
+                type: "hybrid-link",
+            },
+            {
+                url: "https://ourworldindata.org/grapher/life-expectancy",
+                title: "Life expectancy",
+                subtitle: "This is an inspiring chart",
+                type: "hybrid-link",
+            },
+        ],
+        buttonText: "View the data catalog for this topic",
+        parseErrors: [],
+    },
+    html: {
+        type: "html",
+        value: "<p>This is a paragraph</p>",
+        parseErrors: [],
+    },
+    heading: {
+        type: "heading",
+        level: 1,
+        text: boldLinkExampleText,
+        supertitle: boldLinkExampleText,
+        parseErrors: [],
+    },
+    "sdg-grid": {
+        type: "sdg-grid",
+        items: [
+            {
+                goal: "A test goal",
+                link: "https://ourworldindata.org/grapher/total-cases-covid-19",
+            },
+        ],
+        parseErrors: [],
+    },
+    "sticky-right": {
+        type: "sticky-right",
+        left: [enrichedBlockText],
+        right: [enrichedBlockText],
+        parseErrors: [],
+    },
+    "sticky-left": {
+        type: "sticky-left",
+        left: [enrichedBlockText],
+        right: [enrichedBlockText],
+        parseErrors: [],
+    },
+    "side-by-side": {
+        type: "side-by-side",
+        left: [enrichedBlockText],
+        right: [enrichedBlockText],
+        parseErrors: [],
+    },
+    "gray-section": {
+        type: "gray-section",
+        items: [enrichedBlockText],
+        parseErrors: [],
+    },
+    "explore-data-section": {
+        type: "explore-data-section",
+        title: "Explore the data",
+        align: "center",
+        content: [enrichedBlockText],
+        parseErrors: [],
+    },
+    "conditional-section": {
+        type: "conditional-section",
+        content: [enrichedBlockText],
+        include: ["Europe"],
+        exclude: [],
+        parseErrors: [],
+    },
+    "prominent-link": {
+        type: "prominent-link",
+        url: "https://ourworldindata.org/grapher/total-cases-covid-19",
+        title: "A test title",
+        description: "A test description",
+        thumbnail: "filename.svg",
+        parseErrors: [],
+    },
+    "sdg-toc": {
+        type: "sdg-toc",
+        value: {},
+        parseErrors: [],
+    },
+    "ltp-toc": {
+        type: "ltp-toc",
+        title: "Contents",
+        parseErrors: [],
+    },
+    "missing-data": {
+        type: "missing-data",
+        value: {},
+        parseErrors: [],
+    },
+    "expandable-paragraph": {
+        type: "expandable-paragraph",
+        items: [enrichedBlockText],
+        parseErrors: [],
+    },
+    expander: {
+        type: "expander",
+        title: "Expander title",
+        heading: "Additional information",
+        subtitle: "Click here to expand",
+        content: [enrichedBlockText],
+        parseErrors: [],
+    },
+    "topic-page-intro": {
+        type: "topic-page-intro",
+        downloadButton: {
+            text: "Download all data on poverty",
+            url: "https://github.com/owid/etl",
+            type: "topic-page-intro-download-button",
+        },
+        relatedTopics: [
+            {
+                text: "Poverty",
+                url: "https://ourworldindata.org/poverty",
+                type: "topic-page-intro-related-topic",
+            },
+        ],
+        content: [
+            {
+                type: "text",
+                parseErrors: [],
+                value: [
+                    {
+                        spanType: "span-simple-text",
+                        text: "I am the first paragraph of the intro to the topic page.",
+                    },
+                ],
+            },
+            {
+                type: "text",
+                parseErrors: [],
+                value: [
+                    {
+                        spanType: "span-simple-text",
+                        text: "I am the second paragraph of the intro to the topic page.",
+                    },
+                ],
+            },
+        ],
+        parseErrors: [],
+    },
+    "key-insights": {
+        type: "key-insights",
+        heading: "Key Insights on Poverty",
+        insights: [
+            {
+                title: "Key insight number 1",
+                type: "key-insight-slide",
+                filename: "static_chart.svg",
+                content: [
+                    {
+                        type: "text",
+                        parseErrors: [],
+                        value: [
+                            {
+                                spanType: "span-simple-text",
+                                text: "I am the first paragraph of the first insight.",
+                            },
+                        ],
+                    },
+                    {
+                        type: "text",
+                        parseErrors: [],
+                        value: [
+                            {
+                                spanType: "span-simple-text",
+                                text: "I am the second paragraph of the first insight.",
+                            },
+                        ],
+                    },
+                ],
+            },
+            {
+                title: "Key insight number 2",
+                type: "key-insight-slide",
+                url: "https://ourworldindata.org/grapher/some_grapher",
+                content: [
+                    {
+                        type: "text",
+                        parseErrors: [],
+                        value: [
+                            {
+                                spanType: "span-simple-text",
+                                text: "I am the first paragraph of the second insight.",
+                            },
+                        ],
+                    },
+                    {
+                        type: "text",
+                        parseErrors: [],
+                        value: [
+                            {
+                                spanType: "span-simple-text",
+                                text: "I am the second paragraph of the second insight.",
+                            },
+                        ],
+                    },
+                ],
+            },
+            {
+                title: "Key insight number 3",
+                type: "key-insight-slide",
+                narrativeChartName: "world-has-become-less-democratic",
+                content: [
+                    {
+                        type: "text",
+                        parseErrors: [],
+                        value: [
+                            {
+                                spanType: "span-simple-text",
+                                text: "I am the first paragraph of the third insight.",
+                            },
+                        ],
+                    },
+                    {
+                        type: "text",
+                        parseErrors: [],
+                        value: [
+                            {
+                                spanType: "span-simple-text",
+                                text: "I am the second paragraph of the third insight.",
+                            },
+                        ],
+                    },
+                ],
+            },
+            {
+                title: "Key insight number 4",
+                type: "key-insight-slide",
+                asset: [
+                    {
+                        type: "bespoke-component",
+                        bundle: "causes-of-death",
+                        variant: "treemap",
+                        size: BlockSize.Wide,
+                        config: { region: "World" },
+                        parseErrors: [],
+                    },
+                ],
+                content: [
+                    {
+                        type: "text",
+                        parseErrors: [],
+                        value: [
+                            {
+                                spanType: "span-simple-text",
+                                text: "I am the first paragraph of the fourth insight.",
+                            },
+                        ],
+                    },
+                ],
+            },
+        ],
+        parseErrors: [],
+    },
+    "research-and-writing": {
+        type: "research-and-writing",
+        parseErrors: [],
+        heading: "Featured Work",
+        "hide-authors": true,
+        "hide-date": true,
+        variant: "featured",
+        primary: [
+            {
+                value: {
+                    url: "https://docs.google.com/document/d/abcd",
+                },
+            },
+        ],
+        secondary: [
+            {
+                value: {
+                    url: "https://docs.google.com/document/d/1234",
+                },
+            },
+            {
+                value: {
+                    url: "https://docs.google.com/document/d/5678",
+                },
+            },
+        ],
+        more: {
+            heading: "More Key Articles on Poverty",
+            articles: [
+                {
+                    value: {
+                        url: "https://docs.google.com/document/d/abcd",
+                    },
+                },
+                {
+                    value: {
+                        url: "https://ourworldindata.org/a-wordpress-article",
+                        title: "A wordpress article",
+                        authors: ["Max Roser"],
+                        filename: "some_image.png",
+                    },
+                },
+                {
+                    value: {
+                        url: "https://ourworldindata.org/another-wordpress-article",
+                        title: "Another wordpress article",
+                        authors: ["Max Roser"],
+                        filename: "another_image.png",
+                    },
+                },
+            ],
+        },
+        latest: {
+            heading: "Latest work",
+            // No support for manual articles, they are only being pulled dynamically
+        },
+        rows: [
+            {
+                heading: "More articles on this topic",
+                articles: [
+                    {
+                        value: {
+                            url: "https://docs.google.com/document/d/abcd",
+                        },
+                    },
+                    {
+                        value: {
+                            url: "https://ourworldindata.org/yet-another-wordpress-article",
+                            title: "Yet another wordpress article",
+                            authors: ["Hannah Ritchie"],
+                            filename: "yet_another_image.png",
+                        },
+                    },
+                ],
+            },
+        ],
+    },
+    align: {
+        type: "align",
+        alignment: HorizontalAlign.center,
+        content: [enrichedBlockText],
+        parseErrors: [],
+    },
+    table: {
+        type: "table",
+        template: "header-row",
+        size: "narrow",
+        caption: [
+            {
+                spanType: "span-simple-text",
+                text: "Table 1: Example cities and their continents",
+            },
+        ],
+        rows: [
+            {
+                type: "table-row",
+                cells: [
+                    {
+                        type: "table-cell",
+                        content: [
+                            {
+                                type: "text",
+                                value: [
+                                    {
+                                        spanType: "span-simple-text",
+                                        text: "City",
+                                    },
+                                ],
+                                parseErrors: [],
+                            },
+                            {
+                                type: "text",
+                                value: [
+                                    {
+                                        spanType: "span-simple-text",
+                                        text: "Continent",
+                                    },
+                                ],
+                                parseErrors: [],
+                            },
+                        ],
+                    },
+                    {
+                        type: "table-cell",
+                        content: [
+                            {
+                                type: "text",
+                                value: [
+                                    {
+                                        spanType: "span-simple-text",
+                                        text: "Wellington",
+                                    },
+                                ],
+                                parseErrors: [],
+                            },
+                            {
+                                type: "text",
+                                value: [
+                                    {
+                                        spanType: "span-simple-text",
+                                        text: "Zealandia",
+                                    },
+                                ],
+                                parseErrors: [],
+                            },
+                        ],
+                    },
+                    {
+                        type: "table-cell",
+                        content: [
+                            {
+                                type: "text",
+                                value: [
+                                    {
+                                        spanType: "span-simple-text",
+                                        text: "Addis Ababa",
+                                    },
+                                ],
+                                parseErrors: [],
+                            },
+                            {
+                                type: "text",
+                                value: [
+                                    {
+                                        spanType: "span-simple-text",
+                                        text: "Africa",
+                                    },
+                                ],
+                                parseErrors: [],
+                            },
+                        ],
+                    },
+                ],
+            },
+        ],
+        parseErrors: [],
+    },
+    ["explorer-tiles"]: {
+        type: "explorer-tiles",
+        title: "Explore the data",
+        subtitle:
+            "Our explorers show even more data than our normal visualizations.",
+        explorers: [
+            { url: "https://ourworldindata.org/explorers/energy" },
+            { url: "https://ourworldindata.org/explorers/poverty-explorer" },
+        ],
+        parseErrors: [],
+    },
+    blockquote: {
+        type: "blockquote",
+        text: [enrichedBlockText],
+        citation: "Max Roser",
+        parseErrors: [],
+    },
+    "key-indicator": {
+        type: "key-indicator",
+        datapageUrl: "https://ourworldindata.org/grapher/life-expectancy",
+        title: "How did people's life expectancy change over time?",
+        text: [enrichedBlockText],
+        parseErrors: [],
+    },
+    "key-indicator-collection": {
+        type: "key-indicator-collection",
+        blocks: [
+            {
+                type: "key-indicator",
+                datapageUrl:
+                    "https://ourworldindata.org/grapher/life-expectancy",
+                title: "How did people's life expectancy change over time?",
+                text: [enrichedBlockText],
+                parseErrors: [],
+            },
+            {
+                type: "key-indicator",
+                datapageUrl:
+                    "https://ourworldindata.org/grapher/share-of-population-in-extreme-poverty",
+                title: "What share of the population is living in extreme poverty?",
+                text: [enrichedBlockText],
+                parseErrors: [],
+            },
+        ],
+        parseErrors: [],
+    },
+    "pill-row": {
+        type: "pill-row",
+        title: "Recently updated",
+        pills: [
+            { text: "Energy", url: "https://ourworldindata.org/energy" },
+            { text: "Poverty", url: "https://ourworldindata.org/poverty" },
+        ],
+        parseErrors: [],
+    },
+    "homepage-search": {
+        type: "homepage-search",
+        parseErrors: [],
+    },
+    "homepage-intro": {
+        type: "homepage-intro",
+        featuredWork: [
+            {
+                url: "https://ourworldindata.org/optimism-and-pessimism",
+                title: "Optimism & Pessimism",
+                description:
+                    "Why are so many people pessimistic about the future?",
+                kicker: "Article - 10 Mins",
+                filename: "optimism-and-pessimism.jpg",
+                authors: ["Our World In Data"],
+                isNew: false,
+            },
+            {
+                url: "https://ourworldindata.org/flu-deaths",
+                title: "How many people die from the flu?",
+                description:
+                    "The risk of death from influenza has declined over time, but globally, hundreds of thousands of people still die from the disease each year.",
+                kicker: "Article - 10 Mins",
+                filename: "optimism-and-pessimism.jpg",
+                authors: ["Our World In Data"],
+                isNew: true,
+            },
+            {
+                url: "https://ourworldindata.org/something",
+                title: "Is this a rhetorical question?",
+                description: "Blah blah",
+                kicker: "Article - 10 Mins",
+                filename: "featured-image.jpg",
+                authors: ["Max Roser"],
+                isNew: false,
+            },
+            {
+                url: "https://ourworldindata.org/front-end-engineer",
+                title: "We’re looking for a front-end engineer to join our team.",
+                kicker: "Announcement",
+                authors: ["Our World In Data"],
+                isNew: false,
+            },
+        ],
+        parseErrors: [],
+    },
+    "featured-metrics": {
+        type: "featured-metrics",
+        parseErrors: [],
+    },
+    "featured-data-insights": {
+        type: "featured-data-insights",
+        parseErrors: [],
+    },
+    "latest-data-insights": {
+        type: "latest-data-insights",
+        parseErrors: [],
+    },
+    socials: {
+        type: "socials",
+        links: [
+            {
+                url: "https://twitter.com/OurWorldInData",
+                text: "@OurWorldInData",
+                type: SocialLinkType.X,
+                parseErrors: [],
+            },
+            {
+                url: "https://facebook.com/OurWorldInData",
+                text: "OurWorldInData",
+                type: SocialLinkType.Facebook,
+                parseErrors: [],
+            },
+            {
+                url: "https://ourworldindata.org",
+                text: "ourworldindata.org",
+                parseErrors: [],
+            },
+        ],
+        parseErrors: [],
+    },
+    "data-callout-group": {
+        type: "data-callout-group",
+        content: [
+            {
+                type: "data-callout",
+                url: "https://ourworldindata.org/grapher/life-expectancy?country=KEN",
+                content: [
+                    {
+                        type: "text",
+                        value: [
+                            {
+                                spanType: "span-simple-text",
+                                text: "Example callout text",
+                            },
+                        ],
+                        parseErrors: [],
+                    },
+                ],
+                parseErrors: [],
+            },
+        ],
+        parseErrors: [],
+    },
+    "data-callout": {
+        type: "data-callout",
+        url: "https://ourworldindata.org/grapher/life-expectancy?country=KEN",
+        content: [
+            {
+                type: "text",
+                value: [
+                    {
+                        spanType: "span-simple-text",
+                        text: "In ",
+                    },
+                    {
+                        spanType: "span-callout",
+                        functionName: "latestTime",
+                        parameters: ["life_expectancy_0"],
+                        children: [],
+                    },
+                    {
+                        spanType: "span-simple-text",
+                        text: ", Kenya had a life expectancy of ",
+                    },
+                    {
+                        spanType: "span-callout",
+                        functionName: "latestValue",
+                        parameters: ["life_expectancy_0"],
+                        children: [],
+                    },
+                    {
+                        spanType: "span-simple-text",
+                        text: ".",
+                    },
+                ],
+                parseErrors: [],
+            },
+        ],
+        parseErrors: [],
+    },
+    "country-profile-selector": {
+        type: "country-profile-selector",
+        url: "https://docs.google.com/document/d/ABC123/edit",
+        title: "Country profiles",
+        description: "Explore key metrics on energy consumption and sources.",
+        defaultCountries: [
+            "United Kingdom",
+            "United States",
+            "China",
+            "Nigeria",
+            "India",
+            "Brazil",
+        ],
+        parseErrors: [],
+    },
+    "bespoke-component": {
+        type: "bespoke-component",
+        bundle: "example-widget",
+        variant: "income-chart",
+        size: BlockSize.Wide,
+        config: { foo: "bar" },
+        fallbackImageFilename: "example-widget-fallback.png",
+        parseErrors: [],
+    },
+}

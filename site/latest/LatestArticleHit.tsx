@@ -1,6 +1,9 @@
-import { formatAuthors, OwidGdocType } from "@ourworldindata/utils"
+import {
+    formatAuthors,
+    getPrefixedGdocPath,
+    OwidGdocType,
+} from "@ourworldindata/utils"
 import { PageChronologicalArticleRecord } from "@ourworldindata/types"
-import { getPrefixedGdocPath } from "@ourworldindata/components"
 import { AttachmentsContext } from "../gdocs/AttachmentsContext.js"
 import Image from "../gdocs/components/Image.js"
 import { ArticleBlocks } from "../gdocs/components/ArticleBlocks.js"
@@ -39,7 +42,7 @@ export const LatestArticleHit = ({
         slug: hit.slug,
         content: { type: OwidGdocType.Article },
     })
-    const isLikelyBaked = useIsLikelyBaked(href, hit.date)
+    const isLikelyBaked = useIsLikelyBaked(hit)
     const titleId = `latest-hit-${hit.slug}-title`
     const handleResultClick = () =>
         analytics.logLatestResultClick(hit, position)

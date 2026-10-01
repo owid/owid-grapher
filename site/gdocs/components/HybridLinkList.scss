@@ -10,15 +10,14 @@
         border-bottom: 1px solid $blue-20;
     }
 
-    a {
+    .hybrid-link-item__link {
         position: relative; // for anchoring the external link icon with position: absolute
         display: flex;
         gap: var(--grid-gap);
-        &:hover {
-            h4 {
-                text-decoration: underline;
-            }
-        }
+    }
+
+    a.hybrid-link-item__link:hover h4 {
+        text-decoration: underline;
     }
 
     h4 {

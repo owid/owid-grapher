@@ -31,6 +31,8 @@ export function useResolveUserLocation({
         enabled: isUserLocation,
     })
 
+    // Resolves once, when the URL or the async location lookup settles it
+    /* oxlint-disable react/set-state-in-effect */
     useEffect(() => {
         if (resolved.current) return
 
@@ -59,6 +61,7 @@ export function useResolveUserLocation({
         urlStateKey,
         setCountry,
     ])
+    /* oxlint-enable react/set-state-in-effect */
 
     return { isResolved }
 }

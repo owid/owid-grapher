@@ -12,8 +12,10 @@ import {
     excludeNullish,
 } from "@ourworldindata/utils"
 import { GdocBase } from "./GdocBase.js"
-import { htmlToEnrichedTextBlock } from "./htmlToEnriched.js"
-import { parseSocials } from "./rawToEnriched.js"
+import {
+    htmlToEnrichedTextBlock,
+    parseSocials,
+} from "@ourworldindata/gdoc-pipeline"
 import { getLatestWorkByAuthor } from "../Post.js"
 import * as db from "../../../db/db.js"
 import { loadPublishedGdocAuthors } from "./GdocFactory.js"

@@ -14,7 +14,8 @@ import { AttachmentsContext } from "./AttachmentsContext.js"
 import { DocumentContext } from "./DocumentContext.js"
 import { AnnouncementPage } from "./pages/Announcement.js"
 import { Profile } from "./pages/Profile.js"
-import { ADMIN_BASE_URL } from "../../settings/clientSettings.js"
+import { FeaturedViz } from "./pages/FeaturedViz.js"
+import { ADMIN_BASE_URL } from "../../settings/clientSettings.mjs"
 import { CookieKey } from "@ourworldindata/grapher"
 import { SiteQueryClientProvider } from "../SiteQueryClientProvider.js"
 
@@ -97,6 +98,9 @@ export function OwidGdoc({
         .with({ content: { type: OwidGdocType.Profile } }, (props) => (
             <Profile {...props} />
         ))
+        .with({ content: { type: OwidGdocType.FeaturedViz } }, (props) => (
+            <FeaturedViz {...props} />
+        ))
         .with(P.any, (gdoc) => (
             <div
                 className="grid grid-cols-12-full-width"
@@ -123,6 +127,7 @@ export function OwidGdoc({
                 linkedIndicators: _.get(props, "linkedIndicators", {}),
                 relatedCharts: _.get(props, "relatedCharts", []),
                 latestDataInsights: _.get(props, "latestDataInsights", []),
+                latestAnnouncements: _.get(props, "latestAnnouncements", []),
                 homepageMetadata: _.get(props, "homepageMetadata", {}),
                 latestWorkLinks: _.get(props, "latestWorkLinks", []),
                 linkedNarrativeCharts: _.get(
@@ -132,6 +137,7 @@ export function OwidGdoc({
                 ),
                 linkedStaticViz: _.get(props, "linkedStaticViz", {}),
                 linkedCallouts: _.get(props, "linkedCallouts", {}),
+                bespokeMetadata: _.get(props, "bespokeMetadata"),
                 // lodash doesn't use fallback when value is null
                 tags: props.tags ?? [],
             }}
@@ -141,6 +147,10 @@ export function OwidGdoc({
                     isPreviewing,
                     archiveContext,
                     gdocType: props.content.type,
+                    footnotes:
+                        "refs" in props.content
+                            ? props.content.refs?.definitions
+                            : undefined,
                 }}
             >
                 <SiteQueryClientProvider>

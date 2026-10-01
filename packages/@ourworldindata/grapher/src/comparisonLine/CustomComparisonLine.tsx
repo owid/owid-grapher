@@ -2,7 +2,12 @@ import * as React from "react"
 import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { line as d3_line, curveLinear } from "d3-shape"
-import { guid, PointVector, makeFigmaId } from "@ourworldindata/utils"
+import {
+    guid,
+    PointVector,
+    makeFigmaId,
+    roundForSvg,
+} from "@ourworldindata/utils"
 import { CustomComparisonLineConfig } from "@ourworldindata/types"
 import { generateComparisonLinePoints } from "./ComparisonLineGenerator"
 import { Halo } from "@ourworldindata/components"
@@ -55,8 +60,8 @@ export class CustomComparisonLine extends React.Component<
         const { horizontalAxis, verticalAxis } = this.props.dualAxis
         const line = d3_line()
             .curve(curveLinear)
-            .x((d) => horizontalAxis.place(d[0]))
-            .y((d) => verticalAxis.place(d[1]))
+            .x((d) => roundForSvg(horizontalAxis.place(d[0])))
+            .y((d) => roundForSvg(verticalAxis.place(d[1])))
         return line(controlData)
     }
 

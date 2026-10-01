@@ -1,5 +1,8 @@
 #! /usr/bin/env node
 
+import "../serverUtils/instrument.js"
+import * as Sentry from "@sentry/node"
+
 import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
 import { SiteBaker } from "./SiteBaker.js"
@@ -23,6 +26,7 @@ void yargs(hideBin(process.argv))
                 (trx) => baker.bakeGDocPosts(trx, [slug]),
                 db.TransactionCloseMode.Close
             )
+            await Sentry.close(2000)
             process.exit(0)
         }
     )

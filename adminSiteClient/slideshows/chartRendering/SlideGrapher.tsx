@@ -1,4 +1,11 @@
-import React, { useEffect, useMemo, useRef } from "react"
+import React, {
+    useCallback,
+    useEffect,
+    useEffectEvent,
+    useMemo,
+    useRef,
+    useState,
+} from "react"
 import { when, reaction } from "mobx"
 import {
     FetchingGrapher,
@@ -13,7 +20,7 @@ import {
     CATALOG_URL,
     DATA_API_URL,
     GRAPHER_DYNAMIC_CONFIG_URL,
-} from "../../../settings/clientSettings.js"
+} from "../../../settings/clientSettings.mjs"
 import { getSlideshowGrapherConfig } from "../../../site/slideshows/slideshowUtils.js"
 
 export interface SlideGrapherProps {
@@ -52,19 +59,24 @@ export function SlideGrapher(props: SlideGrapherProps): React.ReactElement {
     // Capture initialQueryString at mount so chart-originated URL updates
     // (which flow back through props as the persisted slide URL changes)
     // don't cause FetchingGrapher to re-init.
-    const initialQueryStringRef = useRef(props.initialQueryString)
+    const [initialQueryString] = useState(props.initialQueryString)
 
     // Include the initial query string in the config URL so the server can
     // resolve the correct multi-dim view. Stable across renders by design.
     const resolvedConfigUrl =
         props.configUrl ??
-        `${GRAPHER_DYNAMIC_CONFIG_URL}/${slug}.config.json${initialQueryStringRef.current ?? ""}`
+        `${GRAPHER_DYNAMIC_CONFIG_URL}/${slug}.config.json${initialQueryString ?? ""}`
 
+    const registerGrapherState = useCallback((grapherState: GrapherState) => {
+        grapherStateRef.current = grapherState
+        return () => {
+            if (grapherStateRef.current === grapherState)
+                grapherStateRef.current = null
+        }
+    }, [])
     const guidedChartContextValue = useMemo<GuidedChartContextValue>(
-        () => ({
-            grapherStateRef: grapherStateRef as React.RefObject<GrapherState>,
-        }),
-        [grapherStateRef]
+        () => ({ registerGrapherState }),
+        [registerGrapherState]
     )
 
     const grapherConfig = useMemo(
@@ -78,11 +90,14 @@ export function SlideGrapher(props: SlideGrapherProps): React.ReactElement {
         [props.interactiveCharts]
     )
 
-    // Keep refs to callbacks so the reaction-setup effect can stay mount-only.
-    const onChangeRef = useRef(onQueryStringChange)
-    onChangeRef.current = onQueryStringChange
-    const onChartReadyRef = useRef(props.onChartReady)
-    onChartReadyRef.current = props.onChartReady
+    // Effect events so the reaction-setup effect can stay mount-only.
+    const handleQueryStringChange = useEffectEvent((queryString: string) =>
+        onQueryStringChange?.(queryString)
+    )
+    const handleChartReady = useEffectEvent(
+        (info: { title: string; subtitle: string }) =>
+            props.onChartReady?.(info)
+    )
 
     // Wait for the Grapher to be fully ready (config + data loaded), then set
     // up the changedParams reaction. This avoids the transient init noise that
@@ -97,7 +112,7 @@ export function SlideGrapher(props: SlideGrapherProps): React.ReactElement {
         const outerDispose = when(
             () => state.isReady,
             () => {
-                onChartReadyRef.current?.({
+                handleChartReady({
                     title: state.fullTitle,
                     subtitle: state.effectiveSubtitle,
                 })
@@ -120,7 +135,7 @@ export function SlideGrapher(props: SlideGrapherProps): React.ReactElement {
                             ),
                         ])
                         const qs = merged.toString()
-                        onChangeRef.current?.(qs ? `?${qs}` : "")
+                        handleQueryStringChange(qs ? `?${qs}` : "")
                     }
                 )
             }
@@ -141,7 +156,7 @@ export function SlideGrapher(props: SlideGrapherProps): React.ReactElement {
                     dataApiUrl={DATA_API_URL}
                     catalogUrl={CATALOG_URL}
                     archiveContext={undefined}
-                    queryStr={initialQueryStringRef.current}
+                    queryStr={initialQueryString}
                     externalBounds={bounds}
                 />
             </GuidedChartContext.Provider>

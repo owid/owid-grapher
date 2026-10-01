@@ -18,7 +18,7 @@ import {
 } from "@ourworldindata/components"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowRight, faDownload } from "@fortawesome/free-solid-svg-icons"
-import { CLOUDFLARE_IMAGES_URL } from "../../../settings/clientSettings.js"
+import { CLOUDFLARE_IMAGES_URL } from "../../../settings/clientSettings.mjs"
 import { triggerDownloadFromBlob } from "@ourworldindata/utils"
 import { ImageMetadata, LinkedStaticViz, Span } from "@ourworldindata/types"
 import { useTriggerOnEscape } from "../../hooks.js"
@@ -33,6 +33,7 @@ interface StaticVizProps {
     containerType?: ImageParentContainer
     hasOutline?: boolean
     caption?: Span[]
+    shouldRenderLinks?: boolean
 }
 
 export default function StaticViz(props: StaticVizProps) {
@@ -42,6 +43,7 @@ export default function StaticViz(props: StaticVizProps) {
         containerType = "default",
         hasOutline = true,
         caption,
+        shouldRenderLinks = true,
     } = props
     const staticViz = useLinkedStaticViz(name)
     const { isPreviewing } = useDocumentContext()
@@ -83,7 +85,10 @@ export default function StaticViz(props: StaticVizProps) {
             </button>
             {caption ? (
                 <figcaption className="static-viz__caption">
-                    <SpanElements spans={caption} />
+                    <SpanElements
+                        spans={caption}
+                        shouldRenderLinks={shouldRenderLinks}
+                    />
                 </figcaption>
             ) : null}
             {isDownloadModalOpen && (

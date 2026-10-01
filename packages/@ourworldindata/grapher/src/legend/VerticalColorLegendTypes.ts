@@ -18,7 +18,7 @@ export interface PlacedLegendSeries extends SizedLegendSeries {
 }
 
 export interface VerticalColorLegendOptions {
-    fontSize?: number
+    baseFontSize?: number
     maxWidth?: number
     title?: string
 }

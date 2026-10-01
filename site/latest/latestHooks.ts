@@ -1,10 +1,12 @@
 import {
     keepPreviousData,
+    queryOptions,
     useInfiniteQuery,
+    useQueries,
     useQuery,
 } from "@tanstack/react-query"
 import { LiteClient } from "algoliasearch/lite"
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import * as R from "remeda"
 import {
     latestPagesQueryKey,
@@ -17,34 +19,47 @@ import {
     type LatestType,
     type PageChronologicalRecord,
 } from "@ourworldindata/types"
-import { SiteAnalytics } from "../SiteAnalytics.js"
+import { getPrefixedGdocPath, OwidGdocType } from "@ourworldindata/utils"
+import { match } from "ts-pattern"
+import { SiteAnalytics, getLatestExperimentArm } from "../SiteAnalytics.js"
 
 const DEFAULT_PAGE_SIZE = 20
 
-// Grace period after a publish during which we don't trust that the article's
-// static page exists yet, and HEAD-probe before showing its card on /latest.
-// Past this window we assume the bake has caught up.
+/*
+ * Bake probes.
+ *
+ * Publishing updates the Algolia index synchronously, but the published
+ * item's standalone page only exists once the next site bake completes — so
+ * for a while, a freshly published card would link to a 404. During a grace
+ * period after publish (`FRESH_WINDOW_MS`) we therefore HEAD-probe a card's
+ * page and don't show the card until the probe comes back 200; past the
+ * window we assume the bake has caught up.
+ *
+ * Two consumers share the probes through the query cache:
+ *
+ * - each card that links out gates its own rendering on `useIsLikelyBaked`;
+ * - `LatestSearch` holds its loading skeleton until `useAreFreshProbesSettled`
+ *   reports every first-page probe answered, so that the feed renders in one
+ *   commit with its composition final. Without this, gated cards mount late:
+ *   scrolling to a `/latest#slug` deeplink misses its anchor, and cards
+ *   popping in shift the feed under the reader.
+ *
+ * A card gates only when it links to its own standalone page. The expanded
+ * data insight and data update cards *are* that page's content, so they
+ * render ungated and navigate elsewhere; their condensed counterparts are
+ * teasers whose one destination is that page, so they wait for it.
+ */
+
 export const FRESH_WINDOW_MS = 60 * 60 * 1000
 
-/**
- * For freshly-published cards, probe whether the card URL is reachable before
- * showing it — the Algolia index is updated synchronously on publish but the
- * static page is only available once the next bake completes, so a card can
- * otherwise link to a 404.
- *
- * Returns `true` once we're confident the link is safe (either the publish is
- * older than `FRESH_WINDOW_MS` or a HEAD probe came back 200). Returns `false`
- * while we're still uncertain. Heuristic by design — past the grace period the
- * hook returns `true` without verifying anything.
- */
-export function useIsLikelyBaked(
-    href: string,
-    publishedAt: string | Date
-): boolean {
-    const isFresh =
-        Date.now() - new Date(publishedAt).getTime() < FRESH_WINDOW_MS
+// Callers pass `now` read once via a useState initializer, keeping render pure
+const isFreshlyPublished = (publishedAt: string | Date, now: number): boolean =>
+    now - new Date(publishedAt).getTime() < FRESH_WINDOW_MS
 
-    const { data } = useQuery({
+// Shared by both probe consumers — identical query keys are what make their
+// fetches dedupe.
+const isLikelyBakedQueryOptions = (href: string) =>
+    queryOptions({
         queryKey: ["isLikelyBaked", href],
         queryFn: async () => {
             // Resolve 404s as a final `false` rather than throwing — React
@@ -54,11 +69,86 @@ export function useIsLikelyBaked(
             const res = await fetch(href, { method: "HEAD" })
             return res.ok
         },
-        enabled: isFresh,
         staleTime: Infinity,
     })
 
-    return !isFresh || data === true
+/**
+ * The URL a hit's probe checks, or null for card types that render ungated.
+ * Sole source of the probe URL, so both consumers necessarily fire the same
+ * queries — and exhaustive over the hit types, so adding one forces a
+ * decision here about whether it gates.
+ *
+ * Always the hit's standalone page — the one destination whose existence
+ * depends on this publish's bake. A card may link elsewhere in some states
+ * (a data update's expanded CTA points at a pre-existing data page), but
+ * those destinations can't 404 from a pending bake, so the standalone page
+ * is what we vet. Whether a card gates on the answer is the card's own call:
+ * it turns on how that card is currently rendering, which this doesn't know.
+ */
+function getProbeHref(hit: PageChronologicalRecord): string | null {
+    return match(hit)
+        .with(
+            { type: OwidGdocType.Article },
+            { type: OwidGdocType.DataInsight },
+            // Data updates link out to their announcement page; plain
+            // announcements render their content inline and don't gate.
+            { type: OwidGdocType.Announcement, latestType: "data-update" },
+            (hit) =>
+                getPrefixedGdocPath("", {
+                    slug: hit.slug,
+                    content: { type: hit.type },
+                })
+        )
+        .with({ type: OwidGdocType.Announcement }, () => null)
+        .with(
+            { type: OwidGdocType.TopicPage },
+            { type: OwidGdocType.LinearTopicPage },
+            () => null
+        )
+        .exhaustive()
+}
+
+/**
+ * Whether it's safe to show this hit's card (see "Bake probes" above).
+ * True unless the hit is gated — fresh, of a type that links to its own
+ * standalone page — and its probe hasn't come back 200. Heuristic by design:
+ * past the grace period this returns true without verifying anything.
+ */
+export function useIsLikelyBaked(hit: PageChronologicalRecord): boolean {
+    const [now] = useState(() => Date.now())
+    const probeHref = getProbeHref(hit)
+    const needsProbe = probeHref !== null && isFreshlyPublished(hit.date, now)
+
+    const { data } = useQuery({
+        ...isLikelyBakedQueryOptions(probeHref ?? ""),
+        enabled: needsProbe,
+    })
+
+    return !needsProbe || data === true
+}
+
+/**
+ * Whether every fresh hit on the given page has a settled bake probe — the
+ * signal `LatestSearch` extends its skeleton on (see "Bake probes" above).
+ * Runs the probes itself so they start before any card mounts; the cards'
+ * own `useIsLikelyBaked` calls then read them from the cache.
+ *
+ * Pass the first page only. The feed is chronological, so fresh hits are
+ * always among the newest — and "load more" pages must never re-trigger the
+ * skeleton.
+ */
+export function useAreFreshProbesSettled(
+    hits: PageChronologicalRecord[]
+): boolean {
+    const [now] = useState(() => Date.now())
+    const results = useQueries({
+        queries: hits
+            .filter((hit) => isFreshlyPublished(hit.date, now))
+            .map(getProbeHref)
+            .filter((href) => href !== null)
+            .map(isLikelyBakedQueryOptions),
+    })
+    return results.every((result) => !result.isPending)
 }
 
 /**
@@ -146,4 +236,98 @@ export function useInfiniteLatestPages({
         tagFacetCounts,
         latestTypeFacetCounts,
     }
+}
+
+/*
+ * Sticky filters experiment (exp-latest-sticky-filters-v1).
+ */
+
+/** Read the sticky-filter arm once on mount for the reveal-on-scroll-up hook.
+ * Read during render: /latest mounts with createRoot, not hydration, so there
+ * is no server render for a cookie read to disagree with. */
+export function useLatestStickyFiltersArm(): string | undefined {
+    const [arm] = useState(getLatestExperimentArm)
+    return arm
+}
+
+/** Where a sticky element sits in the flow, in document coordinates, and the
+ * viewport offset it pins at. A stuck element reports its *pinned* position
+ * through both getBoundingClientRect and offsetTop, so the flow position is
+ * read by dropping it out of sticky positioning for the duration of the
+ * measurement — synchronous, so nothing paints in between. The pin offset is
+ * a custom property so it's readable whichever offset the bar is currently
+ * sticky at. */
+export function getStickyLayout(el: HTMLElement): {
+    layoutTop: number
+    stickyTop: number
+} {
+    const stickyTop =
+        parseFloat(
+            getComputedStyle(el).getPropertyValue(STICKY_FILTERS_TOP_PROPERTY)
+        ) || 0
+    el.style.position = "static"
+    const layoutTop = window.scrollY + el.getBoundingClientRect().top
+    el.style.removeProperty("position")
+    return { layoutTop, stickyTop }
+}
+
+/** Custom property carrying the offset the facets pin at (0 on desktop,
+ * negative on mobile so only the pills stay). Set in LatestSearch.scss. */
+const STICKY_FILTERS_TOP_PROPERTY = "--latest-sticky-filters-top"
+
+/** Custom property carrying the bar's own height, published by
+ * useRevealOnScrollUp so CSS can park the bar that far above the pin
+ * point. Read in LatestSearch.scss. */
+const STICKY_FILTERS_HEIGHT_PROPERTY = "--latest-sticky-filters-height"
+
+/** How far the page has to move before a scroll counts as a change of
+ * direction. Filters out sub-pixel jitter and the tail of iOS rubber-band
+ * overscroll, either of which would otherwise flip the bar in and out. */
+const SCROLL_DIRECTION_THRESHOLD_PX = 4
+
+/** Track scroll direction and publish the bar's height for its CSS offsets.
+ * See README.md for the sticky positioning model. */
+export function useRevealOnScrollUp(
+    enabled: boolean,
+    stickyRef: React.RefObject<HTMLElement | null>
+): boolean {
+    const [isRevealed, setIsRevealed] = useState(false)
+
+    useEffect(() => {
+        if (!enabled) return
+        const el = stickyRef.current
+        if (!el) return
+
+        // CSS parks the bar with `top: calc(pin offset - height)` and
+        // can't measure the height itself.
+        const publishHeight = (): void => {
+            el.style.setProperty(
+                STICKY_FILTERS_HEIGHT_PROPERTY,
+                `${el.offsetHeight}px`
+            )
+        }
+
+        let lastScrollY = window.scrollY
+        const onScroll = (): void => {
+            const scrollY = window.scrollY
+            const delta = scrollY - lastScrollY
+            if (Math.abs(delta) < SCROLL_DIRECTION_THRESHOLD_PX) return
+            lastScrollY = scrollY
+            setIsRevealed(delta < 0)
+        }
+
+        publishHeight()
+        // The bar's height changes when the filters restack at the mobile
+        // breakpoint, putting the type dropdown above the pills.
+        const resizeObserver = new ResizeObserver(publishHeight)
+        resizeObserver.observe(el)
+        window.addEventListener("scroll", onScroll, { passive: true })
+        return () => {
+            window.removeEventListener("scroll", onScroll)
+            resizeObserver.disconnect()
+            el.style.removeProperty(STICKY_FILTERS_HEIGHT_PROPERTY)
+        }
+    }, [enabled, stickyRef])
+
+    return enabled && isRevealed
 }

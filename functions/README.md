@@ -21,6 +21,15 @@ Inside a file-based route we sometimes use an instance of itty-router to decide 
 - (preferred) `yarn make up.full`: starts the whole local development stack, including the functions development server
 - `yarn startLocalCloudflareFunctions`: only starts the functions development server
 
+The development server reads the grapher config R2 buckets remotely, so wrangler has to be authenticated against the OWID Cloudflare account. `wrangler login` works, but it's a single login per machine: if you also use Cloudflare for other projects, put an API token in the repo's `.env` instead, which wrangler reads on its own and prefers over the login:
+
+```
+CLOUDFLARE_API_TOKEN=...   # Account scope: Workers Scripts (Edit), Workers R2 Storage (Read), Account Settings (Read)
+CLOUDFLARE_ACCOUNT_ID=078fcdfed9955087315dd86792e71a7e
+```
+
+`make setup.worktree` copies both into new worktrees' `.env` from the main checkout.
+
 Note: the compatibility date is defined in [`wrangler.jsonc`](../wrangler.jsonc) at the repo root, which is the authoritative source for local development, previews and production alike (not the Cloudflare dashboard). The e2e tests carry their own copy in [`test/wrangler.e2e.jsonc`](./test/wrangler.e2e.jsonc) — keep the two in sync.
 
 3. _Refer to each function's "Development" section below for further instructions._
@@ -144,7 +153,7 @@ GET /api/detect-country
 
 ## `/api/search`
 
-This route provides a search API for both charts and pages (articles, about pages).
+This route provides a search API for both charts and pages (articles, about pages). A `type=pages` search restricted to topic pages returns topic recommendations derived from the best-ranked matching charts, the same way the site's search page does (see "Topic page recommendations" in `site/search/README.md`); it reads the baked `/topicTagGraph.json` to map chart tags to topic pages.
 
 For detailed API documentation, including all parameters, response schemas, and examples, see [search-api.openapi.yaml](../docs/search-api.openapi.yaml).
 

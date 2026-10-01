@@ -579,3 +579,56 @@
         border-radius: 4px;
     }
 }
+
+// Vertical fade used to soften the bottom edge of clipped card content
+// (a data insight or data update card whose body overflows). Apply to an
+// absolutely positioned overlay covering the clipped area; $color must match
+// the background it fades into, including on hover.
+@mixin fade-out-overlay($color, $start: 50%) {
+    background: linear-gradient(180deg, transparent $start, $color 100%);
+}
+
+// Covers the link's nearest positioned ancestor. Give the card position: relative;
+// use above-stretched-link for any independent links inside it.
+@mixin stretched-link {
+    &::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+    }
+}
+
+// Lifts an element above a stretched-link overlay so it keeps its own click
+// behavior.
+@mixin above-stretched-link {
+    position: relative;
+    z-index: 2;
+}
+
+// Underline on CTA hover, or on the supplied card selector's hover.
+// Keep the arrow inline so it follows the last word when the label wraps.
+// Colour and font weight come from the caller.
+@mixin latest-card-cta($card-selector: null) {
+    // Explicit, because a caller whose CTA is itself an anchor would
+    // otherwise take the underline anchors get by default.
+    text-decoration: none;
+
+    svg {
+        width: 10px;
+        height: 10px;
+        margin-left: 4px;
+    }
+
+    @if $card-selector {
+        #{$card-selector}:hover & {
+            text-decoration: underline;
+            text-underline-offset: 4px;
+        }
+    } @else {
+        &:hover {
+            text-decoration: underline;
+            text-underline-offset: 4px;
+        }
+    }
+}

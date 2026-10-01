@@ -32,7 +32,7 @@ import {
     DEFAULT_ATOM_FEED_PROPS,
 } from "../SiteConstants.js"
 import { Html } from "../Html.js"
-import { CLOUDFLARE_IMAGES_URL } from "../../settings/clientSettings.js"
+import { CLOUDFLARE_IMAGES_URL } from "../../settings/clientSettings.mjs"
 import { addPreferSmallFilenameToDataInsightImages } from "../gdocs/utils.js"
 import { AriaAnnouncerProvider } from "../AriaAnnouncerContext.js"
 import { AriaAnnouncer } from "../AriaAnnouncer.js"
@@ -82,6 +82,9 @@ function getPageDesc(gdoc: OwidGdocUnionType): string | undefined {
                 : undefined
         })
         .with({ content: { type: OwidGdocType.Profile } }, (gdoc) => {
+            return gdoc.content.excerpt
+        })
+        .with({ content: { type: OwidGdocType.FeaturedViz } }, (gdoc) => {
             return gdoc.content.excerpt
         })
         .with(

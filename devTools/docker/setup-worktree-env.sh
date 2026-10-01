@@ -81,10 +81,12 @@ for setting in \
     grep -q "^${setting%%=*}=" .env || echo "$setting" >> .env
 done
 
-# copy search-only Algolia credentials from the main checkout's .env if present
+# copy credentials from the main checkout's .env if present: search-only
+# Algolia keys, and a Cloudflare API token that wrangler reads from .env and
+# prefers over its machine-wide `wrangler login` (which may be another account)
 MAIN_WORKTREE="$(git worktree list --porcelain | sed -n 's/^worktree //p' | head -n 1)"
 if [ -n "$MAIN_WORKTREE" ] && [ -e "$MAIN_WORKTREE/.env" ]; then
-    for var in ALGOLIA_ID ALGOLIA_SEARCH_KEY; do
+    for var in ALGOLIA_ID ALGOLIA_SEARCH_KEY CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID; do
         line="$(grep -E "^[[:space:]]*${var}=" "$MAIN_WORKTREE/.env" | tail -n 1 || true)"
         [ -n "$line" ] && echo "$line" >> .env
     done

@@ -2,7 +2,7 @@ import { Fragment } from "react"
 import { BreadcrumbItem } from "@ourworldindata/utils"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faAngleRight } from "@fortawesome/free-solid-svg-icons"
-import { BAKED_BASE_URL, IS_ARCHIVE } from "../../settings/clientSettings.js"
+import { BAKED_BASE_URL, IS_ARCHIVE } from "../../settings/clientSettings.mjs"
 import { PROD_URL } from "../SiteConstants.js"
 
 const BASE_URL = IS_ARCHIVE ? PROD_URL : BAKED_BASE_URL

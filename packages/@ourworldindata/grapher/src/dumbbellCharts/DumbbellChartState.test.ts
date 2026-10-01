@@ -1,24 +1,32 @@
 import { expect, it, describe } from "vitest"
 
 import { OwidTable } from "@ourworldindata/core-table"
+import { ColumnSlug, CoreMatrix } from "@ourworldindata/types"
 import { DumbbellChartState } from "./DumbbellChartState"
 import { DumbbellChartManager, DumbbellMode } from "./DumbbellChartConstants"
 
+const makeChartState = (
+    rows: CoreMatrix,
+    yColumnSlugs: ColumnSlug[] = ["gdp"]
+): DumbbellChartState => {
+    const table = new OwidTable(rows)
+    const manager: DumbbellChartManager = {
+        table,
+        selection: table.availableEntityNames,
+        yColumnSlugs,
+    }
+    return new DumbbellChartState({ manager })
+}
+
 describe("entity strategy", () => {
     it("constructs dumbbell series across two time points", () => {
-        const csv = `gdp,year,entityName
-100,2000,USA
-150,2010,USA
-80,2000,UK
-60,2010,UK`
-
-        const table = new OwidTable(csv)
-        const manager: DumbbellChartManager = {
-            table,
-            selection: table.availableEntityNames,
-            yColumnSlugs: ["gdp"],
-        }
-        const chartState = new DumbbellChartState({ manager })
+        const chartState = makeChartState([
+            ["gdp", "year", "entityName"],
+            [100, 2000, "USA"],
+            [150, 2010, "USA"],
+            [80, 2000, "UK"],
+            [60, 2010, "UK"],
+        ])
 
         expect(chartState.errorInfo.reason).toEqual("")
         expect(chartState.series.length).toEqual(2)
@@ -31,19 +39,13 @@ describe("entity strategy", () => {
     })
 
     it("colors series by direction of change", () => {
-        const csv = `gdp,year,entityName
-    100,2000,Riser
-    150,2010,Riser
-    100,2000,Faller
-    50,2010,Faller`
-
-        const table = new OwidTable(csv)
-        const manager: DumbbellChartManager = {
-            table,
-            selection: table.availableEntityNames,
-            yColumnSlugs: ["gdp"],
-        }
-        const chartState = new DumbbellChartState({ manager })
+        const chartState = makeChartState([
+            ["gdp", "year", "entityName"],
+            [100, 2000, "Riser"],
+            [150, 2010, "Riser"],
+            [100, 2000, "Faller"],
+            [50, 2010, "Faller"],
+        ])
 
         const riser = chartState.series.find((s) => s.entityName === "Riser")!
         const faller = chartState.series.find((s) => s.entityName === "Faller")!
@@ -52,18 +54,12 @@ describe("entity strategy", () => {
     })
 
     it("filters out series with missing start or end value", () => {
-        const csv = `gdp,year,entityName
-100,2000,Complete
-150,2010,Complete
-80,2000,MissingEnd`
-
-        const table = new OwidTable(csv)
-        const manager: DumbbellChartManager = {
-            table,
-            selection: table.availableEntityNames,
-            yColumnSlugs: ["gdp"],
-        }
-        const chartState = new DumbbellChartState({ manager })
+        const chartState = makeChartState([
+            ["gdp", "year", "entityName"],
+            [100, 2000, "Complete"],
+            [150, 2010, "Complete"],
+            [80, 2000, "MissingEnd"],
+        ])
 
         expect(chartState.series.length).toEqual(1)
         expect(chartState.series[0].entityName).toEqual("Complete")
@@ -72,16 +68,13 @@ describe("entity strategy", () => {
 
 describe("column strategy", () => {
     it("constructs series comparing two columns at one time", () => {
-        const csv = `population,gdp,year,entityName
-100,500,2010,USA`
-
-        const table = new OwidTable(csv)
-        const manager: DumbbellChartManager = {
-            table,
-            selection: table.availableEntityNames,
-            yColumnSlugs: ["population", "gdp"],
-        }
-        const chartState = new DumbbellChartState({ manager })
+        const chartState = makeChartState(
+            [
+                ["population", "gdp", "year", "entityName"],
+                [100, 500, 2010, "USA"],
+            ],
+            ["population", "gdp"]
+        )
 
         expect(chartState.mode).toEqual(DumbbellMode.TwoColumn)
         expect(chartState.series.length).toEqual(1)

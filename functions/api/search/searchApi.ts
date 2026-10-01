@@ -5,13 +5,17 @@ import {
     ChartRecordType,
     SearchChartHit,
     OwidGdocType,
+    TagGraphRoot,
 } from "@ourworldindata/types"
 import { getCanonicalUrl } from "@ourworldindata/components"
 import {
     getFilterNamesOfType,
     buildChartsFacetFilters,
+    formatTopicFacetFilters,
     searchSingleForHitsWithClosestMatches,
+    searchTopicPagesOfMatchingCharts,
     MAX_FACET_VALUES,
+    TOPIC_PAGE_TYPES,
 } from "@ourworldindata/utils"
 import {
     getIndexName,
@@ -145,6 +149,27 @@ async function getAvailableTopics(config: AlgoliaConfig): Promise<string[]> {
     return Object.keys(response.results[0].facets?.tags ?? {}).sort()
 }
 
+/**
+ * Throws a SearchValidationError when the filters name a topic that doesn't
+ * exist. Only worth calling after an empty result, since it costs a request.
+ */
+async function assertTopicsExist(
+    config: AlgoliaConfig,
+    filters: Filter[]
+): Promise<void> {
+    const requestedTopics = getFilterNamesOfType(filters, FilterType.TOPIC)
+    if (requestedTopics.size === 0) return
+    const availableTopics = await getAvailableTopics(config)
+    const invalidTopics = Array.from(requestedTopics).filter(
+        (topic) => !availableTopics.includes(topic)
+    )
+    if (invalidTopics.length > 0) {
+        throw new SearchValidationError(
+            `No results found. The topic "${invalidTopics.join('", "')}" does not exist. Available topics: ${availableTopics.join(", ")}`
+        )
+    }
+}
+
 export async function searchCharts(
     config: AlgoliaConfig,
     state: SearchState,
@@ -180,21 +205,7 @@ export async function searchCharts(
     )
 
     // If we got zero results and user is filtering by topic, check if the topic exists
-    const requestedTopics = getFilterNamesOfType(
-        state.filters,
-        FilterType.TOPIC
-    )
-    if (result.nbHits === 0 && requestedTopics.size > 0) {
-        const availableTopics = await getAvailableTopics(config)
-        const invalidTopics = Array.from(requestedTopics).filter(
-            (topic) => !availableTopics.includes(topic)
-        )
-        if (invalidTopics.length > 0) {
-            throw new SearchValidationError(
-                `No results found. The topic "${invalidTopics.join('", "')}" does not exist. Available topics: ${availableTopics.join(", ")}`
-            )
-        }
-    }
+    if (result.nbHits === 0) await assertTopicsExist(config, state.filters)
 
     // Clean up the hits and add URL
     const cleanedHits = result.hits.map((hit): EnrichedSearchChartHit => {
@@ -256,7 +267,9 @@ export async function searchPages(
     offset: number = 0,
     length: number = 10,
     pageTypes: string[] = ["article", "about-page"],
-    baseUrl: string = "https://ourworldindata.org"
+    baseUrl: string = "https://ourworldindata.org",
+    /** Restrict to pages tagged with any of these topics. */
+    topics: Set<string> = new Set()
 ): Promise<SearchPagesApiResponse> {
     const indexName = getIndexName(SearchIndexName.Pages, config.indexPrefix)
 
@@ -271,7 +284,7 @@ export async function searchPages(
             indexName,
             query,
             filters,
-            facetFilters: [[]],
+            facetFilters: formatTopicFacetFilters(topics),
             attributesToRetrieve: PAGE_ATTRIBUTES,
             highlightPreTag: "<mark>",
             highlightPostTag: "</mark>",
@@ -280,8 +293,86 @@ export async function searchPages(
         }
     )
 
-    // Clean up the hits and add URL
-    const cleanedHits = result.hits.map((hit): EnrichedSearchPageHit => {
+    return {
+        query,
+        results: enrichPageHits(result.hits, baseUrl),
+        nbHits: result.nbHits ?? 0,
+        offset,
+        length,
+        ...(result.closestMatches && { closestMatches: true as const }),
+    }
+}
+
+/**
+ * Topic pages for a query, derived from the charts matching it rather than
+ * from the topic pages' own text, exactly as the site's search page does
+ * (see searchTopicPagesOfMatchingCharts). Country and topic filters apply to
+ * the chart search. Falls back to searchPages when no chart matches, so a
+ * query that only matches prose (an author's name, say) still finds pages.
+ */
+export async function searchTopicPages(
+    config: AlgoliaConfig,
+    state: SearchState,
+    tagGraph: TagGraphRoot,
+    offset: number = 0,
+    length: number = 10,
+    baseUrl: string = "https://ourworldindata.org"
+): Promise<SearchPagesApiResponse> {
+    const client = createSearchClient(config)
+
+    const result = await searchTopicPagesOfMatchingCharts<SearchPageHit>(
+        client,
+        {
+            chartsIndexName: getIndexName(
+                SearchIndexName.ExplorerViewsMdimViewsAndCharts,
+                config.indexPrefix
+            ),
+            pagesIndexName: getIndexName(
+                SearchIndexName.Pages,
+                config.indexPrefix
+            ),
+            query: state.query,
+            chartsFacetFilters: buildChartsFacetFilters({
+                query: state.query,
+                filters: state.filters,
+                requireAllCountries: state.requireAllCountries,
+            }),
+            tagGraph,
+            attributesToRetrieve: PAGE_ATTRIBUTES,
+            offset,
+            length,
+        }
+    )
+    if (!result) {
+        const fallback = await searchPages(
+            config,
+            state.query,
+            offset,
+            length,
+            [...TOPIC_PAGE_TYPES],
+            baseUrl,
+            getFilterNamesOfType(state.filters, FilterType.TOPIC)
+        )
+        if (fallback.nbHits === 0)
+            await assertTopicsExist(config, state.filters)
+        return fallback
+    }
+
+    return {
+        query: state.query,
+        results: enrichPageHits(result.hits, baseUrl),
+        nbHits: result.nbHits ?? 0,
+        offset,
+        length,
+    }
+}
+
+/** Strips Algolia's internal attributes from page hits and adds the page URL. */
+function enrichPageHits(
+    hits: SearchPageHit[],
+    baseUrl: string
+): EnrichedSearchPageHit[] {
+    return hits.map((hit): EnrichedSearchPageHit => {
         const {
             _highlightResult,
             _snippetResult,
@@ -305,13 +396,4 @@ export async function searchPages(
             url,
         }
     })
-
-    return {
-        query,
-        results: cleanedHits,
-        nbHits: result.nbHits ?? 0,
-        offset,
-        length,
-        ...(result.closestMatches && { closestMatches: true as const }),
-    }
 }

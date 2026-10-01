@@ -103,6 +103,7 @@ function BoundsObservingGrapher({
     const bounds = useElementBounds(containerRef, null)
 
     useIsomorphicLayoutEffect(() => {
+        // oxlint-disable-next-line react/immutability -- updating MobX state
         if (bounds) grapherState.externalBounds = bounds
     }, [grapherState, bounds])
 

@@ -1,4 +1,5 @@
 import * as _ from "lodash-es"
+import * as Sentry from "@sentry/react"
 import { GrapherAnalytics, splitPathForGA4 } from "@ourworldindata/grapher"
 import {
     EventCategory,
@@ -16,7 +17,21 @@ import {
     type UserSurveyRoleAnswer,
 } from "@ourworldindata/types"
 import { getFilterNamesOfType } from "./search/searchUtils.js"
-import { findDOMParent } from "@ourworldindata/utils"
+import {
+    EXPERIMENT_PREFIX,
+    LATEST_STICKY_FILTERS_EXPERIMENT_ID,
+    findDOMParent,
+    getExperimentState,
+} from "@ourworldindata/utils"
+
+/** The visitor's arm in the /latest sticky filters experiment, attached to
+ * the /latest events so they can be split by arm, and read by the feed for
+ * the one arm that needs JS. Undefined outside the experiment. */
+export function getLatestExperimentArm(): string | undefined {
+    return getExperimentState()[
+        `${EXPERIMENT_PREFIX}-${LATEST_STICKY_FILTERS_EXPERIMENT_ID}`
+    ]?.arm
+}
 
 export class SiteAnalytics extends GrapherAnalytics {
     logPageNotFoundError(url: string) {
@@ -48,11 +63,21 @@ export class SiteAnalytics extends GrapherAnalytics {
         })
     }
 
-    logDodShown(id: string) {
+    /** Expand/collapse of a data page metadata toggle. `target` is a codified
+     * id, not the rendered label, so events survive page translation. */
+    logExpandableToggle(target: string, isOpen: boolean): void {
+        this.logSiteClick(
+            isOpen ? "expand_expandable_toggle" : "collapse_expandable_toggle",
+            target
+        )
+    }
+
+    logDodShown(id: string, location?: string) {
         this.logToGA({
             event: EventCategory.DetailOnDemand,
             eventAction: "show",
             eventTarget: id,
+            ...(location !== undefined && { eventContext: location }),
         })
     }
 
@@ -62,9 +87,11 @@ export class SiteAnalytics extends GrapherAnalytics {
             eventAction: "filter",
             latestTopics: state.topics.join("~") || undefined,
             latestType: state.latestType ?? undefined,
+            experimentArm: getLatestExperimentArm(),
         })
     }
 
+    /** Tracks opening a feed preview's own content, not following links within it. */
     logLatestResultClick(hit: LatestPageChronologicalRecord, position: number) {
         this.logToGA({
             event: EventCategory.SiteLatestResultClick,
@@ -72,6 +99,7 @@ export class SiteAnalytics extends GrapherAnalytics {
             eventTarget: hit.slug,
             latestPosition: position,
             latestType: hit.latestType,
+            experimentArm: getLatestExperimentArm(),
         })
     }
 
@@ -85,6 +113,7 @@ export class SiteAnalytics extends GrapherAnalytics {
             eventTarget: hit.slug,
             latestPosition: position,
             latestType: hit.latestType,
+            experimentArm: getLatestExperimentArm(),
         })
     }
 
@@ -415,6 +444,14 @@ export class SiteAnalytics extends GrapherAnalytics {
 
             // eslint-disable-next-line no-console
             console.info("Browser translation detected", ctx)
+
+            // Deliberately sticky for the rest of the pageview: readers toggle
+            // translation back off again, but a page that was translated once
+            // keeps hitting reconciliation errors afterwards.
+            Sentry.setTag("page_translated", "true")
+            if (newLang && newLang !== initialLang) {
+                Sentry.setTag("page_translated_to", newLang)
+            }
 
             this.logBrowserTranslationEvent(ctx)
         }

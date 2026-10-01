@@ -1,7 +1,7 @@
 import { expect, it, describe, vi } from "vitest"
 import * as R from "remeda"
 
-import { HorizontalAxis } from "../axis/Axis"
+import { DualAxis, HorizontalAxis } from "../axis/Axis"
 import {
     ScaleType,
     AxisConfigInterface,
@@ -20,6 +20,7 @@ import {
     convertDateToDaysSinceEpoch,
     convertDaysSinceEpochToDate,
     Tickmark,
+    Bounds,
 } from "@ourworldindata/utils"
 
 // Day-since-epoch for a "YYYY-MM-DD" date
@@ -47,9 +48,13 @@ function makeTimeAxis({
     hideFractionalTicks?: boolean
 }): HorizontalAxis {
     const slug = "timeValue"
-    const table = new OwidTable({ entityName: ["usa"], [slug]: [0] }, [
-        { slug, type: columnType },
-    ])
+    const table = new OwidTable(
+        [
+            ["entityName", slug],
+            ["usa", 0],
+        ],
+        [{ slug, type: columnType }]
+    )
     const axis = new HorizontalAxis(
         new AxisConfig({
             scaleType: ScaleType.linear,
@@ -340,9 +345,13 @@ describe("axis height", () => {
         convertDateToDaysSinceEpoch(dayjs.utc(date))
 
     const timeColumn = (type: ColumnTypeNames, slug: string): CoreColumn =>
-        new OwidTable({ entityName: ["usa"], [slug]: [0] }, [
-            { slug, type },
-        ]).get(slug)
+        new OwidTable(
+            [
+                ["entityName", slug],
+                ["usa", 0],
+            ],
+            [{ slug, type }]
+        ).get(slug)
 
     /**
      * The height given by `HorizontalAxis.height` should match the height of the placed tick labels plus padding and label offset in all cases, or `minSize` if that is larger.
@@ -795,5 +804,59 @@ describe("endpoint tick labels", () => {
             R.first(tickLabels),
             R.last(tickLabels),
         ])
+    })
+})
+
+describe(DualAxis, () => {
+    function makeDualAxisWithWrappingLabel(width: number): DualAxis {
+        const table = new OwidTable(
+            [
+                ["entityName", "gdp", "meat"],
+                ["usa", 1000, 10],
+                ["usa", 30000, 140],
+            ],
+            [
+                {
+                    slug: "gdp",
+                    type: ColumnTypeNames.Numeric,
+                    display: { unit: "international-$ in 2021 prices" },
+                },
+                {
+                    slug: "meat",
+                    type: ColumnTypeNames.Numeric,
+                    display: { unit: "kilograms per year per capita" },
+                },
+            ]
+        )
+
+        const horizontalAxis = new AxisConfig({
+            scaleType: ScaleType.log,
+            min: 1000,
+            max: 30000,
+            label: "GDP per capita",
+        }).toHorizontalAxis()
+        horizontalAxis.formatColumn = table.get("gdp")
+
+        const verticalAxis = new AxisConfig({
+            min: 0,
+            max: 140,
+            label: "Meat supply per person",
+        }).toVerticalAxis()
+        verticalAxis.formatColumn = table.get("meat")
+
+        return new DualAxis({
+            bounds: new Bounds(0, 0, width, 400),
+            horizontalAxis,
+            verticalAxis,
+        })
+    }
+
+    it("reserves the height the horizontal axis is drawn at", () => {
+        // At 330px the label wraps to one more line at the inner width than
+        // at the outer width
+        const dualAxis = makeDualAxisWithWrappingLabel(330)
+        const reservedHeight =
+            dualAxis.bounds.bottom - dualAxis.innerBounds.bottom
+        expect(reservedHeight).toEqual(dualAxis.horizontalAxis.size)
     })
 })

@@ -85,7 +85,8 @@ When introducing another document type:
     - Adjust the admin interface if new front-matter fields or components need bespoke handling.
 
 6. **Add tests and documentation**
-    - Extend `db/gdocTests.test.ts` (or add new tests) to cover parsing and round-tripping.
+    - Extend `packages/@ourworldindata/gdoc-pipeline/src/gdocTests.test.ts` (or add new tests) to cover parsing and round-tripping.
     - Document authoring expectations in internal guides or ArchieML reference docs.
+    - Register the type in `GDOC_TEMPLATE_CONTENT_INTERFACES` (`Gdoc.ts`) with a `OWID_GDOC_*_CONTENT_KEY_KINDS` map, and write its writing-reference template sidecars, `templates/<Type>.md` and `templates/<ContentInterface>.md` — see `docs/gdocs-writing-reference.md`. Both are enforced by `devTools/gdocs/sidecars.test.ts`.
 
 By following this pattern, new document types get the full lifecycle support—fetching, parsing, validation, enrichment, and persistence—while keeping behaviour encapsulated in targeted subclasses.

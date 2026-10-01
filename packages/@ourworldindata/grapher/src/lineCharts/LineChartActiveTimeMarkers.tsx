@@ -8,6 +8,7 @@ import { Emphasis } from "../interaction/Emphasis"
 import { GRAPHER_OPACITY_MUTED } from "../core/GrapherConstants"
 import { getSeriesKey } from "../chart/ChartUtils"
 import { GRAPHER_BACKGROUND } from "../color/ColorConstants"
+import { roundForSvg } from "@ourworldindata/utils"
 
 interface LineChartActiveTimeMarkersProps {
     times: Time[]
@@ -34,10 +35,10 @@ export function LineChartActiveTimeMarkers({
             {times.map((time) => (
                 <g className="hoverIndicator" key={time}>
                     <line
-                        x1={horizontalAxis.place(time)}
-                        y1={verticalAxis.range[0]}
-                        x2={horizontalAxis.place(time)}
-                        y2={verticalAxis.range[1]}
+                        x1={roundForSvg(horizontalAxis.place(time))}
+                        y1={roundForSvg(verticalAxis.range[0])}
+                        x2={roundForSvg(horizontalAxis.place(time))}
+                        y2={roundForSvg(verticalAxis.range[1])}
                         stroke="rgba(180,180,180,.4)"
                     />
                     {renderSeries.map((series, index) => {
@@ -61,9 +62,9 @@ export function LineChartActiveTimeMarkers({
                         return (
                             <circle
                                 key={getSeriesKey(series, index)}
-                                cx={horizontalAxis.place(point.x)}
-                                cy={verticalAxis.place(point.y)}
-                                r={dotRadius}
+                                cx={roundForSvg(horizontalAxis.place(point.x))}
+                                cy={roundForSvg(verticalAxis.place(point.y))}
+                                r={roundForSvg(dotRadius)}
                                 fill={valueColor}
                                 fillOpacity={opacity}
                                 stroke={GRAPHER_BACKGROUND}

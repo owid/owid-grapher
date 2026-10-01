@@ -36,6 +36,7 @@ tmp/
 tmp-downloads
 tmp-uploads
 tmp-logs
+tmp-playwright-admin-dist
 /data_files_checksums
 packages/@ourworldindata/*/dist/
 packages/@ourworldindata/*/dist-package/

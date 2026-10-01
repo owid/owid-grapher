@@ -1,194 +1,25 @@
-import cx from "clsx"
 import {
-    LatestDataInsight,
     OwidGdocDataInsightInterface,
-    copyToClipboard,
     formatAuthors,
-    MinimalTag,
 } from "@ourworldindata/utils"
-import { useContext, useState } from "react"
+import { useContext } from "react"
 import * as React from "react"
-import {
-    faArrowRight,
-    faChevronRight,
-    faCheck,
-    faChain,
-} from "@fortawesome/free-solid-svg-icons"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { ArticleBlocks } from "../components/ArticleBlocks.js"
-import LinkedAuthor from "../components/LinkedAuthor.js"
-import DataInsightDateline from "../components/DataInsightDateline.js"
-import LatestDataInsights from "../components/LatestDataInsights.js"
+import LatestBreadcrumb from "../components/LatestBreadcrumb.js"
+import LatestCarouselSection from "../components/LatestCarouselSection.js"
+import CopyLinkButton from "../components/CopyLinkButton.js"
+import RelatedTopicsList from "../components/RelatedTopicsList.js"
+import StandalonePostBody, {
+    STANDALONE_POST_GRID_CLASSES,
+} from "../components/StandalonePostBody.js"
+import { dataInsightsToCarouselItems } from "../components/latestCarouselItems.js"
 import { AttachmentsContext } from "../AttachmentsContext.js"
-import { BAKED_BASE_URL } from "../../../settings/clientSettings.js"
 import { buildSocialText } from "../socialText.js"
 import { CopySocialButton } from "../components/CopySocialButton.js"
 import { buildLatestPagePath } from "../../latest/latestUtils.js"
 
-export const LatestDataInsightCards = (props: {
-    latestDataInsights?: LatestDataInsight[]
-    className?: string
-}) => {
-    const { latestDataInsights, className } = props
-    if (!latestDataInsights?.length) return null
-
-    return (
-        <div className={cx(className, "data-insight-cards-container")}>
-            <h2 className="h2-bold ">Our latest Data Insights</h2>
-            <a
-                href={buildLatestPagePath("data-insight")}
-                className="see-all-button"
-            >
-                See all Data Insights <FontAwesomeIcon icon={faArrowRight} />
-            </a>
-            <LatestDataInsights
-                className="data-insights-carousel"
-                latestDataInsights={latestDataInsights}
-            />
-        </div>
-    )
-}
-
-const RelatedTopicsList = ({
-    tags,
-    className,
-}: {
-    tags?: MinimalTag[]
-    className?: string
-}) => {
-    if (!tags?.length) return null
-    return (
-        <div className={cx(className, "data-insights-related-topics")}>
-            <p className="body-3-regular">Related topic pages:</p>
-            <ul>
-                {tags.map((tag) => (
-                    <li key={tag.name}>
-                        <a href={`/${tag.slug}`}>{tag.name}</a>
-                    </li>
-                ))}
-            </ul>
-        </div>
-    )
-}
-
-function CopyLinkButton(props: { slug: string }) {
-    const [hasCopied, setHasCopied] = useState(false)
-    return (
-        <button
-            aria-label="Copy link to clipboard"
-            data-track-note="data_insight_copy_link"
-            id="copy-link-button"
-            className="data-insight-copy-link-button body-3-medium"
-            onClick={() => {
-                void copyToClipboard(
-                    `${BAKED_BASE_URL}/data-insights/${props.slug}`
-                )
-                setHasCopied(true)
-                setTimeout(() => {
-                    setHasCopied(false)
-                }, 1000)
-            }}
-        >
-            {hasCopied ? (
-                <>
-                    <FontAwesomeIcon icon={faCheck} /> Copied!
-                </>
-            ) : (
-                <>
-                    <FontAwesomeIcon icon={faChain} /> Copy link
-                </>
-            )}
-        </button>
-    )
-}
-
 function buildAuthorsNote(authors: string[]): string | undefined {
     if (authors.length === 0) return undefined
     return `(This Data Insight was written by ${formatAuthors(authors)}.)`
-}
-
-export const DataInsightBody = (
-    props: DataInsightProps & {
-        anchor?: string
-        publishedAt: Date | string | null
-        shouldLinkTitle?: boolean
-        // Hide the year on /data-insights index pages when published in the current year.
-        // Show it on individual data insight pages.
-        shouldHideYearInDateline?: boolean
-    }
-) => {
-    const { linkedDocuments } = useContext(AttachmentsContext)
-    const shouldLinkTitle = props.shouldLinkTitle
-    const publishedAt = props.publishedAt ? new Date(props.publishedAt) : null
-    return (
-        <div className="grid grid-cols-1 span-cols-6 col-start-5 span-md-cols-8 col-md-start-4 col-sm-start-1 span-sm-cols-14 data-insight-body-container">
-            <div
-                id={props.anchor}
-                className={cx("data-insight-body", {
-                    "data-insight-body--has-tags": !!props.tags?.length,
-                })}
-            >
-                <DataInsightDateline
-                    className="data-insight__dateline"
-                    publishedAt={publishedAt}
-                    formatOptions={
-                        props.shouldHideYearInDateline
-                            ? { month: "long", day: "numeric" }
-                            : {
-                                  year: "numeric",
-                                  month: "long",
-                                  day: "2-digit",
-                              }
-                    }
-                />
-                {shouldLinkTitle ? (
-                    <a
-                        href={`${BAKED_BASE_URL}/data-insights/${props.slug}`}
-                        className="data-insight-heading-link"
-                    >
-                        <h1 className="display-3-semibold">
-                            {props.content.title}
-                        </h1>
-                    </a>
-                ) : (
-                    <h1 className="display-3-semibold">
-                        {props.content.title}
-                    </h1>
-                )}
-                <div className="data-insight-authors body-3-medium">
-                    {props.content.authors.map((author, index) => (
-                        <LinkedAuthor
-                            className="data-insight-author"
-                            key={index}
-                            name={author}
-                            includeImage={true}
-                        />
-                    ))}
-                </div>
-                <div className="data-insight-blocks">
-                    <ArticleBlocks
-                        blocks={props.content.body}
-                        containerType="data-insight"
-                    />
-                </div>
-                <div className="data-insight-footer">
-                    <RelatedTopicsList tags={props.tags ?? undefined} />
-                    <CopyLinkButton slug={props.slug} />
-                    <CopySocialButton
-                        className="data-insight-copy-link-button"
-                        text={buildSocialText({
-                            title: props.content.title,
-                            body: props.content.body,
-                            authorsNote: buildAuthorsNote(
-                                props.content.authors
-                            ),
-                            linkedDocuments,
-                        })}
-                    />
-                </div>
-            </div>
-        </div>
-    )
 }
 
 type DataInsightProps = {
@@ -202,23 +33,49 @@ export const DataInsightPage = (
     props: DataInsightProps
 ): React.ReactElement => {
     const attachments = useContext(AttachmentsContext)
-    const latestDataInsights = attachments.latestDataInsights
-        ?.map((dataInsight, index) => ({ ...dataInsight, index }))
-        .filter(
-            (dataInsight) => dataInsight.content.title !== props.content.title
-        )
+    const latestDataInsights = attachments.latestDataInsights?.filter(
+        (dataInsight) => dataInsight.content.title !== props.content.title
+    )
 
     return (
-        <div className="grid grid-cols-12-full-width data-insight-page">
-            <div className="span-cols-6 col-start-5 span-md-cols-8 col-md-start-4 col-sm-start-2 span-sm-cols-12 data-insight-breadcrumbs">
-                <a href={buildLatestPagePath("data-insight")}>Data Insights</a>
-                <FontAwesomeIcon icon={faChevronRight} />
-                <span>{props.content.title}</span>
-            </div>
-            <DataInsightBody {...props} />
-            <LatestDataInsightCards
+        <div className="grid grid-cols-12-full-width standalone-post-page">
+            <LatestBreadcrumb
+                className={STANDALONE_POST_GRID_CLASSES}
+                latestType="data-insight"
+                title={props.content.title}
+            />
+            <StandalonePostBody
+                title={props.content.title}
+                authors={props.content.authors}
+                body={props.content.body}
+                publishedAt={props.publishedAt}
+                footer={
+                    <>
+                        <RelatedTopicsList tags={props.tags ?? undefined} />
+                        <CopyLinkButton
+                            path={`/data-insights/${props.slug}`}
+                            trackNote="data_insight_copy_link"
+                        />
+                        <CopySocialButton
+                            className="copy-link-button"
+                            text={buildSocialText({
+                                title: props.content.title,
+                                body: props.content.body,
+                                authorsNote: buildAuthorsNote(
+                                    props.content.authors
+                                ),
+                                linkedDocuments: attachments.linkedDocuments,
+                            })}
+                        />
+                    </>
+                }
+            />
+            <LatestCarouselSection
                 className="span-cols-12 col-start-2"
-                latestDataInsights={latestDataInsights}
+                heading="Our latest Data Insights"
+                seeAllText="See all Data Insights"
+                seeAllHref={buildLatestPagePath("data-insight")}
+                items={dataInsightsToCarouselItems(latestDataInsights ?? [])}
             />
         </div>
     )

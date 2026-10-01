@@ -12,7 +12,7 @@ import {
     BAKED_BASE_URL,
     BAKED_GRAPHER_URL,
     GRAPHER_DYNAMIC_THUMBNAIL_URL,
-} from "../settings/clientSettings.js"
+} from "../settings/clientSettings.mjs"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import {
     stringifyUnknownError,

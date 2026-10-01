@@ -43,7 +43,7 @@ import {
     type ImageUploadResponse,
 } from "./imagesHelpers.js"
 import { RcFile } from "antd/es/upload/interface.js"
-import { CLOUDFLARE_IMAGES_URL } from "../settings/clientSettings.js"
+import { CLOUDFLARE_IMAGES_URL } from "../settings/clientSettings.mjs"
 import { NotificationInstance } from "antd/es/notification/interface.js"
 import { EditableTextarea } from "./EditableTextarea.js"
 
@@ -126,10 +126,14 @@ function AltTextEditor({
     const [value, setValue] = useState(text)
     const [savedValue, setSavedValue] = useState(text)
 
-    useEffect(() => {
+    // Reset the editor when the alt text changes from the outside
+    // https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes
+    const [prevText, setPrevText] = useState(text)
+    if (text !== prevText) {
+        setPrevText(text)
         setValue(text)
         setSavedValue(text)
-    }, [text])
+    }
 
     const saveAltText = useCallback(
         (newValue: string) => {
@@ -543,21 +547,26 @@ function ImageReplaceConfirmModal({
             ? makeImageSrc(currentImage.cloudflareId, 300)
             : undefined
 
-    const [newImageSrc, setNewImageSrc] = useState<string | undefined>(
-        undefined
-    )
+    // Tagged with the file it was read from, so a new file doesn't show the
+    // previous one's preview while it's being read
+    const [newImage, setNewImage] = useState<{ file: RcFile; src: string }>()
+    const newImageSrc =
+        newImageFile && newImage?.file === newImageFile
+            ? newImage.src
+            : undefined
 
     useEffect(() => {
-        if (newImageFile) {
-            const reader = new FileReader()
-            reader.onload = (e) => {
-                setNewImageSrc(e.target?.result as string)
-            }
-            reader.readAsDataURL(newImageFile)
-        } else {
-            setNewImageSrc(undefined)
+        if (!newImageFile) return
+        const reader = new FileReader()
+        reader.onload = (e) => {
+            setNewImage({
+                file: newImageFile,
+                src: e.target?.result as string,
+            })
         }
-    }, [newImageFile, newImageSrc])
+        reader.readAsDataURL(newImageFile)
+        return () => reader.abort()
+    }, [newImageFile])
 
     return (
         <Modal

@@ -620,7 +620,12 @@ export const saveGrapher = async (
     const now = new Date()
 
     // Record this change in version history
-    await insertChartRevision(knex, chartId, user.id, patchConfig, now)
+    await insertChartRevision(knex, {
+        chartId,
+        userId: user.id,
+        patchConfig,
+        createdAt: now,
+    })
 
     // Remove any old dimensions and store the new ones
     // We only note that a relationship exists between the chart and variable in the database; the actual dimension configuration is left to the json
@@ -1015,17 +1020,24 @@ async function refreshChartDimensionsAndR2(
 
 async function insertChartRevision(
     trx: db.KnexReadWriteTransaction,
-    chartId: number,
-    userId: number,
-    patchConfig: GrapherInterface,
-    now: Date
+    {
+        chartId,
+        userId,
+        patchConfig,
+        createdAt,
+    }: {
+        chartId: number
+        userId: number
+        patchConfig: GrapherInterface
+        createdAt: Date
+    }
 ): Promise<void> {
     const chartRevisionLog = {
         chartId,
         userId,
         config: serializeChartConfig(patchConfig),
-        createdAt: now,
-        updatedAt: now,
+        createdAt,
+        updatedAt: createdAt,
     } satisfies DbInsertChartRevision
     await db.knexRaw(
         trx,
@@ -1224,9 +1236,9 @@ async function upsertEtlConfigForChart(
 
     // Does this push actually change the rendered chart? Compare the recomputed
     // full config against the stored one, ignoring `version`/`id` (which always
-    // differ). If nothing changed, we skip the version bump, the revision, the
-    // R2 re-upload and the static build — so a no-op re-push (e.g. `--force`, a
-    // routine data refresh, or a bulk ETL run) doesn't churn the chart's history.
+    // differ). If nothing changed, we skip the version bump, the R2 re-upload
+    // and the static build — so a no-op re-push (e.g. `--force`, a routine data
+    // refresh, or a bulk ETL run) doesn't churn the chart's history.
     const recomputedFull = mergeGrapherConfigs(newParentStack, newPatch)
     const fullChanged = !_.isEqual(
         _.omit(recomputedFull, ["version", "id"]),
@@ -1265,9 +1277,9 @@ async function upsertEtlConfigForChart(
         )
     }
 
-    // Nothing the reader sees changed → don't bump `version`, write a revision,
-    // re-upload to R2, or rebuild. But two things may still need persisting,
-    // neither of which affects the rendered chart:
+    // Nothing the reader sees changed → don't bump `version`, re-upload to R2,
+    // or rebuild. But two things may still need persisting, neither of which
+    // affects the rendered chart:
     //   - The rediffed patch. An ETL push can move a field out of the admin
     //     patch into the ETL layer (e.g. ETL adopting a `title` that was an
     //     admin override): `full` is identical, but if we don't store the
@@ -1310,7 +1322,7 @@ async function upsertEtlConfigForChart(
     }
 
     // The rendered chart changed — record it: bump version, rewrite the main
-    // config row, log a revision, refresh R2, and trigger a build if published.
+    // config row, refresh R2, and trigger a build if published.
     const newVersion = (existingFull.version ?? 0) + 1
     newPatch.version = newVersion
     const newFullConfig: GrapherInterface = {
@@ -1348,8 +1360,6 @@ async function upsertEtlConfigForChart(
             chartId,
         ]
     )
-
-    await insertChartRevision(trx, chartId, user.id, newPatch, now)
 
     await refreshChartDimensionsAndR2(trx, chartId, row.configId, newFullConfig)
 
@@ -1454,8 +1464,8 @@ export async function deleteChartsChartIdEtlConfig(
         etlConfigId,
     ])
 
-    // A render-neutral detach is the normal case → no version bump, revision,
-    // R2 re-upload or rebuild. But the patch must still be persisted: it just
+    // A render-neutral detach is the normal case → no version bump, R2
+    // re-upload or rebuild. But the patch must still be persisted: it just
     // absorbed the departed ETL layer's fields (notably the grapher
     // `dimensions`), and without it the chart would lose them on its next
     // recompute.
@@ -1512,8 +1522,6 @@ export async function deleteChartsChartIdEtlConfig(
             chartId,
         ]
     )
-
-    await insertChartRevision(trx, chartId, res.locals.user.id, newPatch, now)
 
     await refreshChartDimensionsAndR2(trx, chartId, row.configId, newFullConfig)
 

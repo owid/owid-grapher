@@ -13,9 +13,11 @@ import cx from "clsx"
 export default function ChartStory({
     d,
     className = "",
+    shouldRenderLinks = true,
 }: {
     d: EnrichedBlockChartStory
     className?: string
+    shouldRenderLinks?: boolean
 }) {
     const { items } = d
     const [currentIndex, setCurrentIndex] = useState(0)
@@ -39,7 +41,10 @@ export default function ChartStory({
                 <FontAwesomeIcon icon={faCircleArrowLeft} />
             </button>
             <div className="chart-story__narrative-text span-cols-6 h3-bold align-center">
-                <SpanElements spans={currentSlide.narrative.value} />
+                <SpanElements
+                    spans={currentSlide.narrative.value}
+                    shouldRenderLinks={shouldRenderLinks}
+                />
             </div>
             <button
                 aria-label="Go to next slide"
@@ -60,6 +65,7 @@ export default function ChartStory({
                     key={currentSlide.chart.url}
                     d={currentSlide.chart}
                     hideControls
+                    shouldRenderLinks={shouldRenderLinks}
                 />
             </div>
             {showDetails ? (
@@ -72,7 +78,12 @@ export default function ChartStory({
                             {currentSlide.technical.map((d: any, i: number) => {
                                 return (
                                     <li className="body-3-medium" key={i}>
-                                        <SpanElements spans={d.value} />
+                                        <SpanElements
+                                            spans={d.value}
+                                            shouldRenderLinks={
+                                                shouldRenderLinks
+                                            }
+                                        />
                                     </li>
                                 )
                             })}

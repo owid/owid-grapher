@@ -1,23 +1,18 @@
 import { beforeAll, afterAll, afterEach, expect } from "vitest"
-import knex, { Knex } from "knex"
-import { dbTestConfig } from "../../db/tests/dbTestConfig.js"
+import type { Knex } from "knex"
 import { OwidAdminApp } from "../appClass.js"
 import {
-    TransactionCloseMode,
-    knexReadWriteTransaction,
-    setKnexInstance,
-} from "../../db/db.js"
-import { TABLES_IN_USE } from "../../db/tests/testHelpers.js"
-import { AdminApiKeysTableName, UsersTableName } from "@ourworldindata/types"
-import { createApiKey, hashApiKey } from "../../serverUtils/apiKey.js"
+    resetDbButKeepBaselines,
+    setupAdminTestDatabase,
+} from "./adminTestDb.js"
 
 // Fixed port is okay while DB tests run serially
 const ADMIN_SERVER_HOST = "localhost"
 const ADMIN_SERVER_PORT = 8765
 
 export interface TestEnv {
-    testKnex: Knex<any, unknown[]>
-    serverKnex: Knex<any, unknown[]>
+    testKnex: Knex
+    serverKnex: Knex
     app: OwidAdminApp
     baseUrl: string
     apiKey: string
@@ -32,86 +27,32 @@ export interface TestEnv {
     getCount(tableName: string): Promise<number>
 }
 
-let testKnex: Knex<any, unknown[]> | undefined
-let serverKnex: Knex<any, unknown[]> | undefined
+let testKnex: Knex | undefined
+let serverKnex: Knex | undefined
 let app: OwidAdminApp | undefined
 let adminApiKey: string | undefined
 let seededUserId: number | undefined
 
 const ADMIN_URL = `http://${ADMIN_SERVER_HOST}:${ADMIN_SERVER_PORT}/admin/api`
 
-async function seedBaselineData(): Promise<number> {
-    const now = new Date()
-    const adminUser = {
-        email: "admin@example.com",
-        fullName: "Admin",
-        isActive: 1,
-        isSuperuser: 1,
-        createdAt: now,
-        updatedAt: now,
-    }
-
-    // Ensure we have an admin user; do NOT delete users to avoid FK issues
-    await testKnex!(UsersTableName)
-        .insert(adminUser)
-        .onConflict("email")
-        .merge(adminUser)
-
-    const adminRow = await testKnex!(UsersTableName)
-        .where({ email: adminUser.email })
-        .first()
-    const userId = adminRow?.id as number
-
-    // Always recreate the API key since we can't retrieve the plaintext from
-    // the DB.
-    await testKnex!(AdminApiKeysTableName).where({ userId }).delete()
-    const apiKey = createApiKey()
-    const keyHash = hashApiKey(apiKey)
-    await testKnex!(AdminApiKeysTableName).insert({
-        userId,
-        keyHash,
-    })
-    adminApiKey = apiKey
-
-    return userId
-}
-
-export async function resetDbButKeepBaselines(): Promise<void> {
-    // Clean all used tables except users and admin_api_keys (baseline), like
-    // the previous monolithic test.
-    await knexReadWriteTransaction(
-        async (trx) => {
-            const tables = TABLES_IN_USE.filter(
-                (t) => t !== UsersTableName && t !== AdminApiKeysTableName
-            )
-            for (const table of tables) {
-                await trx.raw(`DELETE FROM ??`, [table])
-            }
-        },
-        TransactionCloseMode.KeepOpen,
-        testKnex
-    )
-}
-
 export function getAdminTestEnv(): TestEnv {
     beforeAll(async () => {
-        testKnex = knex(dbTestConfig)
-        serverKnex = knex(dbTestConfig)
-        seededUserId = await seedBaselineData()
-        // Ensure we start from a clean slate for non-user tables
-        await resetDbButKeepBaselines()
-        setKnexInstance(serverKnex)
+        const database = await setupAdminTestDatabase()
+        testKnex = database.testKnex
+        serverKnex = database.serverKnex
+        seededUserId = database.userId
+        adminApiKey = database.apiKey
 
         app = new OwidAdminApp({ isDev: true, isTest: true, quiet: true })
         await app.startListening(ADMIN_SERVER_PORT, ADMIN_SERVER_HOST)
     })
 
     afterEach(async () => {
-        await resetDbButKeepBaselines()
+        await resetDbButKeepBaselines(testKnex!)
     })
 
     afterAll(async () => {
-        await resetDbButKeepBaselines()
+        await resetDbButKeepBaselines(testKnex!)
         await Promise.allSettled([
             app?.stopListening(),
             testKnex?.destroy(),

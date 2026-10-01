@@ -53,7 +53,7 @@ import { SearchDataResultsSkeleton } from "./search/SearchDataResultsSkeleton.js
 import { SearchFilterPill } from "./search/SearchFilterPill.js"
 import { useVisibleChartHits } from "./useVisibleChartHits.js"
 import { MEDIUM_BREAKPOINT_MEDIA_QUERY } from "./SiteConstants.js"
-import { TOPIC_VOCABULARY_URL } from "../settings/clientSettings.js"
+import { TOPIC_VOCABULARY_URL } from "../settings/clientSettings.mjs"
 
 const SEARCH_DEBOUNCE_MS = 200
 
