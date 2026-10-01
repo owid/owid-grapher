@@ -516,7 +516,13 @@ $all-charts-panes-gap: 24px;
     flex-direction: column;
     gap: 2px;
     min-width: 0;
-    padding: 12px 13px; // 3px accent border + 13px = 16px of left inset
+    // 3px accent border + 13px = 16px of left inset. The top is 3px more than
+    // the bottom so the title's ink lands 19px below the row's top edge, which
+    // is where both of the designer's reference rows put it; an even 12px put
+    // it at 16px and left the whole stack reading tight against the row above
+    // (Marwa, 2026-10-01). The bottom stays 12px — that is the gap to the
+    // thumbnail strip, which already measured right.
+    padding: 15px 13px 12px;
     cursor: pointer;
 }
 
