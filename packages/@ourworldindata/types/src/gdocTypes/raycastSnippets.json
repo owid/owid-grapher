@@ -166,17 +166,17 @@
     },
     {
         "name": "side-by-side",
-        "text": "{ .side-by-side }\n[.+right]\n\n[]\n[.+left]\n\n[]\n{}",
+        "text": "{.side-by-side}\n[.+right]\n\n[]\n[.+left]\n\n[]\n{}",
         "keyword": "+side-by-side"
     },
     {
         "name": "sticky-left",
-        "text": "{ .sticky-left }\n[.+right]\n\n[]\n[.+left]\n\n[]\n{}",
+        "text": "{.sticky-left}\n[.+right]\n\n[]\n[.+left]\n\n[]\n{}",
         "keyword": "+sticky-left"
     },
     {
         "name": "sticky-right",
-        "text": "{ .sticky-right }\n[.+right]\n\n[]\n[.+left]\n\n[]\n{}",
+        "text": "{.sticky-right}\n[.+right]\n\n[]\n[.+left]\n\n[]\n{}",
         "keyword": "+sticky-right"
     },
     {

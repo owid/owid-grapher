@@ -32,11 +32,12 @@ url: https://ourworldindata.org/grapher/homelessness-rate-flow-count
   charts appear first, in the order given, ahead of the admin-pinned key
   charts. Omitted, the admin's key-chart ordering is used unchanged; an
   entry that isn't a `url:` line drops the block.
-- `suggested`: Editorially chosen search terms, shown as clickable chips
-  above the block's search box. Authored as a `[.suggested]` … `[]` section
-  with one `* ` line per term. Blank entries are dropped and at most the
-  first five chips are shown. Omitted, the block falls back to the search
-  terms published for the document's topic.
+- `suggested`: Editorially chosen search terms, offered as a "Suggested:"
+  line of links beside the block's search input. Authored as a
+  `[.suggested]` … `[]` section with one `* ` line per term. Clicking one
+  runs it as a search of this topic's charts. Blank entries are dropped and
+  at most the first five terms are shown. Omitted, the block offers terms
+  drawn from the topic's own search vocabulary instead.
 
 ## Notes
 

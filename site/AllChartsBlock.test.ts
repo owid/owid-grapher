@@ -166,6 +166,19 @@ describe(getRowThumbnailTabs, () => {
             GRAPHER_TAB_NAMES.DiscreteBar,
         ])
     })
+
+    it("offers nothing for a chart with no view but the table", () => {
+        // Which renders no thumbnail strip at all rather than an empty one —
+        // see AllChartsRowThumbnails.
+        expect(
+            getRowThumbnailTabs(hitWithTabs([GRAPHER_TAB_NAMES.Table]))
+        ).toEqual([])
+        expect(getRowThumbnailTabs(hitWithTabs([]))).toEqual([])
+    })
+
+    it("offers nothing for a record that omits the field entirely", () => {
+        expect(getRowThumbnailTabs({} as SearchChartHit)).toEqual([])
+    })
 })
 
 describe(getPrimaryNonMapTab, () => {

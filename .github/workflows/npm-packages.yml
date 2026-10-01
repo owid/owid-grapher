@@ -1,0 +1,47 @@
+name: npm packages
+
+# Builds each of our published npm packages and runs the smoke tests in
+# packages/@ourworldindata/<package>/packageTest/ against the build outputs:
+# importability of the JS builds, running the built code (mounting a chart,
+# converting ArchieML), and typechecking the packed type declarations.
+on:
+  pull_request:
+    paths:
+      - "packages/@ourworldindata/**"
+      - "rolldown.config-common.mts"
+      - "yarn.lock"
+      - ".github/workflows/npm-packages.yml"
+  push:
+    branches:
+      - master
+
+permissions:
+  contents: read
+
+jobs:
+  test-package:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    strategy:
+      fail-fast: false
+      matrix:
+        package: [grapher, gdoc-pipeline]
+
+    defaults:
+      run:
+        working-directory: packages/@ourworldindata/${{ matrix.package }}
+
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/setup-node-yarn-deps
+
+      - name: Build package
+        run: yarn build
+
+      - name: Test package
+        run: yarn testPackage

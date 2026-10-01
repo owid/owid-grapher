@@ -176,6 +176,7 @@ function ArticleBlockInternal({
                     )}
                     d={block}
                     fullWidthOnMobile={true}
+                    shouldRenderLinks={shouldRenderLinks}
                 />
             )
         })
@@ -189,6 +190,7 @@ function ArticleBlockInternal({
                     )}
                     d={block}
                     fullWidthOnMobile={true}
+                    shouldRenderLinks={shouldRenderLinks}
                 />
             )
         })
@@ -205,12 +207,14 @@ function ArticleBlockInternal({
             <Callout
                 className={getLayout("callout", containerType)}
                 block={block}
+                shouldRenderLinks={shouldRenderLinks}
             />
         ))
         .with({ type: "chart-story" }, (block) => (
             <ChartStory
                 d={block}
                 className={getLayout("chart-story", containerType)}
+                shouldRenderLinks={shouldRenderLinks}
             />
         ))
         .with({ type: "image" }, (block) => (
@@ -256,6 +260,7 @@ function ArticleBlockInternal({
                 shouldAutoplay={block.shouldAutoplay}
                 caption={block.caption}
                 filename={block.filename}
+                shouldRenderLinks={shouldRenderLinks}
             />
         ))
         .with({ type: "static-viz" }, (block) => (
@@ -268,6 +273,7 @@ function ArticleBlockInternal({
                 containerType={containerType as ImageParentContainer}
                 hasOutline={block.hasOutline}
                 caption={block.caption}
+                shouldRenderLinks={shouldRenderLinks}
             />
         ))
         .with({ type: "people" }, (block) => (
@@ -295,6 +301,7 @@ function ArticleBlockInternal({
                     containerType
                 )}
                 d={block}
+                shouldRenderLinks={shouldRenderLinks}
             />
         ))
         .with({ type: "guided-chart" }, (block) => (
@@ -302,6 +309,8 @@ function ArticleBlockInternal({
                 className={getLayout("guided-chart", containerType)}
                 containerType={containerType}
                 d={block}
+                shouldRenderLinks={shouldRenderLinks}
+                interactiveImages={interactiveImages}
             />
         ))
         .with({ type: "recirc" }, (block) => (
@@ -329,10 +338,15 @@ function ArticleBlockInternal({
             <NumberedList
                 className={getLayout("numbered-list", containerType)}
                 d={block}
+                shouldRenderLinks={shouldRenderLinks}
             />
         ))
         .with({ type: "list" }, (block) => (
-            <List className={getLayout("list", containerType)} d={block} />
+            <List
+                className={getLayout("list", containerType)}
+                d={block}
+                shouldRenderLinks={shouldRenderLinks}
+            />
         ))
         .with({ type: "text" }, (block) => {
             return (
@@ -400,7 +414,10 @@ function ArticleBlockInternal({
                                 />
                             </div>
                         ) : null}
-                        <SpanElements spans={text} />
+                        <SpanElements
+                            spans={text}
+                            shouldRenderLinks={shouldRenderLinks}
+                        />
                         {shouldRenderLinks && (
                             <a className="deep-link" href={`#${id}`} />
                         )}
@@ -432,7 +449,10 @@ function ArticleBlockInternal({
                 >
                     {supertitle ? (
                         <div className="article-block__heading-supertitle overline-black-caps">
-                            <SpanElements spans={supertitle} />
+                            <SpanElements
+                                spans={supertitle}
+                                shouldRenderLinks={shouldRenderLinks}
+                            />
                         </div>
                     ) : null}
                     <SpanElements
@@ -514,6 +534,8 @@ function ArticleBlockInternal({
                         <ArticleBlock
                             b={separateHeading}
                             containerType="sticky-right-left-heading-column"
+                            shouldRenderLinks={shouldRenderLinks}
+                            interactiveImages={interactiveImages}
                         />
                     )}
                     <div
@@ -530,6 +552,8 @@ function ArticleBlockInternal({
                                 key={i}
                                 b={item}
                                 containerType="sticky-right-left-column"
+                                shouldRenderLinks={shouldRenderLinks}
+                                interactiveImages={interactiveImages}
                             />
                         ))}
                     </div>
@@ -551,6 +575,8 @@ function ArticleBlockInternal({
                                     key={i}
                                     b={item}
                                     containerType="sticky-right-right-column"
+                                    shouldRenderLinks={shouldRenderLinks}
+                                    interactiveImages={interactiveImages}
                                 />
                             ))}
                         </div>
@@ -572,6 +598,8 @@ function ArticleBlockInternal({
                                 key={i}
                                 b={item}
                                 containerType="sticky-left-left-column"
+                                shouldRenderLinks={shouldRenderLinks}
+                                interactiveImages={interactiveImages}
                             />
                         ))}
                     </div>
@@ -587,6 +615,8 @@ function ArticleBlockInternal({
                             key={i}
                             b={item}
                             containerType="sticky-left-right-column"
+                            shouldRenderLinks={shouldRenderLinks}
+                            interactiveImages={interactiveImages}
                         />
                     ))}
                 </div>
@@ -628,6 +658,8 @@ function ArticleBlockInternal({
                                 key={i}
                                 b={item}
                                 containerType="side-by-side"
+                                shouldRenderLinks={shouldRenderLinks}
+                                interactiveImages={interactiveImages}
                             />
                         ))}
                     </div>
@@ -646,6 +678,8 @@ function ArticleBlockInternal({
                                 key={i}
                                 b={item}
                                 containerType="side-by-side"
+                                shouldRenderLinks={shouldRenderLinks}
+                                interactiveImages={interactiveImages}
                             />
                         ))}
                     </div>
@@ -655,7 +689,12 @@ function ArticleBlockInternal({
         .with({ type: "gray-section" }, (block) => (
             <div className={getLayout("gray-section")}>
                 {block.items.map((item, i) => (
-                    <ArticleBlock key={i} b={item} />
+                    <ArticleBlock
+                        key={i}
+                        b={item}
+                        shouldRenderLinks={shouldRenderLinks}
+                        interactiveImages={interactiveImages}
+                    />
                 ))}
             </div>
         ))
@@ -666,7 +705,12 @@ function ArticleBlockInternal({
                 className={getLayout("explore-data-section")}
             >
                 {block.content.map((item, i) => (
-                    <ArticleBlock key={i} b={item} />
+                    <ArticleBlock
+                        key={i}
+                        b={item}
+                        shouldRenderLinks={shouldRenderLinks}
+                        interactiveImages={interactiveImages}
+                    />
                 ))}
             </ExploreDataSection>
         ))
@@ -688,6 +732,7 @@ function ArticleBlockInternal({
             <ProminentLink
                 className={getLayout("prominent-link", containerType)}
                 {...block}
+                shouldRenderLinks={shouldRenderLinks}
             />
         ))
         .with({ type: "sdg-toc" }, () => {
@@ -739,7 +784,12 @@ function ArticleBlockInternal({
                 className={getLayout("expandable-paragraph", containerType)}
             >
                 {block.items.map((item, i) => (
-                    <ArticleBlock key={i} b={item} />
+                    <ArticleBlock
+                        key={i}
+                        b={item}
+                        shouldRenderLinks={shouldRenderLinks}
+                        interactiveImages={interactiveImages}
+                    />
                 ))}
             </ExpandableParagraph>
         ))
@@ -750,7 +800,12 @@ function ArticleBlockInternal({
             >
                 <div className="expander__content">
                     {block.content.map((item, i) => (
-                        <ArticleBlock key={i} b={item} />
+                        <ArticleBlock
+                            key={i}
+                            b={item}
+                            shouldRenderLinks={shouldRenderLinks}
+                            interactiveImages={interactiveImages}
+                        />
                     ))}
                 </div>
             </Expander>
@@ -800,7 +855,12 @@ function ArticleBlockInternal({
                 )}
             >
                 {block.content.map((b, i) => (
-                    <ArticleBlock key={i} b={b} />
+                    <ArticleBlock
+                        key={i}
+                        b={b}
+                        shouldRenderLinks={shouldRenderLinks}
+                        interactiveImages={interactiveImages}
+                    />
                 ))}
             </div>
         ))
@@ -811,6 +871,8 @@ function ArticleBlockInternal({
                     `article-block__table--${block.template}`
                 )}
                 {...block}
+                shouldRenderLinks={shouldRenderLinks}
+                interactiveImages={interactiveImages}
             />
         ))
         .with({ type: "blockquote" }, (block) => {
@@ -946,10 +1008,18 @@ function ArticleBlockInternal({
             />
         ))
         .with({ type: "data-callout" }, (block) => (
-            <DataCallout block={block} containerType={containerType} />
+            <DataCallout
+                block={block}
+                containerType={containerType}
+                shouldRenderLinks={shouldRenderLinks}
+            />
         ))
         .with({ type: "data-callout-group" }, (block) => (
-            <DataCalloutGroup block={block} containerType={containerType} />
+            <DataCalloutGroup
+                block={block}
+                containerType={containerType}
+                shouldRenderLinks={shouldRenderLinks}
+            />
         ))
         .with({ type: "country-profile-selector" }, (block) => (
             <CountryProfileSelector
@@ -970,12 +1040,14 @@ function ArticleBlockInternal({
             <ChartRows
                 className={getLayout("chart-rows", containerType)}
                 d={block}
+                shouldRenderLinks={shouldRenderLinks}
             />
         ))
         .with({ type: "pull-chart" }, (block) => (
             <PullChart
                 className={getLayout("pull-chart", containerType)}
                 d={block}
+                shouldRenderLinks={shouldRenderLinks}
             />
         ))
         .exhaustive()

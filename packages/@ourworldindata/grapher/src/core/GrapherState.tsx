@@ -101,6 +101,7 @@ import {
     checkHasMembers,
     sortNumeric,
     isMobile,
+    guid,
 } from "@ourworldindata/utils"
 import { get as getCookie } from "es-cookie"
 import * as _ from "lodash-es"
@@ -3803,6 +3804,23 @@ export class GrapherState
         const idealPixelCount = defaultBounds.width * defaultBounds.height
         const staticPixelCount = staticBounds.width * staticBounds.height
         return staticPixelCount < 0.66 * idealPixelCount
+    }
+
+    @computed get patternScale(): number {
+        if (!this.isStatic) return 1
+        const { defaultBounds, staticBounds } = this
+        const sizeRatio = Math.min(
+            staticBounds.width / defaultBounds.width,
+            staticBounds.height / defaultBounds.height
+        )
+        return R.clamp(Math.sqrt(sizeRatio), { min: 0.75, max: 1 })
+    }
+
+    private readonly patternIdGuid = guid()
+
+    // Static exports are standalone SVGs, so they can keep plain pattern ids
+    @computed get patternIdSuffix(): string | undefined {
+        return this.isStatic ? undefined : String(this.patternIdGuid)
     }
 
     @computed get isExportingForWikimedia(): boolean {

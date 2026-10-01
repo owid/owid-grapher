@@ -114,7 +114,7 @@
           "name": "suggested",
           "type": "string[]",
           "optional": false,
-          "description": "Editorially chosen search terms, shown as clickable chips above the block's search box. Authored as a `[.suggested]` … `[]` section with one `* ` line per term. Blank entries are dropped and at most the first five chips are shown. Omitted, the block falls back to the search terms published for the document's topic."
+          "description": "Editorially chosen search terms, offered as a \"Suggested:\" line of links beside the block's search input. Authored as a `[.suggested]` … `[]` section with one `* ` line per term. Clicking one runs it as a search of this topic's charts. Blank entries are dropped and at most the first five terms are shown. Omitted, the block offers terms drawn from the topic's own search vocabulary instead."
         }
       ],
       "valueProps": [],

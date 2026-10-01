@@ -1,0 +1,305 @@
+$latest-carousel-card-height: 322px; // desktop
+$latest-carousel-card-padding: 16px;
+
+.latest-carousel {
+    position: relative;
+    margin-bottom: 24px;
+
+    @include md-down {
+        margin-bottom: 48px;
+    }
+}
+
+.latest-carousel__card-container {
+    display: flex;
+    gap: var(--grid-gap);
+    list-style: none;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    // Let box-shadow of the focused card overflow the container: pad the
+    // scroller and pull it back out with negative margins. We exclude the
+    // right side to keep the content clipped correctly, and offset the snap
+    // positions by the extra left padding.
+    padding: 24px 0 24px 24px;
+    margin: -24px 0 -24px -24px;
+    scroll-padding-left: 24px;
+    scrollbar-width: thin;
+}
+
+html.js-enabled .latest-carousel__card-container {
+    // Hide the scrollbar; the carousel is controlled via the arrow buttons
+    // (desktop) and swiping (mobile). Without JS there are no buttons, so we
+    // keep a thin scrollbar as a scroll affordance.
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+        display: none;
+    }
+}
+
+.latest-carousel__card {
+    flex: 0 0 845px;
+    height: $latest-carousel-card-height;
+    scroll-snap-align: start;
+    // A flick advances at most one card instead of flying past several.
+    scroll-snap-stop: always;
+    transition:
+        opacity var(--duration-popover) var(--ease-out),
+        box-shadow var(--duration-popover) var(--ease-out);
+    opacity: 0.6;
+
+    @include md-down {
+        flex: 0 0 91%;
+        max-width: 330px;
+        height: 538px;
+    }
+}
+
+html:not(.js-enabled) .latest-carousel__card,
+.latest-carousel__card--snapped {
+    opacity: 1;
+}
+
+.latest-carousel__card__link {
+    display: flex;
+    height: 100%;
+    gap: 16px 24px;
+    color: $blue-90;
+    background: $blue-20;
+    padding: $latest-carousel-card-padding;
+
+    .article-block__text {
+        @include body-3-medium;
+    }
+
+    .article-block__cta {
+        color: $blue-90;
+    }
+
+    &:hover {
+        background: $accent-pale-blue;
+
+        .latest-carousel__card-body:before {
+            @include fade-out-overlay($accent-pale-blue);
+        }
+    }
+
+    @include md-down {
+        flex-direction: column;
+    }
+}
+
+// White cards mirror .latest-data-update-hit__card in the feed: white at rest,
+// $blue-5 on hover, thumbnail outlined so it doesn't melt into the card.
+.latest-carousel--white {
+    .latest-carousel__card__link {
+        background: $white;
+
+        &:hover {
+            background: $blue-5;
+
+            .latest-carousel__card-body:before {
+                @include fade-out-overlay($blue-5);
+            }
+        }
+    }
+
+    .latest-carousel__card-body:before {
+        @include fade-out-overlay($white);
+    }
+
+    .latest-carousel__card-left img {
+        outline: 1px solid $blue-10;
+    }
+}
+
+// Data update thumbnails are usually 4:5 charts, 298 × 372.5px at the
+// widest card. Give them 15px more than data insights so they fit
+// without scrolling, and grow the card by the same so the text below
+// keeps its room.
+.latest-carousel--tall {
+    @include md-down {
+        .latest-carousel__card {
+            height: 553px;
+        }
+
+        .latest-carousel__card-left picture {
+            max-height: 375px;
+        }
+
+        .latest-carousel__card__see-all {
+            padding: 265px 0;
+        }
+    }
+}
+
+.latest-carousel__card--snapped .latest-carousel__card__link {
+    box-shadow: 0 4px 24px 0 rgba(0, 0, 0, 0.08);
+}
+
+.latest-carousel__card__see-all {
+    padding: 257px 0;
+}
+
+@include sm-up {
+    .latest-carousel__card--see-all,
+    .latest-carousel__dot--see-all {
+        display: none;
+    }
+}
+
+// Sizing flex child picture elements is finnicky on Safari.
+// Make sure you test all 3 browsers if you're making changes here.
+.latest-carousel__card-left {
+    display: flex;
+    height: 100%;
+
+    // In the stacked layout, take only the image's height and leave the rest
+    // to the text. With height: 100% on both, flexbox splits the card in half,
+    // leaving a gap under wide images.
+    @include md-down {
+        height: auto;
+    }
+
+    picture {
+        height: 100%;
+
+        @include md-down {
+            max-height: 360px;
+            overflow-y: auto;
+        }
+    }
+
+    // Fill the card's height, but no wider than a square image would be
+    // (the card's inner height), so wide images don't crowd out the text.
+    // Wide images end up shorter than the card, aligned to the top.
+    img {
+        height: auto;
+        width: auto;
+        max-height: 100%;
+        max-width: $latest-carousel-card-height - 2 *
+            $latest-carousel-card-padding;
+
+        @include md-down {
+            display: block;
+            height: auto;
+            max-width: 100%;
+        }
+    }
+}
+
+.latest-carousel__card-right {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+
+    @include md-down {
+        flex: 1;
+        height: auto;
+    }
+}
+
+.latest-carousel__card-body {
+    position: relative;
+    overflow: hidden;
+
+    &:before {
+        content: "";
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        left: 0;
+        top: 0;
+        @include fade-out-overlay($blue-20);
+    }
+}
+
+// Same size as the dateline on the standalone page these cards sit under,
+// and as the /latest feed cards' — the card being in a carousel is no
+// reason for its date to read larger than the same date elsewhere.
+.latest-carousel__card-dateline {
+    @include h6-black-caps;
+}
+
+.latest-carousel__card .latest-carousel__card-title {
+    margin: 0 0 8px 0;
+
+    @include subtitle-2-bold;
+
+    @include md-down {
+        font-size: 18px;
+    }
+}
+
+.latest-carousel__card-authors {
+    @include body-3-medium-italic;
+    color: $blue-50;
+    margin: 0 0 8px 0;
+}
+
+.latest-carousel__control-button {
+    --button-size: 40px;
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    top: calc(50% - (var(--button-size) / 2));
+    z-index: 1;
+    width: var(--button-size);
+    height: var(--button-size);
+    padding: 0;
+    border-radius: 50%;
+
+    @include md-down {
+        display: none;
+    }
+}
+
+.latest-carousel__control-button--prev {
+    left: 8px;
+
+    @include xlg-up {
+        left: -60px;
+    }
+}
+
+.latest-carousel__control-button--next {
+    right: 8px;
+
+    @include xlg-up {
+        right: -60px;
+    }
+}
+
+.latest-carousel__dots {
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    height: 12px;
+    bottom: -26px;
+    z-index: 1;
+    width: 100%;
+
+    @include md-up {
+        display: none;
+    }
+}
+
+.latest-carousel__dot {
+    background-color: $blue-30;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    transition:
+        transform var(--duration-popover) var(--ease-out),
+        background-color var(--duration-popover) var(--ease-out);
+}
+
+.latest-carousel__dot--selected {
+    background-color: $blue-70;
+    transform: scale(1.5);
+}

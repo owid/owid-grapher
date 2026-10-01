@@ -61,6 +61,11 @@ $all-charts-panes-gap: 24px;
 // the window. Nothing between here and <body> paints a background of its own,
 // so a negative z-index puts this above the page's white and below the block's
 // own content (the same approach as .centered-article-header__banner).
+//
+// It covers the block's own height and no more, so on a topic page the tinted
+// band starts at the block rather than under the page's sub-nav as the mockup
+// shows it. That is a known and accepted limit of doing this from inside the
+// block.
 .all-charts-block::before {
     content: "";
     position: absolute;
@@ -139,6 +144,9 @@ $all-charts-panes-gap: 24px;
 }
 
 .all-charts-block__panes {
+    // Ahead of the media query below: a declaration after a nested rule is a
+    // fatal Sass deprecation here (see `mixed-decls` in
+    // vite.config-common.mts).
     align-items: start;
     display: grid;
     // The block itself already spans the full 12-column content grid (see the
@@ -301,6 +309,10 @@ $all-charts-panes-gap: 24px;
         // wider rather than just moving it. Same fix as
         // .all-charts-block__row-accordion's figure below, which only ever
         // covered the mobile accordion.
+        //
+        // `margin: 0` here together with `width: 100%`, never `margin-left: 0`
+        // on the chart element itself: that hands it the figure-grapher-reset
+        // mixin's own `width: 100%` and balloons the card.
         width: 100%;
         margin: 0;
     }
@@ -329,15 +341,18 @@ $all-charts-panes-gap: 24px;
 .all-charts-block__search-icon {
     position: absolute;
     left: 12px;
-    color: $gray-70;
+    color: $blue-50;
     pointer-events: none;
 }
 
 .all-charts-block__search-input {
     width: 100%;
-    padding: 12px 36px 12px 36px;
+    // 14px rather than 12px of vertical padding, which puts the field at the
+    // design's 48px.
+    padding: 14px 36px 14px 36px;
     border: 1px solid var(--all-charts-input-border);
-    border-radius: 4px;
+    // Square. The design has no rounded corner anywhere in this block.
+    border-radius: 0;
     font-size: 16px;
     color: $text-color;
     // Both of these are here to stop the browser painting the field for us.
@@ -360,7 +375,7 @@ $all-charts-panes-gap: 24px;
     }
 
     &::placeholder {
-        color: $gray-70;
+        color: $blue-50;
     }
 
     // Hide the native search input clear button so it doesn't clash with
@@ -438,6 +453,8 @@ $all-charts-panes-gap: 24px;
     list-style: none;
     margin: 0;
     padding: 0;
+    // No rule above the first row: the list opens with the selected row's own
+    // panel, and a divider over it reads as a stray line.
     transition: opacity 100ms ease-out;
 }
 

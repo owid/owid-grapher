@@ -3,7 +3,7 @@ import {
     GDOC_TEMPLATE_CONTENT_INTERFACES,
     OwidGdocType,
 } from "@ourworldindata/types"
-import { archieToEnriched } from "./archieToEnriched.js"
+import { archieToEnriched } from "@ourworldindata/gdoc-pipeline"
 import { gdocFromJSON } from "./GdocFactory.js"
 import { GdocProfile, instantiateProfileForEntity } from "./GdocProfile.js"
 

@@ -4,7 +4,7 @@ import {
     PostsGdocsComponentsTableName,
     PostsGdocsTableName,
 } from "@ourworldindata/types"
-import { getGdocComponentsWithoutChildren } from "../../db/model/Gdoc/extractGdocComponentInfo.js"
+import { getGdocComponentsWithoutChildren } from "@ourworldindata/gdoc-pipeline"
 import { getAdminTestEnv } from "./testEnv.js"
 
 const env = getAdminTestEnv()

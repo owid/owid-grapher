@@ -19,11 +19,13 @@ export default function Chart({
     className,
     fullWidthOnMobile = false,
     hideControls = false,
+    shouldRenderLinks = true,
 }: {
     d: EnrichedBlockChart
     className?: string
     fullWidthOnMobile?: boolean
     hideControls?: boolean
+    shouldRenderLinks?: boolean
 }) {
     const { isPreviewing, archiveContext } = useDocumentContext()
     const refChartContainer = useRef<HTMLDivElement>(null)
@@ -148,7 +150,10 @@ export default function Chart({
                 />
                 {d.caption ? (
                     <figcaption>
-                        <SpanElements spans={d.caption} />
+                        <SpanElements
+                            spans={d.caption}
+                            shouldRenderLinks={shouldRenderLinks}
+                        />
                     </figcaption>
                 ) : null}
             </div>
@@ -208,7 +213,10 @@ export default function Chart({
             </div>
             {d.caption ? (
                 <figcaption>
-                    <SpanElements spans={d.caption} />
+                    <SpanElements
+                        spans={d.caption}
+                        shouldRenderLinks={shouldRenderLinks}
+                    />
                 </figcaption>
             ) : null}
         </div>

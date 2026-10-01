@@ -704,6 +704,10 @@ const AllChartsLeftPane = (props: AllChartsLeftPaneProps) => {
         query
     )
 
+    // Selecting a row by its text opens the sidecar on the chart's own default
+    // view, which is what the block itself opens on. Clearing `selectedTab` is
+    // what makes that true a second time: without it a row picked after a
+    // thumbnail would inherit that thumbnail's view.
     const handleRowClick = (index: number) => {
         const hit = hits[index]
         if (hit) setSelectedIdentity(getChartHitIdentity(hit))
@@ -1046,7 +1050,7 @@ const MAX_ROW_THUMBNAILS = 3
  */
 // oxlint-disable-next-line react/only-export-components -- exported for AllChartsBlock.test.ts; the rule is about fast refresh, and this is a pure helper
 export function getRowThumbnailTabs(hit: SearchChartHit): GrapherTabName[] {
-    const tabs = hit.availableTabs.filter(
+    const tabs = (hit.availableTabs ?? []).filter(
         (tab) => tab !== GRAPHER_TAB_NAMES.Table
     )
     // Belt and braces against a record that lists a tab twice: the cap would

@@ -37,7 +37,7 @@ ifdef WRANGLER_PORT
 WRANGLER_PORT := $(strip $(WRANGLER_PORT))
 endif
 
-.PHONY: help up up.headless up.worktree setup.worktree require.worktree up.full down down.headless down.worktree refresh refresh.wp refresh.private refresh.full migrate svgtest svgtest.reset svgtest.full svgtest.grapher-views svgtest.mdims svgtest.thumbnails svgtest.md5s bdd bdd.ui check-not-prod
+.PHONY: help up up.headless up.worktree setup.worktree wait.yarn-install require.worktree up.full down down.headless down.worktree refresh refresh.wp refresh.private refresh.full migrate svgtest svgtest.reset svgtest.full svgtest.grapher-views svgtest.mdims svgtest.thumbnails svgtest.md5s playwright playwright.ui check-not-prod
 
 help:
 	@echo 'Available commands:'
@@ -57,8 +57,8 @@ help:
 	@echo '  make test                   run full suite (except db tests) of CI checks including unit tests'
 	@echo '  make dbtest                 run db test suite that needs a running mysql db'
 	@echo '  make playwright-browsers    install Playwright browsers'
-	@echo '  make bdd                    (while up) start BDD test environment'
-	@echo '  make bdd.ui                 (while up) start BDD test environment with UI'
+	@echo '  make playwright             (while up) start Playwright test environment'
+	@echo '  make playwright.ui          (while up) start Playwright test environment with UI'
 	@echo '  make svgtest                run the SVG tests for graphers'
 	@echo '  make svgtest.full           run the SVG tests for all suites'
 	@echo '  make local-bake             do a full local site bake'
@@ -82,9 +82,9 @@ up: require create-if-missing.env tmp-downloads/owid_metadata.sql.gz node_module
 	@make validate.env
 	@make check-port-3306
 
-	@if tmux has-session -t $(TMUX_SESSION_NAME) 2>/dev/null; then \
+	@if tmux has-session -t =$(TMUX_SESSION_NAME) 2>/dev/null; then \
 		echo '==> Killing existing tmux session'; \
-		tmux kill-session -t $(TMUX_SESSION_NAME); \
+		tmux kill-session -t =$(TMUX_SESSION_NAME); \
 	fi
 
 	@echo '==> Starting dev environment'
@@ -143,21 +143,27 @@ require.headless:
 # `setup.worktree` writes the .env this reads, so don't export ports here: make
 # includes .env when it parses this file, i.e. before that .env exists on a
 # freshly created worktree. up-worktree.sh sources it once it is there.
-up.worktree: require.worktree setup.worktree node_modules
+up.worktree: require.worktree setup.worktree wait.yarn-install node_modules
 	@make validate.env
 	@./devTools/docker/up-worktree.sh
 
 setup.worktree:
 	@./devTools/docker/setup-worktree-env.sh
 
+# before `node_modules`, so a checkout mid-install (Orca's setup script) finishes
+# that install instead of make starting a second one next to it
+wait.yarn-install:
+	@./devTools/docker/wait-for-yarn-install.sh
+
 down.worktree: TMUX_SESSION_NAME ?= grapher-$(notdir $(CURDIR))
 down.worktree:
 	@echo '==> Killing the $(TMUX_SESSION_NAME) tmux session'
-	@tmux kill-session -t $(TMUX_SESSION_NAME) 2>/dev/null || echo '    (no such session, nothing to stop)'
+	@tmux kill-session -t =$(TMUX_SESSION_NAME) 2>/dev/null || echo '    (no such session, nothing to stop)'
 	@echo '==> Leaving MySQL up, your other checkouts share it (stop it with `make down`)'
 
 require.worktree: require.headless
 	@which tmux >/dev/null 2>&1 || (echo "ERROR: tmux is required."; exit 1)
+	@which mysql >/dev/null 2>&1 || (echo "ERROR: the mysql client is required (macOS: brew install mysql-client, then add it to your PATH as brew says)."; exit 1)
 
 up.full: export DEBUG = 'knex:query'
 up.full: export COMPOSE_PROJECT_NAME ?= owid-grapher
@@ -170,9 +176,9 @@ up.full: require create-if-missing.env.full tmp-downloads/owid_metadata.sql.gz n
 	@make validate.env.full
 	@make check-port-3306
 
-	@if tmux has-session -t $(TMUX_SESSION_NAME) 2>/dev/null; then \
+	@if tmux has-session -t =$(TMUX_SESSION_NAME) 2>/dev/null; then \
 		echo '==> Killing existing tmux session'; \
-		tmux kill-session -t $(TMUX_SESSION_NAME); \
+		tmux kill-session -t =$(TMUX_SESSION_NAME); \
 	fi
 
 	@echo '==> Starting dev environment'
@@ -261,6 +267,7 @@ require:
 	@which docker >/dev/null 2>&1 || (echo "ERROR: docker compose is required."; exit 1)
 	@which yarn >/dev/null 2>&1 || (echo "ERROR: yarn is required."; exit 1)
 	@which tmux >/dev/null 2>&1 || (echo "ERROR: tmux is required."; exit 1)
+	@which mysql >/dev/null 2>&1 || (echo "ERROR: the mysql client is required (macOS: brew install mysql-client, then add it to your PATH as brew says)."; exit 1)
 	@which finger >/dev/null 2>&1 || (echo "ERROR: finger is required."; exit 1)
 
 guard-%:
@@ -337,49 +344,47 @@ dbtest: node_modules
 	@echo '==> Running db test script'
 	./db/tests/run-db-tests.sh
 
+adminplaywright: node_modules playwright-browsers
+	@echo '==> Running admin Playwright tests'
+	yarn testPlaywrightAdmin
+
 playwright-browsers:
-	@echo '==> Installing Playwright browsers'
-	yarn playwright install --with-deps --no-shell
+	@echo '==> Installing Playwright browser'
+	yarn playwright install --with-deps --no-shell chromium
 
-bdd: export TMUX_SESSION_NAME ?= bdd
+playwright: export TMUX_SESSION_NAME ?= playwright
 
-bdd: node_modules playwright-browsers
-	@if tmux has-session -t $(TMUX_SESSION_NAME) 2>/dev/null; then \
+playwright: node_modules playwright-browsers
+	@if tmux has-session -t =$(TMUX_SESSION_NAME) 2>/dev/null; then \
 		echo '==> Killing existing tmux session'; \
-		tmux kill-session -t $(TMUX_SESSION_NAME); \
+		tmux kill-session -t =$(TMUX_SESSION_NAME); \
 	fi
 
-	@echo '==> Starting BDD test environment'
-	@yarn bddgen
+	@echo '==> Starting Playwright test environment'
 	tmux new-session -s $(TMUX_SESSION_NAME) \
-		-n watcher 'yarn chokidar "features/**" "site/**/*.{ts,tsx}" -c "yarn bddgen"' \; \
+		-n playwright 'PWTEST_WATCH=1 yarn playwright test' \; \
 			set remain-on-exit on \; \
 		set-option -g default-shell $(SCRIPT_SHELL) \; \
-		new-window -n playwright 'PWTEST_WATCH=1 yarn playwright test' \; \
-			set remain-on-exit on \; \
-		new-window -n welcome 'devTools/docker/banner-bdd.sh; exec $(LOGIN_SHELL)' \; \
+		new-window -n welcome 'devTools/docker/banner-playwright.sh; exec $(LOGIN_SHELL)' \; \
 		bind R respawn-pane -k \; \
 		bind X kill-pane \; \
 		bind K kill-session \; \
 		set -g mouse on
 
-bdd.ui: export TMUX_SESSION_NAME ?= bdd-ui
+playwright.ui: export TMUX_SESSION_NAME ?= playwright-ui
 
-bdd.ui: node_modules playwright-browsers
-	@if tmux has-session -t $(TMUX_SESSION_NAME) 2>/dev/null; then \
+playwright.ui: node_modules playwright-browsers
+	@if tmux has-session -t =$(TMUX_SESSION_NAME) 2>/dev/null; then \
 		echo '==> Killing existing tmux session'; \
-		tmux kill-session -t $(TMUX_SESSION_NAME); \
+		tmux kill-session -t =$(TMUX_SESSION_NAME); \
 	fi
 
-	@echo '==> Starting BDD test environment with UI'
-	@yarn bddgen
+	@echo '==> Starting Playwright test environment with UI'
 	tmux new-session -s $(TMUX_SESSION_NAME) \
-		-n watcher 'yarn chokidar "features/**" "site/**/*.{ts,tsx}" -c "yarn bddgen"' \; \
+		-n playwright 'yarn playwright test --ui --ui-host=0.0.0.0' \; \
 			set remain-on-exit on \; \
 		set-option -g default-shell $(SCRIPT_SHELL) \; \
-		new-window -n playwright 'yarn playwright test --ui --ui-host=0.0.0.0' \; \
-			set remain-on-exit on \; \
-		new-window -n welcome 'devTools/docker/banner-bdd.sh; exec $(LOGIN_SHELL)' \; \
+		new-window -n welcome 'devTools/docker/banner-playwright.sh; exec $(LOGIN_SHELL)' \; \
 		bind R respawn-pane -k \; \
 		bind X kill-pane \; \
 		bind K kill-session \; \

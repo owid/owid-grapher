@@ -66,7 +66,10 @@ export class StaticChartWrapper extends React.Component<StaticChartWrapperProps>
                 viewBox={`0 0 ${width} ${height}`}
             >
                 {includeFontsStyle && this.fonts}
-                <ChartPatternDefs />
+                <ChartPatternDefs
+                    scale={this.manager.patternScale}
+                    idSuffix={this.manager.patternIdSuffix}
+                />
                 {includeBackgroundRect && (
                     <rect
                         className="background-fill"

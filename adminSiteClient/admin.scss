@@ -512,6 +512,20 @@ $nav-height: 45px;
     }
 }
 
+.EditorHistoryTab {
+    padding-top: 16px;
+
+    /* Level with the first row of each card */
+    .EditorHistoryTab__timeline-dot,
+    .EditorHistoryTab__timeline-rail {
+        transform: translateY(13px);
+    }
+
+    .EditorHistoryTab__timeline-rail--unsaved {
+        border-inline-start-style: dashed;
+    }
+}
+
 .ColorableItem {
     display: flex;
     align-items: center;

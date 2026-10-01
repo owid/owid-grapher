@@ -286,6 +286,14 @@
             }
         },
         {
+            // Playwright fixtures hand their value to the test through a
+            // callback conventionally named `use`, which isn't a React hook
+            "files": ["playwright/**/*"],
+            "rules": {
+                "react-hooks/rules-of-hooks": "off"
+            }
+        },
+        {
             // node scripts that may also contain browser-side callbacks (e.g. page.evaluate)
             "files": ["devTools/**/*.mjs"],
             "env": {

@@ -565,6 +565,7 @@ export class MarimekkoChart
                 series={this.renderSeries}
                 noDataArea={this.noDataArea}
                 fontSize={this.fontSize}
+                patternIdSuffix={this.manager.patternIdSuffix}
                 onEntityClick={this.onEntityClick}
                 onEntityMouseLeave={this.dismissTooltip}
                 onEntityMouseOver={this.onEntityMouseOver}

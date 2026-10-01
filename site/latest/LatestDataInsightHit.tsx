@@ -9,11 +9,46 @@ import Image from "../gdocs/components/Image.js"
 import { ArticleBlocks } from "../gdocs/components/ArticleBlocks.js"
 import cx from "clsx"
 import { LatestHitMetadata } from "./LatestHitMetadata.js"
-import { LATEST_HIT_GRID_CLASSES, makeAttachments } from "./latestUtils.js"
+import {
+    LATEST_HIT_GRID_CLASSES,
+    findThumbnailImageBlock,
+    makeAttachments,
+} from "./latestUtils.js"
 import { useLatestContext } from "./LatestContext.js"
 import { useIsLikelyBaked } from "./latestHooks.js"
+import { LatestDataInsightExpanded } from "./LatestDataInsightExpanded.js"
 
+/** Compact cards link to the insight page; expanded cards render it in place.
+ * LatestSearch resolves the presentation from the displayed filter and view. */
 export const LatestDataInsightHit = ({
+    hit,
+    selectedTopic,
+    position,
+    isExpanded,
+}: {
+    hit: PageChronologicalDataInsightRecord
+    selectedTopic?: string
+    position: number
+    isExpanded: boolean
+}) => {
+    if (isExpanded) {
+        return (
+            <LatestDataInsightExpanded
+                hit={hit}
+                selectedTopic={selectedTopic}
+            />
+        )
+    }
+    return (
+        <CondensedDataInsightHit
+            hit={hit}
+            selectedTopic={selectedTopic}
+            position={position}
+        />
+    )
+}
+
+const CondensedDataInsightHit = ({
     hit,
     selectedTopic,
     position,
@@ -27,8 +62,8 @@ export const LatestDataInsightHit = ({
         slug: hit.slug,
         content: { type: OwidGdocType.DataInsight },
     })
-    const isLikelyBaked = useIsLikelyBaked(href, hit.date)
-    const firstImage = hit.body.find((block) => block.type === "image")
+    const isLikelyBaked = useIsLikelyBaked(hit)
+    const firstImage = findThumbnailImageBlock(hit.body)
     const otherBlocks = hit.body.filter((block) => block !== firstImage)
     const titleId = `latest-hit-${hit.slug}-title`
 
@@ -79,6 +114,7 @@ export const LatestDataInsightHit = ({
                             <ArticleBlocks
                                 blocks={otherBlocks}
                                 shouldRenderLinks={false}
+                                interactiveImages={false}
                             />
                         </div>
                     </div>

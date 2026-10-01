@@ -1,140 +1,447 @@
 import { Component } from "react"
 import { observer } from "mobx-react"
-import { ChartEditor, Log } from "./ChartEditor.js"
+import * as _ from "lodash-es"
+import { GrapherInterface } from "@ourworldindata/types"
+import { dayjs } from "@ourworldindata/utils"
+import { ChartEditor, Log, makeRestoredPatchConfig } from "./ChartEditor.js"
 import { Timeago } from "./Forms.js"
-import { computed, observable, makeObservable } from "mobx"
-import { Modal } from "antd"
+import { action, computed, observable, makeObservable } from "mobx"
+import {
+    Alert,
+    Button,
+    Card,
+    Empty,
+    Flex,
+    Modal,
+    Timeline,
+    Tooltip,
+    Typography,
+    notification,
+    type TimelineItemProps,
+} from "antd"
 import ReactDiffViewer, { DiffMethod } from "react-diff-viewer-continued"
+import { stringify } from "safe-stable-stringify"
 
-function LogCompareModal({
-    log,
-    previousLog,
-    isOpen,
-    onClose,
-}: {
-    log: Log
-    previousLog: Log
-    isOpen: boolean
-    onClose: () => void
-}) {
-    const titleForLog = (log: Log) => {
-        const user = log.userName || log.userId.toString()
-        return <Timeago time={log.createdAt} by={user} />
+const FIELDS_IGNORED_IN_SUMMARY = ["version", "$schema", "id"]
+const MAX_FIELDS_IN_SUMMARY = 3
+
+type OpenModal =
+    | { kind: "compare" | "restore"; logIndex: number }
+    | { kind: "compareUnsaved" }
+
+@observer
+export class EditorHistoryTab extends Component<{ editor: ChartEditor }> {
+    openModal: OpenModal | undefined = undefined
+
+    constructor(props: { editor: ChartEditor }) {
+        super(props)
+        makeObservable(this, { openModal: observable.ref })
     }
 
+    @computed get logs(): Log[] {
+        return this.props.editor.logs || []
+    }
+
+    /** What changed in each save relative to the one before it */
+    @computed get changeSummaries(): string[] {
+        return this.logs.map((log, i) => {
+            const previousLog = this.logs[i + 1]
+            return previousLog
+                ? summarizeChangedFields(log.config, previousLog.config)
+                : "Oldest stored version"
+        })
+    }
+
+    @action.bound closeModal(): void {
+        this.openModal = undefined
+    }
+
+    @action.bound showModal(openModal: OpenModal): void {
+        this.openModal = openModal
+    }
+
+    @action.bound async onRestore(log: Log): Promise<void> {
+        this.closeModal()
+        await this.props.editor.restoreRevision(log)
+        notification.info({
+            title: "Version loaded",
+            description: (
+                <>
+                    Loaded the version {renderSavedBy(log)}. Nothing changes
+                    until you save.
+                </>
+            ),
+        })
+    }
+
+    @action.bound async onDiscardUnsavedChanges(): Promise<void> {
+        this.closeModal()
+        await this.props.editor.discardUnsavedChanges()
+        notification.info({ title: "Unsaved changes discarded" })
+    }
+
+    makeUnsavedChangesTimelineItem(): TimelineItemProps {
+        const { editor } = this.props
+        return {
+            key: "unsaved",
+            color: "orange",
+            classNames: { rail: "EditorHistoryTab__timeline-rail--unsaved" },
+            content: (
+                <TimelineItemLayout
+                    isUnsaved
+                    actions={
+                        <Button
+                            size="small"
+                            onClick={() =>
+                                this.showModal({ kind: "compareUnsaved" })
+                            }
+                        >
+                            Compare
+                        </Button>
+                    }
+                >
+                    <Typography.Text strong>Unsaved changes</Typography.Text>
+                    <Typography.Text type="secondary">
+                        {summarizeChangedFields(
+                            editor.patchConfig,
+                            editor.savedPatchConfig
+                        )}
+                    </Typography.Text>
+                </TimelineItemLayout>
+            ),
+        }
+    }
+
+    makeSaveTimelineItem(log: Log, logIndex: number): TimelineItemProps {
+        const previousLog = this.logs[logIndex + 1]
+        const isLatest = logIndex === 0
+        return {
+            key: `${log.createdAt}-${logIndex}`,
+            color: "blue",
+            content: (
+                <TimelineItemLayout
+                    actions={
+                        <>
+                            <Button
+                                size="small"
+                                onClick={() =>
+                                    this.showModal({
+                                        kind: "compare",
+                                        logIndex,
+                                    })
+                                }
+                            >
+                                {previousLog ? "Compare" : "View"}
+                            </Button>
+                            {!isLatest && (
+                                <Button
+                                    size="small"
+                                    onClick={() =>
+                                        this.showModal({
+                                            kind: "restore",
+                                            logIndex,
+                                        })
+                                    }
+                                >
+                                    Restore
+                                </Button>
+                            )}
+                        </>
+                    }
+                >
+                    <Flex gap={8} align="center" wrap>
+                        <Typography.Text strong>
+                            {formatUser(log)}
+                        </Typography.Text>
+                        <Tooltip
+                            title={dayjs(log.createdAt).format(
+                                "D MMM YYYY, HH:mm"
+                            )}
+                        >
+                            <Typography.Text type="secondary">
+                                {dayjs(log.createdAt).fromNow()}
+                            </Typography.Text>
+                        </Tooltip>
+                    </Flex>
+                    <Typography.Text type="secondary">
+                        {this.changeSummaries[logIndex]}
+                    </Typography.Text>
+                </TimelineItemLayout>
+            ),
+        }
+    }
+
+    renderModal(): React.ReactElement | null {
+        const { openModal } = this
+        const { editor } = this.props
+        if (!openModal) return null
+
+        if (openModal.kind === "compareUnsaved") {
+            return (
+                <CompareModal
+                    title="Unsaved changes"
+                    oldValue={stringify(editor.savedPatchConfig, null, 2)}
+                    newValue={stringify(editor.patchConfig, null, 2)}
+                    onClose={this.closeModal}
+                    onDiscard={this.onDiscardUnsavedChanges}
+                />
+            )
+        }
+
+        const log = this.logs[openModal.logIndex]
+        if (!log) return null
+
+        if (openModal.kind === "compare") {
+            const previousLog = this.logs[openModal.logIndex + 1]
+            return (
+                <CompareModal
+                    title={<>Changes {renderSavedBy(log)}</>}
+                    oldValue={
+                        previousLog
+                            ? stringify(previousLog.config, null, 2)
+                            : ""
+                    }
+                    newValue={stringify(log.config, null, 2)}
+                    onClose={this.closeModal}
+                />
+            )
+        }
+
+        return (
+            <RestoreModal
+                log={log}
+                laterSaveCount={openModal.logIndex}
+                hasUnsavedChanges={editor.isModified}
+                currentPatchJson={stringify(editor.patchConfig, null, 2)}
+                restoredPatchJson={stringify(
+                    makeRestoredPatchConfig(log.config, editor.patchConfig),
+                    null,
+                    2
+                )}
+                onRestore={() => this.onRestore(log)}
+                onClose={this.closeModal}
+            />
+        )
+    }
+
+    override render() {
+        const { logs } = this
+        if (logs.length === 0 && !this.props.editor.isModified)
+            return <Empty description="No saves yet" />
+
+        const items = logs.map((log, i) => this.makeSaveTimelineItem(log, i))
+        if (this.props.editor.isModified)
+            items.unshift(this.makeUnsavedChangesTimelineItem())
+
+        return (
+            <div className="EditorHistoryTab">
+                <Timeline
+                    items={items}
+                    classNames={{
+                        itemIcon: "EditorHistoryTab__timeline-dot",
+                        itemRail: "EditorHistoryTab__timeline-rail",
+                    }}
+                />
+                {this.renderModal()}
+            </div>
+        )
+    }
+}
+
+function TimelineItemLayout({
+    isUnsaved = false,
+    actions,
+    children,
+}: {
+    isUnsaved?: boolean
+    actions: React.ReactNode
+    children: React.ReactNode
+}) {
+    return (
+        <Card
+            size="small"
+            style={isUnsaved ? { borderStyle: "dashed" } : undefined}
+        >
+            <Flex justify="space-between" align="center" gap={12}>
+                <Flex vertical gap={2}>
+                    {children}
+                </Flex>
+                <Flex gap={6} style={{ flexShrink: 0 }}>
+                    {actions}
+                </Flex>
+            </Flex>
+        </Card>
+    )
+}
+
+function CompareModal({
+    title,
+    oldValue,
+    newValue,
+    onClose,
+    onDiscard,
+}: {
+    title: React.ReactNode
+    oldValue: string
+    newValue: string
+    onClose: () => void
+    onDiscard?: () => void
+}) {
     return (
         <Modal
-            open={isOpen}
+            open
             centered
             width="80vw"
-            onOk={onClose}
+            title={title}
             onCancel={onClose}
-            cancelButtonProps={{ style: { display: "none" } }}
+            footer={
+                <>
+                    <Button onClick={onClose}>Close</Button>
+                    {onDiscard && (
+                        <Button type="primary" danger onClick={onDiscard}>
+                            Discard unsaved changes
+                        </Button>
+                    )}
+                </>
+            }
         >
-            <div style={{ maxHeight: "50vh", overflowY: "auto" }}>
-                <ReactDiffViewer
-                    newValue={JSON.stringify(log.config, null, 2)}
-                    oldValue={JSON.stringify(previousLog.config, null, 2)}
-                    leftTitle={titleForLog(previousLog)}
-                    rightTitle={titleForLog(log)}
-                    compareMethod={DiffMethod.WORDS_WITH_SPACE}
-                    styles={{
-                        contentText: {
-                            wordBreak: "break-word",
-                        },
-                    }}
-                    extraLinesSurroundingDiff={2}
-                    highlightLanguage="json"
-                />
-            </div>
+            <ConfigDiff
+                oldValue={oldValue}
+                newValue={newValue}
+                leftTitle="Before"
+                rightTitle="After"
+            />
         </Modal>
     )
 }
 
-interface LogRendererProps {
+function RestoreModal({
+    log,
+    laterSaveCount,
+    hasUnsavedChanges,
+    currentPatchJson,
+    restoredPatchJson,
+    onRestore,
+    onClose,
+}: {
     log: Log
-    previousLog: Log | undefined
-}
+    laterSaveCount: number
+    hasUnsavedChanges: boolean
+    currentPatchJson: string
+    restoredPatchJson: string
+    onRestore: () => void
+    onClose: () => void
+}) {
+    const isUnchanged = currentPatchJson === restoredPatchJson
+    const discarded = [
+        laterSaveCount === 1
+            ? "the save made after this version"
+            : `the ${laterSaveCount} saves made after this version`,
+        ...(hasUnsavedChanges ? ["your unsaved changes"] : []),
+    ].join(" and ")
 
-@observer
-class LogRenderer extends Component<LogRendererProps> {
-    isCompareModalOpen = false
-
-    constructor(props: LogRendererProps) {
-        super(props)
-
-        makeObservable(this, {
-            isCompareModalOpen: observable,
-        })
-    }
-
-    @computed get title() {
-        const { log } = this.props
-        const user = log.userName || log.userId.toString()
-        return (
-            <>
-                Saved <Timeago time={log.createdAt} by={user} />
-            </>
-        )
-    }
-
-    override render() {
-        const { log } = this.props
-        const { title } = this
-        const hasCompareButton = !!this.props.previousLog
-
-        return (
-            <li
-                className="list-group-item d-flex justify-content-between"
-                style={{ alignItems: "center" }}
-            >
-                {hasCompareButton && (
-                    <LogCompareModal
-                        log={log}
-                        previousLog={this.props.previousLog}
-                        isOpen={this.isCompareModalOpen}
-                        onClose={() => (this.isCompareModalOpen = false)}
-                    />
-                )}
-                <span>{title}</span>
-                <div className="d-flex" style={{ gap: 6 }}>
-                    {hasCompareButton && (
-                        <button
-                            className="btn btn-secondary"
-                            onClick={() => (this.isCompareModalOpen = true)}
-                        >
-                            Compare <br /> to previous
-                        </button>
+    return (
+        <Modal
+            open
+            centered
+            width="80vw"
+            title={<>Restore the version {renderSavedBy(log)}</>}
+            onCancel={onClose}
+            footer={
+                <>
+                    <Button onClick={onClose}>Close</Button>
+                    {!isUnchanged && (
+                        <Button type="primary" onClick={onRestore}>
+                            Restore this version
+                        </Button>
                     )}
-                </div>
-            </li>
-        )
-    }
+                </>
+            }
+        >
+            {isUnchanged ? (
+                <Typography.Paragraph>
+                    This version matches the chart as it is now.
+                </Typography.Paragraph>
+            ) : (
+                <Flex vertical gap={12}>
+                    <Alert
+                        type="warning"
+                        showIcon
+                        title={`Restoring discards ${discarded}. Only the chart's own settings change. ETL and indicator configs, the slug and the publishing state stay as they are. You can review the result before saving.`}
+                    />
+                    <ConfigDiff
+                        oldValue={currentPatchJson}
+                        newValue={restoredPatchJson}
+                        leftTitle="The chart now"
+                        rightTitle="After restoring"
+                    />
+                </Flex>
+            )}
+        </Modal>
+    )
 }
 
-@observer
-export class EditorHistoryTab extends Component<{ editor: ChartEditor }> {
-    constructor(props: { editor: ChartEditor }) {
-        super(props)
-        makeObservable(this)
-    }
+function ConfigDiff({
+    oldValue,
+    newValue,
+    leftTitle,
+    rightTitle,
+}: {
+    oldValue: string
+    newValue: string
+    leftTitle: string
+    rightTitle: string
+}) {
+    return (
+        <div style={{ maxHeight: "50vh", overflowY: "auto" }}>
+            <ReactDiffViewer
+                oldValue={oldValue}
+                newValue={newValue}
+                leftTitle={leftTitle}
+                rightTitle={rightTitle}
+                compareMethod={DiffMethod.WORDS_WITH_SPACE}
+                styles={{
+                    contentText: {
+                        wordBreak: "break-word",
+                    },
+                }}
+                extraLinesSurroundingDiff={2}
+                highlightLanguage="json"
+            />
+        </div>
+    )
+}
 
-    @computed get logs() {
-        return this.props.editor.logs || []
-    }
+function formatUser(log: Log): string {
+    return log.userName || log.userId.toString()
+}
 
-    override render() {
-        return (
-            <div>
-                {this.logs.map((log, i) => (
-                    <ul key={i} className="list-group">
-                        <LogRenderer
-                            log={log}
-                            previousLog={this.logs[i + 1]} // Needed for comparison, might be undefined
-                        ></LogRenderer>
-                    </ul>
-                ))}
-            </div>
-        )
-    }
+function renderSavedBy(log: Log): React.ReactElement {
+    return (
+        <>
+            saved <Timeago time={log.createdAt} by={formatUser(log)} />
+        </>
+    )
+}
+
+function summarizeChangedFields(
+    config: GrapherInterface,
+    previousConfig: GrapherInterface
+): string {
+    const changedFields = _.union(
+        Object.keys(config),
+        Object.keys(previousConfig)
+    ).filter(
+        (field) =>
+            !FIELDS_IGNORED_IN_SUMMARY.includes(field) &&
+            !_.isEqual(
+                config[field as keyof GrapherInterface],
+                previousConfig[field as keyof GrapherInterface]
+            )
+    )
+    if (changedFields.length === 0) return "No changes"
+    if (changedFields.length <= MAX_FIELDS_IN_SUMMARY)
+        return changedFields.join(", ")
+    const hiddenCount = changedFields.length - MAX_FIELDS_IN_SUMMARY
+    return `${changedFields.slice(0, MAX_FIELDS_IN_SUMMARY).join(", ")} and ${hiddenCount} more`
 }

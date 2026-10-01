@@ -9,7 +9,13 @@ import ChartThumbnail from "./ChartThumbnail.js"
 import Paragraph from "./Paragraph.js"
 import SpanElements from "./SpanElements.js"
 
-function ChartRow({ row }: { row: EnrichedChartRowItem }) {
+function ChartRow({
+    row,
+    shouldRenderLinks,
+}: {
+    row: EnrichedChartRowItem
+    shouldRenderLinks: boolean
+}) {
     const onGuidedChartLinkClick = useGuidedChartLinkHandler()
     const contentId = useId()
 
@@ -21,7 +27,12 @@ function ChartRow({ row }: { row: EnrichedChartRowItem }) {
     const content = hasContent && (
         <div id={contentId} className="chart-rows__row-content">
             {row.content.map((block, i) => (
-                <Paragraph key={i} d={block} className="article-block__text" />
+                <Paragraph
+                    key={i}
+                    d={block}
+                    className="article-block__text"
+                    shouldRenderLinks={shouldRenderLinks}
+                />
             ))}
         </div>
     )
@@ -35,6 +46,10 @@ function ChartRow({ row }: { row: EnrichedChartRowItem }) {
         >
             {thumbnail}
         </button>
+    ) : !shouldRenderLinks ? (
+        <div className="chart-thumbnail chart-thumbnail--static">
+            {thumbnail}
+        </div>
     ) : (
         <a
             href={row.url}
@@ -53,7 +68,10 @@ function ChartRow({ row }: { row: EnrichedChartRowItem }) {
                 {thumbnailLink}
                 {row.caption && (
                     <figcaption className="chart-rows__caption">
-                        <SpanElements spans={row.caption} />
+                        <SpanElements
+                            spans={row.caption}
+                            shouldRenderLinks={shouldRenderLinks}
+                        />
                     </figcaption>
                 )}
             </figure>
@@ -64,9 +82,11 @@ function ChartRow({ row }: { row: EnrichedChartRowItem }) {
 export default function ChartRows({
     d,
     className = "",
+    shouldRenderLinks = true,
 }: {
     d: EnrichedBlockChartRows
     className?: string
+    shouldRenderLinks?: boolean
 }) {
     const isInGuidedChart = !!useGuidedChartLinkHandler()
 
@@ -87,7 +107,11 @@ export default function ChartRows({
             )}
             <div className="chart-rows__rows-container">
                 {d.rows.map((row, i) => (
-                    <ChartRow key={i} row={row} />
+                    <ChartRow
+                        key={i}
+                        row={row}
+                        shouldRenderLinks={shouldRenderLinks}
+                    />
                 ))}
             </div>
             {!isInGuidedChart && d.source && (

@@ -10,9 +10,11 @@ const iconMap = {
 export default function Callout({
     className,
     block,
+    shouldRenderLinks = true,
 }: {
     className?: string
     block: EnrichedBlockCallout
+    shouldRenderLinks?: boolean
 }) {
     const icon = block.icon ? iconMap[block.icon] : null
     return (
@@ -25,7 +27,10 @@ export default function Callout({
                     {block.title}
                 </h4>
             ) : null}
-            <ArticleBlocks blocks={block.text} />
+            <ArticleBlocks
+                blocks={block.text}
+                shouldRenderLinks={shouldRenderLinks}
+            />
         </div>
     )
 }

@@ -1,0 +1,18 @@
+.avatar-byline {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 16px;
+    color: $blue-60;
+}
+
+.avatar-byline__author {
+    color: inherit;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    &:hover {
+        text-decoration: underline;
+    }
+}

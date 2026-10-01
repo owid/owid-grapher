@@ -9,7 +9,7 @@ import {
     MarimekkoNoDataArea,
     RenderMarimekkoSeries,
 } from "./MarimekkoChartConstants"
-import { Patterns } from "../core/GrapherConstants"
+import { Patterns, makePatternId } from "../core/GrapherConstants"
 import { scaleFontSize } from "../chart/ChartUtils"
 
 const PLACEHOLDER_COLOR = "#555"
@@ -18,6 +18,7 @@ interface MarimekkoBarsProps {
     series: RenderMarimekkoSeries[]
     noDataArea?: MarimekkoNoDataArea
     fontSize: number
+    patternIdSuffix?: string
     isFocusModeActive?: boolean
     onEntityMouseOver?: (entityName: string, ev: React.MouseEvent) => void
     onEntityMouseLeave?: () => void
@@ -28,6 +29,7 @@ export function MarimekkoBars({
     series,
     noDataArea,
     fontSize,
+    patternIdSuffix,
     isFocusModeActive,
     onEntityClick,
     onEntityMouseLeave,
@@ -41,7 +43,7 @@ export function MarimekkoBars({
                     y={roundForSvg(noDataArea.y)}
                     width={roundForSvg(noDataArea.width)}
                     height={roundForSvg(noDataArea.height)}
-                    fill={`url(#${Patterns.noDataPattern})`}
+                    fill={`url(#${makePatternId(Patterns.noDataPattern, patternIdSuffix)})`}
                     opacity={0.5}
                 ></rect>
             )}
