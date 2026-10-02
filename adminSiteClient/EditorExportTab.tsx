@@ -179,8 +179,11 @@ export class EditorExportTab<
     @computed private get currentSettings(): ExportSettings {
         return {
             hideTitle: this.settings.hideTitle,
-            forceHideAnnotationFieldsInTitle:
-                this.settings.forceHideAnnotationFieldsInTitle,
+            // Copy the nested object so that this computed reads (and reacts
+            // to) its fields, and the grapher gets its own copy
+            forceHideAnnotationFieldsInTitle: {
+                ...this.settings.forceHideAnnotationFieldsInTitle,
+            },
             hideSubtitle: this.settings.hideSubtitle,
             hideNote: this.settings.hideNote,
             hideOriginUrl: this.settings.hideOriginUrl,
