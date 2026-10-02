@@ -528,15 +528,19 @@ export class VariableSelector<
         const { variableUsageCounts } = this.database
         const { dimensions } = this.props.slot
 
-        this.chosenVariables = dimensions.map((d) => {
+        this.chosenVariables = dimensions.flatMap((d) => {
+            // A slot naming a host-supplied column has no variable to pick.
+            const variableId = d.variableId
+            if (variableId === undefined) return []
+
             const { datasetName, datasetId } = d.column
             const dataset =
                 datasetId !== undefined ? datasetsById[datasetId] : undefined
 
             return {
                 name: d.column.name,
-                id: d.variableId,
-                usageCount: variableUsageCounts.get(d.variableId) ?? 0,
+                id: variableId,
+                usageCount: variableUsageCounts.get(variableId) ?? 0,
                 datasetId: datasetId ?? 0,
                 datasetName: datasetName || "",
                 catalogPath: undefined,

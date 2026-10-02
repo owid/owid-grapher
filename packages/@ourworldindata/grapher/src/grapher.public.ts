@@ -2,6 +2,7 @@ export { Grapher } from "./core/Grapher.js"
 export type { GrapherState } from "./core/GrapherState.js"
 export { FetchingGrapher } from "./core/FetchingGrapher.js"
 export { OwidTable } from "@ourworldindata/core-table"
+export { applyDimensionDisplayOverrides } from "./core/applyDimensionDisplay.js"
 // The enums are needed to construct `dimensions` / `columnDefs` from
 // TypeScript (their fields are enum-typed, so string literals won't do).
 export {
