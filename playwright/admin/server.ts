@@ -10,7 +10,6 @@
  */
 import http from "node:http"
 import { type Knex } from "knex"
-import type { Connection } from "mysql2"
 import { execFile } from "node:child_process"
 import { promisify } from "node:util"
 import { createServer, type ViteDevServer } from "vite"
@@ -171,23 +170,7 @@ async function startAdminClient(): Promise<ViteDevServer | undefined> {
 }
 
 async function main(): Promise<void> {
-    const database = await setupAdminTestDatabase({
-        serverPool: {
-            // Saving a chart replaces its chart_dimensions rows with a DELETE
-            // by chartId followed by INSERTs. Under REPEATABLE READ the DELETE
-            // takes a gap lock, and since the charts created by concurrently
-            // running tests are all adjacent at the end of that index, two
-            // saves regularly deadlock. READ COMMITTED takes no gap locks.
-            afterCreate: (
-                connection: Connection,
-                done: (error: Error | null, connection: Connection) => void
-            ) =>
-                connection.query(
-                    "SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED",
-                    (error: Error | null) => done(error, connection)
-                ),
-        },
-    })
+    const database = await setupAdminTestDatabase()
     await seedFixture(database.testKnex, database.userId)
 
     const dataApi = await startDataApi()
