@@ -2,6 +2,7 @@ import {
     DbPlainChart,
     DbRawChartConfig,
     GrapherInterface,
+    JsonError,
 } from "@ourworldindata/types"
 import { parseIntOrUndefined } from "@ourworldindata/utils"
 import {
@@ -15,10 +16,13 @@ import {
     parseToOperation,
 } from "../../adminShared/SqlFilterSExpression.js"
 import { saveGrapher } from "./charts.js"
+import { ingestGrapherConfig } from "../../db/grapherConfigValidation.js"
 import * as db from "../../db/db.js"
 import * as lodash from "lodash-es"
 import { Request } from "../authentication.js"
 import { HandlerResponse } from "../FunctionalRouter.js"
+
+const MAX_REPORTED_REJECTED_CHARTS = 5
 
 export async function getChartBulkUpdate(
     req: Request,
@@ -116,7 +120,26 @@ export async function updateBulkChartConfigs(
         configMap.set(patchSet.id, applyPatch(patchSet, config))
     }
 
-    for (const [id, newConfig] of configMap.entries()) {
+    // Every chart is checked before any is saved. saveGrapher writes each
+    // chart's config to R2 and queues a bake as it goes, and neither of those
+    // rolls back with the transaction, so a chart rejected halfway through the
+    // save loop would leave R2 serving configs the database never got.
+    const validatedConfigMap = new Map<number, GrapherInterface>()
+    const rejectedCharts: RejectedChart[] = []
+    for (const [id, patchedConfig] of configMap.entries()) {
+        try {
+            validatedConfigMap.set(id, ingestGrapherConfig(patchedConfig))
+        } catch (error) {
+            rejectedCharts.push({
+                id,
+                message: error instanceof Error ? error.message : String(error),
+            })
+        }
+    }
+    if (rejectedCharts.length > 0)
+        throw new JsonError(describeRejectedCharts(rejectedCharts), 400)
+
+    for (const [id, newConfig] of validatedConfigMap.entries()) {
         await saveGrapher(trx, {
             user: res.locals.user,
             newConfig,
@@ -125,4 +148,21 @@ export async function updateBulkChartConfigs(
     }
 
     return { success: true }
+}
+
+interface RejectedChart {
+    id: number
+    message: string
+}
+
+function describeRejectedCharts(rejected: RejectedChart[]): string {
+    const reported = rejected
+        .slice(0, MAX_REPORTED_REJECTED_CHARTS)
+        .map(({ id, message }) => `Chart ${id}: ${message}`)
+    const unreported = rejected.length - reported.length
+    if (unreported > 0) reported.push(`... and ${unreported} more`)
+    return [
+        `No chart was changed: this update would leave ${rejected.length} chart(s) invalid.`,
+        ...reported,
+    ].join("\n")
 }

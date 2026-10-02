@@ -23,6 +23,7 @@ export interface TestEnv {
         method: "POST" | "PUT" | "PATCH" | "DELETE"
         path: string
         body?: string
+        expectStatus?: number
     }): Promise<any>
     getCount(tableName: string): Promise<number>
 }
@@ -80,6 +81,7 @@ export function getAdminTestEnv(): TestEnv {
         method: "POST" | "PUT" | "PATCH" | "DELETE"
         path: string
         body?: string
+        expectStatus?: number
     }): Promise<any> {
         const url = ADMIN_URL + arg.path
         const response = await fetch(url, {
@@ -90,7 +92,7 @@ export function getAdminTestEnv(): TestEnv {
             },
             body: arg.body,
         })
-        expect(response.status).toBe(200)
+        expect(response.status).toBe(arg.expectStatus ?? 200)
         return await response.json()
     }
 
