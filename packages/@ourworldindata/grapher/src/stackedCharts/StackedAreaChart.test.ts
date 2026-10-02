@@ -16,7 +16,7 @@ import { makeObservable, observable } from "mobx"
 import { AxisConfig } from "../axis/AxisConfig"
 import { SelectionArray } from "../selection/SelectionArray"
 import { Bounds, GRAPHER_CHART_TYPES } from "@ourworldindata/utils"
-import { FacetStrategy } from "@ourworldindata/types"
+import { ColumnTypeNames, FacetStrategy } from "@ourworldindata/types"
 import { StackedAreaChartState } from "./StackedAreaChartState.js"
 import { ChartManager } from "../chart/ChartManager"
 import { FacetChart } from "../facet/FacetChart"
@@ -354,5 +354,189 @@ describe("availableFacetStrategies", () => {
             makeChartState(table, { isRelativeMode: true })
                 .availableFacetStrategies
         ).toEqual([FacetStrategy.metric])
+    })
+})
+
+describe("a category with negative values", () => {
+    // Shaped like co2-emissions-fossil-land, where land-use change is a carbon
+    // sink and every other category is a source
+    const csv = `fossil,landUse,year,entityName
+    100,-20,1990,Germany
+    120,-30,2000,Germany`
+    const table = new OwidTable(csv, [
+        { slug: "fossil", type: ColumnTypeNames.Numeric },
+        { slug: "landUse", type: ColumnTypeNames.Numeric },
+        { slug: "year", type: ColumnTypeNames.Year },
+    ])
+    const makeChartState = (): StackedAreaChartState =>
+        new StackedAreaChartState({
+            manager: {
+                table,
+                yColumnSlugs: ["fossil", "landUse"],
+                selection: table.availableEntityNames,
+            },
+        })
+
+    const bandsOf = (
+        chartState: StackedAreaChartState,
+        seriesName: string
+    ): [number, number][] =>
+        chartState.seriesByName
+            .get(seriesName)!
+            .points.map((point) => [
+                point.valueOffset,
+                point.valueOffset + point.value,
+            ])
+
+    it("hangs the negative category below the zero line", () => {
+        expect(bandsOf(makeChartState(), "landUse")).toEqual([
+            [0, -20],
+            [0, -30],
+        ])
+    })
+
+    it("rests the positive categories on the zero line", () => {
+        expect(bandsOf(makeChartState(), "fossil")).toEqual([
+            [0, 100],
+            [0, 120],
+        ])
+    })
+
+    it("extends the y domain below zero", () => {
+        expect(makeChartState().yDomain).toEqual([-30, 120])
+    })
+
+    it("centres each series label on its own band", () => {
+        expect(makeChartState().midpoints).toEqual([-15, 60])
+    })
+})
+
+describe("a category that changes sign over time", () => {
+    // The shape every published chart with negatives actually has: land-use
+    // change is a source until 1949 and a sink after it
+    const csv = `fossil,landUse,year,entityName
+    100,20,1990,Germany
+    120,-30,2000,Germany`
+    const table = new OwidTable(csv, [
+        { slug: "fossil", type: ColumnTypeNames.Numeric },
+        { slug: "landUse", type: ColumnTypeNames.Numeric },
+        { slug: "year", type: ColumnTypeNames.Year },
+    ])
+    const chartState = new StackedAreaChartState({
+        manager: {
+            table,
+            yColumnSlugs: ["fossil", "landUse"],
+            selection: table.availableEntityNames,
+        },
+    })
+
+    const bandsOf = (seriesName: string): [number, number][] =>
+        chartState.seriesByName
+            .get(seriesName)!
+            .points.map((point) => [
+                point.valueOffset,
+                point.valueOffset + point.value,
+            ])
+
+    it("moves the category across the zero line at the crossing", () => {
+        expect(bandsOf("landUse")).toEqual([
+            [0, 20],
+            [0, -30],
+        ])
+    })
+
+    it("drops the category above it back onto the zero line", () => {
+        expect(bandsOf("fossil")).toEqual([
+            [20, 120],
+            [0, 120],
+        ])
+    })
+
+    it("extends the y domain below zero", () => {
+        expect(chartState.yDomain).toEqual([-30, 120])
+    })
+})
+
+describe("a negative category that is not at the bottom", () => {
+    const csv = `coal,netImports,wind,year,entityName
+    100,-20,40,1990,Germany
+    120,-30,50,2000,Germany`
+    const table = new OwidTable(csv, [
+        { slug: "coal", type: ColumnTypeNames.Numeric },
+        { slug: "netImports", type: ColumnTypeNames.Numeric },
+        { slug: "wind", type: ColumnTypeNames.Numeric },
+        { slug: "year", type: ColumnTypeNames.Year },
+    ])
+    const chartState = new StackedAreaChartState({
+        manager: {
+            table,
+            yColumnSlugs: ["wind", "netImports", "coal"],
+            selection: table.availableEntityNames,
+        },
+    })
+
+    const bandsOf = (seriesName: string): [number, number][] =>
+        chartState.seriesByName
+            .get(seriesName)!
+            .points.map((point) => [
+                point.valueOffset,
+                point.valueOffset + point.value,
+            ])
+
+    it("keeps the running-total stack, so no band sweeps through another", () => {
+        expect(bandsOf("coal")).toEqual([
+            [0, 100],
+            [0, 120],
+        ])
+        expect(bandsOf("netImports")).toEqual([
+            [100, 80],
+            [120, 90],
+        ])
+        expect(bandsOf("wind")).toEqual([
+            [80, 120],
+            [90, 140],
+        ])
+    })
+})
+
+describe("several categories with negative values", () => {
+    const csv = `halons,methylBromide,cfc,year,entityName
+    100,-20,-10,1990,World
+    120,-30,-15,2000,World`
+    const table = new OwidTable(csv, [
+        { slug: "halons", type: ColumnTypeNames.Numeric },
+        { slug: "methylBromide", type: ColumnTypeNames.Numeric },
+        { slug: "cfc", type: ColumnTypeNames.Numeric },
+        { slug: "year", type: ColumnTypeNames.Year },
+    ])
+    const chartState = new StackedAreaChartState({
+        manager: {
+            table,
+            yColumnSlugs: ["halons", "methylBromide", "cfc"],
+            selection: table.availableEntityNames,
+        },
+    })
+
+    const bandsOf = (seriesName: string): [number, number][] =>
+        chartState.seriesByName
+            .get(seriesName)!
+            .points.map((point) => [
+                point.valueOffset,
+                point.valueOffset + point.value,
+            ])
+
+    it("keeps the running-total stack", () => {
+        expect(bandsOf("cfc")).toEqual([
+            [0, -10],
+            [0, -15],
+        ])
+        expect(bandsOf("methylBromide")).toEqual([
+            [-10, -30],
+            [-15, -45],
+        ])
+        expect(bandsOf("halons")).toEqual([
+            [-30, 70],
+            [-45, 75],
+        ])
     })
 })
