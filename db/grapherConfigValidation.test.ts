@@ -7,8 +7,10 @@ import {
 } from "@ourworldindata/grapher"
 import {
     assertValidGrapherConfig,
+    formatGrapherConfigIssues,
     GrapherConfigValidationError,
     ingestGrapherConfig,
+    tryIngestGrapherConfig,
 } from "./grapherConfigValidation.js"
 
 const baseChartConfig: UntypedGrapherConfig = {
@@ -120,6 +122,86 @@ describe(ingestGrapherConfig, () => {
         expect(error.status).toBe(400)
         expect(error.issues.map((issue) => issue.pointer)).toEqual(["/$schema"])
     })
+
+    it("throws the exact issues tryIngestGrapherConfig returns, pinning the single validation path", () => {
+        const invalidConfig = configWithUnknownKey
+
+        const ingestResult = tryIngestGrapherConfig(invalidConfig)
+        if (ingestResult.isValid) throw new Error("expected an invalid config")
+
+        const error = catchValidationError(() =>
+            ingestGrapherConfig(invalidConfig)
+        )
+        expect(error.issues).toEqual(ingestResult.issues)
+    })
+})
+
+describe(tryIngestGrapherConfig, () => {
+    it("returns the migrated config, restamped with the latest schema, when it is valid", () => {
+        const ingestResult = tryIngestGrapherConfig(baseChartConfig)
+        if (!ingestResult.isValid) throw new Error("expected a valid config")
+        expect(ingestResult.config.$schema).toBe(defaultGrapherConfig.$schema)
+    })
+
+    it("migrates an outdated config and reports it valid", () => {
+        const config = {
+            ...baseChartConfig,
+            $schema: formatGrapherSchemaUrl("010"),
+            dimensions: [
+                { property: "y", variableId: 1, display: { yearIsDay: true } },
+            ],
+        }
+
+        const ingestResult = tryIngestGrapherConfig(config)
+
+        if (!ingestResult.isValid) throw new Error("expected a valid config")
+        expect(ingestResult.config.$schema).toBe(defaultGrapherConfig.$schema)
+        expect(ingestResult.config.dimensions?.[0].display).toStrictEqual({
+            timeInterval: "day",
+        })
+    })
+
+    it("returns a single issue at /hideLegend for a config with an unknown key", () => {
+        const ingestResult = tryIngestGrapherConfig(configWithUnknownKey)
+        if (ingestResult.isValid) throw new Error("expected an invalid config")
+        expect(ingestResult.issues).toEqual([
+            {
+                pointer: "/hideLegend",
+                message: "must NOT have additional properties",
+            },
+        ])
+    })
+
+    it("returns a single issue at /$schema when it is absent or names an unknown version", () => {
+        const missingSchema = tryIngestGrapherConfig({ title: "Untitled" })
+        if (missingSchema.isValid) throw new Error("expected an invalid config")
+        expect(missingSchema.issues).toEqual([
+            {
+                pointer: "/$schema",
+                message: expect.stringContaining("must have a $schema"),
+            },
+        ])
+
+        const unknownSchema = tryIngestGrapherConfig({
+            ...baseChartConfig,
+            $schema: formatGrapherSchemaUrl("099"),
+        })
+        if (unknownSchema.isValid) throw new Error("expected an invalid config")
+        expect(unknownSchema.issues.map((issue) => issue.pointer)).toEqual([
+            "/$schema",
+        ])
+    })
+
+    it("returns a single issue at the root pointer for null, a string, and an array", () => {
+        for (const config of [null, "not a config", []]) {
+            const ingestResult = tryIngestGrapherConfig(config)
+            if (ingestResult.isValid)
+                throw new Error("expected an invalid config")
+            expect(ingestResult.issues).toEqual([
+                { pointer: "", message: "must be object" },
+            ])
+        }
+    })
 })
 
 describe(assertValidGrapherConfig, () => {
@@ -180,6 +262,29 @@ describe(GrapherConfigValidationError, () => {
         )
         expect(error.message).toContain(
             "/hideLegend: must NOT have additional properties"
+        )
+    })
+})
+
+describe(formatGrapherConfigIssues, () => {
+    it("renders (root) for the empty pointer, and one indented line per issue", () => {
+        const message = formatGrapherConfigIssues([
+            {
+                pointer: "",
+                message: "must have required property 'dimensions'",
+            },
+            {
+                pointer: "/hideLegend",
+                message: "must NOT have additional properties",
+            },
+        ])
+
+        expect(message).toBe(
+            [
+                "Invalid grapher config:",
+                "  (root): must have required property 'dimensions'",
+                "  /hideLegend: must NOT have additional properties",
+            ].join("\n")
         )
     })
 })

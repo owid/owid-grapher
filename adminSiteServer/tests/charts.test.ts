@@ -12,6 +12,7 @@ import {
 import { latestGrapherConfigSchema } from "@ourworldindata/grapher"
 import { mergeGrapherConfigs, omitUndefinedValues } from "@ourworldindata/utils"
 import { v7 as uuidv7 } from "uuid"
+import { GrapherConfigPatch } from "../../adminShared/AdminSessionTypes.js"
 import {
     datasetId,
     otherVariableId,
@@ -102,6 +103,38 @@ describe("Charts API", { timeout: 15000 }, () => {
         expect(response.error.message).toContain("/hideLegend")
         expect(await env.getCount(ChartsTableName)).toBe(0)
         expect(await env.getCount(ChartConfigsTableName)).toBe(0)
+    })
+
+    it("rejects the whole bulk update when a patch would produce an invalid chart", async () => {
+        const { chartId } = await env.request({
+            method: "POST",
+            path: "/charts",
+            body: JSON.stringify(testChartConfig),
+        })
+        const configBefore = await env.fetchJson(
+            `/charts/${chartId}.config.json`
+        )
+
+        const patch: GrapherConfigPatch = {
+            id: chartId,
+            oldValue: null,
+            oldValueIsEquivalentToNullOrUndefined: true,
+            newValue: true,
+            jsonPointer: "/hideLegend",
+        }
+        const response = await env.request({
+            method: "PATCH",
+            path: "/chart-bulk-update",
+            body: JSON.stringify([patch]),
+            expectStatus: 400,
+        })
+        expect(response.error.message).toContain("No chart was changed")
+        expect(response.error.message).toContain("/hideLegend")
+
+        const configAfter = await env.fetchJson(
+            `/charts/${chartId}.config.json`
+        )
+        expect(configAfter).toEqual(configBefore)
     })
 })
 

@@ -20,13 +20,17 @@ export interface GrapherConfigValidationIssue {
     message: string
 }
 
+export type GrapherConfigIngestResult =
+    | { isValid: true; config: GrapherInterface }
+    | { isValid: false; issues: GrapherConfigValidationIssue[] }
+
 const ajv = new Ajv({ allErrors: true, strict: true })
 addFormats(ajv)
 const validateAgainstSchema = ajv.compile(readLatestGrapherSchema())
 
 export class GrapherConfigValidationError extends JsonError {
     constructor(public readonly issues: GrapherConfigValidationIssue[]) {
-        super(buildValidationErrorMessage(issues), 400)
+        super(formatGrapherConfigIssues(issues), 400)
     }
 }
 
@@ -36,45 +40,67 @@ export function assertValidGrapherConfig(config: UntypedGrapherConfig): void {
     if (issues.length > 0) throw new GrapherConfigValidationError(issues)
 }
 
-export function ingestGrapherConfig(
-    config: UntypedGrapherConfig
-): GrapherInterface {
-    if (!_.isPlainObject(config))
-        throw new GrapherConfigValidationError([
-            { pointer: "", message: "must be object" },
-        ])
+/** Migrates a config to the latest schema and validates it */
+export function tryIngestGrapherConfig(
+    config: unknown
+): GrapherConfigIngestResult {
+    if (!isPlainObjectConfig(config))
+        return {
+            isValid: false,
+            issues: [{ pointer: "", message: "must be object" }],
+        }
 
     // rejected before migrating, which reports an unknown version as a stale reader
     const version = getSchemaVersion(config)
     if (version === null)
-        throw new GrapherConfigValidationError([
-            {
-                pointer: "/$schema",
-                message:
-                    config.$schema === undefined
-                        ? `must have a $schema; expected ${defaultGrapherConfig.$schema}`
-                        : `unknown schema version ${config.$schema}; expected ${defaultGrapherConfig.$schema}`,
-            },
-        ])
+        return {
+            isValid: false,
+            issues: [
+                {
+                    pointer: "/$schema",
+                    message:
+                        config.$schema === undefined
+                            ? `must have a $schema; expected ${defaultGrapherConfig.$schema}`
+                            : `unknown schema version ${config.$schema}; expected ${defaultGrapherConfig.$schema}`,
+                },
+            ],
+        }
 
     let migrated: GrapherInterface
     try {
         migrated = migrateGrapherConfigToLatestVersion(config)
     } catch (error) {
         const reason = error instanceof Error ? error.message : String(error)
-        throw new GrapherConfigValidationError([
-            {
-                pointer: "",
-                message: `could not be migrated from schema version ${version}: ${reason}`,
-            },
-        ])
+        return {
+            isValid: false,
+            issues: [
+                {
+                    pointer: "",
+                    message: `could not be migrated from schema version ${version}: ${reason}`,
+                },
+            ],
+        }
     }
 
     migrated.$schema = defaultGrapherConfig.$schema
 
     const issues = validateGrapherConfig(migrated)
-    if (issues.length > 0) throw new GrapherConfigValidationError(issues)
-    return migrated
+    if (issues.length > 0) return { isValid: false, issues }
+    return { isValid: true, config: migrated }
+}
+
+/** Migrates a config to the latest schema and validates it, throwing on rejection */
+export function ingestGrapherConfig(
+    config: UntypedGrapherConfig
+): GrapherInterface {
+    const ingestResult = tryIngestGrapherConfig(config)
+    if (!ingestResult.isValid)
+        throw new GrapherConfigValidationError(ingestResult.issues)
+    return ingestResult.config
+}
+
+function isPlainObjectConfig(value: unknown): value is UntypedGrapherConfig {
+    return _.isPlainObject(value)
 }
 
 function validateGrapherConfig(
@@ -106,7 +132,7 @@ function pointerForError(error: ErrorObject): string {
     return error.instancePath
 }
 
-function buildValidationErrorMessage(
+export function formatGrapherConfigIssues(
     issues: GrapherConfigValidationIssue[]
 ): string {
     const lines = issues.map(
