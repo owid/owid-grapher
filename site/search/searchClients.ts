@@ -71,6 +71,38 @@ export const getLiteSearchClient = (): LiteClient => {
     return liteSearchClient
 }
 
+let directLiteSearchClient: LiteClient | null = null
+
+/**
+ * A search client that always talks to Algolia directly, never to the
+ * cached-queries proxy — opt-in, additive, and leaving `getLiteSearchClient`
+ * (and therefore /search, the autocomplete panel, /latest and the
+ * featured-metrics block) on the proxy exactly as before.
+ *
+ * For a caller that issues *both* empty-query and typed-query searches and
+ * then compares the two result sets, the proxy is not transparent: only the
+ * empty-query half is routed through it (`shouldUseCachedQueriesEndpoint`
+ * above), and the proxy answers with `env.ALGOLIA_SEARCH_KEY` /
+ * `env.ALGOLIA_ID` as bound to the Cloudflare Pages *project*, which on branch
+ * previews is not the Algolia application whose credentials the staging build
+ * baked into this bundle. The two halves then come from two different Algolia
+ * applications, i.e. two separately-built indices: measured on the CO₂ topic,
+ * the empty-query half returned 249 records (54 of them `explorerView`, and
+ * with a different ranking of the `chart` records they share) where the typed
+ * half returned 196. A block whose default list and typed list must be the
+ * same list — see AllChartsBlock, which pins its search results to the order
+ * of its unfiltered result set — needs both halves answered by one index, so
+ * it takes this client and forgoes the caching.
+ */
+export const getDirectLiteSearchClient = (): LiteClient => {
+    if (!directLiteSearchClient) {
+        directLiteSearchClient = liteClient(ALGOLIA_ID, ALGOLIA_SEARCH_KEY, {
+            requester: createFetchRequester(),
+        })
+    }
+    return directLiteSearchClient
+}
+
 let autocompleteSearchClient: LiteClient | null = null
 
 /**

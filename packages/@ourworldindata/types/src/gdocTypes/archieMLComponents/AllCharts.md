@@ -32,6 +32,10 @@ url: https://ourworldindata.org/grapher/homelessness-rate-flow-count
   charts appear first, in the order given, ahead of the admin-pinned key
   charts. Omitted, the admin's key-chart ordering is used unchanged; an
   entry that isn't a `url:` line drops the block.
+- `suggested`: Search terms offered as a "Suggested:" line of links under the
+  block's search input, authored as one `suggested:` line per term. Clicking
+  one runs it as a search of this topic's charts. Omitted, the block offers
+  terms drawn from the topic's own search vocabulary instead.
 
 ## Notes
 
