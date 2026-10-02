@@ -13,6 +13,7 @@ import {
     Tooltip,
 } from "antd"
 import { AdminLayout } from "./AdminLayout.js"
+import { useSearchQueryParam } from "./adminTableHelpers.js"
 import { AdminAppContext } from "./AdminAppContext.js"
 import {
     DbPlainFeaturedMetric,
@@ -587,7 +588,7 @@ function useUpdateBoost() {
 type UpdateBoostMutation = ReturnType<typeof useUpdateBoost>
 
 export function FeaturedMetricsPage() {
-    const [search, setSearch] = useState("")
+    const [search, setSearch] = useSearchQueryParam()
 
     const featuredMetrics = useFeaturedMetrics()
     const addFeaturedMetric = useAddFeaturedMetric()

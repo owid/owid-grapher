@@ -46,6 +46,9 @@ import { RcFile } from "antd/es/upload/interface.js"
 import { CLOUDFLARE_IMAGES_URL } from "../settings/clientSettings.mjs"
 import { NotificationInstance } from "antd/es/notification/interface.js"
 import { EditableTextarea } from "./EditableTextarea.js"
+import { makeSearchFilter, SearchField } from "../adminShared/searchFilter.js"
+import { useSearchQueryParam } from "./adminTableHelpers.js"
+import { SearchHelp } from "./AdminTable.js"
 
 type ImageMap = Record<string, DbEnrichedImageWithPageviews>
 
@@ -316,6 +319,27 @@ function Filename({
         </>
     )
 }
+
+const SEARCH_FIELDS: SearchField<DbEnrichedImageWithPageviews>[] = [
+    {
+        name: "filename",
+        type: "string",
+        description: "Filename",
+        get: (image) => image.filename,
+    },
+    {
+        name: "alt",
+        type: "string",
+        description: "Default alt text",
+        get: (image) => image.defaultAlt,
+    },
+    {
+        name: "updated",
+        type: "date",
+        description: "When it was last updated",
+        get: (image) => image.updatedAt,
+    },
+]
 
 function createColumns({
     api,
@@ -716,7 +740,7 @@ export function ImageIndexPage() {
     const [images, setImages] = useState<ImageMap>({})
     const [users, setUsers] = useState<UserMap>({})
     const [usage, setUsage] = useState<Record<string, UsageInfo[]>>({})
-    const [filenameSearchValue, setFilenameSearchValue] = useState("")
+    const [filenameSearchValue, setFilenameSearchValue] = useSearchQueryParam()
     const [imageTypeFilter, setImageTypeFilter] =
         useState<ImageTypeFilter>("all")
 
@@ -846,19 +870,18 @@ export function ImageIndexPage() {
         [admin, notificationApi]
     )
 
-    const filteredImages = useMemo(
-        () =>
-            Object.values(images).filter((image) => {
-                const matchesFilename = image.filename
-                    .toLowerCase()
-                    .includes(filenameSearchValue.toLowerCase())
-                const matchesType =
-                    imageTypeFilter === "all" ||
-                    getImageType(image) === imageTypeFilter
-                return matchesFilename && matchesType
-            }),
-        [images, filenameSearchValue, imageTypeFilter]
-    )
+    const filteredImages = useMemo(() => {
+        const matchesSearch = makeSearchFilter(
+            filenameSearchValue,
+            SEARCH_FIELDS
+        )
+        return Object.values(images).filter(
+            (image) =>
+                matchesSearch(image) &&
+                (imageTypeFilter === "all" ||
+                    getImageType(image) === imageTypeFilter)
+        )
+    }, [images, filenameSearchValue, imageTypeFilter])
 
     const columns = useMemo(
         () => createColumns({ api, users, usage, notificationApi }),
@@ -886,6 +909,7 @@ export function ImageIndexPage() {
                                 }
                                 style={{ width: 300, marginBottom: 20 }}
                             />
+                            <SearchHelp fields={SEARCH_FIELDS} />
                             <Select
                                 value={imageTypeFilter}
                                 onChange={setImageTypeFilter}
