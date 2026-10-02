@@ -939,6 +939,7 @@ export class BindAutoString<
         this.props.store[this.props.field] = (
             value ? undefined : this.props.auto
         ) as any
+        this.props.onDebouncedChange?.()
     }
 
     @action.bound onBlur() {
