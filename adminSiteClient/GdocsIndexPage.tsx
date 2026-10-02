@@ -236,19 +236,18 @@ export function GdocsIndexPage(props: RouteComponentProps): React.ReactElement {
                     <button
                         className="btn btn-secondary text-nowrap"
                         onClick={() =>
-                            props.history.push(`${props.match.path}/new/edit`)
+                            props.history.push(`${props.match.path}/add`)
                         }
                     >
-                        <FontAwesomeIcon icon={faCirclePlus} /> New native draft
-                        (beta)
+                        <FontAwesomeIcon icon={faCirclePlus} /> Add Google Doc
                     </button>
                     <button
                         className="btn btn-primary text-nowrap"
                         onClick={() =>
-                            props.history.push(`${props.match.path}/add`)
+                            props.history.push(`${props.match.path}/new/edit`)
                         }
                     >
-                        <FontAwesomeIcon icon={faCirclePlus} /> Add document
+                        <FontAwesomeIcon icon={faCirclePlus} /> New data insight
                     </button>
                 </div>
 
