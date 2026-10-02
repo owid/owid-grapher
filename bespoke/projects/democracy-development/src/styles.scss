@@ -1,0 +1,814 @@
+// "How democracy relates to development". Everything below follows grapher's own conventions:
+// controls/Controls.scss for the menu toggles, entitySelector/EntitySelector.scss for the country
+// picker, controls/SettingsMenu.scss + components/LabeledSwitch for the settings, the scatter
+// chart's facet conventions for the panels, ScatterSizeLegend for the bubble sizes.
+
+.democracy-development {
+    font-family: $sans-serif-font-stack;
+    color: $dark-text;
+    font-size: 16px;
+    line-height: 1.4;
+    -webkit-font-smoothing: antialiased;
+
+    * {
+        box-sizing: border-box;
+    }
+
+    button {
+        font-family: inherit;
+    }
+
+    button:focus-visible,
+    input:focus-visible {
+        outline: 2px solid $blue-30;
+        outline-offset: 1px;
+    }
+}
+
+// Fit to the screen: the frame is drawn scaled about its top centre; the wrapper reserves only the
+// scaled height, so nothing scrolls.
+.democracy-development__fit {
+    transform-origin: top center;
+}
+
+.dd-chart-box {
+    min-height: 600px;
+}
+
+.dd-title-time {
+    font-weight: 600;
+}
+
+.chart-header .chart-header__subtitle {
+    max-width: 72ch;
+}
+
+// ---- Controls row ----
+.dd-controls {
+    margin-bottom: 12px;
+}
+
+.dd-index-dropdown .grapher-dropdown {
+    min-width: 250px;
+}
+
+.dd-popover-anchor {
+    position: relative;
+
+    &--right .dd-settings-popover {
+        right: 0;
+    }
+}
+
+// Grapher's `nav.controlsRow .controls button.menu-toggle`
+.dd-menu-toggle {
+    font: 400 13px/16px $sans-serif-font-stack;
+    letter-spacing: 0.01em;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid $gray-20;
+    border-radius: 4px;
+    height: 32px;
+    padding: 7px 9px;
+    color: $dark-text;
+    background: white;
+    white-space: nowrap;
+    cursor: pointer;
+
+    &:hover {
+        background: $gray-10;
+    }
+
+    &.active,
+    &:active {
+        color: $active-text;
+        background: $blue-20;
+        border-color: $blue-20;
+    }
+
+    svg {
+        height: 12px;
+        width: 12px;
+    }
+
+    &__count {
+        background: $blue-20;
+        color: $active-text;
+        border-radius: 10px;
+        padding: 0 6px;
+        font-size: 11px;
+        font-weight: 700;
+        line-height: 16px;
+    }
+
+    &.active &__count {
+        background: white;
+    }
+}
+
+// ---- Country picker: grapher's EntitySelector + SearchField ----
+.dd-entity-selector {
+    position: absolute;
+    left: 0;
+    top: 100%;
+    z-index: 140;
+    margin-top: 3px;
+    width: 340px;
+    max-width: calc(100vw - 32px);
+    max-height: 460px;
+    display: flex;
+    flex-direction: column;
+    background: white;
+    border-radius: 4px;
+    box-shadow: 0 4px 40px rgba(0, 0, 0, 0.15);
+    color: $dark-text;
+    padding-top: 12px;
+
+    &__search {
+        padding: 0 16px 8px;
+    }
+
+    &__content {
+        overflow-y: auto;
+        margin: 0 16px 8px;
+        flex: 1 1 auto;
+    }
+
+    &__empty {
+        color: $light-text;
+        font-size: 13px;
+        padding: 12px 16px 16px;
+        font-style: italic;
+    }
+
+    &__hint {
+        padding: 8px 16px 12px;
+        color: $light-text;
+        font-size: 11px;
+        border-top: 1px solid $gray-10;
+    }
+}
+
+.dd-search-field {
+    position: relative;
+
+    &__icon {
+        position: absolute;
+        top: 50%;
+        left: 8px;
+        transform: translateY(-50%);
+        width: 12px;
+        height: 12px;
+        color: $light-text;
+    }
+
+    input[type="search"] {
+        font: 400 13px/1.2 $sans-serif-font-stack;
+        letter-spacing: 0.01em;
+        width: 100%;
+        height: 32px;
+        border: 1px solid $gray-20;
+        padding: 0 24px;
+        border-radius: 4px;
+        background: white;
+        color: $dark-text;
+        -webkit-appearance: none;
+        appearance: none;
+
+        &::placeholder {
+            color: $gray-60;
+        }
+
+        &:focus {
+            outline: none;
+            border-color: $blue-30;
+        }
+
+        &::-webkit-search-cancel-button {
+            -webkit-appearance: none;
+        }
+    }
+
+    &__clear {
+        position: absolute;
+        top: 50%;
+        right: 8px;
+        transform: translateY(-50%);
+        width: 12px;
+        height: 12px;
+        padding: 0;
+        border: none;
+        background: none;
+        color: $dark-text;
+        cursor: pointer;
+        display: grid;
+        place-content: center;
+
+        svg {
+            width: 12px;
+            height: 12px;
+        }
+    }
+}
+
+.dd-entity-section {
+    & + & {
+        margin-top: 16px;
+    }
+
+    &__header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 8px;
+    }
+
+    &__title {
+        font: italic 400 13px/1.3846 $sans-serif-font-stack;
+        letter-spacing: 0.01em;
+        color: $light-text;
+    }
+
+    &__header button {
+        background: none;
+        border: none;
+        color: $dark-text;
+        font: 500 13px/1.2 $sans-serif-font-stack;
+        letter-spacing: 0.01em;
+        text-decoration: underline;
+        text-underline-offset: 3px;
+        cursor: pointer;
+        padding: 0;
+
+        &:hover {
+            text-decoration: none;
+        }
+    }
+
+    ul {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+}
+
+.dd-selectable-entity {
+    display: flex;
+    justify-content: space-between;
+    border-top: 1px solid $gray-10;
+
+    li:last-of-type > & {
+        border-bottom: 1px solid $gray-10;
+    }
+
+    &:hover {
+        background: rgba(219, 229, 240, 0.4);
+    }
+
+    .checkbox {
+        flex: 1 1 auto;
+        min-width: 0;
+
+        label {
+            display: block;
+            width: 100%;
+            padding: 9px 8px 9px 16px;
+            cursor: pointer;
+            position: relative;
+        }
+
+        input,
+        .custom {
+            left: 16px;
+            top: 9px;
+        }
+
+        .label {
+            font: 400 13px/1.2 $sans-serif-font-stack;
+            letter-spacing: 0.01em;
+            padding-left: 24px;
+            color: $dark-text;
+            user-select: none;
+        }
+    }
+
+    &__swatch {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        margin-right: 6px;
+        vertical-align: 1px;
+    }
+
+    &__value {
+        color: $gray-70;
+        white-space: nowrap;
+        margin-left: 12px;
+        padding: 9px 8px 0 0;
+        font-size: 12px;
+    }
+
+    &--muted {
+        opacity: 0.4;
+
+        .checkbox label,
+        .checkbox input {
+            cursor: default;
+        }
+    }
+}
+
+// ---- Settings: grapher's SettingsMenu popover ----
+.dd-settings-popover {
+    position: absolute;
+    top: 100%;
+    margin-top: 3px;
+    width: 300px;
+    max-width: calc(100vw - 32px);
+    background: white;
+    border-radius: 4px;
+    box-shadow:
+        0 4px 23px 4px rgba(0, 0, 0, 0.06),
+        0 0 0 1px $gray-10;
+    z-index: 140;
+    color: $light-text;
+    font: 400 14px/1.2 $sans-serif-font-stack;
+
+    &__header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 15px 3px;
+    }
+
+    // grapher_h5-black-caps
+    &__title {
+        font-size: 12px;
+        font-weight: 900;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: $light-text;
+    }
+
+    &__close {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        border: 1px solid $gray-20;
+        background: white;
+        display: grid;
+        place-content: center;
+        cursor: pointer;
+        color: $dark-text;
+
+        svg {
+            width: 12px;
+            height: 12px;
+        }
+
+        &:hover {
+            background: $gray-10;
+        }
+    }
+
+    &__content section {
+        padding: 1em 0;
+        margin: 0 15px;
+
+        & + section {
+            border-top: 1px solid $gray-20;
+        }
+    }
+
+    &__name {
+        font: 700 14px/1.2 $sans-serif-font-stack;
+        color: $dark-text;
+    }
+
+    &__subtitle {
+        font-size: 13px;
+        margin: 5px 0;
+    }
+
+    .labeled-switch {
+        margin: 14px 0 0;
+    }
+}
+
+// ---- Continent legend: HorizontalCategoricalColorLegend (rectSize 12, font 12.8) ----
+.dd-legend {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 6px 14px;
+    margin: 4px 0 8px;
+    font-size: 12.8px;
+    color: $dark-text;
+
+    &__item {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        background: none;
+        border: none;
+        padding: 2px 0;
+        color: inherit;
+        font: inherit;
+        cursor: pointer;
+        border-radius: 2px;
+
+        &:hover {
+            text-decoration: underline;
+            text-decoration-color: $gray-50;
+        }
+
+        &.is-muted {
+            color: $gray-60;
+
+            .dd-legend__swatch {
+                background: #e2e2e2 !important;
+            }
+        }
+    }
+
+    &__swatch {
+        width: 12px;
+        height: 12px;
+        display: inline-block;
+        box-shadow: inset 0 0 0 0.4px rgba(0, 0, 0, 0.35);
+    }
+}
+
+// The last item of the legend row, pushed to its right end and bottom-aligned with the swatches, so
+// the largest circle rises within the row rather than below it.
+.dd-size-legend {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: flex-end;
+    gap: 8px;
+    color: $light-text;
+    font-size: 11px;
+    line-height: 1;
+    padding-bottom: 1px;
+
+    &__title {
+        padding-bottom: 3px;
+    }
+
+    svg {
+        display: block;
+        overflow: visible;
+
+        text {
+            font-size: 10px;
+            fill: #444;
+        }
+    }
+}
+
+// ---- Panels ----
+.dd-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px 20px;
+}
+
+@container (max-width: 640px) {
+    .dd-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+.democracy-development__frame {
+    container-type: inline-size;
+}
+
+.dd-panel {
+    position: relative;
+    min-width: 0;
+
+    // FACET_LABEL_FONT_WEIGHT
+    &__title {
+        font-size: 14px;
+        font-weight: 700;
+        color: $dark-text;
+        line-height: 1.25;
+        margin: 0;
+    }
+
+    // Two lines, so the four plots start level
+    &__unit {
+        font-size: 12px;
+        color: $light-text;
+        line-height: 1.25;
+        margin: 0 0 4px;
+        min-height: 30px;
+    }
+
+    &__svg {
+        display: block;
+        width: 100%;
+        height: auto;
+        overflow: visible;
+        font-family: $sans-serif-font-stack;
+
+        text {
+            fill: $dark-text;
+            font-size: 12px;
+        }
+
+        circle {
+            transition: r 0.1s;
+        }
+    }
+
+    &__wedge-label {
+        letter-spacing: 0;
+        pointer-events: none;
+    }
+
+    // SCATTER_LABEL_DEFAULT_FONT_SIZE, with a halo
+    &__point-label {
+        font-size: 10.5px;
+        paint-order: stroke;
+        stroke: white;
+        stroke-width: 2.5px;
+        stroke-linejoin: round;
+        pointer-events: none;
+    }
+
+    &__no-data {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 50%;
+        text-align: center;
+        color: $light-text;
+        font-size: 14px;
+        pointer-events: none;
+    }
+
+    &__no-data-section {
+        position: absolute;
+        right: 8px;
+        top: 44px;
+        text-align: right;
+        color: $light-text;
+        font-size: 12px;
+        pointer-events: none;
+        max-width: 45%;
+
+        ul {
+            margin: 2px 0 0;
+            padding: 0;
+            list-style: none;
+        }
+    }
+
+    &__no-data-heading {
+        font-size: 11px;
+        font-weight: 700;
+    }
+}
+
+// Axis.ts label fontWeight 700
+.dd-x-axis-label {
+    text-align: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: $dark-text;
+    margin: 6px 0 10px;
+}
+
+// ---- Timeline ----
+.dd-timeline {
+    display: flex;
+    align-items: center;
+    margin-top: 8px;
+
+    .time-slider {
+        flex: 1 1 auto;
+    }
+
+    &__play {
+        margin-right: 7px;
+        width: 26px;
+        height: 32px;
+        display: grid;
+        place-content: center;
+        background: none;
+        border: none;
+        color: $dark-text;
+        cursor: pointer;
+        border-radius: 4px;
+        flex: 0 0 auto;
+
+        &:hover {
+            background: $gray-10;
+        }
+
+        svg {
+            width: 12px;
+            height: 12px;
+        }
+    }
+}
+
+// ---- Tooltip: grapher's tooltip/Tooltip.scss, which only applies inside .GrapherComponent, ported ----
+.dd-tooltip {
+    position: absolute;
+    z-index: 20;
+    pointer-events: none;
+
+    &.fixed-bottom {
+        position: fixed;
+        left: 50%;
+        bottom: 4px;
+        width: calc(100% - 8px);
+        max-width: 400px;
+        transform: translateX(-50%);
+
+        .Tooltip {
+            pointer-events: auto;
+        }
+    }
+
+    .Tooltip {
+        border-radius: 4px;
+        border: 1px solid $gray-20;
+        box-shadow: 0 4px 40px rgba(0, 0, 0, 0.2);
+        background: white;
+        text-align: left;
+        font-family: $sans-serif-font-stack;
+        font-size: 16px;
+        max-width: 400px;
+        min-width: 220px;
+        color: #2d2d2d;
+
+        p {
+            margin: 0;
+        }
+
+        .frontmatter {
+            background: #f0f0f0;
+            color: #000;
+            padding: 8px 12px;
+            border-radius: 3px 3px 0 0;
+
+            .title {
+                font-size: 14px;
+                font-weight: 700;
+                line-height: 1.125em;
+
+                .annotation {
+                    font-weight: 400;
+                    color: #787878;
+                    font-size: 0.9em;
+                    margin-left: 4px;
+                }
+            }
+
+            .subtitle {
+                margin: 4px 0 2px;
+                font-size: 12px;
+                font-weight: 400;
+                letter-spacing: 0.01em;
+            }
+        }
+
+        .content {
+            padding: 8px 12px;
+        }
+
+        .variable {
+            .definition {
+                color: $gray-70;
+                font-size: 12px;
+                line-height: 15px;
+                letter-spacing: 0.01em;
+                font-weight: 700;
+
+                .unit {
+                    font-weight: 400;
+                    margin-left: 0.25em;
+
+                    &::before {
+                        content: "(";
+                    }
+
+                    &::after {
+                        content: ")";
+                    }
+                }
+            }
+
+            .values {
+                display: flex;
+                align-items: baseline;
+                justify-content: space-between;
+                color: #2d2d2d;
+                padding: 2px 0;
+                line-height: 21px;
+                font-size: 18px;
+                font-weight: 700;
+                gap: 12px;
+
+                .term.no-data {
+                    color: #999;
+                    font-weight: 400;
+                    font-size: 14px;
+                }
+
+                .time-notice {
+                    font-weight: 400;
+                    font-size: 14px;
+                    color: #787878;
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 5px;
+                    white-space: nowrap;
+
+                    svg {
+                        width: 13px;
+                        height: 13px;
+                    }
+                }
+            }
+
+            & + .variable {
+                margin-top: 4px;
+                padding-top: 8px;
+                border-top: 1px solid $gray-30;
+            }
+        }
+
+        table.series-list {
+            color: #2d2d2d;
+            font-size: 14px;
+            line-height: 22px;
+            font-weight: 400;
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 6px;
+            padding-top: 6px;
+            border-top: 1px solid $gray-30;
+
+            td {
+                vertical-align: baseline;
+                padding: 0;
+            }
+
+            td.series-name {
+                padding-right: 0.9em;
+                line-height: 16px;
+                width: 100%;
+                color: $gray-70;
+                font-size: 12px;
+                letter-spacing: 0.01em;
+                padding-top: 3px;
+            }
+
+            td.series-value {
+                font-weight: 700;
+                text-align: right;
+                white-space: nowrap;
+
+                &.missing {
+                    color: $gray-30;
+                    font-weight: 400;
+                }
+
+                .yr {
+                    color: #787878;
+                    font-weight: 400;
+                    font-size: 12px;
+                    margin-left: 4px;
+                }
+            }
+        }
+
+        .endmatter {
+            color: #787878;
+            padding: 4px 12px;
+            border-top: 1px solid $gray-30;
+            font-size: 12px;
+            line-height: 15px;
+
+            .line {
+                margin: 4px 0;
+                display: flex;
+                gap: 6px;
+                align-items: flex-start;
+
+                svg {
+                    width: 12px;
+                    height: 12px;
+                    flex-shrink: 0;
+                    margin-top: 1px;
+                }
+            }
+        }
+    }
+}

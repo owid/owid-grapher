@@ -9,6 +9,11 @@ export const BESPOKE_COMPONENT_REGISTRY: Record<
         dataUrl: "ihme_gbd/latest/gbd_treemap_json",
         metadataFilename: "causes-of-death.metadata.json",
     },
+    "democracy-development": {
+        scriptUrl: "/democracy-development/index.js",
+        dataUrl: "democracy/latest/democracy_development",
+        metadataFilename: "democracy-development.metadata.json",
+    },
     demography: {
         scriptUrl: "/demography/index.js",
         dataUrl: "un_wpp/latest/demography",
