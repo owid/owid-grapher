@@ -1,0 +1,22 @@
+.deforestation-chart--narrow .deforestation-controls {
+    border: none;
+    padding: 0;
+}
+
+.deforestation-chart--narrow .deforestation-controls .controls__row {
+    flex-direction: column;
+}
+
+.deforestation-chart--narrow .deforestation-controls .controls__row > * {
+    flex: 0 0 auto;
+    width: 100%;
+}
+
+.deforestation-chart--narrow .deforestation-captioned-chart {
+    border: none;
+    padding: 8px 0 0;
+}
+
+.deforestation-chart .tooltip-container.fixed-bottom .content-and-endmatter {
+    max-height: min(230px, 35vh);
+}
