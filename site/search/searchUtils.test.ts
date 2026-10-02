@@ -8,6 +8,7 @@ import {
     createTopicFilter,
     extractFiltersFromQuery,
     createCountryFilter,
+    isSuggestableCountry,
 } from "./searchUtils"
 
 import { FilterType, SynonymMap } from "@ourworldindata/types"
@@ -764,6 +765,75 @@ describe("Fuzzy search in search autocomplete", () => {
             expect(result.suggestions).toHaveLength(1) // Only the query filter
             expect(result.suggestions[0].type).toBe(FilterType.QUERY)
             expect(result.unmatchedQuery).toBe("nonexistenttopic")
+        })
+    })
+})
+
+describe("country suggestions", () => {
+    const regions = listedRegionsNames()
+    const matchedNames = (query: string) =>
+        extractFiltersFromQuery(
+            query,
+            regions,
+            [],
+            [],
+            { threshold: 0.75, limit: 1 },
+            new Map() as SynonymMap
+        )
+    const suggest = (query: string) =>
+        matchedNames(query)
+            .filter(isSuggestableCountry)
+            .map((filter) => filter.name)
+
+    describe("historical regions are matchable but not suggestable", () => {
+        it.each([
+            "Yemen People's Republic",
+            "Orange Free State",
+            "Great Colombia",
+            "East Germany",
+        ])("%s is not suggestable", (name) => {
+            expect(regions).toContain(name)
+            expect(
+                isSuggestableCountry({
+                    ...createCountryFilter(name),
+                    score: 0.9,
+                })
+            ).toBe(false)
+        })
+
+        it.each(["Germany", "Yemen", "Poland", "Micronesia (country)"])(
+            "%s is suggestable",
+            (name) => {
+                expect(
+                    isSuggestableCountry({
+                        ...createCountryFilter(name),
+                        score: 0.9,
+                    })
+                ).toBe(true)
+            }
+        )
+
+        it("does not suggest a historical state matched inside a query", () => {
+            const query = "share of people who are undernourished"
+            expect(matchedNames(query).map((filter) => filter.name)).toContain(
+                "Yemen People's Republic"
+            )
+            expect(suggest(query)).toEqual([])
+        })
+    })
+
+    describe("parenthesised disambiguators are ignored", () => {
+        it.each([
+            "country",
+            "co2 emissions by country",
+            "income by country",
+            "country profile",
+        ])("does not suggest a country for %s", (query) => {
+            expect(suggest(query)).toEqual([])
+        })
+
+        it("still matches the name outside the parentheses", () => {
+            expect(suggest("micronesia")).toContain("Micronesia (country)")
         })
     })
 })

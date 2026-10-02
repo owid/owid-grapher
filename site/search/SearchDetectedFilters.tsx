@@ -4,8 +4,9 @@ import {
     buildFilterTestId,
     getFilterIcon,
     extractFiltersFromQuery,
+    isSuggestableCountry,
 } from "./searchUtils.js"
-import { FilterType, ScoredFilterPositioned } from "@ourworldindata/types"
+import { ScoredFilterPositioned } from "@ourworldindata/types"
 import { SearchFilterPill } from "./SearchFilterPill.js"
 
 /**
@@ -24,6 +25,7 @@ export const SearchDetectedFilters = ({
         state: { filters, query },
         actions: { replaceQueryWithFilter },
         synonymMap,
+        analytics,
     } = useSearchContext()
 
     // Manual filter suggestions are parsed independently to give shorter exact
@@ -39,16 +41,20 @@ export const SearchDetectedFilters = ({
             { threshold: 0.75, limit: 1 },
             synonymMap
         )
-        // Only show non-exact country matches as suggestions
-        return matches.filter((match) => match.type === FilterType.COUNTRY)
+        return matches.filter(isSuggestableCountry)
     }, [query, eligibleRegionNames, filters, synonymMap])
 
     const handleFilterClick = useCallback(
         (filter: ScoredFilterPositioned) => {
+            analytics.logSearchDetectedFilterClick({
+                query,
+                filterName: filter.name,
+                filterType: filter.type,
+            })
             // Apply the filter with positions information to handle word removal
             replaceQueryWithFilter(filter)
         },
-        [replaceQueryWithFilter]
+        [replaceQueryWithFilter, analytics, query]
     )
 
     if (!manualFilters.length) return null
