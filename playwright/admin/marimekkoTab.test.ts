@@ -88,24 +88,17 @@ test.describe("Override X axis target year", () => {
         }).toPass()
     })
 
-    // Bug: unlike the Scatter tab, the Marimekko tab sets the target year
-    // without reloading the chart's data. The x column is keyed by indicator
-    // id and target year, so the preview loses its x column and renders an
-    // empty chart instead of one labelled "Population in 2010".
-    test.fail(
-        "entering a year updates the preview's x-axis",
-        async ({ seedChart, openEditor }) => {
-            const editor = await openEditor(await seedChart(marimekko))
-            await editor.openTab("Marimekko")
+    test("entering a year updates the preview's x-axis", async ({
+        seedChart,
+        openEditor,
+    }) => {
+        const editor = await openEditor(await seedChart(marimekko))
+        await editor.openTab("Marimekko")
 
-            await editor.fill(
-                editor.field("Override X axis target year"),
-                "2010"
-            )
+        await editor.fill(editor.field("Override X axis target year"), "2010")
 
-            await expect(editor.preview).toContainText("Population in 2010")
-        }
-    )
+        await expect(editor.preview).toContainText("Population in 2010")
+    })
 })
 
 test.describe("Exclude entities that do not belong in any color group", () => {

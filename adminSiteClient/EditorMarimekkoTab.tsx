@@ -1,36 +1,42 @@
 import { GrapherState } from "@ourworldindata/grapher"
 import * as lodash from "lodash-es"
-import {
-    action,
-    IReactionDisposer,
-    observable,
-    reaction,
-    makeObservable,
-} from "mobx"
+import { action, computed, observable, reaction, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { Component } from "react"
 import { NumberField, Section, Toggle } from "./Forms.js"
+import { AbstractChartEditor } from "./AbstractChartEditor.js"
 
 @observer
-export class EditorMarimekkoTab extends Component<{
-    grapherState: GrapherState
+export class EditorMarimekkoTab<
+    Editor extends AbstractChartEditor,
+> extends Component<{
+    editor: Editor
 }> {
     xOverrideTimeInputField: number | undefined
-    constructor(props: { grapherState: GrapherState }) {
+    constructor(props: { editor: Editor }) {
         super(props)
 
         makeObservable(this, {
             xOverrideTimeInputField: observable,
         })
-        this.xOverrideTimeInputField = props.grapherState.xOverrideTime
+        this.xOverrideTimeInputField = props.editor.grapherState.xOverrideTime
+    }
+
+    @computed get grapherState(): GrapherState {
+        return this.props.editor.grapherState
     }
 
     @action.bound onXOverrideYear(value: number | undefined) {
         this.xOverrideTimeInputField = value
     }
 
+    @action.bound async setXOverrideTime(xOverrideTime: number | undefined) {
+        this.grapherState.xOverrideTime = xOverrideTime
+        await this.props.editor.reloadGrapherData()
+    }
+
     override render() {
-        const { grapherState } = this.props
+        const { grapherState } = this
 
         return (
             <div className="EditorMarimekkoTab">
@@ -55,20 +61,19 @@ export class EditorMarimekkoTab extends Component<{
             </div>
         )
     }
-    dispose!: IReactionDisposer
+    disposers: (() => void)[] = []
     override componentDidMount() {
-        this.dispose = reaction(
-            () => this.xOverrideTimeInputField,
-            lodash.debounce(
-                () =>
-                    (this.props.grapherState.xOverrideTime =
-                        this.xOverrideTimeInputField),
-                800
+        const debouncedSetValue = lodash.debounce(this.setXOverrideTime, 800)
+        this.disposers.push(() => debouncedSetValue.cancel())
+        this.disposers.push(
+            reaction(
+                () => this.xOverrideTimeInputField,
+                (xOverrideTime) => debouncedSetValue(xOverrideTime)
             )
         )
     }
 
     override componentWillUnmount() {
-        this.dispose()
+        this.disposers.forEach((dispose) => dispose())
     }
 }
