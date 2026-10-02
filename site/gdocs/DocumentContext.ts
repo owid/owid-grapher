@@ -17,3 +17,14 @@ export const DocumentContext = createContext<{
 export function useDocumentContext() {
     return useContext(DocumentContext)
 }
+
+/** The URL of the versions file, on live pages and on archive pages */
+export function useVersionsFileUrl(): string | undefined {
+    const { archiveContext } = useDocumentContext()
+    return (
+        archiveContext?.versionsFileUrl ??
+        (archiveContext?.type === "archive-page"
+            ? archiveContext.archiveNavigation.versionsFileUrl
+            : undefined)
+    )
+}

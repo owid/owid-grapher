@@ -77,6 +77,19 @@
     }
 }
 
+.linear-topic-page-header__cta-buttons {
+    align-self: end;
+    margin: 0;
+
+    @include lg-down {
+        margin-top: 8px;
+    }
+
+    a {
+        white-space: nowrap;
+    }
+}
+
 .article-block__topic-page-intro {
     margin-top: 48px;
 
