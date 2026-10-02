@@ -14,8 +14,7 @@ import {
     GRAPHER_DB_NAME,
     GRAPHER_DB_PORT,
 } from "../../settings/serverSettings.js"
-import { parseChartConfig } from "@ourworldindata/types"
-
+import { parseChartConfig } from "../../db/model/ChartConfigs.js"
 type ConfigOwner = "chart" | "indicator" | "narrativeChart" | "multiDim"
 type ConfigRole = "patch" | "full"
 
@@ -226,7 +225,8 @@ function processRow(
     const { owner, role } = indexed.reference
     increment(report.ownerRoleCounts, `${owner}/${role}`)
 
-    const config = parseChartConfig(row.config)
+    // The report validates the stored version, not a migrated config
+    const config = parseChartConfig(row.config, { skipMigration: true })
     try {
         ingestGrapherConfig(config)
     } catch (error) {

@@ -17,7 +17,6 @@ import {
     MultiDimDataPagesTableName,
     MultiDimXChartConfigsTableName,
     MultiDimViewDimensionsTableName,
-    parseChartConfig,
     R2GrapherConfigDirectory,
     View,
 } from "@ourworldindata/types"
@@ -28,6 +27,7 @@ import {
     getMdimViewConfigWithSchema,
     upsertMultiDimDataPage,
 } from "../db/model/MultiDimDataPage.js"
+import { parseChartConfig } from "../db/model/ChartConfigs.js"
 import {
     assertValidGrapherConfig,
     ingestGrapherConfig,

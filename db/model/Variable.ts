@@ -30,7 +30,6 @@ import {
     DatasetsTableName,
     DbRawChartConfig,
     DbPlainDatapage,
-    parseChartConfig,
     DbEnrichedChartConfig,
     DbEnrichedVariable,
     DbPlainChart,
@@ -43,7 +42,11 @@ import {
     parseVariableDisplayConfig,
 } from "@ourworldindata/types"
 import { knexRaw, knexRawFirst } from "../db.js"
-import { insertChartConfig, updateChartConfig } from "./ChartConfigs.js"
+import {
+    insertChartConfig,
+    parseChartConfig,
+    updateChartConfig,
+} from "./ChartConfigs.js"
 import { assertValidGrapherConfig } from "../grapherConfigValidation.js"
 import {
     buildMdimViewPatchConfig,
