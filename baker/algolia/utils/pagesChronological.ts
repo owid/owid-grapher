@@ -156,6 +156,12 @@ function buildVariantPayload(
                 if (g.linkedAuthors?.length) {
                     payload.linkedAuthors = g.linkedAuthors
                 }
+                if (
+                    g.content.authorRoles &&
+                    !R.isEmpty(g.content.authorRoles)
+                ) {
+                    payload.authorRoles = g.content.authorRoles
+                }
                 copyAttachmentsIfPresent(payload, g)
 
                 const filenames = new Set<string>(
@@ -215,6 +221,12 @@ function buildVariantPayload(
                 }
                 if (g.linkedAuthors?.length) {
                     payload.linkedAuthors = g.linkedAuthors
+                }
+                if (
+                    g.content.authorRoles &&
+                    !R.isEmpty(g.content.authorRoles)
+                ) {
+                    payload.authorRoles = g.content.authorRoles
                 }
 
                 const filenames = new Set<string>()

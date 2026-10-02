@@ -23,6 +23,7 @@ export default function StandalonePostBody({
     className,
     title,
     authors,
+    authorRoles,
     body,
     publishedAt,
     footer,
@@ -30,6 +31,7 @@ export default function StandalonePostBody({
     className?: string
     title: string
     authors: string[]
+    authorRoles?: Record<string, string>
     body: OwidEnrichedGdocBlock[]
     publishedAt: Date | string | null
     footer?: React.ReactNode
@@ -56,6 +58,7 @@ export default function StandalonePostBody({
                 <AvatarByline
                     className="standalone-post-body__authors"
                     authors={authors}
+                    authorRoles={authorRoles}
                 />
                 <div className="standalone-post-body__blocks">
                     <ArticleBlocks blocks={body} containerType="data-insight" />

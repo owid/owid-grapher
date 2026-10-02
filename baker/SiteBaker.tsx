@@ -230,8 +230,7 @@ export class SiteBaker {
                             profileTemplate.linkedChartSlugs.explorer,
                             profileTemplate.linkedNarrativeChartNames,
                             profileTemplate.linkedStaticVizNames,
-                        ],
-                        profileTemplate.content.authorRoles
+                        ]
                     )
 
                     profileTemplate.donors = attachments.donors
@@ -392,11 +391,7 @@ export class SiteBaker {
             string[],
             string[],
             string[],
-        ],
-        // Author roles are per-gdoc (e.g. "writing", "data work"), not global,
-        // so they can't be part of the shared prefetch cache. They need to be
-        // applied when filtering authors for a specific gdoc.
-        authorRoles?: Record<string, string>
+        ]
     ): Promise<PrefetchedAttachments> {
         if (!this._prefetchedAttachmentsCache) {
             this._prefetchedAttachmentsCache = await traceJob(
@@ -679,13 +674,10 @@ export class SiteBaker {
                     this._prefetchedAttachmentsCache.linkedIndicators,
                     linkedIndicatorIds
                 ),
-                linkedAuthors: this._prefetchedAttachmentsCache.linkedAuthors
-                    .filter((author) => authorNames.includes(author.name))
-                    .map((author) => {
-                        const role = authorRoles?.[author.name]
-                        if (role) return { ...author, role }
-                        return author
-                    }),
+                linkedAuthors:
+                    this._prefetchedAttachmentsCache.linkedAuthors.filter(
+                        (author) => authorNames.includes(author.name)
+                    ),
                 linkedNarrativeCharts: _.pick(
                     this._prefetchedAttachmentsCache.linkedNarrativeCharts,
                     linkedNarrativeChartNames
@@ -786,8 +778,7 @@ export class SiteBaker {
                             publishedGdoc.linkedChartSlugs.explorer,
                             publishedGdoc.linkedNarrativeChartNames,
                             publishedGdoc.linkedStaticVizNames,
-                        ],
-                        publishedGdoc.content.authorRoles
+                        ]
                     )
                     publishedGdoc.donors = attachments.donors
                     publishedGdoc.linkedAuthors = attachments.linkedAuthors
@@ -1114,8 +1105,7 @@ export class SiteBaker {
                             dataInsight.linkedChartSlugs.explorer,
                             dataInsight.linkedNarrativeChartNames,
                             dataInsight.linkedStaticVizNames,
-                        ],
-                        dataInsight.content.authorRoles
+                        ]
                     )
                     dataInsight.linkedDocuments = attachments.linkedDocuments
                     dataInsight.imageMetadata = {
@@ -1176,8 +1166,7 @@ export class SiteBaker {
                             publishedAuthor.linkedChartSlugs.explorer,
                             publishedAuthor.linkedNarrativeChartNames,
                             publishedAuthor.linkedStaticVizNames,
-                        ],
-                        publishedAuthor.content.authorRoles
+                        ]
                     )
 
                     // We don't need these to be attached to the gdoc in the current

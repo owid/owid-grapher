@@ -43,6 +43,7 @@ export const LatestDataInsightExpanded = ({
                     <AvatarByline
                         className="latest-data-insight-expanded__authors"
                         authors={hit.authors}
+                        authorRoles={hit.authorRoles}
                     />
                     {firstImage && (
                         <Image

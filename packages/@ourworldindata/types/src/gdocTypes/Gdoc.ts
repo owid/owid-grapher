@@ -48,7 +48,6 @@ export interface LinkedAuthor {
     slug: string
     featuredImage: string | null
     updatedAt: Date
-    role?: string
 }
 
 export enum ChartConfigType {
