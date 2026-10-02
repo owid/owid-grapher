@@ -4,8 +4,6 @@ import { ColumnTypeMap, OwidTable } from "@ourworldindata/core-table"
 import { Time } from "@ourworldindata/types"
 import { StackedSeries } from "./StackedConstants"
 import {
-    findLoneNegativeSeriesAtBottom,
-    stackSeries,
     stackSeriesInBothDirections,
     withMissingValuesAsZeroes,
     withPointsAtZeroLineCrossings,
@@ -89,14 +87,6 @@ describe(withMissingValuesAsZeroes, () => {
     })
 })
 
-describe(stackSeries, () => {
-    it("can stack series", () => {
-        const series = stackSeries(withMissingValuesAsZeroes(seriesArr))
-        expect(series[1].points[0].valueOffset).toEqual(10)
-        expect(series[2].points[0].valueOffset).toEqual(12)
-    })
-})
-
 describe(stackSeriesInBothDirections, () => {
     it("can stack positive values", () => {
         const series = stackSeriesInBothDirections(
@@ -147,50 +137,6 @@ const fossil = {
     ],
 }
 
-describe(findLoneNegativeSeriesAtBottom, () => {
-    it("returns the bottom series when only it goes negative", () => {
-        expect(
-            findLoneNegativeSeriesAtBottom([landUseCrossingZero, fossil])
-        ).toBe(landUseCrossingZero)
-    })
-
-    it("skips series that are all zeroes when looking for the bottom", () => {
-        expect(
-            findLoneNegativeSeriesAtBottom([
-                allZeros,
-                landUseCrossingZero,
-                fossil,
-            ])
-        ).toBe(landUseCrossingZero)
-    })
-
-    it("returns nothing when the bottom series is never negative", () => {
-        const landUse = {
-            ...landUseCrossingZero,
-            points: [
-                { position: 1990, time: 1990, value: 20, valueOffset: 0 },
-                { position: 2000, time: 2000, value: 10, valueOffset: 0 },
-            ],
-        }
-        expect(
-            findLoneNegativeSeriesAtBottom([landUse, fossil])
-        ).toBeUndefined()
-    })
-
-    it("returns nothing when a series above the bottom one is also negative", () => {
-        const alsoNegative = {
-            ...fossil,
-            points: [
-                { position: 1990, time: 1990, value: 100, valueOffset: 0 },
-                { position: 2000, time: 2000, value: -120, valueOffset: 0 },
-            ],
-        }
-        expect(
-            findLoneNegativeSeriesAtBottom([landUseCrossingZero, alsoNegative])
-        ).toBeUndefined()
-    })
-})
-
 describe(withPointsAtZeroLineCrossings, () => {
     const bandsOf = (series: StackedSeries<Time>): number[][] =>
         series.points.map((point) => [
@@ -215,7 +161,7 @@ describe(withPointsAtZeroLineCrossings, () => {
         ])
     })
 
-    it("takes the crossings from the bottom series that gets drawn", () => {
+    it("ignores a series that never leaves the zero line", () => {
         const series = withPointsAtZeroLineCrossings(
             stackSeriesInBothDirections([allZeros, landUseCrossingZero, fossil])
         )
@@ -246,18 +192,23 @@ describe(withPointsAtZeroLineCrossings, () => {
         ).toHaveLength(2)
     })
 
-    it("does nothing when a series above the bottom one is also negative", () => {
-        const input = [
-            landUseCrossingZero,
-            {
-                ...fossil,
-                points: [
-                    { position: 1990, time: 1990, value: 100, valueOffset: 0 },
-                    { position: 2000, time: 2000, value: -120, valueOffset: 0 },
-                ],
-            },
-        ]
-        expect(withPointsAtZeroLineCrossings(input)).toBe(input)
+    it("adds a point for every series that crosses, not just the bottom one", () => {
+        const alsoCrossing = {
+            ...fossil,
+            points: [
+                { position: 1990, time: 1990, value: -100, valueOffset: 0 },
+                { position: 2000, time: 2000, value: 300, valueOffset: 0 },
+            ],
+        }
+        const series = withPointsAtZeroLineCrossings(
+            stackSeriesInBothDirections([landUseCrossingZero, alsoCrossing])
+        )
+        expect(series[0].points.map((point) => point.position)).toEqual([
+            1990, 1992.5, 1995, 2000,
+        ])
+        expect(series[1].points.map((point) => point.position)).toEqual([
+            1990, 1992.5, 1995, 2000,
+        ])
     })
 
     it("does nothing when the negative series is the only one", () => {
