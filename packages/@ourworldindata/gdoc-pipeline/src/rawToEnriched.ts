@@ -1748,6 +1748,10 @@ export const parseLatestFeedExcerpt = (
         return parseText(block)
     })
 
+export const parseAcknowledgements = (
+    raw: RawBlockText[]
+): EnrichedBlockText[] => raw.map(parseText)
+
 const parseHeading = (raw: RawBlockHeading): EnrichedBlockHeading => {
     const createError = (
         error: ParseError,

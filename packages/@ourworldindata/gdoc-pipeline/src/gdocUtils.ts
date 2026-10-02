@@ -168,24 +168,44 @@ export const getAllLinksFromResearchAndWritingBlock = (
     return allLinks
 }
 
+export function parseNamesWithRoles(names: string): {
+    names: string[]
+    roles: Record<string, string>
+} {
+    const parsedNames: string[] = []
+    const roles: Record<string, string> = {}
+    if (!names) return { names: parsedNames, roles }
+    for (const entry of names.split(",")) {
+        const trimmed = entry.trim()
+        // "Max Roser (Editorial feedback)" → name "Max Roser", role "Editorial feedback"
+        const match = trimmed.match(/^(?<name>[^(]+)\((?<role>[^)]+)\)$/)
+        if (match?.groups) {
+            const name = match.groups.name.trim()
+            parsedNames.push(name)
+            roles[name] = match.groups.role.trim()
+        } else {
+            parsedNames.push(trimmed)
+        }
+    }
+    return { names: parsedNames, roles }
+}
+
 export function parseAuthors(authors?: string): {
     authors: string[]
     authorRoles: Record<string, string>
 } {
-    const authorRoles: Record<string, string> = {}
-    const parsed = (authors || "Our World in Data team")
-        .split(",")
-        .map((author: string) => {
-            const trimmed = author.trim()
-            const match = trimmed.match(/^(.+?)\s*\(([^)]+)\)\s*$/)
-            if (match) {
-                const name = match[1].trim()
-                authorRoles[name] = match[2].trim()
-                return name
-            }
-            return trimmed
-        })
-    return { authors: parsed, authorRoles }
+    const { names, roles } = parseNamesWithRoles(
+        authors || "Our World in Data team"
+    )
+    return { authors: names, authorRoles: roles }
+}
+
+export function parseContributors(contributors: string): {
+    contributors: string[]
+    contributorRoles: Record<string, string>
+} {
+    const { names, roles } = parseNamesWithRoles(contributors)
+    return { contributors: names, contributorRoles: roles }
 }
 
 export function extractFilenamesFromBlock(

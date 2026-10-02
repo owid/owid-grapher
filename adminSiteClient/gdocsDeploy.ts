@@ -85,6 +85,9 @@ export const checkIsLightningUpdate = (
         body: true,
         dateline: true,
         details: true,
+        contributors: true,
+        contributorRoles: true,
+        acknowledgements: true,
         refs: true,
         subtitle: true,
         "sticky-nav": true,
@@ -195,6 +198,9 @@ export const checkIsLightningUpdate = (
         "hide-citation": false,
         body: false,
         refs: false,
+        contributors: true,
+        contributorRoles: true,
+        acknowledgements: true,
     }
 
     const contentPropsMap: Record<OwidGdocType, Record<string, boolean>> = {

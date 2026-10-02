@@ -14,6 +14,8 @@ import { excludeNullish, generateToc } from "@ourworldindata/utils"
 import {
     formatCitation,
     generateStickyNav,
+    parseAcknowledgements,
+    parseContributors,
     parseFaqs,
     parseLatestFeedExcerpt,
 } from "@ourworldindata/gdoc-pipeline"
@@ -71,6 +73,11 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
             enrichedBlocks.push(...deprecationNotice)
         }
 
+        const acknowledgements = gdoc.content.acknowledgements
+        if (acknowledgements) {
+            enrichedBlocks.push(...acknowledgements)
+        }
+
         const latestFeedExcerpt = gdoc.content["latest-feed-excerpt"]
         if (latestFeedExcerpt) {
             enrichedBlocks.push(...latestFeedExcerpt)
@@ -101,6 +108,20 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
         if (content.faqs && Object.values(content.faqs).length) {
             const faqResults = parseFaqs(content.faqs, this.id)
             content.parsedFaqs = faqResults.faqs
+        }
+
+        if (content.contributors !== undefined) {
+            const { contributors, contributorRoles } = parseContributors(
+                content.contributors
+            )
+            content.contributors = contributors
+            content.contributorRoles = contributorRoles
+        }
+
+        if (content.acknowledgements) {
+            content.acknowledgements = parseAcknowledgements(
+                content.acknowledgements
+            )
         }
     }
 
