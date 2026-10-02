@@ -45,6 +45,7 @@ import {
     createOrUpdateGdoc,
     deleteGdoc,
     setGdocTags,
+    refreshGdocChartPreviewsInDoc,
     getPreviewGdocIndexRecords,
     getPublishedGdocTopicSlugs,
     getResearchAndWritingOrphans,
@@ -411,6 +412,11 @@ getRouteWithROTransaction(
 putRouteWithRWTransaction(apiRouter, "/gdocs/:id", createOrUpdateGdoc)
 deleteRouteWithRWTransaction(apiRouter, "/gdocs/:id", deleteGdoc)
 postRouteWithRWTransaction(apiRouter, "/gdocs/:gdocId/setTags", setGdocTags)
+postRouteWithRWTransaction(
+    apiRouter,
+    "/gdocs/:gdocId/refreshChartPreviews",
+    refreshGdocChartPreviewsInDoc
+)
 
 // Data insight routes
 getRouteWithROTransaction(

@@ -297,6 +297,12 @@ export {
     OWID_GDOC_ADMIN_MANAGED_KEYS,
 } from "./gdocTypes/Gdoc.js"
 
+export type {
+    GdocChartPreviewStatus,
+    GdocChartPreviewItem,
+    GdocChartPreviewRefreshResult,
+} from "./gdocTypes/ChartPreviews.js"
+
 export {
     type Distribution,
     type DataPageV2ContentFields,
