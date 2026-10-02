@@ -14,6 +14,11 @@ export const BESPOKE_COMPONENT_REGISTRY: Record<
         dataUrl: "un_wpp/latest/demography",
         metadataFilename: "demography.metadata.json",
     },
+    "food-supply-chain": {
+        scriptUrl: "/food-supply-chain/index.js",
+        dataUrl: "faostat/latest/food_supply_chain",
+        metadataFilename: "food-supply-chain.metadata.json",
+    },
     "food-trade": {
         scriptUrl: "/food-trade/index.js",
         dataUrl: "faostat/latest/food_trade",

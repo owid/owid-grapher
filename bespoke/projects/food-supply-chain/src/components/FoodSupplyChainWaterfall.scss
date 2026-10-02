@@ -1,0 +1,12 @@
+.food-supply-chain-chart-box {
+    height: 400px;
+}
+
+.food-supply-chain-waterfall {
+    display: block;
+}
+
+.food-supply-chain-waterfall__step--dimmed,
+.food-supply-chain-waterfall__connector--dimmed {
+    opacity: 0.4;
+}
