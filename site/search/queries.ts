@@ -41,6 +41,8 @@ function makeStateForKey(state: SearchState) {
     return R.pick(state, ["query", "filters", "requireAllCountries"])
 }
 
+export const TOPIC_VOCABULARY_QUERY_KEY = "topicVocabulary"
+
 /**
  * Query Key factory for search
  * Provides hierarchical query keys for better cache management and invalidation
@@ -61,6 +63,9 @@ export const searchQueryKeys = {
         [PAGES_INDEX, "topics", makeStateForKey(state)] as const,
     profiles: (state: SearchState) =>
         [PAGES_INDEX, "profiles", makeStateForKey(state)] as const,
+    // Not an Algolia query: one static JSON behind a 5-minute edge cache. See
+    // topicVocabulary.ts.
+    topicVocabulary: [TOPIC_VOCABULARY_QUERY_KEY] as const,
 } as const
 
 export const latestPagesQueryKey = {
