@@ -1,17 +1,15 @@
 import { describe, expect, it } from "vitest"
+import { formatGrapherSchemaUrl } from "@ourworldindata/utils"
 import {
     type UntypedGrapherConfig,
     defaultGrapherConfig,
+    latestSchemaVersion,
 } from "@ourworldindata/grapher"
 import {
     assertValidGrapherConfig,
     GrapherConfigValidationError,
     ingestGrapherConfig,
 } from "./grapherConfigValidation.js"
-
-function schemaUrlForVersion(version: string): string {
-    return `https://files.ourworldindata.org/schemas/grapher-schema.${version}.json`
-}
 
 const baseChartConfig: UntypedGrapherConfig = {
     $schema: defaultGrapherConfig.$schema,
@@ -34,7 +32,7 @@ describe(ingestGrapherConfig, () => {
     it("migrates an outdated config before validating it", () => {
         const config = {
             ...baseChartConfig,
-            $schema: schemaUrlForVersion("010"),
+            $schema: formatGrapherSchemaUrl("010"),
             dimensions: [
                 { property: "y", variableId: 1, display: { yearIsDay: true } },
             ],
@@ -48,11 +46,24 @@ describe(ingestGrapherConfig, () => {
         })
     })
 
+    it("stamps a config with the schema document it was written against", () => {
+        for (const $schema of [
+            formatGrapherSchemaUrl(latestSchemaVersion),
+            formatGrapherSchemaUrl(latestSchemaVersion, 7),
+        ]) {
+            const ingested = ingestGrapherConfig({
+                ...baseChartConfig,
+                $schema,
+            })
+            expect(ingested.$schema).toBe(defaultGrapherConfig.$schema)
+        }
+    })
+
     it("rejects a config whose shape breaks its own migration", () => {
         const error = catchValidationError(() =>
             ingestGrapherConfig({
                 ...baseChartConfig,
-                $schema: schemaUrlForVersion("010"),
+                $schema: formatGrapherSchemaUrl("010"),
                 dimensions: 123,
             })
         )
@@ -102,7 +113,7 @@ describe(ingestGrapherConfig, () => {
         const error = catchValidationError(() =>
             ingestGrapherConfig({
                 ...baseChartConfig,
-                $schema: schemaUrlForVersion("099"),
+                $schema: formatGrapherSchemaUrl("099"),
             })
         )
 

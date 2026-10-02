@@ -16,7 +16,7 @@ GrapherLoader.fromCsv({
 ```
 
 The authoritative definition of every field is the JSON schema at
-[`https://files.ourworldindata.org/schemas/grapher-schema.011.json`](https://files.ourworldindata.org/schemas/grapher-schema.011.json),
+[`https://files.ourworldindata.org/schemas/grapher-schema.latest.json`](https://files.ourworldindata.org/schemas/grapher-schema.latest.json),
 maintained in [`packages/@ourworldindata/grapher/src/schema/`](https://github.com/owid/owid-grapher/tree/master/packages/@ourworldindata/grapher/src/schema)
 and also shipped with the package as `@ourworldindata/grapher/grapher-schema.json`.
 

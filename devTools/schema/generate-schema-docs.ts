@@ -15,6 +15,7 @@ import * as fs from "node:fs/promises"
 import * as path from "node:path"
 import { parse } from "yaml"
 import type { JSONSchema7, JSONSchema7Definition } from "json-schema"
+import { formatGrapherSchemaUrl } from "@ourworldindata/utils"
 import {
     type SchemaDefinitions,
     REPO_ROOT,
@@ -230,6 +231,8 @@ function renderMeta(
     const parts = [`Type: \`${describeType(schema, defs)}\``]
     if (schema.const !== undefined)
         parts.push(`Must be ${formatValue(schema.const)}`)
+    if (schema.pattern !== undefined)
+        parts.push(`Must match \`${schema.pattern}\``)
     // A default that just repeats the const value adds nothing.
     if (schema.default !== undefined && schema.default !== schema.const)
         parts.push(`Default: ${formatValue(schema.default)}`)
@@ -368,7 +371,7 @@ function renderPage(
     const defs = schema.$defs ?? {}
     const properties = schema.properties ?? {}
     const required = schema.required ?? []
-    const jsonUrl = `https://files.ourworldindata.org/schemas/grapher-schema.${version}.json`
+    const jsonUrl = formatGrapherSchemaUrl(version)
 
     const lines: string[] = [
         `<!-- Generated from ${fileName} by devTools/schema/generate-schema-docs.ts. Do not edit by hand. -->`,

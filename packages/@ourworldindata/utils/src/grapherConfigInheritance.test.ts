@@ -11,11 +11,11 @@ import {
     mergeGrapherConfigs,
     diffGrapherConfigs,
 } from "./grapherConfigInheritance.js"
+import { formatGrapherSchemaUrl } from "./grapherSchemaName.js"
 
-const SCHEMA_URL =
-    "https://files.ourworldindata.org/schemas/grapher-schema.011.json"
-const OUTDATED_SCHEMA_URL =
-    "https://files.ourworldindata.org/schemas/grapher-schema.010.json"
+const SCHEMA_URL = formatGrapherSchemaUrl("011")
+const OUTDATED_SCHEMA_URL = formatGrapherSchemaUrl("010")
+const REVISIONED_SCHEMA_URL = formatGrapherSchemaUrl("011", 4)
 
 describe(mergeGrapherConfigs, () => {
     it("merges empty configs", () => {
@@ -209,6 +209,25 @@ describe(mergeGrapherConfigs, () => {
         expect(consoleWarnSpy).toHaveBeenCalledWith(
             expect.stringContaining("different schema versions")
         )
+        consoleWarnSpy.mockRestore()
+    })
+
+    it("doesn't warn when merging configs written against different revisions of one version", () => {
+        const consoleWarnSpy = vi
+            .spyOn(console, "warn")
+            .mockImplementation(_.noop)
+
+        expect(
+            mergeGrapherConfigs(
+                { $schema: SCHEMA_URL, title: "Title A" },
+                { $schema: REVISIONED_SCHEMA_URL, title: "Title B" }
+            )
+        ).toEqual({
+            $schema: REVISIONED_SCHEMA_URL,
+            title: "Title B",
+        })
+
+        expect(consoleWarnSpy).not.toHaveBeenCalled()
         consoleWarnSpy.mockRestore()
     })
 
