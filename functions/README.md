@@ -19,6 +19,7 @@ Inside a file-based route we sometimes use an instance of itty-router to decide 
 2. Start the Cloudflare function development server with either:
 
 - (preferred) `yarn make up.full`: starts the whole local development stack, including the functions development server
+- `make up.worktree` in a git worktree: starts it too, on the worktree's own `WRANGLER_PORT` (see its `.env`)
 - `yarn startLocalCloudflareFunctions`: only starts the functions development server
 
 The development server reads the grapher config R2 buckets remotely, so wrangler has to be authenticated against the OWID Cloudflare account. `wrangler login` works, but it's a single login per machine: if you also use Cloudflare for other projects, put an API token in the repo's `.env` instead, which wrangler reads on its own and prefers over the login:

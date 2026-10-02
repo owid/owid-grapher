@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Write a .env that lets this checkout run its own dev environment next to the
-# ones in your other checkouts: same MySQL, but its own admin/vite ports and its
-# own tmux session name. Idempotent — does nothing if a .env already exists.
+# ones in your other checkouts: same MySQL, but its own admin/vite/functions ports
+# and its own tmux session name. Idempotent — an existing .env is left alone,
+# except that a worktree's .env from before the functions server gets its port.
 #
 # Called by `make setup.worktree` and `make up.worktree`. Worktree managers like
 # Orca can run it as their repo setup hook (`yarn install && make setup.worktree`)
@@ -10,20 +11,9 @@ set -o errexit
 set -o pipefail
 set -o nounset
 
-if [ -e .env ]; then
-    echo '==> .env already exists, leaving it untouched'
-    exit 0
-fi
-
-# the main checkout keeps the documented ports and session name, so this script
-# is safe to run anywhere; only worktrees need to move out of their way
-if [ "$(git rev-parse --git-dir)" = "$(git rev-parse --git-common-dir)" ]; then
-    cp .env.example-grapher .env
-    echo '==> This is the main checkout, wrote .env with the default ports'
-    exit 0
-fi
-
-TMUX_SESSION_NAME="grapher-$(basename "$PWD")"
+is_main_checkout() {
+    [ "$(git rev-parse --git-dir)" = "$(git rev-parse --git-common-dir)" ]
+}
 
 # ports written into any of this repo's checkouts, whether or not something is
 # listening on them right now — a worktree that is currently down still owns its
@@ -32,34 +22,71 @@ TMUX_SESSION_NAME="grapher-$(basename "$PWD")"
 claimed_ports() {
     echo 3030
     echo 8090
+    echo 8788
     git worktree list --porcelain | sed -n 's/^worktree //p' | while read -r worktree; do
         if [ -e "$worktree/.env" ]; then
             grep -hoE '^[A-Z_]+_PORT=[0-9]+' "$worktree/.env" | cut -d= -f2 || true
         fi
     done
 }
-CLAIMED="$(claimed_ports)"
 
 port_taken() {
+    # computed on first use, so the common case (a .env that needs nothing)
+    # doesn't read every other checkout's .env
+    [ -n "${CLAIMED+x}" ] || CLAIMED="$(claimed_ports)"
+    grep -qxF "$1" <<<"$CLAIMED" && return 0
     # the dev servers listen on ::1, so probe localhost rather than 127.0.0.1
-    (exec 3<>"/dev/tcp/localhost/$1") 2>/dev/null && return 0
-    grep -qxF "$1" <<<"$CLAIMED"
+    (exec 3<>"/dev/tcp/localhost/$1") 2>/dev/null
 }
+
+if [ -e .env ]; then
+    if grep -q '^WRANGLER_PORT=' .env || is_main_checkout; then
+        echo '==> .env already exists, leaving it untouched'
+        exit 0
+    fi
+    # a worktree set up before `make up.worktree` started the functions server
+    # has no port for it. Its admin port's offset is already reserved for it (a
+    # new worktree only takes an offset free in all three ranges), so the
+    # matching 9xxx port can only be busy with something outside this repo.
+    admin_port="$(set -a && . ./.env && echo "${ADMIN_SERVER_PORT:-}")"
+    wrangler_port=$((${admin_port:-0} + 6000))
+    if [ -z "$admin_port" ] || port_taken "$wrangler_port"; then
+        echo "ERROR: couldn't pick a port for the functions server; set WRANGLER_PORT in .env by hand"
+        exit 1
+    fi
+    # a hand-edited .env may not end in a newline, and the line would be glued
+    # onto the last setting
+    [ -z "$(tail -c 1 .env)" ] || echo >> .env
+    echo "WRANGLER_PORT=$wrangler_port" >> .env
+    echo "==> .env already exists, added the functions server's port: WRANGLER_PORT=$wrangler_port"
+    exit 0
+fi
+
+# the main checkout keeps the documented ports and session name, so this script
+# is safe to run anywhere; only worktrees need to move out of their way
+if is_main_checkout; then
+    cp .env.example-grapher .env
+    echo '==> This is the main checkout, wrote .env with the default ports'
+    exit 0
+fi
+
+TMUX_SESSION_NAME="grapher-$(basename "$PWD")"
 
 # Random rather than "next one free": sequential ports get recycled, so deleting
 # a worktree and creating another hands the new one the old one's port, and every
-# stale bookmark and proxy rule then points at the wrong worktree. The two are
-# drawn from a single offset, so the pair is easy to remember (3457 -> 8457).
+# stale bookmark and proxy rule then points at the wrong worktree. The three are
+# drawn from a single offset, so the set is easy to remember (3457 -> 8457 -> 9457).
 for _ in $(seq 1 100); do
     offset=$((RANDOM % 1000))
-    if ! port_taken $((3000 + offset)) && ! port_taken $((8000 + offset)); then
+    if ! port_taken $((3000 + offset)) && ! port_taken $((8000 + offset)) && ! port_taken $((9000 + offset)); then
         ADMIN_SERVER_PORT=$((3000 + offset))
         VITE_PORT=$((8000 + offset))
+        WRANGLER_PORT=$((9000 + offset))
         break
     fi
 done
 if [ -z "${ADMIN_SERVER_PORT:-}" ]; then
-    echo 'ERROR: found no free port pair in 3000-3999 / 8000-8999 after 100 tries'
+    echo 'ERROR: found no free port set in 3000-3999 / 8000-8999 / 9000-9999 after 100 tries'
     exit 1
 fi
 
@@ -70,6 +97,7 @@ sed \
     -e "s/^TMUX_SESSION_NAME=.*/TMUX_SESSION_NAME=$TMUX_SESSION_NAME/" \
     -e "s/^ADMIN_SERVER_PORT=.*/ADMIN_SERVER_PORT=$ADMIN_SERVER_PORT/" \
     -e "s/^VITE_PORT=.*/VITE_PORT=$VITE_PORT/" \
+    -e "s/^WRANGLER_PORT=.*/WRANGLER_PORT=$WRANGLER_PORT/" \
     .env.example-grapher > .env
 
 # older versions of the example file don't list all of these, and a value the
@@ -77,7 +105,8 @@ sed \
 for setting in \
     "TMUX_SESSION_NAME=$TMUX_SESSION_NAME" \
     "ADMIN_SERVER_PORT=$ADMIN_SERVER_PORT" \
-    "VITE_PORT=$VITE_PORT"; do
+    "VITE_PORT=$VITE_PORT" \
+    "WRANGLER_PORT=$WRANGLER_PORT"; do
     grep -q "^${setting%%=*}=" .env || echo "$setting" >> .env
 done
 
@@ -96,3 +125,4 @@ echo "==> Wrote .env for this checkout:"
 echo "        TMUX_SESSION_NAME=$TMUX_SESSION_NAME"
 echo "        ADMIN_SERVER_PORT=$ADMIN_SERVER_PORT"
 echo "        VITE_PORT=$VITE_PORT"
+echo "        WRANGLER_PORT=$WRANGLER_PORT"
