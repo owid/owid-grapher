@@ -10,8 +10,6 @@ import {
     type OutdatedSchemaVersion,
     type SchemaVersion,
 } from "./helpers"
-import { GRAPHER_CHART_TYPES } from "@ourworldindata/types"
-
 type MigrationStep = (config: MigratableConfig) => void
 
 // see https://github.com/owid/owid-grapher/commit/26f2a0d1790c71bdda7e12f284ca552945d2f6ef
@@ -21,11 +19,12 @@ const migrateFrom001To002 = (config: MigratableConfig): void => {
 
 // see https://github.com/owid/owid-grapher/commit/4525ad81fb7064709ffab83677a8b0354b324dfb
 const migrateFrom002To003 = (config: MigratableConfig): void => {
-    if (config.hideTitleAnnotation) {
-        config.hideTitleAnnotations = {
-            entity: true,
-            time: true,
-            change: true,
+    if (config.hideTitleAnnotation !== undefined) {
+        const hide = config.hideTitleAnnotation
+        config.hideAnnotationFieldsInTitle = {
+            entity: hide,
+            time: hide,
+            changeInPrefix: hide,
         }
     }
     delete config.hideTitleAnnotation
@@ -42,13 +41,11 @@ const migrateFrom004To005 = (config: MigratableConfig): void => {
 }
 
 const migrateFrom005To006 = (config: MigratableConfig): void => {
-    const { type = GRAPHER_CHART_TYPES.LineChart, hasChartTab = true } = config
+    const { type, hasChartTab } = config
 
-    // add types field
-    if (!hasChartTab) config.chartTypes = []
-    else if (type !== GRAPHER_CHART_TYPES.LineChart) config.chartTypes = [type]
+    if (hasChartTab === false) config.chartTypes = []
+    else if (type !== undefined) config.chartTypes = [type]
 
-    // remove deprecated fields
     delete config.type
     delete config.hasChartTab
 }
@@ -103,11 +100,9 @@ const migrateFrom008To009 = (config: MigratableConfig): void => {
 }
 
 const migrateFrom009To010 = (config: MigratableConfig): void => {
-    // Rename hideLegend to hideSeriesLabels
-    if (config.hideLegend) {
-        config.hideSeriesLabels = true
-        delete config.hideLegend
-    }
+    if (config.hideLegend !== undefined)
+        config.hideSeriesLabels = config.hideLegend
+    delete config.hideLegend
 }
 
 const migrateFrom010To011 = (config: MigratableConfig): void => {

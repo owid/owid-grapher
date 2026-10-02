@@ -21,7 +21,7 @@ export const MIGRATION_FIXTURES: {
         },
     },
     {
-        name: "expands hideTitleAnnotation into hideTitleAnnotations",
+        name: "expands hideTitleAnnotation into hideAnnotationFieldsInTitle",
         before: {
             $schema:
                 "https://files.ourworldindata.org/schemas/grapher-schema.002.json",
@@ -30,11 +30,15 @@ export const MIGRATION_FIXTURES: {
         after: {
             $schema:
                 "https://files.ourworldindata.org/schemas/grapher-schema.003.json",
-            hideTitleAnnotations: { entity: true, time: true, change: true },
+            hideAnnotationFieldsInTitle: {
+                entity: true,
+                time: true,
+                changeInPrefix: true,
+            },
         },
     },
     {
-        name: "drops a false hideTitleAnnotation",
+        name: "expands a false hideTitleAnnotation",
         before: {
             $schema:
                 "https://files.ourworldindata.org/schemas/grapher-schema.002.json",
@@ -43,6 +47,11 @@ export const MIGRATION_FIXTURES: {
         after: {
             $schema:
                 "https://files.ourworldindata.org/schemas/grapher-schema.003.json",
+            hideAnnotationFieldsInTitle: {
+                entity: false,
+                time: false,
+                changeInPrefix: false,
+            },
         },
     },
     {
@@ -98,11 +107,24 @@ export const MIGRATION_FIXTURES: {
         },
     },
     {
-        name: "leaves the default line chart without chartTypes",
+        name: "turns an explicit line type into chartTypes",
         before: {
             $schema:
                 "https://files.ourworldindata.org/schemas/grapher-schema.005.json",
             type: "LineChart",
+        },
+        after: {
+            $schema:
+                "https://files.ourworldindata.org/schemas/grapher-schema.006.json",
+            chartTypes: ["LineChart"],
+        },
+    },
+    {
+        name: "leaves a config without a type alone",
+        before: {
+            $schema:
+                "https://files.ourworldindata.org/schemas/grapher-schema.005.json",
+            hasChartTab: true,
         },
         after: {
             $schema:
@@ -202,6 +224,60 @@ export const MIGRATION_FIXTURES: {
         },
     },
     {
+        name: "renames hideLegend to hideSeriesLabels on a line chart",
+        before: {
+            $schema:
+                "https://files.ourworldindata.org/schemas/grapher-schema.009.json",
+            hideLegend: true,
+        },
+        after: {
+            $schema:
+                "https://files.ourworldindata.org/schemas/grapher-schema.010.json",
+            hideSeriesLabels: true,
+        },
+    },
+    {
+        name: "carries a false hideLegend across on a line chart",
+        before: {
+            $schema:
+                "https://files.ourworldindata.org/schemas/grapher-schema.009.json",
+            hideLegend: false,
+        },
+        after: {
+            $schema:
+                "https://files.ourworldindata.org/schemas/grapher-schema.010.json",
+            hideSeriesLabels: false,
+        },
+    },
+    {
+        name: "renames hideLegend even on a chart type without series labels",
+        before: {
+            $schema:
+                "https://files.ourworldindata.org/schemas/grapher-schema.009.json",
+            chartTypes: ["ScatterPlot"],
+            hideLegend: true,
+        },
+        after: {
+            $schema:
+                "https://files.ourworldindata.org/schemas/grapher-schema.010.json",
+            chartTypes: ["ScatterPlot"],
+            hideSeriesLabels: true,
+        },
+    },
+    {
+        name: "leaves a config without hideLegend alone",
+        before: {
+            $schema:
+                "https://files.ourworldindata.org/schemas/grapher-schema.009.json",
+            title: "Test",
+        },
+        after: {
+            $schema:
+                "https://files.ourworldindata.org/schemas/grapher-schema.010.json",
+            title: "Test",
+        },
+    },
+    {
         name: "replaces yearIsDay with timeInterval",
         before: {
             $schema:
@@ -233,5 +309,215 @@ export const MIGRATION_FIXTURES: {
                 { property: "y", variableId: 3, display: { unit: "%" } },
             ],
         },
+    },
+]
+
+/**
+ * Patch stacks, parent first. Migrating the patches and then merging them has
+ * to come out the same as merging them and then migrating the result, unless
+ * the stack names a `nonCommutingReason` — those are the steps that can't be
+ * expressed one layer at a time, and they're pinned so that repairing one is a
+ * deliberate act.
+ */
+export const PATCH_STACK_FIXTURES: {
+    name: string
+    patches: MigratableConfig[]
+    nonCommutingReason?: string
+}[] = [
+    {
+        name: "a child alongside a parent's selectedData",
+        patches: [
+            {
+                $schema:
+                    "https://files.ourworldindata.org/schemas/grapher-schema.001.json",
+                selectedData: [{ index: 0, entityId: 1 }],
+            },
+            {
+                $schema:
+                    "https://files.ourworldindata.org/schemas/grapher-schema.001.json",
+                title: "Child",
+            },
+        ],
+    },
+    {
+        name: "a child turning an inherited hideTitleAnnotation back off",
+        patches: [
+            {
+                $schema:
+                    "https://files.ourworldindata.org/schemas/grapher-schema.002.json",
+                hideTitleAnnotation: true,
+            },
+            {
+                $schema:
+                    "https://files.ourworldindata.org/schemas/grapher-schema.002.json",
+                hideTitleAnnotation: false,
+            },
+        ],
+    },
+    {
+        name: "a child alongside a parent's data",
+        patches: [
+            {
+                $schema:
+                    "https://files.ourworldindata.org/schemas/grapher-schema.003.json",
+                data: { availableEntities: [] },
+            },
+            {
+                $schema:
+                    "https://files.ourworldindata.org/schemas/grapher-schema.003.json",
+                title: "Child",
+            },
+        ],
+    },
+    {
+        name: "a child alongside a parent's hideLinesOutsideTolerance",
+        patches: [
+            {
+                $schema:
+                    "https://files.ourworldindata.org/schemas/grapher-schema.004.json",
+                hideLinesOutsideTolerance: true,
+            },
+            {
+                $schema:
+                    "https://files.ourworldindata.org/schemas/grapher-schema.004.json",
+                title: "Child",
+            },
+        ],
+    },
+    {
+        name: "a child naming the chart type whose tab its parent hid",
+        nonCommutingReason:
+            "the step reads type and hasChartTab together, and they sit in different layers",
+        patches: [
+            {
+                $schema:
+                    "https://files.ourworldindata.org/schemas/grapher-schema.005.json",
+                hasChartTab: false,
+            },
+            {
+                $schema:
+                    "https://files.ourworldindata.org/schemas/grapher-schema.005.json",
+                type: "ScatterPlot",
+            },
+        ],
+    },
+    {
+        name: "a child overriding its parent's chart type",
+        patches: [
+            {
+                $schema:
+                    "https://files.ourworldindata.org/schemas/grapher-schema.005.json",
+                type: "ScatterPlot",
+            },
+            {
+                $schema:
+                    "https://files.ourworldindata.org/schemas/grapher-schema.005.json",
+                type: "LineChart",
+            },
+        ],
+    },
+    {
+        name: "a child setting a map time under a parent's map projection",
+        patches: [
+            {
+                $schema:
+                    "https://files.ourworldindata.org/schemas/grapher-schema.006.json",
+                map: { projection: "Europe" },
+            },
+            {
+                $schema:
+                    "https://files.ourworldindata.org/schemas/grapher-schema.006.json",
+                map: { time: 2000 },
+            },
+        ],
+    },
+    {
+        name: "a child setting the min value for its parent's custom bins",
+        nonCommutingReason:
+            "the step folds customNumericMinValue into customNumericValues, and they sit in different layers",
+        patches: [
+            {
+                $schema:
+                    "https://files.ourworldindata.org/schemas/grapher-schema.007.json",
+                colorScale: { customNumericValues: [20, 30] },
+            },
+            {
+                $schema:
+                    "https://files.ourworldindata.org/schemas/grapher-schema.007.json",
+                colorScale: { customNumericMinValue: 10 },
+            },
+        ],
+    },
+    {
+        name: "a child choosing a binning strategy for its parent's bin count",
+        patches: [
+            {
+                $schema:
+                    "https://files.ourworldindata.org/schemas/grapher-schema.008.json",
+                colorScale: { binningStrategyBinCount: 7 },
+            },
+            {
+                $schema:
+                    "https://files.ourworldindata.org/schemas/grapher-schema.008.json",
+                colorScale: { binningStrategy: "ckmeans" },
+            },
+        ],
+    },
+    {
+        name: "a scatter plot child under a parent's hideLegend",
+        patches: [
+            {
+                $schema:
+                    "https://files.ourworldindata.org/schemas/grapher-schema.009.json",
+                hideLegend: true,
+            },
+            {
+                $schema:
+                    "https://files.ourworldindata.org/schemas/grapher-schema.009.json",
+                chartTypes: ["ScatterPlot"],
+            },
+        ],
+    },
+    {
+        name: "a child turning an inherited hideLegend back off",
+        patches: [
+            {
+                $schema:
+                    "https://files.ourworldindata.org/schemas/grapher-schema.009.json",
+                hideLegend: true,
+            },
+            {
+                $schema:
+                    "https://files.ourworldindata.org/schemas/grapher-schema.009.json",
+                hideLegend: false,
+            },
+        ],
+    },
+    {
+        name: "a child replacing dimensions that carry yearIsDay",
+        patches: [
+            {
+                $schema:
+                    "https://files.ourworldindata.org/schemas/grapher-schema.010.json",
+                dimensions: [
+                    {
+                        property: "y",
+                        variableId: 1,
+                        display: { yearIsDay: true },
+                    },
+                ],
+            },
+            {
+                $schema:
+                    "https://files.ourworldindata.org/schemas/grapher-schema.010.json",
+                dimensions: [
+                    {
+                        property: "y",
+                        variableId: 1,
+                        display: { yearIsDay: false },
+                    },
+                ],
+            },
+        ],
     },
 ]
