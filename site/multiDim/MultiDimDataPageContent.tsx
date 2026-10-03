@@ -4,6 +4,8 @@ import { unstable_batchedUpdates } from "react-dom"
 import { useSearchParams } from "react-router-dom-v5-compat"
 import * as Sentry from "@sentry/react"
 import { useIsClient } from "usehooks-ts"
+import { faDownload } from "@fortawesome/free-solid-svg-icons"
+import { Button } from "@ourworldindata/components"
 import {
     Grapher,
     GrapherState,
@@ -446,7 +448,12 @@ export function DataPageContent({
                 <div className="bg-blue-10 span-cols-14">
                     <div className="header__wrapper grid grid-cols-12-full-width">
                         <div className="header__left col-start-2 span-cols-8 col-sm-start-2 span-sm-cols-12">
-                            <div className="header__supertitle">Data</div>
+                            <div className="header__supertitle">
+                                {config.config.presentation?.type ===
+                                "data-explorer"
+                                    ? "Data explorer"
+                                    : "Data"}
+                            </div>
                             <h1 className="header__title">
                                 {config.config.title.title}
                             </h1>
@@ -468,6 +475,20 @@ export function DataPageContent({
                                 onChange={handleSettingsChange}
                                 readOnly={isLoadingView}
                             />
+                            {config.config.presentation?.dataDownloadUrl && (
+                                <Button
+                                    className="header__download-button"
+                                    theme="outline-vermillion"
+                                    href={
+                                        config.config.presentation
+                                            .dataDownloadUrl
+                                    }
+                                    icon={faDownload}
+                                    iconPosition="left"
+                                    text="Download the full dataset"
+                                    dataTrackNote="multi-dim-download-full-dataset"
+                                />
+                            )}
                         </div>
                     </div>
                 </div>
