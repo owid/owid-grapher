@@ -19,6 +19,9 @@ export default function DimensionRadioGroup({
     onChange: (value: string) => void
     readOnly?: boolean
 }) {
+    const availableCount = dimension.choices.filter((choice) =>
+        availableChoiceSlugs.has(choice.slug)
+    ).length
     return (
         <RadioGroup
             className={cx(
@@ -29,7 +32,9 @@ export default function DimensionRadioGroup({
             orientation="horizontal"
             value={value}
             onChange={onChange}
-            isDisabled={dimension.choices.length === 1}
+            // With at most one selectable option there's nothing to switch
+            // between, so disable the whole control.
+            isDisabled={availableCount <= 1}
             // While a view is loading, block changes with readOnly rather than
             // disabled: disabling would make the focused radio unfocusable and
             // drop keyboard focus.
