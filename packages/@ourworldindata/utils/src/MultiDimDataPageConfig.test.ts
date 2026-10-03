@@ -2,8 +2,14 @@ import { expect, it, describe } from "vitest"
 
 import { v7 as uuidv7 } from "uuid"
 
-import { MultiDimDataPageConfigEnriched } from "@ourworldindata/types"
-import { MultiDimDataPageConfig } from "./MultiDimDataPageConfig.js"
+import {
+    Dimension,
+    MultiDimDataPageConfigEnriched,
+} from "@ourworldindata/types"
+import {
+    MultiDimDataPageConfig,
+    resolveDimensionPresentationType,
+} from "./MultiDimDataPageConfig.js"
 
 it("fromObject", () => {
     const config = MultiDimDataPageConfig.fromObject({ title: "Test" } as any)
@@ -91,5 +97,50 @@ describe("methods", () => {
             view: "stunting",
         })
         expect(view).toBeDefined()
+    })
+})
+
+describe(resolveDimensionPresentationType, () => {
+    const makeDimension = (
+        choiceCount: number,
+        overrides: Partial<Dimension> = {}
+    ): Dimension => ({
+        slug: "dim",
+        name: "Dimension",
+        choices: Array.from({ length: choiceCount }, (_, i) => ({
+            slug: `choice-${i}`,
+            name: `Choice ${i}`,
+        })),
+        ...overrides,
+    })
+
+    it("defaults to radio for dimensions with at most two choices", () => {
+        expect(resolveDimensionPresentationType(makeDimension(1))).toBe("radio")
+        expect(resolveDimensionPresentationType(makeDimension(2))).toBe("radio")
+    })
+
+    it("defaults to dropdown for dimensions with more than two choices", () => {
+        expect(resolveDimensionPresentationType(makeDimension(3))).toBe(
+            "dropdown"
+        )
+    })
+
+    it("defaults to dropdown when choices are grouped", () => {
+        const dimension = makeDimension(2)
+        dimension.choices[0].group = "Group"
+        expect(resolveDimensionPresentationType(dimension)).toBe("dropdown")
+    })
+
+    it("respects an explicit presentation type", () => {
+        expect(
+            resolveDimensionPresentationType(
+                makeDimension(2, { presentation: { type: "dropdown" } })
+            )
+        ).toBe("dropdown")
+        expect(
+            resolveDimensionPresentationType(
+                makeDimension(5, { presentation: { type: "radio" } })
+            )
+        ).toBe("radio")
     })
 })

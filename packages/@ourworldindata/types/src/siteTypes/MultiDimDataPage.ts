@@ -59,12 +59,20 @@ export type MultiDimDataPageConfigEnriched = Omit<
     views: ViewEnriched[]
 }
 
+export type DimensionPresentationType = "dropdown" | "radio"
+
+export interface DimensionPresentation {
+    // When omitted, the control type is resolved heuristically: "radio" for
+    // dimensions with at most two ungrouped choices, "dropdown" otherwise.
+    type?: DimensionPresentationType
+}
+
 export interface Dimension {
     slug: string
     name: string
     group?: string
     description?: string
-    // multi_select?: boolean
+    presentation?: DimensionPresentation
     choices: Choice[]
 }
 
@@ -79,8 +87,8 @@ export type DimensionEnriched = Dimension & ChoicesEnriched
 export interface Choice {
     slug: string
     name: string
+    group?: string
     description?: string
-    // multi_select?: boolean
 }
 
 export interface IndicatorsBeforePreProcessing {
