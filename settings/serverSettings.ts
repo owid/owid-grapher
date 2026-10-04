@@ -151,14 +151,15 @@ export const GDOCS_DONATE_FAQS_DOCUMENT_ID: string =
     serverSettings.GDOCS_DONATE_FAQS_DOCUMENT_ID ?? ""
 
 // Chart preview images in gdocs are fetched by Google's servers, so these must
-// be publicly reachable. In local dev and on staging, the dynamic thumbnail
-// URLs point at hosts Google can't reach — set these to production to test.
+// be publicly reachable. That's why they default to production in every
+// environment: local dev and staging thumbnail URLs aren't reachable by Google
+// (or, on staging, even by the server itself).
 export const GDOCS_CHART_PREVIEW_GRAPHER_URL: string =
     serverSettings.GDOCS_CHART_PREVIEW_GRAPHER_URL ??
-    clientSettings.GRAPHER_DYNAMIC_THUMBNAIL_URL
+    "https://ourworldindata.org/grapher"
 export const GDOCS_CHART_PREVIEW_EXPLORER_URL: string =
     serverSettings.GDOCS_CHART_PREVIEW_EXPLORER_URL ??
-    clientSettings.EXPLORER_DYNAMIC_THUMBNAIL_URL
+    "https://ourworldindata.org/explorers"
 
 // Load R2 credentials from rclone config
 let rcloneConfig: any = {}
