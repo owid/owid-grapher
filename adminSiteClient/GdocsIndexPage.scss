@@ -39,6 +39,11 @@
     margin-left: 8px;
 }
 
+.gdoc-index-item__actions {
+    flex-shrink: 0;
+    margin-left: 16px;
+}
+
 .gdoc-index-item__publish-status {
     flex-shrink: 1;
 }

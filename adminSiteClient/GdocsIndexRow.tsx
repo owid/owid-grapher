@@ -13,7 +13,9 @@ import {
     faChartSimple,
     faFileLines,
     faTriangleExclamation,
+    faImage,
 } from "@fortawesome/free-solid-svg-icons"
+import { Button } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
     DbChartTagJoin,
@@ -80,6 +82,7 @@ interface GdocsIndexRowProps {
     availableTags: MinimalTagWithMetadata[]
     tagGraphRolesById: ReadonlyMap<number, TagGraphRole>
     onUpdateTags: (gdocId: string, tags: DbChartTagJoin[]) => Promise<void>
+    onOpenChartPreviews: (gdoc: OwidGdocIndexItem) => void
     canEditTags?: boolean
 }
 
@@ -90,6 +93,7 @@ export function GdocsIndexRow({
     availableTags,
     tagGraphRolesById,
     onUpdateTags,
+    onOpenChartPreviews,
     canEditTags = true,
 }: GdocsIndexRowProps): React.ReactElement {
     const [now] = useState(() => Date.now())
@@ -177,6 +181,15 @@ export function GdocsIndexRow({
                         </a>
                     )
                 ) : null}
+            </div>
+            <div className="gdoc-index-item__actions">
+                <Button
+                    size="small"
+                    icon={<FontAwesomeIcon icon={faImage} />}
+                    onClick={() => onOpenChartPreviews(gdoc)}
+                >
+                    Update chart images
+                </Button>
             </div>
         </div>
     )

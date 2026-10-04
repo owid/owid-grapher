@@ -12,7 +12,7 @@ Inline images are ignored by `gdocToArchie`, so none of this affects ingestion.
 
 ## Entry points
 
-- Admin: "Update chart images in gdoc" in the gdoc preview page's ⋮ menu (`POST /api/gdocs/:gdocId/refreshChartPreviews`).
+- Admin: "Update chart images in gdoc" in the gdoc preview page's ⋮ menu, and an "Update chart images" button on each row of the gdocs list (one shared `GdocsChartPreviewsModal` in `GdocsList`). Both call `POST /api/gdocs/:gdocId/refreshChartPreviews`.
 - CLI / cron: `yarn refreshGdocChartPreviews [--insert-missing] [--dry-run] [--changed-since-hours <n>] [gdocId…]`. `--changed-since-hours` selects the gdocs that link to charts, multi-dims, narrative charts or explorers whose config or data changed recently (via `posts_gdocs_links`). This is generous, but docs whose images are current cost only a read.
 
 ## Settings and local testing

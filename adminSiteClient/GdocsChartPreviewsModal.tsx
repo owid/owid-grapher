@@ -21,10 +21,13 @@ const STATUS_LABELS: Record<
 
 export function GdocsChartPreviewsModal({
     gdocId,
+    gdocTitle,
     isOpen,
     onClose,
 }: {
     gdocId: string
+    /** Shown in the title where it's not clear which doc this is about */
+    gdocTitle?: string
     isOpen: boolean
     onClose: () => void
 }) {
@@ -57,7 +60,11 @@ export function GdocsChartPreviewsModal({
     return (
         <Modal
             open={isOpen}
-            title="Chart images in the Google Doc"
+            title={
+                gdocTitle
+                    ? `Chart images in “${gdocTitle}”`
+                    : "Chart images in the Google Doc"
+            }
             okText={result ? "Done" : "Update images"}
             onOk={result ? close : refresh}
             confirmLoading={isRunning}
