@@ -15,7 +15,7 @@ import {
     faTriangleExclamation,
     faImage,
 } from "@fortawesome/free-solid-svg-icons"
-import { Button } from "antd"
+import { Button, Tooltip } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
     DbChartTagJoin,
@@ -183,13 +183,14 @@ export function GdocsIndexRow({
                 ) : null}
             </div>
             <div className="gdoc-index-item__actions">
-                <Button
-                    size="small"
-                    icon={<FontAwesomeIcon icon={faImage} />}
-                    onClick={() => onOpenChartPreviews(gdoc)}
-                >
-                    Update chart images
-                </Button>
+                <Tooltip title="Update chart images in gdoc">
+                    <Button
+                        size="small"
+                        aria-label="Update chart images in gdoc"
+                        icon={<FontAwesomeIcon icon={faImage} />}
+                        onClick={() => onOpenChartPreviews(gdoc)}
+                    />
+                </Tooltip>
             </div>
         </div>
     )
