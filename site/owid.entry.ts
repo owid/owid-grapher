@@ -29,6 +29,7 @@ import { CoreTable, OwidTable } from "@ourworldindata/core-table"
 import { SiteAnalytics } from "./SiteAnalytics.js"
 import { runMonkeyPatchForGoogleTranslate } from "./hacks.js"
 import { runSiteFooterScripts } from "./runSiteFooterScripts.js"
+import { registerSiteTools } from "./webmcp/siteTools.js"
 
 declare let window: any
 window.Grapher = Grapher
@@ -55,3 +56,7 @@ document.documentElement?.classList.add("js-loaded")
 
 analytics.startClickTracking()
 analytics.startDetectingBrowserTranslation()
+
+// WebMCP: expose chart search/navigation to in-browser AI agents on every page.
+// No-ops in browsers without `document.modelContext`.
+void registerSiteTools()
