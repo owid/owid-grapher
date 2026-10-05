@@ -194,6 +194,7 @@ import {
     type EntitySelectorEvent,
     type GrapherImageDownloadEvent,
     type GrapherInteractionEvent,
+    type SelectedEntityColors,
 } from "@ourworldindata/types"
 import {
     latestGrapherConfigSchema,
@@ -329,7 +330,7 @@ export class GrapherState
     inapplicableEntityNames: EntityName[] | undefined = undefined
 
     /** Colors for selected entities */
-    selectedEntityColors: { [entityName: string]: string | undefined } = {}
+    selectedEntityColors: SelectedEntityColors = {}
 
     /** Strategy for selecting peer countries for comparison */
     peerCountryStrategy: PeerCountryStrategy | undefined = undefined

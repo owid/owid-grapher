@@ -110,6 +110,7 @@ export {
     MissingDataStrategy,
     SeriesStrategy,
     type GrapherInterface,
+    type SelectedEntityColors,
     grapherKeysToSerialize,
     type GrapherQueryParams,
     type LegacyGrapherInterface,
