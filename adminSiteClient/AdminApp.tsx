@@ -24,6 +24,7 @@ import { TagsIndexPage } from "./TagsIndexPage.js"
 import { TagGraphPage } from "./TagGraphPage.js"
 import { TestIndexPage } from "./TestIndexPage.js"
 import { TestRegionMapsPage } from "./TestRegionMapsPage.js"
+import { EditorPlaygroundPage } from "./EditorPlaygroundPage.js"
 import { NotFoundPage } from "./NotFoundPage.js"
 import { DeployStatusPage } from "./DeployStatusPage.js"
 import { ExplorerTagsPage } from "./ExplorerTagsPage.js"
@@ -457,6 +458,11 @@ export class AdminApp extends React.Component<{
                                     exact
                                     path="/test"
                                     component={TestIndexPage}
+                                />
+                                <Route
+                                    exact
+                                    path="/editor-playground"
+                                    component={EditorPlaygroundPage}
                                 />
                                 <Route
                                     exact
