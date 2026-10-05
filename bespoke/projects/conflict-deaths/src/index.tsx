@@ -12,6 +12,7 @@ import { parseEmbedConfig } from "../../../helpers/config.js"
 
 import { ConflictDeathsChartWithProviders } from "./components/ConflictDeathsChart.js"
 import { parseConfig } from "./core/config.js"
+import { getSampleDataUrls, USE_SAMPLE_DATA } from "./core/sampleData.js"
 
 import "./index.scss"
 
@@ -36,13 +37,17 @@ export const mount: BespokeComponentMountFn = (
         return
     }
 
-    if (!opts.dataUrl || !opts.metadataUrl) {
+    const urls = USE_SAMPLE_DATA
+        ? getSampleDataUrls()
+        : opts.dataUrl && opts.metadataUrl
+          ? { dataUrl: opts.dataUrl, metadataUrl: opts.metadataUrl }
+          : undefined
+
+    if (!urls) {
         container.textContent =
             "Missing data URLs: add an entry for this bundle to the bespoke component registry"
         return
     }
-
-    const urls = { dataUrl: opts.dataUrl, metadataUrl: opts.metadataUrl }
 
     const rawConfig = opts.config ?? {}
     const config = {

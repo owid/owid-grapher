@@ -7,13 +7,13 @@ reference for the ETL step: the output format below is the contract.
 
 Usage (standard library only, no installs needed):
 
-    python3 scripts/build_sample_data.py           # build the files
-    python3 scripts/build_sample_data.py --serve   # build them, then serve them
+    python3 scripts/build_sample_data.py
 
-The files land in ./sample-data/<ETL step path>/. With --serve, they are
-served at http://localhost:8100, so the dev server can read them:
-
-    BESPOKE_DATA_URL=http://localhost:8100 yarn startBespokeDevServer
+The files land in ./public/sample-data/, which Vite serves next to the bundle
+(in development, on staging, and in the build output). While
+USE_SAMPLE_DATA in src/core/sampleData.ts is on, the chart reads them from
+there instead of from the ETL step. This is temporary, until the ETL step
+exists.
 
 Output:
 
@@ -34,10 +34,7 @@ Data notes:
   etl/steps/data/garden/war/<version>/shared.py).
 """
 
-import functools
-import http.server
 import json
-import sys
 import urllib.request
 from collections import defaultdict
 from pathlib import Path
@@ -45,10 +42,8 @@ from pathlib import Path
 FIRST_YEAR = 1989
 LAST_YEAR = 2025
 
-# Where the files go: the ETL step path the bundle registry points to
-SAMPLE_DATA_ROOT = Path(__file__).parent.parent / "sample-data"
-ETL_STEP_PATH = "war/latest/ucdp_conflict_deaths_treemap"
-PORT = 8100
+# Where the files go: served by Vite at <bundle base>/sample-data/
+SAMPLE_DATA_DIR = Path(__file__).parent.parent / "public" / "sample-data"
 
 API = "https://api.ourworldindata.org/v1/indicators"
 
@@ -196,22 +191,8 @@ def build_metadata_fields(indicator_metadata: dict) -> dict:
     }
 
 
-class CorsRequestHandler(http.server.SimpleHTTPRequestHandler):
-    """Static file server that lets the dev server's pages fetch from it"""
-
-    def end_headers(self) -> None:
-        self.send_header("Access-Control-Allow-Origin", "*")
-        super().end_headers()
-
-
-def serve(directory: Path) -> None:
-    handler = functools.partial(CorsRequestHandler, directory=str(directory))
-    print(f"Serving {directory} at http://localhost:{PORT} (Ctrl+C to stop)")
-    http.server.ThreadingHTTPServer(("127.0.0.1", PORT), handler).serve_forever()
-
-
 def main() -> None:
-    out_dir = SAMPLE_DATA_ROOT / ETL_STEP_PATH
+    out_dir = SAMPLE_DATA_DIR
     out_dir.mkdir(parents=True, exist_ok=True)
 
     # 1. Download one indicator per conflict type
@@ -296,9 +277,6 @@ def main() -> None:
         print(f"{ct['name']}: {len(rows)} non-zero country-years")
 
     print(f"Wrote {len(CONFLICT_TYPES) + 1} files to {out_dir}/ ({len(entities)} countries)")
-
-    if "--serve" in sys.argv:
-        serve(SAMPLE_DATA_ROOT)
 
 
 if __name__ == "__main__":

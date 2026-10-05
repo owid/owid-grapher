@@ -21,17 +21,11 @@ It is a copy of the `causes-of-death` treemap, adapted. The two share no code on
 
 ## Data
 
-The registry points to `war/latest/ucdp_conflict_deaths_treemap`, an ETL export step that **does not exist yet**. Until it does, `scripts/build_sample_data.py` builds files with the same shape from our public UCDP indicators:
+The registry points to `war/latest/ucdp_conflict_deaths_treemap`, an ETL export step that **does not exist yet**.
 
-```bash
-# Terminal 1: build the files and serve them at http://localhost:8100
-python3 bespoke/projects/conflict-deaths/scripts/build_sample_data.py --serve
+**Temporary:** until it does, the chart reads sample files from `public/sample-data/`, which Vite serves next to the bundle (`/conflict-deaths/sample-data/`). `USE_SAMPLE_DATA` in `src/core/sampleData.ts` switches this on. `scripts/build_sample_data.py` builds the files from our public UCDP indicators (`python3 bespoke/projects/conflict-deaths/scripts/build_sample_data.py`). Once the ETL step publishes the data, set `USE_SAMPLE_DATA` to `false` and delete `public/sample-data/`.
 
-# Terminal 2: start the dev server, reading data from there
-BESPOKE_DATA_URL=http://localhost:8100 yarn startBespokeDevServer
-```
-
-Then open http://localhost:8089/conflict-deaths/demo. The files land in `sample-data/` (git-ignored).
+To view the chart, run `yarn startBespokeDevServer` and open http://localhost:8089/conflict-deaths/demo.
 
 ### Files
 
