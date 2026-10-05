@@ -16,6 +16,7 @@ export {
     type FetchInputTableForConfigFn,
 } from "./core/loadGrapherTableHelpers.js"
 export { loadVariableDataAndMetadata } from "./core/loadVariable.js"
+export { applyDimensionDisplayAndConversionFactor } from "./core/applyDisplayAndConversionFactor.js"
 export {
     GRAPHER_ROUTE_FOLDER,
     GRAPHER_EMBEDDED_FIGURE_ATTR,

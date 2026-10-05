@@ -56,6 +56,23 @@ describe(csvIndicatorStore, () => {
         expect(table!.get("rent_index").values).toEqual([100, 131, 100, 112])
     })
 
+    it("applies a dimension's display on every load, from the raw values", async () => {
+        const store = makeStore()
+        const dimensions = [
+            {
+                property: DimensionProperty.y,
+                slug: "rent_index",
+                display: { name: "Rent", conversionFactor: 10 },
+            },
+        ]
+        await store.loadTable(dimensions, undefined)
+        const table = await store.loadTable(dimensions, undefined)
+        expect(table!.get("rent_index").displayName).toBe("Rent")
+        expect(table!.get("rent_index").values).toEqual([
+            1000, 1310, 1000, 1120,
+        ])
+    })
+
     it("keeps the table it has when a chart names no columns", async () => {
         const table = await makeStore().loadTable([], undefined)
         expect(table).toBeUndefined()

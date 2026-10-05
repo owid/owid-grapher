@@ -17,7 +17,10 @@ import {
     OwidColumnDef,
     OwidTableSlugs,
 } from "@ourworldindata/types"
-import { getCachingInputTableFetcher } from "@ourworldindata/grapher"
+import {
+    applyDimensionDisplayAndConversionFactor,
+    getCachingInputTableFetcher,
+} from "@ourworldindata/grapher"
 import { IndicatorCatalog } from "./editorProviders.js"
 import { Dataset, IndicatorCatalogData } from "./EditorDatabase.js"
 
@@ -127,7 +130,14 @@ export function tableIndicatorStore(
                     console.warn(
                         `${name}: config references column "${dimension.slug ?? dimension.variableId}", which the table doesn't have`
                     )
-            return Promise.resolve(dimensions.length ? named : undefined)
+            return Promise.resolve(
+                dimensions.length
+                    ? applyDimensionDisplayAndConversionFactor(
+                          named,
+                          dimensions
+                      )
+                    : undefined
+            )
         },
     }
 }
