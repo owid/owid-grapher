@@ -13,7 +13,6 @@ import {
     getParentIndicatorIdFromChartConfig,
     Json,
     mergeGrapherConfigs,
-    slugify,
 } from "@ourworldindata/utils"
 import {
     type AnalyticsGrapherViewWithRank,
@@ -26,20 +25,14 @@ import { BAKED_GRAPHER_URL } from "../settings/clientSettings.mjs"
 import { Admin } from "./Admin.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { AdminLayout } from "./AdminLayout.js"
-import {
-    AutoTextField,
-    LoadingBlocker,
-    Section,
-    Timeago,
-    Toggle,
-} from "./Forms.js"
+import { LoadingBlocker, Timeago } from "./Forms.js"
 import { GrapherEditor } from "./GrapherEditor.js"
 import { ConfigEditor, EditorExtraTab } from "./ConfigEditor.js"
 import { EditorNoteSlot, References } from "./AbstractChartEditor.js"
 import { ChartSaveActions, ChartSaveButtons } from "./ChartSaveButtons.js"
 import { EditorHistoryTab } from "./EditorHistoryTab.js"
 import { EditorReferencesTabForChart } from "./EditorReferencesTab.js"
-import { TagsSection } from "./EditorBasicTab.js"
+import { EditorPublishingTab } from "./EditorPublishingTab.js"
 import {
     adminOriginUrlSuggestions,
     deleteChart,
@@ -537,7 +530,26 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
             {
                 key: "publishing",
                 label: "Publishing",
-                render: (editor) => this.renderPublishingTab(editor),
+                render: (editor) => (
+                    <EditorPublishingTab
+                        editor={editor}
+                        indicatorId={this.indicatorId}
+                        indicatorConfig={this.indicatorConfig}
+                        isInheritanceEnabled={this.isInheritanceEnabled}
+                        onInheritanceChange={action(
+                            (isEnabled: boolean) =>
+                                (this.isInheritanceEnabled = isEnabled)
+                        )}
+                        tags={this.tags}
+                        availableTags={this.availableTags}
+                        onSaveTags={this.saveTags}
+                        forceDatapage={this.forceDatapage}
+                        onForceDatapageChange={action(
+                            (forceDatapage: boolean) =>
+                                (this.forceDatapage = forceDatapage)
+                        )}
+                    />
+                ),
             },
         ]
     }
@@ -559,85 +571,6 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
                 )
             }
         }
-    }
-
-    /**
-     * Everything about the chart as a row in our database that isn't its
-     * config: inheritance from the indicator, tags, the data-page override.
-     * Used to sit at the bottom of the Basic and Text tabs.
-     */
-    private renderPublishingTab(editor: ConfigEditor): React.ReactNode {
-        const { grapherState } = editor
-        return (
-            <>
-                <Section name="URL">
-                    <AutoTextField
-                        label="/grapher/"
-                        value={grapherState.slug}
-                        onValue={action(
-                            (slug: string) =>
-                                (grapherState.slug = slugify(slug))
-                        )}
-                        isAuto={grapherState.slug === grapherState.defaultSlug}
-                        onToggleAuto={action(
-                            () => (grapherState.slug = grapherState.defaultSlug)
-                        )}
-                        helpText="Human-friendly URL for this chart"
-                    />
-                </Section>
-                <Section name="Inheritance">
-                    {this.indicatorId ? (
-                        <>
-                            <Toggle
-                                label="Inherit settings from the indicator"
-                                secondaryLabel="Only your changes are saved; the rest follows the indicator's own config."
-                                value={this.isInheritanceEnabled}
-                                onValue={action(
-                                    (value: boolean) =>
-                                        (this.isInheritanceEnabled = value)
-                                )}
-                            />
-                            <small className="form-text text-muted">
-                                Indicator:{" "}
-                                <a
-                                    href={`/admin/variables/${this.indicatorId}`}
-                                    target="_blank"
-                                    rel="noopener"
-                                >
-                                    {editor.grapherState.inputTable.get(
-                                        String(this.indicatorId)
-                                    )?.name ?? this.indicatorId}
-                                </a>
-                                {this.indicatorConfig
-                                    ? ""
-                                    : " (has no config of its own yet)"}
-                            </small>
-                        </>
-                    ) : (
-                        <p>
-                            This chart has no y indicator yet, so there is
-                            nothing to inherit from.
-                        </p>
-                    )}
-                </Section>
-                <TagsSection
-                    chartId={editor.grapherState.id}
-                    tags={this.tags}
-                    availableTags={this.availableTags}
-                    onSaveTags={this.saveTags}
-                />
-                <Section name="Data page">
-                    <Toggle
-                        label="Force to be a data page"
-                        secondaryLabel="Use metadata from the first Y indicator (same behavior as multi-dimensional data pages)."
-                        value={this.forceDatapage}
-                        onValue={action(
-                            (value: boolean) => (this.forceDatapage = value)
-                        )}
-                    />
-                </Section>
-            </>
-        )
     }
 
     override render(): React.ReactElement {
