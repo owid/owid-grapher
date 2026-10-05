@@ -23,7 +23,7 @@ import {
     EditorExtraTab,
 } from "./ConfigEditor.js"
 import { EditorTab } from "./AbstractChartEditor.js"
-import { DetailsProvider, IndicatorCatalog } from "./editorProviders.js"
+import { DetailsProvider } from "./editorProviders.js"
 import { IndicatorStore } from "./indicatorStores.js"
 
 export interface GrapherEditorProps {
@@ -39,9 +39,6 @@ export interface GrapherEditorProps {
     onSave: ConfigEditorManager["onSave"]
     /** Fires on every change of the edited config. */
     onChange?: ConfigEditorManager["onChange"]
-    /** What "Add indicator" can offer. Defaults to `store.catalog`; pass
-     *  `null` for no picker. */
-    indicators?: IndicatorCatalog | null
     /** Details on demand for validating text fields. Absent → none. */
     details?: DetailsProvider
     /** Restrict the tabs shown. */
@@ -105,12 +102,6 @@ export class GrapherEditor
 
     get store(): IndicatorStore {
         return this.props.store
-    }
-
-    get indicators(): IndicatorCatalog | undefined {
-        const { indicators, store } = this.props
-        if (indicators === null) return undefined
-        return indicators ?? store.catalog
     }
 
     get details(): DetailsProvider | undefined {

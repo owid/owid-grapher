@@ -31,7 +31,6 @@ import {
     adminIndicatorCatalog,
     defaultEditorEnvironment,
     DetailsProvider,
-    IndicatorCatalog,
 } from "./editorProviders.js"
 import {
     csvIndicatorStore,
@@ -260,13 +259,8 @@ export class EditorPlaygroundPage extends React.Component {
     @computed get mountSnippet(): string {
         const storeLine =
             this.storeMode === "csv"
-                ? `const store = csvIndicatorStore({\n    csv,          // the pasted CSV text\n    columnDefs,   // name, unit, description, source per column\n    name: "pasted CSV",\n})`
-                : `const store = dataApiIndicatorStore({\n    dataApiUrl: "${defaultEditorEnvironment.dataApiUrl}",\n    // catalog: what "Add indicator" offers; the admin passes its own\n})`
-        const indicatorsLine = this.withIndicatorCatalog
-            ? this.storeMode === "api"
-                ? "    indicators={adminIndicatorCatalog(admin)} // OWID admin only"
-                : "    // indicators: defaults to store.catalog (the CSV's columns)"
-            : "    indicators={null}                          // no picker"
+                ? `const store = csvIndicatorStore({\n    csv,          // the pasted CSV text\n    columnDefs,   // name, unit, description, source per column\n    name: "pasted CSV",\n})${this.withIndicatorCatalog ? "" : "\nstore.catalog = undefined // no picker"}`
+                : `const store = dataApiIndicatorStore({\n    dataApiUrl: "${defaultEditorEnvironment.dataApiUrl}",${this.withIndicatorCatalog ? "\n    catalog: adminIndicatorCatalog(admin), // OWID admin only" : ""}\n})`
         const tabsLine =
             this.tabPreset === "lite"
                 ? `    tabs={${JSON.stringify(LITE_TABS)}}`
@@ -295,7 +289,6 @@ ${baseDecl}
 <GrapherEditor
     config={config}
     store={store}
-${indicatorsLine}
 ${tabsLine}${hostLines}
     onChange={(config) => setLiveConfig(config)}  // every edit, in the store's form
     onSave={(config) => saveSomewhere(config)}     // "Save config" button
@@ -319,11 +312,15 @@ ${tabsLine}${hostLines}
         })
     }
 
-    @computed get indicators(): IndicatorCatalog | undefined {
-        if (!this.withIndicatorCatalog) return undefined
-        return this.storeMode === "api"
-            ? adminIndicatorCatalog(this.context.admin)
-            : this.loadedStore.catalog
+    @computed get store(): IndicatorStore {
+        if (!this.withIndicatorCatalog)
+            return { ...this.loadedStore, catalog: undefined }
+        if (this.storeMode === "api")
+            return {
+                ...this.loadedStore,
+                catalog: adminIndicatorCatalog(this.context.admin),
+            }
+        return this.loadedStore
     }
 
     @computed get details(): DetailsProvider {
@@ -538,9 +535,8 @@ ${tabsLine}${hostLines}
                     <GrapherEditor
                         key={this.editorKey}
                         config={this.loadedConfig}
-                        store={this.loadedStore}
+                        store={this.store}
                         baseConfig={this.baseConfig}
-                        indicators={this.indicators ?? null}
                         details={this.details}
                         tabs={this.tabs}
                         extraTabs={this.extraTabs}
@@ -754,10 +750,6 @@ ${tabsLine}${hostLines}
                                                         <td>
                                                             <code>
                                                                 store.catalog
-                                                            </code>{" "}
-                                                            /{" "}
-                                                            <code>
-                                                                indicators
                                                             </code>
                                                         </td>
                                                     </tr>

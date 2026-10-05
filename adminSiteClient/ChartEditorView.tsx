@@ -60,14 +60,12 @@ import {
     FieldWithDetailReferences,
 } from "./ChartEditorTypes.js"
 import { EditorDatabase } from "./EditorDatabase.js"
-import { DetailsProvider, IndicatorCatalog } from "./editorProviders.js"
+import { DetailsProvider } from "./editorProviders.js"
 
 export type DetailReferences = Record<FieldWithDetailReferences, string[]>
 
 export interface ChartEditorViewManager<Editor> {
     editor: Editor
-    /** Indicators the variable selector can offer. Absent → none. */
-    indicators?: IndicatorCatalog
     /** Details on demand, for validating text fields. Absent → none. */
     details?: DetailsProvider
     /**
@@ -154,7 +152,7 @@ export class ChartEditorView<
     }
 
     async fetchData(): Promise<void> {
-        const { indicators } = this.manager
+        const { catalog: indicators } = this.manager.editor.store
         const catalog = indicators
             ? await indicators.load()
             : { namespaces: [], datasets: [] }
