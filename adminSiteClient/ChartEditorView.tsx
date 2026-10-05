@@ -488,7 +488,7 @@ export class ChartEditorView<
                             <EditorScatterTab editor={editor} />
                         )}
                         {editor.tab === "marimekko" && (
-                            <EditorMarimekkoTab grapherState={grapherState} />
+                            <EditorMarimekkoTab editor={editor} />
                         )}
                         {editor.tab === "map" && (
                             <EditorMapTab
