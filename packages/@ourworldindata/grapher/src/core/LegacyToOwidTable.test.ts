@@ -131,26 +131,45 @@ describe(legacyToOwidTableAndDimensions, () => {
                 unit: "kg",
             })
         })
+    })
 
-        it("prefers the slot's conversionFactor over the indicator's", () => {
+    describe("slot display", () => {
+        it("copies the slot's color onto the column def", () => {
             const table = legacyToOwidTableAndDimensions(
                 legacyVariableConfig,
                 [
                     {
                         variableId: 2,
-                        display: { conversionFactor: 10 },
+                        display: { color: "#c15065" },
                         property: DimensionProperty.y,
                     },
                 ],
                 undefined
             )
 
-            expect(table.rows[0]["2"]).toEqual(80)
-            expect(table.get("2").def.display?.conversionFactor).toEqual(10)
+            expect(table.get("2").def.color).toBe("#c15065")
         })
-    })
 
-    describe("slot display", () => {
+        it("builds columns for indicator slots only", () => {
+            const table = legacyToOwidTableAndDimensions(
+                legacyVariableConfig,
+                [
+                    { variableId: 2, property: DimensionProperty.y },
+                    {
+                        slug: "rent_index",
+                        property: DimensionProperty.x,
+                        display: { conversionFactor: 10 },
+                    },
+                ],
+                undefined
+            )
+
+            expect(table.columnSlugs).toContain("2")
+            expect(table.columnSlugs).not.toContain("rent_index")
+            expect(table.columnSlugs).not.toContain("undefined")
+            expect(table.rows[0]["2"]).toEqual(800)
+        })
+
         it("filters to the target year with the slot's tolerance", () => {
             const variableConfig: MultipleOwidVariableDataDimensionsMap =
                 new Map([
