@@ -1,11 +1,10 @@
 import { expect, it, describe } from "vitest"
-import { OwidTable } from "@ourworldindata/core-table"
+import { isNotErrorValue, OwidTable } from "@ourworldindata/core-table"
 import {
     ColumnTypeNames,
     DimensionProperty,
     type OwidColumnDef,
 } from "@ourworldindata/types"
-import { OwidVariableDisplayConfig } from "@ourworldindata/utils"
 import { applyDimensionDisplayAndConversionFactor } from "./applyDisplayAndConversionFactor.js"
 
 const csv = `entityName,year,rent_index,vacancy_rate,dwellings
@@ -64,13 +63,20 @@ describe(applyDimensionDisplayAndConversionFactor, () => {
         expect(table.get("vacancy_rate").displayName).toBe("Vacancy rate")
     })
 
-    it("returns the same table when no slot overrides anything", () => {
+    it("returns the same table when no slot carries a display", () => {
         const table = makeTable()
         expect(applyDimensionDisplayAndConversionFactor(table, [])).toBe(table)
         expect(
             applyDimensionDisplayAndConversionFactor(table, [
                 { property: DimensionProperty.y, slug: "rent_index" },
-                { property: DimensionProperty.y, variableId: 42 },
+            ])
+        ).toBe(table)
+    })
+
+    it("ignores a slot naming a column the table doesn't have", () => {
+        const table = makeTable()
+        expect(
+            applyDimensionDisplayAndConversionFactor(table, [
                 {
                     property: DimensionProperty.y,
                     slug: "not_a_column",
@@ -80,16 +86,27 @@ describe(applyDimensionDisplayAndConversionFactor, () => {
         ).toBe(table)
     })
 
-    it("skips a slot without a slug", () => {
-        const table = applyDimensionDisplayAndConversionFactor(makeTable(), [
-            {
-                property: DimensionProperty.y,
-                variableId: 815383,
-                display: { name: "Should not apply" },
-            },
-        ])
+    it("leaves indicator columns to the indicator pipeline", () => {
+        const table = applyDimensionDisplayAndConversionFactor(
+            new OwidTable(
+                [
+                    ["entityName", "year", "815383"],
+                    ["Berlin", 2020, 8],
+                ],
+                [{ slug: "815383", type: ColumnTypeNames.Numeric, name: "GDP" }]
+            ),
+            [
+                {
+                    property: DimensionProperty.y,
+                    variableId: 815383,
+                    display: { conversionFactor: 10, name: "Scaled twice" },
+                },
+            ]
+        )
 
-        expect(table.get("rent_index").displayName).toBe("Rent index")
+        const column = table.get("815383")
+        expect(column.values).toEqual([8])
+        expect(column.displayName).toBe("GDP")
     })
 
     it("scales the column's values by a conversion factor", () => {
@@ -107,6 +124,29 @@ describe(applyDimensionDisplayAndConversionFactor, () => {
         expect(table.get("rent_index").values[0]).toBe(100)
     })
 
+    it("leaves missing values missing when scaling", () => {
+        const table = applyDimensionDisplayAndConversionFactor(
+            new OwidTable(
+                `entityName,year,vacancy_rate
+Berlin,2020,1.2
+Vienna,2020,`,
+                columnDefs
+            ),
+            [
+                {
+                    property: DimensionProperty.y,
+                    slug: "vacancy_rate",
+                    display: { conversionFactor: 100 },
+                },
+            ]
+        )
+
+        const [berlin, vienna] =
+            table.get("vacancy_rate").valuesIncludingErrorValues
+        expect(berlin).toBe(120)
+        expect(isNotErrorValue(vienna)).toBe(false)
+    })
+
     it("turns an integer column numeric when the factor isn't whole", () => {
         const table = applyDimensionDisplayAndConversionFactor(makeTable(), [
             {
@@ -121,6 +161,20 @@ describe(applyDimensionDisplayAndConversionFactor, () => {
         expect(column.values[0]).toBeCloseTo(1.9)
     })
 
+    it("keeps an integer column integer when the factor is whole", () => {
+        const table = applyDimensionDisplayAndConversionFactor(makeTable(), [
+            {
+                property: DimensionProperty.y,
+                slug: "dwellings",
+                display: { conversionFactor: 1000 },
+            },
+        ])
+
+        const column = table.get("dwellings")
+        expect(column.def.type).toBe(ColumnTypeNames.Integer)
+        expect(column.values[0]).toBe(1_900_000_000)
+    })
+
     it("copies a slot's color onto the def, where column-coloured charts read it", () => {
         const table = applyDimensionDisplayAndConversionFactor(makeTable(), [
             {
@@ -133,12 +187,16 @@ describe(applyDimensionDisplayAndConversionFactor, () => {
         expect(table.get("rent_index").def.color).toBe("#c15065")
     })
 
-    it("leaves the def alone where the slot's display is undefined", () => {
+    it("keeps the column's own value where the slot leaves a field undefined", () => {
         const table = applyDimensionDisplayAndConversionFactor(makeTable(), [
             {
                 property: DimensionProperty.y,
                 slug: "rent_index",
-                display: new OwidVariableDisplayConfig({ unit: "points" }),
+                display: {
+                    unit: "points",
+                    name: undefined,
+                    numDecimalPlaces: undefined,
+                },
             },
         ])
 
