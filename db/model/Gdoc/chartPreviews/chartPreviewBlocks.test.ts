@@ -144,7 +144,7 @@ describe(findChartPreviewBlocks, () => {
                 tabId: "t.0",
                 tabTitle: "Tab",
                 componentStartIndex: 13,
-                spec: { type: "chart", target: URL_A },
+                spec: { type: "chart", kind: "chartUrl", target: URL_A },
                 image: {
                     objectId: "kix.1",
                     startIndex: 11,
@@ -217,6 +217,19 @@ describe(findChartPreviewBlocks, () => {
         ).toEqual([URL_A, URL_B, URL_A])
     })
 
+    it("reads linked urls like ingestion, where the link target wins", () => {
+        const document = makeDocument(
+            makeContent([
+                ["{.chart}"],
+                ["url: ", { link: URL_B, text: URL_A }],
+                ["{}"],
+            ])
+        )
+        expect(
+            findChartPreviewBlocks(document).map((b) => b.spec.target)
+        ).toEqual([URL_B])
+    })
+
     it("finds narrative charts by name, ignoring links", () => {
         const document = makeDocument(
             makeContent([
@@ -233,8 +246,8 @@ describe(findChartPreviewBlocks, () => {
                 b.image?.objectId,
             ])
         ).toEqual([
-            [{ type: "narrative-chart", target: "my-narrative" }, "kix.1"],
-            [{ type: "narrative-chart", target: "other-narrative" }, undefined],
+            [{ type: "narrative-chart", kind: "narrativeChartName", target: "my-narrative" }, "kix.1"],
+            [{ type: "narrative-chart", kind: "narrativeChartName", target: "other-narrative" }, undefined],
         ])
     })
 
@@ -259,8 +272,8 @@ describe(findChartPreviewBlocks, () => {
                 b.image?.objectId,
             ])
         ).toEqual([
-            [{ type: "image", target: "my-chart.png" }, "kix.1"],
-            [{ type: "static-viz", target: "my-static-viz" }, undefined],
+            [{ type: "image", kind: "imageFilename", target: "my-chart.png" }, "kix.1"],
+            [{ type: "static-viz", kind: "staticVizName", target: "my-static-viz" }, undefined],
         ])
     })
 
@@ -295,8 +308,8 @@ describe(findChartPreviewBlocks, () => {
         expect(
             findChartPreviewBlocks(document).map((block) => block.spec)
         ).toEqual([
-            { type: "chart", target: URL_B },
-            { type: "chart", target: URL_B },
+            { type: "chart", kind: "chartUrl", target: URL_B },
+            { type: "chart", kind: "chartUrl", target: URL_B },
         ])
     })
 
@@ -364,7 +377,7 @@ describe(makeChartPreviewRequests, () => {
         tabId,
         tabTitle: "",
         componentStartIndex,
-        spec: { type: "chart", target: URL_A },
+        spec: { type: "chart", kind: "chartUrl", target: URL_A },
         // The image sits in its own paragraph right above the component
         image: objectId
             ? { objectId, startIndex: componentStartIndex - 2 }

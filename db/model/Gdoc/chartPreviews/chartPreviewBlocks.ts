@@ -1,4 +1,10 @@
 import { type docs_v1 } from "@googleapis/docs"
+import { type OwidRawGdocBlock } from "@ourworldindata/types"
+import { acceptAllGdocSuggestions } from "../acceptAllGdocSuggestions.js"
+import {
+    extractUrl,
+    paragraphElementsToArchieText,
+} from "@ourworldindata/gdoc-pipeline"
 
 /**
  * Chart components in a gdoc have no visual representation while authors are
@@ -10,11 +16,18 @@ import { type docs_v1 } from "@googleapis/docs"
  *     {}
  *
  * The image is either in a paragraph of its own or at the end of the paragraph
- * before the component. Image and static viz components get the same treatment,
- * so authors see the uploaded image they refer to. This module finds those components and their images in
- * the raw Google Docs API document and builds the batchUpdate requests that
- * swap in fresh renders.
+ * before the component. Image and static viz components get the same
+ * treatment, so authors see the uploaded image they refer to. This module finds those components and their
+ * images in the raw Google Docs API document and builds the batchUpdate
+ * requests that swap in fresh renders.
  */
+
+/** What a component's target property refers to, which decides how it renders */
+export type ChartPreviewTargetKind =
+    | "chartUrl"
+    | "narrativeChartName"
+    | "imageFilename"
+    | "staticVizName"
 
 export type ChartPreviewComponentType =
     | "chart"
@@ -23,11 +36,10 @@ export type ChartPreviewComponentType =
     | "static-viz"
 
 export interface ChartPreviewComponentSpec {
+    /** The ArchieML component type */
     type: ChartPreviewComponentType
-    /**
-     * The chart URL for `chart`, the filename for `image`, the name for
-     * `narrative-chart` and `static-viz`
-     */
+    kind: ChartPreviewTargetKind
+    /** The chart URL, narrative chart name, image filename or static viz name */
     target: string
 }
 
@@ -51,9 +63,10 @@ export interface ChartPreviewImage {
 
 interface ParsedParagraph {
     startIndex: number
+    /** Plain text, with smart chips as their URL */
     text: string
-    /** The first link in the paragraph, if any */
-    linkUrl?: string
+    /** The text as ingestion sees it, with links etc. as HTML */
+    archieText: string
     /** The image the paragraph ends with, if any */
     trailingImage?: { objectId: string; startIndex: number }
     hasImage: boolean
@@ -66,42 +79,43 @@ const INSERTED_IMAGE_WIDTH_PT = 468
 // this for its closing `{}` in case it's malformed
 const MAX_COMPONENT_LINES = 40
 
-interface ComponentTarget {
-    /** The property that says what the component shows */
-    key: string
-    isUrl: boolean
-    /** Whether the parser also accepts `type: value` on a single line */
-    hasSingleLineForm: boolean
-}
+type RawBlockOfType<T extends OwidRawGdocBlock["type"]> = Extract<
+    OwidRawGdocBlock,
+    { type: T }
+>
 
-const COMPONENT_TARGETS: Record<ChartPreviewComponentType, ComponentTarget> = {
-    chart: { key: "url", isUrl: true, hasSingleLineForm: true },
-    "narrative-chart": { key: "name", isUrl: false, hasSingleLineForm: true },
-    image: { key: "filename", isUrl: false, hasSingleLineForm: false },
-    "static-viz": { key: "name", isUrl: false, hasSingleLineForm: false },
+interface ComponentTarget<T extends ChartPreviewComponentType> {
+    /** The property that says what the component shows */
+    key: Extract<keyof Exclude<RawBlockOfType<T>["value"], string>, string>
+    kind: ChartPreviewTargetKind
+    /**
+     * Whether the component can be written on a single line as well, e.g.
+     * `chart: <url>`. Only components whose raw value can be a string can.
+     */
+    hasSingleLineForm: string extends RawBlockOfType<T>["value"]
+        ? boolean
+        : false
 }
 
 /**
- * The doc is read with suggestions inline, since that's the view our write
- * indices address. Content an author suggested deleting still has its indices
- * but is read as if the suggestion were accepted, so a suggested change to a
- * component's url previews the new url.
+ * The components that get a preview image. Typed against the raw ArchieML
+ * blocks, so the property names stay in sync with what ingestion parses.
  */
-function isSuggestedDeletion(element: {
-    suggestedDeletionIds?: string[] | null
-}): boolean {
-    return (element.suggestedDeletionIds?.length ?? 0) > 0
-}
-
-/** The link a text run has once its suggested style changes are accepted */
-function getLinkUrl(textRun: docs_v1.Schema$TextRun): string | undefined {
-    for (const change of Object.values(
-        textRun.suggestedTextStyleChanges ?? {}
-    )) {
-        if (change.textStyleSuggestionState?.linkSuggested)
-            return change.textStyle?.link?.url ?? undefined
-    }
-    return textRun.textStyle?.link?.url ?? undefined
+const COMPONENT_TARGETS: {
+    [T in ChartPreviewComponentType]: ComponentTarget<T>
+} = {
+    chart: { key: "url", kind: "chartUrl", hasSingleLineForm: true },
+    "narrative-chart": {
+        key: "name",
+        kind: "narrativeChartName",
+        hasSingleLineForm: true,
+    },
+    image: { key: "filename", kind: "imageFilename", hasSingleLineForm: false },
+    "static-viz": {
+        key: "name",
+        kind: "staticVizName",
+        hasSingleLineForm: false,
+    },
 }
 
 function parseParagraph(
@@ -112,28 +126,20 @@ function parseParagraph(
     if (!paragraph || typeof startIndex !== "number") return undefined
     const elements = paragraph.elements ?? []
     let text = ""
-    let linkUrl: string | undefined
     let trailingImage: ParsedParagraph["trailingImage"]
     let hasImage = false
     for (const el of elements) {
         if (el.textRun) {
-            if (isSuggestedDeletion(el.textRun)) continue
             const content = el.textRun.content ?? ""
             text += content
-            linkUrl ??= getLinkUrl(el.textRun)
             // Whitespace (incl. the paragraph's closing newline) after an
             // image doesn't stop it from being the trailing element
             if (content.trim()) trailingImage = undefined
-        } else if (
-            el.richLink?.richLinkProperties?.uri &&
-            !isSuggestedDeletion(el.richLink)
-        ) {
+        } else if (el.richLink?.richLinkProperties?.uri) {
             text += el.richLink.richLinkProperties.uri
-            linkUrl ??= el.richLink.richLinkProperties.uri
             trailingImage = undefined
         } else if (
             el.inlineObjectElement?.inlineObjectId &&
-            !isSuggestedDeletion(el.inlineObjectElement) &&
             typeof el.startIndex === "number"
         ) {
             trailingImage = {
@@ -146,7 +152,7 @@ function parseParagraph(
     return {
         startIndex,
         text,
-        linkUrl,
+        archieText: paragraphElementsToArchieText(elements),
         trailingImage,
         hasImage,
     }
@@ -172,16 +178,20 @@ function collectParagraphGroups(
 }
 
 /**
- * For URLs, mirrors extractUrl: plain text URLs win, otherwise use the link
- * target
+ * Reads `key: value` from a paragraph. URLs are read from the paragraph's
+ * ArchieML text with extractUrl, like ingestion does, so linked text and smart
+ * chips resolve to their link target.
  */
-function readTarget(
-    value: string,
+function readValue(
     paragraph: ParsedParagraph,
-    isUrl: boolean
-): string {
-    if (!isUrl || value.startsWith("http") || !paragraph.linkUrl) return value
-    return paragraph.linkUrl
+    key: string,
+    kind: ChartPreviewTargetKind
+): string | undefined {
+    const regex = new RegExp(`^${key}\\s*:\\s*(.*)$`, "s")
+    const value = paragraph.text.trim().match(regex)?.[1].trim()
+    if (value === undefined || kind !== "chartUrl") return value
+    const archieValue = paragraph.archieText.trim().match(regex)?.[1]
+    return extractUrl(archieValue ?? value)
 }
 
 function matchComponent(
@@ -191,35 +201,29 @@ function matchComponent(
     const paragraph = paragraphs[index]
     const text = paragraph.text.trim()
 
-    for (const [type, { key, isUrl, hasSingleLineForm }] of Object.entries(
+    for (const [type, { key, kind, hasSingleLineForm }] of Object.entries(
         COMPONENT_TARGETS
-    ) as [ChartPreviewComponentType, ComponentTarget][]) {
+    ) as [
+        ChartPreviewComponentType,
+        ComponentTarget<ChartPreviewComponentType>,
+    ][]) {
         // Single-line form, e.g. `chart: https://...`
         const inline = hasSingleLineForm
-            ? text.match(new RegExp(`^${type}\\s*:\\s*(.+)$`))
-            : null
-        if (inline) {
-            return {
-                type,
-                target: readTarget(inline[1].trim(), paragraph, isUrl),
-            }
-        }
+            ? readValue(paragraph, type, kind)
+            : undefined
+        if (inline) return { type, kind, target: inline }
 
         // Object form, e.g. `{.chart}` followed by `url: https://...` and `{}`
         if (!new RegExp(`^\\{\\s*\\.${type}\\s*\\}$`).test(text)) continue
-        const keyRegex = new RegExp(`^${key}\\s*:\\s*(.*)$`)
         const lastIndex = Math.min(
             paragraphs.length,
             index + 1 + MAX_COMPONENT_LINES
         )
         for (let i = index + 1; i < lastIndex; i++) {
-            const line = paragraphs[i].text.trim()
-            if (/^\{\s*\}$/.test(line)) return undefined
-            const match = line.match(keyRegex)
-            if (match) {
-                const target = readTarget(match[1].trim(), paragraphs[i], isUrl)
-                return target ? { type, target } : undefined
-            }
+            if (/^\{\s*\}$/.test(paragraphs[i].text.trim())) return undefined
+            const target = readValue(paragraphs[i], key, kind)
+            if (target !== undefined)
+                return target ? { type, kind, target } : undefined
         }
         return undefined
     }
@@ -254,12 +258,18 @@ function flattenTabs(tabs: docs_v1.Schema$Tab[]): docs_v1.Schema$Tab[] {
 /**
  * Finds all chart components in all tabs of a document fetched with
  * `includeTabsContent: true`.
+ *
+ * The doc is fetched with suggestions inline, since that's the view our write
+ * indices address. It's read as if all suggestions were accepted, the same way
+ * ingestion accepts them, so a suggested change to a component's url previews
+ * the new url. Accepting suggestions keeps the elements' indices as they are.
  */
 export function findChartPreviewBlocks(
     document: docs_v1.Schema$Document
 ): ChartPreviewBlock[] {
     const blocks: ChartPreviewBlock[] = []
-    for (const tab of flattenTabs(document.tabs ?? [])) {
+    const accepted = acceptAllGdocSuggestions(document)
+    for (const tab of flattenTabs(accepted.tabs ?? [])) {
         const tabId = tab.tabProperties?.tabId
         const documentTab = tab.documentTab
         if (!tabId || !documentTab) continue

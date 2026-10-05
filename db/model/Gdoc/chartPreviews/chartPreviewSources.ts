@@ -49,8 +49,9 @@ export type ChartPreviewSource =
 // Bump to re-render all preview images, e.g. after changing their size
 const PREVIEW_FORMAT_VERSION = "1"
 
+/** Components with the same kind and target share one image */
 export function chartPreviewSpecKey(spec: ChartPreviewComponentSpec): string {
-    return `${spec.type}:${spec.target}`
+    return `${spec.kind}:${spec.target}`
 }
 
 interface ChartConfigVersionInfo {
@@ -586,15 +587,15 @@ export async function resolveChartPreviewSources(
         const key = chartPreviewSpecKey(spec)
         if (seen.has(key)) continue
         seen.add(key)
-        if (spec.type === "narrative-chart") {
+        if (spec.kind === "narrativeChartName") {
             narrativeChartNames.push({ key, name: spec.target })
             continue
         }
-        if (spec.type === "image") {
+        if (spec.kind === "imageFilename") {
             imageFilenames.push({ key, filename: spec.target })
             continue
         }
-        if (spec.type === "static-viz") {
+        if (spec.kind === "staticVizName") {
             staticVizNames.push({ key, name: spec.target })
             continue
         }
