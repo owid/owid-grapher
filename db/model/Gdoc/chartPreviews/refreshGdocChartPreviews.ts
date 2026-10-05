@@ -218,18 +218,19 @@ export async function refreshGdocChartPreviews(
             continue
         }
         const change = { block, imageUrl: source.imageUrl }
+        const { message } = source
         if (block.image?.sourceUri === source.imageUrl) {
-            items.set(block, makeItem(block, "upToDate"))
+            items.set(block, makeItem(block, "upToDate", message))
         } else if (block.image) {
             if (needsReinsertion(block, source.aspectRatio))
                 planned.reinsertions.push(change)
             else planned.replacements.push(change)
-            items.set(block, makeItem(block, "updated"))
+            items.set(block, makeItem(block, "updated", message))
         } else if (insertMissing) {
             planned.insertions.push(change)
-            items.set(block, makeItem(block, "inserted"))
+            items.set(block, makeItem(block, "inserted", message))
         } else {
-            items.set(block, makeItem(block, "missing"))
+            items.set(block, makeItem(block, "missing", message))
         }
     }
 

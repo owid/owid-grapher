@@ -14,8 +14,10 @@ import {
     GDOCS_CHART_PREVIEW_GRAPHER_URL,
 } from "../../../../settings/serverSettings.js"
 import * as db from "../../../db.js"
-import { getMultiDimDataPageBySlug } from "../../MultiDimDataPage.js"
-import { getMultiDimRedirectTargets } from "../../MultiDimRedirects.js"
+import {
+    type GdocLinkTarget,
+    resolveGdocLinkTargets,
+} from "../gdocLinkTargets.js"
 import { type ChartPreviewComponentSpec } from "./chartPreviewBlocks.js"
 
 /**
@@ -39,6 +41,8 @@ export type ChartPreviewSource =
            * chart renders, which all share one)
            */
           aspectRatio?: number
+          /** Something the author should know about the image */
+          message?: string
       }
     | { status: "unresolved"; message: string }
 
@@ -89,6 +93,8 @@ type ResolvedTarget =
           configHashes: string[]
           /** Indicators whose checksums go into the version */
           variableIds: number[]
+          /** Something the author should know about the image */
+          message?: string
       }
     | { status: "unresolved"; message: string }
 
@@ -141,60 +147,6 @@ function makeGrapherTarget(
     }
 }
 
-/**
- * Standalone charts by current or redirected slug. Prefers a chart's current
- * slug over a redirect, and published charts over drafts that share a slug.
- */
-async function getChartConfigsBySlug(
-    knex: db.KnexReadonlyTransaction,
-    slugs: string[]
-): Promise<Map<string, ChartConfigVersionInfo>> {
-    if (slugs.length === 0) return new Map()
-    const rows = await db.knexRaw<{
-        slug: string
-        configId: string
-        configMd5: string
-        variableIds: unknown
-        priority: number
-    }>(
-        knex,
-        `-- sql
-        SELECT
-            cc.slug,
-            cc.id AS configId,
-            cc.configMd5,
-            JSON_EXTRACT(cc.config, '$.dimensions[*].variableId') AS variableIds,
-            IF(cc.config ->> '$.isPublished' = 'true', 2, 1) AS priority
-        FROM charts c
-        JOIN chart_configs cc ON cc.id = c.configId
-        WHERE cc.slug IN (?)
-        UNION ALL
-        SELECT
-            r.slug,
-            cc.id AS configId,
-            cc.configMd5,
-            JSON_EXTRACT(cc.config, '$.dimensions[*].variableId') AS variableIds,
-            0 AS priority
-        FROM chart_slug_redirects r
-        JOIN charts c ON c.id = r.chart_id
-        JOIN chart_configs cc ON cc.id = c.configId
-        WHERE r.slug IN (?)
-        ORDER BY priority ASC`,
-        [slugs, slugs]
-    )
-    // Rows are ordered by ascending priority, so the best match is set last
-    return new Map(
-        rows.map((row) => [
-            row.slug,
-            {
-                configId: row.configId,
-                configMd5: row.configMd5,
-                variableIds: parseVariableIds(row.variableIds),
-            },
-        ])
-    )
-}
-
 async function getChartConfigsById(
     knex: db.KnexReadonlyTransaction,
     ids: string[]
@@ -227,6 +179,41 @@ async function getChartConfigsById(
     )
 }
 
+async function getChartConfigsByChartId(
+    knex: db.KnexReadonlyTransaction,
+    chartIds: number[]
+): Promise<Map<number, ChartConfigVersionInfo>> {
+    if (chartIds.length === 0) return new Map()
+    const rows = await db.knexRaw<{
+        chartId: number
+        configId: string
+        configMd5: string
+        variableIds: unknown
+    }>(
+        knex,
+        `-- sql
+        SELECT
+            c.id AS chartId,
+            cc.id AS configId,
+            cc.configMd5,
+            JSON_EXTRACT(cc.config, '$.dimensions[*].variableId') AS variableIds
+        FROM charts c
+        JOIN chart_configs cc ON cc.id = c.configId
+        WHERE c.id IN (?)`,
+        [[...new Set(chartIds)]]
+    )
+    return new Map(
+        rows.map((row) => [
+            row.chartId,
+            {
+                configId: row.configId,
+                configMd5: row.configMd5,
+                variableIds: parseVariableIds(row.variableIds),
+            },
+        ])
+    )
+}
+
 interface GrapherLink {
     key: string
     slug: string
@@ -234,147 +221,18 @@ interface GrapherLink {
 }
 
 /**
- * Multi-dims render the grapher config of the view the query params select.
- * The dimension params only pick the view, so they're dropped from the image
- * URL; the remaining ones (time, country, tab, ...) apply to the view.
+ * Hashes of everything an explorer's render depends on: its config, the
+ * grapher configs of all its views and the checksums of the indicators it
+ * uses, aggregated in SQL since an explorer can have thousands of views. Data
+ * loaded from CSV files isn't covered.
  */
-async function resolveMultiDimLinks(
+async function getExplorerConfigHashes(
     knex: db.KnexReadonlyTransaction,
-    links: GrapherLink[]
-): Promise<Map<string, ResolvedTarget>> {
-    const targets = new Map<string, ResolvedTarget>()
-    const multiDims = new Map(
-        await Promise.all(
-            _.uniq(links.map((link) => link.slug)).map(
-                async (slug) =>
-                    [
-                        slug,
-                        await getMultiDimDataPageBySlug(knex, slug, {
-                            onlyPublished: false,
-                        }),
-                    ] as const
-            )
-        )
-    )
-
-    const views: { key: string; viewConfigId: string; queryStr: string }[] = []
-    for (const { key, slug, queryParams } of links) {
-        const multiDim = multiDims.get(slug)
-        if (!multiDim) {
-            targets.set(key, {
-                status: "unresolved",
-                message: "No chart or multi-dim with this slug",
-            })
-            continue
-        }
-        const { config } = multiDim
-        try {
-            const view = searchParamsToMultiDimView(
-                config,
-                new URLSearchParams(queryParamsToStr(queryParams))
-            )
-            const dimensionSlugs = config.dimensions.map((d) => d.slug)
-            views.push({
-                key,
-                viewConfigId: view.fullConfigId,
-                queryStr: queryParamsToStr(_.omit(queryParams, dimensionSlugs)),
-            })
-        } catch {
-            targets.set(key, {
-                status: "unresolved",
-                message: "No view of this multi-dim matches the link",
-            })
-        }
-    }
-
-    const viewConfigs = await getChartConfigsById(
-        knex,
-        views.map((view) => view.viewConfigId)
-    )
-    for (const { key, viewConfigId, queryStr } of views) {
-        const info = viewConfigs.get(viewConfigId)
-        targets.set(
-            key,
-            info
-                ? makeGrapherTarget(info, queryStr)
-                : { status: "unresolved", message: "Multi-dim view not found" }
-        )
-    }
-    return targets
-}
-
-/**
- * Resolves /grapher/ links the way the site does: an old chart slug that now
- * redirects to a multi-dim goes there, then standalone charts, then multi-dims
- */
-async function resolveGrapherLinks(
-    knex: db.KnexReadonlyTransaction,
-    links: GrapherLink[]
-): Promise<Map<string, ResolvedTarget>> {
-    const targets = new Map<string, ResolvedTarget>()
-    const slugs = _.uniq(links.map((link) => link.slug))
-    const [multiDimRedirects, chartsBySlug] = await Promise.all([
-        getMultiDimRedirectTargets(knex, slugs, "/grapher/"),
-        getChartConfigsBySlug(knex, slugs),
-    ])
-
-    const multiDimLinks: GrapherLink[] = []
-    for (const link of links) {
-        const redirect = multiDimRedirects.get(link.slug)
-        const chart = chartsBySlug.get(link.slug)
-        if (redirect) {
-            multiDimLinks.push({
-                key: link.key,
-                slug: redirect.targetSlug,
-                queryParams: {
-                    ...strToQueryParams(redirect.queryStr),
-                    ...link.queryParams,
-                },
-            })
-        } else if (chart) {
-            targets.set(
-                link.key,
-                makeGrapherTarget(chart, queryParamsToStr(link.queryParams))
-            )
-        } else {
-            multiDimLinks.push(link)
-        }
-    }
-
-    for (const [key, target] of await resolveMultiDimLinks(
-        knex,
-        multiDimLinks
-    )) {
-        targets.set(key, target)
-    }
-    return targets
-}
-
-/**
- * Explorers are rendered from their published page, which picks the view from
- * the query params. Only published explorers can be rendered. Explorers that
- * now redirect to a multi-dim resolve like on the site.
- *
- * The version covers the explorer config, the grapher configs of all its
- * views and the checksums of the indicators it uses, aggregated in SQL since
- * an explorer can have thousands of views. Data loaded from CSV files isn't
- * covered.
- */
-async function resolveExplorerLinks(
-    knex: db.KnexReadonlyTransaction,
-    links: GrapherLink[]
-): Promise<Map<string, ResolvedTarget>> {
-    const targets = new Map<string, ResolvedTarget>()
-    if (links.length === 0) return targets
-    const slugs = _.uniq(links.map((link) => link.slug))
-    const multiDimRedirects = await getMultiDimRedirectTargets(
-        knex,
-        slugs,
-        "/explorers/"
-    )
+    slugs: string[]
+): Promise<Map<string, string[]>> {
+    if (slugs.length === 0) return new Map()
     const rows = await db.knexRaw<{
         slug: string
-        isPublished: number
         configMd5: string
         viewsHash: string | null
         variablesHash: string | null
@@ -383,7 +241,6 @@ async function resolveExplorerLinks(
         `-- sql
         SELECT
             e.slug,
-            e.isPublished,
             MD5(e.config) AS configMd5,
             (
                 SELECT BIT_XOR(CRC32(cc.configMd5))
@@ -409,53 +266,172 @@ async function resolveExplorerLinks(
             ) AS variablesHash
         FROM explorers e
         WHERE e.slug IN (?)`,
-        [slugs]
+        [_.uniq(slugs)]
     )
-    const explorersBySlug = new Map(rows.map((row) => [row.slug, row]))
+    return new Map(
+        rows.map((row) => [
+            row.slug,
+            [row.configMd5, String(row.viewsHash), String(row.variablesHash)],
+        ])
+    )
+}
 
-    const multiDimLinks: GrapherLink[] = []
-    for (const link of links) {
-        const redirect = multiDimRedirects.get(link.slug)
-        const explorer = explorersBySlug.get(link.slug)
-        if (redirect) {
-            multiDimLinks.push({
-                key: link.key,
-                slug: redirect.targetSlug,
-                queryParams: {
-                    ...strToQueryParams(redirect.queryStr),
+const DRAFT_CHART_MESSAGE =
+    "Draft chart: the article shows this link as broken until the chart is published"
+
+/**
+ * Resolves /grapher/ and /explorers/ links like the article's own links do
+ * (resolveGdocLinkTargets), but also renders draft charts so that authors can
+ * see charts they're working on.
+ *
+ * - Charts render their grapher config, plus the link's query params.
+ * - Multi-dims render the grapher config of the view the query params select.
+ *   The dimension params only pick the view, so they're dropped from the image
+ *   URL; the remaining ones (time, country, tab, ...) apply to the view.
+ * - Explorers are rendered from their published page, which picks the view
+ *   from the query params.
+ */
+async function resolveChartLinks(
+    knex: db.KnexReadonlyTransaction,
+    grapherLinks: GrapherLink[],
+    explorerLinks: GrapherLink[]
+): Promise<Map<string, ResolvedTarget>> {
+    const targets = new Map<string, ResolvedTarget>()
+    const linkTargets = await resolveGdocLinkTargets(
+        knex,
+        {
+            grapherSlugs: grapherLinks.map((link) => link.slug),
+            explorerSlugs: explorerLinks.map((link) => link.slug),
+        },
+        { includeDraftCharts: true }
+    )
+
+    const charts: { key: string; chartId: number; queryStr: string }[] = []
+    const views: { key: string; viewConfigId: string; queryStr: string }[] = []
+    const explorers: { key: string; slug: string; queryStr: string }[] = []
+    const draftKeys = new Set<string>()
+
+    const addTarget = (
+        link: GrapherLink,
+        target: GdocLinkTarget | undefined,
+        missingMessage: string
+    ): void => {
+        if (!target) {
+            targets.set(link.key, {
+                status: "unresolved",
+                message: missingMessage,
+            })
+            return
+        }
+        switch (target.type) {
+            case "chart":
+                if (target.isDraft) draftKeys.add(link.key)
+                charts.push({
+                    key: link.key,
+                    chartId: target.chartId,
+                    queryStr: queryParamsToStr(link.queryParams),
+                })
+                return
+            case "explorer":
+                explorers.push({
+                    key: link.key,
+                    slug: link.slug,
+                    queryStr: queryParamsToStr(link.queryParams),
+                })
+                return
+            case "multiDim": {
+                const { config } = target.multiDim
+                const queryParams = {
+                    ...strToQueryParams(target.redirect?.queryStr ?? ""),
                     ...link.queryParams,
-                },
-            })
-        } else if (!explorer) {
-            targets.set(link.key, {
-                status: "unresolved",
-                message: "No explorer with this slug",
-            })
-        } else if (!explorer.isPublished) {
-            targets.set(link.key, {
-                status: "unresolved",
-                message: "Only published explorers can be rendered",
-            })
-        } else {
-            targets.set(link.key, {
-                status: "resolved",
-                baseUrl: `${GDOCS_CHART_PREVIEW_EXPLORER_URL}/${link.slug}.png`,
-                queryStr: queryParamsToStr(link.queryParams),
-                configHashes: [
-                    explorer.configMd5,
-                    String(explorer.viewsHash),
-                    String(explorer.variablesHash),
-                ],
-                variableIds: [],
-            })
+                }
+                try {
+                    const view = searchParamsToMultiDimView(
+                        config,
+                        new URLSearchParams(queryParamsToStr(queryParams))
+                    )
+                    const dimensionSlugs = config.dimensions.map((d) => d.slug)
+                    views.push({
+                        key: link.key,
+                        viewConfigId: view.fullConfigId,
+                        queryStr: queryParamsToStr(
+                            _.omit(queryParams, dimensionSlugs)
+                        ),
+                    })
+                } catch {
+                    targets.set(link.key, {
+                        status: "unresolved",
+                        message: "No view of this multi-dim matches the link",
+                    })
+                }
+                return
+            }
         }
     }
+    for (const link of grapherLinks)
+        addTarget(
+            link,
+            linkTargets.grapher.get(link.slug),
+            "No chart or multi-dim with this slug"
+        )
+    for (const link of explorerLinks)
+        addTarget(
+            link,
+            linkTargets.explorer.get(link.slug),
+            "No published explorer with this slug"
+        )
 
-    for (const [key, target] of await resolveMultiDimLinks(
-        knex,
-        multiDimLinks
-    )) {
-        targets.set(key, target)
+    const [chartConfigs, viewConfigs, explorerHashes] = await Promise.all([
+        getChartConfigsByChartId(
+            knex,
+            charts.map((chart) => chart.chartId)
+        ),
+        getChartConfigsById(
+            knex,
+            views.map((view) => view.viewConfigId)
+        ),
+        getExplorerConfigHashes(
+            knex,
+            explorers.map((explorer) => explorer.slug)
+        ),
+    ])
+    for (const { key, chartId, queryStr } of charts) {
+        const info = chartConfigs.get(chartId)
+        targets.set(
+            key,
+            info
+                ? {
+                      ...makeGrapherTarget(info, queryStr),
+                      ...(draftKeys.has(key)
+                          ? { message: DRAFT_CHART_MESSAGE }
+                          : {}),
+                  }
+                : { status: "unresolved", message: "Chart not found" }
+        )
+    }
+    for (const { key, viewConfigId, queryStr } of views) {
+        const info = viewConfigs.get(viewConfigId)
+        targets.set(
+            key,
+            info
+                ? makeGrapherTarget(info, queryStr)
+                : { status: "unresolved", message: "Multi-dim view not found" }
+        )
+    }
+    for (const { key, slug, queryStr } of explorers) {
+        const configHashes = explorerHashes.get(slug)
+        targets.set(
+            key,
+            configHashes
+                ? {
+                      status: "resolved",
+                      baseUrl: `${GDOCS_CHART_PREVIEW_EXPLORER_URL}/${slug}.png`,
+                      queryStr,
+                      configHashes,
+                      variableIds: [],
+                  }
+                : { status: "unresolved", message: "Explorer not found" }
+        )
     }
     return targets
 }
@@ -637,8 +613,7 @@ export async function resolveChartPreviewSources(
     }
 
     const targets = new Map([
-        ...(await resolveGrapherLinks(knex, grapherLinks)),
-        ...(await resolveExplorerLinks(knex, explorerLinks)),
+        ...(await resolveChartLinks(knex, grapherLinks, explorerLinks)),
         ...(await resolveNarrativeCharts(knex, narrativeChartNames)),
     ])
 
@@ -659,6 +634,7 @@ export async function resolveChartPreviewSources(
                           target.queryStr,
                           computeVersion(target, checksums)
                       ),
+                      message: target.message,
                   }
                 : target
         )
