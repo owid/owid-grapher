@@ -22,7 +22,6 @@ import {
 } from "mobx"
 import type { ReactNode } from "react"
 import { EditorFeatures } from "./EditorFeatures.js"
-import { Admin } from "./Admin.js"
 import {
     defaultGrapherConfig,
     GrapherState,
@@ -68,9 +67,6 @@ export interface OriginUrlSuggestion {
 }
 
 export interface AbstractChartEditorManager {
-    // Only editors that talk to the admin API need this (charts, narrative
-    // charts). A config-only editor runs without it.
-    admin?: Admin
     // URLs the editor loads indicator data from. Defaults to the admin's.
     environment?: EditorEnvironment
     // Where indicator data and metadata come from. Defaults to OWID's Data
