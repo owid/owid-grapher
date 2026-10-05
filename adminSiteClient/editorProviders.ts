@@ -5,8 +5,8 @@
  * config points at. Everything else it shows is optional and comes from a
  * provider the host passes in: which indicators can be picked, which details
  * on demand exist, which URLs to fetch data from. The admin wires these to its
- * API (the `admin*` functions below); the editor playground and, eventually,
- * package consumers wire them to whatever they have.
+ * API (the `admin*` functions below); package consumers will wire them to
+ * whatever they have.
  */
 import {
     AxisConfigInterface,
