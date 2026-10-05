@@ -88,6 +88,21 @@ test.describe("Override X axis target year", () => {
         }).toPass()
     })
 
+    test("a year entered just before switching tabs is still applied", async ({
+        seedChart,
+        openEditor,
+    }) => {
+        const editor = await openEditor(await seedChart(marimekko))
+        await editor.openTab("Marimekko")
+
+        await editor.fill(editor.field("Override X axis target year"), "2010")
+        await editor.openTab("Basic")
+
+        expect(await editor.saveChanges()).toEqual({
+            dimensions: [yDimension, { ...xDimension, targetYear: 2010 }],
+        })
+    })
+
     test("entering a year updates the preview's x-axis", async ({
         seedChart,
         openEditor,

@@ -64,7 +64,9 @@ export class EditorMarimekkoTab<
     disposers: (() => void)[] = []
     override componentDidMount() {
         const debouncedSetValue = lodash.debounce(this.setXOverrideTime, 800)
-        this.disposers.push(() => debouncedSetValue.cancel())
+        // Apply a year entered just before the tab unmounts (e.g. on switching
+        // tabs) instead of dropping it with the component
+        this.disposers.push(() => void debouncedSetValue.flush())
         this.disposers.push(
             reaction(
                 () => this.xOverrideTimeInputField,
