@@ -136,7 +136,7 @@ class CreateNarrativeChartEditorPageInternal extends React.Component<CreateNarra
                 parentChartConfigId: this.props.chartConfigId,
                 config: makeNarrativeChartPatchConfig(
                     editor.liveConfigWithDefaults,
-                    editor.activeParentConfigWithDefaults
+                    editor.baseConfigWithDefaults
                 ),
             },
             "POST"

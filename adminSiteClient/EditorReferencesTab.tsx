@@ -2,7 +2,7 @@ import * as _ from "lodash-es"
 
 import { Component, createContext, Fragment, useState } from "react"
 import { observer } from "mobx-react"
-import { getFullReferencesCount } from "./adminChartApi.js"
+import { getFullReferencesCount, References } from "./adminChartApi.js"
 import { computed, action, observable, runInAction, makeObservable } from "mobx"
 import {
     BAKED_BASE_URL,
@@ -16,7 +16,7 @@ import {
     formatValue,
     ChartRedirect,
 } from "@ourworldindata/utils"
-import { AbstractChartEditor, References } from "./AbstractChartEditor.js"
+import { ConfigEditor } from "./ConfigEditor.js"
 import { ReuploadImageForDataInsightModal } from "./ReuploadImageForDataInsightModal.js"
 import { ImageUploadResponse } from "./imagesHelpers.js"
 import { DataInsightMinimalInformation } from "../adminShared/AdminTypes.js"
@@ -26,7 +26,7 @@ import { getCanonicalUrl } from "@ourworldindata/components"
 const BASE_URL = BAKED_GRAPHER_URL.replace(/^https?:\/\//, "")
 
 interface EditorReferencesTabForChartProps {
-    editor: AbstractChartEditor
+    editor: ConfigEditor
     references: References | undefined
     redirects: ChartRedirect[]
     views: AnalyticsGrapherViewWithRank | undefined
@@ -235,15 +235,13 @@ export class EditorReferencesTabForNarrativeChart extends Component<{
     }
 }
 
-interface AddRedirectFormProps<Editor> {
-    editor: Editor
+interface AddRedirectFormProps {
+    editor: ConfigEditor
     onSuccess: (redirect: ChartRedirect) => void
 }
 
 @observer
-class AddRedirectForm<Editor extends AbstractChartEditor> extends Component<
-    AddRedirectFormProps<Editor>
-> {
+class AddRedirectForm extends Component<AddRedirectFormProps> {
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
@@ -253,7 +251,7 @@ class AddRedirectForm<Editor extends AbstractChartEditor> extends Component<
     isLoading: boolean = false
     errorMessage: string | undefined = undefined
 
-    constructor(props: AddRedirectFormProps<Editor>) {
+    constructor(props: AddRedirectFormProps) {
         super(props)
 
         makeObservable(this, {

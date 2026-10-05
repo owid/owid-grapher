@@ -28,10 +28,10 @@ import {
 } from "@ourworldindata/utils"
 import { validate as uuidValidate } from "uuid"
 import {
+    NarrativeChartMinimalInformation,
     References,
     StaticVizReference,
-} from "../../adminSiteClient/AbstractChartEditor.js"
-import { NarrativeChartMinimalInformation } from "../../adminSiteClient/adminChartApi.js"
+} from "../../adminSiteClient/adminChartApi.js"
 import {
     getChartConfigById,
     getChartIdByConfigId,

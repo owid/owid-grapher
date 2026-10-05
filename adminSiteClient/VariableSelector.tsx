@@ -32,11 +32,11 @@ import {
 } from "./EditorDatabase.js"
 import { TextField, Toggle, Modal } from "./Forms.js"
 import { DimensionSlot } from "@ourworldindata/grapher"
-import { AbstractChartEditor } from "./AbstractChartEditor.js"
+import { ConfigEditor } from "./ConfigEditor.js"
 
-interface VariableSelectorProps<Editor> {
+interface VariableSelectorProps {
     database: EditorDatabase
-    editor: Editor
+    editor: ConfigEditor
     slot: DimensionSlot
     onDismiss: () => void
     onComplete: (columns: PickedColumn[]) => void
@@ -66,9 +66,7 @@ interface NamespaceOption {
 }
 
 @observer
-export class VariableSelector<
-    Editor extends AbstractChartEditor,
-> extends React.Component<VariableSelectorProps<Editor>> {
+export class VariableSelector extends React.Component<VariableSelectorProps> {
     chosenNamespaces: Namespace[] = []
     searchInput: string | undefined = undefined
     isProjection: boolean | undefined = undefined
@@ -80,7 +78,7 @@ export class VariableSelector<
     numVisibleRows: number = 15
     rowHeight: number = 32
 
-    constructor(props: VariableSelectorProps<Editor>) {
+    constructor(props: VariableSelectorProps) {
         super(props)
 
         makeObservable(this, {

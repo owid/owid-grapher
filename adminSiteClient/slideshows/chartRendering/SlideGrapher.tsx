@@ -101,8 +101,7 @@ export function SlideGrapher(props: SlideGrapherProps): React.ReactElement {
 
     // Wait for the Grapher to be fully ready (config + data loaded), then set
     // up the changedParams reaction. This avoids the transient init noise that
-    // changedParams emits while config and data are loading. Same pattern as
-    // AbstractChartEditor's when(isReady).
+    // changedParams emits while config and data are loading.
     useEffect(() => {
         const state = grapherStateRef.current
         if (!state) return

@@ -36,11 +36,11 @@ import {
     faUnlink,
 } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { AbstractChartEditor } from "./AbstractChartEditor.js"
+import { ConfigEditor } from "./ConfigEditor.js"
 import { SortableList } from "./SortableList.js"
 
 interface EntityListItemProps extends React.HTMLProps<HTMLDivElement> {
-    editor: AbstractChartEditor
+    editor: ConfigEditor
     entityName: EntityName
     onRemove?: () => void
     isDndEnabled: boolean
@@ -156,7 +156,7 @@ class SeriesListItem extends React.Component<SeriesListItemProps> {
 
 @observer
 class QuickAddSection extends React.Component<{
-    editor: AbstractChartEditor
+    editor: ConfigEditor
 }> {
     @computed get grapherState() {
         return this.props.editor.grapherState
@@ -258,11 +258,11 @@ class QuickAddSection extends React.Component<{
 
 @observer
 class AddPeersSection extends React.Component<{
-    editor: AbstractChartEditor
+    editor: ConfigEditor
 }> {
     chosenTargetCountry: EntityName | undefined = undefined
 
-    constructor(props: { editor: AbstractChartEditor }) {
+    constructor(props: { editor: ConfigEditor }) {
         super(props)
         makeObservable(this, { chosenTargetCountry: observable.ref })
     }
@@ -476,11 +476,11 @@ class AddPeersSection extends React.Component<{
 
 @observer
 export class EntitySelectionSection extends React.Component<{
-    editor: AbstractChartEditor
+    editor: ConfigEditor
 }> {
     dragKey: EntityName | undefined = undefined
 
-    constructor(props: { editor: AbstractChartEditor }) {
+    constructor(props: { editor: ConfigEditor }) {
         super(props)
 
         makeObservable(this, {
@@ -531,11 +531,10 @@ export class EntitySelectionSection extends React.Component<{
     }
 
     @action.bound setEntitySelectionToParentValue() {
-        const { grapherState, activeParentConfig } = this.editor
-        if (!activeParentConfig || !activeParentConfig.selectedEntityNames)
-            return
+        const { grapherState, baseConfig } = this.editor
+        if (!baseConfig || !baseConfig.selectedEntityNames) return
         grapherState.selection.setSelectedEntities(
-            activeParentConfig.selectedEntityNames
+            baseConfig.selectedEntityNames
         )
         this.editor.removeInvalidFocusedSeriesNames()
     }
@@ -647,9 +646,9 @@ export class EntitySelectionSection extends React.Component<{
 
 @observer
 export class FocusSection extends React.Component<{
-    editor: AbstractChartEditor
+    editor: ConfigEditor
 }> {
-    constructor(props: { editor: AbstractChartEditor }) {
+    constructor(props: { editor: ConfigEditor }) {
         super(props)
         makeObservable(this)
     }
@@ -667,12 +666,9 @@ export class FocusSection extends React.Component<{
     }
 
     @action.bound setFocusedSeriesNamesToParentValue() {
-        const { grapherState, activeParentConfig } = this.editor
-        if (!activeParentConfig || !activeParentConfig.focusedSeriesNames)
-            return
-        grapherState.focusArray.clearAllAndAdd(
-            ...activeParentConfig.focusedSeriesNames
-        )
+        const { grapherState, baseConfig } = this.editor
+        if (!baseConfig || !baseConfig.focusedSeriesNames) return
+        grapherState.focusArray.clearAllAndAdd(...baseConfig.focusedSeriesNames)
         this.editor.removeInvalidFocusedSeriesNames()
     }
 
@@ -742,10 +738,8 @@ export class FocusSection extends React.Component<{
 }
 
 @observer
-class MissingDataSection<
-    Editor extends AbstractChartEditor,
-> extends React.Component<{ editor: Editor }> {
-    constructor(props: { editor: Editor }) {
+class MissingDataSection extends React.Component<{ editor: ConfigEditor }> {
+    constructor(props: { editor: ConfigEditor }) {
         super(props)
         makeObservable(this)
     }
@@ -793,10 +787,8 @@ class MissingDataSection<
 }
 
 @observer
-class PeerCountrySection<
-    Editor extends AbstractChartEditor,
-> extends React.Component<{ editor: Editor }> {
-    constructor(props: { editor: Editor }) {
+class PeerCountrySection extends React.Component<{ editor: ConfigEditor }> {
+    constructor(props: { editor: ConfigEditor }) {
         super(props)
         makeObservable(this)
     }
@@ -862,15 +854,13 @@ class PeerCountrySection<
 }
 
 @observer
-class EntityFilterSection<
-    Editor extends AbstractChartEditor,
-> extends React.Component<{ editor: Editor }> {
-    constructor(props: { editor: Editor }) {
+class EntityFilterSection extends React.Component<{ editor: ConfigEditor }> {
+    constructor(props: { editor: ConfigEditor }) {
         super(props)
         makeObservable(this)
     }
 
-    @computed private get editor(): Editor {
+    @computed private get editor(): ConfigEditor {
         return this.props.editor
     }
 
@@ -1043,9 +1033,7 @@ class EntityFilterSection<
 }
 
 @observer
-export class EditorDataTab<
-    Editor extends AbstractChartEditor,
-> extends React.Component<{ editor: Editor }> {
+export class EditorDataTab extends React.Component<{ editor: ConfigEditor }> {
     override render() {
         const { editor } = this.props
         const { grapherState, features } = editor

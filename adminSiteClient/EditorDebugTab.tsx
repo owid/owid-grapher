@@ -6,27 +6,12 @@ import { action, computed, observable, makeObservable } from "mobx"
 import { copyToClipboard } from "@ourworldindata/utils"
 import YAML from "yaml"
 import { Modal, notification } from "antd"
-import { AbstractChartEditor } from "./AbstractChartEditor.js"
 import ReactDiffViewer, { DiffMethod } from "react-diff-viewer-continued"
-import { ConfigEditor, isConfigEditorInstance } from "./ConfigEditor.js"
+import { ConfigEditor } from "./ConfigEditor.js"
 import { stringify } from "safe-stable-stringify"
 
 @observer
-export class EditorDebugTab<
-    Editor extends AbstractChartEditor,
-> extends Component<{
-    editor: Editor
-}> {
-    override render() {
-        const { editor } = this.props
-        if (isConfigEditorInstance(editor))
-            return <EditorDebugTabForConfig editor={editor} />
-        else return null
-    }
-}
-
-@observer
-class EditorDebugTabForConfig extends Component<{
+export class EditorDebugTab extends Component<{
     editor: ConfigEditor
 }> {
     constructor(props: { editor: ConfigEditor }) {
@@ -42,7 +27,7 @@ class EditorDebugTabForConfig extends Component<{
 
     /** The full config side by side with the base it sits on. */
     @computed get diffModal() {
-        const { fullConfig, parentConfig } = this.props.editor
+        const { fullConfig, baseConfig } = this.props.editor
         return (
             <Modal
                 open={this.diffModalOpen}
@@ -55,7 +40,7 @@ class EditorDebugTabForConfig extends Component<{
                 <div style={{ maxHeight: "50vh", overflowY: "auto" }}>
                     <ReactDiffViewer
                         newValue={stringify(fullConfig, null, 2)}
-                        oldValue={stringify(parentConfig ?? {}, null, 2)}
+                        oldValue={stringify(baseConfig ?? {}, null, 2)}
                         leftTitle="Base config"
                         rightTitle="This chart"
                         compareMethod={DiffMethod.WORDS_WITH_SPACE}
@@ -94,7 +79,7 @@ class EditorDebugTabForConfig extends Component<{
     }
 
     override render() {
-        const { patchConfig, parentConfig, fullConfig } = this.props.editor
+        const { patchConfig, baseConfig, fullConfig } = this.props.editor
 
         return (
             <div>
@@ -111,7 +96,7 @@ class EditorDebugTabForConfig extends Component<{
                     >
                         Copy YAML for ETL
                     </button>
-                    {parentConfig && (
+                    {baseConfig && (
                         <>
                             {this.diffModal}{" "}
                             <button
@@ -126,7 +111,7 @@ class EditorDebugTabForConfig extends Component<{
                     )}
                 </Section>
 
-                {parentConfig && (
+                {baseConfig && (
                     <Section name="Base config">
                         <p>
                             The config above is a patch on top of this base;
@@ -137,7 +122,7 @@ class EditorDebugTabForConfig extends Component<{
                             rows={7}
                             readOnly
                             className="form-control"
-                            value={YAML.stringify(parentConfig)}
+                            value={YAML.stringify(baseConfig)}
                         />
                     </Section>
                 )}

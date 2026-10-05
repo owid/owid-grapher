@@ -17,12 +17,12 @@ import { AdminLayout } from "./AdminLayout.js"
 import { LoadingBlocker, Section } from "./Forms.js"
 import { GrapherEditor } from "./GrapherEditor.js"
 import { ConfigEditor, EditorExtraTab } from "./ConfigEditor.js"
-import { References } from "./AbstractChartEditor.js"
 import { EditorReferencesTabForNarrativeChart } from "./EditorReferencesTab.js"
 import { NarrativeChartSaveButtons } from "./NarrativeChartSaveButtons.js"
 import {
     adminOriginUrlSuggestions,
     getFullReferencesCount,
+    References,
 } from "./adminChartApi.js"
 import {
     adminDetailsProvider,
@@ -137,7 +137,7 @@ export class NarrativeChartEditorPage extends React.Component<NarrativeChartEdit
             {
                 config: makeNarrativeChartPatchConfig(
                     editor.liveConfigWithDefaults,
-                    editor.activeParentConfigWithDefaults
+                    editor.baseConfigWithDefaults
                 ),
             },
             "PUT"

@@ -4,16 +4,14 @@ import { action, computed, observable, reaction, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { Component } from "react"
 import { NumberField, Section, Toggle } from "./Forms.js"
-import { AbstractChartEditor } from "./AbstractChartEditor.js"
+import { ConfigEditor } from "./ConfigEditor.js"
 
 @observer
-export class EditorMarimekkoTab<
-    Editor extends AbstractChartEditor,
-> extends Component<{
-    editor: Editor
+export class EditorMarimekkoTab extends Component<{
+    editor: ConfigEditor
 }> {
     xOverrideTimeInputField: number | undefined
-    constructor(props: { editor: Editor }) {
+    constructor(props: { editor: ConfigEditor }) {
         super(props)
 
         makeObservable(this, {

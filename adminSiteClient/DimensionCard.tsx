@@ -21,12 +21,12 @@ import {
 } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { OwidTable } from "@ourworldindata/core-table"
-import { AbstractChartEditor } from "./AbstractChartEditor.js"
+import { ConfigEditor } from "./ConfigEditor.js"
 import { SortableList } from "./SortableList.js"
 
-interface DimensionCardProps<Editor> {
+interface DimensionCardProps {
     dimension: ChartDimension
-    editor: Editor
+    editor: ConfigEditor
     isDndEnabled?: boolean
     onChange: (dimension: ChartDimension) => void
     onEdit?: () => void
@@ -35,12 +35,10 @@ interface DimensionCardProps<Editor> {
 }
 
 @observer
-export class DimensionCard<
-    Editor extends AbstractChartEditor,
-> extends Component<DimensionCardProps<Editor>> {
+export class DimensionCard extends Component<DimensionCardProps> {
     isExpanded: boolean = false
 
-    constructor(props: DimensionCardProps<Editor>) {
+    constructor(props: DimensionCardProps) {
         super(props)
 
         makeObservable(this, {

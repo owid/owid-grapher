@@ -11,7 +11,7 @@ import { Component } from "react"
 import { Section, Toggle } from "./Forms.js"
 import { GrapherState } from "@ourworldindata/grapher"
 import { triggerDownloadFromBlob } from "@ourworldindata/utils"
-import { AbstractChartEditor } from "./AbstractChartEditor.js"
+import { ConfigEditor } from "./ConfigEditor.js"
 import { ETL_WIZARD_URL } from "../settings/clientSettings.mjs"
 import { faHatWizard, faDownload } from "@fortawesome/free-solid-svg-icons"
 import { Button } from "antd"
@@ -60,23 +60,21 @@ const DEFAULT_SETTINGS: ExportSettings = {
     shouldIncludeDetailsInStaticExport: false,
 }
 
-interface EditorExportTabProps<Editor> {
-    editor: Editor
+interface EditorExportTabProps {
+    editor: ConfigEditor
 }
 
 @observer
-export class EditorExportTab<
-    Editor extends AbstractChartEditor,
-> extends Component<EditorExportTabProps<Editor>> {
+export class EditorExportTab extends Component<EditorExportTabProps> {
     private settings = DEFAULT_SETTINGS
     private originalSettings: Partial<ExportSettings> = DEFAULT_SETTINGS
     private readonly originalGrapher: OriginalGrapher
     private readonly disposers: IReactionDisposer[] = []
 
-    constructor(props: EditorExportTabProps<Editor>) {
+    constructor(props: EditorExportTabProps) {
         super(props)
 
-        makeObservable<EditorExportTab<Editor>, "settings">(this, {
+        makeObservable<EditorExportTab, "settings">(this, {
             settings: observable,
         })
         this.originalGrapher = this.grabRelevantPropertiesFromGrapher()

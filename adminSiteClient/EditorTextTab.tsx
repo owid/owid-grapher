@@ -21,25 +21,23 @@ import {
     TextField,
     Toggle,
 } from "./Forms.js"
-import { AbstractChartEditor } from "./AbstractChartEditor.js"
+import { ConfigEditor } from "./ConfigEditor.js"
 import { ErrorMessages } from "./ChartEditorTypes.js"
 import { AutoComplete } from "antd"
 
-interface EditorTextTabProps<Editor> {
-    editor: Editor
+interface EditorTextTabProps {
+    editor: ConfigEditor
     errorMessages: ErrorMessages
 }
 
 @observer
-export class EditorTextTab<
-    Editor extends AbstractChartEditor,
-> extends Component<EditorTextTabProps<Editor>> {
+export class EditorTextTab extends Component<EditorTextTabProps> {
     // Tracks whether the user has started hovering or arrow-keying through
     // dropdown options. When true, we hide the "Enter to use custom URL"
     // hint since it's no longer relevant. Resets when the user types.
     isNavigatingDropdown = false
 
-    constructor(props: EditorTextTabProps<Editor>) {
+    constructor(props: EditorTextTabProps) {
         super(props)
         makeObservable(this, {
             isNavigatingDropdown: observable,
@@ -164,7 +162,7 @@ export class EditorTextTab<
                         }
                         auto={
                             editor.canPropertyBeInherited("title")
-                                ? editor.activeParentConfig?.title
+                                ? editor.baseConfig?.title
                                 : undefined
                         }
                         isAuto={
@@ -215,7 +213,7 @@ export class EditorTextTab<
                         }
                         auto={
                             editor.canPropertyBeInherited("subtitle")
-                                ? editor.activeParentConfig?.subtitle
+                                ? editor.baseConfig?.subtitle
                                 : undefined
                         }
                         isAuto={
@@ -253,7 +251,7 @@ export class EditorTextTab<
                         }
                         auto={
                             editor.canPropertyBeInherited("sourceDesc")
-                                ? editor.activeParentConfig?.sourceDesc
+                                ? editor.baseConfig?.sourceDesc
                                 : undefined
                         }
                         isAuto={
@@ -365,7 +363,7 @@ export class EditorTextTab<
                         }
                         auto={
                             editor.canPropertyBeInherited("note")
-                                ? editor.activeParentConfig?.note
+                                ? editor.baseConfig?.note
                                 : undefined
                         }
                         isAuto={editor.isPropertyInherited("note")}

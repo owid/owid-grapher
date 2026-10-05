@@ -21,8 +21,8 @@ import {
     ConfigEditor,
     ConfigEditorManager,
     EditorExtraTab,
+    EditorTabName,
 } from "./ConfigEditor.js"
-import { EditorTabName } from "./AbstractChartEditor.js"
 import { DetailsProvider } from "./editorProviders.js"
 import { IndicatorStore } from "./indicatorStores.js"
 
@@ -89,7 +89,7 @@ export interface GrapherEditorProps {
 @observer
 export class GrapherEditor
     extends React.Component<GrapherEditorProps>
-    implements ConfigEditorManager, ChartEditorViewManager<ConfigEditor>
+    implements ConfigEditorManager, ChartEditorViewManager
 {
     constructor(props: GrapherEditorProps) {
         super(props)
@@ -124,13 +124,9 @@ export class GrapherEditor
         return this.props.onChange
     }
 
-    // The base is a config like `config` is; the editor merges them.
-    get parentConfig(): GrapherInterface | undefined {
+    get baseConfig(): GrapherInterface | undefined {
         return this.props.baseConfig
     }
-
-    // A base config, when given, is always applied.
-    readonly isInheritanceEnabled = true
 
     get previewUrl(): string | undefined {
         return this.props.previewUrl
