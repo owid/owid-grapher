@@ -4,9 +4,12 @@
  * never end up in the chart's config.
  */
 import { readFile } from "node:fs/promises"
-import type { GrapherInterface } from "@ourworldindata/types"
+import {
+    EntitySelectionMode,
+    type GrapherInterface,
+} from "@ourworldindata/types"
 import { expect, test, type ChartEditorPage } from "./harness.js"
-import { indicators } from "./fixture.js"
+import { entities, indicators } from "./fixture.js"
 import { discreteBarChart, lineChart } from "./charts.js"
 
 const texts = {
@@ -74,12 +77,6 @@ test.describe("displayed elements", () => {
         seedChart,
         openEditor,
     }) => {
-        // Known bug: the suffix toggles mutate the nested
-        // `settings.forceHideAnnotationFieldsInTitle` object, which the Export
-        // tab's `currentSettings` doesn't dereference, so the reaction that
-        // applies the settings to the chart doesn't run. They only take effect
-        // after another export setting has changed.
-        test.fail()
         const editor = await openEditor(
             await seedChart(discreteBarChart(indicators.lifeExpectancy))
         )
@@ -93,6 +90,31 @@ test.describe("displayed elements", () => {
         expect(await titleText(editor, await downloadSvg(editor))).toBe(
             "Test chart"
         )
+    })
+
+    test('unticking "Title suffix: automatic entity" leaves the entity out of the title', async ({
+        seedChart,
+        openEditor,
+    }) => {
+        const editor = await openEditor(
+            await seedChart({
+                ...lineChart(indicators.lifeExpectancy),
+                selectedEntityNames: [entities.france.name],
+                addCountryMode: EntitySelectionMode.SingleEntity,
+                // with a line label, the entity isn't repeated in the title
+                hideSeriesLabels: true,
+            })
+        )
+        await editor.openTab("Export")
+        expect(await titleText(editor, await downloadSvg(editor))).toContain(
+            entities.france.name
+        )
+
+        await editor.checkbox("Title suffix: automatic entity").uncheck()
+
+        expect(
+            await titleText(editor, await downloadSvg(editor))
+        ).not.toContain(entities.france.name)
     })
 
     test('ticking "Details on demand" adds the referenced details to the export', async ({
