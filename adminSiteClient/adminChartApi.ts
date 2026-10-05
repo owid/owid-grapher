@@ -1,9 +1,3 @@
-/**
- * The admin's chart-record helpers: what a chart is *beyond* its config once
- * it lives as a row in our database (revision logs, references, deletion,
- * the indicator config it inherits from). Used by the admin's chart editor
- * page and list; not part of the config-only editor.
- */
 import * as _ from "lodash-es"
 import { GrapherInterface, Json, PostReference } from "@ourworldindata/utils"
 import { ContentGraphLinkType } from "@ourworldindata/types"
@@ -26,31 +20,24 @@ export interface MapColorScaleEdit {
     createdAt: string
 }
 
-/**
- * Who last changed the map's color scale, and when. The editor can't know
- * this: it only ever sees one config, while the answer is in the diff
- * between two consecutive revisions.
- */
 export function findLastMapColorScaleEdit(
-    logs: Log[]
+    logsNewestFirst: Log[]
 ): MapColorScaleEdit | undefined {
-    // Assumes logs are ordered from newest to oldest
-    for (let i = 0; i < logs.length - 1; i++) {
-        const current = logs[i].config?.map?.colorScale
-        const previous = logs[i + 1].config?.map?.colorScale
+    for (let i = 0; i < logsNewestFirst.length - 1; i++) {
+        const current = logsNewestFirst[i].config?.map?.colorScale
+        const previous = logsNewestFirst[i + 1].config?.map?.colorScale
 
         if (!_.isEqual(current, previous)) {
-            return { userName: logs[i].userName, createdAt: logs[i].createdAt }
+            return {
+                userName: logsNewestFirst[i].userName,
+                createdAt: logsNewestFirst[i].createdAt,
+            }
         }
     }
 
-    // The map color scale has never been edited or the logs are empty
     return undefined
 }
 
-// Published topic-page slugs, fetched once and shared by every editor page
-// that asks for them: the list is the same for all of them and doesn't change
-// while the admin is open.
 const topicSlugsBox = observable.box<string[]>([])
 let topicSlugsRequested = false
 
@@ -66,19 +53,11 @@ function adminTopicSlugs(admin: Admin): string[] {
                     )
                 )
             )
-            // An empty dropdown is a fine outcome; the field takes any URL.
             .catch(() => undefined)
     }
-    // Reading the box here is what makes the dropdown fill in once the
-    // request lands, wherever it is being read from.
     return topicSlugsBox.get()
 }
 
-/**
- * What the admin offers in the editor's "Origin url" dropdown: the posts that
- * already show this chart first, since they are the likeliest answer, then
- * every published topic page.
- */
 export function adminOriginUrlSuggestions(
     admin: Admin,
     references: References | undefined
@@ -120,7 +99,6 @@ export interface NarrativeChartMinimalInformation {
 }
 
 export const getFullReferencesCount = (references: References): number => {
-    // Get a unique count so double references (e.g. via grapher-url + inline link) are not overcounted.
     const allRefs = Object.values(
         references
     ).flat() as References[keyof References][]
@@ -152,10 +130,8 @@ export async function deleteChart(params: {
 }): Promise<void> {
     const { admin, chartId, chartSlug, references, onSuccess } = params
 
-    // Delete only makes sense for saved charts
     if (chartId === undefined || chartId === 0) return
 
-    // Check for references
     if (references && getFullReferencesCount(references) > 0) {
         window.alert(
             `Cannot delete chart ${chartSlug} because it is used in ${getFullReferencesCount(
@@ -165,7 +141,6 @@ export async function deleteChart(params: {
         return
     }
 
-    // Confirm deletion (drafts may have no slug yet)
     const chartName = chartSlug || `#${chartId}`
     let confirmMessage = `Delete the chart ${chartName}? This action cannot be undone!`
     if (ENV === "staging") {
@@ -179,8 +154,6 @@ export async function deleteChart(params: {
     if (json.success) onSuccess?.()
 }
 
-/** The grapher config an indicator carries (its ETL-authored defaults), or
- *  undefined if it has none. */
 export async function fetchChartConfigByIndicatorId(
     admin: Admin,
     indicatorId: number
@@ -191,7 +164,6 @@ export async function fetchChartConfigByIndicatorId(
     return _.isEmpty(indicatorChart) ? undefined : indicatorChart
 }
 
-/** Keys a restored revision takes from the chart's current patch rather than from the revision */
 const REVISION_RESTORE_KEPT_KEYS = [
     "id",
     "version",
@@ -199,7 +171,6 @@ const REVISION_RESTORE_KEPT_KEYS = [
     "isPublished",
 ] as const satisfies readonly (keyof GrapherInterface)[]
 
-/** The patch config to load into the editor when restoring a chart revision */
 export function makeRestoredPatchConfig(
     revisionConfig: Json,
     currentPatchConfig: GrapherInterface

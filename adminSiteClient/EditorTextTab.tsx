@@ -99,9 +99,6 @@ export class EditorTextTab extends Component<EditorTextTabProps> {
         return this.props.errorMessages
     }
 
-    // Dropdown options for the origin URL autocomplete, in the order the
-    // host offers them. Which URLs are worth suggesting is the host's
-    // knowledge: the admin puts the posts that already show this chart first.
     @computed get originUrlOptions(): {
         value: string
         label: string

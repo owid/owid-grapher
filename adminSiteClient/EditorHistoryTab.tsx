@@ -33,7 +33,6 @@ type OpenModal =
 interface EditorHistoryTabProps {
     logs: Log[]
     editor: ConfigEditor
-    /** Load a patch into the editor without saving, over the base it inherits from */
     loadPatchConfig: (patchConfig: GrapherInterface) => Promise<void>
 }
 

@@ -1,15 +1,3 @@
-/**
- * Where the chart editor gets indicator data and metadata from.
- *
- * A chart's dimensions name their columns either by OWID `variableId`,
- * fetched from the Data API, or by `slug` into a table the host already has.
- * A store is what makes one of those work: it hands the editor a table with
- * the columns its dimensions refer to, columnDefs (name, unit, description,
- * sources) attached, and tells the picker which columns exist.
- *
- * Column metadata is read-only in the editor under every store: it belongs to
- * the source, not to the chart.
- */
 import { OwidTable } from "@ourworldindata/core-table"
 import {
     ColumnSlug,
@@ -41,9 +29,7 @@ export interface IndicatorStore {
 }
 
 /**
- * OWID's indicator store: `variableId`s resolved against the Data API, so
- * charts reference indicators exactly as they do in the database. Search is
- * whatever catalog the host has; the admin uses its own API for that.
+ * OWID's indicator store: `variableId`s resolved against the Data API
  */
 export function dataApiIndicatorStore(options: {
     dataApiUrl: string
@@ -61,28 +47,21 @@ export function dataApiIndicatorStore(options: {
     }
 }
 
-// The columns every OWID table has for its shape (entity, time). Everything
-// else is a column a config may reference.
 const STRUCTURAL_SLUGS = new Set<string>(Object.values(OwidTableSlugs))
 
 /**
  * A store over a table the host already has (parsed CSV, in-memory data).
- * Its dimensions name columns by `slug`, so the table is served as it is and
- * the picker offers its columns.
+ * Its dimensions name columns by `slug`.
  */
 export function tableIndicatorStore(
     table: OwidTable,
     options: { name?: string } = {}
 ): IndicatorStore {
     const name = options.name ?? "Table"
-    // Categorical columns included: a scatter's colour dimension may well be
-    // a string column such as "continent".
     const slugs = table.columnSlugs.filter(
         (slug) => !STRUCTURAL_SLUGS.has(slug)
     )
 
-    // Columns without a display name would show up as their slug anyway, but
-    // the picker reads `displayName`, so fill it in.
     const named = table.updateDefs((def: OwidColumnDef) =>
         def.name ? def : { ...def, name: def.slug }
     )
@@ -94,7 +73,6 @@ export function tableIndicatorStore(
         version: undefined,
         isPrivate: false,
         nonRedistributable: false,
-        // The picker keys its rows by id; a column's address is its slug.
         variables: slugs.map((slug, i) => ({
             id: i + 1,
             slug,
@@ -115,8 +93,6 @@ export function tableIndicatorStore(
         loadTable: (dimensions) => {
             for (const dimension of dimensions)
                 if (!has(dimension.slug))
-                    // Plotting a column the table doesn't have would silently
-                    // show something else, or nothing; say which one.
                     console.warn(
                         `${name}: config references column "${dimension.slug ?? dimension.variableId}", which the table doesn't have`
                     )

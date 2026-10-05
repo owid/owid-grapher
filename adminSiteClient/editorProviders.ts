@@ -1,13 +1,3 @@
-/**
- * The chart editor's pluggable dependencies.
- *
- * The editor itself only needs a chart config and a way to load the data that
- * config points at. Everything else it shows is optional and comes from a
- * provider the host passes in: which indicators can be picked, which details
- * on demand exist, which URLs to fetch data from. The admin wires these to its
- * API (the `admin*` functions below); package consumers will wire them to
- * whatever they have.
- */
 import {
     AxisConfigInterface,
     DimensionProperty,
@@ -55,8 +45,6 @@ export const defaultEditorEnvironment: EditorEnvironment = {
 export function adminIndicatorCatalog(admin: Admin): IndicatorCatalog {
     return {
         async load(): Promise<IndicatorCatalogData> {
-            // Usage counts only rank search results, so a failure there must
-            // not take the picker down with it.
             const usagesPromise = admin
                 .getJSONInBackground<
                     { variableId: number; usageCount: number }[]

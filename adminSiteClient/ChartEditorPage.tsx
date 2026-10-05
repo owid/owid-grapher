@@ -1,11 +1,5 @@
-/**
- * The admin's chart editor: `GrapherEditor` (the config-only editor) plus
- * everything a chart has because it is a row in our database — revision
- * logs, references, redirects, pageviews, tags, publishing, inheritance from
- * its indicator. The page owns all of that and plugs it in through the
- * editor's extension props; the editor itself never sees a chart id.
- */
 import React from "react"
+import * as _ from "lodash-es"
 import { observer } from "mobx-react"
 import { observable, computed, runInAction, action, makeObservable } from "mobx"
 import { Redirect } from "react-router-dom"
@@ -21,6 +15,7 @@ import {
     MinimalTagWithMetadata,
     DbChartTagJoin,
 } from "@ourworldindata/types"
+import { GrapherState } from "@ourworldindata/grapher"
 import { BAKED_GRAPHER_URL } from "../settings/clientSettings.mjs"
 import { Admin } from "./Admin.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
@@ -86,20 +81,13 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
         })
     }
 
-    // The config and the layers it sits on; the editor mounts once these are
-    // in, so it never sees a half-loaded chart. The editor only knows one
-    // "base config"; the two layers and the toggle are the admin's affair.
     isLoaded = false
     patchConfig: GrapherInterface = {}
-    /** The grapher config of the chart's first y indicator, if it has one. */
     indicatorConfig: GrapherInterface | undefined = undefined
     indicatorId: number | undefined = undefined
-    /** The chart's own ETL-authored layer; always applied. */
     etlConfig: GrapherInterface | undefined = undefined
-    /** Whether `indicatorConfig` is applied. */
     isInheritanceEnabled = true
 
-    // The chart record around the config.
     logs: Log[] = []
     references: References | undefined = undefined
     redirects: ChartRedirect[] = []
@@ -110,7 +98,6 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
     variableIdsByCatalogPath: Record<string, number | null> | undefined =
         undefined
 
-    // Set when a new chart was created, so the page can move to its URL.
     newChartId: number | undefined = undefined
 
     @computed get admin(): Admin {
@@ -128,8 +115,6 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
         })
     }
 
-    /** What the editor treats the patch as sitting on: the indicator's
-     *  config if inheritance is on, with the ETL layer merged on top. */
     @computed get baseConfig(): GrapherInterface | undefined {
         return this.makeBaseConfig(this.indicatorConfig)
     }
@@ -144,8 +129,6 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
         return Object.keys(base).length ? base : undefined
     }
 
-    // --- Loading the chart record --------------------------------------------
-
     async fetchConfigAndLayers(): Promise<void> {
         const { grapherId, grapherConfig } = this.props
         if (grapherId !== undefined) {
@@ -154,9 +137,6 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
                 this.admin.getJSON(`/api/charts/${grapherId}.parent.json`),
                 this.admin.getJSON(`/api/charts/${grapherId}.settings.json`),
             ])
-            // The parent endpoint returns the two layers above the admin's
-            // patch separately: the indicator's grapher_config and the
-            // chart's own etlConfig; `baseConfig` merges them.
             runInAction(() => {
                 this.patchConfig = patch
                 this.indicatorConfig = parent?.variableConfig
@@ -184,11 +164,7 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
         runInAction(() => (this.isLoaded = true))
     }
 
-    /**
-     * The chart's first y indicator changed (added, removed or swapped):
-     * fetch the new indicator's config so the base the editor shows follows.
-     */
-    @action.bound onEditorChange(
+    @action.bound syncIndicatorConfig(
         _config: GrapherInterface,
         editor: ConfigEditor
     ): void {
@@ -199,16 +175,11 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
         if (!newId) return
         void fetchChartConfigByIndicatorId(this.admin, newId).then((config) =>
             runInAction(() => {
-                // ignore a late answer for an indicator that was swapped again
                 if (this.indicatorId === newId) this.indicatorConfig = config
             })
         )
     }
 
-    /**
-     * Load a patch (a restored revision, or the saved patch on discard) into
-     * the editor without saving, over the config of the indicator it names
-     */
     @action.bound async loadPatchConfig(
         editor: ConfigEditor,
         patchConfig: GrapherInterface
@@ -323,11 +294,7 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
         }
     }
 
-    // --- Saving --------------------------------------------------------------
-
-    /** What the save endpoints want to know besides the config. */
     private saveQuery(): URLSearchParams {
-        // it only makes sense to enable inheritance if the chart has a parent
         const shouldEnableInheritance =
             !!this.indicatorId && this.isInheritanceEnabled
         return new URLSearchParams({
@@ -336,7 +303,6 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
         })
     }
 
-    /** PUT/POST the patch; returns the patch as the server stored it. */
     @action.bound async onSave(
         patch: GrapherInterface,
         editor: ConfigEditor
@@ -344,17 +310,7 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
         const { grapherState } = editor
         const isNew = grapherState.id === undefined
 
-        // Chart title and slug may be autocalculated from data, in which case
-        // they won't be in the patch, but the server needs to know what we
-        // calculated in order to do its job. Only auto-generate the slug when
-        // publishing: drafts may have empty slugs to avoid slug collisions.
-        const body: GrapherInterface = {
-            ...patch,
-            title: patch.title || grapherState.effectiveTitle,
-            ...(grapherState.isPublished && !patch.slug
-                ? { slug: grapherState.displaySlug }
-                : {}),
-        }
+        const body = withDerivedTitleAndSlug(patch, grapherState)
 
         const query = this.saveQuery()
         const shouldEnableInheritance = query.get("inheritance") === "enable"
@@ -371,11 +327,7 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
             this.isInheritanceEnabled = shouldEnableInheritance
             if (isNew) {
                 grapherState.id = json.chartId
-                // Mark the editor saved *before* `newChartId` triggers the
-                // redirect, or the unsaved-changes prompt fires on our own
-                // navigation. The editor sets the same baseline again from
-                // the return value below.
-                editor.savedPatchConfig = json.savedPatch
+                editor.markAsSaved(patch)
                 this.newChartId = json.chartId
             } else {
                 grapherState.version += 1
@@ -388,15 +340,7 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
     private saveActions(editor: ConfigEditor): ChartSaveActions {
         return {
             saveAsNew: async () => {
-                // Start from what the source chart actually renders — the
-                // whole parent stack plus the admin patch — and let the save
-                // diff the inherited layers back out against the new chart's
-                // own parent. Copying the patch alone would silently drop
-                // everything an ETL-managed chart keeps in its ETL layer.
-                const chartJson = { ...editor.fullConfig }
-                delete chartJson.id
-                delete chartJson.isPublished
-                delete chartJson.slug
+                const chartJson = configForDuplicate(editor.fullConfig)
 
                 // Need to open intermediary tab before AJAX to avoid popup blockers
                 const w = window.open("/", "_blank") as Window
@@ -446,7 +390,6 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
                     chartSlug: editor.grapherState.slug,
                     references: this.references,
                     onSuccess: () => {
-                        // Redirect to the charts index page after successful deletion
                         window.location.href = "/admin/charts"
                     },
                 }),
@@ -486,8 +429,6 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
         )
         runInAction(() => (this.tags = tags))
     }
-
-    // --- What the admin adds to the generic editor ---------------------------
 
     @computed get extraTabs(): EditorExtraTab[] {
         const refsCount = this.references
@@ -549,10 +490,6 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
         ]
     }
 
-    /**
-     * Context the editor can't work out for itself, because it lives in the
-     * chart's revision history rather than in the config it was handed.
-     */
     private renderNote(slot: EditorNoteSlot): React.ReactNode {
         switch (slot) {
             case "map.colorScale": {
@@ -607,7 +544,7 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
                                 actions={this.saveActions(editor)}
                             />
                         )}
-                        onChange={this.onEditorChange}
+                        onChange={this.syncIndicatorConfig}
                         onSave={this.onSave}
                     />
                 ) : (
@@ -618,4 +555,26 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
             </AdminLayout>
         )
     }
+}
+
+/** The patch plus the title and slug grapher derives, which the server requires */
+function withDerivedTitleAndSlug(
+    patch: GrapherInterface,
+    grapherState: GrapherState
+): GrapherInterface {
+    return {
+        ...patch,
+        title: patch.title || grapherState.effectiveTitle,
+        ...(grapherState.isPublished && !patch.slug
+            ? { slug: grapherState.displaySlug }
+            : {}),
+    }
+}
+
+/**
+ * The config of an unpublished copy. Takes the full config because the copy
+ * has no ETL layer to inherit from; the server diffs the indicator layer out.
+ */
+function configForDuplicate(fullConfig: GrapherInterface): GrapherInterface {
+    return _.omit(fullConfig, ["id", "isPublished", "slug"])
 }

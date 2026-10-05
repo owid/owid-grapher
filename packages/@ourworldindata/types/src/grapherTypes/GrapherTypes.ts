@@ -641,7 +641,6 @@ export interface MapConfigInterface {
     selectedEntityNames?: EntityName[]
 }
 
-/** Color per entity, keyed by entity name */
 export type SelectedEntityColors = Record<EntityName, string | undefined>
 
 // This configuration represents the entire persistent state of a grapher

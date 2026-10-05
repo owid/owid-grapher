@@ -1,8 +1,3 @@
-/**
- * The admin's editor for an existing narrative chart: `GrapherEditor` with
- * the parent chart's full config as the base, plus the narrative chart's
- * record (its name, references, the parent link) plugged in from here.
- */
 import React from "react"
 import { observer } from "mobx-react"
 import { computed, action, runInAction, observable, makeObservable } from "mobx"
@@ -38,9 +33,7 @@ interface NarrativeChartEditorPageProps {
     history: History
 }
 
-/** The ArchieML that embeds a narrative chart in a Google Doc. */
 export function NarrativeChartInfo({ name }: { name: string }) {
-    // In theory, it'd be great to use `rawToArchie` here, but that's in the `db` package
     const gdocSnippet = `{.narrative-chart}
   name: ${name}
 {}`
@@ -80,7 +73,6 @@ export class NarrativeChartEditorPage extends React.Component<NarrativeChartEdit
     name = ""
     configId = ""
     patchConfig: GrapherInterface = {}
-    /** The parent chart's full config: what this narrative chart is a patch on. */
     parentConfig: GrapherInterface | undefined = undefined
     parentUrl: string | null = null
     references: References | undefined = undefined
@@ -122,13 +114,6 @@ export class NarrativeChartEditorPage extends React.Component<NarrativeChartEdit
         void this.fetchRefs()
     }
 
-    /**
-     * A narrative chart is saved as a special patch: what it adds on top of
-     * its parent, minus the props a narrative chart never carries, plus the
-     * props it always persists (see `makeNarrativeChartPatchConfig`). The
-     * editor's own generic patch is returned as the saved baseline, so the
-     * editor's "modified" state stays consistent with what it computes.
-     */
     @action.bound async onSave(
         patch: GrapherInterface,
         editor: ConfigEditor
@@ -178,8 +163,6 @@ export class NarrativeChartEditorPage extends React.Component<NarrativeChartEdit
                         key={this.props.narrativeChartId}
                         config={this.patchConfig}
                         baseConfig={this.parentConfig}
-                        // A narrative chart has no page of its own; the link
-                        // shows the chart it is based on, as it did before.
                         previewUrl={
                             this.parentConfig?.id
                                 ? `/admin/charts/${this.parentConfig.id}/preview`
@@ -200,7 +183,8 @@ export class NarrativeChartEditorPage extends React.Component<NarrativeChartEdit
                                 editor={editor}
                                 editingErrors={editingErrors}
                                 parentUrl={this.parentUrl}
-                                existing={{
+                                chart={{
+                                    status: "saved",
                                     name: this.name,
                                     configId: this.configId,
                                 }}

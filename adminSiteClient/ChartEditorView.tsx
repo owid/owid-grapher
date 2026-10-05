@@ -10,6 +10,7 @@ import {
     IReactionDisposer,
     makeObservable,
     comparer,
+    when,
 } from "mobx"
 import { Prompt } from "react-router-dom"
 import {
@@ -65,7 +66,6 @@ export type DetailReferences = Record<FieldWithDetailReferences, string[]>
 
 export interface ChartEditorViewManager {
     editor: ConfigEditor
-    /** Details on demand, for validating text fields. Absent → none. */
     details?: DetailsProvider
     /**
      * Query params to apply to the grapher once, after the initial data load.
@@ -74,7 +74,6 @@ export interface ChartEditorViewManager {
      * set it get the authored config as before.
      */
     initialQueryParams?: GrapherQueryParams
-    /** Where the chart can be previewed as published, if anywhere. */
     previewUrl?: string
 }
 
@@ -114,33 +113,20 @@ export class ChartEditorView extends React.Component<ChartEditorViewProps> {
         return this._isDbSet
     }
 
-    private hasAppliedInitialQueryParams = false
-    private hasTakenSavedBaseline = false
-
-    @action.bound async updateGrapher(): Promise<void> {
+    @action.bound async loadInitialConfig(): Promise<void> {
         const config = this.manager.editor.originalGrapherConfig
         this.manager.editor.grapherState.updateFromObject(config)
         await this.manager.editor.reloadGrapherData()
         this.grapherState.externalBounds = this.bounds
 
-        // The host's config is in, data and all: that is the state the chart
-        // counts as unmodified against. Before the initial query params, so
-        // that a chart opened on a customized view reads as modified.
-        if (!this.hasTakenSavedBaseline) {
-            this.hasTakenSavedBaseline = true
-            this.manager.editor.markAsSaved()
-        }
+        this.manager.editor.markAsSaved()
 
         // Applied after the data load because the time bounds are snapped to
         // the available times and the entity selection is gated on
-        // `addCountryMode`. Applied at most once: `updateGrapher` re-runs
-        // whenever the editor changes, and re-applying would overwrite edits
-        // made in the editor since.
+        // `addCountryMode`
         const { initialQueryParams } = this.manager
-        if (initialQueryParams && !this.hasAppliedInitialQueryParams) {
-            this.hasAppliedInitialQueryParams = true
+        if (initialQueryParams)
             this.grapherState.populateFromQueryParams(initialQueryParams)
-        }
     }
 
     @action.bound private setDb(database: EditorDatabase): void {
@@ -215,9 +201,6 @@ export class ChartEditorView extends React.Component<ChartEditorViewProps> {
 
     @computed
     get invalidDetailReferences(): DetailReferences {
-        // Without a details provider there is nothing to validate against;
-        // flagging every reference as invalid would block saving for hosts
-        // that simply have no details on demand.
         if (!this.manager.details)
             return { subtitle: [], note: [], axisLabelX: [], axisLabelY: [] }
         const { subtitle, note, axisLabelX, axisLabelY } =
@@ -312,7 +295,6 @@ export class ChartEditorView extends React.Component<ChartEditorViewProps> {
         return errorMessages
     }
 
-    /** Everything that currently blocks saving, as messages. */
     @computed get editingErrors(): string[] {
         return excludeUndefined([
             ...Object.values(this.errorMessages),
@@ -332,15 +314,11 @@ export class ChartEditorView extends React.Component<ChartEditorViewProps> {
     }
 
     override componentDidMount(): void {
-        // Register the reactions before kicking off the fetches: without an
-        // indicator catalog to await, `fetchData` marks the view ready
-        // synchronously, and a reaction set up afterwards would never see
-        // the editor appear.
         this.disposers.push(
-            reaction(
-                () => this.editor,
+            when(
+                () => this.editor !== undefined,
                 () => {
-                    void this.updateGrapher()
+                    void this.loadInitialConfig()
                 }
             )
         )
@@ -392,10 +370,6 @@ export class ChartEditorView extends React.Component<ChartEditorViewProps> {
 
     renderReady(editor: ConfigEditor): React.ReactElement {
         const { grapherState, availableTabs } = editor
-        // The editor's tab may name one that isn't available right now: a
-        // host allow-list without "basic", or a `?tab=map` from the URL
-        // before the config has loaded. Show the first available one instead
-        // without touching `editor.tab`, so the URL's intent survives.
         const activeTab = availableTabs.includes(editor.tab)
             ? editor.tab
             : availableTabs[0]
@@ -404,8 +378,6 @@ export class ChartEditorView extends React.Component<ChartEditorViewProps> {
         const activeExtraTab = extraTabs.find((tab) => tab.key === activeTab)
         const tabLabel = (tab: string): React.ReactNode =>
             extraTabs.find((t) => t.key === tab)?.label ?? _.capitalize(tab)
-        // Where the chart can be seen as readers will see it. Only the host
-        // knows: an id in the config says nothing about who can serve it.
         const { previewUrl } = this.manager
 
         return (

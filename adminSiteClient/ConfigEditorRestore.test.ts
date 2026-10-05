@@ -168,13 +168,10 @@ describe("ConfigEditor loadPatchConfig", () => {
     })
 })
 
-/** An editor that has just loaded `savedPatch` on indicator 3 */
 function makeSavedEditor(): {
     editor: ConfigEditor
     manager: ConfigEditorManager
 } {
-    // observable, so that changing `baseConfig` later reaches the editor
-    // the way a re-rendered `GrapherEditor` prop would
     const manager = observable<ConfigEditorManager>({
         patchConfig: savedPatch,
         baseConfig: indicatorConfigs[SAVED_INDICATOR_ID],

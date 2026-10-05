@@ -1,9 +1,3 @@
-/**
- * The admin's save actions for a chart row: save/create, save as new,
- * publish/unpublish, delete, save as narrative chart. Plugged into the
- * config-only editor through `GrapherEditor`'s `renderSaveButtons`; the
- * actions themselves live on the page that owns the chart record.
- */
 import { Component } from "react"
 import { action, computed, observable, makeObservable } from "mobx"
 import { observer } from "mobx-react"
@@ -23,7 +17,6 @@ export interface ChartSaveActions {
 interface ChartSaveButtonsProps {
     editor: ConfigEditor
     editingErrors: string[]
-    /** Whether the chart has been created yet. */
     isNewChart: boolean
     actions: ChartSaveActions
 }
