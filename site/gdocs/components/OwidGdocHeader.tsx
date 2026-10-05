@@ -36,31 +36,6 @@ function OwidArticleHeader({
     const versionsFileUrl = useVersionsFileUrl()
     const dateText =
         content.dateline || (publishedAt && formatDate(publishedAt))
-    const byline = content.authors.length > 0 && (
-        <div>
-            <Byline
-                authors={content.authors}
-                authorRoles={content.authorRoles}
-                contributors={content.contributors}
-            />
-        </div>
-    )
-    const date = (
-        <div suppressHydrationWarning={true}>
-            {versionsFileUrl ? (
-                <a
-                    href={`#${PAST_VERSIONS_ID}`}
-                    suppressHydrationWarning={true}
-                >
-                    <FontAwesomeIcon icon={faClockRotateLeft} />
-                    {dateText}
-                </a>
-            ) : (
-                dateText
-            )}
-        </div>
-    )
-
     return (
         <>
             <div
@@ -107,32 +82,36 @@ function OwidArticleHeader({
                     </h2>
                 ) : null}
                 <div className="centered-article-header__meta-container col-start-2 span-cols-6 span-md-cols-6 col-md-start-1 grid grid-cols-2 ">
-                    {isDeprecated ? (
-                        <div className="centered-article-header__meta-container-left span-cols-2">
-                            {byline}
-                            {date}
+                    {content.authors.length > 0 && (
+                        <div className="centered-article-header__byline span-cols-2">
+                            <Byline
+                                authors={content.authors}
+                                authorRoles={content.authorRoles}
+                                contributors={content.contributors}
+                            />
                         </div>
-                    ) : (
-                        <>
-                            {byline && (
-                                <div className="centered-article-header__byline span-cols-2">
-                                    {byline}
-                                </div>
-                            )}
-                            <div className="centered-article-header__meta-row span-cols-2">
-                                {date}
-                                {!content["hide-citation"] && (
-                                    <a
-                                        href={`#${CITATION_ID}`}
-                                        className="centered-article-header__cite-link"
-                                    >
-                                        <FontAwesomeIcon icon={faBook} />
-                                        Cite this article
-                                    </a>
-                                )}
-                            </div>
-                        </>
                     )}
+                    <div className="centered-article-header__meta-row span-cols-2">
+                        {versionsFileUrl ? (
+                            <a
+                                href={`#${PAST_VERSIONS_ID}`}
+                                suppressHydrationWarning={true}
+                            >
+                                <FontAwesomeIcon icon={faClockRotateLeft} />
+                                {dateText}
+                            </a>
+                        ) : (
+                            <span suppressHydrationWarning={true}>
+                                {dateText}
+                            </span>
+                        )}
+                        {!isDeprecated && !content["hide-citation"] && (
+                            <a href={`#${CITATION_ID}`}>
+                                <FontAwesomeIcon icon={faBook} />
+                                Cite this article
+                            </a>
+                        )}
+                    </div>
                 </div>
             </header>
         </>
