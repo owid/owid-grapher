@@ -655,7 +655,7 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
                         baseConfig={this.baseConfig}
                         previewUrl={
                             this.props.grapherId !== undefined
-                                ? `/admin/charts/${this.props.grapherId}/preview`
+                                ? `/admin/charts/${this.props.grapherId}/preview${this.forceDatapage ? "?forceDatapage=true" : ""}`
                                 : undefined
                         }
                         extraTabs={this.extraTabs}
