@@ -8,10 +8,21 @@
  * API (the `admin*` functions below); the editor playground and, eventually,
  * package consumers wire them to whatever they have.
  */
+import {
+    AxisConfigInterface,
+    DimensionProperty,
+    OwidChartDimensionInterface,
+    ScaleType,
+} from "@ourworldindata/types"
 import { DetailDictionary } from "@ourworldindata/utils"
+import { CONTINENTS_INDICATOR_ID } from "@ourworldindata/grapher"
 import { Admin } from "./Admin.js"
 import { Dataset, IndicatorCatalogData, Namespace } from "./EditorDatabase.js"
 import { CATALOG_URL, DATA_API_URL } from "../settings/clientSettings.mjs"
+import {
+    GDP_PER_CAPITA_CATALOG_PATH,
+    POPULATION_CATALOG_PATH,
+} from "./constants.js"
 
 /** Lets the variable selector offer indicators. Absent → no "Add indicator". */
 export interface IndicatorCatalog {
@@ -27,6 +38,13 @@ export interface DetailsProvider {
 export interface EditorEnvironment {
     dataApiUrl: string
     catalogUrl: string
+}
+
+/** Indicators that fill a scatter plot's empty slots */
+export interface ScatterDefaults {
+    dimensions: OwidChartDimensionInterface[]
+    /** Applied only when the x slot is filled from `dimensions` */
+    xAxis?: AxisConfigInterface
 }
 
 export const defaultEditorEnvironment: EditorEnvironment = {
@@ -72,5 +90,31 @@ export function adminDetailsProvider(admin: Admin): DetailsProvider {
         load(): Promise<DetailDictionary> {
             return admin.getJSON<DetailDictionary>("/api/parsed-dods.json")
         },
+    }
+}
+
+export function adminScatterDefaults(
+    variableIdsByCatalogPath: Record<string, number | null> = {}
+): ScatterDefaults {
+    const gdpPerCapitaId = variableIdsByCatalogPath[GDP_PER_CAPITA_CATALOG_PATH]
+    const populationId = variableIdsByCatalogPath[POPULATION_CATALOG_PATH]
+    const dimensions: OwidChartDimensionInterface[] = []
+    if (gdpPerCapitaId)
+        dimensions.push({
+            property: DimensionProperty.x,
+            variableId: gdpPerCapitaId,
+        })
+    dimensions.push({
+        property: DimensionProperty.color,
+        variableId: CONTINENTS_INDICATOR_ID,
+    })
+    if (populationId)
+        dimensions.push({
+            property: DimensionProperty.size,
+            variableId: populationId,
+        })
+    return {
+        dimensions,
+        xAxis: { scaleType: ScaleType.log, canChangeScaleType: true },
     }
 }

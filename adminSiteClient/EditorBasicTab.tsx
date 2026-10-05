@@ -21,12 +21,10 @@ import {
     PeerCountryStrategy,
     ALL_GRAPHER_CHART_TYPES,
     StackMode,
-    ScaleType,
 } from "@ourworldindata/types"
 import {
     DimensionSlot,
     WORLD_ENTITY_NAME,
-    CONTINENTS_INDICATOR_ID,
     findPotentialChartTypeSiblings,
     ChartDimension,
     SelectionArray,
@@ -52,10 +50,6 @@ import { EditorDatabase } from "./EditorDatabase.js"
 import { ErrorMessagesForDimensions } from "./ChartEditorTypes.js"
 import { EditableTags } from "./EditableTags.js"
 import { MinimalTagWithMetadata } from "./TagGraphMetadata.js"
-import {
-    GDP_PER_CAPITA_CATALOG_PATH,
-    POPULATION_CATALOG_PATH,
-} from "./constants.js"
 import * as R from "remeda"
 import { SortableList } from "./SortableList.js"
 import { GrapherTabIcon } from "@ourworldindata/components"
@@ -640,74 +634,32 @@ export class EditorBasicTab extends React.Component<EditorBasicTabProps> {
 
     @action.bound
     private async applyDefaultsForScatter(): Promise<void> {
-        const { grapherState, variableIdsByCatalogPath = {} } =
-            this.props.editor
         const { editor } = this.props
+        const { grapherState } = editor
+        const { scatterDefaults } = editor.manager
+        if (!scatterDefaults) return
 
         const existingDimensions = grapherState.dimensions.map((dim) =>
             dim.toObject()
         )
-        const newDimensions: OwidChartDimensionInterface[] = [
+        const filledProperties = new Set(
+            existingDimensions.map((dim) => dim.property)
+        )
+        const addedDimensions = scatterDefaults.dimensions.filter(
+            (dim) => !filledProperties.has(dim.property)
+        )
+        if (addedDimensions.length === 0) return
+
+        if (
+            scatterDefaults.xAxis &&
+            addedDimensions.some((dim) => dim.property === DimensionProperty.x)
+        )
+            grapherState.xAxis.updateFromObject(scatterDefaults.xAxis)
+
+        await editor.commitDimensionsAndReloadData([
             ...existingDimensions,
-        ]
-
-        const hasX = existingDimensions.find(
-            (d) => d.property === DimensionProperty.x
-        )
-        const hasColor = existingDimensions.find(
-            (d) => d.property === DimensionProperty.color
-        )
-        const hasSize = existingDimensions.find(
-            (d) => d.property === DimensionProperty.size
-        )
-
-        // Add default x indicator if not already present
-        const gdpPerCapitaId =
-            variableIdsByCatalogPath[GDP_PER_CAPITA_CATALOG_PATH]
-        if (!hasX) {
-            if (gdpPerCapitaId) {
-                newDimensions.push({
-                    variableId: gdpPerCapitaId,
-                    property: DimensionProperty.x,
-                })
-
-                // GDP per capita is best viewed on a log scale,
-                // so enable the log/linear switch and default to log
-                grapherState.xAxis.canChangeScaleType = true
-                grapherState.xAxis.scaleType = ScaleType.log
-            } else {
-                console.error(
-                    `Could not resolve a variable id for catalog path "${GDP_PER_CAPITA_CATALOG_PATH}"; skipping the default x dimension.`
-                )
-            }
-        }
-
-        // Add default color indicator if not already present
-        if (!hasColor)
-            newDimensions.push({
-                variableId: CONTINENTS_INDICATOR_ID,
-                property: DimensionProperty.color,
-            })
-
-        // Add default size indicator if not already present
-        const populationId = variableIdsByCatalogPath[POPULATION_CATALOG_PATH]
-        if (!hasSize) {
-            if (populationId) {
-                newDimensions.push({
-                    variableId: populationId,
-                    property: DimensionProperty.size,
-                })
-            } else {
-                console.error(
-                    `Could not resolve a variable id for catalog path "${POPULATION_CATALOG_PATH}"; skipping the default size dimension.`
-                )
-            }
-        }
-
-        // Update dimensions if any new ones were added
-        if (newDimensions.length > existingDimensions.length) {
-            await editor.commitDimensionsAndReloadData(newDimensions)
-        }
+            ...addedDimensions,
+        ])
     }
 
     @action.bound private addChartType(chartType: GrapherChartType): void {

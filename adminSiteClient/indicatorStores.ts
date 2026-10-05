@@ -38,11 +38,6 @@ export interface IndicatorStore {
         dimensions: OwidChartDimensionInterface[],
         selectedEntityColors: SelectedEntityColors | undefined
     ): Promise<OwidTable | undefined>
-    /**
-     * Well-known indicators the Basic tab offers as shortcuts (population,
-     * GDP per capita), keyed by catalog path. Absent → no shortcuts.
-     */
-    variableIdsByCatalogPath?: Record<string, number | null>
 }
 
 /**
@@ -53,7 +48,6 @@ export interface IndicatorStore {
 export function dataApiIndicatorStore(options: {
     dataApiUrl: string
     catalog?: IndicatorCatalog
-    variableIdsByCatalogPath?: Record<string, number | null>
 }): IndicatorStore {
     const fetchTable = getCachingInputTableFetcher(
         options.dataApiUrl,
@@ -62,7 +56,6 @@ export function dataApiIndicatorStore(options: {
     )
     return {
         catalog: options.catalog,
-        variableIdsByCatalogPath: options.variableIdsByCatalogPath,
         loadTable: (dimensions, selectedEntityColors) =>
             fetchTable(dimensions, selectedEntityColors),
     }

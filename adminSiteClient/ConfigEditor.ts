@@ -39,6 +39,7 @@ import { EditorFeatures } from "./EditorFeatures.js"
 import {
     defaultEditorEnvironment,
     EditorEnvironment,
+    ScatterDefaults,
 } from "./editorProviders.js"
 import { dataApiIndicatorStore, IndicatorStore } from "./indicatorStores.js"
 
@@ -89,7 +90,7 @@ export interface ConfigEditorManager {
     patchConfig: GrapherInterface
     /** The config `patchConfig` is a patch against, if any */
     baseConfig?: GrapherInterface
-    variableIdsByCatalogPath?: Record<string, number | null>
+    scatterDefaults?: ScatterDefaults
     /**
      * Extra context to show next to one part of the config. Called while the
      * section renders, so a note that depends on data the host is still
@@ -260,15 +261,6 @@ export class ConfigEditor {
 
     dispose(): void {
         this.disposers.forEach((dispose) => dispose())
-    }
-
-    @computed get variableIdsByCatalogPath():
-        | Record<string, number | null>
-        | undefined {
-        return (
-            this.manager.variableIdsByCatalogPath ??
-            this.store.variableIdsByCatalogPath
-        )
     }
 
     /** original grapher config used to init the grapherState instance */
