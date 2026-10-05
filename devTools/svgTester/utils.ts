@@ -575,9 +575,7 @@ export async function renderSvg({
 
     grapher.grapherState.inputTable = legacyToOwidTableAndDimensions(
         configAndData.variableData,
-        grapher.grapherState.dimensions.map((dimension) =>
-            dimension.toObject()
-        ),
+        grapher.grapherState.dimensionConfigs,
         grapher.grapherState.selectedEntityColors
     )
 

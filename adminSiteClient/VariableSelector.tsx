@@ -27,7 +27,7 @@ import {
     NamespaceData,
 } from "./EditorDatabase.js"
 import { TextField, Toggle, Modal } from "./Forms.js"
-import { DimensionSlot } from "@ourworldindata/grapher"
+import { ChartDimension, DimensionSlot } from "@ourworldindata/grapher"
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
 
 interface VariableSelectorProps<Editor> {
@@ -528,25 +528,29 @@ export class VariableSelector<
         const { variableUsageCounts } = this.database
         const { dimensions } = this.props.slot
 
-        this.chosenVariables = dimensions.flatMap((d) => {
-            const variableId = d.variableId
-            if (variableId === undefined) return []
+        this.chosenVariables = dimensions
+            .filter(
+                (d): d is ChartDimension & { variableId: OwidVariableId } =>
+                    d.variableId !== undefined
+            )
+            .map((d) => {
+                const { datasetName, datasetId } = d.column
+                const dataset =
+                    datasetId !== undefined
+                        ? datasetsById[datasetId]
+                        : undefined
 
-            const { datasetName, datasetId } = d.column
-            const dataset =
-                datasetId !== undefined ? datasetsById[datasetId] : undefined
-
-            return {
-                name: d.column.name,
-                id: variableId,
-                usageCount: variableUsageCounts.get(variableId) ?? 0,
-                datasetId: datasetId ?? 0,
-                datasetName: datasetName || "",
-                catalogPath: undefined,
-                namespaceName: dataset?.namespace ?? "",
-                datasetVersion: dataset?.version,
-            }
-        })
+                return {
+                    name: d.column.name,
+                    id: d.variableId,
+                    usageCount: variableUsageCounts.get(d.variableId) ?? 0,
+                    datasetId: datasetId ?? 0,
+                    datasetName: datasetName || "",
+                    catalogPath: undefined,
+                    namespaceName: dataset?.namespace ?? "",
+                    datasetVersion: dataset?.version,
+                }
+            })
 
         const uniqueNamespaces = _.uniq(
             this.chosenVariables.map((v) => v.namespaceName)

@@ -7,6 +7,12 @@ export interface Persistable {
     updateFromObject(obj: unknown): any // This should parse an incoming object, extend the current instance, and create new instances for any non native class types
 }
 
+/**
+ * The serialized type of one field:
+ * - a persistable becomes its `toObject()` result
+ * - an array of persistables becomes an array of those results
+ * - anything else stays unchanged
+ */
 type PersistedValue<V> = V extends { toObject(): infer O }
     ? O
     : V extends readonly (infer Item)[]

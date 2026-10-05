@@ -148,7 +148,3 @@ A dimension is the same object OWID's own charts use to name an indicator, with
 `slug` in place of `variableId`, so anything `display` supports works here too.
 `ySlugs` and its siblings remain the short way to say the same thing when no
 override is needed.
-
-If you build the table yourself and hand it to `fromTable`, this happens for
-you. If you assign `grapherState.inputTable` directly, call
-`applyDimensionDisplayOverrides(table, config.dimensions)` first.

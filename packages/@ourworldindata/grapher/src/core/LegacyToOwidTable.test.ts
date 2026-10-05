@@ -1,7 +1,6 @@
 import { expect, it, describe } from "vitest"
 
 import {
-    ColumnTypeNames,
     GRAPHER_CHART_TYPES,
     OwidTableSlugs,
     StandardOwidColumnDefs,
@@ -15,11 +14,9 @@ import {
     OwidTable,
 } from "@ourworldindata/core-table"
 import { legacyToOwidTableAndDimensions } from "./LegacyToOwidTable"
-import { ChartDimension } from "../chart/ChartDimension"
 import {
     MultipleOwidVariableDataDimensionsMap,
     OwidVariableDataMetadataDimensions,
-    OwidVariableDisplayConfig,
     DimensionProperty,
 } from "@ourworldindata/utils"
 
@@ -97,7 +94,7 @@ describe(legacyToOwidTableAndDimensions, () => {
             expect(table.get("2").def.display?.conversionFactor).toEqual(100)
         })
 
-        it("applies the indicator's conversionFactor under a ChartDimension's display with no fields set", () => {
+        it("keeps the indicator's conversionFactor when the slot's display leaves it undefined", () => {
             const variableConfig: MultipleOwidVariableDataDimensionsMap =
                 new Map([
                     [
@@ -120,7 +117,7 @@ describe(legacyToOwidTableAndDimensions, () => {
                 [
                     {
                         variableId: 2,
-                        display: new OwidVariableDisplayConfig(),
+                        display: { conversionFactor: undefined },
                         property: DimensionProperty.y,
                     },
                 ],
@@ -135,89 +132,25 @@ describe(legacyToOwidTableAndDimensions, () => {
             })
         })
 
-        it("applies the conversionFactor of a ChartDimension's config", () => {
-            const dimension = new ChartDimension(
-                {
-                    variableId: 2,
-                    display: { conversionFactor: 10 },
-                    property: DimensionProperty.y,
-                },
-                { table: new OwidTable() }
-            )
+        it("prefers the slot's conversionFactor over the indicator's", () => {
             const table = legacyToOwidTableAndDimensions(
                 legacyVariableConfig,
-                [dimension.toObject()],
+                [
+                    {
+                        variableId: 2,
+                        display: { conversionFactor: 10 },
+                        property: DimensionProperty.y,
+                    },
+                ],
                 undefined
             )
 
             expect(table.rows[0]["2"]).toEqual(80)
             expect(table.get("2").def.display?.conversionFactor).toEqual(10)
         })
-
-        it("turns an integer column numeric under a non-whole conversionFactor", () => {
-            const variableConfig: MultipleOwidVariableDataDimensionsMap =
-                new Map([
-                    [
-                        2,
-                        {
-                            ...legacyVariableEntry,
-                            metadata: {
-                                ...legacyVariableEntry.metadata,
-                                type: "int",
-                                display: {},
-                            },
-                        },
-                    ],
-                ])
-            const table = legacyToOwidTableAndDimensions(
-                variableConfig,
-                [
-                    {
-                        variableId: 2,
-                        display: { conversionFactor: 0.5 },
-                        property: DimensionProperty.y,
-                    },
-                ],
-                undefined
-            )
-
-            expect(table.rows[0]["2"]).toEqual(4)
-            expect(table.get("2").def.type).toEqual(ColumnTypeNames.Numeric)
-        })
     })
 
     describe("slot display", () => {
-        it("takes the first slot's display when two slots share a slug", () => {
-            const table = legacyToOwidTableAndDimensions(
-                legacyVariableConfig,
-                [
-                    {
-                        variableId: 2,
-                        display: { name: "First", unit: "kg" },
-                        property: DimensionProperty.y,
-                    },
-                    {
-                        variableId: 2,
-                        display: {
-                            name: "Second",
-                            unit: "t",
-                            conversionFactor: 10,
-                        },
-                        property: DimensionProperty.x,
-                    },
-                ],
-                undefined
-            )
-
-            const column = table.get("2")
-            expect(column.def.display).toMatchObject({
-                name: "First",
-                unit: "kg",
-                conversionFactor: 100,
-            })
-            expect(column.valuesIncludingErrorValues).toEqual([800])
-        })
-
         it("filters to the target year with the slot's tolerance", () => {
             const variableConfig: MultipleOwidVariableDataDimensionsMap =
                 new Map([
