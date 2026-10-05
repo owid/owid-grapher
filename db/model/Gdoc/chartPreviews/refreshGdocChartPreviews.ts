@@ -68,6 +68,49 @@ async function checkImageRenders(imageUrl: string): Promise<string | null> {
 }
 
 /**
+ * Existing images get replaced in place, which keeps their size in the doc.
+ * When the new image has a different shape, that would crop it, so it gets
+ * deleted and inserted again at the same width instead.
+ */
+interface PlannedChanges {
+    replacements: ChartPreviewChange[]
+    insertions: ChartPreviewChange[]
+    reinsertions: ChartPreviewChange[]
+}
+
+// How far apart aspect ratios can be before reinserting rather than cropping
+const ASPECT_RATIO_TOLERANCE = 0.02
+
+function needsReinsertion(
+    block: ChartPreviewBlock,
+    aspectRatio: number | undefined
+): boolean {
+    const size = block.image?.size
+    if (!size || !aspectRatio) return false
+    const currentAspectRatio = size.width / size.height
+    return (
+        Math.abs(currentAspectRatio - aspectRatio) / aspectRatio >
+        ASPECT_RATIO_TOLERANCE
+    )
+}
+
+function countChanges(changes: PlannedChanges): number {
+    return (
+        changes.replacements.length +
+        changes.insertions.length +
+        changes.reinsertions.length
+    )
+}
+
+function makeRequests(changes: PlannedChanges): docs_v1.Schema$Request[] {
+    return makeChartPreviewRequests(
+        changes.replacements,
+        changes.insertions,
+        changes.reinsertions
+    )
+}
+
+/**
  * Writes the changes in one batch. If Google rejects the batch, falls back to
  * writing each change on its own so that one bad image doesn't block the rest.
  * All writes target the revision we read, so Google adjusts our positions for
@@ -76,8 +119,7 @@ async function checkImageRenders(imageUrl: string): Promise<string | null> {
 async function writeChanges(
     docsClient: docs_v1.Docs,
     document: docs_v1.Schema$Document,
-    replacements: ChartPreviewChange[],
-    insertions: ChartPreviewChange[]
+    changes: PlannedChanges
 ): Promise<Map<ChartPreviewChange, string>> {
     const failures = new Map<ChartPreviewChange, string>()
     const write = (requests: docs_v1.Schema$Request[]): Promise<unknown> =>
@@ -90,36 +132,55 @@ async function writeChanges(
         })
 
     try {
-        await write(makeChartPreviewRequests(replacements, insertions))
+        await write(makeRequests(changes))
         return failures
     } catch (error) {
-        if (replacements.length + insertions.length === 1) {
-            failures.set(
-                [...replacements, ...insertions][0],
-                getErrorMessage(error)
-            )
+        if (countChanges(changes) === 1) {
+            const [change] = [
+                ...changes.replacements,
+                ...changes.insertions,
+                ...changes.reinsertions,
+            ]
+            failures.set(change, getErrorMessage(error))
             return failures
         }
     }
 
-    for (const change of replacements) {
-        await write(makeChartPreviewRequests([change], [])).catch((error) =>
+    const singleChanges: PlannedChanges[] = [
+        ...changes.replacements.map((change) => ({
+            replacements: [change],
+            insertions: [],
+            reinsertions: [],
+        })),
+        ...changes.insertions.map((change) => ({
+            replacements: [],
+            insertions: [change],
+            reinsertions: [],
+        })),
+        ...changes.reinsertions.map((change) => ({
+            replacements: [],
+            insertions: [],
+            reinsertions: [change],
+        })),
+    ]
+    for (const single of singleChanges) {
+        await write(makeRequests(single)).catch((error) => {
+            const [change] = [
+                ...single.replacements,
+                ...single.insertions,
+                ...single.reinsertions,
+            ]
             failures.set(change, getErrorMessage(error))
-        )
-    }
-    for (const change of insertions) {
-        await write(makeChartPreviewRequests([], [change])).catch((error) =>
-            failures.set(change, getErrorMessage(error))
-        )
+        })
     }
     return failures
 }
 
 /**
- * Makes the preview image above each chart component in a gdoc show the
- * current version of the chart. Replaces images that are outdated or were
- * pasted in by hand, and optionally inserts images where there are none.
- * Covers all tabs of the doc.
+ * Makes the preview image above each component in a gdoc show the current
+ * version of the chart or uploaded image it refers to. Replaces images that
+ * are outdated or were pasted in by hand, and optionally inserts images where
+ * there are none. Covers all tabs of the doc.
  */
 export async function refreshGdocChartPreviews(
     knex: db.KnexReadonlyTransaction,
@@ -145,29 +206,40 @@ export async function refreshGdocChartPreviews(
     )
 
     const items = new Map<ChartPreviewBlock, GdocChartPreviewItem>()
-    const replacements: ChartPreviewChange[] = []
-    const insertions: ChartPreviewChange[] = []
+    const planned: PlannedChanges = {
+        replacements: [],
+        insertions: [],
+        reinsertions: [],
+    }
     for (const block of blocks) {
         const source = sources.get(chartPreviewSpecKey(block.spec))
         if (!source || source.status === "unresolved") {
             items.set(block, makeItem(block, "unresolved", source?.message))
-        } else if (block.image?.sourceUri === source.imageUrl) {
+            continue
+        }
+        const change = { block, imageUrl: source.imageUrl }
+        if (block.image?.sourceUri === source.imageUrl) {
             items.set(block, makeItem(block, "upToDate"))
         } else if (block.image) {
-            replacements.push({ block, imageUrl: source.imageUrl })
+            if (needsReinsertion(block, source.aspectRatio))
+                planned.reinsertions.push(change)
+            else planned.replacements.push(change)
             items.set(block, makeItem(block, "updated"))
         } else if (insertMissing) {
-            insertions.push({ block, imageUrl: source.imageUrl })
+            planned.insertions.push(change)
             items.set(block, makeItem(block, "inserted"))
         } else {
             items.set(block, makeItem(block, "missing"))
         }
     }
 
-    if (!dryRun && replacements.length + insertions.length > 0) {
-        const imageUrls = [
-            ...new Set([...replacements, ...insertions].map((c) => c.imageUrl)),
+    if (!dryRun && countChanges(planned) > 0) {
+        const allChanges = [
+            ...planned.replacements,
+            ...planned.insertions,
+            ...planned.reinsertions,
         ]
+        const imageUrls = [...new Set(allChanges.map((c) => c.imageUrl))]
         const renderErrors = new Map(
             await pMap(
                 imageUrls,
@@ -181,16 +253,14 @@ export async function refreshGdocChartPreviews(
                 items.set(change.block, makeItem(change.block, "failed", error))
             return !error
         }
-        const renderedReplacements = replacements.filter(renders)
-        const renderedInsertions = insertions.filter(renders)
+        const rendered: PlannedChanges = {
+            replacements: planned.replacements.filter(renders),
+            insertions: planned.insertions.filter(renders),
+            reinsertions: planned.reinsertions.filter(renders),
+        }
 
-        if (renderedReplacements.length + renderedInsertions.length > 0) {
-            const failures = await writeChanges(
-                docsClient,
-                document,
-                renderedReplacements,
-                renderedInsertions
-            )
+        if (countChanges(rendered) > 0) {
+            const failures = await writeChanges(docsClient, document, rendered)
             for (const [change, message] of failures) {
                 items.set(
                     change.block,

@@ -1,6 +1,7 @@
 import crypto from "crypto"
 import * as _ from "lodash-es"
 import {
+    LARGEST_IMAGE_WIDTH,
     QueryParams,
     Url,
     queryParamsToStr,
@@ -8,6 +9,7 @@ import {
     strToQueryParams,
 } from "@ourworldindata/utils"
 import {
+    CLOUDFLARE_IMAGES_URL,
     GDOCS_CHART_PREVIEW_EXPLORER_URL,
     GDOCS_CHART_PREVIEW_GRAPHER_URL,
 } from "../../../../settings/serverSettings.js"
@@ -29,7 +31,15 @@ import { type ChartPreviewComponentSpec } from "./chartPreviewBlocks.js"
  */
 
 export type ChartPreviewSource =
-    | { status: "resolved"; imageUrl: string }
+    | {
+          status: "resolved"
+          imageUrl: string
+          /**
+           * Width / height of the image, if it can have any shape (unlike our
+           * chart renders, which all share one)
+           */
+          aspectRatio?: number
+      }
     | { status: "unresolved"; message: string }
 
 // Bump to re-render all preview images, e.g. after changing their size
@@ -484,6 +494,106 @@ async function resolveNarrativeCharts(
     return targets
 }
 
+interface UploadedImage {
+    cloudflareId: string | null
+    originalWidth: number | null
+    originalHeight: number | null
+}
+
+/**
+ * Uploaded images are served from Cloudflare Images, which is shared by all
+ * environments. Replacing an image uploads it under a new cloudflareId, so the
+ * URL changes with every version and needs no version hash of its own.
+ */
+function makeUploadedImageSource(
+    image: UploadedImage | undefined,
+    missingMessage: string
+): ChartPreviewSource {
+    if (!image) return { status: "unresolved", message: missingMessage }
+    if (!image.cloudflareId)
+        return {
+            status: "unresolved",
+            message: "The image hasn't been uploaded to Cloudflare",
+        }
+    if (!CLOUDFLARE_IMAGES_URL)
+        return {
+            status: "unresolved",
+            message: "CLOUDFLARE_IMAGES_URL isn't configured",
+        }
+    const { originalWidth, originalHeight } = image
+    const width = Math.min(
+        originalWidth ?? LARGEST_IMAGE_WIDTH,
+        LARGEST_IMAGE_WIDTH
+    )
+    return {
+        status: "resolved",
+        imageUrl: `${CLOUDFLARE_IMAGES_URL}/${image.cloudflareId}/w=${width}`,
+        aspectRatio:
+            originalWidth && originalHeight
+                ? originalWidth / originalHeight
+                : undefined,
+    }
+}
+
+/** `{.image}` by filename and `{.static-viz}` by name, each its current image */
+async function resolveUploadedImages(
+    knex: db.KnexReadonlyTransaction,
+    images: { key: string; filename: string }[],
+    staticVizs: { key: string; name: string }[]
+): Promise<Map<string, ChartPreviewSource>> {
+    const sources = new Map<string, ChartPreviewSource>()
+    const [imageRows, staticVizRows]: [
+        (UploadedImage & { filename: string })[],
+        (UploadedImage & { name: string })[],
+    ] = await Promise.all([
+        images.length
+            ? knex("images")
+                  .select(
+                      "filename",
+                      "cloudflareId",
+                      "originalWidth",
+                      "originalHeight"
+                  )
+                  .whereIn("filename", _.uniq(images.map((i) => i.filename)))
+                  .whereNull("replacedBy")
+            : [],
+        staticVizs.length
+            ? knex("static_viz as sv")
+                  .join("images as i", "i.id", "sv.imageId")
+                  .select(
+                      "sv.name",
+                      "i.cloudflareId",
+                      "i.originalWidth",
+                      "i.originalHeight"
+                  )
+                  .whereIn("sv.name", _.uniq(staticVizs.map((v) => v.name)))
+            : [],
+    ])
+    const imagesByFilename = new Map(
+        imageRows.map((row) => [row.filename, row])
+    )
+    const staticVizByName = new Map(staticVizRows.map((row) => [row.name, row]))
+    for (const { key, filename } of images) {
+        sources.set(
+            key,
+            makeUploadedImageSource(
+                imagesByFilename.get(filename),
+                "No uploaded image with this filename"
+            )
+        )
+    }
+    for (const { key, name } of staticVizs) {
+        sources.set(
+            key,
+            makeUploadedImageSource(
+                staticVizByName.get(name),
+                "No static viz with this name"
+            )
+        )
+    }
+    return sources
+}
+
 export async function resolveChartPreviewSources(
     knex: db.KnexReadonlyTransaction,
     specs: ChartPreviewComponentSpec[]
@@ -492,6 +602,8 @@ export async function resolveChartPreviewSources(
     const grapherLinks: GrapherLink[] = []
     const explorerLinks: GrapherLink[] = []
     const narrativeChartNames: { key: string; name: string }[] = []
+    const imageFilenames: { key: string; filename: string }[] = []
+    const staticVizNames: { key: string; name: string }[] = []
     const seen = new Set<string>()
 
     for (const spec of specs) {
@@ -500,6 +612,14 @@ export async function resolveChartPreviewSources(
         seen.add(key)
         if (spec.type === "narrative-chart") {
             narrativeChartNames.push({ key, name: spec.target })
+            continue
+        }
+        if (spec.type === "image") {
+            imageFilenames.push({ key, filename: spec.target })
+            continue
+        }
+        if (spec.type === "static-viz") {
+            staticVizNames.push({ key, name: spec.target })
             continue
         }
         const url = Url.fromURL(spec.target)
@@ -542,6 +662,14 @@ export async function resolveChartPreviewSources(
                   }
                 : target
         )
+    }
+
+    for (const [key, source] of await resolveUploadedImages(
+        knex,
+        imageFilenames,
+        staticVizNames
+    )) {
+        sources.set(key, source)
     }
 
     return sources

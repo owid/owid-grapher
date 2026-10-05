@@ -61,7 +61,7 @@ function makeContent(
 
 function makeDocument(
     content: docs_v1.Schema$StructuralElement[],
-    inlineObjects: Record<string, string | undefined> = {}
+    inlineObjects: Record<string, docs_v1.Schema$EmbeddedObject> = {}
 ): docs_v1.Schema$Document {
     return {
         documentId: "doc",
@@ -71,16 +71,12 @@ function makeDocument(
                 documentTab: {
                     body: { content },
                     inlineObjects: Object.fromEntries(
-                        Object.entries(inlineObjects).map(([id, uri]) => [
-                            id,
-                            {
-                                inlineObjectProperties: {
-                                    embeddedObject: {
-                                        imageProperties: { sourceUri: uri },
-                                    },
-                                },
-                            },
-                        ])
+                        Object.entries(inlineObjects).map(
+                            ([id, embeddedObject]) => [
+                                id,
+                                { inlineObjectProperties: { embeddedObject } },
+                            ]
+                        )
                     ),
                 },
             },
@@ -101,7 +97,17 @@ describe(findChartPreviewBlocks, () => {
                 [`url: ${URL_A}`],
                 ["{}"],
             ]),
-            { "kix.1": "https://example.com/old.png" }
+            {
+                "kix.1": {
+                    imageProperties: {
+                        sourceUri: "https://example.com/old.png",
+                    },
+                    size: {
+                        width: { magnitude: 400, unit: "PT" },
+                        height: { magnitude: 300, unit: "PT" },
+                    },
+                },
+            }
         )
         expect(findChartPreviewBlocks(document)).toEqual([
             {
@@ -111,7 +117,9 @@ describe(findChartPreviewBlocks, () => {
                 spec: { type: "chart", target: URL_A },
                 image: {
                     objectId: "kix.1",
+                    startIndex: 11,
                     sourceUri: "https://example.com/old.png",
+                    size: { width: 400, height: 300 },
                 },
             },
         ])
@@ -128,7 +136,7 @@ describe(findChartPreviewBlocks, () => {
             ])
         )
         const [block] = findChartPreviewBlocks(document)
-        expect(block.image).toEqual({ objectId: "kix.1" })
+        expect(block.image).toMatchObject({ objectId: "kix.1", startIndex: 20 })
     })
 
     it("ignores images followed by text", () => {
@@ -200,6 +208,32 @@ describe(findChartPreviewBlocks, () => {
         ])
     })
 
+    it("finds images by filename and static viz by name", () => {
+        const document = makeDocument(
+            makeContent([
+                [{ image: "kix.1" }],
+                ["{.image}"],
+                ["filename: my-chart.png"],
+                ["alt: Some alt text"],
+                ["{}"],
+                ["{.static-viz}"],
+                ["name: my-static-viz"],
+                ["{}"],
+                // Unlike charts, these have no single-line form
+                ["image: not-a-component.png"],
+            ])
+        )
+        expect(
+            findChartPreviewBlocks(document).map((b) => [
+                b.spec,
+                b.image?.objectId,
+            ])
+        ).toEqual([
+            [{ type: "image", target: "my-chart.png" }, "kix.1"],
+            [{ type: "static-viz", target: "my-static-viz" }, undefined],
+        ])
+    })
+
     it("skips components without a url", () => {
         const document = makeDocument(
             makeContent([["{.chart}"], ["caption: hi"], ["{}"], ["{.image}"]])
@@ -257,7 +291,10 @@ describe(makeChartPreviewRequests, () => {
         tabTitle: "",
         componentStartIndex,
         spec: { type: "chart", target: URL_A },
-        image: objectId ? { objectId } : undefined,
+        // The image sits in its own paragraph right above the component
+        image: objectId
+            ? { objectId, startIndex: componentStartIndex - 2 }
+            : undefined,
     })
 
     it("replaces first, then inserts from the end of each tab", () => {
@@ -297,6 +334,45 @@ describe(makeChartPreviewRequests, () => {
                 insertInlineImage: {
                     location: { index: 42, tabId: "t.0" },
                     uri: "a",
+                },
+            },
+        ])
+    })
+
+    it("reinserts images in place at the same width, sorted with inserts", () => {
+        const reinserted = {
+            ...block("t.0", 52, "kix.1"),
+            image: {
+                objectId: "kix.1",
+                startIndex: 50,
+                size: { width: 300, height: 200 },
+            },
+        }
+        const requests = makeChartPreviewRequests(
+            [],
+            [
+                { block: block("t.0", 10), imageUrl: "a" },
+                { block: block("t.0", 90), imageUrl: "b" },
+            ],
+            [{ block: reinserted, imageUrl: "r" }]
+        )
+        expect(
+            requests
+                .filter((r) => r.insertInlineImage)
+                .map((r) => r.insertInlineImage!.uri)
+        ).toEqual(["b", "r", "a"])
+        const deleteIndex = requests.findIndex((r) => r.deleteContentRange)
+        expect(requests.slice(deleteIndex, deleteIndex + 2)).toMatchObject([
+            {
+                deleteContentRange: {
+                    range: { startIndex: 50, endIndex: 51, tabId: "t.0" },
+                },
+            },
+            {
+                insertInlineImage: {
+                    location: { index: 50, tabId: "t.0" },
+                    uri: "r",
+                    objectSize: { width: { magnitude: 300, unit: "PT" } },
                 },
             },
         ])

@@ -10,16 +10,24 @@ import { type docs_v1 } from "@googleapis/docs"
  *     {}
  *
  * The image is either in a paragraph of its own or at the end of the paragraph
- * before the component. This module finds those components and their images in
+ * before the component. Image and static viz components get the same treatment,
+ * so authors see the uploaded image they refer to. This module finds those components and their images in
  * the raw Google Docs API document and builds the batchUpdate requests that
  * swap in fresh renders.
  */
 
-export type ChartPreviewComponentType = "chart" | "narrative-chart"
+export type ChartPreviewComponentType =
+    | "chart"
+    | "narrative-chart"
+    | "image"
+    | "static-viz"
 
 export interface ChartPreviewComponentSpec {
     type: ChartPreviewComponentType
-    /** The chart URL for `chart`, the name for `narrative-chart` */
+    /**
+     * The chart URL for `chart`, the filename for `image`, the name for
+     * `narrative-chart` and `static-viz`
+     */
     target: string
 }
 
@@ -29,7 +37,16 @@ export interface ChartPreviewBlock {
     /** Start index of the paragraph that opens the component, e.g. `{.chart}` */
     componentStartIndex: number
     spec: ChartPreviewComponentSpec
-    image?: { objectId: string; sourceUri?: string }
+    image?: ChartPreviewImage
+}
+
+export interface ChartPreviewImage {
+    objectId: string
+    /** Position of the image in the tab */
+    startIndex: number
+    sourceUri?: string
+    /** The image's size in the doc, in points */
+    size?: { width: number; height: number }
 }
 
 interface ParsedParagraph {
@@ -38,7 +55,7 @@ interface ParsedParagraph {
     /** The first link in the paragraph, if any */
     linkUrl?: string
     /** The image the paragraph ends with, if any */
-    trailingImageObjectId?: string
+    trailingImage?: { objectId: string; startIndex: number }
     hasImage: boolean
 }
 
@@ -49,13 +66,19 @@ const INSERTED_IMAGE_WIDTH_PT = 468
 // this for its closing `{}` in case it's malformed
 const MAX_COMPONENT_LINES = 40
 
-/** The property of each component that says what it shows */
-const COMPONENT_TARGETS: Record<
-    ChartPreviewComponentType,
-    { key: string; isUrl: boolean }
-> = {
-    chart: { key: "url", isUrl: true },
-    "narrative-chart": { key: "name", isUrl: false },
+interface ComponentTarget {
+    /** The property that says what the component shows */
+    key: string
+    isUrl: boolean
+    /** Whether the parser also accepts `type: value` on a single line */
+    hasSingleLineForm: boolean
+}
+
+const COMPONENT_TARGETS: Record<ChartPreviewComponentType, ComponentTarget> = {
+    chart: { key: "url", isUrl: true, hasSingleLineForm: true },
+    "narrative-chart": { key: "name", isUrl: false, hasSingleLineForm: true },
+    image: { key: "filename", isUrl: false, hasSingleLineForm: false },
+    "static-viz": { key: "name", isUrl: false, hasSingleLineForm: false },
 }
 
 function parseParagraph(
@@ -67,7 +90,7 @@ function parseParagraph(
     const elements = paragraph.elements ?? []
     let text = ""
     let linkUrl: string | undefined
-    let trailingImageObjectId: string | undefined
+    let trailingImage: ParsedParagraph["trailingImage"]
     let hasImage = false
     for (const el of elements) {
         if (el.textRun) {
@@ -76,13 +99,19 @@ function parseParagraph(
             linkUrl ??= el.textRun.textStyle?.link?.url ?? undefined
             // Whitespace (incl. the paragraph's closing newline) after an
             // image doesn't stop it from being the trailing element
-            if (content.trim()) trailingImageObjectId = undefined
+            if (content.trim()) trailingImage = undefined
         } else if (el.richLink?.richLinkProperties?.uri) {
             text += el.richLink.richLinkProperties.uri
             linkUrl ??= el.richLink.richLinkProperties.uri
-            trailingImageObjectId = undefined
-        } else if (el.inlineObjectElement?.inlineObjectId) {
-            trailingImageObjectId = el.inlineObjectElement.inlineObjectId
+            trailingImage = undefined
+        } else if (
+            el.inlineObjectElement?.inlineObjectId &&
+            typeof el.startIndex === "number"
+        ) {
+            trailingImage = {
+                objectId: el.inlineObjectElement.inlineObjectId,
+                startIndex: el.startIndex,
+            }
             hasImage = true
         }
     }
@@ -90,7 +119,7 @@ function parseParagraph(
         startIndex,
         text,
         linkUrl,
-        trailingImageObjectId,
+        trailingImage,
         hasImage,
     }
 }
@@ -134,12 +163,13 @@ function matchComponent(
     const paragraph = paragraphs[index]
     const text = paragraph.text.trim()
 
-    for (const [type, { key, isUrl }] of Object.entries(COMPONENT_TARGETS) as [
-        ChartPreviewComponentType,
-        { key: string; isUrl: boolean },
-    ][]) {
+    for (const [type, { key, isUrl, hasSingleLineForm }] of Object.entries(
+        COMPONENT_TARGETS
+    ) as [ChartPreviewComponentType, ComponentTarget][]) {
         // Single-line form, e.g. `chart: https://...`
-        const inline = text.match(new RegExp(`^${type}\\s*:\\s*(.+)$`))
+        const inline = hasSingleLineForm
+            ? text.match(new RegExp(`^${type}\\s*:\\s*(.+)$`))
+            : null
         if (inline) {
             return {
                 type,
@@ -169,16 +199,24 @@ function matchComponent(
 }
 
 /** The image right above the component, skipping blank lines */
-function findPreviewImageObjectId(
+function findPreviewImage(
     paragraphs: ParsedParagraph[],
     componentIndex: number
-): string | undefined {
+): ParsedParagraph["trailingImage"] {
     for (let i = componentIndex - 1; i >= 0; i--) {
         const paragraph = paragraphs[i]
         if (!paragraph.text.trim() && !paragraph.hasImage) continue
-        return paragraph.trailingImageObjectId
+        return paragraph.trailingImage
     }
     return undefined
+}
+
+function toPoints(
+    dimension: docs_v1.Schema$Dimension | undefined
+): number | undefined {
+    return dimension?.unit === "PT" && typeof dimension.magnitude === "number"
+        ? dimension.magnitude
+        : undefined
 }
 
 function flattenTabs(tabs: docs_v1.Schema$Tab[]): docs_v1.Schema$Tab[] {
@@ -204,18 +242,30 @@ export function findChartPreviewBlocks(
             for (let i = 0; i < paragraphs.length; i++) {
                 const spec = matchComponent(paragraphs, i)
                 if (!spec) continue
-                const objectId = findPreviewImageObjectId(paragraphs, i)
-                const sourceUri = objectId
-                    ? (inlineObjects[objectId]?.inlineObjectProperties
-                          ?.embeddedObject?.imageProperties?.sourceUri ??
-                      undefined)
+                const found = findPreviewImage(paragraphs, i)
+                const embeddedObject = found
+                    ? inlineObjects[found.objectId]?.inlineObjectProperties
+                          ?.embeddedObject
                     : undefined
+                const width = toPoints(embeddedObject?.size?.width)
+                const height = toPoints(embeddedObject?.size?.height)
                 blocks.push({
                     tabId,
                     tabTitle,
                     componentStartIndex: paragraphs[i].startIndex,
                     spec,
-                    image: objectId ? { objectId, sourceUri } : undefined,
+                    image: found
+                        ? {
+                              ...found,
+                              sourceUri:
+                                  embeddedObject?.imageProperties?.sourceUri ??
+                                  undefined,
+                              size:
+                                  width && height
+                                      ? { width, height }
+                                      : undefined,
+                          }
+                        : undefined,
                 })
             }
         }
@@ -238,8 +288,9 @@ export function makeReplaceImageRequest({
             imageObjectId: block.image.objectId,
             tabId: block.tabId,
             uri: imageUrl,
-            // Keeps the size the image has in the doc. Our PNGs all have the
-            // same aspect ratio, so nothing gets cropped in practice.
+            // Keeps the size the image has in the doc, cropping if the new
+            // image has a different shape. Our chart PNGs all have the same
+            // aspect ratio; other images get reinserted instead.
             imageReplaceMethod: "CENTER_CROP",
         },
     }
@@ -266,21 +317,71 @@ export function makeInsertImageRequests({
 }
 
 /**
+ * Swaps the image for one with a different shape: the API can't resize an
+ * image, so this deletes it and inserts the new one in its place at the same
+ * width, letting Google derive the height
+ */
+export function makeReinsertImageRequests({
+    block,
+    imageUrl,
+}: ChartPreviewChange): docs_v1.Schema$Request[] {
+    if (!block.image) throw new Error("Block has no image to reinsert")
+    const { startIndex, size } = block.image
+    return [
+        {
+            deleteContentRange: {
+                range: {
+                    startIndex,
+                    endIndex: startIndex + 1,
+                    tabId: block.tabId,
+                },
+            },
+        },
+        {
+            insertInlineImage: {
+                location: { index: startIndex, tabId: block.tabId },
+                uri: imageUrl,
+                objectSize: {
+                    width: {
+                        magnitude: size?.width ?? INSERTED_IMAGE_WIDTH_PT,
+                        unit: "PT",
+                    },
+                },
+            },
+        },
+    ]
+}
+
+/**
  * Replacements address images by id, so their order doesn't matter. Inserts
- * address positions, so they go last and from the end of each tab backwards,
- * so that earlier inserts don't shift the positions of later ones.
+ * and reinserts address positions, so they go last and from the end of each
+ * tab backwards, so that earlier ones don't shift the positions of later ones.
  */
 export function makeChartPreviewRequests(
     replacements: ChartPreviewChange[],
-    insertions: ChartPreviewChange[]
+    insertions: ChartPreviewChange[],
+    reinsertions: ChartPreviewChange[] = []
 ): docs_v1.Schema$Request[] {
-    const sortedInsertions = insertions.toSorted(
+    const positional = [
+        ...insertions.map((change) => ({
+            change,
+            index: change.block.componentStartIndex,
+            makeRequests: makeInsertImageRequests,
+        })),
+        ...reinsertions.map((change) => ({
+            change,
+            index: change.block.image!.startIndex,
+            makeRequests: makeReinsertImageRequests,
+        })),
+    ].toSorted(
         (a, b) =>
-            a.block.tabId.localeCompare(b.block.tabId) ||
-            b.block.componentStartIndex - a.block.componentStartIndex
+            a.change.block.tabId.localeCompare(b.change.block.tabId) ||
+            b.index - a.index
     )
     return [
         ...replacements.map(makeReplaceImageRequest),
-        ...sortedInsertions.flatMap(makeInsertImageRequests),
+        ...positional.flatMap(({ change, makeRequests }) =>
+            makeRequests(change)
+        ),
     ]
 }

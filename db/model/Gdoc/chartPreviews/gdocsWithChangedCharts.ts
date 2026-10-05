@@ -1,9 +1,10 @@
 import * as db from "../../../db.js"
 
 /**
- * Gdocs with chart components pointing at charts, multi-dims, narrative charts
- * or explorers whose config or
- * data changed since the given date, i.e. those whose preview images may be outdated.
+ * Gdocs with components pointing at charts, multi-dims, narrative charts or
+ * explorers whose config or data changed since the given date, or at uploaded
+ * images and static viz that were replaced since then, i.e. those whose
+ * preview images may be outdated.
  *
  * This is deliberately generous (indicators are touched by every ETL run, even
  * if their data stays the same): refreshing a doc whose images are already up
@@ -123,8 +124,27 @@ export async function getGdocIdsWithChangedCharts(
         SELECT l.sourceId AS gdocId
         FROM posts_gdocs_links l
         JOIN changed_explorers e ON e.slug = l.target
-        WHERE l.linkType = 'explorer' AND l.componentType = 'chart'`,
-        Array(13).fill(since)
+        WHERE l.linkType = 'explorer' AND l.componentType = 'chart'
+        UNION
+        -- Replacing an image re-points posts_gdocs_x_images to the new version
+        SELECT gi.gdocId
+        FROM posts_gdocs_x_images gi
+        JOIN images i ON i.id = gi.imageId
+        WHERE i.replacedBy IS NULL AND i.updatedAt >= ?
+        UNION
+        SELECT l.sourceId AS gdocId
+        FROM posts_gdocs_links l
+        JOIN static_viz sv ON sv.name = l.target
+        LEFT JOIN images i ON i.id = sv.imageId
+        WHERE l.linkType = 'static-viz'
+            AND (sv.updatedAt >= ? OR i.updatedAt >= ?)`,
+        [
+            ...Array(13).fill(since),
+            // images.updatedAt is in epoch milliseconds
+            since.getTime(),
+            since,
+            since.getTime(),
+        ]
     )
     return rows.map((row) => row.gdocId)
 }

@@ -15,7 +15,7 @@ const STATUS_LABELS: Record<
     inserted: { label: "Added", color: "green" },
     upToDate: { label: "Up to date", color: "default" },
     missing: { label: "No image", color: "default" },
-    unresolved: { label: "Unknown chart", color: "orange" },
+    unresolved: { label: "Not found", color: "orange" },
     failed: { label: "Failed", color: "red" },
 }
 
@@ -78,15 +78,16 @@ export function GdocsChartPreviewsModal({
             ) : (
                 <>
                     <Typography.Paragraph>
-                        Replaces the image right above each chart component in
-                        the Google Doc (in all tabs) with a current rendering of
-                        the chart, if it's outdated or was pasted in by hand.
+                        Replaces the image right above each chart, image and
+                        static viz component in the Google Doc (in all tabs)
+                        with the current version of what it shows, if it's
+                        outdated or was pasted in by hand.
                     </Typography.Paragraph>
                     <Checkbox
                         checked={insertMissing}
                         onChange={(e) => setInsertMissing(e.target.checked)}
                     >
-                        Also add images to chart components that don't have one
+                        Also add images to components that don't have one
                     </Checkbox>
                 </>
             )}
@@ -99,7 +100,7 @@ function ChartPreviewResults({ items }: { items: GdocChartPreviewItem[] }) {
         return (
             <Alert
                 type="info"
-                title="This document doesn't contain any chart components."
+                title="This document doesn't contain any chart, image or static viz components."
             />
         )
     return (
@@ -111,7 +112,7 @@ function ChartPreviewResults({ items }: { items: GdocChartPreviewItem[] }) {
             columns={[
                 { title: "Tab", dataIndex: "tabTitle", width: 120 },
                 {
-                    title: "Chart",
+                    title: "Shows",
                     dataIndex: "target",
                     ellipsis: true,
                     render: (target: string) => (
