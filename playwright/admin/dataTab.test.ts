@@ -277,15 +277,10 @@ test.describe("Data to show", () => {
         })
     })
 
-    // Known bug: changing the selection in the Data tab clears the whole
-    // focus, not just the series that are no longer plotted.
-    // `removeInvalidFocusedSeriesNames` runs right after the selection
-    // change, while the chart's series names still reflect the old selection.
     test("adding an entity keeps the highlighted series", async ({
         seedChart,
         openEditor,
     }) => {
-        test.fail()
         const editor = await openEditor(
             await seedChart({
                 ...lineChart(indicators.lifeExpectancy),
@@ -307,7 +302,6 @@ test.describe("Data to show", () => {
         seedChart,
         openEditor,
     }) => {
-        test.fail()
         const editor = await openEditor(
             await seedChart({
                 ...lineChart(indicators.lifeExpectancy),
