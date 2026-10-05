@@ -27,6 +27,7 @@ import {
 import {
     adminDetailsProvider,
     adminIndicatorCatalog,
+    adminScatterDefaults,
     defaultEditorEnvironment,
 } from "./editorProviders.js"
 import { dataApiIndicatorStore, IndicatorStore } from "./indicatorStores.js"
@@ -185,6 +186,7 @@ export class NarrativeChartEditorPage extends React.Component<NarrativeChartEdit
                                 : undefined
                         }
                         store={this.store}
+                        scatterDefaults={adminScatterDefaults()}
                         details={adminDetailsProvider(this.admin)}
                         extraTabs={this.extraTabs}
                         originUrlSuggestions={() =>

@@ -84,6 +84,8 @@ export interface GrapherEditorProps {
     originUrlSuggestions?: ConfigEditorManager["originUrlSuggestions"]
     /** Replaces the default "Save config" button. */
     renderSaveButtons?: ConfigEditorManager["renderSaveButtons"]
+    /** Indicators to fill a scatter plot's empty slots with. Absent → none. */
+    scatterDefaults?: ConfigEditorManager["scatterDefaults"]
 }
 
 @observer
@@ -146,6 +148,10 @@ export class GrapherEditor
 
     get originUrlSuggestions(): ConfigEditorManager["originUrlSuggestions"] {
         return this.props.originUrlSuggestions
+    }
+
+    get scatterDefaults(): ConfigEditorManager["scatterDefaults"] {
+        return this.props.scatterDefaults
     }
 
     // One editor for the lifetime of the component. Not a `computed`: the

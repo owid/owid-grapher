@@ -44,6 +44,7 @@ import {
 import {
     adminDetailsProvider,
     adminIndicatorCatalog,
+    adminScatterDefaults,
     defaultEditorEnvironment,
 } from "./editorProviders.js"
 import { dataApiIndicatorStore, IndicatorStore } from "./indicatorStores.js"
@@ -120,13 +121,10 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
         return this.props.grapherId === undefined
     }
 
-    /** OWID's indicator store: the Data API for data, the admin for the
-     *  picker's catalog and the population/GDP shortcuts. */
     @computed get store(): IndicatorStore {
         return dataApiIndicatorStore({
             dataApiUrl: defaultEditorEnvironment.dataApiUrl,
             catalog: adminIndicatorCatalog(this.admin),
-            variableIdsByCatalogPath: this.variableIdsByCatalogPath,
         })
     }
 
@@ -182,9 +180,6 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
                 this.indicatorId = parentIndicatorId
             })
         }
-        // The store is built with these, so they have to be in before mount.
-        // They only power the population/GDP shortcuts, so a failure must not
-        // keep the editor behind its loading blocker.
         await this.fetchVariableIdsByCatalogPath().catch(() => undefined)
         runInAction(() => (this.isLoaded = true))
     }
@@ -584,6 +579,9 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
                         key={this.props.grapherId ?? "new"}
                         config={this.patchConfig}
                         store={this.store}
+                        scatterDefaults={adminScatterDefaults(
+                            this.variableIdsByCatalogPath
+                        )}
                         details={adminDetailsProvider(this.admin)}
                         baseConfig={this.baseConfig}
                         previewUrl={
