@@ -92,7 +92,7 @@ const EXAMPLE_CSV_COLUMN_DEFS: OwidColumnDef[] = [
 const EXAMPLE_CSV_CONFIG: GrapherInterface = {
     title: "Rents in three cities",
     subtitle: "Asking rents relative to 2015. Data from a pasted CSV.",
-    ySlugs: "rent_index",
+    dimensions: [{ property: DimensionProperty.y, slug: "rent_index" }],
     selectedEntityNames: ["Berlin", "Vienna", "Prague"],
 }
 
@@ -103,7 +103,7 @@ const EXAMPLE_BASE_CONFIG: GrapherInterface = {
     subtitle:
         "Asking rents relative to 2015. This subtitle comes from the base.",
     note: "Fields supplied by the base are marked as inherited in the editor.",
-    ySlugs: "rent_index",
+    dimensions: [{ property: DimensionProperty.y, slug: "rent_index" }],
     selectedEntityNames: ["Berlin", "Vienna", "Prague"],
     yAxis: { min: 0 },
 }
@@ -560,12 +560,9 @@ ${tabsLine}${hostLines}
                         {isCsv ? (
                             <p>
                                 The config&rsquo;s dimensions name CSV columns
-                                by <code>slug</code>. The flat form (
-                                <code>ySlugs</code>, <code>xSlug</code>,{" "}
-                                <code>colorSlug</code>, <code>sizeSlug</code>)
-                                is read too, and comes back as dimensions.
-                                Column definitions carry the metadata the chart
-                                shows: name, unit, description, source.
+                                by <code>slug</code>. Column definitions carry
+                                the metadata the chart shows: name, unit,
+                                description, source.
                             </p>
                         ) : (
                             <p>
