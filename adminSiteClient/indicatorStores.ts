@@ -16,6 +16,7 @@ import {
     OwidChartDimensionInterface,
     OwidColumnDef,
     OwidTableSlugs,
+    SelectedEntityColors,
 } from "@ourworldindata/types"
 import {
     applyDimensionDisplayAndConversionFactor,
@@ -23,10 +24,6 @@ import {
 } from "@ourworldindata/grapher"
 import { IndicatorCatalog } from "./editorProviders.js"
 import { Dataset, IndicatorCatalogData } from "./EditorDatabase.js"
-
-type SelectedEntityColors =
-    | { [entityName: string]: string | undefined }
-    | undefined
 
 export interface IndicatorStore {
     /** Indicators the picker can offer. Absent → no "Add indicator". */
@@ -39,7 +36,7 @@ export interface IndicatorStore {
      */
     loadTable(
         dimensions: OwidChartDimensionInterface[],
-        selectedEntityColors: SelectedEntityColors
+        selectedEntityColors: SelectedEntityColors | undefined
     ): Promise<OwidTable | undefined>
     /**
      * Well-known indicators the Basic tab offers as shortcuts (population,
