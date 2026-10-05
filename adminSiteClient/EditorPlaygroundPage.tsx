@@ -24,7 +24,7 @@ import { copyToClipboard } from "@ourworldindata/utils"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { AdminLayout } from "./AdminLayout.js"
 import { GrapherEditor } from "./GrapherEditor.js"
-import { EditorTab } from "./AbstractChartEditor.js"
+import { EditorTabName } from "./AbstractChartEditor.js"
 import { ConfigEditor, EditorExtraTab } from "./ConfigEditor.js"
 import {
     adminDetailsProvider,
@@ -112,7 +112,7 @@ const EXAMPLE_PATCH_CONFIG: GrapherInterface = {
     title: "Rents, with a base config underneath",
 }
 
-const LITE_TABS: EditorTab[] = ["basic", "data", "text", "customize", "map"]
+const LITE_TABS: EditorTabName[] = ["basic", "data", "text", "customize", "map"]
 
 type Scenario = "owid" | "csv" | "base" | "embed"
 
@@ -327,7 +327,7 @@ ${tabsLine}${hostLines}
         return adminDetailsProvider(this.context.admin)
     }
 
-    @computed get tabs(): EditorTab[] | undefined {
+    @computed get tabs(): EditorTabName[] | undefined {
         return this.tabPreset === "lite" ? LITE_TABS : undefined
     }
 

@@ -34,7 +34,7 @@ import {
 } from "./editorProviders.js"
 import { dataApiIndicatorStore, IndicatorStore } from "./indicatorStores.js"
 
-const EDITOR_TABS = [
+const EDITOR_TAB_NAMES = [
     "basic",
     "data",
     "text",
@@ -46,7 +46,7 @@ const EDITOR_TABS = [
     "debug",
 ] as const
 
-export type EditorTab = (typeof EDITOR_TABS)[number]
+export type EditorTabName = (typeof EDITOR_TAB_NAMES)[number]
 
 /**
  * Places inside the editor where the host may add a note of its own, named
@@ -127,7 +127,7 @@ export abstract class AbstractChartEditor<
     grapherState: GrapherState
     store: IndicatorStore
     currentRequest: Promise<any> | undefined // Whether the current chart state is saved or not
-    // One of EDITOR_TABS, or a key of a tab the host added (`extraTabKeys`)
+    // One of EDITOR_TAB_NAMES, or a key of a tab the host added (`extraTabKeys`)
     tab: string = "basic"
     errorMessage: { title: string; content: string } | undefined = undefined
     previewMode: "mobile" | "desktop"
@@ -216,7 +216,7 @@ export abstract class AbstractChartEditor<
         this.savedPatchConfig = this.patchConfig
     }
 
-    /** Keys of tabs the host adds on top of EDITOR_TABS. */
+    /** Keys of tabs the host adds on top of EDITOR_TAB_NAMES. */
     protected get extraTabKeys(): string[] {
         return []
     }
@@ -226,7 +226,7 @@ export abstract class AbstractChartEditor<
         const tabParam = urlParams.get("tab")
         if (
             tabParam &&
-            (EDITOR_TABS.includes(tabParam as EditorTab) ||
+            (EDITOR_TAB_NAMES.includes(tabParam as EditorTabName) ||
                 this.extraTabKeys.includes(tabParam))
         )
             this.tab = tabParam

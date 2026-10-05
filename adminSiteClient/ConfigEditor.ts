@@ -26,7 +26,7 @@ import { mergeGrapherConfigs } from "@ourworldindata/utils"
 import {
     AbstractChartEditor,
     AbstractChartEditorManager,
-    EditorTab,
+    EditorTabName,
 } from "./AbstractChartEditor.js"
 
 /** A tab the host adds to the editor, rendered with the live editor. */
@@ -52,7 +52,7 @@ export interface ConfigEditorManager extends AbstractChartEditorManager {
      * Restrict which tabs the editor shows. Tabs that don't apply to the
      * chart type (map, scatter, marimekko) are hidden regardless.
      */
-    tabs?: EditorTab[]
+    tabs?: EditorTabName[]
     /** Host tabs, shown after the chart-type tabs and before Export. */
     extraTabs?: EditorExtraTab[]
     /** Replaces the default "Save config" button. */
