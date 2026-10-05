@@ -2,9 +2,10 @@
 #
 # `setup` runs once when Orca creates a worktree; `archive` runs when it removes
 # one. The archive hook matters here because `make up.worktree` starts the admin
-# server and vite in a *detached* tmux session on purpose — it has to survive the
-# agent that started it — so nothing except `make down.worktree` ever stops it.
-# Without this, every worktree you finish leaves ~2 GB of dev servers running.
+# server, vite and the functions server in a *detached* tmux session on purpose —
+# it has to survive the agent that started it — so nothing except
+# `make down.worktree` ever stops it.
+# Without this, every worktree you finish leaves ~3 GB of dev servers running.
 #
 # Orca ignores this file unless the repo's hook command source policy allows shared
 # scripts (Settings → the repo → Hooks); with "local only", your machine's own hook
