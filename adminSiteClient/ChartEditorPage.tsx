@@ -17,10 +17,12 @@ import {
     fetchChartConfigByIndicatorId,
 } from "./ChartEditor.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
-import { ChartEditorView, ChartEditorViewManager } from "./ChartEditorView.js"
+import {
+    ChartEditorLoading,
+    ChartEditorView,
+    ChartEditorViewManager,
+} from "./ChartEditorView.js"
 import { References } from "./AbstractChartEditor.js"
-import { AdminLayout } from "./AdminLayout.js"
-import { LoadingBlocker } from "./Forms.js"
 import {
     GDP_PER_CAPITA_CATALOG_PATH,
     POPULATION_CATALOG_PATH,
@@ -55,9 +57,7 @@ export class ChartEditorPage
         })
     }
 
-    // The editor view applies the config layers to the chart once, as soon as
-    // its indicator database has loaded, so it must not be mounted before
-    // they are here
+    // See ChartEditorLoading
     isConfigLoaded = false
 
     logs: Log[] = []
@@ -236,14 +236,7 @@ export class ChartEditorPage
     }
 
     override render(): React.ReactElement {
-        if (!this.isConfigLoaded)
-            return (
-                <AdminLayout noSidebar>
-                    <main className="ChartEditorPage">
-                        <LoadingBlocker isLoading />
-                    </main>
-                </AdminLayout>
-            )
+        if (!this.isConfigLoaded) return <ChartEditorLoading />
         return <ChartEditorView manager={this} />
     }
 }
