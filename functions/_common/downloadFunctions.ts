@@ -49,9 +49,7 @@ export async function fetchMetadataForGrapher(
     )
 
     const inputTable = await fetchInputTableForConfig({
-        dimensions: grapher.grapherState.dimensions.map((dimension) =>
-            dimension.toObject()
-        ),
+        dimensions: grapher.grapherState.dimensionConfigs,
         selectedEntityColors: grapher.grapherState.selectedEntityColors,
         dataApiUrl: getDataApiUrl(env),
     })
@@ -80,9 +78,7 @@ export async function fetchZipForGrapher(
             env
         )
     const inputTable = await fetchInputTableForConfig({
-        dimensions: grapher.grapherState.dimensions.map((dimension) =>
-            dimension.toObject()
-        ),
+        dimensions: grapher.grapherState.dimensionConfigs,
         selectedEntityColors: grapher.grapherState.selectedEntityColors,
         dataApiUrl: getDataApiUrl(env),
     })
@@ -148,9 +144,7 @@ export async function fetchCsvForGrapher(
         env
     )
     const inputTable = await fetchInputTableForConfig({
-        dimensions: grapher.grapherState.dimensions.map((dimension) =>
-            dimension.toObject()
-        ),
+        dimensions: grapher.grapherState.dimensionConfigs,
         selectedEntityColors: grapher.grapherState.selectedEntityColors,
         dataApiUrl: getDataApiUrl(env),
     })
@@ -196,9 +190,7 @@ export async function fetchReadmeForGrapher(
     )
 
     const inputTable = await fetchInputTableForConfig({
-        dimensions: grapher.grapherState.dimensions.map((dimension) =>
-            dimension.toObject()
-        ),
+        dimensions: grapher.grapherState.dimensionConfigs,
         selectedEntityColors: grapher.grapherState.selectedEntityColors,
         dataApiUrl: getDataApiUrl(env),
     })
@@ -257,9 +249,7 @@ export async function fetchDataValuesForGrapher(
     if (shouldIgnoreProjections) dropProjectionColumns(grapher.grapherState)
 
     const inputTable = await fetchInputTableForConfig({
-        dimensions: grapher.grapherState.dimensions.map((dimension) =>
-            dimension.toObject()
-        ),
+        dimensions: grapher.grapherState.dimensionConfigs,
         selectedEntityColors: grapher.grapherState.selectedEntityColors,
         dataApiUrl: getDataApiUrl(env),
     })
@@ -350,9 +340,7 @@ export async function fetchSearchResultDataForGrapher(
 
     const dataApiUrl = getDataApiUrl(env)
     const inputTable = await fetchInputTableForConfig({
-        dimensions: grapher.grapherState.dimensions.map((dimension) =>
-            dimension.toObject()
-        ),
+        dimensions: grapher.grapherState.dimensionConfigs,
         selectedEntityColors: grapher.grapherState.selectedEntityColors,
         dataApiUrl,
     })

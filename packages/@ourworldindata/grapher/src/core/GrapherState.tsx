@@ -2286,6 +2286,11 @@ export class GrapherState
         return this.isReady ? this.dimensions : []
     }
 
+    /** The chart's dimensions as plain configs */
+    @computed get dimensionConfigs(): OwidChartDimensionInterface[] {
+        return this.dimensions.map((dimension) => dimension.toObject())
+    }
+
     @action.bound addDimension(config: OwidChartDimensionInterface): void {
         this.dimensions.push(new ChartDimension(config, this))
     }

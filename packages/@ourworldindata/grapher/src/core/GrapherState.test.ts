@@ -2815,7 +2815,7 @@ describe("time and year url params", () => {
         })
         state.inputTable = legacyToOwidTableAndDimensions(
             dataset,
-            state.dimensions.map((dimension) => dimension.toObject()),
+            state.dimensionConfigs,
             {}
         )
         return state

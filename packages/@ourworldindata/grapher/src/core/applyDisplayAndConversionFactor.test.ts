@@ -6,7 +6,7 @@ import {
     type OwidColumnDef,
 } from "@ourworldindata/types"
 import { OwidVariableDisplayConfig } from "@ourworldindata/utils"
-import { applyDimensionDisplayOverrides } from "./applyDimensionDisplay.js"
+import { applyDimensionDisplayAndConversionFactor } from "./applyDisplayAndConversionFactor.js"
 
 const csv = `entityName,year,rent_index,vacancy_rate,dwellings
 Berlin,2015,100,3.1,1900000
@@ -36,9 +36,9 @@ const columnDefs: OwidColumnDef[] = [
 
 const makeTable = (): OwidTable => new OwidTable(csv, columnDefs)
 
-describe(applyDimensionDisplayOverrides, () => {
+describe(applyDimensionDisplayAndConversionFactor, () => {
     it("lays a slot's display over the column's own definition", () => {
-        const table = applyDimensionDisplayOverrides(makeTable(), [
+        const table = applyDimensionDisplayAndConversionFactor(makeTable(), [
             {
                 property: DimensionProperty.y,
                 slug: "rent_index",
@@ -53,7 +53,7 @@ describe(applyDimensionDisplayOverrides, () => {
     })
 
     it("leaves columns no slot points at untouched", () => {
-        const table = applyDimensionDisplayOverrides(makeTable(), [
+        const table = applyDimensionDisplayAndConversionFactor(makeTable(), [
             {
                 property: DimensionProperty.y,
                 slug: "rent_index",
@@ -66,9 +66,9 @@ describe(applyDimensionDisplayOverrides, () => {
 
     it("returns the same table when no slot overrides anything", () => {
         const table = makeTable()
-        expect(applyDimensionDisplayOverrides(table, undefined)).toBe(table)
+        expect(applyDimensionDisplayAndConversionFactor(table, [])).toBe(table)
         expect(
-            applyDimensionDisplayOverrides(table, [
+            applyDimensionDisplayAndConversionFactor(table, [
                 { property: DimensionProperty.y, slug: "rent_index" },
                 { property: DimensionProperty.y, variableId: 42 },
                 {
@@ -81,7 +81,7 @@ describe(applyDimensionDisplayOverrides, () => {
     })
 
     it("skips a slot without a slug", () => {
-        const table = applyDimensionDisplayOverrides(makeTable(), [
+        const table = applyDimensionDisplayAndConversionFactor(makeTable(), [
             {
                 property: DimensionProperty.y,
                 variableId: 815383,
@@ -93,7 +93,7 @@ describe(applyDimensionDisplayOverrides, () => {
     })
 
     it("scales the column's values by a conversion factor", () => {
-        const table = applyDimensionDisplayOverrides(makeTable(), [
+        const table = applyDimensionDisplayAndConversionFactor(makeTable(), [
             {
                 property: DimensionProperty.y,
                 slug: "vacancy_rate",
@@ -108,7 +108,7 @@ describe(applyDimensionDisplayOverrides, () => {
     })
 
     it("turns an integer column numeric when the factor isn't whole", () => {
-        const table = applyDimensionDisplayOverrides(makeTable(), [
+        const table = applyDimensionDisplayAndConversionFactor(makeTable(), [
             {
                 property: DimensionProperty.y,
                 slug: "dwellings",
@@ -122,7 +122,7 @@ describe(applyDimensionDisplayOverrides, () => {
     })
 
     it("copies a slot's color onto the def, where column-coloured charts read it", () => {
-        const table = applyDimensionDisplayOverrides(makeTable(), [
+        const table = applyDimensionDisplayAndConversionFactor(makeTable(), [
             {
                 property: DimensionProperty.y,
                 slug: "rent_index",
@@ -134,7 +134,7 @@ describe(applyDimensionDisplayOverrides, () => {
     })
 
     it("leaves the def alone where the slot's display is undefined", () => {
-        const table = applyDimensionDisplayOverrides(makeTable(), [
+        const table = applyDimensionDisplayAndConversionFactor(makeTable(), [
             {
                 property: DimensionProperty.y,
                 slug: "rent_index",
@@ -149,7 +149,7 @@ describe(applyDimensionDisplayOverrides, () => {
     })
 
     it("takes the display of the first slot naming a column", () => {
-        const table = applyDimensionDisplayOverrides(makeTable(), [
+        const table = applyDimensionDisplayAndConversionFactor(makeTable(), [
             {
                 property: DimensionProperty.y,
                 slug: "rent_index",
@@ -168,7 +168,7 @@ describe(applyDimensionDisplayOverrides, () => {
     })
 
     it("doesn't copy an empty color onto the def", () => {
-        const table = applyDimensionDisplayOverrides(makeTable(), [
+        const table = applyDimensionDisplayAndConversionFactor(makeTable(), [
             {
                 property: DimensionProperty.y,
                 slug: "rent_index",

@@ -45,9 +45,9 @@ import { isContinentsVariableId } from "./GrapherConstants"
 import * as R from "remeda"
 import { getIndicatorColumnSlug } from "../chart/ChartDimension.js"
 import {
-    applyColumnDisplayOverrides,
+    applyDisplayAndConversionFactor,
     type ColumnDisplayOverride,
-} from "./applyDimensionDisplay.js"
+} from "./applyDisplayAndConversionFactor.js"
 
 export const legacyToOwidTableAndDimensions = (
     json: MultipleOwidVariableDataDimensionsMap,
@@ -56,8 +56,6 @@ export const legacyToOwidTableAndDimensions = (
         | { [entityName: string]: string | undefined }
         | undefined
 ): OwidTable => {
-    const indicatorDimensions = dimensions.filter(isIndicatorDimension)
-
     // Entity meta map
 
     const entityMeta = [...json.values()].flatMap(
@@ -76,6 +74,7 @@ export const legacyToOwidTableAndDimensions = (
 
     // We need to create a column for each unique [variable, targetTime] pair. So there can be
     // multiple columns for a single variable.
+    const indicatorDimensions = dimensions.filter(isIndicatorDimension)
     const dimensionColumns = _.uniqBy(
         indicatorDimensions,
         getIndicatorColumnSlug
@@ -358,7 +357,7 @@ export const legacyToOwidTableAndDimensions = (
         ])
     }
 
-    return applyColumnDisplayOverrides(
+    return applyDisplayAndConversionFactor(
         joinedVariablesTable,
         indicatorDimensions.map((dimension) =>
             getIndicatorDisplayOverride(dimension, json)

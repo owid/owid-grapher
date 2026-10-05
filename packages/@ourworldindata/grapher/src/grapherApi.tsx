@@ -9,7 +9,7 @@ import {
 import { OwidTable } from "@ourworldindata/core-table"
 import { Grapher, GrapherProgrammaticInterface } from "./core/Grapher.js"
 import { GrapherState } from "./core/GrapherState.js"
-import { applyDimensionDisplayOverrides } from "./core/applyDimensionDisplay.js"
+import { applyDimensionDisplayAndConversionFactor } from "./core/applyDisplayAndConversionFactor.js"
 import { fetchInputTableForConfig } from "./core/loadGrapherTableHelpers.js"
 import { useElementBounds } from "./hooks.js"
 
@@ -228,7 +228,10 @@ export class GrapherLoader {
             ...defaultGrapherConfigOverrides(),
             ...config,
             ySlugs: deriveYSlugs(config, data),
-            table: applyDimensionDisplayOverrides(data, config.dimensions),
+            table: applyDimensionDisplayAndConversionFactor(
+                data,
+                config.dimensions ?? []
+            ),
             isConfigReady: true,
             isDataReady: true,
         })
@@ -257,10 +260,11 @@ export class GrapherLoader {
         const ready = OwidTable.fromUrl(options.csvUrl, columnDefs).then(
             (table) => {
                 grapherState.ySlugs = deriveYSlugs(config, table)
-                grapherState.inputTable = applyDimensionDisplayOverrides(
-                    table,
-                    config.dimensions
-                )
+                grapherState.inputTable =
+                    applyDimensionDisplayAndConversionFactor(
+                        table,
+                        config.dimensions ?? []
+                    )
                 grapherState.isDataReady = true
             }
         )

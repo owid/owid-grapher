@@ -66,27 +66,14 @@ properties:
     description: List of dimensions and their mapping to variables
     items:
       type: object
-      description: |
-        One slot of the chart bound to one column of data. The column is named
-        either by variableId, an OWID indicator, or by slug, a column of a
-        table the embedding page supplies, never both. Charts stored in our
-        database always use variableId.
+      description: One slot of the chart bound to one column of data.
       required:
         - property
       oneOf:
         - required:
             - variableId
-          not:
-            required:
-              - slug
         - required:
             - slug
-          not:
-            anyOf:
-              - required:
-                  - variableId
-              - required:
-                  - targetYear
       properties:
         targetYear:
           type: integer
@@ -94,6 +81,7 @@ properties:
             Charts that can display more than one primary dimensions (i.e. scatter and marimekko)
             sometimes need to "hardcode" one dimension to a specific year. This happens e.g. when
             mixing a daily X variable in a scatter plot with a yearly one, e.g. population.
+            Only supported on dimensions with a variableId.
         property:
           type: string
           description: Which dimension this property maps to
@@ -202,10 +190,7 @@ properties:
           minimum: 0
         slug:
           type: string
-          description: |
-            Names a column of the table the embedding page supplies, as an
-            alternative to variableId. Only meaningful outside our own site,
-            where the data does not come from the OWID data API.
+          description: The slug of a column in the supplied table, as an alternative to variableId
       additionalProperties: false
   selectedEntityNames:
     type: array
