@@ -8,7 +8,6 @@ import {
 } from "@ourworldindata/utils"
 import {
     ContentGraphLinkType,
-    DimensionProperty,
     OwidChartDimensionInterface,
 } from "@ourworldindata/types"
 import {
@@ -102,43 +101,6 @@ export interface AbstractChartEditorManager {
      * own.
      */
     originUrlSuggestions?: () => OriginUrlSuggestion[]
-}
-
-/** The flat column-slug fields, and the dimension slot each fills. */
-const SLUG_FIELDS: {
-    property: DimensionProperty
-    field: "ySlugs" | "xSlug" | "sizeSlug" | "colorSlug"
-}[] = [
-    { property: DimensionProperty.y, field: "ySlugs" },
-    { property: DimensionProperty.x, field: "xSlug" },
-    { property: DimensionProperty.size, field: "sizeSlug" },
-    { property: DimensionProperty.color, field: "colorSlug" },
-]
-
-/**
- * `ySlugs: "a b"` and friends as dimensions, which is what the editor edits.
- * Both forms render the same and a dimension can say more about its column
- * (`display`, a colour, a conversion factor), so the editor keeps only the
- * one form and hands it back that way — a host that saved the flat form gets
- * dimensions back. A config already naming dimensions is left alone.
- */
-export function withDimensionsFromColumnSlugs(
-    config: GrapherInterface
-): GrapherInterface {
-    if (config.dimensions?.length) return config
-    const dimensions = SLUG_FIELDS.flatMap(({ property, field }) =>
-        (config[field]?.split(" ") ?? [])
-            .filter((slug) => slug !== "")
-            .map((slug) => ({ property, slug }))
-    )
-    if (!dimensions.length) return config
-    return {
-        ..._.omit(
-            config,
-            SLUG_FIELDS.map((s) => s.field)
-        ),
-        dimensions,
-    }
 }
 
 export interface References {
@@ -308,10 +270,9 @@ export abstract class AbstractChartEditor<
             isInheritanceEnabled ? (parentConfig ?? {}) : {},
             etlConfig ?? {}
         )
-        const config = _.isEmpty(effectiveParent)
+        return _.isEmpty(effectiveParent)
             ? patchConfig
             : mergeGrapherConfigs(effectiveParent, patchConfig)
-        return withDimensionsFromColumnSlugs(config)
     }
 
     /** live-updating config */

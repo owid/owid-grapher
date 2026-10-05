@@ -3,13 +3,8 @@
  */
 import { describe, expect, it, vi } from "vitest"
 import { runInAction } from "mobx"
-import {
-    ColumnTypeNames,
-    DimensionProperty,
-    GrapherInterface,
-} from "@ourworldindata/types"
+import { GrapherInterface } from "@ourworldindata/types"
 import { ConfigEditor, ConfigEditorManager } from "./ConfigEditor.js"
-import { csvIndicatorStore } from "./indicatorStores.js"
 
 function makeEditor(
     overrides: Partial<ConfigEditorManager> = {}
@@ -24,20 +19,6 @@ function makeEditor(
     editor.updateLiveGrapher(manager.patchConfig)
     editor.markAsSaved()
     return editor
-}
-
-/** A store whose configs name columns by slug rather than by variable id. */
-function makeCsvStore() {
-    return csvIndicatorStore({
-        csv: `entityName,year,rent_index,vacancy_rate,region
-Berlin,2015,100,3.1,DE
-Berlin,2020,131,1.2,DE`,
-        name: "housing.csv",
-        columnDefs: [
-            { slug: "rent_index", type: ColumnTypeNames.Numeric },
-            { slug: "vacancy_rate", type: ColumnTypeNames.Numeric },
-        ],
-    })
 }
 
 describe(ConfigEditor, () => {
@@ -147,40 +128,6 @@ describe(ConfigEditor, () => {
 
         expect(editor.grapherState.title).toBe("Derived title")
         expect(editor.isModified).toBe(false)
-    })
-
-    it("reads a base and a patch that name columns the flat way", () => {
-        const editor = new ConfigEditor({
-            manager: {
-                store: makeCsvStore(),
-                patchConfig: { colorSlug: "region" },
-                parentConfig: { ySlugs: "rent_index" },
-                isInheritanceEnabled: true,
-                onSave: () => undefined,
-            },
-        })
-        // The layers merge field by field, and the editor works on the
-        // dimensions they add up to.
-        expect(editor.originalGrapherConfig.dimensions).toEqual([
-            { property: "y", slug: "rent_index" },
-            { property: "color", slug: "region" },
-        ])
-        expect(editor.originalGrapherConfig.ySlugs).toBeUndefined()
-    })
-
-    it("leaves a config that already names its dimensions alone", () => {
-        const dimensions = [
-            { property: DimensionProperty.y, slug: "rent_index" },
-        ]
-        const editor = new ConfigEditor({
-            manager: {
-                store: makeCsvStore(),
-                patchConfig: { dimensions, ySlugs: "vacancy_rate" },
-                isInheritanceEnabled: false,
-                onSave: () => undefined,
-            },
-        })
-        expect(editor.originalGrapherConfig.dimensions).toEqual(dimensions)
     })
 
     it("fires onChange with the new patch as the config is edited", () => {
