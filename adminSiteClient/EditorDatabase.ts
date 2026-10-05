@@ -3,8 +3,6 @@ import { observable, makeObservable } from "mobx"
 interface Variable {
     id: number
     name: string
-    /** Set when the column is the host's own rather than an OWID indicator:
-     *  dimensions name it by slug and there is no variable id to fetch. */
     slug?: string
 }
 
@@ -31,9 +29,7 @@ export interface NamespaceData {
 }
 
 /**
- * Everything the variable selector needs to offer indicators. Produced by an
- * `IndicatorCatalog` (see editorProviders.ts); the admin's catalog is the
- * whole database, other hosts can pass whatever subset they have.
+ * Everything the variable selector needs to offer indicators
  */
 export interface IndicatorCatalogData {
     namespaces: Namespace[]

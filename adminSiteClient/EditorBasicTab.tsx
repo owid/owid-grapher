@@ -376,7 +376,6 @@ export class DimensionSlotView extends React.Component<DimensionSlotViewProps> {
                         </SortableList.Item>
                     )}
                 />
-                {/* Without an indicator catalog there is nothing to pick from */}
                 {canAddMore && !this.props.database.isEmpty && (
                     <div
                         className="dimensionSlot"

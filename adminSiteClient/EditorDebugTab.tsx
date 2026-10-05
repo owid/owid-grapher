@@ -25,7 +25,6 @@ export class EditorDebugTab extends Component<{
         this.diffModalOpen = false
     }
 
-    /** The full config side by side with the base it sits on. */
     @computed get diffModal() {
         const { fullConfig, baseConfig } = this.props.editor
         return (
@@ -58,8 +57,6 @@ export class EditorDebugTab extends Component<{
     }
 
     @action.bound copyYamlToClipboard() {
-        // Avoid modifying the original JSON object
-        // Due to mobx memoizing computed values, the JSON can be mutated.
         const patchConfig = {
             ...this.props.editor.patchConfig,
         }
@@ -68,7 +65,6 @@ export class EditorDebugTab extends Component<{
         delete patchConfig.version
         delete patchConfig.isPublished
         const chartConfigAsYaml = YAML.stringify(patchConfig)
-        // Use the Clipboard API to copy the config into the users clipboard
         void copyToClipboard(chartConfigAsYaml)
         notification["success"]({
             title: "Copied YAML to clipboard",

@@ -33,7 +33,6 @@ interface EditorReferencesTabForChartProps {
     onRedirectAdded: (redirect: ChartRedirect) => void
 }
 
-/** References, redirects and pageviews of a chart in the admin database. */
 @observer
 export class EditorReferencesTabForChart extends Component<EditorReferencesTabForChartProps> {
     constructor(props: EditorReferencesTabForChartProps) {
@@ -183,7 +182,6 @@ export class EditorReferencesTabForChart extends Component<EditorReferencesTabFo
     }
 }
 
-/** References of a narrative chart in the admin database. */
 export class EditorReferencesTabForNarrativeChart extends Component<{
     references: References | undefined
     configId: string

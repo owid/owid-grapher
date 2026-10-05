@@ -60,13 +60,11 @@ describe(ConfigEditor, () => {
 
     it("does not count the id a host stamps on after creating a chart as an edit", async () => {
         const editor = makeEditor({
-            // the host assigns the id the server handed back, like the admin
-            // does for a new chart, and returns the stored patch without it
             onSave: (config, ed) => {
                 runInAction(() => {
                     ed.grapherState.id = 4711
                 })
-                return config // what the server stored: the patch, sans id
+                return config
             },
         })
         runInAction(() => {
@@ -100,12 +98,8 @@ describe(ConfigEditor, () => {
             onSave: () => undefined,
         }
         const editor = new ConfigEditor({ manager })
-        // A freshly constructed GrapherState already reports itself ready, so
-        // a baseline taken at construction would be the empty one and every
-        // chart would open modified.
         expect(editor.savedPatchConfig).toEqual({})
 
-        // what the view does once the config and its data are in
         editor.grapherState.updateFromObject(editor.originalGrapherConfig)
         editor.markAsSaved()
 
@@ -114,7 +108,6 @@ describe(ConfigEditor, () => {
 
     it("adopts a config the host normalized on save", async () => {
         const editor = makeEditor({
-            // the admin fills in a title it derived from the data
             onSave: (config) => ({ ...config, title: "Derived title" }),
             patchConfig: { subtitle: "A subtitle" },
         })

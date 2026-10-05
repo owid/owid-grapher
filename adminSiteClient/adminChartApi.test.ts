@@ -20,7 +20,6 @@ describe(findLastMapColorScaleEdit, () => {
             log("Grace", "2026-02-10", { baseColorScheme: "Reds" }),
         ])
 
-        // Ada's revision left the scale alone, so Grace is still the answer.
         expect(edit).toEqual({ userName: "Grace", createdAt: "2026-02-11" })
     })
 

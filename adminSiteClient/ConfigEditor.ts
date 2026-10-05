@@ -1,17 +1,3 @@
-/* ConfigEditor.ts
- * ===============
- *
- * The chart editor with no notion of a chart record: it takes a grapher
- * config, lets the user edit it against a live preview, and hands the edited
- * config back through `onSave`. Where the config comes from and where it goes
- * is the host's business — the admin's charts table, a YAML file in ETL, a
- * JSON file in someone else's repo.
- *
- * Hosts that do have a chart record (the admin) plug their extras in through
- * `extraTabs` and `renderSaveButtons` rather than subclassing, so the editor
- * itself stays free of chart ids, revisions and tags.
- */
-
 import * as _ from "lodash-es"
 import type { ReactNode } from "react"
 import {
@@ -59,11 +45,7 @@ export type EditorTabName = (typeof EDITOR_TAB_NAMES)[number]
 
 /**
  * Places inside the editor where the host may add a note of its own, named
- * after the part of the config that section edits. The admin uses
- * `map.colorScale` to say who last touched the map's colors, which it reads
- * off the chart's revision log — something only a host with a revision log
- * can know. Opening a new slot means adding a member here and a call site in
- * the section that renders it.
+ * after the part of the config that section edits
  */
 export type EditorNoteSlot = "map.colorScale"
 
@@ -75,6 +57,9 @@ export interface OriginUrlSuggestion {
 }
 
 /** A tab the host adds to the editor, rendered with the live editor. */
+/** A built-in tab or the key of a host tab */
+export type EditorTabKey = EditorTabName | EditorExtraTab["key"]
+
 export interface EditorExtraTab {
     key: string
     label: ReactNode
@@ -82,39 +67,17 @@ export interface EditorExtraTab {
 }
 
 export interface ConfigEditorManager {
-    // URLs the editor loads indicator data from. Defaults to the admin's.
     environment?: EditorEnvironment
-    // Where indicator data and metadata come from. Defaults to OWID's Data
-    // API at `environment.dataApiUrl`.
     store?: IndicatorStore
     patchConfig: GrapherInterface
-    /** The config `patchConfig` is a patch against, if any */
     baseConfig?: GrapherInterface
     scatterDefaults?: ScatterDefaults
-    /**
-     * Extra context to show next to one part of the config. Called while the
-     * section renders, so a note that depends on data the host is still
-     * loading (or has just changed) appears on its own.
-     */
     renderNote?: (slot: EditorNoteSlot) => ReactNode
-    /**
-     * URLs to offer for the chart's "Origin url". Which pages exist and
-     * which of them already show this chart is the host's knowledge, not the
-     * editor's; a host that offers none gets a plain text field. Called
-     * while the field renders, so suggestions still loading appear on their
-     * own.
-     */
     originUrlSuggestions?: () => OriginUrlSuggestion[]
-    /**
-     * Receives the edited config. May return the config as the host actually
-     * stored it; the editor then treats that as the saved state instead of
-     * what it sent.
-     */
     onSave: (
         config: GrapherInterface,
         editor: ConfigEditor
     ) => void | GrapherInterface | Promise<void | GrapherInterface>
-    /** Fires on every change of the edited config. */
     onChange?: (config: GrapherInterface, editor: ConfigEditor) => void
     /**
      * Restrict which tabs the editor shows. Tabs that don't apply to the
@@ -123,7 +86,6 @@ export interface ConfigEditorManager {
     tabs?: EditorTabName[]
     /** Host tabs, shown after the chart-type tabs and before Export. */
     extraTabs?: EditorExtraTab[]
-    /** Replaces the default "Save config" button. */
     renderSaveButtons?: (
         editor: ConfigEditor,
         editingErrors: string[]
@@ -135,15 +97,13 @@ export class ConfigEditor {
 
     grapherState: GrapherState
     store: IndicatorStore
-    currentRequest: Promise<any> | undefined // Whether the current chart state is saved or not
-    // One of EDITOR_TAB_NAMES, or a key of a tab the host added (`extraTabKeys`)
-    tab: string = "basic"
+    currentRequest: Promise<any> | undefined
+    tab: EditorTabKey = "basic"
     errorMessage: { title: string; content: string } | undefined = undefined
     previewMode: "mobile" | "desktop"
     showStaticPreview = false
     savedPatchConfig: GrapherInterface = {}
 
-    /** The base the live config currently sits on; never an empty config */
     baseConfig: GrapherInterface | undefined = undefined
 
     private readonly disposers: IReactionDisposer[] = []
@@ -188,46 +148,32 @@ export class ConfigEditor {
                 (config) => this.manager.onChange?.(config, this),
                 { equals: comparer.structural }
             ),
-            // The host swapped the base config (e.g. the admin fetched the
-            // defaults of a newly picked indicator). Re-apply it underneath
-            // the user's edits: capture the patch against the *old* base
-            // first, otherwise values the old base supplied would be folded
-            // into the patch as if the user had authored them.
             reaction(
                 () => this.manager.baseConfig,
-                (baseConfig) => {
-                    const { patchConfig } = this
-                    runInAction(() => {
-                        this.baseConfig = nonEmptyConfig(baseConfig)
-                    })
-                    this.updateLiveGrapher(
-                        mergeGrapherConfigs(this.baseConfig ?? {}, patchConfig)
-                    )
-                    // A base that names columns of its own leaves the chart
-                    // pointing at data the store hasn't fetched.
-                    void this.reloadGrapherData()
-                },
+                (baseConfig) => this.rebaseEdits(baseConfig),
                 { equals: comparer.structural }
             )
         )
     }
 
-    /**
-     * Take the config as it stands for the saved state, so what follows
-     * counts as the user's edits. Called by the view once the host's config
-     * (and its data, if it has any) is in, and again after every save.
-     *
-     * Not a `when` on `grapherState.isReady` in the constructor: a freshly
-     * constructed, still empty GrapherState already reports itself ready, so
-     * the baseline would be taken before the config is applied and every
-     * chart would open modified.
-     */
-    @action.bound markAsSaved(): void {
-        this.savedPatchConfig = this.patchConfig
+    @action.bound private rebaseEdits(
+        baseConfig: GrapherInterface | undefined
+    ): void {
+        const { patchConfig } = this
+        this.baseConfig = nonEmptyConfig(baseConfig)
+        this.updateLiveGrapher(
+            mergeGrapherConfigs(this.baseConfig ?? {}, patchConfig)
+        )
+        void this.reloadGrapherData()
     }
 
-    /** Keys of tabs the host adds on top of EDITOR_TAB_NAMES */
-    private get extraTabKeys(): string[] {
+    @action.bound markAsSaved(
+        savedPatch: GrapherInterface = this.patchConfig
+    ): void {
+        this.savedPatchConfig = savedPatch
+    }
+
+    private get extraTabKeys(): EditorTabKey[] {
         return (this.manager.extraTabs ?? []).map((tab) => tab.key)
     }
 
@@ -263,7 +209,6 @@ export class ConfigEditor {
         this.disposers.forEach((dispose) => dispose())
     }
 
-    /** original grapher config used to init the grapherState instance */
     @computed get originalGrapherConfig(): GrapherInterface {
         const { patchConfig } = this.manager
         const baseConfig = nonEmptyConfig(this.manager.baseConfig)
@@ -272,7 +217,6 @@ export class ConfigEditor {
             : patchConfig
     }
 
-    /** live-updating config */
     @computed get liveConfig(): GrapherInterface {
         return this.grapherState.object
     }
@@ -281,7 +225,6 @@ export class ConfigEditor {
         return mergeGrapherConfigs(defaultGrapherConfig, this.liveConfig)
     }
 
-    /** patch config merged with the base config */
     @computed get fullConfig(): GrapherInterface {
         if (!this.baseConfig) return this.liveConfig
         return mergeGrapherConfigs(this.baseConfig, this.patchConfig)
@@ -292,7 +235,6 @@ export class ConfigEditor {
         return mergeGrapherConfigs(defaultGrapherConfig, this.baseConfig)
     }
 
-    /** patch config of the chart that is written to the db on save */
     @computed get patchConfig(): GrapherInterface {
         return diffGrapherConfigs(
             this.liveConfigWithDefaults,
@@ -300,19 +242,11 @@ export class ConfigEditor {
         )
     }
 
-    /** Do two configs differ in anything the user authored? */
     private configsDiffer(a: GrapherInterface, b: GrapherInterface): boolean {
-        // `version` and `id` are bookkeeping the host stamps onto the config
-        // on save, never something the user edited. Comparing them would
-        // report a freshly created chart as modified the moment it gets its
-        // id, which is exactly when the page redirects to it.
-        const bookkeeping = ["version", "id"]
-        // Serialize and deserialize to remove all MobX proxies
-        // (toJS does not do a deep conversion of nested objects)
-        const strip = (config: GrapherInterface): unknown =>
-            JSON.parse(JSON.stringify(_.omit(config, bookkeeping)))
+        const userAuthored = (config: GrapherInterface): unknown =>
+            withoutUndefinedValues(_.omit(config, HOST_STAMPED_KEYS))
 
-        return !_.isEqual(strip(a), strip(b))
+        return !_.isEqual(userAuthored(a), userAuthored(b))
     }
 
     @computed get isModified(): boolean {
@@ -329,7 +263,6 @@ export class ConfigEditor {
         this.grapherState.updateAuthoredVersion(config)
     }
 
-    // only works for top-level properties
     isPropertyInherited(property: keyof GrapherInterface): boolean {
         if (!this.baseConfigWithDefaults) return false
         return (
@@ -338,7 +271,6 @@ export class ConfigEditor {
         )
     }
 
-    // only works for top-level properties
     canPropertyBeInherited(property: keyof GrapherInterface): boolean {
         if (!this.baseConfig) return false
         return Object.hasOwn(this.baseConfig, property)
@@ -347,12 +279,10 @@ export class ConfigEditor {
     @computed get invalidFocusedSeriesNames(): SeriesName[] {
         const { grapherState } = this
 
-        // If focusing is not supported, then all focused series are invalid
         if (!this.features.canHighlightSeries) {
             return grapherState.focusArray.seriesNames
         }
 
-        // Find invalid focused series
         const availableSeriesNames = grapherState.focusableSeriesNames
         const focusedSeriesNames = grapherState.focusArray.seriesNames
         return _.difference(focusedSeriesNames, availableSeriesNames)
@@ -361,7 +291,6 @@ export class ConfigEditor {
     @computed get invalidSelectedEntityNames(): SeriesName[] {
         const { grapherState } = this
 
-        // Find invalid selected entities
         const { availableEntityNames } = grapherState
         const selectedEntityNames = grapherState.selection.selectedEntityNames
         return _.difference(selectedEntityNames, availableEntityNames)
@@ -377,13 +306,17 @@ export class ConfigEditor {
         )
     }
 
+    private latestReloadId = 0
+
     @action.bound async reloadGrapherData(): Promise<void> {
         const { grapherState } = this
+        const reloadId = ++this.latestReloadId
         const inputTable = await this.store.loadTable(
             grapherState.dimensionConfigs,
             grapherState.selectedEntityColors
         )
-        if (inputTable) grapherState.inputTable = inputTable
+        if (inputTable && reloadId === this.latestReloadId)
+            grapherState.inputTable = inputTable
     }
 
     @action.bound async commitDimensionsAndReloadData(
@@ -400,17 +333,15 @@ export class ConfigEditor {
         await this.reloadGrapherData()
     }
 
-    @computed get availableTabs(): string[] {
-        const tabs: string[] = ["basic", "data", "text", "customize"]
+    @computed get availableTabs(): EditorTabKey[] {
+        const tabs: EditorTabKey[] = ["basic", "data", "text", "customize"]
         if (this.grapherState.hasMapTab) tabs.push("map")
-        // `has*`, not `is*`: a chart can carry a scatter or Marimekko as a
-        // secondary type, and that tab must still be reachable.
         if (this.grapherState.hasScatter) tabs.push("scatter")
         if (this.grapherState.hasMarimekko) tabs.push("marimekko")
         tabs.push(...this.extraTabKeys)
         tabs.push("export", "debug")
 
-        const allowed = this.manager.tabs as string[] | undefined
+        const allowed: EditorTabKey[] | undefined = this.manager.tabs
         return allowed
             ? tabs.filter(
                   (tab) =>
@@ -419,11 +350,6 @@ export class ConfigEditor {
             : tabs
     }
 
-    /**
-     * Load a patch into the live grapher without saving. Pass `baseConfig`
-     * when the patch sits on a different base that the host has not handed
-     * down yet; the host's base swap that follows then leaves the patch as is.
-     */
     @action.bound async loadPatchConfig(
         patchConfig: GrapherInterface,
         baseConfig: GrapherInterface | undefined = this.baseConfig
@@ -448,19 +374,25 @@ export class ConfigEditor {
         }
         runInAction(() => {
             const savedPatch = saved ?? patchConfig
-            // What the host stored may differ from what we sent it — the
-            // admin fills in a title it derived from the data, for one. Show
-            // that, or the chart reads as modified the moment it was saved.
             if (this.configsDiffer(savedPatch, patchConfig))
                 this.updateLiveGrapher(
                     mergeGrapherConfigs(this.baseConfig ?? {}, savedPatch)
                 )
-            this.savedPatchConfig = savedPatch
+            this.markAsSaved(savedPatch)
         })
     }
 }
 
-/** Treats an empty base the same as no base */
+/** Keys the host stamps onto a config on save, never edited by the user */
+const HOST_STAMPED_KEYS = [
+    "version",
+    "id",
+] as const satisfies readonly (keyof GrapherInterface)[]
+
+function withoutUndefinedValues(value: unknown): unknown {
+    return JSON.parse(JSON.stringify(value))
+}
+
 function nonEmptyConfig(
     config: GrapherInterface | undefined
 ): GrapherInterface | undefined {

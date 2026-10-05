@@ -42,8 +42,6 @@ interface VariableSelectorProps {
     onComplete: (columns: PickedColumn[]) => void
 }
 
-/** A column the picker hands back: an OWID indicator, or a host column the
- *  store offered, which dimensions name by slug. */
 export type PickedColumn =
     | Pick<IndicatorDimensionInterface, "variableId" | "slug">
     | Pick<SlugDimensionInterface, "slug" | "variableId">
@@ -539,8 +537,6 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
         const { dimensions } = this.props.slot
 
         this.chosenVariables = dimensions.flatMap((d) => {
-            // A dimension naming a host column matches the catalog entry that
-            // offers that slug; an indicator matches by variable id.
             const variableId = d.variableId
             if (variableId === undefined) {
                 const offered = this.availableVariables.find(

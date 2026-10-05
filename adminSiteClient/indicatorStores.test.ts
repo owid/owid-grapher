@@ -31,7 +31,6 @@ describe(csvIndicatorStore, () => {
     it("offers every data column as a pickable indicator, categorical ones included", async () => {
         const catalog = await makeStore().catalog!.load()
         expect(catalog.namespaces.map((n) => n.name)).toEqual(["housing.csv"])
-        // a dimension names the column by slug; the id only keys the picker
         expect(catalog.datasets[0].variables).toEqual([
             { id: 1, slug: "rent_index", name: "Rent index" },
             { id: 2, slug: "vacancy_rate", name: "vacancy_rate" },
@@ -51,7 +50,6 @@ describe(csvIndicatorStore, () => {
         expect(table!.get("region").values).toEqual(["DE", "DE", "AT", "AT"])
         expect(table!.get("rent_index").displayName).toBe("Rent index")
         expect(table!.get("rent_index").unit).toBe("index (2015 = 100)")
-        // a column without a name keeps its slug as the display name
         expect(table!.get("vacancy_rate").displayName).toBe("vacancy_rate")
         expect(table!.get("rent_index").values).toEqual([100, 131, 100, 112])
     })

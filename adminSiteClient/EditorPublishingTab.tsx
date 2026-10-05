@@ -29,10 +29,6 @@ interface EditorPublishingTabProps {
     onForceDatapageChange: (forceDatapage: boolean) => void
 }
 
-/**
- * Everything about the chart as a row in our database that isn't its
- * config: inheritance from the indicator, tags, the data-page override
- */
 @observer
 export class EditorPublishingTab extends Component<EditorPublishingTabProps> {
     override render(): React.ReactElement {

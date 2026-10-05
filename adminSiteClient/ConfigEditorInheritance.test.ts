@@ -8,12 +8,9 @@ import { mergeGrapherConfigs } from "@ourworldindata/utils"
 import * as _ from "lodash-es"
 import { ConfigEditor, ConfigEditorManager } from "./ConfigEditor.js"
 
-// the editor always stamps the schema onto the patch; not what these tests are about
 const withoutSchema = (config: GrapherInterface): GrapherInterface =>
     _.omit(config, "$schema")
 
-// A base the patch sits on. The admin builds it from an indicator's config
-// and the chart's ETL layer; the editor only ever sees the merged result.
 const baseConfig: GrapherInterface = {
     note: "Base note",
     subtitle: "Base subtitle",
@@ -27,8 +24,6 @@ function makeEditor({
     editor: ConfigEditor
     manager: ConfigEditorManager
 } {
-    // observable, so that changing `baseConfig` later reaches the editor
-    // the way a re-rendered `GrapherEditor` prop would
     const manager = observable<ConfigEditorManager>({
         patchConfig,
         baseConfig: initialBaseConfig ?? undefined,
@@ -79,11 +74,9 @@ describe("ConfigEditor with a base config", () => {
             note: "Other base note",
             hasMapTab: true,
         })
-        // the edit survives, the old base's subtitle is gone, the new note shows
         expect(editor.liveConfig.title).toBe("Edited title")
         expect(editor.liveConfig.subtitle).toBeUndefined()
         expect(editor.liveConfig.note).toBe("Other base note")
-        // and the old base's values were not folded into the patch
         expect(withoutSchema(editor.patchConfig)).toEqual({
             title: "Edited title",
         })

@@ -1,9 +1,3 @@
-/**
- * Creating a narrative chart from a parent chart config: `GrapherEditor`
- * with the parent's full config as the base and an empty patch, opened in
- * the view state the user was looking at, plus a name to give the new
- * narrative chart.
- */
 import * as React from "react"
 import { Redirect, useLocation } from "react-router-dom"
 import { action, computed, makeObservable, observable, runInAction } from "mobx"
@@ -77,11 +71,9 @@ class CreateNarrativeChartEditorPageInternal extends React.Component<CreateNarra
     }
 
     isLoaded = false
-    /** The parent chart config the narrative chart starts from. */
     parentConfig: GrapherInterface | undefined = undefined
     name: string | undefined = undefined
     nameError: string | undefined = undefined
-    /** Set once the narrative chart exists, so the page can move to it. */
     createdId: number | undefined = undefined
 
     @computed get admin(): Admin {
@@ -122,7 +114,6 @@ class CreateNarrativeChartEditorPageInternal extends React.Component<CreateNarra
             : NARRATIVE_CHART_KEBAB_CASE_ERROR_MSG
     }
 
-    /** POSTs the new narrative chart and moves to its editor. */
     @action.bound async onSave(
         patch: GrapherInterface,
         editor: ConfigEditor
@@ -142,13 +133,8 @@ class CreateNarrativeChartEditorPageInternal extends React.Component<CreateNarra
             "POST"
         )
         if (json.success) {
-            // Mark the editor saved in the same action that triggers the
-            // redirect: `<Redirect>` navigates after React has re-rendered,
-            // so the unsaved-changes prompt already sees a clean editor.
-            // (A direct `history.push` here would run before that render
-            // and fire the prompt on our own navigation.)
             runInAction(() => {
-                editor.savedPatchConfig = patch
+                editor.markAsSaved(patch)
                 this.createdId = json.narrativeChartId
             })
         } else {
@@ -167,8 +153,6 @@ class CreateNarrativeChartEditorPageInternal extends React.Component<CreateNarra
                     <GrapherEditor
                         config={{}}
                         baseConfig={this.parentConfig}
-                        // The narrative chart doesn't exist yet; the link
-                        // shows the chart it is being based on, as before.
                         previewUrl={
                             this.parentConfig?.id
                                 ? `/admin/charts/${this.parentConfig.id}/preview`
@@ -182,7 +166,8 @@ class CreateNarrativeChartEditorPageInternal extends React.Component<CreateNarra
                                 editor={editor}
                                 editingErrors={editingErrors}
                                 parentUrl={null}
-                                create={{
+                                chart={{
+                                    status: "new",
                                     name: this.name,
                                     nameError: this.nameError,
                                     onNameChange: this.onNameChange,
