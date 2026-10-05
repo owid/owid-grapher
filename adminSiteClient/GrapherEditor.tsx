@@ -22,7 +22,7 @@ import {
     ConfigEditorManager,
     EditorExtraTab,
 } from "./ConfigEditor.js"
-import { EditorTab } from "./AbstractChartEditor.js"
+import { EditorTabName } from "./AbstractChartEditor.js"
 import { DetailsProvider } from "./editorProviders.js"
 import { IndicatorStore } from "./indicatorStores.js"
 
@@ -42,7 +42,7 @@ export interface GrapherEditorProps {
     /** Details on demand for validating text fields. Absent → none. */
     details?: DetailsProvider
     /** Restrict the tabs shown. */
-    tabs?: EditorTab[]
+    tabs?: EditorTabName[]
     /**
      * Query params to apply once, after the initial data load: opens the
      * editor in a particular view (tab, time range, selection) rather than
@@ -108,7 +108,7 @@ export class GrapherEditor
         return this.props.details
     }
 
-    get tabs(): EditorTab[] | undefined {
+    get tabs(): EditorTabName[] | undefined {
         return this.props.tabs
     }
 
