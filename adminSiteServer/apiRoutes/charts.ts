@@ -1019,16 +1019,18 @@ async function replaceChartDimensions(
 /**
  * Refresh `chart_dimensions` and the chart's grapher_config in R2 (both the
  * UUID-keyed object and, if published, the slug-keyed object).
+ *
+ * Pass `isNewChart` only for a chart created earlier in the same transaction
+ * that has no dimension rows yet (see `replaceChartDimensions`).
  */
 async function refreshChartDimensionsAndR2(
     trx: db.KnexReadWriteTransaction,
     chartId: number,
     chartConfigId: string,
-    fullConfig: GrapherInterface
+    fullConfig: GrapherInterface,
+    { isNewChart = false }: { isNewChart?: boolean } = {}
 ): Promise<void> {
-    await replaceChartDimensions(trx, chartId, fullConfig, {
-        isNewChart: false,
-    })
+    await replaceChartDimensions(trx, chartId, fullConfig, { isNewChart })
     await retrieveChartConfigFromDbAndSaveToR2(trx, chartConfigId)
     if (fullConfig.isPublished && fullConfig.slug) {
         await retrieveChartConfigFromDbAndSaveToR2(trx, chartConfigId, {
@@ -1164,12 +1166,15 @@ export async function upsertEtlConfigByChartConfigId(
             })
         ).chartId
 
+    // The chart created above starts from a config without dimensions, so it
+    // has no chart_dimensions rows yet and the refresh can skip its DELETE
     const result = await upsertEtlConfigForChart(
         trx,
         res.locals.user,
         chartId,
         etlConfig,
-        catalogPath
+        catalogPath,
+        { isNewChart: created }
     )
     return { ...result, chartId, created }
 }
@@ -1179,7 +1184,8 @@ async function upsertEtlConfigForChart(
     user: DbPlainUser,
     chartId: number,
     etlConfig: GrapherInterface,
-    catalogPath: string | null
+    catalogPath: string | null,
+    { isNewChart }: { isNewChart: boolean }
 ) {
     const row = await db.knexRawFirst<
         Pick<
@@ -1381,7 +1387,13 @@ async function upsertEtlConfigForChart(
         ]
     )
 
-    await refreshChartDimensionsAndR2(trx, chartId, row.configId, newFullConfig)
+    await refreshChartDimensionsAndR2(
+        trx,
+        chartId,
+        row.configId,
+        newFullConfig,
+        { isNewChart }
+    )
 
     if (newFullConfig.isPublished) {
         await triggerStaticBuild(

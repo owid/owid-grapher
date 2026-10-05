@@ -6,6 +6,7 @@ import {
     GrapherInterface,
 } from "@ourworldindata/types"
 import { latestGrapherConfigSchema } from "@ourworldindata/grapher"
+import { v7 as uuidv7 } from "uuid"
 import {
     otherVariableId,
     seedDatasetAndVariables,
@@ -74,6 +75,30 @@ describe("Concurrent chart saves", { timeout: 30000 }, () => {
         for (const result of results) {
             expect(result.body.error).toBeUndefined()
             expect(result.status).toBe(200)
+        }
+
+        const dimensions = await dimensionsByChart()
+        expect(Object.keys(dimensions)).toHaveLength(CONCURRENT_SAVES)
+        for (const chartDimensions of Object.values(dimensions))
+            expect(chartDimensions).toEqual([variableId])
+    })
+
+    it("creates adjacent charts from ETL configs concurrently without deadlocking", async () => {
+        // A first ETL push creates a blank chart and then attaches the ETL
+        // config, which brings the dimensions, in the same transaction
+        const results = await Promise.all(
+            Array.from({ length: CONCURRENT_SAVES }, (_, i) =>
+                saveChart(
+                    "PUT",
+                    `/charts/by-config/${uuidv7()}/etlConfig`,
+                    chartConfig(i, [variableId])
+                )
+            )
+        )
+        for (const result of results) {
+            expect(result.body.error).toBeUndefined()
+            expect(result.status).toBe(200)
+            expect(result.body.created).toBe(true)
         }
 
         const dimensions = await dimensionsByChart()
