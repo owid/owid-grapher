@@ -39,7 +39,7 @@ export function getIndicatorColumnSlug({
     variableId,
     targetYear,
 }: IndicatorSource): ColumnSlug {
-    if (targetYear) return `${variableId}-${targetYear}`
+    if (targetYear !== undefined) return `${variableId}-${targetYear}`
     return variableId.toString()
 }
 
@@ -112,7 +112,6 @@ export class ChartDimension
             : this.source.slug
     }
 
-    // TODO: move this somewhere else, it's only used for scatter x override and Marimekko override
     @computed get targetYear(): Time | undefined {
         return this.indicatorSource?.targetYear
     }

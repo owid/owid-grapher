@@ -303,10 +303,7 @@ describe("projectionColumnInfoBySlug", () => {
     const createYDimensionsForSlugs = (
         slugs: string[]
     ): OwidChartDimensionInterface[] =>
-        slugs.map((slug) => ({
-            slug,
-            property: DimensionProperty.y,
-        }))
+        slugs.map((slug) => ({ slug, property: DimensionProperty.y }))
 
     const createOwidTableForColumns = (
         columns: {

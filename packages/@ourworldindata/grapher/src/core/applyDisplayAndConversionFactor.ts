@@ -4,7 +4,6 @@ import { OwidTable } from "@ourworldindata/core-table"
 import { trimObject } from "@ourworldindata/utils"
 import {
     ColumnTypeNames,
-    TransformType,
     isIndicatorDimension,
     type ColumnSlug,
     type OwidChartDimensionInterface,
@@ -26,7 +25,7 @@ export const applyDimensionDisplayAndConversionFactor = (
     applyDisplayAndConversionFactor(
         table,
         dimensions.flatMap((dimension) =>
-            !isIndicatorDimension(dimension) && dimension.slug !== undefined
+            !isIndicatorDimension(dimension)
                 ? [{ columnSlug: dimension.slug, display: dimension.display }]
                 : []
         )
@@ -59,19 +58,24 @@ const mergeDisplayIntoDefs = (
     table: OwidTable,
     displayBySlug: DisplayBySlug
 ): OwidTable => {
-    const defs = table.defs.map((def): OwidColumnDef => {
+    return table.updateDefs((def): OwidColumnDef => {
         const display = displayBySlug.get(def.slug)
         if (!display) return def
-        return {
+
+        const mergedDef: OwidColumnDef = {
             ...def,
             display: { ...def.display, ...display },
-            ...(display.color ? { color: display.color } : {}),
         }
-    })
-    return new OwidTable(table.columnStore, defs, {
-        parent: table,
-        tableDescription: "Applied slot display",
-        transformCategory: TransformType.UpdateColumnDefs,
+        if (display.color) mergedDef.color = display.color
+
+        if (
+            def.type === ColumnTypeNames.Integer &&
+            display.conversionFactor !== undefined &&
+            !_.isInteger(display.conversionFactor)
+        )
+            mergedDef.type = ColumnTypeNames.Numeric
+
+        return mergedDef
     })
 }
 
@@ -79,23 +83,12 @@ const scaleByConversionFactor = (
     table: OwidTable,
     displayBySlug: DisplayBySlug
 ): OwidTable => {
-    const columnStore = { ...table.columnStore }
-    const defs = table.defs.map((def): OwidColumnDef => {
-        const conversionFactor = displayBySlug.get(def.slug)?.conversionFactor
-        if (conversionFactor === undefined) return def
-
-        if (conversionFactor !== 1)
-            columnStore[def.slug] = columnStore[def.slug].map((value) =>
-                _.isNumber(value) ? value * conversionFactor : value
-            )
-        return def.type === ColumnTypeNames.Integer &&
-            !_.isInteger(conversionFactor)
-            ? { ...def, type: ColumnTypeNames.Numeric }
-            : def
-    })
-    return new OwidTable(columnStore, defs, {
-        parent: table,
-        tableDescription: "Scaled by conversion factor",
-        transformCategory: TransformType.UpdateRows,
-    })
+    let scaledTable = table
+    for (const [slug, { conversionFactor }] of displayBySlug) {
+        if (conversionFactor === undefined || conversionFactor === 1) continue
+        scaledTable = scaledTable.replaceCells([slug], (value) =>
+            _.isNumber(value) ? value * conversionFactor : value
+        )
+    }
+    return scaledTable
 }

@@ -75,15 +75,15 @@ interface OwidChartDimensionBaseInterface {
 export interface IndicatorDimensionInterface extends OwidChartDimensionBaseInterface {
     variableId: OwidVariableId
     slug?: never
-    /** Pins the slot to a single year, as scatter plots and Marimekko charts do for x or size */
+    /** Pins the slot to a single year */
     targetYear?: Time
 }
 
-/** A slot filled by a column of a table the host supplies */
+/** A slot filled by a column of a supplied table */
 export interface SlugDimensionInterface extends OwidChartDimensionBaseInterface {
     slug: ColumnSlug
     variableId?: never
-    targetYear?: never // Not supported
+    targetYear?: never
 }
 
 export type OwidChartDimensionInterface =

@@ -103,10 +103,7 @@ export const legacyToOwidTableAndDimensions = (
         // Because database columns can contain mixed types, we want to avoid
         // parsing for Grapher data until we fix that.
         valueColumnDef.skipParsing = true
-        valueColumnDef.display = _.omit(
-            trimObject(valueColumnDef.display),
-            "conversionFactor"
-        )
+        valueColumnDef.display = trimObject(valueColumnDef.display)
         if (dimension.targetYear !== undefined)
             valueColumnDef.targetTime = dimension.targetYear
         columnDefs.set(valueColumnDef.slug, valueColumnDef)
