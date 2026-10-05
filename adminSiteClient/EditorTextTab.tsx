@@ -8,7 +8,6 @@ import {
     RelatedQuestionsConfig,
 } from "@ourworldindata/types"
 import { getErrorMessageRelatedQuestionUrl } from "@ourworldindata/grapher"
-import { copyToClipboard } from "@ourworldindata/utils"
 import { action, computed, makeObservable, observable } from "mobx"
 import { observer } from "mobx-react"
 import { Component, ReactElement } from "react"
@@ -24,11 +23,7 @@ import {
 } from "./Forms.js"
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
 import { ErrorMessages } from "./ChartEditorTypes.js"
-import { AutoComplete, Button as AntdButton, Space } from "antd"
-import {
-    BAKED_GRAPHER_URL,
-    ADMIN_BASE_URL,
-} from "../settings/clientSettings.mjs"
+import { AutoComplete } from "antd"
 
 interface EditorTextTabProps<Editor> {
     editor: Editor
@@ -104,14 +99,6 @@ export class EditorTextTab<
 
     @computed get errorMessages() {
         return this.props.errorMessages
-    }
-
-    @computed get hasCopyAdminURLButton() {
-        return !!this.props.editor.grapherState.id
-    }
-
-    @computed get hasCopyGrapherURLButton() {
-        return !!this.props.editor.grapherState.isPublished
     }
 
     // Dropdown options for the origin URL autocomplete, in the order the
@@ -462,35 +449,6 @@ export class EditorTextTab<
                         helpText="Optional variant name for distinguishing charts with the same title"
                     />
                 </Section>
-                {(this.hasCopyAdminURLButton ||
-                    this.hasCopyGrapherURLButton) && (
-                    <Section name="Copy as Markdown">
-                        <Space orientation="vertical" size="small">
-                            {this.hasCopyAdminURLButton && (
-                                <AntdButton
-                                    onClick={() =>
-                                        copyToClipboard(
-                                            `[${grapherState.title}](${ADMIN_BASE_URL}/admin/charts/${grapherState.id}/edit)`
-                                        )
-                                    }
-                                >
-                                    Copy admin URL
-                                </AntdButton>
-                            )}
-                            {this.hasCopyGrapherURLButton && (
-                                <AntdButton
-                                    onClick={() =>
-                                        copyToClipboard(
-                                            `[${grapherState.title}](${BAKED_GRAPHER_URL}/${grapherState.slug})`
-                                        )
-                                    }
-                                >
-                                    Copy Grapher URL
-                                </AntdButton>
-                            )}
-                        </Space>
-                    </Section>
-                )}
             </div>
         )
     }

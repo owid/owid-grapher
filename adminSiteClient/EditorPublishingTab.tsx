@@ -1,12 +1,17 @@
 import { Component } from "react"
 import { observer } from "mobx-react"
 import { action } from "mobx"
-import { slugify } from "@ourworldindata/utils"
+import { copyToClipboard, slugify } from "@ourworldindata/utils"
 import {
     DbChartTagJoin,
     GrapherInterface,
     MinimalTagWithMetadata,
 } from "@ourworldindata/types"
+import { Button, Space } from "antd"
+import {
+    ADMIN_BASE_URL,
+    BAKED_GRAPHER_URL,
+} from "../settings/clientSettings.mjs"
 import { ConfigEditor } from "./ConfigEditor.js"
 import { AutoTextField, Section, Toggle } from "./Forms.js"
 import { TagsSection } from "./EditorBasicTab.js"
@@ -50,6 +55,34 @@ export class EditorPublishingTab extends Component<EditorPublishingTabProps> {
                         helpText="Human-friendly URL for this chart"
                     />
                 </Section>
+                {(grapherState.id || grapherState.isPublished) && (
+                    <Section name="Copy as Markdown">
+                        <Space orientation="vertical" size="small">
+                            {grapherState.id && (
+                                <Button
+                                    onClick={() =>
+                                        copyToClipboard(
+                                            `[${grapherState.title}](${ADMIN_BASE_URL}/admin/charts/${grapherState.id}/edit)`
+                                        )
+                                    }
+                                >
+                                    Copy admin URL
+                                </Button>
+                            )}
+                            {grapherState.isPublished && (
+                                <Button
+                                    onClick={() =>
+                                        copyToClipboard(
+                                            `[${grapherState.title}](${BAKED_GRAPHER_URL}/${grapherState.slug})`
+                                        )
+                                    }
+                                >
+                                    Copy Grapher URL
+                                </Button>
+                            )}
+                        </Space>
+                    </Section>
+                )}
                 <Section name="Inheritance">
                     {indicatorId ? (
                         <>
