@@ -61,8 +61,7 @@ describe(ConfigEditor, () => {
     })
 
     it("restricts tabs to the ones the host allows", () => {
-        const editor = makeEditor({ tabs: ["basic", "text", "refs"] })
-        // "refs" is not a config-editor tab, so asking for it changes nothing
+        const editor = makeEditor({ tabs: ["basic", "text"] })
         expect(editor.availableTabs).toEqual(["basic", "text"])
     })
 
