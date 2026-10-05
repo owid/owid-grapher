@@ -33,7 +33,7 @@ import {
     GrapherState,
     hasValidConfigForBinningStrategy,
 } from "@ourworldindata/grapher"
-import { isConfigEditorInstance } from "./ConfigEditor.js"
+import { ConfigEditor } from "./ConfigEditor.js"
 import { EditorBasicTab } from "./EditorBasicTab.js"
 import { EditorDataTab } from "./EditorDataTab.js"
 import { EditorTextTab } from "./EditorTextTab.js"
@@ -53,7 +53,6 @@ import {
 } from "./VisionDeficiencies.js"
 import { EditorMarimekkoTab } from "./EditorMarimekkoTab.js"
 import { EditorExportTab } from "./EditorExportTab.js"
-import { AbstractChartEditor } from "./AbstractChartEditor.js"
 import {
     ErrorMessages,
     ErrorMessagesForDimensions,
@@ -64,8 +63,8 @@ import { DetailsProvider } from "./editorProviders.js"
 
 export type DetailReferences = Record<FieldWithDetailReferences, string[]>
 
-export interface ChartEditorViewManager<Editor> {
-    editor: Editor
+export interface ChartEditorViewManager {
+    editor: ConfigEditor
     /** Details on demand, for validating text fields. Absent → none. */
     details?: DetailsProvider
     /**
@@ -79,22 +78,20 @@ export interface ChartEditorViewManager<Editor> {
     previewUrl?: string
 }
 
-interface ChartEditorViewProps<Editor> {
-    manager: ChartEditorViewManager<Editor>
+interface ChartEditorViewProps {
+    manager: ChartEditorViewManager
 }
 
 @observer
-export class ChartEditorView<
-    Editor extends AbstractChartEditor,
-> extends React.Component<ChartEditorViewProps<Editor>> {
+export class ChartEditorView extends React.Component<ChartEditorViewProps> {
     database = EditorDatabase.empty()
     details: DetailDictionary = {}
     private cleanupDetailsOnDemand: (() => void) | undefined
 
-    constructor(props: ChartEditorViewProps<Editor>) {
+    constructor(props: ChartEditorViewProps) {
         super(props)
 
-        makeObservable<ChartEditorView<Editor>, "_isDbSet">(this, {
+        makeObservable<ChartEditorView, "_isDbSet">(this, {
             database: observable.ref,
             details: observable,
             simulateVisionDeficiency: observable,
@@ -108,7 +105,7 @@ export class ChartEditorView<
 
     simulateVisionDeficiency: VisionDeficiency | undefined = undefined
 
-    @computed private get manager(): ChartEditorViewManager<Editor> {
+    @computed private get manager(): ChartEditorViewManager {
         return this.props.manager
     }
 
@@ -323,7 +320,7 @@ export class ChartEditorView<
         ])
     }
 
-    @computed get editor(): Editor | undefined {
+    @computed get editor(): ConfigEditor | undefined {
         if (!this.isReady) return undefined
 
         return this.manager.editor
@@ -393,7 +390,7 @@ export class ChartEditorView<
         )
     }
 
-    renderReady(editor: Editor): React.ReactElement {
+    renderReady(editor: ConfigEditor): React.ReactElement {
         const { grapherState, availableTabs } = editor
         // The editor's tab may name one that isn't available right now: a
         // host allow-list without "basic", or a `?tab=map` from the URL
@@ -403,11 +400,7 @@ export class ChartEditorView<
             ? editor.tab
             : availableTabs[0]
 
-        // Hosts of the config-only editor plug their own tabs, save buttons
-        // and preview link in; the admin's chart-record editors get the
-        // built-in ones.
-        const configEditor = isConfigEditorInstance(editor) ? editor : undefined
-        const extraTabs = configEditor?.manager.extraTabs ?? []
+        const extraTabs = editor.manager.extraTabs ?? []
         const activeExtraTab = extraTabs.find((tab) => tab.key === activeTab)
         const tabLabel = (tab: string): React.ReactNode =>
             extraTabs.find((t) => t.key === tab)?.label ?? _.capitalize(tab)
@@ -417,12 +410,10 @@ export class ChartEditorView<
 
         return (
             <>
-                {!editor.isNewGrapher && (
-                    <Prompt
-                        when={editor.isModified}
-                        message="Are you sure you want to leave? Unsaved changes will be lost."
-                    />
-                )}
+                <Prompt
+                    when={editor.isModified}
+                    message="Are you sure you want to leave? Unsaved changes will be lost."
+                />
                 <div className="chart-editor-settings">
                     <div className="p-2">
                         <ul className="nav nav-tabs">
@@ -482,9 +473,7 @@ export class ChartEditorView<
                                 errorMessages={this.errorMessages}
                             />
                         )}
-                        {activeExtraTab &&
-                            configEditor &&
-                            activeExtraTab.render(configEditor)}
+                        {activeExtraTab?.render(editor)}
                         {activeTab === "export" && (
                             <EditorExportTab editor={editor} />
                         )}
@@ -493,9 +482,9 @@ export class ChartEditorView<
                         )}
                     </div>
                     {activeTab !== "export" &&
-                        (configEditor?.manager.renderSaveButtons ? (
-                            configEditor.manager.renderSaveButtons(
-                                configEditor,
+                        (editor.manager.renderSaveButtons ? (
+                            editor.manager.renderSaveButtons(
+                                editor,
                                 this.editingErrors
                             )
                         ) : (

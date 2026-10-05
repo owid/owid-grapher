@@ -1,4 +1,3 @@
-import * as _ from "lodash-es"
 import { Component } from "react"
 import { action, computed } from "mobx"
 import { observer } from "mobx-react"
@@ -7,33 +6,17 @@ import {
     ErrorMessages,
     ErrorMessagesForDimensions,
 } from "./ChartEditorTypes.js"
-import { AbstractChartEditor } from "./AbstractChartEditor.js"
-import { ConfigEditor, isConfigEditorInstance } from "./ConfigEditor.js"
+import { ConfigEditor } from "./ConfigEditor.js"
 import { notification } from "antd"
 
-interface SaveButtonsProps<Editor extends AbstractChartEditor> {
-    editor: Editor
+interface SaveButtonsProps {
+    editor: ConfigEditor
     errorMessages: ErrorMessages
     errorMessagesForDimensions: ErrorMessagesForDimensions
 }
 
 @observer
-export class SaveButtons<Editor extends AbstractChartEditor> extends Component<
-    SaveButtonsProps<Editor>
-> {
-    override render() {
-        const { editor } = this.props
-        const passthroughProps = _.omit(this.props, "editor")
-        if (isConfigEditorInstance(editor))
-            return (
-                <SaveButtonsForConfig editor={editor} {...passthroughProps} />
-            )
-        else return null
-    }
-}
-
-@observer
-class SaveButtonsForConfig extends Component<SaveButtonsProps<ConfigEditor>> {
+export class SaveButtons extends Component<SaveButtonsProps> {
     @action.bound onSave() {
         void this.props.editor.saveGrapher({
             onError: () =>

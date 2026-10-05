@@ -27,8 +27,7 @@ import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { AdminLayout } from "./AdminLayout.js"
 import { LoadingBlocker, Timeago } from "./Forms.js"
 import { GrapherEditor } from "./GrapherEditor.js"
-import { ConfigEditor, EditorExtraTab } from "./ConfigEditor.js"
-import { EditorNoteSlot, References } from "./AbstractChartEditor.js"
+import { ConfigEditor, EditorExtraTab, EditorNoteSlot } from "./ConfigEditor.js"
 import { ChartSaveActions, ChartSaveButtons } from "./ChartSaveButtons.js"
 import { EditorHistoryTab } from "./EditorHistoryTab.js"
 import { EditorReferencesTabForChart } from "./EditorReferencesTab.js"
@@ -40,6 +39,7 @@ import {
     findLastMapColorScaleEdit,
     getFullReferencesCount,
     Log,
+    References,
 } from "./adminChartApi.js"
 import {
     adminDetailsProvider,
@@ -158,7 +158,7 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
             ])
             // The parent endpoint returns the two layers above the admin's
             // patch separately: the indicator's grapher_config and the
-            // chart's own etlConfig. They are merged on the editor side.
+            // chart's own etlConfig; `baseConfig` merges them.
             runInAction(() => {
                 this.patchConfig = patch
                 this.indicatorConfig = parent?.variableConfig
@@ -465,7 +465,7 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
                         parentChartId: editor.grapherState.id,
                         config: makeNarrativeChartPatchConfig(
                             editor.liveConfigWithDefaults,
-                            editor.activeParentConfigWithDefaults
+                            editor.baseConfigWithDefaults
                         ),
                     },
                     "POST"

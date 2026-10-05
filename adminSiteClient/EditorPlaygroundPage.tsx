@@ -24,8 +24,7 @@ import { copyToClipboard } from "@ourworldindata/utils"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { AdminLayout } from "./AdminLayout.js"
 import { GrapherEditor } from "./GrapherEditor.js"
-import { EditorTabName } from "./AbstractChartEditor.js"
-import { ConfigEditor, EditorExtraTab } from "./ConfigEditor.js"
+import { ConfigEditor, EditorExtraTab, EditorTabName } from "./ConfigEditor.js"
 import {
     adminDetailsProvider,
     adminIndicatorCatalog,

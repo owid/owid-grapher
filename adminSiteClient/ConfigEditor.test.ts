@@ -11,7 +11,6 @@ function makeEditor(
 ): ConfigEditor {
     const manager: ConfigEditorManager = {
         patchConfig: { title: "Original title", hasMapTab: true },
-        isInheritanceEnabled: false,
         onSave: () => undefined,
         ...overrides,
     }
@@ -98,7 +97,6 @@ describe(ConfigEditor, () => {
     it("takes the saved baseline from the applied config, not from an empty one", () => {
         const manager: ConfigEditorManager = {
             patchConfig: { title: "Original title", hasMapTab: true },
-            isInheritanceEnabled: false,
             onSave: () => undefined,
         }
         const editor = new ConfigEditor({ manager })

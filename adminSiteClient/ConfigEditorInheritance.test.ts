@@ -21,16 +21,17 @@ const baseConfig: GrapherInterface = {
 }
 const patchConfig: GrapherInterface = { title: "Patch title" }
 
-function makeEditor(): {
+function makeEditor({
+    initialBaseConfig = baseConfig,
+}: { initialBaseConfig?: GrapherInterface | null } = {}): {
     editor: ConfigEditor
     manager: ConfigEditorManager
 } {
-    // observable, so that changing `parentConfig` later reaches the editor
+    // observable, so that changing `baseConfig` later reaches the editor
     // the way a re-rendered `GrapherEditor` prop would
     const manager = observable<ConfigEditorManager>({
         patchConfig,
-        parentConfig: baseConfig,
-        isInheritanceEnabled: true,
+        baseConfig: initialBaseConfig ?? undefined,
         onSave: () => undefined,
     })
     const editor = new ConfigEditor({ manager })
@@ -71,10 +72,10 @@ describe("ConfigEditor with a base config", () => {
         })
 
         runInAction(() => {
-            manager.parentConfig = { note: "Other base note", hasMapTab: true }
+            manager.baseConfig = { note: "Other base note", hasMapTab: true }
         })
 
-        expect(editor.parentConfig).toEqual({
+        expect(editor.baseConfig).toEqual({
             note: "Other base note",
             hasMapTab: true,
         })
@@ -88,12 +89,29 @@ describe("ConfigEditor with a base config", () => {
         })
     })
 
+    it("applies a base that arrives after the editor opened", () => {
+        const { editor, manager } = makeEditor({ initialBaseConfig: null })
+        runInAction(() => {
+            editor.grapherState.title = "Edited title"
+        })
+
+        runInAction(() => {
+            manager.baseConfig = { hasMapTab: true, tab: "map" }
+        })
+
+        expect(editor.liveConfig.hasMapTab).toBe(true)
+        expect(editor.liveConfig.tab).toBe("map")
+        expect(withoutSchema(editor.patchConfig)).toEqual({
+            title: "Edited title",
+        })
+    })
+
     it("treats the config as the whole config when the base goes away", () => {
         const { editor, manager } = makeEditor()
         runInAction(() => {
-            manager.parentConfig = undefined
+            manager.baseConfig = undefined
         })
-        expect(editor.activeParentConfig).toBeUndefined()
+        expect(editor.baseConfig).toBeUndefined()
         expect(withoutSchema(editor.patchConfig)).toEqual({
             title: "Patch title",
         })

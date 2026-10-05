@@ -113,9 +113,7 @@ describe("ConfigEditor loadPatchConfig", () => {
             indicatorConfigs[OTHER_INDICATOR_ID]
         )
 
-        expect(editor.parentConfig).toEqual(
-            indicatorConfigs[OTHER_INDICATOR_ID]
-        )
+        expect(editor.baseConfig).toEqual(indicatorConfigs[OTHER_INDICATOR_ID])
         expect(editor.liveConfig.note).toBe("Indicator 7 note")
     })
 
@@ -146,7 +144,7 @@ describe("ConfigEditor loadPatchConfig", () => {
         )
 
         runInAction(() => {
-            manager.parentConfig = indicatorConfigs[OTHER_INDICATOR_ID]
+            manager.baseConfig = indicatorConfigs[OTHER_INDICATOR_ID]
         })
 
         expect(editor.patchConfig.subtitle).toBe("Indicator 3 subtitle")
@@ -175,12 +173,11 @@ function makeSavedEditor(): {
     editor: ConfigEditor
     manager: ConfigEditorManager
 } {
-    // observable, so that changing `parentConfig` later reaches the editor
+    // observable, so that changing `baseConfig` later reaches the editor
     // the way a re-rendered `GrapherEditor` prop would
     const manager = observable<ConfigEditorManager>({
         patchConfig: savedPatch,
-        parentConfig: indicatorConfigs[SAVED_INDICATOR_ID],
-        isInheritanceEnabled: true,
+        baseConfig: indicatorConfigs[SAVED_INDICATOR_ID],
         onSave: () => undefined,
     })
     const editor = new ConfigEditor({ manager })

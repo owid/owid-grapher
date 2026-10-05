@@ -47,7 +47,7 @@ import {
 import { Section } from "./Forms.js"
 import { PickedColumn, VariableSelector } from "./VariableSelector.js"
 import { DimensionCard } from "./DimensionCard.js"
-import { AbstractChartEditor } from "./AbstractChartEditor.js"
+import { ConfigEditor } from "./ConfigEditor.js"
 import { EditorDatabase } from "./EditorDatabase.js"
 import { ErrorMessagesForDimensions } from "./ChartEditorTypes.js"
 import { EditableTags } from "./EditableTags.js"
@@ -63,9 +63,9 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowsUpDown } from "@fortawesome/free-solid-svg-icons"
 import { Tag } from "antd"
 
-interface DimensionSlotViewProps<Editor> {
+interface DimensionSlotViewProps {
     slot: DimensionSlot
-    editor: Editor
+    editor: ConfigEditor
     database: EditorDatabase
     errorMessagesForDimensions: ErrorMessagesForDimensions
     canSwapXAndY?: boolean
@@ -73,14 +73,12 @@ interface DimensionSlotViewProps<Editor> {
 }
 
 @observer
-export class DimensionSlotView<
-    Editor extends AbstractChartEditor,
-> extends React.Component<DimensionSlotViewProps<Editor>> {
+export class DimensionSlotView extends React.Component<DimensionSlotViewProps> {
     disposers: IReactionDisposer[] = []
 
     isSelectingVariables: boolean = false
 
-    constructor(props: DimensionSlotViewProps<Editor>) {
+    constructor(props: DimensionSlotViewProps) {
         super(props)
 
         makeObservable(this, {
@@ -411,20 +409,18 @@ export class DimensionSlotView<
     }
 }
 
-interface VariablesSectionProps<Editor> {
-    editor: Editor
+interface VariablesSectionProps {
+    editor: ConfigEditor
     database: EditorDatabase
     errorMessagesForDimensions: ErrorMessagesForDimensions
 }
 
 @observer
-class VariablesSection<
-    Editor extends AbstractChartEditor,
-> extends React.Component<VariablesSectionProps<Editor>> {
+class VariablesSection extends React.Component<VariablesSectionProps> {
     base = React.createRef<HTMLDivElement>()
     isAddingVariable: boolean = false
 
-    constructor(props: VariablesSectionProps<Editor>) {
+    constructor(props: VariablesSectionProps) {
         super(props)
 
         makeObservable(this, {
@@ -557,17 +553,15 @@ export const TagsSection = (props: {
     )
 }
 
-interface EditorBasicTabProps<Editor> {
-    editor: Editor
+interface EditorBasicTabProps {
+    editor: ConfigEditor
     database: EditorDatabase
     errorMessagesForDimensions: ErrorMessagesForDimensions
 }
 
 @observer
-export class EditorBasicTab<
-    Editor extends AbstractChartEditor,
-> extends React.Component<EditorBasicTabProps<Editor>> {
-    constructor(props: EditorBasicTabProps<Editor>) {
+export class EditorBasicTab extends React.Component<EditorBasicTabProps> {
+    constructor(props: EditorBasicTabProps) {
         super(props)
         makeObservable(this)
     }
