@@ -8,8 +8,35 @@ import {
 type ElementSpec =
     | string
     | { image: string }
-    | { link: string; text: string }
+    | { link?: string; text: string; suggestion?: Suggestion }
     | { richLink: string }
+
+/**
+ * A suggested insertion or deletion, or a suggested change of the text's link
+ * to `newLink`
+ */
+type Suggestion =
+    | { kind: "insertion" }
+    | { kind: "deletion" }
+    | { kind: "link"; newLink: string }
+
+function makeSuggestionFields(
+    suggestion: Suggestion | undefined
+): Partial<docs_v1.Schema$TextRun> {
+    if (!suggestion) return {}
+    if (suggestion.kind === "insertion")
+        return { suggestedInsertionIds: ["suggest.1"] }
+    if (suggestion.kind === "deletion")
+        return { suggestedDeletionIds: ["suggest.1"] }
+    return {
+        suggestedTextStyleChanges: {
+            "suggest.1": {
+                textStyle: { link: { url: suggestion.newLink } },
+                textStyleSuggestionState: { linkSuggested: true },
+            },
+        },
+    }
+}
 
 /** Builds paragraphs with consecutive indices, like the Docs API returns */
 function makeContent(
@@ -46,7 +73,10 @@ function makeContent(
                     startIndex: elementStart,
                     textRun: {
                         content: spec.text,
-                        textStyle: { link: { url: spec.link } },
+                        ...(spec.link
+                            ? { textStyle: { link: { url: spec.link } } }
+                            : {}),
+                        ...makeSuggestionFields(spec.suggestion),
                     },
                 }
             }
@@ -232,6 +262,50 @@ describe(findChartPreviewBlocks, () => {
             [{ type: "image", target: "my-chart.png" }, "kix.1"],
             [{ type: "static-viz", target: "my-static-viz" }, undefined],
         ])
+    })
+
+    it("reads suggested changes to a component as if they were accepted", () => {
+        const document = makeDocument(
+            makeContent([
+                ["{.chart}"],
+                [
+                    "url: ",
+                    {
+                        text: URL_A,
+                        suggestion: { kind: "deletion" },
+                    },
+                    {
+                        text: URL_B,
+                        suggestion: { kind: "insertion" },
+                    },
+                ],
+                ["{}"],
+                ["{.chart}"],
+                [
+                    "url: ",
+                    {
+                        link: URL_A,
+                        text: "this chart",
+                        suggestion: { kind: "link", newLink: URL_B },
+                    },
+                ],
+                ["{}"],
+            ])
+        )
+        expect(
+            findChartPreviewBlocks(document).map((block) => block.spec)
+        ).toEqual([
+            { type: "chart", target: URL_B },
+            { type: "chart", target: URL_B },
+        ])
+    })
+
+    it("doesn't treat an image suggested for deletion as the preview", () => {
+        const content = makeContent([[{ image: "kix.1" }], [`chart: ${URL_A}`]])
+        content[0].paragraph!.elements![0].inlineObjectElement!.suggestedDeletionIds =
+            ["suggest.1"]
+        const [block] = findChartPreviewBlocks(makeDocument(content))
+        expect(block.image).toBeUndefined()
     })
 
     it("skips components without a url", () => {

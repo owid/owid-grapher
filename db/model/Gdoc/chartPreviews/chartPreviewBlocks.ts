@@ -81,6 +81,29 @@ const COMPONENT_TARGETS: Record<ChartPreviewComponentType, ComponentTarget> = {
     "static-viz": { key: "name", isUrl: false, hasSingleLineForm: false },
 }
 
+/**
+ * The doc is read with suggestions inline, since that's the view our write
+ * indices address. Content an author suggested deleting still has its indices
+ * but is read as if the suggestion were accepted, so a suggested change to a
+ * component's url previews the new url.
+ */
+function isSuggestedDeletion(element: {
+    suggestedDeletionIds?: string[] | null
+}): boolean {
+    return (element.suggestedDeletionIds?.length ?? 0) > 0
+}
+
+/** The link a text run has once its suggested style changes are accepted */
+function getLinkUrl(textRun: docs_v1.Schema$TextRun): string | undefined {
+    for (const change of Object.values(
+        textRun.suggestedTextStyleChanges ?? {}
+    )) {
+        if (change.textStyleSuggestionState?.linkSuggested)
+            return change.textStyle?.link?.url ?? undefined
+    }
+    return textRun.textStyle?.link?.url ?? undefined
+}
+
 function parseParagraph(
     element: docs_v1.Schema$StructuralElement
 ): ParsedParagraph | undefined {
@@ -94,18 +117,23 @@ function parseParagraph(
     let hasImage = false
     for (const el of elements) {
         if (el.textRun) {
+            if (isSuggestedDeletion(el.textRun)) continue
             const content = el.textRun.content ?? ""
             text += content
-            linkUrl ??= el.textRun.textStyle?.link?.url ?? undefined
+            linkUrl ??= getLinkUrl(el.textRun)
             // Whitespace (incl. the paragraph's closing newline) after an
             // image doesn't stop it from being the trailing element
             if (content.trim()) trailingImage = undefined
-        } else if (el.richLink?.richLinkProperties?.uri) {
+        } else if (
+            el.richLink?.richLinkProperties?.uri &&
+            !isSuggestedDeletion(el.richLink)
+        ) {
             text += el.richLink.richLinkProperties.uri
             linkUrl ??= el.richLink.richLinkProperties.uri
             trailingImage = undefined
         } else if (
             el.inlineObjectElement?.inlineObjectId &&
+            !isSuggestedDeletion(el.inlineObjectElement) &&
             typeof el.startIndex === "number"
         ) {
             trailingImage = {
