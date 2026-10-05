@@ -230,6 +230,33 @@ describe(findChartPreviewBlocks, () => {
         ).toEqual([URL_B])
     })
 
+    it("finds key indicators, pull charts and chart story slides", () => {
+        const document = makeDocument(
+            makeContent([
+                ["{.key-indicator}"],
+                [`datapageUrl: ${URL_A}`],
+                ["title: How has life expectancy changed?"],
+                ["{}"],
+                ["{.pull-chart}"],
+                ["image: thumbnail.png"],
+                [`url: ${URL_B}`],
+                ["{}"],
+                ["[.chart-story]"],
+                ["narrative: Some narrative"],
+                [`chart: ${URL_B}`],
+                ["[]"],
+            ])
+        )
+        expect(
+            findChartPreviewBlocks(document).map((b) => b.spec)
+        ).toEqual([
+            { type: "key-indicator", kind: "chartUrl", target: URL_A },
+            // Pull charts show their uploaded thumbnail, not their url
+            { type: "pull-chart", kind: "imageFilename", target: "thumbnail.png" },
+            { type: "chart", kind: "chartUrl", target: URL_B },
+        ])
+    })
+
     it("finds narrative charts by name, ignoring links", () => {
         const document = makeDocument(
             makeContent([

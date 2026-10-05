@@ -114,7 +114,8 @@ export async function getGdocIdsWithChangedCharts(
         SELECT DISTINCT l.sourceId AS gdocId
         FROM posts_gdocs_links l
         JOIN changed_slugs s ON s.slug = l.target
-        WHERE l.linkType = 'grapher' AND l.componentType = 'chart'
+        WHERE l.linkType = 'grapher'
+            AND l.componentType IN ('chart', 'chart-story', 'key-indicator')
         UNION
         SELECT l.sourceId AS gdocId
         FROM posts_gdocs_links l
@@ -124,7 +125,8 @@ export async function getGdocIdsWithChangedCharts(
         SELECT l.sourceId AS gdocId
         FROM posts_gdocs_links l
         JOIN changed_explorers e ON e.slug = l.target
-        WHERE l.linkType = 'explorer' AND l.componentType = 'chart'
+        WHERE l.linkType = 'explorer'
+            AND l.componentType IN ('chart', 'chart-story', 'key-indicator')
         UNION
         -- Replacing an image re-points posts_gdocs_x_images to the new version
         SELECT gi.gdocId

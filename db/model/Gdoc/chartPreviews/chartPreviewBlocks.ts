@@ -16,8 +16,8 @@ import {
  *     {}
  *
  * The image is either in a paragraph of its own or at the end of the paragraph
- * before the component. Image and static viz components get the same
- * treatment, so authors see the uploaded image they refer to. This module finds those components and their
+ * before the component. Other components that show a chart or an uploaded
+ * image get the same treatment. This module finds those components and their
  * images in the raw Google Docs API document and builds the batchUpdate
  * requests that swap in fresh renders.
  */
@@ -32,8 +32,10 @@ export type ChartPreviewTargetKind =
 export type ChartPreviewComponentType =
     | "chart"
     | "narrative-chart"
+    | "key-indicator"
     | "image"
     | "static-viz"
+    | "pull-chart"
 
 export interface ChartPreviewComponentSpec {
     /** The ArchieML component type */
@@ -100,6 +102,8 @@ interface ComponentTarget<T extends ChartPreviewComponentType> {
 /**
  * The components that get a preview image. Typed against the raw ArchieML
  * blocks, so the property names stay in sync with what ingestion parses.
+ * Chart stories need no entry: their `chart: <url>` lines are read as the
+ * single-line form of `chart`.
  */
 const COMPONENT_TARGETS: {
     [T in ChartPreviewComponentType]: ComponentTarget<T>
@@ -110,10 +114,21 @@ const COMPONENT_TARGETS: {
         kind: "narrativeChartName",
         hasSingleLineForm: true,
     },
+    "key-indicator": {
+        key: "datapageUrl",
+        kind: "chartUrl",
+        hasSingleLineForm: false,
+    },
     image: { key: "filename", kind: "imageFilename", hasSingleLineForm: false },
     "static-viz": {
         key: "name",
         kind: "staticVizName",
+        hasSingleLineForm: false,
+    },
+    // Pull charts show an uploaded thumbnail, not a render of their url
+    "pull-chart": {
+        key: "image",
+        kind: "imageFilename",
         hasSingleLineForm: false,
     },
 }
