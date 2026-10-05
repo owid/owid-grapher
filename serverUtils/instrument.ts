@@ -6,7 +6,15 @@ import { openAIIntegration } from "@sentry/node"
 if (!process.env.VITEST) {
     // Ensure to call this before importing any other modules!
     Sentry.init({
-        dataCollection: { userInfo: true }, // fine to enable broader data collection in the backend
+        // Deliberately keep Sentry v11's permissive defaults on the backend:
+        // besides user info this collects request/response headers and bodies,
+        // cookies, query params, DB query text, OpenAI prompts/completions and
+        // local variables in stack frames. The SDK redacts keys that look like
+        // credentials (auth, session, cookie, token, ...), which covers the
+        // admin's `authorization` header and `CF_Authorization` cookie. The
+        // browser and Cloudflare SDKs use the restrictive SENTRY_DATA_COLLECTION
+        // config instead.
+        dataCollection: { userInfo: true },
         dsn: SENTRY_ADMIN_DSN,
         integrations: [
             nodeProfilingIntegration(),
