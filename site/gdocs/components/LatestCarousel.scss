@@ -165,6 +165,7 @@ html:not(.js-enabled) .latest-carousel__card,
         height: 100%;
 
         @include md-down {
+            width: 100%;
             max-height: 360px;
             overflow-y: auto;
         }
@@ -182,8 +183,15 @@ html:not(.js-enabled) .latest-carousel__card,
 
         @include md-down {
             display: block;
+            // Fill the card's width explicitly: with width: auto, the image
+            // is sized by its natural width, which Safari sometimes computes
+            // smaller than the card. The picture needs width: 100% too.
+            width: 100%;
             height: auto;
             max-width: 100%;
+            // Safari resolves max-height: 100% against the picture's
+            // content-sized height as 0, collapsing the image, so we reset it.
+            max-height: none;
         }
     }
 }
