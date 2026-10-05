@@ -26,7 +26,6 @@ import {
     faDisplay,
     faLinkSlash,
     faCodeCompare,
-    faFlask,
 } from "@fortawesome/free-solid-svg-icons"
 
 import { ETL_WIZARD_URL } from "../settings/clientSettings.mjs"
@@ -205,12 +204,6 @@ export const AdminSidebar = (): React.ReactElement => (
                 <Link to="/test">
                     <FontAwesomeIcon icon={faEye} className="fa-fw" /> Chart
                     previews
-                </Link>
-            </li>
-            <li>
-                <Link to="/editor-playground">
-                    <FontAwesomeIcon icon={faFlask} className="fa-fw" /> Editor
-                    playground
                 </Link>
             </li>
             <li>
