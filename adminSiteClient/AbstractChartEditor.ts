@@ -44,8 +44,6 @@ const EDITOR_TABS = [
     "map",
     "scatter",
     "marimekko",
-    "revisions",
-    "refs",
     "export",
     "debug",
 ] as const
