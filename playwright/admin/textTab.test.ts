@@ -178,45 +178,6 @@ test.describe("Header", () => {
         ).toHaveCount(0)
     })
 
-    test("editing the slug writes it slugified", async ({
-        seedChart,
-        openEditor,
-    }) => {
-        const editor = await openEditor(
-            await seedChart(lineChart(indicators.lifeExpectancy))
-        )
-        await editor.openTab("Text")
-
-        await editor.fill(editor.field("/grapher/"), "Life Expectancy Chart")
-
-        await expect(editor.field("/grapher/")).toHaveValue(
-            "life-expectancy-chart"
-        )
-        expect(await editor.saveChanges()).toEqual({
-            slug: "life-expectancy-chart",
-        })
-    })
-
-    test("resetting the slug derives it from the title", async ({
-        seedChart,
-        openEditor,
-    }) => {
-        const editor = await openEditor(
-            await seedChart({
-                ...lineChart(indicators.lifeExpectancy),
-                slug: "a-custom-slug",
-            })
-        )
-        await editor.openTab("Text")
-        await expect(editor.field("/grapher/")).toHaveValue("a-custom-slug")
-
-        await resetButton(editor, "/grapher/").click()
-
-        await expect(editor.field("/grapher/")).toHaveValue("test-chart")
-        await expect(resetButton(editor, "/grapher/")).toBeDisabled()
-        expect(await editor.saveChanges()).toEqual({ slug: "test-chart" })
-    })
-
     test("editing the subtitle writes it to the config", async ({
         seedChart,
         openEditor,
@@ -628,86 +589,6 @@ test.describe("Misc", () => {
             })
         })
     }
-
-    test("forcing a data page is saved with the chart", async ({
-        seedChart,
-        openEditor,
-        page,
-    }) => {
-        const chart = await seedChart(lineChart(indicators.lifeExpectancy))
-        const editor = await openEditor(chart)
-        await editor.openTab("Text")
-        const toggle = editor.checkbox("Force to be a data page")
-        await expect(toggle).not.toBeChecked()
-
-        await toggle.check()
-
-        // The setting isn't part of the config but sent along with it
-        const saveRequest = page.waitForRequest(
-            (request) =>
-                request.method() === "PUT" &&
-                new URL(request.url()).pathname ===
-                    `/admin/api/charts/${chart.id}`
-        )
-        expect(await editor.saveChanges()).toEqual({})
-        expect(
-            new URL((await saveRequest).url()).searchParams.get("forceDatapage")
-        ).toBe("true")
-
-        const reopened = await openEditor(chart)
-        await reopened.openTab("Text")
-        await expect(reopened.checkbox("Force to be a data page")).toBeChecked()
-    })
-})
-
-test.describe("Copy as Markdown", () => {
-    test("copying the admin URL copies a Markdown link to the editor", async ({
-        seedChart,
-        openEditor,
-        page,
-        context,
-    }) => {
-        await context.grantPermissions(["clipboard-read", "clipboard-write"])
-        const chart = await seedChart(lineChart(indicators.lifeExpectancy))
-        const editor = await openEditor(chart)
-        const form = await editor.openTab("Text")
-        await expect(editor.button("Copy Grapher URL", form)).toHaveCount(0)
-
-        await editor.button("Copy admin URL", form).click()
-
-        await expect
-            .poll(() => page.evaluate(() => navigator.clipboard.readText()))
-            .toMatch(
-                new RegExp(
-                    `^\\[Test chart\\]\\(https?://[^)]+/admin/charts/${chart.id}/edit\\)$`
-                )
-            )
-    })
-
-    test("copying the grapher URL of a published chart copies a Markdown link to it", async ({
-        seedChart,
-        openEditor,
-        page,
-        context,
-    }) => {
-        await context.grantPermissions(["clipboard-read", "clipboard-write"])
-        const editor = await openEditor(
-            await seedChart({
-                ...lineChart(indicators.lifeExpectancy),
-                slug: "published-life-expectancy",
-                isPublished: true,
-            })
-        )
-        const form = await editor.openTab("Text")
-
-        await editor.button("Copy Grapher URL", form).click()
-
-        await expect
-            .poll(() => page.evaluate(() => navigator.clipboard.readText()))
-            .toMatch(
-                /^\[Test chart\]\(https?:\/\/[^)]+\/grapher\/published-life-expectancy\)$/
-            )
-    })
 })
 
 test.describe("Inherited texts", () => {

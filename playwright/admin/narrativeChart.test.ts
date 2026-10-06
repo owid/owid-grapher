@@ -2,7 +2,7 @@ import type { APIRequestContext, Page } from "@playwright/test"
 import type { GrapherInterface } from "@ourworldindata/types"
 import { ChartEditorPage, expect, test, type SeededChart } from "./harness.js"
 import { entities, indicators } from "./fixture.js"
-import { lineChart } from "./charts.js"
+import { defaultSelection, lineChart } from "./charts.js"
 
 interface SeededNarrativeChart {
     id: number
@@ -121,4 +121,51 @@ test("creates a narrative chart from its parent's config", async ({
     )
 
     await expectPreviewShowsChart(new ChartEditorPage(page), "The parent view")
+})
+
+test("saving a narrative chart stores its edits with the props it always owns", async ({
+    page,
+    request,
+    seedChart,
+}) => {
+    const parent = await seedChart(lineChart(indicators.lifeExpectancy))
+    const narrativeChart = await seedNarrativeChart(
+        request,
+        parent,
+        lineChart(indicators.lifeExpectancy)
+    )
+    await delayConfigUntilDatabaseLoaded(page)
+    await page.goto(`/admin/narrative-charts/${narrativeChart.id}/edit`, {
+        waitUntil: "commit",
+    })
+    const editor = new ChartEditorPage(page)
+    await expectPreviewShowsChart(editor, "Test chart")
+
+    await editor.openTab("Text")
+    await editor.fill(editor.field("Subtitle"), "Only in the narrative chart")
+    const [save] = await Promise.all([
+        page.waitForRequest(
+            (request) =>
+                request.method() === "PUT" &&
+                new URL(request.url()).pathname ===
+                    `/admin/api/narrative-charts/${narrativeChart.id}`
+        ),
+        editor.button("Save narrative chart").click(),
+    ])
+    expect(await (await save.response())?.json()).toMatchObject({
+        success: true,
+    })
+
+    const { configPatch } = await (
+        await request.get(
+            `/admin/api/narrative-charts/${narrativeChart.id}.config.json`
+        )
+    ).json()
+    // chart type, tab and selection are stored although they match the parent
+    expect(configPatch).toMatchObject({
+        subtitle: "Only in the narrative chart",
+        chartTypes: ["LineChart"],
+        tab: "chart",
+        selectedEntityNames: defaultSelection,
+    })
 })
