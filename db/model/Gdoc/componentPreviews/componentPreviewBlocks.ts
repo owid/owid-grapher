@@ -23,13 +23,13 @@ import {
  */
 
 /** What a component's target property refers to, which decides how it renders */
-export type ChartPreviewTargetKind =
+export type ComponentPreviewTargetKind =
     | "chartUrl"
     | "narrativeChartName"
     | "imageFilename"
     | "staticVizName"
 
-export type ChartPreviewComponentType =
+export type ComponentPreviewComponentType =
     | "chart"
     | "narrative-chart"
     | "key-indicator"
@@ -37,24 +37,24 @@ export type ChartPreviewComponentType =
     | "static-viz"
     | "pull-chart"
 
-export interface ChartPreviewComponentSpec {
+export interface ComponentPreviewComponentSpec {
     /** The ArchieML component type */
-    type: ChartPreviewComponentType
-    kind: ChartPreviewTargetKind
+    type: ComponentPreviewComponentType
+    kind: ComponentPreviewTargetKind
     /** The chart URL, narrative chart name, image filename or static viz name */
     target: string
 }
 
-export interface ChartPreviewBlock {
+export interface ComponentPreviewBlock {
     tabId: string
     tabTitle: string
     /** Start index of the paragraph that opens the component, e.g. `{.chart}` */
     componentStartIndex: number
-    spec: ChartPreviewComponentSpec
-    image?: ChartPreviewImage
+    spec: ComponentPreviewComponentSpec
+    image?: ComponentPreviewImage
 }
 
-export interface ChartPreviewImage {
+export interface ComponentPreviewImage {
     objectId: string
     /** Position of the image in the tab */
     startIndex: number
@@ -86,10 +86,10 @@ type RawBlockOfType<T extends OwidRawGdocBlock["type"]> = Extract<
     { type: T }
 >
 
-interface ComponentTarget<T extends ChartPreviewComponentType> {
+interface ComponentTarget<T extends ComponentPreviewComponentType> {
     /** The property that says what the component shows */
     key: Extract<keyof Exclude<RawBlockOfType<T>["value"], string>, string>
-    kind: ChartPreviewTargetKind
+    kind: ComponentPreviewTargetKind
     /**
      * Whether the component can be written on a single line as well, e.g.
      * `chart: <url>`. Only components whose raw value can be a string can.
@@ -106,7 +106,7 @@ interface ComponentTarget<T extends ChartPreviewComponentType> {
  * single-line form of `chart`.
  */
 const COMPONENT_TARGETS: {
-    [T in ChartPreviewComponentType]: ComponentTarget<T>
+    [T in ComponentPreviewComponentType]: ComponentTarget<T>
 } = {
     chart: { key: "url", kind: "chartUrl", hasSingleLineForm: true },
     "narrative-chart": {
@@ -200,7 +200,7 @@ function collectParagraphGroups(
 function readValue(
     paragraph: ParsedParagraph,
     key: string,
-    kind: ChartPreviewTargetKind
+    kind: ComponentPreviewTargetKind
 ): string | undefined {
     const regex = new RegExp(`^${key}\\s*:\\s*(.*)$`, "s")
     const value = paragraph.text.trim().match(regex)?.[1].trim()
@@ -212,15 +212,15 @@ function readValue(
 function matchComponent(
     paragraphs: ParsedParagraph[],
     index: number
-): ChartPreviewComponentSpec | undefined {
+): ComponentPreviewComponentSpec | undefined {
     const paragraph = paragraphs[index]
     const text = paragraph.text.trim()
 
     for (const [type, { key, kind, hasSingleLineForm }] of Object.entries(
         COMPONENT_TARGETS
     ) as [
-        ChartPreviewComponentType,
-        ComponentTarget<ChartPreviewComponentType>,
+        ComponentPreviewComponentType,
+        ComponentTarget<ComponentPreviewComponentType>,
     ][]) {
         // Single-line form, e.g. `chart: https://...`
         const inline = hasSingleLineForm
@@ -279,10 +279,10 @@ function flattenTabs(tabs: docs_v1.Schema$Tab[]): docs_v1.Schema$Tab[] {
  * ingestion accepts them, so a suggested change to a component's url previews
  * the new url. Accepting suggestions keeps the elements' indices as they are.
  */
-export function findChartPreviewBlocks(
+export function findComponentPreviewBlocks(
     document: docs_v1.Schema$Document
-): ChartPreviewBlock[] {
-    const blocks: ChartPreviewBlock[] = []
+): ComponentPreviewBlock[] {
+    const blocks: ComponentPreviewBlock[] = []
     const accepted = acceptAllGdocSuggestions(document)
     for (const tab of flattenTabs(accepted.tabs ?? [])) {
         const tabId = tab.tabProperties?.tabId
@@ -326,15 +326,15 @@ export function findChartPreviewBlocks(
     return blocks
 }
 
-export interface ChartPreviewChange {
-    block: ChartPreviewBlock
+export interface ComponentPreviewChange {
+    block: ComponentPreviewBlock
     imageUrl: string
 }
 
 export function makeReplaceImageRequest({
     block,
     imageUrl,
-}: ChartPreviewChange): docs_v1.Schema$Request {
+}: ComponentPreviewChange): docs_v1.Schema$Request {
     if (!block.image) throw new Error("Block has no image to replace")
     return {
         replaceImage: {
@@ -353,7 +353,7 @@ export function makeReplaceImageRequest({
 export function makeInsertImageRequests({
     block,
     imageUrl,
-}: ChartPreviewChange): docs_v1.Schema$Request[] {
+}: ComponentPreviewChange): docs_v1.Schema$Request[] {
     const location = { index: block.componentStartIndex, tabId: block.tabId }
     return [
         { insertText: { location, text: "\n" } },
@@ -377,7 +377,7 @@ export function makeInsertImageRequests({
 export function makeReinsertImageRequests({
     block,
     imageUrl,
-}: ChartPreviewChange): docs_v1.Schema$Request[] {
+}: ComponentPreviewChange): docs_v1.Schema$Request[] {
     if (!block.image) throw new Error("Block has no image to reinsert")
     const { startIndex, size } = block.image
     return [
@@ -410,10 +410,10 @@ export function makeReinsertImageRequests({
  * and reinserts address positions, so they go last and from the end of each
  * tab backwards, so that earlier ones don't shift the positions of later ones.
  */
-export function makeChartPreviewRequests(
-    replacements: ChartPreviewChange[],
-    insertions: ChartPreviewChange[],
-    reinsertions: ChartPreviewChange[] = []
+export function makeComponentPreviewRequests(
+    replacements: ComponentPreviewChange[],
+    insertions: ComponentPreviewChange[],
+    reinsertions: ComponentPreviewChange[] = []
 ): docs_v1.Schema$Request[] {
     const positional = [
         ...insertions.map((change) => ({

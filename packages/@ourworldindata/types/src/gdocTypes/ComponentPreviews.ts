@@ -2,7 +2,7 @@
  * What happened to the preview image of one chart component when syncing chart
  * preview images into a Google Doc.
  */
-export type GdocChartPreviewStatus =
+export type GdocComponentPreviewStatus =
     /** The existing image was replaced with a fresh render */
     | "updated"
     /** An image was added above a component that had none */
@@ -16,18 +16,18 @@ export type GdocChartPreviewStatus =
     /** The image couldn't be rendered or written into the doc */
     | "failed"
 
-export interface GdocChartPreviewItem {
+export interface GdocComponentPreviewItem {
     tabTitle: string
     /** The ArchieML component type, e.g. "chart" */
     componentType: string
     /** What the component points to, e.g. the chart URL */
     target: string
-    status: GdocChartPreviewStatus
+    status: GdocComponentPreviewStatus
     message?: string
 }
 
-export interface GdocChartPreviewRefreshResult {
+export interface GdocComponentPreviewRefreshResult {
     gdocId: string
     dryRun: boolean
-    items: GdocChartPreviewItem[]
+    items: GdocComponentPreviewItem[]
 }

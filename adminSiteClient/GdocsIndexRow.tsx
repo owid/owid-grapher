@@ -82,7 +82,7 @@ interface GdocsIndexRowProps {
     availableTags: MinimalTagWithMetadata[]
     tagGraphRolesById: ReadonlyMap<number, TagGraphRole>
     onUpdateTags: (gdocId: string, tags: DbChartTagJoin[]) => Promise<void>
-    onOpenChartPreviews: (gdoc: OwidGdocIndexItem) => void
+    onOpenComponentPreviews: (gdoc: OwidGdocIndexItem) => void
     canEditTags?: boolean
 }
 
@@ -93,7 +93,7 @@ export function GdocsIndexRow({
     availableTags,
     tagGraphRolesById,
     onUpdateTags,
-    onOpenChartPreviews,
+    onOpenComponentPreviews,
     canEditTags = true,
 }: GdocsIndexRowProps): React.ReactElement {
     const [now] = useState(() => Date.now())
@@ -183,12 +183,12 @@ export function GdocsIndexRow({
                 ) : null}
             </div>
             <div className="gdoc-index-item__actions">
-                <Tooltip title="Update chart images in gdoc">
+                <Tooltip title="Update preview images in gdoc">
                     <Button
                         size="small"
-                        aria-label="Update chart images in gdoc"
+                        aria-label="Update preview images in gdoc"
                         icon={<FontAwesomeIcon icon={faImage} />}
-                        onClick={() => onOpenChartPreviews(gdoc)}
+                        onClick={() => onOpenComponentPreviews(gdoc)}
                     />
                 </Tooltip>
             </div>

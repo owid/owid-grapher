@@ -1,29 +1,29 @@
 import parseArgs from "minimist"
 import * as _ from "lodash-es"
-import { GdocChartPreviewRefreshResult } from "@ourworldindata/types"
+import { GdocComponentPreviewRefreshResult } from "@ourworldindata/types"
 import * as db from "../../db/db.js"
-import { refreshGdocChartPreviews } from "../../db/model/Gdoc/chartPreviews/refreshGdocChartPreviews.js"
-import { getGdocIdsWithChangedCharts } from "../../db/model/Gdoc/chartPreviews/gdocsWithChangedCharts.js"
+import { refreshGdocComponentPreviews } from "../../db/model/Gdoc/componentPreviews/refreshGdocComponentPreviews.js"
+import { getGdocIdsWithOutdatedPreviews } from "../../db/model/Gdoc/componentPreviews/gdocsWithOutdatedPreviews.js"
 
 function printHelp(): void {
-    console.log(`Update the chart preview images above chart components in gdocs.
+    console.log(`Update the preview images above chart and image components in gdocs.
 
 Replaces images that don't show the current version of their chart. Meant to
 run on a schedule with --changed-since-hours, or by hand for specific docs.
 
 Usage:
-    yarn refreshGdocChartPreviews [options] [gdocId...]
+    yarn refreshGdocComponentPreviews [options] [gdocId...]
 
 Options:
-    --changed-since-hours <n>  Refresh all gdocs linking to charts whose config
-                               or data changed in the last <n> hours.
+    --changed-since-hours <n>  Refresh all gdocs linking to charts or images
+                               that changed in the last <n> hours.
     --insert-missing           Also add images above components that have none.
     --dry-run                  Only report what would change.
     -h, --help                 Show this message.
 `)
 }
 
-function printResult(result: GdocChartPreviewRefreshResult): void {
+function printResult(result: GdocComponentPreviewRefreshResult): void {
     const counts = _.countBy(result.items, (item) => item.status)
     console.log(
         `${result.gdocId}: ${
@@ -48,10 +48,10 @@ async function main(args: parseArgs.ParsedArgs): Promise<void> {
         if (!Number.isFinite(hours)) throw new Error("Invalid number of hours")
         const since = new Date(Date.now() - hours * 60 * 60 * 1000)
         const changed = await db.knexReadonlyTransaction((knex) =>
-            getGdocIdsWithChangedCharts(knex, since)
+            getGdocIdsWithOutdatedPreviews(knex, since)
         )
         console.log(
-            `${changed.length} gdocs link to charts changed since ${since.toISOString()}`
+            `${changed.length} gdocs may have outdated preview images since ${since.toISOString()}`
         )
         gdocIds.push(...changed)
     }
@@ -59,14 +59,10 @@ async function main(args: parseArgs.ParsedArgs): Promise<void> {
     let hasFailures = false
     for (const gdocId of _.uniq(gdocIds)) {
         try {
-            // Each doc gets its own transaction so we don't hold one open
-            // across all the Google API calls
-            const result = await db.knexReadonlyTransaction((knex) =>
-                refreshGdocChartPreviews(knex, gdocId, {
-                    insertMissing: !!args["insert-missing"],
-                    dryRun: !!args["dry-run"],
-                })
-            )
+            const result = await refreshGdocComponentPreviews(gdocId, {
+                insertMissing: !!args["insert-missing"],
+                dryRun: !!args["dry-run"],
+            })
             printResult(result)
             if (result.items.some((item) => item.status === "failed"))
                 hasFailures = true

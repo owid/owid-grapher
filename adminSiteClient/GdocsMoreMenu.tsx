@@ -29,7 +29,7 @@ enum GdocsMoreMenuAction {
     Delete = "delete",
     Mobile = "mobile",
     Records = "records",
-    ChartPreviews = "chartPreviews",
+    ComponentPreviews = "componentPreviews",
 }
 
 export const GdocsMoreMenu = ({
@@ -40,7 +40,7 @@ export const GdocsMoreMenu = ({
     isMobilePreviewActive,
     toggleMobilePreview,
     onOpenRecords,
-    onOpenChartPreviews,
+    onOpenComponentPreviews,
 }: {
     gdoc: OwidGdoc
     onDebug: VoidFunction
@@ -49,7 +49,7 @@ export const GdocsMoreMenu = ({
     isMobilePreviewActive: boolean
     toggleMobilePreview: () => void
     onOpenRecords: VoidFunction
-    onOpenChartPreviews: VoidFunction
+    onOpenComponentPreviews: VoidFunction
 }) => {
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
 
@@ -89,8 +89,8 @@ export const GdocsMoreMenu = ({
                             case GdocsMoreMenuAction.Records:
                                 onOpenRecords()
                                 break
-                            case GdocsMoreMenuAction.ChartPreviews:
-                                onOpenChartPreviews()
+                            case GdocsMoreMenuAction.ComponentPreviews:
+                                onOpenComponentPreviews()
                                 break
                         }
                     },
@@ -121,8 +121,8 @@ export const GdocsMoreMenu = ({
                             icon: <FontAwesomeIcon icon={faList} />,
                         },
                         {
-                            key: GdocsMoreMenuAction.ChartPreviews,
-                            label: "Update chart images in gdoc",
+                            key: GdocsMoreMenuAction.ComponentPreviews,
+                            label: "Update preview images in gdoc",
                             icon: <FontAwesomeIcon icon={faImage} />,
                         },
                         {

@@ -4,7 +4,7 @@ import { getTagGraphRolesById } from "./TagGraphMetadata.js"
 import { useUpdateGdocTags } from "./gdocsQueries.js"
 import { useTags } from "./tagQueries.js"
 import { GdocsIndexRow } from "./GdocsIndexRow.js"
-import { GdocsChartPreviewsModal } from "./GdocsChartPreviewsModal.js"
+import { GdocsComponentPreviewsModal } from "./GdocsComponentPreviewsModal.js"
 
 export function GdocsList({
     gdocs,
@@ -21,7 +21,7 @@ export function GdocsList({
     )
     const tagGraphRolesById = getTagGraphRolesById(tags)
     // One modal for the whole list rather than one per row
-    const [chartPreviewsGdoc, setChartPreviewsGdoc] =
+    const [componentPreviewsGdoc, setComponentPreviewsGdoc] =
         useState<OwidGdocIndexItem>()
 
     return (
@@ -37,16 +37,16 @@ export function GdocsList({
                     onUpdateTags={async (gdocId, tags) => {
                         await updateTagsMutation.mutateAsync({ gdocId, tags })
                     }}
-                    onOpenChartPreviews={setChartPreviewsGdoc}
+                    onOpenComponentPreviews={setComponentPreviewsGdoc}
                     canEditTags={availableTags !== undefined}
                 />
             ))}
-            {chartPreviewsGdoc && (
-                <GdocsChartPreviewsModal
-                    gdocId={chartPreviewsGdoc.id}
-                    gdocTitle={chartPreviewsGdoc.title || "Untitled"}
+            {componentPreviewsGdoc && (
+                <GdocsComponentPreviewsModal
+                    gdocId={componentPreviewsGdoc.id}
+                    gdocTitle={componentPreviewsGdoc.title || "Untitled"}
                     isOpen
-                    onClose={() => setChartPreviewsGdoc(undefined)}
+                    onClose={() => setComponentPreviewsGdoc(undefined)}
                 />
             )}
         </>

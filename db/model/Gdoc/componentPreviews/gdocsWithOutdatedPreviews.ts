@@ -10,8 +10,11 @@ import * as db from "../../../db.js"
  * if their data stays the same): refreshing a doc whose images are already up
  * to date only costs a read of the doc, since the image URLs carry a version
  * hash of the actual data.
+ *
+ * Deleted multi-dim redirects leave no trace, so the docs linking to their
+ * source slugs aren't picked up until something else about them changes.
  */
-export async function getGdocIdsWithChangedCharts(
+export async function getGdocIdsWithOutdatedPreviews(
     knex: db.KnexReadonlyTransaction,
     since: Date
 ): Promise<string[]> {
@@ -63,6 +66,11 @@ export async function getGdocIdsWithChangedCharts(
             FROM changed_multi_dims cm
             JOIN multi_dim_redirects mdr ON mdr.multiDimId = cm.id
             WHERE mdr.source LIKE '/grapher/%'
+            UNION
+            -- Redirects that were added or edited
+            SELECT REPLACE(source, '/grapher/', '')
+            FROM multi_dim_redirects
+            WHERE source LIKE '/grapher/%' AND updatedAt >= ?
         ),
         changed_narrative_charts AS (
             -- The merged config is rewritten when the parent chart changes
@@ -110,6 +118,10 @@ export async function getGdocIdsWithChangedCharts(
             FROM changed_multi_dims cm
             JOIN multi_dim_redirects mdr ON mdr.multiDimId = cm.id
             WHERE mdr.source LIKE '/explorers/%'
+            UNION
+            SELECT REPLACE(source, '/explorers/', '')
+            FROM multi_dim_redirects
+            WHERE source LIKE '/explorers/%' AND updatedAt >= ?
         )
         SELECT DISTINCT l.sourceId AS gdocId
         FROM posts_gdocs_links l
@@ -141,7 +153,7 @@ export async function getGdocIdsWithChangedCharts(
         WHERE l.linkType = 'static-viz'
             AND (sv.updatedAt >= ? OR i.updatedAt >= ?)`,
         [
-            ...Array(13).fill(since),
+            ...Array(15).fill(since),
             // images.updatedAt is in epoch milliseconds
             since.getTime(),
             since,

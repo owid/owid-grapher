@@ -53,7 +53,7 @@ import { deleteGdoc, updateGdoc } from "./gdocsApi.js"
 import { useUpdateGdocTags } from "./gdocsQueries.js"
 import { IconBadge } from "./IconBadge.js"
 import { GdocsMoreMenu } from "./GdocsMoreMenu.js"
-import { GdocsChartPreviewsModal } from "./GdocsChartPreviewsModal.js"
+import { GdocsComponentPreviewsModal } from "./GdocsComponentPreviewsModal.js"
 import { GdocsEditLink } from "./GdocsEditLink.js"
 import { openSuccessNotification } from "./gdocsNotifications.js"
 import { GdocsDiffButton } from "./GdocsDiffButton.js"
@@ -99,7 +99,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
     >()
     const [isDiffOpen, setDiffOpen] = useState(false)
     const [isRecordsOpen, setRecordsOpen] = useState(false)
-    const [isChartPreviewsOpen, setChartPreviewsOpen] = useState(false)
+    const [isComponentPreviewsOpen, setComponentPreviewsOpen] = useState(false)
     const [recordsPreviewMode, setRecordsPreviewMode] =
         useState<RecordsPreviewMode>("records")
     const { admin } = useContext(AdminAppContext)
@@ -461,8 +461,8 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                                 isMobilePreviewActive={isMobilePreviewActive}
                                 toggleMobilePreview={toggleMobilePreview}
                                 onOpenRecords={() => setRecordsOpen(true)}
-                                onOpenChartPreviews={() =>
-                                    setChartPreviewsOpen(true)
+                                onOpenComponentPreviews={() =>
+                                    setComponentPreviewsOpen(true)
                                 }
                             />
                         </Space>
@@ -657,10 +657,10 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                         mode={recordsPreviewMode}
                     />
                 </Drawer>
-                <GdocsChartPreviewsModal
+                <GdocsComponentPreviewsModal
                     gdocId={currentGdoc.id}
-                    isOpen={isChartPreviewsOpen}
-                    onClose={() => setChartPreviewsOpen(false)}
+                    isOpen={isComponentPreviewsOpen}
+                    onClose={() => setComponentPreviewsOpen(false)}
                 />
 
                 <div className="iframe-container">

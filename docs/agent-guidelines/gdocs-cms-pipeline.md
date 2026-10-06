@@ -21,7 +21,7 @@ Supporting type definitions live in `packages/@ourworldindata/types/src/gdocType
 
 Service account credentials from `settings/serverSettings.js` are wrapped by `OwidGoogleAuth` to produce cached, scope-limited `GoogleAuth` instances (`getGoogleReadonlyAuth` for ingestion, `getGoogleReadWriteAuth` when we need to write back to Docs).
 
-One such write-back is keeping the chart preview images above chart components current, see `gdocs-chart-previews.md`.
+One such write-back is keeping the preview images above chart and image components current, see `gdocs-component-previews.md`.
 
 The two most common ingestion entry points are:
 

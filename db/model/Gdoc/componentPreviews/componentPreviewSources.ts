@@ -4,21 +4,26 @@ import {
     LARGEST_IMAGE_WIDTH,
     QueryParams,
     Url,
+    buildQueryParamDecisionTree,
+    matchQueryParamDecisionTree,
     queryParamsToStr,
     searchParamsToMultiDimView,
     strToQueryParams,
 } from "@ourworldindata/utils"
+import { type MultiDimDataPageConfigEnriched } from "@ourworldindata/types"
 import {
     CLOUDFLARE_IMAGES_URL,
     GDOCS_CHART_PREVIEW_EXPLORER_URL,
     GDOCS_CHART_PREVIEW_GRAPHER_URL,
 } from "../../../../settings/serverSettings.js"
 import * as db from "../../../db.js"
+import { getMultiDimDataPageBySlug } from "../../MultiDimDataPage.js"
+import { getMultiDimRedirectRulesBySource } from "../../MultiDimRedirects.js"
 import {
     type GdocLinkTarget,
     resolveGdocLinkTargets,
 } from "../gdocLinkTargets.js"
-import { type ChartPreviewComponentSpec } from "./chartPreviewBlocks.js"
+import { type ComponentPreviewComponentSpec } from "./componentPreviewBlocks.js"
 
 /**
  * Maps chart components to the public PNG URL Google should fetch for their
@@ -32,7 +37,7 @@ import { type ChartPreviewComponentSpec } from "./chartPreviewBlocks.js"
  * now. The hash also busts the thumbnail cache on Cloudflare.
  */
 
-export type ChartPreviewSource =
+export type ComponentPreviewSource =
     | {
           status: "resolved"
           imageUrl: string
@@ -50,7 +55,9 @@ export type ChartPreviewSource =
 const PREVIEW_FORMAT_VERSION = "1"
 
 /** Components with the same kind and target share one image */
-export function chartPreviewSpecKey(spec: ChartPreviewComponentSpec): string {
+export function componentPreviewSpecKey(
+    spec: ComponentPreviewComponentSpec
+): string {
     return `${spec.kind}:${spec.target}`
 }
 
@@ -289,6 +296,10 @@ const DRAFT_CHART_MESSAGE =
  * - Multi-dims render the grapher config of the view the query params select.
  *   The dimension params only pick the view, so they're dropped from the image
  *   URL; the remaining ones (time, country, tab, ...) apply to the view.
+ * - Explorers that redirect to a multi-dim pick the redirect rule that matches
+ *   the link's query params, and the rule's params take precedence over the
+ *   link's, like the site's explorer redirects. (Grapher slugs redirect to one
+ *   target regardless of query params, both here and on the site.)
  * - Explorers are rendered from their published page, which picks the view
  *   from the query params.
  */
@@ -307,11 +318,44 @@ async function resolveChartLinks(
         { includeDraftCharts: true }
     )
 
+    const explorerRedirects = await matchExplorerRedirects(
+        knex,
+        explorerLinks.filter(
+            (link) => linkTargets.explorer.get(link.slug)?.type === "multiDim"
+        )
+    )
+
     const charts: { key: string; chartId: number; queryStr: string }[] = []
     const views: { key: string; viewConfigId: string; queryStr: string }[] = []
     const explorers: { key: string; slug: string; queryStr: string }[] = []
     const draftKeys = new Set<string>()
 
+    const addMultiDimView = (
+        link: GrapherLink,
+        config: MultiDimDataPageConfigEnriched,
+        queryParams: QueryParams
+    ): void => {
+        try {
+            const view = searchParamsToMultiDimView(
+                config,
+                new URLSearchParams(queryParamsToStr(queryParams))
+            )
+            // The dimension params have already been resolved into
+            // view.fullConfigId, so drop only those and keep the params that
+            // affect the rendered state (time, country, tab, ...)
+            const dimensionSlugs = config.dimensions.map((d) => d.slug)
+            views.push({
+                key: link.key,
+                viewConfigId: view.fullConfigId,
+                queryStr: queryParamsToStr(_.omit(queryParams, dimensionSlugs)),
+            })
+        } catch {
+            targets.set(link.key, {
+                status: "unresolved",
+                message: "No view of this multi-dim matches the link",
+            })
+        }
+    }
     const addTarget = (
         link: GrapherLink,
         target: GdocLinkTarget | undefined,
@@ -342,29 +386,13 @@ async function resolveChartLinks(
                 return
             case "multiDim": {
                 const { config } = target.multiDim
+                // The link's params win, like createRedirectResponse in
+                // functions/_common/redirectTools.ts
                 const queryParams = {
                     ...strToQueryParams(target.redirect?.queryStr ?? ""),
                     ...link.queryParams,
                 }
-                try {
-                    const view = searchParamsToMultiDimView(
-                        config,
-                        new URLSearchParams(queryParamsToStr(queryParams))
-                    )
-                    const dimensionSlugs = config.dimensions.map((d) => d.slug)
-                    views.push({
-                        key: link.key,
-                        viewConfigId: view.fullConfigId,
-                        queryStr: queryParamsToStr(
-                            _.omit(queryParams, dimensionSlugs)
-                        ),
-                    })
-                } catch {
-                    targets.set(link.key, {
-                        status: "unresolved",
-                        message: "No view of this multi-dim matches the link",
-                    })
-                }
+                addMultiDimView(link, config, queryParams)
                 return
             }
         }
@@ -375,12 +403,22 @@ async function resolveChartLinks(
             linkTargets.grapher.get(link.slug),
             "No chart or multi-dim with this slug"
         )
-    for (const link of explorerLinks)
-        addTarget(
-            link,
-            linkTargets.explorer.get(link.slug),
-            "No published explorer with this slug"
-        )
+    for (const link of explorerLinks) {
+        const target = linkTargets.explorer.get(link.slug)
+        if (target?.type !== "multiDim") {
+            addTarget(link, target, "No published explorer with this slug")
+            continue
+        }
+        const redirect = explorerRedirects.get(link.key)
+        if (redirect)
+            addMultiDimView(link, redirect.config, redirect.queryParams)
+        else
+            targets.set(link.key, {
+                status: "unresolved",
+                message:
+                    "No multi-dim redirect of this explorer matches the link",
+            })
+    }
 
     const [chartConfigs, viewConfigs, explorerHashes] = await Promise.all([
         getChartConfigsByChartId(
@@ -437,6 +475,65 @@ async function resolveChartLinks(
     return targets
 }
 
+/**
+ * The multi-dim view each explorer link redirects to, picked by matching the
+ * link's query params against the explorer's redirect rules. Mirrors
+ * getRedirectForExplorerUrl in functions/_common/redirectTools.ts: the link's
+ * params are kept, then the rule's params are applied, a null removing one.
+ */
+async function matchExplorerRedirects(
+    knex: db.KnexReadonlyTransaction,
+    links: GrapherLink[]
+): Promise<
+    Map<
+        string,
+        { config: MultiDimDataPageConfigEnriched; queryParams: QueryParams }
+    >
+> {
+    const matched = new Map<
+        string,
+        { config: MultiDimDataPageConfigEnriched; queryParams: QueryParams }
+    >()
+    const rulesBySlug = await getMultiDimRedirectRulesBySource(
+        knex,
+        "/explorers/",
+        _.uniq(links.map((link) => link.slug))
+    )
+    const trees = new Map(
+        [...rulesBySlug].map(([slug, rules]) => [
+            slug,
+            buildQueryParamDecisionTree(
+                rules.map((rule) => ({
+                    condition: rule.sourceQueryParams,
+                    target: rule.target,
+                }))
+            ),
+        ])
+    )
+    for (const link of links) {
+        const tree = trees.get(link.slug)
+        if (!tree) continue
+        const target = matchQueryParamDecisionTree(
+            tree,
+            _.omitBy(link.queryParams, _.isUndefined) as Record<string, string>
+        )
+        if (!target) continue
+        const multiDim = await getMultiDimDataPageBySlug(
+            knex,
+            target.targetSlug,
+            { onlyPublished: false }
+        )
+        if (!multiDim) continue
+        const queryParams: QueryParams = { ...link.queryParams }
+        for (const [param, value] of Object.entries(target.targetQueryParams)) {
+            if (value === null) delete queryParams[param]
+            else queryParams[param] = value
+        }
+        matched.set(link.key, { config: multiDim.config, queryParams })
+    }
+    return matched
+}
+
 /** Narrative charts render their merged config, which is stored per chart */
 async function resolveNarrativeCharts(
     knex: db.KnexReadonlyTransaction,
@@ -485,7 +582,7 @@ interface UploadedImage {
 function makeUploadedImageSource(
     image: UploadedImage | undefined,
     missingMessage: string
-): ChartPreviewSource {
+): ComponentPreviewSource {
     if (!image) return { status: "unresolved", message: missingMessage }
     if (!image.cloudflareId)
         return {
@@ -517,8 +614,8 @@ async function resolveUploadedImages(
     knex: db.KnexReadonlyTransaction,
     images: { key: string; filename: string }[],
     staticVizs: { key: string; name: string }[]
-): Promise<Map<string, ChartPreviewSource>> {
-    const sources = new Map<string, ChartPreviewSource>()
+): Promise<Map<string, ComponentPreviewSource>> {
+    const sources = new Map<string, ComponentPreviewSource>()
     const [imageRows, staticVizRows]: [
         (UploadedImage & { filename: string })[],
         (UploadedImage & { name: string })[],
@@ -571,11 +668,11 @@ async function resolveUploadedImages(
     return sources
 }
 
-export async function resolveChartPreviewSources(
+export async function resolveComponentPreviewSources(
     knex: db.KnexReadonlyTransaction,
-    specs: ChartPreviewComponentSpec[]
-): Promise<Map<string, ChartPreviewSource>> {
-    const sources = new Map<string, ChartPreviewSource>()
+    specs: ComponentPreviewComponentSpec[]
+): Promise<Map<string, ComponentPreviewSource>> {
+    const sources = new Map<string, ComponentPreviewSource>()
     const grapherLinks: GrapherLink[] = []
     const explorerLinks: GrapherLink[] = []
     const narrativeChartNames: { key: string; name: string }[] = []
@@ -584,7 +681,7 @@ export async function resolveChartPreviewSources(
     const seen = new Set<string>()
 
     for (const spec of specs) {
-        const key = chartPreviewSpecKey(spec)
+        const key = componentPreviewSpecKey(spec)
         if (seen.has(key)) continue
         seen.add(key)
         if (spec.kind === "narrativeChartName") {

@@ -298,10 +298,10 @@ export {
 } from "./gdocTypes/Gdoc.js"
 
 export type {
-    GdocChartPreviewStatus,
-    GdocChartPreviewItem,
-    GdocChartPreviewRefreshResult,
-} from "./gdocTypes/ChartPreviews.js"
+    GdocComponentPreviewStatus,
+    GdocComponentPreviewItem,
+    GdocComponentPreviewRefreshResult,
+} from "./gdocTypes/ComponentPreviews.js"
 
 export {
     type Distribution,

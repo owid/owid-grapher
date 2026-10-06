@@ -45,7 +45,7 @@ import {
     createOrUpdateGdoc,
     deleteGdoc,
     setGdocTags,
-    refreshGdocChartPreviewsInDoc,
+    refreshGdocComponentPreviewsInDoc,
     getPreviewGdocIndexRecords,
     getPublishedGdocTopicSlugs,
     getResearchAndWritingOrphans,
@@ -412,10 +412,11 @@ getRouteWithROTransaction(
 putRouteWithRWTransaction(apiRouter, "/gdocs/:id", createOrUpdateGdoc)
 deleteRouteWithRWTransaction(apiRouter, "/gdocs/:id", deleteGdoc)
 postRouteWithRWTransaction(apiRouter, "/gdocs/:gdocId/setTags", setGdocTags)
-postRouteWithRWTransaction(
-    apiRouter,
-    "/gdocs/:gdocId/refreshChartPreviews",
-    refreshGdocChartPreviewsInDoc
+// Opens its own short transaction, rather than holding one across the Google
+// API calls
+apiRouter.post(
+    "/gdocs/:gdocId/refreshComponentPreviews",
+    refreshGdocComponentPreviewsInDoc
 )
 
 // Data insight routes

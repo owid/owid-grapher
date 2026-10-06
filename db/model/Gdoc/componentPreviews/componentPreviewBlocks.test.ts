@@ -1,37 +1,34 @@
 import { describe, expect, it } from "vitest"
 import { type docs_v1 } from "@googleapis/docs"
 import {
-    findChartPreviewBlocks,
-    makeChartPreviewRequests,
-} from "./chartPreviewBlocks.js"
+    findComponentPreviewBlocks,
+    makeComponentPreviewRequests,
+} from "./componentPreviewBlocks.js"
 
 type ElementSpec =
     | string
     | { image: string }
-    | { link?: string; text: string; suggestion?: Suggestion }
+    | {
+          link?: string
+          text: string
+          /** Suggestion fields of the text run */
+          suggestion?: Pick<
+              docs_v1.Schema$TextRun,
+              | "suggestedInsertionIds"
+              | "suggestedDeletionIds"
+              | "suggestedTextStyleChanges"
+          >
+      }
     | { richLink: string }
 
-/**
- * A suggested insertion or deletion, or a suggested change of the text's link
- * to `newLink`
- */
-type Suggestion =
-    | { kind: "insertion" }
-    | { kind: "deletion" }
-    | { kind: "link"; newLink: string }
-
-function makeSuggestionFields(
-    suggestion: Suggestion | undefined
-): Partial<docs_v1.Schema$TextRun> {
-    if (!suggestion) return {}
-    if (suggestion.kind === "insertion")
-        return { suggestedInsertionIds: ["suggest.1"] }
-    if (suggestion.kind === "deletion")
-        return { suggestedDeletionIds: ["suggest.1"] }
+/** The suggestion fields of a text run whose link is suggested to change */
+function suggestLink(
+    url: string
+): Pick<docs_v1.Schema$TextRun, "suggestedTextStyleChanges"> {
     return {
         suggestedTextStyleChanges: {
             "suggest.1": {
-                textStyle: { link: { url: suggestion.newLink } },
+                textStyle: { link: { url } },
                 textStyleSuggestionState: { linkSuggested: true },
             },
         },
@@ -76,7 +73,7 @@ function makeContent(
                         ...(spec.link
                             ? { textStyle: { link: { url: spec.link } } }
                             : {}),
-                        ...makeSuggestionFields(spec.suggestion),
+                        ...spec.suggestion,
                     },
                 }
             }
@@ -117,7 +114,7 @@ function makeDocument(
 const URL_A = "https://ourworldindata.org/grapher/a"
 const URL_B = "https://ourworldindata.org/grapher/b?tab=map"
 
-describe(findChartPreviewBlocks, () => {
+describe(findComponentPreviewBlocks, () => {
     it("finds a chart with an image in its own paragraph above", () => {
         const document = makeDocument(
             makeContent([
@@ -139,7 +136,7 @@ describe(findChartPreviewBlocks, () => {
                 },
             }
         )
-        expect(findChartPreviewBlocks(document)).toEqual([
+        expect(findComponentPreviewBlocks(document)).toEqual([
             {
                 tabId: "t.0",
                 tabTitle: "Tab",
@@ -165,7 +162,7 @@ describe(findChartPreviewBlocks, () => {
                 ["{}"],
             ])
         )
-        const [block] = findChartPreviewBlocks(document)
+        const [block] = findComponentPreviewBlocks(document)
         expect(block.image).toMatchObject({ objectId: "kix.1", startIndex: 20 })
     })
 
@@ -178,7 +175,7 @@ describe(findChartPreviewBlocks, () => {
                 ["{}"],
             ])
         )
-        expect(findChartPreviewBlocks(document)[0].image).toBeUndefined()
+        expect(findComponentPreviewBlocks(document)[0].image).toBeUndefined()
     })
 
     it("doesn't take an image from before a preceding component", () => {
@@ -193,7 +190,7 @@ describe(findChartPreviewBlocks, () => {
                 ["{}"],
             ])
         )
-        const blocks = findChartPreviewBlocks(document)
+        const blocks = findComponentPreviewBlocks(document)
         expect(blocks.map((b) => b.image?.objectId)).toEqual([
             "kix.1",
             undefined,
@@ -213,7 +210,7 @@ describe(findChartPreviewBlocks, () => {
             ])
         )
         expect(
-            findChartPreviewBlocks(document).map((b) => b.spec.target)
+            findComponentPreviewBlocks(document).map((b) => b.spec.target)
         ).toEqual([URL_A, URL_B, URL_A])
     })
 
@@ -226,7 +223,7 @@ describe(findChartPreviewBlocks, () => {
             ])
         )
         expect(
-            findChartPreviewBlocks(document).map((b) => b.spec.target)
+            findComponentPreviewBlocks(document).map((b) => b.spec.target)
         ).toEqual([URL_B])
     })
 
@@ -247,14 +244,18 @@ describe(findChartPreviewBlocks, () => {
                 ["[]"],
             ])
         )
-        expect(
-            findChartPreviewBlocks(document).map((b) => b.spec)
-        ).toEqual([
-            { type: "key-indicator", kind: "chartUrl", target: URL_A },
-            // Pull charts show their uploaded thumbnail, not their url
-            { type: "pull-chart", kind: "imageFilename", target: "thumbnail.png" },
-            { type: "chart", kind: "chartUrl", target: URL_B },
-        ])
+        expect(findComponentPreviewBlocks(document).map((b) => b.spec)).toEqual(
+            [
+                { type: "key-indicator", kind: "chartUrl", target: URL_A },
+                // Pull charts show their uploaded thumbnail, not their url
+                {
+                    type: "pull-chart",
+                    kind: "imageFilename",
+                    target: "thumbnail.png",
+                },
+                { type: "chart", kind: "chartUrl", target: URL_B },
+            ]
+        )
     })
 
     it("finds narrative charts by name, ignoring links", () => {
@@ -268,13 +269,27 @@ describe(findChartPreviewBlocks, () => {
             ])
         )
         expect(
-            findChartPreviewBlocks(document).map((b) => [
+            findComponentPreviewBlocks(document).map((b) => [
                 b.spec,
                 b.image?.objectId,
             ])
         ).toEqual([
-            [{ type: "narrative-chart", kind: "narrativeChartName", target: "my-narrative" }, "kix.1"],
-            [{ type: "narrative-chart", kind: "narrativeChartName", target: "other-narrative" }, undefined],
+            [
+                {
+                    type: "narrative-chart",
+                    kind: "narrativeChartName",
+                    target: "my-narrative",
+                },
+                "kix.1",
+            ],
+            [
+                {
+                    type: "narrative-chart",
+                    kind: "narrativeChartName",
+                    target: "other-narrative",
+                },
+                undefined,
+            ],
         ])
     })
 
@@ -294,13 +309,27 @@ describe(findChartPreviewBlocks, () => {
             ])
         )
         expect(
-            findChartPreviewBlocks(document).map((b) => [
+            findComponentPreviewBlocks(document).map((b) => [
                 b.spec,
                 b.image?.objectId,
             ])
         ).toEqual([
-            [{ type: "image", kind: "imageFilename", target: "my-chart.png" }, "kix.1"],
-            [{ type: "static-viz", kind: "staticVizName", target: "my-static-viz" }, undefined],
+            [
+                {
+                    type: "image",
+                    kind: "imageFilename",
+                    target: "my-chart.png",
+                },
+                "kix.1",
+            ],
+            [
+                {
+                    type: "static-viz",
+                    kind: "staticVizName",
+                    target: "my-static-viz",
+                },
+                undefined,
+            ],
         ])
     })
 
@@ -312,11 +341,11 @@ describe(findChartPreviewBlocks, () => {
                     "url: ",
                     {
                         text: URL_A,
-                        suggestion: { kind: "deletion" },
+                        suggestion: { suggestedDeletionIds: ["suggest.1"] },
                     },
                     {
                         text: URL_B,
-                        suggestion: { kind: "insertion" },
+                        suggestion: { suggestedInsertionIds: ["suggest.1"] },
                     },
                 ],
                 ["{}"],
@@ -326,14 +355,14 @@ describe(findChartPreviewBlocks, () => {
                     {
                         link: URL_A,
                         text: "this chart",
-                        suggestion: { kind: "link", newLink: URL_B },
+                        suggestion: suggestLink(URL_B),
                     },
                 ],
                 ["{}"],
             ])
         )
         expect(
-            findChartPreviewBlocks(document).map((block) => block.spec)
+            findComponentPreviewBlocks(document).map((block) => block.spec)
         ).toEqual([
             { type: "chart", kind: "chartUrl", target: URL_B },
             { type: "chart", kind: "chartUrl", target: URL_B },
@@ -344,7 +373,7 @@ describe(findChartPreviewBlocks, () => {
         const content = makeContent([[{ image: "kix.1" }], [`chart: ${URL_A}`]])
         content[0].paragraph!.elements![0].inlineObjectElement!.suggestedDeletionIds =
             ["suggest.1"]
-        const [block] = findChartPreviewBlocks(makeDocument(content))
+        const [block] = findComponentPreviewBlocks(makeDocument(content))
         expect(block.image).toBeUndefined()
     })
 
@@ -352,7 +381,7 @@ describe(findChartPreviewBlocks, () => {
         const document = makeDocument(
             makeContent([["{.chart}"], ["caption: hi"], ["{}"], ["{.image}"]])
         )
-        expect(findChartPreviewBlocks(document)).toEqual([])
+        expect(findComponentPreviewBlocks(document)).toEqual([])
     })
 
     it("finds components in table cells and child tabs", () => {
@@ -383,7 +412,7 @@ describe(findChartPreviewBlocks, () => {
             },
         ]
         expect(
-            findChartPreviewBlocks(document).map((b) => [
+            findComponentPreviewBlocks(document).map((b) => [
                 b.tabId,
                 b.spec.target,
                 b.image?.objectId,
@@ -395,12 +424,12 @@ describe(findChartPreviewBlocks, () => {
     })
 })
 
-describe(makeChartPreviewRequests, () => {
+describe(makeComponentPreviewRequests, () => {
     const block = (
         tabId: string,
         componentStartIndex: number,
         objectId?: string
-    ): Parameters<typeof makeChartPreviewRequests>[0][number]["block"] => ({
+    ): Parameters<typeof makeComponentPreviewRequests>[0][number]["block"] => ({
         tabId,
         tabTitle: "",
         componentStartIndex,
@@ -412,7 +441,7 @@ describe(makeChartPreviewRequests, () => {
     })
 
     it("replaces first, then inserts from the end of each tab", () => {
-        const requests = makeChartPreviewRequests(
+        const requests = makeComponentPreviewRequests(
             [{ block: block("t.0", 50, "kix.1"), imageUrl: "r" }],
             [
                 { block: block("t.0", 10), imageUrl: "a" },
@@ -433,7 +462,7 @@ describe(makeChartPreviewRequests, () => {
     })
 
     it("inserts the image in a new paragraph above the component", () => {
-        const requests = makeChartPreviewRequests(
+        const requests = makeComponentPreviewRequests(
             [],
             [{ block: block("t.0", 42), imageUrl: "a" }]
         )
@@ -462,7 +491,7 @@ describe(makeChartPreviewRequests, () => {
                 size: { width: 300, height: 200 },
             },
         }
-        const requests = makeChartPreviewRequests(
+        const requests = makeComponentPreviewRequests(
             [],
             [
                 { block: block("t.0", 10), imageUrl: "a" },

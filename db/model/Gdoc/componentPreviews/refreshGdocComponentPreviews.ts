@@ -1,24 +1,24 @@
 import { docs as googleDocs, type docs_v1 } from "@googleapis/docs"
 import pMap from "p-map"
 import {
-    GdocChartPreviewItem,
-    GdocChartPreviewRefreshResult,
+    GdocComponentPreviewItem,
+    GdocComponentPreviewRefreshResult,
 } from "@ourworldindata/types"
 import { OwidGoogleAuth } from "../../../OwidGoogleAuth.js"
 import * as db from "../../../db.js"
 import {
-    type ChartPreviewBlock,
-    type ChartPreviewChange,
-    findChartPreviewBlocks,
-    makeChartPreviewRequests,
-} from "./chartPreviewBlocks.js"
+    type ComponentPreviewBlock,
+    type ComponentPreviewChange,
+    findComponentPreviewBlocks,
+    makeComponentPreviewRequests,
+} from "./componentPreviewBlocks.js"
 import {
-    chartPreviewSpecKey,
-    resolveChartPreviewSources,
-} from "./chartPreviewSources.js"
+    componentPreviewSpecKey,
+    resolveComponentPreviewSources,
+} from "./componentPreviewSources.js"
 
-export interface RefreshGdocChartPreviewsOptions {
-    /** Also add images above chart components that have none */
+export interface RefreshGdocComponentPreviewsOptions {
+    /** Also add images above components that have none */
     insertMissing?: boolean
     /** Report what would change without writing to the doc */
     dryRun?: boolean
@@ -28,10 +28,10 @@ const RENDER_TIMEOUT_MS = 60_000
 const RENDER_CONCURRENCY = 4
 
 function makeItem(
-    block: ChartPreviewBlock,
-    status: GdocChartPreviewItem["status"],
+    block: ComponentPreviewBlock,
+    status: GdocComponentPreviewItem["status"],
     message?: string
-): GdocChartPreviewItem {
+): GdocComponentPreviewItem {
     return {
         tabTitle: block.tabTitle,
         componentType: block.spec.type,
@@ -73,16 +73,16 @@ async function checkImageRenders(imageUrl: string): Promise<string | null> {
  * deleted and inserted again at the same width instead.
  */
 interface PlannedChanges {
-    replacements: ChartPreviewChange[]
-    insertions: ChartPreviewChange[]
-    reinsertions: ChartPreviewChange[]
+    replacements: ComponentPreviewChange[]
+    insertions: ComponentPreviewChange[]
+    reinsertions: ComponentPreviewChange[]
 }
 
 // How far apart aspect ratios can be before reinserting rather than cropping
 const ASPECT_RATIO_TOLERANCE = 0.02
 
 function needsReinsertion(
-    block: ChartPreviewBlock,
+    block: ComponentPreviewBlock,
     aspectRatio: number | undefined
 ): boolean {
     const size = block.image?.size
@@ -103,7 +103,7 @@ function countChanges(changes: PlannedChanges): number {
 }
 
 function makeRequests(changes: PlannedChanges): docs_v1.Schema$Request[] {
-    return makeChartPreviewRequests(
+    return makeComponentPreviewRequests(
         changes.replacements,
         changes.insertions,
         changes.reinsertions
@@ -120,8 +120,8 @@ async function writeChanges(
     docsClient: docs_v1.Docs,
     document: docs_v1.Schema$Document,
     changes: PlannedChanges
-): Promise<Map<ChartPreviewChange, string>> {
-    const failures = new Map<ChartPreviewChange, string>()
+): Promise<Map<ComponentPreviewChange, string>> {
+    const failures = new Map<ComponentPreviewChange, string>()
     const write = (requests: docs_v1.Schema$Request[]): Promise<unknown> =>
         docsClient.documents.batchUpdate({
             documentId: document.documentId!,
@@ -182,11 +182,10 @@ async function writeChanges(
  * are outdated or were pasted in by hand, and optionally inserts images where
  * there are none. Covers all tabs of the doc.
  */
-export async function refreshGdocChartPreviews(
-    knex: db.KnexReadonlyTransaction,
+export async function refreshGdocComponentPreviews(
     gdocId: string,
-    options: RefreshGdocChartPreviewsOptions = {}
-): Promise<GdocChartPreviewRefreshResult> {
+    options: RefreshGdocComponentPreviewsOptions = {}
+): Promise<GdocComponentPreviewRefreshResult> {
     const { insertMissing = false, dryRun = false } = options
     const docsClient = googleDocs({
         version: "v1",
@@ -199,20 +198,24 @@ export async function refreshGdocChartPreviews(
         suggestionsViewMode: "SUGGESTIONS_INLINE",
     })
 
-    const blocks = findChartPreviewBlocks(document)
-    const sources = await resolveChartPreviewSources(
-        knex,
-        blocks.map((block) => block.spec)
+    const blocks = findComponentPreviewBlocks(document)
+    // A transaction of its own, so that none is held open across the slow
+    // Google API calls and image renders
+    const sources = await db.knexReadonlyTransaction((knex) =>
+        resolveComponentPreviewSources(
+            knex,
+            blocks.map((block) => block.spec)
+        )
     )
 
-    const items = new Map<ChartPreviewBlock, GdocChartPreviewItem>()
+    const items = new Map<ComponentPreviewBlock, GdocComponentPreviewItem>()
     const planned: PlannedChanges = {
         replacements: [],
         insertions: [],
         reinsertions: [],
     }
     for (const block of blocks) {
-        const source = sources.get(chartPreviewSpecKey(block.spec))
+        const source = sources.get(componentPreviewSpecKey(block.spec))
         if (!source || source.status === "unresolved") {
             items.set(block, makeItem(block, "unresolved", source?.message))
             continue
@@ -248,7 +251,7 @@ export async function refreshGdocChartPreviews(
                 { concurrency: RENDER_CONCURRENCY }
             )
         )
-        const renders = (change: ChartPreviewChange): boolean => {
+        const renders = (change: ComponentPreviewChange): boolean => {
             const error = renderErrors.get(change.imageUrl)
             if (error)
                 items.set(change.block, makeItem(change.block, "failed", error))

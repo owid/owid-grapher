@@ -1,14 +1,14 @@
 import { useContext, useState } from "react"
 import { Alert, Checkbox, Modal, Table, Tag, Typography } from "antd"
 import {
-    GdocChartPreviewItem,
-    GdocChartPreviewRefreshResult,
-    GdocChartPreviewStatus,
+    GdocComponentPreviewItem,
+    GdocComponentPreviewRefreshResult,
+    GdocComponentPreviewStatus,
 } from "@ourworldindata/types"
 import { AdminAppContext } from "./AdminAppContext.js"
 
 const STATUS_LABELS: Record<
-    GdocChartPreviewStatus,
+    GdocComponentPreviewStatus,
     { label: string; color: string }
 > = {
     updated: { label: "Updated", color: "green" },
@@ -19,7 +19,7 @@ const STATUS_LABELS: Record<
     failed: { label: "Failed", color: "red" },
 }
 
-export function GdocsChartPreviewsModal({
+export function GdocsComponentPreviewsModal({
     gdocId,
     gdocTitle,
     isOpen,
@@ -34,14 +34,14 @@ export function GdocsChartPreviewsModal({
     const { admin } = useContext(AdminAppContext)
     const [insertMissing, setInsertMissing] = useState(false)
     const [isRunning, setIsRunning] = useState(false)
-    const [result, setResult] = useState<GdocChartPreviewRefreshResult>()
+    const [result, setResult] = useState<GdocComponentPreviewRefreshResult>()
 
     async function refresh() {
         setIsRunning(true)
         try {
             const response =
-                await admin.requestJSON<GdocChartPreviewRefreshResult>(
-                    `/api/gdocs/${gdocId}/refreshChartPreviews`,
+                await admin.requestJSON<GdocComponentPreviewRefreshResult>(
+                    `/api/gdocs/${gdocId}/refreshComponentPreviews`,
                     { insertMissing },
                     "POST",
                     { isBackground: true }
@@ -62,8 +62,8 @@ export function GdocsChartPreviewsModal({
             open={isOpen}
             title={
                 gdocTitle
-                    ? `Chart images in “${gdocTitle}”`
-                    : "Chart images in the Google Doc"
+                    ? `Preview images in “${gdocTitle}”`
+                    : "Preview images in the Google Doc"
             }
             okText={result ? "Done" : "Update images"}
             onOk={result ? close : refresh}
@@ -74,7 +74,7 @@ export function GdocsChartPreviewsModal({
             destroyOnHidden
         >
             {result ? (
-                <ChartPreviewResults items={result.items} />
+                <ComponentPreviewResults items={result.items} />
             ) : (
                 <>
                     <Typography.Paragraph>
@@ -95,7 +95,11 @@ export function GdocsChartPreviewsModal({
     )
 }
 
-function ChartPreviewResults({ items }: { items: GdocChartPreviewItem[] }) {
+function ComponentPreviewResults({
+    items,
+}: {
+    items: GdocComponentPreviewItem[]
+}) {
     if (items.length === 0)
         return (
             <Alert
@@ -128,7 +132,7 @@ function ChartPreviewResults({ items }: { items: GdocChartPreviewItem[] }) {
                     title: "Status",
                     dataIndex: "status",
                     width: 280,
-                    render: (status: GdocChartPreviewStatus, item) => (
+                    render: (status: GdocComponentPreviewStatus, item) => (
                         <>
                             <Tag color={STATUS_LABELS[status].color}>
                                 {STATUS_LABELS[status].label}
