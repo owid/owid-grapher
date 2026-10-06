@@ -60,7 +60,3 @@ starts "failing" as an unexpected pass: remove the `test.fail()`.
 | `GRAPHER_TEST_DB_NAME=<name>`                | Uses another test database, also for running suites side by side (only with `DBTEST_USE_EXISTING_DB=1`: Docker runs share one container, which each run stops when it ends) |
 | `DBTEST_USE_EXISTING_DB=1`                   | Uses a running MySQL instead of starting the Docker container (the database needs the pre-migrations schema)                                                                |
 | `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=<path>` | Uses a preinstalled Chromium, e.g. in sandboxes that can't download browsers                                                                                                |
-
-The test server's database sessions use `READ COMMITTED` isolation. Under the
-default `REPEATABLE READ`, concurrent chart saves deadlock on `chart_dimensions`
-gap locks, and tests save concurrently all the time.

@@ -627,20 +627,8 @@ export const saveGrapher = async (
         createdAt: now,
     })
 
-    // Remove any old dimensions and store the new ones
-    // We only note that a relationship exists between the chart and variable in the database; the actual dimension configuration is left to the json
-    await db.knexRaw(knex, `DELETE FROM chart_dimensions WHERE chartId=?`, [
-        chartId,
-    ])
-
-    const newDimensions = fullConfig.dimensions ?? []
-    for (const [i, dim] of newDimensions.entries()) {
-        await db.knexRaw(
-            knex,
-            `INSERT INTO chart_dimensions (chartId, variableId, property, \`order\`) VALUES (?, ?, ?, ?)`,
-            [chartId, dim.variableId, dim.property, i]
-        )
-    }
+    if (existingConfig) await replaceChartDimensions(knex, chartId, fullConfig)
+    else await insertChartDimensions(knex, chartId, fullConfig)
 
     if (fullConfig.isPublished) {
         await retrieveChartConfigFromDbAndSaveToR2(knex, chartConfigId, {
@@ -988,6 +976,51 @@ export async function updateChart(
     }
 }
 
+/** Inserts one `chart_dimensions` row per dimension and returns their ids */
+async function insertChartDimensions(
+    trx: db.KnexReadWriteTransaction,
+    chartId: number,
+    fullConfig: GrapherInterface
+): Promise<number[]> {
+    const insertedIds: number[] = []
+    for (const [i, dim] of (fullConfig.dimensions ?? []).entries()) {
+        const { insertId } = await db.knexRawInsert(
+            trx,
+            `INSERT INTO chart_dimensions (chartId, variableId, property, \`order\`) VALUES (?, ?, ?, ?)`,
+            [chartId, dim.variableId, dim.property, i]
+        )
+        insertedIds.push(insertId)
+    }
+    return insertedIds
+}
+
+/** Replaces the chart's `chart_dimensions` rows with the dimensions of its config */
+async function replaceChartDimensions(
+    trx: db.KnexReadWriteTransaction,
+    chartId: number,
+    fullConfig: GrapherInterface
+): Promise<void> {
+    // Insert the new rows before the SELECT ... FOR UPDATE below. When that
+    // SELECT finds no rows, MySQL locks the empty slot where the rows would
+    // go instead. Two saves can hold that lock at the same time, and then
+    // neither can insert until the other finishes, which is a deadlock.
+    const insertedIds = await insertChartDimensions(trx, chartId, fullConfig)
+    const rows = await db.knexRaw<{ id: number }>(
+        trx,
+        `SELECT id FROM chart_dimensions WHERE chartId = ? FOR UPDATE`,
+        [chartId]
+    )
+    const staleIds = rows
+        .map((row) => row.id)
+        .filter((id) => !insertedIds.includes(id))
+    // Delete by id only. If the WHERE also checks chartId, MySQL may walk
+    // the primary key index instead and lock rows of other charts on the way.
+    if (staleIds.length > 0)
+        await db.knexRaw(trx, `DELETE FROM chart_dimensions WHERE id IN (?)`, [
+            staleIds,
+        ])
+}
+
 /**
  * Refresh `chart_dimensions` and the chart's grapher_config in R2 (both the
  * UUID-keyed object and, if published, the slug-keyed object).
@@ -998,17 +1031,7 @@ async function refreshChartDimensionsAndR2(
     chartConfigId: string,
     fullConfig: GrapherInterface
 ): Promise<void> {
-    await db.knexRaw(trx, `DELETE FROM chart_dimensions WHERE chartId = ?`, [
-        chartId,
-    ])
-    const dimensions = fullConfig.dimensions ?? []
-    for (const [i, dim] of dimensions.entries()) {
-        await db.knexRaw(
-            trx,
-            `INSERT INTO chart_dimensions (chartId, variableId, property, \`order\`) VALUES (?, ?, ?, ?)`,
-            [chartId, dim.variableId, dim.property, i]
-        )
-    }
+    await replaceChartDimensions(trx, chartId, fullConfig)
     await retrieveChartConfigFromDbAndSaveToR2(trx, chartConfigId)
     if (fullConfig.isPublished && fullConfig.slug) {
         await retrieveChartConfigFromDbAndSaveToR2(trx, chartConfigId, {
