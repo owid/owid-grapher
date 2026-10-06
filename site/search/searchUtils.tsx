@@ -796,8 +796,8 @@ export function extractFiltersFromQuery(
             continue
         }
 
-        const ngramWords = R.map(ngram, R.prop("word"))
-        const ngramPositions = R.map(ngram, R.prop("position"))
+        const ngramWords = ngram.map(R.prop("word"))
+        const ngramPositions = ngram.map(R.prop("position"))
 
         const filtersFromNgram = findTopicAndRegionFilters(
             ngramWords,
