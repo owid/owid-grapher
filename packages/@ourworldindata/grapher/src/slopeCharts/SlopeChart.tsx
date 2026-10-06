@@ -1107,11 +1107,11 @@ export class SlopeChart
         // Don't show labels for the start values in relative mode since they're all trivially zero
         if (this.manager.isRelativeMode) return null
 
-        const uniqYValues = _.uniq(
+        const uniqYValues = new Set(
             this.leftLabelsSeries.map((series) => series.yValue)
         )
         const allSlopesStartFromZero =
-            uniqYValues.length === 1 && uniqYValues[0] === 0
+            uniqYValues.size === 1 && uniqYValues.has(0)
 
         // If all values have a start value of 0, show the 0-label only once
         if (allSlopesStartFromZero)

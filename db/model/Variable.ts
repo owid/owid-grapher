@@ -276,7 +276,7 @@ async function findAllMultiDimViewsThatInheritFromIndicator(
     )
         .select("multiDimId", "chartConfigId")
         .where({ variableId })
-    const multiDimIds = _.uniq(rows.map((row) => row.multiDimId))
+    const multiDimIds = new Set(rows.map((row) => row.multiDimId))
     const chartConfigIds = new Set(rows.map((row) => row.chartConfigId))
 
     const inheritingViews = []

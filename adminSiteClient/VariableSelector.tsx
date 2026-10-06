@@ -545,11 +545,11 @@ export class VariableSelector<
             }
         })
 
-        const uniqueNamespaces = _.uniq(
+        const uniqueNamespaces = new Set(
             this.chosenVariables.map((v) => v.namespaceName)
         )
         this.chosenNamespaces = this.database.namespaces.filter((n) => {
-            return uniqueNamespaces.includes(n.name)
+            return uniqueNamespaces.has(n.name)
         })
     }
 

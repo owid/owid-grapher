@@ -482,10 +482,10 @@ export const archiveVideos = async (
     videosByPostId: Record<string, string[]>,
     archiveDir: string
 ): Promise<Record<string, AssetMap>> => {
-    const uniqueVideos = _.uniq(Object.values(videosByPostId).flat())
-    if (uniqueVideos.length === 0) return {}
+    const uniqueVideos = new Set(Object.values(videosByPostId).flat())
+    if (uniqueVideos.size === 0) return {}
 
-    console.log("Videos to archive:", uniqueVideos.length)
+    console.log("Videos to archive:", uniqueVideos.size)
 
     const bakedFilesByVideoUrl: Record<string, string> = {}
     await pMap(

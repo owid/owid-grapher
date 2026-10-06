@@ -498,9 +498,12 @@ async function enrichRecordWithTableData(
         return
     }
 
-    const availableEntities = _.uniq(
+    const availableEntities = new Set(
         ySlugs.flatMap((ySlug) => entitiesPerColumnPerTable[tableSlug][ySlug])
-    ).filter((name): name is string => !!name)
+    )
+        .values()
+        .filter((name): name is string => !!name)
+        .toArray()
 
     return {
         ...record,
