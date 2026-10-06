@@ -85,7 +85,6 @@ export function adminScatterDefaults(
         [DimensionProperty.color, CONTINENTS_INDICATOR_ID],
         [DimensionProperty.size, populationId],
     ] as const
-
     return variableIdsByProperty.flatMap(([property, variableId]) =>
         variableId ? [{ property, variableId }] : []
     )

@@ -18,13 +18,16 @@ import { TagsSection } from "./EditorBasicTab.js"
 
 interface EditorPublishingTabProps {
     editor: ConfigEditor
+
     indicatorId: number | undefined
     indicatorConfig: GrapherInterface | undefined
     isInheritanceEnabled: boolean
     onInheritanceChange: (isEnabled: boolean) => void
+
     tags: DbChartTagJoin[] | undefined
     availableTags: MinimalTagWithMetadata[] | undefined
     onSaveTags: (tags: DbChartTagJoin[]) => Promise<void>
+
     forceDatapage: boolean
     onForceDatapageChange: (forceDatapage: boolean) => void
 }

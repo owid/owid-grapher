@@ -23,6 +23,7 @@ import {
     adminDetailsProvider,
     adminIndicatorCatalog,
     defaultEditorEnvironment,
+    DetailsProvider,
 } from "./editorProviders.js"
 import { dataApiIndicatorStore, IndicatorStore } from "./indicatorStores.js"
 import { makeNarrativeChartPatchConfig } from "./narrativeChartConfig.js"
@@ -59,6 +60,15 @@ class CreateNarrativeChartEditorPageInternal extends React.Component<CreateNarra
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
+    isLoaded = false
+
+    parentConfig: GrapherInterface | undefined = undefined
+
+    name: string | undefined = undefined
+    nameError: string | undefined = undefined
+
+    createdId: number | undefined = undefined
+
     constructor(props: CreateNarrativeChartEditorPageInternalProps) {
         super(props)
         makeObservable(this, {
@@ -70,12 +80,6 @@ class CreateNarrativeChartEditorPageInternal extends React.Component<CreateNarra
         })
     }
 
-    isLoaded = false
-    parentConfig: GrapherInterface | undefined = undefined
-    name: string | undefined = undefined
-    nameError: string | undefined = undefined
-    createdId: number | undefined = undefined
-
     @computed get admin(): Admin {
         return this.context.admin
     }
@@ -85,6 +89,15 @@ class CreateNarrativeChartEditorPageInternal extends React.Component<CreateNarra
             dataApiUrl: defaultEditorEnvironment.dataApiUrl,
             catalog: adminIndicatorCatalog(this.admin),
         })
+    }
+
+    @computed get details(): DetailsProvider {
+        return adminDetailsProvider(this.admin)
+    }
+
+    @computed get previewUrl(): string | undefined {
+        const parentId = this.parentConfig?.id
+        return parentId ? `/admin/charts/${parentId}/preview` : undefined
     }
 
     @computed get initialQueryParams(): GrapherQueryParams | undefined {
@@ -143,6 +156,38 @@ class CreateNarrativeChartEditorPageInternal extends React.Component<CreateNarra
         }
     }
 
+    private readonly renderSaveButtons = (
+        editor: ConfigEditor,
+        editingErrors: string[]
+    ): React.ReactNode => (
+        <NarrativeChartSaveButtons
+            editor={editor}
+            editingErrors={editingErrors}
+            parentUrl={null}
+            chart={{
+                status: "new",
+                name: this.name,
+                nameError: this.nameError,
+                onNameChange: this.onNameChange,
+            }}
+        />
+    )
+
+    private renderEditor(): React.ReactElement {
+        return (
+            <GrapherEditor
+                config={{}}
+                baseConfig={this.parentConfig}
+                initialQueryParams={this.initialQueryParams}
+                store={this.store}
+                details={this.details}
+                onSave={this.onSave}
+                renderSaveButtons={this.renderSaveButtons}
+                previewUrl={this.previewUrl}
+            />
+        )
+    }
+
     override render(): React.ReactElement {
         return (
             <AdminLayout noSidebar>
@@ -150,32 +195,7 @@ class CreateNarrativeChartEditorPageInternal extends React.Component<CreateNarra
                     <Redirect to={`/narrative-charts/${this.createdId}/edit`} />
                 )}
                 {this.isLoaded ? (
-                    <GrapherEditor
-                        config={{}}
-                        baseConfig={this.parentConfig}
-                        previewUrl={
-                            this.parentConfig?.id
-                                ? `/admin/charts/${this.parentConfig.id}/preview`
-                                : undefined
-                        }
-                        initialQueryParams={this.initialQueryParams}
-                        store={this.store}
-                        details={adminDetailsProvider(this.admin)}
-                        renderSaveButtons={(editor, editingErrors) => (
-                            <NarrativeChartSaveButtons
-                                editor={editor}
-                                editingErrors={editingErrors}
-                                parentUrl={null}
-                                chart={{
-                                    status: "new",
-                                    name: this.name,
-                                    nameError: this.nameError,
-                                    onNameChange: this.onNameChange,
-                                }}
-                            />
-                        )}
-                        onSave={this.onSave}
-                    />
+                    this.renderEditor()
                 ) : (
                     <main className="ChartEditorPage">
                         <LoadingBlocker isLoading />

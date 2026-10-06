@@ -38,6 +38,69 @@ export function findLastMapColorScaleEdit(
     return undefined
 }
 
+const REVISION_RESTORE_KEPT_KEYS = [
+    "id",
+    "version",
+    "slug",
+    "isPublished",
+] as const satisfies readonly (keyof GrapherInterface)[]
+
+export function makeRestoredPatchConfig(
+    revisionConfig: Json,
+    currentPatchConfig: GrapherInterface
+): GrapherInterface {
+    const migrated = migrateGrapherConfigToLatestVersion(revisionConfig)
+    return {
+        ..._.omit(migrated, REVISION_RESTORE_KEPT_KEYS),
+        ..._.pick(currentPatchConfig, REVISION_RESTORE_KEPT_KEYS),
+    }
+}
+
+export interface StaticVizReference {
+    id: number
+    name: string
+    grapherSlug?: string | null
+    type: ContentGraphLinkType.StaticViz
+}
+
+export interface NarrativeChartMinimalInformation {
+    id: number
+    name: string
+    title: string
+}
+
+export interface References {
+    postsWordpress?: PostReference[]
+    postsGdocs?: PostReference[]
+    explorers?: string[]
+    narrativeCharts?: NarrativeChartMinimalInformation[]
+    dataInsights?: DataInsightMinimalInformation[]
+    staticViz?: StaticVizReference[]
+}
+
+export const getFullReferencesCount = (references: References): number => {
+    const allRefs = Object.values(
+        references
+    ).flat() as References[keyof References][]
+    const uniqueRefs = new Set(
+        allRefs.map((ref) => {
+            if (typeof ref === "string") return `string:${ref}`
+            if (!ref || typeof ref !== "object") {
+                return `unknown:${String(ref)}`
+            }
+            const typedRef = ref as {
+                type?: string
+                slug?: string
+                id?: string | number
+            }
+            const type = typedRef.type ?? "unknown"
+            const slug = typedRef.slug ?? typedRef.id ?? "unknown"
+            return `${type}:${slug}`
+        })
+    )
+    return uniqueRefs.size
+}
+
 const topicSlugsBox = observable.box<string[]>([])
 let topicSlugsRequested = false
 
@@ -76,49 +139,14 @@ export function adminOriginUrlSuggestions(
     ]
 }
 
-export interface References {
-    postsWordpress?: PostReference[]
-    postsGdocs?: PostReference[]
-    explorers?: string[]
-    narrativeCharts?: NarrativeChartMinimalInformation[]
-    dataInsights?: DataInsightMinimalInformation[]
-    staticViz?: StaticVizReference[]
-}
-
-export interface StaticVizReference {
-    id: number
-    name: string
-    grapherSlug?: string | null
-    type: ContentGraphLinkType.StaticViz
-}
-
-export interface NarrativeChartMinimalInformation {
-    id: number
-    name: string
-    title: string
-}
-
-export const getFullReferencesCount = (references: References): number => {
-    const allRefs = Object.values(
-        references
-    ).flat() as References[keyof References][]
-    const uniqueRefs = new Set(
-        allRefs.map((ref) => {
-            if (typeof ref === "string") return `string:${ref}`
-            if (!ref || typeof ref !== "object") {
-                return `unknown:${String(ref)}`
-            }
-            const typedRef = ref as {
-                type?: string
-                slug?: string
-                id?: string | number
-            }
-            const type = typedRef.type ?? "unknown"
-            const slug = typedRef.slug ?? typedRef.id ?? "unknown"
-            return `${type}:${slug}`
-        })
+export async function fetchChartConfigByIndicatorId(
+    admin: Admin,
+    indicatorId: number
+): Promise<GrapherInterface | undefined> {
+    const indicatorChart = await admin.getJSON(
+        `/api/variables/${indicatorId}.config.json`
     )
-    return uniqueRefs.size
+    return _.isEmpty(indicatorChart) ? undefined : indicatorChart
 }
 
 export async function deleteChart(params: {
@@ -152,32 +180,4 @@ export async function deleteChart(params: {
     const json = await admin.requestJSON(`/api/charts/${chartId}`, {}, "DELETE")
 
     if (json.success) onSuccess?.()
-}
-
-export async function fetchChartConfigByIndicatorId(
-    admin: Admin,
-    indicatorId: number
-): Promise<GrapherInterface | undefined> {
-    const indicatorChart = await admin.getJSON(
-        `/api/variables/${indicatorId}.config.json`
-    )
-    return _.isEmpty(indicatorChart) ? undefined : indicatorChart
-}
-
-const REVISION_RESTORE_KEPT_KEYS = [
-    "id",
-    "version",
-    "slug",
-    "isPublished",
-] as const satisfies readonly (keyof GrapherInterface)[]
-
-export function makeRestoredPatchConfig(
-    revisionConfig: Json,
-    currentPatchConfig: GrapherInterface
-): GrapherInterface {
-    const migrated = migrateGrapherConfigToLatestVersion(revisionConfig)
-    return {
-        ..._.omit(migrated, REVISION_RESTORE_KEPT_KEYS),
-        ..._.pick(currentPatchConfig, REVISION_RESTORE_KEPT_KEYS),
-    }
 }

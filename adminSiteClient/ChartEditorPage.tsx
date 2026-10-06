@@ -14,15 +14,20 @@ import {
     ChartRedirect,
     MinimalTagWithMetadata,
     DbChartTagJoin,
+    OwidChartDimensionInterface,
 } from "@ourworldindata/types"
-import { GrapherState } from "@ourworldindata/grapher"
 import { BAKED_GRAPHER_URL } from "../settings/clientSettings.mjs"
 import { Admin } from "./Admin.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { AdminLayout } from "./AdminLayout.js"
 import { LoadingBlocker, Timeago } from "./Forms.js"
 import { GrapherEditor } from "./GrapherEditor.js"
-import { ConfigEditor, EditorExtraTab, EditorNoteSlot } from "./ConfigEditor.js"
+import {
+    ConfigEditor,
+    EditorExtraTab,
+    EditorNoteSlot,
+    OriginUrlSuggestion,
+} from "./ConfigEditor.js"
 import { ChartSaveActions, ChartSaveButtons } from "./ChartSaveButtons.js"
 import { EditorHistoryTab } from "./EditorHistoryTab.js"
 import { EditorReferencesTabForChart } from "./EditorReferencesTab.js"
@@ -41,6 +46,7 @@ import {
     adminIndicatorCatalog,
     adminScatterDefaults,
     defaultEditorEnvironment,
+    DetailsProvider,
 } from "./editorProviders.js"
 import { dataApiIndicatorStore, IndicatorStore } from "./indicatorStores.js"
 import { makeNarrativeChartPatchConfig } from "./narrativeChartConfig.js"
@@ -59,16 +65,38 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
+    isLoaded = false
+
+    indicatorId: number | undefined = undefined
+    indicatorConfig: GrapherInterface | undefined = undefined
+    isInheritanceEnabled = true
+    etlConfig: GrapherInterface | undefined = undefined
+    patchConfig: GrapherInterface = {}
+
+    logs: Log[] = []
+    references: References | undefined = undefined
+    redirects: ChartRedirect[] = []
+    views: AnalyticsGrapherViewWithRank | undefined = undefined
+
+    tags: DbChartTagJoin[] | undefined = undefined
+    availableTags: MinimalTagWithMetadata[] | undefined = undefined
+    forceDatapage = false
+
+    variableIdsByCatalogPath: Record<string, number | null> | undefined =
+        undefined
+
+    newChartId: number | undefined = undefined
+
     constructor(props: ChartEditorPageProps) {
         super(props)
 
         makeObservable(this, {
             isLoaded: observable,
-            patchConfig: observable.ref,
-            indicatorConfig: observable.ref,
             indicatorId: observable.ref,
-            etlConfig: observable.ref,
+            indicatorConfig: observable.ref,
             isInheritanceEnabled: observable.ref,
+            etlConfig: observable.ref,
+            patchConfig: observable.ref,
             logs: observable,
             references: observable,
             redirects: observable,
@@ -80,25 +108,6 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
             newChartId: observable.ref,
         })
     }
-
-    isLoaded = false
-    patchConfig: GrapherInterface = {}
-    indicatorConfig: GrapherInterface | undefined = undefined
-    indicatorId: number | undefined = undefined
-    etlConfig: GrapherInterface | undefined = undefined
-    isInheritanceEnabled = true
-
-    logs: Log[] = []
-    references: References | undefined = undefined
-    redirects: ChartRedirect[] = []
-    views: AnalyticsGrapherViewWithRank | undefined = undefined
-    tags: DbChartTagJoin[] | undefined = undefined
-    availableTags: MinimalTagWithMetadata[] | undefined = undefined
-    forceDatapage = false
-    variableIdsByCatalogPath: Record<string, number | null> | undefined =
-        undefined
-
-    newChartId: number | undefined = undefined
 
     @computed get admin(): Admin {
         return this.context.admin
@@ -115,18 +124,32 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
         })
     }
 
-    @computed get baseConfig(): GrapherInterface | undefined {
+    @computed get details(): DetailsProvider {
+        return adminDetailsProvider(this.admin)
+    }
+
+    @computed get scatterDefaults(): OwidChartDimensionInterface[] {
+        return adminScatterDefaults(this.variableIdsByCatalogPath)
+    }
+
+    @computed get previewUrl(): string | undefined {
+        const { grapherId } = this.props
+        if (grapherId === undefined) return undefined
+        const query = this.forceDatapage ? "?forceDatapage=true" : ""
+        return `/admin/charts/${grapherId}/preview${query}`
+    }
+
+    @computed get baseConfig(): GrapherInterface {
         return this.makeBaseConfig(this.indicatorConfig)
     }
 
     private makeBaseConfig(
         indicatorConfig: GrapherInterface | undefined
-    ): GrapherInterface | undefined {
-        const base = mergeGrapherConfigs(
-            this.isInheritanceEnabled ? (indicatorConfig ?? {}) : {},
-            this.etlConfig ?? {}
-        )
-        return Object.keys(base).length ? base : undefined
+    ): GrapherInterface {
+        const inheritedConfig = this.isInheritanceEnabled
+            ? indicatorConfig
+            : undefined
+        return mergeGrapherConfigs(inheritedConfig ?? {}, this.etlConfig ?? {})
     }
 
     async fetchConfigAndLayers(): Promise<void> {
@@ -310,7 +333,13 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
         const { grapherState } = editor
         const isNew = grapherState.id === undefined
 
-        const body = withDerivedTitleAndSlug(patch, grapherState)
+        const body: GrapherInterface = {
+            ...patch,
+            title: patch.title || grapherState.effectiveTitle,
+            ...(grapherState.isPublished && !patch.slug
+                ? { slug: grapherState.displaySlug }
+                : {}),
+        }
 
         const query = this.saveQuery()
         const shouldEnableInheritance = query.get("inheritance") === "enable"
@@ -340,7 +369,11 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
     private saveActions(editor: ConfigEditor): ChartSaveActions {
         return {
             saveAsNew: async () => {
-                const chartJson = configForDuplicate(editor.fullConfig)
+                const chartJson = _.omit(editor.fullConfig, [
+                    "id",
+                    "isPublished",
+                    "slug",
+                ])
 
                 // Need to open intermediary tab before AJAX to avoid popup blockers
                 const w = window.open("/", "_blank") as Window
@@ -490,7 +523,19 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
         ]
     }
 
-    private renderNote(slot: EditorNoteSlot): React.ReactNode {
+    private readonly renderSaveButtons = (
+        editor: ConfigEditor,
+        editingErrors: string[]
+    ): React.ReactNode => (
+        <ChartSaveButtons
+            editor={editor}
+            editingErrors={editingErrors}
+            isNewChart={editor.grapherState.id === undefined}
+            actions={this.saveActions(editor)}
+        />
+    )
+
+    private readonly renderNote = (slot: EditorNoteSlot): React.ReactNode => {
         switch (slot) {
             case "map.colorScale": {
                 const edit = findLastMapColorScaleEdit(this.logs)
@@ -505,6 +550,29 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
         }
     }
 
+    private readonly originUrlSuggestions = (): OriginUrlSuggestion[] =>
+        adminOriginUrlSuggestions(this.admin, this.references)
+
+    private renderEditor(): React.ReactElement {
+        return (
+            <GrapherEditor
+                key={this.props.grapherId ?? "new"}
+                config={this.patchConfig}
+                baseConfig={this.baseConfig}
+                store={this.store}
+                details={this.details}
+                scatterDefaults={this.scatterDefaults}
+                onSave={this.onSave}
+                onChange={this.syncIndicatorConfig}
+                extraTabs={this.extraTabs}
+                renderSaveButtons={this.renderSaveButtons}
+                previewUrl={this.previewUrl}
+                renderNote={this.renderNote}
+                originUrlSuggestions={this.originUrlSuggestions}
+            />
+        )
+    }
+
     override render(): React.ReactElement {
         return (
             <AdminLayout noSidebar>
@@ -512,41 +580,7 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
                     <Redirect to={`/charts/${this.newChartId}/edit`} />
                 )}
                 {this.isLoaded ? (
-                    <GrapherEditor
-                        key={this.props.grapherId ?? "new"}
-                        config={this.patchConfig}
-                        store={this.store}
-                        scatterDefaults={adminScatterDefaults(
-                            this.variableIdsByCatalogPath
-                        )}
-                        details={adminDetailsProvider(this.admin)}
-                        baseConfig={this.baseConfig}
-                        previewUrl={
-                            this.props.grapherId !== undefined
-                                ? `/admin/charts/${this.props.grapherId}/preview${this.forceDatapage ? "?forceDatapage=true" : ""}`
-                                : undefined
-                        }
-                        extraTabs={this.extraTabs}
-                        renderNote={(slot) => this.renderNote(slot)}
-                        originUrlSuggestions={() =>
-                            adminOriginUrlSuggestions(
-                                this.admin,
-                                this.references
-                            )
-                        }
-                        renderSaveButtons={(editor, editingErrors) => (
-                            <ChartSaveButtons
-                                editor={editor}
-                                editingErrors={editingErrors}
-                                isNewChart={
-                                    editor.grapherState.id === undefined
-                                }
-                                actions={this.saveActions(editor)}
-                            />
-                        )}
-                        onChange={this.syncIndicatorConfig}
-                        onSave={this.onSave}
-                    />
+                    this.renderEditor()
                 ) : (
                     <main className="ChartEditorPage">
                         <LoadingBlocker isLoading />
@@ -555,21 +589,4 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
             </AdminLayout>
         )
     }
-}
-
-function withDerivedTitleAndSlug(
-    patch: GrapherInterface,
-    grapherState: GrapherState
-): GrapherInterface {
-    return {
-        ...patch,
-        title: patch.title || grapherState.effectiveTitle,
-        ...(grapherState.isPublished && !patch.slug
-            ? { slug: grapherState.displaySlug }
-            : {}),
-    }
-}
-
-function configForDuplicate(fullConfig: GrapherInterface): GrapherInterface {
-    return _.omit(fullConfig, ["id", "isPublished", "slug"])
 }

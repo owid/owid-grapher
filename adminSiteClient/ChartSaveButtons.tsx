@@ -23,6 +23,9 @@ interface ChartSaveButtonsProps {
 
 @observer
 export class ChartSaveButtons extends Component<ChartSaveButtonsProps> {
+    isNarrativeChartNameModalOpen = false
+    narrativeChartNameModalError: string | undefined = undefined
+
     constructor(props: ChartSaveButtonsProps) {
         super(props)
 
@@ -39,9 +42,6 @@ export class ChartSaveButtons extends Component<ChartSaveButtonsProps> {
     @computed get initialNarrativeChartName(): string {
         return slugify(this.props.editor.grapherState.title ?? "")
     }
-
-    isNarrativeChartNameModalOpen = false
-    narrativeChartNameModalError: string | undefined = undefined
 
     @action.bound async onSubmitNarrativeChartButton(name: string) {
         const res = await this.props.actions.saveAsNarrativeChart(name)
