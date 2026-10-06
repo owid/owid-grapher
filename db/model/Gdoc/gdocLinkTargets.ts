@@ -89,6 +89,7 @@ export async function resolveGdocLinkTargets(
     const targets: GdocLinkTargets = { grapher: new Map(), explorer: new Map() }
     if (grapherSlugs.length === 0 && explorerSlugs.length === 0) return targets
 
+    const noExplorers: Record<string, MinimalExplorerInfo> = {}
     const [
         slugToIdMap,
         grapherMultiDimRedirects,
@@ -100,7 +101,7 @@ export async function resolveGdocLinkTargets(
         getMultiDimRedirectTargets(knex, explorerSlugs, "/explorers/"),
         explorerSlugs.length
             ? db.getPublishedExplorersBySlug(knex)
-            : ({} as Record<string, MinimalExplorerInfo>),
+            : noExplorers,
     ])
 
     const multiDimsBySlug = new Map<
