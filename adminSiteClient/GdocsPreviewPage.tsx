@@ -104,6 +104,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
 
     const [isMobilePreviewActive, setIsMobilePreviewActive] = useState(false)
     const [acceptSuggestions, setAcceptSuggestions] = useState(false)
+    const [now] = useState(() => new Date())
 
     // Only used when currentGdoc is a profile
     const { entitiesInScope, selectedEntity, setSelectedEntity } =
@@ -364,8 +365,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                                 currentGdoc.publishedAt && (
                                     <>
                                         [
-                                        {currentGdoc.publishedAt <=
-                                        new Date() ? (
+                                        {currentGdoc.publishedAt <= now ? (
                                             <>
                                                 <a
                                                     href={getCanonicalUrl(
