@@ -34,7 +34,7 @@ import {
     GrapherState,
     hasValidConfigForBinningStrategy,
 } from "@ourworldindata/grapher"
-import { ConfigEditor } from "./ConfigEditor.js"
+import { ConfigEditor, EditorTabKey } from "./ConfigEditor.js"
 import { EditorBasicTab } from "./EditorBasicTab.js"
 import { EditorDataTab } from "./EditorDataTab.js"
 import { EditorTextTab } from "./EditorTextTab.js"
@@ -67,12 +67,6 @@ export type DetailReferences = Record<FieldWithDetailReferences, string[]>
 export interface ChartEditorViewManager {
     editor: ConfigEditor
     details?: DetailsProvider
-    /**
-     * Query params to apply to the grapher once, after the initial data load.
-     * Used when creating a narrative chart from a customized chart, so that the
-     * editor opens on the state the user was looking at. Managers that don't
-     * set it get the authored config as before.
-     */
     initialQueryParams?: GrapherQueryParams
     previewUrl?: string
 }
@@ -360,17 +354,33 @@ export class ChartEditorView extends React.Component<ChartEditorViewProps> {
         )
     }
 
+    private renderSaveButtons(editor: ConfigEditor): React.ReactNode {
+        const { renderSaveButtons } = editor.manager
+        if (renderSaveButtons)
+            return renderSaveButtons(editor, this.editingErrors)
+        return (
+            <SaveButtons
+                editor={editor}
+                errorMessages={this.errorMessages}
+                errorMessagesForDimensions={this.errorMessagesForDimensions}
+            />
+        )
+    }
+
     renderReady(editor: ConfigEditor): React.ReactElement {
         const { grapherState, availableTabs } = editor
+        const { previewUrl } = this.manager
+        const extraTabs = editor.manager.extraTabs ?? []
+
         const activeTab = availableTabs.includes(editor.tab)
             ? editor.tab
             : availableTabs[0]
-
-        const extraTabs = editor.manager.extraTabs ?? []
-        const activeExtraTab = extraTabs.find((tab) => tab.key === activeTab)
-        const tabLabel = (tab: string): React.ReactNode =>
-            extraTabs.find((t) => t.key === tab)?.label ?? _.capitalize(tab)
-        const { previewUrl } = this.manager
+        const activeExtraTab = extraTabs.find(
+            (extraTab) => extraTab.key === activeTab
+        )
+        const tabLabel = (tab: EditorTabKey): React.ReactNode =>
+            extraTabs.find((extraTab) => extraTab.key === tab)?.label ??
+            _.capitalize(tab)
 
         return (
             <>
@@ -445,21 +455,7 @@ export class ChartEditorView extends React.Component<ChartEditorViewProps> {
                             <EditorDebugTab editor={editor} />
                         )}
                     </div>
-                    {activeTab !== "export" &&
-                        (editor.manager.renderSaveButtons ? (
-                            editor.manager.renderSaveButtons(
-                                editor,
-                                this.editingErrors
-                            )
-                        ) : (
-                            <SaveButtons
-                                editor={editor}
-                                errorMessages={this.errorMessages}
-                                errorMessagesForDimensions={
-                                    this.errorMessagesForDimensions
-                                }
-                            />
-                        ))}
+                    {activeTab !== "export" && this.renderSaveButtons(editor)}
                 </div>
                 <div className="chart-editor-view">
                     {previewUrl && (
