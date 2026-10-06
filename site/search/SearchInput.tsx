@@ -1,10 +1,12 @@
 import { ReactNode, forwardRef, ForwardedRef, useRef } from "react"
+import { SearchUrlParam } from "@ourworldindata/types"
 import { useIsClient, useMediaQuery } from "usehooks-ts"
 import { SMALL_BREAKPOINT_MEDIA_QUERY } from "../SiteConstants.js"
 import {
     isCurrentRef,
     getSearchAutocompleteId,
     getSearchAutocompleteItemId,
+    SEARCH_BASE_PATH,
 } from "./searchUtils.js"
 import { useSearchAutocomplete } from "./SearchAutocompleteContext.js"
 
@@ -109,6 +111,9 @@ export const SearchInput = forwardRef(
             <form
                 className="search-form"
                 role="search"
+                // Submitting is handled in JS; action and the input's name
+                // let Firefox offer "Add Search Engine" on right-click.
+                action={SEARCH_BASE_PATH}
                 onSubmit={(e) => {
                     e.preventDefault()
                     // unfocus input to hide autocomplete/hide mobile keyboard
@@ -123,6 +128,10 @@ export const SearchInput = forwardRef(
                 <div className="search-input-row">
                     <input
                         type="text"
+                        name={SearchUrlParam.QUERY}
+                        // Named inputs get the browser's form history, which
+                        // would cover our own suggestions.
+                        autoComplete="off"
                         className="search-input body-3-regular"
                         ref={inputRef}
                         data-testid="search-input"

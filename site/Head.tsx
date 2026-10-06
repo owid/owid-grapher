@@ -99,6 +99,12 @@ export const Head = (props: {
                 href={atom.href}
                 title={atom.title}
             />
+            <link
+                rel="search"
+                type="application/opensearchdescription+xml"
+                href="/opensearch.xml"
+                title="Our World in Data"
+            />
             {props.archiveContext && (
                 <link
                     rel="archives"
