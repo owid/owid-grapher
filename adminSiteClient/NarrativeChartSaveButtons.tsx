@@ -1,5 +1,5 @@
 import { Component } from "react"
-import { action, observable, makeObservable } from "mobx"
+import { action, observable, makeObservable, runInAction } from "mobx"
 import { observer } from "mobx-react"
 import { ConfigEditor } from "./ConfigEditor.js"
 import { TextField } from "./Forms.js"
@@ -137,7 +137,10 @@ export class NarrativeChartSaveButtons extends Component<NarrativeChartSaveButto
                             )}
                             onFinish={(response) => {
                                 if (response.success) {
-                                    runInActionClose(this)
+                                    runInAction(
+                                        () =>
+                                            (this.isCreateDataInsightModalOpen = false)
+                                    )
                                     window.open(
                                         `/admin/gdocs/${response.gdocId}/preview`,
                                         "_blank"
@@ -150,8 +153,3 @@ export class NarrativeChartSaveButtons extends Component<NarrativeChartSaveButto
         )
     }
 }
-
-const runInActionClose = action(
-    (component: NarrativeChartSaveButtons) =>
-        (component.isCreateDataInsightModalOpen = false)
-)

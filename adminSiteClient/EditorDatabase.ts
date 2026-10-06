@@ -31,7 +31,7 @@ export interface NamespaceData {
 export interface IndicatorCatalogData {
     namespaces: Namespace[]
     datasets: Dataset[]
-    /** variableId → number of charts using it. Ranks search results. */
+    /** Number of charts using a variable keyed by id */
     usageCounts?: Map<number, number>
 }
 
