@@ -1,7 +1,8 @@
 import { expect, it, describe } from "vitest"
 
 import { MapConfig } from "./MapConfig"
-import { MapRegionName } from "@ourworldindata/types"
+import { MapRegionName, TimeBoundValueStr } from "@ourworldindata/types"
+import { diffGrapherConfigs, mergeGrapherConfigs } from "@ourworldindata/utils"
 
 it("can serialize for saving", () => {
     expect(new MapConfig().toObject()).toEqual({})
@@ -79,4 +80,20 @@ describe("parsing start and end time", () => {
         expect(map.startTime).toEqual(2000)
         expect(map.time).toEqual(Infinity)
     })
+})
+
+it("a single map overrides a parent's start time", () => {
+    const parent = {
+        map: { startTime: 2004, time: TimeBoundValueStr.unboundedRight },
+    }
+    const child = {
+        map: new MapConfig({
+            time: TimeBoundValueStr.unboundedRight,
+        }).toObject(),
+    }
+
+    const patch = diffGrapherConfigs(child, parent)
+    const merged = mergeGrapherConfigs(parent, patch)
+
+    expect(new MapConfig(merged.map).startTime).toEqual(Infinity)
 })
