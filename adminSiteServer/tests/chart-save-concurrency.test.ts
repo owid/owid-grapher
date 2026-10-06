@@ -30,11 +30,17 @@ function chartConfig(i: number, variableIds: number[]): GrapherInterface {
     }
 }
 
+interface ChartSaveResponse {
+    chartId: number
+    created?: boolean
+    error?: { message: string; status: number }
+}
+
 async function saveChart(
     method: "POST" | "PUT",
     path: string,
     config: GrapherInterface
-): Promise<{ status: number; body: any }> {
+): Promise<{ status: number; body: ChartSaveResponse }> {
     const response = await fetch(env.baseUrl + path, {
         method,
         headers: {
