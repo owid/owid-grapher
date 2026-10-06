@@ -21,6 +21,7 @@ import {
     PeerCountryStrategy,
     ALL_GRAPHER_CHART_TYPES,
     StackMode,
+    ScaleType,
 } from "@ourworldindata/types"
 import {
     DimensionSlot,
@@ -644,16 +645,17 @@ export class EditorBasicTab extends React.Component<EditorBasicTabProps> {
         const filledProperties = new Set(
             existingDimensions.map((dim) => dim.property)
         )
-        const addedDimensions = scatterDefaults.dimensions.filter(
+        const addedDimensions = scatterDefaults.filter(
             (dim) => !filledProperties.has(dim.property)
         )
         if (addedDimensions.length === 0) return
 
         if (
-            scatterDefaults.xAxis &&
             addedDimensions.some((dim) => dim.property === DimensionProperty.x)
-        )
-            grapherState.xAxis.updateFromObject(scatterDefaults.xAxis)
+        ) {
+            grapherState.xAxis.scaleType = ScaleType.log
+            grapherState.xAxis.canChangeScaleType = true
+        }
 
         await editor.commitDimensionsAndReloadData([
             ...existingDimensions,

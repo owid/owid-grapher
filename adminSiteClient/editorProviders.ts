@@ -1,8 +1,6 @@
 import {
-    AxisConfigInterface,
     DimensionProperty,
     OwidChartDimensionInterface,
-    ScaleType,
 } from "@ourworldindata/types"
 import { DetailDictionary } from "@ourworldindata/utils"
 import { CONTINENTS_INDICATOR_ID } from "@ourworldindata/grapher"
@@ -33,12 +31,6 @@ export interface IndicatorCatalog {
 /** Details on demand, for checking `[term](#dod:term)` links in text fields */
 export interface DetailsProvider {
     load(): Promise<DetailDictionary>
-}
-
-/** Indicators that fill a scatter plot's empty slots */
-export interface ScatterDefaults {
-    dimensions: OwidChartDimensionInterface[]
-    xAxis?: AxisConfigInterface
 }
 
 /** The admin's indicators, ranked by how many charts use each */
@@ -82,32 +74,19 @@ export function adminDetailsProvider(admin: Admin): DetailsProvider {
     }
 }
 
-/**
- * GDP per capita on a log x axis, continents as color and population as size.
- * GDP and population are skipped when `variableIdsByCatalogPath` lacks them.
- */
+/** Indicators the admin fills a new scatter plot's empty slots with */
 export function adminScatterDefaults(
     variableIdsByCatalogPath: Record<string, number | null> = {}
-): ScatterDefaults {
+): OwidChartDimensionInterface[] {
     const gdpPerCapitaId = variableIdsByCatalogPath[GDP_PER_CAPITA_CATALOG_PATH]
     const populationId = variableIdsByCatalogPath[POPULATION_CATALOG_PATH]
-    const dimensions: OwidChartDimensionInterface[] = []
-    if (gdpPerCapitaId)
-        dimensions.push({
-            property: DimensionProperty.x,
-            variableId: gdpPerCapitaId,
-        })
-    dimensions.push({
-        property: DimensionProperty.color,
-        variableId: CONTINENTS_INDICATOR_ID,
-    })
-    if (populationId)
-        dimensions.push({
-            property: DimensionProperty.size,
-            variableId: populationId,
-        })
-    return {
-        dimensions,
-        xAxis: { scaleType: ScaleType.log, canChangeScaleType: true },
-    }
+    const variableIdsByProperty = [
+        [DimensionProperty.x, gdpPerCapitaId],
+        [DimensionProperty.color, CONTINENTS_INDICATOR_ID],
+        [DimensionProperty.size, populationId],
+    ] as const
+
+    return variableIdsByProperty.flatMap(([property, variableId]) =>
+        variableId ? [{ property, variableId }] : []
+    )
 }

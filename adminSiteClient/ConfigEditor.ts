@@ -25,7 +25,6 @@ import { EditorFeatures } from "./EditorFeatures.js"
 import {
     defaultEditorEnvironment,
     EditorEnvironment,
-    ScatterDefaults,
 } from "./editorProviders.js"
 import { dataApiIndicatorStore, IndicatorStore } from "./indicatorStores.js"
 
@@ -74,7 +73,7 @@ export interface ConfigEditorManager {
 
     store?: IndicatorStore
     environment?: EditorEnvironment
-    scatterDefaults?: ScatterDefaults
+    scatterDefaults?: OwidChartDimensionInterface[]
 
     onSave: (
         config: GrapherInterface,
