@@ -1,0 +1,16 @@
+metadata:
+  description: |
+    Individual comments within a comment thread on a natively-edited gdoc (see posts_gdocs_comment_threads). The first comment of a thread is created together with the thread; further rows are replies.
+fields:
+  id:
+    description: Auto-incrementing comment id
+  threadId:
+    description: Foreign key to posts_gdocs_comment_threads
+  userId:
+    description: Foreign key to users; the comment author
+  text:
+    description: The comment text (plain text)
+  createdAt:
+    description: When the comment was written
+  updatedAt:
+    description: When the comment was last edited

@@ -1,5 +1,6 @@
 import { Editor, Extension, Range } from "@tiptap/core"
 import { Suggestion, SuggestionProps } from "@tiptap/suggestion"
+import { OwidGdocType } from "@ourworldindata/types"
 import { RichEditorBlockItem, filterBlockItems } from "./blockRegistry.js"
 
 // "/" opens an inline block inserter at the caret. Rendered with plain DOM
@@ -7,6 +8,8 @@ import { RichEditorBlockItem, filterBlockItems } from "./blockRegistry.js"
 
 export interface SlashCommandsOptions {
     onRequestImage: (insert: (filename: string) => void) => void
+    /** Restricts the offered blocks to those allowed in this document type */
+    docType?: OwidGdocType
 }
 
 interface SlashMenuState {
@@ -85,6 +88,7 @@ export const SlashCommands = Extension.create<SlashCommandsOptions>({
     addOptions() {
         return {
             onRequestImage: () => undefined,
+            docType: undefined,
         }
     },
 
@@ -97,7 +101,7 @@ export const SlashCommands = Extension.create<SlashCommandsOptions>({
                 editor: this.editor,
                 char: "/",
                 allowSpaces: false,
-                items: ({ query }) => filterBlockItems(query),
+                items: ({ query }) => filterBlockItems(query, options.docType),
                 command: ({ editor, range, props: item }) => {
                     executeItem(item, editor, range, options)
                 },
