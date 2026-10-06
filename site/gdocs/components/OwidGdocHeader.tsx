@@ -156,7 +156,7 @@ function OwidLinearTopicPageHeader({
     content: OwidGdocPostContent
 }) {
     return (
-        <header className="topic-page-header grid span-cols-14 grid-cols-12-full-width">
+        <header className="topic-page-header linear-topic-page-header grid span-cols-14 grid-cols-12-full-width">
             <h1 className="display-2-semibold col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2">
                 {content.title}
             </h1>
@@ -184,9 +184,11 @@ function OwidLinearTopicPageHeader({
                     Reuse this work
                 </a>
             </div>
-            <p className="topic-page-header__dateline body-3-medium-italic col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2">
-                {content.dateline}
-            </p>
+            {content.dateline && (
+                <p className="topic-page-header__dateline body-3-medium-italic col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2">
+                    {content.dateline}
+                </p>
+            )}
         </header>
     )
 }

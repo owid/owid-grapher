@@ -77,6 +77,14 @@
     }
 }
 
+.linear-topic-page-header {
+    padding-bottom: 24px;
+
+    p.topic-page-header__dateline {
+        margin-bottom: 0;
+    }
+}
+
 .linear-topic-page-header__cta-buttons {
     align-self: end;
     margin: 0;
