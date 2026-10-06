@@ -12,12 +12,11 @@ import {
     SizedAnchoredLabelSeries,
     PlacedAnchoredLabelSeries,
 } from "./AnchoredLabelsTypes.js"
-import { BASE_FONT_SIZE } from "../core/GrapherConstants.js"
 import { Emphasis } from "../interaction/Emphasis.js"
 
 interface AnchoredLabelsOptions {
     /** Font size for the labels */
-    fontSize?: number
+    fontSize: number
 
     /** Font weight for the labels */
     fontWeight?: number
@@ -71,7 +70,6 @@ export class AnchoredLabelsState {
         minSpacing: { horizontal: 4, vertical: 2 },
         verticalAlign: VerticalAlign.middle,
         fontWeight: 400,
-        fontSize: BASE_FONT_SIZE,
         textAnchor: "start",
         labelPadding: 4,
         anchorCollisionRadius: 0,

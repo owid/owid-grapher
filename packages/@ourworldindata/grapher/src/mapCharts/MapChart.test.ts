@@ -37,28 +37,24 @@ it("filters out non-map entities from colorScaleColumn", () => {
     )
 })
 
-it("pins a map bracket selected by touch until the next touch", () => {
+it("highlights the countries of a hovered legend bracket", () => {
     const chartState = new MapChartState({ manager })
     const chart = new MapChart({ chartState })
-    const [firstBracket, secondBracket] = chartState.colorScale.legendBins
+    const bracket = chartState.colorScale.legendBins.find((bin) =>
+        chartState.series.some((series) => bin.contains(series.value))
+    )!
 
-    expect(firstBracket).toBeDefined()
-    expect(secondBracket).toBeDefined()
+    expect(chart.getHoverState("France").background).toBe(false)
 
-    chart.onLegendMouseOver(firstBracket)
-    chart.onLegendTouchSelect(firstBracket)
+    chart.onLegendMouseOver(bracket)
+    for (const series of chartState.series) {
+        expect(chart.getHoverState(series.seriesName).active).toBe(
+            bracket.contains(series.value)
+        )
+    }
+
     chart.onLegendMouseLeave()
-    chart.onLegendMouseOver(secondBracket)
-
-    expect(chart.hoverBracket).toBe(firstBracket)
-
-    chart.onDocumentPointerDown()
-
-    expect(chart.hoverBracket).toBeUndefined()
-
-    chart.onLegendMouseOver(secondBracket)
-
-    expect(chart.hoverBracket).toBe(secondBracket)
+    expect(chart.getHoverState("France").background).toBe(false)
 })
 
 it("combines projected data with its historical counterpart", () => {

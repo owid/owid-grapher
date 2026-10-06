@@ -10,8 +10,7 @@ import {
     defaultExperimentState,
     getExperimentState,
     ExperimentState,
-    isUrlInActiveExperiment,
-    DATA_PAGE_METADATA_EXPERIMENT_ID,
+    isDataPageMetadataRedesignActive,
 } from "@ourworldindata/utils"
 import { RelatedCharts } from "./blocks/RelatedCharts.js"
 import { FeaturedMetrics } from "./FeaturedMetrics.js"
@@ -19,7 +18,7 @@ import { RelatedDataCharts } from "./RelatedDataCharts.js"
 import {
     ADMIN_BASE_URL,
     BAKED_GRAPHER_URL,
-} from "../settings/clientSettings.js"
+} from "../settings/clientSettings.mjs"
 import DownloadSection, {
     type DownloadSectionProps,
 } from "./DownloadSection.js"
@@ -33,7 +32,6 @@ import AboutThisData from "./AboutThisData.js"
 import DataPageResearchAndWriting from "./DataPageResearchAndWriting.js"
 import MetadataSection from "./MetadataSection.js"
 import { SiteQueryClientProvider } from "./SiteQueryClientProvider.js"
-import { Autocomplete } from "./search/Autocomplete.js"
 
 declare global {
     interface Window {
@@ -82,8 +80,7 @@ export const DataPageV2Content = ({
     imageMetadata: Record<string, ImageMetadata>
 }) => {
     const slug = grapherConfig.slug
-    const useNewDatapageDesign = isUrlInActiveExperiment(
-        DATA_PAGE_METADATA_EXPERIMENT_ID,
+    const useNewDatapageDesign = isDataPageMetadataRedesignActive(
         `/grapher/${slug}`
     )
     const queryStr =
@@ -118,6 +115,7 @@ export const DataPageV2Content = ({
     useEffect(() => {
         if (typeof window !== "undefined") {
             const s = getExperimentState()
+            // oxlint-disable-next-line react/set-state-in-effect -- read client-only experiment cookies after hydration
             setExperimentState(s)
         }
     }, [])
@@ -148,7 +146,10 @@ export const DataPageV2Content = ({
             }}
         >
             <DocumentContext.Provider value={{ isPreviewing }}>
-                <div className="DataPageContent__grapher-for-embed">
+                <div
+                    className="DataPageContent__grapher-for-embed"
+                    data-dod-track-note="grapher"
+                >
                     <GrapherWithFallback
                         config={mergedGrapherConfig}
                         useProvidedConfigOnly
@@ -162,7 +163,10 @@ export const DataPageV2Content = ({
                 </div>
                 <div className="DataPageContent grid grid-cols-12-full-width">
                     <div className="span-cols-14 grid grid-cols-12-full-width full-width--border">
-                        <div className="chart-key-info col-start-2 span-cols-12">
+                        <div
+                            className="chart-key-info col-start-2 span-cols-12"
+                            data-dod-track-note="grapher"
+                        >
                             {grapherConfig.slug && (
                                 <GrapherWithFallback
                                     slug={grapherConfig.slug}
@@ -194,24 +198,6 @@ export const DataPageV2Content = ({
                                 license={grapherConfig.license}
                             />
                         )}
-                        {useNewDatapageDesign && (
-                            <div className="datapage-search-wrapper span-cols-14 grid-cols-12-full-width grid">
-                                <h2 className="h2-bold span-cols-9 col-start-2 col-md-start-2 span-md-cols-12 col-sm-start-2 span-sm-cols-12">
-                                    What do you want to see next?
-                                </h2>
-                                <div className="datapage-search span-cols-9 col-start-2 col-md-start-2 span-md-cols-12 col-sm-start-2 span-sm-cols-12">
-                                    <SiteQueryClientProvider>
-                                        <Autocomplete
-                                            id="datapage-autocomplete"
-                                            className="datapage-search__input"
-                                            panelClassName="datapage-search__panel"
-                                            placeholder="Search across all our charts and writing"
-                                            searchSource="datapage"
-                                        />
-                                    </SiteQueryClientProvider>
-                                </div>
-                            </div>
-                        )}
                         {useNewDatapageDesign &&
                             relatedResearch &&
                             relatedResearch.length > 0 && (
@@ -240,20 +226,19 @@ export const DataPageV2Content = ({
                                 </>
                             )}
                     </div>
-                    {useNewDatapageDesign &&
-                        downloadSection && (
-                            // The new design moves sources/processing/citations into
-                            // the IndicatorMetadataBox above, so only the data
-                            // download remains here. Rendered with the same wrapper
-                            // markup MetadataSection used so the layout is unchanged.
-                            <div className="MetadataSection span-cols-14 grid grid-cols-12-full-width">
-                                <div className="col-start-2 span-cols-12">
-                                    <div className="section-wrapper grid">
-                                        {downloadSection}
-                                    </div>
+                    {useNewDatapageDesign && downloadSection && (
+                        // The new design moves sources/processing/citations into
+                        // the IndicatorMetadataBox above, so only the data
+                        // download remains here. Rendered with the same wrapper
+                        // markup MetadataSection used so the layout is unchanged.
+                        <div className="MetadataSection span-cols-14 grid grid-cols-12-full-width">
+                            <div className="col-start-2 span-cols-12">
+                                <div className="section-wrapper grid">
+                                    {downloadSection}
                                 </div>
                             </div>
-                        )}
+                        </div>
+                    )}
                     {!useNewDatapageDesign && (
                         <>
                             <div className="col-start-2 span-cols-12">

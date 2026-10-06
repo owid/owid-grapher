@@ -83,7 +83,8 @@ export class DimensionCard<
     }
 
     private get tableDisplaySettings() {
-        const { tableDisplay = {} } = this.props.dimension.display
+        const { display } = this.props.dimension
+        const { tableDisplay = {} } = display
         return (
             <Fragment>
                 <hr className="ui divider" />
@@ -92,10 +93,8 @@ export class DimensionCard<
                     label="Hide absolute change column"
                     value={!!tableDisplay.hideAbsoluteChange}
                     onValue={(value) => {
-                        if (!this.props.dimension.display.tableDisplay) {
-                            this.props.dimension.display.tableDisplay = {}
-                        }
-                        tableDisplay.hideAbsoluteChange = value
+                        display.tableDisplay ??= {}
+                        display.tableDisplay.hideAbsoluteChange = value
                         this.onChange()
                     }}
                 />
@@ -103,10 +102,8 @@ export class DimensionCard<
                     label="Hide relative change column"
                     value={!!tableDisplay.hideRelativeChange}
                     onValue={(value) => {
-                        if (!this.props.dimension.display.tableDisplay) {
-                            this.props.dimension.display.tableDisplay = {}
-                        }
-                        tableDisplay.hideRelativeChange = value
+                        display.tableDisplay ??= {}
+                        display.tableDisplay.hideRelativeChange = value
                         this.onChange()
                     }}
                 />

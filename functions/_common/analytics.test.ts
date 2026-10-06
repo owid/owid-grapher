@@ -9,6 +9,7 @@ describe(getCommonEventParams, () => {
                 headers: {
                     referer: "https://ourworldindata.org/coronavirus",
                     "user-agent": "Mozilla/5.0 (test)",
+                    accept: "text/markdown, text/html, */*",
                     "cf-ipcountry": "US",
                 },
             }
@@ -31,6 +32,7 @@ describe(getCommonEventParams, () => {
         expect(params.pathname).toBe("/grapher/foo")
         expect(params.referrer).toBe("https://ourworldindata.org/coronavirus")
         expect(params.user_agent).toBe("Mozilla/5.0 (test)")
+        expect(params.accept).toBe("text/markdown, text/html, */*")
         expect(params.method).toBe("GET")
         expect(params.country).toBe("US")
         expect(params.sampling).toBe(0.25)

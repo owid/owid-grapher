@@ -75,6 +75,7 @@ import {
     getMinimalGdocPostsByIds,
 } from "../db/model/Gdoc/GdocBase.js"
 import { getMultiDimDataPageBySlug } from "../db/model/MultiDimDataPage.js"
+import { getMultiDimRedirectTargets } from "../db/model/MultiDimRedirects.js"
 import { getParsedDodsDictionary } from "../db/model/Dod.js"
 import { getLatestArchivedPostPageVersionsIfEnabled } from "../db/model/ArchivedPostVersion.js"
 import { SEARCH_BASE_PATH } from "../site/search/searchUtils.js"
@@ -89,6 +90,29 @@ const mockSiteRouter = Router()
 
 mockSiteRouter.use(express.urlencoded({ extended: true }))
 mockSiteRouter.use(express.json())
+
+async function redirectFromGrapherSlugIfNeeded(
+    req: express.Request,
+    res: express.Response,
+    trx: KnexReadonlyTransaction,
+    extension = ""
+): Promise<boolean> {
+    const { slug } = req.params
+    const redirects = await getMultiDimRedirectTargets(trx, [slug], "/grapher/")
+    const redirect = redirects.get(slug)
+    if (!redirect || redirect.targetSlug === slug) return false
+
+    const targetParams = new URLSearchParams(redirect.queryStr)
+    const incomingParams = new URL(req.originalUrl, "http://localhost")
+        .searchParams
+    for (const [key, value] of incomingParams) targetParams.set(key, value)
+
+    const queryStr = targetParams.toString()
+    res.redirect(
+        `/grapher/${redirect.targetSlug}${extension}${queryStr ? `?${queryStr}` : ""}`
+    )
+    return true
+}
 
 getPlainRouteWithROTransaction(
     mockSiteRouter,
@@ -234,6 +258,11 @@ getPlainRouteWithROTransaction(
     mockSiteRouter,
     "/grapher/:slug.config.json",
     async (req, res, trx) => {
+        if (
+            await redirectFromGrapherSlugIfNeeded(req, res, trx, ".config.json")
+        )
+            return
+
         // Try regular grapher first
         const chartRow = await getChartConfigBySlug(trx, req.params.slug).catch(
             () => undefined
@@ -282,6 +311,8 @@ getPlainRouteWithROTransaction(
     mockSiteRouter,
     "/grapher/:slug",
     async (req, res, trx) => {
+        if (await redirectFromGrapherSlugIfNeeded(req, res, trx)) return
+
         const chartRow = await getChartConfigBySlug(trx, req.params.slug).catch(
             console.error
         )
@@ -339,6 +370,26 @@ getPlainRouteWithROTransaction(
                     trx,
                     req.params.slug,
                     [OwidGdocType.DataInsight],
+                    true
+                )
+            )
+        } catch (e) {
+            console.error(e)
+            return res.status(404).send(renderNotFoundPage())
+        }
+    }
+)
+
+getPlainRouteWithROTransaction(
+    mockSiteRouter,
+    "/featured-viz/:slug",
+    async (req, res, trx) => {
+        try {
+            return res.send(
+                await renderGdocsPageBySlug(
+                    trx,
+                    req.params.slug,
+                    [OwidGdocType.FeaturedViz],
                     true
                 )
             )
@@ -658,6 +709,7 @@ getPlainRouteWithROTransaction(
                     (type) =>
                         type !== OwidGdocType.Profile &&
                         type !== OwidGdocType.DataInsight &&
+                        type !== OwidGdocType.FeaturedViz &&
                         type !== OwidGdocType.Author
                 ),
                 true

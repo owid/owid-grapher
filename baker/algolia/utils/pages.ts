@@ -17,6 +17,7 @@ import {
     Span,
     getEntitiesForProfile,
     articulateEntity,
+    getPrefixedGdocPath,
 } from "@ourworldindata/utils"
 import { getAlgoliaClient } from "../configureAlgolia.js"
 import {
@@ -33,14 +34,13 @@ import { GdocBase } from "../../../db/model/Gdoc/GdocBase.js"
 import {
     BAKED_BASE_URL,
     CLOUDFLARE_IMAGES_URL,
-} from "../../../settings/clientSettings.js"
+} from "../../../settings/clientSettings.mjs"
 import { logErrorAndMaybeCaptureInSentry } from "../../../serverUtils/errorLog.js"
 import {
     getFirstBlockOfType,
     takeConsecutiveBlocksOfType,
 } from "../../../site/gdocs/utils.js"
-import { getPrefixedGdocPath } from "@ourworldindata/components"
-import { enrichedBlocksToIndexableText } from "../../../db/model/Gdoc/enrichedToIndexableText.js"
+import { enrichedBlocksToIndexableText } from "@ourworldindata/gdoc-pipeline"
 import {
     GdocProfile,
     instantiateProfileForEntity,

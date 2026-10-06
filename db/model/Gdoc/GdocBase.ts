@@ -26,27 +26,28 @@ import {
     getRegionByNameOrVariantName,
 } from "@ourworldindata/utils"
 import { docs as googleDocs, type docs_v1 } from "@googleapis/docs"
-import { gdocToArchie } from "./gdocToArchie.js"
-import { archieToEnriched } from "./archieToEnriched.js"
+import {
+    archieToEnriched,
+    documentContainsMixedStraightAndCurlyQuotes,
+    enrichedBlocksToMarkdown,
+    extractFilenamesFromBlock,
+    extractUrl,
+    gdocToArchie,
+    getAllLinksFromResearchAndWritingBlock,
+    spansToSimpleString,
+} from "@ourworldindata/gdoc-pipeline"
 import { getChartConfigById, mapSlugsToIds } from "../Chart.js"
 import {
     BAKED_BASE_URL,
     EXPLORER_DYNAMIC_THUMBNAIL_URL,
     GRAPHER_DYNAMIC_THUMBNAIL_URL,
     IS_ARCHIVE,
-} from "../../../settings/clientSettings.js"
+} from "../../../settings/clientSettings.mjs"
 import { PROD_URL } from "../../../site/SiteConstants.js"
 import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
 import { match, P } from "ts-pattern"
-import {
-    extractFilenamesFromBlock,
-    extractUrl,
-    getAllLinksFromResearchAndWritingBlock,
-    spansToSimpleString,
-} from "./gdocUtils.js"
 import { OwidGoogleAuth } from "../../OwidGoogleAuth.js"
 import { acceptAllGdocSuggestions } from "./acceptAllGdocSuggestions.js"
-import { enrichedBlocksToMarkdown } from "./enrichedToMarkdown.js"
 import { getDatapageIndicatorId } from "../Variable.js"
 import { createLinkForNarrativeChart, createLinkFromUrl } from "../Link.js"
 import {
@@ -64,6 +65,7 @@ import {
     NarrativeChartInfo,
     ContentGraphLinkType,
     GrapherInterface,
+    LatestAnnouncement,
     LatestDataInsight,
     LinkedAuthor,
     MultiDimDataPageConfigEnriched,
@@ -99,7 +101,6 @@ import { getDods } from "../Dod.js"
 import { getLatestArchivedExplorerPageVersionsIfEnabled } from "../ArchivedExplorerVersion.js"
 import { getLatestArchivedMultiDimPageVersionsIfEnabled } from "../ArchivedMultiDimVersion.js"
 import { getLatestArchivedChartPageVersionsIfEnabled } from "../ArchivedChartVersion.js"
-import { documentContainsMixedStraightAndCurlyQuotes } from "./gdocValidation.js"
 
 const BASE_URL = IS_ARCHIVE ? PROD_URL : BAKED_BASE_URL
 
@@ -305,6 +306,7 @@ export class GdocBase implements OwidGdocBaseInterface {
     linkedIndicators: Record<number, LinkedIndicator> = {}
     linkedDocuments: Record<string, OwidGdocMinimalPostInterface> = {}
     latestDataInsights: LatestDataInsight[] = []
+    latestAnnouncements: LatestAnnouncement[] = []
     linkedNarrativeCharts?: Record<string, NarrativeChartInfo> = {}
     linkedStaticViz?: Record<string, LinkedStaticViz> = {}
     linkedCallouts: LinkedCallouts = {}
@@ -1456,7 +1458,7 @@ export class GdocBase implements OwidGdocBaseInterface {
         await this.loadNarrativeChartsInfo(knex)
         await this.loadLinkedStaticViz(knex)
         await this.loadAndClearLinkedCallouts(knex) // clones and reassigns this.content
-        await this._loadSubclassAttachments(knex) // for GdocHomepage, mutates linkedCharts and linkedDocuments
+        await this._loadSubclassAttachments(knex)
         await this.validate(knex)
     }
 

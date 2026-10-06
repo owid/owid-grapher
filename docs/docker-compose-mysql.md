@@ -109,7 +109,7 @@ COMPOSE_PROJECT_NAME=owid-grapher
 GRAPHER_DB_PORT=3307
 ADMIN_SERVER_PORT=3030
 VITE_PORT=8090
-WRANGLER_PORT=8788  # only needed for make up.full
+WRANGLER_PORT=8788  # only needed for make up.full and make up.worktree
 ```
 
 **Repository #2** (`.env`):
@@ -120,7 +120,7 @@ COMPOSE_PROJECT_NAME=owid-grapher-2
 GRAPHER_DB_PORT=3308
 ADMIN_SERVER_PORT=3031
 VITE_PORT=8091
-WRANGLER_PORT=8789  # only needed for make up.full
+WRANGLER_PORT=8789  # only needed for make up.full and make up.worktree
 ```
 
 With these settings configured, each repository can run `make up` or `make up.full` without conflicts:

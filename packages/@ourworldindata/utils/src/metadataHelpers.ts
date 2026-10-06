@@ -6,6 +6,7 @@ import {
     IndicatorTitleWithFragments,
     OwidSource,
     PrimaryTopic,
+    type BespokeMetadata,
 } from "@ourworldindata/types"
 import * as _ from "lodash-es"
 import { excludeUndefined } from "./Util"
@@ -63,6 +64,15 @@ export function getAttributionFragmentsFromVariable(
     )
     const name = variable.source?.name
     return _.uniq(_.compact([name, ...originAttributions]))
+}
+
+export function getAttributionFragmentsFromBespokeMetadata(
+    metadata: Pick<BespokeMetadata, "attribution" | "origins">
+): string[] {
+    return getAttributionFragmentsFromVariable({
+        presentation: { attribution: metadata.attribution },
+        origins: metadata.origins,
+    })
 }
 
 export const formatAttributions = (attributions: string[]): string =>
@@ -168,6 +178,12 @@ const prepareOriginForDisplay = (origin: OwidOrigin): DisplaySource => {
         retrievedOn: origin.dateAccessed,
         retrievedFrom: origin.urlMain,
         citation: origin.citationFull,
+        // Read only by the data-download readme, which lists each source once and
+        // has room to say more about it than the Sources UIs do.
+        producer: origin.producer,
+        datePublished: origin.datePublished,
+        urlDownload: origin.urlDownload,
+        license: origin.license,
     }
 }
 

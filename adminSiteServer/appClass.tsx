@@ -2,7 +2,11 @@ import express, { NextFunction } from "express"
 import * as Sentry from "@sentry/node"
 import cookieParser from "cookie-parser"
 import http from "http"
-import { BAKED_BASE_URL, ENV } from "../settings/serverSettings.js"
+import {
+    BAKED_BASE_URL,
+    ENV,
+    VITE_DIST_DIR,
+} from "../settings/serverSettings.js"
 import * as db from "../db/db.js"
 import { IndexPage } from "./IndexPage.js"
 import {
@@ -80,8 +84,11 @@ export class OwidAdminApp {
         app.use("/admin", requireAdminAuthMiddleware)
 
         app.use("/", express.static("public"))
-        app.use("/assets", express.static("dist/assets"))
-        app.use("/assets-admin", express.static("dist/assets-admin"))
+        app.use("/assets", express.static(`${VITE_DIST_DIR}/assets`))
+        app.use(
+            "/assets-admin",
+            express.static(`${VITE_DIST_DIR}/assets-admin`)
+        )
 
         app.use("/api", publicApiRouter.router)
         app.use("/admin/api", apiRouter.router)
@@ -95,7 +102,9 @@ export class OwidAdminApp {
                     <IndexPage
                         email={res.locals.user.email}
                         username={res.locals.user.fullName}
-                        isSuperuser={res.locals.user.isSuperuser}
+                        // stored as a tinyint, but the grapher only
+                        // recognizes window.admin by a boolean isSuperuser
+                        isSuperuser={!!res.locals.user.isSuperuser}
                     />
                 )
             )

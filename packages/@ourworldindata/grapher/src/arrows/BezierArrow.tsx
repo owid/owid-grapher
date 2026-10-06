@@ -1,7 +1,7 @@
 import * as React from "react"
 import * as _ from "lodash-es"
 import cx from "clsx"
-import { Point } from "@ourworldindata/utils"
+import { Point, roundForSvg } from "@ourworldindata/utils"
 import { GRAY_100 } from "../color/ColorConstants.js"
 
 export type HeadAnchor = "start" | "end" | "both"
@@ -179,7 +179,7 @@ const bezierCurve = (
         format(end),
     ].join(" ")
 
-const format = (p: Point): string => `${p.x},${p.y}`
+const format = (p: Point): string => `${roundForSvg(p.x)},${roundForSvg(p.y)}`
 
 const addOffset = (p: Point, o: Point): Point => ({
     x: p.x + o.x,

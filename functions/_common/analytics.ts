@@ -59,6 +59,16 @@ export function getCommonEventParams(
     const fullUserAgent = request.headers.get("user-agent") || ""
     const user_agent = fullUserAgent.slice(0, 100)
 
+    // What the client asked for. Agent fetchers negotiate content: Claude Code's
+    // sends "text/markdown, text/html, */*", Gemini's and curl send "*/*",
+    // browsers lead with "text/html". That is the only signal separating
+    // markdown-preferring agents from everything else — user agents don't, and
+    // Cloudflare's bot fields are empty on our plan — and it is what tells us how
+    // many readers a markdown rendering of a page actually reaches. Truncated
+    // like the user agent; browser Accept strings run long, but the part that
+    // matters comes first.
+    const accept = (request.headers.get("accept") || "").slice(0, 100)
+
     // Network operator (ASN) of the request, derived by Cloudflare on `request.cf`
     // — same source as the country lookup. This is NOT the client IP (which we
     // don't have/forward); it's the owning org, e.g. "Amazon.com", "Google Cloud",
@@ -91,6 +101,7 @@ export function getCommonEventParams(
         pathname: url.pathname,
         referrer,
         user_agent,
+        accept,
         method: request.method,
         country: request.headers.get("cf-ipcountry") || "",
         as_org,

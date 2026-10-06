@@ -1,5 +1,5 @@
 import * as React from "react"
-import { useCallback, useState } from "react"
+import { useState } from "react"
 import cx from "clsx"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faDownload, faSpinner } from "@fortawesome/free-solid-svg-icons"
@@ -36,7 +36,7 @@ export function DownloadButton({
         ssr: false,
     })
 
-    const handleClick = useCallback(async () => {
+    const handleClick = async (): Promise<void> => {
         setIsDownloading(true)
 
         try {
@@ -44,7 +44,7 @@ export function DownloadButton({
         } finally {
             setIsDownloading(false)
         }
-    }, [onClick])
+    }
 
     return (
         <button

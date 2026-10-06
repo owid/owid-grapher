@@ -6,7 +6,11 @@ import {
 } from "@ourworldindata/core-table"
 import { GrapherState } from "@ourworldindata/grapher"
 import { OwidTableSlugs } from "@ourworldindata/types"
-import { rewriteJsonLdText } from "./grapherTools.js"
+import {
+    resolveMultiDimViewFromCompanion,
+    resolveMultiDimViewQueryStr,
+    rewriteJsonLdText,
+} from "./grapherTools.js"
 
 describe("download", () => {
     const originalTable = SynthesizeGDPTable()
@@ -86,6 +90,93 @@ describe(rewriteJsonLdText, () => {
         expect(rewritten).toBe(
             '{"description":"\\u003c/script>\\u003cscript>alert(1)\\u003c/script>"}'
         )
+    })
+})
+
+describe(resolveMultiDimViewQueryStr, () => {
+    const defaultDimensions = { metric: "coverage", antigen: "dtp3" }
+
+    it("sorts dimension params and drops non-dimension params", () => {
+        expect(
+            resolveMultiDimViewQueryStr(
+                new URLSearchParams(
+                    "metric=vaccinated&antigen=hepb_bd&tab=map"
+                ),
+                defaultDimensions
+            )
+        ).toBe("antigen=hepb_bd&metric=vaccinated")
+    })
+
+    it("falls back to default choices for missing dimensions", () => {
+        expect(
+            resolveMultiDimViewQueryStr(
+                new URLSearchParams("metric=vaccinated"),
+                defaultDimensions
+            )
+        ).toBe("antigen=dtp3&metric=vaccinated")
+        expect(
+            resolveMultiDimViewQueryStr(
+                new URLSearchParams(),
+                defaultDimensions
+            )
+        ).toBe("antigen=dtp3&metric=coverage")
+    })
+
+    it("falls back to default choices for empty dimension params", () => {
+        expect(
+            resolveMultiDimViewQueryStr(
+                new URLSearchParams("antigen=&metric=vaccinated"),
+                defaultDimensions
+            )
+        ).toBe("antigen=dtp3&metric=vaccinated")
+    })
+})
+
+describe(resolveMultiDimViewFromCompanion, () => {
+    const defaultDimensions = { metric: "coverage", antigen: "dtp3" }
+    const companion = {
+        title: "Childhood vaccination coverage",
+        views: {
+            "antigen=dtp3&metric=coverage": { title: "Coverage of DTP" },
+            "antigen=hepb_bd&metric=vaccinated": { title: "Newborns given" },
+        },
+    }
+
+    it("prefers the combination of specified params and default choices", () => {
+        expect(
+            resolveMultiDimViewFromCompanion(
+                companion,
+                new URLSearchParams("metric=coverage"),
+                defaultDimensions
+            )
+        ).toEqual({
+            viewQueryStr: "antigen=dtp3&metric=coverage",
+            view: { title: "Coverage of DTP" },
+        })
+    })
+
+    it("falls back to an existing view when the default fill doesn't exist", () => {
+        // metric=vaccinated only exists in combination with antigen=hepb_bd
+        expect(
+            resolveMultiDimViewFromCompanion(
+                companion,
+                new URLSearchParams("metric=vaccinated"),
+                defaultDimensions
+            )
+        ).toEqual({
+            viewQueryStr: "antigen=hepb_bd&metric=vaccinated",
+            view: { title: "Newborns given" },
+        })
+    })
+
+    it("returns undefined when no existing view matches the specified params", () => {
+        expect(
+            resolveMultiDimViewFromCompanion(
+                companion,
+                new URLSearchParams("antigen=nonexistent"),
+                defaultDimensions
+            )
+        ).toBeUndefined()
     })
 })
 

@@ -6,7 +6,7 @@ import {
 } from "@ourworldindata/types"
 import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons"
 import { LiteClient } from "algoliasearch/lite"
-import { useEffect, useMemo, useState } from "react"
+import { useMemo, useState } from "react"
 import { match } from "ts-pattern"
 import { useIsFetching } from "@tanstack/react-query"
 
@@ -74,14 +74,19 @@ export const Search = ({
     const isFetching = useIsFetching()
     const hasSearchError = useHasSearchError()
 
-    // Autofocus only on the first mount if the user is browsing.
-    const [shouldAutoFocus, setShouldAutoFocus] = useState(() =>
-        isBrowsing(state.filters, state.query)
+    // The Searchbar is re-mounted whenever the search state changes (see its
+    // key below). Autofocus only the first one, and only if the user is
+    // browsing.
+    const searchbarKey = stateToSearchParams(state).toString()
+    const [autoFocusSearchbarKey, setAutoFocusSearchbarKey] = useState(() =>
+        isBrowsing(state.filters, state.query) ? searchbarKey : undefined
     )
-
-    useEffect(() => {
-        setShouldAutoFocus(false)
-    }, [])
+    if (
+        autoFocusSearchbarKey !== undefined &&
+        autoFocusSearchbarKey !== searchbarKey
+    ) {
+        setAutoFocusSearchbarKey(undefined)
+    }
 
     // Derived state for template configuration
     const topicType = getSelectedTopicType(state.filters, eligibleAreas)
@@ -121,8 +126,8 @@ export const Search = ({
                     //   selector). In this case, we want to reset the local
                     //   query to match the global one, discarding any
                     //   uncommitted changes.
-                    key={stateToSearchParams(state).toString()}
-                    autoFocus={shouldAutoFocus}
+                    key={searchbarKey}
+                    autoFocus={searchbarKey === autoFocusSearchbarKey}
                     allTopics={eligibleTopics}
                 />
                 <SearchDetectedFilters

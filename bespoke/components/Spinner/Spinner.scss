@@ -22,3 +22,21 @@
     font-size: 0.8em;
     vertical-align: baseline;
 }
+
+// FontAwesome's own reduced-motion rule stops `fa-spin` with `animation: none
+// !important`, which this rule has to outrank.
+@media (prefers-reduced-motion: reduce) {
+    .spinner .svg-inline--fa {
+        animation: spinner-fade 1.6s ease-in-out infinite !important;
+    }
+}
+
+@keyframes spinner-fade {
+    0%,
+    100% {
+        opacity: 0.3;
+    }
+    50% {
+        opacity: 1;
+    }
+}

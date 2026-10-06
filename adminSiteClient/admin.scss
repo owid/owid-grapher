@@ -40,6 +40,7 @@ $admin-section: "section:not(:where(.GrapherComponent *))";
 @import "./StaticViz.scss";
 @import "./MultiDimDetailPage.scss";
 @import "./slideshows/SlideshowAdmin.scss";
+@import "./GdocsReferencePage.scss";
 // Slide content styles reused for slideshow preview
 @import "../site/slideshows/SlideContent.scss";
 @import "./SvgTesterSuitePage.scss";
@@ -508,6 +509,20 @@ $nav-height: 45px;
         flex-direction: column;
         gap: 4px;
         align-items: flex-start;
+    }
+}
+
+.EditorHistoryTab {
+    padding-top: 16px;
+
+    /* Level with the first row of each card */
+    .EditorHistoryTab__timeline-dot,
+    .EditorHistoryTab__timeline-rail {
+        transform: translateY(13px);
+    }
+
+    .EditorHistoryTab__timeline-rail--unsaved {
+        border-inline-start-style: dashed;
     }
 }
 

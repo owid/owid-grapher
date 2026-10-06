@@ -5,6 +5,7 @@ import {
     OwidGdocType,
     checkIsChronologicalGdoc,
     getUniqueNamesFromTagHierarchies,
+    deriveAnnouncementLatestType,
 } from "@ourworldindata/utils"
 import {
     ChronologicalGdoc,
@@ -20,7 +21,7 @@ import {
     SearchIndexName,
     DbEnrichedImage,
 } from "@ourworldindata/types"
-import { extractFilenamesFromBlocks } from "../../../db/model/Gdoc/gdocUtils.js"
+import { extractFilenamesFromBlocks } from "@ourworldindata/gdoc-pipeline"
 import { gdocFromJSON } from "../../../db/model/Gdoc/GdocFactory.js"
 import { GdocBase } from "../../../db/model/Gdoc/GdocBase.js"
 import { GdocPost } from "../../../db/model/Gdoc/GdocPost.js"
@@ -28,7 +29,6 @@ import { GdocDataInsight } from "../../../db/model/Gdoc/GdocDataInsight.js"
 import { GdocAnnouncement } from "../../../db/model/Gdoc/GdocAnnouncement.js"
 import { getAlgoliaClient } from "../configureAlgolia.js"
 import { getIndexName } from "../../../site/search/searchClient.js"
-import { deriveAnnouncementLatestType } from "../../../site/latest/latestUtils.js"
 import { ALGOLIA_INDEXING } from "../../../settings/serverSettings.js"
 import { getThumbnailUrl, getExcerptFromGdoc } from "./pages.js"
 import { match, P } from "ts-pattern"
@@ -77,11 +77,14 @@ async function loadAttachmentsForChronologicalIndexing(
                 await g.loadLinkedDocuments(knex)
             }
         })
-        // DataInsight: intentionally no extra loads — see the DataInsight
-        // branch in `buildVariantPayload` for the rationale (DI bodies are
-        // image + text by convention, matching the homepage's
-        // `getLatestDataInsights`).
-        .with({ content: { type: OwidGdocType.DataInsight } }, _.noop)
+        // DataInsight: read in place on the filtered /latest feed, so the
+        // card needs what the standalone page needs — authors for the avatar
+        // byline, charts and documents so the CTA and inline links resolve.
+        .with({ content: { type: OwidGdocType.DataInsight } }, async (g) => {
+            await g.loadLinkedAuthors(knex)
+            await g.loadLinkedCharts(knex)
+            await g.loadLinkedDocuments(knex)
+        })
         // Topic pages are indexed for the atom feed but don't need linked
         // content loaded — they only carry their title/excerpt/date in the
         // record. (They're filtered out of /latest entirely by
@@ -140,24 +143,32 @@ function buildVariantPayload(
     return (
         match<ChronologicalGdoc, PageChronologicalRecordVariantPayload>(gdoc)
             .with({ content: { type: OwidGdocType.DataInsight } }, (g) => {
-                // Ship the full body for inline rendering on /latest cards. We
-                // deliberately don't ship linkedCharts / linkedDocuments here (and
-                // don't load them in `getPagesChronologicalRecords` either),
-                // mirroring the homepage's `getLatestDataInsights` (db/model/Gdoc/
-                // GdocFactory.ts) which only loads imageMetadata. The editorial
-                // convention is that DI bodies are image + text; chart /
-                // prominent-link / cta blocks would degrade on cards on both
-                // surfaces, but in practice DIs don't author them. Revisit if that
-                // convention starts breaking.
+                // Ship the full body: the data-insight-filtered /latest feed
+                // renders each insight whole, links included. Every DI ends
+                // on a CTA, usually to a grapher chart, and LinkedA can only
+                // turn that into an anchor if the chart is in linkedCharts —
+                // so those ride along, as they do for announcements.
                 const payload: PageChronologicalDataInsightRecordPayload = {
                     type: OwidGdocType.DataInsight,
                     latestType: "data-insight",
                     body: g.content.body,
                 }
+                if (g.linkedAuthors?.length) {
+                    payload.linkedAuthors = g.linkedAuthors
+                }
+                copyAttachmentsIfPresent(payload, g)
+
+                const filenames = new Set<string>(
+                    extractFilenamesFromBlocks(g.content.body)
+                )
+                for (const author of g.linkedAuthors ?? []) {
+                    if (author.featuredImage)
+                        filenames.add(author.featuredImage)
+                }
                 copyImageMetadataIfPresent(
                     payload,
                     cloudflareImagesByFilename,
-                    extractFilenamesFromBlocks(g.content.body)
+                    filenames
                 )
                 return payload
             })

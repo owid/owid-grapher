@@ -219,20 +219,21 @@ export function ResearchAndWriting(props: ResearchAndWritingProps) {
     }
     // There might be latestWorkLinks available but we only want to show them if
     // a {.latest} block has been added
-    if (latest && latestWorkLinks) {
-        latest.articles = latestWorkLinks
-            // We want to filter out the primary and secondary links (aka.
-            // featured work links) from the latest work section to avoid
-            // duplication. Only featured links pointing to gdocs are
-            // considered.
-            .filter(
-                (link) =>
-                    !primarySecondaryUrls.includes(
-                        `https://docs.google.com/document/d/${link.id}/edit`
-                    )
-            )
-            .map(parseLatestWorkToResearchAndWritingLink)
-    }
+    const latestArticles =
+        latest && latestWorkLinks
+            ? latestWorkLinks
+                  // We want to filter out the primary and secondary links (aka.
+                  // featured work links) from the latest work section to avoid
+                  // duplication. Only featured links pointing to gdocs are
+                  // considered.
+                  .filter(
+                      (link) =>
+                          !primarySecondaryUrls.includes(
+                              `https://docs.google.com/document/d/${link.id}/edit`
+                          )
+                  )
+                  .map(parseLatestWorkToResearchAndWritingLink)
+            : latest?.articles
 
     // If there are no primary links, we revert to scrolling through the
     // secondary links. This is because the absence of primary links currently
@@ -399,7 +400,7 @@ export function ResearchAndWriting(props: ResearchAndWritingProps) {
                     </div>
                 </div>
             ) : null}
-            {latest?.articles?.length ? (
+            {latest && latestArticles?.length ? (
                 <div className="span-cols-12 research-and-writing-row">
                     <h2
                         className={cx(
@@ -423,7 +424,7 @@ export function ResearchAndWriting(props: ResearchAndWritingProps) {
                             }
                         )}
                     >
-                        {latest.articles.map((link, i) => (
+                        {latestArticles.map((link, i) => (
                             <ResearchAndWritingLink
                                 isSmall
                                 shouldHideThumbnailSm

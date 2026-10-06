@@ -1,5 +1,3 @@
-import { useSearchContext } from "./SearchContext.js"
-
 /**
  * Shown when a section displays relaxed ("closest matches") results because
  * the exact search returned nothing — see the closest-matches fallback in
@@ -7,11 +5,10 @@ import { useSearchContext } from "./SearchContext.js"
  * while still offering the nearest content instead of a blank page.
  */
 export function SearchClosestMatchesNotice() {
-    const { state } = useSearchContext()
     return (
         <p className="search-closest-matches-notice">
-            No exact matches for <strong>“{state.query}”</strong> — showing the
-            closest matches instead.
+            No results match all your search terms — showing the closest matches
+            instead.
         </p>
     )
 }

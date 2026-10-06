@@ -19,7 +19,7 @@ import {
     OwidGdocBaseInterface,
 } from "@ourworldindata/types"
 import { KnexReadonlyTransaction } from "../db/db.js"
-import { parseFaqs } from "../db/model/Gdoc/rawToEnriched.js"
+import { parseFaqs } from "@ourworldindata/gdoc-pipeline"
 import { getSlugForTopicTag } from "./GrapherBakingUtils.js"
 import { getShortPageCitation } from "../site/gdocs/utils.js"
 
@@ -143,10 +143,12 @@ export const getPrimaryTopic = async (
     if (!topicSlug) return undefined
 
     if (topicSlug) {
+        // The citation only needs the gdoc's own fields, so skip loading its
+        // tags and breadcrumbs (several queries per baked data page)
         const gdoc = await getPublishedGdocBaseObjectBySlug(
             knex,
             topicSlug,
-            true,
+            false,
             [OwidGdocType.TopicPage, OwidGdocType.LinearTopicPage]
         )
         if (gdoc) {

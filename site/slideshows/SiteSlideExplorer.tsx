@@ -8,7 +8,7 @@ import {
     getSlideshowGrapherConfig,
     parseSlideChartUrl,
 } from "./slideshowUtils.js"
-import { BAKED_BASE_URL } from "../../settings/clientSettings.js"
+import { BAKED_BASE_URL } from "../../settings/clientSettings.mjs"
 import { fetchText } from "@ourworldindata/utils"
 import { reaction, runInAction } from "mobx"
 
@@ -76,6 +76,7 @@ export function SiteSlideExplorer(props: {
         )
 
         return () => dispose()
+        // oxlint-disable-next-line react/exhaustive-effect-dependencies -- the Explorer (and explorerRef) only mounts once explorerProps have loaded
     }, [explorerProps, interactiveCharts])
 
     if (!explorerProps) {

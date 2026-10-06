@@ -7,7 +7,7 @@ import {
     triggerDownloadFromBlob,
 } from "@ourworldindata/utils"
 import cx from "clsx"
-import { CLOUDFLARE_IMAGES_URL } from "../../../settings/clientSettings.js"
+import { CLOUDFLARE_IMAGES_URL } from "../../../settings/clientSettings.mjs"
 import { useDocumentContext } from "../DocumentContext.js"
 import { useImage } from "../utils.js"
 import { BlockErrorFallback } from "./BlockErrorBoundary.js"
@@ -44,6 +44,7 @@ export type ImageParentContainer =
     | "person"
     | "latest-article"
     | "latest-data-insight"
+    | "latest-data-insight-expanded"
     | "chart-rows"
     | "pull-chart"
     | "bespoke-component--narrow"
@@ -69,6 +70,8 @@ const containerSizes: Record<ImageParentContainer, string> = {
     ["person"]: gridSpan2,
     ["latest-article"]: gridSpan3Sm,
     ["latest-data-insight"]: gridSpan5,
+    // Full width of the in-place data insight card on /latest (6 columns).
+    ["latest-data-insight-expanded"]: gridSpan6,
     ["latest-announcement"]: gridSpan6,
     ["chart-rows"]: gridSpan3Sm,
     ["pull-chart"]: gridSpan3Sm,

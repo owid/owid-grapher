@@ -27,10 +27,14 @@ const analytics = new SiteAnalytics()
 export default function GuidedChart({
     d,
     containerType = "default",
+    shouldRenderLinks = true,
+    interactiveImages = true,
 }: {
     d: EnrichedBlockGuidedChart
     containerType?: Container
     className?: string
+    shouldRenderLinks?: boolean
+    interactiveImages?: boolean
 }) {
     const stateRef = useRef<GrapherState | null>(null)
     const chartRef = useRef<HTMLDivElement | null>(null)
@@ -58,6 +62,20 @@ export default function GuidedChart({
         []
     )
 
+    const registerGrapherState = useCallback((grapherState: GrapherState) => {
+        stateRef.current = grapherState
+        return () => {
+            if (stateRef.current === grapherState) stateRef.current = null
+        }
+    }, [])
+
+    const registerChartElement = useCallback((element: HTMLDivElement) => {
+        chartRef.current = element
+        return () => {
+            if (chartRef.current === element) chartRef.current = null
+        }
+    }, [])
+
     const applyGuidedChartLinkToArchive = useCallback((url: Url): boolean => {
         const registration = archiveChartRegistrationRef.current
         const iframeEl = registration?.iframeRef.current
@@ -65,6 +83,7 @@ export default function GuidedChart({
 
         const nextSrc = buildArchiveGuidedChartSrc(registration, url)
         if (iframeEl.src === nextSrc) return true
+        // oxlint-disable-next-line react/immutability -- navigating the iframe from an event handler
         iframeEl.src = nextSrc
         return true
     }, [])
@@ -142,8 +161,8 @@ export default function GuidedChart({
     return (
         <GuidedChartContext.Provider
             value={{
-                grapherStateRef: stateRef as React.RefObject<GrapherState>,
-                chartRef: chartRef as React.RefObject<HTMLDivElement>,
+                registerGrapherState,
+                registerChartElement,
                 onGuidedChartLinkClick: handleGuidedChartLinkClick,
                 registerArchiveChart,
                 registerMultiDim: (registrationData: {
@@ -158,7 +177,12 @@ export default function GuidedChart({
                 },
             }}
         >
-            <ArticleBlocks blocks={d.content} containerType={containerType} />
+            <ArticleBlocks
+                blocks={d.content}
+                containerType={containerType}
+                shouldRenderLinks={shouldRenderLinks}
+                interactiveImages={interactiveImages}
+            />
         </GuidedChartContext.Provider>
     )
 }

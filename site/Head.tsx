@@ -1,6 +1,6 @@
 import { DEFAULT_ATOM_FEED_PROPS } from "./SiteConstants.js"
 import { viteAssetsForSite } from "./viteUtils.js"
-import { ENV, GOOGLE_TAG_MANAGER_ID } from "../settings/clientSettings.js"
+import { ENV, GOOGLE_TAG_MANAGER_ID } from "../settings/clientSettings.mjs"
 import { NoJSDetector } from "./NoJSDetector.js"
 import {
     ArchiveContext,

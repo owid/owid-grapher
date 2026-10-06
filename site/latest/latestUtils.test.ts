@@ -1,27 +1,31 @@
 import { describe, expect, it } from "vitest"
-import { deriveAnnouncementLatestType } from "./latestUtils.js"
+import {
+    LATEST_TOPIC_AREAS_BY_POPULARITY,
+    sortTopicAreasByPopularity,
+} from "./latestUtils.js"
 
-describe(deriveAnnouncementLatestType, () => {
-    it.each(["data-update", "website-upgrade", "announcement"])(
-        "passes through canonical slug %s",
-        (kicker) => {
-            expect(deriveAnnouncementLatestType(kicker)).toBe(kicker)
-        }
-    )
-
-    it.each([
-        ["Data Update", "data-update"],
-        ["Data update", "data-update"],
-        ["Website Upgrade", "website-upgrade"],
-        ["Announcement", "announcement"],
-    ])("normalizes case/spacing variant %s -> %s", (input, expected) => {
-        expect(deriveAnnouncementLatestType(input)).toBe(expected)
+describe(sortTopicAreasByPopularity, () => {
+    it("orders known areas by popularity", () => {
+        const shuffled = [...LATEST_TOPIC_AREAS_BY_POPULARITY].reverse()
+        expect(sortTopicAreasByPopularity(shuffled)).toEqual(
+            LATEST_TOPIC_AREAS_BY_POPULARITY
+        )
     })
 
-    it.each([undefined, "", "Random Tag", "Article - 10 Mins"])(
-        'falls back to "announcement" for kicker %s',
-        (kicker) => {
-            expect(deriveAnnouncementLatestType(kicker)).toBe("announcement")
-        }
-    )
+    it("puts unknown areas last, keeping their relative order", () => {
+        expect(
+            sortTopicAreasByPopularity([
+                "New Area B",
+                "Violence and War",
+                "New Area A",
+                "Health",
+            ])
+        ).toEqual(["Violence and War", "Health", "New Area B", "New Area A"])
+    })
+
+    it("does not mutate its input", () => {
+        const input = ["Violence and War", "Health"]
+        sortTopicAreasByPopularity(input)
+        expect(input).toEqual(["Violence and War", "Health"])
+    })
 })

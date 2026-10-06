@@ -15,8 +15,9 @@ import {
     mergeGrapherConfigs,
 } from "@ourworldindata/utils"
 import { DbChartTagJoin } from "@ourworldindata/types"
+import { migrateGrapherConfigToLatestVersion } from "@ourworldindata/grapher"
 import { action, computed, observable, runInAction, makeObservable } from "mobx"
-import { BAKED_GRAPHER_URL, ENV } from "../settings/clientSettings.js"
+import { BAKED_GRAPHER_URL, ENV } from "../settings/clientSettings.mjs"
 import {
     AbstractChartEditor,
     AbstractChartEditorManager,
@@ -177,9 +178,43 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
         }
     }
 
-    async saveGrapher({
-        onError,
-    }: { onError?: () => void } = {}): Promise<void> {
+    @action.bound async restoreRevision(log: Log): Promise<void> {
+        await this.loadPatchConfig(
+            makeRestoredPatchConfig(log.config, this.patchConfig)
+        )
+    }
+
+    @action.bound async discardUnsavedChanges(): Promise<void> {
+        await this.loadPatchConfig(this.savedPatchConfig)
+    }
+
+    /** Load a patch into the live grapher over the parent config it resolves to, without saving */
+    private async loadPatchConfig(
+        patchConfig: GrapherInterface
+    ): Promise<void> {
+        const newParentIndicatorId = getParentIndicatorIdFromChartConfig(
+            mergeGrapherConfigs(this.etlConfig ?? {}, patchConfig)
+        )
+        if (newParentIndicatorId !== this.parentVariableId) {
+            const newParentConfig = newParentIndicatorId
+                ? await fetchChartConfigByIndicatorId(
+                      this.manager.admin,
+                      newParentIndicatorId
+                  )
+                : undefined
+            runInAction(() => {
+                this.parentConfig = newParentConfig
+                this.parentVariableId = newParentIndicatorId
+            })
+        }
+
+        this.updateLiveGrapher(
+            mergeGrapherConfigs(this.activeParentConfig ?? {}, patchConfig)
+        )
+        await this.commitDimensionsAndReloadData()
+    }
+
+    async saveGrapher(): Promise<void> {
         const { grapherState, isNewGrapher, patchConfig } = this
 
         // Chart title and slug may be autocalculated from data, in which case they won't be in props
@@ -224,7 +259,7 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
                     this.isInheritanceEnabled = shouldEnableInheritance
                 })
             }
-        } else onError?.()
+        }
     }
 
     async saveAsNewGrapher(): Promise<void> {
@@ -298,27 +333,35 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
         }
     }
 
-    publishGrapher(): void {
-        const url = `${BAKED_GRAPHER_URL}/${this.grapherState.displaySlug}`
-
-        if (window.confirm(`Publish chart at ${url}?`)) {
-            this.grapherState.isPublished = true
-            void this.saveGrapher({
-                onError: () => (this.grapherState.isPublished = undefined),
-            })
+    private async savePublishedState(
+        isPublished: true | undefined
+    ): Promise<void> {
+        const previousIsPublished = this.grapherState.isPublished
+        this.grapherState.isPublished = isPublished
+        try {
+            await this.saveGrapher()
+        } catch {
+            runInAction(
+                () => (this.grapherState.isPublished = previousIsPublished)
+            )
         }
     }
 
-    unpublishGrapher(): void {
+    async publishGrapher(): Promise<void> {
+        const url = `${BAKED_GRAPHER_URL}/${this.grapherState.displaySlug}`
+
+        if (window.confirm(`Publish chart at ${url}?`)) {
+            await this.savePublishedState(true)
+        }
+    }
+
+    async unpublishGrapher(): Promise<void> {
         const message =
             this.references && getFullReferencesCount(this.references) > 0
                 ? "WARNING: This chart might be referenced from public posts, please double check before unpublishing. Try to remove the chart anyway?"
                 : "Are you sure you want to unpublish this chart?"
         if (window.confirm(message)) {
-            this.grapherState.isPublished = undefined
-            void this.saveGrapher({
-                onError: () => (this.grapherState.isPublished = true),
-            })
+            await this.savePublishedState(undefined)
         }
     }
 
@@ -387,4 +430,24 @@ export function isChartEditorInstance(
     editor: AbstractChartEditor
 ): editor is ChartEditor {
     return editor instanceof ChartEditor
+}
+
+/** Keys a restored revision takes from the chart's current patch rather than from the revision */
+const REVISION_RESTORE_KEPT_KEYS = [
+    "id",
+    "version",
+    "slug",
+    "isPublished",
+] as const satisfies readonly (keyof GrapherInterface)[]
+
+/** The patch config to load into the editor when restoring a chart revision */
+export function makeRestoredPatchConfig(
+    revisionConfig: Json,
+    currentPatchConfig: GrapherInterface
+): GrapherInterface {
+    const migrated = migrateGrapherConfigToLatestVersion(revisionConfig)
+    return {
+        ..._.omit(migrated, REVISION_RESTORE_KEPT_KEYS),
+        ..._.pick(currentPatchConfig, REVISION_RESTORE_KEPT_KEYS),
+    }
 }
