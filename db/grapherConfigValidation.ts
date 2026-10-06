@@ -81,6 +81,7 @@ export function tryIngestGrapherConfig(
         }
     }
 
+    // Stamp the schema revision this build validates against; migrating only moves the version
     migrated.$schema = defaultGrapherConfig.$schema
 
     const issues = validateGrapherConfig(migrated)
