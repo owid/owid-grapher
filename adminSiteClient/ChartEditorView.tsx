@@ -121,9 +121,6 @@ export class ChartEditorView extends React.Component<ChartEditorViewProps> {
 
         this.manager.editor.markAsSaved()
 
-        // Applied after the data load because the time bounds are snapped to
-        // the available times and the entity selection is gated on
-        // `addCountryMode`
         const { initialQueryParams } = this.manager
         if (initialQueryParams)
             this.grapherState.populateFromQueryParams(initialQueryParams)

@@ -29,7 +29,6 @@ export interface GrapherEditorProps {
     onChange?: ConfigEditorManager["onChange"]
     /** Details on demand for validating text fields. Absent → none. */
     details?: DetailsProvider
-    /** Restrict the tabs shown. */
     tabs?: EditorTabName[]
     /**
      * Query params to apply once, after the initial data load: opens the

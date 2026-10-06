@@ -557,7 +557,6 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
     }
 }
 
-/** The patch plus the title and slug grapher derives, which the server requires */
 function withDerivedTitleAndSlug(
     patch: GrapherInterface,
     grapherState: GrapherState
@@ -571,10 +570,6 @@ function withDerivedTitleAndSlug(
     }
 }
 
-/**
- * The config of an unpublished copy. Takes the full config because the copy
- * has no ETL layer to inherit from; the server diffs the indicator layer out.
- */
 function configForDuplicate(fullConfig: GrapherInterface): GrapherInterface {
     return _.omit(fullConfig, ["id", "isPublished", "slug"])
 }

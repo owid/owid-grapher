@@ -56,8 +56,6 @@ export interface OriginUrlSuggestion {
     hint?: string
 }
 
-/** A tab the host adds to the editor, rendered with the live editor. */
-/** A built-in tab or the key of a host tab */
 export type EditorTabKey = EditorTabName | EditorExtraTab["key"]
 
 export interface EditorExtraTab {
@@ -383,7 +381,6 @@ export class ConfigEditor {
     }
 }
 
-/** Keys the host stamps onto a config on save, never edited by the user */
 const HOST_STAMPED_KEYS = [
     "version",
     "id",
