@@ -163,7 +163,7 @@
         "rxjs": "^7.8.2",
         "s-expression": "^3.1.1",
         "safe-stable-stringify": "^2.4.1",
-        "sharp": "^0.35.2",
+        "sharp": "^0.35.5",
         "simple-git": "^4.0.1",
         "tinyexec": "^1.1.1",
         "tippy.js": "^6.3.7",
