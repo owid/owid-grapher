@@ -1,4 +1,3 @@
-import "@ourworldindata/utils/src/polyfills.js"
 import * as _ from "lodash-es"
 import * as React from "react"
 

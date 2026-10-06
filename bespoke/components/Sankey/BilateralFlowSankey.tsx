@@ -1,4 +1,3 @@
-import "@ourworldindata/utils/src/polyfills.js"
 import { useMemo } from "react"
 import * as R from "remeda"
 import { match } from "ts-pattern"
