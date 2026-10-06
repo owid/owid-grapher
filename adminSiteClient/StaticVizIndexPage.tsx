@@ -3,6 +3,7 @@ import cx from "clsx"
 import {
     Button,
     Flex,
+    Image,
     Input,
     Popconfirm,
     Table,
@@ -23,6 +24,23 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { makeImageSrc } from "./imagesHelpers.js"
 
+// Thumbnail that opens the full-size image in a lightbox when clicked
+function PreviewImage({
+    cloudflareId,
+    thumbnailWidth,
+}: {
+    cloudflareId: string
+    thumbnailWidth: number
+}) {
+    return (
+        <Image
+            className="static-viz-admin__preview-active-image"
+            src={makeImageSrc(cloudflareId, thumbnailWidth)}
+            preview={{ src: makeImageSrc(cloudflareId, "public") }}
+        />
+    )
+}
+
 function ImagePreviewGallery({
     cloudflareId,
     mobileCloudflareId,
@@ -32,21 +50,13 @@ function ImagePreviewGallery({
 }) {
     const [activeImage, setActiveImage] = useState(cloudflareId)
     if (cloudflareId && !mobileCloudflareId) {
-        return (
-            <img
-                className="static-viz-admin__preview-active-image"
-                src={makeImageSrc(cloudflareId, 300)}
-            />
-        )
+        return <PreviewImage cloudflareId={cloudflareId} thumbnailWidth={300} />
     }
 
     return (
         <div>
             {activeImage && (
-                <img
-                    className="static-viz-admin__preview-active-image"
-                    src={makeImageSrc(activeImage, 600)}
-                />
+                <PreviewImage cloudflareId={activeImage} thumbnailWidth={600} />
             )}
             <div className="static-viz-admin__preview-gallery-strip">
                 {[cloudflareId, mobileCloudflareId!].map((id, idx) => (
