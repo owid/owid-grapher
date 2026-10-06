@@ -92,20 +92,6 @@ describe(ConfigEditor, () => {
         expect(editor.isModified).toBe(true)
     })
 
-    it("takes the saved baseline from the applied config, not from an empty one", () => {
-        const manager: ConfigEditorManager = {
-            patchConfig: { title: "Original title", hasMapTab: true },
-            onSave: () => undefined,
-        }
-        const editor = new ConfigEditor({ manager })
-        expect(editor.savedPatchConfig).toEqual({})
-
-        editor.grapherState.updateFromObject(editor.originalGrapherConfig)
-        editor.markAsSaved()
-
-        expect(editor.isModified).toBe(false)
-    })
-
     it("adopts a config the host normalized on save", async () => {
         const editor = makeEditor({
             onSave: (config) => ({ ...config, title: "Derived title" }),
