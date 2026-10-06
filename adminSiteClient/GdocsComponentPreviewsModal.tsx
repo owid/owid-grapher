@@ -1,0 +1,163 @@
+import { useContext, useState } from "react"
+import { Alert, Checkbox, Modal, Space, Table, Tag, Typography } from "antd"
+import {
+    GdocComponentPreviewItem,
+    GdocComponentPreviewRefreshResult,
+    GdocComponentPreviewStatus,
+} from "@ourworldindata/types"
+import { AdminAppContext } from "./AdminAppContext.js"
+
+const STATUS_LABELS: Record<
+    GdocComponentPreviewStatus,
+    { label: string; color: string }
+> = {
+    updated: { label: "Updated", color: "green" },
+    inserted: { label: "Added", color: "green" },
+    upToDate: { label: "Up to date", color: "default" },
+    missing: { label: "No image", color: "default" },
+    unresolved: { label: "Not found", color: "orange" },
+    failed: { label: "Failed", color: "red" },
+}
+
+export function GdocsComponentPreviewsModal({
+    gdocId,
+    gdocTitle,
+    isOpen,
+    onClose,
+}: {
+    gdocId: string
+    /** Shown in the title where it's not clear which doc this is about */
+    gdocTitle?: string
+    isOpen: boolean
+    onClose: () => void
+}) {
+    const { admin } = useContext(AdminAppContext)
+    const [insertMissing, setInsertMissing] = useState(false)
+    const [acceptImageBelow, setAcceptImageBelow] = useState(false)
+    const [isRunning, setIsRunning] = useState(false)
+    const [result, setResult] = useState<GdocComponentPreviewRefreshResult>()
+
+    async function refresh() {
+        setIsRunning(true)
+        try {
+            const response =
+                await admin.requestJSON<GdocComponentPreviewRefreshResult>(
+                    `/api/gdocs/${gdocId}/refreshComponentPreviews`,
+                    { insertMissing, acceptImageBelow },
+                    "POST",
+                    { isBackground: true }
+                )
+            setResult(response)
+        } finally {
+            setIsRunning(false)
+        }
+    }
+
+    function close() {
+        setResult(undefined)
+        onClose()
+    }
+
+    return (
+        <Modal
+            open={isOpen}
+            title={
+                gdocTitle
+                    ? `Preview images in “${gdocTitle}”`
+                    : "Preview images in the Google Doc"
+            }
+            okText={result ? "Done" : "Update images"}
+            onOk={result ? close : refresh}
+            confirmLoading={isRunning}
+            cancelButtonProps={{ style: result ? { display: "none" } : {} }}
+            onCancel={close}
+            width={result ? 800 : undefined}
+            destroyOnHidden
+        >
+            {result ? (
+                <ComponentPreviewResults items={result.items} />
+            ) : (
+                <>
+                    <Typography.Paragraph>
+                        Replaces the image right above each chart, image and
+                        static viz component in the Google Doc (in all tabs)
+                        with the current version of what it shows, if it's
+                        outdated or was pasted in by hand.
+                    </Typography.Paragraph>
+                    <Space orientation="vertical">
+                        <Checkbox
+                            checked={insertMissing}
+                            onChange={(e) => setInsertMissing(e.target.checked)}
+                        >
+                            Also add images to components that don't have one
+                        </Checkbox>
+                        <Checkbox
+                            checked={acceptImageBelow}
+                            onChange={(e) =>
+                                setAcceptImageBelow(e.target.checked)
+                            }
+                        >
+                            Use the image right below a component if there's
+                            none above it
+                        </Checkbox>
+                    </Space>
+                </>
+            )}
+        </Modal>
+    )
+}
+
+function ComponentPreviewResults({
+    items,
+}: {
+    items: GdocComponentPreviewItem[]
+}) {
+    if (items.length === 0)
+        return (
+            <Alert
+                type="info"
+                title="This document doesn't contain any chart, image or static viz components."
+            />
+        )
+    return (
+        <Table
+            size="small"
+            pagination={false}
+            tableLayout="fixed"
+            dataSource={items.map((item, index) => ({ ...item, key: index }))}
+            columns={[
+                { title: "Tab", dataIndex: "tabTitle", width: 120 },
+                {
+                    title: "Shows",
+                    dataIndex: "target",
+                    ellipsis: true,
+                    render: (target: string) => (
+                        <Typography.Text ellipsis={{ tooltip: target }}>
+                            {target.replace(
+                                /^https:\/\/ourworldindata\.org/,
+                                ""
+                            )}
+                        </Typography.Text>
+                    ),
+                },
+                {
+                    title: "Status",
+                    dataIndex: "status",
+                    width: 280,
+                    render: (status: GdocComponentPreviewStatus, item) => (
+                        <>
+                            <Tag color={STATUS_LABELS[status].color}>
+                                {STATUS_LABELS[status].label}
+                            </Tag>
+                            {item.message && (
+                                <Typography.Text type="secondary">
+                                    {item.message}
+                                </Typography.Text>
+                            )}
+                        </>
+                    ),
+                },
+            ]}
+        />
+    )
+}

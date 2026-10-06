@@ -9,6 +9,7 @@ import {
     faMobileScreen,
     faDesktop,
     faList,
+    faImage,
 } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
@@ -28,6 +29,7 @@ enum GdocsMoreMenuAction {
     Delete = "delete",
     Mobile = "mobile",
     Records = "records",
+    ComponentPreviews = "componentPreviews",
 }
 
 export const GdocsMoreMenu = ({
@@ -38,6 +40,7 @@ export const GdocsMoreMenu = ({
     isMobilePreviewActive,
     toggleMobilePreview,
     onOpenRecords,
+    onOpenComponentPreviews,
 }: {
     gdoc: OwidGdoc
     onDebug: VoidFunction
@@ -46,6 +49,7 @@ export const GdocsMoreMenu = ({
     isMobilePreviewActive: boolean
     toggleMobilePreview: () => void
     onOpenRecords: VoidFunction
+    onOpenComponentPreviews: VoidFunction
 }) => {
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
 
@@ -85,6 +89,9 @@ export const GdocsMoreMenu = ({
                             case GdocsMoreMenuAction.Records:
                                 onOpenRecords()
                                 break
+                            case GdocsMoreMenuAction.ComponentPreviews:
+                                onOpenComponentPreviews()
+                                break
                         }
                     },
                     items: [
@@ -112,6 +119,11 @@ export const GdocsMoreMenu = ({
                             key: GdocsMoreMenuAction.Records,
                             label: "Preview records",
                             icon: <FontAwesomeIcon icon={faList} />,
+                        },
+                        {
+                            key: GdocsMoreMenuAction.ComponentPreviews,
+                            label: "Update preview images in gdoc",
+                            icon: <FontAwesomeIcon icon={faImage} />,
                         },
                         {
                             key: GdocsMoreMenuAction.Unpublish,

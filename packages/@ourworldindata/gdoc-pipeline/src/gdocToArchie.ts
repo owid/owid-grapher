@@ -121,6 +121,28 @@ function mergeAdjacentLinkedElements(
     return merged
 }
 
+/**
+ * The ArchieML text of a paragraph's elements: plain text with inline
+ * formatting and links serialised to HTML
+ */
+export function paragraphElementsToArchieText(
+    elements: docs_v1.Schema$ParagraphElement[]
+): string {
+    // Merge adjacent elements that share the same link URL to prevent splitting links
+    return mergeAdjacentLinkedElements(elements)
+        .map((element) =>
+            match(parseParagraph(element))
+                .with(
+                    { type: P.union("horizontal-rule") },
+                    OwidRawGdocBlockToArchieMLString
+                )
+                .with({ spanType: P.any }, (s) => spanToHtmlString(s))
+                .with(P.nullish, () => "")
+                .exhaustive()
+        )
+        .join("")
+}
+
 // Exported so that consumers of this package (e.g. tooling that maps
 // ArchieML output back to Google Docs body elements) can re-drive the
 // per-element conversion that gdocToArchie performs internally.
@@ -141,14 +163,6 @@ export function paragraphToString(
     }
 
     if (paragraph.elements) {
-        // all values in the element
-        const values: docs_v1.Schema$ParagraphElement[] = paragraph.elements
-
-        // Merge adjacent elements that share the same link URL to prevent splitting links
-        const mergedValues = mergeAdjacentLinkedElements(values)
-
-        let idx = 0
-
         const taggedText = function (text: string): string {
             if (paragraph.paragraphStyle?.namedStyleType?.includes("HEADING")) {
                 const headingLevel =
@@ -168,28 +182,11 @@ export function paragraphToString(
             }
             return text
         }
-        let elementText = ""
-        for (const value of mergedValues) {
-            // we only need to add a bullet to the first value, so we check
-            const isFirstValue = idx === 0
-
-            // prepend an asterisk if this is a list item
-            const prefix = needsBullet && isFirstValue ? "* " : ""
-
-            // concat the text
-            const parsedParagraph = parseParagraph(value)
-            const fragmentText = match(parsedParagraph)
-                .with(
-                    { type: P.union("horizontal-rule") },
-                    OwidRawGdocBlockToArchieMLString
-                )
-                .with({ spanType: P.any }, (s) => spanToHtmlString(s))
-                .with(P.nullish, () => "")
-                .exhaustive()
-            elementText += `${prefix}${fragmentText}`
-            idx++
-        }
-        const nextText = taggedText(elementText)
+        // prepend an asterisk if this is a list item
+        const prefix = needsBullet && paragraph.elements.length ? "* " : ""
+        const nextText = taggedText(
+            `${prefix}${paragraphElementsToArchieText(paragraph.elements)}`
+        )
         if (nextText === "{.table}\n") {
             context.isInTable = true
         } else if (context.isInTable && nextText === "{}\n") {

@@ -297,6 +297,12 @@ export {
     OWID_GDOC_ADMIN_MANAGED_KEYS,
 } from "./gdocTypes/Gdoc.js"
 
+export type {
+    GdocComponentPreviewStatus,
+    GdocComponentPreviewItem,
+    GdocComponentPreviewRefreshResult,
+} from "./gdocTypes/ComponentPreviews.js"
+
 export {
     type Distribution,
     type DataPageV2ContentFields,

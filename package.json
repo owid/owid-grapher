@@ -63,6 +63,7 @@
         "reconstructPostsGdocsComponents": "tsx --tsconfig tsconfig.tsx.json devTools/reconstructPostsGdocsComponents/reconstructPostsGdocsComponents.ts",
         "query": "tsx --tsconfig tsconfig.tsx.json devTools/db-ai-helpers/query.ts",
         "regenerateGdocMarkdown": "tsx --tsconfig tsconfig.tsx.json devTools/regenerateGdocMarkdown.ts",
+        "refreshGdocComponentPreviews": "tsx --tsconfig tsconfig.tsx.json devTools/gdocs/refreshComponentPreviews.ts",
         "addIncomingForeignKeys": "tsx --tsconfig tsconfig.tsx.json devTools/db-ai-helpers/addIncomingForeignKeys.ts",
         "compareArchiveR2WithDb": "tsx --tsconfig tsconfig.tsx.json devTools/compareArchiveR2WithDb.ts"
     },
