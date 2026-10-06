@@ -98,7 +98,9 @@ export function formatCitation(
     rawCitation?: string | string[]
 ): undefined | EnrichedBlockSimpleText[] {
     if (!rawCitation) return
-    const citationArray = _.isArray(rawCitation) ? rawCitation : [rawCitation]
+    const citationArray = Array.isArray(rawCitation)
+        ? rawCitation
+        : [rawCitation]
     return citationArray.map(htmlToSimpleTextBlock)
 }
 

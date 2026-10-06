@@ -1,4 +1,3 @@
-import * as _ from "lodash-es"
 import { SelectionArray } from "@ourworldindata/grapher"
 import { Bounds, deserializeJSONFromHTML } from "@ourworldindata/utils"
 import {
@@ -32,14 +31,14 @@ export async function buildExplorerProps(
         html,
         EMBEDDED_EXPLORER_VIEW_CONFIG_IDS
     ) as Record<string, string> | undefined
-    if (_.isArray(grapherConfigs)) {
+    if (Array.isArray(grapherConfigs)) {
         grapherConfigs = grapherConfigs.map((grapherConfig) => ({
             ...grapherConfig,
             adminBaseUrl: explorerConstants.adminBaseUrl,
             bakedGrapherURL: explorerConstants.bakedGrapherUrl,
         }))
     }
-    if (_.isArray(partialGrapherConfigs)) {
+    if (Array.isArray(partialGrapherConfigs)) {
         partialGrapherConfigs = partialGrapherConfigs.map((grapherConfig) => ({
             ...grapherConfig,
             adminBaseUrl: explorerConstants.adminBaseUrl,

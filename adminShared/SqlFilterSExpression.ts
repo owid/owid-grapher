@@ -562,7 +562,7 @@ export function parseOperationRecursive(
     context: OperationContext
 ): Operation | undefined {
     if (sExpr === undefined) return undefined
-    if (_.isArray(sExpr)) {
+    if (Array.isArray(sExpr)) {
         if (sExpr.length === 0) return undefined
         else {
             const firstElement = sExpr[0]

@@ -772,7 +772,7 @@ function* rawResearchAndWritingToArchieMLString(
     yield* propertyToArchieMLString("variant", block.value)
     if (primary) {
         yield "[.primary]"
-        if (_.isArray(primary)) {
+        if (Array.isArray(primary)) {
             for (const link of primary) {
                 yield* rawLinkToArchie(link)
             }
@@ -783,7 +783,7 @@ function* rawResearchAndWritingToArchieMLString(
     }
     if (secondary) {
         yield "[.secondary]"
-        if (_.isArray(secondary)) {
+        if (Array.isArray(secondary)) {
             for (const link of secondary) {
                 yield* rawLinkToArchie(link)
             }

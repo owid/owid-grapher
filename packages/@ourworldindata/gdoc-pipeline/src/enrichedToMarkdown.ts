@@ -195,7 +195,7 @@ export function enrichedBlockToMarkdown(
             // TODO: the cases below should not happen but come up in the DB - this is a debug helper to get to the bottom of it
             if (b.value === undefined)
                 console.error("Text block value is undefined")
-            if (!_.isArray(b.value))
+            if (!Array.isArray(b.value))
                 console.error("Text block value is not an array", b.value)
             return spansToMarkdown(b.value, options)
         })

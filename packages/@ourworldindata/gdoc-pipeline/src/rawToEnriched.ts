@@ -326,7 +326,7 @@ function parseAllCharts(raw: RawBlockAllCharts): EnrichedBlockAllCharts {
 
     const top = raw.value.top
     if (top) {
-        if (!_.isArray(top)) {
+        if (!Array.isArray(top)) {
             return createError({
                 message: `all-charts malformed "top" property: ${typeof raw
                     .value.top}`,
@@ -365,12 +365,12 @@ function parseAdditionalCharts(
         parseErrors: [error],
     })
 
-    if (_.isArray(raw.value))
+    if (Array.isArray(raw.value))
         return createError({
             message: `additional-charts block is using an array tag (e.g. [.additional-charts]). Please update it to use curly braces (e.g. {.additional-charts})`,
         })
 
-    if (!_.isArray(raw.value.list))
+    if (!Array.isArray(raw.value.list))
         return createError({ message: "Block does not contain a list" })
 
     for (const item of raw.value.list) {
@@ -453,7 +453,7 @@ const parseBlockquote = (raw: RawBlockBlockquote): EnrichedBlockBlockquote => {
         })
     }
 
-    if (!_.isArray(raw.value.text))
+    if (!Array.isArray(raw.value.text))
         return createError({
             message:
                 "Text is not a freeform array. Make sure you've written [.+text]",
@@ -735,7 +735,7 @@ const parseChartStory = (raw: RawBlockChartStory): EnrichedBlockChartStory => {
                     message:
                         "Item is missing chart property or it is not a string value",
                 }
-            if (_.isArray(item?.technical))
+            if (Array.isArray(item?.technical))
                 return {
                     message: `Item's technical tag is an array (e.g. "[.technical]"). Please update this tag to use curly braces (e.g. {.technical})`,
                 }
@@ -1861,7 +1861,7 @@ const parseSdgGrid = (raw: RawBlockSDGGrid): EnrichedBlockSDGGrid => {
     const [errors, enrichedItems] = _.partition(
         items,
         (item: EnrichedSDGGridItem | ParseError[]): item is ParseError[] =>
-            _.isArray(item)
+            Array.isArray(item)
     )
 
     const flattenedErrors = errors.flat()
@@ -2072,7 +2072,7 @@ function parseCallout(raw: RawBlockCallout): EnrichedBlockCallout {
         return createError({ message: "No text provided for callout block" })
     }
 
-    if (!_.isArray(raw.value.text)) {
+    if (!Array.isArray(raw.value.text)) {
         return createError({
             message:
                 "Text must be provided as an array e.g. inside a [.+text] block",
@@ -2137,7 +2137,7 @@ function parseDataCallout(raw: RawBlockDataCallout): EnrichedBlockDataCallout {
         })
     }
 
-    if (!_.isArray(raw.value.content)) {
+    if (!Array.isArray(raw.value.content)) {
         return createError({
             message:
                 "Content must be provided as an array e.g. inside a [.+content] block",
@@ -2175,7 +2175,7 @@ function parseDataCalloutGroup(
         })
     }
 
-    if (!_.isArray(raw.value.content)) {
+    if (!Array.isArray(raw.value.content)) {
         return createError({
             message:
                 "Content must be provided as an array e.g. inside a [.+content] block",
@@ -2382,7 +2382,7 @@ function parseExpander(raw: RawBlockExpander): EnrichedBlockExpander {
             message: "Expander block is missing content",
         })
     }
-    if (!_.isArray(content)) {
+    if (!Array.isArray(content)) {
         return createError({
             message: "Expander block content must be an array",
         })
@@ -2718,14 +2718,14 @@ function parseResearchAndWritingBlock(
     }
 
     const primary: EnrichedBlockResearchAndWritingLink[] = []
-    if (_.isArray(raw.value.primary)) {
+    if (Array.isArray(raw.value.primary)) {
         primary.push(...raw.value.primary.map((link) => enrichLink(link)))
     } else if (raw.value.primary) {
         primary.push(enrichLink(raw.value.primary))
     }
 
     const secondary: EnrichedBlockResearchAndWritingLink[] = []
-    if (_.isArray(raw.value.secondary)) {
+    if (Array.isArray(raw.value.secondary)) {
         secondary.push(...raw.value.secondary.map((link) => enrichLink(link)))
     } else if (raw.value.secondary) {
         secondary.push(enrichLink(raw.value.secondary))
@@ -2904,7 +2904,7 @@ export function parseRefs({
             type: OwidGdocErrorMessageType.Error,
         })
     }
-    if (_.isArray(refs)) {
+    if (Array.isArray(refs)) {
         for (const ref of refs) {
             if (typeof ref.id === "string") {
                 const enrichedBlocks: OwidEnrichedGdocBlock[] = []
@@ -2915,7 +2915,7 @@ export function parseRefs({
                         `A ref with ID "${ref.id}" has been defined but isn't used in this document`
                     )
                 }
-                if (!_.isArray(ref.content) || !ref.content.length) {
+                if (!Array.isArray(ref.content) || !ref.content.length) {
                     pushRefError(
                         `Ref with ID ${ref.id} has no content. Make sure the ID is defined and it has a [.+content] block`
                     )
@@ -3006,7 +3006,7 @@ const parseKeyIndicator = (
 
     if (!val.text) return createError({ message: "text is missing" }, url)
 
-    if (!_.isArray(val.text))
+    if (!Array.isArray(val.text))
         return createError(
             {
                 message:
