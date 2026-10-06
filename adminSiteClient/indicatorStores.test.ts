@@ -71,8 +71,8 @@ describe(csvIndicatorStore, () => {
         ])
     })
 
-    it("keeps the table it has when a chart names no columns", async () => {
+    it("serves the table unchanged when a chart names no columns", async () => {
         const table = await makeStore().loadTable([], undefined)
-        expect(table).toBeUndefined()
+        expect(table!.get("rent_index").values).toEqual([100, 131, 100, 112])
     })
 })
