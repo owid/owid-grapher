@@ -1,4 +1,3 @@
-/** The Debug tab shows the chart's configs */
 import { parse as parseYaml } from "yaml"
 import { expect, test } from "./harness.js"
 import { indicators } from "./fixture.js"

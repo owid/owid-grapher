@@ -61,9 +61,6 @@ describe(findLastMapColorScaleEdit, () => {
     })
 })
 
-// A chart's base is its indicator's config, applied only with inheritance on,
-// with the chart's own ETL layer on top, always. The indicator is the single y
-// indicator that the ETL layer and patch name together.
 describe(makeChartBaseConfig, () => {
     const indicatorConfig: GrapherInterface = {
         note: "Indicator note",

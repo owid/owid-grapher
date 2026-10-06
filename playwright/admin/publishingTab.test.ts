@@ -1,27 +1,13 @@
-/**
- * The Publishing tab holds what a chart has because it is a row in the admin
- * database: its URL, whether it inherits its indicator's config, its tags and
- * the data page override.
- *
- * Toggling inheritance must not fold the indicator's values into the chart's
- * own patch: when inheritance is switched off, values that were inherited stop
- * applying instead of becoming explicit overrides, and when it is switched
- * on, the indicator's values start applying without being copied. Tags are
- * the exception to the save-based contract: they are stored immediately
- * through their own endpoint, so those tests read them back from the API.
- */
 import type { APIRequestContext, Locator } from "@playwright/test"
 import type { DbChartTagJoin } from "@ourworldindata/types"
 import { expect, test, type ChartEditorPage } from "./harness.js"
 import { indicators, tags } from "./fixture.js"
 import { lineChart } from "./charts.js"
 
-/** The link/unlink button of an auto text field, which resets an override */
 const resetButton = (editor: ChartEditorPage, label: string): Locator =>
     editor.field(label).locator("xpath=..").getByRole("button")
 
-// the ETL config of the childMortality indicator
-const inherited = indicators.childMortality.grapherConfigETL
+const childMortalityEtlConfig = indicators.childMortality.grapherConfigETL
 
 const INHERITANCE_TOGGLE = "Inherit settings from the indicator"
 
@@ -154,14 +140,18 @@ test.describe("Inheritance", () => {
             inheritance: false,
         })
         const editor = await openEditor(chart)
-        await expect(editor.preview).not.toContainText(inherited.subtitle)
+        await expect(editor.preview).not.toContainText(
+            childMortalityEtlConfig.subtitle
+        )
         await editor.openTab("Publishing")
         const toggle = editor.checkbox(INHERITANCE_TOGGLE)
         await expect(toggle).not.toBeChecked()
 
         await toggle.check()
 
-        await expect(editor.preview).toContainText(inherited.subtitle)
+        await expect(editor.preview).toContainText(
+            childMortalityEtlConfig.subtitle
+        )
         const debugForm = await editor.openTab("Debug")
         await expect(editor.section("Base config", debugForm)).toBeVisible()
         expect(await editor.saveChanges()).toEqual({})
@@ -177,16 +167,22 @@ test.describe("Inheritance", () => {
             inheritance: true,
         })
         const editor = await openEditor(chart)
-        await expect(editor.preview).toContainText(inherited.subtitle)
-        await expect(editor.preview).toContainText(inherited.note)
+        await expect(editor.preview).toContainText(
+            childMortalityEtlConfig.subtitle
+        )
+        await expect(editor.preview).toContainText(childMortalityEtlConfig.note)
         await editor.openTab("Publishing")
         const toggle = editor.checkbox(INHERITANCE_TOGGLE)
         await expect(toggle).toBeChecked()
 
         await toggle.uncheck()
 
-        await expect(editor.preview).not.toContainText(inherited.subtitle)
-        await expect(editor.preview).not.toContainText(inherited.note)
+        await expect(editor.preview).not.toContainText(
+            childMortalityEtlConfig.subtitle
+        )
+        await expect(editor.preview).not.toContainText(
+            childMortalityEtlConfig.note
+        )
         expect(await editor.saveChanges()).toEqual({})
         expect(await storedInheritance(request, chart.id)).toBe(false)
     })
@@ -386,7 +382,6 @@ test.describe("Data page", () => {
 
         await toggle.check()
 
-        // The setting isn't part of the config but sent along with it
         const saveRequest = page.waitForRequest(
             (request) =>
                 request.method() === "PUT" &&
