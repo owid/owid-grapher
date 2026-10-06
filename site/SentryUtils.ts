@@ -261,8 +261,9 @@ export function updateSentryTags() {
 }
 
 export function setSentryTagsAndAttributes(tags: Record<string, string>): void {
-    // Tags annotate error events; Sentry v11's streamed spans only carry
-    // attributes, so set both to keep the same context searchable in each.
+    // Tags annotate error events and session replays; Sentry v11's streamed
+    // spans only carry attributes, so set both to keep the same context
+    // searchable in each.
     Sentry.setTags(tags)
     Sentry.setAttributes(tags)
 }
