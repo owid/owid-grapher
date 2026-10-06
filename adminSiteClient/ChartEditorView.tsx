@@ -354,12 +354,7 @@ export class ChartEditorView extends React.Component<ChartEditorViewProps> {
     override render(): React.ReactElement {
         return (
             <main className="ChartEditorPage">
-                <LoadingBlocker
-                    isLoading={
-                        this.editor === undefined ||
-                        !!this.editor.currentRequest
-                    }
-                />
+                <LoadingBlocker isLoading={this.editor === undefined} />
                 {this.editor !== undefined && this.renderReady(this.editor)}
             </main>
         )

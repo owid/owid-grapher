@@ -41,22 +41,12 @@ const EDITOR_TAB_NAMES = [
     "debug",
 ] as const
 
+const HOST_STAMPED_KEYS = [
+    "version",
+    "id",
+] as const satisfies readonly (keyof GrapherInterface)[]
+
 export type EditorTabName = (typeof EDITOR_TAB_NAMES)[number]
-
-/**
- * Places inside the editor where the host may add a note of its own, named
- * after the part of the config that section edits
- */
-export type EditorNoteSlot = "map.colorScale"
-
-/** One entry in the editor's "Origin url" dropdown. */
-export interface OriginUrlSuggestion {
-    url: string
-    /** Why this URL is being offered, shown greyed after it. */
-    hint?: string
-}
-
-export type EditorTabKey = EditorTabName | EditorExtraTab["key"]
 
 export interface EditorExtraTab {
     key: string
@@ -64,81 +54,89 @@ export interface EditorExtraTab {
     render: (editor: ConfigEditor) => ReactNode
 }
 
+export type EditorTabKey = EditorTabName | EditorExtraTab["key"]
+
+/**
+ * Places inside the editor where the host may add a note of its own, named
+ * after the part of the config that section edits
+ */
+export type EditorNoteSlot = "map.colorScale"
+
+/** One entry in the editor's "Origin url" dropdown */
+export interface OriginUrlSuggestion {
+    url: string
+    hint?: string
+}
+
 export interface ConfigEditorManager {
-    environment?: EditorEnvironment
-    store?: IndicatorStore
     patchConfig: GrapherInterface
     baseConfig?: GrapherInterface
+
+    store?: IndicatorStore
+    environment?: EditorEnvironment
     scatterDefaults?: ScatterDefaults
-    renderNote?: (slot: EditorNoteSlot) => ReactNode
-    originUrlSuggestions?: () => OriginUrlSuggestion[]
+
     onSave: (
         config: GrapherInterface,
         editor: ConfigEditor
     ) => void | GrapherInterface | Promise<void | GrapherInterface>
     onChange?: (config: GrapherInterface, editor: ConfigEditor) => void
-    /**
-     * Restrict which tabs the editor shows. Tabs that don't apply to the
-     * chart type (map, scatter, marimekko) are hidden regardless.
-     */
+
     tabs?: EditorTabName[]
-    /** Host tabs, shown after the chart-type tabs and before Export. */
     extraTabs?: EditorExtraTab[]
     renderSaveButtons?: (
         editor: ConfigEditor,
         editingErrors: string[]
     ) => ReactNode
+
+    renderNote?: (slot: EditorNoteSlot) => ReactNode
+    originUrlSuggestions?: () => OriginUrlSuggestion[]
 }
 
 export class ConfigEditor {
     manager: ConfigEditorManager
+    store: IndicatorStore
 
     grapherState: GrapherState
-    store: IndicatorStore
-    currentRequest: Promise<any> | undefined
-    tab: EditorTabKey = "basic"
-    errorMessage: { title: string; content: string } | undefined = undefined
-    previewMode: "mobile" | "desktop"
-    showStaticPreview = false
+    baseConfig: GrapherInterface | undefined = undefined
     savedPatchConfig: GrapherInterface = {}
 
-    baseConfig: GrapherInterface | undefined = undefined
+    tab: EditorTabKey
+    previewMode: "mobile" | "desktop"
+    showStaticPreview = false
 
     private readonly disposers: IReactionDisposer[] = []
+    private latestReloadId = 0
 
     constructor(props: { manager: ConfigEditorManager }) {
-        const environment =
-            props.manager.environment ?? defaultEditorEnvironment
+        this.manager = props.manager
+        const environment = this.manager.environment ?? defaultEditorEnvironment
+        this.store =
+            this.manager.store ??
+            dataApiIndicatorStore({ dataApiUrl: environment.dataApiUrl })
+
         this.grapherState = new GrapherState({
             additionalDataLoaderFn: (catalogKey) =>
                 loadCatalogData(catalogKey, {
                     baseUrl: environment.catalogUrl,
                 }),
         })
-        this.store =
-            props.manager.store ??
-            dataApiIndicatorStore({ dataApiUrl: environment.dataApiUrl })
+        this.baseConfig = nonEmptyConfig(this.manager.baseConfig)
 
-        makeObservable(this, {
-            grapherState: observable.ref,
-            currentRequest: observable.ref,
-            tab: observable.ref,
-            errorMessage: observable.ref,
-            previewMode: observable.ref,
-            showStaticPreview: observable.ref,
-            savedPatchConfig: observable.ref,
-            baseConfig: observable.ref,
-        })
-        this.manager = props.manager
+        this.tab = this.tabFromUrl() ?? "basic"
         this.previewMode =
             localStorage.getItem("editorPreviewMode") === "mobile"
                 ? "mobile"
                 : "desktop"
 
-        this.readInitialTabFromUrl()
-        this.setupTabUrlSync()
-
-        this.baseConfig = nonEmptyConfig(this.manager.baseConfig)
+        makeObservable(this, {
+            grapherState: observable.ref,
+            baseConfig: observable.ref,
+            savedPatchConfig: observable.ref,
+            tab: observable.ref,
+            previewMode: observable.ref,
+            showStaticPreview: observable.ref,
+        })
 
         this.disposers.push(
             reaction(
@@ -150,6 +148,10 @@ export class ConfigEditor {
                 () => this.manager.baseConfig,
                 (baseConfig) => this.rebaseEdits(baseConfig),
                 { equals: comparer.structural }
+            ),
+            reaction(
+                () => this.tab,
+                (tab) => writeTabToUrl(tab)
             )
         )
     }
@@ -175,32 +177,15 @@ export class ConfigEditor {
         return (this.manager.extraTabs ?? []).map((tab) => tab.key)
     }
 
-    private readInitialTabFromUrl(): void {
-        const urlParams = new URLSearchParams(window.location.search)
-        const tabParam = urlParams.get("tab")
+    private tabFromUrl(): EditorTabKey | undefined {
+        const tabParam = new URLSearchParams(window.location.search).get("tab")
         if (
             tabParam &&
             (EDITOR_TAB_NAMES.includes(tabParam as EditorTabName) ||
                 this.extraTabKeys.includes(tabParam))
         )
-            this.tab = tabParam
-    }
-
-    private setupTabUrlSync(): void {
-        this.disposers.push(
-            reaction(
-                () => this.tab,
-                (tab) => {
-                    const url = new URL(window.location.href)
-                    if (tab === "basic") {
-                        url.searchParams.delete("tab")
-                    } else {
-                        url.searchParams.set("tab", tab)
-                    }
-                    window.history.replaceState({}, "", url.toString())
-                }
-            )
-        )
+            return tabParam
+        return undefined
     }
 
     dispose(): void {
@@ -241,6 +226,8 @@ export class ConfigEditor {
     }
 
     private configsDiffer(a: GrapherInterface, b: GrapherInterface): boolean {
+        const withoutUndefinedValues = (value: unknown): unknown =>
+            JSON.parse(JSON.stringify(value))
         const userAuthored = (config: GrapherInterface): unknown =>
             withoutUndefinedValues(_.omit(config, HOST_STAMPED_KEYS))
 
@@ -303,8 +290,6 @@ export class ConfigEditor {
             this.invalidSelectedEntityNames
         )
     }
-
-    private latestReloadId = 0
 
     @action.bound async reloadGrapherData(): Promise<void> {
         const { grapherState } = this
@@ -381,17 +366,15 @@ export class ConfigEditor {
     }
 }
 
-const HOST_STAMPED_KEYS = [
-    "version",
-    "id",
-] as const satisfies readonly (keyof GrapherInterface)[]
-
-function withoutUndefinedValues(value: unknown): unknown {
-    return JSON.parse(JSON.stringify(value))
-}
-
 function nonEmptyConfig(
     config: GrapherInterface | undefined
 ): GrapherInterface | undefined {
     return config && !_.isEmpty(config) ? config : undefined
+}
+
+function writeTabToUrl(tab: EditorTabKey): void {
+    const url = new URL(window.location.href)
+    if (tab === "basic") url.searchParams.delete("tab")
+    else url.searchParams.set("tab", tab)
+    window.history.replaceState({}, "", url.toString())
 }
