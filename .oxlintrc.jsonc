@@ -92,6 +92,7 @@
         "eslint/no-unassigned-vars": "error",
         "eslint/no-undef": "error",
         "eslint/no-unreachable": "error",
+        "eslint/no-unreachable-loop": "error",
         "eslint/no-unsafe-finally": "error",
         "eslint/no-unsafe-negation": "error",
         "eslint/no-unsafe-optional-chaining": "error",
@@ -151,6 +152,8 @@
         "import/no-named-as-default": "warn",
 
         "mobx/unconditional-make-observable": "error",
+
+        "oxc/bad-match-all-arg": "error",
 
         "react/display-name": "warn",
         "react/exhaustive-deps": "warn",
@@ -228,6 +231,8 @@
         "typescript/restrict-plus-operands": "warn",
         "typescript/triple-slash-reference": "error",
 
+        "unicorn/no-array-fill-with-reference-type": "error",
+        "unicorn/no-confusing-array-with": "error",
         "unicorn/no-instanceof-array": "warn",
         "unicorn/no-unnecessary-await": "warn",
         "unicorn/no-useless-spread": "warn",
