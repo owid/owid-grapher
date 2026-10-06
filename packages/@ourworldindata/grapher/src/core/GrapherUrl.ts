@@ -161,7 +161,7 @@ function configGlobeRotationToQueryParam(
     const isDefaultRotation = R.isDeepEqual(
         configGlobeRotationLatLon,
         // we use [lon, lat] internally, but here we are given [lat, lon]
-        R.reverse(DEFAULT_GLOBE_ROTATION)
+        DEFAULT_GLOBE_ROTATION.toReversed()
     )
     if (isDefaultRotation) return undefined
 
