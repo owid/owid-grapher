@@ -1,0 +1,18 @@
+metadata:
+  description: |
+    Append-only content history for natively-edited gdocs (posts_gdocs rows with authoringMode = 'native'). Every save of the rich editor appends a revision; this powers the revision history / restore feature. Autosave revisions may be pruned over time, 'publish' revisions are kept forever.
+fields:
+  id:
+    description: Auto-incrementing revision id
+  gdocId:
+    description: Foreign key to posts_gdocs
+  content:
+    description: The full content JSON at this revision (same OwidGdocContent shape as posts_gdocs.content)
+  kind:
+    description: "What kind of save produced this revision: 'autosave' (periodic editor save), 'manual' (explicit save), 'publish' (snapshot taken when publishing), 'restore' (result of restoring an older revision)"
+  label:
+    description: Optional human-readable name for the revision
+  createdAt:
+    description: When the revision was created
+  createdBy:
+    description: Foreign key to users; who created the revision
