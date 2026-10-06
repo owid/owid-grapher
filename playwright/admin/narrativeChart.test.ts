@@ -1,5 +1,6 @@
 import type { APIRequestContext, Page } from "@playwright/test"
 import type { GrapherInterface } from "@ourworldindata/types"
+import { latestGrapherConfigSchema } from "@ourworldindata/grapher"
 import { ChartEditorPage, expect, test, type SeededChart } from "./harness.js"
 import { entities, indicators } from "./fixture.js"
 import { lineChart } from "./charts.js"
@@ -19,7 +20,7 @@ async function seedNarrativeChart(
             type: "chart",
             name: `narrative-chart-${parent.id}`,
             parentChartId: parent.id,
-            config,
+            config: { $schema: latestGrapherConfigSchema, ...config },
         },
     })
     const json = await response.json()
