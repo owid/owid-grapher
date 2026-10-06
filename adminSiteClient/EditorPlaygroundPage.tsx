@@ -1,13 +1,3 @@
-/**
- * A page for trying the config-only chart editor: paste a grapher config,
- * edit it against the live preview, and read the edited config back. It is
- * the in-repo stand-in for what a consumer of the future editor package would
- * build, so it deliberately touches nothing chart-specific in the admin.
- *
- * The scenarios along the top are the point of the page: each one mounts the
- * same component the way a different host would, and "Show code" prints the
- * props that produced what you are looking at.
- */
 import * as React from "react"
 import { observer } from "mobx-react"
 import { action, computed, observable, makeObservable } from "mobx"
@@ -39,19 +29,22 @@ import {
 
 import "./EditorPlaygroundPage.scss"
 
-// Life expectancy at birth, served by the public Data API, so the preview
-// works against any database.
+const LIFE_EXPECTANCY_VARIABLE_ID = 1118466
+
 const EXAMPLE_API_CONFIG: GrapherInterface = {
     title: "Life expectancy",
     subtitle:
         "The period life expectancy at birth, in a given year. Try editing this.",
     hasMapTab: true,
     selectedEntityNames: ["World", "Africa", "Europe", "Asia"],
-    dimensions: [{ property: DimensionProperty.y, variableId: 1118466 }],
+    dimensions: [
+        {
+            property: DimensionProperty.y,
+            variableId: LIFE_EXPECTANCY_VARIABLE_ID,
+        },
+    ],
 }
 
-// A made-up CSV standing in for a host's own data: no OWID indicators, the
-// config references columns by slug.
 const EXAMPLE_CSV = `entityName,year,rent_index,vacancy_rate
 Berlin,2015,100,3.1
 Berlin,2017,112,2.4
@@ -95,9 +88,6 @@ const EXAMPLE_CSV_CONFIG: GrapherInterface = {
     selectedEntityNames: ["Berlin", "Vienna", "Prague"],
 }
 
-// Scenario "patch on a base". The base stands in for whatever a host layers
-// under a config: an indicator's defaults, a house style, a parent chart. The
-// chart itself stores only the title.
 const EXAMPLE_BASE_CONFIG: GrapherInterface = {
     subtitle:
         "Asking rents relative to 2015. This subtitle comes from the base.",
@@ -115,8 +105,6 @@ const LITE_TABS: EditorTabName[] = ["basic", "data", "text", "customize", "map"]
 
 type Scenario = "owid" | "csv" | "base" | "embed"
 
-/** Each scenario mounts the same editor as a different host would. The blurb
- *  says which part of the interface it is there to show. */
 const SCENARIOS: {
     value: Scenario
     label: string
@@ -175,8 +163,7 @@ const SCENARIOS: {
     },
 ]
 
-// From react-chart-editor's readme, for comparison in the "Show code" drawer.
-const PLOTLY_SNIPPET = `import plotly from "plotly.js/dist/plotly"
+const REACT_CHART_EDITOR_README_SNIPPET = `import plotly from "plotly.js/dist/plotly"
 import PlotlyEditor from "react-chart-editor"
 import "react-chart-editor/lib/react-chart-editor.css"
 
@@ -253,8 +240,6 @@ export class EditorPlaygroundPage extends React.Component {
         })
     }
 
-    /** The exact props the playground is passing right now, as the code a
-     *  host would write. Generated from state so it never drifts. */
     @computed get mountSnippet(): string {
         const storeLine =
             this.storeMode === "csv"
@@ -294,7 +279,6 @@ ${tabsLine}${hostLines}
 />`
     }
 
-    /** Builds the store for the current inputs. Throws on a bad CSV or defs. */
     private makeStore(): IndicatorStore {
         if (this.storeMode === "csv") {
             const columnDefs = JSON.parse(
@@ -334,9 +318,6 @@ ${tabsLine}${hostLines}
         return this.scenario === "base" ? EXAMPLE_BASE_CONFIG : undefined
     }
 
-    /** A host tab, to show that the slot takes anything and is handed the
-     *  editor. The admin's Revisions, References and Publishing arrive the
-     *  same way. */
     @computed get extraTabs(): EditorExtraTab[] | undefined {
         if (this.scenario !== "embed") return undefined
         return [
@@ -363,8 +344,6 @@ ${tabsLine}${hostLines}
         ]
     }
 
-    /** Replaces the editor's own "Save config" button, the way the admin
-     *  replaces it with publish, delete and save-as-new. */
     @computed get renderSaveButtons():
         | ((editor: ConfigEditor, editingErrors: string[]) => React.ReactNode)
         | undefined {
@@ -412,9 +391,6 @@ ${tabsLine}${hostLines}
         }
     }
 
-    /** Re-mount the editor so a changed provider or tab set takes effect.
-     *  The editor restarts from `loadedConfig`, so unsaved edits are gone and
-     *  the live pane must not keep showing them. */
     @action.bound remount(): void {
         this.liveConfig = undefined
         this.editorKey++
@@ -428,8 +404,6 @@ ${tabsLine}${hostLines}
         this.savedConfig = config
         this.savedAt = new Date()
         this.isOutputOpen = true
-        // What a host would do: the saved config is now the one to reopen,
-        // so a later remount starts from it rather than the original.
         this.loadedConfig = config
     }
 
@@ -443,8 +417,6 @@ ${tabsLine}${hostLines}
         this.remount()
     }
 
-    /** A scenario sets every knob at once and loads its example, so each one
-     *  is a complete picture of one way to mount the editor. */
     @action.bound setScenario(scenario: Scenario): void {
         this.scenario = scenario
         this.storeMode = scenario === "owid" ? "api" : "csv"
@@ -705,7 +677,9 @@ ${tabsLine}${hostLines}
                                                 columns, callback out.
                                             </p>
                                             <pre className="EditorPlaygroundPage__json">
-                                                {PLOTLY_SNIPPET}
+                                                {
+                                                    REACT_CHART_EDITOR_README_SNIPPET
+                                                }
                                             </pre>
                                             <table className="table table-sm">
                                                 <thead>
