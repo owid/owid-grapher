@@ -49,15 +49,16 @@ import { OwidGoogleAuth } from "../../OwidGoogleAuth.js"
 import { acceptAllGdocSuggestions } from "./acceptAllGdocSuggestions.js"
 import { getDatapageIndicatorId } from "../Variable.js"
 import { createLinkForNarrativeChart, createLinkFromUrl } from "../Link.js"
-import {
-    multiDimDataPageExists,
-} from "../MultiDimDataPage.js"
+import { multiDimDataPageExists } from "../MultiDimDataPage.js"
 import {
     getMultiDimRedirectSourcesWithMultipleTargets,
     getMultiDimRedirectTargets,
 } from "../MultiDimRedirects.js"
 import { logErrorAndMaybeCaptureInSentry } from "../../../serverUtils/errorLog.js"
-import { type GdocLinkTarget, resolveGdocLinkTargets } from "./gdocLinkTargets.js"
+import {
+    type GdocLinkTarget,
+    resolveGdocLinkTargets,
+} from "./gdocLinkTargets.js"
 import {
     ARCHIVED_THUMBNAIL_FILENAME,
     ChartConfigType,
