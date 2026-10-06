@@ -137,6 +137,36 @@ describe("Concurrent chart saves", { timeout: 30000 }, () => {
             expect(dimensions[chartId]).toEqual([otherVariableId, variableId])
     })
 
+    it("adds the first dimensions to adjacent charts concurrently without deadlocking", async () => {
+        const chartIds: number[] = []
+        for (let i = 0; i < CONCURRENT_SAVES; i++) {
+            const { body } = await saveChart(
+                "POST",
+                "/charts",
+                chartConfig(i, [])
+            )
+            chartIds.push(body.chartId)
+        }
+
+        const results = await Promise.all(
+            chartIds.map((chartId, i) =>
+                saveChart(
+                    "PUT",
+                    `/charts/${chartId}`,
+                    chartConfig(i, [variableId])
+                )
+            )
+        )
+        for (const result of results) {
+            expect(result.body.error).toBeUndefined()
+            expect(result.status).toBe(200)
+        }
+
+        const dimensions = await dimensionsByChart()
+        for (const chartId of chartIds)
+            expect(dimensions[chartId]).toEqual([variableId])
+    })
+
     it("keeps one consistent set of dimensions when the same chart is saved concurrently", async () => {
         const { body } = await saveChart(
             "POST",

@@ -627,9 +627,7 @@ export const saveGrapher = async (
         createdAt: now,
     })
 
-    await replaceChartDimensions(knex, chartId, fullConfig, {
-        isNewChart: !existingConfig,
-    })
+    await replaceChartDimensions(knex, chartId, fullConfig)
 
     if (fullConfig.isPublished) {
         await retrieveChartConfigFromDbAndSaveToR2(knex, chartConfigId, {
@@ -982,25 +980,26 @@ export async function updateChart(
  * config. The rows only record which variables a chart uses; the dimension
  * configuration itself lives in the config JSON.
  *
- * A new chart has no rows yet, so we skip the DELETE for it. Under REPEATABLE
- * READ, a DELETE by the secondary `chartId` index gap-locks the range where the
- * chart's rows would go, and concurrently created charts all share the range at
- * the end of that index: two such transactions each hold the gap lock and then
- * wait for each other's INSERT, which MySQL resolves as a deadlock.
+ * The DELETE only runs if the chart has rows. Under REPEATABLE READ, a DELETE
+ * that matches no rows still gap-locks the range where they would go, and
+ * concurrent saves of charts without rows can share that range and deadlock on
+ * their INSERTs.
  *
- * Existing charts keep the locking DELETE. It serializes concurrent saves of the
- * same chart, which a DELETE by primary keys from a snapshot read would not.
- * Saves of different existing charts can only wait on each other in a chain,
- * because each INSERT lands after the chart's own rows and so only in the gap
- * owned by the next chart.
+ * The existence check reads the transaction's snapshot, which may predate the
+ * `charts` row lock. If a concurrent save of the same chart added its first
+ * rows after the snapshot, both saves' rows end up in the table.
  */
 async function replaceChartDimensions(
     trx: db.KnexReadWriteTransaction,
     chartId: number,
-    fullConfig: GrapherInterface,
-    { isNewChart }: { isNewChart: boolean }
+    fullConfig: GrapherInterface
 ): Promise<void> {
-    if (!isNewChart)
+    const existingDimensionRow = await db.knexRawFirst<{ id: number }>(
+        trx,
+        `SELECT id FROM chart_dimensions WHERE chartId = ? LIMIT 1`,
+        [chartId]
+    )
+    if (existingDimensionRow)
         await db.knexRaw(
             trx,
             `DELETE FROM chart_dimensions WHERE chartId = ?`,
@@ -1019,18 +1018,14 @@ async function replaceChartDimensions(
 /**
  * Refresh `chart_dimensions` and the chart's grapher_config in R2 (both the
  * UUID-keyed object and, if published, the slug-keyed object).
- *
- * Pass `isNewChart` only for a chart created earlier in the same transaction
- * that has no dimension rows yet (see `replaceChartDimensions`).
  */
 async function refreshChartDimensionsAndR2(
     trx: db.KnexReadWriteTransaction,
     chartId: number,
     chartConfigId: string,
-    fullConfig: GrapherInterface,
-    { isNewChart = false }: { isNewChart?: boolean } = {}
+    fullConfig: GrapherInterface
 ): Promise<void> {
-    await replaceChartDimensions(trx, chartId, fullConfig, { isNewChart })
+    await replaceChartDimensions(trx, chartId, fullConfig)
     await retrieveChartConfigFromDbAndSaveToR2(trx, chartConfigId)
     if (fullConfig.isPublished && fullConfig.slug) {
         await retrieveChartConfigFromDbAndSaveToR2(trx, chartConfigId, {
@@ -1166,15 +1161,12 @@ export async function upsertEtlConfigByChartConfigId(
             })
         ).chartId
 
-    // The chart created above starts from a config without dimensions, so it
-    // has no chart_dimensions rows yet and the refresh can skip its DELETE
     const result = await upsertEtlConfigForChart(
         trx,
         res.locals.user,
         chartId,
         etlConfig,
-        catalogPath,
-        { isNewChart: created }
+        catalogPath
     )
     return { ...result, chartId, created }
 }
@@ -1184,8 +1176,7 @@ async function upsertEtlConfigForChart(
     user: DbPlainUser,
     chartId: number,
     etlConfig: GrapherInterface,
-    catalogPath: string | null,
-    { isNewChart }: { isNewChart: boolean }
+    catalogPath: string | null
 ) {
     const row = await db.knexRawFirst<
         Pick<
@@ -1387,13 +1378,7 @@ async function upsertEtlConfigForChart(
         ]
     )
 
-    await refreshChartDimensionsAndR2(
-        trx,
-        chartId,
-        row.configId,
-        newFullConfig,
-        { isNewChart }
-    )
+    await refreshChartDimensionsAndR2(trx, chartId, row.configId, newFullConfig)
 
     if (newFullConfig.isPublished) {
         await triggerStaticBuild(
