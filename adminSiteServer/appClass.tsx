@@ -210,8 +210,14 @@ export class OwidAdminApp {
             app.use("/", mockSiteRouter)
         }
 
-        // Add this after all routes, but before any other error-handling
-        // middlewares are defined.
+        // Sentry v11's Express integration would capture route errors on its
+        // own, but it hooks into Express by rewriting its source at load time
+        // via `Module.registerHooks()`. We run the server through tsx, which
+        // loads modules itself and bypasses that hook, so the integration never
+        // attaches and errors would go unreported. Keep the (deprecated but
+        // functional) explicit error handler. Add it after all routes, but
+        // before any other error-handling middlewares are defined.
+        // oxlint-disable-next-line typescript/no-deprecated -- see above, the automatic capture doesn't work under tsx
         Sentry.setupExpressErrorHandler(app)
 
         // Give full error messages, including in production

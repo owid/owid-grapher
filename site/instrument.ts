@@ -6,7 +6,7 @@
  */
 
 import * as Sentry from "@sentry/react"
-import { TimeoutError } from "@ourworldindata/utils"
+import { TimeoutError, SENTRY_DATA_COLLECTION } from "@ourworldindata/utils"
 import {
     COMMIT_SHA,
     ENV,
@@ -33,6 +33,7 @@ if (LOAD_SENTRY) {
     }
 
     Sentry.init({
+        dataCollection: SENTRY_DATA_COLLECTION,
         dsn: SENTRY_DSN,
         environment: ENV,
         release: COMMIT_SHA,
