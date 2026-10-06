@@ -103,9 +103,6 @@ export class MapConfig extends MapConfigDefaults implements Persistable {
         if (obj.time) obj.time = maxTimeToJSON(this.time)
         if (obj.startTime) obj.startTime = minTimeToJSON(this.startTime)
 
-        // No need to store the startTime if it's the same as the end time
-        if (obj.startTime === obj.time) delete obj.startTime
-
         // Persist selection
         obj.selectedEntityNames = this.selection.selectedEntityNames
 
