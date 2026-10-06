@@ -106,6 +106,7 @@ export class ConfigEditor {
 
     private readonly disposers: IReactionDisposer[] = []
     private latestReloadId = 0
+    private latestAppliedReloadId = 0
 
     constructor(props: { manager: ConfigEditorManager }) {
         this.manager = props.manager
@@ -297,8 +298,10 @@ export class ConfigEditor {
             grapherState.dimensionConfigs,
             grapherState.selectedEntityColors
         )
-        if (inputTable && reloadId === this.latestReloadId)
+        if (inputTable && reloadId > this.latestAppliedReloadId) {
+            this.latestAppliedReloadId = reloadId
             grapherState.inputTable = inputTable
+        }
     }
 
     @action.bound async commitDimensionsAndReloadData(

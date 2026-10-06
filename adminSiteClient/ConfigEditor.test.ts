@@ -3,8 +3,10 @@
  */
 import { describe, expect, it, vi } from "vitest"
 import { runInAction } from "mobx"
-import { GrapherInterface } from "@ourworldindata/types"
+import { DimensionProperty, GrapherInterface } from "@ourworldindata/types"
+import { OwidTable } from "@ourworldindata/core-table"
 import { ConfigEditor, ConfigEditorManager } from "./ConfigEditor.js"
+import { IndicatorStore } from "./indicatorStores.js"
 
 function makeEditor(
     overrides: Partial<ConfigEditorManager> = {}
@@ -119,5 +121,59 @@ describe(ConfigEditor, () => {
         expect(onChange.mock.lastCall?.[0]).toMatchObject({
             title: "Edited title",
         })
+    })
+})
+
+function makeControlledStore(): {
+    store: IndicatorStore
+    resolveLoad: (index: number, table: OwidTable | undefined) => void
+} {
+    const pendingLoads: ((table: OwidTable | undefined) => void)[] = []
+    return {
+        store: {
+            loadTable: () =>
+                new Promise((resolve) => pendingLoads.push(resolve)),
+        },
+        resolveLoad: (index, table) => pendingLoads[index](table),
+    }
+}
+
+const tableWithValue = (value: number): OwidTable =>
+    new OwidTable(`entityName,year,population\nFrance,2000,${value}`)
+
+describe("ConfigEditor reloadGrapherData", () => {
+    const patchConfig: GrapherInterface = {
+        dimensions: [{ property: DimensionProperty.y, variableId: 1 }],
+    }
+
+    it("keeps a table that arrives after a later reload found nothing new", async () => {
+        const { store, resolveLoad } = makeControlledStore()
+        const editor = makeEditor({ store, patchConfig })
+        const table = tableWithValue(1)
+
+        const firstReload = editor.reloadGrapherData()
+        const repeatReload = editor.reloadGrapherData()
+        resolveLoad(1, undefined)
+        await repeatReload
+        resolveLoad(0, table)
+        await firstReload
+
+        expect(editor.grapherState.inputTable).toBe(table)
+    })
+
+    it("doesn't let an older reload's table replace a newer one", async () => {
+        const { store, resolveLoad } = makeControlledStore()
+        const editor = makeEditor({ store, patchConfig })
+        const olderTable = tableWithValue(1)
+        const newerTable = tableWithValue(2)
+
+        const olderReload = editor.reloadGrapherData()
+        const newerReload = editor.reloadGrapherData()
+        resolveLoad(1, newerTable)
+        await newerReload
+        resolveLoad(0, olderTable)
+        await olderReload
+
+        expect(editor.grapherState.inputTable).toBe(newerTable)
     })
 })
