@@ -1,3 +1,4 @@
+import "@ourworldindata/utils/src/polyfills.js"
 import { useMemo } from "react"
 import * as R from "remeda"
 import { match } from "ts-pattern"
@@ -242,8 +243,8 @@ export function selectTopEntities({
     let top =
         topCandidatesAboveFloor.length > 0
             ? topCandidatesAboveFloor
-            : R.take(topCandidates, 1)
-    let other = R.drop(sortedEntities, top.length)
+            : topCandidates.slice(0, 1)
+    let other = sortedEntities.toSpliced(0, top.length)
 
     // Inline a small Other tail
     if (other.length > 0 && other.length <= showAllOtherBelow) {

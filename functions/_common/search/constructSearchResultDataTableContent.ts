@@ -207,7 +207,7 @@ function buildDataTableContentForLineChart({
     rows = _.orderBy(rows, [(row) => row.point.y], "desc")
 
     // Take the first X rows if maxRows is specified
-    if (maxRows && maxRows > 0) rows = _.take(rows, maxRows)
+    if (maxRows && maxRows > 0) rows = rows.slice(0, maxRows)
 
     return {
         rows: rows.map((row) => _.omit(row, ["series", "point"])),
@@ -234,7 +234,7 @@ function buildDataTableContentForDiscreteBarChart({
     }))
 
     // Take the first X rows if maxRows is specified
-    if (maxRows && maxRows > 0) rows = _.take(rows, maxRows)
+    if (maxRows && maxRows > 0) rows = rows.slice(0, maxRows)
 
     return {
         rows: rows.map((row) => _.omit(row, ["series"])),
@@ -287,7 +287,7 @@ function buildDataTableContentForSlopeChart({
     rows = _.orderBy(rows, [(row) => row.endValue], "desc")
 
     // Take the first X rows if maxRows is specified
-    if (maxRows && maxRows > 0) rows = _.take(rows, maxRows)
+    if (maxRows && maxRows > 0) rows = rows.slice(0, maxRows)
 
     const title = makeTableTitle(grapherState, chartState, formatColumn)
 
@@ -335,7 +335,7 @@ function buildDataTableContentForDumbbellChart({
             })
 
             // Take the first X rows if maxRows is specified
-            if (maxRows && maxRows > 0) rows = _.take(rows, maxRows)
+            if (maxRows && maxRows > 0) rows = rows.slice(0, maxRows)
 
             const title = makeTableTitle(grapherState, chartState, formatColumn)
 
@@ -363,7 +363,7 @@ function buildDataTableContentForDumbbellChart({
             })
 
             // Take the first X rows if maxRows is specified
-            if (maxRows && maxRows > 0) rows = _.take(rows, maxRows)
+            if (maxRows && maxRows > 0) rows = rows.slice(0, maxRows)
 
             const startName = getColumnNameForDisplay(startColumn)
             const endName = getColumnNameForDisplay(endColumn)
@@ -411,7 +411,7 @@ function buildDataTableContentForStackedDiscreteBarChart({
             rows = _.orderBy(rows, [(row) => row.point.value], ["desc"])
 
             // Take the first X rows if maxRows is specified
-            if (maxRows && maxRows > 0) rows = _.take(rows, maxRows)
+            if (maxRows && maxRows > 0) rows = rows.slice(0, maxRows)
 
             const columnName = getColumnNameForDisplay(formatColumn)
             const unit = getDisplayUnit(formatColumn)
@@ -490,7 +490,7 @@ function buildDataTableContentForStackedDiscreteBarChart({
             }
 
             // Take the first X rows if maxRows is specified
-            if (maxRows && maxRows > 0) rows = _.take(rows, maxRows)
+            if (maxRows && maxRows > 0) rows = rows.slice(0, maxRows)
 
             return {
                 rows: rows.map((row) =>
@@ -561,7 +561,7 @@ function buildDataTableContentForStackedAreaAndBarChart({
     rows = rows.reverse()
 
     // Take the first X rows if maxRows is specified
-    if (maxRows && maxRows > 0) rows = _.take(rows, maxRows)
+    if (maxRows && maxRows > 0) rows = rows.slice(0, maxRows)
 
     const title = makeTableTitle(grapherState, chartState, formatColumn)
 
@@ -606,7 +606,7 @@ function buildDataTableContentForMarimekkoChart({
     rows = _.orderBy(rows, [(row) => row.value], "desc")
 
     // Take the first X rows if maxRows is specified
-    if (maxRows && maxRows > 0) rows = _.take(rows, maxRows)
+    if (maxRows && maxRows > 0) rows = rows.slice(0, maxRows)
 
     return {
         rows: rows.map((row) => ({
@@ -669,7 +669,7 @@ function buildDataTableContentForScatterPlot({
     rows = _.orderBy(rows, [(row) => row.yValue, "desc"])
 
     // Take the first X rows if maxRows is specified
-    if (maxRows && maxRows > 0) rows = _.take(rows, maxRows)
+    if (maxRows && maxRows > 0) rows = rows.slice(0, maxRows)
 
     const title = isTimeScatter ? yLabel : `${yLabel} vs. ${xLabel}`
 
@@ -724,7 +724,7 @@ function buildDataTableContentForWorldMap({
     }
 
     // Take the first X rows if maxRows is specified
-    if (maxRows && maxRows > 0) rows = _.take(rows, maxRows)
+    if (maxRows && maxRows > 0) rows = rows.slice(0, maxRows)
 
     return {
         rows: rows.map((row) =>
@@ -768,7 +768,7 @@ function buildDataTableContentForTableTab({
     }))
 
     // Take the first X rows if maxRows is specified
-    if (maxRows && maxRows > 0) tableRows = _.take(tableRows, maxRows)
+    if (maxRows && maxRows > 0) tableRows = tableRows.slice(0, maxRows)
 
     return { rows: tableRows, title }
 }
