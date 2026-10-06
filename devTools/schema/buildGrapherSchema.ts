@@ -9,8 +9,9 @@ import { formatGrapherSchemaFileName } from "@ourworldindata/utils"
 import {
     REPO_ROOT,
     SCHEMA_DIR,
+    assertSchemaIdentityIsConsistent,
+    findDeclaredSchemaRevision,
     findLatestSchemaFile,
-    readDeclaredSchemaRevision,
 } from "./grapherSchemaSource.js"
 import {
     generateDefaultConfig,
@@ -41,7 +42,7 @@ async function main(): Promise<void> {
 
     const { filePath: sourcePath, version } = await findLatestSchemaFile()
     const schema = parse(await fs.readFile(sourcePath, "utf8")) as JSONSchema7
-    const revision = readDeclaredSchemaRevision(schema, version)
+    assertSchemaIdentityIsConsistent(schema, version)
     const defs = schema.$defs ?? {}
 
     const defaultConfigFile = await renderDefaultConfigFile(
@@ -55,6 +56,7 @@ async function main(): Promise<void> {
 
     if (publishDir) {
         const schemaJson = serializeJson(schema)
+        const revision = findDeclaredSchemaRevision(schema)
         const revisionedFileName = formatGrapherSchemaFileName(
             version,
             revision
