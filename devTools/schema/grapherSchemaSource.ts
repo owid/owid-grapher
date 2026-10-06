@@ -65,11 +65,11 @@ export function resolveRef(
     return { ...toSchemaObject(def), ...schema, $ref: undefined }
 }
 
-/** The revision the document's `$id` declares, checked against the version its file name gives */
-export function readDeclaredSchemaRevision(
+/** Throws unless the file name, `$id` and `$schema` pattern name the same version, and `$id` names a revision */
+export function assertSchemaIdentityIsConsistent(
     schema: JSONSchema7,
     version: string
-): number {
+): void {
     const id = schema.$id ?? ""
     const declared = parseGrapherSchemaName(id)
     if (declared?.version !== version || declared.revision === undefined)
@@ -82,8 +82,6 @@ export function readDeclaredSchemaRevision(
         throw new Error(
             `Expected the $schema property's pattern to accept ${id}, got ${JSON.stringify(pattern)}`
         )
-
-    return declared.revision
 }
 
 /** The revision a document declares in its `$id` */
