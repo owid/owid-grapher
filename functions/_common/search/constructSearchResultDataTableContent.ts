@@ -558,7 +558,7 @@ function buildDataTableContentForStackedAreaAndBarChart({
     // original order, so that the first selected series appears on top.
     // We reverse the order again here, so that the first selected entity
     // (which is on top of the chart) is also on top of the table.
-    rows = _.reverse(rows)
+    rows = rows.reverse()
 
     // Take the first X rows if maxRows is specified
     if (maxRows && maxRows > 0) rows = _.take(rows, maxRows)
