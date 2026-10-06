@@ -10,8 +10,7 @@ import { expect, test } from "./harness.js"
 import { indicators } from "./fixture.js"
 import { lineChart } from "./charts.js"
 
-/** Saves a new revision of the chart through the API */
-async function updateChart(
+async function saveChartRevision(
     request: APIRequestContext,
     chartId: number,
     config: GrapherInterface
@@ -115,7 +114,7 @@ test.describe("Revisions tab", () => {
         const chart = await seedChart(lineChart(indicators.childMortality), {
             inheritance: true,
         })
-        await updateChart(
+        await saveChartRevision(
             request,
             chart.id,
             lineChart(indicators.lifeExpectancy)

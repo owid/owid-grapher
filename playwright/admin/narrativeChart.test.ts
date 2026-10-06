@@ -161,7 +161,6 @@ test("saving a narrative chart stores its edits with the props it always owns", 
             `/admin/api/narrative-charts/${narrativeChart.id}.config.json`
         )
     ).json()
-    // chart type, tab and selection are stored although they match the parent
     expect(configPatch).toMatchObject({
         subtitle: "Only in the narrative chart",
         chartTypes: ["LineChart"],

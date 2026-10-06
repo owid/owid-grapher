@@ -1,12 +1,3 @@
-/**
- * The Basic tab decides what kind of chart it is and which indicators it
- * shows: the chart type tags and the map tab toggle, and the indicator slots
- * with their dimension cards.
- *
- * Changing the chart types or the number of y indicators also re-applies
- * defaults (scatter axes, Marimekko stacking, the entity selection), so those
- * tests list every field the editor writes, not just the one clicked.
- */
 import type { Locator, Page } from "@playwright/test"
 import {
     DimensionProperty,

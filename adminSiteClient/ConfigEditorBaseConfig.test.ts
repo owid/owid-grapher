@@ -7,12 +7,6 @@ import { GrapherInterface } from "@ourworldindata/types"
 import * as _ from "lodash-es"
 import { ConfigEditor, ConfigEditorManager } from "./ConfigEditor.js"
 
-// The editor knows one thing about inheritance: `baseConfig` is the config the
-// patch is diffed against. These cases cover the ways the base changes under an
-// open editor (it arrives late, the host swaps it, it goes away, a loaded patch
-// brings its own) and check both the live config and the patch a save would
-// send, since either can go wrong on its own.
-
 const withoutSchema = (config: GrapherInterface): GrapherInterface =>
     _.omit(config, "$schema")
 
@@ -27,7 +21,6 @@ const otherBase: GrapherInterface = {
 }
 const savedPatch: GrapherInterface = { title: "Saved title" }
 
-/** An editor that has just opened `savedPatch` over `initialBaseConfig` */
 function makeEditor({
     initialBaseConfig = savedBase,
 }: { initialBaseConfig?: GrapherInterface | null } = {}): {
@@ -162,10 +155,7 @@ describe("ConfigEditor loadPatchConfig", () => {
 
     it("leaves the patch as is when the host then hands down the same base", async () => {
         const { editor, manager } = makeEditor()
-        await editor.loadPatchConfig(
-            { subtitle: "Base subtitle" },
-            otherBase
-        )
+        await editor.loadPatchConfig({ subtitle: "Base subtitle" }, otherBase)
 
         runInAction(() => {
             manager.baseConfig = otherBase
