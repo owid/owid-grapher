@@ -33,34 +33,27 @@ function chartConfig(i: number, variableIds: number[]): GrapherInterface {
 interface ChartSaveResponse {
     chartId: number
     created?: boolean
-    error?: { message: string; status: number }
 }
 
-async function saveChart(
+function saveChart(
     method: "POST" | "PUT",
     path: string,
     config: GrapherInterface
-): Promise<{ status: number; body: ChartSaveResponse }> {
-    const response = await fetch(env.baseUrl + path, {
-        method,
-        headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${env.apiKey}`,
-        },
-        body: JSON.stringify(config),
-    })
-    return { status: response.status, body: await response.json() }
+): Promise<ChartSaveResponse> {
+    return env.request({ method, path, body: JSON.stringify(config) })
 }
 
 async function dimensionsByChart(): Promise<Record<number, number[]>> {
-    const rows = await env
+    const rows: { chartId: number; variableId: number }[] = await env
         .testKnex(ChartDimensionsTableName)
         .select("chartId", "variableId")
         .orderBy(["chartId", "order"])
-    const result: Record<number, number[]> = {}
-    for (const row of rows)
-        (result[row.chartId] ??= []).push(row.variableId as number)
-    return result
+    const variableIdsByChartId: Record<number, number[]> = {}
+    for (const { chartId, variableId } of rows) {
+        if (!variableIdsByChartId[chartId]) variableIdsByChartId[chartId] = []
+        variableIdsByChartId[chartId].push(variableId)
+    }
+    return variableIdsByChartId
 }
 
 describe("Concurrent chart saves", { timeout: 30000 }, () => {
@@ -69,15 +62,11 @@ describe("Concurrent chart saves", { timeout: 30000 }, () => {
     })
 
     it("creates adjacent charts concurrently without deadlocking", async () => {
-        const results = await Promise.all(
+        await Promise.all(
             Array.from({ length: CONCURRENT_SAVES }, (_, i) =>
                 saveChart("POST", "/charts", chartConfig(i, [variableId]))
             )
         )
-        for (const result of results) {
-            expect(result.body.error).toBeUndefined()
-            expect(result.status).toBe(200)
-        }
 
         const dimensions = await dimensionsByChart()
         expect(Object.keys(dimensions)).toHaveLength(CONCURRENT_SAVES)
@@ -95,11 +84,7 @@ describe("Concurrent chart saves", { timeout: 30000 }, () => {
                 )
             )
         )
-        for (const result of results) {
-            expect(result.body.error).toBeUndefined()
-            expect(result.status).toBe(200)
-            expect(result.body.created).toBe(true)
-        }
+        for (const result of results) expect(result.created).toBe(true)
 
         const dimensions = await dimensionsByChart()
         expect(Object.keys(dimensions)).toHaveLength(CONCURRENT_SAVES)
@@ -110,15 +95,15 @@ describe("Concurrent chart saves", { timeout: 30000 }, () => {
     it("updates adjacent charts concurrently without deadlocking", async () => {
         const chartIds: number[] = []
         for (let i = 0; i < CONCURRENT_SAVES; i++) {
-            const { body } = await saveChart(
+            const { chartId } = await saveChart(
                 "POST",
                 "/charts",
                 chartConfig(i, [variableId])
             )
-            chartIds.push(body.chartId)
+            chartIds.push(chartId)
         }
 
-        const results = await Promise.all(
+        await Promise.all(
             chartIds.map((chartId, i) =>
                 saveChart(
                     "PUT",
@@ -127,10 +112,6 @@ describe("Concurrent chart saves", { timeout: 30000 }, () => {
                 )
             )
         )
-        for (const result of results) {
-            expect(result.body.error).toBeUndefined()
-            expect(result.status).toBe(200)
-        }
 
         const dimensions = await dimensionsByChart()
         for (const chartId of chartIds)
@@ -140,15 +121,15 @@ describe("Concurrent chart saves", { timeout: 30000 }, () => {
     it("adds the first dimensions to adjacent charts concurrently without deadlocking", async () => {
         const chartIds: number[] = []
         for (let i = 0; i < CONCURRENT_SAVES; i++) {
-            const { body } = await saveChart(
+            const { chartId } = await saveChart(
                 "POST",
                 "/charts",
                 chartConfig(i, [])
             )
-            chartIds.push(body.chartId)
+            chartIds.push(chartId)
         }
 
-        const results = await Promise.all(
+        await Promise.all(
             chartIds.map((chartId, i) =>
                 saveChart(
                     "PUT",
@@ -157,10 +138,6 @@ describe("Concurrent chart saves", { timeout: 30000 }, () => {
                 )
             )
         )
-        for (const result of results) {
-            expect(result.body.error).toBeUndefined()
-            expect(result.status).toBe(200)
-        }
 
         const dimensions = await dimensionsByChart()
         for (const chartId of chartIds)
@@ -173,15 +150,14 @@ describe("Concurrent chart saves", { timeout: 30000 }, () => {
     ])(
         "keeps one consistent set of dimensions when the same chart with $initialDimensions dimensions is saved concurrently",
         async ({ initialVariableIds }) => {
-            const { body } = await saveChart(
+            const { chartId } = await saveChart(
                 "POST",
                 "/charts",
                 chartConfig(0, initialVariableIds)
             )
-            const chartId = body.chartId
 
             const variants = [[otherVariableId], [variableId, otherVariableId]]
-            const results = await Promise.all(
+            await Promise.all(
                 Array.from({ length: CONCURRENT_SAVES }, (_, i) =>
                     saveChart(
                         "PUT",
@@ -190,10 +166,6 @@ describe("Concurrent chart saves", { timeout: 30000 }, () => {
                     )
                 )
             )
-            for (const result of results) {
-                expect(result.body.error).toBeUndefined()
-                expect(result.status).toBe(200)
-            }
 
             const config = await env.fetchJson(`/charts/${chartId}.config.json`)
             const dimensions = await dimensionsByChart()
@@ -206,27 +178,20 @@ describe("Concurrent chart saves", { timeout: 30000 }, () => {
     )
 
     it("replaces the dimension rows when a chart's dimensions shrink or are removed", async () => {
-        const { body } = await saveChart(
+        const { chartId } = await saveChart(
             "POST",
             "/charts",
             chartConfig(0, [variableId, otherVariableId])
         )
-        const chartId = body.chartId
 
-        const shrunk = await saveChart(
+        await saveChart(
             "PUT",
             `/charts/${chartId}`,
             chartConfig(0, [otherVariableId])
         )
-        expect(shrunk.body.error).toBeUndefined()
         expect((await dimensionsByChart())[chartId]).toEqual([otherVariableId])
 
-        const removed = await saveChart(
-            "PUT",
-            `/charts/${chartId}`,
-            chartConfig(0, [])
-        )
-        expect(removed.body.error).toBeUndefined()
+        await saveChart("PUT", `/charts/${chartId}`, chartConfig(0, []))
         expect((await dimensionsByChart())[chartId]).toBeUndefined()
     })
 })

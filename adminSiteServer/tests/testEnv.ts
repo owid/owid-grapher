@@ -72,8 +72,9 @@ export function getAdminTestEnv(): TestEnv {
                 Authorization: `Bearer ${adminApiKey}`,
             },
         })
-        expect(response.status).toBe(200)
-        return await response.json()
+        const text = await response.text()
+        expect(response.status, `${response.url}: ${text}`).toBe(200)
+        return JSON.parse(text)
     }
 
     async function request(arg: {
@@ -90,8 +91,9 @@ export function getAdminTestEnv(): TestEnv {
             },
             body: arg.body,
         })
-        expect(response.status).toBe(200)
-        return await response.json()
+        const text = await response.text()
+        expect(response.status, `${response.url}: ${text}`).toBe(200)
+        return JSON.parse(text)
     }
 
     return {
