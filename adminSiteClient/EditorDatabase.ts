@@ -28,9 +28,6 @@ export interface NamespaceData {
     datasets: Dataset[]
 }
 
-/**
- * Everything the variable selector needs to offer indicators
- */
 export interface IndicatorCatalogData {
     namespaces: Namespace[]
     datasets: Dataset[]
