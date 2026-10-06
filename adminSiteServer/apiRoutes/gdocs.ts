@@ -636,6 +636,7 @@ export async function refreshGdocComponentPreviewsInDoc(
     const { gdocId } = req.params
     return refreshGdocComponentPreviews(gdocId, {
         insertMissing: req.body?.insertMissing === true,
+        acceptImageBelow: req.body?.acceptImageBelow === true,
     })
 }
 

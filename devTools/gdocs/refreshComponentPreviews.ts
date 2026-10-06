@@ -18,6 +18,8 @@ Options:
     --changed-since-hours <n>  Refresh all gdocs linking to charts or images
                                that changed in the last <n> hours.
     --insert-missing           Also add images above components that have none.
+    --accept-image-below       Use the image right below a component if there's
+                               none above it.
     --dry-run                  Only report what would change.
     -h, --help                 Show this message.
 `)
@@ -61,6 +63,7 @@ async function main(args: parseArgs.ParsedArgs): Promise<void> {
         try {
             const result = await refreshGdocComponentPreviews(gdocId, {
                 insertMissing: !!args["insert-missing"],
+                acceptImageBelow: !!args["accept-image-below"],
                 dryRun: !!args["dry-run"],
             })
             printResult(result)
@@ -75,7 +78,7 @@ async function main(args: parseArgs.ParsedArgs): Promise<void> {
 }
 
 const args = parseArgs(process.argv.slice(2), {
-    boolean: ["insert-missing", "dry-run", "help"],
+    boolean: ["insert-missing", "accept-image-below", "dry-run", "help"],
     alias: { h: "help" },
 })
 

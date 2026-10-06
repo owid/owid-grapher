@@ -20,6 +20,8 @@ import {
 export interface RefreshGdocComponentPreviewsOptions {
     /** Also add images above components that have none */
     insertMissing?: boolean
+    /** Use the image right below a component if there's none above it */
+    acceptImageBelow?: boolean
     /** Report what would change without writing to the doc */
     dryRun?: boolean
 }
@@ -186,7 +188,11 @@ export async function refreshGdocComponentPreviews(
     gdocId: string,
     options: RefreshGdocComponentPreviewsOptions = {}
 ): Promise<GdocComponentPreviewRefreshResult> {
-    const { insertMissing = false, dryRun = false } = options
+    const {
+        insertMissing = false,
+        acceptImageBelow = false,
+        dryRun = false,
+    } = options
     const docsClient = googleDocs({
         version: "v1",
         auth: OwidGoogleAuth.getGoogleReadWriteAuth(),
@@ -198,7 +204,7 @@ export async function refreshGdocComponentPreviews(
         suggestionsViewMode: "SUGGESTIONS_INLINE",
     })
 
-    const blocks = findComponentPreviewBlocks(document)
+    const blocks = findComponentPreviewBlocks(document, { acceptImageBelow })
     // A transaction of its own, so that none is held open across the slow
     // Google API calls and image renders
     const sources = await db.knexReadonlyTransaction((knex) =>

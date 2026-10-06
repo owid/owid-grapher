@@ -71,7 +71,18 @@ interface ParsedParagraph {
     archieText: string
     /** The image the paragraph ends with, if any */
     trailingImage?: { objectId: string; startIndex: number }
+    /** The image the paragraph starts with, if any */
+    leadingImage?: { objectId: string; startIndex: number }
     hasImage: boolean
+}
+
+interface MatchedComponent {
+    spec: ComponentPreviewComponentSpec
+    /**
+     * Index of the component's last paragraph: its `{}`, or itself for the
+     * single-line form. Unset if the `{}` is missing.
+     */
+    lastParagraphIndex?: number
 }
 
 // The width of the text area on a US Letter page with 1-inch margins
@@ -142,17 +153,24 @@ function parseParagraph(
     const elements = paragraph.elements ?? []
     let text = ""
     let trailingImage: ParsedParagraph["trailingImage"]
+    let leadingImage: ParsedParagraph["leadingImage"]
     let hasImage = false
+    // Whether anything but whitespace came before the current element
+    let hasContent = false
     for (const el of elements) {
         if (el.textRun) {
             const content = el.textRun.content ?? ""
             text += content
             // Whitespace (incl. the paragraph's closing newline) after an
             // image doesn't stop it from being the trailing element
-            if (content.trim()) trailingImage = undefined
+            if (content.trim()) {
+                trailingImage = undefined
+                hasContent = true
+            }
         } else if (el.richLink?.richLinkProperties?.uri) {
             text += el.richLink.richLinkProperties.uri
             trailingImage = undefined
+            hasContent = true
         } else if (
             el.inlineObjectElement?.inlineObjectId &&
             typeof el.startIndex === "number"
@@ -161,7 +179,9 @@ function parseParagraph(
                 objectId: el.inlineObjectElement.inlineObjectId,
                 startIndex: el.startIndex,
             }
+            if (!hasContent) leadingImage = trailingImage
             hasImage = true
+            hasContent = true
         }
     }
     return {
@@ -169,6 +189,7 @@ function parseParagraph(
         text,
         archieText: paragraphElementsToArchieText(elements),
         trailingImage,
+        leadingImage,
         hasImage,
     }
 }
@@ -212,7 +233,7 @@ function readValue(
 function matchComponent(
     paragraphs: ParsedParagraph[],
     index: number
-): ComponentPreviewComponentSpec | undefined {
+): MatchedComponent | undefined {
     const paragraph = paragraphs[index]
     const text = paragraph.text.trim()
 
@@ -226,7 +247,11 @@ function matchComponent(
         const inline = hasSingleLineForm
             ? readValue(paragraph, type, kind)
             : undefined
-        if (inline) return { type, kind, target: inline }
+        if (inline)
+            return {
+                spec: { type, kind, target: inline },
+                lastParagraphIndex: index,
+            }
 
         // Object form, e.g. `{.chart}` followed by `url: https://...` and `{}`
         if (!new RegExp(`^\\{\\s*\\.${type}\\s*\\}$`).test(text)) continue
@@ -234,26 +259,54 @@ function matchComponent(
             paragraphs.length,
             index + 1 + MAX_COMPONENT_LINES
         )
+        const isClosing = (i: number): boolean =>
+            /^\{\s*\}$/.test(paragraphs[i].text.trim())
         for (let i = index + 1; i < lastIndex; i++) {
-            if (/^\{\s*\}$/.test(paragraphs[i].text.trim())) return undefined
+            if (isClosing(i)) return undefined
             const target = readValue(paragraphs[i], key, kind)
-            if (target !== undefined)
-                return target ? { type, kind, target } : undefined
+            if (target === undefined) continue
+            if (!target) return undefined
+            let closingIndex: number | undefined
+            for (
+                let j = i + 1;
+                j < lastIndex && closingIndex === undefined;
+                j++
+            )
+                if (isClosing(j)) closingIndex = j
+            return {
+                spec: { type, kind, target },
+                lastParagraphIndex: closingIndex,
+            }
         }
         return undefined
     }
     return undefined
 }
 
+function isBlank(paragraph: ParsedParagraph): boolean {
+    return !paragraph.text.trim() && !paragraph.hasImage
+}
+
 /** The image right above the component, skipping blank lines */
-function findPreviewImage(
+function findImageAbove(
     paragraphs: ParsedParagraph[],
     componentIndex: number
 ): ParsedParagraph["trailingImage"] {
     for (let i = componentIndex - 1; i >= 0; i--) {
-        const paragraph = paragraphs[i]
-        if (!paragraph.text.trim() && !paragraph.hasImage) continue
-        return paragraph.trailingImage
+        if (isBlank(paragraphs[i])) continue
+        return paragraphs[i].trailingImage
+    }
+    return undefined
+}
+
+/** The image right below the component's last line, skipping blank lines */
+function findImageBelow(
+    paragraphs: ParsedParagraph[],
+    lastParagraphIndex: number
+): ParsedParagraph["leadingImage"] {
+    for (let i = lastParagraphIndex + 1; i < paragraphs.length; i++) {
+        if (isBlank(paragraphs[i])) continue
+        return paragraphs[i].leadingImage
     }
     return undefined
 }
@@ -270,6 +323,15 @@ function flattenTabs(tabs: docs_v1.Schema$Tab[]): docs_v1.Schema$Tab[] {
     return tabs.flatMap((tab) => [tab, ...flattenTabs(tab.childTabs ?? [])])
 }
 
+export interface FindComponentPreviewBlocksOptions {
+    /**
+     * Some authors put the image below the component instead. With this, a
+     * component without an image above uses the image right below it (after
+     * blank lines), unless that image is the one above another component.
+     */
+    acceptImageBelow?: boolean
+}
+
 /**
  * Finds all chart components in all tabs of a document fetched with
  * `includeTabsContent: true`.
@@ -280,7 +342,8 @@ function flattenTabs(tabs: docs_v1.Schema$Tab[]): docs_v1.Schema$Tab[] {
  * the new url. Accepting suggestions keeps the elements' indices as they are.
  */
 export function findComponentPreviewBlocks(
-    document: docs_v1.Schema$Document
+    document: docs_v1.Schema$Document,
+    { acceptImageBelow = false }: FindComponentPreviewBlocksOptions = {}
 ): ComponentPreviewBlock[] {
     const blocks: ComponentPreviewBlock[] = []
     const accepted = acceptAllGdocSuggestions(document)
@@ -292,10 +355,38 @@ export function findComponentPreviewBlocks(
         const inlineObjects = documentTab.inlineObjects ?? {}
         const groups = collectParagraphGroups(documentTab.body?.content ?? [])
         for (const paragraphs of groups) {
+            const components: (MatchedComponent & {
+                index: number
+                imageAbove: ParsedParagraph["trailingImage"]
+            })[] = []
             for (let i = 0; i < paragraphs.length; i++) {
-                const spec = matchComponent(paragraphs, i)
-                if (!spec) continue
-                const found = findPreviewImage(paragraphs, i)
+                const matched = matchComponent(paragraphs, i)
+                if (matched)
+                    components.push({
+                        ...matched,
+                        index: i,
+                        imageAbove: findImageAbove(paragraphs, i),
+                    })
+            }
+            // Images above components take precedence over images below
+            const imagesAbove = new Set(
+                components.map((c) => c.imageAbove?.objectId)
+            )
+            for (const {
+                spec,
+                index,
+                lastParagraphIndex,
+                imageAbove,
+            } of components) {
+                let found = imageAbove
+                if (
+                    !found &&
+                    acceptImageBelow &&
+                    lastParagraphIndex !== undefined
+                ) {
+                    const below = findImageBelow(paragraphs, lastParagraphIndex)
+                    if (below && !imagesAbove.has(below.objectId)) found = below
+                }
                 const embeddedObject = found
                     ? inlineObjects[found.objectId]?.inlineObjectProperties
                           ?.embeddedObject
@@ -305,7 +396,7 @@ export function findComponentPreviewBlocks(
                 blocks.push({
                     tabId,
                     tabTitle,
-                    componentStartIndex: paragraphs[i].startIndex,
+                    componentStartIndex: paragraphs[index].startIndex,
                     spec,
                     image: found
                         ? {

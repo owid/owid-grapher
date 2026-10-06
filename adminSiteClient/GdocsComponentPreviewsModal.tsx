@@ -1,5 +1,5 @@
 import { useContext, useState } from "react"
-import { Alert, Checkbox, Modal, Table, Tag, Typography } from "antd"
+import { Alert, Checkbox, Modal, Space, Table, Tag, Typography } from "antd"
 import {
     GdocComponentPreviewItem,
     GdocComponentPreviewRefreshResult,
@@ -33,6 +33,7 @@ export function GdocsComponentPreviewsModal({
 }) {
     const { admin } = useContext(AdminAppContext)
     const [insertMissing, setInsertMissing] = useState(false)
+    const [acceptImageBelow, setAcceptImageBelow] = useState(false)
     const [isRunning, setIsRunning] = useState(false)
     const [result, setResult] = useState<GdocComponentPreviewRefreshResult>()
 
@@ -42,7 +43,7 @@ export function GdocsComponentPreviewsModal({
             const response =
                 await admin.requestJSON<GdocComponentPreviewRefreshResult>(
                     `/api/gdocs/${gdocId}/refreshComponentPreviews`,
-                    { insertMissing },
+                    { insertMissing, acceptImageBelow },
                     "POST",
                     { isBackground: true }
                 )
@@ -83,12 +84,23 @@ export function GdocsComponentPreviewsModal({
                         with the current version of what it shows, if it's
                         outdated or was pasted in by hand.
                     </Typography.Paragraph>
-                    <Checkbox
-                        checked={insertMissing}
-                        onChange={(e) => setInsertMissing(e.target.checked)}
-                    >
-                        Also add images to components that don't have one
-                    </Checkbox>
+                    <Space orientation="vertical">
+                        <Checkbox
+                            checked={insertMissing}
+                            onChange={(e) => setInsertMissing(e.target.checked)}
+                        >
+                            Also add images to components that don't have one
+                        </Checkbox>
+                        <Checkbox
+                            checked={acceptImageBelow}
+                            onChange={(e) =>
+                                setAcceptImageBelow(e.target.checked)
+                            }
+                        >
+                            Use the image right below a component if there's
+                            none above it
+                        </Checkbox>
+                    </Space>
                 </>
             )}
         </Modal>
