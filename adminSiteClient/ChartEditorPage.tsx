@@ -6,7 +6,6 @@ import { Redirect } from "react-router-dom"
 import {
     getParentIndicatorIdFromChartConfig,
     Json,
-    mergeGrapherConfigs,
 } from "@ourworldindata/utils"
 import {
     type AnalyticsGrapherViewWithRank,
@@ -36,9 +35,11 @@ import {
     adminOriginUrlSuggestions,
     deleteChart,
     fetchChartConfigByIndicatorId,
+    findChartParentIndicatorId,
     findLastMapColorScaleEdit,
     getFullReferencesCount,
     Log,
+    makeChartBaseConfig,
     References,
 } from "./adminChartApi.js"
 import {
@@ -146,10 +147,11 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
     private makeBaseConfig(
         indicatorConfig: GrapherInterface | undefined
     ): GrapherInterface {
-        const inheritedConfig = this.isInheritanceEnabled
-            ? indicatorConfig
-            : undefined
-        return mergeGrapherConfigs(inheritedConfig ?? {}, this.etlConfig ?? {})
+        return makeChartBaseConfig({
+            indicatorConfig,
+            etlConfig: this.etlConfig,
+            isInheritanceEnabled: this.isInheritanceEnabled,
+        })
     }
 
     async fetchConfigAndLayers(): Promise<void> {
@@ -207,8 +209,9 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
         editor: ConfigEditor,
         patchConfig: GrapherInterface
     ): Promise<void> {
-        const indicatorId = getParentIndicatorIdFromChartConfig(
-            mergeGrapherConfigs(this.etlConfig ?? {}, patchConfig)
+        const indicatorId = findChartParentIndicatorId(
+            this.etlConfig,
+            patchConfig
         )
         const indicatorConfig =
             indicatorId === this.indicatorId

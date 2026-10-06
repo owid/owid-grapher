@@ -1,5 +1,11 @@
 import * as _ from "lodash-es"
-import { GrapherInterface, Json, PostReference } from "@ourworldindata/utils"
+import {
+    getParentIndicatorIdFromChartConfig,
+    GrapherInterface,
+    Json,
+    mergeGrapherConfigs,
+    PostReference,
+} from "@ourworldindata/utils"
 import { ContentGraphLinkType } from "@ourworldindata/types"
 import { migrateGrapherConfigToLatestVersion } from "@ourworldindata/grapher"
 import { Admin } from "./Admin.js"
@@ -36,6 +42,30 @@ export function findLastMapColorScaleEdit(
     }
 
     return undefined
+}
+
+/** The config a chart's patch is saved against */
+export function makeChartBaseConfig({
+    indicatorConfig,
+    etlConfig,
+    isInheritanceEnabled,
+}: {
+    indicatorConfig: GrapherInterface | undefined
+    etlConfig: GrapherInterface | undefined
+    isInheritanceEnabled: boolean
+}): GrapherInterface {
+    const inheritedConfig = isInheritanceEnabled ? indicatorConfig : undefined
+    return mergeGrapherConfigs(inheritedConfig ?? {}, etlConfig ?? {})
+}
+
+/** The indicator whose config a chart inherits, given its ETL layer and patch */
+export function findChartParentIndicatorId(
+    etlConfig: GrapherInterface | undefined,
+    patchConfig: GrapherInterface
+): number | undefined {
+    return getParentIndicatorIdFromChartConfig(
+        mergeGrapherConfigs(etlConfig ?? {}, patchConfig)
+    )
 }
 
 const REVISION_RESTORE_KEPT_KEYS = [
