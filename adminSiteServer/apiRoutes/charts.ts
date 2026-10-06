@@ -627,7 +627,8 @@ export const saveGrapher = async (
         createdAt: now,
     })
 
-    await replaceChartDimensions(knex, chartId, fullConfig)
+    if (existingConfig) await replaceChartDimensions(knex, chartId, fullConfig)
+    else await insertChartDimensions(knex, chartId, fullConfig)
 
     if (fullConfig.isPublished) {
         await retrieveChartConfigFromDbAndSaveToR2(knex, chartConfigId, {
@@ -975,44 +976,49 @@ export async function updateChart(
     }
 }
 
-/**
- * Replace the chart's `chart_dimensions` rows with the dimensions of its full
- * config. The rows only record which variables a chart uses; the dimension
- * configuration itself lives in the config JSON.
- *
- * The DELETE only runs if the chart has rows. Under REPEATABLE READ, a DELETE
- * that matches no rows still gap-locks the range where they would go, and
- * concurrent saves of charts without rows can share that range and deadlock on
- * their INSERTs.
- *
- * The existence check reads the transaction's snapshot, which may predate the
- * `charts` row lock. If a concurrent save of the same chart added its first
- * rows after the snapshot, both saves' rows end up in the table.
- */
+/** Inserts one `chart_dimensions` row per dimension and returns their ids */
+async function insertChartDimensions(
+    trx: db.KnexReadWriteTransaction,
+    chartId: number,
+    fullConfig: GrapherInterface
+): Promise<number[]> {
+    const insertedIds: number[] = []
+    for (const [i, dim] of (fullConfig.dimensions ?? []).entries()) {
+        const { insertId } = await db.knexRawInsert(
+            trx,
+            `INSERT INTO chart_dimensions (chartId, variableId, property, \`order\`) VALUES (?, ?, ?, ?)`,
+            [chartId, dim.variableId, dim.property, i]
+        )
+        insertedIds.push(insertId)
+    }
+    return insertedIds
+}
+
+/** Replaces the chart's `chart_dimensions` rows with the dimensions of its config */
 async function replaceChartDimensions(
     trx: db.KnexReadWriteTransaction,
     chartId: number,
     fullConfig: GrapherInterface
 ): Promise<void> {
-    const existingDimensionRow = await db.knexRawFirst<{ id: number }>(
+    // Insert the new rows before the SELECT ... FOR UPDATE below. When that
+    // SELECT finds no rows, MySQL locks the empty slot where the rows would
+    // go instead. Two saves can hold that lock at the same time, and then
+    // neither can insert until the other finishes, which is a deadlock.
+    const insertedIds = await insertChartDimensions(trx, chartId, fullConfig)
+    const rows = await db.knexRaw<{ id: number }>(
         trx,
-        `SELECT id FROM chart_dimensions WHERE chartId = ? LIMIT 1`,
+        `SELECT id FROM chart_dimensions WHERE chartId = ? FOR UPDATE`,
         [chartId]
     )
-    if (existingDimensionRow)
-        await db.knexRaw(
-            trx,
-            `DELETE FROM chart_dimensions WHERE chartId = ?`,
-            [chartId]
-        )
-    const dimensions = fullConfig.dimensions ?? []
-    for (const [i, dim] of dimensions.entries()) {
-        await db.knexRaw(
-            trx,
-            `INSERT INTO chart_dimensions (chartId, variableId, property, \`order\`) VALUES (?, ?, ?, ?)`,
-            [chartId, dim.variableId, dim.property, i]
-        )
-    }
+    const staleIds = rows
+        .map((row) => row.id)
+        .filter((id) => !insertedIds.includes(id))
+    // Delete by id only. If the WHERE also checks chartId, MySQL may walk
+    // the primary key index instead and lock rows of other charts on the way.
+    if (staleIds.length > 0)
+        await db.knexRaw(trx, `DELETE FROM chart_dimensions WHERE id IN (?)`, [
+            staleIds,
+        ])
 }
 
 /**

@@ -15,10 +15,6 @@ import {
 
 const env = getAdminTestEnv()
 
-// Saving a chart replaces its chart_dimensions rows. Charts created or edited
-// at the same moment are neighbours in the chartId index, so a save that takes
-// gap locks there deadlocks with its neighbour under REPEATABLE READ (the
-// server's isolation level, which these tests keep).
 const CONCURRENT_SAVES = 8
 
 function chartConfig(i: number, variableIds: number[]): GrapherInterface {
@@ -84,8 +80,6 @@ describe("Concurrent chart saves", { timeout: 30000 }, () => {
     })
 
     it("creates adjacent charts from ETL configs concurrently without deadlocking", async () => {
-        // A first ETL push creates a blank chart and then attaches the ETL
-        // config, which brings the dimensions, in the same transaction
         const results = await Promise.all(
             Array.from({ length: CONCURRENT_SAVES }, (_, i) =>
                 saveChart(
@@ -167,34 +161,66 @@ describe("Concurrent chart saves", { timeout: 30000 }, () => {
             expect(dimensions[chartId]).toEqual([variableId])
     })
 
-    it("keeps one consistent set of dimensions when the same chart is saved concurrently", async () => {
+    it.each([
+        { initialDimensions: "some", initialVariableIds: [variableId] },
+        { initialDimensions: "no", initialVariableIds: [] },
+    ])(
+        "keeps one consistent set of dimensions when the same chart with $initialDimensions dimensions is saved concurrently",
+        async ({ initialVariableIds }) => {
+            const { body } = await saveChart(
+                "POST",
+                "/charts",
+                chartConfig(0, initialVariableIds)
+            )
+            const chartId = body.chartId
+
+            const variants = [[otherVariableId], [variableId, otherVariableId]]
+            const results = await Promise.all(
+                Array.from({ length: CONCURRENT_SAVES }, (_, i) =>
+                    saveChart(
+                        "PUT",
+                        `/charts/${chartId}`,
+                        chartConfig(0, variants[i % variants.length])
+                    )
+                )
+            )
+            for (const result of results) {
+                expect(result.body.error).toBeUndefined()
+                expect(result.status).toBe(200)
+            }
+
+            const config = await env.fetchJson(`/charts/${chartId}.config.json`)
+            const dimensions = await dimensionsByChart()
+            expect(dimensions[chartId]).toEqual(
+                config.dimensions.map(
+                    (dim: { variableId: number }) => dim.variableId
+                )
+            )
+        }
+    )
+
+    it("replaces the dimension rows when a chart's dimensions shrink or are removed", async () => {
         const { body } = await saveChart(
             "POST",
             "/charts",
-            chartConfig(0, [variableId])
+            chartConfig(0, [variableId, otherVariableId])
         )
         const chartId = body.chartId
 
-        const variants = [[otherVariableId], [variableId, otherVariableId]]
-        const results = await Promise.all(
-            Array.from({ length: CONCURRENT_SAVES }, (_, i) =>
-                saveChart(
-                    "PUT",
-                    `/charts/${chartId}`,
-                    chartConfig(0, variants[i % variants.length])
-                )
-            )
+        const shrunk = await saveChart(
+            "PUT",
+            `/charts/${chartId}`,
+            chartConfig(0, [otherVariableId])
         )
-        for (const result of results) expect(result.status).toBe(200)
+        expect(shrunk.body.error).toBeUndefined()
+        expect((await dimensionsByChart())[chartId]).toEqual([otherVariableId])
 
-        // Whichever save committed last, the dimension rows must match the
-        // stored config rather than mixing rows from several saves
-        const config = await env.fetchJson(`/charts/${chartId}.config.json`)
-        const dimensions = await dimensionsByChart()
-        expect(dimensions[chartId]).toEqual(
-            config.dimensions.map(
-                (dim: { variableId: number }) => dim.variableId
-            )
+        const removed = await saveChart(
+            "PUT",
+            `/charts/${chartId}`,
+            chartConfig(0, [])
         )
+        expect(removed.body.error).toBeUndefined()
+        expect((await dimensionsByChart())[chartId]).toBeUndefined()
     })
 })
