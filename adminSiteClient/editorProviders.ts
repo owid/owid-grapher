@@ -14,27 +14,10 @@ import {
     POPULATION_CATALOG_PATH,
 } from "./constants.js"
 
-/** Lets the variable selector offer indicators. Absent → no "Add indicator". */
-export interface IndicatorCatalog {
-    load(): Promise<IndicatorCatalogData>
-}
-
-/** Details on demand, for validating `[term](#dod:term)` syntax in text fields. */
-export interface DetailsProvider {
-    load(): Promise<DetailDictionary>
-}
-
-/** Where the editor fetches indicator data for the preview. */
+/** Where the preview loads its data from */
 export interface EditorEnvironment {
     dataApiUrl: string
     catalogUrl: string
-}
-
-/** Indicators that fill a scatter plot's empty slots */
-export interface ScatterDefaults {
-    dimensions: OwidChartDimensionInterface[]
-    /** Applied only when the x slot is filled from `dimensions` */
-    xAxis?: AxisConfigInterface
 }
 
 export const defaultEditorEnvironment: EditorEnvironment = {
@@ -42,6 +25,23 @@ export const defaultEditorEnvironment: EditorEnvironment = {
     catalogUrl: CATALOG_URL,
 }
 
+/** Indicators the variable picker offers */
+export interface IndicatorCatalog {
+    load(): Promise<IndicatorCatalogData>
+}
+
+/** Details on demand, for checking `[term](#dod:term)` links in text fields */
+export interface DetailsProvider {
+    load(): Promise<DetailDictionary>
+}
+
+/** Indicators that fill a scatter plot's empty slots */
+export interface ScatterDefaults {
+    dimensions: OwidChartDimensionInterface[]
+    xAxis?: AxisConfigInterface
+}
+
+/** The admin's indicators, ranked by how many charts use each */
 export function adminIndicatorCatalog(admin: Admin): IndicatorCatalog {
     return {
         async load(): Promise<IndicatorCatalogData> {
@@ -73,6 +73,7 @@ export function adminIndicatorCatalog(admin: Admin): IndicatorCatalog {
     }
 }
 
+/** Details on demand from the admin API */
 export function adminDetailsProvider(admin: Admin): DetailsProvider {
     return {
         load(): Promise<DetailDictionary> {
@@ -81,6 +82,10 @@ export function adminDetailsProvider(admin: Admin): DetailsProvider {
     }
 }
 
+/**
+ * GDP per capita on a log x axis, continents as color and population as size.
+ * GDP and population are skipped when `variableIdsByCatalogPath` lacks them.
+ */
 export function adminScatterDefaults(
     variableIdsByCatalogPath: Record<string, number | null> = {}
 ): ScatterDefaults {
