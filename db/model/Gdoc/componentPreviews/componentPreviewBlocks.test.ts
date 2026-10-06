@@ -1,3 +1,5 @@
+import fs from "fs"
+import path from "path"
 import { describe, expect, it } from "vitest"
 import { type docs_v1 } from "@googleapis/docs"
 import {
@@ -519,5 +521,125 @@ describe(makeComponentPreviewRequests, () => {
                 },
             },
         ])
+    })
+})
+
+/**
+ * Published gdocs as the Docs API returns them (all tabs, without
+ * suggestions), trimmed to structure, text, links and image sizes
+ */
+function loadFixture(name: string): docs_v1.Schema$Document {
+    return JSON.parse(
+        fs.readFileSync(
+            path.join(import.meta.dirname, "fixtures", `${name}.json`),
+            "utf8"
+        )
+    )
+}
+
+/** The text of the paragraph that starts at `startIndex` in the first tab */
+function paragraphTextAt(
+    document: docs_v1.Schema$Document,
+    startIndex: number
+): string | undefined {
+    const content = document.tabs?.[0].documentTab?.body?.content ?? []
+    const paragraph = content.find(
+        (element) => element.startIndex === startIndex
+    )?.paragraph
+    return paragraph?.elements
+        ?.map((element) => element.textRun?.content ?? "")
+        .join("")
+}
+
+describe("real documents", () => {
+    it.each([
+        [
+            "what-is-the-gini-coefficient",
+            [
+                {
+                    type: "chart",
+                    kind: "chartUrl",
+                    target: "https://ourworldindata.org/grapher/gini-coefficient-wb?country=USA%7EFRA%7EIDN%7EURY&survey_comparability=no_spells",
+                },
+                {
+                    type: "image",
+                    kind: "imageFilename",
+                    target: "Gini-measure-schematic-1.png",
+                },
+                {
+                    type: "narrative-chart",
+                    kind: "narrativeChartName",
+                    target: "three-metrics-of-inequality-usa-fra-idn-ury",
+                },
+            ],
+        ],
+        [
+            "measles-vaccines-save-lives",
+            [
+                {
+                    type: "narrative-chart",
+                    kind: "narrativeChartName",
+                    target: "number-of-lives-saved-by-measles-and-childhood-vaccinations-from-1974-to-2024",
+                },
+                {
+                    type: "static-viz",
+                    kind: "staticVizName",
+                    target: "us-measles-heatmap",
+                },
+                {
+                    type: "chart",
+                    kind: "chartUrl",
+                    target: "https://ourworldindata.org/grapher/deaths-due-to-measles-by-region",
+                },
+                {
+                    type: "narrative-chart",
+                    kind: "narrativeChartName",
+                    target: "vaccination-coverage-measles-vs-others",
+                },
+                {
+                    type: "chart",
+                    kind: "chartUrl",
+                    target: "https://ourworldindata.org/grapher/cumulative-lives-saved-by-measles-vaccination-since-1974",
+                },
+            ],
+        ],
+        [
+            "owid-homepage",
+            [
+                "child-mortality?time=earliest..latest",
+                "share-of-population-in-extreme-poverty",
+                "life-expectancy",
+                "co-emissions-per-capita?tab=chart&country=USA~GBR~CHN~ZAF~PAN",
+                "gdp-per-capita-maddison-project-database",
+                "prevalence-of-undernourishment",
+                "cross-country-literacy-rates",
+                "share-of-the-population-with-access-to-electricity?time=latest",
+            ].map((slugAndQuery) => ({
+                type: "key-indicator",
+                kind: "chartUrl",
+                target: `https://ourworldindata.org/grapher/${slugAndQuery}`,
+            })),
+        ],
+    ])("finds the components in %s", (name, specs) => {
+        const document = loadFixture(name)
+        const blocks = findComponentPreviewBlocks(document)
+        expect(blocks.map((block) => block.spec)).toEqual(specs)
+        // Inserted images go at componentStartIndex, so it must be where the
+        // component opens in the actual doc
+        for (const block of blocks)
+            expect(
+                paragraphTextAt(document, block.componentStartIndex)
+            ).toMatch(/^\{\.[a-z-]+\}/)
+    })
+
+    it("ignores images below a component", () => {
+        // Here each image sits right after the component's closing {}, so
+        // none of them counts as the component's preview image
+        const blocks = findComponentPreviewBlocks(
+            loadFixture("measles-vaccines-save-lives")
+        )
+        expect(blocks.map((block) => block.image)).toEqual(
+            blocks.map(() => undefined)
+        )
     })
 })
