@@ -1,9 +1,6 @@
 import { useMemo } from "react"
 
-import {
-    TEXT_WRAP_BREAK_MARGIN,
-    TextWrap,
-} from "@ourworldindata/components/src/TextWrap/TextWrap.js"
+import { TextWrap } from "@ourworldindata/components/src/TextWrap/TextWrap.js"
 import { TextWrapSvg } from "@ourworldindata/components/src/TextWrap/TextWrapComponents.js"
 import { Halo } from "@ourworldindata/components/src/Halo/Halo.js"
 import { Bounds } from "@ourworldindata/utils"
@@ -551,7 +548,7 @@ function BarArrow({
 function buildGroupLabelTextWrap(text: string, maxWidth: number): TextWrap {
     return new TextWrap({
         text,
-        maxWidth: maxWidth + TEXT_WRAP_BREAK_MARGIN,
+        maxWidth,
         fontSize: GROUP_LABEL_FONT_SIZE,
         fontWeight: GROUP_LABEL_FONT_WEIGHT,
     })

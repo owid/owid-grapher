@@ -1,9 +1,6 @@
 import { useMemo } from "react"
 
-import {
-    TEXT_WRAP_BREAK_MARGIN,
-    TextWrap,
-} from "@ourworldindata/components/src/TextWrap/TextWrap.js"
+import { TextWrap } from "@ourworldindata/components/src/TextWrap/TextWrap.js"
 import { TextWrapSvg } from "@ourworldindata/components/src/TextWrap/TextWrapComponents.js"
 import { Halo } from "@ourworldindata/components/src/Halo/Halo.js"
 import { Bounds } from "@ourworldindata/utils"
@@ -304,8 +301,7 @@ function planHorizontalWaterfall(
         longestGroupLabelWidth
     )
     const captionColumnWidth = captionRight + CAPTION_COLUMN_GAP
-    const captionMaxWidth =
-        captionRight - GROUP_LABEL_INSET + TEXT_WRAP_BREAK_MARGIN
+    const captionMaxWidth = captionRight - GROUP_LABEL_INSET
     const valueAxisLength = fitAxisToLabels(
         [
             ...waterfall.steps.map((step, index) =>
@@ -328,8 +324,7 @@ function planHorizontalWaterfall(
         width - captionColumnWidth,
         tickLabelWidths[tickLabelWidths.length - 1] / 2
     )
-    if (captionMaxWidth <= TEXT_WRAP_BREAK_MARGIN || valueAxisLength <= 0)
-        return undefined
+    if (captionMaxWidth <= 0 || valueAxisLength <= 0) return undefined
 
     const captionTextWraps = waterfall.steps.map((step) =>
         buildRowCaptionTextWrap(step.name, captionMaxWidth, CAPTION_FONT_WEIGHT)
@@ -349,10 +344,7 @@ function planHorizontalWaterfall(
     const groupHeaderTextWraps = new Map(
         measureLabelledBoxLengths(waterfall.steps).groups.map(({ group }) => [
             group.key,
-            buildGroupHeaderTextWrap(
-                group.label,
-                captionRight + TEXT_WRAP_BREAK_MARGIN
-            ),
+            buildGroupHeaderTextWrap(group.label, captionRight),
         ])
     )
     const groupHeaderHeight =

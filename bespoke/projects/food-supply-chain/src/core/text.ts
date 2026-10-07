@@ -1,6 +1,5 @@
 import {
     shortenWithEllipsis,
-    TEXT_WRAP_BREAK_MARGIN,
     TextWrap,
 } from "@ourworldindata/components/src/TextWrap/TextWrap.js"
 import {
@@ -69,7 +68,7 @@ export function buildTruncatedTextWrap({
     const kept = wrap.lines.slice(0, maxLines).map((line) => line.text)
     kept[kept.length - 1] = shortenWithEllipsis(
         kept[kept.length - 1],
-        maxWidth - TEXT_WRAP_BREAK_MARGIN,
+        maxWidth,
         { fontSize, fontWeight }
     )
     return new TextWrap({
