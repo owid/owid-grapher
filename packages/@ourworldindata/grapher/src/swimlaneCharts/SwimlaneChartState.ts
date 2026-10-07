@@ -11,6 +11,7 @@ import {
     ScaleType,
     SortBy,
     SortConfig,
+    SortOrder,
     Time,
 } from "@ourworldindata/types"
 import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
@@ -185,13 +186,8 @@ export class SwimlaneChartState implements ChartState, ColorScaleManager {
 
     @computed get sortConfig(): SortConfig {
         const { sortBy, sortOrder } = this.manager.sortConfig ?? {}
-        return {
-            sortBy:
-                sortBy && isSwimlaneSortKey(sortBy)
-                    ? sortBy
-                    : this.defaultSortKey,
-            sortOrder,
-        }
+        if (sortBy && isSwimlaneSortKey(sortBy)) return { sortBy, sortOrder }
+        return { sortBy: this.defaultSortKey, sortOrder: SortOrder.asc }
     }
 
     @computed get series(): SwimlaneSeries[] {
