@@ -1,12 +1,13 @@
 import React from "react"
 import { roundForSvg } from "@ourworldindata/utils"
-import { Patterns } from "../core/GrapherConstants"
 import { PlacedSwimlaneSegment } from "./SwimlaneChartConstants"
 
 export function SwimlaneSegments({
     segments,
+    noDataPatternId,
 }: {
     segments: PlacedSwimlaneSegment[]
+    noDataPatternId: string
 }): React.ReactElement {
     return (
         <>
@@ -19,7 +20,7 @@ export function SwimlaneSegments({
                     height={roundForSvg(segment.height)}
                     fill={
                         segment.kind === "missing"
-                            ? `url(#${Patterns.noDataPattern})`
+                            ? `url(#${noDataPatternId})`
                             : segment.color
                     }
                 />
