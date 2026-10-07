@@ -50,10 +50,6 @@ export function tableIndicatorStore(
         (slug) => !nonDataSlugs.has(slug)
     )
 
-    const tableWithColumnNames = table.updateDefs((def: OwidColumnDef) =>
-        def.name ? def : { ...def, name: def.slug }
-    )
-
     const dataset: Dataset = {
         id: 1,
         name: datasetName,
@@ -64,7 +60,7 @@ export function tableIndicatorStore(
         variables: dataSlugs.map((slug, i) => ({
             id: i + 1,
             slug,
-            name: tableWithColumnNames.get(slug).displayName,
+            name: table.get(slug).displayName,
         })),
     }
     const catalogData: IndicatorCatalogData = {
@@ -92,7 +88,7 @@ export function tableIndicatorStore(
             )
             return Promise.resolve(
                 applyDimensionDisplayAndConversionFactor(
-                    tableWithColumnNames.dropColumns(excludedSlugs),
+                    table.dropColumns(excludedSlugs),
                     dimensions
                 )
             )
