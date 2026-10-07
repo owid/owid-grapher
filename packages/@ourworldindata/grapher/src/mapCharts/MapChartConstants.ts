@@ -190,15 +190,15 @@ export const MAP_VIEWPORTS: Record<MapRegionName, MapViewport> = {
 
 // Preserve the preferred aspect ratio used to lay out faceted World maps
 export const MAP_VIEWPORT_FACETED_WORLD: MapViewport = {
-    x: 0.545,
-    y: 0.5,
-    width: 0.91,
-    height: 1.01,
+    ...MAP_VIEWPORTS.World,
     ratio: 2.29,
 }
 
 /** Maps with bounds of this width or less extend into the horizontal frame padding */
 export const MAP_NARROW_FRAME_MAX_WIDTH = 550
+
+// On narrow screens, the 2D map extends into the frame padding, leaving only this much space on either side
+export const MAP_NARROW_FRAME_PADDING_HORIZONTAL = 4
 
 export interface Circle {
     cx: number // center x
