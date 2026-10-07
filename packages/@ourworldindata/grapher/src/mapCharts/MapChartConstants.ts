@@ -179,7 +179,7 @@ export const GLOBE_VIEWPORTS: Record<GlobeRegionName, GlobeViewport> = {
 
 /** Viewport for each region, defined by center and width+height in fractional coordinates */
 export const MAP_VIEWPORTS: Record<MapRegionName, MapViewport> = {
-    World: { x: 0.565, y: 0.5, width: 1.01, height: 1.01, ratio: 2.29 },
+    World: { x: 0.545, y: 0.5, width: 0.91, height: 1.01, ratio: 2.1 },
     Europe: { x: 0.53, y: 0.21, width: 0.2, height: 0.2, ratio: 1.77 },
     Africa: { x: 0.48, y: 0.7, width: 0.21, height: 0.38, ratio: 1.07 },
     NorthAmerica: { x: 0.46, y: 0.4, width: 0.19, height: 0.35, ratio: 1.12 },
@@ -188,7 +188,7 @@ export const MAP_VIEWPORTS: Record<MapRegionName, MapViewport> = {
     Oceania: { x: 0.51, y: 0.75, width: 0.1, height: 0.2, ratio: 1.47 },
 }
 
-// Custom viewport for faceted world map, which zooms in a little bit to make best use of the available space
+// Preserve the preferred aspect ratio used to lay out faceted World maps
 export const MAP_VIEWPORT_FACETED_WORLD: MapViewport = {
     x: 0.545,
     y: 0.5,
@@ -197,20 +197,8 @@ export const MAP_VIEWPORT_FACETED_WORLD: MapViewport = {
     ratio: 2.29,
 }
 
-// Custom viewport for the World map on narrow screens (e.g. phones in portrait mode).
-// There, the map's width is the limiting factor, so we crop the empty stretches of the
-// Pacific at the left and right edges (keeping the land from Chukotka/Alaska to Fiji/Tuvalu)
-// to render the map as large as possible
-export const MAP_VIEWPORT_NARROW_WORLD: MapViewport = {
-    x: 0.545,
-    y: 0.5,
-    width: 0.91,
-    height: 1.01,
-    ratio: 2.1,
-}
-
-/** Maps with bounds of this width or less use a narrow viewport, if one is available */
-export const MAP_NARROW_VIEWPORT_MAX_WIDTH = 550
+/** Maps with bounds of this width or less extend into the horizontal frame padding */
+export const MAP_NARROW_FRAME_MAX_WIDTH = 550
 
 export interface Circle {
     cx: number // center x
