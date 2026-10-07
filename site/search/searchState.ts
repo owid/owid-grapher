@@ -93,8 +93,19 @@ export function useSearchParamsState(
         [setSearchParams, state, eligibleRegionNames, synonymMap]
     )
 
-    const actions = useMemo<SearchActions>(
-        () => ({
+    const actions = useMemo<SearchActions>(() => {
+        // Compound action to ensure a single entry in the browser history.
+        const setTopicAndQuery = (topic: string, query: string): void =>
+            updateParams((s) => ({
+                ...s,
+                query: query.trim(),
+                filters: [
+                    ...s.filters.filter((f) => f.type !== FilterType.TOPIC),
+                    createTopicFilter(topic),
+                ],
+            }))
+
+        return {
             setQuery: (query: string) => {
                 updateParams((s) => ({ ...s, query: query.trim() }))
             },
@@ -165,18 +176,11 @@ export function useSearchParamsState(
             },
 
             // Compound action to ensure a single entry in the browser history.
-            setTopicAndClearQuery: (topic: string) => {
-                updateParams((s) => {
-                    const newFilters = s.filters.filter(
-                        (f) => f.type !== FilterType.TOPIC
-                    )
-                    return {
-                        ...s,
-                        query: "",
-                        filters: [...newFilters, createTopicFilter(topic)],
-                    }
-                })
-            },
+            setTopicAndClearQuery: (topic: string) =>
+                setTopicAndQuery(topic, ""),
+
+            // Compound action to ensure a single entry in the browser history.
+            setTopicAndQuery,
 
             removeTopic: (topic: string) => {
                 updateParams((s) => ({
@@ -239,9 +243,8 @@ export function useSearchParamsState(
             reset: () => {
                 setSearchParams(new URLSearchParams())
             },
-        }),
-        [updateParams, setSearchParams]
-    )
+        }
+    }, [updateParams, setSearchParams])
 
     return { state, actions }
 }
@@ -474,4 +477,21 @@ export function applyAutomaticFilters(
     )
 
     return replaceQueryWordsWithFilters(state, countryMatches)
+}
+
+/**
+ * Whether `query` would be searched for as written in the current state, rather
+ * than having some of its words turned into country filters by
+ * applyAutomaticFilters, which every action applies on its way to the URL.
+ */
+export function isQueryKeptAsTyped(
+    state: SearchState,
+    query: string,
+    allRegionNames: string[],
+    synonymMap: SynonymMap
+): boolean {
+    return (
+        applyAutomaticFilters({ ...state, query }, allRegionNames, synonymMap)
+            .query === query
+    )
 }
