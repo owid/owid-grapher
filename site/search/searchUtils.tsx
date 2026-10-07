@@ -663,7 +663,7 @@ export function suggestFiltersFromQuerySuffix(
     const countryMatches = matchedFilters.filter(
         (f) =>
             // remove exact matches from country suggestions, as exact matches are
-            // already handled by automatic filters (see SearchDetectedFilters).
+            // already handled by automatic filters (see applyAutomaticFilters).
             f.type === FilterType.COUNTRY &&
             f.score !== 1 &&
             // we matched on all regions to stop the iteration when a region is

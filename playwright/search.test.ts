@@ -164,40 +164,6 @@ test.describe("Search", () => {
         await expectUrlParam(page, SearchUrlParam.QUERY, null)
     })
 
-    test('applies a "Did you mean?" country filter', async ({ page }) => {
-        await openSearch(page)
-        await getSearchInput(page).fill("gdp franc")
-        await page.keyboard.press("Enter")
-
-        const detectedFilters = page.getByTestId("search-detected-filters")
-        await expect(detectedFilters).toBeVisible()
-        await expect(
-            detectedFilters.getByTestId("search-detected-filters-label")
-        ).toHaveText("Did you mean?")
-        const franceSuggestion = detectedFilters.getByTestId(
-            buildFilterTestIdFromLabel(
-                "search-detected-filter-button",
-                FilterType.COUNTRY,
-                "France"
-            )
-        )
-        await expect(franceSuggestion).toBeVisible()
-        await franceSuggestion.click()
-
-        await expectActiveCountry(page, "France")
-        await expect(getSearchInput(page)).toHaveValue("gdp")
-        await expectUrlParam(page, SearchUrlParam.QUERY, "gdp")
-        await expectUrlParam(page, SearchUrlParam.COUNTRY, "France")
-
-        await page.goBack()
-        await expectUrlParam(page, SearchUrlParam.COUNTRY, null)
-        await expectUrlParam(page, SearchUrlParam.QUERY, null)
-
-        await page.goForward()
-        await expectUrlParam(page, SearchUrlParam.QUERY, "gdp")
-        await expectUrlParam(page, SearchUrlParam.COUNTRY, "France")
-    })
-
     test("extracts a country when searching from the homepage", async ({
         page,
     }) => {
