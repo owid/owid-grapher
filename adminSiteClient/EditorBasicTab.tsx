@@ -693,9 +693,6 @@ export class EditorBasicTab extends React.Component<EditorBasicTabProps> {
         } else {
             void this.applyDefaultsForSecondaryChartType(chartType)
         }
-
-        // The parent config depends on the chart type
-        // (e.g. scatters don't have a parent), so update it when types change
     }
 
     @action.bound private removeChartType(chartType: GrapherChartType): void {
@@ -703,8 +700,6 @@ export class EditorBasicTab extends React.Component<EditorBasicTabProps> {
         grapherState.chartTypes = grapherState.chartTypes.filter(
             (type) => type !== chartType
         )
-        // The parent config depends on the chart type
-        // (e.g. scatters don't have a parent), so update it when types change
     }
 
     override render() {
