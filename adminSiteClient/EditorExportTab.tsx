@@ -89,17 +89,9 @@ export class EditorExportTab extends Component<EditorExportTabProps> {
         // Use autorun with the computed property to track settings changes
         const dispose = reaction(
             () => this.currentSettings,
-            () => {
-                // store min and max time because these are not part of currentSettings
-                // but undefined will reset to -infinity and +infinity
-                action(() => {
-                    const minTime = this.grapherState.minTime
-                    const maxTime = this.grapherState.maxTime
-                    this.grapherState.updateFromObject(this.currentSettings)
-                    this.grapherState.minTime = minTime
-                    this.grapherState.maxTime = maxTime
-                })()
-            }
+            action((settings: ExportSettings) =>
+                Object.assign(this.grapherState, settings)
+            )
         )
 
         if (sessionStorage) {
@@ -167,18 +159,12 @@ export class EditorExportTab extends Component<EditorExportTabProps> {
     }
 
     @action private resetGrapher() {
-        const minTime = this.grapherState.minTime
-        const maxTime = this.grapherState.maxTime
-        this.grapherState.updateFromObject(this.originalSettings)
-        this.grapherState.minTime = minTime
-        this.grapherState.maxTime = maxTime
+        Object.assign(this.grapherState, this.originalSettings)
     }
 
     @computed private get currentSettings(): ExportSettings {
         return {
             hideTitle: this.settings.hideTitle,
-            // Copy the nested object so that this computed reads (and reacts
-            // to) its fields, and the grapher gets its own copy
             forceHideAnnotationFieldsInTitle: {
                 ...this.settings.forceHideAnnotationFieldsInTitle,
             },
