@@ -127,24 +127,28 @@ export function highlightFunctionForSearchWords(
                     ({ matchLength }): number => -matchLength,
                 ])
                 // merge overlapping match ranges
-                const mergedMatches = sortedFirstMatches.reduce((merged, match) => {
-                    const lastMatch = merged.at(-1)
-                    if (
-                        lastMatch &&
-                        lastMatch.matchStart <=
-                            match.matchStart + match.matchLength
-                    ) {
-                        lastMatch.matchLength =
-                            Math.max(
-                                lastMatch.matchStart + lastMatch.matchLength,
+                const mergedMatches = sortedFirstMatches.reduce(
+                    (merged, match) => {
+                        const lastMatch = merged.at(-1)
+                        if (
+                            lastMatch &&
+                            lastMatch.matchStart <=
                                 match.matchStart + match.matchLength
-                            ) - match.matchStart
-                        lastMatch.matchStart = match.matchStart
-                    } else {
-                        merged.push(match)
-                    }
-                    return merged
-                }, [] as typeof firstMatches)
+                        ) {
+                            lastMatch.matchLength =
+                                Math.max(
+                                    lastMatch.matchStart +
+                                        lastMatch.matchLength,
+                                    match.matchStart + match.matchLength
+                                ) - match.matchStart
+                            lastMatch.matchStart = match.matchStart
+                        } else {
+                            merged.push(match)
+                        }
+                        return merged
+                    },
+                    [] as typeof firstMatches
+                )
                 // sort ascending
                 const sortedMergedMatches = sortNumeric(
                     mergedMatches,
