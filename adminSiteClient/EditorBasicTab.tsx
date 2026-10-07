@@ -213,6 +213,8 @@ export class DimensionSlotView extends React.Component<DimensionSlotViewProps> {
         const { grapherState } = this.props.editor
         const { selection } = grapherState
 
+        if (!grapherState.isReady) return
+
         const availableEntityNames = grapherState.availableEntityNames
 
         const nonProjectedYColumns = grapherState.yColumnsFromDimensions.filter(
