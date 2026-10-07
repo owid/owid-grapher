@@ -133,6 +133,11 @@ export interface HoveredSwimlanePoint {
     laneEntityName?: EntityName
 }
 
+export interface SwimlaneTooltipTarget {
+    entityName: EntityName
+    segment: SwimlaneSegment
+}
+
 export interface RenderSwimlaneSeries extends Omit<
     PlacedSwimlaneSeries,
     "placedSegments"

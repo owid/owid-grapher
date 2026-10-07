@@ -6,6 +6,7 @@ import {
     Bounds,
     exposeInstanceOnWindow,
     getRelativeMouse,
+    guid,
     makeFigmaId,
     HorizontalAlign,
 } from "@ourworldindata/utils"
@@ -27,6 +28,7 @@ import {
 import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 import { HorizontalAxis } from "../axis/Axis"
 import { ChartInterface } from "../chart/ChartInterface"
+import { TooltipState } from "../tooltip/Tooltip"
 import { roundFontSize, scaleFontSize } from "../chart/ChartUtils"
 import { GRAPHER_LIGHT_TEXT } from "../color/ColorConstants.js"
 import { ChartComponentProps } from "../chart/ChartTypeMap"
@@ -55,17 +57,20 @@ import {
     SWIMLANE_X_AXIS_CONFIG_DEFAULTS,
     SwimlaneChartManager,
     SwimlaneSeries,
+    SwimlaneTooltipTarget,
     TICK_LABEL_OVERFLOW_PADDING,
 } from "./SwimlaneChartConstants"
 import { SwimlaneChartState } from "./SwimlaneChartState"
 import {
     computeLaneSlotHeight,
     findLaneAtY,
+    findSegmentAtX,
     toPlacedSwimlaneSeries,
     toRenderSwimlaneSeries,
 } from "./SwimlaneChartHelpers"
 import { SwimlaneSegmentLabelSettings } from "./SwimlaneLabels"
 import { SwimlaneRow } from "./SwimlaneRow"
+import { SwimlaneChartTooltip } from "./SwimlaneChartTooltip"
 
 export type SwimlaneChartProps = ChartComponentProps<SwimlaneChartState>
 
@@ -76,18 +81,24 @@ export class SwimlaneChart
 {
     private readonly hitAreaRef = React.createRef<SVGGElement>()
 
+    private readonly tooltipId = guid()
+    private readonly tooltipState = new TooltipState<SwimlaneTooltipTarget>({
+        fade: "immediate",
+    })
+
     private hoveredPoint: HoveredSwimlanePoint | undefined = undefined
     private hoveredLegendBin: ColorScaleBin | undefined = undefined
 
     constructor(props: SwimlaneChartProps) {
         super(props)
-        makeObservable<SwimlaneChart, "hoveredPoint" | "hoveredLegendBin">(
-            this,
-            {
-                hoveredPoint: observable,
-                hoveredLegendBin: observable.ref,
-            }
-        )
+        makeObservable<
+            SwimlaneChart,
+            "tooltipState" | "hoveredPoint" | "hoveredLegendBin"
+        >(this, {
+            tooltipState: observable,
+            hoveredPoint: observable,
+            hoveredLegendBin: observable.ref,
+        })
     }
 
     @computed get chartState(): SwimlaneChartState {
@@ -352,8 +363,15 @@ export class SwimlaneChart
         this.updateHoveredPoint(ev)
     }
 
+    @action.bound private dismissTooltip(): void {
+        this.tooltipState.target = null
+    }
+
     @action.bound private onCursorLeave(): void {
         this.hoveredPoint = undefined
+        if (!this.manager.shouldPinTooltipToBottom) {
+            this.dismissTooltip()
+        }
     }
 
     @action.bound private onLegendMouseOver(bin: ColorScaleBin): void {
@@ -367,13 +385,24 @@ export class SwimlaneChart
 
     private updateHoveredPoint(ev: React.MouseEvent | React.TouchEvent): void {
         const ref = this.hitAreaRef.current
+        const parentRef = this.manager.base?.current
+
+        // The tooltip's origin needs to be in the parent's coordinates
+        if (parentRef) {
+            this.tooltipState.position = getRelativeMouse(parentRef, ev)
+        }
+
         if (!ref) return
 
         const mouse = getRelativeMouse(ref, ev)
-        this.hoveredPoint = {
-            x: mouse.x,
-            laneEntityName: findLaneAtY(this.placedSeries, mouse.y)?.entityName,
-        }
+        const lane = findLaneAtY(this.placedSeries, mouse.y)
+        this.hoveredPoint = { x: mouse.x, laneEntityName: lane?.entityName }
+
+        const segment = lane
+            ? findSegmentAtX(lane.placedSegments, mouse.x)
+            : undefined
+        this.tooltipState.target =
+            lane && segment ? { entityName: lane.entityName, segment } : null
     }
 
     private renderLegend(): React.ReactElement | undefined {
@@ -470,18 +499,29 @@ export class SwimlaneChart
                         : this.renderAnimatedLanes()}
                 </g>
                 {!this.manager.isStatic && (
-                    <g
-                        ref={this.hitAreaRef}
-                        onMouseEnter={this.onCursorEnter}
-                        onMouseMove={this.onCursorMove}
-                        onMouseLeave={this.onCursorLeave}
-                        onTouchStart={this.onCursorEnter}
-                        onTouchMove={this.onCursorMove}
-                        onTouchEnd={this.onCursorLeave}
-                        onTouchCancel={this.onCursorLeave}
-                    >
-                        <rect {...this.innerBounds.toProps()} fillOpacity={0} />
-                    </g>
+                    <>
+                        <g
+                            ref={this.hitAreaRef}
+                            onMouseEnter={this.onCursorEnter}
+                            onMouseMove={this.onCursorMove}
+                            onMouseLeave={this.onCursorLeave}
+                            onTouchStart={this.onCursorEnter}
+                            onTouchMove={this.onCursorMove}
+                            onTouchEnd={this.onCursorLeave}
+                            onTouchCancel={this.onCursorLeave}
+                        >
+                            <rect
+                                {...this.innerBounds.toProps()}
+                                fillOpacity={0}
+                            />
+                        </g>
+                        <SwimlaneChartTooltip
+                            id={this.tooltipId}
+                            chartState={this.chartState}
+                            tooltipState={this.tooltipState}
+                            dismissTooltip={this.dismissTooltip}
+                        />
+                    </>
                 )}
             </g>
         )
