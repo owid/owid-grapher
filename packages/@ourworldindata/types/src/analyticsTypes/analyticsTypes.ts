@@ -42,6 +42,7 @@ export enum EventCategory {
     SiteLatest = "owid.site_latest",
     SiteLatestAnnouncementExpand = "owid.site_latest_announcement_expand",
     SiteLatestResultClick = "owid.site_latest_result_click",
+    SitePrint = "owid.site_print",
     SiteSearch = "owid.site_search",
     SiteSearchAutocompleteClick = "owid.site_search_autocomplete_click",
     SiteSearchResultClick = "owid.site_search_result_click",
@@ -83,6 +84,7 @@ export type EventParamsMap = {
     [EventCategory.SiteFormSubmit]: SiteFormSubmitParams
     [EventCategory.SiteInstantSearchClick]: SiteInstantSearchClickParams
     [EventCategory.SiteError]: SiteErrorParams
+    [EventCategory.SitePrint]: SitePrintParams
     [EventCategory.Filter]: FilterParams
     [EventCategory.TranslatePage]: TranslatePageParams
 }
@@ -203,6 +205,12 @@ export interface SiteErrorParams {
     eventAction: string
     /** Error details or URL */
     eventContext: string
+}
+
+export interface SitePrintParams {
+    /** Always 'beforeprint' for this event; fired when the browser is about to
+     * print the page or open its print preview */
+    eventAction: "beforeprint"
 }
 
 export interface SiteGuidedChartLinkClickParams {

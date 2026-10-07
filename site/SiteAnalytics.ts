@@ -417,6 +417,18 @@ export class SiteAnalytics extends GrapherAnalytics {
         )
     }
 
+    startPrintTracking(): void {
+        window.addEventListener(
+            "beforeprint",
+            () =>
+                this.logToGA({
+                    event: EventCategory.SitePrint,
+                    eventAction: "beforeprint",
+                }),
+            { passive: true }
+        )
+    }
+
     private logBrowserTranslationEvent(ctx: {
         from: string | null
         to: string | null
