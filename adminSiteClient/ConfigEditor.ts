@@ -101,7 +101,7 @@ export class ConfigEditor {
     savedPatchConfig: GrapherInterface = {}
 
     tab: EditorTabKey
-    previewMode: "mobile" | "desktop"
+    previewMode: "mobile" | "desktop" = "desktop"
     showStaticPreview = false
 
     private readonly disposers: IReactionDisposer[] = []
@@ -124,10 +124,6 @@ export class ConfigEditor {
         this.baseConfig = nonEmptyConfig(this.manager.baseConfig)
 
         this.tab = this.tabFromUrl() ?? "basic"
-        this.previewMode =
-            localStorage.getItem("editorPreviewMode") === "mobile"
-                ? "mobile"
-                : "desktop"
 
         makeObservable(this, {
             grapherState: observable.ref,
