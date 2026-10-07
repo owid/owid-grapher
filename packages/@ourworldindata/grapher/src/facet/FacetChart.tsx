@@ -873,7 +873,7 @@ export class FacetChart
             this.chartTypeName === GRAPHER_CHART_TYPES.StackedArea ||
             this.chartTypeName === GRAPHER_CHART_TYPES.StackedBar
         )
-            return _.reverse(uniqBins)
+            return uniqBins.reverse()
 
         return uniqBins
     }

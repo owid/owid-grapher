@@ -1075,7 +1075,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
             // If we have an array of both strings and number then the value we get here will always
             // be a string. Check if we can coerce it to number and do so if possible
             if (
-                _.isArray(fieldDesc?.type) &&
+                Array.isArray(fieldDesc?.type) &&
                 fieldDesc?.type.find(
                     (type) =>
                         type === FieldType.number || type === FieldType.integer

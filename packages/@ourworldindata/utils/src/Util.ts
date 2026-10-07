@@ -1273,7 +1273,7 @@ export function toRectangularMatrix<T, F>(arr: T[][], fill: F): (T | F)[][] {
 export function checkIsStringIndexable(
     x: unknown
 ): x is Record<string, unknown> {
-    return R.isPlainObject(x) || R.isArray(x)
+    return R.isPlainObject(x) || Array.isArray(x)
 }
 
 export function checkIsTouchEvent(
