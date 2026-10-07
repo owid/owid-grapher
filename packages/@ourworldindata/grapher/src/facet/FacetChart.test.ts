@@ -18,7 +18,7 @@ import {
 import { LineChart } from "../lineCharts/LineChart"
 
 const allElementsAreEqual = (array: any[]): boolean => {
-    return _.uniq(array).length === 1
+    return new Set(array).size === 1
 }
 
 function makeFacetChart(

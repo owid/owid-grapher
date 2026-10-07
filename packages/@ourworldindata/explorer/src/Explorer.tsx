@@ -779,11 +779,11 @@ export class Explorer
 
         this.inputTableTransformer = (table: OwidTable) => {
             // All slugs specified by the author in the explorer config
-            const slugs = _.uniq(slugDimensions.map(({ slug }) => slug))
+            const slugs = new Set(slugDimensions.map(({ slug }) => slug))
 
             // Add transformed columns (and the variables they depend on) to the grapher table
-            if (slugs.length > 0) {
-                const baseSlugs = slugs.flatMap((slug) => {
+            if (slugs.size > 0) {
+                const baseSlugs = slugs.values().flatMap((slug) => {
                     const def = getColumnDef(slug)
                     if (!def?.transform) return []
                     const { params: transformParams = [] } =
@@ -795,14 +795,14 @@ export class Explorer
                         .map(({ value }) => value)
                     return dataSlugsForTransform
                 })
-                const allRequiredSlugs = _.uniq([...baseSlugs, ...slugs])
+                const allRequiredSlugs = new Set([...baseSlugs, ...slugs])
                 const existingSlugs = new Set(table.columnSlugs)
-                const missingSlugs = allRequiredSlugs.filter(
-                    (slug) => !existingSlugs.has(slug)
-                )
-                const missingColumnDefs = missingSlugs
+                const missingColumnDefs = allRequiredSlugs
+                    .values()
+                    .filter((slug) => !existingSlugs.has(slug))
                     .map((slug) => getColumnDef(slug))
                     .filter((def) => def !== undefined)
+                    .toArray()
                 table = table.appendColumns(missingColumnDefs)
             }
 

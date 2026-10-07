@@ -1092,7 +1092,7 @@ class MonthColumn<
     // GCD respect the cadence, so e.g. bi-monthly data isn't force-filled.
     override getUniformlySpacedTimes(sortedTimes: number[]): number[] {
         const months = new Set(
-            _.uniq(sortedTimes).map(MonthColumn.monthsSinceEpoch)
+            new Set(sortedTimes).values().map(MonthColumn.monthsSinceEpoch)
         )
         const spacedMonths = withUniformSpacing([...months])
         return spacedMonths.map(MonthColumn.daysAtStartOfMonth)
@@ -1207,7 +1207,7 @@ class QuarterColumn<
     // GCD respect the cadence, so e.g. semiannual data isn't force-filled.
     override getUniformlySpacedTimes(sortedTimes: number[]): number[] {
         const quarters = new Set(
-            _.uniq(sortedTimes).map(QuarterColumn.quartersSinceEpoch)
+            new Set(sortedTimes).values().map(QuarterColumn.quartersSinceEpoch)
         )
         const spacedQuarters = withUniformSpacing([...quarters])
         return spacedQuarters.map(QuarterColumn.daysAtStartOfQuarter)

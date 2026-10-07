@@ -9,7 +9,6 @@ import { quantize, interpolate } from "d3-interpolate"
 import {
     Bounds,
     PointVector,
-    excludeUndefined,
     exposeInstanceOnWindow,
     getRelativeMouse,
     guid,
@@ -173,17 +172,17 @@ export class ScatterPlotChart
             )?.valuesIncludingErrorValues ?? []
 
         // Need to convert InvalidCell to undefined for color scale to assign correct color
-        const colorValues = _.uniq(
+        const colorValues = new Set(
             allValues.map((value: any) =>
                 isNotErrorValue(value) ? value : undefined
             )
-        ) as (string | number)[]
+        ) as Set<string | number | undefined>
 
-        return excludeUndefined(
-            colorValues.map((colorValue) =>
-                this.colorScale.getColor(colorValue)
-            )
-        )
+        return colorValues
+            .values()
+            .map((colorValue) => this.colorScale.getColor(colorValue))
+            .filter((color) => color !== undefined)
+            .toArray()
     }
 
     @computed get detailsOrderedByReference(): string[] {
@@ -403,13 +402,16 @@ export class ScatterPlotChart
                 activeSeriesNames.includes(g.seriesName)
             )
 
-            const colorValues = _.uniq(
+            const colorValues = new Set(
                 activeSeries.flatMap((s) => s.points.map((p) => p.color))
             )
 
-            excludeUndefined(
-                colorValues.map((color) => this.colorScale.getColor(color))
-            ).forEach((color) => activeColorsSet.add(color))
+            for (const color of colorValues
+                .values()
+                .map((color) => this.colorScale.getColor(color))
+                .filter((color) => color !== undefined)) {
+                activeColorsSet.add(color)
+            }
         }
 
         // If nothing is active (no hover, no selection), show all colors

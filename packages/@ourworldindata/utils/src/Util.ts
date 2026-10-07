@@ -2228,7 +2228,9 @@ export function greatestCommonDivisor(a: number, b: number): number {
 export function findGreatestCommonDivisorOfArray(arr: number[]): number | null {
     if (arr.length === 0) return null
     if (arr.includes(1)) return 1
-    return _.uniq(arr).reduce((acc, num) => greatestCommonDivisor(acc, num))
+    return new Set(arr)
+        .values()
+        .reduce((acc, num) => greatestCommonDivisor(acc, num))
 }
 
 // Makes sure that values are evenly spaced by inserting values at the greatest
