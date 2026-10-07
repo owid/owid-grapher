@@ -54,7 +54,7 @@ interface Variable {
     datasetName: string
     datasetVersion?: string
     namespaceName: string
-    usageCount: number
+    usageCount?: number
 }
 
 interface NamespaceOption {
@@ -124,11 +124,11 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
     }
 
     @computed get availableVariables(): Variable[] {
-        const { variableUsageCounts } = this.database
+        const { database } = this
         const variables: Variable[] = []
         this.datasets.forEach((dataset) => {
             const sorted = _.sortBy(dataset.variables, [
-                (v) => (variableUsageCounts.get(v.id) ?? 0) * -1,
+                (v) => (database.usageCount(v.id) ?? 0) * -1,
                 (v) => v.name,
             ])
             sorted.forEach((variable) => {
@@ -140,7 +140,7 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
                     datasetName: dataset.name,
                     datasetVersion: dataset.version,
                     namespaceName: dataset.namespace,
-                    usageCount: variableUsageCounts.get(variable.id) ?? 0,
+                    usageCount: database.usageCount(variable.id),
                     //name: variable.name.includes(dataset.name) ? variable.name : dataset.name + " - " + variable.name
                 })
             })
@@ -396,16 +396,19 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
                                                                             v.name
                                                                         )}
 
-                                                                        <span
-                                                                            style={{
-                                                                                fontWeight: 500,
-                                                                                color: "#555",
-                                                                            }}
-                                                                        >
-                                                                            {v.usageCount
-                                                                                ? ` (used ${v.usageCount} times)`
-                                                                                : " (unused)"}
-                                                                        </span>
+                                                                        {v.usageCount !==
+                                                                            undefined && (
+                                                                            <span
+                                                                                style={{
+                                                                                    fontWeight: 500,
+                                                                                    color: "#555",
+                                                                                }}
+                                                                            >
+                                                                                {v.usageCount
+                                                                                    ? ` (used ${v.usageCount} times)`
+                                                                                    : " (unused)"}
+                                                                            </span>
+                                                                        )}
                                                                     </div>
                                                                 }
                                                             />
@@ -533,7 +536,7 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
 
     @action.bound private initChosenVariablesAndNamespaces() {
         const { datasetsById } = this
-        const { variableUsageCounts } = this.database
+        const { database } = this
         const { dimensions } = this.props.slot
 
         this.chosenVariables = dimensions.flatMap((d) => {
@@ -552,7 +555,7 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
             return {
                 name: d.column.name,
                 id: variableId,
-                usageCount: variableUsageCounts.get(variableId) ?? 0,
+                usageCount: database.usageCount(variableId),
                 datasetId: datasetId ?? 0,
                 datasetName: datasetName || "",
                 catalogPath: undefined,

@@ -37,7 +37,7 @@ export interface IndicatorCatalogData {
 
 export class EditorDatabase {
     namespaces: Namespace[]
-    variableUsageCounts: Map<number, number> = new Map()
+    variableUsageCounts: Map<number, number> | undefined = undefined
     dataByNamespace: Map<string, NamespaceData> = new Map()
 
     constructor(data: IndicatorCatalogData) {
@@ -47,7 +47,7 @@ export class EditorDatabase {
             dataByNamespace: observable,
         })
         this.namespaces = data.namespaces
-        this.variableUsageCounts = data.usageCounts ?? new Map()
+        this.variableUsageCounts = data.usageCounts
         for (const dataset of data.datasets) {
             const entry = this.dataByNamespace.get(dataset.namespace)
             if (entry) entry.datasets.push(dataset)
@@ -56,6 +56,13 @@ export class EditorDatabase {
                     datasets: [dataset],
                 })
         }
+    }
+
+    usageCount(variableId: number): number | undefined {
+        return (
+            this.variableUsageCounts &&
+            (this.variableUsageCounts.get(variableId) ?? 0)
+        )
     }
 
     static empty(): EditorDatabase {
