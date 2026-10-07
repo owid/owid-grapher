@@ -9,6 +9,13 @@ export const BESPOKE_COMPONENT_REGISTRY: Record<
         dataUrl: "ihme_gbd/latest/gbd_treemap_json",
         metadataFilename: "causes-of-death.metadata.json",
     },
+    "democracy-development": {
+        scriptUrl: "/democracy-development/index.js",
+        // Reads indicators straight from the public data API rather than an
+        // ETL feed, so the data URL is absolute and the same everywhere
+        dataUrl: "https://api.ourworldindata.org/v1/indicators",
+        metadataFilename: "1209797.metadata.json",
+    },
     demography: {
         scriptUrl: "/demography/index.js",
         dataUrl: "un_wpp/latest/demography",
