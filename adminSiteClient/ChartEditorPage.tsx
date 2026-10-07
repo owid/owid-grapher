@@ -394,7 +394,11 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
 
             togglePublished: () => {
                 const { grapherState } = editor
-                if (grapherState.isPublished) {
+                const wasPublished = grapherState.isPublished
+                const rollBack = action(
+                    () => (grapherState.isPublished = wasPublished)
+                )
+                if (wasPublished) {
                     const message =
                         this.references &&
                         getFullReferencesCount(this.references) > 0
@@ -402,20 +406,12 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
                             : "Are you sure you want to unpublish this chart?"
                     if (!window.confirm(message)) return
                     runInAction(() => (grapherState.isPublished = undefined))
-                    void editor.saveGrapher({
-                        onError: action(
-                            () => (grapherState.isPublished = true)
-                        ),
-                    })
+                    void editor.saveGrapher({ onError: rollBack })
                 } else {
                     const url = `${BAKED_GRAPHER_URL}/${grapherState.displaySlug}`
                     if (!window.confirm(`Publish chart at ${url}?`)) return
                     runInAction(() => (grapherState.isPublished = true))
-                    void editor.saveGrapher({
-                        onError: action(
-                            () => (grapherState.isPublished = undefined)
-                        ),
-                    })
+                    void editor.saveGrapher({ onError: rollBack })
                 }
             },
 
