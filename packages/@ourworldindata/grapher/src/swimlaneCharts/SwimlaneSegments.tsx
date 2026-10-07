@@ -96,7 +96,7 @@ function SwimlaneSegmentLabelText({
     labelSettings: SwimlaneSegmentLabelSettings
 }): React.ReactElement | null {
     const { segmentLabels, fontSettings, formatTime } = labelSettings
-    const { category, width, height } = segment
+    const { categoryLabel, width, height } = segment
 
     const timeRange = formatSegmentTimeRange({
         runStartTime: segment.runStartTime,
@@ -110,7 +110,7 @@ function SwimlaneSegmentLabelText({
 
     const fits = shouldLabelSegment({
         segmentLabels,
-        category,
+        category: categoryLabel,
         timeRange,
         width: width - startInset - endInset,
         height,
@@ -132,7 +132,7 @@ function SwimlaneSegmentLabelText({
             fill={color}
         >
             <tspan x={x} fontWeight={fontSettings.fontWeight}>
-                {category}
+                {categoryLabel}
             </tspan>
             <tspan
                 x={x}

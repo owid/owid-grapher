@@ -192,6 +192,10 @@ export class SwimlaneChartState implements ChartState, ColorScaleManager {
                                     colorScale.getColor(
                                         categorySegment.category
                                     ) ?? OWID_ERROR_COLOR,
+                                categoryLabel:
+                                    colorScale.getBinForValue(
+                                        categorySegment.category
+                                    )?.text ?? categorySegment.category,
                             }))
                             .with(
                                 { kind: "missing" },

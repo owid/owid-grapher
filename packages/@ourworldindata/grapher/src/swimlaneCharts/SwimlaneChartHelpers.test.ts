@@ -28,6 +28,7 @@ function makeCategorySegment(
         runStartTime: startTime,
         runEndTime: endTime,
         color: "#000",
+        categoryLabel: category,
     }
 }
 

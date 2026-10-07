@@ -8,6 +8,7 @@ import {
     Time,
 } from "@ourworldindata/types"
 import { OwidTable } from "@ourworldindata/core-table"
+import { ColorScaleConfig } from "../color/ColorScaleConfig"
 import { AxisConfig } from "../axis/AxisConfig"
 import { HorizontalAxis } from "../axis/Axis"
 import { SwimlaneChartState } from "./SwimlaneChartState"
@@ -50,18 +51,22 @@ function makeChartState(
     })
 }
 
-/** Segments of an entity's lane without colors */
+/** Segments of an entity's lane without colors and category labels */
 function findSegments(
     chartState: SwimlaneChartState,
     entityName: string
-): Omit<ColoredSwimlaneSegment, "color">[] {
+): Omit<ColoredSwimlaneSegment, "color" | "categoryLabel">[] {
     const series = chartState.series.find(
         (series) => series.entityName === entityName
     )
     if (!series) throw new Error(`No lane for ${entityName}`)
     return series.segments.map((segment) => {
         if (segment.kind === "missing") return segment
-        const { color: _color, ...rest } = segment
+        const {
+            color: _color,
+            categoryLabel: _categoryLabel,
+            ...rest
+        } = segment
         return rest
     })
 }
@@ -226,6 +231,31 @@ describe("x axis", () => {
         )
 
         expect(axis.domain).toEqual([2004, 2005])
+    })
+})
+
+describe("category label", () => {
+    it("is the custom label the legend shows, or the category itself", () => {
+        const chartState = makeChartState(
+            makeCategoricalTable([
+                { entityName: "France", time: 2000, status: "Neoplasms" },
+                { entityName: "France", time: 2001, status: "Malaria" },
+            ]),
+            {
+                colorScale: new ColorScaleConfig({
+                    customCategoryLabels: { Neoplasms: "Cancer" },
+                }),
+            }
+        )
+        const france = chartState.series.find(
+            (series) => series.entityName === "France"
+        )
+
+        expect(
+            france?.segments.map((segment) =>
+                segment.kind === "category" ? segment.categoryLabel : undefined
+            )
+        ).toEqual(["Cancer", "Malaria"])
     })
 })
 

@@ -55,6 +55,7 @@ export type VisibleSwimlaneSegment =
 
 export type ColoredSwimlaneCategorySegment = VisibleSwimlaneCategorySegment & {
     color: Color
+    categoryLabel: string
 }
 
 export type ColoredSwimlaneSegment =
