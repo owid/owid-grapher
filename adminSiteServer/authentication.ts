@@ -18,7 +18,6 @@ export type Response = express.Response<any, { user: DbPlainUser }>
 
 const API_KEY_HEADER = "authorization"
 const ACT_AS_USER_HEADER = "x-act-as-user"
-const TAILSCALE_USER_LOGIN_HEADER = "tailscale-user-login"
 const CLOUDFLARE_COOKIE_NAME = "CF_Authorization"
 const CLOUDFLARE_TEAM_DOMAIN = "https://owid.cloudflareaccess.com"
 const DEV_ADMIN_EMAIL = "admin@example.com"
@@ -181,7 +180,7 @@ export async function tailscaleAuthMiddleware(
     }
 
     const ipToUserMap = await getTailscaleIpToUserMap()
-    const loginName = ipToUserMap[clientIp] ?? getTrustedTailscaleUserLogin(req)
+    const loginName = ipToUserMap[clientIp]
 
     if (!loginName) {
         return next()
@@ -269,34 +268,24 @@ async function getDevAdminUser(): Promise<DbPlainUser | undefined> {
     })
 }
 
-export function getTrustedTailscaleUserLogin(
-    req: express.Request
-): string | undefined {
-    // Tailscale Serve forwards authenticated tailnet requests with identity
-    // headers, but the backend connection reaches nginx/admin over localhost.
-    // Direct staging HTTP auth should usually authenticate via the Tailscale
-    // source IP from X-Forwarded-For before this header fallback is used.
-    if (!isLoopbackIp(req.socket.remoteAddress)) return undefined
-
-    const login = req.get(TAILSCALE_USER_LOGIN_HEADER)?.trim()
-    return login || undefined
-}
-
 export function isLoopbackIp(ip: string | undefined): boolean {
     return ip === "127.0.0.1" || ip === "::1" || ip === "localhost"
 }
 
 export function getClientIp(req: express.Request): string | undefined {
-    let ip =
-        (req.headers["x-forwarded-for"] as string | undefined)
-            ?.split(",")[0]
-            ?.trim() ||
-        req.socket.remoteAddress ||
-        req.ip
-    if (ip?.startsWith("::ffff:")) {
-        ip = ip.replace("::ffff:", "")
-    }
-    return ip
+    // The admin is only reached through proxies on this machine (nginx, and
+    // Tailscale Serve in front of it), and each one records the address it
+    // received the request from. So the right-most non-loopback entry is the
+    // real client; entries to its left were sent by the client itself.
+    const forwardedIps = (req.headers["x-forwarded-for"] as string | undefined)
+        ?.split(",")
+        .map((ip) => normalizeIp(ip.trim()))
+        .filter((ip) => ip && !isLoopbackIp(ip))
+    return forwardedIps?.at(-1) ?? normalizeIp(req.socket.remoteAddress)
+}
+
+function normalizeIp(ip: string | undefined): string | undefined {
+    return ip?.replace(/^::ffff:/, "")
 }
 
 function getApiKeyFromRequest(req: express.Request): string | undefined {
