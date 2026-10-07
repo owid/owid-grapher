@@ -6,7 +6,7 @@ import { SeriesLabelState } from "../seriesLabel/SeriesLabelState"
 export const LANE_SPACING_FACTOR = 0.35
 export const ENTITY_LABEL_CHART_GAP = 8
 export const TICK_LABEL_OVERFLOW_PADDING = 2
-export const MIN_SEGMENT_WIDTH = 1
+export const MIN_SEGMENT_WIDTH = 2
 export const PADDING_BETWEEN_LEGEND_AND_LANES = 8
 export const MAX_LANE_HEIGHT = 36
 

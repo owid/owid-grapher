@@ -133,6 +133,7 @@ function toContiguousSegmentExtents({
         const nextSegment = segments[index + 1]
         const x = placeTime(segment.startTime)
         const right = placeTime(nextSegment?.startTime ?? segment.endTime)
-        return { x, width: Math.max(right - x, MIN_SEGMENT_WIDTH) }
+        const width = Math.max(right - x, MIN_SEGMENT_WIDTH)
+        return { x: nextSegment ? x : right - width, width }
     })
 }
