@@ -84,9 +84,15 @@ export function tableIndicatorStore(
                     console.warn(
                         `${datasetName}: config references column "${dimension.slug ?? dimension.variableId}", which the table doesn't have`
                     )
+            const dimensionSlugs = new Set(
+                dimensions.map((dimension) => dimension.slug)
+            )
+            const excludedSlugs = dataSlugs.filter(
+                (slug) => !dimensionSlugs.has(slug)
+            )
             return Promise.resolve(
                 applyDimensionDisplayAndConversionFactor(
-                    tableWithColumnNames,
+                    tableWithColumnNames.dropColumns(excludedSlugs),
                     dimensions
                 )
             )
