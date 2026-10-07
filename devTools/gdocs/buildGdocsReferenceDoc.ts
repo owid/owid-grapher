@@ -1,7 +1,8 @@
 /*
  * Publishes the gdocs writing reference — the three committed registries
  * (components, templates, guides) — as a Google Doc, one tab per section.
- * CI runs it on every push to master; see docs/gdocs-writing-reference.md.
+ * The production admin deploy runs it on every master deploy (ops repo,
+ * templates/owid-admin-prod/admin-refresh.sh); see docs/gdocs-writing-reference.md.
  *
  *   yarn buildGdocsReferenceDoc                 write the doc in GDOCS_REFERENCE_DOCUMENT_ID
  *   yarn buildGdocsReferenceDoc --single-tab    everything into the first tab, sections as H1

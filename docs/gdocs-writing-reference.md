@@ -189,13 +189,16 @@ put in `GDOCS_REFERENCE_DOCUMENT_ID`. Re-runs clear and refill the section
 tabs in place, so tab ids, order and the URL survive; tabs with other titles
 are left alone.
 
-The `publish-gdocs-reference-doc` CI job runs it on every push to `master`,
-after `gdocs-references` has checked the registries are current, with the
-three settings supplied as repository secrets (`GDOCS_REFERENCE_DOCUMENT_ID`,
-`GDOCS_CLIENT_EMAIL`, `GDOCS_PRIVATE_KEY`). It never runs on pull requests or
-forks: the doc reflects `master` once that run finishes, and branches never
-update it. Every run overwrites the section tabs, so comments or suggestions
-left in them are lost. By hand, with the same three settings in `.env`:
+The production admin deploy runs it as its last step
+(`templates/owid-admin-prod/admin-refresh.sh` in the ops repo), from the
+master checkout on `owid-admin-prod` and the prod `.env` the vault puts there —
+so the service account never leaves the vault, and the only new setting is
+`GDOCS_REFERENCE_DOCUMENT_ID` in `admin-env.secret`. The doc reflects `master`
+once a deploy finishes; branches never update it, and a Google-side failure
+is reported in the Buildkite log without failing the deploy. Every run
+overwrites the section tabs, so comments or suggestions left in them are lost.
+By hand, with `GDOCS_REFERENCE_DOCUMENT_ID`, `GDOCS_CLIENT_EMAIL` and
+`GDOCS_PRIVATE_KEY` in `.env`:
 
 | Command                                              | What it does                                                             |
 | ---------------------------------------------------- | ------------------------------------------------------------------------ |
