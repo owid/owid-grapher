@@ -202,6 +202,13 @@ export class SwimlaneChartState implements ChartState, ColorScaleManager {
         if (!this.categories)
             return { reason: "Requires an indicator with categorical values" }
 
+        const { entityTypePlural = "entities" } = this.manager
+        const hasCategorySegment = this.series.some((series) =>
+            series.segments.some((segment) => segment.kind === "category")
+        )
+        if (!hasCategorySegment)
+            return { reason: `No data for the selected ${entityTypePlural}` }
+
         return { reason: "" }
     }
 }
