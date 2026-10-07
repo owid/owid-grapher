@@ -178,21 +178,24 @@ export function TooltipTable({
     // so that it's always visible even if the tooltip is scrollable
     const showTotalsAtTop = context?.anchor === GrapherTooltipAnchor.Bottom
 
-    const totalsCells = R.zip(columns, totals).map(([column, total]) => (
-        <td key={column?.label} className="series-value">
+    const showColumnLabels =
+        columns.length > 1 && columns.some((column) => !!column.label)
+
+    const totalsCells = R.zip(columns, totals).map(([column, total], index) => (
+        <td key={index} className="series-value">
             {column && total !== undefined ? column.formatValue(total) : null}
         </td>
     ))
 
     return (
         <table className={classnames("series-list", { focal, swatched })}>
-            {columns.length > 1 && (
+            {showColumnLabels && (
                 <thead>
                     <tr>
                         <td className="series-color"></td>
                         <td className="series-name"></td>
-                        {columns.map((column) => (
-                            <td className="series-value" key={column.label}>
+                        {columns.map((column, index) => (
+                            <td className="series-value" key={index}>
                                 {column.label}
                             </td>
                         ))}
@@ -260,19 +263,26 @@ export function TooltipTable({
                                     </span>
                                 )}
                             </td>
-                            {R.zip(columns, values).map(([column, value]) => {
-                                const missing = value === undefined
-                                return column ? (
-                                    <td
-                                        key={column.label}
-                                        className={classnames("series-value", {
-                                            missing,
-                                        })}
-                                    >
-                                        {!missing && column.formatValue(value)}
-                                    </td>
-                                ) : null
-                            })}
+                            {R.zip(columns, values).map(
+                                ([column, value], index) => {
+                                    const missing = value === undefined
+                                    return column ? (
+                                        <td
+                                            key={index}
+                                            className={classnames(
+                                                "series-value",
+                                                {
+                                                    missing,
+                                                    secondary: column.secondary,
+                                                }
+                                            )}
+                                        >
+                                            {!missing &&
+                                                column.formatValue(value)}
+                                        </td>
+                                    ) : null
+                                }
+                            )}
                             {originalTime && (
                                 <td className="time-notice">
                                     <FontAwesomeIcon icon={faInfoCircle} />{" "}

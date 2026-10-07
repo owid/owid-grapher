@@ -3,7 +3,13 @@
  */
 
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest"
-import { render, screen, within } from "@testing-library/react"
+import {
+    fireEvent,
+    render,
+    screen,
+    waitFor,
+    within,
+} from "@testing-library/react"
 import { Bounds } from "@ourworldindata/utils"
 import {
     ColumnTypeNames,
@@ -88,6 +94,20 @@ beforeAll(() => {
     )
 })
 
+beforeAll(() => {
+    // happy-dom's SVGPoint can't transform, so map client coordinates onto the SVG unchanged
+    vi.spyOn(SVGSVGElement.prototype, "createSVGPoint").mockImplementation(
+        () =>
+            ({
+                x: 0,
+                y: 0,
+                matrixTransform(): DOMPoint {
+                    return this as DOMPoint
+                },
+            }) as unknown as DOMPoint
+    )
+})
+
 afterAll(() => {
     vi.unstubAllGlobals()
     vi.restoreAllMocks()
@@ -166,5 +186,106 @@ describe("SwimlaneChart", () => {
         expect(
             within(france as HTMLElement).getByText("2000–2002")
         ).toBeTruthy()
+    })
+
+    describe("tooltip", () => {
+        function hoverSegment(
+            container: HTMLElement,
+            {
+                laneIndex,
+                segmentIndex,
+            }: { laneIndex: number; segmentIndex: number }
+        ): void {
+            const hitArea = container.querySelector(
+                '#lanes ~ g > rect[fill-opacity="0"]'
+            )
+            if (!hitArea) throw new Error("No hit area")
+            const plotTop = Number(hitArea.getAttribute("y"))
+            const plotHeight = Number(hitArea.getAttribute("height"))
+            const plotMiddle = plotTop + plotHeight / 2
+
+            const lane = findLane(container, ["France", "Germany"][laneIndex])
+            const segment = findSegmentShapes(lane)[segmentIndex]
+            const segmentX =
+                segment.getAttribute("x") ??
+                segment.getAttribute("d")?.match(/^M ([\d.]+),/)?.[1]
+
+            fireEvent.mouseMove(hitArea, {
+                clientX: Number(segmentX) + 0.5,
+                clientY: laneIndex === 0 ? plotMiddle - 1 : plotMiddle + 1,
+            })
+        }
+
+        it("names the entity, the whole run and its duration for a category the window crops", () => {
+            const { container } = render(
+                <Grapher
+                    grapherState={makeGrapherState(ColumnTypeNames.String, {
+                        minTime: 2001,
+                        maxTime: 2005,
+                    })}
+                />
+            )
+
+            hoverSegment(container, { laneIndex: 0, segmentIndex: 0 })
+
+            const tooltip = within(screen.getByRole("tooltip"))
+            expect(tooltip.getByText("France")).toBeTruthy()
+            expect(tooltip.getByText("2000–2002")).toBeTruthy()
+            expect(tooltip.getByText("Monarchy")).toBeTruthy()
+            expect(tooltip.getByText("2 years")).toBeTruthy()
+        })
+
+        it("says there is no data for a missing segment, without a duration", () => {
+            const { container } = render(
+                <Grapher
+                    grapherState={makeGrapherState(ColumnTypeNames.String)}
+                />
+            )
+
+            hoverSegment(container, { laneIndex: 0, segmentIndex: 1 })
+
+            const tooltip = screen.getByRole("tooltip")
+            expect(within(tooltip).getByText("No data")).toBeTruthy()
+            expect(within(tooltip).getByText("2003–2004")).toBeTruthy()
+            expect(
+                tooltip.querySelector(".swimlane-tooltip__duration")
+            ).toBeNull()
+        })
+
+        it("omits the duration for a single-time run", () => {
+            const { container } = render(
+                <Grapher
+                    grapherState={makeGrapherState(ColumnTypeNames.String)}
+                />
+            )
+
+            hoverSegment(container, { laneIndex: 0, segmentIndex: 2 })
+
+            const tooltip = screen.getByRole("tooltip")
+            expect(within(tooltip).getByText("Republic")).toBeTruthy()
+            expect(within(tooltip).getByText("2005")).toBeTruthy()
+            expect(
+                tooltip.querySelector(".swimlane-tooltip__duration")
+            ).toBeNull()
+        })
+
+        it("fades out when the cursor leaves the plot", async () => {
+            const { container } = render(
+                <Grapher
+                    grapherState={makeGrapherState(ColumnTypeNames.String)}
+                />
+            )
+
+            hoverSegment(container, { laneIndex: 1, segmentIndex: 0 })
+            expect(screen.getByRole("tooltip")).toBeTruthy()
+
+            const hitArea = container.querySelector(
+                '#lanes ~ g > rect[fill-opacity="0"]'
+            )
+            fireEvent.mouseLeave(hitArea!.parentElement!)
+            await waitFor(() =>
+                expect(screen.queryByRole("tooltip")).toBeNull()
+            )
+        })
     })
 })

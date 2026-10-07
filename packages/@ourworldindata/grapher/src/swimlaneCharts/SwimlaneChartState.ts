@@ -153,7 +153,7 @@ export class SwimlaneChartState implements ChartState, ColorScaleManager {
         return R.range(minTime, maxTime + 1)
     }
 
-    @computed private get visibleTimesAsc(): Time[] {
+    @computed get visibleTimesAsc(): Time[] {
         const { startTime, endTime } = this.manager
         const times = this.allTimesAsc
         if (startTime === undefined || endTime === undefined) return times

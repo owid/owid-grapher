@@ -14,7 +14,6 @@ import {
 } from "@ourworldindata/types"
 import {
     LineChartSeries,
-    LinePoint,
     PlacedLineChartSeries,
     PlacedPoint,
     RenderLineChartSeries,
@@ -161,12 +160,12 @@ export function findClosestTimeAtMouse({
     mouse,
     innerBounds,
     horizontalAxis,
-    allValues,
+    times,
 }: {
     mouse: PointVector
     innerBounds: Bounds
     horizontalAxis: HorizontalAxis
-    allValues: LinePoint[]
+    times: Time[]
 }): Time | undefined {
     // Expand the hit box so the first/last timepoints are easy to hover
     const hoverMargin = isMobile() ? 44 : 25
@@ -178,8 +177,7 @@ export function findClosestTimeAtMouse({
     if (!boundedBox.contains(mouse)) return undefined
 
     const invertedX = horizontalAxis.invert(mouse.x)
-    const closest = _.minBy(allValues, (point) => Math.abs(invertedX - point.x))
-    return closest?.x
+    return _.minBy(times, (time) => Math.abs(invertedX - time))
 }
 
 export function toRenderLineChartSeries(

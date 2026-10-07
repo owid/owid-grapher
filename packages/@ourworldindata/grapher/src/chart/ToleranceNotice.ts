@@ -6,11 +6,11 @@ import {
 import {
     ColumnSlug,
     Time,
-    TimeInterval,
     TimeRange,
     ToleranceStrategy,
 } from "@ourworldindata/types"
 import { isSubYearly } from "@ourworldindata/utils"
+import { formatTimeSpan } from "./ChartUtils"
 
 /**
  * The notice a chart should show, if it has a tolerance worth stating and any
@@ -134,10 +134,7 @@ export function formatToleranceNotice({
         if (isUnbounded)
             return `Where data is unavailable, the ${closest} value is shown instead.`
 
-        const tolerance = formatTimeTolerance(
-            timeTolerance,
-            timeColumn.timeInterval
-        )
+        const tolerance = formatTimeSpan(timeTolerance, timeColumn.timeInterval)
 
         return `Where data is unavailable, the ${closest} value within ${tolerance} is shown instead.`
     }
@@ -191,15 +188,4 @@ function getTimeRangeOfColumns(
         Math.min(...tableColumns.map((column) => column.minTime)),
         Math.max(...tableColumns.map((column) => column.maxTime)),
     ]
-}
-
-/** The tolerance in words, e.g. "3 years" or "a year" */
-function formatTimeTolerance(
-    tolerance: number,
-    timeInterval: TimeInterval
-): string {
-    // Sub-yearly times are stored as days, so their tolerance is in days
-    const unit = isSubYearly(timeInterval) ? "day" : "year"
-
-    return tolerance === 1 ? `a ${unit}` : `${tolerance} ${unit}s`
 }
