@@ -8,9 +8,11 @@ import { SwimlaneSegments } from "./SwimlaneSegments"
 export function SwimlaneRow({
     series,
     y,
+    noDataPatternId,
 }: {
     series: PlacedSwimlaneSeries
     y: number
+    noDataPatternId: string
 }): React.ReactElement {
     return (
         <g
@@ -23,7 +25,10 @@ export function SwimlaneRow({
                 y={series.labelPosition.yOffset}
                 color={{ name: GRAPHER_LIGHT_TEXT }}
             />
-            <SwimlaneSegments segments={series.placedSegments} />
+            <SwimlaneSegments
+                segments={series.placedSegments}
+                noDataPatternId={noDataPatternId}
+            />
         </g>
     )
 }

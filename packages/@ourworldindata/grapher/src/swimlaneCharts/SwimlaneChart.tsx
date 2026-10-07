@@ -12,6 +12,7 @@ import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
     FontSettings,
+    makePatternId,
     Patterns,
 } from "../core/GrapherConstants"
 import { AnimatedRows } from "../animation/AnimatedRows"
@@ -84,6 +85,13 @@ export class SwimlaneChart
         return this.manager.showLegend ?? true
     }
 
+    @computed private get noDataPatternId(): string {
+        return makePatternId(
+            Patterns.noDataPattern,
+            this.manager.patternIdSuffix
+        )
+    }
+
     @computed private get categoricalLegendBins(): CategoricalBin[] {
         const [noData, categories] = _.partition(
             this.chartState.colorScale.categoricalLegendBins,
@@ -91,7 +99,7 @@ export class SwimlaneChart
         )
         return [
             ...noData.map((bin) =>
-                addPatternRefToBin(bin, Patterns.noDataPattern)
+                addPatternRefToBin(bin, this.noDataPatternId)
             ),
             ...categories,
         ]
@@ -273,7 +281,12 @@ export class SwimlaneChart
 
     private renderLanes(): React.ReactElement[] {
         return this.placedSeries.map((series) => (
-            <SwimlaneRow key={series.seriesName} series={series} y={series.y} />
+            <SwimlaneRow
+                key={series.seriesName}
+                series={series}
+                y={series.y}
+                noDataPatternId={this.noDataPatternId}
+            />
         ))
     }
 
@@ -291,6 +304,7 @@ export class SwimlaneChart
                         key={series.seriesName}
                         series={series}
                         y={0}
+                        noDataPatternId={this.noDataPatternId}
                     />
                 )}
             />
