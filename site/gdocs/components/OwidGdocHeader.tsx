@@ -95,6 +95,7 @@ function OwidArticleHeader({
                         {versionsFileUrl ? (
                             <a
                                 href={`#${PAST_VERSIONS_ID}`}
+                                data-track-note="gdoc-header-date-versions"
                                 suppressHydrationWarning={true}
                             >
                                 <FontAwesomeIcon icon={faClockRotateLeft} />

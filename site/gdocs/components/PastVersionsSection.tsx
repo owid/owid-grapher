@@ -54,7 +54,7 @@ export function PastVersionsSection() {
                     icon={faClockRotateLeft}
                     iconPosition="left"
                     onClick={() => handleDrawerOpenChange(true)}
-                    dataTrackNote="gdoc-header-browse-versions"
+                    dataTrackNote="gdoc-past-versions-section-open"
                 />
             </div>
             {/* NOTE: On archived pages, the archive navigation bar renders a
