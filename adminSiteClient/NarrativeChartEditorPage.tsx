@@ -21,14 +21,11 @@ import {
 } from "./ConfigEditor.js"
 import { EditorReferencesTabForNarrativeChart } from "./EditorReferencesTab.js"
 import { NarrativeChartSaveButtons } from "./NarrativeChartSaveButtons.js"
-import {
-    adminOriginUrlSuggestions,
-    getFullReferencesCount,
-    References,
-} from "./adminChartApi.js"
+import { getFullReferencesCount, References } from "./adminChartApi.js"
 import {
     adminDetailsProvider,
     adminIndicatorCatalog,
+    adminOriginUrlSuggestions,
     adminScatterDefaults,
     defaultEditorEnvironment,
     DetailsProvider,
@@ -74,6 +71,7 @@ export class NarrativeChartEditorPage extends React.Component<NarrativeChartEdit
     parentUrl: string | null = null
 
     references: References | undefined = undefined
+    topicSlugs: string[] = []
 
     constructor(props: NarrativeChartEditorPageProps) {
         super(props)
@@ -85,6 +83,7 @@ export class NarrativeChartEditorPage extends React.Component<NarrativeChartEdit
             configId: observable.ref,
             parentUrl: observable.ref,
             references: observable,
+            topicSlugs: observable.ref,
         })
     }
 
@@ -112,6 +111,10 @@ export class NarrativeChartEditorPage extends React.Component<NarrativeChartEdit
         return adminScatterDefaults()
     }
 
+    @computed get originUrlSuggestions(): OriginUrlSuggestion[] {
+        return adminOriginUrlSuggestions(this.references, this.topicSlugs)
+    }
+
     async fetchNarrativeChartData(): Promise<void> {
         const data = await this.admin.getJSON(
             `/api/narrative-charts/${this.props.narrativeChartId}.config.json`
@@ -133,9 +136,22 @@ export class NarrativeChartEditorPage extends React.Component<NarrativeChartEdit
         runInAction(() => (this.references = json.references))
     }
 
+    async fetchTopicSlugs(): Promise<void> {
+        const json = await this.admin
+            .requestJSON<{ slugs: string[] }>(
+                "/api/gdocs/publishedTopicSlugs",
+                {},
+                "GET",
+                { onFailure: "continue", isBackground: true }
+            )
+            .catch(() => undefined)
+        if (json) runInAction(() => (this.topicSlugs = json.slugs))
+    }
+
     override componentDidMount(): void {
         void this.fetchNarrativeChartData()
         void this.fetchRefs()
+        void this.fetchTopicSlugs()
     }
 
     @action.bound async onSave(
@@ -194,9 +210,6 @@ export class NarrativeChartEditorPage extends React.Component<NarrativeChartEdit
             }}
         />
     )
-
-    private readonly originUrlSuggestions = (): OriginUrlSuggestion[] =>
-        adminOriginUrlSuggestions(this.admin, this.references)
 
     private renderEditor(): React.ReactElement {
         return (
