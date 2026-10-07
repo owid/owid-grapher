@@ -65,6 +65,8 @@ export interface Pass1Result {
     tables: PlannedTable[]
     /** Model index right after the last inserted block */
     endIndex: number
+    /** The text both passes leave in the tab; see `plainTextOf` */
+    plainText: string
 }
 
 /** Where a table and its cells actually are, read back from `documents.get` */
@@ -94,9 +96,56 @@ export function blocksToRequests(
     return writer.result()
 }
 
+/**
+ * The text a tab holds once `blocksToRequests` (pass 1) and
+ * `fillTableRequests` (pass 2) have run, in document order, without the
+ * body's undeletable final newline:
+ *
+ *   - a heading, paragraph or code block is its text + "\n"
+ *   - a bullet list is each item + "\n"
+ *   - a table is the "\n" insertTable adds before it, then every cell's text
+ *     + "\n" (the cell's own paragraph), header row first; a table after a
+ *     bullet list is preceded by one more "\n" (the parking paragraph)
+ *
+ * `bodyPlainText` reads the same text back from a fetched body, so the two
+ * being equal means the tab already holds exactly what would be written —
+ * the skip-unchanged check of the publisher.
+ */
+export function plainTextOf(blocks: Block[]): string {
+    return blocksToRequests(blocks, "").plainText
+}
+
+/**
+ * The text of a fetched tab body in the form `plainTextOf` yields: paragraph
+ * text runs concatenated, tables as their cells' paragraphs in order, the
+ * final newline of the body dropped. Only the structure this tool writes is
+ * read — top-level tables, text runs — anything else (inline objects,
+ * nested tables) contributes nothing.
+ */
+export function bodyPlainText(
+    content: docs_v1.Schema$StructuralElement[]
+): string {
+    const text = content.map(elementPlainText).join("")
+    return text.endsWith("\n") ? text.slice(0, -1) : text
+}
+
+function elementPlainText(element: docs_v1.Schema$StructuralElement): string {
+    if (element.paragraph)
+        return (element.paragraph.elements ?? [])
+            .map((part) => part.textRun?.content ?? "")
+            .join("")
+    if (element.table)
+        return (element.table.tableRows ?? [])
+            .flatMap((row) => row.tableCells ?? [])
+            .map((cell) => (cell.content ?? []).map(elementPlainText).join(""))
+            .join("")
+    return ""
+}
+
 class RequestWriter {
     private readonly requests: Request[] = []
     private readonly tables: PlannedTable[] = []
+    private plainText = ""
     private cursor: number
     /** The previous block left bulleted paragraphs the next one would inherit */
     private afterBullets = false
@@ -113,6 +162,7 @@ class RequestWriter {
             requests: this.requests,
             tables: this.tables,
             endIndex: this.cursor,
+            plainText: this.plainText,
         }
     }
 
@@ -202,15 +252,16 @@ class RequestWriter {
         // insertTable puts a newline before the table
         const startIndex = this.cursor + 1
         this.cursor = startIndex + emptyTableSpan(rows, columns)
-        this.tables.push({
-            startIndex,
-            rows,
-            columns,
-            cells: [
-                block.header.map((title) => [{ text: title, bold: true }]),
-                ...block.rows,
-            ],
-        })
+        const cells = [
+            block.header.map((title) => [{ text: title, bold: true }]),
+            ...block.rows,
+        ]
+        this.tables.push({ startIndex, rows, columns, cells })
+        // Each cell holds one paragraph: its text (filled in pass 2) + "\n"
+        this.plainText +=
+            "\n" +
+            cells.flatMap((row) => row.map(runsToPlainText)).join("\n") +
+            "\n"
     }
 
     private insertAtEnd(text: string): TextRange {
@@ -223,6 +274,7 @@ class RequestWriter {
             insertText: { text, endOfSegmentLocation: { tabId: this.tabId } },
         })
         this.cursor = range.endIndex
+        this.plainText += text
         return range
     }
 

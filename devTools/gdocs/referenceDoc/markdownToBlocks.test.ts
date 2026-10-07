@@ -8,6 +8,7 @@
 
 import { describe, expect, test } from "vitest"
 import type { RelatedRef } from "@ourworldindata/types"
+import type { DocRef } from "./model.js"
 import { inlineMarkdownToRuns, markdownToBlocks } from "./markdownToBlocks.js"
 
 const TITLES: Record<string, string> = {
@@ -16,6 +17,11 @@ const TITLES: Record<string, string> = {
 }
 const titleFor = (ref: RelatedRef): string | undefined =>
     TITLES[`${ref.kind}:${ref.id}`]
+
+const urlFor = (ref: DocRef): string | undefined =>
+    ref.id === "nope"
+        ? undefined
+        : `https://docs.google.com/${ref.kind}/${ref.id}`
 
 const parse = (markdown: string, baseLevel: 1 | 2 | 3 | 4 = 2) =>
     markdownToBlocks(markdown, { baseLevel, titleFor })
@@ -46,6 +52,53 @@ describe(markdownToBlocks, () => {
     test("an unknown guide mention falls back to its id", () => {
         expect(parse("See `{guide:nope}`.")).toEqual([
             { type: "paragraph", runs: [{ text: "See nope." }] },
+        ])
+    })
+
+    test("with urlFor, mentions link to their document; a component keeps its monospace tag", () => {
+        expect(
+            markdownToBlocks("Use `{.chart}`, see `{guide:refs}`.", {
+                baseLevel: 2,
+                titleFor,
+                urlFor,
+            })
+        ).toEqual([
+            {
+                type: "paragraph",
+                runs: [
+                    { text: "Use " },
+                    {
+                        text: "{.chart}",
+                        code: true,
+                        link: "https://docs.google.com/component/chart",
+                    },
+                    { text: ", see " },
+                    {
+                        text: "Refs and footnotes",
+                        link: "https://docs.google.com/guide/refs",
+                    },
+                    { text: "." },
+                ],
+            },
+        ])
+    })
+
+    test("with urlFor, an unknown id still gets no link; plain code spans never do", () => {
+        expect(
+            markdownToBlocks("See `{guide:nope}` and `url`.", {
+                baseLevel: 2,
+                titleFor,
+                urlFor,
+            })
+        ).toEqual([
+            {
+                type: "paragraph",
+                runs: [
+                    { text: "See nope and " },
+                    { text: "url", code: true },
+                    { text: "." },
+                ],
+            },
         ])
     })
 
@@ -95,7 +148,7 @@ describe(markdownToBlocks, () => {
             { type: "heading", level: 3, text: "Limitations" },
             { type: "heading", level: 4, text: "Detail" },
         ])
-        // Under --single-tab a component sits at H3: ## → H4, ### stays at H4
+        // Under a deeper heading: ## → H4, ### stays at H4
         expect(parse(markdown, 3).filter((b) => b.type === "heading")).toEqual([
             { type: "heading", level: 4, text: "Limitations" },
             { type: "heading", level: 4, text: "Detail" },
@@ -142,10 +195,9 @@ describe(markdownToBlocks, () => {
 describe(inlineMarkdownToRuns, () => {
     test("renders a one-line description with its code spans and mentions", () => {
         expect(
-            inlineMarkdownToRuns(
-                "Names; see `{guide:refs}` and `url`.",
-                titleFor
-            )
+            inlineMarkdownToRuns("Names; see `{guide:refs}` and `url`.", {
+                titleFor,
+            })
         ).toEqual([
             { text: "Names; see Refs and footnotes and " },
             { text: "url", code: true },

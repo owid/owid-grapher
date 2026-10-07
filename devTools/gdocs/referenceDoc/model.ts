@@ -2,9 +2,12 @@
  * The document model of the gdocs writing reference: what `buildModel.ts`
  * produces from the committed registries, and what both renderers
  * (`renderMarkdown.ts` for --dry-run, `renderDocsRequests.ts` for the Google
- * Docs API) consume. It knows nothing about Markdown or Google Docs — tests
+ * Docs API) consume. A library is one index document plus one document per
+ * component, template and guide. It knows nothing about Markdown or Google Docs — tests
  * assert against this shape.
  */
+
+import type { RelatedRef } from "@ourworldindata/types"
 
 /** Heading depth; Google Docs named styles go HEADING_1 … HEADING_6, we stop at 4 */
 export type HeadingLevel = 1 | 2 | 3 | 4
@@ -60,14 +63,41 @@ export type Block =
     | TableBlock
     | CodeBlock
 
-/** One tab of the Google Doc (or one H1 chapter under --single-tab) */
-export interface Section {
-    title: string
+/** The kinds of item that get a document of their own */
+export type ReferenceItemKind = RelatedRef["kind"]
+
+/** Every document in the library: the three item kinds plus the index */
+export type ReferenceDocKind = ReferenceItemKind | "index"
+
+/** Identifies one document of the library (the index is `{ kind: "index", id: "index" }`) */
+export interface DocRef {
+    kind: ReferenceDocKind
+    id: string
+}
+
+export const INDEX_REF: DocRef = { kind: "index", id: "index" }
+
+/** The URL of a library document, when it is known (never under --dry-run) */
+export type UrlFor = (ref: DocRef) => string | undefined
+
+/** One Google Doc: its Drive name and the blocks of its first tab */
+export interface ReferenceDoc {
+    docTitle: string
     blocks: Block[]
 }
 
-export interface ReferenceDocument {
-    sections: Section[]
+/** The document of one component, template or guide */
+export interface ReferenceItemDoc extends ReferenceDoc {
+    kind: ReferenceItemKind
+    id: string
+    /** The item's own title ("Chart"), as opposed to the Drive name */
+    title: string
+}
+
+/** The whole library: one index plus one document per item */
+export interface ReferenceLibrary {
+    index: ReferenceDoc
+    items: ReferenceItemDoc[]
 }
 
 export function heading(level: HeadingLevel, text: string): HeadingBlock {

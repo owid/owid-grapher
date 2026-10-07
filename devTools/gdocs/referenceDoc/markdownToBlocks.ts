@@ -7,7 +7,8 @@
  * in the text we send to Google Docs. Inline code spans that are mentions
  * (`{.chart}`, `{guide:refs}`, `{template:article}`) resolve the way the
  * admin's `parseMention` does: a component keeps its `{.id}` form in
- * monospace; a guide or template becomes its title in plain text.
+ * monospace; a guide or template becomes its title in plain text. When the
+ * target's document URL is known (`urlFor`), the mention links to it.
  */
 
 import { fromMarkdown } from "mdast-util-from-markdown"
@@ -24,6 +25,7 @@ import {
     type Block,
     type HeadingLevel,
     type Run,
+    type UrlFor,
     clampHeadingLevel,
     runsToPlainText,
 } from "./model.js"
@@ -31,13 +33,19 @@ import {
 /** Resolves a guide/template mention to the title shown for it */
 export type TitleFor = (ref: RelatedRef) => string | undefined
 
-export interface MarkdownToBlocksOptions {
+/** How mentions in prose are rendered: their title, and their link if known */
+export interface MentionResolver {
+    titleFor: TitleFor
+    /** The document a mention links to; absent (or undefined) means no link */
+    urlFor?: UrlFor
+}
+
+export interface MarkdownToBlocksOptions extends MentionResolver {
     /**
      * Level of the heading the prose sits under. A `##` in the prose becomes
      * one level deeper than this, `###` two levels, capped at HEADING_4.
      */
     baseLevel: HeadingLevel
-    titleFor: TitleFor
 }
 
 interface InlineStyle {
@@ -66,13 +74,11 @@ function appendBlockNode(
             blocks.push({
                 type: "heading",
                 level: demotedLevel(node, options.baseLevel),
-                text: runsToPlainText(
-                    inlineToRuns(node.children, options.titleFor)
-                ),
+                text: runsToPlainText(inlineToRuns(node.children, options)),
             })
             return
         case "paragraph": {
-            const runs = inlineToRuns(node.children, options.titleFor)
+            const runs = inlineToRuns(node.children, options)
             if (runs.length > 0) blocks.push({ type: "paragraph", runs })
             return
         }
@@ -119,7 +125,7 @@ function appendListItem(
     for (const child of item.children) {
         if (child.type === "paragraph") {
             if (runs.length > 0) runs.push({ text: " " })
-            runs.push(...inlineToRuns(child.children, options.titleFor))
+            runs.push(...inlineToRuns(child.children, options))
         } else if (child.type === "list") nested.push(child)
         else if (child.type === "code") runs.push(codeRun(child.value))
     }
@@ -130,17 +136,17 @@ function appendListItem(
 /** Inline Markdown → runs, adjacent runs with the same style merged */
 export function inlineToRuns(
     nodes: PhrasingContent[],
-    titleFor: TitleFor
+    mentions: MentionResolver
 ): Run[] {
     const runs: Run[] = []
-    for (const node of nodes) collectRuns(node, {}, titleFor, runs)
+    for (const node of nodes) collectRuns(node, {}, mentions, runs)
     return mergeRuns(runs)
 }
 
 function collectRuns(
     node: PhrasingContent,
     style: InlineStyle,
-    titleFor: TitleFor,
+    mentions: MentionResolver,
     runs: Run[]
 ): void {
     switch (node.type) {
@@ -148,19 +154,19 @@ function collectRuns(
             runs.push({ ...style, text: softBreaksToSpaces(node.value) })
             return
         case "inlineCode":
-            runs.push({ ...style, ...mentionRun(node.value, titleFor) })
+            runs.push({ ...style, ...mentionRun(node.value, mentions) })
             return
         case "strong":
             for (const child of node.children)
-                collectRuns(child, { ...style, bold: true }, titleFor, runs)
+                collectRuns(child, { ...style, bold: true }, mentions, runs)
             return
         case "emphasis":
             for (const child of node.children)
-                collectRuns(child, { ...style, italic: true }, titleFor, runs)
+                collectRuns(child, { ...style, italic: true }, mentions, runs)
             return
         case "link":
             for (const child of node.children)
-                collectRuns(child, { ...style, link: node.url }, titleFor, runs)
+                collectRuns(child, { ...style, link: node.url }, mentions, runs)
             return
         case "break":
             runs.push({ ...style, text: " " })
@@ -175,7 +181,7 @@ function collectRuns(
             // delete, footnoteReference … — keep whatever text they carry
             if ("children" in node)
                 for (const child of node.children)
-                    collectRuns(child, style, titleFor, runs)
+                    collectRuns(child, style, mentions, runs)
             else if ("value" in node && typeof node.value === "string")
                 runs.push({ ...style, text: node.value })
             return
@@ -185,12 +191,19 @@ function collectRuns(
 /**
  * An inline code span: a component mention stays `{.id}` in monospace; a
  * guide/template mention becomes the target's title in plain text (its id
- * when the title is unknown); anything else is plain monospace code.
+ * when the title is unknown); anything else is plain monospace code. A
+ * mention whose document URL is known links to it.
  */
-function mentionRun(codeText: string, titleFor: TitleFor): Run {
+function mentionRun(codeText: string, mentions: MentionResolver): Run {
     const mention = parseMention(codeText)
-    if (!mention || mention.kind === "component") return codeRun(codeText)
-    return { text: titleFor(mention) ?? mention.id }
+    if (!mention) return codeRun(codeText)
+    const run: Run =
+        mention.kind === "component"
+            ? codeRun(codeText)
+            : { text: mentions.titleFor(mention) ?? mention.id }
+    const url = mentions.urlFor?.(mention)
+    if (url) run.link = url
+    return run
 }
 
 function codeRun(value: string): Run {
@@ -228,12 +241,12 @@ export function mergeRuns(runs: Run[]): Run[] {
  */
 export function inlineMarkdownToRuns(
     markdown: string,
-    titleFor: TitleFor
+    mentions: MentionResolver
 ): Run[] {
     const runs: Run[] = []
     for (const block of markdownToBlocks(markdown, {
         baseLevel: 1,
-        titleFor,
+        ...mentions,
     })) {
         if (runs.length > 0) runs.push({ text: " " })
         runs.push(...blockToInlineRuns(block))

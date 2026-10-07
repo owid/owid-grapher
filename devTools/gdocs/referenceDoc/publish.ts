@@ -1,259 +1,258 @@
 /*
- * The Google side of `yarn buildGdocsReferenceDoc`: writes a rendered
- * ReferenceDocument into one fixed Google Doc, one tab per section.
+ * The Google side of `yarn buildGdocsReferenceDoc`: writes the library —
+ * one index plus one document per component, template and guide — into a
+ * fixed Drive folder shared with the service account as an editor.
  *
- * The document is created by hand once and shared with the service account
- * as an editor; this never creates documents or Drive files. Tabs are found
- * by title. On a fresh document the first (untitled) tab becomes the Overview
- * and the other sections are added after it; on a re-run every section tab
- * is cleared and refilled in place, so tab ids, order and the URL survive.
- * Tabs with other titles are left alone. With `singleTab`, only the first
- * tab is written (the caller flattens the model first).
- *
- * A failing batchUpdate stops the run with the chunk index and Google's
- * error; the document may then be half written, and the next run repairs it.
+ * Documents are found or created by their Drive `appProperties`
+ * (`driveLibrary.ts`) before any content is built, so that every document
+ * can link to the others. Each document is then written into its first tab
+ * only: fetched, compared as plain text with what would be written, and
+ * skipped when identical; otherwise cleared and refilled (tables in two
+ * passes, see `renderDocsRequests.ts`). Documents matching no current item
+ * are trashed. Rate limits (429) and transient errors (503) are retried with
+ * backoff; any other failing call stops the run naming the document and the
+ * chunk, and the next run repairs whatever was left half written.
  */
 
 import { docs as googleDocs, type docs_v1 } from "@googleapis/docs"
+import { drive as googleDrive, type drive_v3 } from "@googleapis/drive"
 import { OwidGoogleAuth } from "../../../db/OwidGoogleAuth.js"
-import type { ReferenceDocument, Section } from "./model.js"
+import type { DocRef, ReferenceDoc, UrlFor } from "./model.js"
+import { INDEX_REF } from "./model.js"
+import {
+    type ReferenceRegistries,
+    buildReferenceLibrary,
+    planLibraryDocs,
+} from "./buildModel.js"
 import {
     blocksToRequests,
+    bodyPlainText,
     chunkRequests,
     fillTableRequests,
     locateTables,
+    plainTextOf,
     type PlannedTable,
 } from "./renderDocsRequests.js"
+import { DriveLibrary, docRefKey, docUrl } from "./driveLibrary.js"
+import { type Sleep, withRetry } from "./retry.js"
 
 type Request = docs_v1.Schema$Request
 
 export interface PublishOptions {
-    documentId: string
-    singleTab?: boolean
+    /** The Drive folder holding the library (GDOCS_REFERENCE_FOLDER_ID) */
+    folderId: string
+    generatedAt: Date
+    commitSha: string
     log?: (message: string) => void
-    /** A Docs client to use instead of the service-account one (tests) */
+    /** Clients to use instead of the service-account ones (tests) */
     client?: docs_v1.Docs
+    driveClient?: drive_v3.Drive
+    /** Backoff wait, replaceable in tests */
+    sleep?: Sleep
 }
 
 export interface PublishResult {
-    /** Tab id written for each section, in section order */
-    tabIds: string[]
+    /** Drive names of the documents rewritten on this run */
+    written: string[]
+    /** Drive names of the documents whose text already matched */
+    skipped: string[]
+    /** Drive names of the documents moved to the trash */
+    trashed: string[]
+    /** The index document's URL — the one to share */
+    indexUrl: string
 }
 
-export async function publishReferenceDoc(
-    doc: ReferenceDocument,
+export async function publishReferenceLibrary(
+    registries: ReferenceRegistries,
     options: PublishOptions
 ): Promise<PublishResult> {
     const log = options.log ?? ((): void => undefined)
-    if (options.singleTab && doc.sections.length > 1)
-        throw new Error(
-            "singleTab needs a document flattened to one section (see flattenToSingleTab)"
-        )
-    if (!options.client && !OwidGoogleAuth.areGdocAuthKeysSet())
+    const { client, driveClient } = resolveClients(options)
+    const drive = await DriveLibrary.open(
+        driveClient,
+        options.folderId,
+        log,
+        options.sleep
+    )
+
+    // Every document first, so the content can link between them
+    const planned = planLibraryDocs(registries)
+    const fileIds = new Map<string, string>()
+    for (const doc of planned) {
+        const { fileId } = await drive.ensureDoc(doc, doc.docTitle)
+        fileIds.set(docRefKey(doc), fileId)
+    }
+    const trashed = await drive.trashOrphans(planned)
+
+    const urlFor: UrlFor = (ref: DocRef) => {
+        const fileId = fileIds.get(docRefKey(ref))
+        return fileId ? docUrl(fileId) : undefined
+    }
+    const library = buildReferenceLibrary(registries, {
+        generatedAt: options.generatedAt,
+        commitSha: options.commitSha,
+        urlFor,
+    })
+
+    const publisher = new DocPublisher(client, log, options.sleep)
+    const written: string[] = []
+    const skipped: string[] = []
+    const docs: [DocRef, ReferenceDoc][] = [
+        [INDEX_REF, library.index],
+        ...library.items.map((item): [DocRef, ReferenceDoc] => [item, item]),
+    ]
+    for (const [ref, doc] of docs) {
+        const fileId = fileIds.get(docRefKey(ref))!
+        const didWrite = await publisher.writeIfChanged(fileId, doc)
+        if (didWrite) written.push(doc.docTitle)
+        else skipped.push(doc.docTitle)
+    }
+    log(
+        `Done: ${written.length} written, ${skipped.length} skipped (unchanged), ${trashed.length} trashed`
+    )
+    return {
+        written,
+        skipped,
+        trashed,
+        indexUrl: urlFor(INDEX_REF)!,
+    }
+}
+
+function resolveClients(options: PublishOptions): {
+    client: docs_v1.Docs
+    driveClient: drive_v3.Drive
+} {
+    if (options.client && options.driveClient)
+        return { client: options.client, driveClient: options.driveClient }
+    if (!OwidGoogleAuth.areGdocAuthKeysSet())
         throw new Error(
             "GDOCS_CLIENT_EMAIL and GDOCS_PRIVATE_KEY must be set to write to Google Docs"
         )
-    const client =
-        options.client ??
-        googleDocs({
-            version: "v1",
-            auth: OwidGoogleAuth.getGoogleReadWriteAuth(),
-        })
-    const publisher = new DocPublisher(client, options.documentId, log)
-
-    let document = await publisher.fetch()
-    const targets = options.singleTab
-        ? [firstTab(document)]
-        : await publisher.ensureSectionTabs(document, doc.sections)
-
-    // The tab list changed (new tabs, a rename); read it back once so the
-    // clear step sees every tab's real content.
-    document = await publisher.fetch()
-    const tabsById = new Map(
-        flattenTabs(document.tabs ?? []).map((tab) => [
-            tab.tabProperties?.tabId ?? "",
-            tab,
-        ])
-    )
-    const tabIds = targets.map((tab) => tab.tabProperties!.tabId!)
-    await publisher.clearTabs(tabIds.map((id) => tabsById.get(id)!))
-
-    for (const [index, section] of doc.sections.entries()) {
-        const tabId = tabIds[index]
-        if (!tabId) break
-        await publisher.writeSection(section, tabId)
+    const auth = OwidGoogleAuth.getGoogleReadWriteAuth()
+    return {
+        client: options.client ?? googleDocs({ version: "v1", auth }),
+        driveClient:
+            options.driveClient ?? googleDrive({ version: "v3", auth }),
     }
-    return { tabIds }
 }
 
 function firstTab(document: docs_v1.Schema$Document): docs_v1.Schema$Tab {
     const tab = document.tabs?.[0]
     if (!tab?.tabProperties?.tabId)
-        throw new Error("The document has no tabs to write into")
+        throw new Error(
+            `Document ${document.documentId} has no tab to write into`
+        )
     return tab
 }
 
-export function flattenTabs(tabs: docs_v1.Schema$Tab[]): docs_v1.Schema$Tab[] {
-    return tabs.flatMap((tab) => [tab, ...flattenTabs(tab.childTabs ?? [])])
+function tabContent(
+    tab: docs_v1.Schema$Tab
+): docs_v1.Schema$StructuralElement[] {
+    return tab.documentTab?.body?.content ?? []
 }
 
 function tabEndIndex(tab: docs_v1.Schema$Tab): number {
-    const content = tab.documentTab?.body?.content ?? []
-    return content.at(-1)?.endIndex ?? 2
+    return tabContent(tab).at(-1)?.endIndex ?? 2
 }
 
 class DocPublisher {
     constructor(
         private readonly client: docs_v1.Docs,
-        private readonly documentId: string,
-        private readonly log: (message: string) => void
+        private readonly log: (message: string) => void,
+        private readonly sleep?: Sleep
     ) {}
 
-    async fetch(): Promise<docs_v1.Schema$Document> {
-        const { data } = await this.client.documents.get({
-            documentId: this.documentId,
-            includeTabsContent: true,
-            suggestionsViewMode: "PREVIEW_WITHOUT_SUGGESTIONS",
-        })
+    /** Rewrites the document's first tab unless it already holds the text; says whether it wrote */
+    async writeIfChanged(fileId: string, doc: ReferenceDoc): Promise<boolean> {
+        const tab = firstTab(await this.fetch(fileId))
+        if (bodyPlainText(tabContent(tab)) === plainTextOf(doc.blocks)) {
+            this.log(`${doc.docTitle}: unchanged, skipped`)
+            return false
+        }
+        const tabId = tab.tabProperties!.tabId!
+        await this.clearTab(fileId, tab)
+        await this.writeBlocks(fileId, tabId, doc)
+        return true
+    }
+
+    private async fetch(fileId: string): Promise<docs_v1.Schema$Document> {
+        const { data } = await withRetry(
+            () =>
+                this.client.documents.get({
+                    documentId: fileId,
+                    includeTabsContent: true,
+                    suggestionsViewMode: "PREVIEW_WITHOUT_SUGGESTIONS",
+                }),
+            { sleep: this.sleep, log: this.log }
+        )
         return data
     }
 
-    /**
-     * One tab per section, found by title. Missing tabs are created right
-     * after the previous section's tab; a missing Overview tab is the first
-     * tab, renamed. Returns the tabs in section order.
-     */
-    async ensureSectionTabs(
-        document: docs_v1.Schema$Document,
-        sections: Section[]
-    ): Promise<docs_v1.Schema$Tab[]> {
-        const topLevel = document.tabs ?? []
-        const all = flattenTabs(topLevel)
-        // A tab serves one section: the first tab, claimed as Overview, must
-        // not also be matched by a later section that happens to share its title
-        const claimed = new Set<string>()
-        const byTitle = (title: string): docs_v1.Schema$Tab | undefined =>
-            all.find(
-                (tab) =>
-                    tab.tabProperties?.title === title &&
-                    !claimed.has(tab.tabProperties?.tabId ?? "")
-            )
-
-        // Simulated top-level tab order, so each new tab's `index` accounts
-        // for the ones created before it in the same batch.
-        const order = topLevel.map((tab) => tab.tabProperties?.tabId ?? "")
-        const requests: Request[] = []
-        const resolved: (docs_v1.Schema$Tab | string)[] = []
-        let previousId: string | undefined
-
-        for (const [sectionIndex, section] of sections.entries()) {
-            let tab = byTitle(section.title)
-            if (!tab && sectionIndex === 0) {
-                tab = firstTab(document)
-                requests.push({
-                    updateDocumentTabProperties: {
-                        tabProperties: {
+    /** Empties the tab's body (index 1 … end-1; the final newline stays) */
+    private async clearTab(
+        fileId: string,
+        tab: docs_v1.Schema$Tab
+    ): Promise<void> {
+        const endIndex = tabEndIndex(tab)
+        if (endIndex - 1 <= 1) return
+        await this.batchUpdate(
+            fileId,
+            [
+                {
+                    deleteContentRange: {
+                        range: {
+                            startIndex: 1,
+                            endIndex: endIndex - 1,
                             tabId: tab.tabProperties!.tabId,
-                            title: section.title,
                         },
-                        fields: "title",
-                    },
-                })
-                this.log(`Renaming the first tab to "${section.title}"`)
-            }
-            if (tab) {
-                claimed.add(tab.tabProperties!.tabId!)
-                previousId = tab.tabProperties!.tabId!
-                resolved.push(tab)
-                continue
-            }
-            const placeholder = `new:${section.title}`
-            const previousPosition = previousId ? order.indexOf(previousId) : -1
-            const index =
-                previousPosition >= 0 ? previousPosition + 1 : order.length
-            order.splice(index, 0, placeholder)
-            requests.push({
-                addDocumentTab: {
-                    tabProperties: { title: section.title, index },
-                },
-            })
-            this.log(`Adding tab "${section.title}"`)
-            resolved.push(placeholder)
-            previousId = placeholder
-        }
-
-        if (requests.length === 0) return resolved as docs_v1.Schema$Tab[]
-        const replies = await this.batchUpdate(requests, "tab setup", 0, 1)
-        // Pair each addDocumentTab reply with its placeholder, in order
-        const createdIds = replies
-            .map((reply) => reply.addDocumentTab?.tabProperties?.tabId)
-            .filter((id): id is string => !!id)
-        return resolved.map((entry) => {
-            if (typeof entry !== "string") return entry
-            const tabId = createdIds.shift()
-            if (!tabId)
-                throw new Error(
-                    `Google did not return a tab id for "${entry.slice(4)}"`
-                )
-            return { tabProperties: { tabId, title: entry.slice(4) } }
-        })
-    }
-
-    /** Empties every tab's body (index 1 … end-1; the final newline stays) */
-    async clearTabs(tabs: docs_v1.Schema$Tab[]): Promise<void> {
-        const requests: Request[] = []
-        for (const tab of tabs) {
-            const endIndex = tabEndIndex(tab)
-            if (endIndex - 1 <= 1) continue
-            requests.push({
-                deleteContentRange: {
-                    range: {
-                        startIndex: 1,
-                        endIndex: endIndex - 1,
-                        tabId: tab.tabProperties!.tabId,
                     },
                 },
-            })
-        }
-        if (requests.length === 0) return
-        this.log(`Clearing ${requests.length} tab(s)`)
-        await this.batchUpdate(requests, "clear", 0, 1)
+            ],
+            "clear",
+            0,
+            1
+        )
     }
 
-    async writeSection(section: Section, tabId: string): Promise<void> {
-        const pass1 = blocksToRequests(section.blocks, tabId, 1)
+    private async writeBlocks(
+        fileId: string,
+        tabId: string,
+        doc: ReferenceDoc
+    ): Promise<void> {
+        const pass1 = blocksToRequests(doc.blocks, tabId, 1)
         const chunks = chunkRequests(pass1.requests)
         this.log(
-            `${section.title}: writing ${section.blocks.length} blocks in ${chunks.length} chunk(s)`
+            `${doc.docTitle}: writing ${doc.blocks.length} blocks in ${chunks.length} chunk(s)`
         )
         for (const [index, chunk] of chunks.entries())
             await this.batchUpdate(
+                fileId,
                 chunk,
-                `${section.title} pass 1`,
+                `${doc.docTitle} pass 1`,
                 index,
                 chunks.length
             )
         if (pass1.tables.length > 0)
-            await this.fillTables(section.title, tabId, pass1.tables)
+            await this.fillTables(fileId, tabId, doc.docTitle, pass1.tables)
     }
 
     private async fillTables(
-        title: string,
+        fileId: string,
         tabId: string,
+        title: string,
         planned: PlannedTable[]
     ): Promise<void> {
-        const document = await this.fetch()
-        const tab = flattenTabs(document.tabs ?? []).find(
-            (candidate) => candidate.tabProperties?.tabId === tabId
-        )
-        if (!tab) throw new Error(`Tab ${tabId} disappeared while writing`)
-        const located = locateTables(tab.documentTab?.body?.content ?? [])
+        const tab = firstTab(await this.fetch(fileId))
+        if (tab.tabProperties?.tabId !== tabId)
+            throw new Error(`${title}: the first tab changed while writing`)
+        const located = locateTables(tabContent(tab))
         const chunks = chunkRequests(fillTableRequests(planned, located, tabId))
         this.log(
             `${title}: filling ${planned.length} table(s) in ${chunks.length} chunk(s)`
         )
         for (const [index, chunk] of chunks.entries())
             await this.batchUpdate(
+                fileId,
                 chunk,
                 `${title} pass 2`,
                 index,
@@ -262,17 +261,21 @@ class DocPublisher {
     }
 
     private async batchUpdate(
+        fileId: string,
         requests: Request[],
         label: string,
         chunkIndex: number,
         chunkCount: number
-    ): Promise<docs_v1.Schema$Response[]> {
+    ): Promise<void> {
         try {
-            const { data } = await this.client.documents.batchUpdate({
-                documentId: this.documentId,
-                requestBody: { requests },
-            })
-            return data.replies ?? []
+            await withRetry(
+                () =>
+                    this.client.documents.batchUpdate({
+                        documentId: fileId,
+                        requestBody: { requests },
+                    }),
+                { sleep: this.sleep, log: this.log }
+            )
         } catch (error) {
             const message =
                 error instanceof Error ? error.message : String(error)

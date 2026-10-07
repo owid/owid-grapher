@@ -178,40 +178,67 @@ so GitHub collapses them in PR diffs.
 
 ## Google Doc export
 
-`yarn buildGdocsReferenceDoc` writes the reference into one Google Doc, one
-tab per section — Overview, Guides, Templates, Components — in the admin
-page's order, minus everything the admin computes from the database (usage,
-instances, exemplars, rendered previews). It statically imports the committed
-registries, so it needs neither the sidecars, the database nor the admin, and
-it never creates documents: the target doc is created by hand once, shared
-with the service account (`GDOCS_CLIENT_EMAIL`) as an **editor**, and its id
-put in `GDOCS_REFERENCE_DOCUMENT_ID`. Re-runs clear and refill the section
-tabs in place, so tab ids, order and the URL survive; tabs with other titles
-are left alone.
+`yarn buildGdocsReferenceDoc` writes the reference into a **library** of
+Google Docs in one fixed Drive folder: an **index** plus one document per
+component, template and guide (85 today). Each item document carries what the
+admin page shows for that item, minus everything the admin computes from the
+database (usage, instances, exemplars, rendered previews). The index — "OWID
+writing reference — start here" — is the one document to attach by default:
+for every item it gives an intent-oriented one-liner and a link to its
+document, so a reader (or the Claude for Google Workspace sidebar, which the
+old single ~170k-character doc was too large for) can find a block by what it
+does and then attach only that document. The tool statically imports the
+committed registries, so it needs neither the sidecars, the database nor the
+admin.
+
+Documents are recognised by their Drive `appProperties` (`owidRefKind` =
+`component` | `template` | `guide` | `index`, `owidRefId` = the item id), not
+by name, so titles can change freely: a retitled component keeps its document
+(renamed in Drive). Names carry the id so Drive search finds them — `{.chart}
+Chart — OWID writing reference`, `Article (template) — …`, `Refs and footnotes
+(guide) — …`. Each run lists the folder, creates the documents that are
+missing, **skips every document whose text already matches** what would be
+written (so a re-run with nothing changed makes no `batchUpdate` calls), and
+clears and refills the rest in their first tab; documents whose properties
+match no current item are **moved to the trash** (reversible in Drive for 30
+days) and logged. Files in the folder without `owidRefKind` are not ours and are
+left alone. Rate limits (429) and transient errors (503) are retried three
+times with 2s/4s/8s backoff; any other Google error stops the run naming the
+document and the chunk, and the next run repairs whatever was left half
+written. Every rewrite replaces the document's text, so comments or suggestions
+left in a rewritten document are lost.
+
+Set-up is done once by hand: create the Drive folder, share it with the
+service account (`GDOCS_CLIENT_EMAIL`) as an **editor**, and put its id (the
+last path segment of the folder URL) in `GDOCS_REFERENCE_FOLDER_ID`. The
+documents are created inside it by the service account, so they inherit the
+folder's sharing.
 
 The production admin deploy runs it as its last step
 (`templates/owid-admin-prod/admin-refresh.sh` in the ops repo), from the
 master checkout on `owid-admin-prod` and the prod `.env` the vault puts there —
 so the service account never leaves the vault, and the only new setting is
-`GDOCS_REFERENCE_DOCUMENT_ID` in `admin-env.secret`. The doc reflects `master`
-once a deploy finishes; branches never update it, and a Google-side failure
-is reported in the Buildkite log without failing the deploy. Every run
-overwrites the section tabs, so comments or suggestions left in them are lost.
-By hand, with `GDOCS_REFERENCE_DOCUMENT_ID`, `GDOCS_CLIENT_EMAIL` and
-`GDOCS_PRIVATE_KEY` in `.env`:
+`GDOCS_REFERENCE_FOLDER_ID` in `admin-env.secret`. The library reflects
+`master` once a deploy finishes; branches never update it, and a Google-side
+failure is reported in the Buildkite log without failing the deploy. By hand,
+with `GDOCS_REFERENCE_FOLDER_ID`, `GDOCS_CLIENT_EMAIL` and `GDOCS_PRIVATE_KEY`
+in `.env`:
 
-| Command                                              | What it does                                                             |
-| ---------------------------------------------------- | ------------------------------------------------------------------------ |
-| `yarn buildGdocsReferenceDoc`                        | Writes the four tabs                                                     |
-| `yarn buildGdocsReferenceDoc --single-tab`           | Writes everything into the first tab, with the sections as H1            |
-| `yarn buildGdocsReferenceDoc --dry-run [--out file]` | Prints the document as Markdown; needs no credentials                    |
-| `yarn buildGdocsReferenceDoc --dry-run --requests`   | Prints the pass-1 `batchUpdate` chunks as JSON, `"<tabId>"` placeholders |
+| Command                                             | What it does                                                                                         |
+| --------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `yarn buildGdocsReferenceDoc`                       | Writes the library (creates, rewrites, skips and trashes as needed) and prints the index's URL       |
+| `yarn buildGdocsReferenceDoc --dry-run`             | Prints every document as Markdown, the index first; needs no credentials                             |
+| `yarn buildGdocsReferenceDoc --dry-run --out <dir>` | One Markdown file per document in `<dir>`: `index.md`, `component-chart.md`, `guide-refs.md`, …      |
+| `yarn buildGdocsReferenceDoc --dry-run --requests`  | Prints `[{ title, chunks }]`: the pass-1 `batchUpdate` chunks per document, `"<tabId>"` placeholders |
 
 The pipeline lives in `devTools/gdocs/referenceDoc/`: `buildModel.ts` turns
-the registries into a renderer-agnostic document model (`model.ts`), with the
-sidecar Markdown parsed by `markdownToBlocks.ts`; `renderMarkdown.ts` and
-`renderDocsRequests.ts` render that model, and `publish.ts` talks to Google.
-Tables are written in two passes — inserted empty, then filled from the cell
-indices read back — because the Docs API does not document how to compute
-them. A failing `batchUpdate` stops the run naming the chunk; the doc may then
-be half written, and the next run repairs it.
+the registries into a renderer-agnostic library model (`model.ts`), with the
+sidecar Markdown parsed by `markdownToBlocks.ts` — mentions in prose
+(`{.chart}`, `{guide:refs}`) link to the target's document; `renderMarkdown.ts`
+and `renderDocsRequests.ts` render that model; `driveLibrary.ts` finds,
+creates, renames and trashes the Drive files; `publish.ts` ties it together
+and talks to Google. Tables are written in two passes — inserted empty, then
+filled from the cell indices read back — because the Docs API does not
+document how to compute them. The skip check compares `plainTextOf(blocks)`
+(the text both passes leave in the tab) with the text read back from the
+document; the contract is documented on that function.

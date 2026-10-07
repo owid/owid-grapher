@@ -1,19 +1,22 @@
 /*
  * Publishes the gdocs writing reference — the three committed registries
- * (components, templates, guides) — as a Google Doc, one tab per section.
- * The production admin deploy runs it on every master deploy (ops repo,
- * templates/owid-admin-prod/admin-refresh.sh); see docs/gdocs-writing-reference.md.
+ * (components, templates, guides) — as a library of Google Docs: one index
+ * plus one document per component, template and guide, in the Drive folder
+ * GDOCS_REFERENCE_FOLDER_ID. The production admin deploy runs it on every
+ * master deploy (ops repo, templates/owid-admin-prod/admin-refresh.sh); see
+ * docs/gdocs-writing-reference.md.
  *
- *   yarn buildGdocsReferenceDoc                 write the doc in GDOCS_REFERENCE_DOCUMENT_ID
- *   yarn buildGdocsReferenceDoc --single-tab    everything into the first tab, sections as H1
- *   yarn buildGdocsReferenceDoc --dry-run       print the document as Markdown, no Google calls
+ *   yarn buildGdocsReferenceDoc                 write the library into GDOCS_REFERENCE_FOLDER_ID
+ *   yarn buildGdocsReferenceDoc --dry-run       print every document as Markdown, no Google calls
+ *   yarn buildGdocsReferenceDoc --dry-run --out <dir>
+ *                                               one Markdown file per document in <dir>
  *   yarn buildGdocsReferenceDoc --dry-run --requests
- *                                               print the pass-1 batchUpdate chunks as JSON
- *   --out <file>                                write the dry-run output to a file
+ *                                               print the pass-1 batchUpdate chunks per document as JSON
  */
 
 import { execSync } from "child_process"
 import fs from "fs"
+import path from "path"
 import parseArgs from "minimist"
 import type {
     ComponentRegistry,
@@ -24,37 +27,40 @@ import componentsRegistry from "@ourworldindata/types/src/gdocTypes/components.r
 import templatesRegistry from "@ourworldindata/types/src/gdocTypes/templates.registry.generated.json"
 import guidesRegistry from "@ourworldindata/types/src/gdocTypes/guides.registry.generated.json"
 import {
-    buildReferenceDocument,
-    flattenToSingleTab,
+    buildReferenceLibrary,
     type ReferenceRegistries,
 } from "./referenceDoc/buildModel.js"
-import type { ReferenceDocument } from "./referenceDoc/model.js"
-import { renderMarkdown } from "./referenceDoc/renderMarkdown.js"
+import type { ReferenceLibrary } from "./referenceDoc/model.js"
+import {
+    renderLibraryMarkdown,
+    renderLibraryMarkdownAsOne,
+} from "./referenceDoc/renderMarkdown.js"
 import {
     blocksToRequests,
     chunkRequests,
 } from "./referenceDoc/renderDocsRequests.js"
 
-const SETTING_NAME = "GDOCS_REFERENCE_DOCUMENT_ID"
+const SETTING_NAME = "GDOCS_REFERENCE_FOLDER_ID"
 const TAB_ID_PLACEHOLDER = "<tabId>"
 
 function printHelp(): void {
-    console.log(`Publish the gdocs writing reference as a Google Doc.
+    console.log(`Publish the gdocs writing reference as a library of Google Docs.
 
 Usage:
-    yarn buildGdocsReferenceDoc [--single-tab]
-    yarn buildGdocsReferenceDoc --dry-run [--requests] [--out <file>] [--single-tab]
+    yarn buildGdocsReferenceDoc
+    yarn buildGdocsReferenceDoc --dry-run [--requests] [--out <dir>]
 
 Options:
     --dry-run       Render without calling Google: Markdown, or with
                     --requests the pass-1 batchUpdate chunks as JSON.
     --requests      With --dry-run, emit the request chunks instead of Markdown.
-    --out <file>    Write the dry-run output to a file instead of stdout.
-    --single-tab    Write everything into the first tab, sections as H1.
+    --out <dir>     With --dry-run, write one file per document into <dir>
+                    (index.md, component-chart.md, …; requests.json with
+                    --requests) instead of printing to stdout.
     -h, --help      Show this help.
 
-The target document is ${SETTING_NAME} in .env, shared with the service
-account (GDOCS_CLIENT_EMAIL) as an editor.`)
+The documents live in the Drive folder ${SETTING_NAME} (.env), shared with
+the service account (GDOCS_CLIENT_EMAIL) as an editor.`)
 }
 
 const registries: ReferenceRegistries = {
@@ -76,13 +82,34 @@ function currentCommitSha(): string {
     }
 }
 
-function renderRequestsJson(doc: ReferenceDocument): string {
-    const chunks = doc.sections.flatMap((section) =>
-        chunkRequests(
-            blocksToRequests(section.blocks, TAB_ID_PLACEHOLDER, 1).requests
-        )
-    )
-    return JSON.stringify(chunks, null, 2)
+/** `[{ title, chunks }]`, the index first, with a placeholder tab id */
+function renderRequestsJson(library: ReferenceLibrary): string {
+    const docs = [library.index, ...library.items].map((doc) => ({
+        title: doc.docTitle,
+        chunks: chunkRequests(
+            blocksToRequests(doc.blocks, TAB_ID_PLACEHOLDER, 1).requests
+        ),
+    }))
+    return JSON.stringify(docs, null, 2)
+}
+
+function dryRun(library: ReferenceLibrary, args: parseArgs.ParsedArgs): void {
+    const outDir: string | undefined = args.out
+    if (args.requests) {
+        const json = renderRequestsJson(library)
+        if (outDir) writeOut(outDir, "requests.json", json)
+        else process.stdout.write(json)
+        return
+    }
+    if (outDir)
+        for (const file of renderLibraryMarkdown(library))
+            writeOut(outDir, file.fileName, file.markdown)
+    else process.stdout.write(renderLibraryMarkdownAsOne(library))
+}
+
+function writeOut(dir: string, fileName: string, content: string): void {
+    fs.mkdirSync(dir, { recursive: true })
+    fs.writeFileSync(path.join(dir, fileName), content)
 }
 
 async function main(args: parseArgs.ParsedArgs): Promise<void> {
@@ -90,43 +117,42 @@ async function main(args: parseArgs.ParsedArgs): Promise<void> {
         console.error("--requests and --out only apply with --dry-run")
         process.exit(1)
     }
-    let doc = buildReferenceDocument(registries, {
-        generatedAt: new Date(),
-        commitSha: currentCommitSha(),
-    })
-    if (args["single-tab"]) doc = flattenToSingleTab(doc)
+    const generatedAt = new Date()
+    const commitSha = currentCommitSha()
 
     if (args["dry-run"]) {
-        const output = args.requests
-            ? renderRequestsJson(doc)
-            : renderMarkdown(doc)
-        if (args.out) fs.writeFileSync(args.out, output)
-        else process.stdout.write(output)
+        // No documents exist, so nothing links anywhere
+        const library = buildReferenceLibrary(registries, {
+            generatedAt,
+            commitSha,
+            urlFor: () => undefined,
+        })
+        dryRun(library, args)
         return
     }
 
     // Loaded here so --dry-run needs neither .env settings nor Google auth
-    const { GDOCS_REFERENCE_DOCUMENT_ID } =
+    const { GDOCS_REFERENCE_FOLDER_ID } =
         await import("../../settings/serverSettings.js")
-    if (!GDOCS_REFERENCE_DOCUMENT_ID) {
+    if (!GDOCS_REFERENCE_FOLDER_ID) {
         console.error(
-            `${SETTING_NAME} is not set. Create the Google Doc by hand, share it with the service account as an editor, and put its id in .env.`
+            `${SETTING_NAME} is not set. Create the Drive folder by hand, share it with the service account as an editor, and put its id in .env.`
         )
         process.exit(1)
     }
-    const { publishReferenceDoc } = await import("./referenceDoc/publish.js")
-    const result = await publishReferenceDoc(doc, {
-        documentId: GDOCS_REFERENCE_DOCUMENT_ID,
-        singleTab: !!args["single-tab"],
+    const { publishReferenceLibrary } =
+        await import("./referenceDoc/publish.js")
+    const result = await publishReferenceLibrary(registries, {
+        folderId: GDOCS_REFERENCE_FOLDER_ID,
+        generatedAt,
+        commitSha,
         log: (message) => console.error(message),
     })
-    console.error(
-        `Done: https://docs.google.com/document/d/${GDOCS_REFERENCE_DOCUMENT_ID} (tabs ${result.tabIds.join(", ")})`
-    )
+    console.error(`Index: ${result.indexUrl}`)
 }
 
 const args = parseArgs(process.argv.slice(2), {
-    boolean: ["dry-run", "requests", "single-tab", "help"],
+    boolean: ["dry-run", "requests", "help"],
     string: ["out"],
     alias: { h: "help" },
 })

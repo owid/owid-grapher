@@ -1,30 +1,49 @@
 /*
- * Document model → Markdown, for `--dry-run`.
+ * Library model → Markdown, for `--dry-run`.
  *
- * A structural view of what the Google Doc will contain. Headings, bullets,
+ * A structural view of what each Google Doc will contain. Headings, bullets,
  * tables and fenced examples keep their Markdown form; inline formatting
  * (code, bold, italic) is dropped to plain text, so every backtick or `**`
  * left in the output outside a fence would be one that leaked from the
- * sidecar prose unparsed.
+ * sidecar prose unparsed. Links are kept as `[text](url)`.
  */
 
-import type { Block, ReferenceDocument, Run, Section } from "./model.js"
+import type { Block, ReferenceLibrary, Run } from "./model.js"
 
-export function renderMarkdown(doc: ReferenceDocument): string {
-    return doc.sections.map(renderSection).join("\n\n") + "\n"
+export interface MarkdownFile {
+    /** `index.md`, `component-chart.md`, `guide-refs.md`, … */
+    fileName: string
+    markdown: string
 }
 
-function renderSection(section: Section): string {
-    return [`# ${section.title}`, ...section.blocks.map(renderBlock)].join(
-        "\n\n"
-    )
+/** One Markdown file per document, the index first */
+export function renderLibraryMarkdown(
+    library: ReferenceLibrary
+): MarkdownFile[] {
+    return [
+        { fileName: "index.md", markdown: renderBlocks(library.index.blocks) },
+        ...library.items.map((item) => ({
+            fileName: `${item.kind}-${item.id}.md`,
+            markdown: renderBlocks(item.blocks),
+        })),
+    ]
+}
+
+/** The whole library as one stream: documents separated by a blank line */
+export function renderLibraryMarkdownAsOne(library: ReferenceLibrary): string {
+    return renderLibraryMarkdown(library)
+        .map((file) => file.markdown)
+        .join("\n")
+}
+
+export function renderBlocks(blocks: Block[]): string {
+    return blocks.map(renderBlock).join("\n\n") + "\n"
 }
 
 function renderBlock(block: Block): string {
     switch (block.type) {
         case "heading":
-            // Section titles are the `#`; everything inside sits one deeper
-            return `${"#".repeat(block.level + 1)} ${block.text}`
+            return `${"#".repeat(block.level)} ${block.text}`
         case "paragraph":
             return renderRuns(block.runs)
         case "bullets":

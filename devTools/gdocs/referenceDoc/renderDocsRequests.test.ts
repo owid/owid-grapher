@@ -16,19 +16,22 @@ import type {
 import componentsRegistry from "@ourworldindata/types/src/gdocTypes/components.registry.generated.json"
 import templatesRegistry from "@ourworldindata/types/src/gdocTypes/templates.registry.generated.json"
 import guidesRegistry from "@ourworldindata/types/src/gdocTypes/guides.registry.generated.json"
-import { buildReferenceDocument } from "./buildModel.js"
-import { renderMarkdown } from "./renderMarkdown.js"
+import { buildReferenceLibrary } from "./buildModel.js"
+import { renderLibraryMarkdownAsOne } from "./renderMarkdown.js"
 import { fixtureRegistries } from "./testFixtures.js"
-import type { Block } from "./model.js"
+import type { Block, ReferenceDoc } from "./model.js"
+import { heading, paragraph, text } from "./model.js"
 import {
     MAX_BYTES_PER_CHUNK,
     MAX_REQUESTS_PER_CHUNK,
     MONOSPACE_FONT,
     blocksToRequests,
+    bodyPlainText,
     chunkRequests,
     emptyTableSpan,
     fillTableRequests,
     locateTables,
+    plainTextOf,
 } from "./renderDocsRequests.js"
 
 const TAB = "t.0"
@@ -275,26 +278,130 @@ describe(chunkRequests, () => {
     })
 })
 
+describe(plainTextOf, () => {
+    const sample: Block[] = [
+        heading(1, "Chart"),
+        paragraph(text("Intro "), { text: "{.chart}", code: true }),
+        { type: "bullets", items: [[text("one")], [text("two")]] },
+        {
+            type: "table",
+            header: ["Key", "Type"],
+            rows: [[[{ text: "url", code: true }], []]],
+        },
+        { type: "code", text: "{.chart}\nurl: x\n{}" },
+    ]
+
+    test("is the text pass 1 inserts, with each table's cells where pass 2 puts them", () => {
+        const { requests, tables } = blocksToRequests(sample, TAB)
+        // Replay the inserts in order; a table contributes its newline and
+        // then its cells, one paragraph each, as pass 2 will fill them
+        let replayed = ""
+        let tableIndex = 0
+        for (const request of requests) {
+            if (request.insertText?.endOfSegmentLocation)
+                replayed += request.insertText.text
+            if (request.insertTable) {
+                const cells = tables[tableIndex++].cells.flat()
+                replayed +=
+                    "\n" +
+                    cells
+                        .map((runs) => runs.map((r) => r.text).join("") + "\n")
+                        .join("")
+            }
+        }
+        expect(plainTextOf(sample)).toBe(replayed)
+        expect(plainTextOf(sample)).toBe(
+            "Chart\nIntro {.chart}\none\ntwo\n\n\nKey\nType\nurl\n\n{.chart}\nurl: x\n{}\n"
+        )
+    })
+
+    test("bodyPlainText reads the same text back from a fetched body, final newline dropped", () => {
+        const content: docs_v1.Schema$StructuralElement[] = [
+            {
+                paragraph: {
+                    elements: [
+                        { textRun: { content: "Chart\n" } },
+                        { textRun: { content: "Intro " } },
+                        { textRun: { content: "{.chart}\n" } },
+                    ],
+                },
+            },
+            { paragraph: { elements: [{ textRun: { content: "\n" } }] } },
+            {
+                table: {
+                    tableRows: [
+                        {
+                            tableCells: [
+                                {
+                                    content: [
+                                        {
+                                            paragraph: {
+                                                elements: [
+                                                    {
+                                                        textRun: {
+                                                            content: "Key\n",
+                                                        },
+                                                    },
+                                                ],
+                                            },
+                                        },
+                                    ],
+                                },
+                                {
+                                    content: [
+                                        {
+                                            paragraph: {
+                                                elements: [
+                                                    {
+                                                        textRun: {
+                                                            content: "\n",
+                                                        },
+                                                    },
+                                                ],
+                                            },
+                                        },
+                                    ],
+                                },
+                            ],
+                        },
+                    ],
+                },
+            },
+            { paragraph: { elements: [{ textRun: { content: "\n" } }] } },
+        ]
+        expect(bodyPlainText(content)).toBe("Chart\nIntro {.chart}\n\nKey\n\n")
+        expect(
+            plainTextOf([
+                heading(1, "Chart"),
+                paragraph(text("Intro {.chart}")),
+                { type: "table", header: ["Key", ""], rows: [] },
+            ])
+        ).toBe("Chart\nIntro {.chart}\n\nKey\n\n")
+    })
+})
+
 describe("with the full registries", () => {
-    const doc = buildReferenceDocument(
+    const library = buildReferenceLibrary(
         {
             components: (componentsRegistry as ComponentRegistry).components,
             templates: templatesRegistry as TemplateReference[],
             guides: guidesRegistry as GuideReference[],
         },
-        { generatedAt: new Date("2026-10-07T00:00:00Z"), commitSha: "abc1234" }
+        {
+            generatedAt: new Date("2026-10-07T00:00:00Z"),
+            commitSha: "abc1234",
+            urlFor: () => undefined,
+        }
     )
+    const docs: ReferenceDoc[] = [library.index, ...library.items]
 
     test("no chunk exceeds the limits, and the request counts are deterministic", () => {
         const counts = (): number[] =>
-            doc.sections.map(
-                (section) =>
-                    blocksToRequests(section.blocks, TAB).requests.length
-            )
+            docs.map((doc) => blocksToRequests(doc.blocks, TAB).requests.length)
         expect(counts()).toEqual(counts())
-        for (const section of doc.sections) {
+        for (const doc of docs) {
             const chunks = chunkRequests(
-                blocksToRequests(section.blocks, TAB).requests
+                blocksToRequests(doc.blocks, TAB).requests
             )
             for (const chunk of chunks) {
                 expect(chunk.length).toBeLessThanOrEqual(MAX_REQUESTS_PER_CHUNK)
@@ -306,45 +413,66 @@ describe("with the full registries", () => {
     })
 
     test("no Markdown syntax leaks into the text outside code fences", () => {
-        const outsideFences = renderMarkdown(doc)
+        const outsideFences = renderLibraryMarkdownAsOne(library)
             .split(/^```$/m)
             .filter((_, index) => index % 2 === 0)
             .join("\n")
         expect(outsideFences).not.toMatch(/`|\*\*|<!--/)
     })
 
-    test("the request counts per section on the fixtures", () => {
-        const fixtureDoc = buildReferenceDocument(fixtureRegistries, {
+    test("the request counts per document on the fixtures", () => {
+        const fixtureLibrary = buildReferenceLibrary(fixtureRegistries, {
             generatedAt: new Date("2026-10-07T00:00:00Z"),
             commitSha: "abc1234",
+            urlFor: () => undefined,
         })
         expect(
-            fixtureDoc.sections.map((section) => [
-                section.title,
-                blocksToRequests(section.blocks, TAB).requests.length,
-                blocksToRequests(section.blocks, TAB).tables.length,
+            [fixtureLibrary.index, ...fixtureLibrary.items].map((doc) => [
+                doc.docTitle,
+                blocksToRequests(doc.blocks, TAB).requests.length,
+                blocksToRequests(doc.blocks, TAB).tables.length,
             ])
         ).toMatchInlineSnapshot(`
           [
             [
-              "Overview",
-              22,
-              0,
+              "OWID writing reference — start here",
+              50,
+              5,
             ],
             [
-              "Guides",
-              61,
-              0,
-            ],
-            [
-              "Templates",
-              64,
+              "{.callout} Callout — OWID writing reference",
+              28,
               1,
             ],
             [
-              "Components",
-              123,
-              2,
+              "{.text} Text — OWID writing reference",
+              20,
+              0,
+            ],
+            [
+              "{.chart} Chart — OWID writing reference",
+              59,
+              1,
+            ],
+            [
+              "{.cookie-notice} Cookie notice — OWID writing reference",
+              20,
+              0,
+            ],
+            [
+              "Article (template) — OWID writing reference",
+              68,
+              1,
+            ],
+            [
+              "Refs and footnotes (guide) — OWID writing reference",
+              36,
+              0,
+            ],
+            [
+              "Publishing a document (guide) — OWID writing reference",
+              14,
+              0,
             ],
           ]
         `)
