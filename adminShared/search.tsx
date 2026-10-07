@@ -1,5 +1,6 @@
 import * as _ from "lodash-es"
 import * as React from "react"
+import { sortNumeric } from "@ourworldindata/utils"
 
 export interface SearchWord {
     regex: RegExp
@@ -126,12 +127,12 @@ export function highlightFunctionForSearchWords(
                     ({ matchLength }): number => -matchLength,
                 ])
                 // merge overlapping match ranges
-                const mergedMatches = [sortedFirstMatches[0]]
-                let lastMatch = mergedMatches[0]
-                for (const match of sortedFirstMatches.toSpliced(0, 1)) {
+                const mergedMatches = sortedFirstMatches.reduce((merged, match) => {
+                    const lastMatch = merged.at(-1)
                     if (
+                        lastMatch &&
                         lastMatch.matchStart <=
-                        match.matchStart + match.matchLength
+                            match.matchStart + match.matchLength
                     ) {
                         lastMatch.matchLength =
                             Math.max(
@@ -140,14 +141,14 @@ export function highlightFunctionForSearchWords(
                             ) - match.matchStart
                         lastMatch.matchStart = match.matchStart
                     } else {
-                        mergedMatches.push(match)
-                        lastMatch = match
+                        merged.push(match)
                     }
-                }
+                    return merged
+                }, [] as typeof firstMatches)
                 // sort ascending
-                const sortedMergedMatches = _.sortBy(
+                const sortedMergedMatches = sortNumeric(
                     mergedMatches,
-                    (match) => match.matchStart
+                    ({ matchStart }) => matchStart
                 )
 
                 // cut and add fragments
