@@ -38,19 +38,20 @@ describe(csvIndicatorStore, () => {
         ])
     })
 
-    it("serves the table under the host's own column slugs", async () => {
+    it("serves the columns the dimensions name, under the host's own slugs", async () => {
         const table = await makeStore().loadTable(
-            [{ property: DimensionProperty.y, slug: "rent_index" }],
+            [
+                { property: DimensionProperty.y, slug: "rent_index" },
+                { property: DimensionProperty.color, slug: "region" },
+            ],
             undefined
         )
-        expect(table!.numericColumnSlugs).toEqual([
-            "rent_index",
-            "vacancy_rate",
-        ])
+        expect(table!.numericColumnSlugs).toEqual(["rent_index"])
+        expect(table!.has("vacancy_rate")).toBe(false)
         expect(table!.get("region").values).toEqual(["DE", "DE", "AT", "AT"])
+        expect(table!.get("region").displayName).toBe("region")
         expect(table!.get("rent_index").displayName).toBe("Rent index")
         expect(table!.get("rent_index").unit).toBe("index (2015 = 100)")
-        expect(table!.get("vacancy_rate").displayName).toBe("vacancy_rate")
         expect(table!.get("rent_index").values).toEqual([100, 131, 100, 112])
     })
 
@@ -71,8 +72,10 @@ describe(csvIndicatorStore, () => {
         ])
     })
 
-    it("serves the table unchanged when a chart names no columns", async () => {
+    it("serves no data columns, only the entities, when a chart names none", async () => {
         const table = await makeStore().loadTable([], undefined)
-        expect(table!.get("rent_index").values).toEqual([100, 131, 100, 112])
+        expect(table!.numericColumnSlugs).toEqual([])
+        expect(table!.has("region")).toBe(false)
+        expect(table!.availableEntityNames).toEqual(["Berlin", "Vienna"])
     })
 })
