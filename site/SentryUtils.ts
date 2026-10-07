@@ -193,10 +193,16 @@ function getSentrySessionStorage(): Record<string, any> | undefined {
  * @returns {number | undefined} The last sample rate (or undefined if not set).
  */
 function getSessionLastSampleRate(): number | undefined {
-    const raw = sessionStorage.getItem(SENTRY_SAMPLED_RATE_KEY)
+    let raw: string | null
+    try {
+        raw = sessionStorage.getItem(SENTRY_SAMPLED_RATE_KEY)
+    } catch {
+        // sessionStorage is inaccessible, e.g. in sandboxed iframes
+        return undefined
+    }
 
     // Return undefined if no value is stored
-    if (raw === null || raw === undefined || raw === "") {
+    if (raw === null || raw === "") {
         return undefined
     }
 
@@ -212,10 +218,14 @@ function getSessionLastSampleRate(): number | undefined {
 }
 
 function setSessionLastSampleRate(p: number | null | undefined) {
-    if (p === null || p === undefined) {
-        sessionStorage.removeItem(SENTRY_SAMPLED_RATE_KEY)
-    } else {
-        sessionStorage.setItem(SENTRY_SAMPLED_RATE_KEY, p.toString())
+    try {
+        if (p === null || p === undefined) {
+            sessionStorage.removeItem(SENTRY_SAMPLED_RATE_KEY)
+        } else {
+            sessionStorage.setItem(SENTRY_SAMPLED_RATE_KEY, p.toString())
+        }
+    } catch {
+        // sessionStorage is inaccessible, e.g. in sandboxed iframes
     }
 }
 
