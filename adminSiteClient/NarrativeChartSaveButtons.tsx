@@ -58,8 +58,13 @@ export class NarrativeChartSaveButtons extends Component<NarrativeChartSaveButto
         const { editor, editingErrors, parentUrl, chart } = this.props
         const { grapherState } = editor
 
+        const isNameInvalid =
+            chart.status === "new" &&
+            (!chart.name || chart.nameError !== undefined)
         const isSavingDisabled =
-            grapherState.hasFatalErrors || editingErrors.length > 0
+            grapherState.hasFatalErrors ||
+            editingErrors.length > 0 ||
+            isNameInvalid
 
         return (
             <div className="SaveButtons">
