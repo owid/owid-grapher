@@ -69,9 +69,9 @@ describe(SeriesLabelState, () => {
         })
 
         expect(label.spanLines).toEqual([
-            [{ role: "name", text: "Latin America and", fontWeight: 400 }],
+            [{ role: "name", text: "Latin America and the", fontWeight: 400 }],
             [
-                { role: "name", text: "the Caribbean", fontWeight: 400 },
+                { role: "name", text: "Caribbean", fontWeight: 400 },
                 {
                     role: "regionPublisherSuffix",
                     text: " (UN)",
