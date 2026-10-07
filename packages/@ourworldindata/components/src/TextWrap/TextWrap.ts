@@ -267,7 +267,7 @@ export class TextWrap implements ITextWrap {
 
             if (
                 startsWithNewline(fragment.text) ||
-                (nextBounds.width + 10 > maxWidth && line.length >= 1)
+                (nextBounds.width > maxWidth && line.length >= 1)
             ) {
                 // Introduce a newline _before_ this word
                 lines.push({
