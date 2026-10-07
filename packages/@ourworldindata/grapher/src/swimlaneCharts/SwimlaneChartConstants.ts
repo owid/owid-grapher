@@ -55,6 +55,7 @@ export type RawSwimlaneSegment =
 
 export type SwimlaneCategorySegment = RawSwimlaneCategorySegment & {
     color: Color
+    categoryLabel: string
 }
 
 export type SwimlaneSegment = SwimlaneCategorySegment | SwimlaneMissingSegment
