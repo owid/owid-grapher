@@ -89,6 +89,7 @@ export function toPlacedSwimlaneSeries({
 
         const extents = toContiguousSegmentExtents({
             segments: series.segments,
+            bounds,
             placeTime,
         })
         const placedSegments: PlacedSwimlaneSegment[] = series.segments.map(
@@ -116,11 +117,18 @@ export function toPlacedSwimlaneSeries({
 
 function toContiguousSegmentExtents({
     segments,
+    bounds,
     placeTime,
 }: {
     segments: SwimlaneSegment[]
+    bounds: Bounds
     placeTime: (time: Time) => number
 }): { x: number; width: number }[] {
+    // Degenerate case: a lone zero-extent segment covers the full width
+    const [onlySegment] = segments
+    if (segments.length === 1 && onlySegment.startTime === onlySegment.endTime)
+        return [{ x: bounds.left, width: bounds.width }]
+
     return segments.map((segment, index) => {
         const nextSegment = segments[index + 1]
         const x = placeTime(segment.startTime)
