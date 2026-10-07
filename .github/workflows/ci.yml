@@ -166,6 +166,35 @@ jobs:
             exit 1
           fi
 
+  # Publishes the writing reference as a Google Doc so authors (and the Claude
+  # for Google Workspace sidebar) have an always-current copy. Runs only on
+  # master, after the registries were checked current; never on PRs or forks.
+  publish-gdocs-reference-doc:
+    runs-on: ubuntu-latest
+    needs: gdocs-references
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master' && github.repository == 'owid/owid-grapher'
+    # One publisher at a time against the shared doc; a queued run still publishes
+    concurrency:
+      group: publish-gdocs-reference-doc
+      cancel-in-progress: false
+
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/setup-node-yarn-deps
+        with:
+          runPostinstallScripts: false
+
+      - name: Publish the reference Google Doc
+        run: yarn buildGdocsReferenceDoc
+        env:
+          GDOCS_REFERENCE_DOCUMENT_ID: ${{ secrets.GDOCS_REFERENCE_DOCUMENT_ID }}
+          GDOCS_CLIENT_EMAIL: ${{ secrets.GDOCS_CLIENT_EMAIL }}
+          GDOCS_PRIVATE_KEY: ${{ secrets.GDOCS_PRIVATE_KEY }}
+
   # Runs `bundlemon` on the code to see if our Vite build assets exceed a given file size.
   bundlemon:
     runs-on: ubuntu-latest

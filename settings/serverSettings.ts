@@ -150,6 +150,11 @@ export const GDOCS_BACKPORTING_TARGET_FOLDER: string =
 export const GDOCS_DONATE_FAQS_DOCUMENT_ID: string =
     serverSettings.GDOCS_DONATE_FAQS_DOCUMENT_ID ?? ""
 
+// The Google Doc `yarn buildGdocsReferenceDoc` rewrites with the gdocs writing
+// reference; created by hand and shared with the service account as editor.
+export const GDOCS_REFERENCE_DOCUMENT_ID: string =
+    serverSettings.GDOCS_REFERENCE_DOCUMENT_ID ?? ""
+
 // Chart preview images in gdocs are fetched by Google's servers, so these must
 // be publicly reachable. That's why they default to production in every
 // environment: local dev and staging thumbnail URLs aren't reachable by Google

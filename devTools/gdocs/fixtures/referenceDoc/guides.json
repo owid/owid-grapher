@@ -1,0 +1,33 @@
+[
+    {
+        "id": "refs",
+        "title": "Refs and footnotes",
+        "category": "Writing",
+        "sidecarFile": "packages/@ourworldindata/types/src/gdocTypes/guides/refs.md",
+        "description": "Footnotes collected at the end of the page.",
+        "prose": {
+            "intro": "Footnotes collected at the end of the page.\n\n```archie\n{ref}A source.{/ref}\n```",
+            "notes": "## Inline refs\n\nWrap the note in `{ref}…{/ref}`.\n\n## Notes\n\nA ref inside a `{.chart}` caption works too."
+        },
+        "examples": [
+            {
+                "archie": "{ref}A source.{/ref}",
+                "flavour": "archie",
+                "section": "intro",
+                "position": 0
+            }
+        ],
+        "related": [{ "kind": "component", "id": "chart" }]
+    },
+    {
+        "id": "publishing",
+        "title": "Publishing a document",
+        "category": "Publishing",
+        "sidecarFile": "packages/@ourworldindata/types/src/gdocTypes/guides/publishing.md",
+        "description": "The steps from draft to live page.",
+        "prose": {
+            "intro": "The steps from draft to live page.\n\n1. Register the doc.\n2. Preview it."
+        },
+        "examples": []
+    }
+]

@@ -44,6 +44,13 @@ which lives in the sidecars.
    component examples; a profile exemplar renders and links for the first
    entity in the profile's scope.
 
+4. **The Google Doc export — a copy outside the admin.**
+   `yarn buildGdocsReferenceDoc` (`devTools/gdocs/buildGdocsReferenceDoc.ts`)
+   renders the three registries into one fixed Google Doc, for authors who
+   want the reference next to their writing and for the Claude for Google
+   Workspace sidebar, which can read an attached Drive doc but cannot reach
+   the admin. See [Google Doc export](#google-doc-export).
+
 Facts stay derived (name, type, optionality, adoption); only judgement is
 authored. If you find yourself typing a property's name or type into a
 sidecar, you are in the wrong file.
@@ -165,5 +172,43 @@ guide they may sit in any section.
 The registries are derived files, committed on purpose (like
 `defaultGrapherConfig.ts` or `regions.data.ts`): generation needs the
 TypeScript compiler and the package sources, which the admin server doesn't
-carry, so the admin serves them with a static import instead. They're marked
-`linguist-generated` so GitHub collapses them in PR diffs.
+carry, so the admin serves them with a static import instead — as does the
+[Google Doc export](#google-doc-export). They're marked `linguist-generated`
+so GitHub collapses them in PR diffs.
+
+## Google Doc export
+
+`yarn buildGdocsReferenceDoc` writes the reference into one Google Doc, one
+tab per section — Overview, Guides, Templates, Components — in the admin
+page's order, minus everything the admin computes from the database (usage,
+instances, exemplars, rendered previews). It statically imports the committed
+registries, so it needs neither the sidecars, the database nor the admin, and
+it never creates documents: the target doc is created by hand once, shared
+with the service account (`GDOCS_CLIENT_EMAIL`) as an **editor**, and its id
+put in `GDOCS_REFERENCE_DOCUMENT_ID`. Re-runs clear and refill the section
+tabs in place, so tab ids, order and the URL survive; tabs with other titles
+are left alone.
+
+The `publish-gdocs-reference-doc` CI job runs it on every push to `master`,
+after `gdocs-references` has checked the registries are current, with the
+three settings supplied as repository secrets (`GDOCS_REFERENCE_DOCUMENT_ID`,
+`GDOCS_CLIENT_EMAIL`, `GDOCS_PRIVATE_KEY`). It never runs on pull requests or
+forks: the doc reflects `master` once that run finishes, and branches never
+update it. Every run overwrites the section tabs, so comments or suggestions
+left in them are lost. By hand, with the same three settings in `.env`:
+
+| Command                                              | What it does                                                             |
+| ---------------------------------------------------- | ------------------------------------------------------------------------ |
+| `yarn buildGdocsReferenceDoc`                        | Writes the four tabs                                                     |
+| `yarn buildGdocsReferenceDoc --single-tab`           | Writes everything into the first tab, with the sections as H1            |
+| `yarn buildGdocsReferenceDoc --dry-run [--out file]` | Prints the document as Markdown; needs no credentials                    |
+| `yarn buildGdocsReferenceDoc --dry-run --requests`   | Prints the pass-1 `batchUpdate` chunks as JSON, `"<tabId>"` placeholders |
+
+The pipeline lives in `devTools/gdocs/referenceDoc/`: `buildModel.ts` turns
+the registries into a renderer-agnostic document model (`model.ts`), with the
+sidecar Markdown parsed by `markdownToBlocks.ts`; `renderMarkdown.ts` and
+`renderDocsRequests.ts` render that model, and `publish.ts` talks to Google.
+Tables are written in two passes — inserted empty, then filled from the cell
+indices read back — because the Docs API does not document how to compute
+them. A failing `batchUpdate` stops the run naming the chunk; the doc may then
+be half written, and the next run repairs it.
