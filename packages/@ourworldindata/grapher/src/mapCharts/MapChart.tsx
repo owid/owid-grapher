@@ -29,7 +29,7 @@ import {
     MapColumnInfo,
     PROJECTED_DATA_LEGEND_COLOR,
     MapViewport,
-    MAP_NARROW_VIEWPORT_MAX_WIDTH,
+    MAP_NARROW_FRAME_MAX_WIDTH,
 } from "./MapChartConstants"
 import { MapConfig } from "./MapConfig"
 import { ColorScale, INAPPLICABLE_LABEL } from "../color/ColorScale"
@@ -327,7 +327,7 @@ export class MapChart
             !this.isStatic &&
             !this.isFaceted &&
             !this.mapConfig.globe.isActive &&
-            this.bounds.width <= MAP_NARROW_VIEWPORT_MAX_WIDTH
+            this.bounds.width <= MAP_NARROW_FRAME_MAX_WIDTH
         )
     }
 
