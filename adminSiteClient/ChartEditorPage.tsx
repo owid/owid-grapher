@@ -32,7 +32,6 @@ import { EditorHistoryTab } from "./EditorHistoryTab.js"
 import { EditorReferencesTabForChart } from "./EditorReferencesTab.js"
 import { EditorPublishingTab } from "./EditorPublishingTab.js"
 import {
-    adminOriginUrlSuggestions,
     deleteChart,
     fetchChartConfigByIndicatorId,
     findChartParentIndicatorId,
@@ -45,6 +44,7 @@ import {
 import {
     adminDetailsProvider,
     adminIndicatorCatalog,
+    adminOriginUrlSuggestions,
     adminScatterDefaults,
     defaultEditorEnvironment,
     DetailsProvider,
@@ -78,6 +78,7 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
     references: References | undefined = undefined
     redirects: ChartRedirect[] = []
     views: AnalyticsGrapherViewWithRank | undefined = undefined
+    topicSlugs: string[] = []
 
     tags: DbChartTagJoin[] | undefined = undefined
     availableTags: MinimalTagWithMetadata[] | undefined = undefined
@@ -102,6 +103,7 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
             references: observable,
             redirects: observable,
             views: observable,
+            topicSlugs: observable.ref,
             tags: observable,
             availableTags: observable,
             forceDatapage: observable.ref,
@@ -131,6 +133,10 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
 
     @computed get scatterDefaults(): OwidChartDimensionInterface[] {
         return adminScatterDefaults(this.variableIdsByCatalogPath)
+    }
+
+    @computed get originUrlSuggestions(): OriginUrlSuggestion[] {
+        return adminOriginUrlSuggestions(this.references, this.topicSlugs)
     }
 
     @computed get previewUrl(): string | undefined {
@@ -285,6 +291,18 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
         runInAction(() => (this.availableTags = json.tags))
     }
 
+    async fetchTopicSlugs(): Promise<void> {
+        const json = await this.admin
+            .requestJSON<{ slugs: string[] }>(
+                "/api/gdocs/publishedTopicSlugs",
+                {},
+                "GET",
+                { onFailure: "continue", isBackground: true }
+            )
+            .catch(() => undefined)
+        if (json) runInAction(() => (this.topicSlugs = json.slugs))
+    }
+
     async fetchVariableIdsByCatalogPath(): Promise<void> {
         const json = await this.admin.getJSON<Record<string, number | null>>(
             "/api/variables.latestByCatalogPath.json",
@@ -306,6 +324,7 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
         void this.fetchViews()
         void this.fetchTags()
         void this.fetchAvailableTags()
+        void this.fetchTopicSlugs()
     }
 
     override componentDidMount(): void {
@@ -548,9 +567,6 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
             }
         }
     }
-
-    private readonly originUrlSuggestions = (): OriginUrlSuggestion[] =>
-        adminOriginUrlSuggestions(this.admin, this.references)
 
     private renderEditor(): React.ReactElement {
         return (

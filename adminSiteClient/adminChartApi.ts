@@ -9,10 +9,8 @@ import {
 import { ContentGraphLinkType } from "@ourworldindata/types"
 import { migrateGrapherConfigToLatestVersion } from "@ourworldindata/grapher"
 import { Admin } from "./Admin.js"
-import { observable, runInAction } from "mobx"
-import { OriginUrlSuggestion } from "./ConfigEditor.js"
 import { DataInsightMinimalInformation } from "../adminShared/AdminTypes.js"
-import { BAKED_BASE_URL, ENV } from "../settings/clientSettings.mjs"
+import { ENV } from "../settings/clientSettings.mjs"
 
 export interface Log {
     userId: number
@@ -129,44 +127,6 @@ export const getFullReferencesCount = (references: References): number => {
         })
     )
     return uniqueRefs.size
-}
-
-const topicSlugsBox = observable.box<string[]>([])
-let topicSlugsRequested = false
-
-function adminTopicSlugs(admin: Admin): string[] {
-    if (!topicSlugsRequested) {
-        topicSlugsRequested = true
-        void admin
-            .getJSON<{ slugs: string[] }>("/api/gdocs/publishedTopicSlugs")
-            .then((json) =>
-                runInAction(() =>
-                    topicSlugsBox.set(
-                        json.slugs.slice().sort((a, b) => a.localeCompare(b))
-                    )
-                )
-            )
-            .catch(() => undefined)
-    }
-    return topicSlugsBox.get()
-}
-
-export function adminOriginUrlSuggestions(
-    admin: Admin,
-    references: References | undefined
-): OriginUrlSuggestion[] {
-    const posts = [
-        ...(references?.postsWordpress ?? []),
-        ...(references?.postsGdocs ?? []),
-    ].map((post) => ({
-        url: post.url.replace(BAKED_BASE_URL, ""),
-        hint: "(referenced by this chart)",
-    }))
-
-    return [
-        ...posts,
-        ...adminTopicSlugs(admin).map((slug) => ({ url: `/${slug}` })),
-    ]
 }
 
 export async function fetchChartConfigByIndicatorId(

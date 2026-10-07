@@ -15,6 +15,15 @@ import { expect, test, type ChartEditorPage } from "./harness.js"
 import { indicators } from "./fixture.js"
 import { lineChart } from "./charts.js"
 
+const TOPIC_SLUGS = ["poverty", "life-expectancy"]
+
+const isTopicSlugsRequest = (url: URL): boolean =>
+    url.pathname.endsWith("/api/gdocs/publishedTopicSlugs")
+
+/** The suggestions in the open Origin url dropdown */
+const originUrlOptions = (editor: ChartEditorPage): Locator =>
+    editor.page.locator(".ant-select-dropdown:visible .ant-select-item-option")
+
 /** The link/unlink button of an auto text field, which resets an override */
 const resetButton = (editor: ChartEditorPage, label: string): Locator =>
     editor.field(label).locator("xpath=..").getByRole("button")
@@ -392,6 +401,27 @@ test.describe("Footer", () => {
         await originUrl.fill("")
 
         expect(await editor.saveChanges()).toEqual({ originUrl: undefined })
+    })
+
+    test("the origin URL dropdown suggests the published topic pages", async ({
+        page,
+        seedChart,
+        openEditor,
+    }) => {
+        await page.route(isTopicSlugsRequest, (route) =>
+            route.fulfill({ json: { slugs: TOPIC_SLUGS } })
+        )
+        const editor = await openEditor(
+            await seedChart(lineChart(indicators.lifeExpectancy))
+        )
+        await editor.openTab("Text")
+
+        await editor.field("Origin url").click()
+
+        await expect(originUrlOptions(editor)).toHaveText([
+            "/life-expectancy",
+            "/poverty",
+        ])
     })
 
     test("editing the footer note writes it to the config", async ({

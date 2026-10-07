@@ -104,8 +104,7 @@ export class EditorTextTab extends Component<EditorTextTabProps> {
         label: string
         suffix?: string
     }[] {
-        const suggestions =
-            this.props.editor.manager.originUrlSuggestions?.() ?? []
+        const suggestions = this.props.editor.manager.originUrlSuggestions ?? []
         return suggestions.map(({ url, hint }) => ({
             value: url,
             label: url,

@@ -5,8 +5,14 @@ import {
 import { DetailDictionary } from "@ourworldindata/utils"
 import { CONTINENTS_INDICATOR_ID } from "@ourworldindata/grapher"
 import { Admin } from "./Admin.js"
+import type { References } from "./adminChartApi.js"
+import type { OriginUrlSuggestion } from "./ConfigEditor.js"
 import { Dataset, IndicatorCatalogData, Namespace } from "./EditorDatabase.js"
-import { CATALOG_URL, DATA_API_URL } from "../settings/clientSettings.mjs"
+import {
+    BAKED_BASE_URL,
+    CATALOG_URL,
+    DATA_API_URL,
+} from "../settings/clientSettings.mjs"
 import {
     GDP_PER_CAPITA_CATALOG_PATH,
     POPULATION_CATALOG_PATH,
@@ -88,4 +94,26 @@ export function adminScatterDefaults(
     return variableIdsByProperty.flatMap(([property, variableId]) =>
         variableId ? [{ property, variableId }] : []
     )
+}
+
+/** The Origin url dropdown's entries: posts that show the chart, then every published topic page */
+export function adminOriginUrlSuggestions(
+    references: References | undefined,
+    topicSlugs: string[]
+): OriginUrlSuggestion[] {
+    const posts = [
+        ...(references?.postsWordpress ?? []),
+        ...(references?.postsGdocs ?? []),
+    ].map((post) => ({
+        url: post.url.replace(BAKED_BASE_URL, ""),
+        hint: "(referenced by this chart)",
+    }))
+
+    return [
+        ...posts,
+        ...topicSlugs
+            .slice()
+            .sort((a, b) => a.localeCompare(b))
+            .map((slug) => ({ url: `/${slug}` })),
+    ]
 }

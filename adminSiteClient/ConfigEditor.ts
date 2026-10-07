@@ -89,7 +89,7 @@ export interface ConfigEditorManager {
     ) => ReactNode
 
     renderNote?: (slot: EditorNoteSlot) => ReactNode
-    originUrlSuggestions?: () => OriginUrlSuggestion[]
+    originUrlSuggestions?: OriginUrlSuggestion[]
 }
 
 export class ConfigEditor {
