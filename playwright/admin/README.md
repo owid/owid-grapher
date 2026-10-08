@@ -1,8 +1,7 @@
 # Chart editor browser tests
 
 Playwright tests for the admin's chart editor. Nearly every editor control has a
-test that checks it changes the right field in the chart's config. The suite also
-tests the public Grapher page in a sandboxed iframe through the chart preview route.
+test that checks it changes the right field in the chart's config.
 
 ```bash
 yarn testPlaywrightAdmin                  # the whole suite
@@ -11,7 +10,7 @@ yarn testPlaywrightAdmin --grep "log/linear"
 ```
 
 The run starts its own stack (via `db/tests/run-db-tests.sh`): the db-test MySQL
-container, migrations, builds of the admin and site clients, and the admin server on port 8765.
+container, migrations, a build of the admin client, and the admin server on port 8765. This takes about half a minute before the first test runs.
 
 ## How it works
 
@@ -27,10 +26,7 @@ container, migrations, builds of the admin and site clients, and the admin serve
   `{ "map.colorScale.baseColorScheme": "Reds" }`), so tests can assert exactly
   what a control changed. `charts.ts` has config builders for each chart type.
 - **Files.** There is one test file per editor tab, plus files for the save buttons
-  and the editor around the tabs. `grapherSandbox.test.ts` loads the public site's
-  entrypoint inside a real `sandbox="allow-scripts"` iframe, checking startup and
-  chart/table interactions when cookies and storage are unavailable. The test
-  server enables CORS for the assets requested from the iframe's opaque origin.
+  and the editor around the tabs.
 
 A test looks like this:
 
@@ -59,7 +55,7 @@ starts "failing" as an unexpected pass: remove the `test.fail()`.
 
 | Variable                                     | Effect                                                                                                                                                                      |
 | -------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `ADMIN_TEST_VITE_DEV=1`                      | Serves both clients from a Vite dev server instead of builds: starts faster, but page loads are slower                                                                      |
+| `ADMIN_TEST_VITE_DEV=1`                      | Serves the admin client from a Vite dev server instead of a build: starts faster, but page loads are slower                                                                 |
 | `ADMIN_TEST_PORT=<port>`                     | Moves the admin server (and the Vite and data API ports after it), e.g. to run two suites side by side                                                                      |
 | `GRAPHER_TEST_DB_NAME=<name>`                | Uses another test database, also for running suites side by side (only with `DBTEST_USE_EXISTING_DB=1`: Docker runs share one container, which each run stops when it ends) |
 | `DBTEST_USE_EXISTING_DB=1`                   | Uses a running MySQL instead of starting the Docker container (the database needs the pre-migrations schema)                                                                |

@@ -9,10 +9,10 @@ export const VITE_PORT = ADMIN_SERVER_PORT + 1
 export const DATA_API_PORT = ADMIN_SERVER_PORT + 2
 
 /**
- * By default the test server builds the admin and site clients once and serves
- * their bundles, keeping page loads fast when many tests run in parallel. Set
- * ADMIN_TEST_VITE_DEV=1 to serve them from a Vite dev server instead, which
- * starts faster and picks up edits to client code without a restart.
+ * By default the test server builds the admin client once and serves the
+ * bundle, which keeps page loads fast when many tests run in parallel. Set
+ * ADMIN_TEST_VITE_DEV=1 to serve it from a Vite dev server instead, which
+ * starts faster and picks up edits to the admin code without a restart.
  */
 export const useViteDevServer = process.env.ADMIN_TEST_VITE_DEV === "1"
 
