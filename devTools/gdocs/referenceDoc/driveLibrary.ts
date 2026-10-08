@@ -6,6 +6,11 @@
  * match the plan; documents whose properties match no current item are
  * moved to the trash (reversible in Drive for 30 days). Files without
  * `owidRefKind` are not ours and are left alone.
+ *
+ * Content is written by uploading Markdown as the file's media: Drive
+ * converts it into the Google Doc and replaces the full contents, keeping
+ * the file id, URL and appProperties. The hash of the uploaded Markdown is
+ * stored in `owidRefHash`, so an unchanged document is never re-uploaded.
  */
 
 import type { drive_v3 } from "@googleapis/drive"
@@ -14,6 +19,14 @@ import { type Sleep, withRetry } from "./retry.js"
 
 export const KIND_PROPERTY = "owidRefKind"
 export const ID_PROPERTY = "owidRefId"
+export const HASH_PROPERTY = "owidRefHash"
+
+/**
+ * The media type of the content upload. Drive imports Markdown into a Google
+ * Doc; should that conversion ever fail, "text/plain" puts the literal
+ * Markdown in the document instead (same code path).
+ */
+export const MARKDOWN_MIME_TYPE = "text/markdown"
 
 const DOCS_MIME_TYPE = "application/vnd.google-apps.document"
 const FILE_FIELDS = "id,name,appProperties,createdTime"
@@ -32,6 +45,8 @@ export interface EnsuredDoc {
     created: boolean
     /** The document existed under another name and was renamed */
     renamed: boolean
+    /** `owidRefHash` of the content last uploaded, if any */
+    storedHash?: string
 }
 
 export function docUrl(fileId: string): string {
@@ -121,9 +136,40 @@ export class DriveLibrary {
             await this.update(existing.id, { name: title })
             this.log(`Renamed "${existing.name}" to "${title}"`)
             existing.name = title
-            return { fileId: existing.id, created: false, renamed: true }
+            return {
+                fileId: existing.id,
+                created: false,
+                renamed: true,
+                storedHash: existing.appProperties?.[HASH_PROPERTY],
+            }
         }
-        return { fileId: existing.id, created: false, renamed: false }
+        return {
+            fileId: existing.id,
+            created: false,
+            renamed: false,
+            storedHash: existing.appProperties?.[HASH_PROPERTY],
+        }
+    }
+
+    /**
+     * Replaces the document's content with `markdown` (converted by Drive)
+     * and records its `hash`, in one call.
+     */
+    async uploadMarkdown(
+        fileId: string,
+        markdown: string,
+        hash: string
+    ): Promise<void> {
+        await withRetry(
+            () =>
+                this.drive.files.update({
+                    fileId,
+                    supportsAllDrives: true,
+                    requestBody: { appProperties: { [HASH_PROPERTY]: hash } },
+                    media: { mimeType: MARKDOWN_MIME_TYPE, body: markdown },
+                }),
+            { sleep: this.sleep, log: this.log }
+        )
     }
 
     /**

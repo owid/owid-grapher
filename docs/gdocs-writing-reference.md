@@ -46,10 +46,9 @@ which lives in the sidecars.
 
 4. **The Google Doc export — a copy outside the admin.**
    `yarn buildGdocsReferenceDoc` (`devTools/gdocs/buildGdocsReferenceDoc.ts`)
-   renders the three registries into one fixed Google Doc, for authors who
-   want the reference next to their writing and for the Claude for Google
-   Workspace sidebar, which can read an attached Drive doc but cannot reach
-   the admin. See [Google Doc export](#google-doc-export).
+   writes the three registries into a library of Google Docs for the Claude
+   for Google Workspace sidebar, which can read an attached Drive doc but
+   cannot reach the admin. See [Google Doc export](#google-doc-export).
 
 Facts stay derived (name, type, optionality, adoption); only judgement is
 authored. If you find yourself typing a property's name or type into a
@@ -185,28 +184,38 @@ admin page shows for that item, minus everything the admin computes from the
 database (usage, instances, exemplars, rendered previews). The index — "OWID
 writing reference — start here" — is the one document to attach by default:
 for every item it gives an intent-oriented one-liner and a link to its
-document, so a reader (or the Claude for Google Workspace sidebar, which the
-old single ~170k-character doc was too large for) can find a block by what it
-does and then attach only that document. The tool statically imports the
-committed registries, so it needs neither the sidecars, the database nor the
-admin.
+document, so the reader can find a block by what it does and then attach only
+that document. The tool statically imports the committed registries, so it
+needs neither the sidecars, the database nor the admin.
+
+The reader is the Claude for Google Workspace sidebar, not a human: people
+use the admin page. So the documents are not hand-laid-out. Each one is built
+as a Markdown string — the sidecar prose passed through as authored, with
+prose headings demoted under the section they sit in (never past H4) and
+mentions (`{.chart}`, `{guide:refs}`) turned into links to the target's
+document — and uploaded with Drive `files.update` as `text/markdown` media.
+Drive converts Markdown into a Google Doc and replaces the full contents,
+keeping the file id, URL and properties. Should that conversion ever fail,
+flip `MARKDOWN_MIME_TYPE` in `driveLibrary.ts` to `text/plain`: the documents
+then hold the literal Markdown, which the sidebar reads just as well.
 
 Documents are recognised by their Drive `appProperties` (`owidRefKind` =
 `component` | `template` | `guide` | `index`, `owidRefId` = the item id), not
 by name, so titles can change freely: a retitled component keeps its document
 (renamed in Drive). Names carry the id so Drive search finds them — `{.chart}
 Chart — OWID writing reference`, `Article (template) — …`, `Refs and footnotes
-(guide) — …`. Each run lists the folder, creates the documents that are
-missing, **skips every document whose text already matches** what would be
-written (so a re-run with nothing changed makes no `batchUpdate` calls), and
-clears and refills the rest in their first tab; documents whose properties
-match no current item are **moved to the trash** (reversible in Drive for 30
-days) and logged. Files in the folder without `owidRefKind` are not ours and are
-left alone. Rate limits (429) and transient errors (503) are retried three
-times with 2s/4s/8s backoff; any other Google error stops the run naming the
-document and the chunk, and the next run repairs whatever was left half
-written. Every rewrite replaces the document's text, so comments or suggestions
-left in a rewritten document are lost.
+(guide) — …`. Each run lists the folder and creates the documents that are
+missing. Every upload stores the SHA-256 of its Markdown in a third property,
+`owidRefHash`, in the same call; a document whose stored hash matches what
+would be uploaded is **skipped**, so a re-run with nothing changed uploads
+nothing (the index carries the commit sha and date, so it re-uploads whenever
+those change). Documents whose properties match no current item are **moved
+to the trash** (reversible in Drive for 30 days) and logged. Files in the
+folder without `owidRefKind` are not ours and are left alone. Rate limits
+(429) and transient errors (503) are retried three times with 2s/4s/8s
+backoff; any other Google error stops the run naming the document, and the
+next run uploads whatever was left. Every upload replaces the document's
+content, so comments or suggestions left in it are lost.
 
 Set-up is done once by hand: create the Drive folder, share it with the
 service account (`GDOCS_CLIENT_EMAIL`) as an **editor**, and put its id (the
@@ -224,21 +233,15 @@ failure is reported in the Buildkite log without failing the deploy. By hand,
 with `GDOCS_REFERENCE_FOLDER_ID`, `GDOCS_CLIENT_EMAIL` and `GDOCS_PRIVATE_KEY`
 in `.env`:
 
-| Command                                             | What it does                                                                                         |
-| --------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| `yarn buildGdocsReferenceDoc`                       | Writes the library (creates, rewrites, skips and trashes as needed) and prints the index's URL       |
-| `yarn buildGdocsReferenceDoc --dry-run`             | Prints every document as Markdown, the index first; needs no credentials                             |
-| `yarn buildGdocsReferenceDoc --dry-run --out <dir>` | One Markdown file per document in `<dir>`: `index.md`, `component-chart.md`, `guide-refs.md`, …      |
-| `yarn buildGdocsReferenceDoc --dry-run --requests`  | Prints `[{ title, chunks }]`: the pass-1 `batchUpdate` chunks per document, `"<tabId>"` placeholders |
+| Command                                             | What it does                                                                                    |
+| --------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `yarn buildGdocsReferenceDoc`                       | Writes the library (creates, uploads, skips and trashes as needed) and prints the index URL     |
+| `yarn buildGdocsReferenceDoc --dry-run`             | Prints the Markdown every document would be uploaded with, the index first; no credentials      |
+| `yarn buildGdocsReferenceDoc --dry-run --out <dir>` | One Markdown file per document in `<dir>`: `index.md`, `component-chart.md`, `guide-refs.md`, … |
 
 The pipeline lives in `devTools/gdocs/referenceDoc/`: `buildModel.ts` turns
-the registries into a renderer-agnostic library model (`model.ts`), with the
-sidecar Markdown parsed by `markdownToBlocks.ts` — mentions in prose
-(`{.chart}`, `{guide:refs}`) link to the target's document; `renderMarkdown.ts`
-and `renderDocsRequests.ts` render that model; `driveLibrary.ts` finds,
-creates, renames and trashes the Drive files; `publish.ts` ties it together
-and talks to Google. Tables are written in two passes — inserted empty, then
-filled from the cell indices read back — because the Docs API does not
-document how to compute them. The skip check compares `plainTextOf(blocks)`
-(the text both passes leave in the tab) with the text read back from the
-document; the contract is documented on that function.
+the registries into the library (`model.ts`: one Markdown string per
+document), using `proseMarkdown.ts` for the sidecar prose — line-based on
+purpose, so the authored Markdown is never reformatted; `renderMarkdown.ts`
+writes the --dry-run files; `driveLibrary.ts` finds, creates, renames,
+uploads and trashes the Drive files; `publish.ts` ties it together.

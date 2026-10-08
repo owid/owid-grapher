@@ -4,9 +4,9 @@
         "title": "Refs and footnotes",
         "category": "Writing",
         "sidecarFile": "packages/@ourworldindata/types/src/gdocTypes/guides/refs.md",
-        "description": "Footnotes collected at the end of the page.",
+        "description": "Footnotes collected at the end of the page, also from a {.chart} caption.",
         "prose": {
-            "intro": "Footnotes collected at the end of the page.\n\n```archie\n{ref}A source.{/ref}\n```",
+            "intro": "Footnotes collected at the end of the page, also from a `{.chart}` caption.\n\n```archie\n{ref}A source.{/ref}\n```",
             "notes": "## Inline refs\n\nWrap the note in `{ref}…{/ref}`.\n\n## Notes\n\nA ref inside a `{.chart}` caption works too."
         },
         "examples": [

@@ -1,7 +1,8 @@
 /*
  * The `yarn buildGdocsReferenceDoc` command line, run as a child process:
- * --dry-run works with no credentials (to stdout or one file per document),
- * and a missing folder id fails fast before any Google call.
+ * --dry-run prints the Markdown that would be uploaded, with no credentials
+ * (to stdout or one file per document), and a missing folder id fails fast
+ * before any Google call.
  *
  * Run just this file:
  *     yarn test run --reporter dot devTools/gdocs/referenceDoc/cli.test.ts
@@ -40,7 +41,6 @@ function run(
             cwd: ROOT,
             encoding: "utf8",
             env: { ...process.env, ...env },
-            // The --requests JSON for the whole library is over 1MB
             maxBuffer: 16 * 1024 * 1024,
         }
     )
@@ -49,6 +49,20 @@ function run(
         stdout: result.stdout,
         stderr: result.stderr,
     }
+}
+
+/** The text outside fenced blocks, and how many fence lines there were */
+function splitFences(markdown: string): { prose: string; fenceLines: number } {
+    let inFence = false
+    let fenceLines = 0
+    const prose: string[] = []
+    for (const line of markdown.split("\n")) {
+        if (line.trimStart().startsWith("```")) {
+            inFence = !inFence
+            fenceLines++
+        } else if (!inFence) prose.push(line)
+    }
+    return { prose: prose.join("\n"), fenceLines }
 }
 
 describe("buildGdocsReferenceDoc", () => {
@@ -63,7 +77,7 @@ describe("buildGdocsReferenceDoc", () => {
         expect(result.stdout).toMatch(/\n\n# Chart\n/)
     }, 60_000)
 
-    test("--dry-run --out <dir> writes index.md plus one file per item, with no Markdown syntax outside fences", () => {
+    test("--dry-run --out <dir> writes index.md plus one file per item: no unquoted mention leaks, fenced examples intact", () => {
         const dir = fs.mkdtempSync(path.join(os.tmpdir(), "gdocs-ref-"))
         try {
             const result = run(["--dry-run", "--out", dir], NO_CREDENTIALS)
@@ -75,40 +89,32 @@ describe("buildGdocsReferenceDoc", () => {
             expect(files).toContain("component-chart.md")
             expect(files).toContain("template-article.md")
             expect(files).toContain("guide-refs.md")
-            const index = fs.readFileSync(path.join(dir, "index.md"), "utf8")
-            expect(index.length).toBeLessThan(15_000)
+            const read = (file: string): string =>
+                fs.readFileSync(path.join(dir, file), "utf8")
+            expect(read("index.md").length).toBeLessThan(15_000)
             for (const file of files) {
-                const outsideFences = fs
-                    .readFileSync(path.join(dir, file), "utf8")
-                    .split(/^```$/m)
-                    .filter((_, i) => i % 2 === 0)
-                    .join("\n")
-                expect(outsideFences, file).not.toMatch(/`|\*\*|<!--/)
+                const { prose, fenceLines } = splitFences(read(file))
+                expect(fenceLines % 2, `${file}: unbalanced fence`).toBe(0)
+                // Every mention left outside a fence sits in a code span
+                const outsideCode = prose.replace(/`[^`]*`/g, "")
+                expect(outsideCode, file).not.toMatch(
+                    /\{(\.|guide:|template:)[a-z0-9-]+\}/
+                )
+                // No prose heading deeper than H4
+                expect(prose, file).not.toMatch(/^#{5,} /m)
             }
+            expect(read("component-chart.md")).toMatch(
+                /\n```archie\n\{\.chart\}\n/
+            )
         } finally {
             fs.rmSync(dir, { recursive: true, force: true })
         }
     }, 60_000)
 
-    test("--dry-run --requests prints { title, chunks } per document with the tab id placeholder", () => {
-        const result = run(["--dry-run", "--requests"], NO_CREDENTIALS)
-        expect(result.status).toBe(0)
-        const docs = JSON.parse(result.stdout) as {
-            title: string
-            chunks: unknown[][]
-        }[]
-        expect(docs).toHaveLength(ITEM_COUNT + 1)
-        expect(docs[0].title).toBe("OWID writing reference — start here")
-        expect(docs[0].chunks.length).toBeGreaterThan(0)
-        expect(result.stdout).toContain('"tabId": "<tabId>"')
-    }, 60_000)
-
-    test("--requests or --out without --dry-run exit 1 before touching Google", () => {
-        for (const args of [["--requests"], ["--out", "x"]]) {
-            const result = run(args, { [SETTING]: "some-folder-id" })
-            expect(result.status).toBe(1)
-            expect(result.stderr).toContain("--dry-run")
-        }
+    test("--out without --dry-run exits 1 before touching Google", () => {
+        const result = run(["--out", "x"], { [SETTING]: "some-folder-id" })
+        expect(result.status).toBe(1)
+        expect(result.stderr).toContain("--dry-run")
     }, 60_000)
 
     test("without the folder id it exits 1 naming the setting", () => {

@@ -1,22 +1,25 @@
 /*
- * The Google side, against in-memory stand-ins for the Docs and Drive APIs:
+ * The Google side, against an in-memory stand-in for the Drive API:
  * documents are found by appProperties and created, renamed or trashed as
- * the registries dictate; unchanged documents are skipped; 429s are retried
- * with backoff; any other failing batchUpdate stops the run naming the
- * document and the chunk.
+ * the registries dictate; each document's Markdown is uploaded as the file's
+ * media with its hash in the same call, and skipped when the stored hash
+ * matches; 429s are retried with backoff; any other failing upload stops the
+ * run naming the document.
  *
  * Run just this file:
  *     yarn test run --reporter dot devTools/gdocs/referenceDoc/publish.test.ts
  */
 
 import { describe, expect, test } from "vitest"
-import type { docs_v1 } from "@googleapis/docs"
 import type { drive_v3 } from "@googleapis/drive"
 import type { ReferenceRegistries } from "./buildModel.js"
 import { INDEX_DOC_TITLE, planLibraryDocs } from "./buildModel.js"
 import { fixtureRegistries } from "./testFixtures.js"
-import { emptyTableSpan } from "./renderDocsRequests.js"
-import { publishReferenceLibrary, type PublishResult } from "./publish.js"
+import {
+    markdownHash,
+    publishReferenceLibrary,
+    type PublishResult,
+} from "./publish.js"
 import { RETRY_DELAYS_MS } from "./retry.js"
 
 const FOLDER = "folder-1"
@@ -28,14 +31,9 @@ interface FakeFile {
     appProperties?: Record<string, string>
     createdTime: string
     trashed: boolean
-}
-
-/** One fake Google Doc: a single tab whose body is paragraphs and empty tables */
-interface FakeDoc {
-    id: string
-    content: docs_v1.Schema$StructuralElement[]
-    /** Pass 2 has started: cell text shifts indices the fake does not re-lay out */
-    fillingTables?: boolean
+    /** The last media uploaded into it, and its media type */
+    content: string
+    mimeType?: string
 }
 
 /** An error shaped like googleapis' GaxiosError, as far as the retry looks */
@@ -43,50 +41,34 @@ function googleError(status: number, message: string): Error {
     return Object.assign(new Error(message), { code: status })
 }
 
-/**
- * Just enough of Drive v3 (files.list / create / update) and Docs v1
- * (documents.get / batchUpdate) for the publisher. Document indices follow
- * the API's documented layout — text advances by its length, insertTable
- * adds a newline then an empty table with one empty paragraph per cell.
- */
-class FakeGoogle {
+/** Just enough of Drive v3 (files.list / create / update) for the publisher */
+class FakeDrive {
     readonly files: FakeFile[] = []
-    readonly docs = new Map<string, FakeDoc>()
-    batchUpdateCalls = 0
     createCalls = 0
     renameCalls = 0
+    uploadCalls = 0
     readonly sleeps: number[] = []
     private nextId = 1
-    /** Errors to throw on upcoming batchUpdate calls, by call number */
-    private readonly failures = new Map<number, Error>()
+    /** Errors to throw on upcoming media uploads, by call number */
+    private readonly uploadFailures = new Map<number, Error>()
     /** Errors to throw on upcoming files.create calls, by call number */
     private readonly createFailures = new Map<number, Error>()
 
-    /** Puts a file in the folder; a Google Doc goes with it */
+    /** Puts a file in the folder */
     addFile(
         name: string,
         appProperties?: Record<string, string>,
-        options: { text?: string; createdTime?: string } = {}
+        options: { content?: string; createdTime?: string } = {}
     ): FakeFile {
-        const id = `file-${this.nextId++}`
         const file: FakeFile = {
-            id,
+            id: `file-${this.nextId++}`,
             name,
             appProperties,
             createdTime: options.createdTime ?? `2026-01-0${this.nextId}`,
             trashed: false,
+            content: options.content ?? "",
         }
         this.files.push(file)
-        this.docs.set(id, {
-            id,
-            content: paragraphElements(options.text ?? ""),
-        })
-        return file
-    }
-
-    file(name: string): FakeFile {
-        const file = this.files.find((f) => f.name === name)
-        if (!file) throw new Error(`No file named "${name}"`)
         return file
     }
 
@@ -100,13 +82,8 @@ class FakeGoogle {
         return file
     }
 
-    /** The doc body as text, tables as [table], without the body's final newline */
-    docText(fileId: string): string {
-        return this.doc(fileId).content.map(elementText).join("").slice(0, -1)
-    }
-
-    failBatchUpdate(callNumber: number, error: Error): void {
-        this.failures.set(callNumber, error)
+    failUpload(callNumber: number, error: Error): void {
+        this.uploadFailures.set(callNumber, error)
     }
 
     failCreate(callNumber: number, error: Error): void {
@@ -134,7 +111,9 @@ class FakeGoogle {
                         files: page.map((f) => ({
                             id: f.id,
                             name: f.name,
-                            appProperties: f.appProperties,
+                            appProperties: f.appProperties
+                                ? { ...f.appProperties }
+                                : undefined,
                             createdTime: f.createdTime,
                         })),
                         nextPageToken:
@@ -164,196 +143,40 @@ class FakeGoogle {
             update: async (params: {
                 fileId?: string
                 requestBody?: drive_v3.Schema$File
+                media?: { mimeType?: string; body?: string }
             }): Promise<{ data: drive_v3.Schema$File }> => {
+                if (params.media) {
+                    this.uploadCalls++
+                    const failure = this.uploadFailures.get(this.uploadCalls)
+                    if (failure) throw failure
+                }
                 const file = this.files.find((f) => f.id === params.fileId)
                 if (!file) throw googleError(404, "File not found")
-                if (params.requestBody?.name) {
+                const body = params.requestBody ?? {}
+                if (body.name) {
                     this.renameCalls++
-                    file.name = params.requestBody.name
+                    file.name = body.name
                 }
-                if (params.requestBody?.trashed) file.trashed = true
+                if (body.trashed) file.trashed = true
+                // Drive merges appProperties: keys sent are set, others kept
+                if (body.appProperties)
+                    file.appProperties = {
+                        ...file.appProperties,
+                        ...(body.appProperties as Record<string, string>),
+                    }
+                if (params.media) {
+                    file.content = params.media.body!
+                    file.mimeType = params.media.mimeType
+                }
                 return { data: {} }
             },
         }
         return { files } as unknown as drive_v3.Drive
     }
-
-    asDocs(): docs_v1.Docs {
-        const documents = {
-            get: async (params: {
-                documentId?: string
-            }): Promise<{ data: docs_v1.Schema$Document }> => {
-                const doc = this.doc(params.documentId!)
-                return {
-                    data: {
-                        documentId: doc.id,
-                        tabs: [
-                            {
-                                tabProperties: {
-                                    tabId: `${doc.id}.t0`,
-                                    index: 0,
-                                },
-                                documentTab: { body: { content: doc.content } },
-                            },
-                        ],
-                    },
-                }
-            },
-            batchUpdate: async (params: {
-                documentId?: string
-                requestBody?: docs_v1.Schema$BatchUpdateDocumentRequest
-            }): Promise<{
-                data: docs_v1.Schema$BatchUpdateDocumentResponse
-            }> => {
-                this.batchUpdateCalls++
-                const failure = this.failures.get(this.batchUpdateCalls)
-                if (failure) throw failure
-                const doc = this.doc(params.documentId!)
-                for (const request of params.requestBody?.requests ?? [])
-                    this.apply(doc, request)
-                return { data: { replies: [] } }
-            },
-        }
-        return { documents } as unknown as docs_v1.Docs
-    }
-
-    private doc(fileId: string): FakeDoc {
-        const doc = this.docs.get(fileId)
-        if (!doc) throw googleError(404, `No document ${fileId}`)
-        return doc
-    }
-
-    private apply(doc: FakeDoc, request: docs_v1.Schema$Request): void {
-        const tabId = `${doc.id}.t0`
-        const endIndex = (): number => doc.content.at(-1)?.endIndex ?? 2
-        if (request.deleteContentRange) {
-            const range = request.deleteContentRange.range!
-            expect(range.tabId).toBe(tabId)
-            expect(range.startIndex).toBe(1)
-            expect(range.endIndex).toBe(endIndex() - 1)
-            doc.content = paragraphElements("")
-            doc.fillingTables = false
-            return
-        }
-        if (request.insertText) {
-            const { text, endOfSegmentLocation, location } = request.insertText
-            if (endOfSegmentLocation) {
-                expect(endOfSegmentLocation.tabId).toBe(tabId)
-                appendText(doc, text!)
-            } else {
-                // Pass 2: cell text goes into the cell at that index
-                expect(location!.tabId).toBe(tabId)
-                fillCell(doc, location!.index!, text!)
-                doc.fillingTables = true
-            }
-            return
-        }
-        if (request.insertTable) {
-            const { rows, columns } = request.insertTable
-            const start = endIndex()
-            const span = emptyTableSpan(rows!, columns!)
-            doc.content.push(tableElement(start, rows!, columns!))
-            doc.content.push({
-                startIndex: start + span,
-                endIndex: start + span + 1,
-                paragraph: { elements: [{ textRun: { content: "\n" } }] },
-            })
-            return
-        }
-        const range =
-            request.updateTextStyle?.range ??
-            request.updateParagraphStyle?.range ??
-            request.createParagraphBullets?.range ??
-            request.deleteParagraphBullets?.range
-        if (range) {
-            expect(range.tabId).toBe(tabId)
-            if (!doc.fillingTables)
-                expect(range.endIndex).toBeLessThanOrEqual(endIndex())
-        }
-    }
-}
-
-/** A body holding `text` plus the trailing newline every body has */
-function paragraphElements(text: string): docs_v1.Schema$StructuralElement[] {
-    return [
-        {
-            startIndex: 1,
-            endIndex: 1 + text.length + 1,
-            paragraph: { elements: [{ textRun: { content: text + "\n" } }] },
-        },
-    ]
-}
-
-function appendText(doc: FakeDoc, text: string): void {
-    const last = doc.content.at(-1)!
-    const run = last.paragraph!.elements![0].textRun!
-    // Insert before the trailing newline
-    run.content = run.content!.slice(0, -1) + text + "\n"
-    last.endIndex = last.endIndex! + text.length
-}
-
-/** Pass 2 in the fake: the text lands in the cell's paragraph (indices are not re-laid out) */
-function fillCell(doc: FakeDoc, index: number, text: string): void {
-    for (const element of doc.content)
-        for (const row of element.table?.tableRows ?? [])
-            for (const cell of row.tableCells ?? []) {
-                const paragraph = cell.content![0]
-                if (paragraph.startIndex === index) {
-                    const run = paragraph.paragraph!.elements![0].textRun!
-                    run.content = text + run.content!
-                    return
-                }
-            }
-    throw new Error(`No cell starts at ${index}`)
-}
-
-function elementText(element: docs_v1.Schema$StructuralElement): string {
-    if (element.paragraph)
-        return element.paragraph
-            .elements!.map((e) => e.textRun!.content)
-            .join("")
-    return "[table]"
-}
-
-/** A fetched empty table, laid out as the Docs API does */
-function tableElement(
-    startIndex: number,
-    rows: number,
-    columns: number
-): docs_v1.Schema$StructuralElement {
-    let index = startIndex + 1
-    const tableRows: docs_v1.Schema$TableRow[] = []
-    for (let r = 0; r < rows; r++) {
-        const rowStart = index++
-        const tableCells: docs_v1.Schema$TableCell[] = []
-        for (let c = 0; c < columns; c++) {
-            const cellStart = index++
-            tableCells.push({
-                startIndex: cellStart,
-                endIndex: index + 1,
-                content: [
-                    {
-                        startIndex: index,
-                        endIndex: index + 1,
-                        paragraph: {
-                            elements: [{ textRun: { content: "\n" } }],
-                        },
-                    },
-                ],
-            })
-            index++
-        }
-        tableRows.push({ startIndex: rowStart, endIndex: index, tableCells })
-    }
-    return {
-        startIndex,
-        endIndex: index + 1,
-        table: { rows, columns, tableRows },
-    }
 }
 
 async function publish(
-    fake: FakeGoogle,
+    fake: FakeDrive,
     registries: ReferenceRegistries = fixtureRegistries,
     log: string[] = []
 ): Promise<PublishResult> {
@@ -361,7 +184,6 @@ async function publish(
         folderId: FOLDER,
         generatedAt: new Date("2026-10-07T12:00:00Z"),
         commitSha: "abc1234",
-        client: fake.asDocs(),
         driveClient: fake.asDrive(),
         sleep: fake.sleep,
         log: (message) => log.push(message),
@@ -371,50 +193,64 @@ async function publish(
 const PLANNED = planLibraryDocs(fixtureRegistries)
 
 describe(publishReferenceLibrary, () => {
-    test("empty folder: creates the index and one document per item, with appProperties, and writes them all", async () => {
-        const fake = new FakeGoogle()
+    test("empty folder: creates the index and one document per item, then uploads each as Markdown with its hash", async () => {
+        const fake = new FakeDrive()
         const result = await publish(fake)
         expect(fake.files.map((f) => f.name)).toEqual(
             PLANNED.map((doc) => doc.docTitle)
         )
-        expect(fake.files.map((f) => f.appProperties)).toEqual(
-            PLANNED.map((doc) => ({ owidRefKind: doc.kind, owidRefId: doc.id }))
-        )
         expect(result.written).toEqual(PLANNED.map((doc) => doc.docTitle))
         expect(result.skipped).toEqual([])
         expect(result.trashed).toEqual([])
+        const index = fake.fileFor("index", "index")
         expect(result.indexUrl).toBe(
-            `https://docs.google.com/document/d/${fake.file(INDEX_DOC_TITLE).id}`
+            `https://docs.google.com/document/d/${index.id}`
         )
-        // Content landed in the first tab: a guide with no tables, a component with one
-        expect(fake.docText(fake.fileFor("guide", "publishing").id)).toBe(
-            "Publishing a document\nThe steps from draft to live page.\nRegister the doc.\nPreview it.\nBack to the index: OWID writing reference — start here\n"
+        const publishing = fake.fileFor("guide", "publishing")
+        expect(publishing.mimeType).toBe("text/markdown")
+        expect(publishing.content).toBe(
+            `# Publishing a document\n\nThe steps from draft to live page.\n\n1. Register the doc.\n2. Preview it.\n\nBack to the index: [${INDEX_DOC_TITLE}](https://docs.google.com/document/d/${index.id})\n`
         )
-        expect(fake.docText(fake.fileFor("component", "chart").id)).toContain(
-            "ArchieML tag: {.chart}\n"
+        expect(publishing.appProperties).toEqual({
+            owidRefKind: "guide",
+            owidRefId: "publishing",
+            owidRefHash: markdownHash(publishing.content),
+        })
+        // The media type is part of the hash: the text/plain fallback re-uploads
+        expect(publishing.appProperties?.owidRefHash).toBe(
+            markdownHash(publishing.content, "text/markdown")
         )
-        expect(fake.docText(fake.fileFor("component", "chart").id)).toContain(
-            "[table]"
+        expect(publishing.appProperties?.owidRefHash).not.toBe(
+            markdownHash(publishing.content, "text/plain")
         )
     })
 
-    test("re-run with nothing changed: every document is skipped, no batchUpdate at all", async () => {
-        const fake = new FakeGoogle()
+    test("mentions link to the target document's URL", async () => {
+        const fake = new FakeDrive()
         await publish(fake)
-        const callsAfterFirst = fake.batchUpdateCalls
+        const refs = fake.fileFor("guide", "refs")
+        expect(fake.fileFor("component", "chart").content).toContain(
+            `See [Refs and footnotes](https://docs.google.com/document/d/${refs.id}) for sources`
+        )
+    })
+
+    test("re-run with nothing changed: every document is skipped, no upload at all", async () => {
+        const fake = new FakeDrive()
+        await publish(fake)
         const log: string[] = []
         const result = await publish(fake, fixtureRegistries, log)
-        expect(fake.batchUpdateCalls).toBe(callsAfterFirst)
+        expect(fake.uploadCalls).toBe(PLANNED.length)
         expect(fake.createCalls).toBe(PLANNED.length)
         expect(result.written).toEqual([])
         expect(result.skipped).toEqual(PLANNED.map((doc) => doc.docTitle))
+        expect(log).toContain(`${INDEX_DOC_TITLE}: unchanged, skipped`)
         expect(log.at(-1)).toBe(
             `Done: 0 written, ${PLANNED.length} skipped (unchanged), 0 trashed`
         )
     })
 
-    test("re-run with one sidecar changed: only that document is rewritten, file ids unchanged", async () => {
-        const fake = new FakeGoogle()
+    test("re-run with one sidecar changed: only that document is uploaded, with its new hash, file ids unchanged", async () => {
+        const fake = new FakeDrive()
         await publish(fake)
         const idsBefore = fake.files.map((f) => f.id)
         const changed: ReferenceRegistries = {
@@ -424,7 +260,7 @@ describe(publishReferenceLibrary, () => {
                     ? {
                           ...guide,
                           prose: {
-                              intro: "The steps from draft to live page, revised.",
+                              intro: "The steps from draft to live page.\n\n1. Register the doc.\n2. Preview it.\n3. Publish it.",
                           },
                       }
                     : guide
@@ -435,14 +271,31 @@ describe(publishReferenceLibrary, () => {
             "Publishing a document (guide) — OWID writing reference",
         ])
         expect(result.skipped).toHaveLength(PLANNED.length - 1)
+        expect(fake.uploadCalls).toBe(PLANNED.length + 1)
         expect(fake.files.map((f) => f.id)).toEqual(idsBefore)
-        expect(fake.docText(fake.fileFor("guide", "publishing").id)).toBe(
-            "Publishing a document\nThe steps from draft to live page, revised.\nBack to the index: OWID writing reference — start here\n"
+        const publishing = fake.fileFor("guide", "publishing")
+        expect(publishing.content).toContain(
+            "\n2. Preview it.\n3. Publish it.\n"
+        )
+        expect(publishing.appProperties?.owidRefHash).toBe(
+            markdownHash(publishing.content)
         )
     })
 
-    test("a retitled component keeps its document: found by appProperties, renamed, rewritten", async () => {
-        const fake = new FakeGoogle()
+    test("a document without a stored hash (written before) is uploaded", async () => {
+        const fake = new FakeDrive()
+        const old = fake.addFile(
+            "{.chart} Chart — OWID writing reference",
+            { owidRefKind: "component", owidRefId: "chart" },
+            { content: "old Docs API content" }
+        )
+        const result = await publish(fake)
+        expect(result.written).toContain(old.name)
+        expect(old.content).toMatch(/^# Chart\n/)
+    })
+
+    test("a retitled component keeps its document: found by appProperties, renamed, re-uploaded", async () => {
+        const fake = new FakeDrive()
         await publish(fake)
         const chartId = fake.fileFor("component", "chart").id
         const retitled: ReferenceRegistries = {
@@ -454,8 +307,9 @@ describe(publishReferenceLibrary, () => {
             ),
         }
         const result = await publish(fake, retitled)
-        expect(fake.fileFor("component", "chart").id).toBe(chartId)
-        expect(fake.fileFor("component", "chart").name).toBe(
+        const chart = fake.fileFor("component", "chart")
+        expect(chart.id).toBe(chartId)
+        expect(chart.name).toBe(
             "{.chart} Grapher chart — OWID writing reference"
         )
         expect(fake.renameCalls).toBe(1)
@@ -463,33 +317,33 @@ describe(publishReferenceLibrary, () => {
         expect(result.written).toContain(
             "{.chart} Grapher chart — OWID writing reference"
         )
-        expect(fake.docText(chartId)).toContain("Grapher chart\nArchieML tag")
+        expect(chart.content).toMatch(/^# Grapher chart\n\nArchieML tag/)
     })
 
     test("a document for a removed component is trashed and logged; a foreign file is untouched", async () => {
-        const fake = new FakeGoogle()
+        const fake = new FakeDrive()
         const orphan = fake.addFile(
             "{.old-block} Old block — OWID writing reference",
             { owidRefKind: "component", owidRefId: "old-block" },
-            { text: "old" }
+            { content: "old" }
         )
         const foreign = fake.addFile("Meeting notes", undefined, {
-            text: "Keep me",
+            content: "Keep me",
         })
         const log: string[] = []
         const result = await publish(fake, fixtureRegistries, log)
         expect(result.trashed).toEqual([orphan.name])
-        expect(fake.files.find((f) => f.id === orphan.id)?.trashed).toBe(true)
+        expect(orphan.trashed).toBe(true)
         expect(log.some((m) => m.includes(`Trashed "${orphan.name}"`))).toBe(
             true
         )
-        expect(fake.files.find((f) => f.id === foreign.id)?.trashed).toBe(false)
-        expect(fake.docText(foreign.id)).toBe("Keep me")
-        expect(fake.docText(orphan.id)).toBe("old")
+        expect(foreign.trashed).toBe(false)
+        expect(foreign.content).toBe("Keep me")
+        expect(orphan.content).toBe("old")
     })
 
     test("two documents for one item: the older one is used, the other is named in a warning", async () => {
-        const fake = new FakeGoogle()
+        const fake = new FakeDrive()
         const newer = fake.addFile(
             "{.chart} Chart — OWID writing reference",
             { owidRefKind: "component", owidRefId: "chart" },
@@ -507,18 +361,16 @@ describe(publishReferenceLibrary, () => {
             `Warning: "${newer.name}" (${newer.id}) duplicates "${olderName}" (${older.id}) for component:chart; using the older one`
         )
         // The older one was renamed and written; the newer one left as it was
-        expect(fake.files.find((f) => f.id === older.id)?.name).toBe(
-            "{.chart} Chart — OWID writing reference"
-        )
-        expect(fake.docText(older.id)).toContain("ArchieML tag: {.chart}")
-        expect(fake.docText(newer.id)).toBe("")
-        expect(fake.files.find((f) => f.id === newer.id)?.trashed).toBe(false)
+        expect(older.name).toBe("{.chart} Chart — OWID writing reference")
+        expect(older.content).toContain("ArchieML tag: `{.chart}`")
+        expect(newer.content).toBe("")
+        expect(newer.trashed).toBe(false)
     })
 
-    test("a 429 then a 503 on the same call are retried with growing backoff and the run completes", async () => {
-        const fake = new FakeGoogle()
-        fake.failBatchUpdate(2, googleError(429, "Rate Limit Exceeded"))
-        fake.failBatchUpdate(3, googleError(503, "Service Unavailable"))
+    test("a 429 then a 503 on the same upload are retried with growing backoff and the run completes", async () => {
+        const fake = new FakeDrive()
+        fake.failUpload(2, googleError(429, "Rate Limit Exceeded"))
+        fake.failUpload(3, googleError(503, "Service Unavailable"))
         const log: string[] = []
         const result = await publish(fake, fixtureRegistries, log)
         expect(result.written).toHaveLength(PLANNED.length)
@@ -529,36 +381,33 @@ describe(publishReferenceLibrary, () => {
         ])
     })
 
-    test("a 429 that persists fails after three retries, naming the chunk", async () => {
-        const fake = new FakeGoogle()
+    test("a 429 that persists fails after three retries, naming the document", async () => {
+        const fake = new FakeDrive()
         for (const call of [1, 2, 3, 4])
-            fake.failBatchUpdate(call, googleError(429, "Rate Limit Exceeded"))
+            fake.failUpload(call, googleError(429, "Rate Limit Exceeded"))
         await expect(publish(fake)).rejects.toThrow(
-            /batchUpdate failed \(OWID writing reference — start here pass 1, chunk 1\/1, \d+ requests\): Rate Limit Exceeded/
+            `Upload failed for "${INDEX_DOC_TITLE}": Rate Limit Exceeded`
         )
         expect(fake.sleeps).toEqual(RETRY_DELAYS_MS)
-        expect(fake.batchUpdateCalls).toBe(4)
+        expect(fake.uploadCalls).toBe(4)
     })
 
     test("a 429 on files.create is retried too", async () => {
-        const fake = new FakeGoogle()
+        const fake = new FakeDrive()
         fake.failCreate(1, googleError(429, "Rate Limit Exceeded"))
         await publish(fake)
         expect(fake.sleeps).toEqual([RETRY_DELAYS_MS[0]])
         expect(fake.files).toHaveLength(PLANNED.length)
     })
 
-    test("any other batchUpdate error stops the run with the document, chunk and Google's message, no retry", async () => {
-        const fake = new FakeGoogle()
-        // 1: index pass 1 (an empty doc needs no clear)
-        fake.failBatchUpdate(
-            1,
-            googleError(400, "Invalid requests[3].updateTextStyle")
-        )
+    test("any other upload error stops the run with the document and Google's message, no retry", async () => {
+        const fake = new FakeDrive()
+        // 1: the index, 2: the first component
+        fake.failUpload(2, googleError(400, "Unsupported conversion"))
         await expect(publish(fake)).rejects.toThrow(
-            /batchUpdate failed \(OWID writing reference — start here pass 1, chunk 1\/1, \d+ requests\): Invalid requests\[3\]\.updateTextStyle/
+            'Upload failed for "{.callout} Callout — OWID writing reference": Unsupported conversion'
         )
-        expect(fake.batchUpdateCalls).toBe(1)
+        expect(fake.uploadCalls).toBe(2)
         expect(fake.sleeps).toEqual([])
     })
 })

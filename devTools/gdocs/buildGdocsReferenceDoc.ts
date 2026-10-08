@@ -2,16 +2,16 @@
  * Publishes the gdocs writing reference — the three committed registries
  * (components, templates, guides) — as a library of Google Docs: one index
  * plus one document per component, template and guide, in the Drive folder
- * GDOCS_REFERENCE_FOLDER_ID. The production admin deploy runs it on every
- * master deploy (ops repo, templates/owid-admin-prod/admin-refresh.sh); see
+ * GDOCS_REFERENCE_FOLDER_ID. Each document is built as Markdown and uploaded
+ * to its Google Doc, which Drive converts. The production admin deploy runs
+ * it on every master deploy (ops repo,
+ * templates/owid-admin-prod/admin-refresh.sh); see
  * docs/gdocs-writing-reference.md.
  *
  *   yarn buildGdocsReferenceDoc                 write the library into GDOCS_REFERENCE_FOLDER_ID
- *   yarn buildGdocsReferenceDoc --dry-run       print every document as Markdown, no Google calls
+ *   yarn buildGdocsReferenceDoc --dry-run       print the Markdown of every document, no Google calls
  *   yarn buildGdocsReferenceDoc --dry-run --out <dir>
  *                                               one Markdown file per document in <dir>
- *   yarn buildGdocsReferenceDoc --dry-run --requests
- *                                               print the pass-1 batchUpdate chunks per document as JSON
  */
 
 import { execSync } from "child_process"
@@ -35,28 +35,22 @@ import {
     renderLibraryMarkdown,
     renderLibraryMarkdownAsOne,
 } from "./referenceDoc/renderMarkdown.js"
-import {
-    blocksToRequests,
-    chunkRequests,
-} from "./referenceDoc/renderDocsRequests.js"
 
 const SETTING_NAME = "GDOCS_REFERENCE_FOLDER_ID"
-const TAB_ID_PLACEHOLDER = "<tabId>"
 
 function printHelp(): void {
     console.log(`Publish the gdocs writing reference as a library of Google Docs.
 
 Usage:
     yarn buildGdocsReferenceDoc
-    yarn buildGdocsReferenceDoc --dry-run [--requests] [--out <dir>]
+    yarn buildGdocsReferenceDoc --dry-run [--out <dir>]
 
 Options:
-    --dry-run       Render without calling Google: Markdown, or with
-                    --requests the pass-1 batchUpdate chunks as JSON.
-    --requests      With --dry-run, emit the request chunks instead of Markdown.
+    --dry-run       Print the Markdown every document would be uploaded with,
+                    without calling Google.
     --out <dir>     With --dry-run, write one file per document into <dir>
-                    (index.md, component-chart.md, …; requests.json with
-                    --requests) instead of printing to stdout.
+                    (index.md, component-chart.md, …) instead of printing to
+                    stdout.
     -h, --help      Show this help.
 
 The documents live in the Drive folder ${SETTING_NAME} (.env), shared with
@@ -82,25 +76,8 @@ function currentCommitSha(): string {
     }
 }
 
-/** `[{ title, chunks }]`, the index first, with a placeholder tab id */
-function renderRequestsJson(library: ReferenceLibrary): string {
-    const docs = [library.index, ...library.items].map((doc) => ({
-        title: doc.docTitle,
-        chunks: chunkRequests(
-            blocksToRequests(doc.blocks, TAB_ID_PLACEHOLDER, 1).requests
-        ),
-    }))
-    return JSON.stringify(docs, null, 2)
-}
-
 function dryRun(library: ReferenceLibrary, args: parseArgs.ParsedArgs): void {
     const outDir: string | undefined = args.out
-    if (args.requests) {
-        const json = renderRequestsJson(library)
-        if (outDir) writeOut(outDir, "requests.json", json)
-        else process.stdout.write(json)
-        return
-    }
     if (outDir)
         for (const file of renderLibraryMarkdown(library))
             writeOut(outDir, file.fileName, file.markdown)
@@ -113,8 +90,8 @@ function writeOut(dir: string, fileName: string, content: string): void {
 }
 
 async function main(args: parseArgs.ParsedArgs): Promise<void> {
-    if (!args["dry-run"] && (args.requests || args.out !== undefined)) {
-        console.error("--requests and --out only apply with --dry-run")
+    if (!args["dry-run"] && args.out !== undefined) {
+        console.error("--out only applies with --dry-run")
         process.exit(1)
     }
     const generatedAt = new Date()
@@ -152,7 +129,7 @@ async function main(args: parseArgs.ParsedArgs): Promise<void> {
 }
 
 const args = parseArgs(process.argv.slice(2), {
-    boolean: ["dry-run", "requests", "help"],
+    boolean: ["dry-run", "help"],
     string: ["out"],
     alias: { h: "help" },
 })
