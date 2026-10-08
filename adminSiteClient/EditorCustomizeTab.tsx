@@ -303,7 +303,7 @@ class SortOrderSection<
             return `column:${sortColumnSlug}`
         if (sortBy && this.sortOptions.some((opt) => opt.value === sortBy))
             return sortBy
-        return this.sortOptions[0]?.value ?? SortBy.entityName
+        return this.grapherState.defaultSortKey
     }
 
     @action.bound onSortByChange(selectedKey: string) {
@@ -1024,7 +1024,9 @@ export class EditorCustomizeTab<
                     </Section>
                 )}
                 <TimelineSection editor={this.props.editor} />
-                <FacetSection editor={this.props.editor} />
+                {features.canFacet && (
+                    <FacetSection editor={this.props.editor} />
+                )}
                 <Section name="Color scheme">
                     <ColorSchemeSelector
                         grapherState={grapherState}

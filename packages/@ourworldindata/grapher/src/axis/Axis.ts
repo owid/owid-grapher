@@ -79,6 +79,8 @@ abstract class AbstractAxis {
     domain: ValueRange
     formatColumn: CoreColumn | undefined = undefined // Pass the column purely for formatting reasons. Might be a better way to do this.
     hideFractionalTicks = false
+    /** Largest value that gets a tick, for domains that extend past the last data point */
+    maxTickValue: number | undefined = undefined
     range: ValueRange = [0, 0]
     private _scaleType: ScaleType | undefined = undefined
     private _label: string | undefined = undefined
@@ -88,6 +90,7 @@ abstract class AbstractAxis {
             domain: observable.ref,
             formatColumn: observable,
             hideFractionalTicks: observable,
+            maxTickValue: observable,
             range: observable.struct,
             _scaleType: observable,
             _label: observable,
@@ -203,6 +206,7 @@ abstract class AbstractAxis {
         this.formatColumn = parentAxis.formatColumn
         this.domain = parentAxis.domain.slice() as ValueRange
         this.hideFractionalTicks = parentAxis.hideFractionalTicks
+        this.maxTickValue = parentAxis.maxTickValue
         this.range = parentAxis.range.slice() as ValueRange
         this._scaleType = parentAxis._scaleType
         this._label = parentAxis._label
@@ -597,7 +601,15 @@ abstract class AbstractAxis {
     }
 
     @computed protected get baseTicks(): Tickmark[] {
-        return this.getTickValues().filter((tick) => !tick.gridLineOnly)
+        return this.dropTicksAboveMax(
+            this.getTickValues().filter((tick) => !tick.gridLineOnly)
+        )
+    }
+
+    protected dropTicksAboveMax(ticks: Tickmark[]): Tickmark[] {
+        const { maxTickValue } = this
+        if (maxTickValue === undefined) return ticks
+        return ticks.filter((tick) => tick.value <= maxTickValue)
     }
 
     formatTick(
@@ -757,7 +769,8 @@ export class HorizontalAxis extends AbstractAxis {
     }
 
     protected override get baseTicks(): Tickmark[] {
-        if (this.timeAxisTicks) return this.timeAxisTicks
+        if (this.timeAxisTicks)
+            return this.dropTicksAboveMax(this.timeAxisTicks)
 
         let ticks = this.getTickValues().filter(
             (tick): boolean => !tick.gridLineOnly
@@ -790,7 +803,9 @@ export class HorizontalAxis extends AbstractAxis {
             (t): number => t.value,
             (t): number => t.priority,
         ])
-        return _.sortedUniqBy(sortedTicks, (t) => t.value)
+        return this.dropTicksAboveMax(
+            _.sortedUniqBy(sortedTicks, (t) => t.value)
+        )
     }
 
     /**

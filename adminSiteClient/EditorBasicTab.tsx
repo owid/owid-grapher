@@ -29,6 +29,7 @@ import {
     WORLD_ENTITY_NAME,
     CONTINENTS_INDICATOR_ID,
     findPotentialChartTypeSiblings,
+    makeLabelForGrapherTab,
     ChartDimension,
     SelectionArray,
     selectPeerCountries,
@@ -609,6 +610,9 @@ export class EditorBasicTab<
             const isStackedGroup = chartTypes.includes(
                 GRAPHER_CHART_TYPES.StackedArea
             )
+            const isCategoricalGroup = chartTypes.includes(
+                GRAPHER_CHART_TYPES.Swimlane
+            )
 
             if (isSingleYIndicatorGroup) {
                 const label = "Single y-indicator charts"
@@ -616,7 +620,10 @@ export class EditorBasicTab<
             } else if (isStackedGroup) {
                 const label = "Stacked charts"
                 groups.push({ label, chartTypes })
-            } else {
+            } else if (isCategoricalGroup) {
+                const label = "Categorical charts"
+                groups.push({ label, chartTypes })
+            } else if (chartTypes.length > 1) {
                 const label = chartTypes.join(", ")
                 groups.push({ label, chartTypes })
             }
@@ -843,7 +850,9 @@ export class EditorBasicTab<
                                         }
                                     >
                                         <GrapherTabIcon tab={chartType} />{" "}
-                                        {_.startCase(chartType)}
+                                        {makeLabelForGrapherTab(chartType, {
+                                            format: "long",
+                                        })}
                                     </Tag.CheckableTag>
                                 ))}
                             </div>
