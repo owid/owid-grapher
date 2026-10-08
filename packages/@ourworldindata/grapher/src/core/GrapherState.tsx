@@ -2203,10 +2203,7 @@ export class GrapherState
             if (!slot.allowMultiple)
                 validDimensions = _.uniqWith(
                     validDimensions,
-                    (
-                        a: OwidChartDimensionInterface,
-                        b: OwidChartDimensionInterface
-                    ) =>
+                    (a: ChartDimension, b: ChartDimension) =>
                         a.property === slot.property &&
                         a.property === b.property
                 )
@@ -2287,6 +2284,10 @@ export class GrapherState
 
     @computed.struct get filledDimensions(): ChartDimension[] {
         return this.isReady ? this.dimensions : []
+    }
+
+    @computed get dimensionConfigs(): OwidChartDimensionInterface[] {
+        return this.dimensions.map((dimension) => dimension.toObject())
     }
 
     @action.bound addDimension(config: OwidChartDimensionInterface): void {
@@ -3099,6 +3100,10 @@ export class GrapherState
 
     set xOverrideTime(value: number | undefined) {
         this.xDimension!.targetYear = value
+    }
+
+    @computed get canOverrideXTime(): boolean {
+        return this.xDimension?.variableId !== undefined
     }
 
     @computed get defaultBounds(): Bounds {
@@ -4358,7 +4363,7 @@ export class GrapherState
     }
 }
 
-export const defaultObject = objectWithPersistablesToObject(
+export const defaultObject: GrapherInterface = objectWithPersistablesToObject(
     new GrapherState({}),
     grapherKeysToSerialize
 )

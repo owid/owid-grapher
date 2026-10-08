@@ -50,7 +50,7 @@ import { Command, CommandPalette } from "../controls/CommandPalette"
 import { EmbedModal } from "../modal/EmbedModal"
 import Mousetrap from "mousetrap"
 import { SelectionArray } from "../selection/SelectionArray"
-import { legacyToOwidTableAndDimensionsWithMandatorySlug } from "./LegacyToOwidTable"
+import { legacyToOwidTableAndDimensions } from "./LegacyToOwidTable"
 import classnames from "clsx"
 import { SidePanel } from "../sidePanel/SidePanel"
 import { EntitySelector } from "../entitySelector/EntitySelector"
@@ -173,7 +173,7 @@ export class Grapher extends React.Component<GrapherProps> {
         // TODO grapher model: switch this to downloading multiple data and metadata files
 
         const startMark = performance.now()
-        const tableWithColors = legacyToOwidTableAndDimensionsWithMandatorySlug(
+        const tableWithColors = legacyToOwidTableAndDimensions(
             json,
             legacyConfig.dimensions ?? [],
             legacyConfig.selectedEntityColors

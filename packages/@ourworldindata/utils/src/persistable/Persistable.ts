@@ -7,11 +7,26 @@ export interface Persistable {
     updateFromObject(obj: unknown): any // This should parse an incoming object, extend the current instance, and create new instances for any non native class types
 }
 
+/**
+ * The serialized type of one field:
+ * - a persistable becomes its `toObject()` result
+ * - an array of persistables becomes an array of those results
+ * - anything else stays unchanged
+ */
+type PersistedValue<V> = V extends { toObject(): infer O }
+    ? O
+    : V extends readonly (infer Item)[]
+      ? (Item extends { toObject(): infer O } ? O : Item)[]
+      : V
+
+/** `T` with every persistable field replaced by what its `toObject()` returns */
+export type PersistedObject<T> = { [K in keyof T]: PersistedValue<T[K]> }
+
 // Todo: see if there's a better way to do this with Mobx
 export function objectWithPersistablesToObject<T>(
     objWithPersistables: T,
     keysToSerialize: string[] = []
-): T {
+): PersistedObject<T> {
     const obj = toJS(objWithPersistables) as any
     const keysSet = new Set(keysToSerialize)
     Object.keys(obj).forEach((key) => {
@@ -33,7 +48,7 @@ export function objectWithPersistablesToObject<T>(
             )
         else obj[key] = val
     })
-    return obj as T
+    return obj as PersistedObject<T>
 }
 
 // Basically does an Object.assign, except if the target is a Persistable, will call updateFromObject on

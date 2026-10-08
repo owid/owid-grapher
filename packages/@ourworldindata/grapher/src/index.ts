@@ -91,10 +91,7 @@ export {
 export { GrapherState } from "./core/GrapherState"
 export { GrapherAnalytics, splitPathForGA4 } from "./core/GrapherAnalytics"
 export { legacyToCurrentGrapherUrl } from "./core/GrapherUrlMigrations"
-export {
-    legacyToOwidTableAndDimensions,
-    legacyToOwidTableAndDimensionsWithMandatorySlug,
-} from "./core/LegacyToOwidTable"
+export { legacyToOwidTableAndDimensions } from "./core/LegacyToOwidTable"
 export { getErrorMessageRelatedQuestionUrl } from "./core/relatedQuestion"
 export { MapChartState } from "./mapCharts/MapChartState"
 export { MapConfig } from "./mapCharts/MapConfig"

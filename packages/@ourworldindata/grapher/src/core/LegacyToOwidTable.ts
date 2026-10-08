@@ -8,10 +8,10 @@ import {
     OwidTableSlugs,
     OwidColumnDef,
     OwidVariableDimensions,
-    OwidVariableDataMetadataDimensions,
     ErrorValue,
-    OwidChartDimensionInterfaceWithMandatorySlug,
+    IndicatorDimensionInterface,
     OwidChartDimensionInterface,
+    isIndicatorDimension,
     EntityName,
     TimeInterval,
 } from "@ourworldindata/types"
@@ -43,31 +43,15 @@ import {
 } from "@ourworldindata/utils"
 import { isContinentsVariableId } from "./GrapherConstants"
 import * as R from "remeda"
-import { getDimensionColumnSlug } from "../chart/ChartDimension.js"
-
-export const legacyToOwidTableAndDimensionsWithMandatorySlug = (
-    json: MultipleOwidVariableDataDimensionsMap,
-    dimensions: OwidChartDimensionInterface[],
-    selectedEntityColors:
-        | { [entityName: string]: string | undefined }
-        | undefined
-): OwidTable => {
-    const dimensionsWithSlug = dimensions?.map((dimension) => ({
-        ...dimension,
-        slug:
-            dimension.slug ??
-            getDimensionColumnSlug(dimension.variableId, dimension.targetYear),
-    }))
-    return legacyToOwidTableAndDimensions(
-        json,
-        dimensionsWithSlug,
-        selectedEntityColors
-    )
-}
+import { getIndicatorColumnSlug } from "../chart/ChartDimension.js"
+import {
+    applyDisplayAndConversionFactor,
+    type ColumnDisplayOverride,
+} from "./applyDisplayAndConversionFactor.js"
 
 export const legacyToOwidTableAndDimensions = (
     json: MultipleOwidVariableDataDimensionsMap,
-    dimensions: OwidChartDimensionInterfaceWithMandatorySlug[],
+    dimensions: OwidChartDimensionInterface[],
     selectedEntityColors:
         | { [entityName: string]: string | undefined }
         | undefined
@@ -90,7 +74,11 @@ export const legacyToOwidTableAndDimensions = (
 
     // We need to create a column for each unique [variable, targetTime] pair. So there can be
     // multiple columns for a single variable.
-    const dimensionColumns = _.uniqBy(dimensions, (dim) => dim.slug)
+    const indicatorDimensions = dimensions.filter(isIndicatorDimension)
+    const dimensionColumns = _.uniqBy(
+        indicatorDimensions,
+        getIndicatorColumnSlug
+    )
 
     const variableTablesToJoinByYear: OwidTable[] = []
     const variableTablesToJoinByDay: OwidTable[] = []
@@ -111,23 +99,11 @@ export const legacyToOwidTableAndDimensions = (
 
         // Value column
         const valueColumnDef = columnDefFromOwidVariable(variable.metadata)
-        const valueColumnColor = dimension.display?.color
-        // Ensure the column slug is unique by copying it from the dimensions
-        // (there can be two columns of the same variable with different targetTimes)
-        if (dimension.slug) valueColumnDef.slug = dimension.slug
-        else throw new Error("Dimension slug was undefined")
+        valueColumnDef.slug = getIndicatorColumnSlug(dimension)
         // Because database columns can contain mixed types, we want to avoid
         // parsing for Grapher data until we fix that.
         valueColumnDef.skipParsing = true
-        if (valueColumnColor) {
-            valueColumnDef.color = valueColumnColor
-        }
-        if (dimension) {
-            valueColumnDef.display = {
-                ...trimObject(valueColumnDef.display),
-                ...trimObject(dimension.display),
-            }
-        }
+        valueColumnDef.display = trimObject(valueColumnDef.display)
         if (dimension.targetYear !== undefined)
             valueColumnDef.targetTime = dimension.targetYear
         columnDefs.set(valueColumnDef.slug, valueColumnDef)
@@ -153,29 +129,12 @@ export const legacyToOwidTableAndDimensions = (
         // see comment above about entityMetaById[id]
         const entityCodes = entityIds.map((id) => entityMetaById[id]?.code)
 
-        // If there is a conversionFactor, apply it.
-        let values = variable.data.values || []
-        const conversionFactor = valueColumnDef.display?.conversionFactor
-        if (conversionFactor !== undefined) {
-            values = values.map((value) =>
-                _.isNumber(value) ? value * conversionFactor : value
-            )
-
-            // If a non-int conversion factor is applied to an integer column,
-            // we end up with a numeric column.
-            if (
-                valueColumnDef.type === ColumnTypeNames.Integer &&
-                !_.isInteger(conversionFactor)
-            )
-                valueColumnDef.type = ColumnTypeNames.Numeric
-        }
-
         const columnStore: { [key: string]: any[] } = {
             [OwidTableSlugs.EntityId]: entityIds,
             [OwidTableSlugs.EntityCode]: entityCodes,
             [OwidTableSlugs.EntityName]: entityNames,
             [timeColumnDef.slug]: times,
-            [valueColumnDef.slug]: values,
+            [valueColumnDef.slug]: variable.data.values || [],
         }
 
         if (annotationColumnDef) {
@@ -191,11 +150,16 @@ export const legacyToOwidTableAndDimensions = (
             Array.from(columnDefs.values())
         )
 
+        // Scale before joining so values repeated across joined rows are only converted once.
+        variableTable = applyDisplayAndConversionFactor(variableTable, [
+            getIndicatorDisplayOverride(dimension, json),
+        ])
+
         // If there is a targetTime set on the dimension, we need to perform the join on the
         // entities columns only, excluding any time columns.
         // We do this by dropping the column. We interpolate before which adds an originalTime
         // column which can be used to recover the time.
-        const targetTime = dimension?.targetYear
+        const targetTime = dimension.targetYear
         if (_.isNumber(targetTime)) {
             variableTable = variableTable
                 // interpolateColumnWithTolerance() won't handle injecting times beyond the current
@@ -205,7 +169,7 @@ export const legacyToOwidTableAndDimensions = (
                 // This is why we use filterByTargetTimes() which handles that case.
                 .filterByTargetTimes(
                     [targetTime],
-                    valueColumnDef.display?.tolerance
+                    variableTable.get(valueColumnDef.slug).tolerance
                 )
                 // Interpolate with 0 to add originalTimes column
                 .interpolateColumnWithTolerance(valueColumnDef.slug, {
@@ -393,8 +357,21 @@ export const legacyToOwidTableAndDimensions = (
             },
         ])
     }
+
     return joinedVariablesTable
 }
+
+const getIndicatorDisplayOverride = (
+    dimension: IndicatorDimensionInterface,
+    json: MultipleOwidVariableDataDimensionsMap
+): ColumnDisplayOverride => ({
+    columnSlug: getIndicatorColumnSlug(dimension),
+    display: {
+        conversionFactor: json.get(dimension.variableId)?.metadata.display
+            ?.conversionFactor,
+        ...trimObject(dimension.display ?? {}),
+    },
+})
 
 const fullJoinTables = (
     tables: OwidTable[],
@@ -840,78 +817,4 @@ const annotationsToMap = (annotations: string): Map<string, string> => {
         entityAnnotationsMap.set(key.trim(), words.join(delimiter).trim())
     })
     return entityAnnotationsMap
-}
-
-/**
- * Loads a single variable into an OwidTable.
- */
-export function buildVariableTable(
-    variable: OwidVariableDataMetadataDimensions
-): OwidTable {
-    const entityMeta = variable.metadata.dimensions.entities.values
-    const entityMetaById: OwidEntityKey = Object.fromEntries(
-        entityMeta.map((entity) => [entity.id.toString(), entity])
-    )
-
-    // Base column defs, present in all OwidTables
-    const baseColumnDefs: Map<ColumnSlug, CoreColumnDef> = new Map(
-        StandardOwidColumnDefs.map((def) => [def.slug, def])
-    )
-
-    const columnDefs = new Map(baseColumnDefs)
-
-    // Time column
-    const timeColumnDef = timeColumnDefFromOwidVariable(variable.metadata)
-    columnDefs.set(timeColumnDef.slug, timeColumnDef)
-
-    // Value column
-    const valueColumnDef = columnDefFromOwidVariable(variable.metadata)
-    // Because database columns can contain mixed types, we want to avoid
-    // parsing for Grapher data until we fix that.
-    valueColumnDef.skipParsing = true
-    columnDefs.set(valueColumnDef.slug, valueColumnDef)
-
-    // Column values
-
-    const times = timeColumnValuesFromOwidVariable(
-        variable.metadata,
-        variable.data
-    )
-    const entityIds = variable.data.entities ?? []
-    const entityNames = entityIds.map(
-        // if entityMetaById[id] does not exist, then we don't have entity
-        // from variable metadata in MySQL. This can happen because we take
-        // data from S3 and metadata from MySQL. After we unify it, it should
-        // no longer be a problem
-        (id) => entityMetaById[id]?.name ?? id.toString()
-    )
-    // see comment above about entityMetaById[id]
-    const entityCodes = entityIds.map((id) => entityMetaById[id]?.code)
-
-    // If there is a conversionFactor, apply it.
-    let values = variable.data.values || []
-    const conversionFactor = valueColumnDef.display?.conversionFactor
-    if (conversionFactor !== undefined) {
-        values = values.map((value) =>
-            _.isNumber(value) ? value * conversionFactor : value
-        )
-
-        // If a non-int conversion factor is applied to an integer column,
-        // we end up with a numeric column.
-        if (
-            valueColumnDef.type === ColumnTypeNames.Integer &&
-            !_.isInteger(conversionFactor)
-        )
-            valueColumnDef.type = ColumnTypeNames.Numeric
-    }
-
-    const columnStore: { [key: string]: any[] } = {
-        [OwidTableSlugs.EntityId]: entityIds,
-        [OwidTableSlugs.EntityCode]: entityCodes,
-        [OwidTableSlugs.EntityName]: entityNames,
-        [timeColumnDef.slug]: times,
-        [valueColumnDef.slug]: values,
-    }
-
-    return new OwidTable(columnStore, Array.from(columnDefs.values()))
 }

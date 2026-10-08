@@ -13,10 +13,7 @@ import {
     ErrorValueTypes,
     OwidTable,
 } from "@ourworldindata/core-table"
-import {
-    legacyToOwidTableAndDimensions,
-    legacyToOwidTableAndDimensionsWithMandatorySlug,
-} from "./LegacyToOwidTable"
+import { legacyToOwidTableAndDimensions } from "./LegacyToOwidTable"
 import {
     MultipleOwidVariableDataDimensionsMap,
     OwidVariableDataMetadataDimensions,
@@ -51,7 +48,7 @@ describe(legacyToOwidTableAndDimensions, () => {
     }
 
     it("contains the standard entity columns", () => {
-        const table = legacyToOwidTableAndDimensionsWithMandatorySlug(
+        const table = legacyToOwidTableAndDimensions(
             legacyVariableConfig,
             legacyGrapherConfig.dimensions ?? [],
             legacyGrapherConfig.selectedEntityColors
@@ -68,7 +65,7 @@ describe(legacyToOwidTableAndDimensions, () => {
 
     describe("conversionFactor", () => {
         it("applies the more specific chart-level conversionFactor", () => {
-            const table = legacyToOwidTableAndDimensionsWithMandatorySlug(
+            const table = legacyToOwidTableAndDimensions(
                 legacyVariableConfig,
                 [
                     {
@@ -82,10 +79,11 @@ describe(legacyToOwidTableAndDimensions, () => {
 
             // Apply the chart-level conversionFactor (10)
             expect(table.rows[0]["2"]).toEqual(80)
+            expect(table.get("2").def.display?.conversionFactor).toEqual(10)
         })
 
         it("applies the more variable-level conversionFactor if a chart-level one is not present", () => {
-            const table = legacyToOwidTableAndDimensionsWithMandatorySlug(
+            const table = legacyToOwidTableAndDimensions(
                 legacyVariableConfig,
                 legacyGrapherConfig.dimensions ?? [],
                 legacyGrapherConfig.selectedEntityColors
@@ -93,6 +91,135 @@ describe(legacyToOwidTableAndDimensions, () => {
 
             // Apply the variable-level conversionFactor (100)
             expect(table.rows[0]["2"]).toEqual(800)
+            expect(table.get("2").def.display?.conversionFactor).toEqual(100)
+        })
+
+        it("keeps the indicator's conversionFactor when the slot's display leaves it undefined", () => {
+            const variableConfig: MultipleOwidVariableDataDimensionsMap =
+                new Map([
+                    [
+                        2,
+                        {
+                            ...legacyVariableEntry,
+                            metadata: {
+                                ...legacyVariableEntry.metadata,
+                                display: {
+                                    conversionFactor: 100,
+                                    name: "Indicator name",
+                                    unit: "kg",
+                                },
+                            },
+                        },
+                    ],
+                ])
+            const table = legacyToOwidTableAndDimensions(
+                variableConfig,
+                [
+                    {
+                        variableId: 2,
+                        display: { conversionFactor: undefined },
+                        property: DimensionProperty.y,
+                    },
+                ],
+                undefined
+            )
+
+            expect(table.rows[0]["2"]).toEqual(800)
+            expect(table.get("2").def.display).toMatchObject({
+                conversionFactor: 100,
+                name: "Indicator name",
+                unit: "kg",
+            })
+        })
+    })
+
+    describe("slot display", () => {
+        it("copies the slot's color onto the column def", () => {
+            const table = legacyToOwidTableAndDimensions(
+                legacyVariableConfig,
+                [
+                    {
+                        variableId: 2,
+                        display: { color: "#c15065" },
+                        property: DimensionProperty.y,
+                    },
+                ],
+                undefined
+            )
+
+            expect(table.get("2").def.color).toBe("#c15065")
+        })
+
+        it("builds columns for indicator slots only", () => {
+            const table = legacyToOwidTableAndDimensions(
+                legacyVariableConfig,
+                [
+                    { variableId: 2, property: DimensionProperty.y },
+                    {
+                        slug: "rent_index",
+                        property: DimensionProperty.x,
+                        display: { conversionFactor: 10 },
+                    },
+                ],
+                undefined
+            )
+
+            expect(table.columnSlugs).toContain("2")
+            expect(table.columnSlugs).not.toContain("rent_index")
+            expect(table.columnSlugs).not.toContain("undefined")
+            expect(table.rows[0]["2"]).toEqual(800)
+        })
+
+        it("filters to the target year with the slot's tolerance", () => {
+            const variableConfig: MultipleOwidVariableDataDimensionsMap =
+                new Map([
+                    [2, legacyVariableEntry],
+                    [
+                        3,
+                        {
+                            data: {
+                                entities: [1],
+                                values: [30],
+                                years: [2019],
+                            },
+                            metadata: {
+                                id: 3,
+                                display: { tolerance: 0 },
+                                dimensions: {
+                                    years: { values: [{ id: 2019 }] },
+                                    entities: {
+                                        values: [
+                                            {
+                                                name: "World",
+                                                code: "OWID_WRL",
+                                                id: 1,
+                                            },
+                                        ],
+                                    },
+                                },
+                            },
+                        },
+                    ],
+                ])
+            const valuesAtTargetYear = (
+                slotDisplay?: OwidVariableDisplayConfigInterface
+            ): unknown[] =>
+                legacyToOwidTableAndDimensions(
+                    variableConfig,
+                    [
+                        { variableId: 2, property: DimensionProperty.y },
+                        {
+                            variableId: 3,
+                            property: DimensionProperty.x,
+                            targetYear: 2020,
+                            display: slotDisplay,
+                        },
+                    ],
+                    undefined
+                ).get("3-2020").valuesIncludingErrorValues
+
+            expect(valuesAtTargetYear()).not.toContain(30)
+            expect(valuesAtTargetYear({ tolerance: 1 })).toEqual([30])
         })
     })
 
@@ -178,7 +305,7 @@ describe(legacyToOwidTableAndDimensions, () => {
             ],
         }
 
-        const table = legacyToOwidTableAndDimensionsWithMandatorySlug(
+        const table = legacyToOwidTableAndDimensions(
             legacyVariableConfig,
             legacyGrapherConfig.dimensions ?? [],
             legacyGrapherConfig.selectedEntityColors
@@ -322,7 +449,7 @@ describe(legacyToOwidTableAndDimensions, () => {
             ],
         }
 
-        const table = legacyToOwidTableAndDimensionsWithMandatorySlug(
+        const table = legacyToOwidTableAndDimensions(
             legacyVariableConfig,
             legacyGrapherConfig.dimensions ?? [],
             {}
@@ -384,7 +511,7 @@ describe(legacyToOwidTableAndDimensions, () => {
                     },
                 ],
             ])
-            return legacyToOwidTableAndDimensionsWithMandatorySlug(
+            return legacyToOwidTableAndDimensions(
                 config,
                 [{ variableId: 2, property: DimensionProperty.y }],
                 {}
@@ -481,7 +608,7 @@ describe(legacyToOwidTableAndDimensions, () => {
             ],
         ])
 
-        const table = legacyToOwidTableAndDimensionsWithMandatorySlug(
+        const table = legacyToOwidTableAndDimensions(
             config,
             [
                 { variableId: 2, property: DimensionProperty.y },
@@ -531,7 +658,7 @@ describe(legacyToOwidTableAndDimensions, () => {
         const buildTable = (
             variables: OwidVariableDataMetadataDimensions[]
         ): OwidTable =>
-            legacyToOwidTableAndDimensionsWithMandatorySlug(
+            legacyToOwidTableAndDimensions(
                 new Map(variables.map((v) => [v.metadata.id, v])),
                 variables.map((v) => ({
                     variableId: v.metadata.id,
@@ -674,7 +801,7 @@ describe(legacyToOwidTableAndDimensions, () => {
             ],
         }
 
-        const table = legacyToOwidTableAndDimensionsWithMandatorySlug(
+        const table = legacyToOwidTableAndDimensions(
             legacyVariableConfig,
             legacyGrapherConfig.dimensions ?? [],
             legacyGrapherConfig.selectedEntityColors
@@ -706,7 +833,7 @@ describe(legacyToOwidTableAndDimensions, () => {
                     chartTypes: [GRAPHER_CHART_TYPES.ScatterPlot],
                 }
 
-                const table = legacyToOwidTableAndDimensionsWithMandatorySlug(
+                const table = legacyToOwidTableAndDimensions(
                     legacyVariableConfig,
                     scatterLegacyGrapherConfig.dimensions ?? [],
                     legacyGrapherConfig.selectedEntityColors
@@ -865,7 +992,7 @@ describe("variables with mixed days & years with missing overlap and multiple po
         ],
     }
 
-    const table = legacyToOwidTableAndDimensionsWithMandatorySlug(
+    const table = legacyToOwidTableAndDimensions(
         legacyVariableConfig,
         legacyGrapherConfig.dimensions ?? [],
         legacyGrapherConfig.selectedEntityColors
@@ -885,7 +1012,7 @@ describe("variables with mixed days & years with missing overlap and multiple po
 
     describe("join behaviour without target times is sane", () => {
         it("creates a sane table join", () => {
-            const table = legacyToOwidTableAndDimensionsWithMandatorySlug(
+            const table = legacyToOwidTableAndDimensions(
                 legacyVariableConfig,
                 legacyGrapherConfig.dimensions ?? [],
                 legacyGrapherConfig.selectedEntityColors
@@ -1008,7 +1135,7 @@ describe("creating a table from legacy", () => {
         ...getLegacyGrapherConfig(),
         selectedEntityColors: { "Cape Verde": "blue" },
     }
-    const table = legacyToOwidTableAndDimensionsWithMandatorySlug(
+    const table = legacyToOwidTableAndDimensions(
         getOwidVarSet(),
         config.dimensions ?? [],
         config.selectedEntityColors
@@ -1046,7 +1173,7 @@ describe("creating a table from legacy", () => {
         const varSet = getOwidVarSet()
         varSet.get(3512)!.metadata.display!.conversionFactor = 100
         expect(
-            legacyToOwidTableAndDimensionsWithMandatorySlug(
+            legacyToOwidTableAndDimensions(
                 varSet,
                 getLegacyGrapherConfig().dimensions ?? [],
                 config.selectedEntityColors
@@ -1070,7 +1197,7 @@ Papua New Guinea,PNG,1983,5.5,1983,`
     it("passes on the non-redistributable flag", () => {
         const varSet = getOwidVarSet()
         varSet.get(3512)!.metadata.nonRedistributable = true
-        const columnDef = legacyToOwidTableAndDimensionsWithMandatorySlug(
+        const columnDef = legacyToOwidTableAndDimensions(
             varSet,
             getLegacyGrapherConfig().dimensions ?? [],
             config.selectedEntityColors

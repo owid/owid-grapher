@@ -2,10 +2,11 @@ import * as _ from "lodash-es"
 import { OwidTable } from "@ourworldindata/core-table"
 import {
     ArchiveContext,
+    isIndicatorDimension,
     OwidChartDimensionInterface,
     OwidVariableDataMetadataDimensions,
 } from "@ourworldindata/utils"
-import { legacyToOwidTableAndDimensionsWithMandatorySlug } from "./LegacyToOwidTable.js"
+import { legacyToOwidTableAndDimensions } from "./LegacyToOwidTable.js"
 import {
     loadVariablesDataSite,
     loadVariableDataAndMetadata,
@@ -24,8 +25,11 @@ export type FetchInputTableForConfigFn = (args: {
 export const fetchInputTableForConfig: FetchInputTableForConfigFn = async (
     args
 ) => {
-    if (!args.dimensions || args.dimensions.length === 0) return undefined
-    const variables = args.dimensions.map((d) => d.variableId)
+    const indicatorDimensions = (args.dimensions ?? []).filter(
+        isIndicatorDimension
+    )
+    if (indicatorDimensions.length === 0) return undefined
+    const variables = indicatorDimensions.map((d) => d.variableId)
     const variablesDataMap = await loadVariablesDataSite(
         variables,
         args.dataApiUrl,
@@ -33,9 +37,9 @@ export const fetchInputTableForConfig: FetchInputTableForConfigFn = async (
         args.noCache,
         args.loadMetadataOnly
     )
-    const inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
+    const inputTable = legacyToOwidTableAndDimensions(
         variablesDataMap,
-        args.dimensions,
+        indicatorDimensions,
         args.selectedEntityColors
     )
 
@@ -80,9 +84,10 @@ export function getCachingInputTableFetcher(
         previousDimensions = dimensions
         previousSelectedEntityColors = selectedEntityColors
 
-        if (dimensions.length === 0) return undefined
+        const indicatorDimensions = dimensions.filter(isIndicatorDimension)
+        if (indicatorDimensions.length === 0) return undefined
 
-        const variables = dimensions.map((d) => d.variableId)
+        const variables = indicatorDimensions.map((d) => d.variableId)
         const variablesToFetch = variables.filter((v) => !cache.has(v))
 
         if (variablesToFetch.length > 0) {
@@ -105,9 +110,9 @@ export function getCachingInputTableFetcher(
             variables.map((v) => [v, cache.get(v)!])
         )
 
-        const inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
+        const inputTable = legacyToOwidTableAndDimensions(
             variablesDataMap,
-            dimensions,
+            indicatorDimensions,
             selectedEntityColors
         )
 

@@ -2,7 +2,7 @@ import { DimensionProperty } from "@ourworldindata/utils"
 import { GRAPHER_TAB_CONFIG_OPTIONS, TimeInterval } from "@ourworldindata/types"
 import {
     GrapherProgrammaticInterface,
-    legacyToOwidTableAndDimensionsWithMandatorySlug,
+    legacyToOwidTableAndDimensions,
 } from "@ourworldindata/grapher"
 import { Explorer, ExplorerProps } from "./Explorer.js"
 
@@ -104,11 +104,7 @@ export const SampleExplorerOfGraphers = (props?: Partial<ExplorerProps>) => {
         dimensions,
         tab: GRAPHER_TAB_CONFIG_OPTIONS.chart,
     }
-    first.table = legacyToOwidTableAndDimensionsWithMandatorySlug(
-        owidDataset,
-        dimensions,
-        {}
-    )
+    first.table = legacyToOwidTableAndDimensions(owidDataset, dimensions, {})
     const grapherConfigs: GrapherProgrammaticInterface[] = [
         first,
         {

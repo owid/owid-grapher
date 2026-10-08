@@ -5,118 +5,124 @@ import {
     DimensionProperty,
     OwidVariableId,
     Persistable,
-    deleteRuntimeAndUnchangedProps,
     updatePersistables,
     OwidVariableDisplayConfig,
     OwidChartDimensionInterface,
     Time,
-    OwidChartDimensionInterfaceWithMandatorySlug,
+    deleteRuntimeAndUnchangedProps,
     objectWithPersistablesToObject,
+    type PersistedObject,
 } from "@ourworldindata/utils"
+import {
+    type SlugDimensionInterface,
+    type IndicatorDimensionInterface,
+    isIndicatorDimension,
+} from "@ourworldindata/types"
 import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
 
-// A chart "dimension" represents a binding between a chart
-// and a particular variable that it requests as data
-class ChartDimensionDefaults implements OwidChartDimensionInterface {
-    property!: DimensionProperty
-    variableId!: OwidVariableId
-
-    // check on: malaria-deaths-comparisons and computing-efficiency
-
-    display = new OwidVariableDisplayConfig() // todo: make persistable
-
-    // XXX move this somewhere else, it's only used for scatter x override and Marimekko override
-    targetYear: Time | undefined = undefined
-
-    constructor() {
-        makeObservable(this, {
-            property: observable,
-            variableId: observable,
-            display: observable,
-            targetYear: observable,
-        })
-    }
-}
-
-// todo: remove when we remove dimensions
 export interface LegacyDimensionsManager {
     table: OwidTable
 }
 
-export function getDimensionColumnSlug(
-    variableId: OwidVariableId,
-    targetYear: Time | undefined
-): ColumnSlug {
-    if (targetYear) return `${variableId}-${targetYear}`
+type IndicatorSource = Pick<
+    IndicatorDimensionInterface,
+    "variableId" | "targetYear"
+>
+type SlugSource = Pick<SlugDimensionInterface, "slug">
+type DimensionSource = IndicatorSource | SlugSource
+
+const isIndicatorSource = (
+    source: DimensionSource
+): source is IndicatorSource => "variableId" in source
+
+export function getIndicatorColumnSlug({
+    variableId,
+    targetYear,
+}: IndicatorSource): ColumnSlug {
+    if (targetYear !== undefined) return `${variableId}-${targetYear}`
     return variableId.toString()
+}
+
+class ChartDimensionDefaults {
+    property!: DimensionProperty
+    display = new OwidVariableDisplayConfig()
+
+    constructor() {
+        makeObservable(this, {
+            property: observable,
+            display: observable,
+        })
+    }
 }
 
 export class ChartDimension
     extends ChartDimensionDefaults
-    implements Persistable, OwidChartDimensionInterfaceWithMandatorySlug
+    implements Persistable
 {
-    private readonly manager: LegacyDimensionsManager
+    source!: DimensionSource
+
+    // ES-private so toJS() in toObject() doesn't walk into the manager
+    readonly #manager: LegacyDimensionsManager
 
     constructor(
         obj: OwidChartDimensionInterface,
         manager: LegacyDimensionsManager
     ) {
         super()
-
-        makeObservable(this, {
-            _slug: observable,
-        })
-        this.manager = manager
-        if (obj) this.updateFromObject(obj)
+        makeObservable(this, { source: observable.ref })
+        this.#manager = manager
+        this.updateFromObject(obj)
     }
 
     @computed private get table(): OwidTable {
-        return this.manager.table
+        return this.#manager.table
     }
 
     updateFromObject(obj: OwidChartDimensionInterface): void {
         if (obj.display) updatePersistables(this, { display: obj.display })
 
-        this.targetYear = obj.targetYear
-        this.variableId = obj.variableId
         this.property = obj.property
-        this.slug = obj.slug
+        this.source = isIndicatorDimension(obj)
+            ? { variableId: obj.variableId, targetYear: obj.targetYear }
+            : { slug: obj.slug }
     }
 
     toObject(): OwidChartDimensionInterface {
-        const keysToSerialize = [
-            "variableId",
-            "property",
-            "display",
-            "targetYear",
-        ]
-        const obj: OwidChartDimensionInterface = objectWithPersistablesToObject(
-            this,
-            keysToSerialize
-        )
-
+        const obj: PersistedObject<ChartDimensionDefaults> =
+            objectWithPersistablesToObject(this)
         deleteRuntimeAndUnchangedProps(obj, new ChartDimensionDefaults())
-
-        return trimObject(obj)
+        return trimObject({ ...obj, ...this.source })
     }
 
-    // Do not persist yet, until we migrate off VariableIds
-    _slug: ColumnSlug | undefined = undefined
-
-    @computed get slug(): ColumnSlug {
-        if (this._slug) return this._slug
-        return getDimensionColumnSlug(this.variableId, this.targetYear)
+    @computed private get indicatorSource(): IndicatorSource | undefined {
+        return isIndicatorSource(this.source) ? this.source : undefined
     }
 
-    set slug(value: ColumnSlug | undefined) {
-        this._slug = value
+    @computed get variableId(): OwidVariableId | undefined {
+        return this.indicatorSource?.variableId
     }
 
     @computed get column(): CoreColumn {
         return this.table.get(this.columnSlug)
     }
 
-    @computed get columnSlug(): string {
-        return this.slug ?? this.variableId.toString()
+    @computed get columnSlug(): ColumnSlug {
+        return isIndicatorSource(this.source)
+            ? getIndicatorColumnSlug(this.source)
+            : this.source.slug
+    }
+
+    @computed get targetYear(): Time | undefined {
+        return this.indicatorSource?.targetYear
+    }
+
+    set targetYear(value: Time | undefined) {
+        if (!isIndicatorSource(this.source)) {
+            if (value === undefined) return
+            throw new Error(
+                `Cannot pin host column "${this.source.slug}" to a year; targetYear needs a variableId dimension`
+            )
+        }
+        this.source = { ...this.source, targetYear: value }
     }
 }

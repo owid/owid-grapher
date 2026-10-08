@@ -66,14 +66,31 @@ export const TIME_INTERVALS = [
 
 export type SubYearlyTimeInterval = (typeof SUB_YEARLY_TIME_INTERVALS)[number]
 
-export interface OwidChartDimensionInterface {
+interface OwidChartDimensionBaseInterface {
     property: DimensionProperty
-    targetYear?: Time
     display?: OwidVariableDisplayConfigInterface
-    variableId: OwidVariableId
-    slug?: ColumnSlug
 }
 
-export interface OwidChartDimensionInterfaceWithMandatorySlug extends OwidChartDimensionInterface {
-    slug: ColumnSlug
+/** A slot filled by an OWID indicator, fetched from the data API */
+export interface IndicatorDimensionInterface extends OwidChartDimensionBaseInterface {
+    variableId: OwidVariableId
+    slug?: never
+    /** Pins the slot to a single year */
+    targetYear?: Time
 }
+
+/** A slot filled by a column of a supplied table */
+export interface SlugDimensionInterface extends OwidChartDimensionBaseInterface {
+    slug: ColumnSlug
+    variableId?: never
+    targetYear?: never
+}
+
+export type OwidChartDimensionInterface =
+    | IndicatorDimensionInterface
+    | SlugDimensionInterface
+
+export const isIndicatorDimension = (
+    dimension: OwidChartDimensionInterface
+): dimension is IndicatorDimensionInterface =>
+    dimension.variableId !== undefined
