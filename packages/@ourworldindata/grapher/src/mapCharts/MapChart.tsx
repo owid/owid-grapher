@@ -37,7 +37,6 @@ import { ColorScale, INAPPLICABLE_LABEL } from "../color/ColorScale"
 import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
-    GRAPHER_FRAME_PADDING_HORIZONTAL,
     GRAPHER_MAX_TOOLTIP_WIDTH,
     Patterns,
     makePatternId,
@@ -335,15 +334,17 @@ export class MapChart
         // only a very narrow frame padding.
         // This way, the map can expand a lot more horizontally and is displayed
         // a lot bigger.
+        // The frame padding isn't always the same: captioned charts use
+        // GRAPHER_FRAME_PADDING_HORIZONTAL, while thumbnails and other uncaptioned
+        // charts use a size-dependent chart area padding. Since the map's bounds
+        // are positioned relative to the frame edge, their x offset is the actual
+        // padding we can extend into.
+        const expansion = Math.max(
+            0,
+            this.bounds.x - MAP_NARROW_FRAME_PADDING_HORIZONTAL
+        )
         const bounds = this.shouldExtendMapIntoFramePadding
-            ? this.bounds.expand({
-                  left:
-                      GRAPHER_FRAME_PADDING_HORIZONTAL -
-                      MAP_NARROW_FRAME_PADDING_HORIZONTAL,
-                  right:
-                      GRAPHER_FRAME_PADDING_HORIZONTAL -
-                      MAP_NARROW_FRAME_PADDING_HORIZONTAL,
-              })
+            ? this.bounds.expand({ left: expansion, right: expansion })
             : this.bounds
 
         return bounds.padBottom(
