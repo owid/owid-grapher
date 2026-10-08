@@ -85,8 +85,10 @@ export interface TooltipTableProps {
 }
 
 interface TooltipTableColumn {
-    label: string
+    /** Labelling a column of a multi-column table shows the header row */
+    label?: string
     formatValue: (value: unknown) => string
+    secondary?: boolean // rendered in a lighter weight
 }
 
 interface TooltipTableRow {

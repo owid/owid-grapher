@@ -19,6 +19,7 @@ import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
 import { ChartState } from "../chart/ChartInterface"
 import { ColorScale, ColorScaleManager } from "../color/ColorScale"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
+import { FocusArray } from "../focus/FocusArray"
 import {
     autoDetectYColumnSlugs,
     getDefaultFailMessage,
@@ -88,6 +89,10 @@ export class SwimlaneChartState implements ChartState, ColorScaleManager {
         return makeSelectionArray(this.manager.selection)
     }
 
+    @computed get focusArray(): FocusArray {
+        return this.manager.focusArray ?? new FocusArray()
+    }
+
     @computed get yColumnSlugs(): ColumnSlug[] {
         return autoDetectYColumnSlugs(this.manager)
     }
@@ -148,7 +153,7 @@ export class SwimlaneChartState implements ChartState, ColorScaleManager {
         return R.range(minTime, maxTime + 1)
     }
 
-    @computed private get visibleTimesAsc(): Time[] {
+    @computed get visibleTimesAsc(): Time[] {
         const { startTime, endTime } = this.manager
         const times = this.allTimesAsc
         if (startTime === undefined || endTime === undefined) return times
