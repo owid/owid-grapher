@@ -1,6 +1,10 @@
 import * as _ from "lodash-es"
 import * as React from "react"
-import { OwidVariableId, excludeUndefined } from "@ourworldindata/utils"
+import { ColumnSlug, excludeUndefined } from "@ourworldindata/utils"
+import {
+    IndicatorDimensionInterface,
+    SlugDimensionInterface,
+} from "@ourworldindata/types"
 import {
     buildSearchWordsFromSearchString,
     filterFunctionForSearchWords,
@@ -27,25 +31,30 @@ import {
     NamespaceData,
 } from "./EditorDatabase.js"
 import { TextField, Toggle, Modal } from "./Forms.js"
-import { ChartDimension, DimensionSlot } from "@ourworldindata/grapher"
-import { AbstractChartEditor } from "./AbstractChartEditor.js"
+import { DimensionSlot } from "@ourworldindata/grapher"
+import { ConfigEditor } from "./ConfigEditor.js"
 
-interface VariableSelectorProps<Editor> {
+interface VariableSelectorProps {
     database: EditorDatabase
-    editor: Editor
+    editor: ConfigEditor
     slot: DimensionSlot
     onDismiss: () => void
-    onComplete: (variableIds: OwidVariableId[]) => void
+    onComplete: (columns: PickedColumn[]) => void
 }
+
+export type PickedColumn =
+    | Pick<IndicatorDimensionInterface, "variableId" | "slug">
+    | Pick<SlugDimensionInterface, "slug" | "variableId">
 
 interface Variable {
     id: number
     name: string
+    slug?: ColumnSlug
     datasetId: number
     datasetName: string
     datasetVersion?: string
     namespaceName: string
-    usageCount: number
+    usageCount?: number
 }
 
 interface NamespaceOption {
@@ -55,9 +64,7 @@ interface NamespaceOption {
 }
 
 @observer
-export class VariableSelector<
-    Editor extends AbstractChartEditor,
-> extends React.Component<VariableSelectorProps<Editor>> {
+export class VariableSelector extends React.Component<VariableSelectorProps> {
     chosenNamespaces: Namespace[] = []
     searchInput: string | undefined = undefined
     isProjection: boolean | undefined = undefined
@@ -69,7 +76,7 @@ export class VariableSelector<
     numVisibleRows: number = 15
     rowHeight: number = 32
 
-    constructor(props: VariableSelectorProps<Editor>) {
+    constructor(props: VariableSelectorProps) {
         super(props)
 
         makeObservable(this, {
@@ -117,22 +124,23 @@ export class VariableSelector<
     }
 
     @computed get availableVariables(): Variable[] {
-        const { variableUsageCounts } = this.database
+        const { database } = this
         const variables: Variable[] = []
         this.datasets.forEach((dataset) => {
             const sorted = _.sortBy(dataset.variables, [
-                (v) => (variableUsageCounts.get(v.id) ?? 0) * -1,
+                (v) => (database.usageCount(v.id) ?? 0) * -1,
                 (v) => v.name,
             ])
             sorted.forEach((variable) => {
                 variables.push({
                     id: variable.id,
+                    slug: variable.slug,
                     name: variable.name,
                     datasetId: dataset.id,
                     datasetName: dataset.name,
                     datasetVersion: dataset.version,
                     namespaceName: dataset.namespace,
-                    usageCount: variableUsageCounts.get(variable.id) ?? 0,
+                    usageCount: database.usageCount(variable.id),
                     //name: variable.name.includes(dataset.name) ? variable.name : dataset.name + " - " + variable.name
                 })
             })
@@ -388,16 +396,19 @@ export class VariableSelector<
                                                                             v.name
                                                                         )}
 
-                                                                        <span
-                                                                            style={{
-                                                                                fontWeight: 500,
-                                                                                color: "#555",
-                                                                            }}
-                                                                        >
-                                                                            {v.usageCount
-                                                                                ? ` (used ${v.usageCount} times)`
-                                                                                : " (unused)"}
-                                                                        </span>
+                                                                        {v.usageCount !==
+                                                                            undefined && (
+                                                                            <span
+                                                                                style={{
+                                                                                    fontWeight: 500,
+                                                                                    color: "#555",
+                                                                                }}
+                                                                            >
+                                                                                {v.usageCount
+                                                                                    ? ` (used ${v.usageCount} times)`
+                                                                                    : " (unused)"}
+                                                                            </span>
+                                                                        )}
                                                                     </div>
                                                                 }
                                                             />
@@ -525,32 +536,33 @@ export class VariableSelector<
 
     @action.bound private initChosenVariablesAndNamespaces() {
         const { datasetsById } = this
-        const { variableUsageCounts } = this.database
+        const { database } = this
         const { dimensions } = this.props.slot
 
-        this.chosenVariables = dimensions
-            .filter(
-                (d): d is ChartDimension & { variableId: OwidVariableId } =>
-                    d.variableId !== undefined
-            )
-            .map((d) => {
-                const { datasetName, datasetId } = d.column
-                const dataset =
-                    datasetId !== undefined
-                        ? datasetsById[datasetId]
-                        : undefined
+        this.chosenVariables = dimensions.flatMap((d) => {
+            const variableId = d.variableId
+            if (variableId === undefined) {
+                const offered = this.availableVariables.find(
+                    (v) => v.slug !== undefined && v.slug === d.columnSlug
+                )
+                return offered ? [offered] : []
+            }
 
-                return {
-                    name: d.column.name,
-                    id: d.variableId,
-                    usageCount: variableUsageCounts.get(d.variableId) ?? 0,
-                    datasetId: datasetId ?? 0,
-                    datasetName: datasetName || "",
-                    catalogPath: undefined,
-                    namespaceName: dataset?.namespace ?? "",
-                    datasetVersion: dataset?.version,
-                }
-            })
+            const { datasetName, datasetId } = d.column
+            const dataset =
+                datasetId !== undefined ? datasetsById[datasetId] : undefined
+
+            return {
+                name: d.column.name,
+                id: variableId,
+                usageCount: database.usageCount(variableId),
+                datasetId: datasetId ?? 0,
+                datasetName: datasetName || "",
+                catalogPath: undefined,
+                namespaceName: dataset?.namespace ?? "",
+                datasetVersion: dataset?.version,
+            }
+        })
 
         const uniqueNamespaces = _.uniq(
             this.chosenVariables.map((v) => v.namespaceName)
@@ -561,6 +573,10 @@ export class VariableSelector<
     }
 
     @action.bound onComplete() {
-        this.props.onComplete(this.chosenVariables.map((v) => v.id))
+        this.props.onComplete(
+            this.chosenVariables.map((v) =>
+                v.slug !== undefined ? { slug: v.slug } : { variableId: v.id }
+            )
+        )
     }
 }

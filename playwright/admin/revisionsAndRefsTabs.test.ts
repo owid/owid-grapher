@@ -3,9 +3,28 @@
  * unsaved changes; the Refs tab lists where the chart is used and manages the
  * URLs that redirect to it.
  */
+import type { APIRequestContext } from "@playwright/test"
+import { DimensionProperty, type GrapherInterface } from "@ourworldindata/types"
+import { latestGrapherConfigSchema } from "@ourworldindata/grapher"
 import { expect, test } from "./harness.js"
 import { indicators } from "./fixture.js"
 import { lineChart } from "./charts.js"
+
+async function saveChartRevision(
+    request: APIRequestContext,
+    chartId: number,
+    config: GrapherInterface
+): Promise<void> {
+    const response = await request.put(
+        `/admin/api/charts/${chartId}?inheritance=enable`,
+        { data: { $schema: latestGrapherConfigSchema, ...config } }
+    )
+    const json = await response.json()
+    expect(
+        json,
+        `updating a chart: ${JSON.stringify(json.error)}`
+    ).toMatchObject({ success: true })
+}
 
 test.describe("Revisions tab", () => {
     test("each save adds a revision that can be compared to the previous one", async ({
@@ -84,6 +103,41 @@ test.describe("Revisions tab", () => {
         await expect(unsaved).toHaveCount(0)
         await editor.openTab("Text")
         await expect(editor.field("Subtitle")).toHaveValue(savedSubtitle)
+    })
+
+    test("restoring a save that used another indicator applies that indicator's config", async ({
+        seedChart,
+        openEditor,
+        request,
+    }) => {
+        const inherited = indicators.childMortality.grapherConfigETL
+        const chart = await seedChart(lineChart(indicators.childMortality), {
+            inheritance: true,
+        })
+        await saveChartRevision(
+            request,
+            chart.id,
+            lineChart(indicators.lifeExpectancy)
+        )
+        const editor = await openEditor(chart)
+        await expect(editor.preview).not.toContainText(inherited.subtitle)
+
+        const form = await editor.openTab("Revisions")
+        const saves = form.locator(".ant-timeline-item")
+        await editor.button("Restore", saves.last()).click()
+        await editor
+            .button("Restore this version", editor.page.getByRole("dialog"))
+            .click()
+
+        await expect(editor.preview).toContainText(inherited.subtitle)
+        expect(await editor.saveChanges()).toEqual({
+            dimensions: [
+                {
+                    property: DimensionProperty.y,
+                    variableId: indicators.childMortality.id,
+                },
+            ],
+        })
     })
 })
 

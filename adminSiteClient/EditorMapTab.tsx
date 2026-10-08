@@ -20,12 +20,10 @@ import {
 import { Select } from "antd"
 import { action, computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
-import * as React from "react"
 import { Component, Fragment } from "react"
 import { EditorColorScaleSection } from "./EditorColorScaleSection.js"
-import { NumberField, Section, SelectField, Timeago, Toggle } from "./Forms.js"
-import { AbstractChartEditor } from "./AbstractChartEditor.js"
-import { isChartEditorInstance, Log } from "./ChartEditor.js"
+import { NumberField, Section, SelectField, Toggle } from "./Forms.js"
+import { ConfigEditor } from "./ConfigEditor.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faLink } from "@fortawesome/free-solid-svg-icons"
 import { ErrorMessages } from "./ChartEditorTypes.js"
@@ -33,7 +31,7 @@ import { ErrorMessages } from "./ChartEditorTypes.js"
 interface VariableSectionProps {
     mapConfig: MapConfig
     filledDimensions: ChartDimension[]
-    parentConfig?: GrapherInterface
+    baseConfig?: GrapherInterface
 }
 
 @observer
@@ -50,7 +48,7 @@ class VariableSection extends Component<VariableSectionProps> {
     @action.bound onBlurColumnSlug() {
         if (this.props.mapConfig.columnSlug === undefined) {
             this.props.mapConfig.columnSlug =
-                this.props.parentConfig?.map?.columnSlug
+                this.props.baseConfig?.map?.columnSlug
         }
     }
 
@@ -254,10 +252,10 @@ class InapplicableEntitiesSection extends Component<{
 }
 
 @observer
-class InheritanceSection<Editor extends AbstractChartEditor> extends Component<{
-    editor: Editor
+class InheritanceSection extends Component<{
+    editor: ConfigEditor
 }> {
-    constructor(props: { editor: Editor }) {
+    constructor(props: { editor: ConfigEditor }) {
         super(props)
         makeObservable(this)
     }
@@ -267,11 +265,11 @@ class InheritanceSection<Editor extends AbstractChartEditor> extends Component<{
     }
 
     @action.bound resetToParent() {
-        const { grapherState, activeParentConfig } = this.editor
-        if (!activeParentConfig || !activeParentConfig.map) return
+        const { grapherState, baseConfig } = this.editor
+        if (!baseConfig || !baseConfig.map) return
 
         grapherState.map = new MapConfig()
-        grapherState.map.updateFromObject(activeParentConfig.map)
+        grapherState.map.updateFromObject(baseConfig.map)
     }
 
     override render() {
@@ -304,38 +302,20 @@ class InheritanceSection<Editor extends AbstractChartEditor> extends Component<{
     }
 }
 
-interface EditorMapTabProps<Editor> {
-    editor: Editor
+interface EditorMapTabProps {
+    editor: ConfigEditor
     errorMessages: ErrorMessages
 }
 
 @observer
-export class EditorMapTab<Editor extends AbstractChartEditor> extends Component<
-    EditorMapTabProps<Editor>
-> {
-    constructor(props: EditorMapTabProps<Editor>) {
+export class EditorMapTab extends Component<EditorMapTabProps> {
+    constructor(props: EditorMapTabProps) {
         super(props)
         makeObservable(this)
     }
 
     @computed get grapherState() {
         return this.props.editor.grapherState
-    }
-
-    @computed get lastColorScaleEdit(): MapColorScaleEdit | undefined {
-        const { editor } = this.props
-        if (!isChartEditorInstance(editor)) return undefined
-        return findLastMapColorScaleEdit(editor.logs ?? [])
-    }
-
-    @computed get lastColorScaleEditNote(): React.ReactNode | undefined {
-        const edit = this.lastColorScaleEdit
-        if (!edit) return undefined
-        return (
-            <>
-                Last edited <Timeago time={edit.createdAt} by={edit.userName} />
-            </>
-        )
     }
 
     override render() {
@@ -352,7 +332,7 @@ export class EditorMapTab<Editor extends AbstractChartEditor> extends Component<
                 <VariableSection
                     mapConfig={mapConfig}
                     filledDimensions={grapherState.filledDimensions}
-                    parentConfig={this.props.editor.activeParentConfig}
+                    baseConfig={this.props.editor.baseConfig}
                 />
                 {isReady && (
                     <Fragment>
@@ -365,7 +345,9 @@ export class EditorMapTab<Editor extends AbstractChartEditor> extends Component<
                             }}
                             errorMessages={this.props.errorMessages}
                             errorMessagesKey={"map.colorScale"}
-                            lastEditedNote={this.lastColorScaleEditNote}
+                            lastEditedNote={this.props.editor.manager.renderNote?.(
+                                "map.colorScale"
+                            )}
                         />
                         <TooltipSection mapConfig={mapConfig} />
                         <InapplicableEntitiesSection
@@ -377,24 +359,4 @@ export class EditorMapTab<Editor extends AbstractChartEditor> extends Component<
             </div>
         )
     }
-}
-
-interface MapColorScaleEdit {
-    userName: string
-    createdAt: string
-}
-
-function findLastMapColorScaleEdit(logs: Log[]): MapColorScaleEdit | undefined {
-    // Assumes logs are ordered from newest to oldest
-    for (let i = 0; i < logs.length - 1; i++) {
-        const current = logs[i].config?.map?.colorScale
-        const previous = logs[i + 1].config?.map?.colorScale
-
-        if (!_.isEqual(current, previous)) {
-            return { userName: logs[i].userName, createdAt: logs[i].createdAt }
-        }
-    }
-
-    // The map color scale has never been edited or the logs are empty
-    return undefined
 }

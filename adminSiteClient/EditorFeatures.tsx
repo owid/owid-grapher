@@ -1,12 +1,12 @@
 import { computed, makeObservable } from "mobx"
 import { SortBy } from "@ourworldindata/types"
-import { AbstractChartEditor } from "./AbstractChartEditor.js"
+import { ConfigEditor } from "./ConfigEditor.js"
 
 // Responsible for determining what parts of the editor should be shown, based on the
 // type of chart being edited
 export class EditorFeatures {
-    editor: AbstractChartEditor
-    constructor(editor: AbstractChartEditor) {
+    editor: ConfigEditor
+    constructor(editor: ConfigEditor) {
         makeObservable(this)
         this.editor = editor
     }

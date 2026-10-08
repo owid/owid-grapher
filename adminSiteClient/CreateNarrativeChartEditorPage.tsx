@@ -1,9 +1,7 @@
 import * as React from "react"
-import { useHistory, useLocation } from "react-router-dom"
+import { Redirect, useLocation } from "react-router-dom"
 import { action, computed, makeObservable, observable, runInAction } from "mobx"
 import { observer } from "mobx-react"
-import type { History } from "history"
-
 import {
     GrapherInterface,
     GrapherQueryParams,
@@ -15,19 +13,22 @@ import {
 } from "../adminShared/validation.js"
 import { Admin } from "./Admin.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
-import {
-    ChartEditorLoading,
-    ChartEditorView,
-    ChartEditorViewManager,
-} from "./ChartEditorView.js"
-import {
-    NarrativeChartEditor,
-    NarrativeChartEditorManager,
-} from "./NarrativeChartEditor.js"
+import { AdminLayout } from "./AdminLayout.js"
+import { LoadingBlocker } from "./Forms.js"
+import { GrapherEditor } from "./GrapherEditor.js"
+import { ConfigEditor } from "./ConfigEditor.js"
+import { NarrativeChartSaveButtons } from "./NarrativeChartSaveButtons.js"
 import { NotFoundPage } from "./NotFoundPage.js"
+import {
+    adminDetailsProvider,
+    adminIndicatorCatalog,
+    defaultEditorEnvironment,
+    DetailsProvider,
+} from "./editorProviders.js"
+import { dataApiIndicatorStore, IndicatorStore } from "./indicatorStores.js"
+import { makeNarrativeChartPatchConfig } from "./narrativeChartConfig.js"
 
 export function CreateNarrativeChartEditorPage() {
-    const history = useHistory()
     const { search } = useLocation()
     const searchParams = new URLSearchParams(search)
     const type = searchParams.get("type")
@@ -42,7 +43,6 @@ export function CreateNarrativeChartEditorPage() {
                 type="multiDim"
                 chartConfigId={chartConfigId}
                 grapherQueryStr={grapherQueryStr}
-                history={history}
             />
         )
     }
@@ -53,73 +53,71 @@ interface CreateNarrativeChartEditorPageInternalProps {
     type: "multiDim"
     chartConfigId: string
     grapherQueryStr: string | null
-    history: History
 }
 
 @observer
-class CreateNarrativeChartEditorPageInternal
-    extends React.Component<CreateNarrativeChartEditorPageInternalProps>
-    implements
-        NarrativeChartEditorManager,
-        ChartEditorViewManager<NarrativeChartEditor>
-{
+class CreateNarrativeChartEditorPageInternal extends React.Component<CreateNarrativeChartEditorPageInternalProps> {
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    constructor(props: CreateNarrativeChartEditorPageInternalProps) {
-        super(props)
+    isLoaded = false
 
-        makeObservable(this, {
-            name: observable,
-            nameError: observable,
-            isConfigLoaded: observable.ref,
-        })
-    }
+    parentConfig: GrapherInterface | undefined = undefined
 
-    // See ChartEditorLoading
-    isConfigLoaded = false
-
-    id?: number
     name: string | undefined = undefined
     nameError: string | undefined = undefined
-    configId?: string
-    patchConfig: GrapherInterface = {}
-    fullConfig: GrapherInterface = {}
-    parentConfig: GrapherInterface = {}
-    parentUrl: string | null = null
 
-    isInheritanceEnabled: boolean | undefined = true
+    createdId: number | undefined = undefined
 
-    references = undefined
-
-    async fetchNarrativeChartData(): Promise<void> {
-        const chartConfig = await this.context.admin.getJSON(
-            `/api/chart-configs/${this.props.chartConfigId}.config.json`
-        )
-        this.parentConfig = chartConfig
-        runInAction(() => (this.isConfigLoaded = true))
+    constructor(props: CreateNarrativeChartEditorPageInternalProps) {
+        super(props)
+        makeObservable(this, {
+            isLoaded: observable,
+            parentConfig: observable.ref,
+            name: observable,
+            nameError: observable,
+            createdId: observable.ref,
+        })
     }
 
     @computed get admin(): Admin {
         return this.context.admin
     }
 
-    @computed get history(): History {
-        return this.props.history
+    @computed get store(): IndicatorStore {
+        return dataApiIndicatorStore({
+            dataApiUrl: defaultEditorEnvironment.dataApiUrl,
+            catalog: adminIndicatorCatalog(this.admin),
+        })
     }
 
-    @computed get editor(): NarrativeChartEditor {
-        return new NarrativeChartEditor({ manager: this })
+    @computed get details(): DetailsProvider {
+        return adminDetailsProvider(this.admin)
     }
 
-    @computed get parentChartConfigId(): string | undefined {
-        return this.props.chartConfigId
+    @computed get previewUrl(): string | undefined {
+        const parentId = this.parentConfig?.id
+        return parentId ? `/admin/charts/${parentId}/preview` : undefined
     }
 
     @computed get initialQueryParams(): GrapherQueryParams | undefined {
         const { grapherQueryStr } = this.props
         if (!grapherQueryStr) return undefined
         return Url.fromQueryStr(grapherQueryStr).queryParams
+    }
+
+    async fetchParentConfig(): Promise<void> {
+        const chartConfig = await this.admin.getJSON(
+            `/api/chart-configs/${this.props.chartConfigId}.config.json`
+        )
+        runInAction(() => {
+            this.parentConfig = chartConfig
+            this.isLoaded = true
+        })
+    }
+
+    override componentDidMount(): void {
+        void this.fetchParentConfig()
     }
 
     @action.bound onNameChange(value: string) {
@@ -129,16 +127,81 @@ class CreateNarrativeChartEditorPageInternal
             : NARRATIVE_CHART_KEBAB_CASE_ERROR_MSG
     }
 
-    @action.bound refresh(): void {
-        void this.fetchNarrativeChartData()
+    @action.bound async onSave(
+        patch: GrapherInterface,
+        editor: ConfigEditor
+    ): Promise<void> {
+        this.nameError = undefined
+        const json = await this.admin.requestJSON(
+            "/api/narrative-charts",
+            {
+                type: this.props.type,
+                name: this.name,
+                parentChartConfigId: this.props.chartConfigId,
+                config: makeNarrativeChartPatchConfig(
+                    editor.liveConfigWithDefaults,
+                    editor.baseConfigWithDefaults
+                ),
+            },
+            "POST"
+        )
+        if (json.success) {
+            runInAction(() => {
+                editor.markAsSaved(patch)
+                this.createdId = json.narrativeChartId
+            })
+        } else {
+            runInAction(() => (this.nameError = json.errorMsg))
+            throw new Error(json.errorMsg ?? "Creating failed")
+        }
     }
 
-    override componentDidMount(): void {
-        this.refresh()
+    private readonly renderSaveButtons = (
+        editor: ConfigEditor,
+        editingErrors: string[]
+    ): React.ReactNode => (
+        <NarrativeChartSaveButtons
+            editor={editor}
+            editingErrors={editingErrors}
+            parentUrl={null}
+            chart={{
+                status: "new",
+                name: this.name,
+                nameError: this.nameError,
+                onNameChange: this.onNameChange,
+            }}
+        />
+    )
+
+    private renderEditor(): React.ReactElement {
+        return (
+            <GrapherEditor
+                config={{}}
+                baseConfig={this.parentConfig}
+                initialQueryParams={this.initialQueryParams}
+                store={this.store}
+                details={this.details}
+                onSave={this.onSave}
+                renderSaveButtons={this.renderSaveButtons}
+                previewUrl={this.previewUrl}
+            />
+        )
     }
 
     override render(): React.ReactElement {
-        if (!this.isConfigLoaded) return <ChartEditorLoading />
-        return <ChartEditorView manager={this} />
+        return (
+            <AdminLayout noSidebar>
+                {this.createdId && (
+                    <Redirect to={`/narrative-charts/${this.createdId}/edit`} />
+                )}
+                {this.isLoaded ? (
+                    this.renderEditor()
+                ) : (
+                    <main className="ChartEditorPage">
+                        <LoadingBlocker isLoading />
+                    </main>
+                )}
+            </AdminLayout>
+        )
     }
 }

@@ -122,6 +122,40 @@ test.describe("publishing", () => {
         })
     })
 
+    test("a failed publish leaves the chart an unmodified draft", async ({
+        seedChart,
+        openEditor,
+        request,
+    }) => {
+        const chart = await seedChart({
+            ...lineChart(indicators.lifeExpectancy),
+            isPublished: false,
+        })
+        const editor = await openEditor(chart)
+        await editor.page.route(
+            (url) => url.pathname === `/admin/api/charts/${chart.id}`,
+            (route) =>
+                route.request().method() === "PUT"
+                    ? route.fulfill({ json: { success: false } })
+                    : route.fallback()
+        )
+
+        void editor.acceptNextDialog()
+        await Promise.all([
+            editor.page.waitForResponse(
+                (response) => response.request().method() === "PUT"
+            ),
+            editor.button("Publish").click(),
+        ])
+
+        await expect(editor.button("Publish")).toBeVisible()
+        const form = await editor.openTab("Revisions")
+        await expect(form).not.toContainText("Unsaved changes")
+        expect(await storedConfig(request, chart.id)).toMatchObject({
+            isPublished: false,
+        })
+    })
+
     test("unpublishing a published chart stores it as a draft", async ({
         seedChart,
         openEditor,

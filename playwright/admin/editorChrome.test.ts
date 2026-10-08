@@ -11,7 +11,13 @@ import { lineChart, mapChart, marimekkoChart, scatterPlot } from "./charts.js"
 
 test.describe("tabs", () => {
     const common: EditorTabName[] = ["Basic", "Data", "Text", "Customize"]
-    const trailing: EditorTabName[] = ["Revisions", "Refs", "Export", "Debug"]
+    const trailing: EditorTabName[] = [
+        "Revisions",
+        "Refs",
+        "Publishing",
+        "Export",
+        "Debug",
+    ]
     const rows: {
         name: string
         config: GrapherInterface

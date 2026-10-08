@@ -2,11 +2,7 @@ import * as _ from "lodash-es"
 
 import { Component, createContext, Fragment, useState } from "react"
 import { observer } from "mobx-react"
-import {
-    ChartEditor,
-    getFullReferencesCount,
-    isChartEditorInstance,
-} from "./ChartEditor.js"
+import { getFullReferencesCount, References } from "./adminChartApi.js"
 import { computed, action, observable, runInAction, makeObservable } from "mobx"
 import {
     BAKED_BASE_URL,
@@ -15,15 +11,12 @@ import {
 } from "../settings/clientSettings.mjs"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import {
+    type AnalyticsGrapherViewWithRank,
     stringifyUnknownError,
     formatValue,
     ChartRedirect,
 } from "@ourworldindata/utils"
-import { AbstractChartEditor, References } from "./AbstractChartEditor.js"
-import {
-    NarrativeChartEditor,
-    isNarrativeChartEditorInstance,
-} from "./NarrativeChartEditor.js"
+import { ConfigEditor } from "./ConfigEditor.js"
 import { ReuploadImageForDataInsightModal } from "./ReuploadImageForDataInsightModal.js"
 import { ImageUploadResponse } from "./imagesHelpers.js"
 import { DataInsightMinimalInformation } from "../adminShared/AdminTypes.js"
@@ -32,27 +25,17 @@ import { getCanonicalUrl } from "@ourworldindata/components"
 
 const BASE_URL = BAKED_GRAPHER_URL.replace(/^https?:\/\//, "")
 
-@observer
-export class EditorReferencesTab<
-    Editor extends AbstractChartEditor,
-> extends Component<{
-    editor: Editor
-}> {
-    override render() {
-        const { editor } = this.props
-        if (isChartEditorInstance(editor))
-            return <EditorReferencesTabForChart editor={editor} />
-        else if (isNarrativeChartEditorInstance(editor))
-            return <EditorReferencesTabForNarrativeChart editor={editor} />
-        else return null
-    }
+interface EditorReferencesTabForChartProps {
+    editor: ConfigEditor
+    references: References | undefined
+    redirects: ChartRedirect[]
+    views: AnalyticsGrapherViewWithRank | undefined
+    onRedirectAdded: (redirect: ChartRedirect) => void
 }
 
 @observer
-export class EditorReferencesTabForChart extends Component<{
-    editor: ChartEditor
-}> {
-    constructor(props: { editor: ChartEditor }) {
+export class EditorReferencesTabForChart extends Component<EditorReferencesTabForChartProps> {
+    constructor(props: EditorReferencesTabForChartProps) {
         super(props)
         makeObservable(this)
     }
@@ -62,18 +45,18 @@ export class EditorReferencesTabForChart extends Component<{
     }
 
     @computed get references() {
-        return this.props.editor.references
+        return this.props.references
     }
     @computed get redirects() {
-        return this.props.editor.redirects || []
+        return this.props.redirects
     }
 
     @computed get views() {
-        return this.props.editor.views
+        return this.props.views
     }
 
     @action.bound appendRedirect(redirect: ChartRedirect) {
-        this.props.editor.manager.redirects.push(redirect)
+        this.props.onRedirectAdded(redirect)
     }
 
     renderViewCount(views?: number, rank?: number, total?: number) {
@@ -200,19 +183,23 @@ export class EditorReferencesTabForChart extends Component<{
 }
 
 export class EditorReferencesTabForNarrativeChart extends Component<{
-    editor: NarrativeChartEditor
+    references: References | undefined
+    configId: string
 }> {
-    constructor(props: { editor: NarrativeChartEditor }) {
+    constructor(props: {
+        references: References | undefined
+        configId: string
+    }) {
         super(props)
         makeObservable(this)
     }
 
     @computed get references() {
-        return this.props.editor.references
+        return this.props.references
     }
 
     @computed get narrativeChartConfigId() {
-        return this.props.editor.manager.configId ?? ""
+        return this.props.configId
     }
 
     override render() {
@@ -246,15 +233,13 @@ export class EditorReferencesTabForNarrativeChart extends Component<{
     }
 }
 
-interface AddRedirectFormProps<Editor> {
-    editor: Editor
+interface AddRedirectFormProps {
+    editor: ConfigEditor
     onSuccess: (redirect: ChartRedirect) => void
 }
 
 @observer
-class AddRedirectForm<Editor extends AbstractChartEditor> extends Component<
-    AddRedirectFormProps<Editor>
-> {
+class AddRedirectForm extends Component<AddRedirectFormProps> {
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
@@ -264,7 +249,7 @@ class AddRedirectForm<Editor extends AbstractChartEditor> extends Component<
     isLoading: boolean = false
     errorMessage: string | undefined = undefined
 
-    constructor(props: AddRedirectFormProps<Editor>) {
+    constructor(props: AddRedirectFormProps) {
         super(props)
 
         makeObservable(this, {

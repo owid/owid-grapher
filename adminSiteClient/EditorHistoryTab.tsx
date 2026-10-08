@@ -3,7 +3,8 @@ import { observer } from "mobx-react"
 import * as _ from "lodash-es"
 import { GrapherInterface } from "@ourworldindata/types"
 import { dayjs } from "@ourworldindata/utils"
-import { ChartEditor, Log, makeRestoredPatchConfig } from "./ChartEditor.js"
+import { Log, makeRestoredPatchConfig } from "./adminChartApi.js"
+import { ConfigEditor } from "./ConfigEditor.js"
 import { Timeago } from "./Forms.js"
 import { action, computed, observable, makeObservable } from "mobx"
 import {
@@ -29,17 +30,23 @@ type OpenModal =
     | { kind: "compare" | "restore"; logIndex: number }
     | { kind: "compareUnsaved" }
 
+interface EditorHistoryTabProps {
+    logs: Log[]
+    editor: ConfigEditor
+    loadPatchConfig: (patchConfig: GrapherInterface) => Promise<void>
+}
+
 @observer
-export class EditorHistoryTab extends Component<{ editor: ChartEditor }> {
+export class EditorHistoryTab extends Component<EditorHistoryTabProps> {
     openModal: OpenModal | undefined = undefined
 
-    constructor(props: { editor: ChartEditor }) {
+    constructor(props: EditorHistoryTabProps) {
         super(props)
         makeObservable(this, { openModal: observable.ref })
     }
 
     @computed get logs(): Log[] {
-        return this.props.editor.logs || []
+        return this.props.logs
     }
 
     /** What changed in each save relative to the one before it */
@@ -62,7 +69,10 @@ export class EditorHistoryTab extends Component<{ editor: ChartEditor }> {
 
     @action.bound async onRestore(log: Log): Promise<void> {
         this.closeModal()
-        await this.props.editor.restoreRevision(log)
+        const { editor, loadPatchConfig } = this.props
+        await loadPatchConfig(
+            makeRestoredPatchConfig(log.config, editor.patchConfig)
+        )
         notification.info({
             title: "Version loaded",
             description: (
@@ -76,7 +86,7 @@ export class EditorHistoryTab extends Component<{ editor: ChartEditor }> {
 
     @action.bound async onDiscardUnsavedChanges(): Promise<void> {
         this.closeModal()
-        await this.props.editor.discardUnsavedChanges()
+        await this.props.loadPatchConfig(this.props.editor.savedPatchConfig)
         notification.info({ title: "Unsaved changes discarded" })
     }
 
