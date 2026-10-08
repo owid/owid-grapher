@@ -69,7 +69,10 @@ export const RelatedDataCharts = ({
                                                 index + 1,
                                                 chart.slug,
                                                 ...(vizType ? [vizType] : []),
-                                            ].join(":")
+                                            ].join(":"),
+                                            // which step picked the card:
+                                            // coviews or a fallback
+                                            chart.source
                                         )
                                     }
                                 />
