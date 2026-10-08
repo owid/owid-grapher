@@ -510,4 +510,8 @@ describe("several categories with negative values", () => {
             [-45, 75],
         ])
     })
+
+    it("extends the y domain below zero", () => {
+        expect(chartState.yDomain).toEqual([-45, 75])
+    })
 })
