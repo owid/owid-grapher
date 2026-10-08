@@ -3,6 +3,7 @@ import { expect, beforeAll, afterAll, test } from "vitest"
 import knex, { Knex } from "knex"
 import {
     ChartTagsTableName,
+    DbInsertRelatedChart,
     RelatedChartsTableName,
     TagGraphRootName,
     TagGraphTableName,
@@ -110,7 +111,11 @@ beforeAll(async () => {
             await knexInstance(ChartTagsTableName).insert({ chartId, tagId })
     }
 
-    const good = (chartId: number, relatedChartId: number, score: number) => ({
+    const good = (
+        chartId: number,
+        relatedChartId: number,
+        score: number
+    ): DbInsertRelatedChart => ({
         chartId,
         relatedChartId,
         label: "good",

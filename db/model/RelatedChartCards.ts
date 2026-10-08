@@ -58,12 +58,15 @@ export async function getRelatedChartCards(
 ): Promise<RelatedChart[]> {
     // Topic tag ids are only needed if coviews fall short, so resolve them lazily
     let topicTagIds: Promise<number[]> | undefined
-    const getTopicTagIds = () =>
+    const getTopicTagIds = (): Promise<number[]> =>
         (topicTagIds ??= getTopicTagIdsForChart(knex, chartId, topicTagNames))
 
     const byScore =
         (tagIds: () => Promise<number[] | undefined>) =>
-        async (limit: number, excludeChartIds: number[]) =>
+        async (
+            limit: number,
+            excludeChartIds: number[]
+        ): Promise<RelatedChart[]> =>
             getChartsByAggregateCoviewScore(knex, {
                 tagIds: await tagIds(),
                 excludeChartIds,
