@@ -1,9 +1,11 @@
-import { expect, it, describe } from "vitest"
-import knex from "knex"
+import { afterEach, beforeEach, expect, it, describe, vi } from "vitest"
+import * as db from "../db.js"
 
 import {
+    buildWhereClauses,
     canUseFulltext,
-    escapeKnexPlaceholders,
+    searchVariables,
+    searchVariablesGroupedByDataset,
     splitSearchTerms,
     unindexedSearchTerms,
 } from "./Variable.js"
@@ -97,20 +99,156 @@ describe(splitSearchTerms, () => {
     })
 })
 
-describe(escapeKnexPlaceholders, () => {
-    const mysql = knex({ client: "mysql2" })
+describe(buildWhereClauses, () => {
+    it("keeps search text in bindings, not in SQL", () => {
+        const term = "why? a\\? x' OR 1=1 --"
+        const [clause] = buildWhereClauses(`name:"${term}"`)
+        expect(clause).toEqual({
+            sql: "  REGEXP_LIKE(v.name, ?, 'i')",
+            bindings: [term],
+        })
+    })
 
-    it("hands knex back exactly the SQL it was given", () => {
-        // what `escape` produces for a term with `?` and backslashes in it:
-        // `why?`, `a\?` (a literal question mark in a regex), `\\?`, `??`
-        for (const sql of [
-            "SELECT 'why?'",
-            "SELECT 'a\\\\?'",
-            "SELECT 'x\\\\\\\\?'",
-            "SELECT '??' AS `a?`",
-            "SELECT 'no placeholders'",
-        ]) {
-            expect(mysql.raw(escapeKnexPlaceholders(sql)).toString()).toBe(sql)
+    it.each([
+        "name",
+        "path",
+        "namespace",
+        "datasetname",
+        "version",
+        "dataset",
+        "table",
+        "short",
+    ])("binds the value of %s:", (field) => {
+        const [clause] = buildWhereClauses(`${field}:road`)
+        expect(clause.sql).toContain("REGEXP_LIKE(")
+        expect(clause.sql).not.toContain("road")
+        expect(clause.bindings).toEqual(["road"])
+    })
+
+    it("binds both free-text predicates and the full-text expression", () => {
+        expect(buildWhereClauses("road deaths road")).toEqual([
+            ...["road", "deaths", "road"].map((term) => ({
+                sql: "  (REGEXP_LIKE(v.name, ?, 'i') OR REGEXP_LIKE(v.catalogPath, ?, 'i'))",
+                bindings: [term, term],
+            })),
+            {
+                sql: "MATCH(v.name, v.catalogPath) AGAINST(? IN BOOLEAN MODE)",
+                bindings: ["+road* +deaths*"],
+            },
+        ])
+    })
+
+    it("binds dates twice and dataset ids as numbers", () => {
+        const clauses = buildWhereClauses(
+            "before:2023 after:2020 datasetid:12 -datasetid:34"
+        )
+        expect(clauses.map((clause) => clause.bindings)).toEqual([
+            ["2023", "2023"],
+            ["2020", "2020"],
+            [12],
+            [34],
+        ])
+        expect(clauses[3].sql).toBe("NOT  d.id = ?")
+    })
+
+    it("keeps exclusions out of full-text narrowing", () => {
+        const clauses = buildWhereClauses("road -deaths")
+        expect(clauses[1]).toEqual({
+            sql: "NOT  (REGEXP_LIKE(v.name, ?, 'i') OR REGEXP_LIKE(v.catalogPath, ?, 'i'))",
+            bindings: ["deaths", "deaths"],
+        })
+        expect(clauses[2].bindings).toEqual(["+road*"])
+    })
+
+    it("keeps boolean predicates and empty queries binding-free", () => {
+        expect(buildWhereClauses("is:public -is:private")).toEqual([
+            { sql: "  (NOT d.isPrivate)", bindings: [] },
+            { sql: "NOT  d.isPrivate", bindings: [] },
+        ])
+        expect(buildWhereClauses("")).toEqual([])
+    })
+})
+
+// Exercise query composition without a database; knexRaw is the execution boundary.
+describe("search query bindings", () => {
+    const trx = {} as db.KnexReadonlyTransaction
+
+    beforeEach(() => {
+        vi.spyOn(db, "knexRaw").mockResolvedValue([])
+    })
+    afterEach(() => vi.restoreAllMocks())
+
+    it("binds flat pagination after search values, but not in the count", async () => {
+        const raw = vi.mocked(db.knexRaw)
+        raw.mockResolvedValueOnce([]).mockResolvedValueOnce([{ count: 42 }])
+
+        const result = await searchVariables("road", 50, 100, trx)
+
+        expect(result.numTotalRows).toBe(42)
+        expect(raw.mock.calls[0][2]).toEqual([
+            "road",
+            "road",
+            "+road*",
+            50,
+            100,
+        ])
+        expect(raw.mock.calls[0][1]).toContain("LIMIT ? OFFSET ?")
+        expect(raw.mock.calls[1][2]).toEqual(["road", "road", "+road*"])
+    })
+
+    it.each(["road", ""])(
+        "binds selected dataset ids and the preview limit for query '%s'",
+        async (query) => {
+            const raw = vi.mocked(db.knexRaw)
+            raw.mockResolvedValueOnce([
+                { id: 12, matchCount: 6, numTotalDatasets: 2, numTotalRows: 9 },
+                { id: 34, matchCount: 3, numTotalDatasets: 2, numTotalRows: 9 },
+            ]).mockResolvedValueOnce([])
+
+            await searchVariablesGroupedByDataset(query, 10, 20, trx)
+
+            const searchBindings = query ? ["road", "road", "+road*"] : []
+            expect(raw.mock.calls[0][2]).toEqual([...searchBindings, 10, 20])
+            expect(raw.mock.calls[1][2]).toEqual([...searchBindings, 12, 34, 5])
+            expect(raw.mock.calls[1][1]).toContain("v.datasetId IN (?,?)")
+            expect(raw.mock.calls[1][1]).toContain("WHERE rankInDataset <= ?")
         }
+    )
+
+    it("reuses grouped SQL with first-page bindings when past the last page", async () => {
+        const raw = vi.mocked(db.knexRaw)
+        raw.mockResolvedValueOnce([]).mockResolvedValueOnce([
+            { numTotalDatasets: 2, numTotalRows: 9 },
+        ])
+
+        const result = await searchVariablesGroupedByDataset(
+            "road",
+            10,
+            20,
+            trx
+        )
+
+        expect(result).toMatchObject({
+            datasets: [],
+            numTotalDatasets: 2,
+            numTotalRows: 9,
+        })
+        expect(raw.mock.calls[1][1]).toBe(raw.mock.calls[0][1])
+        expect(raw.mock.calls[1][2]).toEqual(["road", "road", "+road*", 1, 0])
+    })
+
+    it("still reports regex errors from bound searches", async () => {
+        vi.mocked(db.knexRaw).mockRejectedValueOnce(
+            Object.assign(new Error("Invalid regex"), {
+                code: "ER_REGEXP_RULE_SYNTAX",
+                sqlMessage: "Invalid regex",
+            })
+        )
+
+        expect(await searchVariables("name:[", 50, 0, trx)).toMatchObject({
+            variables: [],
+            numTotalRows: 0,
+            regexError: "Invalid regex",
+        })
     })
 })

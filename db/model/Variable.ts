@@ -16,7 +16,6 @@ import pl from "nodejs-polars"
 import { DATA_API_URL } from "../../settings/serverSettings.js"
 import { deleteGrapherConfigFromR2ByUuid } from "../../serverUtils/r2/chartConfigR2Helpers.js"
 import pMap from "p-map"
-import { escape } from "mysql2"
 import {
     MultipleOwidVariableDataDimensionsMap,
     OwidVariableDataMetadataDimensions,
@@ -1040,8 +1039,17 @@ const JOIN_POPULARITY = `
         ON ap.type = 'indicator' AND ap.slug = v.catalogPath
 `
 
-const whereSql = (clauses: string[]): string =>
-    clauses.length ? "WHERE " + clauses.join(" AND ") : ""
+interface SqlFragment {
+    sql: string
+    bindings: (string | number)[]
+}
+
+const whereSql = (clauses: SqlFragment[]): SqlFragment => ({
+    sql: clauses.length
+        ? "WHERE " + clauses.map((clause) => clause.sql).join(" AND ")
+        : "",
+    bindings: clauses.flatMap((clause) => clause.bindings),
+})
 
 /**
  * Perform regex search over the variables table.
@@ -1080,11 +1088,14 @@ const searchVariablesOrThrow = async (
     // Joined only where the popularity is read or ordered by. Counting through
     // it costs 2.2s instead of 0.3s, and `buildWhereClauses` never filters on
     // it, so the count can leave it out.
-    const fromWhere = `${from} ${JOIN_POPULARITY} ${where}`
-    const sqlCount = `
-        SELECT COUNT(*) count
-        ${from} ${where}
-    `
+    const fromWhere = `${from} ${JOIN_POPULARITY} ${where.sql}`
+    const sqlCount: SqlFragment = {
+        sql: `
+            SELECT COUNT(*) count
+            ${from} ${where.sql}
+        `,
+        bindings: where.bindings,
+    }
 
     // A search is ordered by how much our readers use each indicator, which is
     // what makes a 800-hit search usable. Browsing without one stays in upload
@@ -1109,12 +1120,15 @@ const searchVariablesOrThrow = async (
            COUNT(*) OVER (PARTITION BY v.datasetId) AS datasetMatchCount`
         : ""
 
-    const sqlResults = `
-        SELECT ${RESULT_COLUMNS} ${totalColumn}
-        ${fromWhere}
-        ${orderBy}
-        LIMIT ${escape(limit)} OFFSET ${escape(offset)}
-    `
+    const sqlResults: SqlFragment = {
+        sql: `
+            SELECT ${RESULT_COLUMNS} ${totalColumn}
+            ${fromWhere}
+            ${orderBy}
+            LIMIT ? OFFSET ?
+        `,
+        bindings: [...where.bindings, limit, offset],
+    }
     const rows = await queryRegexSafe(sqlResults, knex)
 
     // Past the last page there is no row to read the windowed total from, so
@@ -1210,7 +1224,7 @@ const searchVariablesGroupedByDatasetOrThrow = async (
         JOIN active_datasets d ON d.id=v.datasetId
         LEFT JOIN users u ON u.id=d.dataEditedByUserId
         ${joinPopularity}
-        ${where}
+        ${where.sql}
     `
 
     // `COUNT(*) OVER ()` counts the groups and `SUM(COUNT(*)) OVER ()` the
@@ -1242,9 +1256,13 @@ const searchVariablesGroupedByDatasetOrThrow = async (
                     ? "popularity DESC, uploadedAt DESC, d.id"
                     : "uploadedAt DESC, d.id"
             }
-        LIMIT ${escape(limit)} OFFSET ${escape(offset)}
+        LIMIT ? OFFSET ?
     `
-    const datasetRows = await queryRegexSafe(sqlDatasets, knex)
+    const datasetsQuery: SqlFragment = {
+        sql: sqlDatasets,
+        bindings: [...where.bindings, limit, offset],
+    }
+    const datasetRows = await queryRegexSafe(datasetsQuery, knex)
     const unindexedTerms = unindexedSearchTerms(query)
     if (datasetRows.length === 0) {
         // Past the last page there's no row to read the totals from, so ask
@@ -1252,10 +1270,10 @@ const searchVariablesGroupedByDatasetOrThrow = async (
         const [first] =
             offset > 0
                 ? await queryRegexSafe(
-                      sqlDatasets.replace(
-                          /LIMIT \S+ OFFSET \S+\s*$/,
-                          "LIMIT 1 OFFSET 0"
-                      ),
+                      {
+                          sql: sqlDatasets,
+                          bindings: [...where.bindings, 1, 0],
+                      },
                       knex
                   )
                 : []
@@ -1267,26 +1285,36 @@ const searchVariablesGroupedByDatasetOrThrow = async (
         }
     }
 
-    const datasetIds = datasetRows.map((row: any) => row.id)
+    const datasetIds: number[] = datasetRows.map(
+        (row: { id: number }) => row.id
+    )
+    const selectedWhere = whereSql([
+        ...whereClauses,
+        {
+            sql: `v.datasetId IN (${datasetIds.map(() => "?").join(",")})`,
+            bindings: datasetIds,
+        },
+    ])
 
-    const sqlVariables = `
-        SELECT * FROM (
-            SELECT ${RESULT_COLUMNS},
-                ROW_NUMBER() OVER (
-                    PARTITION BY v.datasetId
-                    ORDER BY ap.popularity DESC, v.id
-                ) AS rankInDataset
-            FROM variables AS v
-            JOIN active_datasets d ON d.id=v.datasetId
-            LEFT JOIN users u ON u.id=d.dataEditedByUserId
-            ${JOIN_POPULARITY}
-            ${where ? where + " AND" : "WHERE"} v.datasetId IN (${datasetIds
-                .map((id: number) => escape(id))
-                .join(",")})
-        ) ranked
-        WHERE rankInDataset <= ${escape(INDICATORS_PER_DATASET)}
-        ORDER BY rankInDataset
-    `
+    const sqlVariables: SqlFragment = {
+        sql: `
+            SELECT * FROM (
+                SELECT ${RESULT_COLUMNS},
+                    ROW_NUMBER() OVER (
+                        PARTITION BY v.datasetId
+                        ORDER BY ap.popularity DESC, v.id
+                    ) AS rankInDataset
+                FROM variables AS v
+                JOIN active_datasets d ON d.id=v.datasetId
+                LEFT JOIN users u ON u.id=d.dataEditedByUserId
+                ${JOIN_POPULARITY}
+                ${selectedWhere.sql}
+            ) ranked
+            WHERE rankInDataset <= ?
+            ORDER BY rankInDataset
+        `,
+        bindings: [...selectedWhere.bindings, INDICATORS_PER_DATASET],
+    }
     const variableRows = await queryRegexSafe(sqlVariables, knex)
 
     variableRows.forEach((row: any) => delete row.rankInDataset)
@@ -1327,8 +1355,8 @@ const catalogPathSegment = (n: number): string =>
     // the last segment carries the #short_name, which `short:` searches instead
     `SUBSTRING_INDEX(SUBSTRING_INDEX(SUBSTRING_INDEX(v.catalogPath, '/', ${n}), '/', -1), '#', 1)`
 
-const buildWhereClauses = (query: string): string[] => {
-    const whereClauses: string[] = []
+export const buildWhereClauses = (query: string): SqlFragment[] => {
+    const whereClauses: SqlFragment[] = []
     const fulltextTerms: string[] = []
 
     if (!query) {
@@ -1369,40 +1397,45 @@ const buildWhereClauses = (query: string): string[] => {
             const q = part.substring("name:".length)
             if (q) {
                 alsoIndex(q)
-                whereClauses.push(
-                    `${not} REGEXP_LIKE(v.name, ${escape(q)}, 'i')`
-                )
+                whereClauses.push({
+                    sql: `${not} REGEXP_LIKE(v.name, ?, 'i')`,
+                    bindings: [q],
+                })
             }
         } else if (part.startsWith("path:")) {
             const q = part.substring("path:".length)
             if (q) {
                 alsoIndex(q)
-                whereClauses.push(
-                    `${not} REGEXP_LIKE(v.catalogPath, ${escape(q)}, 'i')`
-                )
+                whereClauses.push({
+                    sql: `${not} REGEXP_LIKE(v.catalogPath, ?, 'i')`,
+                    bindings: [q],
+                })
             }
         } else if (part.startsWith("namespace:")) {
             const q = part.substring("namespace:".length)
             if (q) {
                 alsoIndex(q)
-                whereClauses.push(
-                    `${not} REGEXP_LIKE(${catalogPathSegment(2)}, ${escape(q)}, 'i')`
-                )
+                whereClauses.push({
+                    sql: `${not} REGEXP_LIKE(${catalogPathSegment(2)}, ?, 'i')`,
+                    bindings: [q],
+                })
             }
         } else if (part.startsWith("datasetname:")) {
             const q = part.substring("datasetname:".length)
             if (q) {
-                whereClauses.push(
-                    `${not} REGEXP_LIKE(d.name, ${escape(q)}, 'i')`
-                )
+                whereClauses.push({
+                    sql: `${not} REGEXP_LIKE(d.name, ?, 'i')`,
+                    bindings: [q],
+                })
             }
         } else if (part.startsWith("version:")) {
             const q = part.substring("version:".length)
             if (q) {
                 alsoIndex(q)
-                whereClauses.push(
-                    `${not} REGEXP_LIKE(${catalogPathSegment(3)}, ${escape(q)}, 'i')`
-                )
+                whereClauses.push({
+                    sql: `${not} REGEXP_LIKE(${catalogPathSegment(3)}, ?, 'i')`,
+                    bindings: [q],
+                })
             }
         } else if (part.startsWith("datasetid:")) {
             // Exact, for the "more in this dataset" link: 78 groups of active
@@ -1411,77 +1444,81 @@ const buildWhereClauses = (query: string): string[] => {
             // the link was offering.
             const id = parseIntOrUndefined(part.substring("datasetid:".length))
             if (id !== undefined)
-                whereClauses.push(`${not} d.id = ${escape(id)}`)
+                whereClauses.push({
+                    sql: `${not} d.id = ?`,
+                    bindings: [id],
+                })
         } else if (part.startsWith("dataset:")) {
             const q = part.substring("dataset:".length)
             if (q) {
                 alsoIndex(q)
-                whereClauses.push(
-                    `${not} REGEXP_LIKE(${catalogPathSegment(4)}, ${escape(q)}, 'i')`
-                )
+                whereClauses.push({
+                    sql: `${not} REGEXP_LIKE(${catalogPathSegment(4)}, ?, 'i')`,
+                    bindings: [q],
+                })
             }
         } else if (part.startsWith("table:")) {
             const q = part.substring("table:".length)
             if (q) {
                 alsoIndex(q)
-                whereClauses.push(
-                    `${not} REGEXP_LIKE(${catalogPathSegment(5)}, ${escape(q)}, 'i')`
-                )
+                whereClauses.push({
+                    sql: `${not} REGEXP_LIKE(${catalogPathSegment(5)}, ?, 'i')`,
+                    bindings: [q],
+                })
             }
         } else if (part.startsWith("short:")) {
             const q = part.substring("short:".length)
             if (q) {
                 alsoIndex(q)
-                whereClauses.push(
-                    `${not} REGEXP_LIKE(v.shortName, ${escape(q)}, 'i')`
-                )
+                whereClauses.push({
+                    sql: `${not} REGEXP_LIKE(v.shortName, ?, 'i')`,
+                    bindings: [q],
+                })
             }
         } else if (part.startsWith("before:")) {
             const q = part.substring("before:".length)
             if (q) {
-                whereClauses.push(
-                    `${not} IF(d.version is not null, d.version < ${escape(
-                        q
-                    )}, cast(date(d.createdAt) as char) < ${escape(q)})`
-                )
+                whereClauses.push({
+                    sql: `${not} IF(d.version is not null, d.version < ?, cast(date(d.createdAt) as char) < ?)`,
+                    bindings: [q, q],
+                })
             }
         } else if (part.startsWith("after:")) {
             const q = part.substring("after:".length)
             if (q) {
-                whereClauses.push(
-                    `${not} (IF (d.version is not null, d.version = "latest" OR d.version > ${escape(
-                        q
-                    )}, cast(date(d.createdAt) as char) > ${escape(q)}))`
-                )
+                whereClauses.push({
+                    sql: `${not} (IF (d.version is not null, d.version = "latest" OR d.version > ?, cast(date(d.createdAt) as char) > ?))`,
+                    bindings: [q, q],
+                })
             }
         } else if (part === "is:published" || part === "is:public") {
             // the search help has always advertised is:public
-            whereClauses.push(`${not} (NOT d.isPrivate)`)
+            whereClauses.push({ sql: `${not} (NOT d.isPrivate)`, bindings: [] })
         } else if (part === "is:private") {
-            whereClauses.push(`${not} d.isPrivate`)
+            whereClauses.push({ sql: `${not} d.isPrivate`, bindings: [] })
         } else if (part) {
             // Plain text, the common case: a substring regex over the name and
             // the catalog path, with the index narrowing to the rows worth
             // running it on.
-            whereClauses.push(
-                `${not} (REGEXP_LIKE(v.name, ${escape(
-                    part
-                )}, 'i') OR REGEXP_LIKE(v.catalogPath, ${escape(part)}, 'i'))`
-            )
+            whereClauses.push({
+                sql: `${not} (REGEXP_LIKE(v.name, ?, 'i') OR REGEXP_LIKE(v.catalogPath, ?, 'i'))`,
+                bindings: [part, part],
+            })
             alsoIndex(part)
         }
     }
 
     if (fulltextTerms.length > 0)
-        whereClauses.push(
-            `MATCH(v.name, v.catalogPath) AGAINST(${escape(
+        whereClauses.push({
+            sql: "MATCH(v.name, v.catalogPath) AGAINST(? IN BOOLEAN MODE)",
+            bindings: [
                 // every token required, each matching from its start so that a
                 // half-typed word still narrows
                 _.uniq(fulltextTerms)
                     .map((token) => `+${token}*`)
-                    .join(" ")
-            )} IN BOOLEAN MODE)`
-        )
+                    .join(" "),
+            ],
+        })
 
     return whereClauses
 }
@@ -1652,34 +1689,14 @@ const DATASET_FIELDS = new Set([
     "is",
 ])
 
-/**
- * Run a MySQL query that's robust to regular expression failures, simply
- * returning an empty result if the query fails.
- *
- * This is useful if the regex is user-supplied and we want them to be able
- * to construct it incrementally.
- */
-/**
- * Makes every `?` in an SQL string literal as far as knex is concerned.
- *
- * The search queries carry their values inline, already escaped by `escape`,
- * so a `?` in one is a character someone typed — knex would read it as a
- * placeholder and fail the whole request. knex gives a backslash meaning only
- * right before a `?`, so nothing else needs escaping: `\\?` becomes `?`, and
- * every other backslash reaches MySQL untouched (see the tests).
- */
-export function escapeKnexPlaceholders(sql: string): string {
-    return sql.replace(/\?/g, "\\?")
-}
-
 /** A search term MySQL couldn't run as a regular expression, with its reason. */
 class RegexError extends Error {}
 
 const queryRegexSafe = async (
-    query: string,
+    query: SqlFragment,
     knex: db.KnexReadonlyTransaction
 ): Promise<any> => {
-    return await knexRaw(knex, escapeKnexPlaceholders(query)).catch((err) => {
+    return await knexRaw(knex, query.sql, query.bindings).catch((err) => {
         // every MySQL regex error has an ER_REGEXP_* code; not all say so
         if (
             err.code?.startsWith("ER_REGEXP_") ||
@@ -1709,7 +1726,7 @@ async function reportingRegexErrors<T extends object>(
 }
 
 const queryRegexCount = async (
-    query: string,
+    query: SqlFragment,
     knex: db.KnexReadonlyTransaction
 ): Promise<number> => {
     const results = await queryRegexSafe(query, knex)
