@@ -8,7 +8,10 @@ import {
     PlacedSwimlaneSeries,
     SizedSwimlaneSeries,
 } from "./SwimlaneChartConstants"
-import { toPlacedSwimlaneSeries } from "./SwimlaneChartHelpers"
+import {
+    toPlacedSwimlaneSeries,
+    toSegmentOutlinePath,
+} from "./SwimlaneChartHelpers"
 
 const placeTime = (time: Time): number => (time - 2000) * 10
 
@@ -22,7 +25,10 @@ function makeCategorySegment(
         category,
         startTime,
         endTime,
+        runStartTime: startTime,
+        runEndTime: endTime,
         color: "#000",
+        categoryLabel: category,
     }
 }
 
@@ -98,5 +104,46 @@ describe("placement", () => {
         expect(lanes[1].y - lanes[0].y).toBeCloseTo(20)
         expect(lanes[0].y).toBeCloseTo(10)
         expect(lanes[19].y).toBeCloseTo(390)
+    })
+})
+
+describe("segment outline", () => {
+    it("points the start inward when the window crops the start", () => {
+        expect(
+            toSegmentOutlinePath({
+                x: 0,
+                y: 0,
+                width: 30,
+                height: 10,
+                isStartCropped: true,
+                isEndCropped: false,
+            })
+        ).toEqual("M 0,5 L 4,0 L 30,0 L 30,10 L 4,10 Z")
+    })
+
+    it("points the end outward when the window crops the end", () => {
+        expect(
+            toSegmentOutlinePath({
+                x: 0,
+                y: 0,
+                width: 30,
+                height: 10,
+                isStartCropped: false,
+                isEndCropped: true,
+            })
+        ).toEqual("M 0,0 L 26,0 L 30,5 L 26,10 L 0,10 Z")
+    })
+
+    it("limits the taper to a third of a narrow segment's width", () => {
+        expect(
+            toSegmentOutlinePath({
+                x: 0,
+                y: 0,
+                width: 6,
+                height: 10,
+                isStartCropped: true,
+                isEndCropped: true,
+            })
+        ).toEqual("M 0,5 L 2,0 L 4,0 L 6,5 L 4,10 L 2,10 Z")
     })
 })

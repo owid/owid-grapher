@@ -12,6 +12,7 @@ import {
     SortBy,
     SortConfig,
     SortOrder,
+    SwimlaneSegmentLabels,
     Time,
 } from "@ourworldindata/types"
 import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
@@ -40,7 +41,11 @@ import {
     SwimlaneSeries,
     SwimlaneSortKey,
 } from "./SwimlaneChartConstants"
-import { toSwimlaneSegments } from "./SwimlaneChartHelpers"
+import {
+    toSwimlaneSegments,
+    toVisibleSwimlaneSegments,
+} from "./SwimlaneChartHelpers"
+import { SWIMLANE_CHART_CONFIG_DEFAULTS } from "./SwimlaneChartConfig"
 
 export class SwimlaneChartState implements ChartState, ColorScaleManager {
     manager: SwimlaneChartManager
@@ -95,6 +100,11 @@ export class SwimlaneChartState implements ChartState, ColorScaleManager {
         return this.transformedTable.get(this.yColumnSlug)
     }
 
+    /** The y column before the timeline filter is applied */
+    @computed private get yColumnAcrossAllTimes(): CoreColumn {
+        return this.transformTable(this.inputTable).get(this.yColumnSlug)
+    }
+
     @computed get formatColumn(): CoreColumn {
         return this.yColumn
     }
@@ -114,6 +124,13 @@ export class SwimlaneChartState implements ChartState, ColorScaleManager {
         )
     }
 
+    @computed get segmentLabels(): SwimlaneSegmentLabels {
+        return (
+            this.manager.swimlane?.segmentLabels ??
+            SWIMLANE_CHART_CONFIG_DEFAULTS.segmentLabels
+        )
+    }
+
     @computed get categories(): SwimlaneCategories | undefined {
         const column = this.colorScaleColumn
         if (column.isMissing || column.jsType !== JsTypes.string)
@@ -125,11 +142,15 @@ export class SwimlaneChartState implements ChartState, ColorScaleManager {
             : { kind: "categorical", values }
     }
 
-    @computed private get timesAsc(): Time[] {
-        const { startTime, endTime } = this.manager
+    @computed private get allTimesAsc(): Time[] {
         const { numValues, minTime, maxTime } = this.inputYColumn
         if (numValues === 0) return []
-        const times = R.range(minTime, maxTime + 1)
+        return R.range(minTime, maxTime + 1)
+    }
+
+    @computed private get visibleTimesAsc(): Time[] {
+        const { startTime, endTime } = this.manager
+        const times = this.allTimesAsc
         if (startTime === undefined || endTime === undefined) return times
         return times.filter((time) => time >= startTime && time <= endTime)
     }
@@ -137,12 +158,17 @@ export class SwimlaneChartState implements ChartState, ColorScaleManager {
     @computed private get unsortedSeries(): SwimlaneSeries[] {
         if (this.yColumn.isMissing) return []
 
-        const { yColumn, timesAsc, colorScale } = this
+        const {
+            yColumnAcrossAllTimes,
+            allTimesAsc,
+            visibleTimesAsc,
+            colorScale,
+        } = this
 
         return this.selectionArray.selectedEntityNames.map(
             (entityName): SwimlaneSeries => {
                 const rows =
-                    yColumn.owidRowByEntityNameAndTime
+                    yColumnAcrossAllTimes.owidRowByEntityNameAndTime
                         .get(entityName)
                         ?.values() ?? []
 
@@ -150,24 +176,33 @@ export class SwimlaneChartState implements ChartState, ColorScaleManager {
                     .filter((row) => R.isString(row.value) && row.value !== "")
                     .map((row) => ({ time: row.time, category: row.value }))
 
-                const segments: ColoredSwimlaneSegment[] = toSwimlaneSegments({
-                    observations,
-                    timesAsc,
-                }).map((segment) =>
-                    match(segment)
-                        .with({ kind: "category" }, (categorySegment) => ({
-                            ...categorySegment,
-                            // A category always has a bin, so the error color should never be drawn
-                            color:
-                                colorScale.getColor(categorySegment.category) ??
-                                OWID_ERROR_COLOR,
-                        }))
-                        .with(
-                            { kind: "missing" },
-                            (missingSegment) => missingSegment
-                        )
-                        .exhaustive()
-                )
+                const segments: ColoredSwimlaneSegment[] =
+                    toVisibleSwimlaneSegments({
+                        segments: toSwimlaneSegments({
+                            observations,
+                            timesAsc: allTimesAsc,
+                        }),
+                        visibleTimesAsc,
+                    }).map((segment) =>
+                        match(segment)
+                            .with({ kind: "category" }, (categorySegment) => ({
+                                ...categorySegment,
+                                // An ordinal value missing from the indicator's sort has no bin
+                                color:
+                                    colorScale.getColor(
+                                        categorySegment.category
+                                    ) ?? OWID_ERROR_COLOR,
+                                categoryLabel:
+                                    colorScale.getBinForValue(
+                                        categorySegment.category
+                                    )?.text ?? categorySegment.category,
+                            }))
+                            .with(
+                                { kind: "missing" },
+                                (missingSegment) => missingSegment
+                            )
+                            .exhaustive()
+                    )
 
                 const lastCategorySegment = R.last(
                     segments.filter((segment) => segment.kind === "category")
@@ -212,10 +247,10 @@ export class SwimlaneChartState implements ChartState, ColorScaleManager {
 
     toHorizontalAxis(config: AxisConfig): HorizontalAxis {
         const axis = config.toHorizontalAxis()
-        const lastTime = R.last(this.timesAsc)
+        const lastTime = R.last(this.visibleTimesAsc)
         // The last segment runs one step past the last time
         axis.updateDomainPreservingUserSettings([
-            R.first(this.timesAsc),
+            R.first(this.visibleTimesAsc),
             lastTime === undefined ? undefined : lastTime + 1,
         ])
         axis.maxTickValue = lastTime

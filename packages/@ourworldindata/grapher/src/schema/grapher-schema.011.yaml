@@ -448,6 +448,26 @@ properties:
         additionalProperties: false
     additionalProperties: false
 
+  swimlane:
+    type: object
+    description: Configuration of the swimlane chart
+    properties:
+      segmentLabels:
+        type: string
+        default: categoryAndTimeRange
+        description: |
+          What a swimlane segment's label may show. This is a ceiling rather than
+          a demand: a segment without room for the whole label is left bare, and
+          there is no shorter form to fall back to. Faceted charts label nothing,
+          because their legend carries the categories. hideSeriesLabels also
+          removes these labels, and leaves the entity labels beside the lanes.
+          - categoryAndTimeRange: the category above the time range it spans
+          - none: draw no segment labels
+        enum:
+          - categoryAndTimeRange
+          - none
+    additionalProperties: false
+
   baseColorScheme:
     $ref: "#/$defs/colorScheme"
   invertColorScheme:

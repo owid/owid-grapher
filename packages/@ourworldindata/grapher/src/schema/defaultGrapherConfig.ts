@@ -73,6 +73,9 @@ export const defaultGrapherConfig = {
         connectorStyle: "arrow",
         valueLabelMode: "absolute",
     },
+    swimlane: {
+        segmentLabels: "categoryAndTimeRange",
+    },
     invertColorScheme: false,
     logo: "owid",
     hideSeriesLabels: false,

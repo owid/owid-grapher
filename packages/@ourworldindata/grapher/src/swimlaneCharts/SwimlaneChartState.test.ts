@@ -8,6 +8,7 @@ import {
     Time,
 } from "@ourworldindata/types"
 import { OwidTable } from "@ourworldindata/core-table"
+import { ColorScaleConfig } from "../color/ColorScaleConfig"
 import { AxisConfig } from "../axis/AxisConfig"
 import { HorizontalAxis } from "../axis/Axis"
 import { SwimlaneChartState } from "./SwimlaneChartState"
@@ -50,18 +51,22 @@ function makeChartState(
     })
 }
 
-/** Segments of an entity's lane without colors */
+/** Segments of an entity's lane without colors and category labels */
 function findSegments(
     chartState: SwimlaneChartState,
     entityName: string
-): Omit<ColoredSwimlaneSegment, "color">[] {
+): Omit<ColoredSwimlaneSegment, "color" | "categoryLabel">[] {
     const series = chartState.series.find(
         (series) => series.entityName === entityName
     )
     if (!series) throw new Error(`No lane for ${entityName}`)
     return series.segments.map((segment) => {
         if (segment.kind === "missing") return segment
-        const { color: _color, ...rest } = segment
+        const {
+            color: _color,
+            categoryLabel: _categoryLabel,
+            ...rest
+        } = segment
         return rest
     })
 }
@@ -83,12 +88,16 @@ describe("segments", () => {
                 category: "X",
                 startTime: 2000,
                 endTime: 2001,
+                runStartTime: 2000,
+                runEndTime: 2001,
             },
             {
                 kind: "category",
                 category: "Y",
                 startTime: 2002,
                 endTime: 2002,
+                runStartTime: 2002,
+                runEndTime: 2002,
             },
             { kind: "missing", startTime: 2003, endTime: 2003 },
         ])
@@ -109,6 +118,8 @@ describe("segments", () => {
                 category: "X",
                 startTime: 2000,
                 endTime: 2000,
+                runStartTime: 2000,
+                runEndTime: 2000,
             },
             { kind: "missing", startTime: 2001, endTime: 2001 },
             {
@@ -116,6 +127,8 @@ describe("segments", () => {
                 category: "X",
                 startTime: 2002,
                 endTime: 2002,
+                runStartTime: 2002,
+                runEndTime: 2002,
             },
         ])
     })
@@ -134,6 +147,8 @@ describe("segments", () => {
                 category: "X",
                 startTime: 2000,
                 endTime: 2000,
+                runStartTime: 2000,
+                runEndTime: 2000,
             },
             { kind: "missing", startTime: 2001, endTime: 2009 },
             {
@@ -141,6 +156,8 @@ describe("segments", () => {
                 category: "X",
                 startTime: 2010,
                 endTime: 2010,
+                runStartTime: 2010,
+                runEndTime: 2010,
             },
         ])
     })
@@ -157,6 +174,30 @@ describe("segments", () => {
         expect(
             findSegments(chartState, "France").map((segment) => segment.kind)
         ).toEqual(["category", "missing", "category"])
+    })
+
+    it("clips segments to the timeline window but keeps the full run", () => {
+        const chartState = makeChartState(
+            makeCategoricalTable([
+                { entityName: "France", time: 1999, status: "W" },
+                { entityName: "France", time: 2000, status: "X" },
+                { entityName: "France", time: 2001, status: "X" },
+                { entityName: "France", time: 2002, status: "X" },
+                { entityName: "France", time: 2003, status: "Y" },
+            ]),
+            { startTime: 2001, endTime: 2002 }
+        )
+
+        expect(findSegments(chartState, "France")).toEqual([
+            {
+                kind: "category",
+                category: "X",
+                startTime: 2001,
+                endTime: 2002,
+                runStartTime: 2000,
+                runEndTime: 2002,
+            },
+        ])
     })
 })
 
@@ -190,6 +231,31 @@ describe("x axis", () => {
         )
 
         expect(axis.domain).toEqual([2004, 2005])
+    })
+})
+
+describe("category label", () => {
+    it("is the custom label the legend shows, or the category itself", () => {
+        const chartState = makeChartState(
+            makeCategoricalTable([
+                { entityName: "France", time: 2000, status: "Neoplasms" },
+                { entityName: "France", time: 2001, status: "Malaria" },
+            ]),
+            {
+                colorScale: new ColorScaleConfig({
+                    customCategoryLabels: { Neoplasms: "Cancer" },
+                }),
+            }
+        )
+        const france = chartState.series.find(
+            (series) => series.entityName === "France"
+        )
+
+        expect(
+            france?.segments.map((segment) =>
+                segment.kind === "category" ? segment.categoryLabel : undefined
+            )
+        ).toEqual(["Cancer", "Malaria"])
     })
 })
 
