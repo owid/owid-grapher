@@ -621,10 +621,12 @@ const AllChartsLeftPane = (props: AllChartsLeftPaneProps) => {
     }, [resultKey, isAccordionLayout])
 
     // Only the rows on screen: a topic's chart list is unbounded, so the block
-    // renders a bounded first slice of it until the visitor asks for the rest.
-    const { visibleHits, hasHiddenHits, revealAll } = useVisibleChartHits(
+    // renders it 15 rows at a time, always far enough to include the selected
+    // row (see getChartRowWindow).
+    const { visibleHits, nextBatchSize, showMore } = useVisibleChartHits(
         hits,
-        query
+        query,
+        selectedIndex
     )
 
     // Selecting a row — by its text or by its thumbnail, which share one click
@@ -692,15 +694,14 @@ const AllChartsLeftPane = (props: AllChartsLeftPaneProps) => {
                             // load.
                             isRefreshing={isFetching && !isLoading}
                         />
-                        {/* The rest of the list, one click away. Counts the
-                            whole result set for the current query, not the
-                            slice on screen, so the number narrows with the
-                            search ("Show all 196 indicators" on the bare topic,
-                            165 once "china" is typed). Revealing is one-way
-                            until the query changes: collapsing a list the
-                            visitor has scrolled into would pull the page up
-                            from under them. */}
-                        {hasHiddenHits && (
+                        {/* The next batch of the list, one click away:
+                            "Show 15 more", or the real remainder when fewer
+                            are left ("Show 7 more"), and nothing once the list
+                            is complete. Revealing only grows the list until the
+                            query changes: collapsing a list the visitor has
+                            scrolled into would pull the page up from under
+                            them. */}
+                        {nextBatchSize > 0 && (
                             <div className="all-charts-block__reveal">
                                 <Button
                                     // $blue-20 fill with $blue-90 text: the
@@ -714,12 +715,12 @@ const AllChartsLeftPane = (props: AllChartsLeftPaneProps) => {
                                     // browser's default grey.
                                     theme="solid-light-blue"
                                     className="all-charts-block__reveal-button"
-                                    text={`Show all ${hits.length} indicators`}
-                                    ariaLabel={`Show all ${hits.length} indicators on ${topicName}`}
-                                    dataTrackNote="all-charts-reveal-all"
+                                    text={`Show ${nextBatchSize} more`}
+                                    ariaLabel={`Show ${nextBatchSize} more indicators on ${topicName}`}
+                                    dataTrackNote="all-charts-show-more"
                                     icon={faChevronDown}
                                     iconPosition="right"
-                                    onClick={revealAll}
+                                    onClick={showMore}
                                 />
                             </div>
                         )}
@@ -820,8 +821,8 @@ const AllChartsTable = ({
     duplicatedTitles,
     isRefreshing,
 }: {
-    // Only the rows on screen — the first slice of the result set, or all of it
-    // once the visitor has revealed the rest (see useVisibleChartHits).
+    // Only the rows on screen — the first 15 of the result set, plus each batch
+    // of 15 the visitor has revealed since (see useVisibleChartHits).
     hits: readonly SearchChartHit[]
     selectedIndex: number
     expandedIndex: number | null
