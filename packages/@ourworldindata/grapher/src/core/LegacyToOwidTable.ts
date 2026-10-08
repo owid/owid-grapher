@@ -150,6 +150,11 @@ export const legacyToOwidTableAndDimensions = (
             Array.from(columnDefs.values())
         )
 
+        // Scale before joining so values repeated across joined rows are only converted once.
+        variableTable = applyDisplayAndConversionFactor(variableTable, [
+            getIndicatorDisplayOverride(dimension, json),
+        ])
+
         // If there is a targetTime set on the dimension, we need to perform the join on the
         // entities columns only, excluding any time columns.
         // We do this by dropping the column. We interpolate before which adds an originalTime
@@ -164,8 +169,7 @@ export const legacyToOwidTableAndDimensions = (
                 // This is why we use filterByTargetTimes() which handles that case.
                 .filterByTargetTimes(
                     [targetTime],
-                    dimension.display?.tolerance ??
-                        variable.metadata.display?.tolerance
+                    variableTable.get(valueColumnDef.slug).tolerance
                 )
                 // Interpolate with 0 to add originalTimes column
                 .interpolateColumnWithTolerance(valueColumnDef.slug, {
@@ -354,12 +358,7 @@ export const legacyToOwidTableAndDimensions = (
         ])
     }
 
-    return applyDisplayAndConversionFactor(
-        joinedVariablesTable,
-        indicatorDimensions.map((dimension) =>
-            getIndicatorDisplayOverride(dimension, json)
-        )
-    )
+    return joinedVariablesTable
 }
 
 const getIndicatorDisplayOverride = (
