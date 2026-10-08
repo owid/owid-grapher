@@ -91,6 +91,7 @@ describe(withMissingValuesAsZeroes, () => {
 
 describe(stackSeries, () => {
     it("can stack series", () => {
+        expect(seriesArr[1].points[0].valueOffset).toEqual(0)
         const series = stackSeries(withMissingValuesAsZeroes(seriesArr))
         expect(series[1].points[0].valueOffset).toEqual(10)
         expect(series[2].points[0].valueOffset).toEqual(12)
@@ -116,83 +117,90 @@ describe(stackSeriesInBothDirections, () => {
     })
 })
 
-const landUseCrossingZero = {
-    seriesName: "landUse",
-    columnSlug: "landUse",
-    color: "green",
-    points: [
-        { position: 1990, time: 1990, value: 20, valueOffset: 0 },
-        { position: 2000, time: 2000, value: -20, valueOffset: 0 },
-    ],
-}
-
-const allZeros = {
-    seriesName: "allZeros",
-    columnSlug: "allZeros",
-    color: "blue",
-    isAllZeros: true,
-    points: [
-        { position: 1990, time: 1990, value: 0, valueOffset: 0 },
-        { position: 2000, time: 2000, value: 0, valueOffset: 0 },
-    ],
-}
-
-const fossil = {
-    seriesName: "fossil",
-    columnSlug: "fossil",
+const makeSeries = (
+    seriesName: string,
+    valuesByTime: [Time, number][],
+    { isAllZeros }: { isAllZeros?: boolean } = {}
+): StackedSeries<Time> => ({
+    seriesName,
+    columnSlug: seriesName,
     color: "grey",
-    points: [
-        { position: 1990, time: 1990, value: 100, valueOffset: 0 },
-        { position: 2000, time: 2000, value: 120, valueOffset: 0 },
-    ],
-}
+    isAllZeros,
+    points: valuesByTime.map(([time, value]) => ({
+        position: time,
+        time,
+        value,
+        valueOffset: 0,
+    })),
+})
+
+const makeLandUseCrossingZero = (): StackedSeries<Time> =>
+    makeSeries("landUse", [
+        [1990, 20],
+        [2000, -20],
+    ])
+
+const makeAllZeros = (): StackedSeries<Time> =>
+    makeSeries(
+        "allZeros",
+        [
+            [1990, 0],
+            [2000, 0],
+        ],
+        { isAllZeros: true }
+    )
+
+const makeFossil = (): StackedSeries<Time> =>
+    makeSeries("fossil", [
+        [1990, 100],
+        [2000, 120],
+    ])
 
 describe(findLoneNegativeSeriesAtBottom, () => {
     it("returns the bottom series when only it goes negative", () => {
-        expect(
-            findLoneNegativeSeriesAtBottom([landUseCrossingZero, fossil])
-        ).toBe(landUseCrossingZero)
+        const landUse = makeLandUseCrossingZero()
+        expect(findLoneNegativeSeriesAtBottom([landUse, makeFossil()])).toBe(
+            landUse
+        )
     })
 
     it("skips series that are all zeroes when looking for the bottom", () => {
+        const landUse = makeLandUseCrossingZero()
         expect(
             findLoneNegativeSeriesAtBottom([
-                allZeros,
-                landUseCrossingZero,
-                fossil,
+                makeAllZeros(),
+                landUse,
+                makeFossil(),
             ])
-        ).toBe(landUseCrossingZero)
+        ).toBe(landUse)
     })
 
     it("returns nothing when the bottom series is never negative", () => {
-        const landUse = {
-            ...landUseCrossingZero,
-            points: [
-                { position: 1990, time: 1990, value: 20, valueOffset: 0 },
-                { position: 2000, time: 2000, value: 10, valueOffset: 0 },
-            ],
-        }
+        const landUse = makeSeries("landUse", [
+            [1990, 20],
+            [2000, 10],
+        ])
         expect(
-            findLoneNegativeSeriesAtBottom([landUse, fossil])
+            findLoneNegativeSeriesAtBottom([landUse, makeFossil()])
         ).toBeUndefined()
     })
 
     it("returns nothing when a series above the bottom one is also negative", () => {
-        const alsoNegative = {
-            ...fossil,
-            points: [
-                { position: 1990, time: 1990, value: 100, valueOffset: 0 },
-                { position: 2000, time: 2000, value: -120, valueOffset: 0 },
-            ],
-        }
+        const alsoNegative = makeSeries("fossil", [
+            [1990, 100],
+            [2000, -120],
+        ])
         expect(
-            findLoneNegativeSeriesAtBottom([landUseCrossingZero, alsoNegative])
+            findLoneNegativeSeriesAtBottom([
+                makeLandUseCrossingZero(),
+                alsoNegative,
+            ])
         ).toBeUndefined()
     })
 })
 
 describe(withPointsAtZeroLineCrossings, () => {
-    const bandsOf = (series: StackedSeries<Time>): number[][] =>
+    const pointRowsOf = (series: StackedSeries<Time>): number[][] =>
         series.points.map((point) => [
             point.position,
             point.value,
@@ -201,14 +209,17 @@ describe(withPointsAtZeroLineCrossings, () => {
 
     it("adds a point to every series where the bottom series reaches zero", () => {
         const series = withPointsAtZeroLineCrossings(
-            stackSeriesInBothDirections([landUseCrossingZero, fossil])
+            stackSeriesInBothDirections([
+                makeLandUseCrossingZero(),
+                makeFossil(),
+            ])
         )
-        expect(bandsOf(series[0])).toEqual([
+        expect(pointRowsOf(series[0])).toEqual([
             [1990, 20, 0],
             [1995, 0, 0],
             [2000, -20, 0],
         ])
-        expect(bandsOf(series[1])).toEqual([
+        expect(pointRowsOf(series[1])).toEqual([
             [1990, 100, 20],
             [1995, 110, 0],
             [2000, 120, 0],
@@ -217,9 +228,13 @@ describe(withPointsAtZeroLineCrossings, () => {
 
     it("takes the crossings from the bottom series that gets drawn", () => {
         const series = withPointsAtZeroLineCrossings(
-            stackSeriesInBothDirections([allZeros, landUseCrossingZero, fossil])
+            stackSeriesInBothDirections([
+                makeAllZeros(),
+                makeLandUseCrossingZero(),
+                makeFossil(),
+            ])
         )
-        expect(bandsOf(series[1])).toEqual([
+        expect(pointRowsOf(series[1])).toEqual([
             [1990, 20, 0],
             [1995, 0, 0],
             [2000, -20, 0],
@@ -227,41 +242,38 @@ describe(withPointsAtZeroLineCrossings, () => {
     })
 
     it("leaves the series it was given alone", () => {
-        const input = stackSeriesInBothDirections([landUseCrossingZero, fossil])
-        const before = input.map(bandsOf)
+        const input = stackSeriesInBothDirections([
+            makeLandUseCrossingZero(),
+            makeFossil(),
+        ])
+        const before = input.map(pointRowsOf)
         withPointsAtZeroLineCrossings(input)
-        expect(input.map(bandsOf)).toEqual(before)
+        expect(input.map(pointRowsOf)).toEqual(before)
     })
 
     it("skips a pair that already has a point on the zero line", () => {
-        const landUse = {
-            ...landUseCrossingZero,
-            points: [
-                { position: 1990, time: 1990, value: 0, valueOffset: 0 },
-                { position: 2000, time: 2000, value: -20, valueOffset: 0 },
-            ],
-        }
+        const landUse = makeSeries("landUse", [
+            [1990, 0],
+            [2000, -20],
+        ])
         expect(
-            withPointsAtZeroLineCrossings([landUse, fossil])[0].points
+            withPointsAtZeroLineCrossings([landUse, makeFossil()])[0].points
         ).toHaveLength(2)
     })
 
     it("does nothing when a series above the bottom one is also negative", () => {
         const input = [
-            landUseCrossingZero,
-            {
-                ...fossil,
-                points: [
-                    { position: 1990, time: 1990, value: 100, valueOffset: 0 },
-                    { position: 2000, time: 2000, value: -120, valueOffset: 0 },
-                ],
-            },
+            makeLandUseCrossingZero(),
+            makeSeries("fossil", [
+                [1990, 100],
+                [2000, -120],
+            ]),
         ]
         expect(withPointsAtZeroLineCrossings(input)).toBe(input)
     })
 
     it("does nothing when the negative series is the only one", () => {
-        const input = [landUseCrossingZero]
+        const input = [makeLandUseCrossingZero()]
         expect(withPointsAtZeroLineCrossings(input)).toBe(input)
     })
 })
