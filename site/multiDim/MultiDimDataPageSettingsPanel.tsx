@@ -38,11 +38,7 @@ export const MultiDimSettingsPanel = ({
 
     return (
         <div className={cx("md-settings-row", className)}>
-            <div className="h5-black-caps md-settings__configure-data">
-                Configure the data
-            </div>
             <MultiDimControls
-                className="md-settings__dropdowns"
                 dimensions={dimensions}
                 availableSettings={availableSettings}
                 resolvedSettings={resolvedSettings}

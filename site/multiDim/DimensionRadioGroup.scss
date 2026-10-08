@@ -1,34 +1,27 @@
 $radio-group-height: 32px;
 $radio-group-full-width-breakpoint: 520px;
 
-.md-settings__radio-group {
+.md-settings__radio-group-options {
     display: flex;
     align-items: center;
     height: $radio-group-height;
-    padding: 1px 1px 1px 12px;
-    color: $secondary-text;
+    padding: 1px;
     background: white;
-    border: 1px solid $light-stroke;
+    border: 1px solid $gray-10;
     border-radius: 4px;
-    font: $medium 13px/16px $lato;
+    font: 500 13px/16px $lato;
     letter-spacing: 0.01em;
-
-    &[data-disabled] {
-        color: $gray-60;
-        background: $gray-5;
-    }
-
-    @media (max-width: $radio-group-full-width-breakpoint) {
-        width: 100%;
-    }
 }
 
-.md-settings__radio-group-label {
-    white-space: nowrap;
-    margin-right: 8px;
+.md-settings__radio-group[data-disabled] .md-settings__radio-group-options {
+    color: $gray-60;
+    background: $gray-10;
+}
 
-    &::after {
-        content: ":";
+@media (max-width: $radio-group-full-width-breakpoint) {
+    .md-settings__radio-group,
+    .md-settings__radio-group-options {
+        width: 100%;
     }
 }
 
@@ -51,7 +44,7 @@ $radio-group-full-width-breakpoint: 520px;
     height: 28px;
     padding: 0 10px;
     border-radius: 3px;
-    color: $primary-text;
+    color: $gray-70;
     white-space: nowrap;
     cursor: pointer;
 
@@ -61,7 +54,7 @@ $radio-group-full-width-breakpoint: 520px;
     }
 
     &[data-hovered]:not([data-selected]):not([data-disabled]) {
-        background: $hover-fill;
+        background: $gray-10;
     }
 
     &[data-focus-visible] {
@@ -70,8 +63,8 @@ $radio-group-full-width-breakpoint: 520px;
     }
 
     &[data-selected] {
-        color: $active-text;
-        background: $active-fill;
+        color: $blue-90;
+        background: $blue-20;
         cursor: default;
     }
 
