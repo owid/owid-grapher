@@ -1,11 +1,11 @@
 import { RelatedChart, RelatedChartSource } from "@ourworldindata/types"
-import * as db from "../db/db.js"
+import * as db from "../db.js"
 import {
     getChartsByAggregateCoviewScore,
     getRelatedChartsForChart,
     getTopicTagIdsForChart,
     getTopicTagIdsInSameAreas,
-} from "../db/model/Chart.js"
+} from "./Chart.js"
 
 /** Number of related-chart cards a data page shows */
 export const RELATED_CHART_CARD_COUNT = 5

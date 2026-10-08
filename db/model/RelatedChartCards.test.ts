@@ -3,7 +3,7 @@ import { RelatedChart } from "@ourworldindata/types"
 import {
     pickRelatedChartCards,
     RelatedChartStage,
-} from "./relatedChartCards.js"
+} from "./RelatedChartCards.js"
 
 const chart = (chartId: number): RelatedChart => ({
     chartId,
