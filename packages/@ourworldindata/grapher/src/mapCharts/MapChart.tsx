@@ -29,6 +29,8 @@ import {
     MapColumnInfo,
     PROJECTED_DATA_LEGEND_COLOR,
     MapViewport,
+    MAP_NARROW_FRAME_MAX_WIDTH,
+    MAP_NARROW_FRAME_PADDING_HORIZONTAL,
 } from "./MapChartConstants"
 import { MapConfig } from "./MapConfig"
 import { ColorScale, INAPPLICABLE_LABEL } from "../color/ColorScale"
@@ -316,18 +318,42 @@ export class MapChart
         return this.manager.fontSize ?? BASE_FONT_SIZE
     }
 
+    // On narrow screens, the width of the 2D map is the limiting factor,
+    // so we let the map extend into the horizontal frame padding
+    @computed private get shouldExtendMapIntoFramePadding(): boolean {
+        return (
+            !this.isFaceted &&
+            !this.mapConfig.globe.isActive &&
+            this.bounds.width <= MAP_NARROW_FRAME_MAX_WIDTH
+        )
+    }
+
     @computed get choroplethMapBounds(): Bounds {
-        return this.bounds.padBottom(
+        // On narrow viewports (especially on mobile), EXPAND the viewport
+        // so that it doesn't have the typical frame padding around it, but instead
+        // only a very narrow frame padding.
+        // This way, the map can expand a lot more horizontally and is displayed
+        // a lot bigger.
+        // The frame padding isn't always the same: captioned charts use
+        // GRAPHER_FRAME_PADDING_HORIZONTAL, while thumbnails and other uncaptioned
+        // charts use a size-dependent chart area padding. Since the map's bounds
+        // are positioned relative to the frame edge, their x offset is the actual
+        // padding we can extend into.
+        const expansion = Math.max(
+            0,
+            this.bounds.x - MAP_NARROW_FRAME_PADDING_HORIZONTAL
+        )
+        const bounds = this.shouldExtendMapIntoFramePadding
+            ? this.bounds.expand({ left: expansion, right: expansion })
+            : this.bounds
+
+        return bounds.padBottom(
             this.legendHeight
                 ? this.legendHeight +
                       PADDING_BETWEEN_MAP_AND_LEGEND +
                       PADDING_BELOW_MAP_LEGEND
                 : 0
         )
-    }
-
-    @computed private get region(): MapRegionName {
-        return this.mapConfig.region
     }
 
     @computed private get shouldAddProjectionPatternToLegendBins(): boolean {
@@ -651,15 +677,15 @@ export class MapChart
         )
     }
 
-    renderMapOrGlobe({ clipping = true } = {}): React.ReactElement {
+    renderMapOrGlobe(): React.ReactElement {
         const mapOrGlobe = this.mapConfig.globe.isActive ? (
             <ChoroplethGlobe manager={this} />
         ) : (
             <ChoroplethMap manager={this} />
         )
 
-        if (!clipping) return mapOrGlobe
-
+        // Clip the map to its bounds, since the viewport can crop the map
+        // (e.g. the World map cuts off some Pacific islands at its edges)
         return (
             <>
                 {this.clipPath.element}
@@ -669,16 +695,9 @@ export class MapChart
     }
 
     renderStatic(): React.ReactElement {
-        // Clipping the chart area is only necessary when the map is
-        // zoomed in or we're showing the globe. If that isn't the case,
-        // then we don't add a clipping element since it introduces noise
-        // in SVG editing programs like Figma.
-        const clipping =
-            this.mapConfig.globe.isActive || this.region !== MapRegionName.World
-
         return (
             <>
-                {this.renderMapOrGlobe({ clipping })}
+                {this.renderMapOrGlobe()}
                 {this.renderMapLegend()}
             </>
         )
