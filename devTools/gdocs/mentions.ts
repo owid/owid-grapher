@@ -19,18 +19,13 @@ import type { RelatedRef, RelatedRefKind } from "@ourworldindata/types"
 const BT = String.fromCharCode(96)
 const FENCE = BT + BT + BT
 const FENCED_BLOCK = new RegExp(FENCE + "[\\s\\S]*?" + FENCE, "g")
+// The content of a mention span: `{.id}`, `{guide:id}` or `{template:id}`
+const MENTION_BODY = "\\{(\\.|guide:|template:)([a-z0-9-]+)\\}"
 const MENTION = new RegExp(
-    "(?<!" +
-        BT +
-        ")" +
-        BT +
-        "\\{(\\.|guide:|template:)([a-z0-9-]+)\\}" +
-        BT +
-        "(?!" +
-        BT +
-        ")",
+    "(?<!" + BT + ")" + BT + MENTION_BODY + BT + "(?!" + BT + ")",
     "g"
 )
+const WHOLE_MENTION = new RegExp("^" + MENTION_BODY + "$")
 
 const KIND_BY_PREFIX: Record<string, RelatedRefKind> = {
     ".": "component",
@@ -50,6 +45,16 @@ const PREFIX_BY_KIND: Record<RelatedRefKind, string> = {
     component: ".",
     guide: "guide:",
     template: "template:",
+}
+
+/**
+ * The ref an inline code span mentions, if its whole content is a mention.
+ * Mirrors `parseMention` in adminSiteClient/gdocsReferenceExamples.ts, which
+ * the admin uses to link spans; the two must stay in sync.
+ */
+export function parseMention(code: string): RelatedRef | undefined {
+    const match = WHOLE_MENTION.exec(code)
+    return match ? { kind: KIND_BY_PREFIX[match[1]], id: match[2] } : undefined
 }
 
 export interface KnownIds {

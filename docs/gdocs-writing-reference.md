@@ -44,6 +44,12 @@ which lives in the sidecars.
    component examples; a profile exemplar renders and links for the first
    entity in the profile's scope.
 
+4. **The Drive export — a copy outside the admin.**
+   `yarn buildGdocsReferenceDoc` (`devTools/gdocs/buildGdocsReferenceDoc.ts`)
+   writes the three registries into a library of Markdown files in Drive for
+   the Claude for Google Workspace sidebar, which can read an attached Drive
+   file but cannot reach the admin. See [Drive export](#drive-export).
+
 Facts stay derived (name, type, optionality, adoption); only judgement is
 authored. If you find yourself typing a property's name or type into a
 sidecar, you are in the wrong file.
@@ -165,5 +171,92 @@ guide they may sit in any section.
 The registries are derived files, committed on purpose (like
 `defaultGrapherConfig.ts` or `regions.data.ts`): generation needs the
 TypeScript compiler and the package sources, which the admin server doesn't
-carry, so the admin serves them with a static import instead. They're marked
-`linguist-generated` so GitHub collapses them in PR diffs.
+carry, so the admin serves them with a static import instead — as does the
+[Drive export](#drive-export). They're marked `linguist-generated`
+so GitHub collapses them in PR diffs.
+
+## Drive export
+
+`yarn buildGdocsReferenceDoc` writes the reference into a **library** of
+plain Markdown files in one fixed Drive folder: an **index** plus one file per
+component, template and guide (85 today). Each item file carries what the
+admin page shows for that item, minus everything the admin computes from the
+database (usage, instances, exemplars, rendered previews). The index —
+`owid-writing-reference-index.md`, "OWID writing reference — start here" in
+its links — is the one file to attach by default: for every item it gives an
+intent-oriented one-liner and a link to its file, so the reader can find a
+block by what it does and then attach only that file. The tool statically
+imports the committed registries, so it needs neither the sidecars, the
+database nor the admin.
+
+The reader is the Claude for Google Workspace sidebar, not a human: people
+use the admin page. The sidebar reads `.md` files and follows Drive links
+between them, so the files are stored as `text/markdown` as is — no Google
+Docs, no conversion. Each one is built as a Markdown string — the sidecar
+prose passed through as authored, with prose headings demoted under the
+section they sit in (never past H4) and mentions (`{.chart}`, `{guide:refs}`)
+turned into links to the target's file
+(`https://drive.google.com/file/d/<id>/view`).
+
+Files are named `<kind>-<id>.md` (`component-chart.md`,
+`template-article.md`, `guide-refs.md`) plus `owid-writing-reference-index.md`
+— the same names `--dry-run --out` writes. They are recognised by their Drive
+`appProperties` (`owidRefKind` = `component` | `template` | `guide` | `index`,
+`owidRefId` = the item id), not by name: a file of ours under another name is
+renamed. Only `text/markdown` files count; a file of ours with another type
+(a leftover Google Doc from an earlier version of the tool) is trashed, and a
+Markdown file is created in its place.
+
+Every file's id is known before any content is built, so files can link to
+each other in a single pass: existing files keep theirs, and ids for the
+missing ones are reserved up front with one Drive `files.generateIds` call.
+A missing file is then created once, with its full content — never empty. An
+existing file is **updated in place** (`files.update` with the new media, its
+hash and, when it changed, its name, in one call), keeping its id and URL, so
+the folder never grows. Every upload stores the SHA-256 of its Markdown in
+`owidRefHash`; a file whose stored hash matches what would be uploaded (and
+whose name is right) is **skipped**, so a re-run with nothing changed uploads
+nothing (the index carries the commit sha and date, so it re-uploads whenever
+those change). Files whose properties match no current item are **moved to
+the trash** (reversible in Drive for 30 days) and logged. Files in the folder
+without `owidRefKind` are not ours and are left alone — even one named like
+ours, such as a hand-uploaded `component-chart.md`. Rate limits (429) and
+transient errors (503) are retried three times with 2s/4s/8s backoff; any
+other Google error stops the run naming the file, and the next run uploads
+whatever was left (a reserved id the aborted run never used is simply never
+used). Every upload replaces the file's content.
+
+The first run after the switch from Google Docs to Markdown files trashes the
+old Google Docs and gives every library file a new id and URL, so old links —
+the index's included — stop working: share the new index URL from that run's
+log again.
+
+Set-up is done once by hand: create the Drive folder, share it with the
+service account (`GDOCS_CLIENT_EMAIL`) as an **editor**, and put its id (the
+last path segment of the folder URL) in `GDOCS_REFERENCE_FOLDER_ID`. The
+files are created inside it by the service account, so they inherit the
+folder's sharing.
+
+The production admin deploy runs it as its last step
+(`templates/owid-admin-prod/admin-refresh.sh` in the ops repo), from the
+master checkout on `owid-admin-prod` and the prod `.env` the vault puts there —
+so the service account never leaves the vault, and the only new setting is
+`GDOCS_REFERENCE_FOLDER_ID` in `admin-env.secret`. The library reflects
+`master` once a deploy finishes; branches never update it, and a Google-side
+failure is reported in the Buildkite log without failing the deploy. By hand,
+with `GDOCS_REFERENCE_FOLDER_ID`, `GDOCS_CLIENT_EMAIL` and `GDOCS_PRIVATE_KEY`
+in `.env`:
+
+| Command                                             | What it does                                                                                                  |
+| --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `yarn buildGdocsReferenceDoc`                       | Writes the library (creates, updates, skips and trashes as needed) and prints the index URL                   |
+| `yarn buildGdocsReferenceDoc --dry-run`             | Prints the Markdown every file would be uploaded with, the index first; no credentials                        |
+| `yarn buildGdocsReferenceDoc --dry-run --out <dir>` | The same files under their Drive names in `<dir>`: `owid-writing-reference-index.md`, `component-chart.md`, … |
+
+The pipeline lives in `devTools/gdocs/referenceDoc/`: `buildModel.ts` turns
+the registries into the library (`model.ts`: one Markdown string per file)
+and names the files (`fileNameFor`), using `proseMarkdown.ts` for the sidecar
+prose — line-based on purpose, so the authored Markdown is never reformatted;
+`renderMarkdown.ts` writes the --dry-run files; `driveLibrary.ts` finds,
+reserves ids for, creates, updates and trashes the Drive files; `publish.ts`
+ties it together.

@@ -36,7 +36,7 @@ async function fetchDocument({
         suggestionsViewMode,
     })
     // Remove the Authorization header from the response metadata before emitting output
-    delete response.config?.headers?.Authorization
+    response.config?.headers?.delete("Authorization")
     return response.data
 }
 
