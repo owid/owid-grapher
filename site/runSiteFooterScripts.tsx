@@ -184,6 +184,7 @@ function runSiteNavigation({
 }
 
 function runSiteTools() {
+    if (isInIFrame()) return
     const siteToolsElem = document.querySelector(`.${SITE_TOOLS_ROOT_CLASS}`)
     if (siteToolsElem) {
         const root = createRoot(siteToolsElem)
