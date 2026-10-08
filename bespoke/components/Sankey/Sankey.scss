@@ -33,6 +33,31 @@
     pointer-events: none;
 }
 
+.sankey__column-heading {
+    fill: $light-text;
+    pointer-events: none;
+}
+
+.sankey__column-heading-emphasis {
+    fill: $dark-text;
+}
+
+// Labels of middle-column nodes sit on top of the ribbons, so give them a
+// white halo to keep them readable
+.sankey__label--inner text {
+    paint-order: stroke;
+    stroke: #fff;
+    stroke-width: 3px;
+    stroke-linejoin: round;
+}
+
+// Icons are often drawn in the colour of the ribbon behind them; a white
+// disc underneath sets them apart
+.sankey__label-icon-backing {
+    fill: #fff;
+    fill-opacity: 0.9;
+}
+
 // Dim everything not part of the active focus when either a link or a node is hovered
 .sankey__links:has(.sankey__link--hovered)
     .sankey__link:not(.sankey__link--hovered):not(.sankey__link--active),
