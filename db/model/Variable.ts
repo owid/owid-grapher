@@ -860,11 +860,21 @@ export async function getOwnersForVariables(
     )
 
     return rows
-        .map((row) => ({
-            datasetId: row.id,
-            datasetName: row.name,
-            owners: row.owners ? (JSON.parse(row.owners) as string[]) : [],
-        }))
+        .map((row) => {
+            // `owners` is free-form JSON; anything but a list of names (e.g. a
+            // JSON null) would otherwise fail the bake of every page using it
+            const parsed: unknown = row.owners ? JSON.parse(row.owners) : []
+            return {
+                datasetId: row.id,
+                datasetName: row.name,
+                owners: Array.isArray(parsed)
+                    ? parsed.filter(
+                          (owner): owner is string =>
+                              typeof owner === "string" && owner !== ""
+                      )
+                    : [],
+            }
+        })
         .filter((dataset) => dataset.owners.length > 0)
 }
 
