@@ -2,7 +2,7 @@
  * The document model of the gdocs writing reference: what `buildModel.ts`
  * produces from the committed registries. A library is one index document
  * plus one document per component, template and guide, each held as the
- * Markdown string that is uploaded to its Google Doc (Drive converts it) and
+ * Markdown string that is uploaded as its plain `.md` file in Drive and
  * printed by --dry-run.
  */
 
@@ -25,7 +25,7 @@ export const INDEX_REF: DocRef = { kind: "index", id: "index" }
 /** The URL of a library document, when it is known (never under --dry-run) */
 export type UrlFor = (ref: DocRef) => string | undefined
 
-/** One Google Doc: its Drive name and its content as Markdown */
+/** One library file: its Drive file name and its content as Markdown */
 export interface ReferenceDoc {
     docTitle: string
     markdown: string

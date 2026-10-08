@@ -1,12 +1,13 @@
 /*
- * Library → Markdown files, for `--dry-run`: exactly the Markdown each
- * Google Doc is uploaded with.
+ * Library → Markdown files, for `--dry-run`: exactly the Markdown each Drive
+ * file is uploaded with, under the same file names.
  */
 
-import type { ReferenceLibrary } from "./model.js"
+import { fileNameFor } from "./buildModel.js"
+import { INDEX_REF, type ReferenceLibrary } from "./model.js"
 
 export interface MarkdownFile {
-    /** `index.md`, `component-chart.md`, `guide-refs.md`, … */
+    /** `owid-writing-reference-index.md`, `component-chart.md`, `guide-refs.md`, … */
     fileName: string
     markdown: string
 }
@@ -16,9 +17,9 @@ export function renderLibraryMarkdown(
     library: ReferenceLibrary
 ): MarkdownFile[] {
     return [
-        { fileName: "index.md", markdown: library.index.markdown },
+        { fileName: fileNameFor(INDEX_REF), markdown: library.index.markdown },
         ...library.items.map((item) => ({
-            fileName: `${item.kind}-${item.id}.md`,
+            fileName: fileNameFor(item),
             markdown: item.markdown,
         })),
     ]

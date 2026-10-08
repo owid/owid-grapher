@@ -1,17 +1,18 @@
 /*
  * The Google side of `yarn buildGdocsReferenceDoc`: writes the library —
- * one index plus one document per component, template and guide — into a
- * fixed Drive folder shared with the service account as an editor.
+ * one index plus one Markdown file per component, template and guide — into
+ * a fixed Drive folder shared with the service account as an editor.
  *
- * Documents are found or created by their Drive `appProperties`
- * (`driveLibrary.ts`) before any content is built, so that every document
- * can link to the others. Each document's Markdown is then hashed: when the
- * hash matches the `owidRefHash` stored on the file, the document is
- * skipped; otherwise the Markdown is uploaded as the file's media (Drive
- * converts it and replaces the contents) together with the new hash.
- * Documents matching no current item are trashed. Rate limits (429) and
- * transient errors (503) are retried with backoff; any other failing call
- * stops the run naming the document, and the next run repairs the rest.
+ * Every file's id is known before any content is built, so that every file
+ * can link to the others: existing files are found by their Drive
+ * `appProperties` (`driveLibrary.ts`), and ids for the missing ones are
+ * reserved in a single `files.generateIds` call. Each file's Markdown is then
+ * hashed: a missing file is created with its content; an existing one whose
+ * stored `owidRefHash` (or name) differs is updated in place; an unchanged
+ * one is skipped. No file is ever created empty. Files matching no current
+ * item are trashed. Rate limits (429) and transient errors (503) are retried
+ * with backoff; any other failing call stops the run naming the file, and
+ * the next run repairs the rest.
  */
 
 import { createHash } from "crypto"
@@ -26,9 +27,9 @@ import {
 } from "./buildModel.js"
 import {
     DriveLibrary,
-    MARKDOWN_MIME_TYPE,
+    type ExistingFile,
     docRefKey,
-    docUrl,
+    fileUrl,
 } from "./driveLibrary.js"
 import type { Sleep } from "./retry.js"
 
@@ -45,26 +46,21 @@ export interface PublishOptions {
 }
 
 export interface PublishResult {
-    /** Drive names of the documents uploaded on this run */
+    /** Drive names of the files uploaded on this run (created or updated) */
     written: string[]
-    /** Drive names of the documents whose content was unchanged */
+    /** Drive names of the files created on this run (a subset of `written`) */
+    created: string[]
+    /** Drive names of the files whose content and name were unchanged */
     skipped: string[]
-    /** Drive names of the documents moved to the trash */
+    /** Drive names of the files moved to the trash */
     trashed: string[]
-    /** The index document's URL — the one to share */
+    /** The index file's URL — the one to share */
     indexUrl: string
 }
 
-/**
- * The content hash stored in `owidRefHash`. It covers the upload's media type
- * too, so flipping MARKDOWN_MIME_TYPE (the text/plain fallback) re-uploads
- * every document.
- */
-export function markdownHash(
-    markdown: string,
-    mimeType: string = MARKDOWN_MIME_TYPE
-): string {
-    return createHash("sha256").update(`${mimeType}\n${markdown}`).digest("hex")
+/** The content hash stored in `owidRefHash` */
+export function markdownHash(markdown: string): string {
+    return createHash("sha256").update(markdown).digest("hex")
 }
 
 export async function publishReferenceLibrary(
@@ -79,20 +75,25 @@ export async function publishReferenceLibrary(
         options.sleep
     )
 
-    // Every document first, so the content can link between them
+    // Every file id first, so the content can link between them
     const planned = planLibraryDocs(registries)
-    const fileIds = new Map<string, string>()
-    const storedHashes = new Map<string, string | undefined>()
+    const existingByKey = new Map<string, ExistingFile>()
     for (const doc of planned) {
-        const { fileId, storedHash } = await drive.ensureDoc(doc, doc.docTitle)
-        fileIds.set(docRefKey(doc), fileId)
-        storedHashes.set(docRefKey(doc), storedHash)
+        const existing = drive.existing(doc)
+        if (existing) existingByKey.set(docRefKey(doc), existing)
     }
+    const missing = planned.filter((doc) => !existingByKey.has(docRefKey(doc)))
+    const reservedIds = await drive.reserveIds(missing.length)
+    const fileIds = new Map<string, string>()
+    for (const [key, existing] of existingByKey)
+        fileIds.set(key, existing.fileId)
+    missing.forEach((doc, i) => fileIds.set(docRefKey(doc), reservedIds[i]))
+
     const trashed = await drive.trashOrphans(planned)
 
     const urlFor: UrlFor = (ref: DocRef) => {
         const fileId = fileIds.get(docRefKey(ref))
-        return fileId ? docUrl(fileId) : undefined
+        return fileId ? fileUrl(fileId) : undefined
     }
     const library = buildReferenceLibrary(registries, {
         generatedAt: options.generatedAt,
@@ -101,6 +102,7 @@ export async function publishReferenceLibrary(
     })
 
     const written: string[] = []
+    const created: string[] = []
     const skipped: string[] = []
     const docs: [DocRef, ReferenceDoc][] = [
         [INDEX_REF, library.index],
@@ -108,29 +110,47 @@ export async function publishReferenceLibrary(
     ]
     for (const [ref, doc] of docs) {
         const key = docRefKey(ref)
+        const name = doc.docTitle
+        const fileId = fileIds.get(key)!
+        const existing = existingByKey.get(key)
         const hash = markdownHash(doc.markdown)
-        if (storedHashes.get(key) === hash) {
-            log(`${doc.docTitle}: unchanged, skipped`)
-            skipped.push(doc.docTitle)
+        const renamed = existing !== undefined && existing.name !== name
+        if (existing && existing.storedHash === hash && !renamed) {
+            log(`${name}: unchanged, skipped`)
+            skipped.push(name)
             continue
         }
         try {
-            await drive.uploadMarkdown(fileIds.get(key)!, doc.markdown, hash)
+            if (!existing)
+                await drive.createFile(ref, name, fileId, doc.markdown, hash)
+            else
+                await drive.updateFile(
+                    fileId,
+                    doc.markdown,
+                    hash,
+                    renamed ? name : undefined
+                )
         } catch (error) {
             const message =
                 error instanceof Error ? error.message : String(error)
-            throw new Error(`Upload failed for "${doc.docTitle}": ${message}`, {
+            throw new Error(`Upload failed for "${name}": ${message}`, {
                 cause: error,
             })
         }
-        log(`${doc.docTitle}: uploaded`)
-        written.push(doc.docTitle)
+        if (!existing) {
+            log(`${name}: created (${fileId})`)
+            created.push(name)
+        } else if (renamed)
+            log(`${name}: renamed from "${existing.name}", uploaded`)
+        else log(`${name}: uploaded`)
+        written.push(name)
     }
     log(
-        `Done: ${written.length} written, ${skipped.length} skipped (unchanged), ${trashed.length} trashed`
+        `Done: ${written.length} written (${created.length} created), ${skipped.length} skipped (unchanged), ${trashed.length} trashed`
     )
     return {
         written,
+        created,
         skipped,
         trashed,
         indexUrl: urlFor(INDEX_REF)!,
@@ -141,7 +161,7 @@ function resolveDriveClient(options: PublishOptions): drive_v3.Drive {
     if (options.driveClient) return options.driveClient
     if (!OwidGoogleAuth.areGdocAuthKeysSet())
         throw new Error(
-            "GDOCS_CLIENT_EMAIL and GDOCS_PRIVATE_KEY must be set to write to Google Docs"
+            "GDOCS_CLIENT_EMAIL and GDOCS_PRIVATE_KEY must be set to write to Google Drive"
         )
     const auth = OwidGoogleAuth.getGoogleReadWriteAuth()
     return googleDrive({ version: "v3", auth })

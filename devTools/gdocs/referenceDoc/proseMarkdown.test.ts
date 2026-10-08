@@ -26,7 +26,7 @@ const titleFor = (ref: RelatedRef): string | undefined =>
     TITLES[`${ref.kind}:${ref.id}`]
 
 const urlFor = (ref: DocRef): string | undefined =>
-    `https://docs.google.com/document/d/${ref.kind}-${ref.id}`
+    `https://drive.google.com/file/d/${ref.kind}-${ref.id}/view`
 
 /** Under --dry-run: no document URLs */
 const noUrls: MentionResolver = { titleFor }
@@ -47,7 +47,7 @@ describe("mentions", () => {
         expect(
             rewriteProse("Use `{.chart}`, see `{guide:refs}`.", 1, withUrls)
         ).toBe(
-            "Use [`{.chart}`](https://docs.google.com/document/d/component-chart), see [Refs and footnotes](https://docs.google.com/document/d/guide-refs)."
+            "Use [`{.chart}`](https://drive.google.com/file/d/component-chart/view), see [Refs and footnotes](https://drive.google.com/file/d/guide-refs/view)."
         )
     })
 
@@ -130,7 +130,7 @@ describe(inlineProse, () => {
         expect(
             inlineProse("Names; see\n`{guide:refs}`.\n\nMore.", withUrls)
         ).toBe(
-            "Names; see [Refs and footnotes](https://docs.google.com/document/d/guide-refs). More."
+            "Names; see [Refs and footnotes](https://drive.google.com/file/d/guide-refs/view). More."
         )
     })
 })

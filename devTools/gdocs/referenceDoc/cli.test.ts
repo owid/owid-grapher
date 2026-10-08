@@ -77,7 +77,7 @@ describe("buildGdocsReferenceDoc", () => {
         expect(result.stdout).toMatch(/\n\n# Chart\n/)
     }, 60_000)
 
-    test("--dry-run --out <dir> writes index.md plus one file per item: no unquoted mention leaks, fenced examples intact", () => {
+    test("--dry-run --out <dir> writes owid-writing-reference-index.md plus one <kind>-<id>.md per item: no unquoted mention leaks, fenced examples intact", () => {
         const dir = fs.mkdtempSync(path.join(os.tmpdir(), "gdocs-ref-"))
         try {
             const result = run(["--dry-run", "--out", dir], NO_CREDENTIALS)
@@ -85,13 +85,15 @@ describe("buildGdocsReferenceDoc", () => {
             expect(result.stdout).toBe("")
             const files = fs.readdirSync(dir).sort()
             expect(files).toHaveLength(ITEM_COUNT + 1)
-            expect(files).toContain("index.md")
+            expect(files).toContain("owid-writing-reference-index.md")
             expect(files).toContain("component-chart.md")
             expect(files).toContain("template-article.md")
             expect(files).toContain("guide-refs.md")
             const read = (file: string): string =>
                 fs.readFileSync(path.join(dir, file), "utf8")
-            expect(read("index.md").length).toBeLessThan(15_000)
+            expect(read("owid-writing-reference-index.md").length).toBeLessThan(
+                15_000
+            )
             for (const file of files) {
                 const { prose, fenceLines } = splitFences(read(file))
                 expect(fenceLines % 2, `${file}: unbalanced fence`).toBe(0)

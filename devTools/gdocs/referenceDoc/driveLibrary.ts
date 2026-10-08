@@ -1,16 +1,19 @@
 /*
- * The Drive side of the library: the Google Docs live in one fixed folder
- * and are recognised by their `appProperties` (`owidRefKind` = component |
- * template | guide | index, `owidRefId` = the item id), never by name — so
- * titles can change freely. A document is found, created or renamed to
- * match the plan; documents whose properties match no current item are
- * moved to the trash (reversible in Drive for 30 days). Files without
- * `owidRefKind` are not ours and are left alone.
+ * The Drive side of the library: plain Markdown files (`text/markdown`, no
+ * Google Docs, no conversion) in one fixed folder, recognised by their
+ * `appProperties` (`owidRefKind` = component | template | guide | index,
+ * `owidRefId` = the item id), never by name. Only Markdown files count: a
+ * file of ours with another media type (a leftover Google Doc) is an orphan.
+ * Files whose properties match no current item are moved to the trash
+ * (reversible in Drive for 30 days). Files without `owidRefKind` are not
+ * ours and are left alone.
  *
- * Content is written by uploading Markdown as the file's media: Drive
- * converts it into the Google Doc and replaces the full contents, keeping
- * the file id, URL and appProperties. The hash of the uploaded Markdown is
- * stored in `owidRefHash`, so an unchanged document is never re-uploaded.
+ * A missing file gets its id reserved up front (`files.generateIds`), so
+ * every file can link to every other before any of them exists, and is then
+ * created once, with its full content. An existing file is updated in place:
+ * new media, hash and (when it changed) name in one call, keeping its id and
+ * URL. The hash of the uploaded Markdown is stored in `owidRefHash`, so an
+ * unchanged file is never re-uploaded.
  */
 
 import type { drive_v3 } from "@googleapis/drive"
@@ -21,36 +24,33 @@ export const KIND_PROPERTY = "owidRefKind"
 export const ID_PROPERTY = "owidRefId"
 export const HASH_PROPERTY = "owidRefHash"
 
-/**
- * The media type of the content upload. Drive imports Markdown into a Google
- * Doc; should that conversion ever fail, "text/plain" puts the literal
- * Markdown in the document instead (same code path).
- */
+/** The media type of every library file, stored as is (never converted) */
 export const MARKDOWN_MIME_TYPE = "text/markdown"
 
-const DOCS_MIME_TYPE = "application/vnd.google-apps.document"
-const FILE_FIELDS = "id,name,appProperties,createdTime"
+const FILE_FIELDS = "id,name,mimeType,appProperties,createdTime"
+
+/** The most ids one `files.generateIds` call returns */
+const MAX_GENERATED_IDS = 1000
 
 /** A file of the folder as `files.list` returns it */
 export interface LibraryFile {
     id: string
     name: string
+    mimeType: string
     appProperties?: Record<string, string>
     createdTime: string
 }
 
-export interface EnsuredDoc {
+/** The Markdown file already holding a ref */
+export interface ExistingFile {
     fileId: string
-    /** The document was created on this run */
-    created: boolean
-    /** The document existed under another name and was renamed */
-    renamed: boolean
+    name: string
     /** `owidRefHash` of the content last uploaded, if any */
     storedHash?: string
 }
 
-export function docUrl(fileId: string): string {
-    return `https://docs.google.com/document/d/${fileId}`
+export function fileUrl(fileId: string): string {
+    return `https://drive.google.com/file/d/${fileId}/view`
 }
 
 export function docRefKey(ref: DocRef): string {
@@ -82,6 +82,7 @@ export async function listLibraryFiles(
             files.push({
                 id: file.id!,
                 name: file.name ?? "",
+                mimeType: file.mimeType ?? "",
                 appProperties: file.appProperties ?? undefined,
                 createdTime: file.createdTime ?? "",
             })
@@ -91,7 +92,10 @@ export async function listLibraryFiles(
 }
 
 export class DriveLibrary {
-    /** Our files by kind:id, the earliest created one when there are several */
+    /**
+     * Our Markdown files by kind:id, the earliest created one when there are
+     * several
+     */
     private readonly byRef = new Map<string, LibraryFile>()
 
     private constructor(
@@ -102,7 +106,7 @@ export class DriveLibrary {
         private readonly sleep?: Sleep
     ) {
         for (const file of sortedByCreation(files)) {
-            const ref = refOf(file)
+            const ref = markdownRefOf(file)
             if (!ref) continue
             const key = docRefKey(ref)
             const first = this.byRef.get(key)
@@ -124,48 +128,71 @@ export class DriveLibrary {
         return new DriveLibrary(drive, folderId, files, log, sleep)
     }
 
-    /** The document for `ref`, created or renamed as needed, by its file id */
-    async ensureDoc(ref: DocRef, title: string): Promise<EnsuredDoc> {
-        const existing = this.byRef.get(docRefKey(ref))
-        if (!existing) {
-            const fileId = await this.create(ref, title)
-            this.log(`Created "${title}" (${fileId})`)
-            return { fileId, created: true, renamed: false }
-        }
-        if (existing.name !== title) {
-            await this.update(existing.id, { name: title })
-            this.log(`Renamed "${existing.name}" to "${title}"`)
-            existing.name = title
-            return {
-                fileId: existing.id,
-                created: false,
-                renamed: true,
-                storedHash: existing.appProperties?.[HASH_PROPERTY],
-            }
-        }
+    /** The Markdown file holding `ref`, if there is one */
+    existing(ref: DocRef): ExistingFile | undefined {
+        const file = this.byRef.get(docRefKey(ref))
+        if (!file) return undefined
         return {
-            fileId: existing.id,
-            created: false,
-            renamed: false,
-            storedHash: existing.appProperties?.[HASH_PROPERTY],
+            fileId: file.id,
+            name: file.name,
+            storedHash: file.appProperties?.[HASH_PROPERTY],
         }
     }
 
     /**
-     * Replaces the document's content with `markdown` (converted by Drive)
-     * and records its `hash`, in one call.
+     * Reserves `count` file ids in one call, for files created later with
+     * `createFile`. An id that ends up unused is simply never used.
      */
-    async uploadMarkdown(
+    async reserveIds(count: number): Promise<string[]> {
+        if (count === 0) return []
+        if (count > MAX_GENERATED_IDS)
+            throw new Error(
+                `Cannot reserve ${count} file ids at once (at most ${MAX_GENERATED_IDS})`
+            )
+        const { data } = await withRetry(
+            () =>
+                this.drive.files.generateIds({
+                    count,
+                    space: "drive",
+                    type: "files",
+                }),
+            { sleep: this.sleep, log: this.log }
+        )
+        const ids = data.ids ?? []
+        if (ids.length !== count)
+            throw new Error(
+                `Drive returned ${ids.length} file ids, ${count} were asked for`
+            )
+        return ids
+    }
+
+    /**
+     * Creates the Markdown file for `ref` under a reserved `fileId`, with its
+     * content, properties and hash, in one call.
+     */
+    async createFile(
+        ref: DocRef,
+        name: string,
         fileId: string,
         markdown: string,
         hash: string
     ): Promise<void> {
         await withRetry(
             () =>
-                this.drive.files.update({
-                    fileId,
+                this.drive.files.create({
                     supportsAllDrives: true,
-                    requestBody: { appProperties: { [HASH_PROPERTY]: hash } },
+                    fields: "id",
+                    requestBody: {
+                        id: fileId,
+                        name,
+                        parents: [this.folderId],
+                        mimeType: MARKDOWN_MIME_TYPE,
+                        appProperties: {
+                            [KIND_PROPERTY]: ref.kind,
+                            [ID_PROPERTY]: ref.id,
+                            [HASH_PROPERTY]: hash,
+                        },
+                    },
                     media: { mimeType: MARKDOWN_MIME_TYPE, body: markdown },
                 }),
             { sleep: this.sleep, log: this.log }
@@ -173,61 +200,74 @@ export class DriveLibrary {
     }
 
     /**
-     * Trashes every file of ours whose kind:id is not among `current`; files
-     * without `owidRefKind` are left alone. Returns the trashed names.
+     * Replaces the file's content with `markdown` and records its `hash` —
+     * and renames it when `newName` is given — in one call.
      */
-    async trashOrphans(current: DocRef[]): Promise<string[]> {
-        const keep = new Set(current.map(docRefKey))
-        const trashed: string[] = []
-        for (const file of this.files) {
-            const ref = refOf(file)
-            if (!ref || keep.has(docRefKey(ref))) continue
-            await this.update(file.id, { trashed: true })
-            this.log(
-                `Trashed "${file.name}" (${file.id}): no current ${ref.kind} "${ref.id}"`
-            )
-            trashed.push(file.name)
-        }
-        return trashed
-    }
-
-    private async create(ref: DocRef, title: string): Promise<string> {
-        const { data } = await withRetry(
-            () =>
-                this.drive.files.create({
-                    supportsAllDrives: true,
-                    fields: "id",
-                    requestBody: {
-                        parents: [this.folderId],
-                        mimeType: DOCS_MIME_TYPE,
-                        name: title,
-                        appProperties: {
-                            [KIND_PROPERTY]: ref.kind,
-                            [ID_PROPERTY]: ref.id,
-                        },
-                    },
-                    media: { mimeType: DOCS_MIME_TYPE, body: "" },
-                }),
-            { sleep: this.sleep, log: this.log }
-        )
-        if (!data.id) throw new Error(`Drive returned no id for "${title}"`)
-        return data.id
-    }
-
-    private async update(
+    async updateFile(
         fileId: string,
-        requestBody: drive_v3.Schema$File
+        markdown: string,
+        hash: string,
+        newName?: string
     ): Promise<void> {
+        const requestBody: drive_v3.Schema$File = {
+            appProperties: { [HASH_PROPERTY]: hash },
+        }
+        if (newName !== undefined) requestBody.name = newName
         await withRetry(
             () =>
                 this.drive.files.update({
                     fileId,
                     supportsAllDrives: true,
                     requestBody,
+                    media: { mimeType: MARKDOWN_MIME_TYPE, body: markdown },
                 }),
             { sleep: this.sleep, log: this.log }
         )
     }
+
+    /**
+     * Trashes every file of ours that is not a Markdown file (a leftover
+     * Google Doc) or whose kind:id is not among `current`; files without
+     * `owidRefKind` are left alone. Returns the trashed names.
+     */
+    async trashOrphans(current: DocRef[]): Promise<string[]> {
+        const keep = new Set(current.map(docRefKey))
+        const trashed: string[] = []
+        for (const file of this.files) {
+            const ref = refOf(file)
+            if (!ref) continue
+            const reason = orphanReason(file, ref, keep)
+            if (!reason) continue
+            await this.trash(file.id)
+            this.log(`Trashed "${file.name}" (${file.id}): ${reason}`)
+            trashed.push(file.name)
+        }
+        return trashed
+    }
+
+    private async trash(fileId: string): Promise<void> {
+        await withRetry(
+            () =>
+                this.drive.files.update({
+                    fileId,
+                    supportsAllDrives: true,
+                    requestBody: { trashed: true },
+                }),
+            { sleep: this.sleep, log: this.log }
+        )
+    }
+}
+
+/** Why a file of ours should go, or undefined when it is kept */
+function orphanReason(
+    file: LibraryFile,
+    ref: DocRef,
+    keep: Set<string>
+): string | undefined {
+    if (file.mimeType !== MARKDOWN_MIME_TYPE)
+        return `not a Markdown file (${file.mimeType})`
+    if (!keep.has(docRefKey(ref))) return `no current ${ref.kind} "${ref.id}"`
+    return undefined
 }
 
 /** The library ref a file carries, or undefined for a file that isn't ours */
@@ -236,6 +276,12 @@ export function refOf(file: LibraryFile): DocRef | undefined {
     const id = file.appProperties?.[ID_PROPERTY]
     if (!isDocKind(kind) || !id) return undefined
     return { kind, id }
+}
+
+/** The ref of a file of ours that is a Markdown file — the only ones used */
+function markdownRefOf(file: LibraryFile): DocRef | undefined {
+    if (file.mimeType !== MARKDOWN_MIME_TYPE) return undefined
+    return refOf(file)
 }
 
 function isDocKind(value: unknown): value is ReferenceDocKind {

@@ -1,7 +1,7 @@
 /*
  * The three committed registries → the library: one index document plus one
  * document per component, template and guide, each as the Markdown string
- * uploaded to its Google Doc.
+ * uploaded as its Drive file.
  *
  * Mirrors what the admin reference page (adminSiteClient/GdocsReferencePage)
  * renders without the database: section order, labels and the authored prose
@@ -22,7 +22,6 @@ import {
 import {
     type DocRef,
     type ReferenceDoc,
-    type ReferenceDocKind,
     type ReferenceItemDoc,
     type ReferenceItemKind,
     type ReferenceLibrary,
@@ -51,7 +50,7 @@ export interface BuildOptions {
     generatedAt: Date
     /** Short git sha of the commit the registries come from */
     commitSha: string
-    /** The Google Doc of each library document, once they exist */
+    /** The Drive URL of each library file, once its id is known */
     urlFor: UrlFor
 }
 
@@ -62,9 +61,11 @@ export const REFERENCE_DOCS_URL =
 
 const ADMIN_REFERENCE_URL = "https://admin.owid.io/admin/gdocs-reference"
 
-const DOC_TITLE_SUFFIX = " — OWID writing reference"
-
+/** The human label of the index, used for the "Back to the index" link */
 export const INDEX_DOC_TITLE = "OWID writing reference — start here"
+
+/** The Drive name of the index file */
+export const INDEX_FILE_NAME = "owid-writing-reference-index.md"
 
 /** A planned document: what Drive needs to know before any content exists */
 export interface PlannedDoc extends DocRef {
@@ -72,20 +73,13 @@ export interface PlannedDoc extends DocRef {
 }
 
 /**
- * The Drive name of a document. Drive search finds documents by name, so a
- * component's name carries its ArchieML tag and the others say their kind.
+ * The file name of a document, in Drive and under `--dry-run --out`:
+ * `<kind>-<id>.md` for an item (`component-chart.md`, `guide-refs.md`), and
+ * `owid-writing-reference-index.md` for the index.
  */
-export function docTitleFor(kind: ReferenceDocKind, item: PlannedItem): string {
-    switch (kind) {
-        case "component":
-            return `{.${item.id}} ${item.title}${DOC_TITLE_SUFFIX}`
-        case "template":
-            return `${item.title} (template)${DOC_TITLE_SUFFIX}`
-        case "guide":
-            return `${item.title} (guide)${DOC_TITLE_SUFFIX}`
-        case "index":
-            return INDEX_DOC_TITLE
-    }
+export function fileNameFor(ref: DocRef): string {
+    if (ref.kind === "index") return INDEX_FILE_NAME
+    return `${ref.kind}-${ref.id}.md`
 }
 
 interface PlannedItem {
@@ -95,17 +89,19 @@ interface PlannedItem {
 
 /**
  * Every document the library needs, index first — enough for the publisher
- * to find or create the Google Docs before the content (which links between
+ * to find or reserve the Drive files before the content (which links between
  * them) is built.
  */
 export function planLibraryDocs(registries: ReferenceRegistries): PlannedDoc[] {
-    const planned: PlannedDoc[] = [{ ...INDEX_REF, docTitle: INDEX_DOC_TITLE }]
+    const planned: PlannedDoc[] = [
+        { ...INDEX_REF, docTitle: fileNameFor(INDEX_REF) },
+    ]
     for (const [kind, items] of itemsByKind(registries))
         for (const item of items)
             planned.push({
                 kind,
                 id: item.id,
-                docTitle: docTitleFor(kind, item),
+                docTitle: fileNameFor({ kind, id: item.id }),
             })
     return planned
 }
@@ -156,7 +152,7 @@ function itemDoc(
         kind,
         id: item.id,
         title: item.title,
-        docTitle: docTitleFor(kind, item),
+        docTitle: fileNameFor({ kind, id: item.id }),
         markdown: joinChunks(chunks),
     }
 }
@@ -222,7 +218,7 @@ function buildIndex(
     chunks.push(...indexComponents(registries.components, mentions))
     chunks.push(...indexTemplates(registries.templates, mentions))
     chunks.push(...indexGuides(registries.guides, mentions))
-    return { docTitle: INDEX_DOC_TITLE, markdown: joinChunks(chunks) }
+    return { docTitle: fileNameFor(INDEX_REF), markdown: joinChunks(chunks) }
 }
 
 function indexComponents(

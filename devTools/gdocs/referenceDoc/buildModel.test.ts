@@ -9,10 +9,9 @@
 
 import { describe, expect, test } from "vitest"
 import {
-    INDEX_DOC_TITLE,
     PLATFORM_BLOCKS_TITLE,
     buildReferenceLibrary,
-    docTitleFor,
+    fileNameFor,
     firstUseLine,
     planLibraryDocs,
 } from "./buildModel.js"
@@ -59,20 +58,20 @@ const tables = (markdown: string): string[][][] =>
         )
 
 describe(planLibraryDocs, () => {
-    test("the index first, then every component, template and guide with its Drive name", () => {
+    test("the index first, then every component, template and guide with its Drive file name", () => {
         expect(
             planLibraryDocs(fixtureRegistries).map(
                 (doc) => `${doc.kind}:${doc.id} = ${doc.docTitle}`
             )
         ).toEqual([
-            "index:index = OWID writing reference — start here",
-            "component:callout = {.callout} Callout — OWID writing reference",
-            "component:text = {.text} Text — OWID writing reference",
-            "component:chart = {.chart} Chart — OWID writing reference",
-            "component:cookie-notice = {.cookie-notice} Cookie notice — OWID writing reference",
-            "template:article = Article (template) — OWID writing reference",
-            "guide:refs = Refs and footnotes (guide) — OWID writing reference",
-            "guide:publishing = Publishing a document (guide) — OWID writing reference",
+            "index:index = owid-writing-reference-index.md",
+            "component:callout = component-callout.md",
+            "component:text = component-text.md",
+            "component:chart = component-chart.md",
+            "component:cookie-notice = component-cookie-notice.md",
+            "template:article = template-article.md",
+            "guide:refs = guide-refs.md",
+            "guide:publishing = guide-publishing.md",
         ])
     })
 
@@ -81,17 +80,18 @@ describe(planLibraryDocs, () => {
         expect(
             library.items.map((doc) => [doc.kind, doc.id, doc.docTitle])
         ).toEqual(planned.map((doc) => [doc.kind, doc.id, doc.docTitle]))
-        expect(library.index.docTitle).toBe(INDEX_DOC_TITLE)
+        expect(library.index.docTitle).toBe("owid-writing-reference-index.md")
     })
 })
 
-describe(docTitleFor, () => {
-    test("says the id or the kind, so Drive search finds the document", () => {
-        expect(docTitleFor("component", { id: "chart", title: "Chart" })).toBe(
-            "{.chart} Chart — OWID writing reference"
+describe(fileNameFor, () => {
+    test("<kind>-<id>.md for an item, a fixed name for the index", () => {
+        expect(fileNameFor({ kind: "component", id: "chart" })).toBe(
+            "component-chart.md"
         )
-        expect(docTitleFor("guide", { id: "refs", title: "Refs" })).toBe(
-            "Refs (guide) — OWID writing reference"
+        expect(fileNameFor({ kind: "guide", id: "refs" })).toBe("guide-refs.md")
+        expect(fileNameFor({ kind: "index", id: "index" })).toBe(
+            "owid-writing-reference-index.md"
         )
     })
 })
@@ -237,7 +237,7 @@ describe("a component document", () => {
     const chart = item("component", "chart")
 
     test("owns its document: H1 title, the tag line, the admin's static material, a link back", () => {
-        expect(chart.docTitle).toBe("{.chart} Chart — OWID writing reference")
+        expect(chart.docTitle).toBe("component-chart.md")
         expect(headings(chart.markdown, 1)).toEqual(["Chart"])
         expect(headings(chart.markdown, 2)).toEqual([
             "Use it for",
@@ -404,7 +404,7 @@ describe("under --dry-run (no URLs)", () => {
 
     test("nothing links to a document; mentions keep their code form or title", () => {
         const markdown = renderLibraryMarkdownAsOne(dry)
-        expect(markdown).not.toContain("](https://docs")
+        expect(markdown).not.toContain("](https://drive.google.com")
         expect(markdown).toContain(
             "- Prefer `{.callout}` for a note without a chart.\n- See Refs and footnotes for sources and Article for the layout."
         )
@@ -418,7 +418,7 @@ describe(renderLibraryMarkdown, () => {
     test("one file per document, the index first, each its document's Markdown", () => {
         const files = renderLibraryMarkdown(library)
         expect(files.map((file) => file.fileName)).toEqual([
-            "index.md",
+            "owid-writing-reference-index.md",
             "component-callout.md",
             "component-text.md",
             "component-chart.md",

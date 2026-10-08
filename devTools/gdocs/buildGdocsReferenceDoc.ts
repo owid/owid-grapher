@@ -1,17 +1,17 @@
 /*
  * Publishes the gdocs writing reference — the three committed registries
- * (components, templates, guides) — as a library of Google Docs: one index
- * plus one document per component, template and guide, in the Drive folder
- * GDOCS_REFERENCE_FOLDER_ID. Each document is built as Markdown and uploaded
- * to its Google Doc, which Drive converts. The production admin deploy runs
- * it on every master deploy (ops repo,
+ * (components, templates, guides) — as a library of Markdown files: one
+ * index plus one `.md` file per component, template and guide, in the Drive
+ * folder GDOCS_REFERENCE_FOLDER_ID. Each file is stored as plain
+ * `text/markdown` (never converted) and updated in place. The production
+ * admin deploy runs it on every master deploy (ops repo,
  * templates/owid-admin-prod/admin-refresh.sh); see
  * docs/gdocs-writing-reference.md.
  *
  *   yarn buildGdocsReferenceDoc                 write the library into GDOCS_REFERENCE_FOLDER_ID
- *   yarn buildGdocsReferenceDoc --dry-run       print the Markdown of every document, no Google calls
+ *   yarn buildGdocsReferenceDoc --dry-run       print the Markdown of every file, no Google calls
  *   yarn buildGdocsReferenceDoc --dry-run --out <dir>
- *                                               one Markdown file per document in <dir>
+ *                                               the same Markdown files, same names, in <dir>
  */
 
 import { execSync } from "child_process"
@@ -39,21 +39,21 @@ import {
 const SETTING_NAME = "GDOCS_REFERENCE_FOLDER_ID"
 
 function printHelp(): void {
-    console.log(`Publish the gdocs writing reference as a library of Google Docs.
+    console.log(`Publish the gdocs writing reference as a library of Markdown files in Drive.
 
 Usage:
     yarn buildGdocsReferenceDoc
     yarn buildGdocsReferenceDoc --dry-run [--out <dir>]
 
 Options:
-    --dry-run       Print the Markdown every document would be uploaded with,
+    --dry-run       Print the Markdown every file would be uploaded with,
                     without calling Google.
-    --out <dir>     With --dry-run, write one file per document into <dir>
-                    (index.md, component-chart.md, …) instead of printing to
-                    stdout.
+    --out <dir>     With --dry-run, write the files into <dir> under their
+                    Drive names (owid-writing-reference-index.md,
+                    component-chart.md, …) instead of printing to stdout.
     -h, --help      Show this help.
 
-The documents live in the Drive folder ${SETTING_NAME} (.env), shared with
+The files live in the Drive folder ${SETTING_NAME} (.env), shared with
 the service account (GDOCS_CLIENT_EMAIL) as an editor.`)
 }
 
