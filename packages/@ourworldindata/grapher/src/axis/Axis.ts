@@ -139,6 +139,10 @@ abstract class AbstractAxis {
         return this.config.shouldOffsetTickLabelAtEnd ?? true
     }
 
+    @computed get isDomainEndExclusive(): boolean {
+        return this.config.isDomainEndExclusive ?? false
+    }
+
     @computed get fontSize(): number {
         return this.config.fontSize
     }
@@ -388,6 +392,12 @@ abstract class AbstractAxis {
     }
 
     getTickValues(): Tickmark[] {
+        return this.getCandidateTickValues().filter((tick) =>
+            this.isBeforeExclusiveDomainEnd(tick.value)
+        )
+    }
+
+    private getCandidateTickValues(): Tickmark[] {
         const { d3_scale, timeAxisTicks } = this
 
         if (timeAxisTicks) return timeAxisTicks
@@ -616,6 +626,10 @@ abstract class AbstractAxis {
         return this.getTickValues().filter((tick) => !tick.gridLineOnly)
     }
 
+    private isBeforeExclusiveDomainEnd(value: number): boolean {
+        return !this.isDomainEndExclusive || value < this.domain[1]
+    }
+
     formatTick(
         tick: number,
         formattingOptionsOverride?: TickFormattingOptions
@@ -773,7 +787,7 @@ export class HorizontalAxis extends AbstractAxis {
     }
 
     protected override get baseTicks(): Tickmark[] {
-        if (this.timeAxisTicks) return this.timeAxisTicks
+        if (this.timeAxisTicks) return this.getTickValues()
 
         let ticks = this.getTickValues().filter(
             (tick): boolean => !tick.gridLineOnly
@@ -790,7 +804,11 @@ export class HorizontalAxis extends AbstractAxis {
                 },
                 ...ticks,
             ]
-        if (domain[1] % 1 === 0 && this.hideFractionalTicks)
+        if (
+            domain[1] % 1 === 0 &&
+            this.hideFractionalTicks &&
+            !this.isDomainEndExclusive
+        )
             ticks = [
                 ...ticks,
                 {
