@@ -1,24 +1,10 @@
-// The gap between the two panes, and so also how far a variant's fill reaches
-// into it (see --all-charts-gutter-fill below), so the two can't drift apart.
+// The gap between the two panes.
 $all-charts-panes-gap: 24px;
 
-// The five background treatments in the mockups (V1-V5), switchable on the
-// staging site so they can be compared against each other — see
-// useAllChartsVariant in AllChartsBlock.tsx for the ?allChartsVariant= query
-// parameter that sets the attribute the overrides below hang off.
-//
-// Every value that differs between them is a custom property, declared here
-// with V3's value because V3 is the treatment that landed and so the default.
-// Each variant is then only the handful of properties it changes, and the
-// block's own rules read the properties without ever naming a variant, so
-// there is one copy of the layout however many treatments are being compared.
-// Five hand-written rule sets instead would be five copies of it, in a
-// stylesheet already at its BundleMon budget.
-//
-// The values are sampled from the mockups rather than read off them by eye,
-// which is how close some of them are: V1 and V4 differ in the accent colour
-// and the search field's treatment and in nothing else, and V4 and V5 differ
-// only in --all-charts-gutter-fill.
+// The block's colours and the few layout values that went with them, as
+// custom properties. They were per-treatment overrides while several
+// background treatments were being compared; the one that landed is what is
+// declared here, sampled from its mockup rather than read off it by eye.
 .all-charts-block {
     // The page tint behind the block. Also the fill of the sticky heading
     // band, which has to match it or rows scroll up behind a white strip.
@@ -27,18 +13,16 @@ $all-charts-panes-gap: 24px;
     // is showing in the chart beside the list.
     --all-charts-accent: #{$blue-40};
     --all-charts-row-bg-selected: #{$blue-5};
-    // The fill a row takes under the pointer. One step of blue down from the
-    // variant's own page background, which is the whole rule: $blue-5 here
-    // where the page is white, $blue-10 on the treatments whose page is
-    // already $blue-5 (below). It used to be a flat $gray-5 (#f7f7f7) for
-    // every treatment, which on a tinted page read as a desaturated grey patch
-    // rather than a hover (Marwa, 2026-10-01).
+    // The fill a row takes under the pointer: one step of blue down from the
+    // page background, so $blue-5 on the white page. It used to be a flat
+    // $gray-5 (#f7f7f7), which read as a desaturated grey patch rather than a
+    // hover.
     --all-charts-row-bg-hover: #{$blue-5};
     // How far a fill reaches into the gap between the panes. At 0 the selected
     // row's panel and the chart card are two boxes with a gap between them; at
     // the full gap they meet and read as one region.
     --all-charts-gutter-fill: 0px;
-    // The frame a variant puts around the chart card, and how thick it is.
+    // A frame around the chart card, and how thick it is; none.
     --all-charts-sidecar-frame: transparent;
     --all-charts-sidecar-inset: 0px;
     --all-charts-input-bg: #{$white};
@@ -79,52 +63,9 @@ $all-charts-panes-gap: 24px;
     z-index: -1;
 }
 
-// V1: the tinted page with the pre-V3 vermillion chrome, and the selected row
-// picked out in white against it.
-.all-charts-block[data-all-charts-variant="v1"] {
-    --all-charts-page-bg: #{$blue-5};
-    --all-charts-accent: #{$vermillion};
-    --all-charts-row-bg-selected: #{$white};
-    --all-charts-row-bg-hover: #{$blue-10};
-    --all-charts-gutter-fill: #{$all-charts-panes-gap};
-}
-
-// V2: V3's colours on a white page, with the chart card framed in the tint
-// instead — a frame that closes the gap so it meets the selected row's panel.
-.all-charts-block[data-all-charts-variant="v2"] {
-    --all-charts-gutter-fill: #{$all-charts-panes-gap};
-    --all-charts-sidecar-frame: #{$blue-5};
-    --all-charts-sidecar-inset: 16px;
-}
-
-// V3 is the default declared above, so it has no block of its own.
-
-// V4: V1's tinted page and white selected row with blue chrome, and a search
-// field left unfilled so the tint shows through it.
-.all-charts-block[data-all-charts-variant="v4"] {
-    --all-charts-page-bg: #{$blue-5};
-    --all-charts-accent: #{$blue-50};
-    --all-charts-row-bg-selected: #{$white};
-    --all-charts-row-bg-hover: #{$blue-10};
-    --all-charts-gutter-fill: #{$all-charts-panes-gap};
-    --all-charts-input-bg: transparent;
-    --all-charts-input-border: #{$blue-30};
-}
-
-// V5: V4 exactly, except that the selected row's white panel stops at the
-// list's own edge rather than reaching across to the chart card.
-.all-charts-block[data-all-charts-variant="v5"] {
-    --all-charts-page-bg: #{$blue-5};
-    --all-charts-accent: #{$blue-50};
-    --all-charts-row-bg-selected: #{$white};
-    --all-charts-row-bg-hover: #{$blue-10};
-    --all-charts-input-bg: transparent;
-    --all-charts-input-border: #{$blue-30};
-}
-
-// Prototype affordance, not part of any of the treatments: the control that
-// switches between them. Deliberately a plain labelled native <select> — it is
-// here to compare the designs, so it shouldn't read as one of them.
+// Prototype affordance, not part of either version: the control that switches
+// between them. Deliberately a plain labelled native <select> — it is here to
+// compare the designs, so it shouldn't read as one of them.
 .all-charts-block__variant-switcher {
     display: flex;
     align-items: center;
@@ -239,9 +180,8 @@ $all-charts-panes-gap: 24px;
     // from under the input — the designer's reference has the row clipped
     // cleanly instead.
     //
-    // The variant's page tint rather than a flat white, because this band has
-    // to be indistinguishable from the page behind it: white here on a tinted
-    // page would be a visible strip at the top of the viewport.
+    // The page background rather than a literal white, because this band has
+    // to be indistinguishable from the page behind it.
     background-color: var(--all-charts-page-bg);
     // 12px of padding below the input extends the opaque background past it,
     // then a smaller margin makes up the rest of the original 16px gap to the
@@ -265,12 +205,13 @@ $all-charts-panes-gap: 24px;
     // Columns 6-12 of the twelve declared on .all-charts-block__panes.
     grid-column: span 7;
     min-width: 0;
-    // The frame a variant puts around the chart card, reaching back across the
-    // gap between the panes so it meets the list rather than floating beside
-    // it. The negative margin grows the frame leftwards and the matching
-    // padding puts the card back where it was, so the card is only ever inset
-    // by --all-charts-sidecar-inset — which matters because Grapher measures
-    // this figure to size itself. All three are no-ops at their defaults of 0.
+    // A frame around the chart card (none at the current values), reaching
+    // back across the gap between the panes so it meets the list rather than
+    // floating beside it. The negative margin grows the frame leftwards and
+    // the matching padding puts the card back where it was, so the card is
+    // only ever inset by --all-charts-sidecar-inset — which matters because
+    // Grapher measures this figure to size itself. All three are no-ops at
+    // their defaults of 0.
     background-color: var(--all-charts-sidecar-frame);
     margin-left: calc(-1 * var(--all-charts-gutter-fill));
     padding: var(--all-charts-sidecar-inset);
@@ -365,8 +306,6 @@ $all-charts-panes-gap: 24px;
     // inherited background.
     -webkit-appearance: none;
     appearance: none;
-    // Not always white: two of the treatments leave the field unfilled so the
-    // page tint shows through it (see --all-charts-input-bg).
     background-color: var(--all-charts-input-bg);
 
     &:focus {
@@ -446,10 +385,11 @@ $all-charts-panes-gap: 24px;
 }
 
 .all-charts-block__table {
-    // No inner scroll region here by design — the list grows to its full
+    // No inner scroll region of its own — in V1 the list grows to its full
     // height and scrolls with the rest of the page (see
-    // .all-charts-block__right above for how the chart sidecar stays in
-    // view as the visitor scrolls past it).
+    // .all-charts-block__right above for how the chart sidecar stays in view
+    // as the visitor scrolls past it); V2 wraps it in one (see
+    // .all-charts-block__list-container below).
     list-style: none;
     margin: 0;
     padding: 0;
@@ -466,6 +406,81 @@ $all-charts-panes-gap: 24px;
 // deliberately subtle since it fires on every keystroke's debounced query.
 .all-charts-block__table--refreshing {
     opacity: 0.6;
+}
+
+// V2's container for the list (see AllChartsContainedList in
+// AllChartsBlock.tsx): every row is rendered, and the box they are in is held
+// to a fixed height that fades out at the bottom. That is the live all-charts
+// block's thumbnail list (.related-charts__thumbnails in
+// site/blocks/related-charts.scss) carried over value for value: a 575px box —
+// $grapher-height, so the list ends level with the bottom of the chart card
+// beside it — that scrolls, under a mask fading the last 10% of it to
+// transparent.
+//
+// One addition: the faded 10% is padding. The live block fades the bottom of
+// its list even when it is scrolled to the end, so its last item never comes
+// out of the fade; with the fade over padding instead, the last row scrolls up
+// clear of it, and a list too short to fill the box doesn't have its last row
+// faded either. Sized border-box, so the box is 575px with the padding in it.
+$all-charts-list-height: $grapher-height;
+$all-charts-list-fade: $all-charts-list-height * 0.1;
+
+// Below the accordion breakpoint the box doesn't scroll — a scroll region
+// inside a phone's page traps the page's own scrolling, and the live block
+// drops its containment there too — but is cut off, with a "Show all N
+// indicators" control under it that lifts the cut. Tall enough for the first
+// row with its chart open (which on its own is a $grapher-height chart plus
+// the row's text and thumbnails) and a couple of rows after it.
+$all-charts-list-height-accordion: $grapher-height + 480px;
+$all-charts-list-fade-accordion: $all-charts-list-height-accordion * 0.1;
+
+// Fades the bottom $fade of the box to transparent. Prefixed as well, as
+// everywhere else the site masks: unprefixed mask-image is Chrome 120+.
+@mixin all-charts-list-fade($fade) {
+    mask-image: linear-gradient(
+        180deg,
+        #000 calc(100% - #{$fade}),
+        transparent
+    );
+    -webkit-mask-image: linear-gradient(
+        180deg,
+        #000 calc(100% - #{$fade}),
+        transparent
+    );
+}
+
+.all-charts-block__list-container {
+    box-sizing: border-box;
+    max-height: $all-charts-list-height;
+    overflow-y: auto;
+    padding-bottom: $all-charts-list-fade;
+    // Room for the scrollbar out in the gap between the panes rather than out
+    // of the rows' width, as the live block does it: the rows keep the width
+    // they have in V1.
+    margin-right: -16px;
+    padding-right: 16px;
+    @include all-charts-list-fade($all-charts-list-fade);
+
+    @include md-down {
+        max-height: $all-charts-list-height-accordion;
+        overflow-y: hidden;
+        padding-bottom: $all-charts-list-fade-accordion;
+        margin-right: 0;
+        padding-right: 0;
+        @include all-charts-list-fade($all-charts-list-fade-accordion);
+    }
+}
+
+// Lifted, on the accordion layout only: above it the box scrolls and there is
+// nothing to lift.
+.all-charts-block__list-container--expanded {
+    @include md-down {
+        max-height: none;
+        overflow-y: visible;
+        padding-bottom: 0;
+        mask-image: none;
+        -webkit-mask-image: none;
+    }
 }
 
 .all-charts-block__row {
@@ -493,8 +508,8 @@ $all-charts-panes-gap: 24px;
 .all-charts-block__row--selected .all-charts-block__row-body {
     border-left-color: var(--all-charts-accent);
     background-color: var(--all-charts-row-bg-selected);
-    // Reaches into the gap between the panes on the treatments that close it
-    // up (see --all-charts-gutter-fill). A negative margin grows the panel and
+    // Reaches into the gap between the panes by --all-charts-gutter-fill
+    // (none at the current value). A negative margin grows the panel and
     // the matching padding takes the width back off its contents, so the fill
     // extends without the row's text or thumbnails moving.
     margin-right: calc(-1 * var(--all-charts-gutter-fill));
@@ -811,8 +826,8 @@ $all-charts-thumbnails-per-row: 3;
     margin-right: 0;
 }
 
-// Holds the "Show all N indicators" control that reveals the rest of the topic's
-// chart list, directly below the last rendered row and inside the list pane (so
+// Holds the control under the list — V1's "Show 15 more", or V2's "Show all N
+// indicators" on the accordion layout — directly below the last rendered row and inside the list pane (so
 // it scrolls up past the sticky search bar with the rows, and the chart sidecar
 // beside it is unaffected). Centred under the list rather than aligned to the
 // rows' 16px text inset: it acts on the whole list, not on a row.
@@ -830,7 +845,7 @@ $all-charts-thumbnails-per-row: 3;
     padding-right: 16px;
 }
 
-// The label carries a real count ("Show all 196 indicators"), which is wider
+// The label can carry a real count ("Show all 196 indicators"), which is wider
 // than a bare "Show more" — on the narrowest phones let it wrap inside the
 // button instead of overflowing the pane.
 .all-charts-block__reveal-button {

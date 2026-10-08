@@ -462,55 +462,51 @@ export function resolveSelectedChartIndex(
 }
 
 /**
- * How many indicator rows the all-charts block renders before the visitor asks
- * for the rest (see getVisibleChartHits below).
+ * How many indicator rows the all-charts block renders at a time in its paged
+ * layout: the first batch on arrival, and one more batch per click of its
+ * "Show 15 more" control (see getVisibleChartHits and getNextChartHitBatchSize
+ * below).
  *
  * A topic's chart list is unbounded — the CO2 topic alone returns 196 rows —
- * and the block renders every one of them into the page, with the chart sidecar
- * held beside the list by `position: sticky`. At 196 rows the list pane is over
+ * and the block renders its rows into the page, with the chart sidecar held
+ * beside the list by `position: sticky`. At 196 rows the list pane is over
  * 18,000px tall, so the sidecar stays pinned for ~17 viewport heights with an
  * empty column beside it, which reads as being stuck in the block while
- * scrolling past it. Rendering a bounded first slice keeps the sticky sidecar
+ * scrolling past it. Rendering a bounded slice keeps the sticky sidecar
  * (which visitors do want: the chart stays put while the list scrolls) without
  * the pin outlasting the reason for it.
- *
- * 25 rows is enough to fill the sidecar's own height with list — so the pin
- * still does its job for the whole visible list — and short enough that the
- * block is a couple of viewports rather than seventeen.
  */
-export const ALL_CHARTS_INITIAL_ROW_COUNT = 25
+export const ALL_CHARTS_ROW_BATCH_SIZE = 15
 
 /**
- * The rows the all-charts block actually renders: the first
- * `initialRowCount` of them until the visitor reveals the rest, all of them
- * afterwards.
+ * The rows the all-charts block actually renders: the first `visibleRowCount`
+ * of the result set, in order.
  *
  * Deliberately a slice of the full result set rather than a smaller Algolia
  * request: the block's row order is pinned to its unfiltered baseline and its
  * selection is pinned to a chart identity, both of which need the complete
- * result set in hand, and the reveal control's label has to name the true
- * total ("Show all 196 indicators") rather than how much of it is on screen.
+ * result set in hand.
  */
 export function getVisibleChartHits<T>(
     hits: readonly T[],
-    isListExpanded: boolean,
-    initialRowCount: number = ALL_CHARTS_INITIAL_ROW_COUNT
+    visibleRowCount: number
 ): readonly T[] {
-    if (isListExpanded) return hits
-    return hits.slice(0, Math.max(initialRowCount, 0))
+    return hits.slice(0, Math.max(visibleRowCount, 0))
 }
 
 /**
- * Whether the all-charts block has rows the visitor hasn't been shown yet, and
- * so needs its reveal control at the bottom of the list. False at exactly
- * `initialRowCount` results as well as below it — a "Show all 25 indicators"
- * button under a list of all 25 of them would do nothing.
+ * How many rows the all-charts block's "Show N more" control would add: a full
+ * batch while at least that many are still hidden, otherwise the true
+ * remainder — "Show 7 more" when seven rows are left, because a label promising
+ * 15 above a click that adds 7 would be wrong. Zero when nothing is hidden,
+ * which is when the control goes away.
  */
-export function hasHiddenChartHits(
+export function getNextChartHitBatchSize(
     totalHitCount: number,
-    initialRowCount: number = ALL_CHARTS_INITIAL_ROW_COUNT
-): boolean {
-    return totalHitCount > initialRowCount
+    visibleRowCount: number,
+    batchSize: number = ALL_CHARTS_ROW_BATCH_SIZE
+): number {
+    return Math.min(batchSize, Math.max(totalHitCount - visibleRowCount, 0))
 }
 
 /**

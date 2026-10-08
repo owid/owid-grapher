@@ -88,53 +88,48 @@ const ACCORDION_LAYOUT_MEDIA_QUERY = MEDIUM_BREAKPOINT_MEDIA_QUERY
 const SEARCH_PLACEHOLDER =
     "Search indicators by name, keyword, country, or source…"
 
-// The background treatments in the mockups, switchable while they are being
-// compared (Marwa, 2026-09-30: "maybe you can add a dropdown or toggle or some
-// kind of affordance to switch between them on the staging site"). Every value
-// that differs between them is a custom property in AllChartsBlock.scss; all
-// that happens here is setting the attribute those hang off, from the query
-// parameter below.
+// The two ways of containing a topic's chart list, switchable while they are
+// being compared on the staging site. Both are the same design in every other
+// respect; they differ only in how much of the list is in the page.
+//
+// - V1 pages it: ALL_CHARTS_ROW_BATCH_SIZE rows, then that many more per click
+//   of the "Show 15 more" control under the list (see useVisibleChartHits).
+// - V2 renders the complete list, contained in a box as tall as the chart
+//   beside it that fades out at the bottom — the treatment the live
+//   all-charts block gives its thumbnail list (`.related-charts__thumbnails`
+//   in site/blocks/related-charts.scss). See .all-charts-block__list-container.
 //
 // Prototype scaffolding, not a feature: once one of them is chosen, this, the
-// switcher, the query parameter and the per-variant overrides in the
-// stylesheet all come out and the chosen values become the block's own.
-//
-// V4 came out of the picker on 2026-10-01 as redundant against V5. The gap in
-// the numbering is deliberate: the treatments are referred to by number in
-// conversation and in links that have already been shared, so the rest keep
-// the numbers they were given. V4's override block is still in
-// AllChartsBlock.scss, unreachable: V5 repeats its values rather than
-// inheriting them, so leaving that block alone is the one change that cannot
-// disturb V5 while the designs are still being compared.
-const ALL_CHARTS_VARIANTS = ["v1", "v2", "v3", "v5"] as const
+// switcher, the query parameter and the other version's code all come out.
+// The numbers are the ones the versions are referred to by in links that have
+// already been shared.
+const ALL_CHARTS_VARIANTS = ["v1", "v2"] as const
 
 type AllChartsVariant = (typeof ALL_CHARTS_VARIANTS)[number]
 
-// V3 is the treatment that landed, so it is what the block looks like with no
-// parameter set, and the parameter is dropped again when it is selected —
-// there is no URL that pins the default, because the bare URL is the default.
-// A parameter that names no variant lands here too — `?allChartsVariant=v4`,
-// now that V4 is gone — rather than erroring or leaving the block unstyled.
-const ALL_CHARTS_DEFAULT_VARIANT: AllChartsVariant = "v3"
+// V1 is what the block looks like with no parameter set, and the parameter is
+// dropped again when it is selected — there is no URL that pins the default,
+// because the bare URL is the default. A parameter that names no variant lands
+// here too (links from before the switch was repurposed name a `v3`, `v4` or
+// `v5`) rather than erroring or leaving the block unstyled.
+const ALL_CHARTS_DEFAULT_VARIANT: AllChartsVariant = "v1"
 
 // Kept in the URL rather than only in component state so that one specific
-// treatment can be linked to.
+// version can be linked to.
 const ALL_CHARTS_VARIANT_PARAM = "allChartsVariant"
 
 // What distinguishes each one, for the switcher's options — enough to tell
 // them apart in the list without having to try them all.
 const ALL_CHARTS_VARIANT_LABELS: Record<AllChartsVariant, string> = {
-    v1: "V1 — tinted page, vermillion accent",
-    v2: "V2 — white page, chart card framed",
-    v3: "V3 — white page, tinted selected row",
-    v5: "V5 — tinted page, blue accent, panel stops at the list edge",
+    v1: "V1 — 15 at a time, show more",
+    v2: "V2 — full list, faded",
 }
 
 const isAllChartsVariant = (value: string | null): value is AllChartsVariant =>
     value !== null && ALL_CHARTS_VARIANTS.some((variant) => variant === value)
 
 /**
- * The treatment currently selected, read from (and written back to) the query
+ * The version currently selected, read from (and written back to) the query
  * string so a link can carry it.
  *
  * The parameter is read after mount rather than during the first render: the
@@ -163,8 +158,8 @@ const useAllChartsVariant = (): [
         if (next === ALL_CHARTS_DEFAULT_VARIANT)
             url.searchParams.delete(ALL_CHARTS_VARIANT_PARAM)
         else url.searchParams.set(ALL_CHARTS_VARIANT_PARAM, next)
-        // replaceState rather than pushState: flipping through five treatments
-        // shouldn't leave five entries to walk back through.
+        // replaceState rather than pushState: flipping between the versions
+        // shouldn't leave an entry per flip to walk back through.
         window.history.replaceState(null, "", url)
     }, [])
 
@@ -514,9 +509,6 @@ export const AllChartsBlock = ({
         <section
             className={cx(className, "all-charts-block")}
             id={id}
-            // Every per-treatment value hangs off this attribute in
-            // AllChartsBlock.scss (see useAllChartsVariant above).
-            data-all-charts-variant={variant}
             style={
                 {
                     "--all-charts-block-pinned-above-height": `${stickyNavHeight ?? 0}px`,
@@ -559,6 +551,7 @@ export const AllChartsBlock = ({
             <AllChartsSuggestedSearches chips={suggestedChips} />
             <div className="all-charts-block__panes">
                 <AllChartsLeftPane
+                    variant={variant}
                     query={query}
                     hits={hits}
                     // The skeleton also covers the window where the results
@@ -582,6 +575,7 @@ export const AllChartsBlock = ({
 }
 
 type AllChartsLeftPaneProps = {
+    variant: AllChartsVariant
     query: string
     hits: SearchChartHit[]
     isLoading: boolean
@@ -595,6 +589,7 @@ type AllChartsLeftPaneProps = {
 
 const AllChartsLeftPane = (props: AllChartsLeftPaneProps) => {
     const {
+        variant,
         query,
         hits,
         isLoading,
@@ -697,12 +692,38 @@ const AllChartsLeftPane = (props: AllChartsLeftPaneProps) => {
         // oxlint-disable-next-line react/exhaustive-effect-dependencies -- `resultKey` is the trigger, not a value the effect reads: a new result set re-opens row 0
     }, [resultKey, isAccordionLayout])
 
-    // Only the rows on screen: a topic's chart list is unbounded, so the block
-    // renders a bounded first slice of it until the visitor asks for the rest.
-    const { visibleHits, hasHiddenHits, revealAll } = useVisibleChartHits(
-        hits,
-        query
-    )
+    // Only the rows on screen. V1 renders a bounded first slice of the list and
+    // grows it a batch at a time (see useVisibleChartHits); V2 renders all of
+    // it, in a contained box instead (see AllChartsContainedList). The version
+    // is part of the reset key alongside the query, so switching back to V1
+    // always starts again from the first batch.
+    const isPaged = variant === "v1"
+    const {
+        visibleHits: pagedHits,
+        nextBatchSize,
+        showMore,
+    } = useVisibleChartHits(hits, `${variant}~${query}`)
+    const visibleHits = isPaged ? pagedHits : hits
+
+    // V2 on the accordion layout cuts the list off at a fixed height rather
+    // than giving it a scroll region of its own (see
+    // .all-charts-block__list-container); this is whether the visitor has
+    // lifted that cut-off. Reset by the same things as V1's paging, for the
+    // same reason.
+    const [isContainedListExpanded, setIsContainedListExpanded] =
+        useState(false)
+    useEffect(() => {
+        // oxlint-disable-next-line react/set-state-in-effect -- resets the V2 expansion on a new query or version, like useVisibleChartHits does for V1
+        setIsContainedListExpanded(false)
+        // oxlint-disable-next-line react/exhaustive-effect-dependencies -- `query` and `variant` are the trigger, not values the effect reads
+    }, [query, variant])
+
+    // Opening a row's chart inside the cut-off list could open it below the
+    // cut, out of sight, so opening one lifts the containment. Off the
+    // accordion layout nothing is cut off and rows don't open.
+    const expandContainedListOnAccordion = () => {
+        if (!isPaged && isAccordionLayout) setIsContainedListExpanded(true)
+    }
 
     // Selecting a row by its text opens the sidecar on the chart's own default
     // view, which is what the block itself opens on. Clearing `selectedTab` is
@@ -713,6 +734,7 @@ const AllChartsLeftPane = (props: AllChartsLeftPaneProps) => {
         if (hit) setSelectedIdentity(getChartHitIdentity(hit))
         setSelectedTab(undefined)
         setExpandedIndex((prev) => (prev === index ? null : index))
+        if (expandedIndex !== index) expandContainedListOnAccordion()
     }
 
     // A thumbnail selects its row like the row's text does, and additionally
@@ -723,9 +745,32 @@ const AllChartsLeftPane = (props: AllChartsLeftPaneProps) => {
         if (hit) setSelectedIdentity(getChartHitIdentity(hit))
         setSelectedTab(tab)
         if (isAccordionLayout) setExpandedIndex(index)
+        expandContainedListOnAccordion()
     }
 
     const selectedHit = hits[selectedIndex]
+
+    const table = (
+        <AllChartsTable
+            hits={visibleHits}
+            selectedIndex={selectedIndex}
+            expandedIndex={expandedIndex}
+            selectedTab={selectedTab}
+            activeTab={activeTab}
+            onActiveTabChange={setActiveTab}
+            onRowClick={handleRowClick}
+            onThumbnailClick={handleThumbnailClick}
+            detectedCountries={detectedCountries}
+            searchPhrase={searchPhrase}
+            duplicatedTitles={duplicatedTitles}
+            // True while a new debounced query is fetching in the
+            // background (see the keepPreviousData note above) — a
+            // subtle dim on the still-visible previous results, rather
+            // than the skeleton/blank state `isLoading` triggers on a
+            // genuine first load.
+            isRefreshing={isFetching && !isLoading}
+        />
+    )
 
     return (
         <>
@@ -740,56 +785,36 @@ const AllChartsLeftPane = (props: AllChartsLeftPaneProps) => {
                     />
                 ) : (
                     <>
-                        <AllChartsTable
-                            hits={visibleHits}
-                            selectedIndex={selectedIndex}
-                            expandedIndex={expandedIndex}
-                            selectedTab={selectedTab}
-                            activeTab={activeTab}
-                            onActiveTabChange={setActiveTab}
-                            onRowClick={handleRowClick}
-                            onThumbnailClick={handleThumbnailClick}
-                            detectedCountries={detectedCountries}
-                            searchPhrase={searchPhrase}
-                            duplicatedTitles={duplicatedTitles}
-                            // True while a new debounced query is fetching in
-                            // the background (see the keepPreviousData note
-                            // above) — a subtle dim on the still-visible
-                            // previous results, rather than the skeleton/blank
-                            // state `isLoading` triggers on a genuine first
-                            // load.
-                            isRefreshing={isFetching && !isLoading}
-                        />
-                        {/* The rest of the list, one click away. Counts the
-                            whole result set for the current query, not the
-                            slice on screen, so the number narrows with the
-                            search ("Show all 196 indicators" on the bare topic,
-                            165 once "china" is typed). Revealing is one-way
-                            until the query changes: collapsing a list the
-                            visitor has scrolled into would pull the page up
-                            from under them. */}
-                        {hasHiddenHits && (
-                            <div className="all-charts-block__reveal">
-                                <Button
-                                    // $blue-20 fill with $blue-90 text: the
-                                    // same theme the search page's own "Show
-                                    // more" control uses (see
-                                    // SearchHorizontalDivider). An outline theme
-                                    // can't be used here: those declare no
-                                    // background, which is invisible on the
-                                    // <a> elements they're used on elsewhere
-                                    // but leaves a <button> showing the
-                                    // browser's default grey.
-                                    theme="solid-light-blue"
-                                    className="all-charts-block__reveal-button"
-                                    text={`Show all ${hits.length} indicators`}
-                                    ariaLabel={`Show all ${hits.length} indicators on ${topicName}`}
-                                    dataTrackNote="all-charts-reveal-all"
-                                    icon={faChevronDown}
-                                    iconPosition="right"
-                                    onClick={revealAll}
-                                />
-                            </div>
+                        {isPaged ? (
+                            table
+                        ) : (
+                            <AllChartsContainedList
+                                isExpanded={isContainedListExpanded}
+                                onExpand={() =>
+                                    setIsContainedListExpanded(true)
+                                }
+                                isAccordionLayout={isAccordionLayout}
+                                hitCount={hits.length}
+                                topicName={topicName}
+                            >
+                                {table}
+                            </AllChartsContainedList>
+                        )}
+                        {/* V1's next batch, one click away. Counts the rows
+                            the click will really add: a full batch while there
+                            are that many left, the remainder on the last one
+                            ("Show 7 more"), and nothing once the whole list is
+                            on screen. Revealing only grows the list until the
+                            query changes: collapsing a list the visitor has
+                            scrolled into would pull the page up from under
+                            them. */}
+                        {isPaged && nextBatchSize > 0 && (
+                            <AllChartsRevealButton
+                                text={`Show ${nextBatchSize} more`}
+                                ariaLabel={`Show ${nextBatchSize} more indicators on ${topicName}`}
+                                dataTrackNote="all-charts-show-more"
+                                onClick={showMore}
+                            />
                         )}
                     </>
                 )}
@@ -804,6 +829,104 @@ const AllChartsLeftPane = (props: AllChartsLeftPaneProps) => {
                     />
                 )}
             </div>
+        </>
+    )
+}
+
+/**
+ * The control under the list that reveals more of it: V1's "Show 15 more", and
+ * V2's "Show all N indicators" on the accordion layout.
+ */
+const AllChartsRevealButton = ({
+    text,
+    ariaLabel,
+    dataTrackNote,
+    onClick,
+}: {
+    text: string
+    ariaLabel: string
+    dataTrackNote: string
+    onClick: () => void
+}) => (
+    <div className="all-charts-block__reveal">
+        <Button
+            // $blue-20 fill with $blue-90 text: the same theme the search
+            // page's own "Show more" control uses (see SearchHorizontalDivider).
+            // An outline theme can't be used here: those declare no background,
+            // which is invisible on the <a> elements they're used on elsewhere
+            // but leaves a <button> showing the browser's default grey.
+            theme="solid-light-blue"
+            className="all-charts-block__reveal-button"
+            text={text}
+            ariaLabel={ariaLabel}
+            dataTrackNote={dataTrackNote}
+            icon={faChevronDown}
+            iconPosition="right"
+            onClick={onClick}
+        />
+    </div>
+)
+
+/**
+ * V2's list: every row, in a box that ends level with the bottom of the chart
+ * beside it and fades out over its last stretch (see
+ * .all-charts-block__list-container for the styling and where it comes from).
+ *
+ * Above the accordion breakpoint the box scrolls, and nothing here is needed
+ * beyond the wrapper. Below it the box is cut off instead, since a scroll
+ * region inside a phone's page traps the page's own scrolling, and the cut-off
+ * comes with a control that lifts it. The control is only offered when the cut
+ * actually hides something, which depends on how tall the rows render — the
+ * first one opens with its chart inside it — so both the box and its contents
+ * are measured rather than the rows counted.
+ */
+const AllChartsContainedList = ({
+    isExpanded,
+    onExpand,
+    isAccordionLayout,
+    hitCount,
+    topicName,
+    children,
+}: {
+    isExpanded: boolean
+    onExpand: () => void
+    isAccordionLayout: boolean
+    hitCount: number
+    topicName: string
+    children: React.ReactNode
+}) => {
+    const containerRef = useRef<HTMLDivElement>(null)
+    const contentRef = useRef<HTMLDivElement>(null)
+    // The container's content box, which is what the cut-off leaves of it once
+    // the faded padding at its foot is taken off.
+    const { height: containerHeight = 0 } = useResizeObserver({
+        ref: containerRef as React.RefObject<HTMLDivElement>,
+    })
+    const { height: contentHeight = 0 } = useResizeObserver({
+        ref: contentRef as React.RefObject<HTMLDivElement>,
+        box: "border-box",
+    })
+    // A pixel of slack for subpixel row heights.
+    const isCutOff = contentHeight > containerHeight + 1
+
+    return (
+        <>
+            <div
+                ref={containerRef}
+                className={cx("all-charts-block__list-container", {
+                    "all-charts-block__list-container--expanded": isExpanded,
+                })}
+            >
+                <div ref={contentRef}>{children}</div>
+            </div>
+            {isAccordionLayout && !isExpanded && isCutOff && (
+                <AllChartsRevealButton
+                    text={`Show all ${hitCount} indicators`}
+                    ariaLabel={`Show all ${hitCount} indicators on ${topicName}`}
+                    dataTrackNote="all-charts-show-all"
+                    onClick={onExpand}
+                />
+            )}
         </>
     )
 }
@@ -916,8 +1039,8 @@ const AllChartsTable = ({
     duplicatedTitles,
     isRefreshing,
 }: {
-    // Only the rows on screen — the first slice of the result set, or all of it
-    // once the visitor has revealed the rest (see useVisibleChartHits).
+    // Only the rows on screen — in V1 the batches revealed so far (see
+    // useVisibleChartHits), in V2 the whole result set. Always a prefix of it.
     hits: readonly SearchChartHit[]
     selectedIndex: number
     expandedIndex: number | null
