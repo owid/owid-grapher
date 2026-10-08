@@ -1,6 +1,6 @@
 /**
  * Starts the stack the admin browser tests run against: the admin server and
- * a Vite dev server for the admin client, both on a freshly reset test
+ * builds of the admin and site clients, on a freshly reset test
  * database seeded with the synthetic indicators from `fixture.ts`, plus a
  * stand-in for the data API that serves those indicators' data and metadata
  * files.
@@ -140,32 +140,42 @@ function startDataApi(): Promise<http.Server> {
     )
 }
 
-/** Builds the admin client, or starts a dev server for it if requested */
-async function startAdminClient(): Promise<ViteDevServer | undefined> {
-    const configFile = "vite.config-admin.mts"
+/** Builds both clients, or starts a dev server for them if requested */
+async function startClients(): Promise<ViteDevServer | undefined> {
     if (useViteDevServer) {
         const vite = await createServer({
-            configFile,
+            configFile: "vite.config-admin.mts",
             logLevel: "warn",
-            server: { host: HOST, port: VITE_PORT, strictPort: true },
+            server: {
+                host: HOST,
+                port: VITE_PORT,
+                strictPort: true,
+                // Sandboxed embeds request modules from an opaque origin.
+                cors: true,
+            },
         })
         await vite.listen()
         return vite
     }
     // Through the CLI, since rolldown panics when building inside tsx
-    await promisify(execFile)(
-        "yarn",
-        [
-            "vite",
-            "build",
-            `--config=${configFile}`,
-            `--outDir=${TEST_VITE_DIST_DIR}/assets-admin`,
-            "--emptyOutDir",
-            "--sourcemap=false",
-            "--logLevel=warn",
-        ],
-        { maxBuffer: 64 * 1024 * 1024 }
-    )
+    for (const [configFile, outDir] of [
+        ["vite.config-admin.mts", "assets-admin"],
+        ["vite.config-site.mts", "assets"],
+    ]) {
+        await promisify(execFile)(
+            "yarn",
+            [
+                "vite",
+                "build",
+                `--config=${configFile}`,
+                `--outDir=${TEST_VITE_DIST_DIR}/${outDir}`,
+                "--emptyOutDir",
+                "--sourcemap=false",
+                "--logLevel=warn",
+            ],
+            { maxBuffer: 64 * 1024 * 1024 }
+        )
+    }
     return undefined
 }
 
@@ -174,8 +184,13 @@ async function main(): Promise<void> {
     await seedFixture(database.testKnex, database.userId)
 
     const dataApi = await startDataApi()
-    const vite = await startAdminClient()
+    const vite = await startClients()
     const app = new OwidAdminApp({ isDev: true, isTest: true, quiet: true })
+    // Match production's CORS headers for assets loaded by sandboxed embeds.
+    app.app.use(["/assets", "/fonts"], (_req, res, next) => {
+        res.setHeader("Access-Control-Allow-Origin", "*")
+        next()
+    })
     await app.startListening(ADMIN_SERVER_PORT, HOST)
 
     let isStopping = false
