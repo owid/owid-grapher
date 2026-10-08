@@ -37,6 +37,7 @@ function makeTimeAxis({
     bandValues,
     range = [0, 800],
     hideFractionalTicks = false,
+    isDomainEndExclusive,
 }: {
     columnType?: ColumnTypeNames
     min?: number
@@ -46,6 +47,7 @@ function makeTimeAxis({
     bandValues?: number[]
     range?: [number, number]
     hideFractionalTicks?: boolean
+    isDomainEndExclusive?: boolean
 }): HorizontalAxis {
     const slug = "timeValue"
     const table = new OwidTable(
@@ -63,6 +65,7 @@ function makeTimeAxis({
             maxTicks,
             ticks,
             bandValues,
+            isDomainEndExclusive,
         })
     )
     axis.formatColumn = table.get(slug)
@@ -824,6 +827,37 @@ describe("endpoint tick labels", () => {
             R.last(tickLabels),
         ])
     })
+})
+
+describe("exclusive domain end", () => {
+    const tickValues = (axis: HorizontalAxis): number[] =>
+        axis.tickLabels.map((tick) => tick.value)
+
+    it.each([
+        { columnType: ColumnTypeNames.Year, min: 2000, max: 2011 },
+        {
+            columnType: ColumnTypeNames.Month,
+            min: day("2021-01-01"),
+            max: day("2021-03-01"),
+        },
+    ])(
+        "puts no tick at the end of a $columnType axis",
+        ({ columnType, min, max }) => {
+            const axis = (isDomainEndExclusive: boolean): HorizontalAxis =>
+                makeTimeAxis({
+                    columnType,
+                    min,
+                    max,
+                    range: [0, 500],
+                    hideFractionalTicks: true,
+                    isDomainEndExclusive,
+                })
+
+            expect(tickValues(axis(false))).toContain(max)
+            expect(tickValues(axis(true))).not.toContain(max)
+            expect(tickValues(axis(true))).toContain(min)
+        }
+    )
 })
 
 describe(DualAxis, () => {
