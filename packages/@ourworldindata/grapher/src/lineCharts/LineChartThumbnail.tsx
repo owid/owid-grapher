@@ -739,25 +739,30 @@ export class LineChartThumbnail
         })
     }
 
+    private renderBaseline(): React.ReactElement | null {
+        if (this.manager.hideAxesAndLabels) return null
+        return this.shouldShowZeroLine ? (
+            <VerticalAxisZeroLine
+                axis={this.dualAxis.verticalAxis}
+                bounds={this.dualAxis.innerBounds}
+                strokeWidth={0.5}
+            />
+        ) : (
+            // The domain line is the baseline at the bottom of the plot.
+            // When the zero line is shown it already serves as a baseline,
+            // so we only draw the domain line in its absence
+            <VerticalAxisDomainLine
+                verticalAxis={this.dualAxis.verticalAxis}
+                bounds={this.dualAxis.innerBounds}
+                strokeWidth={0.5}
+            />
+        )
+    }
+
     private renderChartElements(): React.ReactElement {
         return (
             <>
-                {this.shouldShowZeroLine ? (
-                    <VerticalAxisZeroLine
-                        axis={this.dualAxis.verticalAxis}
-                        bounds={this.dualAxis.innerBounds}
-                        strokeWidth={0.5}
-                    />
-                ) : (
-                    // The domain line is the baseline at the bottom of the plot.
-                    // When the zero line is shown it already serves as a baseline,
-                    // so we only draw the domain line in its absence
-                    <VerticalAxisDomainLine
-                        verticalAxis={this.dualAxis.verticalAxis}
-                        bounds={this.dualAxis.innerBounds}
-                        strokeWidth={0.5}
-                    />
-                )}
+                {this.renderBaseline()}
                 {!this.dualAxis.horizontalAxis.hideAxis && (
                     <HorizontalAxisComponent
                         axis={this.dualAxis.horizontalAxis}

@@ -18,6 +18,7 @@ import { RelatedDataCharts } from "./RelatedDataCharts.js"
 import {
     ADMIN_BASE_URL,
     BAKED_GRAPHER_URL,
+    ENV,
 } from "../settings/clientSettings.mjs"
 import DownloadSection, {
     type DownloadSectionProps,
@@ -32,6 +33,8 @@ import AboutThisData from "./AboutThisData.js"
 import DataPageResearchAndWriting from "./DataPageResearchAndWriting.js"
 import MetadataSection from "./MetadataSection.js"
 import { SiteQueryClientProvider } from "./SiteQueryClientProvider.js"
+import { DataPerspectivesPrototype } from "./dataPerspectives/DataPerspectivesPrototype.js"
+import { pages as perspectivePages } from "./dataPerspectives/data.js"
 
 declare global {
     interface Window {
@@ -80,6 +83,10 @@ export const DataPageV2Content = ({
     imageMetadata: Record<string, ImageMetadata>
 }) => {
     const slug = grapherConfig.slug
+    const perspectivePage =
+        ENV === "development"
+            ? perspectivePages.find((page) => page.slug === slug)
+            : undefined
     const useNewDatapageDesign = isDataPageMetadataRedesignActive(
         `/grapher/${slug}`
     )
@@ -131,6 +138,31 @@ export const DataPageV2Content = ({
         />
     ) : undefined
 
+    const pageChart = grapherConfig.slug && (
+        <GrapherWithFallback
+            slug={grapherConfig.slug}
+            config={mergedGrapherConfig}
+            useProvidedConfigOnly
+            id="explore-the-data"
+            queryStr={queryStr}
+            enablePopulatingUrlParams
+            isEmbeddedInADataPage={true}
+            isEmbeddedInAnOwidPage={false}
+            isPreviewing={isPreviewing}
+        />
+    )
+
+    const metadataBox = useNewDatapageDesign && (
+        <IndicatorMetadataBox
+            datapageData={datapageData}
+            faqEntries={faqEntries}
+            canonicalUrl={canonicalUrl}
+            archiveContext={archiveContext}
+            id={DATAPAGE_ABOUT_THIS_DATA_SECTION_ID}
+            license={grapherConfig.license}
+        />
+    )
+
     return (
         <AttachmentsContext.Provider
             value={{
@@ -161,42 +193,34 @@ export const DataPageV2Content = ({
                 </div>
                 <div className="DataPageContent grid grid-cols-12-full-width">
                     <div className="span-cols-14 grid grid-cols-12-full-width full-width--border">
-                        <div
-                            className="chart-key-info col-start-2 span-cols-12"
-                            data-dod-track-note="grapher"
-                        >
-                            {grapherConfig.slug && (
-                                <GrapherWithFallback
-                                    slug={grapherConfig.slug}
-                                    config={mergedGrapherConfig}
-                                    useProvidedConfigOnly
-                                    id="explore-the-data"
-                                    queryStr={queryStr}
-                                    enablePopulatingUrlParams
-                                    isEmbeddedInADataPage={true}
-                                    isEmbeddedInAnOwidPage={false}
-                                    isPreviewing={isPreviewing}
-                                />
-                            )}
-                            {!useNewDatapageDesign && (
-                                <AboutThisData
-                                    datapageData={datapageData}
-                                    hasFaq={!!faqEntries?.faqs.length}
-                                    id={DATAPAGE_ABOUT_THIS_DATA_SECTION_ID}
-                                />
-                            )}
-                        </div>
-                        {useNewDatapageDesign && (
-                            <IndicatorMetadataBox
-                                datapageData={datapageData}
-                                faqEntries={faqEntries}
-                                canonicalUrl={canonicalUrl}
-                                archiveContext={archiveContext}
-                                id={DATAPAGE_ABOUT_THIS_DATA_SECTION_ID}
-                                license={grapherConfig.license}
-                            />
+                        {perspectivePage && (
+                            <DataPerspectivesPrototype
+                                page={perspectivePage}
+                                belowChart={metadataBox}
+                            >
+                                {pageChart}
+                            </DataPerspectivesPrototype>
                         )}
+                        {(!perspectivePage || !useNewDatapageDesign) && (
+                            <div
+                                className="chart-key-info col-start-2 span-cols-12"
+                                data-dod-track-note={
+                                    perspectivePage ? undefined : "grapher"
+                                }
+                            >
+                                {!perspectivePage && pageChart}
+                                {!useNewDatapageDesign && (
+                                    <AboutThisData
+                                        datapageData={datapageData}
+                                        hasFaq={!!faqEntries?.faqs.length}
+                                        id={DATAPAGE_ABOUT_THIS_DATA_SECTION_ID}
+                                    />
+                                )}
+                            </div>
+                        )}
+                        {!perspectivePage && metadataBox}
                         {useNewDatapageDesign &&
+                            !perspectivePage &&
                             relatedResearch &&
                             relatedResearch.length > 0 && (
                                 <div className="datapage-research-and-writing-v2 col-start-2 span-cols-12">
@@ -207,6 +231,7 @@ export const DataPageV2Content = ({
                             )}
 
                         {useNewDatapageDesign &&
+                            !perspectivePage &&
                             datapageData.relatedChartsByCoview &&
                             datapageData.relatedChartsByCoview.length > 0 && (
                                 <>

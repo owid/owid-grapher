@@ -26,6 +26,7 @@ import {
     HOVER_STROKE_COLOR,
     HOVER_STROKE_WIDTH,
     MAP_CHART_CLASSNAME,
+    MAP_VIEWPORTS,
     MapColumnInfo,
     PROJECTED_DATA_LEGEND_COLOR,
     MapViewport,
@@ -177,7 +178,22 @@ export class MapChart
     }
 
     @computed get mapViewport(): MapViewport | undefined {
-        return this.manager.mapViewport
+        if (this.manager.mapViewport) return this.manager.mapViewport
+
+        // The default World viewport crops a few remote Pacific islands on
+        // the left but leaves empty space on the right. Bare thumbnails keep
+        // that crop and end at the map's right edge, so the map is centred
+        // and its spacing matches the other chart types
+        if (
+            this.manager.hideAxesAndLabels &&
+            this.region === MapRegionName.World
+        ) {
+            const viewport = MAP_VIEWPORTS[MapRegionName.World]
+            const left = viewport.x - viewport.width / 2
+            return { ...viewport, x: (left + 1) / 2, width: 1 - left }
+        }
+
+        return undefined
     }
 
     @computed get isFaceted(): boolean | undefined {

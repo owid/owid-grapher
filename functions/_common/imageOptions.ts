@@ -94,6 +94,11 @@ const getThumbnailOptions = (params: URLSearchParams): ImageOptions => {
             params.get("imMinimal")! === "1"
     }
 
+    if (params.get("imBare") === "1") {
+        if (!options.grapherProps) options.grapherProps = {}
+        options.grapherProps.hideAxesAndLabels = true
+    }
+
     if (params.has("imFontSize"))
         options.fontSize = parseInt(params.get("imFontSize")!)
 
