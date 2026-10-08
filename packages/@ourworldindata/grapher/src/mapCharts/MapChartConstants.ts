@@ -179,7 +179,7 @@ export const GLOBE_VIEWPORTS: Record<GlobeRegionName, GlobeViewport> = {
 
 /** Viewport for each region, defined by center and width+height in fractional coordinates */
 export const MAP_VIEWPORTS: Record<MapRegionName, MapViewport> = {
-    World: { x: 0.52, y: 0.5, width: 0.96, height: 1.01, ratio: 2.21 },
+    World: { x: 0.545, y: 0.5, width: 0.91, height: 1.01, ratio: 2.1 },
     Europe: { x: 0.53, y: 0.21, width: 0.2, height: 0.2, ratio: 1.77 },
     Africa: { x: 0.48, y: 0.7, width: 0.21, height: 0.38, ratio: 1.07 },
     NorthAmerica: { x: 0.46, y: 0.4, width: 0.19, height: 0.35, ratio: 1.12 },
