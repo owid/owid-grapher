@@ -393,11 +393,7 @@ export {
     parseArchivalDate,
 } from "./archival/archivalDate.js"
 
-export {
-    experiments,
-    isUrlInActiveExperiment,
-    isDataPageMetadataRedesignActive,
-} from "./experiments/config.js"
+export { experiments, isUrlInActiveExperiment } from "./experiments/config.js"
 export {
     Experiment,
     validateUniqueExperimentIds,
@@ -411,8 +407,6 @@ export {
 export {
     EXPERIMENT_ARM_SEPARATOR,
     EXPERIMENT_PREFIX,
-    DATA_PAGE_METADATA_EXPERIMENT_ID,
-    DATA_PAGE_METADATA_EXPERIMENT_TREATMENT_ARM,
     LATEST_STICKY_FILTERS_EXPERIMENT_ID,
     LATEST_STICKY_FILTERS_ARMS,
 } from "./experiments/constants.js"

@@ -1,19 +1,11 @@
-import { useMemo, useEffect, useState } from "react"
+import { useMemo } from "react"
 import { GrapherProgrammaticInterface } from "@ourworldindata/grapher"
 import { DATAPAGE_ABOUT_THIS_DATA_SECTION_ID } from "@ourworldindata/components"
 import {
-    EXPERIMENT_ARM_SEPARATOR,
-    EXPERIMENT_PREFIX,
     DataPageV2ContentFields,
     GrapherInterface,
     ImageMetadata,
-    defaultExperimentState,
-    getExperimentState,
-    ExperimentState,
-    isDataPageMetadataRedesignActive,
 } from "@ourworldindata/utils"
-import { RelatedCharts } from "./blocks/RelatedCharts.js"
-import { FeaturedMetrics } from "./FeaturedMetrics.js"
 import { RelatedDataCharts } from "./RelatedDataCharts.js"
 import {
     ADMIN_BASE_URL,
@@ -28,10 +20,7 @@ import { AttachmentsContext } from "./gdocs/AttachmentsContext.js"
 import { DocumentContext } from "./gdocs/DocumentContext.js"
 import { useWindowQueryParams } from "./hooks.js"
 import IndicatorMetadataBox from "./IndicatorMetadataBox.js"
-import AboutThisData from "./AboutThisData.js"
 import DataPageResearchAndWriting from "./DataPageResearchAndWriting.js"
-import MetadataSection from "./MetadataSection.js"
-import { SiteQueryClientProvider } from "./SiteQueryClientProvider.js"
 
 declare global {
     interface Window {
@@ -80,9 +69,6 @@ export const DataPageV2Content = ({
     imageMetadata: Record<string, ImageMetadata>
 }) => {
     const slug = grapherConfig.slug
-    const useNewDatapageDesign = isDataPageMetadataRedesignActive(
-        `/grapher/${slug}`
-    )
     const queryStr =
         typeof window !== "undefined" ? window?.location?.search : undefined
 
@@ -95,28 +81,15 @@ export const DataPageV2Content = ({
             bakedGrapherURL: BAKED_GRAPHER_URL,
             enableKeyboardShortcuts: typeof window !== "undefined",
             archiveContext,
-            useNewDatapageMetadataLayout: useNewDatapageDesign,
+            useNewDatapageMetadataLayout: true,
         }),
-        [grapherConfig, archiveContext, useNewDatapageDesign]
+        [grapherConfig, archiveContext]
     )
 
     const relatedResearch = processRelatedResearch(
         datapageData.relatedResearch,
         datapageData.topicTagsLinks ?? []
     )
-
-    // note: experimentState should NOT be used to conditionally render content b/c
-    // it will cause a flash of content before js loads.
-    const [experimentState, setExperimentState] = useState<ExperimentState>(
-        defaultExperimentState
-    )
-    useEffect(() => {
-        if (typeof window !== "undefined") {
-            const s = getExperimentState()
-            // oxlint-disable-next-line react/set-state-in-effect -- read client-only experiment cookies after hydration
-            setExperimentState(s)
-        }
-    }, [])
 
     // Note: yColumns is not passed here, which means the short column names
     // option won't be visible in the download section on data pages. To enable
@@ -178,57 +151,40 @@ export const DataPageV2Content = ({
                                     isPreviewing={isPreviewing}
                                 />
                             )}
-                            {!useNewDatapageDesign && (
-                                <AboutThisData
-                                    datapageData={datapageData}
-                                    hasFaq={!!faqEntries?.faqs.length}
-                                    id={DATAPAGE_ABOUT_THIS_DATA_SECTION_ID}
-                                />
-                            )}
                         </div>
-                        {useNewDatapageDesign && (
-                            <IndicatorMetadataBox
-                                datapageData={datapageData}
-                                faqEntries={faqEntries}
-                                canonicalUrl={canonicalUrl}
-                                archiveContext={archiveContext}
-                                id={DATAPAGE_ABOUT_THIS_DATA_SECTION_ID}
-                                license={grapherConfig.license}
-                            />
+                        <IndicatorMetadataBox
+                            datapageData={datapageData}
+                            faqEntries={faqEntries}
+                            canonicalUrl={canonicalUrl}
+                            archiveContext={archiveContext}
+                            id={DATAPAGE_ABOUT_THIS_DATA_SECTION_ID}
+                            license={grapherConfig.license}
+                        />
+                        {relatedResearch && relatedResearch.length > 0 && (
+                            <div className="datapage-research-and-writing-v2 col-start-2 span-cols-12">
+                                <DataPageResearchAndWriting
+                                    relatedResearch={relatedResearch}
+                                />
+                            </div>
                         )}
-                        {useNewDatapageDesign &&
-                            relatedResearch &&
-                            relatedResearch.length > 0 && (
-                                <div className="datapage-research-and-writing-v2 col-start-2 span-cols-12">
-                                    <DataPageResearchAndWriting
-                                        relatedResearch={relatedResearch}
+                        {datapageData.relatedCharts.length > 0 && (
+                            <>
+                                <h2 className="datapage-v2__related-charts-heading span-cols-12 col-start-2 h2-bold">
+                                    Related charts
+                                </h2>
+                                <div className="span-cols-14 grid grid-cols-12-full-width">
+                                    <RelatedDataCharts
+                                        className="col-start-2 span-cols-12"
+                                        charts={datapageData.relatedCharts}
                                     />
                                 </div>
-                            )}
-
-                        {useNewDatapageDesign &&
-                            datapageData.relatedChartsByCoview &&
-                            datapageData.relatedChartsByCoview.length > 0 && (
-                                <>
-                                    <h2 className="datapage-v2__related-charts-heading span-cols-12 col-start-2 h2-bold">
-                                        Related charts
-                                    </h2>
-                                    <div className="span-cols-14 grid grid-cols-12-full-width">
-                                        <RelatedDataCharts
-                                            className="col-start-2 span-cols-12"
-                                            charts={
-                                                datapageData.relatedChartsByCoview
-                                            }
-                                        />
-                                    </div>
-                                </>
-                            )}
+                            </>
+                        )}
                     </div>
-                    {useNewDatapageDesign && downloadSection && (
-                        // The new design moves sources/processing/citations into
-                        // the IndicatorMetadataBox above, so only the data
-                        // download remains here. Rendered with the same wrapper
-                        // markup MetadataSection used so the layout is unchanged.
+                    {downloadSection && (
+                        // Sources, processing and citations live in the
+                        // IndicatorMetadataBox above, so only the data download
+                        // remains down here.
                         <div className="MetadataSection span-cols-14 grid grid-cols-12-full-width">
                             <div className="col-start-2 span-cols-12">
                                 <div className="section-wrapper grid">
@@ -236,83 +192,6 @@ export const DataPageV2Content = ({
                                 </div>
                             </div>
                         </div>
-                    )}
-                    {!useNewDatapageDesign && (
-                        <>
-                            <div className="col-start-2 span-cols-12">
-                                {relatedResearch &&
-                                    relatedResearch.length > 0 && (
-                                        <DataPageResearchAndWriting
-                                            relatedResearch={relatedResearch}
-                                        />
-                                    )}
-                                {datapageData.allCharts &&
-                                datapageData.allCharts.length > 0 ? (
-                                    <div
-                                        className={`section-wrapper section-wrapper__related-charts ${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1${EXPERIMENT_ARM_SEPARATOR}featured-metrics--hide`}
-                                    >
-                                        <h2
-                                            className="related-charts__title"
-                                            id="all-charts"
-                                        >
-                                            Explore charts that include this
-                                            data
-                                        </h2>
-                                        <div>
-                                            <RelatedCharts
-                                                charts={datapageData.allCharts}
-                                            />
-                                        </div>
-                                    </div>
-                                ) : null}
-                                {datapageData.primaryTopic && (
-                                    <div
-                                        className={`section-wrapper ${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1${EXPERIMENT_ARM_SEPARATOR}featured-metrics--show`}
-                                        id={
-                                            experimentState &&
-                                            experimentState[
-                                                `${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1`
-                                            ]?.isPageInExperiment &&
-                                            experimentState[
-                                                `${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1`
-                                            ]?.arm === "featured-metrics"
-                                                ? "all-charts"
-                                                : ""
-                                        }
-                                    >
-                                        <SiteQueryClientProvider>
-                                            <FeaturedMetrics
-                                                topicName={
-                                                    datapageData.primaryTopic
-                                                        .topicTag
-                                                }
-                                                isDataPage={true}
-                                            />
-                                        </SiteQueryClientProvider>
-                                    </div>
-                                )}
-                            </div>
-                            <MetadataSection
-                                attributionShort={datapageData.attributionShort}
-                                attributions={datapageData.attributions}
-                                canonicalUrl={canonicalUrl}
-                                descriptionProcessing={
-                                    datapageData.descriptionProcessing
-                                }
-                                faqEntries={faqEntries}
-                                license={grapherConfig.license}
-                                origins={datapageData.origins}
-                                owidProcessingLevel={
-                                    datapageData.owidProcessingLevel
-                                }
-                                primaryTopic={datapageData.primaryTopic}
-                                source={datapageData.source}
-                                title={datapageData.title}
-                                titleVariant={datapageData.titleVariant}
-                                archiveContext={archiveContext}
-                                downloadSection={downloadSection}
-                            />
-                        </>
                     )}
                 </div>
             </DocumentContext.Provider>
