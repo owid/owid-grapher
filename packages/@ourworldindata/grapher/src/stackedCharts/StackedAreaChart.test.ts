@@ -357,6 +357,17 @@ describe("availableFacetStrategies", () => {
     })
 })
 
+const bandsOf = (
+    chartState: StackedAreaChartState,
+    seriesName: string
+): [number, number][] =>
+    chartState.seriesByName
+        .get(seriesName)!
+        .points.map((point) => [
+            point.valueOffset,
+            point.valueOffset + point.value,
+        ])
+
 describe("a category with negative values", () => {
     const csv = `fossil,landUse,year,entityName
     100,-20,1990,Germany
@@ -366,52 +377,38 @@ describe("a category with negative values", () => {
         { slug: "landUse", type: ColumnTypeNames.Numeric },
         { slug: "year", type: ColumnTypeNames.Year },
     ])
-    const makeChartState = (): StackedAreaChartState =>
-        new StackedAreaChartState({
-            manager: {
-                table,
-                yColumnSlugs: ["fossil", "landUse"],
-                selection: table.availableEntityNames,
-            },
-        })
-
-    const bandsOf = (
-        chartState: StackedAreaChartState,
-        seriesName: string
-    ): [number, number][] =>
-        chartState.seriesByName
-            .get(seriesName)!
-            .points.map((point) => [
-                point.valueOffset,
-                point.valueOffset + point.value,
-            ])
+    const chartState = new StackedAreaChartState({
+        manager: {
+            table,
+            yColumnSlugs: ["fossil", "landUse"],
+            selection: table.availableEntityNames,
+        },
+    })
 
     it("hangs the negative category below the zero line", () => {
-        expect(bandsOf(makeChartState(), "landUse")).toEqual([
+        expect(bandsOf(chartState, "landUse")).toEqual([
             [0, -20],
             [0, -30],
         ])
     })
 
     it("rests the positive categories on the zero line", () => {
-        expect(bandsOf(makeChartState(), "fossil")).toEqual([
+        expect(bandsOf(chartState, "fossil")).toEqual([
             [0, 100],
             [0, 120],
         ])
     })
 
     it("extends the y domain below zero", () => {
-        expect(makeChartState().yDomain).toEqual([-30, 120])
+        expect(chartState.yDomain).toEqual([-30, 120])
     })
 
     it("centres each series label on its own band", () => {
-        expect(makeChartState().midpoints).toEqual([-15, 60])
+        expect(chartState.midpoints).toEqual([-15, 60])
     })
 })
 
 describe("a category that changes sign over time", () => {
-    // The shape every published chart with negatives actually has: land-use
-    // change is a source until 1949 and a sink after it
     const csv = `fossil,landUse,year,entityName
     100,20,1990,Germany
     120,-30,2000,Germany`
@@ -428,23 +425,15 @@ describe("a category that changes sign over time", () => {
         },
     })
 
-    const bandsOf = (seriesName: string): [number, number][] =>
-        chartState.seriesByName
-            .get(seriesName)!
-            .points.map((point) => [
-                point.valueOffset,
-                point.valueOffset + point.value,
-            ])
-
-    it("moves the category across the zero line at the crossing", () => {
-        expect(bandsOf("landUse")).toEqual([
+    it("keeps only the data points, without the zero-line crossing", () => {
+        expect(bandsOf(chartState, "landUse")).toEqual([
             [0, 20],
             [0, -30],
         ])
     })
 
     it("drops the category above it back onto the zero line", () => {
-        expect(bandsOf("fossil")).toEqual([
+        expect(bandsOf(chartState, "fossil")).toEqual([
             [20, 120],
             [0, 120],
         ])
@@ -473,24 +462,16 @@ describe("a negative category that is not at the bottom", () => {
         },
     })
 
-    const bandsOf = (seriesName: string): [number, number][] =>
-        chartState.seriesByName
-            .get(seriesName)!
-            .points.map((point) => [
-                point.valueOffset,
-                point.valueOffset + point.value,
-            ])
-
-    it("keeps the running-total stack, so no band sweeps through another", () => {
-        expect(bandsOf("coal")).toEqual([
+    it("stacks cumulatively when the negative category is not at the bottom", () => {
+        expect(bandsOf(chartState, "coal")).toEqual([
             [0, 100],
             [0, 120],
         ])
-        expect(bandsOf("netImports")).toEqual([
+        expect(bandsOf(chartState, "netImports")).toEqual([
             [100, 80],
             [120, 90],
         ])
-        expect(bandsOf("wind")).toEqual([
+        expect(bandsOf(chartState, "wind")).toEqual([
             [80, 120],
             [90, 140],
         ])
@@ -515,24 +496,16 @@ describe("several categories with negative values", () => {
         },
     })
 
-    const bandsOf = (seriesName: string): [number, number][] =>
-        chartState.seriesByName
-            .get(seriesName)!
-            .points.map((point) => [
-                point.valueOffset,
-                point.valueOffset + point.value,
-            ])
-
     it("keeps the running-total stack", () => {
-        expect(bandsOf("cfc")).toEqual([
+        expect(bandsOf(chartState, "cfc")).toEqual([
             [0, -10],
             [0, -15],
         ])
-        expect(bandsOf("methylBromide")).toEqual([
+        expect(bandsOf(chartState, "methylBromide")).toEqual([
             [-10, -30],
             [-15, -45],
         ])
-        expect(bandsOf("halons")).toEqual([
+        expect(bandsOf(chartState, "halons")).toEqual([
             [-30, 70],
             [-45, 75],
         ])
