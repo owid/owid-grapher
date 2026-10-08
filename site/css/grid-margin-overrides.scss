@@ -62,6 +62,11 @@
         margin-bottom: 0;
     }
 
+    /* Set the bottom margin of any block that comes before the credits section to 0 */
+    [class*="article-block__"]:has(+ section.credits) {
+        margin-bottom: 0;
+    }
+
     /* Set the top margin of any heading that follows a horizontal-rule to 0 */
     .article-block__horizontal-rule + .article-block__heading {
         margin-top: 0;

@@ -4,6 +4,7 @@ import { useIntersectionObserver } from "usehooks-ts"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faBoxArchive } from "@fortawesome/free-solid-svg-icons"
 import { ArticleBlocks } from "../components/ArticleBlocks.js"
+import Credits from "../components/Credits.js"
 import Footnotes from "../components/Footnotes.js"
 import {
     OwidGdocPostInterface,
@@ -16,6 +17,7 @@ import { OwidGdocHeader } from "../components/OwidGdocHeader.js"
 import StickyNav from "../../blocks/StickyNav.js"
 import { buildGdocCitation } from "../utils.js"
 import { CitationSection } from "../components/CitationSection.js"
+import { PastVersionsSection } from "../components/PastVersionsSection.js"
 import { LicenseSection } from "../components/LicenseSection.js"
 import { SidebarTableOfContents } from "../../SidebarTableOfContents.js"
 import { useDocumentContext } from "../DocumentContext.js"
@@ -125,6 +127,13 @@ export function GdocPost({
                     automaticSubscribeBanner={!shouldHideSubscribeBanner}
                 />
             ) : null}
+            <Credits
+                authors={content.authors}
+                authorRoles={content.authorRoles}
+                contributors={content.contributors}
+                contributorRoles={content.contributorRoles}
+                acknowledgements={content.acknowledgements}
+            />
             {content.refs && !_.isEmpty(content.refs.definitions) ? (
                 <Footnotes definitions={content.refs.definitions} />
             ) : null}
@@ -136,6 +145,7 @@ export function GdocPost({
                     isDeprecated={isDeprecated}
                 />
             )}
+            {postType === OwidGdocType.Article && <PastVersionsSection />}
             <LicenseSection isDeprecated={isDeprecated} />
         </article>
     )

@@ -1,9 +1,9 @@
 import cx from "clsx"
-import { useState } from "react"
 import {
     BreadcrumbItem,
     CITATION_ID,
     LICENSE_ID,
+    PAST_VERSIONS_ID,
     OwidGdocPostContent,
     OwidGdocType,
     formatDate,
@@ -15,10 +15,7 @@ import Image from "./Image.js"
 import { Breadcrumbs } from "../../Breadcrumb/Breadcrumb.js"
 import { breadcrumbColorForCoverColor } from "../utils.js"
 import { Byline } from "./Byline.js"
-import { VersionsDrawer } from "../../archive/VersionsDrawer.js"
-import { useArchiveVersions } from "../../archive/versions.js"
-import { useWindowQueryParams } from "../../hooks.js"
-import { useDocumentContext } from "../DocumentContext.js"
+import { useVersionsFileUrl } from "../DocumentContext.js"
 
 function OwidArticleHeader({
     content,
@@ -36,32 +33,9 @@ function OwidArticleHeader({
         : undefined
 
     const breadcrumbColor = breadcrumbColorForCoverColor(content["cover-color"])
-    const { archiveContext } = useDocumentContext()
-    const isOnArchivePage = archiveContext?.type === "archive-page"
-    const versionsFileUrl =
-        archiveContext?.versionsFileUrl ??
-        (isOnArchivePage
-            ? archiveContext.archiveNavigation.versionsFileUrl
-            : undefined)
-    const [isDrawerOpen, setIsDrawerOpen] = useState(false)
-    const [hasRequestedVersions, setHasRequestedVersions] = useState(false)
-    const { data: versions, status } = useArchiveVersions(versionsFileUrl, {
-        enabled: hasRequestedVersions,
-    })
-    const queryStr = useWindowQueryParams()
-    let liveUrl: string | undefined
-    if (isOnArchivePage) {
-        liveUrl = archiveContext?.archiveNavigation.liveUrl + queryStr
-    } else {
-        liveUrl =
-            typeof window !== "undefined" ? window.location.href : undefined
-    }
-
-    function handleDrawerOpenChange(isOpen: boolean) {
-        setIsDrawerOpen(isOpen)
-        if (isOpen) setHasRequestedVersions(true)
-    }
-
+    const versionsFileUrl = useVersionsFileUrl()
+    const dateText =
+        content.dateline || (publishedAt && formatDate(publishedAt))
     return (
         <>
             <div
@@ -108,79 +82,39 @@ function OwidArticleHeader({
                     </h2>
                 ) : null}
                 <div className="centered-article-header__meta-container col-start-2 span-cols-6 span-md-cols-6 col-md-start-1 grid grid-cols-2 ">
-                    <div
-                        className={cx(
-                            "centered-article-header__meta-container-left",
-                            isDeprecated
-                                ? "span-cols-2"
-                                : "span-cols-1 span-sm-cols-2"
-                        )}
-                    >
-                        {content.authors.length > 0 && (
-                            <div>
-                                <Byline
-                                    names={content.authors}
-                                    authorRoles={content.authorRoles}
-                                />
-                            </div>
-                        )}
-                        <div suppressHydrationWarning={true}>
-                            {content.dateline ||
-                                (publishedAt && formatDate(publishedAt))}
-                        </div>
-                        {versionsFileUrl && (
-                            <div>
-                                <button
-                                    className="centered-article-header__browse-versions-button"
-                                    onClick={() => handleDrawerOpenChange(true)}
-                                    type="button"
-                                    data-track-note="gdoc-header-browse-versions"
-                                >
-                                    <FontAwesomeIcon icon={faClockRotateLeft} />
-                                    Browse past versions
-                                </button>
-                            </div>
-                        )}
-                    </div>
-                    {!isDeprecated && (
-                        <div className="centered-article-header__links span-cols-1 span-sm-cols-2">
-                            {!content["hide-citation"] && (
-                                <a
-                                    href="#article-citation"
-                                    className="display-block"
-                                >
-                                    <FontAwesomeIcon icon={faBook} />
-                                    Cite this article
-                                </a>
-                            )}
-
-                            <a
-                                href="#article-licence"
-                                className="display-block"
-                            >
-                                <FontAwesomeIcon icon={faCreativeCommons} />
-                                Reuse our work freely
-                            </a>
+                    {content.authors.length > 0 && (
+                        <div className="centered-article-header__byline span-cols-2">
+                            <Byline
+                                authors={content.authors}
+                                authorRoles={content.authorRoles}
+                                contributors={content.contributors}
+                            />
                         </div>
                     )}
+                    <div className="centered-article-header__meta-row span-cols-2">
+                        {versionsFileUrl ? (
+                            <a
+                                href={`#${PAST_VERSIONS_ID}`}
+                                data-track-note="gdoc-header-date-versions"
+                                suppressHydrationWarning={true}
+                            >
+                                <FontAwesomeIcon icon={faClockRotateLeft} />
+                                {dateText}
+                            </a>
+                        ) : (
+                            <span suppressHydrationWarning={true}>
+                                {dateText}
+                            </span>
+                        )}
+                        {!isDeprecated && !content["hide-citation"] && (
+                            <a href={`#${CITATION_ID}`}>
+                                <FontAwesomeIcon icon={faBook} />
+                                Cite this article
+                            </a>
+                        )}
+                    </div>
                 </div>
             </header>
-            {/* NOTE: We should render the versions drawer only once per page,
-            but since the header and the gdoc body are hydrated separately, they
-            don't have a common parent where we could share the drawer state and
-            render it only once. Data fetching is deduplicated because they
-            share the query client. */}
-            <VersionsDrawer
-                isOpen={isDrawerOpen}
-                onOpenChange={handleDrawerOpenChange}
-                versions={versions}
-                status={status}
-                queryString={queryStr}
-                isLive={!isOnArchivePage}
-                liveUrl={liveUrl}
-                currentArchivalDate={archiveContext?.archivalDate}
-                archiveUrl={archiveContext?.archiveUrl}
-            />
         </>
     )
 }
@@ -196,7 +130,11 @@ function OwidTopicPageHeader({ content }: { content: OwidGdocPostContent }) {
             </p>
             {content.authors.length > 0 && (
                 <p className="topic-page-header__byline col-start-2 span-cols-8 col-sm-start-2 span-sm-cols-12">
-                    <Byline names={content.authors} />
+                    <Byline
+                        authors={content.authors}
+                        authorRoles={content.authorRoles}
+                        contributors={content.contributors}
+                    />
                 </p>
             )}
             <div className="topic-page-header__cta-buttons col-start-2 span-cols-8 col-sm-start-2 span-sm-cols-12">
@@ -219,7 +157,7 @@ function OwidLinearTopicPageHeader({
     content: OwidGdocPostContent
 }) {
     return (
-        <header className="topic-page-header grid span-cols-14 grid-cols-12-full-width">
+        <header className="topic-page-header linear-topic-page-header grid span-cols-14 grid-cols-12-full-width">
             <h1 className="display-2-semibold col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2">
                 {content.title}
             </h1>
@@ -228,12 +166,30 @@ function OwidLinearTopicPageHeader({
             </p>
             {content.authors.length > 0 && (
                 <p className="topic-page-header__byline col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2">
-                    <Byline names={content.authors} />
+                    <Byline
+                        authors={content.authors}
+                        authorRoles={content.authorRoles}
+                        contributors={content.contributors}
+                    />
                 </p>
             )}
-            <p className="topic-page-header__dateline body-3-medium-italic col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2">
-                {content.dateline}
-            </p>
+            <div className="topic-page-header__cta-buttons linear-topic-page-header__cta-buttons col-start-11 span-cols-3 col-lg-start-5 span-lg-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2">
+                {!content["hide-citation"] && (
+                    <a href={`#${CITATION_ID}`}>
+                        <FontAwesomeIcon icon={faBook} />
+                        Cite this work
+                    </a>
+                )}
+                <a href={`#${LICENSE_ID}`}>
+                    <FontAwesomeIcon icon={faCreativeCommons} />
+                    Reuse this work
+                </a>
+            </div>
+            {content.dateline && (
+                <p className="topic-page-header__dateline body-3-medium-italic col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2">
+                    {content.dateline}
+                </p>
+            )}
         </header>
     )
 }

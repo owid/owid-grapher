@@ -83,6 +83,7 @@ export const AnnouncementPage = ({
             <StandalonePostBody
                 title={content.title}
                 authors={content.authors}
+                authorRoles={content.authorRoles}
                 body={content.body}
                 publishedAt={publishedAt}
                 footer={

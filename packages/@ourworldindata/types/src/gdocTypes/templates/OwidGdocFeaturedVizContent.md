@@ -9,6 +9,12 @@ which fails if an entry here does not match a field of
 - `subtitle`: Standfirst shown below the title.
 - `authors`: Comma-separated author names. Append a role in parentheses to
   credit a specific contribution — e.g. "Jane Doe (Editor)".
+- `contributors`: Comma-separated names of people who helped beyond the
+  authors, credited in a section after the body. Same "Name (Role)" syntax as
+  `authors`.
+- `acknowledgements`: One or more paragraphs thanking others, shown in the
+  credits section after the body. Authored as an `[.+acknowledgements]`
+  freeform block of text paragraphs.
 - `dateline`: The publication date as displayed under the byline, e.g.
   "June 30, 2026". Omitted, the page shows the publish date.
 - `excerpt`: Short plain-text summary used in cards and link previews.

@@ -48,7 +48,6 @@ export interface LinkedAuthor {
     slug: string
     featuredImage: string | null
     updatedAt: Date
-    role?: string
 }
 
 export enum ChartConfigType {
@@ -346,6 +345,9 @@ export interface OwidGdocFeaturedVizContent {
     subtitle?: string
     authors: string[]
     authorRoles?: Record<string, string>
+    contributors?: string[]
+    contributorRoles?: Record<string, string>
+    acknowledgements?: EnrichedBlockText[]
     dateline?: string
     excerpt?: string
     "featured-image"?: string
@@ -550,6 +552,9 @@ export interface OwidGdocPostContent {
     subtitle?: string
     authors: string[]
     authorRoles?: Record<string, string>
+    contributors?: string[]
+    contributorRoles?: Record<string, string>
+    acknowledgements?: EnrichedBlockText[]
     dateline?: string
     excerpt?: string
     refs?: { definitions: RefDictionary; errors: OwidGdocErrorMessage[] }
@@ -633,7 +638,10 @@ export const OWID_GDOC_POST_CONTENT_KEY_KINDS = {
     "sticky-nav": "authored",
     details: "authored",
     faqs: "authored",
+    contributors: "authored",
+    acknowledgements: "authored",
     authorRoles: "computed", // from authors
+    contributorRoles: "computed", // from contributors
     toc: "computed", // from body
     parsedFaqs: "computed", // from faqs
 } as const satisfies Record<keyof OwidGdocPostContent, GdocContentKeyKind>
@@ -735,7 +743,10 @@ export const OWID_GDOC_FEATURED_VIZ_CONTENT_KEY_KINDS = {
     refs: "authored",
     "hide-citation": "authored",
     "featured-image": "authored",
+    contributors: "authored",
+    acknowledgements: "authored",
     authorRoles: "computed", // from authors
+    contributorRoles: "computed", // from contributors
 } as const satisfies Record<
     keyof OwidGdocFeaturedVizContent,
     GdocContentKeyKind

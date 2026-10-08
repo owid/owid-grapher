@@ -19,6 +19,7 @@ export const AnnouncementContent = ({
     slug,
     publishedAt,
     authors,
+    authorRoles,
     body,
     isExpanded,
     selectedTopic,
@@ -30,6 +31,7 @@ export const AnnouncementContent = ({
     slug: string
     publishedAt: Date | string | null
     authors: string[]
+    authorRoles?: Record<string, string>
     body: OwidEnrichedGdocBlock[]
     isExpanded?: boolean
     selectedTopic?: string
@@ -43,6 +45,7 @@ export const AnnouncementContent = ({
         <AvatarByline
             className="announcement-content__authors"
             authors={authors}
+            authorRoles={authorRoles}
         />
     )
 
