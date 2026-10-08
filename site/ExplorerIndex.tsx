@@ -1,29 +1,30 @@
 import { useState } from "react"
-import { MinimalExplorerInfo } from "@ourworldindata/types"
-import { EXPLORER_DYNAMIC_THUMBNAIL_URL } from "../settings/clientSettings.mjs"
 import { faHeartBroken } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
 
-function ExplorerIndexPageCard(props: {
-    baseUrl: string
-    explorer: MinimalExplorerInfo
-}) {
-    const { baseUrl, explorer } = props
+// A card on the /explorers index page: either an actual explorer or a
+// multi-dim data page whose config declares `presentation.type: "data-explorer"`.
+export interface ExplorerIndexItem {
+    slug: string
+    title: string
+    subtitle: string
+    href: string
+    thumbnailUrl: string
+}
+
+function ExplorerIndexPageCard(props: { item: ExplorerIndexItem }) {
+    const { item } = props
     const [hasError, setHasError] = useState(false)
     return (
-        <li key={explorer.slug}>
-            <a
-                className="explorer-index-page__card"
-                href={`${baseUrl}/${EXPLORERS_ROUTE_FOLDER}/${explorer.slug}`}
-            >
+        <li key={item.slug}>
+            <a className="explorer-index-page__card" href={item.href}>
                 {!hasError ? (
                     <img
                         width="850"
                         height="600"
                         loading="lazy"
                         onError={() => setHasError(true)}
-                        src={`${EXPLORER_DYNAMIC_THUMBNAIL_URL}/${explorer.slug}.png`}
+                        src={item.thumbnailUrl}
                     />
                 ) : (
                     <div className="explorer-index-page__card-error">
@@ -31,8 +32,8 @@ function ExplorerIndexPageCard(props: {
                         <span>Explorer preview not available</span>
                     </div>
                 )}
-                <h2>{explorer.title}</h2>
-                <p>{explorer.subtitle}</p>
+                <h2>{item.title}</h2>
+                <p>{item.subtitle}</p>
             </a>
         </li>
     )
@@ -40,11 +41,11 @@ function ExplorerIndexPageCard(props: {
 
 export interface ExplorerIndexPageProps {
     baseUrl: string
-    explorers: MinimalExplorerInfo[]
+    items: ExplorerIndexItem[]
 }
 
 export function ExplorerIndex(props: ExplorerIndexPageProps) {
-    const { baseUrl, explorers } = props
+    const { items } = props
     return (
         <>
             <header className="explorer-index-page__header grid grid-cols-12-full-width span-cols-14">
@@ -57,12 +58,8 @@ export function ExplorerIndex(props: ExplorerIndexPageProps) {
                 </p>
             </header>
             <ul className="explorer-index-page-list span-cols-12 col-start-2 grid grid-cols-4 grid-md-cols-2 grid-sm-cols-1">
-                {explorers.map((explorer) => (
-                    <ExplorerIndexPageCard
-                        baseUrl={baseUrl}
-                        explorer={explorer}
-                        key={explorer.slug}
-                    />
+                {items.map((item) => (
+                    <ExplorerIndexPageCard item={item} key={item.slug} />
                 ))}
             </ul>
         </>

@@ -240,6 +240,7 @@ export async function upsertMultiDim(
     )
     validateViewConfigSchemas(config)
     validateDimensionPresentations(config)
+    validateDataDownloadUrl(config)
     const indicatorConfigs = await getIndicatorChartConfigs(
         knex,
         _.uniq(config.views.map((view) => view.indicators.y[0].id))
@@ -337,6 +338,19 @@ function validateDimensionPresentations(
                     `but has grouped choices. Choice groups are only supported in dropdowns.`
             )
         }
+    }
+}
+
+/** Throws if the configured data-download URL is not an absolute http(s) URL */
+function validateDataDownloadUrl(
+    config: MultiDimDataPageConfigPreProcessed
+): void {
+    const url = config.presentation?.dataDownloadUrl
+    if (url === undefined) return
+    if (!URL.canParse(url) || !/^https?:$/.test(new URL(url).protocol)) {
+        throw new JsonError(
+            `presentation.dataDownloadUrl must be an absolute http(s) URL, got "${url}"`
+        )
     }
 }
 
