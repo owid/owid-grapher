@@ -1355,6 +1355,20 @@ const catalogPathSegment = (n: number): string =>
     // the last segment carries the #short_name, which `short:` searches instead
     `SUBSTRING_INDEX(SUBSTRING_INDEX(SUBSTRING_INDEX(v.catalogPath, '/', ${n}), '/', -1), '#', 1)`
 
+/** Application-controlled SQL expressions and their full-text eligibility. */
+const REGEX_FIELDS = new Map(
+    Object.entries({
+        name: { expression: "v.name", indexed: true },
+        path: { expression: "v.catalogPath", indexed: true },
+        namespace: { expression: catalogPathSegment(2), indexed: true },
+        version: { expression: catalogPathSegment(3), indexed: true },
+        dataset: { expression: catalogPathSegment(4), indexed: true },
+        table: { expression: catalogPathSegment(5), indexed: true },
+        short: { expression: "v.shortName", indexed: true },
+        datasetname: { expression: "d.name", indexed: false },
+    })
+)
+
 export const buildWhereClauses = (query: string): SqlFragment[] => {
     const whereClauses: SqlFragment[] = []
     const fulltextTerms: string[] = []
@@ -1393,48 +1407,18 @@ export const buildWhereClauses = (query: string): SqlFragment[] => {
                 fulltextTerms.push(...fulltextTokens(value))
         }
 
-        if (part.startsWith("name:")) {
-            const q = part.substring("name:".length)
-            if (q) {
-                alsoIndex(q)
+        const colonIndex = part.indexOf(":")
+        const regexField =
+            colonIndex >= 0
+                ? REGEX_FIELDS.get(part.slice(0, colonIndex))
+                : undefined
+        if (regexField) {
+            const value = part.slice(colonIndex + 1)
+            if (value) {
+                if (regexField.indexed) alsoIndex(value)
                 whereClauses.push({
-                    sql: `${not} REGEXP_LIKE(v.name, ?, 'i')`,
-                    bindings: [q],
-                })
-            }
-        } else if (part.startsWith("path:")) {
-            const q = part.substring("path:".length)
-            if (q) {
-                alsoIndex(q)
-                whereClauses.push({
-                    sql: `${not} REGEXP_LIKE(v.catalogPath, ?, 'i')`,
-                    bindings: [q],
-                })
-            }
-        } else if (part.startsWith("namespace:")) {
-            const q = part.substring("namespace:".length)
-            if (q) {
-                alsoIndex(q)
-                whereClauses.push({
-                    sql: `${not} REGEXP_LIKE(${catalogPathSegment(2)}, ?, 'i')`,
-                    bindings: [q],
-                })
-            }
-        } else if (part.startsWith("datasetname:")) {
-            const q = part.substring("datasetname:".length)
-            if (q) {
-                whereClauses.push({
-                    sql: `${not} REGEXP_LIKE(d.name, ?, 'i')`,
-                    bindings: [q],
-                })
-            }
-        } else if (part.startsWith("version:")) {
-            const q = part.substring("version:".length)
-            if (q) {
-                alsoIndex(q)
-                whereClauses.push({
-                    sql: `${not} REGEXP_LIKE(${catalogPathSegment(3)}, ?, 'i')`,
-                    bindings: [q],
+                    sql: `${not} REGEXP_LIKE(${regexField.expression}, ?, 'i')`,
+                    bindings: [value],
                 })
             }
         } else if (part.startsWith("datasetid:")) {
@@ -1448,33 +1432,6 @@ export const buildWhereClauses = (query: string): SqlFragment[] => {
                     sql: `${not} d.id = ?`,
                     bindings: [id],
                 })
-        } else if (part.startsWith("dataset:")) {
-            const q = part.substring("dataset:".length)
-            if (q) {
-                alsoIndex(q)
-                whereClauses.push({
-                    sql: `${not} REGEXP_LIKE(${catalogPathSegment(4)}, ?, 'i')`,
-                    bindings: [q],
-                })
-            }
-        } else if (part.startsWith("table:")) {
-            const q = part.substring("table:".length)
-            if (q) {
-                alsoIndex(q)
-                whereClauses.push({
-                    sql: `${not} REGEXP_LIKE(${catalogPathSegment(5)}, ?, 'i')`,
-                    bindings: [q],
-                })
-            }
-        } else if (part.startsWith("short:")) {
-            const q = part.substring("short:".length)
-            if (q) {
-                alsoIndex(q)
-                whereClauses.push({
-                    sql: `${not} REGEXP_LIKE(v.shortName, ?, 'i')`,
-                    bindings: [q],
-                })
-            }
         } else if (part.startsWith("before:")) {
             const q = part.substring("before:".length)
             if (q) {
@@ -1660,8 +1617,8 @@ export function unindexedSearchTerms(query: string | undefined): string[] {
             const fielded = /^([a-zA-Z][\w-]*):(.*)$/.exec(part)
             if (!fielded) return !canUseFulltext(part)
             const [, field, value] = fielded
-            // path fields are narrowed through the index like free text is
-            if (INDEXED_FIELDS.has(field)) return !canUseFulltext(value)
+            const regexField = REGEX_FIELDS.get(field)
+            if (regexField) return regexField.indexed && !canUseFulltext(value)
             // the rest filter datasets, not the ~780k indicators
             if (DATASET_FIELDS.has(field)) return false
             // an unknown field is searched as free text
@@ -1669,25 +1626,8 @@ export function unindexedSearchTerms(query: string | undefined): string[] {
         })
 }
 
-/** Fields `buildWhereClauses` also requires through the full-text index. */
-const INDEXED_FIELDS = new Set([
-    "name",
-    "path",
-    "namespace",
-    "version",
-    "dataset",
-    "table",
-    "short",
-])
-
-/** Fields matched on the dataset, which is cheap however they're written. */
-const DATASET_FIELDS = new Set([
-    "datasetname",
-    "datasetid",
-    "before",
-    "after",
-    "is",
-])
+/** Non-regex fields matched on the dataset, which is cheap however they're written. */
+const DATASET_FIELDS = new Set(["datasetid", "before", "after", "is"])
 
 /** A search term MySQL couldn't run as a regular expression, with its reason. */
 class RegexError extends Error {}

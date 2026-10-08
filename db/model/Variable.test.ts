@@ -110,20 +110,82 @@ describe(buildWhereClauses, () => {
     })
 
     it.each([
-        "name",
-        "path",
-        "namespace",
-        "datasetname",
-        "version",
-        "dataset",
-        "table",
-        "short",
-    ])("binds the value of %s:", (field) => {
-        const [clause] = buildWhereClauses(`${field}:road`)
-        expect(clause.sql).toContain("REGEXP_LIKE(")
-        expect(clause.sql).not.toContain("road")
-        expect(clause.bindings).toEqual(["road"])
-    })
+        ["name", "v.name", true],
+        ["path", "v.catalogPath", true],
+        [
+            "namespace",
+            "SUBSTRING_INDEX(SUBSTRING_INDEX(SUBSTRING_INDEX(v.catalogPath, '/', 2), '/', -1), '#', 1)",
+            true,
+        ],
+        [
+            "version",
+            "SUBSTRING_INDEX(SUBSTRING_INDEX(SUBSTRING_INDEX(v.catalogPath, '/', 3), '/', -1), '#', 1)",
+            true,
+        ],
+        [
+            "dataset",
+            "SUBSTRING_INDEX(SUBSTRING_INDEX(SUBSTRING_INDEX(v.catalogPath, '/', 4), '/', -1), '#', 1)",
+            true,
+        ],
+        [
+            "table",
+            "SUBSTRING_INDEX(SUBSTRING_INDEX(SUBSTRING_INDEX(v.catalogPath, '/', 5), '/', -1), '#', 1)",
+            true,
+        ],
+        ["short", "v.shortName", true],
+        ["datasetname", "d.name", false],
+    ] as const)(
+        "matches %s: on the correct expression and index policy",
+        (field, expression, indexed) => {
+            const clauses = buildWhereClauses(`${field}:road`)
+            expect(clauses).toEqual([
+                {
+                    sql: `  REGEXP_LIKE(${expression}, ?, 'i')`,
+                    bindings: ["road"],
+                },
+                ...(indexed
+                    ? [
+                          {
+                              sql: "MATCH(v.name, v.catalogPath) AGAINST(? IN BOOLEAN MODE)",
+                              bindings: ["+road*"],
+                          },
+                      ]
+                    : []),
+            ])
+            expect(buildWhereClauses(`${field}:`)).toEqual([])
+            expect(unindexedSearchTerms(`${field}:who`)).toEqual(
+                indexed ? [`${field}:who`] : []
+            )
+        }
+    )
+
+    it.each(["foo:bar", "foo\nbar"])(
+        "keeps the complete field value %s",
+        (value) => {
+            expect(buildWhereClauses(`name:"${value}"`)[0]).toEqual({
+                sql: "  REGEXP_LIKE(v.name, ?, 'i')",
+                bindings: [value],
+            })
+        }
+    )
+
+    it.each(["unknown:road", "constructor:road", "Name:road", "name"])(
+        "still searches %s as free text",
+        (term) => {
+            expect(buildWhereClauses(term)[0]).toEqual({
+                sql: "  (REGEXP_LIKE(v.name, ?, 'i') OR REGEXP_LIKE(v.catalogPath, ?, 'i'))",
+                bindings: [term, term],
+            })
+        }
+    )
+
+    it.each(["name:.*road", "-namespace:road", "name:road|deaths"])(
+        "does not narrow regexes or exclusions through the index: %s",
+        (query) => {
+            expect(buildWhereClauses(query)).toHaveLength(1)
+            expect(buildWhereClauses(query)[0].sql).toContain("REGEXP_LIKE(")
+        }
+    )
 
     it("binds both free-text predicates and the full-text expression", () => {
         expect(buildWhereClauses("road deaths road")).toEqual([
