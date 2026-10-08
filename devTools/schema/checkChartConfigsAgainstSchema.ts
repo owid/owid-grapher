@@ -46,8 +46,9 @@ const REFERENCING_COLUMNS: Record<string, ConfigReference | null> = {
     },
     "variables.patchConfigIdETL": { owner: "indicator", role: "patch" },
 
-    // Not validated
+    // Generated from the explorer TSV and never rendered
     "explorer_views.chartConfigId": null,
+    // An mdim view's config, already covered by multi_dim_x_chart_configs
     "multi_dim_redirects.viewConfigId": null,
 }
 
