@@ -60,7 +60,6 @@ export function HorizontalNumericColorLegend(
         styleConfig?.text?.default?.color ?? DEFAULT_TEXT_COLOR
 
     const bottomY = y + height
-    const labelStripHeight = Math.max(0, height - binSize)
 
     const markerStyleFor = (bin: ColorScaleBin): LegendMarkerStyle =>
         resolveLegendMarkerStyle(styleConfig, binEmphasis?.get(bin), {
@@ -100,7 +99,6 @@ export function HorizontalNumericColorLegend(
         const bin = positionedBin.bin
         const style = markerStyleFor(bin)
         const fill = bin.patternRef ? `url(#${bin.patternRef})` : style.fill
-        const inert = isHighlightOverlay || !isHoverable
 
         return (
             <NumericBinRect
@@ -120,9 +118,6 @@ export function HorizontalNumericColorLegend(
                 isOpenLeft={isNumericBin(bin) ? bin.props.isOpenLeft : false}
                 isOpenRight={isNumericBin(bin) ? bin.props.isOpenRight : false}
                 pointerEvents={isHighlightOverlay ? "none" : undefined}
-                onPointerEnter={inert ? undefined : onPointerEnter(bin)}
-                onPointerLeave={inert ? undefined : onPointerLeave}
-                onPointerUp={inert ? undefined : onPointerUp(bin)}
             />
         )
     }
@@ -204,16 +199,18 @@ export function HorizontalNumericColorLegend(
                 })}
             </g>
             {isHoverable && (
-                <g id={makeFigmaId("swatch-hit-areas")} aria-hidden="true">
+                <g aria-hidden="true">
                     {positionedBins.map((positionedBin, index) => (
                         <rect
                             key={index}
                             x={roundForSvg(x + positionedBin.x)}
                             y={roundForSvg(y)}
                             width={roundForSvg(positionedBin.width)}
-                            height={roundForSvg(labelStripHeight)}
+                            height={roundForSvg(height)}
                             fill="transparent"
                             pointerEvents="all"
+                            onPointerEnter={onPointerEnter(positionedBin.bin)}
+                            onPointerLeave={onPointerLeave}
                             onPointerUp={onPointerUp(positionedBin.bin)}
                         />
                     ))}
