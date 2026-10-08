@@ -13,7 +13,7 @@ it("can serialize for saving", () => {
     ).toEqual({ property: "x", variableId: 1 })
 })
 
-describe("a slot naming a host-supplied column", () => {
+describe("a slot naming a column with slug", () => {
     const manager = { table: BlankOwidTable() }
 
     it("uses the authored slug as its column, with no variable id", () => {
@@ -48,7 +48,7 @@ describe("a slot naming a host-supplied column", () => {
     })
 })
 
-describe("pinning a slot to a year", () => {
+describe("setting targetYear", () => {
     const manager = { table: BlankOwidTable() }
 
     it("names the indicator column by variable id and year", () => {
@@ -65,7 +65,7 @@ describe("pinning a slot to a year", () => {
         })
     })
 
-    it("refuses to pin a host column", () => {
+    it("refuses to set targetYear on a slug column", () => {
         const dimension = new ChartDimension(
             { property: DimensionProperty.x, slug: "rent_index" },
             manager
@@ -77,7 +77,7 @@ describe("pinning a slot to a year", () => {
         })
     })
 
-    it("accepts clearing the year on a host column", () => {
+    it("accepts clearing the year on a slug column", () => {
         const dimension = new ChartDimension(
             { property: DimensionProperty.x, slug: "rent_index" },
             manager
