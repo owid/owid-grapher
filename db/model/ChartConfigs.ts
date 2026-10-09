@@ -10,6 +10,7 @@ import { migrateGrapherConfigToLatestVersion } from "@ourworldindata/grapher"
 import { v7 as uuidv7 } from "uuid"
 
 import * as db from "../db.js"
+import { logErrorAndMaybeCaptureInSentry } from "../../serverUtils/errorLog.js"
 
 /** Parses a stored chart config, migrating it to the latest schema version unless `skipMigration` */
 export function parseChartConfig(
@@ -21,7 +22,13 @@ export function parseChartConfig(
 
     try {
         return migrateGrapherConfigToLatestVersion(parsed)
-    } catch {
+    } catch (error) {
+        void logErrorAndMaybeCaptureInSentry(
+            new Error(
+                `Could not migrate chart config from ${parsed?.$schema}`,
+                { cause: error }
+            )
+        )
         return parsed
     }
 }
