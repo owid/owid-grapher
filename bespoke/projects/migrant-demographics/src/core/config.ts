@@ -18,12 +18,12 @@ export interface PyramidVariantConfig {
 
 export function parseConfig(raw: Record<string, string>): PyramidVariantConfig {
     return {
-        hideControls: parseBoolean(raw.hideControls),
+        hideControls: parseBoolean(raw.hideControls) ?? false,
         title: raw.title,
         subtitle: raw.subtitle,
         country: raw.country,
         year: parseNumber(raw.year),
         show: parseEnum(raw.show, SHOW_MODES),
-        compare: parseBoolean(raw.compare),
+        compare: parseBoolean(raw.compare) ?? false,
     }
 }

@@ -20,7 +20,7 @@ export const POPULATION_PYRAMID_UNITS = ["percent", "absolute"] as const
 export type PopulationPyramidUnit = (typeof POPULATION_PYRAMID_UNITS)[number]
 
 export interface SimulationVariantConfig {
-    hideEntitySelector: boolean
+    hideEntitySelector?: boolean
     region?: string
     title?: string
     subtitle?: string
@@ -33,7 +33,7 @@ export interface SimulationVariantConfig {
 }
 
 export interface PopulationVariantConfig {
-    hideEntitySelector: boolean
+    hideEntitySelector?: boolean
     region?: string
     title?: string
     subtitle?: string
@@ -44,7 +44,7 @@ export interface PopulationVariantConfig {
 }
 
 export interface PopulationPyramidVariantConfig {
-    hideEntitySelector: boolean
+    hideEntitySelector?: boolean
     hideTimeline?: boolean
     showAssumptionCharts?: boolean
     time?: number
@@ -58,7 +58,7 @@ export interface PopulationPyramidVariantConfig {
 }
 
 export interface ParametersVariantConfig {
-    hideEntitySelector: boolean
+    hideEntitySelector?: boolean
     region?: string
     title?: string
     subtitle?: string

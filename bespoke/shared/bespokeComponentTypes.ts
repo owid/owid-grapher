@@ -5,9 +5,11 @@ export interface BespokeComponentDataUrls {
     metadataUrl: string
 }
 
+export type BespokeAuthoredConfig = Record<string, string>
+
 export interface BespokeComponentMountOpts extends Partial<BespokeComponentDataUrls> {
     variant?: string
-    config?: Record<string, string>
+    config?: BespokeAuthoredConfig
 }
 
 export type BespokeComponentMountFn = (
@@ -30,12 +32,33 @@ export interface BespokeComponentVariantsEntry<
 > extends Record<string, unknown> {
     name: VariantName
     description: string
-    defaultConfig?: Record<string, string>
+    defaultConfig?: BespokeAuthoredConfig
     defaultSize?: "narrow" | "wide" | "widest"
 }
 
 export type BespokeComponentVariantsList<VariantName extends string = string> =
     BespokeComponentVariantsEntry<VariantName>[]
+
+export type BespokeConfigField =
+    | {
+          type: "string" | "number" | "integer" | "boolean"
+          default?: string
+          description: string
+      }
+    | {
+          type: "enum"
+          values: readonly string[]
+          default?: string
+          description: string
+      }
+    | {
+          type: "custom"
+          format: string
+          parse: (value: string) => unknown
+          description: string
+      }
+
+export type BespokeConfigSpec = Record<string, BespokeConfigField>
 
 export interface BespokeComponentDefinition {
     /** URL to the ES module that exports the component's mount function, relative to BESPOKE_BASE_URL */
