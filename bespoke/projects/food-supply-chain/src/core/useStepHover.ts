@@ -1,0 +1,68 @@
+import { useCallback, useEffect, useRef, useState } from "react"
+
+import { getRelativeMouse, isTouchDevice, Point } from "@ourworldindata/utils"
+
+import { usePinnedTooltip } from "../../../../hooks/usePinnedTooltip.js"
+import { StageKey } from "./types.js"
+
+const HOVER_CLEAR_DELAY_MS = 150
+
+export interface StepHover {
+    stepKey: StageKey
+    position: Point
+}
+
+export function useStepHover(): {
+    svgRef: React.RefObject<SVGSVGElement | null>
+    containerRef: React.RefObject<HTMLDivElement | null>
+    hover: StepHover | undefined
+    isPinned: boolean
+    onStepMouseEnter: (stepKey: StageKey, event: React.MouseEvent) => void
+    onStepMouseMove: (event: React.MouseEvent) => void
+    onStepMouseLeave: () => void
+} {
+    const svgRef = useRef<SVGSVGElement>(null)
+    const [hover, setHover] = useState<StepHover | undefined>(undefined)
+    const clearTimeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined)
+    const cancelPendingClear = useCallback(() => {
+        clearTimeout(clearTimeoutRef.current)
+        clearTimeoutRef.current = undefined
+    }, [])
+    useEffect(() => cancelPendingClear, [cancelPendingClear])
+
+    const dismissHover = useCallback(() => setHover(undefined), [])
+    const { ref: containerRef, isPinned } = usePinnedTooltip<HTMLDivElement>(
+        hover !== undefined,
+        dismissHover
+    )
+
+    const onStepMouseEnter = useCallback(
+        (stepKey: StageKey, event: React.MouseEvent) => {
+            if (!svgRef.current) return
+            cancelPendingClear()
+            const position = getRelativeMouse(svgRef.current, event.nativeEvent)
+            setHover({ stepKey, position })
+        },
+        [cancelPendingClear]
+    )
+    const onStepMouseMove = useCallback((event: React.MouseEvent) => {
+        if (!svgRef.current) return
+        const position = getRelativeMouse(svgRef.current, event.nativeEvent)
+        setHover((prev) => (prev ? { ...prev, position } : prev))
+    }, [])
+    const onStepMouseLeave = useCallback(() => {
+        if (isTouchDevice()) return
+        cancelPendingClear()
+        clearTimeoutRef.current = setTimeout(dismissHover, HOVER_CLEAR_DELAY_MS)
+    }, [cancelPendingClear, dismissHover])
+
+    return {
+        svgRef,
+        containerRef,
+        hover,
+        isPinned,
+        onStepMouseEnter,
+        onStepMouseMove,
+        onStepMouseLeave,
+    }
+}
