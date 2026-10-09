@@ -11,6 +11,12 @@ on:
 permissions:
   contents: read
 
+# Two runs overlapping could overwrite the mutable name and the .latest alias
+# out of order
+concurrency:
+  group: publish-grapher-schema
+  cancel-in-progress: false
+
 jobs:
   upload:
     runs-on: ubuntu-latest

@@ -1,7 +1,10 @@
 import { assert, expect, it, vi } from "vitest"
 
 import { GrapherInterface } from "@ourworldindata/types"
-import { mergeGrapherConfigs } from "@ourworldindata/utils"
+import {
+    formatGrapherSchemaUrl,
+    mergeGrapherConfigs,
+} from "@ourworldindata/utils"
 import {
     defaultGrapherConfig,
     outdatedSchemaVersions,
@@ -45,8 +48,7 @@ it("warns if the schema field is invalid", () => {
 
 it("runs multiple migrations if necessary", () => {
     const outdatedConfig = {
-        $schema:
-            "https://files.ourworldindata.org/schemas/grapher-schema.003.json",
+        $schema: formatGrapherSchemaUrl("003"),
         data: { availableEntities: [] }, // removed in v4
         hideLinesOutsideTolerance: true, // removed in v5
     }
@@ -57,15 +59,13 @@ it("runs multiple migrations if necessary", () => {
 
 it("doesn't mutate the given config", () => {
     const outdatedConfig = {
-        $schema:
-            "https://files.ourworldindata.org/schemas/grapher-schema.004.json",
+        $schema: formatGrapherSchemaUrl("004"),
         hideLinesOutsideTolerance: true,
     }
     const validConfig = migrateGrapherConfigToLatestVersion(outdatedConfig)
     expect(validConfig).not.toHaveProperty("hideLinesOutsideTolerance")
     expect(outdatedConfig).toEqual({
-        $schema:
-            "https://files.ourworldindata.org/schemas/grapher-schema.004.json",
+        $schema: formatGrapherSchemaUrl("004"),
         hideLinesOutsideTolerance: true,
     })
 })

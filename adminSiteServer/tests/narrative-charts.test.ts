@@ -6,7 +6,11 @@ import {
     MultiDimXChartConfigsTableName,
     NarrativeChartsTableName,
 } from "@ourworldindata/types"
-import { latestGrapherConfigSchema } from "@ourworldindata/grapher"
+import {
+    latestGrapherConfigSchema,
+    latestSchemaVersion,
+} from "@ourworldindata/grapher"
+import { formatGrapherSchemaUrl } from "@ourworldindata/utils"
 import {
     catalogPath,
     multiDimConfig,
@@ -177,8 +181,7 @@ describe("Narrative charts API", { timeout: 20000 }, () => {
 
         const narrativeChartId = await createNarrativeChart(chartId, {
             ...narrativeChartConfig,
-            $schema:
-                "https://files.ourworldindata.org/schemas/grapher-schema.009.json",
+            $schema: formatGrapherSchemaUrl("009"),
             hideLegend: true,
         } as GrapherInterface)
 
@@ -188,7 +191,9 @@ describe("Narrative charts API", { timeout: 20000 }, () => {
             .first()
         for (const configId of [row.patchConfigId, row.chartConfigId]) {
             const config = await readStoredConfig(configId)
-            expect(config.$schema).toBe(latestGrapherConfigSchema)
+            expect(config.$schema).toBe(
+                formatGrapherSchemaUrl(latestSchemaVersion)
+            )
             expect(config.hideSeriesLabels).toBe(true)
             expect(config).not.toHaveProperty("hideLegend")
         }
@@ -261,8 +266,7 @@ describe("Narrative charts API", { timeout: 20000 }, () => {
             body: JSON.stringify({
                 config: {
                     ...narrativeChartConfig,
-                    $schema:
-                        "https://files.ourworldindata.org/schemas/grapher-schema.009.json",
+                    $schema: formatGrapherSchemaUrl("009"),
                     hideLegend: true,
                 },
             }),
@@ -273,7 +277,7 @@ describe("Narrative charts API", { timeout: 20000 }, () => {
             .where({ id: narrativeChartId })
             .first()
         const config = await readStoredConfig(row.patchConfigId)
-        expect(config.$schema).toBe(latestGrapherConfigSchema)
+        expect(config.$schema).toBe(formatGrapherSchemaUrl(latestSchemaVersion))
         expect(config.hideSeriesLabels).toBe(true)
         expect(config).not.toHaveProperty("hideLegend")
     })

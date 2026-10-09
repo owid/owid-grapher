@@ -13,6 +13,7 @@ import {
     latestSchemaVersion,
     migrateGrapherConfigToLatestVersion,
 } from "@ourworldindata/grapher"
+import { parseGrapherSchemaName } from "@ourworldindata/utils"
 import findProjectBaseDir from "../settings/findBaseDir.mjs"
 
 export interface GrapherConfigValidationIssue {
@@ -27,6 +28,9 @@ export type GrapherConfigIngestResult =
 const ajv = new Ajv({ allErrors: true, strict: true })
 addFormats(ajv)
 const validateAgainstSchema = ajv.compile(readLatestGrapherSchema())
+
+const LATEST_SCHEMA_REVISION =
+    parseGrapherSchemaName(defaultGrapherConfig.$schema ?? "")?.revision ?? 0
 
 export class GrapherConfigValidationError extends JsonError {
     constructor(public readonly issues: GrapherConfigValidationIssue[]) {
@@ -49,7 +53,6 @@ export function tryIngestGrapherConfig(
             issues: [{ pointer: "", message: "must be object" }],
         }
 
-    // rejected before migrating, which reports an unknown version as a stale reader
     const version = getSchemaVersion(config)
     if (version === null)
         return {
@@ -61,6 +64,18 @@ export function tryIngestGrapherConfig(
                         config.$schema === undefined
                             ? `must have a $schema; expected ${defaultGrapherConfig.$schema}`
                             : `unknown schema version ${config.$schema}; expected ${defaultGrapherConfig.$schema}`,
+                },
+            ],
+        }
+
+    const revision = parseGrapherSchemaName(config.$schema)?.revision
+    if (!isValidSchemaRevision(version, revision))
+        return {
+            isValid: false,
+            issues: [
+                {
+                    pointer: "/$schema",
+                    message: `${config.$schema} is newer than the latest ${defaultGrapherConfig.$schema}`,
                 },
             ],
         }
@@ -98,6 +113,11 @@ export function ingestGrapherConfig(
 
 function isPlainObjectConfig(value: unknown): value is UntypedGrapherConfig {
     return _.isPlainObject(value)
+}
+
+function isValidSchemaRevision(version: string, revision?: number): boolean {
+    if (version !== latestSchemaVersion || revision === undefined) return true
+    return revision <= LATEST_SCHEMA_REVISION
 }
 
 function validateGrapherConfig(

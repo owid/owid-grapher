@@ -9,8 +9,15 @@ import {
     DimensionProperty,
     GrapherInterface,
 } from "@ourworldindata/types"
-import { latestGrapherConfigSchema } from "@ourworldindata/grapher"
-import { mergeGrapherConfigs, omitUndefinedValues } from "@ourworldindata/utils"
+import {
+    latestGrapherConfigSchema,
+    latestSchemaVersion,
+} from "@ourworldindata/grapher"
+import {
+    formatGrapherSchemaUrl,
+    mergeGrapherConfigs,
+    omitUndefinedValues,
+} from "@ourworldindata/utils"
 import { v7 as uuidv7 } from "uuid"
 import { GrapherConfigPatch } from "../../adminShared/AdminSessionTypes.js"
 import {
@@ -32,7 +39,7 @@ async function etlConfigPath(chartId: number): Promise<string> {
 }
 
 const outdatedConfigFields = {
-    $schema: "https://files.ourworldindata.org/schemas/grapher-schema.009.json",
+    $schema: formatGrapherSchemaUrl("009"),
     hideLegend: true,
 }
 
@@ -45,7 +52,7 @@ async function readStoredConfig(configId: string): Promise<GrapherInterface> {
 }
 
 function expectMigratedToLatestSchema(config: GrapherInterface): void {
-    expect(config.$schema).toBe(latestGrapherConfigSchema)
+    expect(config.$schema).toBe(formatGrapherSchemaUrl(latestSchemaVersion))
     expect(config.hideSeriesLabels).toBe(true)
     expect(config).not.toHaveProperty("hideLegend")
 }
