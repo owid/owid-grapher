@@ -1,13 +1,21 @@
 import { describe, expect, it } from "vitest"
+import { GrapherInterface } from "@ourworldindata/types"
 import {
     type UntypedGrapherConfig,
     defaultGrapherConfig,
+    latestSchemaVersion,
 } from "@ourworldindata/grapher"
 import {
+    type GrapherConfigValidationIssue,
     assertValidGrapherConfig,
+    formatGrapherConfigIssues,
     GrapherConfigValidationError,
     ingestGrapherConfig,
+    tryIngestGrapherConfig,
 } from "./grapherConfigValidation.js"
+
+const latestSchemaUrl = defaultGrapherConfig.$schema
+const foreignSchemaUrl = `https://example.org/schemas/grapher-schema.${latestSchemaVersion}.json`
 
 function schemaUrlForVersion(version: string): string {
     return `https://files.ourworldindata.org/schemas/grapher-schema.${version}.json`
@@ -18,142 +26,180 @@ const baseChartConfig: UntypedGrapherConfig = {
     dimensions: [{ property: "y", variableId: 1 }],
 }
 
-const { dimensions: _dimensions, ...configWithoutDimensions } = baseChartConfig
-
-const configWithEmptyDimensions: UntypedGrapherConfig = {
-    ...baseChartConfig,
-    dimensions: [],
-}
-
 const configWithUnknownKey: UntypedGrapherConfig = {
     ...baseChartConfig,
     hideLegend: true,
 }
 
-describe(ingestGrapherConfig, () => {
+describe(tryIngestGrapherConfig, () => {
+    it.each<{
+        name: string
+        config: unknown
+        issues: GrapherConfigValidationIssue[]
+    }>([
+        {
+            name: "null",
+            config: null,
+            issues: [{ pointer: "", message: "must be object" }],
+        },
+        {
+            name: "a string",
+            config: "not a config",
+            issues: [{ pointer: "", message: "must be object" }],
+        },
+        {
+            name: "an array",
+            config: [],
+            issues: [{ pointer: "", message: "must be object" }],
+        },
+        {
+            name: "a config with no $schema",
+            config: { title: "Untitled" },
+            issues: [
+                {
+                    pointer: "/$schema",
+                    message: `must have a $schema; expected ${latestSchemaUrl}`,
+                },
+            ],
+        },
+        {
+            name: "a $schema that is not a string",
+            config: { ...baseChartConfig, $schema: 123 },
+            issues: [
+                {
+                    pointer: "/$schema",
+                    message: `unknown schema version 123; expected ${latestSchemaUrl}`,
+                },
+            ],
+        },
+        {
+            name: "an unknown schema version",
+            config: {
+                ...baseChartConfig,
+                $schema: schemaUrlForVersion("099"),
+            },
+            issues: [
+                {
+                    pointer: "/$schema",
+                    message: `unknown schema version ${schemaUrlForVersion("099")}; expected ${latestSchemaUrl}`,
+                },
+            ],
+        },
+        {
+            name: "a schema hosted somewhere else",
+            config: { ...baseChartConfig, $schema: foreignSchemaUrl },
+            issues: [
+                {
+                    pointer: "/$schema",
+                    message: `unknown schema version ${foreignSchemaUrl}; expected ${latestSchemaUrl}`,
+                },
+            ],
+        },
+        {
+            name: "a config that fails to migrate",
+            config: {
+                ...baseChartConfig,
+                $schema: schemaUrlForVersion("010"),
+                dimensions: 123,
+            },
+            issues: [
+                {
+                    pointer: "",
+                    message: expect.stringContaining(
+                        "could not be migrated from schema version 010"
+                    ),
+                },
+            ],
+        },
+        {
+            name: "an unknown key at the root",
+            config: configWithUnknownKey,
+            issues: [
+                {
+                    pointer: "/hideLegend",
+                    message: "must NOT have additional properties",
+                },
+            ],
+        },
+        {
+            name: "an unknown nested key",
+            config: { ...baseChartConfig, map: { nope: 1 } },
+            issues: [
+                {
+                    pointer: "/map/nope",
+                    message: "must NOT have additional properties",
+                },
+            ],
+        },
+    ])("rejects $name", ({ config, issues }) => {
+        expect(expectRejected(config)).toEqual(issues)
+    })
+
+    it("accepts a config at the latest version", () => {
+        const config = expectAccepted(baseChartConfig)
+        expect(config.$schema).toBe(latestSchemaUrl)
+    })
+
     it("migrates an outdated config before validating it", () => {
-        const config = {
+        const config = expectAccepted({
             ...baseChartConfig,
             $schema: schemaUrlForVersion("010"),
             dimensions: [
                 { property: "y", variableId: 1, display: { yearIsDay: true } },
             ],
-        }
+        })
 
-        const migrated = ingestGrapherConfig(config)
-
-        expect(migrated.$schema).toBe(defaultGrapherConfig.$schema)
-        expect(migrated.dimensions?.[0].display).toStrictEqual({
+        expect(config.$schema).toBe(latestSchemaUrl)
+        expect(config.dimensions?.[0].display).toStrictEqual({
             timeInterval: "day",
         })
     })
+})
 
-    it("rejects a config whose shape breaks its own migration", () => {
+describe(ingestGrapherConfig, () => {
+    it("throws the rejection issues as a 400 error", () => {
+        const issues = expectRejected(configWithUnknownKey)
+
         const error = catchValidationError(() =>
-            ingestGrapherConfig({
-                ...baseChartConfig,
-                $schema: schemaUrlForVersion("010"),
-                dimensions: 123,
-            })
+            ingestGrapherConfig(configWithUnknownKey)
         )
 
         expect(error.status).toBe(400)
-        expect(error.issues.map((issue) => issue.pointer)).toEqual([""])
-        expect(error.issues[0].message).toContain(
-            "could not be migrated from schema version 010"
-        )
-    })
-
-    it("rejects a config that is not an object", () => {
-        const error = catchValidationError(() =>
-            ingestGrapherConfig(null as unknown as UntypedGrapherConfig)
-        )
-
-        expect(error.status).toBe(400)
-        expect(error.issues).toEqual([
-            { pointer: "", message: "must be object" },
-        ])
-    })
-
-    it("rejects a config with no $schema", () => {
-        const error = catchValidationError(() =>
-            ingestGrapherConfig({ title: "Untitled" })
-        )
-
-        expect(error.status).toBe(400)
-        expect(error.issues).toEqual([
-            {
-                pointer: "/$schema",
-                message: expect.stringContaining("must have a $schema"),
-            },
-        ])
-    })
-
-    it("rejects a $schema that is not a string", () => {
-        const error = catchValidationError(() =>
-            ingestGrapherConfig({ ...baseChartConfig, $schema: 123 })
-        )
-
-        expect(error.status).toBe(400)
-        expect(error.issues.map((issue) => issue.pointer)).toEqual(["/$schema"])
-    })
-
-    it("rejects a schema version this code does not know", () => {
-        const error = catchValidationError(() =>
-            ingestGrapherConfig({
-                ...baseChartConfig,
-                $schema: schemaUrlForVersion("099"),
-            })
-        )
-
-        expect(error.status).toBe(400)
-        expect(error.issues.map((issue) => issue.pointer)).toEqual(["/$schema"])
+        expect(error.issues).toEqual(issues)
     })
 })
 
 describe(assertValidGrapherConfig, () => {
-    it("does nothing when the config is valid", () => {
-        expect(() => assertValidGrapherConfig(baseChartConfig)).not.toThrow()
-    })
+    it("accepts a config without dimensions", () => {
+        const { dimensions: _dimensions, ...configWithoutDimensions } =
+            baseChartConfig
 
-    it("holds a config that plots nothing, with no dimensions or an empty array", () => {
+        expect(() => assertValidGrapherConfig(baseChartConfig)).not.toThrow()
         expect(() =>
             assertValidGrapherConfig(configWithoutDimensions)
         ).not.toThrow()
         expect(() =>
-            assertValidGrapherConfig(configWithEmptyDimensions)
+            assertValidGrapherConfig({ ...baseChartConfig, dimensions: [] })
         ).not.toThrow()
     })
 
-    it("points at the unknown key itself, at the root and nested", () => {
-        const atRoot = catchValidationError(() =>
-            assertValidGrapherConfig(configWithUnknownKey)
-        )
-        expect(atRoot.issues.map((issue) => issue.pointer)).toEqual([
-            "/hideLegend",
-        ])
-
-        const nested = catchValidationError(() =>
-            assertValidGrapherConfig({ ...baseChartConfig, map: { nope: 1 } })
-        )
-        expect(nested.issues.map((issue) => issue.pointer)).toEqual([
-            "/map/nope",
-        ])
-    })
-
-    it("throws on an invalid config", () => {
+    it("throws an error that lists each issue", () => {
         const error = catchValidationError(() =>
             assertValidGrapherConfig(configWithUnknownKey)
         )
+
+        expect(error.issues.map((issue) => issue.pointer)).toEqual([
+            "/hideLegend",
+        ])
         expect(error.message).toBe(
             "Invalid grapher config:\n  /hideLegend: must NOT have additional properties"
         )
     })
 })
 
-describe(GrapherConfigValidationError, () => {
-    it("lists every issue in the message, naming the root pointer readably", () => {
-        const error = new GrapherConfigValidationError([
+describe(formatGrapherConfigIssues, () => {
+    it("writes one line per issue, with (root) for the empty pointer", () => {
+        const message = formatGrapherConfigIssues([
             {
                 pointer: "",
                 message: "must have required property 'dimensions'",
@@ -164,14 +210,30 @@ describe(GrapherConfigValidationError, () => {
             },
         ])
 
-        expect(error.message).toContain(
-            "(root): must have required property 'dimensions'"
-        )
-        expect(error.message).toContain(
-            "/hideLegend: must NOT have additional properties"
+        expect(message).toBe(
+            [
+                "Invalid grapher config:",
+                "  (root): must have required property 'dimensions'",
+                "  /hideLegend: must NOT have additional properties",
+            ].join("\n")
         )
     })
 })
+
+function expectAccepted(config: unknown): GrapherInterface {
+    const ingestResult = tryIngestGrapherConfig(config)
+    if (!ingestResult.isValid)
+        throw new Error(
+            `expected a valid config, got ${formatGrapherConfigIssues(ingestResult.issues)}`
+        )
+    return ingestResult.config
+}
+
+function expectRejected(config: unknown): GrapherConfigValidationIssue[] {
+    const ingestResult = tryIngestGrapherConfig(config)
+    if (ingestResult.isValid) throw new Error("expected an invalid config")
+    return ingestResult.issues
+}
 
 function catchValidationError(run: () => void): GrapherConfigValidationError {
     try {

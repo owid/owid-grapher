@@ -11,7 +11,7 @@ import {
 import { SVG_TESTER_REPO_PATH } from "../../settings/serverSettings.js"
 import { getMostViewedGrapherIdsByChartType } from "../../db/model/Chart.js"
 import { getAllPublishedMultiDimDataPages } from "../../db/model/MultiDimDataPage.js"
-import { parseChartConfig } from "../../db/model/ChartConfigs.js"
+import { parseAndMigrateChartConfig } from "../../db/model/ChartConfigs.js"
 import {
     ALL_GRAPHER_CHART_TYPES,
     GrapherInterface,
@@ -52,7 +52,7 @@ async function getPublishedGraphersById(
     )
     return new Map(
         rows.map((row) => {
-            const config = parseChartConfig(row.config)
+            const config = parseAndMigrateChartConfig(row.config)
             config.id = row.id
             return [row.id, config]
         })
@@ -118,7 +118,7 @@ async function getAllPublishedMultiDimViews(
         .whereIn("id", [...chartConfigIds])
 
     const chartConfigsById = new Map(
-        rows.map((row) => [row.id, parseChartConfig(row.config)])
+        rows.map((row) => [row.id, parseAndMigrateChartConfig(row.config)])
     )
 
     // Create a config for each view with slug + viewId as the ID

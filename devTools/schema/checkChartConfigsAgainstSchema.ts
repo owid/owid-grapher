@@ -4,7 +4,6 @@ import "../../serverUtils/instrument.js"
 
 import * as Sentry from "@sentry/node"
 import type { KnownBlock } from "@slack/web-api"
-import type { GrapherInterface } from "@ourworldindata/types"
 import {
     knexRaw,
     knexReadonlyTransaction,
@@ -13,8 +12,7 @@ import {
 } from "../../db/db.js"
 import {
     type GrapherConfigValidationIssue,
-    GrapherConfigValidationError,
-    ingestGrapherConfig,
+    tryIngestGrapherConfig,
 } from "../../db/grapherConfigValidation.js"
 import {
     ADMIN_BASE_URL,
@@ -24,7 +22,6 @@ import {
     GRAPHER_DB_PORT,
     SLACK_CONFIG_VALIDATION_CHANNEL_ID,
 } from "../../settings/serverSettings.js"
-import { parseChartConfig } from "../../db/model/ChartConfigs.js"
 import { postToSlack } from "../../serverUtils/slackClient.js"
 type ConfigOwner = "chart" | "indicator" | "narrativeChart" | "multiDim"
 type ConfigRole = "patch" | "full"
@@ -369,28 +366,28 @@ function processRow(
     }
 
     increment(report.validatedCounts, indexed.column)
-    const config = parseChartConfig(row.config, { skipMigration: true })
-    validateConfig(report, indexed.column, indexed.owner, config)
+    const owner = indexed.owner
+    try {
+        const config = JSON.parse(row.config)
+        validateConfig(report, indexed.column, owner, config)
+    } catch (error) {
+        report.unexpectedFailures.push({
+            owner,
+            message: error instanceof Error ? error.message : String(error),
+        })
+    }
 }
 
 function validateConfig(
     report: Report,
     column: string,
     owner: OwnerRef,
-    config: GrapherInterface
+    config: unknown
 ): void {
-    try {
-        ingestGrapherConfig(config)
-    } catch (error) {
-        if (error instanceof GrapherConfigValidationError) {
-            for (const issue of error.issues)
-                recordValidationIssue(report, column, owner, issue)
-        } else
-            report.unexpectedFailures.push({
-                owner,
-                message: error instanceof Error ? error.message : String(error),
-            })
-    }
+    const ingestResult = tryIngestGrapherConfig(config)
+    if (ingestResult.isValid) return
+    for (const issue of ingestResult.issues)
+        recordValidationIssue(report, column, owner, issue)
 }
 
 async function walkChartConfigs(

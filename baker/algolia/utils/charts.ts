@@ -11,7 +11,7 @@ import {
 import * as db from "../../../db/db.js"
 import { getRelatedArticles } from "../../../db/model/Post.js"
 import { getPublishedLinksTo } from "../../../db/model/Link.js"
-import { parseChartConfig } from "../../../db/model/ChartConfigs.js"
+import { parseAndMigrateChartConfig } from "../../../db/model/ChartConfigs.js"
 import { ParsedChartRecordRow, RawChartRecordRow } from "./types.js"
 import {
     excludeNullish,
@@ -38,7 +38,7 @@ const parseRawChartRecord = (
     const tags = JSON.parse(rawRecord.tags) as string[]
     const keyChartForTags = JSON.parse(rawRecord.keyChartForTags) as string[]
 
-    const config = parseChartConfig(rawRecord.config)
+    const config = parseAndMigrateChartConfig(rawRecord.config)
 
     const datasetNamespaces = parseJsonStringArray(rawRecord.datasetNamespaces)
     const datasetVersions = parseJsonStringArray(rawRecord.datasetVersions)

@@ -12,13 +12,10 @@ import { v7 as uuidv7 } from "uuid"
 import * as db from "../db.js"
 import { logErrorAndMaybeCaptureInSentry } from "../../serverUtils/errorLog.js"
 
-/** Parses a stored chart config, migrating it to the latest schema version unless `skipMigration` */
-export function parseChartConfig(
-    config: JsonString,
-    { skipMigration }: { skipMigration?: boolean } = {}
+export function parseAndMigrateChartConfig(
+    config: JsonString
 ): GrapherInterface {
     const parsed = JSON.parse(config)
-    if (skipMigration) return parsed
 
     try {
         return migrateGrapherConfigToLatestVersion(parsed)
@@ -46,7 +43,7 @@ export async function getChartConfigByUuid(
         `SELECT config FROM chart_configs WHERE id = ?`,
         [id]
     )
-    return row ? parseChartConfig(row.config) : undefined
+    return row ? parseAndMigrateChartConfig(row.config) : undefined
 }
 
 /** Returns the id of the new row, which it mints unless the caller supplies one. */
@@ -106,5 +103,7 @@ export async function getChartConfigsByUuids(
     const rows = await knex<DbRawChartConfig>(ChartConfigsTableName)
         .select("id", "config")
         .whereIn("id", uuids)
-    return new Map(rows.map((row) => [row.id, parseChartConfig(row.config)]))
+    return new Map(
+        rows.map((row) => [row.id, parseAndMigrateChartConfig(row.config)])
+    )
 }

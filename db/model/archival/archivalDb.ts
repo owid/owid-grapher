@@ -32,7 +32,7 @@ import {
     ImagesTableName,
 } from "@ourworldindata/types"
 import * as db from "../../db.js"
-import { parseChartConfig } from "../ChartConfigs.js"
+import { parseAndMigrateChartConfig } from "../ChartConfigs.js"
 import { stringify } from "safe-stable-stringify"
 import { hashHex } from "../../../serverUtils/hash.js"
 import { es6mapValues, getAllVariableIds } from "@ourworldindata/utils"
@@ -408,7 +408,7 @@ export const getExplorerChecksumsFromDb = async (
         if (!variablesByExplorerSlug.has(slug)) {
             variablesByExplorerSlug.set(slug, new Set<number>())
         }
-        const config = parseChartConfig(row.chartConfigFull)
+        const config = parseAndMigrateChartConfig(row.chartConfigFull)
         if (config.dimensions) {
             for (const dimension of config.dimensions) {
                 const variableId = dimension.variableId

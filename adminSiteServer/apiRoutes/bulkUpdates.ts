@@ -16,8 +16,12 @@ import {
     parseToOperation,
 } from "../../adminShared/SqlFilterSExpression.js"
 import { saveGrapher } from "./charts.js"
-import { parseChartConfig } from "../../db/model/ChartConfigs.js"
-import { ingestGrapherConfig } from "../../db/grapherConfigValidation.js"
+import { parseAndMigrateChartConfig } from "../../db/model/ChartConfigs.js"
+import {
+    tryIngestGrapherConfig,
+    formatGrapherConfigIssues,
+    type GrapherConfigValidationIssue,
+} from "../../db/grapherConfigValidation.js"
 import * as db from "../../db/db.js"
 import * as lodash from "lodash-es"
 import { Request } from "../authentication.js"
@@ -72,7 +76,9 @@ export async function getChartBulkUpdate(
 
     const results = resultsWithStringGrapherConfigs.map((row: any) => ({
         ...row,
-        config: lodash.isNil(row.config) ? null : parseChartConfig(row.config),
+        config: lodash.isNil(row.config)
+            ? null
+            : parseAndMigrateChartConfig(row.config),
     }))
     const resultCount = await db.knexRaw<{ count: number }>(
         trx,
@@ -112,7 +118,7 @@ export async function updateBulkChartConfigs(
             // make sure that the id is set, otherwise the update behaviour is weird
             // TODO: discuss if this has unintended side effects
             item.config
-                ? { ...parseChartConfig(item.config), id: item.id }
+                ? { ...parseAndMigrateChartConfig(item.config), id: item.id }
                 : {},
         ])
     )
@@ -123,25 +129,7 @@ export async function updateBulkChartConfigs(
         configMap.set(patchSet.id, applyPatch(patchSet, config))
     }
 
-    // Every chart is checked before any is saved. saveGrapher writes each
-    // chart's config to R2 and queues a bake as it goes, and neither of those
-    // rolls back with the transaction, so a chart rejected halfway through the
-    // save loop would leave R2 serving configs the database never got.
-    const validatedConfigMap = new Map<number, GrapherInterface>()
-    const rejectedCharts: RejectedChart[] = []
-    for (const [id, patchedConfig] of configMap.entries()) {
-        try {
-            validatedConfigMap.set(id, ingestGrapherConfig(patchedConfig))
-        } catch (error) {
-            rejectedCharts.push({
-                id,
-                message: error instanceof Error ? error.message : String(error),
-            })
-        }
-    }
-    if (rejectedCharts.length > 0)
-        throw new JsonError(describeRejectedCharts(rejectedCharts), 400)
-
+    const validatedConfigMap = ingestEveryChartOrThrow(configMap)
     for (const [id, newConfig] of validatedConfigMap.entries()) {
         await saveGrapher(trx, {
             user: res.locals.user,
@@ -153,15 +141,34 @@ export async function updateBulkChartConfigs(
     return { success: true }
 }
 
+function ingestEveryChartOrThrow(
+    configMap: Map<number, GrapherInterface>
+): Map<number, GrapherInterface> {
+    const validatedConfigMap = new Map<number, GrapherInterface>()
+    const rejectedCharts: RejectedChart[] = []
+    for (const [id, patchedConfig] of configMap.entries()) {
+        const ingestResult = tryIngestGrapherConfig(patchedConfig)
+        if (ingestResult.isValid)
+            validatedConfigMap.set(id, ingestResult.config)
+        else rejectedCharts.push({ id, issues: ingestResult.issues })
+    }
+    if (rejectedCharts.length > 0)
+        throw new JsonError(describeRejectedCharts(rejectedCharts), 400)
+    return validatedConfigMap
+}
+
 interface RejectedChart {
     id: number
-    message: string
+    issues: GrapherConfigValidationIssue[]
 }
 
 function describeRejectedCharts(rejected: RejectedChart[]): string {
     const reported = rejected
         .slice(0, MAX_REPORTED_REJECTED_CHARTS)
-        .map(({ id, message }) => `Chart ${id}: ${message}`)
+        .map(
+            ({ id, issues }) =>
+                `Chart ${id}: ${formatGrapherConfigIssues(issues)}`
+        )
     const unreported = rejected.length - reported.length
     if (unreported > 0) reported.push(`... and ${unreported} more`)
     return [
