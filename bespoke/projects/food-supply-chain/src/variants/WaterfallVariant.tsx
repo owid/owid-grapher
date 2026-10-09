@@ -6,6 +6,7 @@ import { findClosestTime } from "@ourworldindata/utils"
 import { WORLD_ENTITY_NAME } from "@ourworldindata/grapher/src/core/GrapherConstants.js"
 
 import { Frame } from "../../../../components/Frame/Frame.js"
+import { BespokeMetadataProvider } from "../../../../components/MetadataModal/BespokeMetadataContext.js"
 import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
 import { ChartError } from "../../../../components/ChartError/ChartError.js"
@@ -150,17 +151,23 @@ function FetchingWaterfallVariant({
                     onYearChange={setYear}
                 />
             )}
-            <Frame className="food-supply-chain-captioned-chart">
-                <ChartHeader
-                    title={config.title ?? buildTitle(dataEntity.name, measure)}
-                    subtitle={config.subtitle ?? buildSubtitle(measure, year)}
-                />
-                <div className="food-supply-chain-captioned-chart__chart-area">
-                    {isLoading && <Spinner />}
-                    <MeasuredWaterfall waterfall={waterfall} />
-                </div>
-                <ChartFooter source={metadata.sources.join("; ")} />
-            </Frame>
+            <BespokeMetadataProvider metadata={metadata.provenance}>
+                <Frame className="food-supply-chain-captioned-chart">
+                    <ChartHeader
+                        title={
+                            config.title ?? buildTitle(dataEntity.name, measure)
+                        }
+                        subtitle={
+                            config.subtitle ?? buildSubtitle(measure, year)
+                        }
+                    />
+                    <div className="food-supply-chain-captioned-chart__chart-area">
+                        {isLoading && <Spinner />}
+                        <MeasuredWaterfall waterfall={waterfall} />
+                    </div>
+                    <ChartFooter source={metadata.sources.join("; ")} />
+                </Frame>
+            </BespokeMetadataProvider>
         </>
     )
 }

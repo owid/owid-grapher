@@ -193,6 +193,7 @@ function fixtureMetadata(flowStages: FlowStage[]): FoodSupplyChainMetadata {
         entities: [],
         entityByName: new Map(),
         entityNames: new Set(),
+        provenance: undefined,
     }
 }
 

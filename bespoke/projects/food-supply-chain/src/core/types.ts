@@ -1,3 +1,5 @@
+import type { BespokeMetadata } from "@ourworldindata/types"
+
 export type VariantName = "waterfall"
 
 export const MEASURES = ["energy", "protein"] as const
@@ -35,6 +37,7 @@ export interface FoodSupplyChainMetadata {
     entities: FoodSupplyChainEntity[]
     entityByName: Map<string, FoodSupplyChainEntity>
     entityNames: Set<string>
+    provenance: BespokeMetadata | undefined
 }
 
 export interface EntityData {

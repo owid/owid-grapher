@@ -11,6 +11,7 @@ import {
     FoodSupplyChainMetadata,
     MetadataJson,
 } from "./types.js"
+import { parseBespokeMetadata } from "../../../../components/MetadataModal/bespokeMetadata.js"
 
 export const queryClient = new QueryClient()
 
@@ -91,6 +92,7 @@ export function parseMetadata(raw: MetadataJson): FoodSupplyChainMetadata {
         entities,
         entityByName: new Map(entities.map((entity) => [entity.name, entity])),
         entityNames: new Set(entities.map((entity) => entity.name)),
+        provenance: parseBespokeMetadata(raw),
     }
 }
 
