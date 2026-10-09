@@ -30,6 +30,27 @@ async function etlConfigPath(chartId: number): Promise<string> {
     return `/charts/by-config/${row.configId}/etlConfig`
 }
 
+/** A config at schema version 009, whose migration renames hideLegend to hideSeriesLabels */
+const outdatedConfigFields = {
+    $schema: "https://files.ourworldindata.org/schemas/grapher-schema.009.json",
+    hideLegend: true,
+}
+
+/** Reads a config as stored, bypassing the migration every read route applies */
+async function readStoredConfig(configId: string): Promise<GrapherInterface> {
+    const row = await env
+        .testKnex(ChartConfigsTableName)
+        .where({ id: configId })
+        .first()
+    return JSON.parse(row.config)
+}
+
+function expectMigratedToLatestSchema(config: GrapherInterface): void {
+    expect(config.$schema).toBe(latestGrapherConfigSchema)
+    expect(config.hideSeriesLabels).toBe(true)
+    expect(config).not.toHaveProperty("hideLegend")
+}
+
 describe("Charts API", { timeout: 15000 }, () => {
     const testChartConfig = {
         $schema: latestGrapherConfigSchema,
@@ -90,6 +111,26 @@ describe("Charts API", { timeout: 15000 }, () => {
 
         expect(await env.getCount(ChartsTableName)).toBe(0)
         expect(await env.getCount(ChartConfigsTableName)).toBe(0)
+    })
+
+    it("migrates an outdated chart config before storing it", async () => {
+        const { chartId } = await env.request({
+            method: "POST",
+            path: "/charts",
+            body: JSON.stringify({
+                ...testChartConfig,
+                ...outdatedConfigFields,
+            }),
+        })
+
+        const chart = await env
+            .testKnex(ChartsTableName)
+            .where({ id: chartId })
+            .first()
+        expectMigratedToLatestSchema(await readStoredConfig(chart.configId))
+        expectMigratedToLatestSchema(
+            await readStoredConfig(chart.patchConfigId)
+        )
     })
 
     it("rejects a chart config with an unknown key", async () => {
@@ -198,6 +239,22 @@ describe("Indicator-level chart configs", { timeout: 15000 }, () => {
 
     beforeEach(async () => {
         await seedDatasetAndVariables(env)
+    })
+
+    it("migrates an outdated indicator ETL config before storing it", async () => {
+        await env.request({
+            method: "PUT",
+            path: `/variables/${variableId}/grapherConfigETL`,
+            body: JSON.stringify(outdatedConfigFields),
+        })
+
+        const variable = await env
+            .testKnex(VariablesTableName)
+            .where({ id: variableId })
+            .first()
+        expectMigratedToLatestSchema(
+            await readStoredConfig(variable.patchConfigIdETL)
+        )
     })
 
     it("should be able to edit ETL grapher configs via the api", async () => {
@@ -1263,7 +1320,29 @@ describe("Chart-level ETL configs", { timeout: 15000 }, () => {
         expect(putResponse.error.message).toContain("/$schema")
     })
 
-    it("rejects a chart-level etlConfig with an unknown key", async () => {
+    it("migrates an outdated chart ETL config before storing it", async () => {
+        const { chartId } = await env.request({
+            method: "POST",
+            path: "/charts",
+            body: JSON.stringify(testChartConfig),
+        })
+
+        await env.request({
+            method: "PUT",
+            path: await etlConfigPath(chartId),
+            body: JSON.stringify(outdatedConfigFields),
+        })
+
+        const chart = await env
+            .testKnex(ChartsTableName)
+            .where({ id: chartId })
+            .first()
+        expectMigratedToLatestSchema(
+            await readStoredConfig(chart.patchConfigIdETL)
+        )
+    })
+
+    it("rejects a chart ETL config with an unknown key", async () => {
         const response = await env.request({
             method: "POST",
             path: "/charts",
