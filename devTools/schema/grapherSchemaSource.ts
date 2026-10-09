@@ -65,7 +65,6 @@ export function resolveRef(
     return { ...toSchemaObject(def), ...schema, $ref: undefined }
 }
 
-/** Throws unless the file name, `$id` and `$schema` pattern name the same version, and `$id` names a revision */
 export function assertSchemaIdentityIsConsistent(
     schema: JSONSchema7,
     version: string
@@ -84,7 +83,6 @@ export function assertSchemaIdentityIsConsistent(
         )
 }
 
-/** The revision a document declares in its `$id` */
 export function findDeclaredSchemaRevision(
     schema: JSONSchema7
 ): number | undefined {
