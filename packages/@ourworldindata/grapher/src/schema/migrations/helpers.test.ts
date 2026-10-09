@@ -22,7 +22,7 @@ describe(getSchemaVersion, () => {
         ).toEqual(latestSchemaVersion)
     })
 
-    it("returns null for a url naming an unknown version", () => {
+    it("returns null for an unknown version", () => {
         expect(
             getSchemaVersion({ $schema: formatGrapherSchemaUrl("999", 4) })
         ).toBeNull()

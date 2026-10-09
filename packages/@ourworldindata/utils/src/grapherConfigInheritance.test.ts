@@ -212,7 +212,7 @@ describe(mergeGrapherConfigs, () => {
         consoleWarnSpy.mockRestore()
     })
 
-    it("doesn't warn when merging configs written against different revisions of one version", () => {
+    it("doesn't warn when merging two revisions of one schema version", () => {
         const consoleWarnSpy = vi
             .spyOn(console, "warn")
             .mockImplementation(_.noop)

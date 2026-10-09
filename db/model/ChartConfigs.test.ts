@@ -39,7 +39,7 @@ it("returns a config without a $schema unchanged", () => {
     expect(parseAndMigrateChartConfig(JSON.stringify(config))).toEqual(config)
 })
 
-it("returns the config unchanged if migrating it throws", () => {
+it("returns a config unchanged if its migration throws", () => {
     const configWithNonArrayDimensions = {
         $schema: outdatedSchemaUrl,
         dimensions: { variableId: 1, property: "y" },
