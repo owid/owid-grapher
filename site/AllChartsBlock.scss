@@ -460,8 +460,10 @@ $all-charts-panes-gap: 24px;
 // Two departures from it. The fade is longer and steeper: the live block's last
 // 10% (57.5px here), as a linear ramp over the mostly white foot of a row, was
 // barely visible, and so didn't say the list goes on. It is now 160px, a little
-// over a quarter of the box, and eased: already down to 55% opacity a third of
-// the way in and to 20% by the 60% mark, so the fade reads well before the edge.
+// over a quarter of the box, and eased: down to 65% opacity 100px from the
+// edge and 30% at 50px, so the fade reads well before the edge while the next
+// row's title, ghosted in it, still says there is more to scroll to. (Steeper,
+// 20% by 64px, was tried and left that title too faint to read as a row.)
 //
 // And the faded stretch is padding. The live block fades the bottom of its list
 // even when it is scrolled to the end, so its last item never comes out of the
@@ -473,8 +475,8 @@ $all-charts-list-fade: 160px;
 $all-charts-list-fade-mask: linear-gradient(
     180deg,
     #000 calc(100% - #{$all-charts-list-fade}),
-    rgba(0, 0, 0, 0.55) calc(100% - #{$all-charts-list-fade * 0.65}),
-    rgba(0, 0, 0, 0.2) calc(100% - #{$all-charts-list-fade * 0.4}),
+    rgba(0, 0, 0, 0.65) calc(100% - 100px),
+    rgba(0, 0, 0, 0.3) calc(100% - 50px),
     transparent
 );
 
