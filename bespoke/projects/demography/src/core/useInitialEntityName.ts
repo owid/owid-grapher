@@ -1,24 +1,22 @@
 import { useState } from "react"
+import { isUserLocationCountry } from "../../../../hooks/useResolveUserLocation.js"
 import { useUserCountryInformation } from "../../../../hooks/useUserCountryInformation.js"
 import { DEFAULT_ENTITY_NAME } from "./constants.js"
 import { useDemographyMetadata } from "./fetch.js"
-
-const USER_LOCATION = "userLocation"
 
 /**
  * Resolve the initial entity name from config.
  *
  * - If `configRegion` is a specific name, use it directly.
- * - If `configRegion` is "userLocation" or undefined, detect the user's country
+ * - If `configRegion` is "userLocation", detect the user's country
  *   and use it if available in the metadata. Falls back to the default.
  */
 export function useInitialEntityName(
-    configRegion: string | undefined,
+    configRegion: string,
     metadataUrl: string
 ): [string, (name: string) => void, boolean] {
-    const isUserLocation = !configRegion || configRegion === USER_LOCATION
-    const initialName =
-        configRegion && !isUserLocation ? configRegion : DEFAULT_ENTITY_NAME
+    const isUserLocation = isUserLocationCountry(configRegion)
+    const initialName = isUserLocation ? DEFAULT_ENTITY_NAME : configRegion
 
     const [entityName, setEntityName] = useState(initialName)
     const [isResolved, setIsResolved] = useState(!isUserLocation)

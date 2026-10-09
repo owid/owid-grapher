@@ -5,16 +5,26 @@ import type {
     BespokeComponentMountFn,
     BespokeComponentMountOpts,
     BespokeComponentVariantsList,
+    BespokeConfigSpec,
 } from "owid-bespoke-types"
 import StylesTarget from "vite-plugin-css-position/react"
 
-import { parseEmbedConfig } from "../../../helpers/config.js"
+import {
+    ConfigFromSpec,
+    parseConfigFromSpec,
+    parseEmbedConfig,
+} from "../../../helpers/config.js"
 
 import { SimulationVariant } from "./variants/SimulationVariant.js"
 import { PopulationVariant } from "./variants/PopulationVariant.js"
 import { PopulationPyramidVariant } from "./variants/PopulationPyramidVariant.js"
 import { ParametersVariant } from "./variants/ParametersVariant.js"
-import { parseConfig, VariantName } from "./core/config.js"
+import {
+    PARAMETER_KEYS,
+    POPULATION_PYRAMID_UNITS,
+    VariantName,
+} from "./core/types.js"
+import { parseControlPoints } from "./core/parsers.js"
 
 import "./index.scss"
 
@@ -52,6 +62,80 @@ export const VARIANTS = [
     },
 ] satisfies BespokeComponentVariantsList<VariantName>
 
+export const CONFIG_SPEC = {
+    region: {
+        type: "string",
+        default: "userLocation",
+        description:
+            "Country shown first. `userLocation` picks the reader's country, or United States if the data doesn't have it",
+    },
+    hideEntitySelector: {
+        type: "boolean",
+        description: "Show the country as plain text instead of a selector",
+    },
+    title: {
+        type: "string",
+        description: "Chart title, replacing the generated one",
+    },
+    subtitle: {
+        type: "string",
+        description: "Chart subtitle, replacing the generated one",
+    },
+    fertilityRateAssumptions: {
+        type: "custom",
+        format: "Up to three comma-separated numbers for 2030, 2050 and 2100, such as `1.8,,1.5`. An empty entry keeps the UN projection",
+        parse: parseControlPoints,
+        description: "Fertility rate assumptions, in births per woman",
+    },
+    lifeExpectancyAssumptions: {
+        type: "custom",
+        format: "Up to three comma-separated numbers for 2030, 2050 and 2100, such as `80,,85`. An empty entry keeps the UN projection",
+        parse: parseControlPoints,
+        description: "Life expectancy assumptions, in years",
+    },
+    netMigrationRateAssumptions: {
+        type: "custom",
+        format: "Up to three comma-separated numbers for 2030, 2050 and 2100, such as `2,,1`. An empty entry keeps the UN projection",
+        parse: parseControlPoints,
+        description:
+            "Net migration rate assumptions, per 1,000 people. The chart shows them as a percentage",
+    },
+    focusParameter: {
+        type: "enum",
+        values: PARAMETER_KEYS,
+        default: "fertilityRate",
+        description: "Assumption shown first in the editor. `simulation` only",
+    },
+    hidePopulationPyramid: {
+        type: "boolean",
+        description: "Hide the population pyramid. `simulation` only",
+    },
+    populationPyramidUnit: {
+        type: "enum",
+        values: POPULATION_PYRAMID_UNITS,
+        default: "percent",
+        description:
+            "Show the pyramid as shares or as numbers of people. `simulation` and `populationPyramid` only",
+    },
+    showAssumptionCharts: {
+        type: "boolean",
+        description:
+            "Add a collapsible section with the assumption charts. `population` and `populationPyramid` only",
+    },
+    hideTimeline: {
+        type: "boolean",
+        description:
+            "Hide the year slider and fit the axis to the year shown. `populationPyramid` only",
+    },
+    time: {
+        type: "integer",
+        default: "2100",
+        description: "Year shown first. `populationPyramid` only",
+    },
+} as const satisfies BespokeConfigSpec
+
+export type DemographyConfig = ConfigFromSpec<typeof CONFIG_SPEC>
+
 export const mount: BespokeComponentMountFn = (
     container: HTMLDivElement,
     opts: BespokeComponentMountOpts
@@ -70,10 +154,10 @@ export const mount: BespokeComponentMountFn = (
 
     const urls = { dataUrl: opts.dataUrl, metadataUrl: opts.metadataUrl }
 
-    const rawConfig = opts.config ?? {}
+    const authoredConfig = opts.config ?? {}
     const config = {
-        ...parseConfig(variant.name, rawConfig),
-        ...parseEmbedConfig(rawConfig),
+        ...parseConfigFromSpec(CONFIG_SPEC, authoredConfig),
+        ...parseEmbedConfig(authoredConfig),
     }
 
     const root = createRoot(container)

@@ -5,7 +5,7 @@ import { ChartError } from "../../../../components/ChartError/ChartError.js"
 import { ChartSkeleton } from "../../../../components/ChartSkeleton/ChartSkeleton.js"
 import { Spinner } from "../../../../components/Spinner/Spinner.js"
 import { queryClient, useDemographyData } from "../core/fetch.js"
-import type { ParametersVariantConfig } from "../core/config.js"
+import type { DemographyConfig } from "../index.js"
 import type {
     BespokeComponentDataUrls,
     BespokeVariantProps,
@@ -33,7 +33,7 @@ import { EntityNameOrSelector } from "../components/EntityNameOrSelector.js"
 export function ParametersVariant({
     config,
     urls,
-}: BespokeVariantProps<ParametersVariantConfig>): React.ReactElement {
+}: BespokeVariantProps<DemographyConfig>): React.ReactElement {
     const { breakpoint, ref: rootRef } = useContainerBreakpoint()
 
     return (
@@ -57,7 +57,7 @@ function FetchingParametersVariant({
     config,
     urls,
 }: {
-    config: ParametersVariantConfig
+    config: DemographyConfig
     urls: BespokeComponentDataUrls
 }): React.ReactElement {
     const [entityName, setEntityName] = useInitialEntityName(

@@ -6,7 +6,7 @@ import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
 import { Frame } from "../../../../components/Frame/Frame.js"
 
-import type { PopulationVariantConfig } from "../core/config.js"
+import type { DemographyConfig } from "../index.js"
 import type {
     BespokeComponentDataUrls,
     BespokeVariantProps,
@@ -40,7 +40,7 @@ import { EntityNameOrSelector } from "../components/EntityNameOrSelector.js"
 export function PopulationVariant({
     config,
     urls,
-}: BespokeVariantProps<PopulationVariantConfig>): React.ReactElement {
+}: BespokeVariantProps<DemographyConfig>): React.ReactElement {
     const { breakpoint, ref: rootRef } = useContainerBreakpoint()
 
     return (
@@ -64,7 +64,7 @@ function FetchingPopulationVariant({
     config,
     urls,
 }: {
-    config: PopulationVariantConfig
+    config: DemographyConfig
     urls: BespokeComponentDataUrls
 }): React.ReactElement {
     const [entityName, setEntityName] = useInitialEntityName(
@@ -107,7 +107,7 @@ function CaptionedPopulationVariant({
     title: titleOverride,
     subtitle: subtitleOverride,
     hideEntitySelector,
-    showAssumptionCharts = false,
+    showAssumptionCharts,
     fertilityRateAssumptions,
     lifeExpectancyAssumptions,
     netMigrationRateAssumptions,

@@ -6,10 +6,8 @@ import { ChartError } from "../../../../components/ChartError/ChartError.js"
 import { ChartSkeleton } from "../../../../components/ChartSkeleton/ChartSkeleton.js"
 import { Spinner } from "../../../../components/Spinner/Spinner.js"
 import { queryClient, useDemographyData } from "../core/fetch.js"
-import type {
-    PopulationPyramidUnit,
-    PopulationPyramidVariantConfig,
-} from "../core/config.js"
+import type { DemographyConfig } from "../index.js"
+import type { PopulationPyramidUnit } from "../core/types.js"
 import type {
     BespokeComponentDataUrls,
     BespokeVariantProps,
@@ -45,7 +43,7 @@ import { EntityNameOrSelector } from "../components/EntityNameOrSelector.js"
 export function PopulationPyramidVariant({
     config,
     urls,
-}: BespokeVariantProps<PopulationPyramidVariantConfig>): React.ReactElement {
+}: BespokeVariantProps<DemographyConfig>): React.ReactElement {
     const { breakpoint, ref: rootRef } = useContainerBreakpoint()
 
     return (
@@ -72,7 +70,7 @@ function FetchingPopulationPyramidVariant({
     config,
     urls,
 }: {
-    config: PopulationPyramidVariantConfig
+    config: DemographyConfig
     urls: BespokeComponentDataUrls
 }): React.ReactElement {
     const [entityName, setEntityName] = useInitialEntityName(
@@ -119,7 +117,7 @@ function CaptionedPopulationPyramidVariant({
     subtitle: subtitleOverride,
     hideEntitySelector,
     hideTimeline,
-    showAssumptionCharts = false,
+    showAssumptionCharts,
     initialTime,
     fertilityRateAssumptions,
     lifeExpectancyAssumptions,
@@ -136,13 +134,13 @@ function CaptionedPopulationPyramidVariant({
     hideEntitySelector?: boolean
     hideTimeline?: boolean
     showAssumptionCharts?: boolean
-    initialTime?: number
+    initialTime: number
     fertilityRateAssumptions?: Record<number, number>
     lifeExpectancyAssumptions?: Record<number, number>
     netMigrationRateAssumptions?: Record<number, number>
     populationPyramidUnit?: PopulationPyramidUnit
 }) {
-    const [year, setYear] = useState(initialTime ?? END_YEAR)
+    const [year, setYear] = useState(initialTime)
 
     const scenarioOverrides = useMemo(
         () =>
