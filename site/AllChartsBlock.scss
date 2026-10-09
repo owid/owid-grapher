@@ -330,8 +330,10 @@
 .all-charts-block__row {
     border-bottom: 1px solid $blue-20;
 
-    // A row scrolled into view lands below the pinned search bar, not under it
-    // (see keepRowInView in AllChartsBlock.tsx).
+    // A row scrolled into view lands below the pinned search bar, not under it,
+    // and an opened row's chart is centred in the screen below the bar (see
+    // AllChartsTableRow in AllChartsBlock.tsx, which reads this as the bar's
+    // bottom edge).
     @include md-down {
         scroll-margin-top: calc(
             var(--all-charts-block-pinned-above-height, 0px) +

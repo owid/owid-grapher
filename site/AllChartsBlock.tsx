@@ -1032,6 +1032,41 @@ export function getRowChartTypeTabs(
 }
 
 /**
+ * Where to scroll the page so the chart card a row just opened on the accordion
+ * layout is centred in the part of the screen the reader can actually see: the
+ * band between the bottom of the pinned sub-nav and search bar (`clearance`)
+ * and the bottom of the viewport. A card taller than that band can't be
+ * centred without cutting its top off, so it is put flush under the bar
+ * instead, where its title and tab bar are in view and the rest is a scroll
+ * away.
+ *
+ * `cardTop` is the card's current distance from the top of the viewport, so
+ * the result is a document scroll position, not a viewport offset. It is
+ * never negative; the browser clamps the other end itself.
+ */
+// oxlint-disable-next-line react/only-export-components -- exported for AllChartsBlock.test.ts; the rule is about fast refresh, and this is a pure helper
+export function getOpenedChartScrollTop({
+    scrollY,
+    cardTop,
+    cardHeight,
+    viewportHeight,
+    clearance,
+}: {
+    scrollY: number
+    cardTop: number
+    cardHeight: number
+    viewportHeight: number
+    clearance: number
+}): number {
+    const visibleHeight = viewportHeight - clearance
+    const targetCardTop =
+        cardHeight <= visibleHeight
+            ? clearance + (visibleHeight - cardHeight) / 2
+            : clearance
+    return Math.max(0, scrollY + cardTop - targetCardTop)
+}
+
+/**
  * The row's other views, as a line of small text links under its source line —
  * Grapher's own tab icon and label for each, so they read as the same set of
  * views as the tab bar in the chart beside the list. Text links rather than
@@ -1196,30 +1231,72 @@ const AllChartsTableRow = ({
     // needed because the click target below is a div (it wraps a multi-line
     // stack of title/subtitle/source spans rather than being a leaf control),
     // so we reimplement that bit of native button keyboard behavior ourselves.
-    // Opening a row on the accordion layout closes the one that was open, and
-    // when that one is above it the chart it held leaves the page, which pulls
-    // this row up — out of sight above the viewport, or under the pinned search
-    // bar. So once the change has rendered, a row whose top is no longer clear
-    // of the bar is scrolled back to sit just below it. The threshold is the
-    // row's own scroll-margin-top, which is the bar's bottom edge and is only
-    // set on the accordion layout, so this does nothing on desktop.
+    //
+    // Both scroll adjustments below run once the change has rendered, in the
+    // next frame: by then the row that was open has collapsed (Safari has no
+    // scroll anchoring, so when that row is above this one, this row has been
+    // pulled up by the height of the chart that left) and this row's chart card
+    // is in the page at its final height — the figure's height is fixed in CSS,
+    // for the loading placeholder and the loaded Grapher alike, so the card
+    // doesn't grow as the chart arrives. The threshold for both is the row's own
+    // scroll-margin-top, which is the pinned bar's bottom edge and is only set
+    // on the accordion layout, so neither does anything on desktop.
     const rowRef = useRef<HTMLLIElement>(null)
-    const keepRowInView = (): void => {
+    const afterRender = (
+        adjust: (row: HTMLLIElement, clearance: number) => void
+    ): void => {
         requestAnimationFrame(() => {
             const row = rowRef.current
             if (!row) return
             const clearance = parseFloat(getComputedStyle(row).scrollMarginTop)
-            if (clearance > 0 && row.getBoundingClientRect().top < clearance)
-                row.scrollIntoView({ block: "start" })
+            if (clearance > 0) adjust(row, clearance)
         })
     }
+    // A row that has just opened scrolls its chart card to the middle of the
+    // screen below the pinned bar (see getOpenedChartScrollTop).
+    const centerOpenedChart = (): void =>
+        afterRender((row, clearance) => {
+            const card = row.querySelector(
+                ".all-charts-block__row-accordion .all-charts-block__grapher"
+            )
+            if (!card) return
+            const { top, height } = card.getBoundingClientRect()
+            window.scrollTo({
+                top: getOpenedChartScrollTop({
+                    scrollY: window.scrollY,
+                    cardTop: top,
+                    cardHeight: height,
+                    viewportHeight: window.innerHeight,
+                    clearance,
+                }),
+                behavior: window.matchMedia("(prefers-reduced-motion: reduce)")
+                    .matches
+                    ? "instant"
+                    : "smooth",
+            })
+        })
+    // A chart-type link in a row that is already open swaps the chart in place,
+    // so the page is left where it is unless the row's top has ended up under
+    // the bar, in which case it is put back just below it.
+    const keepRowInView = (): void =>
+        afterRender((row, clearance) => {
+            if (row.getBoundingClientRect().top < clearance)
+                row.scrollIntoView({ block: "start" })
+        })
+    // Closing the open row by its own header scrolls nothing: the header was
+    // just tapped, so it is on screen, and only what is below it goes away.
     const select = (): void => {
+        const isOpening = !isExpanded
         onSelect()
-        keepRowInView()
+        if (isOpening) centerOpenedChart()
     }
+    // A chart-type link opens its row if it was closed, which counts as opening
+    // it like any other tap.
     const selectChartType = (tab: GrapherTabName): void => {
+        const isOpening = !isExpanded
         onSelectChartType(tab)
-        keepRowInView()
+        if (isOpening) centerOpenedChart()
+        else keepRowInView()
     }
 
     const handleRowKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {

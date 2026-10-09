@@ -8,7 +8,11 @@ import {
     indexTopicVocabularyByName,
     suggestedKeywords,
 } from "./search/topicVocabulary.js"
-import { getRowChartTypeTabs, getRowThumbnailTab } from "./AllChartsBlock.js"
+import {
+    getOpenedChartScrollTop,
+    getRowChartTypeTabs,
+    getRowThumbnailTab,
+} from "./AllChartsBlock.js"
 
 describe(suggestedKeywords, () => {
     it("suggests the vocabulary's terms in the vocabulary's own order", () => {
@@ -389,5 +393,57 @@ describe(getRowChartTypeTabs, () => {
                 )
             ).toEqual([])
         })
+    })
+})
+
+describe(getOpenedChartScrollTop, () => {
+    // A 575px chart card under a 48px sub-nav and a 68px search bar, with the
+    // page scrolled to 2000px and the card's top currently 400px down the
+    // screen.
+    const opened = {
+        scrollY: 2000,
+        cardTop: 400,
+        cardHeight: 575,
+        clearance: 116,
+    }
+
+    it("centres a card that fits in the screen below the pinned bar", () => {
+        // 844 - 116 = 728px visible, so the card sits (728 - 575) / 2 = 76.5px
+        // below the bar, with as much room under it.
+        const scrollTop = getOpenedChartScrollTop({
+            ...opened,
+            viewportHeight: 844,
+        })
+        const cardTopAfter = opened.cardTop - (scrollTop - opened.scrollY)
+        expect(cardTopAfter).toBe(116 + 76.5)
+        expect(844 - (cardTopAfter + opened.cardHeight)).toBe(76.5)
+    })
+
+    it("puts a card taller than the screen below the bar flush under the bar", () => {
+        // 667 - 116 = 551px visible: centring would cut the card's top off.
+        const scrollTop = getOpenedChartScrollTop({
+            ...opened,
+            viewportHeight: 667,
+        })
+        expect(opened.cardTop - (scrollTop - opened.scrollY)).toBe(116)
+    })
+
+    it("centres a card that exactly fills the screen below the bar", () => {
+        const scrollTop = getOpenedChartScrollTop({
+            ...opened,
+            viewportHeight: 116 + 575,
+        })
+        expect(opened.cardTop - (scrollTop - opened.scrollY)).toBe(116)
+    })
+
+    it("never asks for a scroll position above the top of the page", () => {
+        expect(
+            getOpenedChartScrollTop({
+                ...opened,
+                scrollY: 0,
+                cardTop: 150,
+                viewportHeight: 844,
+            })
+        ).toBe(0)
     })
 })
