@@ -3,6 +3,7 @@ import { GrapherInterface } from "@ourworldindata/types"
 import {
     type UntypedGrapherConfig,
     defaultGrapherConfig,
+    latestSchemaVersion,
 } from "@ourworldindata/grapher"
 import {
     type GrapherConfigValidationIssue,
@@ -12,6 +13,9 @@ import {
     ingestGrapherConfig,
     tryIngestGrapherConfig,
 } from "./grapherConfigValidation.js"
+
+const latestSchemaUrl = defaultGrapherConfig.$schema
+const foreignSchemaUrl = `https://example.org/schemas/grapher-schema.${latestSchemaVersion}.json`
 
 function schemaUrlForVersion(version: string): string {
     return `https://files.ourworldindata.org/schemas/grapher-schema.${version}.json`
@@ -54,14 +58,19 @@ describe(tryIngestGrapherConfig, () => {
             issues: [
                 {
                     pointer: "/$schema",
-                    message: expect.stringContaining("must have a $schema"),
+                    message: `must have a $schema; expected ${latestSchemaUrl}`,
                 },
             ],
         },
         {
             name: "a $schema that is not a string",
             config: { ...baseChartConfig, $schema: 123 },
-            issues: [{ pointer: "/$schema", message: expect.any(String) }],
+            issues: [
+                {
+                    pointer: "/$schema",
+                    message: `unknown schema version 123; expected ${latestSchemaUrl}`,
+                },
+            ],
         },
         {
             name: "an unknown schema version",
@@ -69,7 +78,22 @@ describe(tryIngestGrapherConfig, () => {
                 ...baseChartConfig,
                 $schema: schemaUrlForVersion("099"),
             },
-            issues: [{ pointer: "/$schema", message: expect.any(String) }],
+            issues: [
+                {
+                    pointer: "/$schema",
+                    message: `unknown schema version ${schemaUrlForVersion("099")}; expected ${latestSchemaUrl}`,
+                },
+            ],
+        },
+        {
+            name: "a schema hosted somewhere else",
+            config: { ...baseChartConfig, $schema: foreignSchemaUrl },
+            issues: [
+                {
+                    pointer: "/$schema",
+                    message: `unknown schema version ${foreignSchemaUrl}; expected ${latestSchemaUrl}`,
+                },
+            ],
         },
         {
             name: "a config that fails to migrate",
@@ -100,7 +124,12 @@ describe(tryIngestGrapherConfig, () => {
         {
             name: "an unknown nested key",
             config: { ...baseChartConfig, map: { nope: 1 } },
-            issues: [{ pointer: "/map/nope", message: expect.any(String) }],
+            issues: [
+                {
+                    pointer: "/map/nope",
+                    message: "must NOT have additional properties",
+                },
+            ],
         },
     ])("rejects $name", ({ config, issues }) => {
         expect(expectRejected(config)).toEqual(issues)
@@ -108,7 +137,7 @@ describe(tryIngestGrapherConfig, () => {
 
     it("accepts a config at the latest version", () => {
         const config = expectAccepted(baseChartConfig)
-        expect(config.$schema).toBe(defaultGrapherConfig.$schema)
+        expect(config.$schema).toBe(latestSchemaUrl)
     })
 
     it("migrates an outdated config before validating it", () => {
@@ -120,7 +149,7 @@ describe(tryIngestGrapherConfig, () => {
             ],
         })
 
-        expect(config.$schema).toBe(defaultGrapherConfig.$schema)
+        expect(config.$schema).toBe(latestSchemaUrl)
         expect(config.dimensions?.[0].display).toStrictEqual({
             timeInterval: "day",
         })
