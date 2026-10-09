@@ -31,10 +31,6 @@ $site-tools-popover-inset: $header-height-md + $vertical-spacing * 3 +
         gap: $site-tools-button-gap;
     }
 
-    .site-tools > .active {
-        z-index: $zindex-popover;
-    }
-
     .site-tools__button {
         @include popover-box-button;
         display: flex;
@@ -55,18 +51,29 @@ $site-tools-popover-inset: $header-height-md + $vertical-spacing * 3 +
         }
     }
 
-    .site-tools .overlay {
+    .site-tools__modal-overlay {
         @include overlay;
+        z-index: $zindex-popover;
     }
 
-    .site-tools .box .FeedbackForm {
+    .site-tools__modal {
+        position: fixed;
+        right: $vertical-spacing;
+    }
+
+    .site-tools__dialog:focus-visible {
+        // The dialog has no visible box of its own; its controls keep their rings.
+        outline: none;
+    }
+
+    .site-tools__box .FeedbackForm {
         max-height: min(
             700px,
             calc(var(--viewport-height) - #{$site-tools-popover-inset})
         );
     }
 
-    .site-tools .box {
+    .site-tools__box {
         position: absolute;
         right: 0;
         bottom: 100%;
@@ -86,7 +93,7 @@ $site-tools-popover-inset: $header-height-md + $vertical-spacing * 3 +
         }
 
         .newsletter-subscription-form {
-            padding-top: 16px;
+            padding: 16px 40px 32px;
         }
     }
 }
