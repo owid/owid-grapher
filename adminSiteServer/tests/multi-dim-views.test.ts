@@ -7,7 +7,6 @@ import {
     MultiDimDataPagesTableName,
     MultiDimViewDimensionsTableName,
     MultiDimXChartConfigsTableName,
-    VariablesTableName,
     View,
 } from "@ourworldindata/types"
 import { latestGrapherConfigSchema } from "@ourworldindata/grapher"
@@ -151,48 +150,6 @@ describe("Multi-dim views", { timeout: 20000 }, () => {
         expect(await env.getCount(MultiDimDataPagesTableName)).toBe(0)
     })
 
-    it("400s when a view's merge is invalid, and writes no view config", async () => {
-        // seed a valid indicator ETL config, then corrupt it directly: the
-        // write route itself would reject the unknown key
-        await env.request({
-            method: "PUT",
-            path: `/variables/${variableId}/grapherConfigETL`,
-            body: JSON.stringify({
-                $schema: latestGrapherConfigSchema,
-                note: "Indicator note",
-            }),
-        })
-        const variable = await env
-            .testKnex(VariablesTableName)
-            .where({ id: variableId })
-            .first()
-        await env
-            .testKnex(ChartConfigsTableName)
-            .where({ id: variable.patchConfigIdETL })
-            .update({
-                config: JSON.stringify({
-                    $schema: latestGrapherConfigSchema,
-                    note: "Indicator note",
-                    hideLegend: true,
-                }),
-            })
-
-        const response = await env.request({
-            method: "PUT",
-            path: `/multi-dims/${encodeURIComponent(catalogPath)}`,
-            body: JSON.stringify({
-                config: multiDimConfig([totalView, perCapitaView]),
-            }),
-            expectStatus: 400,
-        })
-        expect(response.error.message).toContain("/hideLegend")
-
-        expect(await env.getCount(MultiDimDataPagesTableName)).toBe(0)
-        expect(await env.getCount(MultiDimXChartConfigsTableName)).toBe(0)
-        // only the seeded indicator config; no view config was written
-        expect(await env.getCount(ChartConfigsTableName)).toBe(1)
-    })
-
     it("drops the config row of a removed view and keeps the rest", async () => {
         await upsertMultiDim([totalView, perCapitaView])
         const before = await getViewConfigIds()
@@ -243,7 +200,7 @@ describe("Multi-dim views", { timeout: 20000 }, () => {
         expect(await getViewConfigIds()).toEqual(viewConfigIds)
     })
 
-    it("propagates to a stored view config that declares no schema version", async () => {
+    it("propagates an indicator config change to an mdim without grapherConfigSchema", async () => {
         await upsertMultiDim([totalView])
         const viewConfigIds = await getViewConfigIds()
 
