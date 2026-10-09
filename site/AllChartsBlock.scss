@@ -235,7 +235,10 @@ $all-charts-panes-gap: 24px;
         display: contents;
     }
 
-    .all-charts-block__search {
+    // With the block class in front, to outrank the plain
+    // .all-charts-block__search rule further down, whose `position: relative`
+    // would otherwise win on source order.
+    .all-charts-block .all-charts-block__search {
         position: sticky;
         // Flush against the topic page's sub-nav, which stays pinned at the top
         // of a phone's viewport too, or the viewport's top where there isn't
