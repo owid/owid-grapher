@@ -390,6 +390,15 @@ export const AllChartsBlock = ({
         box: "border-box",
     })
 
+    // Below the breakpoint the search bar is pinned on its own instead (see
+    // .all-charts-block__search), and a row scrolled into view has to land
+    // below it, so its height is published for the rows' scroll-margin-top.
+    const searchRef = useRef<HTMLDivElement>(null)
+    const { height: searchHeight } = useResizeObserver({
+        ref: searchRef as React.RefObject<HTMLDivElement>,
+        box: "border-box",
+    })
+
     if (isError || !topicName) return null
 
     return (
@@ -400,6 +409,7 @@ export const AllChartsBlock = ({
                 {
                     "--all-charts-block-pinned-above-height": `${stickyNavHeight ?? 0}px`,
                     "--all-charts-block-sticky-header-height": `${stickyHeaderHeight ?? 0}px`,
+                    "--all-charts-block-search-height": `${searchHeight ?? 0}px`,
                 } as React.CSSProperties
             }
         >
@@ -420,6 +430,7 @@ export const AllChartsBlock = ({
                     filters the whole block, not just the list, and at the
                     list pane's width the placeholder was being clipped. */}
                 <AllChartsSearchInput
+                    searchRef={searchRef}
                     query={query}
                     onQueryChange={setQuery}
                     producerFilters={producerFilters}
@@ -742,11 +753,13 @@ const AllChartsLeftPane = (props: AllChartsLeftPaneProps) => {
 }
 
 const AllChartsSearchInput = ({
+    searchRef,
     query,
     onQueryChange,
     producerFilters,
     onRemoveProducerFilter,
 }: {
+    searchRef: React.Ref<HTMLDivElement>
     query: string
     onQueryChange: (query: string) => void
     producerFilters: string[]
@@ -754,7 +767,7 @@ const AllChartsSearchInput = ({
 }) => {
     return (
         <>
-            <div className="all-charts-block__search">
+            <div className="all-charts-block__search" ref={searchRef}>
                 <FontAwesomeIcon
                     className="all-charts-block__search-icon"
                     icon={faMagnifyingGlass}
@@ -1183,15 +1196,42 @@ const AllChartsTableRow = ({
     // needed because the click target below is a div (it wraps a multi-line
     // stack of title/subtitle/source spans rather than being a leaf control),
     // so we reimplement that bit of native button keyboard behavior ourselves.
+    // Opening a row on the accordion layout closes the one that was open, and
+    // when that one is above it the chart it held leaves the page, which pulls
+    // this row up — out of sight above the viewport, or under the pinned search
+    // bar. So once the change has rendered, a row whose top is no longer clear
+    // of the bar is scrolled back to sit just below it. The threshold is the
+    // row's own scroll-margin-top, which is the bar's bottom edge and is only
+    // set on the accordion layout, so this does nothing on desktop.
+    const rowRef = useRef<HTMLLIElement>(null)
+    const keepRowInView = (): void => {
+        requestAnimationFrame(() => {
+            const row = rowRef.current
+            if (!row) return
+            const clearance = parseFloat(getComputedStyle(row).scrollMarginTop)
+            if (clearance > 0 && row.getBoundingClientRect().top < clearance)
+                row.scrollIntoView({ block: "start" })
+        })
+    }
+    const select = (): void => {
+        onSelect()
+        keepRowInView()
+    }
+    const selectChartType = (tab: GrapherTabName): void => {
+        onSelectChartType(tab)
+        keepRowInView()
+    }
+
     const handleRowKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
         if (event.key === "Enter" || event.key === " ") {
             event.preventDefault()
-            onSelect()
+            select()
         }
     }
 
     return (
         <li
+            ref={rowRef}
             className={cx("all-charts-block__row", {
                 "all-charts-block__row--selected": isSelected,
             })}
@@ -1206,7 +1246,7 @@ const AllChartsTableRow = ({
                     tabIndex={0}
                     aria-pressed={isSelected}
                     aria-expanded={isExpanded}
-                    onClick={onSelect}
+                    onClick={select}
                     onKeyDown={handleRowKeyDown}
                 >
                     {/* A static preview of the chart's own default view — no
@@ -1322,7 +1362,7 @@ const AllChartsTableRow = ({
                             shownEntities={shownEntities}
                             activeTab={activeTab}
                             isSelected={isSelected}
-                            onSelectChartType={onSelectChartType}
+                            onSelectChartType={selectChartType}
                         />
                         {shownEntities.length > 0 && (
                             <span className="all-charts-block__row-tag">

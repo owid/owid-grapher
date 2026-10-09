@@ -79,9 +79,9 @@
 // is a single opaque band with one hard bottom edge — the heading and the input
 // don't read as two separately floating strips.
 //
-// Not stuck below the breakpoint: on a phone the two together would take a
-// serious bite out of a short viewport, and the sidecar they were sharing the
-// screen with isn't there anyway. Both scroll away with the page instead.
+// Below the breakpoint only the search bar sticks: the heading as well would
+// take a serious bite out of a phone's viewport, so it scrolls away (see
+// .all-charts-block__search).
 .all-charts-block__sticky-header {
     position: sticky;
     // Flush against the bottom of the page's own sticky sub-nav, or against the
@@ -110,8 +110,12 @@
     // removes the gap instead of covering it, so the last thing a row is drawn
     // over is this unit's own top edge.
 
+    // Dissolved rather than unstuck, so the search bar inside it can stick on
+    // its own: a sticky element only travels within its parent, and this
+    // wrapper's parent is the whole block. Nothing measures this wrapper down
+    // here.
     @include md-down {
-        position: static;
+        display: contents;
     }
 }
 
@@ -158,6 +162,20 @@
     position: relative;
     display: flex;
     align-items: center;
+
+    // Pinned alone below the breakpoint, flush under the topic sub-nav, until
+    // the block scrolls past. It takes over the wrapper's opaque band and its
+    // spacing; the 8px above the input is drawn into the heading's margin so
+    // the field doesn't sit hard against the nav once pinned, and the
+    // unpinned layout is unchanged.
+    @include md-down {
+        position: sticky;
+        top: var(--all-charts-block-pinned-above-height, 0px);
+        z-index: 1;
+        background-color: $white;
+        padding: 8px 0 12px;
+        margin: -8px 0 4px;
+    }
 }
 
 .all-charts-block__search-icon {
@@ -293,6 +311,15 @@
 
 .all-charts-block__row {
     border-bottom: 1px solid $blue-20;
+
+    // A row scrolled into view lands below the pinned search bar, not under it
+    // (see keepRowInView in AllChartsBlock.tsx).
+    @include md-down {
+        scroll-margin-top: calc(
+            var(--all-charts-block-pinned-above-height, 0px) +
+                var(--all-charts-block-search-height, 0px)
+        );
+    }
 }
 
 .all-charts-block__row--selected .all-charts-block__row-body {
