@@ -7,8 +7,10 @@ import type {
     PopulationPyramidUnit,
     SimulationVariantConfig,
 } from "../core/config.js"
-import type { VariantProps } from "../../../../helpers/config.js"
-import type { BespokeComponentDataUrls } from "owid-bespoke-types"
+import type {
+    BespokeComponentDataUrls,
+    BespokeVariantProps,
+} from "owid-bespoke-types"
 import { CHART_FOOTER_SOURCES, DEFAULT_ENTITY_NAME } from "../core/constants.js"
 import { useInitialEntityName } from "../core/useInitialEntityName.js"
 import {
@@ -38,7 +40,7 @@ import {
 export function SimulationVariant({
     config,
     urls,
-}: VariantProps<SimulationVariantConfig>): React.ReactElement {
+}: BespokeVariantProps<SimulationVariantConfig>): React.ReactElement {
     const { breakpoint, ref: rootRef } = useContainerBreakpoint()
 
     return (

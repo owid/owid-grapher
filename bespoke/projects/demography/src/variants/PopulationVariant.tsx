@@ -7,8 +7,10 @@ import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
 import { Frame } from "../../../../components/Frame/Frame.js"
 
 import type { PopulationVariantConfig } from "../core/config.js"
-import type { VariantProps } from "../../../../helpers/config.js"
-import type { BespokeComponentDataUrls } from "owid-bespoke-types"
+import type {
+    BespokeComponentDataUrls,
+    BespokeVariantProps,
+} from "owid-bespoke-types"
 import type { CountryData, DemographyMetadata } from "../core/types.js"
 
 import { queryClient, useDemographyData } from "../core/fetch.js"
@@ -38,7 +40,7 @@ import { EntityNameOrSelector } from "../components/EntityNameOrSelector.js"
 export function PopulationVariant({
     config,
     urls,
-}: VariantProps<PopulationVariantConfig>): React.ReactElement {
+}: BespokeVariantProps<PopulationVariantConfig>): React.ReactElement {
     const { breakpoint, ref: rootRef } = useContainerBreakpoint()
 
     return (

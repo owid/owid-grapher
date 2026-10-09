@@ -10,8 +10,10 @@ import { ChartError } from "../../../../components/ChartError/ChartError.js"
 import { ChartSkeleton } from "../../../../components/ChartSkeleton/ChartSkeleton.js"
 import { combineStatuses } from "../../../../helpers/queryStatus.js"
 
-import type { VariantProps } from "../../../../helpers/config.js"
-import type { BespokeComponentDataUrls } from "owid-bespoke-types"
+import type {
+    BespokeComponentDataUrls,
+    BespokeVariantProps,
+} from "owid-bespoke-types"
 import { CausesOfDeathConfig } from "../core/config.js"
 import {
     useCausesOfDeathEntityData,
@@ -36,7 +38,7 @@ const LATEST_YEAR = -1
 const queryClient = new QueryClient()
 
 export function CausesOfDeathChartWithProviders(
-    props: VariantProps<CausesOfDeathConfig>
+    props: BespokeVariantProps<CausesOfDeathConfig>
 ): React.ReactElement {
     return (
         <EmbedConfigProvider config={props.config}>

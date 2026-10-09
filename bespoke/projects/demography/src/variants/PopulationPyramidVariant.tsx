@@ -10,8 +10,10 @@ import type {
     PopulationPyramidUnit,
     PopulationPyramidVariantConfig,
 } from "../core/config.js"
-import type { VariantProps } from "../../../../helpers/config.js"
-import type { BespokeComponentDataUrls } from "owid-bespoke-types"
+import type {
+    BespokeComponentDataUrls,
+    BespokeVariantProps,
+} from "owid-bespoke-types"
 import { groupAgeGroupsByZone } from "../core/utils.js"
 import { formatEntityNameForSentence } from "../../../../helpers/entityNames.js"
 import { CountryData, DemographyMetadata } from "../core/types.js"
@@ -43,7 +45,7 @@ import { EntityNameOrSelector } from "../components/EntityNameOrSelector.js"
 export function PopulationPyramidVariant({
     config,
     urls,
-}: VariantProps<PopulationPyramidVariantConfig>): React.ReactElement {
+}: BespokeVariantProps<PopulationPyramidVariantConfig>): React.ReactElement {
     const { breakpoint, ref: rootRef } = useContainerBreakpoint()
 
     return (

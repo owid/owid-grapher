@@ -1,15 +1,9 @@
 import type {
     BespokeAuthoredConfig,
-    BespokeComponentDataUrls,
     BespokeConfigField,
     BespokeConfigSpec,
 } from "../shared/bespokeComponentTypes.js"
 import type { EmbedConfig } from "../shared/embedConfig.js"
-
-export interface VariantProps<Config> {
-    config: Config & EmbedConfig
-    urls: BespokeComponentDataUrls
-}
 
 export type ConfigFromSpec<Spec extends BespokeConfigSpec> = {
     [Key in keyof Spec]: Spec[Key] extends { default: string }

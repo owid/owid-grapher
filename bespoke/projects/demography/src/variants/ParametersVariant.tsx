@@ -6,8 +6,10 @@ import { ChartSkeleton } from "../../../../components/ChartSkeleton/ChartSkeleto
 import { Spinner } from "../../../../components/Spinner/Spinner.js"
 import { queryClient, useDemographyData } from "../core/fetch.js"
 import type { ParametersVariantConfig } from "../core/config.js"
-import type { VariantProps } from "../../../../helpers/config.js"
-import type { BespokeComponentDataUrls } from "owid-bespoke-types"
+import type {
+    BespokeComponentDataUrls,
+    BespokeVariantProps,
+} from "owid-bespoke-types"
 
 import { CountryData, DemographyMetadata } from "../core/types.js"
 import {
@@ -31,7 +33,7 @@ import { EntityNameOrSelector } from "../components/EntityNameOrSelector.js"
 export function ParametersVariant({
     config,
     urls,
-}: VariantProps<ParametersVariantConfig>): React.ReactElement {
+}: BespokeVariantProps<ParametersVariantConfig>): React.ReactElement {
     const { breakpoint, ref: rootRef } = useContainerBreakpoint()
 
     return (

@@ -27,8 +27,10 @@ import {
 } from "../../../../hooks/useResolveUserLocation.js"
 
 import { SankeyVariantConfig } from "../core/config.js"
-import type { VariantProps } from "../../../../helpers/config.js"
-import type { BespokeComponentDataUrls } from "owid-bespoke-types"
+import type {
+    BespokeComponentDataUrls,
+    BespokeVariantProps,
+} from "owid-bespoke-types"
 import {
     MigrationFlow,
     MigrationRow,
@@ -54,7 +56,7 @@ const queryClient = new QueryClient()
 export function SankeyVariant({
     config,
     urls,
-}: VariantProps<SankeyVariantConfig>): React.ReactElement {
+}: BespokeVariantProps<SankeyVariantConfig>): React.ReactElement {
     const { width, ref } = useContainerWidth()
     const isNarrow = width > 0 && width < MOBILE_BREAKPOINT
 

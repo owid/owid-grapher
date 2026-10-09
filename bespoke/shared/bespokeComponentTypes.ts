@@ -1,3 +1,5 @@
+import type { EmbedConfig } from "./embedConfig.ts"
+
 type BespokeComponentReturnType = void | undefined | (() => void)
 
 export interface BespokeComponentDataUrls {
@@ -6,6 +8,11 @@ export interface BespokeComponentDataUrls {
 }
 
 export type BespokeAuthoredConfig = Record<string, string>
+
+export interface BespokeVariantProps<Config> {
+    config: Config & EmbedConfig
+    urls: BespokeComponentDataUrls
+}
 
 export interface BespokeComponentMountOpts extends Partial<BespokeComponentDataUrls> {
     variant?: string

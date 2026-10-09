@@ -28,8 +28,10 @@ import { combineStatuses } from "../../../../helpers/queryStatus.js"
 
 import { PyramidVariantConfig } from "../core/config.js"
 import { RawEntityYears, ShowMode } from "../core/types.js"
-import type { VariantProps } from "../../../../helpers/config.js"
-import type { BespokeComponentDataUrls } from "owid-bespoke-types"
+import type {
+    BespokeComponentDataUrls,
+    BespokeVariantProps,
+} from "owid-bespoke-types"
 import {
     computePyramidData,
     MigrantDemographicsMetadata,
@@ -50,7 +52,7 @@ import { PyramidControls } from "../components/PyramidControls.js"
 export function PyramidVariant({
     config,
     urls,
-}: VariantProps<PyramidVariantConfig>): React.ReactElement {
+}: BespokeVariantProps<PyramidVariantConfig>): React.ReactElement {
     return (
         <EmbedConfigProvider config={config}>
             <NuqsAdapter>
