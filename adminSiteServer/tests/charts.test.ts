@@ -144,7 +144,7 @@ describe("Charts API", { timeout: 15000 }, () => {
         expect(await env.getCount(ChartConfigsTableName)).toBe(0)
     })
 
-    it("rejects the whole bulk update when a patch would produce an invalid chart", async () => {
+    it("rejects a bulk update that would make a chart invalid, changing nothing", async () => {
         const { chartId } = await env.request({
             method: "POST",
             path: "/charts",
