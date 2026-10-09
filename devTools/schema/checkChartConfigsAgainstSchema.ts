@@ -35,13 +35,18 @@ type OwnerRef =
     | { owner: "narrativeChart"; id: string }
     | { owner: "multiDim"; id: string; viewId: string }
 
-interface ConfigReference {
-    owner: ConfigOwner
-    role: ConfigRole
-    ownerIdColumn: string
-    /** Only a multiDim owner identifies a config by a view as well as an id */
-    ownerViewIdColumn?: string
-}
+type ConfigReference =
+    | {
+          owner: Exclude<ConfigOwner, "multiDim">
+          role: ConfigRole
+          ownerIdColumn: string
+      }
+    | {
+          owner: "multiDim"
+          role: ConfigRole
+          ownerIdColumn: string
+          ownerViewIdColumn: string
+      }
 
 /**
  * All database columns referencing `chart_configs`, mapped to their owner and
@@ -187,7 +192,9 @@ function buildReferenceIndexQuery(): string {
             )
             const ownerViewId = buildOwnerIdentityExpression(
                 table,
-                reference?.ownerViewIdColumn ?? null
+                reference?.owner === "multiDim"
+                    ? reference.ownerViewIdColumn
+                    : undefined
             )
             return `SELECT \`${column}\` AS id, '${columnKey}' AS reference, ${ownerId} AS ownerId, ${ownerViewId} AS ownerViewId FROM \`${table}\` WHERE \`${column}\` IS NOT NULL`
         })
@@ -196,9 +203,9 @@ function buildReferenceIndexQuery(): string {
 
 function buildOwnerIdentityExpression(
     table: string,
-    column: string | undefined | null
+    column: string | undefined
 ): string {
-    if (!column) return "NULL"
+    if (column === undefined) return "NULL"
     return `CAST(\`${table}\`.\`${column}\` AS CHAR)`
 }
 
