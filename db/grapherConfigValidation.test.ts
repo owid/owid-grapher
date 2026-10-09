@@ -136,18 +136,17 @@ describe(tryIngestGrapherConfig, () => {
         {
             name: "the latest version without a revision",
             $schema: formatGrapherSchemaUrl(latestSchemaVersion),
+            storedSchema: formatGrapherSchemaUrl(latestSchemaVersion),
         },
         {
             name: "the latest version at any revision",
             $schema: formatGrapherSchemaUrl(latestSchemaVersion, 7),
+            storedSchema: formatGrapherSchemaUrl(latestSchemaVersion, 7),
         },
-    ])(
-        "accepts $name, stamping it with this build's revision",
-        ({ $schema }) => {
-            const config = expectAccepted({ ...baseChartConfig, $schema })
-            expect(config.$schema).toBe(latestSchemaUrl)
-        }
-    )
+    ])("accepts $name", ({ $schema, storedSchema }) => {
+        const config = expectAccepted({ ...baseChartConfig, $schema })
+        expect(config.$schema).toBe(storedSchema)
+    })
 
     it("migrates an outdated config before validating it", () => {
         const config = expectAccepted({
@@ -158,7 +157,7 @@ describe(tryIngestGrapherConfig, () => {
             ],
         })
 
-        expect(config.$schema).toBe(latestSchemaUrl)
+        expect(config.$schema).toBe(formatGrapherSchemaUrl(latestSchemaVersion))
         expect(config.dimensions?.[0].display).toStrictEqual({
             timeInterval: "day",
         })
