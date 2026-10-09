@@ -25,6 +25,10 @@ export async function seedDatasetAndVariables(env: TestEnv): Promise<void> {
         dataEditedByUserId: env.userId,
     })
 
+    await seedVariables(env, [variableId, otherVariableId])
+}
+
+async function seedVariables(env: TestEnv, ids: number[]): Promise<void> {
     const dummyVariable = {
         unit: "kg",
         coverage: "Global by country",
@@ -32,10 +36,9 @@ export async function seedDatasetAndVariables(env: TestEnv): Promise<void> {
         datasetId,
         display: '{ "unit": "kg", "shortUnit": "kg" }',
     }
-    await env.testKnex(VariablesTableName).insert([
-        { ...dummyVariable, id: variableId },
-        { ...dummyVariable, id: otherVariableId },
-    ])
+    await env
+        .testKnex(VariablesTableName)
+        .insert(ids.map((id) => ({ ...dummyVariable, id })))
 }
 
 export const catalogPath = "test/catalog#path"

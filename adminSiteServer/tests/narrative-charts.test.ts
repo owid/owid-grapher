@@ -17,6 +17,14 @@ import type { NarrativeChartResponse } from "../apiRoutes/narrativeCharts.js"
 
 const env = getAdminTestEnv()
 
+async function readStoredConfig(configId: string): Promise<GrapherInterface> {
+    const row = await env
+        .testKnex(ChartConfigsTableName)
+        .where({ id: configId })
+        .first()
+    return JSON.parse(row.config)
+}
+
 describe("Narrative charts API", { timeout: 20000 }, () => {
     const parentChartConfig: GrapherInterface = {
         $schema: latestGrapherConfigSchema,
@@ -164,6 +172,46 @@ describe("Narrative charts API", { timeout: 20000 }, () => {
         })
     })
 
+    it("migrates an outdated narrative chart config before storing it", async () => {
+        const { chartId } = await createParentChart()
+
+        const narrativeChartId = await createNarrativeChart(chartId, {
+            ...narrativeChartConfig,
+            $schema:
+                "https://files.ourworldindata.org/schemas/grapher-schema.009.json",
+            hideLegend: true,
+        } as GrapherInterface)
+
+        const row = await env
+            .testKnex(NarrativeChartsTableName)
+            .where({ id: narrativeChartId })
+            .first()
+        for (const configId of [row.patchConfigId, row.chartConfigId]) {
+            const config = await readStoredConfig(configId)
+            expect(config.$schema).toBe(latestGrapherConfigSchema)
+            expect(config.hideSeriesLabels).toBe(true)
+            expect(config).not.toHaveProperty("hideLegend")
+        }
+    })
+
+    it("rejects a narrative chart config with an unknown key", async () => {
+        const { chartId } = await createParentChart()
+
+        const response = await env.request({
+            method: "POST",
+            path: "/narrative-charts",
+            body: JSON.stringify({
+                type: "chart",
+                name: "test-narrative-chart-invalid",
+                parentChartId: chartId,
+                config: { ...narrativeChartConfig, hideLegend: true },
+            }),
+            expectStatus: 400,
+        })
+        expect(response.error.message).toContain("/hideLegend")
+        expect(await env.getCount(NarrativeChartsTableName)).toBe(0)
+    })
+
     it("updates a narrative chart in place", async () => {
         const { chartId } = await createParentChart()
         const narrativeChartId = await createNarrativeChart(chartId)
@@ -181,6 +229,53 @@ describe("Narrative charts API", { timeout: 20000 }, () => {
         expect(after.chartConfigId).toBe(before.chartConfigId)
         expect(after.configFull.title).toBe("Updated title")
         expect(await env.getCount(ChartConfigsTableName)).toBe(4)
+    })
+
+    it("rejects an update with an unknown key, changing nothing", async () => {
+        const { chartId } = await createParentChart()
+        const narrativeChartId = await createNarrativeChart(chartId)
+        const before = await getNarrativeChart(narrativeChartId)
+
+        const response = await env.request({
+            method: "PUT",
+            path: `/narrative-charts/${narrativeChartId}`,
+            body: JSON.stringify({
+                config: { ...narrativeChartConfig, hideLegend: true },
+            }),
+            expectStatus: 400,
+        })
+        expect(response.error.message).toContain("/hideLegend")
+
+        const after = await getNarrativeChart(narrativeChartId)
+        expect(after.configPatch).toEqual(before.configPatch)
+        expect(after.configFull).toEqual(before.configFull)
+    })
+
+    it("migrates an outdated update before storing it", async () => {
+        const { chartId } = await createParentChart()
+        const narrativeChartId = await createNarrativeChart(chartId)
+
+        await env.request({
+            method: "PUT",
+            path: `/narrative-charts/${narrativeChartId}`,
+            body: JSON.stringify({
+                config: {
+                    ...narrativeChartConfig,
+                    $schema:
+                        "https://files.ourworldindata.org/schemas/grapher-schema.009.json",
+                    hideLegend: true,
+                },
+            }),
+        })
+
+        const row = await env
+            .testKnex(NarrativeChartsTableName)
+            .where({ id: narrativeChartId })
+            .first()
+        const config = await readStoredConfig(row.patchConfigId)
+        expect(config.$schema).toBe(latestGrapherConfigSchema)
+        expect(config.hideSeriesLabels).toBe(true)
+        expect(config).not.toHaveProperty("hideLegend")
     })
 
     it("does not re-merge a narrative chart when its parent chart changes", async () => {
