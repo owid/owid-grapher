@@ -26,7 +26,7 @@ import {
     EntityName,
 } from "@ourworldindata/types"
 import { listedRegionsNames } from "@ourworldindata/utils"
-import { Button } from "@ourworldindata/components"
+import { Button, getPrefersReducedMotion } from "@ourworldindata/components"
 import {
     GRAPHER_THUMBNAIL_HEIGHT,
     GRAPHER_THUMBNAIL_WIDTH,
@@ -102,9 +102,6 @@ const SEARCH_PLACEHOLDER =
 //   On the accordion layout it pages instead, V2_ACCORDION_ROW_BATCH_SIZE rows
 //   at a time: a scroll region inside a phone's page traps the page's own
 //   scrolling.
-//
-// They also differ in one thing on the accordion layout: V1 pins its search bar
-// to the top of the viewport there (see AllChartsBlock.scss).
 //
 // Prototype scaffolding, not a feature: once one of them is chosen, this, the
 // switcher, the query parameter and the other version's code all come out.
@@ -515,6 +512,16 @@ export const AllChartsBlock = ({
         box: "border-box",
     })
 
+    // On the accordion layout the search bar is pinned on its own (see
+    // .all-charts-block__search), so a row scrolled into view has to stop
+    // below it as well as below the nav: its height is published for the rows'
+    // scroll-margin-top. The border box, for the same reason as the unit's.
+    const searchRef = useRef<HTMLDivElement>(null)
+    const { height: searchHeight } = useResizeObserver({
+        ref: searchRef as React.RefObject<HTMLDivElement>,
+        box: "border-box",
+    })
+
     const [variant, setVariant] = useAllChartsVariant()
 
     if (isError || !topicName) return null
@@ -523,13 +530,15 @@ export const AllChartsBlock = ({
         <section
             className={cx(className, "all-charts-block")}
             id={id}
-            // For the stylesheet: V1 pins its search bar on the accordion
-            // layout and V2 doesn't.
+            // Which version is showing. Nothing in the stylesheet tells the
+            // two apart at the moment; the attribute identifies the version
+            // in the page.
             data-all-charts-variant={variant}
             style={
                 {
                     "--all-charts-block-pinned-above-height": `${stickyNavHeight ?? 0}px`,
                     "--all-charts-block-sticky-header-height": `${stickyHeaderHeight ?? 0}px`,
+                    "--all-charts-block-search-height": `${searchHeight ?? 0}px`,
                 } as React.CSSProperties
             }
         >
@@ -555,6 +564,7 @@ export const AllChartsBlock = ({
                     whole block, not just the list, and the mockup gives it the
                     block's own width (Marwa, 2026-09-30). */}
                 <AllChartsSearchInput
+                    searchRef={searchRef}
                     query={query}
                     onQueryChange={setQuery}
                     producerFilters={producerFilters}
@@ -891,11 +901,13 @@ const AllChartsSuggestedSearches = ({ chips }: { chips: SuggestedChip[] }) => {
 }
 
 const AllChartsSearchInput = ({
+    searchRef,
     query,
     onQueryChange,
     producerFilters,
     onRemoveProducerFilter,
 }: {
+    searchRef: React.Ref<HTMLDivElement>
     query: string
     onQueryChange: (query: string) => void
     producerFilters: string[]
@@ -903,7 +915,7 @@ const AllChartsSearchInput = ({
 }) => {
     return (
         <>
-            <div className="all-charts-block__search">
+            <div className="all-charts-block__search" ref={searchRef}>
                 <FontAwesomeIcon
                     className="all-charts-block__search-icon"
                     icon={faMagnifyingGlass}
@@ -1296,6 +1308,43 @@ const HighlightedQueryText = ({
     )
 }
 
+/**
+ * How far to scroll the page, in pixels (negative is up), so that a row just
+ * opened on the accordion layout shows the chart it opened. Positions are
+ * viewport offsets of the row's top and of the chart panel's top and bottom,
+ * as they were when the row was tapped (see AllChartsTableRow); `viewTop` is
+ * where the viewport stops being covered by the pinned sub-nav and search bar,
+ * and `viewBottom` is its bottom edge.
+ *
+ * When the row and its chart fit between the two together, it scrolls the
+ * least that brings all of them in, title to the chart's foot, and not at all
+ * if they already are. When they don't — on most phones a row and the 575px
+ * chart are a little too tall — the chart's foot goes to the bottom of the
+ * viewport, which leaves the row's thumbnails above it and as much of its text
+ * as fits; but never so far that the chart's own top ends up under the bar.
+ */
+// oxlint-disable-next-line react/only-export-components -- exported for AllChartsBlock.test.ts; the rule is about fast refresh, and this is a pure helper
+export function getOpenRowScrollDelta({
+    rowTop,
+    chartTop,
+    chartBottom,
+    viewTop,
+    viewBottom,
+}: {
+    rowTop: number
+    chartTop: number
+    chartBottom: number
+    viewTop: number
+    viewBottom: number
+}): number {
+    if (chartBottom - rowTop <= viewBottom - viewTop) {
+        if (rowTop < viewTop) return rowTop - viewTop
+        if (chartBottom > viewBottom) return chartBottom - viewBottom
+        return 0
+    }
+    return Math.min(chartBottom - viewBottom, chartTop - viewTop)
+}
+
 const AllChartsTableRow = ({
     hit,
     isSelected,
@@ -1342,6 +1391,54 @@ const AllChartsTableRow = ({
     const isSearching =
         searchPhrase.trim() !== "" || detectedCountries.length > 0
 
+    // On the accordion layout a tap opens this row's chart underneath its
+    // thumbnails, and the page is then scrolled to show it (see
+    // getOpenRowScrollDelta). Only on a tap, so the row that opens by itself
+    // on load or on a new query leaves the page where it is.
+    //
+    // The tap may also close a row above this one, taking its chart out of the
+    // page. Browsers with scroll anchoring keep this row where it was when that
+    // happens; Safari has none, so the row jumps up by the height of the chart
+    // that closed, often clean out of sight. So everything is measured after
+    // the change has rendered and laid out, against where the row was when it
+    // was tapped: any jump is undone at once, and the scroll that brings the
+    // chart in starts from where the visitor was looking.
+    //
+    // A no-op on desktop, which never expands a row: the accordion panel isn't
+    // rendered, so there is no chart to bring in.
+    const rowRef = useRef<HTMLLIElement>(null)
+    const chartPanelRef = useRef<HTMLDivElement>(null)
+    const openWithChartInView = (open: () => void): void => {
+        const rowTopBefore = rowRef.current?.getBoundingClientRect().top
+        open()
+        requestAnimationFrame(() => {
+            const row = rowRef.current
+            const chartPanel = chartPanelRef.current
+            if (!row || !chartPanel || rowTopBefore === undefined) return
+            const jump = row.getBoundingClientRect().top - rowTopBefore
+            const chartRect = chartPanel.getBoundingClientRect()
+            const delta = getOpenRowScrollDelta({
+                rowTop: rowTopBefore,
+                chartTop: chartRect.top - jump,
+                chartBottom: chartRect.bottom - jump,
+                // The row's scroll-margin-top is the bottom edge of the pinned
+                // nav and search bar (see .all-charts-block__row).
+                viewTop: parseFloat(getComputedStyle(row).scrollMarginTop) || 0,
+                viewBottom: window.innerHeight,
+            })
+            if (Math.abs(jump) >= 1)
+                window.scrollBy({ top: jump, behavior: "instant" })
+            if (Math.abs(delta) >= 1)
+                window.scrollBy({
+                    top: delta,
+                    behavior: getPrefersReducedMotion() ? "instant" : "smooth",
+                })
+        })
+    }
+    const select = (): void => openWithChartInView(onSelect)
+    const selectTab = (tab: GrapherTabName): void =>
+        openWithChartInView(() => onSelectTab(tab))
+
     // Enter/Space activate the row the same way a native <button> would —
     // needed because the click target below is a div (it wraps a multi-line
     // stack of title/subtitle/source spans rather than being a leaf control),
@@ -1349,12 +1446,13 @@ const AllChartsTableRow = ({
     const handleRowKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
         if (event.key === "Enter" || event.key === " ") {
             event.preventDefault()
-            onSelect()
+            select()
         }
     }
 
     return (
         <li
+            ref={rowRef}
             className={cx("all-charts-block__row", {
                 "all-charts-block__row--selected": isSelected,
             })}
@@ -1369,7 +1467,7 @@ const AllChartsTableRow = ({
                     tabIndex={0}
                     aria-pressed={isSelected}
                     aria-expanded={isExpanded}
-                    onClick={onSelect}
+                    onClick={select}
                     onKeyDown={handleRowKeyDown}
                 >
                     <span className="all-charts-block__row-title">
@@ -1421,7 +1519,7 @@ const AllChartsTableRow = ({
                     hit={hit}
                     activeTab={activeTab}
                     isSelected={isSelected}
-                    onSelectTab={onSelectTab}
+                    onSelectTab={selectTab}
                     entities={shownEntities}
                 />
             </div>
@@ -1431,7 +1529,10 @@ const AllChartsTableRow = ({
                 instead. Rendered only while expanded so the chart isn't
                 mounted (and fetched) until a visitor actually opens it. */}
             {isExpanded && (
-                <div className="all-charts-block__row-accordion">
+                <div
+                    className="all-charts-block__row-accordion"
+                    ref={chartPanelRef}
+                >
                     <AllChartsSidecar
                         hit={hit}
                         detectedCountries={detectedCountries}

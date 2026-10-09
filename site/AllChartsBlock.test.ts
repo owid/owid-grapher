@@ -10,6 +10,7 @@ import {
     suggestedKeywords,
 } from "./search/topicVocabulary.js"
 import {
+    getOpenRowScrollDelta,
     getPrimaryNonMapTab,
     getRowThumbnailPreviewUrl,
     getRowThumbnailTabs,
@@ -287,5 +288,74 @@ describe(getRowThumbnailPreviewUrl, () => {
         )
         expect(url).toContain("imMinimal=1")
         expect(url).toContain("imBare=1")
+    })
+})
+
+describe(getOpenRowScrollDelta, () => {
+    // A 390x844 phone with the topic sub-nav and the search bar pinned: the
+    // first 116px of the viewport are covered. A row is about 150px tall and
+    // the chart panel it opens about 608px, so on this phone the two together
+    // (758px) don't fit in the 728px left over; the first cases shrink the
+    // chart so that they do.
+    const view = { viewTop: 116, viewBottom: 844 }
+
+    it("leaves a row whose chart is already in view where it is", () => {
+        expect(
+            getOpenRowScrollDelta({
+                ...view,
+                rowTop: 200,
+                chartTop: 350,
+                chartBottom: 700,
+            })
+        ).toBe(0)
+    })
+
+    it("moves the page up just far enough to bring in the chart's foot", () => {
+        expect(
+            getOpenRowScrollDelta({
+                ...view,
+                rowTop: 500,
+                chartTop: 650,
+                chartBottom: 1000,
+            })
+        ).toBe(156)
+    })
+
+    it("brings a row tapped under the search bar back out from under it", () => {
+        expect(
+            getOpenRowScrollDelta({
+                ...view,
+                rowTop: 60,
+                chartTop: 210,
+                chartBottom: 560,
+            })
+        ).toBe(-56)
+    })
+
+    it("puts the chart's foot at the bottom when the whole row can't fit, leaving the thumbnails above it", () => {
+        // The chart's top lands at 236px, so 120px of the row above it (its
+        // thumbnail strip and the line over that) stay in view below the bar.
+        expect(
+            getOpenRowScrollDelta({
+                ...view,
+                rowTop: 400,
+                chartTop: 550,
+                chartBottom: 1158,
+            })
+        ).toBe(314)
+    })
+
+    it("never scrolls the chart's own top under the bar", () => {
+        // A viewport shorter than the chart: its top goes to the bar's edge
+        // rather than its foot to the bottom of the screen.
+        expect(
+            getOpenRowScrollDelta({
+                viewTop: 116,
+                viewBottom: 600,
+                rowTop: 400,
+                chartTop: 550,
+                chartBottom: 1158,
+            })
+        ).toBe(434)
     })
 })

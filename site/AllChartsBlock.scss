@@ -117,6 +117,23 @@ $all-charts-panes-gap: 24px;
 
     @include md-down {
         grid-template-columns: 1fr;
+        // The search bar is pinned over the list here (see below), and the
+        // chart open in a row is Grapher's figure, `position: relative;
+        // z-index: 1` and later in the page, so it would be drawn over the bar
+        // as it scrolls under it. Isolating the panes keeps everything in them
+        // below the bar, whatever z-index Grapher gives anything inside. Its
+        // full screen, tooltips and dropdowns are portaled to <body>, so they
+        // still cover the bar.
+        isolation: isolate;
+
+        // Grapher's modals and drawers are drawn inside the chart instead, and
+        // lock the page's scroll while open: the chart is lifted back over the
+        // bar for that long, so a modal whose top is under the bar doesn't
+        // lose its header and close button there. (Firefox < 121 has no
+        // `:has`, and keeps such a modal under the bar.)
+        &:has(.modal-overlay, .drawer) {
+            isolation: auto;
+        }
     }
 }
 
@@ -150,7 +167,7 @@ $all-charts-panes-gap: 24px;
 // band of white that read as a gap over the heading.
 //
 // Its users are below: .all-charts-block__sticky-header,
-// .all-charts-block__right, and V1's search bar on the accordion layout.
+// .all-charts-block__right, and the search bar and rows on the accordion layout.
 
 // The block's heading and its search bar, stuck to the top of the viewport as a
 // single unit so the indicator rows scroll underneath both of them. They are one
@@ -164,8 +181,8 @@ $all-charts-panes-gap: 24px;
 //
 // Not stuck below the breakpoint: on a phone the two together would take a
 // serious bite out of a short viewport, and the sidecar they were sharing the
-// screen with isn't there anyway. The heading scrolls away with the page there;
-// in V1 the search bar is pinned on its own instead (see below).
+// screen with isn't there anyway. The heading scrolls away with the page there,
+// and the search bar is pinned on its own instead (see below).
 .all-charts-block__sticky-header {
     position: sticky;
     // Flush against the bottom of the page's own sticky sub-nav, or against the
@@ -202,10 +219,10 @@ $all-charts-panes-gap: 24px;
     }
 }
 
-// V1 on the accordion layout: the search bar alone, pinned so that the list
-// scrolls under it — rows, the chart open inside one of them, and the "Show 15
-// more" control under them — while the heading above scrolls away with the
-// page.
+// The accordion layout, in both versions: the search bar alone, pinned so that
+// the list scrolls under it — rows, the chart open inside one of them, and the
+// "Show N more" control under them — while the heading above scrolls away with
+// the page. It lets go once the end of the block scrolls up past it.
 //
 // The bar can't stick from inside the header unit: a sticky element only
 // travels within its parent's box, and the unit is no taller than the heading
@@ -214,21 +231,19 @@ $all-charts-panes-gap: 24px;
 // any of the list is on screen. The unit's own padding and background go with
 // its box, so the bar takes them over.
 @include md-down {
-    .all-charts-block[data-all-charts-variant="v1"]
-        .all-charts-block__sticky-header {
+    .all-charts-block__sticky-header {
         display: contents;
     }
 
-    .all-charts-block[data-all-charts-variant="v1"] .all-charts-block__search {
+    .all-charts-block__search {
         position: sticky;
         // Flush against the topic page's sub-nav, which stays pinned at the top
         // of a phone's viewport too, or the viewport's top where there isn't
         // one — see --all-charts-block-pinned-above-height above.
         top: var(--all-charts-block-pinned-above-height, 0px);
-        // Above the chart open in a row: Grapher's own figure is a stacking
-        // context at z-index 1 (see .GrapherComponent), later in the page, so
-        // at 1 it would be drawn over the bar. Below the sub-nav (11).
-        z-index: 2;
+        // Above the list, which is kept below it by the isolated panes (see
+        // .all-charts-block__panes), and below the sub-nav (11).
+        z-index: 1;
         background-color: var(--all-charts-page-bg);
         // An opaque band either side of the input, so a row scrolling under it
         // is cut off a few pixels clear of the field rather than against its
@@ -498,6 +513,18 @@ $all-charts-list-fade-mask: linear-gradient(
 
 .all-charts-block__row {
     border-bottom: 1px solid $blue-20;
+
+    // How far down the viewport a row has to be to clear the pinned sub-nav
+    // and search bar, both measured (see AllChartsBlock.tsx). A row that is
+    // scrolled into view stops below them rather than under them — and it is
+    // what the block reads to scroll a chart opened in a row into view (see
+    // getOpenRowScrollDelta).
+    @include md-down {
+        scroll-margin-top: calc(
+            var(--all-charts-block-pinned-above-height, 0px) +
+                var(--all-charts-block-search-height, 0px)
+        );
+    }
 }
 
 // The selected row is bounded by its own pale panel, so the list's rules stop
