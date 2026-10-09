@@ -3,7 +3,7 @@ import { expect, it, describe } from "vitest"
 import { formatGrapherSchemaUrl } from "@ourworldindata/utils"
 
 import { latestSchemaVersion } from "../defaultGrapherConfig"
-import { createSchemaForVersion, getSchemaVersion } from "./helpers"
+import { getSchemaVersion } from "./helpers"
 
 describe(getSchemaVersion, () => {
     it("reads the version off a url without a revision", () => {
@@ -34,13 +34,5 @@ describe(getSchemaVersion, () => {
                 $schema: `https://example.org/schemas/grapher-schema.${latestSchemaVersion}.json`,
             })
         ).toBeNull()
-    })
-})
-
-describe(createSchemaForVersion, () => {
-    it("builds the same url as the shared formatter", () => {
-        expect(createSchemaForVersion(latestSchemaVersion)).toEqual(
-            formatGrapherSchemaUrl(latestSchemaVersion)
-        )
     })
 })
