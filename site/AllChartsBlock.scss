@@ -41,6 +41,24 @@
     // vite.config-common.mts).
     align-items: start;
     @include all-charts-block-columns;
+
+    // Below md the search bar is pinned over the rows (z-index: 1), and an
+    // open row's Grapher card is `position: relative; z-index: 1` too — later
+    // in the page, so it painted over the bar. Isolating the panes caps
+    // everything in them below the bar, whatever z-index Grapher uses inside.
+    // Its full screen, tooltips and dropdowns are portaled to <body>, so they
+    // still cover the bar.
+    @include md-down {
+        isolation: isolate;
+
+        // Grapher's modals and drawers are drawn inside the chart instead, and
+        // lock the page's scroll while open: lift the chart back over the bar
+        // for that long, so a modal's top (and close button) isn't stuck
+        // under it.
+        &:has(.modal-overlay, .drawer) {
+            isolation: auto;
+        }
+    }
 }
 
 .all-charts-block__left {
