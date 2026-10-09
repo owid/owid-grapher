@@ -1,17 +1,14 @@
 #! /usr/bin/env node
 
 import * as fs from "node:fs/promises"
-import * as _ from "lodash-es"
 import { parse } from "yaml"
 import type { JSONSchema7 } from "json-schema"
 import {
     SCHEMA_URL_BASE,
     formatGrapherSchemaFileName,
 } from "@ourworldindata/utils"
-import {
-    findDeclaredSchemaRevision,
-    findLatestSchemaFile,
-} from "./grapherSchemaSource.js"
+import { findLatestSchemaFile } from "./grapherSchemaSource.js"
+import { compareSchemaToPublished } from "./grapherSchemaRevisionCheck.js"
 
 async function main(): Promise<void> {
     const { filePath, version } = await findLatestSchemaFile()
@@ -21,51 +18,12 @@ async function main(): Promise<void> {
     const published = await fetchPublishedSchema(mutableFileName)
     if (published === undefined) return
 
-    const declaredRevision = findDeclaredSchemaRevision(schema)
-    const publishedRevision = findDeclaredSchemaRevision(published)
-    if (declaredRevision === undefined || publishedRevision === undefined) {
-        const missing =
-            publishedRevision === undefined
-                ? `The published ${mutableFileName}`
-                : "This schema"
-        console.log(`${missing} names no revision, so nothing was compared`)
+    const result = compareSchemaToPublished(version, schema, published)
+    if (result.isPassing) {
+        console.log(result.message)
         return
     }
-
-    const declaredFileName = formatGrapherSchemaFileName(
-        version,
-        declaredRevision
-    )
-    const publishedFileName = formatGrapherSchemaFileName(
-        version,
-        publishedRevision
-    )
-    const nextFileName = formatGrapherSchemaFileName(
-        version,
-        publishedRevision + 1
-    )
-
-    if (_.isEqual(schema, published)) {
-        console.log(`The schema matches the published ${publishedFileName}`)
-        return
-    }
-
-    if (declaredRevision > publishedRevision) {
-        console.log(
-            `The schema declares ${declaredFileName}, which is unpublished`
-        )
-        return
-    }
-
-    if (declaredRevision === publishedRevision)
-        console.error(
-            `${declaredFileName} is already published, and this branch changes it. Move the revision in $id to publish as ${nextFileName}.`
-        )
-    else
-        console.error(
-            `${declaredFileName} is already published, and ${publishedFileName} is newer. Update this branch, then move the revision in $id to publish as ${nextFileName}.`
-        )
-
+    console.error(result.message)
     process.exitCode = 1
 }
 
