@@ -81,7 +81,7 @@ for (const { name, before, after } of MIGRATION_FIXTURES) {
     })
 }
 
-it("pins every migration step with a fixture", () => {
+it("has a fixture for every migration step", () => {
     const pinned = new Set(
         MIGRATION_FIXTURES.map(({ before }) => getSchemaVersion(before))
     )
@@ -93,8 +93,8 @@ it("pins every migration step with a fixture", () => {
 
 for (const { name, patches, nonCommutingReason } of PATCH_STACK_FIXTURES) {
     const title = nonCommutingReason
-        ? `migrates a patch stack differently in either order: ${name}, because ${nonCommutingReason}`
-        : `migrates a patch stack the same in either order: ${name}`
+        ? `migrating before merging gives a different config for ${name}, because ${nonCommutingReason}`
+        : `migrating before or after merging gives the same config for ${name}`
     it(title, () => {
         const stack = patches as GrapherInterface[]
         const mergedThenMigrated = migrateGrapherConfigToLatestVersion(
@@ -112,7 +112,7 @@ for (const { name, patches, nonCommutingReason } of PATCH_STACK_FIXTURES) {
     })
 }
 
-it("pins every migration step with a patch stack", () => {
+it("has a patch stack for every migration step", () => {
     const pinned = new Set(
         PATCH_STACK_FIXTURES.map(({ patches }) => getSchemaVersion(patches[0]))
     )
