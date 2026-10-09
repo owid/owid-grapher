@@ -12,13 +12,13 @@ import {
     resolveSelectedChartIndex,
     getChartHitIdentity,
     getVisibleChartHits,
-    hasHiddenChartHits,
+    getNextChartHitBatchSize,
     filterChartHitsByQueryWords,
     textContainsAllQueryWords,
     splitTextByQueryWordMatches,
     getDuplicatedChartTitles,
     getChartHitVariantName,
-    ALL_CHARTS_INITIAL_ROW_COUNT,
+    ALL_CHARTS_ROW_BATCH_SIZE,
     capSuggestedSearches,
     ALL_CHARTS_MAX_SUGGESTED_SEARCHES,
 } from "./searchUtils"
@@ -999,11 +999,14 @@ describe(getVisibleChartHits, () => {
             slug: `chart-${index}`,
         }))
 
-    it("renders only the first slice of a long list", () => {
+    it("renders only the first batch of a long list", () => {
         // The CO2 topic's real size. Every one of those rows in the page is
         // what pinned the chart sidecar for seventeen viewport heights.
-        const visible = getVisibleChartHits(hits(196), false)
-        expect(visible).toHaveLength(ALL_CHARTS_INITIAL_ROW_COUNT)
+        const visible = getVisibleChartHits(
+            hits(196),
+            ALL_CHARTS_ROW_BATCH_SIZE
+        )
+        expect(visible).toHaveLength(15)
     })
 
     it("renders the slice as a prefix of the list, in order", () => {
@@ -1011,56 +1014,87 @@ describe(getVisibleChartHits, () => {
         // result set and hands the slice to the table, so the two only agree
         // about which row is selected while this is a prefix.
         const all = hits(196)
-        expect(getVisibleChartHits(all, false, 4)).toEqual(all.slice(0, 4))
+        expect(getVisibleChartHits(all, 4)).toEqual(all.slice(0, 4))
+        expect(getVisibleChartHits(all, 30)).toEqual(all.slice(0, 30))
     })
 
-    it("renders everything once the list is expanded", () => {
+    it("renders everything once the count reaches the end of the list", () => {
         const all = hits(196)
-        expect(getVisibleChartHits(all, true)).toEqual(all)
+        expect(getVisibleChartHits(all, 196)).toEqual(all)
+        // The last batch overshoots: 14 batches of 15 is 210.
+        expect(getVisibleChartHits(all, 210)).toEqual(all)
     })
 
-    it("renders every row of a list shorter than the slice, either way", () => {
+    it("renders every row of a list shorter than one batch", () => {
         const all = hits(7)
-        expect(getVisibleChartHits(all, false)).toEqual(all)
-        expect(getVisibleChartHits(all, true)).toEqual(all)
+        expect(getVisibleChartHits(all, ALL_CHARTS_ROW_BATCH_SIZE)).toEqual(all)
     })
 
     it("handles an empty result set", () => {
-        expect(getVisibleChartHits([], false)).toEqual([])
-        expect(getVisibleChartHits([], true)).toEqual([])
+        expect(getVisibleChartHits([], ALL_CHARTS_ROW_BATCH_SIZE)).toEqual([])
     })
 
     it("does not mutate the list it slices", () => {
         const all = hits(30)
-        getVisibleChartHits(all, false)
+        getVisibleChartHits(all, ALL_CHARTS_ROW_BATCH_SIZE)
         expect(all).toHaveLength(30)
     })
 })
 
-describe(hasHiddenChartHits, () => {
-    it("asks for the reveal control when rows are being held back", () => {
-        expect(hasHiddenChartHits(196)).toBe(true)
-        expect(hasHiddenChartHits(165)).toBe(true) // the "china" result set
-        expect(hasHiddenChartHits(ALL_CHARTS_INITIAL_ROW_COUNT + 1)).toBe(true)
+describe(getNextChartHitBatchSize, () => {
+    it("offers a full batch while at least a batch is still hidden", () => {
+        expect(getNextChartHitBatchSize(196, 15)).toBe(15)
+        expect(getNextChartHitBatchSize(196, 180)).toBe(15) // 16 left
+        expect(getNextChartHitBatchSize(16, 1, 15)).toBe(15)
     })
 
-    it("renders no control when the whole list is already on screen", () => {
-        // Including at exactly the slice size: "Show all 25 indicators" under
-        // a list of all 25 of them would do nothing.
-        expect(hasHiddenChartHits(ALL_CHARTS_INITIAL_ROW_COUNT)).toBe(false)
-        expect(hasHiddenChartHits(3)).toBe(false)
-        expect(hasHiddenChartHits(0)).toBe(false)
+    it("offers the true remainder on the last batch", () => {
+        // "Show 15 more" above a click that adds one row would be wrong. The
+        // CO2 topic's 196 rows end on a batch of one.
+        expect(getNextChartHitBatchSize(196, 195)).toBe(1)
+        expect(getNextChartHitBatchSize(22, 15)).toBe(7)
+    })
+
+    it("offers nothing once the whole list is on screen", () => {
+        // Including at exactly one batch: "Show 15 more" under a list of all
+        // 15 of them would do nothing. And on a list that ends on a whole
+        // batch — the "china" result set is 165 rows, eleven batches.
+        expect(getNextChartHitBatchSize(15, 15)).toBe(0)
+        expect(getNextChartHitBatchSize(165, 165)).toBe(0)
+        expect(getNextChartHitBatchSize(3, 15)).toBe(0)
+        expect(getNextChartHitBatchSize(0, 15)).toBe(0)
+        // After the result set shrank under a list already revealed further.
+        expect(getNextChartHitBatchSize(20, 45)).toBe(0)
+    })
+
+    it("follows the batch size it is given", () => {
+        // V2 pages ten at a time on the accordion layout. 24 rows: two full
+        // batches of 10, then "Show 4 more", then nothing.
+        expect(getNextChartHitBatchSize(24, 10, 10)).toBe(10)
+        expect(getNextChartHitBatchSize(24, 20, 10)).toBe(4)
+        expect(getNextChartHitBatchSize(24, 24, 10)).toBe(0)
+        expect(getNextChartHitBatchSize(10, 10, 10)).toBe(0)
     })
 
     it("agrees with what getVisibleChartHits actually renders", () => {
-        // The control must appear exactly when the slice is hiding something,
-        // whatever the two are given.
-        for (const total of [0, 1, 24, 25, 26, 196]) {
+        // A click must add exactly the rows the label promised, whatever the
+        // two are given.
+        for (const total of [0, 1, 14, 15, 16, 22, 165, 196]) {
             const all = Array.from({ length: total }, (_, index) => ({
                 slug: `chart-${index}`,
             }))
-            const isHiding = getVisibleChartHits(all, false).length < all.length
-            expect(hasHiddenChartHits(total)).toBe(isHiding)
+            for (const batchSize of [15, 10]) {
+                for (const visible of [10, 15, 20, 30, 180, 195]) {
+                    const shownNow = getVisibleChartHits(all, visible).length
+                    const shownAfter = getVisibleChartHits(
+                        all,
+                        visible + batchSize
+                    ).length
+                    expect(
+                        getNextChartHitBatchSize(total, visible, batchSize)
+                    ).toBe(shownAfter - shownNow)
+                }
+            }
         }
     })
 })

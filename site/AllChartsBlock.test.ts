@@ -1,5 +1,6 @@
 import { expect, it, describe } from "vitest"
 import {
+    ChartRecordType,
     GRAPHER_TAB_NAMES,
     GrapherTabName,
     SearchChartHit,
@@ -8,7 +9,12 @@ import {
     indexTopicVocabularyByName,
     suggestedKeywords,
 } from "./search/topicVocabulary.js"
-import { getRowChartTypeTabs } from "./AllChartsBlock.js"
+import {
+    getOpenRowScrollDelta,
+    getPrimaryNonMapTab,
+    getRowThumbnailPreviewUrl,
+    getRowThumbnailTabs,
+} from "./AllChartsBlock.js"
 
 describe(suggestedKeywords, () => {
     it("suggests the vocabulary's terms in the vocabulary's own order", () => {
@@ -77,84 +83,254 @@ describe(indexTopicVocabularyByName, () => {
     })
 })
 
-describe(getRowChartTypeTabs, () => {
-    // The only field the helper reads.
+describe(getRowThumbnailTabs, () => {
     const hitWithTabs = (availableTabs: GrapherTabName[]) =>
         ({ availableTabs }) as SearchChartHit
 
-    it("lists every view except the data table, map included", () => {
-        // A chart whose tab bar reads Table | Map | Line | Bar | Marimekko
-        // gives a row reading "Map Line Bar Marimekko", which is what the
-        // design shows. `availableTabs` is already in tab-bar order, so this is
-        // that list with the table dropped and nothing re-sorted.
-        //
-        // The map is listed like any other view: rows here picture nothing, so
-        // there is no thumbnail already showing it.
+    it("offers the views in the order Grapher's own tab bar lists them", () => {
+        // A chart whose tab bar reads Table | Map | Line | Bar gets a strip
+        // reading map, line, bar — so the row and the chart beside it can be
+        // read against each other. `availableTabs` is already in tab-bar
+        // order, so this is that list with the table dropped and nothing
+        // re-sorted (Marwa, 2026-09-29).
         expect(
-            getRowChartTypeTabs(
+            getRowThumbnailTabs(
                 hitWithTabs([
                     GRAPHER_TAB_NAMES.Table,
                     GRAPHER_TAB_NAMES.WorldMap,
                     GRAPHER_TAB_NAMES.LineChart,
                     GRAPHER_TAB_NAMES.DiscreteBar,
-                    GRAPHER_TAB_NAMES.Marimekko,
                 ])
             )
         ).toEqual([
             GRAPHER_TAB_NAMES.WorldMap,
             GRAPHER_TAB_NAMES.LineChart,
             GRAPHER_TAB_NAMES.DiscreteBar,
-            GRAPHER_TAB_NAMES.Marimekko,
         ])
     })
 
-    it("lists one link for a chart with one view besides the table", () => {
-        // The design draws four links on every row, but that is a generic row
-        // rather than per-chart data: a row offers exactly the views its own
-        // chart has. A map and a table is one link, not none.
+    it("leaves a chart without a map in its own order", () => {
         expect(
-            getRowChartTypeTabs(
+            getRowThumbnailTabs(
+                hitWithTabs([
+                    GRAPHER_TAB_NAMES.Table,
+                    GRAPHER_TAB_NAMES.LineChart,
+                    GRAPHER_TAB_NAMES.DiscreteBar,
+                ])
+            )
+        ).toEqual([GRAPHER_TAB_NAMES.LineChart, GRAPHER_TAB_NAMES.DiscreteBar])
+    })
+
+    it("offers a map-only chart exactly one thumbnail", () => {
+        expect(
+            getRowThumbnailTabs(
                 hitWithTabs([
                     GRAPHER_TAB_NAMES.Table,
                     GRAPHER_TAB_NAMES.WorldMap,
                 ])
             )
         ).toEqual([GRAPHER_TAB_NAMES.WorldMap])
+    })
 
+    it("never offers the table, and caps a row at three views", () => {
         expect(
-            getRowChartTypeTabs(
+            getRowThumbnailTabs(
                 hitWithTabs([
                     GRAPHER_TAB_NAMES.Table,
-                    GRAPHER_TAB_NAMES.StackedArea,
-                ])
-            )
-        ).toEqual([GRAPHER_TAB_NAMES.StackedArea])
-    })
-
-    it("lists nothing for a chart with no view but the table", () => {
-        // Which renders no link row at all rather than an empty one — see
-        // AllChartsRowChartTypes.
-        expect(
-            getRowChartTypeTabs(hitWithTabs([GRAPHER_TAB_NAMES.Table]))
-        ).toEqual([])
-        expect(getRowChartTypeTabs(hitWithTabs([]))).toEqual([])
-    })
-
-    it("lists nothing for a record that omits the field entirely", () => {
-        expect(getRowChartTypeTabs({} as SearchChartHit)).toEqual([])
-    })
-
-    it("never offers the same view twice", () => {
-        // Belt and braces against a record that lists a tab twice, which would
-        // otherwise draw the same link in two places.
-        expect(
-            getRowChartTypeTabs(
-                hitWithTabs([
                     GRAPHER_TAB_NAMES.WorldMap,
                     GRAPHER_TAB_NAMES.LineChart,
+                    GRAPHER_TAB_NAMES.SlopeChart,
+                    GRAPHER_TAB_NAMES.DiscreteBar,
+                ])
+            )
+        ).toEqual([
+            GRAPHER_TAB_NAMES.WorldMap,
+            GRAPHER_TAB_NAMES.LineChart,
+            GRAPHER_TAB_NAMES.SlopeChart,
+        ])
+    })
+
+    it("spends no slot on a view a record happens to list twice", () => {
+        expect(
+            getRowThumbnailTabs(
+                hitWithTabs([
+                    GRAPHER_TAB_NAMES.Table,
+                    GRAPHER_TAB_NAMES.WorldMap,
+                    GRAPHER_TAB_NAMES.LineChart,
+                    GRAPHER_TAB_NAMES.LineChart,
+                    GRAPHER_TAB_NAMES.DiscreteBar,
+                ])
+            )
+        ).toEqual([
+            GRAPHER_TAB_NAMES.WorldMap,
+            GRAPHER_TAB_NAMES.LineChart,
+            GRAPHER_TAB_NAMES.DiscreteBar,
+        ])
+    })
+
+    it("offers nothing for a chart with no view but the table", () => {
+        // Which renders no thumbnail strip at all rather than an empty one —
+        // see AllChartsRowThumbnails.
+        expect(
+            getRowThumbnailTabs(hitWithTabs([GRAPHER_TAB_NAMES.Table]))
+        ).toEqual([])
+        expect(getRowThumbnailTabs(hitWithTabs([]))).toEqual([])
+    })
+
+    it("offers nothing for a record that omits the field entirely", () => {
+        expect(getRowThumbnailTabs({} as SearchChartHit)).toEqual([])
+    })
+})
+
+describe(getPrimaryNonMapTab, () => {
+    const hitWithTabs = (availableTabs: GrapherTabName[]) =>
+        ({ availableTabs }) as SearchChartHit
+
+    it("picks the first chart type after the table and the map", () => {
+        // What the sidecar opens on when a search names a country: the map is
+        // the one view that draws the same picture whatever is selected, so
+        // showing it would leave nothing on screen saying the search had done
+        // anything (Marwa, 2026-10-01).
+        expect(
+            getPrimaryNonMapTab(
+                hitWithTabs([
+                    GRAPHER_TAB_NAMES.Table,
+                    GRAPHER_TAB_NAMES.WorldMap,
+                    GRAPHER_TAB_NAMES.LineChart,
+                    GRAPHER_TAB_NAMES.DiscreteBar,
+                ])
+            )
+        ).toEqual(GRAPHER_TAB_NAMES.LineChart)
+    })
+
+    it("picks the leading chart type when there is no map to skip", () => {
+        expect(
+            getPrimaryNonMapTab(
+                hitWithTabs([
+                    GRAPHER_TAB_NAMES.Table,
+                    GRAPHER_TAB_NAMES.DiscreteBar,
+                    GRAPHER_TAB_NAMES.LineChart,
+                ])
+            )
+        ).toEqual(GRAPHER_TAB_NAMES.DiscreteBar)
+    })
+
+    it("has nothing to offer a map-only chart, which stays on its map", () => {
+        // Rather than naming a tab the chart hasn't got.
+        expect(
+            getPrimaryNonMapTab(
+                hitWithTabs([
+                    GRAPHER_TAB_NAMES.Table,
                     GRAPHER_TAB_NAMES.WorldMap,
                 ])
             )
-        ).toEqual([GRAPHER_TAB_NAMES.WorldMap, GRAPHER_TAB_NAMES.LineChart])
+        ).toBeUndefined()
+    })
+})
+
+describe(getRowThumbnailPreviewUrl, () => {
+    const hit = {
+        type: ChartRecordType.Chart,
+        slug: "life-expectancy",
+        availableTabs: [
+            GRAPHER_TAB_NAMES.Table,
+            GRAPHER_TAB_NAMES.WorldMap,
+            GRAPHER_TAB_NAMES.LineChart,
+        ],
+    } as SearchChartHit
+
+    it("puts the selected countries in the URL, not just on the chart", () => {
+        // These are static images cached by URL, so a selection that isn't in
+        // the URL is a selection the visitor never sees.
+        const url = getRowThumbnailPreviewUrl(
+            hit,
+            GRAPHER_TAB_NAMES.LineChart,
+            ["Spain", "France"]
+        )
+        // Serialised as the entity codes Grapher reads, not the typed names.
+        expect(url).toContain("country=ESP~FRA")
+        // And the view the thumbnail is for survives alongside them.
+        expect(url).toContain("tab=line")
+    })
+
+    it("gives two country selections two different URLs", () => {
+        // The point of the above: same chart, same view, different picture.
+        expect(
+            getRowThumbnailPreviewUrl(hit, GRAPHER_TAB_NAMES.LineChart, [
+                "Spain",
+            ])
+        ).not.toEqual(
+            getRowThumbnailPreviewUrl(hit, GRAPHER_TAB_NAMES.LineChart, [
+                "France",
+            ])
+        )
+    })
+
+    it("leaves the map's URL alone whatever is selected", () => {
+        // A map draws every country whatever is selected, so a country in its
+        // URL would only split one cached image into one per combination and
+        // render the same picture. Verified against the deployed thumbnail
+        // function, which returns a byte-identical PNG either way.
+        expect(
+            getRowThumbnailPreviewUrl(hit, GRAPHER_TAB_NAMES.WorldMap, [
+                "Spain",
+            ])
+        ).toEqual(
+            getRowThumbnailPreviewUrl(hit, GRAPHER_TAB_NAMES.WorldMap, [])
+        )
+    })
+
+    it("keeps asking for the text-free thumbnail", () => {
+        const url = getRowThumbnailPreviewUrl(
+            hit,
+            GRAPHER_TAB_NAMES.LineChart,
+            []
+        )
+        expect(url).toContain("imMinimal=1")
+        expect(url).toContain("imBare=1")
+    })
+})
+
+describe(getOpenRowScrollDelta, () => {
+    // A 390x844 phone with the topic sub-nav and the search bar pinned: the
+    // first 116px of the viewport are covered, leaving 728px to centre the
+    // 575px chart card in.
+    const view = { viewTop: 116, viewBottom: 844 }
+
+    it("centres the chart card below the pinned bar", () => {
+        // 728 - 575 = 153px of room, 76.5px either side: the card's top should
+        // land at 192.5px, so a card opened at 700px moves up by 507.5px.
+        expect(
+            getOpenRowScrollDelta({ ...view, chartTop: 700, chartBottom: 1275 })
+        ).toBe(507.5)
+    })
+
+    it("moves the page down to centre a card that opened too high", () => {
+        expect(
+            getOpenRowScrollDelta({ ...view, chartTop: 120, chartBottom: 695 })
+        ).toBe(-72.5)
+    })
+
+    it("leaves a card that is already centred where it is", () => {
+        expect(
+            getOpenRowScrollDelta({
+                ...view,
+                chartTop: 192.5,
+                chartBottom: 767.5,
+            })
+        ).toBe(0)
+    })
+
+    it("puts a card taller than the visible area just under the bar", () => {
+        // A short viewport (484px below the bar): centring would push the
+        // card's top up under the bar, so its top goes to the bar's edge.
+        expect(
+            getOpenRowScrollDelta({
+                viewTop: 116,
+                viewBottom: 600,
+                chartTop: 550,
+                chartBottom: 1125,
+            })
+        ).toBe(434)
     })
 })

@@ -148,9 +148,19 @@ export class DiscreteBarChart
         return this.series.some((d) => d.value < 0)
     }
 
+    /**
+     * Bare labelling leaves only the bars (see GrapherState.useBareLabeling).
+     * This chart draws its entity names and values itself rather than through
+     * an axis or a series label, so unlike every other type it has to be told
+     * here; `showSeriesLabels` is not consulted anywhere in it.
+     */
+    @computed private get hideLabels(): boolean {
+        return !!this.manager.useBareLabeling
+    }
+
     // The amount of space we need to allocate for bar end labels on the right
     @computed private get rightValueLabelsWidth(): number {
-        if (!this.hasPositive) return 0
+        if (this.hideLabels || !this.hasPositive) return 0
 
         const labelsWidths = this.series
             .filter((series) => series.value >= 0)
@@ -214,6 +224,9 @@ export class DiscreteBarChart
      * and the padding between them.
      */
     @computed private get leftLabelsWidth(): number {
+        // Nothing to the left of the bars, so they start at the frame's edge.
+        if (this.hideLabels) return 0
+
         const labelWidths = this.sizedSeries.map((series) => {
             const textWidth = Math.max(
                 series.label?.width ?? 0,
@@ -561,9 +574,9 @@ export class DiscreteBarChart
                 {this.renderLegend()}
                 {this.renderAxis()}
                 {this.renderBars()}
-                {this.renderValueLabels()}
-                {this.renderEntityLabels()}
-                {this.renderEntityAnnotations()}
+                {!this.hideLabels && this.renderValueLabels()}
+                {!this.hideLabels && this.renderEntityLabels()}
+                {!this.hideLabels && this.renderEntityAnnotations()}
             </>
         )
     }

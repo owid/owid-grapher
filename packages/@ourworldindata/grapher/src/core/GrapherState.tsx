@@ -552,6 +552,24 @@ export class GrapherState
      */
     useMinimalLabeling = false
 
+    /**
+     * One step further than `useMinimalLabeling`: no labelling at all, so a
+     * thumbnail is the chart's bare geometry. Series and entity names, value
+     * labels, legends, axis lines, gridlines and tick labels all go, and the
+     * space they were taking is given back to the plot.
+     *
+     * Used where a thumbnail is small enough that any text in it is illegible
+     * anyway — the indicator list in the "all charts" block renders each view
+     * at about a third of its pane — and where the row's own title and source
+     * line already say what the chart is.
+     *
+     * Deliberately separate from `useMinimalLabeling` rather than a stronger
+     * setting of it: minimal labelling *substitutes* values for series names
+     * instead of dropping both, and the thumbnails elsewhere on the site that
+     * ask for it depend on that. Nothing changes for them unless this is set.
+     */
+    useBareLabeling = false
+
     // Bounds
     staticBounds: Bounds = DEFAULT_GRAPHER_BOUNDS
     _externalBounds: Bounds | undefined = undefined
@@ -776,6 +794,7 @@ export class GrapherState
             hideShareButton: observable,
             hideExploreTheDataButton: observable,
             useMinimalLabeling: observable,
+            useBareLabeling: observable,
         })
 
         this.updateFromObject(options)
@@ -1495,21 +1514,38 @@ export class GrapherState
         return this.isOnChartTab || this.isOnMapTab
     }
 
+    /**
+     * What bare labelling takes off both axes. Applied here, where every chart
+     * type reads its axis configuration from, rather than in each chart: the
+     * axis owns the width or height it reserves for itself, so hiding it is
+     * also what gives that space back to the plot (see Axis.height/width,
+     * which are 0 for a hidden axis).
+     */
+    @computed private get bareAxisOverrides(): AxisConfigInterface {
+        if (!this.useBareLabeling) return {}
+        return { hideAxis: true, hideGridlines: true, hideTickLabels: true }
+    }
+
     @computed get yAxisConfig(): Readonly<AxisConfigInterface> {
-        return this.yAxis.toObject()
+        return { ...this.yAxis.toObject(), ...this.bareAxisOverrides }
     }
 
     @computed get xAxisConfig(): Readonly<AxisConfigInterface> {
-        return this.xAxis.toObject()
+        return { ...this.xAxis.toObject(), ...this.bareAxisOverrides }
     }
 
     @computed get showSeriesLabels(): boolean {
+        // The series names are labelling, so bare labelling has none. This is
+        // also what drops the line chart's start and end labels outright:
+        // minimal labelling only swaps their text for the values, while every
+        // one of them is gated on this.
+        if (this.useBareLabeling) return false
         return !this.hideSeriesLabels
     }
 
     @computed get showLegend(): boolean {
         // Don't show any legends in minimal mode
-        if (this.useMinimalLabeling) return false
+        if (this.useMinimalLabeling || this.useBareLabeling) return false
 
         // Hide the legend for stacked bar charts if the legend only ever shows a single entity
         if (this.isOnStackedBarTab) {

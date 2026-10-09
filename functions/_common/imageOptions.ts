@@ -94,6 +94,16 @@ const getThumbnailOptions = (params: URLSearchParams): ImageOptions => {
             params.get("imMinimal")! === "1"
     }
 
+    // A step beyond imMinimal: no labelling at all, so the thumbnail is the
+    // chart's bare geometry and the plot fills the frame. Its own parameter
+    // rather than a stronger imMinimal, because the thumbnails that already
+    // ask for imMinimal depend on what it does today — see
+    // GrapherState.useBareLabeling.
+    if (params.has("imBare")) {
+        if (!options.grapherProps) options.grapherProps = {}
+        options.grapherProps.useBareLabeling = params.get("imBare")! === "1"
+    }
+
     if (params.has("imFontSize"))
         options.fontSize = parseInt(params.get("imFontSize")!)
 
@@ -136,6 +146,9 @@ export const extractOptions = (params: URLSearchParams): ImageOptions => {
         if (params.has("imMinimal")) {
             options.grapherProps.useMinimalLabeling =
                 params.get("imMinimal")! === "1"
+        }
+        if (params.has("imBare")) {
+            options.grapherProps.useBareLabeling = params.get("imBare")! === "1"
         }
     }
 
