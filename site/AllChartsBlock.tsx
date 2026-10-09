@@ -45,6 +45,7 @@ import {
 import { getDirectLiteSearchClient } from "./search/searchClients.js"
 import { queryAllCharts, searchQueryKeys } from "./search/queries.js"
 import {
+    ALL_CHARTS_ROW_BATCH_SIZE,
     createTopicFilter,
     createCountryFilter,
     createDatasetProducerFilter,
@@ -80,9 +81,9 @@ import { TOPIC_VOCABULARY_URL } from "../settings/clientSettings.mjs"
 const SEARCH_DEBOUNCE_MS = 200
 
 // The viewport below which the block drops its second pane: the persistent chart
-// sidecar is replaced by a per-row accordion, and neither the heading nor the
-// search bar sticks. Mirrors the `md-down` breakpoint the stylesheet uses for the
-// same switch (see AllChartsBlock.scss).
+// sidecar is replaced by a per-row accordion, the heading stops sticking, and V2
+// pages its list instead of scrolling it. Mirrors the `md-down` breakpoint the
+// stylesheet uses for the same switch (see AllChartsBlock.scss).
 const ACCORDION_LAYOUT_MEDIA_QUERY = MEDIUM_BREAKPOINT_MEDIA_QUERY
 
 const SEARCH_PLACEHOLDER =
@@ -98,6 +99,12 @@ const SEARCH_PLACEHOLDER =
 //   beside it that fades out at the bottom — the treatment the live
 //   all-charts block gives its thumbnail list (`.related-charts__thumbnails`
 //   in site/blocks/related-charts.scss). See .all-charts-block__list-container.
+//   On the accordion layout it pages instead, V2_ACCORDION_ROW_BATCH_SIZE rows
+//   at a time: a scroll region inside a phone's page traps the page's own
+//   scrolling.
+//
+// They also differ in one thing on the accordion layout: V1 pins its search bar
+// to the top of the viewport there (see AllChartsBlock.scss).
 //
 // Prototype scaffolding, not a feature: once one of them is chosen, this, the
 // switcher, the query parameter and the other version's code all come out.
@@ -122,8 +129,14 @@ const ALL_CHARTS_VARIANT_PARAM = "allChartsVariant"
 // them apart in the list without having to try them all.
 const ALL_CHARTS_VARIANT_LABELS: Record<AllChartsVariant, string> = {
     v1: "V1 — 15 at a time, show more",
-    v2: "V2 — full list, faded",
+    v2: "V2 — full list, faded (10 at a time on mobile)",
 }
+
+// How many rows V2 shows at a time on the accordion layout, where it pages its
+// list as V1 does rather than containing it. Fewer than V1's
+// ALL_CHARTS_ROW_BATCH_SIZE: on a phone the first row opens with its chart
+// inside it, so ten rows are already several screens.
+const V2_ACCORDION_ROW_BATCH_SIZE = 10
 
 const isAllChartsVariant = (value: string | null): value is AllChartsVariant =>
     value !== null && ALL_CHARTS_VARIANTS.some((variant) => variant === value)
@@ -459,8 +472,8 @@ export const AllChartsBlock = ({
     // rather than sliding behind it. How tall the unit is depends on the topic's
     // name — long ones wrap the heading onto a second line — so it is measured
     // rather than assumed, and handed to the stylesheet as a custom property.
-    // Nothing reads it below the breakpoint, where nothing sticks and the
-    // sidecar is hidden.
+    // Nothing reads it below the breakpoint, where the heading doesn't stick
+    // and the sidecar is hidden.
     //
     // The border box, not the content box: the unit's own 12px of bottom
     // padding is part of the opaque band a row is clipped against, so the
@@ -473,7 +486,8 @@ export const AllChartsBlock = ({
 
     // ...and the unit itself has to come to rest flush against the bottom of
     // whatever is *already* pinned at the top of the viewport, so that nothing
-    // is left showing in between. That is the topic page's own sub-nav
+    // is left showing in between — as does V1's search bar, which pins on its
+    // own on the accordion layout. That is the topic page's own sub-nav
     // (.sticky-nav, pinned at top: 0) — but only on the topic pages that have
     // one: it is rendered from the gdoc's `sticky-nav` list, which plenty of
     // pages don't define (see site/gdocs/pages/GdocPost.tsx), and where it is
@@ -509,6 +523,9 @@ export const AllChartsBlock = ({
         <section
             className={cx(className, "all-charts-block")}
             id={id}
+            // For the stylesheet: V1 pins its search bar on the accordion
+            // layout and V2 doesn't.
+            data-all-charts-variant={variant}
             style={
                 {
                     "--all-charts-block-pinned-above-height": `${stickyNavHeight ?? 0}px`,
@@ -693,37 +710,28 @@ const AllChartsLeftPane = (props: AllChartsLeftPaneProps) => {
     }, [resultKey, isAccordionLayout])
 
     // Only the rows on screen. V1 renders a bounded first slice of the list and
-    // grows it a batch at a time (see useVisibleChartHits); V2 renders all of
-    // it, in a contained box instead (see AllChartsContainedList). The version
-    // is part of the reset key alongside the query, so switching back to V1
-    // always starts again from the first batch.
-    const isPaged = variant === "v1"
+    // grows it a batch at a time (see useVisibleChartHits). V2 renders all of
+    // it in a contained box instead (see .all-charts-block__list-container) —
+    // except on the accordion layout, where it pages like V1 does, only ten
+    // rows at a time.
+    //
+    // Whether the list is paged is part of the reset key alongside the version
+    // and the query, so switching versions, or crossing the breakpoint in V2,
+    // always starts again from the first batch rather than keeping a count
+    // revealed under the other layout.
+    const isPaged = variant === "v1" || isAccordionLayout
     const {
         visibleHits: pagedHits,
         nextBatchSize,
         showMore,
-    } = useVisibleChartHits(hits, `${variant}~${query}`)
+    } = useVisibleChartHits(
+        hits,
+        `${variant}~${isPaged}~${query}`,
+        variant === "v1"
+            ? ALL_CHARTS_ROW_BATCH_SIZE
+            : V2_ACCORDION_ROW_BATCH_SIZE
+    )
     const visibleHits = isPaged ? pagedHits : hits
-
-    // V2 on the accordion layout cuts the list off at a fixed height rather
-    // than giving it a scroll region of its own (see
-    // .all-charts-block__list-container); this is whether the visitor has
-    // lifted that cut-off. Reset by the same things as V1's paging, for the
-    // same reason.
-    const [isContainedListExpanded, setIsContainedListExpanded] =
-        useState(false)
-    useEffect(() => {
-        // oxlint-disable-next-line react/set-state-in-effect -- resets the V2 expansion on a new query or version, like useVisibleChartHits does for V1
-        setIsContainedListExpanded(false)
-        // oxlint-disable-next-line react/exhaustive-effect-dependencies -- `query` and `variant` are the trigger, not values the effect reads
-    }, [query, variant])
-
-    // Opening a row's chart inside the cut-off list could open it below the
-    // cut, out of sight, so opening one lifts the containment. Off the
-    // accordion layout nothing is cut off and rows don't open.
-    const expandContainedListOnAccordion = () => {
-        if (!isPaged && isAccordionLayout) setIsContainedListExpanded(true)
-    }
 
     // Selecting a row by its text opens the sidecar on the chart's own default
     // view, which is what the block itself opens on. Clearing `selectedTab` is
@@ -734,7 +742,6 @@ const AllChartsLeftPane = (props: AllChartsLeftPaneProps) => {
         if (hit) setSelectedIdentity(getChartHitIdentity(hit))
         setSelectedTab(undefined)
         setExpandedIndex((prev) => (prev === index ? null : index))
-        if (expandedIndex !== index) expandContainedListOnAccordion()
     }
 
     // A thumbnail selects its row like the row's text does, and additionally
@@ -745,7 +752,6 @@ const AllChartsLeftPane = (props: AllChartsLeftPaneProps) => {
         if (hit) setSelectedIdentity(getChartHitIdentity(hit))
         setSelectedTab(tab)
         if (isAccordionLayout) setExpandedIndex(index)
-        expandContainedListOnAccordion()
     }
 
     const selectedHit = hits[selectedIndex]
@@ -788,31 +794,22 @@ const AllChartsLeftPane = (props: AllChartsLeftPaneProps) => {
                         {isPaged ? (
                             table
                         ) : (
-                            <AllChartsContainedList
-                                isExpanded={isContainedListExpanded}
-                                onExpand={() =>
-                                    setIsContainedListExpanded(true)
-                                }
-                                isAccordionLayout={isAccordionLayout}
-                                hitCount={hits.length}
-                                topicName={topicName}
-                            >
+                            <div className="all-charts-block__list-container">
                                 {table}
-                            </AllChartsContainedList>
+                            </div>
                         )}
-                        {/* V1's next batch, one click away. Counts the rows
-                            the click will really add: a full batch while there
-                            are that many left, the remainder on the last one
-                            ("Show 7 more"), and nothing once the whole list is
-                            on screen. Revealing only grows the list until the
+                        {/* The next batch, one click away. Counts the rows the
+                            click will really add: a full batch while there are
+                            that many left, the remainder on the last one ("Show
+                            7 more"), and nothing once the whole list is on
+                            screen. Revealing only grows the list until the
                             query changes: collapsing a list the visitor has
                             scrolled into would pull the page up from under
                             them. */}
                         {isPaged && nextBatchSize > 0 && (
                             <AllChartsRevealButton
-                                text={`Show ${nextBatchSize} more`}
-                                ariaLabel={`Show ${nextBatchSize} more indicators on ${topicName}`}
-                                dataTrackNote="all-charts-show-more"
+                                count={nextBatchSize}
+                                topicName={topicName}
                                 onClick={showMore}
                             />
                         )}
@@ -834,18 +831,16 @@ const AllChartsLeftPane = (props: AllChartsLeftPaneProps) => {
 }
 
 /**
- * The control under the list that reveals more of it: V1's "Show 15 more", and
- * V2's "Show all N indicators" on the accordion layout.
+ * The "Show N more" control under a paged list: V1's everywhere, and V2's on
+ * the accordion layout.
  */
 const AllChartsRevealButton = ({
-    text,
-    ariaLabel,
-    dataTrackNote,
+    count,
+    topicName,
     onClick,
 }: {
-    text: string
-    ariaLabel: string
-    dataTrackNote: string
+    count: number
+    topicName: string
     onClick: () => void
 }) => (
     <div className="all-charts-block__reveal">
@@ -857,79 +852,15 @@ const AllChartsRevealButton = ({
             // but leaves a <button> showing the browser's default grey.
             theme="solid-light-blue"
             className="all-charts-block__reveal-button"
-            text={text}
-            ariaLabel={ariaLabel}
-            dataTrackNote={dataTrackNote}
+            text={`Show ${count} more`}
+            ariaLabel={`Show ${count} more indicators on ${topicName}`}
+            dataTrackNote="all-charts-show-more"
             icon={faChevronDown}
             iconPosition="right"
             onClick={onClick}
         />
     </div>
 )
-
-/**
- * V2's list: every row, in a box that ends level with the bottom of the chart
- * beside it and fades out over its last stretch (see
- * .all-charts-block__list-container for the styling and where it comes from).
- *
- * Above the accordion breakpoint the box scrolls, and nothing here is needed
- * beyond the wrapper. Below it the box is cut off instead, since a scroll
- * region inside a phone's page traps the page's own scrolling, and the cut-off
- * comes with a control that lifts it. The control is only offered when the cut
- * actually hides something, which depends on how tall the rows render — the
- * first one opens with its chart inside it — so both the box and its contents
- * are measured rather than the rows counted.
- */
-const AllChartsContainedList = ({
-    isExpanded,
-    onExpand,
-    isAccordionLayout,
-    hitCount,
-    topicName,
-    children,
-}: {
-    isExpanded: boolean
-    onExpand: () => void
-    isAccordionLayout: boolean
-    hitCount: number
-    topicName: string
-    children: React.ReactNode
-}) => {
-    const containerRef = useRef<HTMLDivElement>(null)
-    const contentRef = useRef<HTMLDivElement>(null)
-    // The container's content box, which is what the cut-off leaves of it once
-    // the faded padding at its foot is taken off.
-    const { height: containerHeight = 0 } = useResizeObserver({
-        ref: containerRef as React.RefObject<HTMLDivElement>,
-    })
-    const { height: contentHeight = 0 } = useResizeObserver({
-        ref: contentRef as React.RefObject<HTMLDivElement>,
-        box: "border-box",
-    })
-    // A pixel of slack for subpixel row heights.
-    const isCutOff = contentHeight > containerHeight + 1
-
-    return (
-        <>
-            <div
-                ref={containerRef}
-                className={cx("all-charts-block__list-container", {
-                    "all-charts-block__list-container--expanded": isExpanded,
-                })}
-            >
-                <div ref={contentRef}>{children}</div>
-            </div>
-            {isAccordionLayout && !isExpanded && isCutOff && (
-                <AllChartsRevealButton
-                    text={`Show all ${hitCount} indicators`}
-                    ariaLabel={`Show all ${hitCount} indicators on ${topicName}`}
-                    dataTrackNote="all-charts-show-all"
-                    onClick={onExpand}
-                />
-            )}
-        </>
-    )
-}
 
 /**
  * The "Suggested: …" line under the search input. A sibling of the input rather
@@ -1039,8 +970,9 @@ const AllChartsTable = ({
     duplicatedTitles,
     isRefreshing,
 }: {
-    // Only the rows on screen — in V1 the batches revealed so far (see
-    // useVisibleChartHits), in V2 the whole result set. Always a prefix of it.
+    // Only the rows on screen — the batches revealed so far when the list is
+    // paged (see useVisibleChartHits), otherwise the whole result set. Always
+    // a prefix of it.
     hits: readonly SearchChartHit[]
     selectedIndex: number
     expandedIndex: number | null

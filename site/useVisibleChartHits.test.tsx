@@ -155,4 +155,90 @@ describe(useVisibleChartHits, () => {
 
         expect(result.current.visibleHits).toEqual(CO2_HITS.slice(0, 15))
     })
+
+    // The block's V2 pages its list on the accordion layout too, ten rows at a
+    // time rather than V1's fifteen. The rules are the same ones as above; what
+    // these pin down is that every one of them follows the batch it is given,
+    // rather than the default leaking into the first slice, the label, a click
+    // or a reset.
+    describe("with a batch of 10", () => {
+        it("renders the first 10 rows, and adds 10 per click", () => {
+            const { result } = renderHook(() =>
+                useVisibleChartHits(CO2_HITS, "", 10)
+            )
+
+            expect(result.current.visibleHits).toEqual(CO2_HITS.slice(0, 10))
+            expect(result.current.nextBatchSize).toBe(10)
+
+            act(() => result.current.showMore())
+            expect(result.current.visibleHits).toEqual(CO2_HITS.slice(0, 20))
+            expect(result.current.nextBatchSize).toBe(10)
+        })
+
+        it("offers the remainder on the last batch, then nothing", () => {
+            // 24 rows: 10, then 10 more, then "Show 4 more".
+            const { result } = renderHook(() =>
+                useVisibleChartHits(hits(24), "", 10)
+            )
+
+            act(() => result.current.showMore())
+            expect(result.current.visibleHits).toHaveLength(20)
+            expect(result.current.nextBatchSize).toBe(4)
+
+            act(() => result.current.showMore())
+            expect(result.current.visibleHits).toHaveLength(24)
+            expect(result.current.nextBatchSize).toBe(0)
+        })
+
+        it("goes back to the first 10 on a new query", () => {
+            const { result, rerender } = renderHook(
+                ({
+                    hits,
+                    query,
+                }: {
+                    hits: { slug: string }[]
+                    query: string
+                }) => useVisibleChartHits(hits, query, 10),
+                { initialProps: { hits: CO2_HITS, query: "" } }
+            )
+
+            act(() => result.current.showMore())
+            act(() => result.current.showMore())
+            expect(result.current.visibleHits).toHaveLength(30)
+
+            rerender({ hits: CHINA_HITS, query: "china" })
+
+            expect(result.current.visibleHits).toEqual(CHINA_HITS.slice(0, 10))
+            expect(result.current.nextBatchSize).toBe(10)
+        })
+
+        it("starts again from the new batch when the batch size changes", () => {
+            // A version switch from V1 to V2 on a phone, with the reset key
+            // left alone so that the batch size is what triggers it: the 30
+            // rows revealed fifteen at a time must not carry over as a stale
+            // count into a list that pages by ten.
+            const { result, rerender } = renderHook(
+                ({ batchSize }: { batchSize: number }) =>
+                    useVisibleChartHits(CO2_HITS, "", batchSize),
+                { initialProps: { batchSize: 15 } }
+            )
+
+            act(() => result.current.showMore())
+            expect(result.current.visibleHits).toHaveLength(30)
+
+            rerender({ batchSize: 10 })
+
+            expect(result.current.visibleHits).toHaveLength(10)
+            expect(result.current.nextBatchSize).toBe(10)
+        })
+
+        it("renders no control when the whole list fits in the first 10", () => {
+            const { result } = renderHook(() =>
+                useVisibleChartHits(hits(10), "", 10)
+            )
+
+            expect(result.current.visibleHits).toHaveLength(10)
+            expect(result.current.nextBatchSize).toBe(0)
+        })
+    })
 })

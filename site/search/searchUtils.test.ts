@@ -1067,6 +1067,15 @@ describe(getNextChartHitBatchSize, () => {
         expect(getNextChartHitBatchSize(20, 45)).toBe(0)
     })
 
+    it("follows the batch size it is given", () => {
+        // V2 pages ten at a time on the accordion layout. 24 rows: two full
+        // batches of 10, then "Show 4 more", then nothing.
+        expect(getNextChartHitBatchSize(24, 10, 10)).toBe(10)
+        expect(getNextChartHitBatchSize(24, 20, 10)).toBe(4)
+        expect(getNextChartHitBatchSize(24, 24, 10)).toBe(0)
+        expect(getNextChartHitBatchSize(10, 10, 10)).toBe(0)
+    })
+
     it("agrees with what getVisibleChartHits actually renders", () => {
         // A click must add exactly the rows the label promised, whatever the
         // two are given.
@@ -1074,12 +1083,17 @@ describe(getNextChartHitBatchSize, () => {
             const all = Array.from({ length: total }, (_, index) => ({
                 slug: `chart-${index}`,
             }))
-            for (const visible of [15, 30, 180, 195]) {
-                const shownNow = getVisibleChartHits(all, visible).length
-                const shownAfter = getVisibleChartHits(all, visible + 15).length
-                expect(getNextChartHitBatchSize(total, visible)).toBe(
-                    shownAfter - shownNow
-                )
+            for (const batchSize of [15, 10]) {
+                for (const visible of [10, 15, 20, 30, 180, 195]) {
+                    const shownNow = getVisibleChartHits(all, visible).length
+                    const shownAfter = getVisibleChartHits(
+                        all,
+                        visible + batchSize
+                    ).length
+                    expect(
+                        getNextChartHitBatchSize(total, visible, batchSize)
+                    ).toBe(shownAfter - shownNow)
+                }
             }
         }
     })

@@ -149,8 +149,8 @@ $all-charts-panes-gap: 24px;
 // live strip at the top of the viewport for rows to scroll through, above a
 // band of white that read as a gap over the heading.
 //
-// Both users of it are below: .all-charts-block__sticky-header and
-// .all-charts-block__right.
+// Its users are below: .all-charts-block__sticky-header,
+// .all-charts-block__right, and V1's search bar on the accordion layout.
 
 // The block's heading and its search bar, stuck to the top of the viewport as a
 // single unit so the indicator rows scroll underneath both of them. They are one
@@ -164,7 +164,8 @@ $all-charts-panes-gap: 24px;
 //
 // Not stuck below the breakpoint: on a phone the two together would take a
 // serious bite out of a short viewport, and the sidecar they were sharing the
-// screen with isn't there anyway. Both scroll away with the page instead.
+// screen with isn't there anyway. The heading scrolls away with the page there;
+// in V1 the search bar is pinned on its own instead (see below).
 .all-charts-block__sticky-header {
     position: sticky;
     // Flush against the bottom of the page's own sticky sub-nav, or against the
@@ -198,6 +199,46 @@ $all-charts-panes-gap: 24px;
 
     @include md-down {
         position: static;
+    }
+}
+
+// V1 on the accordion layout: the search bar alone, pinned so that the list
+// scrolls under it — rows, the chart open inside one of them, and the "Show 15
+// more" control under them — while the heading above scrolls away with the
+// page.
+//
+// The bar can't stick from inside the header unit: a sticky element only
+// travels within its parent's box, and the unit is no taller than the heading
+// and the bar themselves. `display: contents` takes the unit's box away here, so
+// the bar's parent becomes the block itself and it stays pinned for as long as
+// any of the list is on screen. The unit's own padding and background go with
+// its box, so the bar takes them over.
+@include md-down {
+    .all-charts-block[data-all-charts-variant="v1"]
+        .all-charts-block__sticky-header {
+        display: contents;
+    }
+
+    .all-charts-block[data-all-charts-variant="v1"] .all-charts-block__search {
+        position: sticky;
+        // Flush against the topic page's sub-nav, which stays pinned at the top
+        // of a phone's viewport too, or the viewport's top where there isn't
+        // one — see --all-charts-block-pinned-above-height above.
+        top: var(--all-charts-block-pinned-above-height, 0px);
+        // Above the chart open in a row: Grapher's own figure is a stacking
+        // context at z-index 1 (see .GrapherComponent), later in the page, so
+        // at 1 it would be drawn over the bar. Below the sub-nav (11).
+        z-index: 2;
+        background-color: var(--all-charts-page-bg);
+        // An opaque band either side of the input, so a row scrolling under it
+        // is cut off a few pixels clear of the field rather than against its
+        // border. The band above comes out of the heading's bottom margin, so
+        // nothing moves until the bar is pinned; the one below, plus the margin
+        // under it, is what the unit used to give the bar (12px + 4px).
+        padding-top: 8px;
+        margin-top: -8px;
+        padding-bottom: 12px;
+        margin-bottom: 4px;
     }
 }
 
@@ -408,46 +449,34 @@ $all-charts-panes-gap: 24px;
     opacity: 0.6;
 }
 
-// V2's container for the list (see AllChartsContainedList in
-// AllChartsBlock.tsx): every row is rendered, and the box they are in is held
-// to a fixed height that fades out at the bottom. That is the live all-charts
-// block's thumbnail list (.related-charts__thumbnails in
-// site/blocks/related-charts.scss) carried over value for value: a 575px box —
-// $grapher-height, so the list ends level with the bottom of the chart card
-// beside it — that scrolls, under a mask fading the last 10% of it to
-// transparent.
+// V2's container for the list, above the accordion breakpoint (below it V2
+// pages its list instead, as V1 does): every row is rendered, and the box they
+// are in is held to a fixed height and fades out at the bottom. That is the live
+// all-charts block's thumbnail list (.related-charts__thumbnails in
+// site/blocks/related-charts.scss) — a 575px box, $grapher-height, so the list
+// ends level with the bottom of the chart card beside it, that scrolls under a
+// mask fading its foot to transparent.
 //
-// One addition: the faded 10% is padding. The live block fades the bottom of
-// its list even when it is scrolled to the end, so its last item never comes
-// out of the fade; with the fade over padding instead, the last row scrolls up
-// clear of it, and a list too short to fill the box doesn't have its last row
-// faded either. Sized border-box, so the box is 575px with the padding in it.
+// Two departures from it. The fade is longer and steeper: the live block's last
+// 10% (57.5px here), as a linear ramp over the mostly white foot of a row, was
+// barely visible, and so didn't say the list goes on. It is now 160px, a little
+// over a quarter of the box, and eased: already down to 55% opacity a third of
+// the way in and to 20% by the 60% mark, so the fade reads well before the edge.
+//
+// And the faded stretch is padding. The live block fades the bottom of its list
+// even when it is scrolled to the end, so its last item never comes out of the
+// fade; with the fade over padding instead, the last row scrolls up clear of
+// it, and a list too short to fill the box doesn't have its last row faded
+// either. Sized border-box, so the box is 575px with the padding in it.
 $all-charts-list-height: $grapher-height;
-$all-charts-list-fade: $all-charts-list-height * 0.1;
-
-// Below the accordion breakpoint the box doesn't scroll — a scroll region
-// inside a phone's page traps the page's own scrolling, and the live block
-// drops its containment there too — but is cut off, with a "Show all N
-// indicators" control under it that lifts the cut. Tall enough for the first
-// row with its chart open (which on its own is a $grapher-height chart plus
-// the row's text and thumbnails) and a couple of rows after it.
-$all-charts-list-height-accordion: $grapher-height + 480px;
-$all-charts-list-fade-accordion: $all-charts-list-height-accordion * 0.1;
-
-// Fades the bottom $fade of the box to transparent. Prefixed as well, as
-// everywhere else the site masks: unprefixed mask-image is Chrome 120+.
-@mixin all-charts-list-fade($fade) {
-    mask-image: linear-gradient(
-        180deg,
-        #000 calc(100% - #{$fade}),
-        transparent
-    );
-    -webkit-mask-image: linear-gradient(
-        180deg,
-        #000 calc(100% - #{$fade}),
-        transparent
-    );
-}
+$all-charts-list-fade: 160px;
+$all-charts-list-fade-mask: linear-gradient(
+    180deg,
+    #000 calc(100% - #{$all-charts-list-fade}),
+    rgba(0, 0, 0, 0.55) calc(100% - #{$all-charts-list-fade * 0.65}),
+    rgba(0, 0, 0, 0.2) calc(100% - #{$all-charts-list-fade * 0.4}),
+    transparent
+);
 
 .all-charts-block__list-container {
     box-sizing: border-box;
@@ -459,28 +488,10 @@ $all-charts-list-fade-accordion: $all-charts-list-height-accordion * 0.1;
     // they have in V1.
     margin-right: -16px;
     padding-right: 16px;
-    @include all-charts-list-fade($all-charts-list-fade);
-
-    @include md-down {
-        max-height: $all-charts-list-height-accordion;
-        overflow-y: hidden;
-        padding-bottom: $all-charts-list-fade-accordion;
-        margin-right: 0;
-        padding-right: 0;
-        @include all-charts-list-fade($all-charts-list-fade-accordion);
-    }
-}
-
-// Lifted, on the accordion layout only: above it the box scrolls and there is
-// nothing to lift.
-.all-charts-block__list-container--expanded {
-    @include md-down {
-        max-height: none;
-        overflow-y: visible;
-        padding-bottom: 0;
-        mask-image: none;
-        -webkit-mask-image: none;
-    }
+    // Prefixed as well, as everywhere else the site masks: unprefixed
+    // mask-image is Chrome 120+.
+    -webkit-mask-image: $all-charts-list-fade-mask;
+    mask-image: $all-charts-list-fade-mask;
 }
 
 .all-charts-block__row {
@@ -826,8 +837,8 @@ $all-charts-thumbnails-per-row: 3;
     margin-right: 0;
 }
 
-// Holds the control under the list — V1's "Show 15 more", or V2's "Show all N
-// indicators" on the accordion layout — directly below the last rendered row and inside the list pane (so
+// Holds the "Show N more" control under a paged list — V1's, and V2's on the
+// accordion layout — directly below the last rendered row and inside the list pane (so
 // it scrolls up past the sticky search bar with the rows, and the chart sidecar
 // beside it is unaffected). Centred under the list rather than aligned to the
 // rows' 16px text inset: it acts on the whole list, not on a row.
@@ -845,9 +856,9 @@ $all-charts-thumbnails-per-row: 3;
     padding-right: 16px;
 }
 
-// The label can carry a real count ("Show all 196 indicators"), which is wider
-// than a bare "Show more" — on the narrowest phones let it wrap inside the
-// button instead of overflowing the pane.
+// The label carries a real count ("Show 15 more"), which is wider than a bare
+// "Show more" — on the narrowest phones let it wrap inside the button instead
+// of overflowing the pane.
 .all-charts-block__reveal-button {
     max-width: 100%;
 }
