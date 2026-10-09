@@ -1,10 +1,4 @@
 .checkbox {
-    $checkbox-size: 16px;
-
-    $light-stroke: $gray-30;
-    $hover-stroke: $blue-30;
-    $active-fill: $blue-30;
-
     position: relative;
 
     label {
@@ -22,15 +16,23 @@
     .custom {
         position: absolute;
         left: 0;
-        top: 0;
+        // The box is centered on the first line of the label. A single-line
+        // label needs no offset; a label whose first line is taller than the
+        // box (one that starts with a heading, say) sets
+        // --checkbox-first-line-height to the height of that line.
+        top: calc(
+            (var(--checkbox-first-line-height, #{$checkbox-size}) -
+                    #{$checkbox-size}) /
+                2
+        );
         content: " ";
         width: $checkbox-size;
         height: $checkbox-size;
 
         background: white;
         pointer-events: none;
-        border-radius: 2px;
-        border: 1px solid $light-stroke;
+        border-radius: $checkbox-border-radius;
+        border: 1px solid $checkbox-stroke;
         color: #fff;
 
         display: flex;
@@ -48,12 +50,12 @@
     }
 
     input:active + .custom {
-        background: $active-fill;
+        background: $checkbox-fill-pressed;
     }
 
     input:checked + .custom {
-        background: $active-fill;
-        border-color: $active-fill;
+        background: $checkbox-fill-checked;
+        border-color: $checkbox-fill-checked;
     }
 
     input:checked:active + .custom {
@@ -87,7 +89,7 @@
 
     &:hover {
         input:not(:checked) + .custom {
-            border-color: $hover-stroke;
+            border-color: $checkbox-stroke-hover;
         }
     }
 }
