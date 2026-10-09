@@ -11,12 +11,17 @@ import { Frame } from "../../../../components/Frame/Frame.js"
 import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
 
-import { SankeyVariantConfig, Flow } from "../core/config.js"
+import type { FoodTradeConfig } from "../index.js"
 import type {
     BespokeComponentDataUrls,
     BespokeVariantProps,
 } from "owid-bespoke-types"
-import { FoodTradeMetadata, ProductTradeData, Mode } from "../core/types.js"
+import {
+    Flow,
+    FoodTradeMetadata,
+    ProductTradeData,
+    Mode,
+} from "../core/types.js"
 import { useFoodTradeMetadata, useProductTradeData } from "../core/data.js"
 import { FoodTradeControls } from "../components/FoodTradeControls.js"
 import { FoodTradeChart } from "../components/FoodTradeChart.js"
@@ -38,16 +43,12 @@ import { MOBILE_BREAKPOINT } from "../../../../components/Sankey/SplitFlowSankey
 import { ChartSkeleton } from "../../../../components/ChartSkeleton/ChartSkeleton.js"
 import { ChartError } from "../../../../components/ChartError/ChartError.js"
 
-const DEFAULT_PRODUCT = "Maize"
-const DEFAULT_COUNTRY = ALL_COUNTRIES
-const DEFAULT_VIEW: Flow = "both"
-
 const queryClient = new QueryClient()
 
 export function SankeyVariant({
     config,
     urls,
-}: BespokeVariantProps<SankeyVariantConfig>): React.ReactElement {
+}: BespokeVariantProps<FoodTradeConfig>): React.ReactElement {
     const { width, ref } = useContainerWidth()
     const isNarrow = width > 0 && width < MOBILE_BREAKPOINT
 
@@ -73,21 +74,17 @@ function FetchingSankeyVariant({
     config,
     urls,
 }: {
-    config: SankeyVariantConfig
+    config: FoodTradeConfig
     urls: BespokeComponentDataUrls
 }) {
-    const initialProduct = config.product ?? DEFAULT_PRODUCT
     const isUserLocation = isUserLocationCountry(config.country)
-    const initialCountry =
-        !config.country || isUserLocation ? DEFAULT_COUNTRY : config.country
+    const initialCountry = isUserLocation ? ALL_COUNTRIES : config.country
     const initialView =
-        !isUserLocation && isAllCountry(initialCountry)
-            ? "both"
-            : (config.flow ?? DEFAULT_VIEW)
+        !isUserLocation && isAllCountry(initialCountry) ? "both" : config.flow
     const [product, setProduct] = useUrlState({
         key: "foodTradeProduct",
         parser: parseAsString,
-        defaultValue: initialProduct,
+        defaultValue: config.product,
     })
     const [country, _setCountry] = useUrlState({
         key: "foodTradeCountry",
@@ -193,7 +190,7 @@ function CaptionedSankeyVariant({
     setView,
     config,
 }: {
-    config: SankeyVariantConfig
+    config: FoodTradeConfig
     metadata: FoodTradeMetadata
     productData: ProductTradeData
     product: string
@@ -291,7 +288,7 @@ function FoodTradeChartHeader({
     mode,
     tradedTotal,
 }: {
-    config: SankeyVariantConfig
+    config: FoodTradeConfig
     country: string
     product: string
     year: number

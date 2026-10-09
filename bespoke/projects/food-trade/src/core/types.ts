@@ -2,6 +2,10 @@ import { BespokeMetadata } from "@ourworldindata/types"
 
 export type VariantName = "sankey"
 
+export const FLOWS = ["both", "import", "export"] as const
+
+export type Flow = (typeof FLOWS)[number]
+
 export type TradeRow = {
     exporter: string
     importer: string
