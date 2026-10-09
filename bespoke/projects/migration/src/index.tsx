@@ -1,18 +1,22 @@
 import { createRoot } from "react-dom/client"
 import { enableShadowDOM } from "@react-stately/flags"
 
-import { VariantName } from "./core/types.js"
-import { parseConfig } from "./core/config.js"
+import { MIGRATION_VIEWS, SEXES, VariantName } from "./core/types.js"
 import { SankeyVariant } from "./variants/SankeyVariant"
 
 import type {
     BespokeComponentMountFn,
     BespokeComponentMountOpts,
     BespokeComponentVariantsList,
+    BespokeConfigSpec,
 } from "owid-bespoke-types"
 import StylesTarget from "vite-plugin-css-position/react"
 
-import { parseEmbedConfig } from "../../../helpers/config.js"
+import {
+    ConfigFromSpec,
+    parseConfigFromSpec,
+    parseEmbedConfig,
+} from "../../../helpers/config.js"
 
 import "./index.scss"
 
@@ -28,6 +32,56 @@ export const VARIANTS = [
         component: SankeyVariant,
     },
 ] satisfies BespokeComponentVariantsList<VariantName>
+
+export const CONFIG_SPEC = {
+    hideControls: {
+        type: "boolean",
+        description:
+            "Hide the heading and the country, sex, year and flow controls",
+    },
+    hideHeading: {
+        type: "boolean",
+        description: "Hide the heading above the controls",
+    },
+    hideFlowSwitcher: {
+        type: "boolean",
+        description: "Hide the switch between immigrants, emigrants and both",
+    },
+    title: {
+        type: "string",
+        description:
+            "Chart title, replacing the generated one. Also hides the heading and controls",
+    },
+    subtitle: {
+        type: "string",
+        description: "Chart subtitle. Also hides the heading and controls",
+    },
+    country: {
+        type: "string",
+        default: "United States",
+        description:
+            "Country shown first. `userLocation` picks the reader's country",
+    },
+    sex: {
+        type: "enum",
+        values: SEXES,
+        default: "both",
+        description: "Sex shown first",
+    },
+    year: {
+        type: "integer",
+        default: "2024",
+        description: "Year shown first",
+    },
+    flow: {
+        type: "enum",
+        values: MIGRATION_VIEWS,
+        default: "both",
+        description: "Migration direction shown first",
+    },
+} as const satisfies BespokeConfigSpec
+
+export type MigrationConfig = ConfigFromSpec<typeof CONFIG_SPEC>
 
 export const mount: BespokeComponentMountFn = (
     container: HTMLDivElement,
@@ -47,10 +101,10 @@ export const mount: BespokeComponentMountFn = (
 
     const urls = { dataUrl: opts.dataUrl, metadataUrl: opts.metadataUrl }
 
-    const rawConfig = opts.config ?? {}
+    const authoredConfig = opts.config ?? {}
     const config = {
-        ...parseConfig(rawConfig),
-        ...parseEmbedConfig(rawConfig),
+        ...parseConfigFromSpec(CONFIG_SPEC, authoredConfig),
+        ...parseEmbedConfig(authoredConfig),
     }
 
     const root = createRoot(container)

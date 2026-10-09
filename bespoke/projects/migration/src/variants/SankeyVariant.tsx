@@ -26,7 +26,7 @@ import {
     useResolveUserLocation,
 } from "../../../../hooks/useResolveUserLocation.js"
 
-import { SankeyVariantConfig } from "../core/config.js"
+import type { MigrationConfig } from "../index.js"
 import type {
     BespokeComponentDataUrls,
     BespokeVariantProps,
@@ -48,15 +48,14 @@ import {
 import { MigrationChart } from "../components/MigrationChart.js"
 import { MigrationControls } from "../components/MigrationControls.js"
 
-const DEFAULT_COUNTRY = "United States"
-const DEFAULT_VIEW: MigrationView = "both"
+const USER_LOCATION_FALLBACK_COUNTRY = "United States"
 
 const queryClient = new QueryClient()
 
 export function SankeyVariant({
     config,
     urls,
-}: BespokeVariantProps<SankeyVariantConfig>): React.ReactElement {
+}: BespokeVariantProps<MigrationConfig>): React.ReactElement {
     const { width, ref } = useContainerWidth()
     const isNarrow = width > 0 && width < MOBILE_BREAKPOINT
 
@@ -84,13 +83,12 @@ function FetchingSankeyVariant({
     config,
     urls,
 }: {
-    config: SankeyVariantConfig
+    config: MigrationConfig
     urls: BespokeComponentDataUrls
 }) {
-    const initialCountry =
-        !config.country || isUserLocationCountry(config.country)
-            ? DEFAULT_COUNTRY
-            : config.country
+    const initialCountry = isUserLocationCountry(config.country)
+        ? USER_LOCATION_FALLBACK_COUNTRY
+        : config.country
 
     const [country, setCountry] = useUrlState({
         key: "migrationCountry",
@@ -100,12 +98,12 @@ function FetchingSankeyVariant({
     const [year, setYear] = useUrlState({
         key: "migrationYear",
         parser: parseAsInteger,
-        defaultValue: config.year ?? 2024,
+        defaultValue: config.year,
     })
     const [sex, setSex] = useUrlState({
         key: "migrationSex",
         parser: parseAsStringEnum<Sex>(["both", "female", "male"]),
-        defaultValue: config.sex ?? "both",
+        defaultValue: config.sex,
     })
     const [_view, setView] = useUrlState({
         key: "migrationFlow",
@@ -114,7 +112,7 @@ function FetchingSankeyVariant({
             "immigrants",
             "emigrants",
         ]),
-        defaultValue: config.flow ?? DEFAULT_VIEW,
+        defaultValue: config.flow,
     })
 
     const { data: metadata, status: metadataStatus } = useMigrationMetadata(
@@ -265,7 +263,7 @@ function CaptionedSankeyVariant({
     setSex,
     setView,
 }: {
-    config: SankeyVariantConfig
+    config: MigrationConfig
     metadata: Metadata
     country: string
     displayedCountry: string
@@ -365,7 +363,7 @@ function MigrationChartHeader({
     immigrantsTotal,
     emigrantsTotal,
 }: {
-    config: SankeyVariantConfig
+    config: MigrationConfig
     country: string
     year: number
     sex: Sex
