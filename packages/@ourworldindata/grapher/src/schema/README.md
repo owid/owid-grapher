@@ -4,7 +4,7 @@ This folder contains the JSON schema for the configuration of Grapher.
 
 The schema is versioned, and every config records its version in `$schema`. A config's `$schema` holds a schema name, such as `grapher-schema.011.04.json`. The name has two parts:
 
-- The version (`011`) says which migrations a config still needs. A config stamped `NNN` goes through the migrations from `NNN` to the latest version before a current build reads it.
+- The version (`011`) says which migrations a config still needs. A config whose `$schema` names `NNN` goes through the migrations from `NNN` to the latest version before a current build reads it.
 - The revision (`04`) records which schema document the config was written against.
 
 Configs written before revisions existed carry only the version, as in `grapher-schema.011.json`. The schema accepts both forms.
@@ -37,7 +37,7 @@ In one commit:
 
 - Rename `grapher-schema.NNN.yaml` to `grapher-schema.MMM.yaml`, change the version in its `$id` and reset the revision there to `00`, and change the version in the `$schema` property's `pattern`. The property's `default` is a YAML alias of `$id`, and `yarn buildGrapherSchema` refuses to build unless the file name, the `$id` and the `pattern` all name the same version.
 - Add `migrateFromNNNToMMM` to `migrations/migrations.ts` and its `"NNN"` entry in `MIGRATION_STEPS`; a missing entry fails typecheck. Pin each branch of the step with a before/after pair in `migrations/migrations.fixture.ts`.
-- Write the DB migration in `db/migration/` that rewrites the stored rows and restamps `$schema` in `chart_configs.config` and `chart_revisions.config`, to the literal `grapher-schema.MMM.00.json`.
+- Write the DB migration in `db/migration/` that rewrites the stored rows in `chart_configs.config` and `chart_revisions.config` and sets their `$schema` to the literal `grapher-schema.MMM.00.json`.
 - Run `yarn buildGrapherSchema` to regenerate `defaultGrapherConfig.ts` from the renamed YAML.
 
 Before merging:
@@ -47,7 +47,7 @@ Before merging:
 After merging:
 
 - `sync-grapher-schema-to-r2.yml` uploads the JSON to the `schemas` prefix of the `owid-public` bucket on Cloudflare R2, with a `.latest` alias. `files.ourworldindata.org/schemas/` serves that bucket. The sync never deletes, so every version ever published keeps resolving. Besides the mutable name and the `.latest` alias, every published edit also lands under the revisioned name its `$id` declares.
-- Once this repo has deployed, merge the sibling ETL PR. Never before, since the ETL pushes configs stamped with that version.
+- Once this repo has deployed, merge the sibling ETL PR. Never before, since the ETL pushes configs that declare that version.
 
 ## Bumping the revision
 

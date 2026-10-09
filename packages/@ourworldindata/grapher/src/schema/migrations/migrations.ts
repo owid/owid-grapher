@@ -133,7 +133,7 @@ const MIGRATION_STEPS: Record<OutdatedSchemaVersion, MigrationStep> = {
     "010": migrateFrom010To011,
 }
 
-/** Applies the step for `version`, restamps `$schema` and returns the new version */
+/** Applies the step for `version` and points `$schema` at the next version */
 export const runMigration = (
     config: MigratableConfig,
     version: OutdatedSchemaVersion
