@@ -14,12 +14,12 @@ import {
     OwidGdocBaseInterface,
     OwidGdocDataInsightContent,
     OwidGdocDataInsightIndexItem,
-    parseChartConfig,
     parsePostGdocContent,
     parsePostsGdocsRow,
     PostsGdocsTableName,
 } from "@ourworldindata/types"
 import * as db from "../../db/db.js"
+import { parseChartConfig } from "../../db/model/ChartConfigs.js"
 import {
     createOrLoadGdocById,
     getTagsGroupedByGdocId,

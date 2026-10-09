@@ -16,6 +16,7 @@ import {
     parseToOperation,
 } from "../../adminShared/SqlFilterSExpression.js"
 import { saveGrapher } from "./charts.js"
+import { parseChartConfig } from "../../db/model/ChartConfigs.js"
 import { ingestGrapherConfig } from "../../db/grapherConfigValidation.js"
 import * as db from "../../db/db.js"
 import * as lodash from "lodash-es"
@@ -71,7 +72,7 @@ export async function getChartBulkUpdate(
 
     const results = resultsWithStringGrapherConfigs.map((row: any) => ({
         ...row,
-        config: lodash.isNil(row.config) ? null : JSON.parse(row.config),
+        config: lodash.isNil(row.config) ? null : parseChartConfig(row.config),
     }))
     const resultCount = await db.knexRaw<{ count: number }>(
         trx,
@@ -110,7 +111,9 @@ export async function updateBulkChartConfigs(
             item.id,
             // make sure that the id is set, otherwise the update behaviour is weird
             // TODO: discuss if this has unintended side effects
-            item.config ? { ...JSON.parse(item.config), id: item.id } : {},
+            item.config
+                ? { ...parseChartConfig(item.config), id: item.id }
+                : {},
         ])
     )
     const oldValuesConfigMap = new Map(configMap)

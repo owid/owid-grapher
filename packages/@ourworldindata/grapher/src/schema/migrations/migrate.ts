@@ -23,8 +23,6 @@ import * as Sentry from "@sentry/browser"
 export const migrateGrapherConfigToLatestVersion = (
     config: AnyConfig
 ): GrapherInterface => {
-    if (config.$schema === undefined) throw new Error("Schema missing")
-
     const clone = _.cloneDeep(config)
     if (hasValidSchema(clone)) {
         let version = getSchemaVersion(clone)
@@ -32,6 +30,8 @@ export const migrateGrapherConfigToLatestVersion = (
             version = runMigration(clone, version)
         return clone
     }
+
+    if (clone.$schema === undefined) return clone
 
     /**
      * If the schema version is not outdated and not the latest, we have most likely received a

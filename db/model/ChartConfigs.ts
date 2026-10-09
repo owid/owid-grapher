@@ -3,13 +3,39 @@ import {
     DbInsertChartConfig,
     DbRawChartConfig,
     GrapherInterface,
-    parseChartConfig,
-    serializeChartConfig,
+    JsonString,
 } from "@ourworldindata/types"
+import { migrateGrapherConfigToLatestVersion } from "@ourworldindata/grapher"
 
 import { v7 as uuidv7 } from "uuid"
 
 import * as db from "../db.js"
+import { logErrorAndMaybeCaptureInSentry } from "../../serverUtils/errorLog.js"
+
+/** Parses a stored chart config, migrating it to the latest schema version unless `skipMigration` */
+export function parseChartConfig(
+    config: JsonString,
+    { skipMigration }: { skipMigration?: boolean } = {}
+): GrapherInterface {
+    const parsed = JSON.parse(config)
+    if (skipMigration) return parsed
+
+    try {
+        return migrateGrapherConfigToLatestVersion(parsed)
+    } catch (error) {
+        void logErrorAndMaybeCaptureInSentry(
+            new Error(
+                `Could not migrate chart config from ${parsed?.$schema}`,
+                { cause: error }
+            )
+        )
+        return parsed
+    }
+}
+
+export function serializeChartConfig(config: GrapherInterface): JsonString {
+    return JSON.stringify(config)
+}
 
 export async function getChartConfigByUuid(
     knex: db.KnexReadonlyTransaction,
