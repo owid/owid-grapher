@@ -313,11 +313,9 @@ export const MIGRATION_FIXTURES: {
 ]
 
 /**
- * Patch stacks, parent first. Migrating the patches and then merging them has
- * to come out the same as merging them and then migrating the result, unless
- * the stack names a `nonCommutingReason` — those are the steps that can't be
- * expressed one layer at a time, and they're pinned so that repairing one is a
- * deliberate act.
+ * Patch stacks, parent first. Migrating then merging must give the same config
+ * as merging then migrating, unless the stack names a `nonCommutingReason`: a
+ * step that can't be expressed one layer at a time
  */
 export const PATCH_STACK_FIXTURES: {
     name: string
