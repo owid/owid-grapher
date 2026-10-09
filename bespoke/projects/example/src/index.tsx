@@ -8,9 +8,17 @@ import { Display } from "./components/Display"
 
 import type {
     BespokeComponentMountFn,
+    BespokeComponentMountOpts,
     BespokeComponentVariantsList,
+    BespokeConfigSpec,
 } from "owid-bespoke-types"
 import StylesTarget from "vite-plugin-css-position/react"
+
+import {
+    ConfigFromSpec,
+    parseConfigFromSpec,
+    parseEmbedConfig,
+} from "../../../helpers/config.js"
 
 import "./index.scss"
 
@@ -38,9 +46,19 @@ export const VARIANTS = [
     },
 ] satisfies BespokeComponentVariantsList<VariantName>
 
+export const CONFIG_SPEC = {
+    title: {
+        type: "string",
+        default: "Example chart",
+        description: "Title of the chart variant",
+    },
+} as const satisfies BespokeConfigSpec
+
+export type ExampleConfig = ConfigFromSpec<typeof CONFIG_SPEC>
+
 export const mount: BespokeComponentMountFn = (
     container: HTMLDivElement,
-    opts: { variant?: string; config?: Record<string, string> }
+    opts: BespokeComponentMountOpts
 ) => {
     const variant = VARIANTS.find((v) => v.name === opts.variant)
     if (!variant) {
@@ -48,12 +66,18 @@ export const mount: BespokeComponentMountFn = (
         return
     }
 
+    const authoredConfig = opts.config ?? {}
+    const config = {
+        ...parseConfigFromSpec(CONFIG_SPEC, authoredConfig),
+        ...parseEmbedConfig(authoredConfig),
+    }
+
     const root = createRoot(container)
     root.render(
         <>
             {/* This is where Vite-injected styles will be placed - make sure to add this to your code so that the styles are correctly injected into the Shadow DOM. */}
             <StylesTarget />
-            <variant.component />
+            <variant.component config={config} />
         </>
     )
     return () => root.unmount()
