@@ -26,7 +26,7 @@ import {
     updateIndicatorChartConfig,
     deleteIndicators,
 } from "../../db/model/Variable.js"
-import { parseChartConfig } from "../../db/model/ChartConfigs.js"
+import { parseAndMigrateChartConfig } from "../../db/model/ChartConfigs.js"
 import { enqueueExplorerRefreshJobsForDependencies } from "../../db/model/Explorer.js"
 import { ingestGrapherConfig } from "../../db/grapherConfigValidation.js"
 import { DATA_API_URL } from "../../settings/clientSettings.mjs"
@@ -265,7 +265,7 @@ export async function getVariableJson(
     // check for parent indicators
     const charts = rawCharts.map((chart) => {
         const parentIndicatorId = getParentIndicatorIdFromChartConfig(
-            parseChartConfig(chart.config)
+            parseAndMigrateChartConfig(chart.config)
         )
         const hasParentIndicator = parentIndicatorId !== undefined
         return _.omit({ ...chart, hasParentIndicator }, "config")

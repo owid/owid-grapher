@@ -57,7 +57,7 @@ import {
 } from "../chartConfigHelpers.js"
 import {
     insertChartConfig,
-    parseChartConfig,
+    parseAndMigrateChartConfig,
     serializeChartConfig,
     updateChartConfig,
 } from "../../db/model/ChartConfigs.js"
@@ -455,7 +455,7 @@ const updateExistingChart = async (
     if (!chartRow) throw new JsonError(`No chart found for id ${chartId}`, 404)
 
     const etlConfig = chartRow.etlConfig
-        ? parseChartConfig(chartRow.etlConfig)
+        ? parseAndMigrateChartConfig(chartRow.etlConfig)
         : {}
 
     // Look up the chart's parent indicator (only if inheritance is enabled),
@@ -734,7 +734,7 @@ export async function getChartParentJson(
         [chartId]
     )
     const etlConfig = etlConfigRow?.etlConfig
-        ? parseChartConfig(etlConfigRow.etlConfig)
+        ? parseAndMigrateChartConfig(etlConfigRow.etlConfig)
         : undefined
 
     return omitUndefinedValues({
@@ -1223,8 +1223,8 @@ async function upsertEtlConfigForChart(
         await assertCatalogPathAvailable(trx, catalogPath, chartId)
     }
 
-    const existingPatch = parseChartConfig(row.patch)
-    const existingFull = parseChartConfig(row.full)
+    const existingPatch = parseAndMigrateChartConfig(row.patch)
+    const existingFull = parseAndMigrateChartConfig(row.full)
 
     // Look up the chart's parent indicator (only if inheritance is enabled),
     // resolving it from the dimensions the chart will plot *after* this push:
@@ -1444,8 +1444,8 @@ export async function deleteChartsChartIdEtlConfig(
     // no-op if the chart doesn't have an ETL config
     if (!row.patchConfigIdETL) return { success: true }
 
-    const existingPatch = parseChartConfig(row.patch)
-    const existingFull = parseChartConfig(row.full)
+    const existingPatch = parseAndMigrateChartConfig(row.patch)
+    const existingFull = parseAndMigrateChartConfig(row.full)
 
     const parent = row.isInheritanceEnabled
         ? await getParentByChartConfig(trx, existingFull)

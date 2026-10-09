@@ -44,7 +44,7 @@ import {
 import { knexRaw, knexRawFirst } from "../db.js"
 import {
     insertChartConfig,
-    parseChartConfig,
+    parseAndMigrateChartConfig,
     updateChartConfig,
 } from "./ChartConfigs.js"
 import { assertValidGrapherConfig } from "../grapherConfigValidation.js"
@@ -97,7 +97,7 @@ export async function getIndicatorChartConfig(
         [variableId]
     )
 
-    return row ? parseChartConfig(row.config) : undefined
+    return row ? parseAndMigrateChartConfig(row.config) : undefined
 }
 
 export async function getIndicatorChartConfigs(
@@ -118,7 +118,10 @@ export async function getIndicatorChartConfigs(
     )
 
     return new Map(
-        rows.map((row) => [row.variableId, parseChartConfig(row.config)])
+        rows.map((row) => [
+            row.variableId,
+            parseAndMigrateChartConfig(row.config),
+        ])
     )
 }
 
@@ -209,9 +212,9 @@ async function findAllChartsThatInheritFromIndicator(
     return charts.map((chart) => ({
         chartId: chart.chartId,
         chartConfigId: chart.chartConfigId,
-        patchConfig: parseChartConfig(chart.patchConfig),
+        patchConfig: parseAndMigrateChartConfig(chart.patchConfig),
         patchConfigETL: chart.patchConfigETL
-            ? parseChartConfig(chart.patchConfigETL)
+            ? parseAndMigrateChartConfig(chart.patchConfigETL)
             : null,
         isPublished: Boolean(chart.isPublished),
     }))

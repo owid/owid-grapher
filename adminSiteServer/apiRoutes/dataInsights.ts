@@ -19,7 +19,7 @@ import {
     PostsGdocsTableName,
 } from "@ourworldindata/types"
 import * as db from "../../db/db.js"
-import { parseChartConfig } from "../../db/model/ChartConfigs.js"
+import { parseAndMigrateChartConfig } from "../../db/model/ChartConfigs.js"
 import {
     createOrLoadGdocById,
     getTagsGroupedByGdocId,
@@ -174,7 +174,7 @@ function extractDataInsightIndexItem(
         dataInsight.content
     ) as OwidGdocDataInsightContent
     const chartConfig = dataInsight.chartConfig
-        ? parseChartConfig(dataInsight.chartConfig)
+        ? parseAndMigrateChartConfig(dataInsight.chartConfig)
         : undefined
 
     // check if the given grapher-url is a valid Grapher or Explorer URL
