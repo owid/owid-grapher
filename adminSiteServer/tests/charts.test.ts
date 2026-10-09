@@ -9,7 +9,10 @@ import {
     DimensionProperty,
     GrapherInterface,
 } from "@ourworldindata/types"
-import { latestGrapherConfigSchema } from "@ourworldindata/grapher"
+import {
+    latestGrapherConfigSchema,
+    latestSchemaVersion,
+} from "@ourworldindata/grapher"
 import {
     formatGrapherSchemaUrl,
     mergeGrapherConfigs,
@@ -49,7 +52,7 @@ async function readStoredConfig(configId: string): Promise<GrapherInterface> {
 }
 
 function expectMigratedToLatestSchema(config: GrapherInterface): void {
-    expect(config.$schema).toBe(latestGrapherConfigSchema)
+    expect(config.$schema).toBe(formatGrapherSchemaUrl(latestSchemaVersion))
     expect(config.hideSeriesLabels).toBe(true)
     expect(config).not.toHaveProperty("hideLegend")
 }
