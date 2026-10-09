@@ -27,7 +27,7 @@ import {
     getMdimViewConfigWithSchema,
     upsertMultiDimDataPage,
 } from "../db/model/MultiDimDataPage.js"
-import { parseChartConfig } from "../db/model/ChartConfigs.js"
+import { parseAndMigrateChartConfig } from "../db/model/ChartConfigs.js"
 import {
     assertValidGrapherConfig,
     ingestGrapherConfig,
@@ -349,7 +349,9 @@ async function getViewChartConfigs(
     const rows = await knex<DbRawChartConfig>(ChartConfigsTableName)
         .select("id", "config")
         .whereIn("id", ids)
-    return new Map(rows.map((row) => [row.id, parseChartConfig(row.config)]))
+    return new Map(
+        rows.map((row) => [row.id, parseAndMigrateChartConfig(row.config)])
+    )
 }
 
 export async function setMultiDimPublished(

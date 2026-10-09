@@ -91,7 +91,7 @@ import { getLatestArchivedExplorerPageVersionsIfEnabled } from "../db/model/Arch
 import { GdocDataInsight } from "../db/model/Gdoc/GdocDataInsight.js"
 import { getImagesByFilenames } from "../db/model/Image.js"
 import { getCanonicalUrl } from "@ourworldindata/components"
-import { parseChartConfig } from "../db/model/ChartConfigs.js"
+import { parseAndMigrateChartConfig } from "../db/model/ChartConfigs.js"
 import { getLatestArchivedPostPageVersionsIfEnabled } from "../db/model/ArchivedPostVersion.js"
 import { SlideshowPage } from "../site/slideshows/SlideshowPage.js"
 
@@ -621,7 +621,7 @@ export const renderExplorerPage = async (
     }
 
     const parseGrapherConfigFromRow = (row: ChartRow): GrapherInterface => {
-        const config: GrapherProgrammaticInterface = parseChartConfig(
+        const config: GrapherProgrammaticInterface = parseAndMigrateChartConfig(
             row.config
         )
         config.id = row.id // Ensure each grapher has an id

@@ -47,7 +47,7 @@ import { getPublishedLinksTo } from "../../db/model/Link.js"
 import { triggerStaticBuild } from "../../baker/GrapherBakingUtils.js"
 import {
     getChartConfigByUuid,
-    parseChartConfig,
+    parseAndMigrateChartConfig,
 } from "../../db/model/ChartConfigs.js"
 import { narrativeChartExists } from "../../db/model/NarrativeChart.js"
 import {
@@ -138,7 +138,7 @@ async function getChartConfigByMultiDimXChartConfigId(
             404
         )
     }
-    return parseChartConfig(row.config)
+    return parseAndMigrateChartConfig(row.config)
 }
 
 async function getViewDimensions(
@@ -332,10 +332,10 @@ export async function getNarrativeChartById(
         updatedAt: row.updatedAt,
         lastEditedByUser: row.lastEditedByUser,
         chartConfigId: row.chartConfigId,
-        configFull: parseChartConfig(row.configFull),
-        configPatch: parseChartConfig(row.configPatch),
+        configFull: parseAndMigrateChartConfig(row.configFull),
+        configPatch: parseAndMigrateChartConfig(row.configPatch),
         parentType: row.parentChartId ? "chart" : "multiDim",
-        parentConfigFull: parseChartConfig(row.parentConfigFull),
+        parentConfigFull: parseAndMigrateChartConfig(row.parentConfigFull),
         parentUrl: makeParentUrl(
             row.parentChartId,
             row.parentCatalogPath,

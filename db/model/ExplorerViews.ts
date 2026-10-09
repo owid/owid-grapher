@@ -16,7 +16,7 @@ import { GrapherProgrammaticInterface } from "@ourworldindata/grapher"
 import { transformExplorerProgramToResolveCatalogPaths } from "./ExplorerCatalogResolver.js"
 import {
     insertChartConfig,
-    parseChartConfig,
+    parseAndMigrateChartConfig,
     updateChartConfig,
 } from "./ChartConfigs.js"
 import * as _ from "lodash-es"
@@ -108,7 +108,7 @@ async function fetchExplorerDataForViews(
     }
 
     const parseGrapherConfigFromRow = (row: ChartRow): GrapherInterface => {
-        const config: GrapherProgrammaticInterface = parseChartConfig(
+        const config: GrapherProgrammaticInterface = parseAndMigrateChartConfig(
             row.config
         )
         config.id = row.id // Ensure each grapher has an id
@@ -340,7 +340,9 @@ export async function refreshExplorerViewsForSlug(
             ) {
                 // Both have successful configs, compare them
                 try {
-                    const existingConfig = parseChartConfig(existingView.config)
+                    const existingConfig = parseAndMigrateChartConfig(
+                        existingView.config
+                    )
                     configsEqual = _.isEqual(
                         existingConfig,
                         generatedView.config

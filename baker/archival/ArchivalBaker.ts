@@ -24,7 +24,7 @@ import path from "path"
 import * as db from "../../db/db.js"
 import { getAllImages } from "../../db/model/Image.js"
 import { getVariableData } from "../../db/model/Variable.js"
-import { parseChartConfig } from "../../db/model/ChartConfigs.js"
+import { parseAndMigrateChartConfig } from "../../db/model/ChartConfigs.js"
 import findProjectBaseDir from "../../settings/findBaseDir.mjs"
 import { bakeSingleGrapherPageForArchival } from "../GrapherBaker.js"
 import { bakeSingleMultiDimDataPageForArchival } from "../MultiDimBaker.js"
@@ -560,7 +560,7 @@ export const archiveNarrativeCharts = async (
             rows.map((row) => ({
                 id: row.id,
                 name: row.name,
-                config: parseChartConfig(row.config),
+                config: parseAndMigrateChartConfig(row.config),
             }))
         )
 

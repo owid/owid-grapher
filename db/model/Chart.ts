@@ -22,7 +22,7 @@ import {
     GrapherChartType,
     RelatedChartsTableName,
 } from "@ourworldindata/types"
-import { parseChartConfig } from "./ChartConfigs.js"
+import { parseAndMigrateChartConfig } from "./ChartConfigs.js"
 import { OpenAI } from "openai"
 import { zodResponseFormat } from "openai/helpers/zod"
 import { OPENAI_API_KEY } from "../../settings/serverSettings.js"
@@ -97,7 +97,7 @@ export async function mapSlugsToConfigs(
         .then((results) =>
             results.map((result) => ({
                 ...result,
-                config: parseChartConfig(result.config),
+                config: parseAndMigrateChartConfig(result.config),
             }))
         )
 }
@@ -142,7 +142,10 @@ export async function getEnrichedChartBySlug(
 
     if (!chart) return null
 
-    const enrichedChart = { ...chart, config: parseChartConfig(chart.config) }
+    const enrichedChart = {
+        ...chart,
+        config: parseAndMigrateChartConfig(chart.config),
+    }
 
     return enrichedChart
 }
@@ -201,7 +204,7 @@ export async function getPatchConfigByChartId(
         [id]
     )
     if (!chart) return undefined
-    return parseChartConfig(chart.config)
+    return parseAndMigrateChartConfig(chart.config)
 }
 
 export async function getEnrichedChartById(
@@ -212,7 +215,7 @@ export async function getEnrichedChartById(
 > {
     const rawChart = await getRawChartById(knex, id)
     if (!rawChart) return null
-    return { ...rawChart, config: parseChartConfig(rawChart.config) }
+    return { ...rawChart, config: parseAndMigrateChartConfig(rawChart.config) }
 }
 
 export async function getEnrichedChartsByIds(
@@ -222,7 +225,7 @@ export async function getEnrichedChartsByIds(
     const charts = await getRawChartsByIds(knex, ids)
     return charts.map((rawChart) => ({
         ...rawChart,
-        config: parseChartConfig(rawChart.config),
+        config: parseAndMigrateChartConfig(rawChart.config),
     }))
 }
 
@@ -273,7 +276,7 @@ export const getChartConfigById = async (
     return {
         id: grapher.id,
         forceDatapage: Boolean(grapher.forceDatapage),
-        config: parseChartConfig(grapher.config),
+        config: parseAndMigrateChartConfig(grapher.config),
     }
 }
 
@@ -313,7 +316,7 @@ export async function getChartConfigBySlug(
 
     if (!row) throw new JsonError(`No chart found for slug ${slug}`, 404)
 
-    return { id: row.id, config: parseChartConfig(row.config) }
+    return { id: row.id, config: parseAndMigrateChartConfig(row.config) }
 }
 
 export async function getForceDatapageByChartId(
@@ -487,7 +490,9 @@ export async function getGptTopicSuggestions(
     )
     if (!chartConfigOnly)
         throw new JsonError(`No chart found for id ${chartId}`, 404)
-    const enrichedChartConfig = parseChartConfig(chartConfigOnly.config)
+    const enrichedChartConfig = parseAndMigrateChartConfig(
+        chartConfigOnly.config
+    )
 
     const topics = await db.getAllTopicTags(knex)
 

@@ -4,7 +4,6 @@ import "../../serverUtils/instrument.js"
 
 import * as Sentry from "@sentry/node"
 import type { KnownBlock } from "@slack/web-api"
-import type { GrapherInterface } from "@ourworldindata/types"
 import {
     knexRaw,
     knexReadonlyTransaction,
@@ -23,7 +22,6 @@ import {
     GRAPHER_DB_PORT,
     SLACK_CONFIG_VALIDATION_CHANNEL_ID,
 } from "../../settings/serverSettings.js"
-import { parseChartConfig } from "../../db/model/ChartConfigs.js"
 import { postToSlack } from "../../serverUtils/slackClient.js"
 type ConfigOwner = "chart" | "indicator" | "narrativeChart" | "multiDim"
 type ConfigRole = "patch" | "full"
@@ -370,7 +368,7 @@ function processRow(
     increment(report.validatedCounts, indexed.column)
     const owner = indexed.owner
     try {
-        const config = parseChartConfig(row.config, { skipMigration: true })
+        const config = JSON.parse(row.config)
         validateConfig(report, indexed.column, owner, config)
     } catch (error) {
         report.unexpectedFailures.push({
@@ -384,7 +382,7 @@ function validateConfig(
     report: Report,
     column: string,
     owner: OwnerRef,
-    config: GrapherInterface
+    config: unknown
 ): void {
     const ingestResult = tryIngestGrapherConfig(config)
     if (ingestResult.isValid) return
