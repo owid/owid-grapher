@@ -31,7 +31,6 @@ export const migrateGrapherConfigToLatestVersion = (
         return clone
     }
 
-    // A config without a $schema field is left as it is
     if (clone.$schema === undefined) return clone
 
     /**
