@@ -28,7 +28,6 @@ export async function seedDatasetAndVariables(env: TestEnv): Promise<void> {
     await seedVariables(env, [variableId, otherVariableId])
 }
 
-/** Inserts indicators with the given ids and no grapher config of their own */
 async function seedVariables(env: TestEnv, ids: number[]): Promise<void> {
     const dummyVariable = {
         unit: "kg",

@@ -25,7 +25,6 @@ import {
 } from "@ourworldindata/utils"
 import { buildQueryStrFromConfig } from "./MultiDimRedirects.js"
 
-/** A view's own config, with the multi-dim config's schema version stamped on when the view declares none */
 export function getMdimViewConfigWithSchema(
     config: Pick<MultiDimDataPageConfigEnriched, "grapherConfigSchema">,
     view: View<IndicatorsAfterPreProcessing>

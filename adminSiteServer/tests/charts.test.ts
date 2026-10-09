@@ -30,13 +30,11 @@ async function etlConfigPath(chartId: number): Promise<string> {
     return `/charts/by-config/${row.configId}/etlConfig`
 }
 
-/** A config at schema version 009, whose migration renames hideLegend to hideSeriesLabels */
 const outdatedConfigFields = {
     $schema: "https://files.ourworldindata.org/schemas/grapher-schema.009.json",
     hideLegend: true,
 }
 
-/** Reads a config as stored, bypassing the migration every read route applies */
 async function readStoredConfig(configId: string): Promise<GrapherInterface> {
     const row = await env
         .testKnex(ChartConfigsTableName)
