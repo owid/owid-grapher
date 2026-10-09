@@ -37,6 +37,13 @@ export function formatGrapherSchemaFileName(
     return `grapher-schema.${version}.${String(revision).padStart(2, "0")}.json`
 }
 
+export function formatGrapherSchemaUrl<Version extends string>(
+    version: Version
+): `${typeof SCHEMA_URL_BASE}/grapher-schema.${Version}.json`
+export function formatGrapherSchemaUrl<Version extends string>(
+    version: Version,
+    revision: number
+): `${typeof SCHEMA_URL_BASE}/grapher-schema.${Version}.${TwoDigitRevision}.json`
 export function formatGrapherSchemaUrl(
     version: string,
     revision?: number

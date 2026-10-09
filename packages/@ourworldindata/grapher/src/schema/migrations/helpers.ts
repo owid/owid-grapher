@@ -42,12 +42,6 @@ export function getSchemaVersion(
     return version
 }
 
-export function createSchemaForVersion(
-    version: SchemaVersion
-): SchemaWithoutRevision {
-    return `${SCHEMA_URL_BASE}/grapher-schema.${version}.json`
-}
-
 export const isLatestVersion = (
     version: SchemaVersion
 ): version is LatestSchemaVersion => version === latestSchemaVersion

@@ -3,9 +3,9 @@
 // To add a migration: write `migrateFromNNNToMMM`, which rewrites a config's content from
 // version NNN to MMM and nothing else, then add its `"NNN"` entry to `MIGRATION_STEPS`.
 
+import { formatGrapherSchemaUrl } from "@ourworldindata/utils"
 import {
     type MigratableConfig,
-    createSchemaForVersion,
     getNextSchemaVersion,
     type OutdatedSchemaVersion,
     type SchemaVersion,
@@ -140,6 +140,6 @@ export const runMigration = (
 ): SchemaVersion => {
     MIGRATION_STEPS[version](config)
     const nextVersion = getNextSchemaVersion(version)
-    config.$schema = createSchemaForVersion(nextVersion)
+    config.$schema = formatGrapherSchemaUrl(nextVersion)
     return nextVersion
 }
