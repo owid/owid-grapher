@@ -17,7 +17,7 @@ it("returns a valid config as is", () => {
     )
 })
 
-it("returns a config unchanged if the schema field is missing", () => {
+it("returns a config without a $schema unchanged", () => {
     const configWithoutSchema = { title: "Test" }
     expect(migrateGrapherConfigToLatestVersion(configWithoutSchema)).toEqual(
         configWithoutSchema

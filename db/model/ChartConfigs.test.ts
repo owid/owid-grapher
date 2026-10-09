@@ -26,7 +26,7 @@ it("migrates an outdated config to the latest schema", () => {
     expect(migrated.dimensions?.[0].display).not.toHaveProperty("yearIsDay")
 })
 
-it("leaves an outdated config at its stored schema version when skipMigration is set", () => {
+it("leaves an outdated config as stored when skipMigration is set", () => {
     const parsed = parseChartConfig(JSON.stringify(outdatedConfig), {
         skipMigration: true,
     })
