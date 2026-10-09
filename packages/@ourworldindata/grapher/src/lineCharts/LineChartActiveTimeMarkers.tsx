@@ -9,6 +9,7 @@ import { GRAPHER_OPACITY_MUTED } from "../core/GrapherConstants"
 import { getSeriesKey } from "../chart/ChartUtils"
 import { GRAPHER_BACKGROUND } from "../color/ColorConstants"
 import { roundForSvg } from "@ourworldindata/utils"
+import { LineChartAnnotation } from "./LineChartAnnotationExperiment"
 
 interface LineChartActiveTimeMarkersProps {
     times: Time[]
@@ -16,6 +17,7 @@ interface LineChartActiveTimeMarkersProps {
     dualAxis: DualAxis
     chartState: LineChartState
     dotRadius: number
+    annotation?: LineChartAnnotation
 }
 
 /** Vertical reference line and series-value circles drawn at each active time */
@@ -25,6 +27,7 @@ export function LineChartActiveTimeMarkers({
     dualAxis,
     chartState,
     dotRadius,
+    annotation,
 }: LineChartActiveTimeMarkersProps): React.ReactElement | null {
     const { horizontalAxis, verticalAxis } = dualAxis
 
@@ -58,6 +61,13 @@ export function LineChartActiveTimeMarkers({
                             series.emphasis === Emphasis.Muted
                                 ? GRAPHER_OPACITY_MUTED
                                 : 1
+
+                        const isAnnotated =
+                            annotation?.time === time &&
+                            annotation.seriesName === series.seriesName
+
+                        // Drawn separately by the line chart
+                        if (isAnnotated) return null
 
                         return (
                             <circle

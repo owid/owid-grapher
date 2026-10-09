@@ -1,5 +1,7 @@
 import * as _ from "lodash-es"
 import React from "react"
+import Tippy from "@tippyjs/react"
+import { DOD_TIPPY_PROPS } from "@ourworldindata/components"
 import * as R from "remeda"
 import {
     guid,
@@ -14,7 +16,19 @@ import { observer } from "mobx-react"
 
 import { DualAxisComponent } from "../axis/AxisViews"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
-import { VerticalLabels } from "../verticalLabels/VerticalLabels"
+import {
+    AnnotatedVerticalLabel,
+    VerticalLabels,
+} from "../verticalLabels/VerticalLabels"
+import {
+    ANNOTATED_MARKER_RADIUS_FACTOR,
+    AnnotationDodContent,
+    AnnotationInfoIcon,
+    annotationVariant,
+    AnnotationVariantPicker,
+    getLineChartAnnotation,
+    LineChartAnnotation,
+} from "./LineChartAnnotationExperiment"
 import { VerticalLabelsState } from "../verticalLabels/VerticalLabelsState"
 import { TooltipState } from "../tooltip/Tooltip"
 import { LineChartTooltip } from "./LineChartTooltip"
@@ -85,15 +99,25 @@ export class LineChart
     })
 
     private hoveredLabelSeriesName: SeriesName | undefined = undefined
+    private isLabelDodOpen = false
+    private isMarkerDodOpen = false
     private hoverTimer: number | undefined = undefined
 
     constructor(props: LineChartProps) {
         super(props)
 
-        makeObservable<LineChart, "tooltipState" | "hoveredLabelSeriesName">(
-            this,
-            { tooltipState: observable, hoveredLabelSeriesName: observable }
-        )
+        makeObservable<
+            LineChart,
+            | "tooltipState"
+            | "hoveredLabelSeriesName"
+            | "isLabelDodOpen"
+            | "isMarkerDodOpen"
+        >(this, {
+            tooltipState: observable,
+            hoveredLabelSeriesName: observable,
+            isLabelDodOpen: observable,
+            isMarkerDodOpen: observable,
+        })
     }
 
     @computed get chartState(): LineChartState {
@@ -126,6 +150,8 @@ export class LineChart
     @action.bound private onCursorMove(
         ev: React.MouseEvent | React.TouchEvent
     ): void {
+        if (this.isMarkerDodOpen) return
+
         const ref = this.base.current,
             parentRef = this.manager.base?.current
 
@@ -201,6 +227,111 @@ export class LineChart
             tooltipTime !== undefined
                 ? [tooltipTime, ...highlightedTimes]
                 : highlightedTimes
+        )
+    }
+
+    /** EXPERIMENT: hard-coded annotation for a single chart */
+    @computed private get annotation(): LineChartAnnotation | undefined {
+        if (this.isStatic) return undefined
+        return getLineChartAnnotation(this.manager.slug)
+    }
+
+    @computed private get annotatedVerticalLabel():
+        | AnnotatedVerticalLabel
+        | undefined {
+        const { annotation } = this
+        if (!annotation) return undefined
+        return {
+            seriesName: annotation.seriesName,
+            dodText: this.isMarkerVariant ? undefined : annotation.text,
+            showIcon: !this.isMarkerVariant && this.isAnnotatedTimeHovered,
+            onDodShow: this.onLabelDodShow,
+            onDodHide: this.onLabelDodHide,
+        }
+    }
+
+    @computed private get isMarkerVariant(): boolean {
+        return annotationVariant.get() === "marker"
+    }
+
+    @computed private get isAnnotatedTimeHovered(): boolean {
+        const { annotation } = this
+        if (!annotation) return false
+        return (
+            this.isTooltipActive && this.activeTimes.includes(annotation.time)
+        )
+    }
+
+    @action.bound private onLabelDodShow(): void {
+        this.isLabelDodOpen = true
+    }
+
+    @action.bound private onLabelDodHide(): void {
+        this.isLabelDodOpen = false
+    }
+
+    @action.bound private onMarkerDodShow(): void {
+        this.isMarkerDodOpen = true
+        // The DoD takes over from the line tooltip while it's open
+        this.dismissTooltip()
+    }
+
+    @action.bound private onMarkerDodHide(): void {
+        this.isMarkerDodOpen = false
+    }
+
+    /** Larger than the icon next to the label, so the cursor doesn't hide it */
+    @computed private get annotationIconRadius(): number {
+        return this.activeTimeCircleRadius * ANNOTATED_MARKER_RADIUS_FACTOR
+    }
+
+    /**
+     * The annotation's "i" icon on the line. Shown while the annotated time is
+     * hovered or one of the DoDs is open, and opens the DoD when clicked.
+     */
+    private renderAnnotationMarker(): React.ReactElement | null {
+        const { annotation } = this
+        if (!annotation) return null
+        const isVisible =
+            this.isAnnotatedTimeHovered ||
+            this.isLabelDodOpen ||
+            this.isMarkerDodOpen
+        if (!isVisible) return null
+
+        const series = this.renderSeries.find(
+            (series) => series.seriesName === annotation.seriesName
+        )
+        const point = series?.points.find(
+            (point) => point.x === annotation.time
+        )
+        if (!series || !point) return null
+
+        const icon = (
+            <AnnotationInfoIcon
+                x={this.dualAxis.horizontalAxis.place(point.x)}
+                y={this.dualAxis.verticalAxis.place(point.y)}
+                radius={this.annotationIconRadius}
+                fill={series.color}
+                clickable={this.isMarkerVariant}
+            />
+        )
+
+        if (!this.isMarkerVariant) return icon
+
+        return (
+            <Tippy
+                theme={DOD_TIPPY_PROPS.theme}
+                trigger="click"
+                interactive
+                arrow={false}
+                appendTo={() => document.body}
+                placement="top"
+                onShow={this.onMarkerDodShow}
+                onHide={this.onMarkerDodHide}
+                content={<AnnotationDodContent text={annotation.text} />}
+            >
+                <g>{icon}</g>
+            </Tippy>
         )
     }
 
@@ -384,6 +515,7 @@ export class LineChart
                         onMouseEnter={this.onVerticalLabelMouseEnter}
                         onMouseLeave={this.onVerticalLabelMouseLeave}
                         interactive={!this.isStatic}
+                        annotatedLabel={this.annotatedVerticalLabel}
                     />
                 )}
                 <Lines
@@ -440,8 +572,11 @@ export class LineChart
                         dualAxis={this.dualAxis}
                         chartState={this.chartState}
                         dotRadius={this.activeTimeCircleRadius}
+                        annotation={this.annotation}
                     />
                 )}
+                {this.renderAnnotationMarker()}
+                {this.annotation && <AnnotationVariantPicker />}
                 <LineChartTooltip
                     id={this.tooltipId}
                     chartState={this.chartState}
