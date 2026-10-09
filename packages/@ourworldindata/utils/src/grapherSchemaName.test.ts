@@ -36,7 +36,7 @@ describe(parseGrapherSchemaName, () => {
         ).toBeUndefined()
     })
 
-    it("returns undefined for a name it does not recognise", () => {
+    it("returns undefined for any other name", () => {
         for (const name of [
             "grapher-schema.011.yaml",
             "grapher-schema.011.4.json",
@@ -66,7 +66,7 @@ describe(formatGrapherSchemaFileName, () => {
 })
 
 describe(formatGrapherSchemaUrl, () => {
-    it("builds a url the parser accepts", () => {
+    it("builds the full schema url", () => {
         expect(formatGrapherSchemaUrl("011", 4)).toEqual(
             "https://files.ourworldindata.org/schemas/grapher-schema.011.04.json"
         )
