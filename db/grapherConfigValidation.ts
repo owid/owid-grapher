@@ -30,7 +30,6 @@ export class GrapherConfigValidationError extends JsonError {
     }
 }
 
-/** Throws if the config is invalid, reporting every issue at once */
 export function assertValidGrapherConfig(config: UntypedGrapherConfig): void {
     const issues = validateGrapherConfig(config)
     if (issues.length > 0) throw new GrapherConfigValidationError(issues)
