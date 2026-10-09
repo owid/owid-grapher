@@ -96,6 +96,15 @@ export function MultiDimDataPage({
                 <meta property="og:image:width" content={imageWidth} />
                 <meta property="og:image:height" content={imageHeight} />
                 <IFrameDetector />
+                {/* See the note in DataPageV2: agents that don't negotiate
+                    content fetch this as a second request. The markdown
+                    endpoint resolves the view from the query string, but a
+                    static link can only carry the default one. */}
+                <link
+                    rel="alternate"
+                    type="text/markdown"
+                    href={`${canonicalUrl}.md`}
+                />
                 <noscript>
                     <style>{`
                     figure[data-grapher-src] { display: none !important; }
