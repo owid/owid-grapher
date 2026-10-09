@@ -44,7 +44,7 @@
                 root.appendChild(errorMessage)
             } else {
                 for (const variant of VARIANTS) {
-                    const size = variant.demoSize ?? "wide"
+                    const size = variant.defaultSize ?? "wide"
 
                     const wrapper = document.createElement("div")
                     wrapper.className = "variant"
@@ -90,7 +90,7 @@
                         container,
                         scriptUrl: "/{{PROJECT}}/{{ENTRYPOINT_JS}}",
                         variant: variant.name,
-                        config: variant.demoConfig,
+                        config: variant.defaultConfig,
                         dataUrl,
                         metadataUrl,
                     })

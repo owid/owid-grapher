@@ -19,9 +19,9 @@ import "./index.scss"
 enableShadowDOM()
 
 export const VARIANTS = [
-    { name: "picker", component: Picker, demoConfig: {} },
-    { name: "display", component: Display, demoConfig: {} },
-    { name: "chart", component: Chart, demoConfig: {} },
+    { name: "picker", component: Picker },
+    { name: "display", component: Display },
+    { name: "chart", component: Chart },
 ] satisfies BespokeComponentVariantsList<VariantName>
 
 export const mount: BespokeComponentMountFn = (

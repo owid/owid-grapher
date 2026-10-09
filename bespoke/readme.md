@@ -56,7 +56,7 @@ export function mount(
 - **`opts.metadataUrl`** — URL of the metadata file inside that folder, from the entry's `metadataFilename`.
 - **Return value** — Optionally return a cleanup/disposal function that will be called on unmount.
 
-A module may also export `VARIANTS`, a list of `{ name, demoConfig?, demoSize? }` entries. The site ignores it; the dev server's demo page reads it to mount every variant, and shows an error instead of the component when it is missing.
+A module may also export `VARIANTS`, a list of `{ name, defaultConfig?, defaultSize? }` entries. The site ignores it; the dev server's demo page reads it to mount every variant, and shows an error instead of the component when it is missing.
 
 ### Registering a component
 

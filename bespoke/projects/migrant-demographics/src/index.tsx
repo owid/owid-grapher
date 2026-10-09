@@ -21,7 +21,7 @@ import "./index.scss"
 enableShadowDOM()
 
 export const VARIANTS = [
-    { name: "pyramid", component: PyramidVariant, demoConfig: {} },
+    { name: "pyramid", component: PyramidVariant },
 ] satisfies BespokeComponentVariantsList<VariantName>
 
 export const mount: BespokeComponentMountFn = (

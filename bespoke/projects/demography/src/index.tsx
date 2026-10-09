@@ -26,26 +26,22 @@ export const VARIANTS = [
     {
         name: "simulation",
         component: SimulationVariant,
-        demoConfig: {},
-        demoSize: "widest",
+        defaultSize: "widest",
     },
     {
         name: "population",
         component: PopulationVariant,
-        demoConfig: {},
-        demoSize: "wide",
+        defaultSize: "wide",
     },
     {
         name: "populationPyramid",
         component: PopulationPyramidVariant,
-        demoConfig: {},
-        demoSize: "narrow",
+        defaultSize: "narrow",
     },
     {
         name: "parameters",
         component: ParametersVariant,
-        demoConfig: {},
-        demoSize: "narrow",
+        defaultSize: "narrow",
     },
 ] satisfies BespokeComponentVariantsList<VariantName>
 
