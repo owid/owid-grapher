@@ -204,8 +204,6 @@ describe("Multi-dim views", { timeout: 20000 }, () => {
         await upsertMultiDim([totalView])
         const viewConfigIds = await getViewConfigIds()
 
-        // Some stored view configs carry no schema version, and the route will
-        // not create one, so the row is written directly
         const row = await env
             .testKnex(MultiDimDataPagesTableName)
             .where({ catalogPath })

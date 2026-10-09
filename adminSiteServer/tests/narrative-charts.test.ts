@@ -17,7 +17,6 @@ import type { NarrativeChartResponse } from "../apiRoutes/narrativeCharts.js"
 
 const env = getAdminTestEnv()
 
-/** Reads a config as stored, bypassing the migration every read route applies */
 async function readStoredConfig(configId: string): Promise<GrapherInterface> {
     const row = await env
         .testKnex(ChartConfigsTableName)
@@ -176,7 +175,6 @@ describe("Narrative charts API", { timeout: 20000 }, () => {
     it("migrates an outdated narrative chart config before storing it", async () => {
         const { chartId } = await createParentChart()
 
-        // Schema version 009's migration renames hideLegend to hideSeriesLabels
         const narrativeChartId = await createNarrativeChart(chartId, {
             ...narrativeChartConfig,
             $schema:
