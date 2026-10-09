@@ -129,10 +129,21 @@ export async function updateBulkChartConfigs(
         configMap.set(patchSet.id, applyPatch(patchSet, config))
     }
 
-    // Every chart is checked before any is saved. saveGrapher writes each
-    // chart's config to R2 and queues a bake as it goes, and neither of those
-    // rolls back with the transaction, so a chart rejected halfway through the
-    // save loop would leave R2 serving configs the database never got.
+    const validatedConfigMap = ingestEveryChartOrThrow(configMap)
+    for (const [id, newConfig] of validatedConfigMap.entries()) {
+        await saveGrapher(trx, {
+            user: res.locals.user,
+            newConfig,
+            existingConfig: oldValuesConfigMap.get(id),
+        })
+    }
+
+    return { success: true }
+}
+
+function ingestEveryChartOrThrow(
+    configMap: Map<number, GrapherInterface>
+): Map<number, GrapherInterface> {
     const validatedConfigMap = new Map<number, GrapherInterface>()
     const rejectedCharts: RejectedChart[] = []
     for (const [id, patchedConfig] of configMap.entries()) {
@@ -143,16 +154,7 @@ export async function updateBulkChartConfigs(
     }
     if (rejectedCharts.length > 0)
         throw new JsonError(describeRejectedCharts(rejectedCharts), 400)
-
-    for (const [id, newConfig] of validatedConfigMap.entries()) {
-        await saveGrapher(trx, {
-            user: res.locals.user,
-            newConfig,
-            existingConfig: oldValuesConfigMap.get(id),
-        })
-    }
-
-    return { success: true }
+    return validatedConfigMap
 }
 
 interface RejectedChart {
