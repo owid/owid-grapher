@@ -26,7 +26,7 @@ import {
 import { formatEntityNameForSentence } from "../../../../helpers/entityNames.js"
 import { combineStatuses } from "../../../../helpers/queryStatus.js"
 
-import { PyramidVariantConfig } from "../core/config.js"
+import type { MigrantDemographicsConfig } from "../index.js"
 import { RawEntityYears, ShowMode } from "../core/types.js"
 import type {
     BespokeComponentDataUrls,
@@ -45,14 +45,14 @@ import {
     formatCountLong,
     formatSexShare,
 } from "../core/helpers.js"
-import { DEFAULT_COUNTRY, NARROW_BREAKPOINT } from "../core/constants.js"
+import { FALLBACK_COUNTRY, NARROW_BREAKPOINT } from "../core/constants.js"
 import { MigrantPyramid } from "../components/MigrantPyramid.js"
 import { PyramidControls } from "../components/PyramidControls.js"
 
 export function PyramidVariant({
     config,
     urls,
-}: BespokeVariantProps<PyramidVariantConfig>): React.ReactElement {
+}: BespokeVariantProps<MigrantDemographicsConfig>): React.ReactElement {
     return (
         <EmbedConfigProvider config={config}>
             <NuqsAdapter>
@@ -68,13 +68,12 @@ function FetchingPyramidVariant({
     config,
     urls,
 }: {
-    config: PyramidVariantConfig
+    config: MigrantDemographicsConfig
     urls: BespokeComponentDataUrls
 }): React.ReactElement {
-    const initialCountry =
-        !config.country || isUserLocationCountry(config.country)
-            ? DEFAULT_COUNTRY
-            : config.country
+    const initialCountry = isUserLocationCountry(config.country)
+        ? FALLBACK_COUNTRY
+        : config.country
 
     const [country, setCountry] = useUrlState({
         key: "migrantPyramidCountry",
@@ -89,7 +88,7 @@ function FetchingPyramidVariant({
     const [show, setShow] = useUrlState({
         key: "migrantPyramidShow",
         parser: parseAsStringEnum<ShowMode>(["number", "share"]),
-        defaultValue: config.show ?? "number",
+        defaultValue: config.show,
     })
     const [compare, setCompare] = useUrlState({
         key: "migrantPyramidCompare",
@@ -104,7 +103,7 @@ function FetchingPyramidVariant({
     // data doesn't have
     const selectedCountry = metadata?.hasEntity(country)
         ? country
-        : DEFAULT_COUNTRY
+        : FALLBACK_COUNTRY
 
     const {
         data: entityYears,
@@ -169,7 +168,7 @@ function CaptionedPyramidVariant({
     setShow,
     setCompare,
 }: {
-    config: PyramidVariantConfig
+    config: MigrantDemographicsConfig
     metadata: MigrantDemographicsMetadata
     entityYears: RawEntityYears
     country: string

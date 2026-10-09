@@ -5,13 +5,17 @@ import type {
     BespokeComponentMountFn,
     BespokeComponentMountOpts,
     BespokeComponentVariantsList,
+    BespokeConfigSpec,
 } from "owid-bespoke-types"
 import StylesTarget from "vite-plugin-css-position/react"
 
-import { parseEmbedConfig } from "../../../helpers/config.js"
+import {
+    ConfigFromSpec,
+    parseConfigFromSpec,
+    parseEmbedConfig,
+} from "../../../helpers/config.js"
 
-import { VariantName } from "./core/types.js"
-import { parseConfig } from "./core/config.js"
+import { SHOW_MODES, VariantName } from "./core/types.js"
 import { PyramidVariant } from "./variants/PyramidVariant.js"
 
 import "./index.scss"
@@ -27,6 +31,48 @@ export const VARIANTS = [
         component: PyramidVariant,
     },
 ] satisfies BespokeComponentVariantsList<VariantName>
+
+export const CONFIG_SPEC = {
+    hideControls: {
+        type: "boolean",
+        description:
+            "Hide the country, year, number-or-share and native-born comparison controls",
+    },
+    compare: {
+        type: "boolean",
+        default: "false",
+        description:
+            "Start compared with the native-born population, shown as shares",
+    },
+    title: {
+        type: "string",
+        description: "Chart title, replacing the generated one",
+    },
+    subtitle: {
+        type: "string",
+        description: "Chart subtitle, replacing the generated one",
+    },
+    country: {
+        type: "string",
+        default: "United States",
+        description:
+            "Country shown first. `userLocation` picks the reader's country",
+    },
+    year: {
+        type: "integer",
+        description:
+            "Year shown first. Defaults to the latest year in the data",
+    },
+    show: {
+        type: "enum",
+        values: SHOW_MODES,
+        default: "number",
+        description:
+            "Show immigrants as a number or a share. Ignored when compare is on",
+    },
+} as const satisfies BespokeConfigSpec
+
+export type MigrantDemographicsConfig = ConfigFromSpec<typeof CONFIG_SPEC>
 
 export const mount: BespokeComponentMountFn = (
     container: HTMLDivElement,
@@ -46,10 +92,10 @@ export const mount: BespokeComponentMountFn = (
 
     const urls = { dataUrl: opts.dataUrl, metadataUrl: opts.metadataUrl }
 
-    const rawConfig = opts.config ?? {}
+    const authoredConfig = opts.config ?? {}
     const config = {
-        ...parseConfig(rawConfig),
-        ...parseEmbedConfig(rawConfig),
+        ...parseConfigFromSpec(CONFIG_SPEC, authoredConfig),
+        ...parseEmbedConfig(authoredConfig),
     }
 
     const root = createRoot(container)
