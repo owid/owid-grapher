@@ -5,7 +5,6 @@ import { parseAsInteger, parseAsString } from "nuqs"
 import * as R from "remeda"
 
 import { Time } from "@ourworldindata/types"
-import { WORLD_ENTITY_NAME } from "@ourworldindata/grapher/src/core/GrapherConstants.js"
 import { ChartError } from "../../../../components/ChartError/ChartError.js"
 import { ChartSkeleton } from "../../../../components/ChartSkeleton/ChartSkeleton.js"
 import { combineStatuses } from "../../../../helpers/queryStatus.js"
@@ -14,7 +13,7 @@ import type {
     BespokeComponentDataUrls,
     BespokeVariantProps,
 } from "owid-bespoke-types"
-import { CausesOfDeathConfig } from "../core/config.js"
+import type { CausesOfDeathConfig } from "../index.js"
 import {
     useCausesOfDeathEntityData,
     useCausesOfDeathMetadata,
@@ -26,10 +25,6 @@ import { CausesOfDeathControls } from "./CausesOfDeathControls.js"
 import { useUrlState } from "../../../../hooks/useUrlState.js"
 import { EmbedConfigProvider } from "../../../../hooks/useEmbedConfig.js"
 import { useDelayedLoading } from "../../../../hooks/useDelayedLoading.js"
-
-const DEFAULT_AGE_GROUP = "All ages"
-const DEFAULT_SEX = "Both sexes"
-const DEFAULT_ENTITY_NAME = WORLD_ENTITY_NAME
 
 // Sentinel year meaning "the latest available year"; the concrete default
 // isn't known until the metadata has loaded.
@@ -64,17 +59,17 @@ function CausesOfDeathChart(props: {
     const [ageGroup, setAgeGroup] = useUrlState({
         key: "causesOfDeathAge",
         parser: parseAsString,
-        defaultValue: config.ageGroup ?? DEFAULT_AGE_GROUP,
+        defaultValue: config.ageGroup,
     })
     const [sex, setSex] = useUrlState({
         key: "causesOfDeathSex",
         parser: parseAsString,
-        defaultValue: config.sex ?? DEFAULT_SEX,
+        defaultValue: config.sex,
     })
     const [entityName, setEntityName] = useUrlState({
         key: "causesOfDeathRegion",
         parser: parseAsString,
-        defaultValue: config.region ?? DEFAULT_ENTITY_NAME,
+        defaultValue: config.region,
     })
     const [year, setYear] = useUrlState({
         key: "causesOfDeathYear",

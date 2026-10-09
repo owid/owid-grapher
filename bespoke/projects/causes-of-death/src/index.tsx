@@ -5,13 +5,17 @@ import type {
     BespokeComponentMountFn,
     BespokeComponentMountOpts,
     BespokeComponentVariantsList,
+    BespokeConfigSpec,
 } from "owid-bespoke-types"
 import StylesTarget from "vite-plugin-css-position/react"
 
-import { parseEmbedConfig } from "../../../helpers/config.js"
+import {
+    ConfigFromSpec,
+    parseConfigFromSpec,
+    parseEmbedConfig,
+} from "../../../helpers/config.js"
 
 import { CausesOfDeathChartWithProviders } from "./components/CausesOfDeathChart.js"
-import { parseConfig } from "./core/config.js"
 
 import "./index.scss"
 
@@ -26,6 +30,37 @@ export const VARIANTS = [
         component: CausesOfDeathChartWithProviders,
     },
 ] satisfies BespokeComponentVariantsList
+
+export const CONFIG_SPEC = {
+    region: {
+        type: "string",
+        default: "World",
+        description:
+            "Country or region shown first, such as `Nigeria` or `High-income countries`",
+    },
+    sex: {
+        type: "string",
+        default: "Both sexes",
+        description: "Sex shown first: `Both sexes`, `Female` or `Male`",
+    },
+    ageGroup: {
+        type: "string",
+        default: "All ages",
+        description:
+            "Age group shown first, such as `All ages`, `Children under 5` or `Children aged 5 to 14`",
+    },
+    year: {
+        type: "integer",
+        description:
+            "Year shown first. Defaults to the latest year in the data",
+    },
+    hideControls: {
+        type: "boolean",
+        description: "Hide the region, age group, sex and year controls",
+    },
+} as const satisfies BespokeConfigSpec
+
+export type CausesOfDeathConfig = ConfigFromSpec<typeof CONFIG_SPEC>
 
 export const mount: BespokeComponentMountFn = (
     container: HTMLDivElement,
@@ -45,10 +80,10 @@ export const mount: BespokeComponentMountFn = (
 
     const urls = { dataUrl: opts.dataUrl, metadataUrl: opts.metadataUrl }
 
-    const rawConfig = opts.config ?? {}
+    const authoredConfig = opts.config ?? {}
     const config = {
-        ...parseConfig(rawConfig),
-        ...parseEmbedConfig(rawConfig),
+        ...parseConfigFromSpec(CONFIG_SPEC, authoredConfig),
+        ...parseEmbedConfig(authoredConfig),
     }
 
     const root = createRoot(container)
