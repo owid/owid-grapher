@@ -1309,40 +1309,31 @@ const HighlightedQueryText = ({
 }
 
 /**
- * How far to scroll the page, in pixels (negative is up), so that a row just
- * opened on the accordion layout shows the chart it opened. Positions are
- * viewport offsets of the row's top and of the chart panel's top and bottom,
- * as they were when the row was tapped (see AllChartsTableRow); `viewTop` is
- * where the viewport stops being covered by the pinned sub-nav and search bar,
- * and `viewBottom` is its bottom edge.
+ * How far to scroll the page, in pixels (negative is up), so that the chart a
+ * row just opened on the accordion layout is centred in the part of the
+ * viewport the visitor can see: between `viewTop`, where the pinned sub-nav and
+ * search bar stop covering it, and `viewBottom`, its bottom edge. `chartTop`
+ * and `chartBottom` are the chart card's viewport offsets as they were when the
+ * row was tapped (see AllChartsTableRow).
  *
- * When the row and its chart fit between the two together, it scrolls the
- * least that brings all of them in, title to the chart's foot, and not at all
- * if they already are. When they don't — on most phones a row and the 575px
- * chart are a little too tall — the chart's foot goes to the bottom of the
- * viewport, which leaves the row's thumbnails above it and as much of its text
- * as fits; but never so far that the chart's own top ends up under the bar.
+ * Centred on the card alone, not the row: the row's thumbnails sit just above
+ * it, partly in view. A card taller than the visible area has its top put just
+ * under the bar instead, so its top is never hidden.
  */
 // oxlint-disable-next-line react/only-export-components -- exported for AllChartsBlock.test.ts; the rule is about fast refresh, and this is a pure helper
 export function getOpenRowScrollDelta({
-    rowTop,
     chartTop,
     chartBottom,
     viewTop,
     viewBottom,
 }: {
-    rowTop: number
     chartTop: number
     chartBottom: number
     viewTop: number
     viewBottom: number
 }): number {
-    if (chartBottom - rowTop <= viewBottom - viewTop) {
-        if (rowTop < viewTop) return rowTop - viewTop
-        if (chartBottom > viewBottom) return chartBottom - viewBottom
-        return 0
-    }
-    return Math.min(chartBottom - viewBottom, chartTop - viewTop)
+    const room = viewBottom - viewTop - (chartBottom - chartTop)
+    return chartTop - (viewTop + Math.max(0, room / 2))
 }
 
 const AllChartsTableRow = ({
@@ -1392,7 +1383,7 @@ const AllChartsTableRow = ({
         searchPhrase.trim() !== "" || detectedCountries.length > 0
 
     // On the accordion layout a tap opens this row's chart underneath its
-    // thumbnails, and the page is then scrolled to show it (see
+    // thumbnails, and the page is then scrolled to centre it (see
     // getOpenRowScrollDelta). Only on a tap, so the row that opens by itself
     // on load or on a new query leaves the page where it is.
     //
@@ -1404,6 +1395,11 @@ const AllChartsTableRow = ({
     // was tapped: any jump is undone at once, and the scroll that brings the
     // chart in starts from where the visitor was looking.
     //
+    // What is centred is the chart card, .all-charts-block__grapher, whose
+    // height is fixed by the stylesheet ($grapher-height) from the moment it
+    // mounts, so it can be measured in the first frame: Grapher initialising
+    // inside it (a second or two) doesn't change its size.
+    //
     // A no-op on desktop, which never expands a row: the accordion panel isn't
     // rendered, so there is no chart to bring in.
     const rowRef = useRef<HTMLLIElement>(null)
@@ -1413,12 +1409,13 @@ const AllChartsTableRow = ({
         open()
         requestAnimationFrame(() => {
             const row = rowRef.current
-            const chartPanel = chartPanelRef.current
-            if (!row || !chartPanel || rowTopBefore === undefined) return
+            const chart = chartPanelRef.current?.querySelector(
+                ".all-charts-block__grapher"
+            )
+            if (!row || !chart || rowTopBefore === undefined) return
             const jump = row.getBoundingClientRect().top - rowTopBefore
-            const chartRect = chartPanel.getBoundingClientRect()
+            const chartRect = chart.getBoundingClientRect()
             const delta = getOpenRowScrollDelta({
-                rowTop: rowTopBefore,
                 chartTop: chartRect.top - jump,
                 chartBottom: chartRect.bottom - jump,
                 // The row's scroll-margin-top is the bottom edge of the pinned

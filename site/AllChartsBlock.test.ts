@@ -293,68 +293,43 @@ describe(getRowThumbnailPreviewUrl, () => {
 
 describe(getOpenRowScrollDelta, () => {
     // A 390x844 phone with the topic sub-nav and the search bar pinned: the
-    // first 116px of the viewport are covered. A row is about 150px tall and
-    // the chart panel it opens about 608px, so on this phone the two together
-    // (758px) don't fit in the 728px left over; the first cases shrink the
-    // chart so that they do.
+    // first 116px of the viewport are covered, leaving 728px to centre the
+    // 575px chart card in.
     const view = { viewTop: 116, viewBottom: 844 }
 
-    it("leaves a row whose chart is already in view where it is", () => {
+    it("centres the chart card below the pinned bar", () => {
+        // 728 - 575 = 153px of room, 76.5px either side: the card's top should
+        // land at 192.5px, so a card opened at 700px moves up by 507.5px.
+        expect(
+            getOpenRowScrollDelta({ ...view, chartTop: 700, chartBottom: 1275 })
+        ).toBe(507.5)
+    })
+
+    it("moves the page down to centre a card that opened too high", () => {
+        expect(
+            getOpenRowScrollDelta({ ...view, chartTop: 120, chartBottom: 695 })
+        ).toBe(-72.5)
+    })
+
+    it("leaves a card that is already centred where it is", () => {
         expect(
             getOpenRowScrollDelta({
                 ...view,
-                rowTop: 200,
-                chartTop: 350,
-                chartBottom: 700,
+                chartTop: 192.5,
+                chartBottom: 767.5,
             })
         ).toBe(0)
     })
 
-    it("moves the page up just far enough to bring in the chart's foot", () => {
-        expect(
-            getOpenRowScrollDelta({
-                ...view,
-                rowTop: 500,
-                chartTop: 650,
-                chartBottom: 1000,
-            })
-        ).toBe(156)
-    })
-
-    it("brings a row tapped under the search bar back out from under it", () => {
-        expect(
-            getOpenRowScrollDelta({
-                ...view,
-                rowTop: 60,
-                chartTop: 210,
-                chartBottom: 560,
-            })
-        ).toBe(-56)
-    })
-
-    it("puts the chart's foot at the bottom when the whole row can't fit, leaving the thumbnails above it", () => {
-        // The chart's top lands at 236px, so 120px of the row above it (its
-        // thumbnail strip and the line over that) stay in view below the bar.
-        expect(
-            getOpenRowScrollDelta({
-                ...view,
-                rowTop: 400,
-                chartTop: 550,
-                chartBottom: 1158,
-            })
-        ).toBe(314)
-    })
-
-    it("never scrolls the chart's own top under the bar", () => {
-        // A viewport shorter than the chart: its top goes to the bar's edge
-        // rather than its foot to the bottom of the screen.
+    it("puts a card taller than the visible area just under the bar", () => {
+        // A short viewport (484px below the bar): centring would push the
+        // card's top up under the bar, so its top goes to the bar's edge.
         expect(
             getOpenRowScrollDelta({
                 viewTop: 116,
                 viewBottom: 600,
-                rowTop: 400,
                 chartTop: 550,
-                chartBottom: 1158,
+                chartBottom: 1125,
             })
         ).toBe(434)
     })
