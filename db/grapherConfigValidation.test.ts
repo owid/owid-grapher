@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest"
-import { formatGrapherSchemaUrl } from "@ourworldindata/utils"
+import {
+    formatGrapherSchemaUrl,
+    parseGrapherSchemaName,
+} from "@ourworldindata/utils"
 import { GrapherInterface } from "@ourworldindata/types"
 import {
     type UntypedGrapherConfig,
@@ -17,6 +20,9 @@ import {
 
 const latestSchemaUrl = defaultGrapherConfig.$schema
 const foreignSchemaUrl = `https://example.org/schemas/grapher-schema.${latestSchemaVersion}.json`
+
+const latestSchemaRevision =
+    parseGrapherSchemaName(defaultGrapherConfig.$schema ?? "")?.revision ?? 0
 
 const baseChartConfig: UntypedGrapherConfig = {
     $schema: defaultGrapherConfig.$schema,
@@ -93,6 +99,22 @@ describe(tryIngestGrapherConfig, () => {
             ],
         },
         {
+            name: "a revision newer than this build's",
+            config: {
+                ...baseChartConfig,
+                $schema: formatGrapherSchemaUrl(
+                    latestSchemaVersion,
+                    latestSchemaRevision + 1
+                ),
+            },
+            issues: [
+                {
+                    pointer: "/$schema",
+                    message: `${formatGrapherSchemaUrl(latestSchemaVersion, latestSchemaRevision + 1)} is newer than the latest ${latestSchemaUrl}`,
+                },
+            ],
+        },
+        {
             name: "a config that fails to migrate",
             config: {
                 ...baseChartConfig,
@@ -139,9 +161,17 @@ describe(tryIngestGrapherConfig, () => {
             storedSchema: formatGrapherSchemaUrl(latestSchemaVersion),
         },
         {
-            name: "the latest version at any revision",
-            $schema: formatGrapherSchemaUrl(latestSchemaVersion, 7),
-            storedSchema: formatGrapherSchemaUrl(latestSchemaVersion, 7),
+            name: "the latest version at this build's revision",
+            $schema: formatGrapherSchemaUrl(
+                latestSchemaVersion,
+                latestSchemaRevision
+            ),
+            storedSchema: latestSchemaUrl,
+        },
+        {
+            name: "an outdated version at any revision",
+            $schema: formatGrapherSchemaUrl("010", 99),
+            storedSchema: formatGrapherSchemaUrl(latestSchemaVersion),
         },
     ])("accepts $name", ({ $schema, storedSchema }) => {
         const config = expectAccepted({ ...baseChartConfig, $schema })
