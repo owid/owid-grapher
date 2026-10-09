@@ -22,6 +22,7 @@ enableShadowDOM()
 export const VARIANTS = [
     {
         name: "treemap",
+        description: "Treemap of deaths by cause in one country or region",
         component: CausesOfDeathChartWithProviders,
     },
 ] satisfies BespokeComponentVariantsList

@@ -21,7 +21,12 @@ import "./index.scss"
 enableShadowDOM()
 
 export const VARIANTS = [
-    { name: "sankey", component: SankeyVariant },
+    {
+        name: "sankey",
+        description:
+            "Sankey of where one country's immigrants were born and where its emigrants live",
+        component: SankeyVariant,
+    },
 ] satisfies BespokeComponentVariantsList<VariantName>
 
 export const mount: BespokeComponentMountFn = (

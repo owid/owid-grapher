@@ -29,6 +29,7 @@ export interface BespokeComponentVariantsEntry<
     VariantName extends string = string,
 > extends Record<string, unknown> {
     name: VariantName
+    description: string
     defaultConfig?: Record<string, string>
     defaultSize?: "narrow" | "wide" | "widest"
 }

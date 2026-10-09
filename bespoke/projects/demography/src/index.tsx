@@ -25,21 +25,28 @@ enableShadowDOM()
 export const VARIANTS = [
     {
         name: "simulation",
+        description:
+            "Population projection for one country where readers set the fertility, life expectancy and migration assumptions",
         component: SimulationVariant,
         defaultSize: "widest",
     },
     {
         name: "population",
+        description:
+            "Line chart of one country's population over time, by default the UN projection",
         component: PopulationVariant,
         defaultSize: "wide",
     },
     {
         name: "populationPyramid",
+        description: "Age and sex pyramid of one country's population",
         component: PopulationPyramidVariant,
         defaultSize: "narrow",
     },
     {
         name: "parameters",
+        description:
+            "Line charts of the fertility, life expectancy and migration assumptions behind one country's population projection",
         component: ParametersVariant,
         defaultSize: "narrow",
     },

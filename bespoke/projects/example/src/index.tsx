@@ -19,9 +19,23 @@ import "./index.scss"
 enableShadowDOM()
 
 export const VARIANTS = [
-    { name: "picker", component: Picker },
-    { name: "display", component: Display },
-    { name: "chart", component: Chart },
+    {
+        name: "picker",
+        description:
+            "Food dropdown and color swatches that drive the display variant",
+        component: Picker,
+    },
+    {
+        name: "display",
+        description: "Icon of the food and color chosen in the picker variant",
+        component: Display,
+    },
+    {
+        name: "chart",
+        description:
+            "Placeholder chart with no data that shows the layout bounds",
+        component: Chart,
+    },
 ] satisfies BespokeComponentVariantsList<VariantName>
 
 export const mount: BespokeComponentMountFn = (
