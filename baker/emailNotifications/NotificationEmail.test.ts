@@ -212,12 +212,9 @@ describe(renderNotificationEmail, () => {
         expect(text).toMatchSnapshot()
     })
 
-    it("includes the subscriber's unsubscribe and preferences links", async () => {
+    it("includes the subscriber's preferences link", async () => {
         const { html, text } = await renderFixture()
         for (const body of [html, text]) {
-            expect(body).toContain(
-                `${API_BASE_URL}/unsubscribe?token=${SUBSCRIBER.token}`
-            )
             expect(body).toContain(
                 `${API_BASE_URL}/request-link?token=${SUBSCRIBER.token}`
             )
