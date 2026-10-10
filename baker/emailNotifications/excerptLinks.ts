@@ -28,14 +28,14 @@ function resolveSpan(
     linkedDocuments: Record<string, OwidGdocMinimalPostInterface>,
     baseUrl: string
 ): Span {
-    const resolved =
-        "children" in span && span.children
-            ? ({
+    const resolved: Span =
+        "children" in span
+            ? {
                   ...span,
                   children: span.children.map((child) =>
                       resolveSpan(child, linkedDocuments, baseUrl)
                   ),
-              } as Span)
+              }
             : span
     if (resolved.spanType !== "span-link") return resolved
 
