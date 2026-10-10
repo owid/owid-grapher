@@ -34,6 +34,7 @@ interface NotificationPreferencesState {
     /** Spread onto <EmailNotificationsPreferenceFields>. */
     fieldsProps: EmailNotificationsPreferenceFieldsProps
     setTopicTags: (topicTags: string[]) => void
+    setIsExpanded: (isExpanded: boolean) => void
     /** The shape the API stores, with "all topics" collapsed to []. */
     forStorage: () => EmailNotificationsPreferences
     /** Records per-field errors and returns whether the selection is valid. */
@@ -67,6 +68,12 @@ export function useNotificationPreferences(
     )
     const [validationErrors, setValidationErrors] =
         useState<PreferencesValidationErrors | null>(null)
+    // The fields start collapsed unless the reader already has a custom topic
+    // selection (stored preferences, or topics passed in the URL - see
+    // setIsExpanded).
+    const [isExpanded, setIsExpanded] = useState(
+        () => (initialPreferences?.topicTags.length ?? 0) > 0
+    )
 
     return {
         fieldsProps: {
@@ -74,6 +81,8 @@ export function useNotificationPreferences(
             topicTags,
             contentTypes,
             frequency,
+            isExpanded,
+            onToggleExpanded: () => setIsExpanded((current) => !current),
             onToggleTopicTag: (tagName) =>
                 setTopicTags((current) => toggleInArray(current, tagName)),
             onToggleContentType: (contentType) =>
@@ -84,6 +93,7 @@ export function useNotificationPreferences(
             validationErrors,
         },
         setTopicTags,
+        setIsExpanded,
         forStorage: () => ({
             topicTags: topicTagsForStorage(topicTags, topicAreaNames),
             contentTypes,
@@ -95,6 +105,8 @@ export function useNotificationPreferences(
                 contentTypes
             )
             setValidationErrors(errors)
+            // Errors are rendered next to the fields they refer to.
+            if (errors) setIsExpanded(true)
             return !errors
         },
         resetValidation: () => setValidationErrors(null),
