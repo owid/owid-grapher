@@ -70,6 +70,11 @@ export const latestTypeLabelPlural = (type: LatestType): string =>
 export const LATEST_HIT_GRID_CLASSES =
     "span-cols-8 col-start-2 span-md-cols-12 col-md-start-2 span-sm-cols-14 col-sm-start-1"
 
+/** Grid positioning of the /latest sidebar slot, shared by the skeleton, the
+ * feed and the no-results state so it doesn't jump between them. */
+export const LATEST_SIDEBAR_GRID_CLASSES =
+    "col-start-11 span-cols-3 col-lg-start-10 span-lg-cols-4 span-md-cols-14 col-md-start-1"
+
 /** Grid positioning for the facets row and the divider beneath it — shared
  * between the live UI (LatestSearch) and the baked skeleton
  * (LatestPageSkeleton) so the two layouts can't drift apart. */

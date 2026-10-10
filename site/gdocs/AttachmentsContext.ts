@@ -30,6 +30,7 @@ export type Attachments = {
     linkedNarrativeCharts?: Record<string, NarrativeChartInfo>
     linkedStaticViz?: Record<string, LinkedStaticViz>
     tags: MinimalTag[]
+    topicArea?: string
     linkedCallouts?: LinkedCallouts
     bespokeMetadata?: BespokeMetadata
 }

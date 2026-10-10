@@ -139,6 +139,7 @@ export function OwidGdoc({
                 bespokeMetadata: _.get(props, "bespokeMetadata"),
                 // lodash doesn't use fallback when value is null
                 tags: props.tags ?? [],
+                topicArea: props.topicArea,
             }}
         >
             <DocumentContext.Provider
