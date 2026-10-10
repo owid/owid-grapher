@@ -45,7 +45,7 @@ function parseSentAt(value: unknown): Date {
 /** Repeated query params arrive as string[], single ones as string. */
 function parseList(value: unknown): string[] {
     if (Array.isArray(value)) return value.map(String)
-    if (typeof value === "string" && value !== "") return value.split(",")
+    if (typeof value === "string") return [value]
     return []
 }
 
