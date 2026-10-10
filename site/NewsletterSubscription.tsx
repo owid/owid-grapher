@@ -4,6 +4,7 @@ import cx from "clsx"
 import { faTimes, faEnvelopeOpenText } from "@fortawesome/free-solid-svg-icons"
 import { SiteAnalytics } from "./SiteAnalytics.js"
 import { TextInput } from "@ourworldindata/components"
+import { FEATURE_FLAGS, Features } from "../settings/clientSettings.mjs"
 import { NewsletterSubscriptionContext } from "./newsletter.js"
 import { NewsletterIcon } from "./gdocs/components/NewsletterIcon.js"
 import { SiteToolsButton } from "./SiteToolsButton.js"
@@ -14,8 +15,13 @@ import {
     MAILCHIMP_SIGNUP_HONEYPOT_NAME,
     makeMailchimpNewsletterGroupInputName,
 } from "./Newsletter/mailchimpSignup.js"
+import { NewsletterSignupForm } from "./Newsletter/NewsletterSignupForm.js"
 
 const analytics = new SiteAnalytics()
+
+const isEmailNotificationsEnabled = FEATURE_FLAGS.includes(
+    Features.EmailNotifications
+)
 
 export const NewsletterSubscription = ({
     context,
@@ -69,7 +75,14 @@ export const NewsletterSubscriptionHeader = ({
     showSubheading?: boolean
 }) => {
     return (
-        <div className="newsletter-subscription-header">
+        <div
+            className={cx("newsletter-subscription-header", {
+                // The redesigned form keeps the icon beside the heading in
+                // every context.
+                "newsletter-subscription-header--compact":
+                    isEmailNotificationsEnabled,
+            })}
+        >
             <NewsletterIcon className="newsletter-subscription-header__icon" />
             <h4 className="newsletter-subscription-header__heading h3-bold">
                 Subscribe to our newsletters
@@ -84,6 +97,19 @@ export const NewsletterSubscriptionHeader = ({
 }
 
 export const NewsletterSubscriptionForm = ({
+    context,
+    className = "",
+}: {
+    context: NewsletterSubscriptionContext
+    className?: string
+}) => {
+    if (isEmailNotificationsEnabled)
+        return <NewsletterSignupForm context={context} className={className} />
+    return <MailchimpSubscriptionForm context={context} className={className} />
+}
+
+/** The pre-email-notifications form, posting straight to Mailchimp. */
+const MailchimpSubscriptionForm = ({
     context,
     className = "",
 }: {
