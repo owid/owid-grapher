@@ -4,6 +4,7 @@ import { EmailNotificationsSubscribeRequestTypeObject } from "@ourworldindata/ty
 describe("EmailNotificationsSubscribeRequestTypeObject validation", () => {
     const validRequest = {
         email: "user@example.com",
+        captchaToken: "test-token",
         notifications: {
             topicTags: ["Energy", "Climate Change"],
             contentTypes: ["article", "data-insight"],
@@ -21,6 +22,7 @@ describe("EmailNotificationsSubscribeRequestTypeObject validation", () => {
     it("accepts a request without notifications if subscribing to the OWID Brief", () => {
         const result = EmailNotificationsSubscribeRequestTypeObject.safeParse({
             email: "user@example.com",
+            captchaToken: "test-token",
             subscribeToOwidBrief: true,
         })
         expect(result.success).toBe(true)
@@ -51,6 +53,7 @@ describe("EmailNotificationsSubscribeRequestTypeObject validation", () => {
     it("rejects a request with neither notifications nor the OWID Brief", () => {
         const result = EmailNotificationsSubscribeRequestTypeObject.safeParse({
             email: "user@example.com",
+            captchaToken: "test-token",
             subscribeToOwidBrief: false,
         })
         expect(result.success).toBe(false)
