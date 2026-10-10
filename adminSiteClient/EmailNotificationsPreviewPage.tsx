@@ -1,4 +1,5 @@
-import { useCallback, useContext, useEffect, useMemo, useState } from "react"
+import { useContext, useState } from "react"
+import { keepPreviousData, useQuery } from "@tanstack/react-query"
 import { Checkbox, DatePicker, Radio, Select, Spin } from "antd"
 import {
     EMAIL_NOTIFICATIONS_CONTENT_TYPES,
@@ -53,56 +54,48 @@ function formatBytes(bytes: number): string {
     return `${(bytes / 1024).toFixed(1)}KB`
 }
 
+function buildPreviewQueryString(subscription: MockSubscription): string {
+    const params = new URLSearchParams({
+        email: subscription.email,
+        frequency: subscription.frequency,
+        sentAt: subscription.sentAt,
+    })
+    for (const contentType of subscription.contentTypes)
+        params.append("contentTypes", contentType)
+    for (const topicTag of subscription.topicTags)
+        params.append("topicTags", topicTag)
+    return params.toString()
+}
+
 export const EmailNotificationsPreviewPage = () => {
     const { admin } = useContext(AdminAppContext)
 
     const [subscription, setSubscription] =
         useState<MockSubscription>(DEFAULT_SUBSCRIPTION)
-    const [availableTopics, setAvailableTopics] = useState<string[]>([])
-    const [preview, setPreview] = useState<EmailPreview | undefined>()
     const [showPlainText, setShowPlainText] = useState(false)
-    const [isLoading, setIsLoading] = useState(false)
-    const [error, setError] = useState<string | undefined>()
 
-    const query = useMemo(() => {
-        const params = new URLSearchParams()
-        params.set("email", subscription.email)
-        params.set("frequency", subscription.frequency)
-        params.set("sentAt", subscription.sentAt)
-        params.set("contentTypes", subscription.contentTypes.join(","))
-        params.set("topicTags", subscription.topicTags.join(","))
-        return params.toString()
-    }, [subscription])
+    const topicsQuery = useQuery({
+        queryKey: ["email-notifications-preview", "topics"],
+        queryFn: () =>
+            admin.getJSONInBackground<{ topicTags: string[] }>(
+                "/api/email-notifications-preview/topics"
+            ),
+    })
+    const availableTopics = topicsQuery.data?.topicTags ?? []
 
-    useEffect(() => {
-        void admin
-            .getJSON("/api/email-notifications-preview/topics")
-            .then((response) =>
-                setAvailableTopics(
-                    (response as { topicTags: string[] }).topicTags
-                )
-            )
-            .catch((error: unknown) => setError(String(error)))
-    }, [admin])
-
-    const fetchPreview = useCallback(async () => {
-        setIsLoading(true)
-        setError(undefined)
-        try {
-            const response = await admin.getJSON(
-                `/api/email-notifications-preview?${query}`
-            )
-            setPreview(response as EmailPreview)
-        } catch (error) {
-            setError(String(error))
-        } finally {
-            setIsLoading(false)
-        }
-    }, [admin, query])
-
-    useEffect(() => {
-        void fetchPreview()
-    }, [fetchPreview])
+    const previewQuery = useQuery({
+        queryKey: ["email-notifications-preview", subscription],
+        queryFn: () =>
+            admin.getJSONInBackground<EmailPreview>(
+                `/api/email-notifications-preview?${buildPreviewQueryString(subscription)}`
+            ),
+        // Keep the last preview on screen while the next one loads, so
+        // changing a control doesn't blank the iframe.
+        placeholderData: keepPreviousData,
+    })
+    const preview = previewQuery.data
+    const isLoading = previewQuery.isFetching
+    const error = topicsQuery.error ?? previewQuery.error
 
     const update = (changes: Partial<MockSubscription>) =>
         setSubscription((current) => ({ ...current, ...changes }))
@@ -281,7 +274,9 @@ export const EmailNotificationsPreviewPage = () => {
                         </div>
 
                         {error && (
-                            <div className="alert alert-danger">{error}</div>
+                            <div className="alert alert-danger">
+                                {String(error)}
+                            </div>
                         )}
 
                         {!preview && isLoading && <Spin />}
