@@ -138,7 +138,6 @@ function NotificationEmail({
     apiBaseUrl,
     now,
 }: NotificationEmailProps) {
-    const unsubscribeUrl = `${apiBaseUrl}/unsubscribe?token=${subscriber.token}`
     const updatePreferencesUrl = `${apiBaseUrl}/request-link?token=${subscriber.token}`
     return (
         <Html lang="en">
@@ -213,7 +212,6 @@ function NotificationEmail({
                     <Footer
                         email={subscriber.email}
                         baseUrl={baseUrl}
-                        unsubscribeUrl={unsubscribeUrl}
                         updatePreferencesUrl={updatePreferencesUrl}
                     />
                 </Container>
@@ -351,6 +349,22 @@ function ItemTitle({
     )
 }
 
+function ItemAuthors({ item }: { item: NotificationEmailItem }) {
+    if (item.authors.length === 0) return null
+    return (
+        <Text
+            style={{
+                ...BODY_TEXT,
+                margin: "0 0 8px",
+                fontStyle: "italic",
+                color: COLORS.muted,
+            }}
+        >
+            {formatAuthors(item.authors)}
+        </Text>
+    )
+}
+
 function ReadMoreLink({ href, label }: { href: string; label: string }) {
     return (
         <Text style={{ ...BODY_TEXT, margin: 0 }}>
@@ -418,18 +432,7 @@ function ArticleCard({ item }: { item: NotificationEmailItem }) {
                 </Link>
             )}
             <ItemTitle item={item} serif />
-            {item.authors.length > 0 && (
-                <Text
-                    style={{
-                        ...BODY_TEXT,
-                        margin: "0 0 8px",
-                        fontStyle: "italic",
-                        color: COLORS.muted,
-                    }}
-                >
-                    {formatAuthors(item.authors)}
-                </Text>
-            )}
+            <ItemAuthors item={item} />
             {item.excerptBlocks ? (
                 item.excerptBlocks.map((block, index) => (
                     <Text
@@ -471,6 +474,7 @@ function DataInsightCard({ item }: { item: NotificationEmailItem }) {
                 />
             ))}
             <ItemTitle item={item} />
+            <ItemAuthors item={item} />
             {body.slice(splitIndex).map((block, index) => (
                 <Block
                     key={index}
@@ -478,17 +482,6 @@ function DataInsightCard({ item }: { item: NotificationEmailItem }) {
                     imageUrlsByFilename={imageUrlsByFilename}
                 />
             ))}
-            {item.authors.length > 0 && (
-                <Text
-                    style={{
-                        ...BODY_TEXT,
-                        margin: "16px 0 0",
-                        color: COLORS.muted,
-                    }}
-                >
-                    By {formatAuthors(item.authors)}
-                </Text>
-            )}
         </Section>
     )
 }
@@ -666,12 +659,10 @@ function SpanElement({ span }: { span: Span }): ReactNode {
 function Footer({
     email,
     baseUrl,
-    unsubscribeUrl,
     updatePreferencesUrl,
 }: {
     email: string
     baseUrl: string
-    unsubscribeUrl: string
     updatePreferencesUrl: string
 }) {
     const footerTextStyle: CSSProperties = {
@@ -720,10 +711,6 @@ function Footer({
                 You can{" "}
                 <Link href={updatePreferencesUrl} style={footerLinkStyle}>
                     update your preferences
-                </Link>{" "}
-                or{" "}
-                <Link href={unsubscribeUrl} style={footerLinkStyle}>
-                    unsubscribe
                 </Link>{" "}
                 at any time.
             </Text>
