@@ -10,8 +10,9 @@
 set -o errexit
 set -o pipefail
 set -o nounset
+source devTools/docker/worktree-git.sh
 
-if [ "$(git rev-parse --git-dir)" = "$(git rev-parse --git-common-dir)" ]; then
+if [ "$(worktree_git rev-parse --git-dir)" = "$(worktree_git rev-parse --git-common-dir)" ]; then
     echo 'ERROR: this is the main checkout, not a git worktree.'
     echo 'Use `make up` here (tmux, attached), or `make up.headless` if there is no terminal to attach.'
     exit 1
