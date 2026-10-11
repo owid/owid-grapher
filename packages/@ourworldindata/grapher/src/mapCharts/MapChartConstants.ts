@@ -188,12 +188,6 @@ export const MAP_VIEWPORTS: Record<MapRegionName, MapViewport> = {
     Oceania: { x: 0.51, y: 0.75, width: 0.1, height: 0.2, ratio: 1.47 },
 }
 
-// Preserve the preferred aspect ratio used to lay out faceted World maps
-export const MAP_VIEWPORT_FACETED_WORLD: MapViewport = {
-    ...MAP_VIEWPORTS.World,
-    ratio: 2.29,
-}
-
 /** Maps with bounds of this width or less extend into the horizontal frame padding */
 export const MAP_NARROW_FRAME_MAX_WIDTH = 550
 
