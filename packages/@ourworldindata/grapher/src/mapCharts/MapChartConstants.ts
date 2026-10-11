@@ -188,9 +188,6 @@ export const MAP_VIEWPORTS: Record<MapRegionName, MapViewport> = {
     Oceania: { x: 0.51, y: 0.75, width: 0.1, height: 0.2, ratio: 1.47 },
 }
 
-/** Maps with bounds of this width or less extend into the horizontal frame padding */
-export const MAP_NARROW_FRAME_MAX_WIDTH = 550
-
 // On narrow screens, the 2D map extends into the frame padding, leaving only this much space on either side
 export const MAP_NARROW_FRAME_PADDING_HORIZONTAL = 4
 

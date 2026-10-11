@@ -29,7 +29,6 @@ import {
     MapColumnInfo,
     PROJECTED_DATA_LEGEND_COLOR,
     MapViewport,
-    MAP_NARROW_FRAME_MAX_WIDTH,
     MAP_NARROW_FRAME_PADDING_HORIZONTAL,
 } from "./MapChartConstants"
 import { MapConfig } from "./MapConfig"
@@ -318,13 +317,14 @@ export class MapChart
         return this.manager.fontSize ?? BASE_FONT_SIZE
     }
 
-    // On narrow screens, the width of the 2D map is the limiting factor,
-    // so we let the map extend into the horizontal frame padding
+    // On narrow screens and small static exports (e.g. thumbnails), the width
+    // of the 2D map is the limiting factor, so we let the map extend into the
+    // horizontal frame padding
     @computed private get shouldExtendMapIntoFramePadding(): boolean {
         return (
             !this.isFaceted &&
             !this.mapConfig.globe.isActive &&
-            this.bounds.width <= MAP_NARROW_FRAME_MAX_WIDTH
+            !!(this.manager.isSemiNarrow || this.manager.isStaticAndSmall)
         )
     }
 
