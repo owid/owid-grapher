@@ -1,7 +1,7 @@
 import { defineConfig, type PluginOption } from "vite"
 import pluginReact from "@vitejs/plugin-react"
 import optimizeReactAriaLocales from "@react-aria/optimize-locales-plugin"
-import { sentryVitePlugin } from "@sentry/vite-plugin"
+import { sentryVitePlugin } from "@sentry/bundler-plugins/vite"
 import {
     BUILD_TARGET,
     pluginSwcDecorators,
