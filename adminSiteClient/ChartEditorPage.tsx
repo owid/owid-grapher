@@ -331,14 +331,6 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
         this.refresh()
     }
 
-    override componentDidUpdate(
-        prevProps: Readonly<ChartEditorPageProps>
-    ): void {
-        if (prevProps.grapherId !== this.props.grapherId) {
-            void this.fetchTags()
-        }
-    }
-
     private saveQuery(): URLSearchParams {
         const shouldEnableInheritance =
             !!this.indicatorId && this.isInheritanceEnabled

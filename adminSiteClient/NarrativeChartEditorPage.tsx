@@ -1,7 +1,6 @@
 import React from "react"
 import { observer } from "mobx-react"
 import { computed, action, runInAction, observable, makeObservable } from "mobx"
-import type { History } from "history"
 import {
     GrapherInterface,
     OwidChartDimensionInterface,
@@ -35,7 +34,6 @@ import { makeNarrativeChartPatchConfig } from "./narrativeChartConfig.js"
 
 interface NarrativeChartEditorPageProps {
     narrativeChartId: number
-    history: History
 }
 
 export function NarrativeChartInfo({ name }: { name: string }) {
