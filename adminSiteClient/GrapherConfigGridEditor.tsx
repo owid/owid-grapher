@@ -1255,6 +1255,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                         <HotTable
                             {...this.hotSettings}
                             theme={classicTheme}
+                            colorScheme="light"
                             licenseKey={"non-commercial-and-evaluation"}
                         >
                             {hotColumns}

@@ -489,6 +489,7 @@ class HotEditor extends Component<{
                 {...this.hotSettings}
                 ref={this.hotTableComponent}
                 theme={classicTheme}
+                colorScheme="light"
                 licenseKey={"non-commercial-and-evaluation"}
             />
         )
