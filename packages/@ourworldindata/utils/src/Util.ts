@@ -924,9 +924,6 @@ export const anyToString = (value: unknown): string => {
     return String(value)
 }
 
-// Scroll Helpers
-// Borrowed from: https://github.com/JedWatson/react-select/blob/32ad5c040b/packages/react-select/src/utils.js
-
 function isDocumentElement(el: HTMLElement): boolean {
     return [document.documentElement, document.body].includes(el)
 }
