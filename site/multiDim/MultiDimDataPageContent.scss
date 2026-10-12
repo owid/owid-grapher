@@ -38,13 +38,33 @@ $zindex-controls-popup: 140;
         }
     }
 
+    // No rule above the settings, so the whole header stays compact. Children
+    // sit on the row's baseline, so the taller download button lines up with
+    // the bottom of the dropdowns rather than overhanging them.
     .settings-row__wrapper {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        gap: 16px;
         margin-bottom: 16px;
-        padding-top: 16px;
-        border-top: 1px solid $blue-20;
     }
 
-    .topic-tag {
-        background: $blue-20;
+    .settings-row__panel {
+        flex: 1 1 auto;
+    }
+
+    // Right-aligned at the bottom of the settings row: with no rule separating
+    // the header, sitting on the title's line instead made it look like it was
+    // floating above the dropdowns.
+    //
+    // Desktop only: a zip is an awkward thing to hand someone on a phone, so
+    // the download doesn't get a prominent button there. See the note on
+    // DownloadTheDataButton.
+    .settings-row__actions {
+        display: flex;
+
+        @include sm-only {
+            display: none;
+        }
     }
 }

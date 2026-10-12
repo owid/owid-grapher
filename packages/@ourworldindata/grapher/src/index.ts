@@ -41,9 +41,11 @@ export {
     DEFAULT_GRAPHER_BOUNDS,
     DEFAULT_GRAPHER_BOUNDS_SQUARE,
     ADDITIONAL_REGION_PUBLISHERS,
+    GrapherModal,
     type AdditionalRegionPublisher,
     type FontSettings,
 } from "./core/GrapherConstants"
+export { DownloadModalTabName } from "./modal/DownloadModal"
 export { OWID_LOGO_SVG, OWID_WORDMARK_SVG } from "./captionedChart/LogosSVG.js"
 export {
     getVariableDataRoute,

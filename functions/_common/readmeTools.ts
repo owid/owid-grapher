@@ -18,6 +18,14 @@ import type { DisplaySource } from "@ourworldindata/types"
 import { GrapherState } from "@ourworldindata/grapher"
 import { getGrapherFilters } from "./urlTools.js"
 
+// KEEP IN SYNC WITH ETL. `columnReadmeText` and its helpers below, and the
+// readme skeleton in `constructReadme`, are ported to Python in the etl repo
+// (etl/collection/download_package_format.py + download_package.py), which
+// builds the "complete dataset" package for MDIMs once at publish time rather
+// than per request. A chart download and an MDIM complete-dataset download are
+// meant to be the same format, and nothing automated notices if they drift --
+// so if you change the wording or the field set here, change it there too.
+
 const markdownNewlineEnding = "  "
 
 /**
@@ -353,8 +361,8 @@ export function constructReadme(
         : ""
 
     const dataColumnBullet = isSingleColumn
-        ? `- The final column is the data column — the time series that powers the chart. Downloaded with the "full data" option it corresponds to the time series below; with "only selected data visible in the chart" it is transformed depending on the chart type, so the correspondence may be less direct.`
-        : `- Every remaining column is a data column, each one a time series. Downloaded with the "full data" option each corresponds to one time series below; with "only selected data visible in the chart" they are transformed depending on the chart type, so the correspondence may be less direct.`
+        ? `- The final column is the data column — the time series that powers the chart. Downloaded with the "chart data" option it corresponds to the time series below; with "displayed data" it is transformed depending on the chart type, so the correspondence may be less direct.`
+        : `- Every remaining column is a data column, each one a time series. Downloaded with the "chart data" option each corresponds to one time series below; with "displayed data" they are transformed depending on the chart type, so the correspondence may be less direct.`
 
     const toleranceExplanation = isSingleColumn
         ? `\nThe data file includes an additional column suffixed with (Original Year) or (Original Day). This column appears when we use "tolerance" to display data for time points where exact data is unavailable. For example, if a country does not have data for one or more years, we use tolerance to fill the gaps using the closest available data points. These suffix columns show you which year (or day) the value really came from, allowing you to see when the data was actually measured.`
