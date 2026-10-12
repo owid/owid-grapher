@@ -139,6 +139,7 @@ export const synonyms = [
     // Demography course vocabulary: abbreviations and the textbook names of
     // rates we chart under other titles
     ["birth rate", "crude birth rate", "cbr"],
+    ["death rate", "crude death rate"],
     ["infant mortality", "imr"],
     ["fertility rate", "total fertility rate", "tfr"],
     [
@@ -152,6 +153,7 @@ export const synonyms = [
     ],
     ["demographic transition", "demographic transition model", "dtm"],
     ["population pyramid", "population by age"],
+    ["elderly", "old age", "older adults"],
     ["migration", "immigration", "emigration"],
     ["urbanization", "urbanisation", "urban"],
 
@@ -346,7 +348,12 @@ export const synonyms = [
     ["fdi", "foreign direct investment"],
     ["funding", "funded"],
     ["r&d", "r & d", "research"],
-    ["hdi", "human development index", "idh" /* spanish, french */],
+    [
+        "hdi",
+        "hdi score",
+        "human development index",
+        "idh" /* spanish, french */,
+    ],
     [
         "sdg",
         "sdgs",
