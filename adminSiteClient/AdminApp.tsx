@@ -215,12 +215,11 @@ export class AdminApp extends React.Component<{
                                 <Route
                                     exact
                                     path="/narrative-charts/:narrativeChartId/edit"
-                                    render={({ match, history }) => (
+                                    render={({ match }) => (
                                         <NarrativeChartEditorPage
                                             narrativeChartId={parseInt(
                                                 match.params.narrativeChartId
                                             )}
-                                            history={history}
                                         />
                                     )}
                                 />

@@ -5,6 +5,7 @@ import {
     isIndicatorDimension,
     OwidChartDimensionInterface,
     OwidVariableDataMetadataDimensions,
+    SelectedEntityColors,
 } from "@ourworldindata/utils"
 import { legacyToOwidTableAndDimensions } from "./LegacyToOwidTable.js"
 import {
@@ -15,7 +16,7 @@ import { toJS } from "mobx"
 
 export type FetchInputTableForConfigFn = (args: {
     dimensions?: OwidChartDimensionInterface[]
-    selectedEntityColors?: { [entityName: string]: string | undefined }
+    selectedEntityColors?: SelectedEntityColors
     dataApiUrl: string
     archiveContext?: ArchiveContext
     noCache?: boolean
@@ -53,23 +54,16 @@ export function getCachingInputTableFetcher(
     loadMetadataOnly?: boolean
 ): (
     dimensions: OwidChartDimensionInterface[],
-    selectedEntityColors:
-        | { [entityName: string]: string | undefined }
-        | undefined
+    selectedEntityColors: SelectedEntityColors | undefined
 ) => Promise<OwidTable | undefined> {
     const cache: Map<number, OwidVariableDataMetadataDimensions> = new Map()
     let previousDimensions: OwidChartDimensionInterface[] = []
-    let previousSelectedEntityColors:
-        | {
-              [entityName: string]: string | undefined
-          }
-        | undefined = undefined
+    let previousSelectedEntityColors: SelectedEntityColors | undefined =
+        undefined
 
     return async (
         dimensionsMobx: OwidChartDimensionInterface[],
-        selectedEntityColorsMobx:
-            | { [entityName: string]: string | undefined }
-            | undefined
+        selectedEntityColorsMobx: SelectedEntityColors | undefined
     ) => {
         // Check if dimensions have changed
         const dimensions = dimensionsMobx.map((x) => toJS(x)) // Convert MobX observable to plain object

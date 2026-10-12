@@ -8858,7 +8858,6 @@ __metadata:
     google-auth-library: "npm:^11.0.2"
     handsontable: "npm:^18.1.2"
     happy-dom: "npm:^20.8.9"
-    history: "npm:4"
     http-server: "npm:^14.1.1"
     husky: "npm:^9.0.11"
     ini: "npm:^7.0.0"
@@ -9078,7 +9077,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"history@npm:4, history@npm:^4.9.0":
+"history@npm:^4.9.0":
   version: 4.10.1
   resolution: "history@npm:4.10.1"
   dependencies:

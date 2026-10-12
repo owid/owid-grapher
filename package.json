@@ -126,7 +126,6 @@
         "fs-extra": "^11.3.4",
         "google-auth-library": "^11.0.2",
         "handsontable": "^18.1.2",
-        "history": "4",
         "ini": "^7.0.0",
         "jose": "^6.2.1",
         "json8-pointer": "^1.0.6",

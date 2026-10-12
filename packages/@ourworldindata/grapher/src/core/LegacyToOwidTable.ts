@@ -14,6 +14,7 @@ import {
     isIndicatorDimension,
     EntityName,
     TimeInterval,
+    SelectedEntityColors,
 } from "@ourworldindata/types"
 import {
     OwidTable,
@@ -52,9 +53,7 @@ import {
 export const legacyToOwidTableAndDimensions = (
     json: MultipleOwidVariableDataDimensionsMap,
     dimensions: OwidChartDimensionInterface[],
-    selectedEntityColors:
-        | { [entityName: string]: string | undefined }
-        | undefined
+    selectedEntityColors: SelectedEntityColors | undefined
 ): OwidTable => {
     // Entity meta map
 

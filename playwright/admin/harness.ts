@@ -110,6 +110,7 @@ export type EditorTabName =
     | "Marimekko"
     | "Revisions"
     | "Refs"
+    | "Publishing"
     | "Export"
     | "Debug"
 

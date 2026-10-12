@@ -641,6 +641,8 @@ export interface MapConfigInterface {
     selectedEntityNames?: EntityName[]
 }
 
+export type SelectedEntityColors = Record<EntityName, string | undefined>
+
 // This configuration represents the entire persistent state of a grapher
 // Ideally, this is also all of the interaction state: when a grapher is saved and loaded again
 // under the same rendering conditions it ought to remain visually identical
@@ -695,7 +697,7 @@ export interface GrapherInterface extends SortConfig {
     includedEntityNames?: EntityName[]
     inapplicableEntityNames?: EntityName[]
     selectedEntityNames?: EntityName[]
-    selectedEntityColors?: { [entityName: string]: string | undefined }
+    selectedEntityColors?: SelectedEntityColors
     focusedSeriesNames?: SeriesName[]
     peerCountryStrategy?: PeerCountryStrategy
     missingDataStrategy?: MissingDataStrategy

@@ -10,11 +10,13 @@ import {
     IReactionDisposer,
     makeObservable,
     comparer,
+    when,
 } from "mobx"
-import { Prompt, Redirect } from "react-router-dom"
+import { Prompt } from "react-router-dom"
 import {
     Bounds,
     DetailDictionary,
+    excludeUndefined,
     extractDetailsFromSyntax,
     getIndexableKeys,
 } from "@ourworldindata/utils"
@@ -32,20 +34,16 @@ import {
     GrapherState,
     hasValidConfigForBinningStrategy,
 } from "@ourworldindata/grapher"
-import { Admin } from "./Admin.js"
-import { getFullReferencesCount, isChartEditorInstance } from "./ChartEditor.js"
+import { ConfigEditor, EditorTabKey } from "./ConfigEditor.js"
 import { EditorBasicTab } from "./EditorBasicTab.js"
 import { EditorDataTab } from "./EditorDataTab.js"
 import { EditorTextTab } from "./EditorTextTab.js"
 import { EditorCustomizeTab } from "./EditorCustomizeTab.js"
 import { EditorScatterTab } from "./EditorScatterTab.js"
 import { EditorMapTab } from "./EditorMapTab.js"
-import { EditorHistoryTab } from "./EditorHistoryTab.js"
-import { EditorReferencesTab } from "./EditorReferencesTab.js"
 import { EditorDebugTab } from "./EditorDebugTab.js"
 import { SaveButtons } from "./SaveButtons.js"
 import { LoadingBlocker } from "./Forms.js"
-import { AdminLayout } from "./AdminLayout.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faMobile, faDesktop } from "@fortawesome/free-solid-svg-icons"
 import {
@@ -56,59 +54,37 @@ import {
 } from "./VisionDeficiencies.js"
 import { EditorMarimekkoTab } from "./EditorMarimekkoTab.js"
 import { EditorExportTab } from "./EditorExportTab.js"
-import { AbstractChartEditor } from "./AbstractChartEditor.js"
 import {
     ErrorMessages,
     ErrorMessagesForDimensions,
     FieldWithDetailReferences,
 } from "./ChartEditorTypes.js"
-import { Dataset, EditorDatabase } from "./EditorDatabase.js"
+import { EditorDatabase } from "./EditorDatabase.js"
+import { DetailsProvider } from "./editorProviders.js"
 
 export type DetailReferences = Record<FieldWithDetailReferences, string[]>
 
-export interface ChartEditorViewManager<Editor> {
-    admin: Admin
-    editor: Editor
-    /**
-     * Query params to apply to the grapher once, after the initial data load.
-     * Used when creating a narrative chart from a customized chart, so that the
-     * editor opens on the state the user was looking at. Managers that don't
-     * set it get the authored config as before.
-     */
+export interface ChartEditorViewManager {
+    editor: ConfigEditor
+    details?: DetailsProvider
     initialQueryParams?: GrapherQueryParams
+    previewUrl?: string
 }
 
-interface ChartEditorViewProps<Editor> {
-    manager: ChartEditorViewManager<Editor>
-}
-
-/**
- * What the editor pages show while they load a chart's config layers:
- * `ChartEditorView` applies those to the chart only once, when its indicator
- * database has loaded, so it must not be mounted before they are here
- */
-export function ChartEditorLoading(): React.ReactElement {
-    return (
-        <AdminLayout noSidebar>
-            <main className="ChartEditorPage">
-                <LoadingBlocker isLoading />
-            </main>
-        </AdminLayout>
-    )
+interface ChartEditorViewProps {
+    manager: ChartEditorViewManager
 }
 
 @observer
-export class ChartEditorView<
-    Editor extends AbstractChartEditor,
-> extends React.Component<ChartEditorViewProps<Editor>> {
-    database = new EditorDatabase({})
+export class ChartEditorView extends React.Component<ChartEditorViewProps> {
+    database = EditorDatabase.empty()
     details: DetailDictionary = {}
     private cleanupDetailsOnDemand: (() => void) | undefined
 
-    constructor(props: ChartEditorViewProps<Editor>) {
+    constructor(props: ChartEditorViewProps) {
         super(props)
 
-        makeObservable<ChartEditorView<Editor>, "_isDbSet">(this, {
+        makeObservable<ChartEditorView, "_isDbSet">(this, {
             database: observable.ref,
             details: observable,
             simulateVisionDeficiency: observable,
@@ -122,7 +98,7 @@ export class ChartEditorView<
 
     simulateVisionDeficiency: VisionDeficiency | undefined = undefined
 
-    @computed private get manager(): ChartEditorViewManager<Editor> {
+    @computed private get manager(): ChartEditorViewManager {
         return this.props.manager
     }
 
@@ -131,69 +107,34 @@ export class ChartEditorView<
         return this._isDbSet
     }
 
-    private hasAppliedInitialQueryParams = false
-
-    @action.bound async updateGrapher(): Promise<void> {
+    @action.bound async loadInitialConfig(): Promise<void> {
         const config = this.manager.editor.originalGrapherConfig
         this.manager.editor.grapherState.updateFromObject(config)
         await this.manager.editor.reloadGrapherData()
         this.grapherState.externalBounds = this.bounds
 
-        // Applied after the data load because the time bounds are snapped to
-        // the available times and the entity selection is gated on
-        // `addCountryMode`. Applied at most once: `updateGrapher` re-runs
-        // whenever the editor changes, and re-applying would overwrite edits
-        // made in the editor since.
+        this.manager.editor.markAsSaved()
+
         const { initialQueryParams } = this.manager
-        if (initialQueryParams && !this.hasAppliedInitialQueryParams) {
-            this.hasAppliedInitialQueryParams = true
+        if (initialQueryParams)
             this.grapherState.populateFromQueryParams(initialQueryParams)
-        }
     }
 
-    @action.bound private setDb(json: any): void {
-        this.database = new EditorDatabase(json)
+    @action.bound private setDb(database: EditorDatabase): void {
+        this.database = database
         this._isDbSet = true
     }
 
     async fetchData(): Promise<void> {
-        const { admin } = this.manager
-
-        const [namespaces, variables] = await Promise.all([
-            admin.getJSON(`/api/editorData/namespaces.json`),
-            admin.getJSON(`/api/editorData/variables.json`),
-        ])
-
-        this.setDb(namespaces)
-
-        const groupedByNamespace = _.groupBy(
-            variables.datasets,
-            (d) => d.namespace
-        )
-        for (const namespace in groupedByNamespace) {
-            this.database.dataByNamespace.set(namespace, {
-                datasets: groupedByNamespace[namespace] as Dataset[],
-            })
-        }
-
-        const usageData = await admin.getJSON<
-            {
-                variableId: number
-                usageCount: number
-            }[]
-        >(`/api/variables.usages.json`)
-        this.database.variableUsageCounts = new Map(
-            usageData.map(({ variableId, usageCount }) => [
-                variableId,
-                +usageCount,
-            ])
-        )
+        const { catalog: indicators } = this.manager.editor.store
+        const catalog = indicators
+            ? await indicators.load()
+            : { namespaces: [], datasets: [] }
+        this.setDb(new EditorDatabase(catalog))
     }
 
     async fetchDetails(): Promise<void> {
-        const details = await this.manager.admin.getJSON<DetailDictionary>(
-            "/api/parsed-dods.json"
-        )
+        const details = (await this.manager.details?.load()) ?? {}
 
         this.cleanupDetailsOnDemand = initializeDetailsOnDemand({ details })
 
@@ -251,6 +192,8 @@ export class ChartEditorView<
 
     @computed
     get invalidDetailReferences(): DetailReferences {
+        if (!this.manager.details)
+            return { subtitle: [], note: [], axisLabelX: [], axisLabelY: [] }
         const { subtitle, note, axisLabelX, axisLabelY } =
             this.currentDetailReferences
         return {
@@ -343,7 +286,14 @@ export class ChartEditorView<
         return errorMessages
     }
 
-    @computed get editor(): Editor | undefined {
+    @computed get editingErrors(): string[] {
+        return excludeUndefined([
+            ...Object.values(this.errorMessages),
+            ...Object.values(this.errorMessagesForDimensions).flat(),
+        ])
+    }
+
+    @computed get editor(): ConfigEditor | undefined {
         if (!this.isReady) return undefined
 
         return this.manager.editor
@@ -355,12 +305,11 @@ export class ChartEditorView<
     }
 
     override componentDidMount(): void {
-        this.refresh()
         this.disposers.push(
-            reaction(
-                () => this.editor,
+            when(
+                () => this.editor !== undefined,
                 () => {
-                    void this.updateGrapher()
+                    void this.loadInitialConfig()
                 }
             )
         )
@@ -386,6 +335,7 @@ export class ChartEditorView<
                 { equals: comparer.structural }
             )
         )
+        this.refresh()
     }
 
     disposers: IReactionDisposer[] = []
@@ -397,39 +347,47 @@ export class ChartEditorView<
 
     override render(): React.ReactElement {
         return (
-            <AdminLayout noSidebar>
-                <main className="ChartEditorPage">
-                    <LoadingBlocker
-                        isLoading={
-                            this.editor === undefined ||
-                            !!this.editor.currentRequest
-                        }
-                    />
-                    {this.editor !== undefined && this.renderReady(this.editor)}
-                </main>
-            </AdminLayout>
+            <main className="ChartEditorPage">
+                <LoadingBlocker isLoading={this.editor === undefined} />
+                {this.editor !== undefined && this.renderReady(this.editor)}
+            </main>
         )
     }
 
-    renderReady(editor: Editor): React.ReactElement {
-        const { grapherState, availableTabs } = editor
+    private renderSaveButtons(editor: ConfigEditor): React.ReactNode {
+        const { renderSaveButtons } = editor.manager
+        if (renderSaveButtons)
+            return renderSaveButtons(editor, this.editingErrors)
+        return (
+            <SaveButtons
+                editor={editor}
+                errorMessages={this.errorMessages}
+                errorMessagesForDimensions={this.errorMessagesForDimensions}
+            />
+        )
+    }
 
-        const chartEditor = isChartEditorInstance(editor) ? editor : undefined
-        const queryParams = chartEditor?.forceDatapage
-            ? "?forceDatapage=true"
-            : ""
+    renderReady(editor: ConfigEditor): React.ReactElement {
+        const { grapherState, availableTabs } = editor
+        const { previewUrl } = this.manager
+        const extraTabs = editor.manager.extraTabs ?? []
+
+        const activeTab = availableTabs.includes(editor.tab)
+            ? editor.tab
+            : availableTabs[0]
+        const activeExtraTab = extraTabs.find(
+            (extraTab) => extraTab.key === activeTab
+        )
+        const tabLabel = (tab: EditorTabKey): React.ReactNode =>
+            extraTabs.find((extraTab) => extraTab.key === tab)?.label ??
+            _.capitalize(tab)
 
         return (
             <>
-                {!editor.isNewGrapher && (
-                    <Prompt
-                        when={editor.isModified && !chartEditor?.newChartId}
-                        message="Are you sure you want to leave? Unsaved changes will be lost."
-                    />
-                )}
-                {chartEditor?.newChartId && (
-                    <Redirect to={`/charts/${chartEditor.newChartId}/edit`} />
-                )}
+                <Prompt
+                    when={editor.isModified}
+                    message="Are you sure you want to leave? Unsaved changes will be lost."
+                />
                 <div className="chart-editor-settings">
                     <div className="p-2">
                         <ul className="nav nav-tabs">
@@ -438,9 +396,7 @@ export class ChartEditorView<
                                     <a
                                         className={
                                             "nav-link" +
-                                            (tab === editor.tab
-                                                ? " active"
-                                                : "")
+                                            (tab === activeTab ? " active" : "")
                                         }
                                         onClick={() => {
                                             editor.tab = tab
@@ -448,19 +404,14 @@ export class ChartEditorView<
                                                 tab === "export"
                                         }}
                                     >
-                                        {_.capitalize(tab)}
-                                        {tab === "refs" && editor?.references
-                                            ? ` (${getFullReferencesCount(
-                                                  editor.references
-                                              )})`
-                                            : ""}
+                                        {tabLabel(tab)}
                                     </a>
                                 </li>
                             ))}
                         </ul>
                     </div>
                     <div className="innerForm container">
-                        {editor.tab === "basic" && (
+                        {activeTab === "basic" && (
                             <EditorBasicTab
                                 editor={editor}
                                 database={this.database}
@@ -469,61 +420,48 @@ export class ChartEditorView<
                                 }
                             />
                         )}
-                        {editor.tab === "text" && (
+                        {activeTab === "text" && (
                             <EditorTextTab
                                 editor={editor}
                                 errorMessages={this.errorMessages}
                             />
                         )}
-                        {editor.tab === "data" && (
+                        {activeTab === "data" && (
                             <EditorDataTab editor={editor} />
                         )}
-                        {editor.tab === "customize" && (
+                        {activeTab === "customize" && (
                             <EditorCustomizeTab
                                 editor={editor}
                                 errorMessages={this.errorMessages}
                             />
                         )}
-                        {editor.tab === "scatter" && (
+                        {activeTab === "scatter" && (
                             <EditorScatterTab editor={editor} />
                         )}
-                        {editor.tab === "marimekko" && (
+                        {activeTab === "marimekko" && (
                             <EditorMarimekkoTab editor={editor} />
                         )}
-                        {editor.tab === "map" && (
+                        {activeTab === "map" && (
                             <EditorMapTab
                                 editor={editor}
                                 errorMessages={this.errorMessages}
                             />
                         )}
-                        {chartEditor && chartEditor.tab === "revisions" && (
-                            <EditorHistoryTab editor={chartEditor} />
-                        )}
-                        {editor.tab === "refs" && (
-                            <EditorReferencesTab editor={editor} />
-                        )}
-                        {editor.tab === "export" && (
+                        {activeExtraTab?.render(editor)}
+                        {activeTab === "export" && (
                             <EditorExportTab editor={editor} />
                         )}
-                        {editor.tab === "debug" && (
+                        {activeTab === "debug" && (
                             <EditorDebugTab editor={editor} />
                         )}
                     </div>
-                    {editor.tab !== "export" && (
-                        <SaveButtons
-                            editor={editor}
-                            errorMessages={this.errorMessages}
-                            errorMessagesForDimensions={
-                                this.errorMessagesForDimensions
-                            }
-                        />
-                    )}
+                    {activeTab !== "export" && this.renderSaveButtons(editor)}
                 </div>
                 <div className="chart-editor-view">
-                    {grapherState.id && (
+                    {previewUrl && (
                         <a
                             className="preview"
-                            href={`/admin/charts/${grapherState.id}/preview${queryParams}`}
+                            href={previewUrl}
                             target="_blank"
                             rel="noopener"
                         >
