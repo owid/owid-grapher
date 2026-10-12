@@ -135,9 +135,11 @@ const getFaqEntries = async (
 /**
  * The effective grapher title of a multi-dim view, resolved from its merged
  * metadata (variable metadata + multi-dim-level and view-level overrides) and its
- * full chart config. Shared between the Algolia multi-dim view records and the
- * companion file baked alongside multi-dim pages, so search records and the
- * page titles served to search engines always agree.
+ * full chart config. Mirrors what Grapher renders as the chart title: the
+ * config's title, falling back to the indicator's public title or name. Shared
+ * between the Algolia multi-dim view records and the companion file baked
+ * alongside multi-dim pages, so search records and the page titles served to
+ * search engines match the title shown on the chart.
  */
 export function getMultiDimViewTitle(
     metadata: {
@@ -149,8 +151,8 @@ export function getMultiDimViewTitle(
     grapherState: GrapherState | undefined
 ): string {
     return maybeAddChangeInPrefix(
-        metadata.presentation?.titlePublic ||
-            chartConfig?.title ||
+        chartConfig?.title ||
+            metadata.presentation?.titlePublic ||
             metadata.display?.name ||
             metadata.name ||
             "",
