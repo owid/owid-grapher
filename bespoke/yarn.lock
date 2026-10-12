@@ -299,7 +299,7 @@ __metadata:
     "@ourworldindata/utils": "link:../../../packages/@ourworldindata/utils"
     "@react-stately/flags": "npm:^3.2.1"
     "@rollup/plugin-swc": "npm:^0.4.1"
-    "@tanstack/react-query": "npm:^5.101.0"
+    "@tanstack/react-query": "npm:^5.104.1"
     "@types/d3": "npm:^7.4.3"
     "@types/react": "npm:^19.3.0"
     "@types/react-dom": "npm:^19.3.0"
@@ -360,7 +360,7 @@ __metadata:
     "@ourworldindata/utils": "link:../../../packages/@ourworldindata/utils"
     "@react-stately/flags": "npm:^3.2.1"
     "@rollup/plugin-swc": "npm:^0.4.1"
-    "@tanstack/react-query": "npm:^5.101.0"
+    "@tanstack/react-query": "npm:^5.104.1"
     "@types/d3-scale": "npm:^4.0.9"
     "@types/lodash-es": "npm:^4.17.12"
     "@types/react": "npm:^19.3.0"
@@ -435,7 +435,7 @@ __metadata:
     "@react-stately/flags": "npm:^3.2.1"
     "@rollup/plugin-swc": "npm:^0.4.1"
     "@swc/core": "npm:^1.15.41"
-    "@tanstack/react-query": "npm:^5.101.0"
+    "@tanstack/react-query": "npm:^5.104.1"
     "@types/d3-sankey": "npm:^0.12.5"
     "@types/react": "npm:^19.3.0"
     "@types/react-dom": "npm:^19.3.0"
@@ -467,7 +467,7 @@ __metadata:
   resolution: "@owid/bespoke-helpers@workspace:helpers"
   dependencies:
     "@ourworldindata/utils": "link:../../packages/@ourworldindata/utils"
-    "@tanstack/react-query": "npm:^5.101.0"
+    "@tanstack/react-query": "npm:^5.104.1"
     typescript: "npm:^7.0.2"
     vitest: "npm:^5.0.3"
   languageName: unknown
@@ -478,7 +478,7 @@ __metadata:
   resolution: "@owid/bespoke-hooks@workspace:hooks"
   dependencies:
     "@ourworldindata/utils": "link:../../packages/@ourworldindata/utils"
-    "@tanstack/react-query": "npm:^5.101.0"
+    "@tanstack/react-query": "npm:^5.104.1"
     nuqs: "npm:^2.8.9"
     react: "npm:^19.3.0"
     typescript: "npm:^7.0.2"
@@ -499,7 +499,7 @@ __metadata:
     "@react-stately/flags": "npm:^3.2.1"
     "@rollup/plugin-swc": "npm:^0.4.1"
     "@swc/core": "npm:^1.15.41"
-    "@tanstack/react-query": "npm:^5.101.0"
+    "@tanstack/react-query": "npm:^5.104.1"
     "@types/d3-scale": "npm:^4.0.9"
     "@types/react": "npm:^19.3.0"
     "@types/react-dom": "npm:^19.3.0"
@@ -542,7 +542,7 @@ __metadata:
     "@react-stately/flags": "npm:^3.2.1"
     "@rollup/plugin-swc": "npm:^0.4.1"
     "@swc/core": "npm:^1.15.41"
-    "@tanstack/react-query": "npm:^5.101.0"
+    "@tanstack/react-query": "npm:^5.104.1"
     "@types/d3-dsv": "npm:^3.0.7"
     "@types/d3-sankey": "npm:^0.12.5"
     "@types/react": "npm:^19.3.0"
@@ -1053,21 +1053,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tanstack/query-core@npm:5.101.4":
-  version: 5.101.4
-  resolution: "@tanstack/query-core@npm:5.101.4"
-  checksum: 10/df86031035ac9a5cf54efece85718b90e93fca62068a44a176da232b6dd49b27168840f2da18c64a0eb25d171bc3fb1aab417db4643025cd194ff887833bd73f
+"@tanstack/query-core@npm:5.104.1":
+  version: 5.104.1
+  resolution: "@tanstack/query-core@npm:5.104.1"
+  checksum: 10/05a4410e32e91eb471a7ca1f420c839b49a11367e15a3cebe8ca94e6bfdfbd3bf75a8c22da664746032113419da95d4a37a3be18471fab009d94601d9295d890
   languageName: node
   linkType: hard
 
-"@tanstack/react-query@npm:^5.101.0":
-  version: 5.101.4
-  resolution: "@tanstack/react-query@npm:5.101.4"
+"@tanstack/react-query@npm:^5.104.1":
+  version: 5.104.1
+  resolution: "@tanstack/react-query@npm:5.104.1"
   dependencies:
-    "@tanstack/query-core": "npm:5.101.4"
+    "@tanstack/query-core": "npm:5.104.1"
   peerDependencies:
     react: ^18 || ^19
-  checksum: 10/926dabad8e2c2cee89c0f10456c8338474abfe75c9baea2fa0619206cfcb7b38f7edcfe9cc8903f8a5c4f018bba44a487fc19687aac8f945c6a20630dbfceb96
+  checksum: 10/845b0e7549bce8b85adeb8d092bbdf749b8215296420a02023f2abcee3b350e5d54fcc5aaf396eff617a86581da8313652c3e4de2f6d30848424c1f201409c86
   languageName: node
   linkType: hard
 

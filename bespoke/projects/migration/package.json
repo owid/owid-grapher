@@ -21,7 +21,7 @@
         "@ourworldindata/types": "link:../../../packages/@ourworldindata/types",
         "@ourworldindata/utils": "link:../../../packages/@ourworldindata/utils",
         "@react-stately/flags": "^3.2.1",
-        "@tanstack/react-query": "^5.101.0",
+        "@tanstack/react-query": "^5.104.1",
         "@visx/drag": "^4.0.0",
         "@visx/group": "^4.0.0",
         "@visx/responsive": "^4.0.0",
