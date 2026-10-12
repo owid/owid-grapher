@@ -2,6 +2,7 @@ import { QueryClient, QueryStatus, useQuery } from "@tanstack/react-query"
 import * as R from "remeda"
 
 import { fetchJson } from "@ourworldindata/utils"
+import type { BespokeMetadata } from "@ourworldindata/types"
 
 import {
     PopulationTotals,
@@ -11,6 +12,7 @@ import {
     RawYearRecord,
     SexValues,
 } from "./types.js"
+import { parseBespokeMetadata } from "../../../../components/MetadataModal/bespokeMetadata.js"
 
 export const queryClient = new QueryClient()
 
@@ -71,6 +73,7 @@ export class MigrantDemographicsMetadata {
     readonly source: string
     /** Stable array so consumers can use it as a memo dependency */
     readonly entityNames: string[]
+    readonly provenance: BespokeMetadata | undefined
     private readonly codesByEntityName: Map<string, number>
 
     constructor(raw: RawMigrantDemographicsMetadata) {
@@ -84,6 +87,7 @@ export class MigrantDemographicsMetadata {
         this.ageBands = raw.ageBands
         this.years = raw.years
         this.source = raw.meta.source
+        this.provenance = parseBespokeMetadata(raw)
 
         this.codesByEntityName = new Map(
             raw.entities.map((entity) => [entity.name, entity.code])
