@@ -1035,7 +1035,7 @@ const searchVariablesOrThrow = async (
     offset: number,
     knex: db.KnexReadonlyTransaction
 ): Promise<VariablesSearchResult> => {
-    const whereClauses = buildWhereClauses(query)
+    const { whereClauses, unindexedTerms } = analyzeVariableSearch(query)
     const isSearch = whereClauses.length > 0
 
     // An inner join, so indicators whose dataset has been archived are left
@@ -1050,7 +1050,7 @@ const searchVariablesOrThrow = async (
         LEFT JOIN users u ON u.id=d.dataEditedByUserId
     `
     // Joined only where the popularity is read or ordered by. Counting through
-    // it costs 2.2s instead of 0.3s, and `buildWhereClauses` never filters on
+    // it costs 2.2s instead of 0.3s, and `analyzeVariableSearch` never filters on
     // it, so the count can leave it out.
     const fromWhere = `${from} ${JOIN_POPULARITY} ${where.sql}`
     const sqlCount: SqlFragment = {
@@ -1104,7 +1104,7 @@ const searchVariablesOrThrow = async (
     return {
         variables: rows,
         numTotalRows: numTotalRows,
-        unindexedTerms: unindexedSearchTerms(query),
+        unindexedTerms,
     }
 }
 
@@ -1169,7 +1169,7 @@ const searchVariablesGroupedByDatasetOrThrow = async (
     offset: number,
     knex: db.KnexReadonlyTransaction
 ): Promise<VariablesGroupedSearchResult> => {
-    const whereClauses = buildWhereClauses(query)
+    const { whereClauses, unindexedTerms } = analyzeVariableSearch(query)
     const isSearch = whereClauses.length > 0
     const where = whereSql(whereClauses)
     // Joined only when a search has something to rank: grouping every
@@ -1219,7 +1219,6 @@ const searchVariablesGroupedByDatasetOrThrow = async (
         bindings: [...where.bindings, limit, offset],
     }
     const datasetRows = await queryRegexSafe(datasetsQuery, knex)
-    const unindexedTerms = unindexedSearchTerms(query)
     if (datasetRows.length === 0) {
         // Past the last page there's no row to read the totals from, so ask
         // for the first one: the pager still needs them to lead back
@@ -1332,16 +1331,19 @@ const REGEX_FIELDS = new Map(
 const lowercaseFieldName = (part: string): string =>
     part.replace(/^[a-zA-Z][\w-]*(?=:)/, (field) => field.toLowerCase())
 
-export const buildWhereClauses = (query: string): SqlFragment[] => {
+/** Build SQL and its slow-term notice together, using the same index decision. */
+export const analyzeVariableSearch = (
+    query: string
+): {
+    whereClauses: SqlFragment[]
+    unindexedTerms: string[]
+} => {
     const whereClauses: SqlFragment[] = []
     const fulltextTerms: string[] = []
+    const unindexedTerms: string[] = []
 
-    if (!query) {
-        return whereClauses
-    }
-
-    for (let part of splitSearchTerms(query)) {
-        part = part.trim()
+    for (const term of splitSearchTerms(query)) {
+        let part = term.trim()
         let not = " "
         if (part.startsWith("-")) {
             part = part.substring(1)
@@ -1367,8 +1369,11 @@ export const buildWhereClauses = (query: string): SqlFragment[] => {
         // Same trade as free text: the value matches from the start of a word
         // rather than anywhere inside one.
         const alsoIndex = (value: string): void => {
-            if (not === " " && !isRegex)
-                fulltextTerms.push(...fulltextTokens(value))
+            // Exclusions and dataset-only filters don't get a slow-term notice.
+            if (not !== " ") return
+            const tokens = isRegex ? [] : fulltextTokens(value)
+            fulltextTerms.push(...tokens)
+            if (tokens.length === 0) unindexedTerms.push(term.trim())
         }
 
         const colonIndex = part.indexOf(":")
@@ -1441,7 +1446,7 @@ export const buildWhereClauses = (query: string): SqlFragment[] => {
             ],
         })
 
-    return whereClauses
+    return { whereClauses, unindexedTerms }
 }
 
 /**
@@ -1550,29 +1555,6 @@ function fulltextTokens(term: string): string[] {
 export function canUseFulltext(term: string): boolean {
     return fulltextTokens(term).length > 0
 }
-
-/** The terms in a query that have to fall back to a substring scan. */
-export function unindexedSearchTerms(query: string | undefined): string[] {
-    if (!query) return []
-    return splitSearchTerms(query)
-        .map((part) => part.trim())
-        .filter((part) => {
-            if (!part || part.startsWith("-")) return false
-            const fielded = /^([a-zA-Z][\w-]*):(.*)$/.exec(part)
-            if (!fielded) return !canUseFulltext(part)
-            const [, fieldName, value] = fielded
-            const field = fieldName.toLowerCase()
-            const regexField = REGEX_FIELDS.get(field)
-            if (regexField) return regexField.indexed && !canUseFulltext(value)
-            // the rest filter datasets, not the ~780k indicators
-            if (DATASET_FIELDS.has(field)) return false
-            // an unknown field is searched as free text
-            return !canUseFulltext(part)
-        })
-}
-
-/** Non-regex fields matched on the dataset, which is cheap however they're written. */
-const DATASET_FIELDS = new Set(["dataset-id", "before", "after", "is"])
 
 /** A search term MySQL couldn't run as a regular expression, with its reason. */
 class RegexError extends Error {}

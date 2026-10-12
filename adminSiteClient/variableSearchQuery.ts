@@ -7,7 +7,7 @@ import {
     SearchWord,
 } from "../adminShared/search.js"
 
-// The indicator search is parsed on the server, by `buildWhereClauses` in
+// The indicator search is parsed on the server, by `analyzeVariableSearch` in
 // `db/model/Variable.ts`. What lives here is only what the browser needs on top
 // of that: the box, its help, the URL, and knowing which words to highlight —
 // all following the server's grammar of space-separated terms, `-exclusions`
@@ -33,7 +33,7 @@ export type SearchHighlighter = ReturnType<
     typeof highlightFunctionForSearchWords
 >
 
-/** The fields `buildWhereClauses` understands, for the help and highlighting. */
+/** The fields `analyzeVariableSearch` understands, for the help and highlighting. */
 export const INDICATOR_SEARCH_FIELDS: SearchFieldHelp[] = [
     { name: "name", type: "string", description: "Indicator name (regex)" },
     { name: "path", type: "string", description: "Catalog path (regex)" },

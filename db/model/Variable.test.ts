@@ -2,13 +2,52 @@ import { afterEach, beforeEach, expect, it, describe, vi } from "vitest"
 import * as db from "../db.js"
 
 import {
-    buildWhereClauses,
+    analyzeVariableSearch,
     canUseFulltext,
     getVariableUsagesByIds,
     searchVariables,
     searchVariablesGroupedByDataset,
-    unindexedSearchTerms,
 } from "./Variable.js"
+
+// Keep the existing SQL and warning contracts focused on their respective outputs.
+const buildWhereClauses = (
+    query: string
+): ReturnType<typeof analyzeVariableSearch>["whereClauses"] =>
+    analyzeVariableSearch(query).whereClauses
+const unindexedSearchTerms = (query: string | undefined): string[] =>
+    analyzeVariableSearch(query ?? "").unindexedTerms
+
+describe(analyzeVariableSearch, () => {
+    it("keeps stripped regexes unindexed and reports the original spelling", () => {
+        expect(analyzeVariableSearch("NAME:.*road.*")).toEqual({
+            whereClauses: [
+                { sql: "  REGEXP_LIKE(v.name, ?, 'i')", bindings: ["road"] },
+            ],
+            unindexedTerms: ["NAME:.*road.*"],
+        })
+    })
+
+    it("does not warn about empty fields that produce no SQL", () => {
+        expect(
+            analyzeVariableSearch("name: namespace: dataset-id: before:")
+        ).toEqual({
+            whereClauses: [],
+            unindexedTerms: [],
+        })
+    })
+
+    it("treats unrecognized is: values as free text in both SQL and warnings", () => {
+        expect(analyzeVariableSearch("is:.*")).toEqual({
+            whereClauses: [
+                {
+                    sql: "  (REGEXP_LIKE(v.name, ?, 'i') OR REGEXP_LIKE(v.catalogPath, ?, 'i'))",
+                    bindings: ["is:.*", "is:.*"],
+                },
+            ],
+            unindexedTerms: ["is:.*"],
+        })
+    })
+})
 
 describe(canUseFulltext, () => {
     it("takes ordinary words", () => {
@@ -298,6 +337,24 @@ describe("search query bindings", () => {
         vi.spyOn(db, "knexRaw").mockResolvedValue([])
     })
     afterEach(() => vi.restoreAllMocks())
+
+    it.each([searchVariables, searchVariablesGroupedByDataset])(
+        "returns the analyzed warnings even when %s finds no rows",
+        async (search) => {
+            const result = await search("name: uk -who before:2023", 10, 0, trx)
+            expect(result.unindexedTerms).toEqual(["uk"])
+            expect(vi.mocked(db.knexRaw).mock.calls[0][2]).toEqual([
+                "uk",
+                "uk",
+                "who",
+                "who",
+                "2023",
+                "2023",
+                10,
+                0,
+            ])
+        }
+    )
 
     it("binds flat pagination after search values, but not in the count", async () => {
         const raw = vi.mocked(db.knexRaw)
