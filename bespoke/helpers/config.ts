@@ -1,9 +1,10 @@
-import type {
-    BespokeAuthoredConfig,
-    BespokeConfigField,
-    BespokeConfigSpec,
+import {
+    BespokeConfigError,
+    type BespokeAuthoredConfig,
+    type BespokeConfigField,
+    type BespokeConfigSpec,
 } from "../shared/bespokeComponentTypes.js"
-import type { EmbedConfig } from "../shared/embedConfig.js"
+import { EMBED_CONFIG_SPEC, type EmbedConfig } from "../shared/embedConfig.js"
 
 export type ConfigFromSpec<Spec extends BespokeConfigSpec> = {
     [Key in keyof Spec]: Spec[Key] extends { default: string }
@@ -29,6 +30,16 @@ type FieldValue<Field> = Field extends { type: "string" }
 export function parseConfigFromSpec<Spec extends BespokeConfigSpec>(
     spec: Spec,
     authoredConfig: BespokeAuthoredConfig
+): ConfigFromSpec<Spec> & EmbedConfig {
+    return {
+        ...parseFields(spec, authoredConfig),
+        ...parseFields(EMBED_CONFIG_SPEC, authoredConfig),
+    }
+}
+
+function parseFields<Spec extends BespokeConfigSpec>(
+    spec: Spec,
+    authoredConfig: BespokeAuthoredConfig
 ): ConfigFromSpec<Spec> {
     return Object.fromEntries(
         Object.entries(spec).map(([key, field]) => [
@@ -38,26 +49,16 @@ export function parseConfigFromSpec<Spec extends BespokeConfigSpec>(
     ) as ConfigFromSpec<Spec>
 }
 
-export function parseEmbedConfig(
-    authoredConfig: BespokeAuthoredConfig
-): EmbedConfig {
-    return {
-        urlSync: parseBoolean(authoredConfig.urlSync) ?? false,
-        hideMetadataModal:
-            parseBoolean(authoredConfig.hideMetadataModal) ?? false,
-    }
-}
-
 function parseField(
     key: string,
     field: BespokeConfigField,
-    authoredValue?: string
+    authoredValue: string | undefined
 ): unknown {
     const value = authoredValue?.trim() || undefined
     if (field.type === "custom")
-        return value === undefined ? undefined : field.parse(value)
+        return value === undefined ? undefined : parseCustom(key, field, value)
     const fallback = parseDefault(key, field)
-    return parseFieldValue(field, value) ?? fallback
+    return value === undefined ? fallback : parseFieldValue(key, field, value)
 }
 
 function parseDefault(
@@ -65,55 +66,85 @@ function parseDefault(
     field: Exclude<BespokeConfigField, { type: "custom" }>
 ): string | number | boolean | undefined {
     if (field.default === undefined) return undefined
-    const parsed = parseFieldValue(field, field.default)
-    if (parsed === undefined)
+    try {
+        return parseFieldValue(key, field, field.default)
+    } catch (error) {
+        if (!(error instanceof BespokeConfigError)) throw error
         throw new Error(
-            `Bespoke config key "${key}" has a default that is not a valid ${field.type}: "${field.default}"`
+            `Bespoke config key "${key}" has a default that is not a valid ${field.type}: "${field.default}"`,
+            { cause: error }
         )
-    return parsed
+    }
 }
 
 function parseFieldValue(
+    key: string,
     field: Exclude<BespokeConfigField, { type: "custom" }>,
-    value: string | undefined
-): string | number | boolean | undefined {
+    value: string
+): string | number | boolean {
     switch (field.type) {
         case "string":
             return value
         case "number":
-            return parseNumber(value)
+            return parseNumber(key, value)
         case "integer":
-            return parseInteger(value)
+            return parseInteger(key, value)
         case "boolean":
-            return parseBoolean(value)
+            return parseBoolean(key, value)
         case "enum":
-            return parseEnum(value, field.values)
+            return parseEnum(key, value, field.values)
     }
 }
 
-function parseNumber(value: string | undefined): number | undefined {
-    if (value === undefined) return undefined
+function parseNumber(key: string, value: string): number {
     const n = Number(value)
-    return Number.isFinite(n) ? n : undefined
+    if (!Number.isFinite(n)) throw invalidValueError(key, value, "a number")
+    return n
 }
 
-function parseInteger(value: string | undefined): number | undefined {
-    const n = parseNumber(value)
-    return n === undefined ? undefined : Math.round(n)
+function parseInteger(key: string, value: string): number {
+    const n = Number(value)
+    if (!Number.isInteger(n))
+        throw invalidValueError(key, value, "a whole number")
+    return n
 }
 
-function parseBoolean(value: string | undefined): boolean | undefined {
+function parseBoolean(key: string, value: string): boolean {
     if (value === "true") return true
     if (value === "false") return false
-    return undefined
+    throw invalidValueError(key, value, '"true" or "false"')
 }
 
 function parseEnum<T extends string>(
-    value: string | undefined,
+    key: string,
+    value: string,
     allowed: readonly T[]
-): T | undefined {
-    if (value === undefined) return undefined
-    return (allowed as readonly string[]).includes(value)
-        ? (value as T)
-        : undefined
+): T {
+    if (!(allowed as readonly string[]).includes(value))
+        throw invalidValueError(
+            key,
+            value,
+            `one of ${allowed.map((v) => `"${v}"`).join(", ")}`
+        )
+    return value as T
+}
+
+function parseCustom(
+    key: string,
+    field: Extract<BespokeConfigField, { type: "custom" }>,
+    value: string
+): unknown {
+    const parsed = field.parse(value)
+    if (parsed === undefined) throw invalidValueError(key, value, field.format)
+    return parsed
+}
+
+function invalidValueError(
+    key: string,
+    value: string,
+    expected: string
+): BespokeConfigError {
+    return new BespokeConfigError(
+        `${key}: "${value}" is not valid. Expected: ${expected}`
+    )
 }

@@ -10,4 +10,4 @@ ArchieML config values are always **strings**. Declare them in `CONFIG_SPEC` in 
 
 Support the conventional keys where they make sense: `title`, `subtitle` (override the generated ones), `hideControls`, and an entity default (`country` or `region`) that accepts the sentinel `"userLocation"`, resolved with `useResolveUserLocation` — a react-query hook, so the variant needs a `QueryClientProvider` even when the project fetches nothing else.
 
-`urlSync` and `hideMetadataModal` describe the embedding page rather than the viz, so they stay out of `CONFIG_SPEC`: the mount reads them with `parseEmbedConfig`, and `EmbedConfigProvider` in the variant's provider stack hands them to the code that needs them.
+`urlSync` and `hideMetadataModal` describe the embedding page rather than the viz, so they stay out of `CONFIG_SPEC`: `parseConfigFromSpec` parses them too, and `EmbedConfigProvider` in the variant's provider stack hands them to the code that needs them.

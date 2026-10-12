@@ -9,11 +9,7 @@ import type {
 } from "owid-bespoke-types"
 import StylesTarget from "vite-plugin-css-position/react"
 
-import {
-    ConfigFromSpec,
-    parseConfigFromSpec,
-    parseEmbedConfig,
-} from "../../../helpers/config.js"
+import { ConfigFromSpec, parseConfigFromSpec } from "../../../helpers/config.js"
 
 import { SHOW_MODES, VariantName } from "./core/types.js"
 import { PyramidVariant } from "./variants/PyramidVariant.js"
@@ -93,10 +89,7 @@ export const mount: BespokeComponentMountFn = (
     const urls = { dataUrl: opts.dataUrl, metadataUrl: opts.metadataUrl }
 
     const authoredConfig = opts.config ?? {}
-    const config = {
-        ...parseConfigFromSpec(CONFIG_SPEC, authoredConfig),
-        ...parseEmbedConfig(authoredConfig),
-    }
+    const config = parseConfigFromSpec(CONFIG_SPEC, authoredConfig)
 
     const root = createRoot(container)
     root.render(

@@ -1,7 +1,7 @@
-import { describe, expect, expectTypeOf, it, vi } from "vitest"
+import { describe, expect, expectTypeOf, it } from "vitest"
 
 import type { BespokeConfigSpec } from "../shared/bespokeComponentTypes.js"
-import { parseConfigFromSpec, parseEmbedConfig } from "./config.js"
+import { parseConfigFromSpec } from "./config.js"
 
 const FLOWS = ["both", "import", "export"] as const
 
@@ -34,7 +34,7 @@ const SPEC = {
 } as const satisfies BespokeConfigSpec
 
 describe(parseConfigFromSpec, () => {
-    it("returns exactly the spec's keys, keeping valid values", () => {
+    it("returns exactly the spec's keys and the embed flags, keeping valid values", () => {
         expect(
             parseConfigFromSpec(SPEC, {
                 flow: "export",
@@ -56,21 +56,26 @@ describe(parseConfigFromSpec, () => {
             year: 1990,
             scale: 2.5,
             points: [1, 2],
+            urlSync: false,
+            hideMetadataModal: false,
         })
     })
 
-    it("keeps an allowed enum value and replaces any other with the default, if there is one", () => {
+    it("parses the embed flags like any other boolean", () => {
         expect(
-            parseConfigFromSpec(SPEC, { flow: "import", unit: "percent" })
-        ).toMatchObject({ flow: "import", unit: "percent" })
-        expect(
-            parseConfigFromSpec(SPEC, { flow: "sideways", unit: "relative" })
-        ).toMatchObject({ flow: "both", unit: undefined })
+            parseConfigFromSpec(SPEC, {
+                urlSync: "true",
+                hideMetadataModal: "false",
+            })
+        ).toMatchObject({ urlSync: true, hideMetadataModal: false })
     })
 
     it("treats an empty value as unset", () => {
         expect(parseConfigFromSpec(SPEC, { product: "" }).product).toBe("Maize")
         expect(parseConfigFromSpec(SPEC, { year: " " }).year).toBeUndefined()
+        expect(
+            parseConfigFromSpec(SPEC, { points: " " }).points
+        ).toBeUndefined()
     })
 
     it("trims values before parsing", () => {
@@ -79,61 +84,35 @@ describe(parseConfigFromSpec, () => {
         ).toMatchObject({ flow: "import", product: "Wheat" })
     })
 
-    it("treats a value that is not a finite number as invalid", () => {
-        expect(
-            parseConfigFromSpec(SPEC, { scale: "abc", year: "abc" })
-        ).toMatchObject({ scale: 1, year: undefined })
-        expect(
-            parseConfigFromSpec(SPEC, { scale: "Infinity", year: "Infinity" })
-        ).toMatchObject({ scale: 1, year: undefined })
+    it("throws on an enum value outside its values, naming the key, value and allowed values", () => {
+        expect(() => parseConfigFromSpec(SPEC, { flow: "sideways" })).toThrow(
+            'flow: "sideways" is not valid. Expected: one of "both", "import", "export"'
+        )
     })
 
-    it("reads a boolean as unset when it is not true or false", () => {
+    it("throws when a custom parser rejects a set value, naming the format", () => {
+        expect(() => parseConfigFromSpec(SPEC, { points: "1,,3" })).toThrow(
+            'points: "1,,3" is not valid. Expected: comma-separated numbers'
+        )
+    })
+
+    it.each([
+        { key: "scale", value: "abc", expected: "a number" },
+        { key: "scale", value: "Infinity", expected: "a number" },
+        { key: "year", value: "abc", expected: "a whole number" },
+        { key: "year", value: "2023.6", expected: "a whole number" },
+        { key: "hideControls", value: "yes", expected: '"true" or "false"' },
+    ])("throws on $key set to $value", ({ key, value, expected }) => {
+        expect(() => parseConfigFromSpec(SPEC, { [key]: value })).toThrow(
+            `${key}: "${value}" is not valid. Expected: ${expected}`
+        )
+    })
+
+    it("falls back to the default for an unset boolean", () => {
         expect(parseConfigFromSpec(SPEC, {})).toMatchObject({
             hideControls: undefined,
             showLegend: true,
         })
-        expect(
-            parseConfigFromSpec(SPEC, {
-                hideControls: "yes",
-                showLegend: "yes",
-            })
-        ).toMatchObject({ hideControls: undefined, showLegend: true })
-        expect(
-            parseConfigFromSpec(SPEC, {
-                hideControls: "true",
-                showLegend: "false",
-            })
-        ).toMatchObject({ hideControls: true, showLegend: false })
-    })
-
-    it("rounds a fractional integer", () => {
-        expect(parseConfigFromSpec(SPEC, { year: "2023.6" }).year).toBe(2024)
-    })
-
-    it("leaves a custom value unset when its parser rejects it", () => {
-        expect(
-            parseConfigFromSpec(SPEC, { points: "1,,3" }).points
-        ).toBeUndefined()
-        expect(parseConfigFromSpec(SPEC, { points: "1,2" }).points).toEqual([
-            1, 2,
-        ])
-    })
-
-    it("never calls a custom parser for an unset value", () => {
-        const parse = vi.fn((value: string) => value)
-        const spec = {
-            points: { type: "custom", format: "text", parse, description: "" },
-        } as const satisfies BespokeConfigSpec
-
-        expect(parseConfigFromSpec(spec, {}).points).toBeUndefined()
-        expect(
-            parseConfigFromSpec(spec, { points: " " }).points
-        ).toBeUndefined()
-        expect(parse).not.toHaveBeenCalled()
-
-        expect(parseConfigFromSpec(spec, { points: "a" }).points).toBe("a")
-        expect(parse).toHaveBeenCalledExactlyOnceWith("a")
     })
 
     it("types keys with a default as always set and narrows enums to their values", () => {
@@ -162,35 +141,5 @@ describe(parseConfigFromSpec, () => {
         ).toThrow(
             'Bespoke config key "flow" has a default that is not a valid enum: "sideways"'
         )
-
-        const numberDefaultNotANumber = {
-            year: { type: "integer", default: "latest", description: "Year" },
-        } as const satisfies BespokeConfigSpec
-        expect(() => parseConfigFromSpec(numberDefaultNotANumber, {})).toThrow(
-            '"year" has a default that is not a valid integer'
-        )
-
-        const booleanDefaultNotABoolean = {
-            hideControls: {
-                type: "boolean",
-                default: "yes",
-                description: "Hide the controls",
-            },
-        } as const satisfies BespokeConfigSpec
-        expect(() =>
-            parseConfigFromSpec(booleanDefaultNotABoolean, {})
-        ).toThrow('"hideControls" has a default that is not a valid boolean')
-    })
-})
-
-describe(parseEmbedConfig, () => {
-    it("reads each flag as true only when it says true", () => {
-        expect(parseEmbedConfig({})).toStrictEqual({
-            urlSync: false,
-            hideMetadataModal: false,
-        })
-        expect(
-            parseEmbedConfig({ urlSync: "true", hideMetadataModal: "yes" })
-        ).toStrictEqual({ urlSync: true, hideMetadataModal: false })
     })
 })

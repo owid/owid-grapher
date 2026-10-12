@@ -24,6 +24,16 @@ export type BespokeComponentMountFn = (
     opts: BespokeComponentMountOpts
 ) => BespokeComponentReturnType | Promise<BespokeComponentReturnType>
 
+export class BespokeConfigError extends Error {
+    override name = "BespokeConfigError"
+}
+
+export function isBespokeConfigError(
+    error: unknown
+): error is BespokeConfigError {
+    return error instanceof Error && error.name === "BespokeConfigError"
+}
+
 /**
  * The expected interface for a bespoke component's ESM module.
  * The module must export a `mount` function that receives a container div
