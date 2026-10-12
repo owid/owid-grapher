@@ -20,7 +20,7 @@ export interface GrapherConfigValidationIssue {
     message: string
 }
 
-const ajv = new Ajv({ allErrors: true, strict: true })
+const ajv = new Ajv({ allErrors: true, strict: true, strictRequired: false })
 addFormats(ajv)
 const validateAgainstSchema = ajv.compile(readLatestGrapherSchema())
 
