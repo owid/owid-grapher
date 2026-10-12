@@ -101,6 +101,15 @@ export class DiscreteBarChartState implements ChartState, ColorScaleManager {
         return table
     }
 
+    transformTableForSelection(table: OwidTable): OwidTable {
+        const ySlugs = autoDetectYColumnSlugs(this.manager)
+        if (!ySlugs.length) return table
+
+        return table
+            .replaceNonNumericCellsWithErrorValues(ySlugs)
+            .dropRowsWithErrorValuesForAllColumns(ySlugs)
+    }
+
     private transformTableForIndependentColumns(table: OwidTable): OwidTable {
         // TODO: remove this filter once we don't have mixed type columns in datasets
         table = table.replaceNonNumericCellsWithErrorValues(this.yColumnSlugs)
