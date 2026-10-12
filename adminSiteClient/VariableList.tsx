@@ -4,12 +4,14 @@ import { useQuery } from "@tanstack/react-query"
 import {
     Alert,
     Button,
+    Empty,
+    Flex,
     Popover,
-    Spin,
     Table,
     TableColumnsType,
     TableProps,
     Tooltip,
+    Typography,
 } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faEyeSlash, faLock } from "@fortawesome/free-solid-svg-icons"
@@ -25,7 +27,9 @@ import {
 import {
     fieldedTerms,
     parseCatalogPath,
+    plural,
     SearchHighlighter,
+    searchHref,
     VariableSearchBox,
     withoutTerms,
 } from "./variableSearchQuery.js"
@@ -50,8 +54,6 @@ export interface VariableListItem {
     explorerSlugs?: string[]
     /** 0-1, from the analytics service. Absent for indicators nobody reads. */
     popularity?: number | null
-    /** How many of this indicator's dataset matched the search. */
-    datasetMatchCount?: number
 }
 
 /** Columns beyond the always-present name, in the order they are shown. */
@@ -81,8 +83,6 @@ interface VariableListProps {
     search?: VariableSearchBox
     /** Extra controls shown next to the search box. */
     filters?: React.ReactNode
-    /** Shown under the search box, where it doesn't push the box around. */
-    notice?: React.ReactNode
     loading?: boolean
     /**
      * Sorting sorts the rows the table was handed, so it is only meaningful
@@ -91,10 +91,6 @@ interface VariableListProps {
      */
     sortable?: boolean
     pagination?: TableProps<VariableListItem>["pagination"]
-}
-
-function plural(count: number, noun: string): string {
-    return `${count} ${noun}${count === 1 ? "" : "s"}`
 }
 
 /**
@@ -456,7 +452,6 @@ export function VariableList({
     searchWords = NO_SEARCH_WORDS,
     search,
     filters,
-    notice,
     loading,
     sortable = true,
     pagination,
@@ -467,9 +462,8 @@ export function VariableList({
     }, [fields, searchWords, sortable])
 
     return (
-        <div className="variable-list">
+        <Flex vertical gap="middle">
             <VariableSearchToolbar search={search} filters={filters} />
-            {notice}
             <Table<VariableListItem>
                 size="small"
                 sticky
@@ -489,7 +483,7 @@ export function VariableList({
                           }
                 }
             />
-        </div>
+        </Flex>
     )
 }
 
@@ -506,15 +500,16 @@ function DatasetGroupHeader({
         .filter(Boolean)
         .join("/")
     return (
-        <div className="variable-list__group">
-            <Link
-                className="variable-list__group-name"
-                to={`/datasets/${group.id}`}
-            >
-                {highlight(group.name)}
-            </Link>
-            {path && <span className="variable-list__group-path">{path}</span>}
-            <span className="variable-list__group-meta">
+        <Flex justify="space-between" align="baseline" gap="middle" wrap>
+            <Flex align="baseline" gap="small" wrap>
+                <Link to={`/datasets/${group.id}`}>
+                    <strong>{highlight(group.name)}</strong>
+                </Link>
+                {path && (
+                    <Typography.Text type="secondary">{path}</Typography.Text>
+                )}
+            </Flex>
+            <Typography.Text type="secondary">
                 {plural(
                     group.matchCount,
                     isSearch ? "matching indicator" : "indicator"
@@ -528,8 +523,8 @@ function DatasetGroupHeader({
                         />
                     </>
                 )}
-            </span>
-        </div>
+            </Typography.Text>
+        </Flex>
     )
 }
 
@@ -574,16 +569,17 @@ function EmptySearchHint({
 
     return (
         <Alert
-            className="variable-list__empty-hint"
             type="info"
             showIcon
             title={
                 <>
                     Nothing matches{" "}
                     {fielded.map((term) => (
-                        <code key={term}>{term}</code>
+                        <React.Fragment key={term}>
+                            <code>{term}</code>{" "}
+                        </React.Fragment>
                     ))}
-                    . <b>{plural(data.numTotalRows, "indicator")}</b> in{" "}
+                    — <b>{plural(data.numTotalRows, "indicator")}</b> in{" "}
                     {plural(data.numTotalDatasets, "dataset")} match the rest of
                     the search.
                 </>
@@ -629,16 +625,18 @@ function IndicatorCell({
     )
 }
 
+const groupKey = (group: DatasetSearchGroup): string =>
+    `${group.id}-${group.namespace}-${group.version}`
+
 /**
  * Search results grouped by the dataset they belong to. A search matches far
  * more indicators than datasets — "road deaths" hits 831 across 12 — so the
  * datasets are the useful thing to page through, each showing its most-read
  * few and offering the rest as a narrower search.
  *
- * Written as groups of rows rather than through antd's `Table`: a table wants
- * one flat list, so grouping through it meant a union row type, a flattening
- * pass and a `colSpan` trick in every cell renderer. One table per group,
- * sharing the column widths, lines up the same and says what it means.
+ * One row per dataset with its indicators in a table nested under it, as on
+ * the multi-dim redirects page, but always shown: the indicators are what a
+ * search is after, so there is nothing to expand.
  */
 export function GroupedVariableList({
     groups,
@@ -646,10 +644,8 @@ export function GroupedVariableList({
     searchWords = NO_SEARCH_WORDS,
     searchValue,
     onSearchValue,
-    search,
     loading,
-    footer,
-    notice,
+    pagination,
 }: {
     groups: DatasetSearchGroup[]
     /** Groups say "matching indicators" for a search, "indicators" otherwise. */
@@ -658,93 +654,100 @@ export function GroupedVariableList({
     /** The query the groups came from, extended by the "more" links. */
     searchValue: string
     onSearchValue: (value: string) => void
-    search?: VariableSearchBox
     loading?: boolean
-    footer?: React.ReactNode
-    /** Shown under the search box, where it doesn't push the box around. */
-    notice?: React.ReactNode
+    /** Over the datasets, which is what the server pages through. */
+    pagination: TableProps<DatasetSearchGroup>["pagination"]
 }): React.ReactElement {
     const highlight = useMemo(
         () => highlightFunctionForSearchWords(searchWords),
         [searchWords]
     )
-    const width = columnWidths(["usage"])
+    const indicatorColumns = useMemo(
+        () =>
+            createColumns({
+                fields: ["usage"],
+                highlight,
+                searchWords,
+                sortable: false,
+            }),
+        [highlight, searchWords]
+    )
+    const groupColumns: TableColumnsType<DatasetSearchGroup> = useMemo(
+        () => [
+            {
+                title: "Dataset",
+                key: "dataset",
+                render: (_, group) => (
+                    <DatasetGroupHeader
+                        group={group}
+                        highlight={highlight}
+                        isSearch={isSearch}
+                    />
+                ),
+            },
+        ],
+        [highlight, isSearch]
+    )
 
     return (
-        <div className="variable-list-grouped">
-            <VariableSearchToolbar search={search} />
-            {notice}
-            <Spin spinning={!!loading}>
-                <div className="variable-list-grouped__header">
-                    <span style={{ width: width.name }}>Indicator</span>
-                    <span style={{ width: width.usage }}>Used in</span>
-                </div>
-                {groups.map((group) => (
-                    <div
-                        className="variable-list-grouped__group"
-                        key={`${group.id}-${group.namespace}-${group.version}`}
-                    >
-                        <DatasetGroupHeader
-                            group={group}
-                            highlight={highlight}
-                            isSearch={isSearch}
+        <Table<DatasetSearchGroup>
+            size="small"
+            sticky
+            rowKey={groupKey}
+            columns={groupColumns}
+            dataSource={groups}
+            loading={loading}
+            pagination={pagination}
+            locale={{
+                emptyText: (
+                    <Flex vertical gap="small">
+                        <Empty
+                            image={Empty.PRESENTED_IMAGE_SIMPLE}
+                            description="No indicators match this search."
                         />
-                        <table className="variable-list-grouped__table">
-                            <tbody>
-                                {group.variables.map((variable) => (
-                                    <tr key={variable.id}>
-                                        <td style={{ width: width.name }}>
-                                            <IndicatorCell
-                                                variable={variable}
-                                                highlight={highlight}
-                                            />
-                                        </td>
-                                        <td style={{ width: width.usage }}>
-                                            <UsageCell
-                                                variable={variable}
-                                                withPopularity
-                                            />
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                        {group.matchCount > group.variables.length && (
-                            <button
-                                type="button"
-                                className="variable-list__group-more"
-                                onClick={() =>
-                                    onSearchValue(
-                                        // the dataset first: it's what the
-                                        // link narrows to
-                                        [
-                                            `dataset-id:${group.id}`,
-                                            searchValue.trim(),
-                                        ]
-                                            .filter(Boolean)
-                                            .join(" ")
-                                    )
-                                }
-                            >
-                                {group.matchCount - group.variables.length} more
-                                in this dataset →
-                            </button>
-                        )}
-                    </div>
-                ))}
-                {groups.length === 0 && !loading && (
-                    <>
-                        <div className="variable-list-grouped__empty">
-                            No indicators match this search.
-                        </div>
                         <EmptySearchHint
                             searchValue={searchValue}
                             onSearchValue={onSearchValue}
                         />
-                    </>
-                )}
-            </Spin>
-            {footer}
-        </div>
+                    </Flex>
+                ),
+            }}
+            expandable={{
+                expandedRowKeys: groups.map(groupKey),
+                showExpandColumn: false,
+                expandedRowRender: (group) => (
+                    <Table<VariableListItem>
+                        size="small"
+                        showHeader={false}
+                        rowKey="id"
+                        columns={indicatorColumns}
+                        dataSource={group.variables}
+                        pagination={false}
+                        footer={
+                            group.matchCount > group.variables.length
+                                ? () => (
+                                      <Link
+                                          to={searchHref(
+                                              // the dataset first: it's
+                                              // what the link narrows to
+                                              [
+                                                  `dataset-id:${group.id}`,
+                                                  searchValue.trim(),
+                                              ]
+                                                  .filter(Boolean)
+                                                  .join(" ")
+                                          )}
+                                      >
+                                          {group.matchCount -
+                                              group.variables.length}{" "}
+                                          more in this dataset →
+                                      </Link>
+                                  )
+                                : undefined
+                        }
+                    />
+                ),
+            }}
+        />
     )
 }

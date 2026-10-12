@@ -9,10 +9,8 @@ import type {
 
 function SearchHelp({
     fields,
-    inUrl,
 }: {
     fields: SearchFieldHelp[]
-    inUrl: boolean
 }): React.ReactElement {
     return (
         <Popover
@@ -25,9 +23,8 @@ function SearchHelp({
                         a word. Use <code>"a phrase"</code> to keep words
                         together and <code>-word</code> to exclude. Regular
                         expressions work too, but read every indicator, so they
-                        are slow.
-                        {inUrl &&
-                            " The search is kept in the page URL, so a filtered list can be shared."}
+                        are slow. The search is kept in the page URL, so a
+                        filtered list can be shared.
                     </p>
                     <table>
                         <tbody>
@@ -63,22 +60,19 @@ export function VariableSearchToolbar({
 }): React.ReactElement | null {
     if (!search && !filters) return null
     return (
-        <Space className="variable-list__toolbar" size="middle" wrap>
+        <Space size="middle" wrap>
             {search && (
                 <Input
                     placeholder={search.placeholder ?? "Search..."}
                     value={search.value}
                     onChange={(e) => search.onChange(e.target.value)}
-                    style={{ width: search.width ?? 500 }}
+                    style={{ width: 500 }}
                     autoFocus={search.autoFocus}
                     allowClear
                 />
             )}
             {search?.fields?.length ? (
-                <SearchHelp
-                    fields={search.fields}
-                    inUrl={search.inUrl ?? true}
-                />
+                <SearchHelp fields={search.fields} />
             ) : null}
             {filters}
         </Space>

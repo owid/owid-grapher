@@ -24,12 +24,8 @@ export interface VariableSearchBox {
     onChange: (value: string) => void
     placeholder?: string
     autoFocus?: boolean
-    /** Width of the input. Defaults to 500px. */
-    width?: number | string
     /** The `field:value` terms, listed in a help popover. */
     fields?: SearchFieldHelp[]
-    /** Whether the search is kept in the page URL, as the help then says. */
-    inUrl?: boolean
 }
 
 export type SearchHighlighter = ReturnType<
@@ -71,6 +67,10 @@ export const INDICATOR_SEARCH_FIELDS: SearchFieldHelp[] = [
 export function namesOneDataset(query: string): boolean {
     // `-dataset:wdi` leaves nearly everything, which is still worth grouping
     return terms(query).some((term) => /^dataset(-id)?:/i.test(term))
+}
+
+export function plural(count: number, noun: string): string {
+    return `${count} ${noun}${count === 1 ? "" : "s"}`
 }
 
 export interface CatalogPathParts {
@@ -148,6 +148,11 @@ export function searchWordsToHighlight(
         const word = field ? fielded[2] : term
         return [{ regex: buildRegexFromSearchWord(word), word, exclude: false }]
     })
+}
+
+/** A link to the same page searching for `value`, as kept by `useSearchQueryParam`. */
+export function searchHref(value: string, key: string = "search"): string {
+    return `?${new URLSearchParams({ [key]: value })}`
 }
 
 /**

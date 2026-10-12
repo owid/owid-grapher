@@ -1112,13 +1112,7 @@ const searchVariablesOrThrow = async (
     // A search has to visit every matching row to sort it, so the total comes
     // from that same pass rather than from a second query that would repeat
     // the scan.
-    // Each row also carries how many matches its dataset has, so a page
-    // showing one dataset can say how many of its indicators matched rather
-    // than how many landed on the page. Same pass, no measurable cost.
-    const totalColumn = isSearch
-        ? `, COUNT(*) OVER () AS numTotalRows,
-           COUNT(*) OVER (PARTITION BY v.datasetId) AS datasetMatchCount`
-        : ""
+    const totalColumn = isSearch ? `, COUNT(*) OVER () AS numTotalRows` : ""
 
     const sqlResults: SqlFragment = {
         sql: `
@@ -1140,8 +1134,6 @@ const searchVariablesOrThrow = async (
 
     rows.forEach((row: any) => {
         delete row.numTotalRows
-        if (row.datasetMatchCount !== undefined)
-            row.datasetMatchCount = Number(row.datasetMatchCount)
     })
     await attachVariableUsages(knex, rows)
 
@@ -1706,8 +1698,6 @@ export interface VariableResultView extends VariableUsage {
     uploadedAt: string
     uploadedBy: string | null
     popularity: number | null
-    /** How many matches the row's dataset has, on a search. */
-    datasetMatchCount?: number
 }
 
 export const getIndicatorIdsByCatalogPath = async (

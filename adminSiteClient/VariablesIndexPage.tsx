@@ -6,7 +6,7 @@ import urljoin from "url-join"
 
 import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext } from "./AdminAppContext.js"
-import { Alert, Flex, Pagination } from "antd"
+import { Alert, Flex } from "antd"
 import {
     DatasetSearchGroup,
     GroupedVariableList,
@@ -15,9 +15,11 @@ import {
     VariableListField,
     VariableListItem,
 } from "./VariableList.js"
+import { VariableSearchToolbar } from "./VariableSearchToolbar.js"
 import {
     INDICATOR_SEARCH_FIELDS,
     namesOneDataset,
+    plural,
     searchWordsToHighlight,
     useSearchQueryParam,
 } from "./variableSearchQuery.js"
@@ -27,13 +29,9 @@ import { ETL_WIZARD_URL } from "../settings/clientSettings.mjs"
 // a column of its own
 const FIELDS: VariableListField[] = ["catalogPath", "usage", "uploadedAt"]
 
-function plural(count: number, noun: string): string {
-    return `${count} ${noun}${count === 1 ? "" : "s"}`
-}
-
 function SearchSyntaxNote(): React.ReactElement {
     return (
-        <p className="variables-index__help">
+        <div>
             Grouped by dataset — newest first, or by popularity when you search.
             Words match from their start; regular expressions work too, but are
             slow. Also try{" "}
@@ -41,7 +39,7 @@ function SearchSyntaxNote(): React.ReactElement {
                 semantic indicator search
             </a>
             .
-        </p>
+        </div>
     )
 }
 
@@ -51,7 +49,13 @@ const DATASETS_PER_PAGE = 10
 export function VariablesIndexPage(): React.ReactElement {
     const { admin } = useContext(AdminAppContext)
     const [searchValue, setSearchValue] = useSearchQueryParam()
-    const [page, setPage] = useState(1)
+    // Kept with the search it belongs to, so a new search starts on page 1,
+    // typed or followed from a link, while Back to the search being paged
+    // returns to its page
+    const [paging, setPaging] = useState({ search: searchValue, page: 1 })
+    const page = paging.search === searchValue ? paging.page : 1
+    const setPage = (nextPage: number): void =>
+        setPaging({ search: searchValue, page: nextPage })
     const [pageSize, setPageSize] = useState(INDICATORS_PAGE_SIZE)
     // A regex search over ~800k indicators takes seconds, so don't fire one
     // off on every keystroke
@@ -65,26 +69,15 @@ export function VariablesIndexPage(): React.ReactElement {
     const isSearch = debouncedSearch.trim().length > 0
     const isGrouped = !namesOneDataset(debouncedSearch)
 
-    const onSearchValue = useCallback(
-        (value: string) => {
-            setSearchValue(value)
-            setPage(1)
-        },
-        [setSearchValue]
-    )
-    // For the links that narrow a search ("more in this dataset"): a step
-    // Back returns from
+    // For the buttons that narrow a search: a step Back returns from
     const onNarrowSearch = useCallback(
-        (value: string) => {
-            setSearchValue(value, { push: true })
-            setPage(1)
-        },
+        (value: string) => setSearchValue(value, { push: true }),
         [setSearchValue]
     )
 
     const searchProps = {
         value: searchValue,
-        onChange: onSearchValue,
+        onChange: setSearchValue,
         placeholder: "e.g. ^population before:2023 -wdi",
         autoFocus: true,
         fields: INDICATOR_SEARCH_FIELDS,
@@ -141,7 +134,6 @@ export function VariablesIndexPage(): React.ReactElement {
 
     const notice = regexError ? (
         <Alert
-            className="variables-index__notice"
             type="warning"
             showIcon
             title={
@@ -153,7 +145,6 @@ export function VariablesIndexPage(): React.ReactElement {
         />
     ) : unindexedTerms.length > 0 ? (
         <Alert
-            className="variables-index__notice"
             type="info"
             showIcon
             title={
@@ -171,68 +162,54 @@ export function VariablesIndexPage(): React.ReactElement {
     return (
         <AdminLayout title="Indicators">
             <main className="VariablesIndexPage">
-                <SearchSyntaxNote />
-                {isGrouped ? (
-                    <GroupedVariableList
-                        groups={grouped.data?.datasets ?? []}
-                        isSearch={isSearch}
-                        searchWords={searchWords}
-                        searchValue={debouncedSearch}
-                        onSearchValue={onNarrowSearch}
-                        loading={grouped.isFetching}
-                        search={searchProps}
-                        notice={notice}
-                        footer={
-                            <Flex
-                                className="variables-index__pager"
-                                justify="space-between"
-                                align="center"
-                                gap="middle"
-                                wrap
-                            >
-                                <span className="variables-index__pager-total">
-                                    {(
+                <Flex vertical gap="middle">
+                    <SearchSyntaxNote />
+                    {/* outside the lists, so switching between them doesn't
+                    remount the box being typed in */}
+                    <VariableSearchToolbar search={searchProps} />
+                    {notice}
+                    {isGrouped ? (
+                        <GroupedVariableList
+                            groups={grouped.data?.datasets ?? []}
+                            isSearch={isSearch}
+                            searchWords={searchWords}
+                            searchValue={debouncedSearch}
+                            onSearchValue={onNarrowSearch}
+                            loading={grouped.isFetching}
+                            pagination={{
+                                current: page,
+                                pageSize: DATASETS_PER_PAGE,
+                                total: grouped.data?.numTotalDatasets ?? 0,
+                                showSizeChanger: false,
+                                onChange: setPage,
+                                showTotal: (total) =>
+                                    `${(
                                         grouped.data?.numTotalRows ?? 0
-                                    ).toLocaleString()}{" "}
-                                    indicators in{" "}
-                                    {plural(
-                                        grouped.data?.numTotalDatasets ?? 0,
+                                    ).toLocaleString()} indicators in ${plural(
+                                        total,
                                         "dataset"
-                                    )}
-                                </span>
-                                <Pagination
-                                    current={page}
-                                    pageSize={DATASETS_PER_PAGE}
-                                    total={grouped.data?.numTotalDatasets ?? 0}
-                                    showSizeChanger={false}
-                                    onChange={setPage}
-                                    showTotal={(total, [from, to]) =>
-                                        `datasets ${from}-${to} of ${total}`
-                                    }
-                                />
-                            </Flex>
-                        }
-                    />
-                ) : (
-                    <VariableList
-                        variables={flat.data?.variables ?? []}
-                        fields={FIELDS}
-                        searchWords={searchWords}
-                        loading={flat.isFetching}
-                        sortable={false}
-                        search={searchProps}
-                        notice={notice}
-                        pagination={{
-                            current: page,
-                            pageSize,
-                            total: flat.data?.numTotalRows ?? 0,
-                            onChange: (nextPage, nextPageSize) => {
-                                setPage(nextPage)
-                                setPageSize(nextPageSize)
-                            },
-                        }}
-                    />
-                )}
+                                    )}`,
+                            }}
+                        />
+                    ) : (
+                        <VariableList
+                            variables={flat.data?.variables ?? []}
+                            fields={FIELDS}
+                            searchWords={searchWords}
+                            loading={flat.isFetching}
+                            sortable={false}
+                            pagination={{
+                                current: page,
+                                pageSize,
+                                total: flat.data?.numTotalRows ?? 0,
+                                onChange: (nextPage, nextPageSize) => {
+                                    setPage(nextPage)
+                                    setPageSize(nextPageSize)
+                                },
+                            }}
+                        />
+                    )}
+                </Flex>
             </main>
         </AdminLayout>
     )
