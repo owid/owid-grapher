@@ -56,7 +56,15 @@ export function mount(
 - **`opts.metadataUrl`** — URL of the metadata file inside that folder, from the entry's `metadataFilename`.
 - **Return value** — Optionally return a cleanup/disposal function that will be called on unmount.
 
-A module may also export `VARIANTS`, a list of `{ name, demoConfig?, defaultSize? }` entries. The site ignores it; the dev server's demo page reads it to mount every variant, and shows an error instead of the component when it is missing.
+A module may also export `VARIANTS`, a list of `{ name, description, demoConfig?, defaultSize? }` entries.
+
+### Declaring the config
+
+Every project declares the config keys it reads in a `CONFIG_SPEC` export next to `VARIANTS`. [food-trade/src/index.tsx](projects/food-trade/src/index.tsx) is a full example.
+
+### Documenting a bundle for authors
+
+`VARIANTS` and `CONFIG_SPEC` power the bespoke docs pages in the admin, which read both exports from the source. Their `description` fields are short phrases written for the authors browsing those pages.
 
 ### Registering a component
 
@@ -279,7 +287,7 @@ Any module-scoped state works — a plain variable, an event emitter, MobX — s
 
 ## Shared types
 
-The types for the module interface (`BespokeComponentModule`, `BespokeComponentMountFn`, `BespokeComponentVariantsList`) live in [bespoke/shared/bespokeComponentTypes.ts](shared/bespokeComponentTypes.ts). Projects import them via a TS path alias:
+The types for the module interface (`BespokeComponentModule`, `BespokeComponentMountFn`, `BespokeComponentVariantsList`, `BespokeConfigSpec`) live in [bespoke/shared/bespokeComponentTypes.ts](shared/bespokeComponentTypes.ts). Projects import them via a TS path alias:
 
 ```ts
 import type { BespokeComponentMountFn } from "owid-bespoke-types"
@@ -323,5 +331,6 @@ The dev server will inject this stylesheet into the demo page's `<head>` (outsid
 ## Creating a new bespoke component
 
 1. Copy `bespoke/projects/example/`, rename it, and run `yarn install` from `bespoke/`
-2. Register the bundle in [bespoke/shared/bespokeComponentRegistry.ts](./shared/bespokeComponentRegistry.ts)
-3. Add the `{.bespoke-component}` block in your Google Doc
+2. Define `VARIANTS` and `CONFIG_SPEC` in `src/index.tsx`
+3. Register the bundle in [bespoke/shared/bespokeComponentRegistry.ts](./shared/bespokeComponentRegistry.ts)
+4. Add the `{.bespoke-component}` block in your Google Doc
