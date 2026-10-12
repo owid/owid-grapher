@@ -31,6 +31,10 @@ describe(namesOneDataset, () => {
         expect(namesOneDataset("-dataset:wdi")).toBe(false)
         expect(namesOneDataset("road dataset-id:")).toBe(false)
     })
+
+    it("is false for a dataset id the server can't read as a number", () => {
+        expect(namesOneDataset("dataset-id:abc")).toBe(false)
+    })
 })
 
 describe(withoutTerms, () => {

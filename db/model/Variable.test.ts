@@ -112,6 +112,13 @@ describe(canUseFulltext, () => {
         expect(canUseFulltext("19")).toBe(false)
     })
 
+    it("rejects words longer than the index's maximum token length", () => {
+        expect(canUseFulltext("a".repeat(84))).toBe(true)
+        expect(canUseFulltext("a".repeat(85))).toBe(false)
+        // a long segment drops out, leaving the rest of the path to narrow on
+        expect(fulltextTokens(`grapher/${"a".repeat(85)}`)).toEqual(["grapher"])
+    })
+
     it("rejects terms carrying regex syntax, which the search box advertises", () => {
         expect(canUseFulltext("^population")).toBe(false)
         expect(canUseFulltext("deaths$")).toBe(false)

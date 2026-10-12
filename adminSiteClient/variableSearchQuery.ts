@@ -1,5 +1,6 @@
 import { useCallback } from "react"
 import { useHistory, useLocation } from "react-router-dom"
+import { parseIntOrUndefined } from "@ourworldindata/utils"
 import {
     parseSearchQuery,
     searchFieldOf,
@@ -33,14 +34,18 @@ export type SearchHighlighter = ReturnType<
  * rather than grouped: grouping a single group would cap it at five again.
  */
 export function namesOneDataset(query: string): boolean {
-    return parseSearchQuery(query).some(
-        (term) =>
-            // `-dataset:wdi` leaves nearly everything, which is still worth
-            // grouping, and a field without a value yet narrows nothing
-            !term.negate &&
-            term.value !== "" &&
-            (term.field === "dataset" || term.field === "dataset-id")
-    )
+    return parseSearchQuery(query).some((term) => {
+        // `-dataset:wdi` leaves nearly everything, which is still worth
+        // grouping
+        if (term.negate) return false
+        // Only what the server turns into a filter: a value still being typed,
+        // or a `dataset-id:` it can't read as a number, narrows nothing, and
+        // the flat list would then rank every indicator
+        if (term.field === "dataset") return term.value !== ""
+        if (term.field === "dataset-id")
+            return parseIntOrUndefined(term.value) !== undefined
+        return false
+    })
 }
 
 export function plural(count: number, noun: string): string {

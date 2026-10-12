@@ -1383,8 +1383,13 @@ function isStopwordPrefix(word: string): boolean {
     return FULLTEXT_STOPWORDS.some((stopword) => stopword.startsWith(word))
 }
 
-/** MySQL's default minimum indexed token length. */
+/**
+ * MySQL's default bounds on an indexed token's length (`innodb_ft_min_token_size`
+ * and `innodb_ft_max_token_size`). A word outside them isn't in the index, so
+ * requiring it would rule out rows the regex matches.
+ */
 const FULLTEXT_MIN_TERM_LENGTH = 3
+const FULLTEXT_MAX_TERM_LENGTH = 84
 
 /**
  * MySQL's built-in stopword list, which the index leaves out. `who` is in it,
@@ -1468,6 +1473,7 @@ export function fulltextTokens(term: string): string[] {
         .filter(
             (token) =>
                 token.length >= FULLTEXT_MIN_TERM_LENGTH &&
+                token.length <= FULLTEXT_MAX_TERM_LENGTH &&
                 !isStopwordPrefix(token.toLowerCase())
         )
 }

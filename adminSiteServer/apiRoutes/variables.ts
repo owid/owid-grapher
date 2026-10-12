@@ -174,7 +174,8 @@ export async function getVariablesJson(
         0,
         parseIntOrUndefined(req.query.offset as string) ?? 0
     )
-    const query = req.query.search as string
+    // Absent, the search is empty rather than undefined
+    const query = typeof req.query.search === "string" ? req.query.search : ""
     // The same search, paged over the datasets the matches belong to
     if (req.query.group === "dataset")
         return await searchVariablesGroupedByDataset(query, limit, offset, trx)
