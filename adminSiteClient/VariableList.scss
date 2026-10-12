@@ -17,13 +17,13 @@
 }
 
 .variable-list__path {
-    display: block;
-    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-    font-size: 12px;
+    display: flex;
     color: #666;
-    // the short name is elided to keep this on one line; this is the backstop
-    // for a path that is still too long, with the full one on hover
     white-space: nowrap;
+}
+
+.variable-list__path-prefix {
+    min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
 }
@@ -33,6 +33,11 @@
 }
 
 .variable-list__path-short {
+    // Keep the indicator visible, but leave some room for its path prefix.
+    flex: 0 0 auto;
+    max-width: 70%;
+    overflow: hidden;
+    text-overflow: ellipsis;
     color: #1a1a1a;
 }
 

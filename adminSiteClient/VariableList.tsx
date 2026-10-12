@@ -223,33 +223,6 @@ function pathSearchWords(searchWords: SearchWord[]): SearchWord[] {
     )
 }
 
-const SHORT_NAME_VISIBLE_LENGTH = 22
-
-/**
- * Indicator short names run past 60 characters and what tells them apart sits
- * at the end, so cut the middle rather than the tail. When the search matched
- * inside the name, cut around the match instead, so what you searched for is
- * what you see.
- */
-function elideShortName(shortName: string, searchWords: SearchWord[]): string {
-    if (shortName.length <= SHORT_NAME_VISIBLE_LENGTH) return shortName
-
-    const match = searchWords
-        .filter((word) => !word.exclude)
-        .map((word) => shortName.search(word.regex))
-        .filter((index) => index >= 0)
-        .sort((a, b) => a - b)[0]
-
-    if (match === undefined)
-        return `${shortName.slice(0, 11)}…${shortName.slice(-10)}`
-
-    const start = Math.max(0, match - 6)
-    const end = Math.min(shortName.length, start + SHORT_NAME_VISIBLE_LENGTH)
-    return `${start > 0 ? "…" : ""}${shortName.slice(start, end)}${
-        end < shortName.length ? "…" : ""
-    }`
-}
-
 /**
  * The catalog path, which is what the namespace / version / dataset / table /
  * short name columns were each showing a slice of. The dataset segment links
@@ -276,29 +249,31 @@ function CatalogPathCell({
 
     return (
         <span className="variable-list__path" title={catalogPath}>
-            {highlight(namespace)}
-            {slash}
-            {highlight(version)}
-            {slash}
-            {datasetId ? (
-                <Link
-                    to={`/datasets/${datasetId}`}
-                    title={variable.datasetName}
-                >
-                    {highlight(dataset)}
-                </Link>
-            ) : (
-                highlight(dataset)
-            )}
-            {table && (
-                <>
-                    {slash}
-                    {highlight(table)}
-                </>
-            )}
+            <span className="variable-list__path-prefix">
+                {highlight(namespace)}
+                {slash}
+                {highlight(version)}
+                {slash}
+                {datasetId ? (
+                    <Link
+                        to={`/datasets/${datasetId}`}
+                        title={variable.datasetName}
+                    >
+                        {highlight(dataset)}
+                    </Link>
+                ) : (
+                    highlight(dataset)
+                )}
+                {table && (
+                    <>
+                        {slash}
+                        {highlight(table)}
+                    </>
+                )}
+            </span>
             {shortName && (
                 <span className="variable-list__path-short">
-                    #{highlight(elideShortName(shortName, words))}
+                    #{highlight(shortName)}
                 </span>
             )}
         </span>
