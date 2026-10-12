@@ -5,7 +5,7 @@
     "dependencies": {
         "@ourworldindata/utils": "link:../../packages/@ourworldindata/utils",
         "@tanstack/react-query": "^5.104.1",
-        "nuqs": "^2.8.9",
+        "nuqs": "^2.10.2",
         "react": "^19.3.0"
     },
     "devDependencies": {

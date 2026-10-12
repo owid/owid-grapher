@@ -307,7 +307,7 @@ __metadata:
     clsx: "npm:^2.1.1"
     d3: "npm:^7.9.0"
     normalize.css: "npm:^8.0.1"
-    nuqs: "npm:^2.8.9"
+    nuqs: "npm:^2.10.2"
     react: "npm:^19.3.0"
     react-aria-components: "npm:^1.22.0"
     react-dom: "npm:^19.3.0"
@@ -447,7 +447,7 @@ __metadata:
     d3-sankey: "npm:^0.12.3"
     jotai: "npm:^2.20.1"
     normalize.css: "npm:^8.0.1"
-    nuqs: "npm:^2.8.9"
+    nuqs: "npm:^2.10.2"
     react: "npm:^19.3.0"
     react-aria: "npm:^3.53.0"
     react-aria-components: "npm:^1.22.0"
@@ -479,7 +479,7 @@ __metadata:
   dependencies:
     "@ourworldindata/utils": "link:../../packages/@ourworldindata/utils"
     "@tanstack/react-query": "npm:^5.104.1"
-    nuqs: "npm:^2.8.9"
+    nuqs: "npm:^2.10.2"
     react: "npm:^19.3.0"
     typescript: "npm:^7.0.2"
   languageName: unknown
@@ -511,7 +511,7 @@ __metadata:
     clsx: "npm:^2.1.1"
     d3-scale: "npm:^4.0.2"
     normalize.css: "npm:^8.0.1"
-    nuqs: "npm:^2.8.9"
+    nuqs: "npm:^2.10.2"
     react: "npm:^19.3.0"
     react-aria: "npm:^3.53.0"
     react-aria-components: "npm:^1.22.0"
@@ -556,7 +556,7 @@ __metadata:
     d3-sankey: "npm:^0.12.3"
     jotai: "npm:^2.20.1"
     normalize.css: "npm:^8.0.1"
-    nuqs: "npm:^2.8.9"
+    nuqs: "npm:^2.10.2"
     react: "npm:^19.3.0"
     react-aria: "npm:^3.53.0"
     react-aria-components: "npm:^1.22.0"
@@ -2738,9 +2738,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nuqs@npm:^2.8.9":
-  version: 2.9.5
-  resolution: "nuqs@npm:2.9.5"
+"nuqs@npm:^2.10.2":
+  version: 2.10.2
+  resolution: "nuqs@npm:2.10.2"
   dependencies:
     "@standard-schema/spec": "npm:1.1.0"
   peerDependencies:
@@ -2761,7 +2761,7 @@ __metadata:
       optional: true
     react-router-dom:
       optional: true
-  checksum: 10/068d401931bbce22aa23a860719e6795bc84e6ee101dd8a9c6a2e0f5c09c8485cc11c3542db973514032039b77128830197d1287138b23f4c42ef80325b26119
+  checksum: 10/190706d31824bfd13d03a5e32eeb8f6280b3b6c9c97322f0aa5832962d970dc7d8fc636c0ab16c4247125c328ed65bc79f51034c4a99744f037b4a288e6909e9
   languageName: node
   linkType: hard
 

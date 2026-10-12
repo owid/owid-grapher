@@ -25,7 +25,7 @@
         "clsx": "^2.1.1",
         "d3": "^7.9.0",
         "normalize.css": "^8.0.1",
-        "nuqs": "^2.8.9",
+        "nuqs": "^2.10.2",
         "react": "^19.3.0",
         "react-aria-components": "^1.22.0",
         "react-dom": "^19.3.0",
