@@ -22,6 +22,8 @@ import { InputChartPanel } from "../components/SimulationContent.js"
 import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
 import { Frame } from "../../../../components/Frame/Frame.js"
+import { EmbedConfigProvider } from "../../../../hooks/useEmbedConfig.js"
+import { BespokeMetadataProvider } from "../../../../components/MetadataModal/BespokeMetadataContext.js"
 import { useInitialEntityName } from "../core/useInitialEntityName.js"
 import {
     BreakpointProvider,
@@ -37,19 +39,24 @@ export function ParametersVariant({
     const { breakpoint, ref: rootRef } = useContainerBreakpoint()
 
     return (
-        <QueryClientProvider client={queryClient}>
-            <BreakpointProvider value={breakpoint}>
-                <div
-                    ref={rootRef}
-                    className={cx(
-                        "demography-chart demography-chart__parameters-variant",
-                        breakpointClass(breakpoint)
-                    )}
-                >
-                    <FetchingParametersVariant config={config} urls={urls} />
-                </div>
-            </BreakpointProvider>
-        </QueryClientProvider>
+        <EmbedConfigProvider config={config}>
+            <QueryClientProvider client={queryClient}>
+                <BreakpointProvider value={breakpoint}>
+                    <div
+                        ref={rootRef}
+                        className={cx(
+                            "demography-chart demography-chart__parameters-variant",
+                            breakpointClass(breakpoint)
+                        )}
+                    >
+                        <FetchingParametersVariant
+                            config={config}
+                            urls={urls}
+                        />
+                    </div>
+                </BreakpointProvider>
+            </QueryClientProvider>
+        </EmbedConfigProvider>
     )
 }
 
@@ -155,58 +162,60 @@ function CaptionedParametersVariant({
         "Assumptions about fertility, life expectancy, and migration that underlie the UN's population medium projection."
 
     return (
-        <Frame className="demography-captioned-chart demography-parameters">
-            <ChartHeader
-                className="demography-header"
-                title={title}
-                subtitle={subtitle}
-            />
-            <div className="demography-parameters__chart-area">
-                {isLoading && <Spinner />}
-                {simulation && (
-                    <div className="demography-parameters__panels">
-                        <InputChartPanel
-                            simulation={simulation}
-                            variant="fertilityRate"
-                            className="parameters-panel"
-                            interactive={false}
-                            showProjectionLabel
-                            maxGridLines={0}
-                            yMin={0}
-                        />
-                        <InputChartPanel
-                            simulation={simulation}
-                            variant="lifeExpectancy"
-                            className="parameters-panel"
-                            interactive={false}
-                            maxGridLines={0}
-                            yMin={0}
-                        />
-                        {!isWorld && (
+        <BespokeMetadataProvider metadata={metadata.provenance}>
+            <Frame className="demography-captioned-chart demography-parameters">
+                <ChartHeader
+                    className="demography-header"
+                    title={title}
+                    subtitle={subtitle}
+                />
+                <div className="demography-parameters__chart-area">
+                    {isLoading && <Spinner />}
+                    {simulation && (
+                        <div className="demography-parameters__panels">
                             <InputChartPanel
                                 simulation={simulation}
-                                variant="netMigrationRate"
+                                variant="fertilityRate"
                                 className="parameters-panel"
                                 interactive={false}
-                                maxGridLines={1}
+                                showProjectionLabel
+                                maxGridLines={0}
+                                yMin={0}
                             />
-                        )}
-                    </div>
-                )}
-            </div>
-            <ChartFooter
-                className="demography-footer"
-                source={
-                    hasCustomProjection
-                        ? CHART_FOOTER_SOURCES
-                        : "Historical estimates and projections from the UN World Population Prospects"
-                }
-                note={
-                    hasCustomProjection
-                        ? "Projections are based on user inputs and do not necessarily reflect plausible scenarios or those assumed by expert demographers."
-                        : undefined
-                }
-            />
-        </Frame>
+                            <InputChartPanel
+                                simulation={simulation}
+                                variant="lifeExpectancy"
+                                className="parameters-panel"
+                                interactive={false}
+                                maxGridLines={0}
+                                yMin={0}
+                            />
+                            {!isWorld && (
+                                <InputChartPanel
+                                    simulation={simulation}
+                                    variant="netMigrationRate"
+                                    className="parameters-panel"
+                                    interactive={false}
+                                    maxGridLines={1}
+                                />
+                            )}
+                        </div>
+                    )}
+                </div>
+                <ChartFooter
+                    className="demography-footer"
+                    source={
+                        hasCustomProjection
+                            ? CHART_FOOTER_SOURCES
+                            : "Historical estimates and projections from the UN World Population Prospects"
+                    }
+                    note={
+                        hasCustomProjection
+                            ? "Projections are based on user inputs and do not necessarily reflect plausible scenarios or those assumed by expert demographers."
+                            : undefined
+                    }
+                />
+            </Frame>
+        </BespokeMetadataProvider>
     )
 }

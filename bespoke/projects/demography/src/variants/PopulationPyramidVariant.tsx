@@ -22,6 +22,8 @@ import {
 import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
 import { Frame } from "../../../../components/Frame/Frame.js"
+import { EmbedConfigProvider } from "../../../../hooks/useEmbedConfig.js"
+import { BespokeMetadataProvider } from "../../../../components/MetadataModal/BespokeMetadataContext.js"
 import { PopulationPyramid } from "../components/PopulationPyramid.js"
 import { ParameterChartsDisclosure } from "../components/ParameterChartsDisclosure.js"
 import { AgeZoneLegend } from "../components/AgeZoneLegend.js"
@@ -48,22 +50,24 @@ export function PopulationPyramidVariant({
     const { breakpoint, ref: rootRef } = useContainerBreakpoint()
 
     return (
-        <QueryClientProvider client={queryClient}>
-            <BreakpointProvider value={breakpoint}>
-                <div
-                    ref={rootRef}
-                    className={cx(
-                        "demography-chart demography-chart__population-pyramid-variant",
-                        breakpointClass(breakpoint)
-                    )}
-                >
-                    <FetchingPopulationPyramidVariant
-                        config={config}
-                        urls={urls}
-                    />
-                </div>
-            </BreakpointProvider>
-        </QueryClientProvider>
+        <EmbedConfigProvider config={config}>
+            <QueryClientProvider client={queryClient}>
+                <BreakpointProvider value={breakpoint}>
+                    <div
+                        ref={rootRef}
+                        className={cx(
+                            "demography-chart demography-chart__population-pyramid-variant",
+                            breakpointClass(breakpoint)
+                        )}
+                    >
+                        <FetchingPopulationPyramidVariant
+                            config={config}
+                            urls={urls}
+                        />
+                    </div>
+                </BreakpointProvider>
+            </QueryClientProvider>
+        </EmbedConfigProvider>
     )
 }
 
@@ -182,62 +186,64 @@ function CaptionedPopulationPyramidVariant({
         `Population of ${formatEntityNameForSentence(data.country, ["UN"])}, broken down by age and sex based on future projections. These are based on the user's fertility, life expectancy, and migration inputs to a demographic model.`
 
     return (
-        <Frame className="demography-captioned-chart demography-population-pyramid">
-            <ChartHeader
-                className="demography-header"
-                title={title}
-                subtitle={subtitle}
-            />
-            <div className="demography-population-pyramid__chart-area">
-                {isLoading && <Spinner />}
-                {simulation && (
-                    <div className="detailed-population-pyramid">
-                        <AgeZoneLegend
-                            simulation={simulation}
-                            year={year}
-                            projection={projection}
-                        />
-                        <div className="detailed-population-pyramid__chart">
-                            <PopulationPyramid
+        <BespokeMetadataProvider metadata={metadata.provenance}>
+            <Frame className="demography-captioned-chart demography-population-pyramid">
+                <ChartHeader
+                    className="demography-header"
+                    title={title}
+                    subtitle={subtitle}
+                />
+                <div className="demography-population-pyramid__chart-area">
+                    {isLoading && <Spinner />}
+                    {simulation && (
+                        <div className="detailed-population-pyramid">
+                            <AgeZoneLegend
                                 simulation={simulation}
                                 year={year}
-                                ageZones={ageZones}
-                                xAxisScaleMode={
-                                    hideTimeline ? "adaptive" : "fixed"
-                                }
                                 projection={projection}
-                                unit={populationPyramidUnit}
                             />
+                            <div className="detailed-population-pyramid__chart">
+                                <PopulationPyramid
+                                    simulation={simulation}
+                                    year={year}
+                                    ageZones={ageZones}
+                                    xAxisScaleMode={
+                                        hideTimeline ? "adaptive" : "fixed"
+                                    }
+                                    projection={projection}
+                                    unit={populationPyramidUnit}
+                                />
+                            </div>
+                        </div>
+                    )}
+                </div>
+                {!hideTimeline && (
+                    <div className="demography-population-pyramid__slider">
+                        <div className="demography-year-slider">
+                            <span className="demography-year-slider__label">
+                                {START_YEAR}
+                            </span>
+                            <TimeSlider
+                                times={FULL_TIME_RANGE}
+                                selectedTime={year}
+                                onChange={setYear}
+                                showEdgeLabels={false}
+                            />
+                            <span className="demography-year-slider__label">
+                                {END_YEAR}
+                            </span>
                         </div>
                     </div>
                 )}
-            </div>
-            {!hideTimeline && (
-                <div className="demography-population-pyramid__slider">
-                    <div className="demography-year-slider">
-                        <span className="demography-year-slider__label">
-                            {START_YEAR}
-                        </span>
-                        <TimeSlider
-                            times={FULL_TIME_RANGE}
-                            selectedTime={year}
-                            onChange={setYear}
-                            showEdgeLabels={false}
-                        />
-                        <span className="demography-year-slider__label">
-                            {END_YEAR}
-                        </span>
-                    </div>
-                </div>
-            )}
-            {showAssumptionCharts && simulation && (
-                <ParameterChartsDisclosure simulation={simulation} />
-            )}
-            <ChartFooter
-                className="demography-footer"
-                source={CHART_FOOTER_SOURCES}
-                note="Projections are based on user inputs and do not necessarily reflect plausible scenarios or those assumed by expert demographers."
-            />
-        </Frame>
+                {showAssumptionCharts && simulation && (
+                    <ParameterChartsDisclosure simulation={simulation} />
+                )}
+                <ChartFooter
+                    className="demography-footer"
+                    source={CHART_FOOTER_SOURCES}
+                    note="Projections are based on user inputs and do not necessarily reflect plausible scenarios or those assumed by expert demographers."
+                />
+            </Frame>
+        </BespokeMetadataProvider>
     )
 }
