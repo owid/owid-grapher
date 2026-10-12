@@ -142,4 +142,13 @@ describe(parseConfigFromSpec, () => {
             'Bespoke config key "flow" has a default that is not a valid enum: "sideways"'
         )
     })
+
+    it("throws on a blank default instead of reading it as zero", () => {
+        const blankNumberDefault = {
+            year: { type: "integer", default: " ", description: "Year" },
+        } as const satisfies BespokeConfigSpec
+        expect(() => parseConfigFromSpec(blankNumberDefault, {})).toThrow(
+            '"year" has a default that is not a valid integer'
+        )
+    })
 })

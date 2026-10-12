@@ -66,15 +66,25 @@ function parseDefault(
     field: Exclude<BespokeConfigField, { type: "custom" }>
 ): string | number | boolean | undefined {
     if (field.default === undefined) return undefined
+    const value = field.default.trim()
+    if (value === "") throw invalidDefaultError(key, field)
     try {
-        return parseFieldValue(key, field, field.default)
+        return parseFieldValue(key, field, value)
     } catch (error) {
         if (!(error instanceof BespokeConfigError)) throw error
-        throw new Error(
-            `Bespoke config key "${key}" has a default that is not a valid ${field.type}: "${field.default}"`,
-            { cause: error }
-        )
+        throw invalidDefaultError(key, field, error)
     }
+}
+
+function invalidDefaultError(
+    key: string,
+    field: Exclude<BespokeConfigField, { type: "custom" }>,
+    cause?: BespokeConfigError
+): Error {
+    return new Error(
+        `Bespoke config key "${key}" has a default that is not a valid ${field.type}: "${field.default}"`,
+        { cause }
+    )
 }
 
 function parseFieldValue(
