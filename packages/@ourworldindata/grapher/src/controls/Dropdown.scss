@@ -8,11 +8,6 @@ $grapher-dropdown-selected-fill: #c7ced7;
     position: relative;
     font: 400 13px/16px $sans-serif-font-stack;
 
-    // fixes a bug in Firefox where long labels would cause the dropdown to resize,
-    // see https://github.com/JedWatson/react-select/issues/5170
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-
     .clear-indicator {
         padding-right: 10px;
         position: absolute;

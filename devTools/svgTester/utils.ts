@@ -627,19 +627,12 @@ export async function renderSvg({
     return Promise.resolve([svg, svgRecord, preparedSvg])
 }
 
-const replaceRegexes = [/id="react-select-\d+-.+"/g]
-/** Some fragments of the svgs are non-deterministic. This function is used to
-    delete all such fragments */
 function prepareSvgForComparison(svg: string): string {
-    let current = svg
-    for (const replaceRegex of replaceRegexes) {
-        current = current.replace(replaceRegex, "")
-    }
     // React renders the whole svg onto a single line, and the line diff in the
     // admin needs lines to work with, so break it up one tag per line. `><`
     // only ever occurs at a tag boundary because React escapes `>` in text and
     // in attributes.
-    return current.replaceAll("><", ">\n<")
+    return svg.replaceAll("><", ">\n<")
 }
 
 export interface RenderSvgAndSaveJobDescription {
