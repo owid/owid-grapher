@@ -311,7 +311,7 @@ __metadata:
     react: "npm:^19.3.0"
     react-aria-components: "npm:^1.22.0"
     react-dom: "npm:^19.3.0"
-    remeda: "npm:^2.39.0"
+    remeda: "npm:^2.51.0"
     sass: "npm:^1.101.0"
     ts-pattern: "npm:^5.9.0"
     typescript: "npm:^7.0.2"
@@ -340,7 +340,7 @@ __metadata:
     react: "npm:^19.3.0"
     react-aria: "npm:^3.53.0"
     react-aria-components: "npm:^1.22.0"
-    remeda: "npm:^2.39.0"
+    remeda: "npm:^2.51.0"
     ts-pattern: "npm:^5.9.0"
     typescript: "npm:^7.0.2"
     vitest: "npm:^5.0.3"
@@ -380,7 +380,7 @@ __metadata:
     react-aria: "npm:^3.53.0"
     react-aria-components: "npm:^1.22.0"
     react-dom: "npm:^19.3.0"
-    remeda: "npm:^2.39.0"
+    remeda: "npm:^2.51.0"
     sass: "npm:^1.101.0"
     tippy.js: "npm:^6.3.7"
     typescript: "npm:^7.0.2"
@@ -453,7 +453,7 @@ __metadata:
     react-aria-components: "npm:^1.22.0"
     react-dom: "npm:^19.3.0"
     react-stately: "npm:^3.47.0"
-    remeda: "npm:^2.39.0"
+    remeda: "npm:^2.51.0"
     sass: "npm:^1.101.0"
     ts-pattern: "npm:^5.9.0"
     typescript: "npm:^7.0.2"
@@ -517,7 +517,7 @@ __metadata:
     react-aria-components: "npm:^1.22.0"
     react-dom: "npm:^19.3.0"
     react-stately: "npm:^3.47.0"
-    remeda: "npm:^2.39.0"
+    remeda: "npm:^2.51.0"
     sass: "npm:^1.101.0"
     tippy.js: "npm:^6.3.7"
     typescript: "npm:^7.0.2"
@@ -562,7 +562,7 @@ __metadata:
     react-aria-components: "npm:^1.22.0"
     react-dom: "npm:^19.3.0"
     react-stately: "npm:^3.47.0"
-    remeda: "npm:^2.39.0"
+    remeda: "npm:^2.51.0"
     sass: "npm:^1.101.0"
     ts-pattern: "npm:^5.9.0"
     typescript: "npm:^7.0.2"
@@ -2901,10 +2901,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"remeda@npm:^2.39.0":
-  version: 2.39.0
-  resolution: "remeda@npm:2.39.0"
-  checksum: 10/5b0dc3aaf291a4b35c694bd1cd6584c1aeab90de31da47797c5e83f1cda2553a33cf557fe199d9a06c29814f608b808722ad82a51245e99f85df1b633f792258
+"remeda@npm:^2.51.0":
+  version: 2.51.0
+  resolution: "remeda@npm:2.51.0"
+  checksum: 10/1f3c94189d21f446eabd98c34beb4f5b199f15be8c84888bc49fb79636eb511d575f856d4b62cc1f9f542a355bf9819f6767e13d5575e31ac8c5241b5c7dbd80
   languageName: node
   linkType: hard
 

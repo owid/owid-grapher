@@ -36,7 +36,7 @@
         "react-aria": "^3.53.0",
         "react-aria-components": "^1.22.0",
         "react-dom": "^19.3.0",
-        "remeda": "^2.39.0",
+        "remeda": "^2.51.0",
         "tippy.js": "^6.3.7",
         "vite-plugin-css-position": "^3.0.1"
     },

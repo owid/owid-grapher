@@ -17,7 +17,7 @@
         "react": "^19.3.0",
         "react-aria": "^3.53.0",
         "react-aria-components": "^1.22.0",
-        "remeda": "^2.39.0",
+        "remeda": "^2.51.0",
         "ts-pattern": "^5.9.0"
     },
     "devDependencies": {
