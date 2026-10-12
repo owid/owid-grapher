@@ -1502,7 +1502,7 @@
       "intro": "A page format written once as a template and instantiated for every\ncountry/continent in its `scope` — one published page per entity, each\nwith its own placeholders resolved.",
       "whenToUse": "- A topic-shaped page that should exist once per country, e.g. \"CO₂ and\n  Greenhouse Gas Emissions in $entityName\".",
       "whenNotToUse": "- A page that doesn't vary per entity — use `{template:article}` or `{template:topic-page}`\n  instead.",
-      "notes": "A profile where every `{.data-callout}` fails to render for a given entity\n(no data at all) is not baked for that entity; a profile where only some\ncallouts render is baked with the empty ones hidden. See\n`{guide:profile-placeholders}`."
+      "notes": "A profile where every `{.data-callout}` and ranking block\n(`{.ranking-cards}`, `{.peer-ranking}`, `{.peer-comparison}`) fails to\nrender for a given entity (no data at all) is not baked for that entity; a\nprofile where only some of them render is baked with the empty ones\nhidden. See `{guide:profile-placeholders}`.\n\nRanking blocks only rank countries: for a continent or other region, they\nare hidden."
     },
     "fields": [
       {
@@ -1625,13 +1625,22 @@
         ]
       },
       {
+        "name": "At a glance",
+        "description": "Optionally, a grid of ranking cards showing where the entity ranks among all countries on a handful of key indicators.",
+        "components": [
+          "ranking-cards"
+        ]
+      },
+      {
         "name": "Sections",
-        "description": "Each section opens with a heading and mixes prose with data callouts that adapt to the instantiated entity — usually built around a chart per callout.",
+        "description": "Each section opens with a heading and mixes prose with data callouts that adapt to the instantiated entity — usually built around a chart per callout. Peer rankings and comparisons show how the entity compares with its neighbours, region and income group.",
         "components": [
           "heading",
           "text",
           "data-callout",
-          "chart"
+          "chart",
+          "peer-ranking",
+          "peer-comparison"
         ],
         "repeats": true
       }
@@ -1651,6 +1660,18 @@
       {
         "kind": "component",
         "id": "data-callout"
+      },
+      {
+        "kind": "component",
+        "id": "ranking-cards"
+      },
+      {
+        "kind": "component",
+        "id": "peer-ranking"
+      },
+      {
+        "kind": "component",
+        "id": "peer-comparison"
       },
       {
         "kind": "guide",

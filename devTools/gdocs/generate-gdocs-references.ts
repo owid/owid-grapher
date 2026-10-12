@@ -188,6 +188,9 @@ const COMPONENT_CATEGORY_BY_ID: Record<string, ComponentCategory> = {
     "missing-data": "Charts & data",
     "data-callout": "Charts & data",
     "data-callout-group": "Charts & data",
+    "ranking-cards": "Charts & data",
+    "peer-ranking": "Charts & data",
+    "peer-comparison": "Charts & data",
     // Media
     image: "Media",
     video: "Media",

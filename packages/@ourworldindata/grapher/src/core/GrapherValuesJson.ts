@@ -246,6 +246,13 @@ export interface PreparedCalloutTable {
     times: Time[]
     minTime: Time
     maxTime: Time
+    /**
+     * The map's column and its time tolerance, if set in the config. The
+     * map shows each country's closest value within this tolerance, so
+     * rankings (which resemble the map) use it too.
+     */
+    mapColumnSlug?: string
+    mapTimeTolerance?: number
 }
 
 /**
@@ -293,6 +300,9 @@ export function prepareCalloutTable(
     // Get sorted unique times from the table
     const times = inputTable.getTimesUniqSortedAscForColumns(yColumnSlugs)
 
+    const mapColumnSlug = grapherState.mapColumnSlug
+    const mapTimeTolerance = grapherState.map.timeTolerance
+
     return {
         inputTable,
         yColumnSlugs,
@@ -302,6 +312,8 @@ export function prepareCalloutTable(
         times,
         minTime,
         maxTime,
+        ...(mapColumnSlug ? { mapColumnSlug } : {}),
+        ...(mapTimeTolerance !== undefined ? { mapTimeTolerance } : {}),
     }
 }
 

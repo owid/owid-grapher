@@ -445,7 +445,10 @@ export function enumerateGdocComponentsWithoutChildren(
                         "data-callout",
                         "country-profile-selector",
                         "bespoke-component",
-                        "data-callout-group"
+                        "data-callout-group",
+                        "ranking-cards",
+                        "peer-ranking",
+                        "peer-comparison"
                     ),
                 },
                 (c) => handleComponent(c, [], parentPath, path)

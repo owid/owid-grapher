@@ -14,6 +14,7 @@ import {
     OwidEnrichedGdocBlockTypeMap,
     LinkedStaticViz,
     OwidGdocType,
+    LinkedRanking,
 } from "@ourworldindata/types"
 
 import {
@@ -22,9 +23,14 @@ import {
     getUrlTarget,
 } from "@ourworldindata/components"
 import {
+    checkShouldRankingBlockRender,
+    EnrichedBlockWithRankings,
     formatAuthors,
     formatAuthorsForBibtex,
     getCalloutValue,
+    getLinkedRanking,
+    getRankingSpecsForBlock,
+    RankingSpec,
     getRegionByNameOrVariantName,
     makeLinkedCalloutKey,
     slugify,
@@ -315,6 +321,35 @@ export function useCalloutValue(
     if (!linkedCallout?.values) return undefined
 
     return getCalloutValue(linkedCallout.values, functionName, parameters)
+}
+
+export interface BlockRanking {
+    spec: RankingSpec
+    ranking?: LinkedRanking
+}
+
+/**
+ * The linked rankings of a ranking block (ranking-cards, peer-ranking,
+ * peer-comparison), one per card / indicator, in display order.
+ */
+export function useBlockRankings(
+    block: EnrichedBlockWithRankings
+): BlockRanking[] {
+    const { linkedRankings = {} } = useContext(AttachmentsContext)
+    return getRankingSpecsForBlock(block).map((spec) => ({
+        spec,
+        ranking: getLinkedRanking(linkedRankings, spec),
+    }))
+}
+
+/** Whether a ranking block has anything to show (see checkShouldRankingBlockRender) */
+export function useShouldRankingBlockRender(
+    block: EnrichedBlockWithRankings,
+    entityCode: string | undefined
+): boolean {
+    const { linkedRankings = {} } = useContext(AttachmentsContext)
+    if (!entityCode) return false
+    return checkShouldRankingBlockRender(block, linkedRankings, entityCode)
 }
 
 export function getShortPageCitation(

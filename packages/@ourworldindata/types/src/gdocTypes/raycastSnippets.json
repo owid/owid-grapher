@@ -273,5 +273,20 @@
         "name": "pull-chart",
         "text": "{.pull-chart}\nalign: \nimage: \nurl: \n[.+content]\n\n[]\n{}",
         "keyword": "+pull-chart"
+    },
+    {
+        "name": "peer-comparison",
+        "text": "{.peer-comparison}\ntitle: \ngroups: \n[.indicators]\nurl: \nurl: \ntitle: \nurl: \ntitle: \n[]\n{}",
+        "keyword": "+peer-comparison"
+    },
+    {
+        "name": "peer-ranking",
+        "text": "{.peer-ranking}\nurl: \ntitle: \ngroups: \ntolerance: \n{}",
+        "keyword": "+peer-ranking"
+    },
+    {
+        "name": "ranking-cards",
+        "text": "{.ranking-cards}\ntitle: \nsubtitle: \nsparklines: \n[.cards]\nurl: \ntopic: \nurl: \ntopic: \nsort: \nurl: \ntitle: \ntopic: \nurl: \ntitle: \ntopic: \nsort: \n[]\n{}",
+        "keyword": "+ranking-cards"
     }
 ]

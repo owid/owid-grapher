@@ -993,6 +993,66 @@ export const enrichedBlockExamples: Record<
         ],
         parseErrors: [],
     },
+    "ranking-cards": {
+        type: "ranking-cards",
+        title: "Germany at a glance",
+        subtitle: "Where Germany ranks among all countries",
+        sparklines: true,
+        changeSinceYears: 10,
+        cards: [
+            {
+                url: "https://ourworldindata.org/grapher/life-expectancy?country=DEU",
+                topic: "Health",
+                sort: "highest",
+            },
+            {
+                url: "https://ourworldindata.org/grapher/child-mortality?country=DEU",
+                topic: "Health",
+                sort: "lowest",
+            },
+            {
+                url: "https://ourworldindata.org/grapher/gdp-per-capita-worldbank?country=DEU",
+                title: "GDP per capita",
+                topic: "Economy",
+                sort: "highest",
+            },
+            {
+                url: "https://ourworldindata.org/grapher/co-emissions-per-capita?country=DEU",
+                title: "CO₂ emissions per person",
+                topic: "Climate",
+                sort: "lowest",
+            },
+        ],
+        parseErrors: [],
+    },
+    "peer-ranking": {
+        type: "peer-ranking",
+        url: "https://ourworldindata.org/grapher/life-expectancy?country=DEU",
+        title: "Life expectancy at birth",
+        groups: ["Neighbours", "Europe", "High-income countries", "World"],
+        sort: "highest",
+        tolerance: 2,
+        parseErrors: [],
+    },
+    "peer-comparison": {
+        type: "peer-comparison",
+        title: "How Germany compares",
+        groups: ["Europe", "European Union (27)", "World"],
+        indicators: [
+            {
+                url: "https://ourworldindata.org/grapher/life-expectancy?country=DEU",
+            },
+            {
+                url: "https://ourworldindata.org/grapher/gdp-per-capita-worldbank?country=DEU",
+                title: "GDP per capita",
+            },
+            {
+                url: "https://ourworldindata.org/grapher/share-electricity-renewables?country=DEU",
+                title: "Share of electricity from renewables",
+            },
+        ],
+        parseErrors: [],
+    },
     "data-callout-group": {
         type: "data-callout-group",
         content: [

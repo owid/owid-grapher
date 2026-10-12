@@ -49,6 +49,7 @@ import {
 import {
     prepareCalloutTablesForProfile,
     checkShouldProfileRender,
+    createRankingCache,
 } from "../../../db/model/Gdoc/dataCallouts.js"
 
 const computePageScore = (record: Omit<PageRecord, "score">): number => {
@@ -208,10 +209,12 @@ export function getPreprocessedIndexableText<
         | OwidGdocProfileInterface,
 >(
     body: IndexableGdoc["content"]["body"] | undefined,
-    linkedCallouts: IndexableGdoc["linkedCallouts"]
+    linkedCallouts: IndexableGdoc["linkedCallouts"],
+    linkedRankings?: IndexableGdoc["linkedRankings"]
 ): string {
     const indexableText = enrichedBlocksToIndexableText(body, {
         linkedCallouts,
+        linkedRankings,
     })
     return stripNonSearchableCharacters(indexableText ?? "")
 }
@@ -266,7 +269,8 @@ async function generateGdocRecords(
         // apply only pre-index cleanup (e.g. remove non-searchable symbols).
         const plaintextContent = getPreprocessedIndexableText(
             gdoc.content.body,
-            gdoc.linkedCallouts
+            gdoc.linkedCallouts,
+            gdoc.linkedRankings
         )
 
         // Chunk first while `\n\n` boundaries still exist. Flattening happens
@@ -345,21 +349,29 @@ async function generateProfileRecords(
         profileTemplate.content
     )
 
+    const rankingCache = createRankingCache()
+
     for (const entity of entities) {
         const instantiatedProfile = await instantiateProfileForEntity(
             profileTemplate,
             entity,
-            { preparedTables }
+            { preparedTables, rankingCache }
         )
 
-        // Skip entities whose callouts all have no data (same as in SiteBaker)
-        if (!checkShouldProfileRender(instantiatedProfile.content)) {
+        // Skip entities whose data blocks all have no data (same as in SiteBaker)
+        if (
+            !checkShouldProfileRender(
+                instantiatedProfile.content,
+                instantiatedProfile.linkedRankings
+            )
+        ) {
             continue
         }
 
         const plaintextContent = getPreprocessedIndexableText(
             instantiatedProfile.content.body,
-            instantiatedProfile.linkedCallouts
+            instantiatedProfile.linkedCallouts,
+            instantiatedProfile.linkedRankings
         )
         const chunks = chunkParagraphs(plaintextContent, 1000)
 
@@ -422,8 +434,9 @@ export const getPagesRecords = async (knex: db.KnexReadonlyTransaction) => {
         | OwidGdocDataInsightInterface
     )[]
 
-    // Only load linkedCallouts — the sole attachment that affects indexed
-    // text (via span-callout resolution in enrichedBlocksToIndexableText).
+    // Only load linkedCallouts and linkedRankings — the only attachments that
+    // affect indexed text (via span-callout resolution and ranking summaries
+    // in enrichedBlocksToIndexableText).
     // Full loadState is unnecessary here and adds ~90 s of overhead.
     // If a new loadState step ever mutates content.body, update this too
     // (see the corresponding note in GdocBase.loadState).

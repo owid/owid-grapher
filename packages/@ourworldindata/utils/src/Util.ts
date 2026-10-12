@@ -1357,6 +1357,7 @@ export function extractGdocPageData(gdoc: OwidGdoc) {
         "linkedNarrativeCharts",
         "linkedIndicators",
         "linkedCallouts",
+        "linkedRankings",
         "imageMetadata",
         "relatedCharts",
     ])
@@ -1931,7 +1932,10 @@ export function traverseEnrichedBlock(
                     "socials",
                     "static-viz",
                     "country-profile-selector",
-                    "bespoke-component"
+                    "bespoke-component",
+                    "ranking-cards",
+                    "peer-ranking",
+                    "peer-comparison"
                 ),
             },
             callback
