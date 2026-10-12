@@ -291,6 +291,7 @@ export { FontFamily, cssFontFamily } from "./fonts.js"
 
 export {
     type Persistable,
+    type PersistedObject,
     objectWithPersistablesToObject,
     updatePersistables,
     deleteRuntimeAndUnchangedProps,

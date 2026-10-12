@@ -341,7 +341,7 @@ export abstract class AbstractChartEditor<
     @action.bound async reloadGrapherData(): Promise<void> {
         const { grapherState } = this
         const inputTable = await this.cachingGrapherDataLoader(
-            grapherState.dimensions,
+            grapherState.dimensionConfigs,
             grapherState.selectedEntityColors
         )
         if (inputTable) grapherState.inputTable = inputTable
@@ -355,7 +355,7 @@ export abstract class AbstractChartEditor<
             grapherState.setDimensionsFromConfigs(newDimensions)
         }
         grapherState.updateAuthoredVersion({
-            dimensions: grapherState.dimensions.map((dim) => dim.toObject()),
+            dimensions: grapherState.dimensionConfigs,
         })
         grapherState.seriesColorMap?.clear()
         await this.reloadGrapherData()

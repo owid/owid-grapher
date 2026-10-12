@@ -49,6 +49,39 @@ GrapherLoader.fromTable({
 }).mount(container)
 ```
 
+## Per-chart column settings with `dimensions`
+
+By default, `fromTable` and `fromCsv` plot every numeric column. To pick the columns yourself, and to change how they are shown in this chart, list them in the config's `dimensions`. Each dimension names a column of your table by `slug`, and its `display` block overrides that column's settings:
+
+```js
+GrapherLoader.fromCsv({
+    config: {
+        title: "Life expectancy",
+        dimensions: [
+            {
+                property: "y",
+                slug: "lifeExpectancy",
+                display: {
+                    name: "Life expectancy at birth",
+                    unit: "years",
+                    numDecimalPlaces: 1,
+                },
+            },
+        ],
+    },
+    csvUrl: "./data.csv",
+    columnDefs: [
+        { slug: "lifeExpectancy", type: "Numeric", name: "Life expectancy" },
+    ],
+}).mount(container)
+```
+
+Here the chart labels the column "Life expectancy at birth", in years, with one decimal place. Anything `display` leaves out comes from the column def, so the same CSV and `columnDefs` can serve several charts that each show the column differently.
+
+`display.conversionFactor` multiplies the column's values, e.g. `100` to turn a share into a percentage.
+
+`slug` dimensions only work with your own data. With `fromApi`, a dimension names an OWID indicator by `variableId` instead (see below). A dimension can't have both, and `targetYear` is only supported on `variableId` dimensions.
+
 ## `fromApi`: OWID's data API
 
 For `fromApi`, the config's `dimensions` array says which indicators to fetch; indicator IDs can be found via the [OWID data catalog](https://docs.owid.io/projects/etl/api/). Data loading starts at construction time, so the chart shows a loading state until the data arrives:
