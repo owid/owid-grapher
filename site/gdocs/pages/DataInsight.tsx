@@ -45,6 +45,7 @@ export const DataInsightPage = (
                 title={props.content.title}
             />
             <StandalonePostBody
+                className="data-insight-body"
                 title={props.content.title}
                 authors={props.content.authors}
                 authorRoles={props.content.authorRoles}

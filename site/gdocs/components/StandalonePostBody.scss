@@ -45,6 +45,15 @@
     }
 }
 
+// Data insights: lists match the 1rem body paragraphs above, instead of the
+// larger default article list size.
+.data-insight-body .standalone-post-body {
+    .article-block__list,
+    .article-block__numbered-list {
+        font-size: 1rem;
+    }
+}
+
 .standalone-post-body__dateline {
     @include h6-black-caps;
 }
