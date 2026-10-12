@@ -38,6 +38,33 @@ describe(analyzeVariableSearch, () => {
         })
     })
 
+    it("keeps a filter's trailing wildcard, which makes it text rather than the filter", () => {
+        expect(analyzeVariableSearch("is:private.*")).toEqual({
+            whereClauses: [
+                {
+                    sql: "(REGEXP_LIKE(v.name, ?, 'i') OR REGEXP_LIKE(v.catalogPath, ?, 'i'))",
+                    bindings: ["is:private", "is:private"],
+                },
+            ],
+            unindexedTerms: ["is:private.*"],
+        })
+        expect(analyzeVariableSearch("before:2023.*").whereClauses).toEqual([
+            {
+                sql: "IF(d.version is not null, d.version < ?, cast(date(d.createdAt) as char) < ?)",
+                bindings: ["2023.*", "2023.*"],
+            },
+        ])
+    })
+
+    it("does not read a stripped plain term as a field", () => {
+        expect(analyzeVariableSearch(".*dataset:wdi").whereClauses).toEqual([
+            {
+                sql: "(REGEXP_LIKE(v.name, ?, 'i') OR REGEXP_LIKE(v.catalogPath, ?, 'i'))",
+                bindings: ["dataset:wdi", "dataset:wdi"],
+            },
+        ])
+    })
+
     it("treats unrecognized is: values as free text in both SQL and warnings", () => {
         expect(analyzeVariableSearch("is:.*")).toEqual({
             whereClauses: [

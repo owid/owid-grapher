@@ -1273,19 +1273,20 @@ export const analyzeVariableSearch = (
     const unindexedTerms: string[] = []
 
     for (const term of parseSearchQuery(query)) {
-        const { field } = term
+        const { field, value } = term
         const not = term.negate ? "NOT " : ""
         // An unanchored match already allows anything around it, so a `.*` at
         // either end changes nothing but the cost: `.*deaths` took over a
         // minute where `deaths` takes two seconds. It still asked for a match
         // anywhere in a word, so it stays a scan rather than using the index.
         // Nothing but wildcards still means "any value", which `-.*` negates
-        // into "no value at all", so that can't be dropped.
-        const value =
-            term.value
-                .replace(/^(?:\.\*)+/, "")
-                .replace(/(?<!\\)(?:\.\*)+$/, "") || term.value
-        const isRegex = value !== term.value
+        // into "no value at all", so that can't be dropped. Only for values
+        // run as a regex: the filters below see theirs as typed, so that
+        // `is:private.*` doesn't become `is:private`.
+        const regexValue =
+            value.replace(/^(?:\.\*)+/, "").replace(/(?<!\\)(?:\.\*)+$/, "") ||
+            value
+        const isRegex = regexValue !== value
         // A fielded term is a regex on one column, which no index can answer.
         // Where its value is an ordinary word it is also required through the
         // full-text index, which narrows to a handful of rows before the regex
@@ -1303,11 +1304,11 @@ export const analyzeVariableSearch = (
         const regexField =
             field === undefined ? undefined : REGEX_FIELDS.get(field)
         if (regexField) {
-            if (value) {
-                if (regexField.indexed) alsoIndex(value)
+            if (regexValue) {
+                if (regexField.indexed) alsoIndex(regexValue)
                 whereClauses.push({
                     sql: `${not}REGEXP_LIKE(${regexField.expression}, ?, 'i')`,
-                    bindings: [value],
+                    bindings: [regexValue],
                 })
             }
         } else if (field === "dataset-id") {
@@ -1347,7 +1348,8 @@ export const analyzeVariableSearch = (
             // Plain text, the common case: a substring regex over the name and
             // the catalog path, with the index narrowing to the rows worth
             // running it on. An unknown `field:` is searched as text too.
-            const text = field === undefined ? value : `${field}:${value}`
+            const text =
+                field === undefined ? regexValue : `${field}:${regexValue}`
             if (!text) continue
             whereClauses.push({
                 sql: `${not}(REGEXP_LIKE(v.name, ?, 'i') OR REGEXP_LIKE(v.catalogPath, ?, 'i'))`,
