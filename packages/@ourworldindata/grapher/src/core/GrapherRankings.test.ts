@@ -32,7 +32,10 @@ const makePrepared = (
             ...rows.map(([entity, year, le, gdp]) => [entity, year, le, gdp]),
         ],
         [
-            { slug: OwidTableSlugs.EntityName, type: ColumnTypeNames.EntityName },
+            {
+                slug: OwidTableSlugs.EntityName,
+                type: ColumnTypeNames.EntityName,
+            },
             { slug: OwidTableSlugs.Year, type: ColumnTypeNames.Year },
             {
                 slug: "le",

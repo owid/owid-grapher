@@ -85,8 +85,8 @@ export function PeerComparison({
             <header className="peer-comparison__header">
                 <h2 className="peer-comparison__title">{title}</h2>
                 <p className="peer-comparison__subtitle">
-                    Each dot is a country among {selected.description}, based
-                    on the latest available data.
+                    Each dot is a country among {selected.description}, based on
+                    the latest available data.
                 </p>
             </header>
             <PeerGroupToggle
@@ -162,9 +162,9 @@ function PeerComparisonRow({
     // Tooltips have room for the full unit, the value column only for a
     // short one
     const unit = getRankingUnit(ranking)
-    const format = (value: number): string => formatRankingValue(value, { unit })
-    const formattedAverage =
-        average !== undefined ? format(average) : undefined
+    const format = (value: number): string =>
+        formatRankingValue(value, { unit })
+    const formattedAverage = average !== undefined ? format(average) : undefined
     const ariaLabel = [
         `${getEntityName(entityCode)}: ${format(summary.row.value)}`,
         formattedAverage &&
@@ -188,7 +188,9 @@ function PeerComparisonRow({
                 points={[
                     ...groupRows
                         .filter((row) => row.code !== entityCode)
-                        .map((row) => toStripPoint(row, ranking, "peer", format)),
+                        .map((row) =>
+                            toStripPoint(row, ranking, "peer", format)
+                        ),
                     ...(average !== undefined && formattedAverage
                         ? [
                               {
@@ -310,40 +312,40 @@ function PeerComparisonStrip({
 
     return (
         <>
-        <Tippy
-            // A reference rather than a child, which @tippyjs/react would
-            // access via the `element.ref` removed in React 19
-            reference={stripRef as React.RefObject<Element>}
-            content={
-                active && (
-                    <div className="peer-comparison__tooltip">
-                        <span className="peer-comparison__tooltip-label">
-                            {active.label}
-                        </span>
-                        <span>
-                            {active.formattedValue}
-                            {active.formattedTime && (
-                                <span className="peer-comparison__tooltip-time">
-                                    {" "}
-                                    in {active.formattedTime}
-                                </span>
-                            )}
-                        </span>
-                    </div>
-                )
-            }
-            visible={active !== undefined}
-            getReferenceClientRect={() =>
-                (activeKey
-                    ? dotRefs.current.get(activeKey)
-                    : undefined
-                )?.getBoundingClientRect() ?? new DOMRect()
-            }
-            placement="top"
-            theme="light"
-            arrow={false}
-            offset={[0, 6]}
-        />
+            <Tippy
+                // A reference rather than a child, which @tippyjs/react would
+                // access via the `element.ref` removed in React 19
+                reference={stripRef as React.RefObject<Element>}
+                content={
+                    active && (
+                        <div className="peer-comparison__tooltip">
+                            <span className="peer-comparison__tooltip-label">
+                                {active.label}
+                            </span>
+                            <span>
+                                {active.formattedValue}
+                                {active.formattedTime && (
+                                    <span className="peer-comparison__tooltip-time">
+                                        {" "}
+                                        in {active.formattedTime}
+                                    </span>
+                                )}
+                            </span>
+                        </div>
+                    )
+                }
+                visible={active !== undefined}
+                getReferenceClientRect={() =>
+                    (activeKey
+                        ? dotRefs.current.get(activeKey)
+                        : undefined
+                    )?.getBoundingClientRect() ?? new DOMRect()
+                }
+                placement="top"
+                theme="light"
+                arrow={false}
+                offset={[0, 6]}
+            />
             <div
                 ref={stripRef}
                 className="peer-comparison__strip"
@@ -400,9 +402,7 @@ function PeerComparisonStrip({
                                 x2={toPercent(x(average.value))}
                                 y1="2"
                                 y2="26"
-                                onPointerEnter={() =>
-                                    setActiveKey(average.key)
-                                }
+                                onPointerEnter={() => setActiveKey(average.key)}
                                 onClick={() => setActiveKey(average.key)}
                             />
                         </g>

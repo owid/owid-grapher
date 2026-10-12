@@ -178,13 +178,13 @@ function RankingCard({
                             <span>Rank {rankOf}</span>
                             {ranking.sparkline &&
                                 getComparableWorldSeries(ranking.sparkline) && (
-                                <span
-                                    className="ranking-card__legend-world"
-                                    aria-hidden="true"
-                                >
-                                    World
-                                </span>
-                            )}
+                                    <span
+                                        className="ranking-card__legend-world"
+                                        aria-hidden="true"
+                                    >
+                                        World
+                                    </span>
+                                )}
                         </div>
                     </>
                 ) : (

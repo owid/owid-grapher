@@ -128,9 +128,7 @@ export function computeRankingFromPreparedTable(
                       info.shortName === options.column &&
                       yColumnSlugs.includes(slug)
               )?.[0]
-            : yColumnSlugs.find(
-                  (slug) => !inputTable.get(slug).isProjection
-              )
+            : yColumnSlugs.find((slug) => !inputTable.get(slug).isProjection)
     if (columnSlug === undefined) return undefined
 
     const column = inputTable.get(columnSlug)

@@ -42,7 +42,10 @@ const makePrepared = (
     const table = new OwidTable(
         [[OwidTableSlugs.EntityName, OwidTableSlugs.Year, "le"], ...rows],
         [
-            { slug: OwidTableSlugs.EntityName, type: ColumnTypeNames.EntityName },
+            {
+                slug: OwidTableSlugs.EntityName,
+                type: ColumnTypeNames.EntityName,
+            },
             { slug: OwidTableSlugs.Year, type: ColumnTypeNames.Year },
             { slug: "le", type: ColumnTypeNames.Numeric, name: "LE" },
         ]
@@ -215,9 +218,7 @@ describe(extractRankingSpecs, () => {
             cardsWithOtherWindow,
         ])
 
-        expect(
-            specs.map((spec) => [spec.key, spec.includeSparkline])
-        ).toEqual([
+        expect(specs.map((spec) => [spec.key, spec.includeSparkline])).toEqual([
             ["/grapher/life-expectancy", false],
             ["/grapher/life-expectancy|changeSince=10", true],
             ["/grapher/life-expectancy|changeSince=5", true],

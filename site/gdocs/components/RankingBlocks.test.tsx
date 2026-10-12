@@ -28,11 +28,41 @@ const ranking: LinkedRanking = {
     formattedTime: "2023",
     prevTime: 2013,
     rows: [
-        { code: "CHE", value: 84, time: 2023, formattedValue: "84 years", prevValue: 83 },
-        { code: "FRA", value: 83.3, time: 2023, formattedValue: "83.3 years", prevValue: 82.5 },
-        { code: "DEU", value: 81.4, time: 2023, formattedValue: "81.4 years", prevValue: 82.6 },
-        { code: "POL", value: 78.6, time: 2023, formattedValue: "78.6 years", prevValue: 77 },
-        { code: "NGA", value: 54, time: 2023, formattedValue: "54 years", prevValue: 51 },
+        {
+            code: "CHE",
+            value: 84,
+            time: 2023,
+            formattedValue: "84 years",
+            prevValue: 83,
+        },
+        {
+            code: "FRA",
+            value: 83.3,
+            time: 2023,
+            formattedValue: "83.3 years",
+            prevValue: 82.5,
+        },
+        {
+            code: "DEU",
+            value: 81.4,
+            time: 2023,
+            formattedValue: "81.4 years",
+            prevValue: 82.6,
+        },
+        {
+            code: "POL",
+            value: 78.6,
+            time: 2023,
+            formattedValue: "78.6 years",
+            prevValue: 77,
+        },
+        {
+            code: "NGA",
+            value: 54,
+            time: 2023,
+            formattedValue: "54 years",
+            prevValue: 51,
+        },
     ],
 }
 
@@ -70,7 +100,10 @@ const rankingsFor = (
         getRankingSpecsForBlock(block).map((spec) => [spec.key, ranking])
     )
 
-const render = (element: React.ReactElement, rankings: LinkedRankings): string =>
+const render = (
+    element: React.ReactElement,
+    rankings: LinkedRankings
+): string =>
     renderToStaticMarkup(
         <AttachmentsContext.Provider value={makeAttachments(rankings)}>
             {element}
@@ -123,10 +156,14 @@ describe(RankingCards, () => {
         expect(valueOf({ unit: "%", shortUnit: "%" }, 84.8312)).toEqual({
             number: "84.8%",
         })
-        expect(valueOf({ unit: "international-$", shortUnit: "$" }, 62824)).toEqual({
+        expect(
+            valueOf({ unit: "international-$", shortUnit: "$" }, 62824)
+        ).toEqual({
             number: "$62,800",
         })
-        expect(valueOf({ unit: "kilowatt-hours", shortUnit: "kWh" }, 33183.23)).toEqual({
+        expect(
+            valueOf({ unit: "kilowatt-hours", shortUnit: "kWh" }, 33183.23)
+        ).toEqual({
             number: "33,200",
             unit: "kWh",
         })
@@ -146,9 +183,7 @@ describe(RankingCards, () => {
 
     it("marks the sparkline's start and end and only overlays a comparable World line", () => {
         const sparklineBlock = { ...cardsBlock, sparklines: true }
-        const withSparkline = (
-            world: [number, number][]
-        ): LinkedRankings =>
+        const withSparkline = (world: [number, number][]): LinkedRankings =>
             Object.fromEntries(
                 getRankingSpecsForBlock(sparklineBlock).map((spec) => [
                     spec.key,
@@ -269,7 +304,7 @@ describe(PeerRanking, () => {
             rankingsFor(peerRankingBlock)
         )
         expect(html).toContain("Neighbours")
-        expect(html).toContain("aria-pressed=\"true\"")
+        expect(html).toContain('aria-pressed="true"')
         expect(html).toContain("Among Germany and its neighbours")
         // CHE, FRA, DEU, POL are in the group; NGA is not
         expect(html).not.toContain("Nigeria")

@@ -136,7 +136,9 @@ const TOPIC_COLOR_KEYWORDS: [RegExp, string][] = [
     [/culture/, "culture"],
 ]
 
-export function getTopicColorKey(topic: string | undefined): string | undefined {
+export function getTopicColorKey(
+    topic: string | undefined
+): string | undefined {
     if (!topic) return undefined
     const normalized = topic.trim().toLowerCase()
     return TOPIC_COLOR_KEYWORDS.find(([pattern]) =>
@@ -165,7 +167,10 @@ function checkIsAllCountriesGroupName(name: string): boolean {
 }
 
 /** "Among <description>": how to refer to a peer group mid-sentence */
-export function describePeerGroup(name: string, entityCode: EntityCode): string {
+export function describePeerGroup(
+    name: string,
+    entityCode: EntityCode
+): string {
     if (checkIsAllCountriesGroupName(name)) return "all countries"
     if (name.trim().toLowerCase() === NEIGHBOURS_PEER_GROUP_NAME.toLowerCase())
         return `${getArticulatedEntityName(entityCode)} and its neighbours`
@@ -232,7 +237,10 @@ export function formatRankOf(
 }
 
 /** Position of `value` in `domain`, clamped to [0, 1] */
-export function scaleToUnit(value: number, [min, max]: [number, number]): number {
+export function scaleToUnit(
+    value: number,
+    [min, max]: [number, number]
+): number {
     if (max === min) return 0.5
     return Math.min(1, Math.max(0, (value - min) / (max - min)))
 }
@@ -295,9 +303,7 @@ export function median(values: number[]): number | undefined {
     if (values.length === 0) return undefined
     const sorted = [...values].sort((a, b) => a - b)
     const mid = Math.floor(sorted.length / 2)
-    return sorted.length % 2
-        ? sorted[mid]
-        : (sorted[mid - 1] + sorted[mid]) / 2
+    return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2
 }
 
 export function mean(values: number[]): number | undefined {
