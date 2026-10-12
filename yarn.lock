@@ -4214,12 +4214,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@simple-git/argv-parser@npm:2.0.0":
-  version: 2.0.0
-  resolution: "@simple-git/argv-parser@npm:2.0.0"
+"@simple-git/argv-parser@npm:2.0.1":
+  version: 2.0.1
+  resolution: "@simple-git/argv-parser@npm:2.0.1"
   dependencies:
     "@simple-git/args-pathspec": "npm:^1.0.4"
-  checksum: 10/124851f7efabc1c8355ecd591e9cb3026bf3c804cd72d472b21fddd22565eef260c8ec7aa72ccabffe27e3545f212292bdd72fe024cc5be9765e0273c43bb8d1
+  checksum: 10/9070117b85a33ec76994327ca3284c7ad3b107148dc78420588b032053e144d5591f25b5d26a31313440001ff4778ebfa44fe5d7c84e6281307ebb7ce1b3de03
   languageName: node
   linkType: hard
 
@@ -8941,7 +8941,7 @@ __metadata:
     sass: "npm:^1.89.2"
     schema-dts: "npm:^2.0.0"
     sharp: "npm:^0.35.5"
-    simple-git: "npm:^4.0.1"
+    simple-git: "npm:^4.0.2"
     tinyexec: "npm:^1.1.1"
     tippy.js: "npm:^6.3.7"
     topojson-server: "npm:^3.0.1"
@@ -12930,16 +12930,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"simple-git@npm:^4.0.1":
-  version: 4.0.1
-  resolution: "simple-git@npm:4.0.1"
+"simple-git@npm:^4.0.2":
+  version: 4.0.2
+  resolution: "simple-git@npm:4.0.2"
   dependencies:
     "@kwsites/file-exists": "npm:^1.1.1"
     "@kwsites/promise-deferred": "npm:^1.1.1"
     "@simple-git/args-pathspec": "npm:1.0.4"
-    "@simple-git/argv-parser": "npm:2.0.0"
+    "@simple-git/argv-parser": "npm:2.0.1"
     debug: "npm:^4.4.0"
-  checksum: 10/da377ea8030307a09c18f2f64329535d9a5b0e9db0de3d8f6170f102a17e2097410a5e9fd5d19f436f2b89400e1006d3f884e1c10a97769468bf81736b3333d2
+  checksum: 10/fd41d812c3a489520fcb9c5e517cf62cdef7d93b414880cafee1541ea914d51914262ddeb5b219f28a45c0641bcee673569132bb12b2880cc5a75c857bdd30e6
   languageName: node
   linkType: hard
 
