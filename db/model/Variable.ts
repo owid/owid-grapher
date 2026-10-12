@@ -1,6 +1,7 @@
 import * as _ from "lodash-es"
 import { Writable } from "stream"
 import * as db from "../db.js"
+import { splitSearchTerms } from "../../adminShared/variableSearch.js"
 import {
     retryPromise,
     omitUndefinedValues,
@@ -1478,26 +1479,6 @@ export const buildWhereClauses = (query: string): SqlFragment[] => {
         })
 
     return whereClauses
-}
-
-/**
- * The terms of a query: split on spaces, except inside double quotes, which
- * keep a phrase together and are dropped — `name:"life expectancy"` is one
- * term, `name:life expectancy`. A lone unbalanced quote runs to the end.
- */
-export function splitSearchTerms(query: string): string[] {
-    const terms: string[] = []
-    let current = ""
-    let inQuotes = false
-    for (const char of query) {
-        if (char === '"') inQuotes = !inQuotes
-        else if (/\s/.test(char) && !inQuotes) {
-            if (current) terms.push(current)
-            current = ""
-        } else current += char
-    }
-    if (current) terms.push(current)
-    return terms
 }
 
 /**

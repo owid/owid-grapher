@@ -1,4 +1,5 @@
 import { useCallback } from "react"
+import { splitSearchTerms } from "../adminShared/variableSearch.js"
 import { useHistory, useLocation } from "react-router-dom"
 import {
     buildRegexFromSearchWord,
@@ -66,7 +67,7 @@ export const INDICATOR_SEARCH_FIELDS: SearchFieldHelp[] = [
  */
 export function namesOneDataset(query: string): boolean {
     // `-dataset:wdi` leaves nearly everything, which is still worth grouping
-    return terms(query).some((term) => /^dataset(-id)?:/i.test(term))
+    return splitSearchTerms(query).some((term) => /^dataset(-id)?:/i.test(term))
 }
 
 export function plural(count: number, noun: string): string {
@@ -93,28 +94,9 @@ export function parseCatalogPath(catalogPath: string): CatalogPathParts {
 
 const FIELDED_TERM = /^([a-zA-Z][\w-]*):(.+)$/
 
-/**
- * The query's terms, split the way the server splits them: on spaces, except
- * inside double quotes, which keep a phrase together and are dropped.
- */
-function terms(query: string): string[] {
-    const found: string[] = []
-    let current = ""
-    let inQuotes = false
-    for (const char of query) {
-        if (char === '"') inQuotes = !inQuotes
-        else if (/\s/.test(char) && !inQuotes) {
-            if (current) found.push(current)
-            current = ""
-        } else current += char
-    }
-    if (current) found.push(current)
-    return found
-}
-
 /** The `field:value` terms of a query, exclusions included. */
 export function fieldedTerms(query: string): string[] {
-    return terms(query).filter((term) =>
+    return splitSearchTerms(query).filter((term) =>
         FIELDED_TERM.test(term.replace(/^-/, ""))
     )
 }
@@ -122,7 +104,7 @@ export function fieldedTerms(query: string): string[] {
 /** The query with the given terms taken out. */
 export function withoutTerms(query: string, drop: string[]): string {
     return (
-        terms(query)
+        splitSearchTerms(query)
             .filter((term) => !drop.includes(term))
             // a phrase has to go back in quotes to stay one term
             .map((term) => (/\s/.test(term) ? `"${term}"` : term))
@@ -140,7 +122,7 @@ export function searchWordsToHighlight(
     fields: readonly SearchFieldHelp[]
 ): SearchWord[] {
     const fieldsByName = new Map(fields.map((field) => [field.name, field]))
-    return terms(query).flatMap((term): SearchWord[] => {
+    return splitSearchTerms(query).flatMap((term): SearchWord[] => {
         if (term.startsWith("-")) return []
         const fielded = FIELDED_TERM.exec(term)
         const field = fielded && fieldsByName.get(fielded[1].toLowerCase())

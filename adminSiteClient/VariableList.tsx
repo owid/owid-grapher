@@ -57,11 +57,7 @@ export interface VariableListItem {
 }
 
 /** Columns beyond the always-present name, in the order they are shown. */
-export type VariableListField =
-    | "catalogPath"
-    | "uploadedAt"
-    | "usage"
-    | "popularity"
+export type VariableListField = "catalogPath" | "uploadedAt" | "usage"
 
 export interface DatasetSearchGroup {
     id: number
@@ -99,11 +95,8 @@ interface VariableListProps {
  */
 function UsageCell({
     variable,
-    withPopularity,
 }: {
     variable: VariableListItem
-    /** Shown after the counts, where a column of its own was mostly blank. */
-    withPopularity?: boolean
 }): React.ReactElement {
     const charts = variable.charts ?? []
     const multiDims = variable.multiDims ?? []
@@ -154,9 +147,7 @@ function UsageCell({
             )),
         })
 
-    const popularity = withPopularity ? (
-        <PopularityCell popularity={variable.popularity} inline />
-    ) : null
+    const popularity = <PopularityCell popularity={variable.popularity} />
 
     if (!parts.length)
         return (
@@ -197,22 +188,13 @@ function UsageCell({
 /** A 0-1 score reads better against its neighbours than as a number. */
 function PopularityCell({
     popularity,
-    inline,
 }: {
     popularity: number | null | undefined
-    inline?: boolean
 }): React.ReactElement | null {
-    if (popularity === null || popularity === undefined)
-        return inline ? null : <span className="text-muted">—</span>
+    if (popularity === null || popularity === undefined) return null
     return (
         <Tooltip title={`Popularity ${popularity.toFixed(2)}`}>
-            <div
-                className={
-                    inline
-                        ? "variable-list__popularity variable-list__popularity--inline"
-                        : "variable-list__popularity"
-                }
-            >
+            <div className="variable-list__popularity">
                 <div
                     className="variable-list__popularity-fill"
                     style={{ width: `${Math.round(popularity * 100)}%` }}
@@ -335,7 +317,6 @@ const COLUMN_WEIGHTS: Record<VariableListField | "name", number> = {
     // "3 charts" is what this says on almost every row; the rare row that also
     // names a multi-dim and an explorer wraps rather than taxing all the rest
     usage: 10,
-    popularity: 7,
     uploadedAt: 13,
 }
 
@@ -409,23 +390,7 @@ function createColumns({
             sorter:
                 sortable &&
                 ((a, b) => (a.usageCount ?? 0) - (b.usageCount ?? 0)),
-            render: (_, variable) => (
-                <UsageCell
-                    variable={variable}
-                    // no column of its own to go in
-                    withPopularity={!fields.includes("popularity")}
-                />
-            ),
-        },
-        popularity: {
-            width: width.popularity,
-            title: "Popularity",
-            dataIndex: "popularity",
-            key: "popularity",
-            sorter:
-                sortable &&
-                ((a, b) => (a.popularity ?? 0) - (b.popularity ?? 0)),
-            render: (popularity) => <PopularityCell popularity={popularity} />,
+            render: (_, variable) => <UsageCell variable={variable} />,
         },
     }
 
@@ -625,9 +590,6 @@ function IndicatorCell({
     )
 }
 
-const groupKey = (group: DatasetSearchGroup): string =>
-    `${group.id}-${group.namespace}-${group.version}`
-
 /**
  * Search results grouped by the dataset they belong to. A search matches far
  * more indicators than datasets — "road deaths" hits 831 across 12 — so the
@@ -693,7 +655,7 @@ export function GroupedVariableList({
         <Table<DatasetSearchGroup>
             size="small"
             sticky
-            rowKey={groupKey}
+            rowKey="id"
             columns={groupColumns}
             dataSource={groups}
             loading={loading}
@@ -713,7 +675,7 @@ export function GroupedVariableList({
                 ),
             }}
             expandable={{
-                expandedRowKeys: groups.map(groupKey),
+                expandedRowKeys: groups.map((group) => group.id),
                 showExpandColumn: false,
                 expandedRowRender: (group) => (
                     <Table<VariableListItem>

@@ -6,7 +6,6 @@ import {
     canUseFulltext,
     searchVariables,
     searchVariablesGroupedByDataset,
-    splitSearchTerms,
     unindexedSearchTerms,
 } from "./Variable.js"
 
@@ -79,23 +78,6 @@ describe(unindexedSearchTerms, () => {
     it("ignores exclusions and fields matched on the dataset", () => {
         expect(unindexedSearchTerms("deaths -uk")).toEqual([])
         expect(unindexedSearchTerms("is:private dataset-id:12")).toEqual([])
-    })
-})
-
-describe(splitSearchTerms, () => {
-    it("keeps a quoted phrase together and drops the quotes", () => {
-        expect(splitSearchTerms('"life expectancy" -uk')).toEqual([
-            "life expectancy",
-            "-uk",
-        ])
-        expect(splitSearchTerms('name:"road deaths" who')).toEqual([
-            "name:road deaths",
-            "who",
-        ])
-    })
-
-    it("splits on any run of whitespace", () => {
-        expect(splitSearchTerms("  road   deaths ")).toEqual(["road", "deaths"])
     })
 })
 

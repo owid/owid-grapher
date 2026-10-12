@@ -37,8 +37,10 @@
 }
 
 .variable-list__popularity {
-    width: 100%;
-    max-width: 90px;
+    display: inline-block;
+    width: 52px;
+    margin-left: 10px;
+    vertical-align: middle;
     height: 6px;
     border-radius: 3px;
     background: #ececec;
@@ -59,13 +61,6 @@
 .variable-list__flag--after {
     margin-right: 0;
     margin-left: 6px;
-}
-
-.variable-list__popularity--inline {
-    display: inline-block;
-    width: 52px;
-    margin-left: 10px;
-    vertical-align: middle;
 }
 
 .variable-list__search-help {
