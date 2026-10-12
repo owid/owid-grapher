@@ -1,0 +1,59 @@
+import { createRoot } from "react-dom/client"
+import { enableShadowDOM } from "@react-stately/flags"
+
+import type { VariantName } from "./core/types.js"
+import { parseConfig } from "./core/config.js"
+import { ScatterVariant } from "./variants/ScatterVariant.js"
+
+import type {
+    BespokeComponentMountFn,
+    BespokeComponentMountOpts,
+    BespokeComponentVariantsList,
+} from "owid-bespoke-types"
+import StylesTarget from "vite-plugin-css-position/react"
+
+import { parseEmbedConfig } from "../../../helpers/config.js"
+
+import "./index.scss"
+
+// Enable react-aria's internal Shadow DOM handling paths.
+// Must be called before any react-aria components render.
+enableShadowDOM()
+
+export const VARIANTS = [
+    { name: "scatter", component: ScatterVariant, demoConfig: {} },
+] satisfies BespokeComponentVariantsList<VariantName>
+
+export const mount: BespokeComponentMountFn = (
+    container: HTMLDivElement,
+    opts: BespokeComponentMountOpts
+) => {
+    const variant = VARIANTS.find((v) => v.name === opts.variant)
+    if (!variant) {
+        container.textContent = `Unknown variant: "${opts.variant}"`
+        return
+    }
+
+    // This bundle reads the public indicator API directly rather than a
+    // feed folder, so the registry URLs are only passed through.
+    const urls = {
+        dataUrl: opts.dataUrl ?? "",
+        metadataUrl: opts.metadataUrl ?? "",
+    }
+
+    const rawConfig = opts.config ?? {}
+    const config = {
+        ...parseConfig(rawConfig),
+        ...parseEmbedConfig(rawConfig),
+    }
+
+    const root = createRoot(container)
+    root.render(
+        <>
+            {/* This is where Vite-injected styles will be placed - make sure to add this to your code so that the styles are correctly injected into the Shadow DOM. */}
+            <StylesTarget />
+            <variant.component config={config} urls={urls} />
+        </>
+    )
+    return () => root.unmount()
+}
