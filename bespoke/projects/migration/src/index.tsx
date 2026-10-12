@@ -60,7 +60,7 @@ export const CONFIG_SPEC = {
         type: "string",
         default: "United States",
         description:
-            "Country shown first. `userLocation` picks the reader's country",
+            "Country shown first. `userLocation` picks the reader's country, or United States if the data doesn't have it",
     },
     sex: {
         type: "enum",

@@ -66,7 +66,7 @@ export const CONFIG_SPEC = {
         type: "string",
         default: "All countries",
         description:
-            "Country shown first. `userLocation` picks the reader's country",
+            "Country shown first. `userLocation` picks the reader's country, or All countries if the data doesn't have it",
     },
     flow: {
         type: "enum",
