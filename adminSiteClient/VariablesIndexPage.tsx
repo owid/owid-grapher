@@ -81,7 +81,7 @@ function EmptySearchHint({
                     offset: 0,
                 }
             ),
-        enabled: fielded.length > 0 && widened.trim().length > 0,
+        enabled: fielded.length > 0 && widened.length > 0,
     })
 
     if (fielded.length === 0 || !data?.numTotalRows) return null

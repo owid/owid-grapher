@@ -1022,7 +1022,8 @@ const whereSql = (clauses: SqlFragment[]): SqlFragment => ({
 })
 
 /**
- * Perform regex search over the variables table.
+ * Search the indicators, one page of them ranked by popularity, with the
+ * total number of matches.
  */
 export const searchVariables = (
     query: string,
