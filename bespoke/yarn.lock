@@ -303,7 +303,7 @@ __metadata:
     "@types/d3": "npm:^7.4.3"
     "@types/react": "npm:^19.3.0"
     "@types/react-dom": "npm:^19.3.0"
-    "@vitejs/plugin-react": "npm:^6.0.4"
+    "@vitejs/plugin-react": "npm:^6.1.2"
     clsx: "npm:^2.1.1"
     d3: "npm:^7.9.0"
     normalize.css: "npm:^8.0.1"
@@ -371,7 +371,7 @@ __metadata:
     "@visx/responsive": "npm:^4.0.0"
     "@visx/scale": "npm:^4.0.0"
     "@visx/shape": "npm:^4.0.0"
-    "@vitejs/plugin-react": "npm:^6.0.4"
+    "@vitejs/plugin-react": "npm:^6.1.2"
     clsx: "npm:^2.1.1"
     d3-scale: "npm:^4.0.2"
     lodash-es: "npm:^4.18.1"
@@ -407,7 +407,7 @@ __metadata:
     "@types/react-dom": "npm:^19.3.0"
     "@visx/group": "npm:^4.0.0"
     "@visx/responsive": "npm:^4.0.0"
-    "@vitejs/plugin-react": "npm:^6.0.4"
+    "@vitejs/plugin-react": "npm:^6.1.2"
     clsx: "npm:^2.1.1"
     jotai: "npm:^2.20.1"
     normalize.css: "npm:^8.0.1"
@@ -442,7 +442,7 @@ __metadata:
     "@visx/drag": "npm:^4.0.0"
     "@visx/group": "npm:^4.0.0"
     "@visx/responsive": "npm:^4.0.0"
-    "@vitejs/plugin-react": "npm:^6.0.4"
+    "@vitejs/plugin-react": "npm:^6.1.2"
     clsx: "npm:^2.1.1"
     d3-sankey: "npm:^0.12.3"
     jotai: "npm:^2.20.1"
@@ -507,7 +507,7 @@ __metadata:
     "@visx/group": "npm:^4.0.0"
     "@visx/responsive": "npm:^4.0.0"
     "@visx/scale": "npm:^4.0.0"
-    "@vitejs/plugin-react": "npm:^6.0.2"
+    "@vitejs/plugin-react": "npm:^6.1.2"
     clsx: "npm:^2.1.1"
     d3-scale: "npm:^4.0.2"
     normalize.css: "npm:^8.0.1"
@@ -550,7 +550,7 @@ __metadata:
     "@visx/drag": "npm:^4.0.0"
     "@visx/group": "npm:^4.0.0"
     "@visx/responsive": "npm:^4.0.0"
-    "@vitejs/plugin-react": "npm:^6.0.4"
+    "@vitejs/plugin-react": "npm:^6.1.2"
     clsx: "npm:^2.1.1"
     d3-dsv: "npm:^3.0.1"
     d3-sankey: "npm:^0.12.3"
@@ -1821,21 +1821,24 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@vitejs/plugin-react@npm:^6.0.2, @vitejs/plugin-react@npm:^6.0.4":
-  version: 6.0.5
-  resolution: "@vitejs/plugin-react@npm:6.0.5"
+"@vitejs/plugin-react@npm:^6.1.2":
+  version: 6.1.2
+  resolution: "@vitejs/plugin-react@npm:6.1.2"
   dependencies:
     "@rolldown/pluginutils": "npm:^1.0.1"
   peerDependencies:
     "@rolldown/plugin-babel": ^0.1.7 || ^0.2.0
     babel-plugin-react-compiler: ^1.0.0
+    oxc-transform-react: ^0.152.0
     vite: ^8.0.0
   peerDependenciesMeta:
     "@rolldown/plugin-babel":
       optional: true
     babel-plugin-react-compiler:
       optional: true
-  checksum: 10/f007a41dabe13a360b30be272da93841bd1f41fc05679caf71054198cb2fcd491a077063519a81d4946dbd2728f31ed6a7fabe3c5e11110ccff6a2939175e122
+    oxc-transform-react:
+      optional: true
+  checksum: 10/3d80e79bf54450b09019c158a817d299903a1352c06fa537d8ca774ab0de1461492944eb00029974099f18eeee41a45fc238400035c98cbf371fdc103622b45b
   languageName: node
   linkType: hard
 
@@ -2978,7 +2981,7 @@ __metadata:
   resolution: "root-workspace-0b6124@workspace:."
   dependencies:
     "@rollup/plugin-swc": "npm:^0.4.1"
-    "@vitejs/plugin-react": "npm:^6.0.4"
+    "@vitejs/plugin-react": "npm:^6.1.2"
     vite: "npm:^8.3.4"
     vitest: "npm:^5.0.3"
   languageName: unknown

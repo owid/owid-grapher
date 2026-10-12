@@ -45,7 +45,7 @@
         "@types/lodash-es": "^4.17.12",
         "@types/react": "^19.3.0",
         "@types/react-dom": "^19.3.0",
-        "@vitejs/plugin-react": "^6.0.4",
+        "@vitejs/plugin-react": "^6.1.2",
         "sass": "^1.105.1",
         "typescript": "^7.0.2",
         "vite": "^8.3.4",
