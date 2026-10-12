@@ -95,11 +95,6 @@ class CreateNarrativeChartEditorPageInternal extends React.Component<CreateNarra
         return adminDetailsProvider(this.admin)
     }
 
-    @computed get previewUrl(): string | undefined {
-        const parentId = this.parentConfig?.id
-        return parentId ? `/admin/charts/${parentId}/preview` : undefined
-    }
-
     @computed get initialQueryParams(): GrapherQueryParams | undefined {
         const { grapherQueryStr } = this.props
         if (!grapherQueryStr) return undefined
@@ -183,7 +178,6 @@ class CreateNarrativeChartEditorPageInternal extends React.Component<CreateNarra
                 details={this.details}
                 onSave={this.onSave}
                 renderSaveButtons={this.renderSaveButtons}
-                previewUrl={this.previewUrl}
             />
         )
     }

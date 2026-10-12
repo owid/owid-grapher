@@ -100,11 +100,6 @@ export class NarrativeChartEditorPage extends React.Component<NarrativeChartEdit
         return adminDetailsProvider(this.admin)
     }
 
-    @computed get previewUrl(): string | undefined {
-        const parentId = this.parentConfig?.id
-        return parentId ? `/admin/charts/${parentId}/preview` : undefined
-    }
-
     @computed get scatterDefaults(): OwidChartDimensionInterface[] {
         return adminScatterDefaults()
     }
@@ -221,7 +216,6 @@ export class NarrativeChartEditorPage extends React.Component<NarrativeChartEdit
                 onSave={this.onSave}
                 extraTabs={this.extraTabs}
                 renderSaveButtons={this.renderSaveButtons}
-                previewUrl={this.previewUrl}
                 originUrlSuggestions={this.originUrlSuggestions}
             />
         )
