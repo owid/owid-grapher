@@ -16,7 +16,7 @@ import {
     setTagsForDataset,
     checkDatasetVariablesInUse,
 } from "../../db/model/Dataset.js"
-import { getVariableUsagesByIds } from "../../db/model/Variable.js"
+import { attachVariableUsages } from "../../db/model/Variable.js"
 import { expectInt } from "../../serverUtils/serverUtil.js"
 import { triggerStaticBuild } from "../../baker/GrapherBakingUtils.js"
 import * as db from "../../db/db.js"
@@ -147,16 +147,8 @@ export async function getDataset(
         [datasetId]
     )
 
-    if (variables.length > 0) {
-        const usages = await getVariableUsagesByIds(
-            trx,
-            variables.map((v) => v.id)
-        )
-        for (const v of variables) {
-            v.display = JSON.parse(v.display)
-            Object.assign(v, usages.get(v.id))
-        }
-    }
+    for (const v of variables) v.display = JSON.parse(v.display)
+    await attachVariableUsages(trx, variables)
 
     dataset.variables = variables
 

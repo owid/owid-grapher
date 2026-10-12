@@ -5,11 +5,11 @@ import {
     migrateGrapherConfigToLatestVersionAndFailOnError,
 } from "@ourworldindata/grapher"
 import {
+    DbRawVariable,
+    DbPlainDataset,
     JsonError,
     DbPlainChart,
-    DbPlainDataset,
     DbRawChartConfig,
-    DbRawVariable,
     GrapherInterface,
     OwidVariableWithSource,
     parseChartConfig,
@@ -50,42 +50,6 @@ import {
 import { Request } from "../authentication.js"
 import { HandlerResponse } from "../FunctionalRouter.js"
 import * as z from "zod"
-
-export async function getVariableDataJson(
-    req: Request,
-    _res: HandlerResponse,
-    _trx: db.KnexReadonlyTransaction
-) {
-    const variableStr = req.params.variableStr
-    if (!variableStr) throw new JsonError("No indicator id given")
-    if (variableStr.includes("+"))
-        throw new JsonError(
-            "Requesting multiple indicators at the same time is no longer supported"
-        )
-    const variableId = parseInt(variableStr)
-    if (isNaN(variableId)) throw new JsonError("Invalid indicator id")
-    return await fetchS3DataValuesByPath(
-        getVariableDataRoute(DATA_API_URL, variableId, { noCache: true })
-    )
-}
-
-export async function getVariableMetadataJson(
-    req: Request,
-    _res: HandlerResponse,
-    _trx: db.KnexReadonlyTransaction
-) {
-    const variableStr = req.params.variableStr
-    if (!variableStr) throw new JsonError("No indicator id given")
-    if (variableStr.includes("+"))
-        throw new JsonError(
-            "Requesting multiple indicators at the same time is no longer supported"
-        )
-    const variableId = parseInt(variableStr)
-    if (isNaN(variableId)) throw new JsonError("Invalid indicator id")
-    return await fetchS3MetadataByPath(
-        getVariableMetadataRoute(DATA_API_URL, variableId, { noCache: true })
-    )
-}
 
 // Still serving the chart editor's indicator picker, which downloads every
 // indicator up front. The picker moves onto `getVariablesJson` in a follow-up,
@@ -157,6 +121,42 @@ export async function getEditorVariablesJson(
     if (dataset) datasets.push(dataset)
 
     return { datasets: datasets }
+}
+
+export async function getVariableDataJson(
+    req: Request,
+    _res: HandlerResponse,
+    _trx: db.KnexReadonlyTransaction
+) {
+    const variableStr = req.params.variableStr
+    if (!variableStr) throw new JsonError("No indicator id given")
+    if (variableStr.includes("+"))
+        throw new JsonError(
+            "Requesting multiple indicators at the same time is no longer supported"
+        )
+    const variableId = parseInt(variableStr)
+    if (isNaN(variableId)) throw new JsonError("Invalid indicator id")
+    return await fetchS3DataValuesByPath(
+        getVariableDataRoute(DATA_API_URL, variableId, { noCache: true })
+    )
+}
+
+export async function getVariableMetadataJson(
+    req: Request,
+    _res: HandlerResponse,
+    _trx: db.KnexReadonlyTransaction
+) {
+    const variableStr = req.params.variableStr
+    if (!variableStr) throw new JsonError("No indicator id given")
+    if (variableStr.includes("+"))
+        throw new JsonError(
+            "Requesting multiple indicators at the same time is no longer supported"
+        )
+    const variableId = parseInt(variableStr)
+    if (isNaN(variableId)) throw new JsonError("Invalid indicator id")
+    return await fetchS3MetadataByPath(
+        getVariableMetadataRoute(DATA_API_URL, variableId, { noCache: true })
+    )
 }
 
 export async function getVariablesJson(

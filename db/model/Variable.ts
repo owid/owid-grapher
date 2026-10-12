@@ -971,7 +971,7 @@ export async function getVariableUsagesByIds(
 }
 
 /** Adds each row's usage (see `getVariableUsagesByIds`) to the row itself. */
-async function attachVariableUsages(
+export async function attachVariableUsages(
     knex: db.KnexReadonlyTransaction,
     rows: { id: number }[]
 ): Promise<void> {
@@ -996,6 +996,19 @@ const RESULT_COLUMNS = `
     ap.popularity AS popularity
 `
 
+/**
+ * An inner join, so indicators whose dataset has been archived are left out.
+ * It is also what makes browsing fast: joining the other way round makes MySQL
+ * sort all ~780k variables to return one page, because the sort key lives on
+ * the dataset. Driven from the ~1.2k active datasets it stops as soon as the
+ * page is full.
+ */
+const FROM_VARIABLES = `
+    FROM variables AS v
+    JOIN active_datasets d ON d.id=v.datasetId
+    LEFT JOIN users u ON u.id=d.dataEditedByUserId
+`
+
 const JOIN_POPULARITY = `
     LEFT JOIN analytics_popularity ap
         ON ap.type = 'indicator' AND ap.slug = v.catalogPath
@@ -1003,7 +1016,8 @@ const JOIN_POPULARITY = `
 
 interface SqlFragment {
     sql: string
-    bindings: (string | number)[]
+    /** An array binding expands into a list, for `IN (?)`. */
+    bindings: (string | number | number[])[]
 }
 
 const whereSql = (clauses: SqlFragment[]): SqlFragment => ({
@@ -1036,25 +1050,15 @@ const searchVariablesOrThrow = async (
     const { whereClauses, unindexedTerms } = analyzeVariableSearch(query)
     const isSearch = whereClauses.length > 0
 
-    // An inner join, so indicators whose dataset has been archived are left
-    // out. It is also what makes this fast: joining the other way round makes
-    // MySQL sort all ~780k variables to return one page, because the sort key
-    // lives on the dataset. Driven from the ~1.2k active datasets it stops as
-    // soon as the page is full.
     const where = whereSql(whereClauses)
-    const from = `
-        FROM variables AS v
-        JOIN active_datasets d ON d.id=v.datasetId
-        LEFT JOIN users u ON u.id=d.dataEditedByUserId
-    `
     // Joined only where the popularity is read or ordered by. Counting through
     // it costs 2.2s instead of 0.3s, and `analyzeVariableSearch` never filters on
     // it, so the count can leave it out.
-    const fromWhere = `${from} ${JOIN_POPULARITY} ${where.sql}`
+    const fromWhere = `${FROM_VARIABLES} ${JOIN_POPULARITY} ${where.sql}`
     const sqlCount: SqlFragment = {
         sql: `
             SELECT COUNT(*) count
-            ${from} ${where.sql}
+            ${FROM_VARIABLES} ${where.sql}
         `,
         bindings: where.bindings,
     }
@@ -1107,7 +1111,7 @@ const searchVariablesOrThrow = async (
 }
 
 /** How many of a dataset's matching indicators a group shows before linking to the rest. */
-export const INDICATORS_PER_DATASET = 5
+const INDICATORS_PER_DATASET = 5
 
 /**
  * The same search as `searchVariables`, but paging over the datasets the
@@ -1148,13 +1152,7 @@ const searchVariablesGroupedByDatasetOrThrow = async (
     // Joined only when a search has something to rank: grouping every
     // indicator through it costs seconds, and browsing ranks by upload date
     const joinPopularity = isSearch ? JOIN_POPULARITY : ""
-    const fromWhere = `
-        FROM variables AS v
-        JOIN active_datasets d ON d.id=v.datasetId
-        LEFT JOIN users u ON u.id=d.dataEditedByUserId
-        ${joinPopularity}
-        ${where.sql}
-    `
+    const fromWhere = `${FROM_VARIABLES} ${joinPopularity} ${where.sql}`
 
     // `COUNT(*) OVER ()` counts the groups and `SUM(COUNT(*)) OVER ()` the
     // matches behind them, so one pass answers both totals
@@ -1219,8 +1217,8 @@ const searchVariablesGroupedByDatasetOrThrow = async (
     const selectedWhere = whereSql([
         ...whereClauses,
         {
-            sql: `v.datasetId IN (${datasetIds.map(() => "?").join(",")})`,
-            bindings: datasetIds,
+            sql: "v.datasetId IN (?)",
+            bindings: [datasetIds],
         },
     ])
 
@@ -1232,9 +1230,7 @@ const searchVariablesGroupedByDatasetOrThrow = async (
                         PARTITION BY v.datasetId
                         ORDER BY ap.popularity DESC, v.id
                     ) AS rankInDataset
-                FROM variables AS v
-                JOIN active_datasets d ON d.id=v.datasetId
-                LEFT JOIN users u ON u.id=d.dataEditedByUserId
+                ${FROM_VARIABLES}
                 ${JOIN_POPULARITY}
                 ${selectedWhere.sql}
             ) ranked
@@ -1320,7 +1316,7 @@ export const analyzeVariableSearch = (
 
     for (const term of parseSearchQuery(query)) {
         const { field } = term
-        const not = term.negate ? "NOT " : " "
+        const not = term.negate ? "NOT " : ""
         // An unanchored match already allows anything around it, so a `.*` at
         // either end changes nothing but the cost: `.*deaths` took over a
         // minute where `deaths` takes two seconds. It still asked for a match
@@ -1352,7 +1348,7 @@ export const analyzeVariableSearch = (
             if (value) {
                 if (regexField.indexed) alsoIndex(value)
                 whereClauses.push({
-                    sql: `${not} REGEXP_LIKE(${regexField.expression}, ?, 'i')`,
+                    sql: `${not}REGEXP_LIKE(${regexField.expression}, ?, 'i')`,
                     bindings: [value],
                 })
             }
@@ -1364,20 +1360,20 @@ export const analyzeVariableSearch = (
             const id = parseIntOrUndefined(value)
             if (id !== undefined)
                 whereClauses.push({
-                    sql: `${not} d.id = ?`,
+                    sql: `${not}d.id = ?`,
                     bindings: [id],
                 })
         } else if (field === "before") {
             if (value) {
                 whereClauses.push({
-                    sql: `${not} IF(d.version is not null, d.version < ?, cast(date(d.createdAt) as char) < ?)`,
+                    sql: `${not}IF(d.version is not null, d.version < ?, cast(date(d.createdAt) as char) < ?)`,
                     bindings: [value, value],
                 })
             }
         } else if (field === "after") {
             if (value) {
                 whereClauses.push({
-                    sql: `${not} (IF (d.version is not null, d.version = "latest" OR d.version > ?, cast(date(d.createdAt) as char) > ?))`,
+                    sql: `${not}(IF (d.version is not null, d.version = "latest" OR d.version > ?, cast(date(d.createdAt) as char) > ?))`,
                     bindings: [value, value],
                 })
             }
@@ -1386,9 +1382,9 @@ export const analyzeVariableSearch = (
             // the search help has always advertised is:public
             (value === "published" || value === "public")
         ) {
-            whereClauses.push({ sql: `${not} (NOT d.isPrivate)`, bindings: [] })
+            whereClauses.push({ sql: `${not}(NOT d.isPrivate)`, bindings: [] })
         } else if (field === "is" && value === "private") {
-            whereClauses.push({ sql: `${not} d.isPrivate`, bindings: [] })
+            whereClauses.push({ sql: `${not}d.isPrivate`, bindings: [] })
         } else {
             // Plain text, the common case: a substring regex over the name and
             // the catalog path, with the index narrowing to the rows worth
@@ -1396,7 +1392,7 @@ export const analyzeVariableSearch = (
             const text = field === undefined ? value : `${field}:${value}`
             if (!text) continue
             whereClauses.push({
-                sql: `${not} (REGEXP_LIKE(v.name, ?, 'i') OR REGEXP_LIKE(v.catalogPath, ?, 'i'))`,
+                sql: `${not}(REGEXP_LIKE(v.name, ?, 'i') OR REGEXP_LIKE(v.catalogPath, ?, 'i'))`,
                 bindings: [text, text],
             })
             alsoIndex(text)
@@ -1424,13 +1420,11 @@ export const analyzeVariableSearch = (
  * only match is "where".
  */
 function isStopwordPrefix(word: string): boolean {
-    for (const stopword of FULLTEXT_STOPWORDS)
-        if (stopword.startsWith(word)) return true
-    return false
+    return FULLTEXT_STOPWORDS.some((stopword) => stopword.startsWith(word))
 }
 
 /** MySQL's default minimum indexed token length. */
-export const FULLTEXT_MIN_TERM_LENGTH = 3
+const FULLTEXT_MIN_TERM_LENGTH = 3
 
 /**
  * MySQL's built-in stopword list, which the index leaves out. `who` is in it,
@@ -1442,7 +1436,7 @@ export const FULLTEXT_MIN_TERM_LENGTH = 3
  * recorded in its DDL, so a restored dump can differ from where the migration
  * ran.
  */
-const FULLTEXT_STOPWORDS = new Set([
+const FULLTEXT_STOPWORDS = [
     "a",
     "about",
     "an",
@@ -1478,7 +1472,7 @@ const FULLTEXT_STOPWORDS = new Set([
     "will",
     "with",
     "www",
-])
+]
 
 /** Regular-expression syntax, which the search box advertises and supports. */
 const REGEX_SYNTAX = /[\\^$.|?*+()[\]{}]/
@@ -1500,8 +1494,14 @@ const TOKEN_SEPARATOR = /[^\p{L}\p{N}_]+/u
  * `covid` and `grapher/who` on `grapher`. A term carrying regex syntax yields
  * nothing: alternation makes its words alternatives rather than requirements,
  * so `deaths|births` must not be turned into "both".
+ *
+ * With no tokens — the term is too short, a stopword, or a regex — the term is
+ * matched by scanning, and the list says so. That is decided per term rather
+ * than per query: a term means the same thing however much of the rest of the
+ * query you have typed, so adding a word never re-interprets the words
+ * already there.
  */
-function fulltextTokens(term: string): string[] {
+export function fulltextTokens(term: string): string[] {
     if (REGEX_SYNTAX.test(term)) return []
     return term
         .split(TOKEN_SEPARATOR)
@@ -1510,19 +1510,6 @@ function fulltextTokens(term: string): string[] {
                 token.length >= FULLTEXT_MIN_TERM_LENGTH &&
                 !isStopwordPrefix(token.toLowerCase())
         )
-}
-
-/**
- * Whether the index can narrow this term at all. When it can't — the term is
- * too short, a stopword, or a regex — the term is matched by scanning, which
- * is what every term used to be, and the list says so.
- *
- * Decided per term rather than per query: a term means the same thing however
- * much of the rest of the query you have typed, so adding a word never
- * re-interprets the words already there.
- */
-export function canUseFulltext(term: string): boolean {
-    return fulltextTokens(term).length > 0
 }
 
 /** A search term MySQL couldn't run as a regular expression, with its reason. */

@@ -3,7 +3,7 @@ import * as db from "../db.js"
 
 import {
     analyzeVariableSearch,
-    canUseFulltext,
+    fulltextTokens,
     getVariableUsagesByIds,
     searchVariables,
     searchVariablesGroupedByDataset,
@@ -16,12 +16,14 @@ const buildWhereClauses = (
     analyzeVariableSearch(query).whereClauses
 const unindexedSearchTerms = (query: string | undefined): string[] =>
     analyzeVariableSearch(query ?? "").unindexedTerms
+const canUseFulltext = (term: string): boolean =>
+    fulltextTokens(term).length > 0
 
 describe(analyzeVariableSearch, () => {
     it("keeps stripped regexes unindexed and reports the original spelling", () => {
         expect(analyzeVariableSearch("NAME:.*road.*")).toEqual({
             whereClauses: [
-                { sql: "  REGEXP_LIKE(v.name, ?, 'i')", bindings: ["road"] },
+                { sql: "REGEXP_LIKE(v.name, ?, 'i')", bindings: ["road"] },
             ],
             unindexedTerms: ["NAME:.*road.*"],
         })
@@ -40,7 +42,7 @@ describe(analyzeVariableSearch, () => {
         expect(analyzeVariableSearch("is:.*")).toEqual({
             whereClauses: [
                 {
-                    sql: "  (REGEXP_LIKE(v.name, ?, 'i') OR REGEXP_LIKE(v.catalogPath, ?, 'i'))",
+                    sql: "(REGEXP_LIKE(v.name, ?, 'i') OR REGEXP_LIKE(v.catalogPath, ?, 'i'))",
                     bindings: ["is:.*", "is:.*"],
                 },
             ],
@@ -126,7 +128,7 @@ describe(buildWhereClauses, () => {
         const term = "why? a\\? x' OR 1=1 --"
         const [clause] = buildWhereClauses(`name:"${term}"`)
         expect(clause).toEqual({
-            sql: "  REGEXP_LIKE(v.name, ?, 'i')",
+            sql: "REGEXP_LIKE(v.name, ?, 'i')",
             bindings: [term],
         })
     })
@@ -162,7 +164,7 @@ describe(buildWhereClauses, () => {
             const clauses = buildWhereClauses(`${field}:road`)
             expect(clauses).toEqual([
                 {
-                    sql: `  REGEXP_LIKE(${expression}, ?, 'i')`,
+                    sql: `REGEXP_LIKE(${expression}, ?, 'i')`,
                     bindings: ["road"],
                 },
                 ...(indexed
@@ -185,7 +187,7 @@ describe(buildWhereClauses, () => {
         "keeps the complete field value %s",
         (value) => {
             expect(buildWhereClauses(`name:"${value}"`)[0]).toEqual({
-                sql: "  REGEXP_LIKE(v.name, ?, 'i')",
+                sql: "REGEXP_LIKE(v.name, ?, 'i')",
                 bindings: [value],
             })
         }
@@ -195,7 +197,7 @@ describe(buildWhereClauses, () => {
         "still searches %s as free text",
         (term) => {
             expect(buildWhereClauses(term)[0]).toEqual({
-                sql: "  (REGEXP_LIKE(v.name, ?, 'i') OR REGEXP_LIKE(v.catalogPath, ?, 'i'))",
+                sql: "(REGEXP_LIKE(v.name, ?, 'i') OR REGEXP_LIKE(v.catalogPath, ?, 'i'))",
                 bindings: [term, term],
             })
         }
@@ -212,7 +214,7 @@ describe(buildWhereClauses, () => {
     it("binds both free-text predicates and the full-text expression", () => {
         expect(buildWhereClauses("road deaths road")).toEqual([
             ...["road", "deaths", "road"].map((term) => ({
-                sql: "  (REGEXP_LIKE(v.name, ?, 'i') OR REGEXP_LIKE(v.catalogPath, ?, 'i'))",
+                sql: "(REGEXP_LIKE(v.name, ?, 'i') OR REGEXP_LIKE(v.catalogPath, ?, 'i'))",
                 bindings: [term, term],
             })),
             {
@@ -232,7 +234,7 @@ describe(buildWhereClauses, () => {
             [12],
             [34],
         ])
-        expect(clauses[3].sql).toBe("NOT  d.id = ?")
+        expect(clauses[3].sql).toBe("NOT d.id = ?")
     })
 
     it("matches field names whatever their case", () => {
@@ -245,7 +247,7 @@ describe(buildWhereClauses, () => {
     it("keeps exclusions out of full-text narrowing", () => {
         const clauses = buildWhereClauses("road -deaths")
         expect(clauses[1]).toEqual({
-            sql: "NOT  (REGEXP_LIKE(v.name, ?, 'i') OR REGEXP_LIKE(v.catalogPath, ?, 'i'))",
+            sql: "NOT (REGEXP_LIKE(v.name, ?, 'i') OR REGEXP_LIKE(v.catalogPath, ?, 'i'))",
             bindings: ["deaths", "deaths"],
         })
         expect(clauses[2].bindings).toEqual(["+road*"])
@@ -253,8 +255,8 @@ describe(buildWhereClauses, () => {
 
     it("keeps boolean predicates and empty queries binding-free", () => {
         expect(buildWhereClauses("is:public -is:private")).toEqual([
-            { sql: "  (NOT d.isPrivate)", bindings: [] },
-            { sql: "NOT  d.isPrivate", bindings: [] },
+            { sql: "(NOT d.isPrivate)", bindings: [] },
+            { sql: "NOT d.isPrivate", bindings: [] },
         ])
         expect(buildWhereClauses("")).toEqual([])
     })
@@ -387,8 +389,12 @@ describe("search query bindings", () => {
 
             const searchBindings = query ? ["road", "road", "+road*"] : []
             expect(raw.mock.calls[0][2]).toEqual([...searchBindings, 10, 20])
-            expect(raw.mock.calls[1][2]).toEqual([...searchBindings, 12, 34, 5])
-            expect(raw.mock.calls[1][1]).toContain("v.datasetId IN (?,?)")
+            expect(raw.mock.calls[1][2]).toEqual([
+                ...searchBindings,
+                [12, 34],
+                5,
+            ])
+            expect(raw.mock.calls[1][1]).toContain("v.datasetId IN (?)")
             expect(raw.mock.calls[1][1]).toContain("WHERE rankInDataset <= ?")
         }
     )
