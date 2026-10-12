@@ -153,7 +153,7 @@ export class ControlsRow extends Component<ControlsRowProps> {
                 className="controlsRow"
                 style={{ padding: `0 ${this.framePaddingHorizontal}px` }}
             >
-                <div>
+                <div className="controlsRow__ContentSwitchers">
                     <ContentSwitchers manager={this.manager} />
                 </div>
                 <div className="controls">
