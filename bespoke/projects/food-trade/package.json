@@ -27,7 +27,7 @@
         "@visx/responsive": "^4.0.0",
         "clsx": "^2.1.1",
         "d3-sankey": "^0.12.3",
-        "jotai": "^2.20.1",
+        "jotai": "^3.0.1",
         "normalize.css": "^8.0.1",
         "nuqs": "^2.10.2",
         "react": "^19.3.0",

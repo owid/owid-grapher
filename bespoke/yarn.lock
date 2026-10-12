@@ -409,7 +409,7 @@ __metadata:
     "@visx/responsive": "npm:^4.0.0"
     "@vitejs/plugin-react": "npm:^6.1.2"
     clsx: "npm:^2.1.1"
-    jotai: "npm:^2.20.1"
+    jotai: "npm:^3.0.1"
     normalize.css: "npm:^8.0.1"
     react: "npm:^19.3.0"
     react-dom: "npm:^19.3.0"
@@ -445,7 +445,7 @@ __metadata:
     "@vitejs/plugin-react": "npm:^6.1.2"
     clsx: "npm:^2.1.1"
     d3-sankey: "npm:^0.12.3"
-    jotai: "npm:^2.20.1"
+    jotai: "npm:^3.0.1"
     normalize.css: "npm:^8.0.1"
     nuqs: "npm:^2.10.2"
     react: "npm:^19.3.0"
@@ -554,7 +554,7 @@ __metadata:
     clsx: "npm:^2.1.1"
     d3-dsv: "npm:^3.0.1"
     d3-sankey: "npm:^0.12.3"
-    jotai: "npm:^2.20.1"
+    jotai: "npm:^3.0.1"
     normalize.css: "npm:^8.0.1"
     nuqs: "npm:^2.10.2"
     react: "npm:^19.3.0"
@@ -2502,24 +2502,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jotai@npm:^2.20.1":
-  version: 2.20.2
-  resolution: "jotai@npm:2.20.2"
+"jotai@npm:^3.0.1":
+  version: 3.0.1
+  resolution: "jotai@npm:3.0.1"
   peerDependencies:
-    "@babel/core": ">=7.0.0"
-    "@babel/template": ">=7.0.0"
-    "@types/react": ">=17.0.0"
-    react: ">=17.0.0"
+    "@types/react": ">=18.0.0"
+    react: ">=18.0.0"
   peerDependenciesMeta:
-    "@babel/core":
-      optional: true
-    "@babel/template":
-      optional: true
     "@types/react":
       optional: true
     react:
       optional: true
-  checksum: 10/110a4b6fa7ceb61b10400adfb13be5fe343ec477c883393ba5d7420b70c8b1d7eb1920eaa6f89a9fafd9faca3a06a15900542e28780a91b73403bd7fb5476099
+  checksum: 10/4293280a9f9533a0e11efab6a6d5ba21350e71c902549a33415949df6dc2bbe673cd3585589e167192d65369ba8e5bc0a5be7872e1d5f48c83edfdfbbb4d349f
   languageName: node
   linkType: hard
 
