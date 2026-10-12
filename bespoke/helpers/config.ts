@@ -144,9 +144,11 @@ function parseCustom(
     field: Extract<BespokeConfigField, { type: "custom" }>,
     value: string
 ): unknown {
-    const parsed = field.parse(value)
-    if (parsed === undefined) throw invalidValueError(key, value, field.format)
-    return parsed
+    try {
+        return field.parse(value)
+    } catch {
+        throw invalidValueError(key, value, field.format)
+    }
 }
 
 function invalidValueError(

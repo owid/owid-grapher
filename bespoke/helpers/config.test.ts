@@ -25,10 +25,12 @@ const SPEC = {
     points: {
         type: "custom",
         format: "comma-separated numbers",
-        parse: (value: string) =>
-            value.split(",").every((part) => part.trim() !== "")
-                ? value.split(",").map(Number)
-                : undefined,
+        parse: (value: string) => {
+            const parts = value.split(",").map((part) => part.trim())
+            if (parts.every((part) => part === "")) return undefined
+            if (parts.some((part) => part === "")) throw new Error("Gap")
+            return parts.map(Number)
+        },
         description: "Points",
     },
 } as const satisfies BespokeConfigSpec
@@ -93,6 +95,12 @@ describe(parseConfigFromSpec, () => {
     it("throws when a custom parser rejects a set value, naming the format", () => {
         expect(() => parseConfigFromSpec(SPEC, { points: "1,,3" })).toThrow(
             'points: "1,,3" is not valid. Expected: comma-separated numbers'
+        )
+    })
+
+    it("leaves a custom key unset when its parser returns undefined", () => {
+        expect(parseConfigFromSpec(SPEC, { points: ",," }).points).toBe(
+            undefined
         )
     })
 
