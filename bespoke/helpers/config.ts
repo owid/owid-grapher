@@ -91,28 +91,28 @@ function parseFieldValue(
     }
 }
 
-export function parseNumber(value: unknown): number | undefined {
-    if (typeof value !== "string" && typeof value !== "number") return undefined
-    const n = typeof value === "string" ? Number(value) : value
+function parseNumber(value: string | undefined): number | undefined {
+    if (value === undefined) return undefined
+    const n = Number(value)
     return Number.isFinite(n) ? n : undefined
 }
 
-export function parseInteger(value: unknown): number | undefined {
+function parseInteger(value: string | undefined): number | undefined {
     const n = parseNumber(value)
     return n === undefined ? undefined : Math.round(n)
 }
 
-export function parseBoolean(value: unknown): boolean | undefined {
+function parseBoolean(value: string | undefined): boolean | undefined {
     if (value === "true") return true
     if (value === "false") return false
     return undefined
 }
 
-export function parseEnum<T extends string>(
-    value: unknown,
+function parseEnum<T extends string>(
+    value: string | undefined,
     allowed: readonly T[]
 ): T | undefined {
-    if (typeof value !== "string") return undefined
+    if (value === undefined) return undefined
     return (allowed as readonly string[]).includes(value)
         ? (value as T)
         : undefined
