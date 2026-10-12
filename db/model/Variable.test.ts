@@ -78,7 +78,7 @@ describe(unindexedSearchTerms, () => {
 
     it("ignores exclusions and fields matched on the dataset", () => {
         expect(unindexedSearchTerms("deaths -uk")).toEqual([])
-        expect(unindexedSearchTerms("is:private datasetid:12")).toEqual([])
+        expect(unindexedSearchTerms("is:private dataset-id:12")).toEqual([])
     })
 })
 
@@ -133,7 +133,7 @@ describe(buildWhereClauses, () => {
             true,
         ],
         ["short", "v.shortName", true],
-        ["datasetname", "d.name", false],
+        ["dataset-name", "d.name", false],
     ] as const)(
         "matches %s: on the correct expression and index policy",
         (field, expression, indexed) => {
@@ -169,7 +169,7 @@ describe(buildWhereClauses, () => {
         }
     )
 
-    it.each(["unknown:road", "constructor:road", "Name:road", "name"])(
+    it.each(["unknown:road", "constructor:road", "name"])(
         "still searches %s as free text",
         (term) => {
             expect(buildWhereClauses(term)[0]).toEqual({
@@ -202,7 +202,7 @@ describe(buildWhereClauses, () => {
 
     it("binds dates twice and dataset ids as numbers", () => {
         const clauses = buildWhereClauses(
-            "before:2023 after:2020 datasetid:12 -datasetid:34"
+            "before:2023 after:2020 dataset-id:12 -dataset-id:34"
         )
         expect(clauses.map((clause) => clause.bindings)).toEqual([
             ["2023", "2023"],
@@ -211,6 +211,13 @@ describe(buildWhereClauses, () => {
             [34],
         ])
         expect(clauses[3].sql).toBe("NOT  d.id = ?")
+    })
+
+    it("matches field names whatever their case", () => {
+        expect(buildWhereClauses("Dataset-ID:12 -NAME:Road")).toEqual(
+            buildWhereClauses("dataset-id:12 -name:Road")
+        )
+        expect(unindexedSearchTerms("Is:private Dataset-ID:12")).toEqual([])
     })
 
     it("keeps exclusions out of full-text narrowing", () => {

@@ -48,14 +48,14 @@ export const INDICATOR_SEARCH_FIELDS: SearchFieldHelp[] = [
     { name: "version", type: "string", description: "Version segment" },
     { name: "dataset", type: "string", description: "Dataset segment" },
     {
-        name: "datasetid",
+        name: "dataset-id",
         type: "number",
         description: "Exactly one dataset, by id",
     },
     { name: "table", type: "string", description: "Table segment" },
     { name: "short", type: "string", description: "Indicator short name" },
     {
-        name: "datasetname",
+        name: "dataset-name",
         type: "string",
         description: "The dataset's title",
     },
@@ -70,7 +70,7 @@ export const INDICATOR_SEARCH_FIELDS: SearchFieldHelp[] = [
  */
 export function namesOneDataset(query: string): boolean {
     // `-dataset:wdi` leaves nearly everything, which is still worth grouping
-    return terms(query).some((term) => /^dataset(id)?:/.test(term))
+    return terms(query).some((term) => /^dataset(-id)?:/i.test(term))
 }
 
 export interface CatalogPathParts {

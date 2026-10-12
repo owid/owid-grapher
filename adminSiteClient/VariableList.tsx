@@ -720,7 +720,7 @@ export function GroupedVariableList({
                                         // the dataset first: it's what the
                                         // link narrows to
                                         [
-                                            `datasetid:${group.id}`,
+                                            `dataset-id:${group.id}`,
                                             searchValue.trim(),
                                         ]
                                             .filter(Boolean)

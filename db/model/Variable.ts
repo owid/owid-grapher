@@ -1349,7 +1349,7 @@ const searchVariablesGroupedByDatasetOrThrow = async (
  * These are the segments the admin's indicator list shows, so `namespace:`,
  * `version:`, `dataset:` and `table:` search the path rather than the dataset
  * columns they were once pointed at — `namespace:ihme_gbd` used to search the
- * dataset's title and so matched nothing. The dataset's title is `datasetname:`.
+ * dataset's title and so matched nothing. The dataset's title is `dataset-name:`.
  */
 const catalogPathSegment = (n: number): string =>
     // the last segment carries the #short_name, which `short:` searches instead
@@ -1365,9 +1365,16 @@ const REGEX_FIELDS = new Map(
         dataset: { expression: catalogPathSegment(4), indexed: true },
         table: { expression: catalogPathSegment(5), indexed: true },
         short: { expression: "v.shortName", indexed: true },
-        datasetname: { expression: "d.name", indexed: false },
+        "dataset-name": { expression: "d.name", indexed: false },
     })
 )
+
+/**
+ * Field names match whatever their case, as the admin's highlighting does, so
+ * `Dataset-ID:12` isn't quietly searched as text.
+ */
+const lowercaseFieldName = (part: string): string =>
+    part.replace(/^[a-zA-Z][\w-]*(?=:)/, (field) => field.toLowerCase())
 
 export const buildWhereClauses = (query: string): SqlFragment[] => {
     const whereClauses: SqlFragment[] = []
@@ -1384,6 +1391,7 @@ export const buildWhereClauses = (query: string): SqlFragment[] => {
             part = part.substring(1)
             not = "NOT "
         }
+        part = lowercaseFieldName(part)
         // An unanchored match already allows anything around it, so a `.*` at
         // either end changes nothing but the cost: `.*deaths` took over a
         // minute where `deaths` takes two seconds. It still asked for a match
@@ -1421,12 +1429,12 @@ export const buildWhereClauses = (query: string): SqlFragment[] => {
                     bindings: [value],
                 })
             }
-        } else if (part.startsWith("datasetid:")) {
+        } else if (part.startsWith("dataset-id:")) {
             // Exact, for the "more in this dataset" link: 78 groups of active
             // datasets share a shortName, so `dataset:` alone would widen the
             // list to another dataset's indicators and disagree with the count
             // the link was offering.
-            const id = parseIntOrUndefined(part.substring("datasetid:".length))
+            const id = parseIntOrUndefined(part.substring("dataset-id:".length))
             if (id !== undefined)
                 whereClauses.push({
                     sql: `${not} d.id = ?`,
@@ -1616,7 +1624,8 @@ export function unindexedSearchTerms(query: string | undefined): string[] {
             if (!part || part.startsWith("-")) return false
             const fielded = /^([a-zA-Z][\w-]*):(.*)$/.exec(part)
             if (!fielded) return !canUseFulltext(part)
-            const [, field, value] = fielded
+            const [, fieldName, value] = fielded
+            const field = fieldName.toLowerCase()
             const regexField = REGEX_FIELDS.get(field)
             if (regexField) return regexField.indexed && !canUseFulltext(value)
             // the rest filter datasets, not the ~780k indicators
@@ -1627,7 +1636,7 @@ export function unindexedSearchTerms(query: string | undefined): string[] {
 }
 
 /** Non-regex fields matched on the dataset, which is cheap however they're written. */
-const DATASET_FIELDS = new Set(["datasetid", "before", "after", "is"])
+const DATASET_FIELDS = new Set(["dataset-id", "before", "after", "is"])
 
 /** A search term MySQL couldn't run as a regular expression, with its reason. */
 class RegexError extends Error {}
