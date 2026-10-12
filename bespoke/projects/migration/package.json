@@ -38,7 +38,7 @@
         "react-stately": "^3.47.0",
         "remeda": "^2.39.0",
         "ts-pattern": "^5.9.0",
-        "vite-plugin-css-position": "^2.0.9"
+        "vite-plugin-css-position": "^3.0.1"
     },
     "devDependencies": {
         "@rollup/plugin-swc": "^0.4.1",

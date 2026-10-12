@@ -38,7 +38,7 @@
         "react-dom": "^19.2.7",
         "remeda": "^2.39.0",
         "tippy.js": "^6.3.7",
-        "vite-plugin-css-position": "^2.0.9"
+        "vite-plugin-css-position": "^3.0.1"
     },
     "devDependencies": {
         "@types/d3-scale": "^4.0.9",
