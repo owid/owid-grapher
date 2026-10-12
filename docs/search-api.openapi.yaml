@@ -141,7 +141,10 @@ paths:
             when `type=pages`. Defaults to `article,about-page` when omitted.
 
             This is a text search whatever types are requested, topic pages
-            included. To find the topic pages a query is about, use `type=topics`.
+            included, and each type is matched as named: `topic-page` and
+            `linear-topic-page` are the two layouts of topic page, so ask for
+            both to get every topic page. To find the topic pages a query is
+            about, use `type=topics`.
           required: false
           schema:
             type: string
@@ -302,7 +305,7 @@ components:
             read. They were ignored; each warning names them and lists the
             valid parameters. `utm_*` tracking tags never produce a warning.
           example:
-            - 'Ignored unknown parameter(s): "resultType". Valid parameters: type, q, countries, topics, requireAllCountries, pageTypes, page, hitsPerPage. Use "type=pages" to search writing, or "type=charts" for charts.'
+            - 'Ignored unknown parameter(s): "resultType". Valid parameters: type, q, countries, topics, requireAllCountries, pageTypes, page, hitsPerPage. Use "type=pages" to search writing, "type=topics" for topic pages, or "type=charts" for charts.'
 
     ChartResult:
       type: object
@@ -458,7 +461,7 @@ components:
             read. They were ignored; each warning names them and lists the
             valid parameters. `utm_*` tracking tags never produce a warning.
           example:
-            - 'Ignored unknown parameter(s): "resultType". Valid parameters: type, q, countries, topics, requireAllCountries, pageTypes, page, hitsPerPage. Use "type=pages" to search writing, or "type=charts" for charts.'
+            - 'Ignored unknown parameter(s): "resultType". Valid parameters: type, q, countries, topics, requireAllCountries, pageTypes, page, hitsPerPage. Use "type=pages" to search writing, "type=topics" for topic pages, or "type=charts" for charts.'
 
     PageResult:
       type: object

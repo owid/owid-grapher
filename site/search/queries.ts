@@ -33,6 +33,7 @@ import {
     searchSingleForHits,
     searchSingleForHitsWithClosestMatches,
     recommendTopicPages,
+    TOPIC_PAGE_TYPE_FILTER,
     MAX_FACET_VALUES,
 } from "@ourworldindata/utils"
 import { RichDataComponentVariant } from "./SearchChartHitRichDataTypes.js"
@@ -309,13 +310,7 @@ export async function queryTopicPages(
     return recommendTopicPages<TopicPageHit>(liteSearchClient, {
         chartsIndexName: CHARTS_INDEX,
         pagesIndexName: PAGES_INDEX,
-        query: state.query,
-        chartsFacetFilters: buildChartsFacetFilters({
-            query: state.query,
-            filters: state.filters,
-            requireAllCountries: state.requireAllCountries,
-        }),
-        topics: getFilterNamesOfType(state.filters, FilterType.TOPIC),
+        state,
         tagGraph,
         attributesToRetrieve: TOPIC_PAGE_ATTRIBUTES,
         offset,
@@ -500,7 +495,7 @@ export async function queryWritingTopics(
             {
                 indexName: PAGES_INDEX,
                 attributesToRetrieve: ["title", "slug", "type"],
-                filters: `type:${OwidGdocType.TopicPage} OR type:${OwidGdocType.LinearTopicPage}`,
+                filters: TOPIC_PAGE_TYPE_FILTER,
                 facetFilters: topicFacetFilters,
                 highlightPreTag: "<mark>",
                 highlightPostTag: "</mark>",

@@ -1,14 +1,18 @@
 import {
+    FilterType,
     OwidGdocType,
     SearchFacetFilters,
+    SearchState,
     TagGraphNode,
     TagGraphRoot,
 } from "@ourworldindata/types"
 import { type SearchResponse } from "algoliasearch"
 import { type LiteClient } from "algoliasearch/lite"
 import {
+    buildChartsFacetFilters,
     formatDisjunctiveFacetFilters,
     formatTopicFacetFilters,
+    getFilterNamesOfType,
 } from "./searchFacetFilters.js"
 import { searchSingleForHits } from "./searchClosestMatches.js"
 import { getPrefixedGdocPath } from "../urls/gdocPaths.js"
@@ -18,14 +22,15 @@ import { getPrefixedGdocPath } from "../urls/gdocPaths.js"
 // so both recommend the same topic pages for a query, including when no chart
 // matches it.
 
-export const TOPIC_PAGE_TYPES: readonly OwidGdocType[] = [
+const TOPIC_PAGE_TYPES: readonly OwidGdocType[] = [
     OwidGdocType.TopicPage,
     OwidGdocType.LinearTopicPage,
 ]
 
-export function isTopicPageType(type: string): boolean {
-    return (TOPIC_PAGE_TYPES as readonly string[]).includes(type)
-}
+/** An Algolia `filters` expression for both layouts of topic page. */
+export const TOPIC_PAGE_TYPE_FILTER = TOPIC_PAGE_TYPES.map(
+    (type) => `type:${type}`
+).join(" OR ")
 
 /**
  * How many of the best-ranked chart hits vote for the topics to recommend:
@@ -147,7 +152,7 @@ export async function searchTopicPagesOfMatchingCharts<
     const pagesResponse = await searchSingleForHits<THit>(liteSearchClient, {
         indexName: params.pagesIndexName,
         query: "",
-        filters: TOPIC_PAGE_TYPES.map((type) => `type:${type}`).join(" OR "),
+        filters: TOPIC_PAGE_TYPE_FILTER,
         facetFilters: formatDisjunctiveFacetFilters(
             new Set(paths.sort()),
             "path"
@@ -171,30 +176,43 @@ export async function searchTopicPagesOfMatchingCharts<
 
 /**
  * The topic pages to recommend for a search. With a query, they come from the
- * charts matching it (searchTopicPagesOfMatchingCharts). Without a query, or
- * when no chart matches, the topic pages are searched by their own text, so a
- * query that only matches prose (an author's name, say) still finds pages;
- * `topics` restricts that text search to pages tagged with any of them. The
- * text search has no closest-matches fallback.
+ * charts matching it (searchTopicPagesOfMatchingCharts), with the search's
+ * country and topic filters. Without a query, or when no chart matches, the
+ * topic pages are searched by their own text, so a query that only matches
+ * prose (an author's name, say) still finds pages; the topic filter applies
+ * there too. The text search has no closest-matches fallback.
  */
 export async function recommendTopicPages<THit extends { slug: string }>(
     liteSearchClient: LiteClient,
-    params: Parameters<typeof searchTopicPagesOfMatchingCharts>[1] & {
-        topics: Set<string>
+    params: {
+        chartsIndexName: string
+        pagesIndexName: string
+        state: Pick<SearchState, "query" | "filters" | "requireAllCountries">
+        tagGraph: TagGraphRoot
+        attributesToRetrieve: string[]
+        offset: number
+        length: number
     }
 ): Promise<SearchResponse<THit>> {
-    if (params.query.trim()) {
+    const { state, ...rest } = params
+    if (state.query.trim()) {
         const response = await searchTopicPagesOfMatchingCharts<THit>(
             liteSearchClient,
-            params
+            {
+                ...rest,
+                query: state.query,
+                chartsFacetFilters: buildChartsFacetFilters(state),
+            }
         )
         if (response) return response
     }
     return searchSingleForHits<THit>(liteSearchClient, {
         indexName: params.pagesIndexName,
-        query: params.query,
-        filters: TOPIC_PAGE_TYPES.map((type) => `type:${type}`).join(" OR "),
-        facetFilters: formatTopicFacetFilters(params.topics),
+        query: state.query,
+        filters: TOPIC_PAGE_TYPE_FILTER,
+        facetFilters: formatTopicFacetFilters(
+            getFilterNamesOfType(state.filters, FilterType.TOPIC)
+        ),
         attributesToRetrieve: params.attributesToRetrieve,
         highlightPreTag: "<mark>",
         highlightPostTag: "</mark>",

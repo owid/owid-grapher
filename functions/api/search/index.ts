@@ -20,8 +20,7 @@ const DEFAULT_HITS_PER_PAGE = 20
 const MAX_HITS_PER_PAGE = 100
 const MAX_PAGE = 1000
 
-// charts and pages are text searches over their records; topics recommends
-// topic pages for a query, like the topic cards on the site's search page.
+// topics recommends topic pages for a query, like the site's topic cards
 const SEARCH_TYPES = ["charts", "pages", "topics"] as const
 type SearchType = (typeof SEARCH_TYPES)[number]
 
@@ -48,7 +47,7 @@ const KNOWN_PARAMS = new Set<string>([
 // Hints for parameters people carry over from the search page's URL.
 const PARAM_HINTS: Record<string, string> = {
     [SearchUrlParam.RESULT_TYPE]:
-        'Use "type=pages" to search writing, or "type=charts" for charts.',
+        'Use "type=pages" to search writing, "type=topics" for topic pages, or "type=charts" for charts.',
 }
 
 /**

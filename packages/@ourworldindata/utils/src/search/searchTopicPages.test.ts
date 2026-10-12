@@ -1,5 +1,6 @@
 import { expect, it, describe, vi } from "vitest"
 import {
+    FilterType,
     TagGraphNode,
     TagGraphRoot,
     TagGraphRootName,
@@ -294,9 +295,11 @@ describe(recommendTopicPages, () => {
     const params = {
         chartsIndexName: "charts",
         pagesIndexName: "pages",
-        query: "max roser",
-        chartsFacetFilters: [],
-        topics: new Set(["Health"]),
+        state: {
+            query: "max roser",
+            filters: [{ type: FilterType.TOPIC, name: "Health" }],
+            requireAllCountries: false,
+        },
         tagGraph,
         attributesToRetrieve: ["title", "slug"],
         offset: 0,
@@ -335,7 +338,7 @@ describe(recommendTopicPages, () => {
 
         await recommendTopicPages<MockHit>(client as never, {
             ...params,
-            query: " ",
+            state: { ...params.state, query: " " },
         })
 
         expect(client.searchForHits).toHaveBeenCalledOnce()
