@@ -441,10 +441,8 @@ export {
 } from "./search/searchClosestMatches.js"
 
 export {
-    TOPIC_PAGE_TYPES,
-    isTopicPageType,
-    rankTopicsOfChartHits,
-    searchTopicPagesOfMatchingCharts,
+    TOPIC_PAGE_TYPE_FILTER,
+    recommendTopicPages,
 } from "./search/searchTopicPages.js"
 
 export { isEmptyQuerySearchPayload } from "./search/emptyQuerySearchPayload.js"

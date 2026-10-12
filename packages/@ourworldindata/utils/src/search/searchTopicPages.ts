@@ -1,27 +1,36 @@
 import {
+    FilterType,
     OwidGdocType,
     SearchFacetFilters,
+    SearchState,
     TagGraphNode,
     TagGraphRoot,
 } from "@ourworldindata/types"
 import { type SearchResponse } from "algoliasearch"
 import { type LiteClient } from "algoliasearch/lite"
-import { formatDisjunctiveFacetFilters } from "./searchFacetFilters.js"
+import {
+    buildChartsFacetFilters,
+    formatDisjunctiveFacetFilters,
+    formatTopicFacetFilters,
+    getFilterNamesOfType,
+} from "./searchFacetFilters.js"
 import { searchSingleForHits } from "./searchClosestMatches.js"
 import { getPrefixedGdocPath } from "../urls/gdocPaths.js"
 
 // Shared between the site's search page (site/search/queries.ts) and the
 // public /api/search Cloudflare function (functions/api/search/searchApi.ts)
-// so both recommend the same topic pages for a query.
+// so both recommend the same topic pages for a query, including when no chart
+// matches it.
 
-export const TOPIC_PAGE_TYPES: readonly OwidGdocType[] = [
+const TOPIC_PAGE_TYPES: readonly OwidGdocType[] = [
     OwidGdocType.TopicPage,
     OwidGdocType.LinearTopicPage,
 ]
 
-export function isTopicPageType(type: string): boolean {
-    return (TOPIC_PAGE_TYPES as readonly string[]).includes(type)
-}
+/** An Algolia `filters` expression for both layouts of topic page. */
+export const TOPIC_PAGE_TYPE_FILTER = TOPIC_PAGE_TYPES.map(
+    (type) => `type:${type}`
+).join(" OR ")
 
 /**
  * How many of the best-ranked chart hits vote for the topics to recommend:
@@ -81,9 +90,9 @@ export function rankTopicsOfChartHits(
 
 /**
  * The topic pages behind the charts matching a query, most common topic
- * first, or undefined when no chart matches (callers fall back to a text
- * search over the topic pages themselves). `chartsFacetFilters` are the
- * filters of the chart search proper, so country and topic filters carry over.
+ * first, or undefined when no chart matches (see recommendTopicPages for the
+ * fallback). `chartsFacetFilters` are the filters of the chart search proper,
+ * so country and topic filters carry over.
  */
 export async function searchTopicPagesOfMatchingCharts<
     THit extends { slug: string },
@@ -94,7 +103,8 @@ export async function searchTopicPagesOfMatchingCharts<
         pagesIndexName: string
         query: string
         chartsFacetFilters: SearchFacetFilters
-        tagGraph: TagGraphRoot
+        /** Only called once a chart has matched. */
+        loadTagGraph: () => Promise<TagGraphRoot>
         attributesToRetrieve: string[]
         offset: number
         length: number
@@ -122,9 +132,10 @@ export async function searchTopicPagesOfMatchingCharts<
     let chartsResponse = await searchCharts("prefixNone")
     if (chartsResponse.hits.length === 0)
         chartsResponse = await searchCharts("prefixLast")
+    if (chartsResponse.hits.length === 0) return undefined
     const rankedTopics = rankTopicsOfChartHits(
         chartsResponse.hits,
-        params.tagGraph
+        await params.loadTagGraph()
     )
     if (rankedTopics.length === 0) return undefined
 
@@ -143,7 +154,7 @@ export async function searchTopicPagesOfMatchingCharts<
     const pagesResponse = await searchSingleForHits<THit>(liteSearchClient, {
         indexName: params.pagesIndexName,
         query: "",
-        filters: TOPIC_PAGE_TYPES.map((type) => `type:${type}`).join(" OR "),
+        filters: TOPIC_PAGE_TYPE_FILTER,
         facetFilters: formatDisjunctiveFacetFilters(
             new Set(paths.sort()),
             "path"
@@ -163,4 +174,52 @@ export async function searchTopicPagesOfMatchingCharts<
         offset: params.offset,
         length: params.length,
     }
+}
+
+/**
+ * The topic pages to recommend for a search. With a query, they come from the
+ * charts matching it (searchTopicPagesOfMatchingCharts), with the search's
+ * country and topic filters. Without a query, or when no chart matches, the
+ * topic pages are searched by their own text, so a query that only matches
+ * prose (an author's name, say) still finds pages; the topic filter applies
+ * there too. The text search has no closest-matches fallback.
+ */
+export async function recommendTopicPages<THit extends { slug: string }>(
+    liteSearchClient: LiteClient,
+    params: {
+        chartsIndexName: string
+        pagesIndexName: string
+        state: Pick<SearchState, "query" | "filters" | "requireAllCountries">
+        /** Only called once a chart has matched the query. */
+        loadTagGraph: () => Promise<TagGraphRoot>
+        attributesToRetrieve: string[]
+        offset: number
+        length: number
+    }
+): Promise<SearchResponse<THit>> {
+    const { state, ...rest } = params
+    if (state.query.trim()) {
+        const response = await searchTopicPagesOfMatchingCharts<THit>(
+            liteSearchClient,
+            {
+                ...rest,
+                query: state.query,
+                chartsFacetFilters: buildChartsFacetFilters(state),
+            }
+        )
+        if (response) return response
+    }
+    return searchSingleForHits<THit>(liteSearchClient, {
+        indexName: params.pagesIndexName,
+        query: state.query,
+        filters: TOPIC_PAGE_TYPE_FILTER,
+        facetFilters: formatTopicFacetFilters(
+            getFilterNamesOfType(state.filters, FilterType.TOPIC)
+        ),
+        attributesToRetrieve: params.attributesToRetrieve,
+        highlightPreTag: "<mark>",
+        highlightPostTag: "</mark>",
+        offset: params.offset,
+        length: params.length,
+    })
 }
