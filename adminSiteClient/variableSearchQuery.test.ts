@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest"
 
 import {
     fieldedTerms,
+    namesOneDataset,
     searchWordsToHighlight,
     withoutTerms,
 } from "./variableSearchQuery.js"
@@ -17,6 +18,18 @@ describe(fieldedTerms, () => {
     it("ignores a field that is still being typed, or that isn't one", () => {
         expect(fieldedTerms("namespace:")).toEqual([])
         expect(fieldedTerms("https://example.org")).toEqual([])
+    })
+})
+
+describe(namesOneDataset, () => {
+    it("is true for a dataset filter with a value", () => {
+        expect(namesOneDataset("road dataset-id:12")).toBe(true)
+        expect(namesOneDataset("Dataset:gho")).toBe(true)
+    })
+
+    it("is false for an exclusion or a field still being typed", () => {
+        expect(namesOneDataset("-dataset:wdi")).toBe(false)
+        expect(namesOneDataset("road dataset-id:")).toBe(false)
     })
 })
 

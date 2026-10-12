@@ -33,10 +33,12 @@ export type SearchHighlighter = ReturnType<
  * rather than grouped: grouping a single group would cap it at five again.
  */
 export function namesOneDataset(query: string): boolean {
-    // `-dataset:wdi` leaves nearly everything, which is still worth grouping
     return parseSearchQuery(query).some(
         (term) =>
+            // `-dataset:wdi` leaves nearly everything, which is still worth
+            // grouping, and a field without a value yet narrows nothing
             !term.negate &&
+            term.value !== "" &&
             (term.field === "dataset" || term.field === "dataset-id")
     )
 }

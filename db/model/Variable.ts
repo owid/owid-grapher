@@ -996,13 +996,7 @@ const RESULT_COLUMNS = `
     ap.popularity AS popularity
 `
 
-/**
- * An inner join, so indicators whose dataset has been archived are left out.
- * It is also what makes browsing fast: joining the other way round makes MySQL
- * sort all ~780k variables to return one page, because the sort key lives on
- * the dataset. Driven from the ~1.2k active datasets it stops as soon as the
- * page is full.
- */
+/** An inner join, so indicators whose dataset has been archived are left out. */
 const FROM_VARIABLES = `
     FROM variables AS v
     JOIN active_datasets d ON d.id=v.datasetId
@@ -1048,43 +1042,22 @@ const searchVariablesOrThrow = async (
     knex: db.KnexReadonlyTransaction
 ): Promise<VariablesSearchResult> => {
     const { whereClauses, unindexedTerms } = analyzeVariableSearch(query)
-    const isSearch = whereClauses.length > 0
-
     const where = whereSql(whereClauses)
-    // Joined only where the popularity is read or ordered by. Counting through
-    // it costs 2.2s instead of 0.3s, and `analyzeVariableSearch` never filters on
-    // it, so the count can leave it out.
-    const fromWhere = `${FROM_VARIABLES} ${JOIN_POPULARITY} ${where.sql}`
-    const sqlCount: SqlFragment = {
-        sql: `
-            SELECT COUNT(*) count
-            ${FROM_VARIABLES} ${where.sql}
-        `,
-        bindings: where.bindings,
-    }
 
-    // A search is ordered by how much our readers use each indicator, which is
-    // what makes a 800-hit search usable. Browsing without one stays in upload
-    // order: there the dataset-driven plan stops at the first page, and
-    // sorting every indicator by popularity would cost seconds instead of
-    // milliseconds. Indicators without an analytics row sort last (MySQL puts
-    // NULLs last in DESC), ordered among themselves by upload date.
-    const orderBy = isSearch
-        ? "ORDER BY ap.popularity DESC, d.dataEditedAt DESC, v.id"
-        : // `d.id` settles ties between datasets without giving up the plan
-          // above; adding `v.id` too would sort every row (3ms -> 170ms)
-          "ORDER BY d.dataEditedAt DESC, d.id DESC"
-
-    // A search has to visit every matching row to sort it, so the total comes
-    // from that same pass rather than from a second query that would repeat
-    // the scan.
-    const totalColumn = isSearch ? `, COUNT(*) OVER () AS numTotalRows` : ""
-
+    // Ordered by how much our readers use each indicator, which is what makes
+    // an 800-hit search usable. Indicators without an analytics row sort last
+    // (MySQL puts NULLs last in DESC), ordered among themselves by upload date.
+    // The admin only pages through this flat list within one dataset, so
+    // there is always a search to narrow it; without one, sorting every
+    // indicator takes seconds. Browsing goes through the grouped search.
+    //
+    // Sorting visits every matching row, so the total comes from that same
+    // pass rather than from a second query that would repeat the scan.
     const sqlResults: SqlFragment = {
         sql: `
-            SELECT ${RESULT_COLUMNS} ${totalColumn}
-            ${fromWhere}
-            ${orderBy}
+            SELECT ${RESULT_COLUMNS}, COUNT(*) OVER () AS numTotalRows
+            ${FROM_VARIABLES} ${JOIN_POPULARITY} ${where.sql}
+            ORDER BY ap.popularity DESC, d.dataEditedAt DESC, v.id
             LIMIT ? OFFSET ?
         `,
         bindings: [...where.bindings, limit, offset],
@@ -1092,11 +1065,21 @@ const searchVariablesOrThrow = async (
     const rows = await queryRegexSafe(sqlResults, knex)
 
     // Past the last page there is no row to read the windowed total from, so
-    // fall back to counting
+    // count instead: the pager still needs it to lead back. Counting through
+    // the popularity join costs 2.2s instead of 0.3s, and
+    // `analyzeVariableSearch` never filters on it, so the count leaves it out.
     const numTotalRows =
-        isSearch && rows.length > 0
+        rows.length > 0
             ? Number(rows[0].numTotalRows)
-            : await queryRegexCount(sqlCount, knex)
+            : offset > 0
+              ? await queryRegexCount(
+                    {
+                        sql: `SELECT COUNT(*) count ${FROM_VARIABLES} ${where.sql}`,
+                        bindings: where.bindings,
+                    },
+                    knex
+                )
+              : 0
 
     rows.forEach((row: any) => {
         delete row.numTotalRows
