@@ -4,6 +4,7 @@ import * as db from "../db.js"
 import {
     buildWhereClauses,
     canUseFulltext,
+    getVariableUsagesByIds,
     searchVariables,
     searchVariablesGroupedByDataset,
     unindexedSearchTerms,
@@ -217,6 +218,75 @@ describe(buildWhereClauses, () => {
             { sql: "NOT  d.isPrivate", bindings: [] },
         ])
         expect(buildWhereClauses("")).toEqual([])
+    })
+})
+
+// The SQL still deduplicates usages. These tests cover assembling its distinct
+// rows into the API response, not MySQL's join or DISTINCT semantics.
+describe(getVariableUsagesByIds, () => {
+    const trx = {} as db.KnexReadonlyTransaction
+
+    afterEach(() => vi.restoreAllMocks())
+
+    it("groups usage kinds by indicator, preserves drafts, and includes unused indicators", async () => {
+        vi.spyOn(db, "knexRaw")
+            .mockResolvedValueOnce([
+                { variableId: 2, id: 20, slug: "chart", title: "Chart" },
+                { variableId: 1, id: 10, slug: null, title: null },
+                { variableId: 1, id: 11, slug: null, title: "Draft" },
+            ])
+            .mockResolvedValueOnce([
+                { variableId: 1, id: 30, slug: null, title: "Multi-dim draft" },
+            ])
+            .mockResolvedValueOnce([
+                { variableId: 2, explorerSlug: "explorer-a" },
+                { variableId: 1, explorerSlug: "explorer-b" },
+            ])
+
+        expect(await getVariableUsagesByIds(trx, [1, 2, 3])).toEqual(
+            new Map([
+                [
+                    1,
+                    {
+                        charts: [
+                            { id: 10, slug: null, title: null },
+                            { id: 11, slug: null, title: "Draft" },
+                        ],
+                        multiDims: [
+                            { id: 30, slug: null, title: "Multi-dim draft" },
+                        ],
+                        explorerSlugs: ["explorer-b"],
+                        usageCount: 4,
+                    },
+                ],
+                [
+                    2,
+                    {
+                        charts: [{ id: 20, slug: "chart", title: "Chart" }],
+                        multiDims: [],
+                        explorerSlugs: ["explorer-a"],
+                        usageCount: 2,
+                    },
+                ],
+                [
+                    3,
+                    {
+                        charts: [],
+                        multiDims: [],
+                        explorerSlugs: [],
+                        usageCount: 0,
+                    },
+                ],
+            ])
+        )
+        for (const call of vi.mocked(db.knexRaw).mock.calls)
+            expect(call[2]).toEqual([[1, 2, 3]])
+    })
+
+    it("skips the database when no indicators are requested", async () => {
+        const raw = vi.spyOn(db, "knexRaw")
+        expect(await getVariableUsagesByIds(trx, [])).toEqual(new Map())
+        expect(raw).not.toHaveBeenCalled()
     })
 })
 

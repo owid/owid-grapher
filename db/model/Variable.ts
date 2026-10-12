@@ -878,17 +878,6 @@ export interface VariableUsage {
     usageCount: number
 }
 
-function parseJsonArray<T>(raw: unknown): T[] {
-    if (!raw) return []
-    if (Array.isArray(raw)) return raw as T[]
-    try {
-        const parsed = JSON.parse(raw as string)
-        return Array.isArray(parsed) ? parsed : []
-    } catch {
-        return []
-    }
-}
-
 /**
  * Where each of the given indicators is used: which charts, multi-dims and
  * path-based explorers. Deduplicated on entity ids rather than slugs, since a
@@ -904,99 +893,73 @@ export async function getVariableUsagesByIds(
     const usages = new Map<number, VariableUsage>()
     if (variableIds.length === 0) return usages
 
-    const chartUsages = await knexRaw<{
-        variableId: number
-        chartsJson: string
-    }>(
+    const chartUsages = await knexRaw<
+        VariableUsage["charts"][number] & { variableId: number }
+    >(
         knex,
         `-- sql
-        SELECT
-            variableId,
-            JSON_ARRAYAGG(JSON_OBJECT('id', chartId, 'slug', slug, 'title', title)) AS chartsJson
-        FROM (
-            SELECT DISTINCT
-                cd.variableId,
-                cd.chartId,
-                cc.slug,
-                cc.config->>'$.title' AS title
-            FROM chart_dimensions cd
-            JOIN charts c ON c.id = cd.chartId
-            JOIN chart_configs cc ON cc.id = c.configId
-            WHERE cd.variableId IN (?)
-        ) t
-        GROUP BY variableId
+        SELECT DISTINCT
+            cd.variableId,
+            cd.chartId AS id,
+            cc.slug,
+            cc.config->>'$.title' AS title
+        FROM chart_dimensions cd
+        JOIN charts c ON c.id = cd.chartId
+        JOIN chart_configs cc ON cc.id = c.configId
+        WHERE cd.variableId IN (?)
         `,
         [variableIds]
     )
 
     // Scans the view configs so an indicator used only as x / size / color counts too
-    const multiDimUsages = await knexRaw<{
-        variableId: number
-        multiDimsJson: string
-    }>(
+    const multiDimUsages = await knexRaw<
+        VariableUsage["multiDims"][number] & { variableId: number }
+    >(
         knex,
         `-- sql
-        SELECT
-            variableId,
-            JSON_ARRAYAGG(JSON_OBJECT('id', multiDimId, 'slug', slug, 'title', title)) AS multiDimsJson
-        FROM (
-            SELECT DISTINCT
-                mdxcc.multiDimId,
-                mdp.slug,
-                mdp.config->>'$.title.title' AS title,
-                jt.variableId
-            FROM multi_dim_x_chart_configs mdxcc
-            JOIN chart_configs cc ON cc.id = mdxcc.chartConfigId
-            JOIN multi_dim_data_pages mdp ON mdp.id = mdxcc.multiDimId
-            JOIN JSON_TABLE(
-                cc.config,
-                '$.dimensions[*]' COLUMNS (variableId INT PATH '$.variableId')
-            ) jt ON jt.variableId IS NOT NULL
-            WHERE jt.variableId IN (?)
-        ) t
-        GROUP BY variableId
+        SELECT DISTINCT
+            mdxcc.multiDimId AS id,
+            mdp.slug,
+            mdp.config->>'$.title.title' AS title,
+            jt.variableId
+        FROM multi_dim_x_chart_configs mdxcc
+        JOIN chart_configs cc ON cc.id = mdxcc.chartConfigId
+        JOIN multi_dim_data_pages mdp ON mdp.id = mdxcc.multiDimId
+        JOIN JSON_TABLE(
+            cc.config,
+            '$.dimensions[*]' COLUMNS (variableId INT PATH '$.variableId')
+        ) jt ON jt.variableId IS NOT NULL
+        WHERE jt.variableId IN (?)
         `,
         [variableIds]
     )
 
     const explorerUsages = await knexRaw<{
         variableId: number
-        explorerSlugsJson: string
+        explorerSlug: string
     }>(
         knex,
         `-- sql
-        SELECT
-            variableId,
-            JSON_ARRAYAGG(explorerSlug) AS explorerSlugsJson
-        FROM (
-            SELECT DISTINCT variableId, explorerSlug
-            FROM explorer_variables
-            WHERE variableId IN (?)
-        ) t
-        GROUP BY variableId
+        SELECT DISTINCT variableId, explorerSlug
+        FROM explorer_variables
+        WHERE variableId IN (?)
         `,
         [variableIds]
     )
 
-    const chartsById = new Map(
-        chartUsages.map((u) => [u.variableId, u.chartsJson])
-    )
-    const multiDimsById = new Map(
-        multiDimUsages.map((u) => [u.variableId, u.multiDimsJson])
-    )
-    const explorersById = new Map(
-        explorerUsages.map((u) => [u.variableId, u.explorerSlugsJson])
-    )
+    const chartsById = _.groupBy(chartUsages, "variableId")
+    const multiDimsById = _.groupBy(multiDimUsages, "variableId")
+    const explorersById = _.groupBy(explorerUsages, "variableId")
 
     for (const variableId of variableIds) {
-        const charts = parseJsonArray<VariableUsage["charts"][number]>(
-            chartsById.get(variableId)
+        const charts = (chartsById[variableId] ?? []).map(
+            ({ id, slug, title }) => ({ id, slug, title })
         )
-        const multiDims = parseJsonArray<VariableUsage["multiDims"][number]>(
-            multiDimsById.get(variableId)
+        const multiDims = (multiDimsById[variableId] ?? []).map(
+            ({ id, slug, title }) => ({ id, slug, title })
         )
-        const explorerSlugs = parseJsonArray<string>(
-            explorersById.get(variableId)
+        const explorerSlugs = (explorersById[variableId] ?? []).map(
+            ({ explorerSlug }) => explorerSlug
         )
         usages.set(variableId, {
             charts,
