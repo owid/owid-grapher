@@ -102,27 +102,30 @@ export function searchWordsToHighlight(query: string): SearchWord[] {
     })
 }
 
+const SEARCH_PARAM = "search"
+
 /** A link to the same page searching for `value`, as kept by `useSearchQueryParam`. */
-export function searchHref(value: string, key: string = "search"): string {
-    return `?${new URLSearchParams({ [key]: value })}`
+export function searchHref(value: string): string {
+    return `?${new URLSearchParams({ [SEARCH_PARAM]: value })}`
 }
 
 /**
  * Keeps the search in the URL, so a filtered list can be bookmarked, shared
  * and restored by the back button.
  */
-export function useSearchQueryParam(
-    key: string = "search"
-): [string, (value: string, options?: { push?: boolean }) => void] {
+export function useSearchQueryParam(): [
+    string,
+    (value: string, options?: { push?: boolean }) => void,
+] {
     const location = useLocation()
     const history = useHistory()
-    const value = new URLSearchParams(location.search).get(key) ?? ""
+    const value = new URLSearchParams(location.search).get(SEARCH_PARAM) ?? ""
 
     const setValue = useCallback(
         (nextValue: string, options?: { push?: boolean }) => {
             const params = new URLSearchParams(location.search)
-            if (nextValue) params.set(key, nextValue)
-            else params.delete(key)
+            if (nextValue) params.set(SEARCH_PARAM, nextValue)
+            else params.delete(SEARCH_PARAM)
             const query = params.toString()
             // `location.pathname` is relative to the router's basename, unlike
             // `window.location.pathname`, which would double up the /admin prefix
@@ -135,7 +138,7 @@ export function useSearchQueryParam(
             if (options?.push) history.push(next)
             else history.replace(next)
         },
-        [history, key, location.pathname, location.search]
+        [history, location.pathname, location.search]
     )
 
     return [value, setValue]

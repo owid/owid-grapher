@@ -9,6 +9,7 @@ import {
     Popover,
     Table,
     TableColumnsType,
+    TablePaginationConfig,
     TableProps,
     Tooltip,
     Typography,
@@ -63,7 +64,8 @@ interface VariableListProps {
      * silently sort the current page alone.
      */
     sortable?: boolean
-    pagination?: TableProps<VariableListItem>["pagination"]
+    /** Over the defaults: a page of 50, with the size changer. */
+    pagination?: TablePaginationConfig
 }
 
 /**
@@ -75,89 +77,84 @@ function UsageCell({
 }: {
     variable: VariableListItem
 }): React.ReactElement {
-    const charts = variable.charts ?? []
-    const multiDims = variable.multiDims ?? []
-    const explorerSlugs = variable.explorerSlugs ?? []
-
-    const sortedCharts = charts.toSorted((a, b) =>
-        (a.slug || "").localeCompare(b.slug || "")
-    )
-
-    const parts: { key: string; label: string; items: React.ReactNode }[] = []
-    if (charts.length)
-        parts.push({
-            key: "charts",
-            label: plural(charts.length, "chart"),
-            items: sortedCharts.map((chart) => (
-                <li key={chart.id}>
-                    <a
-                        href={`/admin/charts/${chart.id}/edit`}
-                        title={chart.title || undefined}
-                    >
-                        {chart.slug || `Chart #${chart.id}`}
-                    </a>
-                </li>
-            )),
-        })
-    if (multiDims.length)
-        parts.push({
-            key: "multiDims",
-            label: plural(multiDims.length, "multi-dim"),
-            items: multiDims.map((multiDim) => (
-                <li key={multiDim.id}>
-                    <a href={`/admin/multi-dims/${multiDim.id}`}>
-                        {multiDim.slug ||
-                            multiDim.title ||
-                            `Multi-dim #${multiDim.id}`}
-                    </a>
-                </li>
-            )),
-        })
-    if (explorerSlugs.length)
-        parts.push({
-            key: "explorers",
-            label: plural(explorerSlugs.length, "explorer"),
-            items: explorerSlugs.map((slug) => (
-                <li key={slug}>
-                    <a href={`/admin/explorers/${slug}`}>{slug}</a>
-                </li>
-            )),
-        })
-
-    const popularity = <PopularityCell popularity={variable.popularity} />
-
-    if (!parts.length)
-        return (
-            <>
-                <span className="text-muted">—</span>
-                {popularity}
-            </>
-        )
+    const parts: {
+        noun: string
+        links: {
+            key: number | string
+            href: string
+            label: string
+            title?: string
+        }[]
+    }[] = [
+        {
+            noun: "chart",
+            links: (variable.charts ?? [])
+                .toSorted((a, b) => (a.slug || "").localeCompare(b.slug || ""))
+                .map((chart) => ({
+                    key: chart.id,
+                    href: `/admin/charts/${chart.id}/edit`,
+                    label: chart.slug || `Chart #${chart.id}`,
+                    title: chart.title || undefined,
+                })),
+        },
+        {
+            noun: "multi-dim",
+            links: (variable.multiDims ?? []).map((multiDim) => ({
+                key: multiDim.id,
+                href: `/admin/multi-dims/${multiDim.id}`,
+                label:
+                    multiDim.slug ||
+                    multiDim.title ||
+                    `Multi-dim #${multiDim.id}`,
+            })),
+        },
+        {
+            noun: "explorer",
+            links: (variable.explorerSlugs ?? []).map((slug) => ({
+                key: slug,
+                href: `/admin/explorers/${slug}`,
+                label: slug,
+            })),
+        },
+    ].filter((part) => part.links.length > 0)
 
     return (
         <>
-            {parts.map((part, index) => (
-                <React.Fragment key={part.key}>
-                    {index > 0 && (
-                        <span className="variable-list__usage-separator">
-                            ·
-                        </span>
-                    )}
-                    <Popover
-                        title={part.label}
-                        content={
-                            <ul className="list-unstyled mb-0 variable-list__usage-popover">
-                                {part.items}
-                            </ul>
-                        }
-                    >
-                        <span className="variable-list__usage-part">
-                            {part.label}
-                        </span>
-                    </Popover>
-                </React.Fragment>
-            ))}
-            {popularity}
+            {parts.length === 0 && <span className="text-muted">—</span>}
+            {parts.map((part, index) => {
+                const label = plural(part.links.length, part.noun)
+                return (
+                    <React.Fragment key={part.noun}>
+                        {index > 0 && (
+                            <span className="variable-list__usage-separator">
+                                ·
+                            </span>
+                        )}
+                        <Popover
+                            title={label}
+                            content={
+                                <ul className="list-unstyled mb-0 variable-list__usage-popover">
+                                    {part.links.map((link) => (
+                                        <li key={link.key}>
+                                            <a
+                                                href={link.href}
+                                                title={link.title}
+                                            >
+                                                {link.label}
+                                            </a>
+                                        </li>
+                                    ))}
+                                </ul>
+                            }
+                        >
+                            <span className="variable-list__usage-part">
+                                {label}
+                            </span>
+                        </Popover>
+                    </React.Fragment>
+                )
+            })}
+            <PopularityCell popularity={variable.popularity} />
         </>
     )
 }
@@ -207,16 +204,14 @@ function pathSearchWords(searchWords: SearchWord[]): SearchWord[] {
  */
 function CatalogPathCell({
     variable,
-    searchWords,
+    highlight,
 }: {
     variable: VariableListItem
-    searchWords: SearchWord[]
+    /** Built from `pathSearchWords`. */
+    highlight: SearchHighlighter
 }): React.ReactElement {
     const { catalogPath, datasetId } = variable
     if (!catalogPath) return <span className="text-muted">—</span>
-
-    const words = pathSearchWords(searchWords)
-    const highlight = highlightFunctionForSearchWords(words)
 
     // `grapher/` is on every row, so it is only noise here
     const { namespace, version, dataset, table, shortName } =
@@ -287,16 +282,18 @@ function columnWidths(
 
 function createColumns({
     fields,
-    highlight,
     searchWords,
     sortable,
 }: {
     fields: VariableListField[]
-    highlight: SearchHighlighter
     searchWords: SearchWord[]
     sortable: boolean
 }): TableColumnsType<VariableListItem> {
     const width = columnWidths(fields)
+    const highlight = highlightFunctionForSearchWords(searchWords)
+    const pathHighlight = highlightFunctionForSearchWords(
+        pathSearchWords(searchWords)
+    )
     const columnsByField: Record<
         VariableListField,
         TableColumnsType<VariableListItem>[number]
@@ -313,7 +310,7 @@ function createColumns({
             render: (_, variable) => (
                 <CatalogPathCell
                     variable={variable}
-                    searchWords={searchWords}
+                    highlight={pathHighlight}
                 />
             ),
         },
@@ -371,10 +368,10 @@ export function VariableList({
     sortable = true,
     pagination,
 }: VariableListProps): React.ReactElement {
-    const columns = useMemo(() => {
-        const highlight = highlightFunctionForSearchWords(searchWords)
-        return createColumns({ fields, highlight, searchWords, sortable })
-    }, [fields, searchWords, sortable])
+    const columns = useMemo(
+        () => createColumns({ fields, searchWords, sortable }),
+        [fields, searchWords, sortable]
+    )
 
     return (
         <Table<VariableListItem>
@@ -384,17 +381,13 @@ export function VariableList({
             columns={columns}
             dataSource={variables}
             loading={loading}
-            pagination={
-                pagination === false
-                    ? false
-                    : {
-                          pageSize: INDICATORS_PAGE_SIZE,
-                          showSizeChanger: true,
-                          showTotal: (total, [from, to]) =>
-                              `${from}-${to} of ${total} indicators`,
-                          ...pagination,
-                      }
-            }
+            pagination={{
+                pageSize: INDICATORS_PAGE_SIZE,
+                showSizeChanger: true,
+                showTotal: (total, [from, to]) =>
+                    `${from}-${to} of ${total} indicators`,
+                ...pagination,
+            }}
         />
     )
 }
@@ -578,11 +571,10 @@ export function GroupedVariableList({
         () =>
             createColumns({
                 fields: ["usage"],
-                highlight,
                 searchWords,
                 sortable: false,
             }),
-        [highlight, searchWords]
+        [searchWords]
     )
     const groupColumns: TableColumnsType<DatasetSearchGroup> = useMemo(
         () => [
