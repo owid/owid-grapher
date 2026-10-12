@@ -301,16 +301,16 @@ __metadata:
     "@rollup/plugin-swc": "npm:^0.4.1"
     "@tanstack/react-query": "npm:^5.101.0"
     "@types/d3": "npm:^7.4.3"
-    "@types/react": "npm:^19.2.17"
-    "@types/react-dom": "npm:^19.2.3"
+    "@types/react": "npm:^19.3.0"
+    "@types/react-dom": "npm:^19.3.0"
     "@vitejs/plugin-react": "npm:^6.0.4"
     clsx: "npm:^2.1.1"
     d3: "npm:^7.9.0"
     normalize.css: "npm:^8.0.1"
     nuqs: "npm:^2.8.9"
-    react: "npm:^19.2.7"
+    react: "npm:^19.3.0"
     react-aria-components: "npm:^1.22.0"
-    react-dom: "npm:^19.2.7"
+    react-dom: "npm:^19.3.0"
     remeda: "npm:^2.39.0"
     sass: "npm:^1.101.0"
     ts-pattern: "npm:^5.9.0"
@@ -337,7 +337,7 @@ __metadata:
     "@visx/responsive": "npm:^4.0.0"
     clsx: "npm:^2.1.1"
     d3-sankey: "npm:^0.12.3"
-    react: "npm:^19.2.7"
+    react: "npm:^19.3.0"
     react-aria: "npm:^3.53.0"
     react-aria-components: "npm:^1.22.0"
     remeda: "npm:^2.39.0"
@@ -363,8 +363,8 @@ __metadata:
     "@tanstack/react-query": "npm:^5.101.0"
     "@types/d3-scale": "npm:^4.0.9"
     "@types/lodash-es": "npm:^4.17.12"
-    "@types/react": "npm:^19.2.17"
-    "@types/react-dom": "npm:^19.2.3"
+    "@types/react": "npm:^19.3.0"
+    "@types/react-dom": "npm:^19.3.0"
     "@visx/axis": "npm:^4.0.0"
     "@visx/event": "npm:^4.0.0"
     "@visx/group": "npm:^4.0.0"
@@ -376,10 +376,10 @@ __metadata:
     d3-scale: "npm:^4.0.2"
     lodash-es: "npm:^4.18.1"
     normalize.css: "npm:^8.0.1"
-    react: "npm:^19.2.7"
+    react: "npm:^19.3.0"
     react-aria: "npm:^3.53.0"
     react-aria-components: "npm:^1.22.0"
-    react-dom: "npm:^19.2.7"
+    react-dom: "npm:^19.3.0"
     remeda: "npm:^2.39.0"
     sass: "npm:^1.101.0"
     tippy.js: "npm:^6.3.7"
@@ -403,16 +403,16 @@ __metadata:
     "@react-stately/flags": "npm:^3.2.1"
     "@rollup/plugin-swc": "npm:^0.4.1"
     "@swc/core": "npm:^1.15.41"
-    "@types/react": "npm:^19.2.17"
-    "@types/react-dom": "npm:^19.2.3"
+    "@types/react": "npm:^19.3.0"
+    "@types/react-dom": "npm:^19.3.0"
     "@visx/group": "npm:^4.0.0"
     "@visx/responsive": "npm:^4.0.0"
     "@vitejs/plugin-react": "npm:^6.0.4"
     clsx: "npm:^2.1.1"
     jotai: "npm:^2.20.1"
     normalize.css: "npm:^8.0.1"
-    react: "npm:^19.2.7"
-    react-dom: "npm:^19.2.7"
+    react: "npm:^19.3.0"
+    react-dom: "npm:^19.3.0"
     sass: "npm:^1.101.0"
     typescript: "npm:^7.0.2"
     vite: "npm:^8.3.4"
@@ -437,8 +437,8 @@ __metadata:
     "@swc/core": "npm:^1.15.41"
     "@tanstack/react-query": "npm:^5.101.0"
     "@types/d3-sankey": "npm:^0.12.5"
-    "@types/react": "npm:^19.2.17"
-    "@types/react-dom": "npm:^19.2.3"
+    "@types/react": "npm:^19.3.0"
+    "@types/react-dom": "npm:^19.3.0"
     "@visx/drag": "npm:^4.0.0"
     "@visx/group": "npm:^4.0.0"
     "@visx/responsive": "npm:^4.0.0"
@@ -448,10 +448,10 @@ __metadata:
     jotai: "npm:^2.20.1"
     normalize.css: "npm:^8.0.1"
     nuqs: "npm:^2.8.9"
-    react: "npm:^19.2.7"
+    react: "npm:^19.3.0"
     react-aria: "npm:^3.53.0"
     react-aria-components: "npm:^1.22.0"
-    react-dom: "npm:^19.2.7"
+    react-dom: "npm:^19.3.0"
     react-stately: "npm:^3.47.0"
     remeda: "npm:^2.39.0"
     sass: "npm:^1.101.0"
@@ -480,7 +480,7 @@ __metadata:
     "@ourworldindata/utils": "link:../../packages/@ourworldindata/utils"
     "@tanstack/react-query": "npm:^5.101.0"
     nuqs: "npm:^2.8.9"
-    react: "npm:^19.2.7"
+    react: "npm:^19.3.0"
     typescript: "npm:^7.0.2"
   languageName: unknown
   linkType: soft
@@ -501,8 +501,8 @@ __metadata:
     "@swc/core": "npm:^1.15.41"
     "@tanstack/react-query": "npm:^5.101.0"
     "@types/d3-scale": "npm:^4.0.9"
-    "@types/react": "npm:^19.2.17"
-    "@types/react-dom": "npm:^19.2.3"
+    "@types/react": "npm:^19.3.0"
+    "@types/react-dom": "npm:^19.3.0"
     "@visx/axis": "npm:^4.0.0"
     "@visx/group": "npm:^4.0.0"
     "@visx/responsive": "npm:^4.0.0"
@@ -512,10 +512,10 @@ __metadata:
     d3-scale: "npm:^4.0.2"
     normalize.css: "npm:^8.0.1"
     nuqs: "npm:^2.8.9"
-    react: "npm:^19.2.7"
+    react: "npm:^19.3.0"
     react-aria: "npm:^3.53.0"
     react-aria-components: "npm:^1.22.0"
-    react-dom: "npm:^19.2.7"
+    react-dom: "npm:^19.3.0"
     react-stately: "npm:^3.47.0"
     remeda: "npm:^2.39.0"
     sass: "npm:^1.101.0"
@@ -545,8 +545,8 @@ __metadata:
     "@tanstack/react-query": "npm:^5.101.0"
     "@types/d3-dsv": "npm:^3.0.7"
     "@types/d3-sankey": "npm:^0.12.5"
-    "@types/react": "npm:^19.2.17"
-    "@types/react-dom": "npm:^19.2.3"
+    "@types/react": "npm:^19.3.0"
+    "@types/react-dom": "npm:^19.3.0"
     "@visx/drag": "npm:^4.0.0"
     "@visx/group": "npm:^4.0.0"
     "@visx/responsive": "npm:^4.0.0"
@@ -557,10 +557,10 @@ __metadata:
     jotai: "npm:^2.20.1"
     normalize.css: "npm:^8.0.1"
     nuqs: "npm:^2.8.9"
-    react: "npm:^19.2.7"
+    react: "npm:^19.3.0"
     react-aria: "npm:^3.53.0"
     react-aria-components: "npm:^1.22.0"
-    react-dom: "npm:^19.2.7"
+    react-dom: "npm:^19.3.0"
     react-stately: "npm:^3.47.0"
     remeda: "npm:^2.39.0"
     sass: "npm:^1.101.0"
@@ -1493,21 +1493,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react-dom@npm:^19.2.3":
-  version: 19.2.4
-  resolution: "@types/react-dom@npm:19.2.4"
+"@types/react-dom@npm:^19.3.0":
+  version: 19.3.0
+  resolution: "@types/react-dom@npm:19.3.0"
   peerDependencies:
-    "@types/react": ^19.2.0
-  checksum: 10/e055ef08805768b2e6abc39955b1ac25a8bfd0f8034e6dc62846d007982e40fb69400c3b9440e35335bf4175d1789bf71dacf6007d2ba57385ed8433d16286fc
+    "@types/react": ^19.3.0
+  checksum: 10/e24ee9948dc3a6c81e8aa4acf120a1194d3a3b68e97205b1e5e24e087b9f0c0c2e40b128fd258663ccb5889c852aeee558c0daa3255c3d82e0fc1c5d64c4b69a
   languageName: node
   linkType: hard
 
-"@types/react@npm:^19.2.17":
-  version: 19.2.18
-  resolution: "@types/react@npm:19.2.18"
+"@types/react@npm:^19.3.0":
+  version: 19.3.0
+  resolution: "@types/react@npm:19.3.0"
   dependencies:
     csstype: "npm:^3.2.2"
-  checksum: 10/c718ec5c5272ef5c1c77fcdd07f567c77197b593583539459b4bdaea89ca55ad7c814b7eb2151dccfa459b2c384b599a45e7e35550b789883d66b363d30c94d8
+  checksum: 10/2f4589222fd9c512e1ef78e65f334ade8777400add8ec0803fcc3a044761679b7984ba8410a890af24255383c3251a568bb692b60acfa22397ba0a64b2e032bf
   languageName: node
   linkType: hard
 
@@ -2840,14 +2840,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-dom@npm:^19.2.7":
-  version: 19.2.8
-  resolution: "react-dom@npm:19.2.8"
+"react-dom@npm:^19.3.0":
+  version: 19.3.0
+  resolution: "react-dom@npm:19.3.0"
   dependencies:
-    scheduler: "npm:^0.27.0"
+    scheduler: "npm:^0.28.0"
   peerDependencies:
-    react: ^19.2.8
-  checksum: 10/fb45d500a8615a36d71a821213a3d4bfe32a70aa1d04ce17d8791dd10c4ef0281e7fdd46694e1112f0f2dcf58df89d12043a13228be9788458aa82f4885a9cdc
+    react: ^19.3.0
+  checksum: 10/fa6c6a3d0cca3f98280017936f818a1f9e474d61d1a64a7b02bfedabbf936234dd3752ba5b7f35efa7f2264c9a073ebace56cb2521e1cbfe7a50444a43ef5690
   languageName: node
   linkType: hard
 
@@ -2867,10 +2867,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react@npm:^19.2.7":
-  version: 19.2.8
-  resolution: "react@npm:19.2.8"
-  checksum: 10/a3c697798035e295ca9e51591d3a8700824535cb8c070fac1f8abbe69717ceb99108cbc4ba7b31a606806f336b1eba705705f63b9d39ace198fe51e8990ac843
+"react@npm:^19.3.0":
+  version: 19.3.0
+  resolution: "react@npm:19.3.0"
+  checksum: 10/e98669f09750c41abb1bf020af67cc847e018c91a8c5413d3f40ddd737e3daef6e419bcd1521b113fda73fd667ae82d5f0e9d9e3ff462faeb82059c09e7f04b1
   languageName: node
   linkType: hard
 
@@ -3015,10 +3015,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"scheduler@npm:^0.27.0":
-  version: 0.27.0
-  resolution: "scheduler@npm:0.27.0"
-  checksum: 10/eab3c3a8373195173e59c147224fc30dabe6dd453f248f5e610e8458512a5a2ee3a06465dc400ebfe6d35c9f5b7f3bb6b2e41c88c86fd177c25a73e7286a1e06
+"scheduler@npm:^0.28.0":
+  version: 0.28.0
+  resolution: "scheduler@npm:0.28.0"
+  checksum: 10/2a936a3729df438bd42e6af7a16a62b83543796209c9d2e637f3d7b198bd5c25c5909478a9da4f66923d290e01997816338cf740587c440448863783bd33d31d
   languageName: node
   linkType: hard
 
