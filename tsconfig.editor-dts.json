@@ -1,0 +1,50 @@
+{
+    // Used only by tsdown to build the bundled type declarations of
+    // @ourworldindata/grapher-editor (see its tsdown.config.ts). The
+    // counterpart of packages/@ourworldindata/tsconfig.tsdown.json, but at the
+    // repo root: tsdown's dts plugin uses this file's directory as the root,
+    // and the editor's sources span packages/ and adminSiteClient/.
+    //
+    // As there, every file whose types end up in the bundle has to be matched
+    // here, not just the entry point.
+    "extends": "./packages/@ourworldindata/grapher/tsconfig.json",
+    "include": [
+        "packages/@ourworldindata/grapher-editor/src/**/*",
+        "packages/@ourworldindata/grapher/src/**/*",
+        "packages/@ourworldindata/types/src/**/*",
+        "packages/@ourworldindata/utils/src/**/*",
+        "packages/@ourworldindata/core-table/src/**/*",
+        "packages/@ourworldindata/components/src/**/*",
+        "packages/@ourworldindata/gdoc-pipeline/src/**/*",
+        "adminShared/search.tsx",
+        "adminSiteClient/AdminColorPicker.tsx",
+        "adminSiteClient/ChartEditorTypes.ts",
+        "adminSiteClient/ChartEditorView.tsx",
+        "adminSiteClient/ColorSchemeDropdown.tsx",
+        "adminSiteClient/ConfigEditor.ts",
+        "adminSiteClient/DimensionCard.tsx",
+        "adminSiteClient/EditorBasicTab.tsx",
+        "adminSiteClient/EditorColorScaleSection.tsx",
+        "adminSiteClient/EditorCustomizeTab.tsx",
+        "adminSiteClient/EditorDataTab.tsx",
+        "adminSiteClient/EditorDatabase.ts",
+        "adminSiteClient/EditorDebugTab.tsx",
+        "adminSiteClient/EditorExportTab.tsx",
+        "adminSiteClient/EditorFeatures.tsx",
+        "adminSiteClient/EditorMapTab.tsx",
+        "adminSiteClient/EditorMarimekkoTab.tsx",
+        "adminSiteClient/EditorScatterTab.tsx",
+        "adminSiteClient/EditorTextTab.tsx",
+        "adminSiteClient/EntityPresets.ts",
+        "adminSiteClient/Forms.tsx",
+        "adminSiteClient/GrapherEditor.tsx",
+        "adminSiteClient/SaveButtons.tsx",
+        "adminSiteClient/SortableList.tsx",
+        "adminSiteClient/VariableSelector.tsx",
+        "adminSiteClient/VisionDeficiencies.tsx",
+        "adminSiteClient/colorPalettes.ts",
+        "adminSiteClient/editorProviders.ts",
+        "adminSiteClient/indicatorStores.ts"
+    ],
+    "exclude": ["**/*.test.*"]
+}

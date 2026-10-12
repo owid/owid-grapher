@@ -9,6 +9,10 @@ on:
     paths:
       - "packages/@ourworldindata/**"
       - "rolldown.config-common.mts"
+      # The editor package bundles its sources from the admin
+      - "adminSiteClient/**"
+      - "adminShared/**"
+      - "tsconfig.editor-dts.json"
       - "yarn.lock"
       - ".github/workflows/npm-packages.yml"
   push:
@@ -26,7 +30,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        package: [grapher, gdoc-pipeline]
+        package: [grapher, gdoc-pipeline, grapher-editor]
 
     defaults:
       run:
