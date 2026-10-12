@@ -1063,23 +1063,10 @@ const searchVariablesOrThrow = async (
         bindings: [...where.bindings, limit, offset],
     }
     const rows = await queryRegexSafe(sqlResults, knex)
-
-    // Past the last page there is no row to read the windowed total from, so
-    // count instead: the pager still needs it to lead back. Counting through
-    // the popularity join costs 2.2s instead of 0.3s, and
-    // `analyzeVariableSearch` never filters on it, so the count leaves it out.
-    const numTotalRows =
-        rows.length > 0
-            ? Number(rows[0].numTotalRows)
-            : offset > 0
-              ? await queryRegexCount(
-                    {
-                        sql: `SELECT COUNT(*) count ${FROM_VARIABLES} ${where.sql}`,
-                        bindings: where.bindings,
-                    },
-                    knex
-                )
-              : 0
+    // A page past the end has no row to carry the total, and reports none.
+    // The admin resets to the first page with each search, so only results
+    // shrinking under an open pager can get there.
+    const numTotalRows = Number(rows[0]?.numTotalRows ?? 0)
 
     rows.forEach((row: any) => {
         delete row.numTotalRows
@@ -1168,31 +1155,18 @@ const searchVariablesGroupedByDatasetOrThrow = async (
             }
         LIMIT ? OFFSET ?
     `
-    const datasetsQuery: SqlFragment = {
-        sql: sqlDatasets,
-        bindings: [...where.bindings, limit, offset],
-    }
-    const datasetRows = await queryRegexSafe(datasetsQuery, knex)
-    if (datasetRows.length === 0) {
-        // Past the last page there's no row to read the totals from, so ask
-        // for the first one: the pager still needs them to lead back
-        const [first] =
-            offset > 0
-                ? await queryRegexSafe(
-                      {
-                          sql: sqlDatasets,
-                          bindings: [...where.bindings, 1, 0],
-                      },
-                      knex
-                  )
-                : []
+    const datasetRows = await queryRegexSafe(
+        { sql: sqlDatasets, bindings: [...where.bindings, limit, offset] },
+        knex
+    )
+    // As in `searchVariables`, a page past the end reports no totals
+    if (datasetRows.length === 0)
         return {
             datasets: [],
-            numTotalDatasets: Number(first?.numTotalDatasets ?? 0),
-            numTotalRows: Number(first?.numTotalRows ?? 0),
+            numTotalDatasets: 0,
+            numTotalRows: 0,
             unindexedTerms,
         }
-    }
 
     const datasetIds: number[] = datasetRows.map(
         (row: { id: number }) => row.id
@@ -1529,17 +1503,6 @@ async function reportingRegexErrors<T extends object>(
             return { ...empty, regexError: err.message }
         throw err
     }
-}
-
-const queryRegexCount = async (
-    query: SqlFragment,
-    knex: db.KnexReadonlyTransaction
-): Promise<number> => {
-    const results = await queryRegexSafe(query, knex)
-    if (!results.length) {
-        return 0
-    }
-    return results[0].count
 }
 
 export const getIndicatorIdsByCatalogPath = async (

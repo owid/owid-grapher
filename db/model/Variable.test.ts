@@ -358,9 +358,9 @@ describe("search query bindings", () => {
         }
     )
 
-    it("binds flat pagination after search values, but not in the count", async () => {
+    it("binds flat pagination after the search values", async () => {
         const raw = vi.mocked(db.knexRaw)
-        raw.mockResolvedValueOnce([]).mockResolvedValueOnce([{ count: 42 }])
+        raw.mockResolvedValueOnce([{ id: 1, numTotalRows: 42 }])
 
         const result = await searchVariables("road", 50, 100, trx)
 
@@ -373,7 +373,6 @@ describe("search query bindings", () => {
             100,
         ])
         expect(raw.mock.calls[0][1]).toContain("LIMIT ? OFFSET ?")
-        expect(raw.mock.calls[1][2]).toEqual(["road", "road", "+road*"])
     })
 
     it.each(["road", ""])(
@@ -398,28 +397,6 @@ describe("search query bindings", () => {
             expect(raw.mock.calls[1][1]).toContain("WHERE rankInDataset <= ?")
         }
     )
-
-    it("reuses grouped SQL with first-page bindings when past the last page", async () => {
-        const raw = vi.mocked(db.knexRaw)
-        raw.mockResolvedValueOnce([]).mockResolvedValueOnce([
-            { numTotalDatasets: 2, numTotalRows: 9 },
-        ])
-
-        const result = await searchVariablesGroupedByDataset(
-            "road",
-            10,
-            20,
-            trx
-        )
-
-        expect(result).toMatchObject({
-            datasets: [],
-            numTotalDatasets: 2,
-            numTotalRows: 9,
-        })
-        expect(raw.mock.calls[1][1]).toBe(raw.mock.calls[0][1])
-        expect(raw.mock.calls[1][2]).toEqual(["road", "road", "+road*", 1, 0])
-    })
 
     it("still reports regex errors from bound searches", async () => {
         vi.mocked(db.knexRaw).mockRejectedValueOnce(
