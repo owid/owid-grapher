@@ -58,8 +58,8 @@ const PARAMS_BY_TYPE = new Map<string, readonly SearchType[]>([
     ["pageTypes", ["pages"]],
 ])
 
-// type=topics filters by country only when it searches charts, which needs a
-// query.
+// type=topics filters by country only when charts match a query, so never
+// without one.
 const CHART_ONLY_PARAMS = new Set<string>([
     SearchUrlParam.COUNTRY,
     SearchUrlParam.REQUIRE_ALL_COUNTRIES,
@@ -167,7 +167,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
             ),
             ...queryOnlyParams.map(
                 (param) =>
-                    `Ignored parameter "${param}": type=topics filters by country only with a query.`
+                    `Ignored parameter "${param}": type=topics filters by country only when charts match a query.`
             ),
         ]
         const warnings = warningList.length > 0 ? warningList : undefined

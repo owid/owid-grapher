@@ -383,8 +383,8 @@ describe("Search API endpoint", () => {
                     "type=topics&countries=France&requireAllCountries=true&topics=Health"
                 )
             ).toEqual([
-                'Ignored parameter "countries": type=topics filters by country only with a query.',
-                'Ignored parameter "requireAllCountries": type=topics filters by country only with a query.',
+                'Ignored parameter "countries": type=topics filters by country only when charts match a query.',
+                'Ignored parameter "requireAllCountries": type=topics filters by country only when charts match a query.',
             ])
             expect(
                 await warningsFor("type=topics&q=gdp&countries=France")
