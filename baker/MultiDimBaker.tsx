@@ -132,25 +132,46 @@ const getFaqEntries = async (
     return { faqs }
 }
 
+type MultiDimViewTitleMetadata = {
+    name?: string
+    display?: { name?: string } | null
+    presentation?: { titlePublic?: string } | null
+}
+
 /**
- * The effective grapher title of a multi-dim view, resolved from its merged
- * metadata (variable metadata + multi-dim-level and view-level overrides) and its
- * full chart config. Shared between the Algolia multi-dim view records and the
- * companion file baked alongside multi-dim pages, so search records and the
- * page titles served to search engines always agree.
+ * The indicator title of a multi-dim view, resolved from its merged metadata
+ * (variable metadata + multi-dim-level and view-level overrides) and its full
+ * chart config. Prefers the indicator's public title over the chart title.
+ * Used for the Algolia multi-dim view records.
  */
 export function getMultiDimViewTitle(
-    metadata: {
-        name?: string
-        display?: { name?: string } | null
-        presentation?: { titlePublic?: string } | null
-    },
+    metadata: MultiDimViewTitleMetadata,
     chartConfig: GrapherInterface | undefined,
     grapherState: GrapherState | undefined
 ): string {
     return maybeAddChangeInPrefix(
         metadata.presentation?.titlePublic ||
             chartConfig?.title ||
+            metadata.display?.name ||
+            metadata.name ||
+            "",
+        grapherState?.shouldAddChangeInPrefixToTitle ?? false
+    )
+}
+
+/**
+ * The title shown in a multi-dim view's chart header: the chart config's
+ * title, falling back to the indicator title. Used for the page titles served
+ * to search engines, so they match what readers see on the page.
+ */
+export function getMultiDimViewChartTitle(
+    metadata: MultiDimViewTitleMetadata,
+    chartConfig: GrapherInterface | undefined,
+    grapherState: GrapherState | undefined
+): string {
+    return maybeAddChangeInPrefix(
+        chartConfig?.title ||
+            metadata.presentation?.titlePublic ||
             metadata.display?.name ||
             metadata.name ||
             "",
@@ -188,7 +209,7 @@ export async function getMultiDimPageCompanion(
             config.metadata ?? {},
             view.metadata ?? {}
         )
-        const title = getMultiDimViewTitle(
+        const title = getMultiDimViewChartTitle(
             metadata,
             chartConfig,
             chartConfig ? new GrapherState(chartConfig) : undefined
