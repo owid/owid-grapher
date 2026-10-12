@@ -315,7 +315,7 @@ The first two columns in the CSV file are "Entity" and "Code". "Entity" is the n
 
 The third column is either "Year" or "Day". If the data is annual, this is "Year" and contains only the year as an integer. If the column is "Day", the column contains a date string in the form "YYYY-MM-DD".
 
-The final column is the data column, which is the time series that powers the chart. If the CSV data is downloaded using the "full data" option, then the column corresponds to the time series below. If the CSV data is downloaded using the "only selected data visible in the chart" option then the data column is transformed depending on the chart type and thus the association with the time series might not be as straightforward.
+The final column is the data column, which is the time series that powers the chart. If the CSV data is downloaded using the "chart data" option, then the column corresponds to the time series below. If the CSV data is downloaded using the "displayed data" option then the data column is transformed depending on the chart type and thus the association with the time series might not be as straightforward.
 ${hasOriginalTimeColumn ? toleranceExplanation : ""}
 
 ## Metadata.json structure
@@ -345,7 +345,7 @@ The first two columns in the CSV file are "Entity" and "Code". "Entity" is the n
 
 The third column is either "Year" or "Day". If the data is annual, this is "Year" and contains only the year as an integer. If the column is "Day", the column contains a date string in the form "YYYY-MM-DD".
 
-The remaining columns are the data columns, each of which is a time series. If the CSV data is downloaded using the "full data" option, then each column corresponds to one time series below. If the CSV data is downloaded using the "only selected data visible in the chart" option then the data columns are transformed depending on the chart type and thus the association with the time series might not be as straightforward.
+The remaining columns are the data columns, each of which is a time series. If the CSV data is downloaded using the "chart data" option, then each column corresponds to one time series below. If the CSV data is downloaded using the "displayed data" option then the data columns are transformed depending on the chart type and thus the association with the time series might not be as straightforward.
 ${hasOriginalTimeColumn ? toleranceExplanation : ""}
 
 ## Metadata.json structure

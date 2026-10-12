@@ -385,30 +385,9 @@ export default function DownloadSection({
                                     {COMPLETE_DATASET_SOURCES_HELP_TEXT}
                                 </p>
                             )}
-                            {/* Ordered from smallest to biggest download */}
+                            {/* Widest download first, narrowing downwards --
+                                see the note in the chart's download modal. */}
                             <div className="downloads__download-buttons">
-                                <DownloadButtonLink
-                                    title="Download only selected data"
-                                    description={filteredDownloadDescription}
-                                    icon="selected"
-                                    trackingNote="datapage_download_filtered_data--server"
-                                    href={filteredDownloadUrl}
-                                    download={filteredDownloadFilename}
-                                    {...getDownloadRewriteAttrs(
-                                        "download-filtered-data"
-                                    )}
-                                />
-                                <DownloadButtonLink
-                                    title="Download chart data"
-                                    description={fullDownloadDescription}
-                                    icon="full"
-                                    trackingNote="datapage_download_full_data--server"
-                                    href={fullDownloadUrl}
-                                    download={fullDownloadFilename}
-                                    {...getDownloadRewriteAttrs(
-                                        "download-full-data"
-                                    )}
-                                />
                                 {downloadPackage && (
                                     <DownloadButtonLink
                                         title="Download full dataset"
@@ -425,6 +404,28 @@ export default function DownloadSection({
                                         // instead.
                                     />
                                 )}
+                                <DownloadButtonLink
+                                    title="Download chart data"
+                                    description={fullDownloadDescription}
+                                    icon="full"
+                                    trackingNote="datapage_download_full_data--server"
+                                    href={fullDownloadUrl}
+                                    download={fullDownloadFilename}
+                                    {...getDownloadRewriteAttrs(
+                                        "download-full-data"
+                                    )}
+                                />
+                                <DownloadButtonLink
+                                    title="Download displayed data"
+                                    description={filteredDownloadDescription}
+                                    icon="selected"
+                                    trackingNote="datapage_download_filtered_data--server"
+                                    href={filteredDownloadUrl}
+                                    download={filteredDownloadFilename}
+                                    {...getDownloadRewriteAttrs(
+                                        "download-filtered-data"
+                                    )}
+                                />
                             </div>
                         </div>
                         <ApiAndCodeExamplesSection

@@ -39,27 +39,32 @@ export function DownloadApiOptions({
 
     return (
         <>
+            {/* Same scopes, same names and same order as the download buttons
+                further up the page -- widest download first. Each label is a
+                button title plus the qualifier from that button's description,
+                so the two lists can't drift into describing one scope with two
+                different words. */}
             <section className="download-api-options__config-list">
-                <RadioButton
-                    label="Download full data, including all entities and time points"
-                    group={`${groupPrefix}-onlyVisible`}
-                    checked={!onlyVisible && !completeDatasetChecked}
-                    onChange={() => selectChartScope(false)}
-                />
-                <RadioButton
-                    label="Download only the currently selected data visible in the chart"
-                    group={`${groupPrefix}-onlyVisible`}
-                    checked={onlyVisible && !completeDatasetChecked}
-                    onChange={() => selectChartScope(true)}
-                />
                 {completeDataset && (
                     <RadioButton
-                        label="Download the complete dataset, including all indicators, entities and time points"
+                        label="Download full dataset, including every indicator, not just the ones in this chart"
                         group={`${groupPrefix}-onlyVisible`}
                         checked={completeDatasetChecked}
                         onChange={() => completeDataset.onChange(true)}
                     />
                 )}
+                <RadioButton
+                    label="Download chart data, including all entities and time points"
+                    group={`${groupPrefix}-onlyVisible`}
+                    checked={!onlyVisible && !completeDatasetChecked}
+                    onChange={() => selectChartScope(false)}
+                />
+                <RadioButton
+                    label="Download displayed data, only the entities and time points currently visible in the chart"
+                    group={`${groupPrefix}-onlyVisible`}
+                    checked={onlyVisible && !completeDatasetChecked}
+                    onChange={() => selectChartScope(true)}
+                />
             </section>
             {shortNamesAvailable && (
                 <section className="download-api-options__config-list">

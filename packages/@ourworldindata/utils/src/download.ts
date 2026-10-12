@@ -9,8 +9,11 @@ export const SERVER_SIDE_DOWNLOAD_HELP_TEXT =
 // elsewhere on the page describe the indicators behind the current view, but
 // the package spans every view, so it can draw on providers that aren't listed
 // there -- point at the file inside it that names all of them.
+//
+// "Full dataset" is the user-facing name for the package everywhere it's
+// offered; the code keeps calling it the complete dataset, matching ETL.
 export const COMPLETE_DATASET_SOURCES_HELP_TEXT =
-    "The complete dataset covers more indicators than this chart, and its " +
+    "The full dataset covers more indicators than this chart, and its " +
     "README lists the sources for all of them."
 
 export const triggerDownloadFromBlob = (filename: string, blob: Blob): void => {
@@ -112,7 +115,14 @@ export function formatFileSize(bytes: number): string {
 export function makeFullDownloadDescription(
     numRows: number | undefined
 ): string {
-    return `Includes all data for this chart${makeNumberOfRowsSnippet(numRows)}`
+    // "Entities and time points" rather than "countries and years": charts can
+    // plot non-country entities and daily data, so the concrete words would be
+    // wrong for some of them. The added "for this chart's indicators" is what
+    // separates this from the complete-dataset download, which lifts exactly
+    // that restriction.
+    return `Includes all entities and time points for this chart's indicators${makeNumberOfRowsSnippet(
+        numRows
+    )}`
 }
 
 export function makeCompleteDatasetDescription({
@@ -136,7 +146,10 @@ export function makeCompleteDatasetDescription({
         sizeBytes !== undefined ? formatFileSize(sizeBytes) : undefined,
     ].filter((snippet) => snippet !== undefined)
     const detailsSnippet = details.length ? ` (${details.join(", ")})` : ""
-    return `Includes every indicator in this dataset, not just this chart's${detailsSnippet}`
+    // Spells out "the ones in this chart" rather than leaning on an elided
+    // "this chart's": this is the first option offered, so nothing above it has
+    // introduced the chart's own indicators yet.
+    return `Includes every indicator in this dataset, not just the ones in this chart${detailsSnippet}`
 }
 
 export function makeFilteredDownloadDescription({
@@ -146,7 +159,10 @@ export function makeFilteredDownloadDescription({
     visibleIn?: string
     numRows: number | undefined
 }): string {
-    return `Includes only the data currently visible in the ${visibleIn}${makeNumberOfRowsSnippet(
+    // Same two nouns as the chart-data description above: these two downloads
+    // differ on exactly the entity and time axes, so naming them in both makes
+    // "all" versus "only what's visible" the only thing that changes.
+    return `Includes only the entities and time points currently visible in the ${visibleIn}${makeNumberOfRowsSnippet(
         numRows
     )}`
 }

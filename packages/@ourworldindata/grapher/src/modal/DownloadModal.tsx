@@ -916,37 +916,11 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
                     {downloadHelpText}
                 </div>
                 <div>
-                    {/* Ordered from smallest to biggest download, and worded
-                        to match the data page's own download section. */}
+                    {/* Widest download first, narrowing downwards: given the
+                        choice, most readers take the wider one, so it leads.
+                        Same order, names and wording as the data page's own
+                        download section and the API options below it. */}
                     <div className="download-modal__download-buttons">
-                        <DownloadButton
-                            title="Download only selected data"
-                            description={filteredDataDescription}
-                            icon="selected"
-                            trackingNote={`chart_download_filtered_data${
-                                serverSideDownloadAvailable
-                                    ? "--server"
-                                    : "--client"
-                            }`}
-                            onClick={() =>
-                                onDownloadClick(
-                                    CsvDownloadType.CurrentSelection
-                                )
-                            }
-                        />
-                        <DownloadButton
-                            title="Download chart data"
-                            description={fullDataDescription}
-                            icon="full"
-                            trackingNote={`chart_download_full_data${
-                                serverSideDownloadAvailable
-                                    ? "--server"
-                                    : "--client"
-                            }`}
-                            onClick={() =>
-                                onDownloadClick(CsvDownloadType.Full)
-                            }
-                        />
                         {downloadPackage && (
                             <DownloadButtonLink
                                 title="Download full dataset"
@@ -962,6 +936,34 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
                                 // Content-Disposition filename instead.
                             />
                         )}
+                        <DownloadButton
+                            title="Download chart data"
+                            description={fullDataDescription}
+                            icon="full"
+                            trackingNote={`chart_download_full_data${
+                                serverSideDownloadAvailable
+                                    ? "--server"
+                                    : "--client"
+                            }`}
+                            onClick={() =>
+                                onDownloadClick(CsvDownloadType.Full)
+                            }
+                        />
+                        <DownloadButton
+                            title="Download displayed data"
+                            description={filteredDataDescription}
+                            icon="selected"
+                            trackingNote={`chart_download_filtered_data${
+                                serverSideDownloadAvailable
+                                    ? "--server"
+                                    : "--client"
+                            }`}
+                            onClick={() =>
+                                onDownloadClick(
+                                    CsvDownloadType.CurrentSelection
+                                )
+                            }
+                        />
                     </div>
                 </div>
             </div>
