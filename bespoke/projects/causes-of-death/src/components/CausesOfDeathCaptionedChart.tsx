@@ -14,6 +14,7 @@ import { Spinner } from "../../../../components/Spinner/Spinner.js"
 import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
 import { Frame } from "../../../../components/Frame/Frame.js"
+import { BespokeMetadataProvider } from "../../../../components/MetadataModal/BespokeMetadataContext.js"
 
 export function CausesOfDeathCaptionedChart({
     data,
@@ -43,30 +44,32 @@ export function CausesOfDeathCaptionedChart({
     )
 
     return (
-        <Frame className="causes-of-death-captioned-chart">
-            <CausesOfDeathHeader
-                ageGroup={ageGroup}
-                sex={sex}
-                entityName={entityName}
-                year={year}
-                numTotalDeaths={numTotalDeaths}
-                isLoading={isLoading}
-            />
-
-            <div className="causes-of-death-captioned-chart__chart-area">
-                {isLoading && <Spinner />}
-
-                <ResponsiveCausesOfDeathTreemap
-                    data={entityData}
-                    timeSeriesData={data}
-                    metadata={metadata}
+        <BespokeMetadataProvider metadata={metadata.provenance}>
+            <Frame className="causes-of-death-captioned-chart">
+                <CausesOfDeathHeader
+                    ageGroup={ageGroup}
+                    sex={sex}
                     entityName={entityName}
                     year={year}
-                    ageGroup={ageGroup}
+                    numTotalDeaths={numTotalDeaths}
+                    isLoading={isLoading}
                 />
-            </div>
-            <CausesOfDeathFooter metadata={metadata} />
-        </Frame>
+
+                <div className="causes-of-death-captioned-chart__chart-area">
+                    {isLoading && <Spinner />}
+
+                    <ResponsiveCausesOfDeathTreemap
+                        data={entityData}
+                        timeSeriesData={data}
+                        metadata={metadata}
+                        entityName={entityName}
+                        year={year}
+                        ageGroup={ageGroup}
+                    />
+                </div>
+                <CausesOfDeathFooter metadata={metadata} />
+            </Frame>
+        </BespokeMetadataProvider>
     )
 }
 
