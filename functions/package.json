@@ -34,6 +34,6 @@
         "@types/react-dom": "^19.2.3",
         "cheerio": "^1.2.0",
         "vitest": "^5.0.0",
-        "wrangler": "^4.147.0"
+        "wrangler": "^4.149.0"
     }
 }
