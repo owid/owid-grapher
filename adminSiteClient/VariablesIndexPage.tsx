@@ -6,7 +6,7 @@ import urljoin from "url-join"
 
 import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext } from "./AdminAppContext.js"
-import { Alert, Flex } from "antd"
+import { Alert, Button, Flex } from "antd"
 import {
     GroupedVariableList,
     INDICATORS_PAGE_SIZE,
@@ -20,10 +20,12 @@ import {
     VariablesSearchResult,
 } from "../adminShared/variableSearch.js"
 import {
+    fieldedTerms,
     namesOneDataset,
     plural,
     searchWordsToHighlight,
     useSearchQueryParam,
+    withoutTerms,
 } from "./variableSearchQuery.js"
 import { ETL_WIZARD_URL } from "../settings/clientSettings.mjs"
 
@@ -42,6 +44,71 @@ function SearchSyntaxNote(): React.ReactElement {
             </a>
             .
         </div>
+    )
+}
+
+/**
+ * A `field:value` term matches exactly and silently, so a search that mixes
+ * one with free text can come back empty without saying which half is to
+ * blame — `namespace:climate civil` finds nothing because "civil" lives in
+ * `democracy`. Says how much the search finds without its fielded terms, and
+ * offers to drop them.
+ */
+function EmptySearchHint({
+    searchValue,
+    onSearchValue,
+}: {
+    searchValue: string
+    onSearchValue: (value: string) => void
+}): React.ReactElement | null {
+    const { admin } = useContext(AdminAppContext)
+
+    const fielded = useMemo(() => fieldedTerms(searchValue), [searchValue])
+    const widened = useMemo(
+        () => withoutTerms(searchValue, fielded),
+        [searchValue, fielded]
+    )
+
+    const { data } = useQuery({
+        queryKey: ["variable-search-widened", widened],
+        queryFn: () =>
+            admin.getJSONInBackground<VariablesGroupedSearchResult>(
+                "/api/variables.json",
+                {
+                    search: widened,
+                    group: "dataset",
+                    limit: 1,
+                    offset: 0,
+                }
+            ),
+        enabled: fielded.length > 0 && widened.trim().length > 0,
+    })
+
+    if (fielded.length === 0 || !data?.numTotalRows) return null
+
+    return (
+        <Alert
+            type="info"
+            showIcon
+            title={
+                <>
+                    Nothing matches{" "}
+                    {fielded.map((term) => (
+                        <React.Fragment key={term}>
+                            <code>{term}</code>{" "}
+                        </React.Fragment>
+                    ))}
+                    — <b>{plural(data.numTotalRows, "indicator")}</b> in{" "}
+                    {plural(data.numTotalDatasets, "dataset")} match the rest of
+                    the search.
+                </>
+            }
+            action={
+                <Button size="small" onClick={() => onSearchValue(widened)}>
+                    Search for {`“${widened}”`}
+                </Button>
+            }
+        />
     )
 }
 
@@ -171,7 +238,12 @@ export function VariablesIndexPage(): React.ReactElement {
                             isSearch={isSearch}
                             searchWords={searchWords}
                             searchValue={debouncedSearch}
-                            onSearchValue={onNarrowSearch}
+                            emptyHint={
+                                <EmptySearchHint
+                                    searchValue={debouncedSearch}
+                                    onSearchValue={onNarrowSearch}
+                                />
+                            }
                             loading={grouped.isFetching}
                             pagination={{
                                 current: page,

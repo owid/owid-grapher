@@ -1,9 +1,6 @@
 import * as React from "react"
-import { useContext, useMemo } from "react"
-import { useQuery } from "@tanstack/react-query"
+import { useMemo } from "react"
 import {
-    Alert,
-    Button,
     Empty,
     Flex,
     Popover,
@@ -18,7 +15,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faEyeSlash, faLock } from "@fortawesome/free-solid-svg-icons"
 
 import { Link } from "./Link.js"
-import { AdminAppContext } from "./AdminAppContext.js"
 import { Timeago } from "./Forms.js"
 import {
     buildRegexFromSearchWord,
@@ -26,17 +22,14 @@ import {
     SearchWord,
 } from "../adminShared/search.js"
 import {
-    fieldedTerms,
     parseCatalogPath,
     plural,
     SearchHighlighter,
     searchHref,
-    withoutTerms,
 } from "./variableSearchQuery.js"
 import {
     DatasetSearchGroup,
     VariableResultView,
-    VariablesGroupedSearchResult,
 } from "../adminShared/variableSearch.js"
 
 /** Rows per page of the flat list. */
@@ -433,71 +426,6 @@ function DatasetGroupHeader({
     )
 }
 
-/**
- * A `field:value` term matches exactly and silently, so a search that mixes
- * one with free text can come back empty without saying which half is to
- * blame — `namespace:climate civil` finds nothing because "civil" lives in
- * `democracy`. Says how much the search finds without its fielded terms, and
- * offers to drop them.
- */
-function EmptySearchHint({
-    searchValue,
-    onSearchValue,
-}: {
-    searchValue: string
-    onSearchValue: (value: string) => void
-}): React.ReactElement | null {
-    const { admin } = useContext(AdminAppContext)
-
-    const fielded = useMemo(() => fieldedTerms(searchValue), [searchValue])
-    const widened = useMemo(
-        () => withoutTerms(searchValue, fielded),
-        [searchValue, fielded]
-    )
-
-    const { data } = useQuery({
-        queryKey: ["variable-search-widened", widened],
-        queryFn: () =>
-            admin.getJSONInBackground<VariablesGroupedSearchResult>(
-                "/api/variables.json",
-                {
-                    search: widened,
-                    group: "dataset",
-                    limit: 1,
-                    offset: 0,
-                }
-            ),
-        enabled: fielded.length > 0 && widened.trim().length > 0,
-    })
-
-    if (fielded.length === 0 || !data?.numTotalRows) return null
-
-    return (
-        <Alert
-            type="info"
-            showIcon
-            title={
-                <>
-                    Nothing matches{" "}
-                    {fielded.map((term) => (
-                        <React.Fragment key={term}>
-                            <code>{term}</code>{" "}
-                        </React.Fragment>
-                    ))}
-                    — <b>{plural(data.numTotalRows, "indicator")}</b> in{" "}
-                    {plural(data.numTotalDatasets, "dataset")} match the rest of
-                    the search.
-                </>
-            }
-            action={
-                <Button size="small" onClick={() => onSearchValue(widened)}>
-                    Search for {`“${widened}”`}
-                </Button>
-            }
-        />
-    )
-}
-
 /** The indicator's own cell: its name, linking to the indicator. */
 function IndicatorCell({
     variable,
@@ -548,7 +476,7 @@ export function GroupedVariableList({
     isSearch,
     searchWords = NO_SEARCH_WORDS,
     searchValue,
-    onSearchValue,
+    emptyHint,
     loading,
     pagination,
 }: {
@@ -558,7 +486,8 @@ export function GroupedVariableList({
     searchWords?: SearchWord[]
     /** The query the groups came from, extended by the "more" links. */
     searchValue: string
-    onSearchValue: (value: string) => void
+    /** Shown under the message that nothing matches. */
+    emptyHint?: React.ReactNode
     loading?: boolean
     /** Over the datasets, which is what the server pages through. */
     pagination: TableProps<DatasetSearchGroup>["pagination"]
@@ -609,10 +538,11 @@ export function GroupedVariableList({
                             image={Empty.PRESENTED_IMAGE_SIMPLE}
                             description="No indicators match this search."
                         />
-                        <EmptySearchHint
-                            searchValue={searchValue}
-                            onSearchValue={onSearchValue}
-                        />
+                        {emptyHint && (
+                            <div className="variable-list__empty-hint">
+                                {emptyHint}
+                            </div>
+                        )}
                     </Flex>
                 ),
             }}

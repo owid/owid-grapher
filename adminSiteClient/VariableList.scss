@@ -84,3 +84,9 @@
         vertical-align: top;
     }
 }
+
+// The table centers its empty state, which suits the message but not a hint
+// that reads as a sentence
+.variable-list__empty-hint {
+    text-align: left;
+}
