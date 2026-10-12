@@ -6,6 +6,7 @@ import {
 } from "@ourworldindata/types"
 import {
     rankTopicsOfChartHits,
+    recommendTopicPages,
     searchTopicPagesOfMatchingCharts,
 } from "./searchTopicPages.js"
 
@@ -286,5 +287,59 @@ describe(searchTopicPagesOfMatchingCharts, () => {
 
         expect(result).toBeUndefined()
         expect(client.searchForHits).toHaveBeenCalledTimes(2)
+    })
+})
+
+describe(recommendTopicPages, () => {
+    const params = {
+        chartsIndexName: "charts",
+        pagesIndexName: "pages",
+        query: "max roser",
+        chartsFacetFilters: [],
+        topics: new Set(["Health"]),
+        tagGraph,
+        attributesToRetrieve: ["title", "slug"],
+        offset: 0,
+        length: 10,
+    }
+
+    it("searches the topic pages' text when no chart matches, without closest matches", async () => {
+        // The site and /api/search both answer through this function, so a
+        // query no chart matches must fall back the same way for both: one
+        // exact text search, and an empty answer when that finds nothing.
+        const client = makeClient([
+            { hits: [] }, // charts, whole words
+            { hits: [] }, // charts, prefix
+            { hits: [], nbHits: 0 }, // topic pages by text
+        ])
+
+        const result = await recommendTopicPages<MockHit>(
+            client as never,
+            params
+        )
+
+        expect(result.hits).toEqual([])
+        expect(client.searchForHits).toHaveBeenCalledTimes(3)
+        const [textRequest] = client.searchForHits.mock.calls[2][0]
+        expect(textRequest).toMatchObject({
+            indexName: "pages",
+            query: "max roser",
+            filters: "type:topic-page OR type:linear-topic-page",
+            facetFilters: [["tags:Health"]],
+        })
+        expect(textRequest.removeWordsIfNoResults).toBeUndefined()
+    })
+
+    it("goes straight to the text search without a query", async () => {
+        const client = makeClient([{ hits: [], nbHits: 0 }])
+
+        await recommendTopicPages<MockHit>(client as never, {
+            ...params,
+            query: " ",
+        })
+
+        expect(client.searchForHits).toHaveBeenCalledOnce()
+        const [textRequest] = client.searchForHits.mock.calls[0][0]
+        expect(textRequest.indexName).toBe("pages")
     })
 })

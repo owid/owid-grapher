@@ -444,6 +444,7 @@ export {
     TOPIC_PAGE_TYPES,
     isTopicPageType,
     rankTopicsOfChartHits,
+    recommendTopicPages,
     searchTopicPagesOfMatchingCharts,
 } from "./search/searchTopicPages.js"
 

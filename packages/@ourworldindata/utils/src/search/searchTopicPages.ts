@@ -6,13 +6,17 @@ import {
 } from "@ourworldindata/types"
 import { type SearchResponse } from "algoliasearch"
 import { type LiteClient } from "algoliasearch/lite"
-import { formatDisjunctiveFacetFilters } from "./searchFacetFilters.js"
+import {
+    formatDisjunctiveFacetFilters,
+    formatTopicFacetFilters,
+} from "./searchFacetFilters.js"
 import { searchSingleForHits } from "./searchClosestMatches.js"
 import { getPrefixedGdocPath } from "../urls/gdocPaths.js"
 
 // Shared between the site's search page (site/search/queries.ts) and the
 // public /api/search Cloudflare function (functions/api/search/searchApi.ts)
-// so both recommend the same topic pages for a query.
+// so both recommend the same topic pages for a query, including when no chart
+// matches it.
 
 export const TOPIC_PAGE_TYPES: readonly OwidGdocType[] = [
     OwidGdocType.TopicPage,
@@ -81,9 +85,9 @@ export function rankTopicsOfChartHits(
 
 /**
  * The topic pages behind the charts matching a query, most common topic
- * first, or undefined when no chart matches (callers fall back to a text
- * search over the topic pages themselves). `chartsFacetFilters` are the
- * filters of the chart search proper, so country and topic filters carry over.
+ * first, or undefined when no chart matches (see recommendTopicPages for the
+ * fallback). `chartsFacetFilters` are the filters of the chart search proper,
+ * so country and topic filters carry over.
  */
 export async function searchTopicPagesOfMatchingCharts<
     THit extends { slug: string },
@@ -163,4 +167,38 @@ export async function searchTopicPagesOfMatchingCharts<
         offset: params.offset,
         length: params.length,
     }
+}
+
+/**
+ * The topic pages to recommend for a search. With a query, they come from the
+ * charts matching it (searchTopicPagesOfMatchingCharts). Without a query, or
+ * when no chart matches, the topic pages are searched by their own text, so a
+ * query that only matches prose (an author's name, say) still finds pages;
+ * `topics` restricts that text search to pages tagged with any of them. The
+ * text search has no closest-matches fallback.
+ */
+export async function recommendTopicPages<THit extends { slug: string }>(
+    liteSearchClient: LiteClient,
+    params: Parameters<typeof searchTopicPagesOfMatchingCharts>[1] & {
+        topics: Set<string>
+    }
+): Promise<SearchResponse<THit>> {
+    if (params.query.trim()) {
+        const response = await searchTopicPagesOfMatchingCharts<THit>(
+            liteSearchClient,
+            params
+        )
+        if (response) return response
+    }
+    return searchSingleForHits<THit>(liteSearchClient, {
+        indexName: params.pagesIndexName,
+        query: params.query,
+        filters: TOPIC_PAGE_TYPES.map((type) => `type:${type}`).join(" OR "),
+        facetFilters: formatTopicFacetFilters(params.topics),
+        attributesToRetrieve: params.attributesToRetrieve,
+        highlightPreTag: "<mark>",
+        highlightPostTag: "</mark>",
+        offset: params.offset,
+        length: params.length,
+    })
 }

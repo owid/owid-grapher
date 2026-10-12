@@ -15,13 +15,15 @@ import {
     ALL_GDOC_TYPES,
     TagGraphRoot,
 } from "@ourworldindata/types"
-import { isTopicPageType, TOPIC_PAGE_TYPES } from "@ourworldindata/utils"
 
 const DEFAULT_HITS_PER_PAGE = 20
 const MAX_HITS_PER_PAGE = 100
 const MAX_PAGE = 1000
 
-type SearchType = "charts" | "pages"
+// charts and pages are text searches over their records; topics recommends
+// topic pages for a query, like the topic cards on the site's search page.
+const SEARCH_TYPES = ["charts", "pages", "topics"] as const
+type SearchType = (typeof SEARCH_TYPES)[number]
 
 // gdoc content types the `pageTypes` param (type=pages only) may request, as
 // a Set for O(1) membership checks.
@@ -99,11 +101,11 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         const searchType: SearchType =
             (url.searchParams.get("type") as SearchType) || "charts"
 
-        if (searchType !== "charts" && searchType !== "pages") {
+        if (!SEARCH_TYPES.includes(searchType)) {
             return new Response(
                 JSON.stringify({
                     error: "Invalid type parameter",
-                    details: 'Type must be either "charts" or "pages"',
+                    details: `Type must be one of: ${SEARCH_TYPES.join(", ")}`,
                 }),
                 {
                     status: 400,
@@ -146,16 +148,6 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
                     `Invalid pageTypes value(s): "${invalidTypes.join('", "')}". Valid types: ${Array.from(VALID_PAGE_TYPES).join(", ")}`
                 )
             }
-            // Topic pages come in two layouts (topic-page and
-            // linear-topic-page), which is a presentation detail: asking for
-            // either returns both.
-            if (pageTypes.some(isTopicPageType))
-                pageTypes = [
-                    ...new Set([
-                        ...pageTypes.filter((t) => !isTopicPageType(t)),
-                        ...TOPIC_PAGE_TYPES,
-                    ]),
-                ]
         }
 
         // Parse pagination parameters
@@ -240,42 +232,33 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         // Extract base URL from request (for staging/preview deployments)
         const baseUrl = `${url.protocol}//${url.host}`
 
-        // A search for topic pages alone is a recommendation ("which topics
-        // is this query about?") and is answered from the matching charts,
-        // like the site's search page does. Mixed page types and empty
-        // queries stay a plain text search.
-        const wantsTopicPagesOnly =
-            pageTypes !== undefined &&
-            pageTypes.every(isTopicPageType) &&
-            query.trim() !== ""
-
         // Perform search based on type
         const results =
-            searchType === "pages"
-                ? wantsTopicPagesOnly
-                    ? await searchTopicPages(
-                          algoliaConfig,
-                          searchState,
-                          await fetchTagGraph(env, baseUrl),
-                          page * hitsPerPage, // Convert page to offset
-                          hitsPerPage,
-                          baseUrl
-                      )
-                    : await searchPages(
-                          algoliaConfig,
-                          query,
-                          page * hitsPerPage, // Convert page to offset
-                          hitsPerPage,
-                          pageTypes, // undefined -> searchPages()'s own default
-                          baseUrl
-                      )
-                : await searchCharts(
+            searchType === "topics"
+                ? await searchTopicPages(
                       algoliaConfig,
                       searchState,
-                      page,
+                      await fetchTagGraph(env, baseUrl),
+                      page * hitsPerPage, // Convert page to offset
                       hitsPerPage,
                       baseUrl
                   )
+                : searchType === "pages"
+                  ? await searchPages(
+                        algoliaConfig,
+                        query,
+                        page * hitsPerPage, // Convert page to offset
+                        hitsPerPage,
+                        pageTypes, // undefined -> searchPages()'s own default
+                        baseUrl
+                    )
+                  : await searchCharts(
+                        algoliaConfig,
+                        searchState,
+                        page,
+                        hitsPerPage,
+                        baseUrl
+                    )
 
         return new Response(JSON.stringify({ ...results, warnings }, null, 2), {
             status: 200,

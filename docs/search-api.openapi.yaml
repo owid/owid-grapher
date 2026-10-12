@@ -9,6 +9,7 @@ info:
 
     - **Charts**: Interactive data visualizations with country-specific filtering
     - **Pages**: Articles, data insights, and other content pages (filter by type via `pageTypes`)
+    - **Topics**: The topic pages to recommend for a query, as on the site's search page
 
     !!! tip "Semantic Search"
 
@@ -27,12 +28,13 @@ servers:
 paths:
   /search:
     get:
-      summary: Search for charts or pages
+      summary: Search for charts, pages or topics
       description: |
         Search through Our World in Data's collection of charts and pages.
 
         - For **chart search**: Filter by countries, topics, and entity availability
         - For **page search**: Find articles, research papers, and informational content
+        - For **topic recommendations**: Find the topic pages a query is about
 
         Parameters not listed below are ignored, and named in the response's
         `warnings` field (except `utm_*` tracking tags). In particular, the
@@ -53,13 +55,24 @@ paths:
 
         - name: type
           in: query
-          description: Type of content to search
+          description: |
+            Type of content to search. `charts` and `pages` are text searches.
+
+            `topics` recommends topic pages: with a query, they are the topics of
+            the best-ranked charts matching it, weighted by rank, so `q=gdp`
+            leads with the Economic Growth page. `countries`, `topics` and
+            `requireAllCountries` apply to that chart search. Without a query,
+            or when no chart matches, topic pages are searched by their own
+            text, filtered by `topics`. Topic pages come in two layouts (a
+            result's `type` is `topic-page` or `linear-topic-page`), and both
+            are returned. `closestMatches` is never set on a `topics` response.
           required: false
           schema:
             type: string
             enum:
               - charts
               - pages
+              - topics
             default: charts
           example: "charts"
 
@@ -90,7 +103,7 @@ paths:
           in: query
           description: |
             Country names separated by `~` (tilde). Only applicable when `type=charts`
-            or when `pageTypes` requests topic pages alone (see `pageTypes`).
+            or `type=topics`.
           required: false
           schema:
             type: string
@@ -100,7 +113,7 @@ paths:
           in: query
           description: |
             Topic name for filtering charts. Only applicable when `type=charts`
-            or when `pageTypes` requests topic pages alone (see `pageTypes`).
+            or `type=topics`.
 
             [View all available topics](https://datasette-public.owid.io/owid/tags?slug__notnull=1&_sort=createdAt)
           required: false
@@ -112,7 +125,8 @@ paths:
           in: query
           description: |
             If `true`, only return charts that include ALL specified countries.
-            Only applicable when `type=charts` and `countries` parameter is provided.
+            Only applicable when `type=charts` or `type=topics` and `countries`
+            parameter is provided.
           required: false
           schema:
             type: boolean
@@ -126,16 +140,8 @@ paths:
             Comma-separated list of page content types to search. Only applicable
             when `type=pages`. Defaults to `article,about-page` when omitted.
 
-            `topic-page` returns topic pages in both of their layouts (a result's
-            `type` is `topic-page` or `linear-topic-page`).
-
-            Asking for topic pages alone (`pageTypes=topic-page`) with a
-            non-empty query returns topic *recommendations* rather
-            than a text search: the topics of the best-ranked charts matching the
-            query, weighted by rank, so `q=gdp` leads with the Economic Growth page.
-            `countries`, `topics` and `requireAllCountries` then apply to that
-            chart search. Falls back to a text search when no chart matches;
-            `closestMatches` is never set on a recommendation response.
+            This is a text search whatever types are requested, topic pages
+            included. To find the topic pages a query is about, use `type=topics`.
           required: false
           schema:
             type: string

@@ -13,9 +13,8 @@ import {
     buildChartsFacetFilters,
     formatTopicFacetFilters,
     searchSingleForHitsWithClosestMatches,
-    searchTopicPagesOfMatchingCharts,
+    recommendTopicPages,
     MAX_FACET_VALUES,
-    TOPIC_PAGE_TYPES,
 } from "@ourworldindata/utils"
 import {
     getIndexName,
@@ -304,11 +303,11 @@ export async function searchPages(
 }
 
 /**
- * Topic pages for a query, derived from the charts matching it rather than
- * from the topic pages' own text, exactly as the site's search page does
- * (see searchTopicPagesOfMatchingCharts). Country and topic filters apply to
- * the chart search. Falls back to searchPages when no chart matches, so a
- * query that only matches prose (an author's name, say) still finds pages.
+ * Topic pages to recommend for a query, exactly as the site's search page
+ * picks them (see recommendTopicPages): from the charts matching the query,
+ * or by the topic pages' own text when there is no query or no chart matches.
+ * Country and topic filters apply to the chart search, and the topic filter
+ * also to the text search.
  */
 export async function searchTopicPages(
     config: AlgoliaConfig,
@@ -320,43 +319,25 @@ export async function searchTopicPages(
 ): Promise<SearchPagesApiResponse> {
     const client = createSearchClient(config)
 
-    const result = await searchTopicPagesOfMatchingCharts<SearchPageHit>(
-        client,
-        {
-            chartsIndexName: getIndexName(
-                SearchIndexName.ExplorerViewsMdimViewsAndCharts,
-                config.indexPrefix
-            ),
-            pagesIndexName: getIndexName(
-                SearchIndexName.Pages,
-                config.indexPrefix
-            ),
+    const result = await recommendTopicPages<SearchPageHit>(client, {
+        chartsIndexName: getIndexName(
+            SearchIndexName.ExplorerViewsMdimViewsAndCharts,
+            config.indexPrefix
+        ),
+        pagesIndexName: getIndexName(SearchIndexName.Pages, config.indexPrefix),
+        query: state.query,
+        chartsFacetFilters: buildChartsFacetFilters({
             query: state.query,
-            chartsFacetFilters: buildChartsFacetFilters({
-                query: state.query,
-                filters: state.filters,
-                requireAllCountries: state.requireAllCountries,
-            }),
-            tagGraph,
-            attributesToRetrieve: PAGE_ATTRIBUTES,
-            offset,
-            length,
-        }
-    )
-    if (!result) {
-        const fallback = await searchPages(
-            config,
-            state.query,
-            offset,
-            length,
-            [...TOPIC_PAGE_TYPES],
-            baseUrl,
-            getFilterNamesOfType(state.filters, FilterType.TOPIC)
-        )
-        if (fallback.nbHits === 0)
-            await assertTopicsExist(config, state.filters)
-        return fallback
-    }
+            filters: state.filters,
+            requireAllCountries: state.requireAllCountries,
+        }),
+        topics: getFilterNamesOfType(state.filters, FilterType.TOPIC),
+        tagGraph,
+        attributesToRetrieve: PAGE_ATTRIBUTES,
+        offset,
+        length,
+    })
+    if (!result.nbHits) await assertTopicsExist(config, state.filters)
 
     return {
         query: state.query,

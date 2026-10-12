@@ -317,14 +317,14 @@ describe("Search API endpoint", () => {
             length: 20,
         }
 
-        it("answers a topic-pages-only search from the matching charts", async () => {
+        it("answers type=topics from the matching charts, with the filters", async () => {
             const mockSearchTopicPages = vi
                 .spyOn(searchApi, "searchTopicPages")
                 .mockResolvedValue(emptyPagesResponse)
             const mockSearchPages = vi.spyOn(searchApi, "searchPages")
 
             const request = new Request(
-                "http://localhost/api/search?q=gdp&type=pages&pageTypes=topic-page&countries=France"
+                "http://localhost/api/search?q=gdp&type=topics&countries=France"
             )
             await onRequestGet({ request, env: envWithAssets } as any)
 
@@ -346,14 +346,16 @@ describe("Search API endpoint", () => {
             ).toBe("http://localhost/topicTagGraph.json")
         })
 
-        it("keeps a plain text search when other page types are mixed in", async () => {
+        it("leaves type=pages a text search over exactly the requested page types", async () => {
+            // Asking type=pages for topic pages alone used to switch to the
+            // recommendation; a filter shouldn't pick the algorithm.
             const mockSearchTopicPages = vi.spyOn(searchApi, "searchTopicPages")
             const mockSearchPages = vi
                 .spyOn(searchApi, "searchPages")
                 .mockResolvedValue(emptyPagesResponse)
 
             const request = new Request(
-                "http://localhost/api/search?q=gdp&type=pages&pageTypes=topic-page,article"
+                "http://localhost/api/search?q=gdp&type=pages&pageTypes=topic-page"
             )
             await onRequestGet({ request, env: envWithAssets } as any)
 
@@ -362,24 +364,9 @@ describe("Search API endpoint", () => {
                 "gdp",
                 0,
                 20,
-                ["article", "topic-page", "linear-topic-page"],
+                ["topic-page"],
                 "http://localhost"
             )
-            expect(mockSearchTopicPages).not.toHaveBeenCalled()
-        })
-
-        it("keeps a plain text search for an empty query", async () => {
-            const mockSearchTopicPages = vi.spyOn(searchApi, "searchTopicPages")
-            const mockSearchPages = vi
-                .spyOn(searchApi, "searchPages")
-                .mockResolvedValue(emptyPagesResponse)
-
-            const request = new Request(
-                "http://localhost/api/search?type=pages&pageTypes=topic-page"
-            )
-            await onRequestGet({ request, env: envWithAssets } as any)
-
-            expect(mockSearchPages).toHaveBeenCalled()
             expect(mockSearchTopicPages).not.toHaveBeenCalled()
         })
     })
