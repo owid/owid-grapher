@@ -188,18 +188,20 @@ export async function recommendTopicPages<THit extends { slug: string }>(
         chartsIndexName: string
         pagesIndexName: string
         state: Pick<SearchState, "query" | "filters" | "requireAllCountries">
-        tagGraph: TagGraphRoot
+        /** Only called when the charts are searched, i.e. with a query. */
+        loadTagGraph: () => Promise<TagGraphRoot>
         attributesToRetrieve: string[]
         offset: number
         length: number
     }
 ): Promise<SearchResponse<THit>> {
-    const { state, ...rest } = params
+    const { state, loadTagGraph, ...rest } = params
     if (state.query.trim()) {
         const response = await searchTopicPagesOfMatchingCharts<THit>(
             liteSearchClient,
             {
                 ...rest,
+                tagGraph: await loadTagGraph(),
                 query: state.query,
                 chartsFacetFilters: buildChartsFacetFilters(state),
             }

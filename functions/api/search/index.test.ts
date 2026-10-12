@@ -279,6 +279,59 @@ describe("Search API endpoint", () => {
             expect(body.warnings).toEqual([expect.stringContaining('"topic"')])
         })
 
+        it("warns about a parameter the chosen type doesn't use, without validating it", async () => {
+            vi.spyOn(searchApi, "searchTopicPages").mockResolvedValue({
+                query: "gdp",
+                results: [],
+                nbHits: 0,
+                offset: 0,
+                length: 20,
+            })
+
+            const request = new Request(
+                "http://localhost/api/search?q=gdp&type=topics&pageTypes=bogus"
+            )
+            const response = await onRequestGet({
+                request,
+                env: mockEnv,
+            } as any)
+
+            expect(response.status).toBe(200)
+            const body = await response.json()
+            assert(
+                typeof body === "object" && body !== null && "warnings" in body
+            )
+            expect(body.warnings).toEqual([
+                'Ignored parameter "pageTypes": it applies only to type=pages.',
+            ])
+        })
+
+        it("warns when type=pages is sent a filter only charts and topics read", async () => {
+            vi.spyOn(searchApi, "searchPages").mockResolvedValue({
+                query: "vaccines",
+                results: [],
+                nbHits: 0,
+                offset: 0,
+                length: 20,
+            })
+
+            const request = new Request(
+                "http://localhost/api/search?q=vaccines&type=pages&pageTypes=topic-page&topics=Health"
+            )
+            const response = await onRequestGet({
+                request,
+                env: mockEnv,
+            } as any)
+
+            const body = await response.json()
+            assert(
+                typeof body === "object" && body !== null && "warnings" in body
+            )
+            expect(body.warnings).toEqual([
+                'Ignored parameter "topics": it applies only to type=charts and type=topics.',
+            ])
+        })
+
         it("accepts utm_* tags without a warning", async () => {
             vi.spyOn(searchApi, "searchCharts").mockResolvedValue(
                 chartsResponse
@@ -335,20 +388,21 @@ describe("Search API endpoint", () => {
                     filters: [{ type: "country", name: "France" }],
                     requireAllCountries: false,
                 },
-                tagGraph,
+                expect.any(Function),
                 0,
                 20,
                 "http://localhost"
             )
             expect(mockSearchPages).not.toHaveBeenCalled()
+
+            const loadTagGraph = mockSearchTopicPages.mock.calls[0][2]
+            expect(await loadTagGraph()).toEqual(tagGraph)
             expect(
                 (envWithAssets.ASSETS.fetch as any).mock.calls[0][0].toString()
             ).toBe("http://localhost/topicTagGraph.json")
         })
 
         it("leaves type=pages a text search over exactly the requested page types", async () => {
-            // Asking type=pages for topic pages alone used to switch to the
-            // recommendation; a filter shouldn't pick the algorithm.
             const mockSearchTopicPages = vi.spyOn(searchApi, "searchTopicPages")
             const mockSearchPages = vi
                 .spyOn(searchApi, "searchPages")

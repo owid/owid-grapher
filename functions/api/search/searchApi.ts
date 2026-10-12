@@ -298,21 +298,15 @@ export async function searchPages(
     }
 }
 
-/**
- * Topic pages to recommend for a query, exactly as the site's search page
- * picks them (see recommendTopicPages): from the charts matching the query,
- * or by the topic pages' own text when there is no query or no chart matches.
- * Country and topic filters apply to the chart search, and the topic filter
- * also to the text search.
- */
+/** Topic pages to recommend for a query, as on the site (see recommendTopicPages). */
 export async function searchTopicPages(
     config: AlgoliaConfig,
     state: SearchState,
-    tagGraph: TagGraphRoot,
+    loadTagGraph: () => Promise<TagGraphRoot>,
     offset: number = 0,
     length: number = 10,
     baseUrl: string = "https://ourworldindata.org"
-): Promise<SearchPagesApiResponse> {
+): Promise<Omit<SearchPagesApiResponse, "closestMatches">> {
     const client = createSearchClient(config)
 
     const result = await recommendTopicPages<SearchPageHit>(client, {
@@ -322,7 +316,7 @@ export async function searchTopicPages(
         ),
         pagesIndexName: getIndexName(SearchIndexName.Pages, config.indexPrefix),
         state,
-        tagGraph,
+        loadTagGraph,
         attributesToRetrieve: PAGE_ATTRIBUTES,
         offset,
         length,

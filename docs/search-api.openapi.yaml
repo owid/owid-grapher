@@ -37,7 +37,9 @@ paths:
         - For **topic recommendations**: Find the topic pages a query is about
 
         Parameters not listed below are ignored, and named in the response's
-        `warnings` field (except `utm_*` tracking tags). In particular, the
+        `warnings` field (except `utm_*` tracking tags). So are parameters the
+        chosen `type` doesn't read, such as `pageTypes` with `type=topics` or
+        `topics` with `type=pages`. In particular, the
         search page's `resultType` parameter isn't read here: use `type=pages`
         to search writing.
       operationId: search
@@ -63,7 +65,7 @@ paths:
             leads with the Economic Growth page. `countries`, `topics` and
             `requireAllCountries` apply to that chart search. Without a query,
             or when no chart matches, topic pages are searched by their own
-            text, filtered by `topics`. Topic pages come in two layouts (a
+            text, filtered by `topics` (`countries` doesn't apply there). Topic pages come in two layouts (a
             result's `type` is `topic-page` or `linear-topic-page`), and both
             are returned. `closestMatches` is never set on a `topics` response.
           required: false
@@ -218,6 +220,29 @@ paths:
                     nbHits: 104
                     offset: 0
                     length: 20
+                topicSearch:
+                  summary: Topic recommendations
+                  x-schema-ref: "#/components/schemas/PageSearchResponse"
+                  x-request-params:
+                    q: "gdp"
+                    type: "topics"
+                  value:
+                    query: "gdp"
+                    results:
+                      - type: "topic-page"
+                        slug: "economic-growth"
+                        title: "Economic Growth"
+                        content: "On this page, you can find all our data, visualizations, and writing on the topic."
+                        date: "2023-07-14T11:37:00.000Z"
+                        modifiedDate: "2026-06-19T18:14:04.000Z"
+                        thumbnailUrl: "https://ourworldindata.org/cdn-cgi/imagedelivery/qLq-8BTgXU8yG0N6HnOy8g/217caa41-002d-4436-52d9-a51501c42300/w=512"
+                        authors:
+                          - "Max Roser"
+                          - "Bertha Rohenkohl"
+                        url: "https://ourworldindata.org/economic-growth"
+                    nbHits: 40
+                    offset: 0
+                    length: 20
 
         "400":
           description: Bad request - invalid parameters
@@ -302,8 +327,9 @@ components:
             type: string
           description: |
             Present when the request carried parameters this endpoint doesn't
-            read. They were ignored; each warning names them and lists the
-            valid parameters. `utm_*` tracking tags never produce a warning.
+            read, or that the chosen `type` doesn't read. They were ignored;
+            each warning names them, and says which parameters or types they
+            belong to. `utm_*` tracking tags never produce a warning.
           example:
             - 'Ignored unknown parameter(s): "resultType". Valid parameters: type, q, countries, topics, requireAllCountries, pageTypes, page, hitsPerPage. Use "type=pages" to search writing, "type=topics" for topic pages, or "type=charts" for charts.'
 
@@ -404,7 +430,10 @@ components:
 
     PageSearchResponse:
       type: object
-      description: Response object for page/article search queries, containing search results and pagination metadata.
+      description: |
+        Response object for page searches (`type=pages`) and topic recommendations
+        (`type=topics`), containing search results and pagination metadata.
+        `closestMatches` is never set on a `type=topics` response.
       required:
         - query
         - results
@@ -458,8 +487,9 @@ components:
             type: string
           description: |
             Present when the request carried parameters this endpoint doesn't
-            read. They were ignored; each warning names them and lists the
-            valid parameters. `utm_*` tracking tags never produce a warning.
+            read, or that the chosen `type` doesn't read. They were ignored;
+            each warning names them, and says which parameters or types they
+            belong to. `utm_*` tracking tags never produce a warning.
           example:
             - 'Ignored unknown parameter(s): "resultType". Valid parameters: type, q, countries, topics, requireAllCountries, pageTypes, page, hitsPerPage. Use "type=pages" to search writing, "type=topics" for topic pages, or "type=charts" for charts.'
 

@@ -300,7 +300,7 @@ describe(recommendTopicPages, () => {
             filters: [{ type: FilterType.TOPIC, name: "Health" }],
             requireAllCountries: false,
         },
-        tagGraph,
+        loadTagGraph: (): Promise<TagGraphRoot> => Promise.resolve(tagGraph),
         attributesToRetrieve: ["title", "slug"],
         offset: 0,
         length: 10,
@@ -333,14 +333,19 @@ describe(recommendTopicPages, () => {
         expect(textRequest.removeWordsIfNoResults).toBeUndefined()
     })
 
-    it("goes straight to the text search without a query", async () => {
+    it("goes straight to the text search without a query, never loading the tag graph", async () => {
         const client = makeClient([{ hits: [], nbHits: 0 }])
+        const loadTagGraph = vi.fn((): Promise<TagGraphRoot> =>
+            Promise.resolve(tagGraph)
+        )
 
         await recommendTopicPages<MockHit>(client as never, {
             ...params,
             state: { ...params.state, query: " " },
+            loadTagGraph,
         })
 
+        expect(loadTagGraph).not.toHaveBeenCalled()
         expect(client.searchForHits).toHaveBeenCalledOnce()
         const [textRequest] = client.searchForHits.mock.calls[0][0]
         expect(textRequest.indexName).toBe("pages")

@@ -44,6 +44,20 @@ const KNOWN_PARAMS = new Set<string>([
     "hitsPerPage",
 ])
 
+// The parameters only some search types read. A request that sends one to a
+// type that doesn't read it gets a warning instead of a silently different
+// answer (e.g. a type=pages search with `topics`, which only filters charts
+// and topic recommendations).
+const PARAMS_BY_TYPE: Record<string, readonly SearchType[]> = {
+    [SearchUrlParam.COUNTRY]: ["charts", "topics"],
+    [SearchUrlParam.TOPIC]: ["charts", "topics"],
+    [SearchUrlParam.REQUIRE_ALL_COUNTRIES]: ["charts", "topics"],
+    pageTypes: ["pages"],
+}
+
+const isSearchType = (value: string): value is SearchType =>
+    (SEARCH_TYPES as readonly string[]).includes(value)
+
 // Hints for parameters people carry over from the search page's URL.
 const PARAM_HINTS: Record<string, string> = {
     [SearchUrlParam.RESULT_TYPE]:
@@ -80,27 +94,8 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
             )
         }
 
-        // utm_* tags are expected noise, not mistakes worth a warning
-        const unknownParams = [...new Set(url.searchParams.keys())].filter(
-            (param) => !KNOWN_PARAMS.has(param) && !param.startsWith("utm_")
-        )
-        const warnings =
-            unknownParams.length > 0
-                ? [
-                      [
-                          `Ignored unknown parameter(s): "${unknownParams.join('", "')}". Valid parameters: ${Array.from(KNOWN_PARAMS).join(", ")}.`,
-                          ...unknownParams
-                              .map((param) => PARAM_HINTS[param])
-                              .filter(Boolean),
-                      ].join(" "),
-                  ]
-                : undefined
-
-        // Determine search type
-        const searchType: SearchType =
-            (url.searchParams.get("type") as SearchType) || "charts"
-
-        if (!SEARCH_TYPES.includes(searchType)) {
+        const typeParam = url.searchParams.get("type") || "charts"
+        if (!isSearchType(typeParam)) {
             return new Response(
                 JSON.stringify({
                     error: "Invalid type parameter",
@@ -115,6 +110,33 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
                 }
             )
         }
+        const searchType = typeParam
+
+        // utm_* tags are expected noise, not mistakes worth a warning
+        const sentParams = [...new Set(url.searchParams.keys())]
+        const unknownParams = sentParams.filter(
+            (param) => !KNOWN_PARAMS.has(param) && !param.startsWith("utm_")
+        )
+        const unusedParams = sentParams.filter(
+            (param) => PARAMS_BY_TYPE[param]?.includes(searchType) === false
+        )
+        const warningList = [
+            ...(unknownParams.length > 0
+                ? [
+                      [
+                          `Ignored unknown parameter(s): "${unknownParams.join('", "')}". Valid parameters: ${Array.from(KNOWN_PARAMS).join(", ")}.`,
+                          ...unknownParams
+                              .map((param) => PARAM_HINTS[param])
+                              .filter(Boolean),
+                      ].join(" "),
+                  ]
+                : []),
+            ...unusedParams.map(
+                (param) =>
+                    `Ignored parameter "${param}": it applies only to ${PARAMS_BY_TYPE[param].map((type) => `type=${type}`).join(" and ")}.`
+            ),
+        ]
+        const warnings = warningList.length > 0 ? warningList : undefined
 
         // Parse query parameter
         const query = url.searchParams.get(SearchUrlParam.QUERY) || ""
@@ -126,13 +148,14 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
             url.searchParams.get(SearchUrlParam.REQUIRE_ALL_COUNTRIES) ===
             "true"
 
-        // Which gdoc content types to include (only applies when
-        // type=pages, e.g. "data-insight" or "article,about-page"). Omitted
-        // -> searchPages()'s own default (article + about-page), so existing
-        // callers see no change. Validated upfront against the full gdoc
-        // type enum (a static, compile-time list — unlike topics, which are
-        // dynamic data and so are validated lazily against a live lookup).
-        const pageTypesParam = url.searchParams.get("pageTypes")
+        // Which gdoc content types to include (type=pages only, e.g.
+        // "data-insight" or "article,about-page"). Omitted -> searchPages()'s
+        // own default (article + about-page). Validated upfront against the
+        // full gdoc type enum (a static, compile-time list — unlike topics,
+        // which are dynamic data and so are validated lazily against a live
+        // lookup).
+        const pageTypesParam =
+            searchType === "pages" ? url.searchParams.get("pageTypes") : null
         let pageTypes: string[] | undefined
         if (pageTypesParam) {
             pageTypes = pageTypesParam
@@ -231,19 +254,18 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         // Extract base URL from request (for staging/preview deployments)
         const baseUrl = `${url.protocol}//${url.host}`
 
-        // Perform search based on type
-        const results =
-            searchType === "topics"
-                ? await searchTopicPages(
-                      algoliaConfig,
-                      searchState,
-                      await fetchTagGraph(env, baseUrl),
-                      page * hitsPerPage, // Convert page to offset
-                      hitsPerPage,
-                      baseUrl
-                  )
-                : searchType === "pages"
-                  ? await searchPages(
+        const search = (): Promise<object> => {
+            switch (searchType) {
+                case "charts":
+                    return searchCharts(
+                        algoliaConfig,
+                        searchState,
+                        page,
+                        hitsPerPage,
+                        baseUrl
+                    )
+                case "pages":
+                    return searchPages(
                         algoliaConfig,
                         query,
                         page * hitsPerPage, // Convert page to offset
@@ -251,13 +273,18 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
                         pageTypes, // undefined -> searchPages()'s own default
                         baseUrl
                     )
-                  : await searchCharts(
+                case "topics":
+                    return searchTopicPages(
                         algoliaConfig,
                         searchState,
-                        page,
+                        () => fetchTagGraph(env, baseUrl),
+                        page * hitsPerPage, // Convert page to offset
                         hitsPerPage,
                         baseUrl
                     )
+            }
+        }
+        const results = await search()
 
         return new Response(JSON.stringify({ ...results, warnings }, null, 2), {
             status: 200,

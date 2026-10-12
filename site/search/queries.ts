@@ -311,7 +311,7 @@ export async function queryTopicPages(
         chartsIndexName: CHARTS_INDEX,
         pagesIndexName: PAGES_INDEX,
         state,
-        tagGraph,
+        loadTagGraph: () => Promise.resolve(tagGraph),
         attributesToRetrieve: TOPIC_PAGE_ATTRIBUTES,
         offset,
         length,
