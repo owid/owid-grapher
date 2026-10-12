@@ -627,12 +627,25 @@ export async function renderSvg({
     return Promise.resolve([svg, svgRecord, preparedSvg])
 }
 
+/** Guids are disabled in the SVG tester, so faceted charts render several clip
+    paths named boundsClip-1, and every url(#boundsClip-1) would resolve to the
+    first one. Give each clip path its own number and point every reference at
+    the closest clip path defined before it. */
+export function numberBoundsClipPaths(svg: string): string {
+    let count = 0
+    return svg.replace(/id="boundsClip-1"|url\(#boundsClip-1\)/g, (match) =>
+        match.startsWith("id=")
+            ? `id="boundsClip-${++count}"`
+            : `url(#boundsClip-${count})`
+    )
+}
+
 function prepareSvgForComparison(svg: string): string {
     // React renders the whole svg onto a single line, and the line diff in the
     // admin needs lines to work with, so break it up one tag per line. `><`
     // only ever occurs at a tag boundary because React escapes `>` in text and
     // in attributes.
-    return svg.replaceAll("><", ">\n<")
+    return numberBoundsClipPaths(svg).replaceAll("><", ">\n<")
 }
 
 export interface RenderSvgAndSaveJobDescription {
