@@ -9,7 +9,6 @@ export interface EmbedConfig {
     hideMetadataModal: boolean
 }
 
-/** Parse rules for the `EmbedConfig` flags, applied to every bundle's config */
 export const EMBED_CONFIG_SPEC = {
     urlSync: {
         type: "boolean",
