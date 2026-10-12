@@ -70,8 +70,8 @@ export const CONFIG_SPEC = {
     },
     year: {
         type: "integer",
-        default: "2024",
-        description: "Year shown first",
+        description:
+            "Year shown first. Defaults to the latest year in the data",
     },
     flow: {
         type: "enum",

@@ -50,6 +50,9 @@ import { MigrationControls } from "../components/MigrationControls.js"
 
 const USER_LOCATION_FALLBACK_COUNTRY = "United States"
 
+/** Sentinel year that resolves to the latest year in the data */
+const LATEST_YEAR = -1
+
 const queryClient = new QueryClient()
 
 export function SankeyVariant({
@@ -95,10 +98,10 @@ function FetchingSankeyVariant({
         parser: parseAsString,
         defaultValue: initialCountry,
     })
-    const [year, setYear] = useUrlState({
+    const [requestedYear, setYear] = useUrlState({
         key: "migrationYear",
         parser: parseAsInteger,
-        defaultValue: config.year,
+        defaultValue: config.year ?? LATEST_YEAR,
     })
     const [sex, setSex] = useUrlState({
         key: "migrationSex",
@@ -118,6 +121,11 @@ function FetchingSankeyVariant({
     const { data: metadata, status: metadataStatus } = useMigrationMetadata(
         urls.metadataUrl
     )
+
+    const year =
+        metadata && !metadata.times.includes(requestedYear)
+            ? (R.last(metadata.times) ?? requestedYear)
+            : requestedYear
 
     const availableCountryNames = useMemo(
         () =>
