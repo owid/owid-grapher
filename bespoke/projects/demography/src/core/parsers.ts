@@ -1,7 +1,5 @@
 import { CONTROL_YEARS } from "./constants.js"
 
-/** Parse a comma-separated string of numbers into a Record keyed by CONTROL_YEARS.
- *  Empty entries (e.g. ",,1.5") are skipped so they fall back to UN WPP defaults. */
 export function parseControlPoints(
     csv: string
 ): Record<number, number> | undefined {

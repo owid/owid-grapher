@@ -4,13 +4,6 @@ import { useUserCountryInformation } from "../../../../hooks/useUserCountryInfor
 import { DEFAULT_ENTITY_NAME } from "./constants.js"
 import { useDemographyMetadata } from "./fetch.js"
 
-/**
- * Resolve the initial entity name from config.
- *
- * - If `configRegion` is a specific name, use it directly.
- * - If `configRegion` is "userLocation", detect the user's country
- *   and use it if available in the metadata. Falls back to the default.
- */
 export function useInitialEntityName(
     configRegion: string,
     metadataUrl: string
