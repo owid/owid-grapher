@@ -113,9 +113,7 @@ function UsageCell({
     const multiDims = variable.multiDims ?? []
     const explorerSlugs = variable.explorerSlugs ?? []
 
-    // a copy, and not `toSorted`: the admin bundle loads no polyfills, and
-    // some supported browsers lack it
-    const sortedCharts = [...charts].sort((a, b) =>
+    const sortedCharts = charts.toSorted((a, b) =>
         (a.slug || "").localeCompare(b.slug || "")
     )
 
