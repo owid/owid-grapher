@@ -79,6 +79,10 @@ export class ChartDimension
     }
 
     updateFromObject(obj: OwidChartDimensionInterface): void {
+        if (obj.variableId !== undefined && obj.slug !== undefined)
+            console.warn(
+                "A dimension names both a variableId and a slug. Using the variableId and ignoring the slug, so the column is named after the indicator."
+            )
         if (obj.display) updatePersistables(this, { display: obj.display })
 
         this.property = obj.property

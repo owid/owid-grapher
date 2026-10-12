@@ -2,7 +2,10 @@ import { describe, expect, it } from "vitest"
 
 import { ChartDimension } from "./ChartDimension"
 import { BlankOwidTable } from "@ourworldindata/core-table"
-import { DimensionProperty } from "@ourworldindata/utils"
+import {
+    DimensionProperty,
+    type OwidChartDimensionInterface,
+} from "@ourworldindata/utils"
 
 it("can serialize for saving", () => {
     expect(
@@ -40,6 +43,20 @@ describe("a slot naming a column with slug", () => {
             { property: DimensionProperty.y, variableId: 815383 },
             manager
         )
+        expect(dimension.columnSlug).toBe("815383")
+        expect(dimension.toObject()).toEqual({
+            property: DimensionProperty.y,
+            variableId: 815383,
+        })
+    })
+
+    it("drops the slug when a slot names both a variable id and a slug", () => {
+        const config = {
+            property: DimensionProperty.y,
+            variableId: 815383,
+            slug: "rent_index",
+        } as unknown as OwidChartDimensionInterface
+        const dimension = new ChartDimension(config, manager)
         expect(dimension.columnSlug).toBe("815383")
         expect(dimension.toObject()).toEqual({
             property: DimensionProperty.y,
