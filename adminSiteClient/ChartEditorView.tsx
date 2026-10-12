@@ -12,7 +12,6 @@ import {
     comparer,
     when,
 } from "mobx"
-import { Prompt } from "react-router-dom"
 import {
     Bounds,
     DetailDictionary,
@@ -384,10 +383,6 @@ export class ChartEditorView extends React.Component<ChartEditorViewProps> {
 
         return (
             <>
-                <Prompt
-                    when={editor.isModified}
-                    message="Are you sure you want to leave? Unsaved changes will be lost."
-                />
                 <div className="chart-editor-settings">
                     <div className="p-2">
                         <ul className="nav nav-tabs">

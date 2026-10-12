@@ -122,6 +122,49 @@ describe(ConfigEditor, () => {
             title: "Edited title",
         })
     })
+
+    it("tells the host when unsaved changes appear and when a save clears them", async () => {
+        const onDirtyChange = vi.fn<(isModified: boolean) => void>()
+        const editor = makeEditor({ onDirtyChange })
+        // makeEditor marks its starting config as saved
+        onDirtyChange.mockClear()
+
+        runInAction(() => {
+            editor.grapherState.title = "Edited title"
+        })
+        runInAction(() => {
+            editor.grapherState.title = "Edited title, again"
+        })
+        await editor.saveGrapher()
+
+        expect(onDirtyChange.mock.calls).toEqual([[true], [false]])
+    })
+})
+
+describe("ConfigEditor tab in the URL", () => {
+    const urlWithTab = "/charts/1/edit?tab=text"
+
+    it("leaves the host page's URL alone by default", () => {
+        window.history.replaceState({}, "", urlWithTab)
+        const editor = makeEditor()
+        expect(editor.tab).toBe("basic")
+
+        runInAction(() => {
+            editor.tab = "customize"
+        })
+        expect(window.location.search).toBe("?tab=text")
+    })
+
+    it("opens on the URL's tab and keeps it updated when the host syncs it", () => {
+        window.history.replaceState({}, "", urlWithTab)
+        const editor = makeEditor({ syncTabWithUrl: true })
+        expect(editor.tab).toBe("text")
+
+        runInAction(() => {
+            editor.tab = "customize"
+        })
+        expect(window.location.search).toBe("?tab=customize")
+    })
 })
 
 function makeControlledStore(): {

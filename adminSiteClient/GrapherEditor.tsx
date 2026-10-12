@@ -9,7 +9,7 @@ import {
     EditorExtraTab,
     EditorTabName,
 } from "./ConfigEditor.js"
-import { DetailsProvider } from "./editorProviders.js"
+import { DetailsProvider, EditorEnvironment } from "./editorProviders.js"
 import { IndicatorStore } from "./indicatorStores.js"
 
 export interface GrapherEditorProps {
@@ -19,10 +19,15 @@ export interface GrapherEditorProps {
 
     store: IndicatorStore
     details?: DetailsProvider
+    /** Defaults to OWID's public servers */
+    environment?: EditorEnvironment
     scatterDefaults?: ConfigEditorManager["scatterDefaults"]
+    indicatorUrl?: ConfigEditorManager["indicatorUrl"]
 
     onSave: ConfigEditorManager["onSave"]
     onChange?: ConfigEditorManager["onChange"]
+    /** Called when the config gains or loses unsaved changes */
+    onDirtyChange?: ConfigEditorManager["onDirtyChange"]
 
     /** Default editor tabs to show */
     tabs?: EditorTabName[]
@@ -33,6 +38,7 @@ export interface GrapherEditorProps {
 
     renderNote?: ConfigEditorManager["renderNote"]
     originUrlSuggestions?: ConfigEditorManager["originUrlSuggestions"]
+    syncTabWithUrl?: ConfigEditorManager["syncTabWithUrl"]
 }
 
 @observer
@@ -65,8 +71,16 @@ export class GrapherEditor
         return this.props.details
     }
 
+    get environment(): EditorEnvironment | undefined {
+        return this.props.environment
+    }
+
     get scatterDefaults(): ConfigEditorManager["scatterDefaults"] {
         return this.props.scatterDefaults
+    }
+
+    get indicatorUrl(): ConfigEditorManager["indicatorUrl"] {
+        return this.props.indicatorUrl
     }
 
     get onSave(): ConfigEditorManager["onSave"] {
@@ -75,6 +89,10 @@ export class GrapherEditor
 
     get onChange(): ConfigEditorManager["onChange"] {
         return this.props.onChange
+    }
+
+    get onDirtyChange(): ConfigEditorManager["onDirtyChange"] {
+        return this.props.onDirtyChange
     }
 
     get tabs(): EditorTabName[] | undefined {
@@ -99,6 +117,10 @@ export class GrapherEditor
 
     get originUrlSuggestions(): ConfigEditorManager["originUrlSuggestions"] {
         return this.props.originUrlSuggestions
+    }
+
+    get syncTabWithUrl(): ConfigEditorManager["syncTabWithUrl"] {
+        return this.props.syncTabWithUrl
     }
 
     private _editor: ConfigEditor | undefined = undefined

@@ -15,17 +15,16 @@ import { Admin } from "./Admin.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { AdminLayout } from "./AdminLayout.js"
 import { LoadingBlocker } from "./Forms.js"
-import { GrapherEditor } from "./GrapherEditor.js"
+import { AdminGrapherEditor } from "./AdminGrapherEditor.js"
 import { ConfigEditor } from "./ConfigEditor.js"
 import { NarrativeChartSaveButtons } from "./NarrativeChartSaveButtons.js"
 import { NotFoundPage } from "./NotFoundPage.js"
 import {
     adminDetailsProvider,
-    adminIndicatorCatalog,
-    defaultEditorEnvironment,
-    DetailsProvider,
-} from "./editorProviders.js"
-import { dataApiIndicatorStore, IndicatorStore } from "./indicatorStores.js"
+    adminIndicatorStore,
+} from "./adminEditorProviders.js"
+import { DetailsProvider } from "./editorProviders.js"
+import { IndicatorStore } from "./indicatorStores.js"
 import { makeNarrativeChartPatchConfig } from "./narrativeChartConfig.js"
 
 export function CreateNarrativeChartEditorPage() {
@@ -85,10 +84,7 @@ class CreateNarrativeChartEditorPageInternal extends React.Component<CreateNarra
     }
 
     @computed get store(): IndicatorStore {
-        return dataApiIndicatorStore({
-            dataApiUrl: defaultEditorEnvironment.dataApiUrl,
-            catalog: adminIndicatorCatalog(this.admin),
-        })
+        return adminIndicatorStore(this.admin)
     }
 
     @computed get details(): DetailsProvider {
@@ -170,7 +166,7 @@ class CreateNarrativeChartEditorPageInternal extends React.Component<CreateNarra
 
     private renderEditor(): React.ReactElement {
         return (
-            <GrapherEditor
+            <AdminGrapherEditor
                 config={{}}
                 baseConfig={this.parentConfig}
                 initialQueryParams={this.initialQueryParams}

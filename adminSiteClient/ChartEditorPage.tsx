@@ -20,7 +20,7 @@ import { Admin } from "./Admin.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { AdminLayout } from "./AdminLayout.js"
 import { LoadingBlocker, Timeago } from "./Forms.js"
-import { GrapherEditor } from "./GrapherEditor.js"
+import { AdminGrapherEditor } from "./AdminGrapherEditor.js"
 import {
     ConfigEditor,
     EditorExtraTab,
@@ -43,13 +43,12 @@ import {
 } from "./adminChartApi.js"
 import {
     adminDetailsProvider,
-    adminIndicatorCatalog,
+    adminIndicatorStore,
     adminOriginUrlSuggestions,
     adminScatterDefaults,
-    defaultEditorEnvironment,
-    DetailsProvider,
-} from "./editorProviders.js"
-import { dataApiIndicatorStore, IndicatorStore } from "./indicatorStores.js"
+} from "./adminEditorProviders.js"
+import { DetailsProvider } from "./editorProviders.js"
+import { IndicatorStore } from "./indicatorStores.js"
 import { makeNarrativeChartPatchConfig } from "./narrativeChartConfig.js"
 import {
     GDP_PER_CAPITA_CATALOG_PATH,
@@ -121,10 +120,7 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
     }
 
     @computed get store(): IndicatorStore {
-        return dataApiIndicatorStore({
-            dataApiUrl: defaultEditorEnvironment.dataApiUrl,
-            catalog: adminIndicatorCatalog(this.admin),
-        })
+        return adminIndicatorStore(this.admin)
     }
 
     @computed get details(): DetailsProvider {
@@ -562,7 +558,7 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
 
     private renderEditor(): React.ReactElement {
         return (
-            <GrapherEditor
+            <AdminGrapherEditor
                 key={this.props.grapherId ?? "new"}
                 config={this.patchConfig}
                 baseConfig={this.baseConfig}

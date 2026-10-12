@@ -12,7 +12,7 @@ import { Admin } from "./Admin.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { AdminLayout } from "./AdminLayout.js"
 import { LoadingBlocker, Section } from "./Forms.js"
-import { GrapherEditor } from "./GrapherEditor.js"
+import { AdminGrapherEditor } from "./AdminGrapherEditor.js"
 import {
     ConfigEditor,
     EditorExtraTab,
@@ -23,13 +23,12 @@ import { NarrativeChartSaveButtons } from "./NarrativeChartSaveButtons.js"
 import { getFullReferencesCount, References } from "./adminChartApi.js"
 import {
     adminDetailsProvider,
-    adminIndicatorCatalog,
+    adminIndicatorStore,
     adminOriginUrlSuggestions,
     adminScatterDefaults,
-    defaultEditorEnvironment,
-    DetailsProvider,
-} from "./editorProviders.js"
-import { dataApiIndicatorStore, IndicatorStore } from "./indicatorStores.js"
+} from "./adminEditorProviders.js"
+import { DetailsProvider } from "./editorProviders.js"
+import { IndicatorStore } from "./indicatorStores.js"
 import { makeNarrativeChartPatchConfig } from "./narrativeChartConfig.js"
 
 interface NarrativeChartEditorPageProps {
@@ -90,10 +89,7 @@ export class NarrativeChartEditorPage extends React.Component<NarrativeChartEdit
     }
 
     @computed get store(): IndicatorStore {
-        return dataApiIndicatorStore({
-            dataApiUrl: defaultEditorEnvironment.dataApiUrl,
-            catalog: adminIndicatorCatalog(this.admin),
-        })
+        return adminIndicatorStore(this.admin)
     }
 
     @computed get details(): DetailsProvider {
@@ -206,7 +202,7 @@ export class NarrativeChartEditorPage extends React.Component<NarrativeChartEdit
 
     private renderEditor(): React.ReactElement {
         return (
-            <GrapherEditor
+            <AdminGrapherEditor
                 key={this.props.narrativeChartId}
                 config={this.patchConfig}
                 baseConfig={this.parentConfig}

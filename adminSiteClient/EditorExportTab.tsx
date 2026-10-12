@@ -12,7 +12,6 @@ import { Section, Toggle } from "./Forms.js"
 import { GrapherState } from "@ourworldindata/grapher"
 import { triggerDownloadFromBlob } from "@ourworldindata/utils"
 import { ConfigEditor } from "./ConfigEditor.js"
-import { ETL_WIZARD_URL } from "../settings/clientSettings.mjs"
 import { faHatWizard, faDownload } from "@fortawesome/free-solid-svg-icons"
 import { Button } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -218,9 +217,11 @@ export class EditorExportTab extends Component<EditorExportTabProps> {
         }
     }
 
-    override render() {
+    @computed private get chartAnimationUrl(): URL | undefined {
+        const { etlWizardUrl } = this.props.editor.environment
+        if (!etlWizardUrl) return undefined
         const chartAnimationUrl = new URL(
-            urljoin(ETL_WIZARD_URL, "chart-animation")
+            urljoin(etlWizardUrl, "chart-animation")
         )
         if (this.grapherState.canonicalUrl)
             chartAnimationUrl.searchParams.set(
@@ -232,6 +233,11 @@ export class EditorExportTab extends Component<EditorExportTabProps> {
         //     "animation_chart_tab",
         //     this.grapher.tab ?? ""
         // )
+        return chartAnimationUrl
+    }
+
+    override render() {
+        const { chartAnimationUrl } = this
 
         return (
             <div className="EditorExportTab">
@@ -339,7 +345,7 @@ export class EditorExportTab extends Component<EditorExportTabProps> {
                 </Section>
 
                 {/* Link to Wizard dataset preview */}
-                {this.grapherState.isPublished && (
+                {this.grapherState.isPublished && chartAnimationUrl && (
                     <Section name="Animate chart">
                         <a
                             href={chartAnimationUrl.toString()}

@@ -1,6 +1,8 @@
-/* Chart editor styling */
+/* Chart editor styling. Plain CSS is imported without its `.css` extension so
+   Sass inlines it: a `.css` import stays an `@import` rule, which the
+   grapher-editor package build can't resolve. Fonts are linked from
+   adminSiteServer/IndexPage.tsx instead, so the package doesn't ship them. */
 
-@import "../public/fonts.css";
 @import "bootstrap/scss/bootstrap";
 
 // Bare `section` also matches the react-aria dialogs grapher renders inside an
@@ -19,10 +21,10 @@ $admin-section: "section:not(:where(.GrapherComponent *))";
 }
 @import "styles/react-tag-autocomplete";
 
-@import "tippy.js/dist/tippy.css";
-@import "tippy.js/themes/light.css";
+@import "tippy.js/dist/tippy";
+@import "tippy.js/themes/light";
 
-@import "react-querybuilder/dist/query-builder.css";
+@import "react-querybuilder/dist/query-builder";
 
 @import "../packages/@ourworldindata/components/src/styles/colors.scss";
 @import "../packages/@ourworldindata/components/src/styles/variables.scss";
@@ -30,6 +32,7 @@ $admin-section: "section:not(:where(.GrapherComponent *))";
 @import "../packages/@ourworldindata/components/src/styles/typography-constants.scss";
 @import "../packages/@ourworldindata/components/src/styles/typography.scss";
 
+@import "./AdminColorPicker.scss";
 @import "./GdocsIndexPage.scss";
 @import "./FeaturedMetricsPage.scss";
 @import "./FilesIndexPage.scss";

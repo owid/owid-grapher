@@ -74,12 +74,17 @@ export interface ConfigEditorManager {
     store?: IndicatorStore
     environment?: EditorEnvironment
     scatterDefaults?: OwidChartDimensionInterface[]
+    /** Where an indicator's name links to; without it, names are plain text */
+    indicatorUrl?: (
+        dimension: OwidChartDimensionInterface
+    ) => string | undefined
 
     onSave: (
         config: GrapherInterface,
         editor: ConfigEditor
     ) => void | GrapherInterface | Promise<void | GrapherInterface>
     onChange?: (config: GrapherInterface, editor: ConfigEditor) => void
+    onDirtyChange?: (isModified: boolean) => void
 
     tabs?: EditorTabName[]
     extraTabs?: EditorExtraTab[]
@@ -90,10 +95,13 @@ export interface ConfigEditorManager {
 
     renderNote?: (slot: EditorNoteSlot) => ReactNode
     originUrlSuggestions?: OriginUrlSuggestion[]
+    /** Mirror the active tab in the page's `?tab=` query param */
+    syncTabWithUrl?: boolean
 }
 
 export class ConfigEditor {
     manager: ConfigEditorManager
+    environment: EditorEnvironment
     store: IndicatorStore
 
     grapherState: GrapherState
@@ -110,20 +118,22 @@ export class ConfigEditor {
 
     constructor(props: { manager: ConfigEditorManager }) {
         this.manager = props.manager
-        const environment = this.manager.environment ?? defaultEditorEnvironment
+        this.environment = this.manager.environment ?? defaultEditorEnvironment
         this.store =
             this.manager.store ??
-            dataApiIndicatorStore({ dataApiUrl: environment.dataApiUrl })
+            dataApiIndicatorStore({ dataApiUrl: this.environment.dataApiUrl })
 
         this.grapherState = new GrapherState({
             additionalDataLoaderFn: (catalogKey) =>
                 loadCatalogData(catalogKey, {
-                    baseUrl: environment.catalogUrl,
+                    baseUrl: this.environment.catalogUrl,
                 }),
         })
         this.baseConfig = nonEmptyConfig(this.manager.baseConfig)
 
-        this.tab = this.tabFromUrl() ?? "basic"
+        this.tab =
+            (this.manager.syncTabWithUrl ? this.tabFromUrl() : undefined) ??
+            "basic"
 
         makeObservable(this, {
             grapherState: observable.ref,
@@ -146,10 +156,17 @@ export class ConfigEditor {
                 { equals: comparer.structural }
             ),
             reaction(
-                () => this.tab,
-                (tab) => writeTabToUrl(tab)
+                () => this.isModified,
+                (isModified) => this.manager.onDirtyChange?.(isModified)
             )
         )
+        if (this.manager.syncTabWithUrl)
+            this.disposers.push(
+                reaction(
+                    () => this.tab,
+                    (tab) => writeTabToUrl(tab)
+                )
+            )
     }
 
     @action.bound private rebaseEdits(
