@@ -1,3 +1,5 @@
+import type { BespokeMetadata } from "@ourworldindata/types"
+
 export type VariantName = "sankey"
 
 export const SEXES = ["both", "female", "male"] as const
@@ -18,6 +20,7 @@ export type MigrationMetadata = {
     source: string
     entities: Entity[]
     genders: GenderOption[]
+    provenance: BespokeMetadata | undefined
 }
 
 export type MigrationRow = {
