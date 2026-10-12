@@ -1,7 +1,12 @@
 import { createRoot } from "react-dom/client"
 import { enableShadowDOM } from "@react-stately/flags"
 
-import { MIGRATION_VIEWS, SEXES, VariantName } from "./core/types.js"
+import {
+    DEFAULT_COUNTRY,
+    MIGRATION_VIEWS,
+    SEXES,
+    VariantName,
+} from "./core/types.js"
 import { SankeyVariant } from "./variants/SankeyVariant"
 
 import type {
@@ -41,9 +46,9 @@ export const CONFIG_SPEC = {
     },
     country: {
         type: "string",
-        default: "United States",
+        default: DEFAULT_COUNTRY,
         description:
-            "Country shown first. `userLocation` picks the reader's country, or United States if the data doesn't have it",
+            "Country shown first, or United States if the data doesn't have it. `userLocation` picks the reader's country",
     },
     year: {
         type: "integer",

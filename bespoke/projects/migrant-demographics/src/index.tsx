@@ -11,6 +11,7 @@ import StylesTarget from "vite-plugin-css-position/react"
 
 import { ConfigFromSpec, parseConfigFromSpec } from "../../../helpers/config.js"
 
+import { DEFAULT_COUNTRY } from "./core/constants.js"
 import { SHOW_MODES, VariantName } from "./core/types.js"
 import { PyramidVariant } from "./variants/PyramidVariant.js"
 
@@ -39,9 +40,9 @@ export const CONFIG_SPEC = {
     },
     country: {
         type: "string",
-        default: "United States",
+        default: DEFAULT_COUNTRY,
         description:
-            "Country shown first. `userLocation` picks the reader's country, or United States if the data doesn't have it",
+            "Country shown first, or United States if the data doesn't have it. `userLocation` picks the reader's country",
     },
     year: {
         type: "integer",

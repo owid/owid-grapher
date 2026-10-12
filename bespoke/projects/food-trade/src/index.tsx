@@ -1,6 +1,7 @@
 import { createRoot } from "react-dom/client"
 import { enableShadowDOM } from "@react-stately/flags"
 
+import { ALL_COUNTRIES } from "./core/helpers.js"
 import { FLOWS, VariantName } from "./core/types.js"
 import { SankeyVariant } from "./variants/SankeyVariant"
 
@@ -47,9 +48,9 @@ export const CONFIG_SPEC = {
     },
     country: {
         type: "string",
-        default: "All countries",
+        default: ALL_COUNTRIES,
         description:
-            "Country shown first. `userLocation` picks the reader's country, or All countries if the data doesn't have it",
+            "Country shown first, or All countries if the data doesn't have it. `userLocation` picks the reader's country",
     },
     flow: {
         type: "enum",

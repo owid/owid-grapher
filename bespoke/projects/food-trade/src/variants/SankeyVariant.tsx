@@ -35,6 +35,7 @@ import { useUrlState } from "../../../../hooks/useUrlState.js"
 import { EmbedConfigProvider } from "../../../../hooks/useEmbedConfig.js"
 import { useDelayedLoading } from "../../../../hooks/useDelayedLoading.js"
 import { useContainerWidth } from "../../../../hooks/useContainerWidth.js"
+import { useAvailableEntityName } from "../../../../hooks/useAvailableEntityName.js"
 import {
     isUserLocationCountry,
     useResolveUserLocation,
@@ -86,7 +87,7 @@ function FetchingSankeyVariant({
         parser: parseAsString,
         defaultValue: config.product,
     })
-    const [country, _setCountry] = useUrlState({
+    const [requestedCountry, _setCountry] = useUrlState({
         key: "foodTradeCountry",
         parser: parseAsString,
         defaultValue: initialCountry,
@@ -99,6 +100,19 @@ function FetchingSankeyVariant({
 
     const { data: metadata, status: metadataStatus } = useFoodTradeMetadata(
         urls.metadataUrl
+    )
+    const availableCountryNames = useMemo(
+        () =>
+            metadata
+                ? new Set(metadata.entities.map((e) => e.name))
+                : undefined,
+        [metadata]
+    )
+    const country = useAvailableEntityName(
+        requestedCountry,
+        [config.country, ALL_COUNTRIES],
+        availableCountryNames &&
+            ((name) => isAllCountry(name) || availableCountryNames.has(name))
     )
     const productId = metadata?.productByName.get(product)?.id
     const {
@@ -137,13 +151,6 @@ function FetchingSankeyVariant({
         [_setCountry, setView]
     )
 
-    const availableCountryNames = useMemo(
-        () =>
-            metadata
-                ? new Set(metadata.entities.map((e) => e.name))
-                : undefined,
-        [metadata]
-    )
     const { isResolved: isCountryResolved } = useResolveUserLocation({
         configCountry: config.country,
         availableCountryNames,

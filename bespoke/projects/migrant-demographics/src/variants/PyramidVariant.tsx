@@ -23,6 +23,7 @@ import {
     isUserLocationCountry,
     useResolveUserLocation,
 } from "../../../../hooks/useResolveUserLocation.js"
+import { useAvailableEntityName } from "../../../../hooks/useAvailableEntityName.js"
 import { formatEntityNameForSentence } from "../../../../helpers/entityNames.js"
 import { combineStatuses } from "../../../../helpers/queryStatus.js"
 
@@ -45,7 +46,7 @@ import {
     formatCountLong,
     formatSexShare,
 } from "../core/helpers.js"
-import { FALLBACK_COUNTRY, NARROW_BREAKPOINT } from "../core/constants.js"
+import { DEFAULT_COUNTRY, NARROW_BREAKPOINT } from "../core/constants.js"
 import { MigrantPyramid } from "../components/MigrantPyramid.js"
 import { PyramidControls } from "../components/PyramidControls.js"
 
@@ -72,10 +73,10 @@ function FetchingPyramidVariant({
     urls: BespokeComponentDataUrls
 }): React.ReactElement {
     const initialCountry = isUserLocationCountry(config.country)
-        ? FALLBACK_COUNTRY
+        ? DEFAULT_COUNTRY
         : config.country
 
-    const [country, setCountry] = useUrlState({
+    const [requestedCountry, setCountry] = useUrlState({
         key: "migrantPyramidCountry",
         parser: parseAsString,
         defaultValue: initialCountry,
@@ -99,11 +100,11 @@ function FetchingPyramidVariant({
     const { data: metadata, status: metadataStatus } =
         useMigrantDemographicsMetadata(urls.metadataUrl)
 
-    // Fall back gracefully when the config or URL asks for something the
-    // data doesn't have
-    const selectedCountry = metadata?.hasEntity(country)
-        ? country
-        : FALLBACK_COUNTRY
+    const selectedCountry = useAvailableEntityName(
+        requestedCountry,
+        [config.country, DEFAULT_COUNTRY],
+        metadata && ((name) => metadata.hasEntity(name))
+    )
 
     const {
         data: entityYears,

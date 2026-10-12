@@ -16,7 +16,7 @@ import {
     useSimulation,
     computeScenarioOverrides,
 } from "../core/useSimulation.js"
-import { CHART_FOOTER_SOURCES } from "../core/constants.js"
+import { CHART_FOOTER_SOURCES, DEFAULT_ENTITY_NAME } from "../core/constants.js"
 import { InputChartPanel } from "../components/SimulationContent.js"
 
 import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
@@ -60,13 +60,16 @@ function FetchingParametersVariant({
     config: DemographyConfig
     urls: BespokeComponentDataUrls
 }): React.ReactElement {
-    const [entityName, setEntityName] = useInitialEntityName(
+    const [requestedEntityName, setEntityName] = useInitialEntityName(
         config.region,
         urls.metadataUrl
     )
 
-    const { metadata, entityData, isLoadingEntityData, status } =
-        useDemographyData(entityName, urls)
+    const { entityName, metadata, entityData, isLoadingEntityData, status } =
+        useDemographyData(requestedEntityName, urls, [
+            config.region,
+            DEFAULT_ENTITY_NAME,
+        ])
 
     if (status === "pending")
         return <ChartSkeleton className="demography-chart-box" />

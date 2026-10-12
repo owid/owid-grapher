@@ -31,6 +31,7 @@ import {
     END_YEAR,
     FULL_TIME_RANGE,
     START_YEAR,
+    DEFAULT_ENTITY_NAME,
 } from "../core/constants.js"
 import {
     BreakpointProvider,
@@ -73,13 +74,16 @@ function FetchingPopulationPyramidVariant({
     config: DemographyConfig
     urls: BespokeComponentDataUrls
 }): React.ReactElement {
-    const [entityName, setEntityName] = useInitialEntityName(
+    const [requestedEntityName, setEntityName] = useInitialEntityName(
         config.region,
         urls.metadataUrl
     )
 
-    const { metadata, entityData, isLoadingEntityData, status } =
-        useDemographyData(entityName, urls)
+    const { entityName, metadata, entityData, isLoadingEntityData, status } =
+        useDemographyData(requestedEntityName, urls, [
+            config.region,
+            DEFAULT_ENTITY_NAME,
+        ])
 
     if (status === "pending")
         return <ChartSkeleton className="demography-chart-box" />

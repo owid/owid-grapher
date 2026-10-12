@@ -71,7 +71,7 @@ export const CONFIG_SPEC = {
         type: "string",
         default: "userLocation",
         description:
-            "Country shown first. `userLocation` picks the reader's country, or United States if the data doesn't have it",
+            "Country shown first, or United States if the data doesn't have it. `userLocation` picks the reader's country",
     },
     time: {
         type: "integer",

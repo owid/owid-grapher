@@ -2,6 +2,8 @@ import { BespokeMetadata, EntityName, Time } from "@ourworldindata/types"
 
 type NumericId = number
 
+export const DEFAULT_REGION = "World"
+
 export interface BasicEntry {
     id: NumericId
     name: string

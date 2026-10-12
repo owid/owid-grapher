@@ -21,6 +21,7 @@ import { useUrlState } from "../../../../hooks/useUrlState.js"
 import { EmbedConfigProvider } from "../../../../hooks/useEmbedConfig.js"
 import { useDelayedLoading } from "../../../../hooks/useDelayedLoading.js"
 import { useContainerWidth } from "../../../../hooks/useContainerWidth.js"
+import { useAvailableEntityName } from "../../../../hooks/useAvailableEntityName.js"
 import {
     isUserLocationCountry,
     useResolveUserLocation,
@@ -32,6 +33,7 @@ import type {
     BespokeVariantProps,
 } from "owid-bespoke-types"
 import {
+    DEFAULT_COUNTRY,
     MigrationFlow,
     MigrationRow,
     MigrationView,
@@ -47,8 +49,6 @@ import {
 } from "../core/helpers.js"
 import { MigrationChart } from "../components/MigrationChart.js"
 import { MigrationControls } from "../components/MigrationControls.js"
-
-const USER_LOCATION_FALLBACK_COUNTRY = "United States"
 
 /** Sentinel year that resolves to the latest year in the data */
 const LATEST_YEAR = -1
@@ -90,10 +90,10 @@ function FetchingSankeyVariant({
     urls: BespokeComponentDataUrls
 }) {
     const initialCountry = isUserLocationCountry(config.country)
-        ? USER_LOCATION_FALLBACK_COUNTRY
+        ? DEFAULT_COUNTRY
         : config.country
 
-    const [country, setCountry] = useUrlState({
+    const [requestedCountry, setCountry] = useUrlState({
         key: "migrationCountry",
         parser: parseAsString,
         defaultValue: initialCountry,
@@ -140,6 +140,12 @@ function FetchingSankeyVariant({
         urlStateKey: "migrationCountry",
         setCountry,
     })
+
+    const country = useAvailableEntityName(
+        requestedCountry,
+        [config.country, DEFAULT_COUNTRY],
+        availableCountryNames && ((name) => availableCountryNames.has(name))
+    )
 
     const countryId = useMemo(() => {
         if (!metadata) return undefined

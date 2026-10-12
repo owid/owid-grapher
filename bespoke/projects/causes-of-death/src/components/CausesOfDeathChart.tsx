@@ -8,6 +8,7 @@ import { Time } from "@ourworldindata/types"
 import { ChartError } from "../../../../components/ChartError/ChartError.js"
 import { ChartSkeleton } from "../../../../components/ChartSkeleton/ChartSkeleton.js"
 import { combineStatuses } from "../../../../helpers/queryStatus.js"
+import { useAvailableEntityName } from "../../../../hooks/useAvailableEntityName.js"
 
 import type {
     BespokeComponentDataUrls,
@@ -19,6 +20,7 @@ import {
     useCausesOfDeathMetadata,
 } from "../core/CausesOfDeathDataFetching.js"
 import { CausesOfDeathMetadata } from "../core/CausesOfDeathMetadata.js"
+import { DEFAULT_REGION } from "../core/CausesOfDeathConstants.js"
 import { CausesOfDeathCaptionedChart } from "./CausesOfDeathCaptionedChart.js"
 import { CausesOfDeathControls } from "./CausesOfDeathControls.js"
 
@@ -66,7 +68,7 @@ function CausesOfDeathChart(props: {
         parser: parseAsString,
         defaultValue: config.sex,
     })
-    const [entityName, setEntityName] = useUrlState({
+    const [requestedEntityName, setEntityName] = useUrlState({
         key: "causesOfDeathRegion",
         parser: parseAsString,
         defaultValue: config.region,
@@ -79,6 +81,12 @@ function CausesOfDeathChart(props: {
 
     // Fetch the metadata and the data for the selected entity
     const metadataResponse = useCausesOfDeathMetadata(urls.metadataUrl)
+    const metadata = metadataResponse.data
+    const entityName = useAvailableEntityName(
+        requestedEntityName,
+        [config.region, DEFAULT_REGION],
+        metadata && ((name) => metadata.entityNameToId.has(name))
+    )
     const entityDataResponse = useCausesOfDeathEntityData(
         entityName,
         metadataResponse.data,
@@ -91,7 +99,6 @@ function CausesOfDeathChart(props: {
         300
     )
 
-    const metadata = metadataResponse.data
     const entityData = entityDataResponse.data
 
     const validVariablesForAgeGroup = useMemo(() => {

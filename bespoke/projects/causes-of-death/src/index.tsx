@@ -12,7 +12,11 @@ import StylesTarget from "vite-plugin-css-position/react"
 import { ConfigFromSpec, parseConfigFromSpec } from "../../../helpers/config.js"
 
 import { CausesOfDeathChartWithProviders } from "./components/CausesOfDeathChart.js"
-import { AGE_GROUPS, SEXES } from "./core/CausesOfDeathConstants.js"
+import {
+    AGE_GROUPS,
+    DEFAULT_REGION,
+    SEXES,
+} from "./core/CausesOfDeathConstants.js"
 
 import "./index.scss"
 
@@ -31,9 +35,9 @@ export const VARIANTS = [
 export const CONFIG_SPEC = {
     region: {
         type: "string",
-        default: "World",
+        default: DEFAULT_REGION,
         description:
-            "Country or region shown first, such as `Nigeria` or `High-income countries`",
+            "Country or region shown first, such as `Nigeria` or `High-income countries`, or World if the data doesn't have it",
     },
     year: {
         type: "integer",
