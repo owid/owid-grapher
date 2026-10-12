@@ -1,7 +1,14 @@
 import * as _ from "lodash-es"
 import { Writable } from "stream"
 import * as db from "../db.js"
-import { splitSearchTerms } from "../../adminShared/variableSearch.js"
+import {
+    DatasetSearchGroup,
+    IndicatorSearchField,
+    parseSearchQuery,
+    VariablesGroupedSearchResult,
+    VariablesSearchResult,
+    VariableUsage,
+} from "../../adminShared/variableSearch.js"
 import {
     retryPromise,
     omitUndefinedValues,
@@ -869,15 +876,6 @@ export async function getOwnersForVariables(
         .filter((dataset) => dataset.owners.length > 0)
 }
 
-export interface VariableUsage {
-    charts: { id: number; slug: string | null; title: string | null }[]
-    /** An unpublished multi-dim has no slug yet, only a title. */
-    multiDims: { id: number; slug: string | null; title: string | null }[]
-    explorerSlugs: string[]
-    /** Charts, multi-dims and path-based explorers together. */
-    usageCount: number
-}
-
 /**
  * Where each of the given indicators is used: which charts, multi-dims and
  * path-based explorers. Deduplicated on entity ids rather than slugs, since a
@@ -1111,31 +1109,6 @@ const searchVariablesOrThrow = async (
 /** How many of a dataset's matching indicators a group shows before linking to the rest. */
 export const INDICATORS_PER_DATASET = 5
 
-export interface DatasetSearchGroup {
-    id: number
-    name: string
-    namespace: string
-    version: string | null
-    /** The dataset segment of the catalog path, for narrowing to it. */
-    shortName: string | null
-    /** How many of this dataset's indicators matched, not how many are shown. */
-    matchCount: number
-    /** A dataset is uploaded as a whole, so this belongs to the group. */
-    uploadedAt: Date
-    uploadedBy: string | null
-    variables: VariableResultView[]
-}
-
-export interface VariablesGroupedSearchResult {
-    datasets: DatasetSearchGroup[]
-    numTotalDatasets: number
-    numTotalRows: number
-    /** Terms that had to fall back to a substring scan, and so cost a second. */
-    unindexedTerms: string[]
-    /** Set when MySQL couldn't run a term as a regular expression. */
-    regexError?: string
-}
-
 /**
  * The same search as `searchVariables`, but paging over the datasets the
  * matches belong to rather than over the matches themselves. A search like
@@ -1280,7 +1253,7 @@ const searchVariablesGroupedByDatasetOrThrow = async (
     )
 
     return {
-        datasets: datasetRows.map((row: any) => ({
+        datasets: datasetRows.map((row: any): DatasetSearchGroup => ({
             id: row.id,
             name: row.name,
             namespace: row.namespace,
@@ -1310,8 +1283,15 @@ const catalogPathSegment = (n: number): string =>
     // the last segment carries the #short_name, which `short:` searches instead
     `SUBSTRING_INDEX(SUBSTRING_INDEX(SUBSTRING_INDEX(v.catalogPath, '/', ${n}), '/', -1), '#', 1)`
 
-/** Application-controlled SQL expressions and their full-text eligibility. */
-const REGEX_FIELDS = new Map(
+/**
+ * The fields searched as a regex over one column, with whether the full-text
+ * index can narrow them. Keyed by the shared field list, so a field added
+ * there has to be handled here or in `analyzeVariableSearch`.
+ */
+const REGEX_FIELDS: ReadonlyMap<
+    string,
+    { expression: string; indexed: boolean }
+> = new Map(
     Object.entries({
         name: { expression: "v.name", indexed: true },
         path: { expression: "v.catalogPath", indexed: true },
@@ -1321,15 +1301,11 @@ const REGEX_FIELDS = new Map(
         table: { expression: catalogPathSegment(5), indexed: true },
         short: { expression: "v.shortName", indexed: true },
         "dataset-name": { expression: "d.name", indexed: false },
-    })
+    } satisfies Record<
+        Exclude<IndicatorSearchField, "dataset-id" | "before" | "after" | "is">,
+        { expression: string; indexed: boolean }
+    >)
 )
-
-/**
- * Field names match whatever their case, as the admin's highlighting does, so
- * `Dataset-ID:12` isn't quietly searched as text.
- */
-const lowercaseFieldName = (part: string): string =>
-    part.replace(/^[a-zA-Z][\w-]*(?=:)/, (field) => field.toLowerCase())
 
 /** Build SQL and its slow-term notice together, using the same index decision. */
 export const analyzeVariableSearch = (
@@ -1342,47 +1318,37 @@ export const analyzeVariableSearch = (
     const fulltextTerms: string[] = []
     const unindexedTerms: string[] = []
 
-    for (const term of splitSearchTerms(query)) {
-        let part = term.trim()
-        let not = " "
-        if (part.startsWith("-")) {
-            part = part.substring(1)
-            not = "NOT "
-        }
-        part = lowercaseFieldName(part)
+    for (const term of parseSearchQuery(query)) {
+        const { field } = term
+        const not = term.negate ? "NOT " : " "
         // An unanchored match already allows anything around it, so a `.*` at
         // either end changes nothing but the cost: `.*deaths` took over a
         // minute where `deaths` takes two seconds. It still asked for a match
         // anywhere in a word, so it stays a scan rather than using the index.
-        let stripped = part
-            .replace(/^((?:[a-zA-Z][\w-]*:)?)(?:\.\*)+/, "$1")
-            .replace(/(?<!\\)(?:\.\*)+$/, "")
         // Nothing but wildcards still means "any value", which `-.*` negates
-        // into "no value at all", so it can't be dropped
-        if (/^(?:[a-zA-Z][\w-]*:)?$/.test(stripped)) stripped = part
-        const isRegex = stripped !== part
-        part = stripped
+        // into "no value at all", so that can't be dropped.
+        const value =
+            term.value
+                .replace(/^(?:\.\*)+/, "")
+                .replace(/(?<!\\)(?:\.\*)+$/, "") || term.value
+        const isRegex = value !== term.value
         // A fielded term is a regex on one column, which no index can answer.
         // Where its value is an ordinary word it is also required through the
         // full-text index, which narrows to a handful of rows before the regex
         // runs — `namespace:climate` goes from a second to a few milliseconds.
         // Same trade as free text: the value matches from the start of a word
         // rather than anywhere inside one.
-        const alsoIndex = (value: string): void => {
+        const alsoIndex = (text: string): void => {
             // Exclusions and dataset-only filters don't get a slow-term notice.
-            if (not !== " ") return
-            const tokens = isRegex ? [] : fulltextTokens(value)
+            if (term.negate) return
+            const tokens = isRegex ? [] : fulltextTokens(text)
             fulltextTerms.push(...tokens)
-            if (tokens.length === 0) unindexedTerms.push(term.trim())
+            if (tokens.length === 0) unindexedTerms.push(term.raw)
         }
 
-        const colonIndex = part.indexOf(":")
         const regexField =
-            colonIndex >= 0
-                ? REGEX_FIELDS.get(part.slice(0, colonIndex))
-                : undefined
+            field === undefined ? undefined : REGEX_FIELDS.get(field)
         if (regexField) {
-            const value = part.slice(colonIndex + 1)
             if (value) {
                 if (regexField.indexed) alsoIndex(value)
                 whereClauses.push({
@@ -1390,47 +1356,50 @@ export const analyzeVariableSearch = (
                     bindings: [value],
                 })
             }
-        } else if (part.startsWith("dataset-id:")) {
+        } else if (field === "dataset-id") {
             // Exact, for the "more in this dataset" link: 78 groups of active
             // datasets share a shortName, so `dataset:` alone would widen the
             // list to another dataset's indicators and disagree with the count
             // the link was offering.
-            const id = parseIntOrUndefined(part.substring("dataset-id:".length))
+            const id = parseIntOrUndefined(value)
             if (id !== undefined)
                 whereClauses.push({
                     sql: `${not} d.id = ?`,
                     bindings: [id],
                 })
-        } else if (part.startsWith("before:")) {
-            const q = part.substring("before:".length)
-            if (q) {
+        } else if (field === "before") {
+            if (value) {
                 whereClauses.push({
                     sql: `${not} IF(d.version is not null, d.version < ?, cast(date(d.createdAt) as char) < ?)`,
-                    bindings: [q, q],
+                    bindings: [value, value],
                 })
             }
-        } else if (part.startsWith("after:")) {
-            const q = part.substring("after:".length)
-            if (q) {
+        } else if (field === "after") {
+            if (value) {
                 whereClauses.push({
                     sql: `${not} (IF (d.version is not null, d.version = "latest" OR d.version > ?, cast(date(d.createdAt) as char) > ?))`,
-                    bindings: [q, q],
+                    bindings: [value, value],
                 })
             }
-        } else if (part === "is:published" || part === "is:public") {
+        } else if (
+            field === "is" &&
             // the search help has always advertised is:public
+            (value === "published" || value === "public")
+        ) {
             whereClauses.push({ sql: `${not} (NOT d.isPrivate)`, bindings: [] })
-        } else if (part === "is:private") {
+        } else if (field === "is" && value === "private") {
             whereClauses.push({ sql: `${not} d.isPrivate`, bindings: [] })
-        } else if (part) {
+        } else {
             // Plain text, the common case: a substring regex over the name and
             // the catalog path, with the index narrowing to the rows worth
-            // running it on.
+            // running it on. An unknown `field:` is searched as text too.
+            const text = field === undefined ? value : `${field}:${value}`
+            if (!text) continue
             whereClauses.push({
                 sql: `${not} (REGEXP_LIKE(v.name, ?, 'i') OR REGEXP_LIKE(v.catalogPath, ?, 'i'))`,
-                bindings: [part, part],
+                bindings: [text, text],
             })
-            alsoIndex(part)
+            alsoIndex(text)
         }
     }
 
@@ -1601,29 +1570,6 @@ const queryRegexCount = async (
         return 0
     }
     return results[0].count
-}
-
-export interface VariablesSearchResult {
-    /** Terms that had to fall back to a substring scan, and so cost a second. */
-    unindexedTerms: string[]
-    /** Set when MySQL couldn't run a term as a regular expression. */
-    regexError?: string
-    variables: VariableResultView[]
-    numTotalRows: number
-}
-
-/** One row of `RESULT_COLUMNS`, with its usage attached. */
-export interface VariableResultView extends VariableUsage {
-    id: number
-    name: string
-    catalogPath: string | null
-    datasetId: number
-    datasetName: string
-    isPrivate: boolean
-    nonRedistributable: boolean
-    uploadedAt: string
-    uploadedBy: string | null
-    popularity: number | null
 }
 
 export const getIndicatorIdsByCatalogPath = async (

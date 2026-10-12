@@ -30,55 +30,32 @@ import {
     plural,
     SearchHighlighter,
     searchHref,
-    VariableSearchBox,
     withoutTerms,
 } from "./variableSearchQuery.js"
-import { VariableSearchToolbar } from "./VariableSearchToolbar.js"
+import {
+    DatasetSearchGroup,
+    VariableResultView,
+    VariablesGroupedSearchResult,
+} from "../adminShared/variableSearch.js"
 
 /** Rows per page of the flat list. */
 export const INDICATORS_PAGE_SIZE = 50
 
-export interface VariableListItem {
-    id: number
-    name: string
-    catalogPath?: string
-    datasetId?: number
-    datasetName?: string
-    uploadedAt?: Date
-    uploadedBy?: string
-    isPrivate?: boolean
-    nonRedistributable?: boolean
-    charts?: { id: number; slug: string | null; title: string | null }[]
-    usageCount?: number
-    multiDims?: { id: number; slug: string | null; title: string | null }[]
-    explorerSlugs?: string[]
-    /** 0-1, from the analytics service. Absent for indicators nobody reads. */
-    popularity?: number | null
-}
+/**
+ * An indicator as the list shows it. Only the name is always there: the
+ * dataset and source pages hand it less than a search result carries.
+ */
+export type VariableListItem = Pick<VariableResultView, "id" | "name"> &
+    Partial<VariableResultView>
 
 /** Columns beyond the always-present name, in the order they are shown. */
 export type VariableListField = "catalogPath" | "uploadedAt" | "usage"
-
-export interface DatasetSearchGroup {
-    id: number
-    name: string
-    namespace: string
-    version: string | null
-    shortName: string | null
-    matchCount: number
-    uploadedAt?: Date
-    uploadedBy?: string | null
-    variables: VariableListItem[]
-}
 
 interface VariableListProps {
     variables: VariableListItem[]
     fields: VariableListField[]
     /** Terms to highlight in the name and catalog path. */
     searchWords?: SearchWord[]
-    search?: VariableSearchBox
-    /** Extra controls shown next to the search box. */
-    filters?: React.ReactNode
     loading?: boolean
     /**
      * Sorting sorts the rows the table was handed, so it is only meaningful
@@ -390,8 +367,6 @@ export function VariableList({
     variables,
     fields,
     searchWords = NO_SEARCH_WORDS,
-    search,
-    filters,
     loading,
     sortable = true,
     pagination,
@@ -402,28 +377,25 @@ export function VariableList({
     }, [fields, searchWords, sortable])
 
     return (
-        <Flex vertical gap="middle">
-            <VariableSearchToolbar search={search} filters={filters} />
-            <Table<VariableListItem>
-                size="small"
-                sticky
-                rowKey="id"
-                columns={columns}
-                dataSource={variables}
-                loading={loading}
-                pagination={
-                    pagination === false
-                        ? false
-                        : {
-                              pageSize: INDICATORS_PAGE_SIZE,
-                              showSizeChanger: true,
-                              showTotal: (total, [from, to]) =>
-                                  `${from}-${to} of ${total} indicators`,
-                              ...pagination,
-                          }
-                }
-            />
-        </Flex>
+        <Table<VariableListItem>
+            size="small"
+            sticky
+            rowKey="id"
+            columns={columns}
+            dataSource={variables}
+            loading={loading}
+            pagination={
+                pagination === false
+                    ? false
+                    : {
+                          pageSize: INDICATORS_PAGE_SIZE,
+                          showSizeChanger: true,
+                          showTotal: (total, [from, to]) =>
+                              `${from}-${to} of ${total} indicators`,
+                          ...pagination,
+                      }
+            }
+        />
     )
 }
 
@@ -493,15 +465,15 @@ function EmptySearchHint({
     const { data } = useQuery({
         queryKey: ["variable-search-widened", widened],
         queryFn: () =>
-            admin.getJSONInBackground<{
-                numTotalDatasets: number
-                numTotalRows: number
-            }>("/api/variables.json", {
-                search: widened,
-                group: "dataset",
-                limit: 1,
-                offset: 0,
-            }),
+            admin.getJSONInBackground<VariablesGroupedSearchResult>(
+                "/api/variables.json",
+                {
+                    search: widened,
+                    group: "dataset",
+                    limit: 1,
+                    offset: 0,
+                }
+            ),
         enabled: fielded.length > 0 && widened.trim().length > 0,
     })
 
@@ -558,7 +530,10 @@ function IndicatorCell({
                     />
                 </Tooltip>
             ) : null}
-            <Link to={`/variables/${variable.id}`} title={variable.catalogPath}>
+            <Link
+                to={`/variables/${variable.id}`}
+                title={variable.catalogPath ?? undefined}
+            >
                 {highlight(variable.name)}
             </Link>
         </>

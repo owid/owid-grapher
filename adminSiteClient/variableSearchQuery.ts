@@ -1,24 +1,19 @@
 import { useCallback } from "react"
-import { splitSearchTerms } from "../adminShared/variableSearch.js"
 import { useHistory, useLocation } from "react-router-dom"
+import {
+    parseSearchQuery,
+    searchFieldOf,
+    SearchFieldHelp,
+} from "../adminShared/variableSearch.js"
 import {
     buildRegexFromSearchWord,
     highlightFunctionForSearchWords,
     SearchWord,
 } from "../adminShared/search.js"
 
-// The indicator search is parsed on the server, by `analyzeVariableSearch` in
-// `db/model/Variable.ts`. What lives here is only what the browser needs on top
-// of that: the box, its help, the URL, and knowing which words to highlight —
-// all following the server's grammar of space-separated terms, `-exclusions`
-// and `field:value`.
-
-export interface SearchFieldHelp {
-    name: string
-    /** Only string fields have their value highlighted in the results. */
-    type: "string" | "number" | "date"
-    description: string
-}
+// The search grammar and its fields are shared with the server, in
+// `adminShared/variableSearch.ts`. What lives here is only what the browser
+// needs on top of that: the box, the URL, and knowing which words to highlight.
 
 export interface VariableSearchBox {
     value: string
@@ -26,40 +21,12 @@ export interface VariableSearchBox {
     placeholder?: string
     autoFocus?: boolean
     /** The `field:value` terms, listed in a help popover. */
-    fields?: SearchFieldHelp[]
+    fields?: readonly SearchFieldHelp[]
 }
 
 export type SearchHighlighter = ReturnType<
     typeof highlightFunctionForSearchWords
 >
-
-/** The fields `analyzeVariableSearch` understands, for the help and highlighting. */
-export const INDICATOR_SEARCH_FIELDS: SearchFieldHelp[] = [
-    { name: "name", type: "string", description: "Indicator name (regex)" },
-    { name: "path", type: "string", description: "Catalog path (regex)" },
-    {
-        name: "namespace",
-        type: "string",
-        description: "Namespace, the first segment of the path",
-    },
-    { name: "version", type: "string", description: "Version segment" },
-    { name: "dataset", type: "string", description: "Dataset segment" },
-    {
-        name: "dataset-id",
-        type: "number",
-        description: "Exactly one dataset, by id",
-    },
-    { name: "table", type: "string", description: "Table segment" },
-    { name: "short", type: "string", description: "Indicator short name" },
-    {
-        name: "dataset-name",
-        type: "string",
-        description: "The dataset's title",
-    },
-    { name: "before", type: "date", description: "Version before this date" },
-    { name: "after", type: "date", description: "Version after this date" },
-    { name: "is", type: "string", description: "public or private" },
-]
 
 /**
  * Whether the query names a dataset. Its indicators are then paged through
@@ -67,7 +34,11 @@ export const INDICATOR_SEARCH_FIELDS: SearchFieldHelp[] = [
  */
 export function namesOneDataset(query: string): boolean {
     // `-dataset:wdi` leaves nearly everything, which is still worth grouping
-    return splitSearchTerms(query).some((term) => /^dataset(-id)?:/i.test(term))
+    return parseSearchQuery(query).some(
+        (term) =>
+            !term.negate &&
+            (term.field === "dataset" || term.field === "dataset-id")
+    )
 }
 
 export function plural(count: number, noun: string): string {
@@ -92,22 +63,25 @@ export function parseCatalogPath(catalogPath: string): CatalogPathParts {
     return { namespace, version, dataset, table: rest.join("/"), shortName }
 }
 
-const FIELDED_TERM = /^([a-zA-Z][\w-]*):(.+)$/
-
-/** The `field:value` terms of a query, exclusions included. */
+/**
+ * The `field:value` terms of a query, exclusions included, as typed. A field
+ * that is still being typed has no value yet, and an unknown one is searched
+ * as text, so neither counts.
+ */
 export function fieldedTerms(query: string): string[] {
-    return splitSearchTerms(query).filter((term) =>
-        FIELDED_TERM.test(term.replace(/^-/, ""))
-    )
+    return parseSearchQuery(query)
+        .filter((term) => term.value && searchFieldOf(term))
+        .map((term) => term.raw)
 }
 
 /** The query with the given terms taken out. */
 export function withoutTerms(query: string, drop: string[]): string {
     return (
-        splitSearchTerms(query)
-            .filter((term) => !drop.includes(term))
+        parseSearchQuery(query)
+            .map((term) => term.raw)
+            .filter((raw) => !drop.includes(raw))
             // a phrase has to go back in quotes to stay one term
-            .map((term) => (/\s/.test(term) ? `"${term}"` : term))
+            .map((raw) => (/\s/.test(raw) ? `"${raw}"` : raw))
             .join(" ")
     )
 }
@@ -117,17 +91,13 @@ export function withoutTerms(query: string, drop: string[]): string {
  * fields. An unknown `field:` is searched as text by the server, so it is
  * highlighted as typed.
  */
-export function searchWordsToHighlight(
-    query: string,
-    fields: readonly SearchFieldHelp[]
-): SearchWord[] {
-    const fieldsByName = new Map(fields.map((field) => [field.name, field]))
-    return splitSearchTerms(query).flatMap((term): SearchWord[] => {
-        if (term.startsWith("-")) return []
-        const fielded = FIELDED_TERM.exec(term)
-        const field = fielded && fieldsByName.get(fielded[1].toLowerCase())
+export function searchWordsToHighlight(query: string): SearchWord[] {
+    return parseSearchQuery(query).flatMap((term): SearchWord[] => {
+        if (term.negate) return []
+        const field = searchFieldOf(term)
         if (field && field.type !== "string") return []
-        const word = field ? fielded[2] : term
+        const word = field ? term.value : term.raw
+        if (!word) return []
         return [{ regex: buildRegexFromSearchWord(word), word, exclude: false }]
     })
 }

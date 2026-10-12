@@ -15,6 +15,7 @@ import { ChartList, ChartListItem } from "./ChartList.js"
 import { OriginList } from "./OriginList.js"
 import { SourceList } from "./SourceList.js"
 import { VariableList, VariableListItem } from "./VariableList.js"
+import { VariableSearchToolbar } from "./VariableSearchToolbar.js"
 import {
     BAKED_BASE_URL,
     GRAPHER_DYNAMIC_THUMBNAIL_URL,
@@ -34,7 +35,7 @@ import {
     faMagnifyingGlass,
     faChartColumn,
 } from "@fortawesome/free-solid-svg-icons"
-import { Button, Divider, Space, Typography } from "antd"
+import { Button, Divider, Flex, Space, Typography } from "antd"
 
 interface ExplorerListItem {
     slug: string
@@ -448,7 +449,7 @@ class DatasetEditor extends Component<DatasetEditorProps> {
                 searchWords,
                 (variable: VariableListItem) => [
                     variable.name,
-                    variable.catalogPath,
+                    variable.catalogPath ?? undefined,
                     `${variable.id}`,
                 ]
             )
@@ -658,25 +659,29 @@ class DatasetEditor extends Component<DatasetEditorProps> {
                 return (
                     <section>
                         <h3>Indicators</h3>
-                        <VariableList
-                            variables={filteredVariables}
-                            fields={["usage"]}
-                            searchWords={this.searchWords}
-                            search={{
-                                value: searchInput,
-                                onChange: this.onSearchInput,
-                                placeholder: "Search indicators...",
-                            }}
-                            filters={
-                                <Toggle
-                                    label="Used in chart, multi-dim or path-based explorer"
-                                    value={this.usedOnly}
-                                    onValue={action(
-                                        (v: boolean) => (this.usedOnly = v)
-                                    )}
-                                />
-                            }
-                        />
+                        <Flex vertical gap="middle">
+                            <VariableSearchToolbar
+                                search={{
+                                    value: searchInput,
+                                    onChange: this.onSearchInput,
+                                    placeholder: "Search indicators...",
+                                }}
+                                filters={
+                                    <Toggle
+                                        label="Used in chart, multi-dim or path-based explorer"
+                                        value={this.usedOnly}
+                                        onValue={action(
+                                            (v: boolean) => (this.usedOnly = v)
+                                        )}
+                                    />
+                                }
+                            />
+                            <VariableList
+                                variables={filteredVariables}
+                                fields={["usage"]}
+                                searchWords={this.searchWords}
+                            />
+                        </Flex>
                     </section>
                 )
 

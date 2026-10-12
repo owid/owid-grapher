@@ -3,14 +3,8 @@ import { describe, expect, it } from "vitest"
 import {
     fieldedTerms,
     searchWordsToHighlight,
-    SearchFieldHelp,
     withoutTerms,
 } from "./variableSearchQuery.js"
-
-const FIELDS: SearchFieldHelp[] = [
-    { name: "namespace", type: "string", description: "" },
-    { name: "before", type: "date", description: "" },
-]
 
 describe(fieldedTerms, () => {
     it("finds field:value terms, exclusions included", () => {
@@ -20,8 +14,9 @@ describe(fieldedTerms, () => {
         ])
     })
 
-    it("ignores a field that is still being typed", () => {
+    it("ignores a field that is still being typed, or that isn't one", () => {
         expect(fieldedTerms("namespace:")).toEqual([])
+        expect(fieldedTerms("https://example.org")).toEqual([])
     })
 })
 
@@ -35,7 +30,7 @@ describe(withoutTerms, () => {
 
 describe(searchWordsToHighlight, () => {
     const words = (query: string): string[] =>
-        searchWordsToHighlight(query, FIELDS).map((word) => word.word)
+        searchWordsToHighlight(query).map((word) => word.word)
 
     it("highlights plain words and the values of string fields", () => {
         expect(words("road namespace:who")).toEqual(["road", "who"])

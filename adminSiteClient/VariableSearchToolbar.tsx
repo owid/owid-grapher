@@ -2,15 +2,13 @@ import * as React from "react"
 import { Button, Input, Popover, Space } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCircleQuestion } from "@fortawesome/free-solid-svg-icons"
-import type {
-    SearchFieldHelp,
-    VariableSearchBox,
-} from "./variableSearchQuery.js"
+import type { SearchFieldHelp } from "../adminShared/variableSearch.js"
+import type { VariableSearchBox } from "./variableSearchQuery.js"
 
 function SearchHelp({
     fields,
 }: {
-    fields: SearchFieldHelp[]
+    fields: readonly SearchFieldHelp[]
 }): React.ReactElement {
     return (
         <Popover
@@ -55,23 +53,20 @@ export function VariableSearchToolbar({
     search,
     filters,
 }: {
-    search?: VariableSearchBox
+    search: VariableSearchBox
     filters?: React.ReactNode
-}): React.ReactElement | null {
-    if (!search && !filters) return null
+}): React.ReactElement {
     return (
         <Space size="middle" wrap>
-            {search && (
-                <Input
-                    placeholder={search.placeholder ?? "Search..."}
-                    value={search.value}
-                    onChange={(e) => search.onChange(e.target.value)}
-                    style={{ width: 500 }}
-                    autoFocus={search.autoFocus}
-                    allowClear
-                />
-            )}
-            {search?.fields?.length ? (
+            <Input
+                placeholder={search.placeholder ?? "Search..."}
+                value={search.value}
+                onChange={(e) => search.onChange(e.target.value)}
+                style={{ width: 500 }}
+                autoFocus={search.autoFocus}
+                allowClear
+            />
+            {search.fields?.length ? (
                 <SearchHelp fields={search.fields} />
             ) : null}
             {filters}

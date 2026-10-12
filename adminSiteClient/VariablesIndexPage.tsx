@@ -8,16 +8,18 @@ import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext } from "./AdminAppContext.js"
 import { Alert, Flex } from "antd"
 import {
-    DatasetSearchGroup,
     GroupedVariableList,
     INDICATORS_PAGE_SIZE,
     VariableList,
     VariableListField,
-    VariableListItem,
 } from "./VariableList.js"
 import { VariableSearchToolbar } from "./VariableSearchToolbar.js"
 import {
     INDICATOR_SEARCH_FIELDS,
+    VariablesGroupedSearchResult,
+    VariablesSearchResult,
+} from "../adminShared/variableSearch.js"
+import {
     namesOneDataset,
     plural,
     searchWordsToHighlight,
@@ -88,16 +90,14 @@ export function VariablesIndexPage(): React.ReactElement {
     const flat = useQuery({
         queryKey: ["variables", debouncedSearch, page, pageSize],
         queryFn: () =>
-            admin.getJSONInBackground<{
-                variables: VariableListItem[]
-                numTotalRows: number
-                unindexedTerms: string[]
-                regexError?: string
-            }>("/api/variables.json", {
-                search: debouncedSearch,
-                limit: pageSize,
-                offset: (page - 1) * pageSize,
-            }),
+            admin.getJSONInBackground<VariablesSearchResult>(
+                "/api/variables.json",
+                {
+                    search: debouncedSearch,
+                    limit: pageSize,
+                    offset: (page - 1) * pageSize,
+                }
+            ),
         placeholderData: keepPreviousData,
         enabled: !isGrouped,
     })
@@ -105,24 +105,21 @@ export function VariablesIndexPage(): React.ReactElement {
     const grouped = useQuery({
         queryKey: ["variables-grouped", debouncedSearch, page],
         queryFn: () =>
-            admin.getJSONInBackground<{
-                datasets: DatasetSearchGroup[]
-                numTotalDatasets: number
-                numTotalRows: number
-                unindexedTerms: string[]
-                regexError?: string
-            }>("/api/variables.json", {
-                search: debouncedSearch,
-                group: "dataset",
-                limit: DATASETS_PER_PAGE,
-                offset: (page - 1) * DATASETS_PER_PAGE,
-            }),
+            admin.getJSONInBackground<VariablesGroupedSearchResult>(
+                "/api/variables.json",
+                {
+                    search: debouncedSearch,
+                    group: "dataset",
+                    limit: DATASETS_PER_PAGE,
+                    offset: (page - 1) * DATASETS_PER_PAGE,
+                }
+            ),
         placeholderData: keepPreviousData,
         enabled: isGrouped,
     })
 
     const searchWords = useMemo(
-        () => searchWordsToHighlight(debouncedSearch, INDICATOR_SEARCH_FIELDS),
+        () => searchWordsToHighlight(debouncedSearch),
         [debouncedSearch]
     )
 
