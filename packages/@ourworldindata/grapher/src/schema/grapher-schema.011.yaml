@@ -74,6 +74,10 @@ properties:
             - variableId
         - required:
             - slug
+      not:
+        required:
+          - slug
+          - targetYear
       properties:
         targetYear:
           type: integer
