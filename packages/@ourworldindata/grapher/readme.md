@@ -60,6 +60,8 @@ function LifeExpectancyChart() {
 
 For loading your own data (CSV or in-memory tables), providing source metadata, the standalone bundle for non-React pages, sizing, and the full `GrapherLoader` API, see the [documentation](https://docs.owid.io/projects/grapher/). A complete working example of all three data sources is in [`demo.html`](./demo.html) (`yarn startDemoServer`).
 
+Numeric map brackets can be opened or closed independently with the optional booleans `map.colorScale.isOpenLeft` and `map.colorScale.isOpenRight`. Omitted settings retain the data-based heuristic. See the [chart config guide](../../../packageDocs/docs/chart-config/index.md) for an example.
+
 ## Developing the package
 
 ### Build outputs

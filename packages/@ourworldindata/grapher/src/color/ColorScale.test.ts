@@ -3,6 +3,8 @@ import { expect, it, describe } from "vitest"
 import { CoreTable, ErrorValueTypes } from "@ourworldindata/core-table"
 import { ColorScale } from "./ColorScale"
 import { ColorScaleConfigInterface } from "@ourworldindata/types"
+import { ColorScaleConfig } from "./ColorScaleConfig"
+import { NumericBin } from "./ColorScaleBin"
 
 const createColorScaleFromTable = (
     colorValuePairs: { value: number; color?: string }[],
@@ -18,6 +20,79 @@ const createColorScaleFromTable = (
 }
 
 describe(ColorScale, () => {
+    describe("outer numeric brackets", () => {
+        it.each([
+            {
+                values: [0, 100],
+                isOpenLeft: undefined,
+                isOpenRight: undefined,
+                expected: [false, false],
+            },
+            {
+                values: [-10, 110],
+                isOpenLeft: undefined,
+                isOpenRight: undefined,
+                expected: [true, true],
+            },
+            {
+                values: [0, 100],
+                isOpenLeft: true,
+                isOpenRight: true,
+                expected: [true, true],
+            },
+            {
+                values: [-10, 110],
+                isOpenLeft: false,
+                isOpenRight: false,
+                expected: [false, false],
+            },
+            {
+                values: [-10, 110],
+                isOpenLeft: false,
+                isOpenRight: undefined,
+                expected: [false, true],
+            },
+            {
+                values: [-10, 110],
+                isOpenLeft: undefined,
+                isOpenRight: false,
+                expected: [true, false],
+            },
+        ])(
+            "uses boundary overrides $isOpenLeft/$isOpenRight for $values",
+            ({ values, isOpenLeft, isOpenRight, expected }) => {
+                const scale = createColorScaleFromTable(
+                    values.map((value) => ({ value })),
+                    {
+                        ...new ColorScaleConfig(),
+                        binningStrategy: "manual",
+                        customNumericValues: [0, 25, 75, 100],
+                        isOpenLeft,
+                        isOpenRight,
+                    }
+                )
+                const bins = scale.legendBins as NumericBin[]
+                expect(
+                    bins.map((bin) => [
+                        bin.props.isOpenLeft,
+                        bin.props.isOpenRight,
+                    ])
+                ).toEqual([
+                    [expected[0], false],
+                    [false, false],
+                    [false, expected[1]],
+                ])
+                expect(scale.getBinForValue(-20)).toEqual(
+                    expected[0] ? bins[0] : undefined
+                )
+                expect(scale.getBinForValue(120)).toEqual(
+                    expected[1] ? bins[2] : undefined
+                )
+                expect(scale.getBinForValue(0)).toEqual(bins[0])
+                expect(scale.getBinForValue(100)).toEqual(bins[2])
+            }
+        )
+    })
     it("can create one", () => {
         const scale = new ColorScale()
         expect(scale.isColorSchemeInverted).toEqual(false)

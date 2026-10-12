@@ -34,6 +34,9 @@ export class ColorScaleConfigDefaults implements ColorScaleConfigInterface {
     /** The strategy for generating the bin boundaries */
     binningStrategy: BinningStrategyIncludingManual = "auto"
     createBinForMidpoint?: boolean
+    /** Override whether the first/last numeric bin extends beyond its boundary. */
+    isOpenLeft: boolean | undefined = undefined
+    isOpenRight: boolean | undefined = undefined
     minValue?: number
     maxValue?: number
     midpoint?: number
@@ -95,6 +98,8 @@ export class ColorScaleConfigDefaults implements ColorScaleConfigInterface {
             customHiddenCategories: observable.ref,
             legendDescription: observable,
             createBinForMidpoint: observable,
+            isOpenLeft: observable,
+            isOpenRight: observable,
             minValue: observable,
             maxValue: observable,
             midpoint: observable,

@@ -9,7 +9,7 @@ import { MapChartManager } from "./MapChartConstants"
 import { MapChart } from "./MapChart"
 import { MapChartState } from "./MapChartState"
 import { MapConfig } from "./MapConfig"
-import { CategoricalBin } from "../color/ColorScaleBin"
+import { CategoricalBin, NumericBin } from "../color/ColorScaleBin"
 import { INAPPLICABLE_COLOR } from "../color/ColorScale"
 
 const table = SynthesizeGDPTable({
@@ -29,6 +29,41 @@ it("can create a new Map chart", () => {
     const legends = chartState.colorScale.legendBins
     expect(Object.keys(legends).length).toBeGreaterThan(1)
 })
+
+it.each([false, true])(
+    "applies authored bracket overrides with metadata colour scales: %s",
+    (isOpen) => {
+        const metadataTable = table.updateDefs((def) =>
+            def.slug === SampleColumnSlugs.Population
+                ? { ...def, colorScaleNumericBins: "10;20" }
+                : def
+        )
+        const chartState = new MapChartState({
+            manager: {
+                ...manager,
+                table: metadataTable,
+                mapConfig: new MapConfig({
+                    colorScale: { isOpenLeft: isOpen, isOpenRight: isOpen },
+                }),
+            },
+        })
+        const bins = chartState.colorScale.legendBins.filter(
+            (bin): bin is NumericBin => bin instanceof NumericBin
+        )
+        expect(bins.map((bin) => [bin.min, bin.max])).toEqual([
+            [0, 10],
+            [10, 20],
+        ])
+        expect(bins[0].props.isOpenLeft).toBe(isOpen)
+        expect(bins[1].props.isOpenRight).toBe(isOpen)
+        expect(chartState.colorScale.getBinForValue(-1)).toEqual(
+            isOpen ? bins[0] : undefined
+        )
+        expect(chartState.colorScale.getBinForValue(30)).toEqual(
+            isOpen ? bins[1] : undefined
+        )
+    }
+)
 
 it("filters out non-map entities from colorScaleColumn", () => {
     const chartState = new MapChartState({ manager })
