@@ -1,4 +1,4 @@
-import { BespokeMetadata } from "@ourworldindata/types"
+import type { BespokeMetadata } from "@ourworldindata/types"
 
 export type VariantName = "sankey"
 
@@ -48,6 +48,7 @@ export type FoodTradeMetadata = {
     productById: Map<number, Product>
     productByName: Map<string, Product>
     hasTradeData: (entityName: string, productName: string) => boolean
+    provenance: BespokeMetadata | undefined
 }
 
 export type Mode = "bilateral" | "split"
