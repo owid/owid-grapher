@@ -12,6 +12,7 @@ import {
     getRelativeMouse,
     guid,
     Pair,
+    roundForSvg,
 } from "@ourworldindata/utils"
 import {
     DumbbellValueLabelMode,
@@ -22,7 +23,6 @@ import { observer } from "mobx-react"
 import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
-    GRAPHER_FONT_SCALE_12,
     FontSettings,
 } from "../core/GrapherConstants"
 import {
@@ -64,16 +64,14 @@ import {
     toLeftRight,
 } from "./DumbbellChartHelpers"
 import { AnimatedRows } from "../animation/AnimatedRows"
-import { roundFontSize, textWidth } from "../chart/ChartUtils.js"
+import { roundFontSize, scaleFontSize, textWidth } from "../chart/ChartUtils.js"
 import { GRAPHER_LIGHT_TEXT } from "../color/ColorConstants.js"
 import { darkenColorForText } from "../color/ColorUtils.js"
 import { HorizontalLabelPair } from "../horizontalLabelPair/HorizontalLabelPair.js"
 import { HorizontalLabelPairState } from "../horizontalLabelPair/HorizontalLabelPairState.js"
 import { HorizontalLabel } from "../horizontalLabelPair/HorizontalLabelPairTypes.js"
-import {
-    HorizontalCategoricalColorLegend,
-    HorizontalColorLegendManager,
-} from "../legend/HorizontalColorLegends.js"
+import { HorizontalCategoricalColorLegend } from "../legend/HorizontalCategoricalColorLegend"
+import { HorizontalCategoricalColorLegendState } from "../legend/HorizontalCategoricalColorLegendState"
 import { CategoricalBin } from "../color/ColorScaleBin.js"
 import { TooltipState } from "../tooltip/Tooltip"
 import {
@@ -88,7 +86,7 @@ type TopLegendType = "inline" | "swatches" | "none"
 @observer
 export class DumbbellChart
     extends React.Component<DumbbellChartProps>
-    implements ChartInterface, AxisManager, HorizontalColorLegendManager
+    implements ChartInterface, AxisManager
 {
     private readonly tooltipId = guid()
     private readonly tooltipState = new TooltipState<{ seriesName: string }>({
@@ -138,10 +136,7 @@ export class DumbbellChart
         const availableHeightPerSeries = this.bounds.height / this.series.length
 
         const fontSize = roundFontSize(
-            Math.min(
-                GRAPHER_FONT_SCALE_12 * this.fontSize,
-                availableHeightPerSeries
-            )
+            Math.min(scaleFontSize(12, this.fontSize), availableHeightPerSeries)
         )
 
         return { fontSize, fontWeight: 700, lineHeight: 1 }
@@ -467,7 +462,7 @@ export class DumbbellChart
                     this.inlineLegendLabelStyle.fontSize *
                     this.inlineLegendLabelStyle.lineHeight
             )
-            .with("swatches", () => this.categoricalLegend.height)
+            .with("swatches", () => this.categoricalLegendState.height)
             .with("none", () => 0)
             .exhaustive()
     }
@@ -567,23 +562,11 @@ export class DumbbellChart
         })
     }
 
-    @computed get legendX(): number {
-        return this.bounds.left
-    }
-
-    @computed get categoryLegendY(): number {
-        return this.bounds.top
-    }
-
-    @computed get legendWidth(): number {
+    @computed private get legendWidth(): number {
         return this.bounds.width
     }
 
-    @computed get legendAlign(): HorizontalAlign {
-        return HorizontalAlign.left
-    }
-
-    @computed get categoricalLegendData(): CategoricalBin[] {
+    @computed private get categoricalLegendData(): CategoricalBin[] {
         if (!this.legendLabels || this.topLegendType !== "swatches") return []
         const { start, end } = this.legendLabels
         return [
@@ -603,8 +586,15 @@ export class DumbbellChart
     }
 
     @computed
-    private get categoricalLegend(): HorizontalCategoricalColorLegend {
-        return new HorizontalCategoricalColorLegend({ manager: this })
+    private get categoricalLegendState(): HorizontalCategoricalColorLegendState {
+        return new HorizontalCategoricalColorLegendState(
+            this.categoricalLegendData,
+            {
+                baseFontSize: this.fontSize,
+                width: this.legendWidth,
+                align: HorizontalAlign.left,
+            }
+        )
     }
 
     private formatValue(
@@ -649,7 +639,12 @@ export class DumbbellChart
     private renderLegend(): React.ReactElement | null {
         return match(this.topLegendType)
             .with("swatches", () => (
-                <HorizontalCategoricalColorLegend manager={this} />
+                <HorizontalCategoricalColorLegend
+                    state={this.categoricalLegendState}
+                    x={this.bounds.left}
+                    y={this.bounds.top}
+                    interactive={!this.manager.isStatic}
+                />
             ))
             .with("inline", () =>
                 this.inlineLegendState ? (
@@ -719,6 +714,7 @@ export class DumbbellChart
                         d.seriesName
                     }
                     getY={(d: RenderDumbbellSeries): number => d.y}
+                    immediate={this.manager.disableChartRowAnimation}
                     renderRow={(series): React.ReactElement => (
                         <DumbbellChartRow
                             key={series.seriesName}
@@ -818,10 +814,10 @@ function DumbbellHoverArea({
     const cappedHeight = Math.min(height, maxHeight)
     return (
         <rect
-            x={containerBounds.left}
-            y={series.y - cappedHeight / 2}
-            width={containerBounds.width}
-            height={cappedHeight}
+            x={roundForSvg(containerBounds.left)}
+            y={roundForSvg(series.y - cappedHeight / 2)}
+            width={roundForSvg(containerBounds.width)}
+            height={roundForSvg(cappedHeight)}
             fill="transparent"
             onMouseEnter={(ev) => onMouseEnter(series.seriesName, ev)}
             onMouseMove={onMouseMove}

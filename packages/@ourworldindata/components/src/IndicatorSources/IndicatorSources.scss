@@ -98,7 +98,8 @@
     border-top: 1px solid var(--border);
     border-bottom: 1px solid var(--border);
 
-    &--stacked {
+    // Rows in a run share one border between them
+    &:has(+ .ExpandableToggle, + .NonExpandable) {
         border-bottom: none;
     }
 

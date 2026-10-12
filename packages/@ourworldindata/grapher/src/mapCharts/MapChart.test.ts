@@ -1,4 +1,4 @@
-import { expect, it } from "vitest"
+import { describe, expect, it } from "vitest"
 
 import {
     SampleColumnSlugs,
@@ -8,6 +8,9 @@ import {
 import { MapChartManager } from "./MapChartConstants"
 import { MapChart } from "./MapChart"
 import { MapChartState } from "./MapChartState"
+import { MapConfig } from "./MapConfig"
+import { CategoricalBin } from "../color/ColorScaleBin"
+import { INAPPLICABLE_COLOR } from "../color/ColorScale"
 
 const table = SynthesizeGDPTable({
     timeRange: [2000, 2001],
@@ -34,28 +37,24 @@ it("filters out non-map entities from colorScaleColumn", () => {
     )
 })
 
-it("pins a map bracket selected by touch until the next touch", () => {
+it("highlights the countries of a hovered legend bracket", () => {
     const chartState = new MapChartState({ manager })
     const chart = new MapChart({ chartState })
-    const [firstBracket, secondBracket] = chartState.colorScale.legendBins
+    const bracket = chartState.colorScale.legendBins.find((bin) =>
+        chartState.series.some((series) => bin.contains(series.value))
+    )!
 
-    expect(firstBracket).toBeDefined()
-    expect(secondBracket).toBeDefined()
+    expect(chart.getHoverState("France").background).toBe(false)
 
-    chart.onLegendMouseOver(firstBracket)
-    chart.onLegendTouchSelect(firstBracket)
+    chart.onLegendMouseOver(bracket)
+    for (const series of chartState.series) {
+        expect(chart.getHoverState(series.seriesName).active).toBe(
+            bracket.contains(series.value)
+        )
+    }
+
     chart.onLegendMouseLeave()
-    chart.onLegendMouseOver(secondBracket)
-
-    expect(chart.hoverBracket).toBe(firstBracket)
-
-    chart.onDocumentPointerDown()
-
-    expect(chart.hoverBracket).toBeUndefined()
-
-    chart.onLegendMouseOver(secondBracket)
-
-    expect(chart.hoverBracket).toBe(secondBracket)
+    expect(chart.getHoverState("France").background).toBe(false)
 })
 
 it("combines projected data with its historical counterpart", () => {
@@ -85,4 +84,71 @@ it("combines projected data with its historical counterpart", () => {
 
     const chartState = new MapChartState({ manager })
     expect(chartState.mapColumnSlug).toEqual(combinedSlug)
+})
+
+describe("not applicable entities", () => {
+    // Not-applicable entities are expected to have no data,
+    // so they're not included in the table
+    const table = SynthesizeGDPTable({
+        timeRange: [2000, 2001],
+        entityNames: ["Germany", "Spain", "World"],
+    })
+
+    const makeManager = (
+        inapplicableEntityNames: string[],
+        mapConfig = new MapConfig()
+    ): MapChartManager => ({
+        table,
+        mapColumnSlug: SampleColumnSlugs.Population,
+        endTime: 2000,
+        mapConfig,
+        inapplicableEntityNames,
+    })
+
+    it("renders not-applicable entities with their own legend bin", () => {
+        const chartState = new MapChartState({
+            manager: makeManager(["France"]),
+        })
+
+        // France is recognized as not-applicable, but has no series
+        expect(chartState.inapplicableEntityNamesSet).toEqual(
+            new Set(["France"])
+        )
+        expect(chartState.seriesMap.has("France")).toBe(false)
+
+        // A "Not applicable" legend bin is injected
+        const bin = chartState.colorScale.legendBins.find(
+            (bin) =>
+                bin instanceof CategoricalBin && bin.value === "Not applicable"
+        )
+        expect(bin?.label).toEqual("Not applicable")
+        expect(bin?.color).toEqual(INAPPLICABLE_COLOR)
+
+        // The tooltip also reads "Not applicable"
+        expect(chartState.colorScale.inapplicableLabel).toEqual(
+            "Not applicable"
+        )
+    })
+
+    it("lets the color scale config override the not-applicable label", () => {
+        const mapConfig = new MapConfig()
+        mapConfig.colorScale.customCategoryLabels = {
+            "Not applicable": "Selected country",
+        }
+
+        const chartState = new MapChartState({
+            manager: makeManager(["France"], mapConfig),
+        })
+
+        const bin = chartState.colorScale.legendBins.find(
+            (bin) =>
+                bin instanceof CategoricalBin && bin.value === "Not applicable"
+        )
+        expect(bin?.label).toEqual("Selected country")
+
+        // The custom label is also used in the map tooltip
+        expect(chartState.colorScale.inapplicableLabel).toEqual(
+            "Selected country"
+        )
+    })
 })

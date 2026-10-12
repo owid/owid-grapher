@@ -175,13 +175,24 @@ const layouts: { [key in Container]: Layouts} = {
     },
 }
 
+/** The grid column classes for a block type */
+export function getGridColumns(
+    blockType: string = "default",
+    containerType: Container = "default"
+): string {
+    return (
+        R.prop(layouts, containerType, blockType) ??
+        // fallback to the default for the container
+        R.prop(layouts, containerType, "default")
+    )
+}
+
 export function getLayout(
     blockType: string = "default",
     containerType: Container = "default"
 ): string {
-    const layout =
-        R.prop(layouts, containerType, blockType) ??
-        // fallback to the default for the container
-        R.prop(layouts, containerType, "default")
-    return cx(`article-block__${blockType}`, layout)
+    return cx(
+        `article-block__${blockType}`,
+        getGridColumns(blockType, containerType)
+    )
 }

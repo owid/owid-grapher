@@ -9,8 +9,11 @@ import {
 } from "./Util"
 import * as Sentry from "@sentry/browser"
 
-const REQUIRED_KEYS = ["$schema", "dimensions"]
-
+// Identity and publishing keys. These are never inherited from a parent
+// layer, so a child config always carries its own — they're kept in a patch
+// even when they happen to match the parent stack. Every other field,
+// `dimensions` included, is an ordinary inherited property: it survives in the
+// patch only as a genuine override.
 const KEYS_EXCLUDED_FROM_INHERITANCE = [
     "$schema",
     "id",
@@ -68,8 +71,7 @@ export function diffGrapherConfigs(
     config: GrapherInterface,
     reference: GrapherInterface
 ): GrapherInterface {
-    const keepKeys = [...REQUIRED_KEYS, ...KEYS_EXCLUDED_FROM_INHERITANCE]
-    const keep = _.pick(config, keepKeys)
+    const keep = _.pick(config, KEYS_EXCLUDED_FROM_INHERITANCE)
 
     const diffed = omitEmptyObjectsRecursive(
         omitUndefinedValuesRecursive(

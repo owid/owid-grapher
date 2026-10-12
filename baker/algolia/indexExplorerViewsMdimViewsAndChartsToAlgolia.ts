@@ -4,7 +4,7 @@ import "../../serverUtils/instrument.js"
 
 import fs from "fs/promises"
 import * as _ from "lodash-es"
-import * as Sentry from "@sentry/node"
+import { runSentryScript } from "../../serverUtils/sentryTracing.js"
 import * as db from "../../db/db.js"
 import { ALGOLIA_INDEXING } from "../../settings/serverSettings.js"
 import { getAlgoliaClient } from "./configureAlgolia.js"
@@ -108,9 +108,7 @@ const indexExplorerViewsMdimViewsAndChartsToAlgolia = async () => {
     }
 }
 
-indexExplorerViewsMdimViewsAndChartsToAlgolia().catch(async (e) => {
-    console.error("Error in indexExplorerViewsMdimViewsAndChartsToAlgolia:", e)
-    Sentry.captureException(e)
-    await Sentry.close()
-    process.exit(1)
-})
+void runSentryScript(
+    "indexExplorerViewsMdimViewsAndChartsToAlgolia",
+    indexExplorerViewsMdimViewsAndChartsToAlgolia
+)

@@ -29,7 +29,7 @@ import {
     BAKED_GRAPHER_URL,
     CATALOG_URL,
     DATA_API_URL,
-} from "../settings/clientSettings.js"
+} from "../settings/clientSettings.mjs"
 
 interface ExplorerPageSettings {
     program: ExplorerProgram

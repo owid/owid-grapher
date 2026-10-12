@@ -143,7 +143,7 @@ const acceptSuggestionsRecursive = (value: AnyNode): AnyNode | undefined => {
     // Base cases: primitives pass through unchanged
     if (value === null || value === undefined) return value
 
-    if (R.isArray(value)) {
+    if (Array.isArray(value)) {
         return processArray(value as AnyNode[])
     }
 

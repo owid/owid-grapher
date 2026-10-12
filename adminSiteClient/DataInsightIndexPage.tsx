@@ -53,7 +53,7 @@ import { copyToClipboard, dayjs, RequiredBy } from "@ourworldindata/utils"
 import {
     BAKED_BASE_URL,
     GRAPHER_DYNAMIC_THUMBNAIL_URL,
-} from "../settings/clientSettings.js"
+} from "../settings/clientSettings.mjs"
 import { AdminAppContext } from "./AdminAppContext.js"
 import {
     fetchFigmaProvidedImageUrl,
@@ -319,6 +319,15 @@ export function DataInsightIndexPage() {
     const [layout, setLayout] = useState<Layout>(DEFAULT_LAYOUT)
     const [currentPage, setCurrentPage] = useState(1)
 
+    // Go back to page 1 whenever a filter changes
+    const updateFilter = <T,>(
+        setFilter: (value: T) => void,
+        value: T
+    ): void => {
+        setFilter(value)
+        setCurrentPage(1)
+    }
+
     const [dataInsightForImageUpload, setDataInsightForImageUpload] =
         useState<DataInsightIndexItemThatCanBeUploaded>()
 
@@ -397,11 +406,6 @@ export function DataInsightIndexPage() {
         searchWords,
     ])
 
-    // Reset to page 1 when filters change
-    useEffect(() => {
-        setCurrentPage(1)
-    }, [searchValue, topicTagFilter, chartTypeFilter, publicationFilter])
-
     const visibleDataInsights = useMemo(
         () =>
             filteredDataInsights.slice(
@@ -464,13 +468,16 @@ export function DataInsightIndexPage() {
                 "POST"
             )
             if (json.success) {
-                const dataInsight = dataInsights.find(
-                    (gdoc) => gdoc.id === gdocId
+                setDataInsights((dataInsights) =>
+                    dataInsights.map((dataInsight) =>
+                        dataInsight.id === gdocId
+                            ? { ...dataInsight, tags }
+                            : dataInsight
+                    )
                 )
-                if (dataInsight) dataInsight.tags = tags
             }
         },
-        [admin, dataInsights]
+        [admin, setDataInsights]
     )
 
     const columns = useMemo(() => {
@@ -564,9 +571,12 @@ export function DataInsightIndexPage() {
                             <Input
                                 placeholder="Search"
                                 value={searchValue}
-                                onChange={(e) => setSearchValue(e.target.value)}
+                                onChange={(e) =>
+                                    updateFilter(setSearchValue, e.target.value)
+                                }
                                 onKeyDown={(e) => {
-                                    if (e.key === "Escape") setSearchValue("")
+                                    if (e.key === "Escape")
+                                        updateFilter(setSearchValue, "")
                                 }}
                                 style={{ width: 350 }}
                             />
@@ -580,7 +590,7 @@ export function DataInsightIndexPage() {
                                     })
                                 )}
                                 onChange={(tag: string) =>
-                                    setTopicTagFilter(tag)
+                                    updateFilter(setTopicTagFilter, tag)
                                 }
                                 allowClear
                                 popupMatchSelectWidth={false}
@@ -599,7 +609,7 @@ export function DataInsightIndexPage() {
                                     },
                                 ]}
                                 onChange={(value: ChartTypeFilter) =>
-                                    setChartTypeFilter(value)
+                                    updateFilter(setChartTypeFilter, value)
                                 }
                                 allowClear
                                 popupMatchSelectWidth={false}
@@ -619,7 +629,7 @@ export function DataInsightIndexPage() {
                                     },
                                 ]}
                                 onChange={(value: PublicationFilter) =>
-                                    setPublicationFilter(value)
+                                    updateFilter(setPublicationFilter, value)
                                 }
                                 allowClear
                                 popupMatchSelectWidth={false}
@@ -631,6 +641,7 @@ export function DataInsightIndexPage() {
                                     setTopicTagFilter(undefined)
                                     setChartTypeFilter(undefined)
                                     setPublicationFilter(undefined)
+                                    setCurrentPage(1)
                                 }}
                             >
                                 Reset
@@ -904,6 +915,7 @@ const useDataInsights = (admin: Admin) => {
     }, [admin])
 
     useEffect(() => {
+        // oxlint-disable-next-line react/set-state-in-effect -- the state is only set once the fetch resolves
         void fetchAndUpdateDataInsights()
     }, [fetchAndUpdateDataInsights])
 

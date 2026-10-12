@@ -6,8 +6,12 @@ import {
     LATEST_TYPE_LABELS,
     OwidGdocMinimalAnnouncementInterface,
 } from "@ourworldindata/types"
-import { dayjs, formatAuthors } from "@ourworldindata/utils"
-import { useLinkedChart, useLinkedDocument } from "../utils.js"
+import {
+    dayjs,
+    deriveAnnouncementLatestType,
+    formatAuthors,
+} from "@ourworldindata/utils"
+import { useLinkedDocument } from "../utils.js"
 import { useDocumentContext } from "../DocumentContext.js"
 import Image, { ImageParentContainer } from "./Image.js"
 import { BlockErrorFallback } from "./BlockErrorBoundary.js"
@@ -24,10 +28,7 @@ import { faArrowRight, faHeart } from "@fortawesome/free-solid-svg-icons"
 import { useResizeObserver } from "usehooks-ts"
 import { OwidSocials } from "../../OwidSocials.js"
 import { NewsletterSubscriptionContext } from "../../newsletter.js"
-import {
-    deriveAnnouncementLatestType,
-    buildLatestPagePath,
-} from "../../latest/latestUtils.js"
+import { buildLatestPagePath } from "../../latest/latestUtils.js"
 
 type FeaturedWorkTileProps = EnrichedBlockHomepageIntroPost & {
     className?: string
@@ -144,26 +145,13 @@ function useIsOverflowing<T extends HTMLElement = HTMLElement>(
 
 function HomepageAnnouncement(props: {
     announcement: OwidGdocMinimalAnnouncementInterface
-    index: number
 }) {
-    const { announcement, index } = props
-    const { linkedChart } = useLinkedChart(announcement.cta?.url || "")
-    const { linkedDocument } = useLinkedDocument(announcement.cta?.url || "")
-    // If there's not enough space to show all of the third announcement, we link to the latest page, no matter what
-    // If there is enough space, it behaves as normal:
-    // - cta: link directly to the resource
-    // - no cta: link to the latest page
+    const { announcement } = props
     const announcementRef = useRef<HTMLLIElement>(null)
     const isOverflowing = useIsOverflowing(
         announcementRef as RefObject<HTMLElement>
     )
-    const latestPageLink = `/latest#${announcement.slug}`
-    const href = isOverflowing
-        ? latestPageLink
-        : linkedChart?.resolvedUrl ||
-          linkedDocument?.url ||
-          announcement.cta?.url ||
-          latestPageLink
+    const href = `/latest#${announcement.slug}`
 
     const publishedAtDayJs = dayjs(announcement.publishedAt)
     const publishedAtFormatted = publishedAtDayJs.isToday()
@@ -187,7 +175,8 @@ function HomepageAnnouncement(props: {
             <a
                 className="homepage-intro__announcement-link"
                 aria-labelledby={`announcement-${announcement.id}`}
-                tabIndex={index === 2 ? -1 : undefined}
+                // skip overflowing links to prevent inner scrolling that breaks the layout
+                tabIndex={isOverflowing ? -1 : undefined}
                 href={href}
             >
                 <span className="homepage-intro__announcement-meta h6-black-caps">
@@ -204,8 +193,7 @@ function HomepageAnnouncement(props: {
                     {announcement.excerpt}
                 </p>
                 <span className="homepage-intro__announcement-read-more body-3-medium">
-                    {announcement.cta ? announcement.cta.text : "Read more"}{" "}
-                    <FontAwesomeIcon icon={faArrowRight} />
+                    Read more <FontAwesomeIcon icon={faArrowRight} />
                 </span>
             </a>
         </li>
@@ -223,11 +211,10 @@ function HomepageAnnouncements() {
                 <h4 className="h3-bold">Updates and announcements</h4>
             </div>
             <ul className="homepage-intro__announcements-list">
-                {announcements.map((announcement, i) => (
+                {announcements.map((announcement) => (
                     <HomepageAnnouncement
                         announcement={announcement}
                         key={announcement.id}
-                        index={i}
                     />
                 ))}
             </ul>

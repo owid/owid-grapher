@@ -1,6 +1,12 @@
-import { useContext, useEffect, useRef, useState } from "react"
+import { useContext } from "react"
 import * as React from "react"
 import cx from "clsx"
+import {
+    Button as AriaButton,
+    Disclosure,
+    DisclosureGroup,
+    DisclosurePanel,
+} from "react-aria-components"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
     faArrowRight,
@@ -23,11 +29,7 @@ import { useLinkedChart, useLinkedIndicator } from "../utils.js"
 import KeyIndicator from "./KeyIndicator.js"
 import { AttachmentsContext } from "../AttachmentsContext.js"
 import { Button } from "@ourworldindata/components"
-import { useResizeObserver } from "usehooks-ts"
 import { SEARCH_BASE_PATH } from "../../search/searchUtils.js"
-
-// keep in sync with $duration in KeyIndicatorCollection.scss
-const HEIGHT_ANIMATION_DURATION_IN_SECONDS = 0.4
 
 const tabIconMap: Record<"chart" | "map" | "table", IconDefinition> = {
     chart: faChartLine,
@@ -42,12 +44,9 @@ export default function KeyIndicatorCollection({
     d: EnrichedBlockKeyIndicatorCollection
     className?: string
 }) {
-    const slugs = d.blocks.map(
-        (b: EnrichedBlockKeyIndicator) => Url.fromURL(b.datapageUrl).slug ?? ""
-    )
-
-    const [isBlockOpen, setBlockOpen] = useState<boolean[]>(
-        slugs.map((_: string, index: number) => index === 0) // the first block is open by default
+    const disclosureIds = d.blocks.map(
+        (block: EnrichedBlockKeyIndicator) =>
+            `key-indicator-collection_${Url.fromURL(block.datapageUrl).slug ?? ""}`
     )
 
     const { homepageMetadata } = useContext(AttachmentsContext)
@@ -75,158 +74,79 @@ export default function KeyIndicatorCollection({
                 text="See all our data"
                 theme="outline-vermillion"
             />
-            <div className="span-cols-12">
+            <DisclosureGroup
+                className="span-cols-12"
+                defaultExpandedKeys={disclosureIds.slice(0, 1)}
+            >
                 {blocks.map(
                     (block: EnrichedBlockKeyIndicator, blockIndex: number) => {
-                        const slug = slugs[blockIndex]
-                        const isOpen = isBlockOpen[blockIndex]
+                        const disclosureId = disclosureIds[blockIndex]
 
                         return (
                             <AccordionItem
                                 // assumes a key indicator doesn't appear twice on a page
-                                id={`key-indicator-collection_${slug}`}
-                                key={slug}
-                                isOpen={isOpen}
-                                open={() => {
-                                    // open block, close all others
-                                    const updated = slugs.map(() => false)
-                                    updated[blockIndex] = true
-                                    setBlockOpen(updated)
-                                }}
-                                close={() => {
-                                    // close block, leave others as they are
-                                    const updated = [...isBlockOpen]
-                                    updated[blockIndex] = false
-                                    setBlockOpen(updated)
-                                }}
-                                header={
-                                    <KeyIndicatorHeader
-                                        block={block}
-                                        isContentVisible={isOpen}
-                                    />
-                                }
-                                mobileHeader={
-                                    <KeyIndicatorLink block={block}>
-                                        <KeyIndicatorHeader
-                                            block={block}
-                                            isContentVisible={isOpen}
-                                        />
-                                    </KeyIndicatorLink>
-                                }
+                                id={disclosureId}
+                                key={disclosureId}
+                                block={block}
                             >
                                 <KeyIndicator d={block} />
                             </AccordionItem>
                         )
                     }
                 )}
-            </div>
+            </DisclosureGroup>
         </section>
     )
 }
 
 function AccordionItem({
     id,
-    isOpen,
-    open,
-    close,
-    header,
-    mobileHeader,
+    block,
     children,
 }: {
     id: string
-    isOpen: boolean
-    open: () => void
-    close: () => void
-    header: React.ReactNode
-    mobileHeader: React.ReactNode
+    block: EnrichedBlockKeyIndicator
     children: React.ReactNode
-}) {
-    const ref = useRef<HTMLDivElement>(null)
-    const { ref: contentRef, height } = useHeight()
-
-    const headerId = `${id}_header`
-    const contentId = `${id}_content`
-
-    // remove content from the tab sequence if it's not visible
-    useEffect(() => {
-        if (!contentRef.current) return
-        contentRef.current.inert = !isOpen
-    }, [isOpen, contentRef])
-
-    const contentHeight = isOpen ? height : 0
-
+}): React.ReactElement {
     return (
-        <div
-            ref={ref}
-            className={cx("accordion-item", {
-                "accordion-item--open": isOpen,
-                "accordion-item--closed": !isOpen,
-            })}
+        <Disclosure
+            id={id}
+            className={({ isExpanded }) =>
+                cx("accordion-item", {
+                    "accordion-item--open": isExpanded,
+                    "accordion-item--closed": !isExpanded,
+                })
+            }
         >
-            {/* desktop */}
-            <h3 className="accordion-item__heading">
-                <button
-                    id={headerId}
-                    className="accordion-item__button"
-                    onClick={() => {
-                        if (isOpen) {
-                            close()
-                        } else {
-                            open()
-
-                            // scroll accordion item into view if it's not visible after opening
-                            setTimeout(() => {
-                                if (!ref.current) return
-                                if (
-                                    !isElementFullyVisible(ref.current) &&
-                                    !isElementAtTopOfViewport(ref.current)
-                                ) {
-                                    ref.current.scrollIntoView({
-                                        behavior: "smooth",
-                                    })
-                                }
-
-                                // focus on content after the scroll-into-view
-                                // animation has finished (fixes a bug in Safari
-                                // where focus is lost after an accordion item
-                                // is opened and the focus unexpectedly jumps
-                                // to the top of the page on further interactions)
-                                setTimeout(() => {
-                                    if (contentRef.current) {
-                                        contentRef.current.focus()
-                                    }
-                                }, 600)
-                            }, HEIGHT_ANIMATION_DURATION_IN_SECONDS * 1000)
-                        }
-                    }}
-                    disabled={isOpen}
-                    aria-disabled={isOpen}
-                    aria-expanded={isOpen}
-                    aria-controls={contentId}
-                >
-                    {header}
-                </button>
-            </h3>
-            {/* mobile */}
-            {!isOpen && mobileHeader}
-            <div
-                id={contentId}
-                className="accordion-item__content"
-                style={{
-                    height: contentHeight,
-                }}
-                role="region"
-                aria-labelledby={headerId}
-            >
-                <div
-                    ref={contentRef}
-                    tabIndex={isOpen ? 0 : -1}
-                    aria-hidden={!isOpen}
-                >
-                    {children}
-                </div>
-            </div>
-        </div>
+            {({ isExpanded }) => (
+                <>
+                    {/* desktop */}
+                    <h3 className="accordion-item__heading">
+                        <AriaButton
+                            slot="trigger"
+                            className="accordion-item__button"
+                        >
+                            <KeyIndicatorHeader
+                                block={block}
+                                isContentVisible={isExpanded}
+                            />
+                        </AriaButton>
+                    </h3>
+                    {/* mobile */}
+                    {!isExpanded && (
+                        <KeyIndicatorLink block={block}>
+                            <KeyIndicatorHeader block={block} />
+                        </KeyIndicatorLink>
+                    )}
+                    <DisclosurePanel
+                        className="accordion-item__content"
+                        role="region"
+                    >
+                        {children}
+                    </DisclosurePanel>
+                </>
+            )}
+        </Disclosure>
     )
 }
 
@@ -321,31 +241,4 @@ function KeyIndicatorLink({
             {children}
         </a>
     )
-}
-
-const useHeight = () => {
-    const ref = useRef<HTMLDivElement>(null)
-    const { height } = useResizeObserver({
-        ref: ref as React.RefObject<HTMLDivElement>,
-    })
-
-    return { ref, height }
-}
-
-function isElementFullyVisible(element: HTMLElement): boolean {
-    const bbox = element.getBoundingClientRect()
-    const viewHeight = Math.max(
-        document.documentElement.clientHeight,
-        window.innerHeight
-    )
-    return bbox.top >= 0 && bbox.bottom <= viewHeight
-}
-
-function isElementAtTopOfViewport(element: HTMLElement): boolean {
-    const bbox = element.getBoundingClientRect()
-    const viewHeight = Math.max(
-        document.documentElement.clientHeight,
-        window.innerHeight
-    )
-    return bbox.top >= 0 && bbox.top < 0.33 * viewHeight
 }

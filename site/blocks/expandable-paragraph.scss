@@ -1,6 +1,14 @@
 .expandable-paragraph__content {
     overflow: hidden;
+    margin-bottom: 8px;
+    height: auto;
+    -webkit-mask-image: none;
+}
+
+.expandable-paragraph__content--closed {
     margin-bottom: 24px;
+    height: 100px;
+    -webkit-mask-image: linear-gradient(180deg, #000 0%, transparent);
 }
 
 .expandable-paragraph__expand-button--slim {

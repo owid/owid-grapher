@@ -2,7 +2,11 @@ import express, { NextFunction } from "express"
 import * as Sentry from "@sentry/node"
 import cookieParser from "cookie-parser"
 import http from "http"
-import { BAKED_BASE_URL, ENV } from "../settings/serverSettings.js"
+import {
+    BAKED_BASE_URL,
+    ENV,
+    VITE_DIST_DIR,
+} from "../settings/serverSettings.js"
 import * as db from "../db/db.js"
 import { IndexPage } from "./IndexPage.js"
 import {
@@ -80,8 +84,11 @@ export class OwidAdminApp {
         app.use("/admin", requireAdminAuthMiddleware)
 
         app.use("/", express.static("public"))
-        app.use("/assets", express.static("dist/assets"))
-        app.use("/assets-admin", express.static("dist/assets-admin"))
+        app.use("/assets", express.static(`${VITE_DIST_DIR}/assets`))
+        app.use(
+            "/assets-admin",
+            express.static(`${VITE_DIST_DIR}/assets-admin`)
+        )
 
         app.use("/api", publicApiRouter.router)
         app.use("/admin/api", apiRouter.router)
@@ -95,7 +102,9 @@ export class OwidAdminApp {
                     <IndexPage
                         email={res.locals.user.email}
                         username={res.locals.user.fullName}
-                        isSuperuser={res.locals.user.isSuperuser}
+                        // stored as a tinyint, but the grapher only
+                        // recognizes window.admin by a boolean isSuperuser
+                        isSuperuser={!!res.locals.user.isSuperuser}
                     />
                 )
             )
@@ -201,8 +210,14 @@ export class OwidAdminApp {
             app.use("/", mockSiteRouter)
         }
 
-        // Add this after all routes, but before any other error-handling
-        // middlewares are defined.
+        // Sentry v11's Express integration would capture route errors on its
+        // own, but it hooks into Express by rewriting its source at load time
+        // via `Module.registerHooks()`. We run the server through tsx, which
+        // loads modules itself and bypasses that hook, so the integration never
+        // attaches and errors would go unreported. Keep the (deprecated but
+        // functional) explicit error handler. Add it after all routes, but
+        // before any other error-handling middlewares are defined.
+        // oxlint-disable-next-line typescript/no-deprecated -- see above, the automatic capture doesn't work under tsx
         Sentry.setupExpressErrorHandler(app)
 
         // Give full error messages, including in production

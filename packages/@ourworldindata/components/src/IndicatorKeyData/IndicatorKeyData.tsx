@@ -1,8 +1,7 @@
 import * as React from "react"
 import {
     OwidProcessingLevel,
-    getPhraseForProcessingLevel,
-    splitSourceTextIntoFragments,
+    getProcessingPhraseForAttribution,
     formatSourceDate,
     getDateRange,
 } from "@ourworldindata/utils"
@@ -22,14 +21,14 @@ export const makeSource = ({
 }): React.ReactNode => {
     if (!attribution) return null
     const isEmbedded = isEmbeddedInADataPage ?? true
-    const processingLevelPhrase =
-        getPhraseForProcessingLevel(owidProcessingLevel)
-    const hideProcessingPhase =
-        attribution.toLowerCase() === "our world in data"
+    const processingLevelPhrase = getProcessingPhraseForAttribution(
+        attribution,
+        owidProcessingLevel
+    )
     return (
         <>
             <SimpleMarkdownText text={attribution} useParagraphs={false} />
-            {!hideProcessingPhase && (
+            {processingLevelPhrase && (
                 <>
                     {" – "}
                     {isEmbedded ? (
@@ -88,7 +87,17 @@ export const makeUnitConversionFactor = ({
     return unitConversionFactor
 }
 
-export const makeLinks = ({ link }: { link?: string }): React.ReactNode => {
+const splitSourceTextIntoFragments = (text: string | undefined): string[] => {
+    return text ? text.split(";").map((fragment) => fragment.trim()) : []
+}
+
+export const makeLinks = ({
+    link,
+    trackNote,
+}: {
+    link?: string
+    trackNote?: string
+}): React.ReactNode => {
     if (!link) return null
     const linkFragments = splitSourceTextIntoFragments(link)
     return linkFragments.map((urlOrText, index) => {
@@ -97,7 +106,9 @@ export const makeLinks = ({ link }: { link?: string }): React.ReactNode => {
             <React.Fragment key={urlOrText}>
                 <span>
                     {isUrl ? (
-                        <a href={urlOrText}>{urlOrText}</a>
+                        <a href={urlOrText} data-track-note={trackNote}>
+                            {urlOrText}
+                        </a>
                     ) : (
                         <SimpleMarkdownText
                             text={urlOrText}

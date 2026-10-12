@@ -12,9 +12,13 @@ type SimpleMarkdownTextProps = {
     text: string
     useParagraphs?: boolean // by default, text is wrapped in <p> tags
     openLinksInNewTab?: boolean // by default, links open in the same tab
+    dataTrackNote?: string // if set, every link gets this data-track-note for click tracking
+    dodTrackNote?: string // if set, every details-on-demand span gets this data-dod-track-note
 }
 
-const transformDodLinks: Plugin<[], Root> = () => {
+const transformDodLinks: Plugin<[{ dodTrackNote?: string }?], Root> = (
+    options
+) => {
     return function (tree) {
         visit(tree, "element", function (node) {
             if (node.tagName === "a")
@@ -32,6 +36,9 @@ const transformDodLinks: Plugin<[], Root> = () => {
                         node.properties["data-id"] = match.groups?.term
                         node.properties["aria-expanded"] = "false"
                         node.properties["tabindex"] = 0
+                        if (options?.dodTrackNote)
+                            node.properties["data-dod-track-note"] =
+                                options.dodTrackNote
                         delete node.properties.href
                     }
                 }
@@ -109,9 +116,14 @@ export class SimpleMarkdownText extends React.Component<SimpleMarkdownTextProps>
             )
         }
 
-        if (this.props.openLinksInNewTab) {
-            components.a = ({ children, ...props }) => (
-                <a {...props} target="_blank">
+        if (this.props.openLinksInNewTab || this.props.dataTrackNote) {
+            // react-markdown passes its hast `node`; don't spread it onto the DOM
+            components.a = ({ children, node: _node, ...props }) => (
+                <a
+                    {...props}
+                    target={this.props.openLinksInNewTab ? "_blank" : undefined}
+                    data-track-note={this.props.dataTrackNote}
+                >
                     {children}
                 </a>
             )
@@ -122,7 +134,10 @@ export class SimpleMarkdownText extends React.Component<SimpleMarkdownTextProps>
 
     override render(): React.ReactElement | null {
         const options: Omit<MarkdownOptions, "children"> = {
-            rehypePlugins: [transformDodLinks, transformColorSyntax],
+            rehypePlugins: [
+                [transformDodLinks, { dodTrackNote: this.props.dodTrackNote }],
+                transformColorSyntax,
+            ],
             remarkPlugins: [remarkPlainLinks],
             components: this.markdownCustomComponents,
         }

@@ -18,6 +18,7 @@ import {
     OwidTable,
     BlankOwidTable,
     parseTransformString,
+    TransformParamType,
 } from "@ourworldindata/core-table"
 import {
     EntityPicker,
@@ -62,7 +63,7 @@ import {
 import classNames from "clsx"
 import { action, computed, makeObservable, observable, reaction } from "mobx"
 import { observer } from "mobx-react"
-import React, { useCallback, useEffect, useState } from "react"
+import React, { useState, useSyncExternalStore } from "react"
 import { createRoot } from "react-dom/client"
 import { ExplorerControlBar, ExplorerControlPanel } from "./ExplorerControls.js"
 import { ExplorerProgram } from "./ExplorerProgram.js"
@@ -82,7 +83,6 @@ import {
     migrateExplorerUrl,
 } from "./urlMigrations/ExplorerUrlMigrations.js"
 import { match } from "ts-pattern"
-import { TransformParamType } from "@ourworldindata/core-table/src/Transforms.js"
 
 export interface ExplorerProps extends SerializedGridProgram {
     grapherConfigs?: GrapherInterface[]
@@ -107,31 +107,23 @@ export interface ExplorerProps extends SerializedGridProgram {
     loadInputTableForConfig?: FetchInputTableForConfigFn
 }
 
+// The admin writes the unsaved draft to localStorage, possibly from another
+// tab, so poll for changes
+const subscribeToLocalStoragePolling = (onChange: () => void): (() => void) => {
+    const interval = setInterval(onChange, 1000)
+    return () => clearInterval(interval)
+}
+
 const LivePreviewComponent = (props: ExplorerProps) => {
     const [useLocalStorage, setUseLocalStorage] = useState(true)
-    const [renderedProgram, setRenderedProgram] = useState("")
-    const [hasLocalStorage, setHasLocalStorage] = useState(false)
-
-    const updateProgram = useCallback(() => {
-        const localStorageProgram = localStorage.getItem(
-            UNSAVED_EXPLORER_DRAFT + props.slug
-        )
-        let program: string
-        if (useLocalStorage) program = localStorageProgram ?? props.program
-        else program = props.program
-
-        setHasLocalStorage(!!localStorageProgram)
-        setRenderedProgram((previousProgram) => {
-            if (program === previousProgram) return previousProgram
-            return program
-        })
-    }, [props.program, props.slug, useLocalStorage])
-
-    useEffect(() => {
-        updateProgram()
-        const interval = setInterval(updateProgram, 1000)
-        return () => clearInterval(interval)
-    }, [updateProgram])
+    const localStorageProgram = useSyncExternalStore(
+        subscribeToLocalStoragePolling,
+        () => localStorage.getItem(UNSAVED_EXPLORER_DRAFT + props.slug)
+    )
+    const hasLocalStorage = !!localStorageProgram
+    const renderedProgram = useLocalStorage
+        ? (localStorageProgram ?? props.program)
+        : props.program
 
     const newProps = { ...props, program: renderedProgram }
 
@@ -175,10 +167,11 @@ const LivePreviewComponent = (props: ExplorerProps) => {
                     </Tippy>
                 </div>
             )}
+            {/* Remount whenever the program changes, since Explorer only reads it on mount */}
             <Explorer
                 {...newProps}
                 queryStr={window?.location?.search ?? ""}
-                key={Date.now()}
+                key={renderedProgram}
                 isPreview={true}
             />
         </>
@@ -666,7 +659,9 @@ export class Explorer
             (dim) => dim.type === "slug"
         )
 
-        const yVariableIds = variableIdDimensions.map((dim) => dim.variableId)
+        const yVariableIds = excludeUndefined(
+            variableIdDimensions.map((dim) => dim.variableId)
+        )
         const ySlugs = slugDimensions.map((dim) => dim.slug)
 
         const partialGrapherConfig =
@@ -781,16 +776,16 @@ export class Explorer
         // Sort dimensions to match the order defined in config.ySlugs
         config.dimensions = _.sortBy(
             dimensions,
-            (dim) => indexMap[dim.slug ?? dim.variableId]
+            (dim) => indexMap[dim.slug ?? dim.variableId ?? ""]
         )
 
         this.inputTableTransformer = (table: OwidTable) => {
             // All slugs specified by the author in the explorer config
-            const slugs = _.uniq(slugDimensions.map(({ slug }) => slug))
+            const slugs = new Set(slugDimensions.map(({ slug }) => slug))
 
             // Add transformed columns (and the variables they depend on) to the grapher table
-            if (slugs.length > 0) {
-                const baseSlugs = slugs.flatMap((slug) => {
+            if (slugs.size > 0) {
+                const baseSlugs = slugs.values().flatMap((slug) => {
                     const def = getColumnDef(slug)
                     if (!def?.transform) return []
                     const { params: transformParams = [] } =
@@ -802,14 +797,14 @@ export class Explorer
                         .map(({ value }) => value)
                     return dataSlugsForTransform
                 })
-                const allRequiredSlugs = _.uniq([...baseSlugs, ...slugs])
+                const allRequiredSlugs = new Set([...baseSlugs, ...slugs])
                 const existingSlugs = new Set(table.columnSlugs)
-                const missingSlugs = allRequiredSlugs.filter(
-                    (slug) => !existingSlugs.has(slug)
-                )
-                const missingColumnDefs = missingSlugs
+                const missingColumnDefs = allRequiredSlugs
+                    .values()
+                    .filter((slug) => !existingSlugs.has(slug))
                     .map((slug) => getColumnDef(slug))
                     .filter((def) => def !== undefined)
+                    .toArray()
                 table = table.appendColumns(missingColumnDefs)
             }
 

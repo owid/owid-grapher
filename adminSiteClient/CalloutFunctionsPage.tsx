@@ -1,4 +1,10 @@
-import { useContext, useState, useEffect, useCallback } from "react"
+import {
+    useContext,
+    useState,
+    useEffect,
+    useCallback,
+    useEffectEvent,
+} from "react"
 import { useLocation, useHistory } from "react-router-dom"
 import { AdminAppContext } from "./AdminAppContext.js"
 import { AdminLayout } from "./AdminLayout.js"
@@ -21,36 +27,39 @@ export const CalloutFunctionsPage = () => {
     const [chartUrl, setChartUrl] = useState(initialUrl)
     const [data, setData] = useState<CalloutFunctionsResponse | undefined>()
     const [error, setError] = useState<string | undefined>()
-    const [isLoading, setIsLoading] = useState(false)
+    // Starts out loading if there's a URL to auto-fetch (see below)
+    const [isLoading, setIsLoading] = useState(() => !!initialUrl.trim())
 
-    const fetchFunctions = useCallback(
-        async (url: string) => {
-            if (!url.trim()) return
-
-            setIsLoading(true)
-            setError(undefined)
-            setData(undefined)
-
-            try {
-                const response = await admin.getJSON(
+    const loadFunctions = useCallback(
+        (url: string): Promise<void> =>
+            admin
+                .getJSON(
                     `/api/callout-functions?url=${encodeURIComponent(url)}`
                 )
-                setData(response as CalloutFunctionsResponse)
-            } catch (err) {
-                setError(String(err))
-            } finally {
-                setIsLoading(false)
-            }
-        },
+                .then(
+                    (response) => setData(response as CalloutFunctionsResponse),
+                    (err) => setError(String(err))
+                )
+                .finally(() => setIsLoading(false)),
         [admin]
     )
 
-    // Auto-fetch if URL is provided in query params
+    const fetchFunctions = async (url: string) => {
+        if (!url.trim()) return
+
+        setIsLoading(true)
+        setError(undefined)
+        setData(undefined)
+        await loadFunctions(url)
+    }
+
+    // Auto-fetch on mount if URL is provided in query params
+    const loadInitialFunctions = useEffectEvent(() => {
+        if (initialUrl.trim()) void loadFunctions(initialUrl)
+    })
     useEffect(() => {
-        if (initialUrl) {
-            void fetchFunctions(initialUrl)
-        }
-    }, []) // eslint-disable-line react-hooks/exhaustive-deps
+        loadInitialFunctions()
+    }, [])
 
     const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
         e.preventDefault()

@@ -12,7 +12,6 @@ export interface SankeyVariantConfig {
     product?: string
     country?: string
     flow?: Flow
-    urlSync?: boolean
 }
 
 export function parseConfig(raw: Record<string, string>): SankeyVariantConfig {
@@ -24,6 +23,5 @@ export function parseConfig(raw: Record<string, string>): SankeyVariantConfig {
         product: raw.product,
         country: raw.country,
         flow: parseEnum(raw.flow, FLOWS),
-        urlSync: parseBoolean(raw.urlSync),
     }
 }

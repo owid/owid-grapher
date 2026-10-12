@@ -2,15 +2,17 @@
 // the types for `process.env` to work correctly.
 /// <reference types="node" />
 
+import { SENTRY_DATA_COLLECTION } from "@ourworldindata/utils"
 import * as Sentry from "@sentry/react"
 import {
     COMMIT_SHA,
     ENV,
     SENTRY_ADMIN_DSN,
-} from "../settings/clientSettings.js"
+} from "../settings/clientSettings.mjs"
 
 if (!process.env.VITEST) {
     Sentry.init({
+        dataCollection: SENTRY_DATA_COLLECTION,
         dsn: SENTRY_ADMIN_DSN,
         environment: ENV,
         release: COMMIT_SHA,

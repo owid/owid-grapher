@@ -49,7 +49,11 @@ function makeBuild({
     const nodes = isIncoming
         ? [...partners, centralNode]
         : [centralNode, ...partners]
-    return { nodes, links }
+    const totalFlowVolume = partnerValues.reduce(
+        (total, value) => total + value,
+        0
+    )
+    return { nodes, links, totalFlowVolume }
 }
 
 // Mirror Sankey.tsx layout options and read realized value-to-pixel scale (ky).

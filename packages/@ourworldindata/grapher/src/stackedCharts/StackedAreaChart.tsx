@@ -2,12 +2,13 @@ import * as _ from "lodash-es"
 import * as React from "react"
 import * as R from "remeda"
 import {
-    getRelativeMouse,
-    excludeUndefined,
-    isMobile,
     Bounds,
-    guid,
+    excludeUndefined,
     exposeInstanceOnWindow,
+    getRelativeMouse,
+    guid,
+    isMobile,
+    roundForSvg,
 } from "@ourworldindata/utils"
 import { computed, action, observable, makeObservable } from "mobx"
 import { SeriesName, SeriesStrategy, Time } from "@ourworldindata/types"
@@ -48,7 +49,7 @@ import { Emphasis, resolveEmphasis } from "../interaction/Emphasis"
 import { ChartInterface } from "../chart/ChartInterface"
 import { ChartManager } from "../chart/ChartManager"
 import { StackedAreas } from "./StackedAreas"
-import { HorizontalColorLegendManager } from "../legend/HorizontalColorLegends"
+import { ExternalColorLegendData } from "../legend/HorizontalColorLegendTypes"
 import { CategoricalBin } from "../color/ColorScaleBin"
 import { ChartComponentProps } from "../chart/ChartTypeMap.js"
 import { InteractionState } from "../interaction/InteractionState"
@@ -203,7 +204,7 @@ export class StackedAreaChart
     @computed private get verticalLabelsState(): VerticalLabelsState {
         return new VerticalLabelsState(this.verticalLabelsSeries, {
             maxWidth: this.maxVerticalLabelsWidth,
-            fontSize: this.fontSize,
+            baseFontSize: this.fontSize,
             yAxis: () => this.yAxis,
             yRange: () => this.verticalLabelsYRange,
             seriesNamesSortedByImportance: this.seriesSortedByImportance,
@@ -236,7 +237,7 @@ export class StackedAreaChart
         return this.verticalLabelsWidth
     }
 
-    @computed get externalLegend(): HorizontalColorLegendManager | undefined {
+    @computed get externalLegend(): ExternalColorLegendData | undefined {
         if (!this.showLegend) {
             const categoricalLegendData = this.chartState.unstackedSeries
                 .map(
@@ -252,7 +253,7 @@ export class StackedAreaChart
 
             return {
                 categoricalLegendData,
-                legendStyleConfig: LEGEND_STYLE_FOR_STACKED_CHARTS,
+                categoricalLegendStyleConfig: LEGEND_STYLE_FOR_STACKED_CHARTS,
             }
         }
         return undefined
@@ -419,9 +420,13 @@ export class StackedAreaChart
                     return (
                         <circle
                             key={series.seriesName}
-                            cx={horizontalAxis.place(point.position)}
-                            cy={verticalAxis.place(
-                                point.value + point.valueOffset
+                            cx={roundForSvg(
+                                horizontalAxis.place(point.position)
+                            )}
+                            cy={roundForSvg(
+                                verticalAxis.place(
+                                    point.value + point.valueOffset
+                                )
                             )}
                             r={2}
                             fill={series.color}
@@ -429,10 +434,10 @@ export class StackedAreaChart
                     )
                 })}
                 <line
-                    x1={horizontalAxis.place(xPoint.position)}
-                    y1={verticalAxis.range[0]}
-                    x2={horizontalAxis.place(xPoint.position)}
-                    y2={verticalAxis.range[1]}
+                    x1={roundForSvg(horizontalAxis.place(xPoint.position))}
+                    y1={roundForSvg(verticalAxis.range[0])}
+                    x2={roundForSvg(horizontalAxis.place(xPoint.position))}
+                    y2={roundForSvg(verticalAxis.range[1])}
                     stroke="rgba(180,180,180,.4)"
                 />
             </g>

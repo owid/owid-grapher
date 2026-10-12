@@ -255,3 +255,10 @@ export function computeCandidateScores(
 export function getSeriesKey(series: PlacedLabelSeries, index: number): string {
     return `${series.seriesName}-${index}`
 }
+
+export function computeHeight(series: PlacedLabelSeries[]): number {
+    return (
+        _.sumBy(series, (series) => series.bounds.height) +
+        (series.length - 1) * LEGEND_ITEM_MIN_SPACING
+    )
+}

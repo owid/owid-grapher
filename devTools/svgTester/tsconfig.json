@@ -9,7 +9,7 @@
         { "path": "../../packages/@ourworldindata/types" },
         { "path": "../../packages/@ourworldindata/utils" },
 
-        { "path": "../../baker" },
+        { "path": "../../db" },
         { "path": "../../serverUtils" },
         { "path": "../../settings" }
     ]

@@ -1,8 +1,8 @@
 .SiteMobileArea {
-    .SiteNavigationToggle.active {
+    details[open] {
         background-color: #d5e7fe;
     }
-    .SiteNavigationToggle__button {
+    .SiteMobileArea__summary {
         display: flex;
         width: 100%;
         align-items: center;
@@ -11,8 +11,8 @@
         padding: 8px 16px;
         color: $blue-60;
         line-height: 21px;
-        &.active {
-            color: $blue-90;
-        }
+    }
+    details[open] > .SiteMobileArea__summary {
+        color: $blue-90;
     }
 }

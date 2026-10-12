@@ -1,0 +1,38 @@
+section.credits {
+    margin: 40px 0 32px;
+}
+
+/* The article grid doesn't collapse margins */
+section.credits + .footnote-container {
+    margin-top: 0;
+}
+
+hr.credits__divider {
+    color: $blue-10;
+    padding-bottom: 0;
+    margin: 0 0 32px;
+}
+
+h3.credits__heading {
+    @include h3-bold;
+    & {
+        color: $blue-90;
+        margin: 0 0 8px;
+    }
+}
+
+p.credits__paragraph {
+    @include body-3-regular;
+    & {
+        color: $blue-60;
+        margin: 0 0 8px;
+    }
+
+    &:last-child {
+        margin-bottom: 0;
+    }
+
+    a {
+        @include owid-link-60;
+    }
+}

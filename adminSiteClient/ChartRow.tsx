@@ -10,7 +10,7 @@ import {
     ADMIN_BASE_URL,
     BAKED_GRAPHER_URL,
     GRAPHER_DYNAMIC_THUMBNAIL_URL,
-} from "../settings/clientSettings.js"
+} from "../settings/clientSettings.mjs"
 import { ChartListItem } from "./ChartList.js"
 import {
     GRAPHER_CHART_TYPES,
@@ -65,7 +65,7 @@ export class ChartRow extends React.Component<ChartRowProps> {
         makeObservable(this)
     }
 
-    async saveTags(tags: DbChartTagJoin[]) {
+    async saveTags(tags: DbChartTagJoin[]): Promise<void> {
         const { chart } = this.props
         const json = await this.context.admin.requestJSON(
             `/api/charts/${chart.id}/setTags`,
@@ -77,8 +77,8 @@ export class ChartRow extends React.Component<ChartRowProps> {
         }
     }
 
-    @action.bound onSaveTags(tags: DbChartTagJoin[]) {
-        void this.saveTags(tags)
+    @action.bound onSaveTags(tags: DbChartTagJoin[]): Promise<void> {
+        return this.saveTags(tags)
     }
 
     override render() {

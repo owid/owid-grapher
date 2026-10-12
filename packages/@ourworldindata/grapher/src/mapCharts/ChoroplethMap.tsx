@@ -6,6 +6,7 @@ import {
     excludeUndefined,
     EntityName,
     MapRegionName,
+    roundForSvg,
 } from "@ourworldindata/utils"
 import { computed, action, observable, makeObservable } from "mobx"
 import { observer } from "mobx-react"
@@ -38,7 +39,8 @@ import {
     NoDataPattern,
     ProjectedDataPattern,
 } from "./MapComponents"
-import { Patterns } from "../core/GrapherConstants"
+import { InapplicablePattern } from "../chart/ChartUtils"
+import { Patterns, makePatternId } from "../core/GrapherConstants"
 import {
     detectNearbyFeature,
     getCountriesByRegion,
@@ -119,6 +121,10 @@ export class ChoroplethMap extends React.Component<{
             bounds.width / viewportWidth,
             bounds.height / viewportHeight
         )
+    }
+
+    @computed private get featurePatternScale(): number {
+        return (this.manager.patternScale ?? 1) / this.viewportScale
     }
 
     @computed private get viewportScaleSqrt(): number {
@@ -400,6 +406,17 @@ export class ChoroplethMap extends React.Component<{
         }
     }
 
+    @action.bound private onClickFeature(
+        feature: MapRenderFeature,
+        event: SVGMouseEvent
+    ): void {
+        // Don't invoke a second click on the parent
+        // that catches clicks on 'nearby' features
+        event.stopPropagation()
+
+        this.onClick(feature)
+    }
+
     @action.bound private onDocumentPointerDown(): void {
         this.manager.globeController?.dismissCountryFocus()
         if (this.hoverEnterFeature || this.hoverNearbyFeature) {
@@ -468,8 +485,22 @@ export class ChoroplethMap extends React.Component<{
     }
 
     renderFeaturesWithoutData(): React.ReactElement | undefined {
-        if (this.featuresWithNoData.length === 0) return
-        const patternId = Patterns.noDataPatternForMap
+        const {
+            featuresWithNoData,
+            manager: { inapplicableEntityNamesSet },
+        } = this
+
+        if (featuresWithNoData.length === 0) return
+
+        const { patternIdSuffix } = this.manager
+        const noDataPatternId = makePatternId(
+            Patterns.noDataPatternForMap,
+            patternIdSuffix
+        )
+        const inapplicablePatternId = makePatternId(
+            Patterns.inapplicablePatternForMap,
+            patternIdSuffix
+        )
 
         return (
             <g
@@ -478,26 +509,28 @@ export class ChoroplethMap extends React.Component<{
             >
                 <defs>
                     <NoDataPattern
-                        patternId={patternId}
-                        scale={1 / this.viewportScale} // The scale is crucial and projection specific
+                        patternId={noDataPatternId}
+                        scale={this.featurePatternScale}
+                    />
+                    <InapplicablePattern
+                        patternId={inapplicablePatternId}
+                        scale={this.featurePatternScale}
                     />
                 </defs>
 
-                {this.featuresWithNoData.map((feature) => (
+                {featuresWithNoData.map((feature) => (
                     <CountryWithNoData
                         key={feature.id}
                         feature={feature}
-                        patternId={patternId}
+                        patternId={
+                            inapplicableEntityNamesSet?.has(feature.id)
+                                ? inapplicablePatternId
+                                : noDataPatternId
+                        }
                         isSelected={this.manager.isSelected?.(feature.id)}
                         hover={this.manager.getHoverState?.(feature.id)}
                         strokeScale={this.viewportScaleSqrt}
-                        onClick={(event) => {
-                            // don't invoke a second click on parent that
-                            // catches clicks on 'nearby' features
-                            event.stopPropagation()
-
-                            this.onClick(feature)
-                        }}
+                        onClick={this.onClickFeature}
                         onPointerEnter={this.onPointerEnter}
                         onPointerLeave={this.onPointerLeave}
                     />
@@ -515,17 +548,21 @@ export class ChoroplethMap extends React.Component<{
                     <defs>
                         {/* Pattern used by the map legend for the projected data bin */}
                         <ProjectedDataPattern
+                            idSuffix={this.manager.patternIdSuffix}
                             key={PROJECTED_DATA_LEGEND_COLOR}
                             color={PROJECTED_DATA_LEGEND_COLOR}
+                            scale={this.manager.patternScale}
                             forLegend
                         />
                         {/* Patterns used by the map legend. The map legend can't re-use
-                            the features' patterns defined below because those are scaled
-                            by the viewport. */}
+                            the features' patterns defined below because those also undo
+                            the map's viewport scale. */}
                         {this.binColors.map((color, index) => (
                             <ProjectedDataPattern
+                                idSuffix={this.manager.patternIdSuffix}
                                 key={`${color}-${index}`}
                                 color={color}
+                                scale={this.manager.patternScale}
                                 forLegend
                             />
                         ))}
@@ -533,9 +570,10 @@ export class ChoroplethMap extends React.Component<{
                         {/* Pattern used by features */}
                         {this.binColors.map((color, index) => (
                             <ProjectedDataPattern
+                                idSuffix={this.manager.patternIdSuffix}
                                 key={`${color}-${index}`}
                                 color={color}
-                                scale={1 / this.viewportScale}
+                                scale={this.featurePatternScale}
                             />
                         ))}
                     </defs>
@@ -546,19 +584,14 @@ export class ChoroplethMap extends React.Component<{
                     if (!series) return null
                     return (
                         <CountryWithData
+                            patternIdSuffix={this.manager.patternIdSuffix}
                             key={feature.id}
                             feature={feature}
                             series={series}
                             isSelected={this.manager.isSelected?.(feature.id)}
                             hover={this.manager.getHoverState?.(feature.id)}
                             strokeScale={this.viewportScaleSqrt}
-                            onClick={(event) => {
-                                // don't invoke a second click on parent that
-                                // catches clicks on 'nearby' features
-                                event.stopPropagation()
-
-                                this.onClick(feature)
-                            }}
+                            onClick={this.onClickFeature}
                             onPointerEnter={this.onPointerEnter}
                             onPointerLeave={this.onPointerLeave}
                         />
@@ -620,10 +653,10 @@ export class ChoroplethMap extends React.Component<{
                 }}
             >
                 <rect
-                    x={bounds.x}
-                    y={bounds.y}
-                    width={bounds.width}
-                    height={bounds.height}
+                    x={roundForSvg(bounds.x)}
+                    y={roundForSvg(bounds.y)}
+                    width={roundForSvg(bounds.width)}
+                    height={roundForSvg(bounds.height)}
                     fill="rgba(255,255,255,0)"
                     opacity={0}
                 />

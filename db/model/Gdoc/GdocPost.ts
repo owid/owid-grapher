@@ -11,8 +11,14 @@ import {
     ArchiveContext,
 } from "@ourworldindata/types"
 import { excludeNullish, generateToc } from "@ourworldindata/utils"
-import { formatCitation, generateStickyNav } from "./archieToEnriched.js"
-import { parseFaqs, parseLatestFeedExcerpt } from "./rawToEnriched.js"
+import {
+    formatCitation,
+    generateStickyNav,
+    parseAcknowledgements,
+    parseContributors,
+    parseFaqs,
+    parseLatestFeedExcerpt,
+} from "@ourworldindata/gdoc-pipeline"
 import { GdocBase } from "./GdocBase.js"
 import { KnexReadonlyTransaction, knexRaw } from "../../db.js"
 import { getLatestArchivedChartPageVersionsIfEnabled } from "../ArchivedChartVersion.js"
@@ -67,6 +73,11 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
             enrichedBlocks.push(...deprecationNotice)
         }
 
+        const acknowledgements = gdoc.content.acknowledgements
+        if (acknowledgements) {
+            enrichedBlocks.push(...acknowledgements)
+        }
+
         const latestFeedExcerpt = gdoc.content["latest-feed-excerpt"]
         if (latestFeedExcerpt) {
             enrichedBlocks.push(...latestFeedExcerpt)
@@ -80,7 +91,8 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
         const isLinearTopicPage = content.type === OwidGdocType.LinearTopicPage
         content.toc = generateToc(
             content.body,
-            isTocForSidebar || isLinearTopicPage
+            isTocForSidebar || isLinearTopicPage,
+            content.type as OwidGdocType
         )
 
         if (content["latest-feed-excerpt"]) {
@@ -96,6 +108,20 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
         if (content.faqs && Object.values(content.faqs).length) {
             const faqResults = parseFaqs(content.faqs, this.id)
             content.parsedFaqs = faqResults.faqs
+        }
+
+        if (content.contributors !== undefined) {
+            const { contributors, contributorRoles } = parseContributors(
+                content.contributors
+            )
+            content.contributors = contributors
+            content.contributorRoles = contributorRoles
+        }
+
+        if (content.acknowledgements) {
+            content.acknowledgements = parseAcknowledgements(
+                content.acknowledgements
+            )
         }
     }
 
@@ -181,14 +207,14 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
                 SELECT DISTINCT
                     charts.id AS chartId,
                     chart_configs.slug,
-                    chart_configs.full->>"$.title" AS title,
-                    chart_configs.full->>"$.variantName" AS variantName,
+                    chart_configs.config->>"$.title" AS title,
+                    chart_configs.config->>"$.variantName" AS variantName,
                     chart_tags.keyChartLevel
                 FROM charts
                 JOIN chart_configs ON charts.configId=chart_configs.id
                 INNER JOIN chart_tags ON charts.id=chart_tags.chartId
                 WHERE chart_tags.tagId IN (?)
-                    AND chart_configs.full->>"$.isPublished" = "true"
+                    AND chart_configs.config->>"$.isPublished" = "true"
                 ORDER BY title ASC
             `,
             [this.tags.map((tag) => tag.id)]

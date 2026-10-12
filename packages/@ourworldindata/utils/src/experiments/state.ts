@@ -1,4 +1,4 @@
-import Cookies from "js-cookie"
+import { getAll as getAllCookies } from "es-cookie"
 import { EXPERIMENT_PREFIX } from "./constants.js"
 import { experiments } from "./config.js"
 
@@ -48,12 +48,18 @@ export function getExperimentState(): ExperimentState {
  * Only works on client, i.e. when cookies are available.
  *
  * @returns {Record<string, string> | undefined} A mapping of experiment IDs to their assigned arm IDs.
- *      Returns undefined if called on the server.
+ *      Returns undefined if called on the server or cookies are unavailable.
  */
 function getAssignedExperiments(): Record<string, string> | undefined {
     if (typeof window === "undefined") return undefined
 
-    const allCookies = Cookies.get()
+    let allCookies: ReturnType<typeof getAllCookies>
+    try {
+        allCookies = getAllCookies()
+    } catch {
+        // Cookies may be unavailable in a sandboxed iframe.
+        return undefined
+    }
 
     const filteredCookies = Object.fromEntries(
         Object.entries(allCookies).filter(([cookieName]) =>

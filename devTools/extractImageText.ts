@@ -12,7 +12,7 @@
 import pMap from "p-map"
 import * as db from "../db/db.js"
 import { TransactionCloseMode } from "../db/db.js"
-import { CLOUDFLARE_IMAGES_URL } from "../settings/clientSettings.js"
+import { CLOUDFLARE_IMAGES_URL } from "../settings/clientSettings.mjs"
 import { DbEnrichedImage } from "@ourworldindata/types"
 import {
     fetchGptGeneratedTextFromImage,

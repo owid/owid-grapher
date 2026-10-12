@@ -17,6 +17,7 @@ import {
     FilterType,
     SynonymMap,
     SearchResultType,
+    SearchUrlParam,
 } from "@ourworldindata/types"
 import { getCanonicalUrl } from "@ourworldindata/components"
 import {
@@ -24,9 +25,9 @@ import {
     ALGOLIA_SEARCH_KEY,
     BAKED_BASE_URL,
     BAKED_GRAPHER_URL,
-} from "../../settings/clientSettings.js"
+} from "../../settings/clientSettings.mjs"
 import { DEFAULT_SEARCH_PLACEHOLDER } from "./searchClient.js"
-import { getLiteSearchClient } from "./searchClients.js"
+import { getAutocompleteSearchClient } from "./searchClients.js"
 import {
     PAGES_INDEX,
     CHARTS_INDEX,
@@ -89,7 +90,7 @@ const buildRecentSearchesPlugin = () =>
 
 let liteSearchClient: LiteClient | null
 if (ALGOLIA_ID && ALGOLIA_SEARCH_KEY) {
-    liteSearchClient = getLiteSearchClient()
+    liteSearchClient = getAutocompleteSearchClient()
 } else {
     liteSearchClient = null
     console.warn("Algolia credentials are not set")
@@ -262,6 +263,16 @@ const algoliaGetItemUrl: AutocompleteSource<BaseItem>["getItemUrl"] = ({
     item,
 }) => prependSubdirectoryToAlgoliaItemUrl(item)
 
+const ALGOLIA_PAGES_ITEM_PARAMS = {
+    attributesToRetrieve: ["title", "slug", "type"],
+    attributesToHighlight: ["title"],
+}
+
+const ALGOLIA_CHARTS_ITEM_PARAMS = {
+    attributesToRetrieve: ["title", "slug", "type", "queryParams"],
+    attributesToHighlight: ["title"],
+}
+
 const createAlgoliaPagesSource = (
     searchSource?: string
 ): AutocompleteSource<BaseItem> => ({
@@ -281,6 +292,7 @@ const createAlgoliaPagesSource = (
                         hitsPerPage: 2,
                         distinct: true,
                         filters: `NOT type:${OwidGdocType.Profile}`,
+                        ...ALGOLIA_PAGES_ITEM_PARAMS,
                     },
                 },
             ],
@@ -307,6 +319,7 @@ const createAlgoliaChartsSource = (
                         query,
                         hitsPerPage: 3,
                         distinct: true,
+                        ...ALGOLIA_CHARTS_ITEM_PARAMS,
                     },
                 },
             ],
@@ -439,6 +452,7 @@ const createProfileSource = (
                             ],
                         }),
                         hitsPerPage: 1,
+                        ...ALGOLIA_PAGES_ITEM_PARAMS,
                     },
                 },
             ],
@@ -518,6 +532,18 @@ export function Autocomplete({
             },
             openOnFocus: true,
             stallThreshold: STALL_THRESHOLD_MS,
+            // Submitting is handled in onSubmit; the form's action and the
+            // input's name let Firefox offer "Add Search Engine" on
+            // right-click. autocomplete-js types the action as "", but
+            // applies whatever we return to the form element.
+            getFormProps: ({ props }) => ({
+                ...props,
+                action: SEARCH_BASE_PATH as "",
+            }),
+            getInputProps: ({ props }) => ({
+                ...props,
+                name: SearchUrlParam.QUERY,
+            }),
             onStateChange({ state, prevState }) {
                 if (onActivate && !prevState.isOpen && state.isOpen) {
                     onActivate()

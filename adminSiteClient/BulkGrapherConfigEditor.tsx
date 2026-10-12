@@ -8,7 +8,6 @@ import { GrapherConfigGridEditor } from "./GrapherConfigGridEditor.js"
 import {
     ColumnSet,
     GrapherConfigGridEditorConfig,
-    GrapherConfigGridEditorSource,
     ReadOnlyColumn,
 } from "./GrapherConfigGridEditorTypesAndUtils.js"
 
@@ -117,7 +116,6 @@ const bulkChartEditorColumnSets: ColumnSet[] = [
 ]
 
 const config: GrapherConfigGridEditorConfig = {
-    source: GrapherConfigGridEditorSource.SourceVariableAnnotation,
     sExpressionContext: {
         grapherConfigFieldName: "grapherConfig",
         whitelistedColumnNamesAndTypes:
@@ -127,7 +125,6 @@ const config: GrapherConfigGridEditorConfig = {
     readonlyColumns: readOnlyBulkGrapherConfigEditorColumnNamesFields,
     hiddenColumns: BULK_CHART_EDIT_HIDDEN_COLUMNS,
     columnSet: bulkChartEditorColumnSets,
-    finalVariableLayerModificationFn: () => ({}),
 }
 
 export class BulkGrapherConfigEditorPage extends Component {

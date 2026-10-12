@@ -6,7 +6,10 @@ import {
     getRegionByNameOrVariantName,
     getRegionByName,
     getCountryNamesForRegion,
+    getAggregates,
+    getRegionPublishers,
     articulateEntity,
+    parseRegionNameSuffix,
 } from "./regionsUtils.js"
 
 it("getCountryBySlug", () => {
@@ -115,5 +118,62 @@ describe(getCountryNamesForRegion, () => {
         expect(countryNames).toContain("China") // Asia
         expect(countryNames).toContain("Australia") // Oceania
         expect(countryNames).toContain("Nigeria") // Africa
+    })
+})
+
+describe(getRegionPublishers, () => {
+    it("gives one key per publisher, not per region set", () => {
+        const keys = getRegionPublishers()
+
+        // fao_1/fao_2/fao_sdg and ihme_gbd_1/ihme_gbd_2 collapse to one key each
+        expect(keys).toContain("fao")
+        expect(keys).toContain("ihme_gbd")
+        expect(keys).not.toContain("fao_1")
+        expect(keys).not.toContain("ihme_gbd_1")
+
+        // "European Union (27)" is an aggregate with no `definedBy`, so it has no publisher
+        expect(keys).not.toContain("27")
+    })
+})
+
+describe(parseRegionNameSuffix, () => {
+    it("splits off the last parenthetical", () => {
+        expect(parseRegionNameSuffix("Africa (WHO)")).toEqual({
+            name: "Africa",
+            suffix: "WHO",
+            publisherKey: "who",
+        })
+        expect(parseRegionNameSuffix("Africa (non-OECD) (IHME GBD)")).toEqual({
+            name: "Africa (non-OECD)",
+            suffix: "IHME GBD",
+            publisherKey: "ihme_gbd",
+        })
+        expect(parseRegionNameSuffix("Africa (PIP) ")).toMatchObject({
+            name: "Africa",
+            suffix: "PIP",
+        })
+    })
+
+    it("requires a non-empty suffix in trailing parens, preceded by a space", () => {
+        expect(parseRegionNameSuffix("United States")).toEqual(undefined)
+        expect(parseRegionNameSuffix("(WHO)")).toEqual(undefined)
+        expect(parseRegionNameSuffix("Africa ()")).toEqual(undefined)
+        // no space before the parenthesis
+        expect(parseRegionNameSuffix("Africa(WHO)")).toEqual(undefined)
+        // extra whitespace before the parenthesis is not kept in the name
+        expect(parseRegionNameSuffix("Africa  (WHO)")).toMatchObject({
+            name: "Africa",
+            suffix: "WHO",
+        })
+    })
+})
+
+describe(getAggregates, () => {
+    it("gives every region of a published set a publisher", () => {
+        const withoutPublisher = getAggregates()
+            .filter((region) => region.definedBy && !region.publisher)
+            .map((region) => region.name)
+
+        expect(withoutPublisher).toEqual([])
     })
 })

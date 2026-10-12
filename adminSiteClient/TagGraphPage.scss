@@ -52,7 +52,7 @@
             padding: 0;
             border: none;
             line-height: 1;
-            transition: 0.2s;
+            transition: color var(--duration-hover) ease;
             color: #666;
             &:hover {
                 color: #111;

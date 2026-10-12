@@ -77,7 +77,6 @@ import {
     ToleranceStrategy,
     type EntitySelectorEvent,
 } from "@ourworldindata/types"
-import { DrawerContext } from "../slideInDrawer/SlideInDrawer.js"
 import * as R from "remeda"
 import { MapConfig } from "../mapCharts/MapConfig"
 import { match } from "ts-pattern"
@@ -86,7 +85,7 @@ import {
     EntitiesByRegionGroup,
     RegionGroupKey,
     RegionGroup,
-    isAnyRegionDataProviderKey,
+    isAnyRegionPublisher,
     parseLabel,
 } from "../core/RegionGroups"
 import { SearchField } from "../controls/SearchField"
@@ -192,9 +191,6 @@ interface EntitySelectorProps {
 
 @observer
 export class EntitySelector extends React.Component<EntitySelectorProps> {
-    static override contextType = DrawerContext
-    declare context: React.ContextType<typeof DrawerContext>
-
     scrollableContainer = React.createRef<HTMLDivElement>()
     searchFieldRef = React.createRef<HTMLInputElement>()
     contentRef = React.createRef<HTMLDivElement>()
@@ -593,7 +589,7 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
     }
 
     @computed private get searchPlaceholderEntityType(): string {
-        if (isAnyRegionDataProviderKey(this.entityFilter)) return "region"
+        if (isAnyRegionPublisher(this.entityFilter)) return "region"
 
         return match(this.entityFilter)
             .with("all", () => this.entityType.singular)
@@ -1300,13 +1296,8 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
     }
 
     @action.bound private close(): void {
-        // if rendered into a drawer, we use a method provided by the
-        // `<SlideInDrawer />` component so that closing the drawer is animated
-        if (this.context.toggleDrawerVisibility) {
-            this.context.toggleDrawerVisibility()
-        } else {
-            this.manager.isEntitySelectorModalOrDrawerOpen = false
-        }
+        if (this.props.onDismiss) this.props.onDismiss()
+        else this.manager.isEntitySelectorModalOrDrawerOpen = false
     }
 
     @computed get filterOptions(): FilterDropdownOption[] {

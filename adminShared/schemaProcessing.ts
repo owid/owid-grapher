@@ -44,7 +44,7 @@ function isPlainTypeString(item: string): item is FieldType {
 function isPlainTypeOrArrayOfPlainType(type: any): boolean {
     return (
         isPlainTypeString(type) ||
-        (_.isArray(type) && type.every(isPlainTypeStringOrNull))
+        (Array.isArray(type) && type.every(isPlainTypeStringOrNull))
     )
 }
 function isPlainTypeStringOrNull(item: string): boolean {
@@ -71,7 +71,7 @@ function getEditorOptionForType(
     else if (typeIsGivenOrNull(type, "string")) return EditorOption.textfield
     else if (typeIsGivenOrNull(type, "boolean")) return EditorOption.checkbox
     else if (typeIsGivenOrNull(type, "integer")) return EditorOption.numeric
-    else if (_.isArray(type)) {
+    else if (Array.isArray(type)) {
         // the following line is aspecial case hack for fields that are usually numeric but can have a
         // special string like "latest"
         if (type[0] === "number" && type[1] === "string")
@@ -110,7 +110,7 @@ function extractSchemaRecursive(
         R.isNumber(schema) ||
         R.isString(schema) ||
         R.isBoolean(schema) ||
-        R.isArray(schema)
+        Array.isArray(schema)
     ) {
         console.error("shouldn't come here?", pointer)
         return
@@ -226,7 +226,7 @@ function extractSchemaRecursive(
             // and yield a single FieldDefinition with the merged
             // type
             Object.prototype.hasOwnProperty.call(schema, "oneOf") &&
-            _.isArray(schema.oneOf) &&
+            Array.isArray(schema.oneOf) &&
             schema.oneOf.map((item) => item.type).every(isPlainTypeStringOrNull)
         ) {
             const types = schema.oneOf.map((item: any) => item.type)

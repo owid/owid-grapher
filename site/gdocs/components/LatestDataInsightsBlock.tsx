@@ -3,7 +3,8 @@ import cx from "clsx"
 
 import { AttachmentsContext } from "../AttachmentsContext.js"
 import { Button } from "@ourworldindata/components"
-import LatestDataInsights from "./LatestDataInsights.js"
+import LatestCarousel from "./LatestCarousel.js"
+import { dataInsightsToCarouselItems } from "./latestCarouselItems.js"
 import { buildLatestPagePath } from "../../latest/latestUtils.js"
 
 export default function LatestDataInsightsBlock({
@@ -29,9 +30,11 @@ export default function LatestDataInsightsBlock({
                 text="See all Data Insights"
                 theme="outline-vermillion"
             />
-            <LatestDataInsights
+            <LatestCarousel
                 className="span-cols-12 col-start-2"
-                latestDataInsights={latestDataInsights}
+                items={dataInsightsToCarouselItems(latestDataInsights)}
+                seeAllHref={buildLatestPagePath("data-insight")}
+                seeAllText="See all our Data Insights"
             />
         </section>
     )

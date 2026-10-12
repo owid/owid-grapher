@@ -80,7 +80,9 @@
     .article-block__image-download-dropdown {
         background: transparent;
         transform: translateX(calc(100% - 28px));
-        transition: 0.3s ease;
+        transition:
+            transform var(--duration-popover) var(--ease-out),
+            opacity var(--duration-popover) var(--ease-out);
         backdrop-filter: blur(1px);
         padding: 0;
         opacity: 0;
@@ -118,7 +120,7 @@
         display: inline-block;
         line-height: 16px;
         opacity: 0;
-        transition: opacity 0.3s ease;
+        transition: opacity var(--duration-popover) var(--ease-out);
     }
 
     .article-block__image-download-button-caret-icon {
@@ -146,7 +148,6 @@
         }
         button,
         a {
-            padding: 0;
             display: block;
             text-align: left;
             background: none;

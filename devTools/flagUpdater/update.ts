@@ -3,7 +3,7 @@ import { Region, regions } from "@ourworldindata/utils"
 import path from "path"
 import fs from "fs-extra"
 import { glob } from "fs/promises"
-import findProjectBaseDir from "../../settings/findBaseDir.ts"
+import findProjectBaseDir from "../../settings/findBaseDir.mjs"
 
 const BASE_DIR = findProjectBaseDir(__dirname)
 if (!BASE_DIR) throw new Error("Could not find project base directory")

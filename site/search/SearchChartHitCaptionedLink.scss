@@ -41,7 +41,7 @@
         opacity: 0;
 
         // Animates the opacity when shown
-        transition: opacity 0.2s ease-in-out;
+        transition: opacity var(--duration-popover) var(--ease-out);
 
         .search-chart-hit-captioned-link__cta {
             @include label-2-medium;

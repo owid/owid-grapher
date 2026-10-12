@@ -1,10 +1,11 @@
 import * as React from "react"
-import { useCallback, useState } from "react"
+import { useState } from "react"
 import cx from "clsx"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faDownload, faSpinner } from "@fortawesome/free-solid-svg-icons"
 import { DownloadIconFull } from "../icons/DownloadIconFull.js"
 import { DownloadIconSelected } from "../icons/DownloadIconSelected.js"
+import { useSpinDelay } from "@ourworldindata/utils"
 
 export function DownloadButton({
     className,
@@ -12,6 +13,7 @@ export function DownloadButton({
     description,
     icon,
     previewImageUrl,
+    previewImageDimensions,
     imageStyle,
     trackingNote,
     onClick,
@@ -22,28 +24,27 @@ export function DownloadButton({
     description: string
     icon?: "full" | "selected"
     previewImageUrl?: string
+    previewImageDimensions?: { width: number; height: number }
     imageStyle?: React.CSSProperties
     trackingNote?: string
     onClick: () => void | Promise<void>
     disabled?: boolean
 }) {
     const [isDownloading, setIsDownloading] = useState(false)
-    const [showLoading, setShowLoading] = useState(false)
+    const showLoading = useSpinDelay(isDownloading, {
+        delay: 300,
+        ssr: false,
+    })
 
-    const handleClick = useCallback(async () => {
+    const handleClick = async (): Promise<void> => {
         setIsDownloading(true)
-
-        // Delay showing the loading UI to prevent flashing for quick downloads.
-        const loadingTimeout = setTimeout(() => setShowLoading(true), 300)
 
         try {
             await onClick()
         } finally {
-            clearTimeout(loadingTimeout)
             setIsDownloading(false)
-            setShowLoading(false)
         }
-    }, [onClick])
+    }
 
     return (
         <button
@@ -52,7 +53,7 @@ export function DownloadButton({
             })}
             onClick={handleClick}
             data-track-note={trackingNote}
-            disabled={disabled || isDownloading}
+            disabled={disabled || isDownloading || showLoading}
         >
             {icon && (
                 <div className="download-button__icon">
@@ -63,9 +64,20 @@ export function DownloadButton({
                     )}
                 </div>
             )}
-            {previewImageUrl && (
-                <div className="download-button__preview-image">
-                    <img src={previewImageUrl} style={imageStyle} />
+            {(previewImageUrl || previewImageDimensions) && (
+                <div
+                    className="download-button__preview-image"
+                    style={previewImageDimensions}
+                >
+                    {previewImageUrl && (
+                        <img
+                            src={previewImageUrl}
+                            width={previewImageDimensions?.width}
+                            height={previewImageDimensions?.height}
+                            style={imageStyle}
+                            alt=""
+                        />
+                    )}
                 </div>
             )}
             <div className="download-button__content">

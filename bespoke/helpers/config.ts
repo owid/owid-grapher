@@ -5,9 +5,12 @@
  * config value must not take the whole viz down.
  */
 
-/** Props a variant component takes: its parsed config */
+import type { BespokeComponentDataUrls } from "../shared/bespokeComponentTypes.js"
+import type { EmbedConfig } from "../shared/embedConfig.js"
+
 export interface VariantProps<Config> {
-    config: Config
+    config: Config & EmbedConfig
+    urls: BespokeComponentDataUrls
 }
 
 export function parseBoolean(value: unknown): boolean {
@@ -34,4 +37,11 @@ export function parseEnum<T extends string>(
     return (allowed as readonly string[]).includes(value)
         ? (value as T)
         : undefined
+}
+
+export function parseEmbedConfig(raw: Record<string, string>): EmbedConfig {
+    return {
+        urlSync: parseBoolean(raw.urlSync),
+        hideMetadataModal: parseBoolean(raw.hideMetadataModal),
+    }
 }

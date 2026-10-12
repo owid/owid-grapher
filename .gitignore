@@ -36,6 +36,7 @@ tmp/
 tmp-downloads
 tmp-uploads
 tmp-logs
+tmp-playwright-admin-dist
 /data_files_checksums
 packages/@ourworldindata/*/dist/
 packages/@ourworldindata/*/dist-package/
@@ -63,6 +64,9 @@ playwright-report/
 # Claude
 .claude/settings.local.json
 
+# Plans
+/plans/
+
 # Auto Claude
 .auto-claude/
 .auto-claude-security.json
@@ -77,3 +81,14 @@ typesense-data/
 
 .toolbox/
 .pi/
+
+# Package docs site (packageDocs/) — generated content and build output
+packageDocs/docs/api/reference/
+packageDocs/docs/schema-reference/
+packageDocs/site/
+packageDocs/.venv/
+packageDocs/.cache/
+
+# BMAD
+/_bmad/
+/_bmad-output/

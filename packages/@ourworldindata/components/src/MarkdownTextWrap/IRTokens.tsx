@@ -314,6 +314,19 @@ export class IRFragment extends IRElement {
                 style={{
                     display: "inline-block",
                     marginLeft: this.inlineGap || undefined,
+                    // Keep the fragment out of the line box calculation. The
+                    // line it sits on is already exactly as tall as this text
+                    // wrap says it is (its strut is the line's largest font
+                    // size times the line height), but a fragment rendered in
+                    // a different font can have its baseline sit low enough
+                    // within its own inline box for that box to poke out
+                    // below the strut and stretch the line. How far depends
+                    // on the font metrics the browser reads, so the same
+                    // fragment stretches the line in one browser and not in
+                    // another; zeroing the line height takes the fragment's
+                    // box out of the calculation without moving its glyphs,
+                    // which are positioned off the shared baseline.
+                    lineHeight: 0,
                     fontSize,
                     fontWeight,
                     fontFamily: fontFamily

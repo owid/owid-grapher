@@ -26,6 +26,11 @@
         flex: 1;
     }
 
+    .download-button__preview-image {
+        flex: none;
+        margin-right: 24px;
+    }
+
     .download-button__preview-image img {
         display: block;
         box-shadow:
@@ -34,7 +39,7 @@
             0px 93px 37px 0px rgba(49, 37, 2, 0.01),
             0px 145px 41px 0px rgba(49, 37, 2, 0);
         padding: 0;
-        margin: 0 24px 0 0;
+        margin: 0;
     }
 
     .download-button__title {

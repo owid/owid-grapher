@@ -1,4 +1,8 @@
-import { HotTable, HotTableClass } from "@handsontable/react"
+import {
+    HotTable,
+    type HotTableProps,
+    type HotTableRef,
+} from "@handsontable/react-wrapper"
 import { CoreMatrix } from "@ourworldindata/types"
 import { LoadingIndicator } from "@ourworldindata/components"
 import {
@@ -9,6 +13,7 @@ import {
 import classNames from "clsx"
 import Handsontable from "handsontable"
 import { registerAllModules } from "handsontable/registry"
+import { classicTheme } from "handsontable/themes"
 import { action, computed, observable, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { Component, createRef } from "react"
@@ -28,7 +33,7 @@ import {
     SelectAllHitsCommand,
 } from "./ExplorerCommands.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
-import { ENV } from "../settings/clientSettings.js"
+import { ENV } from "../settings/clientSettings.mjs"
 
 const RESERVED_NAMES = [DefaultNewExplorerSlug, "index", "new", "create"] // don't allow authors to save explorers with these names, otherwise might create some annoying situations.
 
@@ -343,7 +348,7 @@ class HotEditor extends Component<{
     program: ExplorerProgram
     programOnDisk: ExplorerProgram
 }> {
-    private readonly hotTableComponent = createRef<HotTableClass>()
+    private readonly hotTableComponent = createRef<HotTableRef>()
 
     constructor(props: {
         onChange: (code: string) => void
@@ -427,7 +432,7 @@ class HotEditor extends Component<{
             return cellProperties
         }
 
-        const hotSettings: Handsontable.GridSettings = {
+        const hotSettings: HotTableProps = {
             afterChange: () => this.updateProgramFromHot(),
             afterRemoveRow: () => this.updateProgramFromHot(),
             afterRemoveCol: () => this.updateProgramFromHot(),
@@ -481,8 +486,10 @@ class HotEditor extends Component<{
     override render() {
         return (
             <HotTable
-                settings={this.hotSettings}
+                {...this.hotSettings}
                 ref={this.hotTableComponent}
+                theme={classicTheme}
+                colorScheme="light"
                 licenseKey={"non-commercial-and-evaluation"}
             />
         )

@@ -85,6 +85,26 @@ columns\ttable1\ttable2\ttable3
         expect(program.columnDefsByTableSlug.get("table3")).toEqual(columnDef2)
     })
 
+    it("parses display properties of column defs", () => {
+        const program = new ExplorerProgram(
+            "test",
+            `columns
+\tvariableId\tnumDecimalPlaces\ttolerance\tisProjection
+\t123\t1.0\t3.0\tfalse`
+        )
+
+        expect(program.columnDefsByTableSlug.get(undefined)).toEqual([
+            {
+                owidVariableId: 123,
+                display: {
+                    numDecimalPlaces: 1,
+                    tolerance: 3,
+                    isProjection: false,
+                },
+            },
+        ])
+    })
+
     it("can detect errors", () => {
         const results = new ExplorerProgram("test", `titleTypo Foo`).getCell({
             row: 0,

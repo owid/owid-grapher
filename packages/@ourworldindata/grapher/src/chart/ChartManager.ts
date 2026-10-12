@@ -88,6 +88,7 @@ export interface ChartManager {
     // know what date the timeline is set to. and let's pass startTime in, too.
     startTime?: number
     endTime?: number
+    disableChartRowAnimation?: boolean
 
     facetStrategy?: FacetStrategy // todo: make a strategy? a column prop? etc
     seriesStrategy?: SeriesStrategy
@@ -96,6 +97,9 @@ export interface ChartManager {
     showNoDataArea?: boolean // No data area in Marimekko charts
 
     externalLegendHoverBin?: ColorScaleBin | undefined
+    patternScale?: number
+    /** Makes SVG pattern ids unique per grapher instance, see makePatternId */
+    patternIdSuffix?: string
 
     /** Used by FacetChart to align chart content across facets */
     sharedVerticalLabelWidths?: SideWidths

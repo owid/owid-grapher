@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react"
+import { useContext, useEffect, useMemo, useState } from "react"
 import { useParams, useHistory } from "react-router-dom"
 import { Button, Form, Input, Select, Spin } from "antd"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
@@ -77,6 +77,15 @@ function ImagePreview({
     )
 }
 
+const EMPTY_FORM_DATA: StaticVizUpdate = {
+    name: "",
+    description: "",
+    grapherSlug: "",
+    sourceUrl: "",
+    imageId: undefined,
+    mobileImageId: undefined,
+}
+
 function useInitializeForm(
     isEdit: boolean,
     form: any,
@@ -84,20 +93,11 @@ function useInitializeForm(
 ): [StaticVizUpdate, boolean] {
     const { admin } = useContext(AdminAppContext)
 
-    const [formData, setFormData] = useState<StaticVizUpdate>({
-        name: "",
-        description: "",
-        grapherSlug: "",
-        sourceUrl: "",
-        imageId: undefined,
-        mobileImageId: undefined,
-    })
-
     const { data, isLoading } = useQuery({
         queryKey: ["static-viz", staticVizId],
         queryFn: async () => {
             if (!isEdit) return null
-            const response = await admin.getJSON(
+            const response = await admin.getJSONInBackground(
                 `/api/static-viz/${staticVizId}.json`
             )
             return response.staticViz as DbEnrichedStaticViz
@@ -105,20 +105,24 @@ function useInitializeForm(
         enabled: isEdit,
     })
 
+    const formData = useMemo<StaticVizUpdate>(
+        () =>
+            isEdit && data
+                ? {
+                      name: data.name,
+                      description: data.description || "",
+                      grapherSlug: data.grapherSlug || "",
+                      sourceUrl: data.sourceUrl || "",
+                      imageId: data.desktop?.id,
+                      mobileImageId: data.mobile?.id,
+                  }
+                : EMPTY_FORM_DATA,
+        [isEdit, data]
+    )
+
     useEffect(() => {
-        if (isEdit && data) {
-            const initialData: StaticVizUpdate = {
-                name: data.name,
-                description: data.description || "",
-                grapherSlug: data.grapherSlug || "",
-                sourceUrl: data.sourceUrl || "",
-                imageId: data.desktop?.id,
-                mobileImageId: data.mobile?.id,
-            }
-            setFormData(initialData)
-            form.setFieldsValue(initialData)
-        }
-    }, [isEdit, data, form])
+        if (formData !== EMPTY_FORM_DATA) form.setFieldsValue(formData)
+    }, [formData, form])
 
     return [formData, isLoading]
 }
@@ -146,6 +150,7 @@ export function StaticVizEditPage() {
                 console.error("Validation error:", e)
                 setIsValid(false)
             })
+        // oxlint-disable-next-line react/exhaustive-effect-dependencies -- values is the trigger, validateFields reads them from the form
     }, [form, values])
 
     const { data: imagesData, isLoading: isLoadingImages } = useQuery<
@@ -153,7 +158,7 @@ export function StaticVizEditPage() {
     >({
         queryKey: ["images"],
         queryFn: async () => {
-            const response = await admin.getJSON("/api/images.json")
+            const response = await admin.getJSONInBackground("/api/images.json")
             return response.images.sort((a: DbRawImage, b: DbRawImage) =>
                 a.filename.localeCompare(b.filename)
             )
@@ -163,7 +168,7 @@ export function StaticVizEditPage() {
     const { data: grapherSlugs } = useQuery({
         queryKey: ["grapherSlugs"],
         queryFn: async () => {
-            const response = await admin.getJSON<{
+            const response = await admin.getJSONInBackground<{
                 charts: ChartListItem[]
             }>("/api/charts.json")
             return [

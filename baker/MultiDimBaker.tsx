@@ -1,3 +1,4 @@
+import { traceJob } from "../serverUtils/sentryTracing.js"
 import * as _ from "lodash-es"
 import * as R from "remeda"
 import fs from "fs-extra"
@@ -6,6 +7,7 @@ import ProgressBar from "progress"
 import { stringify } from "safe-stable-stringify"
 import {
     ImageMetadata,
+    GrapherInterface,
     MultiDimDataPageConfigPreProcessed,
     MultiDimDataPageProps,
     FaqEntryKeyedByGdocIdAndFragmentId,
@@ -18,8 +20,16 @@ import {
     ArchiveContext,
     ArchivedPageVersion,
     DataPageRelatedResearch,
+    MULTI_DIM_COMPANION_FILE_SUFFIX,
+    MultiDimPageCompanion,
 } from "@ourworldindata/types"
-import { MultiDimDataPageConfig } from "@ourworldindata/utils"
+import {
+    getMultiDimPageTitle,
+    merge,
+    MultiDimDataPageConfig,
+    multiDimDimensionsToViewQueryStr,
+} from "@ourworldindata/utils"
+import { GrapherState } from "@ourworldindata/grapher"
 import * as db from "../db/db.js"
 import { getImagesByFilenames } from "../db/model/Image.js"
 import { getRelatedResearchAndWritingForVariables } from "../db/model/Post.js"
@@ -31,7 +41,10 @@ import {
     BAKED_GRAPHER_URL,
 } from "../settings/serverSettings.js"
 import { deleteOldGraphers, getTagToSlugMap } from "./GrapherBakingUtils.js"
-import { getVariableMetadata } from "../db/model/Variable.js"
+import {
+    getVariableMetadata,
+    getVariableTitleMetadataByIds,
+} from "../db/model/Variable.js"
 import pMap from "p-map"
 import { fetchAndParseFaqs, getPrimaryTopic } from "./DatapageHelpers.js"
 import { getAllPublishedChartSlugs } from "../db/model/Chart.js"
@@ -43,7 +56,11 @@ import {
 import { MultiDimArchivalManifest } from "../serverUtils/archivalUtils.js"
 import { getLatestArchivedMultiDimPageVersions } from "../db/model/ArchivedMultiDimVersion.js"
 import { getDatapageDataV2 } from "../site/dataPage.js"
-import { getChartConfigByUuid } from "../db/model/ChartConfigs.js"
+import {
+    getChartConfigByUuid,
+    getChartConfigsByUuids,
+} from "../db/model/ChartConfigs.js"
+import { maybeAddChangeInPrefix } from "./algolia/utils/shared.js"
 
 const getLatestMultiDimArchivedVersionsIfEnabled = async (
     knex: db.KnexReadonlyTransaction,
@@ -54,10 +71,10 @@ const getLatestMultiDimArchivedVersionsIfEnabled = async (
     return await getLatestArchivedMultiDimPageVersions(knex, multiDimIds)
 }
 
-export function getRelevantVariableIds(
+export function getRelevantIndicatorIds(
     config: MultiDimDataPageConfigPreProcessed
 ) {
-    // A "relevant" variable id is the first y indicator of each view
+    // A "relevant" indicator id is the first y indicator of each view
     const allIndicatorIds = config.views
         .map((view) => view.indicators.y?.[0]?.id)
         .filter((id) => id !== undefined)
@@ -65,7 +82,7 @@ export function getRelevantVariableIds(
     return new Set(allIndicatorIds)
 }
 
-export async function getRelevantVariableMetadata(
+export async function getRelevantIndicatorMetadata(
     variableIds: Iterable<number>
 ) {
     const metadata = await pMap(
@@ -115,6 +132,76 @@ const getFaqEntries = async (
     return { faqs }
 }
 
+/**
+ * The effective grapher title of a multi-dim view, resolved from its merged
+ * metadata (variable metadata + multi-dim-level and view-level overrides) and its
+ * full chart config. Shared between the Algolia multi-dim view records and the
+ * companion file baked alongside multi-dim pages, so search records and the
+ * page titles served to search engines always agree.
+ */
+export function getMultiDimViewTitle(
+    metadata: {
+        name?: string
+        display?: { name?: string } | null
+        presentation?: { titlePublic?: string } | null
+    },
+    chartConfig: GrapherInterface | undefined,
+    grapherState: GrapherState | undefined
+): string {
+    return maybeAddChangeInPrefix(
+        metadata.presentation?.titlePublic ||
+            chartConfig?.title ||
+            metadata.display?.name ||
+            metadata.name ||
+            "",
+        grapherState?.shouldAddChangeInPrefixToTitle ?? false
+    )
+}
+
+/**
+ * Build the companion JSON file that gets baked alongside the multi-dim page
+ * and is read by the Cloudflare Function serving /grapher/[slug] (see
+ * rewriteMetaTags).
+ */
+export async function getMultiDimPageCompanion(
+    knex: db.KnexReadonlyTransaction,
+    config: MultiDimDataPageConfigEnriched
+): Promise<MultiDimPageCompanion> {
+    const chartConfigs = await getChartConfigsByUuids(
+        knex,
+        config.views.map((view) => view.fullConfigId)
+    )
+    const variableMetadataById = await getVariableTitleMetadataByIds(knex, [
+        ...getRelevantIndicatorIds(config),
+    ])
+
+    const views: MultiDimPageCompanion["views"] = {}
+    for (const view of config.views) {
+        const chartConfig = chartConfigs.get(view.fullConfigId)
+        const variableId = view.indicators.y?.[0]?.id
+        const variableMetadata = variableId
+            ? variableMetadataById.get(variableId)
+            : undefined
+        const metadata = merge(
+            {},
+            variableMetadata ?? {},
+            config.metadata ?? {},
+            view.metadata ?? {}
+        )
+        const title = getMultiDimViewTitle(
+            metadata,
+            chartConfig,
+            chartConfig ? new GrapherState(chartConfig) : undefined
+        )
+        if (title) {
+            views[multiDimDimensionsToViewQueryStr(view.dimensions)] = {
+                title,
+            }
+        }
+    }
+    return { title: getMultiDimPageTitle(config.title), views }
+}
+
 export async function renderMultiDimDataPageFromConfig({
     knex,
     slug,
@@ -131,16 +218,16 @@ export async function renderMultiDimDataPageFromConfig({
     archiveContext?: ArchiveContext
 }) {
     const pageConfig = MultiDimDataPageConfig.fromObject(config)
-    const variableIds = getRelevantVariableIds(config)
-    const faqEntries = await getFaqEntries(knex, variableIds)
+    const indicatorIds = getRelevantIndicatorIds(config)
+    const faqEntries = await getFaqEntries(knex, indicatorIds)
     const initialViewDimensions = pageConfig.getDefaultSelectedChoices()
     const initialView = pageConfig.findViewByDimensions(initialViewDimensions)
 
     let initialViewData: MultiDimDataPageInitialViewData | undefined
-    const initialViewVariableId = initialView?.indicators?.y?.[0]?.id
-    if (initialView && initialViewVariableId) {
+    const initialViewIndicatorId = initialView?.indicators?.y?.[0]?.id
+    if (initialView && initialViewIndicatorId) {
         const [variableMetadata, fullGrapherConfig] = await Promise.all([
-            getVariableMetadata(initialViewVariableId, {
+            getVariableMetadata(initialViewIndicatorId, {
                 noCache: isPreviewing,
             }),
             getChartConfigByUuid(knex, initialView.fullConfigId),
@@ -177,9 +264,9 @@ export async function renderMultiDimDataPageFromConfig({
 
         // Related research
         relatedResearchCandidates =
-            variableIds.size > 0
+            indicatorIds.size > 0
                 ? await getRelatedResearchAndWritingForVariables(knex, [
-                      ...variableIds,
+                      ...indicatorIds,
                   ])
                 : []
 
@@ -294,6 +381,16 @@ export const bakeMultiDimDataPage = async (
     })
     const outPath = path.join(bakedSiteDir, `grapher/${slug}.html`)
     await fs.writeFile(outPath, renderedHtml)
+
+    const companion = await getMultiDimPageCompanion(knex, config)
+    const companionPath = path.join(
+        bakedSiteDir,
+        `grapher/${slug}${MULTI_DIM_COMPANION_FILE_SUFFIX}`
+    )
+    // Stable stringify so that unchanged content produces a byte-identical
+    // file, keeping the asset's content hash (and thus its ETag and cache
+    // entries) stable across bakes.
+    await fs.writeFile(companionPath, stringify(companion))
 }
 
 export const bakeAllMultiDimDataPages = async (
@@ -301,16 +398,24 @@ export const bakeAllMultiDimDataPages = async (
     bakedSiteDir: string,
     imageMetadata: Record<string, ImageMetadata>
 ) => {
-    const multiDimsBySlug = await getAllPublishedMultiDimDataPagesBySlug(knex)
+    const { multiDimsBySlug, archivedVersions } = await traceJob(
+        "prepare-multidim-pages",
+        async () => {
+            const multiDimsBySlug =
+                await getAllPublishedMultiDimDataPagesBySlug(knex)
 
-    // Fetch archived versions for all multi-dim pages
-    const multiDimIds = multiDimsBySlug
-        .values()
-        .map((row) => row.id)
-        .toArray()
-    const archivedVersions = await getLatestMultiDimArchivedVersionsIfEnabled(
-        knex,
-        multiDimIds
+            // Fetch archived versions for all multi-dim pages
+            const multiDimIds = multiDimsBySlug
+                .values()
+                .map((row) => row.id)
+                .toArray()
+            const archivedVersions =
+                await getLatestMultiDimArchivedVersionsIfEnabled(
+                    knex,
+                    multiDimIds
+                )
+            return { multiDimsBySlug, archivedVersions }
+        }
     )
 
     const progressBar = new ProgressBar(
@@ -321,22 +426,41 @@ export const bakeAllMultiDimDataPages = async (
             renderThrottle: 0,
         }
     )
+    // Delete all companion files up front so stale ones — including those of
+    // slugs that were taken over by a regular chart, whose .html
+    // deleteOldGraphers won't remove — don't linger; the bake below recreates
+    // them for all published multi-dim pages.
+    const companionPaths = fs.globSync(
+        `${bakedSiteDir}/grapher/*${MULTI_DIM_COMPANION_FILE_SUFFIX}`
+    )
+    await Promise.all(
+        companionPaths.map((companionPath) => fs.remove(companionPath))
+    )
+
     for (const [slug, row] of multiDimsBySlug.entries()) {
-        await bakeMultiDimDataPage(
-            knex,
-            bakedSiteDir,
-            slug,
-            row.config,
-            imageMetadata,
-            archivedVersions[row.id]
+        await traceJob(
+            "bake-multidim-page",
+            async () => {
+                await bakeMultiDimDataPage(
+                    knex,
+                    bakedSiteDir,
+                    slug,
+                    row.config,
+                    imageMetadata,
+                    archivedVersions[row.id]
+                )
+                progressBar.tick({ name: slug })
+            },
+            { "page.slug": slug }
         )
-        progressBar.tick({ name: slug })
     }
-    const publishedSlugs = multiDimsBySlug.keys()
-    const chartSlugs = await getAllPublishedChartSlugs(knex)
-    const newSlugs = [...publishedSlugs, ...chartSlugs]
-    await deleteOldGraphers(bakedSiteDir, newSlugs)
-    progressBar.tick({ name: `✅ Deleted old multi-dim pages` })
+    await traceJob("cleanup-multidim-pages", async () => {
+        const publishedSlugs = multiDimsBySlug.keys()
+        const chartSlugs = await getAllPublishedChartSlugs(knex)
+        const newSlugs = [...publishedSlugs, ...chartSlugs]
+        await deleteOldGraphers(bakedSiteDir, newSlugs)
+        progressBar.tick({ name: `✅ Deleted old multi-dim pages` })
+    })
 }
 
 // Function to bake a single multi-dim data page for archival

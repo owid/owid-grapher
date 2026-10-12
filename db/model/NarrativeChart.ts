@@ -42,7 +42,7 @@ export const getNarrativeChartsInfo = async (
     const rows: RawRow[] = await knex("narrative_charts as nc")
         .select(
             "nc.name",
-            knex.raw('cc.full ->> "$.title" as title'),
+            knex.raw('cc.config ->> "$.title" as title'),
             "nc.chartConfigId",
             knex.raw("COALESCE(pcc.slug, mddp.slug) as parentChartSlug"),
             "nc.queryParamsForParentChart",

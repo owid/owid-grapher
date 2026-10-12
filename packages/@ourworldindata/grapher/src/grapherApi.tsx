@@ -9,6 +9,7 @@ import {
 import { OwidTable } from "@ourworldindata/core-table"
 import { Grapher, GrapherProgrammaticInterface } from "./core/Grapher.js"
 import { GrapherState } from "./core/GrapherState.js"
+import { applyDimensionDisplayAndConversionFactor } from "./core/applyDisplayAndConversionFactor.js"
 import { fetchInputTableForConfig } from "./core/loadGrapherTableHelpers.js"
 import { useElementBounds } from "./hooks.js"
 
@@ -26,9 +27,9 @@ export interface FromTableOptions extends GrapherApiOptionsBase {
 }
 
 /** Options for {@link GrapherLoader.fromCsv}. Provide the CSV either inline
- *  (`csv`) or as a URL to fetch (`csvUrl`). It must have entityName,
- *  entityCode, entityId, and year (or day) columns, plus one or more value
- *  columns. */
+ *  (`csv`) or as a URL to fetch (`csvUrl`). It must have an entityName column
+ *  and a year (or day) column, plus one or more value columns; entityCode
+ *  and entityId columns are optional. */
 export type FromCsvOptions = GrapherApiOptionsBase & {
     /** Column definitions — use these to specify types and display names for
      *  your value columns. */
@@ -103,6 +104,7 @@ function BoundsObservingGrapher({
     const bounds = useElementBounds(containerRef, null)
 
     useIsomorphicLayoutEffect(() => {
+        // oxlint-disable-next-line react/immutability -- updating MobX state
         if (bounds) grapherState.externalBounds = bounds
     }, [grapherState, bounds])
 
@@ -220,12 +222,16 @@ export class GrapherLoader {
     }
 
     /** Prepare a chart whose data comes from a pre-built OwidTable. */
-    static fromTable({ config, data }: FromTableOptions): GrapherLoader {
+    static fromTable(options: FromTableOptions): GrapherLoader {
+        const { config, data } = options
         const grapherState = new GrapherState({
             ...defaultGrapherConfigOverrides(),
             ...config,
             ySlugs: deriveYSlugs(config, data),
-            table: data,
+            table: applyDimensionDisplayAndConversionFactor(
+                data,
+                config.dimensions ?? []
+            ),
             isConfigReady: true,
             isDataReady: true,
         })
@@ -254,7 +260,11 @@ export class GrapherLoader {
         const ready = OwidTable.fromUrl(options.csvUrl, columnDefs).then(
             (table) => {
                 grapherState.ySlugs = deriveYSlugs(config, table)
-                grapherState.inputTable = table
+                grapherState.inputTable =
+                    applyDimensionDisplayAndConversionFactor(
+                        table,
+                        config.dimensions ?? []
+                    )
                 grapherState.isDataReady = true
             }
         )
@@ -262,10 +272,8 @@ export class GrapherLoader {
     }
 
     /** Prepare a chart whose data will be fetched from the OWID data API. */
-    static fromApi({
-        config,
-        dataApiUrl = DEFAULT_DATA_API_URL,
-    }: FromApiOptions): GrapherLoader {
+    static fromApi(options: FromApiOptions): GrapherLoader {
+        const { config, dataApiUrl = DEFAULT_DATA_API_URL } = options
         const grapherState = new GrapherState({
             ...defaultGrapherConfigOverrides(),
             ...config,

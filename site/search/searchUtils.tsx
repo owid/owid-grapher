@@ -68,7 +68,7 @@ import {
     EXPLORER_DYNAMIC_THUMBNAIL_URL,
     GRAPHER_DYNAMIC_CONFIG_URL,
     GRAPHER_DYNAMIC_THUMBNAIL_URL,
-} from "../../settings/clientSettings.js"
+} from "../../settings/clientSettings.mjs"
 import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
 import {
     PreviewVariant,
@@ -459,6 +459,22 @@ export const getFilterIcon = (filter: Filter) => {
         .exhaustive()
 }
 
+/**
+ * A few region names carry a parenthesised disambiguator -- "Micronesia
+ * (country)", "Sudan (former)". It tells a reader which Micronesia is meant; it
+ * is not part of the name anyone searches for. Matching it means "co2 emissions
+ * by country" suggests Micronesia, so a match that lands only inside the
+ * parentheses doesn't count.
+ */
+function matchIsOnlyInsideParentheses(
+    target: string,
+    indexes: readonly number[]
+): boolean {
+    const open = target.indexOf("(")
+    if (open === -1) return false
+    return indexes.every((index) => index >= open)
+}
+
 export function findTopicAndRegionFilters(
     words: string[],
     allRegionsNames: string[],
@@ -470,16 +486,32 @@ export function findTopicAndRegionFilters(
 ): ScoredFilter[] {
     const searchTerm = words.join(" ")
 
-    const searchCountryTopics = (term: string) => {
+    // A synonym is a rewrite of the query, not a typo of it, so it may only
+    // name a country exactly. Fuzzy matching a synonym against country names
+    // compounds two approximations and produces suggestions like
+    // "population" -> "people" -> "Yemen People's Republic" or
+    // "price" -> "cost" -> "Costa Rica". Country aliases in the synonym map
+    // ("us" -> "united states") are exact by construction, so they still
+    // match. Topics keep fuzzy matching on synonyms: their synonym groups
+    // exist to widen the net ("carbon dioxide" -> "co2" -> "CO2 & Greenhouse
+    // Gas Emissions").
+    const searchCountryTopics = (
+        term: string,
+        { isSynonym }: { isSynonym: boolean }
+    ) => {
         const countryFilters: ScoredFilter[] = FuzzySearch.withKey(
             allRegionsNames,
             _.identity,
-            sortOptions
+            isSynonym ? { ...sortOptions, threshold: 1 } : sortOptions
         )
             .searchResults(term)
             .filter(
                 (result: FuzzySearchResult) =>
                     !selectedRegionNames.has(result.target)
+            )
+            .filter(
+                (result: FuzzySearchResult) =>
+                    !matchIsOnlyInsideParentheses(result.target, result.indexes)
             )
             .map((result: FuzzySearchResult) => ({
                 ...createCountryFilter(result.target),
@@ -500,7 +532,7 @@ export function findTopicAndRegionFilters(
     }
 
     // 1. Perform original search
-    let filters = searchCountryTopics(searchTerm)
+    let filters = searchCountryTopics(searchTerm, { isSynonym: false })
 
     // 2. Search with synonyms
     const synonyms = synonymMap.get(searchTerm.toLowerCase())
@@ -508,7 +540,9 @@ export function findTopicAndRegionFilters(
     if (synonyms && synonyms.length > 0) {
         // Search with each synonym and combine results
         for (const synonym of synonyms) {
-            const filtersFromSynonym = searchCountryTopics(synonym)
+            const filtersFromSynonym = searchCountryTopics(synonym, {
+                isSynonym: true,
+            })
             filters.push(...filtersFromSynonym)
         }
     }
@@ -649,7 +683,7 @@ export function suggestFiltersFromQuerySuffix(
     const countryMatches = matchedFilters.filter(
         (f) =>
             // remove exact matches from country suggestions, as exact matches are
-            // already handled by automatic filters (see SearchDetectedFilters).
+            // already handled by automatic filters (see applyAutomaticFilters).
             f.type === FilterType.COUNTRY &&
             f.score !== 1 &&
             // we matched on all regions to stop the iteration when a region is
@@ -782,8 +816,8 @@ export function extractFiltersFromQuery(
             continue
         }
 
-        const ngramWords = R.map(ngram, R.prop("word"))
-        const ngramPositions = R.map(ngram, R.prop("position"))
+        const ngramWords = ngram.map(R.prop("word"))
+        const ngramPositions = ngram.map(R.prop("position"))
 
         const filtersFromNgram = findTopicAndRegionFilters(
             ngramWords,
@@ -831,29 +865,6 @@ export const createDatasetVersionFilter = createFilter(
 export const createDatasetProducerFilter = createFilter(
     FilterType.DATASET_PRODUCER
 )
-
-/**
- * Returns a click handler that focuses an input element when clicking on the
- * target element or its children. If checkTargetEquality is true, only focus
- * the input if the click happened on the element where the handler is
- * attached (effectively not registering clicks on children).
- */
-export const createFocusInputOnClickHandler = (
-    inputRef: ForwardedRef<HTMLInputElement>,
-
-    checkTargetEquality: boolean = false
-) => {
-    const handleClick = (e: React.MouseEvent) => {
-        if (
-            (!checkTargetEquality || e.target === e.currentTarget) &&
-            isCurrentRef(inputRef)
-        ) {
-            inputRef.current.focus()
-        }
-    }
-
-    return handleClick
-}
 
 /*
  * Type guard to check if a ref is a RefObject with a non-null current property
@@ -1071,6 +1082,7 @@ export function getPageTypeNameAndIcon(pageType: OwidGdocType): {
             icon: faFlag,
         }))
         .with(
+            OwidGdocType.FeaturedViz, // Not yet indexed
             OwidGdocType.Author, // Should never be indexed
             OwidGdocType.Fragment, // Should never be indexed
             OwidGdocType.Homepage, // Should never be indexed

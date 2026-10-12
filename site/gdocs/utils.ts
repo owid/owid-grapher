@@ -10,6 +10,7 @@ import {
     ContentGraphLinkType,
     OwidGdocDataInsightInterface,
     OwidGdocPostInterface,
+    OwidEnrichedGdocBlock,
     OwidEnrichedGdocBlockTypeMap,
     LinkedStaticViz,
     OwidGdocType,
@@ -22,6 +23,7 @@ import {
 } from "@ourworldindata/components"
 import {
     formatAuthors,
+    formatAuthorsForBibtex,
     getCalloutValue,
     getRegionByNameOrVariantName,
     makeLinkedCalloutKey,
@@ -31,7 +33,7 @@ import {
 } from "@ourworldindata/utils"
 import { AttachmentsContext } from "./AttachmentsContext.js"
 import { PROD_URL } from "../SiteConstants.js"
-import { BAKED_BASE_URL, IS_ARCHIVE } from "../../settings/clientSettings.js"
+import { BAKED_BASE_URL, IS_ARCHIVE } from "../../settings/clientSettings.mjs"
 
 const getOrigin = (url: string, base?: string): string | undefined => {
     try {
@@ -88,7 +90,6 @@ export const useLinkedAuthor = (
     name: string
     slug: string | null
     featuredImage: string | null
-    role?: string
 } => {
     const { linkedAuthors } = useContext(AttachmentsContext)
     const author = linkedAuthors?.find((author) => author.name === name)
@@ -322,6 +323,51 @@ export function getShortPageCitation(
     publishedAt: Date | null
 ) {
     return `${formatAuthors(authors)} (${publishedAt?.getFullYear()}) - “${title}”`
+}
+
+/**
+ * Build the citation string and BibTeX entry shown in a gdoc page's
+ * "Cite this work" section.
+ */
+export function buildGdocCitation({
+    authors,
+    title,
+    publishedAt,
+    slug,
+    canonicalUrl,
+    archivalPhrase,
+}: {
+    authors: string[]
+    title: string
+    publishedAt: Date | null
+    slug: string
+    canonicalUrl: string
+    archivalPhrase?: string
+}): { citationText: string; bibtex: string } {
+    const shortPageCitation = getShortPageCitation(authors, title, publishedAt)
+    const citationText = `${shortPageCitation} Published online at OurWorldinData.org. Retrieved from: '${canonicalUrl}' [Online Resource]${archivalPhrase ? ` ${archivalPhrase}` : ""}`
+
+    const bibtex = `@article{owid-${slug.replace(/\//g, "-")},
+    author = {${formatAuthorsForBibtex(authors)}},
+    title = {${title}},
+    journal = {Our World in Data},
+    year = {${publishedAt?.getFullYear()}},
+    note = {${canonicalUrl}}
+}`
+
+    return { citationText, bibtex }
+}
+
+/**
+ * Block types come from the user and may not be all lowercase. Returns the
+ * block with a lowercased type, without copying it if it already is.
+ */
+export function normalizeBlockType(
+    block: OwidEnrichedGdocBlock
+): OwidEnrichedGdocBlock {
+    const type = block.type.toLowerCase()
+    if (type === block.type) return block
+    return { ...block, type } as OwidEnrichedGdocBlock
 }
 
 /**

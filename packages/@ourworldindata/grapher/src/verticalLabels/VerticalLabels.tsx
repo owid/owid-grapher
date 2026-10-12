@@ -1,6 +1,6 @@
 import * as React from "react"
 import { TextWrapSvg } from "@ourworldindata/components"
-import { makeFigmaId } from "@ourworldindata/utils"
+import { makeFigmaId, roundForSvg } from "@ourworldindata/utils"
 import { SeriesName } from "@ourworldindata/types"
 import { SeriesLabel } from "../seriesLabel/SeriesLabel.js"
 import { darkenColorForText } from "../color/ColorUtils.js"
@@ -10,10 +10,7 @@ import { PlacedLabelSeries, RenderLabelSeries } from "./VerticalLabelsTypes"
 import { VerticalLabelsState } from "./VerticalLabelsState"
 import { Emphasis } from "../interaction/Emphasis.js"
 
-/**
- * Series labels stacked vertically, with connector lines,
- * entity annotations, and interactive hover/focus states
- */
+/** Series labels stacked vertically */
 export function VerticalLabels({
     state,
     x = 0,
@@ -32,7 +29,10 @@ export function VerticalLabels({
     const { renderSeries, annotatedSeries, textAnchor } = state
 
     return (
-        <g id={makeFigmaId("vertical-labels")} transform={`translate(${x}, 0)`}>
+        <g
+            id={makeFigmaId("vertical-labels")}
+            transform={`translate(${roundForSvg(x)}, 0)`}
+        >
             {interactive && (
                 <InteractionOverlays
                     series={state.placedSeries}
@@ -147,7 +147,11 @@ function ConnectorLines({
 
                 const step = (endX - startX) / (totalLevels + 1)
                 const markerXMid = startX + step + level * step
-                const d = `M${startX},${leftCenterY} H${markerXMid} V${rightCenterY} H${endX}`
+                const d =
+                    `M${roundForSvg(startX)},${roundForSvg(leftCenterY)}` +
+                    ` H${roundForSvg(markerXMid)}` +
+                    ` V${roundForSvg(rightCenterY)}` +
+                    ` H${roundForSvg(endX)}`
 
                 const emphasis = series.emphasis ?? Emphasis.Default
                 const lineColor = LABEL_STYLE[emphasis].connectorLineColor
@@ -192,10 +196,10 @@ function InteractionOverlays({
                         onMouseLeave={() => onMouseLeave?.(series.seriesName)}
                     >
                         <rect
-                            x={x}
-                            y={series.bounds.y}
-                            width={series.bounds.width}
-                            height={series.bounds.height}
+                            x={roundForSvg(x)}
+                            y={roundForSvg(series.bounds.y)}
+                            width={roundForSvg(series.bounds.width)}
+                            height={roundForSvg(series.bounds.height)}
                             fill="#fff"
                             opacity={0}
                         />

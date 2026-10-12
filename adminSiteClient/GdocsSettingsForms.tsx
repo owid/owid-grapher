@@ -1,5 +1,6 @@
 import { type Dispatch, type SetStateAction } from "react"
 import {
+    MinimalTag,
     OwidGdocPostInterface,
     OwidGdocErrorMessage,
     OwidGdocDataInsightInterface,
@@ -8,6 +9,7 @@ import {
     OwidGdocAuthorInterface,
     OwidGdocAboutInterface,
     OwidGdocAnnouncementInterface,
+    OwidGdocFeaturedVizInterface,
     OwidGdocProfileInterface,
 } from "@ourworldindata/utils"
 import { Select, Alert } from "antd"
@@ -20,6 +22,9 @@ import {
 import { GdocsPublishedAt } from "./GdocsDateline.js"
 import { GdocsPublicationContext } from "./GdocsPublicationContext.js"
 import { GdocsManualBreadcrumbsInput } from "./GdocsManualBreadcrumbsInput.js"
+import { GdocsTags } from "./GdocsTags.js"
+
+type SaveTags = (tags: MinimalTag[]) => Promise<void>
 
 const GdocCommonErrors = ({
     errors,
@@ -91,10 +96,12 @@ export const GdocPostSettings = ({
     gdoc,
     setCurrentGdoc,
     errors,
+    onSaveTags,
 }: {
     gdoc: OwidGdocPostInterface
     setCurrentGdoc: (gdoc: OwidGdocPostInterface) => void
     errors?: OwidGdocErrorMessage[]
+    onSaveTags: SaveTags
 }) => {
     if (!gdoc || !errors) return null
     return (
@@ -114,6 +121,7 @@ export const GdocPostSettings = ({
                 setCurrentGdoc={setCurrentGdoc}
                 errors={errors}
             />
+            <GdocsTags gdoc={gdoc} onSaveTags={onSaveTags} />
             <div className="form-group">
                 <h3 className="form-section-heading">Post settings</h3>
                 <GdocsSettingsContentField
@@ -176,10 +184,12 @@ export const GdocInsightSettings = ({
     gdoc,
     setCurrentGdoc,
     errors,
+    onSaveTags,
 }: {
     gdoc: OwidGdocDataInsightInterface
     setCurrentGdoc: (gdoc: OwidGdocDataInsightInterface) => void
     errors?: OwidGdocErrorMessage[]
+    onSaveTags: SaveTags
 }) => {
     if (!gdoc || !errors) return null
 
@@ -195,6 +205,7 @@ export const GdocInsightSettings = ({
                 errors={errors}
                 subdirectory="data-insights/"
             />
+            <GdocsTags gdoc={gdoc} onSaveTags={onSaveTags} />
             <div className="form-group">
                 <h3 className="form-section-heading">Data insight settings</h3>
                 <GdocsPublicationContext
@@ -225,10 +236,12 @@ export const GdocAnnouncementSettings = ({
     gdoc,
     setCurrentGdoc,
     errors,
+    onSaveTags,
 }: {
     gdoc: OwidGdocAnnouncementInterface
     setCurrentGdoc: (gdoc: OwidGdocAnnouncementInterface) => void
     errors?: OwidGdocErrorMessage[]
+    onSaveTags: SaveTags
 }) => {
     if (!gdoc || !errors) return null
 
@@ -243,6 +256,7 @@ export const GdocAnnouncementSettings = ({
                 setCurrentGdoc={setCurrentGdoc}
                 errors={errors}
             />
+            <GdocsTags gdoc={gdoc} onSaveTags={onSaveTags} />
             <GdocsPublicationContext
                 gdoc={gdoc}
                 setCurrentGdoc={setCurrentGdoc}
@@ -251,6 +265,60 @@ export const GdocAnnouncementSettings = ({
                 <h3 className="form-section-heading">Announcement settings</h3>
                 <GdocsSettingsContentField
                     property="kicker"
+                    gdoc={gdoc}
+                    errors={errors}
+                />
+            </div>
+        </form>
+    )
+}
+
+export const GdocFeaturedVizSettings = ({
+    gdoc,
+    setCurrentGdoc,
+    errors,
+}: {
+    gdoc: OwidGdocFeaturedVizInterface
+    setCurrentGdoc: (gdoc: OwidGdocFeaturedVizInterface) => void
+    errors?: OwidGdocErrorMessage[]
+}) => {
+    if (!gdoc || !errors) return null
+
+    return (
+        <form className="GdocsSettingsForm">
+            <GdocCommonErrors
+                errors={errors}
+                errorsToFilter={["excerpt", "featured-image"]}
+            />
+            <GdocCommonSettings
+                gdoc={gdoc}
+                setCurrentGdoc={setCurrentGdoc}
+                errors={errors}
+                subdirectory="featured-viz/"
+            />
+            <div className="form-group">
+                <h3 className="form-section-heading">Featured viz settings</h3>
+                <GdocsSettingsContentField
+                    property="subtitle"
+                    gdoc={gdoc}
+                    errors={errors}
+                />
+                <GdocsSettingsContentField
+                    property="excerpt"
+                    gdoc={gdoc}
+                    errors={errors}
+                    render={(props) => (
+                        <GdocsSettingsTextArea
+                            {...props}
+                            inputProps={{
+                                showCount: true,
+                                maxLength: EXCERPT_MAX_LENGTH,
+                            }}
+                        />
+                    )}
+                />
+                <GdocsSettingsContentField
+                    property="featured-image"
                     gdoc={gdoc}
                     errors={errors}
                 />
@@ -365,6 +433,7 @@ export const GdocProfileSettings = ({
     gdoc,
     setCurrentGdoc,
     errors,
+    onSaveTags,
     selectedEntity,
     setSelectedEntity,
     entitiesInScope,
@@ -372,6 +441,7 @@ export const GdocProfileSettings = ({
     gdoc: OwidGdocProfileInterface
     setCurrentGdoc: (gdoc: OwidGdocProfileInterface) => void
     errors?: OwidGdocErrorMessage[]
+    onSaveTags: SaveTags
     selectedEntity?: string
     setSelectedEntity: Dispatch<SetStateAction<string | undefined>>
     entitiesInScope: { value: string; label: string }[]
@@ -423,6 +493,7 @@ export const GdocProfileSettings = ({
                 errors={errors}
                 subdirectory="profile/"
             />
+            <GdocsTags gdoc={gdoc} onSaveTags={onSaveTags} />
             <div className="form-group">
                 <h3 className="form-section-heading">Profile settings</h3>
                 <GdocsSettingsContentField

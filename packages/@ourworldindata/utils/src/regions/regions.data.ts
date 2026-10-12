@@ -552,6 +552,7 @@ export const regionsData = [
         slug: "africa-ei",
         regionType: "aggregate",
         definedBy: "ei",
+        publisher: "ei",
         members: [
             "AGO",
             "BDI",
@@ -619,6 +620,7 @@ export const regionsData = [
         slug: "asia-pacific-ei",
         regionType: "aggregate",
         definedBy: "ei",
+        publisher: "ei",
         members: [
             "AFG",
             "ASM",
@@ -682,6 +684,7 @@ export const regionsData = [
         slug: "cis-ei",
         regionType: "aggregate",
         definedBy: "ei",
+        publisher: "ei",
         members: [
             "ARM",
             "AZE",
@@ -701,6 +704,7 @@ export const regionsData = [
         slug: "europe-ei",
         regionType: "aggregate",
         definedBy: "ei",
+        publisher: "ei",
         members: [
             "ALA",
             "ALB",
@@ -761,6 +765,7 @@ export const regionsData = [
         slug: "middle-east-ei",
         regionType: "aggregate",
         definedBy: "ei",
+        publisher: "ei",
         members: [
             "ARE",
             "BHR",
@@ -784,6 +789,7 @@ export const regionsData = [
         slug: "north-america-ei",
         regionType: "aggregate",
         definedBy: "ei",
+        publisher: "ei",
         members: ["CAN", "MEX", "USA"],
     },
     {
@@ -792,6 +798,7 @@ export const regionsData = [
         slug: "south-and-central-america-ei",
         regionType: "aggregate",
         definedBy: "ei",
+        publisher: "ei",
         members: [
             "ABW",
             "AIA",
@@ -851,6 +858,7 @@ export const regionsData = [
         slug: "africa-ember",
         regionType: "aggregate",
         definedBy: "ember",
+        publisher: "ember",
         members: [
             "AGO",
             "BDI",
@@ -917,6 +925,7 @@ export const regionsData = [
         slug: "asia-ember",
         regionType: "aggregate",
         definedBy: "ember",
+        publisher: "ember",
         members: [
             "AFG",
             "ARM",
@@ -961,6 +970,7 @@ export const regionsData = [
         slug: "europe-ember",
         regionType: "aggregate",
         definedBy: "ember",
+        publisher: "ember",
         members: [
             "ALB",
             "AUT",
@@ -1014,6 +1024,7 @@ export const regionsData = [
         slug: "latin-america-and-caribbean-ember",
         regionType: "aggregate",
         definedBy: "ember",
+        publisher: "ember",
         members: [
             "ABW",
             "ARG",
@@ -1069,6 +1080,7 @@ export const regionsData = [
         slug: "middle-east-ember",
         regionType: "aggregate",
         definedBy: "ember",
+        publisher: "ember",
         members: [
             "ARE",
             "BHR",
@@ -1092,6 +1104,7 @@ export const regionsData = [
         slug: "north-america-ember",
         regionType: "aggregate",
         definedBy: "ember",
+        publisher: "ember",
         members: ["CAN", "GRL", "USA"],
     },
     {
@@ -1100,6 +1113,7 @@ export const regionsData = [
         slug: "oceania-ember",
         regionType: "aggregate",
         definedBy: "ember",
+        publisher: "ember",
         members: [
             "ASM",
             "AUS",
@@ -1166,6 +1180,7 @@ export const regionsData = [
         slug: "africa-fao",
         regionType: "aggregate",
         definedBy: "fao_1",
+        publisher: "fao",
         members: [
             "AGO",
             "ATF",
@@ -1237,6 +1252,7 @@ export const regionsData = [
         slug: "americas-fao",
         regionType: "aggregate",
         definedBy: "fao_1",
+        publisher: "fao",
         members: [
             "ABW",
             "AIA",
@@ -1304,6 +1320,7 @@ export const regionsData = [
         slug: "australia-and-new-zealand-fao",
         regionType: "aggregate",
         definedBy: "fao_2",
+        publisher: "fao",
         members: ["AUS", "CCK", "CXR", "HMD", "NFK", "NZL"],
     },
     {
@@ -1312,6 +1329,7 @@ export const regionsData = [
         slug: "asia-fao",
         regionType: "aggregate",
         definedBy: "fao_1",
+        publisher: "fao",
         members: [
             "AFG",
             "ARE",
@@ -1374,6 +1392,7 @@ export const regionsData = [
         slug: "central-america-fao",
         regionType: "aggregate",
         definedBy: "fao_2",
+        publisher: "fao",
         members: ["BLZ", "CRI", "GTM", "HND", "MEX", "NIC", "PAN", "SLV"],
     },
     {
@@ -1382,6 +1401,7 @@ export const regionsData = [
         slug: "caribbean-fao",
         regionType: "aggregate",
         definedBy: "fao_2",
+        publisher: "fao",
         members: [
             "ABW",
             "AIA",
@@ -1420,6 +1440,7 @@ export const regionsData = [
         slug: "central-asia-fao",
         regionType: "aggregate",
         definedBy: "fao_2",
+        publisher: "fao",
         members: ["KAZ", "KGZ", "TJK", "TKM", "UZB"],
     },
     {
@@ -1428,6 +1449,7 @@ export const regionsData = [
         slug: "central-asia-and-southern-asia-fao",
         regionType: "aggregate",
         definedBy: "fao_sdg",
+        publisher: "fao",
         members: [
             "AFG",
             "BGD",
@@ -1451,6 +1473,7 @@ export const regionsData = [
         slug: "eastern-africa-fao",
         regionType: "aggregate",
         definedBy: "fao_2",
+        publisher: "fao",
         members: [
             "ATF",
             "BDI",
@@ -1483,6 +1506,7 @@ export const regionsData = [
         slug: "eastern-asia-fao",
         regionType: "aggregate",
         definedBy: "fao_2",
+        publisher: "fao",
         members: ["CHN", "HKG", "JPN", "KOR", "MAC", "MNG", "PRK", "TWN"],
     },
     {
@@ -1491,6 +1515,7 @@ export const regionsData = [
         slug: "eastern-europe-fao",
         regionType: "aggregate",
         definedBy: "fao_2",
+        publisher: "fao",
         members: [
             "BGR",
             "BLR",
@@ -1512,6 +1537,7 @@ export const regionsData = [
         slug: "eastern-asia-and-south-eastern-asia-fao",
         regionType: "aggregate",
         definedBy: "fao_sdg",
+        publisher: "fao",
         members: [
             "BRN",
             "CHN",
@@ -1540,6 +1566,7 @@ export const regionsData = [
         slug: "europe-fao",
         regionType: "aggregate",
         definedBy: "fao_1",
+        publisher: "fao",
         members: [
             "ALA",
             "ALB",
@@ -1604,6 +1631,7 @@ export const regionsData = [
         slug: "latin-america-and-the-caribbean-fao",
         regionType: "aggregate",
         definedBy: "fao_sdg",
+        publisher: "fao",
         members: [
             "ABW",
             "AIA",
@@ -1666,6 +1694,7 @@ export const regionsData = [
         slug: "middle-africa-fao",
         regionType: "aggregate",
         definedBy: "fao_2",
+        publisher: "fao",
         members: [
             "AGO",
             "CAF",
@@ -1684,6 +1713,7 @@ export const regionsData = [
         slug: "melanesia-fao",
         regionType: "aggregate",
         definedBy: "fao_2",
+        publisher: "fao",
         members: ["FJI", "NCL", "PNG", "SLB", "VUT"],
     },
     {
@@ -1692,6 +1722,7 @@ export const regionsData = [
         slug: "micronesia-fao",
         regionType: "aggregate",
         definedBy: "fao_2",
+        publisher: "fao",
         members: ["FSM", "GUM", "KIR", "MHL", "MNP", "NRU", "PLW", "UMI"],
     },
     {
@@ -1700,6 +1731,7 @@ export const regionsData = [
         slug: "northern-america-and-europe-fao",
         regionType: "aggregate",
         definedBy: "fao_sdg",
+        publisher: "fao",
         members: [
             "ALA",
             "ALB",
@@ -1769,6 +1801,7 @@ export const regionsData = [
         slug: "northern-africa-fao",
         regionType: "aggregate",
         definedBy: "fao_2",
+        publisher: "fao",
         members: ["DZA", "EGY", "ESH", "LBY", "MAR", "OWID_SDN", "SDN", "TUN"],
     },
     {
@@ -1777,6 +1810,7 @@ export const regionsData = [
         slug: "northern-america-fao",
         regionType: "aggregate",
         definedBy: "fao_2",
+        publisher: "fao",
         members: ["BMU", "CAN", "GRL", "SPM", "USA"],
     },
     {
@@ -1785,6 +1819,7 @@ export const regionsData = [
         slug: "northern-europe-fao",
         regionType: "aggregate",
         definedBy: "fao_2",
+        publisher: "fao",
         members: [
             "ALA",
             "DNK",
@@ -1810,6 +1845,7 @@ export const regionsData = [
         slug: "oceania-fao",
         regionType: "aggregate",
         definedBy: "fao_1",
+        publisher: "fao",
         members: [
             "ASM",
             "AUS",
@@ -1848,6 +1884,7 @@ export const regionsData = [
         slug: "oceania-excluding-australia-and-new-zealand-fao",
         regionType: "aggregate",
         definedBy: "fao_sdg",
+        publisher: "fao",
         members: [
             "ASM",
             "COK",
@@ -1880,6 +1917,7 @@ export const regionsData = [
         slug: "polynesia-fao",
         regionType: "aggregate",
         definedBy: "fao_2",
+        publisher: "fao",
         members: [
             "ASM",
             "COK",
@@ -1899,6 +1937,7 @@ export const regionsData = [
         slug: "southern-africa-fao",
         regionType: "aggregate",
         definedBy: "fao_2",
+        publisher: "fao",
         members: ["BWA", "LSO", "NAM", "SWZ", "ZAF"],
     },
     {
@@ -1907,6 +1946,7 @@ export const regionsData = [
         slug: "south-america-fao",
         regionType: "aggregate",
         definedBy: "fao_2",
+        publisher: "fao",
         members: [
             "ARG",
             "BOL",
@@ -1932,6 +1972,7 @@ export const regionsData = [
         slug: "southern-asia-fao",
         regionType: "aggregate",
         definedBy: "fao_2",
+        publisher: "fao",
         members: [
             "AFG",
             "BGD",
@@ -1950,6 +1991,7 @@ export const regionsData = [
         slug: "south-eastern-asia-fao",
         regionType: "aggregate",
         definedBy: "fao_2",
+        publisher: "fao",
         members: [
             "BRN",
             "IDN",
@@ -1970,6 +2012,7 @@ export const regionsData = [
         slug: "southern-europe-fao",
         regionType: "aggregate",
         definedBy: "fao_2",
+        publisher: "fao",
         members: [
             "ALB",
             "AND",
@@ -1997,6 +2040,7 @@ export const regionsData = [
         slug: "sub-saharan-africa-fao",
         regionType: "aggregate",
         definedBy: "fao_sdg",
+        publisher: "fao",
         members: [
             "AGO",
             "ATF",
@@ -2060,6 +2104,7 @@ export const regionsData = [
         slug: "western-africa-fao",
         regionType: "aggregate",
         definedBy: "fao_2",
+        publisher: "fao",
         members: [
             "BEN",
             "BFA",
@@ -2086,6 +2131,7 @@ export const regionsData = [
         slug: "western-asia-and-northern-africa-fao",
         regionType: "aggregate",
         definedBy: "fao_sdg",
+        publisher: "fao",
         members: [
             "ARE",
             "ARM",
@@ -2123,6 +2169,7 @@ export const regionsData = [
         slug: "western-asia-fao",
         regionType: "aggregate",
         definedBy: "fao_2",
+        publisher: "fao",
         members: [
             "ARE",
             "ARM",
@@ -2152,6 +2199,7 @@ export const regionsData = [
         slug: "western-europe-fao",
         regionType: "aggregate",
         definedBy: "fao_2",
+        publisher: "fao",
         members: [
             "AUT",
             "BEL",
@@ -2414,6 +2462,7 @@ export const regionsData = [
         slug: "africa-iea",
         regionType: "aggregate",
         definedBy: "iea",
+        publisher: "iea",
         members: [
             "AGO",
             "BDI",
@@ -2477,6 +2526,7 @@ export const regionsData = [
         slug: "asia-pacific-iea",
         regionType: "aggregate",
         definedBy: "iea",
+        publisher: "iea",
         members: [
             "AUS",
             "BGD",
@@ -2509,6 +2559,7 @@ export const regionsData = [
         slug: "central-and-south-america-iea",
         regionType: "aggregate",
         definedBy: "iea",
+        publisher: "iea",
         members: [
             "ARG",
             "BOL",
@@ -2541,6 +2592,7 @@ export const regionsData = [
         slug: "europe-iea",
         regionType: "aggregate",
         definedBy: "iea",
+        publisher: "iea",
         members: [
             "ALB",
             "AUT",
@@ -2593,6 +2645,7 @@ export const regionsData = [
         slug: "eurasia-iea",
         regionType: "aggregate",
         definedBy: "iea",
+        publisher: "iea",
         members: [
             "ARM",
             "AZE",
@@ -2611,6 +2664,7 @@ export const regionsData = [
         slug: "middle-east-iea",
         regionType: "aggregate",
         definedBy: "iea",
+        publisher: "iea",
         members: [
             "ARE",
             "BHR",
@@ -2632,6 +2686,7 @@ export const regionsData = [
         slug: "north-america-iea",
         regionType: "aggregate",
         definedBy: "iea",
+        publisher: "iea",
         members: ["CAN", "MEX", "USA"],
     },
     {
@@ -2640,6 +2695,7 @@ export const regionsData = [
         slug: "andean-latin-america-ihme-gbd",
         regionType: "aggregate",
         definedBy: "ihme_gbd_2",
+        publisher: "ihme_gbd",
         members: ["BOL", "ECU", "PER"],
     },
     {
@@ -2648,6 +2704,7 @@ export const regionsData = [
         slug: "australasia-ihme-gbd",
         regionType: "aggregate",
         definedBy: "ihme_gbd_2",
+        publisher: "ihme_gbd",
         members: ["AUS", "NZL"],
     },
     {
@@ -2656,6 +2713,7 @@ export const regionsData = [
         slug: "caribbean-ihme-gbd",
         regionType: "aggregate",
         definedBy: "ihme_gbd_2",
+        publisher: "ihme_gbd",
         members: [
             "ATG",
             "BHS",
@@ -2684,6 +2742,7 @@ export const regionsData = [
         slug: "central-asia-ihme-gbd",
         regionType: "aggregate",
         definedBy: "ihme_gbd_2",
+        publisher: "ihme_gbd",
         members: [
             "ARM",
             "AZE",
@@ -2702,6 +2761,7 @@ export const regionsData = [
         slug: "central-europe-eastern-europe-and-central-asia-ihme-gbd",
         regionType: "aggregate",
         definedBy: "ihme_gbd_1",
+        publisher: "ihme_gbd",
         members: [
             "ALB",
             "ARM",
@@ -2740,6 +2800,7 @@ export const regionsData = [
         slug: "central-europe-ihme-gbd",
         regionType: "aggregate",
         definedBy: "ihme_gbd_2",
+        publisher: "ihme_gbd",
         members: [
             "ALB",
             "BGR",
@@ -2762,6 +2823,7 @@ export const regionsData = [
         slug: "central-latin-america-ihme-gbd",
         regionType: "aggregate",
         definedBy: "ihme_gbd_2",
+        publisher: "ihme_gbd",
         members: [
             "COL",
             "CRI",
@@ -2780,6 +2842,7 @@ export const regionsData = [
         slug: "central-sub-saharan-africa-ihme-gbd",
         regionType: "aggregate",
         definedBy: "ihme_gbd_2",
+        publisher: "ihme_gbd",
         members: ["AGO", "CAF", "COD", "COG", "GAB", "GNQ"],
     },
     {
@@ -2788,6 +2851,7 @@ export const regionsData = [
         slug: "east-asia-ihme-gbd",
         regionType: "aggregate",
         definedBy: "ihme_gbd_2",
+        publisher: "ihme_gbd",
         members: ["CHN", "PRK", "TWN"],
     },
     {
@@ -2796,6 +2860,7 @@ export const regionsData = [
         slug: "eastern-europe-ihme-gbd",
         regionType: "aggregate",
         definedBy: "ihme_gbd_2",
+        publisher: "ihme_gbd",
         members: ["BLR", "EST", "LTU", "LVA", "MDA", "RUS", "UKR"],
     },
     {
@@ -2804,6 +2869,7 @@ export const regionsData = [
         slug: "eastern-sub-saharan-africa-ihme-gbd",
         regionType: "aggregate",
         definedBy: "ihme_gbd_2",
+        publisher: "ihme_gbd",
         members: [
             "BDI",
             "COM",
@@ -2828,6 +2894,7 @@ export const regionsData = [
         slug: "high-income-ihme-gbd",
         regionType: "aggregate",
         definedBy: "ihme_gbd_1",
+        publisher: "ihme_gbd",
         members: [
             "AND",
             "ARG",
@@ -2873,6 +2940,7 @@ export const regionsData = [
         slug: "high-income-asia-pacific-ihme-gbd",
         regionType: "aggregate",
         definedBy: "ihme_gbd_2",
+        publisher: "ihme_gbd",
         members: ["BRN", "JPN", "KOR", "SGP"],
     },
     {
@@ -2881,6 +2949,7 @@ export const regionsData = [
         slug: "high-income-north-america-ihme-gbd",
         regionType: "aggregate",
         definedBy: "ihme_gbd_2",
+        publisher: "ihme_gbd",
         members: ["CAN", "GRL", "USA"],
     },
     {
@@ -2889,6 +2958,7 @@ export const regionsData = [
         slug: "latin-america-and-caribbean-ihme-gbd",
         regionType: "aggregate",
         definedBy: "ihme_gbd_1",
+        publisher: "ihme_gbd",
         members: [
             "ATG",
             "BHS",
@@ -2931,6 +3001,7 @@ export const regionsData = [
         slug: "north-africa-and-middle-east-ihme-gbd",
         regionType: "aggregate",
         definedBy: "ihme_gbd_1",
+        publisher: "ihme_gbd",
         members: [
             "AFG",
             "ARE",
@@ -2961,6 +3032,7 @@ export const regionsData = [
         slug: "oceania-ihme-gbd",
         regionType: "aggregate",
         definedBy: "ihme_gbd_2",
+        publisher: "ihme_gbd",
         members: [
             "ASM",
             "COK",
@@ -2988,6 +3060,7 @@ export const regionsData = [
         slug: "south-asia-ihme-gbd",
         regionType: "aggregate",
         definedBy: "ihme_gbd_1",
+        publisher: "ihme_gbd",
         members: ["BGD", "BTN", "IND", "NPL", "PAK"],
     },
     {
@@ -2996,6 +3069,7 @@ export const regionsData = [
         slug: "southeast-asia-ihme-gbd",
         regionType: "aggregate",
         definedBy: "ihme_gbd_2",
+        publisher: "ihme_gbd",
         members: [
             "IDN",
             "KHM",
@@ -3018,6 +3092,7 @@ export const regionsData = [
         slug: "southeast-asia-east-asia-and-oceania-ihme-gbd",
         regionType: "aggregate",
         definedBy: "ihme_gbd_1",
+        publisher: "ihme_gbd",
         members: [
             "ASM",
             "CHN",
@@ -3061,6 +3136,7 @@ export const regionsData = [
         slug: "southern-latin-america-ihme-gbd",
         regionType: "aggregate",
         definedBy: "ihme_gbd_2",
+        publisher: "ihme_gbd",
         members: ["ARG", "CHL", "URY"],
     },
     {
@@ -3069,6 +3145,7 @@ export const regionsData = [
         slug: "sub-saharan-africa-ihme-gbd",
         regionType: "aggregate",
         definedBy: "ihme_gbd_1",
+        publisher: "ihme_gbd",
         members: [
             "AGO",
             "BDI",
@@ -3124,6 +3201,7 @@ export const regionsData = [
         slug: "southern-sub-saharan-africa-ihme-gbd",
         regionType: "aggregate",
         definedBy: "ihme_gbd_2",
+        publisher: "ihme_gbd",
         members: ["BWA", "LSO", "NAM", "SWZ", "ZAF", "ZWE"],
     },
     {
@@ -3132,6 +3210,7 @@ export const regionsData = [
         slug: "tropical-latin-america-ihme-gbd",
         regionType: "aggregate",
         definedBy: "ihme_gbd_2",
+        publisher: "ihme_gbd",
         members: ["BRA", "PRY"],
     },
     {
@@ -3140,6 +3219,7 @@ export const regionsData = [
         slug: "western-europe-ihme-gbd",
         regionType: "aggregate",
         definedBy: "ihme_gbd_2",
+        publisher: "ihme_gbd",
         members: [
             "AND",
             "AUT",
@@ -3173,6 +3253,7 @@ export const regionsData = [
         slug: "western-sub-saharan-africa-ihme-gbd",
         regionType: "aggregate",
         definedBy: "ihme_gbd_2",
+        publisher: "ihme_gbd",
         members: [
             "BEN",
             "BFA",
@@ -3201,6 +3282,7 @@ export const regionsData = [
         slug: "africa-ilo",
         regionType: "aggregate",
         definedBy: "ilo_1",
+        publisher: "ilo",
         members: [
             "AGO",
             "BDI",
@@ -3267,6 +3349,7 @@ export const regionsData = [
         slug: "americas-ilo",
         regionType: "aggregate",
         definedBy: "ilo_1",
+        publisher: "ilo",
         members: [
             "ABW",
             "AIA",
@@ -3328,6 +3411,7 @@ export const regionsData = [
         slug: "arab-states-ilo",
         regionType: "aggregate",
         definedBy: "ilo_1",
+        publisher: "ilo",
         members: [
             "ARE",
             "BHR",
@@ -3349,6 +3433,7 @@ export const regionsData = [
         slug: "asia-and-the-pacific-ilo",
         regionType: "aggregate",
         definedBy: "ilo_1",
+        publisher: "ilo",
         members: [
             "AFG",
             "ASM",
@@ -3410,6 +3495,7 @@ export const regionsData = [
         slug: "central-and-western-asia-ilo",
         regionType: "aggregate",
         definedBy: "ilo_2",
+        publisher: "ilo",
         members: [
             "ARM",
             "AZE",
@@ -3430,6 +3516,7 @@ export const regionsData = [
         slug: "eastern-asia-ilo",
         regionType: "aggregate",
         definedBy: "ilo_2",
+        publisher: "ilo",
         members: ["CHN", "HKG", "JPN", "KOR", "MAC", "MNG", "PRK", "TWN"],
     },
     {
@@ -3438,6 +3525,7 @@ export const regionsData = [
         slug: "europe-and-central-asia-ilo",
         regionType: "aggregate",
         definedBy: "ilo_1",
+        publisher: "ilo",
         members: [
             "ALB",
             "AND",
@@ -3507,6 +3595,7 @@ export const regionsData = [
         slug: "eastern-europe-ilo",
         regionType: "aggregate",
         definedBy: "ilo_2",
+        publisher: "ilo",
         members: [
             "BGR",
             "BLR",
@@ -3526,6 +3615,7 @@ export const regionsData = [
         slug: "latin-america-and-the-caribbean-ilo",
         regionType: "aggregate",
         definedBy: "ilo_2",
+        publisher: "ilo",
         members: [
             "ABW",
             "AIA",
@@ -3582,6 +3672,7 @@ export const regionsData = [
         slug: "northern-africa-ilo",
         regionType: "aggregate",
         definedBy: "ilo_2",
+        publisher: "ilo",
         members: ["DZA", "EGY", "ESH", "LBY", "MAR", "SDN", "TUN"],
     },
     {
@@ -3590,6 +3681,7 @@ export const regionsData = [
         slug: "northern-america-ilo",
         regionType: "aggregate",
         definedBy: "ilo_2",
+        publisher: "ilo",
         members: ["BMU", "CAN", "GRL", "SPM", "USA"],
     },
     {
@@ -3598,6 +3690,7 @@ export const regionsData = [
         slug: "northern-southern-and-western-europe-ilo",
         regionType: "aggregate",
         definedBy: "ilo_2",
+        publisher: "ilo",
         members: [
             "ALB",
             "AND",
@@ -3646,6 +3739,7 @@ export const regionsData = [
         slug: "southern-asia-ilo",
         regionType: "aggregate",
         definedBy: "ilo_2",
+        publisher: "ilo",
         members: [
             "AFG",
             "BGD",
@@ -3664,6 +3758,7 @@ export const regionsData = [
         slug: "south-eastern-asia-and-the-pacific-ilo",
         regionType: "aggregate",
         definedBy: "ilo_2",
+        publisher: "ilo",
         members: [
             "ASM",
             "AUS",
@@ -3708,6 +3803,7 @@ export const regionsData = [
         slug: "sub-saharan-africa-ilo",
         regionType: "aggregate",
         definedBy: "ilo_2",
+        publisher: "ilo",
         members: [
             "AGO",
             "BDI",
@@ -4028,6 +4124,7 @@ export const regionsData = [
         slug: "east-asia-maddison",
         regionType: "aggregate",
         definedBy: "maddison",
+        publisher: "maddison",
         members: ["CHN", "HKG", "JPN", "KOR", "PRK", "TWN"],
     },
     {
@@ -4036,6 +4133,7 @@ export const regionsData = [
         slug: "eastern-europe-maddison",
         regionType: "aggregate",
         definedBy: "maddison",
+        publisher: "maddison",
         members: [
             "ALB",
             "ARM",
@@ -4077,6 +4175,7 @@ export const regionsData = [
         slug: "latin-america-maddison",
         regionType: "aggregate",
         definedBy: "maddison",
+        publisher: "maddison",
         members: [
             "ARG",
             "BOL",
@@ -4112,6 +4211,7 @@ export const regionsData = [
         slug: "middle-east-and-north-africa-maddison",
         regionType: "aggregate",
         definedBy: "maddison",
+        publisher: "maddison",
         members: [
             "ARE",
             "BHR",
@@ -4141,6 +4241,7 @@ export const regionsData = [
         slug: "sub-saharan-africa-maddison",
         regionType: "aggregate",
         definedBy: "maddison",
+        publisher: "maddison",
         members: [
             "AGO",
             "BDI",
@@ -4196,6 +4297,7 @@ export const regionsData = [
         slug: "south-and-south-east-asia-maddison",
         regionType: "aggregate",
         definedBy: "maddison",
+        publisher: "maddison",
         members: [
             "AFG",
             "BGD",
@@ -4221,6 +4323,7 @@ export const regionsData = [
         slug: "western-europe-maddison",
         regionType: "aggregate",
         definedBy: "maddison",
+        publisher: "maddison",
         members: [
             "AUT",
             "BEL",
@@ -4249,6 +4352,7 @@ export const regionsData = [
         slug: "western-offshoots-maddison",
         regionType: "aggregate",
         definedBy: "maddison",
+        publisher: "maddison",
         members: ["AUS", "CAN", "NZL", "USA"],
     },
     {
@@ -5789,6 +5893,7 @@ export const regionsData = [
         slug: "asia-pacific-pew",
         regionType: "aggregate",
         definedBy: "pew",
+        publisher: "pew",
         members: [
             "AFG",
             "ARM",
@@ -5857,6 +5962,7 @@ export const regionsData = [
         slug: "europe-pew",
         regionType: "aggregate",
         definedBy: "pew",
+        publisher: "pew",
         members: [
             "ALB",
             "AND",
@@ -5916,6 +6022,7 @@ export const regionsData = [
         slug: "latin-america-caribbean-pew",
         regionType: "aggregate",
         definedBy: "pew",
+        publisher: "pew",
         members: [
             "ABW",
             "AIA",
@@ -5973,6 +6080,7 @@ export const regionsData = [
         slug: "middle-east-north-africa-pew",
         regionType: "aggregate",
         definedBy: "pew",
+        publisher: "pew",
         members: [
             "ARE",
             "BHR",
@@ -6002,6 +6110,7 @@ export const regionsData = [
         slug: "north-america-pew",
         regionType: "aggregate",
         definedBy: "pew",
+        publisher: "pew",
         members: ["BMU", "CAN", "GRL", "SPM", "USA"],
     },
     {
@@ -6010,6 +6119,7 @@ export const regionsData = [
         slug: "sub-saharan-africa-pew",
         regionType: "aggregate",
         definedBy: "pew",
+        publisher: "pew",
         members: [
             "AGO",
             "BDI",
@@ -6531,6 +6641,7 @@ export const regionsData = [
         slug: "africa-un-m49",
         regionType: "aggregate",
         definedBy: "un_m49_1",
+        publisher: "un_m49",
         translationCodes: ["002"],
         members: [
             "AGO",
@@ -6601,6 +6712,7 @@ export const regionsData = [
         slug: "americas-un-m49",
         regionType: "aggregate",
         definedBy: "un_m49_1",
+        publisher: "un_m49",
         translationCodes: ["019"],
         members: [
             "ABW",
@@ -6668,6 +6780,7 @@ export const regionsData = [
         slug: "australia-and-new-zealand-un-m49",
         regionType: "aggregate",
         definedBy: "un_m49_2",
+        publisher: "un_m49",
         translationCodes: ["053"],
         members: ["AUS", "CCK", "CXR", "HMD", "NFK", "NZL"],
     },
@@ -6677,6 +6790,7 @@ export const regionsData = [
         slug: "asia-un-m49",
         regionType: "aggregate",
         definedBy: "un_m49_1",
+        publisher: "un_m49",
         translationCodes: ["142"],
         members: [
             "AFG",
@@ -6736,6 +6850,7 @@ export const regionsData = [
         slug: "central-america-un-m49",
         regionType: "aggregate",
         definedBy: "un_m49_3",
+        publisher: "un_m49",
         translationCodes: ["013"],
         members: ["BLZ", "CRI", "GTM", "HND", "MEX", "NIC", "PAN", "SLV"],
     },
@@ -6745,6 +6860,7 @@ export const regionsData = [
         slug: "caribbean-un-m49",
         regionType: "aggregate",
         definedBy: "un_m49_3",
+        publisher: "un_m49",
         translationCodes: ["029"],
         members: [
             "ABW",
@@ -6783,6 +6899,7 @@ export const regionsData = [
         slug: "central-asia-un-m49",
         regionType: "aggregate",
         definedBy: "un_m49_2",
+        publisher: "un_m49",
         translationCodes: ["143"],
         members: ["KAZ", "KGZ", "TJK", "TKM", "UZB"],
     },
@@ -6792,6 +6909,7 @@ export const regionsData = [
         slug: "eastern-africa-un-m49",
         regionType: "aggregate",
         definedBy: "un_m49_3",
+        publisher: "un_m49",
         translationCodes: ["014"],
         members: [
             "ATF",
@@ -6824,6 +6942,7 @@ export const regionsData = [
         slug: "eastern-asia-un-m49",
         regionType: "aggregate",
         definedBy: "un_m49_2",
+        publisher: "un_m49",
         translationCodes: ["030"],
         members: ["CHN", "HKG", "JPN", "KOR", "MAC", "MNG", "PRK"],
     },
@@ -6833,6 +6952,7 @@ export const regionsData = [
         slug: "eastern-europe-un-m49",
         regionType: "aggregate",
         definedBy: "un_m49_2",
+        publisher: "un_m49",
         translationCodes: ["151"],
         members: [
             "BGR",
@@ -6853,6 +6973,7 @@ export const regionsData = [
         slug: "europe-un-m49",
         regionType: "aggregate",
         definedBy: "un_m49_1",
+        publisher: "un_m49",
         translationCodes: ["150"],
         members: [
             "ALA",
@@ -6914,6 +7035,7 @@ export const regionsData = [
         slug: "latin-america-and-the-caribbean-un-m49",
         regionType: "aggregate",
         definedBy: "un_m49_2",
+        publisher: "un_m49",
         translationCodes: ["419", "029"],
         members: [
             "ABW",
@@ -6976,6 +7098,7 @@ export const regionsData = [
         slug: "middle-africa-un-m49",
         regionType: "aggregate",
         definedBy: "un_m49_3",
+        publisher: "un_m49",
         translationCodes: ["017"],
         members: [
             "AGO",
@@ -6995,6 +7118,7 @@ export const regionsData = [
         slug: "melanesia-un-m49",
         regionType: "aggregate",
         definedBy: "un_m49_2",
+        publisher: "un_m49",
         translationCodes: ["054"],
         members: ["FJI", "NCL", "PNG", "SLB", "VUT"],
     },
@@ -7004,6 +7128,7 @@ export const regionsData = [
         slug: "micronesia-un-m49",
         regionType: "aggregate",
         definedBy: "un_m49_2",
+        publisher: "un_m49",
         translationCodes: ["057"],
         members: ["FSM", "GUM", "KIR", "MHL", "MNP", "NRU", "PLW", "UMI"],
     },
@@ -7013,6 +7138,7 @@ export const regionsData = [
         slug: "northern-africa-un-m49",
         regionType: "aggregate",
         definedBy: "un_m49_2",
+        publisher: "un_m49",
         translationCodes: ["015"],
         members: ["DZA", "EGY", "ESH", "LBY", "MAR", "SDN", "TUN"],
     },
@@ -7022,6 +7148,7 @@ export const regionsData = [
         slug: "northern-america-un-m49",
         regionType: "aggregate",
         definedBy: "un_m49_2",
+        publisher: "un_m49",
         translationCodes: ["003"],
         members: ["BMU", "CAN", "GRL", "SPM", "USA"],
     },
@@ -7031,6 +7158,7 @@ export const regionsData = [
         slug: "northern-europe-un-m49",
         regionType: "aggregate",
         definedBy: "un_m49_2",
+        publisher: "un_m49",
         translationCodes: ["154"],
         members: [
             "ALA",
@@ -7057,6 +7185,7 @@ export const regionsData = [
         slug: "oceania-un-m49",
         regionType: "aggregate",
         definedBy: "un_m49_1",
+        publisher: "un_m49",
         translationCodes: ["009"],
         members: [
             "ASM",
@@ -7096,6 +7225,7 @@ export const regionsData = [
         slug: "polynesia-un-m49",
         regionType: "aggregate",
         definedBy: "un_m49_2",
+        publisher: "un_m49",
         translationCodes: ["061"],
         members: [
             "ASM",
@@ -7116,6 +7246,7 @@ export const regionsData = [
         slug: "southern-africa-un-m49",
         regionType: "aggregate",
         definedBy: "un_m49_3",
+        publisher: "un_m49",
         translationCodes: ["018"],
         members: ["BWA", "LSO", "NAM", "SWZ", "ZAF"],
     },
@@ -7125,6 +7256,7 @@ export const regionsData = [
         slug: "south-america-un-m49",
         regionType: "aggregate",
         definedBy: "un_m49_3",
+        publisher: "un_m49",
         translationCodes: ["005"],
         members: [
             "ARG",
@@ -7151,6 +7283,7 @@ export const regionsData = [
         slug: "southern-asia-un-m49",
         regionType: "aggregate",
         definedBy: "un_m49_2",
+        publisher: "un_m49",
         translationCodes: ["034"],
         members: [
             "AFG",
@@ -7170,6 +7303,7 @@ export const regionsData = [
         slug: "south-eastern-asia-un-m49",
         regionType: "aggregate",
         definedBy: "un_m49_2",
+        publisher: "un_m49",
         translationCodes: ["035"],
         members: [
             "BRN",
@@ -7191,6 +7325,7 @@ export const regionsData = [
         slug: "southern-europe-un-m49",
         regionType: "aggregate",
         definedBy: "un_m49_2",
+        publisher: "un_m49",
         translationCodes: ["039"],
         members: [
             "ALB",
@@ -7217,6 +7352,7 @@ export const regionsData = [
         slug: "sub-saharan-africa-un-m49",
         regionType: "aggregate",
         definedBy: "un_m49_2",
+        publisher: "un_m49",
         translationCodes: ["202"],
         members: [
             "AGO",
@@ -7280,6 +7416,7 @@ export const regionsData = [
         slug: "western-africa-un-m49",
         regionType: "aggregate",
         definedBy: "un_m49_3",
+        publisher: "un_m49",
         translationCodes: ["011"],
         members: [
             "BEN",
@@ -7307,6 +7444,7 @@ export const regionsData = [
         slug: "western-asia-un-m49",
         regionType: "aggregate",
         definedBy: "un_m49_2",
+        publisher: "un_m49",
         translationCodes: ["145"],
         members: [
             "ARE",
@@ -7334,6 +7472,7 @@ export const regionsData = [
         slug: "western-europe-un-m49",
         regionType: "aggregate",
         definedBy: "un_m49_2",
+        publisher: "un_m49",
         translationCodes: ["155"],
         members: [
             "AUT",
@@ -7353,6 +7492,7 @@ export const regionsData = [
         slug: "australia-and-new-zealand-un-sdg",
         regionType: "aggregate",
         definedBy: "unsdg",
+        publisher: "un_sdg",
         members: ["AUS", "CCK", "CXR", "HMD", "NFK", "NZL"],
     },
     {
@@ -7361,6 +7501,7 @@ export const regionsData = [
         slug: "central-and-southern-asia-un-sdg",
         regionType: "aggregate",
         definedBy: "unsdg",
+        publisher: "un_sdg",
         members: [
             "AFG",
             "BGD",
@@ -7384,6 +7525,7 @@ export const regionsData = [
         slug: "europe-and-northern-america-un-sdg",
         regionType: "aggregate",
         definedBy: "unsdg",
+        publisher: "un_sdg",
         members: [
             "ALA",
             "ALB",
@@ -7449,6 +7591,7 @@ export const regionsData = [
         slug: "eastern-and-south-eastern-asia-un-sdg",
         regionType: "aggregate",
         definedBy: "unsdg",
+        publisher: "un_sdg",
         members: [
             "BRN",
             "CHN",
@@ -7476,6 +7619,7 @@ export const regionsData = [
         slug: "latin-america-and-the-caribbean-un-sdg",
         regionType: "aggregate",
         definedBy: "unsdg",
+        publisher: "un_sdg",
         members: [
             "ABW",
             "AIA",
@@ -7537,6 +7681,7 @@ export const regionsData = [
         slug: "northern-africa-and-western-asia-un-sdg",
         regionType: "aggregate",
         definedBy: "unsdg",
+        publisher: "un_sdg",
         members: [
             "ARE",
             "ARM",
@@ -7571,6 +7716,7 @@ export const regionsData = [
         slug: "oceania-un-sdg",
         regionType: "aggregate",
         definedBy: "unsdg",
+        publisher: "un_sdg",
         members: [
             "ASM",
             "COK",
@@ -7603,6 +7749,7 @@ export const regionsData = [
         slug: "sub-saharan-africa-un-sdg",
         regionType: "aggregate",
         definedBy: "unsdg",
+        publisher: "un_sdg",
         members: [
             "AGO",
             "ATF",
@@ -7665,6 +7812,7 @@ export const regionsData = [
         slug: "africa-un",
         regionType: "aggregate",
         definedBy: "un",
+        publisher: "un",
         translationCodes: ["002"],
         members: [
             "AGO",
@@ -7735,6 +7883,7 @@ export const regionsData = [
         slug: "asia-un",
         regionType: "aggregate",
         definedBy: "un",
+        publisher: "un",
         translationCodes: ["142"],
         members: [
             "AFG",
@@ -7794,6 +7943,7 @@ export const regionsData = [
         slug: "europe-un",
         regionType: "aggregate",
         definedBy: "un",
+        publisher: "un",
         translationCodes: ["150"],
         members: [
             "ALA",
@@ -7855,6 +8005,7 @@ export const regionsData = [
         slug: "latin-america-and-the-caribbean-un",
         regionType: "aggregate",
         definedBy: "un",
+        publisher: "un",
         translationCodes: ["419", "029"],
         members: [
             "ABW",
@@ -7917,6 +8068,7 @@ export const regionsData = [
         slug: "northern-america-un",
         regionType: "aggregate",
         definedBy: "un",
+        publisher: "un",
         translationCodes: ["003"],
         members: ["BMU", "CAN", "GRL", "SPM", "USA"],
     },
@@ -7926,6 +8078,7 @@ export const regionsData = [
         slug: "oceania-un",
         regionType: "aggregate",
         definedBy: "un",
+        publisher: "un",
         translationCodes: ["009"],
         members: [
             "ASM",
@@ -8043,6 +8196,7 @@ export const regionsData = [
         slug: "east-asia-and-pacific-wb",
         regionType: "aggregate",
         definedBy: "wb",
+        publisher: "wb",
         translationCodes: ["030", "009"],
         members: [
             "ASM",
@@ -8103,6 +8257,7 @@ export const regionsData = [
         slug: "europe-and-central-asia-wb",
         regionType: "aggregate",
         definedBy: "wb",
+        publisher: "wb",
         translationCodes: ["143", "150"],
         members: [
             "AIA",
@@ -8203,6 +8358,7 @@ export const regionsData = [
         slug: "latin-america-and-caribbean-wb",
         regionType: "aggregate",
         definedBy: "wb",
+        publisher: "wb",
         translationCodes: ["419", "029"],
         members: [
             "ABW",
@@ -8260,6 +8416,7 @@ export const regionsData = [
         slug: "middle-east-north-africa-afghanistan-and-pakistan-wb",
         regionType: "aggregate",
         definedBy: "wb",
+        publisher: "wb",
         translationCodes: ["145", "015"],
         members: [
             "AFG",
@@ -8294,6 +8451,7 @@ export const regionsData = [
         slug: "north-america-wb",
         regionType: "aggregate",
         definedBy: "wb",
+        publisher: "wb",
         translationCodes: ["003"],
         members: ["BMU", "CAN", "SPM", "USA"],
     },
@@ -8303,6 +8461,7 @@ export const regionsData = [
         slug: "south-asia-wb",
         regionType: "aggregate",
         definedBy: "wb",
+        publisher: "wb",
         translationCodes: ["034"],
         members: ["BGD", "BTN", "IND", "IOT", "LKA", "MDV", "NPL"],
     },
@@ -8312,6 +8471,7 @@ export const regionsData = [
         slug: "sub-saharan-africa-wb",
         regionType: "aggregate",
         definedBy: "wb",
+        publisher: "wb",
         translationCodes: ["202"],
         members: [
             "AGO",
@@ -8372,6 +8532,7 @@ export const regionsData = [
         slug: "africa-who",
         regionType: "aggregate",
         definedBy: "who",
+        publisher: "who",
         translationCodes: ["002"],
         members: [
             "AGO",
@@ -8429,6 +8590,7 @@ export const regionsData = [
         slug: "americas-who",
         regionType: "aggregate",
         definedBy: "who",
+        publisher: "who",
         translationCodes: ["019"],
         members: [
             "ABW",
@@ -8486,6 +8648,7 @@ export const regionsData = [
         slug: "eastern-mediterranean-who",
         regionType: "aggregate",
         definedBy: "who",
+        publisher: "who",
         translationCodes: ["145"],
         members: [
             "AFG",
@@ -8518,6 +8681,7 @@ export const regionsData = [
         slug: "europe-who",
         regionType: "aggregate",
         definedBy: "who",
+        publisher: "who",
         translationCodes: ["150"],
         members: [
             "ALB",
@@ -8581,6 +8745,7 @@ export const regionsData = [
         slug: "south-east-asia-who",
         regionType: "aggregate",
         definedBy: "who",
+        publisher: "who",
         translationCodes: ["035"],
         members: [
             "BGD",
@@ -8601,6 +8766,7 @@ export const regionsData = [
         slug: "western-pacific-who",
         regionType: "aggregate",
         definedBy: "who",
+        publisher: "who",
         translationCodes: ["030", "035", "009"],
         members: [
             "ASM",
@@ -8649,6 +8815,7 @@ export const regionsData = [
         slug: "east-asia-wid",
         regionType: "aggregate",
         definedBy: "wid",
+        publisher: "wid",
         members: ["CHN", "HKG", "JPN", "KOR", "MAC", "MNG", "PRK", "TWN"],
     },
     {
@@ -8657,6 +8824,7 @@ export const regionsData = [
         slug: "europe-wid",
         regionType: "aggregate",
         definedBy: "wid",
+        publisher: "wid",
         members: [
             "ALB",
             "AND",
@@ -8712,6 +8880,7 @@ export const regionsData = [
         slug: "latin-america-wid",
         regionType: "aggregate",
         definedBy: "wid",
+        publisher: "wid",
         members: [
             "ABW",
             "AIA",
@@ -8765,6 +8934,7 @@ export const regionsData = [
         slug: "middle-east-and-north-africa-wid",
         regionType: "aggregate",
         definedBy: "wid",
+        publisher: "wid",
         members: [
             "ARE",
             "BHR",
@@ -8794,6 +8964,7 @@ export const regionsData = [
         slug: "north-america-wid",
         regionType: "aggregate",
         definedBy: "wid",
+        publisher: "wid",
         members: ["BMU", "CAN", "GRL", "USA"],
     },
     {
@@ -8802,6 +8973,7 @@ export const regionsData = [
         slug: "oceania-wid",
         regionType: "aggregate",
         definedBy: "wid",
+        publisher: "wid",
         members: [
             "AUS",
             "FJI",
@@ -8827,6 +8999,7 @@ export const regionsData = [
         slug: "russia-and-central-asia-wid",
         regionType: "aggregate",
         definedBy: "wid",
+        publisher: "wid",
         members: [
             "ARM",
             "AZE",
@@ -8847,6 +9020,7 @@ export const regionsData = [
         slug: "sub-saharan-africa-wid",
         regionType: "aggregate",
         definedBy: "wid",
+        publisher: "wid",
         members: [
             "AGO",
             "BDI",
@@ -8905,6 +9079,7 @@ export const regionsData = [
         slug: "south-and-south-east-asia-wid",
         regionType: "aggregate",
         definedBy: "wid",
+        publisher: "wid",
         members: [
             "AFG",
             "BGD",

@@ -1,7 +1,6 @@
 import cx from "clsx"
 import { Button } from "@ourworldindata/components"
-import { useState } from "react"
-import { useTimeout } from "usehooks-ts"
+import { useSpinDelay } from "@ourworldindata/utils"
 
 export function SearchHorizontalDivider({
     className,
@@ -14,14 +13,10 @@ export function SearchHorizontalDivider({
     isLoading?: boolean
     onClick?: () => void
 }) {
-    // Don't flash the loading text when the loading is fast.
-    const [showLoadingText, setShowLoadingText] = useState(false)
-    useTimeout(() => setShowLoadingText(true), isLoading ? 200 : null)
-
-    // Reset immediately when not loading.
-    if (!isLoading && showLoadingText) {
-        setShowLoadingText(false)
-    }
+    const showLoadingText = useSpinDelay(!!isLoading, {
+        delay: 200,
+        ssr: false,
+    })
 
     return (
         <div
@@ -40,7 +35,7 @@ export function SearchHorizontalDivider({
                     icon={null}
                     text={showLoadingText ? "Loading..." : "Show more"}
                     onClick={onClick}
-                    disabled={isLoading}
+                    disabled={isLoading || showLoadingText}
                     ariaLabel="Load more results"
                 />
             )}

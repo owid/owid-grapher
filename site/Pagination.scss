@@ -8,7 +8,9 @@
         min-height: 40px;
         text-align: center;
         line-height: 40px;
-        transition: 200ms;
+        transition:
+            background-color var(--duration-hover) ease,
+            color var(--duration-hover) ease;
     }
     a.pagination__link {
         &:hover {

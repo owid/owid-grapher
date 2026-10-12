@@ -3,6 +3,8 @@ import {
     ChoicesEnriched,
     DimensionEnriched,
     IndicatorsAfterPreProcessing,
+    IndicatorTitleWithFragments,
+    joinTitleFragments,
     MultiDimDimensionChoices,
     View,
     ViewEnriched,
@@ -226,6 +228,21 @@ export class MultiDimDataPageConfig {
         }
         return dimensions
     }
+}
+
+/**
+ * The page title of a multi-dim data page: the title plus its fragments
+ * (title variant, short attribution), without the site-name suffix, e.g.
+ * "Childhood vaccination coverage - by vaccine".
+ */
+export function getMultiDimPageTitle(
+    title: IndicatorTitleWithFragments
+): string {
+    const fragments = joinTitleFragments(
+        title.attributionShort,
+        title.titleVariant
+    )
+    return fragments ? `${title.title} - ${fragments}` : title.title
 }
 
 export const extractMultiDimChoicesFromSearchParams = (

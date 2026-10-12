@@ -1,0 +1,81 @@
+/**
+ * @vitest-environment happy-dom
+ */
+
+import { act, renderHook } from "@testing-library/react"
+import { afterEach, expect, it, vi } from "vitest"
+import { usePrefersReducedMotion } from "./usePrefersReducedMotion"
+
+function createMatchMediaMock(initialMatches: boolean): {
+    matchMedia: typeof window.matchMedia
+    setMatches: (matches: boolean) => void
+    addEventListener: ReturnType<typeof vi.fn>
+    removeEventListener: ReturnType<typeof vi.fn>
+} {
+    const listeners = new Set<EventListenerOrEventListenerObject>()
+    let matches = initialMatches
+
+    const addEventListener = vi.fn(
+        (type: string, listener: EventListenerOrEventListenerObject): void => {
+            if (type === "change") listeners.add(listener)
+        }
+    )
+    const removeEventListener = vi.fn(
+        (type: string, listener: EventListenerOrEventListenerObject): void => {
+            if (type === "change") listeners.delete(listener)
+        }
+    )
+
+    const mediaQueryList = {
+        get matches(): boolean {
+            return matches
+        },
+        media: "(prefers-reduced-motion: reduce)",
+        addEventListener,
+        removeEventListener,
+        dispatchEvent: vi.fn(),
+    } as unknown as MediaQueryList
+
+    return {
+        matchMedia: vi.fn(() => mediaQueryList),
+        setMatches: (nextMatches: boolean): void => {
+            matches = nextMatches
+            const event = new Event("change")
+            for (const listener of listeners) {
+                if (typeof listener === "function") listener(event)
+                else listener.handleEvent(event)
+            }
+        },
+        addEventListener,
+        removeEventListener,
+    }
+}
+
+afterEach(() => {
+    vi.unstubAllGlobals()
+})
+
+it("reads the current reduced-motion preference", () => {
+    const { matchMedia } = createMatchMediaMock(true)
+    vi.stubGlobal("matchMedia", matchMedia)
+
+    const { result } = renderHook(() => usePrefersReducedMotion())
+
+    expect(result.current).toBe(true)
+})
+
+it("updates on preference changes and cleans up its listener", () => {
+    const { matchMedia, setMatches, addEventListener, removeEventListener } =
+        createMatchMediaMock(false)
+    vi.stubGlobal("matchMedia", matchMedia)
+
+    const { result, unmount } = renderHook(() => usePrefersReducedMotion())
+    expect(result.current).toBe(false)
+    expect(addEventListener).toHaveBeenCalledOnce()
+
+    act(() => setMatches(true))
+    expect(result.current).toBe(true)
+
+    unmount()
+    expect(removeEventListener).toHaveBeenCalledOnce()
+})

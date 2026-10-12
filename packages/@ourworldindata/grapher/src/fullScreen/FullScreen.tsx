@@ -1,4 +1,5 @@
 import * as React from "react"
+import cx from "clsx"
 import { action, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { BodyPortal } from "@ourworldindata/components"
@@ -7,7 +8,7 @@ import { isTargetOutsideElement } from "../chart/ChartUtils"
 interface FullScreenProps {
     children: React.ReactNode
     onDismiss: () => void
-    overlayColor?: string
+    isDimmed?: boolean
 }
 
 @observer
@@ -43,13 +44,12 @@ export class FullScreen extends React.Component<FullScreenProps> {
         return (
             <BodyPortal>
                 <div
-                    className="FullScreenOverlay"
+                    className={cx("FullScreenOverlay", {
+                        "FullScreenOverlay--dimmed": this.props.isDimmed,
+                    })}
                     role="dialog"
                     aria-modal="true"
                     onClick={this.onDocumentClick}
-                    style={{
-                        backgroundColor: this.props.overlayColor ?? "#fff",
-                    }}
                 >
                     <div className="FullScreenContent" ref={this.content}>
                         {this.props.children}

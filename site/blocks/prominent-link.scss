@@ -1,6 +1,5 @@
 .article-content .wp-block-owid-prominent-link {
     background-color: $blue-10;
-    transition: all 0.1s;
     margin: 32px 0;
 
     svg {
@@ -10,7 +9,7 @@
         margin-left: 0.6em;
         margin-top: -0.1em;
         vertical-align: middle;
-        transition: all 0.2s;
+        transition: transform 0.2s var(--ease-out);
     }
 
     img {

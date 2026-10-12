@@ -1,5 +1,5 @@
 import * as Sentry from "@sentry/react"
-import Cookies from "js-cookie"
+import { get as getCookie, getAll as getAllCookies } from "es-cookie"
 import { getPreferenceValue, PreferenceType } from "./cookiePreferences.js"
 import {
     experiments,
@@ -147,7 +147,7 @@ export function getSessionSampleRate(): number {
  *   - If multiple experiments specify rates, returns the maximum value
  */
 function parseExperimentsSampleRate(): number | undefined {
-    const allCookies = Cookies.get()
+    const allCookies = getAllCookies()
     const expSentrySampleRates: number[] = []
 
     for (const [cookieName, cookieValue] of Object.entries(allCookies)) {
@@ -193,7 +193,13 @@ function getSentrySessionStorage(): Record<string, any> | undefined {
  * @returns {number | undefined} The last sample rate (or undefined if not set).
  */
 function getSessionLastSampleRate(): number | undefined {
-    const raw = sessionStorage.getItem(SENTRY_SAMPLED_RATE_KEY)
+    let raw: string | null
+    try {
+        raw = sessionStorage.getItem(SENTRY_SAMPLED_RATE_KEY)
+    } catch {
+        // Storage may be unavailable in a sandboxed iframe.
+        return undefined
+    }
 
     // Return undefined if no value is stored
     if (raw === null || raw === undefined || raw === "") {
@@ -212,10 +218,14 @@ function getSessionLastSampleRate(): number | undefined {
 }
 
 function setSessionLastSampleRate(p: number | null | undefined) {
-    if (p === null || p === undefined) {
-        sessionStorage.removeItem(SENTRY_SAMPLED_RATE_KEY)
-    } else {
-        sessionStorage.setItem(SENTRY_SAMPLED_RATE_KEY, p.toString())
+    try {
+        if (p === null || p === undefined) {
+            sessionStorage.removeItem(SENTRY_SAMPLED_RATE_KEY)
+        } else {
+            sessionStorage.setItem(SENTRY_SAMPLED_RATE_KEY, p.toString())
+        }
+    } catch {
+        // Storage may be unavailable in a sandboxed iframe.
     }
 }
 
@@ -260,6 +270,14 @@ export function updateSentryTags() {
     updateSentryExperimentTags()
 }
 
+export function setSentryTagsAndAttributes(tags: Record<string, string>): void {
+    // Tags annotate error events and session replays; Sentry v11's streamed
+    // spans only carry attributes, so set both to keep the same context
+    // searchable in each.
+    Sentry.setTags(tags)
+    Sentry.setAttributes(tags)
+}
+
 /**
  * Updates the Sentry experiment tags from the current experiment state.
  */
@@ -272,7 +290,7 @@ export function updateSentryExperimentTags() {
                 value.arm,
             ])
         )
-        Sentry.setTags(tags)
+        setSentryTagsAndAttributes(tags)
     }
 }
 
@@ -294,7 +312,7 @@ export function updateSentryUser() {
 }
 
 function extractGaClientIdFromCookie(): string | undefined {
-    const gaCookie = Cookies.get("_ga")
+    const gaCookie = getCookie("_ga")
     if (!gaCookie) {
         return
     }
@@ -311,6 +329,6 @@ function extractGaClientIdFromCookie(): string | undefined {
 function updateSentryReferrerTag() {
     if (document.referrer) {
         const ref = new URL(document.referrer).hostname
-        Sentry.setTag("referrer", ref)
+        setSentryTagsAndAttributes({ referrer: ref })
     }
 }

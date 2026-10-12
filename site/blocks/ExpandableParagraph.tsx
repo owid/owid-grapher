@@ -1,4 +1,4 @@
-import { CSSProperties, useRef, useState } from "react"
+import { useRef, useState } from "react"
 import * as React from "react"
 import cx from "clsx"
 
@@ -21,57 +21,48 @@ export const ExpandableParagraph = (
 ) => {
     const CLOSED_HEIGHT = 100
     const BUTTON_HEIGHT = 40
-    const EXPANDED_HEIGHT = `calc(100% - ${BUTTON_HEIGHT}px)`
-    const [height, setHeight] = useState<typeof EXPANDED_HEIGHT | number>(
-        CLOSED_HEIGHT
-    )
+    const [isClosed, setIsClosed] = useState(true)
     const containerRef = useRef<HTMLDivElement>(null)
     const buttonRef = useRef<HTMLButtonElement>(null)
 
-    const isClosed = height === CLOSED_HEIGHT
     const { className, buttonVariant = "full", ...propsWithoutStyles } = props
 
     const toggleExpanded = () => {
         const currentContainer = containerRef.current
         const currentButton = buttonRef.current
-        if (currentContainer && currentButton && !isClosed) {
-            const containerTop = currentContainer.getBoundingClientRect().top
-            const buttonTop = currentButton.getBoundingClientRect().top
-            window.scrollTo({
-                top:
-                    window.scrollY +
-                    containerTop -
-                    buttonTop +
-                    CLOSED_HEIGHT +
-                    BUTTON_HEIGHT / 2,
-                behavior: "smooth",
-            })
-            setTimeout(() => {
-                setHeight(isClosed ? EXPANDED_HEIGHT : CLOSED_HEIGHT)
-            }, 1000)
+        if (!isClosed) {
+            if (currentContainer && currentButton) {
+                const containerTop =
+                    currentContainer.getBoundingClientRect().top
+                const buttonTop = currentButton.getBoundingClientRect().top
+                window.scrollTo({
+                    top:
+                        window.scrollY +
+                        containerTop -
+                        buttonTop +
+                        CLOSED_HEIGHT +
+                        BUTTON_HEIGHT / 2,
+                    behavior: "auto",
+                })
+            }
+            setIsClosed(true)
         } else {
-            setHeight(isClosed ? EXPANDED_HEIGHT : CLOSED_HEIGHT)
+            setIsClosed(false)
         }
-    }
-
-    const maskColor = isClosed ? "transparent" : "#000"
-    const contentStyles: CSSProperties = {
-        WebkitMaskImage: `linear-gradient(180deg, #000 0%, ${maskColor})`,
-        transition: "height 200ms",
-        height,
     }
 
     return (
         <div className={cx("expandable-paragraph", className)}>
             <div
-                style={contentStyles}
                 // inert prevents focus on elements that are not visible
                 // ideally would only apply to elements below the fold but that's hard
                 inert={isClosed}
                 ref={containerRef}
                 // Either pass children or dangerouslySetInnerHTML
                 {...propsWithoutStyles}
-                className="expandable-paragraph__content"
+                className={cx("expandable-paragraph__content", {
+                    "expandable-paragraph__content--closed": isClosed,
+                })}
             />
 
             <button
@@ -82,8 +73,6 @@ export const ExpandableParagraph = (
                 )}
                 style={{
                     height: BUTTON_HEIGHT,
-                    position: "relative",
-                    top: isClosed ? undefined : -40,
                 }}
                 onClick={toggleExpanded}
                 ref={buttonRef}

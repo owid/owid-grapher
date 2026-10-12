@@ -207,7 +207,7 @@ function buildDataTableContentForLineChart({
     rows = _.orderBy(rows, [(row) => row.point.y], "desc")
 
     // Take the first X rows if maxRows is specified
-    if (maxRows && maxRows > 0) rows = _.take(rows, maxRows)
+    if (maxRows && maxRows > 0) rows = R.take(rows, maxRows)
 
     return {
         rows: rows.map((row) => _.omit(row, ["series", "point"])),
@@ -234,7 +234,7 @@ function buildDataTableContentForDiscreteBarChart({
     }))
 
     // Take the first X rows if maxRows is specified
-    if (maxRows && maxRows > 0) rows = _.take(rows, maxRows)
+    if (maxRows && maxRows > 0) rows = R.take(rows, maxRows)
 
     return {
         rows: rows.map((row) => _.omit(row, ["series"])),
@@ -287,7 +287,7 @@ function buildDataTableContentForSlopeChart({
     rows = _.orderBy(rows, [(row) => row.endValue], "desc")
 
     // Take the first X rows if maxRows is specified
-    if (maxRows && maxRows > 0) rows = _.take(rows, maxRows)
+    if (maxRows && maxRows > 0) rows = R.take(rows, maxRows)
 
     const title = makeTableTitle(grapherState, chartState, formatColumn)
 
@@ -335,7 +335,7 @@ function buildDataTableContentForDumbbellChart({
             })
 
             // Take the first X rows if maxRows is specified
-            if (maxRows && maxRows > 0) rows = _.take(rows, maxRows)
+            if (maxRows && maxRows > 0) rows = R.take(rows, maxRows)
 
             const title = makeTableTitle(grapherState, chartState, formatColumn)
 
@@ -363,7 +363,7 @@ function buildDataTableContentForDumbbellChart({
             })
 
             // Take the first X rows if maxRows is specified
-            if (maxRows && maxRows > 0) rows = _.take(rows, maxRows)
+            if (maxRows && maxRows > 0) rows = R.take(rows, maxRows)
 
             const startName = getColumnNameForDisplay(startColumn)
             const endName = getColumnNameForDisplay(endColumn)
@@ -411,7 +411,7 @@ function buildDataTableContentForStackedDiscreteBarChart({
             rows = _.orderBy(rows, [(row) => row.point.value], ["desc"])
 
             // Take the first X rows if maxRows is specified
-            if (maxRows && maxRows > 0) rows = _.take(rows, maxRows)
+            if (maxRows && maxRows > 0) rows = R.take(rows, maxRows)
 
             const columnName = getColumnNameForDisplay(formatColumn)
             const unit = getDisplayUnit(formatColumn)
@@ -490,7 +490,7 @@ function buildDataTableContentForStackedDiscreteBarChart({
             }
 
             // Take the first X rows if maxRows is specified
-            if (maxRows && maxRows > 0) rows = _.take(rows, maxRows)
+            if (maxRows && maxRows > 0) rows = R.take(rows, maxRows)
 
             return {
                 rows: rows.map((row) =>
@@ -558,10 +558,10 @@ function buildDataTableContentForStackedAreaAndBarChart({
     // original order, so that the first selected series appears on top.
     // We reverse the order again here, so that the first selected entity
     // (which is on top of the chart) is also on top of the table.
-    rows = _.reverse(rows)
+    rows = rows.reverse()
 
     // Take the first X rows if maxRows is specified
-    if (maxRows && maxRows > 0) rows = _.take(rows, maxRows)
+    if (maxRows && maxRows > 0) rows = R.take(rows, maxRows)
 
     const title = makeTableTitle(grapherState, chartState, formatColumn)
 
@@ -574,44 +574,45 @@ function buildDataTableContentForMarimekkoChart({
     maxRows,
 }: Args<MarimekkoChartState>): SearchChartHitDataTableProps {
     const formatColumn = chartState.formatColumn
-    const series = chartState.series[0]
+    const seriesWithValues = chartState.series.filter(
+        (series) => series.yPoint !== undefined
+    )
 
-    let points = series.points
+    let visibleSeries = seriesWithValues
     if (chartState.selectionArray.selectedSet.size > 0) {
-        points = points.filter((point) =>
-            chartState.selectionArray.selectedSet.has(point.position)
+        visibleSeries = seriesWithValues.filter((series) =>
+            chartState.selectionArray.selectedSet.has(series.entityName)
         )
-        if (points.length === 0) points = series.points
+        if (visibleSeries.length === 0) visibleSeries = seriesWithValues
     }
 
-    let rows = points
-        .map((point) => {
-            const entityColor = chartState.domainColorForEntityMap.get(
-                point.position
-            )
-            return {
-                point,
-                seriesName: series.seriesName,
-                label: point.position,
-                color: entityColor?.color ?? point.color ?? series.color,
-                value: formatColumn.formatValueShort(point.value),
-                time: formatColumn.formatTime(point.time),
-                timePreposition: OwidTable.getPreposition(
-                    chartState.transformedTable.timeColumn
-                ),
-                muted: chartState.focusArray.state(point.position).background,
-            }
-        })
-        .filter((row) => row !== undefined)
+    let rows = visibleSeries.map((series) => {
+        const yPoint = series.yPoint!
+        return {
+            value: yPoint.value,
+            seriesName: formatColumn.displayName,
+            label: series.entityName,
+            color: series.color,
+            formattedValue: formatColumn.formatValueShort(yPoint.value),
+            time: formatColumn.formatTime(yPoint.time),
+            timePreposition: OwidTable.getPreposition(
+                chartState.transformedTable.timeColumn
+            ),
+            muted: series.focus.background,
+        }
+    })
 
     // Sort by value in descending order
-    rows = _.orderBy(rows, [(row) => row.point.value], "desc")
+    rows = _.orderBy(rows, [(row) => row.value], "desc")
 
     // Take the first X rows if maxRows is specified
-    if (maxRows && maxRows > 0) rows = _.take(rows, maxRows)
+    if (maxRows && maxRows > 0) rows = R.take(rows, maxRows)
 
     return {
-        rows: rows.map((row) => _.omit(row, ["point"])),
+        rows: rows.map((row) => ({
+            ..._.omit(row, ["value", "formattedValue"]),
+            value: row.formattedValue,
+        })),
         title: makeTableTitle(grapherState, chartState, formatColumn),
     }
 }
@@ -668,7 +669,7 @@ function buildDataTableContentForScatterPlot({
     rows = _.orderBy(rows, [(row) => row.yValue, "desc"])
 
     // Take the first X rows if maxRows is specified
-    if (maxRows && maxRows > 0) rows = _.take(rows, maxRows)
+    if (maxRows && maxRows > 0) rows = R.take(rows, maxRows)
 
     const title = isTimeScatter ? yLabel : `${yLabel} vs. ${xLabel}`
 
@@ -723,7 +724,7 @@ function buildDataTableContentForWorldMap({
     }
 
     // Take the first X rows if maxRows is specified
-    if (maxRows && maxRows > 0) rows = _.take(rows, maxRows)
+    if (maxRows && maxRows > 0) rows = R.take(rows, maxRows)
 
     return {
         rows: rows.map((row) =>
@@ -767,7 +768,7 @@ function buildDataTableContentForTableTab({
     }))
 
     // Take the first X rows if maxRows is specified
-    if (maxRows && maxRows > 0) tableRows = _.take(tableRows, maxRows)
+    if (maxRows && maxRows > 0) tableRows = R.take(tableRows, maxRows)
 
     return { rows: tableRows, title }
 }

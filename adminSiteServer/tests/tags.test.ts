@@ -19,6 +19,7 @@ import {
     getBestBreadcrumbs,
     TransactionCloseMode,
 } from "../../db/db.js"
+import { UNCATEGORIZED_TAG_ID } from "../../settings/serverSettings.js"
 
 const env = getAdminTestEnv()
 
@@ -144,6 +145,47 @@ describe("Tag graph and breadcrumbs", { timeout: 15000 }, () => {
                 },
             ],
         })
+    })
+
+    it("should list the Google Docs posts using a tag", async () => {
+        const { tag } = await env.fetchJson("/tags/3.json")
+
+        expect(tag.gdocs).toHaveLength(1)
+        expect(tag.gdocs[0]).toEqual(
+            expect.objectContaining({
+                id: "energy",
+                slug: "energy",
+                title: "",
+                authors: [],
+                type: OwidGdocType.TopicPage,
+                published: true,
+                tags: expect.arrayContaining([
+                    expect.objectContaining({ id: 3, name: "Energy" }),
+                ]),
+            })
+        )
+    })
+
+    it("should list only untagged Google Docs posts for the uncategorized tag", async () => {
+        await env
+            .testKnex(TagsTableName)
+            .insert({ id: UNCATEGORIZED_TAG_ID, name: "Uncategorized" })
+        await env
+            .testKnex(PostsGdocsTableName)
+            .insert(makeDummyTopicPage("untagged"))
+
+        const { tag } = await env.fetchJson(
+            `/tags/${UNCATEGORIZED_TAG_ID}.json`
+        )
+
+        expect(tag.gdocs).toHaveLength(1)
+        expect(tag.gdocs[0]).toEqual(
+            expect.objectContaining({
+                id: "untagged",
+                slug: "untagged",
+                tags: [],
+            })
+        )
     })
 
     it("should be able to generate parent tag arrays with sub-areas", async () => {

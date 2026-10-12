@@ -7,6 +7,7 @@ export type RawBlockCode = {
     value: RawBlockText[]
 }
 
+/** @see [Code.md](./Code.md) */
 export type EnrichedBlockCode = {
     type: "code"
     text: EnrichedBlockSimpleText[]

@@ -1,4 +1,3 @@
-import * as _ from "lodash-es"
 import {
     excludeUndefined,
     QueryParams,
@@ -27,61 +26,20 @@ import {
     StringContainsOperation,
     StringOperation,
 } from "../adminShared/SqlFilterSExpression.js"
-import {
-    GrapherConfigPatch,
-    VariableAnnotationsResponseRow,
-} from "../adminShared/AdminSessionTypes.js"
+import { GrapherConfigPatch } from "../adminShared/AdminSessionTypes.js"
 import {
     EditorOption,
     FieldDescription,
 } from "../adminShared/schemaProcessing.js"
 
-import { GrapherInterface } from "@ourworldindata/types"
 import {
-    AntdConfig,
-    BasicConfig,
-    JsonTree,
-    Field,
-    Utils as QbUtils,
-    JsonGroup,
-    JsonItem,
-    Config,
-    ImmutableTree,
-} from "@react-awesome-query-builder/antd"
+    defaultPlaceholderFieldName,
+    isRuleGroup,
+    type Field,
+    type RuleGroupType,
+    type RuleType,
+} from "react-querybuilder"
 import { match } from "ts-pattern"
-import * as R from "remeda"
-
-export function parseVariableAnnotationsRow(
-    row: VariableAnnotationsResponseRow
-): VariableAnnotationsRow {
-    return row // The type defintiion of VariableAnnotationsResponseRow in clientUtils can't use GrapherInterface so we type cast here for now
-}
-
-export enum GrapherConfigGridEditorSource {
-    SourceVariableAnnotation = "SourceVariableAnnotation",
-    SourceCharts = "SourceCharts",
-}
-
-export interface BulkGrapherConfigRow {
-    id: number
-    config: GrapherInterface
-    createdAt: string
-    updatedAt: string
-}
-
-export interface VariableAnnotationsRow extends BulkGrapherConfigRow {
-    name: string
-    datasetname: string
-    namespacename: string
-    description: string
-}
-
-export interface BulkChartEditRow extends BulkGrapherConfigRow {
-    lastEditedAt: string
-    publishedAt: string
-    lastEditedByUser: string
-    publishedByUser: string
-}
 
 export interface ColumnInformation {
     key: string
@@ -115,8 +73,9 @@ export interface SpecificColumnSet {
 
 export type ColumnSet = FullColumnSet | SpecificColumnSet
 
-/** All the parameters we need for making a fully specified request to the /variable-annotations
-    endpoint. When any of these fields change we need to trigger a new request */
+/** All the parameters we need for making a fully specified request to the
+    /chart-bulk-update endpoint. When any of these fields change we need to
+    trigger a new request */
 export interface FetchVariablesParameters {
     offset: number
     filterQuery: Operation
@@ -236,20 +195,14 @@ export function isConfigColumn(columnName: string): boolean {
     return columnName.startsWith("/")
 }
 
-export const filterPanelInitialConfig: BasicConfig = AntdConfig
-
-export const initialFilterQueryValue: JsonGroup = {
-    id: QbUtils.uuid(),
-    type: "group",
-}
-export type FilterPanelState = {
-    tree: ImmutableTree
-    config: Config
+export const initialFilterQuery: RuleGroupType = {
+    combinator: "and",
+    rules: [],
 }
 
 export function getLogicOperator(str: string): BinaryLogicOperators {
-    if (str === "AND") return BinaryLogicOperators.and
-    else if (str === "OR") return BinaryLogicOperators.or
+    if (str === "and") return BinaryLogicOperators.and
+    else if (str === "or") return BinaryLogicOperators.or
     else throw Error(`unknown logic operator: ${str}`)
 }
 
@@ -257,10 +210,10 @@ export function getComparisonOperator(
     str: string
 ): ComparisonOperator | undefined {
     return match(str)
-        .with("less", () => ComparisonOperator.less)
-        .with("less_or_equal", () => ComparisonOperator.lessOrEqual)
-        .with("greater", () => ComparisonOperator.greater)
-        .with("greater_or_equal", () => ComparisonOperator.greaterOrEqual)
+        .with("<", () => ComparisonOperator.less)
+        .with("<=", () => ComparisonOperator.lessOrEqual)
+        .with(">", () => ComparisonOperator.greater)
+        .with(">=", () => ComparisonOperator.greaterOrEqual)
         .otherwise(() => undefined)
 }
 
@@ -268,8 +221,8 @@ export function getNullCheckOperator(
     str: string
 ): NullCheckOperator | undefined {
     return match(str)
-        .with("is_null", () => NullCheckOperator.isNull)
-        .with("is_not_null", () => NullCheckOperator.isNotNull)
+        .with("null", () => NullCheckOperator.isNull)
+        .with("notNull", () => NullCheckOperator.isNotNull)
         .otherwise(() => undefined)
 }
 
@@ -295,14 +248,12 @@ export function getValueAtom(val: any): Operation | undefined {
 }
 
 export function getEqualityOperator(str: string): EqualityOperator | undefined {
-    if (str === "equal" || str === "select_equals")
-        return EqualityOperator.equal
-    else if (str === "not_equal" || str === "select_not_equals")
-        return EqualityOperator.unequal
+    if (str === "=") return EqualityOperator.equal
+    else if (str === "!=") return EqualityOperator.unequal
     else return undefined
 }
 
-/** JsonLogic is the easiest format that the React Awesome Query Builder can round
+/** JsonLogic is the easiest format that react-querybuilder can round
     trip (i.e. deserialize from). Building the internal structure of the query library
     would be tedious so we convert our SExpressions to JsonLogic. */
 export function SExpressionToJsonLogic(
@@ -320,224 +271,265 @@ export function SExpressionToJsonLogic(
     })
 }
 
-/** JsonLogic is the easiest format that the React Awesome Query Library can round
-    trip (i.e. deserialize from). Building the internal structure of the query library
-    would be tedious so we convert our SExpressions to JsonLogic. When React Awesome
-    Query Library parses this, we need to convert some custom things like the is_latest
-    query operator that we added to RAQL that in our SExpressions are represented as
-    field = "latest"
- */
-export function postprocessJsonLogicTree(filterTree: JsonTree | JsonItem) {
-    if (filterTree.type === "group" && filterTree.children1) {
-        if (
-            _.isArray(filterTree.children1) ||
-            R.isPlainObject(filterTree.children1)
-        )
-            for (const child of Object.values(filterTree.children1))
-                postprocessJsonLogicTree(child)
-    } else if (filterTree.type === "rule") {
-        const {
-            properties: { value, operator },
-        } = filterTree
-
-        if (value.length !== 1) return
-
-        const isLatest = value[0] === "latest"
-
-        const isEarliest = value[0] === "earliest"
-
-        const isEqual = operator === "equal" || operator === "select_equals"
-        if (isLatest && isEqual) {
-            filterTree.properties.operator = "is_latest"
-        } else if (isEarliest && isEqual) {
-            filterTree.properties.operator = "is_earliest"
-        }
+/** When we load a filter query from the query string we convert our SExpression
+    to JsonLogic and import it with react-querybuilder's parseJsonLogic. Our custom
+    operators have no JsonLogic equivalent and are represented as plain comparisons
+    (isLatest as field = "latest", isEmpty as field = "" etc.) - this function walks
+    the imported query and turns such rules back into the custom operators.
+    Promoting = ""/!= "" to isEmpty/isNotEmpty also keeps them distinguishable from
+    rules whose value the user just hasn't filled in yet, which are excluded from
+    the filter (see filterQueryToSExpression). */
+export function promoteCustomOperators(group: RuleGroupType): void {
+    for (const rule of group.rules) {
+        if (isRuleGroup(rule)) promoteCustomOperators(rule)
+        else if (rule.operator === "=" && rule.value === "latest")
+            rule.operator = "isLatest"
+        else if (rule.operator === "=" && rule.value === "earliest")
+            rule.operator = "isEarliest"
+        else if (rule.operator === "=" && rule.value === "")
+            rule.operator = "isEmpty"
+        else if (rule.operator === "!=" && rule.value === "")
+            rule.operator = "isNotEmpty"
     }
 }
-export function filterTreeToSExpression(
-    filterTree: JsonTree | JsonItem,
+
+export function filterQueryToSExpression(
+    query: RuleGroupType | RuleType,
     context: OperationContext,
     readOnlyFieldNamesMap: Map<string, ReadOnlyColumn>
 ): Operation | undefined {
-    if (filterTree.type === "group") {
+    if (isRuleGroup(query)) {
         // If we have a group then we need to decide
         // on the operator and build the list of children recursively
-        const logicOperator = getLogicOperator(
-            filterTree.properties?.conjunction ?? "AND"
-        )
-
-        let children: Operation[] = []
-        if (
-            _.isArray(filterTree.children1) ||
-            R.isPlainObject(filterTree.children1)
-        )
-            children = excludeUndefined(
-                Object.values(filterTree.children1).map((child) =>
-                    filterTreeToSExpression(
-                        child,
-                        context,
-                        readOnlyFieldNamesMap
-                    )
-                )
+        const children = excludeUndefined(
+            query.rules.map((child) =>
+                filterQueryToSExpression(child, context, readOnlyFieldNamesMap)
             )
-        else if (filterTree.children1 !== undefined)
-            console.warn("unexpected content of children1")
+        )
+        if (children.length === 0) return undefined
 
-        if (filterTree.children1 === undefined || children.length === 0)
-            return undefined
-
-        const operation = new BinaryLogicOperation(logicOperator, children)
+        const operation = new BinaryLogicOperation(
+            getLogicOperator(query.combinator),
+            children
+        )
 
         // If not is active, wrap the operation in a Negation
-        if (filterTree.properties?.not) return new Negation(operation)
+        if (query.not) return new Negation(operation)
         else return operation
-    } else if (filterTree.type === "rule") {
-        if (_.isNil(filterTree.properties.field)) return undefined
+    } else {
+        // Ignore rules where no field has been selected yet
+        if (!query.field || query.field === defaultPlaceholderFieldName)
+            return undefined
         const field = getFieldSymbol(
-            filterTree.properties.field as string,
+            query.field,
             context,
             readOnlyFieldNamesMap
         )
+        const { value } = query
         return (
-            match(filterTree.properties.operator)
+            match(query.operator)
                 // If we have a rule, check what operator is used and build the corresponding operation
                 .when(
-                    (op) => op && getComparisonOperator(op),
+                    (op) => getComparisonOperator(op) !== undefined,
                     (op) => {
-                        const operator = getComparisonOperator(op as string)
-                        if (
-                            filterTree.properties.value.length === 0 ||
-                            filterTree.properties.value[0] === undefined
-                        )
-                            return undefined
-                        const val = getValueAtom(filterTree.properties.value[0])
-                        return new NumericComparison(operator!, [field, val!])
-                    }
-                )
-                .when(
-                    (op) => op && getEqualityOperator(op),
-                    (op) => {
-                        const operator = getEqualityOperator(op as string)
-                        const val = getValueAtom(filterTree.properties.value[0])
+                        const operator = getComparisonOperator(op)!
+                        const val =
+                            value === "" ? undefined : getValueAtom(value)
                         if (val === undefined) return undefined
-                        return new EqualityComparison(operator!, [field, val])
+                        return new NumericComparison(operator, [field, val])
                     }
                 )
                 .when(
-                    (op) => op && op === "like",
-                    () => {
-                        if (
-                            filterTree.properties.value.length === 0 ||
-                            filterTree.properties.value[0] === undefined
-                        )
-                            return undefined
-                        const val = new StringAtom(
-                            filterTree.properties.value[0]
-                        )
-                        return new StringContainsOperation(field, val)
-                    }
-                )
-                .when(
-                    (op) => op && getNullCheckOperator(op),
+                    (op) => getEqualityOperator(op) !== undefined,
                     (op) => {
-                        const operator = getNullCheckOperator(op as string)!
+                        const operator = getEqualityOperator(op)!
+                        // A blank value is the default of a freshly added rule,
+                        // so treat it as incomplete. Matching the empty string
+                        // is available through the isEmpty/isNotEmpty operators.
+                        const val =
+                            value === "" ? undefined : getValueAtom(value)
+                        if (val === undefined) return undefined
+                        return new EqualityComparison(operator, [field, val])
+                    }
+                )
+                .with("contains", () => {
+                    // An empty search string would create a `LIKE '%%'` query
+                    // that looks like a no-op but excludes null rows, so treat
+                    // it as incomplete
+                    if (typeof value !== "string" || value === "")
+                        return undefined
+                    return new StringContainsOperation(
+                        field,
+                        new StringAtom(value)
+                    )
+                })
+                .when(
+                    (op) => getNullCheckOperator(op) !== undefined,
+                    (op) => {
+                        const operator = getNullCheckOperator(op)!
                         return new NullCheckOperation(operator, field)
                     }
                 )
-                .with("is_empty", "is_not_empty", (operator) => {
+                .with("isEmpty", "isNotEmpty", (operator) => {
                     const op: EqualityOperator = match(operator)
-                        .with("is_empty", () => EqualityOperator.equal)
-                        .with("is_not_empty", () => EqualityOperator.unequal)
+                        .with("isEmpty", () => EqualityOperator.equal)
+                        .with("isNotEmpty", () => EqualityOperator.unequal)
                         .exhaustive()
                     return new EqualityComparison(op, [
                         field,
                         new StringAtom(""),
                     ])
                 })
-                .with("is_latest", (_) => {
+                .with("isLatest", () => {
                     return new EqualityComparison(EqualityOperator.equal, [
                         field,
                         new StringAtom("latest"),
                     ])
                 })
-                .with("is_earliest", (_) => {
+                .with("isEarliest", () => {
                     return new EqualityComparison(EqualityOperator.equal, [
                         field,
                         new StringAtom("earliest"),
                     ])
                 })
-
                 .otherwise(() => undefined)
         )
     }
-    return undefined
 }
+
+type FieldOperator = {
+    name: string
+    label: string
+    arity?: "unary"
+}
+type FieldOperators = FieldOperator[]
+
+const equalityOperators: FieldOperators = [
+    { name: "=", label: "=" },
+    { name: "!=", label: "!=" },
+]
+const comparisonOperators: FieldOperators = [
+    { name: "<", label: "<" },
+    { name: "<=", label: "<=" },
+    { name: ">", label: ">" },
+    { name: ">=", label: ">=" },
+]
+// Operators with arity "unary" don't show a value editor in the UI
+const nullCheckOperators: FieldOperators = [
+    { name: "null", label: "is null", arity: "unary" },
+    { name: "notNull", label: "is not null", arity: "unary" },
+]
+const emptinessOperators: FieldOperators = [
+    { name: "isEmpty", label: "is empty", arity: "unary" },
+    { name: "isNotEmpty", label: "is not empty", arity: "unary" },
+]
+/** Custom operators for year fields that can be set to "latest"/"earliest".
+    They are translated to `field = "latest"` etc. in the S-expression. */
+const latestEarliestOperators: FieldOperators = [
+    { name: "isLatest", label: "is latest", arity: "unary" },
+    { name: "isEarliest", label: "is earliest", arity: "unary" },
+]
+
+const textOperators: FieldOperators = [
+    ...equalityOperators,
+    { name: "contains", label: "contains" },
+    ...emptinessOperators,
+    ...nullCheckOperators,
+]
+const numberOperators: FieldOperators = [
+    ...equalityOperators,
+    ...comparisonOperators,
+    ...nullCheckOperators,
+]
+const datetimeOperators: FieldOperators = [
+    ...equalityOperators,
+    ...comparisonOperators,
+    ...nullCheckOperators,
+]
+const selectOperators: FieldOperators = [
+    ...equalityOperators,
+    ...nullCheckOperators,
+]
+const booleanOperators: FieldOperators = [
+    ...equalityOperators,
+    ...nullCheckOperators,
+]
 
 export function simpleColumnToFilterPanelFieldConfig(
     column: ReadOnlyColumn
-): [string, Field] {
-    const fieldType = match(column.type)
-        .with("string", () => "text")
-        .with("number", () => "number")
-        .with("datetime", () => "datetime")
+): Field {
+    const common = { name: column.key, label: column.label }
+    return match(column.type)
+        .returnType<Field>()
+        .with("string", () => ({
+            ...common,
+            inputType: "text",
+            operators: textOperators,
+        }))
+        .with("number", () => ({
+            ...common,
+            inputType: "number",
+            operators: numberOperators,
+        }))
+        .with("datetime", () => ({
+            ...common,
+            inputType: "datetime-local",
+            operators: datetimeOperators,
+        }))
         .exhaustive()
-
-    return [
-        column.key,
-        {
-            label: column.label,
-            type: fieldType,
-            valueSources: ["value"],
-            excludeOperators: ["is_latest", "is_earliest"],
-            //preferWidgets: widget [widget],
-        },
-    ]
 }
 
 export function fieldDescriptionToFilterPanelFieldConfig(
     description: FieldDescription
-): [string, Field] | undefined {
-    const widget = match(description.editor)
-        .with(EditorOption.checkbox, () => "boolean")
-        .with(EditorOption.colorEditor, () => undefined)
-        .with(EditorOption.dropdown, () => "select")
-        .with(EditorOption.mappingEditor, () => undefined)
-        .with(EditorOption.numeric, () => "number")
-        .with(EditorOption.numericWithLatestEarliest, () => "number")
-        .with(EditorOption.primitiveListEditor, () => undefined)
-        .with(EditorOption.textarea, () => "text")
-        .with(EditorOption.textfield, () => "text")
+): Field | undefined {
+    const common = { name: description.pointer, label: description.pointer }
+    return match(description.editor)
+        .returnType<Field | undefined>()
+        .with(EditorOption.checkbox, () => ({
+            ...common,
+            valueEditorType: "switch",
+            defaultValue: false,
+            operators: booleanOperators,
+        }))
+        .with(EditorOption.dropdown, () => ({
+            ...common,
+            valueEditorType: "select",
+            values: (description.enumOptions ?? []).map((option) => ({
+                name: option,
+                label: option,
+            })),
+            operators: selectOperators,
+        }))
+        .with(EditorOption.numeric, () => ({
+            ...common,
+            inputType: "number",
+            operators: numberOperators,
+        }))
+        .with(EditorOption.numericWithLatestEarliest, () => ({
+            ...common,
+            inputType: "number",
+            operators: [...numberOperators, ...latestEarliestOperators],
+        }))
+        .with(EditorOption.textarea, EditorOption.textfield, () => ({
+            ...common,
+            inputType: "text",
+            operators: textOperators,
+        }))
+        .with(
+            EditorOption.colorEditor,
+            EditorOption.mappingEditor,
+            EditorOption.primitiveListEditor,
+            () => undefined
+        )
         .exhaustive()
-
-    if (widget !== undefined) {
-        const excludedOperators =
-            description.editor === EditorOption.numericWithLatestEarliest
-                ? []
-                : ["is_latest", "is_earliest"]
-        return [
-            description.pointer,
-            {
-                label: description.pointer,
-                type: widget,
-                valueSources: ["value"],
-                //preferWidgets: widget [widget],
-                fieldSettings: {
-                    listValues: description.enumOptions,
-                },
-                excludeOperators: excludedOperators,
-            },
-        ]
-    } else return undefined
 }
 
 export interface GrapherConfigGridEditorConfig {
-    source: GrapherConfigGridEditorSource
     sExpressionContext: OperationContext
     apiEndpoint: string
     readonlyColumns: Map<string, ReadOnlyColumn>
     hiddenColumns: Set<string>
     columnSet: ColumnSet[]
-    finalVariableLayerModificationFn: (id: number) => Partial<GrapherInterface>
 }
 export interface GrapherConfigGridEditorProps {
     config: GrapherConfigGridEditorConfig

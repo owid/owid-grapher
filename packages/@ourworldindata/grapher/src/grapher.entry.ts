@@ -2,6 +2,9 @@
 // This bundles everything needed for external consumers:
 // the full JS API plus grapher styles.
 
+// Polyfills must be loaded before all other code.
+import "@ourworldindata/utils/src/polyfills.js"
+
 // Base styles for the Tippy tooltips grapher themes in grapher.scss.
 // The site and the admin import this in their own stylesheets, so
 // the package has to bring its own copy.

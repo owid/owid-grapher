@@ -4,17 +4,20 @@ import {
     FuzzySearch,
     getRegionByCode,
     getRegionByNameOrVariantName,
+    getTopicPageHeading,
+    sentenceCaseIfNotTopicPage,
 } from "@ourworldindata/utils"
 import { useLinkedDocument } from "../utils.js"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
     faArrowRight,
     faMagnifyingGlass,
     faTimesCircle,
 } from "@fortawesome/free-solid-svg-icons"
-import { IS_ARCHIVE } from "../../../settings/clientSettings.js"
+import { IS_ARCHIVE } from "../../../settings/clientSettings.mjs"
 import { PROD_URL } from "../../SiteConstants.js"
 import urlJoin from "url-join"
+import { useDocumentContext } from "../DocumentContext.js"
 
 interface CountryItem {
     name: string
@@ -80,13 +83,16 @@ export function CountryProfileSelector({
     block: EnrichedBlockCountryProfileSelector
     className?: string
 }) {
+    const { gdocType } = useDocumentContext()
+    const defaultHeading = getTopicPageHeading("countryProfiles", gdocType)
     const { linkedDocument, errorMessage } = useLinkedDocument(block.url)
     const [searchTerm, setSearchTerm] = useState("")
 
+    const availableEntityCodes = linkedDocument?.availableEntityCodes
     const allCountries = useMemo(() => {
-        if (!linkedDocument?.availableEntityCodes) return []
-        return resolveCountriesToItems(linkedDocument.availableEntityCodes)
-    }, [linkedDocument?.availableEntityCodes])
+        if (!availableEntityCodes) return []
+        return resolveCountriesToItems(availableEntityCodes)
+    }, [availableEntityCodes])
 
     const defaultCountries = useMemo(() => {
         const names = block.defaultCountries.length
@@ -138,7 +144,8 @@ export function CountryProfileSelector({
         "profile",
         linkedDocument.slug
     )
-    const title = block.title ?? "Country Profiles"
+    const title = block.title ?? defaultHeading
+    const titleCaseCorrected = sentenceCaseIfNotTopicPage(title, gdocType)
     const description =
         block.description ?? "Browse country-level data and insights."
 
@@ -150,7 +157,7 @@ export function CountryProfileSelector({
                         className="country-profile-selector__title h1-semibold"
                         id="country-profile-selector"
                     >
-                        {title}
+                        {titleCaseCorrected}
                     </h2>
                     <p className="country-profile-selector__description body-2-regular">
                         {description}

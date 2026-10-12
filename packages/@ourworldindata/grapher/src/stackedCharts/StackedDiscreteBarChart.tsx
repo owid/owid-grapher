@@ -12,6 +12,7 @@ import {
     exposeInstanceOnWindow,
     makeFigmaId,
     bind,
+    roundForSvg,
 } from "@ourworldindata/utils"
 import { action, computed, makeObservable, observable } from "mobx"
 import { observer } from "mobx-react"
@@ -20,8 +21,8 @@ import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
     FontSettings,
-    GRAPHER_FONT_SCALE_12,
 } from "../core/GrapherConstants"
+import { roundFontSize, scaleFontSize } from "../chart/ChartUtils"
 import { enrichSeriesWithLabels } from "../rowSeriesLabels/RowSeriesLabelHelpers.js"
 import {
     HorizontalAxisComponent,
@@ -53,12 +54,12 @@ import {
     RenderDiscreteBarRow,
     SizedDiscreteBarRow,
 } from "./StackedDiscreteBarChartConstants.js"
-import {
-    HorizontalCategoricalColorLegend,
-    HorizontalColorLegendManager,
-} from "../legend/HorizontalColorLegends"
+import { HorizontalCategoricalColorLegend } from "../legend/HorizontalCategoricalColorLegend"
+import { HorizontalCategoricalColorLegendState } from "../legend/HorizontalCategoricalColorLegendState"
+import { ExternalColorLegendData } from "../legend/HorizontalColorLegendTypes"
 import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
 import { Emphasis, resolveEmphasis } from "../interaction/Emphasis"
+import { BinEmphasis, toBinEmphasis } from "../legend/LegendStyleConfig"
 import { HorizontalAxis } from "../axis/Axis"
 import { StackedDiscreteBarChartState } from "./StackedDiscreteBarChartState"
 import { ChartComponentProps } from "../chart/ChartTypeMap.js"
@@ -81,7 +82,7 @@ type StackedDiscreteBarChartProps =
 @observer
 export class StackedDiscreteBarChart
     extends React.Component<StackedDiscreteBarChartProps>
-    implements ChartInterface, HorizontalColorLegendManager
+    implements ChartInterface
 {
     private readonly base = React.createRef<SVGGElement>()
 
@@ -123,7 +124,7 @@ export class StackedDiscreteBarChart
         return this.manager.fontSize ?? BASE_FONT_SIZE
     }
 
-    @computed get isStatic(): boolean {
+    @computed private get isStatic(): boolean {
         return this.manager.isStatic ?? false
     }
 
@@ -137,8 +138,8 @@ export class StackedDiscreteBarChart
 
     @computed private get boundsWithoutLegend(): Bounds {
         return this.bounds.padTop(
-            this.showLegend && this.legend.height > 0
-                ? this.legend.height + this.legendPaddingTop
+            this.showLegend && this.legendState.height > 0
+                ? this.legendState.height + this.legendPaddingTop
                 : 0
         )
     }
@@ -147,20 +148,8 @@ export class StackedDiscreteBarChart
         return 0.5 * this.baseFontSize
     }
 
-    @computed get legendX(): number {
-        return this.bounds.x
-    }
-
-    @computed get categoryLegendY(): number {
-        return this.bounds.top
-    }
-
-    @computed get legendWidth(): number {
+    @computed private get legendWidth(): number {
         return this.bounds.width
-    }
-
-    @computed get legendAlign(): HorizontalAlign {
-        return HorizontalAlign.left
     }
 
     @computed get fontSize(): number {
@@ -178,7 +167,7 @@ export class StackedDiscreteBarChart
         })
     }
 
-    @computed get categoricalLegendData(): CategoricalBin[] {
+    @computed private get categoricalLegendData(): CategoricalBin[] {
         return this.showLegend ? this.legendBins : []
     }
 
@@ -204,7 +193,9 @@ export class StackedDiscreteBarChart
         return { entity: focusedEntities, column: focusedColumns }
     }
 
-    resolveLegendBinEmphasis(bin: ColorScaleBin): Emphasis {
+    private readonly resolveLegendBinEmphasis = (
+        bin: ColorScaleBin
+    ): Emphasis => {
         const { focusArray } = this.chartState
 
         // If an entity is focused, then all legend bins are active
@@ -239,13 +230,20 @@ export class StackedDiscreteBarChart
         return Emphasis.Default
     }
 
+    @computed private get categoricalLegendEmphasis(): BinEmphasis {
+        return toBinEmphasis(
+            this.categoricalLegendData,
+            this.resolveLegendBinEmphasis
+        )
+    }
+
     legendStyleConfig = LEGEND_STYLE_FOR_STACKED_CHARTS
 
-    @computed get externalLegend(): HorizontalColorLegendManager | undefined {
+    @computed get externalLegend(): ExternalColorLegendData | undefined {
         if (!this.showLegend) {
             return {
                 categoricalLegendData: this.legendBins,
-                legendStyleConfig: this.legendStyleConfig,
+                categoricalLegendStyleConfig: this.legendStyleConfig,
             }
         }
         return undefined
@@ -264,8 +262,15 @@ export class StackedDiscreteBarChart
         this.legendHoverSeriesName = undefined
     }
 
-    @computed private get legend(): HorizontalCategoricalColorLegend {
-        return new HorizontalCategoricalColorLegend({ manager: this })
+    @computed private get legendState(): HorizontalCategoricalColorLegendState {
+        return new HorizontalCategoricalColorLegendState(
+            this.categoricalLegendData,
+            {
+                baseFontSize: this.fontSize,
+                width: this.legendWidth,
+                align: HorizontalAlign.left,
+            }
+        )
     }
 
     @action.bound private onMouseMove(ev: React.MouseEvent): void {
@@ -288,9 +293,11 @@ export class StackedDiscreteBarChart
     }
 
     @computed private get labelFontSize(): number {
-        return Math.min(
-            GRAPHER_FONT_SCALE_12 * this.fontSize,
-            1.1 * this.availableHeightPerSeries
+        return roundFontSize(
+            Math.min(
+                scaleFontSize(12, this.fontSize),
+                1.1 * this.availableHeightPerSeries
+            )
         )
     }
 
@@ -615,7 +622,18 @@ export class StackedDiscreteBarChart
 
     private renderLegend(): React.ReactElement | undefined {
         if (!this.showLegend) return
-        return <HorizontalCategoricalColorLegend manager={this} />
+        return (
+            <HorizontalCategoricalColorLegend
+                state={this.legendState}
+                x={this.bounds.x}
+                y={this.bounds.top}
+                interactive={!this.isStatic}
+                styleConfig={this.legendStyleConfig}
+                binEmphasis={this.categoricalLegendEmphasis}
+                onMouseOver={this.onLegendMouseOver}
+                onMouseLeave={this.onLegendMouseLeave}
+            />
+        )
     }
 
     private renderAxis(): React.ReactElement {
@@ -680,10 +698,10 @@ export class StackedDiscreteBarChart
         return (
             <g ref={this.base} onMouseMove={this.onMouseMove}>
                 <rect
-                    x={bounds.left}
-                    y={bounds.top}
-                    width={bounds.width}
-                    height={bounds.height}
+                    x={roundForSvg(bounds.left)}
+                    y={roundForSvg(bounds.top)}
+                    width={roundForSvg(bounds.width)}
+                    height={roundForSvg(bounds.height)}
                     opacity={0}
                     fill="rgba(255,255,255,0)"
                 />
@@ -693,6 +711,7 @@ export class StackedDiscreteBarChart
                     items={this.renderRows}
                     keyAccessor={(d) => d.entityName}
                     getY={(d) => d.yPosition}
+                    immediate={this.manager.disableChartRowAnimation}
                     renderRow={(row) => (
                         <StackedDiscreteBarRow
                             key={row.entityName}

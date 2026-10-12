@@ -1,305 +1,271 @@
-import { Component } from "react"
-import { observer } from "mobx-react"
-import { observable, computed, runInAction, makeObservable } from "mobx"
+import { useContext, useState } from "react"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { Prompt, Redirect } from "react-router-dom"
-import { AdminLayout } from "./AdminLayout.js"
-import { BindString, Timeago, Toggle } from "./Forms.js"
-import { DatasetList, DatasetListItem } from "./DatasetList.js"
-import { ChartList, ChartListItem } from "./ChartList.js"
-import { TagBadge } from "./TagBadge.js"
-import { MinimalTagWithMetadata } from "./TagGraphMetadata.js"
-import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { AutoComplete } from "antd"
+import { AdminLayout } from "./AdminLayout.js"
+import { Timeago, Toggle } from "./Forms.js"
+import { DatasetList } from "./DatasetList.js"
+import { ChartList } from "./ChartList.js"
+import { TagBadge } from "./TagBadge.js"
+import { AdminAppContext } from "./AdminAppContext.js"
+import { GdocsList } from "./GdocsList.js"
+import { usePublishedGdocTopicSlugs } from "./gdocsQueries.js"
+import {
+    tagKeys,
+    TagDetailResponse,
+    TagPageData,
+    useTag,
+} from "./tagQueries.js"
 
-interface TagPageData {
-    id: number
+interface TagEditable {
     name: string
-    specialType?: string
-    updatedAt: string
-    datasets: DatasetListItem[]
-    charts: ChartListItem[]
-    children: MinimalTagWithMetadata[]
     slug: string | null
     searchableInAlgolia: boolean
 }
 
-class TagEditable {
-    name: string = ""
-    slug: string | null = null
-    searchableInAlgolia: boolean = false
-
-    constructor(json: TagPageData) {
-        makeObservable(this, {
-            name: observable,
-            slug: observable,
-            searchableInAlgolia: observable,
-        })
-        for (const key in this) {
-            this[key] = (json as any)[key]
-        }
+function extractEditableTag(tag: TagPageData): TagEditable {
+    return {
+        name: tag.name,
+        slug: tag.slug,
+        searchableInAlgolia: tag.searchableInAlgolia,
     }
 }
 
-@observer
-class TagEditor extends Component<{
+function isTagModified(editableTag: TagEditable, tag: TagPageData): boolean {
+    return (
+        editableTag.name !== tag.name ||
+        editableTag.slug !== tag.slug ||
+        editableTag.searchableInAlgolia !== tag.searchableInAlgolia
+    )
+}
+
+export function TagEditPage({ tagId }: { tagId: number }): React.ReactElement {
+    const { data: tagData } = useTag(tagId)
+    const { data: publishedGdocTopicSlugs } = usePublishedGdocTopicSlugs()
+    const tag = tagData?.tag
+
+    return (
+        <AdminLayout title={tag?.name}>
+            {/* Reset the form when navigating to another tag while preserving
+                unsaved edits when this tag's query cache is updated. */}
+            {tag?.id === tagId && publishedGdocTopicSlugs && (
+                <TagEditor
+                    key={tag.id}
+                    tag={tag}
+                    publishedGdocTopicSlugs={publishedGdocTopicSlugs}
+                />
+            )}
+        </AdminLayout>
+    )
+}
+
+function TagEditor({
+    tag,
+    publishedGdocTopicSlugs,
+}: {
     tag: TagPageData
     publishedGdocTopicSlugs: string[]
-}> {
-    static override contextType = AdminAppContext
-    declare context: AdminAppContextType
+}): React.ReactElement {
+    const { admin } = useContext(AdminAppContext)
+    const queryClient = useQueryClient()
+    const tagId = tag.id
+    const [editableTag, setEditableTag] = useState<TagEditable>(() =>
+        extractEditableTag(tag)
+    )
+    const [isDeleted, setIsDeleted] = useState(false)
 
-    newtag!: TagEditable
-    isDeleted: boolean = false
-
-    constructor(props: {
-        tag: TagPageData
-        publishedGdocTopicSlugs: string[]
-    }) {
-        super(props)
-
-        makeObservable(this, {
-            newtag: observable,
-            isDeleted: observable,
-        })
-    }
-
-    // Store the original tag to determine when it is modified
-    override UNSAFE_componentWillMount() {
-        this.UNSAFE_componentWillReceiveProps(this.props)
-    }
-    override UNSAFE_componentWillReceiveProps(nextProps: any) {
-        this.newtag = new TagEditable(nextProps.tag)
-        this.isDeleted = false
-    }
-
-    get slugMatchesPublishedTopicPage(): boolean {
-        return (
-            !!this.newtag.slug &&
-            this.props.publishedGdocTopicSlugs.includes(this.newtag.slug)
-        )
-    }
-
-    @computed get isModified(): boolean {
-        return (
-            JSON.stringify(this.newtag) !==
-            JSON.stringify(new TagEditable(this.props.tag))
-        )
-    }
-
-    async save() {
-        const { tag } = this.props
-        const slug = this.newtag.slug || null
-        const json = await this.context.admin.requestJSON(
-            `/api/tags/${tag.id}`,
-            { tag: { ...this.newtag, slug } },
-            "PUT"
-        )
-
-        if (json.success) {
-            runInAction(() => {
-                Object.assign(this.props.tag, this.newtag)
-                this.props.tag.updatedAt = new Date().toString()
+    const saveMutation = useMutation({
+        mutationFn: (nextTag: TagEditable) =>
+            admin.requestJSON<
+                TagDetailResponse & { tagUpdateWarning?: string }
+            >(`/api/tags/${tagId}`, { tag: nextTag }, "PUT"),
+        onSuccess: async (result) => {
+            queryClient.setQueryData<TagDetailResponse>(tagKeys.detail(tagId), {
+                tag: result.tag,
             })
-        }
-        if (json.tagUpdateWarning) {
-            window.alert(json.tagUpdateWarning)
-        }
+            await queryClient.invalidateQueries({
+                queryKey: tagKeys.list(),
+            })
+            if (result.tagUpdateWarning) {
+                window.alert(result.tagUpdateWarning)
+            }
+        },
+    })
+
+    const deleteMutation = useMutation({
+        mutationFn: () =>
+            admin.requestJSON<{ success: boolean }>(
+                `/api/tags/${tagId}/delete`,
+                {},
+                "DELETE"
+            ),
+        onSuccess: async ({ success }) => {
+            if (!success) return
+
+            await queryClient.invalidateQueries({
+                queryKey: tagKeys.list(),
+            })
+            setEditableTag(extractEditableTag(tag))
+            setIsDeleted(true)
+        },
+    })
+
+    const isModified = isTagModified(editableTag, tag)
+    const slugMatchesPublishedTopicPage =
+        !!editableTag.slug && publishedGdocTopicSlugs.includes(editableTag.slug)
+
+    const handleSubmit = (event: React.SubmitEvent<HTMLFormElement>): void => {
+        event.preventDefault()
+        saveMutation.mutate(editableTag)
     }
 
-    async deleteTag() {
-        const { tag } = this.props
-
+    const handleDelete = (): void => {
         if (
-            !window.confirm(
+            window.confirm(
                 `Really delete the tag ${tag.name}? This action cannot be undone!`
             )
-        )
-            return
-
-        const json = await this.context.admin.requestJSON(
-            `/api/tags/${tag.id}/delete`,
-            {},
-            "DELETE"
-        )
-
-        if (json.success) {
-            runInAction(() => (this.isDeleted = true))
+        ) {
+            deleteMutation.mutate()
         }
     }
 
-    override render() {
-        const { tag } = this.props
-        const { newtag } = this
-
-        return (
-            <main className="TagEditPage">
-                <Prompt
-                    when={this.isModified}
-                    message="Are you sure you want to leave? Unsaved changes will be lost."
-                />
-                <section>
-                    <h1>Tag: {tag.name}</h1>
-                    <p>
-                        Last updated <Timeago time={tag.updatedAt} />
-                    </p>
-                </section>
-                <section>
-                    <form
-                        onSubmit={(e) => {
-                            e.preventDefault()
-                            void this.save()
-                        }}
-                    >
-                        <BindString
-                            field="name"
-                            store={newtag}
-                            label="Name"
-                            helpText="Tag names must be unique and should be able to be understood without context"
-                        />
-                        <div className="form-group">
-                            <label>Slug</label>
-                            <AutoComplete
-                                style={{ width: "100%" }}
-                                value={newtag.slug ?? ""}
-                                onChange={(value) =>
-                                    runInAction(
-                                        () => (newtag.slug = value || null)
-                                    )
-                                }
-                                options={this.props.publishedGdocTopicSlugs.map(
-                                    (slug) => ({
-                                        value: slug,
-                                        label: slug,
-                                    })
-                                )}
-                                showSearch={{
-                                    filterOption: (inputValue, option) => {
-                                        if (!option?.label) return false
-                                        return option.label
-                                            .toLowerCase()
-                                            .startsWith(
-                                                inputValue.toLowerCase()
-                                            )
-                                    },
-                                }}
-                                allowClear
-                            />
-                            <small className="form-text text-muted">
-                                The slug for this tag's topic page, e.g.
-                                trade-and-globalization.
-                            </small>
-                        </div>
-                        <Toggle
-                            label="Searchable in Algolia (must exist in tag graph)"
-                            value={
-                                newtag.searchableInAlgolia ||
-                                this.slugMatchesPublishedTopicPage
-                            }
-                            onValue={(value) =>
-                                runInAction(
-                                    () => (newtag.searchableInAlgolia = value)
-                                )
-                            }
-                            disabled={this.slugMatchesPublishedTopicPage}
-                            secondaryLabel={
-                                this.slugMatchesPublishedTopicPage
-                                    ? "This slug matches a published topic page, so charts with this tag will be indexed in Algolia"
-                                    : "When enabled, charts with this tag will be indexed in Algolia even without matching a published topic page"
+    return (
+        <main className="TagEditPage">
+            <Prompt
+                when={isModified && !isDeleted}
+                message="Are you sure you want to leave? Unsaved changes will be lost."
+            />
+            {isDeleted && <Redirect to="/tags" />}
+            <section>
+                <h1>Tag: {tag.name}</h1>
+                <p>
+                    Last updated <Timeago time={tag.updatedAt} />
+                </p>
+            </section>
+            <section>
+                <form onSubmit={handleSubmit}>
+                    <div className="form-group">
+                        <label htmlFor="tag-name">Name</label>
+                        <input
+                            id="tag-name"
+                            className="form-control"
+                            value={editableTag.name}
+                            onChange={(event) =>
+                                setEditableTag((current) => ({
+                                    ...current,
+                                    name: event.target.value,
+                                }))
                             }
                         />
-                        <div style={{ marginTop: 16 }}>
-                            <input
-                                type="submit"
-                                disabled={!this.isModified || !newtag.name}
-                                className="btn btn-success"
-                                value="Update tag"
-                            />{" "}
-                            {tag.datasets.length === 0 &&
-                                tag.children.length === 0 &&
-                                !tag.specialType && (
-                                    <button
-                                        className="btn btn-danger"
-                                        type="button"
-                                        onClick={() => this.deleteTag()}
-                                    >
-                                        Delete tag
-                                    </button>
-                                )}
-                        </div>
-                    </form>
+                        <small className="form-text text-muted">
+                            Tag names must be unique and should be able to be
+                            understood without context
+                        </small>
+                    </div>
+                    <div className="form-group">
+                        <label>Slug</label>
+                        <AutoComplete
+                            style={{ width: "100%" }}
+                            value={editableTag.slug ?? ""}
+                            onChange={(value) =>
+                                setEditableTag((current) => ({
+                                    ...current,
+                                    slug: value || null,
+                                }))
+                            }
+                            options={publishedGdocTopicSlugs.map((slug) => ({
+                                value: slug,
+                                label: slug,
+                            }))}
+                            showSearch={{
+                                filterOption: (inputValue, option) =>
+                                    !!option?.label &&
+                                    option.label
+                                        .toLowerCase()
+                                        .startsWith(inputValue.toLowerCase()),
+                            }}
+                            allowClear
+                        />
+                        <small className="form-text text-muted">
+                            The slug for this tag's topic page, e.g.
+                            trade-and-globalization.
+                        </small>
+                    </div>
+                    <Toggle
+                        label="Searchable in Algolia (must exist in tag graph)"
+                        value={
+                            editableTag.searchableInAlgolia ||
+                            slugMatchesPublishedTopicPage
+                        }
+                        onValue={(searchableInAlgolia) =>
+                            setEditableTag((current) => ({
+                                ...current,
+                                searchableInAlgolia,
+                            }))
+                        }
+                        disabled={slugMatchesPublishedTopicPage}
+                        secondaryLabel={
+                            slugMatchesPublishedTopicPage
+                                ? "This slug matches a published topic page, so charts with this tag will be indexed in Algolia"
+                                : "When enabled, charts with this tag will be indexed in Algolia even without matching a published topic page"
+                        }
+                    />
+                    <div style={{ marginTop: 16 }}>
+                        <input
+                            type="submit"
+                            disabled={
+                                !isModified ||
+                                !editableTag.name ||
+                                saveMutation.isPending
+                            }
+                            className="btn btn-success"
+                            value="Update tag"
+                        />{" "}
+                        {tag.datasets.length === 0 &&
+                            tag.children.length === 0 &&
+                            !tag.specialType && (
+                                <button
+                                    className="btn btn-danger"
+                                    type="button"
+                                    onClick={handleDelete}
+                                    disabled={deleteMutation.isPending}
+                                >
+                                    Delete tag
+                                </button>
+                            )}
+                    </div>
+                </form>
+            </section>
+            {tag.children.length > 0 && (
+                <section>
+                    <h3>Subcategories</h3>
+                    {tag.children.map((child) => (
+                        <TagBadge
+                            tag={child}
+                            key={child.id}
+                            tagGraphRole={child.tagGraphRole}
+                        />
+                    ))}
                 </section>
-                {tag.children.length > 0 && (
-                    <section>
-                        <h3>Subcategories</h3>
-                        {tag.children.map((c) => (
-                            <TagBadge
-                                tag={c}
-                                key={c.id}
-                                tagGraphRole={c.tagGraphRole}
-                            />
-                        ))}
-                    </section>
-                )}
+            )}
+            {tag.datasets.length > 0 && (
                 <section>
                     <h3>Datasets</h3>
                     <DatasetList datasets={tag.datasets} />
                 </section>
-
+            )}
+            {tag.charts.length > 0 && (
                 <section>
                     <h3>Charts</h3>
                     <ChartList charts={tag.charts} />
                 </section>
-                {this.isDeleted && <Redirect to={`/tags`} />}
-            </main>
-        )
-    }
-}
-
-@observer
-export class TagEditPage extends Component<{ tagId: number }> {
-    static override contextType = AdminAppContext
-    declare context: AdminAppContextType
-
-    tag: TagPageData | undefined = undefined
-    publishedGdocTopicSlugs: string[] = []
-
-    constructor(props: { tagId: number }) {
-        super(props)
-
-        makeObservable(this, {
-            tag: observable,
-            publishedGdocTopicSlugs: observable,
-        })
-    }
-
-    override render() {
-        return (
-            <AdminLayout title={this.tag && this.tag.name}>
-                {this.tag && (
-                    <TagEditor
-                        tag={this.tag}
-                        publishedGdocTopicSlugs={this.publishedGdocTopicSlugs}
-                    />
-                )}
-            </AdminLayout>
-        )
-    }
-
-    async getData(tagId: number) {
-        const [tagJson, slugsJson] = await Promise.all([
-            this.context.admin.getJSON(`/api/tags/${tagId}.json`),
-            this.context.admin.getJSON("/api/gdocs/publishedTopicSlugs"),
-        ])
-        runInAction(() => {
-            this.tag = tagJson.tag as TagPageData
-            this.publishedGdocTopicSlugs = slugsJson.slugs as string[]
-        })
-    }
-
-    override componentDidMount() {
-        void this.getData(this.props.tagId)
-    }
-    override UNSAFE_componentWillReceiveProps(nextProps: any) {
-        void this.getData(nextProps.tagId)
-    }
+            )}
+            {tag.gdocs.length > 0 && (
+                <section>
+                    <h3>Google Docs</h3>
+                    <GdocsList gdocs={tag.gdocs} />
+                </section>
+            )}
+        </main>
+    )
 }

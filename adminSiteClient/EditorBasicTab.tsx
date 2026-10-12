@@ -26,7 +26,6 @@ import {
 import {
     DimensionSlot,
     WORLD_ENTITY_NAME,
-    CONTINENTS_INDICATOR_ID,
     findPotentialChartTypeSiblings,
     ChartDimension,
     SelectionArray,
@@ -40,42 +39,28 @@ import {
 } from "./EntityPresets.js"
 import {
     DimensionProperty,
-    OwidVariableId,
+    ColumnSlug,
     OwidChartDimensionInterface,
     areSetsEqual,
 } from "@ourworldindata/utils"
-import { Section, TextField } from "./Forms.js"
-import { VariableSelector } from "./VariableSelector.js"
+import { Section } from "./Forms.js"
+import { PickedColumn, VariableSelector } from "./VariableSelector.js"
 import { DimensionCard } from "./DimensionCard.js"
-import { AbstractChartEditor } from "./AbstractChartEditor.js"
+import { ConfigEditor } from "./ConfigEditor.js"
 import { EditorDatabase } from "./EditorDatabase.js"
-import { isChartEditorInstance } from "./ChartEditor.js"
 import { ErrorMessagesForDimensions } from "./ChartEditorTypes.js"
-import {
-    IndicatorChartEditor,
-    isIndicatorChartEditorInstance,
-} from "./IndicatorChartEditor.js"
 import { EditableTags } from "./EditableTags.js"
 import { MinimalTagWithMetadata } from "./TagGraphMetadata.js"
-import {
-    GDP_PER_CAPITA_CATALOG_PATH,
-    POPULATION_CATALOG_PATH,
-} from "./constants.js"
-import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
-import {
-    NarrativeChartEditor,
-    isNarrativeChartEditorInstance,
-} from "./NarrativeChartEditor.js"
 import * as R from "remeda"
 import { SortableList } from "./SortableList.js"
-import { CodeSnippet, GrapherTabIcon } from "@ourworldindata/components"
+import { GrapherTabIcon } from "@ourworldindata/components"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faFile, faArrowsUpDown } from "@fortawesome/free-solid-svg-icons"
+import { faArrowsUpDown } from "@fortawesome/free-solid-svg-icons"
 import { Tag } from "antd"
 
-interface DimensionSlotViewProps<Editor> {
+interface DimensionSlotViewProps {
     slot: DimensionSlot
-    editor: Editor
+    editor: ConfigEditor
     database: EditorDatabase
     errorMessagesForDimensions: ErrorMessagesForDimensions
     canSwapXAndY?: boolean
@@ -83,14 +68,12 @@ interface DimensionSlotViewProps<Editor> {
 }
 
 @observer
-export class DimensionSlotView<
-    Editor extends AbstractChartEditor,
-> extends React.Component<DimensionSlotViewProps<Editor>> {
+export class DimensionSlotView extends React.Component<DimensionSlotViewProps> {
     disposers: IReactionDisposer[] = []
 
     isSelectingVariables: boolean = false
 
-    constructor(props: DimensionSlotViewProps<Editor>) {
+    constructor(props: DimensionSlotViewProps) {
         super(props)
 
         makeObservable(this, {
@@ -111,17 +94,19 @@ export class DimensionSlotView<
         return this.props.errorMessagesForDimensions
     }
 
-    @action.bound private async onAddVariables(variableIds: OwidVariableId[]) {
+    @action.bound private async onAddVariables(columns: PickedColumn[]) {
         const { slot } = this.props
 
-        const dimensionConfigs = variableIds.map((id) => {
-            const existingDimension = slot.dimensions.find(
-                (d) => d.variableId === id
+        const dimensionConfigs = columns.map((column) => {
+            const existingDimension = slot.dimensions.find((d) =>
+                column.variableId !== undefined
+                    ? d.variableId === column.variableId
+                    : d.variableId === undefined && d.columnSlug === column.slug
             )
             return (
-                existingDimension || {
+                existingDimension?.toObject() ?? {
                     property: slot.property,
-                    variableId: id,
+                    ...column,
                 }
             )
         })
@@ -129,16 +114,14 @@ export class DimensionSlotView<
         this.isSelectingVariables = false
 
         void this.updateDimensionsAndRebuildTable(dimensionConfigs)
-        this.updateParentConfig()
     }
 
-    @action.bound private onRemoveDimension(variableId: OwidVariableId) {
+    @action.bound private onRemoveDimension(columnSlug: ColumnSlug) {
         void this.updateDimensionsAndRebuildTable(
-            this.props.slot.dimensions.filter(
-                (d) => d.variableId !== variableId
-            )
+            this.props.slot.dimensions
+                .filter((d) => d.columnSlug !== columnSlug)
+                .map((d) => d.toObject())
         )
-        this.updateParentConfig()
     }
 
     @action.bound private onChangeDimension() {
@@ -146,8 +129,9 @@ export class DimensionSlotView<
         // after the grapher state refactor this led to weird issues like
         // the color change of a variable not being reflected visually,
         // even though the value registered correctly in the grapher state instance.
-        void this.updateDimensionsAndRebuildTable(this.props.slot.dimensions)
-        this.updateParentConfig()
+        void this.updateDimensionsAndRebuildTable(
+            this.props.slot.dimensions.map((d) => d.toObject())
+        )
     }
 
     private pickDefaultEntityForSingleEntityChart({
@@ -228,6 +212,8 @@ export class DimensionSlotView<
     @action.bound private async updateDefaultSelection() {
         const { grapherState } = this.props.editor
         const { selection } = grapherState
+
+        if (!grapherState.isReady) return
 
         const availableEntityNames = grapherState.availableEntityNames
 
@@ -319,18 +305,10 @@ export class DimensionSlotView<
         await this.editor.commitDimensionsAndReloadData()
     }
 
-    @action.bound private updateParentConfig() {
-        const { editor } = this.props
-        if (isChartEditorInstance(editor)) {
-            void editor.updateParentConfig()
-        }
-    }
-
     @action.bound private async onDragEnd(items: { dim: ChartDimension }[]) {
-        const newDimensions = items.map(({ dim }) => dim)
+        const newDimensions = items.map(({ dim }) => dim.toObject())
 
         void this.updateDimensionsAndRebuildTable(newDimensions)
-        this.updateParentConfig()
     }
 
     @computed get isDndEnabled() {
@@ -343,7 +321,7 @@ export class DimensionSlotView<
         const { isSelectingVariables } = this
         const { slot, editor, canSwapXAndY, onSwapXAndY } = this.props
         const dimensions = slot.dimensions.map((dim, index) => ({
-            id: dim.variableId,
+            id: dim.columnSlug,
             dim,
             index,
         }))
@@ -389,7 +367,7 @@ export class DimensionSlotView<
                                     slot.isOptional
                                         ? () =>
                                               this.onRemoveDimension(
-                                                  d.dim.variableId
+                                                  d.dim.columnSlug
                                               )
                                         : undefined
                                 }
@@ -401,7 +379,7 @@ export class DimensionSlotView<
                         </SortableList.Item>
                     )}
                 />
-                {canAddMore && (
+                {canAddMore && !this.props.database.isEmpty && (
                     <div
                         className="dimensionSlot"
                         onClick={action(
@@ -427,20 +405,18 @@ export class DimensionSlotView<
     }
 }
 
-interface VariablesSectionProps<Editor> {
-    editor: Editor
+interface VariablesSectionProps {
+    editor: ConfigEditor
     database: EditorDatabase
     errorMessagesForDimensions: ErrorMessagesForDimensions
 }
 
 @observer
-class VariablesSection<
-    Editor extends AbstractChartEditor,
-> extends React.Component<VariablesSectionProps<Editor>> {
+class VariablesSection extends React.Component<VariablesSectionProps> {
     base = React.createRef<HTMLDivElement>()
     isAddingVariable: boolean = false
 
-    constructor(props: VariablesSectionProps<Editor>) {
+    constructor(props: VariablesSectionProps) {
         super(props)
 
         makeObservable(this, {
@@ -464,6 +440,8 @@ class VariablesSection<
 
     @computed get canSwapXAndY(): boolean {
         const { grapherState } = this.props.editor
+
+        if (grapherState.isMarimekko) return false
 
         // Only show if there's exactly one variable in each slot
         if (!this.xDimension || this.yDimensions.length !== 1) return false
@@ -533,11 +511,11 @@ class VariablesSection<
     }
 }
 
-const TagsSection = (props: {
+export const TagsSection = (props: {
     chartId: number | undefined
     tags: DbChartTagJoin[] | undefined
     availableTags: MinimalTagWithMetadata[] | undefined
-    onSaveTags: (tags: DbChartTagJoin[]) => void
+    onSaveTags: (tags: DbChartTagJoin[]) => Promise<void>
 }) => {
     const { chartId, tags, availableTags } = props
     const canTag = !!chartId && tags && availableTags
@@ -571,29 +549,17 @@ const TagsSection = (props: {
     )
 }
 
-interface EditorBasicTabProps<Editor> {
-    editor: Editor
+interface EditorBasicTabProps {
+    editor: ConfigEditor
     database: EditorDatabase
     errorMessagesForDimensions: ErrorMessagesForDimensions
 }
 
 @observer
-export class EditorBasicTab<
-    Editor extends AbstractChartEditor,
-> extends React.Component<EditorBasicTabProps<Editor>> {
-    static override contextType = AdminAppContext
-    declare context: AdminAppContextType
-
-    constructor(props: EditorBasicTabProps<Editor>) {
+export class EditorBasicTab extends React.Component<EditorBasicTabProps> {
+    constructor(props: EditorBasicTabProps) {
         super(props)
         makeObservable(this)
-    }
-
-    @action.bound private updateParentConfig() {
-        const { editor } = this.props
-        if (isChartEditorInstance(editor)) {
-            void editor.updateParentConfig()
-        }
     }
 
     @computed private get chartTypeGroups() {
@@ -670,74 +636,33 @@ export class EditorBasicTab<
 
     @action.bound
     private async applyDefaultsForScatter(): Promise<void> {
-        const { grapherState, variableIdsByCatalogPath = {} } =
-            this.props.editor
         const { editor } = this.props
+        const { grapherState } = editor
+        const { scatterDefaults } = editor.manager
+        if (!scatterDefaults) return
 
         const existingDimensions = grapherState.dimensions.map((dim) =>
             dim.toObject()
         )
-        const newDimensions: OwidChartDimensionInterface[] = [
+        const filledProperties = new Set(
+            existingDimensions.map((dim) => dim.property)
+        )
+        const addedDimensions = scatterDefaults.filter(
+            (dim) => !filledProperties.has(dim.property)
+        )
+        if (addedDimensions.length === 0) return
+
+        if (
+            addedDimensions.some((dim) => dim.property === DimensionProperty.x)
+        ) {
+            grapherState.xAxis.scaleType = ScaleType.log
+            grapherState.xAxis.canChangeScaleType = true
+        }
+
+        await editor.commitDimensionsAndReloadData([
             ...existingDimensions,
-        ]
-
-        const hasX = existingDimensions.find(
-            (d) => d.property === DimensionProperty.x
-        )
-        const hasColor = existingDimensions.find(
-            (d) => d.property === DimensionProperty.color
-        )
-        const hasSize = existingDimensions.find(
-            (d) => d.property === DimensionProperty.size
-        )
-
-        // Add default x indicator if not already present
-        const gdpPerCapitaId =
-            variableIdsByCatalogPath[GDP_PER_CAPITA_CATALOG_PATH]
-        if (!hasX) {
-            if (gdpPerCapitaId) {
-                newDimensions.push({
-                    variableId: gdpPerCapitaId,
-                    property: DimensionProperty.x,
-                })
-
-                // GDP per capita is best viewed on a log scale,
-                // so enable the log/linear switch and default to log
-                grapherState.xAxis.canChangeScaleType = true
-                grapherState.xAxis.scaleType = ScaleType.log
-            } else {
-                console.error(
-                    `Could not resolve a variable id for catalog path "${GDP_PER_CAPITA_CATALOG_PATH}"; skipping the default x dimension.`
-                )
-            }
-        }
-
-        // Add default color indicator if not already present
-        if (!hasColor)
-            newDimensions.push({
-                variableId: CONTINENTS_INDICATOR_ID,
-                property: DimensionProperty.color,
-            })
-
-        // Add default size indicator if not already present
-        const populationId = variableIdsByCatalogPath[POPULATION_CATALOG_PATH]
-        if (!hasSize) {
-            if (populationId) {
-                newDimensions.push({
-                    variableId: populationId,
-                    property: DimensionProperty.size,
-                })
-            } else {
-                console.error(
-                    `Could not resolve a variable id for catalog path "${POPULATION_CATALOG_PATH}"; skipping the default size dimension.`
-                )
-            }
-        }
-
-        // Update dimensions if any new ones were added
-        if (newDimensions.length > existingDimensions.length) {
-            await editor.commitDimensionsAndReloadData(newDimensions)
-        }
+            ...addedDimensions,
+        ])
     }
 
     @action.bound private addChartType(chartType: GrapherChartType): void {
@@ -768,10 +693,6 @@ export class EditorBasicTab<
         } else {
             void this.applyDefaultsForSecondaryChartType(chartType)
         }
-
-        // The parent config depends on the chart type
-        // (e.g. scatters don't have a parent), so update it when types change
-        this.updateParentConfig()
     }
 
     @action.bound private removeChartType(chartType: GrapherChartType): void {
@@ -779,41 +700,14 @@ export class EditorBasicTab<
         grapherState.chartTypes = grapherState.chartTypes.filter(
             (type) => type !== chartType
         )
-        // The parent config depends on the chart type
-        // (e.g. scatters don't have a parent), so update it when types change
-        this.updateParentConfig()
-    }
-
-    @action.bound onSaveTags(tags: DbChartTagJoin[]) {
-        void this.saveTags(tags)
-    }
-
-    async saveTags(tags: DbChartTagJoin[]) {
-        const { editor } = this.props
-        const { grapherState } = editor
-        await this.context.admin.requestJSON(
-            `/api/charts/${grapherState.id}/setTags`,
-            { tags },
-            "POST"
-        )
     }
 
     override render() {
         const { editor } = this.props
         const { grapherState } = editor
-        const isIndicatorChart = isIndicatorChartEditorInstance(editor)
-        const isNarrativeChart = isNarrativeChartEditorInstance(editor)
 
         return (
             <div className="EditorBasicTab">
-                {isIndicatorChart && <IndicatorChartInfo editor={editor} />}
-                {isNarrativeChart &&
-                    (editor.isNewGrapher ? (
-                        <NarrativeChartForm editor={editor} />
-                    ) : (
-                        <NarrativeChartInfo editor={editor} />
-                    ))}
-
                 <Section name="Tabs">
                     {this.chartTypeGroups.map((group, i) => (
                         <div key={i} className="chart-type-group">
@@ -866,93 +760,14 @@ export class EditorBasicTab<
                         </div>
                     </div>
                 </Section>
-                {!isIndicatorChart && (
-                    <VariablesSection
-                        editor={editor}
-                        database={this.props.database}
-                        errorMessagesForDimensions={
-                            this.props.errorMessagesForDimensions
-                        }
-                    />
-                )}
-
-                {isChartEditorInstance(editor) && (
-                    <TagsSection
-                        chartId={grapherState.id}
-                        tags={editor.tags}
-                        availableTags={editor.availableTags}
-                        onSaveTags={this.onSaveTags}
-                    />
-                )}
-            </div>
-        )
-    }
-}
-
-function IndicatorChartInfo(props: { editor: IndicatorChartEditor }) {
-    const { variableId, grapherState } = props.editor
-
-    const column = grapherState.inputTable.get(variableId?.toString())
-    const variableLink = (
-        <a
-            href={`/admin/variables/${variableId}`}
-            target="_blank"
-            rel="noopener"
-        >
-            {column?.name ?? variableId}
-        </a>
-    )
-
-    return (
-        <Section name="Indicator chart">
-            <p>Your are editing the config of the {variableLink} indicator.</p>
-        </Section>
-    )
-}
-
-function NarrativeChartInfo(props: { editor: NarrativeChartEditor }) {
-    const { name = "" } = props.editor.manager
-
-    // In theory, it'd be great to use `rawToArchie` here, but that's in the `db` package
-    const gdocSnippet = `{.narrative-chart}
-  name: ${name}
-{}`
-
-    return (
-        <Section name="Narrative chart">
-            <p>
-                You are editing the config of a narrative chart named{" "}
-                <i>{name}</i>.
-            </p>
-
-            <h6>
-                <FontAwesomeIcon icon={faFile} /> GDoc ArchieML snippet
-            </h6>
-            <CodeSnippet code={gdocSnippet} forceShowCopyButton />
-        </Section>
-    )
-}
-
-@observer
-class NarrativeChartForm extends React.Component<{
-    editor: NarrativeChartEditor
-}> {
-    override render() {
-        const { name, nameError, onNameChange } = this.props.editor.manager
-        return (
-            <Section name="Narrative chart">
-                <p>
-                    Please enter a programmatic name for the narrative chart.{" "}
-                    <i>Note that this name cannot be changed later.</i>
-                </p>
-                <TextField
-                    label="Name"
-                    value={name}
-                    onValue={onNameChange}
-                    errorMessage={nameError}
-                    required
+                <VariablesSection
+                    editor={editor}
+                    database={this.props.database}
+                    errorMessagesForDimensions={
+                        this.props.errorMessagesForDimensions
+                    }
                 />
-            </Section>
+            </div>
         )
     }
 }

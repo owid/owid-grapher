@@ -114,12 +114,12 @@ export class ExplorerTagsPage extends Component {
                                                 tagGraphRolesById={
                                                     this.tagGraphRolesById
                                                 }
-                                                onSave={(tags) => {
-                                                    void this.saveTags(
+                                                onSave={(tags) =>
+                                                    this.saveTags(
                                                         explorer.slug,
                                                         tags
                                                     )
-                                                }}
+                                                }
                                             />
                                         </td>
                                         <td>
@@ -164,13 +164,7 @@ export class ExplorerTagsPage extends Component {
                                 </td>
                                 <td>
                                     <EditableTags
-                                        // This component clones the `tags` prop and doesn't rerender when that prop changes,
-                                        // meaning the tags don't clear when you save a new explorer.
-                                        // So we force a rerender by setting a key which updates when an explorer is created
-                                        // Unfortunately it also resets if if you delete a row before saving the new explorer
-                                        // But that seems like a rare edge case, and I don't want to rewrite the EditableTags component
-                                        key={this.explorersWithTags.length}
-                                        tags={[]}
+                                        tags={this.newExplorerTags}
                                         suggestions={this.tags}
                                         tagGraphRolesById={
                                             this.tagGraphRolesById
@@ -220,7 +214,7 @@ export class ExplorerTagsPage extends Component {
         })
     }
 
-    async saveTags(slug: string, tags: DbChartTagJoin[]) {
+    async saveTags(slug: string, tags: DbChartTagJoin[]): Promise<void> {
         const tagIds = tags.map((tag) => tag.id)
         await this.context.admin.requestJSON(
             `/api/explorer/${slug}/tags`,
@@ -229,6 +223,12 @@ export class ExplorerTagsPage extends Component {
             },
             "POST"
         )
+        runInAction(() => {
+            const explorer = this.explorersWithTags.find(
+                (explorer) => explorer.slug === slug
+            )
+            if (explorer) explorer.tags = tags
+        })
     }
 
     async deleteExplorerTags(slug: string) {

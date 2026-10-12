@@ -62,6 +62,26 @@
         "eslint/no-prototype-builtins": "error",
         "eslint/no-redeclare": "error",
         "eslint/no-regex-spaces": "error",
+        "eslint/no-restricted-imports": [
+            "error",
+            {
+                "patterns": [
+                    {
+                        "group": [
+                            "@ourworldindata/*/**",
+                            // Polyfills must be bundled from source ahead of all other code
+                            "!@ourworldindata/utils/src/polyfills.js",
+                            // scss can only be imported from source
+                            "!@ourworldindata/grapher/src/core/grapher.scss",
+                            // Admin-serving data, not part of the package's type
+                            // surface: five consumers, all in adminSiteServer.
+                            "!@ourworldindata/types/src/gdocTypes/*.registry.generated.json"
+                        ],
+                        "message": "Import from the package entry point instead"
+                    }
+                ]
+            }
+        ],
         "eslint/no-self-assign": "error",
         "eslint/no-self-compare": "warn",
         "eslint/no-setter-return": "error",
@@ -72,6 +92,7 @@
         "eslint/no-unassigned-vars": "error",
         "eslint/no-undef": "error",
         "eslint/no-unreachable": "error",
+        "eslint/no-unreachable-loop": "error",
         "eslint/no-unsafe-finally": "error",
         "eslint/no-unsafe-negation": "error",
         "eslint/no-unsafe-optional-chaining": "error",
@@ -132,6 +153,8 @@
 
         "mobx/unconditional-make-observable": "error",
 
+        "oxc/bad-match-all-arg": "error",
+
         "react/display-name": "warn",
         "react/exhaustive-deps": "warn",
         "react/jsx-key": "warn",
@@ -155,6 +178,26 @@
         "react/no-unknown-property": "error",
         "react/require-render-return": "error",
         "react/rules-of-hooks": "error",
+
+        // Rules of React checks powered by React Compiler's analysis
+        // (lint-only, we don't run the compiler itself).
+        // https://oxc.rs/blog/2026-08-18-react-compiler-support.html
+        "react/capitalized-calls": "error",
+        "react/error-boundaries": "error",
+        "react/exhaustive-effect-dependencies": "error",
+        "react/globals": "error",
+        "react/immutability": "error",
+        "react/incompatible-library": "error",
+        "react/memo-dependencies": "error",
+        "react/no-deriving-state-in-effects": "error",
+        "react/preserve-manual-memoization": "error",
+        "react/purity": "error",
+        "react/refs": "error",
+        "react/set-state-in-effect": "error",
+        "react/set-state-in-render": "error",
+        "react/static-components": "error",
+        "react/use-memo": "error",
+        "react/void-use-memo": "error",
 
         "typescript/await-thenable": "warn",
         "typescript/ban-ts-comment": "error",
@@ -188,6 +231,8 @@
         "typescript/restrict-plus-operands": "warn",
         "typescript/triple-slash-reference": "error",
 
+        "unicorn/no-array-fill-with-reference-type": "error",
+        "unicorn/no-confusing-array-with": "error",
         "unicorn/no-instanceof-array": "warn",
         "unicorn/no-unnecessary-await": "warn",
         "unicorn/no-useless-spread": "warn",
@@ -227,6 +272,30 @@
             "files": ["**/*.ts", "**/*.tsx", "**/*.mts", "**/*.cts"],
             "rules": {
                 "eslint/no-undef": "off" // this is enforced by TS
+            }
+        },
+        {
+            // bespoke projects deliberately deep-import grapher internals to keep
+            // their standalone bundles small
+            "files": ["bespoke/**/*"],
+            "rules": {
+                "eslint/no-restricted-imports": "off"
+            }
+        },
+        {
+            // bespoke build configs import the shared build config from the repo
+            // root, which lives outside the bespoke workspace
+            "files": ["bespoke/**/vite.config.ts", "bespoke/vitest.config.ts"],
+            "rules": {
+                "import-x-js/no-relative-packages": "off"
+            }
+        },
+        {
+            // Playwright fixtures hand their value to the test through a
+            // callback conventionally named `use`, which isn't a React hook
+            "files": ["playwright/**/*"],
+            "rules": {
+                "react-hooks/rules-of-hooks": "off"
             }
         },
         {
@@ -272,6 +341,7 @@
                 "packages/@ourworldindata/grapher/src/lineCharts/**/*",
                 "packages/@ourworldindata/grapher/src/loadingIndicator/**/*",
                 "packages/@ourworldindata/grapher/src/mapCharts/**/*",
+                "packages/@ourworldindata/grapher/src/marimekko/**/*",
                 "packages/@ourworldindata/grapher/src/noDataModal/**/*",
                 "packages/@ourworldindata/grapher/src/scatterCharts/**/*",
                 "packages/@ourworldindata/grapher/src/selection/**/*",

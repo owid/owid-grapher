@@ -26,9 +26,11 @@ $slide-content-height: $grapher-height;
         font-size: 1.5rem;
         width: 3rem;
         padding: 0;
-        transition: all 0.2s;
+        transition:
+            color var(--duration-popover) ease,
+            opacity var(--duration-press) var(--ease-out);
+        opacity: 1;
         cursor: pointer;
-        animation: fadeIn 850ms;
         color: $blue-90;
 
         &:hover {

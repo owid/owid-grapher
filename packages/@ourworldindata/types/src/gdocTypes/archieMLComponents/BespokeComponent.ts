@@ -7,13 +7,16 @@ export type RawBlockBespokeComponent = {
         variant?: string
         size?: BlockSize
         config?: Record<string, string>
+        fallbackImageFilename?: string
     }
 }
 
+/** @see [BespokeComponent.md](./BespokeComponent.md) */
 export type EnrichedBlockBespokeComponent = {
     type: "bespoke-component"
     bundle: string
     variant?: string
     size: BlockSize
     config: Record<string, string>
+    fallbackImageFilename?: string
 } & EnrichedBlockWithParseErrors

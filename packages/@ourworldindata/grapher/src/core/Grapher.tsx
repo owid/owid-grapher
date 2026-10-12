@@ -37,10 +37,7 @@ import {
     DownloadPackage,
 } from "@ourworldindata/types"
 import { OwidTable } from "@ourworldindata/core-table"
-import {
-    GRAPHER_LOADING_STATE_EVENT_NAME,
-    GrapherModal,
-} from "../core/GrapherConstants"
+import { GrapherModal } from "../core/GrapherConstants"
 
 import { FullScreen } from "../fullScreen/FullScreen"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -54,7 +51,7 @@ import { Command, CommandPalette } from "../controls/CommandPalette"
 import { EmbedModal } from "../modal/EmbedModal"
 import Mousetrap from "mousetrap"
 import { SelectionArray } from "../selection/SelectionArray"
-import { legacyToOwidTableAndDimensionsWithMandatorySlug } from "./LegacyToOwidTable"
+import { legacyToOwidTableAndDimensions } from "./LegacyToOwidTable"
 import classnames from "clsx"
 import { SidePanel } from "../sidePanel/SidePanel"
 import { EntitySelector } from "../entitySelector/EntitySelector"
@@ -127,7 +124,6 @@ export interface GrapherManager {
     queryStr?: string
     selection?: SelectionArray
     focusArray?: FocusArray
-    adminEditPath?: string
     adminCreateNarrativeChartPath?: string
     analyticsContext?: AnalyticsContext
     /**
@@ -190,7 +186,7 @@ export class Grapher extends React.Component<GrapherProps> {
         // TODO grapher model: switch this to downloading multiple data and metadata files
 
         const startMark = performance.now()
-        const tableWithColors = legacyToOwidTableAndDimensionsWithMandatorySlug(
+        const tableWithColors = legacyToOwidTableAndDimensions(
             json,
             legacyConfig.dimensions ?? [],
             legacyConfig.selectedEntityColors
@@ -521,9 +517,7 @@ export class Grapher extends React.Component<GrapherProps> {
             return (
                 <FullScreen
                     onDismiss={this.dismissFullScreen}
-                    overlayColor={
-                        this.grapherState.isModalOpen ? "#999999" : "#fff"
-                    }
+                    isDimmed={this.grapherState.isModalOpen}
                 >
                     {this.renderGrapherComponent()}
                 </FullScreen>
@@ -575,11 +569,12 @@ export class Grapher extends React.Component<GrapherProps> {
 
                 {/* Entity selector in a slide-in drawer */}
                 <SlideInDrawer
+                    ariaLabel="Entity selector"
                     grapherRef={this.grapherState.base}
-                    active={this.grapherState.isEntitySelectorDrawerOpen}
-                    toggle={() => {
+                    isOpen={this.grapherState.isEntitySelectorDrawerOpen}
+                    onOpenChange={(isOpen) => {
                         this.grapherState.isEntitySelectorModalOrDrawerOpen =
-                            !this.grapherState.isEntitySelectorModalOrDrawerOpen
+                            isOpen
                     }}
                 >
                     <EntitySelector
@@ -703,8 +698,8 @@ export class Grapher extends React.Component<GrapherProps> {
         // on the leading edge, redraws the chart in its narrow layout straight away. The
         // redraw at the restored width is 400ms behind, which is long enough for the
         // screenshot to catch a narrow chart inside a full-width figure.
-        // owid/site-screenshots pins the chart containers and freezes these dimensions
-        // before it captures, for that reason.
+        // Screenshot tooling therefore has to pin the chart containers and freeze these
+        // dimensions before it captures.
         const updateWindowDimensions = action((): void => {
             this.grapherState.windowInnerWidth = window.innerWidth
             this.grapherState.windowInnerHeight = window.innerHeight
@@ -721,32 +716,6 @@ export class Grapher extends React.Component<GrapherProps> {
                 window.removeEventListener("resize", onResize)
             })
         }
-    }
-
-    private setUpGrapherLoadingStateEventDispatcher(): void {
-        // Announce whether this grapher is loading, for global scripts that need to wait
-        // for the charts on a page to be drawn e.g. the site-screenshots tool
-        const dispatchLoadingState = (isLoading: boolean): void => {
-            document.dispatchEvent(
-                new CustomEvent(GRAPHER_LOADING_STATE_EVENT_NAME, {
-                    detail: { grapher: this, isLoading },
-                })
-            )
-        }
-
-        this.grapherState.disposers.push(
-            reaction(
-                () => this.grapherState.isReady,
-                (isReady) => dispatchLoadingState(!isReady),
-                // A grapher whose config and data are already at hand is ready by the
-                // time it mounts, and would otherwise never announce itself at all
-                { fireImmediately: true }
-            )
-        )
-
-        // A grapher torn down mid-load must not leave the page looking as if a chart
-        // were still on its way in
-        this.grapherState.disposers.push(() => dispatchLoadingState(false))
     }
 
     private freezeToleranceNoticeWhileTimelineMoves(): void {
@@ -785,7 +754,6 @@ export class Grapher extends React.Component<GrapherProps> {
         this.setBaseFontSize()
         this.setUpIntersectionObserver()
         this.setUpWindowResizeEventHandler()
-        this.setUpGrapherLoadingStateEventDispatcher()
 
         this.bindToWindow()
         this.bindKeyboardShortcuts()

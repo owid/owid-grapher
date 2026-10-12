@@ -10,6 +10,20 @@
     overflow: auto;
 }
 
+/* Banner */
+.AdminColorPicker__banner {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 10px;
+}
+
+.AdminColorPicker__banner-label {
+    font-weight: 700;
+}
+
 /* Search */
 .AdminColorPicker__search {
     flex: 0 0 auto;

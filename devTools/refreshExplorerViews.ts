@@ -3,8 +3,8 @@ import { DbPlainExplorer } from "@ourworldindata/types"
 import { refreshExplorerViewsForSlug } from "../db/model/ExplorerViews.js"
 import { updateExplorerRefreshStatus } from "../db/model/Jobs.js"
 import {
-    saveGrapherConfigToR2ByUUID,
-    deleteGrapherConfigFromR2ByUUID,
+    saveGrapherConfigToR2ByUuid,
+    deleteGrapherConfigFromR2ByUuid,
 } from "../serverUtils/r2/chartConfigR2Helpers.js"
 import { logErrorAndMaybeCaptureInSentry } from "../serverUtils/errorLog.js"
 import pMap from "p-map"
@@ -120,7 +120,7 @@ async function prepareGrapherConfigsForExplorerViews(
                     refreshResult.removedChartConfigIds,
                     async (configId) => {
                         try {
-                            await deleteGrapherConfigFromR2ByUUID(configId)
+                            await deleteGrapherConfigFromR2ByUuid(configId)
                         } catch (error) {
                             void logErrorAndMaybeCaptureInSentry(
                                 new Error(
@@ -154,7 +154,7 @@ async function prepareGrapherConfigsForExplorerViews(
 
                 // Batch fetch chart configs for R2 sync
                 const chartConfigs = await knex("chart_configs")
-                    .select("id", "full", "fullMd5")
+                    .select("id", "config", "configMd5")
                     .whereIn("id", chartConfigIdsToSync)
 
                 // Sync to R2 in parallel with limited concurrency using pMap
@@ -162,10 +162,10 @@ async function prepareGrapherConfigsForExplorerViews(
                     chartConfigs,
                     async (config) => {
                         try {
-                            await saveGrapherConfigToR2ByUUID(
+                            await saveGrapherConfigToR2ByUuid(
                                 config.id,
-                                config.full,
-                                config.fullMd5
+                                config.config,
+                                config.configMd5
                             )
                         } catch (error) {
                             void logErrorAndMaybeCaptureInSentry(

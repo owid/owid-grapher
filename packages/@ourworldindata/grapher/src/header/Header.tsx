@@ -31,7 +31,7 @@ import {
     GRAPHER_LIGHT_TEXT,
     GRAY_100,
 } from "../color/ColorConstants"
-import { roundFontSize } from "../chart/ChartUtils.js"
+import { roundFontSize, scaleFontSize } from "../chart/ChartUtils.js"
 
 interface HeaderProps {
     manager: HeaderManager
@@ -279,7 +279,7 @@ abstract class AbstractHeader<
     @computed get subtitleFontSize(): number {
         if (this.manager.isStaticAndSmall) return 16
         if (this.useBaseFontSize) {
-            return Math.round((15 / BASE_FONT_SIZE) * this.baseFontSize)
+            return scaleFontSize(15, this.baseFontSize)
         }
         return this.manager.isSmall ? 12 : this.manager.isMedium ? 13 : 15
     }

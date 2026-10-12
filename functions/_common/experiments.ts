@@ -5,15 +5,8 @@ import {
     Experiment,
     validateUniqueExperimentIds,
 } from "@ourworldindata/utils"
-import * as cookie from "cookie"
-import { SerializeOptions } from "cookie"
+import { parseCookie, stringifySetCookie, type SetCookie } from "cookie"
 import { Env } from "./env.js"
-
-export interface ServerCookie {
-    name: string
-    value: string
-    options?: SerializeOptions
-}
 
 export const experimentsMiddleware = async (
     context: EventContext<Env, string, Record<string, unknown>>
@@ -32,8 +25,8 @@ export const experimentsMiddleware = async (
         return response
     }
 
-    const cookies = cookie.parse(context.request.headers.get("cookie") || "")
-    const cookiesToSet: ServerCookie[] = []
+    const cookies = parseCookie(context.request.headers.get("cookie") || "")
+    const cookiesToSet: SetCookie[] = []
     const requestPath = new URL(context.request.url).pathname
 
     const activeExperiments = experiments.filter((e) => !e.isExpired())
@@ -52,10 +45,9 @@ export const experimentsMiddleware = async (
                 cookiesToSet.push({
                     name: exp.id,
                     value: assignedArm.id,
-                    options: {
-                        expires: exp.expires,
-                        path: "/",
-                    },
+
+                    expires: exp.expires,
+                    path: "/",
                 })
                 cookies[exp.id] = assignedArm.id
             }
@@ -100,11 +92,7 @@ export const experimentsMiddleware = async (
 
     const headers = new Headers(responseWithBodyClasses.headers)
     for (const serverCookie of cookiesToSet) {
-        const cookieString = cookie.serialize(
-            serverCookie.name,
-            serverCookie.value,
-            serverCookie.options
-        )
+        const cookieString = stringifySetCookie(serverCookie)
         headers.append("Set-Cookie", cookieString)
     }
     return new Response(responseWithBodyClasses.body, {

@@ -22,7 +22,7 @@ export function setValueRecursiveInplace(
         }
     }
     if (pointer.length === 0) {
-        if (_.isArray(json) && !isNaN(currentPartAsNumber)) {
+        if (Array.isArray(json) && !isNaN(currentPartAsNumber)) {
             if (json.length > currentPartAsNumber)
                 json[currentPartAsNumber] = newValue
             else json.push(newValue)
@@ -86,7 +86,7 @@ export function setValueRecursive(
         } else {
             // we have a number as a key. Either there is already an array at this place
             // and we should update or append it or we need to create a new array (else branch below)
-            if (R.isArray(json)) {
+            if (Array.isArray(json)) {
                 const newArray = [...json]
                 const oldValue =
                     currentPartAsNumber < newArray.length
@@ -141,7 +141,7 @@ export function applyPatch(patchSet: GrapherConfigPatch, config: unknown): any {
     if (
         config !== undefined &&
         config !== null &&
-        !(R.isArray(config) || R.isPlainObject(config))
+        !(Array.isArray(config) || R.isPlainObject(config))
     ) {
         throw Error(
             "When given an non-empty pointer, config must be either an object or array but it is " +

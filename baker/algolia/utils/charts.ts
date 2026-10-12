@@ -116,13 +116,13 @@ async function getRawChartsRecords(
         WITH indexable_charts AS (
             SELECT c.id,
                    cc.slug,
-                   cc.full                                 AS config,
-                   JSON_LENGTH(cc.full ->> "$.dimensions") AS numDimensions,
+                   cc.config                                 AS config,
+                   JSON_LENGTH(cc.config ->> "$.dimensions") AS numDimensions,
                    c.publishedAt,
                    c.updatedAt
             FROM charts c
                      LEFT JOIN chart_configs cc ON c.configId = cc.id
-            WHERE cc.full ->> "$.isPublished" = 'true'
+            WHERE cc.config ->> "$.isPublished" = 'true'
             -- NOT tagged "Unlisted"
             AND NOT EXISTS (
                 SELECT 1 FROM chart_tags ct_unlisted

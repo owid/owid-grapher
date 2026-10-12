@@ -6,7 +6,9 @@ fields:
   name:
     description: Descriptive name of the narrative chart for editorial reference
   chartConfigId:
-    description: Foreign key to chart_configs table for the narrative-specific configuration
+    description: Foreign key to chart_configs table for the config that is rendered for this narrative chart, i.e. the parent chart or mdim view config merged with the narrative patch at save time (it is not refreshed when the parent changes)
+  patchConfigId:
+    description: Foreign key to chart_configs table for the layer authored in the narrative chart editor, i.e. the changes made on top of the parent chart or mdim view.
   parentChartId:
     description: Foreign key to standalone chart for the base chart this narrative view is derived from
   parentMultiDimXChartConfigId:

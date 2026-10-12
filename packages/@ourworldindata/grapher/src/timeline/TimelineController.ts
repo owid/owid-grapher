@@ -26,6 +26,7 @@ export interface TimelineManager {
     timeColumn?: TimeColumn
     isTimelineAnimationPlaying?: boolean
     isTimelineAnimationActive?: boolean
+    disableChartRowAnimation?: boolean
     animationStartTime?: Time
     times: Time[]
     startHandleTimeBound: TimeBound

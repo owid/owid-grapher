@@ -1,5 +1,11 @@
-import { useCallback, useContext, useEffect, useRef, useState } from "react"
-import * as React from "react"
+import {
+    useCallback,
+    useContext,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+} from "react"
 import { AdminLayout } from "./AdminLayout.js"
 import {
     GdocPostSettings,
@@ -9,6 +15,7 @@ import {
     GdocAboutPageSettings,
     GdocAnnouncementSettings,
     GdocProfileSettings,
+    GdocFeaturedVizSettings,
 } from "./GdocsSettingsForms.js"
 import { AdminAppContext } from "./AdminAppContext.js"
 import { getCanonicalUrl } from "@ourworldindata/components"
@@ -17,9 +24,9 @@ import {
     GdocsContentSource,
     getOwidGdocFromJSON,
     OwidGdocJSON,
-    OwidGdocErrorMessage,
     OwidGdocErrorMessageType,
     slugify,
+    MinimalTag,
     OwidGdocType,
     OwidGdoc,
     Tippy,
@@ -42,9 +49,11 @@ import {
 } from "./gdocsHooks.js"
 import { getErrors } from "./gdocsValidation.js"
 import { GdocsSaveButtons } from "./GdocsSaveButtons.js"
-import { useGdocsStore } from "./GdocsStoreContext.js"
+import { deleteGdoc, updateGdoc } from "./gdocsApi.js"
+import { useUpdateGdocTags } from "./gdocsQueries.js"
 import { IconBadge } from "./IconBadge.js"
 import { GdocsMoreMenu } from "./GdocsMoreMenu.js"
+import { GdocsComponentPreviewsModal } from "./GdocsComponentPreviewsModal.js"
 import { GdocsEditLink } from "./GdocsEditLink.js"
 import { openSuccessNotification } from "./gdocsNotifications.js"
 import { GdocsDiffButton } from "./GdocsDiffButton.js"
@@ -57,7 +66,7 @@ import {
 import {
     BAKED_BASE_URL,
     PUBLISHED_AT_FORMAT,
-} from "../settings/clientSettings.js"
+} from "../settings/clientSettings.mjs"
 import { RouteComponentProps } from "react-router-dom"
 import * as R from "remeda"
 
@@ -90,14 +99,14 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
     >()
     const [isDiffOpen, setDiffOpen] = useState(false)
     const [isRecordsOpen, setRecordsOpen] = useState(false)
+    const [isComponentPreviewsOpen, setComponentPreviewsOpen] = useState(false)
     const [recordsPreviewMode, setRecordsPreviewMode] =
         useState<RecordsPreviewMode>("records")
-    const [errors, setErrors] = React.useState<OwidGdocErrorMessage[]>()
     const { admin } = useContext(AdminAppContext)
-    const store = useGdocsStore()
 
     const [isMobilePreviewActive, setIsMobilePreviewActive] = useState(false)
     const [acceptSuggestions, setAcceptSuggestions] = useState(false)
+    const [now] = useState(() => new Date())
 
     // Only used when currentGdoc is a profile
     const { entitiesInScope, selectedEntity, setSelectedEntity } =
@@ -153,7 +162,10 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
         }
     }, [])
 
-    useEffect(() => {
+    // Reset the state when navigating to another gdoc
+    const [prevId, setPrevId] = useState(id)
+    if (id !== prevId) {
+        setPrevId(id)
         setAcceptSuggestions(false)
         setGdoc((prev) =>
             prev.original === undefined && prev.current === undefined
@@ -161,16 +173,18 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                 : { original: undefined, current: undefined }
         )
         setRecordsOpen(false)
-    }, [id])
+    }
 
     // initialize
+    // `admin` is a MobX store, so mutating it is how we update it
+    /* oxlint-disable react/immutability */
     useEffect(() => {
         let isMounted = true
         async function fetchLatestGdoc() {
             try {
                 admin.loadingIndicatorSetting = "loading"
                 const [original, current] = await Promise.all([
-                    originalGdoc ?? fetchGdoc(GdocsContentSource.Internal),
+                    fetchGdoc(GdocsContentSource.Internal),
                     fetchGdoc(GdocsContentSource.Gdocs, acceptSuggestions),
                 ])
                 if (!isMounted || !original || !current) return
@@ -204,13 +218,21 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
         void fetchLatestGdoc()
         return () => {
             isMounted = false
+            admin.loadingIndicatorSetting = "default"
         }
-    }, [admin, acceptSuggestions, fetchGdoc, handleError, originalGdoc])
+    }, [admin, acceptSuggestions, fetchGdoc, handleError])
+    /* oxlint-enable react/immutability */
 
     const isLightningUpdate = useLightningUpdate(
         originalGdoc,
         currentGdoc,
         hasChanges
+    )
+
+    // Errors and validation status
+    const errors = useMemo(
+        () => (currentGdoc ? getErrors(currentGdoc) : undefined),
+        [currentGdoc]
     )
 
     const hasWarnings =
@@ -229,7 +251,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
         if (currentGdoc.published)
             throw new Error("Cannot save a published doc as a draft")
 
-        const updatedGdoc = await store.update(currentGdoc)
+        const updatedGdoc = await updateGdoc(admin, currentGdoc)
         setGdoc({ original: updatedGdoc, current: updatedGdoc })
         openSuccessNotification("draft")
     }
@@ -240,8 +262,9 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
         const publishedAt = currentGdoc.publishedAt ?? new Date()
         publishedAt.setSeconds(0, 0)
         const slug = currentGdoc.slug || slugify(`${currentGdoc.content.title}`)
-        const publishedGdoc = await store.publish({
+        const publishedGdoc = await updateGdoc(admin, {
             ...currentGdoc,
+            published: true,
             publishedAt,
             slug,
         })
@@ -251,15 +274,31 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
 
     const doUnpublish = async () => {
         if (!currentGdoc) return
-        const unpublishedGdoc = await store.unpublish(currentGdoc)
+        const unpublishedGdoc = await updateGdoc(admin, {
+            ...currentGdoc,
+            publishedAt: null,
+            published: false,
+        })
         setGdoc({ original: unpublishedGdoc, current: unpublishedGdoc })
         openSuccessNotification("unpublished")
     }
 
-    const onDelete = async (tombstone?: CreateTombstoneData) => {
+    const handleDelete = async (tombstone?: CreateTombstoneData) => {
         if (!currentGdoc) return
-        await store.delete(currentGdoc, tombstone)
+        await deleteGdoc(admin, currentGdoc.id, tombstone)
         history.push("/gdocs")
+    }
+
+    const updateTagsMutation = useUpdateGdocTags()
+
+    // Tags are saved to the database immediately, so update both the original
+    // and current gdoc to avoid reporting phantom unsaved changes
+    const saveTags = async (tags: MinimalTag[]) => {
+        await updateTagsMutation.mutateAsync({ gdocId: id, tags })
+        setGdoc(({ original, current }) => ({
+            original: original && { ...original, tags },
+            current: current && { ...current, tags },
+        }))
     }
 
     const toggleMobilePreview = () =>
@@ -267,24 +306,17 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
             (isMobilePreviewActive) => !isMobilePreviewActive
         )
 
-    const onToggleAcceptSuggestions = (checked: boolean) => {
+    const handleToggleAcceptSuggestions = (checked: boolean) => {
         setAcceptSuggestions(checked)
     }
 
-    const onSettingsClose = () => {
+    const handleSettingsClose = () => {
         setSettingsOpen(false)
     }
 
-    const onDiffClose = () => {
+    const handleDiffClose = () => {
         setDiffOpen(false)
     }
-
-    // Handle errors and validation status
-    useEffect(() => {
-        if (!currentGdoc) return
-        const errors = getErrors(currentGdoc)
-        setErrors(errors)
-    }, [currentGdoc])
 
     if (criticalErrorMessage) {
         return (
@@ -335,8 +367,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                                 currentGdoc.publishedAt && (
                                     <>
                                         [
-                                        {currentGdoc.publishedAt <=
-                                        new Date() ? (
+                                        {currentGdoc.publishedAt <= now ? (
                                             <>
                                                 <a
                                                     href={getCanonicalUrl(
@@ -387,7 +418,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                             <Space>
                                 <Switch
                                     checked={acceptSuggestions}
-                                    onChange={onToggleAcceptSuggestions}
+                                    onChange={handleToggleAcceptSuggestions}
                                     id="preview-suggestions"
                                 />
                                 <Tippy
@@ -426,10 +457,13 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                                 gdoc={currentGdoc}
                                 onDebug={() => setDiffOpen(true)}
                                 onUnpublish={doUnpublish}
-                                onDelete={onDelete}
+                                onDelete={handleDelete}
                                 isMobilePreviewActive={isMobilePreviewActive}
                                 toggleMobilePreview={toggleMobilePreview}
                                 onOpenRecords={() => setRecordsOpen(true)}
+                                onOpenComponentPreviews={() =>
+                                    setComponentPreviewsOpen(true)
+                                }
                             />
                         </Space>
                     </Col>
@@ -438,7 +472,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                     title="Settings"
                     placement="right"
                     size="large"
-                    onClose={onSettingsClose}
+                    onClose={handleSettingsClose}
                     open={isSettingsOpen}
                 >
                     {tsMatch(currentGdoc)
@@ -460,6 +494,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                                         setCurrentGdoc(() => updatedGdoc)
                                     }
                                     errors={errors}
+                                    onSaveTags={saveTags}
                                 />
                             )
                         )
@@ -476,6 +511,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                                         setCurrentGdoc(() => updatedGdoc)
                                     }
                                     errors={errors}
+                                    onSaveTags={saveTags}
                                 />
                             )
                         )
@@ -492,6 +528,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                                         setCurrentGdoc(() => updatedGdoc)
                                     }
                                     errors={errors}
+                                    onSaveTags={saveTags}
                                 />
                             )
                         )
@@ -543,6 +580,22 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                         .with(
                             {
                                 content: {
+                                    type: OwidGdocType.FeaturedViz,
+                                },
+                            },
+                            (gdoc) => (
+                                <GdocFeaturedVizSettings
+                                    gdoc={gdoc}
+                                    setCurrentGdoc={(updatedGdoc) =>
+                                        setCurrentGdoc(() => updatedGdoc)
+                                    }
+                                    errors={errors}
+                                />
+                            )
+                        )
+                        .with(
+                            {
+                                content: {
                                     type: OwidGdocType.Profile,
                                 },
                             },
@@ -553,6 +606,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                                         setCurrentGdoc(() => updatedGdoc)
                                     }
                                     errors={errors}
+                                    onSaveTags={saveTags}
                                     selectedEntity={selectedEntity}
                                     setSelectedEntity={setSelectedEntity}
                                     entitiesInScope={entitiesInScope}
@@ -572,9 +626,9 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                     placement="bottom"
                     size="90%"
                     open={isDiffOpen}
-                    onClose={onDiffClose}
+                    onClose={handleDiffClose}
                     extra={
-                        <Button type="primary" onClick={onDiffClose}>
+                        <Button type="primary" onClick={handleDiffClose}>
                             Done
                         </Button>
                     }
@@ -603,6 +657,11 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                         mode={recordsPreviewMode}
                     />
                 </Drawer>
+                <GdocsComponentPreviewsModal
+                    gdocId={currentGdoc.id}
+                    isOpen={isComponentPreviewsOpen}
+                    onClose={() => setComponentPreviewsOpen(false)}
+                />
 
                 <div className="iframe-container">
                     {/*

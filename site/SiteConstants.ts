@@ -19,6 +19,13 @@ export const MEDIUM_BREAKPOINT_MEDIA_QUERY = "(max-width: 960px)"
 export const TOUCH_DEVICE_MEDIA_QUERY =
     "(hover: none), (pointer: coarse), (pointer: none)"
 
+// <details> elements sharing a name form an exclusive accordion: opening one
+// closes the others. Shared by all collapsible sections of the mobile site
+// menu (topic areas, Resources, About). In browsers without support
+// (Chrome <120, Safari <17.2, Firefox <130), sections still expand/collapse
+// but don't auto-close each other.
+export const MOBILE_MENU_DETAILS_NAME = "site-mobile-menu"
+
 export const DATA_INSIGHTS_ATOM_FEED_NAME = "atom-data-insights.xml"
 
 export const DEFAULT_ATOM_FEED_PROPS = {

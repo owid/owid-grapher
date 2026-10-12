@@ -32,7 +32,7 @@ import {
     BAKED_GRAPHER_URL,
     CATALOG_URL,
     DATA_API_URL,
-} from "../../settings/clientSettings.js"
+} from "../../settings/clientSettings.mjs"
 
 export default function MultiDim({
     config,
@@ -53,7 +53,10 @@ export default function MultiDim({
     const assetMap = isOnArchivalPage
         ? archiveContext.assets.runtime
         : undefined
+    // A mutable object shared with the GrapherState: passed to it on mount and
+    // updated in the effect below
     const manager = useRef(localGrapherConfig?.manager ?? {})
+    /* oxlint-disable react/refs */
     const grapherStateRef = useMaybeGlobalGrapherStateRef({
         manager: manager.current,
         queryStr,
@@ -65,6 +68,7 @@ export default function MultiDim({
         archiveContext,
         isConfigReady: false,
     })
+    /* oxlint-enable react/refs */
 
     const grapherDataLoader = useRef(
         getCachingInputTableFetcher(DATA_API_URL, archiveContext, isPreviewing)
@@ -156,16 +160,10 @@ export default function MultiDim({
             )
         }
 
-        const variables = newView.indicators?.["y"]
-        const adminEditPath =
-            variables?.length === 1
-                ? `variables/${variables[0].id}/config`
-                : undefined
         const analyticsContext = {
             slug: slug ?? undefined,
             viewConfigId: newView.fullConfigId,
         }
-        manager.current.adminEditPath = adminEditPath
         manager.current.analyticsContext = analyticsContext
         manager.current.adminCreateNarrativeChartPath = `narrative-charts/create?type=multiDim&chartConfigId=${newView.fullConfigId}`
         if (slug) manager.current.baseUrl = `${BAKED_GRAPHER_URL}/${slug}`
@@ -303,6 +301,7 @@ export default function MultiDim({
                 ref={grapherContainerRef}
             >
                 <Grapher
+                    // oxlint-disable-next-line react/refs -- the MobX GrapherState is created once and never replaced
                     grapherState={grapherStateRef.current}
                     {...baseGrapherConfig}
                 />

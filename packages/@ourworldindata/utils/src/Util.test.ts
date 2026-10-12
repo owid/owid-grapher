@@ -3,6 +3,7 @@ import { expect, it, describe, vi } from "vitest"
 import timezoneMock from "timezone-mock"
 import dayjs from "./dayjs.js"
 import {
+    deriveAnnouncementLatestType,
     findClosestTime,
     formatDay,
     retryPromise,
@@ -30,6 +31,8 @@ import {
     traverseEnrichedBlock,
     cartesian,
     formatInlineList,
+    formatAuthors,
+    formatAuthorsForBibtex,
     flattenNonTopicNodes,
     imemo,
     normaliseToSingleDigitNumber,
@@ -42,10 +45,12 @@ import {
     convertDateToDaysSinceEpoch,
     toStartOfDayUtc,
     epochDate,
+    sentenceCaseIfNotTopicPage,
 } from "./Util.js"
 import {
     BlockSize,
     OwidEnrichedGdocBlock,
+    OwidGdocType,
     SortOrder,
     TagGraphRoot,
     TocHeadingWithSupertitle,
@@ -1110,9 +1115,73 @@ describe(formatInlineList, () => {
     })
 
     it("formats four items correctly using 'or'", () => {
-        expect(formatInlineList(["a", "b", "c", "d"], "or")).toEqual(
-            "a, b, c or d"
+        expect(
+            formatInlineList(["a", "b", "c", "d"], { connector: "or" })
+        ).toEqual("a, b, c or d")
+    })
+
+    it("adds an oxford comma when asked", () => {
+        expect(
+            formatInlineList(["a", "b", "c"], { oxfordComma: true })
+        ).toEqual("a, b, and c")
+    })
+
+    it("does not add an oxford comma to two items", () => {
+        expect(formatInlineList(["a", "b"], { oxfordComma: true })).toEqual(
+            "a and b"
         )
+    })
+})
+
+describe(formatAuthors, () => {
+    it("formats zero authors", () => {
+        expect(formatAuthors([])).toEqual("")
+    })
+
+    it("formats one author", () => {
+        expect(formatAuthors(["Author 1"])).toEqual("Author 1")
+    })
+
+    it("formats two authors", () => {
+        expect(formatAuthors(["Author 1", "Author 2"])).toEqual(
+            "Author 1 and Author 2"
+        )
+    })
+
+    it("formats three authors", () => {
+        const authors = ["Author 1", "Author 2", "Author 3"]
+        expect(formatAuthors(authors)).toEqual(
+            "Author 1, Author 2, and Author 3"
+        )
+    })
+
+    it("formats four authors", () => {
+        const authors = ["Author 1", "Author 2", "Author 3", "Author 4"]
+        expect(formatAuthors(authors)).toEqual(
+            "Author 1, Author 2, Author 3, and Author 4"
+        )
+    })
+})
+
+describe(formatAuthorsForBibtex, () => {
+    it("formats zero authors for bibtex", () => {
+        expect(formatAuthorsForBibtex([])).toEqual("")
+    })
+
+    it("formats one author for bibtex", () => {
+        expect(formatAuthorsForBibtex(["Author 1"])).toEqual("Author 1")
+    })
+
+    it("formats two authors for bibtex", () => {
+        expect(formatAuthorsForBibtex(["Author 1", "Author 2"])).toEqual(
+            "Author 1 and Author 2"
+        )
+    })
+
+    it("formats three authors for bibtex", () => {
+        expect(
+            formatAuthorsForBibtex(["Author 1", "Author 2", "Author 3"])
+        ).toEqual("Author 1 and Author 2 and Author 3")
     })
 })
 
@@ -1254,6 +1323,61 @@ describe(stripOuterParentheses, () => {
     })
 })
 
+describe(sentenceCaseIfNotTopicPage, () => {
+    it("leaves headings untouched on modular topic pages", () => {
+        expect(
+            sentenceCaseIfNotTopicPage("Featured Data", OwidGdocType.TopicPage)
+        ).toBe("Featured Data")
+    })
+
+    it("sentence-cases headings on linear topic pages", () => {
+        expect(
+            sentenceCaseIfNotTopicPage(
+                "Research & Writing",
+                OwidGdocType.LinearTopicPage
+            )
+        ).toBe("Research & writing")
+    })
+
+    it("lowercases an ordinary topic name without capitalizing the first word", () => {
+        expect(
+            sentenceCaseIfNotTopicPage(
+                "Economic Inequality",
+                OwidGdocType.LinearTopicPage,
+                false
+            )
+        ).toBe("economic inequality")
+    })
+
+    it("preserves abbreviations", () => {
+        expect(
+            sentenceCaseIfNotTopicPage(
+                "CO2 & Greenhouse Gas Emissions",
+                OwidGdocType.LinearTopicPage,
+                false
+            )
+        ).toBe("CO2 & greenhouse gas emissions")
+
+        expect(
+            sentenceCaseIfNotTopicPage(
+                "COVID-19",
+                OwidGdocType.LinearTopicPage,
+                false
+            )
+        ).toBe("COVID-19")
+    })
+
+    it("preserves whitelisted proper nouns", () => {
+        expect(
+            sentenceCaseIfNotTopicPage(
+                "Human Development Index (HDI)",
+                OwidGdocType.LinearTopicPage,
+                false
+            )
+        ).toBe("Human Development Index (HDI)")
+    })
+})
+
 describe(groupTocIntoSections, () => {
     const h1 = (slug: string): TocHeadingWithSupertitle => ({
         title: slug,
@@ -1299,4 +1423,29 @@ describe(groupTocIntoSections, () => {
             { heading: energy, subheadings: [trends] },
         ])
     })
+})
+
+describe(deriveAnnouncementLatestType, () => {
+    it.each(["data-update", "website-upgrade", "announcement"])(
+        "passes through canonical slug %s",
+        (kicker) => {
+            expect(deriveAnnouncementLatestType(kicker)).toBe(kicker)
+        }
+    )
+
+    it.each([
+        ["Data Update", "data-update"],
+        ["Data update", "data-update"],
+        ["Website Upgrade", "website-upgrade"],
+        ["Announcement", "announcement"],
+    ])("normalizes case/spacing variant %s -> %s", (input, expected) => {
+        expect(deriveAnnouncementLatestType(input)).toBe(expected)
+    })
+
+    it.each([undefined, "", "Random Tag", "Article - 10 Mins"])(
+        'falls back to "announcement" for kicker %s',
+        (kicker) => {
+            expect(deriveAnnouncementLatestType(kicker)).toBe("announcement")
+        }
+    )
 })

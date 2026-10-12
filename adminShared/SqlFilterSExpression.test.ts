@@ -1,5 +1,5 @@
 import { expect, it, describe } from "vitest"
-import { variableAnnotationAllowedColumnNamesAndTypes } from "./AdminSessionTypes.js"
+import { chartBulkUpdateAllowedColumnNamesAndTypes } from "./AdminSessionTypes.js"
 import {
     parseToOperation,
     NumberAtom,
@@ -21,9 +21,8 @@ import {
     OperationContext,
 } from "./SqlFilterSExpression.js"
 const context: OperationContext = {
-    grapherConfigFieldName: "grapherConfigAdmin",
-    whitelistedColumnNamesAndTypes:
-        variableAnnotationAllowedColumnNamesAndTypes,
+    grapherConfigFieldName: "chart_configs.config",
+    whitelistedColumnNamesAndTypes: chartBulkUpdateAllowedColumnNamesAndTypes,
 }
 function checkIsomorphism(operation: Operation): void {
     return expect(parseToOperation(operation.toSExpr(), context)).toEqual(
@@ -157,7 +156,7 @@ describe("transpile to expected SQL", () => {
         checkSql("(NOT true)", "(NOT true)")
         checkSql(
             '(CONTAINS /map/region "Europe")',
-            "(JSON_EXTRACT(grapherConfigAdmin, \"$.map.region\") COLLATE utf8mb4_0900_ai_ci LIKE '%Europe%')"
+            "(JSON_EXTRACT(chart_configs.config, \"$.map.region\") COLLATE utf8mb4_0900_ai_ci LIKE '%Europe%')"
         )
         checkSql('(= "hello" "hello")', "('hello' = 'hello')")
         checkSql('(= "hello\\\\" "hello")', "('hello\\\\' = 'hello')")
@@ -183,7 +182,7 @@ describe("transpile to expected SQL", () => {
     it("should transpile some more complicated expressions correctly to SQL", async () => {
         checkSql(
             "(AND (NOT (< 1 2)) (= /firstYear /map/lastYear) (<> (/ 1 2) (/ 2 (+ 1 1))))",
-            `((NOT (1 < 2)) AND (JSON_EXTRACT(grapherConfigAdmin, "$.firstYear") = JSON_EXTRACT(grapherConfigAdmin, "$.map.lastYear")) AND ((1/2) <> (2/(1+1))))`
+            `((NOT (1 < 2)) AND (JSON_EXTRACT(chart_configs.config, "$.firstYear") = JSON_EXTRACT(chart_configs.config, "$.map.lastYear")) AND ((1/2) <> (2/(1+1))))`
         )
     })
 })

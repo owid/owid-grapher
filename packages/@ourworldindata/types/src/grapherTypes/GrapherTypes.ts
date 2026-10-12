@@ -244,6 +244,22 @@ export type PeerCountryStrategyQueryParam = PeerCountryStrategy | "auto"
 export const VALID_PEER_COUNTRY_STRATEGY_QUERY_PARAMS: PeerCountryStrategyQueryParam[] =
     ["auto", ...Object.values(PeerCountryStrategy)]
 
+/** Check if the given string is a valid PeerCountryStrategy */
+function isValidPeerCountryStrategy(
+    candidate: string
+): candidate is PeerCountryStrategy {
+    return Object.values(PeerCountryStrategy).includes(
+        candidate as PeerCountryStrategy
+    )
+}
+
+/** Check if the given string is a valid PeerCountryStrategyQueryParam */
+export function isValidPeerCountryStrategyQueryParam(
+    candidate: string
+): candidate is PeerCountryStrategyQueryParam {
+    return candidate === "auto" || isValidPeerCountryStrategy(candidate)
+}
+
 export enum GrapherTooltipAnchor {
     /** The tooltip is positioned relative to the mouse cursor */
     Mouse = "mouse",
@@ -558,7 +574,6 @@ export enum ColorSchemeName {
     BinaryMapPaletteC = "BinaryMapPaletteC",
     BinaryMapPaletteD = "BinaryMapPaletteD",
     BinaryMapPaletteE = "BinaryMapPaletteE",
-    BinaryMapPaletteF = "BinaryMapPaletteF",
     SingleColorGradientDenim = "SingleColorGradientDenim",
     SingleColorGradientTeal = "SingleColorGradientTeal",
     SingleColorGradientPurple = "SingleColorGradientPurple",
@@ -626,6 +641,8 @@ export interface MapConfigInterface {
     selectedEntityNames?: EntityName[]
 }
 
+export type SelectedEntityColors = Record<EntityName, string | undefined>
+
 // This configuration represents the entire persistent state of a grapher
 // Ideally, this is also all of the interaction state: when a grapher is saved and loaded again
 // under the same rendering conditions it ought to remain visually identical
@@ -678,8 +695,9 @@ export interface GrapherInterface extends SortConfig {
     hideTotalValueLabel?: boolean
     excludedEntityNames?: EntityName[]
     includedEntityNames?: EntityName[]
+    inapplicableEntityNames?: EntityName[]
     selectedEntityNames?: EntityName[]
-    selectedEntityColors?: { [entityName: string]: string | undefined }
+    selectedEntityColors?: SelectedEntityColors
     focusedSeriesNames?: SeriesName[]
     peerCountryStrategy?: PeerCountryStrategy
     missingDataStrategy?: MissingDataStrategy
@@ -835,6 +853,7 @@ export const grapherKeysToSerialize = [
     "sortColumnSlug",
     "excludedEntityNames",
     "includedEntityNames",
+    "inapplicableEntityNames",
     "selectedFacetStrategy",
     "hideFacetControl",
     "comparisonLines",

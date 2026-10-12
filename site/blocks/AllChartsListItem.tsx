@@ -1,6 +1,6 @@
 import { BasicChartInformation } from "@ourworldindata/utils"
 import * as React from "react"
-import { BAKED_BASE_URL } from "../../settings/clientSettings.js"
+import { BAKED_BASE_URL } from "../../settings/clientSettings.mjs"
 import GrapherImage from "../GrapherImage.js"
 
 export const AllChartsListItem = ({

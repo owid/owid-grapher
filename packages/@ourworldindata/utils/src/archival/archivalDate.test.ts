@@ -1,5 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest"
-import { formatAsArchivalDate, parseArchivalDate } from "./archivalDate.js"
+import {
+    formatAsArchivalDate,
+    getPhraseForArchivalDate,
+    parseArchivalDate,
+} from "./archivalDate.js"
 import dayjs from "../dayjs.js"
 import timezoneMock from "timezone-mock"
 
@@ -56,5 +60,27 @@ describe(formatAsArchivalDate, () => {
         const date = dayjs("2020-01-21T12:34:56Z")
         const formattedDate = formatAsArchivalDate(date)
         expect(formattedDate).toBe("20200121-123456")
+    })
+})
+
+describe(getPhraseForArchivalDate, () => {
+    it("returns undefined if there is no archival date", () => {
+        expect(getPhraseForArchivalDate(undefined)).toBeUndefined()
+    })
+
+    it("formats an archival timestamp", () => {
+        expect(getPhraseForArchivalDate("20250414-074331")).toEqual(
+            "(archived on April 14, 2025)."
+        )
+    })
+
+    it("formats an ISO date", () => {
+        expect(getPhraseForArchivalDate("2025-04-14")).toEqual(
+            "(archived on April 14, 2025)."
+        )
+    })
+
+    it("omits the date if the archival date is unparseable", () => {
+        expect(getPhraseForArchivalDate("nope")).toEqual("(archived).")
     })
 })

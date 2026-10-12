@@ -22,7 +22,7 @@ const getChartConfigS3Client = lazy(() =>
     })
 )
 
-export async function saveGrapherConfigToR2ByUUID(
+export async function saveGrapherConfigToR2ByUuid(
     uuid: string,
     chartConfigStringified: string,
     configMd5FromDb: Base64String
@@ -30,15 +30,15 @@ export async function saveGrapherConfigToR2ByUUID(
     console.log("Saving grapher config to R2 by UUID:", uuid)
     await saveGrapherConfigToR2(
         chartConfigStringified,
-        R2GrapherConfigDirectory.byUUID,
+        R2GrapherConfigDirectory.byUuid,
         `${uuid}.json`,
         configMd5FromDb
     )
 }
 
-export async function deleteGrapherConfigFromR2ByUUID(id: string) {
+export async function deleteGrapherConfigFromR2ByUuid(id: string) {
     await deleteGrapherConfigFromR2(
-        R2GrapherConfigDirectory.byUUID,
+        R2GrapherConfigDirectory.byUuid,
         `${id}.json`
     )
 }
@@ -71,10 +71,7 @@ async function saveConfigToR2(
     filename: string,
     configMd5FromDb: Base64String
 ) {
-    if (
-        GRAPHER_CONFIG_R2_BUCKET === undefined ||
-        GRAPHER_CONFIG_R2_BUCKET_PATH === undefined
-    ) {
+    if (!GRAPHER_CONFIG_R2_BUCKET) {
         console.info("R2 bucket not configured, not storing config to R2")
         return
     }
@@ -96,10 +93,7 @@ export async function deleteGrapherConfigFromR2(
     directory: R2GrapherConfigDirectory,
     filename: string
 ) {
-    if (
-        GRAPHER_CONFIG_R2_BUCKET === undefined ||
-        GRAPHER_CONFIG_R2_BUCKET_PATH === undefined
-    ) {
+    if (!GRAPHER_CONFIG_R2_BUCKET) {
         console.info(
             "R2 bucket not configured, not deleting grapher config from R2"
         )

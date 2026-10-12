@@ -1,17 +1,21 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
+import {
+    QueryClient,
+    QueryClientProvider,
+    useIsFetching,
+} from "@tanstack/react-query"
 import * as React from "react"
 import { Admin } from "./Admin.js"
 import { ChartEditorPage } from "./ChartEditorPage.js"
 import { action } from "mobx"
 import { observer } from "mobx-react"
 import { ChartIndexPage } from "./ChartIndexPage.js"
+import { GdocsReferencePage } from "./GdocsReferencePage.js"
 import { UsersIndexPage } from "./UsersIndexPage.js"
 import { DatasetsIndexPage } from "./DatasetsIndexPage.js"
 import { UserEditPage } from "./UserEditPage.js"
 import { VariableEditPage } from "./VariableEditPage.js"
 import { VariablesIndexPage } from "./VariablesIndexPage.js"
 import { DatasetEditPage } from "./DatasetEditPage.js"
-import { VariablesAnnotationPage } from "./VariablesAnnotationPage.js"
 import { SourceEditPage } from "./SourceEditPage.js"
 import { RedirectsIndexPage } from "./RedirectsIndexPage.js"
 import SiteRedirectsIndexPage from "./SiteRedirectsIndexPage"
@@ -42,8 +46,6 @@ import { OrphanedArticlesIndexPage } from "./OrphanedArticlesIndexPage.js"
 import { GdocsMatchProps, GdocsPreviewPage } from "./GdocsPreviewPage.js"
 import { GdocsCoverageMatrixPage } from "./GdocsCoverageMatrixPage.js"
 import { CalloutFunctionsPage } from "./CalloutFunctionsPage.js"
-import { GdocsStoreProvider } from "./GdocsStoreProvider.js"
-import { IndicatorChartEditorPage } from "./IndicatorChartEditorPage.js"
 import { CreateNarrativeChartEditorPage } from "./CreateNarrativeChartEditorPage.js"
 import { NarrativeChartEditorPage } from "./NarrativeChartEditorPage.js"
 import { NarrativeChartIndexPage } from "./NarrativeChartIndexPage.js"
@@ -116,13 +118,28 @@ class AdminErrorMessage extends React.Component<{ admin: Admin }> {
     }
 }
 
-@observer
-class AdminLoader extends React.Component<{ admin: Admin }> {
-    override render(): React.ReactElement | null {
-        const { admin } = this.props
-        return admin.showLoadingIndicator ? <LoadingBlocker /> : null
-    }
-}
+const AdminLoader = observer(function AdminLoader({
+    admin,
+}: {
+    admin: Admin
+}): React.ReactElement | null {
+    const initialQueriesLoading = useIsFetching({
+        // Initial queries block the whole admin UI by default. Queries that
+        // handle loading locally (for example, lazy modal content) should opt
+        // out with `meta: { blocksPage: false }`.
+        predicate: (query) =>
+            query.meta?.blocksPage !== false &&
+            query.state.status === "pending",
+    })
+    const showInitialQueryLoader =
+        admin.loadingIndicatorSetting === "default" && initialQueriesLoading > 0
+
+    return (
+        <LoadingBlocker
+            isLoading={admin.showLoadingIndicator || showInitialQueryLoader}
+        />
+    )
+})
 
 @observer
 export class AdminApp extends React.Component<{
@@ -182,6 +199,11 @@ export class AdminApp extends React.Component<{
                                 />
                                 <Route
                                     exact
+                                    path="/gdocs-reference/:kind?/:id?"
+                                    component={GdocsReferencePage}
+                                />
+                                <Route
+                                    exact
                                     path="/narrative-charts"
                                     component={NarrativeChartIndexPage}
                                 />
@@ -193,12 +215,11 @@ export class AdminApp extends React.Component<{
                                 <Route
                                     exact
                                     path="/narrative-charts/:narrativeChartId/edit"
-                                    render={({ match, history }) => (
+                                    render={({ match }) => (
                                         <NarrativeChartEditorPage
                                             narrativeChartId={parseInt(
                                                 match.params.narrativeChartId
                                             )}
-                                            history={history}
                                         />
                                     )}
                                 />
@@ -311,11 +332,6 @@ export class AdminApp extends React.Component<{
                                 />
                                 <Route
                                     exact
-                                    path={`/variable-annotations`}
-                                    render={() => <VariablesAnnotationPage />}
-                                />
-                                <Route
-                                    exact
                                     path="/users/:userId"
                                     render={({ match }) => (
                                         <UserEditPage
@@ -329,17 +345,6 @@ export class AdminApp extends React.Component<{
                                     exact
                                     path="/users"
                                     component={UsersIndexPage}
-                                />
-                                <Route
-                                    exact
-                                    path="/variables/:variableId/config"
-                                    render={({ match }) => (
-                                        <IndicatorChartEditorPage
-                                            variableId={parseInt(
-                                                match.params.variableId
-                                            )}
-                                        />
-                                    )}
                                 />
                                 <Route
                                     exact
@@ -422,20 +427,14 @@ export class AdminApp extends React.Component<{
                                     exact
                                     path="/gdocs/:id/preview"
                                     render={(props: GdocsMatchProps) => (
-                                        <GdocsStoreProvider>
-                                            <GdocsPreviewPage {...props} />
-                                        </GdocsStoreProvider>
+                                        <GdocsPreviewPage {...props} />
                                     )}
                                 />
                                 <Route
                                     exact
                                     path="/gdocs/:id/coverage"
                                     render={(props: GdocsMatchProps) => (
-                                        <GdocsStoreProvider>
-                                            <GdocsCoverageMatrixPage
-                                                {...props}
-                                            />
-                                        </GdocsStoreProvider>
+                                        <GdocsCoverageMatrixPage {...props} />
                                     )}
                                 />
                                 <Route
@@ -446,9 +445,7 @@ export class AdminApp extends React.Component<{
                                 <Route
                                     path="/gdocs"
                                     render={(props: RouteComponentProps) => (
-                                        <GdocsStoreProvider>
-                                            <GdocsIndexPage {...props} />
-                                        </GdocsStoreProvider>
+                                        <GdocsIndexPage {...props} />
                                     )}
                                 />
                                 <Route

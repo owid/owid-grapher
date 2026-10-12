@@ -2,7 +2,7 @@ import { getCanonicalUrl } from "@ourworldindata/components"
 import { OwidGdocType } from "@ourworldindata/types"
 import { getAuthorTeamAnchorUrl, useLinkedAuthor } from "../utils.js"
 import Image from "./Image.js"
-import { IS_ARCHIVE } from "../../../settings/clientSettings.js"
+import { IS_ARCHIVE } from "../../../settings/clientSettings.mjs"
 import { PROD_URL } from "../../SiteConstants.js"
 
 const BASE_URL = IS_ARCHIVE ? PROD_URL : ""
@@ -19,7 +19,6 @@ export default function LinkedAuthor({
     role?: string
 }) {
     const author = useLinkedAuthor(name)
-    const displayRole = role ?? author.role
     const image =
         includeImage && author.featuredImage ? (
             <Image
@@ -43,7 +42,7 @@ export default function LinkedAuthor({
                 {image}
                 {author.name}
             </a>
-            {displayRole && ` (${displayRole})`}
+            {role && ` (${role})`}
         </span>
     )
 }

@@ -4,26 +4,8 @@ import fs from "fs-extra"
 import * as db from "../db/db.js"
 import { DbPlainTag, DbPlainUser } from "@ourworldindata/utils"
 import { isPathRedirectedToExplorer } from "../explorerAdminServer/ExplorerRedirects.js"
-import { hashMd5 } from "../serverUtils/hash.js"
 import { BAKE_ON_CHANGE } from "../settings/serverSettings.js"
 import { DeployQueueServer } from "./DeployQueueServer.js"
-
-// Combines a grapher slug, and potentially its query string, to _part_ of an export file
-// name. It's called fileKey and not fileName because the actual export filename also includes
-// other parts, like chart version and width/height.
-export const grapherSlugToExportFileKey = (
-    slug: string,
-    queryStr: string | undefined,
-    {
-        shouldHashQueryStr = true,
-        separator = "-",
-    }: { shouldHashQueryStr?: boolean; separator?: string } = {}
-) => {
-    const maybeHashedQueryStr = shouldHashQueryStr
-        ? hashMd5(queryStr ?? "")
-        : queryStr
-    return `${slug}${queryStr ? `${separator}${maybeHashedQueryStr}` : ""}`
-}
 
 /**
  * Returns a map that can resolve Tag names and Tag IDs to the Tag's slug
@@ -50,16 +32,20 @@ export async function getTagToSlugMap(
 }
 
 /**
- * Given a topic tag's name or ID, return its slug.
+ * Given a topic tag's name, return its slug.
  */
 export async function getSlugForTopicTag(
     knex: db.KnexReadonlyTransaction,
-    identifier: string | number
+    tagName: string
 ): Promise<string | undefined> {
-    const tagsByIdAndName = await getTagToSlugMap(knex)
-    const slug = tagsByIdAndName[identifier]
+    const tag = await db.knexRawFirst<Pick<DbPlainTag, "slug">>(
+        knex,
+        `-- sql
+        SELECT slug FROM tags WHERE name = ? AND slug IS NOT NULL`,
+        [tagName]
+    )
 
-    return slug
+    return tag?.slug ?? undefined
 }
 
 export async function deleteOldGraphers(

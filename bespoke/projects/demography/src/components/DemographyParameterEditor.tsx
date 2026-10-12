@@ -156,22 +156,34 @@ function DemographyParameterEditorContent({
     const innerWidth = width - margin.left - margin.right
     const innerHeight = height - margin.top - margin.bottom
 
-    const xScale = scaleLinear({
-        domain: [START_YEAR, END_YEAR],
-        range: [0, innerWidth],
-    })
+    const xScale = useMemo(
+        () =>
+            scaleLinear({
+                domain: [START_YEAR, END_YEAR],
+                range: [0, innerWidth],
+            }),
+        [innerWidth]
+    )
 
-    const yScale = scaleLinear({
-        domain: [minValue, maxValue],
-        range: [innerHeight, 0],
-        nice: true,
-        clamp: true,
-    })
+    const yScale = useMemo(
+        () =>
+            scaleLinear({
+                domain: [minValue, maxValue],
+                range: [innerHeight, 0],
+                nice: true,
+                clamp: true,
+            }),
+        [minValue, maxValue, innerHeight]
+    )
 
-    const controlDataPoints: DataPoint[] = CONTROL_YEARS.map((y) => ({
-        year: y,
-        value: controlPoints[y],
-    }))
+    const controlDataPoints: DataPoint[] = useMemo(
+        () =>
+            CONTROL_YEARS.map((y) => ({
+                year: y,
+                value: controlPoints[y],
+            })),
+        [controlPoints]
+    )
 
     const firstHistoricalDataPoint = historicalDataPoints[0]
     const lastHistoricalDataPoint = historicalDataPoints.at(-1)!

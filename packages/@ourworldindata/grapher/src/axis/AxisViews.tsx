@@ -1,16 +1,16 @@
 import * as React from "react"
 import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
-import * as R from "remeda"
 import {
     Bounds,
     HorizontalAlign,
+    Point,
     Position,
     VerticalAlign,
     dyFromAlign,
-    textAnchorFromAlign,
     makeFigmaId,
-    Point,
+    roundForSvg,
+    textAnchorFromAlign,
 } from "@ourworldindata/utils"
 import { VerticalAxis, HorizontalAxis, DualAxis } from "./Axis"
 import classNames from "clsx"
@@ -61,10 +61,10 @@ export class VerticalAxisGridLines extends React.Component<VerticalAxisGridLines
                             id={makeFigmaId(axis.formatTick(t.value))}
                             className={className}
                             key={t.value}
-                            x1={bounds.left.toFixed(2)}
-                            y1={axis.place(t.value)}
-                            x2={bounds.right.toFixed(2)}
-                            y2={axis.place(t.value)}
+                            x1={roundForSvg(bounds.left)}
+                            y1={roundForSvg(axis.place(t.value))}
+                            x2={roundForSvg(bounds.right)}
+                            y2={roundForSvg(axis.place(t.value))}
                             stroke={color}
                             strokeWidth={strokeWidth}
                             strokeDasharray={t.solid ? undefined : dasharray}
@@ -109,10 +109,10 @@ export class HorizontalAxisGridLines extends React.Component<HorizontalAxisGridL
                         <line
                             id={makeFigmaId(axis.formatTick(t.value))}
                             key={t.value}
-                            x1={axis.place(t.value)}
-                            y1={bounds.bottom.toFixed(2)}
-                            x2={axis.place(t.value)}
-                            y2={bounds.top.toFixed(2)}
+                            x1={roundForSvg(axis.place(t.value))}
+                            y1={roundForSvg(bounds.bottom)}
+                            x2={roundForSvg(axis.place(t.value))}
+                            y2={roundForSvg(bounds.top)}
                             stroke={color}
                             strokeWidth={strokeWidth}
                             strokeDasharray={t.solid ? undefined : dasharray}
@@ -158,10 +158,10 @@ export class HorizontalAxisZeroLine extends React.Component<HorizontalAxisZeroLi
         return (
             <line
                 id={makeFigmaId("vertical-zero-line")}
-                x1={x.toFixed(2)}
-                y1={bounds.bottom.toFixed(2)}
-                x2={x.toFixed(2)}
-                y2={bounds.top.toFixed(2)}
+                x1={roundForSvg(x)}
+                y1={roundForSvg(bounds.bottom)}
+                x2={roundForSvg(x)}
+                y2={roundForSvg(bounds.top)}
                 stroke={color}
                 strokeWidth={strokeWidth}
             />
@@ -195,10 +195,10 @@ export class VerticalAxisZeroLine extends React.Component<VerticalAxisZeroLinePr
         return (
             <line
                 id={makeFigmaId("horizontal-zero-line")}
-                x1={bounds.left.toFixed(2)}
-                y1={y.toFixed(2)}
-                x2={bounds.right.toFixed(2)}
-                y2={y.toFixed(2)}
+                x1={roundForSvg(bounds.left)}
+                y1={roundForSvg(y)}
+                x2={roundForSvg(bounds.right)}
+                y2={roundForSvg(y)}
                 stroke={stroke}
                 strokeWidth={strokeWidth}
                 strokeDasharray={strokeDasharray}
@@ -224,10 +224,10 @@ export class VerticalAxisDomainLine extends React.Component<VerticalAxisDomainLi
         return (
             <line
                 id={makeFigmaId("domain-line")}
-                x1={bounds.left.toFixed(2)}
-                y1={bounds.bottom.toFixed(2)}
-                x2={bounds.right.toFixed(2)}
-                y2={bounds.bottom.toFixed(2)}
+                x1={roundForSvg(bounds.left)}
+                y1={roundForSvg(bounds.bottom)}
+                x2={roundForSvg(bounds.right)}
+                y2={roundForSvg(bounds.bottom)}
                 stroke="#ccc"
                 strokeWidth={strokeWidth}
             />
@@ -352,14 +352,11 @@ export class VerticalAxisComponent extends React.Component<VerticalAxisComponent
             showTickMarks,
             showEndpointsOnly,
         } = this.props
-        const { tickLabels, labelTextWrap, logNoticeTextWrap, config } = axis
+        const { labelTextWrap, logNoticeTextWrap, config } = axis
 
-        let visibleTickLabels = tickLabels
-        if (showEndpointsOnly) {
-            visibleTickLabels = pickFirstAndLastElement(
-                R.sortBy(tickLabels, (label) => label.x)
-            )
-        }
+        const visibleTickLabels = showEndpointsOnly
+            ? axis.endpointTickLabels
+            : axis.tickLabels
 
         const shouldShowLogNotice =
             axis.shouldShowLogNotice &&
@@ -419,8 +416,8 @@ export class VerticalAxisComponent extends React.Component<VerticalAxisComponent
                             return (
                                 <text
                                     key={value}
-                                    x={tickX.toFixed(2)}
-                                    y={y}
+                                    x={roundForSvg(tickX)}
+                                    y={roundForSvg(y)}
                                     dy={dyFromAlign(
                                         yAlign ?? VerticalAlign.middle
                                     )}
@@ -498,7 +495,7 @@ export class HorizontalAxisComponent extends React.Component<{
             detailsMarker,
             showEndpointsOnly,
         } = this.props
-        const { tickLabels, labelTextWrap: label, labelOffset, orient } = axis
+        const { labelTextWrap: label, labelOffset, orient } = axis
         const tickSize = 5
         const horizontalAxisLabelsOnTop = orient === Position.top
         const labelYPosition = horizontalAxisLabelsOnTop
@@ -515,12 +512,9 @@ export class HorizontalAxisComponent extends React.Component<{
 
         const showTickLabels = !axis.config.hideTickLabels
 
-        let visibleTickLabels = tickLabels
-        if (showEndpointsOnly) {
-            visibleTickLabels = pickFirstAndLastElement(
-                R.sortBy(tickLabels, (label) => label.x)
-            )
-        }
+        const visibleTickLabels = showEndpointsOnly
+            ? axis.endpointTickLabels
+            : axis.tickLabels
 
         return (
             <g id={makeFigmaId("horizontal-axis")} className="HorizontalAxis">
@@ -546,27 +540,23 @@ export class HorizontalAxisComponent extends React.Component<{
                             // by half the stroke width so they sit visually
                             // inside the chart area
                             if (insetEdgeMarks) {
-                                // Apply the rounding used by axis.place
-                                const rangeMin = axis.snapToSubpixel(
-                                    axis.rangeMin
-                                )
-                                const rangeMax = axis.snapToSubpixel(
-                                    axis.rangeMax
-                                )
-
                                 const halfStroke = tickMarkWidth / 2
-                                if (x <= rangeMin) x += halfStroke
-                                else if (x >= rangeMax) x -= halfStroke
+                                if (x <= axis.rangeMin) x += halfStroke
+                                else if (x >= axis.rangeMax) x -= halfStroke
                             }
 
                             return (
                                 <line
                                     key={label.value}
                                     id={makeFigmaId(label.formattedValue)}
-                                    x1={x}
-                                    y1={tickMarksYPosition - tickMarkWidth / 2}
-                                    x2={x}
-                                    y2={tickMarksYPosition + tickSize}
+                                    x1={roundForSvg(x)}
+                                    y1={roundForSvg(
+                                        tickMarksYPosition - tickMarkWidth / 2
+                                    )}
+                                    x2={roundForSvg(x)}
+                                    y2={roundForSvg(
+                                        tickMarksYPosition + tickSize
+                                    )}
                                     stroke={SOLID_TICK_COLOR}
                                     strokeWidth={tickMarkWidth}
                                 />
@@ -579,8 +569,8 @@ export class HorizontalAxisComponent extends React.Component<{
                         {visibleTickLabels.map((label) => (
                             <text
                                 key={label.value}
-                                x={label.x}
-                                y={tickLabelYPlacement}
+                                x={roundForSvg(label.x)}
+                                y={roundForSvg(tickLabelYPlacement)}
                                 fill={tickColor || GRAPHER_DARK_TEXT}
                                 textAnchor={textAnchorFromAlign(
                                     label.xAlign ?? HorizontalAlign.center
@@ -612,18 +602,13 @@ export class VerticalAxisTickMark extends React.Component<{
         return (
             <line
                 id={id}
-                x1={tickMarkLeftPosition}
-                y1={tickMarkYPosition}
-                x2={tickRight}
-                y2={tickMarkYPosition}
+                x1={roundForSvg(tickMarkLeftPosition)}
+                y1={roundForSvg(tickMarkYPosition)}
+                x2={roundForSvg(tickRight)}
+                y2={roundForSvg(tickMarkYPosition)}
                 stroke={color}
                 strokeWidth={width}
             />
         )
     }
-}
-
-function pickFirstAndLastElement<T>(array: T[]): T[] {
-    if (array.length < 2) return array
-    return [array.at(0), array.at(-1)] as [T, T]
 }

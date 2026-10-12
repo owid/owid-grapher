@@ -1,6 +1,10 @@
 import * as _ from "lodash-es"
 import { Color, CoreValueType } from "@ourworldindata/types"
-import { NO_DATA_LABEL, PROJECTED_DATA_LABEL } from "./ColorScale"
+import {
+    NO_DATA_LABEL,
+    INAPPLICABLE_LABEL,
+    PROJECTED_DATA_LABEL,
+} from "./ColorScale"
 
 interface BinProps {
     color: Color
@@ -118,8 +122,10 @@ export class CategoricalBin extends AbstractColorScaleBin<CategoricalBinProps> {
 
     contains(
         value: CoreValueType | undefined,
-        { isProjection = false } = {}
+        { isProjection = false, isInapplicable = false } = {}
     ): boolean {
+        if (isInapplicable) return this.props.value === INAPPLICABLE_LABEL
+
         return (
             (value === undefined && this.props.value === NO_DATA_LABEL) ||
             (value !== undefined &&
@@ -213,6 +219,10 @@ export function isNoDataBin(bin: ColorScaleBin): bin is CategoricalBin {
 
 export function isProjectedDataBin(bin: ColorScaleBin): bin is CategoricalBin {
     return isCategoricalBin(bin) && bin.value === PROJECTED_DATA_LABEL
+}
+
+export function isInapplicableBin(bin: ColorScaleBin): bin is CategoricalBin {
+    return isCategoricalBin(bin) && bin.value === INAPPLICABLE_LABEL
 }
 
 export type ColorScaleBin = CategoricalBin | NumericBin

@@ -11,6 +11,7 @@ import { format, type FormatConfig } from "oxfmt"
 import oxfmtConfig from "../../.oxfmtrc.json"
 import * as _ from "lodash-es"
 import * as R from "remeda"
+import { parseRegionNameSuffix } from "@ourworldindata/utils"
 
 // This is the number of decimal places to round lat/long coordinates to when generating the MapTopology.ts file.
 // at n=2 that's ~1.1km at the equator, more than enough for a world map
@@ -115,6 +116,7 @@ interface Entity {
     slug?: string
     region_type?: string
     defined_by?: string
+    publisher?: string
     is_mappable?: boolean
     is_historical?: boolean
     is_unlisted?: boolean
@@ -294,6 +296,17 @@ async function main() {
             delete entity.is_mappable
         if (entity.defined_by === "owid") delete entity.defined_by
 
+        // A publisher whose regions are split across several sets carries a different
+        // `defined_by` per set (fao_1, fao_2, fao_sdg) while its region names share one
+        // suffix. Emit that suffix as its own key
+        if (entity.defined_by) {
+            entity.publisher = parseRegionNameSuffix(entity.name)?.publisherKey
+            if (!entity.publisher)
+                console.log(
+                    `⚠️  ${entity.name} (${entity.code}) is published by ${entity.defined_by} but its name has no "(Publisher)" suffix, so it will be left out of its region set`
+                )
+        }
+
         // update geojson with canonical names & validate mappability flag
         const outline = owidGeoJson.features.find(
             ({ id }) => id === entity.code
@@ -336,6 +349,7 @@ async function main() {
                 "slug",
                 "regionType",
                 "definedBy",
+                "publisher",
                 "isMappable",
                 "isHistorical",
                 "isUnlisted",

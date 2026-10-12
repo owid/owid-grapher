@@ -1,14 +1,7 @@
-import { beforeAll, afterAll, describe, expect, it } from "vitest"
-import { unstable_startWorker } from "wrangler"
+import { describe, expect, it } from "vitest"
+import { setUpTestHarness } from "./setUpTestHarness.js"
 
-let worker: Awaited<ReturnType<typeof unstable_startWorker>>
-
-async function workerFetch(
-    pathname: string,
-    init?: { method?: string; body?: string }
-) {
-    return worker.fetch(`http://example.com${pathname}`, init)
-}
+const server = setUpTestHarness("./functions/test/wrangler.search.e2e.jsonc")
 
 // Runs the real /api/search handler inside an actual Workers (workerd)
 // runtime, unlike searchApi.integration.test.ts which exercises the same
@@ -16,19 +9,8 @@ async function workerFetch(
 // + fetch requester combination — not just the raw REST fetch it replaced —
 // works in the runtime it's deployed to.
 describe("search endpoint inside a real Workers runtime", () => {
-    beforeAll(async () => {
-        worker = await unstable_startWorker({
-            config: "./functions/test/wrangler.search.e2e.jsonc",
-            dev: { logLevel: "none" },
-        })
-    })
-
-    afterAll(async () => {
-        await worker.dispose()
-    })
-
     it("searches charts", async () => {
-        const response = await workerFetch(
+        const response = await server.fetch(
             "/api/search?type=charts&q=population&hitsPerPage=3"
         )
         expect(response.status).toBe(200)
@@ -44,7 +26,7 @@ describe("search endpoint inside a real Workers runtime", () => {
     })
 
     it("searches pages", async () => {
-        const response = await workerFetch(
+        const response = await server.fetch(
             "/api/search?type=pages&q=climate%20change&hitsPerPage=3"
         )
         expect(response.status).toBe(200)
@@ -59,8 +41,25 @@ describe("search endpoint inside a real Workers runtime", () => {
         expect(body.nbHits).toBeGreaterThan(0)
     })
 
+    // This harness has no ASSETS binding, so this also proves that browsing
+    // topic pages without a query never needs /topicTagGraph.json.
+    it("browses topic pages without a query", async () => {
+        const response = await server.fetch(
+            "/api/search?type=topics&hitsPerPage=3"
+        )
+        expect(response.status).toBe(200)
+
+        const body = (await response.json()) as {
+            results: { type: string }[]
+            nbHits: number
+        }
+        expect(body.results.length).toBe(3)
+        for (const page of body.results)
+            expect(["topic-page", "linear-topic-page"]).toContain(page.type)
+    })
+
     it("returns a validation error for an unknown topic", async () => {
-        const response = await workerFetch(
+        const response = await server.fetch(
             "/api/search?type=charts&topics=NotARealTopic123"
         )
         expect(response.status).toBe(400)
@@ -71,7 +70,7 @@ describe("search endpoint inside a real Workers runtime", () => {
     // charts — this is the site's own example of a query the closest-matches
     // fallback should rescue instead of returning nbHits: 0.
     it("rescues a query with no exact match via closest matches", async () => {
-        const response = await workerFetch(
+        const response = await server.fetch(
             "/api/search?type=charts&q=malaria%20worldwide"
         )
         expect(response.status).toBe(200)
@@ -87,7 +86,7 @@ describe("search endpoint inside a real Workers runtime", () => {
     })
 
     it('stays honestly empty for a non-distinctive query ("world cup")', async () => {
-        const response = await workerFetch(
+        const response = await server.fetch(
             "/api/search?type=charts&q=world%20cup"
         )
         expect(response.status).toBe(200)
@@ -114,7 +113,7 @@ describe("search endpoint inside a real Workers runtime", () => {
         })
 
         it("proxies an empty-query search to Algolia and caches it", async () => {
-            const response = await workerFetch("/api/search/cached-queries", {
+            const response = await server.fetch("/api/search/cached-queries", {
                 method: "POST",
                 body: emptyQueryBody,
             })
@@ -131,7 +130,7 @@ describe("search endpoint inside a real Workers runtime", () => {
             expect(body.results[0].nbHits).toBeGreaterThan(0)
 
             // The same request again should now be served from the cache
-            const cachedResponse = await workerFetch(
+            const cachedResponse = await server.fetch(
                 "/api/search/cached-queries",
                 { method: "POST", body: emptyQueryBody }
             )
@@ -145,7 +144,7 @@ describe("search endpoint inside a real Workers runtime", () => {
         })
 
         it("rejects a non-empty query", async () => {
-            const response = await workerFetch("/api/search/cached-queries", {
+            const response = await server.fetch("/api/search/cached-queries", {
                 method: "POST",
                 body: JSON.stringify({
                     requests: [

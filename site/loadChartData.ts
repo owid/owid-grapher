@@ -3,7 +3,7 @@ import { OwidTable } from "@ourworldindata/core-table"
 import {
     getVariableDataRoute,
     getVariableMetadataRoute,
-    legacyToOwidTableAndDimensionsWithMandatorySlug,
+    legacyToOwidTableAndDimensions,
 } from "@ourworldindata/grapher"
 import {
     GrapherInterface,
@@ -11,6 +11,7 @@ import {
     MultipleOwidVariableDataDimensionsMap,
     OwidVariableDataMetadataDimensions,
     OwidVariableMixedData,
+    isIndicatorDimension,
     OwidVariableWithSourceAndDimension,
 } from "@ourworldindata/types"
 import {
@@ -28,7 +29,9 @@ export function useQueryInputTable(
     const { dimensions = [], selectedEntityColors } = chartConfig ?? {}
 
     // Fetch both data and metadata for all variables
-    const variableIds = dimensions.map((d) => d.variableId)
+    const variableIds = dimensions
+        .filter(isIndicatorDimension)
+        .map((d) => d.variableId)
     const { data: variablesDataMap, status } = useQueryVariablesDataAndMetadata(
         variableIds,
         options
@@ -38,7 +41,7 @@ export function useQueryInputTable(
     if (status !== "success" || !variablesDataMap) return { status }
 
     // Transform the fetched variable data and metadata into Grapher's input table format
-    const inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
+    const inputTable = legacyToOwidTableAndDimensions(
         variablesDataMap,
         dimensions,
         selectedEntityColors
@@ -63,7 +66,9 @@ export function useQueryInputTableForMultiDimView(
     const { dimensions = [], selectedEntityColors } = chartConfig ?? {}
 
     // Fetch both data and metadata for all variables
-    const variableIds = dimensions.map((d) => d.variableId)
+    const variableIds = dimensions
+        .filter(isIndicatorDimension)
+        .map((d) => d.variableId)
     const { data: variablesDataMap, status } = useQueryVariablesDataAndMetadata(
         variableIds,
         options
@@ -97,7 +102,7 @@ export function useQueryInputTableForMultiDimView(
     }
 
     // Transform the fetched variable data and metadata into Grapher's input table format
-    const inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
+    const inputTable = legacyToOwidTableAndDimensions(
         variablesDataMap,
         dimensions,
         selectedEntityColors

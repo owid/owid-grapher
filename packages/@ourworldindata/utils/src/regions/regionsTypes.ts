@@ -11,9 +11,9 @@ export type RegionType =
 type RegionEntry = (typeof regionsData)[number]
 type ContinentEntry = Extract<RegionEntry, { regionType: "continent" }>
 type IncomeGroupEntry = Extract<RegionEntry, { regionType: "income_group" }>
-type AggregateEntryWithDefinedBy = Extract<
+type AggregateEntryWithPublisher = Extract<
     RegionEntry,
-    { regionType: "aggregate"; definedBy: string }
+    { regionType: "aggregate"; definedBy: string; publisher: string }
 >
 
 export type OwidContinentName = ContinentEntry["name"]
@@ -22,7 +22,9 @@ export type OwidContinentCode = ContinentEntry["code"]
 export type OwidIncomeGroupName = IncomeGroupEntry["name"]
 export type OwidIncomeGroupCode = IncomeGroupEntry["code"]
 
-export type RegionDataProvider = AggregateEntryWithDefinedBy["definedBy"]
+export type RegionSet = AggregateEntryWithPublisher["definedBy"]
+export type RegionPublisher = AggregateEntryWithPublisher["publisher"]
+export type SuffixedRegionName = AggregateEntryWithPublisher["name"]
 
 export interface BaseRegion {
     regionType: RegionType
@@ -44,13 +46,15 @@ export interface Country extends BaseRegion {
 
 export interface Aggregate extends BaseRegion {
     regionType: "aggregate"
-    definedBy?: RegionDataProvider
+    definedBy?: RegionSet
+    publisher?: RegionPublisher
     translationCodes?: readonly string[]
     members: readonly string[]
 }
 
-export interface AggregateWithDefinedBy extends Aggregate {
-    definedBy: RegionDataProvider
+export interface AggregateWithPublisher extends Aggregate {
+    definedBy: RegionSet
+    publisher: RegionPublisher
 }
 
 export interface Continent extends BaseRegion {
@@ -69,3 +73,12 @@ export interface IncomeGroup extends BaseRegion {
 }
 
 export type Region = Country | Aggregate | Continent | IncomeGroup
+
+export interface RegionNameSuffix {
+    /** The name without its suffix, e.g. "Africa" */
+    name: string
+    /** The suffix as spelled, e.g. "IHME GBD" */
+    suffix: string
+    /** The key that spelling canonicalises to, e.g. "ihme_gbd" */
+    publisherKey: string
+}

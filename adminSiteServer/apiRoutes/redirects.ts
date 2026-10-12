@@ -6,6 +6,7 @@ import {
     getRedirects,
 } from "../../db/model/Redirect.js"
 import { expectInt } from "../../serverUtils/serverUtil.js"
+import { expectChartId } from "./charts.js"
 import { triggerStaticBuild } from "../../baker/GrapherBakingUtils.js"
 import * as db from "../../db/db.js"
 import { Request } from "../authentication.js"
@@ -115,7 +116,7 @@ export async function handlePostNewChartRedirect(
     res: HandlerResponse,
     trx: db.KnexReadWriteTransaction
 ) {
-    const chartId = expectInt(req.params.chartId)
+    const chartId = await expectChartId(trx, req.params.chartId)
     const fields = req.body as {
         slug: string
         targetQueryParam?: string

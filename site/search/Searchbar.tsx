@@ -6,7 +6,6 @@ import { SearchActiveFilters } from "./SearchActiveFilters.js"
 import { SearchAutocomplete } from "./SearchAutocomplete.js"
 import { SearchCountrySelector } from "./SearchCountrySelector.js"
 import { FilterType } from "@ourworldindata/types"
-import { createFocusInputOnClickHandler } from "./searchUtils.js"
 import { SearchAutocompleteContextProvider } from "./SearchAutocompleteContextProvider.js"
 import { SearchResetButton } from "./SearchResetButton.js"
 import { useSearchContext } from "./SearchContext.js"
@@ -60,7 +59,9 @@ export const Searchbar = ({
     // mobile when the search bar stretches vertically and reveals white space
     // readers might be clicking on. Do not register clicks on children, as we
     // don't want clicks on the country selector to focus the input.
-    const handleSearchBarClick = createFocusInputOnClickHandler(inputRef, true)
+    const handleSearchBarClick = (e: React.MouseEvent): void => {
+        if (e.target === e.currentTarget) inputRef.current?.focus()
+    }
 
     return (
         <>

@@ -4,9 +4,9 @@
     "name": "owid",
     "compatibility_date": "2025-05-05",
 
-    // Sentry client needs the `nodejs_als` (AsyncLocalStorage) API.
+    // Sentry v11 requires Node.js compatibility.
     // https://docs.sentry.io/platforms/javascript/guides/cloudflare/#configure
-    "compatibility_flags": ["nodejs_als"],
+    "compatibility_flags": ["nodejs_compat"],
 
     // NOTE (Martin): As of 2025-01-24, the bundle exceeded the uncompressed size
     // limit of 25 MiB if we include the source maps, so we disable them for now.
