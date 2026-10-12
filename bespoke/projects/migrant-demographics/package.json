@@ -41,7 +41,7 @@
     },
     "devDependencies": {
         "@rollup/plugin-swc": "^0.4.1",
-        "@swc/core": "^1.15.41",
+        "@swc/core": "^1.16.13",
         "@types/d3-scale": "^4.0.9",
         "@types/react": "^19.3.0",
         "@types/react-dom": "^19.3.0",
