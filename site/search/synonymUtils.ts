@@ -135,8 +135,23 @@ export const synonyms = [
     ["fertility", "children per woman"],
     ["life expectancy", "longevity"],
     ["dying", "death", "deaths", "mortality"],
-    ["child mortality", "infant mortality"],
     ["maternal mortality", "maternal death", "maternal deaths"],
+    // Demography course vocabulary: abbreviations and the textbook names of
+    // rates we chart under other titles
+    ["birth rate", "crude birth rate", "cbr"],
+    ["infant mortality", "imr"],
+    ["fertility rate", "total fertility rate", "tfr"],
+    [
+        "natural population growth",
+        "natural increase",
+        "rate of natural increase",
+        "natural increase rate",
+        "natural rate of increase",
+        "rni",
+        "nir",
+    ],
+    ["demographic transition", "demographic transition model", "dtm"],
+    ["population pyramid", "population by age"],
     ["migration", "immigration", "emigration"],
     ["urbanization", "urbanisation", "urban"],
 
@@ -301,6 +316,7 @@ export const synonyms = [
     // Poverty and Economic Development
     [
         "gdp",
+        "gpd" /* common typo; too short for Algolia's typo tolerance */,
         "gross domestic product",
         "economic output",
         "pib" /* spanish, french */,
@@ -421,6 +437,7 @@ export const synonyms = [
         "gender inequalities",
         "inequality by gender",
     ],
+    ["gender inequality index", "gii"],
     ["sex", "gender"],
     ["jail", "prison"],
 
