@@ -15,7 +15,6 @@ import {
 } from "./editorProviders.js"
 import { dataApiIndicatorStore, IndicatorStore } from "./indicatorStores.js"
 import {
-    ADMIN_BASE_URL,
     BAKED_BASE_URL,
     CATALOG_URL,
     DATA_API_URL,
@@ -38,7 +37,7 @@ export function adminIndicatorUrl(
     dimension: OwidChartDimensionInterface
 ): string | undefined {
     return dimension.variableId !== undefined
-        ? `${ADMIN_BASE_URL}/admin/variables/${dimension.variableId}`
+        ? `/admin/variables/${dimension.variableId}`
         : undefined
 }
 

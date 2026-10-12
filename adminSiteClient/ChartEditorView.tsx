@@ -341,7 +341,7 @@ export class ChartEditorView extends React.Component<ChartEditorViewProps> {
     override componentWillUnmount(): void {
         this.disposers.forEach((dispose) => dispose())
         this.cleanupDetailsOnDemand?.()
-        this.editor?.dispose()
+        this.manager.editor.dispose()
     }
 
     override render(): React.ReactElement {

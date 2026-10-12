@@ -1,7 +1,7 @@
 /**
  * @vitest-environment happy-dom
  */
-import { describe, expect, it, vi } from "vitest"
+import { afterEach, describe, expect, it, vi } from "vitest"
 import { runInAction } from "mobx"
 import { DimensionProperty, GrapherInterface } from "@ourworldindata/types"
 import { OwidTable } from "@ourworldindata/core-table"
@@ -143,10 +143,22 @@ describe(ConfigEditor, () => {
 
 describe("ConfigEditor tab in the URL", () => {
     const urlWithTab = "/charts/1/edit?tab=text"
+    const editors: ConfigEditor[] = []
+    const makeTrackedEditor = (
+        manager?: Partial<ConfigEditorManager>
+    ): ConfigEditor => {
+        const editor = makeEditor(manager)
+        editors.push(editor)
+        return editor
+    }
+    afterEach(() => {
+        editors.splice(0).forEach((editor) => editor.dispose())
+        window.history.replaceState({}, "", "/")
+    })
 
     it("leaves the host page's URL alone by default", () => {
         window.history.replaceState({}, "", urlWithTab)
-        const editor = makeEditor()
+        const editor = makeTrackedEditor()
         expect(editor.tab).toBe("basic")
 
         runInAction(() => {
@@ -157,7 +169,7 @@ describe("ConfigEditor tab in the URL", () => {
 
     it("opens on the URL's tab and keeps it updated when the host syncs it", () => {
         window.history.replaceState({}, "", urlWithTab)
-        const editor = makeEditor({ syncTabWithUrl: true })
+        const editor = makeTrackedEditor({ syncTabWithUrl: true })
         expect(editor.tab).toBe("text")
 
         runInAction(() => {

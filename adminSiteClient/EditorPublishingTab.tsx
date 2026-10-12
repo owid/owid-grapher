@@ -1,4 +1,4 @@
-import { Component } from "react"
+import { Component, type ReactElement } from "react"
 import { observer } from "mobx-react"
 import { action } from "mobx"
 import { copyToClipboard, slugify } from "@ourworldindata/utils"
@@ -139,7 +139,7 @@ const TagsSection = (props: {
     tags: DbChartTagJoin[] | undefined
     availableTags: MinimalTagWithMetadata[] | undefined
     onSaveTags: (tags: DbChartTagJoin[]) => Promise<void>
-}) => {
+}): ReactElement => {
     const { chartId, tags, availableTags } = props
     const canTag = !!chartId && tags && availableTags
     return (

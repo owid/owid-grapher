@@ -84,6 +84,7 @@ export interface ConfigEditorManager {
         editor: ConfigEditor
     ) => void | GrapherInterface | Promise<void | GrapherInterface>
     onChange?: (config: GrapherInterface, editor: ConfigEditor) => void
+    /** Called when the config gains or loses unsaved changes (each editor starts clean) */
     onDirtyChange?: (isModified: boolean) => void
 
     tabs?: EditorTabName[]
@@ -95,7 +96,7 @@ export interface ConfigEditorManager {
 
     renderNote?: (slot: EditorNoteSlot) => ReactNode
     originUrlSuggestions?: OriginUrlSuggestion[]
-    /** Mirror the active tab in the page's `?tab=` query param */
+    /** Mirror the active tab in the page's `?tab=` query param; read once, when the editor starts */
     syncTabWithUrl?: boolean
 }
 
