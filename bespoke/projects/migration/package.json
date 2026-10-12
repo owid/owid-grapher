@@ -35,7 +35,7 @@
         "react-aria": "^3.53.0",
         "react-aria-components": "^1.22.0",
         "react-dom": "^19.3.0",
-        "react-stately": "^3.47.0",
+        "react-stately": "^3.51.0",
         "remeda": "^2.51.0",
         "ts-pattern": "^5.9.0",
         "vite-plugin-css-position": "^3.0.1"
