@@ -5,7 +5,10 @@ import {
     searchCharts,
     searchPages,
     searchTopicPages,
+    SearchApiResponse,
+    SearchPagesApiResponse,
     SearchState,
+    SearchTopicsApiResponse,
     SearchValidationError,
 } from "./searchApi.js"
 import {
@@ -48,21 +51,30 @@ const KNOWN_PARAMS = new Set<string>([
 // type that doesn't read it gets a warning instead of a silently different
 // answer (e.g. a type=pages search with `topics`, which only filters charts
 // and topic recommendations).
-const PARAMS_BY_TYPE: Record<string, readonly SearchType[]> = {
-    [SearchUrlParam.COUNTRY]: ["charts", "topics"],
-    [SearchUrlParam.TOPIC]: ["charts", "topics"],
-    [SearchUrlParam.REQUIRE_ALL_COUNTRIES]: ["charts", "topics"],
-    pageTypes: ["pages"],
-}
+const PARAMS_BY_TYPE = new Map<string, readonly SearchType[]>([
+    [SearchUrlParam.COUNTRY, ["charts", "topics"]],
+    [SearchUrlParam.TOPIC, ["charts", "topics"]],
+    [SearchUrlParam.REQUIRE_ALL_COUNTRIES, ["charts", "topics"]],
+    ["pageTypes", ["pages"]],
+])
+
+// type=topics filters by country only when it searches charts, which needs a
+// query.
+const CHART_ONLY_PARAMS = new Set<string>([
+    SearchUrlParam.COUNTRY,
+    SearchUrlParam.REQUIRE_ALL_COUNTRIES,
+])
 
 const isSearchType = (value: string): value is SearchType =>
     (SEARCH_TYPES as readonly string[]).includes(value)
 
 // Hints for parameters people carry over from the search page's URL.
-const PARAM_HINTS: Record<string, string> = {
-    [SearchUrlParam.RESULT_TYPE]:
+const PARAM_HINTS = new Map<string, string>([
+    [
+        SearchUrlParam.RESULT_TYPE,
         'Use "type=pages" to search writing, "type=topics" for topic pages, or "type=charts" for charts.',
-}
+    ],
+])
 
 /**
  * The topic tag graph the site bakes to /topicTagGraph.json; it maps tag
@@ -117,23 +129,45 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         const unknownParams = sentParams.filter(
             (param) => !KNOWN_PARAMS.has(param) && !param.startsWith("utm_")
         )
+        // An empty value is as good as not sending the parameter
         const unusedParams = sentParams.filter(
-            (param) => PARAMS_BY_TYPE[param]?.includes(searchType) === false
+            (param) =>
+                url.searchParams.get(param) &&
+                PARAMS_BY_TYPE.get(param)?.includes(searchType) === false
         )
+        const queryless = !(
+            url.searchParams.get(SearchUrlParam.QUERY) ?? ""
+        ).trim()
+        const queryOnlyParams =
+            searchType === "topics" && queryless
+                ? sentParams.filter(
+                      (param) =>
+                          url.searchParams.get(param) &&
+                          CHART_ONLY_PARAMS.has(param)
+                  )
+                : []
         const warningList = [
             ...(unknownParams.length > 0
                 ? [
                       [
                           `Ignored unknown parameter(s): "${unknownParams.join('", "')}". Valid parameters: ${Array.from(KNOWN_PARAMS).join(", ")}.`,
                           ...unknownParams
-                              .map((param) => PARAM_HINTS[param])
+                              .map((param) => PARAM_HINTS.get(param))
                               .filter(Boolean),
                       ].join(" "),
                   ]
                 : []),
             ...unusedParams.map(
                 (param) =>
-                    `Ignored parameter "${param}": it applies only to ${PARAMS_BY_TYPE[param].map((type) => `type=${type}`).join(" and ")}.`
+                    `Ignored parameter "${param}": it applies only to ${PARAMS_BY_TYPE.get(
+                        param
+                    )!
+                        .map((type) => `type=${type}`)
+                        .join(" and ")}.`
+            ),
+            ...queryOnlyParams.map(
+                (param) =>
+                    `Ignored parameter "${param}": type=topics filters by country only with a query.`
             ),
         ]
         const warnings = warningList.length > 0 ? warningList : undefined
@@ -254,7 +288,9 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         // Extract base URL from request (for staging/preview deployments)
         const baseUrl = `${url.protocol}//${url.host}`
 
-        const search = (): Promise<object> => {
+        const search = (): Promise<
+            SearchApiResponse | SearchPagesApiResponse | SearchTopicsApiResponse
+        > => {
             switch (searchType) {
                 case "charts":
                     return searchCharts(

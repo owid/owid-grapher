@@ -87,6 +87,12 @@ export interface SearchApiResponse {
     closestMatches?: boolean
 }
 
+/** A type=topics response: page results that are never closest matches. */
+export type SearchTopicsApiResponse = Omit<
+    SearchPagesApiResponse,
+    "closestMatches"
+> & { closestMatches?: never }
+
 export interface SearchPagesApiResponse {
     query: string
     results: EnrichedSearchPageHit[]
@@ -306,7 +312,7 @@ export async function searchTopicPages(
     offset: number = 0,
     length: number = 10,
     baseUrl: string = "https://ourworldindata.org"
-): Promise<Omit<SearchPagesApiResponse, "closestMatches">> {
+): Promise<SearchTopicsApiResponse> {
     const client = createSearchClient(config)
 
     const result = await recommendTopicPages<SearchPageHit>(client, {

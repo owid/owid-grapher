@@ -332,6 +332,86 @@ describe("Search API endpoint", () => {
             ])
         })
 
+        it("treats a parameter named after an Object property as unknown", async () => {
+            vi.spyOn(searchApi, "searchCharts").mockResolvedValue(
+                chartsResponse
+            )
+
+            const request = new Request(
+                "http://localhost/api/search?q=deaths&toString=1&constructor=x"
+            )
+            const response = await onRequestGet({
+                request,
+                env: mockEnv,
+            } as any)
+
+            expect(response.status).toBe(200)
+            const body = await response.json()
+            assert(
+                typeof body === "object" && body !== null && "warnings" in body
+            )
+            expect(body.warnings).toEqual([
+                expect.stringMatching(
+                    /^Ignored unknown parameter\(s\): "toString", "constructor"\. Valid parameters: [^.]+\.$/
+                ),
+            ])
+        })
+
+        it("warns that type=topics filters by country only with a query", async () => {
+            const topicsResponse = {
+                query: "",
+                results: [],
+                nbHits: 0,
+                offset: 0,
+                length: 20,
+            }
+            vi.spyOn(searchApi, "searchTopicPages").mockResolvedValue(
+                topicsResponse
+            )
+            const warningsFor = async (qs: string): Promise<unknown> => {
+                const response = await onRequestGet({
+                    request: new Request(`http://localhost/api/search?${qs}`),
+                    env: mockEnv,
+                } as any)
+                const body = await response.json()
+                assert(typeof body === "object" && body !== null)
+                return "warnings" in body ? body.warnings : undefined
+            }
+
+            expect(
+                await warningsFor(
+                    "type=topics&countries=France&requireAllCountries=true&topics=Health"
+                )
+            ).toEqual([
+                'Ignored parameter "countries": type=topics filters by country only with a query.',
+                'Ignored parameter "requireAllCountries": type=topics filters by country only with a query.',
+            ])
+            expect(
+                await warningsFor("type=topics&q=gdp&countries=France")
+            ).toBeUndefined()
+        })
+
+        it("doesn't warn about a parameter sent without a value", async () => {
+            vi.spyOn(searchApi, "searchPages").mockResolvedValue({
+                query: "gdp",
+                results: [],
+                nbHits: 0,
+                offset: 0,
+                length: 20,
+            })
+
+            const response = await onRequestGet({
+                request: new Request(
+                    "http://localhost/api/search?q=gdp&type=pages&topics=&countries="
+                ),
+                env: mockEnv,
+            } as any)
+
+            const body = await response.json()
+            assert(typeof body === "object" && body !== null)
+            expect(body).not.toHaveProperty("warnings")
+        })
+
         it("accepts utm_* tags without a warning", async () => {
             vi.spyOn(searchApi, "searchCharts").mockResolvedValue(
                 chartsResponse

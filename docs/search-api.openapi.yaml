@@ -65,7 +65,8 @@ paths:
             leads with the Economic Growth page. `countries`, `topics` and
             `requireAllCountries` apply to that chart search. Without a query,
             or when no chart matches, topic pages are searched by their own
-            text, filtered by `topics` (`countries` doesn't apply there). Topic pages come in two layouts (a
+            text, filtered by `topics`; `countries` and
+            `requireAllCountries` don't apply there. Topic pages come in two layouts (a
             result's `type` is `topic-page` or `linear-topic-page`), and both
             are returned. `closestMatches` is never set on a `topics` response.
           required: false

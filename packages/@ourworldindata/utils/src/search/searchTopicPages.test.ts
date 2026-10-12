@@ -147,7 +147,7 @@ describe(searchTopicPagesOfMatchingCharts, () => {
         pagesIndexName: "pages",
         query: "gdp",
         chartsFacetFilters: [],
-        tagGraph,
+        loadTagGraph: (): Promise<TagGraphRoot> => Promise.resolve(tagGraph),
         attributesToRetrieve: ["title", "slug"],
         offset: 0,
         length: 10,
@@ -266,7 +266,12 @@ describe(searchTopicPagesOfMatchingCharts, () => {
 
         const result = await searchTopicPagesOfMatchingCharts<MockHit>(
             client as never,
-            { ...params, query: "popul", tagGraph: tagGraphWithPopulation }
+            {
+                ...params,
+                query: "popul",
+                loadTagGraph: (): Promise<TagGraphRoot> =>
+                    Promise.resolve(tagGraphWithPopulation),
+            }
         )
 
         expect(result?.hits.map((hit) => hit.slug)).toEqual([
@@ -278,15 +283,19 @@ describe(searchTopicPagesOfMatchingCharts, () => {
         expect(secondRequest.queryType).toBe("prefixLast")
     })
 
-    it("returns undefined without querying pages when no chart matched", async () => {
+    it("returns undefined without querying pages or loading the tag graph when no chart matched", async () => {
         const client = makeClient([{ hits: [] }, { hits: [] }])
+        const loadTagGraph = vi.fn((): Promise<TagGraphRoot> =>
+            Promise.resolve(tagGraph)
+        )
 
         const result = await searchTopicPagesOfMatchingCharts<MockHit>(
             client as never,
-            params
+            { ...params, loadTagGraph }
         )
 
         expect(result).toBeUndefined()
+        expect(loadTagGraph).not.toHaveBeenCalled()
         expect(client.searchForHits).toHaveBeenCalledTimes(2)
     })
 })

@@ -103,7 +103,8 @@ export async function searchTopicPagesOfMatchingCharts<
         pagesIndexName: string
         query: string
         chartsFacetFilters: SearchFacetFilters
-        tagGraph: TagGraphRoot
+        /** Only called once a chart has matched. */
+        loadTagGraph: () => Promise<TagGraphRoot>
         attributesToRetrieve: string[]
         offset: number
         length: number
@@ -131,9 +132,10 @@ export async function searchTopicPagesOfMatchingCharts<
     let chartsResponse = await searchCharts("prefixNone")
     if (chartsResponse.hits.length === 0)
         chartsResponse = await searchCharts("prefixLast")
+    if (chartsResponse.hits.length === 0) return undefined
     const rankedTopics = rankTopicsOfChartHits(
         chartsResponse.hits,
-        params.tagGraph
+        await params.loadTagGraph()
     )
     if (rankedTopics.length === 0) return undefined
 
@@ -188,20 +190,19 @@ export async function recommendTopicPages<THit extends { slug: string }>(
         chartsIndexName: string
         pagesIndexName: string
         state: Pick<SearchState, "query" | "filters" | "requireAllCountries">
-        /** Only called when the charts are searched, i.e. with a query. */
+        /** Only called once a chart has matched the query. */
         loadTagGraph: () => Promise<TagGraphRoot>
         attributesToRetrieve: string[]
         offset: number
         length: number
     }
 ): Promise<SearchResponse<THit>> {
-    const { state, loadTagGraph, ...rest } = params
+    const { state, ...rest } = params
     if (state.query.trim()) {
         const response = await searchTopicPagesOfMatchingCharts<THit>(
             liteSearchClient,
             {
                 ...rest,
-                tagGraph: await loadTagGraph(),
                 query: state.query,
                 chartsFacetFilters: buildChartsFacetFilters(state),
             }
