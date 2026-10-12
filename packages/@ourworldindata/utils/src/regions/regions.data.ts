@@ -6795,6 +6795,7 @@ export const regionsData = [
             "CHE",
             "CYP",
             "CZE",
+            "DEU",
             "DNK",
             "ESP",
             "EST",
