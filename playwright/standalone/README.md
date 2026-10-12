@@ -1,16 +1,26 @@
-# Chart editor browser tests
+# Standalone browser tests
 
-Playwright tests for the admin's chart editor. Nearly every editor control has a
-test that checks it changes the right field in the chart's config.
+Playwright tests that bring their own stack and data, so they run anywhere
+(including CI) without a dev environment:
+
+- **Chart editor.** Nearly every editor control has a test that checks it
+  changes the right field in the chart's config.
+- **Grapher pages.** `grapherSandbox.test.ts` embeds a grapher page in an
+  `<iframe sandbox="allow-scripts">`, where cookies and storage are blocked.
 
 ```bash
-yarn testPlaywrightAdmin                  # the whole suite
-yarn testPlaywrightAdmin adminMapTab      # one file
-yarn testPlaywrightAdmin --grep "log/linear"
+yarn testPlaywrightStandalone                  # the whole suite
+yarn testPlaywrightStandalone adminMapTab      # one file
+yarn testPlaywrightStandalone --grep "log/linear"
 ```
 
 The run starts its own stack (via `db/tests/run-db-tests.sh`): the db-test MySQL
-container, migrations, a build of the admin client, and the admin server on port 8765. This takes about half a minute before the first test runs.
+container, migrations, builds of the admin and site clients, and the admin
+server on port 8765, which also serves grapher pages (`/grapher/<slug>`). This
+takes about half a minute before the first test runs.
+
+The tests that need a running dev site (search, Wikipedia archive) live one
+level up and run with `yarn testPlaywrightDevSite`.
 
 ## How it works
 
