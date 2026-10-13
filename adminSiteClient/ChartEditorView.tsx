@@ -83,11 +83,12 @@ export class ChartEditorView extends React.Component<ChartEditorViewProps> {
     constructor(props: ChartEditorViewProps) {
         super(props)
 
-        makeObservable<ChartEditorView, "_isDbSet">(this, {
+        makeObservable<ChartEditorView, "_isDbSet" | "isChartLoaded">(this, {
             database: observable.ref,
             details: observable,
             simulateVisionDeficiency: observable,
             _isDbSet: observable,
+            isChartLoaded: observable,
         })
     }
 
@@ -102,6 +103,8 @@ export class ChartEditorView extends React.Component<ChartEditorViewProps> {
     }
 
     private _isDbSet = false
+    // Edits made before the chart's data arrives would be marked as saved
+    private isChartLoaded = false
     @computed get isReady(): boolean {
         return this._isDbSet
     }
@@ -112,10 +115,15 @@ export class ChartEditorView extends React.Component<ChartEditorViewProps> {
         // Loading the config isn't an edit, so it mustn't count as unsaved
         // while the data loads (or if it fails to)
         this.manager.editor.markAsSaved()
-        await this.manager.editor.reloadGrapherData()
-        this.grapherState.externalBounds = this.bounds
-
-        this.manager.editor.markAsSaved()
+        try {
+            await this.manager.editor.reloadGrapherData()
+        } finally {
+            runInAction(() => {
+                this.grapherState.externalBounds = this.bounds
+                this.manager.editor.markAsSaved()
+                this.isChartLoaded = true
+            })
+        }
 
         const { initialQueryParams } = this.manager
         if (initialQueryParams)
@@ -349,7 +357,7 @@ export class ChartEditorView extends React.Component<ChartEditorViewProps> {
     override render(): React.ReactElement {
         return (
             <main className="ChartEditorPage">
-                <LoadingBlocker isLoading={this.editor === undefined} />
+                <LoadingBlocker isLoading={!this.isChartLoaded} />
                 {this.editor !== undefined && this.renderReady(this.editor)}
             </main>
         )

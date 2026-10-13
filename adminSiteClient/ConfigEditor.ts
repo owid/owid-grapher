@@ -380,10 +380,21 @@ export class ConfigEditor {
         }
         runInAction(() => {
             const savedPatch = saved ?? patchConfig
-            if (this.configsDiffer(savedPatch, patchConfig))
+            // An edit made while the save ran stays, as an unsaved change
+            const editedWhileSaving = this.configsDiffer(
+                this.patchConfig,
+                patchConfig
+            )
+            if (
+                !editedWhileSaving &&
+                this.configsDiffer(savedPatch, patchConfig)
+            ) {
                 this.updateLiveGrapher(
                     mergeGrapherConfigs(this.baseConfig ?? {}, savedPatch)
                 )
+                if (!_.isEqual(savedPatch.dimensions, patchConfig.dimensions))
+                    void this.reloadGrapherData()
+            }
             this.markAsSaved(savedPatch)
         })
     }
@@ -399,5 +410,5 @@ function writeTabToUrl(tab: EditorTabKey): void {
     const url = new URL(window.location.href)
     if (tab === "basic") url.searchParams.delete("tab")
     else url.searchParams.set("tab", tab)
-    window.history.replaceState({}, "", url.toString())
+    window.history.replaceState(window.history.state, "", url.toString())
 }
