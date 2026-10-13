@@ -8,6 +8,7 @@ import {
     Time,
 } from "@ourworldindata/types"
 import { OwidTable } from "@ourworldindata/core-table"
+import { convertDateToDaysSinceEpoch, dayjs } from "@ourworldindata/utils"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
 import { AxisConfig } from "../axis/AxisConfig"
 import { HorizontalAxis } from "../axis/Axis"
@@ -35,6 +36,16 @@ function makeCategoricalTable(rows: Observation[]): OwidTable {
 function makeOrdinalTable(rows: Observation[]): OwidTable {
     return new OwidTable(rows, [
         { slug: "status", type: ColumnTypeNames.Ordinal, sort: ICD_REVISIONS },
+    ])
+}
+
+function makeTableWithTimeColumnType(
+    timeColumnType: ColumnTypeNames,
+    rows: Observation[]
+): OwidTable {
+    return new OwidTable(rows, [
+        { slug: "time", type: timeColumnType },
+        { slug: "status", type: ColumnTypeNames.String },
     ])
 }
 
@@ -220,6 +231,110 @@ describe("segments", () => {
     })
 })
 
+describe("segments across time intervals", () => {
+    const daysSinceEpoch = (iso: string): number =>
+        convertDateToDaysSinceEpoch(dayjs.utc(iso))
+
+    it("merges consecutive months, whatever their length", () => {
+        const [jan, feb, mar, apr] = [
+            "2021-01-01",
+            "2021-02-01",
+            "2021-03-01",
+            "2021-04-01",
+        ].map(daysSinceEpoch)
+        const chartState = makeChartState(
+            makeTableWithTimeColumnType(ColumnTypeNames.Month, [
+                { entityName: "France", time: jan, status: "X" },
+                { entityName: "France", time: feb, status: "X" },
+                { entityName: "France", time: mar, status: "X" },
+                { entityName: "France", time: apr, status: "Y" },
+            ])
+        )
+
+        expect(findSegments(chartState, "France")).toEqual([
+            {
+                kind: "category",
+                category: "X",
+                startTime: jan,
+                endTime: mar,
+                visibleStartTime: jan,
+                visibleEndTime: mar,
+            },
+            {
+                kind: "category",
+                category: "Y",
+                startTime: apr,
+                endTime: apr,
+                visibleStartTime: apr,
+                visibleEndTime: apr,
+            },
+        ])
+    })
+
+    it("merges consecutive weeks", () => {
+        const [week1, week2, week3] = [
+            "2021-01-04",
+            "2021-01-11",
+            "2021-01-18",
+        ].map(daysSinceEpoch)
+        const chartState = makeChartState(
+            makeTableWithTimeColumnType(ColumnTypeNames.Week, [
+                { entityName: "France", time: week1, status: "X" },
+                { entityName: "France", time: week2, status: "X" },
+                { entityName: "France", time: week3, status: "X" },
+            ])
+        )
+
+        expect(findSegments(chartState, "France")).toHaveLength(1)
+    })
+
+    it("merges consecutive decades", () => {
+        const chartState = makeChartState(
+            makeTableWithTimeColumnType(ColumnTypeNames.Decade, [
+                { entityName: "France", time: 1950, status: "X" },
+                { entityName: "France", time: 1960, status: "X" },
+                { entityName: "France", time: 1970, status: "Y" },
+            ])
+        )
+
+        expect(findSegments(chartState, "France")).toEqual([
+            {
+                kind: "category",
+                category: "X",
+                startTime: 1950,
+                endTime: 1960,
+                visibleStartTime: 1950,
+                visibleEndTime: 1960,
+            },
+            {
+                kind: "category",
+                category: "Y",
+                startTime: 1970,
+                endTime: 1970,
+                visibleStartTime: 1970,
+                visibleEndTime: 1970,
+            },
+        ])
+    })
+
+    it("marks a skipped period as missing", () => {
+        const [jan, feb, mar] = ["2021-01-01", "2021-02-01", "2021-03-01"].map(
+            daysSinceEpoch
+        )
+        const chartState = makeChartState(
+            makeTableWithTimeColumnType(ColumnTypeNames.Month, [
+                { entityName: "France", time: jan, status: "X" },
+                { entityName: "France", time: mar, status: "X" },
+                { entityName: "Germany", time: feb, status: "X" },
+            ])
+        )
+
+        expect(
+            findSegments(chartState, "France").map((segment) => segment.kind)
+        ).toEqual(["category", "missing", "category"])
+    })
+})
+
 describe("x axis", () => {
     function makeAxis(table: OwidTable): HorizontalAxis {
         const axis = makeChartState(table).toHorizontalAxis(
@@ -252,6 +367,66 @@ describe("x axis", () => {
         )
 
         expect(axis.domain).toEqual([2004, 2005])
+    })
+})
+
+describe("x axis across time intervals", () => {
+    const daysSinceEpoch = (iso: string): number =>
+        convertDateToDaysSinceEpoch(dayjs.utc(iso))
+
+    it("ends one month past the last month, which has its own length", () => {
+        const chartState = makeChartState(
+            makeTableWithTimeColumnType(ColumnTypeNames.Month, [
+                {
+                    entityName: "France",
+                    time: daysSinceEpoch("2021-01-01"),
+                    status: "X",
+                },
+                {
+                    entityName: "France",
+                    time: daysSinceEpoch("2021-02-01"),
+                    status: "Y",
+                },
+            ])
+        )
+
+        expect(chartState.visiblePeriodsEndTime).toEqual(
+            daysSinceEpoch("2021-03-01")
+        )
+        expect(chartState.toHorizontalAxis(new AxisConfig()).domain).toEqual([
+            daysSinceEpoch("2021-01-01"),
+            daysSinceEpoch("2021-03-01"),
+        ])
+    })
+
+    it("labels no month past the last one", () => {
+        const [jan, feb, mar] = ["2021-01-01", "2021-02-01", "2021-03-01"].map(
+            daysSinceEpoch
+        )
+        const axis = makeChartState(
+            makeTableWithTimeColumnType(ColumnTypeNames.Month, [
+                { entityName: "France", time: jan, status: "X" },
+                { entityName: "France", time: feb, status: "Y" },
+            ])
+        ).toHorizontalAxis(new AxisConfig(SWIMLANE_X_AXIS_CONFIG_DEFAULTS))
+        axis.range = [0, 500]
+
+        const tickValues = axis.tickLabels.map((label) => label.value)
+        expect(tickValues).toContain(feb)
+        expect(tickValues).not.toContain(mar)
+    })
+
+    it("ends one decade past the last decade", () => {
+        const chartState = makeChartState(
+            makeTableWithTimeColumnType(ColumnTypeNames.Decade, [
+                { entityName: "France", time: 1950, status: "X" },
+                { entityName: "France", time: 1960, status: "Y" },
+            ])
+        )
+
+        expect(chartState.toHorizontalAxis(new AxisConfig()).domain).toEqual([
+            1950, 1970,
+        ])
     })
 })
 

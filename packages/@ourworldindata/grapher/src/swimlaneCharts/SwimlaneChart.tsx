@@ -321,10 +321,13 @@ export class SwimlaneChart
     }
 
     @computed private get placedSeries(): PlacedSwimlaneSeries[] {
+        const { visiblePeriodsEndTime } = this.chartState
+        if (visiblePeriodsEndTime === undefined) return []
         return toPlacedSwimlaneSeries({
             series: this.sizedSeries,
             bounds: this.innerBounds,
             placeTime: (time) => this.xAxis.place(time),
+            visiblePeriodsEndTime,
         })
     }
 

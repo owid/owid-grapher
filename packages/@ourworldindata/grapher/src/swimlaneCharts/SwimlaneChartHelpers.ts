@@ -123,10 +123,12 @@ export function toPlacedSwimlaneSeries({
     series: allSeries,
     bounds,
     placeTime,
+    visiblePeriodsEndTime,
 }: {
     series: SizedSwimlaneSeries[]
     bounds: Bounds
     placeTime: (time: Time) => number
+    visiblePeriodsEndTime: Time
 }): PlacedSwimlaneSeries[] {
     if (allSeries.length === 0) return []
 
@@ -146,6 +148,7 @@ export function toPlacedSwimlaneSeries({
             const extents = toContiguousSegmentExtents({
                 segments,
                 placeTime,
+                visiblePeriodsEndTime,
             })
             const placedSegments: PlacedSwimlaneSegment[] = segments.map(
                 (segment, segmentIndex): PlacedSwimlaneSegment => ({
@@ -269,15 +272,17 @@ export function findLaneAtY(
 function toContiguousSegmentExtents({
     segments,
     placeTime,
+    visiblePeriodsEndTime,
 }: {
     segments: RawSwimlaneSegment[]
     placeTime: (time: Time) => number
+    visiblePeriodsEndTime: Time
 }): { x: number; width: number }[] {
     return segments.map((segment, index) => {
         const nextSegment = segments[index + 1]
         const x = placeTime(segment.visibleStartTime)
         const right = placeTime(
-            nextSegment?.visibleStartTime ?? segment.visibleEndTime + 1
+            nextSegment?.visibleStartTime ?? visiblePeriodsEndTime
         )
         return { x, width: right - x }
     })

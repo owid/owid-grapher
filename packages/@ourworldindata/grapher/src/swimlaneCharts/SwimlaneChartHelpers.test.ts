@@ -68,9 +68,15 @@ function makeSizedSeries(
 
 function placeLanes(
     series: SizedSwimlaneSeries[],
-    bounds = new Bounds(0, 0, 200, 400)
+    bounds = new Bounds(0, 0, 200, 400),
+    visiblePeriodsEndTime: Time = 2005
 ): PlacedSwimlaneSeries[] {
-    return toPlacedSwimlaneSeries({ series, bounds, placeTime })
+    return toPlacedSwimlaneSeries({
+        series,
+        bounds,
+        placeTime,
+        visiblePeriodsEndTime,
+    })
 }
 
 describe("placement", () => {
@@ -90,6 +96,16 @@ describe("placement", () => {
             { x: 20, width: 20 },
             { x: 40, width: 10 },
         ])
+    })
+
+    it("ends the last segment at the plot end, however long a period is", () => {
+        const [lane] = placeLanes(
+            [makeSizedSeries("France", [makeCategorySegment("X", 2000, 2010)])],
+            new Bounds(0, 0, 200, 400),
+            2020
+        )
+
+        expect(lane.placedSegments[0]).toMatchObject({ x: 0, width: 200 })
     })
 
     it("caps a lone lane at the maximum lane height and centers it", () => {
@@ -118,13 +134,17 @@ describe("placement", () => {
 })
 
 describe("hit-testing", () => {
-    const [france, germany] = placeLanes([
-        makeSizedSeries("France", [
-            makeCategorySegment("X", 2000, 2001),
-            makeCategorySegment("Y", 2002, 2003),
-        ]),
-        makeSizedSeries("Germany", [makeCategorySegment("X", 2000, 2003)]),
-    ])
+    const [france, germany] = placeLanes(
+        [
+            makeSizedSeries("France", [
+                makeCategorySegment("X", 2000, 2001),
+                makeCategorySegment("Y", 2002, 2003),
+            ]),
+            makeSizedSeries("Germany", [makeCategorySegment("X", 2000, 2003)]),
+        ],
+        new Bounds(0, 0, 200, 400),
+        2004
+    )
     const [x, y] = france.placedSegments
 
     it("finds a segment from its start up to, but not including, its end", () => {

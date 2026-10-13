@@ -20,6 +20,7 @@ import {
     CoreColumn,
     ColumnTypeMap,
 } from "@ourworldindata/core-table"
+import { addTimeIntervals, countTimeIntervals } from "@ourworldindata/utils"
 import { ChartState } from "../chart/ChartInterface"
 import { ColorScale, ColorScaleManager } from "../color/ColorScale"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
@@ -151,7 +152,11 @@ export class SwimlaneChartState implements ChartState, ColorScaleManager {
     @computed private get allTimesAsc(): Time[] {
         const { numValues, minTime, maxTime } = this.inputYColumn
         if (numValues === 0) return []
-        return R.range(minTime, maxTime + 1)
+        const { timeInterval } = this.inputTable.timeColumn
+        return R.range(
+            0,
+            countTimeIntervals(minTime, maxTime, timeInterval) + 1
+        ).map((count) => addTimeIntervals(minTime, count, timeInterval))
     }
 
     @computed get visibleTimesAsc(): Time[] {
@@ -159,6 +164,16 @@ export class SwimlaneChartState implements ChartState, ColorScaleManager {
         const times = this.allTimesAsc
         if (startTime === undefined || endTime === undefined) return times
         return times.filter((time) => time >= startTime && time <= endTime)
+    }
+
+    @computed get visiblePeriodsEndTime(): Time | undefined {
+        const lastTime = R.last(this.visibleTimesAsc)
+        if (lastTime === undefined) return undefined
+        return addTimeIntervals(
+            lastTime,
+            1,
+            this.inputTable.timeColumn.timeInterval
+        )
     }
 
     @computed private get unsortedSeries(): SwimlaneSeries[] {
@@ -249,11 +264,9 @@ export class SwimlaneChartState implements ChartState, ColorScaleManager {
 
     toHorizontalAxis(config: AxisConfig): HorizontalAxis {
         const axis = config.toHorizontalAxis()
-        const lastTime = R.last(this.visibleTimesAsc)
-        // The last segment runs one step past the last time
         axis.updateDomainPreservingUserSettings([
             R.first(this.visibleTimesAsc),
-            lastTime === undefined ? undefined : lastTime + 1,
+            this.visiblePeriodsEndTime,
         ])
         axis.scaleType = ScaleType.linear
         axis.formatColumn = this.inputTable.timeColumn
