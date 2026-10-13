@@ -83,8 +83,9 @@ export interface ConfigEditorManager {
         config: GrapherInterface,
         editor: ConfigEditor
     ) => void | GrapherInterface | Promise<void | GrapherInterface>
+    /** Called with the config when it loads and after every edit */
     onChange?: (config: GrapherInterface, editor: ConfigEditor) => void
-    /** Called when the config gains or loses unsaved changes (each editor starts clean) */
+    /** Called when the config gains or loses unsaved changes; each editor starts without any */
     onDirtyChange?: (isModified: boolean) => void
 
     tabs?: EditorTabName[]
@@ -145,6 +146,12 @@ export class ConfigEditor {
             showStaticPreview: observable.ref,
         })
 
+        this.markAsSaved()
+        this.start()
+    }
+
+    start(): void {
+        if (this.disposers.length > 0) return
         this.disposers.push(
             reaction(
                 () => this.patchConfig,
@@ -203,7 +210,7 @@ export class ConfigEditor {
     }
 
     dispose(): void {
-        this.disposers.forEach((dispose) => dispose())
+        this.disposers.splice(0).forEach((dispose) => dispose())
     }
 
     @computed get originalGrapherConfig(): GrapherInterface {
@@ -373,10 +380,21 @@ export class ConfigEditor {
         }
         runInAction(() => {
             const savedPatch = saved ?? patchConfig
-            if (this.configsDiffer(savedPatch, patchConfig))
+            // An edit made while the save ran stays, as an unsaved change
+            const editedWhileSaving = this.configsDiffer(
+                this.patchConfig,
+                patchConfig
+            )
+            if (
+                !editedWhileSaving &&
+                this.configsDiffer(savedPatch, patchConfig)
+            ) {
                 this.updateLiveGrapher(
                     mergeGrapherConfigs(this.baseConfig ?? {}, savedPatch)
                 )
+                if (!_.isEqual(savedPatch.dimensions, patchConfig.dimensions))
+                    void this.reloadGrapherData()
+            }
             this.markAsSaved(savedPatch)
         })
     }
@@ -392,5 +410,5 @@ function writeTabToUrl(tab: EditorTabKey): void {
     const url = new URL(window.location.href)
     if (tab === "basic") url.searchParams.delete("tab")
     else url.searchParams.set("tab", tab)
-    window.history.replaceState({}, "", url.toString())
+    window.history.replaceState(window.history.state, "", url.toString())
 }
