@@ -231,8 +231,8 @@
 .peer-ranking__dot {
     position: absolute;
     top: 50%;
-    width: 10px;
-    height: 10px;
+    width: var(--peer-ranking-dot-size, 10px);
+    height: var(--peer-ranking-dot-size, 10px);
     transform: translate(-50%, -50%);
     border-radius: 50%;
     background-color: $blue-40;
@@ -240,8 +240,8 @@
 }
 
 .peer-ranking__row--current .peer-ranking__dot {
-    width: 14px;
-    height: 14px;
+    width: calc(var(--peer-ranking-dot-size, 10px) + 4px);
+    height: calc(var(--peer-ranking-dot-size, 10px) + 4px);
     background-color: $blue-100;
     box-shadow: 0 0 0 2px $blue-5;
 }
