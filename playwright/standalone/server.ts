@@ -1,9 +1,9 @@
 /**
- * Starts the stack the admin browser tests run against: the admin server and
- * a Vite dev server for the admin client, both on a freshly reset test
- * database seeded with the synthetic indicators from `fixture.ts`, plus a
- * stand-in for the data API that serves those indicators' data and metadata
- * files.
+ * Starts the stack the standalone browser tests run against: the admin server
+ * (which also serves grapher pages) and the admin and site clients, on a
+ * freshly reset test database seeded with the synthetic indicators from
+ * `fixture.ts`, plus a stand-in for the data API that serves those
+ * indicators' data and metadata files.
  *
  * Tests only ever add rows (every test seeds its own charts), so the seeded
  * indicators are shared read-only by all workers.
@@ -140,32 +140,48 @@ function startDataApi(): Promise<http.Server> {
     )
 }
 
-/** Builds the admin client, or starts a dev server for it if requested */
-async function startAdminClient(): Promise<ViteDevServer | undefined> {
-    const configFile = "vite.config-admin.mts"
-    if (useViteDevServer) {
-        const vite = await createServer({
-            configFile,
-            logLevel: "warn",
-            server: { host: HOST, port: VITE_PORT, strictPort: true },
-        })
-        await vite.listen()
-        return vite
-    }
+function buildBundle(configFile: string, outDir: string): Promise<unknown> {
     // Through the CLI, since rolldown panics when building inside tsx
-    await promisify(execFile)(
+    return promisify(execFile)(
         "yarn",
         [
             "vite",
             "build",
             `--config=${configFile}`,
-            `--outDir=${TEST_VITE_DIST_DIR}/assets-admin`,
+            `--outDir=${TEST_VITE_DIST_DIR}/${outDir}`,
             "--emptyOutDir",
             "--sourcemap=false",
             "--logLevel=warn",
         ],
         { maxBuffer: 64 * 1024 * 1024 }
     )
+}
+
+/**
+ * Builds the admin client and the site bundle (which renders the grapher
+ * pages), or starts a dev server that serves both if requested
+ */
+async function startClients(): Promise<ViteDevServer | undefined> {
+    if (useViteDevServer) {
+        const vite = await createServer({
+            configFile: "vite.config-admin.mts",
+            logLevel: "warn",
+            // CORS for grapher pages embedded in sandboxed iframes, which
+            // request their scripts from an opaque origin
+            server: {
+                host: HOST,
+                port: VITE_PORT,
+                strictPort: true,
+                cors: true,
+            },
+        })
+        await vite.listen()
+        return vite
+    }
+    await Promise.all([
+        buildBundle("vite.config-admin.mts", "assets-admin"),
+        buildBundle("vite.config-site.mts", "assets"),
+    ])
     return undefined
 }
 
@@ -174,8 +190,15 @@ async function main(): Promise<void> {
     await seedFixture(database.testKnex, database.userId)
 
     const dataApi = await startDataApi()
-    const vite = await startAdminClient()
+    const vite = await startClients()
     const app = new OwidAdminApp({ isDev: true, isTest: true, quiet: true })
+    // Grapher pages embedded in sandboxed iframes load their (module) scripts
+    // from an opaque origin, which needs CORS. Registered before the app's own
+    // routes, so that it runs first.
+    app.app.use("/assets", (_req, res, next) => {
+        res.set("Access-Control-Allow-Origin", "*")
+        next()
+    })
     await app.startListening(ADMIN_SERVER_PORT, HOST)
 
     let isStopping = false
