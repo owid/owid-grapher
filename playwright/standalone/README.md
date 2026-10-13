@@ -5,7 +5,7 @@ Playwright tests that bring their own stack and data, so they run anywhere
 
 - **Chart editor.** Nearly every editor control has a test that checks it
   changes the right field in the chart's config.
-- **Grapher pages.** `grapherSandbox.test.ts` embeds a grapher page in an
+- **Grapher pages.** `grapherSandboxedIframe.test.ts` embeds a grapher page in an
   `<iframe sandbox="allow-scripts">`, where cookies and storage are blocked.
 
 ```bash
