@@ -54,26 +54,16 @@ async function expectPreviewShowsChart(
 }
 
 /**
- * Holds back the requests for chart configs until the editor's indicator
- * database has loaded. The editor applies the config layers to the chart
- * once, when that database arrives, so a page that mounts the editor before
- * its config is here opens an empty chart. With the few test indicators the
- * database is usually faster anyway; this makes the order deterministic.
- *
- * A page that waits for its config before mounting the editor never requests
- * the database first, so the config is released after a while regardless.
+ * Holds back the requests for chart configs, so the page renders well before
+ * they arrive. The editor applies the config layers to the chart once, as it
+ * mounts, so a page that mounts the editor before its config is here opens an
+ * empty chart.
  */
-async function delayConfigUntilDatabaseLoaded(page: Page): Promise<void> {
-    const databaseLoaded = page
-        .waitForResponse((response) =>
-            response.url().endsWith("/api/editorData/variables.json")
-        )
-        .catch(() => undefined)
-    const timeout = new Promise((resolve) => setTimeout(resolve, 2_000))
+async function delayConfigs(page: Page): Promise<void> {
     await page.route(
         (url) => url.pathname.endsWith(".config.json"),
         async (route) => {
-            await Promise.race([databaseLoaded, timeout])
+            await new Promise((resolve) => setTimeout(resolve, 1_000))
             await route.continue()
         }
     )
@@ -90,7 +80,7 @@ test("opens a narrative chart on its config", async ({
         title: "A narrative chart",
     })
 
-    await delayConfigUntilDatabaseLoaded(page)
+    await delayConfigs(page)
     await page.goto(`/admin/narrative-charts/${narrativeChart.id}/edit`, {
         waitUntil: "commit",
     })
@@ -114,7 +104,7 @@ test("creates a narrative chart from its parent's config", async ({
         title: "The parent view",
     })
 
-    await delayConfigUntilDatabaseLoaded(page)
+    await delayConfigs(page)
     await page.goto(
         `/admin/narrative-charts/create?type=multiDim&chartConfigId=${chartConfigId}`,
         { waitUntil: "commit" }
@@ -134,7 +124,7 @@ test("saving a narrative chart stores its edits with the props it always owns", 
         parent,
         lineChart(indicators.lifeExpectancy)
     )
-    await delayConfigUntilDatabaseLoaded(page)
+    await delayConfigs(page)
     await page.goto(`/admin/narrative-charts/${narrativeChart.id}/edit`, {
         waitUntil: "commit",
     })

@@ -10,7 +10,6 @@ import {
     IReactionDisposer,
     makeObservable,
     comparer,
-    when,
 } from "mobx"
 import { Prompt } from "react-router-dom"
 import {
@@ -59,7 +58,6 @@ import {
     ErrorMessagesForDimensions,
     FieldWithDetailReferences,
 } from "./ChartEditorTypes.js"
-import { EditorDatabase } from "./EditorDatabase.js"
 import { DetailsProvider } from "./editorProviders.js"
 
 export type DetailReferences = Record<FieldWithDetailReferences, string[]>
@@ -77,18 +75,16 @@ interface ChartEditorViewProps {
 
 @observer
 export class ChartEditorView extends React.Component<ChartEditorViewProps> {
-    database = EditorDatabase.empty()
     details: DetailDictionary = {}
     private cleanupDetailsOnDemand: (() => void) | undefined
 
     constructor(props: ChartEditorViewProps) {
         super(props)
 
-        makeObservable<ChartEditorView, "_isDbSet">(this, {
-            database: observable.ref,
+        makeObservable<ChartEditorView, "isConfigApplied">(this, {
             details: observable,
             simulateVisionDeficiency: observable,
-            _isDbSet: observable,
+            isConfigApplied: observable,
         })
     }
 
@@ -102,14 +98,14 @@ export class ChartEditorView extends React.Component<ChartEditorViewProps> {
         return this.props.manager
     }
 
-    private _isDbSet = false
-    @computed get isReady(): boolean {
-        return this._isDbSet
-    }
+    // The tabs arm reactions on the chart as they mount, and React mounts them
+    // before this view's componentDidMount, so they wait for the config
+    private isConfigApplied = false
 
     @action.bound async loadInitialConfig(): Promise<void> {
         const config = this.manager.editor.originalGrapherConfig
         this.manager.editor.grapherState.updateFromObject(config)
+        this.isConfigApplied = true
         await this.manager.editor.reloadGrapherData()
         this.grapherState.externalBounds = this.bounds
 
@@ -118,19 +114,6 @@ export class ChartEditorView extends React.Component<ChartEditorViewProps> {
         const { initialQueryParams } = this.manager
         if (initialQueryParams)
             this.grapherState.populateFromQueryParams(initialQueryParams)
-    }
-
-    @action.bound private setDb(database: EditorDatabase): void {
-        this.database = database
-        this._isDbSet = true
-    }
-
-    async fetchData(): Promise<void> {
-        const { catalog: indicators } = this.manager.editor.store
-        const catalog = indicators
-            ? await indicators.load()
-            : { namespaces: [], datasets: [] }
-        this.setDb(new EditorDatabase(catalog))
     }
 
     async fetchDetails(): Promise<void> {
@@ -294,25 +277,13 @@ export class ChartEditorView extends React.Component<ChartEditorViewProps> {
     }
 
     @computed get editor(): ConfigEditor | undefined {
-        if (!this.isReady) return undefined
+        if (!this.isConfigApplied) return undefined
 
         return this.manager.editor
     }
 
-    @action.bound refresh(): void {
-        void this.fetchDetails()
-        void this.fetchData()
-    }
-
     override componentDidMount(): void {
-        this.disposers.push(
-            when(
-                () => this.editor !== undefined,
-                () => {
-                    void this.loadInitialConfig()
-                }
-            )
-        )
+        void this.loadInitialConfig()
         this.disposers.push(
             reaction(
                 () => this.editor && this.editor.previewMode,
@@ -335,7 +306,7 @@ export class ChartEditorView extends React.Component<ChartEditorViewProps> {
                 { equals: comparer.structural }
             )
         )
-        this.refresh()
+        void this.fetchDetails()
     }
 
     disposers: IReactionDisposer[] = []
@@ -414,7 +385,6 @@ export class ChartEditorView extends React.Component<ChartEditorViewProps> {
                         {activeTab === "basic" && (
                             <EditorBasicTab
                                 editor={editor}
-                                database={this.database}
                                 errorMessagesForDimensions={
                                     this.errorMessagesForDimensions
                                 }

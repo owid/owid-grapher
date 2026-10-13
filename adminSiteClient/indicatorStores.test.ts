@@ -29,13 +29,27 @@ function makeStore() {
 
 describe(csvIndicatorStore, () => {
     it("offers every data column as a pickable indicator, categorical ones included", async () => {
-        const catalog = await makeStore().catalog!.load()
-        expect(catalog.namespaces.map((n) => n.name)).toEqual(["housing.csv"])
-        expect(catalog.datasets[0].variables).toEqual([
-            { id: 1, slug: "rent_index", name: "Rent index" },
-            { id: 2, slug: "vacancy_rate", name: "vacancy_rate" },
-            { id: 3, slug: "region", name: "region" },
+        const page = await makeStore().catalog!.search("", 1)
+        expect(page.datasets.map((dataset) => dataset.name)).toEqual([
+            "housing.csv",
         ])
+        expect(page.datasets[0].variables).toEqual([
+            { id: 1, name: "Rent index", column: { slug: "rent_index" } },
+            { id: 2, name: "vacancy_rate", column: { slug: "vacancy_rate" } },
+            { id: 3, name: "region", column: { slug: "region" } },
+        ])
+    })
+
+    it("searches the columns by name and by slug", async () => {
+        const catalog = makeStore().catalog!
+        const names = async (query: string): Promise<string[]> =>
+            (await catalog.search(query, 1)).datasets.flatMap((dataset) =>
+                dataset.variables.map((variable) => variable.name)
+            )
+        expect(await names("rent")).toEqual(["Rent index"])
+        expect(await names("vacancy_r")).toEqual(["vacancy_rate"])
+        expect(await names("-rent")).toEqual(["vacancy_rate", "region"])
+        expect(await names("nothing")).toEqual([])
     })
 
     it("serves the columns the dimensions name, under the host's own slugs", async () => {

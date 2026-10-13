@@ -25,6 +25,10 @@ export interface VariableSearchBox {
     fields?: readonly SearchFieldHelp[]
 }
 
+// A regex search over ~800k indicators takes seconds, so don't fire one off on
+// every keystroke
+export const SEARCH_DEBOUNCE_MS = 300
+
 export type SearchHighlighter = ReturnType<
     typeof highlightFunctionForSearchWords
 >

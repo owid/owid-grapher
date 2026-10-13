@@ -44,10 +44,14 @@ import {
     areSetsEqual,
 } from "@ourworldindata/utils"
 import { Section } from "./Forms.js"
-import { PickedColumn, VariableSelector } from "./VariableSelector.js"
+import { VariableSelector } from "./VariableSelector.js"
+import {
+    columnKey,
+    columnOfDimension,
+    type PickedColumn,
+} from "./editorProviders.js"
 import { DimensionCard } from "./DimensionCard.js"
 import { ConfigEditor } from "./ConfigEditor.js"
-import { EditorDatabase } from "./EditorDatabase.js"
 import { ErrorMessagesForDimensions } from "./ChartEditorTypes.js"
 import { EditableTags } from "./EditableTags.js"
 import { MinimalTagWithMetadata } from "./TagGraphMetadata.js"
@@ -61,7 +65,6 @@ import { Tag } from "antd"
 interface DimensionSlotViewProps {
     slot: DimensionSlot
     editor: ConfigEditor
-    database: EditorDatabase
     errorMessagesForDimensions: ErrorMessagesForDimensions
     canSwapXAndY?: boolean
     onSwapXAndY?: () => void
@@ -98,10 +101,10 @@ export class DimensionSlotView extends React.Component<DimensionSlotViewProps> {
         const { slot } = this.props
 
         const dimensionConfigs = columns.map((column) => {
-            const existingDimension = slot.dimensions.find((d) =>
-                column.variableId !== undefined
-                    ? d.variableId === column.variableId
-                    : d.variableId === undefined && d.columnSlug === column.slug
+            const existingDimension = slot.dimensions.find(
+                (dimension) =>
+                    columnKey(columnOfDimension(dimension)) ===
+                    columnKey(column)
             )
             return (
                 existingDimension?.toObject() ?? {
@@ -320,6 +323,7 @@ export class DimensionSlotView extends React.Component<DimensionSlotViewProps> {
     override render() {
         const { isSelectingVariables } = this
         const { slot, editor, canSwapXAndY, onSwapXAndY } = this.props
+        const { catalog } = editor.store
         const dimensions = slot.dimensions.map((dim, index) => ({
             id: dim.columnSlug,
             dim,
@@ -356,7 +360,7 @@ export class DimensionSlotView extends React.Component<DimensionSlotViewProps> {
                                 editor={editor}
                                 onChange={this.onChangeDimension}
                                 onEdit={
-                                    slot.allowMultiple
+                                    slot.allowMultiple || !catalog
                                         ? undefined
                                         : action(
                                               () =>
@@ -379,7 +383,7 @@ export class DimensionSlotView extends React.Component<DimensionSlotViewProps> {
                         </SortableList.Item>
                     )}
                 />
-                {canAddMore && !this.props.database.isEmpty && (
+                {canAddMore && catalog && (
                     <div
                         className="dimensionSlot"
                         onClick={action(
@@ -389,10 +393,9 @@ export class DimensionSlotView extends React.Component<DimensionSlotViewProps> {
                         Add indicator{slot.allowMultiple && "s"}
                     </div>
                 )}
-                {isSelectingVariables && (
+                {isSelectingVariables && catalog && (
                     <VariableSelector
-                        editor={editor}
-                        database={this.props.database}
+                        catalog={catalog}
                         slot={slot}
                         onDismiss={action(
                             () => (this.isSelectingVariables = false)
@@ -407,7 +410,6 @@ export class DimensionSlotView extends React.Component<DimensionSlotViewProps> {
 
 interface VariablesSectionProps {
     editor: ConfigEditor
-    database: EditorDatabase
     errorMessagesForDimensions: ErrorMessagesForDimensions
 }
 
@@ -497,7 +499,6 @@ class VariablesSection extends React.Component<VariablesSectionProps> {
                             key={slot.name}
                             slot={slot}
                             editor={props.editor}
-                            database={props.database}
                             errorMessagesForDimensions={
                                 props.errorMessagesForDimensions
                             }
@@ -551,7 +552,6 @@ export const TagsSection = (props: {
 
 interface EditorBasicTabProps {
     editor: ConfigEditor
-    database: EditorDatabase
     errorMessagesForDimensions: ErrorMessagesForDimensions
 }
 
@@ -762,7 +762,6 @@ export class EditorBasicTab extends React.Component<EditorBasicTabProps> {
                 </Section>
                 <VariablesSection
                     editor={editor}
-                    database={this.props.database}
                     errorMessagesForDimensions={
                         this.props.errorMessagesForDimensions
                     }

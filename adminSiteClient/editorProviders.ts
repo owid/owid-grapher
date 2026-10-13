@@ -1,13 +1,26 @@
 import {
     DimensionProperty,
+    IndicatorDimensionInterface,
     OwidChartDimensionInterface,
+    SlugDimensionInterface,
 } from "@ourworldindata/types"
-import { DetailDictionary } from "@ourworldindata/utils"
-import { CONTINENTS_INDICATOR_ID } from "@ourworldindata/grapher"
+import { DetailDictionary, Json } from "@ourworldindata/utils"
+import {
+    ChartDimension,
+    CONTINENTS_INDICATOR_ID,
+} from "@ourworldindata/grapher"
 import { Admin } from "./Admin.js"
 import type { References } from "./adminChartApi.js"
 import type { OriginUrlSuggestion } from "./ConfigEditor.js"
-import { Dataset, IndicatorCatalogData, Namespace } from "./EditorDatabase.js"
+import {
+    INDICATOR_SEARCH_FIELDS,
+    SearchFieldHelp,
+    VariableResultView,
+    VariablesGroupedSearchResult,
+    VariablesSearchResult,
+} from "../adminShared/variableSearch.js"
+import type { DatasetListGroup, VariableListItem } from "./VariableList.js"
+import { namesOneDataset, parseCatalogPath } from "./variableSearchQuery.js"
 import {
     BAKED_BASE_URL,
     CATALOG_URL,
@@ -29,9 +42,48 @@ export const defaultEditorEnvironment: EditorEnvironment = {
     catalogUrl: CATALOG_URL,
 }
 
-/** Indicators the variable picker offers */
+/** What a slot draws: an OWID indicator by id, or a host table's column by slug */
+export type PickedColumn =
+    | Pick<IndicatorDimensionInterface, "variableId" | "slug">
+    | Pick<SlugDimensionInterface, "slug" | "variableId">
+
+/** Identifies a column across a slot's dimensions and the picker's rows */
+export function columnKey(column: PickedColumn): string {
+    return column.variableId !== undefined
+        ? `id:${column.variableId}`
+        : `slug:${column.slug}`
+}
+
+export function columnOfDimension(dimension: ChartDimension): PickedColumn {
+    return dimension.variableId !== undefined
+        ? { variableId: dimension.variableId }
+        : { slug: dimension.columnSlug }
+}
+
+/** An indicator the picker offers, with the column picking it puts in a slot */
+export type CatalogIndicator = VariableListItem & { column: PickedColumn }
+
+export type CatalogDataset = DatasetListGroup<CatalogIndicator>
+
+export interface IndicatorSearchPage {
+    datasets: CatalogDataset[]
+    /** What `total` counts: indicators when the query names a dataset */
+    unit: "datasets" | "indicators"
+    total: number
+    pageSize: number
+    /** Set when MySQL couldn't run a term as a regular expression */
+    regexError?: string
+    /** Terms that had to fall back to a slow scan */
+    unindexedTerms?: string[]
+}
+
+/** Indicators the variable picker offers, searched a page at a time */
 export interface IndicatorCatalog {
-    load(): Promise<IndicatorCatalogData>
+    /** The `field:value` terms `search` understands, for its help */
+    fields: readonly SearchFieldHelp[]
+    /** The search the picker opens on, given the datasets a slot draws from */
+    initialQuery(datasetIds: number[]): string
+    search(query: string, page: number): Promise<IndicatorSearchPage>
 }
 
 /** Details on demand, for checking `[term](#dod:term)` links in text fields */
@@ -39,36 +91,92 @@ export interface DetailsProvider {
     load(): Promise<DetailDictionary>
 }
 
-/** The admin's indicators, ranked by how many charts use each */
+const DATASETS_PER_PAGE = 8
+const INDICATORS_PER_PAGE = 20
+
+/** The admin's indicators, through the same search as /admin/variables */
 export function adminIndicatorCatalog(admin: Admin): IndicatorCatalog {
     return {
-        async load(): Promise<IndicatorCatalogData> {
-            const usagesPromise = admin
-                .getJSONInBackground<
-                    { variableId: number; usageCount: number }[]
-                >("/api/variables.usages.json")
-                .catch(() => [])
-            const [namespaces, variables, usages] = await Promise.all([
-                admin.getJSON<{ namespaces: Namespace[] }>(
-                    "/api/editorData/namespaces.json"
-                ),
-                admin.getJSON<{ datasets: Dataset[] }>(
-                    "/api/editorData/variables.json"
-                ),
-                usagesPromise,
-            ])
+        fields: INDICATOR_SEARCH_FIELDS,
+        initialQuery: (datasetIds) => {
+            // A slot's next indicator most often comes from the dataset its
+            // others are from; one spanning several gets no guess
+            const distinct = new Set(datasetIds)
+            return distinct.size === 1 ? `dataset-id:${[...distinct][0]}` : ""
+        },
+        async search(query, page) {
+            // The picker says when a search fails; the admin's own error
+            // dialog would reload the page and lose the chart's edits
+            const get = <T extends Json>(params: Json): Promise<T> =>
+                admin.requestJSON<T>("/api/variables.json", params, "GET", {
+                    onFailure: "continue",
+                    isBackground: true,
+                })
+            if (namesOneDataset(query)) {
+                const result = await get<VariablesSearchResult>({
+                    search: query,
+                    limit: INDICATORS_PER_PAGE,
+                    offset: (page - 1) * INDICATORS_PER_PAGE,
+                })
+                return {
+                    datasets: groupByDataset(result.variables),
+                    unit: "indicators",
+                    total: result.numTotalRows,
+                    pageSize: INDICATORS_PER_PAGE,
+                    regexError: result.regexError,
+                    unindexedTerms: result.unindexedTerms,
+                }
+            }
+            const result = await get<VariablesGroupedSearchResult>({
+                search: query,
+                group: "dataset",
+                limit: DATASETS_PER_PAGE,
+                offset: (page - 1) * DATASETS_PER_PAGE,
+            })
             return {
-                namespaces: namespaces.namespaces,
-                datasets: variables.datasets,
-                usageCounts: new Map(
-                    usages.map(({ variableId, usageCount }) => [
-                        variableId,
-                        +usageCount,
-                    ])
-                ),
+                datasets: result.datasets.map((dataset) => ({
+                    ...dataset,
+                    variables: dataset.variables.map(asCatalogIndicator),
+                })),
+                unit: "datasets",
+                total: result.numTotalDatasets,
+                pageSize: DATASETS_PER_PAGE,
+                regexError: result.regexError,
+                unindexedTerms: result.unindexedTerms,
             }
         },
     }
+}
+
+function headerOf(variable: VariableResultView): CatalogDataset {
+    const path = variable.catalogPath
+        ? parseCatalogPath(variable.catalogPath)
+        : undefined
+    return {
+        id: variable.datasetId,
+        name: variable.datasetName,
+        namespace: path?.namespace,
+        version: path?.version,
+        shortName: path?.dataset,
+        uploadedAt: variable.uploadedAt,
+        uploadedBy: variable.uploadedBy,
+        variables: [],
+    }
+}
+
+function asCatalogIndicator(variable: VariableResultView): CatalogIndicator {
+    return { ...variable, column: { variableId: variable.id } }
+}
+
+/** A page of indicators, under the headers of the datasets they are from */
+function groupByDataset(variables: VariableResultView[]): CatalogDataset[] {
+    const groups = new Map<number, CatalogDataset>()
+    for (const variable of variables) {
+        const group = groups.get(variable.datasetId) ?? headerOf(variable)
+        group.variables.push(asCatalogIndicator(variable))
+        groups.set(variable.datasetId, group)
+    }
+    return [...groups.values()]
 }
 
 /** Details on demand from the admin API */
