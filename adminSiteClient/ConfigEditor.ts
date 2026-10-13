@@ -22,11 +22,9 @@ import {
     loadCatalogData,
 } from "@ourworldindata/grapher"
 import { EditorFeatures } from "./EditorFeatures.js"
-import {
-    defaultEditorEnvironment,
-    EditorEnvironment,
-} from "./editorProviders.js"
-import { dataApiIndicatorStore, IndicatorStore } from "./indicatorStores.js"
+import { IndicatorStore } from "./indicatorStores.js"
+
+const PUBLIC_CATALOG_URL = "https://catalog.ourworldindata.org"
 
 const EDITOR_TAB_NAMES = [
     "basic",
@@ -71,10 +69,11 @@ export interface ConfigEditorManager {
     patchConfig: GrapherInterface
     baseConfig?: GrapherInterface
 
-    store?: IndicatorStore
-    environment?: EditorEnvironment
+    store: IndicatorStore
+    /** Where the preview loads catalog data, such as region lists, from */
+    catalogUrl?: string
     scatterDefaults?: OwidChartDimensionInterface[]
-    /** Where an indicator's name links to; without it, names are plain text */
+    /** Without it, indicator names are plain text */
     indicatorUrl?: (
         dimension: OwidChartDimensionInterface
     ) => string | undefined
@@ -86,7 +85,9 @@ export interface ConfigEditorManager {
     /** Called with the config when it loads and after every edit */
     onChange?: (config: GrapherInterface, editor: ConfigEditor) => void
     /** Called when the config gains or loses unsaved changes; each editor starts without any */
-    onDirtyChange?: (isModified: boolean) => void
+    onModifiedChange?: (isModified: boolean) => void
+    /** Offers "Animate chart" on the Export tab of a published chart */
+    chartAnimationUrl?: (canonicalUrl: string | undefined) => string
 
     tabs?: EditorTabName[]
     extraTabs?: EditorExtraTab[]
@@ -103,7 +104,6 @@ export interface ConfigEditorManager {
 
 export class ConfigEditor {
     manager: ConfigEditorManager
-    environment: EditorEnvironment
     store: IndicatorStore
 
     grapherState: GrapherState
@@ -120,15 +120,12 @@ export class ConfigEditor {
 
     constructor(props: { manager: ConfigEditorManager }) {
         this.manager = props.manager
-        this.environment = this.manager.environment ?? defaultEditorEnvironment
-        this.store =
-            this.manager.store ??
-            dataApiIndicatorStore({ dataApiUrl: this.environment.dataApiUrl })
+        this.store = this.manager.store
 
         this.grapherState = new GrapherState({
             additionalDataLoaderFn: (catalogKey) =>
                 loadCatalogData(catalogKey, {
-                    baseUrl: this.environment.catalogUrl,
+                    baseUrl: this.manager.catalogUrl ?? PUBLIC_CATALOG_URL,
                 }),
         })
         this.baseConfig = nonEmptyConfig(this.manager.baseConfig)
@@ -165,7 +162,7 @@ export class ConfigEditor {
             ),
             reaction(
                 () => this.isModified,
-                (isModified) => this.manager.onDirtyChange?.(isModified)
+                (isModified) => this.manager.onModifiedChange?.(isModified)
             )
         )
         if (this.manager.syncTabWithUrl)
@@ -202,7 +199,9 @@ export class ConfigEditor {
         const tabParam = new URLSearchParams(window.location.search).get("tab")
         if (
             tabParam &&
-            (EDITOR_TAB_NAMES.includes(tabParam as EditorTabName) ||
+            ((this.manager.tabs ?? EDITOR_TAB_NAMES).includes(
+                tabParam as EditorTabName
+            ) ||
                 this.extraTabKeys.includes(tabParam))
         )
             return tabParam

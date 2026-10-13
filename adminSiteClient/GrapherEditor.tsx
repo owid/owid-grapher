@@ -9,7 +9,7 @@ import {
     EditorExtraTab,
     EditorTabName,
 } from "./ConfigEditor.js"
-import { DetailsProvider, EditorEnvironment } from "./editorProviders.js"
+import { DetailsProvider } from "./editorProviders.js"
 import { IndicatorStore } from "./indicatorStores.js"
 
 export interface GrapherEditorProps {
@@ -19,14 +19,14 @@ export interface GrapherEditorProps {
 
     store: IndicatorStore
     details?: DetailsProvider
-    /** Defaults to OWID's public servers */
-    environment?: EditorEnvironment
+    catalogUrl?: ConfigEditorManager["catalogUrl"]
     scatterDefaults?: ConfigEditorManager["scatterDefaults"]
     indicatorUrl?: ConfigEditorManager["indicatorUrl"]
 
     onSave: ConfigEditorManager["onSave"]
     onChange?: ConfigEditorManager["onChange"]
-    onDirtyChange?: ConfigEditorManager["onDirtyChange"]
+    onModifiedChange?: ConfigEditorManager["onModifiedChange"]
+    chartAnimationUrl?: ConfigEditorManager["chartAnimationUrl"]
 
     /** Default editor tabs to show */
     tabs?: EditorTabName[]
@@ -70,8 +70,8 @@ export class GrapherEditor
         return this.props.details
     }
 
-    get environment(): EditorEnvironment | undefined {
-        return this.props.environment
+    get catalogUrl(): string | undefined {
+        return this.props.catalogUrl
     }
 
     get scatterDefaults(): ConfigEditorManager["scatterDefaults"] {
@@ -90,8 +90,12 @@ export class GrapherEditor
         return this.props.onChange
     }
 
-    get onDirtyChange(): ConfigEditorManager["onDirtyChange"] {
-        return this.props.onDirtyChange
+    get onModifiedChange(): ConfigEditorManager["onModifiedChange"] {
+        return this.props.onModifiedChange
+    }
+
+    get chartAnimationUrl(): ConfigEditorManager["chartAnimationUrl"] {
+        return this.props.chartAnimationUrl
     }
 
     get tabs(): EditorTabName[] | undefined {

@@ -15,6 +15,7 @@ function makeEditor(
         patchConfig: { title: "Original title", hasMapTab: true },
         onSave: () => undefined,
         ...overrides,
+        store: overrides.store ?? { loadTable: async () => undefined },
     }
     const editor = new ConfigEditor({ manager })
     editor.updateLiveGrapher(manager.patchConfig)
@@ -168,10 +169,10 @@ describe(ConfigEditor, () => {
     })
 
     it("tells the host when unsaved changes appear and when a save clears them", async () => {
-        const onDirtyChange = vi.fn<(isModified: boolean) => void>()
-        const editor = makeEditor({ onDirtyChange })
+        const onModifiedChange = vi.fn<(isModified: boolean) => void>()
+        const editor = makeEditor({ onModifiedChange })
         // makeEditor marks its starting config as saved
-        onDirtyChange.mockClear()
+        onModifiedChange.mockClear()
 
         runInAction(() => {
             editor.grapherState.title = "Edited title"
@@ -181,7 +182,7 @@ describe(ConfigEditor, () => {
         })
         await editor.saveGrapher()
 
-        expect(onDirtyChange.mock.calls).toEqual([[true], [false]])
+        expect(onModifiedChange.mock.calls).toEqual([[true], [false]])
     })
 })
 
@@ -209,6 +210,15 @@ describe("ConfigEditor tab in the URL", () => {
             editor.tab = "customize"
         })
         expect(window.location.search).toBe("?tab=text")
+    })
+
+    it("ignores a tab in the URL that the host doesn't show", () => {
+        window.history.replaceState({}, "", "/charts/1/edit?tab=map")
+        const editor = makeTrackedEditor({
+            syncTabWithUrl: true,
+            tabs: ["basic", "text"],
+        })
+        expect(editor.tab).toBe("basic")
     })
 
     it("keeps the page's history state when it writes the tab", () => {

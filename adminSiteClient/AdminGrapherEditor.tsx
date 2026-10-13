@@ -1,18 +1,30 @@
 import * as React from "react"
 import { Prompt } from "react-router-dom"
+import { CATALOG_URL } from "../settings/clientSettings.mjs"
+import { AdminAppContext } from "./AdminAppContext.js"
 import { GrapherEditor, GrapherEditorProps } from "./GrapherEditor.js"
 import {
-    adminEditorEnvironment,
+    adminChartAnimationUrl,
+    adminDetailsProvider,
+    adminIndicatorStore,
     adminIndicatorUrl,
 } from "./adminEditorProviders.js"
 
-/**
- * The editor as the admin's pages use it: pointed at this admin's servers,
- * with the tab in the URL and a warning before leaving with unsaved changes
- */
 export function AdminGrapherEditor(
-    props: Omit<GrapherEditorProps, "onDirtyChange">
+    props: Omit<
+        GrapherEditorProps,
+        | "store"
+        | "details"
+        | "catalogUrl"
+        | "chartAnimationUrl"
+        | "indicatorUrl"
+        | "syncTabWithUrl"
+        | "onModifiedChange"
+    >
 ): React.ReactElement {
+    const { admin } = React.useContext(AdminAppContext)
+    const store = React.useMemo(() => adminIndicatorStore(admin), [admin])
+    const details = React.useMemo(() => adminDetailsProvider(admin), [admin])
     const [isModified, setIsModified] = React.useState(false)
     return (
         <>
@@ -21,11 +33,14 @@ export function AdminGrapherEditor(
                 message="Are you sure you want to leave? Unsaved changes will be lost."
             />
             <GrapherEditor
-                environment={adminEditorEnvironment}
+                {...props}
+                store={store}
+                details={details}
+                catalogUrl={CATALOG_URL}
+                chartAnimationUrl={adminChartAnimationUrl}
                 indicatorUrl={adminIndicatorUrl}
                 syncTabWithUrl
-                {...props}
-                onDirtyChange={setIsModified}
+                onModifiedChange={setIsModified}
             />
         </>
     )

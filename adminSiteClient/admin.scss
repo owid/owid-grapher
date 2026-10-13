@@ -1,7 +1,4 @@
-/* Chart editor styling. Plain CSS is imported without its `.css` extension so
-   Sass inlines it: a `.css` import stays an `@import` rule, which the
-   grapher-editor package build can't resolve. Fonts are linked from
-   adminSiteServer/IndexPage.tsx instead, so the package doesn't ship them. */
+/* Chart editor styling */
 
 @import "bootstrap/scss/bootstrap";
 
@@ -21,6 +18,7 @@ $admin-section: "section:not(:where(.GrapherComponent *))";
 }
 @import "styles/react-tag-autocomplete";
 
+// Without `.css`, so Sass inlines them instead of leaving an `@import`
 @import "tippy.js/dist/tippy";
 @import "tippy.js/themes/light";
 
@@ -1983,5 +1981,4 @@ main:not(.ChartEditorPage):not(.GdocsEditPage):not(.MultiDimDetailPage) {
     color: $gray-70;
 }
 
-// After the rules above, as when the colour picker imported its own stylesheet
 @import "./AdminColorPicker.scss";
