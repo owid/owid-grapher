@@ -137,7 +137,7 @@ export class DataTable extends React.Component<DataTableProps> {
     @computed private get sortState(): DataTableSortState {
         let { dimIndex, columnKey, order } = {
             ...DEFAULT_SORT_STATE,
-            ...this.storedState.sort,
+            ...(this.manager.dataTableSort ?? this.storedState.sort),
         }
 
         // If not sorted by entity, then make sure the index of the chosen column exists
@@ -220,9 +220,8 @@ export class DataTable extends React.Component<DataTableProps> {
                   ? SortOrder.asc
                   : SortOrder.desc
 
-        this.storedState.sort.dimIndex = dimIndex
-        this.storedState.sort.columnKey = columnKey
-        this.storedState.sort.order = order
+        this.storedState.sort = { dimIndex, columnKey, order }
+        this.manager.dataTableSort = { dimIndex, columnKey, order }
     }
 
     private get entityHeaderText(): string {

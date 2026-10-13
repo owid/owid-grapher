@@ -29,6 +29,8 @@ export interface DataTableManager {
     dataTableSlugs?: ColumnSlug[]
     isNarrow?: boolean
     dataTableConfig: DataTableConfig
+    /** Sort state of the table, kept on the manager so it can be set programmatically */
+    dataTableSort?: DataTableSortState
     dataTableSelection?: SelectionArray | EntityName[]
     entitiesByRegionGroup?: EntitiesByRegionGroup
     timelineDragTarget?: TimelineDragTarget
