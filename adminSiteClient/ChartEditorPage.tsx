@@ -42,13 +42,9 @@ import {
     References,
 } from "./adminChartApi.js"
 import {
-    adminDetailsProvider,
-    adminIndicatorStore,
     adminOriginUrlSuggestions,
     adminScatterDefaults,
 } from "./adminEditorProviders.js"
-import { DetailsProvider } from "./editorProviders.js"
-import { IndicatorStore } from "./indicatorStores.js"
 import { makeNarrativeChartPatchConfig } from "./narrativeChartConfig.js"
 import {
     GDP_PER_CAPITA_CATALOG_PATH,
@@ -117,14 +113,6 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
 
     @computed get isNewChart(): boolean {
         return this.props.grapherId === undefined
-    }
-
-    @computed get store(): IndicatorStore {
-        return adminIndicatorStore(this.admin)
-    }
-
-    @computed get details(): DetailsProvider {
-        return adminDetailsProvider(this.admin)
     }
 
     @computed get scatterDefaults(): OwidChartDimensionInterface[] {
@@ -562,8 +550,6 @@ export class ChartEditorPage extends React.Component<ChartEditorPageProps> {
                 key={this.props.grapherId ?? "new"}
                 config={this.patchConfig}
                 baseConfig={this.baseConfig}
-                store={this.store}
-                details={this.details}
                 scatterDefaults={this.scatterDefaults}
                 onSave={this.onSave}
                 onChange={this.syncIndicatorConfig}

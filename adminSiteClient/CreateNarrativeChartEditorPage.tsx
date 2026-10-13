@@ -19,12 +19,6 @@ import { AdminGrapherEditor } from "./AdminGrapherEditor.js"
 import { ConfigEditor } from "./ConfigEditor.js"
 import { NarrativeChartSaveButtons } from "./NarrativeChartSaveButtons.js"
 import { NotFoundPage } from "./NotFoundPage.js"
-import {
-    adminDetailsProvider,
-    adminIndicatorStore,
-} from "./adminEditorProviders.js"
-import { DetailsProvider } from "./editorProviders.js"
-import { IndicatorStore } from "./indicatorStores.js"
 import { makeNarrativeChartPatchConfig } from "./narrativeChartConfig.js"
 
 export function CreateNarrativeChartEditorPage() {
@@ -81,14 +75,6 @@ class CreateNarrativeChartEditorPageInternal extends React.Component<CreateNarra
 
     @computed get admin(): Admin {
         return this.context.admin
-    }
-
-    @computed get store(): IndicatorStore {
-        return adminIndicatorStore(this.admin)
-    }
-
-    @computed get details(): DetailsProvider {
-        return adminDetailsProvider(this.admin)
     }
 
     @computed get initialQueryParams(): GrapherQueryParams | undefined {
@@ -170,8 +156,6 @@ class CreateNarrativeChartEditorPageInternal extends React.Component<CreateNarra
                 config={{}}
                 baseConfig={this.parentConfig}
                 initialQueryParams={this.initialQueryParams}
-                store={this.store}
-                details={this.details}
                 onSave={this.onSave}
                 renderSaveButtons={this.renderSaveButtons}
             />

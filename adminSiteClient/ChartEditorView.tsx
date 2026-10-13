@@ -103,7 +103,7 @@ export class ChartEditorView extends React.Component<ChartEditorViewProps> {
     }
 
     private _isDbSet = false
-    // Edits made before the chart's data arrives would be marked as saved
+    // Until the data arrives, an edit would be marked as saved
     private isChartLoaded = false
     @computed get isReady(): boolean {
         return this._isDbSet
@@ -112,8 +112,7 @@ export class ChartEditorView extends React.Component<ChartEditorViewProps> {
     @action.bound async loadInitialConfig(): Promise<void> {
         const config = this.manager.editor.originalGrapherConfig
         this.manager.editor.grapherState.updateFromObject(config)
-        // Loading the config isn't an edit, so it mustn't count as unsaved
-        // while the data loads (or if it fails to)
+        // Also before the await, so loading never counts as an edit
         this.manager.editor.markAsSaved()
         try {
             await this.manager.editor.reloadGrapherData()
