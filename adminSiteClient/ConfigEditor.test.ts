@@ -155,6 +155,27 @@ describe(ConfigEditor, () => {
         expect(loadTable.mock.lastCall?.[0]).toMatchObject([{ variableId: 2 }])
     })
 
+    it("keeps what the host saved when it also stamps the editor during the save", async () => {
+        const editor = makeEditor({
+            onSave: (config, ed) => {
+                runInAction(() => {
+                    ed.grapherState.version = 7
+                })
+                return { ...config, isPublished: true, slug: "published" }
+            },
+        })
+        runInAction(() => {
+            editor.grapherState.title = "Edited title"
+        })
+
+        await editor.saveGrapher()
+
+        expect(editor.grapherState.isPublished).toBe(true)
+        expect(editor.grapherState.slug).toBe("published")
+        expect(editor.grapherState.version).toBe(7)
+        expect(editor.isModified).toBe(false)
+    })
+
     it("adopts a slug the host normalized on save", async () => {
         const editor = makeEditor({
             onSave: (config) => ({ ...config, slug: "normalized-slug" }),
