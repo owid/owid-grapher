@@ -45,6 +45,13 @@ export const SWIMLANE_LEGEND_STYLE: LegendStyleConfig = {
 
 export type SwimlaneChartManager = ChartManager
 
+export interface SwimlaneVisibleTimeRange {
+    startTime: Time
+    endTime: Time
+    /** One time interval after `endTime` */
+    exclusiveEndTime: Time
+}
+
 export interface SwimlaneObservation {
     time: Time
     category: string
