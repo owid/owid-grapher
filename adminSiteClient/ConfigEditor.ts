@@ -379,20 +379,23 @@ export class ConfigEditor {
         }
         runInAction(() => {
             const savedPatch = saved ?? patchConfig
-            // An edit made while the save ran stays, as an unsaved change
-            const editedWhileSaving = this.configsDiffer(
-                this.patchConfig,
-                patchConfig
+            // An edit made while the save ran stays, as an unsaved change on
+            // top of what the host saved
+            const editsWhileSaving = _.omitBy(
+                diffGrapherConfigs(this.patchConfig, patchConfig),
+                (value, key) =>
+                    _.isEqual(value, patchConfig[key as keyof GrapherInterface])
             )
-            if (
-                !editedWhileSaving &&
-                this.configsDiffer(savedPatch, patchConfig)
-            ) {
-                this.updateLiveGrapher(
-                    mergeGrapherConfigs(this.baseConfig ?? {}, savedPatch)
+            const livePatch = mergeGrapherConfigs(savedPatch, editsWhileSaving)
+            if (this.configsDiffer(livePatch, this.patchConfig)) {
+                const dimensionsChanged = !_.isEqual(
+                    livePatch.dimensions,
+                    this.patchConfig.dimensions
                 )
-                if (!_.isEqual(savedPatch.dimensions, patchConfig.dimensions))
-                    void this.reloadGrapherData()
+                this.updateLiveGrapher(
+                    mergeGrapherConfigs(this.baseConfig ?? {}, livePatch)
+                )
+                if (dimensionsChanged) void this.reloadGrapherData()
             }
             this.markAsSaved(savedPatch)
         })

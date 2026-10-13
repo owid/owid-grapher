@@ -79,6 +79,7 @@ export class ChartEditorView extends React.Component<ChartEditorViewProps> {
     database = EditorDatabase.empty()
     details: DetailDictionary = {}
     private cleanupDetailsOnDemand: (() => void) | undefined
+    private latestDetailsLoad = 0
 
     constructor(props: ChartEditorViewProps) {
         super(props)
@@ -143,7 +144,10 @@ export class ChartEditorView extends React.Component<ChartEditorViewProps> {
     }
 
     async fetchDetails(): Promise<void> {
+        const load = ++this.latestDetailsLoad
         const details = (await this.manager.details?.load()) ?? {}
+        // Unmounted, or superseded by a newer load, in the meantime
+        if (load !== this.latestDetailsLoad) return
 
         this.cleanupDetailsOnDemand = initializeDetailsOnDemand({ details })
 
@@ -350,6 +354,7 @@ export class ChartEditorView extends React.Component<ChartEditorViewProps> {
     disposers: IReactionDisposer[] = []
     override componentWillUnmount(): void {
         this.disposers.splice(0).forEach((dispose) => dispose())
+        this.latestDetailsLoad++
         this.cleanupDetailsOnDemand?.()
     }
 
