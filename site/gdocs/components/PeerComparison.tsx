@@ -37,24 +37,33 @@ import { POPULATION_BY_ENTITY_CODE } from "./populations.data.js"
 const SORT = "highest"
 
 const PEER_RADIUS = 4
-/** Peer dot opacities for the smallest and largest populations */
-const PEER_OPACITY_RANGE: [number, number] = [0.25, 0.95]
-/** Populations at which the opacity bottoms and tops out (log scale) */
-const PEER_POPULATION_RANGE: [number, number] = [1e5, 1.5e9]
+/** Peer dot opacities for the smallest and largest populations in a group */
+const PEER_OPACITY_RANGE: [number, number] = [0.2, 0.95]
+/** Countries below this population all get the minimum opacity */
+const PEER_POPULATION_FLOOR = 1e6
 
-/** More opaque dots for more populous countries */
-function getPeerDotOpacity(code: string): number {
-    const population = POPULATION_BY_ENTITY_CODE[code]
-    // Midpoint for entities without population data
-    const t =
-        population === undefined
-            ? 0.5
-            : scaleToUnit(Math.log10(population), [
-                  Math.log10(PEER_POPULATION_RANGE[0]),
-                  Math.log10(PEER_POPULATION_RANGE[1]),
-              ])
-    const [min, max] = PEER_OPACITY_RANGE
-    return min + t * (max - min)
+/**
+ * More opaque dots for more populous countries, on a log scale spanning the
+ * group's populations (from the floor up). Entities without population data
+ * get the midpoint.
+ */
+function makePeerDotOpacity(codes: string[]): (code: string) => number {
+    const populations = codes
+        .map((code) => POPULATION_BY_ENTITY_CODE[code])
+        .filter((population) => population !== undefined)
+    const [minOpacity, maxOpacity] = PEER_OPACITY_RANGE
+    const lerp = (t: number): number =>
+        minOpacity + t * (maxOpacity - minOpacity)
+    if (populations.length === 0) return () => lerp(0.5)
+    const domain: [number, number] = [
+        Math.log10(Math.max(PEER_POPULATION_FLOOR, Math.min(...populations))),
+        Math.log10(Math.max(PEER_POPULATION_FLOOR, Math.max(...populations))),
+    ]
+    return (code) => {
+        const population = POPULATION_BY_ENTITY_CODE[code]
+        if (population === undefined) return lerp(0.5)
+        return lerp(scaleToUnit(Math.log10(population), domain))
+    }
 }
 
 /**
@@ -337,6 +346,9 @@ function PeerComparisonStrip({
     }
 
     const peers = points.filter((point) => point.kind === "peer")
+    const getPeerDotOpacity = makePeerDotOpacity(
+        peers.map((point) => point.key)
+    )
     const average = points.find((point) => point.kind === "average")
     const entity = points.find((point) => point.kind === "entity")
 
