@@ -110,7 +110,7 @@ describe(ConfigEditor, () => {
         expect(editor.isModified).toBe(false)
     })
 
-    it("keeps an edit made while a save is in flight", async () => {
+    it("keeps an edit made while a save is in flight, on top of what the host saved", async () => {
         let finishSave: (saved: GrapherInterface) => void = () => undefined
         const editor = makeEditor({
             onSave: (config) =>
@@ -131,6 +131,7 @@ describe(ConfigEditor, () => {
         await saving
 
         expect(editor.grapherState.title).toBe("Typed while saving")
+        expect(editor.grapherState.subtitle).toBe("Normalized")
         expect(editor.isModified).toBe(true)
     })
 
@@ -152,6 +153,20 @@ describe(ConfigEditor, () => {
         await editor.saveGrapher()
 
         expect(loadTable.mock.lastCall?.[0]).toMatchObject([{ variableId: 2 }])
+    })
+
+    it("adopts a slug the host normalized on save", async () => {
+        const editor = makeEditor({
+            onSave: (config) => ({ ...config, slug: "normalized-slug" }),
+        })
+        runInAction(() => {
+            editor.grapherState.slug = "Typed Slug"
+        })
+
+        await editor.saveGrapher()
+
+        expect(editor.grapherState.slug).toBe("normalized-slug")
+        expect(editor.isModified).toBe(false)
     })
 
     it("fires onChange with the new patch as the config is edited", () => {
