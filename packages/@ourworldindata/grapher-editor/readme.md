@@ -76,7 +76,7 @@ function RentEditor({
 
 The config's `dimensions` name the store's columns by `slug`, as in a config rendered with `GrapherLoader.fromCsv`. `onSave` receives the edited config in the same form, so it renders with the same call. It may return a promise, and it may return a config, which the editor takes as what was saved (e.g. after the host normalized it). A rejection counts as a failed save and keeps the changes unsaved.
 
-The editor reads `config`, `store`, `environment`, `initialQueryParams` and `syncTabWithUrl` when it starts and keeps its own copy of the config while it's edited, so don't pass `onChange`'s config back in. To open a different chart, give `<GrapherEditor>` a new `key`, such as the chart's id.
+The editor reads `config`, `store` and `syncTabWithUrl` when it starts and keeps its own copy of the config while it's edited, so don't pass `onChange`'s config back in. To open a different chart, give `<GrapherEditor>` a new `key`, such as the chart's id.
 
 Without React, mount the editor into a container:
 
@@ -114,21 +114,13 @@ The CSV and table stores offer every data column under "Add indicators". Column 
 
 ### Other props
 
-| Prop                                           | What it does                                                                                                                   |
-| ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| `onChange`                                     | called on every edit with the current config, e.g. for a live output pane                                                      |
-| `onDirtyChange`                                | called when the editor gains or loses unsaved changes, e.g. for a leave prompt; a new editor starts clean without calling it   |
-| `baseConfig`                                   | a config this one is a patch against: its values show as inherited, and only the differences are saved                         |
-| `tabs`                                         | the editor tabs to show, e.g. `["basic", "data", "text", "customize", "map"]`                                                  |
-| `environment`                                  | the Data API and catalog URLs (default: OWID's public ones), and optionally an ETL wizard for the Export tab's "Animate chart" |
-| `indicatorUrl`                                 | `(dimension) => url`: where an indicator's name in the Data tab links to; without it, names are plain text                     |
-| `details`                                      | details-on-demand definitions, to validate `[term](#dod:term)` links in text fields                                            |
-| `originUrlSuggestions`                         | entries for the "Origin url" dropdown                                                                                          |
-| `scatterDefaults`                              | dimensions to fill a new scatter plot's empty x, color and size slots with                                                     |
-| `initialQueryParams`                           | open the preview in a particular view (tab, time, selection) rather than the authored one                                      |
-| `syncTabWithUrl`                               | mirror the active tab in the page URL's `?tab=` (off by default)                                                               |
-| `extraTabs`, `renderSaveButtons`, `renderNote` | for hosts that keep a record around the config; OWID's admin adds revisions, references and publishing this way                |
-| `previewUrl`                                   | a link shown above the preview, to the chart's public page                                                                     |
+| Prop               | What it does                                                                                                  |
+| ------------------ | ------------------------------------------------------------------------------------------------------------- |
+| `onChange`         | called with the config when it loads and after every edit, e.g. for a live output pane                        |
+| `onModifiedChange` | called when the editor gains or loses unsaved changes, e.g. for a leave prompt; a new editor starts with none |
+| `tabs`             | the editor tabs to show, e.g. `["basic", "data", "text", "customize", "map"]`                                 |
+| `indicatorUrl`     | `(dimension) => url`: where an indicator's name in the Data tab links to; without it, names are plain text    |
+| `syncTabWithUrl`   | mirror the active tab in the page URL's `?tab=` (off by default)                                              |
 
 ## Developing the package
 

@@ -19,9 +19,7 @@ const CONSUMER_SOURCE = `import {
     DimensionProperty,
     csvIndicatorStore,
     dataApiIndicatorStore,
-    defaultEditorEnvironment,
     mountGrapherEditor,
-    type ConfigEditor,
     type GrapherEditorProps,
     type GrapherInterface,
     type IndicatorStore,
@@ -50,13 +48,9 @@ const store: IndicatorStore = csvIndicatorStore({
 const props: GrapherEditorProps = {
     config,
     store,
-    environment: { ...defaultEditorEnvironment, etlWizardUrl: undefined },
     indicatorUrl: (dimension) => dimension.slug && "/columns/" + dimension.slug,
-    onSave: (patch: GrapherInterface, editor: ConfigEditor) => {
-        void editor.isModified
-        return patch
-    },
-    onDirtyChange: (isModified: boolean) => void isModified,
+    onSave: (patch: GrapherInterface) => patch,
+    onModifiedChange: (isModified: boolean) => void isModified,
     tabs: ["basic", "text"],
 }
 
@@ -66,6 +60,9 @@ handle.unmount()
 
 // @ts-expect-error onSave is required
 mountGrapherEditor(document.body, { config, store })
+
+// @ts-expect-error the admin's own props aren't part of the package's API
+mountGrapherEditor(document.body, { ...props, extraTabs: [] })
 
 // @ts-expect-error tabs only takes the editor's own tab names
 mountGrapherEditor(document.body, { ...props, tabs: ["nonexistent"] })

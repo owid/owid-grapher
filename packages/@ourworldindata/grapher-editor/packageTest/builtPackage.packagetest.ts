@@ -81,7 +81,7 @@ describe("npm build (dist/editor.react.js)", () => {
             pathToFileURL(npmBuildPath).href
         )
         const onChange = vi.fn()
-        const onDirtyChange = vi.fn()
+        const onModifiedChange = vi.fn()
         const ref = React.createRef<{
             editor: {
                 grapherState: {
@@ -102,7 +102,7 @@ describe("npm build (dist/editor.react.js)", () => {
             store: csvIndicatorStore({ csv, columnDefs }),
             onSave: () => undefined,
             onChange,
-            onDirtyChange,
+            onModifiedChange,
         })
         await act(async () =>
             root.render(React.createElement(React.StrictMode, null, editor))
@@ -117,7 +117,7 @@ describe("npm build (dist/editor.react.js)", () => {
             ref.current!.editor.grapherState.title = "Edited"
         })
 
-        expect(onDirtyChange.mock.calls).toEqual([[true]])
+        expect(onModifiedChange.mock.calls).toEqual([[true]])
         expect(onChange.mock.lastCall?.[0]).toMatchObject({ title: "Edited" })
         await act(async () => root.unmount())
     })
@@ -128,9 +128,8 @@ describe("npm build (dist/editor.react.js)", () => {
     })
 
     it("bundles none of the admin around the editor", () => {
-        // The editor's sources sit among the admin's (adminSiteClient/), so
-        // one stray import pulls in the admin app, its API client or its
-        // router. The source map lists every module that went in.
+        // One stray import in adminSiteClient/ pulls in the admin; the source
+        // map lists every bundled module
         const { sources } = JSON.parse(
             fs.readFileSync(`${npmBuildPath}.map`, "utf8")
         ) as { sources: string[] }

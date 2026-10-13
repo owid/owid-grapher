@@ -8,22 +8,12 @@ import {
     // oxlint-disable-next-line import-x-js/no-relative-packages
 } from "../tsdown.config-common.mts"
 
-// Builds the @ourworldindata/grapher-editor npm package / CDN bundle, the same
-// way ../grapher/tsdown.config.ts builds grapher's; see readme.md ("Build
-// outputs").
-//
-//   npm         dist/editor.react.js + dist/editor.css   for React apps and bundlers
-//   standalone  dist/editor.standalone.min.js            for plain HTML pages
-//   types       dist/editor.d.ts                         for both of the above
-//
-// The editor's sources live in adminSiteClient/; the bundle pulls them in
-// through the relative imports in src/editor.public.ts.
+// Built like ../grapher/tsdown.config.ts; see readme.md ("Build outputs").
 
 const shared = {
     ...reactPackageBuildOptions,
-    // One file per build: the Debug tab's diff viewer lazy-loads a syntax
-    // grammar per language, which would otherwise become ~30 extra chunks
-    // the package's `files` don't ship.
+    // The Debug tab's diff viewer lazy-loads a grammar per language, which
+    // would otherwise become ~30 chunks the package's `files` don't ship
     outputOptions: { codeSplitting: false },
 } satisfies UserConfig
 
