@@ -1,0 +1,92 @@
+.variable-list__usage-popover {
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.variable-list__usage-part {
+    cursor: help;
+    text-decoration: underline;
+    text-decoration-style: dotted;
+    // so "1 explorer" wraps as a unit rather than splitting across lines
+    white-space: nowrap;
+}
+
+.variable-list__usage-separator {
+    color: #ccc;
+    padding: 0 4px;
+}
+
+.variable-list__path {
+    display: flex;
+    color: #666;
+    white-space: nowrap;
+}
+
+.variable-list__path-prefix {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.variable-list__path-slash {
+    color: #bbb;
+}
+
+.variable-list__path-short {
+    // Keep the indicator visible, but leave some room for its path prefix.
+    flex: 0 0 auto;
+    max-width: 70%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #1a1a1a;
+}
+
+.variable-list__popularity {
+    display: inline-block;
+    width: 52px;
+    margin-left: 10px;
+    vertical-align: middle;
+    height: 6px;
+    border-radius: 3px;
+    background: #ececec;
+    overflow: hidden;
+}
+
+.variable-list__popularity-fill {
+    height: 100%;
+    border-radius: 3px;
+    background: #1d3d63;
+}
+
+.variable-list__flag {
+    color: #999;
+    margin-right: 6px;
+}
+
+.variable-list__flag--after {
+    margin-right: 0;
+    margin-left: 6px;
+}
+
+.variable-list__search-help {
+    max-width: 520px;
+
+    p {
+        margin-bottom: 8px;
+    }
+
+    table {
+        border-collapse: collapse;
+    }
+
+    td {
+        padding: 2px 12px 2px 0;
+        vertical-align: top;
+    }
+}
+
+// The table centers its empty state, which suits the message but not a hint
+// that reads as a sentence
+.variable-list__empty-hint {
+    text-align: left;
+}
