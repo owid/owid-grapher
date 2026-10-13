@@ -24,7 +24,7 @@ There are two entry points with the same API and type declarations:
 - `@ourworldindata/grapher-editor` is the standalone bundle, with React bundled in, for plain HTML pages.
 - `@ourworldindata/grapher-editor/react` is the library build for React apps and bundlers, with `react` and `react-dom` (19) as peer dependencies. React apps should use this one, or they ship a second copy of React.
 
-Grapher is bundled into both, so the preview always renders with the grapher version the editor was built against. The package is ESM-only.
+Grapher is bundled into both, so the preview always renders with the grapher version the editor was built against. The package is ESM-only. Both share one set of type declarations, which mention React's types, so a TypeScript project using the standalone bundle without React needs `@types/react` installed too (or `skipLibCheck`).
 
 On a page that shows the editor, include `@ourworldindata/grapher-editor/editor.css` (it contains grapher's styles too). It is the admin's stylesheet, Bootstrap included, so it also sets global styles such as `body` and link colours: give the editor a page of its own, or an iframe, rather than embedding it in a styled page. Optionally, load OWID's fonts too: `<link rel="stylesheet" href="https://ourworldindata.org/fonts.css" />`.
 
