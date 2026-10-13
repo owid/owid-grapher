@@ -326,12 +326,15 @@ export class SwimlaneChart
     }
 
     @computed private get placedSeries(): PlacedSwimlaneSeries[] {
+        const { visibleTimeRange } = this.chartState
+        if (!visibleTimeRange) return []
         return toPlacedSwimlaneSeries({
             series: this.sizedSeries,
             labelX: this.innerBounds.left - ENTITY_LABEL_CHART_GAP,
             heightPerSeries: this.heightPerSeries,
             placeSeries: (seriesName) => this.yScale(seriesName)!,
             placeTime: (time) => this.xAxis.place(time),
+            visibleExclusiveEndTime: visibleTimeRange.exclusiveEndTime,
             shouldShowSegmentLabels: this.shouldShowSegmentLabels,
             segmentLabelStyle: this.segmentLabelStyle,
         })

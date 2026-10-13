@@ -1,14 +1,13 @@
-import * as R from "remeda"
 import { SeriesName, Time } from "@ourworldindata/types"
-import { CoreColumn } from "@ourworldindata/core-table"
+import { CoreColumn, TimeColumn } from "@ourworldindata/core-table"
 import { computeCenteredLabelYPositions } from "../rowSeriesLabels/RowSeriesLabelHelpers.js"
-import { ColorScale } from "../color/ColorScale"
-import { OWID_ERROR_COLOR } from "../color/ColorConstants"
-import { formatTimeSpan, textWidth } from "../chart/ChartUtils"
 import { resolveEmphasis } from "../interaction/Emphasis"
 import { InteractionState } from "../interaction/InteractionState"
 import { FocusArray } from "../focus/FocusArray"
 import { CategoricalBin, NumericBin } from "../color/ColorScaleBin"
+import { ColorScale } from "../color/ColorScale"
+import { OWID_ERROR_COLOR } from "../color/ColorConstants"
+import { formatTimeSpan, textWidth } from "../chart/ChartUtils"
 import {
     ROW_SPACING_FACTOR,
     MAX_HEIGHT_PER_SERIES,
@@ -26,22 +25,25 @@ import {
     SwimlaneSegment,
     SwimlaneSegmentLabelStyle,
     SwimlaneTooltipTarget,
+    SwimlaneVisibleTimeRange,
 } from "./SwimlaneChartConstants"
 
 export function toRawSwimlaneSegments({
     observations,
-    timesAsc,
+    consecutiveTimes,
 }: {
     observations: SwimlaneObservation[]
-    timesAsc: Time[]
+    consecutiveTimes: Time[]
 }): RawSwimlaneSegment[] {
-    if (timesAsc.length === 0) return []
+    if (consecutiveTimes.length === 0) return []
 
-    const lastIndex = timesAsc.length - 1
+    const lastIndex = consecutiveTimes.length - 1
     const categoryByTime = new Map(
         observations.map(({ time, category }) => [time, category])
     )
-    const categoryByTimeIndex = timesAsc.map((time) => categoryByTime.get(time))
+    const categoryByTimeIndex = consecutiveTimes.map((time) =>
+        categoryByTime.get(time)
+    )
 
     const rawSegments: RawSwimlaneSegment[] = []
     let startIndex = 0
@@ -52,8 +54,8 @@ export function toRawSwimlaneSegments({
         if (!isSegmentEnd) continue
 
         const range = {
-            startTime: timesAsc[startIndex],
-            endTime: timesAsc[index],
+            startTime: consecutiveTimes[startIndex],
+            endTime: consecutiveTimes[index],
         }
         const category = categoryByTimeIndex[index]
         rawSegments.push(
@@ -68,19 +70,17 @@ export function toRawSwimlaneSegments({
 
 export function toSwimlaneSegments({
     rawSegments,
-    visibleTimesAsc,
+    visibleTimeRange,
     colorScale,
     timeColumn,
 }: {
     rawSegments: RawSwimlaneSegment[]
-    visibleTimesAsc: Time[]
+    visibleTimeRange: SwimlaneVisibleTimeRange
     colorScale: ColorScale
     timeColumn: CoreColumn
 }): SwimlaneSegment[] {
-    const firstVisibleTime = R.first(visibleTimesAsc)
-    const lastVisibleTime = R.last(visibleTimesAsc)
-    if (firstVisibleTime === undefined || lastVisibleTime === undefined)
-        return []
+    const { startTime: firstVisibleTime, endTime: lastVisibleTime } =
+        visibleTimeRange
 
     return rawSegments
         .filter(
@@ -126,17 +126,19 @@ export function formatSegmentTimeRange({
     return timeColumn.formatTimeRange(startTime, endTime)
 }
 
-/** How long a segment's whole run lasts, e.g. "2 years" */
+/** How long a segment's whole run lasts, e.g. "3 years" */
 export function formatSegmentDuration({
     segment,
     timeColumn,
 }: {
     segment: SwimlaneSegment
-    timeColumn: CoreColumn
-}): string | undefined {
-    const duration = segment.endTime - segment.startTime
-    if (duration === 0) return undefined
-    return formatTimeSpan(duration, timeColumn.timeInterval)
+    timeColumn: TimeColumn
+}): string {
+    const timeCount = timeColumn.countPeriods(
+        segment.startTime,
+        segment.endTime
+    )
+    return formatTimeSpan(timeCount, timeColumn.timeInterval)
 }
 
 export function computeHeightPerSeries({
@@ -155,6 +157,7 @@ export function toPlacedSwimlaneSeries({
     heightPerSeries,
     placeSeries,
     placeTime,
+    visibleExclusiveEndTime,
     shouldShowSegmentLabels,
     segmentLabelStyle,
 }: {
@@ -163,6 +166,7 @@ export function toPlacedSwimlaneSeries({
     heightPerSeries: number
     placeSeries: (seriesName: SeriesName) => number
     placeTime: (time: Time) => number
+    visibleExclusiveEndTime: Time
     shouldShowSegmentLabels: boolean
     segmentLabelStyle: SwimlaneSegmentLabelStyle
 }): PlacedSwimlaneSeries[] {
@@ -174,6 +178,7 @@ export function toPlacedSwimlaneSeries({
         const extents = toContiguousSegmentExtents({
             segments,
             placeTime,
+            visibleExclusiveEndTime,
         })
         const placedSegments = segments.map((segment, segmentIndex) =>
             toPlacedSwimlaneSegment({
@@ -286,15 +291,17 @@ export function toLabelledNumericBin(
 function toContiguousSegmentExtents({
     segments,
     placeTime,
+    visibleExclusiveEndTime,
 }: {
     segments: SwimlaneSegment[]
     placeTime: (time: Time) => number
+    visibleExclusiveEndTime: Time
 }): { x: number; width: number }[] {
     return segments.map((segment, index) => {
         const nextSegment = segments[index + 1]
         const x = placeTime(segment.visibleStartTime)
         const right = placeTime(
-            nextSegment?.visibleStartTime ?? segment.visibleEndTime + 1
+            nextSegment?.visibleStartTime ?? visibleExclusiveEndTime
         )
         return { x, width: right - x }
     })

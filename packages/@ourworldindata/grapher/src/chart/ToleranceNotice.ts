@@ -6,6 +6,7 @@ import {
 import {
     ColumnSlug,
     Time,
+    TimeInterval,
     TimeRange,
     ToleranceStrategy,
 } from "@ourworldindata/types"
@@ -134,7 +135,10 @@ export function formatToleranceNotice({
         if (isUnbounded)
             return `Where data is unavailable, the ${closest} value is shown instead.`
 
-        const tolerance = formatTimeSpan(timeTolerance, timeColumn.timeInterval)
+        const toleranceUnit = isSubYearly(timeColumn.timeInterval)
+            ? TimeInterval.Day
+            : TimeInterval.Year
+        const tolerance = formatTimeSpan(timeTolerance, toleranceUnit)
 
         return `Where data is unavailable, the ${closest} value within ${tolerance} is shown instead.`
     }

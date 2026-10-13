@@ -26,11 +26,9 @@ export class SwimlaneChartTooltip extends React.Component<SwimlaneChartTooltipPr
 
     private get formattedDuration(): string | undefined {
         const segment = this.target?.segment
-        if (!segment) return undefined
-        return formatSegmentDuration({
-            segment,
-            timeColumn: this.chartState.inputTable.timeColumn,
-        })
+        const { timeColumn } = this.chartState
+        if (!segment || !timeColumn) return undefined
+        return formatSegmentDuration({ segment, timeColumn })
     }
 
     override render(): React.ReactElement | null {
