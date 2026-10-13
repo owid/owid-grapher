@@ -7,6 +7,7 @@ import { MIGRATION_VIEWS, SEXES, MigrationView, Sex } from "./types.js"
 
 export interface SankeyVariantConfig {
     hideControls?: boolean
+    hideHeading?: boolean
     hideFlowSwitcher?: boolean
     title?: string
     subtitle?: string
@@ -19,6 +20,7 @@ export interface SankeyVariantConfig {
 export function parseConfig(raw: Record<string, string>): SankeyVariantConfig {
     return {
         hideControls: parseBoolean(raw.hideControls),
+        hideHeading: parseBoolean(raw.hideHeading),
         hideFlowSwitcher: parseBoolean(raw.hideFlowSwitcher),
         title: raw.title,
         subtitle: raw.subtitle,

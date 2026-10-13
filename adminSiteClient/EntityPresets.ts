@@ -40,6 +40,7 @@ export const regionSetLabels: Record<RegionSet, string> = {
     fao_sdg: "FAO (SDG regions)",
     ihme_gbd_1: "IHME GBD (super-regions)",
     ihme_gbd_2: "IHME GBD (regions)",
+    ucdp: "UCDP regions",
 }
 
 /**

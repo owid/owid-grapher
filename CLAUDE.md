@@ -28,8 +28,8 @@ Read `docs/testing-strategy.md` when choosing, writing, or refactoring tests. It
 - `make dbtest` — DB and API test suite (`db/tests/**`, `adminSiteServer/tests/**`). Spins up its own MySQL container and runs migrations; these tests are excluded from `yarn test`.
 - `make test` — the CI bundle: lint + format check + unit tests.
 - `make svgtest` — SVG regression tests for chart rendering; uses a sibling `../owid-grapher-svgs` checkout and opens an HTML diff report on failure. Run when touching grapher rendering code.
-- `yarn testPlaywright` / `make playwright` — direct Playwright browser tests (requires the dev stack running).
-- `yarn testPlaywrightAdmin` — chart editor browser tests; starts its own test database and admin server (see `playwright/admin/README.md`).
+- `yarn testPlaywrightDevSite` / `make playwright` — Playwright browser tests against the running dev site (requires the dev stack running).
+- `yarn testPlaywrightStandalone` / `make playwright.standalone` — chart editor and grapher page browser tests; starts its own test database and admin server, runs in CI (see `playwright/standalone/README.md`).
 - `yarn testBundlemon` — builds the site bundle and checks it against the size budgets in `.bundlemonrc.json`; CI blocks PRs that exceed them. Relevant when adding dependencies or imports to site code.
 
 ### Git
@@ -127,7 +127,7 @@ When AI-authored text is posted through a **human's account**, it must be clearl
 - In Grapher and the admin (MobX 6) we use a nonstandard setup: class-based components with TC-39 stage 3 decorators, but only for `@computed` and `@action`. Observable props are NOT marked `@observable`; they are listed in a `makeObservable` call in the constructor. That call must mention all observable props, but none of the `@computed`/`@action` ones. A component that observes is a class with the `@observer` decorator, not a function component wrapped in `observer()` — a few old admin components still use the wrapper, but don't add new ones. Components that don't need to observe stay plain functions.
 - CSS: named style classes following BEM in separate `.scss` files; avoid inline styles unless the component already uses them for a similar case. Components usually have a companion scss file with the same name. Entry points: `site/owid.scss` for the site, `packages/@ourworldindata/grapher/src/core/grapher.scss` for grapher.
 - In SCSS, do NOT use the parent selector to concatenate BEM class names (`&__element`, `&--modifier`) — write out full class names (`.block__element`) so it's easy to grep between JSX and SCSS. `&` with pseudo-classes/elements or state attributes (`&:hover`, `&::before`, `&[data-selected]`) is fine.
-- Check [docs/browser-support.md](./docs/browser-support.md) before using modern JS or CSS features. It lists our supported browsers, the "most breaking" features we rely on, and features we can't yet use.
+- Check [docs/browser-support.md](./docs/browser-support.md) before using modern JS or CSS features in code that reaches the public site (`site/`, `packages/`, `bespoke/`). It lists our supported browsers, the "most breaking" features we rely on, and features we can't yet use. The admin (`adminSiteClient/`) is used only by staff on recent browsers, so it can use modern features freely.
 - For inline `<script>` JSON, use `escapeJSONStringForInlineScript` from `@ourworldindata/utils` — it also escapes U+2028/U+2029.
 - package.json scripts are camelCase and descriptive: `startXXX` for long-lived processes, `buildXXX` for scripts that write output (`docs/coding-style.md`). Server-side scripts run via `tsx --tsconfig tsconfig.tsx.json`.
 
