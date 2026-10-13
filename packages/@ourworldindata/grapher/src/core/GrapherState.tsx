@@ -148,6 +148,7 @@ import { GRAPHER_LIGHT_TEXT } from "../color/ColorConstants.js"
 import { ColorScaleConfig } from "../color/ColorScaleConfig.js"
 import {
     DataTableConfig,
+    DataTableSortState,
     DataTableManager,
 } from "../dataTable/DataTableConstants.js"
 import {
@@ -561,6 +562,7 @@ export class GrapherState
     focusArray = new FocusArray()
 
     dataTableConfig: DataTableConfig = { filter: "all", search: "" }
+    dataTableSort: DataTableSortState | undefined = undefined
 
     entitySelectorState: Partial<EntitySelectorState> = {}
 
@@ -723,6 +725,7 @@ export class GrapherState
             comparisonLines: observable,
             relatedQuestions: observable,
             dataTableConfig: observable,
+            dataTableSort: observable,
             highlightedTimesInLineChart: observable.ref,
             hideFacetControl: observable.ref,
             selectedFacetStrategy: observable,
