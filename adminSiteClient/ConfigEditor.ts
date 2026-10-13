@@ -396,14 +396,16 @@ export class ConfigEditor {
                 editedKeys.filter((key) => !(key in this.patchConfig))
             )
             if (this.configsDiffer(livePatch, this.patchConfig)) {
-                const dimensionsChanged = !_.isEqual(
-                    livePatch.dimensions,
-                    this.patchConfig.dimensions
+                // Both go into the store's loadTable
+                const dataChanged = (
+                    ["dimensions", "selectedEntityColors"] as const
+                ).some(
+                    (key) => !_.isEqual(livePatch[key], this.patchConfig[key])
                 )
                 this.updateLiveGrapher(
                     mergeGrapherConfigs(this.baseConfig ?? {}, livePatch)
                 )
-                if (dimensionsChanged) void this.reloadGrapherData()
+                if (dataChanged) void this.reloadGrapherData()
             }
             this.markAsSaved(savedPatch)
         })
