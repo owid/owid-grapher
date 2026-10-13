@@ -319,6 +319,48 @@ export function snapToIntervalStart(
     return convertDateToDaysSinceEpoch(start)
 }
 
+/** The time `count` periods after `time`, which must be a period start */
+export function addTimeIntervals(
+    time: number,
+    count: number,
+    interval: TimeInterval
+): number {
+    const addCalendarUnits = (unit: "month" | "quarter"): number =>
+        convertDateToDaysSinceEpoch(
+            convertDaysSinceEpochToDate(time).add(count, unit)
+        )
+    return match(interval)
+        .with(TimeInterval.Day, TimeInterval.Year, () => time + count)
+        .with(TimeInterval.Week, () => time + 7 * count)
+        .with(TimeInterval.Month, () => addCalendarUnits("month"))
+        .with(TimeInterval.Quarter, () => addCalendarUnits("quarter"))
+        .with(TimeInterval.Decade, () => time + 10 * count)
+        .exhaustive()
+}
+
+/** Whole periods from `startTime` to `endTime`, 0 when both fall in the same period */
+export function countTimeIntervals(
+    startTime: number,
+    endTime: number,
+    interval: TimeInterval
+): number {
+    const diffCalendarUnits = (unit: "month" | "quarter"): number =>
+        convertDaysSinceEpochToDate(endTime).diff(
+            convertDaysSinceEpochToDate(startTime),
+            unit
+        )
+    return match(interval)
+        .with(TimeInterval.Day, TimeInterval.Year, () => endTime - startTime)
+        .with(TimeInterval.Week, () => Math.round((endTime - startTime) / 7))
+        .with(TimeInterval.Month, () => diffCalendarUnits("month"))
+        .with(TimeInterval.Quarter, () => diffCalendarUnits("quarter"))
+        .with(
+            TimeInterval.Decade,
+            () => Math.floor(endTime / 10) - Math.floor(startTime / 10)
+        )
+        .exhaustive()
+}
+
 export const formatYear = (year: number): string => {
     if (isNaN(year)) {
         console.warn(`Invalid year '${year}'`)

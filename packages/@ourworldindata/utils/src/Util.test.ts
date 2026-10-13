@@ -40,6 +40,8 @@ import {
     stripOuterParentheses,
     groupTocIntoSections,
     snapToIntervalStart,
+    addTimeIntervals,
+    countTimeIntervals,
     findFinestCommonTimeInterval,
     diffDatesInDays,
     convertDateToDaysSinceEpoch,
@@ -1448,4 +1450,100 @@ describe(deriveAnnouncementLatestType, () => {
             expect(deriveAnnouncementLatestType(kicker)).toBe("announcement")
         }
     )
+})
+
+describe("addTimeIntervals and countTimeIntervals", () => {
+    const day = (iso: string): number =>
+        diffDatesInDays(dayjs.utc(iso), epochDate())
+
+    const cases: {
+        name: string
+        interval: TimeInterval
+        from: () => number
+        count: number
+        to: () => number
+    }[] = [
+        {
+            name: "a month step from January lands on February",
+            interval: TimeInterval.Month,
+            from: () => day("2021-01-01"),
+            count: 1,
+            to: () => day("2021-02-01"),
+        },
+        {
+            name: "a month step from December rolls into the next year",
+            interval: TimeInterval.Month,
+            from: () => day("2020-12-01"),
+            count: 1,
+            to: () => day("2021-01-01"),
+        },
+        {
+            name: "a quarter step from October rolls into the next year",
+            interval: TimeInterval.Quarter,
+            from: () => day("2020-10-01"),
+            count: 1,
+            to: () => day("2021-01-01"),
+        },
+        {
+            name: "a week step from a Monday lands on the next Monday",
+            interval: TimeInterval.Week,
+            from: () => day("2021-01-11"),
+            count: 1,
+            to: () => day("2021-01-18"),
+        },
+        {
+            name: "a decade step adds ten years",
+            interval: TimeInterval.Decade,
+            from: () => 1950,
+            count: 1,
+            to: () => 1960,
+        },
+        {
+            name: "a decade step works before the common era",
+            interval: TimeInterval.Decade,
+            from: () => -500,
+            count: 3,
+            to: () => -470,
+        },
+        {
+            name: "a year step adds one year",
+            interval: TimeInterval.Year,
+            from: () => 2000,
+            count: 3,
+            to: () => 2003,
+        },
+        {
+            name: "a day step adds one day",
+            interval: TimeInterval.Day,
+            from: () => day("2021-03-01"),
+            count: -2,
+            to: () => day("2021-02-27"),
+        },
+    ]
+
+    it.each(cases)("$name", ({ interval, from, count, to }) => {
+        expect(addTimeIntervals(from(), count, interval)).toEqual(to())
+        expect(countTimeIntervals(from(), to(), interval)).toEqual(count)
+    })
+
+    it("counts 0 periods when both times fall in the same period", () => {
+        expect(
+            countTimeIntervals(
+                day("2021-03-01"),
+                day("2021-03-20"),
+                TimeInterval.Month
+            )
+        ).toEqual(0)
+        expect(countTimeIntervals(1950, 1959, TimeInterval.Decade)).toEqual(0)
+    })
+
+    it("counts across months of different lengths as whole periods", () => {
+        expect(
+            countTimeIntervals(
+                day("2021-01-01"),
+                day("2021-03-01"),
+                TimeInterval.Month
+            )
+        ).toEqual(2)
+    })
 })
