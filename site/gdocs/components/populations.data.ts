@@ -113,7 +113,7 @@ export const POPULATION_BY_ENTITY_CODE: Record<string, number> = {
     KAZ: 20330109,
     KEN: 55339007,
     KIR: 132540,
-    "OWID_KOS": 1700039,
+    OWID_KOS: 1700039,
     KWT: 4838781,
     KGZ: 7073523,
     LAO: 7665001,
