@@ -132,7 +132,7 @@ class IndicatorSelector {
 
     /** The indicators chosen so far */
     get chosen(): Locator {
-        return this.modal.locator(".VariableSelector__chosen-item")
+        return this.modal.locator(".VariableSelector__selected-item")
     }
 
     async confirm(): Promise<void> {
@@ -481,7 +481,7 @@ test.describe("Indicators", () => {
         )
         const selector = await openIndicatorSelector(editor, "Y axis")
         await expect(selector.searchBox).toHaveValue(
-            `dataset-id:${indicators.coalEmissions.dataset.id}`
+            `dataset-id:${indicators.coalEmissions.dataset.id} `
         )
         await expect(
             selector.result(indicators.oilEmissions.name)
@@ -508,7 +508,10 @@ test.describe("Indicators", () => {
         await selector.search("oil")
         await selector.result(indicators.oilEmissions.name).check()
 
-        await selector.modal.getByRole("button", { name: "Close" }).click()
+        await selector.modal
+            .locator(".ant-modal-footer")
+            .getByRole("button", { name: "Close" })
+            .click()
 
         await expect(selector.modal).toHaveCount(0)
         await expect(slotIndicators(editor, "Y axis")).toHaveText([

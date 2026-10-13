@@ -1,8 +1,10 @@
 import {
     DimensionProperty,
+    IndicatorDimensionInterface,
     OwidChartDimensionInterface,
+    SlugDimensionInterface,
 } from "@ourworldindata/types"
-import { ColumnSlug, DetailDictionary } from "@ourworldindata/utils"
+import { DetailDictionary, Json } from "@ourworldindata/utils"
 import { CONTINENTS_INDICATOR_ID } from "@ourworldindata/grapher"
 import { Admin } from "./Admin.js"
 import type { References } from "./adminChartApi.js"
@@ -37,20 +39,26 @@ export const defaultEditorEnvironment: EditorEnvironment = {
     catalogUrl: CATALOG_URL,
 }
 
-/** An indicator the picker offers. A host table's column is picked by `slug`. */
-export type CatalogIndicator = VariableListItem & { slug?: ColumnSlug }
+/** What a slot draws: an OWID indicator by id, or a host table's column by slug */
+export type PickedColumn =
+    | Pick<IndicatorDimensionInterface, "variableId" | "slug">
+    | Pick<SlugDimensionInterface, "slug" | "variableId">
+
+/** An indicator the picker offers, with the column picking it puts in a slot */
+export type CatalogIndicator = VariableListItem & { column: PickedColumn }
 
 export type CatalogDataset = DatasetListGroup<CatalogIndicator>
 
-/** One page of a catalog search */
 export interface IndicatorSearchPage {
     datasets: CatalogDataset[]
-    /** What `total` counts: datasets, or a single dataset's indicators */
+    /** What `total` counts: indicators when the query names a dataset */
     unit: "datasets" | "indicators"
     total: number
     pageSize: number
-    /** Why the query couldn't run as typed */
-    error?: string
+    /** Set when MySQL couldn't run a term as a regular expression */
+    regexError?: string
+    /** Terms that had to fall back to a slow scan */
+    unindexedTerms?: string[]
 }
 
 /** Indicators the variable picker offers, searched a page at a time */
@@ -81,52 +89,60 @@ export function adminIndicatorCatalog(admin: Admin): IndicatorCatalog {
             return distinct.size === 1 ? `dataset-id:${[...distinct][0]}` : ""
         },
         async search(query, page) {
+            // The picker says when a search fails; the admin's own error
+            // dialog would reload the page and lose the chart's edits
+            const get = <T extends Json>(params: Json): Promise<T> =>
+                admin.requestJSON<T>("/api/variables.json", params, "GET", {
+                    onFailure: "continue",
+                    isBackground: true,
+                })
             if (namesOneDataset(query)) {
-                const result =
-                    await admin.getJSONInBackground<VariablesSearchResult>(
-                        "/api/variables.json",
-                        {
-                            search: query,
-                            limit: INDICATORS_PER_PAGE,
-                            offset: (page - 1) * INDICATORS_PER_PAGE,
-                        }
-                    )
+                const result = await get<VariablesSearchResult>({
+                    search: query,
+                    limit: INDICATORS_PER_PAGE,
+                    offset: (page - 1) * INDICATORS_PER_PAGE,
+                })
                 return {
                     datasets: groupByDataset(result.variables),
                     unit: "indicators",
                     total: result.numTotalRows,
                     pageSize: INDICATORS_PER_PAGE,
-                    error: result.regexError,
+                    regexError: result.regexError,
+                    unindexedTerms: result.unindexedTerms,
                 }
             }
-            const result =
-                await admin.getJSONInBackground<VariablesGroupedSearchResult>(
-                    "/api/variables.json",
-                    {
-                        search: query,
-                        group: "dataset",
-                        limit: DATASETS_PER_PAGE,
-                        offset: (page - 1) * DATASETS_PER_PAGE,
-                    }
-                )
+            const result = await get<VariablesGroupedSearchResult>({
+                search: query,
+                group: "dataset",
+                limit: DATASETS_PER_PAGE,
+                offset: (page - 1) * DATASETS_PER_PAGE,
+            })
             return {
-                datasets: result.datasets,
+                datasets: result.datasets.map((dataset) => ({
+                    ...dataset,
+                    variables: dataset.variables.map(asCatalogIndicator),
+                })),
                 unit: "datasets",
                 total: result.numTotalDatasets,
                 pageSize: DATASETS_PER_PAGE,
-                error: result.regexError,
+                regexError: result.regexError,
+                unindexedTerms: result.unindexedTerms,
             }
         },
     }
 }
 
-/** A page of one dataset's indicators, under that dataset's header */
+function asCatalogIndicator(variable: VariableResultView): CatalogIndicator {
+    return { ...variable, column: { variableId: variable.id } }
+}
+
+/** A page of indicators, under the headers of the datasets they are from */
 function groupByDataset(variables: VariableResultView[]): CatalogDataset[] {
     const groups = new Map<number, CatalogDataset>()
     for (const variable of variables) {
         const group = groups.get(variable.datasetId)
         if (group) {
-            group.variables.push(variable)
+            group.variables.push(asCatalogIndicator(variable))
             continue
         }
         const path = variable.catalogPath
@@ -140,7 +156,7 @@ function groupByDataset(variables: VariableResultView[]): CatalogDataset[] {
             shortName: path?.dataset,
             uploadedAt: variable.uploadedAt,
             uploadedBy: variable.uploadedBy,
-            variables: [variable],
+            variables: [asCatalogIndicator(variable)],
         })
     }
     return [...groups.values()]

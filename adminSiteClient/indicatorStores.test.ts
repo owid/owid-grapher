@@ -34,9 +34,9 @@ describe(csvIndicatorStore, () => {
             "housing.csv",
         ])
         expect(page.datasets[0].variables).toEqual([
-            { id: 1, slug: "rent_index", name: "Rent index" },
-            { id: 2, slug: "vacancy_rate", name: "vacancy_rate" },
-            { id: 3, slug: "region", name: "region" },
+            { id: 1, name: "Rent index", column: { slug: "rent_index" } },
+            { id: 2, name: "vacancy_rate", column: { slug: "vacancy_rate" } },
+            { id: 3, name: "region", column: { slug: "region" } },
         ])
     })
 

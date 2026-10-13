@@ -54,10 +54,12 @@ export type DatasetListGroup<Item extends VariableListItem = VariableListItem> =
             variables: Item[]
         }
 
-/** Ticking indicators instead of following their links, as a picker does. */
+/** Ticking indicators instead of following links, as a picker does. */
 export interface IndicatorSelection<Item> {
     isSelected: (item: Item) => boolean
     onToggle: (item: Item) => void
+    /** Runs a "more in this dataset" search in place */
+    onNarrow: (search: string) => void
 }
 
 /** Columns beyond the always-present name, in the order they are shown. */
@@ -85,9 +87,14 @@ interface VariableListProps {
  */
 function UsageCell({
     variable,
+    opensInNewTab,
 }: {
     variable: VariableListItem
-}): React.ReactElement {
+    /** In a picker, where following a link would leave unsaved work */
+    opensInNewTab: boolean
+}): React.ReactElement | null {
+    // Unknown, as for a host table's column, which is not the same as unused
+    if (variable.usageCount === undefined) return null
     const parts: {
         noun: string
         links: {
@@ -150,6 +157,16 @@ function UsageCell({
                                             <a
                                                 href={link.href}
                                                 title={link.title}
+                                                target={
+                                                    opensInNewTab
+                                                        ? "_blank"
+                                                        : undefined
+                                                }
+                                                rel={
+                                                    opensInNewTab
+                                                        ? "noopener"
+                                                        : undefined
+                                                }
                                             >
                                                 {link.label}
                                             </a>
@@ -352,7 +369,9 @@ function createColumns<Item extends VariableListItem>({
             sorter:
                 sortable &&
                 ((a, b) => (a.usageCount ?? 0) - (b.usageCount ?? 0)),
-            render: (_, variable) => <UsageCell variable={variable} />,
+            render: (_, variable) => (
+                <UsageCell variable={variable} opensInNewTab={!!selection} />
+            ),
         },
     }
 
@@ -521,7 +540,6 @@ export function GroupedVariableList<
     loading,
     pagination,
     selection,
-    onNarrow,
 }: {
     groups: DatasetListGroup<Item>[]
     /** Groups say "matching indicators" for a search, "indicators" otherwise. */
@@ -534,10 +552,8 @@ export function GroupedVariableList<
     loading?: boolean
     /** Over the datasets, which is what the server pages through. */
     pagination: TableProps<DatasetListGroup<Item>>["pagination"]
-    /** Turns the names into checkboxes and the dataset headers into text. */
+    /** Makes the list a picker, which no link leads out of */
     selection?: IndicatorSelection<Item>
-    /** Runs a "more" link's search in place, instead of linking to it. */
-    onNarrow?: (search: string) => void
 }): React.ReactElement {
     const highlight = useMemo(
         () => highlightFunctionForSearchWords(searchWords),
@@ -623,7 +639,7 @@ export function GroupedVariableList<
                                               ]
                                                   .filter(Boolean)
                                                   .join(" ")}
-                                              onNarrow={onNarrow}
+                                              onNarrow={selection?.onNarrow}
                                           />
                                       )
                                     : undefined

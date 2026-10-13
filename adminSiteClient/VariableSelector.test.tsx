@@ -35,8 +35,18 @@ const energy: CatalogDataset = {
     name: "Energy",
     matchCount: 4,
     variables: [
-        { id: 10, name: "Coal", datasetName: "Energy" },
-        { id: 11, name: "Oil", datasetName: "Energy" },
+        {
+            id: 10,
+            name: "Coal",
+            datasetName: "Energy",
+            column: { variableId: 10 },
+        },
+        {
+            id: 11,
+            name: "Oil",
+            datasetName: "Energy",
+            column: { variableId: 11 },
+        },
     ],
 }
 
@@ -85,8 +95,8 @@ const isTicked = (name: string): boolean =>
         ).getByLabelText(name) as HTMLInputElement
     ).checked
 
-const chosenNames = (): string[] =>
-    [...document.querySelectorAll(".VariableSelector__chosen-item")].map(
+const selectedNames = (): string[] =>
+    [...document.querySelectorAll(".VariableSelector__selected-item")].map(
         (item) => item.textContent ?? ""
     )
 
@@ -105,9 +115,9 @@ describe(VariableSelector, () => {
             ])
         )
 
-        expect(searchBox().value).toBe("dataset-id:3")
-        expect(catalog.search).toHaveBeenCalledWith("dataset-id:3", 1)
-        expect(chosenNames()).toEqual(["Coal"])
+        expect(searchBox().value).toBe("dataset-id:3 ")
+        expect(catalog.search).toHaveBeenCalledWith("dataset-id:3 ", 1)
+        expect(selectedNames()).toEqual(["Coal"])
         await screen.findByLabelText("Oil")
         expect(isTicked("Coal")).toBe(true)
         expect(isTicked("Oil")).toBe(false)
@@ -117,7 +127,9 @@ describe(VariableSelector, () => {
         const table: CatalogDataset = {
             id: 1,
             name: "housing.csv",
-            variables: [{ id: 1, slug: "rent_index", name: "Rent index" }],
+            variables: [
+                { id: 1, name: "Rent index", column: { slug: "rent_index" } },
+            ],
         }
         const { onComplete } = renderSelector(
             fakeCatalog(() => Promise.resolve(pageOf(energy, table))),
@@ -144,7 +156,7 @@ describe(VariableSelector, () => {
         )
 
         fireEvent.click(await screen.findByLabelText("Oil"))
-        expect(chosenNames()).toEqual(["Oil Energy"])
+        expect(selectedNames()).toEqual(["Oil Energy"])
         fireEvent.click(screen.getByRole("button", { name: "Set variable" }))
         expect(onComplete).toHaveBeenCalledWith([{ variableId: 11 }])
     })
@@ -157,11 +169,11 @@ describe(VariableSelector, () => {
         await screen.findByLabelText("Oil")
 
         const chosen = document.querySelector(
-            ".VariableSelector__chosen-item input"
+            ".VariableSelector__selected-item input"
         ) as HTMLInputElement
         fireEvent.click(chosen)
 
-        expect(chosenNames()).toEqual([])
+        expect(selectedNames()).toEqual([])
         expect(isTicked("Coal")).toBe(false)
         fireEvent.click(screen.getByRole("button", { name: "Set variables" }))
         expect(onComplete).toHaveBeenCalledWith([])

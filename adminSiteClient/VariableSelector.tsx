@@ -1,29 +1,24 @@
 import * as React from "react"
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { Alert, Checkbox, ConfigProvider, Flex, Typography } from "antd"
+import { useCallback, useEffect, useMemo, useState } from "react"
+import { Alert, Button, Checkbox, Flex, Modal, Typography } from "antd"
 import { useDebounceValue } from "usehooks-ts"
 import { excludeUndefined } from "@ourworldindata/utils"
-import {
-    IndicatorDimensionInterface,
-    SlugDimensionInterface,
-} from "@ourworldindata/types"
 import { ChartDimension, DimensionSlot } from "@ourworldindata/grapher"
 
-import { Modal } from "./Forms.js"
 import { GroupedVariableList, IndicatorSelection } from "./VariableList.js"
-import { VariableSearchToolbar } from "./VariableSearchToolbar.js"
+import {
+    VariableSearchNotice,
+    VariableSearchToolbar,
+} from "./VariableSearchToolbar.js"
 import { searchWordsToHighlight } from "./variableSearchQuery.js"
 import {
     CatalogIndicator,
     IndicatorCatalog,
     IndicatorSearchPage,
+    PickedColumn,
 } from "./editorProviders.js"
 
-export type PickedColumn =
-    | Pick<IndicatorDimensionInterface, "variableId" | "slug">
-    | Pick<SlugDimensionInterface, "slug" | "variableId">
-
-interface ChosenColumn {
+interface SelectedColumn {
     column: PickedColumn
     name: string
     datasetName?: string
@@ -35,18 +30,15 @@ function columnKey(column: PickedColumn): string {
         : `id:${column.variableId}`
 }
 
-function chosenFromIndicator(indicator: CatalogIndicator): ChosenColumn {
+function selectedFromIndicator(indicator: CatalogIndicator): SelectedColumn {
     return {
-        column:
-            indicator.slug !== undefined
-                ? { slug: indicator.slug }
-                : { variableId: indicator.id },
+        column: indicator.column,
         name: indicator.name,
         datasetName: indicator.datasetName,
     }
 }
 
-function chosenFromDimension(dimension: ChartDimension): ChosenColumn {
+function selectedFromDimension(dimension: ChartDimension): SelectedColumn {
     return {
         column:
             dimension.variableId !== undefined
@@ -57,34 +49,36 @@ function chosenFromDimension(dimension: ChartDimension): ChosenColumn {
     }
 }
 
-type SearchState =
-    | { status: "loading"; previous?: IndicatorSearchPage }
-    | { status: "done"; page: IndicatorSearchPage }
-    | { status: "failed"; message: string }
+interface CatalogSearch {
+    /** The latest search's page, or the one before while it runs */
+    page?: IndicatorSearchPage
+    isLoading: boolean
+    failure?: string
+}
 
-type Answer = { catalog: IndicatorCatalog; request: string } & (
+type Answer = { request: string } & (
     | { page: IndicatorSearchPage }
     | { failure: string }
 )
 
-/** The latest search's page, keeping the one before on screen while it runs */
+// Not react-query, which the admin uses elsewhere: the editor is meant to run
+// outside the admin, without its QueryClientProvider
 function useCatalogSearch(
     catalog: IndicatorCatalog,
     query: string,
     page: number
-): SearchState {
+): CatalogSearch {
     const request = JSON.stringify([query, page])
     const [answer, setAnswer] = useState<Answer>()
     useEffect(() => {
         let isCurrent = true
         catalog.search(query, page).then(
             (result) => {
-                if (isCurrent) setAnswer({ catalog, request, page: result })
+                if (isCurrent) setAnswer({ request, page: result })
             },
             (error: unknown) => {
                 if (isCurrent)
                     setAnswer({
-                        catalog,
                         request,
                         failure:
                             error instanceof Error
@@ -98,14 +92,12 @@ function useCatalogSearch(
         }
     }, [catalog, query, page, request])
 
-    if (answer?.catalog === catalog && answer.request === request)
-        return "page" in answer
-            ? { status: "done", page: answer.page }
-            : { status: "failed", message: answer.failure }
-    return {
-        status: "loading",
-        previous: answer && "page" in answer ? answer.page : undefined,
-    }
+    const isLoading = answer?.request !== request
+    if (answer && "failure" in answer)
+        return isLoading
+            ? { isLoading }
+            : { isLoading, failure: answer.failure }
+    return { page: answer?.page, isLoading }
 }
 
 interface VariableSelectorProps {
@@ -122,41 +114,38 @@ export function VariableSelector({
     onDismiss,
     onComplete,
 }: VariableSelectorProps): React.ReactElement {
-    const [chosen, setChosen] = useState<ChosenColumn[]>(() =>
-        slot.dimensions.map(chosenFromDimension)
+    const [selected, setSelected] = useState<SelectedColumn[]>(() =>
+        slot.dimensions.map(selectedFromDimension)
     )
-    const [searchValue, setSearchValue] = useState(() =>
-        catalog.initialQuery(
+    const [searchValue, setSearchValue] = useState(() => {
+        const initial = catalog.initialQuery(
             excludeUndefined(
                 slot.dimensions.map((dimension) => dimension.column.datasetId)
             )
         )
-    )
+        // so that typing straight away adds a word instead of extending it
+        return initial ? `${initial} ` : ""
+    })
     const [debouncedSearch] = useDebounceValue(searchValue, 250)
     // A page belongs to the search it was paged in, so a new one starts at 1
     const [paging, setPaging] = useState({ search: debouncedSearch, page: 1 })
     const page = paging.search === debouncedSearch ? paging.page : 1
 
     const search = useCatalogSearch(catalog, debouncedSearch, page)
-    const shown =
-        search.status === "done"
-            ? search.page
-            : search.status === "loading"
-              ? search.previous
-              : undefined
+    const shown = search.page
 
-    const chosenKeys = useMemo(
-        () => new Set(chosen.map((entry) => columnKey(entry.column))),
-        [chosen]
+    const selectedKeys = useMemo(
+        () => new Set(selected.map((entry) => columnKey(entry.column))),
+        [selected]
     )
     const toggle = useCallback(
-        (entry: ChosenColumn) =>
-            setChosen((existing) => {
+        (entry: SelectedColumn) =>
+            setSelected((existing) => {
                 const key = columnKey(entry.column)
-                if (existing.some((other) => columnKey(other.column) === key))
-                    return existing.filter(
-                        (other) => columnKey(other.column) !== key
-                    )
+                const rest = existing.filter(
+                    (other) => columnKey(other.column) !== key
+                )
+                if (rest.length < existing.length) return rest
                 // a slot that takes one indicator swaps rather than adds
                 return slot.allowMultiple ? [...existing, entry] : [entry]
             }),
@@ -165,12 +154,11 @@ export function VariableSelector({
     const selection: IndicatorSelection<CatalogIndicator> = useMemo(
         () => ({
             isSelected: (indicator) =>
-                chosenKeys.has(
-                    columnKey(chosenFromIndicator(indicator).column)
-                ),
-            onToggle: (indicator) => toggle(chosenFromIndicator(indicator)),
+                selectedKeys.has(columnKey(indicator.column)),
+            onToggle: (indicator) => toggle(selectedFromIndicator(indicator)),
+            onNarrow: setSearchValue,
         }),
-        [chosenKeys, toggle]
+        [selectedKeys, toggle]
     )
 
     const searchWords = useMemo(
@@ -178,131 +166,109 @@ export function VariableSelector({
         [debouncedSearch]
     )
 
-    // Popovers inside the modal rather than at the end of the page, where
-    // they open behind it and a click in one would read as a click outside
-    const containerRef = useRef<HTMLDivElement>(null)
-    const getPopupContainer = useCallback(
-        () => containerRef.current ?? document.body,
-        []
-    )
-
     const s = slot.allowMultiple ? "s" : ""
 
     return (
-        <Modal onClose={onDismiss} className="VariableSelector">
-            <div
-                ref={containerRef}
-                onKeyDown={(event) => {
-                    if (event.key === "Escape") onDismiss()
-                }}
-            >
-                <ConfigProvider getPopupContainer={getPopupContainer}>
-                    <div className="modal-header">
-                        <h5 className="modal-title">
-                            Set indicator{s} for {slot.name}
-                        </h5>
-                    </div>
-                    <div className="modal-body VariableSelector__body">
-                        <Flex
-                            vertical
-                            gap="small"
-                            className="VariableSelector__results"
-                        >
-                            <VariableSearchToolbar
-                                search={{
-                                    value: searchValue,
-                                    onChange: setSearchValue,
-                                    placeholder: "Search indicators...",
-                                    autoFocus: true,
-                                    fields: catalog.fields,
-                                }}
-                            />
-                            {search.status === "failed" && (
-                                <Alert
-                                    type="error"
-                                    showIcon
-                                    title={`The search failed: ${search.message}`}
-                                />
-                            )}
-                            {shown?.error && (
-                                <Alert
-                                    type="warning"
-                                    showIcon
-                                    title={`This search couldn't run as typed: ${shown.error}`}
-                                />
-                            )}
-                            {search.status !== "failed" && (
-                                <GroupedVariableList<CatalogIndicator>
-                                    groups={shown?.datasets ?? []}
-                                    isSearch={debouncedSearch.trim() !== ""}
-                                    searchWords={searchWords}
-                                    searchValue={debouncedSearch}
-                                    loading={search.status === "loading"}
-                                    selection={selection}
-                                    onNarrow={setSearchValue}
-                                    pagination={
-                                        shown && {
-                                            current: page,
-                                            pageSize: shown.pageSize,
-                                            total: shown.total,
-                                            hideOnSinglePage: true,
-                                            showSizeChanger: false,
-                                            showTotal: (total, [from, to]) =>
-                                                `${from}-${to} of ${total} ${shown.unit}`,
-                                            onChange: (nextPage) =>
-                                                setPaging({
-                                                    search: debouncedSearch,
-                                                    page: nextPage,
-                                                }),
-                                        }
+        <Modal
+            open
+            centered
+            width="min(1100px, 90vw)"
+            rootClassName="VariableSelector"
+            title={`Set indicator${s} for ${slot.name}`}
+            onCancel={onDismiss}
+            footer={
+                <>
+                    <Button onClick={onDismiss}>Close</Button>
+                    <Button
+                        type="primary"
+                        onClick={() =>
+                            onComplete(selected.map((entry) => entry.column))
+                        }
+                    >
+                        Set variable{s}
+                    </Button>
+                </>
+            }
+        >
+            <div className="VariableSelector__body">
+                <Flex vertical gap="small" className="VariableSelector__main">
+                    <VariableSearchToolbar
+                        search={{
+                            value: searchValue,
+                            onChange: setSearchValue,
+                            placeholder: "Search indicators...",
+                            autoFocus: true,
+                            fields: catalog.fields,
+                        }}
+                    />
+                    {search.failure !== undefined && (
+                        <Alert
+                            type="error"
+                            showIcon
+                            title={`The search failed: ${search.failure}`}
+                        />
+                    )}
+                    {shown && !search.isLoading && (
+                        <VariableSearchNotice
+                            regexError={shown.regexError}
+                            unindexedTerms={shown.unindexedTerms}
+                        />
+                    )}
+                    {search.failure === undefined && (
+                        <div className="VariableSelector__results">
+                            <GroupedVariableList<CatalogIndicator>
+                                groups={shown?.datasets ?? []}
+                                isSearch={debouncedSearch.trim() !== ""}
+                                searchWords={searchWords}
+                                searchValue={debouncedSearch}
+                                loading={search.isLoading}
+                                selection={selection}
+                                pagination={
+                                    shown && {
+                                        current: page,
+                                        pageSize: shown.pageSize,
+                                        total: shown.total,
+                                        hideOnSinglePage: true,
+                                        showSizeChanger: false,
+                                        showTotal: (total, [from, to]) =>
+                                            `${from}-${to} of ${total} ${shown.unit}`,
+                                        onChange: (nextPage) =>
+                                            setPaging({
+                                                search: debouncedSearch,
+                                                page: nextPage,
+                                            }),
                                     }
-                                />
-                            )}
-                        </Flex>
-                        <div className="VariableSelector__chosen">
-                            <Typography.Text strong>
-                                Selected indicator{s}
-                            </Typography.Text>
-                            {chosen.length === 0 && (
-                                <Typography.Paragraph type="secondary">
-                                    None yet
-                                </Typography.Paragraph>
-                            )}
-                            {chosen.map((entry) => (
-                                <div
-                                    key={columnKey(entry.column)}
-                                    className="VariableSelector__chosen-item"
-                                >
-                                    <Checkbox
-                                        checked
-                                        onChange={() => toggle(entry)}
-                                    >
-                                        {entry.name}
-                                        {entry.datasetName && (
-                                            <Typography.Text type="secondary">
-                                                {" "}
-                                                {entry.datasetName}
-                                            </Typography.Text>
-                                        )}
-                                    </Checkbox>
-                                </div>
-                            ))}
+                                }
+                            />
                         </div>
-                    </div>
-                    <div className="modal-footer">
-                        <button className="btn" onClick={onDismiss}>
-                            Close
-                        </button>
-                        <button
-                            className="btn btn-success"
-                            onClick={() =>
-                                onComplete(chosen.map((entry) => entry.column))
-                            }
+                    )}
+                </Flex>
+                <div className="VariableSelector__selected">
+                    <Typography.Text strong>
+                        Selected indicator{s}
+                    </Typography.Text>
+                    {selected.length === 0 && (
+                        <Typography.Paragraph type="secondary">
+                            None yet
+                        </Typography.Paragraph>
+                    )}
+                    {selected.map((entry) => (
+                        <div
+                            key={columnKey(entry.column)}
+                            className="VariableSelector__selected-item"
                         >
-                            Set variable{s}
-                        </button>
-                    </div>
-                </ConfigProvider>
+                            <Checkbox checked onChange={() => toggle(entry)}>
+                                {entry.name}
+                                {entry.datasetName && (
+                                    <Typography.Text type="secondary">
+                                        {" "}
+                                        {entry.datasetName}
+                                    </Typography.Text>
+                                )}
+                            </Checkbox>
+                        </div>
+                    ))}
+                </div>
             </div>
         </Modal>
     )

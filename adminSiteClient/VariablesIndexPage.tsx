@@ -13,7 +13,10 @@ import {
     VariableList,
     VariableListField,
 } from "./VariableList.js"
-import { VariableSearchToolbar } from "./VariableSearchToolbar.js"
+import {
+    VariableSearchNotice,
+    VariableSearchToolbar,
+} from "./VariableSearchToolbar.js"
 import {
     INDICATOR_SEARCH_FIELDS,
     VariablesGroupedSearchResult,
@@ -150,7 +153,6 @@ export function VariablesIndexPage(): React.ReactElement {
         placeholder: "e.g. ^population before:2023 -wdi",
         autoFocus: true,
         fields: INDICATOR_SEARCH_FIELDS,
-        isInUrl: true,
     }
 
     // The indicators table is far too large to send to the browser, so the
@@ -197,32 +199,12 @@ export function VariablesIndexPage(): React.ReactElement {
     const unindexedTerms = settled?.unindexedTerms ?? []
     const regexError = settled?.regexError
 
-    const notice = regexError ? (
-        <Alert
-            type="warning"
-            showIcon
-            title={
-                <>
-                    MySQL couldn't run this as a regular expression:{" "}
-                    {regexError}
-                </>
-            }
+    const notice = (
+        <VariableSearchNotice
+            regexError={regexError}
+            unindexedTerms={unindexedTerms}
         />
-    ) : unindexedTerms.length > 0 ? (
-        <Alert
-            type="info"
-            showIcon
-            title={
-                <>
-                    {unindexedTerms.map((term) => `"${term}"`).join(", ")} can't
-                    use the search index — too short, a very common word, or a
-                    regular expression — so it's matched by reading every
-                    indicator the rest of the search leaves, which can take a
-                    few seconds. Another specific word usually narrows it.
-                </>
-            }
-        />
-    ) : null
+    )
 
     return (
         <AdminLayout title="Indicators">

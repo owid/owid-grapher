@@ -23,8 +23,6 @@ export interface VariableSearchBox {
     autoFocus?: boolean
     /** The `field:value` terms, listed in a help popover. */
     fields?: readonly SearchFieldHelp[]
-    /** Whether the page keeps the search in its URL, as the help then says. */
-    isInUrl?: boolean
 }
 
 export type SearchHighlighter = ReturnType<

@@ -35,7 +35,7 @@ function adminAnswering(
 ): { admin: Admin; getJSON: ReturnType<typeof vi.fn> } {
     const getJSON = vi.fn(() => Promise.resolve(response))
     return {
-        admin: { getJSONInBackground: getJSON } as unknown as Admin,
+        admin: { requestJSON: getJSON } as unknown as Admin,
         getJSON,
     }
 }
@@ -59,12 +59,14 @@ describe(adminIndicatorCatalog, () => {
 
         const page = await adminIndicatorCatalog(admin).search("deaths", 3)
 
-        expect(getJSON).toHaveBeenCalledWith("/api/variables.json", {
-            search: "deaths",
-            group: "dataset",
-            limit: 8,
-            offset: 16,
-        })
+        expect(getJSON).toHaveBeenCalledWith(
+            "/api/variables.json",
+            { search: "deaths", group: "dataset", limit: 8, offset: 16 },
+            "GET",
+            // a failure is the picker's to show: the admin's own error dialog
+            // reloads the page, losing the chart's edits
+            { onFailure: "continue", isBackground: true }
+        )
         expect(page).toMatchObject({ unit: "datasets", total: 17, pageSize: 8 })
     })
 
@@ -83,30 +85,35 @@ describe(adminIndicatorCatalog, () => {
 
         const page = await adminIndicatorCatalog(admin).search("dataset:gho", 2)
 
-        expect(getJSON).toHaveBeenCalledWith("/api/variables.json", {
-            search: "dataset:gho",
-            limit: 20,
-            offset: 20,
-        })
+        expect(getJSON).toHaveBeenCalledWith(
+            "/api/variables.json",
+            { search: "dataset:gho", limit: 20, offset: 20 },
+            "GET",
+            { onFailure: "continue", isBackground: true }
+        )
         expect(page).toMatchObject({
             unit: "indicators",
             total: 45,
             pageSize: 20,
-            error: "missing )",
+            regexError: "missing )",
         })
         expect(
             page.datasets.map(
                 ({ id, namespace, version, shortName, variables }) => ({
                     id,
                     path: `${namespace}/${version}/${shortName}`,
-                    ids: variables.map((variable) => variable.id),
+                    columns: variables.map((variable) => variable.column),
                 })
             )
         ).toEqual([
-            { id: 7, path: "who/2026-05-22/gho", ids: [1, 2] },
-            { id: 8, path: "who/2025-01-01/gho", ids: [3] },
+            {
+                id: 7,
+                path: "who/2026-05-22/gho",
+                columns: [{ variableId: 1 }, { variableId: 2 }],
+            },
+            { id: 8, path: "who/2025-01-01/gho", columns: [{ variableId: 3 }] },
         ])
-        // A page of one dataset doesn't know how many of it matched
+        // Paging through indicators, a dataset's matches aren't counted
         expect(page.datasets[0].matchCount).toBeUndefined()
     })
 })

@@ -44,7 +44,8 @@ import {
     areSetsEqual,
 } from "@ourworldindata/utils"
 import { Section } from "./Forms.js"
-import { PickedColumn, VariableSelector } from "./VariableSelector.js"
+import { VariableSelector } from "./VariableSelector.js"
+import type { PickedColumn } from "./editorProviders.js"
 import { DimensionCard } from "./DimensionCard.js"
 import { ConfigEditor } from "./ConfigEditor.js"
 import { ErrorMessagesForDimensions } from "./ChartEditorTypes.js"
@@ -318,6 +319,7 @@ export class DimensionSlotView extends React.Component<DimensionSlotViewProps> {
     override render() {
         const { isSelectingVariables } = this
         const { slot, editor, canSwapXAndY, onSwapXAndY } = this.props
+        const { catalog } = editor.store
         const dimensions = slot.dimensions.map((dim, index) => ({
             id: dim.columnSlug,
             dim,
@@ -354,7 +356,7 @@ export class DimensionSlotView extends React.Component<DimensionSlotViewProps> {
                                 editor={editor}
                                 onChange={this.onChangeDimension}
                                 onEdit={
-                                    slot.allowMultiple || !editor.store.catalog
+                                    slot.allowMultiple || !catalog
                                         ? undefined
                                         : action(
                                               () =>
@@ -377,7 +379,7 @@ export class DimensionSlotView extends React.Component<DimensionSlotViewProps> {
                         </SortableList.Item>
                     )}
                 />
-                {canAddMore && editor.store.catalog && (
+                {canAddMore && catalog && (
                     <div
                         className="dimensionSlot"
                         onClick={action(
@@ -387,9 +389,9 @@ export class DimensionSlotView extends React.Component<DimensionSlotViewProps> {
                         Add indicator{slot.allowMultiple && "s"}
                     </div>
                 )}
-                {isSelectingVariables && editor.store.catalog && (
+                {isSelectingVariables && catalog && (
                     <VariableSelector
-                        catalog={editor.store.catalog}
+                        catalog={catalog}
                         slot={slot}
                         onDismiss={action(
                             () => (this.isSelectingVariables = false)

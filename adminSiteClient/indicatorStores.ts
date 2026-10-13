@@ -54,9 +54,10 @@ export function tableIndicatorStore(
     )
 
     const indicators: CatalogIndicator[] = dataSlugs.map((slug, i) => ({
+        // only keys the row: picking it puts the column's slug in the slot
         id: i + 1,
-        slug,
         name: table.get(slug).displayName,
+        column: { slug },
     }))
     const catalog: IndicatorCatalog = {
         fields: [],
@@ -66,7 +67,7 @@ export function tableIndicatorStore(
                 buildSearchWordsFromSearchString(query),
                 (indicator: CatalogIndicator) => [
                     indicator.name,
-                    indicator.slug,
+                    indicator.column.slug,
                 ]
             )
             const variables = indicators.filter(matches)
