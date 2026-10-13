@@ -223,16 +223,18 @@ function CaptionedSankeyVariant({
         <>
             {!shouldHideChrome && (
                 <>
-                    <header className="food-trade-heading">
-                        <h1 className="food-trade-heading__title">
-                            How does food get traded around the world?
-                        </h1>
-                        <p className="food-trade-heading__description">
-                            Where food products are exported to and imported
-                            from, based on trade as reported by importing
-                            countries.
-                        </p>
-                    </header>
+                    {!config.hideHeading && (
+                        <header className="food-trade-heading">
+                            <h1 className="food-trade-heading__title">
+                                How does food get traded around the world?
+                            </h1>
+                            <p className="food-trade-heading__description">
+                                Where food products are exported to and imported
+                                from, based on trade as reported by importing
+                                countries.
+                            </p>
+                        </header>
+                    )}
                     <FoodTradeControls
                         metadata={metadata}
                         productData={productData}
