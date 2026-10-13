@@ -25,9 +25,18 @@ export const injectAutomaticSubscribeBanner = (
     ]
 }
 
-export const getIntroAsideInsertionIndex = (
-    blocks: OwidEnrichedGdocBlock[]
-): number => {
+const endsIntro = (block: OwidEnrichedGdocBlock): boolean =>
+    block.type === "heading" || block.type === "ltp-toc"
+
+/**
+ * The index of the last block of the intro: everything from the first text
+ * block up to the next heading or table of contents.
+ */
+export const getIntroEndIndex = (blocks: OwidEnrichedGdocBlock[]): number => {
     const firstTextIndex = blocks.findIndex((block) => block.type === "text")
-    return firstTextIndex === -1 ? 0 : firstTextIndex
+    if (firstTextIndex === -1) return 0
+    const nextSectionIndex = blocks.findIndex(
+        (block, i) => i > firstTextIndex && endsIntro(block)
+    )
+    return nextSectionIndex === -1 ? blocks.length - 1 : nextSectionIndex - 1
 }

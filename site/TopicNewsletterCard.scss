@@ -67,11 +67,10 @@
     }
 }
 
-.topic-newsletter-card--gdoc-aside {
-    margin-bottom: 24px;
-
-    @include md-down {
-        margin-top: 24px;
+.topic-newsletter-card--linear-topic-page {
+    margin: 8px 0;
+    &:has(+ h1) {
+        margin-bottom: 0;
     }
 }
 
