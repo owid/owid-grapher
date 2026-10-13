@@ -2177,11 +2177,13 @@ __metadata:
     "@types/react-dom": "npm:^19.2.3"
     bumpp: "npm:^12.2.0"
     http-server: "npm:^14.1.1"
+    mobx: "npm:^6.15.4"
     react: "npm:^19.2.4"
     react-dom: "npm:^19.2.4"
     sass: "npm:^1.89.2"
     tippy.js: "npm:^6.3.7"
     tsdown: "npm:^0.23.0"
+    typescript: "npm:^7.0.2"
     vitest: "npm:^5.0.0"
   peerDependencies:
     "@types/react": ^19.0.0

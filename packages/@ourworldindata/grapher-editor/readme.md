@@ -36,6 +36,9 @@ The editor needs a config, a store that says where the data comes from, and what
 import {
     GrapherEditor,
     csvIndicatorStore,
+    ColumnTypeNames,
+    DimensionProperty,
+    type GrapherInterface,
 } from "@ourworldindata/grapher-editor/react"
 import "@ourworldindata/grapher-editor/editor.css"
 
@@ -45,7 +48,7 @@ const store = csvIndicatorStore({
     columnDefs: [
         {
             slug: "rent_index",
-            type: "Numeric",
+            type: ColumnTypeNames.Numeric,
             name: "Rent index",
             unit: "index (2015 = 100)",
             sourceName: "City statistics office",
@@ -53,12 +56,16 @@ const store = csvIndicatorStore({
     ],
 })
 
-const config = {
+const config: GrapherInterface = {
     title: "Rents",
-    dimensions: [{ property: "y", slug: "rent_index" }],
+    dimensions: [{ property: DimensionProperty.y, slug: "rent_index" }],
 }
 
-function RentEditor({ onSave }) {
+function RentEditor({
+    onSave,
+}: {
+    onSave: (edited: GrapherInterface) => void
+}) {
     return (
         <div style={{ height: "100vh" }}>
             <GrapherEditor config={config} store={store} onSave={onSave} />
@@ -68,6 +75,8 @@ function RentEditor({ onSave }) {
 ```
 
 The config's `dimensions` name the store's columns by `slug`, as in a config rendered with `GrapherLoader.fromCsv`. `onSave` receives the edited config in the same form, so it renders with the same call. It may return a promise, and it may return a config, which the editor takes as what was saved (e.g. after the host normalized it). A rejection counts as a failed save and keeps the changes unsaved.
+
+The editor reads `config`, `store`, `environment`, `initialQueryParams` and `syncTabWithUrl` when it starts and keeps its own copy of the config while it's edited, so don't pass `onChange`'s config back in. To open a different chart, give `<GrapherEditor>` a new `key`, such as the chart's id.
 
 Without React, mount the editor into a container:
 
@@ -85,7 +94,8 @@ Without React, mount the editor into a container:
         store: csvIndicatorStore({ csv, columnDefs }),
         onSave: (edited) => save(edited),
     })
-    // editor.update(props) re-renders; a new config or store starts over.
+    // editor.update(props) re-renders; a new config, store or environment
+    // starts over.
     // editor.unmount() removes it.
 </script>
 ```
@@ -109,7 +119,7 @@ The CSV and table stores offer every data column under "Add indicators". Column 
 | Prop                                           | What it does                                                                                                                   |
 | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
 | `onChange`                                     | called on every edit with the current config, e.g. for a live output pane                                                      |
-| `onDirtyChange`                                | called when the editor gains or loses unsaved changes, e.g. for a leave prompt                                                 |
+| `onDirtyChange`                                | called when the editor gains or loses unsaved changes, e.g. for a leave prompt; a new editor starts clean without calling it   |
 | `baseConfig`                                   | a config this one is a patch against: its values show as inherited, and only the differences are saved                         |
 | `tabs`                                         | the editor tabs to show, e.g. `["basic", "data", "text", "customize", "map"]`                                                  |
 | `environment`                                  | the Data API and catalog URLs (default: OWID's public ones), and optionally an ETL wizard for the Export tab's "Animate chart" |

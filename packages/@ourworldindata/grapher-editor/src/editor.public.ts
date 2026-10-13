@@ -7,6 +7,7 @@
  */
 import * as React from "react"
 import { createRoot } from "react-dom/client"
+import { comparer } from "mobx"
 import {
     GrapherEditor,
     type GrapherEditorProps,
@@ -46,7 +47,10 @@ export {
 
 /** A mounted editor, for hosts that don't use React themselves */
 export interface GrapherEditorHandle {
-    /** Re-render with new props; a new `config` or `store` starts a fresh editor */
+    /**
+     * Re-render with new props; a new `config`, `store` or `environment`
+     * starts a fresh editor
+     */
     update(props: GrapherEditorProps): void
     unmount(): void
 }
@@ -61,7 +65,7 @@ export function mountGrapherEditor(
 ): GrapherEditorHandle {
     const root = createRoot(container)
     let current = props
-    // The editor reads `config` and `store` once, when it starts
+    // The editor reads `config`, `store` and `environment` once, when it starts
     let generation = 0
     const render = (): void =>
         root.render(
@@ -70,7 +74,12 @@ export function mountGrapherEditor(
     render()
     return {
         update(next: GrapherEditorProps): void {
-            if (next.config !== current.config || next.store !== current.store)
+            if (
+                next.config !== current.config ||
+                next.store !== current.store ||
+                // by value, so a fresh object with the same URLs keeps the editor
+                !comparer.structural(next.environment, current.environment)
+            )
                 generation++
             current = next
             render()
