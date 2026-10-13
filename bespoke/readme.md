@@ -64,7 +64,25 @@ Every project declares the config keys it reads in a `CONFIG_SPEC` export next t
 
 ### Documenting a bundle for authors
 
-`VARIANTS` and `CONFIG_SPEC` power the bespoke docs pages in the admin, which read both exports from the source. Their `description` fields are short phrases written for the authors browsing those pages.
+`VARIANTS` and `CONFIG_SPEC` power the bespoke docs pages in the admin. `yarn generateGdocsReferences` reads both exports from `src/index.tsx` without running any bundle code, and writes them to the committed `bespoke-viz.registry.generated.json`; CI fails when that file is stale. Their `description` fields are short phrases written for the authors browsing those pages. Values must be literals, or constants holding literals (a local `const`, or one imported by name from a relative module), so the generator can read them.
+
+A variant's `demoConfig` is used only by the dev demo page; the admin's copyable block never includes it. Variations worth explaining to authors go in `docs.md` as examples.
+
+A bundle can add an optional `docs.md` next to its `package.json`:
+
+```md
+What the bundle shows, and when to reach for it.
+
+(fenced archie examples, one `{.bespoke-component}` block each)
+
+## Notes
+
+Anything else authors should know, such as data-dependent defaults.
+```
+
+- `docs.md` takes no front matter: the bundle's id is its title.
+- The intro (the prose before the first `## ` heading) is required. `## Notes` is the only structural section. Other headings are kept as free prose, unless they match or nearly match a known sidecar section (such as `## When to use`, `## Properties` or `## Note`), which fails the build.
+- Each ` ```archie ` example must be exactly one `{.bespoke-component}` block of this bundle, with a variant from `VARIANTS` and config keys and enum values that `CONFIG_SPEC` allows. The generator fails on any example that doesn't.
 
 ### Registering a component
 

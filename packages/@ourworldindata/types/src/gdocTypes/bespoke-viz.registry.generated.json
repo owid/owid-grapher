@@ -1,0 +1,382 @@
+{
+  "bundles": [
+    {
+      "id": "causes-of-death",
+      "entryFile": "bespoke/projects/causes-of-death/src/index.tsx",
+      "prose": {
+        "intro": ""
+      },
+      "examples": [],
+      "variants": [
+        {
+          "name": "treemap",
+          "description": "Treemap of deaths by cause in one country or region",
+          "defaultSize": "wide",
+          "archie": "{.bespoke-component}\nbundle: causes-of-death\nvariant: treemap\nsize: wide\n{}\n"
+        }
+      ],
+      "config": [
+        {
+          "name": "region",
+          "type": "string",
+          "description": "Country or region shown first, such as `Nigeria` or `High-income countries`, or World if the data doesn't have it",
+          "default": "World"
+        },
+        {
+          "name": "year",
+          "type": "integer",
+          "description": "Year shown first. Defaults to the latest year in the data"
+        },
+        {
+          "name": "ageGroup",
+          "type": "enum",
+          "values": [
+            "All ages",
+            "Children under 5",
+            "Children aged 5 to 14",
+            "Adults aged 15 to 49",
+            "Adults aged 50 to 69",
+            "Adults aged 70+"
+          ],
+          "description": "Age group shown first",
+          "default": "All ages"
+        },
+        {
+          "name": "sex",
+          "type": "enum",
+          "values": [
+            "Both sexes",
+            "Female",
+            "Male"
+          ],
+          "description": "Sex shown first",
+          "default": "Both sexes"
+        },
+        {
+          "name": "hideControls",
+          "type": "boolean",
+          "description": "Hide the region, age group, sex and year controls"
+        }
+      ]
+    },
+    {
+      "id": "demography",
+      "entryFile": "bespoke/projects/demography/src/index.tsx",
+      "prose": {
+        "intro": ""
+      },
+      "examples": [],
+      "variants": [
+        {
+          "name": "simulation",
+          "description": "Population projection for one country where readers set the fertility, life expectancy and migration assumptions",
+          "defaultSize": "widest",
+          "archie": "{.bespoke-component}\nbundle: demography\nvariant: simulation\nsize: widest\n{}\n"
+        },
+        {
+          "name": "population",
+          "description": "Line chart of one country's population over time, by default the UN projection",
+          "defaultSize": "wide",
+          "archie": "{.bespoke-component}\nbundle: demography\nvariant: population\nsize: wide\n{}\n"
+        },
+        {
+          "name": "populationPyramid",
+          "description": "Age and sex pyramid of one country's population",
+          "defaultSize": "narrow",
+          "archie": "{.bespoke-component}\nbundle: demography\nvariant: populationPyramid\nsize: narrow\n{}\n"
+        },
+        {
+          "name": "parameters",
+          "description": "Line charts of the fertility, life expectancy and migration assumptions behind one country's population projection",
+          "defaultSize": "narrow",
+          "archie": "{.bespoke-component}\nbundle: demography\nvariant: parameters\nsize: narrow\n{}\n"
+        }
+      ],
+      "config": [
+        {
+          "name": "title",
+          "type": "string",
+          "description": "Chart title, replacing the generated one"
+        },
+        {
+          "name": "subtitle",
+          "type": "string",
+          "description": "Chart subtitle, replacing the generated one"
+        },
+        {
+          "name": "region",
+          "type": "string",
+          "description": "Country shown first, or United States if the data doesn't have it. `userLocation` picks the reader's country",
+          "default": "userLocation"
+        },
+        {
+          "name": "time",
+          "type": "integer",
+          "description": "Year shown first. `populationPyramid` only",
+          "default": "2100"
+        },
+        {
+          "name": "fertilityRateAssumptions",
+          "type": "custom",
+          "format": "Up to three comma-separated numbers for 2030, 2050 and 2100, such as `1.8,,1.5`. An empty entry keeps the UN projection",
+          "description": "Fertility rate assumptions, in births per woman"
+        },
+        {
+          "name": "lifeExpectancyAssumptions",
+          "type": "custom",
+          "format": "Up to three comma-separated numbers for 2030, 2050 and 2100, such as `80,,85`. An empty entry keeps the UN projection",
+          "description": "Life expectancy assumptions, in years"
+        },
+        {
+          "name": "netMigrationRateAssumptions",
+          "type": "custom",
+          "format": "Up to three comma-separated numbers for 2030, 2050 and 2100, such as `2,,1`. An empty entry keeps the UN projection",
+          "description": "Net migration rate assumptions, per 1,000 people. The chart shows them as a percentage"
+        },
+        {
+          "name": "focusParameter",
+          "type": "enum",
+          "values": [
+            "fertilityRate",
+            "lifeExpectancy",
+            "netMigrationRate"
+          ],
+          "description": "Assumption shown first in the editor. `simulation` only",
+          "default": "fertilityRate"
+        },
+        {
+          "name": "populationPyramidUnit",
+          "type": "enum",
+          "values": [
+            "percent",
+            "absolute"
+          ],
+          "description": "Show the pyramid as shares or as numbers of people. `simulation` and `populationPyramid` only",
+          "default": "percent"
+        },
+        {
+          "name": "hideEntitySelector",
+          "type": "boolean",
+          "description": "Show the country as plain text instead of a selector"
+        },
+        {
+          "name": "hidePopulationPyramid",
+          "type": "boolean",
+          "description": "Hide the population pyramid. `simulation` only"
+        },
+        {
+          "name": "hideTimeline",
+          "type": "boolean",
+          "description": "Hide the year slider and fit the axis to the year shown. `populationPyramid` only"
+        },
+        {
+          "name": "showAssumptionCharts",
+          "type": "boolean",
+          "description": "Add a collapsible section with the assumption charts. `population` and `populationPyramid` only"
+        }
+      ]
+    },
+    {
+      "id": "food-trade",
+      "entryFile": "bespoke/projects/food-trade/src/index.tsx",
+      "prose": {
+        "intro": ""
+      },
+      "examples": [],
+      "variants": [
+        {
+          "name": "sankey",
+          "description": "Sankey of which countries trade one food product with each other",
+          "defaultSize": "wide",
+          "archie": "{.bespoke-component}\nbundle: food-trade\nvariant: sankey\nsize: wide\n{}\n"
+        }
+      ],
+      "config": [
+        {
+          "name": "title",
+          "type": "string",
+          "description": "Chart title, replacing the generated one. Also hides the heading and controls"
+        },
+        {
+          "name": "subtitle",
+          "type": "string",
+          "description": "Chart subtitle, replacing the generated one. Also hides the heading and controls"
+        },
+        {
+          "name": "product",
+          "type": "string",
+          "description": "Food product shown first",
+          "default": "Maize"
+        },
+        {
+          "name": "country",
+          "type": "string",
+          "description": "Country shown first, or All countries if the data doesn't have it. `userLocation` picks the reader's country",
+          "default": "All countries"
+        },
+        {
+          "name": "flow",
+          "type": "enum",
+          "values": [
+            "both",
+            "import",
+            "export"
+          ],
+          "description": "Trade direction shown first. Ignored when the country is All countries",
+          "default": "both"
+        },
+        {
+          "name": "hideControls",
+          "type": "boolean",
+          "description": "Hide the heading and the product, country and flow controls"
+        },
+        {
+          "name": "hideHeading",
+          "type": "boolean",
+          "description": "Hide the heading above the controls"
+        },
+        {
+          "name": "hideFlowSwitcher",
+          "type": "boolean",
+          "description": "Hide the switch between imports, exports and both"
+        }
+      ]
+    },
+    {
+      "id": "migration",
+      "entryFile": "bespoke/projects/migration/src/index.tsx",
+      "prose": {
+        "intro": ""
+      },
+      "examples": [],
+      "variants": [
+        {
+          "name": "sankey",
+          "description": "Sankey of where one country's immigrants were born and where its emigrants live",
+          "defaultSize": "wide",
+          "archie": "{.bespoke-component}\nbundle: migration\nvariant: sankey\nsize: wide\n{}\n"
+        }
+      ],
+      "config": [
+        {
+          "name": "title",
+          "type": "string",
+          "description": "Chart title, replacing the generated one. Also hides the heading and controls"
+        },
+        {
+          "name": "subtitle",
+          "type": "string",
+          "description": "Chart subtitle. Also hides the heading and controls"
+        },
+        {
+          "name": "country",
+          "type": "string",
+          "description": "Country shown first, or United States if the data doesn't have it. `userLocation` picks the reader's country",
+          "default": "United States"
+        },
+        {
+          "name": "year",
+          "type": "integer",
+          "description": "Year shown first. Defaults to the latest year in the data"
+        },
+        {
+          "name": "sex",
+          "type": "enum",
+          "values": [
+            "both",
+            "female",
+            "male"
+          ],
+          "description": "Sex shown first",
+          "default": "both"
+        },
+        {
+          "name": "flow",
+          "type": "enum",
+          "values": [
+            "both",
+            "immigrants",
+            "emigrants"
+          ],
+          "description": "Migration direction shown first",
+          "default": "both"
+        },
+        {
+          "name": "hideControls",
+          "type": "boolean",
+          "description": "Hide the heading and the country, sex, year and flow controls"
+        },
+        {
+          "name": "hideHeading",
+          "type": "boolean",
+          "description": "Hide the heading above the controls"
+        },
+        {
+          "name": "hideFlowSwitcher",
+          "type": "boolean",
+          "description": "Hide the switch between immigrants, emigrants and both"
+        }
+      ]
+    },
+    {
+      "id": "migrant-demographics",
+      "entryFile": "bespoke/projects/migrant-demographics/src/index.tsx",
+      "prose": {
+        "intro": ""
+      },
+      "examples": [],
+      "variants": [
+        {
+          "name": "pyramid",
+          "description": "Age and sex pyramid of immigrants living in one country",
+          "defaultSize": "wide",
+          "archie": "{.bespoke-component}\nbundle: migrant-demographics\nvariant: pyramid\nsize: wide\n{}\n"
+        }
+      ],
+      "config": [
+        {
+          "name": "title",
+          "type": "string",
+          "description": "Chart title, replacing the generated one"
+        },
+        {
+          "name": "subtitle",
+          "type": "string",
+          "description": "Chart subtitle, replacing the generated one"
+        },
+        {
+          "name": "country",
+          "type": "string",
+          "description": "Country shown first, or United States if the data doesn't have it. `userLocation` picks the reader's country",
+          "default": "United States"
+        },
+        {
+          "name": "year",
+          "type": "integer",
+          "description": "Year shown first. Defaults to the latest year in the data"
+        },
+        {
+          "name": "show",
+          "type": "enum",
+          "values": [
+            "number",
+            "share"
+          ],
+          "description": "Show immigrants as a number or a share. Ignored when compare is on",
+          "default": "number"
+        },
+        {
+          "name": "compare",
+          "type": "boolean",
+          "description": "Start compared with the native-born population, shown as shares",
+          "default": "false"
+        },
+        {
+          "name": "hideControls",
+          "type": "boolean",
+          "description": "Hide the country, year, number-or-share and native-born comparison controls"
+        }
+      ]
+    }
+  ]
+}
