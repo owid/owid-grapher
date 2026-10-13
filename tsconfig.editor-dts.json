@@ -7,6 +7,9 @@
     //
     // As there, every file whose types end up in the bundle has to be matched
     // here, not just the entry point.
+    // The adminSiteClient files are what GrapherEditor.tsx imports, directly
+    // or not: when an editor file starts importing a new one, add it here, or
+    // the build fails with "tsgo did not generate dts file".
     "extends": "./packages/@ourworldindata/grapher/tsconfig.json",
     "include": [
         "packages/@ourworldindata/grapher-editor/src/**/*",

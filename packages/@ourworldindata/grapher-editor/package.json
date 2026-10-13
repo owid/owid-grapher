@@ -58,10 +58,11 @@
         "build": "tsdown",
         "clean": "rm -rf dist dist-package",
         "startDemoServer": "http-server . -p 8434 -c-1 -o /demo.html",
-        "testPackage": "yarn testPackage:pack && yarn testPackage:vitest && yarn testPackage:attw",
+        "testPackage": "yarn testPackage:typecheck && yarn testPackage:pack && yarn testPackage:vitest && yarn testPackage:attw",
         "testPackage:pack": "yarn pack --out dist-package/grapher-editor.tgz",
         "testPackage:vitest": "vitest run --config vitest.package.config.ts",
-        "testPackage:attw": "attw --profile esm-only --exclude-entrypoints ./editor.css -- dist-package/grapher-editor.tgz"
+        "testPackage:attw": "attw --profile esm-only --exclude-entrypoints ./editor.css -- dist-package/grapher-editor.tgz",
+        "testPackage:typecheck": "tsc -p tsconfig.json"
     },
     "directories": {
         "lib": "src"
@@ -81,11 +82,13 @@
         "@types/react-dom": "^19.2.3",
         "bumpp": "^12.2.0",
         "http-server": "^14.1.1",
+        "mobx": "^6.15.4",
         "react": "^19.2.4",
         "react-dom": "^19.2.4",
         "sass": "^1.89.2",
         "tippy.js": "^6.3.7",
         "tsdown": "^0.23.0",
+        "typescript": "^7.0.2",
         "vitest": "^5.0.0"
     },
     "license": "SEE LICENSE IN LICENSE.md"

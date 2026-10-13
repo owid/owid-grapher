@@ -11,12 +11,17 @@
 import * as fs from "node:fs"
 import * as path from "node:path"
 import { fileURLToPath, pathToFileURL } from "node:url"
-import { beforeAll, describe, expect, it, vi } from "vitest"
+import { afterEach, beforeAll, describe, expect, it, vi } from "vitest"
 import {
     assertFilesExist,
     readImportSpecifiers,
+    stubImmediateIntersectionObserver,
     // oxlint-disable-next-line import-x-js/no-relative-packages
 } from "../../packageTest-common.mts"
+
+afterEach(() => {
+    vi.unstubAllGlobals()
+})
 
 const pkgDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 const distDir = path.join(pkgDir, "dist")
@@ -103,6 +108,7 @@ describe("standalone bundle (dist/editor.standalone.min.js)", () => {
     })
 
     it("mounts the editor over a CSV and previews the chart", async () => {
+        stubImmediateIntersectionObserver()
         const { csvIndicatorStore, mountGrapherEditor } = await import(
             pathToFileURL(standalonePath).href
         )
@@ -123,9 +129,14 @@ describe("standalone bundle (dist/editor.standalone.min.js)", () => {
             expect(
                 container.querySelectorAll(".nav-tabs .nav-link").length
             ).toBeGreaterThan(3)
-            expect(container.querySelector(".GrapherComponent")).toBeTruthy()
+            // The preview has drawn the chart, not just its wrapper
+            expect(
+                container.querySelector(".GrapherComponent svg")
+            ).toBeTruthy()
         })
-        expect(container.textContent).toContain("Rent index")
+        expect(
+            container.querySelector(".GrapherComponent")?.textContent
+        ).toContain("Rents")
 
         handle.unmount()
         expect(container.innerHTML).toBe("")

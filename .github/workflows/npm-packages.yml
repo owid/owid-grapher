@@ -12,6 +12,7 @@ on:
       # The editor package bundles its sources from the admin
       - "adminSiteClient/**"
       - "adminShared/**"
+      - "site/slideshows/SlideContent.scss" # imported by admin.scss
       - "tsconfig.editor-dts.json"
       - "yarn.lock"
       - ".github/workflows/npm-packages.yml"
