@@ -32,9 +32,35 @@ import {
     PeerGroupOption,
     scaleToUnit,
 } from "./rankingUtils.js"
+import { POPULATION_BY_ENTITY_CODE } from "./populations.data.js"
 
 // The rank direction doesn't matter here, we only need the group's rows
 const SORT = "highest"
+
+/** Peer dot radii (px) for the smallest and largest populations */
+const PEER_RADIUS_RANGE: [number, number] = [2.5, 6.5]
+/** Peer dot opacities for the smallest and largest populations */
+const PEER_OPACITY_RANGE: [number, number] = [0.45, 0.9]
+/** Populations at which the dot size bottoms and tops out (log scale) */
+const PEER_POPULATION_RANGE: [number, number] = [1e5, 1.5e9]
+
+/** Larger, more opaque dots for more populous countries */
+function getPeerDotStyle(code: string): { radius: number; opacity: number } {
+    const population = POPULATION_BY_ENTITY_CODE[code]
+    // Midpoint for entities without population data
+    const t =
+        population === undefined
+            ? 0.5
+            : scaleToUnit(Math.log10(population), [
+                  Math.log10(PEER_POPULATION_RANGE[0]),
+                  Math.log10(PEER_POPULATION_RANGE[1]),
+              ])
+    const lerp = ([min, max]: [number, number]): number => min + t * (max - min)
+    return {
+        radius: lerp(PEER_RADIUS_RANGE),
+        opacity: lerp(PEER_OPACITY_RANGE),
+    }
+}
 
 /**
  * How an entity compares with a peer group across several indicators: one
@@ -164,6 +190,8 @@ function PeerComparisonRow({
     const unit = getRankingUnit(ranking)
     const format = (value: number): string =>
         formatRankingValue(value, { unit })
+    const formatScale = (value: number): string =>
+        formatRankingValue(value, { unit: getInlineUnit(unit) })
     const formattedAverage = average !== undefined ? format(average) : undefined
     const ariaLabel = [
         `${getEntityName(entityCode)}: ${format(summary.row.value)}`,
@@ -205,6 +233,9 @@ function PeerComparisonRow({
                     toStripPoint(summary.row, ranking, "entity", format),
                 ]}
                 x={x}
+                // Indicators that cross zero (e.g. growth rates) get a zero line
+                showZeroLine={domain[0] < 0 && domain[1] > 0}
+                scaleLabels={[formatScale(domain[0]), formatScale(domain[1])]}
                 ariaLabel={ariaLabel}
             />
             <span className="peer-comparison__value">
@@ -256,10 +287,15 @@ const toPercent = (fraction: number): string =>
 function PeerComparisonStrip({
     points,
     x,
+    scaleLabels,
+    showZeroLine,
     ariaLabel,
 }: {
     points: StripPoint[]
     x: (value: number) => number
+    showZeroLine: boolean
+    /** The group's minimum and maximum, shown below the strip */
+    scaleLabels: [string, string]
     ariaLabel: string
 }) {
     const [activeKey, setActiveKey] = useState<string>()
@@ -367,19 +403,40 @@ function PeerComparisonStrip({
                         y1="50%"
                         y2="50%"
                     />
-                    {peers.map((point) => (
-                        <circle
-                            key={point.key}
-                            ref={setDotRef(point.key)}
-                            className={cx("peer-comparison__peer", {
-                                "peer-comparison__peer--active":
-                                    point.key === activeKey,
-                            })}
-                            cx={toPercent(x(point.value))}
-                            cy="50%"
-                            r={point.key === activeKey ? 5 : 4}
-                        />
-                    ))}
+                    {showZeroLine && (
+                        <g className="peer-comparison__zero">
+                            <line
+                                x1={toPercent(x(0))}
+                                x2={toPercent(x(0))}
+                                y1="0"
+                                y2="28"
+                            />
+                            <text x={toPercent(x(0))} dx="4" y="7">
+                                0
+                            </text>
+                        </g>
+                    )}
+                    {peers.map((point) => {
+                        const isActive = point.key === activeKey
+                        const { radius, opacity } = getPeerDotStyle(point.key)
+                        return (
+                            <circle
+                                key={point.key}
+                                ref={setDotRef(point.key)}
+                                className={cx("peer-comparison__peer", {
+                                    "peer-comparison__peer--active": isActive,
+                                })}
+                                cx={toPercent(x(point.value))}
+                                cy="50%"
+                                r={isActive ? radius + 1 : radius}
+                                style={
+                                    isActive
+                                        ? undefined
+                                        : { fillOpacity: opacity }
+                                }
+                            />
+                        )
+                    })}
                     {peers.map((point) => (
                         <Fragment key={point.key}>{hitArea(point)}</Fragment>
                     ))}
@@ -424,6 +481,13 @@ function PeerComparisonStrip({
                         </g>
                     )}
                 </svg>
+                <div
+                    className="peer-comparison__strip-scale"
+                    aria-hidden="true"
+                >
+                    <span>{scaleLabels[0]}</span>
+                    <span>{scaleLabels[1]}</span>
+                </div>
             </div>
         </>
     )

@@ -96,6 +96,29 @@
     stroke-width: 1;
 }
 
+.peer-comparison__strip-scale {
+    @include note-1-regular;
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    // centre the labels under the outermost dots
+    margin: 0 -8px;
+    font-size: 0.75rem;
+    line-height: 1;
+    color: $blue-50;
+}
+
+.peer-comparison__zero line {
+    stroke: $blue-50;
+    stroke-width: 1;
+}
+
+.peer-comparison__zero text {
+    font-size: 10px;
+    font-weight: 700;
+    fill: $blue-60;
+}
+
 .peer-comparison__strip-svg:focus-visible {
     outline: 2px solid $accent-vermillion;
     outline-offset: 4px;

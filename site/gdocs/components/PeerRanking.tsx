@@ -37,7 +37,6 @@ import {
     scaleToUnit,
     stripMarkdownLinks,
 } from "./rankingUtils.js"
-import { POPULATION_BY_ENTITY_CODE } from "./populations.data.js"
 
 /** Groups up to this size are always listed in full */
 const MAX_ROWS_COLLAPSED = 12
@@ -45,23 +44,6 @@ const MAX_ROWS_COLLAPSED = 12
 const TOP_ROWS_COLLAPSED = 3
 /** …and this many rows above and below the entity */
 const ENTITY_CONTEXT_ROWS = 2
-
-/** Dot diameters (px) for the smallest and largest populations */
-const DOT_SIZE_RANGE: [number, number] = [7, 13]
-/** Populations at which the dot size bottoms and tops out (log scale) */
-const DOT_POPULATION_RANGE: [number, number] = [1e5, 1.5e9]
-
-/** Slightly larger dots for more populous countries */
-function getDotSize(code: EntityCode): string | undefined {
-    const population = POPULATION_BY_ENTITY_CODE[code]
-    if (population === undefined) return undefined
-    const [minSize, maxSize] = DOT_SIZE_RANGE
-    const t = scaleToUnit(Math.log10(population), [
-        Math.log10(DOT_POPULATION_RANGE[0]),
-        Math.log10(DOT_POPULATION_RANGE[1]),
-    ])
-    return `${(minSize + t * (maxSize - minSize)).toFixed(1)}px`
-}
 
 type VisibleRow =
     | { type: "row"; rankedRow: RankedRow }
@@ -333,13 +315,7 @@ export function PeerRanking({
                                     )}
                                     <span
                                         className="peer-ranking__dot"
-                                        style={
-                                            {
-                                                left: position(row.value),
-                                                "--peer-ranking-dot-size":
-                                                    getDotSize(row.code),
-                                            } as React.CSSProperties
-                                        }
+                                        style={{ left: position(row.value) }}
                                     />
                                 </span>
                                 <span
