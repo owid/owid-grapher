@@ -3,6 +3,15 @@ import { type drive_v3, drive as googleDrive } from "@googleapis/drive"
 import { OwidGoogleAuth } from "../../OwidGoogleAuth.js"
 import * as cheerio from "cheerio"
 import type { AnyNode } from "domhandler"
+import {
+    formatArchieMlLines,
+    INDENT_STEP_PT,
+    KEY_COLOR,
+    type LineFormat,
+    REF_COLOR,
+    REF_FONT_SIZE_PT,
+    type TextRange,
+} from "./archieMlFormatting.js"
 
 interface TextFragment {
     text: string
@@ -43,6 +52,76 @@ const baseParagraphStyle: docs_v1.Schema$ParagraphStyle = {
     indentFirstLine: { magnitude: 0, unit: "PT" },
 }
 const BASE_PARAGRAPH_STYLE_FIELDS = "namedStyleType,indentStart,indentFirstLine"
+
+function hexToColor(hex: string): docs_v1.Schema$OptionalColor {
+    const value = parseInt(hex.slice(1), 16)
+    return {
+        color: {
+            rgbColor: {
+                red: ((value >> 16) & 0xff) / 255,
+                green: ((value >> 8) & 0xff) / 255,
+                blue: (value & 0xff) / 255,
+            },
+        },
+    }
+}
+
+function lineToPlainText(line: Line): string {
+    return line.fragments.map((fragment) => fragment.text).join("")
+}
+
+// The formatting overrides for one line, in logical order (reversed later):
+// line colours, then the key, then refs. So refs execute first, and key and
+// line colours then override only their colour, as in the add-on. Never
+// `namedStyleType` or `weightedFontFamily`: they reset bold/italic.
+function* formatToTextStyleRequests(
+    format: LineFormat,
+    lineLength: number
+): Generator<docs_v1.Schema$Request> {
+    // The line's text spans [1, length + 1) once inserted, so plain-text
+    // offset `o` is document index `1 + o`.
+    const toRange = ([start, end]: TextRange): docs_v1.Schema$Range => ({
+        startIndex: 1 + start,
+        endIndex: 1 + end,
+    })
+
+    // Google rejects styles on an empty range.
+    if (lineLength === 0) return
+
+    if (format.lineColors) {
+        yield {
+            updateTextStyle: {
+                range: toRange([0, lineLength]),
+                textStyle: {
+                    foregroundColor: hexToColor(format.lineColors.foreground),
+                    backgroundColor: hexToColor(format.lineColors.background),
+                },
+                fields: "foregroundColor,backgroundColor",
+            },
+        }
+    }
+    if (format.keyRange) {
+        yield {
+            updateTextStyle: {
+                range: toRange(format.keyRange),
+                textStyle: { foregroundColor: hexToColor(KEY_COLOR) },
+                fields: "foregroundColor",
+            },
+        }
+    }
+    for (const refRange of format.refRanges) {
+        yield {
+            updateTextStyle: {
+                range: toRange(refRange),
+                textStyle: {
+                    foregroundColor: hexToColor(REF_COLOR),
+                    fontSize: { magnitude: REF_FONT_SIZE_PT, unit: "PT" },
+                },
+                fields: "foregroundColor,fontSize",
+            },
+        }
+    }
+}
 
 function mergeStyleStack(
     styleStack: docs_v1.Schema$TextStyle[]
@@ -101,16 +180,18 @@ function* convertCheerioNodesToTextFragments(
 // afterwards so that every insert can target index 1; after reversal this
 // executes bottom-up: the line's paragraph is created and given its base
 // paragraph and text style while still empty, then the text is inserted into
-// it and inherits both, then (story 2's) formatting overrides run last.
+// it and inherits both, then the formatting overrides run last.
 //
 // The base styles must run before the text exists: applying `namedStyleType`
 // or `weightedFontFamily` to a range resets the bold/italic of the text in it.
 function* lineToRequests(
     line: Line,
+    format: LineFormat,
     isLastLine: boolean
 ): Generator<docs_v1.Schema$Request> {
-    // Slot for story 2's formatting overrides (sub-ranges of the line, which
-    // spans [1, text length + 2) once the text is in).
+    // Formatting overrides: sub-ranges of the line, which spans
+    // [1, text length + 1) once the text is in.
+    yield* formatToTextStyleRequests(format, lineToPlainText(line).length)
 
     for (const fragment of line.fragments) {
         // Reversed later: the style is emitted before the text so that it
@@ -137,6 +218,7 @@ function* lineToRequests(
     // the document's final newline. Text inserted at index 1 inherits the
     // style of that newline.
     const emptyParagraph: docs_v1.Schema$Range = { startIndex: 1, endIndex: 2 }
+    const indent = format.indentLevel * INDENT_STEP_PT
     yield {
         updateTextStyle: {
             range: emptyParagraph,
@@ -147,7 +229,11 @@ function* lineToRequests(
     yield {
         updateParagraphStyle: {
             range: emptyParagraph,
-            paragraphStyle: baseParagraphStyle,
+            paragraphStyle: {
+                ...baseParagraphStyle,
+                indentStart: { magnitude: indent, unit: "PT" },
+                indentFirstLine: { magnitude: indent, unit: "PT" },
+            },
             fields: BASE_PARAGRAPH_STYLE_FIELDS,
         },
     }
@@ -203,13 +289,16 @@ function archieMlTextToLines(text: string): Line[] {
 /**
  * Requests that insert the given ArchieML text at the start of an empty
  * document, one paragraph per line, each with an explicit base paragraph and
- * text style. Inline HTML (`<b>`, `<i>`, `<a>`, …) becomes styled runs.
+ * text style. Inline HTML (`<b>`, `<i>`, `<a>`, …) becomes styled runs, and
+ * every line gets the add-on's ArchieML formatting (indent, colours, refs).
  */
 export function archieMlTextToRequests(text: string): docs_v1.Schema$Request[] {
     const lines = archieMlTextToLines(text)
+    // Indent depends on earlier lines, so format all lines at once.
+    const formats = formatArchieMlLines(lines.map(lineToPlainText))
 
     const requests = lines.flatMap((line, i) => [
-        ...lineToRequests(line, i === lines.length - 1),
+        ...lineToRequests(line, formats[i], i === lines.length - 1),
     ])
 
     // The requests are in their logical order here. To work in one batch
