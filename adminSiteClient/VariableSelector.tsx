@@ -211,12 +211,14 @@ export function VariableSelector({
                             title={`The search failed: ${search.failure}`}
                         />
                     )}
-                    {shown && !search.isLoading && (
-                        <VariableSearchNotice
-                            regexError={shown.regexError}
-                            unindexedTerms={shown.unindexedTerms}
-                        />
-                    )}
+                    {shown &&
+                        !search.isLoading &&
+                        search.failure === undefined && (
+                            <VariableSearchNotice
+                                regexError={shown.regexError}
+                                unindexedTerms={shown.unindexedTerms}
+                            />
+                        )}
                     {search.failure === undefined && (
                         <div className="VariableSelector__results">
                             <GroupedVariableList<CatalogIndicator>
