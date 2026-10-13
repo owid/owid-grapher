@@ -8,8 +8,9 @@ import { getGdocIdsWithOutdatedPreviews } from "../../db/model/Gdoc/componentPre
 function printHelp(): void {
     console.log(`Update the preview images above chart and image components in gdocs.
 
-Replaces images that don't show the current version of their chart. Meant to
-run on a schedule with --changed-since-hours, or by hand for specific docs.
+Replaces images that don't show the current version of their chart and adds
+images to components that have none. Meant to run on a schedule with
+--changed-since-hours, or by hand for specific docs.
 
 Usage:
     yarn refreshGdocComponentPreviews [options] [gdocId...]
@@ -17,9 +18,6 @@ Usage:
 Options:
     --changed-since-hours <n>  Refresh all gdocs linking to charts or images
                                that changed in the last <n> hours.
-    --insert-missing           Also add images above components that have none.
-    --accept-image-below       Use the image right below a component if there's
-                               none above it.
     --dry-run                  Only report what would change.
     -h, --help                 Show this message.
 `)
@@ -62,8 +60,6 @@ async function main(args: parseArgs.ParsedArgs): Promise<void> {
     for (const gdocId of _.uniq(gdocIds)) {
         try {
             const result = await refreshGdocComponentPreviews(gdocId, {
-                insertMissing: !!args["insert-missing"],
-                acceptImageBelow: !!args["accept-image-below"],
                 dryRun: !!args["dry-run"],
             })
             printResult(result)
@@ -78,7 +74,7 @@ async function main(args: parseArgs.ParsedArgs): Promise<void> {
 }
 
 const args = parseArgs(process.argv.slice(2), {
-    boolean: ["insert-missing", "accept-image-below", "dry-run", "help"],
+    boolean: ["dry-run", "help"],
     alias: { h: "help" },
 })
 

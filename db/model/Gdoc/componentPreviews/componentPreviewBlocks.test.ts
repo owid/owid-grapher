@@ -524,23 +524,14 @@ describe(makeComponentPreviewRequests, () => {
     })
 })
 
-describe("findComponentPreviewBlocks with acceptImageBelow", () => {
+describe("findComponentPreviewBlocks for images below the component", () => {
+    // [image above, image below] of each component
     const findImages = (
-        paragraphs: ElementSpec[][],
-        acceptImageBelow = true
-    ): (string | undefined)[] =>
-        findComponentPreviewBlocks(makeDocument(makeContent(paragraphs)), {
-            acceptImageBelow,
-        }).map((block) => block.image?.objectId)
-
-    it("ignores images below a component by default", () => {
-        expect(
-            findImages(
-                [["{.chart}"], [`url: ${URL_A}`], ["{}"], [{ image: "kix.1" }]],
-                false
-            )
-        ).toEqual([undefined])
-    })
+        paragraphs: ElementSpec[][]
+    ): (string | undefined)[][] =>
+        findComponentPreviewBlocks(makeDocument(makeContent(paragraphs))).map(
+            (block) => [block.image?.objectId, block.imageBelow?.objectId]
+        )
 
     it("finds the image below the component's closing {}, across blank lines", () => {
         const document = makeDocument(
@@ -552,26 +543,28 @@ describe("findComponentPreviewBlocks with acceptImageBelow", () => {
                 [{ image: "kix.1" }],
             ])
         )
-        const [block] = findComponentPreviewBlocks(document, {
-            acceptImageBelow: true,
+        const [block] = findComponentPreviewBlocks(document)
+        expect(block.image).toBeUndefined()
+        expect(block.imageBelow).toMatchObject({
+            objectId: "kix.1",
+            startIndex: 56,
         })
-        expect(block.image).toMatchObject({ objectId: "kix.1", startIndex: 56 })
     })
 
     it("finds the image below the single-line form", () => {
         expect(findImages([[`chart: ${URL_A}`], [{ image: "kix.1" }]])).toEqual(
-            ["kix.1"]
+            [[undefined, "kix.1"]]
         )
     })
 
-    it("prefers the image above the component", () => {
+    it("ignores the image below when there's one above", () => {
         expect(
             findImages([
                 [{ image: "kix.1" }],
                 [`chart: ${URL_A}`],
                 [{ image: "kix.2" }],
             ])
-        ).toEqual(["kix.1"])
+        ).toEqual([["kix.1", undefined]])
     })
 
     it("doesn't take the image above the next component", () => {
@@ -581,22 +574,25 @@ describe("findComponentPreviewBlocks with acceptImageBelow", () => {
                 [{ image: "kix.1" }],
                 [`chart: ${URL_B}`],
             ])
-        ).toEqual([undefined, "kix.1"])
+        ).toEqual([
+            [undefined, undefined],
+            ["kix.1", undefined],
+        ])
     })
 
     it("only takes an image that comes first after the component", () => {
         expect(
             findImages([[`chart: ${URL_A}`], ["Some text", { image: "kix.1" }]])
-        ).toEqual([undefined])
+        ).toEqual([[undefined, undefined]])
         expect(
             findImages([[`chart: ${URL_A}`], [{ image: "kix.1" }, "A caption"]])
-        ).toEqual(["kix.1"])
+        ).toEqual([[undefined, "kix.1"]])
     })
 
     it("ignores images below a component without a closing {}", () => {
         expect(
             findImages([["{.chart}"], [`url: ${URL_A}`], [{ image: "kix.1" }]])
-        ).toEqual([undefined])
+        ).toEqual([[undefined, undefined]])
     })
 })
 
@@ -708,17 +704,15 @@ describe("real documents", () => {
             ).toMatch(/^\{\.[a-z-]+\}/)
     })
 
-    it("finds images below the components only when asked to", () => {
+    it("finds images below the components", () => {
         // Here each image sits right after the component's closing {}
-        const document = loadFixture("measles-vaccines-save-lives")
-        expect(
-            findComponentPreviewBlocks(document).map((block) => block.image)
-        ).toEqual(Array(5).fill(undefined))
-        expect(
-            findComponentPreviewBlocks(document, {
-                acceptImageBelow: true,
-            }).map((block) => block.image?.objectId)
-        ).toEqual([
+        const blocks = findComponentPreviewBlocks(
+            loadFixture("measles-vaccines-save-lives")
+        )
+        expect(blocks.map((block) => block.image)).toEqual(
+            Array(5).fill(undefined)
+        )
+        expect(blocks.map((block) => block.imageBelow?.objectId)).toEqual([
             "kix.58aeuihpvvmu",
             "kix.6tojmhu8w1do",
             "kix.tpfqhgrmuqyl",
