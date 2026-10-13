@@ -1,25 +1,31 @@
 import { SwimlaneSegmentLabels, Time } from "@ourworldindata/types"
+import { CoreColumn } from "@ourworldindata/core-table"
 import { textWidth } from "../chart/ChartUtils"
 import { FontSettings } from "../core/GrapherConstants"
 import { SEGMENT_LABEL_PADDING } from "./SwimlaneChartConstants"
 
+type TimeColumnFormatter = Pick<
+    CoreColumn,
+    "formatTime" | "formatTimeShort" | "formatTimeShortEnd"
+>
+
 export interface SwimlaneSegmentLabelSettings {
     segmentLabels: SwimlaneSegmentLabels
     fontSettings: FontSettings
-    formatTime: (time: Time) => string
+    timeColumn: TimeColumnFormatter
 }
 
 export function formatSegmentTimeRange({
     startTime,
     endTime,
-    formatTime,
+    timeColumn,
 }: {
     startTime: Time
     endTime: Time
-    formatTime: (time: Time) => string
+    timeColumn: TimeColumnFormatter
 }): string {
-    if (startTime === endTime) return formatTime(startTime)
-    return `${formatTime(startTime)}–${formatTime(endTime)}`
+    if (startTime === endTime) return timeColumn.formatTime(startTime)
+    return `${timeColumn.formatTimeShort(startTime)}–${timeColumn.formatTimeShortEnd(endTime)}`
 }
 
 /** Whether a segment has room for its category above its time range */

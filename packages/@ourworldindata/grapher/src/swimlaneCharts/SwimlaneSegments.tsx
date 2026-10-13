@@ -99,13 +99,13 @@ function SwimlaneSegmentLabelText({
     segment: RenderSwimlaneCategorySegment
     labelSettings: SwimlaneSegmentLabelSettings
 }): React.ReactElement | null {
-    const { segmentLabels, fontSettings, formatTime } = labelSettings
+    const { segmentLabels, fontSettings, timeColumn } = labelSettings
     const { categoryLabel, width, height } = segment
 
     const timeRange = formatSegmentTimeRange({
         startTime: segment.startTime,
         endTime: segment.endTime,
-        formatTime,
+        timeColumn,
     })
 
     const taper = computeSegmentCropTaper({ width, height })

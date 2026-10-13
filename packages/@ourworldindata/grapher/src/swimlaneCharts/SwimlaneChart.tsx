@@ -345,7 +345,7 @@ export class SwimlaneChart
         return {
             segmentLabels: this.chartState.segmentLabels,
             fontSettings: this.segmentLabelStyle,
-            formatTime: (time) => timeColumn.formatTime(time),
+            timeColumn,
         }
     }
 

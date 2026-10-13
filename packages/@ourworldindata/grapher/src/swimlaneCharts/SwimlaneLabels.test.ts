@@ -1,31 +1,83 @@
 import { describe, expect, it } from "vitest"
 
-import { SwimlaneSegmentLabels } from "@ourworldindata/types"
+import { ColumnTypeNames, SwimlaneSegmentLabels } from "@ourworldindata/types"
+import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
+import { convertDateToDaysSinceEpoch, dayjs } from "@ourworldindata/utils"
 import { textWidth } from "../chart/ChartUtils"
 import { FontSettings } from "../core/GrapherConstants"
 import { formatSegmentTimeRange, shouldLabelSegment } from "./SwimlaneLabels"
 
 describe(formatSegmentTimeRange, () => {
-    const formatTime = (time: number): string => `Y${time}`
+    const day = (iso: string): number =>
+        convertDateToDaysSinceEpoch(dayjs.utc(iso))
 
-    it("formats a single-time run as one time", () => {
+    function makeTimeColumn(
+        type: ColumnTypeNames,
+        times: number[]
+    ): CoreColumn {
+        const table = new OwidTable(
+            times.map((time) => ({ entityName: "France", time })),
+            [{ slug: "time", type }]
+        )
+        return table.timeColumn
+    }
+
+    it("formats a single year as one time", () => {
         expect(
             formatSegmentTimeRange({
                 startTime: 2000,
                 endTime: 2000,
-                formatTime,
+                timeColumn: makeTimeColumn(ColumnTypeNames.Year, [2000]),
             })
-        ).toEqual("Y2000")
+        ).toEqual("2000")
     })
 
-    it("formats a longer run as a range", () => {
+    it("formats a run of years as a range", () => {
         expect(
             formatSegmentTimeRange({
                 startTime: 2000,
                 endTime: 2002,
-                formatTime,
+                timeColumn: makeTimeColumn(ColumnTypeNames.Year, [2000, 2002]),
             })
-        ).toEqual("Y2000–Y2002")
+        ).toEqual("2000–2002")
+    })
+
+    it("formats a single week as the week's own dates", () => {
+        const monday = day("2020-01-20")
+        expect(
+            formatSegmentTimeRange({
+                startTime: monday,
+                endTime: monday,
+                timeColumn: makeTimeColumn(ColumnTypeNames.Week, [monday]),
+            })
+        ).toEqual(
+            makeTimeColumn(ColumnTypeNames.Week, [monday]).formatTime(monday)
+        )
+    })
+
+    it("ends a run of weeks where its last week ends", () => {
+        const [first, last] = [day("2020-01-20"), day("2020-02-03")]
+        expect(
+            formatSegmentTimeRange({
+                startTime: first,
+                endTime: last,
+                timeColumn: makeTimeColumn(ColumnTypeNames.Week, [first, last]),
+            })
+        ).toEqual("Jan 20, 2020–Feb 9, 2020")
+    })
+
+    it("ends a run of quarters where its last quarter ends", () => {
+        const [first, last] = [day("2020-01-01"), day("2020-07-01")]
+        expect(
+            formatSegmentTimeRange({
+                startTime: first,
+                endTime: last,
+                timeColumn: makeTimeColumn(ColumnTypeNames.Quarter, [
+                    first,
+                    last,
+                ]),
+            })
+        ).toEqual("Jan 2020–Sep 2020")
     })
 })
 

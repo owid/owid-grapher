@@ -32,7 +32,7 @@ export class SwimlaneChartTooltip extends React.Component<SwimlaneChartTooltipPr
         return formatSegmentTimeRange({
             startTime: segment.startTime,
             endTime: segment.endTime,
-            formatTime: (time) => timeColumn.formatTime(time),
+            timeColumn,
         })
     }
 
