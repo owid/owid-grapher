@@ -13,6 +13,7 @@ import {
 } from "@ourworldindata/types"
 import { GrapherEditor, type GrapherEditorProps } from "./GrapherEditor.js"
 import { csvIndicatorStore, type IndicatorStore } from "./indicatorStores.js"
+import type { DetailsProvider } from "./editorProviders.js"
 
 Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true })
 
@@ -146,5 +147,25 @@ describe("GrapherEditor callbacks", () => {
 
         expect(view.editor.isModified).toBe(false)
         expect(onModifiedChange).not.toHaveBeenCalled()
+    })
+
+    it("ignores details that arrive after the editor was unmounted", async () => {
+        let finishOldDetails: () => void = () => undefined
+        const oldDetails: DetailsProvider = {
+            load: () =>
+                new Promise((resolve) => {
+                    finishOldDetails = () =>
+                        resolve({ old: { id: "old", text: "Old" } })
+                }),
+        }
+        await mountEditor({ details: oldDetails })
+        await act(async () => roots.splice(0)[0].unmount())
+
+        const newDetails = { new: { id: "new", text: "New" } }
+        await mountEditor({ details: { load: async () => newDetails } })
+        await vi.waitFor(() => expect(window.details).toEqual(newDetails))
+
+        await act(async () => finishOldDetails())
+        expect(window.details).toEqual(newDetails)
     })
 })
