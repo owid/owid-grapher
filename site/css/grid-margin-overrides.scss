@@ -92,7 +92,8 @@
 .centered-article-container--linear-topic-page {
     /*** Rule 1: the table of contents is responsible for adding spacing (and dividers) with the surrounding content */
     // Set the bottom margin of any element that comes before a table of contents to 0 */
-    [class*="article-block__"]:has(+ .article-block__ltp-toc) {
+    [class*="article-block__"]:has(+ .article-block__ltp-toc),
+    .topic-newsletter-card:has(+ .article-block__ltp-toc) {
         margin-bottom: 0;
     }
     // Set the top margin of any element that comes after a table of contents to 0 */
