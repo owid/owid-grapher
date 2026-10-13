@@ -10,40 +10,24 @@ import {
     VariableSearchNotice,
     VariableSearchToolbar,
 } from "./VariableSearchToolbar.js"
-import { searchWordsToHighlight } from "./variableSearchQuery.js"
+import {
+    SEARCH_DEBOUNCE_MS,
+    searchWordsToHighlight,
+} from "./variableSearchQuery.js"
 import {
     CatalogIndicator,
+    columnKey,
+    columnOfDimension,
     IndicatorCatalog,
     IndicatorSearchPage,
     PickedColumn,
 } from "./editorProviders.js"
 
-interface SelectedColumn {
-    column: PickedColumn
-    name: string
-    datasetName?: string
-}
-
-function columnKey(column: PickedColumn): string {
-    return column.slug !== undefined
-        ? `slug:${column.slug}`
-        : `id:${column.variableId}`
-}
-
-function selectedFromIndicator(indicator: CatalogIndicator): SelectedColumn {
-    return {
-        column: indicator.column,
-        name: indicator.name,
-        datasetName: indicator.datasetName,
-    }
-}
+type SelectedColumn = Pick<CatalogIndicator, "column" | "name" | "datasetName">
 
 function selectedFromDimension(dimension: ChartDimension): SelectedColumn {
     return {
-        column:
-            dimension.variableId !== undefined
-                ? { variableId: dimension.variableId }
-                : { slug: dimension.columnSlug },
+        column: columnOfDimension(dimension),
         name: dimension.column.name,
         datasetName: dimension.column.datasetName,
     }
@@ -53,14 +37,14 @@ interface CatalogSearch {
     /** The latest search's page, or the one before while it runs */
     page?: IndicatorSearchPage
     isLoading: boolean
-    failure?: string
+    hasFailed: boolean
 }
 
 interface Answer {
     request: string
     /** The latest page that came back, which a failure doesn't replace */
     page?: IndicatorSearchPage
-    failure?: string
+    hasFailed: boolean
 }
 
 // Not react-query, which the admin uses elsewhere: the editor is meant to run
@@ -76,17 +60,16 @@ function useCatalogSearch(
         let isCurrent = true
         catalog.search(query, page).then(
             (result) => {
-                if (isCurrent) setAnswer({ request, page: result })
+                if (isCurrent)
+                    setAnswer({ request, page: result, hasFailed: false })
             },
             (error: unknown) => {
+                console.error(error)
                 if (isCurrent)
                     setAnswer((previous) => ({
                         request,
                         page: previous?.page,
-                        failure:
-                            error instanceof Error
-                                ? error.message
-                                : String(error),
+                        hasFailed: true,
                     }))
             }
         )
@@ -99,7 +82,7 @@ function useCatalogSearch(
     return {
         page: answer?.page,
         isLoading,
-        failure: isLoading ? undefined : answer.failure,
+        hasFailed: !isLoading && answer.hasFailed,
     }
 }
 
@@ -129,13 +112,12 @@ export function VariableSelector({
         // so that typing straight away adds a word instead of extending it
         return initial ? `${initial} ` : ""
     })
-    const [debouncedSearch] = useDebounceValue(searchValue, 250)
+    const [debouncedSearch] = useDebounceValue(searchValue, SEARCH_DEBOUNCE_MS)
     // A page belongs to the search it was paged in, so a new one starts at 1
     const [paging, setPaging] = useState({ search: debouncedSearch, page: 1 })
     const page = paging.search === debouncedSearch ? paging.page : 1
 
     const search = useCatalogSearch(catalog, debouncedSearch, page)
-    const shown = search.page
 
     const selectedKeys = useMemo(
         () => new Set(selected.map((entry) => columnKey(entry.column))),
@@ -158,7 +140,7 @@ export function VariableSelector({
         () => ({
             isSelected: (indicator) =>
                 selectedKeys.has(columnKey(indicator.column)),
-            onToggle: (indicator) => toggle(selectedFromIndicator(indicator)),
+            onToggle: toggle,
             onNarrow: setSearchValue,
         }),
         [selectedKeys, toggle]
@@ -204,48 +186,47 @@ export function VariableSelector({
                             fields: catalog.fields,
                         }}
                     />
-                    {search.failure !== undefined && (
+                    {search.hasFailed ? (
                         <Alert
                             type="error"
                             showIcon
-                            title={`The search failed: ${search.failure}`}
+                            title="The search failed on the server. Try again in a moment."
                         />
-                    )}
-                    {shown &&
-                        !search.isLoading &&
-                        search.failure === undefined && (
-                            <VariableSearchNotice
-                                regexError={shown.regexError}
-                                unindexedTerms={shown.unindexedTerms}
-                            />
-                        )}
-                    {search.failure === undefined && (
-                        <div className="VariableSelector__results">
-                            <GroupedVariableList<CatalogIndicator>
-                                groups={shown?.datasets ?? []}
-                                isSearch={debouncedSearch.trim() !== ""}
-                                searchWords={searchWords}
-                                searchValue={debouncedSearch}
-                                loading={search.isLoading}
-                                selection={selection}
-                                pagination={
-                                    shown && {
-                                        current: page,
-                                        pageSize: shown.pageSize,
-                                        total: shown.total,
-                                        hideOnSinglePage: true,
-                                        showSizeChanger: false,
-                                        showTotal: (total, [from, to]) =>
-                                            `${from}-${to} of ${total} ${shown.unit}`,
-                                        onChange: (nextPage) =>
-                                            setPaging({
-                                                search: debouncedSearch,
-                                                page: nextPage,
-                                            }),
+                    ) : (
+                        <>
+                            {search.page && !search.isLoading && (
+                                <VariableSearchNotice
+                                    regexError={search.page.regexError}
+                                    unindexedTerms={search.page.unindexedTerms}
+                                />
+                            )}
+                            <div className="VariableSelector__results">
+                                <GroupedVariableList<CatalogIndicator>
+                                    groups={search.page?.datasets ?? []}
+                                    isSearch={debouncedSearch.trim() !== ""}
+                                    searchWords={searchWords}
+                                    searchValue={debouncedSearch}
+                                    loading={search.isLoading}
+                                    selection={selection}
+                                    pagination={
+                                        search.page && {
+                                            current: page,
+                                            pageSize: search.page.pageSize,
+                                            total: search.page.total,
+                                            hideOnSinglePage: true,
+                                            showSizeChanger: false,
+                                            showTotal: (total, [from, to]) =>
+                                                `${from}-${to} of ${total} ${search.page?.unit}`,
+                                            onChange: (nextPage) =>
+                                                setPaging({
+                                                    search: debouncedSearch,
+                                                    page: nextPage,
+                                                }),
+                                        }
                                     }
-                                }
-                            />
-                        </div>
+                                />
+                            </div>
+                        </>
                     )}
                 </Flex>
                 <div className="VariableSelector__selected">

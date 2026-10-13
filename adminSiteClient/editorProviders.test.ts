@@ -32,11 +32,11 @@ function indicator(
 
 function adminAnswering(
     response: VariablesSearchResult | VariablesGroupedSearchResult
-): { admin: Admin; getJSON: ReturnType<typeof vi.fn> } {
-    const getJSON = vi.fn(() => Promise.resolve(response))
+): { admin: Admin; requestJSON: ReturnType<typeof vi.fn> } {
+    const requestJSON = vi.fn(() => Promise.resolve(response))
     return {
-        admin: { requestJSON: getJSON } as unknown as Admin,
-        getJSON,
+        admin: { requestJSON } as unknown as Admin,
+        requestJSON,
     }
 }
 
@@ -55,11 +55,11 @@ describe(adminIndicatorCatalog, () => {
             numTotalRows: 120,
             unindexedTerms: [],
         }
-        const { admin, getJSON } = adminAnswering(datasets)
+        const { admin, requestJSON } = adminAnswering(datasets)
 
         const page = await adminIndicatorCatalog(admin).search("deaths", 3)
 
-        expect(getJSON).toHaveBeenCalledWith(
+        expect(requestJSON).toHaveBeenCalledWith(
             "/api/variables.json",
             { search: "deaths", group: "dataset", limit: 8, offset: 16 },
             "GET",
@@ -81,11 +81,11 @@ describe(adminIndicatorCatalog, () => {
             unindexedTerms: [],
             regexError: "missing )",
         }
-        const { admin, getJSON } = adminAnswering(rows)
+        const { admin, requestJSON } = adminAnswering(rows)
 
         const page = await adminIndicatorCatalog(admin).search("dataset:gho", 2)
 
-        expect(getJSON).toHaveBeenCalledWith(
+        expect(requestJSON).toHaveBeenCalledWith(
             "/api/variables.json",
             { search: "dataset:gho", limit: 20, offset: 20 },
             "GET",

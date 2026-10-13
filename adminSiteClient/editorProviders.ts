@@ -5,7 +5,10 @@ import {
     SlugDimensionInterface,
 } from "@ourworldindata/types"
 import { DetailDictionary, Json } from "@ourworldindata/utils"
-import { CONTINENTS_INDICATOR_ID } from "@ourworldindata/grapher"
+import {
+    ChartDimension,
+    CONTINENTS_INDICATOR_ID,
+} from "@ourworldindata/grapher"
 import { Admin } from "./Admin.js"
 import type { References } from "./adminChartApi.js"
 import type { OriginUrlSuggestion } from "./ConfigEditor.js"
@@ -43,6 +46,19 @@ export const defaultEditorEnvironment: EditorEnvironment = {
 export type PickedColumn =
     | Pick<IndicatorDimensionInterface, "variableId" | "slug">
     | Pick<SlugDimensionInterface, "slug" | "variableId">
+
+/** Identifies a column across a slot's dimensions and the picker's rows */
+export function columnKey(column: PickedColumn): string {
+    return column.variableId !== undefined
+        ? `id:${column.variableId}`
+        : `slug:${column.slug}`
+}
+
+export function columnOfDimension(dimension: ChartDimension): PickedColumn {
+    return dimension.variableId !== undefined
+        ? { variableId: dimension.variableId }
+        : { slug: dimension.columnSlug }
+}
 
 /** An indicator the picker offers, with the column picking it puts in a slot */
 export type CatalogIndicator = VariableListItem & { column: PickedColumn }
@@ -92,18 +108,10 @@ export function adminIndicatorCatalog(admin: Admin): IndicatorCatalog {
             // The picker says when a search fails; the admin's own error
             // dialog would reload the page and lose the chart's edits
             const get = <T extends Json>(params: Json): Promise<T> =>
-                admin
-                    .requestJSON<T>("/api/variables.json", params, "GET", {
-                        onFailure: "continue",
-                        isBackground: true,
-                    })
-                    .catch((error: unknown) => {
-                        // what failed is for the console, not for the picker
-                        console.error(error)
-                        throw new Error(
-                            "the server couldn't run it. Try again in a moment."
-                        )
-                    })
+                admin.requestJSON<T>("/api/variables.json", params, "GET", {
+                    onFailure: "continue",
+                    isBackground: true,
+                })
             if (namesOneDataset(query)) {
                 const result = await get<VariablesSearchResult>({
                     search: query,
@@ -140,6 +148,22 @@ export function adminIndicatorCatalog(admin: Admin): IndicatorCatalog {
     }
 }
 
+function headerOf(variable: VariableResultView): CatalogDataset {
+    const path = variable.catalogPath
+        ? parseCatalogPath(variable.catalogPath)
+        : undefined
+    return {
+        id: variable.datasetId,
+        name: variable.datasetName,
+        namespace: path?.namespace,
+        version: path?.version,
+        shortName: path?.dataset,
+        uploadedAt: variable.uploadedAt,
+        uploadedBy: variable.uploadedBy,
+        variables: [],
+    }
+}
+
 function asCatalogIndicator(variable: VariableResultView): CatalogIndicator {
     return { ...variable, column: { variableId: variable.id } }
 }
@@ -148,24 +172,9 @@ function asCatalogIndicator(variable: VariableResultView): CatalogIndicator {
 function groupByDataset(variables: VariableResultView[]): CatalogDataset[] {
     const groups = new Map<number, CatalogDataset>()
     for (const variable of variables) {
-        const group = groups.get(variable.datasetId)
-        if (group) {
-            group.variables.push(asCatalogIndicator(variable))
-            continue
-        }
-        const path = variable.catalogPath
-            ? parseCatalogPath(variable.catalogPath)
-            : undefined
-        groups.set(variable.datasetId, {
-            id: variable.datasetId,
-            name: variable.datasetName,
-            namespace: path?.namespace,
-            version: path?.version,
-            shortName: path?.dataset,
-            uploadedAt: variable.uploadedAt,
-            uploadedBy: variable.uploadedBy,
-            variables: [asCatalogIndicator(variable)],
-        })
+        const group = groups.get(variable.datasetId) ?? headerOf(variable)
+        group.variables.push(asCatalogIndicator(variable))
+        groups.set(variable.datasetId, group)
     }
     return [...groups.values()]
 }

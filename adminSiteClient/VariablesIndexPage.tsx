@@ -23,6 +23,7 @@ import {
     VariablesSearchResult,
 } from "../adminShared/variableSearch.js"
 import {
+    SEARCH_DEBOUNCE_MS,
     fieldedTerms,
     namesOneDataset,
     plural,
@@ -129,9 +130,7 @@ export function VariablesIndexPage(): React.ReactElement {
     const setPage = (nextPage: number): void =>
         setPaging({ search: searchValue, page: nextPage })
     const [pageSize, setPageSize] = useState(INDICATORS_PAGE_SIZE)
-    // A regex search over ~800k indicators takes seconds, so don't fire one
-    // off on every keystroke
-    const [debouncedSearch] = useDebounceValue(searchValue, 300)
+    const [debouncedSearch] = useDebounceValue(searchValue, SEARCH_DEBOUNCE_MS)
 
     // Results come grouped by the dataset they belong to: a search matches far
     // more indicators than datasets, and browsing is most useful as the
@@ -196,15 +195,6 @@ export function VariablesIndexPage(): React.ReactElement {
     // Only ever from a settled search, so it does not blink in and out while
     // a word is half-typed
     const settled = isGrouped ? grouped.data : flat.data
-    const unindexedTerms = settled?.unindexedTerms ?? []
-    const regexError = settled?.regexError
-
-    const notice = (
-        <VariableSearchNotice
-            regexError={regexError}
-            unindexedTerms={unindexedTerms}
-        />
-    )
 
     return (
         <AdminLayout title="Indicators">
@@ -214,7 +204,10 @@ export function VariablesIndexPage(): React.ReactElement {
                     {/* outside the lists, so switching between them doesn't
                     remount the box being typed in */}
                     <VariableSearchToolbar search={searchProps} />
-                    {notice}
+                    <VariableSearchNotice
+                        regexError={settled?.regexError}
+                        unindexedTerms={settled?.unindexedTerms}
+                    />
                     {isGrouped ? (
                         <GroupedVariableList
                             groups={grouped.data?.datasets ?? []}

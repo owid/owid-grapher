@@ -194,7 +194,9 @@ describe(VariableSelector, () => {
             slotOf([])
         )
 
-        await screen.findByText("The search failed: 502 Bad Gateway")
+        await screen.findByText(
+            "The search failed on the server. Try again in a moment."
+        )
         expect(
             screen.queryByText("No indicators match this search.")
         ).toBeNull()

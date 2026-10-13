@@ -157,16 +157,10 @@ function UsageCell({
                                             <a
                                                 href={link.href}
                                                 title={link.title}
-                                                target={
-                                                    opensInNewTab
-                                                        ? "_blank"
-                                                        : undefined
-                                                }
-                                                rel={
-                                                    opensInNewTab
-                                                        ? "noopener"
-                                                        : undefined
-                                                }
+                                                {...(opensInNewTab && {
+                                                    target: "_blank",
+                                                    rel: "noopener",
+                                                })}
                                             >
                                                 {link.label}
                                             </a>
@@ -434,7 +428,7 @@ function DatasetGroupHeader({
     isSearch,
     isLinked,
 }: {
-    group: DatasetListGroup<VariableListItem>
+    group: DatasetListGroup
     highlight: SearchHighlighter
     isSearch: boolean
     isLinked: boolean
@@ -552,7 +546,10 @@ export function GroupedVariableList<
     loading?: boolean
     /** Over the datasets, which is what the server pages through. */
     pagination: TableProps<DatasetListGroup<Item>>["pagination"]
-    /** Makes the list a picker, which no link leads out of */
+    /**
+     * Makes the list a picker: names tick rather than link, "more" narrows in
+     * place, and the links left open in a new tab, so unsaved work stays
+     */
     selection?: IndicatorSelection<Item>
 }): React.ReactElement {
     const highlight = useMemo(

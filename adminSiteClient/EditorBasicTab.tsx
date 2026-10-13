@@ -45,7 +45,11 @@ import {
 } from "@ourworldindata/utils"
 import { Section } from "./Forms.js"
 import { VariableSelector } from "./VariableSelector.js"
-import type { PickedColumn } from "./editorProviders.js"
+import {
+    columnKey,
+    columnOfDimension,
+    type PickedColumn,
+} from "./editorProviders.js"
 import { DimensionCard } from "./DimensionCard.js"
 import { ConfigEditor } from "./ConfigEditor.js"
 import { ErrorMessagesForDimensions } from "./ChartEditorTypes.js"
@@ -97,10 +101,10 @@ export class DimensionSlotView extends React.Component<DimensionSlotViewProps> {
         const { slot } = this.props
 
         const dimensionConfigs = columns.map((column) => {
-            const existingDimension = slot.dimensions.find((d) =>
-                column.variableId !== undefined
-                    ? d.variableId === column.variableId
-                    : d.variableId === undefined && d.columnSlug === column.slug
+            const existingDimension = slot.dimensions.find(
+                (dimension) =>
+                    columnKey(columnOfDimension(dimension)) ===
+                    columnKey(column)
             )
             return (
                 existingDimension?.toObject() ?? {
