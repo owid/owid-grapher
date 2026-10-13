@@ -77,7 +77,7 @@ const deleteSeededRows = async (
     }
 }
 
-export class PrototypeSeedRankingProfiles1791803215039 implements MigrationInterface {
+export class PrototypeSeedRankingProfiles1791895749000 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         const { gdocs, tags, components } = loadSeedData()
         await deleteSeededRows(

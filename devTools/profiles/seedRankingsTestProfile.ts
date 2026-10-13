@@ -1,6 +1,8 @@
 // Seeds a published test profile into the local dev DB that exercises the
 // ranking blocks (ranking-cards, peer-ranking, peer-comparison). Prototype
-// helper: view it at /profile/rankings-prototype/germany on the admin server.
+// helper: view it at /profile/rankings-prototype/<country> (e.g. germany,
+// japan) on the admin server. Peer groups default to each country's own:
+// neighbours, continent, income group, EU27 (members only) and World.
 //
 // Usage: yarn tsx --tsconfig tsconfig.tsx.json devTools/profiles/seedRankingsTestProfile.ts [--delete]
 
@@ -21,7 +23,7 @@ type: profile
 title: Rankings prototype
 excerpt: A test profile for the new ranking components.
 authors: Our World in Data team
-scope: Germany
+scope: countries
 
 [+body]
 This is a prototype profile for $entityName that shows the new ranking components. Values are computed from the latest data at bake time.
@@ -72,12 +74,10 @@ level: 2
 
 {.peer-ranking}
 url: ${grapher("life-expectancy")}
-groups: Neighbours, European Union (27), Europe, High-income countries, World
 {}
 
 {.peer-comparison}
 title: How $entityName compares
-groups: Neighbours, European Union (27), High-income countries, World
 [.indicators]
 url: ${grapher("life-expectancy")}
 title: Life expectancy
@@ -116,7 +116,7 @@ async function main(): Promise<void> {
         )
         if (parseErrors) console.warn("Parse errors:", parseErrors)
         console.log(
-            `Upserted ${GDOC_ID}. View at /profile/${SLUG}/germany on the admin server.`
+            `Upserted ${GDOC_ID}. View at /profile/${SLUG}/<country> on the admin server.`
         )
     }, db.TransactionCloseMode.Close)
 }
