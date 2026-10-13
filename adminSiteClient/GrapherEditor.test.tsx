@@ -86,29 +86,29 @@ async function editTitle(view: GrapherEditor): Promise<void> {
 describe("GrapherEditor callbacks", () => {
     it("reports the loaded config, and no unsaved changes until it's edited", async () => {
         const onChange = vi.fn<(config: GrapherInterface) => void>()
-        const onDirtyChange = vi.fn<(isModified: boolean) => void>()
-        const view = await mountEditor({ onChange, onDirtyChange })
+        const onModifiedChange = vi.fn<(isModified: boolean) => void>()
+        const view = await mountEditor({ onChange, onModifiedChange })
         await loadData(view)
 
         expect(onChange.mock.lastCall?.[0]).toMatchObject({ title: "Rents" })
-        expect(onDirtyChange).not.toHaveBeenCalled()
+        expect(onModifiedChange).not.toHaveBeenCalled()
 
         await editTitle(view)
         expect(onChange.mock.lastCall?.[0]).toMatchObject({ title: "Edited" })
-        expect(onDirtyChange.mock.calls).toEqual([[true]])
+        expect(onModifiedChange.mock.calls).toEqual([[true]])
     })
 
     it("keeps reporting edits when rendered in StrictMode", async () => {
         const onChange = vi.fn<(config: GrapherInterface) => void>()
-        const onDirtyChange = vi.fn<(isModified: boolean) => void>()
+        const onModifiedChange = vi.fn<(isModified: boolean) => void>()
         const view = await mountEditor(
-            { onChange, onDirtyChange },
+            { onChange, onModifiedChange },
             { strict: true }
         )
         await loadData(view)
 
         await editTitle(view)
-        expect(onDirtyChange.mock.calls).toEqual([[true]])
+        expect(onModifiedChange.mock.calls).toEqual([[true]])
         expect(onChange.mock.lastCall?.[0]).toMatchObject({ title: "Edited" })
     })
 
@@ -137,14 +137,14 @@ describe("GrapherEditor callbacks", () => {
     })
 
     it("doesn't count loading the config as an edit while its data loads", async () => {
-        const onDirtyChange = vi.fn<(isModified: boolean) => void>()
+        const onModifiedChange = vi.fn<(isModified: boolean) => void>()
         const neverLoads: IndicatorStore = {
             ...rentStore(),
             loadTable: () => new Promise(() => undefined),
         }
-        const view = await mountEditor({ onDirtyChange, store: neverLoads })
+        const view = await mountEditor({ onModifiedChange, store: neverLoads })
 
         expect(view.editor.isModified).toBe(false)
-        expect(onDirtyChange).not.toHaveBeenCalled()
+        expect(onModifiedChange).not.toHaveBeenCalled()
     })
 })

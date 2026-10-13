@@ -8,15 +8,11 @@ import { Admin } from "./Admin.js"
 import type { References } from "./adminChartApi.js"
 import type { OriginUrlSuggestion } from "./ConfigEditor.js"
 import { Dataset, IndicatorCatalogData, Namespace } from "./EditorDatabase.js"
-import {
-    DetailsProvider,
-    EditorEnvironment,
-    IndicatorCatalog,
-} from "./editorProviders.js"
+import { DetailsProvider, IndicatorCatalog } from "./editorProviders.js"
 import { dataApiIndicatorStore, IndicatorStore } from "./indicatorStores.js"
+import urljoin from "url-join"
 import {
     BAKED_BASE_URL,
-    CATALOG_URL,
     DATA_API_URL,
     ETL_WIZARD_URL,
 } from "../settings/clientSettings.mjs"
@@ -25,14 +21,6 @@ import {
     POPULATION_CATALOG_PATH,
 } from "./constants.js"
 
-/** The servers this admin is configured for */
-export const adminEditorEnvironment: EditorEnvironment = {
-    dataApiUrl: DATA_API_URL,
-    catalogUrl: CATALOG_URL,
-    etlWizardUrl: ETL_WIZARD_URL,
-}
-
-/** Links each indicator in the Data tab to its admin page */
 export function adminIndicatorUrl(
     dimension: OwidChartDimensionInterface
 ): string | undefined {
@@ -73,12 +61,20 @@ function adminIndicatorCatalog(admin: Admin): IndicatorCatalog {
     }
 }
 
-/** Indicator data from this admin's Data API, with the admin's catalog to pick from */
 export function adminIndicatorStore(admin: Admin): IndicatorStore {
     return dataApiIndicatorStore({
-        dataApiUrl: adminEditorEnvironment.dataApiUrl,
+        dataApiUrl: DATA_API_URL,
         catalog: adminIndicatorCatalog(admin),
     })
+}
+
+export function adminChartAnimationUrl(
+    canonicalUrl: string | undefined
+): string {
+    const url = new URL(urljoin(ETL_WIZARD_URL, "chart-animation"))
+    if (canonicalUrl) url.searchParams.set("animation_chart_url", canonicalUrl)
+    url.searchParams.set("animation_skip_button", "True")
+    return url.toString()
 }
 
 /** Details on demand from the admin API */

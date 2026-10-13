@@ -15,7 +15,6 @@ import { ConfigEditor } from "./ConfigEditor.js"
 import { faHatWizard, faDownload } from "@fortawesome/free-solid-svg-icons"
 import { Button } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import urljoin from "url-join"
 
 type ExportSettings = Required<
     Pick<
@@ -217,23 +216,10 @@ export class EditorExportTab extends Component<EditorExportTabProps> {
         }
     }
 
-    @computed private get chartAnimationUrl(): URL | undefined {
-        const { etlWizardUrl } = this.props.editor.environment
-        if (!etlWizardUrl) return undefined
-        const chartAnimationUrl = new URL(
-            urljoin(etlWizardUrl, "chart-animation")
+    @computed private get chartAnimationUrl(): string | undefined {
+        return this.props.editor.manager.chartAnimationUrl?.(
+            this.grapherState.canonicalUrl
         )
-        if (this.grapherState.canonicalUrl)
-            chartAnimationUrl.searchParams.set(
-                "animation_chart_url",
-                this.grapherState.canonicalUrl
-            )
-        chartAnimationUrl.searchParams.set("animation_skip_button", "True")
-        // chartAnimationUrl.searchParams.set(
-        //     "animation_chart_tab",
-        //     this.grapher.tab ?? ""
-        // )
-        return chartAnimationUrl
     }
 
     override render() {
@@ -348,7 +334,7 @@ export class EditorExportTab extends Component<EditorExportTabProps> {
                 {this.grapherState.isPublished && chartAnimationUrl && (
                     <Section name="Animate chart">
                         <a
-                            href={chartAnimationUrl.toString()}
+                            href={chartAnimationUrl}
                             target="_blank"
                             className="btn btn-tertiary"
                             rel="noopener"
