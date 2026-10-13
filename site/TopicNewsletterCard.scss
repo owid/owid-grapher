@@ -114,11 +114,5 @@
 }
 
 .topic-newsletter-card--latest {
-    grid-row: 4;
     background-color: $blue-10;
-
-    @include md-down {
-        grid-row: unset;
-        margin-bottom: 40px;
-    }
 }
