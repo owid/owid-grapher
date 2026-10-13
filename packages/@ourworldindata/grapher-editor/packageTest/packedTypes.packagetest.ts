@@ -61,7 +61,7 @@ const props: GrapherEditorProps = {
 }
 
 const handle = mountGrapherEditor(document.body, props)
-handle.update({ ...props, store: dataApiIndicatorStore({ dataApiUrl: "https://example.org" }) })
+void (dataApiIndicatorStore({ dataApiUrl: "https://example.org" }) satisfies IndicatorStore)
 handle.unmount()
 
 // @ts-expect-error onSave is required
