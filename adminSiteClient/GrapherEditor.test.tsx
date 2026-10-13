@@ -112,6 +112,30 @@ describe("GrapherEditor callbacks", () => {
         expect(onChange.mock.lastCall?.[0]).toMatchObject({ title: "Edited" })
     })
 
+    it("blocks the form until the chart's data has loaded", async () => {
+        const store = rentStore()
+        const pendingLoads: (() => void)[] = []
+        const slowStore: IndicatorStore = {
+            ...store,
+            loadTable: (...args) =>
+                new Promise((resolve) =>
+                    pendingLoads.push(() => resolve(store.loadTable(...args)))
+                ),
+        }
+        const view = await mountEditor({ store: slowStore })
+        const blocker = (): Element | null =>
+            document.querySelector(".LoadingBlocker")
+
+        await vi.waitFor(() => expect(blocker()).toBeTruthy(), {
+            timeout: 3000,
+        })
+        await act(async () =>
+            pendingLoads.forEach((finishLoad) => finishLoad())
+        )
+        await loadData(view)
+        await vi.waitFor(() => expect(blocker()).toBeNull(), { timeout: 3000 })
+    })
+
     it("doesn't count loading the config as an edit while its data loads", async () => {
         const onDirtyChange = vi.fn<(isModified: boolean) => void>()
         const neverLoads: IndicatorStore = {

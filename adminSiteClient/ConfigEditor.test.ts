@@ -109,6 +109,50 @@ describe(ConfigEditor, () => {
         expect(editor.isModified).toBe(false)
     })
 
+    it("keeps an edit made while a save is in flight", async () => {
+        let finishSave: (saved: GrapherInterface) => void = () => undefined
+        const editor = makeEditor({
+            onSave: (config) =>
+                new Promise((resolve) => {
+                    finishSave = () =>
+                        resolve({ ...config, subtitle: "Normalized" })
+                }),
+        })
+        runInAction(() => {
+            editor.grapherState.title = "Saved title"
+        })
+
+        const saving = editor.saveGrapher()
+        runInAction(() => {
+            editor.grapherState.title = "Typed while saving"
+        })
+        finishSave({})
+        await saving
+
+        expect(editor.grapherState.title).toBe("Typed while saving")
+        expect(editor.isModified).toBe(true)
+    })
+
+    it("reloads the data when the host saves a config with other indicators", async () => {
+        const loadTable = vi.fn<IndicatorStore["loadTable"]>(
+            async () => undefined
+        )
+        const editor = makeEditor({
+            store: { loadTable },
+            onSave: (config) => ({
+                ...config,
+                dimensions: [{ property: DimensionProperty.y, variableId: 2 }],
+            }),
+        })
+        runInAction(() => {
+            editor.grapherState.title = "Edited title"
+        })
+
+        await editor.saveGrapher()
+
+        expect(loadTable.mock.lastCall?.[0]).toMatchObject([{ variableId: 2 }])
+    })
+
     it("fires onChange with the new patch as the config is edited", () => {
         const onChange = vi.fn<(config: GrapherInterface) => void>()
         const editor = makeEditor({ onChange })
@@ -165,6 +209,16 @@ describe("ConfigEditor tab in the URL", () => {
             editor.tab = "customize"
         })
         expect(window.location.search).toBe("?tab=text")
+    })
+
+    it("keeps the page's history state when it writes the tab", () => {
+        window.history.replaceState({ routerKey: "abc" }, "", urlWithTab)
+        const editor = makeTrackedEditor({ syncTabWithUrl: true })
+
+        runInAction(() => {
+            editor.tab = "customize"
+        })
+        expect(window.history.state).toEqual({ routerKey: "abc" })
     })
 
     it("opens on the URL's tab and keeps it updated when the host syncs it", () => {
