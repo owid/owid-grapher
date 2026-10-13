@@ -36,15 +36,14 @@ import { POPULATION_BY_ENTITY_CODE } from "./populations.data.js"
 // The rank direction doesn't matter here, we only need the group's rows
 const SORT = "highest"
 
-/** Peer dot radii (px) for the smallest and largest populations */
-const PEER_RADIUS_RANGE: [number, number] = [2.5, 6.5]
+const PEER_RADIUS = 4
 /** Peer dot opacities for the smallest and largest populations */
-const PEER_OPACITY_RANGE: [number, number] = [0.45, 0.9]
-/** Populations at which the dot size bottoms and tops out (log scale) */
+const PEER_OPACITY_RANGE: [number, number] = [0.25, 0.95]
+/** Populations at which the opacity bottoms and tops out (log scale) */
 const PEER_POPULATION_RANGE: [number, number] = [1e5, 1.5e9]
 
-/** Larger, more opaque dots for more populous countries */
-function getPeerDotStyle(code: string): { radius: number; opacity: number } {
+/** More opaque dots for more populous countries */
+function getPeerDotOpacity(code: string): number {
     const population = POPULATION_BY_ENTITY_CODE[code]
     // Midpoint for entities without population data
     const t =
@@ -54,11 +53,8 @@ function getPeerDotStyle(code: string): { radius: number; opacity: number } {
                   Math.log10(PEER_POPULATION_RANGE[0]),
                   Math.log10(PEER_POPULATION_RANGE[1]),
               ])
-    const lerp = ([min, max]: [number, number]): number => min + t * (max - min)
-    return {
-        radius: lerp(PEER_RADIUS_RANGE),
-        opacity: lerp(PEER_OPACITY_RANGE),
-    }
+    const [min, max] = PEER_OPACITY_RANGE
+    return min + t * (max - min)
 }
 
 /**
@@ -433,7 +429,7 @@ function PeerComparisonStrip({
                     )}
                     {peers.map((point) => {
                         const isActive = point.key === activeKey
-                        const { radius, opacity } = getPeerDotStyle(point.key)
+                        const opacity = getPeerDotOpacity(point.key)
                         return (
                             <circle
                                 key={point.key}
@@ -443,7 +439,7 @@ function PeerComparisonStrip({
                                 })}
                                 cx={toPercent(x(point.value))}
                                 cy="50%"
-                                r={isActive ? radius + 1 : radius}
+                                r={isActive ? PEER_RADIUS + 1 : PEER_RADIUS}
                                 style={
                                     isActive
                                         ? undefined
