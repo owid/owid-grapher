@@ -5,7 +5,7 @@ test that checks it changes the right field in the chart's config.
 
 ```bash
 yarn testPlaywrightAdmin                  # the whole suite
-yarn testPlaywrightAdmin mapTab           # one file
+yarn testPlaywrightAdmin adminMapTab      # one file
 yarn testPlaywrightAdmin --grep "log/linear"
 ```
 
