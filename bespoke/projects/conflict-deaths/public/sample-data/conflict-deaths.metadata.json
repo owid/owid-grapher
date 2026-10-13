@@ -1,0 +1,760 @@
+{
+    "title": "Deaths in armed conflicts based on where they occurred",
+    "descriptionShort": "Best estimate of the number of deaths of combatants and civilians due to fighting in armed conflicts, by the country where the fighting took place.",
+    "descriptionKey": "- An armed conflict is defined by the [Uppsala Conflict Data Program (UCDP)](https://ucdp.uu.se/) as a disagreement between organized groups, or between one organized group and civilians, that causes at least 25 deaths during a year. This includes combatant and civilian deaths due to fighting.\n- Deaths due to disease and starvation resulting from the conflict are not included.\n- UCDP distinguishes four types of armed conflict. Interstate conflicts are fought between states. Intrastate conflicts are fought between a state and a non-state armed group, such as a rebel group. Non-state conflicts are fought between non-state armed groups. One-sided violence is the use of armed force by a state or non-state armed group against civilians.\n- UCDP identifies conflict deaths [based on news reports, other contemporary sources, and academic research](https://www.uu.se/en/department/peace-and-conflict-research/research/ucdp/ucdp-methodology).\n- We show here the \"best\" death estimates as identified by UCDP. They also report high and low estimates.\n- Countries are grouped into the five regions UCDP uses: Africa, the Americas, Asia and Oceania, Europe, and the Middle East.",
+    "descriptionProcessing": "UCDP provides geographical coordinates of each conflict event. We have mapped these coordinates to countries by means of the geoBoundaries dataset.\n\nIn some instances, the event's coordinates fall within the borders of a country. Other times, the event's coordinates fall outside the borders of a country. In the latter case, we have mapped the event to the country that is closest to the event's coordinates.\n\nConflict event with id \"53238\" and relid \"PAK-2003-1-345-88\" was assigned to \"Siachen-Saltoro\" by geoBoundaries. We have mapped it to \"Pakistan\" following the text in the `where_description` field from the UCDP data, which refers to \"Giang sector in Siachen, Pakistani Kashmir\".",
+    "origins": [
+        {
+            "id": 15400,
+            "title": "Georeferenced Event Dataset",
+            "description": "This dataset is UCDP's most disaggregated dataset, covering individual events of organized violence (phenomena of lethal violence occurring at a given time and place). These events are sufficiently fine-grained to be geo-coded down to the level of individual villages, with temporal durations disaggregated to single, individual days.\n\nYou can find more notes at https://ucdp.uu.se/downloads/ged/ged261.pdf",
+            "producer": "Uppsala Conflict Data Program",
+            "citationFull": "Davies, S., Pettersson, T., & \u00d6berg, M. (2026). Organized violence 1989\u20132025, and violent political protests. Journal of Peace Research. https://doi.org/10.1093/jopres/xjag046\n\nSundberg, Ralph and Erik Melander (2013) Introducing the UCDP Georeferenced Event Dataset. Journal of Peace Research 50(4).",
+            "attributionShort": "UCDP",
+            "versionProducer": "v26.1",
+            "urlMain": "https://ucdp.uu.se/downloads/index.html#ged_global",
+            "urlDownload": "https://ucdp.uu.se/downloads/ged/ged261-csv.zip",
+            "dateAccessed": "2026-06-10",
+            "datePublished": "2026",
+            "license": {
+                "url": "https://creativecommons.org/licenses/by/4.0/",
+                "name": "CC BY 4.0"
+            }
+        },
+        {
+            "id": 27793,
+            "title": "geoBoundaries \u2013 Comprehensive Global Administrative Zones (CGAZ)",
+            "description": "Built by the community and William & Mary geoLab, the geoBoundaries Global Database of Political Administrative Boundaries Database is an online, open license (CC BY 4.0 / ODbL) resource of information on administrative boundaries (i.e., state, county) for every country in the world. Since 2016, they have tracked approximately 1 million boundaries within over 200 entities, including all UN member states.",
+            "producer": "geoBoundaries",
+            "citationFull": "Runfola, Daniel, Community Contributors, and [v4.0: Lindsey Rogers, Joshua Habib, Sidonie Horn, Sean Murphy, Dorian Miller, Hadley Day, Lydia Troup, Dominic Fornatora, Natalie Spage, Kristina Pupkiewicz, Michael Roth, Carolina Rivera, Charlie Altman, Isabel Schruer, Tara McLaughlin, Russ Biddle, Renee Ritchey, Emily Topness, James Turner, Sam Updike, Helena Buckman, Neel Simpson, Jason Lin], [v2.0: Austin Anderson, Heather Baier, Matt Crittenden, Elizabeth Dowker, Sydney Fuhrig, Seth Goodman, Grace Grimsley, Rachel Layko, Graham Melville, Maddy Mulder, Rachel Oberman, Joshua Panganiban, Andrew Peck, Leigh Seitz, Sylvia Shea, Hannah Slevin, Rebecca Yougerman, Lauren Hobbs]. \"geoBoundaries: A global database of political administrative boundaries.\" Plos one 15, no. 4 (2020): e0231866. Online at www.geoboundaries.org.",
+            "versionProducer": "6.0.0",
+            "urlMain": "https://www.geoboundaries.org/globalDownloads.html",
+            "urlDownload": "https://github.com/wmgeolab/geoBoundaries/raw/main/releaseData/CGAZ/geoBoundariesCGAZ_ADM0.zip",
+            "dateAccessed": "2025-06-26",
+            "datePublished": "2023-09-14",
+            "license": {
+                "url": "https://creativecommons.org/licenses/by/4.0/",
+                "name": "CC BY 4.0"
+            }
+        }
+    ],
+    "unit": "deaths",
+    "timespan": "1989-2025",
+    "attributionShort": "UCDP",
+    "source": "Uppsala Conflict Data Program (2026); geoBoundaries (2023)",
+    "timeRange": {
+        "start": 1989,
+        "end": 2025
+    },
+    "regions": [
+        {
+            "id": 1,
+            "name": "Americas"
+        },
+        {
+            "id": 2,
+            "name": "Europe"
+        },
+        {
+            "id": 3,
+            "name": "Africa"
+        },
+        {
+            "id": 4,
+            "name": "Middle East"
+        },
+        {
+            "id": 5,
+            "name": "Asia and Oceania"
+        }
+    ],
+    "entities": [
+        {
+            "id": 1,
+            "name": "Abyei",
+            "region": 3
+        },
+        {
+            "id": 2,
+            "name": "Afghanistan",
+            "region": 5
+        },
+        {
+            "id": 3,
+            "name": "Albania",
+            "region": 2
+        },
+        {
+            "id": 4,
+            "name": "Algeria",
+            "region": 3
+        },
+        {
+            "id": 5,
+            "name": "Angola",
+            "region": 3
+        },
+        {
+            "id": 6,
+            "name": "Argentina",
+            "region": 1
+        },
+        {
+            "id": 7,
+            "name": "Armenia",
+            "region": 2
+        },
+        {
+            "id": 8,
+            "name": "Australia",
+            "region": 5
+        },
+        {
+            "id": 9,
+            "name": "Austria",
+            "region": 2
+        },
+        {
+            "id": 10,
+            "name": "Azerbaijan",
+            "region": 2
+        },
+        {
+            "id": 11,
+            "name": "Bahrain",
+            "region": 4
+        },
+        {
+            "id": 12,
+            "name": "Bangladesh",
+            "region": 5
+        },
+        {
+            "id": 13,
+            "name": "Belgium",
+            "region": 2
+        },
+        {
+            "id": 14,
+            "name": "Benin",
+            "region": 3
+        },
+        {
+            "id": 15,
+            "name": "Bhutan",
+            "region": 5
+        },
+        {
+            "id": 16,
+            "name": "Bolivia",
+            "region": 1
+        },
+        {
+            "id": 17,
+            "name": "Bosnia and Herzegovina",
+            "region": 2
+        },
+        {
+            "id": 18,
+            "name": "Botswana",
+            "region": 3
+        },
+        {
+            "id": 19,
+            "name": "Brazil",
+            "region": 1
+        },
+        {
+            "id": 20,
+            "name": "Burkina Faso",
+            "region": 3
+        },
+        {
+            "id": 21,
+            "name": "Burundi",
+            "region": 3
+        },
+        {
+            "id": 22,
+            "name": "Cambodia",
+            "region": 5
+        },
+        {
+            "id": 23,
+            "name": "Cameroon",
+            "region": 3
+        },
+        {
+            "id": 24,
+            "name": "Canada",
+            "region": 1
+        },
+        {
+            "id": 25,
+            "name": "Central African Republic",
+            "region": 3
+        },
+        {
+            "id": 26,
+            "name": "Chad",
+            "region": 3
+        },
+        {
+            "id": 27,
+            "name": "China",
+            "region": 5
+        },
+        {
+            "id": 28,
+            "name": "Colombia",
+            "region": 1
+        },
+        {
+            "id": 29,
+            "name": "Comoros",
+            "region": 3
+        },
+        {
+            "id": 30,
+            "name": "Congo",
+            "region": 3
+        },
+        {
+            "id": 31,
+            "name": "Costa Rica",
+            "region": 1
+        },
+        {
+            "id": 32,
+            "name": "Cote d'Ivoire",
+            "region": 3
+        },
+        {
+            "id": 33,
+            "name": "Croatia",
+            "region": 2
+        },
+        {
+            "id": 34,
+            "name": "Democratic Republic of Congo",
+            "region": 3
+        },
+        {
+            "id": 35,
+            "name": "Djibouti",
+            "region": 3
+        },
+        {
+            "id": 36,
+            "name": "East Timor",
+            "region": 5
+        },
+        {
+            "id": 37,
+            "name": "Ecuador",
+            "region": 1
+        },
+        {
+            "id": 38,
+            "name": "Egypt",
+            "region": 4
+        },
+        {
+            "id": 39,
+            "name": "El Salvador",
+            "region": 1
+        },
+        {
+            "id": 40,
+            "name": "Eritrea",
+            "region": 3
+        },
+        {
+            "id": 41,
+            "name": "Eswatini",
+            "region": 3
+        },
+        {
+            "id": 42,
+            "name": "Ethiopia",
+            "region": 3
+        },
+        {
+            "id": 43,
+            "name": "France",
+            "region": 2
+        },
+        {
+            "id": 44,
+            "name": "Gambia",
+            "region": 3
+        },
+        {
+            "id": 45,
+            "name": "Georgia",
+            "region": 2
+        },
+        {
+            "id": 46,
+            "name": "Germany",
+            "region": 2
+        },
+        {
+            "id": 47,
+            "name": "Ghana",
+            "region": 3
+        },
+        {
+            "id": 48,
+            "name": "Guatemala",
+            "region": 1
+        },
+        {
+            "id": 49,
+            "name": "Guinea",
+            "region": 3
+        },
+        {
+            "id": 50,
+            "name": "Guinea-Bissau",
+            "region": 3
+        },
+        {
+            "id": 51,
+            "name": "Guyana",
+            "region": 1
+        },
+        {
+            "id": 52,
+            "name": "Haiti",
+            "region": 1
+        },
+        {
+            "id": 53,
+            "name": "Honduras",
+            "region": 1
+        },
+        {
+            "id": 54,
+            "name": "India",
+            "region": 5
+        },
+        {
+            "id": 55,
+            "name": "Indonesia",
+            "region": 5
+        },
+        {
+            "id": 56,
+            "name": "Iran",
+            "region": 4
+        },
+        {
+            "id": 57,
+            "name": "Iraq",
+            "region": 4
+        },
+        {
+            "id": 58,
+            "name": "Israel",
+            "region": 4
+        },
+        {
+            "id": 59,
+            "name": "Jamaica",
+            "region": 1
+        },
+        {
+            "id": 60,
+            "name": "Jordan",
+            "region": 4
+        },
+        {
+            "id": 61,
+            "name": "Kenya",
+            "region": 3
+        },
+        {
+            "id": 62,
+            "name": "Kosovo",
+            "region": 2
+        },
+        {
+            "id": 63,
+            "name": "Kuwait",
+            "region": 4
+        },
+        {
+            "id": 64,
+            "name": "Kyrgyzstan",
+            "region": 5
+        },
+        {
+            "id": 65,
+            "name": "Laos",
+            "region": 5
+        },
+        {
+            "id": 66,
+            "name": "Latvia",
+            "region": 2
+        },
+        {
+            "id": 67,
+            "name": "Lebanon",
+            "region": 4
+        },
+        {
+            "id": 68,
+            "name": "Lesotho",
+            "region": 3
+        },
+        {
+            "id": 69,
+            "name": "Liberia",
+            "region": 3
+        },
+        {
+            "id": 70,
+            "name": "Libya",
+            "region": 3
+        },
+        {
+            "id": 71,
+            "name": "Lithuania",
+            "region": 2
+        },
+        {
+            "id": 72,
+            "name": "Madagascar",
+            "region": 3
+        },
+        {
+            "id": 73,
+            "name": "Malaysia",
+            "region": 5
+        },
+        {
+            "id": 74,
+            "name": "Mali",
+            "region": 3
+        },
+        {
+            "id": 75,
+            "name": "Mauritania",
+            "region": 3
+        },
+        {
+            "id": 76,
+            "name": "Mexico",
+            "region": 1
+        },
+        {
+            "id": 77,
+            "name": "Moldova",
+            "region": 2
+        },
+        {
+            "id": 78,
+            "name": "Montenegro",
+            "region": 2
+        },
+        {
+            "id": 79,
+            "name": "Morocco",
+            "region": 3
+        },
+        {
+            "id": 80,
+            "name": "Mozambique",
+            "region": 3
+        },
+        {
+            "id": 81,
+            "name": "Myanmar",
+            "region": 5
+        },
+        {
+            "id": 82,
+            "name": "Namibia",
+            "region": 3
+        },
+        {
+            "id": 83,
+            "name": "Nepal",
+            "region": 5
+        },
+        {
+            "id": 84,
+            "name": "Netherlands",
+            "region": 2
+        },
+        {
+            "id": 85,
+            "name": "Nicaragua",
+            "region": 1
+        },
+        {
+            "id": 86,
+            "name": "Niger",
+            "region": 3
+        },
+        {
+            "id": 87,
+            "name": "Nigeria",
+            "region": 3
+        },
+        {
+            "id": 88,
+            "name": "North Macedonia",
+            "region": 2
+        },
+        {
+            "id": 89,
+            "name": "Pakistan",
+            "region": 5
+        },
+        {
+            "id": 90,
+            "name": "Palestine",
+            "region": 4
+        },
+        {
+            "id": 91,
+            "name": "Panama",
+            "region": 1
+        },
+        {
+            "id": 92,
+            "name": "Papua New Guinea",
+            "region": 5
+        },
+        {
+            "id": 93,
+            "name": "Paraguay",
+            "region": 1
+        },
+        {
+            "id": 94,
+            "name": "Peru",
+            "region": 1
+        },
+        {
+            "id": 95,
+            "name": "Philippines",
+            "region": 5
+        },
+        {
+            "id": 96,
+            "name": "Poland",
+            "region": 2
+        },
+        {
+            "id": 97,
+            "name": "Qatar",
+            "region": 4
+        },
+        {
+            "id": 98,
+            "name": "Romania",
+            "region": 2
+        },
+        {
+            "id": 99,
+            "name": "Russia",
+            "region": 2
+        },
+        {
+            "id": 100,
+            "name": "Rwanda",
+            "region": 3
+        },
+        {
+            "id": 101,
+            "name": "Saudi Arabia",
+            "region": 4
+        },
+        {
+            "id": 102,
+            "name": "Senegal",
+            "region": 3
+        },
+        {
+            "id": 103,
+            "name": "Serbia",
+            "region": 2
+        },
+        {
+            "id": 104,
+            "name": "Sierra Leone",
+            "region": 3
+        },
+        {
+            "id": 105,
+            "name": "Slovenia",
+            "region": 2
+        },
+        {
+            "id": 106,
+            "name": "Solomon Islands",
+            "region": 5
+        },
+        {
+            "id": 107,
+            "name": "Somalia",
+            "region": 3
+        },
+        {
+            "id": 108,
+            "name": "South Africa",
+            "region": 3
+        },
+        {
+            "id": 109,
+            "name": "South Sudan",
+            "region": 3
+        },
+        {
+            "id": 110,
+            "name": "Spain",
+            "region": 2
+        },
+        {
+            "id": 111,
+            "name": "Sri Lanka",
+            "region": 5
+        },
+        {
+            "id": 112,
+            "name": "Sudan",
+            "region": 3
+        },
+        {
+            "id": 113,
+            "name": "Sweden",
+            "region": 2
+        },
+        {
+            "id": 114,
+            "name": "Syria",
+            "region": 4
+        },
+        {
+            "id": 115,
+            "name": "Tajikistan",
+            "region": 5
+        },
+        {
+            "id": 116,
+            "name": "Tanzania",
+            "region": 3
+        },
+        {
+            "id": 117,
+            "name": "Thailand",
+            "region": 5
+        },
+        {
+            "id": 118,
+            "name": "Togo",
+            "region": 3
+        },
+        {
+            "id": 119,
+            "name": "Trinidad and Tobago",
+            "region": 1
+        },
+        {
+            "id": 120,
+            "name": "Tunisia",
+            "region": 3
+        },
+        {
+            "id": 121,
+            "name": "Turkey",
+            "region": 4
+        },
+        {
+            "id": 122,
+            "name": "Uganda",
+            "region": 3
+        },
+        {
+            "id": 123,
+            "name": "Ukraine",
+            "region": 2
+        },
+        {
+            "id": 124,
+            "name": "United Arab Emirates",
+            "region": 4
+        },
+        {
+            "id": 125,
+            "name": "United Kingdom",
+            "region": 2
+        },
+        {
+            "id": 126,
+            "name": "United States",
+            "region": 1
+        },
+        {
+            "id": 127,
+            "name": "Uzbekistan",
+            "region": 5
+        },
+        {
+            "id": 128,
+            "name": "Venezuela",
+            "region": 1
+        },
+        {
+            "id": 129,
+            "name": "Western Sahara",
+            "region": 3
+        },
+        {
+            "id": 130,
+            "name": "Yemen",
+            "region": 4
+        },
+        {
+            "id": 131,
+            "name": "Zambia",
+            "region": 3
+        },
+        {
+            "id": 132,
+            "name": "Zimbabwe",
+            "region": 3
+        }
+    ],
+    "conflictTypes": [
+        {
+            "id": 1,
+            "slug": "all",
+            "name": "All armed conflicts"
+        },
+        {
+            "id": 2,
+            "slug": "interstate",
+            "name": "Interstate conflicts"
+        },
+        {
+            "id": 3,
+            "slug": "intrastate",
+            "name": "Intrastate conflicts"
+        },
+        {
+            "id": 4,
+            "slug": "non-state",
+            "name": "Non-state conflicts"
+        },
+        {
+            "id": 5,
+            "slug": "one-sided",
+            "name": "One-sided violence"
+        }
+    ]
+}
