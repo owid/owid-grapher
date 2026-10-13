@@ -109,6 +109,9 @@ export class ChartEditorView extends React.Component<ChartEditorViewProps> {
     @action.bound async loadInitialConfig(): Promise<void> {
         const config = this.manager.editor.originalGrapherConfig
         this.manager.editor.grapherState.updateFromObject(config)
+        // Loading the config isn't an edit, so it mustn't count as unsaved
+        // while the data loads (or if it fails to)
+        this.manager.editor.markAsSaved()
         await this.manager.editor.reloadGrapherData()
         this.grapherState.externalBounds = this.bounds
 
