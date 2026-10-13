@@ -20,9 +20,6 @@ import {
 //
 // They all write into dist/, so no two of them may emit the same filename.
 
-// Options that apply to all three entries below.
-const shared = reactPackageBuildOptions
-
 export default defineConfig([
     // The ES module build, published as the package's `./react` export. Meant
     // for React apps and bundler environments, so it's left unminified and
@@ -30,11 +27,14 @@ export default defineConfig([
     // it's the only one built from grapher.entry.ts, which imports
     // grapher.scss.
     {
-        ...shared,
+        ...reactPackageBuildOptions,
         name: "npm",
         entry: { "grapher.react": "./src/grapher.entry.ts" },
         // React is a peer dependency of the npm package.
-        deps: { ...shared.deps, neverBundle: REACT_EXTERNALS },
+        deps: {
+            ...reactPackageBuildOptions.deps,
+            neverBundle: REACT_EXTERNALS,
+        },
         css: packageCssOptions("grapher.css"),
     },
     // The standalone bundle, published as the package's root export (and
@@ -43,7 +43,7 @@ export default defineConfig([
     // since the npm build above already emits dist/grapher.css - which is
     // where CDN consumers load the styles from too.
     {
-        ...shared,
+        ...reactPackageBuildOptions,
         name: "standalone",
         entry: {
             "grapher.standalone.min": "./src/grapher.standalone.entry.ts",
@@ -55,7 +55,7 @@ export default defineConfig([
     // declaration pass runs through tsgo, which has no idea what to do with an
     // `import "./core/grapher.scss"`.
     {
-        ...shared,
+        ...reactPackageBuildOptions,
         ...dtsBundleOptions,
         entry: { grapher: "./src/grapher.public.ts" },
     },

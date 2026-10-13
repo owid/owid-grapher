@@ -47,8 +47,8 @@ export const dtsBundleOptions = {
     dts: { emitDtsOnly: true },
 } satisfies UserConfig
 
-// React and react-dom, which the React packages (grapher, grapher-editor)
-// leave external in their `./react` build: they're peer dependencies there.
+// React and react-dom, which the React packages leave external in their
+// `./react` build: they're peer dependencies there.
 export const REACT_EXTERNALS = [/^react($|\/)/, /^react-dom($|\/)/]
 
 // Options for every entry of a package that bundles grapher's React UI.
