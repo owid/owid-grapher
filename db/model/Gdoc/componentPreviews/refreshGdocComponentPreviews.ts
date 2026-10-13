@@ -1,47 +1,32 @@
 import { docs as googleDocs, type docs_v1 } from "@googleapis/docs"
 import pMap from "p-map"
+import { GdocComponentPreviewRefreshResult } from "@ourworldindata/types"
 import {
-    GdocComponentPreviewItem,
-    GdocComponentPreviewRefreshResult,
-} from "@ourworldindata/types"
+    CLOUDFLARE_IMAGES_URL,
+    GDOCS_CHART_PREVIEW_EXPLORER_URL,
+    GDOCS_CHART_PREVIEW_GRAPHER_URL,
+} from "../../../../settings/serverSettings.js"
 import { OwidGoogleAuth } from "../../../OwidGoogleAuth.js"
 import * as db from "../../../db.js"
 import {
-    type ComponentPreviewBlock,
     type ComponentPreviewChange,
     findComponentPreviewBlocks,
     makeComponentPreviewRequests,
 } from "./componentPreviewBlocks.js"
+import { resolveComponentPreviewSources } from "./componentPreviewSources.js"
 import {
-    componentPreviewSpecKey,
-    resolveComponentPreviewSources,
-} from "./componentPreviewSources.js"
+    type PlannedChanges,
+    makeItem,
+    planComponentPreviewChanges,
+} from "./componentPreviewPlan.js"
 
 export interface RefreshGdocComponentPreviewsOptions {
-    /** Also add images above components that have none */
-    insertMissing?: boolean
-    /** Use the image right below a component if there's none above it */
-    acceptImageBelow?: boolean
     /** Report what would change without writing to the doc */
     dryRun?: boolean
 }
 
 const RENDER_TIMEOUT_MS = 60_000
 const RENDER_CONCURRENCY = 4
-
-function makeItem(
-    block: ComponentPreviewBlock,
-    status: GdocComponentPreviewItem["status"],
-    message?: string
-): GdocComponentPreviewItem {
-    return {
-        tabTitle: block.tabTitle,
-        componentType: block.spec.type,
-        target: block.spec.target,
-        status,
-        ...(message ? { message } : {}),
-    }
-}
 
 function getErrorMessage(error: unknown): string {
     return error instanceof Error ? error.message : String(error)
@@ -69,32 +54,11 @@ async function checkImageRenders(imageUrl: string): Promise<string | null> {
     }
 }
 
-/**
- * Existing images get replaced in place, which keeps their size in the doc.
- * When the new image has a different shape, that would crop it, so it gets
- * deleted and inserted again at the same width instead.
- */
-interface PlannedChanges {
-    replacements: ComponentPreviewChange[]
-    insertions: ComponentPreviewChange[]
-    reinsertions: ComponentPreviewChange[]
-}
-
-// How far apart aspect ratios can be before reinserting rather than cropping
-const ASPECT_RATIO_TOLERANCE = 0.02
-
-function needsReinsertion(
-    block: ComponentPreviewBlock,
-    aspectRatio: number | undefined
-): boolean {
-    const size = block.image?.size
-    if (!size || !aspectRatio) return false
-    const currentAspectRatio = size.width / size.height
-    return (
-        Math.abs(currentAspectRatio - aspectRatio) / aspectRatio >
-        ASPECT_RATIO_TOLERANCE
-    )
-}
+const PREVIEW_URL_PREFIXES = [
+    GDOCS_CHART_PREVIEW_GRAPHER_URL,
+    GDOCS_CHART_PREVIEW_EXPLORER_URL,
+    CLOUDFLARE_IMAGES_URL,
+].filter(Boolean)
 
 function countChanges(changes: PlannedChanges): number {
     return (
@@ -181,18 +145,15 @@ async function writeChanges(
 /**
  * Makes the preview image above each component in a gdoc show the current
  * version of the chart or uploaded image it refers to. Replaces images that
- * are outdated or were pasted in by hand, and optionally inserts images where
- * there are none. Covers all tabs of the doc.
+ * are outdated, were pasted in by hand or are cropped by a frame of the wrong
+ * shape, and inserts images where there are none. Images below a component
+ * are reported but left alone. Covers all tabs of the doc.
  */
 export async function refreshGdocComponentPreviews(
     gdocId: string,
     options: RefreshGdocComponentPreviewsOptions = {}
 ): Promise<GdocComponentPreviewRefreshResult> {
-    const {
-        insertMissing = false,
-        acceptImageBelow = false,
-        dryRun = false,
-    } = options
+    const { dryRun = false } = options
     const docsClient = googleDocs({
         version: "v1",
         auth: OwidGoogleAuth.getGoogleReadWriteAuth(),
@@ -204,7 +165,7 @@ export async function refreshGdocComponentPreviews(
         suggestionsViewMode: "SUGGESTIONS_INLINE",
     })
 
-    const blocks = findComponentPreviewBlocks(document, { acceptImageBelow })
+    const blocks = findComponentPreviewBlocks(document)
     // A transaction of its own, so that none is held open across the slow
     // Google API calls and image renders
     const sources = await db.knexReadonlyTransaction((knex) =>
@@ -214,34 +175,11 @@ export async function refreshGdocComponentPreviews(
         )
     )
 
-    const items = new Map<ComponentPreviewBlock, GdocComponentPreviewItem>()
-    const planned: PlannedChanges = {
-        replacements: [],
-        insertions: [],
-        reinsertions: [],
-    }
-    for (const block of blocks) {
-        const source = sources.get(componentPreviewSpecKey(block.spec))
-        if (!source || source.status === "unresolved") {
-            items.set(block, makeItem(block, "unresolved", source?.message))
-            continue
-        }
-        const change = { block, imageUrl: source.imageUrl }
-        const { message } = source
-        if (block.image?.sourceUri === source.imageUrl) {
-            items.set(block, makeItem(block, "upToDate", message))
-        } else if (block.image) {
-            if (needsReinsertion(block, source.aspectRatio))
-                planned.reinsertions.push(change)
-            else planned.replacements.push(change)
-            items.set(block, makeItem(block, "updated", message))
-        } else if (insertMissing) {
-            planned.insertions.push(change)
-            items.set(block, makeItem(block, "inserted", message))
-        } else {
-            items.set(block, makeItem(block, "missing", message))
-        }
-    }
+    const { items, planned } = planComponentPreviewChanges(
+        blocks,
+        sources,
+        PREVIEW_URL_PREFIXES
+    )
 
     if (!dryRun && countChanges(planned) > 0) {
         const allChanges = [

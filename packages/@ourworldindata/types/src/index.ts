@@ -302,6 +302,7 @@ export type {
     GdocComponentPreviewStatus,
     GdocComponentPreviewItem,
     GdocComponentPreviewRefreshResult,
+    GdocComponentPreviewUpdateReason,
 } from "./gdocTypes/ComponentPreviews.js"
 
 export {
