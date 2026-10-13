@@ -1,0 +1,15 @@
+metadata:
+  description: |
+    A 0-1 popularity score per piece of content, computed and written by the analytics service (owid/analytics) on prod. Used to rank search results, e.g. indicators in the admin's indicator search, joined on `type = 'indicator' AND slug = variables.catalogPath`.
+
+    Availability:
+    - Production and staging databases: populated by the analytics service
+    - Local development: shipped with the database snapshot
+    - Databases built from migrations alone (the test databases): empty
+fields:
+  type:
+    description: Kind of content, e.g. indicator, chart, explorer, article, topic-page, data-insight, dataset, country
+  slug:
+    description: The content's identifier within its type; for indicators this is the catalog path
+  popularity:
+    description: Popularity score between 0 and 1, higher is more read
