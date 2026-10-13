@@ -28,7 +28,6 @@ import {
     getInlineUnit,
     getRankingUnit,
     makePeerGroupOption,
-    mean,
     PeerGroupOption,
     scaleToUnit,
 } from "./rankingUtils.js"
@@ -63,9 +62,25 @@ function getPeerDotStyle(code: string): { radius: number; opacity: number } {
 }
 
 /**
+ * Mean of the rows' values weighted by population. Rows without population
+ * data are left out.
+ */
+function populationWeightedMean(rows: LinkedRankingRow[]): number | undefined {
+    let weightedSum = 0
+    let totalPopulation = 0
+    for (const row of rows) {
+        const population = POPULATION_BY_ENTITY_CODE[row.code]
+        if (population === undefined) continue
+        weightedSum += row.value * population
+        totalPopulation += population
+    }
+    return totalPopulation > 0 ? weightedSum / totalPopulation : undefined
+}
+
+/**
  * How an entity compares with a peer group across several indicators: one
  * strip per indicator with the group's countries as dots, the group
- * average as a tick, and the entity highlighted.
+ * population-weighted average as a tick, and the entity highlighted.
  */
 export function PeerComparison({
     block,
@@ -148,7 +163,7 @@ export function PeerComparison({
                     {selected.name}
                 </span>
                 <span className="peer-comparison__legend-item peer-comparison__legend-item--average">
-                    Group average
+                    Population-weighted average
                 </span>
             </div>
         </section>
@@ -179,7 +194,7 @@ function PeerComparisonRow({
     const groupRows = ranking.rows.filter((row) => groupCodes.has(row.code))
     const values = groupRows.map((row) => row.value)
     const domain: [number, number] = [Math.min(...values), Math.max(...values)]
-    const average = mean(values)
+    const average = populationWeightedMean(groupRows)
     const x = (value: number): number => scaleToUnit(value, domain)
 
     const label = indicator.title ?? ranking.title
@@ -196,7 +211,7 @@ function PeerComparisonRow({
     const ariaLabel = [
         `${getEntityName(entityCode)}: ${format(summary.row.value)}`,
         formattedAverage &&
-            `average of ${group.description}: ${formattedAverage}`,
+            `population-weighted average of ${group.description}: ${formattedAverage}`,
         minRow &&
             maxRow &&
             `range from ${format(minRow.value)} to ${format(maxRow.value)}`,
@@ -225,7 +240,7 @@ function PeerComparisonRow({
                                   key: "average",
                                   kind: "average" as const,
                                   value: average,
-                                  label: "Group average",
+                                  label: "Population-weighted average",
                                   formattedValue: formattedAverage,
                               },
                           ]

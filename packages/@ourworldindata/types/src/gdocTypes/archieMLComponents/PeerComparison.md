@@ -1,6 +1,6 @@
 Compares a country with its peers across several indicators. Each
 indicator gets a strip with one dot per country in the selected peer
-group, a mark for the group average and the selected country highlighted,
+group, a mark for the group's population-weighted average and the selected country highlighted,
 next to the country's value. A toggle switches between the peer groups.
 
 ```archie
