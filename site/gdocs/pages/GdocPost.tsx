@@ -128,14 +128,15 @@ export function GdocPost({
                     toc={content.toc}
                     blocks={content.body}
                     automaticSubscribeBanner={!shouldHideSubscribeBanner}
-                    // Modular topic pages render the card from TopicPageIntro,
-                    // which already has a right rail.
-                    introAside={
+                    // Modular topic pages render the card from TopicPageIntro
+                    afterIntro={
                         postType === OwidGdocType.LinearTopicPage ? (
                             <TopicNewsletterCard
                                 topicArea={topicArea}
-                                variant="narrow"
-                                className={`topic-newsletter-card--gdoc-aside ${layouts.default["subscribe-banner--right"]}`}
+                                className={cx(
+                                    "topic-newsletter-card--linear-topic-page",
+                                    layouts.default["subscribe-banner--center"]
+                                )}
                             />
                         ) : null
                     }
