@@ -115,28 +115,24 @@ class IndicatorSelector {
         this.modal = page.locator(".VariableSelector")
     }
 
+    get searchBox(): Locator {
+        return this.modal.getByPlaceholder("Search indicators...")
+    }
+
     async search(text: string): Promise<void> {
-        await this.modal.getByPlaceholder("Search...").fill(text)
+        await this.searchBox.fill(text)
     }
 
     /** An indicator in the search results */
     result(name: string): Locator {
         return this.modal
-            .locator(".searchResults")
-            .getByRole("checkbox", { name: new RegExp(`^${name} \\(`) })
+            .locator(".VariableSelector__results")
+            .getByRole("checkbox", { name, exact: true })
     }
 
     /** The indicators chosen so far */
     get chosen(): Locator {
-        return this.modal.locator(".selectedData li")
-    }
-
-    async removeNamespace(namespace: string): Promise<void> {
-        await this.modal
-            .locator(".ant-select-selection-item")
-            .filter({ hasText: namespace })
-            .locator(".ant-select-selection-item-remove")
-            .click()
+        return this.modal.locator(".VariableSelector__chosen-item")
     }
 
     async confirm(): Promise<void> {
@@ -448,7 +444,9 @@ test.describe("Indicators", () => {
 
         await selector.search("oil")
         await expect(
-            selector.modal.locator(".searchResults").getByRole("checkbox")
+            selector.modal
+                .locator(".VariableSelector__results")
+                .getByRole("checkbox")
         ).toHaveCount(1)
         await selector.result(indicators.oilEmissions.name).check()
         await selector.search("gas")
@@ -474,7 +472,7 @@ test.describe("Indicators", () => {
         })
     })
 
-    test("the indicator selector only searches the chart's namespaces until their filter is removed", async ({
+    test("the indicator selector opens on the chart's dataset, and a search of its own looks everywhere", async ({
         seedChart,
         openEditor,
     }) => {
@@ -482,12 +480,15 @@ test.describe("Indicators", () => {
             await seedChart(stackedAreaChart(indicators.coalEmissions))
         )
         const selector = await openIndicatorSelector(editor, "Y axis")
+        await expect(selector.searchBox).toHaveValue(
+            `dataset-id:${indicators.coalEmissions.dataset.id}`
+        )
+        await expect(
+            selector.result(indicators.oilEmissions.name)
+        ).toBeVisible()
+        await expect(selector.result(indicators.gdpGrowth.name)).toHaveCount(0)
 
         await selector.search("GDP growth")
-        await expect(selector.result(indicators.gdpGrowth.name)).toHaveCount(0)
-        await selector.removeNamespace(
-            indicators.coalEmissions.dataset.namespace
-        )
         await selector.result(indicators.gdpGrowth.name).check()
         await selector.confirm()
 

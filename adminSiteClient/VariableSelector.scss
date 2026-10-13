@@ -1,0 +1,28 @@
+.VariableSelector {
+    .modal-dialog {
+        min-width: min(1100px, 90vw);
+        max-width: 90vw;
+    }
+}
+
+.VariableSelector__body {
+    display: flex;
+    gap: 16px;
+}
+
+.VariableSelector__results {
+    flex: 1;
+    min-width: 0;
+    max-height: 65vh;
+    overflow-y: auto;
+}
+
+.VariableSelector__chosen {
+    flex: 0 0 26%;
+    max-height: 65vh;
+    overflow-y: auto;
+}
+
+.VariableSelector__chosen-item {
+    margin-top: 6px;
+}

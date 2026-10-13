@@ -10,8 +10,11 @@ import {
     applyDimensionDisplayAndConversionFactor,
     getCachingInputTableFetcher,
 } from "@ourworldindata/grapher"
-import { IndicatorCatalog } from "./editorProviders.js"
-import { Dataset, IndicatorCatalogData } from "./EditorDatabase.js"
+import {
+    buildSearchWordsFromSearchString,
+    filterFunctionForSearchWords,
+} from "../adminShared/search.js"
+import { CatalogIndicator, IndicatorCatalog } from "./editorProviders.js"
 
 export interface IndicatorStore {
     catalog?: IndicatorCatalog
@@ -50,29 +53,46 @@ export function tableIndicatorStore(
         (slug) => !nonDataSlugs.has(slug)
     )
 
-    const dataset: Dataset = {
-        id: 1,
-        name: datasetName,
-        namespace: datasetName,
-        version: undefined,
-        isPrivate: false,
-        nonRedistributable: false,
-        variables: dataSlugs.map((slug, i) => ({
-            id: i + 1,
-            slug,
-            name: table.get(slug).displayName,
-        })),
-    }
-    const catalogData: IndicatorCatalogData = {
-        namespaces: [{ name: datasetName, isArchived: false }],
-        datasets: [dataset],
+    const indicators: CatalogIndicator[] = dataSlugs.map((slug, i) => ({
+        id: i + 1,
+        slug,
+        name: table.get(slug).displayName,
+    }))
+    const catalog: IndicatorCatalog = {
+        fields: [],
+        initialQuery: () => "",
+        search: (query) => {
+            const matches = filterFunctionForSearchWords(
+                buildSearchWordsFromSearchString(query),
+                (indicator: CatalogIndicator) => [
+                    indicator.name,
+                    indicator.slug,
+                ]
+            )
+            const variables = indicators.filter(matches)
+            return Promise.resolve({
+                datasets: variables.length
+                    ? [
+                          {
+                              id: 1,
+                              name: datasetName,
+                              matchCount: variables.length,
+                              variables,
+                          },
+                      ]
+                    : [],
+                unit: "datasets",
+                total: variables.length ? 1 : 0,
+                pageSize: 1,
+            })
+        },
     }
 
     const isDataColumn = (slug: ColumnSlug | undefined): boolean =>
         slug !== undefined && dataSlugs.includes(slug)
 
     return {
-        catalog: { load: () => Promise.resolve(catalogData) },
+        catalog,
 
         loadTable: (dimensions) => {
             for (const dimension of dimensions)

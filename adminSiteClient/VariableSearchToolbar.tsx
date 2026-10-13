@@ -7,8 +7,10 @@ import type { VariableSearchBox } from "./variableSearchQuery.js"
 
 function SearchHelp({
     fields,
+    isInUrl,
 }: {
     fields: readonly SearchFieldHelp[]
+    isInUrl: boolean
 }): React.ReactElement {
     return (
         <Popover
@@ -21,8 +23,9 @@ function SearchHelp({
                         a word. Use <code>"a phrase"</code> to keep words
                         together and <code>-word</code> to exclude. Regular
                         expressions work too, but read every indicator, so they
-                        are slow. The search is kept in the page URL, so a
-                        filtered list can be shared.
+                        are slow.
+                        {isInUrl &&
+                            " The search is kept in the page URL, so a filtered list can be shared."}
                     </p>
                     <table>
                         <tbody>
@@ -67,7 +70,10 @@ export function VariableSearchToolbar({
                 allowClear
             />
             {search.fields?.length ? (
-                <SearchHelp fields={search.fields} />
+                <SearchHelp
+                    fields={search.fields}
+                    isInUrl={search.isInUrl ?? false}
+                />
             ) : null}
             {filters}
         </Space>

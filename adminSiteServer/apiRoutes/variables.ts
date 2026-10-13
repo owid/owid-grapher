@@ -5,8 +5,6 @@ import {
     migrateGrapherConfigToLatestVersionAndFailOnError,
 } from "@ourworldindata/grapher"
 import {
-    DbRawVariable,
-    DbPlainDataset,
     JsonError,
     DbPlainChart,
     DbRawChartConfig,
@@ -50,78 +48,6 @@ import {
 import { Request } from "../authentication.js"
 import { HandlerResponse } from "../FunctionalRouter.js"
 import * as z from "zod"
-
-// Still serving the chart editor's indicator picker, which downloads every
-// indicator up front. The picker moves onto `getVariablesJson` in a follow-up,
-// and this goes with it.
-export async function getEditorVariablesJson(
-    req: Request,
-    _res: HandlerResponse,
-    trx: db.KnexReadonlyTransaction
-) {
-    const datasets = []
-    const rows = await db.knexRaw<
-        Pick<DbRawVariable, "name" | "id"> & {
-            datasetId: number
-            datasetName: string
-            datasetVersion: string
-        } & Pick<
-                DbPlainDataset,
-                "namespace" | "isPrivate" | "nonRedistributable"
-            >
-    >(
-        trx,
-        `-- sql
-        SELECT
-                v.name,
-                v.id,
-                d.id as datasetId,
-                d.name as datasetName,
-                d.version as datasetVersion,
-                d.namespace,
-                d.isPrivate,
-                d.nonRedistributable
-            FROM variables as v JOIN active_datasets as d ON v.datasetId = d.id
-            ORDER BY d.updatedAt DESC
-            `
-    )
-
-    let dataset:
-        | {
-              id: number
-              name: string
-              version: string
-              namespace: string
-              isPrivate: boolean
-              nonRedistributable: boolean
-              variables: { id: number; name: string }[]
-          }
-        | undefined
-    for (const row of rows) {
-        if (!dataset || row.datasetName !== dataset.name) {
-            if (dataset) datasets.push(dataset)
-
-            dataset = {
-                id: row.datasetId,
-                name: row.datasetName,
-                version: row.datasetVersion,
-                namespace: row.namespace,
-                isPrivate: !!row.isPrivate,
-                nonRedistributable: !!row.nonRedistributable,
-                variables: [],
-            }
-        }
-
-        dataset.variables.push({
-            id: row.id,
-            name: row.name ?? "",
-        })
-    }
-
-    if (dataset) datasets.push(dataset)
-
-    return { datasets: datasets }
-}
 
 export async function getVariableDataJson(
     req: Request,
@@ -180,27 +106,6 @@ export async function getVariablesJson(
     if (req.query.group === "dataset")
         return await searchVariablesGroupedByDataset(query, limit, offset, trx)
     return await searchVariables(query, limit, offset, trx)
-}
-
-export async function getVariablesUsagesJson(
-    req: Request,
-    _res: HandlerResponse,
-    trx: db.KnexReadonlyTransaction
-) {
-    const query = `-- sql
-    SELECT
-        variableId,
-        COUNT(DISTINCT chartId) AS usageCount
-    FROM
-        chart_dimensions
-    GROUP BY
-        variableId
-    ORDER BY
-        usageCount DESC`
-
-    const rows = await db.knexRaw(trx, query)
-
-    return rows
 }
 
 export async function getLatestIndicatorIdsByCatalogPathJson(

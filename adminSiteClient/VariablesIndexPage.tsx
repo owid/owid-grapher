@@ -150,6 +150,7 @@ export function VariablesIndexPage(): React.ReactElement {
         placeholder: "e.g. ^population before:2023 -wdi",
         autoFocus: true,
         fields: INDICATOR_SEARCH_FIELDS,
+        isInUrl: true,
     }
 
     // The indicators table is far too large to send to the browser, so the

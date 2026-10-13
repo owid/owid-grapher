@@ -1,582 +1,309 @@
-import * as _ from "lodash-es"
 import * as React from "react"
-import { ColumnSlug, excludeUndefined } from "@ourworldindata/utils"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { Alert, Checkbox, ConfigProvider, Flex, Typography } from "antd"
+import { useDebounceValue } from "usehooks-ts"
+import { excludeUndefined } from "@ourworldindata/utils"
 import {
     IndicatorDimensionInterface,
     SlugDimensionInterface,
 } from "@ourworldindata/types"
-import {
-    buildSearchWordsFromSearchString,
-    filterFunctionForSearchWords,
-    highlightFunctionForSearchWords,
-    SearchWord,
-} from "../adminShared/search.js"
-import {
-    computed,
-    action,
-    observable,
-    IReactionDisposer,
-    makeObservable,
-} from "mobx"
-import { observer } from "mobx-react"
-import { Select } from "antd"
+import { ChartDimension, DimensionSlot } from "@ourworldindata/grapher"
 
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faArchive } from "@fortawesome/free-solid-svg-icons"
-
+import { Modal } from "./Forms.js"
+import { GroupedVariableList, IndicatorSelection } from "./VariableList.js"
+import { VariableSearchToolbar } from "./VariableSearchToolbar.js"
+import { searchWordsToHighlight } from "./variableSearchQuery.js"
 import {
-    Dataset,
-    EditorDatabase,
-    Namespace,
-    NamespaceData,
-} from "./EditorDatabase.js"
-import { TextField, Toggle, Modal } from "./Forms.js"
-import { DimensionSlot } from "@ourworldindata/grapher"
-import { ConfigEditor } from "./ConfigEditor.js"
-
-interface VariableSelectorProps {
-    database: EditorDatabase
-    editor: ConfigEditor
-    slot: DimensionSlot
-    onDismiss: () => void
-    onComplete: (columns: PickedColumn[]) => void
-}
+    CatalogIndicator,
+    IndicatorCatalog,
+    IndicatorSearchPage,
+} from "./editorProviders.js"
 
 export type PickedColumn =
     | Pick<IndicatorDimensionInterface, "variableId" | "slug">
     | Pick<SlugDimensionInterface, "slug" | "variableId">
 
-interface Variable {
-    id: number
+interface ChosenColumn {
+    column: PickedColumn
     name: string
-    slug?: ColumnSlug
-    datasetId: number
-    datasetName: string
-    datasetVersion?: string
-    namespaceName: string
-    usageCount?: number
+    datasetName?: string
 }
 
-interface NamespaceOption {
-    value: string
-    label: React.ReactNode
-    searchText: string
+function columnKey(column: PickedColumn): string {
+    return column.slug !== undefined
+        ? `slug:${column.slug}`
+        : `id:${column.variableId}`
 }
 
-@observer
-export class VariableSelector extends React.Component<VariableSelectorProps> {
-    chosenNamespaces: Namespace[] = []
-    searchInput: string | undefined = undefined
-    isProjection: boolean | undefined = undefined
-    tolerance: number | undefined = undefined
-    chosenVariables: Variable[] = []
-    scrollElement = React.createRef<HTMLDivElement>()
-
-    rowOffset: number = 0
-    numVisibleRows: number = 15
-    rowHeight: number = 32
-
-    constructor(props: VariableSelectorProps) {
-        super(props)
-
-        makeObservable(this, {
-            chosenNamespaces: observable.ref,
-            searchInput: observable.ref,
-            isProjection: observable.ref,
-            tolerance: observable.ref,
-            chosenVariables: observable.ref,
-            rowOffset: observable,
-            numVisibleRows: observable,
-            rowHeight: observable,
-        })
+function chosenFromIndicator(indicator: CatalogIndicator): ChosenColumn {
+    return {
+        column:
+            indicator.slug !== undefined
+                ? { slug: indicator.slug }
+                : { variableId: indicator.id },
+        name: indicator.name,
+        datasetName: indicator.datasetName,
     }
+}
 
-    @computed get database(): EditorDatabase {
-        return this.props.database
+function chosenFromDimension(dimension: ChartDimension): ChosenColumn {
+    return {
+        column:
+            dimension.variableId !== undefined
+                ? { variableId: dimension.variableId }
+                : { slug: dimension.columnSlug },
+        name: dimension.column.name,
+        datasetName: dimension.column.datasetName,
     }
+}
 
-    @computed get searchWords(): SearchWord[] {
-        const { searchInput } = this
-        return buildSearchWordsFromSearchString(searchInput)
-    }
+type SearchState =
+    | { status: "loading"; previous?: IndicatorSearchPage }
+    | { status: "done"; page: IndicatorSearchPage }
+    | { status: "failed"; message: string }
 
-    @computed get editorData(): NamespaceData[] {
-        // show all variables when no namespaces are selected
-        const currentNamespaces =
-            this.chosenNamespaces.length > 0
-                ? this.chosenNamespaces
-                : this.database.namespaces
+type Answer = { catalog: IndicatorCatalog; request: string } & (
+    | { page: IndicatorSearchPage }
+    | { failure: string }
+)
 
-        return excludeUndefined(
-            currentNamespaces.map((namespace) =>
-                this.database.dataByNamespace.get(namespace.name)
-            )
-        )
-    }
-
-    @computed get datasets(): Dataset[] {
-        const datasets = this.editorData.flatMap((d) => d.datasets)
-        return _.sortBy(datasets, (d) => d.name)
-    }
-
-    @computed get datasetsById(): Record<number, Dataset> {
-        return _.keyBy(this.datasets, (d) => d.id)
-    }
-
-    @computed get availableVariables(): Variable[] {
-        const { database } = this
-        const variables: Variable[] = []
-        this.datasets.forEach((dataset) => {
-            const sorted = _.sortBy(dataset.variables, [
-                (v) => (database.usageCount(v.id) ?? 0) * -1,
-                (v) => v.name,
-            ])
-            sorted.forEach((variable) => {
-                variables.push({
-                    id: variable.id,
-                    slug: variable.slug,
-                    name: variable.name,
-                    datasetId: dataset.id,
-                    datasetName: dataset.name,
-                    datasetVersion: dataset.version,
-                    namespaceName: dataset.namespace,
-                    usageCount: database.usageCount(variable.id),
-                    //name: variable.name.includes(dataset.name) ? variable.name : dataset.name + " - " + variable.name
-                })
-            })
-        })
-        return variables
-    }
-
-    @computed get searchResults(): Variable[] {
-        let results: Variable[] | undefined
-        const { searchWords } = this
-        if (searchWords.length > 0) {
-            const filterFn = filterFunctionForSearchWords(
-                searchWords,
-                (variable: Variable) => [variable.name, variable.datasetName]
-            )
-            results = this.availableVariables.filter(filterFn)
-        }
-        return results?.length
-            ? results // results.map((result) => result.obj)
-            : []
-    }
-
-    @computed get resultsByDataset(): { [datasetId: number]: Variable[] } {
-        const { searchResults, searchWords, availableVariables } = this
-        let datasetListToUse = searchResults
-        if (searchWords.length === 0) {
-            datasetListToUse = availableVariables
-        }
-        return _.groupBy(datasetListToUse, (d) => d.datasetId)
-    }
-
-    @computed get searchResultRows() {
-        const { resultsByDataset } = this
-
-        const rows: Array<number | Variable[]> = []
-        const unsorted = Object.entries(resultsByDataset)
-        const sorted = _.sortBy(unsorted, ([__, variables]) => {
-            const sizes = _.map(
-                variables,
-                (variable: Variable) => variable.usageCount ?? 0
-            )
-            return Math.max(...sizes) * -1
-        })
-        sorted.forEach(([datasetId, variables]) => {
-            rows.push(parseInt(datasetId))
-
-            for (let i = 0; i < variables.length; i += 2) {
-                rows.push(variables.slice(i, i + 2))
+/** The latest search's page, keeping the one before on screen while it runs */
+function useCatalogSearch(
+    catalog: IndicatorCatalog,
+    query: string,
+    page: number
+): SearchState {
+    const request = JSON.stringify([query, page])
+    const [answer, setAnswer] = useState<Answer>()
+    useEffect(() => {
+        let isCurrent = true
+        catalog.search(query, page).then(
+            (result) => {
+                if (isCurrent) setAnswer({ catalog, request, page: result })
+            },
+            (error: unknown) => {
+                if (isCurrent)
+                    setAnswer({
+                        catalog,
+                        request,
+                        failure:
+                            error instanceof Error
+                                ? error.message
+                                : String(error),
+                    })
             }
-        })
-        return rows
-    }
-
-    @computed get numTotalRows(): number {
-        return this.searchResultRows.length
-    }
-
-    formatNamespaceLabel(namespace: Namespace) {
-        const { name, description, isArchived } = namespace
-        return (
-            <span className={isArchived ? "muted-option" : ""}>
-                {isArchived && (
-                    <span className="icon">
-                        <FontAwesomeIcon icon={faArchive} />
-                    </span>
-                )}
-                {description ? `${description} — ` : null}
-                {name}
-                {isArchived && <span className="badge">Archived</span>}
-            </span>
         )
+        return () => {
+            isCurrent = false
+        }
+    }, [catalog, query, page, request])
+
+    if (answer?.catalog === catalog && answer.request === request)
+        return "page" in answer
+            ? { status: "done", page: answer.page }
+            : { status: "failed", message: answer.failure }
+    return {
+        status: "loading",
+        previous: answer && "page" in answer ? answer.page : undefined,
     }
+}
 
-    filterNamespace(searchText: string, input: string) {
-        return input
-            .split(" ")
-            .map((word) => word.toLowerCase())
-            .map((word) => {
-                return searchText.includes(word)
-            })
-            .every((v) => v)
-    }
+interface VariableSelectorProps {
+    catalog: IndicatorCatalog
+    slot: DimensionSlot
+    onDismiss: () => void
+    onComplete: (columns: PickedColumn[]) => void
+}
 
-    override render() {
-        const { slot } = this.props
-        const { database } = this.props
-        const {
-            searchInput,
-            chosenVariables,
-            datasetsById,
-            rowHeight,
-            rowOffset,
-            numVisibleRows,
-            numTotalRows,
-            searchResultRows,
-            searchWords,
-        } = this
-
-        const highlight = highlightFunctionForSearchWords(searchWords)
-        const namespaceOptions: NamespaceOption[] = database.namespaces.map(
-            (namespace) => ({
-                value: namespace.name,
-                label: this.formatNamespaceLabel(namespace),
-                searchText:
-                    `${namespace.name} ${namespace.description ?? ""}`.toLowerCase(),
-            })
+/** Picks the indicators for a dimension slot from the store's catalog */
+export function VariableSelector({
+    catalog,
+    slot,
+    onDismiss,
+    onComplete,
+}: VariableSelectorProps): React.ReactElement {
+    const [chosen, setChosen] = useState<ChosenColumn[]>(() =>
+        slot.dimensions.map(chosenFromDimension)
+    )
+    const [searchValue, setSearchValue] = useState(() =>
+        catalog.initialQuery(
+            excludeUndefined(
+                slot.dimensions.map((dimension) => dimension.column.datasetId)
+            )
         )
+    )
+    const [debouncedSearch] = useDebounceValue(searchValue, 250)
+    // A page belongs to the search it was paged in, so a new one starts at 1
+    const [paging, setPaging] = useState({ search: debouncedSearch, page: 1 })
+    const page = paging.search === debouncedSearch ? paging.page : 1
 
-        return (
-            <Modal onClose={this.onDismiss} className="VariableSelector">
-                <div className="modal-header">
-                    <h5 className="modal-title">
-                        Set indicator{slot.allowMultiple && "s"} for {slot.name}
-                    </h5>
-                </div>
-                <div className="modal-body">
-                    <div>
-                        <div className="searchResults">
-                            <TextField
-                                placeholder="Search..."
-                                value={searchInput}
-                                onValue={this.onSearchInput}
-                                onEnter={this.onSearchEnter}
-                                onEscape={this.onDismiss}
-                                autofocus
-                            />
-                            <div className="form-group">
-                                <label>Namespaces</label>
-                                <Select<string[], NamespaceOption>
-                                    options={namespaceOptions}
-                                    value={this.chosenNamespaces.map(
-                                        (namespace) => namespace.name
-                                    )}
-                                    onChange={this.onNamespace}
-                                    showSearch={{
-                                        filterOption: (inputValue, option) =>
-                                            this.filterNamespace(
-                                                option?.searchText ?? "",
-                                                inputValue
-                                            ),
-                                    }}
-                                    mode="multiple"
-                                    placement="bottomLeft"
-                                    getPopupContainer={(trigger) =>
-                                        trigger.parentElement ?? document.body
-                                    }
-                                    style={{ width: "100%" }}
-                                />
-                            </div>
-                            <div
-                                style={{
-                                    height: numVisibleRows * rowHeight,
-                                    overflowY: "scroll",
-                                }}
-                                onScroll={this.onScroll}
-                                ref={this.scrollElement}
-                            >
-                                <div
-                                    style={{
-                                        height: numTotalRows * rowHeight,
-                                        paddingTop: rowHeight * rowOffset,
-                                    }}
-                                >
-                                    <ul>
-                                        {searchResultRows
-                                            .slice(
-                                                rowOffset,
-                                                rowOffset + numVisibleRows
-                                            )
-                                            .map((d) => {
-                                                if (_.isNumber(d)) {
-                                                    const dataset =
-                                                        datasetsById[d]
-                                                    return (
-                                                        <li
-                                                            key={dataset.id}
-                                                            style={{
-                                                                minWidth:
-                                                                    "100%",
-                                                            }}
-                                                        >
-                                                            <h5
-                                                                style={{
-                                                                    marginTop:
-                                                                        "4px",
-                                                                }}
-                                                            >
-                                                                [
-                                                                {
-                                                                    dataset.namespace
-                                                                }
-                                                                ]{" "}
-                                                                {highlight(
-                                                                    dataset.name
-                                                                )}
-                                                                {dataset.nonRedistributable ? (
-                                                                    <span className="text-danger">
-                                                                        {" "}
-                                                                        (non-redistributable)
-                                                                    </span>
-                                                                ) : dataset.isPrivate ? (
-                                                                    <span className="text-danger">
-                                                                        {" "}
-                                                                        (unpublished)
-                                                                    </span>
-                                                                ) : (
-                                                                    ""
-                                                                )}
-                                                                {dataset.version && (
-                                                                    <small
-                                                                        style={{
-                                                                            marginLeft: 10,
-                                                                        }}
-                                                                    >
-                                                                        {
-                                                                            dataset.version
-                                                                        }
-                                                                    </small>
-                                                                )}
-                                                            </h5>
-                                                        </li>
-                                                    )
-                                                } else {
-                                                    return d.map((v) => (
-                                                        <li
-                                                            key={`${v.id}-${v.name}`}
-                                                            style={{
-                                                                minWidth: "50%",
-                                                            }}
-                                                        >
-                                                            <Toggle
-                                                                value={this.chosenVariables
-                                                                    .map(
-                                                                        (cv) =>
-                                                                            cv.id
-                                                                    )
-                                                                    .includes(
-                                                                        v.id
-                                                                    )}
-                                                                onValue={() =>
-                                                                    this.toggleVariable(
-                                                                        v
-                                                                    )
-                                                                }
-                                                                label={
-                                                                    <div
-                                                                        style={{
-                                                                            overflowWrap:
-                                                                                "anywhere",
-                                                                        }}
-                                                                    >
-                                                                        {highlight(
-                                                                            v.name
-                                                                        )}
+    const search = useCatalogSearch(catalog, debouncedSearch, page)
+    const shown =
+        search.status === "done"
+            ? search.page
+            : search.status === "loading"
+              ? search.previous
+              : undefined
 
-                                                                        {v.usageCount !==
-                                                                            undefined && (
-                                                                            <span
-                                                                                style={{
-                                                                                    fontWeight: 500,
-                                                                                    color: "#555",
-                                                                                }}
-                                                                            >
-                                                                                {v.usageCount
-                                                                                    ? ` (used ${v.usageCount} times)`
-                                                                                    : " (unused)"}
-                                                                            </span>
-                                                                        )}
-                                                                    </div>
-                                                                }
-                                                            />
-                                                        </li>
-                                                    ))
-                                                }
-                                            })}
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                        <div
-                            className="selectedData"
-                            style={{ maxWidth: "33.33%" }}
+    const chosenKeys = useMemo(
+        () => new Set(chosen.map((entry) => columnKey(entry.column))),
+        [chosen]
+    )
+    const toggle = useCallback(
+        (entry: ChosenColumn) =>
+            setChosen((existing) => {
+                const key = columnKey(entry.column)
+                if (existing.some((other) => columnKey(other.column) === key))
+                    return existing.filter(
+                        (other) => columnKey(other.column) !== key
+                    )
+                // a slot that takes one indicator swaps rather than adds
+                return slot.allowMultiple ? [...existing, entry] : [entry]
+            }),
+        [slot.allowMultiple]
+    )
+    const selection: IndicatorSelection<CatalogIndicator> = useMemo(
+        () => ({
+            isSelected: (indicator) =>
+                chosenKeys.has(
+                    columnKey(chosenFromIndicator(indicator).column)
+                ),
+            onToggle: (indicator) => toggle(chosenFromIndicator(indicator)),
+        }),
+        [chosenKeys, toggle]
+    )
+
+    const searchWords = useMemo(
+        () => searchWordsToHighlight(debouncedSearch),
+        [debouncedSearch]
+    )
+
+    // Popovers inside the modal rather than at the end of the page, where
+    // they open behind it and a click in one would read as a click outside
+    const containerRef = useRef<HTMLDivElement>(null)
+    const getPopupContainer = useCallback(
+        () => containerRef.current ?? document.body,
+        []
+    )
+
+    const s = slot.allowMultiple ? "s" : ""
+
+    return (
+        <Modal onClose={onDismiss} className="VariableSelector">
+            <div
+                ref={containerRef}
+                onKeyDown={(event) => {
+                    if (event.key === "Escape") onDismiss()
+                }}
+            >
+                <ConfigProvider getPopupContainer={getPopupContainer}>
+                    <div className="modal-header">
+                        <h5 className="modal-title">
+                            Set indicator{s} for {slot.name}
+                        </h5>
+                    </div>
+                    <div className="modal-body VariableSelector__body">
+                        <Flex
+                            vertical
+                            gap="small"
+                            className="VariableSelector__results"
                         >
-                            <ul>
-                                {chosenVariables.map((d) => {
-                                    const label = (
-                                        <React.Fragment>
-                                            {d.name}{" "}
-                                            <span style={{ color: "#999" }}>
-                                                [{d.namespaceName}:{" "}
-                                                {d.datasetName}
-                                                {d.datasetVersion &&
-                                                    ` (${d.datasetVersion})`}
-                                                ]
-                                            </span>
-                                        </React.Fragment>
-                                    )
-
-                                    return (
-                                        <li key={d.id}>
-                                            <Toggle
-                                                value={true}
-                                                onValue={() =>
-                                                    this.unselectVariable(d)
-                                                }
-                                                label={label}
-                                            />
-                                        </li>
-                                    )
-                                })}
-                            </ul>
+                            <VariableSearchToolbar
+                                search={{
+                                    value: searchValue,
+                                    onChange: setSearchValue,
+                                    placeholder: "Search indicators...",
+                                    autoFocus: true,
+                                    fields: catalog.fields,
+                                }}
+                            />
+                            {search.status === "failed" && (
+                                <Alert
+                                    type="error"
+                                    showIcon
+                                    title={`The search failed: ${search.message}`}
+                                />
+                            )}
+                            {shown?.error && (
+                                <Alert
+                                    type="warning"
+                                    showIcon
+                                    title={`This search couldn't run as typed: ${shown.error}`}
+                                />
+                            )}
+                            {search.status !== "failed" && (
+                                <GroupedVariableList<CatalogIndicator>
+                                    groups={shown?.datasets ?? []}
+                                    isSearch={debouncedSearch.trim() !== ""}
+                                    searchWords={searchWords}
+                                    searchValue={debouncedSearch}
+                                    loading={search.status === "loading"}
+                                    selection={selection}
+                                    onNarrow={setSearchValue}
+                                    pagination={
+                                        shown && {
+                                            current: page,
+                                            pageSize: shown.pageSize,
+                                            total: shown.total,
+                                            hideOnSinglePage: true,
+                                            showSizeChanger: false,
+                                            showTotal: (total, [from, to]) =>
+                                                `${from}-${to} of ${total} ${shown.unit}`,
+                                            onChange: (nextPage) =>
+                                                setPaging({
+                                                    search: debouncedSearch,
+                                                    page: nextPage,
+                                                }),
+                                        }
+                                    }
+                                />
+                            )}
+                        </Flex>
+                        <div className="VariableSelector__chosen">
+                            <Typography.Text strong>
+                                Selected indicator{s}
+                            </Typography.Text>
+                            {chosen.length === 0 && (
+                                <Typography.Paragraph type="secondary">
+                                    None yet
+                                </Typography.Paragraph>
+                            )}
+                            {chosen.map((entry) => (
+                                <div
+                                    key={columnKey(entry.column)}
+                                    className="VariableSelector__chosen-item"
+                                >
+                                    <Checkbox
+                                        checked
+                                        onChange={() => toggle(entry)}
+                                    >
+                                        {entry.name}
+                                        {entry.datasetName && (
+                                            <Typography.Text type="secondary">
+                                                {" "}
+                                                {entry.datasetName}
+                                            </Typography.Text>
+                                        )}
+                                    </Checkbox>
+                                </div>
+                            ))}
                         </div>
                     </div>
-                </div>
-                <div className="modal-footer">
-                    <button className="btn" onClick={this.onDismiss}>
-                        Close
-                    </button>
-                    <button
-                        className="btn btn-success"
-                        onClick={this.onComplete}
-                    >
-                        Set variable{slot.allowMultiple && "s"}
-                    </button>
-                </div>
-            </Modal>
-        )
-    }
-
-    @action.bound onScroll(ev: React.UIEvent<HTMLDivElement>) {
-        const { scrollTop, scrollHeight } = ev.currentTarget
-        const { numTotalRows } = this
-
-        const rowOffset = Math.round((scrollTop / scrollHeight) * numTotalRows)
-        ev.currentTarget.scrollTop = Math.round(
-            (rowOffset / numTotalRows) * scrollHeight
-        )
-
-        this.rowOffset = rowOffset
-    }
-
-    @action.bound onNamespace(selected: string[]) {
-        const selectedSet = new Set(selected)
-        this.chosenNamespaces = this.database.namespaces.filter((namespace) =>
-            selectedSet.has(namespace.name)
-        )
-    }
-
-    @action.bound onSearchInput(input: string) {
-        if (this.searchInput !== input) {
-            this.searchInput = input
-            this.rowOffset = 0
-            if (this.scrollElement.current)
-                this.scrollElement.current.scrollTop = 0
-        }
-    }
-
-    @action.bound selectVariable(variable: Variable) {
-        if (this.props.slot.allowMultiple)
-            this.chosenVariables = this.chosenVariables.concat(variable)
-        else this.chosenVariables = [variable]
-    }
-
-    @action.bound unselectVariable(variable: Variable) {
-        this.chosenVariables = this.chosenVariables.filter(
-            (v) => v.id !== variable.id
-        )
-    }
-
-    @action.bound toggleVariable(variable: Variable) {
-        if (this.chosenVariables.map((v) => v.id).includes(variable.id)) {
-            this.unselectVariable(variable)
-        } else {
-            this.selectVariable(variable)
-        }
-    }
-
-    @action.bound onSearchEnter() {
-        if (this.searchResults.length > 0) {
-            this.selectVariable(this.searchResults[0])
-        }
-    }
-
-    @action.bound onDismiss() {
-        this.props.onDismiss()
-    }
-
-    dispose!: IReactionDisposer
-    base = React.createRef<HTMLDivElement>()
-    override componentDidMount() {
-        this.initChosenVariablesAndNamespaces()
-    }
-
-    @action.bound private initChosenVariablesAndNamespaces() {
-        const { datasetsById } = this
-        const { database } = this
-        const { dimensions } = this.props.slot
-
-        this.chosenVariables = dimensions.flatMap((d) => {
-            const variableId = d.variableId
-            if (variableId === undefined) {
-                const offered = this.availableVariables.find(
-                    (v) => v.slug !== undefined && v.slug === d.columnSlug
-                )
-                return offered ? [offered] : []
-            }
-
-            const { datasetName, datasetId } = d.column
-            const dataset =
-                datasetId !== undefined ? datasetsById[datasetId] : undefined
-
-            return {
-                name: d.column.name,
-                id: variableId,
-                usageCount: database.usageCount(variableId),
-                datasetId: datasetId ?? 0,
-                datasetName: datasetName || "",
-                catalogPath: undefined,
-                namespaceName: dataset?.namespace ?? "",
-                datasetVersion: dataset?.version,
-            }
-        })
-
-        const uniqueNamespaces = new Set(
-            this.chosenVariables.map((v) => v.namespaceName)
-        )
-        this.chosenNamespaces = this.database.namespaces.filter((n) => {
-            return uniqueNamespaces.has(n.name)
-        })
-    }
-
-    @action.bound onComplete() {
-        this.props.onComplete(
-            this.chosenVariables.map((v) =>
-                v.slug !== undefined ? { slug: v.slug } : { variableId: v.id }
-            )
-        )
-    }
+                    <div className="modal-footer">
+                        <button className="btn" onClick={onDismiss}>
+                            Close
+                        </button>
+                        <button
+                            className="btn btn-success"
+                            onClick={() =>
+                                onComplete(chosen.map((entry) => entry.column))
+                            }
+                        >
+                            Set variable{s}
+                        </button>
+                    </div>
+                </ConfigProvider>
+            </div>
+        </Modal>
+    )
 }
