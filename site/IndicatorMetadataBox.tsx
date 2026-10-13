@@ -15,6 +15,9 @@ import {
     MetadataBoxKeyDataRow,
     MetadataBoxReuseNotice,
     ChartLicenseNotice,
+    makeDateRange,
+    makeLastUpdated,
+    makeNextUpdate,
 } from "@ourworldindata/components"
 import {
     ArchiveContext,
@@ -404,17 +407,21 @@ export default function IndicatorMetadataBox({
                 )}
                 {datapageData.dateRange && (
                     <MetadataBoxKeyDataRow label="Date range">
-                        {datapageData.dateRange}
+                        {makeDateRange({ dateRange: datapageData.dateRange })}
                     </MetadataBoxKeyDataRow>
                 )}
                 {datapageData.lastUpdated && (
                     <MetadataBoxKeyDataRow label="Last updated">
-                        {datapageData.lastUpdated}
+                        {makeLastUpdated({
+                            lastUpdated: datapageData.lastUpdated,
+                        })}
                     </MetadataBoxKeyDataRow>
                 )}
                 {datapageData.nextUpdate && (
                     <MetadataBoxKeyDataRow label="Next expected update">
-                        {datapageData.nextUpdate}
+                        {makeNextUpdate({
+                            nextUpdate: datapageData.nextUpdate,
+                        })}
                     </MetadataBoxKeyDataRow>
                 )}
                 {owners.length > 0 && (
