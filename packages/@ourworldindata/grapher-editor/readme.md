@@ -94,9 +94,7 @@ Without React, mount the editor into a container:
         store: csvIndicatorStore({ csv, columnDefs }),
         onSave: (edited) => save(edited),
     })
-    // editor.update(props) re-renders; a new config, store or environment
-    // starts over.
-    // editor.unmount() removes it.
+    // editor.unmount() removes it; to open another config, mount again.
 </script>
 ```
 

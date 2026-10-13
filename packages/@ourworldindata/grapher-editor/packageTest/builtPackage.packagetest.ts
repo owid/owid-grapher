@@ -11,6 +11,9 @@
 import * as fs from "node:fs"
 import * as path from "node:path"
 import { fileURLToPath, pathToFileURL } from "node:url"
+import * as React from "react"
+import { act } from "react"
+import { createRoot } from "react-dom/client"
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest"
 import {
     assertFilesExist,
@@ -70,6 +73,53 @@ describe("npm build (dist/editor.react.js)", () => {
         const specifiers = await readImportSpecifiers(npmBuildPath)
         expect(specifiers).toContain("react")
         expect(specifiers).toContain("react-dom/client")
+    })
+
+    it("reports edits when a React app renders it in StrictMode", async () => {
+        Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true })
+        const { GrapherEditor, csvIndicatorStore } = await import(
+            pathToFileURL(npmBuildPath).href
+        )
+        const onChange = vi.fn()
+        const onDirtyChange = vi.fn()
+        const ref = React.createRef<{
+            editor: {
+                grapherState: {
+                    title?: string
+                    inputTable: { numRows: number }
+                }
+            }
+        }>()
+        const root = createRoot(
+            document.body.appendChild(document.createElement("div"))
+        )
+        const editor = React.createElement(GrapherEditor, {
+            ref,
+            config: {
+                title: "Rents",
+                dimensions: [{ property: "y", slug: "rent_index" }],
+            },
+            store: csvIndicatorStore({ csv, columnDefs }),
+            onSave: () => undefined,
+            onChange,
+            onDirtyChange,
+        })
+        await act(async () =>
+            root.render(React.createElement(React.StrictMode, null, editor))
+        )
+        await vi.waitFor(() =>
+            expect(
+                ref.current?.editor.grapherState.inputTable.numRows
+            ).toBeGreaterThan(0)
+        )
+
+        await act(async () => {
+            ref.current!.editor.grapherState.title = "Edited"
+        })
+
+        expect(onDirtyChange.mock.calls).toEqual([[true]])
+        expect(onChange.mock.lastCall?.[0]).toMatchObject({ title: "Edited" })
+        await act(async () => root.unmount())
     })
 
     it("contains no runtime require calls", () => {
