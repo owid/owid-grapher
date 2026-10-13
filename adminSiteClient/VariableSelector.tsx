@@ -173,7 +173,7 @@ export function VariableSelector({
             open
             centered
             width="min(1100px, 90vw)"
-            rootClassName="VariableSelector"
+            className="VariableSelector"
             title={`Set indicator${s} for ${slot.name}`}
             onCancel={onDismiss}
             footer={
