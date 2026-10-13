@@ -1,7 +1,7 @@
 import { Fragment, type ReactNode } from "react"
 import ArticleBlock from "./ArticleBlock.js"
 import {
-    getIntroAsideInsertionIndex,
+    getIntroEndIndex,
     injectAutomaticSubscribeBanner,
 } from "./gdocComponentUtils.js"
 import { Container } from "./layout.js"
@@ -18,9 +18,9 @@ import {
  * @param toc
  * @param shouldRenderLinks - Won't render <a> elements when false. Useful to avoid
  * invalid nested links.
- * @param introAside - Optional element rendered as a sibling grid item just
- * after the first paragraph of the body, so that it sits in the right rail
- * level with the intro. It is responsible for its own grid placement classes.
+ * @param afterIntro - Optional element rendered as a sibling grid item after
+ * the intro, i.e. before the first heading or table of contents that follows
+ * the opening text. It is responsible for its own grid placement classes.
  * @constructor
  */
 export const ArticleBlocks = ({
@@ -30,7 +30,7 @@ export const ArticleBlocks = ({
     shouldRenderLinks = true,
     interactiveImages = true,
     automaticSubscribeBanner = false,
-    introAside,
+    afterIntro,
 }: {
     blocks: OwidEnrichedGdocBlock[]
     containerType?: Container
@@ -38,15 +38,13 @@ export const ArticleBlocks = ({
     shouldRenderLinks?: boolean
     interactiveImages?: boolean
     automaticSubscribeBanner?: boolean
-    introAside?: ReactNode
+    afterIntro?: ReactNode
 }) => {
     const blocksToRender = automaticSubscribeBanner
         ? injectAutomaticSubscribeBanner(blocks)
         : blocks
 
-    const introAsideIndex = introAside
-        ? getIntroAsideInsertionIndex(blocksToRender)
-        : -1
+    const afterIntroIndex = afterIntro ? getIntroEndIndex(blocksToRender) : -1
 
     return (
         <>
@@ -63,7 +61,7 @@ export const ArticleBlocks = ({
                 return (
                     <Fragment key={i}>
                         {articleBlock}
-                        {i === introAsideIndex ? introAside : null}
+                        {i === afterIntroIndex ? afterIntro : null}
                     </Fragment>
                 )
             })}
