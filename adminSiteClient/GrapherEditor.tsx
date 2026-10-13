@@ -26,7 +26,6 @@ export interface GrapherEditorProps {
 
     onSave: ConfigEditorManager["onSave"]
     onChange?: ConfigEditorManager["onChange"]
-    /** Called when the config gains or loses unsaved changes */
     onDirtyChange?: ConfigEditorManager["onDirtyChange"]
 
     /** Default editor tabs to show */
@@ -127,6 +126,14 @@ export class GrapherEditor
     get editor(): ConfigEditor {
         this._editor ??= new ConfigEditor({ manager: this })
         return this._editor
+    }
+
+    override componentDidMount(): void {
+        this.editor.start()
+    }
+
+    override componentWillUnmount(): void {
+        this.editor.dispose()
     }
 
     override render(): React.ReactElement {
