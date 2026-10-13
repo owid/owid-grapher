@@ -508,10 +508,7 @@ test.describe("Indicators", () => {
         await selector.search("oil")
         await selector.result(indicators.oilEmissions.name).check()
 
-        await selector.modal
-            .locator(".ant-modal-footer")
-            .getByRole("button", { name: "Close" })
-            .click()
+        await selector.modal.getByRole("button", { name: "Cancel" }).click()
 
         await expect(selector.modal).toHaveCount(0)
         await expect(slotIndicators(editor, "Y axis")).toHaveText([

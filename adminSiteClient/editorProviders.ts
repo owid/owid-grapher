@@ -92,10 +92,18 @@ export function adminIndicatorCatalog(admin: Admin): IndicatorCatalog {
             // The picker says when a search fails; the admin's own error
             // dialog would reload the page and lose the chart's edits
             const get = <T extends Json>(params: Json): Promise<T> =>
-                admin.requestJSON<T>("/api/variables.json", params, "GET", {
-                    onFailure: "continue",
-                    isBackground: true,
-                })
+                admin
+                    .requestJSON<T>("/api/variables.json", params, "GET", {
+                        onFailure: "continue",
+                        isBackground: true,
+                    })
+                    .catch((error: unknown) => {
+                        // what failed is for the console, not for the picker
+                        console.error(error)
+                        throw new Error(
+                            "the server couldn't run it. Try again in a moment."
+                        )
+                    })
             if (namesOneDataset(query)) {
                 const result = await get<VariablesSearchResult>({
                     search: query,

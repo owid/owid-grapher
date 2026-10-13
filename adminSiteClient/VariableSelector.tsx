@@ -56,10 +56,12 @@ interface CatalogSearch {
     failure?: string
 }
 
-type Answer = { request: string } & (
-    | { page: IndicatorSearchPage }
-    | { failure: string }
-)
+interface Answer {
+    request: string
+    /** The latest page that came back, which a failure doesn't replace */
+    page?: IndicatorSearchPage
+    failure?: string
+}
 
 // Not react-query, which the admin uses elsewhere: the editor is meant to run
 // outside the admin, without its QueryClientProvider
@@ -78,13 +80,14 @@ function useCatalogSearch(
             },
             (error: unknown) => {
                 if (isCurrent)
-                    setAnswer({
+                    setAnswer((previous) => ({
                         request,
+                        page: previous?.page,
                         failure:
                             error instanceof Error
                                 ? error.message
                                 : String(error),
-                    })
+                    }))
             }
         )
         return () => {
@@ -93,11 +96,11 @@ function useCatalogSearch(
     }, [catalog, query, page, request])
 
     const isLoading = answer?.request !== request
-    if (answer && "failure" in answer)
-        return isLoading
-            ? { isLoading }
-            : { isLoading, failure: answer.failure }
-    return { page: answer?.page, isLoading }
+    return {
+        page: answer?.page,
+        isLoading,
+        failure: isLoading ? undefined : answer.failure,
+    }
 }
 
 interface VariableSelectorProps {
@@ -178,7 +181,7 @@ export function VariableSelector({
             onCancel={onDismiss}
             footer={
                 <>
-                    <Button onClick={onDismiss}>Close</Button>
+                    <Button onClick={onDismiss}>Cancel</Button>
                     <Button
                         type="primary"
                         onClick={() =>
