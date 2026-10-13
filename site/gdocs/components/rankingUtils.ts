@@ -225,15 +225,13 @@ export function formatRankChange(
     return `${rankChange > 0 ? "Up" : "Down"} ${Math.abs(rankChange)} ${places} since ${sinceTime}`
 }
 
-/** e.g. "30th of 229" or "12th lowest of 229" */
+/** e.g. "30th highest of 229" or "12th lowest of 229" */
 export function formatRankOf(
     rankOrdinal: string,
     total: number,
     sort: RankingSortOrder
 ): string {
-    return sort === "lowest"
-        ? `${rankOrdinal} lowest of ${total}`
-        : `${rankOrdinal} of ${total}`
+    return `${rankOrdinal} ${sort} of ${total}`
 }
 
 /** Position of `value` in `domain`, clamped to [0, 1] */

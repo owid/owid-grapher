@@ -118,7 +118,7 @@ describe(RankingCards, () => {
         )
         expect(html).toContain("Germany at a glance")
         expect(html).toContain("81.4")
-        expect(html).toContain("3rd of 5")
+        expect(html).toContain("3rd highest of 5")
         // ranked 2nd in 2013 (among countries with data then), 3rd now
         expect(html).toContain("Down 1 place since 2013")
         expect(html).toContain("ranking-card--topic-health")
