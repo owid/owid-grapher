@@ -83,8 +83,9 @@ export interface ConfigEditorManager {
         config: GrapherInterface,
         editor: ConfigEditor
     ) => void | GrapherInterface | Promise<void | GrapherInterface>
+    /** Called with the config when it loads and after every edit */
     onChange?: (config: GrapherInterface, editor: ConfigEditor) => void
-    /** Called when the config gains or loses unsaved changes (each editor starts clean) */
+    /** Called when the config gains or loses unsaved changes; each editor starts without any */
     onDirtyChange?: (isModified: boolean) => void
 
     tabs?: EditorTabName[]
@@ -145,6 +146,12 @@ export class ConfigEditor {
             showStaticPreview: observable.ref,
         })
 
+        this.markAsSaved()
+        this.start()
+    }
+
+    start(): void {
+        if (this.disposers.length > 0) return
         this.disposers.push(
             reaction(
                 () => this.patchConfig,
@@ -203,7 +210,7 @@ export class ConfigEditor {
     }
 
     dispose(): void {
-        this.disposers.forEach((dispose) => dispose())
+        this.disposers.splice(0).forEach((dispose) => dispose())
     }
 
     @computed get originalGrapherConfig(): GrapherInterface {
