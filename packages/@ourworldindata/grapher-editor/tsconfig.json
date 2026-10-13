@@ -1,10 +1,6 @@
 {
-    // Typechecks the package's own code (`yarn testPackage:typecheck`) and
-    // the editor files it reaches. The editor's sources live in
-    // adminSiteClient/, which also typechecks them; the build
-    // (tsdown.config.ts) bundles them from here, and the type declarations
-    // are built from ../../../tsconfig.editor-dts.json, whose root spans both
-    // trees.
+    // For `yarn testPackage:typecheck`; the declarations are built from
+    // ../../../tsconfig.editor-dts.json
     "extends": "../../../devTools/tsconfigs/tsconfig.base.json",
     "include": ["src/**/*.ts", "../grapher/src/styles.d.ts"],
     "compilerOptions": {

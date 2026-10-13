@@ -1,6 +1,3 @@
-// Styles for the editor package. The editor's own rules are still part of
-// the admin's stylesheet (Bootstrap plus the editor blocks in admin.scss), so
-// this pulls that in wholesale, together with grapher's styles for the
-// preview.
+// The editor's rules are still part of the admin's stylesheet
 @import "../../../../adminSiteClient/admin.scss";
 @import "../../grapher/src/core/grapher.scss";

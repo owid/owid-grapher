@@ -1,15 +1,9 @@
 {
-    // Used only by tsdown to build the bundled type declarations of
-    // @ourworldindata/grapher-editor (see its tsdown.config.ts). The
-    // counterpart of packages/@ourworldindata/tsconfig.tsdown.json, but at the
-    // repo root: tsdown's dts plugin uses this file's directory as the root,
-    // and the editor's sources span packages/ and adminSiteClient/.
-    //
-    // As there, every file whose types end up in the bundle has to be matched
-    // here, not just the entry point.
-    // The adminSiteClient files are what GrapherEditor.tsx imports, directly
-    // or not: when an editor file starts importing a new one, add it here, or
-    // the build fails with "tsgo did not generate dts file".
+    // grapher-editor's declaration build. At the repo root because tsdown's
+    // dts plugin roots at this file and the sources span two trees. Every
+    // file whose types reach the bundle must be listed: when an editor file
+    // in adminSiteClient/ starts importing a new one, add it here, or the
+    // build fails with "tsgo did not generate dts file".
     "extends": "./packages/@ourworldindata/grapher/tsconfig.json",
     "include": [
         "packages/@ourworldindata/grapher-editor/src/**/*",
