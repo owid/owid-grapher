@@ -328,36 +328,39 @@ export const legacyToOwidTableAndDimensions = (
         }
     }
 
-    // Append the entity color column if we have selected entity colors
-    if (!_.isEmpty(selectedEntityColors)) {
-        const entityColorColumnSlug = OwidTableSlugs.EntityColor
+    return appendSelectedEntityColors(
+        joinedVariablesTable,
+        selectedEntityColors
+    )
+}
 
-        const valueFn = (
-            entityName: EntityName | undefined
-        ): string | ErrorValue => {
-            if (!entityName) return ErrorValueTypes.UndefinedButShouldBeString
-            return entityName && selectedEntityColors
-                ? (selectedEntityColors[entityName] ??
-                      ErrorValueTypes.UndefinedButShouldBeString)
-                : ErrorValueTypes.UndefinedButShouldBeString
-        }
+/** Adds the entity color column that applies a config's `selectedEntityColors` */
+export const appendSelectedEntityColors = (
+    table: OwidTable,
+    selectedEntityColors: SelectedEntityColors | undefined
+): OwidTable => {
+    if (_.isEmpty(selectedEntityColors)) return table
 
-        const values =
-            joinedVariablesTable.entityNameColumn.valuesIncludingErrorValues.map(
-                (entityName) => valueFn(entityName as EntityName)
-            )
-
-        joinedVariablesTable = joinedVariablesTable.appendColumns([
-            {
-                slug: entityColorColumnSlug,
-                name: entityColorColumnSlug,
-                type: ColumnTypeNames.Color,
-                values: values,
-            },
-        ])
+    const valueFn = (
+        entityName: EntityName | undefined
+    ): string | ErrorValue => {
+        if (!entityName) return ErrorValueTypes.UndefinedButShouldBeString
+        return (
+            selectedEntityColors?.[entityName] ??
+            ErrorValueTypes.UndefinedButShouldBeString
+        )
     }
 
-    return joinedVariablesTable
+    return table.appendColumns([
+        {
+            slug: OwidTableSlugs.EntityColor,
+            name: OwidTableSlugs.EntityColor,
+            type: ColumnTypeNames.Color,
+            values: table.entityNameColumn.valuesIncludingErrorValues.map(
+                (entityName) => valueFn(entityName as EntityName)
+            ),
+        },
+    ])
 }
 
 const getIndicatorDisplayOverride = (
