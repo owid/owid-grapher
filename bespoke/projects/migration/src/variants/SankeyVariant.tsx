@@ -295,15 +295,18 @@ function CaptionedSankeyVariant({
         <>
             {!shouldHideChrome && (
                 <>
-                    <header className="migration-heading">
-                        <h1 className="migration-heading__title">
-                            Where do migrants live, and where were they born?
-                        </h1>
-                        <p className="migration-heading__description">
-                            Based on the total migrant population — not annual
-                            flows — by country of birth.
-                        </p>
-                    </header>
+                    {!config.hideHeading && (
+                        <header className="migration-heading">
+                            <h1 className="migration-heading__title">
+                                Where do migrants live, and where were they
+                                born?
+                            </h1>
+                            <p className="migration-heading__description">
+                                Based on the total migrant population — not
+                                annual flows — by country of birth.
+                            </p>
+                        </header>
+                    )}
                     <MigrationControls
                         metadata={metadata}
                         country={country}

@@ -42,6 +42,7 @@ graph TD;
     gdoc_pipeline --> types;
     gdoc_pipeline --> utils;
 
+    db --> adminShared;
     db --> components;
     db --> explorer;
     db --> gdoc_pipeline;

@@ -4,7 +4,7 @@
  * dumbbell settings. Each test drives one control on a chart type that shows
  * it and checks that saving writes exactly the matching config fields.
  * Colors (the chart's color scheme and its color scale) are covered in
- * `customizeTab.colors.test.ts`.
+ * `adminCustomizeTab.colors.test.ts`.
  *
  * Which sections show for which chart types is decided by
  * `adminSiteClient/EditorFeatures.tsx`; a few of its important rules have a

@@ -37,7 +37,7 @@ ifdef WRANGLER_PORT
 WRANGLER_PORT := $(strip $(WRANGLER_PORT))
 endif
 
-.PHONY: help up up.headless up.worktree setup.worktree wait.yarn-install require.worktree up.full down down.headless down.worktree refresh refresh.wp refresh.private refresh.full migrate svgtest svgtest.reset svgtest.full svgtest.grapher-views svgtest.mdims svgtest.thumbnails svgtest.md5s playwright playwright.ui check-not-prod
+.PHONY: help up up.headless up.worktree setup.worktree wait.yarn-install require.worktree up.full down down.headless down.worktree refresh refresh.wp refresh.private refresh.full migrate svgtest svgtest.reset svgtest.full svgtest.grapher-views svgtest.mdims svgtest.thumbnails svgtest.md5s playwright playwright.ui playwright.standalone check-not-prod
 
 help:
 	@echo 'Available commands:'
@@ -59,6 +59,7 @@ help:
 	@echo '  make playwright-browsers    install Playwright browsers'
 	@echo '  make playwright             (while up) start Playwright test environment'
 	@echo '  make playwright.ui          (while up) start Playwright test environment with UI'
+	@echo '  make playwright.standalone  run the standalone Playwright suite (own db and server)'
 	@echo '  make svgtest                run the SVG tests for graphers'
 	@echo '  make svgtest.full           run the SVG tests for all suites'
 	@echo '  make local-bake             do a full local site bake'
@@ -344,9 +345,9 @@ dbtest: node_modules
 	@echo '==> Running db test script'
 	./db/tests/run-db-tests.sh
 
-adminplaywright: node_modules playwright-browsers
-	@echo '==> Running admin Playwright tests'
-	yarn testPlaywrightAdmin
+playwright.standalone: node_modules playwright-browsers
+	@echo '==> Running standalone Playwright tests'
+	yarn testPlaywrightStandalone
 
 playwright-browsers:
 	@echo '==> Installing Playwright browser'

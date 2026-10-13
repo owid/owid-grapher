@@ -1,11 +1,14 @@
 import { defineConfig, devices } from "@playwright/test"
-import { ADMIN_SERVER_PORT, testServerEnv } from "./playwright/admin/ports.js"
+import {
+    ADMIN_SERVER_PORT,
+    testServerEnv,
+} from "./playwright/standalone/ports.js"
 
 export default defineConfig({
-    testDir: "./playwright/admin",
+    testDir: "./playwright/standalone",
     testMatch: "**/*.test.ts",
     // per port, so that suites running side by side don't clear each other's
-    outputDir: `test-results/admin-${ADMIN_SERVER_PORT}`,
+    outputDir: `test-results/standalone-${ADMIN_SERVER_PORT}`,
     fullyParallel: true,
     timeout: 60_000,
     reporter: [["line"]],
@@ -15,7 +18,7 @@ export default defineConfig({
     },
     webServer: {
         command:
-            "./db/tests/run-db-tests.sh yarn tsx --tsconfig tsconfig.tsx.json playwright/admin/server.ts",
+            "./db/tests/run-db-tests.sh yarn tsx --tsconfig tsconfig.tsx.json playwright/standalone/server.ts",
         env: { DBTEST_APP_ENV: "development", ...testServerEnv },
         port: ADMIN_SERVER_PORT,
         reuseExistingServer: false,

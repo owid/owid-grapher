@@ -43,7 +43,7 @@ jobs:
       - name: Run vitest
         run: yarn test --pool=forks
 
-  admin-playwright:
+  playwright-standalone:
     runs-on: ubuntu-latest
 
     # Each shard starts its own test database and admin server
@@ -66,8 +66,8 @@ jobs:
       - name: Install Chromium
         run: yarn playwright install --with-deps --no-shell chromium
 
-      - name: Run admin Playwright tests
-        run: yarn testPlaywrightAdmin --shard=${{ matrix.shard }}/3
+      - name: Run standalone Playwright tests
+        run: yarn testPlaywrightStandalone --shard=${{ matrix.shard }}/3
         timeout-minutes: 12
 
   typecheck:
