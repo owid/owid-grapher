@@ -135,6 +135,50 @@ describe(ConfigEditor, () => {
         expect(editor.isModified).toBe(true)
     })
 
+    it("keeps a field cleared while a save is in flight cleared", async () => {
+        let finishSave: () => void = () => undefined
+        const editor = makeEditor({
+            patchConfig: { title: "Title", subtitle: "Subtitle" },
+            onSave: (config) =>
+                new Promise((resolve) => {
+                    finishSave = () => resolve(config)
+                }),
+        })
+        runInAction(() => {
+            editor.grapherState.title = "Edited title"
+        })
+
+        const saving = editor.saveGrapher()
+        runInAction(() => {
+            editor.grapherState.subtitle = undefined
+        })
+        finishSave()
+        await saving
+
+        expect(editor.grapherState.subtitle).toBeFalsy()
+        expect(editor.isModified).toBe(true)
+    })
+
+    it("reloads the data when the host saves other entity colors", async () => {
+        const loadTable = vi.fn<IndicatorStore["loadTable"]>(
+            async () => undefined
+        )
+        const editor = makeEditor({
+            store: { loadTable },
+            onSave: (config) => ({
+                ...config,
+                selectedEntityColors: { France: "#ff0000" },
+            }),
+        })
+        runInAction(() => {
+            editor.grapherState.title = "Edited title"
+        })
+
+        await editor.saveGrapher()
+
+        expect(loadTable.mock.lastCall?.[1]).toEqual({ France: "#ff0000" })
+    })
+
     it("reloads the data when the host saves a config with other indicators", async () => {
         const loadTable = vi.fn<IndicatorStore["loadTable"]>(
             async () => undefined
