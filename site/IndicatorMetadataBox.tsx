@@ -178,12 +178,18 @@ function ExpandableSection({
     const { preview: descriptionKeyPreview, remainder: descriptionKeyRest } =
         splitDescriptionKey(datapageData.descriptionKey ?? "")
 
+    // Whether the box's own expander is open — the collapsed indicator list
+    // offers its "view all +" only then, so it never sits next to the box's
+    // "Show more" looking like a duplicate.
+    const [detailsOpen, setDetailsOpen] = useState(false)
+
     return (
         <div className={cx("meta-expander", className)}>
             {collapsedIndicatorList && collapsedIndicatorList.length > 0 && (
                 <CollapsedIndicatorList
                     entries={collapsedIndicatorList}
                     datapageData={datapageData}
+                    expanderOpen={detailsOpen}
                 />
             )}
             {descriptionKeyPreview && (
@@ -199,6 +205,7 @@ function ExpandableSection({
                 // Guard to only react to this element's own toggle.
                 onToggle={(e) => {
                     if (e.target !== e.currentTarget) return
+                    setDetailsOpen(e.currentTarget.open)
                     // Skip toggles caused by switching indicators: those
                     // programmatically close the previous pane's details and
                     // open the new one, and neither is a user
@@ -606,9 +613,11 @@ function IndicatorPaneContent({
 function CollapsedIndicatorList({
     entries,
     datapageData,
+    expanderOpen,
 }: {
     entries: CollapsedIndicatorListEntry[]
     datapageData: DataPageDataV2
+    expanderOpen: boolean
 }) {
     const nSources =
         (datapageData.origins?.length ?? 0) + (datapageData.source ? 1 : 0)
@@ -617,13 +626,15 @@ function CollapsedIndicatorList({
             ? `, all from the same data source${nSources > 1 ? "s" : ""}`
             : ""
     // Past three entries either rendering is long enough to push the shared
-    // WYSK below the fold, so it starts folded behind an inline "view all +"
-    // (the Instagram-caption pattern) that flips to "view less −". Folded
+    // WYSK below the fold, so the first three always show and the rest fold
+    // behind "view all +" (the Instagram-caption pattern), which flips to
+    // "view less −". The link appears only while the box's own expander is
+    // open, so it never sits beside "Show more" as a look-alike. Folded
     // content stays in the DOM, hidden, for raw-HTML consumers.
     const FOLD_AFTER = 3
     const foldable = entries.length > FOLD_AFTER
     const [expanded, setExpanded] = useState(!foldable)
-    const toggle = foldable && (
+    const toggle = foldable && expanderOpen && (
         <button
             type="button"
             className="indicator-metadata-box__collapsed-list-toggle"
@@ -659,7 +670,7 @@ function CollapsedIndicatorList({
                             {entry.title}
                         </React.Fragment>
                     ))}
-                    {expanded ? "." : foldable ? "\u2026" : "."}
+                    {expanded ? "." : "\u2026"}
                     {toggle && <> {toggle}</>}
                     {!expanded && (
                         <span hidden>
@@ -677,11 +688,11 @@ function CollapsedIndicatorList({
         <div className={blockClass}>
             <p>
                 This chart shows data for {entries.length} indicators
-                {sourcePhrase}:{toggle && <> {toggle}</>}
+                {sourcePhrase}:
             </p>
-            <ol hidden={!expanded}>
+            <ol>
                 {entries.map((entry, i) => (
-                    <li key={i}>
+                    <li key={i} hidden={!expanded && i >= FOLD_AFTER}>
                         <span className="indicator-metadata-box__collapsed-list-title">
                             {entry.title}
                         </span>
@@ -719,6 +730,14 @@ function CollapsedIndicatorList({
                     </li>
                 ))}
             </ol>
+            {foldable && (toggle || !expanded) && (
+                // While the box is closed the link is withheld (it would sit
+                // beside "Show more"); a bare ellipsis still signals that
+                // the list continues.
+                <p className="indicator-metadata-box__collapsed-list-more">
+                    {toggle || "\u2026"}
+                </p>
+            )}
         </div>
     )
 }

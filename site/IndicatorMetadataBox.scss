@@ -355,6 +355,11 @@
     }
 }
 
+// Fold toggle under a numbered list: a short line, no list marker.
+.indicator-metadata-box__collapsed-list-more {
+    margin-top: -4px;
+}
+
 .indicator-metadata-box__collapsed-list-title {
     font-weight: 700;
     display: block;
