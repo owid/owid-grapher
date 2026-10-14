@@ -10,7 +10,7 @@
  */
 
 import pMap from "p-map"
-import { calcPrice } from "@pydantic/genai-prices"
+import { calcPrice, type PriceCalculationResult } from "@pydantic/genai-prices"
 import * as db from "../db/db.js"
 import { TransactionCloseMode } from "../db/db.js"
 import { CLOUDFLARE_IMAGES_URL } from "../settings/clientSettings.mjs"
@@ -21,7 +21,9 @@ import {
     TextExtractionResult,
 } from "../adminSiteServer/imagesHelpers.js"
 
-function calculateCost(usage: NonNullable<TextExtractionResult["usage"]>) {
+function calculateCost(
+    usage: NonNullable<TextExtractionResult["usage"]>
+): PriceCalculationResult {
     return calcPrice(
         {
             input_tokens: usage.promptTokens,
@@ -87,14 +89,15 @@ interface ImageResult {
     image: DbEnrichedImage
     text: string | null
     usage: TextExtractionResult["usage"]
-    cost: number
+    /** null when there is no usage data or no price for the model */
+    cost: number | null
 }
 
 async function processImage(image: DbEnrichedImage): Promise<ImageResult> {
     const url = `${CLOUDFLARE_IMAGES_URL}/${image.cloudflareId}/public`
     const { text, usage } = await fetchGptGeneratedTextFromImage(url)
 
-    const cost = usage ? (calculateCost(usage)?.total_price ?? 0) : 0
+    const cost = usage ? (calculateCost(usage)?.total_price ?? null) : null
 
     return { image, text, usage, cost }
 }
@@ -151,6 +154,7 @@ const main = async () => {
     console.log(`Found ${images.length} images without extracted text.`)
 
     let totalCost = 0
+    let unpricedImages = 0
     const totalBatches = Math.ceil(images.length / BATCH_SIZE)
 
     for (let b = 0; b < totalBatches; b++) {
@@ -180,10 +184,13 @@ const main = async () => {
             logResult(result, fix)
         }
 
-        totalCost += results.reduce((sum, r) => sum + r.cost, 0)
+        for (const result of results) {
+            if (result.cost === null) unpricedImages++
+            else totalCost += result.cost
+        }
 
         console.log(
-            `\n  Batch ${b + 1} done. Running total cost: $${totalCost.toFixed(4)}`
+            `\n  Batch ${b + 1} done. Running total cost: ${formatTotal(totalCost, unpricedImages)}`
         )
 
         if (b < totalBatches - 1) {
@@ -196,7 +203,16 @@ const main = async () => {
 
     console.log(`\n=== Final Summary ===`)
     console.log(`  Images processed: ${images.length}`)
-    console.log(`  Total estimated cost: $${totalCost.toFixed(4)}`)
+    console.log(
+        `  Total estimated cost: ${formatTotal(totalCost, unpricedImages)}`
+    )
+}
+
+function formatTotal(totalCost: number, unpricedImages: number): string {
+    const total = `$${totalCost.toFixed(4)}`
+    return unpricedImages > 0
+        ? `${total} (excludes ${unpricedImages} image(s) with no price)`
+        : total
 }
 
 void main().then(() => process.exit())
