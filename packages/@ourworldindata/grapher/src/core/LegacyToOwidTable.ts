@@ -15,6 +15,10 @@ import {
     EntityName,
     TimeInterval,
     SelectedEntityColors,
+    AnnotationTimeScope,
+    IndicatorAnnotation,
+    OwidVariableAnnotation,
+    Time,
 } from "@ourworldindata/types"
 import {
     OwidTable,
@@ -668,6 +672,8 @@ const columnDefFromOwidVariable = (
             ? getSortFromDimensions(variable.dimensions)
             : undefined
 
+    const annotations = parseIndicatorAnnotations(variable)
+
     return {
         name,
         slug,
@@ -692,6 +698,7 @@ const columnDefFromOwidVariable = (
         additionalInfo: source?.additionalInfo,
         timespan,
         origins,
+        annotations,
         presentation,
         catalogPath,
         updatePeriodDays,
@@ -816,4 +823,61 @@ const annotationsToMap = (annotations: string): Map<string, string> => {
         entityAnnotationsMap.set(key.trim(), words.join(delimiter).trim())
     })
     return entityAnnotationsMap
+}
+
+const parseIndicatorAnnotations = (
+    variable: OwidVariableWithSourceAndDimension
+): IndicatorAnnotation[] | undefined => {
+    if (variable.annotations?.length) {
+        return variable.annotations.flatMap((annotation) => {
+            const parsed = parseIndicatorAnnotation(annotation, variable.id)
+            return parsed ? [parsed] : []
+        })
+    }
+
+    if (variable.display?.entityAnnotationsMap) {
+        return [...annotationsToMap(variable.display.entityAnnotationsMap)]
+            .filter(([entityName, text]) => entityName && text)
+            .map(([entityName, text]) => ({
+                text,
+                entityNames: [entityName],
+                timeScope: "all",
+            }))
+    }
+
+    return undefined
+}
+
+const parseIndicatorAnnotation = (
+    { text, entities, time, timeEnd }: OwidVariableAnnotation,
+    variableId: number
+): IndicatorAnnotation | undefined => {
+    const timeScope = parseTimeScope(variableId, time, timeEnd)
+    if (!timeScope) return undefined
+
+    const [firstEntityName, ...otherEntityNames] = entities ?? []
+    return firstEntityName === undefined
+        ? { text, ...timeScope }
+        : {
+              text,
+              entityNames: [firstEntityName, ...otherEntityNames],
+              ...timeScope,
+          }
+}
+
+const parseTimeScope = (
+    variableId: number,
+    time: Time | undefined,
+    timeEnd: Time | undefined
+): AnnotationTimeScope | undefined => {
+    if (time === undefined) return { timeScope: "all" }
+    if (timeEnd === undefined || timeEnd === time)
+        return { timeScope: "point", time }
+    if (timeEnd < time) {
+        console.warn(
+            `Dropping annotation of variable ${variableId} with end time ${timeEnd} before start time ${time}`
+        )
+        return undefined
+    }
+    return { timeScope: "range", startTime: time, endTime: timeEnd }
 }

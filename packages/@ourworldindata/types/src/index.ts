@@ -427,6 +427,7 @@ export {
     type EntityId,
     type Entity,
     type OwidColumnDef,
+    type AnnotationTimeScope,
     type IndicatorAnnotation,
     OwidEntityNameColumnDef,
     OwidEntityIdColumnDef,

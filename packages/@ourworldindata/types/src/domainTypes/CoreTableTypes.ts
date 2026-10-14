@@ -315,7 +315,7 @@ type AnnotationEntityScope =
     | { entityNames: [EntityName, ...EntityName[]] }
     | { entityNames?: never }
 
-type AnnotationTimeScope =
+export type AnnotationTimeScope =
     | { timeScope: "all" }
     | { timeScope: "point"; time: Time }
     | { timeScope: "range"; startTime: Time; endTime: Time }
