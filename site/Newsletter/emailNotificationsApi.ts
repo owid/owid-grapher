@@ -2,6 +2,11 @@ import { EMAIL_NOTIFICATIONS_API_BASE_URL } from "../../settings/clientSettings.
 
 export const GENERIC_ERROR_MESSAGE = "Something went wrong. Please try again."
 
+/**
+ * An error whose message the API wrote for readers, so forms can show it as
+ * is. Anything else that ends up in a catch block gets a generic message
+ * via `getErrorMessage`.
+ */
 export class ApiError extends Error {}
 
 /**
