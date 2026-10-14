@@ -18,7 +18,6 @@ import {
 } from "../tooltip/Tooltip"
 import { MapChartManager, MapColumnInfo } from "./MapChartConstants"
 import { ColorScale, INAPPLICABLE_LABEL } from "../color/ColorScale"
-import { GRAY_90 } from "../color/ColorConstants"
 import {
     Time,
     EntityName,
@@ -388,7 +387,7 @@ function MapTooltipValue({
     isInapplicable?: boolean
 }): React.ReactElement {
     const color = isInapplicable
-        ? GRAY_90
+        ? darkenColorForHighContrastText(colorScale.inapplicableColor)
         : makeTextColorForValue(datum?.value, { colorScale })
 
     return (
