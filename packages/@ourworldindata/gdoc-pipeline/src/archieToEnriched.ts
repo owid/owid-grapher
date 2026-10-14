@@ -8,6 +8,7 @@ import {
     checkNodeIsSpan,
     EnrichedBlockSimpleText,
     lowercaseObjectKeys,
+    traverseEnrichedBlock,
     ALL_CHARTS_ID,
     KEY_INSIGHTS_ID,
     RESEARCH_AND_WRITING_ID,
@@ -20,7 +21,12 @@ import {
 } from "./rawToEnriched.js"
 import { extractUrl, parseAuthors } from "./gdocUtils.js"
 import { htmlToSimpleTextBlock } from "./htmlToEnriched.js"
-import { RESEARCH_AND_WRITING_DEFAULT_HEADING } from "@ourworldindata/types"
+import {
+    RESEARCH_AND_WRITING_DEFAULT_HEADING,
+    type OwidEnrichedGdocBlock,
+    type RefDictionary,
+    type Span,
+} from "@ourworldindata/types"
 
 // Topic page headings have predictable heading names which are used in the sticky nav.
 // If the user hasn't explicitly defined a sticky-nav in archie to map nav items to headings,
@@ -137,6 +143,61 @@ export function stripIgnoredArchieml(text: string): string {
     )
 }
 
+// Minimal HTML attribute escaping for ref IDs that get embedded in the
+// data-ref-id attribute of the post-extraction <a> tag.
+function escapeRefAttr(s: string): string {
+    return s
+        .replace(/&/g, "&amp;")
+        .replace(/"/g, "&quot;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+}
+
+// Post-pass after the body has been enriched and refs parsed. Walks every
+// SpanRef and fills in `sourceForm.content` for inline refs by looking up
+// the canonical content in the RefDictionary via the url's #note-N suffix.
+// Idempotent: skips any SpanRef whose content is already non-empty or
+// whose kind is "id".
+function fillInlineRefSourceContent(
+    body: OwidEnrichedGdocBlock[] | undefined,
+    definitions: RefDictionary
+): void {
+    if (!body || body.length === 0) return
+    const byIndex = new Map<number, Span[]>()
+    for (const ref of Object.values(definitions)) {
+        const spans: Span[] = []
+        for (const block of ref.content) {
+            // Skip non-text and empty text blocks (the latter serialize to
+            // nothing, so emitting a separator for them would produce a
+            // double "\n\n" that does not survive a round trip)
+            if (block.type !== "text" || block.value.length === 0) continue
+            // Preserve the paragraph boundary between the definition's text
+            // blocks: the ArchieML write-back joins these spans without any
+            // separator, so an explicit "\n\n" span is what keeps a
+            // multi-paragraph {ref} from being glued into one paragraph —
+            // and keeps its content hash (the ref's id) stable.
+            if (spans.length > 0)
+                spans.push({ spanType: "span-simple-text", text: "\n\n" })
+            spans.push(...block.value)
+        }
+        byIndex.set(ref.index, spans)
+    }
+    const fillSpan = (span: Span): void => {
+        if (span.spanType !== "span-ref") return
+        if (span.sourceForm.kind !== "inline") return
+        if (span.sourceForm.content.length > 0) return
+        const m = span.url?.match(/^#note-(\d+)$/)
+        if (!m) return
+        const spans = byIndex.get(parseInt(m[1], 10) - 1)
+        if (!spans) return
+        span.sourceForm = { kind: "inline", content: spans }
+    }
+    const noop = (_b: OwidEnrichedGdocBlock): void => undefined
+    for (const block of body) {
+        traverseEnrichedBlock(block, noop, fillSpan)
+    }
+}
+
 // Match all curly bracket {ref}some_id{/ref} and {ref}I am an inline ref{/ref} syntax in the text
 // Iterate through them
 // If it's an inline ref, assign a sequential ID to its contents and parse it
@@ -165,15 +226,20 @@ export function extractRefs(text: string): {
         ) as RegExpMatchArray
         const contentOrId = match[1]
 
-        const isNewInlineRef = isInlineRef && !inlineRefIds.has(contentOrId)
+        // Key on the trimmed content: the span parser trims leading/trailing
+        // whitespace anyway, so `{ref} x {/ref}` and `{ref}x{/ref}` are the
+        // same footnote — and a write-back round trip can only serialize the
+        // trimmed form.
+        const inlineRefKey = contentOrId.trim()
+        const isNewInlineRef = isInlineRef && !inlineRefIds.has(inlineRefKey)
         if (isNewInlineRef) {
             // Named refs cannot contain spaces, so this ID cannot clash with one.
             inlineRefIds.set(
-                contentOrId,
+                inlineRefKey,
                 `inline-ref ${refsByFirstAppearance.size + 1}`
             )
         }
-        const id = isInlineRef ? inlineRefIds.get(contentOrId)! : contentOrId
+        const id = isInlineRef ? inlineRefIds.get(inlineRefKey)! : contentOrId
 
         refsByFirstAppearance.add(id)
         const index = [...refsByFirstAppearance].indexOf(id)
@@ -188,9 +254,17 @@ export function extractRefs(text: string): {
         // deepest level of nesting (see the readElements function) we can be confident
         // that this will work as expected in this case and is much simpler than handling
         // this later.
+        //
+        // data-ref-kind (and data-ref-id for ID-based) preserve the ID-vs-inline
+        // distinction through htmlToEnriched into SpanRef.sourceForm. Inline
+        // content survives via the RefDictionary (looked up by url=#note-N) in
+        // a post-pass below.
+        const dataAttrs = isInlineRef
+            ? `data-ref-kind="inline"`
+            : `data-ref-kind="id" data-ref-id="${escapeRefAttr(contentOrId)}"`
         extractedText = extractedText.replace(
             rawRef,
-            `<a class="ref" href="#note-${footnoteNumber}"><sup>${footnoteNumber}</sup></a>`
+            `<a class="ref" href="#note-${footnoteNumber}" ${dataAttrs}><sup>${footnoteNumber}</sup></a>`
         )
 
         if (isNewInlineRef) {
@@ -270,6 +344,12 @@ export const archieToEnriched = (
         refsByFirstAppearance,
     })
     parsed.refs = parsedRefs
+
+    // Fill in SpanRef.sourceForm.content for inline refs from the just-built
+    // RefDictionary. extractRefs / htmlToEnriched flag inline refs with
+    // `kind: "inline"` and an empty content array — the canonical content
+    // lives in the dictionary, keyed by #note-N url → index.
+    fillInlineRefSourceContent(parsed.body, parsedRefs.definitions)
 
     // this property was originally named byline even though it was a comma-separated list of authors
     // once this has been deployed for a while and we've migrated the property name in all gdocs,

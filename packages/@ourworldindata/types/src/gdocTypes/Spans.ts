@@ -18,6 +18,12 @@ export type SpanRef = {
     spanType: "span-ref"
     children: Span[]
     url: string
+    // Source form preserved so the enriched → ArchieML write-back serializer
+    // can emit `{ref}id_or_content{/ref}` rather than the post-extractRefs
+    // HTML form `<a class="ref" href="#note-N"><sup>N</sup></a>`. The HTML
+    // form is internal to site rendering; authors write the source form,
+    // and write-back must produce the source form.
+    sourceForm: { kind: "id"; id: string } | { kind: "inline"; content: Span[] }
 }
 
 export type SpanDod = {
