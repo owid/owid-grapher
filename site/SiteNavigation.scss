@@ -178,6 +178,14 @@
                     width: 100vw;
                     padding: 16px;
                 }
+
+                &:has(.newsletter-subscription-header--compact) {
+                    width: 302px;
+                    padding: 16px;
+                    @include sm-only {
+                        width: 100vw;
+                    }
+                }
             }
         }
         a.donate {

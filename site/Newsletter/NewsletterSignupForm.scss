@@ -18,6 +18,13 @@
     }
 }
 
+.newsletter-signup-form__option-heading {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0 8px;
+}
+
 .newsletter-signup-form__option-title {
     @include body-2-bold-tight;
     color: $blue-90;
