@@ -19,6 +19,8 @@ import {
     MultipleOwidVariableDataDimensionsMap,
     OwidVariableDataMetadataDimensions,
     DimensionProperty,
+    convertDateToDaysSinceEpoch,
+    dayjs,
 } from "@ourworldindata/utils"
 
 describe(legacyToOwidTableAndDimensions, () => {
@@ -226,6 +228,95 @@ describe(legacyToOwidTableAndDimensions, () => {
                 { text: "Same", timeScope: "point", time: 2005 },
             ])
             expect(warn).toHaveBeenCalled()
+
+            warn.mockRestore()
+        })
+
+        describe("on sub-yearly data", () => {
+            const toDay = (date: string): number =>
+                convertDateToDaysSinceEpoch(dayjs.utc(date))
+
+            it("converts dates to days since the epoch, whatever the zeroDay", () => {
+                expect(
+                    getAnnotations({
+                        display: {
+                            timeInterval: TimeInterval.Day,
+                            zeroDay: "2000-01-01",
+                        },
+                        annotations: [{ text: "Point", time: "2020-03-15" }],
+                    })
+                ).toEqual([
+                    {
+                        text: "Point",
+                        timeScope: "point",
+                        time: toDay("2020-03-15"),
+                    },
+                ])
+            })
+
+            it("snaps dates to the start of their period", () => {
+                expect(
+                    getAnnotations({
+                        display: { timeInterval: TimeInterval.Month },
+                        annotations: [
+                            {
+                                text: "Range",
+                                time: "2020-03-15",
+                                timeEnd: "2020-06-30",
+                            },
+                            {
+                                text: "Same month",
+                                time: "2020-03-01",
+                                timeEnd: "2020-03-31",
+                            },
+                        ],
+                    })
+                ).toEqual([
+                    {
+                        text: "Range",
+                        timeScope: "range",
+                        startTime: toDay("2020-03-01"),
+                        endTime: toDay("2020-06-01"),
+                    },
+                    {
+                        text: "Same month",
+                        timeScope: "point",
+                        time: toDay("2020-03-01"),
+                    },
+                ])
+            })
+
+            it("drops years and invalid dates", () => {
+                const warn = vi.spyOn(console, "warn").mockReturnValue()
+
+                expect(
+                    getAnnotations({
+                        display: { timeInterval: TimeInterval.Day },
+                        annotations: [
+                            { text: "Year", time: 2020 },
+                            { text: "Invalid", time: "2020-02-30" },
+                            {
+                                text: "Invalid end",
+                                time: "2020-02-01",
+                                timeEnd: "2020-3-1",
+                            },
+                        ],
+                    })
+                ).toEqual([])
+                expect(warn).toHaveBeenCalledTimes(3)
+
+                warn.mockRestore()
+            })
+        })
+
+        it("drops dates on yearly data", () => {
+            const warn = vi.spyOn(console, "warn").mockReturnValue()
+
+            expect(
+                getAnnotations({
+                    annotations: [{ text: "Date", time: "2020-03-15" }],
+                })
+            ).toEqual([])
 
             warn.mockRestore()
         })
