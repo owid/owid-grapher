@@ -22,6 +22,7 @@ import {
     SearchWord,
 } from "../adminShared/search.js"
 import {
+    catalogTableOf,
     parseCatalogPath,
     plural,
     SearchHighlighter,
@@ -42,8 +43,12 @@ export const INDICATORS_PAGE_SIZE = 50
 export type VariableListItem = Pick<VariableResultView, "id" | "name"> &
     Partial<VariableResultView>
 
-/** Columns beyond the always-present name, in the order they are shown. */
-export type VariableListField = "catalogPath" | "uploadedAt" | "usage"
+/**
+ * Columns beyond the always-present name, in the order they are shown. `table`
+ * is the table segment of the catalog path on its own, for a list of one
+ * dataset's indicators, where the rest of the path is the same on every row.
+ */
+export type VariableListField = "catalogPath" | "table" | "uploadedAt" | "usage"
 
 interface VariableListProps {
     variables: VariableListItem[]
@@ -254,6 +259,7 @@ function CatalogPathCell({
 const COLUMN_WEIGHTS: Record<VariableListField | "name", number> = {
     name: 35,
     catalogPath: 35,
+    table: 20,
     // "3 charts" is what this says on almost every row; the rare row that also
     // names a multi-dim and an explorer wraps rather than taxing all the rest
     usage: 10,
@@ -306,6 +312,27 @@ function createColumns({
                     highlight={pathHighlight}
                 />
             ),
+        },
+        table: {
+            width: width.table,
+            title: "Table",
+            dataIndex: "catalogPath",
+            key: "table",
+            ellipsis: true,
+            sorter:
+                sortable &&
+                ((a, b) =>
+                    (catalogTableOf(a.catalogPath) ?? "").localeCompare(
+                        catalogTableOf(b.catalogPath) ?? ""
+                    )),
+            render: (_, variable) => {
+                const table = catalogTableOf(variable.catalogPath)
+                return table ? (
+                    <span title={table}>{pathHighlight(table)}</span>
+                ) : (
+                    <span className="text-muted">—</span>
+                )
+            },
         },
         uploadedAt: {
             width: width.uploadedAt,

@@ -70,6 +70,38 @@ export function parseCatalogPath(catalogPath: string): CatalogPathParts {
     return { namespace, version, dataset, table: rest.join("/"), shortName }
 }
 
+/** The table segment of an indicator's catalog path, if it has one. */
+export function catalogTableOf(
+    catalogPath: string | null | undefined
+): string | undefined {
+    if (!catalogPath) return undefined
+    return parseCatalogPath(catalogPath).table || undefined
+}
+
+export interface TableCount {
+    table: string
+    /** How many indicators the table holds. */
+    count: number
+}
+
+/**
+ * The ETL tables a dataset's indicators are spread over, by name, each with
+ * how many indicators it holds. An indicator without a catalog path — a
+ * legacy, non-ETL one — belongs to no table and is left out.
+ */
+export function countIndicatorsByTable(
+    variables: { catalogPath?: string | null }[]
+): TableCount[] {
+    const counts = new Map<string, number>()
+    for (const variable of variables) {
+        const table = catalogTableOf(variable.catalogPath)
+        if (table) counts.set(table, (counts.get(table) ?? 0) + 1)
+    }
+    return [...counts]
+        .map(([table, count]) => ({ table, count }))
+        .sort((a, b) => a.table.localeCompare(b.table))
+}
+
 /**
  * The `field:value` terms of a query, exclusions included, as typed. A field
  * that is still being typed has no value yet, and an unknown one is searched
