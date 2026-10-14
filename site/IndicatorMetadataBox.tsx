@@ -639,13 +639,33 @@ function CollapsedIndicatorList({
             </p>
         )
     }
+    // Past three entries the numbered list is long enough to push the shared
+    // WYSK below the fold, so it starts folded behind an inline "view all +"
+    // (the Instagram-caption pattern). The entries stay in the DOM, hidden,
+    // for raw-HTML consumers.
+    const foldable = entries.length > 3
+    const [expanded, setExpanded] = useState(!foldable)
     return (
         <div className="indicator-metadata-box__collapsed-list">
             <p className="indicator-metadata-box__collapsed-list-intro">
                 This chart shows data for {entries.length} indicators
                 {sourcePhrase}:
+                {foldable && (
+                    <>
+                        {" "}
+                        <button
+                            type="button"
+                            className="indicator-metadata-box__collapsed-list-toggle"
+                            aria-expanded={expanded}
+                            onClick={() => setExpanded((v) => !v)}
+                            data-track-note="metadata_box_indicator_list_toggle"
+                        >
+                            {expanded ? "view less \u2212" : "view all +"}
+                        </button>
+                    </>
+                )}
             </p>
-            <ol>
+            <ol hidden={!expanded}>
                 {entries.map((entry, i) => (
                     <li key={i}>
                         <span className="indicator-metadata-box__collapsed-list-title">

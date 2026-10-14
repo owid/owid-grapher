@@ -338,7 +338,9 @@
 // Collapsed multi-indicator mode: one pane (headed "About this data") whose
 // expander opens with the indicator list, sitting above the shared WYSK.
 .indicator-metadata-box__collapsed-list {
-    @include body-3-medium;
+    // Same type as the WYSK prose it sits above (.meta-expander__prose).
+    @include body-2-regular;
+    margin-top: 16px;
     margin-bottom: 16px;
 
     ol {
@@ -368,6 +370,23 @@
 p.indicator-metadata-box__collapsed-list
     .indicator-metadata-box__collapsed-list-title {
     display: inline;
+}
+
+// Inline "view all +" / "view less −" — a plain text link in the muted
+// key color, no underline, no button chrome.
+.indicator-metadata-box__collapsed-list-toggle {
+    appearance: none;
+    background: none;
+    border: 0;
+    padding: 0;
+    font: inherit;
+    color: $blue-50;
+    cursor: pointer;
+    white-space: nowrap;
+
+    &:hover {
+        color: $blue-90;
+    }
 }
 
 .indicator-metadata-box__collapsed-list-meta {
