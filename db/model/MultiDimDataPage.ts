@@ -8,6 +8,7 @@ import {
     DbInsertMultiDimDataPage,
     DbPlainMultiDimDataPage,
     DbEnrichedMultiDimDataPage,
+    DbEnrichedPublishedMultiDimDataPage,
     ContentGraphLinkType,
     GrapherInterface,
     IndicatorsAfterPreProcessing,
@@ -113,19 +114,20 @@ const enrichRow = <T extends { config: JsonString }>(
 
 export async function getAllPublishedMultiDimDataPages(
     knex: KnexReadonlyTransaction
-): Promise<DbEnrichedMultiDimDataPage[]> {
-    const rows = await knex<DbPlainMultiDimDataPage>(
-        MultiDimDataPagesTableName
-    ).where("published", true)
-    return rows.map(enrichRow)
+): Promise<DbEnrichedPublishedMultiDimDataPage[]> {
+    const rows = await knex<DbPlainMultiDimDataPage>(MultiDimDataPagesTableName)
+        .where("published", true)
+        // Published pages always have a slug; filtering on it here is what
+        // lets callers rely on DbEnrichedPublishedMultiDimDataPage.
+        .whereNotNull("slug")
+    return rows.map(enrichRow) as DbEnrichedPublishedMultiDimDataPage[]
 }
 
 export const getAllPublishedMultiDimDataPagesBySlug = async (
     knex: KnexReadonlyTransaction
-): Promise<Map<string, DbEnrichedMultiDimDataPage>> => {
+): Promise<Map<string, DbEnrichedPublishedMultiDimDataPage>> => {
     const multiDims = await getAllPublishedMultiDimDataPages(knex)
-    // Published mdims must have a slug.
-    return new Map(multiDims.map((multiDim) => [multiDim.slug!, multiDim]))
+    return new Map(multiDims.map((multiDim) => [multiDim.slug, multiDim]))
 }
 
 export interface LinkedMultiDimDataPage {
