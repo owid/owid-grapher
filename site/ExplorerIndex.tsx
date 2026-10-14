@@ -17,7 +17,7 @@ function ExplorerIndexPageCard(props: { item: ExplorerIndexItem }) {
     const { item } = props
     const [hasError, setHasError] = useState(false)
     return (
-        <li key={item.slug}>
+        <li>
             <a className="explorer-index-page__card" href={item.href}>
                 {!hasError ? (
                     <img
@@ -59,7 +59,8 @@ export function ExplorerIndex(props: ExplorerIndexProps) {
             </header>
             <ul className="explorer-index-page-list span-cols-12 col-start-2 grid grid-cols-4 grid-md-cols-2 grid-sm-cols-1">
                 {items.map((item) => (
-                    <ExplorerIndexPageCard item={item} key={item.slug} />
+                    // Key on href: an explorer and a multi-dim can share a slug.
+                    <ExplorerIndexPageCard item={item} key={item.href} />
                 ))}
             </ul>
         </>
