@@ -36,10 +36,9 @@ import {
     CountryWithNoData,
     ExternalValueAnnotation,
     InternalValueAnnotation,
-    NoDataPattern,
     ProjectedDataPattern,
 } from "./MapComponents"
-import { InapplicablePattern } from "../chart/ChartUtils"
+import { InapplicablePattern, NoDataPattern } from "../chart/ChartUtils"
 import { Patterns, makePatternId } from "../core/GrapherConstants"
 import {
     detectNearbyFeature,

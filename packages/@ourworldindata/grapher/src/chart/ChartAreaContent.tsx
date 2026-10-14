@@ -146,6 +146,10 @@ export class ChartAreaContent extends React.Component<ChartAreaContentProps> {
                 id={makeFigmaId(GRAPHER_CHART_AREA_CLASS)}
                 style={{ pointerEvents: "none" }}
             >
+                <ChartPatternDefs
+                    scale={this.manager.patternScale}
+                    idSuffix={this.manager.patternIdSuffix}
+                />
                 {this.renderReadyChartOrMap()}
             </g>
         )
