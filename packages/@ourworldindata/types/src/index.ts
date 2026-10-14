@@ -231,6 +231,9 @@ export {
     type SyntheticExampleInfo,
     type ExemplarOutline,
     type TemplateExemplarsResponse,
+    type BespokeVizUsage,
+    type BundleUsage,
+    type BundleVariantUsage,
 } from "./gdocTypes/GdocsReferenceApi.js"
 
 export {

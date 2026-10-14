@@ -42,6 +42,7 @@ import { resolveSlideChartTypes } from "../baker/SlideshowBaker.js"
 import { getImageMetadataByFilenames } from "../db/db.js"
 import { getMinimalAuthorsByNames } from "../db/model/Gdoc/GdocBase.js"
 import {
+    renderBespokeVizVariantPreview,
     renderGdocsReferenceComponentPreview,
     renderGdocsReferenceDocumentPreview,
     renderGdocsReferenceInstancePreview,
@@ -245,6 +246,22 @@ getPlainRouteWithROTransaction(
             await renderGdocsReferenceComponentPreview(
                 req.params.id,
                 stringParam(req.query.example),
+                trx
+            )
+        )
+    }
+)
+
+// One variant of a bespoke viz bundle, rendered from the registry's default
+// block for it (?variant: the variant name).
+getPlainRouteWithROTransaction(
+    adminRouter,
+    "/gdocs-reference/bespoke-viz/:bundle/preview",
+    async (req, res, trx) => {
+        res.send(
+            await renderBespokeVizVariantPreview(
+                req.params.bundle,
+                stringParam(req.query.variant),
                 trx
             )
         )

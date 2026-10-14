@@ -1,5 +1,6 @@
 import * as React from "react"
 import {
+    BespokeVizRegistry,
     ComponentRegistry,
     DbPlainTag,
     JsonError,
@@ -45,6 +46,7 @@ import type { GdocBase } from "../db/model/Gdoc/GdocBase.js"
 // The committed generated registry — same source the
 // /api/gdocs-reference/components.json endpoint serves.
 import componentsRegistry from "@ourworldindata/types/src/gdocTypes/components.registry.generated.json"
+import bespokeVizRegistry from "@ourworldindata/types/src/gdocTypes/bespoke-viz.registry.generated.json"
 
 /**
  * Live previews for the admin writing reference page (GdocsReferencePage):
@@ -324,12 +326,51 @@ export async function renderGdocsReferenceComponentPreview(
     if (!component)
         throw new JsonError(`No such component: "${componentId}"`, 404)
     const archie = getExampleArchie(component, exampleParam)
+    return renderArchiePreview(component.title, archie, knex)
+}
 
+/**
+ * Preview of one variant of a bespoke viz bundle. The ArchieML is the
+ * registry's default block for that bundle and variant — nothing from the
+ * request ends up in the rendered block.
+ */
+export async function renderBespokeVizVariantPreview(
+    bundleId: string,
+    variantName: string | undefined,
+    knex: db.KnexReadonlyTransaction
+): Promise<string> {
+    const bundle = (bespokeVizRegistry as BespokeVizRegistry).bundles.find(
+        (bundle) => bundle.id === bundleId
+    )
+    if (!bundle) throw new JsonError(`No such bundle: "${bundleId}"`, 404)
+    if (!variantName)
+        throw new JsonError(`No variant given for bundle "${bundleId}"`, 404)
+    const variant = bundle.variants.find(
+        (variant) => variant.name === variantName
+    )
+    if (!variant)
+        throw new JsonError(
+            `No such variant of bundle "${bundleId}": "${variantName}"`,
+            404
+        )
+    return renderArchiePreview(
+        `${bundle.id} ${variant.name}`,
+        variant.archie,
+        knex
+    )
+}
+
+// Render a component's ArchieML as a standalone preview page.
+async function renderArchiePreview(
+    title: string,
+    archie: string,
+    knex: db.KnexReadonlyTransaction
+): Promise<string> {
     // Same wrapping the registry generator validates the example with, but
     // typed as an article so the site renders the blocks (fragments render as
     // raw JSON). The chrome an article adds around the body is hidden by the
     // preview stylesheet.
-    const wrapped = `title: ${component.title} example\ntype: ${OwidGdocType.Article}\n[+body]\n${archie}\n[]\n`
+    const wrapped = `title: ${title} example\ntype: ${OwidGdocType.Article}\n[+body]\n${archie}\n[]\n`
     const content = archieToEnriched(wrapped)
     content["hide-citation"] = true
     content["hide-subscribe-banner"] = true
@@ -340,7 +381,7 @@ export async function renderGdocsReferenceComponentPreview(
     return renderToHtmlPage(
         <GdocsReferencePreviewPage
             gdoc={gdoc}
-            pageTitle={`${component.title} — component preview`}
+            pageTitle={`${title} — component preview`}
             styles={COMPONENT_PREVIEW_STYLES}
         />
     )

@@ -60,9 +60,11 @@ import {
 } from "./apiRoutes/images.js"
 import { getFiles, uploadFileToR2 } from "./apiRoutes/files.js"
 import { getComponentsReference } from "./apiRoutes/components.js"
+import { getBespokeVizReference } from "./apiRoutes/bespokeViz.js"
 import { getTemplatesReference } from "./apiRoutes/templates.js"
 import { getGuidesReference } from "./apiRoutes/guides.js"
 import {
+    getBespokeVizUsage,
     getComponentInstances,
     getGdocsReferenceUsage,
     getTemplateExemplars,
@@ -686,11 +688,12 @@ apiRouter.get("/svgtester/suites.json", getSvgTesterSuites)
 apiRouter.get("/svgtester/:suite/results.json", getSvgTesterResults)
 apiRouter.router.get("/svgtester/:suite/:kind/:filename", getSvgTesterSvg)
 
-// ArchieML component, gdoc template and guide references (served from the
-// committed registry JSONs)
+// ArchieML component, gdoc template, guide and bespoke viz references
+// (served from the committed registry JSONs)
 apiRouter.get("/gdocs-reference/components.json", getComponentsReference)
 apiRouter.get("/gdocs-reference/templates.json", getTemplatesReference)
 apiRouter.get("/gdocs-reference/guides.json", getGuidesReference)
+apiRouter.get("/gdocs-reference/bespoke-viz.json", getBespokeVizReference)
 
 // The live half of the writing reference: component usage across published
 // docs, real instances with provenance, and template exemplar outlines
@@ -708,6 +711,11 @@ getRouteWithROTransaction(
     apiRouter,
     "/gdocs-reference/templates/:id/exemplars.json",
     getTemplateExemplars
+)
+getRouteWithROTransaction(
+    apiRouter,
+    "/gdocs-reference/bespoke-viz/usage.json",
+    getBespokeVizUsage
 )
 
 // Deploy helpers

@@ -1,4 +1,8 @@
 import {
+    BespokeVizRegistry,
+    BespokeVizUsage,
+    BundleUsage,
+    BundleVariantUsage,
     ComponentInstance,
     ComponentInstancesResponse,
     ComponentRegistry,
@@ -39,6 +43,7 @@ import { HandlerResponse } from "../FunctionalRouter.js"
 
 import componentsRegistry from "@ourworldindata/types/src/gdocTypes/components.registry.generated.json"
 import templatesRegistry from "@ourworldindata/types/src/gdocTypes/templates.registry.generated.json"
+import bespokeVizRegistry from "@ourworldindata/types/src/gdocTypes/bespoke-viz.registry.generated.json"
 
 /**
  * The live half of the admin writing reference: everything here is computed
@@ -371,8 +376,9 @@ function nearestHeadingAnchor(
     return undefined
 }
 
-// Load the enriched bodies of the given docs — only ever called for the
-// handful of docs whose instances a response actually shows.
+// Load the enriched bodies of the given docs — only ever called for the docs
+// whose instances a response actually shows (a page of instances, or every
+// doc using a bespoke viz bundle: about 30 today).
 async function loadBodies(
     trx: db.KnexReadonlyTransaction,
     gdocIds: string[]
@@ -729,4 +735,152 @@ export async function getTemplateExemplars(
     }
 
     return { templateId, exemplars, staleExemplars }
+}
+
+// -----------------------------------------------------------------------------
+// Bespoke viz usage
+// -----------------------------------------------------------------------------
+
+// The variant name a stored bespoke block carries; null when it has none
+// (or an empty one, which errors at mount).
+function storedVariant(config: StoredConfig): string | null {
+    const variant = config.variant
+    return typeof variant === "string" && variant !== "" ? variant : null
+}
+
+// The config keys a stored bespoke block sets, to any value.
+function storedConfigKeys(config: StoredConfig): string[] {
+    const blockConfig = config.config
+    if (!blockConfig || typeof blockConfig !== "object") return []
+    return Object.entries(blockConfig)
+        .filter(([, value]) => value !== undefined && value !== null)
+        .map(([key]) => key)
+}
+
+// Unknown variants: most used first; among equals, by name, with the
+// no-variant group last.
+function compareUnknownVariants(
+    a: BundleVariantUsage,
+    b: BundleVariantUsage
+): number {
+    if (a.uses !== b.uses) return b.uses - a.uses
+    if (a.variant === null) return b.variant === null ? 0 : 1
+    if (b.variant === null) return -1
+    return a.variant.localeCompare(b.variant)
+}
+
+/**
+ * Published usage of each registry bundle: uses, distinct docs, per-variant
+ * counts with every instance, and per-key config adoption. One scan over all
+ * published bespoke blocks (a few dozen), aggregated here.
+ */
+export async function getBespokeVizUsage(
+    _req: Request,
+    _res: HandlerResponse,
+    trx: db.KnexReadonlyTransaction
+): Promise<BespokeVizUsage> {
+    const rows = await db.knexRaw<InstanceRow>(
+        trx,
+        `-- sql
+        SELECT
+            c.gdocId,
+            c.path,
+            c.config,
+            pg.slug,
+            pg.type AS docType,
+            pg.publishedAt,
+            pg.content->>'$.title' AS title
+        FROM posts_gdocs_components c
+        JOIN posts_gdocs pg ON pg.id = c.gdocId
+        WHERE pg.published = 1
+            AND pg.publishedAt <= NOW()
+            AND c.type = 'bespoke-component'
+        ORDER BY pg.publishedAt DESC, c.gdocId, c.path`
+    )
+
+    const bodies = await loadBodies(trx, [
+        ...new Set(rows.map((row) => row.gdocId)),
+    ])
+
+    // Rows grouped by bundle, then by variant (null = no variant). Rows come
+    // newest first, so each group's instances are too.
+    const byBundle = new Map<
+        string,
+        Map<string | null, { row: InstanceRow; config: StoredConfig }[]>
+    >()
+    for (const row of rows) {
+        const config = parseConfig(row.config)
+        if (!config || typeof config.bundle !== "string") continue
+        const byVariant = byBundle.get(config.bundle) ?? new Map()
+        byBundle.set(config.bundle, byVariant)
+        const variant = storedVariant(config)
+        const group = byVariant.get(variant) ?? []
+        byVariant.set(variant, group)
+        group.push({ row, config })
+    }
+
+    const toBundleInstance = (
+        row: InstanceRow,
+        variant: string | null
+    ): ComponentInstance => {
+        const instance: ComponentInstance = {
+            gdocId: row.gdocId,
+            slug: row.slug,
+            title: row.title ?? row.slug,
+            docType: row.docType as OwidGdocType,
+            path: row.path,
+            publishedAt: toIsoOrNull(row.publishedAt),
+            variation: variant ?? "",
+        }
+        const body = bodies.get(row.gdocId)
+        if (body) instance.anchor = nearestHeadingAnchor(body, row.path)
+        return instance
+    }
+
+    const bundles: BundleUsage[] = []
+    for (const bundle of (bespokeVizRegistry as BespokeVizRegistry).bundles) {
+        const byVariant = byBundle.get(bundle.id)
+        if (!byVariant) continue
+        const knownNames = bundle.variants.map((variant) => variant.name)
+
+        const variantUsage = (
+            variant: string | null,
+            group: { row: InstanceRow; config: StoredConfig }[]
+        ): BundleVariantUsage => ({
+            variant,
+            known: variant !== null && knownNames.includes(variant),
+            uses: group.length,
+            docs: new Set(group.map(({ row }) => row.gdocId)).size,
+            instances: group.map(({ row }) => toBundleInstance(row, variant)),
+        })
+
+        // Known variants in registry order, then the unknown ones (most
+        // used first, the no-variant group last among equals).
+        const known: BundleVariantUsage[] = []
+        for (const name of knownNames) {
+            const group = byVariant.get(name)
+            if (group) known.push(variantUsage(name, group))
+        }
+        const unknown = [...byVariant.entries()]
+            .filter(([name]) => name === null || !knownNames.includes(name))
+            .map(([name, group]) => variantUsage(name, group))
+            .sort(compareUnknownVariants)
+
+        const all = [...byVariant.values()].flat()
+        const configAdoption: Record<string, number> = {}
+        for (const { config } of all) {
+            for (const key of storedConfigKeys(config))
+                configAdoption[key] = (configAdoption[key] ?? 0) + 1
+        }
+
+        bundles.push({
+            bundle: bundle.id,
+            uses: all.length,
+            docs: new Set(all.map(({ row }) => row.gdocId)).size,
+            variants: [...known, ...unknown],
+            configAdoption,
+        })
+    }
+
+    return { bundles }
 }
