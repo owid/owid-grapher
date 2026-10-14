@@ -32,6 +32,7 @@ import {
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
 import { ExplorerChartCreationMode } from "@ourworldindata/explorer"
 import { getPlainRouteWithROTransaction } from "./plainRouterHelpers.js"
+import { getAllPublishedMultiDimDataPages } from "../db/model/MultiDimDataPage.js"
 
 import { GRAPHER_DYNAMIC_THUMBNAIL_URL } from "../settings/clientSettings.mjs"
 
@@ -840,6 +841,108 @@ function ExplorerTestPage(props: ExplorerTestPageProps) {
                             )}
                             <iframe
                                 src={`${BAKED_BASE_URL}/explorers/${slug}`}
+                                loading="lazy"
+                            />
+                        </div>
+                    </div>
+                ))}
+            </body>
+        </html>
+    )
+}
+
+getPlainRouteWithROTransaction(
+    testPageRouter,
+    "/multiDims",
+    async (req, res, trx) => {
+        const viewProps = getViewPropsFromQueryParams(req.query)
+        const slugs = (await getAllPublishedMultiDimDataPages(trx))
+            .map((multiDim) => multiDim.slug)
+            .sort((a, b) => a.localeCompare(b))
+
+        res.send(
+            renderToHtmlPage(<MultiDimTestPage slugs={slugs} {...viewProps} />)
+        )
+    }
+)
+
+interface MultiDimTestPageProps {
+    slugs: string[]
+    comparisonUrl: string
+    hasComparisonView: boolean
+}
+
+function MultiDimTestPage(props: MultiDimTestPageProps) {
+    const style = `
+        html, body {
+            height: 100%;
+            margin: 0;
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        }
+
+        iframe {
+            border: 1px solid #ddd;
+            flex: 1;
+            height: 1000px;
+            min-width: 0;
+        }
+
+        .row {
+            padding: 10px;
+            margin: 0;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .side-by-side {
+            display: flex;
+            gap: 16px;
+            width: 100%;
+        }
+
+        .side-by-side > h3 {
+            flex: 1;
+            text-align: center;
+            margin: 0;
+        }
+
+        .row > h3 {
+            font-size: 18px;
+            text-align: center;
+        }
+    `
+
+    return (
+        <html>
+            <Head
+                canonicalUrl=""
+                pageTitle="Test Multi-Dims"
+                baseUrl={BAKED_BASE_URL}
+            >
+                <style dangerouslySetInnerHTML={{ __html: style }} />
+            </Head>
+            <body>
+                <div className="row">
+                    <div className="side-by-side">
+                        {props.hasComparisonView && (
+                            <h3>{props.comparisonUrl}</h3>
+                        )}
+                        <h3>{BAKED_BASE_URL}</h3>
+                    </div>
+                </div>
+                {props.slugs.map((slug, index) => (
+                    <div key={slug} className="row">
+                        <h3>
+                            {slug} ({index + 1}/{props.slugs.length})
+                        </h3>
+                        <div className="side-by-side">
+                            {props.hasComparisonView && (
+                                <iframe
+                                    src={`${props.comparisonUrl}/grapher/${slug}`}
+                                    loading="lazy"
+                                />
+                            )}
+                            <iframe
+                                src={`${BAKED_GRAPHER_URL}/${slug}`}
                                 loading="lazy"
                             />
                         </div>

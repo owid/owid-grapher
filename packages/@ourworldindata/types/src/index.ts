@@ -610,6 +610,7 @@ export {
 } from "./dbTypes/FeaturedMetrics.js"
 export {
     type DbEnrichedMultiDimDataPage,
+    type DbEnrichedPublishedMultiDimDataPage,
     type DbInsertMultiDimDataPage,
     type DbPlainMultiDimDataPage,
     MultiDimDataPagesTableName,
