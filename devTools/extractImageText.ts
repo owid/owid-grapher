@@ -16,7 +16,7 @@ import { TransactionCloseMode } from "../db/db.js"
 import { CLOUDFLARE_IMAGES_URL } from "../settings/clientSettings.mjs"
 import { DbEnrichedImage } from "@ourworldindata/types"
 import {
-    fetchGptGeneratedTextFromImage,
+    fetchGeneratedTextFromImage,
     TEXT_EXTRACTION_MODEL,
     TextExtractionResult,
 } from "../adminSiteServer/imagesHelpers.js"
@@ -30,7 +30,7 @@ function calculateCost(
             output_tokens: usage.completionTokens,
         },
         TEXT_EXTRACTION_MODEL,
-        { providerId: "openai" }
+        { providerId: "anthropic" }
     )
 }
 
@@ -95,7 +95,7 @@ interface ImageResult {
 
 async function processImage(image: DbEnrichedImage): Promise<ImageResult> {
     const url = `${CLOUDFLARE_IMAGES_URL}/${image.cloudflareId}/public`
-    const { text, usage } = await fetchGptGeneratedTextFromImage(url)
+    const { text, usage } = await fetchGeneratedTextFromImage(url)
 
     const cost = usage ? (calculateCost(usage)?.total_price ?? null) : null
 

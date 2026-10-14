@@ -1,5 +1,5 @@
 import * as db from "../db/db.js"
-import { getGptTopicSuggestions } from "../db/model/Chart.js"
+import { getTopicSuggestions } from "../db/model/Chart.js"
 import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
 
@@ -43,7 +43,7 @@ const batchTagChartsWithGpt = async (
 
     // Iterate through the charts and tag them with GPT-suggested topics
     for (const chart of chartsToTag) {
-        const gptTopicSuggestions = await getGptTopicSuggestions(knex, chart.id)
+        const gptTopicSuggestions = await getTopicSuggestions(knex, chart.id)
 
         for (const tag of gptTopicSuggestions) {
             if (debug) console.log("Tagging chart", chart.id, "with", tag.id)

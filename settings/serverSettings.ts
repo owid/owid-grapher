@@ -217,7 +217,7 @@ export const BUILDKITE_BRANCH: string =
 export const BUILDKITE_DEPLOY_CONTENT_SLACK_CHANNEL: string =
     serverSettings.BUILDKITE_DEPLOY_CONTENT_SLACK_CHANNEL || "C06EWA0DK4H" // #content-updates
 
-export const OPENAI_API_KEY: string = serverSettings.OPENAI_API_KEY ?? ""
+export const ANTHROPIC_API_KEY: string = serverSettings.ANTHROPIC_API_KEY ?? ""
 
 export const SLACK_BOT_OAUTH_TOKEN: string =
     serverSettings.SLACK_BOT_OAUTH_TOKEN ?? ""

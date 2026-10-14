@@ -4,13 +4,24 @@ import sharp from "sharp"
 import {
     CLOUDFLARE_IMAGES_ACCOUNT_ID,
     CLOUDFLARE_IMAGES_API_KEY,
-    OPENAI_API_KEY,
+    ANTHROPIC_API_KEY,
 } from "../settings/serverSettings.js"
-import { OpenAI } from "openai"
+import Anthropic from "@anthropic-ai/sdk"
 import { ACCEPTED_IMG_TYPES } from "../adminSiteClient/imagesHelpers.js"
 
-// OpenAI model used for alt text and image text extraction
-export const TEXT_EXTRACTION_MODEL = "gpt-5-mini"
+// Claude model used for alt text and image text extraction
+export const TEXT_EXTRACTION_MODEL = "claude-sonnet-5-5"
+
+// The model thinks before answering, which counts toward the cap, so leave it room.
+const TEXT_EXTRACTION_MAX_TOKENS = 16000
+
+/** The text of a response, which can begin with thinking blocks. */
+function responseText(message: Anthropic.Message): string {
+    return message.content
+        .filter((block) => block.type === "text")
+        .map((block) => block.text)
+        .join("")
+}
 
 export function validateImagePayload(body: any): {
     filename: string
@@ -114,16 +125,22 @@ export async function deleteFromCloudflare(cloudflareId: string) {
     }
 }
 
-export async function fetchGptGeneratedAltText(url: string) {
-    const openai = new OpenAI({
-        apiKey: OPENAI_API_KEY,
-    })
+export async function fetchGeneratedAltText(
+    url: string
+): Promise<string | null> {
+    const client = new Anthropic({ apiKey: ANTHROPIC_API_KEY })
 
-    const completion = await openai.chat.completions.create({
+    const message = await client.messages.create({
+        model: TEXT_EXTRACTION_MODEL,
+        max_tokens: TEXT_EXTRACTION_MAX_TOKENS,
         messages: [
             {
                 role: "user",
-                content: `Generate alt text for this image, describing it for a vision-impaired person using a screen reader.
+                content: [
+                    { type: "image", source: { type: "url", url } },
+                    {
+                        type: "text",
+                        text: `Generate alt text for this image, describing it for a vision-impaired person using a screen reader.
 - If it's a chart, use the Amy Cesal formula: "[Chart type] of [type of data] where [reason for including chart]"
 - Keep it brief. Three sentences maximum.
 - If there is too much data to describe, just give an overview of what the chart is showing, not specific data points.
@@ -133,23 +150,13 @@ export async function fetchGptGeneratedAltText(url: string) {
 - Describe data sources and licenses (if specified)
 Example 1: "Line chart of cumulative burnt area in Europe where the 2022 area is more than double the 2006 to 2021 average, and well above the range for the same period. Source: Global Wildfire Information System (2025). License: CC BY to Our World in Data."
 Example 2: "Changes in forest area by world region since 1990 is a set of bar charts overlaid on a world map to compare forest cover between 1990 and 2025 across different continents. The visualization highlights that while forest area has expanded in regions like Europe and North and Central America, it has significantly declined in South America and parts of Asia. Oceania is shown to have had no change in its total forest area over this period. Data source: Food and Agriculture Organization of the United Nations, Global Forest Resources Assessment (2025). License: CC BY to Our World in Data."`,
-            },
-            {
-                role: "user",
-                content: [
-                    {
-                        type: "image_url",
-                        image_url: {
-                            url,
-                        },
                     },
                 ],
             },
         ],
-        model: TEXT_EXTRACTION_MODEL,
     })
 
-    const content = completion.choices[0].message.content
+    const content = responseText(message)
     if (content) {
         // Sometimes the model still uses markdown bold even when told not to.
         return content.replaceAll("**", "")
@@ -166,52 +173,37 @@ export interface TextExtractionResult {
     } | null
 }
 
-export async function fetchGptGeneratedTextFromImage(
+export async function fetchGeneratedTextFromImage(
     url: string
 ): Promise<TextExtractionResult> {
-    const openai = new OpenAI({
-        apiKey: OPENAI_API_KEY,
-    })
+    const client = new Anthropic({ apiKey: ANTHROPIC_API_KEY })
 
-    const completion = await openai.chat.completions.create({
+    const message = await client.messages.create({
+        model: TEXT_EXTRACTION_MODEL,
+        max_tokens: TEXT_EXTRACTION_MAX_TOKENS,
         messages: [
             {
                 role: "user",
-                content: `Extract all text from this image, including any text in the footer.
+                content: [
+                    { type: "image", source: { type: "url", url } },
+                    {
+                        type: "text",
+                        text: `Extract all text from this image, including any text in the footer.
 Do not use markdown in the text.
 If the image is a data visualization, do not include numbers or data points or axis ticks, just the text annotations, footer text, titles, etc.
 If there is no text in the image, return an empty string.`,
-            },
-            {
-                role: "user",
-                content: [
-                    {
-                        type: "image_url",
-                        image_url: {
-                            url,
-                        },
                     },
                 ],
             },
         ],
-        model: TEXT_EXTRACTION_MODEL,
     })
 
-    const content = completion.choices[0].message.content
-    const usage = completion.usage
-        ? {
-              promptTokens: completion.usage.prompt_tokens,
-              completionTokens: completion.usage.completion_tokens,
-              totalTokens: completion.usage.total_tokens,
-          }
-        : null
-
-    if (content !== null) {
-        return {
-            text: content.replaceAll(/\s+/g, " "),
-            usage,
-        }
+    const { input_tokens, output_tokens } = message.usage
+    const usage = {
+        promptTokens: input_tokens,
+        completionTokens: output_tokens,
+        totalTokens: input_tokens + output_tokens,
     }
 
-    return { text: null, usage }
+    return { text: responseText(message).replaceAll(/\s+/g, " "), usage }
 }
