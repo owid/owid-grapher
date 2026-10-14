@@ -441,7 +441,7 @@ export function DataPageContent({
             <div className="DataPageContent MultiDimDataPageContent grid grid-cols-12-full-width">
                 <div className="bg-blue-10 span-cols-14">
                     <div className="header__wrapper grid grid-cols-12-full-width">
-                        <div className="header__left col-start-2 span-cols-8 col-sm-start-2 span-sm-cols-12">
+                        <div className="header__left col-start-2 span-cols-12 col-sm-start-2 span-sm-cols-12">
                             <div className="header__supertitle">
                                 {isMultiDimDataExplorer(config.config)
                                     ? "Data explorer"
