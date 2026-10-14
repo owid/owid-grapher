@@ -41,6 +41,9 @@ export interface MultiDimPresentation {
     // pageType to keep it apart from a dimension's presentation.type, which
     // picks a control instead.
     pageType?: MultiDimDataPageType
+    // The subtitle on the page's /explorers card, the counterpart of an
+    // explorer's subtitle. Only used when pageType is "data-explorer".
+    explorerSubtitle?: string
     // Renders a "Download the full dataset" button in the page header.
     dataDownloadUrl?: string
 }

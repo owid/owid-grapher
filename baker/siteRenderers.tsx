@@ -35,7 +35,6 @@ import {
     TombstonePageData,
     flattenNonTopicNodes,
     isMultiDimDataExplorer,
-    joinTitleFragments,
 } from "@ourworldindata/utils"
 import {
     ArchiveContext,
@@ -550,13 +549,7 @@ export const renderExplorerIndexPage = async (
         .map((multiDim) => ({
             slug: multiDim.slug,
             title: multiDim.config.title.title,
-            // Mdims have no subtitle; their title fragments are the closest
-            // thing, e.g. "by vaccine".
-            subtitle:
-                joinTitleFragments(
-                    multiDim.config.title.attributionShort,
-                    multiDim.config.title.titleVariant
-                ) ?? "",
+            subtitle: multiDim.config.presentation?.explorerSubtitle ?? "",
             href: `${BAKED_GRAPHER_URL}/${multiDim.slug}`,
             thumbnailUrl: `${GRAPHER_DYNAMIC_THUMBNAIL_URL}/${multiDim.slug}.png`,
         }))
