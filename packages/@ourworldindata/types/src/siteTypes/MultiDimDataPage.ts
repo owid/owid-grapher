@@ -44,8 +44,6 @@ export interface MultiDimPresentation {
     // The subtitle on the page's /explorers card, the counterpart of an
     // explorer's subtitle. Only used when pageType is "data-explorer".
     explorerSubtitle?: string
-    // Renders a "Download the full dataset" button in the page header.
-    dataDownloadUrl?: string
 }
 
 interface MultiDimDataPageConfigType<
