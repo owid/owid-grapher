@@ -13,8 +13,8 @@ $radio-group-full-width-breakpoint: 520px;
     letter-spacing: 0.01em;
 }
 
+// Matches the disabled dropdown: a gray fill with faded-out labels.
 .md-settings__radio-group[data-disabled] .md-settings__radio-group-options {
-    color: $gray-60;
     background: $gray-10;
 }
 
@@ -89,8 +89,18 @@ $plain-field: ":not([data-selected], :has([data-hovered]))";
     }
 
     &[data-disabled] {
-        color: $gray-60;
+        color: $gray-80;
         cursor: default;
+
+        .md-settings__radio-label {
+            opacity: 0.5;
+        }
+    }
+
+    // In a disabled group, the selected option drops its blue fill but stays
+    // recognizable as a white segment on the gray track.
+    &[data-selected][data-disabled] {
+        background: white;
     }
 
     @media (max-width: $radio-group-full-width-breakpoint) {
