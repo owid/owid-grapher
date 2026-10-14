@@ -36,6 +36,7 @@ import {
     fractionUsageLabel,
     githubBlobUrl,
     indefinite,
+    instancePreviewPath,
     isContentProp,
     isEffectivelyRequired,
     liveUrl,
@@ -256,14 +257,8 @@ export function UsageSummary({
 // Component page: the forms section
 // -----------------------------------------------------------------------------
 
-function instancePreviewPath(instance: ComponentInstance): string {
-    return `/gdocs-reference/instance/preview?gdocId=${encodeURIComponent(
-        instance.gdocId
-    )}&path=${encodeURIComponent(instance.path)}`
-}
-
 /** "Used in *Life expectancy* → view live" — the provenance line under a real example. */
-function InstanceProvenance({
+export function InstanceProvenance({
     instance,
     curated,
 }: {

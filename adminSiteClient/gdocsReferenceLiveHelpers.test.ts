@@ -3,6 +3,7 @@ import type {
     BespokeVizUsage,
     BundleReference,
     BundleUsage,
+    BundleVariantUsage,
     ComponentProp,
     ComponentReference,
     ComponentVariation,
@@ -10,8 +11,11 @@ import type {
 import { OwidGdocType } from "@ourworldindata/types"
 import {
     bundleUsageLabel,
+    examplesByVariant,
     formDefiningParts,
     liveUrl,
+    orderBundleVariants,
+    OrderedBundleVariants,
     sortBundlesByUse,
 } from "./gdocsReferenceLiveHelpers.js"
 
@@ -159,5 +163,163 @@ describe(bundleUsageLabel, () => {
 
     it("says a bundle absent from the usage is not used yet", () => {
         expect(bundleUsageLabel(undefined)).toBe("not used yet")
+    })
+})
+
+// A bundle with the given variants and docs.md examples (each example shows
+// the variant named, or carries no variant line for null)
+const bundleWith = (
+    variants: string[],
+    exampleVariants: (string | null)[] = []
+): BundleReference =>
+    ({
+        id: "b",
+        variants: variants.map((name) => ({ name })),
+        examples: exampleVariants.map((name) => ({
+            archie:
+                "{.bespoke-component}\nbundle: b\n" +
+                (name ? `variant: ${name}\n` : "") +
+                "{}",
+        })),
+    }) as unknown as BundleReference
+
+const variantUsage = (
+    variant: string | null,
+    uses: number,
+    known = true
+): BundleVariantUsage => ({
+    variant,
+    known,
+    uses,
+    docs: 1,
+    instances: [],
+})
+
+const usageOf = (variants: BundleVariantUsage[]): BundleUsage => ({
+    bundle: "b",
+    uses: variants.reduce((sum, entry) => sum + entry.uses, 0),
+    docs: 1,
+    variants,
+    configAdoption: {},
+})
+
+// Variant names of each group, for compact assertions
+const names = (
+    ordered: OrderedBundleVariants
+): { open: string[]; collapsed: string[] } => ({
+    open: ordered.open.map((entry) => entry.variant.name),
+    collapsed: ordered.collapsed.map((entry) => entry.variant.name),
+})
+
+describe(orderBundleVariants, () => {
+    it("opens used variants, most used first with ties in registry order", () => {
+        const ordered = orderBundleVariants(
+            bundleWith(["a", "b", "c"]),
+            usageOf([variantUsage("b", 5), variantUsage("c", 5)])
+        )
+        expect(names(ordered)).toEqual({ open: ["b", "c"], collapsed: ["a"] })
+        expect(ordered.open[0].usage?.uses).toBe(5)
+        expect(ordered.collapsed[0].usage).toBeUndefined()
+    })
+
+    it("sorts used variants by uses", () => {
+        const ordered = orderBundleVariants(
+            bundleWith(["a", "b", "c"]),
+            usageOf([variantUsage("a", 1), variantUsage("c", 9)])
+        )
+        expect(names(ordered)).toEqual({ open: ["c", "a"], collapsed: ["b"] })
+    })
+
+    it("opens the first variant when the bundle has no use", () => {
+        expect(
+            names(orderBundleVariants(bundleWith(["a", "b", "c"]), undefined))
+        ).toEqual({
+            open: ["a"],
+            collapsed: ["b", "c"],
+        })
+    })
+
+    it("opens curated unused variants after the used ones", () => {
+        const ordered = orderBundleVariants(
+            bundleWith(["a", "b", "c", "d"], ["c"]),
+            usageOf([variantUsage("b", 5)])
+        )
+        expect(names(ordered)).toEqual({
+            open: ["b", "c"],
+            collapsed: ["a", "d"],
+        })
+    })
+
+    it("opens only the curated variant when there is no use", () => {
+        expect(
+            names(
+                orderBundleVariants(
+                    bundleWith(["a", "b", "c"], ["c"]),
+                    undefined
+                )
+            )
+        ).toEqual({ open: ["c"], collapsed: ["a", "b"] })
+    })
+
+    it("has no tail when every variant is used", () => {
+        const ordered = orderBundleVariants(
+            bundleWith(["a", "b"]),
+            usageOf([variantUsage("a", 1), variantUsage("b", 2)])
+        )
+        expect(names(ordered)).toEqual({ open: ["b", "a"], collapsed: [] })
+    })
+
+    it("opens only the first variant, in registry order, when usage failed", () => {
+        const ordered = orderBundleVariants(
+            bundleWith(["a", "b", "c"], ["c"]),
+            null
+        )
+        expect(names(ordered)).toEqual({ open: ["a"], collapsed: ["b", "c"] })
+        expect(ordered.stale).toEqual([])
+    })
+
+    it("lists stale variants, and gives them no card", () => {
+        const ordered = orderBundleVariants(
+            bundleWith(["a", "b"]),
+            usageOf([
+                variantUsage("b", 2),
+                variantUsage("old", 3, false),
+                variantUsage(null, 1, false),
+            ])
+        )
+        expect(names(ordered)).toEqual({ open: ["b"], collapsed: ["a"] })
+        expect(ordered.stale.map((entry) => entry.variant)).toEqual([
+            "old",
+            null,
+        ])
+    })
+
+    it("doesn't count stale uses when ordering", () => {
+        const ordered = orderBundleVariants(
+            bundleWith(["a", "b"]),
+            usageOf([variantUsage("old", 3, false)])
+        )
+        expect(names(ordered)).toEqual({ open: ["a"], collapsed: ["b"] })
+        expect(ordered.stale.map((entry) => entry.variant)).toEqual(["old"])
+    })
+})
+
+describe(examplesByVariant, () => {
+    it("groups examples by their variant line, keeping their index", () => {
+        const byVariant = examplesByVariant(
+            bundleWith(["treemap", "bars"], ["treemap", null, "treemap"])
+        )
+        expect(byVariant.get("treemap")?.map((entry) => entry.index)).toEqual([
+            0, 2,
+        ])
+        expect(byVariant.has("bars")).toBe(false)
+        expect([...byVariant.keys()]).toEqual(["treemap"])
+    })
+
+    it("reads only the first variant line", () => {
+        const byVariant = examplesByVariant({
+            examples: [{ archie: "bundle: b\nvariant: one\nvariant: two\n" }],
+        } as unknown as BundleReference)
+        expect([...byVariant.keys()]).toEqual(["one"])
     })
 })

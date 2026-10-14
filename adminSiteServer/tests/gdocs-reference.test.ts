@@ -528,8 +528,12 @@ describe("writing reference live API", { timeout: 20000 }, () => {
                 anchor: "projections",
                 publishedAt: expect.any(String),
                 variation: "simulation",
+                archie: expect.any(String),
             },
         ])
+        // The copyable source comes from the real block in the doc
+        expect(simulation.instances[0].archie).toMatch(/^bundle: demography$/m)
+        expect(simulation.instances[0].archie).toMatch(/^variant: simulation$/m)
         const noVariant = demography.variants[2]
         expect(
             noVariant.instances.map((i: { variation: string }) => i.variation)
@@ -610,5 +614,25 @@ describe("writing reference live API", { timeout: 20000 }, () => {
             "/gdocs-reference/bespoke-viz/causes-of-death/preview"
         )
         expect(noVariant.status).toBe(404)
+    })
+
+    it("bespoke-viz preview 404s for an empty variant and bad example params", async () => {
+        // The committed registry has no docs.md examples yet, so every
+        // example index is out of range; the 200 path is covered client-side.
+        const base = "/gdocs-reference/bespoke-viz/causes-of-death/preview"
+        for (const query of [
+            "?variant=",
+            "?variant=treemap&variant=treemap",
+            "?example=9",
+            "?example=0",
+            "?example=1.5",
+            "?example=",
+            "?example=-1",
+            "?example=0&variant=treemap",
+            "?example=0&example=1",
+        ]) {
+            const res = await rawAdminGet(base + query)
+            expect(res.status, query).toBe(404)
+        }
     })
 })

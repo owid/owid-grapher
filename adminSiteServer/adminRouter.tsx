@@ -252,8 +252,10 @@ getPlainRouteWithROTransaction(
     }
 )
 
-// One variant of a bespoke viz bundle, rendered from the registry's default
-// block for it (?variant: the variant name).
+// One block of a bespoke viz bundle, from the registry: the default block of
+// a variant (?variant: the variant name) or a docs.md example (?example: its
+// index). Exactly one of the two; a repeated param counts as given but
+// invalid (stringParam reads an array as undefined), so it 404s.
 getPlainRouteWithROTransaction(
     adminRouter,
     "/gdocs-reference/bespoke-viz/:bundle/preview",
@@ -261,7 +263,14 @@ getPlainRouteWithROTransaction(
         res.send(
             await renderBespokeVizVariantPreview(
                 req.params.bundle,
-                stringParam(req.query.variant),
+                {
+                    given: req.query.variant !== undefined,
+                    value: stringParam(req.query.variant),
+                },
+                {
+                    given: req.query.example !== undefined,
+                    value: stringParam(req.query.example),
+                },
                 trx
             )
         )

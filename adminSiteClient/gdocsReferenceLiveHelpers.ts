@@ -3,7 +3,10 @@ import {
     BespokeVizUsage,
     BundleReference,
     BundleUsage,
+    BundleVariantReference,
+    BundleVariantUsage,
     COMPONENT_USAGE_LABELS,
+    ComponentInstance,
     ComponentProp,
     ComponentReference,
     ComponentUsage,
@@ -11,6 +14,7 @@ import {
     ComponentVariation,
     componentUsageLabel,
     OwidGdocType,
+    SidecarExample,
 } from "@ourworldindata/types"
 import { getCanonicalPath } from "@ourworldindata/components"
 import { BAKED_BASE_URL } from "../settings/clientSettings.mjs"
@@ -163,6 +167,13 @@ export function liveUrl(instance: {
     return `${BAKED_BASE_URL}${path}${entitySegment}${instance.anchor ? `#${instance.anchor}` : ""}`
 }
 
+/** The admin path previewing a real published use of a component. */
+export function instancePreviewPath(instance: ComponentInstance): string {
+    return `/gdocs-reference/instance/preview?gdocId=${encodeURIComponent(
+        instance.gdocId
+    )}&path=${encodeURIComponent(instance.path)}`
+}
+
 /**
  * Share of docs using a component, as the whole-number percentage that backs
  * an adoption word in the where-it's-used sentence: "standard in articles
@@ -266,9 +277,111 @@ export function sortBundlesByUse(
 }
 
 /** "12 uses in 4 docs", "1 use in 1 doc", or "not used yet". */
-export function bundleUsageLabel(usage: BundleUsage | undefined): string {
+export function bundleUsageLabel(
+    usage: Pick<BundleUsage, "uses" | "docs"> | undefined
+): string {
     if (!usage || usage.uses === 0) return "not used yet"
     const uses = `${usage.uses} use${usage.uses === 1 ? "" : "s"}`
     const docs = `${usage.docs} doc${usage.docs === 1 ? "" : "s"}`
     return `${uses} in ${docs}`
+}
+
+// -----------------------------------------------------------------------------
+// Bespoke component page: a bundle's variants
+// -----------------------------------------------------------------------------
+
+/** A docs.md example, with its index in the bundle's `examples`. */
+export interface IndexedBundleExample {
+    example: SidecarExample
+    index: number
+}
+
+/**
+ * The bundle's docs.md examples grouped by the variant they show: the first
+ * `variant:` line of each example's ArchieML. An example without one is left
+ * out (it still renders where it is authored in the prose).
+ */
+export function examplesByVariant(
+    bundle: BundleReference
+): Map<string, IndexedBundleExample[]> {
+    const byVariant = new Map<string, IndexedBundleExample[]>()
+    bundle.examples.forEach((example, index) => {
+        const match = /^variant:\s*(\S+)/m.exec(example.archie)
+        if (!match) return
+        const name = match[1]
+        const group = byVariant.get(name) ?? []
+        group.push({ example, index })
+        byVariant.set(name, group)
+    })
+    return byVariant
+}
+
+/** A registry variant, with its published usage when it has any. */
+export interface BundleVariantEntry {
+    variant: BundleVariantReference
+    usage?: BundleVariantUsage
+}
+
+export interface OrderedBundleVariants {
+    /** Variant cards shown open */
+    open: BundleVariantEntry[]
+    /** The "N variants not used yet" tail, in registry order */
+    collapsed: BundleVariantEntry[]
+    /** Used variant names the registry doesn't know (null = no variant) */
+    stale: BundleVariantUsage[]
+}
+
+/**
+ * The order of a bundle's variant cards. `usage` is the bundle's entry in
+ * the usage response: undefined when the bundle has no published use, null
+ * when the usage lookup failed.
+ *
+ * - Used variants come first, most uses first (ties in registry order).
+ * - Then curated variants (with a docs.md example) that have no use.
+ * - The rest wait in the collapsed tail, in registry order.
+ * - The first variant is open when nothing is used or curated.
+ * - Without usage, only the first variant is open, and nothing is stale.
+ */
+export function orderBundleVariants(
+    bundle: BundleReference,
+    usage: BundleUsage | undefined | null
+): OrderedBundleVariants {
+    const entries: BundleVariantEntry[] = bundle.variants.map((variant) => ({
+        variant,
+    }))
+
+    if (usage === null)
+        return {
+            open: entries.slice(0, 1),
+            collapsed: entries.slice(1),
+            stale: [],
+        }
+
+    // Only known variants with uses count as used; stale names get no card
+    const usageByName = new Map(
+        (usage?.variants ?? [])
+            .filter((entry) => entry.known && entry.uses > 0)
+            .map((entry) => [entry.variant, entry])
+    )
+    for (const entry of entries) {
+        const variantUsage = usageByName.get(entry.variant.name)
+        if (variantUsage) entry.usage = variantUsage
+    }
+
+    const examples = examplesByVariant(bundle)
+    // Array sort is stable, so ties keep registry order
+    const used = entries
+        .filter((entry) => entry.usage)
+        .sort((a, b) => (b.usage?.uses ?? 0) - (a.usage?.uses ?? 0))
+    const curated = entries.filter(
+        (entry) => !entry.usage && examples.has(entry.variant.name)
+    )
+    const open =
+        used.length + curated.length > 0
+            ? [...used, ...curated]
+            : entries.slice(0, 1)
+    const collapsed = entries.filter((entry) => !open.includes(entry))
+    const stale = (usage?.variants ?? []).filter((entry) => !entry.known)
+
+    return { open, collapsed, stale }
 }

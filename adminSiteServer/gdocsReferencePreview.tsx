@@ -42,6 +42,10 @@ import {
 import { checkShouldProfileRender } from "../db/model/Gdoc/dataCallouts.js"
 import { getPublicDonorNames } from "../db/model/Donor.js"
 import type { GdocBase } from "../db/model/Gdoc/GdocBase.js"
+import {
+    PreviewQueryParam,
+    selectBespokePreviewBlock,
+} from "./bespokeVizPreviewBlock.js"
 
 // The committed generated registry — same source the
 // /api/gdocs-reference/components.json endpoint serves.
@@ -330,34 +334,22 @@ export async function renderGdocsReferenceComponentPreview(
 }
 
 /**
- * Preview of one variant of a bespoke viz bundle. The ArchieML is the
- * registry's default block for that bundle and variant — nothing from the
- * request ends up in the rendered block.
+ * Preview of one block of a bespoke viz bundle: a variant's default block or
+ * a docs.md example, picked from the registry (see selectBespokePreviewBlock).
  */
 export async function renderBespokeVizVariantPreview(
     bundleId: string,
-    variantName: string | undefined,
+    variantParam: PreviewQueryParam,
+    exampleParam: PreviewQueryParam,
     knex: db.KnexReadonlyTransaction
 ): Promise<string> {
-    const bundle = (bespokeVizRegistry as BespokeVizRegistry).bundles.find(
-        (bundle) => bundle.id === bundleId
+    const { title, archie } = selectBespokePreviewBlock(
+        (bespokeVizRegistry as BespokeVizRegistry).bundles,
+        bundleId,
+        variantParam,
+        exampleParam
     )
-    if (!bundle) throw new JsonError(`No such bundle: "${bundleId}"`, 404)
-    if (!variantName)
-        throw new JsonError(`No variant given for bundle "${bundleId}"`, 404)
-    const variant = bundle.variants.find(
-        (variant) => variant.name === variantName
-    )
-    if (!variant)
-        throw new JsonError(
-            `No such variant of bundle "${bundleId}": "${variantName}"`,
-            404
-        )
-    return renderArchiePreview(
-        `${bundle.id} ${variant.name}`,
-        variant.archie,
-        knex
-    )
+    return renderArchiePreview(title, archie, knex)
 }
 
 // Render a component's ArchieML as a standalone preview page.

@@ -51,7 +51,10 @@ import {
     TemplateComponentShortlist,
     UsageSummary,
 } from "./GdocsReferenceLive.js"
-import { BespokeBundleIndex } from "./GdocsReferenceBespoke.js"
+import {
+    BespokeBundleIndex,
+    BespokeBundlePage,
+} from "./GdocsReferenceBespoke.js"
 import {
     docTypeNoun,
     githubBlobUrl,
@@ -1336,6 +1339,14 @@ export class GdocsReferencePage extends Component<
                 </div>
             )
         if (!selection) return this.renderOverview()
+        // A bundle's own page, under the bespoke component
+        if (selection.bundle && selectedComponent?.id === BESPOKE_COMPONENT_ID)
+            return (
+                <BespokeBundlePage
+                    bundleId={selection.bundle}
+                    titleFor={this.titleOf}
+                />
+            )
         if (selectedComponent)
             return this.renderComponentDetail(selectedComponent)
         if (selectedTemplate) return this.renderTemplateDetail(selectedTemplate)

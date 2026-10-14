@@ -833,7 +833,15 @@ export async function getBespokeVizUsage(
             variation: variant ?? "",
         }
         const body = bodies.get(row.gdocId)
-        if (body) instance.anchor = nearestHeadingAnchor(body, row.path)
+        if (body) {
+            instance.anchor = nearestHeadingAnchor(body, row.path)
+            // The copyable source of the use, from the real block in the
+            // doc. Left unset when the block can't be resolved.
+            const archie = minimalArchieFromEnriched(
+                resolveBlockAtPath({ body }, row.path)
+            )
+            if (archie !== undefined) instance.archie = archie
+        }
         return instance
     }
 
