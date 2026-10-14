@@ -680,6 +680,10 @@ const FORM_CARD_LIMIT = 6
  * "Its forms" — the unified section where observed forms, their frequency,
  * one real example each, the dashed "new" reference forms, and the derived
  * properties table live together.
+ *
+ * With `showForms={false}` only the properties table renders (with live
+ * adoption): pages that list their own kind of entry instead of raw forms,
+ * like the bespoke component's bundle index, still need its adoption data.
  */
 export function ComponentForms({
     component,
@@ -687,12 +691,14 @@ export function ComponentForms({
     typeLinks,
     notes,
     titleFor,
+    showForms = true,
 }: {
     component: ComponentReference
     usage: ComponentUsage | undefined
     typeLinks: PropTypeLinks
     notes?: React.ReactNode
     titleFor?: TitleFor
+    showForms?: boolean
 }): React.ReactElement {
     const [docTypeFilter, setDocTypeFilter] = useState<string | undefined>()
     const [expandedTail, setExpandedTail] = useState<Set<string>>(new Set())
@@ -709,7 +715,9 @@ export function ComponentForms({
     if (!component.system && response === undefined)
         return (
             <section className="gdocs-ref__section">
-                <h2 className="gdocs-ref__section-title">Its forms</h2>
+                {showForms && (
+                    <h2 className="gdocs-ref__section-title">Its forms</h2>
+                )}
                 <p className="gdocs-ref-live__loading">
                     Looking up published uses…
                 </p>
@@ -731,6 +739,25 @@ export function ComponentForms({
         )
 
     const scanned = response.scanned
+    const liveProperties = (
+        <ComponentProperties
+            component={component}
+            live={{
+                propAdoption: response.propAdoption,
+                scanned,
+                propDefaults: response.propDefaults,
+            }}
+            typeLinks={typeLinks}
+            notes={notes}
+            titleFor={titleFor}
+        />
+    )
+
+    if (!showForms)
+        return (
+            <section className="gdocs-ref__section">{liveProperties}</section>
+        )
+
     const variations = response.variations
     const unobservedSynthetic = response.syntheticExamples.filter(
         (example) => !example.observed
@@ -832,17 +859,7 @@ export function ComponentForms({
                     ))}
                 </div>
             )}
-            <ComponentProperties
-                component={component}
-                live={{
-                    propAdoption: response.propAdoption,
-                    scanned,
-                    propDefaults: response.propDefaults,
-                }}
-                typeLinks={typeLinks}
-                notes={notes}
-                titleFor={titleFor}
-            />
+            {liveProperties}
         </section>
     )
 }

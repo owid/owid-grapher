@@ -1,5 +1,8 @@
 import { useContext, useEffect, useState } from "react"
 import {
+    BespokeVizUsage,
+    BundleReference,
+    BundleUsage,
     COMPONENT_USAGE_LABELS,
     ComponentProp,
     ComponentReference,
@@ -236,4 +239,36 @@ export function formDefiningParts(
             prop: byName.get(name),
         }
     })
+}
+
+// -----------------------------------------------------------------------------
+// Bespoke component page: the bundle index
+// -----------------------------------------------------------------------------
+
+/**
+ * Bundles for the index: most used first, ties (and unused bundles) by id.
+ * Without usage (the lookup failed) every bundle counts as 0, so the list
+ * falls back to id order — registry order is not id order.
+ */
+export function sortBundlesByUse(
+    bundles: BundleReference[],
+    usage: BespokeVizUsage | null
+): BundleReference[] {
+    const usesById = new Map(
+        (usage?.bundles ?? []).map((entry) => [entry.bundle, entry.uses])
+    )
+    return [...bundles].sort((a, b) => {
+        const usesA = usesById.get(a.id) ?? 0
+        const usesB = usesById.get(b.id) ?? 0
+        if (usesA !== usesB) return usesB - usesA
+        return a.id.localeCompare(b.id)
+    })
+}
+
+/** "12 uses in 4 docs", "1 use in 1 doc", or "not used yet". */
+export function bundleUsageLabel(usage: BundleUsage | undefined): string {
+    if (!usage || usage.uses === 0) return "not used yet"
+    const uses = `${usage.uses} use${usage.uses === 1 ? "" : "s"}`
+    const docs = `${usage.docs} doc${usage.docs === 1 ? "" : "s"}`
+    return `${uses} in ${docs}`
 }

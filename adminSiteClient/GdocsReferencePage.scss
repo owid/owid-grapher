@@ -1573,3 +1573,46 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
 }
+
+// ---------------------------------------------------------------------------
+// Bespoke component page: the bundle index
+// ---------------------------------------------------------------------------
+
+.gdocs-ref-bespoke__index {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    max-width: 760px;
+}
+
+.gdocs-ref-bespoke__row {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid $gray-10;
+    font-size: 13px;
+}
+
+.gdocs-ref-bespoke__row-name {
+    flex: 0 0 220px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 6px;
+}
+
+.gdocs-ref-bespoke__row-title {
+    font-weight: 600;
+}
+
+.gdocs-ref-bespoke__row-variants {
+    flex: 1 1 auto;
+    color: $gray-70;
+}
+
+.gdocs-ref-bespoke__row-usage {
+    flex: 0 0 auto;
+    color: $gray-60;
+    white-space: nowrap;
+}
