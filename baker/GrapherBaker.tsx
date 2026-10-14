@@ -502,6 +502,8 @@ export async function renderDataPageV2(
             if (collapse.suppressUnit) datapageData.unit = undefined
             if (collapse.suppressDescriptionKey)
                 datapageData.descriptionKey = undefined
+            if (collapse.suppressDescriptionFromProducer)
+                datapageData.descriptionFromProducer = undefined
             if (collapse.suppressTitleVariant) {
                 datapageData.titleVariant = undefined
                 datapageData.title = {

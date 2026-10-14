@@ -13,6 +13,7 @@ import {
 import {
     AdditionalIndicator,
     CollapsedIndicatorListEntry,
+    DisplaySource,
     ArchiveContext,
     DataPageDataV2,
     FaqEntryData,
@@ -78,6 +79,12 @@ interface ExpandableSectionProps {
     // indicators, so naming one of them misleads).
     datapageCitationTitle?: string
     omitLongDatasetTitle?: boolean
+    // Switcher pages: the page citation credits every producer across the
+    // page's indicators, not only this pane's.
+    datapageCitationProducers?: string[]
+    // "How to cite this indicator" on switcher pages, where the pane is one
+    // of several indicators; "…this data" otherwise.
+    citationToggleLabel?: string
     collapsedIndicatorList?: CollapsedIndicatorListEntry[]
 }
 
@@ -128,13 +135,41 @@ function ExpandableSection({
     suppressToggleLogUntilRef,
     datapageCitationTitle,
     omitLongDatasetTitle,
+    datapageCitationProducers,
+    citationToggleLabel = "How to cite this data",
     collapsedIndicatorList,
 }: ExpandableSectionProps) {
     const { origins, source } = datapageData
+    // Merged multi-indicator pages: a source the indicators share may still
+    // link/cite differently per indicator — show those per indicator inside
+    // the shared source's toggle.
+    const sourceVariants = new Map<
+        string,
+        NonNullable<DisplaySource["variants"]>
+    >()
+    for (const entry of collapsedIndicatorList ?? []) {
+        for (const s of entry.sources ?? []) {
+            if (!sourceVariants.has(s.key)) sourceVariants.set(s.key, [])
+            sourceVariants.get(s.key)!.push({
+                label: entry.title,
+                retrievedFrom: s.urlMain,
+                citation: s.citationFull,
+            })
+        }
+    }
     const sourcesForDisplay = prepareSourcesForDisplay({
         origins,
         source,
-    })
+    }).map((s) =>
+        s.identityKey && sourceVariants.has(s.identityKey)
+            ? { ...s, variants: sourceVariants.get(s.identityKey) }
+            : s
+    )
+    // Merged pages whose producer documentation differs per indicator: one
+    // outer toggle for the source, one nested toggle per indicator.
+    const producerDocEntries = (collapsedIndicatorList ?? []).filter(
+        (e) => e.producerDescription
+    )
 
     const citationUrl = archiveContext?.archiveUrl ?? canonicalUrl
     const {
@@ -154,6 +189,7 @@ function ExpandableSection({
         primaryTopic,
         datapageCitationTitle,
         omitLongDatasetTitle,
+        datapageCitationProducers,
     })
 
     const faqQuestions = groupFaqsByQuestion(faqEntries?.faqs ?? [])
@@ -296,7 +332,8 @@ function ExpandableSection({
                         />
                     </section>
                 }
-                {datapageData.descriptionFromProducer && (
+                {(datapageData.descriptionFromProducer ||
+                    producerDocEntries.length > 0) && (
                     <section className="meta-expander__section">
                         <h2 className="meta-expander__section-title">
                             Documentation from data sources
@@ -307,9 +344,40 @@ function ExpandableSection({
                                 "Principal data source"
                             }
                             content={
-                                <SimpleMarkdownText
-                                    text={datapageData.descriptionFromProducer}
-                                />
+                                datapageData.descriptionFromProducer ? (
+                                    <SimpleMarkdownText
+                                        text={
+                                            datapageData.descriptionFromProducer
+                                        }
+                                    />
+                                ) : (
+                                    <div className="indicator-metadata-box__nested-docs">
+                                        {producerDocEntries.map((e, i) => (
+                                            <ExpandableToggle
+                                                key={i}
+                                                label={e.title}
+                                                isStacked={
+                                                    i <
+                                                    producerDocEntries.length -
+                                                        1
+                                                }
+                                                content={
+                                                    <SimpleMarkdownText
+                                                        text={
+                                                            e.producerDescription!
+                                                        }
+                                                    />
+                                                }
+                                                onToggle={(isOpen) =>
+                                                    logExpandableToggle(
+                                                        "producer_documentation_indicator",
+                                                        isOpen
+                                                    )
+                                                }
+                                            />
+                                        ))}
+                                    </div>
+                                )
                             }
                             onToggle={(isOpen) =>
                                 logExpandableToggle(
@@ -381,7 +449,7 @@ function ExpandableSection({
                         <section className="indicator-sources">
                             {citationShort && (
                                 <ExpandableToggle
-                                    label="How to cite this data"
+                                    label={citationToggleLabel}
                                     isStacked={!!citationLong}
                                     content={
                                         <>
@@ -468,6 +536,8 @@ function IndicatorPaneContent({
     suppressToggleLogUntilRef,
     datapageCitationTitle,
     omitLongDatasetTitle,
+    datapageCitationProducers,
+    citationToggleLabel,
     paneTitleOverride,
     collapsedIndicatorList,
 }: {
@@ -480,6 +550,8 @@ function IndicatorPaneContent({
     suppressToggleLogUntilRef?: React.RefObject<number>
     datapageCitationTitle?: string
     omitLongDatasetTitle?: boolean
+    datapageCitationProducers?: string[]
+    citationToggleLabel?: string
     // Collapsed multi-indicator mode: the pane heading reads "About this
     // data" (no single indicator owns the pane) and the indicator list
     // renders inside the expander, above the shared WYSK.
@@ -600,6 +672,8 @@ function IndicatorPaneContent({
                 processingContentId={processingContentId}
                 suppressToggleLogUntilRef={suppressToggleLogUntilRef}
                 datapageCitationTitle={datapageCitationTitle}
+                datapageCitationProducers={datapageCitationProducers}
+                citationToggleLabel={citationToggleLabel}
                 omitLongDatasetTitle={omitLongDatasetTitle}
             />
         </>
@@ -749,14 +823,15 @@ function CollapsedIndicatorList({
                     </li>
                 ))}
             </ol>
-            {foldable && (toggle || !expanded) && (
-                // While the box is closed the link is withheld (it would sit
-                // beside "Show more"); a bare ellipsis still signals that
-                // the list continues.
-                <p className="indicator-metadata-box__collapsed-list-more">
-                    {toggle || "\u2026"}
-                </p>
-            )}
+            {foldable &&
+                (toggle || !expanded) && (
+                    // While the box is closed the link is withheld (it would sit
+                    // beside "Show more"); a bare ellipsis still signals that
+                    // the list continues.
+                    <p className="indicator-metadata-box__collapsed-list-more">
+                        {toggle || "\u2026"}
+                    </p>
+                )}
         </div>
     )
 }
@@ -796,6 +871,22 @@ export default function IndicatorMetadataBox({
     // page is still conceptually multi-indicator (citations cite the chart).
     const isCollapsedMulti = !isMulti && !!collapsedIndicatorList?.length
     const isMultiForCitations = isMulti || isCollapsedMulti
+    // Switcher pages cite the PAGE with every producer used across its
+    // indicators (a merged page's panes already share one source set).
+    // Some origins carry a semicolon-joined composite producer ("A; B; C"),
+    // so split before de-duplicating or the union repeats names.
+    const pageCitationProducers = isMulti
+        ? _.uniq(
+              indicators.flatMap((ind) =>
+                  (ind.datapageData.origins ?? []).flatMap((o) =>
+                      `${o.producer}`
+                          .split(";")
+                          .map((x) => x.trim())
+                          .filter(Boolean)
+                  )
+              )
+          )
+        : undefined
 
     const [activeIndex, setActiveIndex] = useState(0)
     // Guard against the active indicator being unmounted between renders
@@ -877,6 +968,10 @@ export default function IndicatorMetadataBox({
                         : undefined
                 }
                 omitLongDatasetTitle={isMultiForCitations}
+                datapageCitationProducers={pageCitationProducers}
+                citationToggleLabel={
+                    isMulti ? "How to cite this indicator" : undefined
+                }
             />
         </div>
     ))

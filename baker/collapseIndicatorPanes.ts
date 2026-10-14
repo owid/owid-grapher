@@ -1,4 +1,5 @@
 import * as _ from "lodash-es"
+import { getOriginIdentityKey } from "@ourworldindata/utils"
 import {
     AdditionalIndicator,
     CollapsedIndicatorListEntry,
@@ -54,28 +55,19 @@ export interface IndicatorPaneCollapse {
     // share one variant the entries omit it and the pane keeps it (the list
     // intro states it once).
     suppressTitleVariant: boolean
+    // Producer documentation differs per indicator: the pane drops its own
+    // and the list entries carry each indicator's, rendered as nested toggles.
+    suppressDescriptionFromProducer: boolean
 }
 
 const canon = (x: unknown): string => JSON.stringify(x ?? null)
 
-// The subset of an origin a reader can actually see (metadata box sources
-// accordion) or cite. Compared as a sorted multiset so ETL-side reordering of
-// the origins array can't block a collapse.
-const visibleOriginIdentity = (o: OwidOrigin): string =>
-    canon({
-        producer: o.producer,
-        title: o.title,
-        versionProducer: o.versionProducer,
-        attribution: o.attribution,
-        citationFull: o.citationFull,
-        description: o.description,
-        dateAccessed: o.dateAccessed,
-        urlMain: o.urlMain,
-        license: o.license ?? null,
-    })
-
+// Same SET of sources (by identity) is the requirement; a shared source whose
+// link/citation differs per indicator is allowed and surfaces per indicator.
 const originsKey = (origins: OwidOrigin[] | undefined): string =>
-    canon([...(origins ?? []).map(visibleOriginIdentity)].sort())
+    canon([...(origins ?? []).map(getOriginIdentityKey)].sort())
+const originContent = (o: OwidOrigin): string =>
+    canon({ urlMain: o.urlMain ?? null, citationFull: o.citationFull ?? null })
 
 const TIMESPAN_REGEX = /^\s*(-?\d+)-(-?\d+)\s*$/
 
@@ -99,7 +91,6 @@ export function computeIndicatorPaneCollapse(
 
     // Hard blockers: substantive fields that must match exactly.
     if (!allSame((dd) => dd.descriptionProcessing)) return undefined
-    if (!allSame((dd) => dd.descriptionFromProducer)) return undefined
     if (!allSame((dd) => dd.attributionShort)) return undefined
     if (!allSame((dd) => dd.owidProcessingLevel)) return undefined
     if (!allSame((dd) => dd.source ?? null)) return undefined
@@ -148,6 +139,22 @@ export function computeIndicatorPaneCollapse(
         dds.map((dd) => dd.nextUpdate).filter((d): d is string => !!d)
     )
 
+    const producerDocsDiffer = !allSame(
+        (dd) => dd.descriptionFromProducer ?? ""
+    )
+    // Shared sources whose per-indicator content (link, citation) differs.
+    const varyingSourceKeys = _.uniq(
+        (dds[0].origins ?? []).map(getOriginIdentityKey)
+    ).filter((key) => {
+        const contents = dds.map((dd) => {
+            const o = (dd.origins ?? []).find(
+                (x) => getOriginIdentityKey(x) === key
+            )
+            return o ? originContent(o) : ""
+        })
+        return new Set(contents).size > 1
+    })
+
     const shortsDiffer = !allSame((dd) => dd.descriptionShort ?? "")
     const unitsDiffer = !allSame((dd) => dd.unit ?? "")
     // A variant shared by every indicator ("period tables" on all 19 age
@@ -160,6 +167,26 @@ export function computeIndicatorPaneCollapse(
             short: shortsDiffer ? dd.descriptionShort || undefined : undefined,
             unit: unitsDiffer ? dd.unit || undefined : undefined,
             note: wyskDiffers && wysks[i] ? wysks[i] : undefined,
+            producerDescription: producerDocsDiffer
+                ? dd.descriptionFromProducer || undefined
+                : undefined,
+            sources:
+                varyingSourceKeys.length > 0
+                    ? varyingSourceKeys.flatMap((key) => {
+                          const o = (dd.origins ?? []).find(
+                              (x) => getOriginIdentityKey(x) === key
+                          )
+                          return o
+                              ? [
+                                    {
+                                        key,
+                                        urlMain: o.urlMain,
+                                        citationFull: o.citationFull,
+                                    },
+                                ]
+                              : []
+                      })
+                    : undefined,
         })
     )
 
@@ -173,5 +200,6 @@ export function computeIndicatorPaneCollapse(
         suppressUnit: unitsDiffer,
         suppressDescriptionKey: wyskDiffers,
         suppressTitleVariant: variantsDiffer,
+        suppressDescriptionFromProducer: producerDocsDiffer,
     }
 }

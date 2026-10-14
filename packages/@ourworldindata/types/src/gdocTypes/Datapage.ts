@@ -94,6 +94,15 @@ export interface CollapsedIndicatorListEntry {
     short?: string
     unit?: string
     note?: string
+    /** This indicator's producer documentation, when it differs across indicators. */
+    producerDescription?: string
+    /**
+     * Per-indicator content of a data source the indicators share (same
+     * producer/title/version/description/access date) but whose link or
+     * citation text differs per indicator — e.g. one WDI source with a
+     * different landing URL per indicator. Keyed by the source's identity.
+     */
+    sources?: { key: string; urlMain?: string; citationFull?: string }[]
 }
 
 export interface AdditionalIndicator {
@@ -143,6 +152,14 @@ export interface DisplaySource {
     retrievedOn?: string
     retrievedFrom?: string
     citation?: string
+    /**
+     * Per-indicator link/citation of this source on a merged multi-indicator
+     * page; when present the Sources UI renders these instead of the single
+     * retrievedFrom/citation.
+     */
+    variants?: { label: string; retrievedFrom?: string; citation?: string }[]
+    /** getOriginIdentityKey of the origin this source was built from. */
+    identityKey?: string
     // Only the data-download readme reads these; the Sources UIs render the
     // fields above. They are here so both start from one shape.
     producer?: string

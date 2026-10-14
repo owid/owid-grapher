@@ -300,7 +300,9 @@
 // h-pills responsive swap: pills from the small breakpoint up, the dropdown
 // select on its own full-width row below it. Both are SSR'd; CSS picks one
 // per viewport (display: none), so there's no post-hydration flash.
-.indicator-metadata-box-wrap--h-pills:not(.indicator-metadata-box-wrap--collapsed) {
+.indicator-metadata-box-wrap--h-pills:not(
+    .indicator-metadata-box-wrap--collapsed
+) {
     .indicator-switcher__h-pills {
         @include sm-only {
             display: none;
@@ -450,4 +452,28 @@
 .indicator-metadata-box-wrap--dropdown
     .indicator-metadata-box__indicator-title {
     display: none;
+}
+
+// Merged multi-indicator pages: per-indicator producer documentation sits as
+// nested toggles inside the single source toggle.
+.indicator-metadata-box__nested-docs {
+    .ExpandableToggle {
+        border-top: 1px solid $blue-10;
+    }
+    .ExpandableToggle:last-child {
+        border-bottom: none;
+    }
+    .ExpandableToggle__title {
+        @include body-3-medium;
+    }
+}
+
+// Per-indicator link/citation rows of a shared data source.
+.source-key-data--variant {
+    .source-key-data__variant-row {
+        margin-bottom: 8px;
+    }
+    .source-key-data__variant-row:last-child {
+        margin-bottom: 0;
+    }
 }

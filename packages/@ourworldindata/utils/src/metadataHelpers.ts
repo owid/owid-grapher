@@ -158,6 +158,24 @@ export const getProcessingPhraseForAttribution = (
         ? undefined
         : getPhraseForProcessingLevel(owidProcessingLevel)
 
+/**
+ * The part of an origin that identifies the data SOURCE to a reader —
+ * producer, title, version, attribution, description, access date, license.
+ * Excludes per-indicator content (urlMain, citationFull) and internal fields
+ * (id, titleSnapshot, urlDownload). Two origins with the same key are the
+ * same source, possibly with different links per indicator.
+ */
+export const getOriginIdentityKey = (o: OwidOrigin): string =>
+    JSON.stringify({
+        producer: o.producer ?? null,
+        title: o.title ?? null,
+        versionProducer: o.versionProducer ?? null,
+        attribution: o.attribution ?? null,
+        description: o.description ?? null,
+        dateAccessed: o.dateAccessed ?? null,
+        license: o.license ?? null,
+    })
+
 const prepareOriginForDisplay = (origin: OwidOrigin): DisplaySource => {
     const title = origin.title !== origin.producer ? origin.title : undefined
     const label = excludeUndefined([origin.producer, title]).join(" – ")
@@ -168,6 +186,7 @@ const prepareOriginForDisplay = (origin: OwidOrigin): DisplaySource => {
         retrievedOn: origin.dateAccessed,
         retrievedFrom: origin.urlMain,
         citation: origin.citationFull,
+        identityKey: getOriginIdentityKey(origin),
         // Read only by the data-download readme, which lists each source once and
         // has room to say more about it than the Sources UIs do.
         producer: origin.producer,
@@ -299,6 +318,7 @@ const getCitationLong = ({
 
 const getCitationDatapage = ({
     citationTitle,
+    producersOverride,
     origins,
     source,
     primaryTopic,
@@ -306,6 +326,7 @@ const getCitationDatapage = ({
     archivalDate,
 }: {
     citationTitle: string
+    producersOverride?: string[]
     origins: OwidOrigin[]
     source?: OwidSource
     primaryTopic?: PrimaryTopic
@@ -313,7 +334,9 @@ const getCitationDatapage = ({
     archivalDate?: string
 }): string => {
     const currentYear = dayjs().year()
-    const producers = _.uniq(origins.map((origin) => `${origin.producer}`))
+    const producers =
+        producersOverride ??
+        _.uniq(origins.map((origin) => `${origin.producer}`))
     const adaptedFrom =
         producers.length > 0 ? producers.join(", ") : source?.name
 
@@ -347,6 +370,7 @@ export const getIndicatorCitations = ({
     primaryTopic,
     datapageCitationTitle,
     omitLongDatasetTitle,
+    datapageCitationProducers,
 }: {
     indicatorTitle: IndicatorTitleWithFragments
     origins: OwidOrigin[]
@@ -365,6 +389,11 @@ export const getIndicatorCitations = ({
      */
     datapageCitationTitle?: string
     omitLongDatasetTitle?: boolean
+    /**
+     * Multi-indicator pages: the page citation's "Data adapted from" names
+     * every producer used across the page's indicators, not only this pane's.
+     */
+    datapageCitationProducers?: string[]
 }): { short: string; long: string; datapage?: string } => ({
     short: getCitationShort({ attributions, owidProcessingLevel }),
     long: getCitationLong({
@@ -382,6 +411,7 @@ export const getIndicatorCitations = ({
     datapage: citationUrl
         ? getCitationDatapage({
               citationTitle: datapageCitationTitle ?? indicatorTitle.title,
+              producersOverride: datapageCitationProducers,
               origins,
               source,
               primaryTopic,

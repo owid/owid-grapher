@@ -158,6 +158,61 @@ describe(computeIndicatorPaneCollapse, () => {
         ).toBeUndefined()
     })
 
+    it("merges differing producer docs as per-entry docs and suppresses the pane's", () => {
+        const r = computeIndicatorPaneCollapse([
+            pane({ descriptionFromProducer: "Doc A" }),
+            pane({
+                title: { title: "Deaths" },
+                descriptionFromProducer: "Doc B",
+            }),
+        ])
+        expect(r).toBeDefined()
+        expect(r!.suppressDescriptionFromProducer).toBe(true)
+        expect(r!.list.map((e) => e.producerDescription)).toEqual([
+            "Doc A",
+            "Doc B",
+        ])
+        const same = computeIndicatorPaneCollapse([
+            pane({ descriptionFromProducer: "Doc" }),
+            pane({
+                title: { title: "Deaths" },
+                descriptionFromProducer: "Doc",
+            }),
+        ])
+        expect(same!.suppressDescriptionFromProducer).toBe(false)
+        expect(same!.list[0].producerDescription).toBeUndefined()
+    })
+
+    it("merges a shared source whose link/citation differ, surfacing them per entry", () => {
+        const r = computeIndicatorPaneCollapse([
+            pane({
+                origins: [origin({ urlMain: "https://a", citationFull: "A" })],
+            }),
+            pane({
+                title: { title: "Deaths" },
+                origins: [origin({ urlMain: "https://b", citationFull: "B" })],
+            }),
+        ])
+        expect(r).toBeDefined()
+        expect(r!.list.map((e) => e.sources?.[0]?.urlMain)).toEqual([
+            "https://a",
+            "https://b",
+        ])
+        // identical content → nothing to surface
+        const same = computeIndicatorPaneCollapse([
+            pane(),
+            pane({ title: { title: "Deaths" } }),
+        ])
+        expect(same!.list[0].sources).toBeUndefined()
+        // a different source SET still blocks
+        expect(
+            computeIndicatorPaneCollapse([
+                pane(),
+                pane({ origins: [origin(), origin({ producer: "WHO" })] }),
+            ])
+        ).toBeUndefined()
+    })
+
     it("unions owners and takes the latest lastUpdated", () => {
         const r = computeIndicatorPaneCollapse([
             pane({
