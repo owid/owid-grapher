@@ -10,26 +10,37 @@
  */
 
 import pMap from "p-map"
+import { calcPrice } from "@pydantic/genai-prices"
 import * as db from "../db/db.js"
 import { TransactionCloseMode } from "../db/db.js"
 import { CLOUDFLARE_IMAGES_URL } from "../settings/clientSettings.mjs"
 import { DbEnrichedImage } from "@ourworldindata/types"
 import {
     fetchGptGeneratedTextFromImage,
+    TEXT_EXTRACTION_MODEL,
     TextExtractionResult,
 } from "../adminSiteServer/imagesHelpers.js"
 
-// Pricing per 1M tokens for gpt-5-mini (as of March 2026)
-const PRICING = { input: 0.25, output: 2 }
+function calculateCost(usage: NonNullable<TextExtractionResult["usage"]>) {
+    return calcPrice(
+        {
+            input_tokens: usage.promptTokens,
+            output_tokens: usage.completionTokens,
+        },
+        TEXT_EXTRACTION_MODEL,
+        { providerId: "openai" }
+    )
+}
 
 function estimateCost(usage: TextExtractionResult["usage"]): string {
     if (!usage) return "unknown (no usage data)"
 
-    const inputCost = (usage.promptTokens / 1_000_000) * PRICING.input
-    const outputCost = (usage.completionTokens / 1_000_000) * PRICING.output
-    const totalCost = inputCost + outputCost
+    const tokens = `${usage.promptTokens} prompt + ${usage.completionTokens} completion tokens`
+    const price = calculateCost(usage)
+    if (!price)
+        return `unknown (no price for ${TEXT_EXTRACTION_MODEL}) (${tokens})`
 
-    return `$${totalCost.toFixed(6)} (${usage.promptTokens} prompt + ${usage.completionTokens} completion tokens)`
+    return `$${price.total_price.toFixed(6)} (${tokens})`
 }
 
 function parseArgs() {
@@ -83,12 +94,7 @@ async function processImage(image: DbEnrichedImage): Promise<ImageResult> {
     const url = `${CLOUDFLARE_IMAGES_URL}/${image.cloudflareId}/public`
     const { text, usage } = await fetchGptGeneratedTextFromImage(url)
 
-    let cost = 0
-    if (usage) {
-        cost =
-            (usage.promptTokens / 1_000_000) * PRICING.input +
-            (usage.completionTokens / 1_000_000) * PRICING.output
-    }
+    const cost = usage ? (calculateCost(usage)?.total_price ?? 0) : 0
 
     return { image, text, usage, cost }
 }

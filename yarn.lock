@@ -2939,6 +2939,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@pydantic/genai-prices@npm:^0.1.10":
+  version: 0.1.10
+  resolution: "@pydantic/genai-prices@npm:0.1.10"
+  bin:
+    genai-prices: dist/cli.js
+  checksum: 10/75123b191e1ee6882154a91b09ae0e2f8417c09e21b17799cdf60bc185c9deff1417aea95d490211eec668b90980d759d96858c3ba5f2d4b1c6c4f09ba12f678
+  languageName: node
+  linkType: hard
+
 "@quansync/fs@npm:^1.0.0":
   version: 1.0.0
   resolution: "@quansync/fs@npm:1.0.0"
@@ -8788,6 +8797,7 @@ __metadata:
     "@ourworldindata/types": "workspace:^"
     "@ourworldindata/utils": "workspace:^"
     "@playwright/test": "npm:^1.63.0"
+    "@pydantic/genai-prices": "npm:^0.1.10"
     "@react-aria/optimize-locales-plugin": "npm:^2.0.2"
     "@react-querybuilder/antd": "npm:^8.23.1"
     "@rmp135/sql-ts": "npm:^2.1.0"
