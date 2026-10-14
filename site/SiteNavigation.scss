@@ -156,16 +156,6 @@
                 margin-bottom: 12px;
             }
 
-            .newsletter-subscription-header--compact {
-                .newsletter-subscription-header__icon {
-                    display: block;
-                }
-
-                .newsletter-subscription-header__heading {
-                    margin-bottom: 0;
-                }
-            }
-
             .SiteNavigationToggle__dropdown {
                 position: absolute;
                 top: calc(100% + $header-border-height);
@@ -179,9 +169,10 @@
                     padding: 16px;
                 }
 
-                &:has(.newsletter-subscription-header--compact) {
+                // The panel brings its own padding and background.
+                &:has(.newsletter-signup-panel) {
                     width: 302px;
-                    padding: 16px;
+                    padding: 0;
                     @include sm-only {
                         width: 100vw;
                     }
