@@ -1,4 +1,3 @@
-import * as z from "zod/mini"
 import {
     EmailNotificationsPreferences,
     JsonError,
@@ -14,6 +13,7 @@ import {
     validateEmailNotificationsDatabase,
 } from "../../_common/emailNotifications.js"
 import { logErrorAndCaptureInSentry } from "../../_common/errorLog.js"
+import { describeInvalidRequest } from "../../_common/requestValidation.js"
 import {
     MailchimpCleanedContactError,
     enableOwidBriefSubscription,
@@ -42,10 +42,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
         const { data, error } =
             EmailNotificationsSubscribeRequestTypeObject.safeParse(rawPayload)
         if (!data) {
-            throw new JsonError(
-                `Invalid subscribe request: ${z.prettifyError(error)}`,
-                400
-            )
+            throw new JsonError(describeInvalidRequest(error), 400)
         }
 
         const email = data.email.trim().toLowerCase()
