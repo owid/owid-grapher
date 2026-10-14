@@ -342,6 +342,11 @@
 // WYSK preview that follows it drops its own top margin so the two read as
 // consecutive paragraphs.
 .indicator-metadata-box__collapsed-list {
+    // The prose rules zero the margin of a last-child <p>/<ol>, which would
+    // butt the list straight onto the WYSK's first bullet; match the gap
+    // between WYSK bullets instead.
+    margin-bottom: 8px;
+
     li {
         margin-bottom: 10px;
 
