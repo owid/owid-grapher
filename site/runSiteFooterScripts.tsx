@@ -42,7 +42,7 @@ import {
 } from "@ourworldindata/types"
 import { SubscribeFlow } from "./Newsletter/SubscribeFlow.js"
 import { EmailNotificationsPreferencesForm } from "./Newsletter/EmailNotificationsPreferencesForm.js"
-import { NewsletterSubscriptionForm } from "./NewsletterSubscription.js"
+import { MailchimpSubscriptionForm } from "./NewsletterSubscription.js"
 import { NewsletterSubscriptionContext } from "./newsletter.js"
 import UserSurvey from "./gdocs/components/UserSurvey.js"
 import {
@@ -96,7 +96,7 @@ function hydrateOldSubscribePage() {
     if (container) {
         hydrateRoot(
             container,
-            <NewsletterSubscriptionForm
+            <MailchimpSubscriptionForm
                 context={NewsletterSubscriptionContext.SubscribePage}
             />
         )

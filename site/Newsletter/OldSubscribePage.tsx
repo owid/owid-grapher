@@ -6,7 +6,7 @@ import {
     SiteFooterContext,
     OLD_SUBSCRIBE_PAGE_FORM_CONTAINER_ID,
 } from "@ourworldindata/types"
-import { NewsletterSubscriptionForm } from "../NewsletterSubscription.js"
+import { MailchimpSubscriptionForm } from "../NewsletterSubscription.js"
 import { NewsletterSubscriptionContext } from "../newsletter.js"
 import { OwidSocials } from "../OwidSocials.js"
 import { BAKED_BASE_URL } from "../../settings/clientSettings.mjs"
@@ -33,7 +33,7 @@ export const OldSubscribePage = ({ baseUrl }: OldSubscribePageProps) => {
                     </h1>
                     <div className="span-cols-6 col-start-5 span-md-cols-10 col-md-start-3 span-sm-cols-12 col-sm-start-2">
                         <div id={OLD_SUBSCRIBE_PAGE_FORM_CONTAINER_ID}>
-                            <NewsletterSubscriptionForm
+                            <MailchimpSubscriptionForm
                                 context={
                                     NewsletterSubscriptionContext.SubscribePage
                                 }

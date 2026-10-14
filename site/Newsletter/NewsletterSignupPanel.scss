@@ -1,0 +1,40 @@
+// The compact newsletter signup: one look in every context (header nav, site
+// tools, homepage, /latest). Containers only position it and set its width.
+// Imported after the context stylesheets so these rules win ties.
+.newsletter-signup-panel {
+    padding: 16px;
+    background-color: $accent-pale-blue;
+}
+
+.newsletter-signup-panel__header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 16px;
+    margin-bottom: 16px;
+}
+
+.newsletter-signup-panel__icon {
+    flex-shrink: 0;
+    width: 56px;
+    height: 56px;
+}
+
+.newsletter-signup-panel__heading {
+    font-family: $serif-font-stack;
+    font-size: 1.25rem;
+    line-height: 1.2;
+    font-weight: 700;
+    letter-spacing: 0;
+    color: $blue-90;
+    margin: 0;
+    flex: 1 1 0;
+    min-width: 0;
+    // Wraps "Subscribe to / our newsletters" onto two lines beside the icon,
+    // however wide the container is.
+    max-width: 150.25px;
+}
+
+.newsletter-signup-panel__subheading {
+    flex: 1 1 100%;
+}
