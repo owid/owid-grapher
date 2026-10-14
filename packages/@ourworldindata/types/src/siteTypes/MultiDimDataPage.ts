@@ -191,7 +191,6 @@ export interface MultiDimDataPageProps {
     configObj: MultiDimDataPageConfigEnriched
     initialViewData?: MultiDimDataPageInitialViewData
     initialViewDimensions?: MultiDimDimensionChoices
-    tagToSlugMap?: Record<string, string>
     faqEntries?: FaqEntryKeyedByGdocIdAndFragmentId
     primaryTopic?: PrimaryTopic
     relatedResearchCandidates: DataPageRelatedResearch[]
