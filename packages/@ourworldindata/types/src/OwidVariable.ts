@@ -121,8 +121,8 @@ export const OwidLicenseSchema = z.object({
 export interface OwidVariableAnnotation {
     text: string
     entities?: EntityName[]
-    time?: Time
-    timeEnd?: Time
+    time?: Time | string
+    timeEnd?: Time | string
 }
 
 export interface OwidVariablePresentation {
