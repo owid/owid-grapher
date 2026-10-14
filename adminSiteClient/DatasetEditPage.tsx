@@ -747,7 +747,7 @@ class DatasetEditor extends Component<DatasetEditorProps> {
                                                     optionFilterProp: "value",
                                                 }}
                                                 allowClear
-                                                popupMatchSelectWidth={false}
+                                                popupMatchSelectWidth={400}
                                                 style={{ minWidth: 240 }}
                                             />
                                         )}
