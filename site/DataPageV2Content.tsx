@@ -18,7 +18,6 @@ import { RelatedDataCharts } from "./RelatedDataCharts.js"
 import {
     ADMIN_BASE_URL,
     BAKED_GRAPHER_URL,
-    ENV,
 } from "../settings/clientSettings.mjs"
 import DownloadSection, {
     type DownloadSectionProps,
@@ -83,10 +82,7 @@ export const DataPageV2Content = ({
     imageMetadata: Record<string, ImageMetadata>
 }) => {
     const slug = grapherConfig.slug
-    const perspectivePage =
-        ENV === "development"
-            ? perspectivePages.find((page) => page.slug === slug)
-            : undefined
+    const perspectivePage = perspectivePages.find((page) => page.slug === slug)
     const useNewDatapageDesign = isDataPageMetadataRedesignActive(
         `/grapher/${slug}`
     )
