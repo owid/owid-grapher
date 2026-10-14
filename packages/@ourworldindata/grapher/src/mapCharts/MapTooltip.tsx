@@ -17,7 +17,11 @@ import {
     NO_DATA_COLOR,
 } from "../tooltip/Tooltip"
 import { MapChartManager, MapColumnInfo } from "./MapChartConstants"
-import { ColorScale, INAPPLICABLE_LABEL } from "../color/ColorScale"
+import {
+    ColorScale,
+    INAPPLICABLE_COLOR,
+    INAPPLICABLE_LABEL,
+} from "../color/ColorScale"
 import {
     Time,
     EntityName,
@@ -358,6 +362,7 @@ export class MapTooltip
                         }
                         colorScale={colorScale}
                         isProjection={isProjection}
+                        isInapplicable={this.isInapplicableEntity}
                     />
                 )}
                 <MapSparkline
@@ -376,22 +381,26 @@ function MapTooltipValue({
     formattedValue,
     colorScale,
     isProjection = false,
+    isInapplicable = false,
 }: {
     mapColumn: CoreColumn
     datum?: OwidVariableRow<number | string>
     formattedValue?: string
     colorScale: ColorScale
     isProjection?: boolean
+    isInapplicable?: boolean
 }): React.ReactElement {
-    const color = makeTextColorForValue(datum?.value, { colorScale })
+    const color = isInapplicable
+        ? INAPPLICABLE_COLOR
+        : makeTextColorForValue(datum?.value, { colorScale })
 
     return (
         <TooltipValue
             label={mapColumn.displayName}
-            unit={mapColumn.displayUnit}
+            unit={isInapplicable ? undefined : mapColumn.displayUnit}
             value={formattedValue}
             color={color}
-            isProjection={isProjection}
+            isProjection={!isInapplicable && isProjection}
             labelVariant="unit-only"
             noDataLabel={colorScale.noDataLabel}
         />
