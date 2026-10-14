@@ -10,26 +10,39 @@
  */
 
 import pMap from "p-map"
+import { calcPrice, type PriceCalculationResult } from "@pydantic/genai-prices"
 import * as db from "../db/db.js"
 import { TransactionCloseMode } from "../db/db.js"
 import { CLOUDFLARE_IMAGES_URL } from "../settings/clientSettings.mjs"
 import { DbEnrichedImage } from "@ourworldindata/types"
 import {
     fetchGptGeneratedTextFromImage,
+    TEXT_EXTRACTION_MODEL,
     TextExtractionResult,
 } from "../adminSiteServer/imagesHelpers.js"
 
-// Pricing per 1M tokens for gpt-5-mini (as of March 2026)
-const PRICING = { input: 0.25, output: 2 }
+function calculateCost(
+    usage: NonNullable<TextExtractionResult["usage"]>
+): PriceCalculationResult {
+    return calcPrice(
+        {
+            input_tokens: usage.promptTokens,
+            output_tokens: usage.completionTokens,
+        },
+        TEXT_EXTRACTION_MODEL,
+        { providerId: "openai" }
+    )
+}
 
 function estimateCost(usage: TextExtractionResult["usage"]): string {
     if (!usage) return "unknown (no usage data)"
 
-    const inputCost = (usage.promptTokens / 1_000_000) * PRICING.input
-    const outputCost = (usage.completionTokens / 1_000_000) * PRICING.output
-    const totalCost = inputCost + outputCost
+    const tokens = `${usage.promptTokens} prompt + ${usage.completionTokens} completion tokens`
+    const price = calculateCost(usage)
+    if (!price)
+        return `unknown (no price for ${TEXT_EXTRACTION_MODEL}) (${tokens})`
 
-    return `$${totalCost.toFixed(6)} (${usage.promptTokens} prompt + ${usage.completionTokens} completion tokens)`
+    return `$${price.total_price.toFixed(6)} (${tokens})`
 }
 
 function parseArgs() {
@@ -76,19 +89,15 @@ interface ImageResult {
     image: DbEnrichedImage
     text: string | null
     usage: TextExtractionResult["usage"]
-    cost: number
+    /** null when there is no usage data or no price for the model */
+    cost: number | null
 }
 
 async function processImage(image: DbEnrichedImage): Promise<ImageResult> {
     const url = `${CLOUDFLARE_IMAGES_URL}/${image.cloudflareId}/public`
     const { text, usage } = await fetchGptGeneratedTextFromImage(url)
 
-    let cost = 0
-    if (usage) {
-        cost =
-            (usage.promptTokens / 1_000_000) * PRICING.input +
-            (usage.completionTokens / 1_000_000) * PRICING.output
-    }
+    const cost = usage ? (calculateCost(usage)?.total_price ?? null) : null
 
     return { image, text, usage, cost }
 }
@@ -145,6 +154,7 @@ const main = async () => {
     console.log(`Found ${images.length} images without extracted text.`)
 
     let totalCost = 0
+    let unpricedImages = 0
     const totalBatches = Math.ceil(images.length / BATCH_SIZE)
 
     for (let b = 0; b < totalBatches; b++) {
@@ -174,10 +184,13 @@ const main = async () => {
             logResult(result, fix)
         }
 
-        totalCost += results.reduce((sum, r) => sum + r.cost, 0)
+        for (const result of results) {
+            if (result.cost === null) unpricedImages++
+            else totalCost += result.cost
+        }
 
         console.log(
-            `\n  Batch ${b + 1} done. Running total cost: $${totalCost.toFixed(4)}`
+            `\n  Batch ${b + 1} done. Running total cost: ${formatTotal(totalCost, unpricedImages)}`
         )
 
         if (b < totalBatches - 1) {
@@ -190,7 +203,16 @@ const main = async () => {
 
     console.log(`\n=== Final Summary ===`)
     console.log(`  Images processed: ${images.length}`)
-    console.log(`  Total estimated cost: $${totalCost.toFixed(4)}`)
+    console.log(
+        `  Total estimated cost: ${formatTotal(totalCost, unpricedImages)}`
+    )
+}
+
+function formatTotal(totalCost: number, unpricedImages: number): string {
+    const total = `$${totalCost.toFixed(4)}`
+    return unpricedImages > 0
+        ? `${total} (excludes ${unpricedImages} image(s) with no price)`
+        : total
 }
 
 void main().then(() => process.exit())

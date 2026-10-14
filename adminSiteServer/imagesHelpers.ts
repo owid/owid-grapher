@@ -9,6 +9,9 @@ import {
 import { OpenAI } from "openai"
 import { ACCEPTED_IMG_TYPES } from "../adminSiteClient/imagesHelpers.js"
 
+// OpenAI model used for alt text and image text extraction
+export const TEXT_EXTRACTION_MODEL = "gpt-5-mini"
+
 export function validateImagePayload(body: any): {
     filename: string
     type: string
@@ -143,7 +146,7 @@ Example 2: "Changes in forest area by world region since 1990 is a set of bar ch
                 ],
             },
         ],
-        model: "gpt-5-mini",
+        model: TEXT_EXTRACTION_MODEL,
     })
 
     const content = completion.choices[0].message.content
@@ -191,7 +194,7 @@ If there is no text in the image, return an empty string.`,
                 ],
             },
         ],
-        model: "gpt-5-mini",
+        model: TEXT_EXTRACTION_MODEL,
     })
 
     const content = completion.choices[0].message.content

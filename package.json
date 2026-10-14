@@ -179,6 +179,7 @@
     },
     "devDependencies": {
         "@playwright/test": "^1.63.0",
+        "@pydantic/genai-prices": "^0.1.11",
         "@react-aria/optimize-locales-plugin": "^2.0.2",
         "@rmp135/sql-ts": "^2.1.0",
         "@rollup/plugin-swc": "^0.4.1",
