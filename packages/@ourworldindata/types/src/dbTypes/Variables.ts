@@ -1,4 +1,8 @@
-import { normalizeDescriptionKey, OwidVariableType } from "../OwidVariable.js"
+import {
+    normalizeDescriptionKey,
+    OwidVariableAnnotation,
+    OwidVariableType,
+} from "../OwidVariable.js"
 import { OwidVariableDisplayConfigInterface } from "../OwidVariableDisplayConfigInterface.js"
 import { JsonString } from "../domainTypes/Various.js"
 
@@ -38,6 +42,7 @@ export interface DbInsertVariable {
     updatedAt?: Date
     type?: OwidVariableType | null
     sort?: JsonString | null
+    annotations?: JsonString | null
     dataChecksum?: string | null
     metadataChecksum?: string | null
 }
@@ -68,6 +73,7 @@ export type DbEnrichedVariable = Omit<
     | "originalMetadata"
     | "processingLog"
     | "sort"
+    | "annotations"
 > & {
     display: OwidVariableDisplayConfigInterface
     license: License | null
@@ -77,6 +83,7 @@ export type DbEnrichedVariable = Omit<
     originalMetadata: unknown | null
     processingLog: unknown | null
     sort: string[] | null
+    annotations: OwidVariableAnnotation[] | null
 }
 
 export function parseVariableDisplayConfig(
@@ -171,6 +178,18 @@ export function serializeVariableSort(
     return sort ? JSON.stringify(sort) : null
 }
 
+export function parseVariableAnnotations(
+    annotations: JsonString | null
+): OwidVariableAnnotation[] | null {
+    return annotations ? JSON.parse(annotations) : null
+}
+
+export function serializeVariableAnnotations(
+    annotations: OwidVariableAnnotation[] | null
+): JsonString | null {
+    return annotations ? JSON.stringify(annotations) : null
+}
+
 export function parseVariablesRow(row: DbRawVariable): DbEnrichedVariable {
     return {
         ...row,
@@ -182,6 +201,7 @@ export function parseVariablesRow(row: DbRawVariable): DbEnrichedVariable {
         originalMetadata: parseVariableOriginalMetadata(row.originalMetadata),
         processingLog: parseVariableProcessingLog(row.processingLog),
         sort: parseVariableSort(row.sort),
+        annotations: parseVariableAnnotations(row.annotations),
     }
 }
 
@@ -198,5 +218,6 @@ export function serializeVariablesRow(row: DbEnrichedVariable): DbRawVariable {
         ),
         processingLog: serializeVariableProcessingLog(row.processingLog),
         sort: serializeVariableSort(row.sort),
+        annotations: serializeVariableAnnotations(row.annotations),
     }
 }
