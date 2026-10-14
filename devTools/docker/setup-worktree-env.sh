@@ -10,9 +10,10 @@
 set -o errexit
 set -o pipefail
 set -o nounset
+source devTools/docker/worktree-git.sh
 
 is_main_checkout() {
-    [ "$(git rev-parse --git-dir)" = "$(git rev-parse --git-common-dir)" ]
+    [ "$(worktree_git rev-parse --git-dir)" = "$(worktree_git rev-parse --git-common-dir)" ]
 }
 
 # ports written into any of this repo's checkouts, whether or not something is
@@ -23,7 +24,7 @@ claimed_ports() {
     echo 3030
     echo 8090
     echo 8788
-    git worktree list --porcelain | sed -n 's/^worktree //p' | while read -r worktree; do
+    worktree_paths | while IFS= read -r worktree; do
         if [ -e "$worktree/.env" ]; then
             grep -hoE '^[A-Z_]+_PORT=[0-9]+' "$worktree/.env" | cut -d= -f2 || true
         fi
@@ -113,7 +114,7 @@ done
 # copy credentials from the main checkout's .env if present: search-only
 # Algolia keys, and a Cloudflare API token that wrangler reads from .env and
 # prefers over its machine-wide `wrangler login` (which may be another account)
-MAIN_WORKTREE="$(git worktree list --porcelain | sed -n 's/^worktree //p' | head -n 1)"
+MAIN_WORKTREE="$(worktree_paths | sed -n '1p')"
 if [ -n "$MAIN_WORKTREE" ] && [ -e "$MAIN_WORKTREE/.env" ]; then
     for var in ALGOLIA_ID ALGOLIA_SEARCH_KEY CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID; do
         line="$(grep -E "^[[:space:]]*${var}=" "$MAIN_WORKTREE/.env" | tail -n 1 || true)"
