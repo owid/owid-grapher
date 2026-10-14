@@ -49,6 +49,11 @@ export interface IndicatorPaneCollapse {
     suppressDescriptionShort: boolean
     suppressUnit: boolean
     suppressDescriptionKey: boolean
+    // True when the indicators carry different titleVariants: each list entry
+    // then keeps its own suffix and the pane drops its titleVariant. When all
+    // share one variant the entries omit it and the pane keeps it (the list
+    // intro states it once).
+    suppressTitleVariant: boolean
 }
 
 const canon = (x: unknown): string => JSON.stringify(x ?? null)
@@ -76,10 +81,12 @@ const TIMESPAN_REGEX = /^\s*(-?\d+)-(-?\d+)\s*$/
 
 // Label matching the switcher's labelForIndicator: title, with the
 // titleVariant appended when it isn't already part of the title.
-const labelFor = (dd: DataPageDataV2): string => {
+const labelFor = (dd: DataPageDataV2, withVariant: boolean): string => {
     const title = dd.title.title
     const variant = dd.titleVariant?.trim()
-    return variant && !title.includes(variant) ? `${title} – ${variant}` : title
+    return withVariant && variant && !title.includes(variant)
+        ? `${title} – ${variant}`
+        : title
 }
 
 export function computeIndicatorPaneCollapse(
@@ -143,10 +150,13 @@ export function computeIndicatorPaneCollapse(
 
     const shortsDiffer = !allSame((dd) => dd.descriptionShort ?? "")
     const unitsDiffer = !allSame((dd) => dd.unit ?? "")
+    // A variant shared by every indicator ("period tables" on all 19 age
+    // groups) is said once in the intro, not appended to every entry.
+    const variantsDiffer = !allSame((dd) => dd.titleVariant?.trim() ?? "")
 
     const list: CollapsedIndicatorListEntry[] = panes.map(
         ({ datapageData: dd }, i) => ({
-            title: labelFor(dd),
+            title: labelFor(dd, variantsDiffer),
             short: shortsDiffer ? dd.descriptionShort || undefined : undefined,
             unit: unitsDiffer ? dd.unit || undefined : undefined,
             note: wyskDiffers && wysks[i] ? wysks[i] : undefined,
@@ -162,5 +172,6 @@ export function computeIndicatorPaneCollapse(
         suppressDescriptionShort: shortsDiffer,
         suppressUnit: unitsDiffer,
         suppressDescriptionKey: wyskDiffers,
+        suppressTitleVariant: variantsDiffer,
     }
 }

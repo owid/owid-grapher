@@ -59,6 +59,16 @@ describe(computeIndicatorPaneCollapse, () => {
         expect(r!.list[1].title).toBe(
             "Births – with medium scenario projections"
         )
+        expect(r!.suppressTitleVariant).toBe(true)
+    })
+
+    it("states a variant shared by all indicators once, not per entry", () => {
+        const r = computeIndicatorPaneCollapse([
+            pane({ titleVariant: "period tables" }),
+            pane({ title: { title: "Deaths" }, titleVariant: "period tables" }),
+        ])
+        expect(r!.list.map((e) => e.title)).toEqual(["Births", "Deaths"])
+        expect(r!.suppressTitleVariant).toBe(false)
     })
 
     it("does not collapse when a substantive field differs", () => {

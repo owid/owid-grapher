@@ -638,6 +638,10 @@ function CollapsedIndicatorList({
         nSources > 0
             ? `, all from the same data source${nSources > 1 ? "s" : ""}`
             : ""
+    // A titleVariant the baker left on the pane is shared by every indicator
+    // (otherwise it clears it and the entries carry their own).
+    const sharedVariant = datapageData.titleVariant?.trim()
+    const variantPhrase = sharedVariant ? ` (${sharedVariant})` : ""
     // Past three entries either rendering is long enough to push the shared
     // WYSK below the fold, so the first three always show and the rest fold
     // behind "view all +" (the Instagram-caption pattern), which flips to
@@ -676,6 +680,7 @@ function CollapsedIndicatorList({
             <div className={blockClass}>
                 <p>
                     This chart shows data for {entries.length} indicators
+                    {variantPhrase}
                     {sourcePhrase}:{" "}
                     {shown.map((entry, i) => (
                         <React.Fragment key={i}>
@@ -701,6 +706,7 @@ function CollapsedIndicatorList({
         <div className={blockClass}>
             <p>
                 This chart shows data for {entries.length} indicators
+                {variantPhrase}
                 {sourcePhrase}:
             </p>
             <ol>
