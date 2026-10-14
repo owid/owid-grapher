@@ -41,10 +41,19 @@ $selected-hover-fill: #bed2e7;
     }
 
     &[data-disabled] {
-        color: $gray-70;
         background: $gray-10;
         border-color: $gray-10;
         cursor: default;
+
+        .md-settings__dropdown-current-choice {
+            color: $gray-80;
+            opacity: 0.5;
+        }
+
+        .md-settings__dropdown-caret {
+            color: $gray-70;
+            opacity: 0.5;
+        }
     }
 
     @media (max-width: $toggle-full-width-breakpoint) {
