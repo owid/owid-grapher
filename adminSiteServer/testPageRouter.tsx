@@ -28,9 +28,11 @@ import {
     GRAPHER_MAP_TYPE,
     GrapherTabConfigOption,
     GrapherChartOrMapType,
+    GRAPHER_CHART_TYPES,
 } from "@ourworldindata/types"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
 import { ExplorerChartCreationMode } from "@ourworldindata/explorer"
+import { generateSelectedEntityNamesParam } from "@ourworldindata/grapher"
 import { getPlainRouteWithROTransaction } from "./plainRouterHelpers.js"
 
 import { GRAPHER_DYNAMIC_THUMBNAIL_URL } from "../settings/clientSettings.mjs"
@@ -117,6 +119,7 @@ interface EmbedTestPageQueryParams {
     readonly type?: GrapherChartOrMapType
     readonly logLinear?: string
     readonly comparisonLines?: string
+    readonly verticalComparisonLines?: string
     readonly stackMode?: StackMode
     readonly relativeToggle?: string
     readonly chartTypeSwitcher?: string
@@ -184,6 +187,13 @@ async function propsFromQueryParams(
     if (params.comparisonLines) {
         query = query.andWhereRaw(
             `cc.config->'$.comparisonLines[0].yEquals' != ''`
+        )
+        tab = GRAPHER_TAB_CONFIG_OPTIONS.chart
+    }
+
+    if (params.verticalComparisonLines) {
+        query = query.andWhereRaw(
+            `JSON_LENGTH(cc.config->'$.comparisonLines[*].xEquals') > 0`
         )
         tab = GRAPHER_TAB_CONFIG_OPTIONS.chart
     }
@@ -849,5 +859,95 @@ function ExplorerTestPage(props: ExplorerTestPageProps) {
         </html>
     )
 }
+
+const CHART_TYPES_WITH_ENTITY_ANNOTATIONS = [
+    GRAPHER_CHART_TYPES.LineChart,
+    GRAPHER_CHART_TYPES.SlopeChart,
+    GRAPHER_CHART_TYPES.DiscreteBar,
+    GRAPHER_CHART_TYPES.Dumbbell,
+]
+
+/** Entity names in an `entityAnnotationsMap` that have a non-empty annotation */
+function parseAnnotatedEntityNames(entityAnnotationsMap: string): string[] {
+    return excludeUndefined(
+        entityAnnotationsMap.split("\n").map((line) => {
+            const [entityName, ...words] = line.split(":")
+            return words.join(":").trim() ? entityName.trim() : undefined
+        })
+    )
+}
+
+getPlainRouteWithROTransaction(
+    testPageRouter,
+    "/entityAnnotations",
+    async (req, res, trx) => {
+        // Charts only render the annotations of their first y indicator
+        const rows = await db.knexRaw<{
+            id: number
+            slug: string
+            entityAnnotationsMap: string
+        }>(
+            trx,
+            `-- sql
+                SELECT
+                    ca.id,
+                    cc.slug,
+                    v.display->>'$.entityAnnotationsMap' AS entityAnnotationsMap
+                FROM charts ca
+                JOIN chart_configs cc ON ca.configId = cc.id
+                JOIN chart_dimensions cd
+                    ON cd.chartId = ca.id
+                    AND cd.property = 'y'
+                    AND cd.order = (
+                        SELECT MIN(cd2.order)
+                        FROM chart_dimensions cd2
+                        WHERE cd2.chartId = ca.id AND cd2.property = 'y'
+                    )
+                JOIN variables v ON v.id = cd.variableId
+                WHERE ca.publishedAt IS NOT NULL
+                    AND cc.chartType IN (?)
+                    AND COALESCE(v.display->>'$.entityAnnotationsMap', '') NOT IN ('', 'null')
+                ORDER BY ca.id DESC
+            `,
+            [CHART_TYPES_WITH_ENTITY_ANNOTATIONS]
+        )
+
+        const charts = excludeUndefined(
+            rows.map((row) => {
+                const entityNames = parseAnnotatedEntityNames(
+                    row.entityAnnotationsMap
+                )
+                if (entityNames.length === 0) return undefined
+                const queryStr = queryParamsToStr({
+                    tab: GRAPHER_TAB_CONFIG_OPTIONS.chart,
+                    country: generateSelectedEntityNamesParam(entityNames),
+                })
+                return { id: row.id, slug: `${row.slug}${queryStr}` }
+            })
+        )
+
+        const perPage = parseIntOrUndefined(req.query.perPage as string) ?? 20
+        const page = parseIntOrUndefined(req.query.page as string) ?? 1
+        const totalPages = Math.ceil(charts.length / perPage)
+        const originalUrl = Url.fromURL(req.originalUrl)
+        const getPageUrl = (page: number): string =>
+            originalUrl.updateQueryParams({ page: page.toString() }).fullUrl
+
+        res.send(
+            renderToHtmlPage(
+                <EmbedTestPage
+                    {...getViewPropsFromQueryParams(req.query)}
+                    charts={charts.slice(perPage * (page - 1), perPage * page)}
+                    currentPage={page}
+                    totalPages={totalPages}
+                    prevPageUrl={page > 1 ? getPageUrl(page - 1) : undefined}
+                    nextPageUrl={
+                        page < totalPages ? getPageUrl(page + 1) : undefined
+                    }
+                />
+            )
+        )
+    }
+)
 
 export { getSafeComparisonUrl, testPageRouter }
