@@ -6,7 +6,7 @@ import { pairs } from "d3-array"
 import { ColorSchemes } from "../color/ColorSchemes"
 import { ColorScheme } from "../color/ColorScheme"
 import { ColorScaleBin, NumericBin, CategoricalBin } from "./ColorScaleBin"
-import { GRAY_90, OWID_NO_DATA_GRAY } from "./ColorConstants"
+import { OWID_NO_DATA_GRAY } from "./ColorConstants"
 import {
     ColorScaleConfigInterface,
     ColorSchemeName,
@@ -22,7 +22,7 @@ export const NO_DATA_LABEL = "No data"
 export const PROJECTED_DATA_LABEL = "Projected data"
 export const INAPPLICABLE_LABEL = "Not applicable"
 
-export const INAPPLICABLE_COLOR = GRAY_90
+export const INAPPLICABLE_COLOR = "#ccc"
 
 export interface ColorScaleManager {
     colorScaleConfig?: ColorScaleConfigInterface
@@ -189,10 +189,11 @@ export class ColorScale {
         // Provide default colors for the injected "No data" and "Not applicable"
         // bins. They're added conditionally so that a data category that happens
         // to share their name isn't hijacked away from its color scheme color.
-        // Note that on maps, both bins are rendered as patterns with fixed
-        // colors, so their bin color is only used in a few places, e.g. for
+        // Note that on maps, the "No data" bin is rendered as a pattern with a
+        // fixed color, so its bin color is only used in a few places, e.g. for
         // entities that don't belong in any color group on scatters/marimekkos
-        // or for the the admin's color scale editor
+        // or for the admin's color scale editor. The "Not applicable" bin color
+        // is the background of its map pattern.
         return {
             ...(this.hasNoDataBin
                 ? { [NO_DATA_LABEL]: this.defaultNoDataColor }
@@ -207,6 +208,12 @@ export class ColorScale {
     @computed get noDataColor(): Color {
         return (
             this.customCategoryColors[NO_DATA_LABEL] ?? this.defaultNoDataColor
+        )
+    }
+
+    @computed get inapplicableColor(): Color {
+        return (
+            this.customCategoryColors[INAPPLICABLE_LABEL] ?? INAPPLICABLE_COLOR
         )
     }
 
