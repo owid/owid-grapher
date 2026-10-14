@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest"
+import { type GdocComponentPreviewItem } from "@ourworldindata/types"
 import { type ComponentPreviewBlock } from "./componentPreviewBlocks.js"
 import {
     type ComponentPreviewSource,
@@ -36,7 +37,7 @@ function plan(
         imageUrl: CURRENT_URL,
         aspectRatio: CHART_ASPECT_RATIO,
     }
-) {
+): Pick<GdocComponentPreviewItem, "status" | "reason"> & { change: string } {
     const { items, planned } = planComponentPreviewChanges(
         [block],
         new Map([[componentPreviewSpecKey(block.spec), source]]),
@@ -52,7 +53,7 @@ function plan(
 // A frame with the shape of a chart render
 const CHART_FRAME = { width: 468, height: 468 / CHART_ASPECT_RATIO }
 
-describe("planComponentPreviewChanges", () => {
+describe(planComponentPreviewChanges, () => {
     it("leaves a current image in a frame of the right shape alone", () => {
         expect(
             plan(makeBlock({ sourceUri: CURRENT_URL, size: CHART_FRAME }))
