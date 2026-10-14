@@ -34,6 +34,14 @@ html:has(body.MultiDimDataPage) {
     scrollbar-gutter: stable;
 }
 
+// Embeds usually fit their iframe without scrolling, so a permanently reserved
+// gutter would leave an empty strip next to the chart. When an embed does
+// scroll, react-aria still sets `scrollbar-gutter: stable` inline while a
+// popover is open, keeping the space of the scrollbar it hides.
+html.IsInIframe:has(body.MultiDimDataPage) {
+    scrollbar-gutter: auto;
+}
+
 .MultiDimDataPageContent {
     .header {
         margin-bottom: 24px;
