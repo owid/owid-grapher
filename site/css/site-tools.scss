@@ -85,48 +85,13 @@ $site-tools-popover-inset: $header-height-md + $vertical-spacing * 3 +
             }
         }
 
-        .newsletter-subscription-header--compact svg {
-            display: block;
-        }
-
-        .newsletter-subscription-form,
-        .newsletter-signup-form {
+        .newsletter-subscription-form {
             padding-top: 16px;
         }
 
-        // The redesigned form matches the header nav dropdown, so undo the
-        // generic popover styles (width, padding, white background, navy
-        // buttons).
-        &:has(.newsletter-subscription-header--compact) {
+        // Same size as the header nav dropdown; the panel fills it.
+        &:has(.newsletter-signup-panel) {
             width: 302px;
-            padding: 16px;
-            background-color: $accent-pale-blue;
-
-            .newsletter-subscription-header {
-                padding: 0;
-            }
-
-            .newsletter-signup-form {
-                padding: 0;
-            }
-
-            .newsletter-signup-form__submit {
-                @include body-3-medium;
-                padding: 8.5px 24px;
-                border-radius: 0;
-                box-shadow: none;
-                background-color: $vermillion;
-
-                &:hover {
-                    background-color: $accent-vermillion;
-                }
-
-                &:disabled {
-                    opacity: 1;
-                    color: $blue-50;
-                    background-color: $blue-10;
-                }
-            }
         }
     }
 }
