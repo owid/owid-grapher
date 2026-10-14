@@ -260,8 +260,8 @@ export function getMultiDimPageTitle(
  *
  * The heuristic can get it wrong. The Covid explorer's "Interval" dimension,
  * for example, has eleven distinct choices in total but only ever offers a few
- * of them at a time, so the previous threshold of ten gave it a search field it
- * didn't need. Twenty should make that rare, and a dimension the heuristic
+ * of them at a time, so a threshold of ten gave it a search field it didn't
+ * need. Twenty should make that rare, and a dimension the heuristic
  * still gets wrong can always set `presentation.type` explicitly.
  */
 export function resolveDimensionPresentationType(
