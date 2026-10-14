@@ -15,13 +15,49 @@ import {
     MAILCHIMP_SIGNUP_HONEYPOT_NAME,
     makeMailchimpNewsletterGroupInputName,
 } from "./Newsletter/mailchimpSignup.js"
-import { NewsletterSignupForm } from "./Newsletter/NewsletterSignupForm.js"
+import { NewsletterSignupPanel } from "./Newsletter/NewsletterSignupPanel.js"
 
 const analytics = new SiteAnalytics()
 
 const isEmailNotificationsEnabled = FEATURE_FLAGS.includes(
     Features.EmailNotifications
 )
+
+/**
+ * The signup block for the header nav, site tools, homepage and /latest:
+ * the compact panel once email notifications are enabled, otherwise the
+ * Mailchimp header and form. `children` (e.g. social links) render after
+ * the form either way.
+ */
+export const NewsletterSignup = ({
+    context,
+    className,
+    showSubheading,
+    children,
+}: {
+    context: NewsletterSubscriptionContext
+    className?: string
+    showSubheading?: boolean
+    children?: React.ReactNode
+}) => {
+    if (isEmailNotificationsEnabled)
+        return (
+            <NewsletterSignupPanel
+                context={context}
+                className={className}
+                showSubheading={showSubheading}
+            >
+                {children}
+            </NewsletterSignupPanel>
+        )
+    return (
+        <div className={className}>
+            <NewsletterSubscriptionHeader showSubheading={showSubheading} />
+            <MailchimpSubscriptionForm context={context} />
+            {children}
+        </div>
+    )
+}
 
 export const NewsletterSubscription = ({
     context,
@@ -45,8 +81,7 @@ export const NewsletterSubscription = ({
                         }}
                     />
                     <div className="box">
-                        <NewsletterSubscriptionHeader />
-                        <NewsletterSubscriptionForm context={context} />
+                        <NewsletterSignup context={context} />
                     </div>
                 </>
             )}
@@ -75,14 +110,7 @@ export const NewsletterSubscriptionHeader = ({
     showSubheading?: boolean
 }) => {
     return (
-        <div
-            className={cx("newsletter-subscription-header", {
-                // The redesigned form keeps the icon beside the heading in
-                // every context.
-                "newsletter-subscription-header--compact":
-                    isEmailNotificationsEnabled,
-            })}
-        >
+        <div className="newsletter-subscription-header">
             <NewsletterIcon className="newsletter-subscription-header__icon" />
             <h4 className="newsletter-subscription-header__heading h3-bold">
                 Subscribe to our newsletters
@@ -96,20 +124,8 @@ export const NewsletterSubscriptionHeader = ({
     )
 }
 
-export const NewsletterSubscriptionForm = ({
-    context,
-    className = "",
-}: {
-    context: NewsletterSubscriptionContext
-    className?: string
-}) => {
-    if (isEmailNotificationsEnabled)
-        return <NewsletterSignupForm context={context} className={className} />
-    return <MailchimpSubscriptionForm context={context} className={className} />
-}
-
 /** The pre-email-notifications form, posting straight to Mailchimp. */
-const MailchimpSubscriptionForm = ({
+export const MailchimpSubscriptionForm = ({
     context,
     className = "",
 }: {

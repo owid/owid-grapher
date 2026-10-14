@@ -97,23 +97,10 @@
     }
 }
 
-// Icon beside a two-line heading, however wide the container is.
-.newsletter-subscription-header--compact {
-    margin-bottom: 16px;
-
-    .newsletter-subscription-header__heading {
-        flex: 1 1 0;
-        min-width: 0;
-        max-width: 150.25px;
-        font-size: 1.25rem;
-        line-height: 1.2;
-    }
-}
-
 .homepage-subscribe .newsletter-subscription {
     flex: 1;
 }
 
-.site-tools .newsletter-subscription form {
+.site-tools .newsletter-subscription .newsletter-subscription-form {
     padding: 32px 40px;
 }
