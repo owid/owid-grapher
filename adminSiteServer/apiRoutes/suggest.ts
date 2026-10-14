@@ -14,7 +14,7 @@ import * as db from "../../db/db.js"
 import { Request } from "../authentication.js"
 import { HandlerResponse } from "../FunctionalRouter.js"
 
-export async function suggestGptTopics(
+export async function suggestTopics(
     req: Request,
     _res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
@@ -26,7 +26,7 @@ export async function suggestGptTopics(
 
     if (!topics.length)
         throw new JsonError(
-            `No GPT topic suggestions found for chart ${chartId}`,
+            `No topic suggestions found for chart ${chartId}`,
             404
         )
 
@@ -35,7 +35,7 @@ export async function suggestGptTopics(
     }
 }
 
-export async function suggestGptAltTextForCloudflareImage(
+export async function suggestAltTextForCloudflareImage(
     req: Request,
     _res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
@@ -56,7 +56,7 @@ export async function suggestGptAltTextForCloudflareImage(
     return response
 }
 
-export async function suggestGptAltText(
+export async function suggestAltText(
     req: Request,
     _res: HandlerResponse,
     _trx: db.KnexReadonlyTransaction
@@ -81,10 +81,10 @@ export async function generateAltTextFromUrl(imageUrl: string): Promise<{
         altText = await fetchGeneratedAltText(imageUrl)
     } catch (error) {
         console.error(
-            `Error fetching GPT alt text for image at ${imageUrl}`,
+            `Error generating alt text for image at ${imageUrl}`,
             error
         )
-        throw new JsonError(`Error fetching GPT alt text: ${error}`, 500)
+        throw new JsonError(`Error generating alt text: ${error}`, 500)
     }
 
     if (!altText) {

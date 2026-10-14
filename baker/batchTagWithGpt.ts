@@ -9,7 +9,7 @@ interface BatchTagWithGptArgs {
 }
 
 /*
-Add GPT topics to eligible charts (and later posts, explorers).
+Add LLM-suggested topics to eligible charts (and later posts, explorers).
 
 Usage:
 $ yarn batchTagWithGpt --help
@@ -41,11 +41,11 @@ const batchTagChartsWithGpt = async (
     `
     )
 
-    // Iterate through the charts and tag them with GPT-suggested topics
+    // Iterate through the charts and tag them with LLM-suggested topics
     for (const chart of chartsToTag) {
-        const gptTopicSuggestions = await getTopicSuggestions(knex, chart.id)
+        const topicSuggestions = await getTopicSuggestions(knex, chart.id)
 
-        for (const tag of gptTopicSuggestions) {
+        for (const tag of topicSuggestions) {
             if (debug) console.log("Tagging chart", chart.id, "with", tag.id)
             // Insert the suggested chart-tag association if it doesn't already
             // exist, giving priority to the existing tags. This is to make sure
@@ -65,7 +65,7 @@ if (require.main === module) {
     void yargs(hideBin(process.argv))
         .command<BatchTagWithGptArgs>(
             "$0",
-            "Batch tag charts with GPT topics",
+            "Batch tag charts with LLM-suggested topics",
             (yargs) => {
                 yargs
                     .option("debug", {

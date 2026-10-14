@@ -23,9 +23,8 @@ import {
     GrapherChartType,
     RelatedChartsTableName,
 } from "@ourworldindata/types"
-import Anthropic from "@anthropic-ai/sdk"
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod"
-import { ANTHROPIC_API_KEY } from "../../settings/serverSettings.js"
+import { getAnthropicClient } from "../../serverUtils/anthropic.js"
 import * as z from "zod"
 
 // Only considers published charts, because only in that case the mapping slug -> id is unique
@@ -475,8 +474,7 @@ export async function getTopicSuggestions(
     knex: db.KnexReadonlyTransaction,
     chartId: number
 ): Promise<Pick<DbPlainTag, "id" | "name">[]> {
-    if (!ANTHROPIC_API_KEY)
-        throw new JsonError("No ANTHROPIC_API_KEY env found", 500)
+    const client = getAnthropicClient()
 
     const chartConfigOnly = await db.knexRawFirst<{ config: string }>(
         knex,
@@ -524,7 +522,6 @@ export async function getTopicSuggestions(
 
             Select the one or two categories you think best describe the chart.`
 
-    const client = new Anthropic({ apiKey: ANTHROPIC_API_KEY })
     const message = await client.messages.parse({
         model: TOPIC_SUGGESTION_MODEL,
         // The model thinks before answering, which counts toward the cap.

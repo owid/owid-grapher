@@ -4,24 +4,29 @@ import sharp from "sharp"
 import {
     CLOUDFLARE_IMAGES_ACCOUNT_ID,
     CLOUDFLARE_IMAGES_API_KEY,
-    ANTHROPIC_API_KEY,
 } from "../settings/serverSettings.js"
-import Anthropic from "@anthropic-ai/sdk"
+import type Anthropic from "@anthropic-ai/sdk"
+import { getAnthropicClient, responseText } from "../serverUtils/anthropic.js"
 import { ACCEPTED_IMG_TYPES } from "../adminSiteClient/imagesHelpers.js"
 
 // Claude model used for alt text and image text extraction
 export const TEXT_EXTRACTION_MODEL = "claude-sonnet-5-5"
 
-// The model thinks before answering, which counts toward the cap, so leave it room.
-const TEXT_EXTRACTION_MAX_TOKENS = 16000
+const ALT_TEXT_PROMPT = `Generate alt text for this image, describing it for a vision-impaired person using a screen reader.
+- If it's a chart, use the Amy Cesal formula: "[Chart type] of [type of data] where [reason for including chart]"
+- Keep it brief. Three sentences maximum.
+- If there is too much data to describe, just give an overview of what the chart is showing, not specific data points.
+- DO NOT mention colors unless the data doesn't make sense without them
+- When describing a number range, write "X to Y" not "X-Y".
+- If the image is a generic thumbnail or decorative, describe it in one short sentence.
+- Describe data sources and licenses (if specified)
+Example 1: "Line chart of cumulative burnt area in Europe where the 2022 area is more than double the 2006 to 2021 average, and well above the range for the same period. Source: Global Wildfire Information System (2025). License: CC BY to Our World in Data."
+Example 2: "Changes in forest area by world region since 1990 is a set of bar charts overlaid on a world map to compare forest cover between 1990 and 2025 across different continents. The visualization highlights that while forest area has expanded in regions like Europe and North and Central America, it has significantly declined in South America and parts of Asia. Oceania is shown to have had no change in its total forest area over this period. Data source: Food and Agriculture Organization of the United Nations, Global Forest Resources Assessment (2025). License: CC BY to Our World in Data."`
 
-/** The text of a response, which can begin with thinking blocks. */
-function responseText(message: Anthropic.Message): string {
-    return message.content
-        .filter((block) => block.type === "text")
-        .map((block) => block.text)
-        .join("")
-}
+const TEXT_EXTRACTION_PROMPT = `Extract all text from this image, including any text in the footer.
+Do not use markdown in the text.
+If the image is a data visualization, do not include numbers or data points or axis ticks, just the text annotations, footer text, titles, etc.
+If there is no text in the image, return an empty string.`
 
 export function validateImagePayload(body: any): {
     filename: string
@@ -125,85 +130,48 @@ export async function deleteFromCloudflare(cloudflareId: string) {
     }
 }
 
-export async function fetchGeneratedAltText(
-    url: string
-): Promise<string | null> {
-    const client = new Anthropic({ apiKey: ANTHROPIC_API_KEY })
-
-    const message = await client.messages.create({
+/** Ask the model about an image, passed by URL. */
+async function askAboutImage(
+    url: string,
+    prompt: string
+): Promise<Anthropic.Message> {
+    return getAnthropicClient().messages.create({
         model: TEXT_EXTRACTION_MODEL,
-        max_tokens: TEXT_EXTRACTION_MAX_TOKENS,
+        // The model thinks before answering, which counts toward the cap, so leave it room.
+        max_tokens: 16000,
         messages: [
             {
                 role: "user",
                 content: [
                     { type: "image", source: { type: "url", url } },
-                    {
-                        type: "text",
-                        text: `Generate alt text for this image, describing it for a vision-impaired person using a screen reader.
-- If it's a chart, use the Amy Cesal formula: "[Chart type] of [type of data] where [reason for including chart]"
-- Keep it brief. Three sentences maximum.
-- If there is too much data to describe, just give an overview of what the chart is showing, not specific data points.
-- DO NOT mention colors unless the data doesn't make sense without them
-- When describing a number range, write "X to Y" not "X-Y".
-- If the image is a generic thumbnail or decorative, describe it in one short sentence.
-- Describe data sources and licenses (if specified)
-Example 1: "Line chart of cumulative burnt area in Europe where the 2022 area is more than double the 2006 to 2021 average, and well above the range for the same period. Source: Global Wildfire Information System (2025). License: CC BY to Our World in Data."
-Example 2: "Changes in forest area by world region since 1990 is a set of bar charts overlaid on a world map to compare forest cover between 1990 and 2025 across different continents. The visualization highlights that while forest area has expanded in regions like Europe and North and Central America, it has significantly declined in South America and parts of Asia. Oceania is shown to have had no change in its total forest area over this period. Data source: Food and Agriculture Organization of the United Nations, Global Forest Resources Assessment (2025). License: CC BY to Our World in Data."`,
-                    },
+                    { type: "text", text: prompt },
                 ],
             },
         ],
     })
+}
 
-    const content = responseText(message)
-    if (content) {
-        // Sometimes the model still uses markdown bold even when told not to.
-        return content.replaceAll("**", "")
-    }
-    return null
+export async function fetchGeneratedAltText(
+    url: string
+): Promise<string | null> {
+    const text = responseText(await askAboutImage(url, ALT_TEXT_PROMPT))
+    // Sometimes the model still uses markdown bold even when told not to.
+    return text ? text.replaceAll("**", "") : null
 }
 
 export interface TextExtractionResult {
+    /** null when the model didn't finish its answer */
     text: string | null
-    usage: {
-        promptTokens: number
-        completionTokens: number
-        totalTokens: number
-    } | null
+    usage: Pick<Anthropic.Usage, "input_tokens" | "output_tokens">
 }
 
 export async function fetchGeneratedTextFromImage(
     url: string
 ): Promise<TextExtractionResult> {
-    const client = new Anthropic({ apiKey: ANTHROPIC_API_KEY })
-
-    const message = await client.messages.create({
-        model: TEXT_EXTRACTION_MODEL,
-        max_tokens: TEXT_EXTRACTION_MAX_TOKENS,
-        messages: [
-            {
-                role: "user",
-                content: [
-                    { type: "image", source: { type: "url", url } },
-                    {
-                        type: "text",
-                        text: `Extract all text from this image, including any text in the footer.
-Do not use markdown in the text.
-If the image is a data visualization, do not include numbers or data points or axis ticks, just the text annotations, footer text, titles, etc.
-If there is no text in the image, return an empty string.`,
-                    },
-                ],
-            },
-        ],
-    })
-
+    const message = await askAboutImage(url, TEXT_EXTRACTION_PROMPT)
     const { input_tokens, output_tokens } = message.usage
-    const usage = {
-        promptTokens: input_tokens,
-        completionTokens: output_tokens,
-        totalTokens: input_tokens + output_tokens,
+    return {
+        text: responseText(message)?.replaceAll(/\s+/g, " ") ?? null,
+        usage: { input_tokens, output_tokens },
     }
-
-    return { text: responseText(message).replaceAll(/\s+/g, " "), usage }
 }

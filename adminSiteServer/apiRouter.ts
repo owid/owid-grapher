@@ -94,9 +94,9 @@ import {
 } from "./apiRoutes/redirects.js"
 import { triggerStaticBuild } from "../baker/GrapherBakingUtils.js"
 import {
-    suggestGptTopics,
-    suggestGptAltTextForCloudflareImage,
-    suggestGptAltText,
+    suggestTopics,
+    suggestAltTextForCloudflareImage,
+    suggestAltText,
     extractTextFromImage,
 } from "./apiRoutes/suggest.js"
 import {
@@ -567,18 +567,18 @@ deleteRouteWithRWTransaction(
     handleDeleteChartRedirect
 )
 
-// GPT routes
+// LLM suggestion routes (the /gpt/ paths predate the move to Claude)
 getRouteWithROTransaction(
     apiRouter,
     `/gpt/suggest-topics/${TaggableType.Charts}/:chartId.json`,
-    suggestGptTopics
+    suggestTopics
 )
 getRouteWithROTransaction(
     apiRouter,
     `/gpt/suggest-alt-text/:imageId`,
-    suggestGptAltTextForCloudflareImage
+    suggestAltTextForCloudflareImage
 )
-getRouteWithROTransaction(apiRouter, `/gpt/suggest-alt-text`, suggestGptAltText)
+getRouteWithROTransaction(apiRouter, `/gpt/suggest-alt-text`, suggestAltText)
 getRouteWithROTransaction(
     apiRouter,
     `/gpt/extract-text-from-image`,

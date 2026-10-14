@@ -1,5 +1,5 @@
 /**
- * Backfill script to extract text from images using GPT vision.
+ * Backfill script to extract text from images with a vision model.
  *
  * Usage:
  *   # Test with a single image (dry-run)
@@ -22,22 +22,13 @@ import {
 } from "../adminSiteServer/imagesHelpers.js"
 
 function calculateCost(
-    usage: NonNullable<TextExtractionResult["usage"]>
+    usage: TextExtractionResult["usage"]
 ): PriceCalculationResult {
-    return calcPrice(
-        {
-            input_tokens: usage.promptTokens,
-            output_tokens: usage.completionTokens,
-        },
-        TEXT_EXTRACTION_MODEL,
-        { providerId: "anthropic" }
-    )
+    return calcPrice(usage, TEXT_EXTRACTION_MODEL, { providerId: "anthropic" })
 }
 
 function estimateCost(usage: TextExtractionResult["usage"]): string {
-    if (!usage) return "unknown (no usage data)"
-
-    const tokens = `${usage.promptTokens} prompt + ${usage.completionTokens} completion tokens`
+    const tokens = `${usage.input_tokens} input + ${usage.output_tokens} output tokens`
     const price = calculateCost(usage)
     if (!price)
         return `unknown (no price for ${TEXT_EXTRACTION_MODEL}) (${tokens})`
@@ -89,7 +80,7 @@ interface ImageResult {
     image: DbEnrichedImage
     text: string | null
     usage: TextExtractionResult["usage"]
-    /** null when there is no usage data or no price for the model */
+    /** null when there is no price for the model */
     cost: number | null
 }
 
@@ -97,7 +88,7 @@ async function processImage(image: DbEnrichedImage): Promise<ImageResult> {
     const url = `${CLOUDFLARE_IMAGES_URL}/${image.cloudflareId}/public`
     const { text, usage } = await fetchGeneratedTextFromImage(url)
 
-    const cost = usage ? (calculateCost(usage)?.total_price ?? null) : null
+    const cost = calculateCost(usage)?.total_price ?? null
 
     return { image, text, usage, cost }
 }

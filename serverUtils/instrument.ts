@@ -19,7 +19,7 @@ if (!process.env.VITEST) {
         integrations: [
             nodeProfilingIntegration(),
 
-            // traces calls to the Anthropic SDK (alt text, image text extraction, topic suggestions).
+            // traces calls to the Anthropic SDK.
             anthropicAIIntegration(),
         ],
         tracesSampleRate: 0.1,
