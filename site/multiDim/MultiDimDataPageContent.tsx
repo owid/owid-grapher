@@ -4,8 +4,6 @@ import { unstable_batchedUpdates } from "react-dom"
 import { useSearchParams } from "react-router-dom-v5-compat"
 import * as Sentry from "@sentry/react"
 import { useIsClient } from "usehooks-ts"
-import { faDownload } from "@fortawesome/free-solid-svg-icons"
-import { Button } from "@ourworldindata/components"
 import {
     Grapher,
     GrapherState,
@@ -475,20 +473,6 @@ export function DataPageContent({
                                 onChange={handleSettingsChange}
                                 readOnly={isLoadingView}
                             />
-                            {config.config.presentation?.dataDownloadUrl && (
-                                <Button
-                                    className="header__download-button"
-                                    theme="outline-vermillion"
-                                    href={
-                                        config.config.presentation
-                                            .dataDownloadUrl
-                                    }
-                                    icon={faDownload}
-                                    iconPosition="left"
-                                    text="Download the full dataset"
-                                    dataTrackNote="multi-dim-download-full-dataset"
-                                />
-                            )}
                         </div>
                     </div>
                 </div>
