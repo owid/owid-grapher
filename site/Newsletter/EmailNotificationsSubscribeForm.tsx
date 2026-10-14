@@ -57,6 +57,7 @@ export const EmailNotificationsSubscribeForm = ({
     useEffect(() => {
         const prefill = takeSubscribePrefill()
         if (prefill) {
+            // oxlint-disable-next-line react/set-state-in-effect -- reads client-only sessionStorage after hydration
             setEmail(prefill.email)
             setSubscribeToOwidBrief(prefill.subscribeToOwidBrief)
             setFollowTopics(true)
