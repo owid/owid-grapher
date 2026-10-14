@@ -40,10 +40,9 @@ $selected-hover-fill: #bed2e7;
         border-color: $open-stroke;
     }
 
+    // The disabled look is just the control's half opacity (see
+    // .md-settings__dropdown); the button keeps its normal white styling.
     &[data-disabled] {
-        color: $gray-70;
-        background: $gray-10;
-        border-color: $gray-10;
         cursor: default;
     }
 
@@ -73,6 +72,12 @@ $selected-hover-fill: #bed2e7;
 .md-settings__dropdown {
     @media (width <= $toggle-full-width-breakpoint) {
         width: 100%;
+    }
+
+    // A disabled control keeps its normal look at half opacity, label
+    // included.
+    &[data-disabled] {
+        opacity: 0.5;
     }
 }
 
