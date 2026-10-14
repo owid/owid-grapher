@@ -149,8 +149,20 @@ export class DataTable extends React.Component<DataTableProps> {
             if (
                 columnKey === undefined ||
                 !availableColumns.includes(columnKey)
-            )
-                columnKey = availableColumns[0]
+            ) {
+                // A sort by the value in a single year carries over to the
+                // end of a time range, and the other way round
+                const counterpart =
+                    columnKey === PointColumnKey.single
+                        ? RangeColumnKey.end
+                        : columnKey === RangeColumnKey.end
+                          ? PointColumnKey.single
+                          : undefined
+                columnKey =
+                    counterpart && availableColumns.includes(counterpart)
+                        ? counterpart
+                        : availableColumns[0]
+            }
         }
 
         return {
