@@ -48,11 +48,13 @@ const NewsletterOption = ({
         onChange={onChange}
         label={
             <>
-                <span className="newsletter-signup-form__option-title">
-                    {title}
-                </span>{" "}
-                <span className="newsletter-signup-form__option-cadence note-12-medium">
-                    {cadence}
+                <span className="newsletter-signup-form__option-heading">
+                    <span className="newsletter-signup-form__option-title">
+                        {title}
+                    </span>{" "}
+                    <span className="newsletter-signup-form__option-cadence note-12-medium">
+                        {cadence}
+                    </span>
                 </span>
                 <span className="newsletter-signup-form__option-description">
                     {description}
