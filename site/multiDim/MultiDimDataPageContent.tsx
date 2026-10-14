@@ -39,6 +39,12 @@ import MetadataSection from "../MetadataSection.js"
 import DownloadSection from "../DownloadSection.js"
 import GrapherImage from "../GrapherImage.js"
 import { useMobxStateToReactState } from "../hooks.js"
+import { ConfigureWithAi } from "../ConfigureWithAi.js"
+import {
+    type ConfigureWithAiView,
+    viewToDataTableSort,
+    viewToGrapherQueryParams,
+} from "../configureWithAiView.js"
 import { MultiDimSettingsPanel } from "./MultiDimDataPageSettingsPanel.js"
 import { getDatapageDataV2, processRelatedResearch } from "../dataPage.js"
 import DataPageResearchAndWriting from "../DataPageResearchAndWriting.js"
@@ -313,6 +319,34 @@ export function DataPageContent({
         [config, setSearchParams, updateGrapher]
     )
 
+    // "Configure with AI" prototype: switch to the view's combination of
+    // options, then apply the rest of the view on top of its config
+    const applyConfigureWithAiView = useCallback(
+        (view: ConfigureWithAiView) => {
+            const grapher = grapherStateRef.current
+            if (!grapher || !view.options) return
+            const { selectedChoices } = config.filterToAvailableChoices(
+                view.options
+            )
+            grapher.dataTableSort = viewToDataTableSort(view)
+            setSearchParams(selectedChoices, { replace: true })
+            updateGrapher(
+                grapher,
+                selectedChoices,
+                viewToGrapherQueryParams(view)
+            )
+        },
+        [config, setSearchParams, updateGrapher]
+    )
+    const getConfigureWithAiQueryStr = (): string => {
+        const params = new URLSearchParams(settings)
+        for (const [key, value] of Object.entries(
+            grapherStateRef.current.changedParams
+        ))
+            if (value !== undefined) params.set(key, value)
+        return "?" + params.toString()
+    }
+
     useMultiDimAnalytics(slug, config, settings)
 
     // Set state from query params on page load.
@@ -468,6 +502,15 @@ export function DataPageContent({
                                 onChange={handleSettingsChange}
                                 disabled={isLoadingView}
                             />
+                            {isClient &&
+                                slug &&
+                                grapherStateRef.current.showAdminControls && (
+                                    <ConfigureWithAi
+                                        slug={slug}
+                                        getQueryStr={getConfigureWithAiQueryStr}
+                                        applyView={applyConfigureWithAiView}
+                                    />
+                                )}
                         </div>
                     </div>
                 </div>
