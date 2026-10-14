@@ -119,6 +119,7 @@ interface EmbedTestPageQueryParams {
     readonly type?: GrapherChartOrMapType
     readonly logLinear?: string
     readonly comparisonLines?: string
+    readonly verticalComparisonLines?: string
     readonly stackMode?: StackMode
     readonly relativeToggle?: string
     readonly chartTypeSwitcher?: string
@@ -186,6 +187,13 @@ async function propsFromQueryParams(
     if (params.comparisonLines) {
         query = query.andWhereRaw(
             `cc.config->'$.comparisonLines[0].yEquals' != ''`
+        )
+        tab = GRAPHER_TAB_CONFIG_OPTIONS.chart
+    }
+
+    if (params.verticalComparisonLines) {
+        query = query.andWhereRaw(
+            `JSON_LENGTH(cc.config->'$.comparisonLines[*].xEquals') > 0`
         )
         tab = GRAPHER_TAB_CONFIG_OPTIONS.chart
     }
