@@ -616,54 +616,68 @@ function CollapsedIndicatorList({
         nSources > 0
             ? `, all from the same data source${nSources > 1 ? "s" : ""}`
             : ""
+    // Past three entries either rendering is long enough to push the shared
+    // WYSK below the fold, so it starts folded behind an inline "view all +"
+    // (the Instagram-caption pattern) that flips to "view less −". Folded
+    // content stays in the DOM, hidden, for raw-HTML consumers.
+    const FOLD_AFTER = 3
+    const foldable = entries.length > FOLD_AFTER
+    const [expanded, setExpanded] = useState(!foldable)
+    const toggle = foldable && (
+        <button
+            type="button"
+            className="indicator-metadata-box__collapsed-list-toggle"
+            aria-expanded={expanded}
+            onClick={() => setExpanded((v) => !v)}
+            data-track-note="metadata_box_indicator_list_toggle"
+        >
+            {expanded ? "view less \u2212" : "view all +"}
+        </button>
+    )
+    // The list renders as a meta-expander__prose block so it inherits the
+    // WYSK's exact type and spacing and reads as the paragraph before it.
+    const blockClass =
+        "meta-expander__preview meta-expander__prose indicator-metadata-box__collapsed-list"
+
     // When the entries carry nothing beyond their titles (shared short/unit
     // shown once in the pane, no per-indicator notes), an enumerated list
-    // adds vertical space without information — render the titles inline.
+    // adds vertical space without information — render the titles inline,
+    // in running text, the first few followed by an ellipsis when folded.
     const titlesOnly = entries.every(
         (entry) => !entry.short && !entry.unit && !entry.note
     )
     if (titlesOnly) {
+        const shown = expanded ? entries : entries.slice(0, FOLD_AFTER)
         return (
-            <p className="indicator-metadata-box__collapsed-list indicator-metadata-box__collapsed-list-intro">
-                This chart shows data for {entries.length} indicators
-                {sourcePhrase}:{" "}
-                {entries.map((entry, i) => (
-                    <React.Fragment key={i}>
-                        {i > 0 && ", "}
-                        <span className="indicator-metadata-box__collapsed-list-title">
+            <div className={blockClass}>
+                <p>
+                    This chart shows data for {entries.length} indicators
+                    {sourcePhrase}:{" "}
+                    {shown.map((entry, i) => (
+                        <React.Fragment key={i}>
+                            {i > 0 && ", "}
                             {entry.title}
+                        </React.Fragment>
+                    ))}
+                    {expanded ? "." : foldable ? "\u2026" : "."}
+                    {toggle && <> {toggle}</>}
+                    {!expanded && (
+                        <span hidden>
+                            {entries
+                                .slice(FOLD_AFTER)
+                                .map((entry) => entry.title)
+                                .join(", ")}
                         </span>
-                    </React.Fragment>
-                ))}
-                .
-            </p>
+                    )}
+                </p>
+            </div>
         )
     }
-    // Past three entries the numbered list is long enough to push the shared
-    // WYSK below the fold, so it starts folded behind an inline "view all +"
-    // (the Instagram-caption pattern). The entries stay in the DOM, hidden,
-    // for raw-HTML consumers.
-    const foldable = entries.length > 3
-    const [expanded, setExpanded] = useState(!foldable)
     return (
-        <div className="indicator-metadata-box__collapsed-list">
-            <p className="indicator-metadata-box__collapsed-list-intro">
+        <div className={blockClass}>
+            <p>
                 This chart shows data for {entries.length} indicators
-                {sourcePhrase}:
-                {foldable && (
-                    <>
-                        {" "}
-                        <button
-                            type="button"
-                            className="indicator-metadata-box__collapsed-list-toggle"
-                            aria-expanded={expanded}
-                            onClick={() => setExpanded((v) => !v)}
-                            data-track-note="metadata_box_indicator_list_toggle"
-                        >
-                            {expanded ? "view less \u2212" : "view all +"}
-                        </button>
-                    </>
-                )}
+                {sourcePhrase}:{toggle && <> {toggle}</>}
             </p>
             <ol hidden={!expanded}>
                 {entries.map((entry, i) => (

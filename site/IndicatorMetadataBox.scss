@@ -300,7 +300,7 @@
 // h-pills responsive swap: pills from the small breakpoint up, the dropdown
 // select on its own full-width row below it. Both are SSR'd; CSS picks one
 // per viewport (display: none), so there's no post-hydration flash.
-.indicator-metadata-box-wrap--h-pills {
+.indicator-metadata-box-wrap--h-pills:not(.indicator-metadata-box-wrap--collapsed) {
     .indicator-switcher__h-pills {
         @include sm-only {
             display: none;
@@ -337,17 +337,11 @@
 
 // Collapsed multi-indicator mode: one pane (headed "About this data") whose
 // expander opens with the indicator list, sitting above the shared WYSK.
+// The collapsed indicator list is a .meta-expander__prose block, so type and
+// paragraph spacing come from there; it only adds list-entry structure. The
+// WYSK preview that follows it drops its own top margin so the two read as
+// consecutive paragraphs.
 .indicator-metadata-box__collapsed-list {
-    // Same type as the WYSK prose it sits above (.meta-expander__prose).
-    @include body-2-regular;
-    margin-top: 16px;
-    margin-bottom: 16px;
-
-    ol {
-        margin: 12px 0 0;
-        padding-left: 24px;
-    }
-
     li {
         margin-bottom: 10px;
 
@@ -355,21 +349,15 @@
             color: $blue-50;
         }
     }
-}
 
-.indicator-metadata-box__collapsed-list-intro {
-    margin: 0;
+    + .meta-expander__preview {
+        margin-top: 0;
+    }
 }
 
 .indicator-metadata-box__collapsed-list-title {
     font-weight: 700;
     display: block;
-}
-
-// Inline (titles-only) mode: titles flow in the intro sentence.
-p.indicator-metadata-box__collapsed-list
-    .indicator-metadata-box__collapsed-list-title {
-    display: inline;
 }
 
 // Inline "view all +" / "view less −" — a plain text link in the muted
