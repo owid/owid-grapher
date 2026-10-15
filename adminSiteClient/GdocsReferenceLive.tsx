@@ -1108,7 +1108,7 @@ function ComponentProperties({
                                 <th>Prop</th>
                                 <th>Type</th>
                                 <th>Req.</th>
-                                {hasDescriptions && <th>What it does</th>}
+                                {hasDescriptions && <th>Description</th>}
                                 {hasLive && <th>Adoption</th>}
                             </tr>
                         </thead>

@@ -255,7 +255,7 @@ export function BespokeBundlePage({
     )
 }
 
-/** "Its variants": open cards first, then the collapsed tail. */
+/** "Variants": open cards first, then the collapsed tail. */
 function BundleVariants({
     bundle,
     usage,
@@ -299,7 +299,7 @@ function BundleVariants({
     return (
         <section className="gdocs-ref__section">
             <h2 className="gdocs-ref__section-title">
-                Its variants
+                Variants
                 <span className="gdocs-ref__section-count">
                     {bundle.variants.length}
                 </span>
@@ -539,7 +539,7 @@ function BundleConfigTable({
                                 <tr>
                                     <th>Key</th>
                                     <th>Type</th>
-                                    <th>What it does</th>
+                                    <th>Description</th>
                                     {showAdoption && <th>Adoption</th>}
                                 </tr>
                             </thead>
