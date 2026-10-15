@@ -26,7 +26,7 @@ export function ChartFooter({
             ? getBespokeSourceLine(metadataContext.metadata)
             : undefined)
 
-    const learnMore = metadataContext?.metadata ? (
+    const learnMore = metadataContext?.hasModal ? (
         <>
             {" – "}
             <button
