@@ -477,6 +477,13 @@ export class MapChart
         return mergeCategoricalBinsByLabelAndColor(categoricalLegendData)
     }
 
+    @computed private get shouldDefineInapplicablePattern(): boolean {
+        return (
+            this.chartState.hasInapplicableBin ||
+            this.legendData.some((bin) => isInapplicableBin(bin))
+        )
+    }
+
     @computed private get hasCategoricalLegendData(): boolean {
         return this.categoricalLegendData.length > 1
     }
@@ -690,7 +697,7 @@ export class MapChart
 
         return (
             <>
-                {this.chartState.hasInapplicableBin && (
+                {this.shouldDefineInapplicablePattern && (
                     <defs>
                         <InapplicablePattern
                             patternId={makePatternId(
