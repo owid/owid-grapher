@@ -65,6 +65,9 @@ const MIN_LABELLED_GROUP_SHARE = 0.05
  *  carry only their icons, and their tooltips name them */
 const LABEL_NO_GROUPS = Infinity
 
+/** The note under the domestic production node's label */
+const DOMESTIC_ANNOTATION = "produced & consumed here"
+
 /** Group icons in tooltips are bigger than the ones beside the chart's labels */
 const TOOLTIP_GROUP_ICON_SIZE = 28
 
@@ -157,6 +160,10 @@ function DeforestationSankeyContent({
     const nodes = useMemo<SankeyNode[]>(
         () =>
             graph.nodes.map((node) => {
+                // Domestic production carries the country's own name, so
+                // say what it stands for
+                if (isDomesticNodeId(node.id))
+                    return { ...node, annotation: DOMESTIC_ANNOTATION }
                 const group = getGroupFromNodeId(node.id)
                 if (group === undefined) return node
                 if (node.label === "" && !isNarrow) return node

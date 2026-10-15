@@ -51,6 +51,11 @@
     stroke-linejoin: round;
 }
 
+// A note under a label reads as an aside, not as part of the name
+.sankey__label-annotation text {
+    font-style: italic;
+}
+
 // Icons are often drawn in the colour of the ribbon behind them; a white
 // disc underneath sets them apart
 .sankey__label-icon-backing {

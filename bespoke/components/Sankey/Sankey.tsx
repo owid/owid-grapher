@@ -13,6 +13,7 @@ import {
 } from "@ourworldindata/utils"
 import { GrapherTooltipAnchor } from "@ourworldindata/types"
 import {
+    BezierArrow,
     GRAPHER_DARK_TEXT,
     GRAPHER_DENIM,
     GRAPHER_LIGHT_TEXT,
@@ -38,6 +39,18 @@ const ICON_BACKING_PADDING = 2
 
 /** Vertical gap between a node's value label and its label */
 const VALUE_LABEL_GAP = 2
+
+/** Vertical gap above an annotation, where its arrow runs up to the band */
+const ANNOTATION_GAP = 30
+
+/** Where under the annotation its arrow starts, as a share of the text's
+ *  width from the band's side */
+const ANNOTATION_ARROW_START_SHARE = 0.4
+/** How far above the annotation's top the arrow meets the band */
+const ANNOTATION_ARROW_RISE = 11
+const ANNOTATION_ARROWHEAD_SIZE = 5
+/** Space between the arrowhead's tip and the band */
+const ANNOTATION_ARROW_BAND_GAP = 3
 
 /** How far a ribbon reaches under a middle node's band, in px */
 const RIBBON_NODE_OVERLAP = 0.5
@@ -166,6 +179,11 @@ export type SankeyNode = {
     label: string
     valueLabel?: string
     /**
+     * Optional note on a third line, under the value, with an arrow running
+     * from it to the node's band. Dropped on a node too short for all three lines.
+     */
+    annotation?: string
+    /**
      * Optional icon drawn next to the node's label, between the node's band
      * and the label text. Any SVG content designed for a `0 0 16 16` viewBox.
      */
@@ -202,6 +220,7 @@ type PlacedSankeyLabel = {
     side: SankeyNodeSide
     label: TextWrap
     valueLabel?: TextWrap
+    annotation?: TextWrap
     icon?: React.ReactNode
     /** False on a node too short for its icon: the text keeps the icon's
      *  space so labels in a column stay aligned, but the icon isn't drawn */
@@ -396,6 +415,12 @@ export function Sankey({
             }),
         [layout, nodePadding, fontSettings, middleLabelSide]
     )
+
+    // Only annotated labels use their node's colour (for the arrow)
+    const getLabelNodeColor = (nodeId: string): string | undefined => {
+        const node = layout?.nodes.find((n) => n.id === nodeId)
+        return node?.annotation ? nodeColor?.(node) : undefined
+    }
 
     const headings = useMemo<PlacedColumnHeading[]>(
         () =>
@@ -775,6 +800,7 @@ export function Sankey({
                             isHovered={hoveredNodeId === label.nodeId}
                             isActive={activeNodeIds.has(label.nodeId)}
                             isAnchored={label.nodeId === anchorNodeId}
+                            nodeColor={getLabelNodeColor(label.nodeId)}
                         />
                     ))}
                 </g>
@@ -965,11 +991,14 @@ function SankeyLabel({
     isHovered,
     isActive,
     isAnchored,
+    nodeColor = GRAPHER_DENIM,
 }: {
     label: PlacedSankeyLabel
     isHovered?: boolean
     isActive?: boolean
     isAnchored?: boolean
+    /** The node band's colour, which an annotation and its arrow take on */
+    nodeColor?: string
 }): React.ReactElement {
     const className = cx("sankey__label", {
         "sankey__label--inner": label.side === "middle",
@@ -1010,43 +1039,114 @@ function SankeyLabel({
             </>
         ) : null
 
-    if (label.valueLabel) {
-        const labelY =
-            label.y - 0.5 * label.label.height - 0.5 * VALUE_LABEL_GAP
-        const valueLabelY = labelY + label.label.height + VALUE_LABEL_GAP
+    // The label's lines stack, centred as a block on the node
+    const lines = [
+        { textWrap: label.label, fill: GRAPHER_DARK_TEXT },
+        ...(label.valueLabel
+            ? [{ textWrap: label.valueLabel, fill: GRAPHER_LIGHT_TEXT }]
+            : []),
+        ...(label.annotation
+            ? [
+                  {
+                      textWrap: label.annotation,
+                      // In the band's colour, like its arrow, to tie the
+                      // note to the band
+                      fill: nodeColor,
+                      className: "sankey__label-annotation",
+                  },
+              ]
+            : []),
+    ]
+    let lineTop = label.y - 0.5 * getLabelTextHeight(label)
 
-        return (
-            <g className={className}>
-                {icon}
-                <TextWrapSvg
-                    textWrap={label.label}
-                    x={textX}
-                    y={labelY}
-                    textAnchor={label.textAnchor}
-                    fill={GRAPHER_DARK_TEXT}
-                />
-                <TextWrapSvg
-                    textWrap={label.valueLabel}
-                    x={textX}
-                    y={valueLabelY}
-                    textAnchor={label.textAnchor}
-                    fill={GRAPHER_LIGHT_TEXT}
-                />
-            </g>
-        )
-    }
+    // Towards the band, as a sign
+    const direction = isTextAnchoredAtEnd ? 1 : -1
 
     return (
         <g className={className}>
             {icon}
-            <TextWrapSvg
-                textWrap={label.label}
-                x={textX}
-                y={label.y}
-                textAnchor={label.textAnchor}
-                fill={GRAPHER_DARK_TEXT}
-            />
+            {lines.map(({ textWrap, fill, className }, i) => {
+                if (textWrap === label.annotation)
+                    lineTop += ANNOTATION_GAP - VALUE_LABEL_GAP
+                const y = lineTop + 0.5 * textWrap.height
+                lineTop += textWrap.height + VALUE_LABEL_GAP
+                if (textWrap !== label.annotation)
+                    return (
+                        <TextWrapSvg
+                            key={i}
+                            textWrap={textWrap}
+                            x={textX}
+                            y={y}
+                            textAnchor={label.textAnchor}
+                            fill={fill}
+                        />
+                    )
+
+                // The arrow leaves from the top of the annotation heading up
+                // and turns into the band in the gap above, so it meets the
+                // band side-on and the annotation lines up with the lines
+                // above it
+                const annotationX = textX
+                const arrowStart = {
+                    x:
+                        annotationX -
+                        direction *
+                            ANNOTATION_ARROW_START_SHARE *
+                            textWrap.width,
+                    y: y - 0.5 * textWrap.height - 1,
+                }
+                const arrowEnd = {
+                    x:
+                        label.x +
+                        direction *
+                            (BAND_LABEL_GAP - ANNOTATION_ARROW_BAND_GAP),
+                    y: y - 0.5 * textWrap.height - ANNOTATION_ARROW_RISE,
+                }
+                // Up out of the text, then sweeping round into the band
+                const dx = Math.abs(arrowEnd.x - arrowStart.x)
+                const dy = arrowEnd.y - arrowStart.y
+                return (
+                    <g key={i} className={className}>
+                        <TextWrapSvg
+                            textWrap={textWrap}
+                            x={annotationX}
+                            y={y}
+                            textAnchor={label.textAnchor}
+                            fill={fill}
+                        />
+                        <BezierArrow
+                            start={arrowStart}
+                            end={arrowEnd}
+                            startHandleOffset={{ x: 0, y: dy }}
+                            endHandleOffset={{
+                                x: -direction * 0.6 * dx,
+                                y: 0,
+                            }}
+                            headLength={ANNOTATION_ARROWHEAD_SIZE}
+                            color={nodeColor}
+                        />
+                    </g>
+                )
+            })}
         </g>
+    )
+}
+
+/** Height of a placed label's stacked lines of text */
+function getLabelTextHeight(label: {
+    label: TextWrap
+    valueLabel?: TextWrap
+    annotation?: TextWrap
+}): number {
+    const lines = [label.label, label.valueLabel, label.annotation].filter(
+        (line) => line !== undefined
+    )
+    const linesHeight = lines.reduce((sum, line) => sum + line.height, 0)
+    const annotationExtraGap = label.annotation
+        ? ANNOTATION_GAP - VALUE_LABEL_GAP
+        : 0
+    return (
+        linesHeight + VALUE_LABEL_GAP * (lines.length - 1) + annotationExtraGap
     )
 }
 
@@ -1064,7 +1164,7 @@ function placeSankeyLabels({
     if (!layout) return []
 
     return layout.nodes.flatMap((node) => {
-        const { label, valueLabel, icon } = node
+        const { label, valueLabel, annotation, icon } = node
 
         const x0 = node.x0 ?? 0
         const x1 = node.x1 ?? 0
@@ -1114,6 +1214,22 @@ function placeSankeyLabels({
             const shouldShowValueLabel =
                 nodeHeightWithPadding >= totalLabelHeight
 
+            const annotationTextWrap = annotation
+                ? new TextWrap({
+                      ...fontSettings,
+                      text: annotation,
+                      maxWidth: Infinity,
+                      verticalAlign: VerticalAlign.middle,
+                  })
+                : undefined
+            const shouldShowAnnotation =
+                shouldShowValueLabel &&
+                annotationTextWrap !== undefined &&
+                nodeHeightWithPadding >=
+                    totalLabelHeight +
+                        ANNOTATION_GAP +
+                        annotationTextWrap.height
+
             return [
                 {
                     nodeId: node.id,
@@ -1124,6 +1240,9 @@ function placeSankeyLabels({
                     label: labelTextWrap,
                     valueLabel: shouldShowValueLabel
                         ? valueLabelTextWrap
+                        : undefined,
+                    annotation: shouldShowAnnotation
+                        ? annotationTextWrap
                         : undefined,
                     icon,
                     isIconVisible,
@@ -1369,6 +1488,7 @@ function toNodeData(node: LaidOutNode): SankeyNode {
         id: node.id,
         label: node.label,
         valueLabel: node.valueLabel,
+        annotation: node.annotation,
         icon: node.icon,
     }
 }
@@ -1389,7 +1509,8 @@ export function measureMaxLabelWidthForNode(
     return (
         Math.max(
             textWidth(node.label, fontSettings),
-            node.valueLabel ? textWidth(node.valueLabel, fontSettings) : 0
+            node.valueLabel ? textWidth(node.valueLabel, fontSettings) : 0,
+            node.annotation ? textWidth(node.annotation, fontSettings) : 0
         ) + getIconLabelOffset(node)
     )
 }
@@ -1457,11 +1578,12 @@ function calculateNodeHitBounds(
     if (!label) return bandBounds
 
     const width =
-        Math.max(label.label.width, label.valueLabel?.width ?? 0) +
-        getIconLabelOffset(label)
-    const textHeight =
-        label.label.height +
-        (label.valueLabel ? VALUE_LABEL_GAP + label.valueLabel.height : 0)
+        Math.max(
+            label.label.width,
+            label.valueLabel?.width ?? 0,
+            label.annotation ? label.annotation.width : 0
+        ) + getIconLabelOffset(label)
+    const textHeight = getLabelTextHeight(label)
     const height = label.icon
         ? Math.max(textHeight, SANKEY_ICON_SIZE)
         : textHeight
