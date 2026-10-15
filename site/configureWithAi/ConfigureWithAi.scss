@@ -1,4 +1,6 @@
-// "Configure with AI" prototype box, ported from Joe's Claude artifact
+// "Configure with AI" prototype box, ported from Joe's Claude artifact.
+// Loaded with the box's own chunk, so it imports the colours itself.
+@use "../../packages/@ourworldindata/components/src/styles/colors.scss" as *;
 
 .configure-with-ai {
     margin: 16px 0;

@@ -8,6 +8,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons"
 import cx from "clsx"
 import type { ConfigureWithAiView } from "./configureWithAiView.js"
+import "./ConfigureWithAi.scss"
 
 // "Configure with AI" prototype (staging only): a reader asks for a view of
 // this chart, /api/configure-with-ai returns 2–4 views, and clicking one
