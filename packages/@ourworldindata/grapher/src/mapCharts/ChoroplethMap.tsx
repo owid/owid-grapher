@@ -511,11 +511,13 @@ export class ChoroplethMap extends React.Component<{
                         patternId={noDataPatternId}
                         scale={this.featurePatternScale}
                     />
-                    <InapplicablePattern
-                        patternId={inapplicablePatternId}
-                        color={this.manager.inapplicableColor}
-                        scale={this.featurePatternScale}
-                    />
+                    {!!inapplicableEntityNamesSet?.size && (
+                        <InapplicablePattern
+                            patternId={inapplicablePatternId}
+                            color={this.manager.inapplicableColor}
+                            scale={this.featurePatternScale}
+                        />
+                    )}
                 </defs>
 
                 {featuresWithNoData.map((feature) => (
