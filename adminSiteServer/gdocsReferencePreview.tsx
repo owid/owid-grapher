@@ -337,7 +337,7 @@ export async function renderGdocsReferenceComponentPreview(
  * Preview of one block of a bespoke viz bundle: a variant's default block or
  * a docs.md example, picked from the registry (see selectBespokePreviewBlock).
  */
-export async function renderBespokeVizVariantPreview(
+export async function renderBespokeVizPreview(
     bundleId: string,
     variantParam: PreviewQueryParam,
     exampleParam: PreviewQueryParam,

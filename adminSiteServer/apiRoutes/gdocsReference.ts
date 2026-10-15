@@ -378,7 +378,7 @@ function nearestHeadingAnchor(
 
 // Load the enriched bodies of the given docs — only ever called for the docs
 // whose instances a response actually shows (a page of instances, or every
-// doc using a bespoke viz bundle: about 30 today).
+// doc using a bespoke viz bundle).
 async function loadBodies(
     trx: db.KnexReadonlyTransaction,
     gdocIds: string[]
@@ -748,7 +748,7 @@ function storedVariant(config: StoredConfig): string | null {
     return typeof variant === "string" && variant !== "" ? variant : null
 }
 
-// The config keys a stored bespoke block sets, to any value.
+// The config keys a stored bespoke block sets, to any non-null value.
 function storedConfigKeys(config: StoredConfig): string[] {
     const blockConfig = config.config
     if (!blockConfig || typeof blockConfig !== "object") return []
@@ -756,6 +756,9 @@ function storedConfigKeys(config: StoredConfig): string[] {
         .filter(([, value]) => value !== undefined && value !== null)
         .map(([key]) => key)
 }
+
+// A published bespoke block with its parsed config
+type BespokeBlockRow = { row: InstanceRow; config: StoredConfig }
 
 // Unknown variants: most used first; among equals, by name, with the
 // no-variant group last.
@@ -804,10 +807,7 @@ export async function getBespokeVizUsage(
 
     // Rows grouped by bundle, then by variant (null = no variant). Rows come
     // newest first, so each group's instances are too.
-    const byBundle = new Map<
-        string,
-        Map<string | null, { row: InstanceRow; config: StoredConfig }[]>
-    >()
+    const byBundle = new Map<string, Map<string | null, BespokeBlockRow[]>>()
     for (const row of rows) {
         const config = parseConfig(row.config)
         if (!config || typeof config.bundle !== "string") continue
@@ -853,7 +853,7 @@ export async function getBespokeVizUsage(
 
         const variantUsage = (
             variant: string | null,
-            group: { row: InstanceRow; config: StoredConfig }[]
+            group: BespokeBlockRow[]
         ): BundleVariantUsage => ({
             variant,
             known: variant !== null && knownNames.includes(variant),

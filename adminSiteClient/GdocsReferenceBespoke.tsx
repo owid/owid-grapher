@@ -1,12 +1,6 @@
 import { useState } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import {
-    faChevronDown,
-    faChevronLeft,
-    faChevronRight,
-    faCode,
-    faPenToSquare,
-} from "@fortawesome/free-solid-svg-icons"
+import { faCode, faPenToSquare } from "@fortawesome/free-solid-svg-icons"
 import type {
     BespokeVizRegistry,
     BespokeVizUsage,
@@ -22,7 +16,12 @@ import {
     InlineMarkdownText,
     TitleFor,
 } from "./GdocsReferenceMarkdown.js"
-import { InstanceProvenance } from "./GdocsReferenceLive.js"
+import {
+    FormCardHeader,
+    InstanceProvenance,
+    Pager,
+    ValueChips,
+} from "./GdocsReferenceLive.js"
 import { BESPOKE_COMPONENT_ID } from "./gdocsReferenceNav.js"
 import {
     BundleVariantEntry,
@@ -212,8 +211,8 @@ export function BespokeBundlePage({
                 <code>fallbackImageFilename</code> are documented on the{" "}
                 <Link to={COMPONENT_PAGE_PATH}>Bespoke Component</Link> page.
             </p>
-            {/* Keyed so the expanded tail doesn't carry over to the next
-                bundle */}
+            {/* Keyed so the expanded tail and each carousel's slide don't
+                carry over to the next bundle */}
             <BundleVariants
                 key={bundle.id}
                 bundle={bundle}
@@ -332,8 +331,8 @@ function BundleVariants({
 
 /**
  * One variant of the bundle: its description, the default block to copy
- * and its published uses. docs.md examples stay in the prose. A collapsed
- * card renders its header only, so it mounts no preview.
+ * and its published uses. A collapsed card renders its header only, so it
+ * mounts no preview.
  */
 function VariantCard({
     bundle,
@@ -372,28 +371,12 @@ function VariantCard({
 
     return (
         <div className="gdocs-ref-live__form-card">
-            {onToggle ? (
-                <button
-                    type="button"
-                    className="gdocs-ref-live__form-card-header gdocs-ref-live__form-card-header--toggle"
-                    aria-expanded={!collapsed}
-                    onClick={onToggle}
-                >
-                    {title}
-                    <span className="gdocs-ref-live__form-card-header-end">
-                        {badge}
-                        <FontAwesomeIcon
-                            icon={faChevronDown}
-                            className="gdocs-ref-live__form-card-chevron"
-                        />
-                    </span>
-                </button>
-            ) : (
-                <div className="gdocs-ref-live__form-card-header">
-                    {title}
-                    {badge}
-                </div>
-            )}
+            <FormCardHeader
+                title={title}
+                badge={badge}
+                collapsed={collapsed}
+                onToggle={onToggle}
+            />
             {!collapsed && (
                 <div className="gdocs-ref-bespoke__variant-body">
                     {variant.description && (
@@ -435,24 +418,26 @@ function VariantCarousel({
     const [index, setIndex] = useState(0)
     const slide = Math.min(index, instances.length)
     const instance = slide > 0 ? instances[slide - 1] : undefined
+    const example = instance
+        ? {
+              archie: instance.archie,
+              previewPath: instancePreviewPath(instance),
+              previewTitle: `Used in ${instance.title}`,
+          }
+        : {
+              archie,
+              previewPath: variantPreviewPath(bundleId, variantName),
+              previewTitle: `${bundleId} ${variantName}`,
+          }
     return (
         <>
             {/* Keyed so a slide's tab and height don't carry to the next */}
-            {instance ? (
-                <GdocsReferenceExample
-                    key={slide}
-                    archie={instance.archie}
-                    previewPath={instancePreviewPath(instance)}
-                    previewTitle={`Used in ${instance.title}`}
-                />
-            ) : (
-                <GdocsReferenceExample
-                    key={slide}
-                    archie={archie}
-                    previewPath={variantPreviewPath(bundleId, variantName)}
-                    previewTitle={`${bundleId} ${variantName}`}
-                />
-            )}
+            <GdocsReferenceExample
+                key={slide}
+                archie={example.archie}
+                previewPath={example.previewPath}
+                previewTitle={example.previewTitle}
+            />
             {instances.length > 0 && (
                 <div className="gdocs-ref-live__form-example-footer">
                     {instance ? (
@@ -461,29 +446,19 @@ function VariantCarousel({
                         // Keeps the pager on the right
                         <span />
                     )}
-                    <span className="gdocs-ref-live__pager">
-                        <button
-                            type="button"
-                            className="gdocs-ref-live__pager-button"
-                            disabled={slide === 0}
-                            title="Previous slide"
-                            onClick={() => setIndex(slide - 1)}
-                        >
-                            <FontAwesomeIcon icon={faChevronLeft} />
-                        </button>
-                        {instance
-                            ? `use ${slide} of ${instances.length}`
-                            : "Default block"}
-                        <button
-                            type="button"
-                            className="gdocs-ref-live__pager-button"
-                            disabled={slide >= instances.length}
-                            title="Next slide"
-                            onClick={() => setIndex(slide + 1)}
-                        >
-                            <FontAwesomeIcon icon={faChevronRight} />
-                        </button>
-                    </span>
+                    <Pager
+                        label={
+                            instance
+                                ? `use ${slide} of ${instances.length}`
+                                : "Default block"
+                        }
+                        prevTitle="Previous slide"
+                        nextTitle="Next slide"
+                        prevDisabled={slide === 0}
+                        nextDisabled={slide >= instances.length}
+                        onPrev={() => setIndex(slide - 1)}
+                        onNext={() => setIndex(slide + 1)}
+                    />
                 </div>
             )}
         </>
@@ -505,25 +480,11 @@ function ConfigTypeCell({
     const choices = configChoices(field)
     if (choices)
         return (
-            <span className="gdocs-ref-live__props-choices">
-                {choices.map((value) => (
-                    <code
-                        key={value}
-                        className={
-                            value === field.default
-                                ? "gdocs-ref-live__props-choice gdocs-ref-live__props-choice--default"
-                                : "gdocs-ref-live__props-choice"
-                        }
-                        title={
-                            value === field.default
-                                ? "What you get when the key is unset"
-                                : undefined
-                        }
-                    >
-                        {value}
-                    </code>
-                ))}
-            </span>
+            <ValueChips
+                values={choices}
+                defaultValue={field.default}
+                defaultHint="What you get when the key is unset"
+            />
         )
     return (
         <>

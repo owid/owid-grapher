@@ -1,5 +1,5 @@
 // Misc non-SPA views
-import express, { Router } from "express"
+import express, { type Request, Router } from "express"
 import filenamify from "filenamify"
 import { Writable } from "stream"
 import { expectInt } from "../serverUtils/serverUtil.js"
@@ -33,6 +33,7 @@ import {
 } from "@ourworldindata/types"
 import { getPlainRouteWithROTransaction } from "./plainRouterHelpers.js"
 import { stringParam } from "./queryParams.js"
+import type { PreviewQueryParam } from "./bespokeVizPreviewBlock.js"
 import {
     getMultiDimDataPageByCatalogPath,
     getMultiDimDataPageBySlug,
@@ -42,7 +43,7 @@ import { resolveSlideChartTypes } from "../baker/SlideshowBaker.js"
 import { getImageMetadataByFilenames } from "../db/db.js"
 import { getMinimalAuthorsByNames } from "../db/model/Gdoc/GdocBase.js"
 import {
-    renderBespokeVizVariantPreview,
+    renderBespokeVizPreview,
     renderGdocsReferenceComponentPreview,
     renderGdocsReferenceDocumentPreview,
     renderGdocsReferenceInstancePreview,
@@ -252,6 +253,10 @@ getPlainRouteWithROTransaction(
     }
 )
 
+function previewQueryParam(value: Request["query"][string]): PreviewQueryParam {
+    return { given: value !== undefined, value: stringParam(value) }
+}
+
 // One block of a bespoke viz bundle, from the registry: the default block of
 // a variant (?variant: the variant name) or a docs.md example (?example: its
 // index). Exactly one of the two; a repeated param counts as given but
@@ -261,16 +266,10 @@ getPlainRouteWithROTransaction(
     "/gdocs-reference/bespoke-viz/:bundle/preview",
     async (req, res, trx) => {
         res.send(
-            await renderBespokeVizVariantPreview(
+            await renderBespokeVizPreview(
                 req.params.bundle,
-                {
-                    given: req.query.variant !== undefined,
-                    value: stringParam(req.query.variant),
-                },
-                {
-                    given: req.query.example !== undefined,
-                    value: stringParam(req.query.example),
-                },
+                previewQueryParam(req.query.variant),
+                previewQueryParam(req.query.example),
                 trx
             )
         )
