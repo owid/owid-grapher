@@ -14,6 +14,7 @@ import {
     makeTooltipRoundingNotice,
     TooltipValueRange,
     formatTooltipRangeValues,
+    NO_DATA_COLOR,
 } from "../tooltip/Tooltip"
 import { MapChartManager, MapColumnInfo } from "./MapChartConstants"
 import { ColorScale, INAPPLICABLE_LABEL } from "../color/ColorScale"
@@ -448,5 +449,6 @@ function makeTextColorForValue(
     value: PrimitiveType | undefined,
     { colorScale }: { colorScale: ColorScale }
 ): string {
+    if (value === undefined) return NO_DATA_COLOR
     return darkenColorForHighContrastText(colorScale.getColor(value) ?? "#333")
 }
