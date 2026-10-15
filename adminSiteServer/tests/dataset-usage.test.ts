@@ -1,54 +1,25 @@
 import { describe, it, expect, beforeEach } from "vitest"
 import { getAdminTestEnv } from "./testEnv.js"
-import {
-    DatasetsTableName,
-    IndicatorsBeforePreProcessing,
-    VariablesTableName,
-    View,
-} from "@ourworldindata/types"
+import { IndicatorsBeforePreProcessing, View } from "@ourworldindata/types"
 import { knexReadonlyTransaction, TransactionCloseMode } from "../../db/db.js"
 import { checkDatasetVariablesInUse } from "../../db/model/Dataset.js"
-import { catalogPath, multiDimConfig } from "./fixtures.js"
+import { catalogPath, multiDimConfig, seedDataset } from "./fixtures.js"
 
 const env = getAdminTestEnv()
 
 describe(checkDatasetVariablesInUse, { timeout: 20000 }, () => {
-    // Ids sharing a prefix with indicator 1, so a textual match on `"id":1`
-    // would wrongly count them as uses of the unused dataset
+    // The y and x ids share a prefix with the unused indicator, so a textual
+    // match on `"id":1` would wrongly count them as uses of the unused dataset
     const unusedDatasetId = 1
+    const unusedVariableId = 1
     const yDatasetId = 2
     const yVariableId = 13
     const xDatasetId = 3
-    const xVariableId = 24
+    const xVariableId = 14
 
-    async function seedDatasetWithVariable(
-        id: number,
-        variableId: number
-    ): Promise<void> {
-        await env.testKnex(DatasetsTableName).insert({
-            id,
-            name: `Dataset ${id}`,
-            description: "Dataset description",
-            namespace: "owid",
-            createdByUserId: env.userId,
-            metadataEditedAt: new Date(),
-            metadataEditedByUserId: env.userId,
-            dataEditedAt: new Date(),
-            dataEditedByUserId: env.userId,
-        })
-        await env.testKnex(VariablesTableName).insert({
-            id: variableId,
-            unit: "kg",
-            coverage: "Global by country",
-            timespan: "2000-2020",
-            datasetId: id,
-            display: '{ "unit": "kg", "shortUnit": "kg" }',
-        })
-    }
-
-    async function multiDimCount(id: number): Promise<number> {
+    async function multiDimCount(datasetId: number): Promise<number> {
         const { usageDetails } = await knexReadonlyTransaction(
-            (trx) => checkDatasetVariablesInUse(trx, id),
+            (trx) => checkDatasetVariablesInUse(trx, datasetId),
             TransactionCloseMode.KeepOpen,
             env.testKnex
         )
@@ -56,9 +27,9 @@ describe(checkDatasetVariablesInUse, { timeout: 20000 }, () => {
     }
 
     beforeEach(async () => {
-        await seedDatasetWithVariable(unusedDatasetId, 1)
-        await seedDatasetWithVariable(yDatasetId, yVariableId)
-        await seedDatasetWithVariable(xDatasetId, xVariableId)
+        await seedDataset(env, unusedDatasetId, [unusedVariableId])
+        await seedDataset(env, yDatasetId, [yVariableId])
+        await seedDataset(env, xDatasetId, [xVariableId])
 
         const view: View<IndicatorsBeforePreProcessing> = {
             config: {

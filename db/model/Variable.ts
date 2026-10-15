@@ -881,8 +881,8 @@ export async function getOwnersForVariables(
  * path-based explorers. Deduplicated on entity ids rather than slugs, since a
  * draft chart or multi-dim can have none.
  *
- * Scoped to the ids passed in — call it with one page of results, not with a
- * whole search.
+ * Scoped to the ids passed in — call it with one page of results or one
+ * dataset's indicators, not with a whole search.
  */
 export async function getVariableUsagesByIds(
     knex: db.KnexReadonlyTransaction,
