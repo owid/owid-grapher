@@ -8,7 +8,8 @@ import {
     DatasetsTableName,
     ExplorerVariablesTableName,
     ChartDimensionsTableName,
-    MultiDimDataPagesTableName,
+    MultiDimXChartConfigsTableName,
+    ChartConfigsTableName,
     VariablesTableName,
 } from "@ourworldindata/types"
 
@@ -136,13 +137,19 @@ export async function checkDatasetVariablesInUse(
         varIds
     )
 
-    // Multi-dim pages reference variables in their JSON config, so we need to search the config text
+    // Scans the view configs so an indicator used only as x / size / color counts too
+    // (multi_dim_x_chart_configs.variableId holds only the view's first y indicator)
     const multiDimCount = await db.knexRaw<{ count: number }>(
         trx,
-        `SELECT COUNT(*) as count
-         FROM ${MultiDimDataPagesTableName} mdp
-         WHERE ${varIds.map((id) => `mdp.config LIKE '%"id":${id}%'`).join(" OR ")}`,
-        []
+        `SELECT COUNT(DISTINCT mdxcc.multiDimId) as count
+         FROM ${MultiDimXChartConfigsTableName} mdxcc
+         JOIN ${ChartConfigsTableName} cc ON cc.id = mdxcc.chartConfigId
+         JOIN JSON_TABLE(
+             cc.config,
+             '$.dimensions[*]' COLUMNS (variableId INT PATH '$.variableId')
+         ) jt ON jt.variableId IS NOT NULL
+         WHERE jt.variableId IN (${varIds.map(() => "?").join(",")})`,
+        varIds
     )
 
     const totalChartsCount = chartsCount[0]?.count ?? 0
