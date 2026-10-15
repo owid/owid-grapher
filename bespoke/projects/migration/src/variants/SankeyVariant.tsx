@@ -8,6 +8,7 @@ import * as R from "remeda"
 import { articulateEntity } from "@ourworldindata/utils"
 
 import { Frame } from "../../../../components/Frame/Frame.js"
+import { BespokeMetadataProvider } from "../../../../components/MetadataModal/BespokeMetadataContext.js"
 import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
 import {
@@ -322,34 +323,36 @@ function CaptionedSankeyVariant({
                     />
                 </>
             )}
-            <Frame className="migration-captioned-chart">
-                <MigrationChartHeader
-                    config={config}
-                    country={displayedCountry}
-                    year={year}
-                    sex={sex}
-                    view={view}
-                    immigrantsTotal={immigrantsTotal}
-                    emigrantsTotal={emigrantsTotal}
-                />
-                <MigrationChart
-                    immigrants={immigrants}
-                    emigrants={emigrants}
-                    country={displayedCountry}
-                    year={year}
-                    sex={sex}
-                    immigrantsTotal={immigrantsTotal}
-                    emigrantsTotal={emigrantsTotal}
-                    population={population}
-                    view={view}
-                    setView={setView}
-                    setCountry={setCountry}
-                    colorMap={colorMap}
-                    isLoading={isLoading}
-                    entitiesToSortLast={entitiesToSortLast}
-                />
-                <MigrationChartFooter source={metadata.source} />
-            </Frame>
+            <BespokeMetadataProvider metadata={metadata.provenance}>
+                <Frame className="migration-captioned-chart">
+                    <MigrationChartHeader
+                        config={config}
+                        country={displayedCountry}
+                        year={year}
+                        sex={sex}
+                        view={view}
+                        immigrantsTotal={immigrantsTotal}
+                        emigrantsTotal={emigrantsTotal}
+                    />
+                    <MigrationChart
+                        immigrants={immigrants}
+                        emigrants={emigrants}
+                        country={displayedCountry}
+                        year={year}
+                        sex={sex}
+                        immigrantsTotal={immigrantsTotal}
+                        emigrantsTotal={emigrantsTotal}
+                        population={population}
+                        view={view}
+                        setView={setView}
+                        setCountry={setCountry}
+                        colorMap={colorMap}
+                        isLoading={isLoading}
+                        entitiesToSortLast={entitiesToSortLast}
+                    />
+                    <MigrationChartFooter source={metadata.source} />
+                </Frame>
+            </BespokeMetadataProvider>
         </>
     )
 }
