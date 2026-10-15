@@ -32,7 +32,6 @@ import {
     buildCountryGraph,
     buildHowToRead,
     getGroupFromNodeId,
-    getPartnerFromNodeId,
     getPartnerKeyFromNodeId,
     makeGroupId,
     makePartnerId,
@@ -83,14 +82,7 @@ const TOOLTIP_TABLE_COLUMNS = [
 
 export type DeforestationSankeyProps = Pick<
     DeforestationChartProps,
-    | "view"
-    | "country"
-    | "yearRange"
-    | "importRows"
-    | "exportRows"
-    | "setCountry"
-    | "setView"
-    | "isNarrow"
+    "view" | "country" | "yearRange" | "importRows" | "exportRows" | "isNarrow"
 >
 
 export function DeforestationSankey(
@@ -130,8 +122,6 @@ function DeforestationSankeyContent({
     yearRange,
     importRows,
     exportRows,
-    setCountry,
-    setView,
     isNarrow,
     width,
     height,
@@ -196,13 +186,6 @@ function DeforestationSankeyContent({
         }
         return map
     }, [graph.nodes, countryLabel])
-
-    /** Which side of the chart a node sits on, from the links touching it */
-    const nodeSides = useMemo(() => {
-        const sources = new Set(graph.links.map((l) => l.source))
-        const targets = new Set(graph.links.map((l) => l.target))
-        return { sources, targets }
-    }, [graph.links])
 
     /** A commodity group's links, split by layer */
     // Every ribbon belongs to one partner: on the partner layer through its
@@ -280,26 +263,6 @@ function DeforestationSankeyContent({
             getGroupFromNodeId(link.source) ?? getGroupFromNodeId(link.target)
         return group !== undefined ? getGroupColor(group) : NEUTRAL_COLOR
     }, [])
-
-    const isNodeClickable = useCallback(
-        (node: SankeyNode): boolean =>
-            getPartnerFromNodeId(node.id) !== undefined,
-        []
-    )
-
-    const onNodeClick = useCallback(
-        (node: SankeyNode): void => {
-            const partner = getPartnerFromNodeId(node.id)
-            if (partner === undefined) return
-            setCountry(partner)
-            // Keep the reader moving with the flow: a producer on the left
-            // opens on its exports, a consumer on the right on its imports.
-            setView(
-                nodeSides.sources.has(node.id) ? "production" : "consumption"
-            )
-        },
-        [nodeSides, setCountry, setView]
-    )
 
     // The focus node is named by its column heading, so it has nothing to say
     const isNodeHoverable = useCallback(
@@ -387,8 +350,6 @@ function DeforestationSankeyContent({
                 getLinkTooltip={getLinkTooltip}
                 getNodeTooltip={getNodeTooltip}
                 isNodeHoverable={isNodeHoverable}
-                isNodeClickable={isNodeClickable}
-                onNodeClick={onNodeClick}
             />
         </div>
     )
@@ -416,6 +377,20 @@ function makeNodeTooltip({
     const value = Math.max(sumLinks(incomingLinks), sumLinks(outgoingLinks))
     const share = <ValueWithShare value={value} total={graph.total} />
 
+    // The chart is about the selected country, which the focus node stands for
+    const countryLabel = [...labelById].find(([id]) => isFocusNodeId(id))?.[1]
+
+    // A partner's title reads in the direction of trade, e.g. "Brazil → South
+    // Korea": partners on the left produced for the country, those on the
+    // right consumed what it produced
+    const toFlowTitle = (partnerLabel: string): string => {
+        if (!countryLabel) return partnerLabel
+        const isPartnerConsumer = incomingLinks.length > 0
+        return isPartnerConsumer
+            ? `${countryLabel} → ${partnerLabel}`
+            : `${partnerLabel} → ${countryLabel}`
+    }
+
     const group = getGroupFromNodeId(node.id)
     if (group !== undefined) {
         // Partners sit on whichever side isn't the focus country
@@ -432,10 +407,7 @@ function makeNodeTooltip({
 
         const description = getGroupDescription(group)
         const shareOfTotal = graph.total > 0 ? value / graph.total : 0
-        // "of Brazil's total": the chart is about the selected country
-        const countryLabel = [...labelById].find(([id]) =>
-            isFocusNodeId(id)
-        )?.[1]
+        // "of Brazil's total"
         const ofTotal = countryLabel
             ? `of ${possessiveEntity(articulateEntity(countryLabel))} total`
             : "of the total"
@@ -490,7 +462,7 @@ function makeNodeTooltip({
         const side = outgoingLinks.length > 0 ? "left" : "right"
         const breakdown: EntityTotal[] = graph.otherBreakdown[side]
         return {
-            title: "Other countries",
+            title: toFlowTitle("Other countries"),
             subtitle,
             content: (
                 <>
@@ -509,7 +481,11 @@ function makeNodeTooltip({
     // A partner country: break its flows down by commodity
     const partnerLinks = [...incomingLinks, ...outgoingLinks]
     return {
-        title: labelById.get(node.id) ?? node.label,
+        // Domestic production is named after the country itself, and
+        // "Brazil → Brazil" would say nothing more
+        title: isDomesticNodeId(node.id)
+            ? (labelById.get(node.id) ?? node.label)
+            : toFlowTitle(labelById.get(node.id) ?? node.label),
         subtitle,
         content: (
             <>
