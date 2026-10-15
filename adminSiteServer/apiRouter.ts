@@ -1,5 +1,6 @@
 /* eslint @typescript-eslint/no-unused-vars: [ "warn", { argsIgnorePattern: "^(res|req)$" } ] */
 
+import express from "express"
 import { TaggableType } from "@ourworldindata/types"
 import {
     getSlideshows,
@@ -50,6 +51,7 @@ import {
     getPublishedGdocTopicSlugs,
     getResearchAndWritingOrphans,
 } from "./apiRoutes/gdocs.js"
+import { getGdocArchieMl, putGdocArchieMl } from "./apiRoutes/gdocArchieMl.js"
 import {
     getImagesHandler,
     postImageHandler,
@@ -398,6 +400,16 @@ getRouteWithROTransaction(
     apiRouter,
     "/gdocs/:id/coverage",
     getGdocCalloutCoverage
+)
+// ArchieML read and write for agents, on unpublished docs only
+getRouteWithROTransaction(apiRouter, "/gdocs/:id/archieml", getGdocArchieMl)
+// The body is plain text, which FunctionalRouter's parsers don't cover. Opens
+// its own short transactions, rather than holding one across the Google API
+// calls
+apiRouter.router.put(
+    "/gdocs/:id/archieml",
+    express.text({ type: "text/plain", limit: "50mb" }),
+    apiRouter.wrap(putGdocArchieMl)
 )
 getRouteWithROTransaction(
     apiRouter,
