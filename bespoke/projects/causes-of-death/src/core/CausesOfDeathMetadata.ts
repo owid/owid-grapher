@@ -1,10 +1,6 @@
 import * as R from "remeda"
 import { EntityName } from "@ourworldindata/types"
 import {
-    formatAttributionsShortened,
-    getAttributionFragmentsFromBespokeMetadata,
-} from "@ourworldindata/utils"
-import {
     AgeGroupMetadata,
     CategoryMetadata,
     MetadataJson,
@@ -12,6 +8,7 @@ import {
     VariableMetadata,
     BasicEntry,
 } from "./CausesOfDeathConstants.js"
+import { getBespokeSourceLine } from "../../../../components/MetadataModal/bespokeMetadata.js"
 
 export class CausesOfDeathMetadata {
     private readonly metadata: MetadataJson
@@ -36,9 +33,7 @@ export class CausesOfDeathMetadata {
 
         this.dimensions = metadata.dimensions
         this.categories = metadata.categories
-        this.source = formatAttributionsShortened(
-            getAttributionFragmentsFromBespokeMetadata(metadata)
-        )
+        this.source = getBespokeSourceLine(metadata)
         this.timeRange = metadata.timeRange
     }
 

@@ -2,6 +2,7 @@ import cx from "clsx"
 import { Tippy } from "@ourworldindata/utils"
 import { useTippyContainer } from "../../hooks/useTippyContainer.js"
 import { useBespokeMetadataContext } from "../MetadataModal/BespokeMetadataContext.js"
+import { getBespokeSourceLine } from "../MetadataModal/bespokeMetadata.js"
 
 const CC_BY_TOOLTIP =
     "Our World in Data charts are licensed under Creative Commons; you are free to use, share, and adapt this material. Click through to the CC BY page for more information. Please bear in mind that the underlying source data for all our charts might be subject to different license terms from third-party authors."
@@ -11,13 +12,19 @@ export function ChartFooter({
     note,
     className,
 }: {
-    source: React.ReactNode
+    /** Overrides the line built from the viz's metadata */
+    source?: React.ReactNode
     note?: React.ReactNode
     className?: string
 }) {
     const { ref: footerRef, getTippyContainer } =
         useTippyContainer<HTMLElement>()
     const metadataContext = useBespokeMetadataContext()
+    const sourceLine =
+        source ||
+        (metadataContext?.metadata
+            ? getBespokeSourceLine(metadataContext.metadata)
+            : undefined)
 
     const learnMore = metadataContext?.metadata ? (
         <>
@@ -54,7 +61,7 @@ export function ChartFooter({
             {note ? (
                 <>
                     <div className="chart-footer__source">
-                        <strong>Data source:</strong> {source}
+                        <strong>Data source:</strong> {sourceLine}
                         {learnMore}
                     </div>
                     <div className="chart-footer__row chart-footer__note-row">
@@ -67,7 +74,7 @@ export function ChartFooter({
             ) : (
                 <div className="chart-footer__row">
                     <div className="chart-footer__source">
-                        <strong>Data source:</strong> {source}
+                        <strong>Data source:</strong> {sourceLine}
                         {learnMore}
                     </div>
                     {ccBy}

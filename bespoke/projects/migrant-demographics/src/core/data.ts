@@ -1,11 +1,7 @@
 import { QueryClient, QueryStatus, useQuery } from "@tanstack/react-query"
 import * as R from "remeda"
 
-import {
-    fetchJson,
-    formatAttributionsShortened,
-    getAttributionFragmentsFromBespokeMetadata,
-} from "@ourworldindata/utils"
+import { fetchJson } from "@ourworldindata/utils"
 
 import {
     PopulationTotals,
@@ -15,6 +11,7 @@ import {
     RawYearRecord,
     SexValues,
 } from "./types.js"
+import { getBespokeSourceLine } from "../../../../components/MetadataModal/bespokeMetadata.js"
 
 export const queryClient = new QueryClient()
 
@@ -78,9 +75,7 @@ export class MigrantDemographicsMetadata {
     private readonly codesByEntityName: Map<string, number>
 
     constructor(raw: RawMigrantDemographicsMetadata) {
-        const source = formatAttributionsShortened(
-            getAttributionFragmentsFromBespokeMetadata(raw)
-        )
+        const source = getBespokeSourceLine(raw)
         // Without these the chart's geometry degenerates to NaN, so fail into
         // the error state rather than rendering a broken pyramid
         if (!raw.ageBands?.length || !raw.years?.length || !source)

@@ -1,10 +1,6 @@
 import { QueryStatus, useQuery } from "@tanstack/react-query"
 
-import {
-    fetchJson,
-    formatAttributionsShortened,
-    getAttributionFragmentsFromBespokeMetadata,
-} from "@ourworldindata/utils"
+import { fetchJson } from "@ourworldindata/utils"
 
 import {
     FoodTradeMetadata,
@@ -13,6 +9,7 @@ import {
     ProductTradeData,
     TradeRow,
 } from "./types.js"
+import { getBespokeSourceLine } from "../../../../components/MetadataModal/bespokeMetadata.js"
 
 const queryKeys = {
     metadata: () => ["food-trade", "metadata"] as const,
@@ -91,9 +88,7 @@ function buildMetadata(raw: MetadataJson): FoodTradeMetadata {
 
     return {
         year: raw.year,
-        source: formatAttributionsShortened(
-            getAttributionFragmentsFromBespokeMetadata(raw)
-        ),
+        source: getBespokeSourceLine(raw),
         license: raw.license,
         entities,
         products,
