@@ -467,7 +467,6 @@ function makeNodeTooltip({
                                 ? "Produced in"
                                 : "Consumed in"
                         }
-                        color={getGroupColor(group)}
                         total={value}
                         rows={R.pipe(
                             rows,
@@ -591,24 +590,18 @@ function CommodityBreakdownTable({
     )
 }
 
-/**
- * A commodity's partners, each with its hectares, its share of the commodity
- * and a bar in the commodity's colour scaled to the largest row
- */
+/** A commodity's partners, each with its hectares and its share of the commodity */
 function PartnerShareTable({
     heading,
-    color,
     total,
     rows,
 }: {
     heading: string
-    color: string
     total: number
     rows: { name: string; value: number }[]
 }): React.ReactElement | null {
     const { visible, hiddenCount } = capItems(rows)
     if (visible.length === 0) return null
-    const maxValue = Math.max(...visible.map((r) => r.value))
 
     return (
         <>
@@ -621,15 +614,6 @@ function PartnerShareTable({
                         <tr key={row.name}>
                             <td className="deforestation-sankey__share-table-name">
                                 {row.name}
-                            </td>
-                            <td className="deforestation-sankey__share-table-bar">
-                                <div
-                                    className="deforestation-sankey__share-table-bar-fill"
-                                    style={{
-                                        width: `${maxValue > 0 ? (row.value / maxValue) * 100 : 0}%`,
-                                        backgroundColor: color,
-                                    }}
-                                />
                             </td>
                             <td className="deforestation-sankey__share-table-value">
                                 {formatHectares(row.value, { short: true })}
