@@ -64,7 +64,11 @@ import {
     GrapherVariant,
     MapRegionName,
 } from "@ourworldindata/types"
-import { ClipPath, makeClipPath } from "../chart/ChartUtils"
+import {
+    ClipPath,
+    InapplicablePattern,
+    makeClipPath,
+} from "../chart/ChartUtils"
 import { NoDataMessage } from "../noDataMessage/NoDataMessage"
 import { Component, createRef, PointerEvent } from "react"
 import { ChoroplethMap } from "./ChoroplethMap"
@@ -684,10 +688,22 @@ export class MapChart
             <ChoroplethMap manager={this} />
         )
 
-        // Clip the map to its bounds, since the viewport can crop the map
-        // (e.g. the World map cuts off some Pacific islands at its edges)
         return (
             <>
+                {this.chartState.hasInapplicableBin && (
+                    <defs>
+                        <InapplicablePattern
+                            patternId={makePatternId(
+                                Patterns.inapplicablePattern,
+                                this.patternIdSuffix
+                            )}
+                            scale={this.patternScale}
+                        />
+                    </defs>
+                )}
+                {/* Clip the map to its bounds, since the viewport can crop the
+                map (e.g. the World map cuts off some Pacific islands at its
+                edges) */}
                 {this.clipPath.element}
                 <g clipPath={this.clipPath.id}>{mapOrGlobe}</g>
             </>

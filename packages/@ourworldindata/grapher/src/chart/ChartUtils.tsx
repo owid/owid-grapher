@@ -344,13 +344,6 @@ export function ChartPatternDefs({
                 patternId={makePatternId(Patterns.noDataPattern, idSuffix)}
                 scale={scale}
             />
-            <InapplicablePattern
-                patternId={makePatternId(
-                    Patterns.inapplicablePattern,
-                    idSuffix
-                )}
-                scale={scale}
-            />
         </defs>
     )
 }
