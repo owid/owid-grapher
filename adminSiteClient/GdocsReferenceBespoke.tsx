@@ -404,77 +404,89 @@ function VariantCard({
                             />
                         </p>
                     )}
-                    <h3 className="gdocs-ref-bespoke__variant-subtitle">
-                        Default block
-                    </h3>
-                    <GdocsReferenceExample
+                    <VariantCarousel
+                        bundleId={bundle.id}
+                        variantName={variant.name}
                         archie={variant.archie}
-                        previewPath={variantPreviewPath(
-                            bundle.id,
-                            variant.name
-                        )}
-                        previewTitle={`${bundle.id} ${variant.name}`}
+                        instances={usage?.instances ?? []}
                     />
-                    {usage && usage.instances.length > 0 && (
-                        <>
-                            <h3 className="gdocs-ref-bespoke__variant-subtitle">
-                                Published uses
-                            </h3>
-                            <VariantUsesCarousel instances={usage.instances} />
-                        </>
-                    )}
                 </div>
             )}
         </div>
     )
 }
 
-/** The variant's published uses, one at a time: only the current one mounts. */
-function VariantUsesCarousel({
+/**
+ * The variant's default block, then its published uses, one slide at a
+ * time: only the current slide mounts its preview. The pager counts the
+ * published uses; the default block is slide 0 and isn't counted.
+ */
+function VariantCarousel({
+    bundleId,
+    variantName,
+    archie,
     instances,
 }: {
+    bundleId: string
+    variantName: string
+    archie: string
     instances: ComponentInstance[]
 }): React.ReactElement {
     const [index, setIndex] = useState(0)
-    const current = instances[Math.min(index, instances.length - 1)]
+    const slide = Math.min(index, instances.length)
+    const instance = slide > 0 ? instances[slide - 1] : undefined
     return (
-        <div className="gdocs-ref-bespoke__uses-carousel">
-            <GdocsReferenceExample
-                archie={current.archie}
-                previewPath={instancePreviewPath(current)}
-                previewTitle={`Used in ${current.title}`}
-            />
-            <div className="gdocs-ref-live__form-example-footer">
-                <InstanceProvenance instance={current} />
-                {instances.length > 1 && (
+        <>
+            {/* Keyed so a slide's tab and height don't carry to the next */}
+            {instance ? (
+                <GdocsReferenceExample
+                    key={slide}
+                    archie={instance.archie}
+                    previewPath={instancePreviewPath(instance)}
+                    previewTitle={`Used in ${instance.title}`}
+                />
+            ) : (
+                <GdocsReferenceExample
+                    key={slide}
+                    archie={archie}
+                    previewPath={variantPreviewPath(bundleId, variantName)}
+                    previewTitle={`${bundleId} ${variantName}`}
+                />
+            )}
+            {instances.length > 0 && (
+                <div className="gdocs-ref-live__form-example-footer">
+                    {instance ? (
+                        <InstanceProvenance instance={instance} />
+                    ) : (
+                        // Keeps the pager on the right
+                        <span />
+                    )}
                     <span className="gdocs-ref-live__pager">
                         <button
                             type="button"
                             className="gdocs-ref-live__pager-button"
-                            disabled={index === 0}
-                            title="Previous use"
-                            onClick={() => setIndex(Math.max(0, index - 1))}
+                            disabled={slide === 0}
+                            title="Previous slide"
+                            onClick={() => setIndex(slide - 1)}
                         >
                             <FontAwesomeIcon icon={faChevronLeft} />
                         </button>
-                        use {index + 1} of {instances.length}
+                        {instance
+                            ? `use ${slide} of ${instances.length}`
+                            : "Default block"}
                         <button
                             type="button"
                             className="gdocs-ref-live__pager-button"
-                            disabled={index + 1 >= instances.length}
-                            title="Next use"
-                            onClick={() =>
-                                setIndex(
-                                    Math.min(instances.length - 1, index + 1)
-                                )
-                            }
+                            disabled={slide >= instances.length}
+                            title="Next slide"
+                            onClick={() => setIndex(slide + 1)}
                         >
                             <FontAwesomeIcon icon={faChevronRight} />
                         </button>
                     </span>
-                )}
-            </div>
-        </div>
+                </div>
+            )}
+        </>
     )
 }
 

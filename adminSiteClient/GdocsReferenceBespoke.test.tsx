@@ -271,6 +271,8 @@ describe(BespokeBundlePage, () => {
         expect(previews()).toEqual([
             "/gdocs-reference/bespoke-viz/demo/preview?variant=chart",
         ])
+        // An unused variant has no pager
+        expect(screen.queryByTitle("Next slide")).toBeNull()
 
         const mapToggle = screen.getByRole("button", { name: /^map/ })
         expect(mapToggle.getAttribute("aria-expanded")).toBe("false")
@@ -282,26 +284,47 @@ describe(BespokeBundlePage, () => {
         ])
     })
 
-    it("steps the carousel to the next published use", () => {
+    it("steps the carousel from the default block to the published uses", () => {
         responses.set(REGISTRY_PATH, { bundles: [fullBundle()] })
         responses.set(USAGE_PATH, { bundles: [demoUsage] })
         renderBundlePage()
 
-        // The used variant leads, with its default block and its first use
+        // The used variant leads, on its default block, with no provenance
         expect(screen.getByText("2 uses in 2 docs")).toBeTruthy()
+        expect(screen.getByText("Default block")).toBeTruthy()
+        expect(screen.queryByText("Title of doc-new")).toBeNull()
+        expect(previews()).toEqual([
+            "/gdocs-reference/bespoke-viz/demo/preview?variant=map",
+        ])
+
+        fireEvent.click(screen.getByTitle("Next slide"))
         expect(screen.getByText("use 1 of 2")).toBeTruthy()
         expect(screen.getByText("Title of doc-new")).toBeTruthy()
         expect(previews()).toEqual([
-            "/gdocs-reference/bespoke-viz/demo/preview?variant=map",
             "/gdocs-reference/instance/preview?gdocId=doc-new&path=%24.body%5B0%5D",
         ])
 
-        fireEvent.click(screen.getByTitle("Next use"))
+        fireEvent.click(screen.getByTitle("Next slide"))
         expect(screen.getByText("use 2 of 2")).toBeTruthy()
         expect(screen.getByText("Title of doc-old")).toBeTruthy()
-        expect(previews()[1]).toBe(
-            "/gdocs-reference/instance/preview?gdocId=doc-old&path=%24.body%5B0%5D"
+        expect(previews()).toEqual([
+            "/gdocs-reference/instance/preview?gdocId=doc-old&path=%24.body%5B0%5D",
+        ])
+        expect(screen.getByTitle("Next slide").hasAttribute("disabled")).toBe(
+            true
         )
+
+        // Back to the default block, without provenance
+        fireEvent.click(screen.getByTitle("Previous slide"))
+        fireEvent.click(screen.getByTitle("Previous slide"))
+        expect(screen.getByText("Default block")).toBeTruthy()
+        expect(screen.queryByText("Title of doc-new")).toBeNull()
+        expect(previews()).toEqual([
+            "/gdocs-reference/bespoke-viz/demo/preview?variant=map",
+        ])
+        expect(
+            screen.getByTitle("Previous slide").hasAttribute("disabled")
+        ).toBe(true)
     })
 
     it("previews a docs.md example only in the prose", () => {
@@ -340,13 +363,12 @@ describe(BespokeBundlePage, () => {
         responses.set(USAGE_PATH, { bundles: [demoUsage] })
         renderBundlePage()
 
-        // Prose example, then the map card: default block and carousel only
+        // Prose example, then the map card's carousel on its default block
         expect(previews()).toEqual([
             "/gdocs-reference/bespoke-viz/demo/preview?example=0",
             "/gdocs-reference/bespoke-viz/demo/preview?variant=map",
-            "/gdocs-reference/instance/preview?gdocId=doc-new&path=%24.body%5B0%5D",
         ])
-        expect(screen.getByText("use 1 of 2")).toBeTruthy()
+        expect(screen.getByText("Default block")).toBeTruthy()
     })
 
     it("warns about stale variants, with their use counts", () => {
@@ -414,5 +436,6 @@ describe(BespokeBundlePage, () => {
         expect(within(table).queryByText("Adoption")).toBeNull()
         expect(screen.queryByText(/not used yet|uses? in/)).toBeNull()
         expect(screen.getByText("2 more variants")).toBeTruthy()
+        expect(screen.queryByTitle("Next slide")).toBeNull()
     })
 })
