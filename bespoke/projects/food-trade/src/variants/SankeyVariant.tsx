@@ -8,6 +8,7 @@ import * as R from "remeda"
 import { articulateEntity } from "@ourworldindata/utils"
 
 import { Frame } from "../../../../components/Frame/Frame.js"
+import { BespokeMetadataProvider } from "../../../../components/MetadataModal/BespokeMetadataContext.js"
 import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
 
@@ -248,34 +249,36 @@ function CaptionedSankeyVariant({
                     />
                 </>
             )}
-            <Frame className="food-trade-captioned-chart">
-                <FoodTradeChartHeader
-                    config={config}
-                    country={country}
-                    product={displayedProduct}
-                    year={metadata.year}
-                    view={view}
-                    tradedTotal={tradedTotal}
-                    mode={mode}
-                />
-                <FoodTradeChart
-                    productData={productData}
-                    country={country}
-                    product={displayedProduct}
-                    year={metadata.year}
-                    view={view}
-                    mode={mode}
-                    isLoading={isLoading}
-                    hideFlowSwitcher={config.hideFlowSwitcher}
-                    setCountry={setCountry}
-                    setView={setView}
-                />
-                <FoodTradeChartFooter
-                    source={metadata.source}
-                    tradedTotal={tradedTotal}
-                    mode={mode}
-                />
-            </Frame>
+            <BespokeMetadataProvider metadata={metadata.provenance}>
+                <Frame className="food-trade-captioned-chart">
+                    <FoodTradeChartHeader
+                        config={config}
+                        country={country}
+                        product={displayedProduct}
+                        year={metadata.year}
+                        view={view}
+                        tradedTotal={tradedTotal}
+                        mode={mode}
+                    />
+                    <FoodTradeChart
+                        productData={productData}
+                        country={country}
+                        product={displayedProduct}
+                        year={metadata.year}
+                        view={view}
+                        mode={mode}
+                        isLoading={isLoading}
+                        hideFlowSwitcher={config.hideFlowSwitcher}
+                        setCountry={setCountry}
+                        setView={setView}
+                    />
+                    <FoodTradeChartFooter
+                        source={metadata.source}
+                        tradedTotal={tradedTotal}
+                        mode={mode}
+                    />
+                </Frame>
+            </BespokeMetadataProvider>
         </>
     )
 }
