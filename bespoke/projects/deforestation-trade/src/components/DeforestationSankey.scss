@@ -31,8 +31,10 @@
     position: relative;
 }
 
+// Names in the regular weight, as in Grapher's legends; the figure under a
+// name steps back to the light grey
 .deforestation-sankey .sankey__label tspan:first-child {
-    font-weight: 600;
+    font-weight: 400;
 }
 
 .deforestation-sankey .sankey__label tspan:not(:first-child) {
