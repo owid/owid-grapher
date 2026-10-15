@@ -365,9 +365,14 @@ export function Sankey({
         [layout, nodePadding, fontSettings, middleLabelSide]
     )
 
+    const nodesById = useMemo(
+        () => new Map((layout?.nodes ?? []).map((n) => [n.id, n])),
+        [layout]
+    )
+
     // Only annotated labels use their node's colour (for the arrow)
     const getLabelNodeColor = (nodeId: string): string | undefined => {
-        const node = layout?.nodes.find((n) => n.id === nodeId)
+        const node = nodesById.get(nodeId)
         return node?.annotation ? nodeColor?.(node) : undefined
     }
 
@@ -599,9 +604,8 @@ export function Sankey({
     const hoveredNodeId = hover?.kind === "node" ? hover.node.id : undefined
     const hoveredLink = hover?.kind === "link" ? hover.link : undefined
     const linkBundles = mergeParallelLinks
-        ? bundleParallelLinks(
-              linksInRenderOrder,
-              (link) => link === hoveredLink || activeLinks.has(link)
+        ? bundleParallelLinks(linksInRenderOrder, (link) =>
+              activeLinks.has(link)
           )
         : linksInRenderOrder.map((link) => [link])
 
@@ -1063,8 +1067,6 @@ function placeSankeyLabels({
         const y1 = node.y1 ?? 0
         const nodeHeight = y1 - y0
 
-        // Middle-column labels sit to the right of the node, like right-column
-        // ones, but over the ribbons rather than in an outer margin
         // Outer labels sit in the outer margins; middle-column labels lie over
         // the ribbons on whichever side the caller prefers
         const side = getNodeSide(node)
@@ -1339,9 +1341,10 @@ function calculateNodeHitBounds(
             label.annotation ? label.annotation.width : 0
         ) + getIconLabelOffset(label)
     const textHeight = getLabelTextHeight(label)
-    const height = label.icon
-        ? Math.max(textHeight, SANKEY_ICON_SIZE)
-        : textHeight
+    const height =
+        label.icon && label.isIconVisible
+            ? Math.max(textHeight, SANKEY_ICON_SIZE)
+            : textHeight
 
     const labelX = label.textAnchor === "end" ? label.x - width : label.x
     const labelBounds = new Bounds(labelX, label.y - height / 2, width, height)
