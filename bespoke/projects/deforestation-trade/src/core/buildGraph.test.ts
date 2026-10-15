@@ -5,6 +5,8 @@ import { OTHER_KEY } from "../../../../components/Sankey/SankeyHelpers.js"
 import type { SankeyLink } from "../../../../components/Sankey/Sankey.js"
 import {
     buildCountryGraph,
+    buildHowToRead,
+    type SentencePart,
     DOMESTIC_KEY,
     FOCUS_NODE_ID,
     getGroupFromNodeId,
@@ -113,70 +115,12 @@ describe("node id helpers", () => {
 })
 
 describe(buildCountryGraph, () => {
-    it("returns an empty graph, but real headings, for no rows", () => {
+    it("returns an empty graph for no rows", () => {
         const graph = buildCountry([])
         expect(graph.nodes).toEqual([])
         expect(graph.links).toEqual([])
         expect(graph.total).toBe(0)
         expect(graph.otherBreakdown).toEqual({ left: [], right: [] })
-        expect(graph.headings).toEqual([
-            "Producing countries",
-            "Commodity",
-            `${COUNTRY}!`,
-        ])
-    })
-
-    it("reads the headings as one sentence with the key words emphasised", () => {
-        const sentence = buildCountry(partnerRows([1]), {
-            view: "production",
-        }).headingSentence
-        const text = sentence.map((parts) => parts.map((p) => p.text).join(""))
-        const label = getPartnerLabel(COUNTRY)
-        expect(text).toEqual([
-            `${label} cleared forest to produce`,
-            "commodities",
-            "that were consumed in",
-        ])
-        expect(sentence[0][0]).toEqual({ text: label, emphasis: true })
-        expect(sentence[2].at(-1)).toEqual({
-            text: "consumed in",
-            emphasis: true,
-        })
-    })
-
-    it("gives countries that take an article one, capitalised at the start of the sentence", () => {
-        const production = buildCountryGraph({
-            rows: rows([["Peru", "soy", 1]]),
-            country: "United States",
-            view: "production",
-            formatValue,
-            getGroupLabel,
-        }).headingSentence
-        expect(production[0][0]).toEqual({
-            text: "The United States",
-            emphasis: true,
-        })
-        const consumption = buildCountryGraph({
-            rows: rows([["Peru", "soy", 1]]),
-            country: "United States",
-            view: "consumption",
-            formatValue,
-            getGroupLabel,
-        }).headingSentence
-        expect(consumption[2].map((p) => p.text).join("")).toBe(
-            "that were consumed in the United States"
-        )
-    })
-
-    it("names the country in the heading of its own column", () => {
-        expect(buildCountry(partnerRows([1])).headings).toEqual([
-            "Producing countries",
-            "Commodity",
-            `${COUNTRY}!`,
-        ])
-        expect(
-            buildCountry(partnerRows([1]), { view: "production" }).headings
-        ).toEqual([`${COUNTRY}!`, "Commodity", "Consuming countries"])
     })
 
     it("drops zero, negative and non-finite rows", () => {
@@ -472,5 +416,46 @@ describe(buildCountryGraph, () => {
             `${makeGroupId("beef")}→${FOCUS_NODE_ID}#Peru`,
             `${makeGroupId("beef")}→${FOCUS_NODE_ID}#Chad`,
         ])
+    })
+})
+
+describe(buildHowToRead, () => {
+    const text = (parts: SentencePart[]): string =>
+        parts.map((p) => p.text).join("")
+
+    it("walks the columns as one sentence, key words emphasised", () => {
+        const sentence = buildHowToRead({
+            country: COUNTRY,
+            view: "production",
+            getPartnerLabel,
+        })
+        const label = getPartnerLabel(COUNTRY)
+        expect(text(sentence)).toBe(
+            `${label} (left) cleared forest to produce commodities that were consumed in these countries (right).`
+        )
+        expect(sentence.filter((p) => p.emphasis).map((p) => p.text)).toEqual([
+            label,
+            "commodities",
+            "these countries",
+        ])
+    })
+
+    it("gives countries that take an article one, capitalised at the start of the sentence", () => {
+        expect(
+            buildHowToRead({
+                country: "United States",
+                view: "production",
+            })[0]
+        ).toEqual({ text: "The United States", emphasis: true })
+        expect(
+            text(
+                buildHowToRead({
+                    country: "United States",
+                    view: "consumption",
+                })
+            )
+        ).toBe(
+            "These countries (left) cleared forest to produce commodities that were consumed in the United States (right)."
+        )
     })
 })

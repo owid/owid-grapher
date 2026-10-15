@@ -4,7 +4,6 @@ import { match } from "ts-pattern"
 import { articulateEntity } from "@ourworldindata/utils"
 
 import type {
-    SankeyColumnHeadingPart,
     SankeyLink,
     SankeyNode,
 } from "../../../../components/Sankey/Sankey.js"
@@ -71,16 +70,6 @@ export const isFocusNodeId = (id: string): boolean => id === FOCUS_NODE_ID
 export type SankeyGraph = {
     nodes: SankeyNode[]
     links: SankeyLink[]
-    /** Short column headings left → right, for when space is tight */
-    headings: [string, string, string]
-    /** The headings as one sentence across the three columns, its key words
-     *  emphasised: "Germany cleared forest to produce · commodities · that were
-     *  consumed in" */
-    headingSentence: [
-        SankeyColumnHeadingPart[],
-        SankeyColumnHeadingPart[],
-        SankeyColumnHeadingPart[],
-    ]
     /** Total flow through the middle column (= sum of link values in one layer) */
     total: number
     /** Partners folded into the "Other" node on each side, largest first; empty when there is none */
@@ -122,11 +111,55 @@ type ColumnInput =
           domesticCountry?: string
       }
 
-const plain = (text: string): SankeyColumnHeadingPart => ({ text })
-const emphasis = (text: string): SankeyColumnHeadingPart => ({
-    text,
-    emphasis: true,
-})
+/** A run of a sentence; emphasised runs are the key words */
+export type SentencePart = { text: string; emphasis?: boolean }
+
+const plain = (text: string): SentencePart => ({ text })
+const emphasis = (text: string): SentencePart => ({ text, emphasis: true })
+
+/**
+ * How to read the chart, as one sentence that walks its columns from left to
+ * right, key words emphasised and the outer columns pointed out: "Germany
+ * (left) cleared forest to produce commodities that were consumed in these
+ * countries (right)."
+ */
+export function buildHowToRead({
+    country,
+    view,
+    getPartnerLabel = getEntityShortLabel,
+}: {
+    country: string
+    view: View
+    getPartnerLabel?: (partner: string) => string
+}): SentencePart[] {
+    const countryLabel = getPartnerLabel(country)
+    // "the United States", and "The United States" when it opens the sentence;
+    // decided on the full name, since the article list knows no short names
+    const needsArticle = articulateEntity(country) !== country
+    const countryInSentence = needsArticle
+        ? `the ${countryLabel}`
+        : countryLabel
+    const countryAtStart = needsArticle ? `The ${countryLabel}` : countryLabel
+    return match(view)
+        .returnType<SentencePart[]>()
+        .with("consumption", () => [
+            emphasis("These countries"),
+            plain(" (left) cleared forest to produce "),
+            emphasis("commodities"),
+            plain(" that were consumed in "),
+            emphasis(countryInSentence),
+            plain(" (right)."),
+        ])
+        .with("production", () => [
+            emphasis(countryAtStart),
+            plain(" (left) cleared forest to produce "),
+            emphasis("commodities"),
+            plain(" that were consumed in "),
+            emphasis("these countries"),
+            plain(" (right)."),
+        ])
+        .exhaustive()
+}
 
 const EMPTY_BREAKDOWN = (): { left: EntityTotal[]; right: EntityTotal[] } => ({
     left: [],
@@ -345,8 +378,6 @@ function makeFocusLinks({
 function buildThreeColumnGraph({
     left,
     right,
-    headings,
-    headingSentence,
     total,
     formatValue,
     getGroupLabel,
@@ -355,8 +386,6 @@ function buildThreeColumnGraph({
 }: {
     left: ColumnInput
     right: ColumnInput
-    headings: SankeyGraph["headings"]
-    headingSentence: SankeyGraph["headingSentence"]
     total: number
     formatValue: (v: number) => string
     getGroupLabel: (group: string) => string
@@ -386,8 +415,6 @@ function buildThreeColumnGraph({
         return {
             nodes: [],
             links: [],
-            headings,
-            headingSentence,
             total: 0,
             otherBreakdown: EMPTY_BREAKDOWN(),
         }
@@ -465,8 +492,6 @@ function buildThreeColumnGraph({
     return {
         nodes: [...leftSide.nodes, ...groupNodes, ...rightSide.nodes],
         links: [...leftSide.links, ...rightSide.links],
-        headings,
-        headingSentence,
         total,
         otherBreakdown: { left: leftSide.other, right: rightSide.other },
     }
@@ -502,41 +527,6 @@ export function buildCountryGraph({
      *  labels every group, anything above 1 labels none */
     minLabelledGroupShare?: number
 }): SankeyGraph {
-    const countryLabel = getPartnerLabel(country)
-    // "the United States", and "The United States" when it opens the sentence;
-    // decided on the full name, since the article list knows no short names
-    const needsArticle = articulateEntity(country) !== country
-    const countryInSentence = needsArticle
-        ? `the ${countryLabel}`
-        : countryLabel
-    const countryAtStart = needsArticle ? `The ${countryLabel}` : countryLabel
-    const headings = match(view)
-        .returnType<SankeyGraph["headings"]>()
-        .with("consumption", () => [
-            "Producing countries",
-            "Commodity",
-            countryLabel,
-        ])
-        .with("production", () => [
-            countryLabel,
-            "Commodity",
-            "Consuming countries",
-        ])
-        .exhaustive()
-    const headingSentence = match(view)
-        .returnType<SankeyGraph["headingSentence"]>()
-        .with("consumption", () => [
-            [emphasis("These countries"), plain(" cleared forest to produce")],
-            [emphasis("commodities")],
-            [plain("that were consumed in "), emphasis(countryInSentence)],
-        ])
-        .with("production", () => [
-            [emphasis(countryAtStart), plain(" cleared forest to produce")],
-            [emphasis("commodities")],
-            [plain("that were "), emphasis("consumed in")],
-        ])
-        .exhaustive()
-
     const usableRows = cleanRows(rows)
     const partners: ColumnInput = {
         kind: "partners",
@@ -547,8 +537,6 @@ export function buildCountryGraph({
     return buildThreeColumnGraph({
         left: view === "consumption" ? partners : { kind: "focus" },
         right: view === "consumption" ? { kind: "focus" } : partners,
-        headings,
-        headingSentence,
         total: sumRows(usableRows),
         formatValue,
         getGroupLabel,
