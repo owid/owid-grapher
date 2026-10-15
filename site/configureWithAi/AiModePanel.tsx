@@ -86,14 +86,19 @@ export function AiModePanel({
         text: "",
     })
     const input =
-        draft.forId === state.currentId ? draft.text : (current?.query ?? "")
+        draft.forId === state.currentId
+            ? draft.text
+            : request.status !== "idle"
+              ? request.query
+              : (current?.query ?? "")
     const setInput = (text: string): void =>
         setDraft({ forId: state.currentId, text })
     const [model, setModel] = useState<ModelId>(readStoredModel)
     const isThinking = request.status === "thinking"
 
     const ask = (query: string): void => {
-        setInput(query)
+        // The answer's entry shows the question from here on
+        setDraft({ forId: -1, text: "" })
         void store.ask(query, model)
     }
 
@@ -140,7 +145,7 @@ export function AiModePanel({
                         maxLength={MAX_QUERY_LENGTH}
                         placeholder={
                             showIntro
-                                ? "e.g. compare Germany with its neighbours"
+                                ? "e.g. Germany and its neighbours"
                                 : "Ask for another view"
                         }
                         aria-label="Describe the view you want"
