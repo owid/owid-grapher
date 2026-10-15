@@ -20,6 +20,14 @@ import {
     throwIfApiError,
 } from "./emailNotificationsApi.js"
 import { NewsletterOption } from "./NewsletterOption.js"
+import {
+    FOLLOW_TOPICS_CADENCE,
+    FOLLOW_TOPICS_DESCRIPTION,
+    FOLLOW_TOPICS_TITLE,
+    OWID_BRIEF_CADENCE,
+    OWID_BRIEF_DESCRIPTION,
+    OWID_BRIEF_TITLE,
+} from "./newsletterCopy.js"
 import { useNotificationPreferences } from "./useNotificationPreferences.js"
 import {
     SUBSCRIBE_PAGE_CONTENT_GRID_CLASSES,
@@ -406,9 +414,9 @@ const PreferencesEditor = ({
                             <NewsletterOption
                                 id="email-notifications-preferences-owid-brief"
                                 imageSrc="/images/biweekly-newsletter.webp"
-                                title="The OWID Brief"
-                                cadence="Twice a month"
-                                description="Stay up to date with our latest work plus curated highlights from across Our World in Data, twice a month."
+                                title={OWID_BRIEF_TITLE}
+                                cadence={OWID_BRIEF_CADENCE}
+                                description={OWID_BRIEF_DESCRIPTION}
                                 checked={subscribedToOwidBrief}
                                 onChange={() =>
                                     setSubscribedToOwidBrief(
@@ -422,9 +430,9 @@ const PreferencesEditor = ({
                     <NewsletterOption
                         id="email-notifications-preferences-follow-topics"
                         imageSrc="/images/data-insights.webp"
-                        title="Follow Topics"
-                        cadence="Pick your cadence"
-                        description="Receive updates on the topics you follow as we publish them."
+                        title={FOLLOW_TOPICS_TITLE}
+                        cadence={FOLLOW_TOPICS_CADENCE}
+                        description={FOLLOW_TOPICS_DESCRIPTION}
                         checked={subscribedToTopicNotifications}
                         onChange={() =>
                             setSubscribedToTopicNotifications(
