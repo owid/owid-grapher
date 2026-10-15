@@ -14,7 +14,6 @@ import DimensionRadioGroup from "./DimensionRadioGroup.js"
 const MultiDimControls = forwardRef<
     HTMLDivElement,
     {
-        className?: string
         dimensions: Record<string, DimensionEnriched>
         availableSettings: Record<string, DimensionEnriched>
         resolvedSettings: MultiDimDimensionChoices
@@ -24,7 +23,6 @@ const MultiDimControls = forwardRef<
     }
 >(function MultiDimControls(
     {
-        className,
         dimensions,
         availableSettings,
         resolvedSettings,
@@ -39,7 +37,7 @@ const MultiDimControls = forwardRef<
     const needsToggle = dimensionsArray.length > collapsedCount
 
     return (
-        <div className={cx("md-controls", className)} ref={ref}>
+        <div className="md-controls" ref={ref}>
             {dimensionsArray.map((dim, index) => {
                 const fullDimension = dimensions[dim.slug] ?? dim
                 const controlClassName = cx({
@@ -78,7 +76,7 @@ const MultiDimControls = forwardRef<
             })}
             {needsToggle && (
                 <button
-                    className="md-controls__toggle"
+                    className="md-controls__toggle label-2-medium"
                     onClick={() => setIsExpanded(!isExpanded)}
                     type="button"
                     aria-expanded={isExpanded}
