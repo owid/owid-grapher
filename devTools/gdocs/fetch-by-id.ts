@@ -15,7 +15,7 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
             suggestionsViewMode: "PREVIEW_WITHOUT_SUGGESTIONS",
         })
         // Remove the Authorization header from the response before printing it
-        delete response.config?.headers?.Authorization
+        response.config?.headers?.delete("Authorization")
         process.stdout.write(JSON.stringify(response, null, 2))
     } catch (error) {
         console.error("Encountered an error: ", error)

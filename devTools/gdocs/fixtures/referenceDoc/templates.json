@@ -1,0 +1,55 @@
+[
+    {
+        "id": "article",
+        "contentTypeName": "OwidGdocPostContent",
+        "sidecarFile": "packages/@ourworldindata/types/src/gdocTypes/templates/Article.md",
+        "title": "Article",
+        "prose": {
+            "intro": "A standalone piece of writing. Published under `/{slug}`.",
+            "whenToUse": "- Any self-contained narrative piece.",
+            "whenNotToUse": "- Prefer `{template:data-insight}` for a short observation.",
+            "notes": "Keep the opening short."
+        },
+        "fields": [
+            {
+                "name": "title",
+                "type": "string",
+                "optional": true,
+                "kind": "authored",
+                "description": "The document headline."
+            },
+            {
+                "name": "authors",
+                "type": "string[]",
+                "optional": false,
+                "kind": "authored",
+                "description": "Comma-separated author names; see `{guide:refs}`."
+            },
+            {
+                "name": "toc",
+                "type": "TocHeadingWithTitleSupertitle[]",
+                "optional": true,
+                "kind": "computed"
+            }
+        ],
+        "adminManagedFields": ["slug", "published"],
+        "exemplars": ["us-crime-rates"],
+        "skeleton": [
+            {
+                "name": "Opening",
+                "description": "One to three plain paragraphs stating the key message.",
+                "components": ["text"]
+            },
+            {
+                "name": "Sections",
+                "description": "Prose with the evidence for it.",
+                "components": ["heading", "text", "chart"],
+                "repeats": true
+            }
+        ],
+        "related": [
+            { "kind": "template", "id": "data-insight" },
+            { "kind": "guide", "id": "refs" }
+        ]
+    }
+]
