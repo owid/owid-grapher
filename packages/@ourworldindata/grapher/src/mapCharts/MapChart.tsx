@@ -59,6 +59,7 @@ import {
 } from "../legend/LegendStyleConfig"
 import { Emphasis } from "../interaction/Emphasis"
 import {
+    Color,
     ColumnSlug,
     EntityName,
     GrapherVariant,
@@ -134,6 +135,10 @@ export class MapChart
 
     @computed get inapplicableEntityNamesSet(): Set<EntityName> {
         return this.chartState.inapplicableEntityNamesSet
+    }
+
+    @computed get inapplicableColor(): Color {
+        return this.colorScale.inapplicableColor
     }
 
     @computed private get targetTime(): number | undefined {
@@ -704,6 +709,7 @@ export class MapChart
                                 Patterns.inapplicablePattern,
                                 this.patternIdSuffix
                             )}
+                            color={this.inapplicableColor}
                             scale={this.patternScale}
                         />
                     </defs>

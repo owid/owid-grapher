@@ -513,6 +513,7 @@ export class ChoroplethMap extends React.Component<{
                     />
                     <InapplicablePattern
                         patternId={inapplicablePatternId}
+                        color={this.manager.inapplicableColor}
                         scale={this.featurePatternScale}
                     />
                 </defs>

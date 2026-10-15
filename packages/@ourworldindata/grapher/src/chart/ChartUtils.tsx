@@ -9,6 +9,7 @@ import {
 } from "@ourworldindata/utils"
 import {
     SeriesStrategy,
+    Color,
     EntityName,
     SeriesName,
     ColumnSlug,
@@ -311,9 +312,11 @@ export function NoDataPattern({
 
 export function InapplicablePattern({
     patternId = Patterns.inapplicablePattern,
+    color,
     scale = 1,
 }: {
     patternId?: string
+    color: Color
     scale?: number
 }): React.ReactElement {
     const roundedScale = R.round(scale, 3)
@@ -325,7 +328,7 @@ export function InapplicablePattern({
             height="4"
             patternTransform={`rotate(-45 2 2) scale(${roundedScale})`}
         >
-            <rect width="4" height="4" fill="#ccc" />
+            <rect width="4" height="4" fill={color} />
             <path d="M -1,2 l 6,0" stroke="#fff" strokeWidth={0.7} />
         </pattern>
     )
