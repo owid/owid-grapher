@@ -15,6 +15,7 @@ import {
 import { NewsletterOption } from "./NewsletterOption.js"
 import { storeSubscribePrefill } from "./subscribePrefill.js"
 import {
+    FOLLOW_TOPICS_CADENCE,
     FOLLOW_TOPICS_DESCRIPTION,
     FOLLOW_TOPICS_TITLE,
     OWID_BRIEF_CADENCE,
@@ -125,7 +126,7 @@ export const NewsletterSignupForm = ({
                 cadence={
                     followTopics
                         ? "Choose topics in next step"
-                        : "Daily or weekly"
+                        : FOLLOW_TOPICS_CADENCE
                 }
                 description={FOLLOW_TOPICS_DESCRIPTION}
                 checked={followTopics}
