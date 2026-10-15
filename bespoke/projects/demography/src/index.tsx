@@ -63,16 +63,6 @@ export const VARIANTS = [
 ] satisfies BespokeComponentVariantsList<VariantName>
 
 export const CONFIG_SPEC = {
-    region: {
-        type: "string",
-        default: "userLocation",
-        description:
-            "Country shown first. `userLocation` picks the reader's country, or United States if the data doesn't have it",
-    },
-    hideEntitySelector: {
-        type: "boolean",
-        description: "Show the country as plain text instead of a selector",
-    },
     title: {
         type: "string",
         description: "Chart title, replacing the generated one",
@@ -80,6 +70,17 @@ export const CONFIG_SPEC = {
     subtitle: {
         type: "string",
         description: "Chart subtitle, replacing the generated one",
+    },
+    region: {
+        type: "string",
+        default: "userLocation",
+        description:
+            "Country shown first. `userLocation` picks the reader's country, or United States if the data doesn't have it",
+    },
+    time: {
+        type: "integer",
+        default: "2100",
+        description: "Year shown first. `populationPyramid` only",
     },
     fertilityRateAssumptions: {
         type: "custom",
@@ -106,10 +107,6 @@ export const CONFIG_SPEC = {
         default: "fertilityRate",
         description: "Assumption shown first in the editor. `simulation` only",
     },
-    hidePopulationPyramid: {
-        type: "boolean",
-        description: "Hide the population pyramid. `simulation` only",
-    },
     populationPyramidUnit: {
         type: "enum",
         values: POPULATION_PYRAMID_UNITS,
@@ -117,20 +114,23 @@ export const CONFIG_SPEC = {
         description:
             "Show the pyramid as shares or as numbers of people. `simulation` and `populationPyramid` only",
     },
-    showAssumptionCharts: {
+    hideEntitySelector: {
         type: "boolean",
-        description:
-            "Add a collapsible section with the assumption charts. `population` and `populationPyramid` only",
+        description: "Show the country as plain text instead of a selector",
+    },
+    hidePopulationPyramid: {
+        type: "boolean",
+        description: "Hide the population pyramid. `simulation` only",
     },
     hideTimeline: {
         type: "boolean",
         description:
             "Hide the year slider and fit the axis to the year shown. `populationPyramid` only",
     },
-    time: {
-        type: "integer",
-        default: "2100",
-        description: "Year shown first. `populationPyramid` only",
+    showAssumptionCharts: {
+        type: "boolean",
+        description:
+            "Add a collapsible section with the assumption charts. `population` and `populationPyramid` only",
     },
 } as const satisfies BespokeConfigSpec
 

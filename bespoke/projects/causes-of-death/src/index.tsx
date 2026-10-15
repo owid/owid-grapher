@@ -39,11 +39,10 @@ export const CONFIG_SPEC = {
         description:
             "Country or region shown first, such as `Nigeria` or `High-income countries`",
     },
-    sex: {
-        type: "enum",
-        values: SEXES,
-        default: "Both sexes",
-        description: "Sex shown first",
+    year: {
+        type: "integer",
+        description:
+            "Year shown first. Defaults to the latest year in the data",
     },
     ageGroup: {
         type: "enum",
@@ -51,10 +50,11 @@ export const CONFIG_SPEC = {
         default: "All ages",
         description: "Age group shown first",
     },
-    year: {
-        type: "integer",
-        description:
-            "Year shown first. Defaults to the latest year in the data",
+    sex: {
+        type: "enum",
+        values: SEXES,
+        default: "Both sexes",
+        description: "Sex shown first",
     },
     hideControls: {
         type: "boolean",

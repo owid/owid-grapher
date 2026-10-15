@@ -34,19 +34,6 @@ export const VARIANTS = [
 ] satisfies BespokeComponentVariantsList<VariantName>
 
 export const CONFIG_SPEC = {
-    hideControls: {
-        type: "boolean",
-        description:
-            "Hide the heading and the product, country and flow controls",
-    },
-    hideHeading: {
-        type: "boolean",
-        description: "Hide the heading above the controls",
-    },
-    hideFlowSwitcher: {
-        type: "boolean",
-        description: "Hide the switch between imports, exports and both",
-    },
     title: {
         type: "string",
         description:
@@ -74,6 +61,19 @@ export const CONFIG_SPEC = {
         default: "both",
         description:
             "Trade direction shown first. Ignored when the country is All countries",
+    },
+    hideControls: {
+        type: "boolean",
+        description:
+            "Hide the heading and the product, country and flow controls",
+    },
+    hideHeading: {
+        type: "boolean",
+        description: "Hide the heading above the controls",
+    },
+    hideFlowSwitcher: {
+        type: "boolean",
+        description: "Hide the switch between imports, exports and both",
     },
 } as const satisfies BespokeConfigSpec
 

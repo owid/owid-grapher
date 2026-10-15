@@ -34,19 +34,6 @@ export const VARIANTS = [
 ] satisfies BespokeComponentVariantsList<VariantName>
 
 export const CONFIG_SPEC = {
-    hideControls: {
-        type: "boolean",
-        description:
-            "Hide the heading and the country, sex, year and flow controls",
-    },
-    hideHeading: {
-        type: "boolean",
-        description: "Hide the heading above the controls",
-    },
-    hideFlowSwitcher: {
-        type: "boolean",
-        description: "Hide the switch between immigrants, emigrants and both",
-    },
     title: {
         type: "string",
         description:
@@ -62,22 +49,35 @@ export const CONFIG_SPEC = {
         description:
             "Country shown first. `userLocation` picks the reader's country, or United States if the data doesn't have it",
     },
+    year: {
+        type: "integer",
+        description:
+            "Year shown first. Defaults to the latest year in the data",
+    },
     sex: {
         type: "enum",
         values: SEXES,
         default: "both",
         description: "Sex shown first",
     },
-    year: {
-        type: "integer",
-        description:
-            "Year shown first. Defaults to the latest year in the data",
-    },
     flow: {
         type: "enum",
         values: MIGRATION_VIEWS,
         default: "both",
         description: "Migration direction shown first",
+    },
+    hideControls: {
+        type: "boolean",
+        description:
+            "Hide the heading and the country, sex, year and flow controls",
+    },
+    hideHeading: {
+        type: "boolean",
+        description: "Hide the heading above the controls",
+    },
+    hideFlowSwitcher: {
+        type: "boolean",
+        description: "Hide the switch between immigrants, emigrants and both",
     },
 } as const satisfies BespokeConfigSpec
 

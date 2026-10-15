@@ -33,17 +33,6 @@ export const VARIANTS = [
 ] satisfies BespokeComponentVariantsList<VariantName>
 
 export const CONFIG_SPEC = {
-    hideControls: {
-        type: "boolean",
-        description:
-            "Hide the country, year, number-or-share and native-born comparison controls",
-    },
-    compare: {
-        type: "boolean",
-        default: "false",
-        description:
-            "Start compared with the native-born population, shown as shares",
-    },
     title: {
         type: "string",
         description: "Chart title, replacing the generated one",
@@ -69,6 +58,17 @@ export const CONFIG_SPEC = {
         default: "number",
         description:
             "Show immigrants as a number or a share. Ignored when compare is on",
+    },
+    compare: {
+        type: "boolean",
+        default: "false",
+        description:
+            "Start compared with the native-born population, shown as shares",
+    },
+    hideControls: {
+        type: "boolean",
+        description:
+            "Hide the country, year, number-or-share and native-born comparison controls",
     },
 } as const satisfies BespokeConfigSpec
 
