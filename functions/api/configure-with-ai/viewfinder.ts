@@ -256,7 +256,7 @@ ${md.views.map((v) => `- ${optStr(v.dims)} → "${v.title}" [${seriesDesc(v)}; t
     const sortedBy =
         ctx.seriesName.length <= 30 ? ctx.seriesName.toLowerCase() : "value"
 
-    const cached = `You configure an interactive chart on Our World in Data (a "Grapher" chart on a data page). A reader typed a short request into a box labelled "Find a view of this data". Pick the most useful views of THIS chart's data that answer it. You can only change how the chart is shown: ${md ? "which combination of chart options, " : ""}which tab, which countries/regions are selected, the time range, the map region, and table sort/filter. You cannot add data.
+    const cached = `You configure an interactive chart on Our World in Data (a "Grapher" chart on a data page). A reader typed a short request into the chart's "AI mode" box, under the prompt "Describe the view you want". Pick the most useful views of THIS chart's data that answer it. You can only change how the chart is shown: ${md ? "which combination of chart options, " : ""}which tab, which countries/regions are selected, the time range, the map region, and table sort/filter. You cannot add data.
 
 ## The chart
 ${md ? `Data page: ${md.title}${md.titleVariant ? ` (${md.titleVariant})` : ""}\nCurrent chart title: ${ctx.title}` : `Title: ${ctx.title}`}
