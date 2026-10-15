@@ -9,6 +9,7 @@ import { getWindowUrl, setWindowUrl } from "@ourworldindata/utils"
 import { Button, TextInput } from "@ourworldindata/components"
 import { SiteAnalytics } from "../SiteAnalytics.js"
 import { EmailNotificationsPreferenceFields } from "./EmailNotificationsPreferenceFields.js"
+import { useScrollAlertIntoView } from "./useScrollAlertIntoView.js"
 import {
     apiPost,
     getErrorMessage,
@@ -47,9 +48,13 @@ export const EmailNotificationsSubscribeForm = ({
     const [email, setEmail] = useState("")
     const [subscribeToOwidBrief, setSubscribeToOwidBrief] = useState(true)
     const [followTopics, setFollowTopics] = useState(true)
-    const [validationError, setValidationError] = useState<string | null>(null)
+    // An object rather than a string so every failed submit has a fresh
+    // identity for the scroll-into-view below.
+    const [validationError, setValidationError] = useState<{
+        message: string
+    } | null>(null)
     const preferences = useNotificationPreferences(topicAreaNames)
-    const { setTopicTags, setIsExpanded } = preferences
+    const { setTopicTags } = preferences
 
     // The page is baked, so the URL and storage are only known after
     // hydration. The form isn't kept in sync with either afterwards, so both
@@ -70,11 +75,10 @@ export const EmailNotificationsSubscribeForm = ({
         )
         if (!topicAreas.length) return
         setTopicTags(topicAreas)
-        setIsExpanded(true)
         setWindowUrl(
             url.updateQueryParams({ [LatestUrlParam.TOPICS]: undefined })
         )
-    }, [topicAreaNames, setTopicTags, setIsExpanded])
+    }, [topicAreaNames, setTopicTags])
 
     const subscribe = useMutation({
         mutationFn: async (request: EmailNotificationsSubscribeRequest) => {
@@ -101,11 +105,13 @@ export const EmailNotificationsSubscribeForm = ({
 
         const trimmedEmail = email.trim()
         if (!trimmedEmail) {
-            setValidationError("Please enter your email address.")
+            setValidationError({ message: "Please enter your email address." })
             return
         }
         if (!followTopics && !subscribeToOwidBrief) {
-            setValidationError("Please select at least one newsletter.")
+            setValidationError({
+                message: "Please select at least one newsletter.",
+            })
             return
         }
         if (followTopics && !preferences.validate()) return
@@ -118,8 +124,9 @@ export const EmailNotificationsSubscribeForm = ({
     }
 
     const errorMessage =
-        validationError ??
+        validationError?.message ??
         (subscribe.error ? getErrorMessage(subscribe.error) : null)
+    const alertRef = useScrollAlertIntoView(validationError ?? subscribe.error)
 
     return (
         <form
@@ -153,7 +160,13 @@ export const EmailNotificationsSubscribeForm = ({
                 </div>
             )}
             {errorMessage && (
-                <div className="newsletter-form__alert">{errorMessage}</div>
+                <div
+                    ref={alertRef}
+                    className="newsletter-form__alert"
+                    role="alert"
+                >
+                    {errorMessage}
+                </div>
             )}
             <div className="newsletter-form__email-submit">
                 <TextInput
