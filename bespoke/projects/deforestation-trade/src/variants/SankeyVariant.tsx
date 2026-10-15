@@ -381,8 +381,6 @@ function CaptionedSankeyVariant({
                         total={total}
                         isLoading={isLoading}
                         isNarrow={isNarrow}
-                        setCountry={setCountry}
-                        setView={setView}
                     />
                     <ChartFooter
                         source={metadata.source}

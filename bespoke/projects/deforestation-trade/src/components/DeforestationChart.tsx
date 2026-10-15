@@ -22,10 +22,6 @@ export interface DeforestationChartProps {
     total: number
     /** A new selection is loading while the previous one stays on screen. */
     isLoading?: boolean
-    /** Clicking a partner node selects it. */
-    setCountry: (name: string) => void
-    /** Clicking through from one half of the chart to the other. */
-    setView: (view: View) => void
     isNarrow?: boolean
 }
 
@@ -36,8 +32,6 @@ export function DeforestationChart({
     importRows,
     exportRows,
     isLoading,
-    setCountry,
-    setView,
     isNarrow,
 }: DeforestationChartProps): React.ReactElement {
     // Both halves are empty when the selection has no recorded flows at all:
@@ -57,8 +51,6 @@ export function DeforestationChart({
                     yearRange={yearRange}
                     importRows={importRows}
                     exportRows={exportRows}
-                    setCountry={setCountry}
-                    setView={setView}
                     isNarrow={isNarrow}
                 />
             )}
