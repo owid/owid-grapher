@@ -1,36 +1,18 @@
-import {
-    lazy,
-    Suspense,
-    useMemo,
-    useState,
-    type ComponentProps,
-    type ReactNode,
-} from "react"
+import { useMemo, useState, type ReactNode } from "react"
 import {
     GrapherState,
     GuidedChartContext,
     type GuidedChartContextValue,
 } from "@ourworldindata/grapher"
+import { useSidePanel } from "./useSidePanel.js"
 
-// "Configure with AI" prototype (staging only): the only module data pages
-// import. The box itself, its styles and its helpers load in a separate chunk,
-// and only once a page decides to show it (admins, or anyone on staging).
-
-const LazyForGrapher = lazy(() =>
-    import("./ConfigureWithAiForPage.js").then((m) => ({
-        default: m.ConfigureWithAiForGrapher,
-    }))
-)
-const LazyForMdim = lazy(() =>
-    import("./ConfigureWithAiForPage.js").then((m) => ({
-        default: m.ConfigureWithAiForMdim,
-    }))
-)
+// "Configure with AI" prototype (staging only). Data pages import only this
+// module and useSidePanel.ts; the rest loads in a separate chunk and goes
+// into Grapher's side panel, next to the entity selector.
 
 /**
- * Wraps a single-chart data page's Grapher and shows the box above it. The
- * Grapher registers its state through GuidedChartContext, which is how the box
- * gets to drive it.
+ * Wraps a single-chart data page's Grapher. The Grapher registers its state
+ * through GuidedChartContext, which is how the side panel gets installed.
  */
 export function WithConfigureWithAi({
     slug,
@@ -52,27 +34,12 @@ export function WithConfigureWithAi({
         }),
         []
     )
-    return (
-        <>
-            {grapherState?.showAdminControls && (
-                <Suspense fallback={null}>
-                    <LazyForGrapher slug={slug} grapherState={grapherState} />
-                </Suspense>
-            )}
-            <GuidedChartContext.Provider value={context}>
-                {children}
-            </GuidedChartContext.Provider>
-        </>
+    useSidePanel(grapherState, (chunk, state) =>
+        chunk.createGrapherSidePanel(slug, state)
     )
-}
-
-/** The box on an MDim data page; the page decides when to render it */
-export function ConfigureWithAiForMdim(
-    props: ComponentProps<typeof LazyForMdim>
-) {
     return (
-        <Suspense fallback={null}>
-            <LazyForMdim {...props} />
-        </Suspense>
+        <GuidedChartContext.Provider value={context}>
+            {children}
+        </GuidedChartContext.Provider>
     )
 }

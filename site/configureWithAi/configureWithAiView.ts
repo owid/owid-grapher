@@ -85,3 +85,29 @@ export function applyTableSortToGrapherState(
 ): void {
     grapherState.dataTableSort = viewToDataTableSort(view)
 }
+
+export interface GrapherSnapshot {
+    params: Partial<GrapherQueryParams>
+    dataTableSort: GrapherState["dataTableSort"]
+}
+
+/** The parts of a Grapher's view that a reader or a view can change */
+export function snapshotGrapherState(
+    grapherState: GrapherState
+): GrapherSnapshot {
+    return {
+        params: { ...grapherState.changedParams },
+        dataTableSort: grapherState.dataTableSort,
+    }
+}
+
+export function restoreGrapherState(
+    grapherState: GrapherState,
+    snapshot: GrapherSnapshot
+): void {
+    runInAction(() => {
+        grapherState.clearQueryParams()
+        grapherState.populateFromQueryParams(snapshot.params)
+        grapherState.dataTableSort = snapshot.dataTableSort
+    })
+}
