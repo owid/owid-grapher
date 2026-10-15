@@ -366,6 +366,16 @@
     text-transform: uppercase;
 }
 
+.configure-with-ai__closest {
+    align-self: flex-start;
+    padding: 1px 6px;
+    border-radius: 999px;
+    background: $amber-10;
+    color: $blue-90;
+    font-size: 0.6875rem;
+    font-weight: 700;
+}
+
 .configure-with-ai__note {
     color: $blue-60;
     font-size: 0.8125rem;

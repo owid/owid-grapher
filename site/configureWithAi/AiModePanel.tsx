@@ -367,6 +367,11 @@ function Answer({
                                 <span className="configure-with-ai__view-label">
                                     {view.label}
                                 </span>
+                                {view.closestMatch && (
+                                    <span className="configure-with-ai__closest">
+                                        Closest match
+                                    </span>
+                                )}
                                 {isActive && (
                                     <span className="configure-with-ai__now">
                                         Now showing
