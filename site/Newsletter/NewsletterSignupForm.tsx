@@ -1,7 +1,7 @@
 import { useState } from "react"
 import * as React from "react"
 import cx from "clsx"
-import { Button, Checkbox, TextInput } from "@ourworldindata/components"
+import { Button, TextInput } from "@ourworldindata/components"
 import { EmailNotificationsSubscribeRequest } from "@ourworldindata/types"
 import { SiteAnalytics } from "../SiteAnalytics.js"
 import { NewsletterSubscriptionContext } from "../newsletter.js"
@@ -10,6 +10,7 @@ import {
     getErrorMessage,
     throwIfApiError,
 } from "./emailNotificationsApi.js"
+import { NewsletterOption } from "./NewsletterOption.js"
 import { storeSubscribePrefill } from "./subscribePrefill.js"
 import {
     FOLLOW_TOPICS_DESCRIPTION,
@@ -21,48 +22,6 @@ import {
 } from "./newsletterCopy.js"
 
 const analytics = new SiteAnalytics()
-
-const NewsletterOption = ({
-    id,
-    title,
-    cadence,
-    description,
-    checked,
-    disabled,
-    onChange,
-}: {
-    id: string
-    title: string
-    cadence: string
-    description: string
-    checked: boolean
-    disabled?: boolean
-    onChange: () => void
-}) => (
-    <Checkbox
-        id={id}
-        autoComplete="off"
-        className="newsletter-signup-form__option"
-        checked={checked}
-        disabled={disabled}
-        onChange={onChange}
-        label={
-            <>
-                <span className="newsletter-signup-form__option-heading">
-                    <span className="newsletter-signup-form__option-title">
-                        {title}
-                    </span>{" "}
-                    <span className="newsletter-signup-form__option-cadence note-12-medium">
-                        {cadence}
-                    </span>
-                </span>
-                <span className="newsletter-signup-form__option-description">
-                    {description}
-                </span>
-            </>
-        }
-    />
-)
 
 /**
  * The compact signup form shown in the header, the floating button, the

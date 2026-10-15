@@ -147,13 +147,18 @@
                 }
             }
 
-            .newsletter-subscription-header__icon {
-                display: none;
-            }
+            // Mailchimp layout only; the panel brings its own header styling.
+            .SiteNavigationToggle__dropdown:not(
+                :has(.newsletter-signup-panel)
+            ) {
+                .newsletter-subscription-header__icon {
+                    display: none;
+                }
 
-            .newsletter-subscription-header__heading {
-                flex: unset;
-                margin-bottom: 12px;
+                .newsletter-subscription-header__heading {
+                    flex: unset;
+                    margin-bottom: 12px;
+                }
             }
 
             .SiteNavigationToggle__dropdown {
