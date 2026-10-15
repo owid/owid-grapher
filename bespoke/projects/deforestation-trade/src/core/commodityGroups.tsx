@@ -34,9 +34,9 @@ export const COMMODITY_GROUPS: Record<
     }
 > = {
     Cereals: {
-        shortLabel: "Cereals",
+        shortLabel: "Cereals (rice, corn, …)",
         description:
-            "Forest cleared to grow grain crops, mainly rice and maize, but also barley, wheat, sorghum and millet.",
+            "Forest cleared to grow grain crops, mainly rice and corn, but also barley, wheat, sorghum and millet.",
         color: OwidDistinctColors.Camel,
         icon: faWheatAwn,
     },
@@ -48,7 +48,7 @@ export const COMMODITY_GROUPS: Record<
         icon: faLeaf,
     },
     "Fibre crops": {
-        shortLabel: "Fibre crops",
+        shortLabel: "Fiber crops (rubber, cotton, …)",
         description:
             "Forest cleared to grow crops used as materials rather than food, mostly rubber trees and cotton, but also tobacco, sisal and jute.",
         color: OwidDistinctColors.Teal,
@@ -62,9 +62,9 @@ export const COMMODITY_GROUPS: Record<
         icon: faAppleWhole,
     },
     "Oilseeds and oleaginous fruits": {
-        shortLabel: "Oilseeds (soy, palm)",
+        shortLabel: "Oilseeds (soy, palm, …)",
         description:
-            "Forest cleared to grow crops for vegetable oil and animal feed, mainly soybeans and oil palms, but also sunflowers, groundnuts, rapeseed and coconuts.",
+            "Forest cleared to grow crops for vegetable oil and animal feed, mainly soybeans and oil palms, but also sunflowers, peanuts, rapeseed and coconuts.",
         color: OwidDistinctColors.RustyOrange,
         icon: faBottleDroplet,
     },
@@ -76,14 +76,14 @@ export const COMMODITY_GROUPS: Record<
         icon: faCow,
     },
     "Pulses (dried leguminous vegetables)": {
-        shortLabel: "Pulses",
+        shortLabel: "Dry beans & legumes",
         description:
             "Forest cleared to grow beans and other legumes that are sold dried, mainly common beans and cowpeas, but also chickpeas, pigeon peas and lentils.",
         color: OwidDistinctColors.DarkOliveGreen,
         icon: faBowlRice,
     },
     "Stimulant, spice and aromatic crops": {
-        shortLabel: "Stimulants (cocoa, coffee)",
+        shortLabel: "Stimulants (cocoa, coffee, …)",
         description:
             "Forest cleared to grow cocoa and coffee, but also tea, maté, and spices such as nutmeg, cardamom and cinnamon.",
         color: OwidDistinctColors.Purple,
@@ -92,7 +92,7 @@ export const COMMODITY_GROUPS: Record<
     Vegetables: {
         shortLabel: "Vegetables",
         description:
-            "Forest cleared to grow vegetables, such as okra, onions and tomatoes, but also peppers, green maize and pumpkins.",
+            "Forest cleared to grow vegetables, such as okra, onions and tomatoes, but also peppers, sweet corn and pumpkins.",
         color: OwidDistinctColors.Lime,
         icon: faCarrot,
     },
