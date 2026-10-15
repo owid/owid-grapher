@@ -384,15 +384,21 @@ function CaptionedSankeyVariant({
                         setCountry={setCountry}
                         setView={setView}
                     />
-                    <ChartFooter source={metadata.source} note={NOTE} />
+                    <ChartFooter
+                        source={metadata.source}
+                        note={buildNote(view)}
+                    />
                 </Frame>
             </BespokeMetadataProvider>
         </>
     )
 }
 
-const NOTE =
-    "Figures are deforestation risk embedded in trade: an estimate of how much deforestation a country is exposed to through the commodities it produces or consumes, not confirmed sourcing from a particular cleared area."
+/** The footnote, about the side of trade the chart shows */
+function buildNote(view: View): string {
+    const verb = view === "production" ? "produces" : "consumes"
+    return `Figures are deforestation risk embedded in trade: an estimate of how much deforestation a country is exposed to through the commodities it ${verb}, not confirmed sourcing from a particular cleared area.`
+}
 
 /** The narrative title and subtitle for the current selection. */
 function buildCaption({
