@@ -58,23 +58,6 @@ const RIBBON_NODE_OVERLAP = 0.5
 /** Smallest height a node's band is drawn at, however small its value */
 const MIN_NODE_DRAWN_HEIGHT = 1
 
-/** Vertical gap between the column headings and the top of the chart */
-const COLUMN_HEADING_GAP = 8
-
-/**
- * Where a column heading's baseline sits below the top of its row, in ems.
- * Placed explicitly rather than with `dominant-baseline="hanging"`, whose
- * position browsers synthesize differently: Android Chrome puts it low
- * enough for the glyphs to poke out of the top of the SVG and be clipped.
- */
-const COLUMN_HEADING_BASELINE_EM = 0.9
-
-/** Smallest horizontal gap between two neighbouring column headings */
-const COLUMN_HEADING_MIN_SPACING = 16
-
-const COLUMN_HEADING_FONT_WEIGHT = 400
-const COLUMN_HEADING_EMPHASIS_FONT_WEIGHT = 700
-
 /** Extra vertical pixels past a link's band edge that still count as a hit */
 const LINK_BAND_GAP_TOLERANCE = 6
 
@@ -99,6 +82,7 @@ interface SankeyProps {
     linkLowVolumeThreshold?: number
     nodeColor?: (node: SankeyNode) => string
     linkColor?: (link: SankeyLink) => string
+    mergeParallelLinks?: boolean
     /**
      * Whether a link below `linkLowVolumeThreshold` is drawn faded; default
      * all of them. Exempt links whose neighbours would otherwise show a pale
@@ -121,20 +105,6 @@ interface SankeyProps {
     /** Whitespace between a node's band and the flow path */
     bandFlowGap?: number
     fontSettings?: FontSettings
-    /**
-     * One heading per column, left to right, drawn above the chart and
-     * aligned with that column's labels (so they stay put however the label
-     * margins come out). Reserves its own space at the top. A heading is a
-     * plain string or a run of parts, some emphasised — e.g. the three
-     * headings can together read as one sentence whose key words stand out.
-     */
-    columnHeadings?: SankeyColumnHeading[]
-    /**
-     * Shorter sets of headings to fall back on, in order, when the preferred
-     * `columnHeadings` don't fit side by side at the current width. If none
-     * fits, the last set is drawn with overlapping headings pushed apart.
-     */
-    columnHeadingFallbacks?: SankeyColumnHeading[][]
     /**
      * Which side of a middle column's band its labels sit on (they lie over
      * the ribbons either way). Default right; pick the side whose ribbons are
@@ -227,17 +197,6 @@ type PlacedSankeyLabel = {
     isIconVisible: boolean
 }
 
-export type SankeyColumnHeadingPart = { text: string; emphasis?: boolean }
-export type SankeyColumnHeading = string | SankeyColumnHeadingPart[]
-
-type PlacedColumnHeading = {
-    columnIndex: number
-    parts: SankeyColumnHeadingPart[]
-    x: number
-    y: number
-    textAnchor: "start" | "middle" | "end"
-}
-
 type Margin = { top: number; right: number; bottom: number; left: number }
 
 type SankeyLayoutNode = SankeyNode
@@ -259,6 +218,7 @@ export function Sankey({
     nodeColor,
     linkColor,
     canFadeLowVolumeLink,
+    mergeParallelLinks = false,
     margin = DEFAULT_MARGIN,
     innerMargin,
     anchorNodeId,
@@ -266,8 +226,6 @@ export function Sankey({
     bandWidth = 4,
     bandFlowGap = 3,
     fontSettings = DEFAULT_FONT_SETTINGS,
-    columnHeadings,
-    columnHeadingFallbacks,
     middleLabelSide = "right",
     getLinkTooltip,
     getRelatedLinks,
@@ -305,26 +263,17 @@ export function Sankey({
         const leftNodes = nodes.filter((n) => nodeSides.get(n.id) === "left")
         const rightNodes = nodes.filter((n) => nodeSides.get(n.id) === "right")
 
-        // The outer headings start and end at the chart's edges and run
-        // towards the middle, over the chart if need be, so they reserve no
-        // room of their own
         const leftLabelWidth = measureMaxLabelWidth(leftNodes, fontSettings)
         const rightLabelWidth = measureMaxLabelWidth(rightNodes, fontSettings)
 
         // To prevent the first and last label to overflow
         const verticalLabelPadding = getSankeyVerticalLabelPadding(fontSettings)
 
-        const headingHeight = getColumnHeadingsHeight(
-            columnHeadings,
-            fontSettings
-        )
-
         const resolvedInnerMargin: Margin = {
-            top:
-                Math.max(
-                    verticalLabelPadding,
-                    innerMargin?.top ?? DEFAULT_MARGIN.top
-                ) + headingHeight,
+            top: Math.max(
+                verticalLabelPadding,
+                innerMargin?.top ?? DEFAULT_MARGIN.top
+            ),
             bottom: Math.max(
                 verticalLabelPadding,
                 innerMargin?.bottom ?? DEFAULT_MARGIN.bottom
@@ -400,7 +349,6 @@ export function Sankey({
         anchorNodeId,
         innerMargin,
         fontSettings,
-        columnHeadings,
     ])
     const layout = layoutResult?.graph ?? null
     const svgHeight = layoutResult?.height ?? height
@@ -421,31 +369,6 @@ export function Sankey({
         const node = layout?.nodes.find((n) => n.id === nodeId)
         return node?.annotation ? nodeColor?.(node) : undefined
     }
-
-    const headings = useMemo<PlacedColumnHeading[]>(
-        () =>
-            placeColumnHeadings({
-                layout,
-                candidates: [
-                    ...(columnHeadings ? [columnHeadings] : []),
-                    ...(columnHeadingFallbacks ?? []),
-                ],
-                fontSettings,
-                top: margin.top,
-                left: margin.left,
-                right: width - margin.right,
-            }),
-        [
-            layout,
-            columnHeadings,
-            columnHeadingFallbacks,
-            fontSettings,
-            margin.top,
-            margin.left,
-            margin.right,
-            width,
-        ]
-    )
 
     const svgRef = useRef<SVGSVGElement>(null)
 
@@ -674,10 +597,12 @@ export function Sankey({
 
     const hoveredNodeId = hover?.kind === "node" ? hover.node.id : undefined
     const hoveredLink = hover?.kind === "link" ? hover.link : undefined
-    const linkBundles = bundleParallelLinks(
-        linksInRenderOrder,
-        (link) => link === hoveredLink || activeLinks.has(link)
-    )
+    const linkBundles = mergeParallelLinks
+        ? bundleParallelLinks(
+              linksInRenderOrder,
+              (link) => link === hoveredLink || activeLinks.has(link)
+          )
+        : linksInRenderOrder.map((link) => [link])
 
     const tooltipBounds = containerSize ?? { width, height: svgHeight }
 
@@ -757,41 +682,6 @@ export function Sankey({
                         />
                     ))}
                 </g>
-                {headings.length > 0 && (
-                    <g className="sankey__column-headings">
-                        {headings.map((heading) => (
-                            <text
-                                key={heading.columnIndex}
-                                className="sankey__column-heading"
-                                x={heading.x}
-                                y={
-                                    heading.y +
-                                    fontSettings.fontSize *
-                                        COLUMN_HEADING_BASELINE_EM
-                                }
-                                textAnchor={heading.textAnchor}
-                                fontSize={fontSettings.fontSize}
-                                fontWeight={COLUMN_HEADING_FONT_WEIGHT}
-                            >
-                                {heading.parts.map((part, i) =>
-                                    part.emphasis ? (
-                                        <tspan
-                                            key={i}
-                                            className="sankey__column-heading-emphasis"
-                                            fontWeight={
-                                                COLUMN_HEADING_EMPHASIS_FONT_WEIGHT
-                                            }
-                                        >
-                                            {part.text}
-                                        </tspan>
-                                    ) : (
-                                        <tspan key={i}>{part.text}</tspan>
-                                    )
-                                )}
-                            </text>
-                        ))}
-                    </g>
-                )}
                 <g className="sankey__labels">
                     {labels.map((label, i) => (
                         <SankeyLabel
@@ -1263,151 +1153,6 @@ function placeSankeyLabels({
             ]
         }
     })
-}
-
-function toColumnHeadingParts(
-    heading: SankeyColumnHeading | undefined
-): SankeyColumnHeadingPart[] {
-    if (heading === undefined) return []
-    if (typeof heading === "string") return heading ? [{ text: heading }] : []
-    return heading.filter((part) => part.text)
-}
-
-/** Width of a heading's text, part by part since emphasis changes the weight */
-function measureColumnHeadingWidth(
-    parts: SankeyColumnHeadingPart[],
-    fontSettings: FontSettings
-): number {
-    let width = 0
-    for (const part of parts)
-        width += textWidth(part.text, {
-            ...fontSettings,
-            fontWeight: part.emphasis
-                ? COLUMN_HEADING_EMPHASIS_FONT_WEIGHT
-                : COLUMN_HEADING_FONT_WEIGHT,
-        })
-    return width
-}
-
-/** Vertical space the column headings take above the chart, 0 without any */
-function getColumnHeadingsHeight(
-    columnHeadings: SankeyColumnHeading[] | undefined,
-    fontSettings: FontSettings
-): number {
-    if (!columnHeadings?.some((h) => toColumnHeadingParts(h).length > 0))
-        return 0
-    return fontSettings.fontSize * fontSettings.lineHeight + COLUMN_HEADING_GAP
-}
-
-/**
- * One heading per column. The outer ones sit at the chart's edges — the left
- * one starting at the left edge, so a sentence spread over the columns
- * begins where the eye starts, the right one ending at the right edge; a
- * middle one is centred over its column's bands.
- *
- * `candidates` are heading sets in order of preference; the first whose
- * headings fit side by side wins. If none fits, the last one is drawn with
- * overlapping headings pushed apart, keeping them inside the chart's edges
- * for as long as they fit at all.
- */
-function placeColumnHeadings({
-    layout,
-    candidates,
-    fontSettings,
-    top,
-    left,
-    right,
-}: {
-    layout: LaidOutGraph | null
-    candidates: SankeyColumnHeading[][]
-    fontSettings: FontSettings
-    top: number
-    left: number
-    right: number
-}): PlacedColumnHeading[] {
-    if (!layout || candidates.length === 0) return []
-
-    const depths = [...new Set(layout.nodes.map((n) => n.depth ?? 0))].toSorted(
-        (a, b) => a - b
-    )
-
-    type Measured = PlacedColumnHeading & { start: number; end: number }
-    const place = (columnHeadings: SankeyColumnHeading[]): Measured[] =>
-        depths.flatMap((depth, columnIndex) => {
-            const parts = toColumnHeadingParts(columnHeadings[columnIndex])
-            const node = layout.nodes.find((n) => (n.depth ?? 0) === depth)
-            if (parts.length === 0 || !node) return []
-
-            const side = getNodeSide(node)
-            const x0 = node.x0 ?? 0
-            const x1 = node.x1 ?? 0
-            const placement = match(side)
-                .returnType<Pick<PlacedColumnHeading, "x" | "textAnchor">>()
-                .with("left", () => ({ x: left, textAnchor: "start" }))
-                .with("middle", () => ({
-                    x: (x0 + x1) / 2,
-                    textAnchor: "middle",
-                }))
-                .with("right", () => ({ x: right, textAnchor: "end" }))
-                .exhaustive()
-            const width = measureColumnHeadingWidth(parts, fontSettings)
-            const start = match(placement.textAnchor)
-                .with("start", () => placement.x)
-                .with("middle", () => placement.x - width / 2)
-                .with("end", () => placement.x - width)
-                .exhaustive()
-            return [
-                {
-                    columnIndex,
-                    parts,
-                    y: top,
-                    ...placement,
-                    start,
-                    end: start + width,
-                },
-            ]
-        })
-
-    const fits = (headings: Measured[]): boolean =>
-        headings.every(
-            (h, i) =>
-                h.start >= left &&
-                h.end <= right &&
-                (i === 0 ||
-                    h.start >= headings[i - 1].end + COLUMN_HEADING_MIN_SPACING)
-        )
-
-    const attempts = candidates.map(place)
-    const fitting = attempts.find(fits)
-    const chosen = fitting ?? attempts.at(-1) ?? []
-
-    // Resolve overlaps left to right: a heading starts no earlier than the
-    // previous one ends, plus a gap
-    const shifts = chosen.map(() => 0)
-    for (let i = 1; i < chosen.length; i++) {
-        const previousEnd = chosen[i - 1].end + shifts[i - 1]
-        const overlap =
-            previousEnd + COLUMN_HEADING_MIN_SPACING - chosen[i].start
-        shifts[i] = Math.max(0, overlap)
-    }
-    // Then right to left, pulling back whatever that pushed past the right
-    // edge, without pushing any heading past the left edge
-    let nextStart = right + COLUMN_HEADING_MIN_SPACING
-    for (let i = chosen.length - 1; i >= 0; i--) {
-        const heading = chosen[i]
-        const excess =
-            heading.end + shifts[i] - (nextStart - COLUMN_HEADING_MIN_SPACING)
-        if (excess > 0)
-            shifts[i] -= Math.min(excess, heading.start + shifts[i] - left)
-        nextStart = heading.start + shifts[i]
-    }
-    return chosen.map((heading, i) => ({
-        columnIndex: heading.columnIndex,
-        parts: heading.parts,
-        x: heading.x + shifts[i],
-        y: heading.y,
-        textAnchor: heading.textAnchor,
-    }))
 }
 
 function shiftNodeVertically(node: LaidOutNode, dy: number): void {

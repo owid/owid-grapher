@@ -33,15 +33,6 @@
     pointer-events: none;
 }
 
-.sankey__column-heading {
-    fill: $light-text;
-    pointer-events: none;
-}
-
-.sankey__column-heading-emphasis {
-    fill: $dark-text;
-}
-
 // Labels of middle-column nodes sit on top of the ribbons, so give them a
 // white halo to keep them readable
 .sankey__label--inner text {

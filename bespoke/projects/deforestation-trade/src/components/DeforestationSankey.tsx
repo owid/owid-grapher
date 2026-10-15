@@ -334,6 +334,7 @@ function DeforestationSankeyContent({
             <Sankey
                 nodes={nodes}
                 links={graph.links}
+                mergeParallelLinks
                 width={width}
                 height={height}
                 // In production view the wide, simple ribbons are on the left
