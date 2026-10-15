@@ -343,32 +343,80 @@ export function buildReplaceDocumentRequests(
 }
 
 /**
+ * Thrown when the doc changed since the caller read it, so the write is
+ * refused. Either our own check saw a newer revision before writing, or Google
+ * refused the batchUpdate because of `writeControl.requiredRevisionId`.
+ */
+export class StaleRevisionError extends Error {
+    constructor(
+        readonly expectedRevisionId: string,
+        readonly currentRevisionId: string | undefined
+    ) {
+        super(
+            `The document changed since it was read (current revision ` +
+                `${currentRevisionId ?? "unknown"}, expected ` +
+                `${expectedRevisionId}).`
+        )
+        this.name = "StaleRevisionError"
+    }
+}
+
+// Google answers a batchUpdate whose `requiredRevisionId` is no longer the
+// latest with an HTTP 400 that mentions the required revision.
+function isRequiredRevisionError(error: unknown): boolean {
+    if (!(error instanceof Error)) return false
+    const status = (error as { status?: unknown }).status
+    const code = (error as { code?: unknown }).code
+    const isBadRequest = status === 400 || code === 400 || code === "400"
+    return isBadRequest && /required revision/i.test(error.message)
+}
+
+/**
  * Replaces the content of a Google Doc with ArchieML text, written as-is, in
- * a single batchUpdate. Pass `requiredRevisionId` to make Google refuse the
- * write when the doc has changed since (it then returns HTTP 400).
+ * a single batchUpdate. Pass `requiredRevisionId` to refuse the write when the
+ * doc has changed since: we compare it with the fetched revision first, and
+ * Google checks it again at write time for the race window. Both cases throw
+ * a `StaleRevisionError`.
+ *
+ * Returns the revision id of the doc after the write.
  */
 export async function replaceGdocContentWithArchieMlText(
     documentId: string,
     text: string,
     options: { requiredRevisionId?: string } = {}
-): Promise<void> {
+): Promise<string | undefined> {
+    const { requiredRevisionId } = options
     const auth = OwidGoogleAuth.getGoogleReadWriteAuth()
     const client = googleDocs({ version: "v1", auth })
 
     // No suggestionsViewMode: the indices must match the stored doc that
     // batchUpdate edits, pending suggestions included.
     const { data: document } = await client.documents.get({ documentId })
+    if (requiredRevisionId && document.revisionId !== requiredRevisionId) {
+        throw new StaleRevisionError(
+            requiredRevisionId,
+            document.revisionId ?? undefined
+        )
+    }
     const requests = buildReplaceDocumentRequests(document, text)
 
-    await client.documents.batchUpdate({
-        documentId,
-        requestBody: {
-            requests,
-            writeControl: options.requiredRevisionId
-                ? { requiredRevisionId: options.requiredRevisionId }
-                : undefined,
-        },
-    })
+    try {
+        const { data } = await client.documents.batchUpdate({
+            documentId,
+            requestBody: {
+                requests,
+                writeControl: requiredRevisionId
+                    ? { requiredRevisionId }
+                    : undefined,
+            },
+        })
+        return data.writeControl?.requiredRevisionId ?? undefined
+    } catch (error) {
+        if (requiredRevisionId && isRequiredRevisionError(error)) {
+            throw new StaleRevisionError(requiredRevisionId, undefined)
+        }
+        throw error
+    }
 }
 
 export async function createGdoc(
