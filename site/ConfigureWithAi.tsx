@@ -45,7 +45,7 @@ const MODELS = [
     { id: "claude-opus-5-5", label: "Opus 5.5" },
 ] as const
 type ModelId = (typeof MODELS)[number]["id"]
-const DEFAULT_MODEL: ModelId = "claude-sonnet-5-5"
+const DEFAULT_MODEL: ModelId = "claude-haiku-5-5"
 const MODEL_STORAGE_KEY = "configure-with-ai:model"
 const MAX_QUERY_LENGTH = 100
 

@@ -115,7 +115,7 @@ describe("request validation", () => {
             slug: "life-expectancy",
             query: "add Canada",
             queryStr: "",
-            model: "claude-sonnet-5-5",
+            model: "claude-haiku-5-5",
         })
         expect(
             requestSchema.safeParse({
