@@ -59,16 +59,13 @@ import {
 } from "../legend/LegendStyleConfig"
 import { Emphasis } from "../interaction/Emphasis"
 import {
+    Color,
     ColumnSlug,
     EntityName,
     GrapherVariant,
     MapRegionName,
 } from "@ourworldindata/types"
-import {
-    ClipPath,
-    InapplicablePattern,
-    makeClipPath,
-} from "../chart/ChartUtils"
+import { ClipPath, makeClipPath } from "../chart/ChartUtils"
 import { NoDataMessage } from "../noDataMessage/NoDataMessage"
 import { Component, createRef, PointerEvent } from "react"
 import { ChoroplethMap } from "./ChoroplethMap"
@@ -76,7 +73,10 @@ import { ChoroplethGlobe } from "./ChoroplethGlobe"
 import { GlobeController } from "./GlobeController"
 import { MapSelectionArray } from "../selection/MapSelectionArray.js"
 import { match } from "ts-pattern"
-import { makeProjectedDataPatternId } from "./MapComponents"
+import {
+    InapplicablePattern,
+    makeProjectedDataPatternId,
+} from "./MapComponents"
 import { MapChartState } from "./MapChartState"
 import { ChartComponentProps } from "../chart/ChartTypeMap.js"
 import { InteractionState } from "../interaction/InteractionState"
@@ -134,6 +134,10 @@ export class MapChart
 
     @computed get inapplicableEntityNamesSet(): Set<EntityName> {
         return this.chartState.inapplicableEntityNamesSet
+    }
+
+    @computed get inapplicableColor(): Color {
+        return this.colorScale.inapplicableColor
     }
 
     @computed private get targetTime(): number | undefined {
@@ -704,6 +708,7 @@ export class MapChart
                                 Patterns.inapplicablePattern,
                                 this.patternIdSuffix
                             )}
+                            color={this.inapplicableColor}
                             scale={this.patternScale}
                         />
                     </defs>

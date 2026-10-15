@@ -1,6 +1,7 @@
 import { ColorScaleBin } from "../color/ColorScaleBin"
 import { Bounds, ColumnSlug } from "@ourworldindata/utils"
 import {
+    Color,
     EntityName,
     MapRegionName,
     SeriesName,
@@ -110,6 +111,7 @@ export interface ChoroplethMapManager {
     binColors?: string[]
     hasProjectedData?: boolean
     inapplicableEntityNamesSet?: Set<EntityName>
+    inapplicableColor?: Color
     mapViewport?: MapViewport
     isFaceted?: boolean
 }
