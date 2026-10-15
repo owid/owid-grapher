@@ -15,7 +15,7 @@ import {
     MAILCHIMP_SIGNUP_HONEYPOT_NAME,
     makeMailchimpNewsletterGroupInputName,
 } from "./Newsletter/mailchimpSignup.js"
-import { NewsletterSignupPanel } from "./Newsletter/NewsletterSignupPanel.js"
+import { NewsletterSignupForm } from "./Newsletter/NewsletterSignupForm.js"
 
 const analytics = new SiteAnalytics()
 
@@ -26,8 +26,8 @@ const isEmailNotificationsEnabled = FEATURE_FLAGS.includes(
 /**
  * The signup block for the header nav, site tools, homepage and /latest:
  * the compact panel once email notifications are enabled, otherwise the
- * Mailchimp header and form. `children` (e.g. social links) render after
- * the form either way.
+ * Mailchimp form. `children` (e.g. social links) render after the form
+ * either way.
  */
 export const NewsletterSignup = ({
     context,
@@ -39,25 +39,22 @@ export const NewsletterSignup = ({
     className?: string
     showSubheading?: boolean
     children?: React.ReactNode
-}) => {
-    if (isEmailNotificationsEnabled)
-        return (
-            <NewsletterSignupPanel
-                context={context}
-                className={className}
-                showSubheading={showSubheading}
-            >
-                {children}
-            </NewsletterSignupPanel>
-        )
-    return (
-        <div className={className}>
-            <NewsletterSubscriptionHeader showSubheading={showSubheading} />
+}) => (
+    <div
+        className={cx(
+            isEmailNotificationsEnabled && "newsletter-signup-panel",
+            className
+        )}
+    >
+        <NewsletterSubscriptionHeader showSubheading={showSubheading} />
+        {isEmailNotificationsEnabled ? (
+            <NewsletterSignupForm context={context} />
+        ) : (
             <MailchimpSubscriptionForm context={context} />
-            {children}
-        </div>
-    )
-}
+        )}
+        {children}
+    </div>
+)
 
 export const NewsletterSubscription = ({
     context,
