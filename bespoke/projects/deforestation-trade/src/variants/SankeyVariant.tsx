@@ -397,7 +397,7 @@ function CaptionedSankeyVariant({
 /** The footnote, about the side of trade the chart shows */
 function buildNote(view: View): string {
     const verb = view === "production" ? "produces" : "consumes"
-    return `Figures are deforestation risk embedded in trade: an estimate of how much deforestation a country is exposed to through the commodities it ${verb}, not confirmed sourcing from a particular cleared area.`
+    return `Shown is deforestation risk embedded in trade: a modeled estimate of how much deforestation a country is exposed to through the commodities it ${verb}, not confirmed cleared land for a particular area.`
 }
 
 /** The narrative title and subtitle for the current selection. */
