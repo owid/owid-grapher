@@ -172,6 +172,7 @@ up.full: export TMUX_SESSION_NAME ?= grapher
 up.full: export ADMIN_SERVER_PORT ?= 3030
 up.full: export VITE_PORT ?= 8090
 up.full: export WRANGLER_PORT ?= 8788
+up.full: export BESPOKE_PORT ?= 8089
 
 up.full: require create-if-missing.env.full tmp-downloads/owid_metadata.sql.gz node_modules
 	@make validate.env.full
@@ -194,9 +195,9 @@ up.full: require create-if-missing.env.full tmp-downloads/owid_metadata.sql.gz n
 			set remain-on-exit on \; \
 		new-window -n functions 'WRANGLER_PORT=$(WRANGLER_PORT) yarn startLocalCloudflareFunctions' \; \
 			set remain-on-exit on \; \
-		new-window -n bespoke 'yarn startBespokeDevServer' \; \
+		new-window -n bespoke 'BESPOKE_PORT=$(BESPOKE_PORT) yarn startBespokeDevServer' \; \
 			set remain-on-exit on \; \
-		new-window -n welcome 'ADMIN_SERVER_PORT=$(ADMIN_SERVER_PORT) VITE_PORT=$(VITE_PORT) WRANGLER_PORT=$(WRANGLER_PORT) devTools/docker/banner.sh --full; exec $(LOGIN_SHELL)' \; \
+		new-window -n welcome 'ADMIN_SERVER_PORT=$(ADMIN_SERVER_PORT) VITE_PORT=$(VITE_PORT) WRANGLER_PORT=$(WRANGLER_PORT) BESPOKE_PORT=$(BESPOKE_PORT) devTools/docker/banner.sh --full; exec $(LOGIN_SHELL)' \; \
 		bind R respawn-pane -k \; \
 		bind X kill-pane \; \
 		bind Q kill-server \; \
