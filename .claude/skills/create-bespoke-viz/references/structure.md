@@ -17,7 +17,7 @@ src/
 
 `SankeyVariant` (providers plus the width-measuring wrapper) → `FetchingSankeyVariant` (queries, URL state, and the skeleton / error / empty-state gates) → `CaptionedSankeyVariant` (the visual composition). Keep the naming; it's how every project signals altitude.
 
-The composition standard is two stacked cards: a `Controls` box (gated on `!config.hideControls`) above a `Frame` holding `ChartHeader` → chart area → `ChartFooter`. A project with a metadata file wraps that `Frame` in `BespokeMetadataProvider`, which adds a "Learn more about this data" link to the footer and puts the `MetadataModal` inside the frame; it switches both off when the embedding page sets `hideMetadataModal`, as a featured viz page does.
+The composition standard is two stacked cards: a `Controls` box (gated on `!config.hideControls`) above a `Frame` holding `ChartHeader` → chart area → `ChartFooter`. A project with a metadata file wraps that `Frame` in `BespokeMetadataProvider`, which adds a "Learn more about this data" link to the footer and puts the `MetadataModal` inside the frame; it switches both off when the embedding page sets `hideMetadataModal`, as a featured viz page does. Inside the provider, `ChartFooter` builds its "Data source" line from the metadata, as a chart footer does (`getBespokeSourceLine`), so don't pass `source` unless the line needs overriding.
 
 ## Controls
 

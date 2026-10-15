@@ -1,4 +1,4 @@
-import { EntityName, Time } from "@ourworldindata/types"
+import { BespokeMetadata, EntityName, Time } from "@ourworldindata/types"
 
 type NumericId = number
 
@@ -18,8 +18,10 @@ export type VariableMetadata = BasicEntry & {
 }
 export type AgeGroupMetadata = BasicEntry
 
-export interface MetadataJson {
-    source: string
+export interface MetadataJson extends Pick<
+    BespokeMetadata,
+    "attribution" | "origins"
+> {
     categories: CategoryMetadata[]
     dimensions: {
         entities: EntityMetadata[]

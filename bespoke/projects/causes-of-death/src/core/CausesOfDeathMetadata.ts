@@ -8,13 +8,14 @@ import {
     VariableMetadata,
     BasicEntry,
 } from "./CausesOfDeathConstants.js"
+import { getBespokeSourceLine } from "../../../../components/MetadataModal/bespokeMetadata.js"
 
 export class CausesOfDeathMetadata {
     private readonly metadata: MetadataJson
 
     dimensions: MetadataJson["dimensions"]
     categories: MetadataJson["categories"]
-    source: MetadataJson["source"]
+    source: string
     timeRange: MetadataJson["timeRange"]
 
     private _entityNameToId?: Map<EntityName, number>
@@ -32,7 +33,7 @@ export class CausesOfDeathMetadata {
 
         this.dimensions = metadata.dimensions
         this.categories = metadata.categories
-        this.source = metadata.source
+        this.source = getBespokeSourceLine(metadata)
         this.timeRange = metadata.timeRange
     }
 

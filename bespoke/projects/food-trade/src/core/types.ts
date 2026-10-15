@@ -1,3 +1,5 @@
+import { BespokeMetadata } from "@ourworldindata/types"
+
 export type VariantName = "sankey"
 
 export type TradeRow = {
@@ -17,9 +19,8 @@ export type ProductTradeData = {
 export type Entity = { id: number; name: string }
 export type Product = { id: number; name: string }
 
-export type MetadataJson = {
+export type MetadataJson = Pick<BespokeMetadata, "attribution" | "origins"> & {
     year: number
-    source: string
     license: string
     dimensions: {
         entities: Entity[]
