@@ -37,8 +37,9 @@ import {
     ExternalValueAnnotation,
     InternalValueAnnotation,
     ProjectedDataPattern,
+    InapplicablePattern,
 } from "./MapComponents"
-import { InapplicablePattern, NoDataPattern } from "../chart/ChartUtils"
+import { NoDataPattern } from "../chart/ChartUtils"
 import { Patterns, makePatternId } from "../core/GrapherConstants"
 import {
     detectNearbyFeature,
