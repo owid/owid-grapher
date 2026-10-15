@@ -92,3 +92,6 @@ packageDocs/.cache/
 # BMAD
 /_bmad/
 /_bmad-output/
+
+# Email notification previews from `yarn sendEmailNotifications --dry-run`
+.email-notifications-preview/

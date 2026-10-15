@@ -2,7 +2,7 @@ import crypto from "crypto"
 import { JsonError } from "@ourworldindata/types"
 import sharp from "sharp"
 import {
-    CLOUDFLARE_IMAGES_ACCOUNT_ID,
+    CLOUDFLARE_ACCOUNT_ID,
     CLOUDFLARE_IMAGES_API_KEY,
     OPENAI_API_KEY,
 } from "../settings/serverSettings.js"
@@ -72,7 +72,7 @@ export async function uploadToCloudflare(filename: string, blob: Blob) {
 
     console.log("Uploading image:", filename)
     const response = await fetch(
-        `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_IMAGES_ACCOUNT_ID}/images/v1`,
+        `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/images/v1`,
         {
             method: "POST",
             headers: {
@@ -97,7 +97,7 @@ export async function uploadToCloudflare(filename: string, blob: Blob) {
 
 export async function deleteFromCloudflare(cloudflareId: string) {
     const response = await fetch(
-        `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_IMAGES_ACCOUNT_ID}/images/v1/${
+        `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/images/v1/${
             cloudflareId
         }`,
         {

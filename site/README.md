@@ -23,4 +23,4 @@ Where to read more:
   and rendered by [gdocs/components/Image.tsx](./gdocs/components/Image.tsx),
   which reads dimensions and alt text from React context.
 - **Local setup** — `.env.example-full` lists and explains the keys that site
-  features need, notably `CLOUDFLARE_IMAGES_*` and `ALGOLIA_*`.
+  features need, notably `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_IMAGES_*` and `ALGOLIA_*`.

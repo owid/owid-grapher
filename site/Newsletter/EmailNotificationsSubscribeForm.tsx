@@ -1,0 +1,163 @@
+import { useEffect, useState } from "react"
+import * as React from "react"
+import { useMutation } from "@tanstack/react-query"
+import {
+    EmailNotificationsSubscribeRequest,
+    LatestUrlParam,
+} from "@ourworldindata/types"
+import { getWindowUrl, setWindowUrl } from "@ourworldindata/utils"
+import { Button, TextInput } from "@ourworldindata/components"
+import { SiteAnalytics } from "../SiteAnalytics.js"
+import { EmailNotificationsPreferenceFields } from "./EmailNotificationsPreferenceFields.js"
+import {
+    apiPost,
+    getErrorMessage,
+    throwIfApiError,
+} from "./emailNotificationsApi.js"
+import { topicAreasFromSearchParams } from "../search/searchUtils.js"
+import { useNotificationPreferences } from "./useNotificationPreferences.js"
+
+import { NewsletterOption } from "./NewsletterOption.js"
+
+const analytics = new SiteAnalytics()
+
+export interface Subscription {
+    email: string
+    followTopics: boolean
+    subscribeToOwidBrief: boolean
+}
+
+export const EmailNotificationsSubscribeForm = ({
+    topicAreaNames,
+    onSubscribed,
+}: {
+    topicAreaNames: string[]
+    onSubscribed: (subscription: Subscription) => void
+}) => {
+    const [email, setEmail] = useState("")
+    const [subscribeToOwidBrief, setSubscribeToOwidBrief] = useState(true)
+    const [followTopics, setFollowTopics] = useState(true)
+    const [validationError, setValidationError] = useState<string | null>(null)
+    const preferences = useNotificationPreferences(topicAreaNames)
+    const { setTopicTags } = preferences
+
+    // The page is baked, so the URL is only known after hydration. The form
+    // isn't kept in sync with the URL afterwards, so drop the param once read.
+    useEffect(() => {
+        const url = getWindowUrl()
+        const topicAreas = topicAreasFromSearchParams(
+            new URLSearchParams(url.queryStr),
+            topicAreaNames
+        )
+        if (!topicAreas.length) return
+        setTopicTags(topicAreas)
+        setWindowUrl(
+            url.updateQueryParams({ [LatestUrlParam.TOPICS]: undefined })
+        )
+    }, [topicAreaNames, setTopicTags])
+
+    const subscribe = useMutation({
+        mutationFn: async (request: EmailNotificationsSubscribeRequest) => {
+            const response = await apiPost("/subscribe", request)
+            await throwIfApiError(response)
+        },
+        onSuccess: (_, request) => {
+            analytics.logSiteFormSubmit(
+                "newsletter-subscribe",
+                "Subscribe [email-notifications]"
+            )
+            onSubscribed({
+                email: request.email,
+                followTopics: request.notifications !== undefined,
+                subscribeToOwidBrief: request.subscribeToOwidBrief,
+            })
+        },
+    })
+
+    const handleSubmit = (event: React.SubmitEvent<HTMLFormElement>) => {
+        event.preventDefault()
+        setValidationError(null)
+        preferences.resetValidation()
+
+        const trimmedEmail = email.trim()
+        if (!trimmedEmail) {
+            setValidationError("Please enter your email address.")
+            return
+        }
+        if (!followTopics && !subscribeToOwidBrief) {
+            setValidationError("Please select at least one newsletter.")
+            return
+        }
+        if (followTopics && !preferences.validate()) return
+
+        subscribe.mutate({
+            email: trimmedEmail,
+            notifications: followTopics ? preferences.forStorage() : undefined,
+            subscribeToOwidBrief,
+        })
+    }
+
+    const errorMessage =
+        validationError ??
+        (subscribe.error ? getErrorMessage(subscribe.error) : null)
+
+    return (
+        <form
+            className="email-notifications-subscribe-form"
+            onSubmit={handleSubmit}
+        >
+            <NewsletterOption
+                id="email-notifications-owid-brief"
+                imageSrc="/images/biweekly-newsletter.webp"
+                title="The OWID Brief"
+                cadence="Twice a month"
+                description="Stay up to date with our latest work plus curated highlights from across Our World in Data, twice a month."
+                checked={subscribeToOwidBrief}
+                onChange={() => setSubscribeToOwidBrief(!subscribeToOwidBrief)}
+            />
+            <hr className="newsletter-form__divider" />
+            <NewsletterOption
+                id="email-notifications-follow-topics"
+                imageSrc="/images/data-insights.webp"
+                title="Follow Topics"
+                cadence="Pick your cadence"
+                description="Receive updates on the topics you follow as we publish them."
+                checked={followTopics}
+                onChange={() => setFollowTopics(!followTopics)}
+            />
+            {followTopics && (
+                <div className="email-notifications-subscribe-form__topic-preferences">
+                    <EmailNotificationsPreferenceFields
+                        {...preferences.fieldsProps}
+                    />
+                </div>
+            )}
+            {errorMessage && (
+                <div className="newsletter-form__alert">{errorMessage}</div>
+            )}
+            <div className="newsletter-form__email-submit">
+                <TextInput
+                    placeholder="Your email address"
+                    type="email"
+                    className="newsletter-form__email sentry-mask"
+                    name="email"
+                    value={email}
+                    onChange={(event) => setEmail(event.target.value)}
+                    required={true}
+                />
+                <Button
+                    type="submit"
+                    theme="solid-vermillion"
+                    icon={null}
+                    ariaLabel="Subscribe to email notifications"
+                    text={subscribe.isPending ? "Subscribing…" : "Subscribe"}
+                    disabled={subscribe.isPending}
+                />
+            </div>
+            <div className="email-notifications-subscribe-form__privacy-notice">
+                By subscribing you are agreeing to the terms of our{" "}
+                <a href="/privacy-policy">privacy policy</a>.
+            </div>
+        </form>
+    )
+}

@@ -10,6 +10,7 @@ import ProgressBar from "progress"
 import { stringify } from "safe-stable-stringify"
 import * as db from "../db/db.js"
 import { BASE_DIR } from "../settings/serverSettings.js"
+import { FEATURE_FLAGS, Features } from "../settings/clientSettings.mjs"
 
 import {
     renderFrontPage,
@@ -25,6 +26,7 @@ import {
     renderThankYouPage,
     makeDataInsightsAtomFeed,
     renderGdocTombstone,
+    renderEmailNotificationsPreferencesPage,
     renderExplorerIndexPage,
     renderLatestPage,
     renderSubscribePage,
@@ -821,6 +823,11 @@ export class SiteBaker {
                         )
                     }
 
+                    publishedGdoc.topicArea = db.getTopicAreaNameForTagNames(
+                        (publishedGdoc.tags ?? []).map((tag) => tag.name),
+                        tagHierarchiesByChildName
+                    )
+
                     // this is a no-op if the gdoc doesn't have an all-chart block
                     if ("loadRelatedCharts" in publishedGdoc) {
                         await publishedGdoc.loadRelatedCharts(
@@ -950,17 +957,23 @@ export class SiteBaker {
             `${this.bakedSiteDir}${SEARCH_BASE_PATH}.html`,
             () => renderSearchPage(knex)
         )
-        await this.stageWrite(
-            `${this.bakedSiteDir}/explorers.html`,
-            await renderExplorerIndexPage(knex)
+        await this.bakeSpecialPage(`${this.bakedSiteDir}/explorers.html`, () =>
+            renderExplorerIndexPage(knex)
         )
-        await this.stageWrite(
-            `${this.bakedSiteDir}/subscribe.html`,
-            await renderSubscribePage()
+        await this.bakeSpecialPage(`${this.bakedSiteDir}/subscribe.html`, () =>
+            renderSubscribePage(knex)
         )
-        await this.stageWrite(
+        // The magic-link preferences page is only linked from emails the new
+        // notifications system sends, so it only exists behind the flag.
+        if (FEATURE_FLAGS.includes(Features.EmailNotifications)) {
+            await this.bakeSpecialPage(
+                `${this.bakedSiteDir}/preferences.html`,
+                () => renderEmailNotificationsPreferencesPage(knex)
+            )
+        }
+        await this.bakeSpecialPage(
             `${this.bakedSiteDir}/collection/custom.html`,
-            renderDynamicCollectionPage()
+            () => renderDynamicCollectionPage()
         )
         await this.bakeSpecialPage(
             `${this.bakedSiteDir}/collection/top-charts.html`,

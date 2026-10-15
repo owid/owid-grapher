@@ -71,10 +71,12 @@ const renderDatapageIfApplicable = async (
     {
         imageMetadataDictionary,
         archiveContextDictionary,
+        topicAreaAssignments,
         forceDatapage,
     }: {
         imageMetadataDictionary?: Record<string, DbEnrichedImage>
         archiveContextDictionary?: Record<number, ArchiveContext | undefined>
+        topicAreaAssignments?: db.TopicAreaAssignments
         forceDatapage?: boolean
     } = {}
 ) => {
@@ -102,6 +104,7 @@ const renderDatapageIfApplicable = async (
             pageGrapher: grapher,
             imageMetadataDictionary,
             archiveContextDictionary,
+            topicAreaAssignments,
         },
         knex
     )
@@ -116,14 +119,17 @@ export const renderDataPageOrGrapherPage = async (
     {
         imageMetadataDictionary,
         archiveContextDictionary,
+        topicAreaAssignments,
     }: {
         imageMetadataDictionary?: Record<string, DbEnrichedImage>
         archiveContextDictionary?: Record<number, ArchiveContext | undefined>
+        topicAreaAssignments?: db.TopicAreaAssignments
     } = {}
 ): Promise<string> => {
     const datapage = await renderDatapageIfApplicable(grapher, false, knex, {
         imageMetadataDictionary,
         archiveContextDictionary,
+        topicAreaAssignments,
     })
     if (datapage) return datapage
     return renderGrapherPage(grapher, knex, {
@@ -131,6 +137,7 @@ export const renderDataPageOrGrapherPage = async (
             grapher.id !== undefined
                 ? archiveContextDictionary?.[grapher.id]
                 : undefined,
+        topicAreaAssignments,
     })
 }
 
@@ -143,6 +150,7 @@ export async function renderDataPageV2(
         pageGrapher,
         imageMetadataDictionary = {},
         archiveContextDictionary,
+        topicAreaAssignments,
     }: {
         variableId: number
         variableMetadata: OwidVariableWithSource
@@ -151,6 +159,8 @@ export async function renderDataPageV2(
         pageGrapher?: GrapherInterface
         imageMetadataDictionary?: Record<string, ImageMetadata>
         archiveContextDictionary?: Record<number, ArchiveContext | undefined>
+        /** Resolved once per bake; a page rendered on its own resolves it here. */
+        topicAreaAssignments?: db.TopicAreaAssignments
     },
     knex: db.KnexReadonlyTransaction
 ) {
@@ -213,6 +223,17 @@ export async function renderDataPageV2(
         knex,
         datapageData.topicTagsLinks
     )
+
+    const { tagHierarchiesByChildName, byChartId } =
+        topicAreaAssignments ??
+        (await getTopicAreaAssignmentsForChart(knex, grapher))
+    // The indicator's own topic tags come first: indicator-page previews have
+    // no chart id, so the byChartId route can't resolve them.
+    const topicArea =
+        db.getTopicAreaNameForTagNames(
+            datapageData.topicTagsLinks ?? [],
+            tagHierarchiesByChildName
+        ) ?? (grapher.id !== undefined ? byChartId[grapher.id] : undefined)
 
     let imageMetadata: Record<string, ImageMetadata> = {}
 
@@ -305,6 +326,7 @@ export async function renderDataPageV2(
         <DataPageV2
             grapher={grapher}
             datapageData={datapageData}
+            topicArea={topicArea}
             canonicalUrl={canonicalUrl}
             baseUrl={BAKED_BASE_URL}
             isPreviewing={isPreviewing}
@@ -340,15 +362,27 @@ export const renderPreviewDataPageOrGrapherPage = async (
     })
 }
 
+/** For a single page rendered outside a bake (admin previews, mock site router). */
+const getTopicAreaAssignmentsForChart = (
+    knex: db.KnexReadonlyTransaction,
+    grapher: GrapherInterface
+): Promise<db.TopicAreaAssignments> =>
+    db.getTopicAreaAssignments(
+        knex,
+        grapher.id !== undefined ? [grapher.id] : []
+    )
+
 const renderGrapherPage = async (
     grapher: GrapherInterface,
     knex: db.KnexReadonlyTransaction,
     {
         archiveContext,
         isPreviewing,
+        topicAreaAssignments,
     }: {
         archiveContext?: ArchiveContext
         isPreviewing?: boolean
+        topicAreaAssignments?: db.TopicAreaAssignments
     } = {}
 ) => {
     const isOnArchivalPage = archiveContext?.type === "archive-page"
@@ -366,6 +400,11 @@ const renderGrapherPage = async (
         grapher.id && !isOnArchivalPage
             ? await getRelatedArticles(knex, grapher.id)
             : undefined
+    const { byChartId } =
+        topicAreaAssignments ??
+        (await getTopicAreaAssignmentsForChart(knex, grapher))
+    const topicArea =
+        grapher.id !== undefined ? byChartId[grapher.id] : undefined
 
     return renderToHtmlPage(
         <GrapherPage
@@ -376,6 +415,7 @@ const renderGrapherPage = async (
             baseGrapherUrl={BAKED_GRAPHER_URL}
             archiveContext={archiveContext}
             isPreviewing={isPreviewing}
+            topicArea={topicArea}
         />
     )
 }
@@ -386,10 +426,12 @@ export const bakeSingleGrapherPageForArchival = async (
     knex: db.KnexReadonlyTransaction,
     {
         imageMetadataDictionary,
+        topicAreaAssignments,
         archiveInfo,
         manifest,
     }: {
         imageMetadataDictionary?: Record<string, DbEnrichedImage>
+        topicAreaAssignments?: db.TopicAreaAssignments
         archiveInfo: ArchiveMetaInformation
         manifest: GrapherArchivalManifest
     }
@@ -399,6 +441,7 @@ export const bakeSingleGrapherPageForArchival = async (
         outPathHtml,
         await renderDataPageOrGrapherPage(grapher, knex, {
             imageMetadataDictionary,
+            topicAreaAssignments,
             archiveContextDictionary: {
                 [grapher.id as number]: archiveInfo,
             },
@@ -428,6 +471,7 @@ const bakeGrapherPage = async (
         await renderDataPageOrGrapherPage(grapher, knex, {
             imageMetadataDictionary: args.imageMetadataDictionary,
             archiveContextDictionary: args.archiveContextDictionary,
+            topicAreaAssignments: args.topicAreaAssignments,
         })
     )
 }
@@ -439,6 +483,7 @@ export interface BakeSingleGrapherChartArguments {
     slug: string
     imageMetadataDictionary: Record<string, DbEnrichedImage>
     archiveContextDictionary: Record<number, ArchiveContext | undefined>
+    topicAreaAssignments: db.TopicAreaAssignments
 }
 
 export const bakeSingleGrapherChart = async (
@@ -495,6 +540,8 @@ export const bakeAllChangedGrapherPagesAndDeleteRemovedGraphers = async (
             const archiveContextDictionary =
                 await getLatestArchivedChartPageVersionsIfEnabled(knex)
 
+            const topicAreaAssignments = await db.getTopicAreaAssignments(knex)
+
             const jobs: BakeSingleGrapherChartArguments[] = chartsToBake.map(
                 (row) => ({
                     id: row.id,
@@ -503,6 +550,7 @@ export const bakeAllChangedGrapherPagesAndDeleteRemovedGraphers = async (
                     slug: row.slug,
                     imageMetadataDictionary,
                     archiveContextDictionary,
+                    topicAreaAssignments,
                 })
             )
             return { chartsToBake, jobs }
