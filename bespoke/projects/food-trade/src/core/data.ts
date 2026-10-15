@@ -1,6 +1,10 @@
 import { QueryStatus, useQuery } from "@tanstack/react-query"
 
-import { fetchJson } from "@ourworldindata/utils"
+import {
+    fetchJson,
+    formatAttributionsShortened,
+    getAttributionFragmentsFromBespokeMetadata,
+} from "@ourworldindata/utils"
 
 import {
     FoodTradeMetadata,
@@ -87,7 +91,9 @@ function buildMetadata(raw: MetadataJson): FoodTradeMetadata {
 
     return {
         year: raw.year,
-        source: raw.attribution,
+        source: formatAttributionsShortened(
+            getAttributionFragmentsFromBespokeMetadata(raw)
+        ),
         license: raw.license,
         entities,
         products,

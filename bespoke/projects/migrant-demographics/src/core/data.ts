@@ -1,7 +1,11 @@
 import { QueryClient, QueryStatus, useQuery } from "@tanstack/react-query"
 import * as R from "remeda"
 
-import { fetchJson } from "@ourworldindata/utils"
+import {
+    fetchJson,
+    formatAttributionsShortened,
+    getAttributionFragmentsFromBespokeMetadata,
+} from "@ourworldindata/utils"
 
 import {
     PopulationTotals,
@@ -74,16 +78,19 @@ export class MigrantDemographicsMetadata {
     private readonly codesByEntityName: Map<string, number>
 
     constructor(raw: RawMigrantDemographicsMetadata) {
+        const source = formatAttributionsShortened(
+            getAttributionFragmentsFromBespokeMetadata(raw)
+        )
         // Without these the chart's geometry degenerates to NaN, so fail into
         // the error state rather than rendering a broken pyramid
-        if (!raw.ageBands?.length || !raw.years?.length || !raw.attribution)
+        if (!raw.ageBands?.length || !raw.years?.length || !source)
             throw new Error(
                 "[migrant-demographics] Data file is missing its age bands, years or source"
             )
 
         this.ageBands = raw.ageBands
         this.years = raw.years
-        this.source = raw.attribution
+        this.source = source
 
         this.codesByEntityName = new Map(
             raw.entities.map((entity) => [entity.name, entity.code])

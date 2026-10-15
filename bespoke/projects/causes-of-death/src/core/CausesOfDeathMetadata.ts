@@ -1,6 +1,10 @@
 import * as R from "remeda"
 import { EntityName } from "@ourworldindata/types"
 import {
+    formatAttributionsShortened,
+    getAttributionFragmentsFromBespokeMetadata,
+} from "@ourworldindata/utils"
+import {
     AgeGroupMetadata,
     CategoryMetadata,
     MetadataJson,
@@ -14,7 +18,7 @@ export class CausesOfDeathMetadata {
 
     dimensions: MetadataJson["dimensions"]
     categories: MetadataJson["categories"]
-    source: MetadataJson["attribution"]
+    source: string
     timeRange: MetadataJson["timeRange"]
 
     private _entityNameToId?: Map<EntityName, number>
@@ -32,7 +36,9 @@ export class CausesOfDeathMetadata {
 
         this.dimensions = metadata.dimensions
         this.categories = metadata.categories
-        this.source = metadata.attribution
+        this.source = formatAttributionsShortened(
+            getAttributionFragmentsFromBespokeMetadata(metadata)
+        )
         this.timeRange = metadata.timeRange
     }
 

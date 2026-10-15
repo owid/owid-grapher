@@ -1,6 +1,11 @@
 import { useQuery } from "@tanstack/react-query"
 
 import {
+    formatAttributionsShortened,
+    getAttributionFragmentsFromBespokeMetadata,
+} from "@ourworldindata/utils"
+
+import {
     Entity,
     MigrationData,
     MigrationMetadata,
@@ -28,7 +33,9 @@ export const useMigrationMetadata = (metadataUrl: string) => {
             const raw = (await res.json()) as RawMetadata
             return {
                 times: raw.years,
-                source: raw.attribution,
+                source: formatAttributionsShortened(
+                    getAttributionFragmentsFromBespokeMetadata(raw)
+                ),
                 entities: raw.dimensions.entities,
                 genders: raw.dimensions.genders,
             }
