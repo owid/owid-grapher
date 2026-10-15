@@ -153,6 +153,7 @@ export type SankeyNode = {
      * from it to the node's band. Dropped on a node too short for all three lines.
      */
     annotation?: string
+    annotationFontSize?: number
     /**
      * Optional icon drawn next to the node's label, between the node's band
      * and the label text. Any SVG content designed for a `0 0 16 16` viewBox.
@@ -1107,6 +1108,8 @@ function placeSankeyLabels({
             const annotationTextWrap = annotation
                 ? new TextWrap({
                       ...fontSettings,
+                      fontSize:
+                          node.annotationFontSize ?? fontSettings.fontSize,
                       text: annotation,
                       maxWidth: Infinity,
                       verticalAlign: VerticalAlign.middle,
@@ -1234,6 +1237,7 @@ function toNodeData(node: LaidOutNode): SankeyNode {
         label: node.label,
         valueLabel: node.valueLabel,
         annotation: node.annotation,
+        annotationFontSize: node.annotationFontSize,
         icon: node.icon,
     }
 }
@@ -1255,7 +1259,13 @@ export function measureMaxLabelWidthForNode(
         Math.max(
             textWidth(node.label, fontSettings),
             node.valueLabel ? textWidth(node.valueLabel, fontSettings) : 0,
-            node.annotation ? textWidth(node.annotation, fontSettings) : 0
+            node.annotation
+                ? textWidth(node.annotation, {
+                      ...fontSettings,
+                      fontSize:
+                          node.annotationFontSize ?? fontSettings.fontSize,
+                  })
+                : 0
         ) + getIconLabelOffset(node)
     )
 }
