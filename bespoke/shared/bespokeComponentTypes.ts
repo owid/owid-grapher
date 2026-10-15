@@ -39,7 +39,7 @@ export interface BespokeComponentVariantsEntry<
 > extends Record<string, unknown> {
     name: VariantName
     description: string
-    defaultConfig?: BespokeAuthoredConfig
+    demoConfig?: BespokeAuthoredConfig
     defaultSize?: "narrow" | "wide" | "widest"
 }
 
