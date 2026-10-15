@@ -64,21 +64,32 @@ interface VariableListProps {
     sortable?: boolean
     /** Over the defaults: a page of 50, with the size changer. */
     pagination?: TablePaginationConfig
+    /**
+     * Let the browser size the columns to what is on the page, rather than
+     * giving each a share of the table. Suits a list without the catalog path,
+     * where the other columns are short; widths may shift between pages.
+     */
+    autoColumnWidths?: boolean
 }
 
-interface UsagePart {
-    noun: string
-    links: {
-        key: number | string
-        href: string
-        label: string
-        title?: string
-    }[]
-}
-
-/** The kinds of thing using the indicator, each with what they are. */
-function usageParts(variable: VariableListItem): UsagePart[] {
-    const parts: UsagePart[] = [
+/**
+ * What uses this indicator, naming each kind rather than counting the kinds
+ * that are almost always zero. Hovering lists what they are.
+ */
+function UsageCell({
+    variable,
+}: {
+    variable: VariableListItem
+}): React.ReactElement {
+    const parts: {
+        noun: string
+        links: {
+            key: number | string
+            href: string
+            label: string
+            title?: string
+        }[]
+    }[] = [
         {
             noun: "chart",
             links: (variable.charts ?? [])
@@ -110,26 +121,6 @@ function usageParts(variable: VariableListItem): UsagePart[] {
             })),
         },
     ].filter((part) => part.links.length > 0)
-    return parts
-}
-
-/** "1 chart · 1 multi-dim", as the cell shows it; for sizing its column. */
-function usageLabel(variable: VariableListItem): string {
-    return usageParts(variable)
-        .map((part) => plural(part.links.length, part.noun))
-        .join(" · ")
-}
-
-/**
- * What uses this indicator, naming each kind rather than counting the kinds
- * that are almost always zero. Hovering lists what they are.
- */
-function UsageCell({
-    variable,
-}: {
-    variable: VariableListItem
-}): React.ReactElement {
-    const parts = usageParts(variable)
 
     return (
         <>
@@ -266,88 +257,57 @@ function CatalogPathCell({
 }
 
 /**
- * Column widths. The table is sticky, which makes its layout `fixed`: a width
- * is a hard limit the browser never adjusts to the content, so columns have
- * to be sized up front.
+ * Relative column widths, turned into percentages over whatever columns a page
+ * asks for. Percentages rather than pixels so the table always fills its
+ * container exactly: at any window width it fits, with no sideways scrolling,
+ * and no column collapses to nothing when the others no longer fit.
  *
- * The name has no width and takes whatever the others leave, being the column
- * with the most to say. The catalog path and the upload date take a share of
- * the table. The table name and "Used in" are short, predictable text that
- * reads badly wrapped — "1 chart · 1 multi-dim · 1 explorer" over two lines
- * — so they are sized in pixels to the longest value among the rows, which
- * also keeps a column of six-letter table names from taking a third of the
- * table. The table name is capped, and ellipsised beyond the cap.
+ * The table is sticky, which defaults its layout to `fixed`, where a width is
+ * a hard limit the browser never adjusts to the content. A list with
+ * `autoColumnWidths` sets the layout to `auto` and these go unused.
  */
-const CATALOG_PATH_WIDTH = "35%"
-const UPLOADED_AT_WIDTH = "14%"
-// antd's 14px font averages about 7.5px a character; a cell has 8px of
-// padding a side, and the header needs room for its sort arrows
-const CHAR_WIDTH = 7.5
-const CELL_PADDING = 16
-const SORTER_WIDTH = 24
-const MAX_TABLE_NAME_CHARS = 40
-/** The popularity bar after the usage, from `.variable-list__popularity`. */
-const POPULARITY_WIDTH = 62
-
-function textColumnWidth(chars: number): number {
-    return Math.ceil(chars * CHAR_WIDTH) + CELL_PADDING + SORTER_WIDTH
+const COLUMN_WEIGHTS: Record<VariableListField | "name", number> = {
+    name: 35,
+    catalogPath: 35,
+    table: 20,
+    // "3 charts" is what this says on almost every row; the rare row that also
+    // names a multi-dim and an explorer wraps rather than taxing all the rest
+    usage: 10,
+    uploadedAt: 13,
 }
 
-function longestLength(
-    variables: VariableListItem[],
-    text: (variable: VariableListItem) => string | undefined,
-    atLeast: number
-): number {
-    // a loop rather than Math.max(...lengths): a dataset can have tens of
-    // thousands of indicators, more than fit in a call's arguments
-    let longest = atLeast
-    for (const variable of variables) {
-        longest = Math.max(longest, text(variable)?.length ?? 0)
-    }
-    return longest
-}
-
-function columnWidths(variables: VariableListItem[]): {
-    name: undefined
-    catalogPath: string
-    uploadedAt: string
-    table: number
-    usage: number
-} {
-    const tableNameChars = longestLength(
-        variables,
-        (variable) => catalogTableOf(variable.catalogPath),
-        "Table".length
-    )
-    const usageChars = longestLength(variables, usageLabel, "Used in".length)
-    const hasPopularity = variables.some(
-        (variable) =>
-            variable.popularity !== null && variable.popularity !== undefined
-    )
-    return {
-        name: undefined,
-        catalogPath: CATALOG_PATH_WIDTH,
-        uploadedAt: UPLOADED_AT_WIDTH,
-        table: textColumnWidth(Math.min(tableNameChars, MAX_TABLE_NAME_CHARS)),
-        usage:
-            textColumnWidth(usageChars) +
-            (hasPopularity ? POPULARITY_WIDTH : 0),
-    }
+function columnWidths(
+    fields: VariableListField[]
+): Record<VariableListField | "name", string> {
+    const shown: (VariableListField | "name")[] = ["name", ...fields]
+    const total = shown.reduce((sum, key) => sum + COLUMN_WEIGHTS[key], 0)
+    return Object.fromEntries(
+        shown.map((key) => [
+            key,
+            `${((COLUMN_WEIGHTS[key] / total) * 100).toFixed(2)}%`,
+        ])
+    ) as Record<VariableListField | "name", string>
 }
 
 function createColumns({
     fields,
     searchWords,
     sortable,
-    variables,
+    autoColumnWidths,
 }: {
     fields: VariableListField[]
     searchWords: SearchWord[]
     sortable: boolean
-    /** The rows, which size the content-fitted columns. */
-    variables: VariableListItem[]
+    autoColumnWidths: boolean
 }): TableColumnsType<VariableListItem> {
-    const width = columnWidths(variables)
+    const shares = columnWidths(fields)
+    // the catalog path keeps its share: it never wraps, so left to size itself
+    // it would push the table wider than the page
+    const width: Partial<Record<VariableListField | "name", string>> =
+        autoColumnWidths ? { catalogPath: shares.catalogPath } : shares
+    // left to size itself, a short column would otherwise wrap to give the
+    // name more room
+    const nowrap = autoColumnWidths ? "variable-list__nowrap" : undefined
     const highlight = highlightFunctionForSearchWords(searchWords)
     const pathHighlight = highlightFunctionForSearchWords(
         pathSearchWords(searchWords)
@@ -377,7 +337,7 @@ function createColumns({
             title: "Table",
             dataIndex: "catalogPath",
             key: "table",
-            ellipsis: true,
+            className: nowrap,
             sorter:
                 sortable &&
                 ((a, b) =>
@@ -387,7 +347,9 @@ function createColumns({
             render: (_, variable) => {
                 const table = catalogTableOf(variable.catalogPath)
                 return table ? (
-                    <span title={table}>{pathHighlight(table)}</span>
+                    <span className="variable-list__table-name" title={table}>
+                        {pathHighlight(table)}
+                    </span>
                 ) : (
                     <span className="text-muted">—</span>
                 )
@@ -398,6 +360,7 @@ function createColumns({
             title: "Uploaded",
             dataIndex: "uploadedAt",
             key: "uploadedAt",
+            className: nowrap,
             sorter:
                 sortable &&
                 ((a, b) =>
@@ -415,6 +378,9 @@ function createColumns({
             title: "Used in",
             dataIndex: "usageCount",
             key: "usage",
+            className: autoColumnWidths
+                ? "variable-list__nowrap variable-list__usage-column"
+                : undefined,
             sorter:
                 sortable &&
                 ((a, b) => (a.usageCount ?? 0) - (b.usageCount ?? 0)),
@@ -446,16 +412,19 @@ export function VariableList({
     loading,
     sortable = true,
     pagination,
+    autoColumnWidths = false,
 }: VariableListProps): React.ReactElement {
     const columns = useMemo(
-        () => createColumns({ fields, searchWords, sortable, variables }),
-        [fields, searchWords, sortable, variables]
+        () =>
+            createColumns({ fields, searchWords, sortable, autoColumnWidths }),
+        [fields, searchWords, sortable, autoColumnWidths]
     )
 
     return (
         <Table<VariableListItem>
             size="small"
             sticky
+            tableLayout={autoColumnWidths ? "auto" : undefined}
             rowKey="id"
             columns={columns}
             dataSource={variables}
@@ -588,10 +557,9 @@ export function GroupedVariableList({
                 fields: ["usage"],
                 searchWords,
                 sortable: false,
-                // sized over every group, so the nested tables line up
-                variables: groups.flatMap((group) => group.variables),
+                autoColumnWidths: false,
             }),
-        [searchWords, groups]
+        [searchWords]
     )
     const groupColumns: TableColumnsType<DatasetSearchGroup> = useMemo(
         () => [

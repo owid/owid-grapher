@@ -770,6 +770,7 @@ class DatasetEditor extends Component<DatasetEditorProps> {
                                         : INDICATOR_FIELDS
                                 }
                                 searchWords={this.searchWords}
+                                autoColumnWidths
                             />
                         </Flex>
                     </section>
