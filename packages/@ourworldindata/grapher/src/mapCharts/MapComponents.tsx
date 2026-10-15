@@ -19,6 +19,7 @@ import { isMapRenderFeature } from "./MapHelpers"
 import { getExternalMarkerEndPosition } from "./MapAnnotations"
 import { Patterns, makePatternId } from "../core/GrapherConstants"
 import { calculateLightnessScore, isDarkColor } from "../color/ColorUtils"
+import { INAPPLICABLE_COLOR } from "../color/ColorScale"
 import { Halo } from "@ourworldindata/components"
 import { InteractionState } from "../interaction/InteractionState"
 
@@ -153,11 +154,11 @@ export function CountryWithNoData<Feature extends RenderFeature>({
 
 export function InapplicablePattern({
     patternId = Patterns.inapplicablePattern,
-    color,
+    color = INAPPLICABLE_COLOR,
     scale = 1,
 }: {
     patternId?: string
-    color: Color
+    color?: Color
     scale?: number
 }): React.ReactElement {
     const roundedScale = R.round(scale, 3)

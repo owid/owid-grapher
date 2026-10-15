@@ -111,7 +111,7 @@ export interface ChoroplethMapManager {
     binColors?: string[]
     hasProjectedData?: boolean
     inapplicableEntityNamesSet?: Set<EntityName>
-    inapplicableColor: Color
+    inapplicableColor?: Color
     mapViewport?: MapViewport
     isFaceted?: boolean
 }
