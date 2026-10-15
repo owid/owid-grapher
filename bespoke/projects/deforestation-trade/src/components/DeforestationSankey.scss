@@ -1,8 +1,28 @@
+// The how-to-read line takes its height, the chart the rest
 .deforestation-sankey {
+    display: flex;
+    flex-direction: column;
     width: 100%;
     height: 100%;
     max-width: 1000px;
     margin-inline: auto;
+}
+
+.deforestation-sankey > .responsive-container {
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+.deforestation-sankey__how-to-read {
+    margin: 0 0 8px;
+    font-size: 13px;
+    line-height: 1.4;
+    color: $light-text;
+}
+
+.deforestation-sankey__how-to-read strong {
+    font-weight: 700;
+    color: $dark-text;
 }
 
 .deforestation-sankey__chart-area {

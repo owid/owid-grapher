@@ -30,6 +30,7 @@ import {
 
 import {
     buildCountryGraph,
+    buildHowToRead,
     getGroupFromNodeId,
     getPartnerFromNodeId,
     getPartnerKeyFromNodeId,
@@ -95,8 +96,25 @@ export type DeforestationSankeyProps = Pick<
 export function DeforestationSankey(
     props: DeforestationSankeyProps
 ): React.ReactElement {
+    const { country, view } = props
+    const howToRead = useMemo(
+        () => buildHowToRead({ country, view }),
+        [country, view]
+    )
     return (
         <div className="deforestation-sankey">
+            {/* Above the chart rather than drawn into it as column headings,
+                so it can wrap on narrow screens */}
+            <p className="deforestation-sankey__how-to-read">
+                <em>How to read:</em>{" "}
+                {howToRead.map((part, i) =>
+                    part.emphasis ? (
+                        <strong key={i}>{part.text}</strong>
+                    ) : (
+                        <span key={i}>{part.text}</span>
+                    )
+                )}
+            </p>
             <ResponsiveContainer>
                 {(dimensions) => (
                     <DeforestationSankeyContent {...props} {...dimensions} />
@@ -341,8 +359,6 @@ function DeforestationSankeyContent({
         ]
     )
 
-    const headingFallbacks = useMemo(() => [graph.headings], [graph.headings])
-
     return (
         <div className="deforestation-sankey__chart-area">
             <Sankey
@@ -354,9 +370,6 @@ function DeforestationSankeyContent({
                 // of the commodity bar; in consumption view on the right —
                 // put the labels over those
                 middleLabelSide={view === "production" ? "left" : "right"}
-                // The sentence when it fits, the short labels when it doesn't
-                columnHeadings={graph.headingSentence}
-                columnHeadingFallbacks={headingFallbacks}
                 totalFlowVolume={graph.total}
                 linkLowVolumeThreshold={LINK_LOW_VOLUME_THRESHOLD}
                 nodePadding={SANKEY_NODE_PADDING}
