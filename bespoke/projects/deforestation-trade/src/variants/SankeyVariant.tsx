@@ -41,6 +41,7 @@ import {
     describeYearRange,
     formatHectares,
     formatShare,
+    possessiveEntity,
     resolveYearIndexRange,
     rowsForYearRange,
     sumRows,
@@ -425,9 +426,13 @@ function buildCaption({
             ? `${formatShare(domesticShare)} of it was for commodities that were both produced & consumed in ${articulated}.`
             : ""
 
-    // The world's total for scale
+    // The world's total for scale, and the country's share of it
+    const worldShare = worldTotal ? formatShare(total / worldTotal) : ""
+    const worldShareClause = worldShare
+        ? `, and ${possessiveEntity(articulated)} ${view} accounted for ${worldShare} of that`
+        : ""
     const worldClause = worldTotal
-        ? `For context, ${when} a total of ${formatHectares(worldTotal)} of forest was cleared worldwide for agriculture.`
+        ? `For context, ${when} a total of ${formatHectares(worldTotal)} of forest was cleared worldwide for agriculture${worldShareClause}.`
         : ""
     const subtitle = [domesticClause, worldClause].filter(Boolean).join(" ")
 
