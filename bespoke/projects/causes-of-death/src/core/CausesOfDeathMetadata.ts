@@ -14,7 +14,7 @@ export class CausesOfDeathMetadata {
 
     dimensions: MetadataJson["dimensions"]
     categories: MetadataJson["categories"]
-    source: MetadataJson["source"]
+    source: MetadataJson["attribution"]
     timeRange: MetadataJson["timeRange"]
 
     private _entityNameToId?: Map<EntityName, number>
@@ -32,7 +32,7 @@ export class CausesOfDeathMetadata {
 
         this.dimensions = metadata.dimensions
         this.categories = metadata.categories
-        this.source = metadata.source
+        this.source = metadata.attribution
         this.timeRange = metadata.timeRange
     }
 

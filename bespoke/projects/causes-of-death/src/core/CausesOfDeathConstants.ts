@@ -19,7 +19,7 @@ export type VariableMetadata = BasicEntry & {
 export type AgeGroupMetadata = BasicEntry
 
 export interface MetadataJson {
-    source: string
+    attribution: string
     categories: CategoryMetadata[]
     dimensions: {
         entities: EntityMetadata[]

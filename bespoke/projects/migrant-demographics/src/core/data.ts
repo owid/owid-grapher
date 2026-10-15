@@ -76,14 +76,14 @@ export class MigrantDemographicsMetadata {
     constructor(raw: RawMigrantDemographicsMetadata) {
         // Without these the chart's geometry degenerates to NaN, so fail into
         // the error state rather than rendering a broken pyramid
-        if (!raw.ageBands?.length || !raw.years?.length || !raw.meta?.source)
+        if (!raw.ageBands?.length || !raw.years?.length || !raw.attribution)
             throw new Error(
                 "[migrant-demographics] Data file is missing its age bands, years or source"
             )
 
         this.ageBands = raw.ageBands
         this.years = raw.years
-        this.source = raw.meta.source
+        this.source = raw.attribution
 
         this.codesByEntityName = new Map(
             raw.entities.map((entity) => [entity.name, entity.code])

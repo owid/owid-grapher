@@ -50,7 +50,7 @@ export type MigrationView = (typeof MIGRATION_VIEWS)[number]
 export type RawMetadata = {
     timeRange: { start: number; end: number }
     years: number[]
-    source: string
+    attribution: string
     dimensions: {
         entities: { id: number; name: string; population: number[] }[]
         genders: { id: number; name: string }[]

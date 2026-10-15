@@ -28,7 +28,7 @@ export const useMigrationMetadata = (metadataUrl: string) => {
             const raw = (await res.json()) as RawMetadata
             return {
                 times: raw.years,
-                source: raw.source,
+                source: raw.attribution,
                 entities: raw.dimensions.entities,
                 genders: raw.dimensions.genders,
             }

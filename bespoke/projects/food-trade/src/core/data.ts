@@ -87,7 +87,7 @@ function buildMetadata(raw: MetadataJson): FoodTradeMetadata {
 
     return {
         year: raw.year,
-        source: raw.source,
+        source: raw.attribution,
         license: raw.license,
         entities,
         products,

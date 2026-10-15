@@ -19,7 +19,7 @@ export type Product = { id: number; name: string }
 
 export type MetadataJson = {
     year: number
-    source: string
+    attribution: string
     license: string
     dimensions: {
         entities: Entity[]

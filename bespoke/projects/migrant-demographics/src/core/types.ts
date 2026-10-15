@@ -25,9 +25,9 @@ export interface RawMetadataEntity {
 }
 
 export interface RawMigrantDemographicsMetadata {
+    attribution: string
     meta: {
         title: string
-        source: string
         unit: string
         note?: string
     }
