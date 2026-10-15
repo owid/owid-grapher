@@ -1019,88 +1019,99 @@ function ComponentProperties({
                 </span>
             </div>
             {component.props.length > 0 && (
-                <table className="gdocs-ref-live__props-table">
-                    <thead>
-                        <tr>
-                            <th>Prop</th>
-                            <th>Type</th>
-                            <th>Req.</th>
-                            {hasDescriptions && <th>What it does</th>}
-                            {hasLive && <th>Adoption</th>}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {orderedProps.map((prop) => {
-                            const adoption = live?.propAdoption[prop.name] ?? 0
-                            const defaultValue = live?.propDefaults?.[prop.name]
-                            const content = isContentProp(prop)
-                            return (
-                                <tr key={prop.name}>
-                                    <td>
-                                        <code>{prop.name}</code>
-                                    </td>
-                                    <td>
-                                        <PropTypeCell
-                                            prop={prop}
-                                            typeLinks={typeLinks}
-                                            defaultValue={defaultValue}
-                                        />
-                                    </td>
-                                    <td
-                                        className={
-                                            requirement(prop) === "required"
-                                                ? "gdocs-ref-live__props-required"
-                                                : "gdocs-ref-live__props-optional"
-                                        }
-                                    >
-                                        {requirement(prop)}
-                                        {defaultValue !== undefined &&
-                                            !choiceValues(prop) && (
-                                                <span className="gdocs-ref-live__props-default">
-                                                    default{" "}
-                                                    <code>{defaultValue}</code>
-                                                </span>
-                                            )}
-                                    </td>
-                                    {hasDescriptions && (
-                                        <td className="gdocs-ref-live__props-effect">
-                                            {prop.description ? (
-                                                <InlineMarkdownText
-                                                    text={prop.description}
-                                                    titleFor={titleFor}
-                                                />
-                                            ) : (
-                                                <span className="gdocs-ref-live__props-optional">
-                                                    —
-                                                </span>
-                                            )}
-                                        </td>
-                                    )}
-                                    {hasLive && (
+                <div
+                    className="gdocs-ref-live__props-scroll"
+                    role="region"
+                    aria-label="Properties"
+                    tabIndex={0}
+                >
+                    <table className="gdocs-ref-live__props-table">
+                        <thead>
+                            <tr>
+                                <th>Prop</th>
+                                <th>Type</th>
+                                <th>Req.</th>
+                                {hasDescriptions && <th>What it does</th>}
+                                {hasLive && <th>Adoption</th>}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {orderedProps.map((prop) => {
+                                const adoption =
+                                    live?.propAdoption[prop.name] ?? 0
+                                const defaultValue =
+                                    live?.propDefaults?.[prop.name]
+                                const content = isContentProp(prop)
+                                return (
+                                    <tr key={prop.name}>
                                         <td>
-                                            {content ? (
-                                                <span
-                                                    className="gdocs-ref-live__props-optional"
-                                                    title="Content blocks aren't indexed for usage analysis"
-                                                >
-                                                    —
-                                                </span>
-                                            ) : (
-                                                <FrequencyBadge
-                                                    label={fractionUsageLabel(
-                                                        adoption,
-                                                        live.scanned
-                                                    )}
-                                                    title={`Authored in ${adoption} of ${live.scanned} published uses`}
-                                                />
-                                            )}
+                                            <code>{prop.name}</code>
                                         </td>
-                                    )}
-                                </tr>
-                            )
-                        })}
-                    </tbody>
-                </table>
+                                        <td>
+                                            <PropTypeCell
+                                                prop={prop}
+                                                typeLinks={typeLinks}
+                                                defaultValue={defaultValue}
+                                            />
+                                        </td>
+                                        <td
+                                            className={
+                                                requirement(prop) === "required"
+                                                    ? "gdocs-ref-live__props-required"
+                                                    : "gdocs-ref-live__props-optional"
+                                            }
+                                        >
+                                            {requirement(prop)}
+                                            {defaultValue !== undefined &&
+                                                !choiceValues(prop) && (
+                                                    <span className="gdocs-ref-live__props-default">
+                                                        default{" "}
+                                                        <code>
+                                                            {defaultValue}
+                                                        </code>
+                                                    </span>
+                                                )}
+                                        </td>
+                                        {hasDescriptions && (
+                                            <td className="gdocs-ref-live__props-effect">
+                                                {prop.description ? (
+                                                    <InlineMarkdownText
+                                                        text={prop.description}
+                                                        titleFor={titleFor}
+                                                    />
+                                                ) : (
+                                                    <span className="gdocs-ref-live__props-optional">
+                                                        —
+                                                    </span>
+                                                )}
+                                            </td>
+                                        )}
+                                        {hasLive && (
+                                            <td>
+                                                {content ? (
+                                                    <span
+                                                        className="gdocs-ref-live__props-optional"
+                                                        title="Content blocks aren't indexed for usage analysis"
+                                                    >
+                                                        —
+                                                    </span>
+                                                ) : (
+                                                    <FrequencyBadge
+                                                        label={fractionUsageLabel(
+                                                            adoption,
+                                                            live.scanned
+                                                        )}
+                                                        title={`Authored in ${adoption} of ${live.scanned} published uses`}
+                                                    />
+                                                )}
+                                            </td>
+                                        )}
+                                    </tr>
+                                )
+                            })}
+                        </tbody>
+                    </table>
+                </div>
             )}
             {notes && (
                 <div className="gdocs-ref-live__props-notes">

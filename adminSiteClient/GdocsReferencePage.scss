@@ -1355,6 +1355,12 @@
     }
 }
 
+// The wrapper above clips to its rounded border, so a table widened by a
+// long unbreakable key scrolls sideways here instead of being cut off.
+.gdocs-ref-live__props-scroll {
+    overflow-x: auto;
+}
+
 .gdocs-ref-live__props-table {
     width: 100%;
     border-collapse: collapse;

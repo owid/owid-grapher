@@ -567,56 +567,67 @@ function BundleConfigTable({
                             the block's <code>{"{.config}"}</code>
                         </span>
                     </div>
-                    <table className="gdocs-ref-live__props-table">
-                        <thead>
-                            <tr>
-                                <th>Key</th>
-                                <th>Type</th>
-                                <th>What it does</th>
-                                {showAdoption && <th>Adoption</th>}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {bundle.config.map((field) => {
-                                const adoption =
-                                    usage?.configAdoption[field.name] ?? 0
-                                return (
-                                    <tr key={field.name}>
-                                        <td>
-                                            <code>{field.name}</code>
-                                        </td>
-                                        <td>
-                                            <ConfigTypeCell field={field} />
-                                        </td>
-                                        <td className="gdocs-ref-live__props-effect">
-                                            <InlineMarkdownText
-                                                text={field.description}
-                                                titleFor={titleFor}
-                                            />
-                                            {field.type === "custom" &&
-                                                field.format && (
-                                                    <span className="gdocs-ref-bespoke__config-format">
-                                                        Format:{" "}
-                                                        <InlineMarkdownText
-                                                            text={field.format}
-                                                            titleFor={titleFor}
-                                                        />
-                                                    </span>
-                                                )}
-                                        </td>
-                                        {showAdoption && (
-                                            <td
-                                                className="gdocs-ref-bespoke__config-adoption"
-                                                title={`Set in ${adoption} of ${uses} published uses`}
-                                            >
-                                                {adoption} of {uses}
+                    <div
+                        className="gdocs-ref-live__props-scroll"
+                        role="region"
+                        aria-label="Config keys"
+                        tabIndex={0}
+                    >
+                        <table className="gdocs-ref-live__props-table">
+                            <thead>
+                                <tr>
+                                    <th>Key</th>
+                                    <th>Type</th>
+                                    <th>What it does</th>
+                                    {showAdoption && <th>Adoption</th>}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {bundle.config.map((field) => {
+                                    const adoption =
+                                        usage?.configAdoption[field.name] ?? 0
+                                    return (
+                                        <tr key={field.name}>
+                                            <td>
+                                                <code>{field.name}</code>
                                             </td>
-                                        )}
-                                    </tr>
-                                )
-                            })}
-                        </tbody>
-                    </table>
+                                            <td>
+                                                <ConfigTypeCell field={field} />
+                                            </td>
+                                            <td className="gdocs-ref-live__props-effect">
+                                                <InlineMarkdownText
+                                                    text={field.description}
+                                                    titleFor={titleFor}
+                                                />
+                                                {field.type === "custom" &&
+                                                    field.format && (
+                                                        <span className="gdocs-ref-bespoke__config-format">
+                                                            Format:{" "}
+                                                            <InlineMarkdownText
+                                                                text={
+                                                                    field.format
+                                                                }
+                                                                titleFor={
+                                                                    titleFor
+                                                                }
+                                                            />
+                                                        </span>
+                                                    )}
+                                            </td>
+                                            {showAdoption && (
+                                                <td
+                                                    className="gdocs-ref-bespoke__config-adoption"
+                                                    title={`Set in ${adoption} of ${uses} published uses`}
+                                                >
+                                                    {adoption} of {uses}
+                                                </td>
+                                            )}
+                                        </tr>
+                                    )
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             )}
         </section>
