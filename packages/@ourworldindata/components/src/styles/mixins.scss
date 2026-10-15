@@ -220,7 +220,8 @@
         display: flex;
         flex-direction: column;
     }
-    button {
+    // Design-system buttons keep their own theme.
+    button:not(.owid-btn) {
         @include popover-box-button;
     }
 

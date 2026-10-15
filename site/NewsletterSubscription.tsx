@@ -4,6 +4,7 @@ import cx from "clsx"
 import { faTimes, faEnvelopeOpenText } from "@fortawesome/free-solid-svg-icons"
 import { SiteAnalytics } from "./SiteAnalytics.js"
 import { TextInput } from "@ourworldindata/components"
+import { FEATURE_FLAGS, Features } from "../settings/clientSettings.mjs"
 import { NewsletterSubscriptionContext } from "./newsletter.js"
 import { NewsletterIcon } from "./gdocs/components/NewsletterIcon.js"
 import { SiteToolsButton } from "./SiteToolsButton.js"
@@ -14,8 +15,46 @@ import {
     MAILCHIMP_SIGNUP_HONEYPOT_NAME,
     makeMailchimpNewsletterGroupInputName,
 } from "./Newsletter/mailchimpSignup.js"
+import { NewsletterSignupForm } from "./Newsletter/NewsletterSignupForm.js"
 
 const analytics = new SiteAnalytics()
+
+const isEmailNotificationsEnabled = FEATURE_FLAGS.includes(
+    Features.EmailNotifications
+)
+
+/**
+ * The signup block for the header nav, site tools, homepage and /latest:
+ * the compact panel once email notifications are enabled, otherwise the
+ * Mailchimp form. `children` (e.g. social links) render after the form
+ * either way.
+ */
+export const NewsletterSignup = ({
+    context,
+    className,
+    showSubheading,
+    children,
+}: {
+    context: NewsletterSubscriptionContext
+    className?: string
+    showSubheading?: boolean
+    children?: React.ReactNode
+}) => (
+    <div
+        className={cx(
+            isEmailNotificationsEnabled && "newsletter-signup-panel",
+            className
+        )}
+    >
+        <NewsletterSubscriptionHeader showSubheading={showSubheading} />
+        {isEmailNotificationsEnabled ? (
+            <NewsletterSignupForm context={context} />
+        ) : (
+            <MailchimpSubscriptionForm context={context} />
+        )}
+        {children}
+    </div>
+)
 
 export const NewsletterSubscription = ({
     context,
@@ -39,8 +78,7 @@ export const NewsletterSubscription = ({
                         }}
                     />
                     <div className="box">
-                        <NewsletterSubscriptionHeader />
-                        <NewsletterSubscriptionForm context={context} />
+                        <NewsletterSignup context={context} />
                     </div>
                 </>
             )}
@@ -83,7 +121,8 @@ export const NewsletterSubscriptionHeader = ({
     )
 }
 
-export const NewsletterSubscriptionForm = ({
+/** The pre-email-notifications form, posting straight to Mailchimp. */
+export const MailchimpSubscriptionForm = ({
     context,
     className = "",
 }: {

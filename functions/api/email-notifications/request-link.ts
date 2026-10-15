@@ -1,5 +1,4 @@
 import * as _ from "lodash-es"
-import * as z from "zod/mini"
 import {
     EMAIL_NOTIFICATIONS_MAGIC_LINK_TTL_MS,
     JsonError,
@@ -17,6 +16,7 @@ import {
     sendMagicLinkEmail,
     validateEmailNotificationsDatabase,
 } from "../../_common/emailNotifications.js"
+import { describeInvalidRequest } from "../../_common/requestValidation.js"
 
 export const onRequestOptions = handleOptionsRequest
 
@@ -87,10 +87,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
                     rawPayload
                 )
             if (!data) {
-                throw new JsonError(
-                    `Invalid request: ${z.prettifyError(error)}`,
-                    400
-                )
+                throw new JsonError(describeInvalidRequest(error), 400)
             }
             email = data.email
             token = data.token
