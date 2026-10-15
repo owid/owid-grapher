@@ -5,8 +5,8 @@ import {
     selectBespokePreviewBlock,
 } from "./bespokeVizPreviewBlock.js"
 
-// A bundle with one variant and two docs.md examples. The committed registry
-// has no examples yet, so the example path is tested against this fixture.
+// A bundle with one variant and two docs.md examples, so these tests don't
+// depend on what the committed registry's docs.md files say.
 const bundles = [
     {
         id: "demo",

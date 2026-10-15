@@ -617,8 +617,10 @@ describe("writing reference live API", { timeout: 20000 }, () => {
     })
 
     it("bespoke-viz preview 404s for an empty variant and bad example params", async () => {
-        // The committed registry has no docs.md examples yet, so every
-        // example index is out of range; the 200 path is covered client-side.
+        // causes-of-death has no docs.md, so every example index is out of
+        // range. Picking an example is tested in bespokeVizPreviewBlock.test.ts;
+        // rendering one isn't tested here, as it needs a production build
+        // manifest this suite doesn't have.
         const base = "/gdocs-reference/bespoke-viz/causes-of-death/preview"
         for (const query of [
             "?variant=",
