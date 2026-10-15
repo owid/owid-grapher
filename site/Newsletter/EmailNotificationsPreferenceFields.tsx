@@ -1,5 +1,6 @@
 import cx from "clsx"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { useScrollAlertIntoView } from "./useScrollAlertIntoView.js"
 import {
     faBook,
     faBullhorn,
@@ -121,14 +122,11 @@ export interface EmailNotificationsPreferenceFieldsProps {
     onToggleContentType: (contentType: EmailNotificationsContentType) => void
     onSetFrequency: (frequency: EmailNotificationsFrequency) => void
     validationErrors?: PreferencesValidationErrors | null
-    isExpanded: boolean
-    onToggleExpanded: () => void
 }
 
 /**
  * The topics / content types / frequency fieldsets, shared between the
- * subscribe form and the magic-link preferences form. They sit behind a
- * disclosure toggle, since the defaults suit most readers.
+ * subscribe form and the magic-link preferences form.
  */
 export const EmailNotificationsPreferenceFields = ({
     topicAreaNames,
@@ -139,58 +137,12 @@ export const EmailNotificationsPreferenceFields = ({
     onToggleContentType,
     onSetFrequency,
     validationErrors,
-    isExpanded,
-    onToggleExpanded,
 }: EmailNotificationsPreferenceFieldsProps) => {
-    const toggle = (
-        <button
-            type="button"
-            className="newsletter-preference-fields__toggle"
-            aria-expanded={isExpanded}
-            onClick={onToggleExpanded}
-        >
-            <FontAwesomeIcon icon={isExpanded ? faMinus : faPlus} />
-            <span>
-                {isExpanded
-                    ? "Hide your preferences"
-                    : "Choose your preferences"}
-            </span>
-        </button>
-    )
-
-    if (!isExpanded) return toggle
-
-    return (
-        <>
-            {toggle}
-            <PreferenceFieldsets
-                topicAreaNames={topicAreaNames}
-                topicTags={topicTags}
-                contentTypes={contentTypes}
-                frequency={frequency}
-                onToggleTopicTag={onToggleTopicTag}
-                onToggleContentType={onToggleContentType}
-                onSetFrequency={onSetFrequency}
-                validationErrors={validationErrors}
-            />
-        </>
-    )
-}
-
-const PreferenceFieldsets = ({
-    topicAreaNames,
-    topicTags,
-    contentTypes,
-    frequency,
-    onToggleTopicTag,
-    onToggleContentType,
-    onSetFrequency,
-    validationErrors,
-}: Omit<
-    EmailNotificationsPreferenceFieldsProps,
-    "isExpanded" | "onToggleExpanded"
->) => {
     const allTopicsSelected = areAllTopicsSelected(topicTags, topicAreaNames)
+
+    // The submit button sits below these fieldsets, so a failed submit may
+    // leave the error off-screen.
+    const firstAlertRef = useScrollAlertIntoView(validationErrors)
 
     // The toggle callbacks use functional state updates, so toggling every
     // affected pill in sequence composes correctly.
@@ -234,7 +186,11 @@ const PreferenceFieldsets = ({
                     ))}
                 </div>
                 {validationErrors?.topicTagsError && (
-                    <div className="newsletter-form__alert">
+                    <div
+                        ref={firstAlertRef}
+                        className="newsletter-form__alert"
+                        role="alert"
+                    >
                         {validationErrors.topicTagsError}
                     </div>
                 )}
@@ -260,7 +216,15 @@ const PreferenceFieldsets = ({
                     ))}
                 </div>
                 {validationErrors?.contentTypesError && (
-                    <div className="newsletter-form__alert">
+                    <div
+                        ref={
+                            validationErrors.topicTagsError
+                                ? undefined
+                                : firstAlertRef
+                        }
+                        className="newsletter-form__alert"
+                        role="alert"
+                    >
                         {validationErrors.contentTypesError}
                     </div>
                 )}
