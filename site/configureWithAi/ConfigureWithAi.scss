@@ -1,328 +1,504 @@
-// "Configure with AI" prototype box, ported from Joe's Claude artifact.
-// Loaded with the box's own chunk, so it imports the colours itself.
+// "Configure with AI" prototype: tabs in Grapher's side panel. Loaded with
+// the prototype's own chunk, so it imports the colours itself.
 @use "../../packages/@ourworldindata/components/src/styles/colors.scss" as *;
 
 .configure-with-ai {
-    margin: 16px 0;
-    padding: 18px 20px;
-    border: 1px solid $blue-20;
-    background: #fff;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
     color: $blue-90;
+    font-size: 0.875rem;
+
+    button {
+        font: inherit;
+        color: inherit;
+        cursor: pointer;
+    }
+
+    button:disabled {
+        cursor: default;
+    }
+
+    a {
+        color: $vermillion;
+    }
 }
 
-.configure-with-ai__heading {
+.configure-with-ai__tabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    flex-shrink: 0;
+    border-bottom: 1px solid $blue-20;
+}
+
+.configure-with-ai__tab {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: 44px;
+    padding: 0 6px;
+    border: 0;
+    border-bottom: 3px solid transparent;
+    background: $gray-5;
+    color: $blue-60;
+    white-space: nowrap;
+
+    &[aria-selected="true"] {
+        background: #fff;
+        border-bottom-color: $vermillion;
+        color: $blue-100;
+        font-weight: 700;
+    }
+
+    &:focus-visible {
+        outline: 2px solid $blue-60;
+        outline-offset: -2px;
+    }
+}
+
+.configure-with-ai__badge {
+    padding: 1px 5px;
+    border-radius: 999px;
+    background: $amber;
+    color: $blue-100;
+    font-size: 0.625rem;
+    font-weight: 900;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.configure-with-ai__tab-panel {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+}
+
+.configure-with-ai__customize {
+    flex: 1;
+    min-height: 0;
+    padding-top: 16px;
+
+    > .configure-with-ai__muted {
+        padding: 0 16px;
+    }
+}
+
+.configure-with-ai__muted {
+    margin: 0;
+    color: $blue-60;
+    font-size: 0.8125rem;
+    line-height: 1.45;
+}
+
+.configure-with-ai__try-ai {
     display: flex;
     align-items: center;
     gap: 8px;
-    margin: 0 0 12px;
-    font-size: 0.8125rem;
-    font-weight: 900;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: $blue-50;
+    flex-shrink: 0;
+    width: 100%;
+    padding: 10px 16px;
+    border: 0;
+    border-top: 1px solid $blue-20;
+    background: $blue-5;
+    text-align: left;
 
-    svg {
-        color: $blue-60;
+    span {
+        flex: 1;
     }
 
-    em {
-        font-weight: 700;
-        letter-spacing: 0.04em;
+    &:hover {
+        background: $blue-10;
     }
+}
+
+// AI mode
+
+.configure-with-ai__ai {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
 }
 
 .configure-with-ai__form {
-    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex-shrink: 0;
+    padding: 16px 16px 0;
 }
 
-.configure-with-ai__search-icon {
-    position: absolute;
-    left: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: $blue-50;
-    pointer-events: none;
+.configure-with-ai__intro-title {
+    color: $blue-100;
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.configure-with-ai__field {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 40px;
+    padding-left: 10px;
+    border: 1px solid $blue-30;
+    background: #fff;
+
+    &:focus-within {
+        border-color: $blue-60;
+    }
+}
+
+.configure-with-ai__field-icon {
+    color: $blue-60;
 }
 
 .configure-with-ai__input {
-    width: 100%;
-    box-sizing: border-box;
-    border: 1px solid $blue-30;
-    border-radius: 2px;
-    padding: 10px 12px 10px 36px;
-    font-size: 1rem;
-    background: #fff;
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    border: 0;
+    outline: none;
+    background: transparent;
     color: $blue-90;
-
-    &::placeholder {
-        color: $blue-50;
-    }
-
-    &:disabled {
-        background: $blue-10;
-        cursor: not-allowed;
-    }
-}
-
-.configure-with-ai__input--ingested {
-    font-style: italic;
-    color: $blue-60;
-}
-
-.configure-with-ai__char-count {
-    position: absolute;
-    right: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 0.75rem;
-    color: $blue-50;
-    background: #fff;
-}
-
-.configure-with-ai__body {
-    margin-top: 14px;
-    min-height: 100px;
+    font: inherit;
     font-size: 0.9375rem;
 }
 
-.configure-with-ai__try {
-    color: $blue-50;
-    font-style: italic;
+.configure-with-ai__submit {
+    align-self: stretch;
+    min-width: 40px;
+    padding: 0 10px;
+    border: 0;
+    background: $blue-90;
+    color: #fff !important;
+    font-size: 0.8125rem;
 
-    p {
-        margin: 0 0 4px;
-    }
-
-    ul {
-        margin: 0;
-        padding: 0 0 0 8px;
-        list-style: none;
-        display: grid;
-        gap: 6px;
-    }
-
-    li {
-        display: grid;
-        grid-template-columns: 14px minmax(0, 1fr);
-
-        &::before {
-            content: "•";
-            font-style: normal;
-        }
-    }
-
-    button {
-        border: 0;
-        background: none;
-        padding: 0;
-        text-align: left;
-        font: inherit;
-        font-style: italic;
-        color: $blue-60;
-        cursor: pointer;
-
-        &:hover {
-            color: $blue-100;
-            text-decoration: underline;
-        }
+    &:disabled {
+        background: $blue-20;
     }
 }
 
-.configure-with-ai__explainer {
-    margin: 16px 0 0;
-    font-size: 0.875rem;
-    font-style: italic;
-    color: $blue-50;
-}
-
-.configure-with-ai__thinking {
+.configure-with-ai__body {
     display: flex;
-    align-items: center;
-    gap: 10px;
-    color: $blue-60;
-    font-style: italic;
+    flex-direction: column;
+    gap: 14px;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 12px 16px 16px;
 }
 
-.configure-with-ai__thinking-bar {
-    flex: 1 1 auto;
-    height: 2px;
-    background: $blue-20;
-    position: relative;
-    overflow: hidden;
+.configure-with-ai__status {
+    margin: 0;
+    color: $blue-60;
+    font-size: 0.8125rem;
 
-    &::after {
-        content: "";
-        position: absolute;
-        inset: 0;
-        width: 35%;
-        background: $blue-60;
-        animation: configure-with-ai-slide 1.2s ease-in-out infinite;
+    &:empty {
+        display: none;
+    }
+}
+
+.configure-with-ai__placeholders {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    span {
+        height: 32px;
+        background: $blue-5;
+        animation: configure-with-ai-pulse 1.4s ease-in-out infinite;
+    }
+
+    span:first-child {
+        height: 52px;
     }
 
     @media (prefers-reduced-motion: reduce) {
-        &::after {
+        span {
             animation: none;
-            width: 100%;
-            opacity: 0.4;
         }
     }
 }
 
-@keyframes configure-with-ai-slide {
-    from {
-        transform: translateX(-100%);
+@keyframes configure-with-ai-pulse {
+    50% {
+        opacity: 0.5;
     }
-    to {
-        transform: translateX(300%);
-    }
-}
-
-.configure-with-ai__thinking-meta {
-    margin-top: 6px;
-    display: flex;
-    gap: 12px;
-    align-items: center;
-    font-size: 0.8125rem;
-    color: $blue-50;
-}
-
-.configure-with-ai__link-button {
-    border: 0;
-    background: none;
-    padding: 0;
-    color: $blue-60;
-    text-decoration: underline;
-    font-size: 0.8125rem;
-    cursor: pointer;
 }
 
 .configure-with-ai__message {
-    margin: 0;
-    color: $blue-60;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    padding: 12px;
+    border-radius: 8px;
+    background: $blue-5;
+    line-height: 1.45;
+
+    p {
+        margin: 0;
+    }
 }
 
 .configure-with-ai__message--error {
-    color: $vermillion;
+    background: #fdecea;
+}
+
+.configure-with-ai__link-button {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: $vermillion !important;
+    text-decoration: underline;
+}
+
+.configure-with-ai__section-title {
+    margin: 0 0 6px;
+    color: $blue-60;
+    font-size: 0.75rem;
+    font-weight: 900;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.configure-with-ai__intro {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.configure-with-ai__can {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    li {
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+    }
+
+    svg {
+        width: 14px;
+        margin-top: 3px;
+        color: $blue-60;
+    }
+
+    li > span {
+        display: flex;
+        flex-direction: column;
+    }
+
+    li > span > span {
+        color: $blue-60;
+        font-size: 0.8125rem;
+    }
+}
+
+.configure-with-ai__suggestions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    button {
+        padding: 5px 10px;
+        border: 1px solid $blue-20;
+        border-radius: 999px;
+        background: #fff;
+        font-size: 0.8125rem;
+        text-align: left;
+
+        &:hover {
+            background: $blue-5;
+        }
+    }
 }
 
 .configure-with-ai__views {
-    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
     margin: 0;
     padding: 0;
-    display: grid;
-    gap: 2px;
-}
-
-.configure-with-ai__item--open {
-    background: $blue-5;
+    list-style: none;
 }
 
 .configure-with-ai__view {
-    display: grid;
-    grid-template-columns: 18px minmax(0, 1fr);
-    gap: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
     width: 100%;
-    text-align: left;
+    padding: 8px 10px;
     border: 0;
-    background: none;
-    padding: 5px 6px 5px 2px;
-    font: inherit;
-    font-style: italic;
-    color: $blue-60;
-    cursor: pointer;
+    background: transparent;
+    text-align: left;
 
-    &:hover {
+    &:hover:not(:disabled) {
         background: $blue-5;
-        color: $blue-100;
     }
+}
 
-    &[aria-current="true"] {
+.configure-with-ai__view--active {
+    background: $blue-5;
+}
+
+.configure-with-ai__view-label {
+    .configure-with-ai__view--active & {
         color: $blue-100;
         font-weight: 700;
     }
 }
 
-.configure-with-ai__view-label {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+.configure-with-ai__now {
+    color: $vermillion;
+    font-size: 0.6875rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
 }
 
 .configure-with-ai__note {
-    display: grid;
-    grid-template-rows: 0fr;
-    transition: grid-template-rows 0.2s ease-out;
+    color: $blue-60;
+    font-size: 0.8125rem;
+    line-height: 1.45;
+}
 
-    p {
-        overflow: hidden;
-        min-height: 0;
-        margin: 0;
-        padding: 0 6px 0 24px;
-        font-size: 0.8125rem;
-        line-height: 1.45;
-        color: $blue-50;
-    }
+.configure-with-ai__feedback {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    margin-top: 4px;
+    color: $blue-60;
+    font-size: 0.8125rem;
 
-    @media (prefers-reduced-motion: reduce) {
-        transition: none;
+    span {
+        flex: 1;
     }
 }
 
-.configure-with-ai__item--open .configure-with-ai__note {
-    grid-template-rows: 1fr;
+.configure-with-ai__thumb {
+    width: 32px;
+    height: 32px;
+    border: 0;
+    background: transparent;
+    color: $blue-60 !important;
 
-    p {
-        padding-block: 2px 8px;
+    &[aria-pressed="true"] {
+        color: $blue-100 !important;
     }
+
+    &:hover {
+        background: $blue-5;
+    }
+}
+
+.configure-with-ai__history {
+    padding-top: 12px;
+    border-top: 1px solid $blue-10;
+
+    ol {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+}
+
+.configure-with-ai__history-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 7px 4px;
+    border: 0;
+    border-bottom: 1px solid $blue-10;
+    background: transparent;
+    text-align: left;
+
+    &:hover:not(:disabled) {
+        background: $gray-5;
+    }
+}
+
+.configure-with-ai__history-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 30px;
+    height: 24px;
+    background: $blue-5;
+    color: $blue-60;
+
+    .configure-with-ai__history-row--current & {
+        background: $blue-100;
+        color: #fff;
+    }
+}
+
+.configure-with-ai__history-text {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+
+    > span:last-child {
+        overflow: hidden;
+        color: $blue-60;
+        font-size: 0.75rem;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .configure-with-ai__history-row--current & > span:first-child {
+        color: $blue-100;
+        font-weight: 700;
+    }
+}
+
+.configure-with-ai__history-go {
+    flex-shrink: 0;
+    color: $blue-60;
+    font-size: 0.75rem;
+    text-decoration: underline;
 }
 
 .configure-with-ai__footer {
     display: flex;
     align-items: center;
-    gap: 10px;
-    margin-top: 14px;
-    min-height: 28px;
-    font-size: 0.875rem;
-    font-style: italic;
-    color: $blue-50;
-}
+    gap: 8px;
+    flex-shrink: 0;
+    padding: 8px 16px;
+    border-top: 1px solid $blue-10;
+    color: $blue-60;
+    font-size: 0.6875rem;
+    line-height: 1.35;
 
-.configure-with-ai__footer-left {
-    flex: 1 1 auto;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
-.configure-with-ai__thumb {
-    border: 0;
-    background: none;
-    padding: 2px;
-    width: 26px;
-    height: 26px;
-    display: inline-grid;
-    place-items: center;
-    color: $blue-50;
-    cursor: pointer;
-
-    &:hover,
-    &[aria-pressed="true"] {
-        color: $blue-100;
+    span {
+        flex: 1;
     }
 }
 
 .configure-with-ai__model select {
+    padding: 2px;
     border: 1px solid $blue-20;
-    border-radius: 2px;
-    padding: 2px 4px;
-    font-size: 0.8125rem;
-    color: $blue-60;
     background: #fff;
+    color: $blue-90;
+    font-size: 0.6875rem;
 }
 
 .configure-with-ai__usage {
-    margin: 6px 0 0;
-    font-size: 0.75rem;
+    flex-shrink: 0;
+    margin: 0;
+    padding: 0 16px 8px;
     color: $blue-50;
-    font-variant-numeric: tabular-nums;
+    font-size: 0.6875rem;
 }

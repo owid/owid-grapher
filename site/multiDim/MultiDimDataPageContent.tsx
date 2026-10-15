@@ -39,7 +39,7 @@ import MetadataSection from "../MetadataSection.js"
 import DownloadSection from "../DownloadSection.js"
 import GrapherImage from "../GrapherImage.js"
 import { useMobxStateToReactState } from "../hooks.js"
-import { ConfigureWithAiForMdim } from "../configureWithAi/index.js"
+import { useConfigureWithAiOnMdim } from "../configureWithAi/useSidePanel.js"
 import { MultiDimSettingsPanel } from "./MultiDimDataPageSettingsPanel.js"
 import { getDatapageDataV2, processRelatedResearch } from "../dataPage.js"
 import DataPageResearchAndWriting from "../DataPageResearchAndWriting.js"
@@ -329,6 +329,14 @@ export function DataPageContent({
         [config, setSearchParams, updateGrapher]
     )
 
+    useConfigureWithAiOnMdim({
+        slug: slug ?? "",
+        grapherState: slug ? grapherStateRef.current : null,
+        getChoices: () => settings,
+        switchView,
+        isBusy: isLoadingView,
+    })
+
     useMultiDimAnalytics(slug, config, settings)
 
     // Set state from query params on page load.
@@ -484,16 +492,6 @@ export function DataPageContent({
                                 onChange={handleSettingsChange}
                                 disabled={isLoadingView}
                             />
-                            {isClient &&
-                                slug &&
-                                grapherStateRef.current.showAdminControls && (
-                                    <ConfigureWithAiForMdim
-                                        slug={slug}
-                                        grapherState={grapherStateRef.current}
-                                        choices={settings}
-                                        switchView={switchView}
-                                    />
-                                )}
                         </div>
                     </div>
                 </div>
