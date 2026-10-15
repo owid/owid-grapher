@@ -328,15 +328,6 @@ function CaptionedSankeyVariant({
     const shouldHideChrome =
         config.hideControls || !!config.title || !!config.subtitle
 
-    // The share of the displayed view's flow that the country both produced
-    // and consumed itself: its own rows out of that view's total
-    const domesticShare = useMemo(() => {
-        if (total <= 0) return 0
-        const rows = view === "consumption" ? importRows : exportRows
-        const domestic = rows.filter((r) => r.partner === displayedCountry)
-        return sumRows(domestic) / total
-    }, [view, importRows, exportRows, displayedCountry, total])
-
     const { title, subtitle } = useMemo(
         () =>
             buildCaption({
@@ -344,10 +335,9 @@ function CaptionedSankeyVariant({
                 country: displayedCountry,
                 yearRange,
                 total,
-                domesticShare,
                 worldTotal,
             }),
-        [view, displayedCountry, yearRange, total, domesticShare, worldTotal]
+        [view, displayedCountry, yearRange, total, worldTotal]
     )
 
     return (
@@ -405,26 +395,17 @@ function buildCaption({
     country,
     yearRange,
     total,
-    domesticShare,
     worldTotal,
 }: {
     view: View
     country: string
     yearRange: YearRange
     total: number
-    /** Share of this view's flow the country both produced and consumed */
-    domesticShare: number
     worldTotal: number | undefined
 }): { title: string; subtitle: string } {
     const amount = formatHectares(total)
     const articulated = articulateEntity(country)
     const when = describeYearRange(yearRange)
-
-    // Only worth spelling out when there is any domestic production at all
-    const domesticClause =
-        domesticShare > 0
-            ? `${formatShare(domesticShare)} of it was for commodities that were both produced & consumed in ${articulated}.`
-            : ""
 
     // The world's total for scale, and the country's share of it
     const worldShare = worldTotal ? formatShare(total / worldTotal) : ""
@@ -434,7 +415,7 @@ function buildCaption({
     const worldClause = worldTotal
         ? `For context, ${when} a total of ${formatHectares(worldTotal)} of forest was cleared worldwide for agriculture${worldShareClause}.`
         : ""
-    const subtitle = [domesticClause, worldClause].filter(Boolean).join(" ")
+    const subtitle = worldClause
 
     if (view === "consumption")
         return {
