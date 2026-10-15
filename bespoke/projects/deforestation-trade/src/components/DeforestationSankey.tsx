@@ -163,7 +163,11 @@ function DeforestationSankeyContent({
                 // Domestic production carries the country's own name, so
                 // say what it stands for
                 if (isDomesticNodeId(node.id))
-                    return { ...node, annotation: DOMESTIC_ANNOTATION }
+                    return {
+                        ...node,
+                        annotation: DOMESTIC_ANNOTATION,
+                        annotationFontSize: isNarrow ? 9 : undefined,
+                    }
                 const group = getGroupFromNodeId(node.id)
                 if (group === undefined) return node
                 if (node.label === "" && !isNarrow) return node
