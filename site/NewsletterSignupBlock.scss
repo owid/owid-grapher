@@ -1,12 +1,11 @@
 .newsletter-signup {
-    // The compact panel (NewsletterSignupPanel.scss) overrides the background
-    // and padding for the redesigned form.
     background-color: $blue-10;
     padding: 24px;
     margin-bottom: 24px;
     align-self: start;
 
-    .newsletter-subscription-header {
+    // Mailchimp layout only; the panel brings its own header styling.
+    &:not(.newsletter-signup-panel) .newsletter-subscription-header {
         .newsletter-subscription-header__icon {
             height: 48px;
             width: 48px;
