@@ -1,0 +1,31 @@
+.income-distribution {
+    color: $dark-text;
+}
+
+.income-distribution-captioned-chart__chart-area {
+    position: relative;
+    width: 100%;
+    height: 420px;
+}
+
+.income-distribution--narrow .income-distribution-captioned-chart__chart-area {
+    height: 320px;
+}
+
+.income-distribution-captioned-chart .chart-footer {
+    margin-top: 12px;
+}
+
+.income-distribution-chart-box {
+    min-height: 560px;
+}
+
+.income-distribution__no-data {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    padding: 0 16px;
+    text-align: center;
+    color: $light-text;
+}

@@ -1,0 +1,23 @@
+.income-distribution-controls__countries {
+    flex: 1 1 200px;
+    max-width: 320px;
+}
+
+.income-distribution-controls__time-interval {
+    min-width: 120px;
+}
+
+.income-distribution-controls__currency {
+    flex: 1 1 200px;
+    max-width: 320px;
+}
+
+// The switcher gives its items equal widths, which clips "Selected countries"
+// next to "Global"; let each item take the width of its label instead
+.income-distribution-controls__switcher .switcher__item {
+    flex: 0 1 auto;
+}
+
+.income-distribution-controls__switcher .switcher__button {
+    padding: 0 12px;
+}
