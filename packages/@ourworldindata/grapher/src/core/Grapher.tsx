@@ -514,6 +514,18 @@ export class Grapher extends React.Component<GrapherProps> {
         return this.renderGrapherComponent()
     }
 
+    private renderSidePanelContent(
+        selection: SelectionArray
+    ): React.ReactElement | null {
+        const { sidePanelRenderer, canShowEntitySelector } = this.grapherState
+        const entitySelector = canShowEntitySelector ? (
+            <EntitySelector manager={this.grapherState} selection={selection} />
+        ) : null
+        return sidePanelRenderer
+            ? sidePanelRenderer({ entitySelector })
+            : entitySelector
+    }
+
     private renderReady(): React.ReactElement | null {
         if (!this.hasBeenVisible) return null
 
@@ -529,10 +541,7 @@ export class Grapher extends React.Component<GrapherProps> {
 
                     {this.grapherState.sidePanelBounds && (
                         <SidePanel bounds={this.grapherState.sidePanelBounds}>
-                            <EntitySelector
-                                manager={this.grapherState}
-                                selection={entitySelectorArray}
-                            />
+                            {this.renderSidePanelContent(entitySelectorArray)}
                         </SidePanel>
                     )}
                 </div>
