@@ -1,10 +1,5 @@
 import { useMemo, useEffect, useState } from "react"
-import {
-    GrapherProgrammaticInterface,
-    GrapherState,
-    GuidedChartContext,
-    type GuidedChartContextValue,
-} from "@ourworldindata/grapher"
+import { GrapherProgrammaticInterface } from "@ourworldindata/grapher"
 import { DATAPAGE_ABOUT_THIS_DATA_SECTION_ID } from "@ourworldindata/components"
 import {
     EXPERIMENT_ARM_SEPARATOR,
@@ -37,8 +32,7 @@ import AboutThisData from "./AboutThisData.js"
 import DataPageResearchAndWriting from "./DataPageResearchAndWriting.js"
 import MetadataSection from "./MetadataSection.js"
 import { SiteQueryClientProvider } from "./SiteQueryClientProvider.js"
-import { ConfigureWithAi } from "./ConfigureWithAi.js"
-import { applyViewToGrapherState } from "./configureWithAiView.js"
+import { WithConfigureWithAi } from "./configureWithAi/index.js"
 
 declare global {
     interface Window {
@@ -107,23 +101,6 @@ export const DataPageV2Content = ({
         [grapherConfig, archiveContext, useNewDatapageDesign]
     )
 
-    // The "explore the data" Grapher registers its state here, so the
-    // "Configure with AI" prototype can drive it
-    const [exploreGrapherState, setExploreGrapherState] =
-        useState<GrapherState | null>(null)
-    const exploreChartContext: GuidedChartContextValue = useMemo(
-        () => ({
-            registerGrapherState: (grapherState) => {
-                setExploreGrapherState(grapherState)
-                return () =>
-                    setExploreGrapherState((current) =>
-                        current === grapherState ? null : current
-                    )
-            },
-        }),
-        []
-    )
-
     const relatedResearch = processRelatedResearch(
         datapageData.relatedResearch,
         datapageData.topicTagsLinks ?? []
@@ -189,25 +166,8 @@ export const DataPageV2Content = ({
                             className="chart-key-info col-start-2 span-cols-12"
                             data-dod-track-note="grapher"
                         >
-                            {grapherConfig.slug &&
-                                exploreGrapherState?.showAdminControls && (
-                                    <ConfigureWithAi
-                                        slug={grapherConfig.slug}
-                                        getQueryStr={() =>
-                                            exploreGrapherState.queryStr
-                                        }
-                                        applyView={(view) =>
-                                            applyViewToGrapherState(
-                                                exploreGrapherState,
-                                                view
-                                            )
-                                        }
-                                    />
-                                )}
                             {grapherConfig.slug && (
-                                <GuidedChartContext.Provider
-                                    value={exploreChartContext}
-                                >
+                                <WithConfigureWithAi slug={grapherConfig.slug}>
                                     <GrapherWithFallback
                                         slug={grapherConfig.slug}
                                         config={mergedGrapherConfig}
@@ -219,7 +179,7 @@ export const DataPageV2Content = ({
                                         isEmbeddedInAnOwidPage={false}
                                         isPreviewing={isPreviewing}
                                     />
-                                </GuidedChartContext.Provider>
+                                </WithConfigureWithAi>
                             )}
                             {!useNewDatapageDesign && (
                                 <AboutThisData

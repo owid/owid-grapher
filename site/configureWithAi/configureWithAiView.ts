@@ -77,3 +77,11 @@ export function applyViewToGrapherState(
         grapherState.dataTableSort = viewToDataTableSort(view)
     })
 }
+
+/** Sets the table sort an MDim view asks for, before the page switches to its combination */
+export function applyTableSortToGrapherState(
+    grapherState: GrapherState,
+    view: ConfigureWithAiView
+): void {
+    grapherState.dataTableSort = viewToDataTableSort(view)
+}
