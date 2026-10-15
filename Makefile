@@ -189,9 +189,9 @@ up.full: require create-if-missing.env.full tmp-downloads/owid_metadata.sql.gz n
 			set remain-on-exit on \; \
 		set-option -g default-shell $(SCRIPT_SHELL) \; \
 		new-window -n admin \
-			'ADMIN_SERVER_PORT=$(ADMIN_SERVER_PORT) devTools/docker/wait-for-mysql.sh && ADMIN_SERVER_PORT=$(ADMIN_SERVER_PORT) VITE_PORT=$(VITE_PORT) yarn startAdminDevServer' \; \
+			'ADMIN_SERVER_PORT=$(ADMIN_SERVER_PORT) devTools/docker/wait-for-mysql.sh && ADMIN_SERVER_PORT=$(ADMIN_SERVER_PORT) VITE_PORT=$(VITE_PORT) BESPOKE_PORT=$(BESPOKE_PORT) yarn startAdminDevServer' \; \
 			set remain-on-exit on \; \
-		new-window -n vite 'VITE_PORT=$(VITE_PORT) yarn run startSiteFront' \; \
+		new-window -n vite 'VITE_PORT=$(VITE_PORT) BESPOKE_PORT=$(BESPOKE_PORT) yarn run startSiteFront' \; \
 			set remain-on-exit on \; \
 		new-window -n functions 'WRANGLER_PORT=$(WRANGLER_PORT) yarn startLocalCloudflareFunctions' \; \
 			set remain-on-exit on \; \
