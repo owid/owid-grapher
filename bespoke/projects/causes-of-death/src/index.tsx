@@ -16,6 +16,7 @@ import {
 } from "../../../helpers/config.js"
 
 import { CausesOfDeathChartWithProviders } from "./components/CausesOfDeathChart.js"
+import { AGE_GROUPS, SEXES } from "./core/CausesOfDeathConstants.js"
 
 import "./index.scss"
 
@@ -39,15 +40,16 @@ export const CONFIG_SPEC = {
             "Country or region shown first, such as `Nigeria` or `High-income countries`",
     },
     sex: {
-        type: "string",
+        type: "enum",
+        values: SEXES,
         default: "Both sexes",
-        description: "Sex shown first: `Both sexes`, `Female` or `Male`",
+        description: "Sex shown first",
     },
     ageGroup: {
-        type: "string",
+        type: "enum",
+        values: AGE_GROUPS,
         default: "All ages",
-        description:
-            "Age group shown first, such as `All ages`, `Children under 5` or `Children aged 5 to 14`",
+        description: "Age group shown first",
     },
     year: {
         type: "integer",
