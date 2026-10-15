@@ -154,6 +154,7 @@ describe(sanitizeViews, () => {
                         mapRegion: "Mars",
                         tableSort: { column: "change", order: "asc" },
                         tableFilter: "selection",
+                        closestMatch: true,
                     },
                     { label: "Scatter", tab: "scatter", entities: [] },
                 ],
@@ -170,6 +171,7 @@ describe(sanitizeViews, () => {
                 mapRegion: null,
                 tableSort: { column: "change", order: "asc" },
                 tableFilter: "selection",
+                closestMatch: true,
             },
         ])
         expect(result.dropped).toEqual(['entity "Atlantis"', 'tab "scatter"'])

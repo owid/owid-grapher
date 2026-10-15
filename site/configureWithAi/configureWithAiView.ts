@@ -13,6 +13,8 @@ import {
 export interface ConfigureWithAiView {
     label: string
     note: string | null
+    /** The view stands in for something the data doesn't have */
+    closestMatch: boolean
     options?: MultiDimDimensionChoices
     tab: string
     entities: string[]

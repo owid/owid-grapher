@@ -79,6 +79,8 @@ export interface ChartContext {
 export interface ViewfinderView {
     label: string
     note: string | null
+    /** The view stands in for something the data doesn't have */
+    closestMatch: boolean
     /** Full dimension choices of the MDim view, including "nan" ones */
     options?: MdimChoices
     tab: string
@@ -269,12 +271,13 @@ ${dataTable}
 
 ## Reply format
 Reply with ONLY a JSON object, no other text:
-{"interpretation": string, "views": [{"label": string, "note": string|null, ${md ? '"options": object, ' : ""}"tab": string, "entities": string[], "time": string|null, "mapRegion": string|null, "tableSort": {"column": "value"|"change"|"relativeChange"|"entity", "order": "asc"|"desc"}|null, "tableFilter": "selection"|null}]}
+{"interpretation": string, "views": [{"label": string, "note": string|null, "closestMatch": boolean, ${md ? '"options": object, ' : ""}"tab": string, "entities": string[], "time": string|null, "mapRegion": string|null, "tableSort": {"column": "value"|"change"|"relativeChange"|"entity", "order": "asc"|"desc"}|null, "tableFilter": "selection"|null}]}
 
 Rules:
 - 2 to 4 views, best first. Vary them across tabs${md ? " and options" : ""} where that helps (e.g. a line chart, a sorted table, a map).
 - "label": at most 50 characters, sentence case, says what the view shows, e.g. "Line chart, select Mozambique, Zambia…", "Table, sorted by ${sortedBy}", "Map of Africa, 2023".${md ? ` Name the measure when it differs from the first view's, e.g. "Median income per day, line chart".` : ""}
 - "note": explains how THIS view was worked out, but only where that helps the reader trust or read it: the assumption or rule behind the choice of ${md ? "measure, " : ""}countries, years or sort. E.g. "Ranked by the poverty rate in 2025, the latest year with data for most countries." or "Large = more than 50 million people in 2025." Max 30 words, plain and factual, no reference to the reader's request ("You asked…") or to yourself. Use null when the label already says everything.
+- "closestMatch": true when the view stands in for something this data doesn't have (e.g. high-income countries for an "OECD average"); the note then says what it stands in for and how it differs. Otherwise false.
 - "interpretation": one short sentence (max 20 words) on how you understood the request. Only shown when no views are returned, so make it useful in that case.
 ${md ? `- "options": one combination from the list above, as an object with exactly its keys, e.g. ${optStr(md.views[0].dims)}.\n- "tab" must be one of that combination's tabs.` : `- "tab" must be one of: ${tabs.join(", ")}.`}
 - "entities": exact names from the data above. Use [] to keep the chart's default selection. Countries only, unless the reader asks about regions.
@@ -379,6 +382,7 @@ export function sanitizeViews(raw: unknown, ctx: ChartContext): SanitizedReply {
             mapRegion,
             tableSort,
             tableFilter,
+            closestMatch: v.closestMatch === true,
         })
     }
     return {
