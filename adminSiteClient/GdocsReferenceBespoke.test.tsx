@@ -304,7 +304,7 @@ describe(BespokeBundlePage, () => {
         )
     })
 
-    it("shows a matched docs.md example on its unused variant's card and in the prose", () => {
+    it("previews a docs.md example only in the prose", () => {
         const archie = "{.bespoke-component}\nbundle: demo\nvariant: table\n{}"
         responses.set(REGISTRY_PATH, {
             bundles: [
@@ -317,13 +317,14 @@ describe(BespokeBundlePage, () => {
         responses.set(USAGE_PATH, { bundles: [] })
         renderBundlePage()
 
-        // The prose renders the example where it is authored; the curated
-        // variant is open and shows it again, both previewing by its index
+        // The prose example, then the first variant's default block: the
+        // unused table variant stays collapsed and doesn't repeat it
         expect(previews()).toEqual([
             "/gdocs-reference/bespoke-viz/demo/preview?example=0",
-            "/gdocs-reference/bespoke-viz/demo/preview?variant=table",
-            "/gdocs-reference/bespoke-viz/demo/preview?example=0",
+            "/gdocs-reference/bespoke-viz/demo/preview?variant=chart",
         ])
+        const tableToggle = screen.getByRole("button", { name: /^table/ })
+        expect(tableToggle.getAttribute("aria-expanded")).toBe("false")
     })
 
     it("leaves a used variant's example to the prose", () => {

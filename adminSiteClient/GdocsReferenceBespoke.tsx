@@ -27,10 +27,8 @@ import { BESPOKE_COMPONENT_ID } from "./gdocsReferenceNav.js"
 import {
     BundleVariantEntry,
     bundleUsageLabel,
-    examplesByVariant,
     githubBlobUrl,
     githubEditUrl,
-    IndexedBundleExample,
     instancePreviewPath,
     orderBundleVariants,
     sortBundlesByUse,
@@ -270,7 +268,6 @@ function BundleVariants({
 }): React.ReactElement {
     const [expanded, setExpanded] = useState<Set<string>>(new Set())
     const { open, collapsed, stale } = orderBundleVariants(bundle, usage)
-    const examples = examplesByVariant(bundle)
     const usageKnown = usage !== null
 
     const toggle = (name: string): void => {
@@ -288,10 +285,6 @@ function BundleVariants({
             key={entry.variant.name}
             bundle={bundle}
             entry={entry}
-            // A used variant leaves its examples to the prose
-            examples={
-                entry.usage ? [] : (examples.get(entry.variant.name) ?? [])
-            }
             usageKnown={usageKnown}
             collapsed={inTail && !expanded.has(entry.variant.name)}
             onToggle={inTail ? () => toggle(entry.variant.name) : undefined}
@@ -338,14 +331,13 @@ function BundleVariants({
 }
 
 /**
- * One variant of the bundle: its description, the default block to copy,
- * the docs.md examples of an unused variant, and its published uses. A
- * collapsed card renders its header only, so it mounts no preview.
+ * One variant of the bundle: its description, the default block to copy
+ * and its published uses. docs.md examples stay in the prose. A collapsed
+ * card renders its header only, so it mounts no preview.
  */
 function VariantCard({
     bundle,
     entry,
-    examples,
     usageKnown,
     collapsed,
     onToggle,
@@ -353,7 +345,6 @@ function VariantCard({
 }: {
     bundle: BundleReference
     entry: BundleVariantEntry
-    examples: IndexedBundleExample[]
     usageKnown: boolean
     collapsed: boolean
     onToggle?: () => void
@@ -424,24 +415,6 @@ function VariantCard({
                         )}
                         previewTitle={`${bundle.id} ${variant.name}`}
                     />
-                    {examples.length > 0 && (
-                        <>
-                            <h3 className="gdocs-ref-bespoke__variant-subtitle">
-                                From the docs
-                            </h3>
-                            {examples.map(({ example, index }) => (
-                                <GdocsReferenceExample
-                                    key={index}
-                                    archie={example.archie}
-                                    previewPath={examplePreviewPath(
-                                        bundle.id,
-                                        index
-                                    )}
-                                    previewTitle={`${bundle.id} example ${index + 1}`}
-                                />
-                            ))}
-                        </>
-                    )}
                     {usage && usage.instances.length > 0 && (
                         <>
                             <h3 className="gdocs-ref-bespoke__variant-subtitle">

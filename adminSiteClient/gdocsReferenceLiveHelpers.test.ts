@@ -11,7 +11,6 @@ import type {
 import { OwidGdocType } from "@ourworldindata/types"
 import {
     bundleUsageLabel,
-    examplesByVariant,
     formDefiningParts,
     liveUrl,
     orderBundleVariants,
@@ -166,21 +165,11 @@ describe(bundleUsageLabel, () => {
     })
 })
 
-// A bundle with the given variants and docs.md examples (each example shows
-// the variant named, or carries no variant line for null)
-const bundleWith = (
-    variants: string[],
-    exampleVariants: (string | null)[] = []
-): BundleReference =>
+// A bundle with the given variants
+const bundleWith = (variants: string[]): BundleReference =>
     ({
         id: "b",
         variants: variants.map((name) => ({ name })),
-        examples: exampleVariants.map((name) => ({
-            archie:
-                "{.bespoke-component}\nbundle: b\n" +
-                (name ? `variant: ${name}\n` : "") +
-                "{}",
-        })),
     }) as unknown as BundleReference
 
 const variantUsage = (
@@ -239,28 +228,6 @@ describe(orderBundleVariants, () => {
         })
     })
 
-    it("opens curated unused variants after the used ones", () => {
-        const ordered = orderBundleVariants(
-            bundleWith(["a", "b", "c", "d"], ["c"]),
-            usageOf([variantUsage("b", 5)])
-        )
-        expect(names(ordered)).toEqual({
-            open: ["b", "c"],
-            collapsed: ["a", "d"],
-        })
-    })
-
-    it("opens only the curated variant when there is no use", () => {
-        expect(
-            names(
-                orderBundleVariants(
-                    bundleWith(["a", "b", "c"], ["c"]),
-                    undefined
-                )
-            )
-        ).toEqual({ open: ["c"], collapsed: ["a", "b"] })
-    })
-
     it("has no tail when every variant is used", () => {
         const ordered = orderBundleVariants(
             bundleWith(["a", "b"]),
@@ -270,10 +237,7 @@ describe(orderBundleVariants, () => {
     })
 
     it("opens only the first variant, in registry order, when usage failed", () => {
-        const ordered = orderBundleVariants(
-            bundleWith(["a", "b", "c"], ["c"]),
-            null
-        )
+        const ordered = orderBundleVariants(bundleWith(["a", "b", "c"]), null)
         expect(names(ordered)).toEqual({ open: ["a"], collapsed: ["b", "c"] })
         expect(ordered.stale).toEqual([])
     })
@@ -301,25 +265,5 @@ describe(orderBundleVariants, () => {
         )
         expect(names(ordered)).toEqual({ open: ["a"], collapsed: ["b"] })
         expect(ordered.stale.map((entry) => entry.variant)).toEqual(["old"])
-    })
-})
-
-describe(examplesByVariant, () => {
-    it("groups examples by their variant line, keeping their index", () => {
-        const byVariant = examplesByVariant(
-            bundleWith(["treemap", "bars"], ["treemap", null, "treemap"])
-        )
-        expect(byVariant.get("treemap")?.map((entry) => entry.index)).toEqual([
-            0, 2,
-        ])
-        expect(byVariant.has("bars")).toBe(false)
-        expect([...byVariant.keys()]).toEqual(["treemap"])
-    })
-
-    it("reads only the first variant line", () => {
-        const byVariant = examplesByVariant({
-            examples: [{ archie: "bundle: b\nvariant: one\nvariant: two\n" }],
-        } as unknown as BundleReference)
-        expect([...byVariant.keys()]).toEqual(["one"])
     })
 })

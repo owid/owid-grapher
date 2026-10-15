@@ -14,7 +14,6 @@ import {
     ComponentVariation,
     componentUsageLabel,
     OwidGdocType,
-    SidecarExample,
 } from "@ourworldindata/types"
 import { getCanonicalPath } from "@ourworldindata/components"
 import { BAKED_BASE_URL } from "../settings/clientSettings.mjs"
@@ -290,32 +289,6 @@ export function bundleUsageLabel(
 // Bespoke component page: a bundle's variants
 // -----------------------------------------------------------------------------
 
-/** A docs.md example, with its index in the bundle's `examples`. */
-export interface IndexedBundleExample {
-    example: SidecarExample
-    index: number
-}
-
-/**
- * The bundle's docs.md examples grouped by the variant they show: the first
- * `variant:` line of each example's ArchieML. An example without one is left
- * out (it still renders where it is authored in the prose).
- */
-export function examplesByVariant(
-    bundle: BundleReference
-): Map<string, IndexedBundleExample[]> {
-    const byVariant = new Map<string, IndexedBundleExample[]>()
-    bundle.examples.forEach((example, index) => {
-        const match = /^variant:\s*(\S+)/m.exec(example.archie)
-        if (!match) return
-        const name = match[1]
-        const group = byVariant.get(name) ?? []
-        group.push({ example, index })
-        byVariant.set(name, group)
-    })
-    return byVariant
-}
-
 /** A registry variant, with its published usage when it has any. */
 export interface BundleVariantEntry {
     variant: BundleVariantReference
@@ -337,9 +310,8 @@ export interface OrderedBundleVariants {
  * when the usage lookup failed.
  *
  * - Used variants come first, most uses first (ties in registry order).
- * - Then curated variants (with a docs.md example) that have no use.
  * - The rest wait in the collapsed tail, in registry order.
- * - The first variant is open when nothing is used or curated.
+ * - The first variant is open when nothing is used.
  * - Without usage, only the first variant is open, and nothing is stale.
  */
 export function orderBundleVariants(
@@ -368,18 +340,11 @@ export function orderBundleVariants(
         if (variantUsage) entry.usage = variantUsage
     }
 
-    const examples = examplesByVariant(bundle)
     // Array sort is stable, so ties keep registry order
     const used = entries
         .filter((entry) => entry.usage)
         .sort((a, b) => (b.usage?.uses ?? 0) - (a.usage?.uses ?? 0))
-    const curated = entries.filter(
-        (entry) => !entry.usage && examples.has(entry.variant.name)
-    )
-    const open =
-        used.length + curated.length > 0
-            ? [...used, ...curated]
-            : entries.slice(0, 1)
+    const open = used.length > 0 ? used : entries.slice(0, 1)
     const collapsed = entries.filter((entry) => !open.includes(entry))
     const stale = (usage?.variants ?? []).filter((entry) => !entry.known)
 
