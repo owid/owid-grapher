@@ -124,6 +124,12 @@ __metadata:
   languageName: node
   linkType: soft
 
+"@ourworldindata/components@link:../../../packages/@ourworldindata/components::locator=%40owid%2Fbespoke-income-distribution%40workspace%3Aprojects%2Fincome-distribution":
+  version: 0.0.0-use.local
+  resolution: "@ourworldindata/components@link:../../../packages/@ourworldindata/components::locator=%40owid%2Fbespoke-income-distribution%40workspace%3Aprojects%2Fincome-distribution"
+  languageName: node
+  linkType: soft
+
 "@ourworldindata/components@link:../../../packages/@ourworldindata/components::locator=%40owid%2Fbespoke-migrant-demographics%40workspace%3Aprojects%2Fmigrant-demographics":
   version: 0.0.0-use.local
   resolution: "@ourworldindata/components@link:../../../packages/@ourworldindata/components::locator=%40owid%2Fbespoke-migrant-demographics%40workspace%3Aprojects%2Fmigrant-demographics"
@@ -178,6 +184,12 @@ __metadata:
   languageName: node
   linkType: soft
 
+"@ourworldindata/grapher@link:../../../packages/@ourworldindata/grapher::locator=%40owid%2Fbespoke-income-distribution%40workspace%3Aprojects%2Fincome-distribution":
+  version: 0.0.0-use.local
+  resolution: "@ourworldindata/grapher@link:../../../packages/@ourworldindata/grapher::locator=%40owid%2Fbespoke-income-distribution%40workspace%3Aprojects%2Fincome-distribution"
+  languageName: node
+  linkType: soft
+
 "@ourworldindata/grapher@link:../../../packages/@ourworldindata/grapher::locator=%40owid%2Fbespoke-migrant-demographics%40workspace%3Aprojects%2Fmigrant-demographics":
   version: 0.0.0-use.local
   resolution: "@ourworldindata/grapher@link:../../../packages/@ourworldindata/grapher::locator=%40owid%2Fbespoke-migrant-demographics%40workspace%3Aprojects%2Fmigrant-demographics"
@@ -211,6 +223,12 @@ __metadata:
 "@ourworldindata/types@link:../../../packages/@ourworldindata/types::locator=%40owid%2Fbespoke-food-trade%40workspace%3Aprojects%2Ffood-trade":
   version: 0.0.0-use.local
   resolution: "@ourworldindata/types@link:../../../packages/@ourworldindata/types::locator=%40owid%2Fbespoke-food-trade%40workspace%3Aprojects%2Ffood-trade"
+  languageName: node
+  linkType: soft
+
+"@ourworldindata/types@link:../../../packages/@ourworldindata/types::locator=%40owid%2Fbespoke-income-distribution%40workspace%3Aprojects%2Fincome-distribution":
+  version: 0.0.0-use.local
+  resolution: "@ourworldindata/types@link:../../../packages/@ourworldindata/types::locator=%40owid%2Fbespoke-income-distribution%40workspace%3Aprojects%2Fincome-distribution"
   languageName: node
   linkType: soft
 
@@ -253,6 +271,12 @@ __metadata:
 "@ourworldindata/utils@link:../../../packages/@ourworldindata/utils::locator=%40owid%2Fbespoke-food-trade%40workspace%3Aprojects%2Ffood-trade":
   version: 0.0.0-use.local
   resolution: "@ourworldindata/utils@link:../../../packages/@ourworldindata/utils::locator=%40owid%2Fbespoke-food-trade%40workspace%3Aprojects%2Ffood-trade"
+  languageName: node
+  linkType: soft
+
+"@ourworldindata/utils@link:../../../packages/@ourworldindata/utils::locator=%40owid%2Fbespoke-income-distribution%40workspace%3Aprojects%2Fincome-distribution":
+  version: 0.0.0-use.local
+  resolution: "@ourworldindata/utils@link:../../../packages/@ourworldindata/utils::locator=%40owid%2Fbespoke-income-distribution%40workspace%3Aprojects%2Fincome-distribution"
   languageName: node
   linkType: soft
 
@@ -482,6 +506,50 @@ __metadata:
     nuqs: "npm:^2.10.2"
     react: "npm:^19.3.0"
     typescript: "npm:^7.0.2"
+  languageName: unknown
+  linkType: soft
+
+"@owid/bespoke-income-distribution@workspace:projects/income-distribution":
+  version: 0.0.0-use.local
+  resolution: "@owid/bespoke-income-distribution@workspace:projects/income-distribution"
+  dependencies:
+    "@fortawesome/fontawesome-svg-core": "npm:^7.3.1"
+    "@fortawesome/free-solid-svg-icons": "npm:^7.3.1"
+    "@fortawesome/react-fontawesome": "npm:^3.5.0"
+    "@ourworldindata/components": "link:../../../packages/@ourworldindata/components"
+    "@ourworldindata/grapher": "link:../../../packages/@ourworldindata/grapher"
+    "@ourworldindata/types": "link:../../../packages/@ourworldindata/types"
+    "@ourworldindata/utils": "link:../../../packages/@ourworldindata/utils"
+    "@react-stately/flags": "npm:^3.2.1"
+    "@rollup/plugin-swc": "npm:^0.4.1"
+    "@swc/core": "npm:^1.16.13"
+    "@tanstack/react-query": "npm:^5.104.1"
+    "@types/d3-delaunay": "npm:^6.0.4"
+    "@types/d3-scale": "npm:^4.0.9"
+    "@types/d3-shape": "npm:^3.1.7"
+    "@types/react": "npm:^19.3.0"
+    "@types/react-dom": "npm:^19.3.0"
+    "@visx/responsive": "npm:^4.0.0"
+    "@visx/scale": "npm:^4.0.0"
+    "@vitejs/plugin-react": "npm:^6.1.2"
+    clsx: "npm:^2.1.1"
+    d3-delaunay: "npm:^6.0.4"
+    d3-scale: "npm:^4.0.2"
+    d3-shape: "npm:^3.2.0"
+    normalize.css: "npm:^8.0.1"
+    nuqs: "npm:^2.10.2"
+    react: "npm:^19.3.0"
+    react-aria: "npm:^3.53.0"
+    react-aria-components: "npm:^1.22.0"
+    react-dom: "npm:^19.3.0"
+    react-stately: "npm:^3.51.0"
+    remeda: "npm:^2.51.0"
+    sass: "npm:^1.105.1"
+    tippy.js: "npm:^6.3.7"
+    typescript: "npm:^7.0.2"
+    vite: "npm:^8.3.4"
+    vite-plugin-css-position: "npm:^3.0.1"
+    vitest: "npm:^5.0.3"
   languageName: unknown
   linkType: soft
 
@@ -1144,7 +1212,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/d3-delaunay@npm:*":
+"@types/d3-delaunay@npm:*, @types/d3-delaunay@npm:^6.0.4":
   version: 6.0.4
   resolution: "@types/d3-delaunay@npm:6.0.4"
   checksum: 10/cb8d2c9ed0b39ade3107b9792544a745b2de3811a6bd054813e9dc708b1132fbacd796e54c0602c11b3a14458d14487c5276c1affb7c2b9f25fe55fff88d6d25
@@ -1337,7 +1405,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/d3-shape@npm:*":
+"@types/d3-shape@npm:*, @types/d3-shape@npm:^3.1.7":
   version: 3.2.0
   resolution: "@types/d3-shape@npm:3.2.0"
   dependencies:
@@ -2036,7 +2104,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"d3-delaunay@npm:6":
+"d3-delaunay@npm:6, d3-delaunay@npm:^6.0.4":
   version: 6.0.4
   resolution: "d3-delaunay@npm:6.0.4"
   dependencies:
@@ -2242,7 +2310,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"d3-shape@npm:3, d3-shape@npm:3.2.0":
+"d3-shape@npm:3, d3-shape@npm:3.2.0, d3-shape@npm:^3.2.0":
   version: 3.2.0
   resolution: "d3-shape@npm:3.2.0"
   dependencies:
