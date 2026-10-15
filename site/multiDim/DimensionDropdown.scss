@@ -41,10 +41,19 @@ $selected-hover-fill: #bed2e7;
     }
 
     &[data-disabled] {
-        color: $gray-70;
         background: $gray-10;
         border-color: $gray-10;
         cursor: default;
+
+        .md-settings__dropdown-current-choice {
+            color: $gray-80;
+            opacity: 0.5;
+        }
+
+        .md-settings__dropdown-caret {
+            color: $gray-70;
+            opacity: 0.5;
+        }
     }
 
     @media (max-width: $toggle-full-width-breakpoint) {
@@ -134,7 +143,7 @@ $selected-hover-fill: #bed2e7;
     .md-menu__search {
         display: flex;
         align-items: center;
-        gap: 4px;
+        gap: 8px;
         height: 32px;
         margin: 0 4px 4px;
         padding: 0 8px;
@@ -148,7 +157,7 @@ $selected-hover-fill: #bed2e7;
 
     .md-menu__search-icon {
         flex-shrink: 0;
-        font-size: 16px;
+        font-size: 12px;
         color: $gray-70;
     }
 
