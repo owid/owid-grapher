@@ -1,7 +1,12 @@
 import { describe, expect, it } from "vitest"
 
-import { Bounds } from "@ourworldindata/utils"
-import { Time } from "@ourworldindata/types"
+import {
+    Bounds,
+    convertDateToDaysSinceEpoch,
+    dayjs,
+} from "@ourworldindata/utils"
+import { ColumnTypeNames, Time } from "@ourworldindata/types"
+import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
 import { SeriesLabelState } from "../seriesLabel/SeriesLabelState"
 import { FocusArray } from "../focus/FocusArray"
 import { CategoricalBin } from "../color/ColorScaleBin"
@@ -13,8 +18,9 @@ import {
     SizedSwimlaneSeries,
 } from "./SwimlaneChartConstants"
 import {
-    findLaneAtY,
+    findRowAtY,
     findSegmentAtX,
+    formatSegmentTimeRange,
     toPlacedSwimlaneSeries,
     toRenderSwimlaneSeries,
     toSegmentOutlinePath,
@@ -66,22 +72,22 @@ function makeSizedSeries(
     }
 }
 
-function placeLanes(
+function placeRows(
     series: SizedSwimlaneSeries[],
     bounds = new Bounds(0, 0, 200, 400),
-    visiblePeriodsEndTime: Time = 2005
+    visibleExclusiveEndTime: Time = 2005
 ): PlacedSwimlaneSeries[] {
     return toPlacedSwimlaneSeries({
         series,
         bounds,
         placeTime,
-        visiblePeriodsEndTime,
+        visibleExclusiveEndTime,
     })
 }
 
 describe("placement", () => {
     it("extends each segment to where the next one starts, and the last one a step past its end", () => {
-        const [lane] = placeLanes([
+        const [row] = placeRows([
             makeSizedSeries("France", [
                 makeCategorySegment("X", 2000, 2001),
                 makeMissingSegment(2002, 2003),
@@ -90,7 +96,7 @@ describe("placement", () => {
         ])
 
         expect(
-            lane.placedSegments.map(({ x, width }) => ({ x, width }))
+            row.placedSegments.map(({ x, width }) => ({ x, width }))
         ).toEqual([
             { x: 0, width: 20 },
             { x: 20, width: 20 },
@@ -98,28 +104,28 @@ describe("placement", () => {
         ])
     })
 
-    it("ends the last segment at the plot end, however long a period is", () => {
-        const [lane] = placeLanes(
+    it("ends the last segment at the plot end, however long a time interval is", () => {
+        const [row] = placeRows(
             [makeSizedSeries("France", [makeCategorySegment("X", 2000, 2010)])],
             new Bounds(0, 0, 200, 400),
             2020
         )
 
-        expect(lane.placedSegments[0]).toMatchObject({ x: 0, width: 200 })
+        expect(row.placedSegments[0]).toMatchObject({ x: 0, width: 200 })
     })
 
-    it("caps a lone lane at the maximum lane height and centers it", () => {
-        const [lane] = placeLanes([
+    it("caps a lone row at the maximum row height and centers it", () => {
+        const [row] = placeRows([
             makeSizedSeries("France", [makeCategorySegment("X", 2000, 2001)]),
         ])
 
-        expect(lane.y).toBeCloseTo(200)
-        expect(lane.placedSegments[0].height).toBeCloseTo(36)
-        expect(lane.placedSegments[0].y).toBeCloseTo(-18)
+        expect(row.y).toBeCloseTo(200)
+        expect(row.placedSegments[0].height).toBeCloseTo(36)
+        expect(row.placedSegments[0].y).toBeCloseTo(-18)
     })
 
-    it("splits the plot height evenly between many lanes", () => {
-        const lanes = placeLanes(
+    it("splits the plot height evenly between many rows", () => {
+        const rows = placeRows(
             Array.from({ length: 20 }, (_, index) =>
                 makeSizedSeries(`Entity ${index}`, [
                     makeCategorySegment("X", 2000, 2001),
@@ -127,14 +133,14 @@ describe("placement", () => {
             )
         )
 
-        expect(lanes.map((lane) => lane.slotHeight)).toEqual(Array(20).fill(20))
-        expect(lanes[0].y).toBeCloseTo(10)
-        expect(lanes[19].y).toBeCloseTo(390)
+        expect(rows.map((row) => row.slotHeight)).toEqual(Array(20).fill(20))
+        expect(rows[0].y).toBeCloseTo(10)
+        expect(rows[19].y).toBeCloseTo(390)
     })
 })
 
 describe("hit-testing", () => {
-    const [france, germany] = placeLanes(
+    const [france, germany] = placeRows(
         [
             makeSizedSeries("France", [
                 makeCategorySegment("X", 2000, 2001),
@@ -158,26 +164,26 @@ describe("hit-testing", () => {
         expect(findSegmentAtX(france.placedSegments, 40)).toBeUndefined()
     })
 
-    it("finds a lane from the top of its slot up to, but not including, the next", () => {
-        const lanes = placeLanes(
+    it("finds a row from the top of its slot up to, but not including, the next", () => {
+        const rows = placeRows(
             [makeSizedSeries("France", []), makeSizedSeries("Germany", [])],
             new Bounds(0, 0, 200, 40)
         )
 
-        expect(findLaneAtY(lanes, 0)).toBe(lanes[0])
-        expect(findLaneAtY(lanes, 19.9)).toBe(lanes[0])
-        expect(findLaneAtY(lanes, 20)).toBe(lanes[1])
-        expect(findLaneAtY(lanes, 40)).toBeUndefined()
+        expect(findRowAtY(rows, 0)).toBe(rows[0])
+        expect(findRowAtY(rows, 19.9)).toBe(rows[0])
+        expect(findRowAtY(rows, 20)).toBe(rows[1])
+        expect(findRowAtY(rows, 40)).toBeUndefined()
     })
 
-    it("finds no lane above or below the centered block of lanes", () => {
-        expect(findLaneAtY([france, germany], 100)).toBeUndefined()
-        expect(findLaneAtY([france, germany], 300)).toBeUndefined()
+    it("finds no row above or below the centered block of rows", () => {
+        expect(findRowAtY([france, germany], 100)).toBeUndefined()
+        expect(findRowAtY([france, germany], 300)).toBeUndefined()
     })
 })
 
 describe("emphasis", () => {
-    const lanes = placeLanes([
+    const rows = placeRows([
         makeSizedSeries("France", [
             makeCategorySegment("X", 2000, 2001),
             makeMissingSegment(2002, 2002),
@@ -195,10 +201,10 @@ describe("emphasis", () => {
 
     function findEmphases(
         options: Omit<Parameters<typeof toRenderSwimlaneSeries>[0], "series">
-    ): { lane: Emphasis; segments: Emphasis[] }[] {
-        return toRenderSwimlaneSeries({ series: lanes, ...options }).map(
+    ): { row: Emphasis; segments: Emphasis[] }[] {
+        return toRenderSwimlaneSeries({ series: rows, ...options }).map(
             (series) => ({
-                lane: series.emphasis,
+                row: series.emphasis,
                 segments: series.placedSegments.map(
                     (segment) => segment.emphasis
                 ),
@@ -208,42 +214,37 @@ describe("emphasis", () => {
 
     const { Default, Highlighted, Muted } = Emphasis
 
-    it("is default everywhere without hover or focus, also when hovering past the last segment", () => {
-        const expected = [
-            { lane: Default, segments: [Default, Default, Default] },
-            { lane: Default, segments: [Default, Default] },
-        ]
-
-        expect(findEmphases({ focusArray: new FocusArray() })).toEqual(expected)
-        expect(
-            findEmphases({
-                focusArray: new FocusArray(),
-                hoveredPoint: { x: 100, laneEntityName: "France" },
-            })
-        ).toEqual(expected)
-    })
-
-    it("highlights the hovered segment and mutes every other segment in every lane", () => {
-        expect(
-            findEmphases({
-                focusArray: new FocusArray(),
-                hoveredPoint: { x: 5, laneEntityName: "France" },
-            })
-        ).toEqual([
-            { lane: Default, segments: [Highlighted, Muted, Muted] },
-            { lane: Default, segments: [Muted, Muted] },
+    it("is default everywhere without hover or focus", () => {
+        expect(findEmphases({ focusArray: new FocusArray() })).toEqual([
+            { row: Default, segments: [Default, Default, Default] },
+            { row: Default, segments: [Default, Default] },
         ])
     })
 
-    it("highlights a hovered legend category in every lane", () => {
+    it("highlights the hovered segment by its row and start time, and mutes every other segment in every row", () => {
+        expect(
+            findEmphases({
+                focusArray: new FocusArray(),
+                hoveredSegment: {
+                    entityName: "France",
+                    segment: makeCategorySegment("X", 2000, 2001),
+                },
+            })
+        ).toEqual([
+            { row: Default, segments: [Highlighted, Muted, Muted] },
+            { row: Default, segments: [Muted, Muted] },
+        ])
+    })
+
+    it("highlights a hovered legend category in every row", () => {
         expect(
             findEmphases({
                 focusArray: new FocusArray(),
                 hoveredLegendBin: makeBin("X"),
             })
         ).toEqual([
-            { lane: Default, segments: [Highlighted, Muted, Muted] },
-            { lane: Default, segments: [Muted, Highlighted] },
+            { row: Default, segments: [Highlighted, Muted, Muted] },
+            { row: Default, segments: [Muted, Highlighted] },
         ])
     })
 
@@ -254,17 +255,17 @@ describe("emphasis", () => {
                 hoveredLegendBin: makeBin(NO_DATA_LABEL),
             })
         ).toEqual([
-            { lane: Default, segments: [Muted, Highlighted, Muted] },
-            { lane: Default, segments: [Muted, Muted] },
+            { row: Default, segments: [Muted, Highlighted, Muted] },
+            { row: Default, segments: [Muted, Muted] },
         ])
     })
 
-    it("highlights a focused lane and mutes the others", () => {
+    it("highlights a focused row and mutes the others", () => {
         expect(
             findEmphases({ focusArray: new FocusArray().add("Germany") })
         ).toEqual([
-            { lane: Muted, segments: [Muted, Muted, Muted] },
-            { lane: Highlighted, segments: [Highlighted, Highlighted] },
+            { row: Muted, segments: [Muted, Muted, Muted] },
+            { row: Highlighted, segments: [Highlighted, Highlighted] },
         ])
     })
 })
@@ -307,5 +308,79 @@ describe("segment outline", () => {
                 isEndCropped: true,
             })
         ).toEqual("M 0,5 L 2,0 L 4,0 L 6,5 L 4,10 L 2,10 Z")
+    })
+})
+
+describe(formatSegmentTimeRange, () => {
+    const day = (iso: string): number =>
+        convertDateToDaysSinceEpoch(dayjs.utc(iso))
+
+    function makeTimeColumn(
+        type: ColumnTypeNames,
+        times: number[]
+    ): CoreColumn {
+        const table = new OwidTable(
+            times.map((time) => ({ entityName: "France", time })),
+            [{ slug: "time", type }]
+        )
+        return table.timeColumn
+    }
+
+    it("formats a single year as one time", () => {
+        expect(
+            formatSegmentTimeRange({
+                startTime: 2000,
+                endTime: 2000,
+                timeColumn: makeTimeColumn(ColumnTypeNames.Year, [2000]),
+            })
+        ).toEqual("2000")
+    })
+
+    it("formats a run of years as a range", () => {
+        expect(
+            formatSegmentTimeRange({
+                startTime: 2000,
+                endTime: 2002,
+                timeColumn: makeTimeColumn(ColumnTypeNames.Year, [2000, 2002]),
+            })
+        ).toEqual("2000–2002")
+    })
+
+    it("formats a single week as the week's own dates", () => {
+        const monday = day("2020-01-20")
+        expect(
+            formatSegmentTimeRange({
+                startTime: monday,
+                endTime: monday,
+                timeColumn: makeTimeColumn(ColumnTypeNames.Week, [monday]),
+            })
+        ).toEqual(
+            makeTimeColumn(ColumnTypeNames.Week, [monday]).formatTime(monday)
+        )
+    })
+
+    it("ends a run of weeks where its last week ends", () => {
+        const [first, last] = [day("2020-01-20"), day("2020-02-03")]
+        expect(
+            formatSegmentTimeRange({
+                startTime: first,
+                endTime: last,
+                timeColumn: makeTimeColumn(ColumnTypeNames.Week, [first, last]),
+            })
+        ).toEqual("Jan 20, 2020–Feb 9, 2020")
+    })
+
+    it("ends a run of quarters where its last quarter ends", () => {
+        const [first, last] = [day("2020-01-01"), day("2020-07-01")]
+        expect(
+            formatSegmentTimeRange({
+                startTime: first,
+                endTime: last,
+                timeColumn: makeTimeColumn(ColumnTypeNames.Quarter, [
+                    first,
+                    last,
+                ]),
+            })
+        ).toEqual("Jan 2020–Sep 2020")
     })
 })

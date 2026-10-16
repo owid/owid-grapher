@@ -13,11 +13,7 @@ import { ColorScaleConfig } from "../color/ColorScaleConfig"
 import { AxisConfig } from "../axis/AxisConfig"
 import { HorizontalAxis } from "../axis/Axis"
 import { SwimlaneChartState } from "./SwimlaneChartState"
-import {
-    SwimlaneSegment,
-    SWIMLANE_X_AXIS_CONFIG_DEFAULTS,
-    SwimlaneChartManager,
-} from "./SwimlaneChartConstants"
+import { SwimlaneSegment, SwimlaneChartManager } from "./SwimlaneChartConstants"
 
 interface Observation {
     entityName: string
@@ -29,12 +25,14 @@ const ICD_REVISIONS = ["ICD-7", "ICD-8", "ICD-9", "ICD-10"]
 
 function makeCategoricalTable(rows: Observation[]): OwidTable {
     return new OwidTable(rows, [
+        { slug: "time", type: ColumnTypeNames.Year },
         { slug: "status", type: ColumnTypeNames.String },
     ])
 }
 
 function makeOrdinalTable(rows: Observation[]): OwidTable {
     return new OwidTable(rows, [
+        { slug: "time", type: ColumnTypeNames.Year },
         { slug: "status", type: ColumnTypeNames.Ordinal, sort: ICD_REVISIONS },
     ])
 }
@@ -63,7 +61,7 @@ function makeChartState(
     })
 }
 
-/** Segments of an entity's lane without colors and category labels */
+/** Segments of an entity's row without colors and category labels */
 function findSegments(
     chartState: SwimlaneChartState,
     entityName: string
@@ -71,7 +69,7 @@ function findSegments(
     const series = chartState.series.find(
         (series) => series.entityName === entityName
     )
-    if (!series) throw new Error(`No lane for ${entityName}`)
+    if (!series) throw new Error(`No row for ${entityName}`)
     return series.segments.map((segment) => {
         if (segment.kind === "missing") return segment
         const {
@@ -317,7 +315,7 @@ describe("segments across time intervals", () => {
         ])
     })
 
-    it("marks a skipped period as missing", () => {
+    it("marks a skipped time as missing", () => {
         const [jan, feb, mar] = ["2021-01-01", "2021-02-01", "2021-03-01"].map(
             daysSinceEpoch
         )
@@ -338,7 +336,7 @@ describe("segments across time intervals", () => {
 describe("x axis", () => {
     function makeAxis(table: OwidTable): HorizontalAxis {
         const axis = makeChartState(table).toHorizontalAxis(
-            new AxisConfig(SWIMLANE_X_AXIS_CONFIG_DEFAULTS)
+            new AxisConfig({ isDomainEndExclusive: true })
         )
         axis.range = [0, 500]
         return axis
@@ -390,9 +388,11 @@ describe("x axis across time intervals", () => {
             ])
         )
 
-        expect(chartState.visiblePeriodsEndTime).toEqual(
-            daysSinceEpoch("2021-03-01")
-        )
+        expect(chartState.visibleTimeRange).toEqual({
+            startTime: daysSinceEpoch("2021-01-01"),
+            endTime: daysSinceEpoch("2021-02-01"),
+            exclusiveEndTime: daysSinceEpoch("2021-03-01"),
+        })
         expect(chartState.toHorizontalAxis(new AxisConfig()).domain).toEqual([
             daysSinceEpoch("2021-01-01"),
             daysSinceEpoch("2021-03-01"),
@@ -408,7 +408,7 @@ describe("x axis across time intervals", () => {
                 { entityName: "France", time: jan, status: "X" },
                 { entityName: "France", time: feb, status: "Y" },
             ])
-        ).toHorizontalAxis(new AxisConfig(SWIMLANE_X_AXIS_CONFIG_DEFAULTS))
+        ).toHorizontalAxis(new AxisConfig({ isDomainEndExclusive: true }))
         axis.range = [0, 500]
 
         const tickValues = axis.tickLabels.map((label) => label.value)
@@ -441,7 +441,7 @@ describe("decade x axis", () => {
             ])
         )
         const axis = chartState.toHorizontalAxis(
-            new AxisConfig(SWIMLANE_X_AXIS_CONFIG_DEFAULTS)
+            new AxisConfig({ isDomainEndExclusive: true })
         )
         axis.range = [0, 600]
 
@@ -479,7 +479,7 @@ describe("category label", () => {
     })
 })
 
-describe("lane color", () => {
+describe("row color", () => {
     it("is the color of the last category, even when missing data trails it", () => {
         const chartState = makeChartState(
             makeCategoricalTable([
@@ -497,7 +497,7 @@ describe("lane color", () => {
         expect(france?.color).toEqual(colorScale.getColor("Y"))
     })
 
-    it("is the no-data color for a selected entity without data, whose lane is one missing segment", () => {
+    it("is the no-data color for a selected entity without data, whose row is one missing segment", () => {
         const chartState = makeChartState(
             makeCategoricalTable([
                 { entityName: "France", time: 2000, status: "X" },
@@ -615,7 +615,7 @@ describe("errorInfo", () => {
     })
 })
 
-describe("lanes", () => {
+describe("rows", () => {
     const table = makeCategoricalTable([
         { entityName: "France", time: 2000, status: "X" },
         { entityName: "Germany", time: 2000, status: "X" },
@@ -624,7 +624,7 @@ describe("lanes", () => {
     ])
     const selection = ["Spain", "France", "Germany"]
 
-    function findLaneNames(sortBy: SortBy, sortOrder: SortOrder): string[] {
+    function findRowNames(sortBy: SortBy, sortOrder: SortOrder): string[] {
         const chartState = makeChartState(table, {
             selection,
             sortConfig: { sortBy, sortOrder },
@@ -633,7 +633,7 @@ describe("lanes", () => {
     }
 
     it("are the selected entities only, sorted by name", () => {
-        expect(findLaneNames(SortBy.entityName, SortOrder.asc)).toEqual([
+        expect(findRowNames(SortBy.entityName, SortOrder.asc)).toEqual([
             "France",
             "Germany",
             "Spain",
@@ -641,12 +641,12 @@ describe("lanes", () => {
     })
 
     it("follow the selection order when sorted by custom order, reversed when descending", () => {
-        expect(findLaneNames(SortBy.custom, SortOrder.asc)).toEqual([
+        expect(findRowNames(SortBy.custom, SortOrder.asc)).toEqual([
             "Spain",
             "France",
             "Germany",
         ])
-        expect(findLaneNames(SortBy.custom, SortOrder.desc)).toEqual([
+        expect(findRowNames(SortBy.custom, SortOrder.desc)).toEqual([
             "Germany",
             "France",
             "Spain",
@@ -654,7 +654,7 @@ describe("lanes", () => {
     })
 
     it("fall back to sorting by name, ascending, for a sort key swimlanes don't support", () => {
-        expect(findLaneNames(SortBy.total, SortOrder.desc)).toEqual([
+        expect(findRowNames(SortBy.total, SortOrder.desc)).toEqual([
             "France",
             "Germany",
             "Spain",

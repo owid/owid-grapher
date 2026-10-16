@@ -1,7 +1,7 @@
 import { observable, makeObservable } from "mobx"
 import {
     SwimlaneChartConfigInterface,
-    SwimlaneSegmentLabels,
+    SwimlaneSegmentLabelMode,
 } from "@ourworldindata/types"
 import {
     Persistable,
@@ -13,16 +13,16 @@ import {
 } from "@ourworldindata/utils"
 
 export const SWIMLANE_CHART_CONFIG_DEFAULTS = {
-    segmentLabels: SwimlaneSegmentLabels.CategoryAndTimeRange,
+    segmentLabelMode: SwimlaneSegmentLabelMode.CategoryAndTimeRange,
 } satisfies Partial<SwimlaneChartConfigInterface>
 
 class SwimlaneChartConfigDefaults {
-    segmentLabels: SwimlaneSegmentLabels =
-        SWIMLANE_CHART_CONFIG_DEFAULTS.segmentLabels
+    segmentLabelMode: SwimlaneSegmentLabelMode =
+        SWIMLANE_CHART_CONFIG_DEFAULTS.segmentLabelMode
 
     constructor() {
         makeObservable(this, {
-            segmentLabels: observable.ref,
+            segmentLabelMode: observable.ref,
         })
     }
 }

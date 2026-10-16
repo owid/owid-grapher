@@ -146,8 +146,6 @@ export {
     isSubYearly,
     findFinestCommonTimeInterval,
     snapToIntervalStart,
-    addTimeIntervals,
-    countTimeIntervals,
     logPerf,
     sleep,
     lowercaseObjectKeys,

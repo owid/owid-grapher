@@ -253,6 +253,124 @@ describe("getUniformlySpacedTimes", () => {
     })
 })
 
+describe("consecutive times", () => {
+    const table = new OwidTable()
+
+    const day = (iso: string): number =>
+        convertDateToDaysSinceEpoch(dayjs.utc(iso))
+
+    type TimeColumnTypeName =
+        | ColumnTypeNames.Day
+        | ColumnTypeNames.Week
+        | ColumnTypeNames.Month
+        | ColumnTypeNames.Quarter
+        | ColumnTypeNames.Year
+        | ColumnTypeNames.Decade
+
+    const cases: {
+        name: string
+        column: TimeColumnTypeName
+        from: () => number
+        count: number
+        to: () => number
+    }[] = [
+        {
+            name: "a month step from January lands on February",
+            column: ColumnTypeNames.Month,
+            from: () => day("2021-01-01"),
+            count: 1,
+            to: () => day("2021-02-01"),
+        },
+        {
+            name: "a month step from December rolls into the next year",
+            column: ColumnTypeNames.Month,
+            from: () => day("2020-12-01"),
+            count: 1,
+            to: () => day("2021-01-01"),
+        },
+        {
+            name: "a quarter step from October rolls into the next year",
+            column: ColumnTypeNames.Quarter,
+            from: () => day("2020-10-01"),
+            count: 1,
+            to: () => day("2021-01-01"),
+        },
+        {
+            name: "a week step from a Monday lands on the next Monday",
+            column: ColumnTypeNames.Week,
+            from: () => day("2021-01-11"),
+            count: 1,
+            to: () => day("2021-01-18"),
+        },
+        {
+            name: "a decade step adds ten years",
+            column: ColumnTypeNames.Decade,
+            from: () => 1950,
+            count: 1,
+            to: () => 1960,
+        },
+        {
+            name: "a decade step works before the common era",
+            column: ColumnTypeNames.Decade,
+            from: () => -500,
+            count: 3,
+            to: () => -470,
+        },
+        {
+            name: "a year step adds one year",
+            column: ColumnTypeNames.Year,
+            from: () => 2000,
+            count: 3,
+            to: () => 2003,
+        },
+        {
+            name: "a day step adds one day",
+            column: ColumnTypeNames.Day,
+            from: () => day("2021-02-27"),
+            count: 2,
+            to: () => day("2021-03-01"),
+        },
+    ]
+
+    it.each(cases)("$name", ({ column, from, count, to }) => {
+        const col = new ColumnTypeMap[column](table, { slug: "t" })
+        expect(col.offsetTime(from(), count)).toEqual(to())
+        expect(col.countConsecutiveTimes(from(), to())).toEqual(count + 1)
+    })
+
+    it("counts a single time when both times fall in the same period", () => {
+        const month = new ColumnTypeMap.Month(table, { slug: "t" })
+        expect(
+            month.countConsecutiveTimes(day("2021-03-01"), day("2021-03-20"))
+        ).toEqual(1)
+
+        const decade = new ColumnTypeMap.Decade(table, { slug: "t" })
+        expect(decade.countConsecutiveTimes(1950, 1959)).toEqual(1)
+    })
+
+    it("lists every month between two times, across months of different lengths", () => {
+        const col = new ColumnTypeMap.Month(table, { slug: "t" })
+        expect(
+            col.getConsecutiveTimes(day("2021-01-01"), day("2021-04-01"))
+        ).toEqual([
+            day("2021-01-01"),
+            day("2021-02-01"),
+            day("2021-03-01"),
+            day("2021-04-01"),
+        ])
+    })
+
+    it("keeps the representative year of a decade", () => {
+        const col = new ColumnTypeMap.Decade(table, { slug: "t" })
+        expect(col.getConsecutiveTimes(1955, 1975)).toEqual([1955, 1965, 1975])
+    })
+
+    it("lists a single time when the range holds one", () => {
+        const col = new ColumnTypeMap.Year(table, { slug: "t" })
+        expect(col.getConsecutiveTimes(2000, 2000)).toEqual([2000])
+    })
+})
+
 describe(ColumnTypeMap.NumberOrString, () => {
     const col = new ColumnTypeMap.NumberOrString(new OwidTable(), {
         slug: "test",

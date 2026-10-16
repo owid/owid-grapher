@@ -5,8 +5,8 @@ import { SeriesLabel } from "../seriesLabel/SeriesLabel"
 import {
     RenderSwimlaneSeries,
     SWIMLANE_ROW_STYLE,
+    SwimlaneSegmentLabelSettings,
 } from "./SwimlaneChartConstants"
-import { SwimlaneSegmentLabelSettings } from "./SwimlaneLabels"
 import { SwimlaneSegments } from "./SwimlaneSegments"
 
 export function SwimlaneRow({

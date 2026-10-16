@@ -633,13 +633,13 @@ export interface DumbbellChartConfigInterface {
     trendColorMap?: DumbbellTrendColorMap
 }
 
-export enum SwimlaneSegmentLabels {
+export enum SwimlaneSegmentLabelMode {
     CategoryAndTimeRange = "categoryAndTimeRange",
     None = "none",
 }
 
 export interface SwimlaneChartConfigInterface {
-    segmentLabels?: SwimlaneSegmentLabels
+    segmentLabelMode?: SwimlaneSegmentLabelMode
 }
 
 export interface MapConfigInterface {

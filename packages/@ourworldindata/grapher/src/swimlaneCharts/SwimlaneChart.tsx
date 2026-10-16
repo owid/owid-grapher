@@ -1,4 +1,3 @@
-import * as _ from "lodash-es"
 import React from "react"
 import { action, computed, makeObservable, observable } from "mobx"
 import { observer } from "mobx-react"
@@ -35,40 +34,37 @@ import { ChartComponentProps } from "../chart/ChartTypeMap"
 import {
     CategoricalBin,
     ColorScaleBin,
-    NumericBin,
     addPatternRefToBin,
+    isCategoricalBin,
     isNoDataBin,
 } from "../color/ColorScaleBin"
 import { HorizontalCategoricalColorLegend } from "../legend/HorizontalCategoricalColorLegend"
 import { HorizontalCategoricalColorLegendState } from "../legend/HorizontalCategoricalColorLegendState"
 import { HorizontalNumericColorLegend } from "../legend/HorizontalNumericColorLegend"
 import { HorizontalNumericColorLegendState } from "../legend/HorizontalNumericColorLegendState"
-import { ExternalColorLegendData } from "../legend/HorizontalColorLegendTypes"
 import { BinEmphasis, toBinEmphasis } from "../legend/LegendStyleConfig"
 import { Emphasis } from "../interaction/Emphasis"
 import {
     ENTITY_LABEL_CHART_GAP,
-    HoveredSwimlanePoint,
-    PADDING_BETWEEN_LEGEND_AND_LANES,
+    PADDING_BETWEEN_LEGEND_AND_ROWS,
     PlacedSwimlaneSeries,
     RenderSwimlaneSeries,
     SizedSwimlaneSeries,
     SWIMLANE_LEGEND_STYLE,
-    SWIMLANE_X_AXIS_CONFIG_DEFAULTS,
     SwimlaneChartManager,
     SwimlaneSeries,
+    SwimlaneSegmentLabelSettings,
     SwimlaneTooltipTarget,
-    TICK_LABEL_OVERFLOW_PADDING,
 } from "./SwimlaneChartConstants"
 import { SwimlaneChartState } from "./SwimlaneChartState"
 import {
-    computeLaneSlotHeight,
-    findLaneAtY,
+    computeRowSlotHeight,
+    findRowAtY,
     findSegmentAtX,
     toPlacedSwimlaneSeries,
+    toLabelledNumericBin,
     toRenderSwimlaneSeries,
 } from "./SwimlaneChartHelpers"
-import { SwimlaneSegmentLabelSettings } from "./SwimlaneLabels"
 import { SwimlaneRow } from "./SwimlaneRow"
 import { SwimlaneChartTooltip } from "./SwimlaneChartTooltip"
 
@@ -86,19 +82,14 @@ export class SwimlaneChart
         fade: "immediate",
     })
 
-    private hoveredPoint: HoveredSwimlanePoint | undefined = undefined
     private hoveredLegendBin: ColorScaleBin | undefined = undefined
 
     constructor(props: SwimlaneChartProps) {
         super(props)
-        makeObservable<
-            SwimlaneChart,
-            "tooltipState" | "hoveredPoint" | "hoveredLegendBin"
-        >(this, {
-            tooltipState: observable,
-            hoveredPoint: observable,
-            hoveredLegendBin: observable.ref,
-        })
+        makeObservable<SwimlaneChart, "tooltipState" | "hoveredLegendBin">(
+            this,
+            { tooltipState: observable, hoveredLegendBin: observable.ref }
+        )
     }
 
     @computed get chartState(): SwimlaneChartState {
@@ -113,6 +104,11 @@ export class SwimlaneChart
         return this.manager.fontSize ?? BASE_FONT_SIZE
     }
 
+    @computed private get bounds(): Bounds {
+        // 2px padding at the bottom prevents the tick labels from overflowing
+        return (this.props.bounds ?? DEFAULT_GRAPHER_BOUNDS).padBottom(2)
+    }
+
     @computed private get showLegend(): boolean {
         return this.manager.showLegend ?? true
     }
@@ -124,30 +120,38 @@ export class SwimlaneChart
         )
     }
 
-    @computed private get categoricalLegendBins(): CategoricalBin[] {
-        const [noData, categories] = _.partition(
-            this.chartState.colorScale.categoricalLegendBins,
-            (bin) => isNoDataBin(bin)
+    @computed private get noDataLegendBins(): CategoricalBin[] {
+        return this.chartState.colorScale.categoricalLegendBins
+            .filter((bin) => isNoDataBin(bin))
+            .map((bin) => addPatternRefToBin(bin, this.noDataPatternId))
+    }
+
+    @computed private get categoryLegendBins(): CategoricalBin[] {
+        return this.chartState.colorScale.categoricalLegendBins.filter(
+            (bin) => !isNoDataBin(bin)
         )
-        return [
-            ...noData.map((bin) =>
-                addPatternRefToBin(bin, this.noDataPatternId)
-            ),
-            ...categories,
-        ]
+    }
+
+    @computed private get categoricalLegendBins(): CategoricalBin[] {
+        return [...this.noDataLegendBins, ...this.categoryLegendBins]
+    }
+
+    /** The ordinal legend's numeric bins, each mapped to the category it stands for */
+    @computed private get categoryByOrdinalLegendBin(): Map<
+        ColorScaleBin,
+        CategoricalBin
+    > {
+        return new Map(
+            this.categoryLegendBins
+                .filter((bin) => !bin.isHidden)
+                .map((bin, index) => [toLabelledNumericBin(bin, index), bin])
+        )
     }
 
     @computed private get ordinalLegendBins(): ColorScaleBin[] {
-        const [noData, categories] = _.partition(
-            this.categoricalLegendBins,
-            (bin) => isNoDataBin(bin)
-        )
-        // A NumericBin has no isHidden, so drop hidden categories before converting
         return [
-            ...noData,
-            ...categories
-                .filter((bin) => !bin.isHidden)
-                .map(toLabelledNumericBin),
+            ...this.noDataLegendBins,
+            ...this.categoryByOrdinalLegendBin.keys(),
         ]
     }
 
@@ -155,22 +159,20 @@ export class SwimlaneChart
         return 0.625 * this.fontSize
     }
 
-    /** The hovered legend category, resolved to its real bin regardless of which legend produced it */
     @computed private get hoveredCategoricalBin(): CategoricalBin | undefined {
-        const hoveredBin =
-            this.hoveredLegendBin ?? this.manager.externalLegendHoverBin
-        if (!hoveredBin) return undefined
-        return this.categoricalLegendBins.find(
-            (bin) => bin.text === hoveredBin.text
-        )
+        const { hoveredLegendBin } = this
+        if (!hoveredLegendBin) return undefined
+        return isCategoricalBin(hoveredLegendBin)
+            ? hoveredLegendBin
+            : this.categoryByOrdinalLegendBin.get(hoveredLegendBin)
     }
 
     private readonly resolveLegendBinEmphasis = (
         bin: ColorScaleBin
     ): Emphasis => {
-        const hovered = this.hoveredCategoricalBin
-        if (!hovered) return Emphasis.Default
-        return bin.text === hovered.text ? Emphasis.Highlighted : Emphasis.Muted
+        const { hoveredLegendBin } = this
+        if (!hoveredLegendBin) return Emphasis.Default
+        return bin === hoveredLegendBin ? Emphasis.Highlighted : Emphasis.Muted
     }
 
     @computed private get ordinalLegendEmphasis(): BinEmphasis {
@@ -226,38 +228,20 @@ export class SwimlaneChart
             this.categoricalLegendState?.height ??
             0
 
-        return legendHeight > 0
-            ? this.bounds.padTop(
-                  legendHeight + PADDING_BETWEEN_LEGEND_AND_LANES
-              )
-            : this.bounds
-    }
-
-    @computed get externalLegend(): ExternalColorLegendData | undefined {
-        if (this.showLegend) return undefined
-
-        return this.chartState.categories?.kind === "ordinal"
-            ? {
-                  numericLegendData: this.ordinalLegendBins,
-                  numericBinSize: this.legendBinSize,
-              }
-            : { categoricalLegendData: this.categoricalLegendBins }
+        if (legendHeight === 0) return this.bounds
+        return this.bounds.padTop(
+            legendHeight + PADDING_BETWEEN_LEGEND_AND_ROWS
+        )
     }
 
     @computed private get series(): SwimlaneSeries[] {
         return this.chartState.series
     }
 
-    @computed private get bounds(): Bounds {
-        return (this.props.bounds ?? DEFAULT_GRAPHER_BOUNDS).padBottom(
-            TICK_LABEL_OVERFLOW_PADDING
-        )
-    }
-
     @computed private get availableHeightPerSeries(): number {
-        return computeLaneSlotHeight({
-            plotHeight: this.boundsWithoutLegend.height,
-            laneCount: this.series.length,
+        return computeRowSlotHeight({
+            height: this.boundsWithoutLegend.height,
+            rowCount: this.series.length,
         })
     }
 
@@ -293,7 +277,7 @@ export class SwimlaneChart
 
     @computed private get xAxisConfig(): AxisConfig {
         return new AxisConfig(
-            { ...SWIMLANE_X_AXIS_CONFIG_DEFAULTS, ...this.manager.xAxisConfig },
+            { isDomainEndExclusive: true, ...this.manager.xAxisConfig },
             this
         )
     }
@@ -321,20 +305,20 @@ export class SwimlaneChart
     }
 
     @computed private get placedSeries(): PlacedSwimlaneSeries[] {
-        const { visiblePeriodsEndTime } = this.chartState
-        if (visiblePeriodsEndTime === undefined) return []
+        const { visibleTimeRange } = this.chartState
+        if (!visibleTimeRange) return []
         return toPlacedSwimlaneSeries({
             series: this.sizedSeries,
             bounds: this.innerBounds,
             placeTime: (time) => this.xAxis.place(time),
-            visiblePeriodsEndTime,
+            visibleExclusiveEndTime: visibleTimeRange.exclusiveEndTime,
         })
     }
 
     @computed private get renderSeries(): RenderSwimlaneSeries[] {
         return toRenderSwimlaneSeries({
             series: this.placedSeries,
-            hoveredPoint: this.hoveredPoint,
+            hoveredSegment: this.tooltipState.target,
             focusArray: this.chartState.focusArray,
             hoveredLegendBin: this.hoveredCategoricalBin,
         })
@@ -343,7 +327,7 @@ export class SwimlaneChart
     @computed private get segmentLabelSettings(): SwimlaneSegmentLabelSettings {
         const { timeColumn } = this.chartState.inputTable
         return {
-            segmentLabels: this.chartState.segmentLabels,
+            segmentLabelMode: this.chartState.segmentLabelMode,
             fontSettings: this.segmentLabelStyle,
             timeColumn,
         }
@@ -354,16 +338,16 @@ export class SwimlaneChart
     }
 
     @action.bound private onCursorEnter(
-        ev: React.MouseEvent | React.TouchEvent
+        event: React.MouseEvent | React.TouchEvent
     ): void {
         this.chartState.focusArray.clear()
-        this.updateHoveredPoint(ev)
+        this.updateTooltipTarget(event)
     }
 
     @action.bound private onCursorMove(
-        ev: React.MouseEvent | React.TouchEvent
+        event: React.MouseEvent | React.TouchEvent
     ): void {
-        this.updateHoveredPoint(ev)
+        this.updateTooltipTarget(event)
     }
 
     @action.bound private dismissTooltip(): void {
@@ -371,7 +355,6 @@ export class SwimlaneChart
     }
 
     @action.bound private onCursorLeave(): void {
-        this.hoveredPoint = undefined
         if (!this.manager.shouldPinTooltipToBottom) {
             this.dismissTooltip()
         }
@@ -386,26 +369,26 @@ export class SwimlaneChart
         this.hoveredLegendBin = undefined
     }
 
-    private updateHoveredPoint(ev: React.MouseEvent | React.TouchEvent): void {
+    private updateTooltipTarget(
+        event: React.MouseEvent | React.TouchEvent
+    ): void {
         const ref = this.hitAreaRef.current
         const parentRef = this.manager.base?.current
 
         // The tooltip's origin needs to be in the parent's coordinates
         if (parentRef) {
-            this.tooltipState.position = getRelativeMouse(parentRef, ev)
+            this.tooltipState.position = getRelativeMouse(parentRef, event)
         }
 
         if (!ref) return
 
-        const mouse = getRelativeMouse(ref, ev)
-        const lane = findLaneAtY(this.placedSeries, mouse.y)
-        this.hoveredPoint = { x: mouse.x, laneEntityName: lane?.entityName }
-
-        const segment = lane
-            ? findSegmentAtX(lane.placedSegments, mouse.x)
+        const mouse = getRelativeMouse(ref, event)
+        const row = findRowAtY(this.placedSeries, mouse.y)
+        const segment = row
+            ? findSegmentAtX(row.placedSegments, mouse.x)
             : undefined
         this.tooltipState.target =
-            lane && segment ? { entityName: lane.entityName, segment } : null
+            row && segment ? { entityName: row.entityName, segment } : null
     }
 
     private renderLegend(): React.ReactElement | undefined {
@@ -438,7 +421,7 @@ export class SwimlaneChart
         return undefined
     }
 
-    private renderLanes(): React.ReactElement[] {
+    private renderRows(): React.ReactElement[] {
         return this.renderSeries.map((series) => (
             <SwimlaneRow
                 key={series.seriesName}
@@ -450,7 +433,7 @@ export class SwimlaneChart
         ))
     }
 
-    private renderAnimatedLanes(): React.ReactElement {
+    private renderAnimatedRows(): React.ReactElement {
         return (
             <AnimatedRows
                 items={this.renderSeries}
@@ -472,19 +455,9 @@ export class SwimlaneChart
         )
     }
 
-    override render(): React.ReactElement {
-        if (this.chartState.errorInfo.reason)
-            return (
-                <NoDataMessage
-                    manager={this.manager}
-                    bounds={this.bounds}
-                    message={this.chartState.errorInfo.reason}
-                />
-            )
-
+    private renderAxis(): React.ReactElement {
         return (
-            <g>
-                {this.renderLegend()}
+            <>
                 <HorizontalAxisComponent
                     bounds={this.boundsWithoutLegend}
                     axis={this.xAxis}
@@ -496,51 +469,60 @@ export class SwimlaneChart
                     bounds={this.innerBounds}
                     stroke={SOLID_TICK_COLOR}
                 />
-                <g id={makeFigmaId("lanes")}>
-                    {this.manager.isStatic
-                        ? this.renderLanes()
-                        : this.renderAnimatedLanes()}
-                </g>
-                {!this.manager.isStatic && (
-                    <>
-                        <g
-                            ref={this.hitAreaRef}
-                            onMouseEnter={this.onCursorEnter}
-                            onMouseMove={this.onCursorMove}
-                            onMouseLeave={this.onCursorLeave}
-                            onTouchStart={this.onCursorEnter}
-                            onTouchMove={this.onCursorMove}
-                            onTouchEnd={this.onCursorLeave}
-                            onTouchCancel={this.onCursorLeave}
-                        >
-                            <rect
-                                {...this.innerBounds.toProps()}
-                                fillOpacity={0}
-                            />
-                        </g>
-                        <SwimlaneChartTooltip
-                            id={this.tooltipId}
-                            chartState={this.chartState}
-                            tooltipState={this.tooltipState}
-                            dismissTooltip={this.dismissTooltip}
-                        />
-                    </>
-                )}
+            </>
+        )
+    }
+
+    private renderStatic(): React.ReactElement {
+        return (
+            <g>
+                {this.renderLegend()}
+                {this.renderAxis()}
+                <g id={makeFigmaId("rows")}>{this.renderRows()}</g>
             </g>
         )
     }
-}
 
-function toLabelledNumericBin(bin: CategoricalBin, index: number): NumericBin {
-    return new NumericBin({
-        isFirst: index === 0,
-        isOpenLeft: false,
-        isOpenRight: false,
-        min: index,
-        max: index + 1,
-        displayMin: "",
-        displayMax: "",
-        label: bin.text,
-        color: bin.color,
-    })
+    private renderInteractive(): React.ReactElement {
+        return (
+            <g>
+                {this.renderLegend()}
+                {this.renderAxis()}
+                <g id={makeFigmaId("rows")}>{this.renderAnimatedRows()}</g>
+                <g
+                    ref={this.hitAreaRef}
+                    onMouseEnter={this.onCursorEnter}
+                    onMouseMove={this.onCursorMove}
+                    onMouseLeave={this.onCursorLeave}
+                    onTouchStart={this.onCursorEnter}
+                    onTouchMove={this.onCursorMove}
+                    onTouchEnd={this.onCursorLeave}
+                    onTouchCancel={this.onCursorLeave}
+                >
+                    <rect {...this.innerBounds.toProps()} fillOpacity={0} />
+                </g>
+                <SwimlaneChartTooltip
+                    id={this.tooltipId}
+                    chartState={this.chartState}
+                    tooltipState={this.tooltipState}
+                    dismissTooltip={this.dismissTooltip}
+                />
+            </g>
+        )
+    }
+
+    override render(): React.ReactElement {
+        if (this.chartState.errorInfo.reason)
+            return (
+                <NoDataMessage
+                    manager={this.manager}
+                    bounds={this.bounds}
+                    message={this.chartState.errorInfo.reason}
+                />
+            )
+
+        return this.manager.isStatic
+            ? this.renderStatic()
+            : this.renderInteractive()
+    }
 }

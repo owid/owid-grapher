@@ -1,13 +1,12 @@
 import React from "react"
 import { observer } from "mobx-react"
-import { countTimeIntervals } from "@ourworldindata/utils"
 import { Tooltip, TooltipState } from "../tooltip/Tooltip"
 import { TooltipValue } from "../tooltip/TooltipContents"
 import { formatTimeSpan } from "../chart/ChartUtils"
 import { darkenColorForText } from "../color/ColorUtils"
 import { SwimlaneTooltipTarget } from "./SwimlaneChartConstants"
 import { SwimlaneChartState } from "./SwimlaneChartState"
-import { formatSegmentTimeRange } from "./SwimlaneLabels"
+import { formatSegmentTimeRange } from "./SwimlaneChartHelpers"
 
 export interface SwimlaneChartTooltipProps {
     id: number
@@ -39,15 +38,14 @@ export class SwimlaneChartTooltip extends React.Component<SwimlaneChartTooltipPr
 
     private get formattedDuration(): string | undefined {
         const segment = this.target?.segment
-        if (!segment || segment.kind === "missing") return undefined
-        const { timeInterval } = this.chartState.inputTable.timeColumn
-        const periodCount = countTimeIntervals(
+        const { timeColumn } = this.chartState
+        if (!segment || segment.kind === "missing" || !timeColumn)
+            return undefined
+        const timeCount = timeColumn.countConsecutiveTimes(
             segment.startTime,
-            segment.endTime,
-            timeInterval
+            segment.endTime
         )
-        if (periodCount === 0) return undefined
-        return formatTimeSpan(periodCount, timeInterval)
+        return formatTimeSpan(timeCount, timeColumn.timeInterval)
     }
 
     override render(): React.ReactElement | null {

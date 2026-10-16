@@ -1,16 +1,16 @@
-import * as R from "remeda"
 import { Bounds, roundForSvg } from "@ourworldindata/utils"
 import { Time } from "@ourworldindata/types"
 import { computeCenteredLabelYPositions } from "../rowSeriesLabels/RowSeriesLabelHelpers.js"
 import { resolveEmphasis } from "../interaction/Emphasis"
 import { InteractionState } from "../interaction/InteractionState"
 import { FocusArray } from "../focus/FocusArray"
-import { CategoricalBin, isNoDataBin } from "../color/ColorScaleBin"
+import { CategoricalBin, NumericBin } from "../color/ColorScaleBin"
+import { ColorScale } from "../color/ColorScale"
+import { OWID_ERROR_COLOR } from "../color/ColorConstants"
 import {
     ENTITY_LABEL_CHART_GAP,
-    HoveredSwimlanePoint,
-    LANE_SPACING_FACTOR,
-    MAX_LANE_HEIGHT,
+    ROW_SPACING_FACTOR,
+    MAX_ROW_HEIGHT,
     PlacedSwimlaneSegment,
     PlacedSwimlaneSeries,
     RenderSwimlaneSegment,
@@ -18,42 +18,62 @@ import {
     SizedSwimlaneSeries,
     SEGMENT_CROP_TAPER_RATIO,
     SwimlaneObservation,
-    RawSwimlaneSegment,
+    SwimlaneSegment,
+    SwimlaneTooltipTarget,
+    SwimlaneVisibleTimeRange,
+    TimeColumnFormatter,
 } from "./SwimlaneChartConstants"
 
-/** A lane's runs of one category, and its gaps, that the timeline window shows */
-export function toRawSwimlaneSegments({
+export function toSwimlaneSegments({
     observations,
-    timesAsc,
-    visibleTimesAsc,
+    consecutiveTimes,
+    visibleTimeRange,
+    colorScale,
 }: {
     observations: SwimlaneObservation[]
-    timesAsc: Time[]
-    visibleTimesAsc: Time[]
-}): RawSwimlaneSegment[] {
-    const firstVisibleTime = R.first(visibleTimesAsc)
-    const lastVisibleTime = R.last(visibleTimesAsc)
-    if (firstVisibleTime === undefined || lastVisibleTime === undefined)
-        return []
+    consecutiveTimes: Time[]
+    visibleTimeRange: SwimlaneVisibleTimeRange
+    colorScale: ColorScale
+}): SwimlaneSegment[] {
+    const { startTime: firstVisibleTime, endTime: lastVisibleTime } =
+        visibleTimeRange
 
-    return findCategoryRuns({ observations, timesAsc })
+    return findCategoryRuns({ observations, consecutiveTimes })
         .filter(
             (run) =>
                 run.endTime >= firstVisibleTime &&
                 run.startTime <= lastVisibleTime
         )
-        .map(({ category, startTime, endTime }): RawSwimlaneSegment => {
-            const range = {
+        .map(({ category, startTime, endTime }): SwimlaneSegment => {
+            const common = {
                 startTime,
                 endTime,
-                // A run covers consecutive times, so clamping to the window lands on one of its own times
                 visibleStartTime: Math.max(startTime, firstVisibleTime),
                 visibleEndTime: Math.min(endTime, lastVisibleTime),
             }
-            return category === undefined
-                ? { kind: "missing", ...range }
-                : { kind: "category", category, ...range }
+            if (category === undefined) return { kind: "missing", ...common }
+            return {
+                kind: "category",
+                ...common,
+                category,
+                categoryLabel:
+                    colorScale.getBinForValue(category)?.text ?? category,
+                color: colorScale.getColor(category) ?? OWID_ERROR_COLOR,
+            }
         })
+}
+
+export function formatSegmentTimeRange({
+    startTime,
+    endTime,
+    timeColumn,
+}: {
+    startTime: Time
+    endTime: Time
+    timeColumn: TimeColumnFormatter
+}): string {
+    if (startTime === endTime) return timeColumn.formatTime(startTime)
+    return `${timeColumn.formatTimeShort(startTime)}–${timeColumn.formatTimeShortEnd(endTime)}`
 }
 
 /** Length of the point drawn at each cropped edge of a segment */
@@ -106,16 +126,16 @@ export function toSegmentOutlinePath({
     return [...start, ...end, ...close].join(" ")
 }
 
-export function computeLaneSlotHeight({
-    plotHeight,
-    laneCount,
+export function computeRowSlotHeight({
+    height,
+    rowCount,
 }: {
-    plotHeight: number
-    laneCount: number
+    height: number
+    rowCount: number
 }): number {
     return Math.min(
-        plotHeight / laneCount,
-        MAX_LANE_HEIGHT / (1 - LANE_SPACING_FACTOR)
+        height / rowCount,
+        MAX_ROW_HEIGHT / (1 - ROW_SPACING_FACTOR)
     )
 }
 
@@ -123,20 +143,20 @@ export function toPlacedSwimlaneSeries({
     series: allSeries,
     bounds,
     placeTime,
-    visiblePeriodsEndTime,
+    visibleExclusiveEndTime,
 }: {
     series: SizedSwimlaneSeries[]
     bounds: Bounds
     placeTime: (time: Time) => number
-    visiblePeriodsEndTime: Time
+    visibleExclusiveEndTime: Time
 }): PlacedSwimlaneSeries[] {
     if (allSeries.length === 0) return []
 
-    const slotHeight = computeLaneSlotHeight({
-        plotHeight: bounds.height,
-        laneCount: allSeries.length,
+    const slotHeight = computeRowSlotHeight({
+        height: bounds.height,
+        rowCount: allSeries.length,
     })
-    const laneHeight = slotHeight * (1 - LANE_SPACING_FACTOR)
+    const rowHeight = slotHeight * (1 - ROW_SPACING_FACTOR)
     const labelX = bounds.left - ENTITY_LABEL_CHART_GAP
     const blockTop =
         bounds.top + (bounds.height - slotHeight * allSeries.length) / 2
@@ -148,14 +168,14 @@ export function toPlacedSwimlaneSeries({
             const extents = toContiguousSegmentExtents({
                 segments,
                 placeTime,
-                visiblePeriodsEndTime,
+                visibleExclusiveEndTime,
             })
             const placedSegments: PlacedSwimlaneSegment[] = segments.map(
                 (segment, segmentIndex): PlacedSwimlaneSegment => ({
                     ...segment,
                     ...extents[segmentIndex],
-                    y: -laneHeight / 2,
-                    height: laneHeight,
+                    y: -rowHeight / 2,
+                    height: rowHeight,
                 })
             )
 
@@ -177,25 +197,23 @@ export function toPlacedSwimlaneSeries({
 
 export function toRenderSwimlaneSegments({
     segments,
-    hoveredSegment,
+    hoveredStartTime,
     hoveredLegendBin,
+    isHoverModeActive,
     focus,
 }: {
     segments: PlacedSwimlaneSegment[]
-    hoveredSegment?: PlacedSwimlaneSegment
+    hoveredStartTime?: Time
     hoveredLegendBin?: CategoricalBin
+    isHoverModeActive: boolean
     focus?: InteractionState
 }): RenderSwimlaneSegment[] {
-    const isHoverModeActive =
-        hoveredSegment !== undefined || hoveredLegendBin !== undefined
-
     return segments.map((segment) => {
-        const isInHoveredBin =
-            hoveredLegendBin !== undefined &&
-            (segment.kind === "missing"
-                ? isNoDataBin(hoveredLegendBin)
-                : hoveredLegendBin.contains(segment.category))
-        const isHovered = segment === hoveredSegment || isInHoveredBin
+        const category =
+            segment.kind === "category" ? segment.category : undefined
+        const isHovered =
+            segment.startTime === hoveredStartTime ||
+            !!hoveredLegendBin?.contains(category)
 
         return {
             ...segment,
@@ -209,32 +227,32 @@ export function toRenderSwimlaneSegments({
 
 export function toRenderSwimlaneSeries({
     series: allSeries,
-    hoveredPoint,
+    hoveredSegment,
     focusArray,
     hoveredLegendBin,
 }: {
     series: PlacedSwimlaneSeries[]
-    hoveredPoint?: HoveredSwimlanePoint
+    hoveredSegment?: SwimlaneTooltipTarget
     focusArray: FocusArray
     hoveredLegendBin?: CategoricalBin
 }): RenderSwimlaneSeries[] {
-    const hoveredSeries = allSeries.find(
-        (series) => series.seriesName === hoveredPoint?.laneEntityName
-    )
-    const hoveredSegment =
-        hoveredSeries && hoveredPoint
-            ? findSegmentAtX(hoveredSeries.placedSegments, hoveredPoint.x)
-            : undefined
+    const isHoverModeActive =
+        hoveredSegment !== undefined || hoveredLegendBin !== undefined
 
     return allSeries.map((series): RenderSwimlaneSeries => {
         const focus = focusArray.state(series.seriesName)
+        const hoveredStartTime =
+            hoveredSegment?.entityName === series.entityName
+                ? hoveredSegment.segment.startTime
+                : undefined
         return {
             ...series,
             emphasis: resolveEmphasis({ focus }),
             placedSegments: toRenderSwimlaneSegments({
                 segments: series.placedSegments,
-                hoveredSegment,
+                hoveredStartTime,
                 hoveredLegendBin,
+                isHoverModeActive,
                 focus,
             }),
         }
@@ -259,37 +277,55 @@ export function findSegmentAtX(
     return x >= segment.x && x < segment.x + segment.width ? segment : undefined
 }
 
-export function findLaneAtY(
+export function findRowAtY(
     series: PlacedSwimlaneSeries[],
     y: number
 ): PlacedSwimlaneSeries | undefined {
     return series.find(
-        ({ y: laneY, slotHeight }) =>
-            y >= laneY - slotHeight / 2 && y < laneY + slotHeight / 2
+        ({ y: rowY, slotHeight }) =>
+            y >= rowY - slotHeight / 2 && y < rowY + slotHeight / 2
     )
+}
+
+/** A category as one step of the ordinal legend's numeric strip */
+export function toLabelledNumericBin(
+    bin: CategoricalBin,
+    index: number
+): NumericBin {
+    return new NumericBin({
+        isFirst: index === 0,
+        isOpenLeft: false,
+        isOpenRight: false,
+        min: index,
+        max: index + 1,
+        displayMin: "",
+        displayMax: "",
+        label: bin.text,
+        color: bin.color,
+    })
 }
 
 function toContiguousSegmentExtents({
     segments,
     placeTime,
-    visiblePeriodsEndTime,
+    visibleExclusiveEndTime,
 }: {
-    segments: RawSwimlaneSegment[]
+    segments: SwimlaneSegment[]
     placeTime: (time: Time) => number
-    visiblePeriodsEndTime: Time
+    visibleExclusiveEndTime: Time
 }): { x: number; width: number }[] {
     return segments.map((segment, index) => {
         const nextSegment = segments[index + 1]
         const x = placeTime(segment.visibleStartTime)
         const right = placeTime(
-            nextSegment?.visibleStartTime ?? visiblePeriodsEndTime
+            nextSegment?.visibleStartTime ?? visibleExclusiveEndTime
         )
         return { x, width: right - x }
     })
 }
 
 interface CategoryRun {
-    category: string | undefined
+    category?: string
     startTime: Time
     endTime: Time
 }
@@ -297,16 +333,18 @@ interface CategoryRun {
 /** Consecutive times with the same category, where an undefined category is a gap */
 function findCategoryRuns({
     observations,
-    timesAsc,
+    consecutiveTimes,
 }: {
     observations: SwimlaneObservation[]
-    timesAsc: Time[]
+    consecutiveTimes: Time[]
 }): CategoryRun[] {
-    const lastIndex = timesAsc.length - 1
+    const lastIndex = consecutiveTimes.length - 1
     const categoryByTime = new Map(
         observations.map(({ time, category }) => [time, category])
     )
-    const categoryByTimeIndex = timesAsc.map((time) => categoryByTime.get(time))
+    const categoryByTimeIndex = consecutiveTimes.map((time) =>
+        categoryByTime.get(time)
+    )
 
     const runs: CategoryRun[] = []
     let startIndex = 0
@@ -318,8 +356,8 @@ function findCategoryRuns({
 
         runs.push({
             category: categoryByTimeIndex[index],
-            startTime: timesAsc[startIndex],
-            endTime: timesAsc[index],
+            startTime: consecutiveTimes[startIndex],
+            endTime: consecutiveTimes[index],
         })
         startIndex = index + 1
     }

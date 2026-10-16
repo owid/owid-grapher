@@ -1,31 +1,28 @@
 import { ChartManager } from "../chart/ChartManager"
 import { ChartSeries } from "../chart/ChartInterface"
 import {
-    AxisConfigInterface,
     Color,
     EntityName,
     SortBy,
+    SwimlaneSegmentLabelMode,
     Time,
 } from "@ourworldindata/types"
+import { CoreColumn } from "@ourworldindata/core-table"
 import { SeriesLabelState } from "../seriesLabel/SeriesLabelState"
 import { Emphasis } from "../interaction/Emphasis"
-import { GRAPHER_AREA_OPACITY_MUTED } from "../core/GrapherConstants"
+import {
+    FontSettings,
+    GRAPHER_AREA_OPACITY_MUTED,
+} from "../core/GrapherConstants"
 import { LegendStyleConfig } from "../legend/LegendStyleConfig"
 
-export const LANE_SPACING_FACTOR = 0.35
+export const ROW_SPACING_FACTOR = 0.35
 export const ENTITY_LABEL_CHART_GAP = 8
-export const TICK_LABEL_OVERFLOW_PADDING = 2
-export const PADDING_BETWEEN_LEGEND_AND_LANES = 8
-export const MAX_LANE_HEIGHT = 36
+export const PADDING_BETWEEN_LEGEND_AND_ROWS = 8
+export const MAX_ROW_HEIGHT = 36
 export const SEGMENT_LABEL_PADDING = 8
-/** Length of a cropped segment's point, as a fraction of the segment's height */
 export const SEGMENT_CROP_TAPER_RATIO = 0.4
 export const SEGMENT_LABEL_TIME_RANGE_FONT_WEIGHT = 500
-
-/** The domain runs one step past the last time, so the last band has room */
-export const SWIMLANE_X_AXIS_CONFIG_DEFAULTS: AxisConfigInterface = {
-    isDomainEndExclusive: true,
-}
 
 interface SwimlaneEmphasisStyleConfig {
     opacity: number
@@ -57,6 +54,24 @@ export const SWIMLANE_LEGEND_STYLE: LegendStyleConfig = {
 
 export type SwimlaneChartManager = ChartManager
 
+export type TimeColumnFormatter = Pick<
+    CoreColumn,
+    "formatTime" | "formatTimeShort" | "formatTimeShortEnd"
+>
+
+export interface SwimlaneSegmentLabelSettings {
+    segmentLabelMode: SwimlaneSegmentLabelMode
+    fontSettings: FontSettings
+    timeColumn: TimeColumnFormatter
+}
+
+export interface SwimlaneVisibleTimeRange {
+    startTime: Time
+    endTime: Time
+    /** One time interval after `endTime` */
+    exclusiveEndTime: Time
+}
+
 export interface SwimlaneObservation {
     time: Time
     category: string
@@ -71,22 +86,15 @@ interface SwimlaneSegmentRange {
     visibleEndTime: Time
 }
 
-export interface RawSwimlaneCategorySegment extends SwimlaneSegmentRange {
+export interface SwimlaneCategorySegment extends SwimlaneSegmentRange {
     kind: "category"
     category: string
+    color: Color
+    categoryLabel: string
 }
 
 export interface SwimlaneMissingSegment extends SwimlaneSegmentRange {
     kind: "missing"
-}
-
-export type RawSwimlaneSegment =
-    | RawSwimlaneCategorySegment
-    | SwimlaneMissingSegment
-
-export type SwimlaneCategorySegment = RawSwimlaneCategorySegment & {
-    color: Color
-    categoryLabel: string
 }
 
 export type SwimlaneSegment = SwimlaneCategorySegment | SwimlaneMissingSegment
@@ -126,11 +134,6 @@ export interface PlacedSwimlaneSeries extends Omit<
     slotHeight: number
     labelPosition: { x: number; yOffset: number }
     placedSegments: PlacedSwimlaneSegment[]
-}
-
-export interface HoveredSwimlanePoint {
-    x: number
-    laneEntityName?: EntityName
 }
 
 export interface SwimlaneTooltipTarget {
