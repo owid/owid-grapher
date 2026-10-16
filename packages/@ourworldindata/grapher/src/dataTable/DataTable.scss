@@ -90,9 +90,9 @@
         td {
             padding: 8px 16px;
             white-space: nowrap;
+            vertical-align: bottom;
 
             &:not(.entity) {
-                vertical-align: bottom;
                 text-align: right;
             }
         }
@@ -116,7 +116,6 @@
                 line-height: 19px;
                 border-bottom: $cell-border;
                 font-weight: 700;
-                vertical-align: bottom;
 
                 &.dimension,
                 &.entity,
