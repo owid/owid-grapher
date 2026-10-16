@@ -252,7 +252,13 @@ export class SortOrderSection extends React.Component<{
     }
 
     @computed get sortConfig(): SortConfig {
-        return this.grapherState._sortConfig
+        const { _sortConfig } = this.grapherState
+        return _sortConfig.sortBy &&
+            this.grapherState.availableSortKeysAcrossChartTypes.includes(
+                _sortConfig.sortBy
+            )
+            ? _sortConfig
+            : this.grapherState.defaultSortConfig
     }
 
     @computed get grapherState() {
@@ -303,7 +309,7 @@ export class SortOrderSection extends React.Component<{
             return `column:${sortColumnSlug}`
         if (sortBy && this.sortOptions.some((opt) => opt.value === sortBy))
             return sortBy
-        return this.grapherState.defaultSortKey
+        return this.sortConfig.sortBy ?? SortBy.total
     }
 
     @action.bound onSortByChange(selectedKey: string) {
@@ -316,6 +322,7 @@ export class SortOrderSection extends React.Component<{
     }
 
     @action.bound onSortOrderChange(sortOrder: string) {
+        this.grapherState.sortBy = this.sortConfig.sortBy
         this.grapherState.sortOrder = sortOrder as SortOrder
     }
 

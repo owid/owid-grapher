@@ -7,6 +7,7 @@ import {
     ChartErrorInfo,
     SideWidths,
     SortBy,
+    SortConfig,
 } from "@ourworldindata/types"
 import { ColorScale } from "../color/ColorScale"
 import { HorizontalAxis, VerticalAxis } from "../axis/Axis"
@@ -66,8 +67,8 @@ export interface ChartState {
     /** Sort keys this chart type supports */
     availableSortKeys?: SortBy[]
 
-    /** Sort key this chart type uses by default */
-    defaultSortKey?: SortBy
+    /** Sort config this chart type uses by default */
+    defaultSortConfig?: SortConfig
 
     /**
      * Explains that some of the values aren't from the time the chart is

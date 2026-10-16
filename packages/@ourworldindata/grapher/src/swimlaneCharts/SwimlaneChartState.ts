@@ -191,7 +191,7 @@ export class SwimlaneChartState implements ChartState, ColorScaleManager {
     @computed get sortConfig(): SortConfig {
         const { sortBy, sortOrder } = this.manager.sortConfig ?? {}
         if (sortBy && isSwimlaneSortKey(sortBy)) return { sortBy, sortOrder }
-        return { sortBy: this.defaultSortKey, sortOrder: SortOrder.asc }
+        return this.defaultSortConfig
     }
 
     @computed get series(): SwimlaneSeries[] {
@@ -210,8 +210,8 @@ export class SwimlaneChartState implements ChartState, ColorScaleManager {
         return [...SWIMLANE_SORT_KEYS]
     }
 
-    @computed get defaultSortKey(): SwimlaneSortKey {
-        return SortBy.entityName
+    @computed get defaultSortConfig(): SortConfig {
+        return { sortBy: SortBy.entityName, sortOrder: SortOrder.asc }
     }
 
     toHorizontalAxis(config: AxisConfig): HorizontalAxis {

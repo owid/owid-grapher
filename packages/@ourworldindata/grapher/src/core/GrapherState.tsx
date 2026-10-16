@@ -3675,8 +3675,13 @@ export class GrapherState
         )
     }
 
-    @computed get defaultSortKey(): SortBy {
-        return this.chartStateExceptMap.defaultSortKey ?? SortBy.total
+    @computed get defaultSortConfig(): SortConfig {
+        return (
+            this.chartStateExceptMap.defaultSortConfig ?? {
+                sortBy: SortBy.total,
+                sortOrder: SortOrder.desc,
+            }
+        )
     }
 
     @computed get availableSortKeysAcrossChartTypes(): SortBy[] {
