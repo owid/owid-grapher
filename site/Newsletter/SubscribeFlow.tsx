@@ -105,7 +105,11 @@ const SubscribeFormScreen = ({
                 <p className="subscribe-page__aside-heading h6-black-caps">
                     Already subscribed?
                 </p>
-                <a className="subscribe-page__manage-link" href="/preferences">
+                <a
+                    className="subscribe-page__manage-link"
+                    href="/preferences"
+                    data-track-note="subscribe_page_update_preferences"
+                >
                     Update your preferences{" "}
                     <FontAwesomeIcon icon={faArrowRight} />
                 </a>

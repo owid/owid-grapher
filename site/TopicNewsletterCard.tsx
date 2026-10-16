@@ -10,13 +10,23 @@ import { hasTopicNewsletterCard } from "./topicNewsletter.js"
 // We don't archive the subscribe page.
 const BASE_URL = IS_ARCHIVE ? PROD_URL : ""
 
+/** Where the card sits, so analytics can tell the placements apart. */
+export type TopicNewsletterCardPlacement =
+    | "topic_page"
+    | "latest"
+    | "grapher_page"
+    | "datapage_metadata"
+    | "about_this_data"
+
 export default function TopicNewsletterCard({
     topicArea,
+    placement,
     pageType = "topic",
     variant = "wide",
     className,
 }: {
     topicArea?: string
+    placement: TopicNewsletterCardPlacement
     pageType?: "topic" | "chart"
     /** "narrow" drops "Subscribe to" from the copy for ~300px-wide slots. */
     variant?: "wide" | "narrow"
@@ -50,7 +60,7 @@ export default function TopicNewsletterCard({
                 icon={faEnvelopeOpenText}
                 iconPosition="left"
                 href={`${BASE_URL}/subscribe?${new URLSearchParams({ [LatestUrlParam.TOPICS]: topicArea })}`}
-                dataTrackNote="topic_newsletter_subscribe"
+                dataTrackNote={`topic_newsletter_subscribe_${placement}`}
             />
         </div>
     )
