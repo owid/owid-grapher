@@ -96,11 +96,12 @@ A bundle fetches its data at runtime rather than bundling it. Each one reads a s
 
 Bundles get their files from an ETL export step under `etl/steps/export/s3/` in owid/etl, so their registry entry gives the step as a relative `dataUrl`.
 
-| bundle            | ETL step                                         | manifest                              | per-selection file                      |
-| ----------------- | ------------------------------------------------ | ------------------------------------- | --------------------------------------- |
-| `causes-of-death` | `ihme_gbd/latest/gbd_treemap_json`               | `causes-of-death.metadata.json`       | `causes-of-death.<entityId>.json`       |
-| `food-trade`      | `faostat/latest/food_trade`                      | `food-trade.metadata.json`            | `food-trade.<productId>.json`           |
-| `migration`       | `un_migration/latest/migration_stock_flows_json` | `migration-stock-flows.metadata.json` | `migration-stock-flows.<entityId>.json` |
+| bundle                | ETL step                                         | manifest                              | per-selection file                      |
+| --------------------- | ------------------------------------------------ | ------------------------------------- | --------------------------------------- |
+| `causes-of-death`     | `ihme_gbd/latest/gbd_treemap_json`               | `causes-of-death.metadata.json`       | `causes-of-death.<entityId>.json`       |
+| `deforestation-trade` | `forests/latest/deforestation_trade`             | `deforestation-trade.metadata.json`   | `deforestation-trade.<entityId>.json`   |
+| `food-trade`          | `faostat/latest/food_trade`                      | `food-trade.metadata.json`            | `food-trade.<productId>.json`           |
+| `migration`           | `un_migration/latest/migration_stock_flows_json` | `migration-stock-flows.metadata.json` | `migration-stock-flows.<entityId>.json` |
 
 The manifest is the contract. An entity it lists must have a file, and that file must be well formed, because a bundle has no way of knowing otherwise until it has fetched it. An entry whose file is missing or malformed shows the reader an error rather than quietly disappearing from the selector.
 
