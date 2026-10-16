@@ -95,6 +95,9 @@ export const onRequestPost: PagesFunction<Env> = async ({
     }
 }
 
+// TODO: replace with validateNewsletterCaptcha from _common/newsletterCaptcha.ts
+// once it accepts a "donate" action; that version adds a timeout and checks
+// the widget action.
 async function isCaptchaValid(token: string, key: string): Promise<boolean> {
     const response = await fetch(
         "https://challenges.cloudflare.com/turnstile/v0/siteverify",
