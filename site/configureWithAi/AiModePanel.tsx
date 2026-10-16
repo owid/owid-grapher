@@ -3,6 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
     faArrowRight,
     faCalendar,
+    faEyeSlash,
     faChartLine,
     faEarthAmericas,
     faRotateLeft,
@@ -13,6 +14,7 @@ import {
     type IconDefinition,
 } from "@fortawesome/free-solid-svg-icons"
 import cx from "clsx"
+import { CookieKey } from "@ourworldindata/grapher"
 import type {
     HistoryEntry,
     PanelState,
@@ -93,7 +95,14 @@ export function AiModePanel({
               : (current?.query ?? "")
     const setInput = (text: string): void =>
         setDraft({ forId: state.currentId, text })
-    const [model, setModel] = useState<ModelId>(readStoredModel)
+    // Staff get the model picker and the usage line; everyone else gets
+    // the default model. The cookie is a hint set by visiting the admin,
+    // not access control.
+    const [isStaff] = useState(() =>
+        document.cookie.includes(CookieKey.isAdmin)
+    )
+    const [storedModel, setModel] = useState<ModelId>(readStoredModel)
+    const model = isStaff ? storedModel : DEFAULT_MODEL
     const isThinking = request.status === "thinking"
 
     const ask = (query: string): void => {
@@ -188,33 +197,46 @@ export function AiModePanel({
                 {history.length > 0 && <History store={store} state={state} />}
             </div>
 
-            <div className="configure-with-ai__footer">
-                <span>Beta. Your request is sent to Claude, an AI model.</span>
-                <label className="configure-with-ai__model">
-                    <span className="sr-only">Model</span>
-                    <select
-                        value={model}
-                        onChange={(e) => changeModel(e.target.value as ModelId)}
-                    >
-                        {MODELS.map((m) => (
-                            <option key={m.id} value={m.id}>
-                                {m.label}
-                            </option>
-                        ))}
-                    </select>
-                </label>
-            </div>
-            {current && (
-                <p className="configure-with-ai__usage">
-                    {(current.usage.ms / 1000).toFixed(1)} s ·{" "}
-                    {(
-                        current.usage.inputTokens +
-                        current.usage.cacheReadTokens +
-                        current.usage.cacheWriteTokens
-                    ).toLocaleString()}{" "}
-                    in ({current.usage.cacheReadTokens.toLocaleString()} cached)
-                    · {current.usage.outputTokens.toLocaleString()} out
-                </p>
+            <p className="configure-with-ai__disclosure">
+                Beta. Your request is sent to Claude, an AI model.
+            </p>
+            {isStaff && (
+                <div className="configure-with-ai__staff">
+                    <div className="configure-with-ai__staff-row">
+                        <span className="configure-with-ai__staff-label">
+                            <FontAwesomeIcon icon={faEyeSlash} />
+                            Only visible to OWID staff
+                        </span>
+                        <label className="configure-with-ai__model">
+                            <span className="sr-only">Model</span>
+                            <select
+                                value={model}
+                                onChange={(e) =>
+                                    changeModel(e.target.value as ModelId)
+                                }
+                            >
+                                {MODELS.map((m) => (
+                                    <option key={m.id} value={m.id}>
+                                        {m.label}
+                                    </option>
+                                ))}
+                            </select>
+                        </label>
+                    </div>
+                    {current && (
+                        <p className="configure-with-ai__usage">
+                            {(current.usage.ms / 1000).toFixed(1)} s ·{" "}
+                            {(
+                                current.usage.inputTokens +
+                                current.usage.cacheReadTokens +
+                                current.usage.cacheWriteTokens
+                            ).toLocaleString()}{" "}
+                            in ({current.usage.cacheReadTokens.toLocaleString()}{" "}
+                            cached) ·{" "}
+                            {current.usage.outputTokens.toLocaleString()} out
+                        </p>
+                    )}
+                </div>
             )}
         </div>
     )
