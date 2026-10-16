@@ -12,11 +12,13 @@ const captcha = vi.hoisted(() => ({
     reset: vi.fn(),
 }))
 vi.mock(import("@marsidev/react-turnstile"), async () => {
-    const { forwardRef, useImperativeHandle } = await import("react")
+    const { forwardRef, useEffect, useImperativeHandle } = await import("react")
     return {
         Turnstile: forwardRef<TurnstileInstance | undefined, TurnstileProps>(
             (props, ref) => {
-                captcha.props = props
+                useEffect(() => {
+                    captcha.props = props
+                })
                 useImperativeHandle(ref, () => ({
                     reset: captcha.reset,
                     render: vi.fn(),
