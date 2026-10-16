@@ -38,6 +38,7 @@ import { match } from "ts-pattern"
 import { MapFormatValueForTooltip } from "./MapChartState.js"
 
 interface MapTooltipProps {
+    id: number
     entityName: EntityName
     manager: MapChartManager
     mapColumnSlug: ColumnSlug
@@ -322,9 +323,8 @@ export class MapTooltip
 
         return (
             <Tooltip
-                id="mapTooltip"
+                id={this.props.id}
                 tooltipManager={this.props.manager}
-                key="mapTooltip"
                 x={position?.x}
                 y={position?.y}
                 style={{ maxWidth: "250px" }}

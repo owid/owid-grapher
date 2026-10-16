@@ -67,6 +67,8 @@ export class StackedBarChart
 {
     readonly minBarSpacing = 4
 
+    private readonly tooltipId = guid()
+
     constructor(props: StackedBarChartProps) {
         super(props)
 
@@ -100,10 +102,6 @@ export class StackedBarChart
 
     @computed private get isStatic(): boolean {
         return this.manager.isStatic ?? false
-    }
-
-    @computed private get renderUid(): number {
-        return guid()
     }
 
     @computed get fontSize(): number {
@@ -413,7 +411,7 @@ export class StackedBarChart
 
         return (
             <Tooltip
-                id={this.renderUid}
+                id={this.tooltipId}
                 tooltipManager={this.manager}
                 x={position.x}
                 y={position.y}

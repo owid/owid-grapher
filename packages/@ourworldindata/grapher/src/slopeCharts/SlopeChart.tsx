@@ -100,6 +100,7 @@ export class SlopeChart
 {
     private readonly slopeAreaRef = React.createRef<SVGGElement>()
 
+    private readonly tooltipId = guid()
     private readonly tooltipState = new TooltipState<{
         series: SlopeChartSeries
     }>({ fade: "immediate" })
@@ -749,10 +750,6 @@ export class SlopeChart
         this.clearHoveredSeries()
     }
 
-    @computed private get renderUid(): number {
-        return guid()
-    }
-
     @computed private get tooltip(): React.ReactElement | undefined {
         const {
             manager: { isRelativeMode },
@@ -837,7 +834,7 @@ export class SlopeChart
 
         return (
             <Tooltip
-                id={this.renderUid}
+                id={this.tooltipId}
                 tooltipManager={this.props.chartState.manager}
                 x={position.x}
                 y={position.y}
