@@ -14,6 +14,7 @@ import {
 } from "@ourworldindata/utils"
 import {
     buildEngineUrl,
+    buildPageUrl,
     buildPrompt,
     describeChartState,
     parseArm,
@@ -104,10 +105,9 @@ export function AskAI({ slug, title }: AskAIProps) {
     }
 
     const handleAsk = (engine: AskAiEngine) => {
-        const pageUrl = queryStr ? `${slugUrl}${queryStr}` : slugUrl
         const prompt = buildPrompt({
             title,
-            pageUrl,
+            pageUrl: buildPageUrl(slugUrl, queryStr),
             slugUrl,
             queryStr,
             stateSummary,

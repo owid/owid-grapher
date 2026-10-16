@@ -6,6 +6,7 @@ import {
     buildEngineUrl,
     buildCsvUrl,
     buildFullCsvUrl,
+    buildPageUrl,
     OWID_PUBLIC_GRAPHER_URL,
 } from "./askAiPrompt.js"
 
@@ -189,6 +190,15 @@ describe("engine deep links", () => {
         expect(buildEngineUrl("claude", "a b&c")).toBe(
             "https://claude.ai/new?q=a%20b%26c"
         )
+    })
+})
+
+describe("page URL", () => {
+    it("keeps the visitor's view but not the arm override", () => {
+        expect(
+            buildPageUrl(SLUG_URL, "?country=~NGA&askai=v3&time=1990..2020")
+        ).toBe(`${SLUG_URL}?country=%7ENGA&time=1990..2020`)
+        expect(buildPageUrl(SLUG_URL, "?askai=v5")).toBe(SLUG_URL)
     })
 })
 

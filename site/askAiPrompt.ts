@@ -26,6 +26,17 @@ export const parseArm = (
 export const parseArmOverride = (queryStr: string): AskAiArm | undefined =>
     parseArm(new URLSearchParams(queryStr).get(ASK_AI_PARAM))
 
+/**
+ * The page as the visitor sees it, minus our own ?askai= override, which
+ * means nothing to the assistant.
+ */
+export const buildPageUrl = (slugUrl: string, queryStr: string): string => {
+    const params = new URLSearchParams(queryStr)
+    params.delete(ASK_AI_PARAM)
+    const s = params.toString()
+    return s ? `${slugUrl}?${s}` : slugUrl
+}
+
 export const ENGINES: { id: AskAiEngine; label: string }[] = [
     { id: "claude", label: "Ask Claude" },
     { id: "chatgpt", label: "Ask ChatGPT" },
