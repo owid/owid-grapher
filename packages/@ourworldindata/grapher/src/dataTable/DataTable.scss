@@ -40,6 +40,26 @@
         .table-wrapper {
             overflow: auto;
             border: $cell-border;
+
+            // A styled scrollbar stays visible where the OS would hide it.
+            // Chrome ignores it once scrollbar-width or scrollbar-color is set:
+            // https://developer.chrome.com/docs/css-ui/scrollbar-styling
+            &::-webkit-scrollbar {
+                width: 11px;
+                height: 11px;
+            }
+
+            &::-webkit-scrollbar-track,
+            &::-webkit-scrollbar-corner {
+                background: transparent;
+            }
+
+            &::-webkit-scrollbar-thumb {
+                background-clip: content-box;
+                background-color: $gray-70;
+                border-radius: 11px;
+                border: 3px solid transparent;
+            }
         }
 
         .title-fragments {
