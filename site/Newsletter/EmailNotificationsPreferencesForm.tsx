@@ -289,6 +289,7 @@ const TokenScreen = ({ token }: { token: string }) => {
                         icon={null}
                         href="/subscribe"
                         text="Resubscribe"
+                        dataTrackNote="preferences_resubscribe"
                     />
                 </SubscribePageConfirmation>
             ))

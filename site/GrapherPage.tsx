@@ -187,6 +187,7 @@ window.renderSingleGrapherOnGrapherPage({ config: jsonConfig, dataApiUrl: "${DAT
 
                     <TopicNewsletterCard
                         topicArea={topicArea}
+                        placement="grapher_page"
                         pageType="chart"
                         className="topic-newsletter-card--grapher-page topic-newsletter-card--horizontal"
                     />

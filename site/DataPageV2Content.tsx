@@ -203,6 +203,7 @@ export const DataPageV2Content = ({
                             <TopicNewsletterCard
                                 pageType="chart"
                                 topicArea={topicArea}
+                                placement="datapage_metadata"
                                 variant="narrow"
                                 className="topic-newsletter-card--datapage-metadata col-start-11 span-cols-3 col-md-start-2 span-md-cols-12"
                             />
