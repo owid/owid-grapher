@@ -1,3 +1,4 @@
+import { CONFIGURE_WITH_AI_API_URL } from "../../settings/clientSettings.mjs"
 import type { ConfigureWithAiView } from "./configureWithAiView.js"
 
 // State of the "Configure with AI" side panel. Grapher unmounts the panel on
@@ -119,7 +120,7 @@ export class PanelStore {
             request: { status: "thinking", query, started: Date.now() },
         })
         try {
-            const response = await fetch("/api/configure-with-ai", {
+            const response = await fetch(CONFIGURE_WITH_AI_API_URL, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -208,7 +209,7 @@ export class PanelStore {
         const entry = this.current
         if (!entry) return
         this.replaceEntry({ ...entry, feedback })
-        void fetch("/api/configure-with-ai/feedback", {
+        void fetch(`${CONFIGURE_WITH_AI_API_URL}/feedback`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ runId: entry.runId, feedback }),

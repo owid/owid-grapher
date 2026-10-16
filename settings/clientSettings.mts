@@ -91,6 +91,11 @@ export const CLOUDFLARE_IMAGES_URL: string =
         ? "https://ourworldindata.org/cdn-cgi/imagedelivery/qLq-8BTgXU8yG0N6HnOy8g"
         : "")
 
+// "Configure with AI" prototype. In development, set it to the local functions
+// server, e.g. http://localhost:<WRANGLER_PORT>/api/configure-with-ai
+export const CONFIGURE_WITH_AI_API_URL: string =
+    process.env.CONFIGURE_WITH_AI_API_URL ?? "/api/configure-with-ai"
+
 export const DONATE_API_URL: string =
     process.env.DONATE_API_URL ?? "http://localhost:8788/donation/donate"
 
