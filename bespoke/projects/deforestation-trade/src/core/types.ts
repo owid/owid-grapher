@@ -47,7 +47,6 @@ export type RawCountryJson = { imports: RawFlowBlock; exports: RawFlowBlock }
 export type RawMetadataJson = Partial<BespokeMetadata> & {
     timeRange: { start: number; end: number }
     years: number[]
-    source: string
     dimensions: {
         entities: Entity[]
         commodityGroups: CommodityGroup[]
