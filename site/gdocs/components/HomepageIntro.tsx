@@ -226,6 +226,7 @@ function HomepageAnnouncements() {
                 href="/subscribe"
                 text="Subscribe to our newsletters"
                 theme="solid-vermillion"
+                dataTrackNote="homepage_intro_subscribe"
             />
         </div>
     )
