@@ -253,7 +253,7 @@ export class DiscreteBarChart
         return (this.innerBounds.height - totalWhiteSpace) / this.barCount
     }
 
-    @computed private get placedSeries(): PlacedDiscreteBarSeries[] {
+    @computed get placedSeries(): PlacedDiscreteBarSeries[] {
         const yOffset =
             this.innerBounds.top + this.barHeight / 2 + this.barSpacing / 2
         return this.sizedSeries.map((series, index) => {
