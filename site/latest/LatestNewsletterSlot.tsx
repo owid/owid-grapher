@@ -17,6 +17,7 @@ export const LatestNewsletterSlot = ({ topicArea }: { topicArea?: string }) =>
                 LATEST_NEWSLETTER_SIGNUP_CLASSES
             )}
             topicArea={topicArea}
+            placement="latest"
             variant="narrow"
         />
     ) : (
