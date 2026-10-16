@@ -27,7 +27,6 @@ import {
     TickFormattingOptions,
     Tippy,
     excludeUndefined,
-    joinTitleFragments,
     FuzzySearch,
 } from "@ourworldindata/utils"
 import {
@@ -292,25 +291,18 @@ export class DataTable extends React.Component<DataTableProps> {
             const targetTime = singleColumn?.targetTime
 
             const title = _.upperFirst(display.columnName.title)
-            const titleFragments = joinTitleFragments(
-                display.columnName.attributionShort,
-                display.columnName.titleVariant
-            )
+            const { titleVariant } = display.columnName
 
             const dimensionHeaderText = (
                 <React.Fragment>
                     <div
                         className="name"
                         title={
-                            titleFragments
-                                ? `${title} – ${titleFragments}`
-                                : title
+                            titleVariant ? `${title} – ${titleVariant}` : title
                         }
                     >
                         <span className="title-text">{title} </span>
-                        <span className="title-fragments">
-                            {titleFragments}
-                        </span>
+                        <span className="title-fragments">{titleVariant}</span>
                     </div>
                     <div className="description">
                         <span className="unit">{display.unit}</span>
@@ -576,20 +568,13 @@ export class DataTable extends React.Component<DataTableProps> {
         if (this.displayDimensions.length === 0) return null
 
         const singleDimension = this.displayDimensions[0]
-        const titleFragments =
-            singleDimension.display.columnName.attributionShort ||
-            singleDimension.display.columnName.titleVariant
-                ? joinTitleFragments(
-                      singleDimension.display.columnName.attributionShort,
-                      singleDimension.display.columnName.titleVariant
-                  )
-                : undefined
+        const { titleVariant } = singleDimension.display.columnName
 
         return singleDimension ? (
             <div className="caption">
                 {singleDimension.display.columnName.title}{" "}
                 <span className="title-fragments">
-                    {titleFragments}
+                    {titleVariant}
                     {singleDimension.display.unit &&
                         ` (${singleDimension.display.unit})`}
                 </span>
