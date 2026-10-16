@@ -52,7 +52,12 @@ export const getCloudflarePagesRedirects = async (
         // pages as well.
         "/app/uploads/* /uploads/:splat 301",
 
-        // Backwards compatibility-- old Max stuff that isn't static-friendly
+        // Backwards compatibility-- old Max stuff that isn't static-friendly.
+        // The two old charts our articles still use are copied to the
+        // owid-assets R2 bucket so they don't depend on maxroser.com;
+        // everything else under /roser/ stays there.
+        "/roser/graphs/WorldIncomeDistribution_LaknerAndMilanovic/* https://assets.ourworldindata.org/legacy-charts/graphs/WorldIncomeDistribution_LaknerAndMilanovic/:splat 301",
+        "/roser/graphs/WorldIncomeDistribution1820to2000/* https://assets.ourworldindata.org/legacy-charts/graphs/WorldIncomeDistribution1820to2000/:splat 301",
         "/roser/* https://www.maxroser.com/roser/:splat 301",
         "/uploads/nvd3/* https://www.maxroser.com/owidUploads/nvd3/:splat 301",
         "/uploads/datamaps/* https://www.maxroser.com/owidUploads/datamaps/:splat 301",
