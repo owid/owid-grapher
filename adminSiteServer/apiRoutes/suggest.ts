@@ -81,7 +81,8 @@ export async function generateAltTextFromUrl(imageUrl: string): Promise<{
         altText = await fetchGeneratedAltText(imageUrl)
     } catch (error) {
         console.error(
-            `Error generating alt text for image at ${imageUrl}`,
+            "Error generating alt text for image at %s",
+            imageUrl,
             error
         )
         throw new JsonError(`Error generating alt text: ${error}`, 500)
