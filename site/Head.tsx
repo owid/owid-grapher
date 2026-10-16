@@ -1,6 +1,6 @@
 import { DEFAULT_ATOM_FEED_PROPS } from "./SiteConstants.js"
 import { viteAssetsForSite } from "./viteUtils.js"
-import { ENV, GOOGLE_TAG_MANAGER_ID } from "../settings/clientSettings.js"
+import { ENV, GOOGLE_TAG_MANAGER_ID } from "../settings/clientSettings.mjs"
 import { NoJSDetector } from "./NoJSDetector.js"
 import {
     ArchiveContext,
@@ -98,6 +98,12 @@ export const Head = (props: {
                 type="application/atom+xml"
                 href={atom.href}
                 title={atom.title}
+            />
+            <link
+                rel="search"
+                type="application/opensearchdescription+xml"
+                href="/opensearch.xml"
+                title="Our World in Data"
             />
             {props.archiveContext && (
                 <link

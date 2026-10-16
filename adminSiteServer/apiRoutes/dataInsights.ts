@@ -14,12 +14,12 @@ import {
     OwidGdocBaseInterface,
     OwidGdocDataInsightContent,
     OwidGdocDataInsightIndexItem,
-    parseChartConfig,
     parsePostGdocContent,
     parsePostsGdocsRow,
     PostsGdocsTableName,
 } from "@ourworldindata/types"
 import * as db from "../../db/db.js"
+import { parseAndMigrateChartConfig } from "../../db/model/ChartConfigs.js"
 import {
     createOrLoadGdocById,
     getTagsGroupedByGdocId,
@@ -30,7 +30,7 @@ import {
     createGdocFromTemplate,
     replacePlaceholdersInGdoc,
 } from "../../db/model/Gdoc/archieToGdoc.js"
-import { GDOCS_DATA_INSIGHT_API_TEMPLATE_ID } from "../../settings/clientSettings.js"
+import { GDOCS_DATA_INSIGHT_API_TEMPLATE_ID } from "../../settings/clientSettings.mjs"
 import { GrapherState } from "@ourworldindata/grapher"
 
 const GRAPHER_URL_PREFIX = "https://ourworldindata.org/grapher/"
@@ -174,7 +174,7 @@ function extractDataInsightIndexItem(
         dataInsight.content
     ) as OwidGdocDataInsightContent
     const chartConfig = dataInsight.chartConfig
-        ? parseChartConfig(dataInsight.chartConfig)
+        ? parseAndMigrateChartConfig(dataInsight.chartConfig)
         : undefined
 
     // check if the given grapher-url is a valid Grapher or Explorer URL

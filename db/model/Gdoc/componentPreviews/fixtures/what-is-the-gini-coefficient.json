@@ -1,0 +1,1568 @@
+{
+    "documentId": "17-2C6H3kPd7w9DxWT2RG2QuLP0Pzxvm4H2RVsWFWUzM",
+    "title": "Measuring inequality: What is the Gini coefficient?",
+    "tabs": [
+        {
+            "tabProperties": {
+                "tabId": "t.0",
+                "title": "Measuring inequality: What is the Gini coefficient?",
+                "index": 0
+            },
+            "documentTab": {
+                "body": {
+                    "content": [
+                        { "endIndex": 1 },
+                        {
+                            "startIndex": 1,
+                            "endIndex": 7,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 1,
+                                        "endIndex": 7,
+                                        "textRun": { "content": ":skip\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 7,
+                            "endIndex": 28,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 7,
+                                        "endIndex": 27,
+                                        "textRun": {
+                                            "content": "PREVIEW THIS ARTICLE",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "https://owid.cloud/admin/gdocs/17-2C6H3kPd7w9DxWT2RG2QuLP0Pzxvm4H2RVsWFWUzM/preview"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 27,
+                                        "endIndex": 28,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 28,
+                            "endIndex": 37,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 28,
+                                        "endIndex": 37,
+                                        "textRun": { "content": ":endskip\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 37,
+                            "endIndex": 38,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 37,
+                                        "endIndex": 38,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 38,
+                            "endIndex": 97,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 38,
+                                        "endIndex": 45,
+                                        "textRun": { "content": "title: " }
+                                    },
+                                    {
+                                        "startIndex": 45,
+                                        "endIndex": 96,
+                                        "textRun": {
+                                            "content": "Measuring inequality: what is the Gini coefficient?"
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 96,
+                                        "endIndex": 97,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 97,
+                            "endIndex": 269,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 97,
+                                        "endIndex": 107,
+                                        "textRun": { "content": "subtitle: " }
+                                    },
+                                    {
+                                        "startIndex": 107,
+                                        "endIndex": 269,
+                                        "textRun": {
+                                            "content": "The Gini coefficient is the most common way of measuring inequality. But what does it actually measure? And how does it differ from other measures of inequality?\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 269,
+                            "endIndex": 289,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 269,
+                                        "endIndex": 278,
+                                        "textRun": { "content": "authors: " }
+                                    },
+                                    {
+                                        "startIndex": 278,
+                                        "endIndex": 289,
+                                        "textRun": { "content": "Joe Hasell\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 289,
+                            "endIndex": 460,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 289,
+                                        "endIndex": 298,
+                                        "textRun": { "content": "excerpt: " }
+                                    },
+                                    {
+                                        "startIndex": 298,
+                                        "endIndex": 460,
+                                        "textRun": {
+                                            "content": "The Gini coefficient is the most common way of measuring inequality. But what does it actually measure? And how does it differ from other measures of inequality?\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 460,
+                            "endIndex": 519,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 460,
+                                        "endIndex": 476,
+                                        "textRun": {
+                                            "content": "featured-image: "
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 476,
+                                        "endIndex": 518,
+                                        "textRun": {
+                                            "content": "what-is-the-gini-coefficient-thumbnail.png"
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 518,
+                                        "endIndex": 519,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 519,
+                            "endIndex": 533,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 519,
+                                        "endIndex": 525,
+                                        "textRun": { "content": "type: " }
+                                    },
+                                    {
+                                        "startIndex": 525,
+                                        "endIndex": 532,
+                                        "textRun": { "content": "article" }
+                                    },
+                                    {
+                                        "startIndex": 532,
+                                        "endIndex": 533,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 533,
+                            "endIndex": 534,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 533,
+                                        "endIndex": 534,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 534,
+                            "endIndex": 535,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 534,
+                                        "endIndex": 535,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 535,
+                            "endIndex": 536,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 535,
+                                        "endIndex": 536,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 536,
+                            "endIndex": 544,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 536,
+                                        "endIndex": 544,
+                                        "textRun": { "content": "[+body]\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 544,
+                            "endIndex": 545,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 544,
+                                        "endIndex": 545,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 545,
+                            "endIndex": 546,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 545,
+                                        "endIndex": 546,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 546,
+                            "endIndex": 722,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 546,
+                                        "endIndex": 722,
+                                        "textRun": {
+                                            "content": "The Gini coefficient, or Gini index, is the most commonly used measure of inequality. It was developed by Italian statistician Corrado Gini (1884–1965) and is named after him.\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 722,
+                            "endIndex": 723,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 722,
+                                        "endIndex": 723,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 723,
+                            "endIndex": 1476,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 723,
+                                        "endIndex": 760,
+                                        "textRun": {
+                                            "content": "It is typically used as a measure of "
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 760,
+                                        "endIndex": 766,
+                                        "textRun": { "content": "income" }
+                                    },
+                                    {
+                                        "startIndex": 766,
+                                        "endIndex": 889,
+                                        "textRun": {
+                                            "content": " inequality, but it can be used to measure the inequality of any distribution — such as the distribution of wealth or even "
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 889,
+                                        "endIndex": 904,
+                                        "textRun": {
+                                            "content": "life expectancy"
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 904,
+                                        "endIndex": 905,
+                                        "textRun": { "content": "." }
+                                    },
+                                    {
+                                        "startIndex": 905,
+                                        "endIndex": 1475,
+                                        "textRun": {
+                                            "content": "{ref}Generally, the Gini coefficient is not used to calculate inequality for distributions that include negative values. For example, the distribution of wealth will include many people with negative wealth — those whose debts are greater than their assets. The Gini coefficient can be calculated over such distributions, but this can result in values greater than 1 — making the metric difficult to interpret. When calculating a Gini coefficient on a distribution that includes negative values, these values are typically dropped or replaced with a value of zero.{/ref}"
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 1475,
+                                        "endIndex": 1476,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 1476,
+                            "endIndex": 1477,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 1476,
+                                        "endIndex": 1477,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 1477,
+                            "endIndex": 1657,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 1477,
+                                        "endIndex": 1657,
+                                        "textRun": {
+                                            "content": "It measures inequality on a scale from 0 to 1, where higher values indicate higher inequality. This can sometimes be shown as a percentage from 0 to 100%, called the “Gini Index”.\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 1657,
+                            "endIndex": 1658,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 1657,
+                                        "endIndex": 1658,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 1658,
+                            "endIndex": 1850,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 1658,
+                                        "endIndex": 1850,
+                                        "textRun": {
+                                            "content": "A value of 0 indicates perfect equality: everyone has the same income. A value of 1 indicates perfect inequality, where one person receives all the income, and everyone else receives nothing.\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 1850,
+                            "endIndex": 1851,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 1850,
+                                        "endIndex": 1851,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 1851,
+                            "endIndex": 1860,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 1851,
+                                        "endIndex": 1860,
+                                        "textRun": { "content": "{.chart}\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 1860,
+                            "endIndex": 1981,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 1860,
+                                        "endIndex": 1980,
+                                        "textRun": {
+                                            "content": "url: https://ourworldindata.org/grapher/gini-coefficient-wb?country=USA%7EFRA%7EIDN%7EURY&survey_comparability=no_spells"
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 1980,
+                                        "endIndex": 1981,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 1981,
+                            "endIndex": 1984,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 1981,
+                                        "endIndex": 1984,
+                                        "textRun": { "content": "{}\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 1984,
+                            "endIndex": 2024,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 1984,
+                                        "endIndex": 2024,
+                                        "textRun": {
+                                            "content": "How is the Gini coefficient calculated?\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 2024,
+                            "endIndex": 2025,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 2024,
+                                        "endIndex": 2025,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 2025,
+                            "endIndex": 2199,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 2025,
+                                        "endIndex": 2199,
+                                        "textRun": {
+                                            "content": "There are two main ways of calculating the Gini coefficient. Both arrive at the same value, but they provide us with two different angles for understanding what it measures.\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 2199,
+                            "endIndex": 2200,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 2199,
+                                        "endIndex": 2200,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 2200,
+                            "endIndex": 2315,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 2200,
+                                        "endIndex": 2315,
+                                        "textRun": {
+                                            "content": "Method 1: The Gini tells us the difference we expect to find between any two people’s incomes relative to the mean\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 2315,
+                            "endIndex": 2316,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 2315,
+                                        "endIndex": 2316,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 2316,
+                            "endIndex": 2391,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 2316,
+                                        "endIndex": 2391,
+                                        "textRun": {
+                                            "content": "The first method can be illustrated with the following thought experiment.\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 2391,
+                            "endIndex": 2392,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 2391,
+                                        "endIndex": 2392,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 2392,
+                            "endIndex": 2590,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 2392,
+                                        "endIndex": 2569,
+                                        "textRun": {
+                                            "content": "Imagine two people bumping into each other in the street at random. They compare their incomes and find out how rich one person is compared to the other. How big a gap would we "
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 2569,
+                                        "endIndex": 2575,
+                                        "textRun": { "content": "expect" }
+                                    },
+                                    {
+                                        "startIndex": 2575,
+                                        "endIndex": 2590,
+                                        "textRun": {
+                                            "content": " there to be? \n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 2590,
+                            "endIndex": 2591,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 2590,
+                                        "endIndex": 2591,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 2591,
+                            "endIndex": 2755,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 2591,
+                                        "endIndex": 2755,
+                                        "textRun": {
+                                            "content": "This expected gap between two randomly chosen people is what the Gini coefficient measures. It is calculated by taking the average gap between all pairs of people.\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 2755,
+                            "endIndex": 2756,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 2755,
+                                        "endIndex": 2756,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 2756,
+                            "endIndex": 2920,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 2756,
+                                        "endIndex": 2920,
+                                        "textRun": {
+                                            "content": "Where incomes are distributed equally, we expect the gap between two randomly selected people to be small. Where inequality is high, we expect the gap to be large.\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 2920,
+                            "endIndex": 2921,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 2920,
+                                        "endIndex": 2921,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 2921,
+                            "endIndex": 3292,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 2921,
+                                        "endIndex": 3292,
+                                        "textRun": {
+                                            "content": "However, if measured in absolute terms, this will also depend on how rich or poor the population is generally. Where even the most well-off in society have a low income, the absolute gap between people’s incomes cannot be high. Conversely, where incomes are generally high, even very small relative differences between people's incomes can result in large absolute gaps.\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 3292,
+                            "endIndex": 3293,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 3292,
+                                        "endIndex": 3293,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 3293,
+                            "endIndex": 3439,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 3293,
+                                        "endIndex": 3392,
+                                        "textRun": {
+                                            "content": "For this reason, the Gini coefficient expresses the expected absolute gap between people’s incomes "
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 3392,
+                                        "endIndex": 3419,
+                                        "textRun": {
+                                            "content": "relative to the mean income"
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 3419,
+                                        "endIndex": 3439,
+                                        "textRun": {
+                                            "content": " in the population.\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 3439,
+                            "endIndex": 3440,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 3439,
+                                        "endIndex": 3440,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 3440,
+                            "endIndex": 4229,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 3440,
+                                        "endIndex": 3701,
+                                        "textRun": {
+                                            "content": "In particular, it is calculated as the expected gap as a share of twice the mean income. Twice the mean income is the highest possible value for the average gap — a situation of perfect inequality, where one person has all the income and everyone else has none."
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 3701,
+                                        "endIndex": 4162,
+                                        "textRun": {
+                                            "content": "{ref}To help give an intuition as to why twice the mean is the highest value for the average gap, we can think of the simplest case. Imagine our population now consists of just those two people who met in the street, and their total income equals $100. The average income between the two people is $50. If inequality is at its highest — so that one person has $100, and the other has $0 — the gap between them will be $100, which is twice the mean income.{/ref}"
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 4162,
+                                        "endIndex": 4229,
+                                        "textRun": {
+                                            "content": " So in this case of maximum inequality, the Gini coefficient is 1.\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 4229,
+                            "endIndex": 4230,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 4229,
+                                        "endIndex": 4230,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 4230,
+                            "endIndex": 4476,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 4230,
+                                        "endIndex": 4476,
+                                        "textRun": {
+                                            "content": "The lowest possible value for the average gap between all pairs of people is zero—a situation of perfect equality, where there are no gaps between any two people’s incomes because everyone earns the same. In this case, the Gini coefficient is 0.\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 4476,
+                            "endIndex": 4477,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 4476,
+                                        "endIndex": 4477,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 4477,
+                            "endIndex": 4560,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 4477,
+                                        "endIndex": 4560,
+                                        "textRun": {
+                                            "content": "Method 2: The Gini tells us how far the “Lorenz curve” falls from perfect equality\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 4560,
+                            "endIndex": 4561,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 4560,
+                                        "endIndex": 4561,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 4561,
+                            "endIndex": 4636,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 4561,
+                                        "endIndex": 4636,
+                                        "textRun": {
+                                            "content": "The figure illustrates a second visual definition of the Gini coefficient.\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 4636,
+                            "endIndex": 4819,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 4636,
+                                        "endIndex": 4819,
+                                        "textRun": {
+                                            "content": "The left panel shows the share of income received by each fifth of a hypothetical population. The right panel shows this data plotted cumulatively. This is known as a “Lorenz curve”.\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 4819,
+                            "endIndex": 5092,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 4819,
+                                        "endIndex": 5092,
+                                        "textRun": {
+                                            "content": "In a population where income is shared perfectly equally, the Lorenz curve would be a straight diagonal line: 10% of the population would earn 10% of the total income, 20% would earn 20% of the total income, and so on. This is shown in the chart as the “line of equality”.\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 5092,
+                            "endIndex": 5253,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 5092,
+                                        "endIndex": 5253,
+                                        "textRun": {
+                                            "content": "In the hypothetical population shown in the chart, though, incomes are not distributed equally. The bottom 60% of the population earns 30% of the total income. \n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 5253,
+                            "endIndex": 5410,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 5253,
+                                        "endIndex": 5410,
+                                        "textRun": {
+                                            "content": "The Gini coefficient captures how far the Lorenz curve falls from the “line of equality” by comparing the areas A and B, as calculated in the following way:\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 5410,
+                            "endIndex": 5411,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 5410,
+                                        "endIndex": 5411,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 5411,
+                            "endIndex": 5442,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 5411,
+                                        "endIndex": 5442,
+                                        "textRun": {
+                                            "content": "Gini coefficient = A / (A + B)\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 5442,
+                            "endIndex": 5443,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 5442,
+                                        "endIndex": 5443,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 5443,
+                            "endIndex": 5837,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 5443,
+                                        "endIndex": 5837,
+                                        "textRun": {
+                                            "content": "The Lorenz curve is the “line of equality” where incomes are shared perfectly equally. Area A is 0, and hence so is the Gini coefficient. Where one person has all income and all others receive no income, the Lorenz curve will run along the bottom axis of the chart — the cumulative share of income is zero until the very last person. Area B will be zero, and the Gini coefficient will equal 1.\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 5837,
+                            "endIndex": 5838,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 5837,
+                                        "endIndex": 5838,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 5838,
+                            "endIndex": 5847,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 5838,
+                                        "endIndex": 5847,
+                                        "textRun": { "content": "{.image}\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 5847,
+                            "endIndex": 5886,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 5847,
+                                        "endIndex": 5857,
+                                        "textRun": { "content": "filename: " }
+                                    },
+                                    {
+                                        "startIndex": 5857,
+                                        "endIndex": 5886,
+                                        "textRun": {
+                                            "content": "Gini-measure-schematic-1.png\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 5886,
+                            "endIndex": 5889,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 5886,
+                                        "endIndex": 5889,
+                                        "textRun": { "content": "{}\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 5889,
+                            "endIndex": 5890,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 5889,
+                                        "endIndex": 5890,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 5890,
+                            "endIndex": 5891,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 5890,
+                                        "endIndex": 5891,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 5891,
+                            "endIndex": 5975,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 5891,
+                                        "endIndex": 5975,
+                                        "textRun": {
+                                            "content": "Comparing measures: Does the Gini tell the same story as other inequality measures?\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 5975,
+                            "endIndex": 5976,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 5975,
+                                        "endIndex": 5976,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 5976,
+                            "endIndex": 6396,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 5976,
+                                        "endIndex": 6125,
+                                        "textRun": {
+                                            "content": "A measure of inequality summarizes how spread out the distribution is — just like the standard deviation, which you may have learned about in school."
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 6125,
+                                        "endIndex": 6395,
+                                        "textRun": {
+                                            "content": "{ref}The standard deviation too is sometimes used as a measure of income inequality — though, to make it a measure of relative inequality, it is usually first used by dividing by the mean, similar to the Gini. This measure is known as the Coefficient of Variation.{/ref}"
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 6395,
+                                        "endIndex": 6396,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 6396,
+                            "endIndex": 7416,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 6396,
+                                        "endIndex": 6499,
+                                        "textRun": {
+                                            "content": "Implicit in such summary measures are judgments about what should count most when measuring inequality."
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 6499,
+                                        "endIndex": 6585,
+                                        "textRun": {
+                                            "content": "{ref}This point was championed by Anthony Atkinson, including in his well-known paper "
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 6585,
+                                        "endIndex": 6617,
+                                        "textRun": {
+                                            "content": "On the Measurement of Inequality"
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 6617,
+                                        "endIndex": 6633,
+                                        "textRun": {
+                                            "content": ". See Anthony B "
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 6633,
+                                        "endIndex": 6679,
+                                        "textRun": {
+                                            "content": "Atkinson, “On the Measurement of Inequality”. "
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 6679,
+                                        "endIndex": 6705,
+                                        "textRun": {
+                                            "content": "Journal of Economic Theory"
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 6705,
+                                        "endIndex": 6741,
+                                        "textRun": {
+                                            "content": " 2, no. 3 (1970): 244–63. Available "
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 6741,
+                                        "endIndex": 6745,
+                                        "textRun": {
+                                            "content": "here",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "http://faculty.ucr.edu/~jorgea/econ261/atkinson_inequality.pdf"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 6745,
+                                        "endIndex": 6752,
+                                        "textRun": { "content": ".{/ref}" }
+                                    },
+                                    {
+                                        "startIndex": 6752,
+                                        "endIndex": 6825,
+                                        "textRun": {
+                                            "content": " For example, compare two hypothetical populations. In one, the rich are "
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 6825,
+                                        "endIndex": 6829,
+                                        "textRun": { "content": "much" }
+                                    },
+                                    {
+                                        "startIndex": 6829,
+                                        "endIndex": 7072,
+                                        "textRun": {
+                                            "content": " richer than those in the middle, but the incomes of poorer people are only a little below those in the middle. In another, there is the opposite situation: the incomes of the rich are only a little above those in the middle, but the poor are "
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 7072,
+                                        "endIndex": 7076,
+                                        "textRun": { "content": "much" }
+                                    },
+                                    {
+                                        "startIndex": 7076,
+                                        "endIndex": 7416,
+                                        "textRun": {
+                                            "content": " poorer. In which population would you say inequality is highest? Your answer will depend on your personal judgments about how these gaps in different parts of the distribution compare in terms of their contribution to inequality overall. Such value judgments are implicitly built into the mathematical definition of an inequality measure.\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 7416,
+                            "endIndex": 7812,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 7416,
+                                        "endIndex": 7673,
+                                        "textRun": {
+                                            "content": "That is true of all inequality measures, and the Gini coefficient is no exception. One property of the Gini, compared to other inequality metrics, is that it is more sensitive to changes around the middle of the distribution than at the very top and bottom."
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 7673,
+                                        "endIndex": 7738,
+                                        "textRun": {
+                                            "content": "{ref}See Anthony B Atkinson, “On the Measurement of Inequality”. "
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 7738,
+                                        "endIndex": 7764,
+                                        "textRun": {
+                                            "content": "Journal of Economic Theory"
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 7764,
+                                        "endIndex": 7800,
+                                        "textRun": {
+                                            "content": " 2, no. 3 (1970): 244–63. Available "
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 7800,
+                                        "endIndex": 7804,
+                                        "textRun": {
+                                            "content": "here",
+                                            "textStyle": {
+                                                "link": {
+                                                    "url": "http://faculty.ucr.edu/~jorgea/econ261/atkinson_inequality.pdf"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 7804,
+                                        "endIndex": 7805,
+                                        "textRun": { "content": "." }
+                                    },
+                                    {
+                                        "startIndex": 7805,
+                                        "endIndex": 7811,
+                                        "textRun": { "content": "{/ref}" }
+                                    },
+                                    {
+                                        "startIndex": 7811,
+                                        "endIndex": 7812,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 7812,
+                            "endIndex": 8119,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 7812,
+                                        "endIndex": 8119,
+                                        "textRun": {
+                                            "content": "You can see this from the examples in the chart below. For four countries, it shows how the Gini compares to two other inequality measures: the share of income received by the richest 10% and 1%, respectively. To make more direct comparisons, the chart shows the relative change in each measure over time. \n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 8119,
+                            "endIndex": 8128,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 8119,
+                                        "endIndex": 8128,
+                                        "textRun": { "content": "{.aside}\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 8128,
+                            "endIndex": 8231,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 8128,
+                                        "endIndex": 8137,
+                                        "textRun": { "content": "caption: " }
+                                    },
+                                    {
+                                        "startIndex": 8137,
+                                        "endIndex": 8231,
+                                        "textRun": {
+                                            "content": "You can see the actual values for each measure by unselecting “Relative change” in the chart.\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 8231,
+                            "endIndex": 8234,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 8231,
+                                        "endIndex": 8234,
+                                        "textRun": { "content": "{}\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 8234,
+                            "endIndex": 8235,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 8234,
+                                        "endIndex": 8235,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 8235,
+                            "endIndex": 8522,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 8235,
+                                        "endIndex": 8473,
+                                        "textRun": {
+                                            "content": "We see that modest relative changes in the Gini coefficient can be accompanied by much more substantial relative changes in the share of income received by the richest 1%. That is true where inequality is rising (as in the United States) "
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 8473,
+                                        "endIndex": 8476,
+                                        "textRun": { "content": "and" }
+                                    },
+                                    {
+                                        "startIndex": 8476,
+                                        "endIndex": 8522,
+                                        "textRun": {
+                                            "content": " where inequality is falling (as in Uruguay).\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 8522,
+                            "endIndex": 8531,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 8522,
+                                        "endIndex": 8531,
+                                        "textRun": { "content": "{.aside}\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 8531,
+                            "endIndex": 8655,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 8531,
+                                        "endIndex": 8540,
+                                        "textRun": { "content": "caption: " }
+                                    },
+                                    {
+                                        "startIndex": 8540,
+                                        "endIndex": 8655,
+                                        "textRun": {
+                                            "content": "Change the countries and years selected using the “Add country or region” button and the time slider in the chart.\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 8655,
+                            "endIndex": 8658,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 8655,
+                                        "endIndex": 8658,
+                                        "textRun": { "content": "{}\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 8658,
+                            "endIndex": 8659,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 8658,
+                                        "endIndex": 8659,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 8659,
+                            "endIndex": 8868,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 8659,
+                                        "endIndex": 8858,
+                                        "textRun": {
+                                            "content": "In contrast, the Gini coefficient tracks the top 10% share of income much more closely. The Gini's lack of sensitivity to changes at the top of the distribution is mostly a matter of concern for the "
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 8858,
+                                        "endIndex": 8862,
+                                        "textRun": { "content": "very" }
+                                    },
+                                    {
+                                        "startIndex": 8862,
+                                        "endIndex": 8868,
+                                        "textRun": { "content": " top.\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 8868,
+                            "endIndex": 8869,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 8868,
+                                        "endIndex": 8869,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 8869,
+                            "endIndex": 8888,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 8869,
+                                        "endIndex": 8888,
+                                        "textRun": {
+                                            "content": "{.narrative-chart}\n"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 8888,
+                            "endIndex": 8938,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 8888,
+                                        "endIndex": 8894,
+                                        "textRun": { "content": "name: " }
+                                    },
+                                    {
+                                        "startIndex": 8894,
+                                        "endIndex": 8937,
+                                        "textRun": {
+                                            "content": "three-metrics-of-inequality-usa-fra-idn-ury"
+                                        }
+                                    },
+                                    {
+                                        "startIndex": 8937,
+                                        "endIndex": 8938,
+                                        "textRun": { "content": "\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 8938,
+                            "endIndex": 8941,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 8938,
+                                        "endIndex": 8941,
+                                        "textRun": { "content": "{}\n" }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "startIndex": 8941,
+                            "endIndex": 8944,
+                            "paragraph": {
+                                "elements": [
+                                    {
+                                        "startIndex": 8941,
+                                        "endIndex": 8944,
+                                        "textRun": { "content": "[]\n" }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            }
+        }
+    ]
+}

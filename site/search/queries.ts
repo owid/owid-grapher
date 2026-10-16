@@ -32,6 +32,8 @@ import {
     buildChartsFacetFilters,
     searchSingleForHits,
     searchSingleForHitsWithClosestMatches,
+    recommendTopicPages,
+    TOPIC_PAGE_TYPE_FILTER,
     MAX_FACET_VALUES,
 } from "@ourworldindata/utils"
 import { RichDataComponentVariant } from "./SearchChartHitRichDataTypes.js"
@@ -217,10 +219,14 @@ export async function queryDataInsights(
         page,
     }
 
-    return searchSingleForHitsWithClosestMatches<DataInsightHit>(
-        liteSearchClient,
-        searchParams
-    )
+    // Selected countries are part of the query, so the closest-matches
+    // fallback would drop them as optional words and show results that
+    // ignore the country filter. An empty section is the honest answer.
+    const search = hasCountry
+        ? searchSingleForHits
+        : searchSingleForHitsWithClosestMatches
+
+    return search<DataInsightHit>(liteSearchClient, searchParams)
 }
 
 export async function queryArticles(
@@ -274,39 +280,42 @@ export async function queryArticles(
         length,
     }
 
-    return searchSingleForHitsWithClosestMatches<FlatArticleHit>(
-        liteSearchClient,
-        searchParams
-    )
+    // No closest-matches fallback with a country filter (see queryDataInsights)
+    const search = hasCountry
+        ? searchSingleForHits
+        : searchSingleForHitsWithClosestMatches
+
+    return search<FlatArticleHit>(liteSearchClient, searchParams)
 }
 
+const TOPIC_PAGE_ATTRIBUTES = [
+    "title",
+    "type",
+    "slug",
+    "excerpt",
+    "excerptLong",
+]
+
+/**
+ * Topic pages to recommend for the current search (see recommendTopicPages
+ * in @ourworldindata/utils, which /api/search?type=topics shares).
+ */
 export async function queryTopicPages(
     liteSearchClient: LiteClient,
     state: SearchState,
+    tagGraph: TagGraphRoot,
     offset: number = 0,
     length: number
-) {
-    const selectedTopics = getFilterNamesOfType(state.filters, FilterType.TOPIC)
-
-    const searchParams = {
-        indexName: PAGES_INDEX,
-        query: state.query,
-        filters: `type:${OwidGdocType.TopicPage} OR type:${OwidGdocType.LinearTopicPage}`,
-        facetFilters: formatTopicFacetFilters(selectedTopics),
-        attributesToRetrieve: [
-            "title",
-            "type",
-            "slug",
-            "excerpt",
-            "excerptLong",
-        ],
-        highlightPreTag: "<mark>",
-        highlightPostTag: "</mark>",
+): Promise<SearchResponse<TopicPageHit>> {
+    return recommendTopicPages<TopicPageHit>(liteSearchClient, {
+        chartsIndexName: CHARTS_INDEX,
+        pagesIndexName: PAGES_INDEX,
+        state,
+        loadTagGraph: () => Promise.resolve(tagGraph),
+        attributesToRetrieve: TOPIC_PAGE_ATTRIBUTES,
         offset,
         length,
-    }
-
-    return searchSingleForHits<TopicPageHit>(liteSearchClient, searchParams)
+    })
 }
 
 export async function queryProfiles(
@@ -353,6 +362,10 @@ export async function queryProfiles(
 
 export interface LatestPagesResult {
     response: SearchResponse<PageChronologicalRecord>
+    /** The type filter this page was fetched with. The UI judges displayed
+     *  results by the filters that produced them (not the URL's, which run
+     *  ahead of the data during a filter change). */
+    latestType: LatestType | null
     /** Tag facet counts filtered by the active type, disjunctive on topics.
      *  Used to determine which topic pills to disable. */
     tagFacetCounts: Record<string, number>
@@ -446,6 +459,7 @@ export async function queryLatestPages(
     const [mainResult, typeResult, topicResult] = response.results
     return {
         response: mainResult,
+        latestType,
         tagFacetCounts: topicResult.facets?.tags ?? {},
         latestTypeFacetCounts: typeResult.facets?.latestType ?? {},
     }
@@ -481,7 +495,7 @@ export async function queryWritingTopics(
             {
                 indexName: PAGES_INDEX,
                 attributesToRetrieve: ["title", "slug", "type"],
-                filters: `type:${OwidGdocType.TopicPage} OR type:${OwidGdocType.LinearTopicPage}`,
+                filters: TOPIC_PAGE_TYPE_FILTER,
                 facetFilters: topicFacetFilters,
                 highlightPreTag: "<mark>",
                 highlightPostTag: "</mark>",

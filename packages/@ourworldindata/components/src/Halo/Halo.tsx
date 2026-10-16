@@ -1,5 +1,6 @@
 import * as React from "react"
 import { Color } from "@ourworldindata/types"
+import { roundForSvg } from "@ourworldindata/utils"
 
 // The default ratio between a text's font size and the halo's outline width
 const TEXT_OUTLINE_FACTOR = 0.25
@@ -34,7 +35,7 @@ export function Halo(props: HaloProps): React.ReactElement {
 
     const defaultStyle = {
         ...defaultHaloStyle,
-        strokeWidth: outlineWidth,
+        strokeWidth: roundForSvg(outlineWidth),
         fill: props.outlineColor ?? defaultHaloStyle.fill,
         stroke: props.outlineColor ?? defaultHaloStyle.stroke,
     }

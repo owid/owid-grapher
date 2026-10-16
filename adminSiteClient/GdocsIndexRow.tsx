@@ -1,4 +1,5 @@
 import * as React from "react"
+import { useState } from "react"
 import cx from "clsx"
 import {
     faHouse,
@@ -9,9 +10,12 @@ import {
     faBuildingNgo,
     faUserPen,
     faBullhorn,
+    faChartSimple,
     faFileLines,
     faTriangleExclamation,
+    faImage,
 } from "@fortawesome/free-solid-svg-icons"
+import { Button, Tooltip } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
     DbChartTagJoin,
@@ -20,7 +24,7 @@ import {
     MinimalTagWithMetadata,
     TagGraphRole,
 } from "@ourworldindata/utils"
-import { BAKED_BASE_URL } from "../settings/clientSettings.js"
+import { BAKED_BASE_URL } from "../settings/clientSettings.mjs"
 import { EditableTags } from "./EditableTags.js"
 import { GdocsEditLink } from "./GdocsEditLink.js"
 import { checkCanTagGdocType } from "./gdocsTagging.js"
@@ -37,6 +41,7 @@ const iconGdocTypeMap = {
     [OwidGdocType.Author]: <FontAwesomeIcon icon={faUserPen} />,
     [OwidGdocType.Announcement]: <FontAwesomeIcon icon={faBullhorn} />,
     [OwidGdocType.Profile]: <FontAwesomeIcon icon={faFileLines} />,
+    [OwidGdocType.FeaturedViz]: <FontAwesomeIcon icon={faChartSimple} />,
 }
 
 function canTagGdoc(gdoc: OwidGdocIndexItem): boolean {
@@ -77,6 +82,7 @@ interface GdocsIndexRowProps {
     availableTags: MinimalTagWithMetadata[]
     tagGraphRolesById: ReadonlyMap<number, TagGraphRole>
     onUpdateTags: (gdocId: string, tags: DbChartTagJoin[]) => Promise<void>
+    onOpenComponentPreviews: (gdoc: OwidGdocIndexItem) => void
     canEditTags?: boolean
 }
 
@@ -87,9 +93,11 @@ export function GdocsIndexRow({
     availableTags,
     tagGraphRolesById,
     onUpdateTags,
+    onOpenComponentPreviews,
     canEditTags = true,
 }: GdocsIndexRowProps): React.ReactElement {
-    const isScheduled = isGdocScheduled(gdoc, Date.now())
+    const [now] = useState(() => Date.now())
+    const isScheduled = isGdocScheduled(gdoc, now)
     const tagWarning = getTagWarning(gdoc, orphanTagIds)
 
     return (
@@ -173,6 +181,16 @@ export function GdocsIndexRow({
                         </a>
                     )
                 ) : null}
+            </div>
+            <div className="gdoc-index-item__actions">
+                <Tooltip title="Update preview images in gdoc">
+                    <Button
+                        size="small"
+                        aria-label="Update preview images in gdoc"
+                        icon={<FontAwesomeIcon icon={faImage} />}
+                        onClick={() => onOpenComponentPreviews(gdoc)}
+                    />
+                </Tooltip>
             </div>
         </div>
     )

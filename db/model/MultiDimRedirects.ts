@@ -181,9 +181,12 @@ export async function getMultiDimRedirectSourcesWithMultipleTargets(
 // redirect to different targets depending on the incoming query params.
 export async function getMultiDimRedirectRulesBySource(
     knex: db.KnexReadonlyTransaction,
-    sourcePrefix: MultiDimRedirectSourcePrefix
+    sourcePrefix: MultiDimRedirectSourcePrefix,
+    // Only the rules for these source slugs; all of them when omitted
+    slugs?: string[]
 ): Promise<Map<string, MultiDimRedirectRule[]>> {
     const rulesBySource = new Map<string, MultiDimRedirectRule[]>()
+    if (slugs && slugs.length === 0) return rulesBySource
 
     const redirects = await db.knexRaw<{
         sourceSlug: string
@@ -206,9 +209,18 @@ export async function getMultiDimRedirectRulesBySource(
         JOIN multi_dim_data_pages mddp ON mddp.id = mdr.multiDimId
         WHERE mddp.published = TRUE
             AND mddp.slug IS NOT NULL
-            AND mdr.source LIKE ?
+            AND ${
+                slugs
+                    ? `mdr.source IN (${slugs.map(() => "?").join(",")})`
+                    : "mdr.source LIKE ?"
+            }
         `,
-        [sourcePrefix, `${sourcePrefix}%`]
+        [
+            sourcePrefix,
+            ...(slugs
+                ? slugs.map((slug) => `${sourcePrefix}${slug}`)
+                : [`${sourcePrefix}%`]),
+        ]
     )
 
     // Deterministic order so that, when two same-specificity rules overlap for

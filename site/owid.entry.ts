@@ -18,7 +18,7 @@ import { runNotFoundPage } from "./NotFoundPageMain.js"
 import { runFeedbackPage } from "./FeedbackPageMain.js"
 import { runDonateForm } from "./runDonateForm.js"
 import { Explorer } from "@ourworldindata/explorer"
-import { ENV } from "../settings/clientSettings.js"
+import { ENV } from "../settings/clientSettings.mjs"
 import {
     Grapher,
     renderSingleGrapherOnGrapherPage,
@@ -55,3 +55,4 @@ document.documentElement?.classList.add("js-loaded")
 
 analytics.startClickTracking()
 analytics.startDetectingBrowserTranslation()
+analytics.startPrintTracking()

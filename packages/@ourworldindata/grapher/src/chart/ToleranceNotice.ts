@@ -4,6 +4,7 @@ import {
     OwidTable,
 } from "@ourworldindata/core-table"
 import {
+    ColumnSlug,
     Time,
     TimeInterval,
     TimeRange,
@@ -44,9 +45,16 @@ export function makeToleranceNotice({
     const statedTolerance =
         timeTolerance ?? (appliedTolerance || configuredTolerance)
 
+    const timeRange = inputTable.timeRange
+    const appliedColumnsTimeRange = getTimeRangeOfColumns(
+        inputTable,
+        appliedColumns.map((column) => column.slug)
+    )
+
     return formatToleranceNotice({
         timeColumn: transformedTable.timeColumn,
-        timeRange: inputTable.timeRange,
+        timeRange,
+        appliedColumnsTimeRange,
         timeTolerance: statedTolerance,
         toleranceStrategy,
     })
@@ -56,11 +64,13 @@ export function formatToleranceNotice({
     timeColumn,
     timeTolerance,
     timeRange,
+    appliedColumnsTimeRange,
     toleranceStrategy = ToleranceStrategy.closest,
 }: {
     timeColumn: CoreColumn
     timeTolerance: number
     timeRange: TimeRange | undefined
+    appliedColumnsTimeRange?: TimeRange
     toleranceStrategy?: ToleranceStrategy
 }): string | undefined {
     if (!timeTolerance || timeColumn.isMissing) return undefined
@@ -83,14 +93,16 @@ export function formatToleranceNotice({
     // all other cases (time range plotted, sub-yearly data) use a simpler notice
     if (targetTime !== undefined && !isSubYearly(timeColumn.timeInterval)) {
         // A one-directional strategy reaches to one side of the time shown only
+        const [firstAppliedTime, lastAppliedTime] =
+            appliedColumnsTimeRange ?? timeRange
         const from =
             toleranceStrategy === ToleranceStrategy.forwards
                 ? targetTime
-                : Math.max(targetTime - timeTolerance, firstTime)
+                : Math.max(targetTime - timeTolerance, firstAppliedTime)
         const to =
             toleranceStrategy === ToleranceStrategy.backwards
                 ? targetTime
-                : Math.min(targetTime + timeTolerance, lastTime)
+                : Math.min(targetTime + timeTolerance, lastAppliedTime)
 
         // The target year has no data, so a window ending on it stops a year short
         const start = from === targetTime ? from + 1 : from
@@ -163,6 +175,22 @@ function columnsWithToleranceApplied(
 
         return false
     })
+}
+
+/** The first and last time any of the given columns has data for in `table` */
+function getTimeRangeOfColumns(
+    table: OwidTable,
+    slugs: ColumnSlug[]
+): TimeRange | undefined {
+    const tableColumns = slugs
+        .filter((slug) => table.has(slug))
+        .map((slug) => table.get(slug))
+    if (!tableColumns.length) return undefined
+
+    return [
+        Math.min(...tableColumns.map((column) => column.minTime)),
+        Math.max(...tableColumns.map((column) => column.maxTime)),
+    ]
 }
 
 /** The tolerance in words, e.g. "3 years" or "a year" */

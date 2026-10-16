@@ -107,7 +107,10 @@ export class ChartAreaContent extends React.Component<ChartAreaContentProps> {
                     height={height}
                     viewBox={`0 0 ${width} ${height}`}
                 >
-                    <ChartPatternDefs />
+                    <ChartPatternDefs
+                        scale={this.manager.patternScale}
+                        idSuffix={this.manager.patternIdSuffix}
+                    />
                     {this.manager.isReady
                         ? this.renderReadyChartOrMap()
                         : this.renderLoadingIndicatorIntoSvg()}
@@ -143,6 +146,10 @@ export class ChartAreaContent extends React.Component<ChartAreaContentProps> {
                 id={makeFigmaId(GRAPHER_CHART_AREA_CLASS)}
                 style={{ pointerEvents: "none" }}
             >
+                <ChartPatternDefs
+                    scale={this.manager.patternScale}
+                    idSuffix={this.manager.patternIdSuffix}
+                />
                 {this.renderReadyChartOrMap()}
             </g>
         )

@@ -3,7 +3,7 @@ import type { SynonymHit, IndexSettings } from "@algolia/client-search"
 import {
     ALGOLIA_ID,
     TOPICS_CONTENT_GRAPH,
-} from "../../settings/clientSettings.js"
+} from "../../settings/clientSettings.mjs"
 
 import {
     ALGOLIA_INDEXING,

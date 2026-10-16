@@ -6,7 +6,7 @@ import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext } from "./AdminAppContext.js"
 import { Timeago } from "./Forms.js"
 import { ApiNarrativeChartOverview } from "../adminShared/AdminTypes.js"
-import { GRAPHER_DYNAMIC_THUMBNAIL_URL } from "../settings/clientSettings.js"
+import { GRAPHER_DYNAMIC_THUMBNAIL_URL } from "../settings/clientSettings.mjs"
 import { Link } from "./Link.js"
 import {
     buildSearchWordsFromSearchString,

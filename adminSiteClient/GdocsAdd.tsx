@@ -6,7 +6,7 @@ import {
     GDOCS_CLIENT_EMAIL,
     GDOCS_DATA_INSIGHT_DUPLICATION_TEMPLATE_ID,
     GDOCS_ANNOUNCEMENT_DUPLICATION_TEMPLATE_ID,
-} from "../settings/clientSettings.js"
+} from "../settings/clientSettings.mjs"
 import { AdminAppContext } from "./AdminAppContext.js"
 import { createGdoc } from "./gdocsApi.js"
 

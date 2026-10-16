@@ -1,4 +1,4 @@
-import { useRef } from "react"
+import { useState } from "react"
 import { useIntersectionObserver, useMediaQuery } from "usehooks-ts"
 
 import { DataInsightHit } from "@ourworldindata/types"
@@ -20,9 +20,11 @@ export function SearchDataInsightsResults() {
         queryFn: queryDataInsights,
     })
 
-    const container = useRef<HTMLDivElement>(null)
+    // State rather than a ref, so the observer is re-created with the right
+    // root once the container mounts
+    const [container, setContainer] = useState<HTMLDivElement | null>(null)
     const { ref: triggerRef } = useIntersectionObserver({
-        root: container.current,
+        root: container,
         // Observe only the x-axis.
         // https://stackoverflow.com/a/68714239/9846837
         rootMargin: "100% 600px 100% 0%",
@@ -56,7 +58,7 @@ export function SearchDataInsightsResults() {
                         </SearchResultHeader>
                         {isClosestMatches && <SearchClosestMatchesNotice />}
                         <div
-                            ref={container}
+                            ref={setContainer}
                             className="search-data-insights-results__hits"
                         >
                             {hits.map((hit, index) => (

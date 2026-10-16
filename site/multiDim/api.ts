@@ -1,5 +1,8 @@
 import * as _ from "lodash-es"
-import { getVariableMetadataRoute } from "@ourworldindata/grapher"
+import {
+    getVariableMetadataRoute,
+    migrateGrapherConfigToLatestVersion,
+} from "@ourworldindata/grapher"
 import {
     AssetMap,
     GrapherInterface,
@@ -14,7 +17,7 @@ import {
 import {
     DATA_API_URL,
     MULTI_DIM_DYNAMIC_CONFIG_URL,
-} from "../../settings/clientSettings.js"
+} from "../../settings/clientSettings.mjs"
 
 export const cachedGetVariableMetadata = _.memoize(
     async (
@@ -46,7 +49,7 @@ export const cachedGetGrapherConfigByUuid = _.memoize(
             fallback: fallbackUrl,
         })
         const response = await fetchWithRetry(url)
-        return await response.json()
+        return migrateGrapherConfigToLatestVersion(await response.json())
     },
     (grapherConfigUuid, isPreviewing) => `${grapherConfigUuid}-${isPreviewing}`
 )

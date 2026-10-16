@@ -8,7 +8,7 @@ import { OwidSource, DbChartTagJoin, OwidOrigin } from "@ourworldindata/utils"
 
 import { AdminLayout } from "./AdminLayout.js"
 import { Link } from "./Link.js"
-import { BindString, Toggle, FieldsRow, Timeago, TextField } from "./Forms.js"
+import { BindString, Toggle, FieldsRow, Timeago } from "./Forms.js"
 import { EditableTags } from "./EditableTags.js"
 import { MinimalTagWithMetadata } from "./TagGraphMetadata.js"
 import { ChartList, ChartListItem } from "./ChartList.js"
@@ -16,21 +16,27 @@ import { OriginList } from "./OriginList.js"
 import { SourceList } from "./SourceList.js"
 import {
     VariableList,
+    VariableListField,
     VariableListItem,
-    VariableListSortConfig,
 } from "./VariableList.js"
+import { VariableSearchToolbar } from "./VariableSearchToolbar.js"
+import {
+    catalogTableOf,
+    countIndicatorsByTable,
+    plural,
+    TableCount,
+} from "./variableSearchQuery.js"
 import {
     BAKED_BASE_URL,
     GRAPHER_DYNAMIC_THUMBNAIL_URL,
     EXPLORER_DYNAMIC_THUMBNAIL_URL,
     BAKED_GRAPHER_URL,
-} from "../settings/clientSettings.js"
+} from "../settings/clientSettings.mjs"
 import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
 import {
     SearchWord,
     buildSearchWordsFromSearchString,
     filterFunctionForSearchWords,
-    highlightFunctionForSearchWords,
 } from "../adminShared/search.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -39,7 +45,7 @@ import {
     faMagnifyingGlass,
     faChartColumn,
 } from "@fortawesome/free-solid-svg-icons"
-import { Button, Divider, Space, Typography } from "antd"
+import { Button, Divider, Flex, Select, Space, Typography } from "antd"
 
 interface ExplorerListItem {
     slug: string
@@ -61,6 +67,17 @@ interface MultiDimListItem {
     createdAt: string
     updatedAt: string
     grapherViewsPerDay: number
+}
+
+// The table column only earns its place when the indicators span several
+// tables; with one, it would say the same thing on every row.
+const INDICATOR_FIELDS: VariableListField[] = ["usage"]
+const INDICATOR_FIELDS_WITH_TABLE: VariableListField[] = ["table", "usage"]
+
+interface TableFilterOption {
+    value: string
+    label: string
+    count: number
 }
 
 interface DatasetPageData {
@@ -299,7 +316,7 @@ class MultiDimList extends Component<MultiDimListProps> {
                                             )
                                         return githubPath ? (
                                             <a
-                                                href={`https://github.com/owid/etl/tree/master/etl/steps/export/multidim/${githubPath}`}
+                                                href={`https://github.com/owid/etl/tree/master/etl/steps/viz/chart/${githubPath}`}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                             >
@@ -411,8 +428,8 @@ class DatasetEditor extends Component<DatasetEditorProps> {
     activeTab: string = "metadata"
     searchInput: string = ""
     usedOnly: boolean = false
-    sortConfig: VariableListSortConfig | null = null
-    maxVisibleRows: number = 100
+    /** An ETL table's name, narrowing the list to its indicators. */
+    tableFilter: string | undefined = undefined
 
     constructor(props: DatasetEditorProps) {
         super(props)
@@ -423,8 +440,7 @@ class DatasetEditor extends Component<DatasetEditorProps> {
             activeTab: observable,
             searchInput: observable,
             usedOnly: observable,
-            sortConfig: observable.ref,
-            maxVisibleRows: observable,
+            tableFilter: observable,
         })
     }
 
@@ -447,20 +463,36 @@ class DatasetEditor extends Component<DatasetEditorProps> {
         return buildSearchWordsFromSearchString(this.searchInput)
     }
 
+    /**
+     * The ETL tables the dataset's indicators are spread over. A dataset is one
+     * grapher step, but that step can hold several tables — `oda_by_donor` and
+     * `oda_by_recipient` — and the table is often what tells its indicators
+     * apart. Legacy datasets have no catalog paths, and so no tables.
+     */
+    @computed get tables(): TableCount[] {
+        return countIndicatorsByTable(this.props.dataset.variables)
+    }
+
+    @computed get hasSeveralTables(): boolean {
+        return this.tables.length > 1
+    }
+
     @computed get filteredVariables(): VariableListItem[] {
         const { dataset } = this.props
-        const { searchWords, usedOnly, sortConfig } = this
+        const { searchWords, usedOnly, tableFilter } = this
 
         let variables = dataset.variables
+        if (tableFilter) {
+            variables = variables.filter(
+                (v) => catalogTableOf(v.catalogPath) === tableFilter
+            )
+        }
         if (searchWords.length > 0) {
             const filterFn = filterFunctionForSearchWords(
                 searchWords,
                 (variable: VariableListItem) => [
                     variable.name,
-                    variable.namespace,
-                    variable.dataset,
-                    variable.table,
-                    variable.shortName,
+                    variable.catalogPath ?? undefined,
                     `${variable.id}`,
                 ]
             )
@@ -470,19 +502,10 @@ class DatasetEditor extends Component<DatasetEditorProps> {
             variables = variables.filter((v) => Number(v.usageCount ?? 0) > 0)
         }
 
-        // Explicit user sort takes priority. Otherwise, when filtering to used
-        // indicators, default to highest-usage first so the most relevant rows
-        // surface at the top.
-        if (sortConfig) {
-            const { field, direction } = sortConfig
-            const sign = direction === "desc" ? -1 : 1
-            variables = variables
-                .slice()
-                .sort(
-                    (a, b) =>
-                        sign * (Number(a[field] ?? 0) - Number(b[field] ?? 0))
-                )
-        } else if (usedOnly) {
+        // When filtering to used indicators, default to highest-usage first so
+        // the most relevant rows surface at the top. Sorting a column in the
+        // table takes over from here.
+        if (usedOnly) {
             variables = variables
                 .slice()
                 .sort(
@@ -491,10 +514,6 @@ class DatasetEditor extends Component<DatasetEditorProps> {
                 )
         }
         return variables
-    }
-
-    @computed get variablesToShow(): VariableListItem[] {
-        return this.filteredVariables.slice(0, this.maxVisibleRows)
     }
 
     @computed get collectionUrl(): string | null {
@@ -523,12 +542,14 @@ class DatasetEditor extends Component<DatasetEditorProps> {
 
     @action.bound onSearchInput(input: string) {
         this.searchInput = input
-        this.maxVisibleRows = 100
+    }
+
+    @action.bound onTableFilter(table: string | undefined) {
+        this.tableFilter = table
     }
 
     @action.bound onTabChange(tab: string) {
         this.activeTab = tab
-        this.maxVisibleRows = 100
     }
 
     async save() {
@@ -583,7 +604,6 @@ class DatasetEditor extends Component<DatasetEditorProps> {
     renderTabContent() {
         const { dataset } = this.props
         const { newDataset, activeTab, searchInput, filteredVariables } = this
-        const highlight = highlightFunctionForSearchWords(this.searchWords)
 
         switch (activeTab) {
             case "metadata":
@@ -685,52 +705,74 @@ class DatasetEditor extends Component<DatasetEditorProps> {
             case "indicators":
                 return (
                     <section>
-                        <div className="d-flex justify-content-between align-items-center mb-2">
-                            <h3 className="m-0">Indicators</h3>
-                            <TextField
-                                placeholder="Search indicators..."
-                                value={searchInput}
-                                onValue={this.onSearchInput}
+                        <h3>Indicators</h3>
+                        <Flex vertical gap="middle">
+                            <VariableSearchToolbar
+                                search={{
+                                    value: searchInput,
+                                    onChange: this.onSearchInput,
+                                    placeholder: "Search indicators...",
+                                }}
+                                filters={
+                                    <>
+                                        {this.hasSeveralTables && (
+                                            <Select<string, TableFilterOption>
+                                                value={this.tableFilter}
+                                                onChange={this.onTableFilter}
+                                                placeholder={`All ${plural(this.tables.length, "table")}`}
+                                                options={this.tables.map(
+                                                    ({ table, count }) => ({
+                                                        value: table,
+                                                        label: table,
+                                                        count,
+                                                    })
+                                                )}
+                                                // each table with how many
+                                                // indicators it holds, which
+                                                // the box itself needn't repeat
+                                                optionRender={(option) => (
+                                                    <Flex
+                                                        justify="space-between"
+                                                        gap="middle"
+                                                    >
+                                                        <span>
+                                                            {option.data.label}
+                                                        </span>
+                                                        <Typography.Text type="secondary">
+                                                            {option.data.count}
+                                                        </Typography.Text>
+                                                    </Flex>
+                                                )}
+                                                showSearch={{
+                                                    optionFilterProp: "value",
+                                                }}
+                                                allowClear
+                                                popupMatchSelectWidth={400}
+                                                style={{ minWidth: 240 }}
+                                            />
+                                        )}
+                                        <Toggle
+                                            label="Used in chart, multi-dim or path-based explorer"
+                                            value={this.usedOnly}
+                                            onValue={action(
+                                                (v: boolean) =>
+                                                    (this.usedOnly = v)
+                                            )}
+                                        />
+                                    </>
+                                }
                             />
-                        </div>
-                        <div className="d-flex justify-content-end mb-3">
-                            <Toggle
-                                label="Used in chart, multi-dim or path-based explorer"
-                                value={this.usedOnly}
-                                onValue={action(
-                                    (v: boolean) => (this.usedOnly = v)
-                                )}
+                            <VariableList
+                                variables={filteredVariables}
+                                fields={
+                                    this.hasSeveralTables
+                                        ? INDICATOR_FIELDS_WITH_TABLE
+                                        : INDICATOR_FIELDS
+                                }
+                                searchWords={this.searchWords}
+                                autoColumnWidths
                             />
-                        </div>
-                        <p>
-                            Showing{" "}
-                            {Math.min(
-                                filteredVariables.length,
-                                this.maxVisibleRows
-                            )}{" "}
-                            of {filteredVariables.length} indicators
-                            {searchInput && <> for "{searchInput}"</>}
-                        </p>
-                        <VariableList
-                            variables={this.variablesToShow}
-                            fields={["usage"]}
-                            searchHighlight={highlight}
-                            sortConfig={this.sortConfig}
-                            onSort={action(
-                                (config: VariableListSortConfig | null) =>
-                                    (this.sortConfig = config)
-                            )}
-                        />
-                        {filteredVariables.length > this.maxVisibleRows && (
-                            <button
-                                className="btn btn-secondary mt-3"
-                                onClick={action(() => {
-                                    this.maxVisibleRows += 200
-                                })}
-                            >
-                                Show more indicators...
-                            </button>
-                        )}
+                        </Flex>
                     </section>
                 )
 

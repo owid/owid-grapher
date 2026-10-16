@@ -1,4 +1,4 @@
-import { type ReactElement, useEffect, useMemo, useState } from "react"
+import { type ReactElement, useMemo, useState } from "react"
 import cx from "clsx"
 import { useDebounceCallback } from "usehooks-ts"
 import {
@@ -103,14 +103,15 @@ export function AdminColorPicker({
 
     // Resync the inline picker when the color is changed externally (e.g. by
     // picking a swatch or resetting), without fighting our own onChange.
-    useEffect(() => {
-        if (!color) return
-        setPickerColor((prev) =>
-            prev.toString("hex").toLowerCase() === color.toLowerCase()
-                ? prev
-                : toHsbColor(color)
+    const [prevColor, setPrevColor] = useState(color)
+    if (color !== prevColor) {
+        setPrevColor(color)
+        if (
+            color &&
+            pickerColor.toString("hex").toLowerCase() !== color.toLowerCase()
         )
-    }, [color])
+            setPickerColor(toHsbColor(color))
+    }
 
     const infoFor = (hex: string): SwatchInfo => {
         const key = hex.toUpperCase()
@@ -123,8 +124,11 @@ export function AdminColorPicker({
     }
 
     const hueSortedColors = useMemo(
-        () => [...palette.swatches].sort((a, b) => hueOf(a) - hueOf(b)),
-        [palette]
+        () =>
+            [...getAdminColorPalette(paletteKey).swatches].sort(
+                (a, b) => hueOf(a) - hueOf(b)
+            ),
+        [paletteKey]
     )
     const queryTokens = query.trim().toLowerCase().split(/\s+/).filter(Boolean)
     const matches = (...texts: (string | undefined)[]): boolean => {

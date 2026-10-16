@@ -1,26 +1,42 @@
 import { useEffect, useMemo, useRef, useState } from "react"
+import cx from "clsx"
 import { useSearchParams } from "react-router-dom-v5-compat"
 import {
     LATEST_TYPE_VALUES,
     LatestState,
     LatestType,
+    PageChronologicalRecord,
     TagGraphRoot,
 } from "@ourworldindata/types"
 import { LiteClient } from "algoliasearch/lite"
 import { useTagGraphTopics } from "../search/searchHooks.js"
-import { useInfiniteLatestPages, useLatestAnalytics } from "./latestHooks.js"
+import {
+    useAreFreshProbesSettled,
+    useInfiniteLatestPages,
+    getStickyLayout,
+    useRevealOnScrollUp,
+    useLatestAnalytics,
+    useLatestStickyFiltersArm,
+} from "./latestHooks.js"
 import { LatestTopicFacets } from "./LatestTopicFacets.js"
 import { LatestPageHeader } from "./LatestPageHeader.js"
 import {
+    DEFAULT_LATEST_FEED_VIEW,
     LATEST_FACETS_CONTAINER_CLASSES,
     LATEST_FILTERS_DIVIDER_CLASSES,
+    LATEST_NEWSLETTER_SIGNUP_CLASSES,
+    LatestFeedView,
+    hasViewToggle,
+    sortTopicAreasByPopularity,
 } from "./latestUtils.js"
+import { LatestViewToggle } from "./LatestViewToggle.js"
 import {
     searchParamsToState,
     stateToSearchParams,
     urlNeedsSanitization,
 } from "./latestState.js"
 import { LatestHit } from "./LatestHit.js"
+import { LATEST_STICKY_FILTERS_ARMS, OwidGdocType } from "@ourworldindata/utils"
 import { LatestSearchSkeleton } from "./LatestSearchSkeleton.js"
 import { LatestContext } from "./LatestContext.js"
 import { SiteAnalytics } from "../SiteAnalytics.js"
@@ -29,6 +45,24 @@ import { SearchHorizontalDivider } from "../search/SearchHorizontalDivider.js"
 import { SearchNoResults } from "../search/SearchNoResults.js"
 import { NewsletterSubscriptionContext } from "../newsletter.js"
 import { PoweredBy } from "react-instantsearch"
+import { getPrefersReducedMotion } from "@ourworldindata/components"
+
+/**
+ * If the facets are currently pinned, scroll so they sit exactly at their
+ * pinned position with the content below starting right underneath — the
+ * reader just changed a filter from the pinned bar and expects to see the
+ * new results from the top, not wherever they had scrolled to. No-op when
+ * the bar isn't pinned (at the top of the page, or in the flow).
+ */
+function scrollToTopOfPinnedElement(el: HTMLElement): void {
+    if (getComputedStyle(el).position !== "sticky") return
+    const layout = getStickyLayout(el)
+    if (el.getBoundingClientRect().top > layout.stickyTop) return
+    window.scrollTo({
+        top: layout.layoutTop - layout.stickyTop,
+        behavior: getPrefersReducedMotion() ? "auto" : "smooth",
+    })
+}
 
 const analytics = new SiteAnalytics()
 
@@ -41,10 +75,10 @@ export const LatestSearch = ({
 }) => {
     const [searchParams, setSearchParams] = useSearchParams()
 
-    const { allAreas } = useTagGraphTopics(topicTagGraph)
-
-    const [autoExpandedSlug, setAutoExpandedSlug] = useState<null | string>(
-        null
+    const { allAreas: tagGraphAreas } = useTagGraphTopics(topicTagGraph)
+    const allAreas = useMemo(
+        () => sortTopicAreasByPopularity(tagGraphAreas),
+        [tagGraphAreas]
     )
 
     const state = useMemo(
@@ -53,7 +87,25 @@ export const LatestSearch = ({
     )
     const { topics, latestType } = state
 
+    // Expanded/Compact for type filters that offer the toggle. Local, not in
+    // the URL, and shared by all such filters. Deliberately never reset:
+    // only the reader's own click changes it, so it can't change under the
+    // cards that stay on screen while the next results load
+    // (keepPreviousData) the way a reset-on-filter-change would.
+    const [view, setView] = useState<LatestFeedView>(DEFAULT_LATEST_FEED_VIEW)
+    const shouldShowViewToggle = hasViewToggle(latestType)
+
     useLatestAnalytics(state, analytics)
+
+    // Sticky filters experiment. The arm's layout is pure CSS keyed off the
+    // body class; the reveal-on-scroll-up arm additionally needs JS to
+    // reveal the facets container when the reader scrolls up.
+    const stickyFiltersArm = useLatestStickyFiltersArm()
+    const facetsContainerRef = useRef<HTMLDivElement>(null)
+    const areFiltersRevealed = useRevealOnScrollUp(
+        stickyFiltersArm === LATEST_STICKY_FILTERS_ARMS.revealOnScrollUp,
+        facetsContainerRef
+    )
 
     // Sanitize URL: drop unknown params (e.g. legacy `?topic=Health` from old
     // /data-insights links), invalid topic names, and invalid `type` values.
@@ -66,6 +118,8 @@ export const LatestSearch = ({
 
     const updateParams = (updater: (current: LatestState) => LatestState) => {
         setSearchParams(stateToSearchParams(updater(state)))
+        if (facetsContainerRef.current)
+            scrollToTopOfPinnedElement(facetsContainerRef.current)
     }
 
     const onTopicsChange = (newTopics: string[]) => {
@@ -87,15 +141,24 @@ export const LatestSearch = ({
         fetchNextPage,
         hasNextPage,
         isFetchingNextPage,
-        isLoading,
+        isLoading: arePagesLoading,
+        data,
     } = useInfiniteLatestPages({
         topics,
         latestType,
         liteSearchClient,
     })
 
-    // Disable type options that would yield 0 results given the current
-    // topic selection. Never disable the currently active type.
+    // The feed also counts as loading until the first page's bake probes have
+    // settled, so it renders in one commit with its composition final — see
+    // "Bake probes" in latestHooks.ts.
+    const areProbesSettled = useAreFreshProbesSettled(
+        data?.pages[0]?.response.hits ?? []
+    )
+    const isLoading = arePagesLoading || !areProbesSettled
+
+    // Disable type options that would yield 0 results under the current
+    // topic selection. Never disable the active type.
     const disabledTypes = useMemo(() => {
         const disabled = new Set<LatestType>()
         for (const value of LATEST_TYPE_VALUES) {
@@ -105,11 +168,8 @@ export const LatestSearch = ({
         return disabled
     }, [latestType, latestTypeFacetCounts])
 
-    // Disable topics that would yield 0 results given the current filters.
-    // Never disable a topic that is already selected (so the user can deselect
-    // it). When topics are selected the facet counts are narrowed by Algolia's
-    // conjunctive filtering, so the counts reflect co-occurrence with the
-    // current selection — topics with 0 count genuinely add no results.
+    // Disable topics that would yield 0 results under the current type
+    // filter. Never disable a selected topic, so it can be deselected.
     const disabledTopics = useMemo(() => {
         const disabled = new Set<string>()
         for (const area of allAreas) {
@@ -119,30 +179,56 @@ export const LatestSearch = ({
         return disabled
     }, [allAreas, tagFacetCounts, topics])
 
+    // Read from the URL, not from the DOM: some cards only render once
+    // they're expanded (indexed but not baked yet), and this is what expands them.
+    const hashSlug = window.location.hash.slice(1)
+
     // After the first data load, scroll to the URL hash anchor (e.g.
     // /latest#some-slug) so that links from the homepage land on the
-    // right card. In the old SSR page the browser handled this natively;
-    // in the SPA the elements don't exist until data loads.
+    // right card.
     const didScrollToHash = useRef(false)
     useEffect(() => {
         if (didScrollToHash.current || isLoading || hits.length === 0) return
-        const hash = window.location.hash.slice(1)
-        if (!hash) return
-        const el = document.getElementById(hash)
+        if (!hashSlug) return
+        const el = document.getElementById(hashSlug)
         if (el) {
             el.scrollIntoView()
-            setAutoExpandedSlug(hash)
             didScrollToHash.current = true
         }
         // Depend on `hits.length` rather than `hits` — `hits` is a fresh
         // array every render (from `flatMap`) and would re-fire the effect
         // needlessly.
-    }, [isLoading, hits.length])
+    }, [isLoading, hits.length, hashSlug])
+
+    // Cards are judged by the type filter recorded on the *displayed*
+    // results, not the URL's: during a filter change the previous results
+    // stay on screen while the next page loads (keepPreviousData), and the
+    // incoming type would flash them expanded/collapsed. Only the type
+    // filter affects how a card renders; topics only change which hits
+    // come back.
+    const displayedLatestType = data?.pages[0]?.latestType ?? null
+    const activeView = hasViewToggle(displayedLatestType) ? view : undefined
+
+    // Insights expand only in their type-filtered feed, which defaults to
+    // Expanded — so a deep link already lands on an open card and needs no
+    // case of its own. Other announcements expand for a deep link; data
+    // updates also expand under their type filter.
+    const isExpanded = (hit: PageChronologicalRecord): boolean => {
+        if (hit.type === OwidGdocType.DataInsight)
+            return activeView === "expanded"
+        return hit.slug === hashSlug || displayedLatestType === "data-update"
+    }
 
     return (
         <LatestContext.Provider value={{ analytics }}>
             <LatestPageHeader />
-            <div className={LATEST_FACETS_CONTAINER_CLASSES}>
+            <div
+                ref={facetsContainerRef}
+                className={cx(LATEST_FACETS_CONTAINER_CLASSES, {
+                    "latest-search__facets-container--revealed":
+                        areFiltersRevealed,
+                })}
+            >
                 <LatestTopicFacets
                     topics={allAreas}
                     selectedTopics={topics}
@@ -154,6 +240,9 @@ export const LatestSearch = ({
                 />
             </div>
             <hr className={LATEST_FILTERS_DIVIDER_CLASSES} />
+            {shouldShowViewToggle && (
+                <LatestViewToggle view={view} onViewChange={setView} />
+            )}
             {isLoading ? (
                 <LatestSearchSkeleton />
             ) : hits.length === 0 ? (
@@ -179,14 +268,15 @@ export const LatestSearch = ({
                             hit={hit}
                             selectedTopic={topics[0]}
                             position={i + 1}
-                            shouldAutoExpand={hit.slug === autoExpandedSlug}
+                            isExpanded={isExpanded(hit)}
+                            isTypeFiltered={displayedLatestType !== null}
                         />
                     ))}
                     {/* Always render the signup block — with 0 or 1 hits it
                         falls below whatever cards exist, which is the
                         intended layout. */}
                     <NewsletterSignupBlock
-                        className="latest-page__newsletter-signup col-start-11 span-cols-3 col-lg-start-10 span-lg-cols-4 span-md-cols-14 col-md-start-1"
+                        className={LATEST_NEWSLETTER_SIGNUP_CLASSES}
                         context={NewsletterSubscriptionContext.Latest}
                     />
                     {hits.slice(2).map((hit, i) => (
@@ -195,7 +285,8 @@ export const LatestSearch = ({
                             hit={hit}
                             selectedTopic={topics[0]}
                             position={i + 3}
-                            shouldAutoExpand={hit.slug === autoExpandedSlug}
+                            isExpanded={isExpanded(hit)}
+                            isTypeFiltered={displayedLatestType !== null}
                         />
                     ))}
                     {hasNextPage && (

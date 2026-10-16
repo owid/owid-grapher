@@ -4,6 +4,7 @@ import { Router } from "express"
 
 import { renderToHtmlPage, expectInt } from "../serverUtils/serverUtil.js"
 import { getChartConfigBySlug } from "../db/model/Chart.js"
+import { parseAndMigrateChartConfig } from "../db/model/ChartConfigs.js"
 import { Head } from "../site/Head.js"
 import * as db from "../db/db.js"
 import {
@@ -24,7 +25,6 @@ import {
     EntitySelectionMode,
     GRAPHER_TAB_CONFIG_OPTIONS,
     StackMode,
-    parseChartConfig,
     GRAPHER_MAP_TYPE,
     GrapherTabConfigOption,
     GrapherChartOrMapType,
@@ -32,8 +32,9 @@ import {
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
 import { ExplorerChartCreationMode } from "@ourworldindata/explorer"
 import { getPlainRouteWithROTransaction } from "./plainRouterHelpers.js"
+import { getAllPublishedMultiDimDataPages } from "../db/model/MultiDimDataPage.js"
 
-import { GRAPHER_DYNAMIC_THUMBNAIL_URL } from "../settings/clientSettings.js"
+import { GRAPHER_DYNAMIC_THUMBNAIL_URL } from "../settings/clientSettings.mjs"
 
 const IS_LIVE = ADMIN_BASE_URL === "https://owid.cloud"
 const DEFAULT_COMPARISON_URL = "https://ourworldindata.org"
@@ -509,7 +510,7 @@ getPlainRouteWithROTransaction(
         if (chartRaw) {
             const chartEnriched = {
                 ...chartRaw,
-                config: parseChartConfig(chartRaw.config),
+                config: parseAndMigrateChartConfig(chartRaw.config),
             }
             const viewProps = getViewPropsFromQueryParams(req.query)
             const charts = [
@@ -535,7 +536,9 @@ getPlainRouteWithROTransaction(
     }
 )
 
-function PreviewTestPage(props: { charts: any[] }) {
+function PreviewTestPage(props: {
+    charts: { slug: DbRawChartConfig["slug"] }[]
+}) {
     const style = `
         html, body {
             height: 100%;
@@ -682,17 +685,16 @@ getPlainRouteWithROTransaction(
     testPageRouter,
     "/previews",
     async (req, res, trx) => {
-        const rows = await db.knexRaw<{ config: DbRawChartConfig["config"] }>(
+        const charts = await db.knexRaw<{ slug: DbRawChartConfig["slug"] }>(
             trx,
             `-- sql
-                SELECT cc.config as config
+                SELECT cc.slug as slug
                 FROM charts ca
                 JOIN chart_configs cc
                 ON ca.configId = cc.id
                 LIMIT 200
             `
         )
-        const charts = rows.map((row: any) => JSON.parse(row.config))
 
         res.send(renderToHtmlPage(<PreviewTestPage charts={charts} />))
     }
@@ -702,17 +704,16 @@ getPlainRouteWithROTransaction(
     testPageRouter,
     "/embedVariants",
     async (req, res, trx) => {
-        const rows = await db.knexRaw<{ config: DbRawChartConfig["config"] }>(
+        const charts = await db.knexRaw<ChartItem>(
             trx,
             `-- sql
-                SELECT cc.config as config
+                SELECT ca.id as id, cc.slug as slug
                 FROM charts ca
                 JOIN chart_configs cc
                 ON ca.configId = cc.id
                 WHERE ca.id=64
             `
         )
-        const charts = rows.map((row: any) => JSON.parse(row.config))
         const viewProps = getViewPropsFromQueryParams(req.query)
 
         res.send(
@@ -840,6 +841,108 @@ function ExplorerTestPage(props: ExplorerTestPageProps) {
                             )}
                             <iframe
                                 src={`${BAKED_BASE_URL}/explorers/${slug}`}
+                                loading="lazy"
+                            />
+                        </div>
+                    </div>
+                ))}
+            </body>
+        </html>
+    )
+}
+
+getPlainRouteWithROTransaction(
+    testPageRouter,
+    "/multiDims",
+    async (req, res, trx) => {
+        const viewProps = getViewPropsFromQueryParams(req.query)
+        const slugs = (await getAllPublishedMultiDimDataPages(trx))
+            .map((multiDim) => multiDim.slug)
+            .sort((a, b) => a.localeCompare(b))
+
+        res.send(
+            renderToHtmlPage(<MultiDimTestPage slugs={slugs} {...viewProps} />)
+        )
+    }
+)
+
+interface MultiDimTestPageProps {
+    slugs: string[]
+    comparisonUrl: string
+    hasComparisonView: boolean
+}
+
+function MultiDimTestPage(props: MultiDimTestPageProps) {
+    const style = `
+        html, body {
+            height: 100%;
+            margin: 0;
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        }
+
+        iframe {
+            border: 1px solid #ddd;
+            flex: 1;
+            height: 1000px;
+            min-width: 0;
+        }
+
+        .row {
+            padding: 10px;
+            margin: 0;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .side-by-side {
+            display: flex;
+            gap: 16px;
+            width: 100%;
+        }
+
+        .side-by-side > h3 {
+            flex: 1;
+            text-align: center;
+            margin: 0;
+        }
+
+        .row > h3 {
+            font-size: 18px;
+            text-align: center;
+        }
+    `
+
+    return (
+        <html>
+            <Head
+                canonicalUrl=""
+                pageTitle="Test Multi-Dims"
+                baseUrl={BAKED_BASE_URL}
+            >
+                <style dangerouslySetInnerHTML={{ __html: style }} />
+            </Head>
+            <body>
+                <div className="row">
+                    <div className="side-by-side">
+                        {props.hasComparisonView && (
+                            <h3>{props.comparisonUrl}</h3>
+                        )}
+                        <h3>{BAKED_BASE_URL}</h3>
+                    </div>
+                </div>
+                {props.slugs.map((slug, index) => (
+                    <div key={slug} className="row">
+                        <h3>
+                            {slug} ({index + 1}/{props.slugs.length})
+                        </h3>
+                        <div className="side-by-side">
+                            {props.hasComparisonView && (
+                                <iframe
+                                    src={`${props.comparisonUrl}/grapher/${slug}`}
+                                    loading="lazy"
+                                />
+                            )}
+                            <iframe
+                                src={`${BAKED_GRAPHER_URL}/${slug}`}
                                 loading="lazy"
                             />
                         </div>

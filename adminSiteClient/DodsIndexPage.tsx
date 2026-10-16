@@ -29,7 +29,7 @@ import {
 } from "@ourworldindata/components"
 import TextArea from "antd/es/input/TextArea.js"
 import { match } from "ts-pattern"
-import { BAKED_BASE_URL } from "../settings/clientSettings.js"
+import { BAKED_BASE_URL } from "../settings/clientSettings.mjs"
 import { extractDetailsFromSyntax } from "@ourworldindata/utils"
 
 type ValidPhrasingContent = Extract<
@@ -370,7 +370,6 @@ function CreateDodModal({
 }) {
     const [form] = Form.useForm()
     const [isFilled, setIsFilled] = useState(false)
-    const [isContentValid, setIsContentValid] = useState(true)
 
     const values = Form.useWatch([], form)
 
@@ -378,11 +377,13 @@ function CreateDodModal({
         form.validateFields()
             .then(() => setIsFilled(true))
             .catch(() => setIsFilled(false))
+        // oxlint-disable-next-line react/exhaustive-effect-dependencies -- values is the trigger, validateFields reads them from the form
     }, [form, values])
 
-    useEffect(() => {
-        setIsContentValid(validateDodContent(values?.content, dods))
-    }, [dods, values])
+    const isContentValid = useMemo(
+        () => validateDodContent(values?.content, dods),
+        [values?.content, dods]
+    )
 
     return (
         <Modal

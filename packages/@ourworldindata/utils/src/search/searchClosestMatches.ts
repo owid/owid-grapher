@@ -5,9 +5,7 @@ import {
     type SearchParamsObject,
 } from "algoliasearch/lite"
 
-// Shared between the site's client-side Algolia queries (site/search/queries.ts)
-// and the public /api/search Cloudflare function (functions/api/search/searchApi.ts)
-// so the "closest matches" fallback behaves identically in both places.
+// Shared by the site's search page and /api/search — see ./README.md.
 
 /** A single search request, as the underlying batch API describes one. */
 export type SingleSearchRequest = SearchParamsObject & SearchForHitsOptions

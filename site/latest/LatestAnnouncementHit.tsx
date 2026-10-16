@@ -13,12 +13,12 @@ export const LatestAnnouncementHit = ({
     hit,
     selectedTopic,
     position,
-    shouldAutoExpand,
+    isExpanded,
 }: {
     hit: PageChronologicalAnnouncementRecord
     selectedTopic?: string
     position: number
-    shouldAutoExpand: boolean
+    isExpanded: boolean
 }) => {
     const { analytics } = useLatestContext()
     return (
@@ -38,12 +38,13 @@ export const LatestAnnouncementHit = ({
                     slug={hit.slug}
                     publishedAt={hit.date}
                     authors={hit.authors}
+                    authorRoles={hit.authorRoles}
                     body={hit.body}
                     selectedTopic={selectedTopic}
                     onReadMore={() =>
                         analytics.logLatestAnnouncementExpand(hit, position)
                     }
-                    shouldAutoExpand={shouldAutoExpand}
+                    isExpanded={isExpanded}
                 />
             </article>
         </AttachmentsContext.Provider>

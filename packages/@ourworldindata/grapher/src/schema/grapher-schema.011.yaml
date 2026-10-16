@@ -2,7 +2,6 @@ $schema: "http://json-schema.org/draft-07/schema#"
 $id: &schemaUrl "https://files.ourworldindata.org/schemas/grapher-schema.011.json"
 required:
   - $schema
-  - dimensions
 type: object
 description: |
   Our World In Data grapher configuration. Most of the fields can be left empty
@@ -67,9 +66,18 @@ properties:
     description: List of dimensions and their mapping to variables
     items:
       type: object
+      description: One slot of the chart bound to one column of data.
       required:
         - property
-        - variableId
+      oneOf:
+        - required:
+            - variableId
+        - required:
+            - slug
+      not:
+        required:
+          - slug
+          - targetYear
       properties:
         targetYear:
           type: integer
@@ -77,6 +85,7 @@ properties:
             Charts that can display more than one primary dimensions (i.e. scatter and marimekko)
             sometimes need to "hardcode" one dimension to a specific year. This happens e.g. when
             mixing a daily X variable in a scatter plot with a yearly one, e.g. population.
+            Only supported on dimensions with a variableId.
         property:
           type: string
           description: Which dimension this property maps to
@@ -183,6 +192,9 @@ properties:
           type: integer
           description: The variable id to get the values for this time series
           minimum: 0
+        slug:
+          type: string
+          description: The slug of a column in the supplied table, as an alternative to variableId
       additionalProperties: false
   selectedEntityNames:
     type: array

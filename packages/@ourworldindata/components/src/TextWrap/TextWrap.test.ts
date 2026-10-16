@@ -102,9 +102,8 @@ describe("lines()", () => {
             fontSize: FONT_SIZE,
         })
         expect(wrap.lines.map((l) => l.text)).toEqual([
-            "a very very",
-            "very very long",
-            "line",
+            "a very very very",
+            "very long line",
             "",
             "short one",
         ])

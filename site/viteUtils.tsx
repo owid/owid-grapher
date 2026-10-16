@@ -1,18 +1,23 @@
 import * as _ from "lodash-es"
 import * as React from "react"
-import findBaseDir from "../settings/findBaseDir.js"
+import findBaseDir from "../settings/findBaseDir.mjs"
 import fs from "fs-extra"
 import {
     ENV,
     BAKED_BASE_URL,
+    VITE_DIST_DIR,
     VITE_PREVIEW,
 } from "../settings/serverSettings.js"
 import type { Manifest } from "vite"
 import { readFromAssetMap } from "@ourworldindata/utils"
 import urljoin from "url-join"
 import { AssetMap } from "@ourworldindata/types"
-import { VITE_ENTRYPOINT_INFO, ViteEntryPoint } from "./viteConstants.js"
-import { IS_ARCHIVE } from "../settings/clientSettings.js"
+import {
+    VITE_ENTRYPOINT_INFO,
+    ViteEntryPoint,
+    ViteEntryPointName,
+} from "./viteConstants.mjs"
+import { IS_ARCHIVE } from "../settings/clientSettings.mjs"
 
 const VITE_PORT = process.env.VITE_PORT ?? "8090"
 const VITE_DEV_URL = process.env.VITE_DEV_URL ?? `http://localhost:${VITE_PORT}`
@@ -23,7 +28,7 @@ interface Assets {
 }
 
 // in dev: we need to load several vite core scripts and plugins; other than that we only need to load the entry point, and vite will take care of the rest.
-const devAssets = (entrypoint: ViteEntryPoint, baseUrl: string): Assets => {
+const devAssets = (entrypoint: ViteEntryPointName, baseUrl: string): Assets => {
     return {
         forHeader: [],
         forFooter: [
@@ -133,13 +138,13 @@ export const createTagsForManifestEntry = (
 // in prod: we need to make sure that we include <script> and <link> tags that are required for the entry point.
 // this could be, for example: owid.mjs, common.mjs, owid.css, common.css.
 const prodAssets = (
-    entrypoint: ViteEntryPoint,
+    entrypoint: ViteEntryPointName,
     baseUrl: string,
     prodAssetMap?: AssetMap
 ): Assets => {
     const baseDir = findBaseDir(__dirname)
     const entrypointInfo = VITE_ENTRYPOINT_INFO[entrypoint]
-    const manifestPath = `${baseDir}/dist/${entrypointInfo.outDir}/.vite/manifest.json`
+    const manifestPath = `${baseDir}/${VITE_DIST_DIR}/${entrypointInfo.outDir}/.vite/manifest.json`
     let manifest
     try {
         manifest = fs.readJsonSync(manifestPath) as Manifest
@@ -169,7 +174,7 @@ const prodAssets = (
 const useProductionAssets = ENV !== "development" || VITE_PREVIEW || IS_ARCHIVE
 
 const viteAssets = (
-    entrypoint: ViteEntryPoint,
+    entrypoint: ViteEntryPointName,
     {
         prodBaseUrl,
         prodAssetMap,

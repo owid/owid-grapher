@@ -10,9 +10,9 @@ import {
     processImageContent,
     uploadToCloudflare,
     deleteFromCloudflare,
-    fetchGptGeneratedTextFromImage,
+    fetchGeneratedTextFromImage,
 } from "../imagesHelpers.js"
-import { CLOUDFLARE_IMAGES_URL } from "../../settings/clientSettings.js"
+import { CLOUDFLARE_IMAGES_URL } from "../../settings/clientSettings.mjs"
 import { extractSqlError } from "./routeUtils.js"
 import { triggerStaticBuild } from "../../baker/GrapherBakingUtils.js"
 import * as db from "../../db/db.js"
@@ -330,7 +330,7 @@ async function extractAndStoreImageText(
     try {
         const imageUrl = `${CLOUDFLARE_IMAGES_URL}/${cloudflareId}/public`
         const { text: extractedText } =
-            await fetchGptGeneratedTextFromImage(imageUrl)
+            await fetchGeneratedTextFromImage(imageUrl)
         if (extractedText !== null) {
             await db.knexReadWriteTransaction(async (trx) => {
                 await trx("images")

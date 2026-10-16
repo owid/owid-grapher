@@ -176,7 +176,10 @@ export function getSlugForProfileEntity(
     profileTemplate: GdocProfile,
     entity: ProfileEntity
 ): string {
+    return `${profileTemplate.slug}/${profileEntitySlug(entity)}`
+}
+
+export function profileEntitySlug(entity: ProfileEntity): string {
     const region = getRegionByNameOrVariantName(entity.name)
-    const entitySlug = region ? region.slug : slugify(entity.name)
-    return `${profileTemplate.slug}/${entitySlug}`
+    return region ? region.slug : slugify(entity.name)
 }

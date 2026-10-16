@@ -1,10 +1,12 @@
+import { BespokeMetadata } from "@ourworldindata/types"
+
 export type VariantName = "pyramid"
 
 export const SHOW_MODES = ["number", "share"] as const
 
 export type ShowMode = (typeof SHOW_MODES)[number]
 
-/** Raw shapes of migrant-demographics.json */
+/** Raw shapes of the migrant-demographics data files */
 export interface RawYearRecord {
     /** Migrant stock by age band: men / women */
     m: number[]
@@ -17,23 +19,25 @@ export interface RawYearRecord {
     pf: number[]
 }
 
-export interface RawEntity {
+export type RawEntityYears = Record<string, RawYearRecord>
+
+export interface RawMetadataEntity {
+    code: number
     name: string
-    /** Regions and income groups, which the pyramid doesn't show */
-    isAggregate?: boolean
-    data: Record<string, RawYearRecord>
 }
 
-export interface RawMigrantDemographics {
+export interface RawMigrantDemographicsMetadata extends Pick<
+    BespokeMetadata,
+    "attribution" | "origins"
+> {
     meta: {
         title: string
-        source: string
         unit: string
         note?: string
     }
     ageBands: string[]
     years: number[]
-    entities: RawEntity[]
+    entities: RawMetadataEntity[]
 }
 
 /** Values per age band (aligned with `ageBands`, youngest first) */

@@ -1,10 +1,16 @@
 metadata:
   description: |
-    Historical chart revision tracking for version control purposes of standalone charts (those published at https://ourworldindata.org/grapher/SLUG).
+    The history of chart editor saves for each standalone chart, for charts published at https://ourworldindata.org/grapher/SLUG.
 
-    This table stores snapshots of chart configurations over time when editing them in the admin, enabling rollback functionality and change history tracking. Each revision captures the config as authored in the editor (the chart's patch, not the merged config that gets rendered) at a specific point in time.
+    Each row holds the chart's admin patch (the chart_configs row named by charts.patchConfigId) as a save from the chart editor left it. ETL pushes and detaches add no rows, even when they rewrite the patch, so a chart's latest row can lag its patch. The chart editor's Revisions tab lists these rows.
 
-    This table is only used in the admin UI to got back to previous versions.
+    Older rows don't always follow this:
+        - Some charts' latest row lags their patch, because config migrations rewrote chart_configs without rewriting chart_revisions.
+        - Rows from before 2024-09 hold full configs rather than patches.
+        - Some rows were written by ETL pushes that changed the rendered chart.
+
+    Config migrations rewrite `config` in place, so rows stay readable against the current schema.
+
 fields:
   id:
     description: Unique identifier for the chart revision
@@ -14,7 +20,7 @@ fields:
     description: Foreign key to users table. The user who created this revision.
   config:
     description: |
-      The chart config as authored in the editor at the time of this revision (chart_configs.config of the row named by charts.patchConfigId, not the merged config). It is only ever rendered as a diff against the neighbouring revisions, never restored programmatically.
+      The chart's admin patch after the change this row records (chart_configs.config of the row named by charts.patchConfigId, not the merged config).
 
       The full schema is available at 'https://files.ourworldindata.org/schemas/grapher-schema.latest.json'. For querying chart contents, the most important fields are:
           - title

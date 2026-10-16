@@ -9,11 +9,7 @@ import {
     ProductTradeData,
     TradeRow,
 } from "./types.js"
-
-const BASE_URL = "https://owid-public.owid.io/data/food-trade"
-const METADATA_PATH = `${BASE_URL}/food-trade.metadata.json`
-const PRODUCT_DATA_PATH = (productId: number) =>
-    `${BASE_URL}/food-trade.${productId}.json`
+import { getBespokeSourceLine } from "../../../../components/MetadataModal/bespokeMetadata.js"
 
 const queryKeys = {
     metadata: () => ["food-trade", "metadata"] as const,
@@ -21,13 +17,15 @@ const queryKeys = {
         ["food-trade", "product", productId] as const,
 }
 
-export const useFoodTradeMetadata = (): {
+export const useFoodTradeMetadata = (
+    metadataUrl: string
+): {
     data?: FoodTradeMetadata
     status: QueryStatus
 } => {
     const result = useQuery({
         queryKey: queryKeys.metadata(),
-        queryFn: () => fetchJson<MetadataJson>(METADATA_PATH),
+        queryFn: () => fetchJson<MetadataJson>(metadataUrl),
         staleTime: Infinity, // Never refetch
     })
 
@@ -37,15 +35,17 @@ export const useFoodTradeMetadata = (): {
 
 export const useProductTradeData = (
     productId: number | undefined,
-    metadata: FoodTradeMetadata | undefined
+    metadata: FoodTradeMetadata | undefined,
+    dataUrl: string
 ): {
     data?: ProductTradeData
     status: QueryStatus
     isPlaceholderData: boolean
 } => {
+    const url = `${dataUrl}/food-trade.${productId}.json`
     const result = useQuery({
         queryKey: queryKeys.product(productId!),
-        queryFn: () => fetchJson<ProductJson>(PRODUCT_DATA_PATH(productId!)),
+        queryFn: () => fetchJson<ProductJson>(url),
         enabled: productId !== undefined && metadata !== undefined,
         staleTime: Infinity, // Never refetch
         // Keep the previous product on screen while a new one loads,
@@ -88,7 +88,7 @@ function buildMetadata(raw: MetadataJson): FoodTradeMetadata {
 
     return {
         year: raw.year,
-        source: raw.source,
+        source: getBespokeSourceLine(raw),
         license: raw.license,
         entities,
         products,

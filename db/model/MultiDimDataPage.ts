@@ -8,6 +8,7 @@ import {
     DbInsertMultiDimDataPage,
     DbPlainMultiDimDataPage,
     DbEnrichedMultiDimDataPage,
+    DbEnrichedPublishedMultiDimDataPage,
     ContentGraphLinkType,
     GrapherInterface,
     IndicatorsAfterPreProcessing,
@@ -17,13 +18,23 @@ import {
 } from "@ourworldindata/types"
 import {
     defaultGrapherConfig,
-    migrateGrapherConfigToLatestVersionAndFailOnError,
+    migrateGrapherConfigToLatestVersion,
 } from "@ourworldindata/grapher"
 import {
     mergeGrapherConfigs,
     MultiDimDataPageConfig,
 } from "@ourworldindata/utils"
 import { buildQueryStrFromConfig } from "./MultiDimRedirects.js"
+
+export function getMdimViewConfigWithSchema(
+    config: Pick<MultiDimDataPageConfigEnriched, "grapherConfigSchema">,
+    view: View<IndicatorsAfterPreProcessing>
+): GrapherInterface | undefined {
+    if (!view.config) return undefined
+    return config.grapherConfigSchema
+        ? { $schema: config.grapherConfigSchema, ...view.config }
+        : view.config
+}
 
 /**
  * The config layer an mdim view's authors: the view's own config
@@ -37,20 +48,10 @@ export function buildMdimViewPatchConfig(
     view: View<IndicatorsAfterPreProcessing>,
     published?: boolean
 ): GrapherInterface {
-    let viewGrapherConfig: GrapherInterface = {}
-
-    // Migrate the view's config to the latest schema version if it has a $schema
-    if (view.config) {
-        viewGrapherConfig = config.grapherConfigSchema
-            ? { $schema: config.grapherConfigSchema, ...view.config }
-            : view.config
-        if ("$schema" in viewGrapherConfig) {
-            viewGrapherConfig =
-                migrateGrapherConfigToLatestVersionAndFailOnError(
-                    viewGrapherConfig
-                )
-        }
-    }
+    const viewGrapherConfig: GrapherInterface =
+        migrateGrapherConfigToLatestVersion(
+            getMdimViewConfigWithSchema(config, view) ?? {}
+        )
 
     const mainGrapherConfig: GrapherInterface = {
         $schema: defaultGrapherConfig.$schema,
@@ -113,19 +114,20 @@ const enrichRow = <T extends { config: JsonString }>(
 
 export async function getAllPublishedMultiDimDataPages(
     knex: KnexReadonlyTransaction
-): Promise<DbEnrichedMultiDimDataPage[]> {
-    const rows = await knex<DbPlainMultiDimDataPage>(
-        MultiDimDataPagesTableName
-    ).where("published", true)
-    return rows.map(enrichRow)
+): Promise<DbEnrichedPublishedMultiDimDataPage[]> {
+    const rows = await knex<DbPlainMultiDimDataPage>(MultiDimDataPagesTableName)
+        .where("published", true)
+        // Published pages always have a slug; filtering on it here is what
+        // lets callers rely on DbEnrichedPublishedMultiDimDataPage.
+        .whereNotNull("slug")
+    return rows.map(enrichRow) as DbEnrichedPublishedMultiDimDataPage[]
 }
 
 export const getAllPublishedMultiDimDataPagesBySlug = async (
     knex: KnexReadonlyTransaction
-): Promise<Map<string, DbEnrichedMultiDimDataPage>> => {
+): Promise<Map<string, DbEnrichedPublishedMultiDimDataPage>> => {
     const multiDims = await getAllPublishedMultiDimDataPages(knex)
-    // Published mdims must have a slug.
-    return new Map(multiDims.map((multiDim) => [multiDim.slug!, multiDim]))
+    return new Map(multiDims.map((multiDim) => [multiDim.slug, multiDim]))
 }
 
 export interface LinkedMultiDimDataPage {

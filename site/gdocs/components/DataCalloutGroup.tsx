@@ -14,14 +14,20 @@ import ArticleBlock from "./ArticleBlock.js"
 export function DataCalloutGroup({
     block,
     containerType = "default",
+    shouldRenderLinks = true,
 }: {
     block: EnrichedBlockDataCalloutGroup
     containerType?: Container
+    shouldRenderLinks?: boolean
 }) {
     return (
         <div className={getLayout("data-callout-group", containerType)}>
             {block.content.map((child, index) => (
-                <ArticleBlock key={index} b={child} />
+                <ArticleBlock
+                    key={index}
+                    b={child}
+                    shouldRenderLinks={shouldRenderLinks}
+                />
             ))}
         </div>
     )

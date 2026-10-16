@@ -1,18 +1,18 @@
 import { defineConfig, type PluginOption } from "vite"
 import pluginReact from "@vitejs/plugin-react"
 import optimizeReactAriaLocales from "@react-aria/optimize-locales-plugin"
-import { sentryVitePlugin } from "@sentry/vite-plugin"
+import { sentryVitePlugin } from "@sentry/bundler-plugins/vite"
 import {
     BUILD_TARGET,
     pluginSwcDecorators,
     scssPreprocessorOptions,
 } from "./rolldown.config-common.mts"
-import * as clientSettings from "./settings/clientSettings.js"
+import * as clientSettings from "./settings/clientSettings.mts"
 import {
     VITE_ASSET_SITE_ENTRY,
     VITE_ENTRYPOINT_INFO,
-    ViteEntryPoint,
-} from "./site/viteConstants.js"
+    type ViteEntryPointName,
+} from "./site/viteConstants.mts"
 
 export const commonPlugins = (): PluginOption[] => [
     pluginSwcDecorators(),
@@ -23,7 +23,9 @@ export const commonPlugins = (): PluginOption[] => [
 ]
 
 // https://vitejs.dev/config/
-export const defineViteConfigForEntrypoint = (entrypoint: ViteEntryPoint) => {
+export const defineViteConfigForEntrypoint = (
+    entrypoint: ViteEntryPointName
+) => {
     const entrypointInfo = VITE_ENTRYPOINT_INFO[entrypoint]
     const isBundlemon = process.env.BUNDLEMON === "true"
     const vitePort = parseInt(process.env.VITE_PORT || "8090", 10)
@@ -49,7 +51,8 @@ export const defineViteConfigForEntrypoint = (entrypoint: ViteEntryPoint) => {
         resolve: {
             alias: {
                 // We don't want to load dotenv in the browser build, and don't need to fill in node imports like fs or path.
-                "./loadDotenv.js": "./loadDotenv.browser.js",
+                "./loadDotenv.mjs": "./loadDotenv.browser.js",
+                "./loadDotenv.mts": "./loadDotenv.browser.js",
             },
         },
         build: {
@@ -81,6 +84,11 @@ export const defineViteConfigForEntrypoint = (entrypoint: ViteEntryPoint) => {
                     authToken: process.env.SENTRY_AUTH_TOKEN,
                     org: process.env.SENTRY_ORG,
                     project: entrypoint === "admin" ? "admin" : "website",
+                    bundleSizeOptimizations: {
+                        // Remove the SDK's internal debug logging to reduce bundle size.
+                        // To troubleshoot Sentry with `debug: true`, disable this and rebuild.
+                        excludeDebugStatements: true,
+                    },
 
                     // When running inside Bundlemon, we want the output file size to be totally deterministic, and
                     // therefore don't want sentry to inject any release or _sentryDebugIdIdentifier information.

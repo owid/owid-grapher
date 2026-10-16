@@ -1,5 +1,8 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
-import { enrichedBlocksToMarkdown } from "../model/Gdoc/enrichedToMarkdown.js"
+import {
+    enrichedBlocksToMarkdown,
+    parseText,
+} from "@ourworldindata/gdoc-pipeline"
 import { createDodLinkFromUrl } from "../model/Link.js"
 import {
     EnrichedBlockText,
@@ -8,7 +11,6 @@ import {
 } from "@ourworldindata/utils"
 import * as R from "remeda"
 import { EnrichedBlockWithParseErrors } from "@ourworldindata/types"
-import { parseText } from "../model/Gdoc/rawToEnriched.js"
 
 const GDOCS_DETAILS_ON_DEMAND_ID = "DEPRECATED"
 

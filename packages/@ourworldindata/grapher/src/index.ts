@@ -16,6 +16,7 @@ export {
     type FetchInputTableForConfigFn,
 } from "./core/loadGrapherTableHelpers.js"
 export { loadVariableDataAndMetadata } from "./core/loadVariable.js"
+export { applyDimensionDisplayAndConversionFactor } from "./core/applyDisplayAndConversionFactor.js"
 export {
     GRAPHER_ROUTE_FOLDER,
     GRAPHER_EMBEDDED_FIGURE_ATTR,
@@ -91,10 +92,7 @@ export {
 export { GrapherState } from "./core/GrapherState"
 export { GrapherAnalytics, splitPathForGA4 } from "./core/GrapherAnalytics"
 export { legacyToCurrentGrapherUrl } from "./core/GrapherUrlMigrations"
-export {
-    legacyToOwidTableAndDimensions,
-    legacyToOwidTableAndDimensionsWithMandatorySlug,
-} from "./core/LegacyToOwidTable"
+export { legacyToOwidTableAndDimensions } from "./core/LegacyToOwidTable"
 export { getErrorMessageRelatedQuestionUrl } from "./core/relatedQuestion"
 export { MapChartState } from "./mapCharts/MapChartState"
 export { MapConfig } from "./mapCharts/MapConfig"
@@ -125,11 +123,15 @@ export {
     type SlideShowManager,
     SlideShowController,
 } from "./slideshowController/SlideShowController"
-export { defaultGrapherConfig } from "./schema/defaultGrapherConfig"
 export {
-    migrateGrapherConfigToLatestVersion,
-    migrateGrapherConfigToLatestVersionAndFailOnError,
-} from "./schema/migrations/migrate"
+    defaultGrapherConfig,
+    latestSchemaVersion,
+} from "./schema/defaultGrapherConfig"
+export { migrateGrapherConfigToLatestVersion } from "./schema/migrations/migrate"
+export {
+    getSchemaVersion,
+    type UntypedGrapherConfig,
+} from "./schema/migrations/helpers"
 export { generateGrapherImageSrcSet } from "./chart/ChartUtils"
 export {
     useMaybeGlobalGrapherStateRef,

@@ -1,12 +1,12 @@
 import { match } from "ts-pattern"
 
 import { OwidEnrichedGdocBlock } from "@ourworldindata/types"
-import { useImage } from "../utils.js"
+import { normalizeBlockType, useImage } from "../utils.js"
 import ArticleBlock from "./ArticleBlock.js"
 import { Container, getLayout } from "./layout.js"
 import { BlockErrorFallback } from "./BlockErrorBoundary.js"
 import { LARGEST_IMAGE_WIDTH } from "@ourworldindata/utils"
-import { CLOUDFLARE_IMAGES_URL } from "../../../settings/clientSettings.js"
+import { CLOUDFLARE_IMAGES_URL } from "../../../settings/clientSettings.mjs"
 
 export default function AtomArticleBlocks({
     blocks,
@@ -31,13 +31,13 @@ export default function AtomArticleBlocks({
 }
 
 function AtomArticleBlock({
-    b: block,
+    b: rawBlock,
     containerType = "default",
 }: {
     b: OwidEnrichedGdocBlock
     containerType?: Container
 }) {
-    block.type = block.type.toLowerCase() as any // this comes from the user and may not be all lowercase, enforce it here
+    const block = normalizeBlockType(rawBlock)
     if (block.parseErrors.some(({ isWarning }) => !isWarning)) {
         return (
             <BlockErrorFallback

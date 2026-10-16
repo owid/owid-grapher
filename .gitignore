@@ -36,6 +36,7 @@ tmp/
 tmp-downloads
 tmp-uploads
 tmp-logs
+tmp-playwright-standalone-dist
 /data_files_checksums
 packages/@ourworldindata/*/dist/
 packages/@ourworldindata/*/dist-package/
@@ -87,3 +88,7 @@ packageDocs/docs/schema-reference/
 packageDocs/site/
 packageDocs/.venv/
 packageDocs/.cache/
+
+# BMAD
+/_bmad/
+/_bmad-output/

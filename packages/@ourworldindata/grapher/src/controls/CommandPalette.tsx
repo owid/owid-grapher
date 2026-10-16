@@ -15,17 +15,16 @@ interface CommandPaletteProps {
 export function CommandPalette({
     commands,
 }: CommandPaletteProps): React.ReactElement {
-    let lastCat = ""
     const filteredCommands = commands.filter(
         (command) => command.title && command.category
     )
     const sortedCommands = _.sortBy(filteredCommands, "category").map(
-        (command, index) => {
-            let cat = undefined
-            if (command.category !== lastCat) {
-                lastCat = command.category!
-                cat = <div className="commandCategory">{lastCat}</div>
-            }
+        (command, index, sorted) => {
+            // Show the category heading above the first command of each category
+            const cat =
+                command.category !== sorted[index - 1]?.category ? (
+                    <div className="commandCategory">{command.category}</div>
+                ) : undefined
             return (
                 <div key={`command${index}`}>
                     {cat}

@@ -17,6 +17,7 @@ import {
     FilterType,
     SynonymMap,
     SearchResultType,
+    SearchUrlParam,
 } from "@ourworldindata/types"
 import { getCanonicalUrl } from "@ourworldindata/components"
 import {
@@ -24,7 +25,7 @@ import {
     ALGOLIA_SEARCH_KEY,
     BAKED_BASE_URL,
     BAKED_GRAPHER_URL,
-} from "../../settings/clientSettings.js"
+} from "../../settings/clientSettings.mjs"
 import { DEFAULT_SEARCH_PLACEHOLDER } from "./searchClient.js"
 import { getAutocompleteSearchClient } from "./searchClients.js"
 import {
@@ -531,6 +532,18 @@ export function Autocomplete({
             },
             openOnFocus: true,
             stallThreshold: STALL_THRESHOLD_MS,
+            // Submitting is handled in onSubmit; the form's action and the
+            // input's name let Firefox offer "Add Search Engine" on
+            // right-click. autocomplete-js types the action as "", but
+            // applies whatever we return to the form element.
+            getFormProps: ({ props }) => ({
+                ...props,
+                action: SEARCH_BASE_PATH as "",
+            }),
+            getInputProps: ({ props }) => ({
+                ...props,
+                name: SearchUrlParam.QUERY,
+            }),
             onStateChange({ state, prevState }) {
                 if (onActivate && !prevState.isOpen && state.isOpen) {
                     onActivate()

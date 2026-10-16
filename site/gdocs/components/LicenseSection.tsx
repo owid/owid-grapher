@@ -1,5 +1,5 @@
 import { LICENSE_ID } from "@ourworldindata/utils"
-import { IS_ARCHIVE } from "../../../settings/clientSettings.js"
+import { IS_ARCHIVE } from "../../../settings/clientSettings.mjs"
 import { PROD_URL } from "../../SiteConstants.js"
 
 const BASE_URL = IS_ARCHIVE ? PROD_URL : ""
@@ -18,8 +18,8 @@ export function LicenseSection({ isDeprecated }: { isDeprecated?: boolean }) {
                             src="/owid-logo.svg"
                             alt="Our World in Data logo"
                             loading="lazy"
-                            width={104}
-                            height={57}
+                            width={85}
+                            height={47}
                         />
                         <h3>Reuse this work freely</h3>
                     </>

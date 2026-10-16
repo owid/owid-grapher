@@ -45,6 +45,7 @@ import {
     createOrUpdateGdoc,
     deleteGdoc,
     setGdocTags,
+    refreshGdocComponentPreviewsInDoc,
     getPreviewGdocIndexRecords,
     getPublishedGdocTopicSlugs,
     getResearchAndWritingOrphans,
@@ -58,6 +59,14 @@ import {
     getImageUsageHandler,
 } from "./apiRoutes/images.js"
 import { getFiles, uploadFileToR2 } from "./apiRoutes/files.js"
+import { getComponentsReference } from "./apiRoutes/components.js"
+import { getTemplatesReference } from "./apiRoutes/templates.js"
+import { getGuidesReference } from "./apiRoutes/guides.js"
+import {
+    getComponentInstances,
+    getGdocsReferenceUsage,
+    getTemplateExemplars,
+} from "./apiRoutes/gdocsReference.js"
 import {
     handlePutMultiDim,
     handleGetMultiDim,
@@ -85,9 +94,9 @@ import {
 } from "./apiRoutes/redirects.js"
 import { triggerStaticBuild } from "../baker/GrapherBakingUtils.js"
 import {
-    suggestGptTopics,
-    suggestGptAltTextForCloudflareImage,
-    suggestGptAltText,
+    suggestTopics,
+    suggestAltTextForCloudflareImage,
+    suggestAltText,
     extractTextFromImage,
 } from "./apiRoutes/suggest.js"
 import {
@@ -153,7 +162,10 @@ import {
     upsertEtlConfigByChartConfigId,
     deleteChartsChartIdEtlConfig,
 } from "./apiRoutes/charts.js"
-import { getChartConfig } from "./apiRoutes/chartConfigs.js"
+import {
+    getChartConfig,
+    validateChartConfigs,
+} from "./apiRoutes/chartConfigs.js"
 import {
     createDataInsightGDoc,
     getAllDataInsightIndexItems,
@@ -278,6 +290,7 @@ getRouteWithROTransaction(
     "/chart-configs/:chartConfigId.config.json",
     getChartConfig
 )
+apiRouter.post("/chart-configs/validate", validateChartConfigs)
 
 // Narrative chart routes
 getRouteWithROTransaction(apiRouter, "/narrative-charts", getNarrativeCharts)
@@ -403,6 +416,12 @@ getRouteWithROTransaction(
 putRouteWithRWTransaction(apiRouter, "/gdocs/:id", createOrUpdateGdoc)
 deleteRouteWithRWTransaction(apiRouter, "/gdocs/:id", deleteGdoc)
 postRouteWithRWTransaction(apiRouter, "/gdocs/:gdocId/setTags", setGdocTags)
+// Opens its own short transaction, rather than holding one across the Google
+// API calls
+apiRouter.post(
+    "/gdocs/:gdocId/refreshComponentPreviews",
+    refreshGdocComponentPreviewsInDoc
+)
 
 // Data insight routes
 getRouteWithROTransaction(
@@ -552,18 +571,18 @@ deleteRouteWithRWTransaction(
     handleDeleteChartRedirect
 )
 
-// GPT routes
+// LLM suggestion routes (the /gpt/ paths predate the move to Claude)
 getRouteWithROTransaction(
     apiRouter,
     `/gpt/suggest-topics/${TaggableType.Charts}/:chartId.json`,
-    suggestGptTopics
+    suggestTopics
 )
 getRouteWithROTransaction(
     apiRouter,
     `/gpt/suggest-alt-text/:imageId`,
-    suggestGptAltTextForCloudflareImage
+    suggestAltTextForCloudflareImage
 )
-getRouteWithROTransaction(apiRouter, `/gpt/suggest-alt-text`, suggestGptAltText)
+getRouteWithROTransaction(apiRouter, `/gpt/suggest-alt-text`, suggestAltText)
 getRouteWithROTransaction(
     apiRouter,
     `/gpt/extract-text-from-image`,
@@ -666,6 +685,30 @@ postRouteWithRWTransaction(apiRouter, "/slack/sendMessage", sendMessageToSlack)
 apiRouter.get("/svgtester/suites.json", getSvgTesterSuites)
 apiRouter.get("/svgtester/:suite/results.json", getSvgTesterResults)
 apiRouter.router.get("/svgtester/:suite/:kind/:filename", getSvgTesterSvg)
+
+// ArchieML component, gdoc template and guide references (served from the
+// committed registry JSONs)
+apiRouter.get("/gdocs-reference/components.json", getComponentsReference)
+apiRouter.get("/gdocs-reference/templates.json", getTemplatesReference)
+apiRouter.get("/gdocs-reference/guides.json", getGuidesReference)
+
+// The live half of the writing reference: component usage across published
+// docs, real instances with provenance, and template exemplar outlines
+getRouteWithROTransaction(
+    apiRouter,
+    "/gdocs-reference/usage.json",
+    getGdocsReferenceUsage
+)
+getRouteWithROTransaction(
+    apiRouter,
+    "/gdocs-reference/components/:id/instances.json",
+    getComponentInstances
+)
+getRouteWithROTransaction(
+    apiRouter,
+    "/gdocs-reference/templates/:id/exemplars.json",
+    getTemplateExemplars
+)
 
 // Deploy helpers
 apiRouter.get("/deploys.json", async () => ({

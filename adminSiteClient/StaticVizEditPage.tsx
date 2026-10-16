@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react"
+import { useContext, useEffect, useMemo, useState } from "react"
 import { useParams, useHistory } from "react-router-dom"
 import { Button, Form, Input, Select, Spin } from "antd"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
@@ -77,21 +77,21 @@ function ImagePreview({
     )
 }
 
+const EMPTY_FORM_DATA: StaticVizUpdate = {
+    name: "",
+    description: "",
+    grapherSlug: "",
+    sourceUrl: "",
+    imageId: undefined,
+    mobileImageId: undefined,
+}
+
 function useInitializeForm(
     isEdit: boolean,
     form: any,
     staticVizId?: string
 ): [StaticVizUpdate, boolean] {
     const { admin } = useContext(AdminAppContext)
-
-    const [formData, setFormData] = useState<StaticVizUpdate>({
-        name: "",
-        description: "",
-        grapherSlug: "",
-        sourceUrl: "",
-        imageId: undefined,
-        mobileImageId: undefined,
-    })
 
     const { data, isLoading } = useQuery({
         queryKey: ["static-viz", staticVizId],
@@ -105,20 +105,24 @@ function useInitializeForm(
         enabled: isEdit,
     })
 
+    const formData = useMemo<StaticVizUpdate>(
+        () =>
+            isEdit && data
+                ? {
+                      name: data.name,
+                      description: data.description || "",
+                      grapherSlug: data.grapherSlug || "",
+                      sourceUrl: data.sourceUrl || "",
+                      imageId: data.desktop?.id,
+                      mobileImageId: data.mobile?.id,
+                  }
+                : EMPTY_FORM_DATA,
+        [isEdit, data]
+    )
+
     useEffect(() => {
-        if (isEdit && data) {
-            const initialData: StaticVizUpdate = {
-                name: data.name,
-                description: data.description || "",
-                grapherSlug: data.grapherSlug || "",
-                sourceUrl: data.sourceUrl || "",
-                imageId: data.desktop?.id,
-                mobileImageId: data.mobile?.id,
-            }
-            setFormData(initialData)
-            form.setFieldsValue(initialData)
-        }
-    }, [isEdit, data, form])
+        if (formData !== EMPTY_FORM_DATA) form.setFieldsValue(formData)
+    }, [formData, form])
 
     return [formData, isLoading]
 }
@@ -146,6 +150,7 @@ export function StaticVizEditPage() {
                 console.error("Validation error:", e)
                 setIsValid(false)
             })
+        // oxlint-disable-next-line react/exhaustive-effect-dependencies -- values is the trigger, validateFields reads them from the form
     }, [form, values])
 
     const { data: imagesData, isLoading: isLoadingImages } = useQuery<

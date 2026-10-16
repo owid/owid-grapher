@@ -1,0 +1,44 @@
+.latest-carousel-section {
+    padding-top: 40px;
+    border-top: $blue-10 4px solid;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+
+    h2 {
+        margin: 0;
+    }
+
+    @include md-down {
+        border-top: none;
+        padding-top: 16px;
+    }
+}
+
+.latest-carousel-section__see-all {
+    @include body-3-regular;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto;
+    border: 1px solid $vermillion;
+    color: $vermillion;
+    padding: 8px 24px;
+    height: 40px;
+    transition:
+        color var(--duration-hover) ease,
+        border-color var(--duration-hover) ease;
+
+    &:hover {
+        color: $accent-vermillion;
+        border-color: $accent-vermillion;
+    }
+
+    @include sm-only {
+        display: none;
+    }
+}
+
+.latest-carousel-section__carousel {
+    width: 100%;
+}

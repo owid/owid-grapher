@@ -11,6 +11,10 @@ import { MapChartState } from "./MapChartState"
 import { MapConfig } from "./MapConfig"
 import { CategoricalBin } from "../color/ColorScaleBin"
 import { INAPPLICABLE_COLOR } from "../color/ColorScale"
+import { renderToStaticMarkup } from "react-dom/server"
+import { GrapherState } from "../core/GrapherState"
+import { legacyMapGrapher, legacyMapGrapherData } from "./MapChart.sample"
+import { legacyToOwidTableAndDimensions } from "../core/LegacyToOwidTable"
 
 const table = SynthesizeGDPTable({
     timeRange: [2000, 2001],
@@ -37,28 +41,24 @@ it("filters out non-map entities from colorScaleColumn", () => {
     )
 })
 
-it("pins a map bracket selected by touch until the next touch", () => {
+it("highlights the countries of a hovered legend bracket", () => {
     const chartState = new MapChartState({ manager })
     const chart = new MapChart({ chartState })
-    const [firstBracket, secondBracket] = chartState.colorScale.legendBins
+    const bracket = chartState.colorScale.legendBins.find((bin) =>
+        chartState.series.some((series) => bin.contains(series.value))
+    )!
 
-    expect(firstBracket).toBeDefined()
-    expect(secondBracket).toBeDefined()
+    expect(chart.getHoverState("France").background).toBe(false)
 
-    chart.onLegendMouseOver(firstBracket)
-    chart.onLegendTouchSelect(firstBracket)
+    chart.onLegendMouseOver(bracket)
+    for (const series of chartState.series) {
+        expect(chart.getHoverState(series.seriesName).active).toBe(
+            bracket.contains(series.value)
+        )
+    }
+
     chart.onLegendMouseLeave()
-    chart.onLegendMouseOver(secondBracket)
-
-    expect(chart.hoverBracket).toBe(firstBracket)
-
-    chart.onDocumentPointerDown()
-
-    expect(chart.hoverBracket).toBeUndefined()
-
-    chart.onLegendMouseOver(secondBracket)
-
-    expect(chart.hoverBracket).toBe(secondBracket)
+    expect(chart.getHoverState("France").background).toBe(false)
 })
 
 it("combines projected data with its historical counterpart", () => {
@@ -155,4 +155,46 @@ describe("not applicable entities", () => {
             "Selected country"
         )
     })
+
+    it.each([
+        { case: "default", customColor: undefined, expected: "#ccc" },
+        { case: "custom", customColor: "#f4c9c9", expected: "#f4c9c9" },
+    ])(
+        "draws the not-applicable stripes over the $case color",
+        async ({ customColor, expected }) => {
+            const grapherState = new GrapherState({
+                ...legacyMapGrapher,
+                inapplicableEntityNames: ["Argentina"],
+                map: {
+                    ...legacyMapGrapher.map,
+                    ...(customColor && {
+                        colorScale: {
+                            customCategoryColors: {
+                                "Not applicable": customColor,
+                            },
+                        },
+                    }),
+                },
+            })
+            grapherState.inputTable = legacyToOwidTableAndDimensions(
+                legacyMapGrapherData,
+                legacyMapGrapher.dimensions!,
+                legacyMapGrapher.selectedEntityColors
+            )
+            const svg =
+                await grapherState.generateStaticSvg(renderToStaticMarkup)
+
+            const patterns =
+                svg.match(
+                    /<pattern id="inapplicablePattern[^>]*>.*?<\/pattern>/g
+                ) ?? []
+            expect(
+                patterns
+                    .map((pattern) => pattern.match(/id="([^"]+)"/)![1])
+                    .sort()
+            ).toEqual(["inapplicablePattern", "inapplicablePatternForMap"])
+            for (const pattern of patterns)
+                expect(pattern).toContain(`fill="${expected}"`)
+        }
+    )
 })

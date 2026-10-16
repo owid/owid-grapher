@@ -11,7 +11,6 @@ import {
     SynthesizeFruitTableWithStringValues,
     SynthesizeGDPTable,
 } from "@ourworldindata/core-table"
-import { ChartManager } from "../chart/ChartManager"
 import {
     ColumnTypeNames,
     FacetStrategy,
@@ -21,16 +20,25 @@ import {
 import { SelectionArray } from "../selection/SelectionArray"
 import { SlopeChartState } from "./SlopeChartState"
 
-const table = SynthesizeGDPTable({ timeRange: [2000, 2010] })
-const manager: SlopeChartManager = {
-    table,
-    yColumnSlug: SampleColumnSlugs.Population,
-    selection: table.availableEntityNames,
+function makeSlopeChart(
+    table: OwidTable,
+    config: Partial<SlopeChartManager> = {}
+): { chartState: SlopeChartState; chart: SlopeChart } {
+    const manager: SlopeChartManager = {
+        table,
+        selection: table.availableEntityNames,
+        ...config,
+    }
+    const chartState = new SlopeChartState({ manager })
+    const chart = new SlopeChart({ chartState })
+    return { chartState, chart }
 }
 
 it("can create a new slope chart", () => {
-    const chartState = new SlopeChartState({ manager })
-    const chart = new SlopeChart({ chartState })
+    const table = SynthesizeGDPTable({ timeRange: [2000, 2010] })
+    const { chart } = makeSlopeChart(table, {
+        yColumnSlug: SampleColumnSlugs.Population,
+    })
     expect(chart.series.length).toEqual(2)
 })
 
@@ -43,13 +51,9 @@ it("filters non-numeric values", () => {
         1,
         1
     )
-    const manager: ChartManager = {
-        table,
+    const { chart } = makeSlopeChart(table, {
         yColumnSlugs: [SampleColumnSlugs.Fruit],
-        selection: table.availableEntityNames,
-    }
-    const chartState = new SlopeChartState({ manager })
-    const chart = new SlopeChart({ chartState })
+    })
     expect(chart.series.length).toEqual(1)
     expect(
         chart.series.every(
@@ -69,22 +73,18 @@ it("can filter points with negative values when using a log scale", () => {
         1
     )
 
-    const manager: ChartManager = {
-        table,
+    const { chartState } = makeSlopeChart(table, {
         yColumnSlugs: [SampleColumnSlugs.Fruit],
-        selection: table.availableEntityNames,
-    }
-    const chartState = new SlopeChartState({ manager })
+    })
     expect(chartState.allYValues.length).toEqual(4)
 
-    const logScaleManager = {
-        ...manager,
-        yAxisConfig: {
-            scaleType: ScaleType.log,
-        },
-    }
-    const logChartState = new SlopeChartState({ manager: logScaleManager })
-    const logChart = new SlopeChart({ chartState: logChartState })
+    const { chartState: logChartState, chart: logChart } = makeSlopeChart(
+        table,
+        {
+            yColumnSlugs: [SampleColumnSlugs.Fruit],
+            yAxisConfig: { scaleType: ScaleType.log },
+        }
+    )
     expect(logChart.yAxis.domain[0]).toBeGreaterThan(0)
     expect(logChartState.allYValues.length).toEqual(2)
 })
@@ -93,36 +93,26 @@ describe("series naming in multi-column mode", () => {
     const table = SynthesizeGDPTable()
 
     it("only displays column name if only one entity is selected and multi entity selection is disabled", () => {
-        const manager = {
-            table,
+        const { chart } = makeSlopeChart(table, {
             canSelectMultipleEntities: false,
             selection: [table.availableEntityNames[0]],
-        }
-        const chartState = new SlopeChartState({ manager })
-        const chart = new SlopeChart({ chartState })
+        })
         expect(chart.series[0].seriesName).not.toContain(" - ")
     })
 
     it("combines entity and column name if only one entity is selected and multi entity selection is enabled", () => {
-        const manager = {
-            table,
+        const { chart } = makeSlopeChart(table, {
             canSelectMultipleEntities: true,
             selection: [table.availableEntityNames[0]],
-        }
-        const chartState = new SlopeChartState({ manager })
-        const chart = new SlopeChart({ chartState })
+        })
         expect(chart.series[0].seriesName).toContain(" - ")
     })
 
     it("combines entity and column name if multiple entities are selected and multi entity selection is disabled", () => {
-        const selection = new SelectionArray(table.availableEntityNames)
-        const manager = {
-            table,
+        const { chart } = makeSlopeChart(table, {
             canSelectMultipleEntities: false,
-            selection,
-        }
-        const chartState = new SlopeChartState({ manager })
-        const chart = new SlopeChart({ chartState })
+            selection: new SelectionArray(table.availableEntityNames),
+        })
         expect(chart.series[0].seriesName).toContain(" - ")
     })
 })
@@ -136,13 +126,10 @@ describe("colors", () => {
     })
     const selection = ["usa", "canada"]
     it("can add custom colors", () => {
-        const manager = {
+        const { chart } = makeSlopeChart(table, {
             yColumnSlugs: ["gdp"],
-            table,
             selection,
-        }
-        const chartState = new SlopeChartState({ manager })
-        const chart = new SlopeChart({ chartState })
+        })
         expect(chart.series.map((series) => series.color)).toEqual([
             "blue",
             "red",
@@ -160,30 +147,23 @@ describe("colors", () => {
             [{ slug: "gdp", color: "green", type: ColumnTypeNames.Numeric }]
         )
 
-        const manager: ChartManager = {
+        const { chart } = makeSlopeChart(table, {
             yColumnSlugs: ["gdp"],
-            table: table,
             selection,
             seriesStrategy: SeriesStrategy.column,
-        }
-        const chartState = new SlopeChartState({ manager })
-        const chart = new SlopeChart({ chartState })
-        const series = chart.series
+        })
 
-        expect(series).toHaveLength(1)
-        expect(series[0].color).toEqual("green")
+        expect(chart.series).toHaveLength(1)
+        expect(chart.series[0].color).toEqual("green")
     })
 
     it("can assign colors to selected entities and preserve those colors when selection changes when using a color map", () => {
         const selection = new SelectionArray(["usa", "canada"])
-        const manager: ChartManager = {
+        const { chart } = makeSlopeChart(table.dropColumns(["entityColor"]), {
             yColumnSlugs: ["gdp"],
-            table: table.dropColumns(["entityColor"]),
             selection,
             seriesColorMap: new Map(),
-        }
-        const chartState = new SlopeChartState({ manager })
-        const chart = new SlopeChart({ chartState })
+        })
         const series = chart.series
         expect(series).toHaveLength(2)
 
@@ -208,21 +188,17 @@ describe("colors", () => {
             ]
         )
 
-        const manager: SlopeChartManager = {
+        const { chart } = makeSlopeChart(table, {
             yColumnSlugs: ["gdp", "pop"],
-            table: table,
             selection: ["usa"],
             seriesStrategy: SeriesStrategy.column,
             facetStrategy: FacetStrategy.entity,
             canSelectMultipleEntities: true,
-        }
-        const chartState = new SlopeChartState({ manager })
-        const chart = new SlopeChart({ chartState })
-        const series = chart.series
+        })
 
-        expect(series).toHaveLength(2)
-        expect(series[0].color).toEqual("green")
-        expect(series[1].color).toEqual("orange")
+        expect(chart.series).toHaveLength(2)
+        expect(chart.series[0].color).toEqual("green")
+        expect(chart.series[1].color).toEqual("orange")
     })
 
     it("doesn't use variable colors if 2 variables have single entities which are different", () => {
@@ -249,20 +225,15 @@ describe("colors", () => {
             ]
         )
 
-        const selection = new SelectionArray(["usa", "canada"])
-        const manager: SlopeChartManager = {
+        const { chart } = makeSlopeChart(table, {
             yColumnSlugs: ["gdp", "pop"],
-            table: table,
-            selection,
+            selection: new SelectionArray(["usa", "canada"]),
             seriesStrategy: SeriesStrategy.column,
             canSelectMultipleEntities: true,
-        }
-        const chartState = new SlopeChartState({ manager })
-        const chart = new SlopeChart({ chartState })
-        const series = chart.series
+        })
 
-        expect(series).toHaveLength(2)
-        expect(series[0].color).not.toEqual("green")
-        expect(series[1].color).not.toEqual("orange")
+        expect(chart.series).toHaveLength(2)
+        expect(chart.series[0].color).not.toEqual("green")
+        expect(chart.series[1].color).not.toEqual("orange")
     })
 })

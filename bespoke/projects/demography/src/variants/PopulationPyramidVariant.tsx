@@ -2,10 +2,8 @@ import { useMemo, useState } from "react"
 import cx from "clsx"
 import { QueryClientProvider } from "@tanstack/react-query"
 
-import {
-    DemographyChartError,
-    DemographySkeleton,
-} from "../components/DemographyLoadAndError.js"
+import { ChartError } from "../../../../components/ChartError/ChartError.js"
+import { ChartSkeleton } from "../../../../components/ChartSkeleton/ChartSkeleton.js"
 import { Spinner } from "../../../../components/Spinner/Spinner.js"
 import { queryClient, useDemographyData } from "../core/fetch.js"
 import type {
@@ -13,6 +11,7 @@ import type {
     PopulationPyramidVariantConfig,
 } from "../core/config.js"
 import type { VariantProps } from "../../../../helpers/config.js"
+import type { BespokeComponentDataUrls } from "owid-bespoke-types"
 import { groupAgeGroupsByZone } from "../core/utils.js"
 import { formatEntityNameForSentence } from "../../../../helpers/entityNames.js"
 import { CountryData, DemographyMetadata } from "../core/types.js"
@@ -43,6 +42,7 @@ import { EntityNameOrSelector } from "../components/EntityNameOrSelector.js"
 
 export function PopulationPyramidVariant({
     config,
+    urls,
 }: VariantProps<PopulationPyramidVariantConfig>): React.ReactElement {
     const { breakpoint, ref: rootRef } = useContainerBreakpoint()
 
@@ -56,7 +56,10 @@ export function PopulationPyramidVariant({
                         breakpointClass(breakpoint)
                     )}
                 >
-                    <FetchingPopulationPyramidVariant config={config} />
+                    <FetchingPopulationPyramidVariant
+                        config={config}
+                        urls={urls}
+                    />
                 </div>
             </BreakpointProvider>
         </QueryClientProvider>
@@ -65,16 +68,23 @@ export function PopulationPyramidVariant({
 
 function FetchingPopulationPyramidVariant({
     config,
+    urls,
 }: {
     config: PopulationPyramidVariantConfig
+    urls: BespokeComponentDataUrls
 }): React.ReactElement {
-    const [entityName, setEntityName] = useInitialEntityName(config.region)
+    const [entityName, setEntityName] = useInitialEntityName(
+        config.region,
+        urls.metadataUrl
+    )
 
     const { metadata, entityData, isLoadingEntityData, status } =
-        useDemographyData(entityName)
+        useDemographyData(entityName, urls)
 
-    if (status === "pending") return <DemographySkeleton />
-    if (!metadata || !entityData) return <DemographyChartError />
+    if (status === "pending")
+        return <ChartSkeleton className="demography-chart-box" />
+    if (!metadata || !entityData)
+        return <ChartError className="demography-chart-box" />
 
     return (
         <CaptionedPopulationPyramidVariant

@@ -3,7 +3,7 @@
 import "../../serverUtils/instrument.js"
 
 import * as _ from "lodash-es"
-import * as Sentry from "@sentry/node"
+import { runSentryScript, traceJob } from "../../serverUtils/sentryTracing.js"
 import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
 import * as db from "../../db/db.js"
@@ -482,18 +482,20 @@ const archiveGrapherPages = async (
         variableFiles
     )
 
-    await insertArchivedChartVersions(
-        trx,
-        graphersToArchive,
-        archivalDate,
-        manifests
-    )
+    await traceJob("finalize-archival-grapher-versions", async () => {
+        await insertArchivedChartVersions(
+            trx,
+            graphersToArchive,
+            archivalDate,
+            manifests
+        )
 
-    await generateChartVersionsFiles(
-        trx,
-        opts.dir,
-        graphersToArchive.map((grapher) => grapher.chartId)
-    )
+        await generateChartVersionsFiles(
+            trx,
+            opts.dir,
+            graphersToArchive.map((grapher) => grapher.chartId)
+        )
+    })
 }
 
 /**
@@ -520,18 +522,20 @@ const archiveMultiDimPages = async (
         chartConfigFiles
     )
 
-    await insertArchivedMultiDimVersions(
-        trx,
-        multiDimsToArchive,
-        archivalDate,
-        manifests
-    )
+    await traceJob("finalize-archival-multidim-versions", async () => {
+        await insertArchivedMultiDimVersions(
+            trx,
+            multiDimsToArchive,
+            archivalDate,
+            manifests
+        )
 
-    await generateMultiDimVersionsFiles(
-        trx,
-        opts.dir,
-        multiDimsToArchive.map((multiDim) => multiDim.multiDimId)
-    )
+        await generateMultiDimVersionsFiles(
+            trx,
+            opts.dir,
+            multiDimsToArchive.map((multiDim) => multiDim.multiDimId)
+        )
+    })
 }
 
 /**
@@ -556,18 +560,20 @@ const archiveExplorerPages = async (
         variableFiles
     )
 
-    await insertArchivedExplorerVersions(
-        trx,
-        explorersToArchive,
-        archivalDate,
-        manifests
-    )
+    await traceJob("finalize-archival-explorer-versions", async () => {
+        await insertArchivedExplorerVersions(
+            trx,
+            explorersToArchive,
+            archivalDate,
+            manifests
+        )
 
-    await generateExplorerVersionsFiles(
-        trx,
-        opts.dir,
-        explorersToArchive.map((exp) => exp.explorerSlug)
-    )
+        await generateExplorerVersionsFiles(
+            trx,
+            opts.dir,
+            explorersToArchive.map((exp) => exp.explorerSlug)
+        )
+    })
 }
 
 const archivePostPages = async (
@@ -593,18 +599,20 @@ const archivePostPages = async (
         narrativeChartFilesByPostId
     )
 
-    await insertArchivedPostVersions(
-        trx,
-        postsToArchive,
-        archivalDate,
-        manifests
-    )
+    await traceJob("finalize-archival-gdoc-versions", async () => {
+        await insertArchivedPostVersions(
+            trx,
+            postsToArchive,
+            archivalDate,
+            manifests
+        )
 
-    await generatePostVersionsFiles(
-        trx,
-        opts.dir,
-        postsToArchive.map((post) => post.postId)
-    )
+        await generatePostVersionsFiles(
+            trx,
+            opts.dir,
+            postsToArchive.map((post) => post.postId)
+        )
+    })
 }
 
 /**
@@ -612,28 +620,49 @@ const archivePostPages = async (
  */
 const findChangedPagesAndArchive = async (opts: Options): Promise<void> => {
     await db.knexReadWriteTransaction(async (trx) => {
-        // Determine what needs to be archived
-        const [
+        const {
             graphersToArchive,
             multiDimsToArchive,
             explorersToArchive,
-            {
+            postsToArchive,
+            imagesByPostId,
+            videosByPostId,
+            narrativeChartsByPostId,
+            totalToArchive,
+        } = await traceJob("find-pages-to-archive", async () => {
+            // Determine what needs to be archived
+            const [
+                graphersToArchive,
+                multiDimsToArchive,
+                explorersToArchive,
+                {
+                    postsToArchive,
+                    imagesByPostId,
+                    videosByPostId,
+                    narrativeChartsByPostId,
+                },
+            ] = await Promise.all([
+                getGraphersToArchive(trx, opts),
+                getMultiDimsToArchive(trx, opts),
+                getExplorersToArchive(trx, opts),
+                getPostsToArchive(trx, opts),
+            ])
+            const totalToArchive =
+                graphersToArchive.length +
+                multiDimsToArchive.length +
+                explorersToArchive.length +
+                postsToArchive.length
+            return {
+                graphersToArchive,
+                multiDimsToArchive,
+                explorersToArchive,
                 postsToArchive,
                 imagesByPostId,
                 videosByPostId,
                 narrativeChartsByPostId,
-            },
-        ] = await Promise.all([
-            getGraphersToArchive(trx, opts),
-            getMultiDimsToArchive(trx, opts),
-            getExplorersToArchive(trx, opts),
-            getPostsToArchive(trx, opts),
-        ])
-        const totalToArchive =
-            graphersToArchive.length +
-            multiDimsToArchive.length +
-            explorersToArchive.length +
-            postsToArchive.length
+                totalToArchive,
+            }
+        })
 
         // Handle dry run mode
         if (opts.dryRun) {
@@ -656,35 +685,60 @@ const findChangedPagesAndArchive = async (opts: Options): Promise<void> => {
             return
         }
 
-        // Fetch configurations for pages to be archived
-        const archivalDate = getDateForArchival()
-        const [grapherConfigs, multiDimConfigs, explorerPrograms, commonCtx] =
-            await Promise.all([
+        const {
+            archivalDate,
+            grapherConfigs,
+            multiDimConfigs,
+            explorerPrograms,
+            commonCtx,
+            postInfos,
+            variableFiles,
+            chartConfigFiles,
+        } = await traceJob("prepare-archive-data", async () => {
+            // Fetch configurations for pages to be archived
+            const archivalDate = getDateForArchival()
+            const [
+                grapherConfigs,
+                multiDimConfigs,
+                explorerPrograms,
+                commonCtx,
+            ] = await Promise.all([
                 getGrapherConfigs(trx, graphersToArchive),
                 getMultiDimConfigs(trx, multiDimsToArchive),
                 getExplorerPrograms(trx, explorersToArchive),
                 createCommonArchivalContext(trx, opts.dir, archivalDate),
             ])
-        const postInfos = getPostInfos(postsToArchive)
+            const postInfos = getPostInfos(postsToArchive)
 
-        // Collect all variable IDs and create variable files
-        const allVariableIds = collectAllVariableIds(
-            grapherConfigs,
-            multiDimConfigs,
-            explorersToArchive
-        )
-        const variableFiles = await archiveVariableIds(
-            [...allVariableIds],
-            commonCtx.baseArchiveDir
-        )
+            // Collect all variable IDs and create variable files
+            const allVariableIds = collectAllVariableIds(
+                grapherConfigs,
+                multiDimConfigs,
+                explorersToArchive
+            )
+            const variableFiles = await archiveVariableIds(
+                [...allVariableIds],
+                commonCtx.baseArchiveDir
+            )
 
-        // Collect all chart config UUIDs and create chart config files
-        const allChartConfigIds = collectAllChartConfigIds(multiDimConfigs)
-        const chartConfigFiles = await archiveChartConfigs(
-            trx,
-            [...allChartConfigIds],
-            commonCtx.baseArchiveDir
-        )
+            // Collect all chart config UUIDs and create chart config files
+            const allChartConfigIds = collectAllChartConfigIds(multiDimConfigs)
+            const chartConfigFiles = await archiveChartConfigs(
+                trx,
+                [...allChartConfigIds],
+                commonCtx.baseArchiveDir
+            )
+            return {
+                archivalDate,
+                grapherConfigs,
+                multiDimConfigs,
+                explorerPrograms,
+                commonCtx,
+                postInfos,
+                variableFiles,
+                chartConfigFiles,
+            }
+        })
 
         await Promise.all([
             archiveGrapherPages(
@@ -717,21 +771,32 @@ const findChangedPagesAndArchive = async (opts: Options): Promise<void> => {
             ),
         ])
 
-        const imageFilesByPostId = await archiveImages(
-            imagesByPostId,
-            commonCtx.baseArchiveDir
-        )
+        const {
+            imageFilesByPostId,
+            videoFilesByPostId,
+            narrativeChartFilesByPostId,
+        } = await traceJob("prepare-archive-post-assets", async () => {
+            const imageFilesByPostId = await archiveImages(
+                imagesByPostId,
+                commonCtx.baseArchiveDir
+            )
 
-        const videoFilesByPostId = await archiveVideos(
-            videosByPostId,
-            commonCtx.baseArchiveDir
-        )
+            const videoFilesByPostId = await archiveVideos(
+                videosByPostId,
+                commonCtx.baseArchiveDir
+            )
 
-        const narrativeChartFilesByPostId = await archiveNarrativeCharts(
-            trx,
-            narrativeChartsByPostId,
-            commonCtx.baseArchiveDir
-        )
+            const narrativeChartFilesByPostId = await archiveNarrativeCharts(
+                trx,
+                narrativeChartsByPostId,
+                commonCtx.baseArchiveDir
+            )
+            return {
+                imageFilesByPostId,
+                videoFilesByPostId,
+                narrativeChartFilesByPostId,
+            }
+        })
 
         // Must run after the charts so we can fetch their latest archived
         // versions.
@@ -748,14 +813,11 @@ const findChangedPagesAndArchive = async (opts: Options): Promise<void> => {
         )
 
         if (opts.latestDir) {
-            await copyToLatestDir(
-                commonCtx.baseArchiveDir,
-                commonCtx.archiveDir
+            await traceJob("copy-latest-archive", () =>
+                copyToLatestDir(commonCtx.baseArchiveDir, commonCtx.archiveDir)
             )
         }
     })
-
-    process.exit(0)
 }
 
 void yargs(hideBin(process.argv))
@@ -855,14 +917,11 @@ void yargs(hideBin(process.argv))
                 })
         },
         async (opts) => {
-            await findChangedPagesAndArchive(opts).catch(async (e) => {
-                console.error("Error in findChangedPagesAndArchive:", e)
-                Sentry.captureException(e)
-                await Sentry.close()
-                process.exit(1)
-            })
-
-            process.exit(0)
+            await runSentryScript(
+                "archive-changed-pages",
+                () => findChangedPagesAndArchive(opts),
+                { trace: false }
+            )
         }
     )
     .help()

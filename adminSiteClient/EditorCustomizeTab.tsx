@@ -46,7 +46,7 @@ import {
 } from "./ColorSchemeDropdown.js"
 import { EditorColorScaleSection } from "./EditorColorScaleSection.js"
 import { Select } from "antd"
-import { AbstractChartEditor } from "./AbstractChartEditor.js"
+import { ConfigEditor } from "./ConfigEditor.js"
 import { ErrorMessages } from "./ChartEditorTypes.js"
 import { match } from "ts-pattern"
 
@@ -243,10 +243,8 @@ const SORT_BY_DISPLAY_ORDER: SortBy[] = [
 ]
 
 @observer
-class SortOrderSection<
-    Editor extends AbstractChartEditor,
-> extends React.Component<{ editor: Editor }> {
-    constructor(props: { editor: Editor }) {
+class SortOrderSection extends React.Component<{ editor: ConfigEditor }> {
+    constructor(props: { editor: ConfigEditor }) {
         super(props)
         makeObservable(this)
     }
@@ -362,12 +360,12 @@ class SortOrderSection<
 }
 
 @observer
-class FacetSection<Editor extends AbstractChartEditor> extends React.Component<{
-    editor: Editor
+class FacetSection extends React.Component<{
+    editor: ConfigEditor
 }> {
     base = React.createRef<HTMLDivElement>()
 
-    constructor(props: { editor: Editor }) {
+    constructor(props: { editor: ConfigEditor }) {
         super(props)
         makeObservable(this)
     }
@@ -445,12 +443,10 @@ class FacetSection<Editor extends AbstractChartEditor> extends React.Component<{
 }
 
 @observer
-class TimelineSection<
-    Editor extends AbstractChartEditor,
-> extends React.Component<{ editor: Editor }> {
+class TimelineSection extends React.Component<{ editor: ConfigEditor }> {
     base = React.createRef<HTMLDivElement>()
 
-    constructor(props: { editor: Editor }) {
+    constructor(props: { editor: ConfigEditor }) {
         super(props)
         makeObservable(this)
     }
@@ -482,7 +478,7 @@ class TimelineSection<
                             label="Selection start"
                             defaultValue={TimeBoundValue.negativeInfinity}
                             parentValue={minTimeBoundFromJSONOrNegativeInfinity(
-                                editor.activeParentConfig?.minTime
+                                editor.baseConfig?.minTime
                             )}
                             isInherited={editor.isPropertyInherited("minTime")}
                             allowLinking={editor.canPropertyBeInherited(
@@ -500,7 +496,7 @@ class TimelineSection<
                         }
                         defaultValue={TimeBoundValue.positiveInfinity}
                         parentValue={maxTimeBoundFromJSONOrPositiveInfinity(
-                            editor.activeParentConfig?.maxTime
+                            editor.baseConfig?.maxTime
                         )}
                         isInherited={editor.isPropertyInherited("maxTime")}
                         allowLinking={editor.canPropertyBeInherited("maxTime")}
@@ -513,7 +509,7 @@ class TimelineSection<
                         label="Timeline min"
                         defaultValue={TimeBoundValue.negativeInfinity}
                         parentValue={minTimeBoundFromJSONOrNegativeInfinity(
-                            editor.activeParentConfig?.timelineMinTime
+                            editor.baseConfig?.timelineMinTime
                         )}
                         isInherited={editor.isPropertyInherited(
                             "timelineMinTime"
@@ -528,7 +524,7 @@ class TimelineSection<
                         label="Timeline max"
                         defaultValue={TimeBoundValue.positiveInfinity}
                         parentValue={maxTimeBoundFromJSONOrPositiveInfinity(
-                            editor.activeParentConfig?.timelineMaxTime
+                            editor.baseConfig?.timelineMaxTime
                         )}
                         isInherited={editor.isPropertyInherited(
                             "timelineMaxTime"
@@ -558,10 +554,8 @@ class TimelineSection<
 }
 
 @observer
-class ComparisonLineSection<
-    Editor extends AbstractChartEditor,
-> extends React.Component<{ editor: Editor }> {
-    constructor(props: { editor: Editor }) {
+class ComparisonLineSection extends React.Component<{ editor: ConfigEditor }> {
+    constructor(props: { editor: ConfigEditor }) {
         super(props)
         makeObservable(this)
     }
@@ -749,10 +743,8 @@ class TrendColorField extends React.Component<{
 }
 
 @observer
-class DumbbellSection<
-    Editor extends AbstractChartEditor,
-> extends React.Component<{ editor: Editor }> {
-    constructor(props: { editor: Editor }) {
+class DumbbellSection extends React.Component<{ editor: ConfigEditor }> {
+    constructor(props: { editor: ConfigEditor }) {
         super(props)
         makeObservable(this)
     }
@@ -828,16 +820,14 @@ class DumbbellSection<
     }
 }
 
-interface EditorCustomizeTabProps<Editor> {
-    editor: Editor
+interface EditorCustomizeTabProps {
+    editor: ConfigEditor
     errorMessages: ErrorMessages
 }
 
 @observer
-export class EditorCustomizeTab<
-    Editor extends AbstractChartEditor,
-> extends React.Component<EditorCustomizeTabProps<Editor>> {
-    constructor(props: EditorCustomizeTabProps<Editor>) {
+export class EditorCustomizeTab extends React.Component<EditorCustomizeTabProps> {
+    constructor(props: EditorCustomizeTabProps) {
         super(props)
         makeObservable(this)
     }
@@ -850,7 +840,7 @@ export class EditorCustomizeTab<
         const xAxisConfig = this.props.editor.grapherState.xAxis
         const yAxisConfig = this.props.editor.grapherState.yAxis
 
-        const { features, activeParentConfig } = this.props.editor
+        const { features, baseConfig } = this.props.editor
         const { grapherState } = this.props.editor
 
         return (
@@ -921,10 +911,9 @@ export class EditorCustomizeTab<
                             onBlur={() => {
                                 if (
                                     yAxisConfig.label === "" &&
-                                    activeParentConfig?.yAxis?.label
+                                    baseConfig?.yAxis?.label
                                 ) {
-                                    yAxisConfig.label =
-                                        activeParentConfig.yAxis.label
+                                    yAxisConfig.label = baseConfig.yAxis.label
                                 }
                             }}
                         />
@@ -1013,10 +1002,10 @@ export class EditorCustomizeTab<
                                 onBlur={() => {
                                     if (
                                         xAxisConfig.label === "" &&
-                                        activeParentConfig?.xAxis?.label
+                                        baseConfig?.xAxis?.label
                                     ) {
                                         xAxisConfig.label =
-                                            activeParentConfig.xAxis.label
+                                            baseConfig.xAxis.label
                                     }
                                 }}
                             />
@@ -1029,8 +1018,7 @@ export class EditorCustomizeTab<
                     <ColorSchemeSelector
                         grapherState={grapherState}
                         defaultValue={
-                            this.props.editor.activeParentConfig
-                                ?.baseColorScheme
+                            this.props.editor.baseConfig?.baseColorScheme
                         }
                     />
                 </Section>

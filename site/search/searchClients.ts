@@ -11,7 +11,7 @@ import {
     ALGOLIA_CACHED_QUERIES_URL,
     ALGOLIA_ID,
     ALGOLIA_SEARCH_KEY,
-} from "../../settings/clientSettings.js"
+} from "../../settings/clientSettings.mjs"
 
 // Multi-query search requests where every query string is empty (the
 // "browse" requests issued by default states: the search landing page, the

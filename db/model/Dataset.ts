@@ -1,14 +1,11 @@
 import { Writable } from "stream"
 
 import * as db from "../db.js"
-import { writeVariableCSV } from "./Variable.js"
+import { getVariableUsagesByIds, writeVariableCSV } from "./Variable.js"
 import * as _ from "lodash-es"
 import {
     DbPlainDataset,
     DatasetsTableName,
-    ExplorerVariablesTableName,
-    ChartDimensionsTableName,
-    MultiDimDataPagesTableName,
     VariablesTableName,
 } from "@ourworldindata/types"
 
@@ -100,64 +97,30 @@ export async function checkDatasetVariablesInUse(
         multiDimCount: number
     }
 }> {
-    // Get all variable IDs for this dataset
     const variableIds = await db.knexRaw<{ id: number }>(
         trx,
         `SELECT id FROM ${VariablesTableName} WHERE datasetId = ?`,
         [datasetId]
     )
+    const usages = [
+        ...(
+            await getVariableUsagesByIds(
+                trx,
+                variableIds.map((v) => v.id)
+            )
+        ).values(),
+    ]
 
-    if (variableIds.length === 0) {
-        return {
-            inUse: false,
-            usageDetails: {
-                chartsCount: 0,
-                explorersCount: 0,
-                multiDimCount: 0,
-            },
-        }
-    }
-
-    const varIds = variableIds.map((v) => v.id)
-
-    const chartsCount = await db.knexRaw<{ count: number }>(
-        trx,
-        `SELECT COUNT(DISTINCT cd.chartId) as count
-         FROM ${ChartDimensionsTableName} cd
-         WHERE cd.variableId IN (${varIds.map(() => "?").join(",")})`,
-        varIds
-    )
-
-    const explorersCount = await db.knexRaw<{ count: number }>(
-        trx,
-        `SELECT COUNT(DISTINCT ev.explorerSlug) as count
-         FROM ${ExplorerVariablesTableName} ev
-         WHERE ev.variableId IN (${varIds.map(() => "?").join(",")})`,
-        varIds
-    )
-
-    // Multi-dim pages reference variables in their JSON config, so we need to search the config text
-    const multiDimCount = await db.knexRaw<{ count: number }>(
-        trx,
-        `SELECT COUNT(*) as count
-         FROM ${MultiDimDataPagesTableName} mdp
-         WHERE ${varIds.map((id) => `mdp.config LIKE '%"id":${id}%'`).join(" OR ")}`,
-        []
-    )
-
-    const totalChartsCount = chartsCount[0]?.count ?? 0
-    const totalExplorersCount = explorersCount[0]?.count ?? 0
-    const totalMultiDimCount = multiDimCount[0]?.count ?? 0
+    const chartsCount = new Set(
+        usages.flatMap((u) => u.charts.map((chart) => chart.id))
+    ).size
+    const explorersCount = new Set(usages.flatMap((u) => u.explorerSlugs)).size
+    const multiDimCount = new Set(
+        usages.flatMap((u) => u.multiDims.map((multiDim) => multiDim.id))
+    ).size
 
     return {
-        inUse:
-            totalChartsCount > 0 ||
-            totalExplorersCount > 0 ||
-            totalMultiDimCount > 0,
-        usageDetails: {
-            chartsCount: totalChartsCount,
-            explorersCount: totalExplorersCount,
-            multiDimCount: totalMultiDimCount,
-        },
+        inUse: chartsCount > 0 || explorersCount > 0 || multiDimCount > 0,
+        usageDetails: { chartsCount, explorersCount, multiDimCount },
     }
 }

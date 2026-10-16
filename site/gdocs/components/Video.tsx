@@ -6,7 +6,7 @@ import {
 } from "@ourworldindata/utils"
 import { useImage } from "../utils.js"
 import SpanElements from "./SpanElements.js"
-import { CLOUDFLARE_IMAGES_URL } from "../../../settings/clientSettings.js"
+import { CLOUDFLARE_IMAGES_URL } from "../../../settings/clientSettings.mjs"
 import { useDocumentContext } from "../DocumentContext.js"
 
 interface VideoProps {
@@ -16,11 +16,19 @@ interface VideoProps {
     shouldLoop?: boolean
     shouldAutoplay?: boolean
     filename: string
+    shouldRenderLinks?: boolean
 }
 
 export default function Video(props: VideoProps) {
-    const { url, caption, className, shouldLoop, shouldAutoplay, filename } =
-        props
+    const {
+        url,
+        caption,
+        className,
+        shouldLoop,
+        shouldAutoplay,
+        filename,
+        shouldRenderLinks = true,
+    } = props
     const { archiveContext } = useDocumentContext()
     const isOnArchivalPage = archiveContext?.type === "archive-page"
     const assetMap = isOnArchivalPage
@@ -54,7 +62,10 @@ export default function Video(props: VideoProps) {
             </video>
             {caption ? (
                 <figcaption>
-                    <SpanElements spans={caption} />
+                    <SpanElements
+                        spans={caption}
+                        shouldRenderLinks={shouldRenderLinks}
+                    />
                 </figcaption>
             ) : null}
         </figure>

@@ -7,7 +7,7 @@ import {
 } from "@ourworldindata/types"
 import * as db from "../db.js"
 import urlJoin from "url-join"
-import { BAKED_GRAPHER_URL } from "../../settings/clientSettings.js"
+import { BAKED_GRAPHER_URL } from "../../settings/clientSettings.mjs"
 
 /**
  * General query used in multiple places
