@@ -5,6 +5,8 @@ import { QueryClientProvider } from "@tanstack/react-query"
 import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
 import { Frame } from "../../../../components/Frame/Frame.js"
+import { EmbedConfigProvider } from "../../../../hooks/useEmbedConfig.js"
+import { BespokeMetadataProvider } from "../../../../components/MetadataModal/BespokeMetadataContext.js"
 
 import type { PopulationVariantConfig } from "../core/config.js"
 import type { VariantProps } from "../../../../helpers/config.js"
@@ -42,19 +44,24 @@ export function PopulationVariant({
     const { breakpoint, ref: rootRef } = useContainerBreakpoint()
 
     return (
-        <QueryClientProvider client={queryClient}>
-            <BreakpointProvider value={breakpoint}>
-                <div
-                    ref={rootRef}
-                    className={cx(
-                        "demography-chart demography-chart__population-variant",
-                        breakpointClass(breakpoint)
-                    )}
-                >
-                    <FetchingPopulationVariant config={config} urls={urls} />
-                </div>
-            </BreakpointProvider>
-        </QueryClientProvider>
+        <EmbedConfigProvider config={config}>
+            <QueryClientProvider client={queryClient}>
+                <BreakpointProvider value={breakpoint}>
+                    <div
+                        ref={rootRef}
+                        className={cx(
+                            "demography-chart demography-chart__population-variant",
+                            breakpointClass(breakpoint)
+                        )}
+                    >
+                        <FetchingPopulationVariant
+                            config={config}
+                            urls={urls}
+                        />
+                    </div>
+                </BreakpointProvider>
+            </QueryClientProvider>
+        </EmbedConfigProvider>
     )
 }
 
@@ -162,40 +169,42 @@ function CaptionedPopulationVariant({
         "Historical estimates and projections of total population."
 
     return (
-        <Frame className="demography-captioned-chart demography-population-variant">
-            <ChartHeader
-                className="demography-header"
-                title={title}
-                subtitle={subtitle}
-            />
+        <BespokeMetadataProvider metadata={metadata.provenance}>
+            <Frame className="demography-captioned-chart demography-population-variant">
+                <ChartHeader
+                    className="demography-header"
+                    title={title}
+                    subtitle={subtitle}
+                />
 
-            <div className="demography-population-variant__chart-area">
-                {isLoading && <Spinner />}
-                {simulation && (
-                    <PopulationChart
-                        simulation={simulation}
-                        showCustomProjection={hasCustomProjection}
-                    />
+                <div className="demography-population-variant__chart-area">
+                    {isLoading && <Spinner />}
+                    {simulation && (
+                        <PopulationChart
+                            simulation={simulation}
+                            showCustomProjection={hasCustomProjection}
+                        />
+                    )}
+                </div>
+
+                {showAssumptionCharts && simulation && (
+                    <ParameterChartsDisclosure simulation={simulation} />
                 )}
-            </div>
 
-            {showAssumptionCharts && simulation && (
-                <ParameterChartsDisclosure simulation={simulation} />
-            )}
-
-            <ChartFooter
-                className="demography-footer"
-                source={
-                    hasCustomProjection
-                        ? CHART_FOOTER_SOURCES
-                        : "Historical estimates and projections from the UN World Population Prospects"
-                }
-                note={
-                    hasCustomProjection
-                        ? "Projections are based on user inputs and do not necessarily reflect plausible scenarios or those assumed by expert demographers."
-                        : undefined
-                }
-            />
-        </Frame>
+                <ChartFooter
+                    className="demography-footer"
+                    source={
+                        hasCustomProjection
+                            ? CHART_FOOTER_SOURCES
+                            : "Historical estimates and projections from the UN World Population Prospects"
+                    }
+                    note={
+                        hasCustomProjection
+                            ? "Projections are based on user inputs and do not necessarily reflect plausible scenarios or those assumed by expert demographers."
+                            : undefined
+                    }
+                />
+            </Frame>
+        </BespokeMetadataProvider>
     )
 }
