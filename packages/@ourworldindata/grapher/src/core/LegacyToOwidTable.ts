@@ -15,6 +15,10 @@ import {
     EntityName,
     TimeInterval,
     SelectedEntityColors,
+    AnnotationTimeScope,
+    IndicatorAnnotation,
+    OwidVariableAnnotation,
+    Time,
 } from "@ourworldindata/types"
 import {
     OwidTable,
@@ -41,6 +45,7 @@ import {
     findFinestCommonTimeInterval,
     snapToIntervalStart,
     dayjs,
+    convertDateToDaysSinceEpoch,
 } from "@ourworldindata/utils"
 import { isContinentsVariableId } from "./GrapherConstants"
 import * as R from "remeda"
@@ -668,6 +673,8 @@ const columnDefFromOwidVariable = (
             ? getSortFromDimensions(variable.dimensions)
             : undefined
 
+    const annotations = parseIndicatorAnnotations(variable)
+
     return {
         name,
         slug,
@@ -692,6 +699,7 @@ const columnDefFromOwidVariable = (
         additionalInfo: source?.additionalInfo,
         timespan,
         origins,
+        annotations,
         presentation,
         catalogPath,
         updatePeriodDays,
@@ -816,4 +824,91 @@ const annotationsToMap = (annotations: string): Map<string, string> => {
         entityAnnotationsMap.set(key.trim(), words.join(delimiter).trim())
     })
     return entityAnnotationsMap
+}
+
+const parseIndicatorAnnotations = (
+    variable: OwidVariableWithSourceAndDimension
+): IndicatorAnnotation[] | undefined => {
+    if (variable.annotations?.length) {
+        return variable.annotations.flatMap((annotation) => {
+            const parsed = parseIndicatorAnnotation(annotation, variable)
+            return parsed ? [parsed] : []
+        })
+    }
+
+    if (variable.display?.entityAnnotationsMap) {
+        return [...annotationsToMap(variable.display.entityAnnotationsMap)]
+            .filter(([entityName, text]) => entityName && text)
+            .map(([entityName, text]) => ({
+                text,
+                entityNames: [entityName],
+                timeScope: "all",
+            }))
+    }
+
+    return undefined
+}
+
+const parseIndicatorAnnotation = (
+    annotation: OwidVariableAnnotation,
+    variable: OwidVariableWithSourceAndDimension
+): IndicatorAnnotation | undefined => {
+    const { text, entities } = annotation
+    const timeScope = parseTimeScope(annotation, variable)
+    if (!timeScope) return undefined
+
+    const [firstEntityName, ...otherEntityNames] = entities ?? []
+    return firstEntityName === undefined
+        ? { text, ...timeScope }
+        : {
+              text,
+              entityNames: [firstEntityName, ...otherEntityNames],
+              ...timeScope,
+          }
+}
+
+const parseTimeScope = (
+    annotation: OwidVariableAnnotation,
+    variable: OwidVariableWithSourceAndDimension
+): AnnotationTimeScope | undefined => {
+    if (annotation.time === undefined) return { timeScope: "all" }
+
+    const interval = getTimeInterval(variable.display)
+    const time = parseAnnotationTime(annotation.time, interval)
+    const timeEnd =
+        annotation.timeEnd === undefined
+            ? undefined
+            : parseAnnotationTime(annotation.timeEnd, interval)
+    if (
+        time === undefined ||
+        (annotation.timeEnd !== undefined && timeEnd === undefined)
+    ) {
+        console.warn(
+            `Dropping annotation of variable ${variable.id} with a time that doesn't fit its ${interval} interval`
+        )
+        return undefined
+    }
+
+    if (timeEnd === undefined || timeEnd === time)
+        return { timeScope: "point", time }
+    if (timeEnd < time) {
+        console.warn(
+            `Dropping annotation of variable ${variable.id} with end time ${annotation.timeEnd} before start time ${annotation.time}`
+        )
+        return undefined
+    }
+    return { timeScope: "range", startTime: time, endTime: timeEnd }
+}
+
+const parseAnnotationTime = (
+    value: Time | string,
+    interval: TimeInterval
+): Time | undefined => {
+    if (!isSubYearly(interval))
+        return typeof value === "number" ? value : undefined
+
+    if (typeof value !== "string") return undefined
+    const date = dayjs.utc(value)
+    if (!date.isValid() || date.format("YYYY-MM-DD") !== value) return undefined
+    return snapToIntervalStart(convertDateToDaysSinceEpoch(date), interval)
 }
