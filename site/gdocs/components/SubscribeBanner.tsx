@@ -43,6 +43,7 @@ export default function SubscribeBanner({
                 text="Subscribe"
                 href={`${BASE_URL}/subscribe`}
                 icon={null}
+                dataTrackNote="subscribe_banner_subscribe"
             />
         </div>
     )
