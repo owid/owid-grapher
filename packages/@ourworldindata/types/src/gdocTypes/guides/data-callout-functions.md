@@ -45,6 +45,10 @@ every function string available for that chart, including the exact
 argument to pass for each indicator the chart exposes, ready to copy into a
 callout.
 
+The ranking blocks `{.ranking-cards}`, `{.peer-ranking}` and
+`{.peer-comparison}` take the same column names in their `column:`
+property, to rank a chart's second or later y-indicator.
+
 ## When there is no data
 
 If the chart at `url` has no data for the country the callout resolves to,

@@ -669,7 +669,8 @@ export async function getPreviewGdocIndexRecords(
         if (raw) {
             const plaintext = getPreprocessedIndexableText(
                 gdoc.content.body,
-                gdoc.linkedCallouts
+                gdoc.linkedCallouts,
+                gdoc.linkedRankings
             )
             return { plaintext }
         }

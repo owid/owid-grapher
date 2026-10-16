@@ -58,6 +58,9 @@ import {
     RawBlockExpander,
     EnrichedHybridLink,
     RawBlockBespokeComponent,
+    RawBlockPeerComparison,
+    RawBlockPeerRanking,
+    RawBlockRankingCards,
     RawBlockResourcePanel,
     RawBlockCta,
     RawBlockStaticViz,
@@ -67,7 +70,10 @@ import {
     RawBlockChartRows,
     RawBlockPullChart,
 } from "@ourworldindata/types"
-import { spanToHtmlString } from "./gdocUtils.js"
+import {
+    DEFAULT_RANKING_CHANGE_SINCE_YEARS,
+    spanToHtmlString,
+} from "./gdocUtils.js"
 import { match, P } from "ts-pattern"
 import * as R from "remeda"
 
@@ -342,7 +348,9 @@ export function enrichedBlockToRawBlock(
             })),
         }))
         .with(
-            { type: P.union("side-by-side", "sticky-left", "sticky-right") },
+            {
+                type: P.union("side-by-side", "sticky-left", "sticky-right"),
+            },
             (b): OwidRawGdocBlock => ({
                 type: b.type,
                 value: {
@@ -697,6 +705,49 @@ export function enrichedBlockToRawBlock(
                 },
             }
         })
+        .with({ type: "ranking-cards" }, (b): RawBlockRankingCards => ({
+            type: "ranking-cards",
+            value: {
+                title: b.title,
+                subtitle: b.subtitle,
+                sparklines: b.sparklines ? "true" : undefined,
+                "change-since":
+                    b.changeSinceYears !== DEFAULT_RANKING_CHANGE_SINCE_YEARS
+                        ? String(b.changeSinceYears)
+                        : undefined,
+                cards: b.cards.map((card) => ({
+                    url: card.url,
+                    title: card.title,
+                    topic: card.topic,
+                    sort: card.sort !== "highest" ? card.sort : undefined,
+                    column: card.column,
+                })),
+            },
+        }))
+        .with({ type: "peer-ranking" }, (b): RawBlockPeerRanking => ({
+            type: "peer-ranking",
+            value: {
+                url: b.url,
+                title: b.title,
+                groups: b.groups.length ? b.groups.join(", ") : undefined,
+                sort: b.sort !== "highest" ? b.sort : undefined,
+                tolerance:
+                    b.tolerance !== undefined ? String(b.tolerance) : undefined,
+                column: b.column,
+            },
+        }))
+        .with({ type: "peer-comparison" }, (b): RawBlockPeerComparison => ({
+            type: "peer-comparison",
+            value: {
+                title: b.title,
+                groups: b.groups.length ? b.groups.join(", ") : undefined,
+                indicators: b.indicators.map((indicator) => ({
+                    url: indicator.url,
+                    title: indicator.title,
+                    column: indicator.column,
+                })),
+            },
+        }))
         .exhaustive()
 }
 

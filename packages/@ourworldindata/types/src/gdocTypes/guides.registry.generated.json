@@ -7,7 +7,7 @@
     "description": "$latestTime() and $latestValue() interpolate live chart values into text inside {.data-callout} and {.data-callout-group} blocks. Both read from the chart at the callout's url, so the wording stays correct as the chart's underlying data changes.",
     "prose": {
       "intro": "`$latestTime()` and `$latestValue()` interpolate live chart values into text\ninside `{.data-callout}` and `{.data-callout-group}` blocks. Both\nread from the chart at the callout's `url`, so the wording stays correct as\nthe chart's underlying data changes.\n\n```archie\n{.data-callout}\nurl: https://ourworldindata.org/grapher/life-expectancy?country=CAN\n[.+content]\nIn $latestTime(), Canada's life expectancy was $latestValue()\n[]\n{}\n```",
-      "notes": "## Functions\n\n- `$latestTime()`: the time of the chart's most recent data point, written\n  the way the chart itself formats a single point in time — a year, e.g.\n  \"2023\", or a day-level date, e.g. \"Jan 15, 2024\".\n- `$latestValue()`: that data point's value, formatted the way the chart\n  formats it.\n- `$latestValueWithUnit()`: the same value with an abbreviated unit.\n\nFor a chart with more than one y-indicator, pass the column's short name as\nan argument to say which one you mean, e.g. `$latestTime(emissions_total)`\nand `$latestValue(emissions_total)` to pick out\n[trade-adjusted emissions](https://ourworldindata.org/grapher/production-vs-consumption-co2-emissions?country=~USA)\non a chart that plots several. A chart with a single y-indicator doesn't\nneed the argument.\n\nTo pin the callout to a specific period instead of the chart's latest, add\n`time` to the `url`, e.g. `?country=CAN&time=earliest..1861`. `$latestTime()`\nthen means \"the latest time for this particular view\" — which may not be\nthe chart's true latest.\n\n## Finding column names\n\nVisit `/admin/callout-functions` and paste in the chart's URL: it lists\nevery function string available for that chart, including the exact\nargument to pass for each indicator the chart exposes, ready to copy into a\ncallout.\n\n## When there is no data\n\nIf the chart at `url` has no data for the country the callout resolves to,\nthe whole `{.data-callout}` — or the whole `{.data-callout-group}`\nif none of its callouts have data — is dropped rather than rendering blank.\nIn `{template:profile}`, a profile where every callout in the body\nends up with no data for a given entity is not baked for that entity at\nall."
+      "notes": "## Functions\n\n- `$latestTime()`: the time of the chart's most recent data point, written\n  the way the chart itself formats a single point in time — a year, e.g.\n  \"2023\", or a day-level date, e.g. \"Jan 15, 2024\".\n- `$latestValue()`: that data point's value, formatted the way the chart\n  formats it.\n- `$latestValueWithUnit()`: the same value with an abbreviated unit.\n\nFor a chart with more than one y-indicator, pass the column's short name as\nan argument to say which one you mean, e.g. `$latestTime(emissions_total)`\nand `$latestValue(emissions_total)` to pick out\n[trade-adjusted emissions](https://ourworldindata.org/grapher/production-vs-consumption-co2-emissions?country=~USA)\non a chart that plots several. A chart with a single y-indicator doesn't\nneed the argument.\n\nTo pin the callout to a specific period instead of the chart's latest, add\n`time` to the `url`, e.g. `?country=CAN&time=earliest..1861`. `$latestTime()`\nthen means \"the latest time for this particular view\" — which may not be\nthe chart's true latest.\n\n## Finding column names\n\nVisit `/admin/callout-functions` and paste in the chart's URL: it lists\nevery function string available for that chart, including the exact\nargument to pass for each indicator the chart exposes, ready to copy into a\ncallout.\n\nThe ranking blocks `{.ranking-cards}`, `{.peer-ranking}` and\n`{.peer-comparison}` take the same column names in their `column:`\nproperty, to rank a chart's second or later y-indicator.\n\n## When there is no data\n\nIf the chart at `url` has no data for the country the callout resolves to,\nthe whole `{.data-callout}` — or the whole `{.data-callout-group}`\nif none of its callouts have data — is dropped rather than rendering blank.\nIn `{template:profile}`, a profile where every callout in the body\nends up with no data for a given entity is not baked for that entity at\nall."
     },
     "examples": [
       {
@@ -25,6 +25,18 @@
       {
         "kind": "component",
         "id": "data-callout-group"
+      },
+      {
+        "kind": "component",
+        "id": "ranking-cards"
+      },
+      {
+        "kind": "component",
+        "id": "peer-ranking"
+      },
+      {
+        "kind": "component",
+        "id": "peer-comparison"
       },
       {
         "kind": "template",
@@ -174,7 +186,7 @@
     "description": "A country profile is written once and instantiated for every entity in its scope. Codewords in the body get replaced with that entity's name, code, or phrasing variant each time the page is baked.",
     "prose": {
       "intro": "A country profile is written once and instantiated for every entity in\nits scope. Codewords in the body get replaced with that entity's name,\ncode, or phrasing variant each time the page is baked.\n\nSee `{template:profile}` for the front-matter fields that define a\nprofile's scope.\n\n```archie\n$EntityName’s population has grown steadily since 1950.\n\n{.chart}\nurl: https://ourworldindata.org/grapher/population?country=$entityCode\n{}\n```",
-      "notes": "## Placeholders\n\n- `$entityName`: the entity's name, with an article where English needs\n  one — \"Australia\", \"the United Kingdom\". Use it mid-sentence.\n- `$EntityName`: the same, capitalized for the start of a sentence —\n  \"Australia\", \"The United Kingdom\".\n- `$noArticleEntityName`: the bare name with no article — \"Australia\",\n  \"United Kingdom\". Use it where an article would read wrong, e.g. linking\n  to a search page with a country filter applied.\n- `$entityCode`: the entity's code — \"AUS\", \"GBR\" for countries, an\n  `OWID_`-prefixed code for continents. Use it in chart query params, e.g.\n  `country=$entityCode`.\n\n`$entityName`, `$EntityName` and `$noArticleEntityName` each also have a\npossessive form, written with an apostrophe-s the way Google Docs types it\n(a curly apostrophe, e.g. `$entityName’s`) — not a straight one. There is no\npossessive form for `$entityCode`.\n\n## Scope and exclude\n\nWhich entities a profile is instantiated for, and which specific ones to\nleave out, are front-matter fields — see `{template:profile}` for\n`scope` and `exclude`. Entities are matched by name, not by code — a\ncomma-separated list can name `countries`, `continents`, `all`, or the\nname of one specific entity. A few codes work too, but only because\nthey happen to be registered variant names, e.g. `USA`.\n\n## Not baked without data\n\nA profile built around `{.data-callout}` blocks may end up with some,\nall, or none of them renderable for a given entity, depending on data\navailability — see `{guide:data-callout-functions}`. Say a profile has\nten callouts:\n\n- All ten render for the UK — the page bakes, every section shows.\n- Four of the ten render for Somalia — the page bakes, the other six\n  sections are hidden.\n- None render for Kosovo — the page isn't baked for Kosovo at all."
+      "notes": "## Placeholders\n\n- `$entityName`: the entity's name, with an article where English needs\n  one — \"Australia\", \"the United Kingdom\". Use it mid-sentence.\n- `$EntityName`: the same, capitalized for the start of a sentence —\n  \"Australia\", \"The United Kingdom\".\n- `$noArticleEntityName`: the bare name with no article — \"Australia\",\n  \"United Kingdom\". Use it where an article would read wrong, e.g. linking\n  to a search page with a country filter applied.\n- `$entityCode`: the entity's code — \"AUS\", \"GBR\" for countries, an\n  `OWID_`-prefixed code for continents. Use it in chart query params, e.g.\n  `country=$entityCode` — including the `url` of data callouts and ranking\n  blocks, which must select exactly one country.\n\n`$entityName`, `$EntityName` and `$noArticleEntityName` each also have a\npossessive form, written with an apostrophe-s the way Google Docs types it\n(a curly apostrophe, e.g. `$entityName’s`) — not a straight one. There is no\npossessive form for `$entityCode`.\n\n## Scope and exclude\n\nWhich entities a profile is instantiated for, and which specific ones to\nleave out, are front-matter fields — see `{template:profile}` for\n`scope` and `exclude`. Entities are matched by name, not by code — a\ncomma-separated list can name `countries`, `continents`, `all`, or the\nname of one specific entity. A few codes work too, but only because\nthey happen to be registered variant names, e.g. `USA`.\n\n## Not baked without data\n\nA profile built around `{.data-callout}` blocks may end up with some,\nall, or none of them renderable for a given entity, depending on data\navailability — see `{guide:data-callout-functions}`. The ranking blocks\n`{.ranking-cards}`, `{.peer-ranking}` and `{.peer-comparison}` count the\nsame way: each hides when it has no data for the entity (and for any\nentity that isn't a country). Say a profile has ten callouts:\n\n- All ten render for the UK — the page bakes, every section shows.\n- Four of the ten render for Somalia — the page bakes, the other six\n  sections are hidden.\n- None render for Kosovo — the page isn't baked for Kosovo at all."
     },
     "examples": [
       {
@@ -196,6 +208,18 @@
       {
         "kind": "guide",
         "id": "data-callout-functions"
+      },
+      {
+        "kind": "component",
+        "id": "ranking-cards"
+      },
+      {
+        "kind": "component",
+        "id": "peer-ranking"
+      },
+      {
+        "kind": "component",
+        "id": "peer-comparison"
       }
     ]
   },

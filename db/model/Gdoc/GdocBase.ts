@@ -23,6 +23,8 @@ import {
     formatDate,
     Url,
     getRegionByNameOrVariantName,
+    getRankingSpecsForBlock,
+    checkIsBlockWithRankings,
 } from "@ourworldindata/utils"
 import { docs as googleDocs, type docs_v1 } from "@googleapis/docs"
 import {
@@ -81,6 +83,7 @@ import {
     PostsGdocsTableName,
     LinkedStaticViz,
     LinkedCallouts,
+    LinkedRankings,
 } from "@ourworldindata/types"
 import {
     getAllNarrativeChartNames,
@@ -264,6 +267,7 @@ export class GdocBase implements OwidGdocBaseInterface {
     linkedNarrativeCharts?: Record<string, NarrativeChartInfo> = {}
     linkedStaticViz?: Record<string, LinkedStaticViz> = {}
     linkedCallouts: LinkedCallouts = {}
+    linkedRankings: LinkedRankings = {}
     _omittableFields: string[] = []
 
     constructor(id?: string) {
@@ -321,7 +325,10 @@ export class GdocBase implements OwidGdocBaseInterface {
                 enrichedBlocksToMarkdown(
                     this.enrichedBlockSources.flat(),
                     true,
-                    { linkedCallouts: this.linkedCallouts }
+                    {
+                        linkedCallouts: this.linkedCallouts,
+                        linkedRankings: this.linkedRankings,
+                    }
                 ) ?? null
         } catch (e) {
             console.error("Error when converting content to markdown", e)
@@ -580,6 +587,23 @@ export class GdocBase implements OwidGdocBaseInterface {
                     componentType: block.type,
                 }),
             ])
+            .with(
+                {
+                    type: P.union(
+                        "ranking-cards",
+                        "peer-ranking",
+                        "peer-comparison"
+                    ),
+                },
+                (block) =>
+                    getRankingSpecsForBlock(block).map((spec) =>
+                        createLinkFromUrl({
+                            url: spec.url,
+                            sourceId: this.id,
+                            componentType: block.type,
+                        })
+                    )
+            )
             .with({ type: "narrative-chart" }, (block) => [
                 createLinkForNarrativeChart({
                     name: block.name,
@@ -1026,9 +1050,10 @@ export class GdocBase implements OwidGdocBaseInterface {
     }
 
     /**
-     * Load data for all data-callout blocks.
-     * For each callout, we fetch the chart config and construct the values JSON.
-     * Then clear any callouts that have incomplete data.
+     * Load data for all data-callout and ranking blocks (linkedCallouts and
+     * linkedRankings). For each referenced chart, we fetch the config and
+     * data once and compute the values. Then clear any callouts that have
+     * incomplete data.
      */
     async loadAndClearLinkedCallouts(
         knex: db.KnexReadonlyTransaction
@@ -1036,6 +1061,7 @@ export class GdocBase implements OwidGdocBaseInterface {
         const result = await loadAndClearLinkedCallouts(this.content, { knex })
         this.content = result.content
         this.linkedCallouts = result.linkedCallouts
+        this.linkedRankings = result.linkedRankings
     }
 
     async fetchAndEnrichGdoc(
@@ -1381,6 +1407,28 @@ export class GdocBase implements OwidGdocBaseInterface {
                                 type: OwidGdocErrorMessageType.Error,
                                 message: `Grapher chart with slug ${slug} is not a datapage`,
                             })
+                        }
+                    }
+
+                    // Rankings of existing charts that couldn't be computed,
+                    // e.g. because of an unknown column or no country data.
+                    // Missing charts are already reported as link errors.
+                    // Profile templates load rankings per entity, not here.
+                    if (
+                        checkIsBlockWithRankings(block) &&
+                        this.content.type !== OwidGdocType.Profile
+                    ) {
+                        for (const spec of getRankingSpecsForBlock(block)) {
+                            const slug = Url.fromURL(spec.url).slug
+                            const chartExists =
+                                slug !== undefined && !!this.linkedCharts[slug]
+                            if (chartExists && !this.linkedRankings[spec.key]) {
+                                contentErrors.push({
+                                    property: "body",
+                                    type: OwidGdocErrorMessageType.Warning,
+                                    message: `${block.type}: couldn't compute a ranking for ${spec.url}${spec.column ? ` (column "${spec.column}")` : ""}. Check that the column exists and that the chart has data for countries.`,
+                                })
+                            }
                         }
                     }
                 })
