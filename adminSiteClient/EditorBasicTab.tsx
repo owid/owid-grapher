@@ -27,6 +27,7 @@ import {
     DimensionSlot,
     WORLD_ENTITY_NAME,
     findPotentialChartTypeSiblings,
+    makeLabelForGrapherTab,
     ChartDimension,
     SelectionArray,
     selectPeerCountries,
@@ -576,6 +577,9 @@ export class EditorBasicTab extends React.Component<EditorBasicTabProps> {
             const isStackedGroup = chartTypes.includes(
                 GRAPHER_CHART_TYPES.StackedArea
             )
+            const isCategoricalGroup = chartTypes.includes(
+                GRAPHER_CHART_TYPES.Swimlane
+            )
 
             if (isSingleYIndicatorGroup) {
                 const label = "Single y-indicator charts"
@@ -583,7 +587,10 @@ export class EditorBasicTab extends React.Component<EditorBasicTabProps> {
             } else if (isStackedGroup) {
                 const label = "Stacked charts"
                 groups.push({ label, chartTypes })
-            } else {
+            } else if (isCategoricalGroup) {
+                const label = "Categorical charts"
+                groups.push({ label, chartTypes })
+            } else if (chartTypes.length > 1) {
                 const label = chartTypes.join(", ")
                 groups.push({ label, chartTypes })
             }
@@ -735,7 +742,9 @@ export class EditorBasicTab extends React.Component<EditorBasicTabProps> {
                                         }
                                     >
                                         <GrapherTabIcon tab={chartType} />{" "}
-                                        {_.startCase(chartType)}
+                                        {makeLabelForGrapherTab(chartType, {
+                                            format: "long",
+                                        })}
                                     </Tag.CheckableTag>
                                 ))}
                             </div>

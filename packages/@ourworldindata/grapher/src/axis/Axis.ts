@@ -139,6 +139,10 @@ abstract class AbstractAxis {
         return this.config.shouldOffsetTickLabelAtEnd ?? true
     }
 
+    @computed get isDomainEndExclusive(): boolean {
+        return this.config.isDomainEndExclusive ?? false
+    }
+
     @computed get fontSize(): number {
         return this.config.fontSize
     }
@@ -613,7 +617,14 @@ abstract class AbstractAxis {
     }
 
     @computed protected get baseTicks(): Tickmark[] {
-        return this.getTickValues().filter((tick) => !tick.gridLineOnly)
+        return this.dropTickAtExclusiveEnd(
+            this.getTickValues().filter((tick) => !tick.gridLineOnly)
+        )
+    }
+
+    protected dropTickAtExclusiveEnd(ticks: Tickmark[]): Tickmark[] {
+        if (!this.isDomainEndExclusive) return ticks
+        return ticks.filter((tick) => tick.value < this.domain[1])
     }
 
     formatTick(
@@ -773,7 +784,8 @@ export class HorizontalAxis extends AbstractAxis {
     }
 
     protected override get baseTicks(): Tickmark[] {
-        if (this.timeAxisTicks) return this.timeAxisTicks
+        if (this.timeAxisTicks)
+            return this.dropTickAtExclusiveEnd(this.timeAxisTicks)
 
         let ticks = this.getTickValues().filter(
             (tick): boolean => !tick.gridLineOnly
@@ -806,7 +818,9 @@ export class HorizontalAxis extends AbstractAxis {
             (t): number => t.value,
             (t): number => t.priority,
         ])
-        return _.sortedUniqBy(sortedTicks, (t) => t.value)
+        return this.dropTickAtExclusiveEnd(
+            _.sortedUniqBy(sortedTicks, (t) => t.value)
+        )
     }
 
     /**

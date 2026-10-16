@@ -243,14 +243,22 @@ const SORT_BY_DISPLAY_ORDER: SortBy[] = [
 ]
 
 @observer
-class SortOrderSection extends React.Component<{ editor: ConfigEditor }> {
+export class SortOrderSection extends React.Component<{
+    editor: ConfigEditor
+}> {
     constructor(props: { editor: ConfigEditor }) {
         super(props)
         makeObservable(this)
     }
 
     @computed get sortConfig(): SortConfig {
-        return this.grapherState._sortConfig
+        const { _sortConfig } = this.grapherState
+        return _sortConfig.sortBy &&
+            this.grapherState.availableSortKeysAcrossChartTypes.includes(
+                _sortConfig.sortBy
+            )
+            ? _sortConfig
+            : this.grapherState.defaultSortConfig
     }
 
     @computed get grapherState() {
@@ -301,7 +309,7 @@ class SortOrderSection extends React.Component<{ editor: ConfigEditor }> {
             return `column:${sortColumnSlug}`
         if (sortBy && this.sortOptions.some((opt) => opt.value === sortBy))
             return sortBy
-        return this.sortOptions[0]?.value ?? SortBy.entityName
+        return this.sortConfig.sortBy ?? SortBy.total
     }
 
     @action.bound onSortByChange(selectedKey: string) {
@@ -314,6 +322,7 @@ class SortOrderSection extends React.Component<{ editor: ConfigEditor }> {
     }
 
     @action.bound onSortOrderChange(sortOrder: string) {
+        this.grapherState.sortBy = this.sortConfig.sortBy
         this.grapherState.sortOrder = sortOrder as SortOrder
     }
 
@@ -1013,7 +1022,9 @@ export class EditorCustomizeTab extends React.Component<EditorCustomizeTabProps>
                     </Section>
                 )}
                 <TimelineSection editor={this.props.editor} />
-                <FacetSection editor={this.props.editor} />
+                {features.canFacet && (
+                    <FacetSection editor={this.props.editor} />
+                )}
                 <Section name="Color scheme">
                     <ColorSchemeSelector
                         grapherState={grapherState}

@@ -29,7 +29,8 @@ export class EditorFeatures {
             this.grapherState.hasScatter ||
             this.grapherState.hasMarimekko ||
             this.grapherState.hasStackedArea ||
-            this.grapherState.hasStackedBar
+            this.grapherState.hasStackedBar ||
+            this.grapherState.hasSwimlane
         )
     }
 
@@ -57,7 +58,8 @@ export class EditorFeatures {
             this.grapherState.hasStackedArea ||
             this.grapherState.hasScatter ||
             (this.grapherState.hasDumbbellChart &&
-                this.grapherState.yColumnSlugs.length <= 1)
+                this.grapherState.yColumnSlugs.length <= 1) ||
+            this.grapherState.hasSwimlane
         )
     }
 
@@ -110,6 +112,10 @@ export class EditorFeatures {
             this.canSpecifyCustomComparisonLines ||
             this.canSpecifyVerticalComparisonLines
         )
+    }
+
+    @computed get canFacet() {
+        return this.grapherState.availableFacetStrategies.length > 1
     }
 
     @computed get canSpecifySortOrder() {
@@ -191,6 +197,7 @@ export class EditorFeatures {
         return (
             !this.grapherState.isScatter &&
             !this.grapherState.isMarimekko &&
+            !this.grapherState.isSwimlane &&
             this.grapherState.isOnChartTab
         )
     }
