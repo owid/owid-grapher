@@ -227,7 +227,7 @@ function TagsEditor({
 
 function addTag(tags: DbChartTagJoin[], tag: DbChartTagJoin): DbChartTagJoin[] {
     // We only want to keep one occurrence of the same tag, whether entered
-    // manually or suggested through GPT. If GPT suggests a tag already in the
+    // manually or suggested by the LLM. If the LLM suggests a tag already in the
     // list, keep the first one to preserve its status and key chart level.
     return sortTagsByName(
         removeUncategorized(_.uniqBy([...tags, tag], (tag) => tag.id))

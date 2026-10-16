@@ -21,11 +21,12 @@ import {
     DbEnrichedChartConfig,
     GrapherChartType,
     RelatedChartsTableName,
+    type LiteralsOnly,
 } from "@ourworldindata/types"
 import { parseAndMigrateChartConfig } from "./ChartConfigs.js"
-import { OpenAI } from "openai"
-import { zodResponseFormat } from "openai/helpers/zod"
-import { OPENAI_API_KEY } from "../../settings/serverSettings.js"
+import type Anthropic from "@anthropic-ai/sdk"
+import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod"
+import { getAnthropicClient } from "../../serverUtils/anthropic.js"
 import * as z from "zod"
 
 // Only considers published charts, because only in that case the mapping slug -> id is unique
@@ -472,11 +473,14 @@ export async function assignTagsForCharts(
     }
 }
 
-export async function getGptTopicSuggestions(
+const TOPIC_SUGGESTION_MODEL =
+    "claude-haiku-5-5" satisfies LiteralsOnly<Anthropic.Model>
+
+export async function getTopicSuggestions(
     knex: db.KnexReadonlyTransaction,
     chartId: number
 ): Promise<Pick<DbPlainTag, "id" | "name">[]> {
-    if (!OPENAI_API_KEY) throw new JsonError("No OPENAI_API_KEY env found", 500)
+    const client = getAnthropicClient()
 
     const chartConfigOnly = await db.knexRawFirst<{ config: string }>(
         knex,
@@ -526,18 +530,17 @@ export async function getGptTopicSuggestions(
 
             Select the one or two categories you think best describe the chart.`
 
-    const openai = new OpenAI({
-        apiKey: OPENAI_API_KEY,
-    })
-    const completion = await openai.chat.completions.parse({
+    const message = await client.messages.parse({
+        model: TOPIC_SUGGESTION_MODEL,
+        // The model thinks before answering, which counts toward the cap.
+        max_tokens: 4000,
         messages: [{ role: "user", content: prompt }],
-        model: "gpt-5-mini",
-        response_format: zodResponseFormat(TopicsResponseSchema, "topics"),
+        output_config: { format: zodOutputFormat(TopicsResponseSchema) },
     })
 
-    const parsedResponse = completion.choices[0].message.parsed
+    const parsedResponse = message.parsed_output
     if (!parsedResponse?.topics?.length)
-        throw new JsonError("No response from GPT", 500)
+        throw new JsonError("No topic suggestions from the model", 500)
 
     // We only want to return topics that are in the list of possible topics
     const confirmedTopics = topics.filter((topic) =>

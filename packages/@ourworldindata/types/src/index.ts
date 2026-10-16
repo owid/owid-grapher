@@ -827,6 +827,7 @@ export {
 } from "./dbTypes/MultiDimViewDimensions.js"
 
 export { type Nominal, wrap, unwrap } from "./NominalType.js"
+export type { LiteralsOnly } from "./LiteralsOnly.js"
 
 export {
     type DbRawLatestWork,
