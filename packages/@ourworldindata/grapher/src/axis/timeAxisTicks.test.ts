@@ -15,7 +15,8 @@ import {
     getDiscreteWeeklyTickOptions,
     buildContinuousDailyAxisTicks,
     getDiscreteDailyTickOptions,
-    getDiscreteTimeTickOptions,
+    getDiscreteSubYearlyTickOptions,
+    buildDecadeAxisTicks,
 } from "./timeAxisTicks"
 
 // Day-since-epoch for a "YYYY-MM-DD" date
@@ -699,30 +700,30 @@ describe(getDiscreteDailyTickOptions, () => {
     })
 })
 
-describe(getDiscreteTimeTickOptions, () => {
+describe(getDiscreteSubYearlyTickOptions, () => {
     const bandValues = ["2020-01-01", "2020-02-01", "2020-03-01"].map(day)
 
     it("dispatches by time interval", () => {
         expect(
-            getDiscreteTimeTickOptions({
+            getDiscreteSubYearlyTickOptions({
                 interval: TimeInterval.Month,
                 bandValues,
             })
         ).toEqual(getDiscreteMonthlyTickOptions({ bandValues }))
         expect(
-            getDiscreteTimeTickOptions({
+            getDiscreteSubYearlyTickOptions({
                 interval: TimeInterval.Quarter,
                 bandValues,
             })
         ).toEqual(getDiscreteQuarterlyTickOptions({ bandValues }))
         expect(
-            getDiscreteTimeTickOptions({
+            getDiscreteSubYearlyTickOptions({
                 interval: TimeInterval.Week,
                 bandValues,
             })
         ).toEqual(getDiscreteWeeklyTickOptions({ bandValues }))
         expect(
-            getDiscreteTimeTickOptions({
+            getDiscreteSubYearlyTickOptions({
                 interval: TimeInterval.Day,
                 bandValues,
             })
@@ -780,5 +781,49 @@ describe(getDiscreteMonthlyTickOptions, () => {
         })
         const counts = options.map((option) => option.length)
         expect(counts).toEqual([...counts].sort((a, b) => b - a))
+    })
+})
+
+describe(buildDecadeAxisTicks, () => {
+    const values = (domain: [number, number], targetCount: number): number[] =>
+        buildDecadeAxisTicks({ domain, targetCount })?.map(
+            (tick) => tick.value
+        ) ?? []
+
+    it("ticks every decade when they fit", () => {
+        expect(values([1950, 1980], 6)).toEqual([1950, 1960, 1970, 1980])
+    })
+
+    it("only ticks multiples of the step inside the domain", () => {
+        expect(values([1955, 1985], 6)).toEqual([1960, 1970, 1980])
+    })
+
+    it("widens the step to stay within the target count", () => {
+        expect(values([1900, 2020], 6)).toEqual([1900, 1950, 2000])
+    })
+
+    it("reaches steps of centuries, across the common era", () => {
+        expect(values([-500, 2000], 6)).toEqual([
+            -500, 0, 500, 1000, 1500, 2000,
+        ])
+    })
+
+    it("carries no label, so the column's own time format applies", () => {
+        const ticks = buildDecadeAxisTicks({
+            domain: [1950, 1970],
+            targetCount: 6,
+        })
+        expect(ticks?.map((tick) => tick.label)).toEqual([
+            undefined,
+            undefined,
+            undefined,
+        ])
+        expect(ticks?.every((tick) => tick.priority === 2)).toBe(true)
+    })
+
+    it("has no ticks when the domain holds no multiple of any step", () => {
+        expect(
+            buildDecadeAxisTicks({ domain: [1951, 1959], targetCount: 6 })
+        ).toBeUndefined()
     })
 })
