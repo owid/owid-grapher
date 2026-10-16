@@ -22,7 +22,9 @@ import {
     DbEnrichedChartConfig,
     GrapherChartType,
     RelatedChartsTableName,
+    type LiteralsOnly,
 } from "@ourworldindata/types"
+import type Anthropic from "@anthropic-ai/sdk"
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod"
 import { getAnthropicClient } from "../../serverUtils/anthropic.js"
 import * as z from "zod"
@@ -468,7 +470,8 @@ export async function assignTagsForCharts(
     }
 }
 
-const TOPIC_SUGGESTION_MODEL = "claude-haiku-5-5"
+const TOPIC_SUGGESTION_MODEL =
+    "claude-haiku-5-5" satisfies LiteralsOnly<Anthropic.Model>
 
 export async function getTopicSuggestions(
     knex: db.KnexReadonlyTransaction,

@@ -1,5 +1,5 @@
 import crypto from "crypto"
-import { JsonError } from "@ourworldindata/types"
+import { JsonError, type LiteralsOnly } from "@ourworldindata/types"
 import sharp from "sharp"
 import {
     CLOUDFLARE_IMAGES_ACCOUNT_ID,
@@ -10,7 +10,8 @@ import { getAnthropicClient, responseText } from "../serverUtils/anthropic.js"
 import { ACCEPTED_IMG_TYPES } from "../adminSiteClient/imagesHelpers.js"
 
 // Claude model used for alt text and image text extraction
-export const TEXT_EXTRACTION_MODEL = "claude-sonnet-5-5"
+export const TEXT_EXTRACTION_MODEL =
+    "claude-sonnet-5-5" satisfies LiteralsOnly<Anthropic.Model>
 
 const ALT_TEXT_PROMPT = `Generate alt text for this image, describing it for a vision-impaired person using a screen reader.
 - If it's a chart, use the Amy Cesal formula: "[Chart type] of [type of data] where [reason for including chart]"
