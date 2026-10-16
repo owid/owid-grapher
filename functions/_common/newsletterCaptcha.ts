@@ -1,6 +1,9 @@
 import { JsonError } from "@ourworldindata/utils"
 import { Env } from "./env.js"
 
+// TODO: generalise to validateTurnstileToken (action incl. "donate") and
+// replace the duplicate isCaptchaValid in functions/donation/donate.ts, which
+// has no timeout or action check.
 export async function validateNewsletterCaptcha(
     token: string,
     env: Env,
