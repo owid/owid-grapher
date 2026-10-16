@@ -37,7 +37,7 @@ ifdef WRANGLER_PORT
 WRANGLER_PORT := $(strip $(WRANGLER_PORT))
 endif
 
-.PHONY: help up up.headless up.worktree setup.worktree wait.yarn-install require.worktree up.full down down.headless down.worktree refresh refresh.wp refresh.private refresh.full migrate svgtest svgtest.reset svgtest.full svgtest.grapher-views svgtest.mdims svgtest.thumbnails svgtest.md5s playwright playwright.ui playwright.standalone check-not-prod
+.PHONY: help up up.headless up.worktree setup.worktree initiative wait.yarn-install require.worktree up.full down down.headless down.worktree refresh refresh.wp refresh.private refresh.full migrate svgtest svgtest.reset svgtest.full svgtest.grapher-views svgtest.mdims svgtest.thumbnails svgtest.md5s playwright playwright.ui playwright.standalone check-not-prod
 
 help:
 	@echo 'Available commands:'
@@ -47,6 +47,7 @@ help:
 	@echo '  make up.headless            start dev environment without tmux (AI agents, cloud sandboxes, CI)'
 	@echo '  make up.worktree            start this git worktree'"'"'s dev environment next to your main one'
 	@echo '  make setup.worktree         only write this checkout'"'"'s .env (random free ports, own tmux session)'
+	@echo '  make initiative [INITIATIVE=x]  create worktree .worktrees/x (branch x off master) for a BMad initiative, set it up and open it in VS Code; asks for x when INITIATIVE is missing'
 	@echo '  make down                   stop any services still running'
 	@echo '  make down.headless          stop services started by make up.headless'
 	@echo '  make down.worktree          stop services started by make up.worktree (leaves MySQL up)'
@@ -150,6 +151,9 @@ up.worktree: require.worktree setup.worktree wait.yarn-install node_modules
 
 setup.worktree:
 	@./devTools/docker/setup-worktree-env.sh
+
+initiative:
+	@./devTools/docker/create-initiative.sh "$(INITIATIVE)"
 
 # before `node_modules`, so a checkout mid-install (Orca's setup script) finishes
 # that install instead of make starting a second one next to it
