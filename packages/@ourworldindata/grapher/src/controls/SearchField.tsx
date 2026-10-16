@@ -2,6 +2,7 @@ import {
     faCircleXmark,
     faMagnifyingGlass,
 } from "@fortawesome/free-solid-svg-icons"
+import { IconDefinition } from "@fortawesome/fontawesome-svg-core"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import * as React from "react"
 import { forwardRef } from "react"
@@ -15,12 +16,23 @@ export const SearchField = forwardRef<
         value: string
         placeholder: string
         trackNote: string
+        /** Leading icon; defaults to a magnifying glass */
+        icon?: IconDefinition
         onChange: (value: string) => void
         onClear: () => void
         onKeyDown?: (event: KeyboardEvent) => void
     }
 >(function SearchField(
-    { className, value, placeholder, trackNote, onChange, onClear, onKeyDown },
+    {
+        className,
+        value,
+        placeholder,
+        trackNote,
+        icon = faMagnifyingGlass,
+        onChange,
+        onClear,
+        onKeyDown,
+    },
     ref
 ): React.ReactElement {
     return (
@@ -29,7 +41,7 @@ export const SearchField = forwardRef<
                 "grapher-search-field--empty": !value,
             })}
         >
-            <FontAwesomeIcon className="search-icon" icon={faMagnifyingGlass} />
+            <FontAwesomeIcon className="search-icon" icon={icon} />
             <input
                 ref={ref}
                 type="search"
