@@ -31,6 +31,7 @@ export function TooltipValue({
     labelVariant = "label+unit",
     showSignificanceSuperscript,
     noDataLabel = NO_DATA_LABEL,
+    detail,
 }: TooltipValueProps): React.ReactElement {
     const hasNoData = value === undefined || value === null
     const displayValue = value || noDataLabel
@@ -48,6 +49,7 @@ export function TooltipValue({
             isProjection={isProjection}
             originalTimes={originalTime ? [originalTime] : undefined}
             labelVariant={labelVariant}
+            detail={detail}
         >
             <span>
                 {displayValue}
@@ -67,6 +69,7 @@ export function TooltipValueRange({
     trend,
     labelVariant = "label+unit",
     showSignificanceSuperscript,
+    detail,
 }: TooltipValueRangeProps): React.ReactElement | null {
     const [firstTerm, lastTerm] = values
 
@@ -86,6 +89,7 @@ export function TooltipValueRange({
             unit={unit}
             originalTimes={originalTimes}
             labelVariant={labelVariant}
+            detail={detail}
         >
             <span className="range">
                 <span className="term">
@@ -117,6 +121,7 @@ function Variable({
     originalTimes,
     isProjection,
     labelVariant = "label+unit",
+    detail,
 }: TooltipVariableProps): React.ReactElement {
     const { mainLabel: columnName, unit: formattedUnit } = makeAxisLabel({
         label: label || "",
@@ -152,6 +157,7 @@ function Variable({
                     </span>
                 )}
             </div>
+            {detail && <div className="detail">{detail}</div>}
         </div>
     )
 }
