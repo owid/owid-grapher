@@ -4,6 +4,8 @@ export type VariantName = "sankey"
 
 export const SEXES = ["both", "female", "male"] as const
 
+export const DEFAULT_COUNTRY = "United States"
+
 export type Sex = (typeof SEXES)[number]
 
 export type Entity = {

@@ -179,7 +179,7 @@
       "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/BespokeComponent.ts",
       "sidecarFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/BespokeComponent.md",
       "prose": {
-        "intro": "A self-contained custom data viz component bundled under\n`bespoke/projects/` and embedded via Shadow DOM. Each bundle can\nexpose multiple variants and accepts a free-form `config` map.\nUndocumented in the author reference (developer-facing)."
+        "intro": "Embeds a bundle: a custom interactive built by the dev team for a\nspecific piece of content. Pick one from the Bundles list below, open\nits page, and copy the block of the variant you want."
       },
       "examples": [],
       "props": [
@@ -187,13 +187,13 @@
           "name": "bundle",
           "type": "string",
           "optional": false,
-          "description": "Name of the component in the bespoke component registry. Required; without it the block is dropped and reported as a parse error, and an unregistered name shows an error message on the page."
+          "description": "Which bundle to embed — one of the bundles listed above. Required; without it the block is dropped and reported as a parse error, and an unknown name shows an error message on the page."
         },
         {
           "name": "variant",
           "type": "string",
           "optional": true,
-          "description": "A label distinguishing this instance when the same bundle is embedded more than once in an article — e.g. a map and a chart that share state but render in different places. Passed through to the component; omitted, nothing is passed."
+          "description": "Which view of the bundle to show. Each bundle lists its variants on its page. Required in practice: omitting it shows an error message on the page."
         },
         {
           "name": "size",
@@ -205,7 +205,7 @@
           "name": "config",
           "type": "Record<string, string>",
           "optional": false,
-          "description": "Free-form key–value settings passed to the component, authored as a nested `{.config}` … `{}` with one `key: value` line per setting. Values must be plain text — nested structures are reported as parse errors. What keys mean is up to each bundle; omitted, the component receives no settings."
+          "description": "Settings passed to the bundle, authored as a nested `{.config}` … `{}` with one `key: value` line per setting. Values must be plain text — nested structures are reported as parse errors. The keys each bundle accepts are documented on its page; omitted, the bundle receives no settings."
         },
         {
           "name": "fallbackImageFilename",

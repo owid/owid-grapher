@@ -6,12 +6,12 @@ import { ChartError } from "../../../../components/ChartError/ChartError.js"
 import { ChartSkeleton } from "../../../../components/ChartSkeleton/ChartSkeleton.js"
 import { Spinner } from "../../../../components/Spinner/Spinner.js"
 import { queryClient, useDemographyData } from "../core/fetch.js"
+import type { DemographyConfig } from "../index.js"
+import type { PopulationPyramidUnit } from "../core/types.js"
 import type {
-    PopulationPyramidUnit,
-    PopulationPyramidVariantConfig,
-} from "../core/config.js"
-import type { VariantProps } from "../../../../helpers/config.js"
-import type { BespokeComponentDataUrls } from "owid-bespoke-types"
+    BespokeComponentDataUrls,
+    BespokeVariantProps,
+} from "owid-bespoke-types"
 import { groupAgeGroupsByZone } from "../core/utils.js"
 import { formatEntityNameForSentence } from "../../../../helpers/entityNames.js"
 import { CountryData, DemographyMetadata } from "../core/types.js"
@@ -31,6 +31,7 @@ import {
     END_YEAR,
     FULL_TIME_RANGE,
     START_YEAR,
+    DEFAULT_ENTITY_NAME,
 } from "../core/constants.js"
 import {
     BreakpointProvider,
@@ -43,7 +44,7 @@ import { EntityNameOrSelector } from "../components/EntityNameOrSelector.js"
 export function PopulationPyramidVariant({
     config,
     urls,
-}: VariantProps<PopulationPyramidVariantConfig>): React.ReactElement {
+}: BespokeVariantProps<DemographyConfig>): React.ReactElement {
     const { breakpoint, ref: rootRef } = useContainerBreakpoint()
 
     return (
@@ -70,16 +71,19 @@ function FetchingPopulationPyramidVariant({
     config,
     urls,
 }: {
-    config: PopulationPyramidVariantConfig
+    config: DemographyConfig
     urls: BespokeComponentDataUrls
 }): React.ReactElement {
-    const [entityName, setEntityName] = useInitialEntityName(
+    const [requestedEntityName, setEntityName] = useInitialEntityName(
         config.region,
         urls.metadataUrl
     )
 
-    const { metadata, entityData, isLoadingEntityData, status } =
-        useDemographyData(entityName, urls)
+    const { entityName, metadata, entityData, isLoadingEntityData, status } =
+        useDemographyData(requestedEntityName, urls, [
+            config.region,
+            DEFAULT_ENTITY_NAME,
+        ])
 
     if (status === "pending")
         return <ChartSkeleton className="demography-chart-box" />
@@ -117,7 +121,7 @@ function CaptionedPopulationPyramidVariant({
     subtitle: subtitleOverride,
     hideEntitySelector,
     hideTimeline,
-    showAssumptionCharts = false,
+    showAssumptionCharts,
     initialTime,
     fertilityRateAssumptions,
     lifeExpectancyAssumptions,
@@ -134,13 +138,13 @@ function CaptionedPopulationPyramidVariant({
     hideEntitySelector?: boolean
     hideTimeline?: boolean
     showAssumptionCharts?: boolean
-    initialTime?: number
+    initialTime: number
     fertilityRateAssumptions?: Record<number, number>
     lifeExpectancyAssumptions?: Record<number, number>
     netMigrationRateAssumptions?: Record<number, number>
     populationPyramidUnit?: PopulationPyramidUnit
 }) {
-    const [year, setYear] = useState(initialTime ?? END_YEAR)
+    const [year, setYear] = useState(initialTime)
 
     const scenarioOverrides = useMemo(
         () =>

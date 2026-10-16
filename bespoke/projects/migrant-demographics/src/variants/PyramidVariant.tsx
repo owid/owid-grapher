@@ -23,13 +23,16 @@ import {
     isUserLocationCountry,
     useResolveUserLocation,
 } from "../../../../hooks/useResolveUserLocation.js"
+import { useAvailableEntityName } from "../../../../hooks/useAvailableEntityName.js"
 import { formatEntityNameForSentence } from "../../../../helpers/entityNames.js"
 import { combineStatuses } from "../../../../helpers/queryStatus.js"
 
-import { PyramidVariantConfig } from "../core/config.js"
+import type { MigrantDemographicsConfig } from "../index.js"
 import { RawEntityYears, ShowMode } from "../core/types.js"
-import type { VariantProps } from "../../../../helpers/config.js"
-import type { BespokeComponentDataUrls } from "owid-bespoke-types"
+import type {
+    BespokeComponentDataUrls,
+    BespokeVariantProps,
+} from "owid-bespoke-types"
 import {
     computePyramidData,
     MigrantDemographicsMetadata,
@@ -50,7 +53,7 @@ import { PyramidControls } from "../components/PyramidControls.js"
 export function PyramidVariant({
     config,
     urls,
-}: VariantProps<PyramidVariantConfig>): React.ReactElement {
+}: BespokeVariantProps<MigrantDemographicsConfig>): React.ReactElement {
     return (
         <EmbedConfigProvider config={config}>
             <NuqsAdapter>
@@ -66,15 +69,14 @@ function FetchingPyramidVariant({
     config,
     urls,
 }: {
-    config: PyramidVariantConfig
+    config: MigrantDemographicsConfig
     urls: BespokeComponentDataUrls
 }): React.ReactElement {
-    const initialCountry =
-        !config.country || isUserLocationCountry(config.country)
-            ? DEFAULT_COUNTRY
-            : config.country
+    const initialCountry = isUserLocationCountry(config.country)
+        ? DEFAULT_COUNTRY
+        : config.country
 
-    const [country, setCountry] = useUrlState({
+    const [requestedCountry, setCountry] = useUrlState({
         key: "migrantPyramidCountry",
         parser: parseAsString,
         defaultValue: initialCountry,
@@ -87,7 +89,7 @@ function FetchingPyramidVariant({
     const [show, setShow] = useUrlState({
         key: "migrantPyramidShow",
         parser: parseAsStringEnum<ShowMode>(["number", "share"]),
-        defaultValue: config.show ?? "number",
+        defaultValue: config.show,
     })
     const [compare, setCompare] = useUrlState({
         key: "migrantPyramidCompare",
@@ -98,11 +100,11 @@ function FetchingPyramidVariant({
     const { data: metadata, status: metadataStatus } =
         useMigrantDemographicsMetadata(urls.metadataUrl)
 
-    // Fall back gracefully when the config or URL asks for something the
-    // data doesn't have
-    const selectedCountry = metadata?.hasEntity(country)
-        ? country
-        : DEFAULT_COUNTRY
+    const selectedCountry = useAvailableEntityName(
+        requestedCountry,
+        [config.country, DEFAULT_COUNTRY],
+        metadata && ((name) => metadata.hasEntity(name))
+    )
 
     const {
         data: entityYears,
@@ -167,7 +169,7 @@ function CaptionedPyramidVariant({
     setShow,
     setCompare,
 }: {
-    config: PyramidVariantConfig
+    config: MigrantDemographicsConfig
     metadata: MigrantDemographicsMetadata
     entityYears: RawEntityYears
     country: string

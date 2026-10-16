@@ -36,6 +36,7 @@ import {
     fractionUsageLabel,
     githubBlobUrl,
     indefinite,
+    instancePreviewPath,
     isContentProp,
     isEffectivelyRequired,
     liveUrl,
@@ -256,14 +257,8 @@ export function UsageSummary({
 // Component page: the forms section
 // -----------------------------------------------------------------------------
 
-function instancePreviewPath(instance: ComponentInstance): string {
-    return `/gdocs-reference/instance/preview?gdocId=${encodeURIComponent(
-        instance.gdocId
-    )}&path=${encodeURIComponent(instance.path)}`
-}
-
 /** "Used in *Life expectancy* → view live" — the provenance line under a real example. */
-function InstanceProvenance({
+export function InstanceProvenance({
     instance,
     curated,
 }: {
@@ -286,6 +281,124 @@ function InstanceProvenance({
                 view live <FontAwesomeIcon icon={faArrowUpRightFromSquare} />
             </a>
         </p>
+    )
+}
+
+/**
+ * The header of a form card. With `onToggle` it is a button that folds the
+ * card; without, a static row.
+ */
+export function FormCardHeader({
+    title,
+    badge,
+    collapsed = false,
+    onToggle,
+}: {
+    title: React.ReactNode
+    badge: React.ReactNode
+    collapsed?: boolean
+    onToggle?: () => void
+}): React.ReactElement {
+    if (onToggle)
+        return (
+            <button
+                type="button"
+                className="gdocs-ref-live__form-card-header gdocs-ref-live__form-card-header--toggle"
+                aria-expanded={!collapsed}
+                onClick={onToggle}
+            >
+                {title}
+                <span className="gdocs-ref-live__form-card-header-end">
+                    {badge}
+                    <FontAwesomeIcon
+                        icon={faChevronDown}
+                        className="gdocs-ref-live__form-card-chevron"
+                    />
+                </span>
+            </button>
+        )
+    return (
+        <div className="gdocs-ref-live__form-card-header">
+            {title}
+            {badge}
+        </div>
+    )
+}
+
+/** Previous / next buttons around a label, under a card's example. */
+export function Pager({
+    label,
+    prevTitle,
+    nextTitle,
+    prevDisabled,
+    nextDisabled,
+    onPrev,
+    onNext,
+}: {
+    label: React.ReactNode
+    prevTitle: string
+    nextTitle: string
+    prevDisabled: boolean
+    nextDisabled: boolean
+    onPrev: () => void
+    onNext: () => void
+}): React.ReactElement {
+    return (
+        <span className="gdocs-ref-live__pager">
+            <button
+                type="button"
+                className="gdocs-ref-live__pager-button"
+                disabled={prevDisabled}
+                title={prevTitle}
+                onClick={onPrev}
+            >
+                <FontAwesomeIcon icon={faChevronLeft} />
+            </button>
+            {label}
+            <button
+                type="button"
+                className="gdocs-ref-live__pager-button"
+                disabled={nextDisabled}
+                title={nextTitle}
+                onClick={onNext}
+            >
+                <FontAwesomeIcon icon={faChevronRight} />
+            </button>
+        </span>
+    )
+}
+
+/**
+ * The values a property or config key takes, as chips, with the default one
+ * marked. `defaultHint` is the default chip's tooltip.
+ */
+export function ValueChips({
+    values,
+    defaultValue,
+    defaultHint,
+    title,
+}: {
+    values: string[]
+    defaultValue: string | undefined
+    defaultHint: string
+    title?: string
+}): React.ReactElement {
+    return (
+        <span className="gdocs-ref-live__props-choices" title={title}>
+            {values.map((value) => (
+                <code
+                    key={value}
+                    className={
+                        value === defaultValue
+                            ? "gdocs-ref-live__props-choice gdocs-ref-live__props-choice--default"
+                            : "gdocs-ref-live__props-choice"
+                    }
+                    title={value === defaultValue ? defaultHint : undefined}
+                >
+                    {value}
+                </code>
+            ))}
+        </span>
     )
 }
 
@@ -523,42 +636,23 @@ function FormCard({
             className="gdocs-ref-live__form-card"
             id={formAnchorId(variation.signature)}
         >
-            {onToggle ? (
-                <button
-                    type="button"
-                    className="gdocs-ref-live__form-card-header gdocs-ref-live__form-card-header--toggle"
-                    aria-expanded={!collapsed}
-                    onClick={onToggle}
-                >
+            <FormCardHeader
+                title={
                     <FormTitle
                         parts={parts}
                         defaults={propDefaults}
                         titleFor={titleFor}
                     />
-                    <span className="gdocs-ref-live__form-card-header-end">
-                        <FrequencyBadge
-                            label={label}
-                            title={`${variation.count} of ${scanned} published uses`}
-                        />
-                        <FontAwesomeIcon
-                            icon={faChevronDown}
-                            className="gdocs-ref-live__form-card-chevron"
-                        />
-                    </span>
-                </button>
-            ) : (
-                <div className="gdocs-ref-live__form-card-header">
-                    <FormTitle
-                        parts={parts}
-                        defaults={propDefaults}
-                        titleFor={titleFor}
-                    />
+                }
+                badge={
                     <FrequencyBadge
                         label={label}
                         title={`${variation.count} of ${scanned} published uses`}
                     />
-                </div>
-            )}
+                }
+                collapsed={collapsed}
+                onToggle={onToggle}
+            />
             {!collapsed && (
                 <div className="gdocs-ref-live__form-card-body">
                     <div className="gdocs-ref-live__form-example">
@@ -576,38 +670,25 @@ function FormCard({
                                         )}
                                     />
                                     {shownTotal > 1 && (
-                                        <span className="gdocs-ref-live__pager">
-                                            <button
-                                                type="button"
-                                                className="gdocs-ref-live__pager-button"
-                                                disabled={index === 0}
-                                                title="Previous example"
-                                                onClick={() =>
-                                                    setIndex(
-                                                        Math.max(0, index - 1)
-                                                    )
-                                                }
-                                            >
-                                                <FontAwesomeIcon
-                                                    icon={faChevronLeft}
-                                                />
-                                            </button>
-                                            example {index + 1} of {shownTotal}
-                                            <button
-                                                type="button"
-                                                className="gdocs-ref-live__pager-button"
-                                                disabled={
-                                                    index + 1 >= shownTotal ||
-                                                    isLoading
-                                                }
-                                                title="Next example"
-                                                onClick={onNext}
-                                            >
-                                                <FontAwesomeIcon
-                                                    icon={faChevronRight}
-                                                />
-                                            </button>
-                                        </span>
+                                        <Pager
+                                            label={
+                                                <>
+                                                    example {index + 1} of{" "}
+                                                    {shownTotal}
+                                                </>
+                                            }
+                                            prevTitle="Previous example"
+                                            nextTitle="Next example"
+                                            prevDisabled={index === 0}
+                                            nextDisabled={
+                                                index + 1 >= shownTotal ||
+                                                isLoading
+                                            }
+                                            onPrev={() =>
+                                                setIndex(Math.max(0, index - 1))
+                                            }
+                                            onNext={onNext}
+                                        />
                                     )}
                                 </div>
                             </>
@@ -637,26 +718,30 @@ function SyntheticFormCard({
 }): React.ReactElement | null {
     return (
         <div className="gdocs-ref-live__form-card gdocs-ref-live__form-card--synthetic">
-            <div className="gdocs-ref-live__form-card-header">
-                {info.signature ? (
-                    <FormTitle
-                        parts={formDefiningParts(component, {
-                            signature: info.signature,
-                        } as ComponentVariation)}
-                        synthetic
-                        titleFor={titleFor}
+            <FormCardHeader
+                title={
+                    info.signature ? (
+                        <FormTitle
+                            parts={formDefiningParts(component, {
+                                signature: info.signature,
+                            } as ComponentVariation)}
+                            synthetic
+                            titleFor={titleFor}
+                        />
+                    ) : (
+                        <span className="gdocs-ref-live__form-title-part gdocs-ref-live__form-title-part--synthetic gdocs-ref-live__form-title-part--default">
+                            Reference example
+                        </span>
+                    )
+                }
+                badge={
+                    <FrequencyBadge
+                        label="unused"
+                        dashed
+                        title="Not used in any published doc yet — reference example"
                     />
-                ) : (
-                    <span className="gdocs-ref-live__form-title-part gdocs-ref-live__form-title-part--synthetic gdocs-ref-live__form-title-part--default">
-                        Reference example
-                    </span>
-                )}
-                <FrequencyBadge
-                    label="unused"
-                    dashed
-                    title="Not used in any published doc yet — reference example"
-                />
-            </div>
+                }
+            />
             <div className="gdocs-ref-live__form-card-synthetic-body">
                 <p className="gdocs-ref-live__synthetic-note">
                     No published document uses this form yet — this is the
@@ -680,6 +765,10 @@ const FORM_CARD_LIMIT = 6
  * "Its forms" — the unified section where observed forms, their frequency,
  * one real example each, the dashed "new" reference forms, and the derived
  * properties table live together.
+ *
+ * With `showForms={false}` only the properties table renders (with live
+ * adoption): pages that list their own kind of entry instead of raw forms,
+ * like the bespoke component's bundle index, still need its adoption data.
  */
 export function ComponentForms({
     component,
@@ -687,12 +776,14 @@ export function ComponentForms({
     typeLinks,
     notes,
     titleFor,
+    showForms = true,
 }: {
     component: ComponentReference
     usage: ComponentUsage | undefined
     typeLinks: PropTypeLinks
     notes?: React.ReactNode
     titleFor?: TitleFor
+    showForms?: boolean
 }): React.ReactElement {
     const [docTypeFilter, setDocTypeFilter] = useState<string | undefined>()
     const [expandedTail, setExpandedTail] = useState<Set<string>>(new Set())
@@ -709,7 +800,9 @@ export function ComponentForms({
     if (!component.system && response === undefined)
         return (
             <section className="gdocs-ref__section">
-                <h2 className="gdocs-ref__section-title">Its forms</h2>
+                {showForms && (
+                    <h2 className="gdocs-ref__section-title">Its forms</h2>
+                )}
                 <p className="gdocs-ref-live__loading">
                     Looking up published uses…
                 </p>
@@ -731,6 +824,25 @@ export function ComponentForms({
         )
 
     const scanned = response.scanned
+    const liveProperties = (
+        <ComponentProperties
+            component={component}
+            live={{
+                propAdoption: response.propAdoption,
+                scanned,
+                propDefaults: response.propDefaults,
+            }}
+            typeLinks={typeLinks}
+            notes={notes}
+            titleFor={titleFor}
+        />
+    )
+
+    if (!showForms)
+        return (
+            <section className="gdocs-ref__section">{liveProperties}</section>
+        )
+
     const variations = response.variations
     const unobservedSynthetic = response.syntheticExamples.filter(
         (example) => !example.observed
@@ -832,17 +944,7 @@ export function ComponentForms({
                     ))}
                 </div>
             )}
-            <ComponentProperties
-                component={component}
-                live={{
-                    propAdoption: response.propAdoption,
-                    scanned,
-                    propDefaults: response.propDefaults,
-                }}
-                typeLinks={typeLinks}
-                notes={notes}
-                titleFor={titleFor}
-            />
+            {liveProperties}
         </section>
     )
 }
@@ -898,25 +1000,12 @@ function PropTypeCell({
     const chipValues = choiceValues(prop)
     if (chipValues)
         return (
-            <span className="gdocs-ref-live__props-choices" title={prop.type}>
-                {chipValues.map((value) => (
-                    <code
-                        key={value}
-                        className={
-                            value === defaultValue
-                                ? "gdocs-ref-live__props-choice gdocs-ref-live__props-choice--default"
-                                : "gdocs-ref-live__props-choice"
-                        }
-                        title={
-                            value === defaultValue
-                                ? "What you get when the property is omitted"
-                                : undefined
-                        }
-                    >
-                        {value}
-                    </code>
-                ))}
-            </span>
+            <ValueChips
+                values={chipValues}
+                defaultValue={defaultValue}
+                defaultHint="What you get when the property is omitted"
+                title={prop.type}
+            />
         )
 
     // The declared type text, with each known type name linked.
@@ -1007,88 +1096,99 @@ function ComponentProperties({
                 </span>
             </div>
             {component.props.length > 0 && (
-                <table className="gdocs-ref-live__props-table">
-                    <thead>
-                        <tr>
-                            <th>Prop</th>
-                            <th>Type</th>
-                            <th>Req.</th>
-                            {hasDescriptions && <th>What it does</th>}
-                            {hasLive && <th>Adoption</th>}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {orderedProps.map((prop) => {
-                            const adoption = live?.propAdoption[prop.name] ?? 0
-                            const defaultValue = live?.propDefaults?.[prop.name]
-                            const content = isContentProp(prop)
-                            return (
-                                <tr key={prop.name}>
-                                    <td>
-                                        <code>{prop.name}</code>
-                                    </td>
-                                    <td>
-                                        <PropTypeCell
-                                            prop={prop}
-                                            typeLinks={typeLinks}
-                                            defaultValue={defaultValue}
-                                        />
-                                    </td>
-                                    <td
-                                        className={
-                                            requirement(prop) === "required"
-                                                ? "gdocs-ref-live__props-required"
-                                                : "gdocs-ref-live__props-optional"
-                                        }
-                                    >
-                                        {requirement(prop)}
-                                        {defaultValue !== undefined &&
-                                            !choiceValues(prop) && (
-                                                <span className="gdocs-ref-live__props-default">
-                                                    default{" "}
-                                                    <code>{defaultValue}</code>
-                                                </span>
-                                            )}
-                                    </td>
-                                    {hasDescriptions && (
-                                        <td className="gdocs-ref-live__props-effect">
-                                            {prop.description ? (
-                                                <InlineMarkdownText
-                                                    text={prop.description}
-                                                    titleFor={titleFor}
-                                                />
-                                            ) : (
-                                                <span className="gdocs-ref-live__props-optional">
-                                                    —
-                                                </span>
-                                            )}
-                                        </td>
-                                    )}
-                                    {hasLive && (
+                <div
+                    className="gdocs-ref-live__props-scroll"
+                    role="region"
+                    aria-label="Properties"
+                    tabIndex={0}
+                >
+                    <table className="gdocs-ref-live__props-table">
+                        <thead>
+                            <tr>
+                                <th>Prop</th>
+                                <th>Type</th>
+                                <th>Req.</th>
+                                {hasDescriptions && <th>Description</th>}
+                                {hasLive && <th>Adoption</th>}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {orderedProps.map((prop) => {
+                                const adoption =
+                                    live?.propAdoption[prop.name] ?? 0
+                                const defaultValue =
+                                    live?.propDefaults?.[prop.name]
+                                const content = isContentProp(prop)
+                                return (
+                                    <tr key={prop.name}>
                                         <td>
-                                            {content ? (
-                                                <span
-                                                    className="gdocs-ref-live__props-optional"
-                                                    title="Content blocks aren't indexed for usage analysis"
-                                                >
-                                                    —
-                                                </span>
-                                            ) : (
-                                                <FrequencyBadge
-                                                    label={fractionUsageLabel(
-                                                        adoption,
-                                                        live.scanned
-                                                    )}
-                                                    title={`Authored in ${adoption} of ${live.scanned} published uses`}
-                                                />
-                                            )}
+                                            <code>{prop.name}</code>
                                         </td>
-                                    )}
-                                </tr>
-                            )
-                        })}
-                    </tbody>
-                </table>
+                                        <td>
+                                            <PropTypeCell
+                                                prop={prop}
+                                                typeLinks={typeLinks}
+                                                defaultValue={defaultValue}
+                                            />
+                                        </td>
+                                        <td
+                                            className={
+                                                requirement(prop) === "required"
+                                                    ? "gdocs-ref-live__props-required"
+                                                    : "gdocs-ref-live__props-optional"
+                                            }
+                                        >
+                                            {requirement(prop)}
+                                            {defaultValue !== undefined &&
+                                                !choiceValues(prop) && (
+                                                    <span className="gdocs-ref-live__props-default">
+                                                        default{" "}
+                                                        <code>
+                                                            {defaultValue}
+                                                        </code>
+                                                    </span>
+                                                )}
+                                        </td>
+                                        {hasDescriptions && (
+                                            <td className="gdocs-ref-live__props-effect">
+                                                {prop.description ? (
+                                                    <InlineMarkdownText
+                                                        text={prop.description}
+                                                        titleFor={titleFor}
+                                                    />
+                                                ) : (
+                                                    <span className="gdocs-ref-live__props-optional">
+                                                        —
+                                                    </span>
+                                                )}
+                                            </td>
+                                        )}
+                                        {hasLive && (
+                                            <td>
+                                                {content ? (
+                                                    <span
+                                                        className="gdocs-ref-live__props-optional"
+                                                        title="Content blocks aren't indexed for usage analysis"
+                                                    >
+                                                        —
+                                                    </span>
+                                                ) : (
+                                                    <FrequencyBadge
+                                                        label={fractionUsageLabel(
+                                                            adoption,
+                                                            live.scanned
+                                                        )}
+                                                        title={`Authored in ${adoption} of ${live.scanned} published uses`}
+                                                    />
+                                                )}
+                                            </td>
+                                        )}
+                                    </tr>
+                                )
+                            })}
+                        </tbody>
+                    </table>
+                </div>
             )}
             {notes && (
                 <div className="gdocs-ref-live__props-notes">

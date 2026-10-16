@@ -2,12 +2,23 @@ import { BespokeMetadata, EntityName, Time } from "@ourworldindata/types"
 
 type NumericId = number
 
+export const DEFAULT_REGION = "World"
+
 export interface BasicEntry {
     id: NumericId
     name: string
 }
 
-export type AgeGroup = "All ages" | "Children under 5"
+export const SEXES = ["Both sexes", "Female", "Male"] as const
+
+export const AGE_GROUPS = [
+    "All ages",
+    "Children under 5",
+    "Children aged 5 to 14",
+    "Adults aged 15 to 49",
+    "Adults aged 50 to 69",
+    "Adults aged 70+",
+] as const
 
 export type CategoryMetadata = BasicEntry
 export type EntityMetadata = BasicEntry

@@ -3,6 +3,7 @@ import { fetchJson } from "@ourworldindata/utils"
 import { CountryData, DemographyMetadata } from "./types"
 import { combineStatuses } from "../../../../helpers/queryStatus.js"
 import { useDelayedLoading } from "../../../../hooks/useDelayedLoading.js"
+import { useAvailableEntityName } from "../../../../hooks/useAvailableEntityName.js"
 import type { BespokeComponentDataUrls } from "owid-bespoke-types"
 
 export const queryClient = new QueryClient()
@@ -62,19 +63,27 @@ export const useDemographyEntityData = (
 
 /** Combined hook for loading demography metadata + entity data */
 export function useDemographyData(
-    entityName: string,
-    urls: BespokeComponentDataUrls
+    requestedEntityName: string,
+    urls: BespokeComponentDataUrls,
+    fallbacks: readonly string[] = []
 ): {
+    entityName: string
     metadata?: DemographyMetadata
     entityData?: CountryData
     isLoadingEntityData: boolean
     status: QueryStatus
 } {
     const metadataResponse = useDemographyMetadata(urls.metadataUrl)
+    const metadata = metadataResponse.data
+    const entityName = useAvailableEntityName(
+        requestedEntityName,
+        fallbacks,
+        metadata && ((name) => Boolean(metadata.slugs[name]))
+    )
     const entityDataResponse = useDemographyEntityData(
         entityName,
         urls.dataUrl,
-        metadataResponse.data
+        metadata
     )
     const isLoadingEntityData = useDelayedLoading(
         entityDataResponse.isPlaceholderData,
@@ -85,7 +94,8 @@ export function useDemographyData(
         entityDataResponse.status
     )
     return {
-        metadata: metadataResponse.data,
+        entityName,
+        metadata,
         entityData: entityDataResponse.data,
         isLoadingEntityData,
         status,

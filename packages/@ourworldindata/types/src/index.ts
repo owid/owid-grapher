@@ -209,6 +209,15 @@ export {
     type GuideReference,
 } from "./gdocTypes/GuideReference.js"
 
+export type {
+    BespokeVizRegistry,
+    BundleReference,
+    BundleVariantReference,
+    BundleVariantSize,
+    BundleConfigField,
+    BundleConfigFieldType,
+} from "./gdocTypes/BespokeVizReference.js"
+
 export {
     COMPONENT_USAGE_LABELS,
     componentUsageLabel,
@@ -222,6 +231,9 @@ export {
     type SyntheticExampleInfo,
     type ExemplarOutline,
     type TemplateExemplarsResponse,
+    type BespokeVizUsage,
+    type BundleUsage,
+    type BundleVariantUsage,
 } from "./gdocTypes/GdocsReferenceApi.js"
 
 export {
