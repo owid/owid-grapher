@@ -1,16 +1,20 @@
 /*
  * What the bespoke viz registry may say about a bundle.
  *
- * Takes a bundle's VARIANTS and CONFIG_SPEC as plain data (already read from
- * its src/index.tsx by bespokeVizReferences.ts) plus the text of its optional
- * docs.md, and builds the registry entry. Every declaration the reference
- * would get wrong is a build error: a missing description, a duplicate
- * variant, a default value the spec does not allow, a default block that
- * does not parse, or a docs.md example that does not match the bundle.
+ * Takes a bundle's VARIANTS and CONFIG_SPEC as plain data (read from its
+ * src/index.tsx by bespokeVizReferences.ts) and its optional docs.md, and
+ * builds the registry entry. Kept free of AST work so it is testable on
+ * plain objects.
  *
- * Kept free of AST work so that every check is testable on plain objects.
- * Checks the bespoke typecheck already makes through `satisfies` (field
- * types, enum without values, custom without format, …) are not repeated.
+ * It only checks what the reference itself needs: descriptions, unique
+ * variant names, and docs.md examples that place this bundle with a known
+ * variant and known config keys. The bespoke code is checked on the bespoke
+ * side (typecheck, tests, its own parser), so it is not repeated here.
+ *
+ * Known gap: config values are not checked at build time, neither spec
+ * defaults nor the values in docs.md example configs (their keys are). Only the bundle's parser knows what it accepts, and
+ * no bespoke code can run in this build. A bad value shows as an error where
+ * the bundle mounts: the bespoke dev server, or the example's preview.
  */
 
 import {
@@ -67,46 +71,24 @@ function isBlank(value: string | undefined): boolean {
 }
 
 /**
- * Why a config value is not one the bundle accepts — the one checker behind
- * spec defaults and docs.md example configs. Only
- * enums have a closed set of values to check against.
+ * Failures of a docs.md example's config keys. The bundle silently ignores a
+ * key outside its CONFIG_SPEC, so a typo would otherwise go unnoticed. Values
+ * are left to the bundle's parser (see the header).
  */
-function configValueFailure(
-    field: DeclaredConfigField,
-    value: string
-): string | undefined {
-    if (field.type === "enum" && !(field.values ?? []).includes(value))
-        return (
-            '"' +
-            value +
-            '" is not one of the allowed values: ' +
-            (field.values ?? []).join(", ")
-        )
-    return undefined
-}
-
-/** Failures of a docs.md example's config */
 function configFailures(
     config: Record<string, string>,
-    fieldsByName: Map<string, DeclaredConfigField>
+    configNames: Set<string>
 ): string[] {
-    const failures: string[] = []
-    for (const [key, value] of Object.entries(config)) {
-        const field = fieldsByName.get(key)
-        if (!field) {
-            failures.push(
+    return Object.keys(config)
+        .filter((key) => !configNames.has(key))
+        .map(
+            (key) =>
                 'unknown config key "' +
-                    key +
-                    '" — not in CONFIG_SPEC (keys: ' +
-                    [...fieldsByName.keys()].join(", ") +
-                    ")"
-            )
-            continue
-        }
-        const failure = configValueFailure(field, value)
-        if (failure) failures.push("config " + key + ": " + failure)
-    }
-    return failures
+                key +
+                '" — not in CONFIG_SPEC (keys: ' +
+                [...configNames].join(", ") +
+                ")"
+        )
 }
 
 /** The block an author copies to place this variant */
@@ -135,7 +117,7 @@ function exampleFailures(
     example: SidecarExample,
     id: string,
     variantNames: Set<string>,
-    fieldsByName: Map<string, DeclaredConfigField>
+    configNames: Set<string>
 ): string[] {
     if (example.flavour === "archie-document")
         return [
@@ -165,7 +147,7 @@ function exampleFailures(
                 '" — one of: ' +
                 [...variantNames].join(", ")
         )
-    failures.push(...configFailures(block.config, fieldsByName))
+    failures.push(...configFailures(block.config, configNames))
     return failures
 }
 
@@ -200,23 +182,12 @@ export function buildBundleReference(
         failures.push(file + ": " + message)
     }
 
-    const fieldsByName = new Map(
-        declarations.config.map((field) => [field.name, field])
-    )
+    const configNames = new Set(declarations.config.map((field) => field.name))
 
     const config: BundleConfigField[] = []
     for (const field of declarations.config) {
-        const what = "CONFIG_SPEC." + field.name
         if (isBlank(field.description))
-            fail(entryFile, what + " has no description")
-        if (field.default !== undefined) {
-            if (isBlank(field.default))
-                fail(entryFile, what + " has a blank default")
-            else {
-                const failure = configValueFailure(field, field.default)
-                if (failure) fail(entryFile, what + ".default " + failure)
-            }
-        }
+            fail(entryFile, "CONFIG_SPEC." + field.name + " has no description")
         config.push({
             name: field.name,
             type: field.type,
@@ -237,19 +208,11 @@ export function buildBundleReference(
         if (isBlank(variant.description))
             fail(entryFile, what + " has no description")
         const defaultSize = variant.defaultSize ?? "wide"
-        const archie = defaultVariantArchie(id, variant.name, defaultSize)
-        for (const failure of validateExample({
-            archie,
-            flavour: "archie",
-            section: "intro",
-            position: 0,
-        }))
-            fail(entryFile, what + " default block is invalid: " + failure)
         variants.push({
             name: variant.name,
             description: variant.description?.trim() ?? "",
             defaultSize,
-            archie,
+            archie: defaultVariantArchie(id, variant.name, defaultSize),
         })
     }
 
@@ -266,7 +229,7 @@ export function buildBundleReference(
                 example,
                 id,
                 seenVariants,
-                fieldsByName
+                configNames
             ))
                 fail(docs.file, "example #" + (index + 1) + ": " + failure)
         })

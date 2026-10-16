@@ -12,7 +12,6 @@ import { describe, expect, test } from "vitest"
 import {
     buildBundleReference,
     type BundleDeclarations,
-    type DeclaredVariant,
 } from "./bespokeVizDeclarations.js"
 
 const ENTRY = "bespoke/projects/demo/src/index.tsx"
@@ -125,60 +124,6 @@ describe("a declaration the reference would get wrong", () => {
         )
         expect(message).toContain(ENTRY)
         expect(message).toContain('duplicate variant "map"')
-    })
-
-    test("a blank config default", () => {
-        const message = failureOf(
-            declarations({
-                config: [
-                    {
-                        name: "region",
-                        type: "string",
-                        default: "",
-                        description: "Region",
-                    },
-                ],
-            })
-        )
-        expect(message).toContain(ENTRY)
-        expect(message).toContain("CONFIG_SPEC.region has a blank default")
-    })
-
-    test("an enum default outside its values", () => {
-        const message = failureOf(
-            declarations({
-                config: [
-                    {
-                        name: "flow",
-                        type: "enum",
-                        values: ["both", "import"],
-                        default: "export",
-                        description: "Trade direction",
-                    },
-                ],
-            })
-        )
-        expect(message).toContain(ENTRY)
-        expect(message).toContain("CONFIG_SPEC.flow.default")
-        expect(message).toContain("both, import")
-    })
-
-    test("a default block that does not parse", () => {
-        // The size is only checked by the bespoke typecheck, so a bad one
-        // reaches the block parser.
-        const message = failureOf(
-            declarations({
-                variants: [
-                    {
-                        name: "map",
-                        description: "A map",
-                        defaultSize: "huge" as DeclaredVariant["defaultSize"],
-                    },
-                ],
-            })
-        )
-        expect(message).toContain(ENTRY)
-        expect(message).toContain('variant "map" default block is invalid')
     })
 
     test("lists every failure at once", () => {
@@ -295,11 +240,16 @@ describe("docs.md", () => {
         ).toContain('unknown config key "colour"')
     })
 
-    test("a disallowed enum value", () => {
-        expect(
-            exampleFailure(
-                block("bundle: demo\nvariant: map\n{.config}\nflow: up\n{}")
+    test("leaves config values to the bundle's parser", () => {
+        // Only the bundle knows what it accepts, so a bad value is caught
+        // where it mounts, not here (see bespokeVizDeclarations.ts)
+        const example = block(
+            "bundle: demo\nvariant: map\n{.config}\nflow: up\n{}"
+        )
+        expect(() =>
+            buildBundleReference(
+                declarations({ docs: docs("Intro.\n\n" + example) })
             )
-        ).toContain('"up" is not one of the allowed values: both, import')
+        ).not.toThrow()
     })
 })
