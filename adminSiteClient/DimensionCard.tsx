@@ -12,7 +12,6 @@ import {
     SelectField,
     CatalogPathField,
 } from "./Forms.js"
-import { Link } from "./Link.js"
 import {
     faChevronDown,
     faChevronUp,
@@ -117,6 +116,7 @@ export class DimensionCard extends Component<DimensionCardProps> {
     override render() {
         const { dimension, editor, isDndEnabled } = this.props
         const { grapherState } = editor
+        const indicatorUrl = editor.manager.indicatorUrl?.(dimension.toObject())
         const { column } = dimension
         const columnDef = column.def as OwidColumnDef
 
@@ -147,14 +147,15 @@ export class DimensionCard extends Component<DimensionCardProps> {
                             }
                         />
                     </div>
-                    {dimension.variableId !== undefined ? (
-                        <Link
-                            to={`/variables/${dimension.variableId}`}
+                    {indicatorUrl ? (
+                        <a
+                            href={indicatorUrl}
                             className="dimensionLink"
                             target="_blank"
+                            rel="noopener"
                         >
                             {column.name}
-                        </Link>
+                        </a>
                     ) : (
                         <span>{column.name}</span>
                     )}
