@@ -1,5 +1,6 @@
 import cx from "clsx"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { useScrollAlertIntoView } from "./useScrollAlertIntoView.js"
 import {
     faBook,
     faBullhorn,
@@ -139,6 +140,10 @@ export const EmailNotificationsPreferenceFields = ({
 }: EmailNotificationsPreferenceFieldsProps) => {
     const allTopicsSelected = areAllTopicsSelected(topicTags, topicAreaNames)
 
+    // The submit button sits below these fieldsets, so a failed submit may
+    // leave the error off-screen.
+    const firstAlertRef = useScrollAlertIntoView(validationErrors)
+
     // The toggle callbacks use functional state updates, so toggling every
     // affected pill in sequence composes correctly.
     const toggleAllTopics = () => {
@@ -151,7 +156,25 @@ export const EmailNotificationsPreferenceFields = ({
     return (
         <>
             <fieldset className="newsletter-form__fieldset">
-                <legend className="h6-black-caps">I want updates about</legend>
+                <div className="newsletter-preference-fields__header">
+                    <legend className="h6-black-caps">
+                        I want updates about
+                    </legend>
+                    <button
+                        type="button"
+                        className="newsletter-preference-fields__select-all"
+                        onClick={toggleAllTopics}
+                    >
+                        <FontAwesomeIcon
+                            icon={allTopicsSelected ? faMinus : faPlus}
+                        />
+                        <span>
+                            {allTopicsSelected
+                                ? "Deselect all topics"
+                                : "Select all topics"}
+                        </span>
+                    </button>
+                </div>
                 <div className="newsletter-preference-fields__pills">
                     {topicAreaNames.map((name) => (
                         <TogglePill
@@ -162,22 +185,12 @@ export const EmailNotificationsPreferenceFields = ({
                         />
                     ))}
                 </div>
-                <button
-                    type="button"
-                    className="newsletter-preference-fields__select-all"
-                    onClick={toggleAllTopics}
-                >
-                    <FontAwesomeIcon
-                        icon={allTopicsSelected ? faMinus : faPlus}
-                    />
-                    <span>
-                        {allTopicsSelected
-                            ? "Deselect all topics"
-                            : "Select all topics"}
-                    </span>
-                </button>
                 {validationErrors?.topicTagsError && (
-                    <div className="newsletter-form__alert">
+                    <div
+                        ref={firstAlertRef}
+                        className="newsletter-form__alert"
+                        role="alert"
+                    >
                         {validationErrors.topicTagsError}
                     </div>
                 )}
@@ -203,13 +216,21 @@ export const EmailNotificationsPreferenceFields = ({
                     ))}
                 </div>
                 {validationErrors?.contentTypesError && (
-                    <div className="newsletter-form__alert">
+                    <div
+                        ref={
+                            validationErrors.topicTagsError
+                                ? undefined
+                                : firstAlertRef
+                        }
+                        className="newsletter-form__alert"
+                        role="alert"
+                    >
                         {validationErrors.contentTypesError}
                     </div>
                 )}
             </fieldset>
             <fieldset className="newsletter-form__fieldset">
-                <legend className="h6-black-caps">Send me, at most</legend>
+                <legend className="h6-black-caps">Send me</legend>
                 <div className="newsletter-preference-fields__frequency-options">
                     {EMAIL_NOTIFICATIONS_FREQUENCIES.map((frequencyOption) => (
                         <label

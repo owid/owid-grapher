@@ -51,13 +51,12 @@ export function useNotificationPreferences(
     topicAreaNames: string[],
     initialPreferences?: EmailNotificationsPreferences | null
 ): NotificationPreferencesState {
-    // Every pill starts selected, which is how the empty-means-all-topics
-    // storage shape presents itself.
+    // New subscribers pick their topics; stored preferences present the
+    // empty-means-all-topics shape with every pill selected.
     const [topicTags, setTopicTags] = useState<string[]>(() =>
-        topicTagsFromStorage(
-            initialPreferences?.topicTags ?? [],
-            topicAreaNames
-        )
+        initialPreferences
+            ? topicTagsFromStorage(initialPreferences.topicTags, topicAreaNames)
+            : []
     )
     const [contentTypes, setContentTypes] = useState<
         EmailNotificationsContentType[]
