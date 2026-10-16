@@ -13,7 +13,7 @@ import {
 import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { TextWrapSvg } from "@ourworldindata/components"
-import { ScaleType, VerticalAlign } from "@ourworldindata/types"
+import { ScaleType, ValueRange, VerticalAlign } from "@ourworldindata/types"
 import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
@@ -131,6 +131,8 @@ export class DiscreteBarChart
             availableHeightPerSeries: this.availableHeightPerSeries,
             minLabelWidth: 0.3 * this.bounds.width,
             maxLabelWidth: 0.66 * this.bounds.width,
+            computeLabelWidthBudgets: (narrowLabelWidths) =>
+                this.computeLabelWidthBudgets(narrowLabelWidths),
             fontSettings: this.entityLabelStyle,
             showRegionTooltip: !this.manager.isStatic,
         })
@@ -194,38 +196,91 @@ export class DiscreteBarChart
         )
     }
 
-    @computed get yAxis(): HorizontalAxis {
+    private makeXAxis(range: ValueRange): HorizontalAxis {
         // NB: We use the user's YAxis options here to make the XAxis
         const axis = this.yAxisConfig.toHorizontalAxis()
         axis.updateDomainPreservingUserSettings(this.xDomainDefault)
 
         axis.scaleType = ScaleType.linear
         axis.formatColumn = this.chartState.formatColumn
-        axis.range = this.xRange
+        axis.range = range
         axis.label = ""
         return axis
     }
 
-    /**
-     * The maximum width needed for labels positioned on the left side of the chart.
-     *
-     * For positive values, returns the width of entity labels and annotations.
-     * For negative values, returns the entity label width, annotation width, value label width
-     * and the padding between them.
-     */
-    @computed private get leftLabelsWidth(): number {
-        const labelWidths = this.sizedSeries.map((series) => {
-            const textWidth = Math.max(
-                series.label?.width ?? 0,
-                series.annotationTextWrap?.width ?? 0
-            )
-            if (series.value < 0) {
-                const valueWidth = this.formatValue(series).width
-                return textWidth + valueWidth + GAP__ENTITY_LABEL__VALUE_LABEL
+    @computed get yAxis(): HorizontalAxis {
+        return this.makeXAxis(this.xRange)
+    }
+
+    /** The horizontal axis placing values on [0, 1] */
+    @computed private get unitXAxis(): HorizontalAxis {
+        return this.makeXAxis([0, 1])
+    }
+
+    /** Where each row's label must end, as a fraction of the plot width, and the space it shares with the value label */
+    @computed private get labelAnchors(): {
+        fraction: number
+        extraWidth: number
+    }[] {
+        return this.series.map((series) => {
+            const isNegative = series.value < 0
+            const anchor = isNegative ? series.value : this.x0
+            return {
+                fraction: this.unitXAxis.place(anchor),
+                extraWidth: isNegative
+                    ? this.formatValue(series).width +
+                      GAP__ENTITY_LABEL__VALUE_LABEL
+                    : 0,
             }
-            return textWidth
         })
-        return _.max(labelWidths) ?? 0
+    }
+
+    @computed private get plotWidth(): number {
+        return this.bounds.width - this.rightValueLabelsWidth
+    }
+
+    /** The left padding at which a label of the given width still fits left of the given row's bar */
+    private getRequiredPadding(rowIndex: number, labelWidth: number): number {
+        const { fraction, extraWidth } = this.labelAnchors[rowIndex]
+        if (fraction >= 1) return 0
+        return Math.max(
+            0,
+            (labelWidth + extraWidth - fraction * this.plotWidth) /
+                (1 - fraction)
+        )
+    }
+
+    /** The width each label may take without increasing the padding its narrow wrap needs */
+    private computeLabelWidthBudgets(
+        narrowLabelWidths: readonly number[]
+    ): number[] {
+        const narrowPadding =
+            _.max(
+                narrowLabelWidths.map((width, index) =>
+                    this.getRequiredPadding(index, width)
+                )
+            ) ?? 0
+
+        return this.labelAnchors.map(
+            ({ fraction, extraWidth }) =>
+                narrowPadding +
+                fraction * (this.plotWidth - narrowPadding) -
+                extraWidth
+        )
+    }
+
+    /** The left padding at which every entity label still fits left of its bar */
+    @computed private get leftLabelsWidth(): number {
+        const requiredPaddings = this.sizedSeries.map((series, index) =>
+            this.getRequiredPadding(
+                index,
+                Math.max(
+                    series.label?.width ?? 0,
+                    series.annotationTextWrap?.width ?? 0
+                )
+            )
+        )
+        return _.max(requiredPaddings) ?? 0
     }
 
     @computed private get innerBounds(): Bounds {
