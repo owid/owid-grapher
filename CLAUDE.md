@@ -37,6 +37,7 @@ Read `docs/testing-strategy.md` when choosing, writing, or refactoring tests. It
 
 - When you want to create a commit, follow `docs/agent-guidelines/commit-messages.md` — it covers the pre-commit checks and the gitmoji + 🤖 message format.
 - PR descriptions are two-part. First, a **concise** human-facing part: what changed and why, important considerations and pitfalls, and anything that needs discussion — a few sentences or bullets, no padding. Then a `<details><summary>Details</summary>` block for everything only useful to an agent picking the work back up or to automated code review: implementation notes, file-by-file breakdowns, edge cases handled, test plans. If a detail doesn't change what a human reviewer does, it goes in the details block or gets cut.
+- Before creating a PR, read `docs/agent-guidelines/staging-pr-labels.md`: some PR labels switch on special behaviour on the branch's staging server (e.g. `staging-viz` when the PR intentionally changes chart rendering, `staging-algolia` for search changes). Add the ones that fit with `gh pr create --label …` and mention them to the user.
 - Branch names: short and descriptive, no prefix (in particular no `claude/` prefix and no random suffix). Every branch gets a staging server named `staging-site-<branch>` with slashes turned into hyphens and the branch part truncated to 28 characters (one-liner in `docs/agent-guidelines/cloud-sandbox.md`), so long or prefixed branch names produce unusable staging names.
 
 ## Architecture
@@ -59,6 +60,7 @@ Key facts that span multiple directories:
     - `docs/agent-guidelines/gdocs-cms-pipeline.md` — the archieml pipeline from gdocs to the database
     - `docs/agent-guidelines/gdocs-class-hierarchy.md` — the gdoc types and how to create new ones
     - `docs/agent-guidelines/gdocs-attachments.md` — how attachments give rendering components their context
+- **`@ourworldindata/gdoc-pipeline` has an external consumer**: the [owid/gdocs-chrome-extension](https://github.com/owid/gdocs-chrome-extension) installs the published npm package, so it only picks up changes once a new version is released. If you change the package's API — the signature or behaviour of an exported gdoc processing function (`gdocToArchie`, `archieToEnriched`, `rawToEnriched`, `enrichedToRaw`, `rawToArchie`, `enrichedToMarkdown`, …) or the re-exported helpers — or add, change or remove a gdoc component (its raw/enriched types in `types/src/gdocTypes/`, parsing or serialization), tell the user in your final message that a new npm package version needs to be released (`yarn bumpp` in `packages/@ourworldindata/gdoc-pipeline`; see its `readme.md`). Don't bump the version yourself unless asked.
 
 ## Database
 
