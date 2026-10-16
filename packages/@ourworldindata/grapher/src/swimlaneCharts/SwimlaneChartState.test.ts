@@ -430,6 +430,30 @@ describe("x axis across time intervals", () => {
     })
 })
 
+describe("decade x axis", () => {
+    it("labels each tick with its own decade", () => {
+        const chartState = makeChartState(
+            makeTableWithTimeColumnType(ColumnTypeNames.Decade, [
+                { entityName: "France", time: 1950, status: "X" },
+                { entityName: "France", time: 1960, status: "Y" },
+                { entityName: "France", time: 1970, status: "X" },
+                { entityName: "France", time: 1980, status: "Y" },
+            ])
+        )
+        const axis = chartState.toHorizontalAxis(
+            new AxisConfig(SWIMLANE_X_AXIS_CONFIG_DEFAULTS)
+        )
+        axis.range = [0, 600]
+
+        expect(axis.tickLabels.map((label) => label.formattedValue)).toEqual([
+            "1950s",
+            "1960s",
+            "1970s",
+            "1980s",
+        ])
+    })
+})
+
 describe("category label", () => {
     it("is the custom label the legend shows, or the category itself", () => {
         const chartState = makeChartState(
