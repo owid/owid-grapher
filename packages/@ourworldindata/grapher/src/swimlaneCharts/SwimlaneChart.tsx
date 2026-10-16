@@ -16,6 +16,7 @@ import {
     makePatternId,
     Patterns,
 } from "../core/GrapherConstants"
+import { GrapherVariant, SwimlaneSegmentLabelMode } from "@ourworldindata/types"
 import { AnimatedRows } from "../animation/AnimatedRows"
 import { enrichSeriesWithLabels } from "../rowSeriesLabels/RowSeriesLabelHelpers.js"
 import { NoDataMessage } from "../noDataMessage/NoDataMessage"
@@ -324,10 +325,16 @@ export class SwimlaneChart
         })
     }
 
+    @computed private get isThumbnail(): boolean {
+        return this.manager.variant === GrapherVariant.Thumbnail
+    }
+
     @computed private get segmentLabelSettings(): SwimlaneSegmentLabelSettings {
         const { timeColumn } = this.chartState.inputTable
         return {
-            segmentLabelMode: this.chartState.segmentLabelMode,
+            segmentLabelMode: this.isThumbnail
+                ? SwimlaneSegmentLabelMode.None
+                : this.chartState.segmentLabelMode,
             fontSettings: this.segmentLabelStyle,
             timeColumn,
         }
@@ -464,6 +471,7 @@ export class SwimlaneChart
                     tickColor={GRAPHER_LIGHT_TEXT}
                     showTickMarks={true}
                     preferredAxisPosition={this.innerBounds.bottom}
+                    showEndpointsOnly={this.isThumbnail}
                 />
                 <HorizontalAxisDomainLine
                     bounds={this.innerBounds}

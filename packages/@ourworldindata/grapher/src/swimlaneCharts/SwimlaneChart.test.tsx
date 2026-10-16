@@ -14,6 +14,7 @@ import { Bounds } from "@ourworldindata/utils"
 import {
     ColumnTypeNames,
     GRAPHER_CHART_TYPES,
+    GrapherVariant,
     SortBy,
     SortOrder,
 } from "@ourworldindata/types"
@@ -213,6 +214,77 @@ describe("SwimlaneChart", () => {
         expect(
             within(france as HTMLElement).getByText("2000–2002")
         ).toBeTruthy()
+    })
+
+    describe("thumbnail", () => {
+        function renderThumbnail(
+            config: Partial<GrapherProgrammaticInterface> = {}
+        ): HTMLElement {
+            const grapherState = makeGrapherState(ColumnTypeNames.String, {
+                variant: GrapherVariant.Thumbnail,
+                bounds: new Bounds(0, 0, 300, 160),
+                ...config,
+            })
+            grapherState.isExportingToSvgOrPng = true
+            return render(<Grapher grapherState={grapherState} />).container
+        }
+
+        it("draws a row for every entity and the legend, without segment labels", () => {
+            const container = renderThumbnail()
+
+            expect(
+                container.querySelector(".categoricalColorLegend")
+            ).not.toBeNull()
+            for (const entityName of ["France", "Germany"]) {
+                const row = findRow(container, entityName)
+                expect(findSegmentShapes(row)).not.toHaveLength(0)
+                expect(
+                    within(row as HTMLElement).queryByText("2000–2002")
+                ).toBeNull()
+            }
+        })
+
+        it("labels only the endpoints of the x-axis", () => {
+            const container = renderThumbnail()
+
+            const tickLabels = Array.from(
+                container.querySelectorAll(".HorizontalAxis text")
+            ).map((label) => label.textContent)
+            expect(tickLabels).toEqual(["2000", "2006"])
+        })
+
+        it("drops the legend but keeps the rows with minimal labeling", () => {
+            const container = renderThumbnail({ useMinimalLabeling: true })
+
+            expect(
+                container.querySelector(".categoricalColorLegend")
+            ).toBeNull()
+            expect(
+                findSegmentShapes(findRow(container, "France"))
+            ).not.toHaveLength(0)
+            expect(
+                findSegmentShapes(findRow(container, "Germany"))
+            ).not.toHaveLength(0)
+        })
+
+        it("still labels segments and every tick outside the thumbnail variant", () => {
+            const grapherState = makeGrapherState(ColumnTypeNames.String, {
+                bounds: new Bounds(0, 0, 300, 160),
+            })
+            grapherState.isExportingToSvgOrPng = true
+            const { container } = render(
+                <Grapher grapherState={grapherState} />
+            )
+
+            expect(
+                within(findRow(container, "France") as HTMLElement).getByText(
+                    "2000–2002"
+                )
+            ).toBeTruthy()
+            expect(
+                container.querySelectorAll(".HorizontalAxis text").length
+            ).toBeGreaterThan(2)
+        })
     })
 
     describe("tooltip", () => {
