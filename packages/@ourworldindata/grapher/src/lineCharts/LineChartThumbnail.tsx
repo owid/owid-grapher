@@ -70,6 +70,7 @@ export class LineChartThumbnail
 {
     private readonly base = React.createRef<SVGGElement>()
 
+    private readonly tooltipId = guid()
     private readonly tooltipState = new TooltipState<{ time: Time }>({
         fade: "immediate",
     })
@@ -665,14 +666,6 @@ export class LineChartThumbnail
     @computed get activeTimes(): Time[] {
         const tooltipTime = this.tooltipState.target?.time
         return tooltipTime !== undefined ? [tooltipTime] : []
-    }
-
-    @computed private get renderUid(): number {
-        return guid()
-    }
-
-    @computed private get tooltipId(): number {
-        return this.renderUid
     }
 
     @computed private get isTooltipActive(): boolean {

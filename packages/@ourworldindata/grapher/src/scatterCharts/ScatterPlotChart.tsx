@@ -98,6 +98,9 @@ export class ScatterPlotChart
         })
     }
 
+    private readonly tooltipId = guid()
+    private readonly renderUid = guid()
+
     // currently hovered legend color
     private hoveredLegendColor: Color | undefined = undefined
     // current hovered individual series + tooltip position
@@ -612,10 +615,6 @@ export class ScatterPlotChart
         exposeInstanceOnWindow(this)
     }
 
-    @computed private get renderUid(): number {
-        return guid()
-    }
-
     @computed private get clipPath(): ClipPath {
         return makeClipPath({ renderUid: this.renderUid, box: this.bounds })
     }
@@ -769,6 +768,7 @@ export class ScatterPlotChart
     @computed private get tooltip(): React.ReactElement | null {
         return (
             <ScatterPlotTooltip
+                id={this.tooltipId}
                 chartState={this.chartState}
                 tooltipState={this.tooltipState}
             />
