@@ -13,11 +13,13 @@ const captcha = vi.hoisted(() => ({
     reset: vi.fn(),
 }))
 vi.mock(import("@marsidev/react-turnstile"), async () => {
-    const { forwardRef, useImperativeHandle } = await import("react")
+    const { forwardRef, useEffect, useImperativeHandle } = await import("react")
     return {
         Turnstile: forwardRef<TurnstileInstance | undefined, TurnstileProps>(
             (props, ref) => {
-                captcha.props = props
+                useEffect(() => {
+                    captcha.props = props
+                })
                 useImperativeHandle(ref, () => ({
                     reset: captcha.reset,
                     render: vi.fn(),
@@ -44,12 +46,14 @@ const renderForm = () =>
     )
 
 describe(NewsletterSignupForm, () => {
-    it("starts verification on an email edit, but not on focus", () => {
+    it("starts verification on an email edit, not on focus or newsletter choices", () => {
         renderForm()
         const email = screen.getByPlaceholderText("Your email address")
         expect(screen.queryByTestId("turnstile")).not.toBeInTheDocument()
         fireEvent.focus(email)
         fireEvent.focus(screen.getByLabelText(/The OWID Brief/))
+        fireEvent.click(screen.getByLabelText(/Follow Topics/))
+        fireEvent.click(screen.getByLabelText(/Follow Topics/))
         expect(screen.queryByTestId("turnstile")).not.toBeInTheDocument()
         fireEvent.change(email, { target: { value: "r" } })
         expect(screen.getByTestId("turnstile")).toBeInTheDocument()
