@@ -407,7 +407,7 @@ function GeneratedSuggestions({
         <div className="configure-with-ai__staff configure-with-ai__staff--box">
             <p className="configure-with-ai__staff-label">
                 <FontAwesomeIcon icon={faEyeSlash} />
-                Suggestions written by AI · only visible to OWID staff
+                Written by AI for now; these will be precomputed later
             </p>
             {suggestions.status === "done" && suggestions.items.length > 0 ? (
                 <ul className="configure-with-ai__suggestions">
