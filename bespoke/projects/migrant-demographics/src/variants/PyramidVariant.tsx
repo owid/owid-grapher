@@ -20,7 +20,7 @@ import { EmbedConfigProvider } from "../../../../hooks/useEmbedConfig.js"
 import { useContainerWidth } from "../../../../hooks/useContainerWidth.js"
 import { useDelayedLoading } from "../../../../hooks/useDelayedLoading.js"
 import {
-    isUserLocationCountry,
+    findInitialCountry,
     useResolveUserLocation,
 } from "../../../../hooks/useResolveUserLocation.js"
 import { formatEntityNameForSentence } from "../../../../helpers/entityNames.js"
@@ -69,10 +69,7 @@ function FetchingPyramidVariant({
     config: PyramidVariantConfig
     urls: BespokeComponentDataUrls
 }): React.ReactElement {
-    const initialCountry =
-        !config.country || isUserLocationCountry(config.country)
-            ? DEFAULT_COUNTRY
-            : config.country
+    const initialCountry = findInitialCountry(config.country, DEFAULT_COUNTRY)
 
     const [country, setCountry] = useUrlState({
         key: "migrantPyramidCountry",

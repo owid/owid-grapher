@@ -29,6 +29,7 @@ import { EmbedConfigProvider } from "../../../../hooks/useEmbedConfig.js"
 import { useDelayedLoading } from "../../../../hooks/useDelayedLoading.js"
 import { useContainerWidth } from "../../../../hooks/useContainerWidth.js"
 import {
+    findInitialCountry,
     isUserLocationCountry,
     useResolveUserLocation,
 } from "../../../../hooks/useResolveUserLocation.js"
@@ -76,8 +77,7 @@ function FetchingSankeyVariant({
 }) {
     const initialProduct = config.product ?? DEFAULT_PRODUCT
     const isUserLocation = isUserLocationCountry(config.country)
-    const initialCountry =
-        !config.country || isUserLocation ? DEFAULT_COUNTRY : config.country
+    const initialCountry = findInitialCountry(config.country, DEFAULT_COUNTRY)
     const initialView =
         !isUserLocation && isAllCountry(initialCountry)
             ? "both"
