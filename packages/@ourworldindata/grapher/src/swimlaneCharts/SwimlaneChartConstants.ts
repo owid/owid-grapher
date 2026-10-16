@@ -14,6 +14,10 @@ export const ENTITY_LABEL_CHART_GAP = 8
 export const TICK_LABEL_OVERFLOW_PADDING = 2
 export const PADDING_BETWEEN_LEGEND_AND_LANES = 8
 export const MAX_LANE_HEIGHT = 36
+export const SEGMENT_LABEL_PADDING = 8
+/** Length of a cropped segment's point, as a fraction of the segment's height */
+export const SEGMENT_CROP_TAPER_RATIO = 0.4
+export const SEGMENT_LABEL_TIME_RANGE_FONT_WEIGHT = 500
 
 /** The domain runs one step past the last time, so the last band has room */
 export const SWIMLANE_X_AXIS_CONFIG_DEFAULTS: AxisConfigInterface = {
@@ -30,6 +34,10 @@ export interface SwimlaneObservation {
 interface SwimlaneSegmentRange {
     startTime: Time
     endTime: Time
+    /** Start of the part inside the timeline window */
+    visibleStartTime: Time
+    /** End of the part inside the timeline window */
+    visibleEndTime: Time
 }
 
 export interface RawSwimlaneCategorySegment extends SwimlaneSegmentRange {
@@ -47,6 +55,7 @@ export type RawSwimlaneSegment =
 
 export type SwimlaneCategorySegment = RawSwimlaneCategorySegment & {
     color: Color
+    categoryLabel: string
 }
 
 export type SwimlaneSegment = SwimlaneCategorySegment | SwimlaneMissingSegment
@@ -57,6 +66,11 @@ export type PlacedSwimlaneSegment = SwimlaneSegment & {
     y: number
     height: number
 }
+
+export type PlacedSwimlaneCategorySegment = Extract<
+    PlacedSwimlaneSegment,
+    { kind: "category" }
+>
 
 export interface SwimlaneSeries extends ChartSeries {
     seriesName: EntityName

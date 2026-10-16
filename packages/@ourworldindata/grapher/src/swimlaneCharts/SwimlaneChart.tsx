@@ -56,6 +56,7 @@ import {
     computeLaneSlotHeight,
     toPlacedSwimlaneSeries,
 } from "./SwimlaneChartHelpers"
+import { SwimlaneSegmentLabelSettings } from "./SwimlaneLabels"
 import { SwimlaneRow } from "./SwimlaneRow"
 
 export type SwimlaneChartProps = ChartComponentProps<SwimlaneChartState>
@@ -209,6 +210,14 @@ export class SwimlaneChart
         return { fontSize, fontWeight: 700, lineHeight: 1 }
     }
 
+    @computed private get segmentLabelStyle(): FontSettings {
+        return {
+            fontSize: scaleFontSize(12, this.fontSize),
+            fontWeight: 700,
+            lineHeight: 1.2,
+        }
+    }
+
     @computed private get sizedSeries(): SizedSwimlaneSeries[] {
         return enrichSeriesWithLabels({
             series: this.series,
@@ -257,6 +266,15 @@ export class SwimlaneChart
         })
     }
 
+    @computed private get segmentLabelSettings(): SwimlaneSegmentLabelSettings {
+        const { timeColumn } = this.chartState.inputTable
+        return {
+            segmentLabels: this.chartState.segmentLabels,
+            fontSettings: this.segmentLabelStyle,
+            formatTime: (time) => timeColumn.formatTime(time),
+        }
+    }
+
     override componentDidMount(): void {
         exposeInstanceOnWindow(this)
     }
@@ -289,6 +307,7 @@ export class SwimlaneChart
                 key={series.seriesName}
                 series={series}
                 y={series.y}
+                labelSettings={this.segmentLabelSettings}
                 noDataPatternId={this.noDataPatternId}
             />
         ))
@@ -308,6 +327,7 @@ export class SwimlaneChart
                         key={series.seriesName}
                         series={series}
                         y={0}
+                        labelSettings={this.segmentLabelSettings}
                         noDataPatternId={this.noDataPatternId}
                     />
                 )}
