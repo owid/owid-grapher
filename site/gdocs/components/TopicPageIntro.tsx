@@ -47,6 +47,7 @@ export function TopicPageIntro(props: TopicPageIntroProps) {
             <div className="topic-page-intro__links col-start-9 span-cols-4 col-md-start-1 span-md-cols-12">
                 <TopicNewsletterCard
                     topicArea={topicArea}
+                    placement="topic_page"
                     className="topic-newsletter-card--topic-page-intro"
                 />
                 {props.downloadButton ? (
