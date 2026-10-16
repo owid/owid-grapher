@@ -18,13 +18,23 @@ import {
 } from "@ourworldindata/types"
 import {
     defaultGrapherConfig,
-    migrateGrapherConfigToLatestVersionAndFailOnError,
+    migrateGrapherConfigToLatestVersion,
 } from "@ourworldindata/grapher"
 import {
     mergeGrapherConfigs,
     MultiDimDataPageConfig,
 } from "@ourworldindata/utils"
 import { buildQueryStrFromConfig } from "./MultiDimRedirects.js"
+
+export function getMdimViewConfigWithSchema(
+    config: Pick<MultiDimDataPageConfigEnriched, "grapherConfigSchema">,
+    view: View<IndicatorsAfterPreProcessing>
+): GrapherInterface | undefined {
+    if (!view.config) return undefined
+    return config.grapherConfigSchema
+        ? { $schema: config.grapherConfigSchema, ...view.config }
+        : view.config
+}
 
 /**
  * The config layer an mdim view's authors: the view's own config
@@ -38,20 +48,10 @@ export function buildMdimViewPatchConfig(
     view: View<IndicatorsAfterPreProcessing>,
     published?: boolean
 ): GrapherInterface {
-    let viewGrapherConfig: GrapherInterface = {}
-
-    // Migrate the view's config to the latest schema version if it has a $schema
-    if (view.config) {
-        viewGrapherConfig = config.grapherConfigSchema
-            ? { $schema: config.grapherConfigSchema, ...view.config }
-            : view.config
-        if ("$schema" in viewGrapherConfig) {
-            viewGrapherConfig =
-                migrateGrapherConfigToLatestVersionAndFailOnError(
-                    viewGrapherConfig
-                )
-        }
-    }
+    const viewGrapherConfig: GrapherInterface =
+        migrateGrapherConfigToLatestVersion(
+            getMdimViewConfigWithSchema(config, view) ?? {}
+        )
 
     const mainGrapherConfig: GrapherInterface = {
         $schema: defaultGrapherConfig.$schema,

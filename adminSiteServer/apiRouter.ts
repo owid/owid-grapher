@@ -162,7 +162,10 @@ import {
     upsertEtlConfigByChartConfigId,
     deleteChartsChartIdEtlConfig,
 } from "./apiRoutes/charts.js"
-import { getChartConfig } from "./apiRoutes/chartConfigs.js"
+import {
+    getChartConfig,
+    validateChartConfigs,
+} from "./apiRoutes/chartConfigs.js"
 import {
     createDataInsightGDoc,
     getAllDataInsightIndexItems,
@@ -287,6 +290,7 @@ getRouteWithROTransaction(
     "/chart-configs/:chartConfigId.config.json",
     getChartConfig
 )
+apiRouter.post("/chart-configs/validate", validateChartConfigs)
 
 // Narrative chart routes
 getRouteWithROTransaction(apiRouter, "/narrative-charts", getNarrativeCharts)

@@ -1,15 +1,10 @@
 import * as _ from "lodash-es"
 import * as R from "remeda"
-import {
-    defaultGrapherConfig,
-    migrateGrapherConfigToLatestVersionAndFailOnError,
-} from "@ourworldindata/grapher"
+import { defaultGrapherConfig } from "@ourworldindata/grapher"
 import {
     GrapherInterface,
     JsonError,
     DbPlainUser,
-    parseChartConfig,
-    serializeChartConfig,
     DbPlainChart,
     DbRawChartConfig,
     R2GrapherConfigDirectory,
@@ -52,6 +47,7 @@ import {
     getGdocsPostReferencesByChartId,
 } from "../../db/model/Post.js"
 import { enqueueExplorerRefreshJobsForDependencies } from "../../db/model/Explorer.js"
+import { ingestGrapherConfig } from "../../db/grapherConfigValidation.js"
 import { expectInt } from "../../serverUtils/serverUtil.js"
 import {
     deleteChartConfigPairFromDbAndR2,
@@ -61,6 +57,8 @@ import {
 } from "../chartConfigHelpers.js"
 import {
     insertChartConfig,
+    parseAndMigrateChartConfig,
+    serializeChartConfig,
     updateChartConfig,
 } from "../../db/model/ChartConfigs.js"
 import { deleteGrapherConfigFromR2 } from "../../serverUtils/r2/chartConfigR2Helpers.js"
@@ -457,7 +455,7 @@ const updateExistingChart = async (
     if (!chartRow) throw new JsonError(`No chart found for id ${chartId}`, 404)
 
     const etlConfig = chartRow.etlConfig
-        ? parseChartConfig(chartRow.etlConfig)
+        ? parseAndMigrateChartConfig(chartRow.etlConfig)
         : {}
 
     // Look up the chart's parent indicator (only if inheritance is enabled),
@@ -536,8 +534,7 @@ export const saveGrapher = async (
         chartConfigId?: string
     }
 ) => {
-    // Try to migrate the new config to the latest version
-    newConfig = migrateGrapherConfigToLatestVersionAndFailOnError(newConfig)
+    newConfig = ingestGrapherConfig(newConfig)
 
     // Validate slug if:
     // 1. Publishing - slug is required
@@ -737,7 +734,7 @@ export async function getChartParentJson(
         [chartId]
     )
     const etlConfig = etlConfigRow?.etlConfig
-        ? parseChartConfig(etlConfigRow.etlConfig)
+        ? parseAndMigrateChartConfig(etlConfigRow.etlConfig)
         : undefined
 
     return omitUndefinedValues({
@@ -1137,12 +1134,7 @@ export async function upsertEtlConfigByChartConfigId(
         throw new JsonError(`Invalid chart catalog path ${catalogPath}`)
     }
 
-    let etlConfig: GrapherInterface
-    try {
-        etlConfig = migrateGrapherConfigToLatestVersionAndFailOnError(req.body)
-    } catch (err) {
-        return { success: false, error: String(err) }
-    }
+    const etlConfig = ingestGrapherConfig(req.body)
 
     const existingChartId = await getChartIdByConfigId(trx, chartConfigId)
     const created = existingChartId === undefined
@@ -1231,8 +1223,8 @@ async function upsertEtlConfigForChart(
         await assertCatalogPathAvailable(trx, catalogPath, chartId)
     }
 
-    const existingPatch = parseChartConfig(row.patch)
-    const existingFull = parseChartConfig(row.full)
+    const existingPatch = parseAndMigrateChartConfig(row.patch)
+    const existingFull = parseAndMigrateChartConfig(row.full)
 
     // Look up the chart's parent indicator (only if inheritance is enabled),
     // resolving it from the dimensions the chart will plot *after* this push:
@@ -1452,8 +1444,8 @@ export async function deleteChartsChartIdEtlConfig(
     // no-op if the chart doesn't have an ETL config
     if (!row.patchConfigIdETL) return { success: true }
 
-    const existingPatch = parseChartConfig(row.patch)
-    const existingFull = parseChartConfig(row.full)
+    const existingPatch = parseAndMigrateChartConfig(row.patch)
+    const existingFull = parseAndMigrateChartConfig(row.full)
 
     const parent = row.isInheritanceEnabled
         ? await getParentByChartConfig(trx, existingFull)

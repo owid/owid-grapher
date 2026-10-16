@@ -3,13 +3,36 @@ import {
     DbInsertChartConfig,
     DbRawChartConfig,
     GrapherInterface,
-    parseChartConfig,
-    serializeChartConfig,
+    JsonString,
 } from "@ourworldindata/types"
+import { migrateGrapherConfigToLatestVersion } from "@ourworldindata/grapher"
 
 import { v7 as uuidv7 } from "uuid"
 
 import * as db from "../db.js"
+import { logErrorAndMaybeCaptureInSentry } from "../../serverUtils/errorLog.js"
+
+export function parseAndMigrateChartConfig(
+    config: JsonString
+): GrapherInterface {
+    const parsed = JSON.parse(config)
+
+    try {
+        return migrateGrapherConfigToLatestVersion(parsed)
+    } catch (error) {
+        void logErrorAndMaybeCaptureInSentry(
+            new Error(
+                `Could not migrate chart config from ${parsed?.$schema}`,
+                { cause: error }
+            )
+        )
+        return parsed
+    }
+}
+
+export function serializeChartConfig(config: GrapherInterface): JsonString {
+    return JSON.stringify(config)
+}
 
 export async function getChartConfigByUuid(
     knex: db.KnexReadonlyTransaction,
@@ -20,7 +43,7 @@ export async function getChartConfigByUuid(
         `SELECT config FROM chart_configs WHERE id = ?`,
         [id]
     )
-    return row ? parseChartConfig(row.config) : undefined
+    return row ? parseAndMigrateChartConfig(row.config) : undefined
 }
 
 /** Returns the id of the new row, which it mints unless the caller supplies one. */
@@ -80,5 +103,7 @@ export async function getChartConfigsByUuids(
     const rows = await knex<DbRawChartConfig>(ChartConfigsTableName)
         .select("id", "config")
         .whereIn("id", uuids)
-    return new Map(rows.map((row) => [row.id, parseChartConfig(row.config)]))
+    return new Map(
+        rows.map((row) => [row.id, parseAndMigrateChartConfig(row.config)])
+    )
 }
