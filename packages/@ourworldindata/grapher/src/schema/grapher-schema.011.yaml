@@ -465,7 +465,7 @@ properties:
     type: object
     description: Configuration of the swimlane chart
     properties:
-      segmentLabels:
+      segmentLabelMode:
         type: string
         default: categoryAndTimeRange
         description: |

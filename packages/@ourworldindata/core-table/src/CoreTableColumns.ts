@@ -958,6 +958,23 @@ export abstract class TimeColumn<
     getUniformlySpacedTimes(sortedTimes: number[]): number[] {
         return withUniformSpacing(sortedTimes)
     }
+
+    /** The time `count` time intervals after `time` */
+    offsetTime(time: Time, count: number): Time {
+        return time + count
+    }
+
+    /** Consecutive times from `startTime` to `endTime`, both included */
+    countConsecutiveTimes(startTime: Time, endTime: Time): number {
+        return endTime - startTime + 1
+    }
+
+    /** Every time from `minTime` to `maxTime`, one time interval apart */
+    getConsecutiveTimes(minTime: Time, maxTime: Time): Time[] {
+        return R.range(0, this.countConsecutiveTimes(minTime, maxTime)).map(
+            (index) => this.offsetTime(minTime, index)
+        )
+    }
 }
 
 class YearColumn<
@@ -1086,6 +1103,20 @@ class MonthColumn<
         return convertDateToDaysSinceEpoch(firstOfMonth)
     }
 
+    override offsetTime(time: Time, count: number): Time {
+        return MonthColumn.daysAtStartOfMonth(
+            MonthColumn.monthsSinceEpoch(time) + count
+        )
+    }
+
+    override countConsecutiveTimes(startTime: Time, endTime: Time): number {
+        return (
+            MonthColumn.monthsSinceEpoch(endTime) -
+            MonthColumn.monthsSinceEpoch(startTime) +
+            1
+        )
+    }
+
     // Fill gaps one month at a time. We space in month-space (not the raw
     // days-since-epoch of the base class) because months are 28–31 days apart,
     // which would make the base GCD collapse to a daily grid. This also lets the
@@ -1136,6 +1167,14 @@ class WeekColumn<
     // last day of the end week (Sunday), e.g. "Jun 1, 2026 to Jul 12, 2026".
     override formatTimeRange(startTime: number, endTime: number): string {
         return `${this.formatTimeShort(startTime)} to ${this.formatTimeShortEnd(endTime)}`
+    }
+
+    override offsetTime(time: Time, count: number): Time {
+        return time + 7 * count
+    }
+
+    override countConsecutiveTimes(startTime: Time, endTime: Time): number {
+        return Math.round((endTime - startTime) / 7) + 1
     }
 }
 
@@ -1201,6 +1240,20 @@ class QuarterColumn<
         return convertDateToDaysSinceEpoch(firstOfQuarter)
     }
 
+    override offsetTime(time: Time, count: number): Time {
+        return QuarterColumn.daysAtStartOfQuarter(
+            QuarterColumn.quartersSinceEpoch(time) + count
+        )
+    }
+
+    override countConsecutiveTimes(startTime: Time, endTime: Time): number {
+        return (
+            QuarterColumn.quartersSinceEpoch(endTime) -
+            QuarterColumn.quartersSinceEpoch(startTime) +
+            1
+        )
+    }
+
     // Fill gaps one quarter at a time. We space in quarter-space (not the raw
     // days-since-epoch of the base class) because quarters are 90–92 days apart,
     // which would make the base GCD collapse to a daily grid. This also lets the
@@ -1238,6 +1291,19 @@ class DecadeColumn<
 
     override formatForCsv(value: number): string {
         return this.formatValue(value)
+    }
+
+    override offsetTime(time: Time, count: number): Time {
+        return time + 10 * count
+    }
+
+    override countConsecutiveTimes(startTime: Time, endTime: Time): number {
+        return (
+            (DecadeColumn.startOfDecade(endTime) -
+                DecadeColumn.startOfDecade(startTime)) /
+                10 +
+            1
+        )
     }
 }
 

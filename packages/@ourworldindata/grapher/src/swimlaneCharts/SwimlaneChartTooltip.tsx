@@ -6,7 +6,7 @@ import { formatTimeSpan } from "../chart/ChartUtils"
 import { darkenColorForText } from "../color/ColorUtils"
 import { SwimlaneTooltipTarget } from "./SwimlaneChartConstants"
 import { SwimlaneChartState } from "./SwimlaneChartState"
-import { formatSegmentTimeRange } from "./SwimlaneLabels"
+import { formatSegmentTimeRange } from "./SwimlaneChartHelpers"
 
 export interface SwimlaneChartTooltipProps {
     id: number
@@ -32,19 +32,20 @@ export class SwimlaneChartTooltip extends React.Component<SwimlaneChartTooltipPr
         return formatSegmentTimeRange({
             startTime: segment.startTime,
             endTime: segment.endTime,
-            formatTime: (time) => timeColumn.formatTime(time),
+            timeColumn,
         })
     }
 
     private get formattedDuration(): string | undefined {
         const segment = this.target?.segment
-        if (!segment || segment.kind === "missing") return undefined
-        const duration = segment.endTime - segment.startTime
-        if (duration === 0) return undefined
-        return formatTimeSpan(
-            duration,
-            this.chartState.inputTable.timeColumn.timeInterval
+        const { timeColumn } = this.chartState
+        if (!segment || segment.kind === "missing" || !timeColumn)
+            return undefined
+        const timeCount = timeColumn.countConsecutiveTimes(
+            segment.startTime,
+            segment.endTime
         )
+        return formatTimeSpan(timeCount, timeColumn.timeInterval)
     }
 
     override render(): React.ReactElement | null {

@@ -56,15 +56,15 @@ function makeGrapherState(
     })
 }
 
-function findLane(container: HTMLElement, entityName: string): Element {
-    const lane = container.querySelector(`#lanes [id="${entityName}"]`)
-    if (!lane) throw new Error(`No lane for ${entityName}`)
-    return lane
+function findRow(container: HTMLElement, entityName: string): Element {
+    const row = container.querySelector(`#rows [id="${entityName}"]`)
+    if (!row) throw new Error(`No row for ${entityName}`)
+    return row
 }
 
-/** Rects and paths drawn for a lane's segments, in time order */
-function findSegmentShapes(lane: Element): Element[] {
-    return Array.from(lane.querySelectorAll("rect, path"))
+/** Rects and paths drawn for a row's segments, in time order */
+function findSegmentShapes(row: Element): Element[] {
+    return Array.from(row.querySelectorAll("rect, path"))
 }
 
 beforeAll(() => {
@@ -114,7 +114,7 @@ afterAll(() => {
 })
 
 describe("SwimlaneChart", () => {
-    it("explains why a numeric indicator can't be drawn and draws no lanes", () => {
+    it("explains why a numeric indicator can't be drawn and draws no rows", () => {
         const table = new OwidTable(
             [{ entityName: "France", year: 2000, gdp: 1 }],
             [
@@ -139,7 +139,7 @@ describe("SwimlaneChart", () => {
         expect(
             screen.getAllByText("Requires an indicator with categorical values")
         ).not.toHaveLength(0)
-        expect(container.querySelector("#lanes")).toBeNull()
+        expect(container.querySelector("#rows")).toBeNull()
     })
 
     it("shows an ordinal indicator in a numeric legend, in the indicator's order", () => {
@@ -167,6 +167,33 @@ describe("SwimlaneChart", () => {
         expect(container.querySelector(".numericColorLegend")).toBeNull()
     })
 
+    it("highlights the hovered legend category even when another category shares its label", () => {
+        const { container } = render(
+            <Grapher
+                grapherState={makeGrapherState(ColumnTypeNames.String, {
+                    colorScale: {
+                        customCategoryLabels: {
+                            Monarchy: "Regime",
+                            Republic: "Regime",
+                        },
+                    },
+                })}
+            />
+        )
+        const legendHitAreas = container.querySelectorAll(
+            ".categoricalColorLegend #hit-areas > g"
+        )
+        expect(legendHitAreas).toHaveLength(3) // no data, Monarchy, Republic
+
+        fireEvent.pointerOver(legendHitAreas[2], { pointerType: "mouse" })
+
+        const opacities = findSegmentShapes(findRow(container, "France")).map(
+            (shape) => shape.getAttribute("opacity")
+        )
+        expect(opacities[0]).not.toEqual("1")
+        expect(opacities[2]).toEqual("1")
+    })
+
     it("tapers a segment the timeline window crops and labels it with the full run", () => {
         const { container } = render(
             <Grapher
@@ -176,7 +203,7 @@ describe("SwimlaneChart", () => {
                 })}
             />
         )
-        const france = findLane(container, "France")
+        const france = findRow(container, "France")
 
         expect(
             findSegmentShapes(france).map((shape) =>
@@ -192,27 +219,27 @@ describe("SwimlaneChart", () => {
         function hoverSegment(
             container: HTMLElement,
             {
-                laneIndex,
+                rowIndex,
                 segmentIndex,
-            }: { laneIndex: number; segmentIndex: number }
+            }: { rowIndex: number; segmentIndex: number }
         ): void {
             const hitArea = container.querySelector(
-                '#lanes ~ g > rect[fill-opacity="0"]'
+                '#rows ~ g > rect[fill-opacity="0"]'
             )
             if (!hitArea) throw new Error("No hit area")
             const plotTop = Number(hitArea.getAttribute("y"))
             const plotHeight = Number(hitArea.getAttribute("height"))
             const plotMiddle = plotTop + plotHeight / 2
 
-            const lane = findLane(container, ["France", "Germany"][laneIndex])
-            const segment = findSegmentShapes(lane)[segmentIndex]
+            const row = findRow(container, ["France", "Germany"][rowIndex])
+            const segment = findSegmentShapes(row)[segmentIndex]
             const segmentX =
                 segment.getAttribute("x") ??
                 segment.getAttribute("d")?.match(/^M ([\d.]+),/)?.[1]
 
             fireEvent.mouseMove(hitArea, {
                 clientX: Number(segmentX) + 0.5,
-                clientY: laneIndex === 0 ? plotMiddle - 1 : plotMiddle + 1,
+                clientY: rowIndex === 0 ? plotMiddle - 1 : plotMiddle + 1,
             })
         }
 
@@ -226,13 +253,13 @@ describe("SwimlaneChart", () => {
                 />
             )
 
-            hoverSegment(container, { laneIndex: 0, segmentIndex: 0 })
+            hoverSegment(container, { rowIndex: 0, segmentIndex: 0 })
 
             const tooltip = within(screen.getByRole("tooltip"))
             expect(tooltip.getByText("France")).toBeTruthy()
             expect(tooltip.getByText("2000–2002")).toBeTruthy()
             expect(tooltip.getByText("Monarchy")).toBeTruthy()
-            expect(tooltip.getByText("2 years")).toBeTruthy()
+            expect(tooltip.getByText("3 years")).toBeTruthy()
         })
 
         it("says there is no data for a missing segment, without a duration", () => {
@@ -242,7 +269,7 @@ describe("SwimlaneChart", () => {
                 />
             )
 
-            hoverSegment(container, { laneIndex: 0, segmentIndex: 1 })
+            hoverSegment(container, { rowIndex: 0, segmentIndex: 1 })
 
             const tooltip = screen.getByRole("tooltip")
             expect(within(tooltip).getByText("No data")).toBeTruthy()
@@ -250,19 +277,19 @@ describe("SwimlaneChart", () => {
             expect(tooltip.querySelector(".detail")).toBeNull()
         })
 
-        it("omits the duration for a single-time run", () => {
+        it("gives a single-time run a duration of one time", () => {
             const { container } = render(
                 <Grapher
                     grapherState={makeGrapherState(ColumnTypeNames.String)}
                 />
             )
 
-            hoverSegment(container, { laneIndex: 0, segmentIndex: 2 })
+            hoverSegment(container, { rowIndex: 0, segmentIndex: 2 })
 
             const tooltip = screen.getByRole("tooltip")
             expect(within(tooltip).getByText("Republic")).toBeTruthy()
             expect(within(tooltip).getByText("2005")).toBeTruthy()
-            expect(tooltip.querySelector(".detail")).toBeNull()
+            expect(within(tooltip).getByText("a year")).toBeTruthy()
         })
 
         it("fades out when the cursor leaves the plot", async () => {
@@ -272,16 +299,46 @@ describe("SwimlaneChart", () => {
                 />
             )
 
-            hoverSegment(container, { laneIndex: 1, segmentIndex: 0 })
+            hoverSegment(container, { rowIndex: 1, segmentIndex: 0 })
             expect(screen.getByRole("tooltip")).toBeTruthy()
 
             const hitArea = container.querySelector(
-                '#lanes ~ g > rect[fill-opacity="0"]'
+                '#rows ~ g > rect[fill-opacity="0"]'
             )
             fireEvent.mouseLeave(hitArea!.parentElement!)
             await waitFor(() =>
                 expect(screen.queryByRole("tooltip")).toBeNull()
             )
+        })
+
+        it("keeps the hovered segment highlighted while the tooltip stays pinned to the bottom", () => {
+            const pinTooltipToBottom = vi
+                .spyOn(
+                    GrapherState.prototype,
+                    "shouldPinTooltipToBottom",
+                    "get"
+                )
+                .mockReturnValue(true)
+            const { container } = render(
+                <Grapher
+                    grapherState={makeGrapherState(ColumnTypeNames.String)}
+                />
+            )
+
+            hoverSegment(container, { rowIndex: 0, segmentIndex: 0 })
+            const hitArea = container.querySelector(
+                '#rows ~ g > rect[fill-opacity="0"]'
+            )
+            fireEvent.mouseLeave(hitArea!.parentElement!)
+
+            expect(screen.getByRole("tooltip")).toBeTruthy()
+            const opacities = findSegmentShapes(
+                findRow(container, "France")
+            ).map((shape) => shape.getAttribute("opacity"))
+            expect(opacities[0]).toEqual("1")
+            expect(opacities[1]).not.toEqual("1")
+
+            pinTooltipToBottom.mockRestore()
         })
     })
 })

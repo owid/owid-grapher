@@ -74,7 +74,7 @@ export const defaultGrapherConfig = {
         valueLabelMode: "absolute",
     },
     swimlane: {
-        segmentLabels: "categoryAndTimeRange",
+        segmentLabelMode: "categoryAndTimeRange",
     },
     invertColorScheme: false,
     logo: "owid",

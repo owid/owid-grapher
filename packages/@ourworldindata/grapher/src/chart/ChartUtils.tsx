@@ -5,7 +5,6 @@ import {
     Box,
     excludeUndefined,
     getRegionByName,
-    isSubYearly,
     Url,
 } from "@ourworldindata/utils"
 import {
@@ -418,13 +417,6 @@ export function isToleranceDistanceValid(args: {
     return end.originalTime - start.originalTime >= minRequiredGap
 }
 
-/** A span of time in words, e.g. "3 years" or "a year" */
-export function formatTimeSpan(
-    timeSpan: number,
-    timeInterval: TimeInterval
-): string {
-    // Sub-yearly times are stored as days, so their spans are in days
-    const unit = isSubYearly(timeInterval) ? "day" : "year"
-
-    return timeSpan === 1 ? `a ${unit}` : `${timeSpan} ${unit}s`
+export function formatTimeSpan(count: number, interval: TimeInterval): string {
+    return count === 1 ? `a ${interval}` : `${count} ${interval}s`
 }

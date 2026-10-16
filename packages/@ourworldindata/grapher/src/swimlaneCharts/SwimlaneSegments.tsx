@@ -1,24 +1,23 @@
 import React from "react"
 import { dyFromAlign, roundForSvg } from "@ourworldindata/utils"
-import { VerticalAlign } from "@ourworldindata/types"
+import { SwimlaneSegmentLabelMode, VerticalAlign } from "@ourworldindata/types"
 import { GRAY_100 } from "../color/ColorConstants"
 import { isDarkColor } from "../color/ColorUtils"
+import { textWidth } from "../chart/ChartUtils"
+import { FontSettings } from "../core/GrapherConstants"
 import {
     RenderSwimlaneCategorySegment,
     RenderSwimlaneSegment,
     SEGMENT_LABEL_PADDING,
     SEGMENT_LABEL_TIME_RANGE_FONT_WEIGHT,
     SWIMLANE_SEGMENT_STYLE,
+    SwimlaneSegmentLabelSettings,
 } from "./SwimlaneChartConstants"
 import {
     computeSegmentCropTaper,
+    formatSegmentTimeRange,
     toSegmentOutlinePath,
 } from "./SwimlaneChartHelpers"
-import {
-    formatSegmentTimeRange,
-    shouldLabelSegment,
-    SwimlaneSegmentLabelSettings,
-} from "./SwimlaneLabels"
 
 export function SwimlaneSegments({
     segments,
@@ -99,13 +98,13 @@ function SwimlaneSegmentLabelText({
     segment: RenderSwimlaneCategorySegment
     labelSettings: SwimlaneSegmentLabelSettings
 }): React.ReactElement | null {
-    const { segmentLabels, fontSettings, formatTime } = labelSettings
+    const { segmentLabelMode, fontSettings, timeColumn } = labelSettings
     const { categoryLabel, width, height } = segment
 
     const timeRange = formatSegmentTimeRange({
         startTime: segment.startTime,
         endTime: segment.endTime,
-        formatTime,
+        timeColumn,
     })
 
     const taper = computeSegmentCropTaper({ width, height })
@@ -113,7 +112,7 @@ function SwimlaneSegmentLabelText({
     const endInset = isSegmentEndCropped(segment) ? taper : 0
 
     const fits = shouldLabelSegment({
-        segmentLabels,
+        segmentLabelMode,
         category: categoryLabel,
         timeRange,
         width: width - startInset - endInset,
@@ -162,4 +161,32 @@ function isSegmentEndCropped(segment: RenderSwimlaneSegment): boolean {
     return (
         segment.kind === "category" && segment.endTime > segment.visibleEndTime
     )
+}
+
+/** Whether a segment has room for its category above its time range */
+function shouldLabelSegment({
+    segmentLabelMode,
+    category,
+    timeRange,
+    width,
+    height,
+    fontSettings,
+}: {
+    segmentLabelMode: SwimlaneSegmentLabelMode
+    category: string
+    timeRange: string
+    width: number
+    height: number
+    fontSettings: FontSettings
+}): boolean {
+    if (segmentLabelMode === SwimlaneSegmentLabelMode.None) return false
+
+    const availableWidth = width - 2 * SEGMENT_LABEL_PADDING
+    const lineHeight = fontSettings.fontSize * fontSettings.lineHeight
+    const widestLine = Math.max(
+        textWidth(category, fontSettings),
+        textWidth(timeRange, fontSettings)
+    )
+
+    return height >= 2 * lineHeight && availableWidth >= widestLine
 }

@@ -142,7 +142,7 @@ export {
     DumbbellConnectorStyle,
     DumbbellValueLabelMode,
     type SwimlaneChartConfigInterface,
-    SwimlaneSegmentLabels,
+    SwimlaneSegmentLabelMode,
     type GlobeConfig,
     type ProjectionColumnInfo,
     GrapherVariant,
