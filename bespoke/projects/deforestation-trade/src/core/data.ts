@@ -1,6 +1,11 @@
 import { QueryStatus, useQuery } from "@tanstack/react-query"
 
-import { fetchJson, getRegionByCode } from "@ourworldindata/utils"
+import {
+    fetchJson,
+    formatAttributionsShortened,
+    getAttributionFragmentsFromBespokeMetadata,
+    getRegionByCode,
+} from "@ourworldindata/utils"
 
 import { parseBespokeMetadata } from "../../../../components/MetadataModal/bespokeMetadata.js"
 
@@ -88,7 +93,9 @@ function buildMetadata(raw: RawMetadataJson): DeforestationMetadata {
 
     return {
         years: raw.years,
-        source: raw.source,
+        source: formatAttributionsShortened(
+            getAttributionFragmentsFromBespokeMetadata(raw)
+        ),
         entities,
         commodityGroups,
         entityById: new Map(entities.map((e) => [e.id, e])),
