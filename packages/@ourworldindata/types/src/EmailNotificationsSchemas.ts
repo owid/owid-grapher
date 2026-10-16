@@ -21,9 +21,15 @@ export type EmailNotificationsPreferences = z.infer<
     typeof EmailNotificationsPreferencesTypeObject
 >
 
+const CaptchaTokenType = z.string().check(z.minLength(1), z.maxLength(2048))
+/** Honeypot field: humans leave it empty, so a filled value marks a bot. */
+const HoneypotType = z.optional(z.string().check(z.maxLength(2048)))
+
 export const EmailNotificationsSubscribeRequestTypeObject = z
     .object({
         email: z.email().check(z.maxLength(254)),
+        captchaToken: CaptchaTokenType,
+        website: HoneypotType,
         notifications: z.optional(EmailNotificationsPreferencesTypeObject),
         subscribeToOwidBrief: z.boolean(),
     })
@@ -43,12 +49,18 @@ export type EmailNotificationsSubscribeRequest = z.infer<
 export const EmailNotificationsRequestLinkRequestTypeObject = z
     .object({
         email: z.optional(z.email().check(z.maxLength(254))),
+        captchaToken: z.optional(CaptchaTokenType),
+        website: HoneypotType,
         token: z.optional(z.string().check(z.minLength(1), z.maxLength(100))),
     })
     .check(
         z.refine(
             (request) => Boolean(request.email) !== Boolean(request.token),
             "Provide either an email or a token"
+        ),
+        z.refine(
+            (request) => !request.email || !!request.captchaToken,
+            "Email requests require a verification token"
         )
     )
 
