@@ -448,7 +448,7 @@ describe("writing reference live API", { timeout: 20000 }, () => {
             ],
         })
         // Key adoption: 3 causes-of-death blocks, 2 set region (one to its
-        // default), plus a key the registry doesn't know
+        // default), plus a key the registry doesn't know, which isn't counted
         await seedDoc({
             id: "bespoke-cod",
             slug: "bespoke-cod",
@@ -490,31 +490,26 @@ describe("writing reference live API", { timeout: 20000 }, () => {
         ])
 
         const [causesOfDeath, demography] = usage.bundles
-        expect(causesOfDeath).toMatchObject({
-            uses: 3,
-            docs: 1,
-            configAdoption: { region: 2, legacyKey: 1 },
-        })
+        expect(causesOfDeath).toMatchObject({ uses: 3, docs: 1 })
+        expect(causesOfDeath.configAdoption).toEqual({ region: 2 })
 
+        // Every block counts as a use, whatever its variant
         expect(demography.uses).toBe(5)
         expect(demography.docs).toBe(2)
         expect(demography.configAdoption).toEqual({ region: 1 })
-        // Known variants in registry order, then unknown ones; the missing
-        // and the empty variant are one null group
+        // Registry variants only, in registry order: the stale, missing and
+        // empty variants are left out
         expect(
             demography.variants.map(
-                (v: {
-                    variant: string | null
-                    known: boolean
-                    uses: number
-                    docs: number
-                }) => [v.variant, v.known, v.uses, v.docs]
+                (v: { variant: string; uses: number; docs: number }) => [
+                    v.variant,
+                    v.uses,
+                    v.docs,
+                ]
             )
         ).toEqual([
-            ["simulation", true, 1, 1],
-            ["population", true, 1, 1],
-            [null, false, 2, 1],
-            ["old", false, 1, 1],
+            ["simulation", 1, 1],
+            ["population", 1, 1],
         ])
 
         const [simulation] = demography.variants
@@ -534,10 +529,6 @@ describe("writing reference live API", { timeout: 20000 }, () => {
         // The copyable source comes from the real block in the doc
         expect(simulation.instances[0].archie).toMatch(/^bundle: demography$/m)
         expect(simulation.instances[0].archie).toMatch(/^variant: simulation$/m)
-        const noVariant = demography.variants[2]
-        expect(
-            noVariant.instances.map((i: { variation: string }) => i.variation)
-        ).toEqual(["", ""])
     })
 
     it("bespoke-viz/usage.json lists instances newest first", async () => {

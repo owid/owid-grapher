@@ -172,13 +172,8 @@ const bundleWith = (variants: string[]): BundleReference =>
         variants: variants.map((name) => ({ name })),
     }) as unknown as BundleReference
 
-const variantUsage = (
-    variant: string | null,
-    uses: number,
-    known = true
-): BundleVariantUsage => ({
+const variantUsage = (variant: string, uses: number): BundleVariantUsage => ({
     variant,
-    known,
     uses,
     docs: 1,
     instances: [],
@@ -239,31 +234,5 @@ describe(orderBundleVariants, () => {
     it("opens only the first variant, in registry order, when usage failed", () => {
         const ordered = orderBundleVariants(bundleWith(["a", "b", "c"]), null)
         expect(names(ordered)).toEqual({ open: ["a"], collapsed: ["b", "c"] })
-        expect(ordered.stale).toEqual([])
-    })
-
-    it("lists stale variants, and gives them no card", () => {
-        const ordered = orderBundleVariants(
-            bundleWith(["a", "b"]),
-            usageOf([
-                variantUsage("b", 2),
-                variantUsage("old", 3, false),
-                variantUsage(null, 1, false),
-            ])
-        )
-        expect(names(ordered)).toEqual({ open: ["b"], collapsed: ["a"] })
-        expect(ordered.stale.map((entry) => entry.variant)).toEqual([
-            "old",
-            null,
-        ])
-    })
-
-    it("doesn't count stale uses when ordering", () => {
-        const ordered = orderBundleVariants(
-            bundleWith(["a", "b"]),
-            usageOf([variantUsage("old", 3, false)])
-        )
-        expect(names(ordered)).toEqual({ open: ["a"], collapsed: ["b"] })
-        expect(ordered.stale.map((entry) => entry.variant)).toEqual(["old"])
     })
 })

@@ -760,22 +760,13 @@ function storedConfigKeys(config: StoredConfig): string[] {
 // A published bespoke block with its parsed config
 type BespokeBlockRow = { row: InstanceRow; config: StoredConfig }
 
-// Unknown variants: most used first; among equals, by name, with the
-// no-variant group last.
-function compareUnknownVariants(
-    a: BundleVariantUsage,
-    b: BundleVariantUsage
-): number {
-    if (a.uses !== b.uses) return b.uses - a.uses
-    if (a.variant === null) return b.variant === null ? 0 : 1
-    if (b.variant === null) return -1
-    return a.variant.localeCompare(b.variant)
-}
-
 /**
  * Published usage of each registry bundle: uses, distinct docs, per-variant
  * counts with every instance, and per-key config adoption. One scan over all
  * published bespoke blocks (a few dozen), aggregated here.
+ *
+ * Variants and config keys the registry doesn't have are left out: the
+ * reference documents the bundle, it doesn't check published docs.
  */
 export async function getBespokeVizUsage(
     _req: Request,
@@ -821,7 +812,7 @@ export async function getBespokeVizUsage(
 
     const toBundleInstance = (
         row: InstanceRow,
-        variant: string | null
+        variant: string
     ): ComponentInstance => {
         const instance: ComponentInstance = {
             gdocId: row.gdocId,
@@ -830,7 +821,7 @@ export async function getBespokeVizUsage(
             docType: row.docType as OwidGdocType,
             path: row.path,
             publishedAt: toIsoOrNull(row.publishedAt),
-            variation: variant ?? "",
+            variation: variant,
         }
         const body = bodies.get(row.gdocId)
         if (body) {
@@ -849,43 +840,33 @@ export async function getBespokeVizUsage(
     for (const bundle of (bespokeVizRegistry as BespokeVizRegistry).bundles) {
         const byVariant = byBundle.get(bundle.id)
         if (!byVariant) continue
-        const knownNames = bundle.variants.map((variant) => variant.name)
-
-        const variantUsage = (
-            variant: string | null,
-            group: BespokeBlockRow[]
-        ): BundleVariantUsage => ({
-            variant,
-            known: variant !== null && knownNames.includes(variant),
-            uses: group.length,
-            docs: new Set(group.map(({ row }) => row.gdocId)).size,
-            instances: group.map(({ row }) => toBundleInstance(row, variant)),
-        })
-
-        // Known variants in registry order, then the unknown ones (most
-        // used first, the no-variant group last among equals).
-        const known: BundleVariantUsage[] = []
-        for (const name of knownNames) {
+        // Registry variants with uses, in registry order
+        const variants: BundleVariantUsage[] = []
+        for (const { name } of bundle.variants) {
             const group = byVariant.get(name)
-            if (group) known.push(variantUsage(name, group))
+            if (!group) continue
+            variants.push({
+                variant: name,
+                uses: group.length,
+                docs: new Set(group.map(({ row }) => row.gdocId)).size,
+                instances: group.map(({ row }) => toBundleInstance(row, name)),
+            })
         }
-        const unknown = [...byVariant.entries()]
-            .filter(([name]) => name === null || !knownNames.includes(name))
-            .map(([name, group]) => variantUsage(name, group))
-            .sort(compareUnknownVariants)
 
         const all = [...byVariant.values()].flat()
+        const configNames = new Set(bundle.config.map((field) => field.name))
         const configAdoption: Record<string, number> = {}
         for (const { config } of all) {
             for (const key of storedConfigKeys(config))
-                configAdoption[key] = (configAdoption[key] ?? 0) + 1
+                if (configNames.has(key))
+                    configAdoption[key] = (configAdoption[key] ?? 0) + 1
         }
 
         bundles.push({
             bundle: bundle.id,
             uses: all.length,
             docs: new Set(all.map(({ row }) => row.gdocId)).size,
-            variants: [...known, ...unknown],
+            variants,
             configAdoption,
         })
     }

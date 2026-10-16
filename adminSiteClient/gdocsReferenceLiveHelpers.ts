@@ -300,8 +300,6 @@ export interface OrderedBundleVariants {
     open: BundleVariantEntry[]
     /** The "N variants not used yet" tail, in registry order */
     collapsed: BundleVariantEntry[]
-    /** Used variant names the registry doesn't know (null = no variant) */
-    stale: BundleVariantUsage[]
 }
 
 /**
@@ -312,7 +310,7 @@ export interface OrderedBundleVariants {
  * - Used variants come first, most uses first (ties in registry order).
  * - The rest wait in the collapsed tail, in registry order.
  * - The first variant is open when nothing is used.
- * - Without usage, only the first variant is open, and nothing is stale.
+ * - Without usage, only the first variant is open.
  */
 export function orderBundleVariants(
     bundle: BundleReference,
@@ -323,16 +321,11 @@ export function orderBundleVariants(
     }))
 
     if (usage === null)
-        return {
-            open: entries.slice(0, 1),
-            collapsed: entries.slice(1),
-            stale: [],
-        }
+        return { open: entries.slice(0, 1), collapsed: entries.slice(1) }
 
-    // Only known variants with uses count as used; stale names get no card
     const usageByName = new Map(
         (usage?.variants ?? [])
-            .filter((entry) => entry.known && entry.uses > 0)
+            .filter((entry) => entry.uses > 0)
             .map((entry) => [entry.variant, entry])
     )
     for (const entry of entries) {
@@ -346,7 +339,6 @@ export function orderBundleVariants(
         .sort((a, b) => (b.usage?.uses ?? 0) - (a.usage?.uses ?? 0))
     const open = used.length > 0 ? used : entries.slice(0, 1)
     const collapsed = entries.filter((entry) => !open.includes(entry))
-    const stale = (usage?.variants ?? []).filter((entry) => !entry.known)
 
-    return { open, collapsed, stale }
+    return { open, collapsed }
 }

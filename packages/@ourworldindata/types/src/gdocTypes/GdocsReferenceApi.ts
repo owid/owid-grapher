@@ -195,27 +195,21 @@ export interface BespokeVizUsage {
 
 export interface BundleUsage {
     bundle: string
-    /** Published blocks of the bundle */
+    /** Published blocks of the bundle, whatever their variant */
     uses: number
     /** Distinct published docs using the bundle */
     docs: number
-    /**
-     * Only variants with uses: known ones in registry order, then the
-     * unknown ones (stale names, or no variant at all)
-     */
+    /** The registry's variants that have uses, in registry order */
     variants: BundleVariantUsage[]
     /**
-     * Per config key, the blocks that set it (to any value, its default
-     * included). Keys outside the registry's config are kept.
+     * Per registry config key, the blocks that set it (to any value, its
+     * default included)
      */
     configAdoption: Record<string, number>
 }
 
 export interface BundleVariantUsage {
-    /** The stored variant name; null when the block has none (or "") */
-    variant: string | null
-    /** Whether the name is one of the bundle's registry variants */
-    known: boolean
+    variant: string
     uses: number
     docs: number
     /** Every published instance, newest first */

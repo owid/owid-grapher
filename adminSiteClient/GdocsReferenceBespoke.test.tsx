@@ -197,7 +197,6 @@ const demoUsage: BundleUsage = {
     variants: [
         {
             variant: "map",
-            known: true,
             uses: 2,
             docs: 2,
             instances: [instance("doc-new"), instance("doc-old")],
@@ -369,44 +368,6 @@ describe(BespokeBundlePage, () => {
             "/gdocs-reference/bespoke-viz/demo/preview?variant=map",
         ])
         expect(screen.getByText("Default block")).toBeTruthy()
-    })
-
-    it("warns about stale variants, with their use counts", () => {
-        responses.set(REGISTRY_PATH, { bundles: [fullBundle()] })
-        responses.set(USAGE_PATH, {
-            bundles: [
-                {
-                    ...demoUsage,
-                    variants: [
-                        ...demoUsage.variants,
-                        {
-                            variant: "old",
-                            known: false,
-                            uses: 3,
-                            docs: 1,
-                            instances: [instance("doc-stale")],
-                        },
-                        {
-                            variant: null,
-                            known: false,
-                            uses: 1,
-                            docs: 1,
-                            instances: [instance("doc-bare")],
-                        },
-                    ],
-                },
-            ],
-        })
-        renderBundlePage()
-
-        expect(
-            screen.getByText(/variant this bundle doesn't have/).textContent
-        ).toBe(
-            "Published uses with a variant this bundle doesn't have: old (3 uses), (no variant) (1 use)."
-        )
-        // Stale variants get no card and no carousel
-        expect(screen.queryByText("Title of doc-stale")).toBeNull()
-        expect(screen.queryByRole("button", { name: /^old/ })).toBeNull()
     })
 
     it("lists config values as chips, with the default highlighted", () => {

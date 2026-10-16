@@ -266,7 +266,7 @@ function BundleVariants({
     titleFor?: TitleFor
 }): React.ReactElement {
     const [expanded, setExpanded] = useState<Set<string>>(new Set())
-    const { open, collapsed, stale } = orderBundleVariants(bundle, usage)
+    const { open, collapsed } = orderBundleVariants(bundle, usage)
     const usageKnown = usage !== null
 
     const toggle = (name: string): void => {
@@ -304,18 +304,6 @@ function BundleVariants({
                     {bundle.variants.length}
                 </span>
             </h2>
-            {stale.length > 0 && (
-                <p className="gdocs-ref-live__stale">
-                    Published uses with a variant this bundle doesn't have:{" "}
-                    {stale
-                        .map(
-                            (entry) =>
-                                `${entry.variant ?? "(no variant)"} (${entry.uses} use${entry.uses === 1 ? "" : "s"})`
-                        )
-                        .join(", ")}
-                    .
-                </p>
-            )}
             {open.map((entry) => card(entry, false))}
             {collapsed.length > 0 && (
                 <div className="gdocs-ref-live__form-tail">
