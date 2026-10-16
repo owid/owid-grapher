@@ -3,6 +3,7 @@ import { Bounds } from "@ourworldindata/utils"
 import {
     ColumnTypeNames,
     GRAPHER_CHART_TYPES,
+    GrapherVariant,
     SortBy,
     SortOrder,
 } from "@ourworldindata/types"
@@ -227,5 +228,54 @@ describe("segments", () => {
         ])
         expect(segments[0].timeRangeLabel).toEqual("2000 to 2002")
         expect(hasLabel(segments[0])).toBe(true)
+    })
+})
+
+describe("thumbnail", () => {
+    function makeThumbnail(
+        config: Partial<GrapherProgrammaticInterface> = {}
+    ): SwimlaneChart {
+        return makeChart(ColumnTypeNames.String, {
+            variant: GrapherVariant.Thumbnail,
+            bounds: new Bounds(0, 0, 300, 160),
+            ...config,
+        }).chart
+    }
+
+    it("lays out a row for every entity and the legend, without segment labels", () => {
+        const chart = makeThumbnail()
+
+        expect(chart["categoricalLegendState"]).toBeDefined()
+        for (const entityName of ["France", "Germany"]) {
+            const segments = findRow(chart, entityName).placedSegments
+            expect(segments).not.toHaveLength(0)
+            expect(segments.map(hasLabel)).toEqual(segments.map(() => false))
+        }
+    })
+
+    it("ends the x-axis endpoint labels on the last time", () => {
+        const chart = makeThumbnail()
+
+        expect(
+            chart.xAxis.endpointTickLabels.map((tick) => tick.formattedValue)
+        ).toEqual(["2000", "2005"])
+    })
+
+    it("drops the legend but keeps the rows with minimal labeling", () => {
+        const chart = makeThumbnail({ useMinimalLabeling: true })
+
+        expect(chart["categoricalLegendState"]).toBeUndefined()
+        expect(chart["ordinalLegendState"]).toBeUndefined()
+        expect(findRow(chart, "France").placedSegments).not.toHaveLength(0)
+        expect(findRow(chart, "Germany").placedSegments).not.toHaveLength(0)
+    })
+
+    it("still labels segments and every year, but not the axis end, outside the thumbnail variant", () => {
+        const { chart } = makeChart(ColumnTypeNames.String)
+
+        expect(hasLabel(findRow(chart, "France").placedSegments[0])).toBe(true)
+        expect(
+            chart.xAxis.tickLabels.map((tick) => tick.formattedValue)
+        ).toEqual(["2000", "2001", "2002", "2003", "2004", "2005"])
     })
 })

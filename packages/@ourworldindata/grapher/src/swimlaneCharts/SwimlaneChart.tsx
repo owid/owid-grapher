@@ -2,7 +2,6 @@ import React from "react"
 import { action, computed, makeObservable, observable } from "mobx"
 import { observer } from "mobx-react"
 import { scalePoint, ScalePoint } from "d3-scale"
-import { SeriesName, SwimlaneSegmentLabelMode } from "@ourworldindata/types"
 import {
     Bounds,
     excludeUndefined,
@@ -19,6 +18,11 @@ import {
     makePatternId,
     Patterns,
 } from "../core/GrapherConstants"
+import {
+    GrapherVariant,
+    SeriesName,
+    SwimlaneSegmentLabelMode,
+} from "@ourworldindata/types"
 import { AnimatedRows } from "../animation/AnimatedRows"
 import { enrichSeriesWithLabels } from "../rowSeriesLabels/RowSeriesLabelHelpers.js"
 import { NoDataMessage } from "../noDataMessage/NoDataMessage"
@@ -254,6 +258,7 @@ export class SwimlaneChart
 
     @computed private get shouldShowSegmentLabels(): boolean {
         return (
+            !this.isThumbnail &&
             this.chartState.segmentLabelMode !== SwimlaneSegmentLabelMode.None
         )
     }
@@ -347,6 +352,10 @@ export class SwimlaneChart
             focusArray: this.chartState.focusArray,
             hoveredLegendBin: this.hoveredCategoricalBin,
         })
+    }
+
+    @computed private get isThumbnail(): boolean {
+        return this.manager.variant === GrapherVariant.Thumbnail
     }
 
     override componentDidMount(): void {
@@ -460,6 +469,7 @@ export class SwimlaneChart
                     tickColor={GRAPHER_LIGHT_TEXT}
                     showTickMarks={true}
                     preferredAxisPosition={this.innerBounds.bottom}
+                    showEndpointsOnly={this.isThumbnail}
                 />
                 <HorizontalAxisDomainLine
                     bounds={this.innerBounds}
