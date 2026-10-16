@@ -18,7 +18,7 @@ import {
     SeriesStrategy,
 } from "@ourworldindata/types"
 import { SelectionArray } from "../selection/SelectionArray"
-import { SortBy, SortOrder } from "@ourworldindata/utils"
+import { Bounds, SortBy, SortOrder } from "@ourworldindata/utils"
 import { OwidDistinctColorScheme } from "../color/CustomSchemes"
 import { DiscreteBarChartState } from "./DiscreteBarChartState"
 import { renderToStaticMarkup } from "react-dom/server"
@@ -264,5 +264,97 @@ describe("static SVG export of projected data", () => {
             )![0]
             expect(bar).toContain(`fill="${color}"`)
         }
+    })
+})
+
+describe("entity labels", () => {
+    const habitatLoss: [string, number][] = [
+        ["World", -5.79],
+        ["Sub-Saharan Africa", -12.72],
+        ["South and East Asia", -2.51],
+        ["Europe", -1.18],
+        ["North America", -3.67],
+        ["Latin America", -4.19],
+        ["North Africa", -2.86],
+        ["Oceania", -1.18],
+    ]
+
+    function makeChart(
+        rows: [string, number][] = habitatLoss
+    ): DiscreteBarChart {
+        const table = new OwidTable([
+            ["loss", "year", "entityName", "entityCode", "entityId"],
+            ...rows.map(([entityName, value], index) => [
+                value,
+                2050,
+                entityName,
+                null,
+                index + 1,
+            ]),
+        ])
+        const chartState = new DiscreteBarChartState({
+            manager: {
+                table,
+                transformedTable: table,
+                seriesStrategy: SeriesStrategy.entity,
+                yColumnSlugs: ["loss"],
+                selection: rows.map(([entityName]) => entityName),
+                endTime: 2050,
+            },
+        })
+        return new DiscreteBarChart({
+            chartState,
+            bounds: new Bounds(0, 0, 321, 290),
+        })
+    }
+
+    function getLineTexts(
+        chart: DiscreteBarChart,
+        entityName: string
+    ): string[] {
+        const series = chart.sizedSeries.find(
+            (series) => series.entityName === entityName
+        )
+        return series!.label.spanLines.map((line) =>
+            line.map((span) => span.text).join("")
+        )
+    }
+
+    it("wraps the label that sets the left padding", () => {
+        expect(getLineTexts(makeChart(), "Sub-Saharan Africa")).toEqual([
+            "Sub-Saharan",
+            "Africa",
+        ])
+    })
+
+    it("keeps labels of shorter negative bars on one line", () => {
+        expect(getLineTexts(makeChart(), "South and East Asia")).toEqual([
+            "South and East Asia",
+        ])
+    })
+
+    it("leaves no gap left of the leftmost label", () => {
+        const chart = makeChart()
+        const labelLeftEdges = chart.placedSeries.map(
+            (series) => series.entityLabelX - series.label.width
+        )
+        expect(_.min(labelLeftEdges)).toBeCloseTo(0, 0)
+    })
+
+    it("lets labels of positive bars fill the label column", () => {
+        const chart = makeChart([
+            ...habitatLoss.map(([entityName, value]): [string, number] => [
+                entityName,
+                -value,
+            ]),
+            ["Pneumonoultramicroscopic Africa", 2],
+        ])
+        expect(getLineTexts(chart, "Pneumonoultramicroscopic Africa")).toEqual([
+            "Pneumonoultramicroscopic",
+            "Africa",
+        ])
+        expect(getLineTexts(chart, "South and East Asia")).toEqual([
+            "South and East Asia",
+        ])
     })
 })
